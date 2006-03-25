@@ -1,5 +1,5 @@
 ;-----------------------------------------------------------------------------------------------
-; NSIS script for RichEdit Update to 3.0
+; NSIS script for RichEdit update to 3.0 version
 ;
 ; 2006 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
 ;-----------------------------------------------------------------------------------------------
