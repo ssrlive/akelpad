@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "v3.0"
+!define PRODUCT_VERSION "3.0.0-beta7-setup"
 
 ;_____________________________________________________________________________________________
 ;
@@ -335,8 +335,11 @@ Function DirectoryLeave
 	SetOutPath "$INSTDIR"
 	CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTEXE"
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$INSTDIR\AkelFiles\AkelPad.htm"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk" "$INSTDIR\AkelFiles\Uninstall.exe"
+	StrCmp $LANGUAGE ${LANG_RUSSIAN} 0 +3
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$INSTDIR\AkelFiles\AkelPad-Rus.htm"
+	goto +2
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$INSTDIR\AkelFiles\AkelPad-Eng.htm"
 
 	end:
 FunctionEnd
@@ -371,15 +374,18 @@ Section
 
 	Install:
 	SetOutPath "$INSTDIR"
-	File "files\AkelPad.exe"
+	File "Files\AkelPad.exe"
 
 	SetOutPath "$INSTDIR\AkelFiles"
-	File "files\AkelFiles\AkelPad.htm"
-	File "files\AkelFiles\History.txt"
+	File "Files\AkelFiles\AkelPad-Eng.htm"
+	File "Files\AkelFiles\AkelPad-Rus.htm"
+	File "Files\AkelFiles\History-Rus.txt"
 
 	SetOutPath "$INSTDIR\AkelFiles\Langs"
-	File "files\AkelFiles\Langs\English.dll"
-	File "files\AkelFiles\Langs\Russian.dll"
+	File "Files\AkelFiles\Langs\English.dll"
+	File "Files\AkelFiles\Langs\Russian.dll"
+
+	SetOutPath "$INSTDIR\AkelFiles\Plugs"
 
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
 	IfFileExists "$INSTDIR\notepad_AkelUndo.exe" +2
@@ -454,10 +460,12 @@ Section un.install
 
 	Delete "$INSTDIR\Langs\Russian.dll"
 	Delete "$INSTDIR\Langs\English.dll"
-	Delete "$INSTDIR\History.txt"
-	Delete "$INSTDIR\AkelPad.htm"
+	Delete "$INSTDIR\History-Rus.txt"
+	Delete "$INSTDIR\AkelPad-Eng.htm"
+	Delete "$INSTDIR\AkelPad-Rus.htm"
 	Delete "$INSTDIR\Uninstall.exe"
 	RMDir "$INSTDIR\Langs"
+	RMDir "$INSTDIR\Plugs"
 	RMDir "$INSTDIR"
 
 	${un.GetParent} "$INSTDIR" $0
