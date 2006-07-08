@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.0.0-beta7-setup"
+!define PRODUCT_VERSION "3.0.0-beta7"
 
 ;_____________________________________________________________________________________________
 ;
@@ -8,7 +8,7 @@
 ;_____________________________________________________________________________________________
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "${PRODUCT_NAME} ${PRODUCT_VERSION}.exe"
+OutFile "${PRODUCT_NAME}${PRODUCT_VERSION}-setup.exe"
 SetCompressor /SOLID lzma
 SubCaption 3 ' '
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
