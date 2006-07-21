@@ -121,7 +121,7 @@ LangString UninstallSuccess ${LANG_ENGLISH} 'Uninstall was completed successfull
 LangString UninstallSuccess ${LANG_RUSSIAN} 'Удаление программы успешно завершено.'
 
 Function .onInit
-	FindWindow $0 "AkelPad Synchronizing Class"
+	FindWindow $0 "AkelPad3"
 	IsWindow $0 0 +3
 	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(InstallAlreadyRun)" IDRETRY  -2
 	quit
@@ -420,7 +420,7 @@ SectionEnd
 ;_____________________________________________________________________________________________
 
 Function un.onInit
-	FindWindow $0 "AkelPad Synchronizing Class"
+	FindWindow $0 "AkelPad3"
 	IsWindow $0 0 +3
 	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(UninstallAlreadyRun)" IDRETRY  -2
 	quit
