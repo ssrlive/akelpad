@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.0.0-beta9"
+!define PRODUCT_VERSION "3.0.0-beta11"
 
 ;_____________________________________________________________________________________________
 ;
@@ -443,8 +443,15 @@ FunctionEnd
 Function un.uninstConfirmLeave
 	GetDlgItem $0 $R0 1051
 	SendMessage $0 ${BM_GETSTATE} 0 0 $1
-	StrCmp $1 0 +2
+
+	StrCmp $1 0 end
 	DeleteRegKey HKCU "SOFTWARE\Akelsoft\${PRODUCT_NAME}"
+
+	${un.GetParent} "$INSTDIR" $0
+	IfFileExists "$0\AkelPad.ini" 0 +2
+	Delete "$0\AkelPad.ini"
+
+	end:
 FunctionEnd
 
 Section un.install
