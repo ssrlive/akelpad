@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.0.3"
+!define PRODUCT_VERSION "3.0.4"
 
 ;_____________________________________________________________________________________________
 ;
@@ -390,12 +390,12 @@ Section
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
 	IfFileExists "$INSTDIR\notepad_AkelUndo.exe" +2
 	Rename "$INSTDIR\notepad.exe" "$INSTDIR\notepad_AkelUndo.exe"
+	IfFileExists "$INSTDIR\DLLCACHE\notepad.exe" 0 +2
+	Delete "$INSTDIR\DLLCACHE\notepad.exe"
+	Rename "$INSTDIR\AkelPad.exe" "$INSTDIR\DLLCACHE\notepad.exe"
 	IfFileExists "$INSTDIR\notepad.exe" 0 +2
 	Delete "$INSTDIR\notepad.exe"
-	Rename "$INSTDIR\AkelPad.exe" "$INSTDIR\notepad.exe"
-	IfFileExists "$INSTDIR\DLLCACHE\notepad.exe" 0 +3
-	Delete "$INSTDIR\DLLCACHE\notepad.exe"
-	CopyFiles /SILENT "$INSTDIR\notepad.exe" "$INSTDIR\DLLCACHE"
+	CopyFiles /SILENT "$INSTDIR\DLLCACHE\notepad.exe" "$INSTDIR"
 
 	RegInfo:
 	WriteUninstaller "$INSTDIR\AkelFiles\Uninstall.exe"
