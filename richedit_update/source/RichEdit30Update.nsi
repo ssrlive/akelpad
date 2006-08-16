@@ -19,7 +19,7 @@ Function .onInit
 	${GetFileVersion} "$SYSDIR\riched20.dll" $0
 	IfErrors Update
 
-	${VersionCompare} "5.30.23.1200" "$0" $1
+	${VersionCompare} "5.30.23.1221" "$0" $1
 	StrCmp $1 1 0 AlreadyInstalled
 
 	Update:
