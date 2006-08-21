@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.0.4"
+!define PRODUCT_VERSION "3.0.5"
 
 ;_____________________________________________________________________________________________
 ;
@@ -34,6 +34,10 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "graphics\WizardFinish.bmp"
 
 ############  Defines  ############
+!define LANG_ENGLISH 1033
+!define LANG_RUSSIAN 1049
+!define LANG_GERMAN  1043
+
 !define INSTTYPE_STANDART 1
 !define INSTTYPE_TOTALCMD 2
 !define INSTTYPE_NOTEPAD  3
@@ -44,6 +48,7 @@ Var HWND
 Var REDCTL
 Var INSTTYPE
 Var INSTEXE
+Var SYSLANGUAGE
 
 ############  Pages  ############
 Page Custom CustomShow CustomLeave
@@ -149,6 +154,7 @@ Function .onInit
 	WriteINIStr "$INI" "Field 10" "Text" "$0"
 
 	StrCpy $REDCTL 0
+	StrCpy $SYSLANGUAGE $LANGUAGE
 FunctionEnd
 
 Function CustomShow
@@ -336,7 +342,7 @@ Function DirectoryLeave
 	CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTEXE"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk" "$INSTDIR\AkelFiles\Uninstall.exe"
-	StrCmp $LANGUAGE ${LANG_RUSSIAN} 0 +3
+	StrCmp $SYSLANGUAGE ${LANG_RUSSIAN} 0 +3
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$INSTDIR\AkelFiles\AkelPad-Rus.htm"
 	goto +2
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$INSTDIR\AkelFiles\AkelPad-Eng.htm"
@@ -384,7 +390,7 @@ Section
 	SetOutPath "$INSTDIR\AkelFiles\Langs"
 	File "Files\AkelFiles\Langs\English.dll"
 	File "Files\AkelFiles\Langs\Russian.dll"
-
+	File "Files\AkelFiles\Langs\German.dll"
 	SetOutPath "$INSTDIR\AkelFiles\Plugs"
 
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
@@ -407,8 +413,10 @@ Section
 	ClearErrors
 	ReadRegStr $0 HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule"
 	IfErrors 0 end
-	StrCmp $LANGUAGE ${LANG_RUSSIAN} 0 +2
+	StrCmp $SYSLANGUAGE ${LANG_RUSSIAN} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Russian.dll"
+	StrCmp $SYSLANGUAGE ${LANG_GERMAN} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "German.dll"
 
 	end:
 SectionEnd
@@ -465,8 +473,9 @@ Section un.install
 	Delete "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk"
 	RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
 
-	Delete "$INSTDIR\Langs\Russian.dll"
 	Delete "$INSTDIR\Langs\English.dll"
+	Delete "$INSTDIR\Langs\Russian.dll"
+	Delete "$INSTDIR\Langs\German.dll"
 	Delete "$INSTDIR\History-Rus.txt"
 	Delete "$INSTDIR\AkelPad-Eng.htm"
 	Delete "$INSTDIR\AkelPad-Rus.htm"
