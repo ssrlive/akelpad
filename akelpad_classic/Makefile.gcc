@@ -1,0 +1,52 @@
+all: dirs ru/akelpad.exe en/akelpad.exe
+
+dirs:
+	if [ ! -e ru ]; then mkdir ru; fi
+	if [ ! -e en ]; then mkdir en; fi
+	cp rewrite.bat ru/
+	cp rewrite.bat en/
+
+ru/akelpad.exe: ru/akelpad.o ru/edit.o ru/codepage.o ru/lang.o ru/akelrc.o
+	g++ -Wall -Os ru/akelpad.o ru/edit.o ru/codepage.o ru/lang.o ru/akelrc.o -lcomdlg32 -lcomctl32 -lgdi32 -mwindows -o ru/akelpad.exe
+	strip ru/akelpad.exe
+	
+ru/akelpad.o: akelpad.cpp akelpad.h edit.h codepage.h langpack.h
+	g++ -Wall -Os -c akelpad.cpp -o ru/akelpad.o
+
+ru/edit.o: edit.cpp akelpad.h edit.h codepage.h langpack.h
+	g++ -Wall -Os -c edit.cpp -o ru/edit.o
+
+ru/codepage.o: codepage.cpp akelpad.h edit.h codepage.h langpack.h
+	g++ -Wall -Os -c codepage.cpp -o ru/codepage.o
+
+ru/lang.o: lang_ru.cpp langpack.h
+	g++ -Wall -Os -c lang_ru.cpp -o ru/lang.o
+
+ru/akelrc.o: akelpad.rc
+	windres akelpad.rc -o ru/akelrc.o
+
+en/akelpad.exe: en/akelpad.o en/edit.o en/codepage.o en/lang.o en/akelrc.o
+	g++ -Wall -Os en/akelpad.o en/edit.o en/codepage.o en/lang.o en/akelrc.o -lcomdlg32 -lcomctl32 -lgdi32 -mwindows -o en/akelpad.exe
+	strip en/akelpad.exe
+	
+en/akelpad.o: akelpad.cpp akelpad.h edit.h codepage.h langpack.h
+	g++ -Wall -Os -c -DFOREIGN_BUILD akelpad.cpp -o en/akelpad.o
+
+en/edit.o: edit.cpp akelpad.h edit.h codepage.h langpack.h
+	g++ -Wall -Os -c -DFOREIGN_BUILD edit.cpp -o en/edit.o
+
+en/codepage.o: codepage.cpp akelpad.h edit.h codepage.h langpack.h
+	g++ -Wall -Os -c -DFOREIGN_BUILD codepage.cpp -o en/codepage.o
+
+en/lang.o: lang_en.cpp langpack.h
+	g++ -Wall -Os -c lang_en.cpp -o en/lang.o
+
+en/akelrc.o: akelpad_en.rc
+	windres akelpad_en.rc -o en/akelrc.o
+
+
+clean:
+	rm -f ru/*.*
+	rm -f en/*.*
+	rmdir ru
+	rmdir en
