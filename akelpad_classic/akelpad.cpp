@@ -412,6 +412,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     case IDM_SETTINGS_NOMULTIOPEN:
      DoSettingsNoMultiOpen(hWndEdit);
      SaveOptionsInRegistry(hWnd);
+     break;
     case IDM_SETTINGS_ASIAN:
      DoSettingsAsian(hWndEdit);
      break;

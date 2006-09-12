@@ -1,5 +1,6 @@
 Revision history:
 
+2.1.8a: Settings error fixed.
 2.1.8: Option added to support asian characters.
 2.1.7: Big files are now opened much more quickly.
 2.1.6: Added workaround of RichEdit bug concerning replace. Added history of opened files.
