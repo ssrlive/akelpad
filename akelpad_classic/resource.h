@@ -72,7 +72,7 @@
 #define IDM_CODEPAGE_OPENAS_UNICODE_UTF8 40044
 #define IDM_CODEPAGE_SAVEIN_UNICODE_UCS2_LE 40045
 #define IDM_CODEPAGE_SAVEIN_UNICODE_UTF8 40046
-#define IDM_SETTINGS_UNICODE            40047
+#define IDM_SETTINGS_ASIAN            40047
 
 // Next default values for new objects
 // 

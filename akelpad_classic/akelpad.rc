@@ -118,6 +118,7 @@ BEGIN
         MENUITEM "&Фон...",                     IDM_SETTINGS_BG
         MENUITEM SEPARATOR
         MENUITEM "Не &открывать файл дважды",   IDM_SETTINGS_NOMULTIOPEN
+        MENUITEM "Поддержка &азиатских символов (медленнее)",   IDM_SETTINGS_ASIAN
     END
     POPUP "&Справка"
     BEGIN
@@ -307,7 +308,7 @@ CAPTION "О программе"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME,8,4,139,67
-    LTEXT           "Редактор AkelPad 2.1.7a",-1,14,8,132,11,NOT WS_GROUP
+    LTEXT           "Редактор AkelPad 2.1.7+",-1,14,8,132,11,NOT WS_GROUP
     LTEXT           "© Алексей Кузнецов, 2003-2006.\nВсе права защищены.",-1,
                     14,20,124,18,NOT WS_GROUP
     LTEXT           "E-mail:",-1,21,41,28,12,NOT WS_GROUP

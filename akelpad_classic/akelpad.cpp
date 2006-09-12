@@ -14,6 +14,7 @@ extern BOOL keep_on;
 extern BOOL need_autodetect;
 extern BOOL open_in_new_window;
 extern BOOL unix_newline;
+extern BOOL support_asian;
 
 extern char recent_names[RECENTFILES][MAX_PATH+1];
 extern DWORD recent_positions[RECENTFILES];
@@ -411,6 +412,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     case IDM_SETTINGS_NOMULTIOPEN:
      DoSettingsNoMultiOpen(hWndEdit);
      SaveOptionsInRegistry(hWnd);
+    case IDM_SETTINGS_ASIAN:
+     DoSettingsAsian(hWndEdit);
      break;
 
     case IDM_CODEPAGE_OPENAS_ANSI:

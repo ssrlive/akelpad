@@ -63,6 +63,9 @@ BOOL keep_on=FALSE; //keep left space
 BOOL need_autodetect=FALSE; //if charset should be auto-detected
 BOOL replace_in_sel=FALSE; //if replacement should be done in selection instead of whole text
 BOOL open_in_new_window=TRUE;
+BOOL support_asian=FALSE;
+
+LRESULT lang_settings;
 
 void SetLayout();
 void RestoreLayout();
@@ -174,6 +177,7 @@ void InitEditor(HWND hWndEdit) {
  pd.Flags=PD_ALLPAGES|PD_NOPAGENUMS|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
  pd.nCopies=1;
  
+ lang_settings=SendMessage(hWndEdit,EM_GETLANGOPTIONS,(WPARAM)0,(LPARAM)0);
  SendMessage(hWndEdit,EM_SETLANGOPTIONS,(WPARAM)0,(LPARAM)0);
 }
 
@@ -638,6 +642,21 @@ void DoSettingsNoMultiOpen(HWND hWndEdit) {
  }
  else {
   CheckMenuItem(hMenu,IDM_SETTINGS_NOMULTIOPEN,MF_CHECKED);
+ }
+}
+
+void DoSettingsAsian(HWND hWndEdit) {
+ HMENU hMenu;
+
+ hMenu=GetMenu(GetParent(hWndEdit));
+ support_asian=!support_asian;
+ if(!support_asian) {
+  CheckMenuItem(hMenu,IDM_SETTINGS_ASIAN,MF_UNCHECKED);
+  SendMessage(hWndEdit,EM_SETLANGOPTIONS,(WPARAM)0,(LPARAM)0);
+ }
+ else {
+  CheckMenuItem(hMenu,IDM_SETTINGS_ASIAN,MF_CHECKED);
+  SendMessage(hWndEdit,EM_SETLANGOPTIONS,(WPARAM)0,(LPARAM)lang_settings);
  }
 }
 
@@ -1510,6 +1529,15 @@ BOOL RestoreOptionsFromRegistry(HWND hWndEdit) {
  }
  
  if(RegQueryValueEx(hKey,
+                    "Support_asian_characters",
+                    NULL,
+                    &dwType,
+                    (LPBYTE)&dwValue,
+                    &dwSize)==ERROR_SUCCESS) {
+   if(dwType==REG_DWORD&&dwValue) DoSettingsAsian(hWndEdit);
+ }
+ 
+ if(RegQueryValueEx(hKey,
                     "Replace_in_selection",
                     NULL,
                     &dwType,
@@ -1722,6 +1750,16 @@ BOOL SaveOptionsInRegistry(HWND hWnd) {
                   0,
                   REG_DWORD,
                   (LPBYTE)(open_in_new_window?&dwOne:&dwZero),
+                  sizeof(DWORD))!=ERROR_SUCCESS) {
+  RegCloseKey(hKey);
+  return FALSE;
+ }
+ 
+ if(RegSetValueEx(hKey,
+                  "Support_asian_characters",
+                  0,
+                  REG_DWORD,
+                  (LPBYTE)(support_asian?&dwOne:&dwZero),
                   sizeof(DWORD))!=ERROR_SUCCESS) {
   RegCloseKey(hKey);
   return FALSE;

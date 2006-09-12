@@ -52,6 +52,7 @@ void DoSearchGoToLine(HWND hWndEdit);
 void DoSettingsFont(HWND hWndEdit);
 void DoSettingsBG(HWND hWndEdit);
 void DoSettingsNoMultiOpen(HWND hWndEdit);
+void DoSettingsAsian(HWND hWndEdit);
 
 void DoCodePageOpenAs(HWND hWndEdit);
 int DoCodePageSaveIn(HWND hWndEdit);
