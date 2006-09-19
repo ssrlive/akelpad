@@ -23,8 +23,12 @@ Function .onInit
 	StrCmp $1 1 0 AlreadyInstalled
 
 	Update:
-	SetOutPath $SYSDIR
+	SetOutPath "$SYSDIR\DLLCACHE"
 	File "riched20.dll"
+
+	SetOutPath "$SYSDIR"
+	File "riched20.dll"
+
 	MessageBox MB_OK|MB_ICONINFORMATION "RichEdit v3.0 successfully installed"
 	goto End
 
