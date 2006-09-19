@@ -5,7 +5,7 @@
 ;-----------------------------------------------------------------------------------------------
 
 Name "RichEdit v3.0 Update"
-OutFile "RichEdit30Update.exe"
+OutFile "RichEdit30-Update.exe"
 Caption "$(^Name)"
 SetCompressor /SOLID lzma
 
