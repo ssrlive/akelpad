@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.0.9"
+!define PRODUCT_VERSION "3.1.0"
 
 ;_____________________________________________________________________________________________
 ;
@@ -93,8 +93,8 @@ LangString TypeStandartText ${LANG_ENGLISH} 'Program will be installed to the sp
 LangString TypeStandartText ${LANG_RUSSIAN} 'Программа будет установлена в указанную директорию.'
 LangString TypeTotalcmdText ${LANG_ENGLISH} 'Program will be installed as external editor for Total Commander file manager.'
 LangString TypeTotalcmdText ${LANG_RUSSIAN} 'Программа будет установлена как внешний редактор для файлового менеджера Total Commander.'
-LangString TypeNotepadText ${LANG_ENGLISH} 'Windows notepad will be replaced with program. Copy of the notepad will be restored after program uninstall.'
-LangString TypeNotepadText ${LANG_RUSSIAN} 'Блокнот Windows будет заменен программой. Копия блокнота будет восстановлена после удаления программы.'
+LangString TypeNotepadText ${LANG_ENGLISH} 'Necessary to install twice!$\nWindows notepad will be replaced with program. Copy of the notepad will be restored after program uninstall.'
+LangString TypeNotepadText ${LANG_RUSSIAN} 'Необходимо установить дважды!$\nБлокнот Windows будет заменен программой. После её удаления копия блокнота будет восстановлена.'
 LangString DirectoryInfoTitle ${LANG_ENGLISH} 'Choose Install Location'
 LangString DirectoryInfoTitle ${LANG_RUSSIAN} 'Выбор папки установки'
 LangString DirectoryInfoText ${LANG_ENGLISH} 'Choose the folder in which to install $(^Name).'
@@ -397,7 +397,7 @@ Section
 
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
 	IfFileExists "$INSTDIR\notepad_AkelUndo.exe" +2
-	Rename "$INSTDIR\notepad.exe" "$INSTDIR\notepad_AkelUndo.exe"
+	CopyFiles /SILENT "$INSTDIR\notepad.exe" "$INSTDIR\notepad_AkelUndo.exe"
 	IfFileExists "$INSTDIR\DLLCACHE\notepad.exe" 0 +2
 	Delete "$INSTDIR\DLLCACHE\notepad.exe"
 	Rename "$INSTDIR\AkelPad.exe" "$INSTDIR\DLLCACHE\notepad.exe"
@@ -496,11 +496,12 @@ Section un.install
 	StrCmp $0 $SYSDIR +2
 	StrCmp $0 $WINDIR 0 UnTotalcmd
 	IfFileExists "$0\notepad_AkelUndo.exe" 0 Success
+	IfFileExists "$0\DLLCACHE\notepad.exe" 0 +4
+	Delete "$0\DLLCACHE\notepad.exe"
+	CopyFiles /SILENT "$0\notepad_AkelUndo.exe" "$0\DLLCACHE"
+	Rename "$0\DLLCACHE\notepad_AkelUndo.exe" "$0\DLLCACHE\notepad.exe"
 	Delete "$0\notepad.exe"
 	Rename "$0\notepad_AkelUndo.exe" "$0\notepad.exe"
-	IfFileExists "$0\DLLCACHE\notepad.exe" 0 Success
-	Delete "$0\DLLCACHE\notepad.exe"
-	CopyFiles /SILENT "$0\notepad.exe" "$0\DLLCACHE"
 
 	UnTotalcmd:
 	${un.GetParent} "$0" $0
