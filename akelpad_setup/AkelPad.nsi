@@ -403,7 +403,7 @@ Section
 	Rename "$INSTDIR\AkelPad.exe" "$INSTDIR\DLLCACHE\notepad.exe"
 	IfFileExists "$INSTDIR\notepad.exe" 0 +2
 	Delete "$INSTDIR\notepad.exe"
-	CopyFiles /SILENT "$INSTDIR\DLLCACHE\notepad.exe" "$INSTDIR"
+	CopyFiles /SILENT "$INSTDIR\DLLCACHE\notepad.exe" "$INSTDIR\notepad.exe"
 
 	RegInfo:
 	WriteUninstaller "$INSTDIR\AkelFiles\Uninstall.exe"
@@ -496,10 +496,9 @@ Section un.install
 	StrCmp $0 $SYSDIR +2
 	StrCmp $0 $WINDIR 0 UnTotalcmd
 	IfFileExists "$0\notepad_AkelUndo.exe" 0 Success
-	IfFileExists "$0\DLLCACHE\notepad.exe" 0 +4
+	IfFileExists "$0\DLLCACHE\notepad.exe" 0 +3
 	Delete "$0\DLLCACHE\notepad.exe"
-	CopyFiles /SILENT "$0\notepad_AkelUndo.exe" "$0\DLLCACHE"
-	Rename "$0\DLLCACHE\notepad_AkelUndo.exe" "$0\DLLCACHE\notepad.exe"
+	CopyFiles /SILENT "$0\notepad_AkelUndo.exe" "$0\DLLCACHE\notepad.exe"
 	Delete "$0\notepad.exe"
 	Rename "$0\notepad_AkelUndo.exe" "$0\notepad.exe"
 
