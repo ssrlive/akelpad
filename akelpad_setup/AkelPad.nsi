@@ -8,7 +8,7 @@
 ;_____________________________________________________________________________________________
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "${PRODUCT_NAME}${PRODUCT_VERSION}-setup.exe"
+OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}-setup.exe"
 SetCompressor /SOLID lzma
 SubCaption 3 ' '
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
@@ -94,8 +94,8 @@ LangString TypeStandartText ${LANG_ENGLISH} 'Program will be installed to the sp
 LangString TypeStandartText ${LANG_RUSSIAN} 'Программа будет установлена в указанную директорию.'
 LangString TypeTotalcmdText ${LANG_ENGLISH} 'Program will be installed as external editor for Total Commander file manager.'
 LangString TypeTotalcmdText ${LANG_RUSSIAN} 'Программа будет установлена как внешний редактор для файлового менеджера Total Commander.'
-LangString TypeNotepadText ${LANG_ENGLISH} 'Necessary to install twice!$\nWindows notepad will be replaced with program. Copy of the notepad will be restored after program uninstall.'
-LangString TypeNotepadText ${LANG_RUSSIAN} 'Необходимо установить дважды!$\nБлокнот Windows будет заменен программой. После её удаления копия блокнота будет восстановлена.'
+LangString TypeNotepadText ${LANG_ENGLISH} 'Windows notepad will be replaced with program. Copy of the notepad will be restored after program uninstall.'
+LangString TypeNotepadText ${LANG_RUSSIAN} 'Блокнот Windows будет заменен программой. Копия блокнота будет восстановлена после удаления программы.'
 LangString DirectoryInfoTitle ${LANG_ENGLISH} 'Choose Install Location'
 LangString DirectoryInfoTitle ${LANG_RUSSIAN} 'Выбор папки установки'
 LangString DirectoryInfoText ${LANG_ENGLISH} 'Choose the folder in which to install $(^Name).'
