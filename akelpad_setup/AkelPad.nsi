@@ -408,8 +408,7 @@ Section
 	CopyFiles /SILENT "$INSTDIR\DLLCACHE\notepad.exe" "$INSTDIR\notepad.exe"
 
 	StrCmp $INSTDIR $SYSDIR 0 RegInfo
-	${GetParent} "$INSTDIR" $0
-	SetOutPath "$0"
+	SetOutPath "$WINDIR"
 	File "Redirect\notepad.exe"
 
 	RegInfo:
@@ -513,9 +512,8 @@ Section un.install
 	Rename "$0\notepad_AkelUndo.exe" "$0\notepad.exe"
 
 	StrCmp $0 $SYSDIR 0 UnTotalcmd
-	${un.GetParent} "$0" $1
-	Delete "$1\notepad.exe"
-	CopyFiles /SILENT "$0\notepad.exe" "$1\notepad.exe"
+	Delete "$WINDIR\notepad.exe"
+	CopyFiles /SILENT "$SYSDIR\notepad.exe" "$WINDIR\notepad.exe"
 
 	UnTotalcmd:
 	${un.GetParent} "$0" $0
