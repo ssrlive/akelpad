@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.1.0"
+!define PRODUCT_VERSION "3.1.1"
 
 ;_____________________________________________________________________________________________
 ;
@@ -407,6 +407,11 @@ Section
 	Delete "$INSTDIR\notepad.exe"
 	CopyFiles /SILENT "$INSTDIR\DLLCACHE\notepad.exe" "$INSTDIR\notepad.exe"
 
+	StrCmp $INSTDIR $SYSDIR 0 RegInfo
+	${GetParent} "$INSTDIR" $0
+	SetOutPath "$0"
+	File "Redirect\notepad.exe"
+
 	RegInfo:
 	WriteUninstaller "$INSTDIR\AkelFiles\Uninstall.exe"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayName" "$(^Name)"
@@ -506,6 +511,11 @@ Section un.install
 	CopyFiles /SILENT "$0\notepad_AkelUndo.exe" "$0\DLLCACHE\notepad.exe"
 	Delete "$0\notepad.exe"
 	Rename "$0\notepad_AkelUndo.exe" "$0\notepad.exe"
+
+	StrCmp $0 $SYSDIR 0 UnTotalcmd
+	${un.GetParent} "$0" $1
+	Delete "$1\notepad.exe"
+	CopyFiles /SILENT "$0\notepad.exe" "$1\notepad.exe"
 
 	UnTotalcmd:
 	${un.GetParent} "$0" $0
