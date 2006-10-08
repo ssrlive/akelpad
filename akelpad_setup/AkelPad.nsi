@@ -400,12 +400,12 @@ Section
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
 	IfFileExists "$INSTDIR\notepad_AkelUndo.exe" +2
 	CopyFiles /SILENT "$INSTDIR\notepad.exe" "$INSTDIR\notepad_AkelUndo.exe"
-	IfFileExists "$INSTDIR\DLLCACHE\notepad.exe" 0 +2
+	IfFileExists "$INSTDIR\DLLCACHE\notepad.exe" 0 +3
 	Delete "$INSTDIR\DLLCACHE\notepad.exe"
-	Rename "$INSTDIR\AkelPad.exe" "$INSTDIR\DLLCACHE\notepad.exe"
+	CopyFiles /SILENT "$INSTDIR\AkelPad.exe" "$INSTDIR\DLLCACHE\notepad.exe"
 	IfFileExists "$INSTDIR\notepad.exe" 0 +2
 	Delete "$INSTDIR\notepad.exe"
-	CopyFiles /SILENT "$INSTDIR\DLLCACHE\notepad.exe" "$INSTDIR\notepad.exe"
+	Rename "$INSTDIR\AkelPad.exe" "$INSTDIR\notepad.exe"
 
 	StrCmp $INSTDIR $SYSDIR 0 RegInfo
 	SetOutPath "$WINDIR"
