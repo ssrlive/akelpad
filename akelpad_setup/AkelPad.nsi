@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.1.1"
+!define PRODUCT_VERSION "3.1.2"
 
 ;_____________________________________________________________________________________________
 ;
@@ -25,13 +25,13 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
 ############  MUI  ############
 !include "MUI.nsh"
-!define MUI_ICON "graphics\IconInstall.ico"
-!define MUI_UNICON "graphics\IconUninstall.ico"
+!define MUI_ICON "Graphics\IconInstall.ico"
+!define MUI_UNICON "Graphics\IconUninstall.ico"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_RIGHT
-!define MUI_HEADERIMAGE_BITMAP "graphics\HeaderInstall.bmp"
-!define MUI_HEADERIMAGE_UNBITMAP "graphics\HeaderUninstall.bmp"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "graphics\WizardFinish.bmp"
+!define MUI_HEADERIMAGE_BITMAP "Graphics\HeaderInstall.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP "Graphics\HeaderUninstall.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "Graphics\WizardFinish.bmp"
 
 ############  Defines  ############
 !define LANG_ENGLISH    1033
