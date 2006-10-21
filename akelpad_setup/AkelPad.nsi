@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.1.2"
+!define PRODUCT_VERSION "3.1.3"
 
 ;_____________________________________________________________________________________________
 ;
