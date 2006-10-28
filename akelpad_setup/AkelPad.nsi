@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.1.3"
+!define PRODUCT_VERSION "3.1.4"
 
 ;_____________________________________________________________________________________________
 ;
@@ -39,6 +39,7 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define LANG_GERMAN     1043
 !define LANG_SPANISH    1034
 !define LANG_UKRAINIAN  1058
+!define LANG_FRENCH     1036
 
 !define INSTTYPE_STANDART 1
 !define INSTTYPE_TOTALCMD 2
@@ -395,6 +396,7 @@ Section
 	File "Files\AkelFiles\Langs\German.dll"
 	File "Files\AkelFiles\Langs\Spanish.dll"
 	File "Files\AkelFiles\Langs\Ukrainian.dll"
+	File "Files\AkelFiles\Langs\French.dll"
 	SetOutPath "$INSTDIR\AkelFiles\Plugs"
 
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
@@ -429,6 +431,8 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Spanish.dll"
 	StrCmp $SYSLANGUAGE ${LANG_UKRAINIAN} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Ukrainian.dll"
+	StrCmp $SYSLANGUAGE ${LANG_FRENCH} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "French.dll"
 
 	end:
 SectionEnd
@@ -490,6 +494,7 @@ Section un.install
 	Delete "$INSTDIR\Langs\German.dll"
 	Delete "$INSTDIR\Langs\Spanish.dll"
 	Delete "$INSTDIR\Langs\Ukrainian.dll"
+	Delete "$INSTDIR\Langs\French.dll"
 	Delete "$INSTDIR\History-Rus.txt"
 	Delete "$INSTDIR\AkelPad-Eng.htm"
 	Delete "$INSTDIR\AkelPad-Rus.htm"
