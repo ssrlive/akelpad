@@ -32,8 +32,9 @@ void _WinMain()
 
     if (CreateProcess(NULL, szCmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
     {
-      CloseHandle(pi.hProcess);
+      MsgWaitForMultipleObjects(1, &pi.hProcess, FALSE, INFINITE, 0);
       CloseHandle(pi.hThread);
+      CloseHandle(pi.hProcess);
     }
   }
   else
@@ -53,8 +54,9 @@ void _WinMain()
 
     if (CreateProcessW(NULL, wszCmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &siW, &pi))
     {
-      CloseHandle(pi.hProcess);
+      MsgWaitForMultipleObjects(1, &pi.hProcess, FALSE, INFINITE, 0);
       CloseHandle(pi.hThread);
+      CloseHandle(pi.hProcess);
     }
   }
 
