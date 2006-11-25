@@ -354,8 +354,6 @@ Function DirectoryLeave
 FunctionEnd
 
 Function .onVerifyInstDir
-	StrCmp $INSTTYPE ${INSTTYPE_STANDART} end
-
 	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 end
 	IfFileExists "$INSTDIR\totalcmd.exe" end
 	Abort
