@@ -308,7 +308,7 @@ FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME,8,4,139,67
     LTEXT           "AkelPad 2.1.8a+ (CVS snapshot) (classic)",-1,14,8,132,11,NOT WS_GROUP
-    LTEXT           "© Alexey Kuznetsov, 2003-2006.\nAll rights reserved.",
+    LTEXT           "© Alexey Kuznetsov, 2003-2007.\nAll rights reserved.",
                     -1,14,20,124,18,NOT WS_GROUP
     LTEXT           "E-mail:",-1,21,41,28,12,NOT WS_GROUP
     EDITTEXT        IDC_ABOUT_EMAIL,48,39,90,12,ES_READONLY | NOT WS_TABSTOP
