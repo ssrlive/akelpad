@@ -492,13 +492,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
     case IDM_NONMENU_DELLINE:
      DoNonMenuDelLine(hWndEdit);
      break;
+    case IDM_NONMENU_TAB:
+     DoNonMenuTab(hWndEdit,TRUE,TRUE);
+     break;
+    case IDM_NONMENU_SHIFTTAB:
+     DoNonMenuTab(hWndEdit,TRUE,FALSE);
+     break;
+    case IDM_NONMENU_SPACE:
+     DoNonMenuTab(hWndEdit,FALSE,TRUE);
+     break;
+    case IDM_NONMENU_SHIFTSPACE:
+     DoNonMenuTab(hWndEdit,FALSE,FALSE);
+     break;
    }
    return 0;
 
   case WM_NOTIFY:
 //Some unmaintainable code is here
    if(wParam==ID_STATUS) {
-    if(((LPNMHDR)lParam)->code==NM_CLICK) {
+    if(((LPNMHDR)lParam)->code==(UINT)NM_CLICK) {
      switch(((LPNMMOUSE)lParam)->dwItemSpec) {
      case 1:
       SendMessage(hWndEdit,WM_KEYDOWN,VK_INSERT,0x00520001);

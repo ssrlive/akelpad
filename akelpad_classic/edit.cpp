@@ -724,6 +724,98 @@ void DoNonMenuDelLine(HWND hWndEdit) {
  SendMessage(hWndEdit,EM_REPLACESEL,TRUE,(LPARAM)"");
 }
 
+void DoNonMenuTab(HWND hWndEdit, BOOL istab, BOOL add) {
+ CHARRANGE chrg;
+ GETTEXTEX gt;
+ char szIndent[2]={'\t','\0'};
+ int iFirstLine,iLastLine;
+ int iFirstChar;
+ int iCharacters,iLines;
+ int iInputBufferSize;
+ int iOutputBufferSize;
+ unsigned int read;
+ wchar_t *szInputBuffer;
+ wchar_t *szOutputBuffer;
+ int i, j=0, deleted=0;
+ wchar_t IndentChar=0x0009;
+ 
+ if(!istab) IndentChar=0x0020;
+ 
+ SendMessage(hWndEdit,EM_EXGETSEL,0,(LPARAM)&chrg);
+ iFirstLine=SendMessage(hWndEdit,EM_EXLINEFROMCHAR,0,chrg.cpMin);
+ iLastLine=SendMessage(hWndEdit,EM_EXLINEFROMCHAR,0,chrg.cpMax);
+ 
+ iCharacters=chrg.cpMax-chrg.cpMin;
+ iLines=iLastLine-iFirstLine+1;
+ 
+ if(iLines==1) {
+  if(!istab) szIndent[0]=' ';
+  SendMessage(hWndEdit,EM_REPLACESEL,(WPARAM)TRUE,(LPARAM)szIndent);
+ }
+ else {
+  iFirstChar=SendMessage(hWndEdit,EM_LINEINDEX,(WPARAM)iLastLine,(LPARAM)0);
+  if(iFirstChar==chrg.cpMax) {
+   chrg.cpMax--;
+   SendMessage(hWndEdit,EM_EXSETSEL,(WPARAM)0,(LPARAM)&chrg);
+   iLastLine--;
+   
+   iCharacters--;
+   iLines--;
+  }
+
+  iInputBufferSize=(iCharacters+1)*sizeof(wchar_t);
+  szInputBuffer=(wchar_t *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,iInputBufferSize);
+  if(!szInputBuffer) return;
+  iOutputBufferSize=(iCharacters+iLines+1)*sizeof(wchar_t);
+  szOutputBuffer=(wchar_t *)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,iOutputBufferSize);
+  if(!szOutputBuffer) {
+   HeapFree(GetProcessHeap(),0,(LPVOID)szInputBuffer);
+   return;
+  }
+  gt.cb=iInputBufferSize;
+  gt.flags=GT_SELECTION;
+  gt.codepage=1200; //Unicode
+  gt.lpDefaultChar=NULL;
+  gt.lpUsedDefChar=NULL;
+  read=SendMessage(hWndEdit,EM_GETTEXTEX,(WPARAM)&gt,(LPARAM)szInputBuffer);
+  read++;
+  if(read*sizeof(wchar_t)!=(unsigned int)iInputBufferSize) {
+   HeapFree(GetProcessHeap(),0,(LPVOID)szInputBuffer);
+   HeapFree(GetProcessHeap(),0,(LPVOID)szOutputBuffer);
+   return;
+  }
+// Begin transform
+  if(add) {
+   szOutputBuffer[j]=IndentChar;
+   j++;
+   for(i=0;i<=iInputBufferSize/(int)sizeof(wchar_t)-2;i++) {
+    szOutputBuffer[j]=szInputBuffer[i];
+    j++;
+    if(szInputBuffer[i]==0x000D) {
+     szOutputBuffer[j]=IndentChar;
+     j++;
+    }
+   }
+  }
+  else {
+   if(szInputBuffer[0]==IndentChar) i=1;
+   else i=0;
+   for(;i<=iInputBufferSize/(int)sizeof(wchar_t)-2;i++) {
+    szOutputBuffer[j]=szInputBuffer[i];
+    if(szInputBuffer[i]!=IndentChar||i<=0||szInputBuffer[i-1]!=0x000D) j++;
+    else deleted++;
+   }
+  }
+// End transform
+  SendMessageW(hWndEdit,EM_REPLACESEL,(WPARAM)TRUE,(LPARAM)szOutputBuffer);
+  if(add) chrg.cpMax+=iLines;
+  else chrg.cpMax-=deleted;
+  SendMessage(hWndEdit,EM_EXSETSEL,(WPARAM)0,(LPARAM)&chrg);
+  HeapFree(GetProcessHeap(),0,(LPVOID)szInputBuffer);
+  HeapFree(GetProcessHeap(),0,(LPVOID)szOutputBuffer);
+ }
+}
+
 void SetChosenFont(HWND hWndEdit) {
  HFONT hNewFont;
  RECT rEdit;

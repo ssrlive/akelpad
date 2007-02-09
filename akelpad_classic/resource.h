@@ -73,6 +73,11 @@
 #define IDM_CODEPAGE_SAVEIN_UNICODE_UCS2_LE 40045
 #define IDM_CODEPAGE_SAVEIN_UNICODE_UTF8 40046
 #define IDM_SETTINGS_ASIAN            40047
+#define IDM_NONMENU_TAB                 40048
+#define IDM_NONMENU_SHIFTTAB            40049
+#define IDM_NONMENU_SPACE               40050
+#define IDM_NONMENU_SHIFTSPACE          40051
+
 
 // Next default values for new objects
 // 

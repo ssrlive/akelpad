@@ -61,4 +61,6 @@ void DoHelpAbout(HWND hWndEdit);
 
 void DoNonMenuDelLine(HWND hWndEdit);
 
+void DoNonMenuTab(HWND hWndEdit, BOOL istab, BOOL add);
+
 #endif
