@@ -7,7 +7,7 @@ dirs:
 	copy rewrite.bat release.en\rewrite.bat
 
 release.ru\akelpad.exe: release.ru\akelpad.obj release.ru\edit.obj release.ru\codepage.obj release.ru\lang.obj release.ru\akelpad.res
-	polink /SUBSYSTEM:WINDOWS release.ru\akelpad.obj release.ru\edit.obj release.ru\codepage.obj release.ru\lang.obj release.ru\akelpad.res kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib /OUT:release.ru\akelpad.exe
+	link /SUBSYSTEM:WINDOWS release.ru\akelpad.obj release.ru\edit.obj release.ru\codepage.obj release.ru\lang.obj release.ru\akelpad.res kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib /OUT:release.ru\akelpad.exe /FILEALIGN:512
 	
 release.ru\akelpad.obj: akelpad.cpp akelpad.h edit.h codepage.h langpack.h
 	cl /O1 /MD /c akelpad.cpp /Forelease.ru\akelpad.obj
@@ -25,7 +25,7 @@ release.ru\akelpad.res: akelpad.rc
 	rc /r /Forelease.ru\akelpad.res akelpad.rc
 
 release.en\akelpad.exe: release.en\akelpad.obj release.en\edit.obj release.en\codepage.obj release.en\lang.obj release.en\akelpad.res
-	polink /SUBSYSTEM:WINDOWS release.en\akelpad.obj release.en\edit.obj release.en\codepage.obj release.en\lang.obj release.en\akelpad.res kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib /OUT:release.en\akelpad.exe
+	link /SUBSYSTEM:WINDOWS release.en\akelpad.obj release.en\edit.obj release.en\codepage.obj release.en\lang.obj release.en\akelpad.res kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib /OUT:release.en\akelpad.exe /FILEALIGN:512
 	
 release.en\akelpad.obj: akelpad.cpp akelpad.h edit.h codepage.h langpack.h
 	cl /O1 /MD /c /DFOREIGN_BUILD akelpad.cpp /Forelease.en\akelpad.obj
