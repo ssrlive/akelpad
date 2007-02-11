@@ -803,6 +803,7 @@ void DoNonMenuTab(HWND hWndEdit, BOOL istab, BOOL add) {
 // Begin transform
   if(add) {
    szOutputBuffer[j]=IndentChar;
+   deleted++;
    j++;
    for(i=0;i<=iInputBufferSize/(int)sizeof(wchar_t)-2;i++) {
     szOutputBuffer[j]=szInputBuffer[i];
@@ -810,6 +811,7 @@ void DoNonMenuTab(HWND hWndEdit, BOOL istab, BOOL add) {
     if(szInputBuffer[i]==0x000D) {
      szOutputBuffer[j]=IndentChar;
      j++;
+     deleted++;
     }
    }
   }
@@ -832,7 +834,7 @@ void DoNonMenuTab(HWND hWndEdit, BOOL istab, BOOL add) {
   pStreamInBuffer=(char *)szOutputBuffer;
   iStreamInBufferSize=lstrlenW(szOutputBuffer)*2;
   SendMessage(hWndEdit,EM_STREAMIN,(WPARAM)SF_TEXT|SFF_SELECTION|SF_UNICODE,(LPARAM)&es);
-  if(add) chrg.cpMax+=iLines;
+  if(add) chrg.cpMax+=deleted;
   else chrg.cpMax-=deleted;
   SendMessage(hWndEdit,EM_EXSETSEL,(WPARAM)0,(LPARAM)&chrg);
   HeapFree(GetProcessHeap(),0,(LPVOID)szInputBuffer);
