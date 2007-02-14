@@ -17,6 +17,7 @@ void SetChosenFont(HWND hWndEdit);
 DWORD CALLBACK InputStreamCallback(DWORD dwCookie,LPBYTE pbBuff,LONG cb,LONG FAR *pcb);
 DWORD CALLBACK OutputStreamCallback(DWORD dwCookie,LPBYTE pbBuff,LONG cb,LONG FAR *pcb);
 DWORD CALLBACK BufferCallback(DWORD dwCookie,LPBYTE pbBuff,LONG cb,LONG FAR *pcb);
+DWORD CALLBACK ReadBufferCallback(DWORD dwCookie,LPBYTE pbBuff,LONG cb,LONG FAR *pcb);
 
 BOOL RestorePreOptionsFromRegistry();
 BOOL RestoreOptionsFromRegistry(HWND hWndEdit);

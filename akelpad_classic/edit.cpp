@@ -729,7 +729,6 @@ void DoNonMenuDelLine(HWND hWndEdit) {
 
 void DoNonMenuTab(HWND hWndEdit, BOOL istab, BOOL add) {
  CHARRANGE chrg;
- GETTEXTEX gt;
  TEXTRANGE tr;
  EDITSTREAM es;
  char szIndent[2]={'\t','\0'};
@@ -788,18 +787,25 @@ void DoNonMenuTab(HWND hWndEdit, BOOL istab, BOOL add) {
    HeapFree(GetProcessHeap(),0,(LPVOID)szInputBuffer);
    return;
   }
-  gt.cb=iInputBufferSize;
-  gt.flags=2; //GT_SELECTION, from the latest Platform SDK
-  gt.codepage=1200; //Unicode
-  gt.lpDefaultChar=NULL;
-  gt.lpUsedDefChar=NULL;
-  read=SendMessage(hWndEdit,EM_GETTEXTEX,(WPARAM)&gt,(LPARAM)szInputBuffer);
-  read++;
-  if(read*sizeof(wchar_t)!=(unsigned int)iInputBufferSize) {
+//  gt.cb=iInputBufferSize;
+//  gt.flags=2; //GT_SELECTION, from the latest Platform SDK
+//  gt.codepage=1200; //Unicode
+//  gt.lpDefaultChar=NULL;
+//  gt.lpUsedDefChar=NULL;
+//  read=SendMessage(hWndEdit,EM_GETTEXTEX,(WPARAM)&gt,(LPARAM)szInputBuffer);
+  es.dwCookie=0;
+  es.pfnCallback=ReadBufferCallback;
+  pStreamInBuffer=(char *)szInputBuffer;
+  iStreamInBufferSize=iInputBufferSize;
+  read=SendMessage(hWndEdit,EM_STREAMOUT,(WPARAM)SF_TEXT|SFF_SELECTION|SF_UNICODE,(LPARAM)&es);
+
+//  read++;
+/*  if(read!=(unsigned int)iInputBufferSize) {
+
    HeapFree(GetProcessHeap(),0,(LPVOID)szInputBuffer);
    HeapFree(GetProcessHeap(),0,(LPVOID)szOutputBuffer);
    return;
-  }
+  }*/
 // Begin transform
   if(add) {
    szOutputBuffer[j]=IndentChar;
@@ -848,6 +854,31 @@ DWORD CALLBACK BufferCallback(DWORD dwCookie,LPBYTE pbBuff,LONG cb,LONG FAR *pcb
  memcpy(pbBuff,pStreamInBuffer,iToWrite);
  pStreamInBuffer+=iToWrite;
  iStreamInBufferSize-=iToWrite;
+ *pcb=iToWrite;
+ return 0;
+}
+
+DWORD CALLBACK ReadBufferCallback(DWORD dwCookie,LPBYTE pbBuff,LONG cb,LONG FAR *pcb) {
+ int iToWrite;
+ int written=0;
+ int i;
+ 
+ wchar_t *pFrom;
+ wchar_t *pTo;
+ 
+ iToWrite=cb;
+// memcpy(pStreamInBuffer,pbBuff,iToWrite);
+ pFrom=(wchar_t *)pbBuff;
+ pTo=(wchar_t *)pStreamInBuffer;
+ for(i=0;i<=iToWrite/2-1;i++) {
+  if(pFrom[i]!=0x000A) {
+   if(written*2>=iStreamInBufferSize) break;
+   pTo[written]=pFrom[i];
+   written++;
+  }
+ }
+ pStreamInBuffer+=written*2;
+ iStreamInBufferSize-=written*2;
  *pcb=iToWrite;
  return 0;
 }
