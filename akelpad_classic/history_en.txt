@@ -1,5 +1,6 @@
 Revision history:
 
+2.1.9a: Version 2.1.9 was reported not to work properly under Windows 98. Now it is fixed.
 2.1.9: Multiple lines shifting abilities (TAB, SHIFT-TAB, SPACE, SHIFT-SPACE).
 2.1.8a: Settings error fixed.
 2.1.8: Option added to support asian characters.
