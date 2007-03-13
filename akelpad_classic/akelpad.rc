@@ -312,7 +312,7 @@ CAPTION "О программе"
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "",-1,"Static",SS_ETCHEDFRAME,8,4,139,67
-    LTEXT           "AkelPad 2.1.9a (classic)",-1,14,8,132,11,NOT WS_GROUP
+    LTEXT           "AkelPad 2.2.0 (classic)",-1,14,8,132,11,NOT WS_GROUP
     LTEXT           "© Алексей Кузнецов, 2003-2007.\nВсе права защищены.",-1,
                     14,20,124,18,NOT WS_GROUP
     LTEXT           "E-mail:",-1,21,41,28,12,NOT WS_GROUP
@@ -322,6 +322,8 @@ BEGIN
     PUSHBUTTON      "OK",IDOK,87,73,50,14,BS_CENTER
     PUSHBUTTON      "Homepage",IDC_HOMEPAGE,19,73,50,14
 END
+
+CREATEPROCESS_MANIFEST_RESOURCE_ID   RT_MANIFEST   "akelpad.exe.manifest"
 
 
 #ifdef APSTUDIO_INVOKED
