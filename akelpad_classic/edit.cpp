@@ -22,6 +22,8 @@ BOOL refresh_data=TRUE;
 BOOL unix_newline=FALSE; //Unix newline (0x0A) was detected when opening file
 BOOL newline_detected=FALSE;
 
+extern BOOL insertstate;
+
 char recent_names[RECENTFILES][MAX_PATH+1]; //names of recent files
 DWORD recent_positions[RECENTFILES]; //positions in recent files
 
@@ -754,6 +756,7 @@ void DoNonMenuTab(HWND hWndEdit, BOOL istab, BOOL add) {
  
  if(chrg.cpMin==chrg.cpMax) {
   if(!istab) szIndent[0]=' ';
+  if(!insertstate) SendMessage(hWndEdit,EM_SETSEL,chrg.cpMin,chrg.cpMin+1);
   SendMessage(hWndEdit,EM_REPLACESEL,(WPARAM)TRUE,(LPARAM)szIndent);
   return;
  }
