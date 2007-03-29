@@ -34,12 +34,14 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "Graphics\WizardFinish.bmp"
 
 ############  Defines  ############
-!define LANG_ENGLISH    1033
-!define LANG_RUSSIAN    1049
-!define LANG_GERMAN     1043
-!define LANG_SPANISH    1034
-!define LANG_UKRAINIAN  1058
-!define LANG_FRENCH     1036
+!define LANG_ENGLISH      1033
+!define LANG_RUSSIAN      1049
+!define LANG_GERMAN       1043
+!define LANG_SPANISH      1034
+!define LANG_UKRAINIAN    1058
+!define LANG_BELORUSSIAN  1059
+!define LANG_FRENCH       1036
+
 
 !define INSTTYPE_STANDART 1
 !define INSTTYPE_TOTALCMD 2
@@ -394,6 +396,7 @@ Section
 	File "Files\AkelFiles\Langs\German.dll"
 	File "Files\AkelFiles\Langs\Spanish.dll"
 	File "Files\AkelFiles\Langs\Ukrainian.dll"
+	File "Files\AkelFiles\Langs\Belorussian.dll"
 	File "Files\AkelFiles\Langs\French.dll"
 	SetOutPath "$INSTDIR\AkelFiles\Plugs"
 
@@ -429,6 +432,8 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Spanish.dll"
 	StrCmp $SYSLANGUAGE ${LANG_UKRAINIAN} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Ukrainian.dll"
+	StrCmp $SYSLANGUAGE ${LANG_BELORUSSIAN} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Belorussian.dll"
 	StrCmp $SYSLANGUAGE ${LANG_FRENCH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "French.dll"
 
@@ -492,6 +497,7 @@ Section un.install
 	Delete "$INSTDIR\Langs\German.dll"
 	Delete "$INSTDIR\Langs\Spanish.dll"
 	Delete "$INSTDIR\Langs\Ukrainian.dll"
+	Delete "$INSTDIR\Langs\Belorussian.dll"
 	Delete "$INSTDIR\Langs\French.dll"
 	Delete "$INSTDIR\History-Rus.txt"
 	Delete "$INSTDIR\AkelPad-Eng.htm"
