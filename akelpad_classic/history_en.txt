@@ -1,5 +1,6 @@
 Revision history:
 
+2.2.1: Fixed bug with "SPACE" and "TAB" keys in replacement mode.
 2.2.0: Manifest added for XP-like control style support.
 2.1.9a: Version 2.1.9 was reported not to work properly under Windows 98. Now it is fixed.
 2.1.9: Multiple lines shifting abilities (TAB, SHIFT-TAB, SPACE, SHIFT-SPACE).
