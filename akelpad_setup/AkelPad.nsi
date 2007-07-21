@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.3.4"
+!define PRODUCT_VERSION "3.3.5"
 
 ;_____________________________________________________________________________________________
 ;
@@ -52,7 +52,9 @@ Var INI
 Var HWND
 Var REDCTL
 Var INSTTYPE
-Var INSTEXE
+Var SETUPDIR
+Var SETUPEXE
+Var TCDIR
 Var SYSLANGUAGE
 
 ############  Pages  ############
@@ -320,41 +322,6 @@ Function DirectoryShow
 	EnableWindow $0 0
 FunctionEnd
 
-Function DirectoryLeave
-	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 +3
-	StrCpy $INSTEXE "$INSTDIR\notepad.exe"
-	goto +2
-	StrCpy $INSTEXE "$INSTDIR\AkelPad.exe"
-
-	GetDlgItem $0 $R0 1051
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
-	StrCmp $1 1 0 desktop
-	SetOutPath "$INSTDIR"
-	CreateShortCut "$QUICKLAUNCH\${PRODUCT_NAME}.lnk" "$INSTEXE"
-
-	desktop:
-	GetDlgItem $0 $R0 1052
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
-	StrCmp $1 1 0 startmenu
-	SetOutPath "$INSTDIR"
-	CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTEXE"
-
-	startmenu:
-	GetDlgItem $0 $R0 1053
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
-	StrCmp $1 1 0 end
-	SetOutPath "$INSTDIR"
-	CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTEXE"
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk" "$INSTDIR\AkelFiles\Uninstall.exe"
-	StrCmp $SYSLANGUAGE ${LANG_RUSSIAN} 0 +3
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$INSTDIR\AkelFiles\AkelPad-Rus.htm"
-	goto +2
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$INSTDIR\AkelFiles\AkelPad-Eng.htm"
-
-	end:
-FunctionEnd
-
 Function .onVerifyInstDir
 	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 end
 	IfFileExists "$INSTDIR\totalcmd.exe" end
@@ -363,34 +330,75 @@ Function .onVerifyInstDir
 	end:
 FunctionEnd
 
+Function DirectoryLeave
+	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 +4
+	StrCpy $SETUPDIR "$INSTDIR"
+	StrCpy $SETUPEXE "$SETUPDIR\notepad.exe"
+	goto quicklaunch
+	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 +5
+	StrCpy $SETUPDIR "$INSTDIR\AkelPad"
+	StrCpy $SETUPEXE "$SETUPDIR\AkelPad.exe"
+	StrCpy $TCDIR "$INSTDIR"
+	goto quicklaunch
+	StrCpy $SETUPDIR "$INSTDIR"
+	StrCpy $SETUPEXE "$SETUPDIR\AkelPad.exe"
+
+	quicklaunch:
+	GetDlgItem $0 $R0 1051
+	SendMessage $0 ${BM_GETSTATE} 0 0 $1
+	StrCmp $1 1 0 desktop
+	SetOutPath "$SETUPDIR"
+	CreateShortCut "$QUICKLAUNCH\${PRODUCT_NAME}.lnk" "$SETUPEXE"
+
+	desktop:
+	GetDlgItem $0 $R0 1052
+	SendMessage $0 ${BM_GETSTATE} 0 0 $1
+	StrCmp $1 1 0 startmenu
+	SetOutPath "$SETUPDIR"
+	CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$SETUPEXE"
+
+	startmenu:
+	GetDlgItem $0 $R0 1053
+	SendMessage $0 ${BM_GETSTATE} 0 0 $1
+	StrCmp $1 1 0 end
+	SetOutPath "$SETUPDIR"
+	CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$SETUPEXE"
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk" "$SETUPDIR\AkelFiles\Uninstall.exe"
+	StrCmp $SYSLANGUAGE ${LANG_RUSSIAN} 0 +3
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$SETUPDIR\AkelFiles\AkelPad-Rus.htm"
+	goto +2
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$SETUPDIR\AkelFiles\AkelPad-Eng.htm"
+
+	end:
+FunctionEnd
+
 Section
 	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 Install
-	StrCpy $0 "$INSTDIR\Wincmd.ini"
+	StrCpy $0 "$TCDIR\Wincmd.ini"
 	IfFileExists "$0" +3
 	SearchPath $0 "Wincmd.ini"
-	StrCmp $0 '' ChangeOutPath
+	StrCmp $0 '' Install
 	ReadINIStr $1 "$0" "Configuration" "Editor"
 	StrCmp $1 '' WriteINIEditor
 	${GetFileName} "$1" $2
 	StrCmp $2 "Akelpad.exe" WriteINIEditor
-	${WordReplace} "$1" "%COMMANDER_PATH%" "$INSTDIR" "+" $2
+	${WordReplace} "$1" "%COMMANDER_PATH%" "$TCDIR" "+" $2
 	IfFileExists $2 0 WriteINIEditor
 	WriteINIStr "$0" "Configuration" "Editor_AkelUndo" "$1"
 	WriteINIEditor:
 	WriteINIStr "$0" "Configuration" "Editor" "%COMMANDER_PATH%\AkelPad\Akelpad.exe"
-	ChangeOutPath:
-	StrCpy $INSTDIR "$INSTDIR\AkelPad"
 
 	Install:
-	SetOutPath "$INSTDIR"
+	SetOutPath "$SETUPDIR"
 	File "Files\AkelPad.exe"
 
-	SetOutPath "$INSTDIR\AkelFiles"
+	SetOutPath "$SETUPDIR\AkelFiles"
 	File "Files\AkelFiles\AkelPad-Eng.htm"
 	File "Files\AkelFiles\AkelPad-Rus.htm"
 	File "Files\AkelFiles\History-Rus.txt"
 
-	SetOutPath "$INSTDIR\AkelFiles\Langs"
+	SetOutPath "$SETUPDIR\AkelFiles\Langs"
 	File "Files\AkelFiles\Langs\English.dll"
 	File "Files\AkelFiles\Langs\Russian.dll"
 	File "Files\AkelFiles\Langs\German.dll"
@@ -398,28 +406,28 @@ Section
 	File "Files\AkelFiles\Langs\Ukrainian.dll"
 	File "Files\AkelFiles\Langs\Belorussian.dll"
 	File "Files\AkelFiles\Langs\French.dll"
-	SetOutPath "$INSTDIR\AkelFiles\Plugs"
+	SetOutPath "$SETUPDIR\AkelFiles\Plugs"
 
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
-	IfFileExists "$INSTDIR\notepad_AkelUndo.exe" +2
-	CopyFiles /SILENT "$INSTDIR\notepad.exe" "$INSTDIR\notepad_AkelUndo.exe"
-	IfFileExists "$INSTDIR\DLLCACHE\notepad.exe" 0 +3
-	Delete "$INSTDIR\DLLCACHE\notepad.exe"
-	CopyFiles /SILENT "$INSTDIR\AkelPad.exe" "$INSTDIR\DLLCACHE\notepad.exe"
-	IfFileExists "$INSTDIR\notepad.exe" 0 +2
-	Delete "$INSTDIR\notepad.exe"
-	Rename "$INSTDIR\AkelPad.exe" "$INSTDIR\notepad.exe"
+	IfFileExists "$SETUPDIR\notepad_AkelUndo.exe" +2
+	CopyFiles /SILENT "$SETUPDIR\notepad.exe" "$SETUPDIR\notepad_AkelUndo.exe"
+	IfFileExists "$SETUPDIR\DLLCACHE\notepad.exe" 0 +3
+	Delete "$SETUPDIR\DLLCACHE\notepad.exe"
+	CopyFiles /SILENT "$SETUPDIR\AkelPad.exe" "$SETUPDIR\DLLCACHE\notepad.exe"
+	IfFileExists "$SETUPDIR\notepad.exe" 0 +2
+	Delete "$SETUPDIR\notepad.exe"
+	Rename "$SETUPDIR\AkelPad.exe" "$SETUPDIR\notepad.exe"
 
-	StrCmp $INSTDIR $SYSDIR 0 RegInfo
+	StrCmp $SETUPDIR $SYSDIR 0 RegInfo
 	SetOutPath "$WINDIR"
 	File "Redirect\notepad.exe"
 
 	RegInfo:
-	WriteUninstaller "$INSTDIR\AkelFiles\Uninstall.exe"
+	WriteUninstaller "$SETUPDIR\AkelFiles\Uninstall.exe"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayName" "$(^Name)"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayIcon" "$INSTEXE"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayIcon" "$SETUPEXE"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "DisplayVersion" "${PRODUCT_VERSION}"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString" "$INSTDIR\AkelFiles\Uninstall.exe"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString" "$SETUPDIR\AkelFiles\Uninstall.exe"
 
 	ClearErrors
 	ReadRegStr $0 HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule"
