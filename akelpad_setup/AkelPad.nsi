@@ -135,7 +135,7 @@ LangString UninstallSuccess ${LANG_RUSSIAN} 'Удаление программы успешно завершен
 Function .onInit
 	FindWindow $0 "AkelPad3"
 	IsWindow $0 0 +3
-	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(InstallAlreadyRun)" IDRETRY  -2
+	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(InstallAlreadyRun)" IDRETRY -2
 	quit
 
 	# Custom page #
@@ -457,7 +457,7 @@ SectionEnd
 Function un.onInit
 	FindWindow $0 "AkelPad3"
 	IsWindow $0 0 +3
-	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(UninstallAlreadyRun)" IDRETRY  -2
+	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(UninstallAlreadyRun)" IDRETRY -2
 	quit
 FunctionEnd
 
@@ -490,6 +490,8 @@ Function un.uninstConfirmLeave
 FunctionEnd
 
 Section un.install
+	${un.GetParent} "$INSTDIR" $SETUPDIR
+
 	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
 	SetOutPath "$TEMP"
@@ -500,53 +502,52 @@ Section un.install
 	Delete "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk"
 	RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
 
-	Delete "$INSTDIR\Langs\English.dll"
-	Delete "$INSTDIR\Langs\Russian.dll"
-	Delete "$INSTDIR\Langs\German.dll"
-	Delete "$INSTDIR\Langs\Spanish.dll"
-	Delete "$INSTDIR\Langs\Ukrainian.dll"
-	Delete "$INSTDIR\Langs\Belorussian.dll"
-	Delete "$INSTDIR\Langs\French.dll"
-	Delete "$INSTDIR\History-Rus.txt"
-	Delete "$INSTDIR\AkelPad-Eng.htm"
-	Delete "$INSTDIR\AkelPad-Rus.htm"
-	Delete "$INSTDIR\Uninstall.exe"
-	RMDir "$INSTDIR\Langs"
-	RMDir "$INSTDIR\Plugs"
-	RMDir "$INSTDIR"
+	Delete "$SETUPDIR\AkelFiles\Langs\English.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\Russian.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\German.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\Spanish.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\Ukrainian.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\Belorussian.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\French.dll"
+	Delete "$SETUPDIR\AkelFiles\History-Rus.txt"
+	Delete "$SETUPDIR\AkelFiles\AkelPad-Eng.htm"
+	Delete "$SETUPDIR\AkelFiles\AkelPad-Rus.htm"
+	Delete "$SETUPDIR\AkelFiles\Uninstall.exe"
+	Delete "$SETUPDIR\AkelPad.exe"
+	RMDir "$SETUPDIR\AkelFiles\Langs"
+	RMDir "$SETUPDIR\AkelFiles\Plugs"
+	RMDir "$SETUPDIR\AkelFiles"
+	RMDir "$SETUPDIR"
 
-	${un.GetParent} "$INSTDIR" $0
-	Delete "$0\AkelPad.exe"
-	RMDir "$0"
+	StrCmp $SETUPDIR $SYSDIR +2
+	StrCmp $SETUPDIR $WINDIR 0 UnTotalcmd
+	IfFileExists "$SETUPDIR\notepad_AkelUndo.exe" 0 Success
+	IfFileExists "$SETUPDIR\DLLCACHE\notepad.exe" 0 +3
+	Delete "$SETUPDIR\DLLCACHE\notepad.exe"
+	CopyFiles /SILENT "$SETUPDIR\notepad_AkelUndo.exe" "$SETUPDIR\DLLCACHE\notepad.exe"
+	Delete "$SETUPDIR\notepad.exe"
+	Rename "$SETUPDIR\notepad_AkelUndo.exe" "$SETUPDIR\notepad.exe"
 
-	StrCmp $0 $SYSDIR +2
-	StrCmp $0 $WINDIR 0 UnTotalcmd
-	IfFileExists "$0\notepad_AkelUndo.exe" 0 Success
-	IfFileExists "$0\DLLCACHE\notepad.exe" 0 +3
-	Delete "$0\DLLCACHE\notepad.exe"
-	CopyFiles /SILENT "$0\notepad_AkelUndo.exe" "$0\DLLCACHE\notepad.exe"
-	Delete "$0\notepad.exe"
-	Rename "$0\notepad_AkelUndo.exe" "$0\notepad.exe"
-
-	StrCmp $0 $SYSDIR 0 UnTotalcmd
+	StrCmp $SETUPDIR $SYSDIR 0 UnTotalcmd
 	Delete "$WINDIR\notepad.exe"
 	CopyFiles /SILENT "$SYSDIR\notepad.exe" "$WINDIR\notepad.exe"
 
 	UnTotalcmd:
-	${un.GetParent} "$0" $0
-	IfFileExists "$0\Totalcmd.exe" 0 Success
-	StrCpy $0 "$0\Wincmd.ini"
+	${un.GetParent} "$SETUPDIR" $TCDIR
+	IfFileExists "$TCDIR\Totalcmd.exe" 0 Success
+	StrCpy $0 "$TCDIR\Wincmd.ini"
 	IfFileExists "$0" +3
 	SearchPath $0 "Wincmd.ini"
 	StrCmp $0 '' Success
 	ReadINIStr $1 "$0" "Configuration" "Editor"
+	StrCmp $1 '' RestoreAkelUndo
 	${un.GetFileName} "$1" $2
-	StrCmp $2 "Akelpad.exe" 0 DeleteINIEditorUndo
+	StrCmp $2 "Akelpad.exe" 0 Success
 	DeleteINIStr "$0" "Configuration" "Editor"
+	RestoreAkelUndo:
 	ReadINIStr $1 "$0" "Configuration" "Editor_AkelUndo"
 	StrCmp $1 '' Success
 	WriteINIStr "$0" "Configuration" "Editor" "$1"
-	DeleteINIEditorUndo:
 	DeleteINIStr "$0" "Configuration" "Editor_AkelUndo"
 
 	Success:
