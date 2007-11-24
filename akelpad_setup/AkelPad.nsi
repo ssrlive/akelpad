@@ -44,6 +44,7 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define LANG_JAPANESE     1041
 !define LANG_BRAZILIAN    1046
 !define LANG_ITALIAN      1040
+!define LANG_KOREAN       1042
 
 !define INSTTYPE_STANDART 1
 !define INSTTYPE_TOTALCMD 2
@@ -411,6 +412,7 @@ Section
 	File "Files\AkelFiles\Langs\Japanese.dll"
 	File "Files\AkelFiles\Langs\Brazilian.dll"
 	File "Files\AkelFiles\Langs\Italian.dll"
+	File "Files\AkelFiles\Langs\Korean.dll"
 	SetOutPath "$SETUPDIR\AkelFiles\Plugs"
 
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
@@ -455,6 +457,8 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Brazilian.dll"
 	StrCmp $SYSLANGUAGE ${LANG_ITALIAN} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Italian.dll"
+	StrCmp $SYSLANGUAGE ${LANG_KOREAN} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Korean.dll"
 
 	end:
 SectionEnd
@@ -523,6 +527,7 @@ Section un.install
 	Delete "$SETUPDIR\AkelFiles\Langs\Japanese.dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Brazilian.dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Italian.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\Korean.dll"
 	Delete "$SETUPDIR\AkelFiles\History-Rus.txt"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Eng.htm"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Rus.htm"
