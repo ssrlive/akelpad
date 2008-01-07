@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.4.4"
+!define PRODUCT_VERSION "3.4.5"
 
 ;_____________________________________________________________________________________________
 ;
@@ -34,17 +34,18 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "Graphics\WizardFinish.bmp"
 
 ############  Defines  ############
-!define LANG_ENGLISH      1033
-!define LANG_RUSSIAN      1049
-!define LANG_GERMAN       1043
-!define LANG_SPANISH      1034
-!define LANG_UKRAINIAN    1058
-!define LANG_BELORUSSIAN  1059
-!define LANG_FRENCH       1036
-!define LANG_JAPANESE     1041
-!define LANG_BRAZILIAN    1046
-!define LANG_ITALIAN      1040
-!define LANG_KOREAN       1042
+!define LANG_ENGLISH              1033
+!define LANG_RUSSIAN              1049
+!define LANG_GERMAN               1043
+!define LANG_SPANISH              1034
+!define LANG_UKRAINIAN            1058
+!define LANG_BELORUSSIAN          1059
+!define LANG_FRENCH               1036
+!define LANG_JAPANESE             1041
+!define LANG_BRAZILIAN            1046
+!define LANG_ITALIAN              1040
+!define LANG_KOREAN               1042
+!define LANG_CHINESE_TRADITIONAL  1028
 
 !define INSTTYPE_STANDART 1
 !define INSTTYPE_TOTALCMD 2
@@ -413,6 +414,8 @@ Section
 	File "Files\AkelFiles\Langs\Brazilian.dll"
 	File "Files\AkelFiles\Langs\Italian.dll"
 	File "Files\AkelFiles\Langs\Korean.dll"
+	File "Files\AkelFiles\Langs\Chinese (Traditional).dll"
+
 	SetOutPath "$SETUPDIR\AkelFiles\Plugs"
 
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
@@ -459,6 +462,8 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Italian.dll"
 	StrCmp $SYSLANGUAGE ${LANG_KOREAN} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Korean.dll"
+	StrCmp $SYSLANGUAGE ${LANG_CHINESE_TRADITIONAL} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Chinese (Traditional).dll"
 
 	end:
 SectionEnd
@@ -528,6 +533,7 @@ Section un.install
 	Delete "$SETUPDIR\AkelFiles\Langs\Brazilian.dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Italian.dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Korean.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\Chinese (Traditional).dll"
 	Delete "$SETUPDIR\AkelFiles\History-Rus.txt"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Eng.htm"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Rus.htm"
