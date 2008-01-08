@@ -47,7 +47,7 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define LANG_KOREAN               1042
 !define LANG_CHINESE_TRADITIONAL  1028
 
-!define INSTTYPE_STANDART 1
+!define INSTTYPE_STANDARD 1
 !define INSTTYPE_TOTALCMD 2
 !define INSTTYPE_NOTEPAD  3
 
@@ -93,14 +93,14 @@ LangString WelcomeInfoTitle ${LANG_ENGLISH} 'Welcome to the $(^Name) Setup Wizar
 LangString WelcomeInfoTitle ${LANG_RUSSIAN} 'Вас приветствует мастер установки $(^Name)'
 LangString WelcomeInfoText ${LANG_ENGLISH} 'Choose install type.'
 LangString WelcomeInfoText ${LANG_RUSSIAN} 'Выберите тип установки.'
-LangString TypeStandart ${LANG_ENGLISH} 'Standart install'
-LangString TypeStandart ${LANG_RUSSIAN} 'Стандартная установка'
+LangString TypeStandard ${LANG_ENGLISH} 'Standard install'
+LangString TypeStandard ${LANG_RUSSIAN} 'Стандартная установка'
 LangString TypeTotalcmd ${LANG_ENGLISH} 'Editor for Total Commander'
 LangString TypeTotalcmd ${LANG_RUSSIAN} 'Редактор для Total Commander'
 LangString TypeNotepad ${LANG_ENGLISH} 'Windows notepad replacement'
 LangString TypeNotepad ${LANG_RUSSIAN} 'Замена блокнота Windows'
-LangString TypeStandartText ${LANG_ENGLISH} 'Program will be installed to the specified directory.'
-LangString TypeStandartText ${LANG_RUSSIAN} 'Программа будет установлена в указанную директорию.'
+LangString TypeStandardText ${LANG_ENGLISH} 'Program will be installed to the specified directory.'
+LangString TypeStandardText ${LANG_RUSSIAN} 'Программа будет установлена в указанную директорию.'
 LangString TypeTotalcmdText ${LANG_ENGLISH} 'Program will be installed as external editor for Total Commander file manager.'
 LangString TypeTotalcmdText ${LANG_RUSSIAN} 'Программа будет установлена как внешний редактор для файлового менеджера Total Commander.'
 LangString TypeNotepadText ${LANG_ENGLISH} 'Windows notepad will be replaced with program. Copy of the notepad will be restored after program uninstall.'
@@ -109,8 +109,8 @@ LangString DirectoryInfoTitle ${LANG_ENGLISH} 'Choose Install Location'
 LangString DirectoryInfoTitle ${LANG_RUSSIAN} 'Выбор папки установки'
 LangString DirectoryInfoText ${LANG_ENGLISH} 'Choose the folder in which to install $(^Name).'
 LangString DirectoryInfoText ${LANG_RUSSIAN} 'Выберите папку для установки $(^Name).'
-LangString DirectoryTextStandart ${LANG_ENGLISH} 'Setup will install $(^Name) in the following folder. To install in a different folder, click Browse and select another folder.'
-LangString DirectoryTextStandart ${LANG_RUSSIAN} 'Программа установит $(^Name) в указанный каталог. Чтобы установить программу в другой каталог, нажмите на кнопку "Обзор".'
+LangString DirectoryTextStandard ${LANG_ENGLISH} 'Setup will install $(^Name) in the following folder. To install in a different folder, click Browse and select another folder.'
+LangString DirectoryTextStandard ${LANG_RUSSIAN} 'Программа установит $(^Name) в указанный каталог. Чтобы установить программу в другой каталог, нажмите на кнопку "Обзор".'
 LangString DirectoryTextTotalcmd ${LANG_ENGLISH} 'Select Total Commander folder.'
 LangString DirectoryTextTotalcmd ${LANG_RUSSIAN} 'Выберите каталог Total Commander.'
 LangString DirectoryTextNotepad ${LANG_ENGLISH} 'System folder.'
@@ -149,7 +149,7 @@ Function .onInit
 	File /oname=$INI "Pages\InstallType.ini"
 
 	GetTempFileName $0 $PLUGINSDIR
-	File /oname=$0 "Graphics\IconTypeStandart.ico"
+	File /oname=$0 "Graphics\IconTypeStandard.ico"
 	WriteINIStr "$INI" "Field 7" "Text" "$0"
 
 	GetTempFileName $0 $PLUGINSDIR
@@ -179,7 +179,7 @@ Function CustomShow
 	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(WelcomeInfoText)'
 
 	ReadINIStr $0 "$INI" "Field 1" "HWND"
-	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeStandart)'
+	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeStandard)'
 
 	ReadINIStr $0 "$INI" "Field 2" "HWND"
 	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeTotalcmd)'
@@ -188,7 +188,7 @@ Function CustomShow
 	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeNotepad)'
 
 	ReadINIStr $0 "$INI" "Field 4" "HWND"
-	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeStandartText)'
+	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeStandardText)'
 
 	ReadINIStr $0 "$INI" "Field 5" "HWND"
 	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(TypeTotalcmdText)'
@@ -206,12 +206,12 @@ FunctionEnd
 Function CustomLeave
 	ReadINIStr $0 "$INI" "Settings" "State"
 	StrCmp $0 0 next
-	StrCmp $0 1 standart
+	StrCmp $0 1 standard
 	StrCmp $0 2 totalcmd
 	StrCmp $0 3 notepad
 	abort
 
-	standart:
+	standard:
 	totalcmd:
 	StrCmp $REDCTL 0 0 +2
 	abort
@@ -234,7 +234,7 @@ Function CustomLeave
 	next:
 	ReadINIStr $0 "$INI" "Field 1" "State"
 	StrCmp $0 1 0 _totalcmd
-	StrCpy $INSTTYPE ${INSTTYPE_STANDART}
+	StrCpy $INSTTYPE ${INSTTYPE_STANDARD}
 
 	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString"
 	StrCmp $0 '' 0 +3
@@ -297,8 +297,8 @@ Function DirectoryShow
 	FindWindow $R0 '#32770' '' $HWNDPARENT
 
 	GetDlgItem $0 $R0 1006
-	StrCmp $INSTTYPE ${INSTTYPE_STANDART} 0 +2
-	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(DirectoryTextStandart)'
+	StrCmp $INSTTYPE ${INSTTYPE_STANDARD} 0 +2
+	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(DirectoryTextStandard)'
 	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 +2
 	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(DirectoryTextTotalcmd)'
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 +2
@@ -316,7 +316,7 @@ Function DirectoryShow
 	GetDlgItem $0 $R0 1053
 	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(ShortcutStartMenu)'
 
-	StrCmp $INSTTYPE ${INSTTYPE_STANDART} 0 +2
+	StrCmp $INSTTYPE ${INSTTYPE_STANDARD} 0 +2
 	SendMessage $0 ${BM_SETCHECK} 1 0
 
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 +5
