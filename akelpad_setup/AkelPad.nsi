@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.5.0"
+!define PRODUCT_VERSION "3.5.1"
 
 ;_____________________________________________________________________________________________
 ;
@@ -63,6 +63,8 @@ Var SETUPDIR
 Var SETUPEXE
 Var TCDIR
 Var SYSLANGUAGE
+Var UNSETTINGS
+Var UNRESULT
 
 ############  Pages  ############
 Page Custom CustomShow CustomLeave
@@ -209,13 +211,13 @@ FunctionEnd
 Function CustomLeave
 	ReadINIStr $0 "$INI" "Settings" "State"
 	StrCmp $0 0 next
-	StrCmp $0 1 standard
-	StrCmp $0 2 totalcmd
-	StrCmp $0 3 notepad
+	StrCmp $0 1 color_standard
+	StrCmp $0 2 color_totalcmd
+	StrCmp $0 3 color_notepad
 	abort
 
-	standard:
-	totalcmd:
+	color_standard:
+	color_totalcmd:
 	StrCmp $REDCTL 0 0 +2
 	abort
 
@@ -226,7 +228,7 @@ Function CustomLeave
 	StrCpy $REDCTL 0
 	abort
 
-	notepad:
+	color_notepad:
 	ReadINIStr $0 "$INI" "Field 6" "HWND"
 	SetCtlColors $0 /BRANDING 0xFF0000
 	ShowWindow $0 ${SW_HIDE}
@@ -235,6 +237,8 @@ Function CustomLeave
 	abort
 
 	next:
+
+#	_standard:
 	ReadINIStr $0 "$INI" "Field 1" "State"
 	StrCmp $0 1 0 _totalcmd
 	StrCpy $INSTTYPE ${INSTTYPE_STANDARD}
@@ -381,22 +385,6 @@ Function DirectoryLeave
 FunctionEnd
 
 Section
-	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 Install
-	StrCpy $0 "$TCDIR\Wincmd.ini"
-	IfFileExists "$0" +3
-	SearchPath $0 "Wincmd.ini"
-	StrCmp $0 '' Install
-	ReadINIStr $1 "$0" "Configuration" "Editor"
-	StrCmp $1 '' WriteINIEditor
-	${GetFileName} "$1" $2
-	StrCmp $2 "Akelpad.exe" WriteINIEditor
-	${WordReplace} "$1" "%COMMANDER_PATH%" "$TCDIR" "+" $2
-	IfFileExists $2 0 WriteINIEditor
-	WriteINIStr "$0" "Configuration" "Editor_AkelUndo" "$1"
-	WriteINIEditor:
-	WriteINIStr "$0" "Configuration" "Editor" "%COMMANDER_PATH%\AkelPad\Akelpad.exe"
-
-	Install:
 	SetOutPath "$SETUPDIR"
 	File "Files\AkelPad.exe"
 
@@ -424,6 +412,30 @@ Section
 
 	SetOutPath "$SETUPDIR\AkelFiles\Plugs"
 
+#	_standard:
+	StrCmp $INSTTYPE ${INSTTYPE_STANDARD} 0 _totalcmd
+	ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
+	goto RegInfo
+
+	_totalcmd:
+	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 _notepad
+	ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
+	StrCpy $0 "$TCDIR\Wincmd.ini"
+	IfFileExists "$0" +3
+	SearchPath $0 "Wincmd.ini"
+	StrCmp $0 '' RegInfo
+	ReadINIStr $1 "$0" "Configuration" "Editor"
+	StrCmp $1 '' WriteINIEditor
+	${GetFileName} "$1" $2
+	StrCmp $2 "Akelpad.exe" WriteINIEditor
+	${WordReplace} "$1" "%COMMANDER_PATH%" "$TCDIR" "+" $2
+	IfFileExists $2 0 WriteINIEditor
+	WriteINIStr "$0" "Configuration" "Editor_AkelUndo" "$1"
+	WriteINIEditor:
+	WriteINIStr "$0" "Configuration" "Editor" "%COMMANDER_PATH%\AkelPad\Akelpad.exe"
+	goto RegInfo
+
+	_notepad:
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
 	IfFileExists "$SETUPDIR\notepad_AkelUndo.exe" +2
 	CopyFiles /SILENT "$SETUPDIR\notepad.exe" "$SETUPDIR\notepad_AkelUndo.exe"
@@ -433,6 +445,7 @@ Section
 	IfFileExists "$SETUPDIR\notepad.exe" 0 +2
 	Delete "$SETUPDIR\notepad.exe"
 	Rename "$SETUPDIR\AkelPad.exe" "$SETUPDIR\notepad.exe"
+	ExecWait '"$SETUPDIR\notepad.exe" /reassoc /quit'
 
 	StrCmp $SETUPDIR $SYSDIR 0 RegInfo
 	SetOutPath "$WINDIR"
@@ -509,21 +522,58 @@ FunctionEnd
 
 Function un.uninstConfirmLeave
 	GetDlgItem $0 $R0 1051
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
-
-	StrCmp $1 0 end
-	DeleteRegKey HKCU "SOFTWARE\Akelsoft\${PRODUCT_NAME}"
-
-	${un.GetParent} "$INSTDIR" $0
-	IfFileExists "$0\AkelPad.ini" 0 +2
-	Delete "$0\AkelPad.ini"
-
-	end:
+	SendMessage $0 ${BM_GETSTATE} 0 0 $UNSETTINGS
 FunctionEnd
 
 Section un.install
 	${un.GetParent} "$INSTDIR" $SETUPDIR
 
+#	_notepad:
+	StrCmp $SETUPDIR $SYSDIR +2
+	StrCmp $SETUPDIR $WINDIR 0 _totalcmd
+	IfFileExists "$SETUPDIR\notepad_AkelUndo.exe" 0 _totalcmd
+	ExecWait '"$SETUPDIR\notepad.exe" /deassoc /quit'
+	IfFileExists "$SETUPDIR\DLLCACHE\notepad.exe" 0 +3
+	Delete "$SETUPDIR\DLLCACHE\notepad.exe"
+	CopyFiles /SILENT "$SETUPDIR\notepad_AkelUndo.exe" "$SETUPDIR\DLLCACHE\notepad.exe"
+	Delete "$SETUPDIR\notepad.exe"
+	Rename "$SETUPDIR\notepad_AkelUndo.exe" "$SETUPDIR\notepad.exe"
+
+	StrCmp $SETUPDIR $SYSDIR 0 DeleteSettings
+	Delete "$WINDIR\notepad.exe"
+	CopyFiles /SILENT "$SYSDIR\notepad.exe" "$WINDIR\notepad.exe"
+	goto DeleteSettings
+
+	_totalcmd:
+	${un.GetParent} "$SETUPDIR" $TCDIR
+	IfFileExists "$TCDIR\Totalcmd.exe" 0 _standard
+	ExecWait '"$SETUPDIR\AkelPad.exe" /deassoc /quit'
+	StrCpy $0 "$TCDIR\Wincmd.ini"
+	IfFileExists "$0" +3
+	SearchPath $0 "Wincmd.ini"
+	StrCmp $0 '' DeleteSettings
+	ReadINIStr $1 "$0" "Configuration" "Editor"
+	StrCmp $1 '' RestoreAkelUndo
+	${un.GetFileName} "$1" $2
+	StrCmp $2 "Akelpad.exe" 0 DeleteSettings
+	DeleteINIStr "$0" "Configuration" "Editor"
+	RestoreAkelUndo:
+	ReadINIStr $1 "$0" "Configuration" "Editor_AkelUndo"
+	StrCmp $1 '' DeleteSettings
+	WriteINIStr "$0" "Configuration" "Editor" "$1"
+	DeleteINIStr "$0" "Configuration" "Editor_AkelUndo"
+	goto DeleteSettings
+
+	_standard:
+	ExecWait '"$SETUPDIR\AkelPad.exe" /deassoc /quit'
+
+	DeleteSettings:
+	StrCmp $UNSETTINGS 0 DeleteUninstallKey
+	DeleteRegKey HKCU "SOFTWARE\Akelsoft\${PRODUCT_NAME}"
+	IfFileExists "$SETUPDIR\AkelPad.ini" 0 +2
+	Delete "$SETUPDIR\AkelPad.ini"
+
+	DeleteUninstallKey:
 	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
 	SetOutPath "$TEMP"
@@ -559,43 +609,11 @@ Section un.install
 	RMDir "$SETUPDIR\AkelFiles"
 	RMDir "$SETUPDIR"
 
-	StrCmp $SETUPDIR $SYSDIR +2
-	StrCmp $SETUPDIR $WINDIR 0 UnTotalcmd
-	IfFileExists "$SETUPDIR\notepad_AkelUndo.exe" 0 Success
-	IfFileExists "$SETUPDIR\DLLCACHE\notepad.exe" 0 +3
-	Delete "$SETUPDIR\DLLCACHE\notepad.exe"
-	CopyFiles /SILENT "$SETUPDIR\notepad_AkelUndo.exe" "$SETUPDIR\DLLCACHE\notepad.exe"
-	Delete "$SETUPDIR\notepad.exe"
-	Rename "$SETUPDIR\notepad_AkelUndo.exe" "$SETUPDIR\notepad.exe"
-
-	StrCmp $SETUPDIR $SYSDIR 0 UnTotalcmd
-	Delete "$WINDIR\notepad.exe"
-	CopyFiles /SILENT "$SYSDIR\notepad.exe" "$WINDIR\notepad.exe"
-
-	UnTotalcmd:
-	${un.GetParent} "$SETUPDIR" $TCDIR
-	IfFileExists "$TCDIR\Totalcmd.exe" 0 Success
-	StrCpy $0 "$TCDIR\Wincmd.ini"
-	IfFileExists "$0" +3
-	SearchPath $0 "Wincmd.ini"
-	StrCmp $0 '' Success
-	ReadINIStr $1 "$0" "Configuration" "Editor"
-	StrCmp $1 '' RestoreAkelUndo
-	${un.GetFileName} "$1" $2
-	StrCmp $2 "Akelpad.exe" 0 Success
-	DeleteINIStr "$0" "Configuration" "Editor"
-	RestoreAkelUndo:
-	ReadINIStr $1 "$0" "Configuration" "Editor_AkelUndo"
-	StrCmp $1 '' Success
-	WriteINIStr "$0" "Configuration" "Editor" "$1"
-	DeleteINIStr "$0" "Configuration" "Editor_AkelUndo"
-
-	Success:
-	StrCpy $0 SuccessUninstall
+	StrCpy $UNRESULT SuccessUninstall
 	quit
 SectionEnd
 
 Function un.onGUIEnd
-	StrCmp $0 SuccessUninstall 0 +2
+	StrCmp $UNRESULT SuccessUninstall 0 +2
 	MessageBox MB_ICONINFORMATION|MB_OK "$(UninstallSuccess)"
 FunctionEnd
