@@ -14,9 +14,6 @@ SubCaption 3 ' '
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
 ############  Functions  ############
-!include "WordFunc.nsh"
-!insertmacro WordReplace
-
 !include "FileFunc.nsh"
 !insertmacro GetFileName
 !insertmacro un.GetFileName
@@ -428,8 +425,6 @@ Section
 	StrCmp $1 '' WriteINIEditor
 	${GetFileName} "$1" $2
 	StrCmp $2 "Akelpad.exe" WriteINIEditor
-	${WordReplace} "$1" "%COMMANDER_PATH%" "$TCDIR" "+" $2
-	IfFileExists $2 0 WriteINIEditor
 	WriteINIStr "$0" "Configuration" "Editor_AkelUndo" "$1"
 	WriteINIEditor:
 	WriteINIStr "$0" "Configuration" "Editor" "%COMMANDER_PATH%\AkelPad\Akelpad.exe"
