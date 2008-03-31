@@ -29,6 +29,7 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define MUI_HEADERIMAGE_BITMAP "Graphics\HeaderInstall.bmp"
 !define MUI_HEADERIMAGE_UNBITMAP "Graphics\HeaderUninstall.bmp"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "Graphics\WizardFinish.bmp"
+!define MUI_FINISHPAGE_RUN "$SETUPEXE"
 
 ############  Defines  ############
 !define LANG_ENGLISH              1033
