@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.5.5"
+!define PRODUCT_VERSION "3.5.6"
 
 ;_____________________________________________________________________________________________
 ;
@@ -47,6 +47,7 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define LANG_CHINESE_SIMPLIFIED   2052
 !define LANG_KYRGYZ               1088
 !define LANG_POLISH               1045
+!define LANG_TURKISH              1055
 
 !define INSTTYPE_STANDARD 1
 !define INSTTYPE_TOTALCMD 2
@@ -408,6 +409,7 @@ Section
 	File "Files\AkelFiles\Langs\Chinese (Simplified).dll"
 	File "Files\AkelFiles\Langs\Kyrgyz.dll"
 	File "Files\AkelFiles\Langs\Polish.dll"
+	File "Files\AkelFiles\Langs\Turkish.dll"
 
 	SetOutPath "$SETUPDIR\AkelFiles\Plugs"
 
@@ -486,6 +488,8 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Kyrgyz.dll"
 	StrCmp $SYSLANGUAGE ${LANG_POLISH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Polish.dll"
+	StrCmp $SYSLANGUAGE ${LANG_TURKISH} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Turkish.dll"
 
 	end:
 SectionEnd
@@ -596,6 +600,7 @@ Section un.install
 	Delete "$SETUPDIR\AkelFiles\Langs\Chinese (Simplified).dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Kyrgyz.dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Polish.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\Turkish.dll"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Eng.htm"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Rus.htm"
 	Delete "$SETUPDIR\AkelFiles\History-Eng.txt"
