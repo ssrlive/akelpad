@@ -1,0 +1,17 @@
+
+AkelPad 4.0.0 alpha 1 (May 20, 2008)
+------------------------------------
+Changed: created own control for editing the text - AkelEdit (replacement for RichEdit).
+Changed: speed of work is increased.
+
+Added: support of column text selection.
+Added: support of any length lines.
+Added: editing and correct saving of binary files.
+Added: set up color schemes.
+Added: check a saving correctness of all symbols in the specified encoding (except Windows 95).
+
+Do not work yet:
+- Most part of plug-ins.
+- Word wrap.
+- Text Drag'n'Drop.
+- URL highlighting.
