@@ -1,0 +1,411 @@
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html; charset=windows-1251">
+<title>AkelPad 4 - Help</title>
+</head>
+
+<body bgcolor="#dadae0">
+
+<font color=green><h2>AkelPad 4 - User's Manual</h2></font>
+
+<h3>Contents:</h3>
+<ol>
+  <li><a href=#ch0>Compatibility</a>
+  <li><a href=#ch1>General remarks</a>
+  <li><a href=#ch2>Features</a>
+  <li><a href=#ch3>Command line parameters</a>
+  <li><a href=#ch4>Keyboard commands</a>
+  <li><a href=#ch5>License</a>
+  <li><a href=#ch6>Contributors</a>
+</ol>
+
+<a name=ch0><h3>Compatibility</h3></a>
+  Programs is intended to work under Windows 95/98/Me and Windows NT 4.0/2000/XP/2003.
+
+<a name=ch1><h3>General remarks</h3></a>
+  Notepad is a wonderful editor, being used to edit files in plain text format, thus it is irreplaceable for programming, designing of Web documents, and so on. However, the one comprised in Windows, is very inconvenient due to several limitations. This program claims to be able to fill up these drawbacks.
+  <br><i>Attention:</i> this program takes a lot of advantages from Unicode representation. It is strongly recommended that you set up TrueType font (as Courier New) to gain more advantages from this feature.
+
+<a name=ch2><h3>Features</h3></a>
+  As long as the program is intended to replace standard Notepad, it's target is plain text files, it <font color=red>doesn't</font> support RTF files and so on - it isn't a drawback, it's a feature.
+  Brief description of general features:
+  <ul>
+    <li>Single window mode (SDI), multi window mode (MDI);
+    <li>Editing of files, which size is more than 64K (generally speaking, size isn't theoretically limited);
+    <li>Full support of Unicode strings on Unicode systems (NT/2000/XP/2003);
+    <li>Support of Unicode codepages (UTF-16 little endian, UTF-16 big endian, UTF-8);
+    <li>Support of any codepage installed in the system;
+    <li>Support of DOS/Windows and Unix newline formats;
+    <li>Preview file open;
+    <li>Correct pseudographics displaying;
+    <li>Column text selection;
+    <li>Multi-level undo;
+    <li>Fast search/replace text strings;
+    <li>Remember file codepage and caret position;
+    <li>Printing of a document;
+    <li>Support of language modules;
+    <li>Plugins support (syntax highlighting, auto-completion, scripts execution, keyboard macros and much more).
+  </ul>
+  Settings are saved in AkelPad.ini or in registry (<i>HKEY_CURRENT_USER\Software\Akelsoft\AkelPad</i>).
+
+<a name=ch3><h3>Command line parameters</h3></a>
+  AkelPad.exe [options] "file1.ext" "file2.ext" ...
+  <ul>
+    <table cellspacing=0 cellpadding=0 border=0>
+      <tr>
+        <td width="80"><li><b>/p</b></td>
+        <td>- print</td>
+      </tr>
+      <tr>
+        <td><li><b>/c+</b></td>
+        <td>- silently create new file, if doesn't exist</td>
+      </tr>
+      <tr>
+        <td><li><b>/c-</b></td>
+        <td>- don't create new file, if doesn't exist</td>
+      </tr>
+      <tr>
+        <td><li><b>/b+</b></td>
+        <td>- silently open file, if binary</td>
+      </tr>
+      <tr>
+        <td><li><b>/b-</b></td>
+        <td>- don't open file, if binary</td>
+      </tr>
+      <tr>
+        <td><li><b>/x</b></td>
+        <td>- don't use MS Notepad compatibility mode when parse command line parameters</td>
+      </tr>
+      <tr>
+        <td><li><b>/reassoc</b></td>
+        <td>- reinstall assigned earlier associations of file types</td>
+      </tr>
+      <tr>
+        <td><li><b>/deassoc</b></td>
+        <td>- uninstall assigned earlier associations of file types</td>
+      </tr>
+      <tr>
+        <td><li><b>/quit</b></td>
+        <td>- stop parsing command line parameters and close program</td>
+      </tr>
+      <tr>
+        <td><li><b>/end</b></td>
+        <td>- stop parsing command line parameters</td>
+      </tr>
+    </table>
+  </ul>
+
+<a name=ch4><h3>Keyboard commands</h3></a>
+  <ul>
+  <table cellspacing=0 cellpadding=0 border=0>
+    <tr>
+      <td width="149"><li><b>Ctrl+X</b> or <b>Shift+Del</b></td>
+      <td width="651"> - cut</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+C</b> or <b>Ctrl+Ins</b></td>
+      <td> - copy</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+V</b> or <b>Shift+Ins</b></td>
+      <td> - paste</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Shift+V</b> or <b>Ctrl+Shift+Ins</b></td>
+      <td> - paste text as ANSI</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+A</b></td>
+      <td> - select all</td>
+    </tr>
+    <tr>
+      <td><li><b>Backspace</b></td>
+      <td> - delete from left</td>
+    </tr>
+    <tr>
+      <td><li><b>Del</b></td>
+      <td> - delete from right</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Z</b></td>
+      <td> - undo</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Shift+Z</b></td>
+      <td> - redo</td>
+    </tr>
+    <tr>
+      <td><li><b>Home</b></td>
+      <td> - go to start of line</td>
+    </tr>
+    <tr>
+      <td><li><b>End</b></td>
+      <td> - go to end of line</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Home</b></td>
+      <td> - go to start of text</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+End</b></td>
+      <td> - go to end of text</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Left</b></td>
+      <td> - go to start of word</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Right</b></td>
+      <td> - go to end of word</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Up</b></td>
+      <td>- go to start of previous line</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Down</b></td>
+      <td> - go to start of next line</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+PageUp</b></td>
+      <td> - go to first visible character</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+PageDown</b></td>
+      <td> - go to last visible character</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Backspace</b></td>
+      <td> - delete left word</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Del</b></td>
+      <td> - delete right word</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+N</b></td>
+      <td> - create new file</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Shift+N</b></td>
+      <td> - create new window</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+O</b></td>
+      <td> - open file</td>
+    </tr>
+    <tr>
+      <td><li><b>F5</b> or <b>Ctrl+Shift+O</b></td>
+      <td> - reopen file</td>
+    </tr>
+    <tr>
+      <td><li><b>F2</b> or <b>Ctrl+S</b></td>
+      <td> - save</td>
+    </tr>
+    <tr>
+      <td><li><b>Shift+F2</b> or <b>Ctrl+Shift+S</b></td>
+      <td> - save as</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Alt+F2</b></td>
+      <td> - save all</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Alt+F4</b></td>
+      <td> - close all</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+P</b></td>
+      <td> - print</td>
+    </tr>
+    <tr>
+      <td><li><b>Esc</b> or <b>Alt+F4</b></td>
+      <td> - exit</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+F</b></td>
+      <td> - find</td>
+    </tr>
+    <tr>
+      <td><li><b>F3</b></td>
+      <td> - find next down. Search/replace dialog: close dialog and find next down.</td>
+    </tr>
+    <tr>
+      <td><li><b>Shift+F3</b></td>
+      <td> - find next up. Search/replace dialog: close dialog and find next up.</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+R</b> or <b>Ctrl+H</b></td>
+      <td> - find and replace</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+G</b></td>
+      <td> - go to line (by number)</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+I</b></td>
+      <td> - run "Character map"</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+T</b></td>
+      <td> - on/off "Always on top"</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+U</b></td>
+      <td> - on/off "Word wrap"</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+E</b></td>
+      <td> - on/off "Read only"</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+W</b></td>
+      <td> - reopen file as ANSI (Windows)</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+D</b></td>
+      <td> - reopen file as OEM (DOS)</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+K</b></td>
+      <td> - reopen file as KOI8-R</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+L</b></td>
+      <td> - reopen file as UTF-16LE</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+B</b></td>
+      <td> - reopen file as UTF-16BE</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+U</b></td>
+      <td> - reopen file as UTF-8</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Alt+W</b></td>
+      <td> - save file as ANSI (Windows)</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Alt+D</b></td>
+      <td> - save file as OEM (DOS)</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Alt+K</b></td>
+      <td> - save file as KOI8-R</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Alt+L</b></td>
+      <td> - save file as UTF-16LE</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Alt+B</b></td>
+      <td> - save file as UTF-16BE</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Alt+U</b></td>
+      <td> - save file as UTF-8</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+F5</b></td>
+      <td> - reopen file with code page detect</td>
+    </tr>
+    <tr>
+      <td><li><b>F12</b></td>
+      <td> - show context menu for fast reopenning/saving in wanted code page</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+R</b></td>
+      <td> - recode text</td>
+    </tr>
+    <tr>
+      <td><li><b>Shift+Backspace</b></td>
+      <td> - delete first char</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+Backspace</b></td>
+      <td> - trim trailing whitespaces</td>
+    </tr>
+    <tr>
+      <td><li><b>Alt+P</b></td>
+      <td> - plugins</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+F5</b></td>
+      <td> - execute command</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+L</b></td>
+      <td> - on/off "Keep left spaces"</td>
+    </tr>
+    <tr>
+      <td><li><b>F4</b> or <b>Alt+Enter</b></td>
+      <td> - maximize/restore window</td>
+    </tr>
+    <tr>
+      <td><li><b>F8</b> or <b>Ctrl+Y</b></td>
+      <td> - delete current line</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Num +</b></td>
+      <td> - increase font by 1 pt</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Num -</b></td>
+      <td> - decrease font by 1 pt</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+6</b></td>
+      <td> - selected text, as "UPPERCASE"</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+7</b></td>
+      <td> - selected text, as "lowercase"</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+8</b></td>
+      <td> - selected text, as "Sentence case."</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+9</b></td>
+      <td> - selected text, as "Title Case"</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+0</b></td>
+      <td> - selected text, as "iNVERT cASE"</td>
+    </tr>
+    <tr>
+      <td><li><b>F6</b></td>
+      <td> - go to next dialog</td>
+    </tr>
+    <tr>
+      <td><li><b>Shift+F6</b></td>
+      <td> - go to previous dialog</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Tab</b> or <b>Ctrl+F6</b></td>
+      <td> - next window (MDI)</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+Shift+Tab</b> or <b>Ctrl+Shift+F6</b></td>
+      <td> - previous window (MDI)</td>
+    </tr>
+    <tr>
+      <td><li><b>Ctrl+F4</b> or <b>Ctrl+W</b></td>
+      <td> - close window (MDI)</td>
+    </tr>
+  </table>
+  </ul>
+
+<a name=ch5><h3>License</h3></a>
+  This program is distributed under <i>"BSD license"</i> conditions. <i>BSD license</i> is open source license approved by OSI. It can be found on <a href=http://www.opensource.org/licenses/bsd-license.php>their site</a>.
+
+<a name=ch6><h3>Contributors</h3></a>
+  Shengalts Aleksander (e-mail: <a href=mailto:shengalts@mail.ru>shengalts@mail.ru</a>)
+  <br>Kuznetsov Alexey (e-mail: <a href=mailto:developer@akelpad.net.ru>developer@akelpad.net.ru</a>)
+  <br><br><a href=http://akelpad.sf.net>http://akelpad.sf.net</a>
+
+<hr>
+
+</body>
+</html>
