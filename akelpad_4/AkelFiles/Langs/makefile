@@ -4,10 +4,13 @@
 CC = g++
 CFLAGS = -Wall -Werror -Os
 LDFLAGS = -shared -nostdlib
-DEL = del
-#DEL = rm -f
 ifndef LANG
-LANG = English
+  LANG = English
+endif
+ifndef NIX
+  DEL = del
+else
+  DEL = rm -f
 endif
 
 all: $(LANG).dll
