@@ -73,11 +73,12 @@
 
 #define AETIMERID_MOUSEMOVE  1
 
-#define AECO_READONLY        0x00000001
-#define AECO_HIDENOSCROLL    0x00000002
-#define AECO_WANTRETURN      0x00000004
-#define AECO_DETAILEDUNDO    0x00000008
-#define AECO_DISABLEBEEP     0x00000010
+#define AECO_WORDWRAP        0x00000001
+#define AECO_READONLY        0x00000002
+#define AECO_HIDENOSCROLL    0x00000004
+#define AECO_WANTRETURN      0x00000008
+#define AECO_DETAILEDUNDO    0x00000010
+#define AECO_DISABLEBEEP     0x00000020
 
 #define AECOOP_SET           0
 #define AECOOP_OR            1
@@ -110,6 +111,7 @@
 #define AELB_N        6
 #define AELB_RN       7
 #define AELB_RRN      8
+#define AELB_WRAP     9
 
 #define AENL_INPUT           0x00000001
 #define AENL_OUTPUT          0x00000002
@@ -388,8 +390,11 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
 int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
 DWORD AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
 DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, int nOffset, int nNewLine);
-void AE_WrapLines(AKELEDIT *ae);
+void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine);
 BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar);
+void AE_WrapLines(AKELEDIT *ae);
+int AE_LineWrap(AKELEDIT *ae, AELINEINDEX *liLine, int nMaxWidth);
+void AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine);
 void AE_CalcLinesWidth(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bFresh);
 int AE_CheckCodepage(AKELEDIT *ae, int nCodePage);
 void AE_SetDrawRect(AKELEDIT *ae, RECT *rcDraw, BOOL bRedraw);
