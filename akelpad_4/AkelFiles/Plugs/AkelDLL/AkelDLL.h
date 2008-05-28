@@ -644,25 +644,25 @@ typedef struct _NSIZE {
 #define IDM_EDIT_INSERTDATE             4183  //Insert date
                                               //Return Value: zero
                                               //
-#define IDM_VIEW_INCREASE_FONT          4201  //Increase font 1px
-                                              //Return Value: zero
-                                              //
-#define IDM_VIEW_DECREASE_FONT          4202  //Decrease font 1px
-                                              //Return Value: zero
-                                              //
-#define IDM_VIEW_FONT                   4203  //Font dialog
+#define IDM_VIEW_FONT                   4201  //Font dialog
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_VIEW_COLORS                 4204  //Color theme dialog
+#define IDM_VIEW_COLORS                 4202  //Color theme dialog
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_VIEW_WORDWRAP               4205  //Word wrap (on\off)
+#define IDM_VIEW_INCREASE_FONT          4204  //Increase font 1px
                                               //Return Value: zero
                                               //
-#define IDM_VIEW_ONTOP                  4206  //Always on top (on\off)
+#define IDM_VIEW_DECREASE_FONT          4205  //Decrease font 1px
                                               //Return Value: zero
                                               //
-#define IDM_VIEW_SHOW_STATUSBAR         4207  //Show statusbar (on\off)
+#define IDM_VIEW_WORDWRAP               4209  //Word wrap (on\off)
+                                              //Return Value: zero
+                                              //
+#define IDM_VIEW_ONTOP                  4210  //Always on top (on\off)
+                                              //Return Value: zero
+                                              //
+#define IDM_VIEW_SHOW_STATUSBAR         4211  //Show statusbar (on\off)
                                               //Return Value: zero
                                               //
 #define IDM_OPTIONS_EXEC                4251  //Execute command
