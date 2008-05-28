@@ -1,5 +1,5 @@
 
-AkelPad 4.0.0 alpha 1 (May 20, 2008)
+AkelPad 4.0.0 alpha 1 (May 28, 2008)
 ------------------------------------
 Changed: created own control for editing the text - AkelEdit (replacement for RichEdit).
 Changed: speed of work is increased.
