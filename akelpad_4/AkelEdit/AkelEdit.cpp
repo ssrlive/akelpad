@@ -1,5 +1,5 @@
 /***********************************************************************************
- *               AkelEdit text control v1.0 alpha 1                                *
+ *               AkelEdit text control v1.0 alpha 2                                *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -146,7 +146,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->dwUndoLimit=(DWORD)-1;
       ae->nInputNewLine=AELB_ASIS;
       ae->nOutputNewLine=AELB_ASIS;
-//      ae->dwOptions=AECO_WORDWRAP;
+      ae->dwOptions=AECO_WORDWRAP;
       AE_memcpy(ae->wszWordDelimiters, AES_WORD_DELIMITERSW, (lstrlenW(AES_WORD_DELIMITERSW) + 1) * sizeof(wchar_t));
 
       GetClientRect(ae->hWndEdit, &ae->rcEdit);
@@ -622,7 +622,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ae->dwOptions & AECO_WORDWRAP)
         {
           AE_WrapLines(ae, NULL, NULL);
-          AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
         }
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, lParam);
         return 0;
@@ -659,13 +658,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
         AE_SetEditFontW(ae, (HFONT)wParam, TRUE);
 
-      AE_UpdateSelection(ae);
+      ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+      AE_UpdateScrollBars(ae, SB_VERT);
       AE_CalcLinesWidth(ae, NULL, NULL, TRUE);
+      AE_UpdateSelection(ae);
 
       if (ae->dwOptions & AECO_WORDWRAP)
       {
         AE_WrapLines(ae, NULL, NULL);
-        AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
       }
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, !lParam);
       return 0;
@@ -729,7 +729,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ae->dwOptions & AECO_WORDWRAP)
         {
           AE_WrapLines(ae, NULL, NULL);
-          AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
         }
         AE_UpdateScrollBars(ae, SB_BOTH);
         AE_UpdateEditWindow(ae->hWndEdit, TRUE);
@@ -2774,6 +2773,7 @@ void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine
   AECHARINDEX ciEnd;
   int nMaxWidth=ae->rcDraw.right - ae->rcDraw.left;
   int nLineCount=0;
+  int nWrapped=0;
 
   if (!liStartLine)
   {
@@ -2804,21 +2804,28 @@ void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine
 
     if (ciStart.lpLine->nLineWidth + ae->nAveCharWidth > nMaxWidth)
     {
-      if (AE_LineWrap(ae, (AELINEINDEX *)&ciStart, nMaxWidth) > 0)
-        ++nLineCount;
-      ++ciEnd.nLine;
+      if (nWrapped=AE_LineWrap(ae, (AELINEINDEX *)&ciStart, nMaxWidth))
+      {
+        nLineCount+=nWrapped;
+        ciEnd.nLine+=nWrapped;
+      }
+      else break;
     }
-    else if (ciStart.lpLine->nLineBreak == AELB_WRAP)
+    if (ciStart.lpLine->nLineBreak == AELB_WRAP)
     {
-      AE_LineUnwrap(ae, (AELINEINDEX *)&ciStart);
-      --nLineCount;
-      continue;
+      if (AE_LineUnwrap(ae, (AELINEINDEX *)&ciStart))
+      {
+        --nLineCount;
+        continue;
+      }
+      else break;
     }
     if (ciStart.nLine == ciEnd.nLine) break;
     ++ciStart.nLine;
     ciStart.lpLine=ciStart.lpLine->next;
   }
 
+  //Set global
   {
     ae->nLineCount+=nLineCount;
     ae->nHScrollMax=0;
@@ -2836,89 +2843,62 @@ void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine
 
 int AE_LineWrap(AKELEDIT *ae, AELINEINDEX *liLine, int nMaxWidth)
 {
-  AELINEDATA *lpFirstElement;
-  AELINEDATA *lpSecondElement;
-  AELINEDATA *lpNextElement;
+  AELINEDATA *lpInitialElement=liLine->lpLine;
+  AELINEDATA *lpNewElement=NULL;
+  int nCharCount=0;
   int nCharInLine=0;
   int nCharPos=0;
   int nLineCount=0;
 
   NextLine:
-  if (AE_GetCharInLine(ae, liLine->lpLine->wpLine + nCharInLine, liLine->lpLine->nLineLen, nMaxWidth - ae->nAveCharWidth, FALSE, &nCharInLine, &nCharPos, FALSE))
+  if (nCharCount < lpInitialElement->nLineLen)
   {
-/*
-    AECHARINDEX ciLineStart;
-    AECHARINDEX ciLineEnd;
-
-    ciLineEnd.nLine=liLine->nLine;
-    ciLineEnd.lpLine=liLine->lpLine;
-    ciLineEnd.nCharInLine=nCharInLine;
-    AE_GetPrevBreak(ae, &ciLineEnd, &ciLineStart, FALSE);
-    ciLineEnd=ciLineStart;
-*/
-
-    if (lpFirstElement=AE_StackLineInsertBefore(ae, liLine->lpLine))
+    if (AE_GetCharInLine(ae, lpInitialElement->wpLine + nCharCount, lpInitialElement->nLineLen - nCharCount, nMaxWidth - ae->nAveCharWidth, FALSE, &nCharInLine, &nCharPos, FALSE))
     {
-      lpFirstElement->nLineWidth=nCharPos;
-      lpFirstElement->nLineBreak=AELB_WRAP;
-      lpFirstElement->nLineLen=nCharInLine;
+  /*
+      AECHARINDEX ciLineStart;
+      AECHARINDEX ciLineEnd;
 
-      if (lpFirstElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpFirstElement->nLineLen * sizeof(wchar_t) + 2))
+      ciLineEnd.nLine=liLine->nLine;
+      ciLineEnd.lpLine=liLine->lpLine;
+      ciLineEnd.nCharInLine=nCharInLine;
+      AE_GetPrevBreak(ae, &ciLineEnd, &ciLineStart, FALSE);
+      ciLineEnd=ciLineStart;
+  */
+
+      if (lpNewElement=AE_StackLineInsertBefore(ae, lpInitialElement))
       {
-        AE_memcpy(lpFirstElement->wpLine, liLine->lpLine->wpLine, nCharInLine * sizeof(wchar_t));
-        lpFirstElement->wpLine[lpFirstElement->nLineLen]=L'\0';
+        lpNewElement->nLineWidth=nCharPos;
+        if (nCharCount + nCharInLine < lpInitialElement->nLineLen)
+          lpNewElement->nLineBreak=AELB_WRAP;
+        else
+          lpNewElement->nLineBreak=lpInitialElement->nLineBreak;
+        lpNewElement->nLineLen=nCharInLine;
 
-        //End of line as new line
-        if (lpSecondElement=AE_StackLineInsertBefore(ae, liLine->lpLine))
+        if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
         {
-          if (liLine->lpLine->nLineBreak == AELB_WRAP)
-          {
-            lpNextElement=liLine->lpLine->next;
+          AE_memcpy(lpNewElement->wpLine, lpInitialElement->wpLine + nCharCount, nCharInLine * sizeof(wchar_t));
+          lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
 
-            if (lpNextElement)
-            {
-              lpSecondElement->nLineWidth=-1;
-              lpSecondElement->nLineBreak=lpNextElement->nLineBreak;
-              lpSecondElement->nLineLen=(liLine->lpLine->nLineLen - nCharInLine) + lpNextElement->nLineLen;
-
-              if (lpSecondElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpSecondElement->nLineLen * sizeof(wchar_t) + 2))
-              {
-                AE_memcpy(lpSecondElement->wpLine, liLine->lpLine->wpLine + nCharInLine, (liLine->lpLine->nLineLen - nCharInLine) * sizeof(wchar_t));
-                AE_memcpy(lpSecondElement->wpLine + (liLine->lpLine->nLineLen - nCharInLine), lpNextElement->wpLine, lpNextElement->nLineLen * sizeof(wchar_t));
-                lpSecondElement->wpLine[lpSecondElement->nLineLen]=L'\0';
-              }
-            }
-            AE_StackLineDelete(ae, liLine->lpLine);
-            AE_StackLineDelete(ae, lpNextElement);
-            liLine->lpLine=lpSecondElement;
-            ++liLine->nLine;
-            goto NextLine;
-          }
-          else
-          {
-            lpSecondElement->nLineWidth=-1;
-            lpSecondElement->nLineBreak=liLine->lpLine->nLineBreak;
-            lpSecondElement->nLineLen=liLine->lpLine->nLineLen - nCharInLine;
-
-            if (lpSecondElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpSecondElement->nLineLen * sizeof(wchar_t) + 2))
-            {
-              AE_memcpy(lpSecondElement->wpLine, liLine->lpLine->wpLine + nCharInLine, (liLine->lpLine->nLineLen - nCharInLine) * sizeof(wchar_t));
-              lpSecondElement->wpLine[lpSecondElement->nLineLen]=L'\0';
-            }
-            AE_StackLineDelete(ae, liLine->lpLine);
-            liLine->lpLine=lpSecondElement;
-            ++liLine->nLine;
+          nCharCount+=nCharInLine;
+          if (nCharCount < lpInitialElement->nLineLen)
             ++nLineCount;
-            goto NextLine;
-          }
+          goto NextLine;
         }
       }
     }
   }
+
+  if (nLineCount)
+  {
+    AE_StackLineDelete(ae, lpInitialElement);
+    liLine->lpLine=lpNewElement;
+    liLine->nLine+=nLineCount;
+  }
   return nLineCount;
 }
 
-void AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine)
+BOOL AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine)
 {
   AELINEDATA *lpNewElement;
   AELINEDATA *lpNextElement;
@@ -2949,8 +2929,10 @@ void AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine)
       AE_StackLineDelete(ae, liLine->lpLine);
       AE_StackLineDelete(ae, lpNextElement);
       liLine->lpLine=lpNewElement;
+      return TRUE;
     }
   }
+  return FALSE;
 }
 
 void AE_CalcLinesWidth(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bFresh)
@@ -3068,14 +3050,14 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
 
   GetTextMetricsA(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
+  ae->bFixedCharWidth=!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH);
+
   GetTextExtentPoint32A(ae->hDC, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeAverageWidth);
   ae->nAveCharWidth=sizeAverageWidth.cx / 52;
   GetTextExtentPoint32A(ae->hDC, " ", 1, &sizeAverageWidth);
   ae->nSpaceCharWidth=sizeAverageWidth.cx;
-  ae->bFixedCharWidth=!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH);
 
   AE_UpdateCaret(ae, TRUE);
-
   InvalidateRect(ae->hWndEdit, &ae->rcDraw, !bNoRedraw);
 }
 
@@ -3103,14 +3085,14 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
 
   GetTextMetricsW(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
+  ae->bFixedCharWidth=!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH);
+
   GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeAverageWidth);
   ae->nAveCharWidth=sizeAverageWidth.cx / 52;
   GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeAverageWidth);
   ae->nSpaceCharWidth=sizeAverageWidth.cx;
-  ae->bFixedCharWidth=!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH);
 
   AE_UpdateCaret(ae, TRUE);
-
   InvalidateRect(ae->hWndEdit, &ae->rcDraw, !bNoRedraw);
 }
 
@@ -3147,11 +3129,11 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     if (bColumnSel)
     {
       AE_GetPosFromChar(ae, &ciSelStartNew, &ptSelStart, NULL, bColumnSel);
-      if (ptSelStart.x > ae->nHScrollMax - ae->nAveCharWidth)
+      if (ptSelStart.x > max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
         return;
 
       AE_GetPosFromChar(ae, &ciSelEndNew, &ptSelEnd, NULL, bColumnSel);
-      if (ptSelEnd.x > ae->nHScrollMax - ae->nAveCharWidth)
+      if (ptSelEnd.x > max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
         return;
     }
     else
@@ -3969,6 +3951,7 @@ BOOL AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, BOOL bOnlyVisible, AECH
   int nMaxExtent;
   int nFirstLine;
   int nLastLine;
+  int nHScrollMax;
 
   if (bOnlyVisible)
   {
@@ -3985,8 +3968,9 @@ BOOL AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, BOOL bOnlyVisible, AECH
   ciCharIndex->nLine=min(ciCharIndex->nLine, nLastLine);
   ciCharIndex->nCharInLine=0;
   if (ptGlobalPos) ptGlobalPos->y=ciCharIndex->nLine * ae->nCharHeight;
+  nHScrollMax=max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth;
   nMaxExtent=max(ae->nHScrollPos + (ptClientPos->x - ae->rcDraw.left), 0);
-  nMaxExtent=min(ae->nHScrollMax - ae->nAveCharWidth, nMaxExtent);
+  nMaxExtent=min(nHScrollMax, nMaxExtent);
 
   if (AE_UpdateIndex(ae, ciCharIndex))
   {
@@ -4545,10 +4529,10 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
       else
         AE_CalcLinesWidth(ae, (AELINEINDEX *)&ae->ciCaretIndex, (AELINEINDEX *)&ae->ciCaretIndex, FALSE);
+
       if (ae->dwOptions & AECO_WORDWRAP)
       {
         AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar);
-        AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       }
 
@@ -4635,7 +4619,6 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       if (ae->dwOptions & AECO_WORDWRAP)
       {
         AE_WrapLines(ae, (AELINEINDEX *)&ae->ciSelStartIndex, (AELINEINDEX *)&ae->ciSelEndIndex);
-        AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       }
 
@@ -4861,7 +4844,6 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   if (ae->dwOptions & AECO_WORDWRAP)
   {
     AE_WrapLines(ae, NULL, NULL);
-    AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
   }
   return dwTextLen;
@@ -5111,7 +5093,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         if (ae->dwOptions & AECO_WORDWRAP)
         {
           AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar);
-          AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
           AE_UpdateIndex(ae, &ciFirstChar);
           AE_UpdateIndex(ae, &ciLastChar);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
@@ -5372,7 +5353,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         if (ae->dwOptions & AECO_WORDWRAP)
         {
           AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar);
-          AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
           AE_UpdateIndex(ae, &ciFirstChar);
           AE_UpdateIndex(ae, &ciLastChar);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);

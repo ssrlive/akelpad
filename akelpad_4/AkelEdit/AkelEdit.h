@@ -394,7 +394,7 @@ void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine
 BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar);
 void AE_WrapLines(AKELEDIT *ae);
 int AE_LineWrap(AKELEDIT *ae, AELINEINDEX *liLine, int nMaxWidth);
-void AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine);
+BOOL AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine);
 void AE_CalcLinesWidth(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bFresh);
 int AE_CheckCodepage(AKELEDIT *ae, int nCodePage);
 void AE_SetDrawRect(AKELEDIT *ae, RECT *rcDraw, BOOL bRedraw);
