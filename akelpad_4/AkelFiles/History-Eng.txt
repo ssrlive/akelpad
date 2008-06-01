@@ -1,4 +1,11 @@
 
+AkelPad 4.0.0 alpha 2 ()
+----------------------------------
+Added: backward compatibility with RichEdit.
+
+Fixed: vertical scroll didn't updated after font change.
+
+
 AkelPad 4.0.0 alpha 1 (May 28, 2008)
 ------------------------------------
 Changed: created own control for editing the text - AkelEdit (replacement for RichEdit).

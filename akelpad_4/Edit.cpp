@@ -5,6 +5,7 @@
 #include <commctrl.h>
 #include <shellapi.h>
 #include <shlobj.h>
+#include <richedit.h>
 #include "ConvFunc.h"
 #include "StackFunc.h"
 #include "StrFunc.h"
@@ -786,7 +787,7 @@ BOOL DoFilePrintA(BOOL bSilent)
       SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMax);
     }
 
-    if (GetRangeTextA(hWndEdit, &cr.ciMin, &cr.ciMax, &szBuffer, AELB_RN))
+    if (ExGetRangeTextA(hWndEdit, &cr.ciMin, &cr.ciMax, &szBuffer, AELB_RN))
     {
       pText=szBuffer;
 
@@ -928,7 +929,7 @@ BOOL DoFilePrintW(BOOL bSilent)
       SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMax);
     }
 
-    if (GetRangeTextW(hWndEdit, &cr.ciMin, &cr.ciMax, &wszBuffer, AELB_RN))
+    if (ExGetRangeTextW(hWndEdit, &cr.ciMin, &cr.ciMax, &wszBuffer, AELB_RN))
     {
       wpText=wszBuffer;
 
@@ -1370,7 +1371,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
 
   if (IsReadOnly()) return FALSE;
 
-  if (nRangeLen=GetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszRange, AELB_ASIS))
+  if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszRange, AELB_ASIS))
   {
     bDelete=TRUE;
     a=0, b=0;
@@ -1446,7 +1447,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
     bSelection=TRUE;
   }
 
-  if (nRangeLen=GetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszRange, AELB_ASIS))
+  if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszRange, AELB_ASIS))
   {
     for (a=0, b=0; b < nRangeLen; wszRange[a++]=wszRange[b++])
     {
@@ -1510,7 +1511,7 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     bSelection=TRUE;
   }
 
-  if (nRangeLen=GetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, &szRange, AELB_ASIS))
+  if (nRangeLen=ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, &szRange, AELB_ASIS))
   {
     pStart=szRange;
     pEnd=pStart + nRangeLen;
@@ -1611,7 +1612,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     bSelection=TRUE;
   }
 
-  if (nRangeLen=GetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszRange, AELB_ASIS))
+  if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszRange, AELB_ASIS))
   {
     wpStart=wszRange;
     wpEnd=wpStart + nRangeLen;
@@ -8080,7 +8081,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else
     {
-      if (GetRangeTextA(hWndEdit, &crSel.ciMin, &crSel.ciMax, &szData, AELB_R))
+      if (ExGetRangeTextA(hWndEdit, &crSel.ciMin, &crSel.ciMax, &szData, AELB_R))
       {
         SetWindowTextA(hWndFind, szData);
         FreeText((LPVOID)szData);
@@ -8481,7 +8482,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else
     {
-      if (GetRangeTextW(hWndEdit, &crSel.ciMin, &crSel.ciMax, &wszData, AELB_R))
+      if (ExGetRangeTextW(hWndEdit, &crSel.ciMin, &crSel.ciMax, &wszData, AELB_R))
       {
         SetWindowTextW(hWndFind, wszData);
         FreeText((LPVOID)wszData);
@@ -9233,7 +9234,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
     }
     else return FALSE;
 
-    if (GetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, &szText, AELB_R))
+    if (ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, &szText, AELB_R))
     {
       if (StrReplaceA(szText, pFindIt, pReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
       {
@@ -9314,7 +9315,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
   }
   else
   {
-    if (GetRangeTextA(hWnd, &crSel.ciMin, &crSel.ciMax, &szText, AELB_R))
+    if (ExGetRangeTextA(hWnd, &crSel.ciMin, &crSel.ciMax, &szText, AELB_R))
     {
       if (((dwFlags & AEFR_MATCHCASE) && !lstrcmpA(pFindIt, szText)) ||
           (!(dwFlags & AEFR_MATCHCASE) && !lstrcmpiA(pFindIt, szText)))
@@ -9371,7 +9372,7 @@ BOOL ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplac
     }
     else return FALSE;
 
-    if (GetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszText, AELB_R))
+    if (ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszText, AELB_R))
     {
       if (StrReplaceW(wszText, wpFindIt, wpReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
       {
@@ -9452,7 +9453,7 @@ BOOL ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplac
   }
   else
   {
-    if (GetRangeTextW(hWnd, &crSel.ciMin, &crSel.ciMax, &wszText, AELB_R))
+    if (ExGetRangeTextW(hWnd, &crSel.ciMin, &crSel.ciMax, &wszText, AELB_R))
     {
       if (((dwFlags & AEFR_MATCHCASE) && !lstrcmpW(wpFindIt, wszText)) ||
           (!(dwFlags & AEFR_MATCHCASE) && !lstrcmpiW(wpFindIt, wszText)))
@@ -9764,7 +9765,71 @@ void OffsetToCharIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar)
   }
 }
 
-int GetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, char **pText, int nNewLine)
+int GetTextLength(HWND hWnd)
+{
+  int nLastLineIndex;
+  int nLastLineLen;
+
+  nLastLineIndex=SendMessage(hWnd, EM_LINEINDEX, SendMessage(hWnd, EM_GETLINECOUNT, 0, 0) - 1, 0);
+  nLastLineLen=SendMessage(hWnd, EM_LINELENGTH, nLastLineIndex, 0);
+  return nLastLineIndex + nLastLineLen;
+}
+
+int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText)
+{
+  TEXTRANGEA txtrngA;
+  int nLen;
+
+  if (nMax == -1)
+  {
+    nMax=GetTextLength(hWnd);
+  }
+  if (nMin < nMax)
+  {
+    nLen=(nMax - nMin) + 1;
+
+    if (*pText=(char *)API_HeapAlloc(hHeap, 0, nLen + 1))
+    {
+      txtrngA.chrg.cpMin=nMin;
+      txtrngA.chrg.cpMax=nMax;
+      txtrngA.lpstrText=*pText;
+      SendMessageA(hWnd, EM_GETTEXTRANGE, 0, (LPARAM)&txtrngA);
+
+      return nLen;
+    }
+  }
+  *pText=NULL;
+  return 0;
+}
+
+int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
+{
+  TEXTRANGEW txtrngW;
+  int nLen;
+
+  if (nMax == -1)
+  {
+    nMax=GetTextLength(hWnd);
+  }
+  if (nMin < nMax)
+  {
+    nLen=(nMax - nMin) + 1;
+
+    if (*wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t) + 2))
+    {
+      txtrngW.chrg.cpMin=nMin;
+      txtrngW.chrg.cpMax=nMax;
+      txtrngW.lpstrText=*wpText;
+      SendMessageW(hWnd, EM_GETTEXTRANGE, 0, (LPARAM)&txtrngW);
+
+      return nLen;
+    }
+  }
+  *wpText=NULL;
+  return 0;
+}
+
+int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, char **pText, int nNewLine)
 {
   AETEXTRANGEA tr;
   int nLen;
@@ -9785,7 +9850,7 @@ int GetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, char **pTex
   return nLen;
 }
 
-int GetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, wchar_t **wpText, int nNewLine)
+int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, wchar_t **wpText, int nNewLine)
 {
   AETEXTRANGEW tr;
   int nLen;
@@ -10775,7 +10840,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
     bSelection=TRUE;
   }
 
-  if (nUnicodeLen=GetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszSelText, AELB_ASIS))
+  if (nUnicodeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, &wszSelText, AELB_ASIS))
   {
     nAnsiLen=WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, NULL);
 
