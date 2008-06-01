@@ -5,6 +5,7 @@
 #include <commctrl.h>
 #include <shellapi.h>
 #include <shlobj.h>
+#include <richedit.h>
 #include "ConvFunc.h"
 #include "StackFunc.h"
 #include "StrFunc.h"
@@ -1845,19 +1846,29 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETTEXTLENGTH)
     {
+      return GetTextLength((HWND)wParam);
+    }
+    if (uMsg == AKD_GETTEXTRANGE)
+    {
+      GETTEXTRANGE *gtr=(GETTEXTRANGE *)lParam;
+
+      return GetRangeTextA((HWND)wParam, gtr->cpMin, gtr->cpMax, (char **)&gtr->pText);
+    }
+    if (uMsg == AKD_EXGETTEXTLENGTH)
+    {
       return IndexSubtract((HWND)wParam, NULL, NULL, AELB_ASOUTPUT);
     }
-    if (uMsg == AKD_GETTEXTRANGEA)
+    if (uMsg == AKD_EXGETTEXTRANGEA)
     {
       AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-      return GetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, AELB_ASIS);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, AELB_ASIS);
     }
-    if (uMsg == AKD_GETTEXTRANGEW)
+    if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-      return GetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, AELB_ASIS);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, AELB_ASIS);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -3480,19 +3491,29 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETTEXTLENGTH)
     {
+      return GetTextLength((HWND)wParam);
+    }
+    if (uMsg == AKD_GETTEXTRANGE)
+    {
+      GETTEXTRANGE *gtr=(GETTEXTRANGE *)lParam;
+
+      return GetRangeTextW((HWND)wParam, gtr->cpMin, gtr->cpMax, (wchar_t **)&gtr->pText);
+    }
+    if (uMsg == AKD_EXGETTEXTLENGTH)
+    {
       return IndexSubtract((HWND)wParam, NULL, NULL, AELB_ASOUTPUT);
     }
-    if (uMsg == AKD_GETTEXTRANGEA)
+    if (uMsg == AKD_EXGETTEXTRANGEA)
     {
       AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-      return GetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, AELB_ASIS);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, AELB_ASIS);
     }
-    if (uMsg == AKD_GETTEXTRANGEW)
+    if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-      return GetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, AELB_ASIS);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, AELB_ASIS);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -4886,7 +4907,11 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       if (((NMHDR *)lParam)->code == AEN_SELCHANGE)
       {
         AENSELCHANGE *sc=(AENSELCHANGE *)lParam;
+{
+  CHARRANGE cr;
 
+  SendMessage(hWndEdit, EM_GETSEL, (WPARAM)&cr.cpMin, (LPARAM)&cr.cpMax);
+}
         SetSelectionStatusW(hWndEdit, &sc->crSel, &sc->ciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGE)

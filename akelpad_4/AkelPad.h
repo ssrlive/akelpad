@@ -46,6 +46,7 @@
 #define AKD_DLLDELETE              (WM_USER + 120)
 #define AKD_SAVEDOCUMENT           (WM_USER + 121)
 #define AKD_GETTEXTLENGTH          (WM_USER + 122)
+#define AKD_GETTEXTRANGE           (WM_USER + 123)
 #define AKD_FREETEXT               (WM_USER + 124)
 #define AKD_REPLACESELA            (WM_USER + 125)
 #define AKD_REPLACESELW            (WM_USER + 126)
@@ -81,8 +82,9 @@
 #define AKD_RESIZE                 (WM_USER + 157)
 #define AKD_DOCK                   (WM_USER + 158)
 #define AKD_POSTMESSAGE            (WM_USER + 159)
-#define AKD_GETTEXTRANGEA          (WM_USER + 401)
-#define AKD_GETTEXTRANGEW          (WM_USER + 402)
+#define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
+#define AKD_EXGETTEXTRANGEA        (WM_USER + 402)
+#define AKD_EXGETTEXTRANGEW        (WM_USER + 403)
 
 #define TAB_HEIGHT           24
 #define TAB_WIDTH            90
