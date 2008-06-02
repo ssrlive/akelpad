@@ -64,6 +64,7 @@
 #define AKD_GETQUEUE               (WM_USER + 138)
 #define AKD_GETPRINTDLG            (WM_USER + 139)
 #define AKD_GETPAGEDLG             (WM_USER + 140)
+#define AKD_GETSELTEXTW            (WM_USER + 141)
 #define AKD_GLOBALALLOC            (WM_USER + 142)
 #define AKD_GLOBALLOCK             (WM_USER + 143)
 #define AKD_GLOBALUNLOCK           (WM_USER + 144)

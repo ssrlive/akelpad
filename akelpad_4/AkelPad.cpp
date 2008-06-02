@@ -1848,6 +1848,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return GetTextLength((HWND)wParam);
     }
+    if (uMsg == AKD_GETSELTEXTW)
+    {
+      CHARRANGE cr;
+      wchar_t *wpText=NULL;
+
+      SendMessage((HWND)wParam, EM_EXGETSEL, 0, (LPARAM)&cr);
+      GetRangeTextW((HWND)wParam, cr.cpMin, cr.cpMax, &wpText);
+      return (LRESULT)wpText;
+    }
     if (uMsg == AKD_GETTEXTRANGE)
     {
       GETTEXTRANGE *gtr=(GETTEXTRANGE *)lParam;
@@ -3492,6 +3501,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_GETTEXTLENGTH)
     {
       return GetTextLength((HWND)wParam);
+    }
+    if (uMsg == AKD_GETSELTEXTW)
+    {
+      CHARRANGE cr;
+      wchar_t *wpText=NULL;
+
+      SendMessage((HWND)wParam, EM_EXGETSEL, 0, (LPARAM)&cr);
+      GetRangeTextW((HWND)wParam, cr.cpMin, cr.cpMax, &wpText);
+      return (LRESULT)wpText;
     }
     if (uMsg == AKD_GETTEXTRANGE)
     {

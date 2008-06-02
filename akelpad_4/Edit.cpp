@@ -307,7 +307,7 @@ void CreateEditWindowA(HWND hWnd)
   hWndEdit=CreateWindowExA(WS_EX_CLIENTEDGE,
                            "AkelEditA",
                            NULL,
-                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
+                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL,
                            0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
                            hWnd,
                            (HMENU)ID_EDIT,
@@ -323,6 +323,7 @@ void CreateEditWindowA(HWND hWnd)
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
+  SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SetChosenFontA(hWndEdit, &lfEditFontA, TRUE);
   ShowURL(hWndEdit, bShowURL);
   SetWindowTextA(hWndEdit, "");
@@ -341,7 +342,7 @@ void CreateEditWindowW(HWND hWnd)
   hWndEdit=CreateWindowExW(WS_EX_CLIENTEDGE,
                            L"AkelEditW",
                            NULL,
-                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
+                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL,
                            0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
                            hWnd,
                            (HMENU)ID_EDIT,
@@ -357,6 +358,7 @@ void CreateEditWindowW(HWND hWnd)
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
+  SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SetChosenFontW(hWndEdit, &lfEditFontW, TRUE);
   ShowURL(hWndEdit, bShowURL);
   SetWindowTextW(hWndEdit, L"");
@@ -5401,12 +5403,16 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
 
 void FileStreamOut(FILESTREAMDATA *lpData)
 {
-  lpData->bResult=SendMessage(lpData->hWnd, AEM_STREAMOUT, (WPARAM)OutputStreamCallback, (LPARAM)lpData);
+  AESTREAM aes;
+
+  aes.lpCallback=OutputStreamCallback;
+  aes.dwCookie=(DWORD)lpData;
+  lpData->bResult=SendMessage(lpData->hWnd, AEM_STREAMOUT, 0, (LPARAM)&aes);
 }
 
-BOOL CALLBACK OutputStreamCallback(LPARAM lParam, wchar_t *wszBuf, DWORD dwBufLen)
+BOOL CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen)
 {
-  FILESTREAMDATA *lpData=(FILESTREAMDATA *)lParam;
+  FILESTREAMDATA *lpData=(FILESTREAMDATA *)dwCookie;
   unsigned char *pDataToWrite=(unsigned char *)wszBuf;
   DWORD dwBytesToWrite=dwBufLen * sizeof(wchar_t);
   DWORD dwBytesWritten;
@@ -9997,7 +10003,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     if (LOWORD(wParam) == IDOK)
     {
       nLineNumber=GetDlgItemInt(hDlg, IDC_GOTOLINE, NULL, TRUE);
-      nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0) + 1;
+      nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
       if (!nLineNumber)
       {
@@ -10045,7 +10051,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     if (LOWORD(wParam) == IDOK)
     {
       nLineNumber=GetDlgItemInt(hDlg, IDC_GOTOLINE, NULL, TRUE);
-      nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0) + 1;
+      nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
       if (!nLineNumber)
       {
