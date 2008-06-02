@@ -66,24 +66,26 @@
 #define AEM_SETWORDDELIMITERS (WM_USER + 2053)
 #define AEM_CHECKCODEPAGE     (WM_USER + 2054)
 
-#define AES_CLASSA             "AkelEditA"
-#define AES_CLASSW            L"AkelEditW"
+#define AES_AKELEDITCLASSA     "AkelEditA"
+#define AES_AKELEDITCLASSW    L"AkelEditW"
+#define AES_RICHEDITCLASSA     "RichEdit20A"
+#define AES_RICHEDITCLASSW    L"RichEdit20W"
 
 #define AES_WORD_DELIMITERSW  L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
 
-#define AETIMERID_MOUSEMOVE  1
+#define AETIMERID_MOUSEMOVE    1
 
-#define AECO_WORDWRAP        0x00000001
-#define AECO_READONLY        0x00000002
-#define AECO_HIDENOSCROLL    0x00000004
-#define AECO_WANTRETURN      0x00000008
-#define AECO_DETAILEDUNDO    0x00000010
-#define AECO_DISABLEBEEP     0x00000020
+#define AECO_WORDWRAP         0x00000001
+#define AECO_READONLY         0x00000002
+#define AECO_DISABLENOSCROLL  0x00000004
+#define AECO_WANTRETURN       0x00000008
+#define AECO_DETAILEDUNDO     0x00000010
+#define AECO_DISABLEBEEP      0x00000020
 
-#define AECOOP_SET           0
-#define AECOOP_OR            1
-#define AECOOP_AND           2
-#define AECOOP_XOR           3
+#define AECOOP_SET            0
+#define AECOOP_OR             1
+#define AECOOP_AND            2
+#define AECOOP_XOR            3
 
 #define AEGI_FIRSTCHAR         1
 #define AEGI_LASTCHAR          2
@@ -165,6 +167,8 @@
   #define mod(a) (((a) < 0)?(0 - (a)):(a))
 #endif
 
+typedef BOOL (CALLBACK *AEStreamCallback)(DWORD, wchar_t *, DWORD);
+
 
 //// Structures
 
@@ -232,6 +236,11 @@ typedef struct {
   wchar_t *wpText;
   int nNewLine;
 } AETEXTRANGEW;
+
+typedef struct {
+  AEStreamCallback lpCallback;
+  DWORD dwCookie;
+} AESTREAM;
 
 typedef struct {
   DWORD dwFlags;           //See AEFR_* defines
@@ -310,6 +319,9 @@ typedef struct _AKELEDIT {
   COLORREF crSelBk;
   COLORREF crActiveLineText;
   COLORREF crActiveLineBk;
+  COLORREF crEnableBasicBk;
+  COLORREF crEnableSelBk;
+  COLORREF crEnableActiveLineBk;
   HDC hDC;
   HFONT hFont;
   HBRUSH hBasicBk;
@@ -334,10 +346,6 @@ typedef struct _AKELEDIT {
   AECHARINDEX ciCaretIndex;
   AELINEINDEX liFirstDrawLine;
   AELINEINDEX liMaxWidthLine;
-  int nSelStartLineOffset;
-  int nSelEndLineOffset;
-  int nFirstDrawLineOffset;
-  int nLastCharOffset;
   int nLineCount;
   int nInputNewLine;
   int nOutputNewLine;
@@ -357,9 +365,14 @@ typedef struct _AKELEDIT {
   BOOL bColumnSel;
   DWORD dwMouseMoveTimer;
   wchar_t wszWordDelimiters[128];
-} AKELEDIT;
 
-typedef BOOL (CALLBACK *AEStreamOut)(LPARAM, wchar_t *, DWORD);
+  //RichEdit emulation
+  DWORD dwEventMask;
+  int nSelStartLineOffset;
+  int nSelEndLineOffset;
+  int nFirstDrawLineOffset;
+  int nLastCharOffset;
+} AKELEDIT;
 
 
 //// Functions prototypes
@@ -445,7 +458,7 @@ void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnS
 DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd, BOOL bEnableUndo);
 wchar_t* AE_GetNextLine(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int *nLineLen, int *nLineBreak);
 int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine);
-BOOL AE_StreamOut(AKELEDIT *ae, AEStreamOut lpCallback, LPARAM lParam);
+BOOL AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AEStreamCallback lpCallback, DWORD dwCookie);
 BOOL AE_FindTextAnsi(AKELEDIT *ae, AEFINDTEXTA *ftA);
 BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft);
 BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
