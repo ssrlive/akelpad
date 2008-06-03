@@ -3569,11 +3569,14 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     ae->ciCaretIndex=ciCaretNew;
     AE_GetPosFromChar(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL, bColumnSel);
     AE_ScrollToCaret(ae, &ae->ptCaret);
-    AE_SetCaretPos(ae);
-    if (!ae->bCaretVisible)
+    if (ae->bFocus)
     {
-      ShowCaret(ae->hWndEdit);
-      ae->bCaretVisible=TRUE;
+      AE_SetCaretPos(ae);
+      if (!ae->bCaretVisible)
+      {
+        ShowCaret(ae->hWndEdit);
+        ae->bCaretVisible=TRUE;
+      }
     }
 
     //Send AEN_SELCHANGE
@@ -3626,19 +3629,22 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bShift, BOOL bColumnS
     {
       AECHARINDEX ciSelEnd={0};
 
-      if (bShift)
+      if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
       {
-        if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex))
+        if (bShift)
         {
-          ciSelEnd=ae->ciSelEndIndex;
+          if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex))
+          {
+            ciSelEnd=ae->ciSelEndIndex;
+          }
+          else if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
+          {
+            ciSelEnd=ae->ciSelStartIndex;
+          }
+          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel);
         }
-        else if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
-        {
-          ciSelEnd=ae->ciSelStartIndex;
-        }
-        AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel);
+        else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel);
       }
-      else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel);
     }
   }
 }
@@ -3973,7 +3979,11 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
       ae->nHScrollPos=0;
     }
   }
-  AE_SetCaretPos(ae);
+
+  if (ae->bFocus)
+  {
+    AE_SetCaretPos(ae);
+  }
 }
 
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase)
@@ -4915,12 +4925,15 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       //Get new caret position
       AE_GetPosFromChar(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL, bColumnSel);
       AE_ScrollToCaret(ae, &ae->ptCaret);
-      AE_SetCaretPos(ae);
       ae->nHorizCaretPos=ae->ptCaret.x;
-      if (!ae->bCaretVisible)
+      if (ae->bFocus)
       {
-        ShowCaret(ae->hWndEdit);
-        ae->bCaretVisible=TRUE;
+        AE_SetCaretPos(ae);
+        if (!ae->bCaretVisible)
+        {
+          ShowCaret(ae->hWndEdit);
+          ae->bCaretVisible=TRUE;
+        }
       }
 
       //Redraw lines
@@ -5014,12 +5027,15 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       //Get new caret position
       AE_GetPosFromChar(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL, bColumnSel);
       AE_ScrollToCaret(ae, &ae->ptCaret);
-      AE_SetCaretPos(ae);
       ae->nHorizCaretPos=ae->ptCaret.x;
-      if (!ae->bCaretVisible)
+      if (ae->bFocus)
       {
-        ShowCaret(ae->hWndEdit);
-        ae->bCaretVisible=TRUE;
+        AE_SetCaretPos(ae);
+        if (!ae->bCaretVisible)
+        {
+          ShowCaret(ae->hWndEdit);
+          ae->bCaretVisible=TRUE;
+        }
       }
 
       //Redraw lines
@@ -5250,12 +5266,15 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   //Get new caret position
   AE_GetPosFromChar(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL, FALSE);
   AE_ScrollToCaret(ae, &ae->ptCaret);
-  AE_SetCaretPos(ae);
   ae->nHorizCaretPos=ae->ptCaret.x;
-  if (!ae->bCaretVisible)
+  if (ae->bFocus)
   {
-    ShowCaret(ae->hWndEdit);
-    ae->bCaretVisible=TRUE;
+    AE_SetCaretPos(ae);
+    if (!ae->bCaretVisible)
+    {
+      ShowCaret(ae->hWndEdit);
+      ae->bCaretVisible=TRUE;
+    }
   }
 
   AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
@@ -5531,12 +5550,15 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         //Get new caret position
         AE_GetPosFromChar(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL, bColumnSel);
         AE_ScrollToCaret(ae, &ae->ptCaret);
-        AE_SetCaretPos(ae);
         ae->nHorizCaretPos=ae->ptCaret.x;
-        if (!ae->bCaretVisible)
+        if (ae->bFocus)
         {
-          ShowCaret(ae->hWndEdit);
-          ae->bCaretVisible=TRUE;
+          AE_SetCaretPos(ae);
+          if (!ae->bCaretVisible)
+          {
+            ShowCaret(ae->hWndEdit);
+            ae->bCaretVisible=TRUE;
+          }
         }
 
         //Redraw lines
@@ -5804,12 +5826,15 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         //Get new caret position
         AE_GetPosFromChar(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL, bColumnSel);
         AE_ScrollToCaret(ae, &ae->ptCaret);
-        AE_SetCaretPos(ae);
         ae->nHorizCaretPos=ae->ptCaret.x;
-        if (!ae->bCaretVisible)
+        if (ae->bFocus)
         {
-          ShowCaret(ae->hWndEdit);
-          ae->bCaretVisible=TRUE;
+          AE_SetCaretPos(ae);
+          if (!ae->bCaretVisible)
+          {
+            ShowCaret(ae->hWndEdit);
+            ae->bCaretVisible=TRUE;
+          }
         }
 
         //Redraw lines
@@ -5914,7 +5939,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
       if (ae->dwEventMask & ENM_SELCHANGE)
       {
         SELCHANGE sc;
-  
+
         sc.nmhdr.hwndFrom=ae->hWndEdit;
         sc.nmhdr.idFrom=ae->nEditCtrlID;
         sc.nmhdr.code=EN_SELCHANGE;
