@@ -957,9 +957,9 @@ BOOL GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText
 void SaveComboboxSearchA(HWND hWndFind, HWND hWndReplace);
 void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace);
 int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt);
-BOOL FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt);
+int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt);
 int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BOOL bAll, int *nReplaceCount);
-BOOL ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplaceWith, BOOL bAll, int *nReplaceCount);
+int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplaceWith, BOOL bAll, int *nReplaceCount);
 int StrReplaceA(char *pText, char *pIt, char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppMin, char **ppMax, char **ppFirstVisible);
 int StrReplaceW(wchar_t *wpText, wchar_t *wpIt, wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppMin, wchar_t **wppMax, wchar_t **wppFirstVisible);
 BOOL EscapeStringToEscapeDataA(char *pInput, char *szOutput);

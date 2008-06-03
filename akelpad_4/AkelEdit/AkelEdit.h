@@ -148,6 +148,15 @@
 #define AEFR_MATCHCASE       0x00000002
 #define AEFR_WHOLEWORD       0x00000004
 
+#ifndef FR_DOWN
+  #define FR_DOWN 0x00000001
+#endif
+#ifndef FR_WHOLEWORD
+  #define FR_WHOLEWORD 0x00000002
+#endif
+#ifndef FR_MATCHCASE
+  #define FR_MATCHCASE 0x00000004
+#endif
 #ifndef EC_LEFTMARGIN
   #define EC_LEFTMARGIN 0x0001
 #endif
