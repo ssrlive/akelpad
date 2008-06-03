@@ -367,6 +367,7 @@ typedef struct _AKELEDIT {
   wchar_t wszWordDelimiters[128];
 
   //RichEdit emulation
+  BOOL bRichEditClass;
   DWORD dwEventMask;
   int nSelStartLineOffset;
   int nSelEndLineOffset;

@@ -133,7 +133,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_CREATE)
   {
-    CREATESTRUCT *cs=(CREATESTRUCT *)lParam;
+    CREATESTRUCTA *cs=(CREATESTRUCTA *)lParam;
 
     if (ae=AE_StackWindowInsert(&hWindowsStack))
     {
@@ -159,8 +159,28 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->nTabStop=8;
       ae->bSavePointExist=TRUE;
       ae->dwUndoLimit=(DWORD)-1;
-      ae->nInputNewLine=AELB_ASIS;
-      ae->nOutputNewLine=AELB_ASIS;
+
+      if (!ae->bUnicodeWindow)
+      {
+        if (!lstrcmpiA((char *)cs->lpszClass, AES_RICHEDITCLASSA))
+          ae->bRichEditClass=TRUE;
+      }
+      else
+      {
+        if (!lstrcmpiW((wchar_t *)cs->lpszClass, AES_RICHEDITCLASSW))
+          ae->bRichEditClass=TRUE;
+      }
+
+      if (!ae->bRichEditClass)
+      {
+        ae->nInputNewLine=AELB_ASIS;
+        ae->nOutputNewLine=AELB_ASIS;
+      }
+      else
+      {
+        ae->nInputNewLine=AELB_R;
+        ae->nOutputNewLine=AELB_RN;
+      }
 
       if (cs->style & ES_DISABLENOSCROLL)
         ae->dwOptions|=AECO_DISABLENOSCROLL;
@@ -3629,9 +3649,9 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bShift, BOOL bColumnS
     {
       AECHARINDEX ciSelEnd={0};
 
-      if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
+      if (bShift)
       {
-        if (bShift)
+        if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
         {
           if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex))
           {
@@ -3643,8 +3663,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bShift, BOOL bColumnS
           }
           AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel);
         }
-        else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel);
       }
+      else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel);
     }
   }
 }
