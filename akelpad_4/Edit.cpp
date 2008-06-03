@@ -8052,7 +8052,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   BOOL bReplaceAll=FALSE;
   BOOL bReplaceAllButtonState=FALSE;
   int nReplaceCount;
-  BOOL bResult;
+  int nResult;
   int i;
 
   if (uMsg == WM_INITDIALOG)
@@ -8321,11 +8321,11 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
           do
           {
             if (bReplace == TRUE && bCanReplace == TRUE)
-              bResult=ReplaceTextA(hWndEdit, ftflags, szFind, szReplace, FALSE, NULL);
+              nResult=ReplaceTextA(hWndEdit, ftflags, szFind, szReplace, FALSE, NULL);
             else
-              bResult=FindTextA(hWndEdit, ftflags, szFind);
+              nResult=FindTextA(hWndEdit, ftflags, szFind);
 
-            if (!bResult)
+            if (nResult == -1)
             {
               bCanReplace=FALSE;
               ftflags|=AEFR_BEGINNING;
@@ -8340,7 +8340,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
           }
           while (hWndFrameActive != hWndTmp);
 
-          if (!bResult)
+          if (nResult == -1)
           {
             bSpecialCheck=FALSE;
             SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
@@ -8352,11 +8352,11 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       else
       {
         if (bReplaceDlg == TRUE && (bReplace == TRUE || bReplaceAll == TRUE))
-          bResult=ReplaceTextA(hWndEdit, ftflags, szFind, szReplace, bReplaceAll, &nReplaceCount);
+          nResult=ReplaceTextA(hWndEdit, ftflags, szFind, szReplace, bReplaceAll, &nReplaceCount);
         else
-          bResult=FindTextA(hWndEdit, ftflags, szFind);
+          nResult=FindTextA(hWndEdit, ftflags, szFind);
 
-        if (!bResult)
+        if (nResult == -1)
         {
           if (bSpecialCheck == TRUE)
           {
@@ -8453,7 +8453,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   BOOL bReplaceAll=FALSE;
   BOOL bReplaceAllButtonState=FALSE;
   int nReplaceCount;
-  BOOL bResult;
+  int nResult;
   int i;
 
   if (uMsg == WM_INITDIALOG)
@@ -8722,11 +8722,11 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
           do
           {
             if (bReplace == TRUE && bCanReplace == TRUE)
-              bResult=ReplaceTextW(hWndEdit, ftflags, wszFind, wszReplace, FALSE, NULL);
+              nResult=ReplaceTextW(hWndEdit, ftflags, wszFind, wszReplace, FALSE, NULL);
             else
-              bResult=FindTextW(hWndEdit, ftflags, wszFind);
+              nResult=FindTextW(hWndEdit, ftflags, wszFind);
 
-            if (!bResult)
+            if (nResult == -1)
             {
               bCanReplace=FALSE;
               ftflags|=AEFR_BEGINNING;
@@ -8741,7 +8741,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
           }
           while (hWndFrameActive != hWndTmp);
 
-          if (!bResult)
+          if (nResult == -1)
           {
             bSpecialCheck=FALSE;
             SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
@@ -8753,11 +8753,11 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       else
       {
         if (bReplaceDlg == TRUE && (bReplace == TRUE || bReplaceAll == TRUE))
-          bResult=ReplaceTextW(hWndEdit, ftflags, wszFind, wszReplace, bReplaceAll, &nReplaceCount);
+          nResult=ReplaceTextW(hWndEdit, ftflags, wszFind, wszReplace, bReplaceAll, &nReplaceCount);
         else
-          bResult=FindTextW(hWndEdit, ftflags, wszFind);
+          nResult=FindTextW(hWndEdit, ftflags, wszFind);
 
-        if (!bResult)
+        if (nResult == -1)
         {
           if (bSpecialCheck == TRUE)
           {
@@ -9156,10 +9156,10 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
-  return bResult;
+  return bResult?0:-1;
 }
 
-BOOL FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
+int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
 {
   AEFINDTEXTW ft;
   BOOL bResult;
@@ -9196,7 +9196,7 @@ BOOL FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
-  return bResult;
+  return bResult?0:-1;
 }
 
 int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BOOL bAll, int *nReplaceCount)
@@ -9334,10 +9334,10 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
     bResult=FindTextA(hWnd, dwFlags, pFindIt);
   }
   if (nReplaceCount) *nReplaceCount=nChanges;
-  return bResult;
+  return bResult?0:-1;
 }
 
-BOOL ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplaceWith, BOOL bAll, int *nReplaceCount)
+int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplaceWith, BOOL bAll, int *nReplaceCount)
 {
   AECHARRANGE crInitialSel=crSel;
   AECHARRANGE crRange;
@@ -9472,7 +9472,7 @@ BOOL ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplac
     bResult=FindTextW(hWnd, dwFlags, wpFindIt);
   }
   if (nReplaceCount) *nReplaceCount=nChanges;
-  return bResult;
+  return bResult?0:-1;
 }
 
 int StrReplaceA(char *pText, char *pIt, char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppMin, char **ppMax, char **ppFirstVisible)
@@ -10865,7 +10865,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
         SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
         crInitialSel.ciMax=crInitialSel.ciMin;
         if (bSelection) IndexOffset(hWnd, &crInitialSel.ciMax, nUnicodeLen - 1, AELB_ASIS);
-    
+
         if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
           SendMessage(hWnd, AEM_SETSEL, (WPARAM)&crInitialSel.ciMin, (LPARAM)&crInitialSel);
         else

@@ -804,6 +804,74 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_ScrollToCaret(ae, &ae->ptCaret);
       return 0;
     }
+    if (uMsg == EM_FINDTEXT ||
+        uMsg == EM_FINDTEXTW ||
+        uMsg == EM_FINDTEXTEX ||
+        uMsg == EM_FINDTEXTEXW)
+    {
+      if (uMsg == EM_FINDTEXT ||
+          uMsg == EM_FINDTEXTEX)
+      {
+        //Ansi
+        if (!ae->bUnicodeWindow)
+        {
+          FINDTEXTEXA *ftRE=(FINDTEXTEXA *)lParam;
+          AEFINDTEXTA ft={0};
+  
+          if (wParam & FR_DOWN)
+            ft.dwFlags|=AEFR_DOWN;
+          if (wParam & FR_MATCHCASE)
+            ft.dwFlags|=AEFR_MATCHCASE;
+          if (wParam & FR_WHOLEWORD)
+            ft.dwFlags|=AEFR_WHOLEWORD;
+          ft.nNewLine=AELB_R;
+          AE_RichOffsetToCharIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
+          AE_RichOffsetToCharIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
+          ft.pText=(char *)ftRE->lpstrText;
+          ft.dwTextLen=(DWORD)-1;
+  
+          if (AE_FindTextAnsi(ae, &ft))
+          {
+            if (uMsg == EM_FINDTEXTEX)
+            {
+              ftRE->chrgText.cpMin=AE_CharIndexToRichOffset(ae, &ft.crFound.ciMin);
+              ftRE->chrgText.cpMax=AE_CharIndexToRichOffset(ae, &ft.crFound.ciMax);
+            }
+            return ftRE->chrgText.cpMin;
+          }
+          return -1;
+        }
+      }
+
+      //Unicode
+      {
+        FINDTEXTEXW *ftRE=(FINDTEXTEXW *)lParam;
+        AEFINDTEXTW ft={0};
+
+        if (wParam & FR_DOWN)
+          ft.dwFlags|=AEFR_DOWN;
+        if (wParam & FR_MATCHCASE)
+          ft.dwFlags|=AEFR_MATCHCASE;
+        if (wParam & FR_WHOLEWORD)
+          ft.dwFlags|=AEFR_WHOLEWORD;
+        ft.nNewLine=AELB_R;
+        AE_RichOffsetToCharIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
+        AE_RichOffsetToCharIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
+        ft.wpText=(wchar_t *)ftRE->lpstrText;
+        ft.dwTextLen=(DWORD)-1;
+
+        if (AE_FindText(ae, &ft))
+        {
+          if (uMsg == EM_FINDTEXTEX || uMsg == EM_FINDTEXTEXW)
+          {
+            ftRE->chrgText.cpMin=AE_CharIndexToRichOffset(ae, &ft.crFound.ciMin);
+            ftRE->chrgText.cpMax=AE_CharIndexToRichOffset(ae, &ft.crFound.ciMax);
+          }
+          return ftRE->chrgText.cpMin;
+        }
+        return -1;
+      }
+    }
     if (uMsg == EM_SETUNDOLIMIT)
     {
       ae->dwUndoLimit=wParam;
