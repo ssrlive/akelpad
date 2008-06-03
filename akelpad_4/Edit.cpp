@@ -407,7 +407,7 @@ BOOL DoFileCloseA()
   {
     RecentFilesZeroA();
     RecentFilesReadA();
-    RecentFilesUpdateA(szCurrentFile, CharIndexToOffset(hWndEdit, &ciCaret), nCurrentCodePage);
+    RecentFilesUpdateA(szCurrentFile, AkelIndexToRichOffset(hWndEdit, &ciCaret), nCurrentCodePage);
     RecentFilesSaveA();
   }
 
@@ -431,7 +431,7 @@ BOOL DoFileCloseW()
   {
     RecentFilesZeroW();
     RecentFilesReadW();
-    RecentFilesUpdateW(wszCurrentFile, CharIndexToOffset(hWndEdit, &ciCaret), nCurrentCodePage);
+    RecentFilesUpdateW(wszCurrentFile, AkelIndexToRichOffset(hWndEdit, &ciCaret), nCurrentCodePage);
     RecentFilesSaveW();
   }
 
@@ -1029,7 +1029,7 @@ BOOL DoFileExitA()
   {
     RecentFilesZeroA();
     RecentFilesReadA();
-    RecentFilesUpdateA(szCurrentFile, CharIndexToOffset(hWndEdit, &ciCaret), nCurrentCodePage);
+    RecentFilesUpdateA(szCurrentFile, AkelIndexToRichOffset(hWndEdit, &ciCaret), nCurrentCodePage);
     RecentFilesSaveA();
   }
   return TRUE;
@@ -1043,7 +1043,7 @@ BOOL DoFileExitW()
   {
     RecentFilesZeroW();
     RecentFilesReadW();
-    RecentFilesUpdateW(wszCurrentFile, CharIndexToOffset(hWndEdit, &ciCaret), nCurrentCodePage);
+    RecentFilesUpdateW(wszCurrentFile, AkelIndexToRichOffset(hWndEdit, &ciCaret), nCurrentCodePage);
     RecentFilesSaveW();
   }
   return TRUE;
@@ -4582,7 +4582,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     {
       RecentFilesZeroA();
       RecentFilesReadA();
-      RecentFilesUpdateA(szCurrentFile, CharIndexToOffset(hWndEdit, &ciCaret), nCurrentCodePage);
+      RecentFilesUpdateA(szCurrentFile, AkelIndexToRichOffset(hWndEdit, &ciCaret), nCurrentCodePage);
       RecentFilesSaveA();
     }
 
@@ -4646,11 +4646,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       //Update selection
       if (nRecentFiles && bSavePositions)
       {
-        AECHARRANGE cr;
-
-        OffsetToCharIndex(hWnd, lpdwRecentPositions[0], &cr.ciMin);
-        cr.ciMax=cr.ciMin;
-        SendMessage(hWnd, AEM_SETSEL, 0, (LPARAM)&cr);
+        SendMessage(hWnd, EM_SETSEL, lpdwRecentPositions[0], lpdwRecentPositions[0]);
       }
 
       //Update edit window
@@ -4828,7 +4824,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     {
       RecentFilesZeroW();
       RecentFilesReadW();
-      RecentFilesUpdateW(wszCurrentFile, CharIndexToOffset(hWndEdit, &ciCaret), nCurrentCodePage);
+      RecentFilesUpdateW(wszCurrentFile, AkelIndexToRichOffset(hWndEdit, &ciCaret), nCurrentCodePage);
       RecentFilesSaveW();
     }
 
@@ -4892,11 +4888,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       //Update selection
       if (nRecentFiles && bSavePositions)
       {
-        AECHARRANGE cr;
-
-        OffsetToCharIndex(hWnd, lpdwRecentPositions[0], &cr.ciMin);
-        cr.ciMax=cr.ciMin;
-        SendMessage(hWnd, AEM_SETSEL, 0, (LPARAM)&cr);
+        SendMessage(hWnd, EM_SETSEL, lpdwRecentPositions[0], lpdwRecentPositions[0]);
       }
 
       //Update edit window
@@ -5140,7 +5132,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
         {
           RecentFilesZeroA();
           RecentFilesReadA();
-          RecentFilesUpdateA(szFile, CharIndexToOffset(hWndEdit, &ciCaret), nCodePage);
+          RecentFilesUpdateA(szFile, AkelIndexToRichOffset(hWndEdit, &ciCaret), nCodePage);
           RecentFilesSaveA();
           if (nFileCmp) bMenuRecentFiles=TRUE;
         }
@@ -5338,7 +5330,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
         {
           RecentFilesZeroW();
           RecentFilesReadW();
-          RecentFilesUpdateW(wszFile, CharIndexToOffset(hWndEdit, &ciCaret), nCodePage);
+          RecentFilesUpdateW(wszFile, AkelIndexToRichOffset(hWndEdit, &ciCaret), nCodePage);
           RecentFilesSaveW();
           if (nFileCmp) bMenuRecentFiles=TRUE;
         }
@@ -9206,16 +9198,15 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
   AECHARINDEX ciInitialCaret=ciCaret;
   AECHARINDEX ciFirstVisibleBefore;
   AECHARINDEX ciFirstVisibleAfter;
+  CHARRANGE crInitialRE;
   char *szText;
   char *szReplaceText;
   char *pMin;
   char *pMax;
   char *pFirstVisible;
-  int nMinOffset;
-  int nMaxOffset;
   int nReplaceTextLen;
   int nChanges=0;
-  BOOL bResult=FALSE;
+  int nResult=-1;
 
   if (bAll)
   {
@@ -9247,18 +9238,17 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
         if (szReplaceText=(char *)API_HeapAlloc(hHeap, 0, nReplaceTextLen + 1))
         {
           //Remember selection
-          nMinOffset=IndexSubtract(hWnd, NULL, &crSel.ciMin, AELB_R);
-          nMaxOffset=nMinOffset + IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_R);
+          SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
           if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
           {
-            pMin=szText + nMinOffset;
-            pMax=szText + nMaxOffset;
+            pMin=szText + crInitialRE.cpMin;
+            pMax=szText + crInitialRE.cpMax;
           }
           else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
           {
             pMin=szText;
-            pMax=szText + (nMaxOffset - nMinOffset);
+            pMax=szText + (crInitialRE.cpMax - crInitialRE.cpMin);
           }
 
           //Remember scroll
@@ -9282,7 +9272,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
             {
-              OffsetToCharIndex(hWnd, pMin - szText, &crInitialSel.ciMin);
+              RichOffsetToAkelIndex(hWnd, pMin - szText, &crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
               IndexOffset(hWnd, &crInitialSel.ciMax, pMax - pMin, AELB_R);
             }
@@ -9331,10 +9321,10 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
       }
       FreeText(szText);
     }
-    bResult=FindTextA(hWnd, dwFlags, pFindIt);
+    nResult=FindTextA(hWnd, dwFlags, pFindIt);
   }
   if (nReplaceCount) *nReplaceCount=nChanges;
-  return bResult?0:-1;
+  return nResult;
 }
 
 int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplaceWith, BOOL bAll, int *nReplaceCount)
@@ -9344,16 +9334,15 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
   AECHARINDEX ciInitialCaret=ciCaret;
   AECHARINDEX ciFirstVisibleBefore;
   AECHARINDEX ciFirstVisibleAfter;
+  CHARRANGE crInitialRE;
   wchar_t *wszText;
   wchar_t *wszReplaceText;
   wchar_t *wpMin;
   wchar_t *wpMax;
   wchar_t *wpFirstVisible;
-  int nMinOffset;
-  int nMaxOffset;
   int nReplaceTextLen;
   int nChanges=0;
-  BOOL bResult=FALSE;
+  int nResult=-1;
 
   if (bAll)
   {
@@ -9385,18 +9374,17 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
         if (wszReplaceText=(wchar_t *)API_HeapAlloc(hHeap, 0, nReplaceTextLen * sizeof(wchar_t) + 2))
         {
           //Remember selection
-          nMinOffset=IndexSubtract(hWnd, NULL, &crSel.ciMin, AELB_R);
-          nMaxOffset=nMinOffset + IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_R);
+          SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
           if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
           {
-            wpMin=wszText + nMinOffset;
-            wpMax=wszText + nMaxOffset;
+            wpMin=wszText + crInitialRE.cpMin;
+            wpMax=wszText + crInitialRE.cpMax;
           }
           else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
           {
             wpMin=wszText;
-            wpMax=wszText + (nMaxOffset - nMinOffset);
+            wpMax=wszText + (crInitialRE.cpMax - crInitialRE.cpMin);
           }
 
           //Remember scroll
@@ -9420,7 +9408,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
             {
-              OffsetToCharIndex(hWnd, wpMin - wszText, &crInitialSel.ciMin);
+              RichOffsetToAkelIndex(hWnd, wpMin - wszText, &crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
               IndexOffset(hWnd, &crInitialSel.ciMax, wpMax - wpMin, AELB_R);
             }
@@ -9469,10 +9457,10 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
       }
       FreeText(wszText);
     }
-    bResult=FindTextW(hWnd, dwFlags, wpFindIt);
+    nResult=FindTextW(hWnd, dwFlags, wpFindIt);
   }
   if (nReplaceCount) *nReplaceCount=nChanges;
-  return bResult?0:-1;
+  return nResult;
 }
 
 int StrReplaceA(char *pText, char *pIt, char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppMin, char **ppMax, char **ppFirstVisible)
@@ -9758,17 +9746,14 @@ int IndexOffset(HWND hWnd, AECHARINDEX *ciChar, int nOffset, int nNewLine)
   return SendMessage(hWnd, AEM_INDEXOFFSET, 0, (LPARAM)&aeio);
 }
 
-int CharIndexToOffset(HWND hWnd, AECHARINDEX *ciChar)
+int AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar)
 {
-  return IndexSubtract(hWnd, NULL, ciChar, AELB_R);
+  return SendMessage(hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)ciChar);
 }
 
-void OffsetToCharIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar)
+void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar)
 {
-  if (SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)ciChar))
-  {
-    IndexOffset(hWnd, ciChar, nOffset, AELB_R);
-  }
+  SendMessage(hWnd, AEM_RICHOFFSETTOINDEX, nOffset, (LPARAM)ciChar);
 }
 
 int GetTextLength(HWND hWnd)
