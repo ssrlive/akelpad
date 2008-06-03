@@ -232,13 +232,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-        return AE_GetTextRangeAnsi(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->pText, tr->nNewLine, FALSE, TRUE);
+        return AE_GetTextRangeAnsi(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->pText, tr->nNewLine, FALSE, FALSE);
       }
       if (uMsg == AEM_GETTEXTRANGEW)
       {
         AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-        return AE_GetTextRange(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->wpText, tr->nNewLine, FALSE, TRUE);
+        return AE_GetTextRange(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->wpText, tr->nNewLine, FALSE, FALSE);
       }
       if (uMsg == AEM_STREAMOUT)
       {
@@ -373,6 +373,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AEINDEXOFFSET *aeio=(AEINDEXOFFSET *)lParam;
 
         return AE_IndexOffset(ae, aeio->ciCharIn, aeio->ciCharOut, aeio->nOffset, aeio->nNewLine);
+      }
+      if (uMsg == AEM_INDEXTORICHOFFSET)
+      {
+        AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+
+        return AE_AkelIndexToRichOffset(ae, ciCharIndex);
+      }
+      if (uMsg == AEM_RICHOFFSETTOINDEX)
+      {
+        AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+
+        AE_RichOffsetToAkelIndex(ae, wParam, ciCharIndex);
+        return 0;
       }
       if (uMsg == AEM_CHARFROMPOS)
       {
@@ -596,22 +609,33 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         TEXTRANGEA *trRE=(TEXTRANGEA *)lParam;
         AETEXTRANGEA tr;
 
-        AE_RichOffsetToCharIndex(ae, trRE->chrg.cpMin, &tr.cr.ciMin);
-        AE_RichOffsetToCharIndex(ae, trRE->chrg.cpMax, &tr.cr.ciMax);
+        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &tr.cr.ciMin);
+        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &tr.cr.ciMax);
         tr.pText=trRE->lpstrText;
         tr.nNewLine=AELB_R;
-        return AE_GetTextRangeAnsi(ae, &tr.cr.ciMin, &tr.cr.ciMax, tr.pText, tr.nNewLine, FALSE, TRUE);
+        return AE_GetTextRangeAnsi(ae, &tr.cr.ciMin, &tr.cr.ciMax, tr.pText, tr.nNewLine, FALSE, FALSE);
       }
       else
       {
         TEXTRANGEW *trRE=(TEXTRANGEW *)lParam;
         AETEXTRANGEW tr;
 
-        AE_RichOffsetToCharIndex(ae, trRE->chrg.cpMin, &tr.cr.ciMin);
-        AE_RichOffsetToCharIndex(ae, trRE->chrg.cpMax, &tr.cr.ciMax);
+        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &tr.cr.ciMin);
+        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &tr.cr.ciMax);
         tr.wpText=trRE->lpstrText;
         tr.nNewLine=AELB_R;
-        return AE_GetTextRange(ae, &tr.cr.ciMin, &tr.cr.ciMax, tr.wpText, tr.nNewLine, FALSE, TRUE);
+        return AE_GetTextRange(ae, &tr.cr.ciMin, &tr.cr.ciMax, tr.wpText, tr.nNewLine, FALSE, FALSE);
+      }
+    }
+    if (uMsg == EM_GETSELTEXT)
+    {
+      if (!ae->bUnicodeWindow)
+      {
+        return AE_GetTextRangeAnsi(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (char *)lParam, AELB_R, FALSE, FALSE);
+      }
+      else
+      {
+        return AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)lParam, AELB_R, FALSE, FALSE);
       }
     }
     if (uMsg == EM_GETLINE)
@@ -675,24 +699,24 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_GETSEL)
     {
-      *((int *)wParam)=AE_CharIndexToRichOffset(ae, &ae->ciSelStartIndex);
-      *((int *)lParam)=AE_CharIndexToRichOffset(ae, &ae->ciSelEndIndex);
+      *((int *)wParam)=AE_AkelIndexToRichOffset(ae, &ae->ciSelStartIndex);
+      *((int *)lParam)=AE_AkelIndexToRichOffset(ae, &ae->ciSelEndIndex);
       return 0;
     }
     if (uMsg == EM_EXGETSEL)
     {
       CHARRANGE *crRE=(CHARRANGE *)lParam;
 
-      crRE->cpMin=AE_CharIndexToRichOffset(ae, &ae->ciSelStartIndex);
-      crRE->cpMax=AE_CharIndexToRichOffset(ae, &ae->ciSelEndIndex);
+      crRE->cpMin=AE_AkelIndexToRichOffset(ae, &ae->ciSelStartIndex);
+      crRE->cpMax=AE_AkelIndexToRichOffset(ae, &ae->ciSelEndIndex);
       return 0;
     }
     if (uMsg == EM_SETSEL)
     {
       AECHARRANGE cr;
 
-      AE_RichOffsetToCharIndex(ae, wParam, &cr.ciMin);
-      AE_RichOffsetToCharIndex(ae, lParam, &cr.ciMax);
+      AE_RichOffsetToAkelIndex(ae, wParam, &cr.ciMin);
+      AE_RichOffsetToAkelIndex(ae, lParam, &cr.ciMax);
       AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE);
       return 0;
     }
@@ -701,8 +725,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       CHARRANGE *crRE=(CHARRANGE *)lParam;
       AECHARRANGE cr;
 
-      AE_RichOffsetToCharIndex(ae, crRE->cpMin, &cr.ciMin);
-      AE_RichOffsetToCharIndex(ae, crRE->cpMax, &cr.ciMax);
+      AE_RichOffsetToAkelIndex(ae, crRE->cpMin, &cr.ciMin);
+      AE_RichOffsetToAkelIndex(ae, crRE->cpMax, &cr.ciMax);
       AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE);
       return 0;
     }
@@ -721,7 +745,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (wParam == (DWORD)-1)
         ci.nLine=ae->ciCaretIndex.nLine;
       else
-        AE_RichOffsetToCharIndex(ae, wParam, &ci);
+        AE_RichOffsetToAkelIndex(ae, wParam, &ci);
       return ci.nLine;
     }
     if (uMsg == EM_EXLINEFROMCHAR)
@@ -731,7 +755,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (lParam == -1)
         ci.nLine=ae->ciCaretIndex.nLine;
       else
-        AE_RichOffsetToCharIndex(ae, lParam, &ci);
+        AE_RichOffsetToAkelIndex(ae, lParam, &ci);
       return ci.nLine;
     }
     if (uMsg == EM_LINEINDEX)
@@ -754,7 +778,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else return -1;
       }
-      return AE_CharIndexToRichOffset(ae, &ci);
+      return AE_AkelIndexToRichOffset(ae, &ci);
     }
     if (uMsg == EM_LINELENGTH)
     {
@@ -762,7 +786,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (wParam <= (DWORD)ae->nLastCharOffset)
       {
-        AE_RichOffsetToCharIndex(ae, wParam, &ci);
+        AE_RichOffsetToAkelIndex(ae, wParam, &ci);
         if (ci.lpLine)
           return ci.lpLine->nLineLen;
       }
@@ -773,7 +797,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       POINT *pt=(POINT *)wParam;
       AECHARINDEX ci={0};
 
-      AE_RichOffsetToCharIndex(ae, lParam, &ci);
+      AE_RichOffsetToAkelIndex(ae, lParam, &ci);
       AE_GetPosFromChar(ae, &ci, NULL, pt, FALSE);
       return 0;
     }
@@ -783,7 +807,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AECHARINDEX ci={0};
 
       AE_GetCharFromPos(ae, pt, FALSE, &ci, NULL, FALSE);
-      return AE_CharIndexToRichOffset(ae, &ci);
+      return AE_AkelIndexToRichOffset(ae, &ci);
     }
     if (uMsg == EM_LINESCROLL)
     {
@@ -817,7 +841,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           FINDTEXTEXA *ftRE=(FINDTEXTEXA *)lParam;
           AEFINDTEXTA ft={0};
-  
+
           if (wParam & FR_DOWN)
             ft.dwFlags|=AEFR_DOWN;
           if (wParam & FR_MATCHCASE)
@@ -825,17 +849,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (wParam & FR_WHOLEWORD)
             ft.dwFlags|=AEFR_WHOLEWORD;
           ft.nNewLine=AELB_R;
-          AE_RichOffsetToCharIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
-          AE_RichOffsetToCharIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
+          AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
+          AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
           ft.pText=(char *)ftRE->lpstrText;
           ft.dwTextLen=(DWORD)-1;
-  
+
           if (AE_FindTextAnsi(ae, &ft))
           {
             if (uMsg == EM_FINDTEXTEX)
             {
-              ftRE->chrgText.cpMin=AE_CharIndexToRichOffset(ae, &ft.crFound.ciMin);
-              ftRE->chrgText.cpMax=AE_CharIndexToRichOffset(ae, &ft.crFound.ciMax);
+              ftRE->chrgText.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
+              ftRE->chrgText.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
             }
             return ftRE->chrgText.cpMin;
           }
@@ -855,8 +879,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (wParam & FR_WHOLEWORD)
           ft.dwFlags|=AEFR_WHOLEWORD;
         ft.nNewLine=AELB_R;
-        AE_RichOffsetToCharIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
-        AE_RichOffsetToCharIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
+        AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
+        AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
         ft.wpText=(wchar_t *)ftRE->lpstrText;
         ft.dwTextLen=(DWORD)-1;
 
@@ -864,8 +888,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (uMsg == EM_FINDTEXTEX || uMsg == EM_FINDTEXTEXW)
           {
-            ftRE->chrgText.cpMin=AE_CharIndexToRichOffset(ae, &ft.crFound.ciMin);
-            ftRE->chrgText.cpMax=AE_CharIndexToRichOffset(ae, &ft.crFound.ciMax);
+            ftRE->chrgText.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
+            ftRE->chrgText.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
           }
           return ftRE->chrgText.cpMin;
         }
@@ -888,6 +912,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       ae->dwEventMask=lParam;
       return dwPrevMask;
+    }
+    if (uMsg == EM_SETREADONLY)
+    {
+      if (wParam)
+        ae->dwOptions|=AECO_READONLY;
+      else
+        ae->dwOptions&=~AECO_READONLY;
+      return 1;
     }
     if (uMsg == EM_GETMODIFY)
     {
@@ -924,6 +956,31 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       RECT *rcDraw=(RECT *)lParam;
 
       AE_SetDrawRect(ae, rcDraw, TRUE);
+      AE_UpdateScrollBars(ae, SB_BOTH);
+      return 0;
+    }
+    if (uMsg == EM_SETRECTNP)
+    {
+      RECT *rcDraw=(RECT *)lParam;
+
+      AE_SetDrawRect(ae, rcDraw, FALSE);
+      AE_UpdateScrollBars(ae, SB_BOTH);
+      return 0;
+    }
+    if (uMsg == EM_GETMARGINS)
+    {
+      return MAKELONG(ae->rcDraw.left - ae->rcEdit.left, ae->rcEdit.right - ae->rcDraw.right);
+    }
+    if (uMsg == EM_SETMARGINS)
+    {
+      RECT rcDraw=ae->rcDraw;
+
+      if (wParam & EC_LEFTMARGIN)
+        rcDraw.left=ae->rcEdit.left + LOWORD(lParam);
+      if (wParam & EC_RIGHTMARGIN)
+        rcDraw.right=ae->rcEdit.right - HIWORD(lParam);
+
+      AE_SetDrawRect(ae, &rcDraw, FALSE);
       AE_UpdateScrollBars(ae, SB_BOTH);
       return 0;
     }
@@ -1685,7 +1742,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ciDrawLine.nCharInLine=0;
             ptDraw.y=(ciDrawLine.nLine * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
 
-            ae->nFirstDrawLineOffset=AE_CharIndexToRichOffset(ae, &ciDrawLine);
+            ae->nFirstDrawLineOffset=AE_AkelIndexToRichOffset(ae, &ciDrawLine);
             ae->liFirstDrawLine.nLine=ciDrawLine.nLine;
             ae->liFirstDrawLine.lpLine=ciDrawLine.lpLine;
           }
@@ -2623,7 +2680,7 @@ AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
   return lpElementData;
 }
 
-void AE_RichOffsetToCharIndex(AKELEDIT *ae, int nOffset, AECHARINDEX *ciCharIndex)
+void AE_RichOffsetToAkelIndex(AKELEDIT *ae, int nOffset, AECHARINDEX *ciCharIndex)
 {
   AECHARINDEX ciElement={0};
   int nFirst;
@@ -2684,7 +2741,7 @@ void AE_RichOffsetToCharIndex(AKELEDIT *ae, int nOffset, AECHARINDEX *ciCharInde
   *ciCharIndex=ciElement;
 }
 
-int AE_CharIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
+int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
 {
   AECHARINDEX ciElement={0};
   int nFirst;
@@ -3650,9 +3707,9 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
       }
     }
 
-    ae->nSelStartLineOffset=AE_CharIndexToRichOffset(ae, &ciSelStartNew);
+    ae->nSelStartLineOffset=AE_AkelIndexToRichOffset(ae, &ciSelStartNew);
     ae->ciSelStartIndex=ciSelStartNew;
-    ae->nSelEndLineOffset=AE_CharIndexToRichOffset(ae, &ciSelEndNew);
+    ae->nSelEndLineOffset=AE_AkelIndexToRichOffset(ae, &ciSelEndNew);
     ae->ciSelEndIndex=ciSelEndNew;
     ae->ciCaretIndex=ciCaretNew;
     AE_GetPosFromChar(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL, bColumnSel);
@@ -5202,7 +5259,7 @@ DWORD AE_GetTextAnsi(AKELEDIT *ae, char *szText, DWORD dwMaxTextLen)
     {
       if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
       {
-        dwTextLen=AE_GetTextRange(ae, &ciFirstChar, &ciLastChar, wszText, ae->nOutputNewLine, FALSE, TRUE);
+        dwTextLen=AE_GetTextRange(ae, &ciFirstChar, &ciLastChar, wszText, ae->nOutputNewLine, FALSE, FALSE);
 
         dwAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wszText, dwTextLen + 1, NULL, 0, NULL, NULL);
         dwAnsiBytes=min(dwAnsiBytes - 1, dwMaxTextLen - 1);
@@ -5228,7 +5285,7 @@ DWORD AE_GetText(AKELEDIT *ae, wchar_t *wszText, DWORD dwMaxTextLen)
 
     if (AE_IndexOffset(ae, &ciFirstChar, &ciLastChar, dwMaxTextLen, ae->nOutputNewLine))
     {
-      return AE_GetTextRange(ae, &ciFirstChar, &ciLastChar, wszText, ae->nOutputNewLine, FALSE, TRUE);
+      return AE_GetTextRange(ae, &ciFirstChar, &ciLastChar, wszText, ae->nOutputNewLine, FALSE, FALSE);
     }
   }
   return 0;
