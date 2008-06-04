@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.5.6"
+!define PRODUCT_VERSION "4.0.0 alpha 2"
 
 ;_____________________________________________________________________________________________
 ;
@@ -141,9 +141,14 @@ LangString UninstallSuccess ${LANG_ENGLISH} 'Uninstall was completed successfull
 LangString UninstallSuccess ${LANG_RUSSIAN} 'Удаление программы успешно завершено.'
 
 Function .onInit
+	CheckWindow:
+	FindWindow $0 "AkelPad4"
+	IsWindow $0 +5
 	FindWindow $0 "AkelPad3"
+	IsWindow $0 +3
+	FindWindow $0 "AkelPad2"
 	IsWindow $0 0 +3
-	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(InstallAlreadyRun)" IDRETRY -2
+	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(InstallAlreadyRun)" IDRETRY CheckWindow
 	quit
 
 	# Custom page #
@@ -501,9 +506,14 @@ SectionEnd
 ;_____________________________________________________________________________________________
 
 Function un.onInit
+	CheckWindow:
+	FindWindow $0 "AkelPad4"
+	IsWindow $0 +5
 	FindWindow $0 "AkelPad3"
+	IsWindow $0 +3
+	FindWindow $0 "AkelPad2"
 	IsWindow $0 0 +3
-	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(UninstallAlreadyRun)" IDRETRY -2
+	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(UninstallAlreadyRun)" IDRETRY CheckWindow
 	quit
 FunctionEnd
 
