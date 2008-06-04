@@ -2429,7 +2429,6 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
         AECHARINDEX ciDeleteEnd;
         wchar_t *wpUndoText;
         DWORD dwUndoTextLen=0;
-        int nNewLine=0;
         DWORD i;
 
         //Get count of typing characters
@@ -2457,7 +2456,6 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
             if (lpElement)
             {
               ciDeleteEnd=lpElement->ciActionEnd;
-              nNewLine=lpElement->nNewLine;
             }
 
             //Get string
@@ -2498,7 +2496,6 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
               lpUndoElement->ciActionEnd=ciDeleteEnd;
               lpUndoElement->wpText=wpUndoText;
               lpUndoElement->dwTextLen=dwUndoTextLen;
-              lpUndoElement->nNewLine=nNewLine;
 
               ae->lpCurrentUndo=lpUndoElement;
               lpStopElement=lpUndoElement;
@@ -4976,7 +4973,6 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
             lpUndoElement->ciActionEnd=ciDeleteEnd;
             lpUndoElement->wpText=wpUndoText;
             lpUndoElement->dwTextLen=dwUndoTextLen;
-            lpUndoElement->nNewLine=AELB_ASIS;
 
             ae->lpCurrentUndo=lpUndoElement;
           }
@@ -5599,7 +5595,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                         lpUndoElement->ciActionEnd.nCharInLine=min(ciInsertFrom.nCharInLine, lpElement->nLineLen) + dwUndoTextLen;
                         lpUndoElement->wpText=wpUndoText;
                         lpUndoElement->dwTextLen=dwUndoTextLen;
-                        lpUndoElement->nNewLine=nNewLine;
 
                         ae->lpCurrentUndo=lpUndoElement;
                       }
@@ -5742,7 +5737,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                 lpUndoElement->ciActionEnd.nCharInLine=lpNewElement->nLineLen;
                 lpUndoElement->wpText=NULL;
                 lpUndoElement->dwTextLen=0;
-                lpUndoElement->nNewLine=nNewLine;
 
                 ae->lpCurrentUndo=lpUndoElement;
               }
@@ -5759,7 +5753,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                 lpUndoElement->ciActionEnd=ciLastChar;
                 lpUndoElement->wpText=NULL;
                 lpUndoElement->dwTextLen=0;
-                lpUndoElement->nNewLine=nNewLine;
 
                 ae->lpCurrentUndo=lpUndoElement;
               }
@@ -6029,7 +6022,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                   lpUndoElement->ciActionEnd.nCharInLine=ciFirstChar.nCharInLine + nSpaces;
                   lpUndoElement->wpText=wpUndoText;
                   lpUndoElement->dwTextLen=nSpaces;
-                  lpUndoElement->nNewLine=nNewLine;
 
                   ae->lpCurrentUndo=lpUndoElement;
                 }
@@ -6050,7 +6042,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                 lpUndoElement->ciActionEnd=ciLastChar;
                 lpUndoElement->wpText=wpUndoText;
                 lpUndoElement->dwTextLen=dwTextLen;
-                lpUndoElement->nNewLine=nNewLine;
 
                 ae->lpCurrentUndo=lpUndoElement;
               }
@@ -6646,7 +6637,7 @@ void AE_EditUndo(AKELEDIT *ae)
           ciInsertStart.lpLine=NULL;
           ciInsertEnd.lpLine=NULL;
           AE_SetSelectionPos(ae, &lpElement->ciActionStart, &lpElement->ciActionStart, bColumnSel);
-          AE_InsertText(ae, &lpElement->ciActionStart, lpElement->wpText, lpElement->dwTextLen, lpElement->nNewLine, bColumnSel, &ciInsertStart, &ciInsertEnd, FALSE);
+          AE_InsertText(ae, &lpElement->ciActionStart, lpElement->wpText, lpElement->dwTextLen, ae->nInputNewLine, bColumnSel, &ciInsertStart, &ciInsertEnd, FALSE);
 
           if (lpElement->dwFlags & AEUN_BACKSPACEKEY)
             AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertEnd, bColumnSel);
@@ -6737,7 +6728,7 @@ void AE_EditRedo(AKELEDIT *ae)
           ciInsertStart.lpLine=NULL;
           ciInsertEnd.lpLine=NULL;
           AE_SetSelectionPos(ae, &lpElement->ciActionStart, &lpElement->ciActionStart, bColumnSel);
-          AE_InsertText(ae, &lpElement->ciActionStart, lpElement->wpText, lpElement->dwTextLen, lpElement->nNewLine, bColumnSel, &ciInsertStart, &ciInsertEnd, FALSE);
+          AE_InsertText(ae, &lpElement->ciActionStart, lpElement->wpText, lpElement->dwTextLen, ae->nInputNewLine, bColumnSel, &ciInsertStart, &ciInsertEnd, FALSE);
         }
       }
       else if (lpElement->dwFlags & AEUN_SETSEL)

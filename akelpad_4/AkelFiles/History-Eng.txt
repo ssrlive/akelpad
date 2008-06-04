@@ -4,6 +4,12 @@ AkelPad 4.0.0 alpha 2 ()
 Added: backward compatibility with RichEdit.
 
 Fixed: vertical scroll didn't updated after font change.
+Fixed: undo buffer didn't recognize new line option.
+
+Do not work yet:
+- Word wrap.
+- Text Drag'n'Drop.
+- URL highlighting.
 
 
 AkelPad 4.0.0 alpha 1 (May 28, 2008)
@@ -16,9 +22,3 @@ Added: support of any length lines.
 Added: editing and correct saving of binary files.
 Added: set up color schemes.
 Added: check a saving correctness of all symbols in the specified encoding (except Windows 95).
-
-Do not work yet:
-- Most part of plug-ins.
-- Word wrap.
-- Text Drag'n'Drop.
-- URL highlighting.
