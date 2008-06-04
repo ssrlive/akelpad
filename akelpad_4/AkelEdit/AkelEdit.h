@@ -229,6 +229,7 @@ typedef struct _AEUNDOITEM {
   AECHARINDEX ciActionEnd;
   wchar_t *wpText;
   DWORD dwTextLen;
+  int nNewLine;
 } AEUNDOITEM;
 
 typedef struct {
@@ -255,19 +256,19 @@ typedef struct {
 
 typedef struct {
   DWORD dwFlags;           //See AEFR_* defines
-  int nNewLine;            //See AELB_* defines
   AECHARRANGE crSearch;    //Range of characters to search.
   char *pText;             //Text to find
   DWORD dwTextLen;         //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;            //See AELB_* defines
   AECHARRANGE crFound;     //Range of characters in which text is found
 } AEFINDTEXTA;
 
 typedef struct {
   DWORD dwFlags;           //See AEFR_* defines
-  int nNewLine;            //See AELB_* defines
   AECHARRANGE crSearch;    //Range of characters to search.
   wchar_t *wpText;         //Text to find
   DWORD dwTextLen;         //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;            //See AELB_* defines
   AECHARRANGE crFound;     //Range of characters in which text is found
 } AEFINDTEXTW;
 
