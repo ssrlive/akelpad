@@ -3,8 +3,8 @@
 
 //// Defines
 
-#define APP_MAIN_CLASSA              "AkelPad3"
-#define APP_MAIN_CLASSW             L"AkelPad3"
+#define APP_MAIN_CLASSA              "AkelPad4"
+#define APP_MAIN_CLASSW             L"AkelPad4"
 #define APP_MAIN_TITLEA              "AkelPad"
 #define APP_MAIN_TITLEW             L"AkelPad"
 #define APP_SDI_CLASSA               "AkelPad SDI Class"
