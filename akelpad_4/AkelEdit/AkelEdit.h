@@ -229,7 +229,6 @@ typedef struct _AEUNDOITEM {
   AECHARINDEX ciActionEnd;
   wchar_t *wpText;
   DWORD dwTextLen;
-  int nNewLine;
 } AEUNDOITEM;
 
 typedef struct {
