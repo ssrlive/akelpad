@@ -9138,9 +9138,9 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
   else return FALSE;
 
   ft.dwFlags=dwFlags;
-  ft.nNewLine=AELB_R;
   ft.pText=pFindIt;
   ft.dwTextLen=(DWORD)-1;
+  ft.nNewLine=AELB_R;
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTA, 0, (LPARAM)&ft))
   {
@@ -9178,9 +9178,9 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
   else return FALSE;
 
   ft.dwFlags=dwFlags;
-  ft.nNewLine=AELB_R;
   ft.wpText=wpFindIt;
   ft.dwTextLen=(DWORD)-1;
+  ft.nNewLine=AELB_R;
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTW, 0, (LPARAM)&ft))
   {
