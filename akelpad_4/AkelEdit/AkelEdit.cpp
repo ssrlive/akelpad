@@ -188,7 +188,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->dwOptions|=AECO_READONLY;
       if (cs->style & ES_WANTRETURN)
         ae->dwOptions|=AECO_WANTRETURN;
-      AE_memcpy(ae->wszWordDelimiters, AES_WORD_DELIMITERSW, (lstrlenW(AES_WORD_DELIMITERSW) + 1) * sizeof(wchar_t));
+      AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, (lstrlenW(AES_WORDDELIMITERSW) + 1) * sizeof(wchar_t));
 
       GetClientRect(ae->hWndEdit, &ae->rcEdit);
       AE_SetDrawRect(ae, NULL, FALSE);
@@ -322,6 +322,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           else
             AE_SetSelectionPos(ae, &cr->ciMin, &cr->ciMax, FALSE);
         }
+        ae->nHorizCaretPos=ae->ptCaret.x;
+
         return 0;
       }
       if (uMsg == AEM_UPDATESEL)
@@ -569,7 +571,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (wParam)
           AE_memcpy(ae->wszWordDelimiters, (wchar_t *)wParam, (lstrlenW((wchar_t *)wParam) + 1) * sizeof(wchar_t));
         else
-          AE_memcpy(ae->wszWordDelimiters, AES_WORD_DELIMITERSW, (lstrlenW(AES_WORD_DELIMITERSW) + 1) * sizeof(wchar_t));
+          AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, (lstrlenW(AES_WORDDELIMITERSW) + 1) * sizeof(wchar_t));
         return 0;
       }
       if (uMsg == AEM_CHECKCODEPAGE)
@@ -718,6 +720,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_RichOffsetToAkelIndex(ae, wParam, &cr.ciMin);
       AE_RichOffsetToAkelIndex(ae, lParam, &cr.ciMax);
       AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE);
+      ae->nHorizCaretPos=ae->ptCaret.x;
       return 0;
     }
     if (uMsg == EM_EXSETSEL)
@@ -728,6 +731,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_RichOffsetToAkelIndex(ae, crRE->cpMin, &cr.ciMin);
       AE_RichOffsetToAkelIndex(ae, crRE->cpMax, &cr.ciMax);
       AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE);
+      ae->nHorizCaretPos=ae->ptCaret.x;
       return 0;
     }
     if (uMsg == EM_GETLINECOUNT)
@@ -1326,7 +1330,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (bControl)
               ae->nHorizCaretPos=ae->nHScrollPos;
             else
-              AE_GetCharInLine(ae, ciCharOut.lpLine->wpLine, ciCharOut.lpLine->nLineLen, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
           }
         }
         else if (wParam == VK_DOWN)
@@ -1339,7 +1343,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (bControl)
               ae->nHorizCaretPos=ae->nHScrollPos;
             else
-              AE_GetCharInLine(ae, ciCharOut.lpLine->wpLine, ciCharOut.lpLine->nLineLen, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
           }
         }
         else if (wParam == VK_PRIOR)
@@ -1359,7 +1363,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
-              AE_GetCharInLine(ae, ciCharOut.lpLine->wpLine, ciCharOut.lpLine->nLineLen, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
             }
           }
         }
@@ -1380,7 +1384,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
-              AE_GetCharInLine(ae, ciCharOut.lpLine->wpLine, ciCharOut.lpLine->nLineLen, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
             }
           }
         }
@@ -1877,10 +1881,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 }
                 nMaxDrawCharsCount=0;
 
-                if (nLastTabIndexInLine == -1 || i - nLastTabIndexInLine > ae->nTabStop)
+                if (nLastTabIndexInLine == -1)
                   nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
                 else
-                  nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1));
+                  nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
 
                 rcSpace.left=ptDraw.x + nLineWidth;
                 rcSpace.top=ptDraw.y;
@@ -4250,10 +4254,10 @@ BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGl
         }
         nMaxCharsCount=0;
 
-        if (nLastTabIndexInLine == -1 || i - nLastTabIndexInLine > ae->nTabStop)
+        if (nLastTabIndexInLine == -1)
           nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
         else
-          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1));
+          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
 
         nStringWidth+=nTabWidth;
         wpStringCount+=1;
@@ -4323,10 +4327,10 @@ BOOL AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringChars, i
   {
     if (wpString[i] == L'\t')
     {
-      if (nLastTabIndexInLine == -1 || i - nLastTabIndexInLine > ae->nTabStop)
+      if (nLastTabIndexInLine == -1)
         nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
       else
-        nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1));
+        nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
 
       sizeChar.cx=nTabWidth;
       nStringWidth+=sizeChar.cx;
@@ -4375,6 +4379,178 @@ BOOL AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringChars, i
   return TRUE;
 }
 
+BOOL AE_GetCharInLineEx(AKELEDIT *ae, AELINEDATA *lpLine, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel)
+{
+  SIZE sizeChar={0};
+  int nFirst;
+  int nSecond;
+  int nThird;
+  int nOffset=0;
+  int nStringWidth=0;
+  int nStartChar=0;
+  int nTabWidth;
+  int nLastTabIndexInLine=0x7FFFFFFF;
+  int i;
+  int a;
+
+  nFirst=mod(nMaxExtent - 0);
+  if (lpLine->nLineWidth != -1)
+    nSecond=mod(nMaxExtent - lpLine->nLineWidth);
+  else
+    nSecond=0x7FFFFFFF;
+  if (lpLine == ae->ciCaretIndex.lpLine)
+    nThird=mod(nMaxExtent - ae->ptCaret.x);
+  else
+    nThird=0x7FFFFFFF;
+
+  if (nFirst <= nSecond && nFirst <= nThird)
+  {
+    nOffset=nMaxExtent - 0;
+    nStringWidth=0;
+    nStartChar=0;
+  }
+  else if (nSecond <= nFirst && nSecond <= nThird)
+  {
+    nOffset=nMaxExtent - lpLine->nLineWidth;
+    nStringWidth=lpLine->nLineWidth;
+    nStartChar=lpLine->nLineLen;
+  }
+  else if (nThird <= nFirst && nThird <= nSecond)
+  {
+    nOffset=nMaxExtent - ae->ptCaret.x;
+    nStringWidth=ae->ptCaret.x;
+    nStartChar=ae->ciCaretIndex.nCharInLine;
+  }
+
+  if (nOffset > 0)
+  {
+    for (i=nStartChar; i < lpLine->nLineLen && nStringWidth < nMaxExtent; ++i)
+    {
+      if (lpLine->wpLine[i] == L'\t')
+      {
+        if (nLastTabIndexInLine == 0x7FFFFFFF)
+        {
+          //Find previous tab
+          if (nStartChar > 0)
+          {
+            for (a=nStartChar - 1; a >= 0; --a)
+            {
+              if (lpLine->wpLine[a] == L'\t')
+                break;
+            }
+            nLastTabIndexInLine=a;
+          }
+        }
+        if (nLastTabIndexInLine == -1)
+          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
+        else
+          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
+
+        sizeChar.cx=nTabWidth;
+        nStringWidth+=sizeChar.cx;
+        nLastTabIndexInLine=i;
+      }
+      else
+      {
+        if (AE_GetTextExtentPoint32(ae, (wchar_t *)&lpLine->wpLine[i], 1, &sizeChar))
+        {
+          nStringWidth+=sizeChar.cx;
+        }
+        else return FALSE;
+      }
+    }
+
+    if (bColumnSel)
+    {
+      if (nStringWidth < nMaxExtent)
+      {
+        sizeChar.cx=ae->nSpaceCharWidth;
+        i+=(nMaxExtent - nStringWidth) / sizeChar.cx;
+        nStringWidth+=(nMaxExtent - nStringWidth) / sizeChar.cx * sizeChar.cx;
+      }
+    }
+
+    if (i > 0)
+    {
+      if (nStringWidth > nMaxExtent)
+      {
+        if (bHalfFit)
+        {
+          if (nStringWidth - nMaxExtent > sizeChar.cx / 2)
+          {
+            nStringWidth-=sizeChar.cx;
+            --i;
+          }
+        }
+        else
+        {
+          nStringWidth-=sizeChar.cx;
+          --i;
+        }
+      }
+    }
+  }
+  else if (nOffset < 0)
+  {
+    for (i=nStartChar - 1; i >= 0 && nStringWidth > nMaxExtent; --i)
+    {
+      if (lpLine->wpLine[i] == L'\t')
+      {
+        if (i <= nLastTabIndexInLine)
+        {
+          //Find previous tab
+          for (a=i - 1; a >= 0; --a)
+          {
+            if (lpLine->wpLine[a] == L'\t')
+              break;
+          }
+          nLastTabIndexInLine=a;
+        }
+        if (nLastTabIndexInLine == -1)
+          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
+        else
+          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
+
+        sizeChar.cx=nTabWidth;
+        nStringWidth-=sizeChar.cx;
+      }
+      else
+      {
+        if (AE_GetTextExtentPoint32(ae, (wchar_t *)&lpLine->wpLine[i], 1, &sizeChar))
+        {
+          nStringWidth-=sizeChar.cx;
+        }
+        else return FALSE;
+      }
+    }
+
+    if (++i < lpLine->nLineLen)
+    {
+      if (nStringWidth < nMaxExtent)
+      {
+        if (bHalfFit)
+        {
+          if (nMaxExtent - nStringWidth >= sizeChar.cx / 2)
+          {
+            nStringWidth+=sizeChar.cx;
+            ++i;
+          }
+        }
+        else
+        {
+          nStringWidth+=sizeChar.cx;
+          ++i;
+        }
+      }
+    }
+  }
+  else i=nStartChar;
+
+  if (nCharPos) *nCharPos=nStringWidth;
+  if (nCharIndex) *nCharIndex=i;
+  return TRUE;
+}
+
 BOOL AE_GetCharRangeInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringChars, int nMinExtent, int nMaxExtent, int *nMinCharIndex, int *nMinCharPos, int *nMaxCharIndex, int *nMaxCharPos, BOOL bColumnSel)
 {
   SIZE sizeChar={0};
@@ -4389,10 +4565,10 @@ BOOL AE_GetCharRangeInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringCha
     {
       if (wpString[i] == L'\t')
       {
-        if (nLastTabIndexInLine == -1 || i - nLastTabIndexInLine > ae->nTabStop)
+        if (nLastTabIndexInLine == -1)
           nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
         else
-          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1));
+          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
 
         sizeChar.cx=nTabWidth;
         nStringWidth+=sizeChar.cx;
@@ -4426,10 +4602,10 @@ BOOL AE_GetCharRangeInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringCha
     {
       if (wpString[i] == L'\t')
       {
-        if (nLastTabIndexInLine == -1 || i - nLastTabIndexInLine > ae->nTabStop)
+        if (nLastTabIndexInLine == -1)
           nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
         else
-          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1));
+          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
 
         sizeChar.cx=nTabWidth;
         nStringWidth+=sizeChar.cx;
@@ -4499,7 +4675,7 @@ BOOL AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, BOOL bOnlyVisible, AECH
 
   if (AE_UpdateIndex(ae, ciCharIndex))
   {
-    if (AE_GetCharInLine(ae, ciCharIndex->lpLine->wpLine, ciCharIndex->lpLine->nLineLen, nMaxExtent, TRUE, &ciCharIndex->nCharInLine, &nCharPos, bColumnSel))
+    if (AE_GetCharInLineEx(ae, ciCharIndex->lpLine, nMaxExtent, TRUE, &ciCharIndex->nCharInLine, &nCharPos, bColumnSel))
     {
       if (ptGlobalPos) ptGlobalPos->x=nCharPos;
       return TRUE;

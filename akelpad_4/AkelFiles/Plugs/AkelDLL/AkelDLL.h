@@ -185,6 +185,8 @@ typedef struct _WNDFRAMEA {
   BOOL bShowURL;              //Frame edit show URL
   DWORD dwEditMargins;        //Frame edit margins
   BOOL bDelimitersEnable;     //Frame edit delimiters enabled
+  COLORREF crFont;            //Frame edit font color
+  COLORREF crBackground;      //Frame edit background color
   FILETIME ft;                //Frame file time
   LOGFONTA lf;                //Frame edit font
 } WNDFRAMEA;
@@ -204,6 +206,8 @@ typedef struct _WNDFRAMEW {
   BOOL bShowURL;              //Frame edit show URL
   DWORD dwEditMargins;        //Frame edit margins
   BOOL bDelimitersEnable;     //Frame edit delimiters enabled
+  COLORREF crFont;            //Frame edit font color
+  COLORREF crBackground;      //Frame edit background color
   FILETIME ft;                //Frame file time
   LOGFONTW lf;                //Frame edit font
 } WNDFRAMEW;
@@ -821,6 +825,7 @@ typedef struct _NSIZE {
 
 //// AkelPad main window WM_USER messages
 
+//Notification messages
 #define AKDN_MAIN_ONSTART          (WM_USER + 1)
 #define AKDN_MAIN_ONSTART_PRESHOW  (WM_USER + 2)
 #define AKDN_MAIN_ONSTART_SHOW     (WM_USER + 3)
@@ -842,6 +847,8 @@ typedef struct _NSIZE {
 #define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 19)
 #define AKDN_DLLCALL               (WM_USER + 20)
 #define AKDN_DLLUNLOAD             (WM_USER + 21)
+
+//AkelPad 3.x and AkelPad 4.x messages
 #define AKD_GETMAINPROC            (WM_USER + 101)
 #define AKD_SETMAINPROC            (WM_USER + 102)
 #define AKD_GETMAINPROCRET         (WM_USER + 103)
@@ -864,6 +871,7 @@ typedef struct _NSIZE {
 #define AKD_DLLDELETE              (WM_USER + 120)
 #define AKD_SAVEDOCUMENT           (WM_USER + 121)
 #define AKD_GETTEXTLENGTH          (WM_USER + 122)
+#define AKD_GETTEXTRANGE           (WM_USER + 123)
 #define AKD_FREETEXT               (WM_USER + 124)
 #define AKD_REPLACESELA            (WM_USER + 125)
 #define AKD_REPLACESELW            (WM_USER + 126)
@@ -881,6 +889,7 @@ typedef struct _NSIZE {
 #define AKD_GETQUEUE               (WM_USER + 138)
 #define AKD_GETPRINTDLG            (WM_USER + 139)
 #define AKD_GETPAGEDLG             (WM_USER + 140)
+#define AKD_GETSELTEXTW            (WM_USER + 141)
 #define AKD_GLOBALALLOC            (WM_USER + 142)
 #define AKD_GLOBALLOCK             (WM_USER + 143)
 #define AKD_GLOBALUNLOCK           (WM_USER + 144)
@@ -899,8 +908,11 @@ typedef struct _NSIZE {
 #define AKD_RESIZE                 (WM_USER + 157)
 #define AKD_DOCK                   (WM_USER + 158)
 #define AKD_POSTMESSAGE            (WM_USER + 159)
-#define AKD_GETTEXTRANGEA          (WM_USER + 401)
-#define AKD_GETTEXTRANGEW          (WM_USER + 402)
+
+//AkelPad 4.x messages
+#define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
+#define AKD_EXGETTEXTRANGEA        (WM_USER + 402)
+#define AKD_EXGETTEXTRANGEW        (WM_USER + 403)
 
 
 /*
@@ -2353,6 +2365,71 @@ Example:
  dkNew=(DOCK *)SendMessage(pd->hMainWnd, AKD_DOCK, DK_ADD|DK_SUBCLASS, (LPARAM)&dk);
 
  SendMessage(pd->hMainWnd, AKD_DOCK, DK_DELETE, (LPARAM)dkNew);
+
+
+AKD_EXGETTEXTLENGTH
+___________________
+
+Get akel edit window text length.
+
+(HWND)wParam == akel edit window
+(int)lParam  == see AELB_* defines
+
+Return Value
+ text length
+
+Example:
+ int nLength=SendMessage(pd->hMainWnd, AKD_EXGETTEXTLENGTH, (WPARAM)pd->hWndEdit, AELB_ASOUTPUT);
+
+
+AKD_EXGETTEXTRANGEA
+___________________
+
+Retrieves a specified range of characters from a akel edit control.
+
+(HWND)wParam           == akel edit window
+(AETEXTRANGEA *)lParam == pointer to a AETEXTRANGEA structure
+
+Return Value
+ Text length in TCHARs without null character
+
+Example:
+ AETEXTRANGEA tr;
+
+ SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
+ tr.pText=NULL;
+ tr.nNewLine=AELB_ASIS;
+
+ if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEA, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
+ {
+   MessageBoxA(pd->hMainWnd, tr.pText, "Test", MB_OK);
+   SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.pText);
+ }
+
+
+AKD_EXGETTEXTRANGEW
+___________________
+
+Retrieves a specified range of characters from a akel edit control.
+
+(HWND)wParam           == akel edit window
+(AETEXTRANGEW *)lParam == pointer to a AETEXTRANGEW structure
+
+Return Value
+ Text length in TCHARs without null character
+
+Example:
+ AETEXTRANGEW tr;
+
+ SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
+ tr.wpText=NULL;
+ tr.nNewLine=AELB_ASIS;
+
+ if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEW, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
+ {
+   MessageBoxW(pd->hMainWnd, tr.wpText, L"Test", MB_OK);
+   SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.pText);
+ }
 */
 
 

@@ -1865,7 +1865,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_EXGETTEXTLENGTH)
     {
-      return IndexSubtract((HWND)wParam, NULL, NULL, AELB_ASOUTPUT);
+      return IndexSubtract((HWND)wParam, NULL, NULL, lParam);
     }
     if (uMsg == AKD_EXGETTEXTRANGEA)
     {
@@ -3519,7 +3519,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_EXGETTEXTLENGTH)
     {
-      return IndexSubtract((HWND)wParam, NULL, NULL, AELB_ASOUTPUT);
+      return IndexSubtract((HWND)wParam, NULL, NULL, lParam);
     }
     if (uMsg == AKD_EXGETTEXTRANGEA)
     {

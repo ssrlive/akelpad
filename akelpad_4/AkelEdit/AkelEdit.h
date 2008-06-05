@@ -73,7 +73,7 @@
 #define AES_RICHEDITCLASSA     "RichEdit20A"
 #define AES_RICHEDITCLASSW    L"RichEdit20W"
 
-#define AES_WORD_DELIMITERSW  L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
+#define AES_WORDDELIMITERSW   L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
 
 #define AETIMERID_MOUSEMOVE    1
 
@@ -450,6 +450,7 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SI
 BOOL AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine);
 BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos, BOOL bColumnSel);
 BOOL AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringChars, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
+BOOL AE_GetCharInLineEx(AKELEDIT *ae, AELINEDATA *lpLine, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
 BOOL AE_GetCharRangeInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringChars, int nMinExtent, int nMaxExtent, int *nMinCharIndex, int *nMinCharPos, int *nMaxCharIndex, int *nMaxCharPos, BOOL bColumnSel);
 BOOL AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, BOOL bOnlyVisible, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel);
 BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel);
