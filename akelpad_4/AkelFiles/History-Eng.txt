@@ -1,15 +1,22 @@
 
-AkelPad 4.0.0 alpha 2 ()
-----------------------------------
-Added: backward compatibility with RichEdit.
+AkelPad 4.0.0 alpha 3 ()
+------------------------------------
+Changed: speed of work with long lines is increased.
 
-Fixed: vertical scroll didn't updated after font change.
-Fixed: undo buffer didn't recognize new line option.
+Fixed: work with tabulation.
 
 Do not work yet:
 - Word wrap.
 - Text Drag'n'Drop.
 - URL highlighting.
+
+
+AkelPad 4.0.0 alpha 2 (Jun 04, 2008)
+------------------------------------
+Added: backward compatibility with RichEdit.
+
+Fixed: vertical scroll didn't updated after font change.
+Fixed: undo buffer didn't recognize new line option.
 
 
 AkelPad 4.0.0 alpha 1 (May 28, 2008)

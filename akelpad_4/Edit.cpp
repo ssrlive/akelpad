@@ -324,6 +324,7 @@ void CreateEditWindowA(HWND hWnd)
   SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
+  SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontA(hWndEdit, &lfEditFontA, TRUE);
   ShowURL(hWndEdit, bShowURL);
   SetWindowTextA(hWndEdit, "");
@@ -359,6 +360,7 @@ void CreateEditWindowW(HWND hWnd)
   SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
+  SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontW(hWndEdit, &lfEditFontW, TRUE);
   ShowURL(hWndEdit, bShowURL);
   SetWindowTextW(hWndEdit, L"");
@@ -6609,6 +6611,7 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     }
     SendMessage(hWndPreview, AEM_SETOPTIONS, AECOOP_SET, AECO_READONLY);
     SendMessage(hWndPreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
+    SetTabStops(hWndPreview, nTabStopSize, FALSE);
     SetChosenFontA(hWndPreview, &lfEditFontA, FALSE);
 
     OldPreviewProc=(WNDPROC)GetWindowLongA(hWndPreview, GWL_WNDPROC);
@@ -6835,6 +6838,7 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     }
     SendMessage(hWndPreview, AEM_SETOPTIONS, AECOOP_SET, AECO_READONLY);
     SendMessage(hWndPreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
+    SetTabStops(hWndPreview, nTabStopSize, FALSE);
     SetChosenFontW(hWndPreview, &lfEditFontW, FALSE);
 
     OldPreviewProc=(WNDPROC)GetWindowLongW(hWndPreview, GWL_WNDPROC);
