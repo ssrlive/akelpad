@@ -4,6 +4,7 @@ AkelPad 4.0.0 alpha 3 ()
 Changed: speed of work with long lines is increased.
 
 Fixed: work with tabulation.
+Fixed: block insert in the end of the text from the undo buffer.
 
 Do not work yet:
 - Word wrap.
