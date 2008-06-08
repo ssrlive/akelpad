@@ -499,6 +499,8 @@ void AE_EditKeyReturn(AKELEDIT *ae);
 void AE_EditKeyBackspace(AKELEDIT *ae);
 void AE_EditKeyDelete(AKELEDIT *ae);
 void AE_EditSelectAll(AKELEDIT *ae);
+void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax);
+void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, AECOLORS *aec);
 wchar_t AE_WideCharUpper(wchar_t c);
