@@ -736,37 +736,26 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_GETSEL)
     {
-      *((int *)wParam)=AE_AkelIndexToRichOffset(ae, &ae->ciSelStartIndex);
-      *((int *)lParam)=AE_AkelIndexToRichOffset(ae, &ae->ciSelEndIndex);
+      AE_RichEditGetSel(ae, (LONG *)wParam, (LONG *)lParam);
       return 0;
     }
     if (uMsg == EM_EXGETSEL)
     {
       CHARRANGE *crRE=(CHARRANGE *)lParam;
 
-      crRE->cpMin=AE_AkelIndexToRichOffset(ae, &ae->ciSelStartIndex);
-      crRE->cpMax=AE_AkelIndexToRichOffset(ae, &ae->ciSelEndIndex);
+      AE_RichEditGetSel(ae, &crRE->cpMin, &crRE->cpMax);
       return 0;
     }
     if (uMsg == EM_SETSEL)
     {
-      AECHARRANGE cr;
-
-      AE_RichOffsetToAkelIndex(ae, wParam, &cr.ciMin);
-      AE_RichOffsetToAkelIndex(ae, lParam, &cr.ciMax);
-      AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE);
-      ae->nHorizCaretPos=ae->ptCaret.x;
+      AE_RichEditSetSel(ae, wParam, lParam);
       return 0;
     }
     if (uMsg == EM_EXSETSEL)
     {
       CHARRANGE *crRE=(CHARRANGE *)lParam;
-      AECHARRANGE cr;
 
-      AE_RichOffsetToAkelIndex(ae, crRE->cpMin, &cr.ciMin);
-      AE_RichOffsetToAkelIndex(ae, crRE->cpMax, &cr.ciMax);
-      AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE);
-      ae->nHorizCaretPos=ae->ptCaret.x;
+      AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
       return 0;
     }
     if (uMsg == EM_GETLINECOUNT)
@@ -3237,10 +3226,17 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
       }
       ++nOffsetCount;
 
-      if (nNewLine == AELB_ASIS)
+      if (ciCount.lpLine->nLineBreak == AELB_WRAP)
+      {
         nLineBreak=ciCount.lpLine->nLineBreak;
+      }
       else
-        nLineBreak=nNewLine;
+      {
+        if (nNewLine == AELB_ASIS)
+          nLineBreak=ciCount.lpLine->nLineBreak;
+        else
+          nLineBreak=nNewLine;
+      }
 
       if (ciCount.lpLine->next)
       {
@@ -3295,26 +3291,29 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
       }
       else goto MinusOffEnd;
 
-      if (nNewLine == AELB_ASIS)
-        nLineBreak=ciCount.lpLine->nLineBreak;
-      else
-        nLineBreak=nNewLine;
+      if (ciCount.lpLine->nLineBreak != AELB_WRAP)
+      {
+        if (nNewLine == AELB_ASIS)
+          nLineBreak=ciCount.lpLine->nLineBreak;
+        else
+          nLineBreak=nNewLine;
 
-      if (nLineBreak == AELB_R)
-      {
-        nOffsetCount+=1;
-      }
-      else if (nLineBreak == AELB_N)
-      {
-        nOffsetCount+=1;
-      }
-      else if (nLineBreak == AELB_RN)
-      {
-        nOffsetCount+=2;
-      }
-      else if (nLineBreak == AELB_RRN)
-      {
-        nOffsetCount+=3;
+        if (nLineBreak == AELB_R)
+        {
+          nOffsetCount+=1;
+        }
+        else if (nLineBreak == AELB_N)
+        {
+          nOffsetCount+=1;
+        }
+        else if (nLineBreak == AELB_RN)
+        {
+          nOffsetCount+=2;
+        }
+        else if (nLineBreak == AELB_RRN)
+        {
+          nOffsetCount+=3;
+        }
       }
     }
 
@@ -3337,10 +3336,13 @@ void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine
 {
   AECHARINDEX ciStart;
   AECHARINDEX ciEnd;
+  CHARRANGE crRE;
   DWORD dwMaxWidth;
   int nLineCount=0;
   int nWrapped=0;
   int nUnwrapped=0;
+
+  AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
 
   if (bWrap)
     dwMaxWidth=ae->rcDraw.right - ae->rcDraw.left;
@@ -3402,18 +3404,18 @@ void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine
 
   //Set global
   {
-    ae->nLineCount+=nLineCount;
-    ae->nHScrollMax=0;
-    ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
-    AE_UpdateScrollBars(ae, SB_BOTH);
-
     ae->ciSelStartIndex.lpLine=NULL;
     ae->ciSelEndIndex.lpLine=NULL;
     ae->ciCaretIndex.lpLine=NULL;
-    AE_UpdateIndex(ae, &ae->ciSelStartIndex);
-    AE_UpdateIndex(ae, &ae->ciSelEndIndex);
-    AE_UpdateIndex(ae, &ae->ciCaretIndex);
-    AE_UpdateSelection(ae);
+/*    if (!bWrap) AE_CalcLinesWidth(ae, NULL, NULL, FALSE);*/
+    ae->nLineCount+=nLineCount;
+    ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+    AE_UpdateScrollBars(ae, SB_BOTH);
+
+    if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+      AE_RichEditSetSel(ae, crRE.cpMin, crRE.cpMax);
+    else
+      AE_RichEditSetSel(ae, crRE.cpMax, crRE.cpMin);
   }
 }
 
@@ -4097,19 +4099,29 @@ BOOL AE_SetCaretPos(AKELEDIT *ae)
 
 void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret)
 {
-  if (ptCaret->x >= ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
+  if (ae->bWordWrap)
   {
-    if (ae->dwMouseMoveTimer)
-      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + 1, 0));
-    else
-      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + (ae->rcDraw.right - ae->rcDraw.left) / 3, 0));
+    if (ptCaret->x < ae->nHScrollPos)
+    {
+      AE_ScrollEditWindow(ae, SB_HORZ, 0);
+    }
   }
-  else if (ptCaret->x < ae->nHScrollPos)
+  else
   {
-    if (ae->dwMouseMoveTimer)
-      AE_ScrollEditWindow(ae, SB_HORZ, ptCaret->x);
-    else
-      AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) / 3, 0));
+    if (ptCaret->x >= ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
+    {
+      if (ae->dwMouseMoveTimer)
+        AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + 1, 0));
+      else
+        AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + (ae->rcDraw.right - ae->rcDraw.left) / 3, 0));
+    }
+    else if (ptCaret->x < ae->nHScrollPos)
+    {
+      if (ae->dwMouseMoveTimer)
+        AE_ScrollEditWindow(ae, SB_HORZ, ptCaret->x);
+      else
+        AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) / 3, 0));
+    }
   }
 
   if (ptCaret->y >= ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top) - ae->nCharHeight)
@@ -7519,6 +7531,22 @@ void AE_EditSelectAll(AKELEDIT *ae)
   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciFirstChar, FALSE);
   AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
   AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE);
+}
+
+void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
+{
+  *nMin=AE_AkelIndexToRichOffset(ae, &ae->ciSelStartIndex);
+  *nMax=AE_AkelIndexToRichOffset(ae, &ae->ciSelEndIndex);
+}
+
+void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax)
+{
+  AECHARRANGE cr;
+
+  AE_RichOffsetToAkelIndex(ae, nMin, &cr.ciMin);
+  AE_RichOffsetToAkelIndex(ae, nMax, &cr.ciMax);
+  AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE);
+  ae->nHorizCaretPos=ae->ptCaret.x;
 }
 
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
