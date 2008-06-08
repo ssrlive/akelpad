@@ -1894,49 +1894,29 @@ void DoViewFontSizeW(HWND hWnd, int nAction)
 
 void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
 {
-/*
-  NMHDR nmhdr={hWnd, ID_EDIT, EN_SELCHANGE};
-  RECT rcEdit;
-  int nEventMask;
-  int nFirstVisibleChar;
-
   CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bState?MF_CHECKED:MF_UNCHECKED);
   if (bFirst != TRUE && bState == bWordWrap) return;
-  if (bFirst == TRUE && bState == FALSE) return;
+  bWordWrap=bState;
 
-  //Reserve state
-  SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-  SaveCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
-
-  if (bWordWrap=bState)
+  if (bWordWrap)
   {
-    nEventMask=SendMessage(hWnd, EM_GETEVENTMASK, 0, 0);
-    SendMessage(hWnd, EM_SETEVENTMASK, 0, nEventMask | ENM_REQUESTRESIZE);
-    ShowScrollBar(hWnd, SB_HORZ, FALSE);
-    SendMessage(hWnd, EM_SETTARGETDEVICE, (WPARAM)NULL, 0);
+    SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
+    SendMessage(hWnd, AEM_SETWORDWRAP, TRUE, TRUE);
   }
   else
   {
-    SendMessage(hWnd, EM_SETTARGETDEVICE, (WPARAM)NULL, -1);
-    ShowScrollBar(hWnd, SB_HORZ, TRUE);
-    nEventMask=SendMessage(hWnd, EM_GETEVENTMASK, 0, 0);
-    SendMessage(hWnd, EM_SETEVENTMASK, 0, nEventMask & ~ENM_REQUESTRESIZE);
+    SendMessage(hWnd, AEM_SETWORDWRAP, FALSE, TRUE);
+    SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
   }
-
-  //Restore state
-  RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
-  SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, FALSE);
-  SendMessage(hMainWnd, WM_NOTIFY, ID_EDIT, (LPARAM)&nmhdr);
-*/
 }
 
 void DoViewOnTop(BOOL bState, BOOL bFirst)
 {
   CheckMenuItem(hMainMenu, IDM_VIEW_ONTOP, bState?MF_CHECKED:MF_UNCHECKED);
   if (bFirst != TRUE && bState == bOnTop) return;
+  bOnTop=bState;
 
-  if (bOnTop=bState)
+  if (bOnTop)
     SetWindowPos(hMainWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
   else
     SetWindowPos(hMainWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
@@ -6609,7 +6589,6 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bAutodetect, 0);
       EnableWindow(hWndCP, !bAutodetect);
     }
-    SendMessage(hWndPreview, AEM_SETOPTIONS, AECOOP_SET, AECO_READONLY);
     SendMessage(hWndPreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
     SetTabStops(hWndPreview, nTabStopSize, FALSE);
     SetChosenFontA(hWndPreview, &lfEditFontA, FALSE);
@@ -6836,7 +6815,6 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bAutodetect, 0);
       EnableWindow(hWndCP, !bAutodetect);
     }
-    SendMessage(hWndPreview, AEM_SETOPTIONS, AECOOP_SET, AECO_READONLY);
     SendMessage(hWndPreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
     SetTabStops(hWndPreview, nTabStopSize, FALSE);
     SetChosenFontW(hWndPreview, &lfEditFontW, FALSE);

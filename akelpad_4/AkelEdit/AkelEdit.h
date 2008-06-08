@@ -64,9 +64,12 @@
 #define AEM_SETOVERTYPE       (WM_USER + 2051)
 #define AEM_GETTABSTOP        (WM_USER + 2052)
 #define AEM_SETTABSTOP        (WM_USER + 2053)
-#define AEM_GETWORDDELIMITERS (WM_USER + 2054)
-#define AEM_SETWORDDELIMITERS (WM_USER + 2055)
-#define AEM_CHECKCODEPAGE     (WM_USER + 2056)
+#define AEM_GETWORDWRAP       (WM_USER + 2054)
+#define AEM_SETWORDWRAP       (WM_USER + 2055)
+#define AEM_SHOWSCROLLBAR     (WM_USER + 2056)
+#define AEM_GETWORDDELIMITERS (WM_USER + 2057)
+#define AEM_SETWORDDELIMITERS (WM_USER + 2058)
+#define AEM_CHECKCODEPAGE     (WM_USER + 2059)
 
 #define AES_AKELEDITCLASSA     "AkelEditA"
 #define AES_AKELEDITCLASSW    L"AkelEditW"
@@ -77,12 +80,11 @@
 
 #define AETIMERID_MOUSEMOVE    1
 
-#define AECO_WORDWRAP         0x00000001
-#define AECO_READONLY         0x00000002
-#define AECO_DISABLENOSCROLL  0x00000004
-#define AECO_WANTRETURN       0x00000008
-#define AECO_DETAILEDUNDO     0x00000010
-#define AECO_DISABLEBEEP      0x00000020
+#define AECO_READONLY         0x00000001
+#define AECO_DISABLENOSCROLL  0x00000002
+#define AECO_WANTRETURN       0x00000004
+#define AECO_DETAILEDUNDO     0x00000008
+#define AECO_DISABLEBEEP      0x00000010
 
 #define AECOOP_SET            0
 #define AECOOP_OR             1
@@ -165,14 +167,17 @@
 #ifndef EC_RIGHTMARGIN
   #define EC_RIGHTMARGIN 0x0002
 #endif
-#ifndef WM_MOUSEWHEEL
-  #define WM_MOUSEWHEEL 0x020A
-#endif
 #ifndef SPI_GETWHEELSCROLLLINES
   #define SPI_GETWHEELSCROLLLINES 0x0068
 #endif
 #ifndef WC_NO_BEST_FIT_CHARS
   #define WC_NO_BEST_FIT_CHARS 0x00000400
+#endif
+#ifndef WM_MOUSEWHEEL
+  #define WM_MOUSEWHEEL 0x020A
+#endif
+#ifndef EM_SHOWSCROLLBAR
+  #define EM_SHOWSCROLLBAR (WM_USER + 96)
 #endif
 #ifndef mod
   #define mod(a) (((a) < 0)?(0 - (a)):(a))
@@ -364,6 +369,8 @@ typedef struct _AKELEDIT {
   int nVScrollPos;
   int nHScrollMax;
   int nVScrollMax;
+  BOOL bVScrollShow;
+  BOOL bHScrollShow;
   HBITMAP hCaretInsert;
   HBITMAP hCaretOvertype;
   COLORREF crCaret;
@@ -374,6 +381,7 @@ typedef struct _AKELEDIT {
   BOOL bFocus;
   BOOL bCaretVisible;
   BOOL bColumnSel;
+  BOOL bWordWrap;
   DWORD dwMouseMoveTimer;
   wchar_t wszWordDelimiters[128];
 
@@ -421,11 +429,11 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
 int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
 DWORD AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
 DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, int nOffset, int nNewLine);
-void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine);
+void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bWrap);
 BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar);
 void AE_WrapLines(AKELEDIT *ae);
-int AE_LineWrap(AKELEDIT *ae, AELINEINDEX *liLine, int nMaxWidth);
-BOOL AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine);
+int AE_LineWrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth);
+int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth);
 void AE_CalcLinesWidth(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bFresh);
 int AE_CheckCodepage(AKELEDIT *ae, int nCodePage);
 void AE_SetDrawRect(AKELEDIT *ae, RECT *rcDraw, BOOL bRedraw);
