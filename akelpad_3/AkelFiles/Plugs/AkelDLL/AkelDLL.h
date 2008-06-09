@@ -651,25 +651,13 @@ typedef struct _NSIZE {
 #define IDM_VIEW_FONT                   4201  //Font dialog
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_VIEW_TEXT_COLOR             4202  //Text color dialog
-                                              //Return Value: TRUE - success, FALSE - failed
-                                              //
-#define IDM_VIEW_BG_COLOR               4203  //Background color dialog
+#define IDM_VIEW_COLORS                 4202  //Color theme dialog
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
 #define IDM_VIEW_INCREASE_FONT          4204  //Increase font 1px
                                               //Return Value: zero
                                               //
 #define IDM_VIEW_DECREASE_FONT          4205  //Decrease font 1px
-                                              //Return Value: zero
-                                              //
-#define IDM_VIEW_ALIGN_LEFT             4206  //Left text align
-                                              //Return Value: zero
-                                              //
-#define IDM_VIEW_ALIGN_CENTER           4207  //Center text align
-                                              //Return Value: zero
-                                              //
-#define IDM_VIEW_ALIGN_RIGHT            4208  //Right text align
                                               //Return Value: zero
                                               //
 #define IDM_VIEW_WORDWRAP               4209  //Word wrap (on\off)
@@ -837,6 +825,7 @@ typedef struct _NSIZE {
 
 //// AkelPad main window WM_USER messages
 
+//Notification messages
 #define AKDN_MAIN_ONSTART          (WM_USER + 1)
 #define AKDN_MAIN_ONSTART_PRESHOW  (WM_USER + 2)
 #define AKDN_MAIN_ONSTART_SHOW     (WM_USER + 3)
@@ -858,6 +847,8 @@ typedef struct _NSIZE {
 #define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 19)
 #define AKDN_DLLCALL               (WM_USER + 20)
 #define AKDN_DLLUNLOAD             (WM_USER + 21)
+
+//AkelPad 3.x and AkelPad 4.x messages
 #define AKD_GETMAINPROC            (WM_USER + 101)
 #define AKD_SETMAINPROC            (WM_USER + 102)
 #define AKD_GETMAINPROCRET         (WM_USER + 103)
@@ -917,6 +908,11 @@ typedef struct _NSIZE {
 #define AKD_RESIZE                 (WM_USER + 157)
 #define AKD_DOCK                   (WM_USER + 158)
 #define AKD_POSTMESSAGE            (WM_USER + 159)
+
+//AkelPad 4.x messages
+#define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
+#define AKD_EXGETTEXTRANGEA        (WM_USER + 402)
+#define AKD_EXGETTEXTRANGEW        (WM_USER + 403)
 
 
 /*
@@ -2369,6 +2365,71 @@ Example:
  dkNew=(DOCK *)SendMessage(pd->hMainWnd, AKD_DOCK, DK_ADD|DK_SUBCLASS, (LPARAM)&dk);
 
  SendMessage(pd->hMainWnd, AKD_DOCK, DK_DELETE, (LPARAM)dkNew);
+
+
+AKD_EXGETTEXTLENGTH
+___________________
+
+Get akel edit window text length.
+
+(HWND)wParam == akel edit window
+(int)lParam  == see AELB_* defines
+
+Return Value
+ text length
+
+Example:
+ int nLength=SendMessage(pd->hMainWnd, AKD_EXGETTEXTLENGTH, (WPARAM)pd->hWndEdit, AELB_ASOUTPUT);
+
+
+AKD_EXGETTEXTRANGEA
+___________________
+
+Retrieves a specified range of characters from a akel edit control.
+
+(HWND)wParam           == akel edit window
+(AETEXTRANGEA *)lParam == pointer to a AETEXTRANGEA structure
+
+Return Value
+ Text length in TCHARs without null character
+
+Example:
+ AETEXTRANGEA tr;
+
+ SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
+ tr.pText=NULL;
+ tr.nNewLine=AELB_ASIS;
+
+ if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEA, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
+ {
+   MessageBoxA(pd->hMainWnd, tr.pText, "Test", MB_OK);
+   SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.pText);
+ }
+
+
+AKD_EXGETTEXTRANGEW
+___________________
+
+Retrieves a specified range of characters from a akel edit control.
+
+(HWND)wParam           == akel edit window
+(AETEXTRANGEW *)lParam == pointer to a AETEXTRANGEW structure
+
+Return Value
+ Text length in TCHARs without null character
+
+Example:
+ AETEXTRANGEW tr;
+
+ SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
+ tr.wpText=NULL;
+ tr.nNewLine=AELB_ASIS;
+
+ if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEW, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
+ {
+   MessageBoxW(pd->hMainWnd, tr.wpText, L"Test", MB_OK);
+   SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.pText);
+ }
 */
 
 

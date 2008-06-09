@@ -4,8 +4,11 @@
 CC = g++
 CFLAGS = -Wall -Werror -Os
 LDFLAGS = -shared -lkernel32 -luser32
-DEL = del
-#DEL = rm -f
+ifndef NIX
+  DEL = del
+else
+  DEL = rm -f
+endif
 
 all: AkelDLL.dll
 
