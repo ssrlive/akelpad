@@ -4,10 +4,13 @@
 CC = g++
 CFLAGS = -Wall -Os
 LDFLAGS = -mwindows -e __WinMain -lkernel32 -luser32 -lgdi32 -ladvapi32 -lshell32 -lcomctl32 -lcomdlg32 -lversion -lole32 -luuid
-DEL = del
-#DEL = rm -f
+ifndef NIX
+  DEL = del
+else
+  DEL = rm -f
+endif
 ifndef LANG
-LANG = English
+  LANG = English
 endif
 
 all: AkelPad.exe
