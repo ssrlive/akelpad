@@ -346,6 +346,7 @@ typedef struct _AKELEDIT {
   int nCharHeight;
   int nAveCharWidth;
   int nSpaceCharWidth;
+  int nTabWidth;
   BOOL bFixedCharWidth;
   int nTabStop;
   BOOL bOverType;
@@ -458,7 +459,7 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SI
 BOOL AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine);
 BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);
 BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);
-BOOL AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStart, int nEnd, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, int *nLastTabIndex, BOOL bColumnSel);
+BOOL AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
 BOOL AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
 BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, int nMinExtent, int nMaxExtent, int *nMinCharIndex, int *nMinCharPos, int *nMaxCharIndex, int *nMaxCharPos, BOOL bColumnSel);
 BOOL AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel);

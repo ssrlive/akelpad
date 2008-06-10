@@ -1758,7 +1758,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           HBRUSH hbrBG;
           int nMaxDrawCharsCount;
           int nTabWidth;
-          int nLastTabIndexInLine;
           int i;
 
           //Set region
@@ -1798,7 +1797,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             nLineWidth=0;
             nMaxDrawCharsCount=0;
             wpLine=ciDrawLine.lpLine->wpLine;
-            nLastTabIndexInLine=-1;
 
             if (ciDrawLine.lpLine->nSelStart == 0 && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen)
             {
@@ -1920,11 +1918,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 }
                 nMaxDrawCharsCount=0;
 
-                if (nLastTabIndexInLine == -1)
-                  nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
-                else
-                  nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
-
+                nTabWidth=ae->nTabWidth - nLineWidth % ae->nTabWidth;
                 rcSpace.left=ptDraw.x + nLineWidth;
                 rcSpace.top=ptDraw.y;
                 rcSpace.right=rcSpace.left + nTabWidth;
@@ -1932,7 +1926,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 FillRect(ps.hdc, &rcSpace, hbrBG);
                 nLineWidth+=nTabWidth;
                 wpLine+=1;
-                nLastTabIndexInLine=i;
               }
 
               if (nMaxDrawCharsCount == 2048)
@@ -3433,13 +3426,14 @@ int AE_LineWrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
   int nCharEnd=0;
   int nCharPos=0;
   int nLineCount=0;
-  int nLastTabIndexInLine=-1;
 
   NextLine:
   if (nCharEnd < lpInitialElement->nLineLen)
   {
-    if (AE_GetCharInLine(ae, lpInitialElement->wpLine, nCharStart, lpInitialElement->nLineLen, dwMaxWidth - ae->nAveCharWidth, FALSE, &nCharEnd, &nCharPos, &nLastTabIndexInLine, FALSE))
+    if (AE_GetCharInLine(ae, lpInitialElement->wpLine + nCharStart, lpInitialElement->nLineLen - nCharStart, dwMaxWidth - ae->nAveCharWidth, FALSE, &nCharEnd, &nCharPos, FALSE))
     {
+      nCharEnd+=nCharStart;
+
       if (lpNewElement=AE_StackLineInsertBefore(ae, lpInitialElement))
       {
         lpNewElement->nLineWidth=nCharPos;
@@ -3668,6 +3662,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
 
   GetTextExtentPoint32A(ae->hDC, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeAverageWidth);
   ae->nAveCharWidth=sizeAverageWidth.cx / 52;
+  ae->nTabWidth=ae->nAveCharWidth * ae->nTabStop;
   GetTextExtentPoint32A(ae->hDC, " ", 1, &sizeAverageWidth);
   ae->nSpaceCharWidth=sizeAverageWidth.cx;
 
@@ -3702,6 +3697,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
 
   GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeAverageWidth);
   ae->nAveCharWidth=sizeAverageWidth.cx / 52;
+  ae->nTabWidth=ae->nAveCharWidth * ae->nTabStop;
   GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeAverageWidth);
   ae->nSpaceCharWidth=sizeAverageWidth.cx;
 
@@ -4359,7 +4355,6 @@ BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGl
   int nStringWidth=0;
   int nMaxCharsCount=0;
   int nTabWidth;
-  int nLastTabIndexInLine=-1;
   int i;
 
   if (ciCharIndex->lpLine)
@@ -4384,14 +4379,9 @@ BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGl
         }
         nMaxCharsCount=0;
 
-        if (nLastTabIndexInLine == -1)
-          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
-        else
-          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
-
+        nTabWidth=ae->nTabWidth - nStringWidth % ae->nTabWidth;
         nStringWidth+=nTabWidth;
         wpStringCount+=1;
-        nLastTabIndexInLine=i;
       }
       if (nMaxCharsCount == 2048)
       {
@@ -4452,7 +4442,7 @@ BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *pt
   int nStringWidth=0;
   int nStartChar=0;
   int nTabWidth;
-  int nLastTabIndexInLine=0x7FFFFFFF;
+  int nStringWidthBeforeTab;
   int i;
   int a;
 
@@ -4483,6 +4473,7 @@ BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *pt
       nStartChar=ae->ciCaretIndex.nCharInLine;
     }
 
+    Begin:
     if (nOffset > 0)
     {
       for (i=nStartChar; i < ciCharIndex->lpLine->nLineLen; ++i)
@@ -4492,23 +4483,8 @@ BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *pt
 
         if (ciCharIndex->lpLine->wpLine[i] == L'\t')
         {
-          if (i < nLastTabIndexInLine)
-          {
-            //Find previous tab
-            for (a=nStartChar - 1; a >= 0; --a)
-            {
-              if (ciCharIndex->lpLine->wpLine[a] == L'\t')
-                break;
-            }
-            nLastTabIndexInLine=a;
-          }
-          if (nLastTabIndexInLine == -1)
-            nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
-          else
-            nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
-
+          nTabWidth=ae->nTabWidth - nStringWidth % ae->nTabWidth;
           nStringWidth+=nTabWidth;
-          nLastTabIndexInLine=i;
         }
         else
         {
@@ -4538,22 +4514,10 @@ BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *pt
         {
           if (ciCharIndex->lpLine->wpLine[i] == L'\t')
           {
-            if (i <= nLastTabIndexInLine)
-            {
-              //Find previous tab
-              for (a=i - 1; a >= 0; --a)
-              {
-                if (ciCharIndex->lpLine->wpLine[a] == L'\t')
-                  break;
-              }
-              nLastTabIndexInLine=a;
-            }
-            if (nLastTabIndexInLine == -1)
-              nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
-            else
-              nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
-
-            nStringWidth-=nTabWidth;
+            nOffset=ciCharIndex->nCharInLine - 0;
+            nStringWidth=0;
+            nStartChar=0;
+            goto Begin;
           }
           else
           {
@@ -4585,33 +4549,22 @@ BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *pt
   return FALSE;
 }
 
-BOOL AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStart, int nEnd, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, int *nLastTabIndex, BOOL bColumnSel)
+BOOL AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel)
 {
   SIZE sizeChar={0};
   int nStringWidth=0;
   int nTabWidth;
-  int nLastTabIndexInLine;
-  int i=nStart;
-
-  if (nLastTabIndex)
-    nLastTabIndexInLine=*nLastTabIndex;
-  else
-    nLastTabIndexInLine=-1;
+  int i=0;
 
   if (wpString)
   {
-    for (; i < nEnd && nStringWidth < nMaxExtent; ++i)
+    for (; i < nStringLen && nStringWidth < nMaxExtent; ++i)
     {
       if (wpString[i] == L'\t')
       {
-        if (nLastTabIndexInLine == -1)
-          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
-        else
-          nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
-
+        nTabWidth=ae->nTabWidth - nStringWidth % ae->nTabWidth;
         sizeChar.cx=nTabWidth;
         nStringWidth+=sizeChar.cx;
-        nLastTabIndexInLine=i;
       }
       else
       {
@@ -4655,7 +4608,6 @@ BOOL AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStart, int nEn
   }
   if (nCharPos) *nCharPos=nStringWidth;
   if (nCharIndex) *nCharIndex=i;
-  if (nLastTabIndex) *nLastTabIndex=nLastTabIndexInLine;
   return TRUE;
 }
 
@@ -4669,7 +4621,7 @@ BOOL AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, 
   int nStringWidth=0;
   int nStartChar=0;
   int nTabWidth;
-  int nLastTabIndexInLine=0x7FFFFFFF;
+  int nStringWidthBeforeTab;
   int i;
   int a;
 
@@ -4700,6 +4652,7 @@ BOOL AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, 
       nStartChar=ae->ciCaretIndex.nCharInLine;
     }
 
+    Begin:
     if (nOffset > 0)
     {
       for (i=nStartChar; nStringWidth < nMaxExtent; ++i)
@@ -4708,24 +4661,9 @@ BOOL AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, 
         {
           if (lpLine->wpLine[i] == L'\t')
           {
-            if (i < nLastTabIndexInLine)
-            {
-              //Find previous tab
-              for (a=nStartChar - 1; a >= 0; --a)
-              {
-                if (lpLine->wpLine[a] == L'\t')
-                  break;
-              }
-              nLastTabIndexInLine=a;
-            }
-            if (nLastTabIndexInLine == -1)
-              nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
-            else
-              nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
-
+            nTabWidth=ae->nTabWidth - nStringWidth % ae->nTabWidth;
             sizeChar.cx=nTabWidth;
             nStringWidth+=sizeChar.cx;
-            nLastTabIndexInLine=i;
           }
           else
           {
@@ -4780,23 +4718,10 @@ BOOL AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, 
         {
           if (lpLine->wpLine[i] == L'\t')
           {
-            if (i <= nLastTabIndexInLine)
-            {
-              //Find previous tab
-              for (a=i - 1; a >= 0; --a)
-              {
-                if (lpLine->wpLine[a] == L'\t')
-                  break;
-              }
-              nLastTabIndexInLine=a;
-            }
-            if (nLastTabIndexInLine == -1)
-              nTabWidth=ae->nAveCharWidth * (ae->nTabStop - i % ae->nTabStop);
-            else
-              nTabWidth=ae->nAveCharWidth * (ae->nTabStop - (i - nLastTabIndexInLine - 1) % ae->nTabStop);
-
-            sizeChar.cx=nTabWidth;
-            nStringWidth-=sizeChar.cx;
+            nOffset=nMaxExtent - 0;
+            nStringWidth=0;
+            nStartChar=0;
+            goto Begin;
           }
           else
           {
