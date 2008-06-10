@@ -3399,7 +3399,7 @@ void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine
         liStartLine->lpLine=liCount.lpLine;
       }
     }
-    if (liCount.nLine == nEndLine)
+    if (liCount.nLine >= nEndLine)
     {
       if (liEndLine)
       {
@@ -3605,7 +3605,6 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
     if (nLineCount)
     {
       liLine->lpLine=lpNewElement;
-      liLine->nLine+=nLineCount;
     }
   }
   return nLineCount;
@@ -5499,7 +5498,10 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
       else
       {
-        AE_RedrawLineRange(ae, ciDeleteStart.nLine, ciDeleteEnd.nLine, FALSE);
+        if (!ae->bWordWrap)
+          AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
+        else 
+          AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
       }
     }
     else
@@ -5603,8 +5605,8 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
       else
       {
-        if (!nLineCount)
-          AE_RedrawLineRange(ae, ciDeleteStart.nLine, ciDeleteStart.nLine, FALSE);
+        if (!nLineCount && ciDeleteStart.nLine == ciDeleteEnd.nLine)
+          AE_RedrawLineRange(ae, ciDeleteStart.nLine, ciDeleteEnd.nLine, FALSE);
         else
           AE_RedrawLineRange(ae, ciDeleteStart.nLine, -1, TRUE);
       }
@@ -6217,7 +6219,10 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
         else
         {
-          AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
+          if (!ae->bWordWrap)
+            AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
+          else 
+            AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
         }
 
         //Add undo
@@ -6483,8 +6488,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
         else
         {
-          if (ciFirstChar.nLine == ciLastChar.nLine)
-            AE_RedrawLineRange(ae, ciFirstChar.nLine, ciFirstChar.nLine, FALSE);
+          if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
+            AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
           else
             AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
         }
