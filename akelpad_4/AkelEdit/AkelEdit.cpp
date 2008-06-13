@@ -1740,9 +1740,44 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_ERASEBKGND)
     {
-      if (ae->rcErase.top < ae->rcErase.bottom)
+      RECT rcErase;
+
+      if (ae->rcErase.left < ae->rcDraw.left)
       {
-        FillRect((HDC)wParam, &ae->rcErase, ae->hBasicBk);
+        rcErase=ae->rcErase;
+        rcErase.right=min(rcErase.right, ae->rcDraw.left);
+        FillRect((HDC)wParam, &rcErase, ae->hBasicBk);
+        ae->rcErase.left=rcErase.right;
+      }
+      if (ae->rcErase.top < ae->rcDraw.top)
+      {
+        rcErase=ae->rcErase;
+        rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
+        FillRect((HDC)wParam, &rcErase, ae->hBasicBk);
+        ae->rcErase.top=rcErase.bottom;
+      }
+      if (ae->rcErase.right > ae->rcDraw.right)
+      {
+        rcErase=ae->rcErase;
+        rcErase.left=max(rcErase.left, ae->rcDraw.right);
+        FillRect((HDC)wParam, &rcErase, ae->hBasicBk);
+        ae->rcErase.right=rcErase.left;
+      }
+      if (ae->rcErase.bottom > ae->rcDraw.bottom)
+      {
+        rcErase=ae->rcErase;
+        rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
+        FillRect((HDC)wParam, &rcErase, ae->hBasicBk);
+        ae->rcErase.bottom=rcErase.top;
+      }
+
+      //Erase only a space after the last line
+      rcErase=ae->rcErase;
+      rcErase.top=max(rcErase.top, ae->nLineCount * ae->nCharHeight - ae->nVScrollPos);
+
+      if (rcErase.top < rcErase.bottom)
+      {
+        FillRect((HDC)wParam, &rcErase, ae->hBasicBk);
       }
       return 1;
     }
@@ -1752,10 +1787,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (GetUpdateRect(ae->hWndEdit, &ae->rcErase, FALSE))
       {
-        //Erase only a space after the last line
-        ae->rcErase.top=max(ae->rcErase.top, ae->nLineCount * ae->nCharHeight - ae->nVScrollPos);
-
-        //Begin paint
         if (BeginPaint(ae->hWndEdit, &ps))
         {
           HRGN hDrawRgn;
@@ -5806,7 +5837,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         }
         else
         {
-          if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
+          if (!ae->bWordWrap && !nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
             AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
           else
             AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
@@ -6725,7 +6756,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           }
           else
           {
-            if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
+            if (!ae->bWordWrap && !nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
               AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
             else
               AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, FALSE);
