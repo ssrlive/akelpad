@@ -1871,13 +1871,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, AELB_ASIS);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, tr->nNewLine, tr->bColumnSel);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, AELB_ASIS);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, tr->nNewLine, tr->bColumnSel);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -1885,12 +1885,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_REPLACESELA)
     {
-      ReplaceSelA((HWND)wParam, (char *)lParam, -1);
+      ReplaceSelA((HWND)wParam, (char *)lParam, -1, -1);
       return 0;
     }
     if (uMsg == AKD_REPLACESELW)
     {
-      ReplaceSelW((HWND)wParam, (wchar_t *)lParam, -1);
+      ReplaceSelW((HWND)wParam, (wchar_t *)lParam, -1, -1);
       return 0;
     }
     if (uMsg == AKD_PASTE)
@@ -3525,13 +3525,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, AELB_ASIS);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, tr->nNewLine, tr->bColumnSel);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, AELB_ASIS);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, tr->nNewLine, tr->bColumnSel);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -3539,12 +3539,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_REPLACESELA)
     {
-      ReplaceSelA((HWND)wParam, (char *)lParam, -1);
+      ReplaceSelA((HWND)wParam, (char *)lParam, -1, -1);
       return 0;
     }
     if (uMsg == AKD_REPLACESELW)
     {
-      ReplaceSelW((HWND)wParam, (wchar_t *)lParam, -1);
+      ReplaceSelW((HWND)wParam, (wchar_t *)lParam, -1, -1);
       return 0;
     }
     if (uMsg == AKD_PASTE)
@@ -4813,7 +4813,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENSELCHANGE *sc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatusA(hWndEdit, &sc->crSel, &sc->ciCaret);
+        SetSelectionStatusA(hWndEdit, &sc->aes.crSel, sc->aes.lpciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGE)
       {
@@ -4925,12 +4925,8 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       if (((NMHDR *)lParam)->code == AEN_SELCHANGE)
       {
         AENSELCHANGE *sc=(AENSELCHANGE *)lParam;
-{
-  CHARRANGE cr;
 
-  SendMessage(hWndEdit, EM_GETSEL, (WPARAM)&cr.cpMin, (LPARAM)&cr.cpMax);
-}
-        SetSelectionStatusW(hWndEdit, &sc->crSel, &sc->ciCaret);
+        SetSelectionStatusW(hWndEdit, &sc->aes.crSel, sc->aes.lpciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGE)
       {
