@@ -5984,7 +5984,11 @@ void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnS
   AE_InsertText(ae, &ae->ciSelStartIndex, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, &ciInsertStart, &ciInsertEnd, TRUE);
   AE_StackUndoGroupStop(ae);
 
-  if (bColumnSel) AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertEnd, bColumnSel);
+  if (bColumnSel)
+  {
+    if (ae->dwOptions & AECO_PASTESELECTCOLUMN)
+      AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertEnd, bColumnSel);
+  }
 }
 
 DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd, BOOL bEnableUndo)
