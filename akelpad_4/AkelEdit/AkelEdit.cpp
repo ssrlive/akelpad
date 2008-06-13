@@ -2036,15 +2036,18 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               if (ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
                   ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
               {
-                hbrBG=ae->hSelBk;
+//                if (ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+                {
+                  hbrBG=ae->hSelBk;
 
-                rcSpace.left=ptDraw.x + nLineWidth;
-                rcSpace.top=ptDraw.y;
-                rcSpace.right=rcSpace.left + ae->nAveCharWidth;
-                rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-                FillRect(ps.hdc, &rcSpace, hbrBG);
-                nLineWidth+=ae->nAveCharWidth;
-                nLineLen+=1;
+                  rcSpace.left=ptDraw.x + nLineWidth;
+                  rcSpace.top=ptDraw.y;
+                  rcSpace.right=rcSpace.left + ae->nAveCharWidth;
+                  rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+                  FillRect(ps.hdc, &rcSpace, hbrBG);
+                  nLineWidth+=ae->nAveCharWidth;
+                  nLineLen+=1;
+                }
               }
             }
 
@@ -2967,6 +2970,8 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
         {
           ciCharOut->lpLine=ciCharTmp.lpLine->next;
           ciCharOut->nCharInLine=0;
+          if (ciCharTmp.lpLine->nLineBreak == AELB_WRAP)
+            ciCharOut->nCharInLine=min(ciCharOut->nCharInLine + 1, ciCharOut->lpLine->nLineLen);
           return TRUE;
         }
         else
@@ -3014,6 +3019,8 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
         {
           ciCharOut->lpLine=ciCharTmp.lpLine->prev;
           ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
+          if (ciCharOut->lpLine->nLineBreak == AELB_WRAP)
+            ciCharOut->nCharInLine=max(ciCharOut->nCharInLine - 1, 0);
           return TRUE;
         }
         else
