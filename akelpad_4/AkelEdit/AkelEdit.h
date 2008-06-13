@@ -131,6 +131,7 @@
 #define AEUN_OVERTYPECHAR    0x00000040
 #define AEUN_BACKSPACEKEY    0x00000080
 #define AEUN_DELETEKEY       0x00000100
+#define AEUN_EXTRAOFFSET     0x00000200
 
 #define AECLR_DEFAULT        0x00000001
 #define AECLR_CARET          0x00000002
@@ -230,8 +231,10 @@ typedef struct _AEUNDOITEM {
   struct _AEUNDOITEM *next;
   struct _AEUNDOITEM *prev;
   DWORD dwFlags;
-  AECHARINDEX ciActionStart;
-  AECHARINDEX ciActionEnd;
+  int nActionStartOffset;
+  int nActionEndOffset;
+  int nExtraStartOffset;
+  int nExtraEndOffset;
   wchar_t *wpText;
   DWORD dwTextLen;
 } AEUNDOITEM;
@@ -433,7 +436,7 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
 void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bWrap);
 BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar);
 void AE_WrapLines(AKELEDIT *ae);
-int AE_LineWrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth);
+int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, DWORD dwMaxWidth);
 int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth);
 void AE_CalcLinesWidth(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bFresh);
 int AE_CheckCodepage(AKELEDIT *ae, int nCodePage);
@@ -501,7 +504,7 @@ void AE_EditKeyBackspace(AKELEDIT *ae);
 void AE_EditKeyDelete(AKELEDIT *ae);
 void AE_EditSelectAll(AKELEDIT *ae);
 void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax);
-void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax);
+void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, AECOLORS *aec);
 wchar_t AE_WideCharUpper(wchar_t c);
