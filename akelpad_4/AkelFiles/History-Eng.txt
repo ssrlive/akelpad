@@ -2,6 +2,7 @@
 AkelPad 4.0.0 alpha 3 ()
 ------------------------------------
 Changed: speed of work with long lines is increased.
+Changed: speed of column's Undo/Redo is increased.
 
 Added: word wrap.
 
