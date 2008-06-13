@@ -966,8 +966,10 @@ BOOL EscapeStringToEscapeDataA(char *pInput, char *szOutput);
 BOOL EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput);
 void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput);
 
-void ReplaceSelA(HWND hWnd, char *pData, int nDataLen);
-void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen);
+void GetSel(HWND hWnd, AECHARRANGE *crSel, AECHARINDEX **ciCaret, BOOL *bColumnSel);
+void SetSel(HWND hWnd, AECHARRANGE *crSel, AECHARINDEX *ciCaret, BOOL bColumnSel);
+void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel);
+void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel);
 int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine);
 int IndexOffset(HWND hWnd, AECHARINDEX *ciChar, int nOffset, int nNewLine);
 int AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar);
@@ -975,8 +977,8 @@ void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar);
 int GetTextLength(HWND hWnd);
 int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText);
 int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText);
-int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, char **pText, int nNewLine);
-int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, wchar_t **wpText, int nNewLine);
+int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, char **pText, int nNewLine, BOOL bColumnSel);
+int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, wchar_t **wpText, int nNewLine, BOOL bColumnSel);
 BOOL FreeText(LPVOID pText);
 void PasteInEditAsRichEdit(HWND hWnd);
 

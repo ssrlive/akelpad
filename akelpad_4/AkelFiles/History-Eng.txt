@@ -8,6 +8,7 @@ Added: word wrap.
 
 Fixed: work with tabulation.
 Fixed: block insert in the end of the text from the undo buffer.
+Fixed: Delete and Backspace keys registration in undo buffer.
 
 Do not work yet:
 - Text Drag'n'Drop.

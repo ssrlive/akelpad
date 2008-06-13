@@ -222,25 +222,29 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_REPLACESELA)
       {
-        AE_ReplaceSelAnsi(ae, (char *)lParam, wParam, FALSE);
+        AEREPLACESELA *rs=(AEREPLACESELA *)lParam;
+
+        AE_ReplaceSelAnsi(ae, rs->pText, rs->dwTextLen, rs->bColumnSel);
         return 0;
       }
       if (uMsg == AEM_REPLACESELW)
       {
-        AE_ReplaceSel(ae, (wchar_t *)lParam, wParam, FALSE);
+        AEREPLACESELW *rs=(AEREPLACESELW *)lParam;
+
+        AE_ReplaceSel(ae, rs->wpText, rs->dwTextLen, rs->bColumnSel);
         return 0;
       }
       if (uMsg == AEM_GETTEXTRANGEA)
       {
         AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-        return AE_GetTextRangeAnsi(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->pText, tr->nNewLine, FALSE, FALSE);
+        return AE_GetTextRangeAnsi(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->pText, tr->nNewLine, tr->bColumnSel, FALSE);
       }
       if (uMsg == AEM_GETTEXTRANGEW)
       {
         AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-        return AE_GetTextRange(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->wpText, tr->nNewLine, FALSE, FALSE);
+        return AE_GetTextRange(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->wpText, tr->nNewLine, tr->bColumnSel, FALSE);
       }
       if (uMsg == AEM_STREAMOUT)
       {
@@ -297,34 +301,21 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETSEL)
       {
-        AECHARINDEX *ciCaret=(AECHARINDEX *)wParam;
-        AECHARRANGE *cr=(AECHARRANGE *)lParam;
+        AESELECTION *aes=(AESELECTION *)lParam;
 
-        if (ciCaret) *ciCaret=ae->ciCaretIndex;
-        cr->ciMin=ae->ciSelStartIndex;
-        cr->ciMax=ae->ciSelEndIndex;
+        AE_AkelEditGetSel(ae, aes);
         return 0;
       }
       if (uMsg == AEM_SETSEL)
       {
-        AECHARINDEX *ciCaret=(AECHARINDEX *)wParam;
-        AECHARRANGE *cr=(AECHARRANGE *)lParam;
+        AESELECTION *aes=(AESELECTION *)lParam;
 
-        if (!ciCaret)
-        {
-          if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
-            AE_SetSelectionPos(ae, &cr->ciMax, &cr->ciMin, FALSE, TRUE);
-          else
-            AE_SetSelectionPos(ae, &cr->ciMin, &cr->ciMax, FALSE, TRUE);
-        }
-        else
-        {
-          if (!AE_IndexCompare(&cr->ciMax, ciCaret))
-            AE_SetSelectionPos(ae, &cr->ciMax, &cr->ciMin, FALSE, TRUE);
-          else
-            AE_SetSelectionPos(ae, &cr->ciMin, &cr->ciMax, FALSE, TRUE);
-        }
+        AE_AkelEditSetSel(ae, aes);
         return 0;
+      }
+      if (uMsg == AEM_GETCOLUMNSEL)
+      {
+        return ae->bColumnSel;
       }
       if (uMsg == AEM_UPDATESEL)
       {
@@ -1749,15 +1740,22 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_ERASEBKGND)
     {
-      FillRect((HDC)wParam, &ae->rcPaint, ae->hBasicBk);
+      if (ae->rcErase.top < ae->rcErase.bottom)
+      {
+        FillRect((HDC)wParam, &ae->rcErase, ae->hBasicBk);
+      }
       return 1;
     }
     else if (uMsg == WM_PAINT)
     {
       PAINTSTRUCT ps;
 
-      if (GetUpdateRect(ae->hWndEdit, &ae->rcPaint, FALSE))
+      if (GetUpdateRect(ae->hWndEdit, &ae->rcErase, FALSE))
       {
+        //Erase only a space after the last line
+        ae->rcErase.top=max(ae->rcErase.top, ae->nLineCount * ae->nCharHeight - ae->nVScrollPos);
+
+        //Begin paint
         if (BeginPaint(ae->hWndEdit, &ps))
         {
           HRGN hDrawRgn;
@@ -3931,9 +3929,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
         sc.hdr.hwndFrom=ae->hWndEdit;
         sc.hdr.idFrom=ae->nEditCtrlID;
         sc.hdr.code=AEN_SELCHANGE;
-        sc.crSel.ciMin=ae->ciSelStartIndex;
-        sc.crSel.ciMax=ae->ciSelEndIndex;
-        sc.ciCaret=ae->ciCaretIndex;
+        AE_AkelEditGetSel(ae, &sc.aes);
         SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
       }
 
@@ -5826,9 +5822,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
           sc.hdr.hwndFrom=ae->hWndEdit;
           sc.hdr.idFrom=ae->nEditCtrlID;
           sc.hdr.code=AEN_SELCHANGE;
-          sc.crSel.ciMin=ae->ciSelStartIndex;
-          sc.crSel.ciMax=ae->ciSelEndIndex;
-          sc.ciCaret=ae->ciCaretIndex;
+          AE_AkelEditGetSel(ae, &sc.aes);
           SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
         }
 
@@ -6805,9 +6799,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           sc.hdr.hwndFrom=ae->hWndEdit;
           sc.hdr.idFrom=ae->nEditCtrlID;
           sc.hdr.code=AEN_SELCHANGE;
-          sc.crSel.ciMin=ae->ciSelStartIndex;
-          sc.crSel.ciMax=ae->ciSelEndIndex;
-          sc.ciCaret=ae->ciCaretIndex;
+          AE_AkelEditGetSel(ae, &sc.aes);
           SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
         }
 
@@ -7384,10 +7376,13 @@ void AE_EditUndo(AKELEDIT *ae)
           AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
           if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
             ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
-
           ciInsertStart.lpLine=NULL;
           ciInsertEnd.lpLine=NULL;
-          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, FALSE);
+
+          if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+            AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, FALSE);
+          else
+            AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, TRUE);
 
           if (!lpNextElement || !(lpNextElement->dwFlags & AEUN_INSERT) || (lpNextElement->dwFlags & AEUN_STOPGROUP))
           {
@@ -7516,10 +7511,13 @@ void AE_EditRedo(AKELEDIT *ae)
           AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
           if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
             ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
-
           ciInsertStart.lpLine=NULL;
           ciInsertEnd.lpLine=NULL;
-          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, FALSE);
+
+          if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+            AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, FALSE);
+          else
+            AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, TRUE);
 
           if (!lpNextElement || !(lpNextElement->dwFlags & AEUN_DELETE) || (lpCurElement->dwFlags & AEUN_STOPGROUP))
           {
@@ -7839,6 +7837,36 @@ void AE_EditSelectAll(AKELEDIT *ae)
   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciFirstChar, FALSE);
   AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
   AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE, TRUE);
+}
+
+void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes)
+{
+  aes->crSel.ciMin=ae->ciSelStartIndex;
+  aes->crSel.ciMax=ae->ciSelEndIndex;
+  aes->bColumnSel=ae->bColumnSel;
+
+  if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+    aes->lpciCaret=&aes->crSel.ciMax;
+  else
+    aes->lpciCaret=&aes->crSel.ciMin;
+}
+
+void AE_AkelEditSetSel(AKELEDIT *ae, AESELECTION *aes)
+{
+  if (!aes->lpciCaret)
+  {
+    if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, aes->bColumnSel, TRUE);
+    else
+      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, aes->bColumnSel, TRUE);
+  }
+  else
+  {
+    if (!AE_IndexCompare(&aes->crSel.ciMax, aes->lpciCaret))
+      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, aes->bColumnSel, TRUE);
+    else
+      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, aes->bColumnSel, TRUE);
+  }
 }
 
 void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
