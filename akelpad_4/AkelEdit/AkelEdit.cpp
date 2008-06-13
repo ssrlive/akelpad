@@ -3350,7 +3350,7 @@ BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar)
   return FALSE;
 }
 
-void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bWrap)
+int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bWrap)
 {
   AELINEINDEX liFirst;
   AELINEINDEX liCount;
@@ -3490,6 +3490,7 @@ void AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine
   ae->nLineCount+=nLineCount;
   ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
   AE_UpdateScrollBars(ae, SB_VERT);
+  return nLineCount;
 }
 
 int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, DWORD dwMaxWidth)
@@ -5507,7 +5508,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
 
       if (ae->bWordWrap)
       {
-        AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
+        nLineCount+=AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
 
         //Set control points to "insert from" position
         ae->nSelStartLineOffset=nStartOffset;
@@ -5670,14 +5671,16 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         lpElement=lpNextElement;
       }
       ciDeleteStart.lpLine=lpNewElement;
+      ciFirstChar=ciDeleteStart;
+      ciLastChar=ciDeleteStart;
 
       //Update control points
-      if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciDeleteStart.nLine)
+      if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciFirstChar.nLine)
       {
         ae->liFirstDrawLine.nLine-=nLineCount;
         ae->nFirstDrawLineOffset+=nRichTextCount;
       }
-      if (ae->liMaxWidthLine.lpLine && ae->liMaxWidthLine.nLine > ciDeleteStart.nLine)
+      if (ae->liMaxWidthLine.lpLine && ae->liMaxWidthLine.nLine > ciFirstChar.nLine)
       {
         ae->liMaxWidthLine.nLine-=nLineCount;
       }
@@ -5688,23 +5691,22 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       nVScrollPos=ae->nVScrollPos;
       ae->nLineCount-=nLineCount;
       ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
-      AE_GetPosFromCharEx(ae, &ciDeleteStart, &ae->ptCaret, NULL);
-      ae->ciCaretIndex=ciDeleteStart;
+      AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
+      ae->ciCaretIndex=ciFirstChar;
       ae->nSelStartLineOffset=nStartOffset;
-      ae->ciSelStartIndex=ciDeleteStart;
+      ae->ciSelStartIndex=ciFirstChar;
       ae->nSelEndLineOffset=nStartOffset;
-      ae->ciSelEndIndex=ciDeleteStart;
-      ciDeleteEnd=ciDeleteStart;
+      ae->ciSelEndIndex=ciFirstChar;
 
       if (ae->bWordWrap)
       {
-        AE_WrapLines(ae, (AELINEINDEX *)&ciDeleteStart, (AELINEINDEX *)&ciDeleteEnd, ae->bWordWrap);
+        nLineCount+=AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
 
-        ae->ciCaretIndex=ciDeleteStart;
+        ae->ciCaretIndex=ciFirstChar;
         ae->nSelStartLineOffset=nStartOffset;
-        ae->ciSelStartIndex=ciDeleteStart;
+        ae->ciSelStartIndex=ciFirstChar;
         ae->nSelEndLineOffset=nStartOffset;
-        ae->ciSelEndIndex=ciDeleteStart;
+        ae->ciSelEndIndex=ciFirstChar;
       }
       else
       {
@@ -5713,7 +5715,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         if (!ae->liMaxWidthLine.lpLine)
           AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
         else
-          AE_CalcLinesWidth(ae, (AELINEINDEX *)&ciDeleteStart, (AELINEINDEX *)&ciDeleteEnd, FALSE);
+          AE_CalcLinesWidth(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, FALSE);
       }
 
       if (bUpdate)
@@ -5738,10 +5740,10 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         }
         else
         {
-          if (!nLineCount && ciDeleteStart.nLine == ciDeleteEnd.nLine)
-            AE_RedrawLineRange(ae, ciDeleteStart.nLine, ciDeleteEnd.nLine, FALSE);
+          if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
+            AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
           else
-            AE_RedrawLineRange(ae, ciDeleteStart.nLine, -1, TRUE);
+            AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
         }
       }
 
@@ -6372,14 +6374,14 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           //Redraw lines
           if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
           {
-            InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+            InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
           }
           else
           {
             if (!ae->bWordWrap)
               AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
             else
-              AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
+              AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, FALSE);
           }
         }
 
@@ -6603,7 +6605,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
 
         if (ae->bWordWrap)
         {
-          AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
+          nLineCount+=AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
 
           //Set control points to "insert from" position
           ae->nSelStartLineOffset=nStartOffset;
@@ -6654,14 +6656,14 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           //Redraw lines
           if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
           {
-            InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+            InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
           }
           else
           {
             if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
               AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
             else
-              AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
+              AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, FALSE);
           }
         }
 
