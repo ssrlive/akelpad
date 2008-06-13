@@ -7686,11 +7686,12 @@ void AE_EditKeyBackspace(AKELEDIT *ae)
 
       if (AE_GetIndex(ae, AEGI_PREVCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE))
       {
+        AE_StackUndoGroupStop(ae);
         AE_DeleteTextRange(ae, &ciCharIndex, &ae->ciSelStartIndex, FALSE, TRUE, TRUE);
+        AE_StackUndoGroupStop(ae);
 
         if (ae->dwUndoLimit)
         {
-          AE_StackUndoGroupStop(ae);
           ae->lpCurrentUndo->dwFlags|=AEUN_BACKSPACEKEY;
         }
       }
@@ -7738,11 +7739,12 @@ void AE_EditKeyDelete(AKELEDIT *ae)
 
       if (AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE))
       {
+        AE_StackUndoGroupStop(ae);
         AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, TRUE, TRUE);
+        AE_StackUndoGroupStop(ae);
 
         if (ae->dwUndoLimit)
         {
-          AE_StackUndoGroupStop(ae);
           ae->lpCurrentUndo->dwFlags|=AEUN_DELETEKEY;
         }
       }
