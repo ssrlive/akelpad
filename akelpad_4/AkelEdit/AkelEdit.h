@@ -80,16 +80,17 @@
 
 #define AETIMERID_MOUSEMOVE    1
 
-#define AECO_READONLY         0x00000001
-#define AECO_DISABLENOSCROLL  0x00000002
-#define AECO_WANTRETURN       0x00000004
-#define AECO_DETAILEDUNDO     0x00000008
-#define AECO_DISABLEBEEP      0x00000010
+#define AECO_READONLY           0x00000001
+#define AECO_DISABLENOSCROLL    0x00000002
+#define AECO_WANTRETURN         0x00000004
+#define AECO_DETAILEDUNDO       0x00000008
+#define AECO_DISABLEBEEP        0x00000010
+#define AECO_PASTESELECTCOLUMN  0x00000020
 
-#define AECOOP_SET            0
-#define AECOOP_OR             1
-#define AECOOP_AND            2
-#define AECOOP_XOR            3
+#define AECOOP_SET              0
+#define AECOOP_OR               1
+#define AECOOP_AND              2
+#define AECOOP_XOR              3
 
 #define AEGI_FIRSTCHAR         1
 #define AEGI_LASTCHAR          2
