@@ -4930,7 +4930,22 @@ BOOL AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharInde
 BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel)
 {
   AECHARINDEX ciCount=*ciChar;
+  AELINEDATA *lpNextLine=NULL;
   BOOL bInList;
+
+  if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
+  {
+    if (ciCount.lpLine->next)
+    {
+      if (ciCount.lpLine->nLineBreak == AELB_WRAP)
+      {
+        ciCount.nLine+=1;
+        ciCount.lpLine=ciCount.lpLine->next;
+        ciCount.nCharInLine=0;
+      }
+    }
+    else goto End;
+  }
 
   if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
     bInList=AE_IsInDelimiterList(ae, L'\n');
@@ -4941,6 +4956,8 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
   {
     while (1)
     {
+      lpNextLine=ciCount.lpLine->next;
+
       while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
       {
         if (bInList != AE_IsInDelimiterList(ae, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
@@ -4949,12 +4966,16 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
         ++ciCount.nCharInLine;
       }
       if (bColumnSel) goto End;
-      if (bInList != AE_IsInDelimiterList(ae, L'\n')) goto End;
+      if (ciCount.lpLine->nLineBreak != AELB_WRAP)
+      {
+        if (bInList != AE_IsInDelimiterList(ae, L'\n'))
+          goto End;
+      }
 
-      if (ciCount.lpLine->next)
+      if (lpNextLine)
       {
         ciCount.nLine+=1;
-        ciCount.lpLine=ciCount.lpLine->next;
+        ciCount.lpLine=lpNextLine;
         ciCount.nCharInLine=0;
       }
       else goto End;
@@ -4975,7 +4996,22 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
 BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel)
 {
   AECHARINDEX ciCount=*ciChar;
+  AELINEDATA *lpPrevLine=NULL;
   BOOL bInList;
+
+  if (ciCount.nCharInLine - 1 < 0)
+  {
+    if (ciCount.lpLine->prev)
+    {
+      if (ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
+      {
+        ciCount.nLine-=1;
+        ciCount.lpLine=ciCount.lpLine->prev;
+        ciCount.nCharInLine=ciCount.lpLine->nLineLen - 1;
+      }
+    }
+    else goto End;
+  }
 
   if (--ciCount.nCharInLine < 0)
     bInList=AE_IsInDelimiterList(ae, L'\n');
@@ -4986,6 +5022,8 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
   {
     while (1)
     {
+      lpPrevLine=ciCount.lpLine->prev;
+
       while (ciCount.nCharInLine >= 0)
       {
         if (bInList != AE_IsInDelimiterList(ae, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
@@ -4996,12 +5034,16 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
         --ciCount.nCharInLine;
       }
       if (bColumnSel) goto End;
-      if (bInList != AE_IsInDelimiterList(ae, L'\n')) goto End;
+      if (lpPrevLine && lpPrevLine->nLineBreak != AELB_WRAP)
+      {
+        if (bInList != AE_IsInDelimiterList(ae, L'\n'))
+          goto End;
+      }
 
-      if (ciCount.lpLine->prev)
+      if (lpPrevLine)
       {
         ciCount.nLine-=1;
-        ciCount.lpLine=ciCount.lpLine->prev;
+        ciCount.lpLine=lpPrevLine;
         ciCount.nCharInLine=ciCount.lpLine->nLineLen - 1;
       }
       else goto End;
@@ -5023,6 +5065,20 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 {
   AECHARRANGE cr;
   AECHARINDEX ciCount=*ciChar;
+
+  if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
+  {
+    if (ciCount.lpLine->next)
+    {
+      if (ciCount.lpLine->nLineBreak == AELB_WRAP)
+      {
+        ciCount.nLine+=1;
+        ciCount.lpLine=ciCount.lpLine->next;
+        ciCount.nCharInLine=0;
+      }
+    }
+    else return FALSE;
+  }
 
   if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
   {
@@ -5052,6 +5108,20 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 {
   AECHARRANGE cr;
   AECHARINDEX ciCount=*ciChar;
+
+  if (ciCount.nCharInLine - 1 < 0)
+  {
+    if (ciCount.lpLine->prev)
+    {
+      if (ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
+      {
+        ciCount.nLine-=1;
+        ciCount.lpLine=ciCount.lpLine->prev;
+        ciCount.nCharInLine=ciCount.lpLine->nLineLen - 1;
+      }
+    }
+    else return FALSE;
+  }
 
   if (ciCount.nCharInLine - 1 < 0)
   {
@@ -5747,7 +5817,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         }
       }
 
-//      if (bEnableUndo)
+      //if (bEnableUndo)
       {
         //Send AEN_SELCHANGE
         {
@@ -6615,12 +6685,13 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           ae->ciCaretIndex=ciFirstChar;
 
           //Set control points to "insert to" position
-          AE_RichOffsetToAkelIndex(ae, nEndOffset, &ae->ciSelStartIndex);
+          AE_RichOffsetToAkelIndex(ae, nEndOffset, &ciLastChar);
+          AE_GetPosFromCharEx(ae, &ciLastChar, &ae->ptCaret, NULL);
+          ae->ciCaretIndex=ciLastChar;
           ae->nSelStartLineOffset=nEndOffset;
-          ae->nSelEndLineOffset=ae->nSelStartLineOffset;
-          ae->ciSelEndIndex=ae->ciSelStartIndex;
-          AE_GetPosFromCharEx(ae, &ae->ciSelStartIndex, &ae->ptCaret, NULL);
-          ae->ciCaretIndex=ae->ciSelStartIndex;
+          ae->ciSelStartIndex=ciLastChar;
+          ae->nSelEndLineOffset=nEndOffset;
+          ae->ciSelEndIndex=ciLastChar;
         }
         else
         {
@@ -6725,7 +6796,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
       if (ciInsertStart) *ciInsertStart=ciFirstChar;
       if (ciInsertEnd) *ciInsertEnd=ciLastChar;
 
-//      if (bEnableUndo)
+      //if (bEnableUndo)
       {
         //Send AEN_SELCHANGE
         {
