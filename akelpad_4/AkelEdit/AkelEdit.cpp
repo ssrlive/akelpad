@@ -324,8 +324,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           else
             AE_SetSelectionPos(ae, &cr->ciMin, &cr->ciMax, FALSE);
         }
-        ae->nHorizCaretPos=ae->ptCaret.x;
-
         return 0;
       }
       if (uMsg == AEM_UPDATESEL)
@@ -1186,6 +1184,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AECHARINDEX ciCharIn=ae->ciCaretIndex;
       AECHARINDEX ciCharOut=ae->ciCaretIndex;
+      int nHorizCaretPos=ae->nHorizCaretPos;
       BOOL bAlt=FALSE;
       BOOL bShift=FALSE;
       BOOL bControl=FALSE;
@@ -1382,9 +1381,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, ae->bColumnSel))
           {
             if (bControl)
-              ae->nHorizCaretPos=ae->nHScrollPos;
+              nHorizCaretPos=ae->nHScrollPos;
             else
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
           }
         }
         else if (wParam == VK_DOWN)
@@ -1395,9 +1394,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIn, &ciCharOut, ae->bColumnSel))
           {
             if (bControl)
-              ae->nHorizCaretPos=ae->nHScrollPos;
+              nHorizCaretPos=ae->nHScrollPos;
             else
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
           }
         }
         else if (wParam == VK_PRIOR)
@@ -1417,7 +1416,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
             }
           }
         }
@@ -1438,7 +1437,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, ae->nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
             }
           }
         }
@@ -1473,12 +1472,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         //Set horizontal caret
-        if (wParam == VK_HOME ||
-            wParam == VK_END ||
-            wParam == VK_LEFT ||
-            wParam == VK_RIGHT)
+        if (wParam == VK_UP ||
+            wParam == VK_DOWN ||
+            wParam == VK_PRIOR ||
+            wParam == VK_NEXT)
         {
-          ae->nHorizCaretPos=ae->ptCaret.x;
+          ae->nHorizCaretPos=nHorizCaretPos;
         }
 
         //Redraw lines
@@ -1622,7 +1621,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel))
         ciNextWord=ae->ciCaretIndex;
       AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel);
-      ae->nHorizCaretPos=ae->ptCaret.x;
       return 0;
     }
     else if (uMsg == WM_TIMER)
@@ -3905,6 +3903,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
 
     //Set caret position
     AE_ScrollToCaret(ae, &ae->ptCaret);
+    ae->nHorizCaretPos=ae->ptCaret.x;
     if (ae->bFocus)
     {
       AE_SetCaretPos(ae);
@@ -3981,9 +3980,6 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bShift, BOOL bColumnS
       }
       else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel);
     }
-
-    //Set horizontal caret
-    ae->nHorizCaretPos=ae->ptCaret.x;
   }
 }
 
@@ -5988,11 +5984,7 @@ void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnS
   AE_InsertText(ae, &ae->ciSelStartIndex, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, &ciInsertStart, &ciInsertEnd, TRUE);
   AE_StackUndoGroupStop(ae);
 
-  if (bColumnSel)
-  {
-    AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertEnd, bColumnSel);
-    ae->nHorizCaretPos=ae->ptCaret.x;
-  }
+  if (bColumnSel) AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertEnd, bColumnSel);
 }
 
 DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd, BOOL bEnableUndo)
@@ -7292,7 +7284,6 @@ void AE_EditUndo(AKELEDIT *ae)
           }
           else AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertStart, bColumnSel);
         }
-        ae->nHorizCaretPos=ae->ptCaret.x;
       }
       else if (lpElement->dwFlags & AEUN_DELETE)
       {
@@ -7321,7 +7312,6 @@ void AE_EditUndo(AKELEDIT *ae)
         }
 
         AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel);
-        ae->nHorizCaretPos=ae->ptCaret.x;
       }
       lpElement=lpElement->prev;
 
@@ -7401,7 +7391,6 @@ void AE_EditRedo(AKELEDIT *ae)
         }
 
         AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel);
-        ae->nHorizCaretPos=ae->ptCaret.x;
       }
 
       //Stop undo
@@ -7612,7 +7601,6 @@ void AE_EditKeyBackspace(AKELEDIT *ae)
         {
           ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
           AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel);
-          ae->nHorizCaretPos=ae->ptCaret.x;
           return;
         }
       }
@@ -7699,7 +7687,6 @@ void AE_EditSelectAll(AKELEDIT *ae)
   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciFirstChar, FALSE);
   AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
   AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE);
-  ae->nHorizCaretPos=ae->ptCaret.x;
 }
 
 void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
@@ -7719,7 +7706,6 @@ void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel)
     AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, bColumnSel);
   else
     AE_SetSelectionPos(ae, &cr.ciMin, &cr.ciMax, bColumnSel);
-  ae->nHorizCaretPos=ae->ptCaret.x;
 }
 
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
