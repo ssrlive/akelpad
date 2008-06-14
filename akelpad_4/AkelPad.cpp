@@ -1865,7 +1865,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_EXGETTEXTLENGTH)
     {
-      return IndexSubtract((HWND)wParam, NULL, NULL, lParam);
+      return IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
     }
     if (uMsg == AKD_EXGETTEXTRANGEA)
     {
@@ -1885,12 +1885,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_REPLACESELA)
     {
-      ReplaceSelA((HWND)wParam, (char *)lParam, -1, -1);
+      ReplaceSelA((HWND)wParam, (char *)lParam, -1, -1, NULL, NULL);
       return 0;
     }
     if (uMsg == AKD_REPLACESELW)
     {
-      ReplaceSelW((HWND)wParam, (wchar_t *)lParam, -1, -1);
+      ReplaceSelW((HWND)wParam, (wchar_t *)lParam, -1, -1, NULL, NULL);
       return 0;
     }
     if (uMsg == AKD_PASTE)
@@ -3519,7 +3519,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_EXGETTEXTLENGTH)
     {
-      return IndexSubtract((HWND)wParam, NULL, NULL, lParam);
+      return IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
     }
     if (uMsg == AKD_EXGETTEXTRANGEA)
     {
@@ -3539,12 +3539,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_REPLACESELA)
     {
-      ReplaceSelA((HWND)wParam, (char *)lParam, -1, -1);
+      ReplaceSelA((HWND)wParam, (char *)lParam, -1, -1, NULL, NULL);
       return 0;
     }
     if (uMsg == AKD_REPLACESELW)
     {
-      ReplaceSelW((HWND)wParam, (wchar_t *)lParam, -1, -1);
+      ReplaceSelW((HWND)wParam, (wchar_t *)lParam, -1, -1, NULL, NULL);
       return 0;
     }
     if (uMsg == AKD_PASTE)

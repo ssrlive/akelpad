@@ -1084,7 +1084,7 @@ void DoEditClear(HWND hWnd)
 {
   if (IsReadOnly()) return;
 
-  ReplaceSelW(hWnd, L"", -1, -1);
+  ReplaceSelW(hWnd, L"", -1, -1, NULL, NULL);
 }
 
 void DoEditSelectAll(HWND hWnd)
@@ -1113,7 +1113,7 @@ void DoEditInsertDateA(HWND hWnd)
       GetDateFormatA(LOCALE_USER_DEFAULT, 0, 0, NULL, szDate, 128))
   {
     wsprintfA(szTimeAndDate, "%s %s", szTime, szDate);
-    ReplaceSelA(hWnd, szTimeAndDate, -1, -1);
+    ReplaceSelA(hWnd, szTimeAndDate, -1, -1, NULL, NULL);
   }
 }
 
@@ -1129,7 +1129,7 @@ void DoEditInsertDateW(HWND hWnd)
       GetDateFormatW(LOCALE_USER_DEFAULT, 0, 0, NULL, wszDate, 128))
   {
     wsprintfW(wszTimeAndDate, L"%s %s", wszTime, wszDate);
-    ReplaceSelW(hWnd, wszTimeAndDate, -1, -1);
+    ReplaceSelW(hWnd, wszTimeAndDate, -1, -1, NULL, NULL);
   }
 }
 
@@ -1192,7 +1192,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
       else
         ciInitialCaret=crInitialSel.ciMax;
 
-      if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMin, &crRange.ciMax, AELB_ASIS))
+      if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMin, &crRange.ciMax, AELB_ASIS, FALSE))
       {
         nStringLen=wcslen(wpString);
         nStringBytes=nStringLen * sizeof(wchar_t);
@@ -1210,6 +1210,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
             tr.cr=crRange;
             tr.wpText=wszRange + nStringLenAll;
             tr.nNewLine=AELB_ASIS;
+            tr.bColumnSel=FALSE;
             SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
             b=nStringLenAll;
 
@@ -1260,6 +1261,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
             tr.cr=crRange;
             tr.wpText=wszRange;
             tr.nNewLine=AELB_ASIS;
+            tr.bColumnSel=FALSE;
             SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
 
             if (nAction & STRSEL_TAB)
@@ -1335,17 +1337,13 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
 
         if (bResult)
         {
-          ReplaceSelW(hWnd, wszRange, a, FALSE);
+          ReplaceSelW(hWnd, wszRange, a, FALSE, &crRange.ciMin, &crRange.ciMax);
 
           //Update selection
-          SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
-          crInitialSel.ciMax=crInitialSel.ciMin;
-          IndexOffset(hWnd, &crInitialSel.ciMax, a, AELB_ASIS);
-
           if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-            SetSel(hWnd, &crInitialSel, &crInitialSel.ciMin, FALSE);
+            SetSel(hWnd, &crRange, &crRange.ciMin, FALSE);
           else
-            SetSel(hWnd, &crInitialSel, &crInitialSel.ciMax, FALSE);
+            SetSel(hWnd, &crRange, &crRange.ciMax, FALSE);
         }
         SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
         InvalidateRect(hWnd, NULL, FALSE);
@@ -1398,17 +1396,13 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
 
     SaveLineScroll(hWnd, &nFirstLine);
     SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-    ReplaceSelW(hWnd, wszRange, a, -1);
+    ReplaceSelW(hWnd, wszRange, a, -1, &crRange.ciMin, &crRange.ciMax);
 
     //Update selection
-    SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
-    crInitialSel.ciMax=crInitialSel.ciMin;
-    IndexOffset(hWnd, &crInitialSel.ciMax, a, AELB_ASIS);
-
     if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-      SetSel(hWnd, &crInitialSel, &crInitialSel.ciMin, -1);
+      SetSel(hWnd, &crRange, &crRange.ciMin, -1);
     else
-      SetSel(hWnd, &crInitialSel, &crInitialSel.ciMax, -1);
+      SetSel(hWnd, &crRange, &crRange.ciMax, -1);
 
     SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
     InvalidateRect(hWnd, NULL, FALSE);
@@ -1465,17 +1459,20 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
     ++a;
     wszRange[a]='\0';
 
-    ReplaceSelW(hWnd, wszRange, a, -1);
+    ReplaceSelW(hWnd, wszRange, a, -1, &crRange.ciMin, &crRange.ciMax);
 
     //Update selection
-    SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
-    crInitialSel.ciMax=crInitialSel.ciMin;
-    if (bSelection) IndexOffset(hWnd, &crInitialSel.ciMax, a, AELB_ASIS);
+    if (!bSelection)
+    {
+      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+      crRange.ciMin=crInitialSel.ciMin;
+      crRange.ciMax=crInitialSel.ciMin;
+    }
 
     if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-      SetSel(hWnd, &crInitialSel, &crInitialSel.ciMin, -1);
+      SetSel(hWnd, &crRange, &crRange.ciMin, -1);
     else
-      SetSel(hWnd, &crInitialSel, &crInitialSel.ciMax, -1);
+      SetSel(hWnd, &crRange, &crRange.ciMax, -1);
 
     FreeText(wszRange);
     bResult=TRUE;
@@ -1569,16 +1566,20 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
       }
     }
 
-    ReplaceSelA(hWnd, szRange, -1, -1);
+    ReplaceSelA(hWnd, szRange, -1, -1, &crRange.ciMin, &crRange.ciMax);
 
     //Update selection
-    SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
-    SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMax);
+    if (!bSelection)
+    {
+      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+      crRange.ciMin=crInitialSel.ciMin;
+      crRange.ciMax=crInitialSel.ciMin;
+    }
 
     if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-      SetSel(hWnd, &crInitialSel, &crInitialSel.ciMin, -1);
+      SetSel(hWnd, &crRange, &crRange.ciMin, -1);
     else
-      SetSel(hWnd, &crInitialSel, &crInitialSel.ciMax, -1);
+      SetSel(hWnd, &crRange, &crRange.ciMax, -1);
 
     FreeText(szRange);
     bResult=TRUE;
@@ -1672,16 +1673,20 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
       }
     }
 
-    ReplaceSelW(hWnd, wszRange, -1, -1);
+    ReplaceSelW(hWnd, wszRange, -1, -1, &crRange.ciMin, &crRange.ciMax);
 
     //Update selection
-    SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
-    SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMax);
+    if (!bSelection)
+    {
+      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+      crRange.ciMin=crInitialSel.ciMin;
+      crRange.ciMax=crInitialSel.ciMin;
+    }
 
     if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-      SetSel(hWnd, &crInitialSel, &crInitialSel.ciMin, -1);
+      SetSel(hWnd, &crRange, &crRange.ciMin, -1);
     else
-      SetSel(hWnd, &crInitialSel, &crInitialSel.ciMax, -1);
+      SetSel(hWnd, &crRange, &crRange.ciMax, -1);
 
     FreeText(wszRange);
     bResult=TRUE;
@@ -2189,7 +2194,7 @@ void DoNonMenuDelLine(HWND hWnd)
     cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
   SetSel(hWnd, &cr, NULL, FALSE);
 
-  ReplaceSelW(hWnd, L"", -1, FALSE);
+  ReplaceSelW(hWnd, L"", -1, FALSE, NULL, NULL);
 }
 
 
@@ -9242,7 +9247,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
           {
-            pFirstVisible=szText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R);
+            pFirstVisible=szText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
           }
           else pFirstVisible=NULL;
 
@@ -9253,7 +9258,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
             SetSel(hWnd, &crRange, NULL, FALSE);
-            ReplaceSelA(hWnd, szReplaceText, -1, FALSE);
+            ReplaceSelA(hWnd, szReplaceText, -1, FALSE, NULL, NULL);
 
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
@@ -9302,7 +9307,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
       if (((dwFlags & AEFR_MATCHCASE) && !lstrcmpA(pFindIt, szText)) ||
           (!(dwFlags & AEFR_MATCHCASE) && !lstrcmpiA(pFindIt, szText)))
       {
-        ReplaceSelA(hWnd, pReplaceWith, -1, FALSE);
+        ReplaceSelA(hWnd, pReplaceWith, -1, FALSE, NULL, NULL);
         nChanges=1;
       }
       FreeText(szText);
@@ -9378,7 +9383,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
           {
-            wpFirstVisible=wszText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R);
+            wpFirstVisible=wszText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
           }
           else wpFirstVisible=NULL;
 
@@ -9389,7 +9394,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
             SetSel(hWnd, &crRange, NULL, FALSE);
-            ReplaceSelW(hWnd, wszReplaceText, -1, FALSE);
+            ReplaceSelW(hWnd, wszReplaceText, -1, FALSE, NULL, NULL);
 
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
@@ -9438,7 +9443,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
       if (((dwFlags & AEFR_MATCHCASE) && !lstrcmpW(wpFindIt, wszText)) ||
           (!(dwFlags & AEFR_MATCHCASE) && !lstrcmpiW(wpFindIt, wszText)))
       {
-        ReplaceSelW(hWnd, wpReplaceWith, -1, FALSE);
+        ReplaceSelW(hWnd, wpReplaceWith, -1, FALSE, NULL, NULL);
         nChanges=1;
       }
       FreeText(wszText);
@@ -9725,7 +9730,7 @@ void SetSel(HWND hWnd, AECHARRANGE *crSel, AECHARINDEX *ciCaret, BOOL bColumnSel
   SendMessage(hWnd, AEM_SETSEL, 0, (LPARAM)&aes);
 }
 
-void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel)
+void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   AEREPLACESELA rs;
 
@@ -9735,10 +9740,12 @@ void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel)
     rs.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
     rs.bColumnSel=bColumnSel;
+  rs.ciInsertStart=ciInsertStart;
+  rs.ciInsertEnd=ciInsertEnd;
   SendMessage(hWnd, AEM_REPLACESELA, 0, (LPARAM)&rs);
 }
 
-void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel)
+void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   AEREPLACESELW rs;
 
@@ -9748,16 +9755,22 @@ void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel)
     rs.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
     rs.bColumnSel=bColumnSel;
+  rs.ciInsertStart=ciInsertStart;
+  rs.ciInsertEnd=ciInsertEnd;
   SendMessage(hWnd, AEM_REPLACESELW, 0, (LPARAM)&rs);
 }
 
-int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine)
+int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel)
 {
   AEINDEXSUBTRACT aeis;
 
   aeis.ciChar1=ciChar1;
   aeis.ciChar2=ciChar2;
   aeis.nNewLine=nNewLine;
+  if (bColumnSel == -1)
+    aeis.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
+  else
+    aeis.bColumnSel=bColumnSel;
   return SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&aeis);
 }
 
@@ -10878,17 +10891,20 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
       {
         MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
 
-        ReplaceSelW(hWnd, wszText, nUnicodeLen - 1, -1);
+        ReplaceSelW(hWnd, wszText, nUnicodeLen - 1, -1, &crRange.ciMin, &crRange.ciMax);
 
         //Update selection
-        SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
-        crInitialSel.ciMax=crInitialSel.ciMin;
-        if (bSelection) IndexOffset(hWnd, &crInitialSel.ciMax, nUnicodeLen - 1, AELB_ASIS);
+        if (!bSelection)
+        {
+          SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+          crRange.ciMin=crInitialSel.ciMin;
+          crRange.ciMax=crInitialSel.ciMin;
+        }
 
         if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-          SetSel(hWnd, &crInitialSel, &crInitialSel.ciMin, -1);
+          SetSel(hWnd, &crRange, &crRange.ciMin, -1);
         else
-          SetSel(hWnd, &crInitialSel, &crInitialSel.ciMax, -1);
+          SetSel(hWnd, &crRange, &crRange.ciMax, -1);
 
         API_HeapFree(hHeap, 0, (LPVOID)wszText);
       }
@@ -15685,7 +15701,7 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
     wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1);
   else
-    wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT));
+    wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
   SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
 }
@@ -15710,7 +15726,7 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
     wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1);
   else
-    wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT));
+    wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
   SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
 }
@@ -15942,7 +15958,7 @@ BOOL InsertTabStopW(HWND hWnd)
     for (i=0; i < nMaxSpaces; ++i)
       wszSpaces[i]=' ';
     wszSpaces[i]='\0';
-    ReplaceSelW(hWnd, wszSpaces, -1, -1);
+    ReplaceSelW(hWnd, wszSpaces, -1, -1, NULL, NULL);
   }
   else
     SendMessage(hWnd, WM_CHAR, (WPARAM)'\t', 0);
@@ -15990,7 +16006,7 @@ BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr)
       }
       wpText[i + 1]='\0';
 
-      ReplaceSelW(hWnd, wpText, -1, FALSE);
+      ReplaceSelW(hWnd, wpText, -1, FALSE, NULL, NULL);
       API_HeapFree(hHeap, 0, (LPVOID)wpText);
       return TRUE;
     }
@@ -17812,440 +17828,6 @@ int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
   {
     return -1;
   }
-  return 1;
-}
-
-wchar_t AEC_WideCharUpper(wchar_t c)
-{
-  if (c < 0x100)
-  {
-    if (c == 0x00b5)
-      return 0x039c;
-
-    if ((c >= 0x00e0 && c <= 0x00fe) ||
-        (c >= 0x0061 && c <= 0x007a))
-      return (c - 0x20);
-
-    if (c == 0xff)
-      return 0x0178;
-
-    return c;
-  }
-  else if (c < 0x300)
-  {
-    if ((c >= 0x0101 && c <= 0x012f) ||
-        (c >= 0x0133 && c <= 0x0137) ||
-        (c >= 0x014b && c <= 0x0177) ||
-        (c >= 0x01df && c <= 0x01ef) ||
-        (c >= 0x01f9 && c <= 0x021f) ||
-        (c >= 0x0223 && c <= 0x0233))
-    {
-      if (c & 0x01)
-        return (c - 1);
-      return c;
-    }
-
-    if ((c >= 0x013a && c <= 0x0148) ||
-        (c >= 0x01ce && c <= 0x1dc))
-    {
-      if (!(c & 0x01))
-        return (c - 1);
-      return c;
-    }
-
-    if (c == 0x0131)
-      return 0x0049;
-
-    if (c == 0x017a || c == 0x017c || c == 0x017e)
-      return (c - 1);
-
-    if (c >= 0x017f && c <= 0x0292)
-    {
-      wchar_t k;
-
-      switch (c)
-      {
-        case 0x017f:
-          k=0x0053;
-          break;
-        case 0x0183:
-          k=0x0182;
-          break;
-        case 0x0185:
-          k=0x0184;
-          break;
-        case 0x0188:
-          k=0x0187;
-          break;
-        case 0x018c:
-          k=0x018b;
-          break;
-        case 0x0192:
-          k=0x0191;
-          break;
-        case 0x0195:
-          k=0x01f6;
-          break;
-        case 0x0199:
-          k=0x0198;
-          break;
-        case 0x019e:
-          k=0x0220;
-          break;
-        case 0x01a1:
-        case 0x01a3:
-        case 0x01a5:
-        case 0x01a8:
-        case 0x01ad:
-        case 0x01b0:
-        case 0x01b4:
-        case 0x01b6:
-        case 0x01b9:
-        case 0x01bd:
-        case 0x01c5:
-        case 0x01c8:
-        case 0x01cb:
-        case 0x01f2:
-        case 0x01f5:
-          k=c - 1;
-          break;
-        case 0x01bf:
-          k=0x01f7;
-          break;
-        case 0x01c6:
-        case 0x01c9:
-        case 0x01cc:
-          k=c - 2;
-          break;
-        case 0x01dd:
-          k=0x018e;
-          break;
-        case 0x01f3:
-          k=0x01f1;
-          break;
-        case 0x0253:
-          k=0x0181;
-          break;
-        case 0x0254:
-          k=0x0186;
-          break;
-        case 0x0256:
-          k=0x0189;
-          break;
-        case 0x0257:
-          k=0x018a;
-          break;
-        case 0x0259:
-          k=0x018f;
-          break;
-        case 0x025b:
-          k=0x0190;
-          break;
-        case 0x0260:
-          k=0x0193;
-          break;
-        case 0x0263:
-          k=0x0194;
-          break;
-        case 0x0268:
-          k=0x0197;
-          break;
-        case 0x0269:
-          k=0x0196;
-          break;
-        case 0x026f:
-          k=0x019c;
-          break;
-        case 0x0272:
-          k=0x019d;
-          break;
-        case 0x0275:
-          k=0x019f;
-          break;
-        case 0x0280:
-          k=0x01a6;
-          break;
-        case 0x0283:
-          k=0x01a9;
-          break;
-        case 0x0288:
-          k=0x01ae;
-          break;
-        case 0x028a:
-          k=0x01b1;
-          break;
-        case 0x028b:
-          k=0x01b2;
-          break;
-        case 0x0292:
-          k=0x01b7;
-          break;
-        default:
-          k=0;
-      }
-      if (k != 0)
-        return k;
-    }
-  }
-  else if (c < 0x0400)
-  {
-    if (c == 0x03ac)
-      return 0x0386;
-
-    if ((c & 0xfff0) == 0x03a0 && c >= 0x03ad)
-      return (c - 0x15);
-
-    if (c >= 0x03b1 && c <= 0x03cb && c != 0x03c2)
-      return (c - 0x20);
-
-    if (c == 0x03c2)
-      return 0x03a3;
-
-    if (c >= 0x03cc && c <= 0x03f5)
-    {
-      wchar_t k;
-
-      switch (c)
-      {
-        case 0x03cc:
-          k=0x038c;
-          break;
-        case 0x03cd:
-        case 0x03ce:
-          k=c - 0x3f;
-          break;
-        case 0x03d0:
-          k=0x0392;
-          break;
-        case 0x03d1:
-          k=0x0398;
-          break;
-        case 0x03d5:
-          k=0x03a6;
-          break;
-        case 0x03d6:
-          k=0x03a0;
-          break;
-        case 0x03d9:
-        case 0x03db:
-        case 0x03dd:
-        case 0x03df:
-        case 0x03e1:
-        case 0x03e3:
-        case 0x03e5:
-        case 0x03e7:
-        case 0x03e9:
-        case 0x03eb:
-        case 0x03ed:
-        case 0x03ef:
-          k=c - 1;
-          break;
-        case 0x03f0:
-          k=0x039a;
-          break;
-        case 0x03f1:
-          k=0x03a1;
-          break;
-        case 0x03f2:
-          k=0x03a3;
-          break;
-        case 0x03f5:
-          k=0x0395;
-          break;
-        default:
-          k=0;
-      }
-      if (k != 0)
-        return k;
-    }
-  }
-  else if (c < 0x500)
-  {
-    if (c >= 0x0450 && c <= 0x045f)
-      return (c - 0x50);
-
-    if (c >= 0x0430 && c <= 0x044f)
-      return (c - 0x20);
-
-    if ((c >= 0x0461 && c <= 0x0481) ||
-        (c >= 0x048b && c <= 0x04bf) ||
-        (c >= 0x04d1 && c <= 0x04f5))
-    {
-      if (c & 0x01)
-        return (c - 1);
-      return c;
-    }
-
-    if (c >= 0x04c2 && c <= 0x04ce)
-    {
-      if (!(c & 0x01))
-        return (c - 1);
-      return c;
-    }
-
-    if (c == 0x04f9)
-      return 0x04f8;
-  }
-  else if (c < 0x1f00)
-  {
-    if ((c >= 0x0501 && c <= 0x050f) ||
-        (c >= 0x1e01 && c <= 0x1e95) ||
-        (c >= 0x1ea1 && c <= 0x1ef9))
-    {
-      if (c & 0x01)
-        return (c - 1);
-      return c;
-    }
-
-    if (c >= 0x0561 && c <= 0x0586)
-      return (c - 0x30);
-
-    if (c == 0x1e9b)
-      return 0x1e60;
-  }
-  else if (c < 0x2000)
-  {
-    if ((c >= 0x1f00 && c <= 0x1f07) ||
-        (c >= 0x1f10 && c <= 0x1f15) ||
-        (c >= 0x1f20 && c <= 0x1f27) ||
-        (c >= 0x1f30 && c <= 0x1f37) ||
-        (c >= 0x1f40 && c <= 0x1f45) ||
-        (c >= 0x1f60 && c <= 0x1f67) ||
-        (c >= 0x1f80 && c <= 0x1f87) ||
-        (c >= 0x1f90 && c <= 0x1f97) ||
-        (c >= 0x1fa0 && c <= 0x1fa7))
-      return (c + 0x08);
-
-    if (c >= 0x1f51 && c <= 0x1f57 && (c & 0x01))
-      return (c + 0x08);
-
-    if (c >= 0x1f70 && c <= 0x1ff3)
-    {
-      wchar_t k;
-
-      switch (c)
-      {
-        case 0x1fb0:
-          k=0x1fb8;
-          break;
-        case 0x1fb1:
-          k=0x1fb9;
-          break;
-        case 0x1f70:
-          k=0x1fba;
-          break;
-        case 0x1f71:
-          k=0x1fbb;
-          break;
-        case 0x1fb3:
-          k=0x1fbc;
-          break;
-        case 0x1fbe:
-          k=0x0399;
-          break;
-        case 0x1f72:
-          k=0x1fc8;
-          break;
-        case 0x1f73:
-          k=0x1fc9;
-          break;
-        case 0x1f74:
-          k=0x1fca;
-          break;
-        case 0x1f75:
-          k=0x1fcb;
-          break;
-        case 0x1fd0:
-          k=0x1fd8;
-          break;
-        case 0x1fd1:
-          k=0x1fd9;
-          break;
-        case 0x1f76:
-          k=0x1fda;
-          break;
-        case 0x1f77:
-          k=0x1fdb;
-          break;
-        case 0x1fe0:
-          k=0x1fe8;
-          break;
-        case 0x1fe1:
-          k=0x1fe9;
-          break;
-        case 0x1f7a:
-          k=0x1fea;
-          break;
-        case 0x1f7b:
-          k=0x1feb;
-          break;
-        case 0x1fe5:
-          k=0x1fec;
-          break;
-        case 0x1f78:
-          k=0x1ff8;
-          break;
-        case 0x1f79:
-          k=0x1ff9;
-          break;
-        case 0x1f7c:
-          k=0x1ffa;
-          break;
-        case 0x1f7d:
-          k=0x1ffb;
-          break;
-        case 0x1ff3:
-          k=0x1ffc;
-          break;
-        default:
-          k=0;
-      }
-      if (k != 0)
-        return k;
-    }
-  }
-  else
-  {
-    if (c >= 0x2170 && c <= 0x217f)
-      return (c - 0x10);
-
-    if (c >= 0x24d0 && c <= 0x24e9)
-      return (c - 0x1a);
-
-    if (c >= 0xff41 && c <= 0xff5a)
-      return (c - 0x20);
-
-//    if (c >= 0x10428 && c <= 0x1044d)
-//      return (c - 0x28);
-  }
-
-  if (c < 0x00ff)
-    return (c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c;
-  else
-    return c;
-}
-
-int AEC_WideStrCmp(const wchar_t *wpString, const wchar_t *wpString2)
-{
-  while (*wpString && *wpString == *wpString2)
-  {
-    ++wpString;
-    ++wpString2;
-  }
-  if (*wpString == *wpString2) return 0;
-  if ((DWORD)*wpString < (DWORD)*wpString2) return -1;
-  return 1;
-}
-
-int AEC_WideStrCmpI(const wchar_t *wpString, const wchar_t *wpString2)
-{
-  while (*wpString && AEC_WideCharUpper(*wpString) == AEC_WideCharUpper(*wpString2))
-  {
-    ++wpString;
-    ++wpString2;
-  }
-  if (*wpString == *wpString2) return 0;
-  if ((DWORD)AEC_WideCharUpper(*wpString) < (DWORD)AEC_WideCharUpper(*wpString2)) return -1;
   return 1;
 }
 

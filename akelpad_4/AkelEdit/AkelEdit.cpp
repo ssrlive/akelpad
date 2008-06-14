@@ -224,14 +224,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AEREPLACESELA *rs=(AEREPLACESELA *)lParam;
 
-        AE_ReplaceSelAnsi(ae, rs->pText, rs->dwTextLen, rs->bColumnSel);
+        AE_ReplaceSelAnsi(ae, rs->pText, rs->dwTextLen, rs->bColumnSel, rs->ciInsertStart, rs->ciInsertEnd);
         return 0;
       }
       if (uMsg == AEM_REPLACESELW)
       {
         AEREPLACESELW *rs=(AEREPLACESELW *)lParam;
 
-        AE_ReplaceSel(ae, rs->wpText, rs->dwTextLen, rs->bColumnSel);
+        AE_ReplaceSel(ae, rs->wpText, rs->dwTextLen, rs->bColumnSel, rs->ciInsertStart, rs->ciInsertEnd);
         return 0;
       }
       if (uMsg == AEM_GETTEXTRANGEA)
@@ -359,7 +359,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AEINDEXSUBTRACT *aeis=(AEINDEXSUBTRACT *)lParam;
 
-        return AE_IndexSubtract(ae, aeis->ciChar1, aeis->ciChar2, aeis->nNewLine, ae->bColumnSel, TRUE);
+        return AE_IndexSubtract(ae, aeis->ciChar1, aeis->ciChar2, aeis->nNewLine, aeis->bColumnSel, TRUE);
       }
       if (uMsg == AEM_INDEXOFFSET)
       {
@@ -629,12 +629,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!ae->bUnicodeWindow)
       {
-        AE_ReplaceSelAnsi(ae, (char *)lParam, (WPARAM)-1, FALSE);
+        AE_ReplaceSelAnsi(ae, (char *)lParam, (WPARAM)-1, FALSE, NULL, NULL);
         return 0;
       }
       else
       {
-        AE_ReplaceSel(ae, (wchar_t *)lParam, (WPARAM)-1, FALSE);
+        AE_ReplaceSel(ae, (wchar_t *)lParam, (WPARAM)-1, FALSE, NULL, NULL);
         return 0;
       }
     }
@@ -6091,7 +6091,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   return dwTextLen;
 }
 
-void AE_ReplaceSelAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel)
+void AE_ReplaceSelAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   wchar_t *wszText;
   DWORD dwUnicodeBytes;
@@ -6102,27 +6102,29 @@ void AE_ReplaceSelAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnS
   if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
   {
     MultiByteToWideChar(CP_ACP, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
-    AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), bColumnSel);
+    AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), bColumnSel, ciInsertStart, ciInsertEnd);
 
     AE_HeapFree(ae, 0, (LPVOID)wszText);
   }
 }
 
-void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel)
+void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
-  AECHARINDEX ciInsertStart={0};
-  AECHARINDEX ciInsertEnd={0};
+  AECHARINDEX ciStart={0};
+  AECHARINDEX ciEnd={0};
 
   AE_StackUndoGroupStop(ae);
   AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, TRUE);
-  AE_InsertText(ae, &ae->ciSelStartIndex, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, &ciInsertStart, &ciInsertEnd, TRUE, TRUE);
+  AE_InsertText(ae, &ae->ciSelStartIndex, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, &ciStart, &ciEnd, TRUE, TRUE);
   AE_StackUndoGroupStop(ae);
 
   if (bColumnSel)
   {
     if (ae->dwOptions & AECO_PASTESELECTCOLUMN)
-      AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertEnd, bColumnSel, TRUE);
+      AE_SetSelectionPos(ae, &ciStart, &ciEnd, bColumnSel, TRUE);
   }
+  if (ciInsertStart) *ciInsertStart=ciStart;
+  if (ciInsertEnd) *ciInsertEnd=ciEnd;
 }
 
 DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd, BOOL bEnableUndo, BOOL bUpdate)
@@ -7658,7 +7660,7 @@ void AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
       {
         if (pData=GlobalLock(hData))
         {
-          AE_ReplaceSel(ae, (wchar_t *)pData, (DWORD)-1, bColumnSel);
+          AE_ReplaceSel(ae, (wchar_t *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
           GlobalUnlock(hData);
         }
       }
@@ -7666,7 +7668,7 @@ void AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
       {
         if (pData=GlobalLock(hData))
         {
-          AE_ReplaceSelAnsi(ae, (char *)pData, (DWORD)-1, bColumnSel);
+          AE_ReplaceSelAnsi(ae, (char *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
           GlobalUnlock(hData);
         }
       }

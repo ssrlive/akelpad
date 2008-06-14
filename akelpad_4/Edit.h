@@ -968,9 +968,9 @@ void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput);
 
 void GetSel(HWND hWnd, AECHARRANGE *crSel, AECHARINDEX **ciCaret, BOOL *bColumnSel);
 void SetSel(HWND hWnd, AECHARRANGE *crSel, AECHARINDEX *ciCaret, BOOL bColumnSel);
-void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel);
-void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel);
-int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine);
+void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
+void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
+int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel);
 int IndexOffset(HWND hWnd, AECHARINDEX *ciChar, int nOffset, int nNewLine);
 int AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar);
 void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar);
@@ -1199,9 +1199,6 @@ void FreeMemoryRecentFilesA();
 void FreeMemoryRecentFilesW();
 
 int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
-wchar_t AEC_WideCharUpper(wchar_t c);
-int AEC_WideStrCmp(const wchar_t *wpString, const wchar_t *wpString2);
-int AEC_WideStrCmpI(const wchar_t *wpString, const wchar_t *wpString2);
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
 HMENU API_LoadMenuW(HINSTANCE hLoadInstance, wchar_t *lpMenuName);
