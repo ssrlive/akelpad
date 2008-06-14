@@ -1,5 +1,5 @@
 
-AkelPad 4.0.0 alpha 3 ()
+AkelPad 4.0.0 alpha 3 (Jun 14, 2008)
 ------------------------------------
 Changed: speed of work with long lines is increased.
 Changed: speed of column's Undo/Redo is increased.
@@ -8,7 +8,8 @@ Changed: flashing at updating minimized.
 Added: word wrap.
 
 Fixed: work with tabulation.
-Fixed: block insert in the end of the text from the undo buffer.
+Fixed: selection functions now correctly work with columns.
+Fixed: column insert in the end of the text from the undo buffer.
 Fixed: Delete and Backspace keys registration in undo buffer.
 
 Do not work yet:
