@@ -191,6 +191,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (cs->style & ES_WANTRETURN)
         ae->dwOptions|=AECO_WANTRETURN;
       AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, (lstrlenW(AES_WORDDELIMITERSW) + 1) * sizeof(wchar_t));
+      AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, (lstrlenW(AES_WRAPDELIMITERSW) + 1) * sizeof(wchar_t));
 
       GetClientRect(ae->hWndEdit, &ae->rcEdit);
       AE_SetDrawRect(ae, NULL, FALSE);
@@ -2925,7 +2926,7 @@ int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
       nResult=nElementLineOffset + nSubtract;
   }
   else return nElementLineOffset;
-  
+
   ae->ciLastCallIndex=ciChar;
   ae->nLastCallOffset=nResult;
   return nResult;
@@ -3587,6 +3588,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
   int nCharEnd=0;
   int nCharPos=0;
   int nLineCount=0;
+  int i;
 
   NextLine:
   if (nCharEnd < lpInitialElement->nLineLen)
@@ -3595,6 +3597,36 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
     {
       nCharEnd+=nCharStart;
 
+      //Find end of word
+      if (nCharEnd < lpInitialElement->nLineLen)
+      {
+        for (i=nCharEnd - 1; i > nCharStart; --i)
+        {
+          if (AE_IsInDelimiterList(ae->wszWrapDelimiters, lpInitialElement->wpLine[i]))
+            break;
+        }
+        if (i > nCharStart)
+        {
+          nCharEnd=i + 1;
+        }
+/*
+        else if (!nCharStart)
+        {
+          if (lpInitialElement->prev)
+          {
+            if (lpInitialElement->prev->nLineBreak == AELB_WRAP)
+            {
+              liStart.nLine=min(liStart.nLine - 1, 0);
+              liStart.lpLine=lpInitialElement->prev;
+              liEnd=liStart;
+              goto End;
+            }
+          }
+        }
+*/
+      }
+
+      //Wrap
       if (lpNewElement=AE_StackLineInsertBefore(ae, lpInitialElement))
       {
         if (!nCharStart)
@@ -3602,7 +3634,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
           liStart.lpLine=lpNewElement;
         }
 
-        lpNewElement->nLineWidth=nCharPos;
+        lpNewElement->nLineWidth=-1;
         if (nCharEnd < lpInitialElement->nLineLen)
           lpNewElement->nLineBreak=AELB_WRAP;
         else
@@ -3613,6 +3645,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
         {
           AE_memcpy(lpNewElement->wpLine, lpInitialElement->wpLine + nCharStart, lpNewElement->nLineLen * sizeof(wchar_t));
           lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+          AE_GetLineWidth(ae, lpNewElement);
 
           nCharStart=nCharEnd;
           if (nCharEnd < lpInitialElement->nLineLen)
@@ -3631,6 +3664,9 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
     liEnd.nLine+=nLineCount;
   }
 
+/*
+  End:
+*/
   if (liStartLine) *liStartLine=liStart;
   if (liEndLine) *liEndLine=liEnd;
   return nLineCount;
@@ -5030,9 +5066,9 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
   }
 
   if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
-    bInList=AE_IsInDelimiterList(ae, L'\n');
+    bInList=AE_IsInDelimiterList(ae->wszWordDelimiters, L'\n');
   else
-    bInList=AE_IsInDelimiterList(ae, ciCount.lpLine->wpLine[ciCount.nCharInLine]);
+    bInList=AE_IsInDelimiterList(ae->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]);
 
   if (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
   {
@@ -5042,7 +5078,7 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
 
       while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
       {
-        if (bInList != AE_IsInDelimiterList(ae, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
+        if (bInList != AE_IsInDelimiterList(ae->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
           goto End;
 
         ++ciCount.nCharInLine;
@@ -5050,7 +5086,7 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
       if (bColumnSel) goto End;
       if (ciCount.lpLine->nLineBreak != AELB_WRAP)
       {
-        if (bInList != AE_IsInDelimiterList(ae, L'\n'))
+        if (bInList != AE_IsInDelimiterList(ae->wszWordDelimiters, L'\n'))
           goto End;
       }
 
@@ -5096,9 +5132,9 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
   }
 
   if (--ciCount.nCharInLine < 0)
-    bInList=AE_IsInDelimiterList(ae, L'\n');
+    bInList=AE_IsInDelimiterList(ae->wszWordDelimiters, L'\n');
   else
-    bInList=AE_IsInDelimiterList(ae, ciCount.lpLine->wpLine[ciCount.nCharInLine]);
+    bInList=AE_IsInDelimiterList(ae->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]);
 
   if (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
   {
@@ -5108,7 +5144,7 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
 
       while (ciCount.nCharInLine >= 0)
       {
-        if (bInList != AE_IsInDelimiterList(ae, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
+        if (bInList != AE_IsInDelimiterList(ae->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
         {
           ++ciCount.nCharInLine;
           goto End;
@@ -5118,7 +5154,7 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
       if (bColumnSel) goto End;
       if (lpPrevLine && lpPrevLine->nLineBreak != AELB_WRAP)
       {
-        if (bInList != AE_IsInDelimiterList(ae, L'\n'))
+        if (bInList != AE_IsInDelimiterList(ae->wszWordDelimiters, L'\n'))
           goto End;
       }
 
@@ -5164,13 +5200,13 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 
   if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
   {
-    if (AE_IsInDelimiterList(ae, L'\n'))
+    if (AE_IsInDelimiterList(ae->wszWordDelimiters, L'\n'))
       if (!AE_GetNextBreak(ae, &ciCount, &ciCount, bColumnSel))
         return FALSE;
   }
   else
   {
-    if (AE_IsInDelimiterList(ae, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
+    if (AE_IsInDelimiterList(ae->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
       if (!AE_GetNextBreak(ae, &ciCount, &ciCount, bColumnSel))
         return FALSE;
   }
@@ -5207,13 +5243,13 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 
   if (ciCount.nCharInLine - 1 < 0)
   {
-    if (AE_IsInDelimiterList(ae, L'\n'))
+    if (AE_IsInDelimiterList(ae->wszWordDelimiters, L'\n'))
       if (!AE_GetPrevBreak(ae, &ciCount, &ciCount, bColumnSel))
         return FALSE;
   }
   else
   {
-    if (AE_IsInDelimiterList(ae, ciCount.lpLine->wpLine[ciCount.nCharInLine - 1]))
+    if (AE_IsInDelimiterList(ae->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine - 1]))
       if (!AE_GetPrevBreak(ae, &ciCount, &ciCount, bColumnSel))
         return FALSE;
   }
@@ -5229,9 +5265,9 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
   return FALSE;
 }
 
-BOOL AE_IsInDelimiterList(AKELEDIT *ae, wchar_t c)
+BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c)
 {
-  if (AE_wcschr(ae->wszWordDelimiters, c) != NULL)
+  if (AE_wcschr(wpList, c) != NULL)
     return TRUE;
   else
     return FALSE;
@@ -5905,49 +5941,49 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
             AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
         }
       }
+    }
 
-      //if (bEnableUndo)
+    //if (bEnableUndo)
+    {
+      //Send AEN_SELCHANGE
       {
-        //Send AEN_SELCHANGE
-        {
-          AENSELCHANGE sc;
+        AENSELCHANGE sc;
 
-          sc.hdr.hwndFrom=ae->hWndEdit;
-          sc.hdr.idFrom=ae->nEditCtrlID;
-          sc.hdr.code=AEN_SELCHANGE;
-          AE_AkelEditGetSel(ae, &sc.aes);
-          SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
-        }
+        sc.hdr.hwndFrom=ae->hWndEdit;
+        sc.hdr.idFrom=ae->nEditCtrlID;
+        sc.hdr.code=AEN_SELCHANGE;
+        AE_AkelEditGetSel(ae, &sc.aes);
+        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
+      }
 
-        //Send AEN_TEXTCHANGE
-        {
-          AENTEXTCHANGE tc;
+      //Send AEN_TEXTCHANGE
+      {
+        AENTEXTCHANGE tc;
 
-          tc.hdr.hwndFrom=ae->hWndEdit;
-          tc.hdr.idFrom=ae->nEditCtrlID;
-          tc.hdr.code=AEN_TEXTCHANGE;
-          SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
-        }
+        tc.hdr.hwndFrom=ae->hWndEdit;
+        tc.hdr.idFrom=ae->nEditCtrlID;
+        tc.hdr.code=AEN_TEXTCHANGE;
+        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
+      }
 
-        //Send EN_SELCHANGE
-        if (ae->dwEventMask & ENM_SELCHANGE)
-        {
-          SELCHANGE sc;
+      //Send EN_SELCHANGE
+      if (ae->dwEventMask & ENM_SELCHANGE)
+      {
+        SELCHANGE sc;
 
-          sc.nmhdr.hwndFrom=ae->hWndEdit;
-          sc.nmhdr.idFrom=ae->nEditCtrlID;
-          sc.nmhdr.code=EN_SELCHANGE;
-          sc.chrg.cpMin=ae->nSelStartLineOffset;
-          sc.chrg.cpMax=ae->nSelEndLineOffset;
-          sc.seltyp=0;
-          SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
-        }
+        sc.nmhdr.hwndFrom=ae->hWndEdit;
+        sc.nmhdr.idFrom=ae->nEditCtrlID;
+        sc.nmhdr.code=EN_SELCHANGE;
+        sc.chrg.cpMin=ae->nSelStartLineOffset;
+        sc.chrg.cpMax=ae->nSelEndLineOffset;
+        sc.seltyp=0;
+        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
+      }
 
-        //Send EN_CHANGE
-        if (ae->dwEventMask & ENM_CHANGE)
-        {
-          SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
-        }
+      //Send EN_CHANGE
+      if (ae->dwEventMask & ENM_CHANGE)
+      {
+        SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
       }
     }
   }

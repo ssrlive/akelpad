@@ -77,6 +77,7 @@
 #define AES_RICHEDITCLASSW    L"RichEdit20W"
 
 #define AES_WORDDELIMITERSW   L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
+#define AES_WRAPDELIMITERSW   L" \t\n"
 
 #define AETIMERID_MOUSEMOVE    1
 
@@ -417,6 +418,7 @@ typedef struct _AKELEDIT {
   BOOL bWordWrap;
   DWORD dwMouseMoveTimer;
   wchar_t wszWordDelimiters[128];
+  wchar_t wszWrapDelimiters[128];
 
   //RichEdit emulation
   BOOL bRichEditClass;
@@ -500,7 +502,7 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
 BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel);
 BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel);
 BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel);
-BOOL AE_IsInDelimiterList(AKELEDIT *ae, wchar_t c);
+BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c);
 int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, POINT *ptSelStart, POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel);
 DWORD AE_GetTextRangeAnsi(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
 DWORD AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, wchar_t *wszBuffer, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
