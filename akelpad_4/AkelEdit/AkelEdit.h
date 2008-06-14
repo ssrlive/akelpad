@@ -258,12 +258,16 @@ typedef struct {
   char *pText;
   DWORD dwTextLen;
   BOOL bColumnSel;
+  AECHARINDEX *ciInsertStart;
+  AECHARINDEX *ciInsertEnd;
 } AEREPLACESELA;
 
 typedef struct {
   wchar_t *wpText;
   DWORD dwTextLen;
   BOOL bColumnSel;
+  AECHARINDEX *ciInsertStart;
+  AECHARINDEX *ciInsertEnd;
 } AEREPLACESELW;
 
 typedef struct {
@@ -325,6 +329,7 @@ typedef struct {
   AECHARINDEX *ciChar1;
   AECHARINDEX *ciChar2;
   int nNewLine;
+  BOOL bColumnSel;
 } AEINDEXSUBTRACT;
 
 typedef struct {
@@ -502,8 +507,8 @@ DWORD AE_GetTextAnsi(AKELEDIT *ae, char *szText, DWORD dwMaxTextLen);
 DWORD AE_GetText(AKELEDIT *ae, wchar_t *wszText, DWORD dwMaxTextLen);
 DWORD AE_SetTextAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, int nNewLine);
 DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine);
-void AE_ReplaceSelAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel);
-void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel);
+void AE_ReplaceSelAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
+void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd, BOOL bEnableUndo, BOOL bUpdate);
 wchar_t* AE_GetNextLine(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int *nLineLen, int *nLineBreak);
 int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine);
