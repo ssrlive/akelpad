@@ -1,5 +1,5 @@
 /***********************************************************************************
- *               AkelEdit text control v1.0 alpha 4                                *
+ *               AkelEdit text control v1.0 alpha 5                                *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -7556,7 +7556,10 @@ void AE_EditUndo(AKELEDIT *ae)
 
           if (bColumnSel)
           {
-            AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, FALSE);
+            if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+              AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, FALSE);
+            else
+              AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, TRUE);
           }
           else
           {
@@ -7644,7 +7647,10 @@ void AE_EditRedo(AKELEDIT *ae)
 
           if (bColumnSel)
           {
-            AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, FALSE);
+            if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+              AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, FALSE);
+            else
+              AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, TRUE);
           }
           else
           {
