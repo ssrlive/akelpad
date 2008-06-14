@@ -1,5 +1,5 @@
 /***********************************************************************************
- *               AkelEdit text control v1.0 alpha 3                                *
+ *               AkelEdit text control v1.0 alpha 4                                *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -7555,9 +7555,16 @@ void AE_EditUndo(AKELEDIT *ae)
           }
 
           if (bColumnSel)
+          {
             AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, FALSE);
+          }
           else
-            AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, FALSE);
+          {
+            if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+              AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, FALSE);
+            else
+              AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, TRUE);
+          }
 
           if (!lpNextElement || !(lpNextElement->dwFlags & AEUN_DELETE) || (lpNextElement->dwFlags & AEUN_STOPGROUP))
           {
@@ -7636,9 +7643,16 @@ void AE_EditRedo(AKELEDIT *ae)
           }
 
           if (bColumnSel)
+          {
             AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, FALSE);
+          }
           else
-            AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, FALSE);
+          {
+            if (lpCurElement->dwFlags & AEUN_COLUMNGROUP)
+              AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, FALSE);
+            else
+              AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, TRUE);
+          }
 
           if (!lpNextElement || !(lpNextElement->dwFlags & AEUN_INSERT) || (lpCurElement->dwFlags & AEUN_STOPGROUP))
           {

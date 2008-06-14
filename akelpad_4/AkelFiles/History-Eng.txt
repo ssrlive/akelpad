@@ -1,4 +1,13 @@
 
+AkelPad 4.0.0 alpha 4 (Jun 14, 2008)
+------------------------------------
+Fixed: update problem after undo/redo.
+
+Do not work yet:
+- Text Drag'n'Drop.
+- URL highlighting.
+
+
 AkelPad 4.0.0 alpha 3 (Jun 14, 2008)
 ------------------------------------
 Changed: speed of work with long lines is increased.
@@ -11,10 +20,6 @@ Fixed: work with tabulation.
 Fixed: selection functions now correctly work with columns.
 Fixed: column insert in the end of the text from the undo buffer.
 Fixed: Delete and Backspace keys registration in undo buffer.
-
-Do not work yet:
-- Text Drag'n'Drop.
-- URL highlighting.
 
 
 AkelPad 4.0.0 alpha 2 (Jun 04, 2008)
