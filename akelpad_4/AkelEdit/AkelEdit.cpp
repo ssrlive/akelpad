@@ -2672,6 +2672,11 @@ void AE_StackLineDelete(AKELEDIT *ae, AELINEDATA *lpElement)
     ae->ciSelEndIndex.lpLine=NULL;
     ae->nSelEndLineOffset=0;
   }
+  if (lpElement == ae->ciLastCallIndex.lpLine)
+  {
+    ae->ciLastCallIndex.lpLine=NULL;
+    ae->nLastCallOffset=0;
+  }
   if (lpElement->wpLine) AE_HeapFree(ae, 0, (LPVOID)lpElement->wpLine);
   AE_HeapStackDelete(ae, (stack **)&ae->hLinesStack.first, (stack **)&ae->hLinesStack.last, (stack *)lpElement);
 }
@@ -2697,6 +2702,7 @@ AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
   DWORD dwThird=(DWORD)-1;
   DWORD dwFourth=(DWORD)-1;
   DWORD dwFifth=(DWORD)-1;
+  DWORD dwSixth=(DWORD)-1;
   int nElementLine=0;
 
   if (nLine < 0) nLine=ae->nLineCount + nLine + 1;
@@ -2711,31 +2717,38 @@ AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
     dwFourth=mod(nLine - ae->ciSelStartIndex.nLine);
   if (ae->ciSelEndIndex.lpLine)
     dwFifth=mod(nLine - ae->ciSelEndIndex.nLine);
+  if (ae->ciLastCallIndex.lpLine)
+    dwSixth=mod(nLine - ae->ciLastCallIndex.nLine);
 
-  if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth)
+  if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth && dwFirst <= dwSixth)
   {
     nElementLine=nLine - 0;
     lpElementData=(AELINEDATA *)ae->hLinesStack.first;
   }
-  else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth)
+  else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth && dwSecond <= dwSixth)
   {
     nElementLine=nLine - ae->nLineCount;
     lpElementData=(AELINEDATA *)ae->hLinesStack.last;
   }
-  else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth)
+  else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth && dwThird <= dwSixth)
   {
     nElementLine=nLine - ae->liFirstDrawLine.nLine;
     lpElementData=ae->liFirstDrawLine.lpLine;
   }
-  else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth)
+  else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth && dwFourth <= dwSixth)
   {
     nElementLine=nLine - ae->ciSelStartIndex.nLine;
     lpElementData=ae->ciSelStartIndex.lpLine;
   }
-  else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth)
+  else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth && dwFifth <= dwSixth)
   {
     nElementLine=nLine - ae->ciSelEndIndex.nLine;
     lpElementData=ae->ciSelEndIndex.lpLine;
+  }
+  else if (dwSixth <= dwFirst && dwSixth <= dwSecond && dwSixth <= dwThird && dwSixth <= dwFourth && dwSixth <= dwFifth)
+  {
+    nElementLine=nLine - ae->ciLastCallIndex.nLine;
+    lpElementData=ae->ciLastCallIndex.lpLine;
   }
 
   if (nElementLine > 0)
@@ -2767,6 +2780,7 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, int nOffset, AECHARINDEX *ciCharInde
   DWORD dwThird=(DWORD)-1;
   DWORD dwFourth=(DWORD)-1;
   DWORD dwFifth=(DWORD)-1;
+  DWORD dwSixth=(DWORD)-1;
   int nElementLineOffset=0;
 
   if (nOffset < 0) nOffset=ae->nLastCharOffset + nOffset + 1;
@@ -2782,37 +2796,51 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, int nOffset, AECHARINDEX *ciCharInde
     dwFourth=mod(nOffset - ae->nSelStartLineOffset);
   if (ae->ciSelEndIndex.lpLine && ae->nSelEndLineOffset)
     dwFifth=mod(nOffset - ae->nSelEndLineOffset);
+  if (ae->ciLastCallIndex.lpLine && ae->nLastCallOffset)
+    dwSixth=mod(nOffset - ae->nLastCallOffset);
 
-  if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth)
+  if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth && dwFirst <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement, FALSE);
     nElementLineOffset=nOffset - 0;
   }
-  else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth)
+  else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth && dwSecond <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement, FALSE);
     nElementLineOffset=nOffset - ae->nLastCharOffset;
   }
-  else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth)
+  else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth && dwThird <= dwSixth)
   {
     ciElement.nLine=ae->liFirstDrawLine.nLine;
     ciElement.lpLine=ae->liFirstDrawLine.lpLine;
+    ciElement.nCharInLine=0;
     nElementLineOffset=nOffset - ae->nFirstDrawLineOffset;
   }
-  else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth)
+  else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth && dwFourth <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciElement, FALSE);
     ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
     nElementLineOffset=nOffset - ae->nSelStartLineOffset;
   }
-  else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth)
+  else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth && dwFifth <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciElement, FALSE);
     ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
     nElementLineOffset=nOffset - ae->nSelEndLineOffset;
   }
+  else if (dwSixth <= dwFirst && dwSixth <= dwSecond && dwSixth <= dwThird && dwSixth <= dwFourth && dwSixth <= dwFifth)
+  {
+    ciElement=ae->ciLastCallIndex;
+    nElementLineOffset=nOffset - ae->nLastCallOffset;
+  }
 
   AE_IndexOffset(ae, &ciElement, &ciElement, nElementLineOffset, AELB_R);
+
+  if (nElementLineOffset)
+  {
+    ae->ciLastCallIndex=ciElement;
+    ae->nLastCallOffset=nOffset;
+  }
   *ciCharIndex=ciElement;
 }
 
@@ -2825,6 +2853,7 @@ int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
   DWORD dwThird=(DWORD)-1;
   DWORD dwFourth=(DWORD)-1;
   DWORD dwFifth=(DWORD)-1;
+  DWORD dwSixth=(DWORD)-1;
   int nElementLineOffset=0;
   int nCompare;
   int nSubtract;
@@ -2847,44 +2876,58 @@ int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
     dwFourth=mod(ciChar.nLine - ae->ciSelStartIndex.nLine);
   if (ae->ciSelEndIndex.lpLine && ae->nSelEndLineOffset)
     dwFifth=mod(ciChar.nLine - ae->ciSelEndIndex.nLine);
+  if (ae->ciLastCallIndex.lpLine && ae->nLastCallOffset)
+    dwSixth=mod(ciChar.nLine - ae->ciLastCallIndex.nLine);
 
-  if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth)
+  if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth && dwFirst <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement, FALSE);
     nElementLineOffset=0;
   }
-  else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth)
+  else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth && dwSecond <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement, FALSE);
     nElementLineOffset=ae->nLastCharOffset;
   }
-  else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth)
+  else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth && dwThird <= dwSixth)
   {
     ciElement.nLine=ae->liFirstDrawLine.nLine;
     ciElement.lpLine=ae->liFirstDrawLine.lpLine;
+    ciElement.nCharInLine=0;
     nElementLineOffset=ae->nFirstDrawLineOffset;
   }
-  else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth)
+  else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth && dwFourth <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciElement, FALSE);
     ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
     nElementLineOffset=ae->nSelStartLineOffset;
   }
-  else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth)
+  else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth && dwFifth <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciElement, FALSE);
     ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
     nElementLineOffset=ae->nSelEndLineOffset;
   }
+  else if (dwSixth <= dwFirst && dwSixth <= dwSecond && dwSixth <= dwThird && dwSixth <= dwFourth && dwSixth <= dwFifth)
+  {
+    ciElement=ae->ciLastCallIndex;
+    nElementLineOffset=ae->nLastCallOffset;
+  }
 
   nCompare=AE_IndexCompare(&ciElement, &ciChar);
-  if (!nCompare) return nElementLineOffset;
 
-  nSubtract=AE_IndexSubtract(ae, &ciElement, &ciChar, AELB_R, FALSE, FALSE);
-  if (nCompare > 0)
-    nResult=nElementLineOffset - nSubtract;
-  else
-    nResult=nElementLineOffset + nSubtract;
+  if (nCompare)
+  {
+    nSubtract=AE_IndexSubtract(ae, &ciElement, &ciChar, AELB_R, FALSE, FALSE);
+    if (nCompare > 0)
+      nResult=nElementLineOffset - nSubtract;
+    else
+      nResult=nElementLineOffset + nSubtract;
+  }
+  else return nElementLineOffset;
+  
+  ae->ciLastCallIndex=ciChar;
+  ae->nLastCallOffset=nResult;
   return nResult;
 }
 
@@ -3511,6 +3554,18 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine,
     {
       ae->ciSelEndIndex.lpLine=NULL;
       ae->nSelEndLineOffset=0;
+    }
+  }
+  if (ae->ciLastCallIndex.lpLine)
+  {
+    if (ae->ciLastCallIndex.nLine > nStopLine)
+    {
+      ae->ciLastCallIndex.nLine+=nLineCount;
+    }
+    else if (ae->ciLastCallIndex.nLine >= liFirst.nLine)
+    {
+      ae->ciLastCallIndex.lpLine=NULL;
+      ae->nLastCallOffset=0;
     }
   }
 
@@ -5591,6 +5646,8 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       //Update control points
       if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciDeleteStart.nLine)
         ae->nFirstDrawLineOffset+=nRichTextCount;
+      if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciDeleteStart.nLine)
+        ae->nLastCallOffset+=nRichTextCount;
       ae->nLastCharOffset+=nRichTextCount;
 
       //Set global
@@ -5780,6 +5837,11 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       if (ae->liMaxWidthLine.lpLine && ae->liMaxWidthLine.nLine > ciFirstChar.nLine)
       {
         ae->liMaxWidthLine.nLine-=nLineCount;
+      }
+      if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciFirstChar.nLine)
+      {
+        ae->ciLastCallIndex.nLine-=nLineCount;
+        ae->nLastCallOffset+=nRichTextCount;
       }
       ae->nLastCharOffset+=nRichTextCount;
 
@@ -5979,6 +6041,10 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     ae->hLinesStack.first=0;
     ae->hLinesStack.last=0;
     ae->lpCurrentUndo=NULL;
+    ae->liFirstDrawLine.nLine=0;
+    ae->liFirstDrawLine.lpLine=NULL;
+    ae->liMaxWidthLine.nLine=0;
+    ae->liMaxWidthLine.lpLine=NULL;
     ae->ptCaret.x=0;
     ae->ptCaret.y=0;
     ae->ciCaretIndex.nLine=0;
@@ -5990,14 +6056,14 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     ae->ciSelEndIndex.nLine=0;
     ae->ciSelEndIndex.nCharInLine=0;
     ae->ciSelEndIndex.lpLine=NULL;
-    ae->liFirstDrawLine.nLine=0;
-    ae->liFirstDrawLine.lpLine=NULL;
-    ae->liMaxWidthLine.nLine=0;
-    ae->liMaxWidthLine.lpLine=NULL;
+    ae->ciLastCallIndex.nLine=0;
+    ae->ciLastCallIndex.nCharInLine=0;
+    ae->ciLastCallIndex.lpLine=NULL;
+    ae->nLastCharOffset=0;
+    ae->nFirstDrawLineOffset=0;
     ae->nSelStartLineOffset=0;
     ae->nSelEndLineOffset=0;
-    ae->nFirstDrawLineOffset=0;
-    ae->nLastCharOffset=0;
+    ae->nLastCallOffset=0;
   }
   ae->hHeap=HeapCreate(0, 0, 0);
 
@@ -6414,6 +6480,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         //Update control points
         if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciInsertFrom.nLine)
           ae->nFirstDrawLineOffset+=dwRichTextCount;
+        if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciInsertFrom.nLine)
+          ae->nLastCallOffset+=dwRichTextCount;
         ae->nLastCharOffset+=dwRichTextCount;
 
         //Set global
@@ -6687,6 +6755,11 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         if (ae->liMaxWidthLine.lpLine && ae->liMaxWidthLine.nLine > ciInsertFrom.nLine)
         {
           ae->liMaxWidthLine.nLine+=nLineCount;
+        }
+        if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciInsertFrom.nLine)
+        {
+          ae->ciLastCallIndex.nLine+=nLineCount;
+          ae->nLastCallOffset+=dwRichTextCount;
         }
         ae->nLastCharOffset+=dwRichTextCount;
 

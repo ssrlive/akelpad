@@ -389,11 +389,12 @@ typedef struct _AKELEDIT {
   DWORD dwUndoLimit;
   DWORD dwUndoCount;
   HSTACK hLinesStack;
+  AELINEINDEX liFirstDrawLine;
+  AELINEINDEX liMaxWidthLine;
   AECHARINDEX ciSelStartIndex;
   AECHARINDEX ciSelEndIndex;
   AECHARINDEX ciCaretIndex;
-  AELINEINDEX liFirstDrawLine;
-  AELINEINDEX liMaxWidthLine;
+  AECHARINDEX ciLastCallIndex;
   int nLineCount;
   int nInputNewLine;
   int nOutputNewLine;
@@ -420,10 +421,11 @@ typedef struct _AKELEDIT {
   //RichEdit emulation
   BOOL bRichEditClass;
   DWORD dwEventMask;
+  int nLastCharOffset;
+  int nFirstDrawLineOffset;
   int nSelStartLineOffset;
   int nSelEndLineOffset;
-  int nFirstDrawLineOffset;
-  int nLastCharOffset;
+  int nLastCallOffset;
 } AKELEDIT;
 
 
