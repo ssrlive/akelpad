@@ -1,11 +1,17 @@
 
-AkelPad 4.0.0 alpha 4 (Jun 14, 2008)
+AkelPad 4.0.0 alpha 5 ()
 ------------------------------------
-Fixed: update problem after undo/redo.
+Changed: if the founded text is outside visibility, then it is putted to middle of
+         editing window.
 
 Do not work yet:
 - Text Drag'n'Drop.
 - URL highlighting.
+
+
+AkelPad 4.0.0 alpha 4 (Jun 14, 2008)
+------------------------------------
+Fixed: update problem after undo/redo.
 
 
 AkelPad 4.0.0 alpha 3 (Jun 14, 2008)
