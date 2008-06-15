@@ -4,6 +4,9 @@ AkelPad 4.0.0 alpha 5 ()
 Changed: if the founded text is outside visibility, then it is putted to middle of
          editing window.
 
+Fixed: insert text in word wrap mode.
+Fixed: search in word wrap mode.
+
 Do not work yet:
 - Text Drag'n'Drop.
 - URL highlighting.
