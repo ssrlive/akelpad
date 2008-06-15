@@ -33,6 +33,8 @@
 #define STR_UNICODE_UTF8W     L"65001 (UTF-8)"
 #define STR_UNICODE_UTF7A      "65000 (UTF-7)"
 #define STR_UNICODE_UTF7W     L"65000 (UTF-7)"
+#define STR_NOBOMA             "  *BOM"
+#define STR_NOBOMW            L"  *BOM"
 
 #ifndef BIF_NEWDIALOGSTYLE
   #define BIF_NEWDIALOGSTYLE 0x0040
