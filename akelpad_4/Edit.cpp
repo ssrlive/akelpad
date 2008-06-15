@@ -15901,6 +15901,16 @@ void SetCodePageStatusA(int nCodePage, BOOL bBOM, BOOL bFirst)
   nCurrentCodePage=nCodePage;
   bCurrentBOM=bBOM;
   GetCodePageNameA(nCurrentCodePage, buf, BUFFER_SIZE);
+
+  if (nCurrentCodePage == CP_UNICODE_UCS2_LE ||
+      nCurrentCodePage == CP_UNICODE_UCS2_BE ||
+      nCurrentCodePage == CP_UNICODE_UTF8)
+  {
+    if (!bCurrentBOM)
+    {
+      lstrcatA(buf, STR_NOBOMA);
+    }
+  }
   SendMessage(hStatus, SB_SETTEXTA, STATUS_CODEPAGE, (LPARAM)buf);
 }
 
@@ -15910,6 +15920,16 @@ void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst)
   nCurrentCodePage=nCodePage;
   bCurrentBOM=bBOM;
   GetCodePageNameW(nCurrentCodePage, wbuf, BUFFER_SIZE);
+
+  if (nCurrentCodePage == CP_UNICODE_UCS2_LE ||
+      nCurrentCodePage == CP_UNICODE_UCS2_BE ||
+      nCurrentCodePage == CP_UNICODE_UTF8)
+  {
+    if (!bCurrentBOM)
+    {
+      lstrcatW(wbuf, STR_NOBOMW);
+    }
+  }
   SendMessage(hStatus, SB_SETTEXTW, STATUS_CODEPAGE, (LPARAM)wbuf);
 }
 

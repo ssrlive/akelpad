@@ -852,6 +852,24 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_GetCharFromPos(ae, pt, &ci, NULL, FALSE);
       return AE_AkelIndexToRichOffset(ae, &ci);
     }
+    if (uMsg == EM_GETSCROLLPOS)
+    {
+      POINT *pt=(POINT *)lParam;
+
+      pt->x=ae->nHScrollPos;
+      pt->y=ae->nVScrollPos;
+      return 1;
+    }
+    if (uMsg == EM_SETSCROLLPOS)
+    {
+      POINT *pt=(POINT *)lParam;
+
+      if (pt->x != ae->nHScrollPos)
+        AE_ScrollEditWindow(ae, SB_HORZ, pt->x);
+      if (pt->y != ae->nVScrollPos)
+        AE_ScrollEditWindow(ae, SB_VERT, pt->y);
+      return 1;
+    }
     if (uMsg == EM_LINESCROLL)
     {
       SCROLLINFO si;
@@ -6566,11 +6584,13 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           nLastRedrawLine=-1;
 
           //Set control points to "insert from" position
+          AE_RichOffsetToAkelIndex(ae, nStartOffset, &ciFirstChar);
+          AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
+          ae->ciCaretIndex=ciFirstChar;
           ae->nSelStartLineOffset=nStartOffset;
           ae->ciSelStartIndex=ciFirstChar;
           ae->nSelEndLineOffset=nStartOffset;
           ae->ciSelEndIndex=ciFirstChar;
-          ae->ciCaretIndex=ciFirstChar;
 
           //Set "insert to" position
           AE_RichOffsetToAkelIndex(ae, nEndOffset, &ciLastChar);

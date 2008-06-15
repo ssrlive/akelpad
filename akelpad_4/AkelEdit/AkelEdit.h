@@ -187,6 +187,12 @@
 #ifndef EM_SHOWSCROLLBAR
   #define EM_SHOWSCROLLBAR (WM_USER + 96)
 #endif
+#ifndef EM_GETSCROLLPOS
+  #define EM_GETSCROLLPOS (WM_USER + 221)
+#endif
+#ifndef EM_SETSCROLLPOS
+  #define EM_SETSCROLLPOS (WM_USER + 222)
+#endif
 #ifndef mod
   #define mod(a) (((a) < 0)?(0 - (a)):(a))
 #endif
