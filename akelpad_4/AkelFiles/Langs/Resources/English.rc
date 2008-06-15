@@ -802,7 +802,8 @@ BEGIN
     STR_LANGUAGE_NONE       "Internal"
     STR_FILE_FILTER         "Text files (*.txt)|*.txt|All files (*.*)|*.*"
     STR_NONE                "None"
-    STR_AUTODETECT_RUSSIAN  "Cyrillic (1251, 866, 20866)"
+    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+    STR_AUTODETECT_RUSSIAN  "Cyrillic (ANSI, OEM, KOI8-R, UTF-8)"
     STR_PLUGIN_FUNCTION     "Plugin::Function"
 END
 
