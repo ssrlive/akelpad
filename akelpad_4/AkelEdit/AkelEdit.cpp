@@ -396,6 +396,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_GetPosFromCharEx(ae, ciCharIndex, NULL, pt);
         return 0;
       }
+      if (uMsg == AEM_ISCARETVISIBLE)
+      {
+        return ae->bCaretVisible;
+      }
       if (uMsg == AEM_LINESCROLL)
       {
         SCROLLINFO si;
@@ -412,7 +416,18 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_SCROLLCARET)
       {
-        AE_ScrollToCaret(ae, &ae->ptCaret);
+        if (!lParam)
+          AE_ScrollToCaret(ae, &ae->ptCaret);
+        else
+          AE_CenterCaret(ae, &ae->ptCaret);
+        return 0;
+      }
+      if (uMsg == AEM_STOPSCROLL)
+      {
+        if (wParam == SB_BOTH || wParam == SB_VERT)
+          ae->bVScrollStop=lParam;
+        if (wParam == SB_BOTH || wParam == SB_HORZ)
+          ae->bHScrollStop=lParam;
         return 0;
       }
       if (uMsg == AEM_FINDTEXTA)
@@ -4001,15 +4016,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
       //Set caret position
       AE_ScrollToCaret(ae, &ae->ptCaret);
       ae->nHorizCaretPos=ae->ptCaret.x;
-      if (ae->bFocus)
-      {
-        AE_SetCaretPos(ae);
-        if (!ae->bCaretVisible)
-        {
-          ShowCaret(ae->hWndEdit);
-          ae->bCaretVisible=TRUE;
-        }
-      }
+      if (ae->bFocus) AE_SetCaretPos(ae);
 
       //Redraw lines
       if (ciSelStartOld.nLine > ciSelEndNew.nLine ||
@@ -4297,10 +4304,38 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFresh)
 
 BOOL AE_SetCaretPos(AKELEDIT *ae)
 {
+  BOOL bResult;
+
   if (ae->bOverType)
-    return SetCaretPos((ae->ptCaret.x - ae->nHScrollPos) + ae->rcDraw.left, (ae->ptCaret.y - ae->nVScrollPos) + ae->rcDraw.top + max(ae->nCharHeight - ae->nCaretOvertypeHeight, 0));
+    bResult=SetCaretPos((ae->ptCaret.x - ae->nHScrollPos) + ae->rcDraw.left, (ae->ptCaret.y - ae->nVScrollPos) + ae->rcDraw.top + max(ae->nCharHeight - ae->nCaretOvertypeHeight, 0));
   else
-    return SetCaretPos((ae->ptCaret.x - ae->nHScrollPos) + ae->rcDraw.left, (ae->ptCaret.y - ae->nVScrollPos) + ae->rcDraw.top);
+    bResult=SetCaretPos((ae->ptCaret.x - ae->nHScrollPos) + ae->rcDraw.left, (ae->ptCaret.y - ae->nVScrollPos) + ae->rcDraw.top);
+
+  SetCaretVis(ae);
+  return bResult;
+}
+
+void SetCaretVis(AKELEDIT *ae)
+{
+  if ((ae->ptCaret.x - ae->nHScrollPos) + ae->rcDraw.left < ae->rcDraw.left ||
+      (ae->ptCaret.x - ae->nHScrollPos) + ae->rcDraw.left > ae->rcDraw.right ||
+      (ae->ptCaret.y - ae->nVScrollPos) + ae->rcDraw.top < ae->rcDraw.top - ae->nCharHeight ||
+      (ae->ptCaret.y - ae->nVScrollPos) + ae->rcDraw.top > ae->rcDraw.bottom)
+  {
+    if (ae->bCaretVisible)
+    {
+      HideCaret(ae->hWndEdit);
+      ae->bCaretVisible=FALSE;
+    }
+  }
+  else
+  {
+    if (!ae->bCaretVisible)
+    {
+      ShowCaret(ae->hWndEdit);
+      ae->bCaretVisible=TRUE;
+    }
+  }
 }
 
 void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret)
@@ -4340,6 +4375,23 @@ void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret)
   }
 }
 
+void AE_CenterCaret(AKELEDIT *ae, POINT *ptCaret)
+{
+  if (ae->bWordWrap)
+  {
+    if (ptCaret->x < ae->nHScrollPos)
+    {
+      AE_ScrollEditWindow(ae, SB_HORZ, 0);
+    }
+  }
+  else
+  {
+    AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) / 2, 0));
+  }
+
+  AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) / 2, 0));
+}
+
 void AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 {
   SCROLLINFO si;
@@ -4355,42 +4407,30 @@ void AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 
   if (nBar == SB_VERT)
   {
-    if (si.nPos != ae->nVScrollPos)
+    if (!ae->bVScrollStop)
     {
-      ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - si.nPos, NULL, &ae->rcDraw);
-      ae->nVScrollPos=si.nPos;
-      UpdateWindow(ae->hWndEdit);
+      if (si.nPos != ae->nVScrollPos)
+      {
+        ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - si.nPos, NULL, &ae->rcDraw);
+        ae->nVScrollPos=si.nPos;
+        UpdateWindow(ae->hWndEdit);
+      }
     }
   }
   else if (nBar == SB_HORZ)
   {
-    if (si.nPos != ae->nHScrollPos)
+    if (!ae->bHScrollStop)
     {
-      ScrollWindow(ae->hWndEdit, ae->nHScrollPos - si.nPos, 0, NULL, &ae->rcDraw);
-      ae->nHScrollPos=si.nPos;
-      UpdateWindow(ae->hWndEdit);
-
-      //Change caret visibility
-      GetCaretPos(&pt);
-
-      if (pt.x < ae->rcDraw.left || pt.x > ae->rcDraw.right)
+      if (si.nPos != ae->nHScrollPos)
       {
-        if (ae->bCaretVisible)
-        {
-          HideCaret(ae->hWndEdit);
-          ae->bCaretVisible=FALSE;
-        }
-      }
-      else
-      {
-        if (!ae->bCaretVisible)
-        {
-          ShowCaret(ae->hWndEdit);
-          ae->bCaretVisible=TRUE;
-        }
+        ScrollWindow(ae->hWndEdit, ae->nHScrollPos - si.nPos, 0, NULL, &ae->rcDraw);
+        ae->nHScrollPos=si.nPos;
+        UpdateWindow(ae->hWndEdit);
       }
     }
   }
+
+  SetCaretVis(ae);
 }
 
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
@@ -4459,10 +4499,7 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
     }
   }
 
-  if (ae->bFocus)
-  {
-    AE_SetCaretPos(ae);
-  }
+  if (ae->bFocus) AE_SetCaretPos(ae);
 }
 
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase)
@@ -5720,15 +5757,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         //Set caret position
         AE_ScrollToCaret(ae, &ae->ptCaret);
         ae->nHorizCaretPos=ae->ptCaret.x;
-        if (ae->bFocus)
-        {
-          AE_SetCaretPos(ae);
-          if (!ae->bCaretVisible)
-          {
-            ShowCaret(ae->hWndEdit);
-            ae->bCaretVisible=TRUE;
-          }
-        }
+        if (ae->bFocus) AE_SetCaretPos(ae);
 
         //Redraw lines
         if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
@@ -5918,15 +5947,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         //Set caret position
         AE_ScrollToCaret(ae, &ae->ptCaret);
         ae->nHorizCaretPos=ae->ptCaret.x;
-        if (ae->bFocus)
-        {
-          AE_SetCaretPos(ae);
-          if (!ae->bCaretVisible)
-          {
-            ShowCaret(ae->hWndEdit);
-            ae->bCaretVisible=TRUE;
-          }
-        }
+        if (ae->bFocus) AE_SetCaretPos(ae);
 
         //Redraw lines
         if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
@@ -6167,15 +6188,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   //Set caret position
   AE_ScrollToCaret(ae, &ae->ptCaret);
   ae->nHorizCaretPos=ae->ptCaret.x;
-  if (ae->bFocus)
-  {
-    AE_SetCaretPos(ae);
-    if (!ae->bCaretVisible)
-    {
-      ShowCaret(ae->hWndEdit);
-      ae->bCaretVisible=TRUE;
-    }
-  }
+  if (ae->bFocus) AE_SetCaretPos(ae);
 
   AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
 
@@ -6562,15 +6575,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           //Set caret position
           AE_ScrollToCaret(ae, &ae->ptCaret);
           ae->nHorizCaretPos=ae->ptCaret.x;
-          if (ae->bFocus)
-          {
-            AE_SetCaretPos(ae);
-            if (!ae->bCaretVisible)
-            {
-              ShowCaret(ae->hWndEdit);
-              ae->bCaretVisible=TRUE;
-            }
-          }
+          if (ae->bFocus) AE_SetCaretPos(ae);
 
           //Redraw lines
           if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
@@ -6850,15 +6855,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           //Set caret position
           AE_ScrollToCaret(ae, &ae->ptCaret);
           ae->nHorizCaretPos=ae->ptCaret.x;
-          if (ae->bFocus)
-          {
-            AE_SetCaretPos(ae);
-            if (!ae->bCaretVisible)
-            {
-              ShowCaret(ae->hWndEdit);
-              ae->bCaretVisible=TRUE;
-            }
-          }
+          if (ae->bFocus) AE_SetCaretPos(ae);
 
           //Redraw lines
           if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
