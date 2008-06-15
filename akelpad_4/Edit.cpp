@@ -7818,7 +7818,63 @@ int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, in
 
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage)
 {
-  if (dwLangID == LANGID_RUSSIAN)
+  if (dwLangID == LANGID_ENGLISH)
+  {
+    char szOEMwatermark[]="\xBA\xB3\xB0\xB1\xB2\xDB";
+    char szUTF8watermark[]="\xD0\xD1";
+    int nANSIrate=5;
+    int nOEMrate=0;
+    int nUTF8rate=0;
+    DWORD dwCounter[0x80];
+    DWORD dwMaxIndex=0;
+    DWORD dwMaxCount=0;
+    DWORD i;
+    DWORD j;
+
+    memset(dwCounter, 0, 0x80 * sizeof(DWORD));
+
+    //Count number of each character in input buffer
+    for (j=0, i=0; i < dwBytesToCheck; ++i)
+    {
+      //Char in range 0x80 - 0xFF
+      if (pBuffer[i] >= 0x80)
+      {
+        ++j;
+        dwCounter[pBuffer[i] - 0x80]++;
+      }
+    }
+
+    //Give it up if there's no representative selection
+    if (j > 10)
+    {
+      for (j=0; j < 10; ++j)
+      {
+        //Get max element
+        for (dwMaxCount=0, i=0; i < 0x80; ++i)
+        {
+          if (dwCounter[i] > dwMaxCount)
+          {
+            dwMaxCount=dwCounter[i];
+            dwMaxIndex=i;
+          }
+        }
+        if (!dwCounter[dwMaxIndex]) break;
+
+        if (strchr(szOEMwatermark, dwMaxIndex + 0x80)) nOEMrate+=dwCounter[dwMaxIndex];
+        if (strchr(szUTF8watermark, dwMaxIndex + 0x80)) nUTF8rate+=dwCounter[dwMaxIndex];
+        dwCounter[dwMaxIndex]=0;
+      }
+
+      if (nANSIrate >= nOEMrate && nANSIrate >= nUTF8rate)
+        *nCodePage=nAnsiCodePage;
+      else if (nOEMrate >= nUTF8rate)
+        *nCodePage=nOemCodePage;
+      else
+        *nCodePage=CP_UNICODE_UTF8;
+      return TRUE;
+    }
+  }
+  else if (dwLangID == LANGID_RUSSIAN)
   {
     char szANSIwatermark[]="\xE0\xE1\xE2\xE5\xE8\xED\xEE\xEF\xF0\xF2\xC0\xC1\xC2\xC5\xC8\xCD\xCE\xCF\xD2"; //‡·‚ÂËÌÓÔÚ¿¡¬≈»ÕŒœ“
     char szOEMwatermark[]="\xAE\xA5\xA0\xA8\xAD\xE2\x8E\x45\x80\x88\x8D\x92\xBA\xB3\xB0\xB1\xB2\xDB";      //Character graphics simbols: \xBA\xB3\xB0\xB1\xB2\xDB
@@ -14326,12 +14382,15 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
     API_LoadStringA(hLangLib, STR_NONE, buf, BUFFER_SIZE);
     SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
+    API_LoadStringA(hLangLib, STR_AUTODETECT_ENGLISH, buf, BUFFER_SIZE);
+    SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
     API_LoadStringA(hLangLib, STR_AUTODETECT_RUSSIAN, buf, BUFFER_SIZE);
     SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
-    if (dwLangCodepageRecognition == LANGID_RUSSIAN)
+
+    if (dwLangCodepageRecognition == LANGID_ENGLISH)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 1, 0);
-    else
-      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
+    else if (dwLangCodepageRecognition == LANGID_RUSSIAN)
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -14449,6 +14508,8 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (i == 0)
         dwLangCodepageRecognition=0;
       else if (i == 1)
+        dwLangCodepageRecognition=LANGID_ENGLISH;
+      else if (i == 2)
         dwLangCodepageRecognition=LANGID_RUSSIAN;
 
       //Autodetect codepage buffer
@@ -14507,12 +14568,15 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
     API_LoadStringW(hLangLib, STR_NONE, wbuf, BUFFER_SIZE);
     SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
+    API_LoadStringW(hLangLib, STR_AUTODETECT_ENGLISH, wbuf, BUFFER_SIZE);
+    SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
     API_LoadStringW(hLangLib, STR_AUTODETECT_RUSSIAN, wbuf, BUFFER_SIZE);
     SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
-    if (dwLangCodepageRecognition == LANGID_RUSSIAN)
+
+    if (dwLangCodepageRecognition == LANGID_ENGLISH)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 1, 0);
-    else
-      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
+    else if (dwLangCodepageRecognition == LANGID_RUSSIAN)
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -14629,6 +14693,8 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (i == 0)
         dwLangCodepageRecognition=0;
       else if (i == 1)
+        dwLangCodepageRecognition=LANGID_ENGLISH;
+      else if (i == 2)
         dwLangCodepageRecognition=LANGID_RUSSIAN;
 
       //Autodetect codepage buffer

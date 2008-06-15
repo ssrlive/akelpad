@@ -3620,25 +3620,22 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
           if (AE_IsInDelimiterList(ae->wszWrapDelimiters, lpInitialElement->wpLine[i]))
             break;
         }
-        if (i > nCharStart)
-        {
-          nCharEnd=i + 1;
-        }
 /*
-        else if (!nCharStart)
+        if (!nCharStart)
         {
           if (lpInitialElement->prev)
           {
             if (lpInitialElement->prev->nLineBreak == AELB_WRAP)
             {
-              liStart.nLine=min(liStart.nLine - 1, 0);
-              liStart.lpLine=lpInitialElement->prev;
-              liEnd=liStart;
-              goto End;
+              //Required 10 characters for wraping
+              if (i < nCharStart + 10)
+                i=nCharEnd - 1;
             }
           }
         }
 */
+        if (i > nCharStart)
+          nCharEnd=i + 1;
       }
 
       //Wrap
