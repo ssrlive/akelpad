@@ -3447,6 +3447,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine,
   int nWrapped=0;
   int nUnwrapped=0;
   int nStopLine;
+  BOOL bPrevLine=FALSE;
 
   if (bWrap)
     dwMaxWidth=ae->rcDraw.right - ae->rcDraw.left;
@@ -3461,7 +3462,17 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine,
   }
   else
   {
-    liCount=*liStartLine;
+    if (liStartLine->lpLine->prev)
+    {
+      if (liStartLine->lpLine->prev->nLineBreak == AELB_WRAP)
+      {
+        liCount.nLine=liStartLine->nLine - 1;
+        liCount.lpLine=liStartLine->lpLine->prev;
+        bPrevLine=TRUE;
+      }
+    }
+    if (!bPrevLine)
+      liCount=*liStartLine;
     liFirst=liCount;
   }
 
@@ -3615,26 +3626,12 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
       //Find end of word
       if (nCharEnd < lpInitialElement->nLineLen)
       {
-        for (i=nCharEnd - 1; i > nCharStart; --i)
+        for (i=nCharEnd - 1; i >= nCharStart; --i)
         {
           if (AE_IsInDelimiterList(ae->wszWrapDelimiters, lpInitialElement->wpLine[i]))
             break;
         }
-/*
-        if (!nCharStart)
-        {
-          if (lpInitialElement->prev)
-          {
-            if (lpInitialElement->prev->nLineBreak == AELB_WRAP)
-            {
-              //Required 10 characters for wraping
-              if (i < nCharStart + 10)
-                i=nCharEnd - 1;
-            }
-          }
-        }
-*/
-        if (i > nCharStart)
+        if (i >= nCharStart)
           nCharEnd=i + 1;
       }
 
@@ -3676,9 +3673,6 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
     liEnd.nLine+=nLineCount;
   }
 
-/*
-  End:
-*/
   if (liStartLine) *liStartLine=liStart;
   if (liEndLine) *liEndLine=liEnd;
   return nLineCount;
@@ -4392,7 +4386,6 @@ void AE_CenterCaret(AKELEDIT *ae, POINT *ptCaret)
 void AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 {
   SCROLLINFO si;
-  POINT pt;
 
   si.cbSize=sizeof(SCROLLINFO);
   si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
@@ -5584,6 +5577,8 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
   int nExtraStartOffset;
   int nExtraEndOffset;
   int nLineOffset;
+  int nFirstRedrawLine;
+  int nLastRedrawLine;
   int nResult;
 
   if (ciRangeStart->lpLine && ciRangeEnd->lpLine)
@@ -5734,15 +5729,25 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       {
         nLineCount+=AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
 
-        //Set control points to "insert from" position
+        //Set redraw lines
+        nFirstRedrawLine=ciFirstChar.nLine;
+        nLastRedrawLine=-1;
+
+        //Set control points to "delete from" position
+        AE_RichOffsetToAkelIndex(ae, nStartOffset, &ciFirstChar);
+        AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
+        ae->ciCaretIndex=ciFirstChar;
         ae->nSelStartLineOffset=nStartOffset;
         ae->ciSelStartIndex=ciFirstChar;
         ae->nSelEndLineOffset=nStartOffset;
         ae->ciSelEndIndex=ciFirstChar;
-        ae->ciCaretIndex=ciFirstChar;
       }
       else
       {
+        //Set redraw lines
+        nFirstRedrawLine=ciFirstChar.nLine;
+        nLastRedrawLine=ciLastChar.nLine;
+
         if (!ae->liMaxWidthLine.lpLine)
           AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
         else
@@ -5763,10 +5768,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         }
         else
         {
-          if (!ae->bWordWrap)
-            AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
-          else
-            AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
+          AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, TRUE);
         }
       }
 
@@ -5923,6 +5925,13 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       {
         nLineCount+=AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
 
+        //Set redraw lines
+        nFirstRedrawLine=ciFirstChar.nLine;
+        nLastRedrawLine=-1;
+
+        //Set control points to "delete from" position
+        AE_RichOffsetToAkelIndex(ae, nStartOffset, &ciFirstChar);
+        AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
         ae->ciCaretIndex=ciFirstChar;
         ae->nSelStartLineOffset=nStartOffset;
         ae->ciSelStartIndex=ciFirstChar;
@@ -5931,6 +5940,12 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
       else
       {
+        //Set redraw lines
+        nFirstRedrawLine=ciFirstChar.nLine;
+        nLastRedrawLine=-1;
+        if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
+          nLastRedrawLine=ciLastChar.nLine;
+
         AE_UpdateScrollBars(ae, SB_VERT);
 
         if (!ae->liMaxWidthLine.lpLine)
@@ -5953,10 +5968,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         }
         else
         {
-          if (!ae->bWordWrap && !nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
-            AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
-          else
-            AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, TRUE);
+          AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, TRUE);
         }
       }
     }
@@ -6261,6 +6273,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
   int nStartOffset;
   int nEndOffset;
   int nLineOffset;
+  int nFirstRedrawLine;
+  int nLastRedrawLine;
   int i;
   DWORD dwTextCount=0;
   DWORD dwRichTextCount=0;
@@ -6547,6 +6561,10 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         {
           AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
 
+          //Set redraw lines
+          nFirstRedrawLine=ciFirstChar.nLine;
+          nLastRedrawLine=-1;
+
           //Set control points to "insert from" position
           ae->nSelStartLineOffset=nStartOffset;
           ae->ciSelStartIndex=ciFirstChar;
@@ -6559,6 +6577,10 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
         else
         {
+          //Set redraw lines
+          nFirstRedrawLine=ciFirstChar.nLine;
+          nLastRedrawLine=ciLastChar.nLine;
+
           AE_UpdateScrollBars(ae, SB_VERT);
 
           if (!ae->liMaxWidthLine.lpLine)
@@ -6581,10 +6603,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           }
           else
           {
-            if (!ae->bWordWrap)
-              AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
-            else
-              AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, FALSE);
+            AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, FALSE);
           }
         }
 
@@ -6815,12 +6834,9 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         {
           nLineCount+=AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
 
-          //Set control points to "insert from" position
-          ae->nSelStartLineOffset=nStartOffset;
-          ae->ciSelStartIndex=ciFirstChar;
-          ae->nSelEndLineOffset=nStartOffset;
-          ae->ciSelEndIndex=ciFirstChar;
-          ae->ciCaretIndex=ciFirstChar;
+          //Set redraw lines
+          nFirstRedrawLine=ciFirstChar.nLine;
+          nLastRedrawLine=-1;
 
           //Set control points to "insert to" position
           AE_RichOffsetToAkelIndex(ae, nEndOffset, &ciLastChar);
@@ -6833,6 +6849,12 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
         else
         {
+          //Set redraw lines
+          nFirstRedrawLine=ciFirstChar.nLine;
+          nLastRedrawLine=-1;
+          if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
+            nLastRedrawLine=ciLastChar.nLine;
+
           AE_GetPosFromCharEx(ae, &ciLastChar, &ae->ptCaret, NULL);
           ae->ciCaretIndex=ciLastChar;
           ae->nSelStartLineOffset=nEndOffset;
@@ -6861,10 +6883,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           }
           else
           {
-            if (!ae->bWordWrap && !nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
-              AE_RedrawLineRange(ae, ciFirstChar.nLine, ciLastChar.nLine, FALSE);
-            else
-              AE_RedrawLineRange(ae, ciFirstChar.nLine, -1, FALSE);
+            AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, FALSE);
           }
         }
 
@@ -7360,30 +7379,33 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
     }
     if (ciCount.lpLine->nLineBreak == AELB_EOF) return FALSE;
 
-    if (nNewLine == AELB_ASIS)
-      nLineBreak=ciCount.lpLine->nLineBreak;
-    else
-      nLineBreak=nNewLine;
+    if (ciCount.lpLine->nLineBreak != AELB_WRAP)
+    {
+      if (nNewLine == AELB_ASIS)
+        nLineBreak=ciCount.lpLine->nLineBreak;
+      else
+        nLineBreak=nNewLine;
 
-    if (nLineBreak == AELB_R)
-    {
-      if (*wpStrCount != L'\r') return FALSE;
+      if (nLineBreak == AELB_R)
+      {
+        if (*wpStrCount != L'\r') return FALSE;
+      }
+      else if (nLineBreak == AELB_N)
+      {
+        if (*wpStrCount != L'\n') return FALSE;
+      }
+      else if (nLineBreak == AELB_RN)
+      {
+        if (*wpStrCount != L'\r') return FALSE;
+        if (*++wpStrCount != L'\n') return FALSE;
+      }
+      else if (nLineBreak == AELB_RRN)
+      {
+        if (*wpStrCount != L'\r') return FALSE;
+        if (*++wpStrCount != L'\n') return FALSE;
+      }
+      if (!*++wpStrCount) goto Founded;
     }
-    else if (nLineBreak == AELB_N)
-    {
-      if (*wpStrCount != L'\n') return FALSE;
-    }
-    else if (nLineBreak == AELB_RN)
-    {
-      if (*wpStrCount != L'\r') return FALSE;
-      if (*++wpStrCount != L'\n') return FALSE;
-    }
-    else if (nLineBreak == AELB_RRN)
-    {
-      if (*wpStrCount != L'\r') return FALSE;
-      if (*++wpStrCount != L'\n') return FALSE;
-    }
-    if (!*++wpStrCount) goto Founded;
 
     if (ciCount.lpLine->next)
     {
