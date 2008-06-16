@@ -1014,10 +1014,6 @@ void FillMenuPopupCodepageW();
 void ShowMenuPopupCodepageA(POINT *pt);
 void ShowMenuPopupCodepageW(POINT *pt);
 
-BOOL isInDelimiterList(wchar_t c);
-BOOL isInWhitespaceList(wchar_t c);
-int CALLBACK EditWordBreakProc(LPTSTR pchText, int ichCurrent, int cch, int code);
-
 void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo);
 BOOL CALLBACK RecodeDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK RecodeDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

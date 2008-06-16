@@ -314,11 +314,13 @@ void CreateEditWindowA(HWND hWnd)
                            hInstance,
                            NULL);
 
-  if (bDelimitersEnable) SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
+  if (bDelimitersEnable)
+    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszDelimiters);
+  else
+    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)NULL);
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
-  SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, (WPARAM)wszDelimiters, 0);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
@@ -350,11 +352,13 @@ void CreateEditWindowW(HWND hWnd)
                            hInstance,
                            NULL);
 
-  if (bDelimitersEnable) SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
+  if (bDelimitersEnable)
+    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszDelimiters);
+  else
+    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)NULL);
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
-  SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, (WPARAM)wszDelimiters, 0);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
@@ -10831,88 +10835,6 @@ void ShowMenuPopupCodepageW(POINT *pt)
 }
 
 
-//// Word breaking
-
-BOOL isInDelimiterList(wchar_t c)
-{
-  if (wcschr(wszDelimiters, c) != NULL)
-    return TRUE;
-  else
-    return FALSE;
-}
-
-BOOL isInWhitespaceList(wchar_t c)
-{
-  if (wcschr(WORD_WHITESPACESW, c) != NULL)
-    return TRUE;
-  else
-    return FALSE;
-}
-
-int CALLBACK EditWordBreakProc(LPTSTR pchText, int ichCurrent, int cch, int code)
-{
-/*
-  wchar_t *pchTextW=(wchar_t *)pchText;
-  int cchW=cch / sizeof(wchar_t);
-
-  if (code == WB_ISDELIMITER)
-  {
-    return FALSE;
-  }
-  else if (code == WB_MOVEWORDLEFT)
-  {
-    if (bFirstWordBreak)
-    {
-      while (--ichCurrent >= 0 && isInDelimiterList(pchTextW[ichCurrent]));
-      if (ichCurrent < 0) return -1;
-      bFirstWordBreak=FALSE;
-    }
-    while (--ichCurrent >= 0 && !isInDelimiterList(pchTextW[ichCurrent]));
-    if (ichCurrent < 0) return -1;
-    bFirstWordBreak=TRUE;
-    return ichCurrent + 1;
-  }
-  else if (code == WB_MOVEWORDRIGHT)
-  {
-    if (bFirstWordBreak)
-    {
-      while (ichCurrent < cchW && isInDelimiterList(pchTextW[ichCurrent])) ++ichCurrent;
-      if (ichCurrent >= cchW) return -1;
-      bFirstWordBreak=FALSE;
-      ++ichCurrent;
-    }
-    while (ichCurrent < cchW && !isInDelimiterList(pchTextW[ichCurrent])) ++ichCurrent;
-    if (ichCurrent >= cchW) return -1;
-    bFirstWordBreak=TRUE;
-    return ichCurrent;
-  }
-  else if (code == WB_LEFTBREAK)
-  {
-    ichCurrent-=2;
-    while (ichCurrent >= 0 && !isInWhitespaceList(pchTextW[ichCurrent])) --ichCurrent;
-    if (ichCurrent < 0) return -1;
-    return ichCurrent + 1;
-  }
-  else if (code == WB_RIGHTBREAK)
-  {
-    ++ichCurrent;
-    while (ichCurrent < cchW && !isInWhitespaceList(pchTextW[ichCurrent])) ++ichCurrent;
-    if (ichCurrent >= cchW) return -1;
-    return ichCurrent;
-  }
-  else if (code == WB_CLASSIFY)
-  {
-    //AEFR_WHOLEWORD
-    if (!isInDelimiterList(pchTextW[ichCurrent]))
-      return WBF_ISWHITE;
-    else
-      return -1;
-  }
-*/
-  return 0;
-}
-
-
 //// Recode
 
 void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
@@ -15197,9 +15119,9 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
       bDelimitersEnable=SendMessage(hWndDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bDelimitersEnable)
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, (WPARAM)wszDelimiters, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszDelimiters);
       else
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, (WPARAM)NULL, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)NULL);
 
       //Save settings
       if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
@@ -15473,9 +15395,9 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
       bDelimitersEnable=SendMessage(hWndDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bDelimitersEnable)
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, (WPARAM)wszDelimiters, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszDelimiters);
       else
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, (WPARAM)NULL, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)NULL);
 
       //Save settings
       if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)

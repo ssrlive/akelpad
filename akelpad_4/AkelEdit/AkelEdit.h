@@ -157,8 +157,13 @@
                               AECLR_ACTIVELINEBK)
 
 #define AEFR_DOWN            0x00000001
-#define AEFR_MATCHCASE       0x00000002
-#define AEFR_WHOLEWORD       0x00000004
+#define AEFR_WHOLEWORD       0x00000002
+#define AEFR_MATCHCASE       0x00000004
+
+#define AEWB_LEFTWORDSTART   0x00000001
+#define AEWB_LEFTWORDEND     0x00000002
+#define AEWB_RIGHTWORDSTART  0x00000004
+#define AEWB_RIGHTWORDEND    0x00000008
 
 #ifndef FR_DOWN
   #define FR_DOWN 0x00000001
@@ -427,6 +432,7 @@ typedef struct _AKELEDIT {
   BOOL bColumnSel;
   BOOL bWordWrap;
   DWORD dwMouseMoveTimer;
+  DWORD dwWordBreak;
   wchar_t wszWordDelimiters[128];
   wchar_t wszWrapDelimiters[128];
 
@@ -511,8 +517,8 @@ BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, int nMinExtent, int
 BOOL AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel);
 BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel);
 BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel);
-BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel);
-BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel);
+BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, BOOL bSearch);
+BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, BOOL bSearch);
 BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c);
 int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, POINT *ptSelStart, POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel);
 DWORD AE_GetTextRangeAnsi(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);

@@ -6,6 +6,7 @@ Changed: if the founded text is outside visibility, then it is putted to middle 
 
 Added: Latin recognition OEM and UTF-8.
 Added: unicode files without BOM now marked as "*BOM" in status bar.
+Added: now "Word delimiters" check off is working.
 
 Fixed: insert text in word wrap mode.
 Fixed: search in word wrap mode.
