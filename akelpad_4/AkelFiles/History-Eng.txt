@@ -10,6 +10,7 @@ Added: now "Word delimiters" check off is working.
 
 Fixed: insert text in word wrap mode.
 Fixed: search in word wrap mode.
+Fixed: problem with search flags.
 
 Do not work yet:
 - Text Drag'n'Drop.
