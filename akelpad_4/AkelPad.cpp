@@ -417,6 +417,15 @@ extern "C" void _WinMain()
     bMDI=bRegMDI;
     if (!lpCodepageList) nCodepageListLen=EnumCodepageList(&lpCodepageList);
 
+    //Normalize search flags
+    ftflags=(ftflags & AEFR_DOWN) |
+            (ftflags & AEFR_MATCHCASE) |
+            (ftflags & AEFR_UP) |
+            (ftflags & AEFR_BEGINNING) |
+            (ftflags & AEFR_SELECTION) |
+            (ftflags & AEFR_ESCAPESEQ) |
+            (ftflags & AEFR_ALLFILES);
+
     //Get startup info
     lpStartupInfo.cb=sizeof(STARTUPINFOA);
     GetStartupInfoA(&lpStartupInfo);
@@ -809,6 +818,15 @@ extern "C" void _WinMain()
     nCurrentCodePage=nDefaultCodePage;
     bMDI=bRegMDI;
     if (!lpCodepageList) nCodepageListLen=EnumCodepageList(&lpCodepageList);
+
+    //Normalize search flags
+    ftflags=(ftflags & AEFR_DOWN) |
+            (ftflags & AEFR_MATCHCASE) |
+            (ftflags & AEFR_UP) |
+            (ftflags & AEFR_BEGINNING) |
+            (ftflags & AEFR_SELECTION) |
+            (ftflags & AEFR_ESCAPESEQ) |
+            (ftflags & AEFR_ALLFILES);
 
     //Get startup info
     lpStartupInfoW.cb=sizeof(STARTUPINFOW);
