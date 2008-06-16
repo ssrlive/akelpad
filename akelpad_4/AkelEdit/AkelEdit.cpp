@@ -573,11 +573,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (ae->bWordWrap)
           {
-            CHARRANGE crRE;
+            AECHARRANGE cr;
 
-            AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-            AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
-            AE_RichEditSetSel(ae, crRE.cpMin, crRE.cpMax, ae->bColumnSel);
+            cr.ciMin=ae->ciSelStartIndex;
+            cr.ciMax=ae->ciSelEndIndex;
+            AE_WrapLines(ae, NULL, NULL, &cr.ciMin, &cr.ciMax, ae->bWordWrap);
+
+            if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+              AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, ae->bColumnSel, TRUE);
+            else
+              AE_SetSelectionPos(ae, &cr.ciMin, &cr.ciMax, ae->bColumnSel, TRUE);
           }
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, lParam);
         }
@@ -593,11 +598,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           ae->bWordWrap=wParam;
           {
-            CHARRANGE crRE;
+            AECHARRANGE cr;
 
-            AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-            AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
-            AE_RichEditSetSel(ae, crRE.cpMin, crRE.cpMax, ae->bColumnSel);
+            cr.ciMin=ae->ciSelStartIndex;
+            cr.ciMax=ae->ciSelEndIndex;
+            AE_WrapLines(ae, NULL, NULL, &cr.ciMin, &cr.ciMax, ae->bWordWrap);
+
+            if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+              AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, ae->bColumnSel, TRUE);
+            else
+              AE_SetSelectionPos(ae, &cr.ciMin, &cr.ciMax, ae->bColumnSel, TRUE);
           }
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, lParam);
         }
@@ -1091,11 +1101,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (ae->bWordWrap)
       {
-        CHARRANGE crRE;
+        AECHARRANGE cr;
 
-        AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-        AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
-        AE_RichEditSetSel(ae, crRE.cpMin, crRE.cpMax, ae->bColumnSel);
+        cr.ciMin=ae->ciSelStartIndex;
+        cr.ciMax=ae->ciSelEndIndex;
+        AE_WrapLines(ae, NULL, NULL, &cr.ciMin, &cr.ciMax, ae->bWordWrap);
+
+        if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+          AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, ae->bColumnSel, TRUE);
+        else
+          AE_SetSelectionPos(ae, &cr.ciMin, &cr.ciMax, ae->bColumnSel, TRUE);
       }
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, !lParam);
       return 0;
@@ -1158,11 +1173,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (ae->bWordWrap)
         {
-          CHARRANGE crRE;
+          AECHARRANGE cr;
 
-          AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-          AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
-          AE_RichEditSetSel(ae, crRE.cpMin, crRE.cpMax, ae->bColumnSel);
+          cr.ciMin=ae->ciSelStartIndex;
+          cr.ciMax=ae->ciSelEndIndex;
+          AE_WrapLines(ae, NULL, NULL, &cr.ciMin, &cr.ciMax, ae->bWordWrap);
+
+          if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+            AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, ae->bColumnSel, TRUE);
+          else
+            AE_SetSelectionPos(ae, &cr.ciMin, &cr.ciMax, ae->bColumnSel, TRUE);
         }
         AE_UpdateScrollBars(ae, SB_BOTH);
         AE_UpdateEditWindow(ae->hWndEdit, TRUE);
@@ -3456,7 +3476,7 @@ BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar)
   return FALSE;
 }
 
-int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bWrap)
+int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, AECHARINDEX *ciPointOne, AECHARINDEX *ciPointTwo, BOOL bWrap)
 {
   AELINEINDEX liFirst;
   AELINEINDEX liCount;
@@ -3472,7 +3492,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine,
   else
     dwMaxWidth=(DWORD)-1;
 
-  if (!liStartLine)
+  if (!liWrapStart)
   {
     liCount.nLine=0;
     liCount.lpLine=(AELINEDATA *)ae->hLinesStack.first;
@@ -3480,27 +3500,27 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine,
   }
   else
   {
-    if (liStartLine->lpLine->prev)
+    if (liWrapStart->lpLine->prev)
     {
-      if (liStartLine->lpLine->prev->nLineBreak == AELB_WRAP)
+      if (liWrapStart->lpLine->prev->nLineBreak == AELB_WRAP)
       {
-        liCount.nLine=liStartLine->nLine - 1;
-        liCount.lpLine=liStartLine->lpLine->prev;
+        liCount.nLine=liWrapStart->nLine - 1;
+        liCount.lpLine=liWrapStart->lpLine->prev;
         bPrevLine=TRUE;
       }
     }
     if (!bPrevLine)
-      liCount=*liStartLine;
+      liCount=*liWrapStart;
     liFirst=liCount;
   }
 
-  if (!liEndLine)
+  if (!liWrapEnd)
   {
     nStopLine=ae->nLineCount;
   }
   else
   {
-    nStopLine=liEndLine->nLine;
+    nStopLine=liWrapEnd->nLine;
   }
 
   while (liCount.lpLine)
@@ -3512,7 +3532,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine,
 
       if ((DWORD)(liCount.lpLine->nLineWidth + ae->nAveCharWidth) > dwMaxWidth)
       {
-        if (nWrapped=AE_LineWrap(ae, &liCount, (liCount.nLine == liFirst.nLine)?&liFirst:NULL, &liCount, dwMaxWidth))
+        if (nWrapped=AE_LineWrap(ae, &liCount, (liCount.nLine == liFirst.nLine)?&liFirst:NULL, &liCount, dwMaxWidth, ciPointOne, ciPointTwo))
         {
           nLineCount+=nWrapped;
         }
@@ -3521,7 +3541,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine,
     }
     if (liCount.lpLine->nLineBreak == AELB_WRAP)
     {
-      if (nUnwrapped=AE_LineUnwrap(ae, &liCount, dwMaxWidth))
+      if (nUnwrapped=AE_LineUnwrap(ae, &liCount, dwMaxWidth, ciPointOne, ciPointTwo))
       {
         nLineCount+=nUnwrapped;
 
@@ -3537,8 +3557,8 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine,
     liCount.lpLine=liCount.lpLine->next;
   }
 
-  if (liStartLine) *liStartLine=liFirst;
-  if (liEndLine) *liEndLine=liCount;
+  if (liWrapStart) *liWrapStart=liFirst;
+  if (liWrapEnd) *liWrapEnd=liCount;
 
   //Update control points
   if (ae->liFirstDrawLine.lpLine)
@@ -3615,14 +3635,14 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine,
   }
 
   //Set global
-  if (!bWrap) AE_CalcLinesWidth(ae, liStartLine, liEndLine, FALSE);
+  if (!bWrap) AE_CalcLinesWidth(ae, liWrapStart, liWrapEnd, FALSE);
   ae->nLineCount+=nLineCount;
   ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
   AE_UpdateScrollBars(ae, SB_VERT);
   return nLineCount;
 }
 
-int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, DWORD dwMaxWidth)
+int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwMaxWidth, AECHARINDEX *ciPointOne, AECHARINDEX *ciPointTwo)
 {
   AELINEINDEX liStart=*liLine;
   AELINEINDEX liEnd=*liLine;
@@ -3633,6 +3653,11 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
   int nCharPos=0;
   int nLineCount=0;
   int i;
+  BOOL bPointOne=TRUE;
+  BOOL bPointTwo=TRUE;
+
+  if (!ciPointOne) bPointOne=FALSE;
+  if (!ciPointTwo) bPointTwo=FALSE;
 
   NextLine:
   if (nCharEnd < lpInitialElement->nLineLen)
@@ -3674,6 +3699,33 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
           lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
           AE_GetLineWidth(ae, lpNewElement);
 
+          if (bPointOne)
+          {
+            if (ciPointOne->lpLine == lpInitialElement)
+            {
+              if (ciPointOne->nCharInLine >= nCharStart && ciPointOne->nCharInLine <= nCharEnd)
+              {
+                ciPointOne->nLine+=nLineCount;
+                ciPointOne->lpLine=lpNewElement;
+                ciPointOne->nCharInLine=ciPointOne->nCharInLine - nCharStart;
+                bPointOne=FALSE;
+              }
+            }
+          }
+          if (ciPointTwo)
+          {
+            if (ciPointTwo->lpLine == lpInitialElement)
+            {
+              if (ciPointTwo->nCharInLine >= nCharStart && ciPointTwo->nCharInLine <= nCharEnd)
+              {
+                ciPointTwo->nLine+=nLineCount;
+                ciPointTwo->lpLine=lpNewElement;
+                ciPointTwo->nCharInLine=ciPointTwo->nCharInLine - nCharStart;
+                bPointTwo=FALSE;
+              }
+            }
+          }
+
           nCharStart=nCharEnd;
           if (nCharEnd < lpInitialElement->nLineLen)
             ++nLineCount;
@@ -3689,14 +3741,29 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liStartLin
 
     liEnd.lpLine=lpNewElement;
     liEnd.nLine+=nLineCount;
+
+    if (bPointOne)
+    {
+      if (ciPointOne->nLine > liStart.nLine)
+      {
+        ciPointOne->nLine+=nLineCount;
+      }
+    }
+    if (bPointTwo)
+    {
+      if (ciPointTwo->nLine > liStart.nLine)
+      {
+        ciPointTwo->nLine+=nLineCount;
+      }
+    }
   }
 
-  if (liStartLine) *liStartLine=liStart;
-  if (liEndLine) *liEndLine=liEnd;
+  if (liWrapStart) *liWrapStart=liStart;
+  if (liWrapEnd) *liWrapEnd=liEnd;
   return nLineCount;
 }
 
-int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
+int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AECHARINDEX *ciPointOne, AECHARINDEX *ciPointTwo)
 {
   AELINEDATA *lpNewElement;
   AELINEDATA *lpCurElement;
@@ -3707,6 +3774,11 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
   DWORD dwCountWidth=0;
   DWORD dwCountLen=0;
   int nLineCount=0;
+  BOOL bPointOne=TRUE;
+  BOOL bPointTwo=TRUE;
+
+  if (!ciPointOne) bPointOne=FALSE;
+  if (!ciPointTwo) bPointTwo=FALSE;
 
   if (liLine->lpLine->nLineWidth == -1)
     AE_GetLineWidth(ae, liLine->lpLine);
@@ -3749,6 +3821,27 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
           dwCountWidth+=lpCurElement->nLineWidth;
           dwCountLen+=lpCurElement->nLineLen;
 
+          if (bPointOne)
+          {
+            if (ciPointOne->lpLine == lpCurElement)
+            {
+              ciPointOne->nLine+=nLineCount;
+              ciPointOne->lpLine=lpNewElement;
+              ciPointOne->nCharInLine=ciPointOne->nCharInLine + (dwCountLen - lpCurElement->nLineLen);
+              bPointOne=FALSE;
+            }
+          }
+          if (bPointTwo)
+          {
+            if (ciPointTwo->lpLine == lpCurElement)
+            {
+              ciPointTwo->nLine+=nLineCount;
+              ciPointTwo->lpLine=lpNewElement;
+              ciPointTwo->nCharInLine=ciPointTwo->nCharInLine + (dwCountLen - lpCurElement->nLineLen);
+              bPointTwo=FALSE;
+            }
+          }
+
           if (dwCountWidth + ae->nAveCharWidth * 2 >= dwMaxWidth || lpCurElement->nLineBreak != AELB_WRAP)
           {
             AE_StackLineDelete(ae, lpCurElement);
@@ -3767,6 +3860,21 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
     if (nLineCount)
     {
       liLine->lpLine=lpNewElement;
+
+      if (bPointOne)
+      {
+        if (ciPointOne->nLine > liLine->nLine)
+        {
+          ciPointOne->nLine+=nLineCount;
+        }
+      }
+      if (bPointTwo)
+      {
+        if (ciPointTwo->nLine > liLine->nLine)
+        {
+          ciPointTwo->nLine+=nLineCount;
+        }
+      }
     }
   }
   return nLineCount;
@@ -5745,14 +5853,20 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
 
       if (ae->bWordWrap)
       {
-        nLineCount+=AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
+        AELINEINDEX liWrapStart;
+        AELINEINDEX liWrapEnd;
+
+        liWrapStart.nLine=ciFirstChar.nLine;
+        liWrapStart.lpLine=ciFirstChar.lpLine;
+        liWrapEnd.nLine=ciLastChar.nLine;
+        liWrapEnd.lpLine=ciLastChar.lpLine;
+        nLineCount+=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, ae->bWordWrap);
 
         //Set redraw lines
-        nFirstRedrawLine=ciFirstChar.nLine;
+        nFirstRedrawLine=liWrapStart.nLine;
         nLastRedrawLine=-1;
 
         //Set control points to "delete from" position
-        AE_RichOffsetToAkelIndex(ae, nStartOffset, &ciFirstChar);
         AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
         ae->ciCaretIndex=ciFirstChar;
         ae->nSelStartLineOffset=nStartOffset;
@@ -5941,14 +6055,20 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
 
       if (ae->bWordWrap)
       {
-        nLineCount+=AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
+        AELINEINDEX liWrapStart;
+        AELINEINDEX liWrapEnd;
+
+        liWrapStart.nLine=ciFirstChar.nLine;
+        liWrapStart.lpLine=ciFirstChar.lpLine;
+        liWrapEnd.nLine=ciLastChar.nLine;
+        liWrapEnd.lpLine=ciLastChar.lpLine;
+        nLineCount+=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, ae->bWordWrap);
 
         //Set redraw lines
-        nFirstRedrawLine=ciFirstChar.nLine;
+        nFirstRedrawLine=liWrapStart.nLine;
         nLastRedrawLine=-1;
 
         //Set control points to "delete from" position
-        AE_RichOffsetToAkelIndex(ae, nStartOffset, &ciFirstChar);
         AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
         ae->ciCaretIndex=ciFirstChar;
         ae->nSelStartLineOffset=nStartOffset;
@@ -6222,11 +6342,16 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   if (ae->bWordWrap)
   {
     {
-      CHARRANGE crRE;
+      AECHARRANGE cr;
 
-      AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-      AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
-      AE_RichEditSetSel(ae, crRE.cpMin, crRE.cpMax, ae->bColumnSel);
+      cr.ciMin=ae->ciSelStartIndex;
+      cr.ciMax=ae->ciSelEndIndex;
+      AE_WrapLines(ae, NULL, NULL, &cr.ciMin, &cr.ciMax, ae->bWordWrap);
+
+      if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+        AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, ae->bColumnSel, TRUE);
+      else
+        AE_SetSelectionPos(ae, &cr.ciMin, &cr.ciMax, ae->bColumnSel, TRUE);
     }
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
   }
@@ -6256,7 +6381,7 @@ void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnS
   AECHARINDEX ciEnd={0};
 
   AE_StackUndoGroupStop(ae);
-  AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, TRUE);
+  AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, FALSE);
   AE_InsertText(ae, &ae->ciSelStartIndex, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, &ciStart, &ciEnd, TRUE, TRUE);
   AE_StackUndoGroupStop(ae);
 
@@ -6577,23 +6702,26 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
 
         if (ae->bWordWrap)
         {
-          AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
+          AELINEINDEX liWrapStart;
+          AELINEINDEX liWrapEnd;
+
+          liWrapStart.nLine=ciFirstChar.nLine;
+          liWrapStart.lpLine=ciFirstChar.lpLine;
+          liWrapEnd.nLine=ciLastChar.nLine;
+          liWrapEnd.lpLine=ciLastChar.lpLine;
+          AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, ae->bWordWrap);
 
           //Set redraw lines
-          nFirstRedrawLine=ciFirstChar.nLine;
+          nFirstRedrawLine=liWrapStart.nLine;
           nLastRedrawLine=-1;
 
           //Set control points to "insert from" position
-          AE_RichOffsetToAkelIndex(ae, nStartOffset, &ciFirstChar);
           AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
           ae->ciCaretIndex=ciFirstChar;
           ae->nSelStartLineOffset=nStartOffset;
           ae->ciSelStartIndex=ciFirstChar;
           ae->nSelEndLineOffset=nStartOffset;
           ae->ciSelEndIndex=ciFirstChar;
-
-          //Set "insert to" position
-          AE_RichOffsetToAkelIndex(ae, nEndOffset, &ciLastChar);
         }
         else
         {
@@ -6852,14 +6980,20 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
 
         if (ae->bWordWrap)
         {
-          nLineCount+=AE_WrapLines(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, ae->bWordWrap);
+          AELINEINDEX liWrapStart;
+          AELINEINDEX liWrapEnd;
+
+          liWrapStart.nLine=ciFirstChar.nLine;
+          liWrapStart.lpLine=ciFirstChar.lpLine;
+          liWrapEnd.nLine=ciLastChar.nLine;
+          liWrapEnd.lpLine=ciLastChar.lpLine;
+          nLineCount+=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, ae->bWordWrap);
 
           //Set redraw lines
-          nFirstRedrawLine=ciFirstChar.nLine;
+          nFirstRedrawLine=liWrapStart.nLine;
           nLastRedrawLine=-1;
 
           //Set control points to "insert to" position
-          AE_RichOffsetToAkelIndex(ae, nEndOffset, &ciLastChar);
           AE_GetPosFromCharEx(ae, &ciLastChar, &ae->ptCaret, NULL);
           ae->ciCaretIndex=ciLastChar;
           ae->nSelStartLineOffset=nEndOffset;
@@ -7867,7 +8001,7 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
         }
       }
       MultiByteToWideChar(CP_ACP, 0, &chChar, 1, &wchChar, 1);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, TRUE);
+      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, FALSE);
       AE_InsertText(ae, &ae->ciSelStartIndex, &wchChar, 1, ae->nInputNewLine, FALSE, NULL, NULL, TRUE, TRUE);
 
       if (ae->dwUndoLimit)
@@ -7896,7 +8030,7 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
           }
         }
       }
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, TRUE);
+      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, FALSE);
       AE_InsertText(ae, &ae->ciSelStartIndex, &wchChar, 1, ae->nInputNewLine, FALSE, NULL, NULL, TRUE, TRUE);
 
       if (ae->dwUndoLimit)
@@ -7919,7 +8053,7 @@ void AE_EditKeyReturn(AKELEDIT *ae)
     int nNewLine;
 
     nNewLine=AE_GetNewLineString(ae, ae->nOutputNewLine, &wpNewLine);
-    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, TRUE);
+    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, FALSE);
     AE_InsertText(ae, &ae->ciSelStartIndex, wpNewLine, nNewLine, ae->nInputNewLine, FALSE, NULL, NULL, TRUE, TRUE);
 
     if (ae->dwUndoLimit)
