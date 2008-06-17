@@ -113,6 +113,7 @@ RECT rcMainWindowRestored={CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDE
 DWORD dwMainStyle=0;
 DWORD dwLastMainSize=0;
 int nStatusHeight=0;
+BOOL bStatusSelUpdate=TRUE;
 HACCEL hGlobalAccel;
 HACCEL hMainAccel;
 HICON hMainIcon;
@@ -2513,11 +2514,17 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_UNDO)
     {
+      bStatusSelUpdate=FALSE;
       DoEditUndo(hWndEdit);
+      bStatusSelUpdate=TRUE;
+      SetSelectionStatusA(hWndEdit, NULL, NULL);
     }
     else if (LOWORD(wParam) == IDM_EDIT_REDO)
     {
+      bStatusSelUpdate=FALSE;
       DoEditRedo(hWndEdit);
+      bStatusSelUpdate=TRUE;
+      SetSelectionStatusA(hWndEdit, NULL, NULL);
     }
     else if (LOWORD(wParam) == IDM_EDIT_CUT)
     {
@@ -4167,11 +4174,17 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_UNDO)
     {
+      bStatusSelUpdate=FALSE;
       DoEditUndo(hWndEdit);
+      bStatusSelUpdate=TRUE;
+      SetSelectionStatusW(hWndEdit, NULL, NULL);
     }
     else if (LOWORD(wParam) == IDM_EDIT_REDO)
     {
+      bStatusSelUpdate=FALSE;
       DoEditRedo(hWndEdit);
+      bStatusSelUpdate=TRUE;
+      SetSelectionStatusW(hWndEdit, NULL, NULL);
     }
     else if (LOWORD(wParam) == IDM_EDIT_CUT)
     {
