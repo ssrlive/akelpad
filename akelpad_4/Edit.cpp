@@ -91,6 +91,7 @@ extern RECT rcMainWindowRestored;
 extern DWORD dwMainStyle;
 extern DWORD dwLastMainSize;
 extern int nStatusHeight;
+extern BOOL bStatusSelUpdate;
 extern HACCEL hGlobalAccel;
 extern HACCEL hMainAccel;
 extern HICON hMainIcon;
@@ -15696,12 +15697,15 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     ciCaret=*aes.lpciCaret;
   }
 
-  if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-    wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1);
-  else
-    wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+  if (bStatusSelUpdate)
+  {
+    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+      wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1);
+    else
+      wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
-  SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
+    SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
+  }
 }
 
 void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
@@ -15721,12 +15725,15 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     ciCaret=*aes.lpciCaret;
   }
 
-  if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-    wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1);
-  else
-    wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+  if (bStatusSelUpdate)
+  {
+    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+      wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1);
+    else
+      wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
-  SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
+    SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
+  }
 }
 
 void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
