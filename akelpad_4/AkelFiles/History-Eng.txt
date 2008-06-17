@@ -3,6 +3,7 @@ AkelPad 4.0.0 alpha 5 ()
 ------------------------------------
 Changed: if the founded text is outside visibility, then it is putted to middle of
          editing window.
+Changed: "twitching" at Undo/Redo minimized.
 
 Added: Latin recognition OEM and UTF-8.
 Added: unicode files without BOM now marked as "*BOM" in status bar.
