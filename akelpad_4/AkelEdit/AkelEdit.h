@@ -45,33 +45,35 @@
 #define AEM_ISCARETVISIBLE    (WM_USER + 2033)
 #define AEM_LINESCROLL        (WM_USER + 2034)
 #define AEM_SCROLLCARET       (WM_USER + 2035)
-#define AEM_STOPSCROLL        (WM_USER + 2036)
-#define AEM_FINDTEXTA         (WM_USER + 2037)
-#define AEM_FINDTEXTW         (WM_USER + 2038)
-#define AEM_GETOPTIONS        (WM_USER + 2039)
-#define AEM_SETOPTIONS        (WM_USER + 2040)
-#define AEM_GETUNDOLIMIT      (WM_USER + 2041)
-#define AEM_SETUNDOLIMIT      (WM_USER + 2042)
-#define AEM_GETMODIFY         (WM_USER + 2043)
-#define AEM_SETMODIFY         (WM_USER + 2044)
-#define AEM_GETRECT           (WM_USER + 2045)
-#define AEM_SETRECT           (WM_USER + 2046)
-#define AEM_GETMARGINS        (WM_USER + 2047)
-#define AEM_SETMARGINS        (WM_USER + 2048)
-#define AEM_GETNEWLINE        (WM_USER + 2049)
-#define AEM_SETNEWLINE        (WM_USER + 2050)
-#define AEM_GETCOLORS         (WM_USER + 2051)
-#define AEM_SETCOLORS         (WM_USER + 2052)
-#define AEM_GETOVERTYPE       (WM_USER + 2053)
-#define AEM_SETOVERTYPE       (WM_USER + 2054)
-#define AEM_GETTABSTOP        (WM_USER + 2055)
-#define AEM_SETTABSTOP        (WM_USER + 2056)
-#define AEM_GETWORDWRAP       (WM_USER + 2057)
-#define AEM_SETWORDWRAP       (WM_USER + 2058)
-#define AEM_GETWORDDELIMITERS (WM_USER + 2059)
-#define AEM_SETWORDDELIMITERS (WM_USER + 2060)
-#define AEM_SHOWSCROLLBAR     (WM_USER + 2061)
-#define AEM_CHECKCODEPAGE     (WM_USER + 2062)
+#define AEM_LOCKSCROLL        (WM_USER + 2036)
+#define AEM_SHOWSCROLLBAR     (WM_USER + 2037)
+#define AEM_FINDTEXTA         (WM_USER + 2038)
+#define AEM_FINDTEXTW         (WM_USER + 2039)
+#define AEM_GETOPTIONS        (WM_USER + 2040)
+#define AEM_SETOPTIONS        (WM_USER + 2041)
+#define AEM_GETUNDOLIMIT      (WM_USER + 2042)
+#define AEM_SETUNDOLIMIT      (WM_USER + 2043)
+#define AEM_GETMODIFY         (WM_USER + 2044)
+#define AEM_SETMODIFY         (WM_USER + 2045)
+#define AEM_GETRECT           (WM_USER + 2046)
+#define AEM_SETRECT           (WM_USER + 2047)
+#define AEM_GETMARGINS        (WM_USER + 2048)
+#define AEM_SETMARGINS        (WM_USER + 2049)
+#define AEM_GETNEWLINE        (WM_USER + 2050)
+#define AEM_SETNEWLINE        (WM_USER + 2051)
+#define AEM_GETCOLORS         (WM_USER + 2052)
+#define AEM_SETCOLORS         (WM_USER + 2053)
+#define AEM_GETOVERTYPE       (WM_USER + 2054)
+#define AEM_SETOVERTYPE       (WM_USER + 2055)
+#define AEM_GETTABSTOP        (WM_USER + 2056)
+#define AEM_SETTABSTOP        (WM_USER + 2057)
+#define AEM_GETWORDWRAP       (WM_USER + 2058)
+#define AEM_SETWORDWRAP       (WM_USER + 2059)
+#define AEM_GETWORDDELIMITERS (WM_USER + 2060)
+#define AEM_SETWORDDELIMITERS (WM_USER + 2061)
+#define AEM_GETWRAPDELIMITERS (WM_USER + 2062)
+#define AEM_SETWRAPDELIMITERS (WM_USER + 2063)
+#define AEM_CHECKCODEPAGE     (WM_USER + 2064)
 
 #define AES_AKELEDITCLASSA     "AkelEditA"
 #define AES_AKELEDITCLASSW    L"AkelEditW"
@@ -418,8 +420,8 @@ typedef struct _AKELEDIT {
   int nVScrollMax;
   BOOL bVScrollShow;
   BOOL bHScrollShow;
-  BOOL bVScrollStop;
-  BOOL bHScrollStop;
+  BOOL bVScrollLock;
+  BOOL bHScrollLock;
   HBITMAP hCaretInsert;
   HBITMAP hCaretOvertype;
   COLORREF crCaret;

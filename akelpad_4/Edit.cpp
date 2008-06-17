@@ -9195,9 +9195,9 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTA, 0, (LPARAM)&ft))
   {
-    SendMessage(hWnd, AEM_STOPSCROLL, SB_BOTH, TRUE);
+    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
     SetSel(hWnd, &ft.crFound, NULL, FALSE);
-    SendMessage(hWnd, AEM_STOPSCROLL, SB_BOTH, FALSE);
+    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
     if (!SendMessage(hWnd, AEM_ISCARETVISIBLE, 0, 0))
       SendMessage(hWnd, AEM_SCROLLCARET, 0, TRUE);
@@ -9240,9 +9240,9 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTW, 0, (LPARAM)&ft))
   {
-    SendMessage(hWnd, AEM_STOPSCROLL, SB_BOTH, TRUE);
+    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
     SetSel(hWnd, &ft.crFound, NULL, FALSE);
-    SendMessage(hWnd, AEM_STOPSCROLL, SB_BOTH, FALSE);
+    SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
     if (!SendMessage(hWnd, AEM_ISCARETVISIBLE, 0, 0))
       SendMessage(hWnd, AEM_SCROLLCARET, 0, TRUE);
