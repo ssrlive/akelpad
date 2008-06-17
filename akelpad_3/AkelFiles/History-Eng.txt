@@ -1,4 +1,11 @@
 
+AkelPad 3.5.7 ()
+----------------------------
+Added: unicode files without BOM now marked as "*BOM" in status bar.
+
+Fixed: UTF-8 without BOM recognition.
+
+
 AkelPad 3.5.6 (Apr 21, 2008)
 ----------------------------
 Added: Turkish language module (fero74).
