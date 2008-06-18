@@ -1180,183 +1180,180 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
 
   if (!(nAction & STRSEL_CHECK) && IsReadOnly()) return FALSE;
 
-  if (!bWordWrap)
+  if (crRange.ciMin.nLine != crRange.ciMax.nLine)
   {
-    if (crRange.ciMin.nLine != crRange.ciMax.nLine)
+    if (nAction & STRSEL_CHECK) return TRUE;
+
+    crRange.ciMin.nCharInLine=0;
+    if (crRange.ciMax.nCharInLine)
+      if (!SendMessage(hWnd, AEM_GETLINEINDEX, crRange.ciMax.nLine + 1, (LPARAM)&crRange.ciMax))
+        crRange.ciMax.nCharInLine=crRange.ciMax.lpLine->nLineLen;
+
+    crInitialSel=crRange;
+    if (!AEC_IndexCompare(&crSel.ciMin, &ciCaret))
+      ciInitialCaret=crInitialSel.ciMin;
+    else
+      ciInitialCaret=crInitialSel.ciMax;
+
+    if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMin, &crRange.ciMax, AELB_ASIS, FALSE))
     {
-      if (nAction & STRSEL_CHECK) return TRUE;
+      nStringLen=wcslen(wpString);
+      nStringBytes=nStringLen * sizeof(wchar_t);
 
-      crRange.ciMin.nCharInLine=0;
-      if (crRange.ciMax.nCharInLine)
-        if (!SendMessage(hWnd, AEM_GETLINEINDEX, crRange.ciMax.nLine + 1, (LPARAM)&crRange.ciMax))
-          crRange.ciMax.nCharInLine=crRange.ciMax.lpLine->nLineLen;
-
-      crInitialSel=crRange;
-      if (!AEC_IndexCompare(&crSel.ciMin, &ciCaret))
-        ciInitialCaret=crInitialSel.ciMin;
-      else
-        ciInitialCaret=crInitialSel.ciMax;
-
-      if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMin, &crRange.ciMax, AELB_ASIS, FALSE))
+      SaveLineScroll(hWnd, &nFirstLine);
+      SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
+      SetSel(hWnd, &crRange, NULL, FALSE);
+      if (nAction & STRSEL_INSERT)
       {
-        nStringLen=wcslen(wpString);
-        nStringBytes=nStringLen * sizeof(wchar_t);
+        nStringLenAll=(crRange.ciMax.nLine - crRange.ciMin.nLine + 1) * nStringLen;
+        nBufferLen=nRangeLen + nStringLenAll;
 
-        SaveLineScroll(hWnd, &nFirstLine);
-        SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-        SetSel(hWnd, &crRange, NULL, FALSE);
-        if (nAction & STRSEL_INSERT)
+        if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferLen * sizeof(wchar_t) + 2))
         {
-          nStringLenAll=(crRange.ciMax.nLine - crRange.ciMin.nLine + 1) * nStringLen;
-          nBufferLen=nRangeLen + nStringLenAll;
+          tr.cr=crRange;
+          tr.wpText=wszRange + nStringLenAll;
+          tr.nNewLine=AELB_ASIS;
+          tr.bColumnSel=FALSE;
+          SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+          b=nStringLenAll;
 
-          if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferLen * sizeof(wchar_t) + 2))
+          memcpy(wszRange, wpString, nStringBytes);
+          a=nStringLen;
+
+          while (b < nBufferLen)
           {
-            tr.cr=crRange;
-            tr.wpText=wszRange + nStringLenAll;
-            tr.nNewLine=AELB_ASIS;
-            tr.bColumnSel=FALSE;
-            SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
-            b=nStringLenAll;
-
-            memcpy(wszRange, wpString, nStringBytes);
-            a=nStringLen;
-
-            while (b < nBufferLen)
+            if (wszRange[b] == '\r' && wszRange[b + 1] == '\r' && wszRange[b + 2] == '\n')
             {
-              if (wszRange[b] == '\r' && wszRange[b + 1] == '\r' && wszRange[b + 2] == '\n')
-              {
-                wszRange[a++]=wszRange[b++];
-                wszRange[a++]=wszRange[b++];
-                wszRange[a++]=wszRange[b++];
-              }
-              else if (wszRange[b] == '\r' && wszRange[b + 1] == '\n')
-              {
-                wszRange[a++]=wszRange[b++];
-                wszRange[a++]=wszRange[b++];
-              }
-              else if (wszRange[b] == '\r')
-              {
-                wszRange[a++]=wszRange[b++];
-              }
-              else if (wszRange[b] == '\n')
-              {
-                wszRange[a++]=wszRange[b++];
-              }
-              else
-              {
-                wszRange[a++]=wszRange[b++];
-                continue;
-              }
-
-              if (b < nBufferLen)
-              {
-                memcpy(wszRange + a, wpString, nStringBytes);
-                a+=nStringLen;
-              }
+              wszRange[a++]=wszRange[b++];
+              wszRange[a++]=wszRange[b++];
+              wszRange[a++]=wszRange[b++];
             }
-            wszRange[a]='\0';
-            bResult=TRUE;
-          }
-        }
-        else if (nAction & STRSEL_DELETE)
-        {
-          if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, nRangeLen * sizeof(wchar_t) + 2))
-          {
-            tr.cr=crRange;
-            tr.wpText=wszRange;
-            tr.nNewLine=AELB_ASIS;
-            tr.bColumnSel=FALSE;
-            SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
-
-            if (nAction & STRSEL_TAB)
+            else if (wszRange[b] == '\r' && wszRange[b + 1] == '\n')
             {
-              if (wszRange[b] == '\t')
-                ++b;
-              else
-                for (i=0; i < nTabStopSize && wszRange[b] == ' '; ++i, ++b);
+              wszRange[a++]=wszRange[b++];
+              wszRange[a++]=wszRange[b++];
             }
-            else if (nAction & STRSEL_SPACE)
+            else if (wszRange[b] == '\r')
             {
-              if (wszRange[b] == ' ' || wszRange[b] == '\t')
-                ++b;
+              wszRange[a++]=wszRange[b++];
+            }
+            else if (wszRange[b] == '\n')
+            {
+              wszRange[a++]=wszRange[b++];
             }
             else
             {
-              if (!memcmp(wszRange + b, wpString, nStringBytes))
-                b+=nStringLen;
+              wszRange[a++]=wszRange[b++];
+              continue;
             }
 
-            while (b < nRangeLen)
+            if (b < nBufferLen)
             {
-              if (wszRange[b] == '\r' && wszRange[b + 1] == '\r' && wszRange[b + 2] == '\n')
+              memcpy(wszRange + a, wpString, nStringBytes);
+              a+=nStringLen;
+            }
+          }
+          wszRange[a]='\0';
+          bResult=TRUE;
+        }
+      }
+      else if (nAction & STRSEL_DELETE)
+      {
+        if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, nRangeLen * sizeof(wchar_t) + 2))
+        {
+          tr.cr=crRange;
+          tr.wpText=wszRange;
+          tr.nNewLine=AELB_ASIS;
+          tr.bColumnSel=FALSE;
+          SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+
+          if (nAction & STRSEL_TAB)
+          {
+            if (wszRange[b] == '\t')
+              ++b;
+            else
+              for (i=0; i < nTabStopSize && wszRange[b] == ' '; ++i, ++b);
+          }
+          else if (nAction & STRSEL_SPACE)
+          {
+            if (wszRange[b] == ' ' || wszRange[b] == '\t')
+              ++b;
+          }
+          else
+          {
+            if (!memcmp(wszRange + b, wpString, nStringBytes))
+              b+=nStringLen;
+          }
+
+          while (b < nRangeLen)
+          {
+            if (wszRange[b] == '\r' && wszRange[b + 1] == '\r' && wszRange[b + 2] == '\n')
+            {
+              wszRange[a++]=wszRange[b++];
+              wszRange[a++]=wszRange[b++];
+              wszRange[a++]=wszRange[b++];
+            }
+            else if (wszRange[b] == '\r' && wszRange[b + 1] == '\n')
+            {
+              wszRange[a++]=wszRange[b++];
+              wszRange[a++]=wszRange[b++];
+            }
+            else if (wszRange[b] == '\r')
+            {
+              wszRange[a++]=wszRange[b++];
+            }
+            else if (wszRange[b] == '\n')
+            {
+              wszRange[a++]=wszRange[b++];
+            }
+            else
+            {
+              wszRange[a++]=wszRange[b++];
+              continue;
+            }
+
+            if (b < nRangeLen)
+            {
+              if (nAction & STRSEL_TAB)
               {
-                wszRange[a++]=wszRange[b++];
-                wszRange[a++]=wszRange[b++];
-                wszRange[a++]=wszRange[b++];
+                if (wszRange[b] == '\t')
+                  ++b;
+                else
+                  for (i=0; i < nTabStopSize && wszRange[b] == ' '; ++i, ++b);
               }
-              else if (wszRange[b] == '\r' && wszRange[b + 1] == '\n')
+              else if (nAction & STRSEL_SPACE)
               {
-                wszRange[a++]=wszRange[b++];
-                wszRange[a++]=wszRange[b++];
-              }
-              else if (wszRange[b] == '\r')
-              {
-                wszRange[a++]=wszRange[b++];
-              }
-              else if (wszRange[b] == '\n')
-              {
-                wszRange[a++]=wszRange[b++];
+                if (wszRange[b] == ' ' || wszRange[b] == '\t')
+                  ++b;
               }
               else
               {
-                wszRange[a++]=wszRange[b++];
-                continue;
-              }
-
-              if (b < nRangeLen)
-              {
-                if (nAction & STRSEL_TAB)
-                {
-                  if (wszRange[b] == '\t')
-                    ++b;
-                  else
-                    for (i=0; i < nTabStopSize && wszRange[b] == ' '; ++i, ++b);
-                }
-                else if (nAction & STRSEL_SPACE)
-                {
-                  if (wszRange[b] == ' ' || wszRange[b] == '\t')
-                    ++b;
-                }
-                else
-                {
-                  if (!memcmp(wszRange + b, wpString, nStringBytes))
-                    b+=nStringLen;
-                }
+                if (!memcmp(wszRange + b, wpString, nStringBytes))
+                  b+=nStringLen;
               }
             }
-            wszRange[a]='\0';
-            bResult=TRUE;
           }
+          wszRange[a]='\0';
+          bResult=TRUE;
         }
-
-        if (bResult)
-        {
-          ReplaceSelW(hWnd, wszRange, a, FALSE, &crRange.ciMin, &crRange.ciMax);
-
-          //Update selection
-          if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-            SetSel(hWnd, &crRange, &crRange.ciMin, FALSE);
-          else
-            SetSel(hWnd, &crRange, &crRange.ciMax, FALSE);
-        }
-        SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-        InvalidateRect(hWnd, NULL, FALSE);
-        RestoreLineScroll(hWnd, &nFirstLine);
-
-        API_HeapFree(hHeap, 0, (LPVOID)wszRange);
-        return bResult;
       }
+
+      if (bResult)
+      {
+        ReplaceSelW(hWnd, wszRange, a, FALSE, &crRange.ciMin, &crRange.ciMax);
+
+        //Update selection
+        if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+          SetSel(hWnd, &crRange, &crRange.ciMin, FALSE);
+        else
+          SetSel(hWnd, &crRange, &crRange.ciMax, FALSE);
+      }
+      SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
+      InvalidateRect(hWnd, NULL, FALSE);
+      RestoreLineScroll(hWnd, &nFirstLine);
+
+      API_HeapFree(hHeap, 0, (LPVOID)wszRange);
+      return bResult;
     }
   }
   if (nAction & STRSEL_CHECK) return FALSE;
