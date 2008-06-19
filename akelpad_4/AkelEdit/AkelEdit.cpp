@@ -9401,14 +9401,14 @@ void AE_DropTargetDropCursor(AKELEDIT *ae, POINTL *pt, DWORD *pdwEffect)
       AE_GetCharFromPos(ae, (POINT *)pt, &ciCharIndex, &ptGlobal, FALSE);
 
       if (ae->bDragging &&
-          ((*pdwEffect & DROPEFFECT_COPY) &&
-            ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart &&
-            ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelEnd) ||
-          ((*pdwEffect & DROPEFFECT_MOVE) &&
-            ciCharIndex.nLine >= ae->ciSelStartIndex.nLine &&
-            ciCharIndex.nLine <= ae->ciSelEndIndex.nLine &&
-            ciCharIndex.nCharInLine >= ciCharIndex.lpLine->nSelStart &&
-            ciCharIndex.nCharInLine <= ciCharIndex.lpLine->nSelEnd))
+          (((*pdwEffect & DROPEFFECT_COPY) &&
+             ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart &&
+             ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelEnd) ||
+           ((*pdwEffect & DROPEFFECT_MOVE) &&
+             ciCharIndex.nLine >= ae->ciSelStartIndex.nLine &&
+             ciCharIndex.nLine <= ae->ciSelEndIndex.nLine &&
+             ciCharIndex.nCharInLine >= ciCharIndex.lpLine->nSelStart &&
+             ciCharIndex.nCharInLine <= ciCharIndex.lpLine->nSelEnd)))
       {
         //Scroll, but deny dropping in selection
         AE_ScrollToCaret(ae, &ptGlobal);
