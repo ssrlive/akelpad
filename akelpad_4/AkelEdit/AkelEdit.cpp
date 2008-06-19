@@ -9405,7 +9405,8 @@ void AE_DropTargetDropCursor(AKELEDIT *ae, POINTL *pt, DWORD *pdwEffect)
             ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart &&
             ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelEnd) ||
           ((*pdwEffect & DROPEFFECT_MOVE) &&
-            ciCharIndex.lpLine->nSelEnd &&
+            ciCharIndex.nLine >= ae->ciSelStartIndex.nLine &&
+            ciCharIndex.nLine <= ae->ciSelEndIndex.nLine &&
             ciCharIndex.nCharInLine >= ciCharIndex.lpLine->nSelStart &&
             ciCharIndex.nCharInLine <= ciCharIndex.lpLine->nSelEnd))
       {
