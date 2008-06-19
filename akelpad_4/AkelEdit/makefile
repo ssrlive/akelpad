@@ -3,7 +3,7 @@
 
 CC = g++
 CFLAGS = -Wall -Werror -Os
-LDFLAGS = -shared -lkernel32 -luser32 -lgdi32
+LDFLAGS = -shared -lkernel32 -luser32 -lgdi32 -lole32 -luuid
 ifndef NIX
   DEL = del
 else

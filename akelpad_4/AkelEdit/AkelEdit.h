@@ -2,6 +2,10 @@
 #define __AKELEDIT_H__
 
 
+//// Includes
+#include <shlobj.h>
+
+
 //// Defines
 
 #define AEN_SELCHANGE         (WM_USER + 1001)
@@ -91,6 +95,7 @@
 #define AECO_DETAILEDUNDO       0x00000008
 #define AECO_DISABLEBEEP        0x00000010
 #define AECO_PASTESELECTCOLUMN  0x00000020
+#define AECO_DISABLEDRAGDROP    0x00000040
 
 #define AECOOP_SET              0
 #define AECOOP_OR               1
@@ -110,6 +115,13 @@
 #define AEGI_PREVCHAR          11
 #define AEGI_NEXTBREAK         12
 #define AEGI_PREVBREAK         13
+#define AEGI_WRAPLINEBEGIN     14
+#define AEGI_WRAPLINEEND       15
+
+#define AEPC_ERROR   0
+#define AEPC_EQUAL   1
+#define AEPC_BEFORE  2
+#define AEPC_AFTER   3
 
 #define AELS_EMPTY   1
 #define AELS_FULL    2
@@ -362,6 +374,77 @@ typedef struct {
   BOOL bModified;
 } AENMODIFYCHANGE;
 
+
+//// OLE Drag'n'Drop
+
+typedef struct _AEIDropTargetCallbackVtbl {
+  // IUnknown implementation
+  HRESULT (WINAPI *QueryInterface)(LPUNKNOWN, REFIID, void **);
+  ULONG (WINAPI *AddRef)(LPUNKNOWN);
+  ULONG (WINAPI *Release)(LPUNKNOWN);
+
+  // Methods of the IDropTarget interface
+  HRESULT (WINAPI *DragEnter)(LPUNKNOWN, IDataObject *, DWORD, POINTL, DWORD *);
+  HRESULT (WINAPI *DragOver)(LPUNKNOWN, DWORD, POINTL, DWORD *);
+  HRESULT (WINAPI *DragLeave)(LPUNKNOWN);
+  HRESULT (WINAPI *Drop)(LPUNKNOWN, IDataObject *, DWORD, POINTL, DWORD *);
+} AEIDropTargetCallbackVtbl;
+
+typedef struct _AEIDropSourceCallbackVtbl {
+  // IUnknown implementation
+  HRESULT (WINAPI *QueryInterface)(LPUNKNOWN, REFIID, void **);
+  ULONG (WINAPI *AddRef)(LPUNKNOWN);
+  ULONG (WINAPI *Release)(LPUNKNOWN);
+
+  // Methods of the IDropSource interface
+  HRESULT (WINAPI *QueryContinueDrag)(LPUNKNOWN, BOOL, DWORD);
+  HRESULT (WINAPI *GiveFeedback)(LPUNKNOWN, DWORD);
+} AEIDropSourceCallbackVtbl;
+
+typedef struct _AEIDataObjectCallbackVtbl {
+  // IUnknown implementation
+  HRESULT (WINAPI *QueryInterface)(LPUNKNOWN, REFIID, void **);
+  ULONG (WINAPI *AddRef)(LPUNKNOWN);
+  ULONG (WINAPI *Release)(LPUNKNOWN);
+
+  // Methods of the IDataObject interface
+  HRESULT (WINAPI *GetData)(LPUNKNOWN, FORMATETC *pFormatEtc, STGMEDIUM *pMedium);
+  HRESULT (WINAPI *GetDataHere)(LPUNKNOWN, FORMATETC *pFormatEtc, STGMEDIUM *pMedium);
+  HRESULT (WINAPI *QueryGetData)(LPUNKNOWN, FORMATETC *pFormatEtc);
+  HRESULT (WINAPI *GetCanonicalFormatEtc)(LPUNKNOWN, FORMATETC *pFormatEct, FORMATETC *pFormatEtcOut);
+  HRESULT (WINAPI *SetData)(LPUNKNOWN, FORMATETC *pFormatEtc, STGMEDIUM *pMedium, BOOL fRelease);
+  HRESULT (WINAPI *EnumFormatEtc)(LPUNKNOWN, DWORD dwDirection, IEnumFORMATETC **ppEnumFormatEtc);
+  HRESULT (WINAPI *DAdvise)(LPUNKNOWN, FORMATETC *pFormatEtc, DWORD advf, IAdviseSink *pAdvSink, DWORD *pdwConnection);
+  HRESULT (WINAPI *DUnadvise)(LPUNKNOWN, DWORD dwConnection);
+  HRESULT (WINAPI *EnumDAdvise)(LPUNKNOWN, IEnumSTATDATA **ppEnumAdvise);
+} AEIDataObjectCallbackVtbl;
+
+typedef struct _AEIDropTarget {
+  AEIDropTargetCallbackVtbl *lpTable;
+  ULONG uRefCount;
+  void *ae;
+  BOOL bAllowDrop;
+  BOOL bColumnSel;
+} AEIDropTarget;
+
+typedef struct _AEIDropSource {
+  AEIDropSourceCallbackVtbl *lpTable;
+  ULONG uRefCount;
+  void *ae;
+} AEIDropSource;
+
+typedef struct _AEIDataObject {
+  AEIDataObjectCallbackVtbl *lpTable;
+  ULONG uRefCount;
+  void *ae;
+  FORMATETC fmtetc[3];
+  STGMEDIUM stgmed[3];
+  LONG nNumFormats;
+} AEIDataObject;
+
+
+//// AKELEDIT
+
 typedef struct _AKELEDIT {
   struct _AKELEDIT *next;
   struct _AKELEDIT *prev;
@@ -446,6 +529,18 @@ typedef struct _AKELEDIT {
   int nSelStartLineOffset;
   int nSelEndLineOffset;
   int nLastCallOffset;
+
+  //OLE Drag'n'Drop
+  AEIDropTargetCallbackVtbl idtVtbl;
+  AEIDropSourceCallbackVtbl idsVtbl;
+  AEIDataObjectCallbackVtbl idoVtbl;
+  AEIDropTarget idt;
+  AEIDropSource ids;
+  AEIDataObject ido;
+  BOOL bDropping;
+  BOOL bDragging;
+  BOOL bDeleteSelection;
+  BOOL bCursorOnSelection;
 } AKELEDIT;
 
 
@@ -499,8 +594,8 @@ BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos);
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, COLORREF crCaret, int nCaretWidth, int nCaretHeight);
 HBITMAP AE_LoadBitmapFromMemory(HDC hDC, BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFresh);
-BOOL AE_SetCaretPos(AKELEDIT *ae);
-void SetCaretVis(AKELEDIT *ae);
+BOOL AE_SetCaretPos(AKELEDIT *ae, POINT *ptCaret);
+void SetCaretVis(AKELEDIT *ae, POINT *ptCaret);
 void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret);
 void AE_CenterCaret(AKELEDIT *ae, POINT *ptCaret);
 void AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos);
@@ -513,10 +608,10 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SI
 BOOL AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine);
 BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);
 BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);
-BOOL AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
-BOOL AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
+int AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
+int AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
 BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, int nMinExtent, int nMaxExtent, int *nMinCharIndex, int *nMinCharPos, int *nMaxCharIndex, int *nMaxCharPos, BOOL bColumnSel);
-BOOL AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel);
+int AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel);
 BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel);
 BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel);
 BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, BOOL bSearch);
@@ -565,5 +660,34 @@ int AE_WideStrCmp(const wchar_t *wpString, const wchar_t *wpString2);
 int AE_WideStrCmpI(const wchar_t *wpString, const wchar_t *wpString2);
 wchar_t* AE_wcschr(const wchar_t *s, wchar_t c);
 void* AE_memcpy(void *dest, const void *src, unsigned int count);
+
+HRESULT WINAPI AEIDropTarget_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj);
+ULONG WINAPI AEIDropTarget_AddRef(LPUNKNOWN lpTable);
+ULONG WINAPI AEIDropTarget_Release(LPUNKNOWN lpTable);
+HRESULT WINAPI AEIDropTarget_DragEnter(LPUNKNOWN lpTable, IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
+HRESULT WINAPI AEIDropTarget_DragOver(LPUNKNOWN lpTable, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
+HRESULT WINAPI AEIDropTarget_DragLeave(LPUNKNOWN lpTable);
+HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
+DWORD AE_DropTargetDropEffect(DWORD grfKeyState, DWORD dwAllowed);
+void AE_DropTargetDropCursor(AKELEDIT *ae, POINTL *pt, DWORD *pdwEffect);
+HRESULT WINAPI AEIDropSource_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj);
+ULONG WINAPI AEIDropSource_AddRef(LPUNKNOWN lpTable);
+ULONG WINAPI AEIDropSource_Release(LPUNKNOWN lpTable);
+HRESULT WINAPI AEIDropSource_QueryContinueDrag(LPUNKNOWN lpTable, BOOL fEscapePressed, DWORD grfKeyState);
+HRESULT WINAPI AEIDropSource_GiveFeedback(LPUNKNOWN lpTable, DWORD dwEffect);
+HRESULT WINAPI AEIDataObject_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj);
+ULONG WINAPI AEIDataObject_AddRef(LPUNKNOWN lpTable);
+ULONG WINAPI AEIDataObject_Release(LPUNKNOWN lpTable);
+HRESULT WINAPI AEIDataObject_GetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, STGMEDIUM *pMedium);
+HRESULT WINAPI AEIDataObject_GetDataHere(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, STGMEDIUM *pMedium);
+HRESULT WINAPI AEIDataObject_QueryGetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc);
+HRESULT WINAPI AEIDataObject_GetCanonicalFormatEtc(LPUNKNOWN lpTable, FORMATETC *pFormatEct, FORMATETC *pFormatEtcOut);
+HRESULT WINAPI AEIDataObject_SetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, STGMEDIUM *pMedium, BOOL fRelease);
+HRESULT WINAPI AEIDataObject_EnumFormatEtc(LPUNKNOWN lpTable, DWORD dwDirection, IEnumFORMATETC **ppEnumFormatEtc);
+HRESULT WINAPI AEIDataObject_DAdvise(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, DWORD advf, IAdviseSink *pAdvSink, DWORD *pdwConnection);
+HRESULT WINAPI AEIDataObject_DUnadvise(LPUNKNOWN lpTable, DWORD dwConnection);
+HRESULT WINAPI AEIDataObject_EnumDAdvise(LPUNKNOWN lpTable, IEnumSTATDATA **ppEnumAdvise);
+int AE_DataObjectLookupFormatEtc(AEIDataObject *pDataObj, FORMATETC *pFormatEtc);
+void AE_DataObjectCopySelection(AKELEDIT *ae);
 
 #endif

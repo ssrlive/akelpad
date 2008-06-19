@@ -625,6 +625,7 @@ extern "C" void _WinMain()
     }
 
 #ifdef STATIC_BUILD
+    OleInitialize(0);
     AE_RegisterClassA(hInstance);
     AE_RegisterClassW(hInstance);
 #else
@@ -1027,6 +1028,7 @@ extern "C" void _WinMain()
     }
 
 #ifdef STATIC_BUILD
+    OleInitialize(0);
     AE_RegisterClassA(hInstance);
     AE_RegisterClassW(hInstance);
 #else
@@ -1170,6 +1172,7 @@ extern "C" void _WinMain()
 #ifdef STATIC_BUILD
   AE_UnregisterClassA(hInstance);
   AE_UnregisterClassW(hInstance);
+  OleUninitialize();
 #else
   if (hAkelLib) FreeLibrary(hAkelLib);
 #endif
