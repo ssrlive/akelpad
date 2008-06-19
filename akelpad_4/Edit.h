@@ -1173,7 +1173,6 @@ int TranslateFileStringA(char *pCommand, char *szBuffer, int nBufferSize);
 int TranslateFileStringW(wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
-void UpdateEdit(HWND hWnd);
 void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight);
 void UpdateSize();
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);

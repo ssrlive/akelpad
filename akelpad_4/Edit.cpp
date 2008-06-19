@@ -1184,10 +1184,12 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
   {
     if (nAction & STRSEL_CHECK) return TRUE;
 
-    crRange.ciMin.nCharInLine=0;
-    if (crRange.ciMax.nCharInLine)
-      if (!SendMessage(hWnd, AEM_GETLINEINDEX, crRange.ciMax.nLine + 1, (LPARAM)&crRange.ciMax))
-        crRange.ciMax.nCharInLine=crRange.ciMax.lpLine->nLineLen;
+    SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&crRange.ciMin);
+    if (crRange.ciMax.nCharInLine || (crRange.ciMax.lpLine->prev && crRange.ciMax.lpLine->prev->nLineBreak == AELB_WRAP))
+    {
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEEND, (LPARAM)&crRange.ciMax);
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTLINE, (LPARAM)&crRange.ciMax);
+    }
 
     crInitialSel=crRange;
     if (!AEC_IndexCompare(&crSel.ciMin, &ciCaret))
@@ -1349,7 +1351,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
           SetSel(hWnd, &crRange, &crRange.ciMax, FALSE);
       }
       SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-      InvalidateRect(hWnd, NULL, FALSE);
+      InvalidateRect(hWnd, NULL, TRUE);
       RestoreLineScroll(hWnd, &nFirstLine);
 
       API_HeapFree(hHeap, 0, (LPVOID)wszRange);
@@ -1407,7 +1409,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
       SetSel(hWnd, &crRange, &crRange.ciMax, -1);
 
     SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-    InvalidateRect(hWnd, NULL, FALSE);
+    InvalidateRect(hWnd, NULL, TRUE);
     RestoreLineScroll(hWnd, &nFirstLine);
 
     FreeText(wszRange);
@@ -1481,7 +1483,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   }
 
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, FALSE);
+  InvalidateRect(hWnd, NULL, TRUE);
   RestoreLineScroll(hWnd, &nFirstLine);
 
   return bResult;
@@ -1588,7 +1590,7 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
   }
 
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, FALSE);
+  InvalidateRect(hWnd, NULL, TRUE);
   RestoreLineScroll(hWnd, &nFirstLine);
 
   return bResult;
@@ -1695,7 +1697,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
   }
 
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, FALSE);
+  InvalidateRect(hWnd, NULL, TRUE);
   RestoreLineScroll(hWnd, &nFirstLine);
 
   return bResult;
@@ -4642,9 +4644,6 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
         SendMessage(hWnd, EM_SETSEL, lpdwRecentPositions[0], lpdwRecentPositions[0]);
       }
 
-      //Update edit window
-      UpdateEdit(hWnd);
-
       //Print if "/p" option used in command line
       if (bGlobalPrint)
       {
@@ -4883,9 +4882,6 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       {
         SendMessage(hWnd, EM_SETSEL, lpdwRecentPositions[0], lpdwRecentPositions[0]);
       }
-
-      //Update edit window
-      UpdateEdit(hWnd);
 
       //Print if "/p" option used in command line
       if (bGlobalPrint)
@@ -9348,7 +9344,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
 
             //Start redraw
             SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-            InvalidateRect(hWnd, NULL, FALSE);
+            InvalidateRect(hWnd, NULL, TRUE);
 
             //Restore scroll
             SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
@@ -9484,7 +9480,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
 
             //Start redraw
             SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-            InvalidateRect(hWnd, NULL, FALSE);
+            InvalidateRect(hWnd, NULL, TRUE);
 
             //Restore scroll
             SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
@@ -10899,7 +10895,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
     FreeText(wszSelText);
   }
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-  InvalidateRect(hWnd, NULL, FALSE);
+  InvalidateRect(hWnd, NULL, TRUE);
   RestoreLineScroll(hWnd, &nFirstLine);
 }
 
@@ -11265,7 +11261,7 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               EnableWindow(hWndThemeDelete, FALSE);
 
             bColorsChanged=TRUE;
-            InvalidateRect(hWndList, NULL, FALSE);
+            InvalidateRect(hWndList, NULL, TRUE);
           }
         }
       }
@@ -11318,7 +11314,7 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               aecColorsDlg=ctElement->aec;
               bColorsChanged=TRUE;
-              InvalidateRect(hWndList, NULL, FALSE);
+              InvalidateRect(hWndList, NULL, TRUE);
             }
           }
         }
@@ -11649,7 +11645,7 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               EnableWindow(hWndThemeDelete, FALSE);
 
             bColorsChanged=TRUE;
-            InvalidateRect(hWndList, NULL, FALSE);
+            InvalidateRect(hWndList, NULL, TRUE);
           }
         }
       }
@@ -11702,7 +11698,7 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               aecColorsDlg=ctElement->aec;
               bColorsChanged=TRUE;
-              InvalidateRect(hWndList, NULL, FALSE);
+              InvalidateRect(hWndList, NULL, TRUE);
             }
           }
         }
@@ -15107,7 +15103,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       {
         dwEditMargins=MAKELONG(a, b);
         SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
-        InvalidateRect(hWndEdit, NULL, FALSE);
+        InvalidateRect(hWndEdit, NULL, TRUE);
       }
 
       //Word delimiters
@@ -15384,7 +15380,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       {
         dwEditMargins=MAKELONG(a, b);
         SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
-        InvalidateRect(hWndEdit, NULL, FALSE);
+        InvalidateRect(hWndEdit, NULL, TRUE);
       }
 
       //Word delimiters
@@ -17306,14 +17302,6 @@ HWND NextDialog(BOOL bPrevious)
     SetFocus(hWndNext);
   }
   return hWndNext;
-}
-
-void UpdateEdit(HWND hWnd)
-{
-  RECT rcDraw;
-
-  SendMessage(hWnd, AEM_GETRECT, 0, (LPARAM)&rcDraw);
-  InvalidateRect(hWnd, &rcDraw, FALSE);
 }
 
 void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight)

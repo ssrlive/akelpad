@@ -7,6 +7,7 @@ Changed: if the founded text is outside visibility, then it is putted to middle 
          editing window.
 Changed: selection functions now work in word wrap mode.
 
+Added: text Drag'n'Drop.
 Added: Latin recognition OEM and UTF-8.
 Added: unicode files without BOM now marked as "*BOM" in status bar.
 Added: now "Word delimiters" check off is working.
@@ -16,7 +17,6 @@ Fixed: search in word wrap mode.
 Fixed: problem with search flags.
 
 Do not work yet:
-- Text Drag'n'Drop.
 - URL highlighting.
 
 
