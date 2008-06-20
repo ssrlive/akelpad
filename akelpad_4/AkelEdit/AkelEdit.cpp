@@ -1709,9 +1709,26 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_ScrollEditWindow(ae, SB_VERT, si.nPos);
       return 0;
     }
+    else if (uMsg == WM_TIMER)
+    {
+      if (wParam == AETIMERID_MOUSEMOVE)
+      {
+        POINT ptPos;
+
+        GetCursorPos(&ptPos);
+        ScreenToClient(ae->hWndEdit, &ptPos);
+        AE_SetMouseSelection(ae, &ptPos, TRUE, ae->bColumnSel);
+      }
+      return 0;
+    }
     else if (uMsg == WM_LBUTTONDOWN)
     {
-      if (ae->bCursorOnSelection)
+      POINT ptPos;
+
+      ptPos.x=LOWORD(lParam);
+      ptPos.y=HIWORD(lParam);
+
+      if (AE_IsCursorOnSelection(ae, &ptPos))
       {
         SetCapture(ae->hWndEdit);
         ae->bDragging=TRUE;
@@ -1719,7 +1736,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (!ae->dwMouseMoveTimer)
       {
-        POINT ptPos;
         BOOL bAlt=FALSE;
         BOOL bShift=FALSE;
         BOOL bRedrawAllSelection=FALSE;
@@ -1734,8 +1750,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (GetFocus() != ae->hWndEdit)
           SetFocus(ae->hWndEdit);
-        ptPos.x=LOWORD(lParam);
-        ptPos.y=HIWORD(lParam);
         AE_SetMouseSelection(ae, &ptPos, bShift, ae->bColumnSel);
 
         //Redraw lines
@@ -1760,18 +1774,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel))
         ciNextWord=ae->ciCaretIndex;
       AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, TRUE);
-      return 0;
-    }
-    else if (uMsg == WM_TIMER)
-    {
-      if (wParam == AETIMERID_MOUSEMOVE)
-      {
-        POINT ptPos;
-
-        GetCursorPos(&ptPos);
-        ScreenToClient(ae->hWndEdit, &ptPos);
-        AE_SetMouseSelection(ae, &ptPos, TRUE, ae->bColumnSel);
-      }
       return 0;
     }
     else if (uMsg == WM_MOUSEMOVE)
@@ -1820,35 +1822,45 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ptPos.x=LOWORD(lParam);
           ptPos.y=HIWORD(lParam);
 
-          if (ae->bCursorOnSelection=AE_IsCursorOnSelection(ae, &ptPos))
+          if (AE_IsCursorOnSelection(ae, &ptPos))
           {
             SetCursor(hAkelEditCursorArrow);
           }
         }
-        else ae->bCursorOnSelection=FALSE;
       }
       return 0;
     }
     else if (uMsg == WM_LBUTTONUP)
     {
-      if (ae->bDragging)
+      POINT ptPos;
+
+      ptPos.x=LOWORD(lParam);
+      ptPos.y=HIWORD(lParam);
+
+      if (!ae->bDragging && !ae->dwMouseMoveTimer)
       {
-        POINT ptPos;
-
-        ae->bDragging=FALSE;
-        ReleaseCapture();
-
-        if (GetFocus() != ae->hWndEdit)
-          SetFocus(ae->hWndEdit);
-        ptPos.x=LOWORD(lParam);
-        ptPos.y=HIWORD(lParam);
-        AE_SetMouseSelection(ae, &ptPos, FALSE, ae->bColumnSel);
+        if (AE_IsCursorOnSelection(ae, &ptPos))
+        {
+          SetCursor(hAkelEditCursorArrow);
+        }
       }
-      if (ae->dwMouseMoveTimer)
+      else
       {
-        KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
-        ae->dwMouseMoveTimer=0;
-        ReleaseCapture();
+        if (ae->bDragging)
+        {
+          ae->bDragging=FALSE;
+          ReleaseCapture();
+
+          if (GetFocus() != ae->hWndEdit)
+            SetFocus(ae->hWndEdit);
+          AE_SetMouseSelection(ae, &ptPos, FALSE, ae->bColumnSel);
+        }
+        if (ae->dwMouseMoveTimer)
+        {
+          KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
+          ae->dwMouseMoveTimer=0;
+          ReleaseCapture();
+        }
       }
       return 0;
     }

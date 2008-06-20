@@ -540,7 +540,6 @@ typedef struct _AKELEDIT {
   BOOL bDropping;
   BOOL bDragging;
   BOOL bDeleteSelection;
-  BOOL bCursorOnSelection;
 } AKELEDIT;
 
 
