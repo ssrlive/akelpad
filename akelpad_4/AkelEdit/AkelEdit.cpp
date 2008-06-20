@@ -1797,10 +1797,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
           }
         }
-        ae->bDeleteSelection=FALSE;
         ((IDataObject *)&ae->ido)->Release();
         ((IDropSource *)&ae->ids)->Release();
-
+        ae->bDeleteSelection=FALSE;
         ae->bDragging=FALSE;
         ReleaseCapture();
       }
@@ -9276,7 +9275,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
 
           //Insert
           {
-            if (ae->bDeleteSelection) AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, TRUE);
+            AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, TRUE);
             AE_InsertText(ae, &ciCharIndex, (wchar_t *)pData, (DWORD)-1, ae->nInputNewLine, pDropTarget->bColumnSel, &ciStart, &ciEnd, TRUE, TRUE, TRUE);
           }
           AE_StackUndoGroupStop(ae);
@@ -9336,7 +9335,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
               {
                 MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, wszText, dwUnicodeBytes / sizeof(wchar_t));
-                if (ae->bDeleteSelection) AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, TRUE);
+                AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, TRUE);
                 AE_InsertText(ae, &ciCharIndex, wszText, dwUnicodeBytes / sizeof(wchar_t) - 1, ae->nInputNewLine, pDropTarget->bColumnSel, &ciStart, &ciEnd, TRUE, TRUE, TRUE);
 
                 AE_HeapFree(ae, 0, (LPVOID)wszText);
