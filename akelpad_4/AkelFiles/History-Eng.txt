@@ -1,5 +1,5 @@
 
-AkelPad 4.0.0 alpha 5 ()
+AkelPad 4.0.0 alpha 5 (Jun 21, 2008)
 ------------------------------------
 Changed: speed of column's Undo/Redo is increased.
 Changed: "twitching" at Undo/Redo minimized.
