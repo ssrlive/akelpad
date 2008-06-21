@@ -9292,7 +9292,7 @@ HRESULT WINAPI AEIDropTarget_DragEnter(LPUNKNOWN lpTable, IDataObject *pDataObje
     ScreenToClient(ae->hWndEdit, (POINT *)&pt);
     SetFocus(ae->hWndEdit);
     ae->bDropping=TRUE;
-    AE_DropTargetDropCursor(ae, &pt, pdwEffect);
+    AE_DropTargetDropCursor(pDropTarget, &pt, pdwEffect);
   }
   else *pdwEffect=DROPEFFECT_NONE;
 
@@ -9309,7 +9309,7 @@ HRESULT WINAPI AEIDropTarget_DragOver(LPUNKNOWN lpTable, DWORD grfKeyState, POIN
   if (pDropTarget->bAllowDrop)
   {
     ScreenToClient(ae->hWndEdit, (POINT *)&pt);
-    AE_DropTargetDropCursor(ae, &pt, pdwEffect);
+    AE_DropTargetDropCursor(pDropTarget, &pt, pdwEffect);
   }
   else *pdwEffect=DROPEFFECT_NONE;
 
@@ -9321,7 +9321,7 @@ HRESULT WINAPI AEIDropTarget_DragLeave(LPUNKNOWN lpTable)
   AEIDropTarget *pDropTarget=(AEIDropTarget *)lpTable;
   AKELEDIT *ae=(AKELEDIT *)pDropTarget->ae;
 
-  AE_DropTargetDropCursor(ae, NULL, NULL);
+  AE_DropTargetDropCursor(pDropTarget, NULL, NULL);
   ae->bDropping=FALSE;
   return S_OK;
 }
@@ -9341,7 +9341,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
     LPVOID pData;
 
     ScreenToClient(ae->hWndEdit, (POINT *)&pt);
-    AE_GetCharFromPos(ae, (POINT *)&pt, &ciCharIndex, NULL, FALSE);
+    AE_GetCharFromPos(ae, (POINT *)&pt, &ciCharIndex, NULL, pDropTarget->bColumnSel);
 
     fmtetc.cfFormat=CF_UNICODETEXT;
     fmtetc.ptd=0;
@@ -9464,8 +9464,10 @@ DWORD AE_DropTargetDropEffect(DWORD grfKeyState, DWORD dwAllowed)
   return dwEffect;
 }
 
-void AE_DropTargetDropCursor(AKELEDIT *ae, POINTL *pt, DWORD *pdwEffect)
+void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwEffect)
 {
+  AKELEDIT *ae=(AKELEDIT *)pDropTarget->ae;
+
   if (!pdwEffect || *pdwEffect == DROPEFFECT_NONE)
   {
     AE_ScrollToCaret(ae, &ae->ptCaret);
@@ -9473,7 +9475,7 @@ void AE_DropTargetDropCursor(AKELEDIT *ae, POINTL *pt, DWORD *pdwEffect)
   }
   else
   {
-    if (ae->bDragging && !PtInRect(&ae->rcDraw, *(POINT *)pt))
+    if (!PtInRect(&ae->rcDraw, *(POINT *)pt))
     {
       //Deny dropping in non-rect
       if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
@@ -9484,7 +9486,7 @@ void AE_DropTargetDropCursor(AKELEDIT *ae, POINTL *pt, DWORD *pdwEffect)
       AECHARINDEX ciCharIndex;
       POINT ptGlobal;
 
-      AE_GetCharFromPos(ae, (POINT *)pt, &ciCharIndex, &ptGlobal, FALSE);
+      AE_GetCharFromPos(ae, (POINT *)pt, &ciCharIndex, &ptGlobal, pDropTarget->bColumnSel);
 
       if (ae->bDragging &&
           (((*pdwEffect & DROPEFFECT_COPY) &&

@@ -668,7 +668,7 @@ HRESULT WINAPI AEIDropTarget_DragOver(LPUNKNOWN lpTable, DWORD grfKeyState, POIN
 HRESULT WINAPI AEIDropTarget_DragLeave(LPUNKNOWN lpTable);
 HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
 DWORD AE_DropTargetDropEffect(DWORD grfKeyState, DWORD dwAllowed);
-void AE_DropTargetDropCursor(AKELEDIT *ae, POINTL *pt, DWORD *pdwEffect);
+void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwEffect);
 HRESULT WINAPI AEIDropSource_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj);
 ULONG WINAPI AEIDropSource_AddRef(LPUNKNOWN lpTable);
 ULONG WINAPI AEIDropSource_Release(LPUNKNOWN lpTable);
