@@ -1,5 +1,5 @@
 /***********************************************************************************
- *               AkelEdit text control v1.0 alpha 5                                *
+ *               AkelEdit text control v1.0 alpha 6                                *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -6878,9 +6878,18 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
     else if (nNewLine == AELB_ASOUTPUT)
       nNewLine=ae->nOutputNewLine;
 
-    nLineOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom) - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
-    nStartOffset=nLineOffset + ciInsertFrom.nCharInLine;
-    nEndOffset=nStartOffset;
+    if (bColumnSel && (*wpText == L'\r' || *wpText == L'\n'))
+    {
+      nLineOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom) - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
+      nStartOffset=nLineOffset + min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
+      nEndOffset=nStartOffset;
+    }
+    else
+    {
+      nLineOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom) - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
+      nStartOffset=nLineOffset + ciInsertFrom.nCharInLine;
+      nEndOffset=nStartOffset;
+    }
 
     if (bColumnSel)
     {

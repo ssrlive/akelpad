@@ -494,6 +494,11 @@ typedef struct _AKELEDIT {
   AECHARINDEX ciSelEndIndex;
   AECHARINDEX ciCaretIndex;
   AECHARINDEX ciLastCallIndex;
+  int nLastCharOffset;
+  int nFirstDrawLineOffset;
+  int nSelStartLineOffset;
+  int nSelEndLineOffset;
+  int nLastCallOffset;
   int nLineCount;
   int nInputNewLine;
   int nOutputNewLine;
@@ -524,11 +529,6 @@ typedef struct _AKELEDIT {
   //RichEdit emulation
   BOOL bRichEditClass;
   DWORD dwEventMask;
-  int nLastCharOffset;
-  int nFirstDrawLineOffset;
-  int nSelStartLineOffset;
-  int nSelEndLineOffset;
-  int nLastCallOffset;
 
   //OLE Drag'n'Drop
   AEIDropTargetCallbackVtbl idtVtbl;
