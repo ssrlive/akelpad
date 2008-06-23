@@ -1,4 +1,12 @@
 
+AkelPad 4.0.0 alpha 6 ()
+------------------------------------
+Fixed: search of new line character.
+
+Do not work yet:
+- URL highlighting.
+
+
 AkelPad 4.0.0 alpha 5 (Jun 21, 2008)
 ------------------------------------
 Changed: speed of column's Undo/Redo is increased.
@@ -15,9 +23,6 @@ Added: now "Word delimiters" check off is working.
 Fixed: insert text in word wrap mode.
 Fixed: search in word wrap mode.
 Fixed: problem with search flags.
-
-Do not work yet:
-- URL highlighting.
 
 
 AkelPad 4.0.0 alpha 4 (Jun 14, 2008)

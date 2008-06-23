@@ -7889,7 +7889,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
       {
         while (1)
         {
-          while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+          while (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
           {
             if (AE_IndexCompare(&ciCount, &ciCountEnd) > 0)
               return FALSE;
@@ -7931,7 +7931,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
           {
             ciCount.nLine-=1;
             ciCount.lpLine=ciCount.lpLine->prev;
-            ciCount.nCharInLine=ciCount.lpLine->nLineLen - 1;
+            ciCount.nCharInLine=ciCount.lpLine->nLineLen;
           }
           else return FALSE;
         }
@@ -7961,38 +7961,26 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
       if (((ft->dwFlags & AEFR_MATCHCASE) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == *wpStrCount) ||
           (!(ft->dwFlags & AEFR_MATCHCASE) && AE_WideCharUpper(ciCount.lpLine->wpLine[ciCount.nCharInLine]) == AE_WideCharUpper(*wpStrCount)))
       {
-        if (!*++wpStrCount) goto Founded;
+        if (!*++wpStrCount)
+        {
+          ++ciCount.nCharInLine;
+          goto Founded;
+        }
       }
       else return FALSE;
     }
     if (ciCount.lpLine->nLineBreak == AELB_EOF) return FALSE;
 
-    if (ciCount.lpLine->nLineBreak != AELB_WRAP)
+    if (ciCount.lpLine->nLineBreak == AELB_WRAP)
+    {
+      nLineBreak=AELB_WRAP;
+    }
+    else
     {
       if (nNewLine == AELB_ASIS)
         nLineBreak=ciCount.lpLine->nLineBreak;
       else
         nLineBreak=nNewLine;
-
-      if (nLineBreak == AELB_R)
-      {
-        if (*wpStrCount != L'\r') return FALSE;
-      }
-      else if (nLineBreak == AELB_N)
-      {
-        if (*wpStrCount != L'\n') return FALSE;
-      }
-      else if (nLineBreak == AELB_RN)
-      {
-        if (*wpStrCount != L'\r') return FALSE;
-        if (*++wpStrCount != L'\n') return FALSE;
-      }
-      else if (nLineBreak == AELB_RRN)
-      {
-        if (*wpStrCount != L'\r') return FALSE;
-        if (*++wpStrCount != L'\n') return FALSE;
-      }
-      if (!*++wpStrCount) goto Founded;
     }
 
     if (ciCount.lpLine->next)
@@ -8002,13 +7990,33 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
       ciCount.nCharInLine=0;
     }
     else return FALSE;
+
+    if (nLineBreak == AELB_R)
+    {
+      if (*wpStrCount != L'\r') return FALSE;
+    }
+    else if (nLineBreak == AELB_N)
+    {
+      if (*wpStrCount != L'\n') return FALSE;
+    }
+    else if (nLineBreak == AELB_RN)
+    {
+      if (*wpStrCount != L'\r') return FALSE;
+      if (*++wpStrCount != L'\n') return FALSE;
+    }
+    else if (nLineBreak == AELB_RRN)
+    {
+      if (*wpStrCount != L'\r') return FALSE;
+      if (*++wpStrCount != L'\n') return FALSE;
+    }
+    if (!*++wpStrCount) goto Founded;
   }
 
   Founded:
   ft->crFound.ciMin=*ciChar;
   ft->crFound.ciMax.nLine=ciCount.nLine;
   ft->crFound.ciMax.lpLine=ciCount.lpLine;
-  ft->crFound.ciMax.nCharInLine=ciCount.nCharInLine + 1;
+  ft->crFound.ciMax.nCharInLine=ciCount.nCharInLine;
   return TRUE;
 }
 
