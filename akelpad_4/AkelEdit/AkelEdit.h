@@ -3,6 +3,7 @@
 
 
 //// Includes
+
 #include <shlobj.h>
 
 
@@ -61,23 +62,21 @@
 #define AEM_SETMODIFY         (WM_USER + 2045)
 #define AEM_GETRECT           (WM_USER + 2046)
 #define AEM_SETRECT           (WM_USER + 2047)
-#define AEM_GETMARGINS        (WM_USER + 2048)
-#define AEM_SETMARGINS        (WM_USER + 2049)
-#define AEM_GETNEWLINE        (WM_USER + 2050)
-#define AEM_SETNEWLINE        (WM_USER + 2051)
-#define AEM_GETCOLORS         (WM_USER + 2052)
-#define AEM_SETCOLORS         (WM_USER + 2053)
-#define AEM_GETOVERTYPE       (WM_USER + 2054)
-#define AEM_SETOVERTYPE       (WM_USER + 2055)
-#define AEM_GETTABSTOP        (WM_USER + 2056)
-#define AEM_SETTABSTOP        (WM_USER + 2057)
-#define AEM_GETWORDWRAP       (WM_USER + 2058)
-#define AEM_SETWORDWRAP       (WM_USER + 2059)
-#define AEM_GETWORDDELIMITERS (WM_USER + 2060)
-#define AEM_SETWORDDELIMITERS (WM_USER + 2061)
-#define AEM_GETWRAPDELIMITERS (WM_USER + 2062)
-#define AEM_SETWRAPDELIMITERS (WM_USER + 2063)
-#define AEM_CHECKCODEPAGE     (WM_USER + 2064)
+#define AEM_GETNEWLINE        (WM_USER + 2048)
+#define AEM_SETNEWLINE        (WM_USER + 2049)
+#define AEM_GETCOLORS         (WM_USER + 2050)
+#define AEM_SETCOLORS         (WM_USER + 2051)
+#define AEM_GETOVERTYPE       (WM_USER + 2052)
+#define AEM_SETOVERTYPE       (WM_USER + 2053)
+#define AEM_GETTABSTOP        (WM_USER + 2054)
+#define AEM_SETTABSTOP        (WM_USER + 2055)
+#define AEM_GETWORDWRAP       (WM_USER + 2056)
+#define AEM_SETWORDWRAP       (WM_USER + 2057)
+#define AEM_GETWORDDELIMITERS (WM_USER + 2058)
+#define AEM_SETWORDDELIMITERS (WM_USER + 2059)
+#define AEM_GETWRAPDELIMITERS (WM_USER + 2060)
+#define AEM_SETWRAPDELIMITERS (WM_USER + 2061)
+#define AEM_CHECKCODEPAGE     (WM_USER + 2062)
 
 #define AES_AKELEDITCLASSA     "AkelEditA"
 #define AES_AKELEDITCLASSW    L"AkelEditW"
@@ -169,6 +168,11 @@
                               AECLR_SELBK         |\
                               AECLR_ACTIVELINETEXT|\
                               AECLR_ACTIVELINEBK)
+
+#define AECS_DEFAULT         0
+#define AECS_CENTER          1
+#define AECS_MOUSESEL        2
+#define AECS_MOUSEDROP       3
 
 #define AEFR_DOWN            0x00000001
 #define AEFR_WHOLEWORD       0x00000002
@@ -583,7 +587,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
 int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AECHARINDEX *ciPointOne, AECHARINDEX *ciPointTwo, AECHARINDEX *ciPointThree, AECHARINDEX *ciPointFour, AECHARINDEX *ciPointFive);
 void AE_CalcLinesWidth(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bFresh);
 int AE_CheckCodepage(AKELEDIT *ae, int nCodePage);
-void AE_SetDrawRect(AKELEDIT *ae, RECT *rcDraw, BOOL bRedraw);
+void AE_SetDrawRect(AKELEDIT *ae, RECT *lprcDraw, BOOL bRedraw);
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw);
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw);
 void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, BOOL bUpdate);
@@ -595,7 +599,7 @@ HBITMAP AE_LoadBitmapFromMemory(HDC hDC, BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFresh);
 BOOL AE_SetCaretPos(AKELEDIT *ae, POINT *ptCaret);
 void SetCaretVis(AKELEDIT *ae, POINT *ptCaret);
-void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret);
+void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret, int nType);
 void AE_CenterCaret(AKELEDIT *ae, POINT *ptCaret);
 void AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);

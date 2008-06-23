@@ -324,7 +324,7 @@ void CreateEditWindowA(HWND hWnd)
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
-  SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
+  SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
@@ -362,7 +362,7 @@ void CreateEditWindowW(HWND hWnd)
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
-  SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
+  SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
@@ -9194,7 +9194,7 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
     if (!SendMessage(hWnd, AEM_ISCARETVISIBLE, 0, 0))
-      SendMessage(hWnd, AEM_SCROLLCARET, 0, TRUE);
+      SendMessage(hWnd, AEM_SCROLLCARET, 0, AECS_CENTER);
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
@@ -9239,7 +9239,7 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
     if (!SendMessage(hWnd, AEM_ISCARETVISIBLE, 0, 0))
-      SendMessage(hWnd, AEM_SCROLLCARET, 0, TRUE);
+      SendMessage(hWnd, AEM_SCROLLCARET, 0, AECS_CENTER);
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
@@ -15102,7 +15102,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (dwEditMargins != (DWORD)MAKELONG(a, b))
       {
         dwEditMargins=MAKELONG(a, b);
-        SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
+        SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
         InvalidateRect(hWndEdit, NULL, TRUE);
       }
 
@@ -15379,7 +15379,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (dwEditMargins != (DWORD)MAKELONG(a, b))
       {
         dwEditMargins=MAKELONG(a, b);
-        SendMessage(hWndEdit, AEM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
+        SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
         InvalidateRect(hWndEdit, NULL, TRUE);
       }
 
