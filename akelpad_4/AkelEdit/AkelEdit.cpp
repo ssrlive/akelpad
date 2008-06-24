@@ -1155,11 +1155,15 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AECOLORS aec;
 
-      aec.dwFlags=AECLR_BASICBK;
-      if (wParam)
-        aec.dwFlags|=AECLR_DEFAULT;
-      else
+      aec.dwFlags=AECLR_BASICBK|AECLR_ACTIVELINEBK;
+
+      if (!wParam)
+      {
         aec.crBasicBk=lParam;
+        aec.crActiveLineBk=lParam;
+      }
+      else aec.dwFlags|=AECLR_DEFAULT;
+
       AE_SetColors(ae, &aec);
       return 0;
     }
@@ -6803,6 +6807,9 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     ae->hLinesStack.first=0;
     ae->hLinesStack.last=0;
     ae->lpCurrentUndo=NULL;
+    ae->bSavePointExist=TRUE;
+    ae->bModified=FALSE;
+    ae->dwUndoCount=0;
     ae->liFirstDrawLine.nLine=0;
     ae->liFirstDrawLine.lpLine=NULL;
     ae->liMaxWidthLine.nLine=0;
@@ -6879,6 +6886,8 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   }
   if (ae->nLineCount) --ae->nLineCount;
 
+  ae->nHScrollPos=0;
+  ae->nVScrollPos=0;
   ae->nHScrollMax=(nMaxLineLen + 1) * ae->nAveCharWidth;
   ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
@@ -7804,7 +7813,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
   else if (nNewLine == AELB_ASOUTPUT)
     nNewLine=ae->nOutputNewLine;
 
-  if (wszBuf=(wchar_t *)AE_HeapAlloc(ae, 0, dwBufLen * sizeof(wchar_t) + 2))
+  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
   {
     if (dwFlags & AESF_SELECTION)
     {
@@ -7820,13 +7829,20 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
       if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) break;
       if (!dwBufDone) break;
       dwResult+=dwBufDone;
-      AE_InsertText(ae, &ae->ciSelStartIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, aes->bColumnSel, NULL, NULL, TRUE, FALSE, FALSE);
+      AE_InsertText(ae, &ae->ciSelStartIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, aes->bColumnSel, NULL, NULL, (dwFlags & AESF_SELECTION)?TRUE:FALSE, FALSE, FALSE);
     }
 
-    AE_StackUndoGroupStop(ae);
+    if (dwFlags & AESF_SELECTION)
+    {
+      AE_StackUndoGroupStop(ae);
+    }
+    AE_UpdateScrollBars(ae, SB_VERT);
+    AE_ScrollToCaret(ae, &ae->ptCaret);
+    ae->nHorizCaretPos=ae->ptCaret.x;
+    if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
 
-    AE_HeapFree(ae, 0, (LPVOID)wszBuf);
+    AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
   return dwResult;
 }
@@ -7865,7 +7881,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
     nEndOffset=ae->nLastCharOffset;
   }
 
-  if (wszBuf=(wchar_t *)AE_HeapAlloc(ae, 0, dwBufLen * sizeof(wchar_t) + 2))
+  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
   {
     while (ciCount.lpLine)
     {
@@ -7987,7 +8003,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
     }
 
     End:
-    AE_HeapFree(ae, 0, (LPVOID)wszBuf);
+    AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
   return dwResult;
 }
