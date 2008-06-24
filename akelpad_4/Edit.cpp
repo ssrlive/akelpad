@@ -5388,6 +5388,8 @@ void FileStreamOut(FILESTREAMDATA *lpData)
 
   aes.lpCallback=OutputStreamCallback;
   aes.dwCookie=(DWORD)lpData;
+  aes.nNewLine=AELB_ASOUTPUT;
+  aes.bColumnSel=FALSE;
   SendMessage(lpData->hWnd, AEM_STREAMOUT, 0, (LPARAM)&aes);
   lpData->bResult=!aes.dwError;
 }
