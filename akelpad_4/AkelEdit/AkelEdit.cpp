@@ -7832,9 +7832,11 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
   DWORD dwBufDone;
   DWORD dwResult=0;
 
+  aes->dwError=0;
+
   if (dwFlags & AESF_SELECTION)
   {
-    ciCount=ae->ciSelStartIndex;
+    AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciCount, FALSE);
     nCountOffset=ae->nSelStartCharOffset;
     nEndOffset=ae->nSelEndCharOffset;
   }
