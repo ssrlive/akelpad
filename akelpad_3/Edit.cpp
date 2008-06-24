@@ -313,7 +313,8 @@ void CreateEditWindowA(HWND hWnd)
 
   GetClientRect(hWnd, &rcRect);
 
-  hWndEdit=CreateWindowA("RichEdit20A",
+  hWndEdit=CreateWindowExA(WS_EX_CLIENTEDGE,
+                        "RichEdit20A",
                         NULL,
                         WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
                           ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|
@@ -358,7 +359,8 @@ void CreateEditWindowW(HWND hWnd)
 
   GetClientRect(hWnd, &rcRect);
 
-  hWndEdit=CreateWindowW(L"RichEdit20W",
+  hWndEdit=CreateWindowExW(WS_EX_CLIENTEDGE,
+                       L"RichEdit20W",
                         NULL,
                         WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
                           ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|
