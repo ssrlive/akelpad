@@ -9194,7 +9194,7 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
     if (!SendMessage(hWnd, AEM_ISCARETVISIBLE, 0, 0))
-      SendMessage(hWnd, AEM_SCROLLCARET, 0, AECS_CENTER);
+      SendMessage(hWnd, AEM_SCROLLCARET, AECS_UNITRECTDIVX|AECS_UNITRECTDIVY, MAKELONG(3, 2));
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
@@ -9239,7 +9239,7 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
     if (!SendMessage(hWnd, AEM_ISCARETVISIBLE, 0, 0))
-      SendMessage(hWnd, AEM_SCROLLCARET, 0, AECS_CENTER);
+      SendMessage(hWnd, AEM_SCROLLCARET, AECS_UNITRECTDIVX|AECS_UNITRECTDIVY, MAKELONG(3, 2));
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 

@@ -169,10 +169,16 @@
                               AECLR_ACTIVELINETEXT|\
                               AECLR_ACTIVELINEBK)
 
-#define AECS_DEFAULT         0
-#define AECS_CENTER          1
-#define AECS_MOUSESEL        2
-#define AECS_MOUSEDROP       3
+#define AECS_UNITPIXELX      0x00000001
+#define AECS_UNITPIXELY      0x00000002
+#define AECS_UNITCHARX       0x00000004
+#define AECS_UNITCHARY       0x00000008
+#define AECS_UNITRECTDIVX    0x00000010
+#define AECS_UNITRECTDIVY    0x00000020
+#define AECS_FORCELEFT       0x00000040
+#define AECS_FORCETOP        0x00000080
+#define AECS_FORCERIGHT      0x00000100
+#define AECS_FORCEBOTTOM     0x00000200
 
 #define AEFR_DOWN            0x00000001
 #define AEFR_WHOLEWORD       0x00000002
@@ -599,7 +605,8 @@ HBITMAP AE_LoadBitmapFromMemory(HDC hDC, BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFresh);
 BOOL AE_SetCaretPos(AKELEDIT *ae, POINT *ptCaret);
 void SetCaretVis(AKELEDIT *ae, POINT *ptCaret);
-void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret, int nType);
+void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret);
+void AE_ScrollToCaretEx(AKELEDIT *ae, POINT *ptCaret, DWORD dwFlags, WORD wUnitX, WORD wUnitY);
 void AE_CenterCaret(AKELEDIT *ae, POINT *ptCaret);
 void AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
