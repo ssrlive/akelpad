@@ -9159,6 +9159,8 @@ void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace)
 int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
 {
   AEFINDTEXTA ft;
+  DWORD dwScrollFlags=0;
+  DWORD dwScrollResult;
   BOOL bResult;
 
   if (dwFlags & AEFR_SELECTION)
@@ -9193,8 +9195,12 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
     SetSel(hWnd, &ft.crFound, NULL, FALSE);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    if (!SendMessage(hWnd, AEM_ISCARETVISIBLE, 0, 0))
-      SendMessage(hWnd, AEM_SCROLLCARET, AECS_UNITRECTDIVX|AECS_UNITRECTDIVY, MAKELONG(3, 2));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AECS_UNITCHARX|AECS_UNITCHARY, MAKELONG(1, 1));
+    if (dwScrollResult & AECSE_SCROLLEDX)
+      dwScrollFlags|=AECS_UNITRECTDIVX;
+    if (dwScrollResult & AECSE_SCROLLEDY)
+      dwScrollFlags|=AECS_UNITRECTDIVY;
+    SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
@@ -9204,6 +9210,8 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
 int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
 {
   AEFINDTEXTW ft;
+  DWORD dwScrollFlags=0;
+  DWORD dwScrollResult;
   BOOL bResult;
 
   if (dwFlags & AEFR_SELECTION)
@@ -9238,8 +9246,12 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
     SetSel(hWnd, &ft.crFound, NULL, FALSE);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    if (!SendMessage(hWnd, AEM_ISCARETVISIBLE, 0, 0))
-      SendMessage(hWnd, AEM_SCROLLCARET, AECS_UNITRECTDIVX|AECS_UNITRECTDIVY, MAKELONG(3, 2));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AECS_UNITCHARX|AECS_UNITCHARY, MAKELONG(1, 1));
+    if (dwScrollResult & AECSE_SCROLLEDX)
+      dwScrollFlags|=AECS_UNITRECTDIVX;
+    if (dwScrollResult & AECSE_SCROLLEDY)
+      dwScrollFlags|=AECS_UNITRECTDIVY;
+    SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
