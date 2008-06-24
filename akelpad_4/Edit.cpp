@@ -5388,15 +5388,15 @@ void FileStreamOut(FILESTREAMDATA *lpData)
 
   aes.lpCallback=OutputStreamCallback;
   aes.dwCookie=(DWORD)lpData;
-  lpData->bResult=SendMessage(lpData->hWnd, AEM_STREAMOUT, 0, (LPARAM)&aes);
+  SendMessage(lpData->hWnd, AEM_STREAMOUT, 0, (LPARAM)&aes);
+  lpData->bResult=!aes.dwError;
 }
 
-BOOL CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen)
+BOOL CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
 {
   FILESTREAMDATA *lpData=(FILESTREAMDATA *)dwCookie;
   unsigned char *pDataToWrite=(unsigned char *)wszBuf;
   DWORD dwBytesToWrite=dwBufLen * sizeof(wchar_t);
-  DWORD dwBytesWritten;
 
   if (lpData->nCodePage == CP_UNICODE_UCS2_LE)
   {
@@ -5414,8 +5414,7 @@ BOOL CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufL
 
     pDataToWrite=pcTranslateBuffer;
   }
-
-  return API_WriteFile(lpData->hFile, pDataToWrite, dwBytesToWrite, &dwBytesWritten, NULL);
+  return !API_WriteFile(lpData->hFile, pDataToWrite, dwBytesToWrite, dwBufDone, NULL);
 }
 
 BOOL OpenDirectoryA(char *pPath, BOOL bSubDir)
