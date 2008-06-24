@@ -20,63 +20,64 @@
 #define AEM_REPLACESELW       (WM_USER + 2004)
 #define AEM_GETTEXTRANGEA     (WM_USER + 2005)
 #define AEM_GETTEXTRANGEW     (WM_USER + 2006)
-#define AEM_STREAMOUT         (WM_USER + 2007)
-#define AEM_CANPASTE          (WM_USER + 2008)
-#define AEM_CANUNDO           (WM_USER + 2009)
-#define AEM_CANREDO           (WM_USER + 2010)
-#define AEM_CUT               (WM_USER + 2011)
-#define AEM_COPY              (WM_USER + 2012)
-#define AEM_PASTE             (WM_USER + 2013)
-#define AEM_UNDO              (WM_USER + 2014)
-#define AEM_REDO              (WM_USER + 2015)
-#define AEM_EMPTYUNDOBUFFER   (WM_USER + 2016)
-#define AEM_STOPGROUPTYPING   (WM_USER + 2017)
+#define AEM_STREAMIN          (WM_USER + 2007)
+#define AEM_STREAMOUT         (WM_USER + 2008)
+#define AEM_CANPASTE          (WM_USER + 2009)
+#define AEM_CANUNDO           (WM_USER + 2010)
+#define AEM_CANREDO           (WM_USER + 2011)
+#define AEM_CUT               (WM_USER + 2012)
+#define AEM_COPY              (WM_USER + 2013)
+#define AEM_PASTE             (WM_USER + 2014)
+#define AEM_UNDO              (WM_USER + 2015)
+#define AEM_REDO              (WM_USER + 2016)
+#define AEM_EMPTYUNDOBUFFER   (WM_USER + 2017)
+#define AEM_STOPGROUPTYPING   (WM_USER + 2018)
 
-#define AEM_GETSEL            (WM_USER + 2018)
-#define AEM_SETSEL            (WM_USER + 2019)
-#define AEM_GETCOLUMNSEL      (WM_USER + 2020)
-#define AEM_UPDATESEL         (WM_USER + 2021)
-#define AEM_GETLINECOUNT      (WM_USER + 2022)
-#define AEM_GETINDEX          (WM_USER + 2023)
-#define AEM_GETLINEINDEX      (WM_USER + 2024)
-#define AEM_UPDATEINDEX       (WM_USER + 2025)
-#define AEM_INDEXCOMPARE      (WM_USER + 2026)
-#define AEM_INDEXSUBTRACT     (WM_USER + 2027)
-#define AEM_INDEXOFFSET       (WM_USER + 2028)
-#define AEM_INDEXTORICHOFFSET (WM_USER + 2029)
-#define AEM_RICHOFFSETTOINDEX (WM_USER + 2030)
-#define AEM_CHARFROMPOS       (WM_USER + 2031)
-#define AEM_POSFROMCHAR       (WM_USER + 2032)
-#define AEM_LINESCROLL        (WM_USER + 2033)
-#define AEM_SCROLLCARETTEST   (WM_USER + 2034)
-#define AEM_SCROLLCARET       (WM_USER + 2035)
-#define AEM_LOCKSCROLL        (WM_USER + 2036)
-#define AEM_SHOWSCROLLBAR     (WM_USER + 2037)
-#define AEM_FINDTEXTA         (WM_USER + 2038)
-#define AEM_FINDTEXTW         (WM_USER + 2039)
-#define AEM_GETOPTIONS        (WM_USER + 2040)
-#define AEM_SETOPTIONS        (WM_USER + 2041)
-#define AEM_GETUNDOLIMIT      (WM_USER + 2042)
-#define AEM_SETUNDOLIMIT      (WM_USER + 2043)
-#define AEM_GETMODIFY         (WM_USER + 2044)
-#define AEM_SETMODIFY         (WM_USER + 2045)
-#define AEM_GETRECT           (WM_USER + 2046)
-#define AEM_SETRECT           (WM_USER + 2047)
-#define AEM_GETNEWLINE        (WM_USER + 2048)
-#define AEM_SETNEWLINE        (WM_USER + 2049)
-#define AEM_GETCOLORS         (WM_USER + 2050)
-#define AEM_SETCOLORS         (WM_USER + 2051)
-#define AEM_GETOVERTYPE       (WM_USER + 2052)
-#define AEM_SETOVERTYPE       (WM_USER + 2053)
-#define AEM_GETTABSTOP        (WM_USER + 2054)
-#define AEM_SETTABSTOP        (WM_USER + 2055)
-#define AEM_GETWORDWRAP       (WM_USER + 2056)
-#define AEM_SETWORDWRAP       (WM_USER + 2057)
-#define AEM_GETWORDDELIMITERS (WM_USER + 2058)
-#define AEM_SETWORDDELIMITERS (WM_USER + 2059)
-#define AEM_GETWRAPDELIMITERS (WM_USER + 2060)
-#define AEM_SETWRAPDELIMITERS (WM_USER + 2061)
-#define AEM_CHECKCODEPAGE     (WM_USER + 2062)
+#define AEM_GETSEL            (WM_USER + 2019)
+#define AEM_SETSEL            (WM_USER + 2020)
+#define AEM_GETCOLUMNSEL      (WM_USER + 2021)
+#define AEM_UPDATESEL         (WM_USER + 2022)
+#define AEM_GETLINECOUNT      (WM_USER + 2023)
+#define AEM_GETINDEX          (WM_USER + 2024)
+#define AEM_GETLINEINDEX      (WM_USER + 2025)
+#define AEM_UPDATEINDEX       (WM_USER + 2026)
+#define AEM_INDEXCOMPARE      (WM_USER + 2027)
+#define AEM_INDEXSUBTRACT     (WM_USER + 2028)
+#define AEM_INDEXOFFSET       (WM_USER + 2029)
+#define AEM_INDEXTORICHOFFSET (WM_USER + 2030)
+#define AEM_RICHOFFSETTOINDEX (WM_USER + 2031)
+#define AEM_CHARFROMPOS       (WM_USER + 2032)
+#define AEM_POSFROMCHAR       (WM_USER + 2033)
+#define AEM_LINESCROLL        (WM_USER + 2034)
+#define AEM_SCROLLCARETTEST   (WM_USER + 2035)
+#define AEM_SCROLLCARET       (WM_USER + 2036)
+#define AEM_LOCKSCROLL        (WM_USER + 2037)
+#define AEM_SHOWSCROLLBAR     (WM_USER + 2038)
+#define AEM_FINDTEXTA         (WM_USER + 2039)
+#define AEM_FINDTEXTW         (WM_USER + 2040)
+#define AEM_GETOPTIONS        (WM_USER + 2041)
+#define AEM_SETOPTIONS        (WM_USER + 2042)
+#define AEM_GETUNDOLIMIT      (WM_USER + 2043)
+#define AEM_SETUNDOLIMIT      (WM_USER + 2044)
+#define AEM_GETMODIFY         (WM_USER + 2045)
+#define AEM_SETMODIFY         (WM_USER + 2046)
+#define AEM_GETRECT           (WM_USER + 2047)
+#define AEM_SETRECT           (WM_USER + 2048)
+#define AEM_GETNEWLINE        (WM_USER + 2049)
+#define AEM_SETNEWLINE        (WM_USER + 2050)
+#define AEM_GETCOLORS         (WM_USER + 2051)
+#define AEM_SETCOLORS         (WM_USER + 2052)
+#define AEM_GETOVERTYPE       (WM_USER + 2053)
+#define AEM_SETOVERTYPE       (WM_USER + 2054)
+#define AEM_GETTABSTOP        (WM_USER + 2055)
+#define AEM_SETTABSTOP        (WM_USER + 2056)
+#define AEM_GETWORDWRAP       (WM_USER + 2057)
+#define AEM_SETWORDWRAP       (WM_USER + 2058)
+#define AEM_GETWORDDELIMITERS (WM_USER + 2059)
+#define AEM_SETWORDDELIMITERS (WM_USER + 2060)
+#define AEM_GETWRAPDELIMITERS (WM_USER + 2061)
+#define AEM_SETWRAPDELIMITERS (WM_USER + 2062)
+#define AEM_CHECKCODEPAGE     (WM_USER + 2063)
 
 #define AES_AKELEDITCLASSA     "AkelEditA"
 #define AES_AKELEDITCLASSW    L"AkelEditW"
@@ -192,6 +193,8 @@
 #define AEWB_RIGHTWORDSTART  0x00000004
 #define AEWB_RIGHTWORDEND    0x00000008
 
+#define AESF_SELECTION       0x00000001
+
 #ifndef FR_DOWN
   #define FR_DOWN 0x00000001
 #endif
@@ -229,7 +232,7 @@
   #define mod(a) (((a) < 0)?(0 - (a)):(a))
 #endif
 
-typedef BOOL (CALLBACK *AEStreamCallback)(DWORD, wchar_t *, DWORD);
+typedef BOOL (CALLBACK *AEStreamCallback)(DWORD, wchar_t *, DWORD, DWORD *);
 
 
 //// Structures
@@ -326,8 +329,9 @@ typedef struct {
 } AETEXTRANGEW;
 
 typedef struct {
-  AEStreamCallback lpCallback;
   DWORD dwCookie;
+  DWORD dwError;
+  AEStreamCallback lpCallback;
 } AESTREAM;
 
 typedef struct {
@@ -509,8 +513,8 @@ typedef struct _AKELEDIT {
   AECHARINDEX ciLastCallIndex;
   int nLastCharOffset;
   int nFirstDrawLineOffset;
-  int nSelStartLineOffset;
-  int nSelEndLineOffset;
+  int nSelStartCharOffset;
+  int nSelEndCharOffset;
   int nLastCallOffset;
   int nLineCount;
   int nInputNewLine;
@@ -643,7 +647,8 @@ void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnS
 DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd, BOOL bEnableUndo, BOOL bScroll, BOOL bUpdate);
 wchar_t* AE_GetNextLine(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int *nLineLen, int *nLineBreak);
 int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine);
-BOOL AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AEStreamCallback lpCallback, DWORD dwCookie);
+DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes);
+DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes);
 BOOL AE_FindTextAnsi(AKELEDIT *ae, AEFINDTEXTA *ftA);
 BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft);
 BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);

@@ -2399,6 +2399,7 @@ Example:
  SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
  tr.pText=NULL;
  tr.nNewLine=AELB_ASIS;
+ tr.bColumnSel=-1;
 
  if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEA, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
  {
@@ -2424,11 +2425,12 @@ Example:
  SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
  tr.wpText=NULL;
  tr.nNewLine=AELB_ASIS;
+ tr.bColumnSel=-1;
 
  if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEW, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
  {
    MessageBoxW(pd->hMainWnd, tr.wpText, L"Test", MB_OK);
-   SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.pText);
+   SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.wpText);
  }
 */
 
