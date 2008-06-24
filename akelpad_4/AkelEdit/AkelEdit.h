@@ -332,6 +332,8 @@ typedef struct {
   DWORD dwCookie;
   DWORD dwError;
   AEStreamCallback lpCallback;
+  int nNewLine;
+  BOOL bColumnSel;
 } AESTREAM;
 
 typedef struct {

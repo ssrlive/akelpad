@@ -698,31 +698,35 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //// EM_* rich edit messages
 
-    if (uMsg == EM_STREAMIN)
+    if (uMsg == EM_STREAMIN ||
+        uMsg == EM_STREAMOUT)
     {
-      AESTREAM *aes=(AESTREAM *)lParam;
+      EDITSTREAM *es=(EDITSTREAM *)lParam;
+      AESTREAM aes;
       DWORD dwFlags=0;
+      DWORD dwResult=0;
 
       if ((wParam & SF_TEXT) && (wParam & SF_UNICODE))
       {
-        if (wParam & SFF_SELECTION)
-          dwFlags|=AESF_SELECTION;
-        return AE_StreamIn(ae, dwFlags, aes);
-      }
-      return 0;
-    }
-    if (uMsg == EM_STREAMOUT)
-    {
-      AESTREAM *aes=(AESTREAM *)lParam;
-      DWORD dwFlags=0;
+        aes.dwCookie=es->dwCookie;
+        aes.lpCallback=(AEStreamCallback)es->pfnCallback;
+        if (uMsg == EM_STREAMIN)
+          aes.nNewLine=AELB_ASINPUT;
+        else
+          aes.nNewLine=AELB_ASOUTPUT;
+        aes.bColumnSel=FALSE;
 
-      if ((wParam & SF_TEXT) && (wParam & SF_UNICODE))
-      {
         if (wParam & SFF_SELECTION)
           dwFlags|=AESF_SELECTION;
-        return AE_StreamOut(ae, dwFlags, aes);
+
+        if (uMsg == EM_STREAMIN)
+          dwResult=AE_StreamIn(ae, dwFlags, &aes);
+        else
+          dwResult=AE_StreamOut(ae, dwFlags, &aes);
+
+        es->dwError=aes.dwError;
       }
-      return 0;
+      return dwResult;
     }
     if (uMsg == EM_REPLACESEL)
     {
@@ -7787,20 +7791,27 @@ int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine)
 DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 {
   wchar_t *wszBuf;
+  int nNewLine=aes->nNewLine;
   DWORD dwBufLen=4096;
   DWORD dwBufDone;
   DWORD dwResult=0;
 
   aes->dwError=0;
 
+  //Set new line
+  if (nNewLine == AELB_ASINPUT)
+    nNewLine=ae->nInputNewLine;
+  else if (nNewLine == AELB_ASOUTPUT)
+    nNewLine=ae->nOutputNewLine;
+
   if (wszBuf=(wchar_t *)AE_HeapAlloc(ae, 0, dwBufLen * sizeof(wchar_t) + 2))
   {
     if (dwFlags & AESF_SELECTION)
     {
       AE_StackUndoGroupStop(ae);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, NULL, TRUE, FALSE, FALSE);
+      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, aes->bColumnSel, NULL, TRUE, FALSE, FALSE);
     }
-    else AE_SetText(ae, L"", 0, ae->nInputNewLine);
+    else AE_SetText(ae, L"", 0, nNewLine);
 
     while (1)
     {
@@ -7809,7 +7820,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
       if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) break;
       if (!dwBufDone) break;
       dwResult+=dwBufDone;
-      AE_InsertText(ae, &ae->ciSelStartIndex, wszBuf, dwBufDone / sizeof(wchar_t), ae->nInputNewLine, ae->bColumnSel, NULL, NULL, TRUE, FALSE, FALSE);
+      AE_InsertText(ae, &ae->ciSelStartIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, aes->bColumnSel, NULL, NULL, TRUE, FALSE, FALSE);
     }
 
     AE_StackUndoGroupStop(ae);
@@ -7824,6 +7835,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 {
   AECHARINDEX ciCount;
   wchar_t *wszBuf;
+  int nNewLine=aes->nNewLine;
   int nLineBreak;
   int nCountOffset;
   int nEndOffset;
@@ -7833,6 +7845,12 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
   DWORD dwResult=0;
 
   aes->dwError=0;
+
+  //Set new line
+  if (nNewLine == AELB_ASINPUT)
+    nNewLine=ae->nInputNewLine;
+  else if (nNewLine == AELB_ASOUTPUT)
+    nNewLine=ae->nOutputNewLine;
 
   if (dwFlags & AESF_SELECTION)
   {
@@ -7866,10 +7884,10 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
       }
       if (ciCount.lpLine->nLineBreak == AELB_EOF) break;
 
-      if (ae->nOutputNewLine == AELB_ASIS)
+      if (nNewLine == AELB_ASIS)
         nLineBreak=ciCount.lpLine->nLineBreak;
       else
-        nLineBreak=ae->nOutputNewLine;
+        nLineBreak=nNewLine;
 
       if (nLineBreak == AELB_R)
       {
