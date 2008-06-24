@@ -47,8 +47,8 @@
 #define AEM_RICHOFFSETTOINDEX (WM_USER + 2030)
 #define AEM_CHARFROMPOS       (WM_USER + 2031)
 #define AEM_POSFROMCHAR       (WM_USER + 2032)
-#define AEM_ISCARETVISIBLE    (WM_USER + 2033)
-#define AEM_LINESCROLL        (WM_USER + 2034)
+#define AEM_LINESCROLL        (WM_USER + 2033)
+#define AEM_SCROLLCARETTEST   (WM_USER + 2034)
 #define AEM_SCROLLCARET       (WM_USER + 2035)
 #define AEM_LOCKSCROLL        (WM_USER + 2036)
 #define AEM_SHOWSCROLLBAR     (WM_USER + 2037)
@@ -179,6 +179,9 @@
 #define AECS_FORCETOP        0x00000080
 #define AECS_FORCERIGHT      0x00000100
 #define AECS_FORCEBOTTOM     0x00000200
+
+#define AECSE_SCROLLEDX      0x00000001
+#define AECSE_SCROLLEDY      0x00000002
 
 #define AEFR_DOWN            0x00000001
 #define AEFR_WHOLEWORD       0x00000002
@@ -606,7 +609,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFresh);
 BOOL AE_SetCaretPos(AKELEDIT *ae, POINT *ptCaret);
 void SetCaretVis(AKELEDIT *ae, POINT *ptCaret);
 void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret);
-void AE_ScrollToCaretEx(AKELEDIT *ae, POINT *ptCaret, DWORD dwFlags, WORD wUnitX, WORD wUnitY);
+DWORD AE_ScrollToCaretEx(AKELEDIT *ae, POINT *ptCaret, DWORD dwFlags, WORD wUnitX, WORD wUnitY, BOOL bTest);
 void AE_CenterCaret(AKELEDIT *ae, POINT *ptCaret);
 void AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
