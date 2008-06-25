@@ -926,7 +926,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AECHARINDEX ci={0};
 
-      if (lParam)
+      if (lParam || !IsBadCodePtr((FARPROC)wParam))
       {
         //RichEdit 3.0 syntax
         POINT *pt=(POINT *)wParam;
