@@ -1663,11 +1663,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_LBUTTONDOWN)
     {
       POINT ptPos;
+      BOOL bAlt=FALSE;
+      BOOL bShift=FALSE;
+      BOOL bRedrawAllSelection=FALSE;
 
       ptPos.x=LOWORD(lParam);
       ptPos.y=HIWORD(lParam);
 
-      if (AE_IsCursorOnSelection(ae, &ptPos))
+      if (GetKeyState(VK_MENU) < 0)
+        bAlt=TRUE;
+      if (GetKeyState(VK_SHIFT) < 0)
+        bShift=TRUE;
+
+      if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
       {
         SetCapture(ae->hWndEdit);
         ae->bDragging=TRUE;
@@ -1675,14 +1683,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (!ae->dwMouseMoveTimer)
       {
-        BOOL bAlt=FALSE;
-        BOOL bShift=FALSE;
-        BOOL bRedrawAllSelection=FALSE;
-
-        if (GetKeyState(VK_MENU) < 0)
-          bAlt=TRUE;
-        if (GetKeyState(VK_SHIFT) < 0)
-          bShift=TRUE;
         if (ae->bColumnSel != bAlt)
           bRedrawAllSelection=TRUE;
         ae->bColumnSel=bAlt;
