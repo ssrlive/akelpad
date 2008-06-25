@@ -619,6 +619,8 @@ DWORD AE_ScrollToCaretEx(AKELEDIT *ae, POINT *ptCaret, DWORD dwFlags, WORD wUnit
 void AE_CenterCaret(AKELEDIT *ae, POINT *ptCaret);
 void AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
+int AE_HScroll(AKELEDIT *ae, int nAction);
+int AE_VScroll(AKELEDIT *ae, int nAction);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
 int AE_GetFirstVisibleLine(AKELEDIT *ae);
