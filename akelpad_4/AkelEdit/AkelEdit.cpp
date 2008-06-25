@@ -924,11 +924,26 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_POSFROMCHAR)
     {
-      POINT *pt=(POINT *)wParam;
       AECHARINDEX ci={0};
 
-      AE_RichOffsetToAkelIndex(ae, lParam, &ci);
-      AE_GetPosFromCharEx(ae, &ci, NULL, pt);
+      if (lParam)
+      {
+        //RichEdit 3.0 syntax
+        POINT *pt=(POINT *)wParam;
+
+        AE_RichOffsetToAkelIndex(ae, lParam, &ci);
+        AE_GetPosFromCharEx(ae, &ci, NULL, pt);
+        return 0;
+      }
+      else
+      {
+        //RichEdit 2.0 syntax
+        POINT pt;
+
+        AE_RichOffsetToAkelIndex(ae, wParam, &ci);
+        AE_GetPosFromCharEx(ae, &ci, NULL, &pt);
+        return MAKELONG(pt.x, pt.y);
+      }
       return 0;
     }
     if (uMsg == EM_CHARFROMPOS)
@@ -956,6 +971,21 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (pt->y != ae->nVScrollPos)
         AE_ScrollEditWindow(ae, SB_VERT, pt->y);
       return 1;
+    }
+    if (uMsg == EM_SCROLL)
+    {
+      int nScrolled=0;
+      BOOL bResult=FALSE;
+
+      if (wParam == SB_LINEUP ||
+          wParam == SB_LINEDOWN ||
+          wParam == SB_PAGEUP ||
+          wParam == SB_PAGEDOWN)
+      {
+        nScrolled=AE_VScroll(ae, wParam);
+        bResult=TRUE;
+      }
+      return MAKELONG(mod(nScrolled) / ae->nCharHeight, bResult);
     }
     if (uMsg == EM_LINESCROLL)
     {
@@ -1610,90 +1640,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_HSCROLL)
     {
-      SCROLLINFO si;
-
-      si.cbSize=sizeof(SCROLLINFO);
-      si.fMask=SIF_ALL;
-      GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
-
-      if (LOWORD(wParam) == SB_LINELEFT)
-      {
-        // user clicked left arrow
-        si.nPos-=ae->nAveCharWidth;
-      }
-      else if (LOWORD(wParam) == SB_LINERIGHT)
-      {
-        // user clicked right arrow
-        si.nPos+=ae->nAveCharWidth;
-      }
-      else if (LOWORD(wParam) == SB_PAGELEFT)
-      {
-        // user clicked shaft left of the scroll box
-        si.nPos-=si.nPage;
-      }
-      else if (LOWORD(wParam) == SB_PAGERIGHT)
-      {
-        // user clicked shaft right of the scroll box
-        si.nPos+=si.nPage;
-      }
-      else if (LOWORD(wParam) == SB_THUMBTRACK)
-      {
-        // user dragged the scroll box
-        si.nPos=si.nTrackPos;
-      }
-      else if (LOWORD(wParam) == SB_THUMBPOSITION)
-      {
-      }
-      AE_ScrollEditWindow(ae, SB_HORZ, si.nPos);
+      AE_HScroll(ae, LOWORD(wParam));
       return 0;
     }
     else if (uMsg == WM_VSCROLL)
     {
-      SCROLLINFO si;
-
-      si.cbSize=sizeof(SCROLLINFO);
-      si.fMask=SIF_ALL;
-      GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
-
-      if (LOWORD(wParam) == SB_TOP)
-      {
-        // user clicked the HOME keyboard key
-        si.nPos=si.nMin;
-      }
-      else if (LOWORD(wParam) == SB_BOTTOM)
-      {
-        // user clicked the END keyboard key
-        si.nPos=si.nMax;
-      }
-      else if (LOWORD(wParam) == SB_LINEUP)
-      {
-        // user clicked the top arrow
-        si.nPos-=ae->nCharHeight;
-      }
-      else if (LOWORD(wParam) == SB_LINEDOWN)
-      {
-        // user clicked the bottom arrow
-        si.nPos+=ae->nCharHeight;
-      }
-      else if (LOWORD(wParam) == SB_PAGEUP)
-      {
-        // user clicked the shaft above the scroll box
-        si.nPos-=si.nPage;
-      }
-      else if (LOWORD(wParam) == SB_PAGEDOWN)
-      {
-        // user clicked the shaft below the scroll box
-        si.nPos+=si.nPage;
-      }
-      else if (LOWORD(wParam) == SB_THUMBTRACK)
-      {
-        // user dragged the scroll box
-        si.nPos=si.nTrackPos;
-      }
-      else if (LOWORD(wParam) == SB_THUMBPOSITION)
-      {
-      }
-      AE_ScrollEditWindow(ae, SB_VERT, si.nPos);
+      AE_VScroll(ae, LOWORD(wParam));
       return 0;
     }
     else if (uMsg == WM_TIMER)
@@ -5041,6 +4993,88 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
   if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
 }
 
+int AE_HScroll(AKELEDIT *ae, int nAction)
+{
+  SCROLLINFO si;
+  int nHScrollPos;
+
+  si.cbSize=sizeof(SCROLLINFO);
+  si.fMask=SIF_ALL;
+  GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
+
+  if (nAction == SB_LINELEFT)
+  {
+    si.nPos-=ae->nAveCharWidth;
+  }
+  else if (nAction == SB_LINERIGHT)
+  {
+    si.nPos+=ae->nAveCharWidth;
+  }
+  else if (nAction == SB_PAGELEFT)
+  {
+    si.nPos-=si.nPage;
+  }
+  else if (nAction == SB_PAGERIGHT)
+  {
+    si.nPos+=si.nPage;
+  }
+  else if (nAction == SB_THUMBTRACK)
+  {
+    si.nPos=si.nTrackPos;
+  }
+  else if (nAction == SB_THUMBPOSITION)
+  {
+  }
+  nHScrollPos=ae->nHScrollPos;
+  AE_ScrollEditWindow(ae, SB_HORZ, si.nPos);
+  return nHScrollPos - ae->nHScrollPos;
+}
+
+int AE_VScroll(AKELEDIT *ae, int nAction)
+{
+  SCROLLINFO si;
+  int nVScrollPos;
+
+  si.cbSize=sizeof(SCROLLINFO);
+  si.fMask=SIF_ALL;
+  GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+
+  if (nAction == SB_TOP)
+  {
+    si.nPos=si.nMin;
+  }
+  else if (nAction == SB_BOTTOM)
+  {
+    si.nPos=si.nMax;
+  }
+  else if (nAction == SB_LINEUP)
+  {
+    si.nPos-=ae->nCharHeight;
+  }
+  else if (nAction == SB_LINEDOWN)
+  {
+    si.nPos+=ae->nCharHeight;
+  }
+  else if (nAction == SB_PAGEUP)
+  {
+    si.nPos-=si.nPage;
+  }
+  else if (nAction == SB_PAGEDOWN)
+  {
+    si.nPos+=si.nPage;
+  }
+  else if (nAction == SB_THUMBTRACK)
+  {
+    si.nPos=si.nTrackPos;
+  }
+  else if (nAction == SB_THUMBPOSITION)
+  {
+  }
+  nVScrollPos=ae->nVScrollPos;
+  AE_ScrollEditWindow(ae, SB_VERT, si.nPos);
+  return nVScrollPos - ae->nVScrollPos;
+}
+
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase)
 {
   HWND hWndParent;
@@ -7892,7 +7926,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
         {
           wszBuf[dwBufLen]=L'\0';
           dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen, &dwBufDone)) goto End;
+          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
           if (!dwBufDone) goto End;
           dwResult+=dwBufDone;
         }
@@ -7912,7 +7946,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
         {
           wszBuf[dwBufLen]=L'\0';
           dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen, &dwBufDone)) goto End;
+          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
           if (!dwBufDone) goto End;
           dwResult+=dwBufDone;
         }
@@ -7925,7 +7959,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
         {
           wszBuf[dwBufLen]=L'\0';
           dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen, &dwBufDone)) goto End;
+          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
           if (!dwBufDone) goto End;
           dwResult+=dwBufDone;
         }
@@ -7938,7 +7972,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
         {
           wszBuf[dwBufLen]=L'\0';
           dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen, &dwBufDone)) goto End;
+          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
           if (!dwBufDone) goto End;
           dwResult+=dwBufDone;
         }
@@ -7948,7 +7982,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
         {
           wszBuf[dwBufLen]=L'\0';
           dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen, &dwBufDone)) goto End;
+          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
           if (!dwBufDone) goto End;
           dwResult+=dwBufDone;
         }
@@ -7961,7 +7995,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
         {
           wszBuf[dwBufLen]=L'\0';
           dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen, &dwBufDone)) goto End;
+          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
           if (!dwBufDone) goto End;
           dwResult+=dwBufDone;
         }
@@ -7971,7 +8005,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
         {
           wszBuf[dwBufLen]=L'\0';
           dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen, &dwBufDone)) goto End;
+          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
           if (!dwBufDone) goto End;
           dwResult+=dwBufDone;
         }
@@ -7981,7 +8015,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
         {
           wszBuf[dwBufLen]=L'\0';
           dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen, &dwBufDone)) goto End;
+          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
           if (!dwBufDone) goto End;
           dwResult+=dwBufDone;
         }
@@ -7996,7 +8030,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
     if (dwBufCount > 0)
     {
       wszBuf[dwBufCount]=L'\0';
-      if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufCount, &dwBufDone)) goto End;
+      if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufCount * sizeof(wchar_t), &dwBufDone)) goto End;
       if (!dwBufDone) goto End;
       dwResult+=dwBufDone;
       dwBufCount=0;
@@ -8048,13 +8082,29 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 
   if (ft->dwFlags & AEFR_DOWN)
   {
-    ciCount=ft->crSearch.ciMin;
-    ciCountEnd=ft->crSearch.ciMax;
+    if (AE_IndexCompare(&ft->crSearch.ciMin, &ft->crSearch.ciMax) <= 0)
+    {
+      ciCount=ft->crSearch.ciMin;
+      ciCountEnd=ft->crSearch.ciMax;
+    }
+    else
+    {
+      ciCount=ft->crSearch.ciMax;
+      ciCountEnd=ft->crSearch.ciMin;
+    }
   }
   else
   {
-    ciCount=ft->crSearch.ciMax;
-    ciCountEnd=ft->crSearch.ciMin;
+    if (AE_IndexCompare(&ft->crSearch.ciMin, &ft->crSearch.ciMax) <= 0)
+    {
+      ciCount=ft->crSearch.ciMax;
+      ciCountEnd=ft->crSearch.ciMin;
+    }
+    else
+    {
+      ciCount=ft->crSearch.ciMin;
+      ciCountEnd=ft->crSearch.ciMax;
+    }
   }
 
   if (ft->dwFlags & AEFR_WHOLEWORD)

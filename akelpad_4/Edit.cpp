@@ -5398,7 +5398,9 @@ BOOL CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufL
 {
   FILESTREAMDATA *lpData=(FILESTREAMDATA *)dwCookie;
   unsigned char *pDataToWrite=(unsigned char *)wszBuf;
-  DWORD dwBytesToWrite=dwBufLen * sizeof(wchar_t);
+  DWORD dwBytesToWrite=dwBufLen;
+
+  dwBufLen=dwBufLen / sizeof(wchar_t);
 
   if (lpData->nCodePage == CP_UNICODE_UCS2_LE)
   {
