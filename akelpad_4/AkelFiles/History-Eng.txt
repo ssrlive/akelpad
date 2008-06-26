@@ -4,6 +4,7 @@ AkelPad 4.0.0 alpha 6 ()
 Changed: backward compatibility with RichEdit is improved.
 Changed: more accurate scrolling, when the founded text is outside visibility.
 
+Fixed: text Drag'n'Drop.
 Fixed: search of new line character.
 
 Do not work yet:
