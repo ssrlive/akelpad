@@ -2909,7 +2909,7 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
   if (nType == INI_DWORD)
   {
     pString=szNumber;
-    dwStringLen=wsprintfA(szNumber, "%d", *(DWORD *)lpData);
+    dwStringLen=wsprintfA(szNumber, "%u", *(DWORD *)lpData);
 
     lpIniKey->nStringUnicodeBytes=dwStringLen * sizeof(wchar_t) + 2;
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
@@ -3012,7 +3012,7 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
   if (nType == INI_DWORD)
   {
     wpString=wszNumber;
-    dwStringLen=wsprintfW(wszNumber, L"%d", *(DWORD *)lpData);
+    dwStringLen=wsprintfW(wszNumber, L"%u", *(DWORD *)lpData);
 
     lpIniKey->nStringUnicodeBytes=dwStringLen * sizeof(wchar_t) + 2;
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
