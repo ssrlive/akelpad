@@ -7922,7 +7922,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
     if (dwFlags & AESF_SELECTION)
     {
       AE_StackUndoGroupStop(ae);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, aes->bColumnSel, NULL, TRUE, FALSE, FALSE);
+      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (dwFlags & AESF_COLUMNSEL), NULL, TRUE, FALSE, FALSE);
     }
     else AE_SetText(ae, L"", 0, nNewLine);
 
@@ -7933,7 +7933,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
       if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) break;
       if (!dwBufDone) break;
       dwResult+=dwBufDone;
-      AE_InsertText(ae, &ae->ciSelStartIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, aes->bColumnSel, NULL, NULL, (dwFlags & AESF_SELECTION)?TRUE:FALSE, FALSE, FALSE);
+      AE_InsertText(ae, &ae->ciSelStartIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, (dwFlags & AESF_COLUMNSEL), NULL, NULL, (dwFlags & AESF_SELECTION), FALSE, FALSE);
     }
 
     if (dwFlags & AESF_SELECTION)
@@ -7954,14 +7954,12 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 {
   AECHARINDEX ciCount;
+  AECHARINDEX ciEnd;
   wchar_t *wszBuf;
   int nNewLine=aes->nNewLine;
   int nLineBreak;
-  int nCountOffset;
-  int nEndOffset;
   DWORD dwBufLen=4096;
   DWORD dwBufCount=0;
-  DWORD dwBufDone;
   DWORD dwResult=0;
 
   aes->dwError=0;
@@ -7975,32 +7973,44 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
   if (dwFlags & AESF_SELECTION)
   {
     AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciCount, FALSE);
-    nCountOffset=ae->nSelStartCharOffset;
-    nEndOffset=ae->nSelEndCharOffset;
+    AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciEnd, FALSE);
   }
   else
   {
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCount, FALSE);
-    nCountOffset=0;
-    nEndOffset=ae->nLastCharOffset;
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciEnd, FALSE);
   }
 
   if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
   {
     while (ciCount.lpLine)
     {
-      while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+      if (dwFlags & AESF_COLUMNSEL)
       {
-        if (nCountOffset++ >= nEndOffset) goto LastCall;
-        if (dwBufCount >= dwBufLen)
+        ciCount.nCharInLine=ciCount.lpLine->nSelStart;
+
+        while (ciCount.nCharInLine < ciCount.lpLine->nLineLen && ciCount.nCharInLine < ciCount.lpLine->nSelEnd)
         {
-          wszBuf[dwBufLen]=L'\0';
-          dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
-          if (!dwBufDone) goto End;
-          dwResult+=dwBufDone;
+          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=ciCount.lpLine->wpLine[ciCount.nCharInLine++];
         }
-        wszBuf[dwBufCount++]=ciCount.lpLine->wpLine[ciCount.nCharInLine++];
+        if (dwFlags & AESF_FILLSPACES)
+        {
+          while (ciCount.nCharInLine < ciCount.lpLine->nSelEnd)
+          {
+            if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+            wszBuf[dwBufCount++]=' ';
+            ++ciCount.nCharInLine;
+          }
+        }
+      }
+      else
+      {
+        while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+        {
+          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=ciCount.lpLine->wpLine[ciCount.nCharInLine++];
+        }
       }
       if (ciCount.lpLine->nLineBreak == AELB_EOF) break;
 
@@ -8011,105 +8021,69 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 
       if (nLineBreak == AELB_R)
       {
-        if (nCountOffset++ >= nEndOffset) goto LastCall;
-        if (dwBufCount >= dwBufLen)
-        {
-          wszBuf[dwBufLen]=L'\0';
-          dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
-          if (!dwBufDone) goto End;
-          dwResult+=dwBufDone;
-        }
+        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
         wszBuf[dwBufCount++]=L'\r';
       }
       else if (nLineBreak == AELB_N)
       {
-        if (nCountOffset++ >= nEndOffset) goto LastCall;
-        if (dwBufCount >= dwBufLen)
-        {
-          wszBuf[dwBufLen]=L'\0';
-          dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
-          if (!dwBufDone) goto End;
-          dwResult+=dwBufDone;
-        }
+        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
         wszBuf[dwBufCount++]=L'\n';
       }
       else if (nLineBreak == AELB_RN)
       {
-        if (nCountOffset++ >= nEndOffset) goto LastCall;
-        if (dwBufCount >= dwBufLen)
-        {
-          wszBuf[dwBufLen]=L'\0';
-          dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
-          if (!dwBufDone) goto End;
-          dwResult+=dwBufDone;
-        }
+        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
         wszBuf[dwBufCount++]=L'\r';
 
-        if (dwBufCount >= dwBufLen)
-        {
-          wszBuf[dwBufLen]=L'\0';
-          dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
-          if (!dwBufDone) goto End;
-          dwResult+=dwBufDone;
-        }
+        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
         wszBuf[dwBufCount++]=L'\n';
       }
       else if (nLineBreak == AELB_RRN)
       {
-        if (nCountOffset++ >= nEndOffset) goto LastCall;
-        if (dwBufCount >= dwBufLen)
-        {
-          wszBuf[dwBufLen]=L'\0';
-          dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
-          if (!dwBufDone) goto End;
-          dwResult+=dwBufDone;
-        }
+        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
         wszBuf[dwBufCount++]=L'\r';
 
-        if (dwBufCount >= dwBufLen)
-        {
-          wszBuf[dwBufLen]=L'\0';
-          dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
-          if (!dwBufDone) goto End;
-          dwResult+=dwBufDone;
-        }
+        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
         wszBuf[dwBufCount++]=L'\r';
 
-        if (dwBufCount >= dwBufLen)
-        {
-          wszBuf[dwBufLen]=L'\0';
-          dwBufCount=0;
-          if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) goto End;
-          if (!dwBufDone) goto End;
-          dwResult+=dwBufDone;
-        }
+        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
         wszBuf[dwBufCount++]=L'\n';
       }
       ++ciCount.nLine;
       ciCount.lpLine=ciCount.lpLine->next;
       ciCount.nCharInLine=0;
     }
-
-    LastCall:
-    if (dwBufCount > 0)
-    {
-      wszBuf[dwBufCount]=L'\0';
-      if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufCount * sizeof(wchar_t), &dwBufDone)) goto End;
-      if (!dwBufDone) goto End;
-      dwResult+=dwBufDone;
-      dwBufCount=0;
-    }
+    AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult);
 
     End:
     AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
   return dwResult;
+}
+
+BOOL AE_StreamOutHelper(AESTREAM *aes, AECHARINDEX *ciCount, AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, DWORD *dwResult)
+{
+  DWORD dwBufDone=0;
+
+  if (AE_IndexCompare(ciCount, ciEnd) >= 0)
+  {
+    if (*dwBufCount > 0)
+    {
+      wszBuf[*dwBufCount]=L'\0';
+      if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, *dwBufCount * sizeof(wchar_t), &dwBufDone)) return FALSE;
+      *dwResult+=dwBufDone;
+      *dwBufCount=0;
+    }
+    return FALSE;
+  }
+  if (*dwBufCount >= dwBufLen)
+  {
+    wszBuf[dwBufLen]=L'\0';
+    *dwBufCount=0;
+    if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) return FALSE;
+    if (!dwBufDone) return FALSE;
+    *dwResult+=dwBufDone;
+  }
+  return TRUE;
 }
 
 BOOL AE_FindTextAnsi(AKELEDIT *ae, AEFINDTEXTA *ftA)
