@@ -294,6 +294,20 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AE_SetText(ae, (wchar_t *)lParam, wParam, ae->nInputNewLine);
       }
+      if (uMsg == AEM_ADDTEXTA)
+      {
+        AEADDTEXTA *at=(AEADDTEXTA *)lParam;
+
+        AE_AddTextAnsi(ae, at->pText, at->dwTextLen, at->bColumnSel);
+        return 0;
+      }
+      if (uMsg == AEM_ADDTEXTW)
+      {
+        AEADDTEXTW *at=(AEADDTEXTW *)lParam;
+
+        AE_AddText(ae, at->wpText, at->dwTextLen, at->bColumnSel);
+        return 0;
+      }
       if (uMsg == AEM_REPLACESELA)
       {
         AEREPLACESELA *rs=(AEREPLACESELA *)lParam;
@@ -6952,6 +6966,60 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   return dwTextLen;
 }
 
+void AE_AddTextAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel)
+{
+  wchar_t *wszText;
+  DWORD dwUnicodeBytes;
+
+  dwUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pText, dwTextLen, NULL, 0) * sizeof(wchar_t);
+  if (dwTextLen == (DWORD)-1) dwUnicodeBytes-=2;
+
+  if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
+  {
+    MultiByteToWideChar(CP_ACP, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
+    AE_AddText(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), bColumnSel);
+
+    AE_HeapFree(ae, 0, (LPVOID)wszText);
+  }
+}
+
+void AE_AddText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel)
+{
+  AECHARINDEX ciCaretIndex;
+  AECHARINDEX ciSelStartIndex;
+  AECHARINDEX ciSelEndIndex;
+  AECHARINDEX ciLastChar;
+  int nSelStartCharOffset;
+  int nSelEndCharOffset;
+
+  AE_StackUndoGroupStop(ae);
+  AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
+
+  //Save selection points
+  ciCaretIndex=ae->ciCaretIndex;
+  ciSelStartIndex=ae->ciSelStartIndex;
+  ciSelEndIndex=ae->ciSelEndIndex;
+  nSelStartCharOffset=ae->nSelStartCharOffset;
+  nSelEndCharOffset=ae->nSelEndCharOffset;
+
+  AE_InsertText(ae, &ciLastChar, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, NULL, NULL, TRUE, FALSE, FALSE);
+
+  //Restore selection points
+  AE_UpdateIndex(ae, &ciSelStartIndex);
+  ae->nSelStartCharOffset=nSelStartCharOffset;
+  ae->ciSelStartIndex=ciSelStartIndex;
+  AE_UpdateIndex(ae, &ciSelEndIndex);
+  ae->nSelEndCharOffset=nSelEndCharOffset;
+  ae->ciSelEndIndex=ciSelEndIndex;
+  AE_UpdateIndex(ae, &ciCaretIndex);
+  AE_GetPosFromCharEx(ae, &ciCaretIndex, &ae->ptCaret, NULL);
+  ae->ciCaretIndex=ciCaretIndex;
+
+  AE_UpdateScrollBars(ae, SB_VERT);
+  InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+  AE_StackUndoGroupStop(ae);
+}
+
 void AE_ReplaceSelAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   wchar_t *wszText;
@@ -7016,7 +7084,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
   DWORD dwTextCount=0;
   DWORD dwRichTextCount=0;
 
-  if (ciInsertPos->lpLine)
+  if (ciInsertFrom.lpLine)
   {
     //Set new line
     if (nNewLine == AELB_ASINPUT)
