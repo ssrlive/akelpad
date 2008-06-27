@@ -1,5 +1,5 @@
 /***********************************************************************************
- *               AkelEdit text control v1.0 alpha 6                                *
+ *                      AkelEdit text control v1.0 beta 1                          *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -381,16 +381,18 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETSEL)
       {
+        AECHARINDEX **lpciCaret=(AECHARINDEX **)wParam;
         AESELECTION *aes=(AESELECTION *)lParam;
 
-        AE_AkelEditGetSel(ae, aes);
+        AE_AkelEditGetSel(ae, aes, lpciCaret);
         return 0;
       }
       if (uMsg == AEM_SETSEL)
       {
+        AECHARINDEX *lpciCaret=(AECHARINDEX *)wParam;
         AESELECTION *aes=(AESELECTION *)lParam;
 
-        AE_AkelEditSetSel(ae, aes);
+        AE_AkelEditSetSel(ae, aes, lpciCaret);
         return 0;
       }
       if (uMsg == AEM_GETCOLUMNSEL)
@@ -4422,7 +4424,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
         sc.hdr.hwndFrom=ae->hWndEdit;
         sc.hdr.idFrom=ae->nEditCtrlID;
         sc.hdr.code=AEN_SELCHANGE;
-        AE_AkelEditGetSel(ae, &sc.aes);
+        AE_AkelEditGetSel(ae, &sc.aes, &sc.lpciCaret);
         SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
       }
 
@@ -6716,7 +6718,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         sc.hdr.hwndFrom=ae->hWndEdit;
         sc.hdr.idFrom=ae->nEditCtrlID;
         sc.hdr.code=AEN_SELCHANGE;
-        AE_AkelEditGetSel(ae, &sc.aes);
+        AE_AkelEditGetSel(ae, &sc.aes, &sc.lpciCaret);
         SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
       }
 
@@ -7694,7 +7696,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           sc.hdr.hwndFrom=ae->hWndEdit;
           sc.hdr.idFrom=ae->nEditCtrlID;
           sc.hdr.code=AEN_SELCHANGE;
-          AE_AkelEditGetSel(ae, &sc.aes);
+          AE_AkelEditGetSel(ae, &sc.aes, &sc.lpciCaret);
           SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
         }
 
@@ -8848,21 +8850,24 @@ void AE_EditSelectAll(AKELEDIT *ae)
   AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE, TRUE);
 }
 
-void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes)
+void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX **lpciCaret)
 {
   aes->crSel.ciMin=ae->ciSelStartIndex;
   aes->crSel.ciMax=ae->ciSelEndIndex;
   aes->bColumnSel=ae->bColumnSel;
 
-  if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
-    aes->lpciCaret=&aes->crSel.ciMax;
-  else
-    aes->lpciCaret=&aes->crSel.ciMin;
+  if (lpciCaret)
+  {
+    if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+      *lpciCaret=&aes->crSel.ciMax;
+    else
+      *lpciCaret=&aes->crSel.ciMin;
+  }
 }
 
-void AE_AkelEditSetSel(AKELEDIT *ae, AESELECTION *aes)
+void AE_AkelEditSetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
 {
-  if (!aes->lpciCaret)
+  if (!lpciCaret)
   {
     if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
       AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, aes->bColumnSel, TRUE);
@@ -8871,7 +8876,7 @@ void AE_AkelEditSetSel(AKELEDIT *ae, AESELECTION *aes)
   }
   else
   {
-    if (!AE_IndexCompare(&aes->crSel.ciMax, aes->lpciCaret))
+    if (!AE_IndexCompare(&aes->crSel.ciMax, lpciCaret))
       AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, aes->bColumnSel, TRUE);
     else
       AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, aes->bColumnSel, TRUE);

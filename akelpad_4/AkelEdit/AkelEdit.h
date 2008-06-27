@@ -294,7 +294,6 @@ typedef struct {
 
 typedef struct {
   AECHARRANGE crSel;
-  AECHARINDEX *lpciCaret;
   BOOL bColumnSel;
 } AESELECTION;
 
@@ -316,16 +315,16 @@ typedef struct {
 
 typedef struct {
   AECHARRANGE cr;
+  BOOL bColumnSel;
   char *pText;
   int nNewLine;
-  BOOL bColumnSel;
 } AETEXTRANGEA;
 
 typedef struct {
   AECHARRANGE cr;
+  BOOL bColumnSel;
   wchar_t *wpText;
   int nNewLine;
-  BOOL bColumnSel;
 } AETEXTRANGEW;
 
 typedef struct {
@@ -382,6 +381,7 @@ typedef struct {
 typedef struct {
   NMHDR hdr;
   AESELECTION aes;
+  AECHARINDEX *lpciCaret;
 } AENSELCHANGE;
 
 typedef struct {
@@ -671,8 +671,8 @@ void AE_EditKeyReturn(AKELEDIT *ae);
 void AE_EditKeyBackspace(AKELEDIT *ae);
 void AE_EditKeyDelete(AKELEDIT *ae);
 void AE_EditSelectAll(AKELEDIT *ae);
-void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes);
-void AE_AkelEditSetSel(AKELEDIT *ae, AESELECTION *aes);
+void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX **lpciCaret);
+void AE_AkelEditSetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret);
 void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax);
 void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);

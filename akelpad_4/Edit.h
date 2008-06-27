@@ -15,8 +15,8 @@
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_ABOUT_VERSIONA           "AkelPad 4.0.0 alpha 6"
-#define APP_ABOUT_VERSIONW          L"AkelPad 4.0.0 alpha 6"
+#define APP_ABOUT_VERSIONA           "AkelPad 4.0.0 beta 1"
+#define APP_ABOUT_VERSIONW          L"AkelPad 4.0.0 beta 1"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -968,8 +968,8 @@ BOOL EscapeStringToEscapeDataA(char *pInput, char *szOutput);
 BOOL EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput);
 void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput);
 
-void GetSel(HWND hWnd, AECHARRANGE *crSel, AECHARINDEX **ciCaret, BOOL *bColumnSel);
-void SetSel(HWND hWnd, AECHARRANGE *crSel, AECHARINDEX *ciCaret, BOOL bColumnSel);
+void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX **ciCaret);
+void SetSel(HWND hWnd, AECHARRANGE *crSel, BOOL bColumnSel, AECHARINDEX *ciCaret);
 void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel);
@@ -979,8 +979,8 @@ void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar);
 int GetTextLength(HWND hWnd);
 int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText);
 int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText);
-int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, char **pText, int nNewLine, BOOL bColumnSel);
-int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, wchar_t **wpText, int nNewLine, BOOL bColumnSel);
+int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine);
+int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine);
 BOOL FreeText(LPVOID pText);
 void PasteInEditAsRichEdit(HWND hWnd);
 
