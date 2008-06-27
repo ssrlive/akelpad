@@ -1893,13 +1893,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, tr->nNewLine, tr->bColumnSel);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->pText, tr->nNewLine);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, tr->nNewLine, tr->bColumnSel);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->wpText, tr->nNewLine);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -3553,13 +3553,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->pText, tr->nNewLine, tr->bColumnSel);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->pText, tr->nNewLine);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, &tr->wpText, tr->nNewLine, tr->bColumnSel);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->wpText, tr->nNewLine);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -4847,7 +4847,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENSELCHANGE *sc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatusA(hWndEdit, &sc->aes.crSel, sc->aes.lpciCaret);
+        SetSelectionStatusA(hWndEdit, &sc->aes.crSel, sc->lpciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGE)
       {
@@ -4960,7 +4960,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENSELCHANGE *sc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatusW(hWndEdit, &sc->aes.crSel, sc->aes.lpciCaret);
+        SetSelectionStatusW(hWndEdit, &sc->aes.crSel, sc->lpciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGE)
       {
