@@ -196,6 +196,8 @@
 #define AEWB_RIGHTWORDEND    0x00000008
 
 #define AESF_SELECTION       0x00000001
+#define AESF_COLUMNSEL       0x00000002
+#define AESF_FILLSPACES      0x00000004
 
 #ifndef FR_DOWN
   #define FR_DOWN 0x00000001
@@ -669,6 +671,7 @@ wchar_t* AE_GetNextLine(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int *nLi
 int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine);
 DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes);
 DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes);
+BOOL AE_StreamOutHelper(AESTREAM *aes, AECHARINDEX *ciCount, AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, DWORD *dwResult);
 BOOL AE_FindTextAnsi(AKELEDIT *ae, AEFINDTEXTA *ftA);
 BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft);
 BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
