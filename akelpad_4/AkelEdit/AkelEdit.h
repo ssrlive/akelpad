@@ -608,7 +608,7 @@ AELINEDATA* AE_StackLineInsertAfter(AKELEDIT *ae, AELINEDATA *lpLine);
 void AE_StackLineDelete(AKELEDIT *ae, AELINEDATA *lpElement);
 void AE_StackLineFree(AKELEDIT *ae);
 AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine);
-void AE_RichOffsetToAkelIndex(AKELEDIT *ae, int nOffset, AECHARINDEX *ciCharIndex);
+void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharIndex);
 int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex);
 BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel);
 int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
