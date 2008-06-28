@@ -2390,7 +2390,8 @@ Get colors of the specified char.
 (CHARCOLOR *)lParam == pointer to a CHARCOLOR structure
 
 Return Value
- zero
+ TRUE   specified char in selection
+ FALSE  specified char not in selection
 
 Example:
  CHARCOLOR cc;

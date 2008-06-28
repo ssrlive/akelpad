@@ -15251,7 +15251,7 @@ int GetCharWidthTwipsW(HWND hWnd)
 }
 
 
-void GetCharColor(HWND hWnd, CHARCOLOR *cc)
+BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc)
 {
   CHARRANGE cr;
 
@@ -15263,12 +15263,14 @@ void GetCharColor(HWND hWnd, CHARCOLOR *cc)
   {
     cc->crText=aecColors.crSelText;
     cc->crBk=aecColors.crSelBk;
+    return TRUE;
   }
   else
   {
     cc->crText=aecColors.crBasicText;
     cc->crBk=aecColors.crBasicBk;
   }
+  return FALSE;
 }
 
 BOOL InsertTabStopW(HWND hWnd)

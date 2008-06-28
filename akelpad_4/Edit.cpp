@@ -15918,7 +15918,7 @@ BOOL SelectColorDialogW(HWND hWndOwner, COLORREF *crColor)
   return FALSE;
 }
 
-void GetCharColor(HWND hWnd, CHARCOLOR *cc)
+BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc)
 {
   AECHARRANGE cr;
   AECHARINDEX ciCaretIndex;
@@ -15934,6 +15934,7 @@ void GetCharColor(HWND hWnd, CHARCOLOR *cc)
   {
     cc->crText=aecColors.crSelText;
     cc->crBk=aecColors.crSelBk;
+    return TRUE;
   }
   else if (ciCharIndex.nLine == ciCaretIndex.nLine)
   {
@@ -15945,6 +15946,7 @@ void GetCharColor(HWND hWnd, CHARCOLOR *cc)
     cc->crText=aecColors.crBasicText;
     cc->crBk=aecColors.crBasicBk;
   }
+  return FALSE;
 }
 
 HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA, BOOL bDeleteOld)

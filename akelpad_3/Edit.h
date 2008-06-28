@@ -1156,7 +1156,7 @@ void SetTabStopsA(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 void SetTabStopsW(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 int GetCharWidthTwipsA(HWND hWnd);
 int GetCharWidthTwipsW(HWND hWnd);
-void GetCharColor(HWND hWnd, CHARCOLOR *cc);
+BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc);
 BOOL InsertTabStopW(HWND hWnd);
 BOOL IndentTabStopW(HWND hWnd, int nAction);
 void AutoIndentA(HWND hWnd, CHARRANGE *cr);

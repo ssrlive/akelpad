@@ -1131,7 +1131,7 @@ void SaveLineScroll(HWND hWnd, int *nBeforeLine);
 void RestoreLineScroll(HWND hWnd, int *nBeforeLine);
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor);
 BOOL SelectColorDialogW(HWND hWndOwner, COLORREF *crColor);
-void GetCharColor(HWND hWnd, CHARCOLOR *cc);
+BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc);
 HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA, BOOL bDeleteOld);
 HFONT SetChosenFontW(HWND hWnd, LOGFONTW *lfW, BOOL bDeleteOld);
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw);
