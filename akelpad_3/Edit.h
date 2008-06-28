@@ -15,8 +15,8 @@
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_ABOUT_VERSIONA           "AkelPad 3.5.7"
-#define APP_ABOUT_VERSIONW          L"AkelPad 3.5.7"
+#define APP_ABOUT_VERSIONA           "AkelPad 3.6.0"
+#define APP_ABOUT_VERSIONW          L"AkelPad 3.6.0"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -412,10 +412,9 @@ typedef struct _WNDFRAMEA {
   BOOL bShowURL;
   DWORD dwEditMargins;
   BOOL bDelimitersEnable;
-  COLORREF crFont;
-  COLORREF crBackground;
   FILETIME ft;
   LOGFONTA lf;
+  AECOLORS aec;
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -433,11 +432,31 @@ typedef struct _WNDFRAMEW {
   BOOL bShowURL;
   DWORD dwEditMargins;
   BOOL bDelimitersEnable;
-  COLORREF crFont;
-  COLORREF crBackground;
   FILETIME ft;
   LOGFONTW lf;
+  AECOLORS aec;
 } WNDFRAMEW;
+
+typedef struct _EDITINFO {
+  HWND hWndEdit;
+  unsigned char *pFile;
+  int nCodePage;
+  BOOL bBOM;
+  int nNewLine;
+  BOOL bModified;
+  BOOL bReadOnly;
+  BOOL bWordWrap;
+  BOOL bInsertState;
+  int nTabStopSize;
+  BOOL bTabStopAsSpaces;
+  int nUndoLimit;
+  BOOL bDetailedUndo;
+  BOOL bShowURL;
+  DWORD dwEditMargins;
+  BOOL bDelimitersEnable;
+  FILETIME ft;
+  AECOLORS aec;
+} EDITINFO;
 
 typedef struct _WNDPROCDATA {
   struct _WNDPROCDATA *next;
@@ -473,6 +492,7 @@ typedef struct _PLUGINDATA {
   DWORD cb;
   unsigned char *pFunction;
   HINSTANCE hInstanceDLL;
+  void *lpPluginFunction;
   BOOL *lpbAutoLoad;
   int nUnload;
   BOOL bActive;
@@ -480,6 +500,7 @@ typedef struct _PLUGINDATA {
   LPARAM lParam;
   unsigned char *pAkelDir;
   HINSTANCE hInstanceEXE;
+  HSTACK *hPluginsStack;
   HWND hMainWnd;
   HWND hWndEdit;
   HWND hStatus;
@@ -490,16 +511,15 @@ typedef struct _PLUGINDATA {
   HMENU hMenuLanguage;
   HMENU hPopupMenu;
   HICON hMainIcon;
+  HACCEL hGlobalAccel;
   BOOL bOldWindows;
   BOOL bOldRichEdit;
   BOOL bOldComctl32;
+  BOOL bAkelEdit;
   BOOL bMDI;
   int nSaveSettings;
+  unsigned char *pLangModule;
   LANGID wLangSystem;
-  HSTACK *hPluginsStack;
-  void *lpPluginFunction;
-  HACCEL hGlobalAccel;
-  BOOL bAkelEdit;
 } PLUGINDATA;
 
 typedef struct _PLUGINFUNCTIONA {
@@ -631,28 +651,6 @@ typedef struct _GETTEXTRANGE {
   int cpMax;
   unsigned char *pText;
 } GETTEXTRANGE;
-
-typedef struct _EDITINFO {
-  HWND hWndEdit;
-  unsigned char *pFile;
-  int nCodePage;
-  BOOL bBOM;
-  int nNewLine;
-  BOOL bModified;
-  BOOL bReadOnly;
-  BOOL bWordWrap;
-  BOOL bInsertState;
-  int nTabStopSize;
-  BOOL bTabStopAsSpaces;
-  int nUndoLimit;
-  BOOL bDetailedUndo;
-  BOOL bShowURL;
-  DWORD dwEditMargins;
-  BOOL bDelimitersEnable;
-  COLORREF crFont;
-  COLORREF crBackground;
-  FILETIME ft;
-} EDITINFO;
 
 typedef struct _RECENTFILESA {
   char (*lpszRecentNames)[MAX_PATH];

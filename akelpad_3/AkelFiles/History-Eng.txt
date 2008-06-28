@@ -1,6 +1,8 @@
 
-AkelPad 3.5.7 ()
+AkelPad 3.6.0 ()
 ----------------------------
+Changed: synchronized structures with AkelPad 4.x.x. Update yours plugins.
+
 Added: unicode files without BOM now marked as "*BOM" in status bar.
 
 Fixed: UTF-8 without BOM recognition.
