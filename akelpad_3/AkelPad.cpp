@@ -2257,8 +2257,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       CHARCOLOR *cc=(CHARCOLOR *)lParam;
 
-      GetCharColor((HWND)wParam, cc);
-      return 0;
+      return GetCharColor((HWND)wParam, cc);
     }
   }
 
@@ -3930,8 +3929,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       CHARCOLOR *cc=(CHARCOLOR *)lParam;
 
-      GetCharColor((HWND)wParam, cc);
-      return 0;
+      return GetCharColor((HWND)wParam, cc);
     }
   }
 
