@@ -15918,6 +15918,35 @@ BOOL SelectColorDialogW(HWND hWndOwner, COLORREF *crColor)
   return FALSE;
 }
 
+void GetCharColor(HWND hWnd, CHARCOLOR *cc)
+{
+  AECHARRANGE cr;
+  AECHARINDEX ciCaretIndex;
+  AECHARINDEX ciCharIndex;
+
+  if (!hWnd) hWnd=hWndEdit;
+
+  GetSel(hWnd, &cr, NULL, &ciCaretIndex);
+  SendMessage(hWnd, AEM_RICHOFFSETTOINDEX, cc->nCharPos, (LPARAM)&ciCharIndex);
+
+  if (AEC_IndexCompare(&ciCharIndex, &cr.ciMin) >= 0 &&
+      AEC_IndexCompare(&ciCharIndex, &cr.ciMax) < 0)
+  {
+    cc->crText=aecColors.crSelText;
+    cc->crBk=aecColors.crSelBk;
+  }
+  else if (ciCharIndex.nLine == ciCaretIndex.nLine)
+  {
+    cc->crText=aecColors.crActiveLineText;
+    cc->crBk=aecColors.crActiveLineBk;
+  }
+  else
+  {
+    cc->crText=aecColors.crBasicText;
+    cc->crBk=aecColors.crBasicBk;
+  }
+}
+
 HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA, BOOL bDeleteOld)
 {
   HFONT hOldFont=NULL;
@@ -16040,19 +16069,6 @@ BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr)
     }
   }
   return FALSE;
-}
-
-int PixelsToTwips(HWND hWnd, int nPixels)
-{
-  HDC hDC;
-  int nTwips=0;
-
-  if (hDC=GetDC(hWnd))
-  {
-    nTwips=MulDiv(nPixels, 1440, GetDeviceCaps(hDC, LOGPIXELSY));
-    ReleaseDC(hWnd, hDC);
-  }
-  return nTwips;
 }
 
 char* GetCommandLineParamsA()

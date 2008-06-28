@@ -362,6 +362,15 @@ extern "C" void _WinMain()
     lfEditFontA.lfHeight=-mod(lfEditFontA.lfHeight);
     lfEditFontA.lfWidth=0;
     memcpy(&lfPrintFontA, &lfEditFontA, sizeof(LOGFONTA));
+    aecColors.dwFlags=AECLR_ALL;
+    aecColors.crCaret=RGB(0x00, 0x00, 0x00);
+    aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
+    aecColors.crBasicBk=GetSysColor(COLOR_WINDOW);
+    aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+    aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+    aecColors.crActiveLineText=aecColors.crBasicText;
+    aecColors.crActiveLineBk=aecColors.crBasicBk;
+    SendMessage(hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&aecColors);
     nAnsiCodePage=GetACP();
     nOemCodePage=GetOEMCP();
     nDefaultCodePage=nAnsiCodePage;
@@ -765,6 +774,14 @@ extern "C" void _WinMain()
     lfEditFontW.lfHeight=-mod(lfEditFontW.lfHeight);
     lfEditFontW.lfWidth=0;
     memcpy(&lfPrintFontW, &lfEditFontW, sizeof(LOGFONTW));
+    aecColors.dwFlags=AECLR_ALL;
+    aecColors.crCaret=RGB(0x00, 0x00, 0x00);
+    aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
+    aecColors.crBasicBk=GetSysColor(COLOR_WINDOW);
+    aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+    aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+    aecColors.crActiveLineText=aecColors.crBasicText;
+    aecColors.crActiveLineBk=aecColors.crBasicBk;
     nAnsiCodePage=GetACP();
     nOemCodePage=GetOEMCP();
     nDefaultCodePage=nAnsiCodePage;
@@ -2248,6 +2265,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         StackDockDelete(&hDocksStack, lpDock);
       }
       return (LRESULT)lpResult;
+    }
+    if (uMsg == AKD_GETCHARCOLOR)
+    {
+      CHARCOLOR *cc=(CHARCOLOR *)lParam;
+
+      GetCharColor((HWND)wParam, cc);
+      return 0;
     }
   }
 
@@ -3912,6 +3936,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         StackDockDelete(&hDocksStack, lpDock);
       }
       return (LRESULT)lpResult;
+    }
+    if (uMsg == AKD_GETCHARCOLOR)
+    {
+      CHARCOLOR *cc=(CHARCOLOR *)lParam;
+
+      GetCharColor((HWND)wParam, cc);
+      return 0;
     }
   }
 

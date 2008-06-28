@@ -15250,6 +15250,27 @@ int GetCharWidthTwipsW(HWND hWnd)
   return nWidth;
 }
 
+
+void GetCharColor(HWND hWnd, CHARCOLOR *cc)
+{
+  CHARRANGE cr;
+
+  if (!hWnd) hWnd=hWndEdit;
+
+  SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
+
+  if (cc->nCharPos >= cr.cpMin && cc->nCharPos < cr.cpMax)
+  {
+    cc->crText=aecColors.crSelText;
+    cc->crBk=aecColors.crSelBk;
+  }
+  else
+  {
+    cc->crText=aecColors.crBasicText;
+    cc->crBk=aecColors.crBasicBk;
+  }
+}
+
 BOOL InsertTabStopW(HWND hWnd)
 {
   wchar_t wszSpaces[MAX_PATH];

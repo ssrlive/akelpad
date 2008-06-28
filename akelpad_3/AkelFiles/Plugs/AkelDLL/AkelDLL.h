@@ -217,7 +217,7 @@ typedef struct _WNDFRAMEW {
 } WNDFRAMEW;
 
 typedef struct _EDITINFO {
-  HWND hWndEdit;            //RichEdit window
+  HWND hWndEdit;            //Edit window
   unsigned char *pFile;     //Current editing file
                             //char *pFile         if bOldWindows == TRUE
                             //wchar_t *pFile      if bOldWindows == FALSE
@@ -275,7 +275,7 @@ typedef struct _PLUGINDATA {
   HINSTANCE hInstanceEXE;     //EXE instance
   HSTACK *hPluginsStack;      //Pointer to a plugins stack
   HWND hMainWnd;              //Main window
-  HWND hWndEdit;              //RichEdit window
+  HWND hWndEdit;              //Edit window
   HWND hStatus;               //StatusBar window
   HWND hMdiClient;            //MDI client window (if bMDI == TRUE)
   HWND hTab;                  //Tab window        (if bMDI == TRUE)
@@ -463,6 +463,12 @@ typedef struct _POSTMESSAGE {
   LPARAM lParam;             //Specifies additional message-specific information
 } POSTMESSAGE;
 
+typedef struct _CHARCOLOR {
+  int nCharPos;           //Char position
+  COLORREF crText;        //Text color
+  COLORREF crBk;          //Background color
+} CHARCOLOR;
+
 typedef struct _NOPENDOCUMENTA {
   char *szFile;                  //Pointer to a file string buffer
   int *nCodePage;                //Pointer to a code page variable
@@ -520,7 +526,7 @@ typedef struct _NSIZE {
 
 //// AkelPad menu messages
 
-#define IDM_FILE_NEW                    4101  //Create new RichEdit window
+#define IDM_FILE_NEW                    4101  //Create new edit window
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
 #define IDM_FILE_CREATENEW              4102  //Create new instance of program
@@ -915,6 +921,7 @@ typedef struct _NSIZE {
 #define AKD_RESIZE                 (WM_USER + 157)
 #define AKD_DOCK                   (WM_USER + 158)
 #define AKD_POSTMESSAGE            (WM_USER + 159)
+#define AKD_GETCHARCOLOR           (WM_USER + 160)
 
 //AkelPad 4.x messages
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
@@ -996,9 +1003,9 @@ Return Value
 AKDN_EDIT_ONSTART
 _________________
 
-Notification message, sends to the main procedure after rich edit window created.
+Notification message, sends to the main procedure after edit window created.
 
-(HWND)wParam == rich edit window
+(HWND)wParam == edit window
 lParam       == not used
 
 Return Value
@@ -1010,7 +1017,7 @@ __________________
 
 Notification message, sends to the main procedure before destroying edit window.
 
-(HWND)wParam == rich edit window
+(HWND)wParam == edit window
 lParam       == not used
 
 Return Value
@@ -1084,7 +1091,7 @@ _______________________
 
 Notification message, sends to the main procedure before document opened.
 
-(HWND)wParam            == rich edit window
+(HWND)wParam            == edit window
 (NOPENDOCUMENT *)lParam == pointer to a NOPENDOCUMENT structure
                            (NOPENDOCUMENTA *)lParam   if bOldWindows == TRUE
                            (NOPENDOCUMENTW *)lParam   if bOldWindows == FALSE
@@ -1098,7 +1105,7 @@ ________________________
 
 Notification message, sends to the main procedure after document opened.
 
-(HWND)wParam == rich edit window
+(HWND)wParam == edit window
 (int)lParam  == see EOD_* defines
 
 Return Value
@@ -1110,7 +1117,7 @@ _______________________
 
 Notification message, sends to the main procedure before document saved.
 
-(HWND)wParam            == rich edit window
+(HWND)wParam            == edit window
 (NSAVEDOCUMENT *)lParam == pointer to a NSAVEDOCUMENT structure
                            (NSAVEDOCUMENTA *)lParam   if bOldWindows == TRUE
                            (NSAVEDOCUMENTW *)lParam   if bOldWindows == FALSE
@@ -1124,7 +1131,7 @@ ________________________
 
 Notification message, sends to the main procedure after document saved.
 
-(HWND)wParam == rich edit window
+(HWND)wParam == edit window
 (int)lParam  == see ESD_* defines
 
 Return Value
@@ -1610,7 +1617,7 @@ ________________
 
 Save file.
 
-(HWND)wParam           == rich edit window
+(HWND)wParam           == edit window
 (SAVEDOCUMENT *)lParam == pointer to a SAVEDOCUMENT structure
                          (SAVEDOCUMENTA *)lParam   if bOldWindows == TRUE
                          (SAVEDOCUMENTW *)lParam   if bOldWindows == FALSE
@@ -1640,9 +1647,9 @@ Example (bOldWindows == FALSE):
 AKD_GETTEXTLENGTH
 _________________
 
-Get rich edit window text length.
+Get edit window text length.
 
-(HWND)wParam == rich edit window
+(HWND)wParam == edit window
 lParam       == not used
 
 Return Value
@@ -1655,9 +1662,9 @@ Example:
 AKD_GETSELTEXTW
 _______________
 
-Retrieves the currently selected text in a rich edit control.
+Retrieves the currently selected text in a edit control.
 
-(HWND)wParam == rich edit window
+(HWND)wParam == edit window
 lParam       == not used
 
 Return Value
@@ -1673,9 +1680,9 @@ Example:
 AKD_GETTEXTRANGE
 ________________
 
-Retrieves a specified range of characters from a rich edit control.
+Retrieves a specified range of characters from a edit control.
 
-(HWND)wParam           == rich edit window
+(HWND)wParam           == edit window
 (GETTEXTRANGE *)lParam == pointer to a GETTEXTRANGE structure
 
 Return Value
@@ -1722,9 +1729,9 @@ See AKD_GETTEXTRANGE.
 AKD_REPLACESELA
 _______________
 
-Replace selection of the rich edit control.
+Replace selection of the edit control.
 
-(HWND)wParam   == rich edit window
+(HWND)wParam   == edit window
 (char *)lParam == text pointer
 
 Return Value
@@ -1737,9 +1744,9 @@ Example:
 AKD_REPLACESELW
 _______________
 
-Replace selection of the rich edit control.
+Replace selection of the edit control.
 
-(HWND)wParam      == rich edit window
+(HWND)wParam      == edit window
 (wchar_t *)lParam == text pointer
 
 Return Value
@@ -1752,9 +1759,9 @@ Example:
 AKD_PASTE
 _________
 
-Paste text from clipboard to the rich edit control.
+Paste text from clipboard to the edit control.
 
-(HWND)wParam == rich edit window
+(HWND)wParam == edit window
 (BOOL)lParam == FALSE paste as Unicode text (default)
                 TRUE  paste as ANSI text
 
@@ -1768,9 +1775,9 @@ Example:
 AKD_COPY
 ________
 
-Copy text to clipboard from rich edit control.
+Copy text to clipboard from edit control.
 
-(HWND)wParam == rich edit window
+(HWND)wParam == edit window
 lParam       == not used
 
 Return Value
@@ -1783,9 +1790,9 @@ Example:
 AKD_TEXTFIND
 ____________
 
-Finds text in a rich edit control.
+Finds text in a edit control.
 
-(HWND)wParam       == rich edit window
+(HWND)wParam       == edit window
 (TEXTFIND *)lParam == pointer to a TEXTFIND structure
                       (TEXTFINDA *)lParam   if bOldWindows == TRUE
                       (TEXTFINDW *)lParam   if bOldWindows == FALSE
@@ -1810,9 +1817,9 @@ Example (bOldWindows == FALSE):
 AKD_TEXTREPLACE
 _______________
 
-Replaces text in a rich edit control.
+Replaces text in a edit control.
 
-(HWND)wParam          == rich edit window
+(HWND)wParam          == edit window
 (TEXTREPLACE *)lParam == pointer to a TEXTREPLACE structure
                          (TEXTREPLACEA *)lParam   if bOldWindows == TRUE
                          (TEXTREPLACEW *)lParam   if bOldWindows == FALSE
@@ -1841,9 +1848,9 @@ Example (bOldWindows == FALSE):
 AKD_RECODESEL
 _____________
 
-Recode text in a rich edit control.
+Recode text in a edit control.
 
-(HWND)wParam         == rich edit window
+(HWND)wParam         == edit window
 (TEXTRECODE *)lParam == pointer to a TEXTRECODE structure
 
 Return Value
@@ -1877,9 +1884,9 @@ Example:
 AKD_GETEDITINFO
 _______________
 
-Get rich edit window info.
+Get edit window info.
 
-(HWND)wParam       == rich edit window,
+(HWND)wParam       == edit window,
                       NULL for current edit window
 (EDITINFO *)lParam == pointer to a EDITINFO structure
 
@@ -1898,7 +1905,7 @@ ___________
 
 Get font.
 
-(HWND)wParam == rich edit window,
+(HWND)wParam == edit window,
                 NULL for current edit window
 lParam       == not used
 
@@ -1917,7 +1924,7 @@ ___________
 
 Set font.
 
-(HWND)wParam      == rich edit window
+(HWND)wParam      == edit window
 (LOGFONT *)lParam == pointer to a LOGFONT structure
 
 Return Value
@@ -1943,9 +1950,9 @@ Example (bOldWindows == FALSE):
 AKD_SETMODIFY
 _____________
 
-Set rich edit window modification flag.
+Set edit window modification flag.
 
-(HWND)wParam == rich edit window,
+(HWND)wParam == edit window,
                 NULL for current edit window
 (BOOL)lParam == TRUE  contents of edit control have been modified
                 FALSE contents of edit control haven't been modified
@@ -1960,9 +1967,9 @@ Example:
 AKD_SETNEWLINE
 ______________
 
-Set rich edit window new line format.
+Set edit window new line format.
 
-(HWND)wParam == rich edit window,
+(HWND)wParam == edit window,
                 NULL for current edit window
 (int)lParam  == see NEWLINE_* defines
 
@@ -2374,12 +2381,30 @@ Example:
  SendMessage(pd->hMainWnd, AKD_DOCK, DK_DELETE, (LPARAM)dkNew);
 
 
+AKD_GETCHARCOLOR
+________________
+
+Get colors of the specified char.
+
+(HWND)wParam        == edit window
+(CHARCOLOR *)lParam == pointer to a CHARCOLOR structure
+
+Return Value
+ zero
+
+Example:
+ CHARCOLOR cc;
+
+ cc.nCharPos=10;
+ SendMessage(pd->hMainWnd, AKD_GETCHARCOLOR, (WPARAM)pd->hWndEdit, (LPARAM)&cc);
+
+
 AKD_EXGETTEXTLENGTH
 ___________________
 
-Get akel edit window text length.
+Get AkelEdit window text length.
 
-(HWND)wParam == akel edit window
+(HWND)wParam == AkelEdit window
 (int)lParam  == see AELB_* defines
 
 Return Value
@@ -2392,9 +2417,9 @@ Example:
 AKD_EXGETTEXTRANGEA
 ___________________
 
-Retrieves a specified range of characters from a akel edit control.
+Retrieves a specified range of characters from a AkelEdit control.
 
-(HWND)wParam           == akel edit window
+(HWND)wParam           == AkelEdit window
 (AETEXTRANGEA *)lParam == pointer to a AETEXTRANGEA structure
 
 Return Value
@@ -2417,9 +2442,9 @@ Example:
 AKD_EXGETTEXTRANGEW
 ___________________
 
-Retrieves a specified range of characters from a akel edit control.
+Retrieves a specified range of characters from a AkelEdit control.
 
-(HWND)wParam           == akel edit window
+(HWND)wParam           == AkelEdit window
 (AETEXTRANGEW *)lParam == pointer to a AETEXTRANGEW structure
 
 Return Value

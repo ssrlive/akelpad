@@ -720,6 +720,12 @@ typedef struct _POSTMESSAGE {
   LPARAM lParam;
 } POSTMESSAGE;
 
+typedef struct _CHARCOLOR {
+  int nCharPos;
+  COLORREF crText;
+  COLORREF crBk;
+} CHARCOLOR;
+
 typedef struct _NOPENDOCUMENTA {
   char *szFile;
   int *nCodePage;
@@ -1125,13 +1131,13 @@ void SaveLineScroll(HWND hWnd, int *nBeforeLine);
 void RestoreLineScroll(HWND hWnd, int *nBeforeLine);
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor);
 BOOL SelectColorDialogW(HWND hWndOwner, COLORREF *crColor);
+void GetCharColor(HWND hWnd, CHARCOLOR *cc);
 HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA, BOOL bDeleteOld);
 HFONT SetChosenFontW(HWND hWnd, LOGFONTW *lfW, BOOL bDeleteOld);
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 BOOL InsertTabStopW(HWND hWnd);
 BOOL IndentTabStopW(HWND hWnd, int nAction);
 BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr);
-int PixelsToTwips(HWND hWnd, int nPixels);
 char* GetCommandLineParamsA();
 wchar_t* GetCommandLineParamsW();
 int GetCommandLineArgA(char *pCmdLine, char *szArgName, int nArgNameLen, char **pArgOption, int *nArgOptionLen, char **pNextArg, BOOL bParseAsNotepad);
