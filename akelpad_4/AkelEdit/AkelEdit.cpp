@@ -769,23 +769,30 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         TEXTRANGEA *trRE=(TEXTRANGEA *)lParam;
         AETEXTRANGEA tr;
 
-        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &tr.cr.ciMin);
-        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &tr.cr.ciMax);
-        tr.pText=trRE->lpstrText;
-        tr.nNewLine=AELB_R;
-        return AE_GetTextRangeAnsi(ae, &tr.cr.ciMin, &tr.cr.ciMax, tr.pText, tr.nNewLine, FALSE, FALSE);
+        if ((DWORD)trRE->chrg.cpMin < (DWORD)trRE->chrg.cpMax)
+        {
+          AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &tr.cr.ciMin);
+          AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &tr.cr.ciMax);
+          tr.pText=trRE->lpstrText;
+          tr.nNewLine=AELB_R;
+          return AE_GetTextRangeAnsi(ae, &tr.cr.ciMin, &tr.cr.ciMax, tr.pText, tr.nNewLine, FALSE, FALSE);
+        }
       }
       else
       {
         TEXTRANGEW *trRE=(TEXTRANGEW *)lParam;
         AETEXTRANGEW tr;
 
-        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &tr.cr.ciMin);
-        AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &tr.cr.ciMax);
-        tr.wpText=trRE->lpstrText;
-        tr.nNewLine=AELB_R;
-        return AE_GetTextRange(ae, &tr.cr.ciMin, &tr.cr.ciMax, tr.wpText, tr.nNewLine, FALSE, FALSE);
+        if ((DWORD)trRE->chrg.cpMin < (DWORD)trRE->chrg.cpMax)
+        {
+          AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &tr.cr.ciMin);
+          AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &tr.cr.ciMax);
+          tr.wpText=trRE->lpstrText;
+          tr.nNewLine=AELB_R;
+          return AE_GetTextRange(ae, &tr.cr.ciMin, &tr.cr.ciMax, tr.wpText, tr.nNewLine, FALSE, FALSE);
+        }
       }
+      return 0;
     }
     if (uMsg == EM_GETSELTEXT)
     {
@@ -2941,7 +2948,7 @@ AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
   return lpElementData;
 }
 
-void AE_RichOffsetToAkelIndex(AKELEDIT *ae, int nOffset, AECHARINDEX *ciCharIndex)
+void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharIndex)
 {
   AECHARINDEX ciElement={0};
   DWORD dwFirst=(DWORD)-1;
@@ -2952,55 +2959,53 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, int nOffset, AECHARINDEX *ciCharInde
   DWORD dwSixth=(DWORD)-1;
   int nElementLineOffset=0;
 
-  if (nOffset < 0) nOffset=ae->nLastCharOffset + nOffset + 1;
-  nOffset=max(nOffset, 0);
-  nOffset=min(nOffset, ae->nLastCharOffset);
+  dwOffset=min(dwOffset, (DWORD)ae->nLastCharOffset);
 
   //Find nearest element in stack
-  dwFirst=mod(nOffset - 0);
-  dwSecond=mod(nOffset - ae->nLastCharOffset);
+  dwFirst=mod(dwOffset - 0);
+  dwSecond=mod(dwOffset - ae->nLastCharOffset);
   if (ae->liFirstDrawLine.lpLine && ae->nFirstDrawLineOffset)
-    dwThird=mod(nOffset - ae->nFirstDrawLineOffset);
+    dwThird=mod(dwOffset - ae->nFirstDrawLineOffset);
   if (ae->ciSelStartIndex.lpLine && ae->nSelStartCharOffset)
-    dwFourth=mod(nOffset - ae->nSelStartCharOffset);
+    dwFourth=mod(dwOffset - ae->nSelStartCharOffset);
   if (ae->ciSelEndIndex.lpLine && ae->nSelEndCharOffset)
-    dwFifth=mod(nOffset - ae->nSelEndCharOffset);
+    dwFifth=mod(dwOffset - ae->nSelEndCharOffset);
   if (ae->ciLastCallIndex.lpLine && ae->nLastCallOffset)
-    dwSixth=mod(nOffset - ae->nLastCallOffset);
+    dwSixth=mod(dwOffset - ae->nLastCallOffset);
 
   if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth && dwFirst <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement, FALSE);
-    nElementLineOffset=nOffset - 0;
+    nElementLineOffset=dwOffset - 0;
   }
   else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth && dwSecond <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement, FALSE);
-    nElementLineOffset=nOffset - ae->nLastCharOffset;
+    nElementLineOffset=dwOffset - ae->nLastCharOffset;
   }
   else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth && dwThird <= dwSixth)
   {
     ciElement.nLine=ae->liFirstDrawLine.nLine;
     ciElement.lpLine=ae->liFirstDrawLine.lpLine;
     ciElement.nCharInLine=0;
-    nElementLineOffset=nOffset - ae->nFirstDrawLineOffset;
+    nElementLineOffset=dwOffset - ae->nFirstDrawLineOffset;
   }
   else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth && dwFourth <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciElement, FALSE);
     ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
-    nElementLineOffset=nOffset - ae->nSelStartCharOffset;
+    nElementLineOffset=dwOffset - ae->nSelStartCharOffset;
   }
   else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth && dwFifth <= dwSixth)
   {
     AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciElement, FALSE);
     ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
-    nElementLineOffset=nOffset - ae->nSelEndCharOffset;
+    nElementLineOffset=dwOffset - ae->nSelEndCharOffset;
   }
   else if (dwSixth <= dwFirst && dwSixth <= dwSecond && dwSixth <= dwThird && dwSixth <= dwFourth && dwSixth <= dwFifth)
   {
     ciElement=ae->ciLastCallIndex;
-    nElementLineOffset=nOffset - ae->nLastCallOffset;
+    nElementLineOffset=dwOffset - ae->nLastCallOffset;
   }
 
   AE_IndexOffset(ae, &ciElement, &ciElement, nElementLineOffset, AELB_R);
@@ -3008,7 +3013,7 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, int nOffset, AECHARINDEX *ciCharInde
   if (nElementLineOffset)
   {
     ae->ciLastCallIndex=ciElement;
-    ae->nLastCallOffset=nOffset;
+    ae->nLastCallOffset=dwOffset;
   }
   *ciCharIndex=ciElement;
 }
