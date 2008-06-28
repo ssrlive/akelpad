@@ -2253,6 +2253,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return (LRESULT)lpResult;
     }
+    if (uMsg == AKD_GETCHARCOLOR)
+    {
+      CHARCOLOR *cc=(CHARCOLOR *)lParam;
+
+      GetCharColor((HWND)wParam, cc);
+      return 0;
+    }
   }
 
   if (uMsg == WM_COPYDATA)
@@ -3918,6 +3925,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         StackDockDelete(&hDocksStack, lpDock);
       }
       return (LRESULT)lpResult;
+    }
+    if (uMsg == AKD_GETCHARCOLOR)
+    {
+      CHARCOLOR *cc=(CHARCOLOR *)lParam;
+
+      GetCharColor((HWND)wParam, cc);
+      return 0;
     }
   }
 

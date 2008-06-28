@@ -83,6 +83,7 @@
 #define AKD_RESIZE                 (WM_USER + 157)
 #define AKD_DOCK                   (WM_USER + 158)
 #define AKD_POSTMESSAGE            (WM_USER + 159)
+#define AKD_GETCHARCOLOR           (WM_USER + 160)
 
 #define TAB_HEIGHT           24
 #define TAB_WIDTH            90

@@ -748,6 +748,12 @@ typedef struct _POSTMESSAGE {
   LPARAM lParam;
 } POSTMESSAGE;
 
+typedef struct _CHARCOLOR {
+  int nCharPos;
+  COLORREF crText;
+  COLORREF crBk;
+} CHARCOLOR;
+
 typedef struct _NOPENDOCUMENTA {
   char *szFile;
   int *nCodePage;
@@ -1150,6 +1156,7 @@ void SetTabStopsA(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 void SetTabStopsW(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 int GetCharWidthTwipsA(HWND hWnd);
 int GetCharWidthTwipsW(HWND hWnd);
+void GetCharColor(HWND hWnd, CHARCOLOR *cc);
 BOOL InsertTabStopW(HWND hWnd);
 BOOL IndentTabStopW(HWND hWnd, int nAction);
 void AutoIndentA(HWND hWnd, CHARRANGE *cr);
