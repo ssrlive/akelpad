@@ -1977,6 +1977,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hPluginsStack=&hPluginsStack;
       pd->lpPluginFunction=NULL;
       pd->hGlobalAccel=hGlobalAccel;
+      pd->bAkelEdit=TRUE;
 
       return 0;
     }
@@ -3637,6 +3638,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hPluginsStack=&hPluginsStack;
       pd->lpPluginFunction=NULL;
       pd->hGlobalAccel=hGlobalAccel;
+      pd->bAkelEdit=TRUE;
 
       return 0;
     }
