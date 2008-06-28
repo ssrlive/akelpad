@@ -10,6 +10,7 @@
 #include "ConvFunc.h"
 #include "StackFunc.h"
 #include "StrFunc.h"
+#include "AkelFiles\Plugs\AkelDLL\AkelEdit.h"
 #include "AkelPad.h"
 #include "Edit.h"
 
@@ -186,12 +187,10 @@ extern CHOOSEFONTA cfA;
 extern CHOOSEFONTW cfW;
 extern CHOOSECOLORA ccA;
 extern CHOOSECOLORW ccW;
-extern COLORREF crBackground;
-extern COLORREF crFont;
+extern AECOLORS aecColors;
 extern COLORREF crCustColors[16];
 extern BOOL bEditFontChanged;
-extern BOOL bTextColorChanged;
-extern BOOL bBackgroundColorChanged;
+extern BOOL bColorsChanged;
 
 //Print
 extern LOGFONTA lfPrintFontA;
@@ -339,9 +338,9 @@ void CreateEditWindowA(HWND hWnd)
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
   SendMessage(hWndEdit, EM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
-  SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, crBackground);
+  SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
   SetChosenFontA(hWndEdit, &lfEditFontA);
-  SetChosenFontColorA(hWndEdit, crFont);
+  SetChosenFontColorA(hWndEdit, aecColors.crBasicText);
   ShowURL(hWndEdit, bShowURL);
   SetWindowTextA(hWndEdit, "");
   SetModifyA(hWndEdit, bModifiedTmp, FALSE);
@@ -385,9 +384,9 @@ void CreateEditWindowW(HWND hWnd)
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
   SendMessage(hWndEdit, EM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
-  SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, crBackground);
+  SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
   SetChosenFontW(hWndEdit, &lfEditFontW);
-  SetChosenFontColorW(hWndEdit, crFont);
+  SetChosenFontColorW(hWndEdit, aecColors.crBasicText);
   ShowURL(hWndEdit, bShowURL);
   SetWindowTextW(hWndEdit, L"");
   SetModifyW(hWndEdit, bModifiedTmp, FALSE);
@@ -3260,11 +3259,8 @@ void RegReadOptionsA()
   dwSize=LF_FACESIZE;
   RegQueryValueExA(hKey, "PrintFontFace", NULL, &dwType, (LPBYTE)&lfPrintFontA.lfFaceName, &dwSize);
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "TextColor", NULL, &dwType, (LPBYTE)&crFont, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "BackgroundColor", NULL, &dwType, (LPBYTE)&crBackground, &dwSize);
+  dwSize=sizeof(AECOLORS);
+  RegQueryValueExA(hKey, "Colors", NULL, &dwType, (LPBYTE)&aecColors, &dwSize);
 
   dwSize=MAX_PATH;
   RegQueryValueExA(hKey, "LanguageModule", NULL, &dwType, (LPBYTE)szLangModule, &dwSize);
@@ -3446,11 +3442,8 @@ void RegReadOptionsW()
   dwSize=LF_FACESIZE * sizeof(wchar_t);
   RegQueryValueExW(hKey, L"PrintFontFace", NULL, &dwType, (LPBYTE)&lfPrintFontW.lfFaceName, &dwSize);
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"TextColor", NULL, &dwType, (LPBYTE)&crFont, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"BackgroundColor", NULL, &dwType, (LPBYTE)&crBackground, &dwSize);
+  dwSize=sizeof(AECOLORS);
+  RegQueryValueExW(hKey, L"Colors", NULL, &dwType, (LPBYTE)&aecColors, &dwSize);
 
   dwSize=MAX_PATH * sizeof(wchar_t);
   RegQueryValueExW(hKey, L"LanguageModule", NULL, &dwType, (LPBYTE)wszLangModule, &dwSize);
@@ -3547,8 +3540,7 @@ void IniReadOptionsA()
   IniGetValueA(&hIniStack, "Options", "PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE);
   IniGetValueA(&hIniStack, "Options", "PrintFontFace", INI_STRINGANSI, (LPBYTE)&lfPrintFontA.lfFaceName, LF_FACESIZE);
-  IniGetValueA(&hIniStack, "Options", "TextColor", INI_DWORD, (LPBYTE)&crFont, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "BackgroundColor", INI_DWORD, (LPBYTE)&crBackground, sizeof(DWORD));
+  IniGetValueA(&hIniStack, "Options", "Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS));
   IniGetValueA(&hIniStack, "Options", "LanguageModule", INI_STRINGANSI, (LPBYTE)szLangModule, MAX_PATH);
   IniGetValueA(&hIniStack, "Options", "ExecuteCommand", INI_STRINGANSI, (LPBYTE)szCommand, BUFFER_SIZE);
   IniGetValueA(&hIniStack, "Options", "ExecuteDirectory", INI_STRINGANSI, (LPBYTE)szWorkDir, MAX_PATH);
@@ -3621,8 +3613,7 @@ void IniReadOptionsW()
   IniGetValueW(&hIniStack, L"Options", L"PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
   IniGetValueW(&hIniStack, L"Options", L"PrintFontFace", INI_STRINGUNICODE, (LPBYTE)&lfPrintFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"TextColor", INI_DWORD, (LPBYTE)&crFont, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"BackgroundColor", INI_DWORD, (LPBYTE)&crBackground, sizeof(DWORD));
+  IniGetValueW(&hIniStack, L"Options", L"Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS));
   IniGetValueW(&hIniStack, L"Options", L"LanguageModule", INI_STRINGUNICODE, (LPBYTE)wszLangModule, MAX_PATH * sizeof(wchar_t));
   IniGetValueW(&hIniStack, L"Options", L"ExecuteCommand", INI_STRINGUNICODE, (LPBYTE)wszCommand, BUFFER_SIZE * sizeof(wchar_t));
   IniGetValueW(&hIniStack, L"Options", L"ExecuteDirectory", INI_STRINGUNICODE, (LPBYTE)wszWorkDir, MAX_PATH * sizeof(wchar_t));
@@ -3902,14 +3893,9 @@ BOOL RegSaveOptionsA()
     if (RegSetValueExA(hKey, "PrintFontFace", 0, REG_SZ, (LPBYTE)&lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1) != ERROR_SUCCESS)
       goto Error;
   }
-  if (bTextColorChanged)
+  if (bColorsChanged)
   {
-    if (RegSetValueExA(hKey, "TextColor", 0, REG_DWORD, (LPBYTE)&crFont, sizeof(DWORD)) != ERROR_SUCCESS)
-      goto Error;
-  }
-  if (bBackgroundColorChanged)
-  {
-    if (RegSetValueExA(hKey, "BackgroundColor", 0, REG_DWORD, (LPBYTE)&crBackground, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (RegSetValueExA(hKey, "Colors", 0, REG_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)) != ERROR_SUCCESS)
       goto Error;
   }
   if (RegSetValueExA(hKey, "LanguageModule", 0, REG_SZ, (LPBYTE)szLangModule, lstrlenA(szLangModule) + 1) != ERROR_SUCCESS)
@@ -4050,14 +4036,9 @@ BOOL RegSaveOptionsW()
     if (RegSetValueExW(hKey, L"PrintFontFace", 0, REG_SZ, (LPBYTE)&lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
       goto Error;
   }
-  if (bTextColorChanged)
+  if (bColorsChanged)
   {
-    if (RegSetValueExW(hKey, L"TextColor", 0, REG_DWORD, (LPBYTE)&crFont, sizeof(DWORD)) != ERROR_SUCCESS)
-      goto Error;
-  }
-  if (bBackgroundColorChanged)
-  {
-    if (RegSetValueExW(hKey, L"BackgroundColor", 0, REG_DWORD, (LPBYTE)&crBackground, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (RegSetValueExW(hKey, L"Colors", 0, REG_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)) != ERROR_SUCCESS)
       goto Error;
   }
   if (RegSetValueExW(hKey, L"LanguageModule", 0, REG_SZ, (LPBYTE)wszLangModule, lstrlenW(wszLangModule) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
@@ -4198,14 +4179,9 @@ BOOL IniSaveOptionsA()
     if (!IniSetValueA(&hIniStack, "Options", "PrintFontFace", INI_STRINGANSI, (LPBYTE)&lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1))
       goto Error;
   }
-  if (bTextColorChanged)
+  if (bColorsChanged)
   {
-    if (!IniSetValueA(&hIniStack, "Options", "TextColor", INI_DWORD, (LPBYTE)&crFont, sizeof(DWORD)))
-      goto Error;
-  }
-  if (bBackgroundColorChanged)
-  {
-    if (!IniSetValueA(&hIniStack, "Options", "BackgroundColor", INI_DWORD, (LPBYTE)&crBackground, sizeof(DWORD)))
+    if (!IniSetValueA(&hIniStack, "Options", "Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)))
       goto Error;
   }
   if (!IniSetValueA(&hIniStack, "Options", "LanguageModule", INI_STRINGANSI, (LPBYTE)szLangModule, lstrlenA(szLangModule) + 1))
@@ -4348,14 +4324,9 @@ BOOL IniSaveOptionsW()
     if (!IniSetValueW(&hIniStack, L"Options", L"PrintFontFace", INI_STRINGUNICODE, (LPBYTE)&lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2))
       goto Error;
   }
-  if (bTextColorChanged)
+  if (bColorsChanged)
   {
-    if (!IniSetValueW(&hIniStack, L"Options", L"TextColor", INI_DWORD, (LPBYTE)&crFont, sizeof(DWORD)))
-      goto Error;
-  }
-  if (bBackgroundColorChanged)
-  {
-    if (!IniSetValueW(&hIniStack, L"Options", L"BackgroundColor", INI_DWORD, (LPBYTE)&crBackground, sizeof(DWORD)))
+    if (!IniSetValueW(&hIniStack, L"Options", L"Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)))
       goto Error;
   }
   if (!IniSetValueW(&hIniStack, L"Options", L"LanguageModule", INI_STRINGUNICODE, (LPBYTE)wszLangModule, lstrlenW(wszLangModule) * sizeof(wchar_t) + 2))
@@ -6598,9 +6569,9 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       EnableWindow(hWndCP, !bAutodetect);
     }
     SendMessage(hWndPreview, EM_SETTEXTMODE, TM_PLAINTEXT|TM_SINGLELEVELUNDO|TM_MULTICODEPAGE, 0);
-    SendMessage(hWndPreview, EM_SETBKGNDCOLOR, 0, crBackground);
+    SendMessage(hWndPreview, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
     SetChosenFontA(hWndPreview, &lfEditFontA);
-    SetChosenFontColorA(hWndPreview, crFont);
+    SetChosenFontColorA(hWndPreview, aecColors.crBasicText);
 
     OldPreviewProc=(WNDPROC)GetWindowLongA(hWndPreview, GWL_WNDPROC);
     SetWindowLongA(hWndPreview, GWL_WNDPROC, (LONG)NewPreviewProcA);
@@ -6817,9 +6788,9 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       EnableWindow(hWndCP, !bAutodetect);
     }
     SendMessage(hWndPreview, EM_SETTEXTMODE, TM_PLAINTEXT|TM_SINGLELEVELUNDO|TM_MULTICODEPAGE, 0);
-    SendMessage(hWndPreview, EM_SETBKGNDCOLOR, 0, crBackground);
+    SendMessage(hWndPreview, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
     SetChosenFontW(hWndPreview, &lfEditFontW);
-    SetChosenFontColorW(hWndPreview, crFont);
+    SetChosenFontColorW(hWndPreview, aecColors.crBasicText);
 
     OldPreviewProc=(WNDPROC)GetWindowLongW(hWndPreview, GWL_WNDPROC);
     SetWindowLongW(hWndPreview, GWL_WNDPROC, (LONG)NewPreviewProcW);
@@ -11682,6 +11653,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         pd.cb=sizeof(PLUGINDATA);
         pd.pFunction=(unsigned char *)pFullName;
         pd.hInstanceDLL=hModule;
+        pd.lpPluginFunction=lpPluginFunction;
         pd.lpbAutoLoad=lpbAutoLoad;
         pd.nUnload=UD_UNLOAD;
         pd.bActive=bActive;
@@ -11689,6 +11661,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         pd.lParam=lParam;
         pd.pAkelDir=(unsigned char *)szExeDir;
         pd.hInstanceEXE=hInstance;
+        pd.hPluginsStack=&hPluginsStack;
         pd.hMainWnd=hMainWnd;
         pd.hWndEdit=hWndEdit;
         pd.hStatus=hStatus;
@@ -11699,16 +11672,15 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         pd.hMenuLanguage=hMenuLanguage;
         pd.hPopupMenu=hPopupMenu;
         pd.hMainIcon=hMainIcon;
+        pd.hGlobalAccel=hGlobalAccel;
         pd.bOldWindows=bOldWindows;
         pd.bOldRichEdit=bOldRichEdit;
         pd.bOldComctl32=bOldComctl32;
+        pd.bAkelEdit=FALSE;
         pd.bMDI=bMDI;
         pd.nSaveSettings=nSaveSettings;
+        pd.pLangModule=(unsigned char *)szLangModule;
         pd.wLangSystem=(WORD)dwLangSystem;
-        pd.hPluginsStack=&hPluginsStack;
-        pd.lpPluginFunction=lpPluginFunction;
-        pd.hGlobalAccel=hGlobalAccel;
-        pd.bAkelEdit=FALSE;
 
         (*PluginFunctionPtr)(&pd);
         SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
@@ -11778,6 +11750,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         pd.cb=sizeof(PLUGINDATA);
         pd.pFunction=(unsigned char *)wpFullName;
         pd.hInstanceDLL=hModule;
+        pd.lpPluginFunction=lpPluginFunction;
         pd.lpbAutoLoad=lpbAutoLoad;
         pd.nUnload=UD_UNLOAD;
         pd.bActive=bActive;
@@ -11785,6 +11758,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         pd.lParam=lParam;
         pd.pAkelDir=(unsigned char *)wszExeDir;
         pd.hInstanceEXE=hInstance;
+        pd.hPluginsStack=&hPluginsStack;
         pd.hMainWnd=hMainWnd;
         pd.hWndEdit=hWndEdit;
         pd.hStatus=hStatus;
@@ -11795,16 +11769,15 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         pd.hMenuLanguage=hMenuLanguage;
         pd.hPopupMenu=hPopupMenu;
         pd.hMainIcon=hMainIcon;
+        pd.hGlobalAccel=hGlobalAccel;
         pd.bOldWindows=bOldWindows;
         pd.bOldRichEdit=bOldRichEdit;
         pd.bOldComctl32=bOldComctl32;
+        pd.bAkelEdit=FALSE;
         pd.bMDI=bMDI;
         pd.nSaveSettings=nSaveSettings;
+        pd.pLangModule=(unsigned char *)wszLangModule;
         pd.wLangSystem=(WORD)dwLangSystem;
-        pd.hPluginsStack=&hPluginsStack;
-        pd.lpPluginFunction=lpPluginFunction;
-        pd.hGlobalAccel=hGlobalAccel;
-        pd.bAkelEdit=FALSE;
 
         (*PluginFunctionPtr)(&pd);
         SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);

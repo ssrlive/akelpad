@@ -8,6 +8,7 @@
 #include "ConvFunc.h"
 #include "StackFunc.h"
 #include "StrFunc.h"
+#include "AkelFiles\Plugs\AkelDLL\AkelEdit.h"
 #include "AkelPad.h"
 #include "Edit.h"
 
@@ -206,12 +207,10 @@ CHOOSEFONTA cfA={0};
 CHOOSEFONTW cfW={0};
 CHOOSECOLORA ccA={0};
 CHOOSECOLORW ccW={0};
-COLORREF crBackground=RGB(0xFF, 0xFF, 0xFF);
-COLORREF crFont=RGB(0x00, 0x00, 0x00);
+AECOLORS aecColors={0};
 COLORREF crCustColors[16]={0};
 BOOL bEditFontChanged=FALSE;
-BOOL bTextColorChanged=FALSE;
-BOOL bBackgroundColorChanged=FALSE;
+BOOL bColorsChanged=FALSE;
 
 //Print
 LOGFONTA lfPrintFontA;
@@ -378,8 +377,14 @@ extern "C" void _WinMain()
     lfEditFontA.lfHeight=-mod(lfEditFontA.lfHeight);
     lfEditFontA.lfWidth=0;
     memcpy(&lfPrintFontA, &lfEditFontA, sizeof(LOGFONTA));
-    crFont=GetSysColor(COLOR_WINDOWTEXT);
-    crBackground=GetSysColor(COLOR_WINDOW);
+    aecColors.dwFlags=AECLR_ALL;
+    aecColors.crCaret=RGB(0x00, 0x00, 0x00);
+    aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
+    aecColors.crBasicBk=GetSysColor(COLOR_WINDOW);
+    aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+    aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+    aecColors.crActiveLineText=aecColors.crBasicText;
+    aecColors.crActiveLineBk=aecColors.crBasicBk;
     nAnsiCodePage=GetACP();
     nOemCodePage=GetOEMCP();
     nDefaultCodePage=nAnsiCodePage;
@@ -783,8 +788,14 @@ extern "C" void _WinMain()
     lfEditFontW.lfHeight=-mod(lfEditFontW.lfHeight);
     lfEditFontW.lfWidth=0;
     memcpy(&lfPrintFontW, &lfEditFontW, sizeof(LOGFONTW));
-    crFont=GetSysColor(COLOR_WINDOWTEXT);
-    crBackground=GetSysColor(COLOR_WINDOW);
+    aecColors.dwFlags=AECLR_ALL;
+    aecColors.crCaret=RGB(0x00, 0x00, 0x00);
+    aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
+    aecColors.crBasicBk=GetSysColor(COLOR_WINDOW);
+    aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+    aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+    aecColors.crActiveLineText=aecColors.crBasicText;
+    aecColors.crActiveLineBk=aecColors.crBasicBk;
     nAnsiCodePage=GetACP();
     nOemCodePage=GetOEMCP();
     nDefaultCodePage=nAnsiCodePage;
@@ -1944,6 +1955,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->cb=sizeof(PLUGINDATA);
       pd->pFunction=NULL;
       pd->hInstanceDLL=0;
+      pd->lpPluginFunction=NULL;
       pd->lpbAutoLoad=NULL;
       pd->nUnload=0;
       pd->bActive=0;
@@ -1951,6 +1963,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->lParam=0;
       pd->pAkelDir=(unsigned char *)szExeDir;
       pd->hInstanceEXE=hInstance;
+      pd->hPluginsStack=&hPluginsStack;
       pd->hMainWnd=hMainWnd;
       pd->hWndEdit=hWndEdit;
       pd->hStatus=hStatus;
@@ -1961,16 +1974,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
+      pd->hGlobalAccel=hGlobalAccel;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
+      pd->bAkelEdit=FALSE;
       pd->bMDI=bMDI;
       pd->nSaveSettings=nSaveSettings;
+      pd->pLangModule=(unsigned char *)szLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
-      pd->hPluginsStack=&hPluginsStack;
-      pd->lpPluginFunction=NULL;
-      pd->hGlobalAccel=hGlobalAccel;
-      pd->bAkelEdit=FALSE;
 
       return 0;
     }
@@ -1997,9 +2009,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->bDetailedUndo=bDetailedUndo;
           ei->bShowURL=bShowURL;
           ei->dwEditMargins=dwEditMargins;
-          ei->crFont=crFont;
-          ei->crBackground=crBackground;
           ei->ft=ftFileTime;
+          ei->aec=aecColors;
           return TRUE;
         }
         return FALSE;
@@ -2028,9 +2039,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ei->bDetailedUndo=bDetailedUndo;
             ei->bShowURL=wf->bShowURL;
             ei->dwEditMargins=wf->dwEditMargins;
-            ei->crFont=wf->crFont;
-            ei->crBackground=wf->crBackground;
             ei->ft=wf->ft;
+            ei->aec=wf->aec;
             return TRUE;
           }
         }
@@ -2673,20 +2683,24 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_TEXT_COLOR)
     {
-      if (DoViewColorA(hMainWnd, &crFont))
+      if (DoViewColorA(hMainWnd, &aecColors.crBasicText))
       {
-        SetChosenFontColorA(hWndEdit, crFont);
-        bTextColorChanged=TRUE;
+        aecColors.dwFlags=AECLR_ALL;
+        aecColors.crActiveLineText=aecColors.crBasicText;
+        SetChosenFontColorA(hWndEdit, aecColors.crBasicText);
+        bColorsChanged=TRUE;
         return TRUE;
       }
       return FALSE;
     }
     else if (LOWORD(wParam) == IDM_VIEW_BG_COLOR)
     {
-      if (DoViewColorA(hMainWnd, &crBackground))
+      if (DoViewColorA(hMainWnd, &aecColors.crBasicBk))
       {
-        SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, crBackground);
-        bBackgroundColorChanged=TRUE;
+        aecColors.dwFlags=AECLR_ALL;
+        aecColors.crActiveLineBk=aecColors.crBasicBk;
+        SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
+        bColorsChanged=TRUE;
         return TRUE;
       }
       return FALSE;
@@ -3607,6 +3621,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->cb=sizeof(PLUGINDATA);
       pd->pFunction=NULL;
       pd->hInstanceDLL=0;
+      pd->lpPluginFunction=NULL;
       pd->lpbAutoLoad=NULL;
       pd->nUnload=0;
       pd->bActive=0;
@@ -3614,6 +3629,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->lParam=0;
       pd->pAkelDir=(unsigned char *)wszExeDir;
       pd->hInstanceEXE=hInstance;
+      pd->hPluginsStack=&hPluginsStack;
       pd->hMainWnd=hMainWnd;
       pd->hWndEdit=hWndEdit;
       pd->hStatus=hStatus;
@@ -3624,16 +3640,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
+      pd->hGlobalAccel=hGlobalAccel;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
+      pd->bAkelEdit=FALSE;
       pd->bMDI=bMDI;
       pd->nSaveSettings=nSaveSettings;
+      pd->pLangModule=(unsigned char *)wszLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
-      pd->hPluginsStack=&hPluginsStack;
-      pd->lpPluginFunction=NULL;
-      pd->hGlobalAccel=hGlobalAccel;
-      pd->bAkelEdit=FALSE;
 
       return 0;
     }
@@ -3660,9 +3675,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->bDetailedUndo=bDetailedUndo;
           ei->bShowURL=bShowURL;
           ei->dwEditMargins=dwEditMargins;
-          ei->crFont=crFont;
-          ei->crBackground=crBackground;
           ei->ft=ftFileTime;
+          ei->aec=aecColors;
           return TRUE;
         }
         return FALSE;
@@ -3691,9 +3705,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ei->bDetailedUndo=bDetailedUndo;
             ei->bShowURL=wf->bShowURL;
             ei->dwEditMargins=wf->dwEditMargins;
-            ei->crFont=wf->crFont;
-            ei->crBackground=wf->crBackground;
             ei->ft=wf->ft;
+            ei->aec=wf->aec;
             return TRUE;
           }
         }
@@ -4336,20 +4349,24 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_TEXT_COLOR)
     {
-      if (DoViewColorW(hMainWnd, &crFont))
+      if (DoViewColorW(hMainWnd, &aecColors.crBasicText))
       {
-        SetChosenFontColorW(hWndEdit, crFont);
-        bTextColorChanged=TRUE;
+        aecColors.dwFlags=AECLR_ALL;
+        aecColors.crActiveLineText=aecColors.crBasicText;
+        SetChosenFontColorW(hWndEdit, aecColors.crBasicText);
+        bColorsChanged=TRUE;
         return TRUE;
       }
       return FALSE;
     }
     else if (LOWORD(wParam) == IDM_VIEW_BG_COLOR)
     {
-      if (DoViewColorW(hMainWnd, &crBackground))
+      if (DoViewColorW(hMainWnd, &aecColors.crBasicBk))
       {
-        SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, crBackground);
-        bBackgroundColorChanged=TRUE;
+        aecColors.dwFlags=AECLR_ALL;
+        aecColors.crActiveLineBk=aecColors.crBasicBk;
+        SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
+        bColorsChanged=TRUE;
         return TRUE;
       }
       return FALSE;
@@ -5199,10 +5216,9 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bShowURL=bShowURL;
       lpWndFrameA->dwEditMargins=dwEditMargins;
       lpWndFrameA->bDelimitersEnable=bDelimitersEnable;
-      lpWndFrameA->crFont=crFont;
-      lpWndFrameA->crBackground=crBackground;
       memset(&lpWndFrameA->ft, 0, sizeof(FILETIME));
       memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+      lpWndFrameA->aec=aecColors;
       SetWindowLongA(hWnd, GWL_USERDATA, (LONG)lpWndFrameA);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5326,10 +5342,9 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bShowURL=bShowURL;
             lpWndFrameA->dwEditMargins=dwEditMargins;
             lpWndFrameA->bDelimitersEnable=bDelimitersEnable;
-            lpWndFrameA->crFont=crFont;
-            lpWndFrameA->crBackground=crBackground;
             lpWndFrameA->ft=ftFileTime;
             memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+            lpWndFrameA->aec=aecColors;
           }
         }
         //Handles
@@ -5351,10 +5366,9 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           nUndoLimit=lpWndFrameA->nUndoLimit;
           dwEditMargins=lpWndFrameA->dwEditMargins;
           bDelimitersEnable=lpWndFrameA->bDelimitersEnable;
-          crFont=lpWndFrameA->crFont;
-          crBackground=lpWndFrameA->crBackground;
           ftFileTime=lpWndFrameA->ft;
           memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
+          aecColors=lpWndFrameA->aec;
         }
 
         //Update selection
@@ -5416,10 +5430,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bShowURL=bShowURL;
       lpWndFrameW->dwEditMargins=dwEditMargins;
       lpWndFrameW->bDelimitersEnable=bDelimitersEnable;
-      lpWndFrameW->crFont=crFont;
-      lpWndFrameW->crBackground=crBackground;
       memset(&lpWndFrameW->ft, 0, sizeof(FILETIME));
       memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+      lpWndFrameW->aec=aecColors;
       SetWindowLongW(hWnd, GWL_USERDATA, (LONG)lpWndFrameW);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5543,10 +5556,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bShowURL=bShowURL;
             lpWndFrameW->dwEditMargins=dwEditMargins;
             lpWndFrameW->bDelimitersEnable=bDelimitersEnable;
-            lpWndFrameW->crFont=crFont;
-            lpWndFrameW->crBackground=crBackground;
             lpWndFrameW->ft=ftFileTime;
             memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+            lpWndFrameW->aec=aecColors;
           }
         }
         //Handles
@@ -5568,10 +5580,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           nUndoLimit=lpWndFrameW->nUndoLimit;
           dwEditMargins=lpWndFrameW->dwEditMargins;
           bDelimitersEnable=lpWndFrameW->bDelimitersEnable;
-          crFont=lpWndFrameW->crFont;
-          crBackground=lpWndFrameW->crBackground;
           ftFileTime=lpWndFrameW->ft;
           memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
+          aecColors=lpWndFrameW->aec;
         }
 
         //Update selection

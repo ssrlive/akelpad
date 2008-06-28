@@ -1,6 +1,12 @@
 #ifndef __AKELDLL_H__
 #define __AKELDLL_H__
 
+
+//// Includes
+
+#include "AkelEdit.h"
+
+
 //// Defines
 
 #define ID_EDIT           10001
@@ -185,10 +191,9 @@ typedef struct _WNDFRAMEA {
   BOOL bShowURL;              //Frame edit show URL
   DWORD dwEditMargins;        //Frame edit margins
   BOOL bDelimitersEnable;     //Frame edit delimiters enabled
-  COLORREF crFont;            //Frame edit font color
-  COLORREF crBackground;      //Frame edit background color
   FILETIME ft;                //Frame file time
   LOGFONTA lf;                //Frame edit font
+  AECOLORS aec;               //Frame edit colors
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -206,11 +211,33 @@ typedef struct _WNDFRAMEW {
   BOOL bShowURL;              //Frame edit show URL
   DWORD dwEditMargins;        //Frame edit margins
   BOOL bDelimitersEnable;     //Frame edit delimiters enabled
-  COLORREF crFont;            //Frame edit font color
-  COLORREF crBackground;      //Frame edit background color
   FILETIME ft;                //Frame file time
   LOGFONTW lf;                //Frame edit font
+  AECOLORS aec;               //Frame edit colors
 } WNDFRAMEW;
+
+typedef struct _EDITINFO {
+  HWND hWndEdit;            //RichEdit window
+  unsigned char *pFile;     //Current editing file
+                            //char *pFile         if bOldWindows == TRUE
+                            //wchar_t *pFile      if bOldWindows == FALSE
+  int nCodePage;            //Current code page
+  BOOL bBOM;                //Current BOM
+  int nNewLine;             //Current new line format
+  BOOL bModified;           //File has been modified
+  BOOL bReadOnly;           //Read only
+  BOOL bWordWrap;           //Word wrap
+  BOOL bInsertState;        //Insert mode
+  int nTabStopSize;         //Tab stop size
+  BOOL bTabStopAsSpaces;    //Insert tab stop as spaces
+  int nUndoLimit;           //Undo limit
+  BOOL bDetailedUndo;       //Detailed undo
+  BOOL bShowURL;            //Show URL
+  DWORD dwEditMargins;      //Edit margins
+  BOOL bDelimitersEnable;   //Delimiters enabled
+  FILETIME ft;              //File time
+  AECOLORS aec;             //Edit colors
+} EDITINFO;
 
 typedef struct _WNDPROCDATA {
   struct _WNDPROCDATA *next;
@@ -229,42 +256,45 @@ typedef struct _WNDPROCRETDATA {
 } WNDPROCRETDATA;
 
 typedef struct _PLUGINDATA {
-  DWORD cb;                 //Size of the structure
-  unsigned char *pFunction; //Called function name, format "Plugin::Function"
-                            //char *pFunction     if bOldWindows == TRUE
-                            //wchar_t *pFunction  if bOldWindows == FALSE
-  HINSTANCE hInstanceDLL;   //DLL instance
-  BOOL *lpbAutoLoad;        //TRUE  if function supports autoload
-                            //FALSE if function doesn't support autoload
-  int nUnload;              //See UD_* defines
-  BOOL bActive;             //Plugin already loaded
-  BOOL bOnStart;            //TRUE  if plugin called on start-up
-                            //FALSE if plugin called manually
-  LPARAM lParam;            //Input data
-  unsigned char *pAkelDir;  //AkelPad directory
-                            //char *pAkelDir      if bOldWindows == TRUE
-                            //wchar_t *pAkelDir   if bOldWindows == FALSE
-  HINSTANCE hInstanceEXE;   //EXE instance
-  HWND hMainWnd;            //Main window
-  HWND hWndEdit;            //RichEdit window
-  HWND hStatus;             //StatusBar window
-  HWND hMdiClient;          //MDI client window (if bMDI == TRUE)
-  HWND hTab;                //Tab window        (if bMDI == TRUE)
-  HMENU hMainMenu;          //Main menu
-  HMENU hMenuRecentFiles;   //Recent files menu
-  HMENU hMenuLanguage;      //Language menu
-  HMENU hPopupMenu;         //Right click menu
-  HICON hMainIcon;          //Main window icon handle
-  BOOL bOldWindows;         //Non-Unicode Windows
-  BOOL bOldRichEdit;        //riched20.dll lower then 5.30 (v3.0)
-  BOOL bOldComctl32;        //comctl32.dll lower then 4.71
-  BOOL bMDI;                //MDI mode
-  int nSaveSettings;        //See SS_* defines
-  LANGID wLangSystem;       //System language ID
-  HSTACK *hPluginsStack;    //Pointer to a plugins stack
-  void *lpPluginFunction;   //Pointer to a PLUGINFUNCTION structure
-  HACCEL hGlobalAccel;      //Global accelerator table
-  BOOL bAkelEdit;           //AkelEdit control is used
+  DWORD cb;                   //Size of the structure
+  unsigned char *pFunction;   //Called function name, format "Plugin::Function"
+                              //char *pFunction     if bOldWindows == TRUE
+                              //wchar_t *pFunction  if bOldWindows == FALSE
+  HINSTANCE hInstanceDLL;     //DLL instance
+  void *lpPluginFunction;     //Pointer to a PLUGINFUNCTION structure
+  BOOL *lpbAutoLoad;          //TRUE  if function supports autoload
+                              //FALSE if function doesn't support autoload
+  int nUnload;                //See UD_* defines
+  BOOL bActive;               //Plugin already loaded
+  BOOL bOnStart;              //TRUE  if plugin called on start-up
+                              //FALSE if plugin called manually
+  LPARAM lParam;              //Input data
+  unsigned char *pAkelDir;    //AkelPad directory
+                              //char *pAkelDir      if bOldWindows == TRUE
+                              //wchar_t *pAkelDir   if bOldWindows == FALSE
+  HINSTANCE hInstanceEXE;     //EXE instance
+  HSTACK *hPluginsStack;      //Pointer to a plugins stack
+  HWND hMainWnd;              //Main window
+  HWND hWndEdit;              //RichEdit window
+  HWND hStatus;               //StatusBar window
+  HWND hMdiClient;            //MDI client window (if bMDI == TRUE)
+  HWND hTab;                  //Tab window        (if bMDI == TRUE)
+  HMENU hMainMenu;            //Main menu
+  HMENU hMenuRecentFiles;     //Recent files menu
+  HMENU hMenuLanguage;        //Language menu
+  HMENU hPopupMenu;           //Right click menu
+  HICON hMainIcon;            //Main window icon handle
+  HACCEL hGlobalAccel;        //Global accelerator table
+  BOOL bOldWindows;           //Non-Unicode Windows
+  BOOL bOldRichEdit;          //riched20.dll lower then 5.30 (v3.0)
+  BOOL bOldComctl32;          //comctl32.dll lower then 4.71
+  BOOL bAkelEdit;             //AkelEdit control is used
+  BOOL bMDI;                  //MDI mode
+  int nSaveSettings;          //See SS_* defines
+  unsigned char *pLangModule; //Language module
+                              //char *pLangModule      if bOldWindows == TRUE
+                              //wchar_t *pLangModule   if bOldWindows == FALSE
+  LANGID wLangSystem;         //System language ID
 } PLUGINDATA;
 
 typedef struct _PLUGINFUNCTIONA {
@@ -342,30 +372,6 @@ typedef struct _GETTEXTRANGE {
                                   //char *pText      if bOldWindows == TRUE
                                   //wchar_t *pText   if bOldWindows == FALSE
 } GETTEXTRANGE;
-
-typedef struct _EDITINFO {
-  HWND hWndEdit;            //RichEdit window
-  unsigned char *pFile;     //Current editing file
-                            //char *pFile         if bOldWindows == TRUE
-                            //wchar_t *pFile      if bOldWindows == FALSE
-  int nCodePage;            //Current code page
-  BOOL bBOM;                //Current BOM
-  int nNewLine;             //Current new line format
-  BOOL bModified;           //File has been modified
-  BOOL bReadOnly;           //Read only
-  BOOL bWordWrap;           //Word wrap
-  BOOL bInsertState;        //Insert mode
-  int nTabStopSize;         //Tab stop size
-  BOOL bTabStopAsSpaces;    //Insert tab stop as spaces
-  int nUndoLimit;           //Undo limit
-  BOOL bDetailedUndo;       //Detailed undo
-  BOOL bShowURL;            //Show URL
-  DWORD dwEditMargins;      //Edit margins
-  BOOL bDelimitersEnable;   //Delimiters enabled
-  COLORREF crFont;          //Font color
-  COLORREF crBackground;    //Background color
-  FILETIME ft;              //File time
-} EDITINFO;
 
 typedef struct _RECENTFILESA {
   char (*lpszRecentNames)[MAX_PATH];      //Recent files names
