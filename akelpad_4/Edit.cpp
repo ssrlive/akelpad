@@ -9784,7 +9784,7 @@ void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput)
 
 //// Paste operation
 
-void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX **ciCaret)
+void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret)
 {
   AESELECTION aes;
 
@@ -12603,6 +12603,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         pd.cb=sizeof(PLUGINDATA);
         pd.pFunction=(unsigned char *)pFullName;
         pd.hInstanceDLL=hModule;
+        pd.lpPluginFunction=lpPluginFunction;
         pd.lpbAutoLoad=lpbAutoLoad;
         pd.nUnload=UD_UNLOAD;
         pd.bActive=bActive;
@@ -12610,6 +12611,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         pd.lParam=lParam;
         pd.pAkelDir=(unsigned char *)szExeDir;
         pd.hInstanceEXE=hInstance;
+        pd.hPluginsStack=&hPluginsStack;
         pd.hMainWnd=hMainWnd;
         pd.hWndEdit=hWndEdit;
         pd.hStatus=hStatus;
@@ -12620,16 +12622,15 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         pd.hMenuLanguage=hMenuLanguage;
         pd.hPopupMenu=hPopupMenu;
         pd.hMainIcon=hMainIcon;
+        pd.hGlobalAccel=hGlobalAccel;
         pd.bOldWindows=bOldWindows;
         pd.bOldRichEdit=bOldRichEdit;
         pd.bOldComctl32=bOldComctl32;
+        pd.bAkelEdit=TRUE;
         pd.bMDI=bMDI;
         pd.nSaveSettings=nSaveSettings;
+        pd.pLangModule=(unsigned char *)szLangModule;
         pd.wLangSystem=(WORD)dwLangSystem;
-        pd.hPluginsStack=&hPluginsStack;
-        pd.lpPluginFunction=lpPluginFunction;
-        pd.hGlobalAccel=hGlobalAccel;
-        pd.bAkelEdit=TRUE;
 
         (*PluginFunctionPtr)(&pd);
         SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
@@ -12699,6 +12700,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         pd.cb=sizeof(PLUGINDATA);
         pd.pFunction=(unsigned char *)wpFullName;
         pd.hInstanceDLL=hModule;
+        pd.lpPluginFunction=lpPluginFunction;
         pd.lpbAutoLoad=lpbAutoLoad;
         pd.nUnload=UD_UNLOAD;
         pd.bActive=bActive;
@@ -12706,6 +12708,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         pd.lParam=lParam;
         pd.pAkelDir=(unsigned char *)wszExeDir;
         pd.hInstanceEXE=hInstance;
+        pd.hPluginsStack=&hPluginsStack;
         pd.hMainWnd=hMainWnd;
         pd.hWndEdit=hWndEdit;
         pd.hStatus=hStatus;
@@ -12716,16 +12719,15 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         pd.hMenuLanguage=hMenuLanguage;
         pd.hPopupMenu=hPopupMenu;
         pd.hMainIcon=hMainIcon;
+        pd.hGlobalAccel=hGlobalAccel;
         pd.bOldWindows=bOldWindows;
         pd.bOldRichEdit=bOldRichEdit;
         pd.bOldComctl32=bOldComctl32;
+        pd.bAkelEdit=TRUE;
         pd.bMDI=bMDI;
         pd.nSaveSettings=nSaveSettings;
+        pd.pLangModule=(unsigned char *)wszLangModule;
         pd.wLangSystem=(WORD)dwLangSystem;
-        pd.hPluginsStack=&hPluginsStack;
-        pd.lpPluginFunction=lpPluginFunction;
-        pd.hGlobalAccel=hGlobalAccel;
-        pd.bAkelEdit=TRUE;
 
         (*PluginFunctionPtr)(&pd);
         SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
@@ -15689,7 +15691,6 @@ BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
-  AECHARINDEX *lpciCaret;
   char szStatus[MAX_PATH];
 
   if (cr && ci)
@@ -15699,8 +15700,7 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   }
   else
   {
-    GetSel(hWnd, &crSel, NULL, &lpciCaret);
-    ciCaret=*lpciCaret;
+    GetSel(hWnd, &crSel, NULL, &ciCaret);
   }
 
   if (bStatusSelUpdate)
@@ -15716,7 +15716,6 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 
 void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
-  AECHARINDEX *lpciCaret;
   wchar_t wszStatus[MAX_PATH];
 
   if (cr && ci)
@@ -15726,8 +15725,7 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   }
   else
   {
-    GetSel(hWnd, &crSel, NULL, &lpciCaret);
-    ciCaret=*lpciCaret;
+    GetSel(hWnd, &crSel, NULL, &ciCaret);
   }
 
   if (bStatusSelUpdate)

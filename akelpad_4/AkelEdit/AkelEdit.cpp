@@ -393,9 +393,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_StackUndoGroupStop(ae);
         return 0;
       }
+      if (uMsg == AEM_LOCKCOLLECTUNDO)
+      {
+        ae->bLockCollectUndo=wParam;
+        return 0;
+      }
       if (uMsg == AEM_GETSEL)
       {
-        AECHARINDEX **lpciCaret=(AECHARINDEX **)wParam;
+        AECHARINDEX *lpciCaret=(AECHARINDEX *)wParam;
         AESELECTION *aes=(AESELECTION *)lParam;
 
         AE_AkelEditGetSel(ae, aes, lpciCaret);
@@ -4438,7 +4443,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
         sc.hdr.hwndFrom=ae->hWndEdit;
         sc.hdr.idFrom=ae->nEditCtrlID;
         sc.hdr.code=AEN_SELCHANGE;
-        AE_AkelEditGetSel(ae, &sc.aes, &sc.lpciCaret);
+        AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
         SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
       }
 
@@ -6361,38 +6366,41 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
             //Add undo
             if (bEnableUndo)
             {
-              if (ae->dwUndoLimit)
+              if (!ae->bLockCollectUndo)
               {
-                AEUNDOITEM *lpUndoElement;
-                wchar_t *wpUndoText;
-                DWORD dwUndoTextLen=min(lpElement->nSelEnd, lpElement->nLineLen) - min(lpElement->nSelStart, lpElement->nLineLen);
-
-                if (dwUndoTextLen)
+                if (ae->dwUndoLimit)
                 {
-                  //Set selection
-                  if (!lpSetSelUndo)
+                  AEUNDOITEM *lpUndoElement;
+                  wchar_t *wpUndoText;
+                  DWORD dwUndoTextLen=min(lpElement->nSelEnd, lpElement->nLineLen) - min(lpElement->nSelStart, lpElement->nLineLen);
+
+                  if (dwUndoTextLen)
                   {
-                    if (lpSetSelUndo=AE_StackUndoItemInsert(ae))
+                    //Set selection
+                    if (!lpSetSelUndo)
                     {
-                      ae->lpCurrentUndo=lpSetSelUndo;
+                      if (lpSetSelUndo=AE_StackUndoItemInsert(ae))
+                      {
+                        ae->lpCurrentUndo=lpSetSelUndo;
+                      }
                     }
-                  }
 
-                  //Add text
-                  if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
-                  {
-                    AE_memcpy(wpUndoText, lpElement->wpLine + lpElement->nSelStart, (min(lpElement->nSelEnd, lpElement->nLineLen) - lpElement->nSelStart) * sizeof(wchar_t));
-                    wpUndoText[dwUndoTextLen]=L'\0';
-
-                    if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                    //Add text
+                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
                     {
-                      lpUndoElement->dwFlags=AEUN_INSERT|AEUN_COLUMNGROUP;
-                      lpUndoElement->nActionStartOffset=nLineOffset + lpElement->nSelStart;
-                      lpUndoElement->nActionEndOffset=nLineOffset + min(lpElement->nSelEnd, lpElement->nLineLen);
-                      lpUndoElement->wpText=wpUndoText;
-                      lpUndoElement->dwTextLen=dwUndoTextLen;
+                      AE_memcpy(wpUndoText, lpElement->wpLine + lpElement->nSelStart, (min(lpElement->nSelEnd, lpElement->nLineLen) - lpElement->nSelStart) * sizeof(wchar_t));
+                      wpUndoText[dwUndoTextLen]=L'\0';
 
-                      ae->lpCurrentUndo=lpUndoElement;
+                      if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                      {
+                        lpUndoElement->dwFlags=AEUN_INSERT|AEUN_COLUMNGROUP;
+                        lpUndoElement->nActionStartOffset=nLineOffset + lpElement->nSelStart;
+                        lpUndoElement->nActionEndOffset=nLineOffset + min(lpElement->nSelEnd, lpElement->nLineLen);
+                        lpUndoElement->wpText=wpUndoText;
+                        lpUndoElement->dwTextLen=dwUndoTextLen;
+
+                        ae->lpCurrentUndo=lpUndoElement;
+                      }
                     }
                   }
                 }
@@ -6497,35 +6505,38 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         {
           AE_SetModify(ae, TRUE);
 
-          if (ae->dwUndoLimit)
+          if (!ae->bLockCollectUndo)
           {
-            //Set undo selection
-            if (lpSetSelUndo)
+            if (ae->dwUndoLimit)
             {
-              lpSetSelUndo->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_EXTRAOFFSET|AEUN_UNDOONLY;
-              lpSetSelUndo->nActionStartOffset=nStartOffset;
-              lpSetSelUndo->nActionEndOffset=nEndOffset;
-              lpSetSelUndo->nExtraStartOffset=nExtraStartOffset;
-              lpSetSelUndo->nExtraEndOffset=nExtraEndOffset;
-              lpSetSelUndo->wpText=NULL;
-              lpSetSelUndo->dwTextLen=0;
-            }
-
-            //Set redo selection
-            {
-              AEUNDOITEM *lpUndoElement;
-
-              if (lpUndoElement=AE_StackUndoItemInsert(ae))
+              //Set undo selection
+              if (lpSetSelUndo)
               {
-                lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_EXTRAOFFSET|AEUN_REDOONLY;
-                lpUndoElement->nActionStartOffset=nStartOffset;
-                lpUndoElement->nActionEndOffset=nStartOffset;
-                lpUndoElement->nExtraStartOffset=nExtraStartOffset;
-                lpUndoElement->nExtraEndOffset=nExtraStartOffset;
-                lpUndoElement->wpText=NULL;
-                lpUndoElement->dwTextLen=0;
+                lpSetSelUndo->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_EXTRAOFFSET|AEUN_UNDOONLY;
+                lpSetSelUndo->nActionStartOffset=nStartOffset;
+                lpSetSelUndo->nActionEndOffset=nEndOffset;
+                lpSetSelUndo->nExtraStartOffset=nExtraStartOffset;
+                lpSetSelUndo->nExtraEndOffset=nExtraEndOffset;
+                lpSetSelUndo->wpText=NULL;
+                lpSetSelUndo->dwTextLen=0;
+              }
 
-                ae->lpCurrentUndo=lpUndoElement;
+              //Set redo selection
+              {
+                AEUNDOITEM *lpUndoElement;
+
+                if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                {
+                  lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_EXTRAOFFSET|AEUN_REDOONLY;
+                  lpUndoElement->nActionStartOffset=nStartOffset;
+                  lpUndoElement->nActionEndOffset=nStartOffset;
+                  lpUndoElement->nExtraStartOffset=nExtraStartOffset;
+                  lpUndoElement->nExtraEndOffset=nExtraStartOffset;
+                  lpUndoElement->wpText=NULL;
+                  lpUndoElement->dwTextLen=0;
+
+                  ae->lpCurrentUndo=lpUndoElement;
+                }
               }
             }
           }
@@ -6539,27 +6550,30 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       {
         AE_SetModify(ae, TRUE);
 
-        if (ae->dwUndoLimit)
+        if (!ae->bLockCollectUndo)
         {
-          AEUNDOITEM *lpUndoElement;
-          wchar_t *wpUndoText;
-          DWORD dwUndoTextLen;
-
-          dwUndoTextLen=AE_IndexSubtract(ae, &ciDeleteStart, &ciDeleteEnd, AELB_ASIS, bColumnSel, FALSE);
-
-          if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+          if (ae->dwUndoLimit)
           {
-            AE_GetTextRange(ae, &ciDeleteStart, &ciDeleteEnd, wpUndoText, AELB_ASIS, bColumnSel, FALSE);
+            AEUNDOITEM *lpUndoElement;
+            wchar_t *wpUndoText;
+            DWORD dwUndoTextLen;
 
-            if (lpUndoElement=AE_StackUndoItemInsert(ae))
+            dwUndoTextLen=AE_IndexSubtract(ae, &ciDeleteStart, &ciDeleteEnd, AELB_ASIS, bColumnSel, FALSE);
+
+            if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
             {
-              lpUndoElement->dwFlags=AEUN_INSERT;
-              lpUndoElement->nActionStartOffset=nStartOffset;
-              lpUndoElement->nActionEndOffset=nEndOffset;
-              lpUndoElement->wpText=wpUndoText;
-              lpUndoElement->dwTextLen=dwUndoTextLen;
+              AE_GetTextRange(ae, &ciDeleteStart, &ciDeleteEnd, wpUndoText, AELB_ASIS, bColumnSel, FALSE);
 
-              ae->lpCurrentUndo=lpUndoElement;
+              if (lpUndoElement=AE_StackUndoItemInsert(ae))
+              {
+                lpUndoElement->dwFlags=AEUN_INSERT;
+                lpUndoElement->nActionStartOffset=nStartOffset;
+                lpUndoElement->nActionEndOffset=nEndOffset;
+                lpUndoElement->wpText=wpUndoText;
+                lpUndoElement->dwTextLen=dwUndoTextLen;
+
+                ae->lpCurrentUndo=lpUndoElement;
+              }
             }
           }
         }
@@ -6732,7 +6746,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         sc.hdr.hwndFrom=ae->hWndEdit;
         sc.hdr.idFrom=ae->nEditCtrlID;
         sc.hdr.code=AEN_SELCHANGE;
-        AE_AkelEditGetSel(ae, &sc.aes, &sc.lpciCaret);
+        AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
         SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
       }
 
@@ -7179,30 +7193,33 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                 //Add undo
                 if (bEnableUndo)
                 {
-                  if (ae->dwUndoLimit)
+                  if (!ae->bLockCollectUndo)
                   {
-                    AEUNDOITEM *lpUndoElement;
-                    wchar_t *wpUndoText;
-                    DWORD dwUndoTextLen=max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
-
-                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                    if (ae->dwUndoLimit)
                     {
-                      nSpaces=ciInsertFrom.nCharInLine - lpElement->nLineLen;
+                      AEUNDOITEM *lpUndoElement;
+                      wchar_t *wpUndoText;
+                      DWORD dwUndoTextLen=max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
 
-                      for (i=0; i < nSpaces; ++i)
-                        wpUndoText[i]=' ';
-                      AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
-                      wpUndoText[dwUndoTextLen]=L'\0';
-
-                      if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
                       {
-                        lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                        lpUndoElement->nActionStartOffset=nLineOffset + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
-                        lpUndoElement->nActionEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
-                        lpUndoElement->wpText=wpUndoText;
-                        lpUndoElement->dwTextLen=dwUndoTextLen;
+                        nSpaces=ciInsertFrom.nCharInLine - lpElement->nLineLen;
 
-                        ae->lpCurrentUndo=lpUndoElement;
+                        for (i=0; i < nSpaces; ++i)
+                          wpUndoText[i]=' ';
+                        AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
+                        wpUndoText[dwUndoTextLen]=L'\0';
+
+                        if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                        {
+                          lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
+                          lpUndoElement->nActionStartOffset=nLineOffset + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
+                          lpUndoElement->nActionEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
+                          lpUndoElement->wpText=wpUndoText;
+                          lpUndoElement->dwTextLen=dwUndoTextLen;
+
+                          ae->lpCurrentUndo=lpUndoElement;
+                        }
                       }
                     }
                   }
@@ -7221,27 +7238,30 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                 //Insert new line
                 if (bEnableUndo)
                 {
-                  if (ae->dwUndoLimit)
+                  if (!ae->bLockCollectUndo)
                   {
-                    AEUNDOITEM *lpUndoElement;
-                    wchar_t *wpUndoText;
-                    wchar_t *wpLineBreak;
-                    DWORD dwUndoTextLen=AE_GetNewLineString(ae, lpNewElement->nLineBreak, &wpLineBreak);
-
-                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                    if (ae->dwUndoLimit)
                     {
-                      AE_memcpy(wpUndoText, wpLineBreak, dwUndoTextLen * sizeof(wchar_t));
-                      wpUndoText[dwUndoTextLen]=L'\0';
+                      AEUNDOITEM *lpUndoElement;
+                      wchar_t *wpUndoText;
+                      wchar_t *wpLineBreak;
+                      DWORD dwUndoTextLen=AE_GetNewLineString(ae, lpNewElement->nLineBreak, &wpLineBreak);
 
-                      if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
                       {
-                        lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                        lpUndoElement->nActionStartOffset=nLineOffset + lpNewElement->nLineLen;
-                        lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
-                        lpUndoElement->wpText=wpUndoText;
-                        lpUndoElement->dwTextLen=dwUndoTextLen;
+                        AE_memcpy(wpUndoText, wpLineBreak, dwUndoTextLen * sizeof(wchar_t));
+                        wpUndoText[dwUndoTextLen]=L'\0';
 
-                        ae->lpCurrentUndo=lpUndoElement;
+                        if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                        {
+                          lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
+                          lpUndoElement->nActionStartOffset=nLineOffset + lpNewElement->nLineLen;
+                          lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
+                          lpUndoElement->wpText=wpUndoText;
+                          lpUndoElement->dwTextLen=dwUndoTextLen;
+
+                          ae->lpCurrentUndo=lpUndoElement;
+                        }
                       }
                     }
                   }
@@ -7277,38 +7297,41 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                 //Add undo
                 if (bEnableUndo)
                 {
-                  if (ae->dwUndoLimit)
+                  if (!ae->bLockCollectUndo)
                   {
-                    AEUNDOITEM *lpUndoElement;
-                    wchar_t *wpUndoText;
-                    DWORD dwUndoTextLen=lpNewElement->nLineLen + 1;
-
-                    if (nLineBreak == AELB_EOF)
-                      --dwUndoTextLen;
-
-                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                    if (ae->dwUndoLimit)
                     {
-                      nSpaces=ciInsertFrom.nCharInLine;
+                      AEUNDOITEM *lpUndoElement;
+                      wchar_t *wpUndoText;
+                      DWORD dwUndoTextLen=lpNewElement->nLineLen + 1;
 
-                      for (i=0; i < nSpaces; ++i)
-                        wpUndoText[i]=' ';
-                      AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
-                      if (nLineBreak != AELB_EOF)
-                        wpUndoText[lpNewElement->nLineLen]=L'\n';
-                      wpUndoText[dwUndoTextLen]=L'\0';
+                      if (nLineBreak == AELB_EOF)
+                        --dwUndoTextLen;
 
-                      if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
                       {
-                        lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                        lpUndoElement->nActionStartOffset=nLineOffset;
-                        if (nLineBreak != AELB_EOF)
-                          lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
-                        else
-                          lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen;
-                        lpUndoElement->wpText=wpUndoText;
-                        lpUndoElement->dwTextLen=dwUndoTextLen;
+                        nSpaces=ciInsertFrom.nCharInLine;
 
-                        ae->lpCurrentUndo=lpUndoElement;
+                        for (i=0; i < nSpaces; ++i)
+                          wpUndoText[i]=' ';
+                        AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
+                        if (nLineBreak != AELB_EOF)
+                          wpUndoText[lpNewElement->nLineLen]=L'\n';
+                        wpUndoText[dwUndoTextLen]=L'\0';
+
+                        if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                        {
+                          lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
+                          lpUndoElement->nActionStartOffset=nLineOffset;
+                          if (nLineBreak != AELB_EOF)
+                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
+                          else
+                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen;
+                          lpUndoElement->wpText=wpUndoText;
+                          lpUndoElement->dwTextLen=dwUndoTextLen;
+
+                          ae->lpCurrentUndo=lpUndoElement;
+                        }
                       }
                     }
                   }
@@ -7413,21 +7436,24 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         {
           AE_SetModify(ae, TRUE);
 
-          if (ae->dwUndoLimit)
+          if (!ae->bLockCollectUndo)
           {
-            //Set selection
+            if (ae->dwUndoLimit)
             {
-              AEUNDOITEM *lpUndoElement;
-
-              if (lpUndoElement=AE_StackUndoItemInsert(ae))
+              //Set selection
               {
-                lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_REDOONLY;
-                lpUndoElement->nActionStartOffset=nStartOffset;
-                lpUndoElement->nActionEndOffset=nEndOffset;
-                lpUndoElement->wpText=NULL;
-                lpUndoElement->dwTextLen=0;
+                AEUNDOITEM *lpUndoElement;
 
-                ae->lpCurrentUndo=lpUndoElement;
+                if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                {
+                  lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_REDOONLY;
+                  lpUndoElement->nActionStartOffset=nStartOffset;
+                  lpUndoElement->nActionEndOffset=nEndOffset;
+                  lpUndoElement->wpText=NULL;
+                  lpUndoElement->dwTextLen=0;
+
+                  ae->lpCurrentUndo=lpUndoElement;
+                }
               }
             }
           }
@@ -7682,46 +7708,49 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         {
           AE_SetModify(ae, TRUE);
 
-          if (ae->dwUndoLimit)
+          if (!ae->bLockCollectUndo)
           {
-            AEUNDOITEM *lpUndoElement;
-            wchar_t *wpUndoText;
-
-            if (nSpaces > 0)
+            if (ae->dwUndoLimit)
             {
-              if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, nSpaces * sizeof(wchar_t) + 2))
+              AEUNDOITEM *lpUndoElement;
+              wchar_t *wpUndoText;
+
+              if (nSpaces > 0)
               {
-                for (i=0; i < nSpaces; ++i)
-                  wpUndoText[i]=' ';
-                wpUndoText[nSpaces]=L'\0';
+                if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, nSpaces * sizeof(wchar_t) + 2))
+                {
+                  for (i=0; i < nSpaces; ++i)
+                    wpUndoText[i]=' ';
+                  wpUndoText[nSpaces]=L'\0';
+
+                  if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                  {
+                    lpUndoElement->dwFlags=AEUN_DELETE;
+                    lpUndoElement->nActionStartOffset=nStartOffset - nSpaces;
+                    lpUndoElement->nActionEndOffset=nStartOffset;
+                    lpUndoElement->wpText=wpUndoText;
+                    lpUndoElement->dwTextLen=nSpaces;
+
+                    ae->lpCurrentUndo=lpUndoElement;
+                  }
+                }
+              }
+
+              if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwTextLen * sizeof(wchar_t) + 2))
+              {
+                AE_memcpy(wpUndoText, wpText, dwTextLen * sizeof(wchar_t));
+                wpUndoText[dwTextLen]=L'\0';
 
                 if (lpUndoElement=AE_StackUndoItemInsert(ae))
                 {
                   lpUndoElement->dwFlags=AEUN_DELETE;
-                  lpUndoElement->nActionStartOffset=nStartOffset - nSpaces;
-                  lpUndoElement->nActionEndOffset=nStartOffset;
+                  lpUndoElement->nActionStartOffset=nStartOffset;
+                  lpUndoElement->nActionEndOffset=nEndOffset;
                   lpUndoElement->wpText=wpUndoText;
-                  lpUndoElement->dwTextLen=nSpaces;
+                  lpUndoElement->dwTextLen=dwTextLen;
 
                   ae->lpCurrentUndo=lpUndoElement;
                 }
-              }
-            }
-
-            if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwTextLen * sizeof(wchar_t) + 2))
-            {
-              AE_memcpy(wpUndoText, wpText, dwTextLen * sizeof(wchar_t));
-              wpUndoText[dwTextLen]=L'\0';
-
-              if (lpUndoElement=AE_StackUndoItemInsert(ae))
-              {
-                lpUndoElement->dwFlags=AEUN_DELETE;
-                lpUndoElement->nActionStartOffset=nStartOffset;
-                lpUndoElement->nActionEndOffset=nEndOffset;
-                lpUndoElement->wpText=wpUndoText;
-                lpUndoElement->dwTextLen=dwTextLen;
-
-                ae->lpCurrentUndo=lpUndoElement;
               }
             }
           }
@@ -7764,7 +7793,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           sc.hdr.hwndFrom=ae->hWndEdit;
           sc.hdr.idFrom=ae->nEditCtrlID;
           sc.hdr.code=AEN_SELCHANGE;
-          AE_AkelEditGetSel(ae, &sc.aes, &sc.lpciCaret);
+          AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
           SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
         }
 
@@ -8725,12 +8754,15 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, NULL, TRUE, FALSE, TRUE);
       AE_InsertText(ae, &ae->ciSelStartIndex, &wchChar, 1, ae->nInputNewLine, FALSE, NULL, NULL, TRUE, TRUE, TRUE);
 
-      if (ae->dwUndoLimit)
+      if (!ae->bLockCollectUndo)
       {
-        if (ae->dwOptions & AECO_DETAILEDUNDO)
-          AE_StackUndoGroupStop(ae);
-        else
-          ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
+        if (ae->dwUndoLimit)
+        {
+          if (ae->dwOptions & AECO_DETAILEDUNDO)
+            AE_StackUndoGroupStop(ae);
+          else
+            ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
+        }
       }
     }
     else
@@ -8754,12 +8786,15 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, NULL, TRUE, FALSE, TRUE);
       AE_InsertText(ae, &ae->ciSelStartIndex, &wchChar, 1, ae->nInputNewLine, FALSE, NULL, NULL, TRUE, TRUE, TRUE);
 
-      if (ae->dwUndoLimit)
+      if (!ae->bLockCollectUndo)
       {
-        if (ae->dwOptions & AECO_DETAILEDUNDO)
-          AE_StackUndoGroupStop(ae);
-        else
-          ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
+        if (ae->dwUndoLimit)
+        {
+          if (ae->dwOptions & AECO_DETAILEDUNDO)
+            AE_StackUndoGroupStop(ae);
+          else
+            ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
+        }
       }
     }
   }
@@ -8777,12 +8812,15 @@ void AE_EditKeyReturn(AKELEDIT *ae)
     AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, NULL, TRUE, FALSE, TRUE);
     AE_InsertText(ae, &ae->ciSelStartIndex, wpNewLine, nNewLine, ae->nInputNewLine, FALSE, NULL, NULL, TRUE, TRUE, TRUE);
 
-    if (ae->dwUndoLimit)
+    if (!ae->bLockCollectUndo)
     {
-      if (ae->dwOptions & AECO_DETAILEDUNDO)
-        AE_StackUndoGroupStop(ae);
-      else
-        ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
+      if (ae->dwUndoLimit)
+      {
+        if (ae->dwOptions & AECO_DETAILEDUNDO)
+          AE_StackUndoGroupStop(ae);
+        else
+          ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
+      }
     }
   }
   else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
@@ -8812,9 +8850,12 @@ void AE_EditKeyBackspace(AKELEDIT *ae)
         AE_DeleteTextRange(ae, &ciCharIndex, &ae->ciSelStartIndex, FALSE, NULL, TRUE, TRUE, TRUE);
         AE_StackUndoGroupStop(ae);
 
-        if (ae->dwUndoLimit)
+        if (!ae->bLockCollectUndo)
         {
-          ae->lpCurrentUndo->dwFlags|=AEUN_BACKSPACEKEY;
+          if (ae->dwUndoLimit)
+          {
+            ae->lpCurrentUndo->dwFlags|=AEUN_BACKSPACEKEY;
+          }
         }
       }
       else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
@@ -8865,9 +8906,12 @@ void AE_EditKeyDelete(AKELEDIT *ae)
         AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, NULL, TRUE, TRUE, TRUE);
         AE_StackUndoGroupStop(ae);
 
-        if (ae->dwUndoLimit)
+        if (!ae->bLockCollectUndo)
         {
-          ae->lpCurrentUndo->dwFlags|=AEUN_DELETEKEY;
+          if (ae->dwUndoLimit)
+          {
+            ae->lpCurrentUndo->dwFlags|=AEUN_DELETEKEY;
+          }
         }
       }
       else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
@@ -8892,7 +8936,7 @@ void AE_EditSelectAll(AKELEDIT *ae)
   AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE, TRUE);
 }
 
-void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX **lpciCaret)
+void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
 {
   aes->crSel.ciMin=ae->ciSelStartIndex;
   aes->crSel.ciMax=ae->ciSelEndIndex;
@@ -8901,9 +8945,9 @@ void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX **lpciCaret)
   if (lpciCaret)
   {
     if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
-      *lpciCaret=&aes->crSel.ciMax;
+      *lpciCaret=aes->crSel.ciMax;
     else
-      *lpciCaret=&aes->crSel.ciMin;
+      *lpciCaret=aes->crSel.ciMin;
   }
 }
 
