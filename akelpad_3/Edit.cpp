@@ -11708,6 +11708,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         pd.hPluginsStack=&hPluginsStack;
         pd.lpPluginFunction=lpPluginFunction;
         pd.hGlobalAccel=hGlobalAccel;
+        pd.bAkelEdit=FALSE;
 
         (*PluginFunctionPtr)(&pd);
         SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
@@ -11803,6 +11804,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         pd.hPluginsStack=&hPluginsStack;
         pd.lpPluginFunction=lpPluginFunction;
         pd.hGlobalAccel=hGlobalAccel;
+        pd.bAkelEdit=FALSE;
 
         (*PluginFunctionPtr)(&pd);
         SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
