@@ -374,10 +374,9 @@ typedef struct _WNDFRAMEA {
   BOOL bShowURL;
   DWORD dwEditMargins;
   BOOL bDelimitersEnable;
-  COLORREF crFont;
-  COLORREF crBackground;
   FILETIME ft;
   LOGFONTA lf;
+  AECOLORS aec;
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -395,10 +394,9 @@ typedef struct _WNDFRAMEW {
   BOOL bShowURL;
   DWORD dwEditMargins;
   BOOL bDelimitersEnable;
-  COLORREF crFont;
-  COLORREF crBackground;
   FILETIME ft;
   LOGFONTW lf;
+  AECOLORS aec;
 } WNDFRAMEW;
 
 typedef struct _EDITINFO {
@@ -418,9 +416,8 @@ typedef struct _EDITINFO {
   BOOL bShowURL;
   DWORD dwEditMargins;
   BOOL bDelimitersEnable;
-  COLORREF crFont;
-  COLORREF crBackground;
   FILETIME ft;
+  AECOLORS aec;
 } EDITINFO;
 
 typedef struct _WNDPROCDATA {
@@ -467,6 +464,7 @@ typedef struct _PLUGINDATA {
   DWORD cb;
   unsigned char *pFunction;
   HINSTANCE hInstanceDLL;
+  void *lpPluginFunction;
   BOOL *lpbAutoLoad;
   int nUnload;
   BOOL bActive;
@@ -474,6 +472,7 @@ typedef struct _PLUGINDATA {
   LPARAM lParam;
   unsigned char *pAkelDir;
   HINSTANCE hInstanceEXE;
+  HSTACK *hPluginsStack;
   HWND hMainWnd;
   HWND hWndEdit;
   HWND hStatus;
@@ -484,16 +483,15 @@ typedef struct _PLUGINDATA {
   HMENU hMenuLanguage;
   HMENU hPopupMenu;
   HICON hMainIcon;
+  HACCEL hGlobalAccel;
   BOOL bOldWindows;
   BOOL bOldRichEdit;
   BOOL bOldComctl32;
+  BOOL bAkelEdit;
   BOOL bMDI;
   int nSaveSettings;
+  unsigned char *pLangModule;
   LANGID wLangSystem;
-  HSTACK *hPluginsStack;
-  void *lpPluginFunction;
-  HACCEL hGlobalAccel;
-  BOOL bAkelEdit;
 } PLUGINDATA;
 
 typedef struct _PLUGINFUNCTIONA {
@@ -969,7 +967,7 @@ BOOL EscapeStringToEscapeDataA(char *pInput, char *szOutput);
 BOOL EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput);
 void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput);
 
-void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX **ciCaret);
+void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
 void SetSel(HWND hWnd, AECHARRANGE *crSel, BOOL bColumnSel, AECHARINDEX *ciCaret);
 void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);

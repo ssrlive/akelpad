@@ -1951,6 +1951,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->cb=sizeof(PLUGINDATA);
       pd->pFunction=NULL;
       pd->hInstanceDLL=0;
+      pd->lpPluginFunction=NULL;
       pd->lpbAutoLoad=NULL;
       pd->nUnload=0;
       pd->bActive=0;
@@ -1958,6 +1959,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->lParam=0;
       pd->pAkelDir=(unsigned char *)szExeDir;
       pd->hInstanceEXE=hInstance;
+      pd->hPluginsStack=&hPluginsStack;
       pd->hMainWnd=hMainWnd;
       pd->hWndEdit=hWndEdit;
       pd->hStatus=hStatus;
@@ -1968,16 +1970,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
+      pd->hGlobalAccel=hGlobalAccel;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
+      pd->bAkelEdit=TRUE;
       pd->bMDI=bMDI;
       pd->nSaveSettings=nSaveSettings;
+      pd->pLangModule=(unsigned char *)szLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
-      pd->hPluginsStack=&hPluginsStack;
-      pd->lpPluginFunction=NULL;
-      pd->hGlobalAccel=hGlobalAccel;
-      pd->bAkelEdit=TRUE;
 
       return 0;
     }
@@ -2005,6 +2006,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->bShowURL=bShowURL;
           ei->dwEditMargins=dwEditMargins;
           ei->ft=ftFileTime;
+          ei->aec=aecColors;
           return TRUE;
         }
         return FALSE;
@@ -2034,6 +2036,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ei->bShowURL=wf->bShowURL;
             ei->dwEditMargins=wf->dwEditMargins;
             ei->ft=wf->ft;
+            ei->aec=wf->aec;
             return TRUE;
           }
         }
@@ -3612,6 +3615,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->cb=sizeof(PLUGINDATA);
       pd->pFunction=NULL;
       pd->hInstanceDLL=0;
+      pd->lpPluginFunction=NULL;
       pd->lpbAutoLoad=NULL;
       pd->nUnload=0;
       pd->bActive=0;
@@ -3619,6 +3623,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->lParam=0;
       pd->pAkelDir=(unsigned char *)wszExeDir;
       pd->hInstanceEXE=hInstance;
+      pd->hPluginsStack=&hPluginsStack;
       pd->hMainWnd=hMainWnd;
       pd->hWndEdit=hWndEdit;
       pd->hStatus=hStatus;
@@ -3629,16 +3634,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
+      pd->hGlobalAccel=hGlobalAccel;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
+      pd->bAkelEdit=TRUE;
       pd->bMDI=bMDI;
       pd->nSaveSettings=nSaveSettings;
+      pd->pLangModule=(unsigned char *)wszLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
-      pd->hPluginsStack=&hPluginsStack;
-      pd->lpPluginFunction=NULL;
-      pd->hGlobalAccel=hGlobalAccel;
-      pd->bAkelEdit=TRUE;
 
       return 0;
     }
@@ -3666,6 +3670,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->bShowURL=bShowURL;
           ei->dwEditMargins=dwEditMargins;
           ei->ft=ftFileTime;
+          ei->aec=aecColors;
           return TRUE;
         }
         return FALSE;
@@ -3695,6 +3700,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ei->bShowURL=wf->bShowURL;
             ei->dwEditMargins=wf->dwEditMargins;
             ei->ft=wf->ft;
+            ei->aec=wf->aec;
             return TRUE;
           }
         }
@@ -4849,7 +4855,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENSELCHANGE *sc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatusA(hWndEdit, &sc->aes.crSel, sc->lpciCaret);
+        SetSelectionStatusA(hWndEdit, &sc->aes.crSel, &sc->ciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGE)
       {
@@ -4962,7 +4968,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENSELCHANGE *sc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatusW(hWndEdit, &sc->aes.crSel, sc->lpciCaret);
+        SetSelectionStatusW(hWndEdit, &sc->aes.crSel, &sc->ciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGE)
       {
@@ -5049,6 +5055,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bDelimitersEnable=bDelimitersEnable;
       memset(&lpWndFrameA->ft, 0, sizeof(FILETIME));
       memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+      lpWndFrameA->aec=aecColors;
       SetWindowLongA(hWnd, GWL_USERDATA, (LONG)lpWndFrameA);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5167,6 +5174,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bDelimitersEnable=bDelimitersEnable;
             lpWndFrameA->ft=ftFileTime;
             memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+            lpWndFrameA->aec=aecColors;
           }
         }
         //Handles
@@ -5190,6 +5198,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bDelimitersEnable=lpWndFrameA->bDelimitersEnable;
           ftFileTime=lpWndFrameA->ft;
           memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
+          aecColors=lpWndFrameA->aec;
         }
 
         //Update selection
@@ -5250,6 +5259,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bDelimitersEnable=bDelimitersEnable;
       memset(&lpWndFrameW->ft, 0, sizeof(FILETIME));
       memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+      lpWndFrameW->aec=aecColors;
       SetWindowLongW(hWnd, GWL_USERDATA, (LONG)lpWndFrameW);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5368,6 +5378,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bDelimitersEnable=bDelimitersEnable;
             lpWndFrameW->ft=ftFileTime;
             memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+            lpWndFrameW->aec=aecColors;
           }
         }
         //Handles
@@ -5391,6 +5402,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bDelimitersEnable=lpWndFrameW->bDelimitersEnable;
           ftFileTime=lpWndFrameW->ft;
           memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
+          aecColors=lpWndFrameW->aec;
         }
 
         //Update selection
