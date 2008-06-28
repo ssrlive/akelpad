@@ -294,18 +294,18 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AE_SetText(ae, (wchar_t *)lParam, wParam, ae->nInputNewLine);
       }
-      if (uMsg == AEM_ADDTEXTA)
+      if (uMsg == AEM_APPENDTEXTA)
       {
-        AEADDTEXTA *at=(AEADDTEXTA *)lParam;
+        AEAPPENDTEXTA *at=(AEAPPENDTEXTA *)lParam;
 
-        AE_AddTextAnsi(ae, at->pText, at->dwTextLen, at->bColumnSel);
+        AE_AppendTextAnsi(ae, at->pText, at->dwTextLen, at->bColumnSel);
         return 0;
       }
-      if (uMsg == AEM_ADDTEXTW)
+      if (uMsg == AEM_APPENDTEXTW)
       {
-        AEADDTEXTW *at=(AEADDTEXTW *)lParam;
+        AEAPPENDTEXTW *at=(AEAPPENDTEXTW *)lParam;
 
-        AE_AddText(ae, at->wpText, at->dwTextLen, at->bColumnSel);
+        AE_AppendText(ae, at->wpText, at->dwTextLen, at->bColumnSel);
         return 0;
       }
       if (uMsg == AEM_REPLACESELA)
@@ -6966,7 +6966,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   return dwTextLen;
 }
 
-void AE_AddTextAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel)
+void AE_AppendTextAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel)
 {
   wchar_t *wszText;
   DWORD dwUnicodeBytes;
@@ -6977,13 +6977,13 @@ void AE_AddTextAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel)
   if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
   {
     MultiByteToWideChar(CP_ACP, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
-    AE_AddText(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), bColumnSel);
+    AE_AppendText(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), bColumnSel);
 
     AE_HeapFree(ae, 0, (LPVOID)wszText);
   }
 }
 
-void AE_AddText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel)
+void AE_AppendText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel)
 {
   AECHARINDEX ciCaretIndex;
   AECHARINDEX ciSelStartIndex;

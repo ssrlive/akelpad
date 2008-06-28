@@ -16,8 +16,8 @@
 
 #define AEM_SETTEXTA          (WM_USER + 2001)
 #define AEM_SETTEXTW          (WM_USER + 2002)
-#define AEM_ADDTEXTA          (WM_USER + 2003)
-#define AEM_ADDTEXTW          (WM_USER + 2004)
+#define AEM_APPENDTEXTA       (WM_USER + 2003)
+#define AEM_APPENDTEXTW       (WM_USER + 2004)
 #define AEM_REPLACESELA       (WM_USER + 2005)
 #define AEM_REPLACESELW       (WM_USER + 2006)
 #define AEM_GETTEXTRANGEA     (WM_USER + 2007)
@@ -305,13 +305,13 @@ typedef struct {
   char *pText;
   DWORD dwTextLen;
   BOOL bColumnSel;
-} AEADDTEXTA;
+} AEAPPENDTEXTA;
 
 typedef struct {
   wchar_t *wpText;
   DWORD dwTextLen;
   BOOL bColumnSel;
-} AEADDTEXTW;
+} AEAPPENDTEXTW;
 
 typedef struct {
   char *pText;
@@ -662,8 +662,8 @@ DWORD AE_GetTextAnsi(AKELEDIT *ae, char *szText, DWORD dwMaxTextLen);
 DWORD AE_GetText(AKELEDIT *ae, wchar_t *wszText, DWORD dwMaxTextLen);
 DWORD AE_SetTextAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, int nNewLine);
 DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine);
-void AE_AddTextAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel);
-void AE_AddText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel);
+void AE_AppendTextAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel);
+void AE_AppendText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel);
 void AE_ReplaceSelAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd, BOOL bEnableUndo, BOOL bScroll, BOOL bUpdate);

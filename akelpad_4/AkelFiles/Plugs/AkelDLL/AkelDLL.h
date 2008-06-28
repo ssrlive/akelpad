@@ -264,6 +264,7 @@ typedef struct _PLUGINDATA {
   HSTACK *hPluginsStack;    //Pointer to a plugins stack
   void *lpPluginFunction;   //Pointer to a PLUGINFUNCTION structure
   HACCEL hGlobalAccel;      //Global accelerator table
+  BOOL bAkelEdit;           //AkelEdit control is used
 } PLUGINDATA;
 
 typedef struct _PLUGINFUNCTIONA {
@@ -2399,7 +2400,6 @@ Example:
  SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
  tr.pText=NULL;
  tr.nNewLine=AELB_ASIS;
- tr.bColumnSel=-1;
 
  if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEA, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
  {
@@ -2425,7 +2425,6 @@ Example:
  SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
  tr.wpText=NULL;
  tr.nNewLine=AELB_ASIS;
- tr.bColumnSel=-1;
 
  if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEW, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
  {

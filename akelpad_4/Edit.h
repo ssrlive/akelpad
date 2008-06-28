@@ -493,6 +493,7 @@ typedef struct _PLUGINDATA {
   HSTACK *hPluginsStack;
   void *lpPluginFunction;
   HACCEL hGlobalAccel;
+  BOOL bAkelEdit;
 } PLUGINDATA;
 
 typedef struct _PLUGINFUNCTIONA {
