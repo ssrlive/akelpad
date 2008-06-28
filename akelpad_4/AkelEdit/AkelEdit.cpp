@@ -286,6 +286,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       //// AEM_* AkelEdit control messages
 
+      //Text retrieval and modification
       if (uMsg == AEM_SETTEXTA)
       {
         return AE_SetTextAnsi(ae, (char *)lParam, wParam, ae->nInputNewLine);
@@ -350,13 +351,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AE_EditCanPaste(ae);
       }
-      if (uMsg == AEM_CANUNDO)
+      if (uMsg == AEM_PASTE)
       {
-        return AE_EditCanUndo(ae);
-      }
-      if (uMsg == AEM_CANREDO)
-      {
-        return AE_EditCanRedo(ae);
+        AE_EditPasteFromClipboard(ae, lParam);
+        return 0;
       }
       if (uMsg == AEM_CUT)
       {
@@ -368,10 +366,27 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_EditCopyToClipboard(ae);
         return 0;
       }
-      if (uMsg == AEM_PASTE)
+      if (uMsg == AEM_FINDTEXTA)
       {
-        AE_EditPasteFromClipboard(ae, lParam);
-        return 0;
+        return AE_FindTextAnsi(ae, (AEFINDTEXTA *)lParam);
+      }
+      if (uMsg == AEM_FINDTEXTW)
+      {
+        return AE_FindText(ae, (AEFINDTEXTW *)lParam);
+      }
+      if (uMsg == AEM_CHECKCODEPAGE)
+      {
+        return AE_CheckCodepage(ae, wParam);
+      }
+
+      //Undo and Redo
+      if (uMsg == AEM_CANUNDO)
+      {
+        return AE_EditCanUndo(ae);
+      }
+      if (uMsg == AEM_CANREDO)
+      {
+        return AE_EditCanRedo(ae);
       }
       if (uMsg == AEM_UNDO)
       {
@@ -388,6 +403,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_StackRedoDeleteAll(ae, NULL);
         return 0;
       }
+      if (uMsg == AEM_UNDOGROUPBEGIN)
+      {
+        return 0;
+      }
+      if (uMsg == AEM_UNDOGROUPEND)
+      {
+        return 0;
+      }
       if (uMsg == AEM_STOPGROUPTYPING)
       {
         AE_StackUndoGroupStop(ae);
@@ -398,6 +421,41 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->bLockCollectUndo=wParam;
         return 0;
       }
+      if (uMsg == AEM_GETUNDOLIMIT)
+      {
+        return ae->dwUndoLimit;
+      }
+      if (uMsg == AEM_SETUNDOLIMIT)
+      {
+        ae->dwUndoLimit=wParam;
+        AE_StackUndoGroupStop(ae);
+        return 0;
+      }
+      if (uMsg == AEM_GETMODIFY)
+      {
+        return ae->bModified;
+      }
+      if (uMsg == AEM_SETMODIFY)
+      {
+        if (ae->bModified != (int)wParam)
+        {
+          if (wParam)
+          {
+            ae->lpSavePoint=NULL;
+            ae->bSavePointExist=FALSE;
+          }
+          else
+          {
+            AE_StackUndoGroupStop(ae);
+            ae->lpSavePoint=ae->lpCurrentUndo;
+            ae->bSavePointExist=TRUE;
+          }
+          AE_SetModify(ae, wParam);
+        }
+        return 0;
+      }
+
+      //Text coordinates
       if (uMsg == AEM_GETSEL)
       {
         AECHARINDEX *lpciCaret=(AECHARINDEX *)wParam;
@@ -481,6 +539,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_RichOffsetToAkelIndex(ae, wParam, ciCharIndex);
         return 0;
       }
+
+      //Screen coordinates
       if (uMsg == AEM_CHARFROMPOS)
       {
         POINT *pt=(POINT *)wParam;
@@ -495,6 +555,52 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         AE_GetPosFromCharEx(ae, ciCharIndex, NULL, pt);
         return 0;
+      }
+      if (uMsg == AEM_GETRECT)
+      {
+        RECT *rcDraw=(RECT *)lParam;
+
+        *rcDraw=ae->rcDraw;
+        return 0;
+      }
+      if (uMsg == AEM_SETRECT)
+      {
+        RECT *rcDraw=(RECT *)lParam;
+
+        AE_SetDrawRect(ae, rcDraw, TRUE);
+        AE_UpdateScrollBars(ae, SB_BOTH);
+        return 0;
+      }
+      if (uMsg == AEM_GETSCROLLPOS)
+      {
+        POINT *pt=(POINT *)lParam;
+  
+        pt->x=ae->nHScrollPos;
+        pt->y=ae->nVScrollPos;
+        return 0;
+      }
+      if (uMsg == AEM_SETSCROLLPOS)
+      {
+        POINT *pt=(POINT *)lParam;
+  
+        if (pt->x != ae->nHScrollPos)
+          AE_ScrollEditWindow(ae, SB_HORZ, pt->x);
+        if (pt->y != ae->nVScrollPos)
+          AE_ScrollEditWindow(ae, SB_VERT, pt->y);
+        return 0;
+      }
+      if (uMsg == AEM_SCROLL)
+      {
+        int nScrolled=0;
+  
+        if (wParam == SB_LINEUP ||
+            wParam == SB_LINEDOWN ||
+            wParam == SB_PAGEUP ||
+            wParam == SB_PAGEDOWN)
+        {
+          nScrolled=AE_VScroll(ae, wParam);
+        }
+        return mod(nScrolled) / ae->nCharHeight;
       }
       if (uMsg == AEM_LINESCROLL)
       {
@@ -526,23 +632,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->bVScrollLock=lParam;
         return 0;
       }
-      if (uMsg == AEM_SHOWSCROLLBAR)
-      {
-        if (wParam == SB_BOTH || wParam == SB_HORZ)
-          ae->bHScrollShow=lParam;
-        if (wParam == SB_BOTH || wParam == SB_VERT)
-          ae->bVScrollShow=lParam;
-        ShowScrollBar(ae->hWndEdit, wParam, lParam);
-        return 0;
-      }
-      if (uMsg == AEM_FINDTEXTA)
-      {
-        return AE_FindTextAnsi(ae, (AEFINDTEXTA *)lParam);
-      }
-      if (uMsg == AEM_FINDTEXTW)
-      {
-        return AE_FindText(ae, (AEFINDTEXTW *)lParam);
-      }
+
+      //Options
       if (uMsg == AEM_GETOPTIONS)
       {
         return ae->dwOptions;
@@ -559,31 +650,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->dwOptions&=~lParam;
         return ae->dwOptions;
       }
-      if (uMsg == AEM_GETUNDOLIMIT)
-      {
-        return ae->dwUndoLimit;
-      }
-      if (uMsg == AEM_SETUNDOLIMIT)
-      {
-        ae->dwUndoLimit=wParam;
-        AE_StackUndoGroupStop(ae);
-        return 0;
-      }
-      if (uMsg == AEM_GETRECT)
-      {
-        RECT *rcDraw=(RECT *)lParam;
-
-        *rcDraw=ae->rcDraw;
-        return 0;
-      }
-      if (uMsg == AEM_SETRECT)
-      {
-        RECT *rcDraw=(RECT *)lParam;
-
-        AE_SetDrawRect(ae, rcDraw, TRUE);
-        AE_UpdateScrollBars(ae, SB_BOTH);
-        return 0;
-      }
       if (uMsg == AEM_GETNEWLINE)
       {
         return MAKELONG(ae->nInputNewLine, ae->nOutputNewLine);
@@ -594,29 +660,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->nInputNewLine=LOWORD(lParam);
         if (wParam & AENL_OUTPUT)
           ae->nOutputNewLine=HIWORD(lParam);
-        return 0;
-      }
-      if (uMsg == AEM_GETMODIFY)
-      {
-        return ae->bModified;
-      }
-      if (uMsg == AEM_SETMODIFY)
-      {
-        if (ae->bModified != (int)wParam)
-        {
-          if (wParam)
-          {
-            ae->lpSavePoint=NULL;
-            ae->bSavePointExist=FALSE;
-          }
-          else
-          {
-            AE_StackUndoGroupStop(ae);
-            ae->lpSavePoint=ae->lpCurrentUndo;
-            ae->bSavePointExist=TRUE;
-          }
-          AE_SetModify(ae, wParam);
-        }
         return 0;
       }
       if (uMsg == AEM_GETCOLORS)
@@ -710,9 +753,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, (lstrlenW(AES_WRAPDELIMITERSW) + 1) * sizeof(wchar_t));
         return 0;
       }
-      if (uMsg == AEM_CHECKCODEPAGE)
+      if (uMsg == AEM_SHOWSCROLLBAR)
       {
-        return AE_CheckCodepage(ae, wParam);
+        if (wParam == SB_BOTH || wParam == SB_HORZ)
+          ae->bHScrollShow=lParam;
+        if (wParam == SB_BOTH || wParam == SB_VERT)
+          ae->bVScrollShow=lParam;
+        ShowScrollBar(ae->hWndEdit, wParam, lParam);
+        return 0;
       }
     }
 
