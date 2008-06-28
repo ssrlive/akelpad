@@ -377,14 +377,8 @@ extern "C" void _WinMain()
     lfEditFontA.lfHeight=-mod(lfEditFontA.lfHeight);
     lfEditFontA.lfWidth=0;
     memcpy(&lfPrintFontA, &lfEditFontA, sizeof(LOGFONTA));
-    aecColors.dwFlags=AECLR_ALL;
-    aecColors.crCaret=RGB(0x00, 0x00, 0x00);
     aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
     aecColors.crBasicBk=GetSysColor(COLOR_WINDOW);
-    aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
-    aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
-    aecColors.crActiveLineText=aecColors.crBasicText;
-    aecColors.crActiveLineBk=aecColors.crBasicBk;
     nAnsiCodePage=GetACP();
     nOemCodePage=GetOEMCP();
     nDefaultCodePage=nAnsiCodePage;
@@ -433,6 +427,12 @@ extern "C" void _WinMain()
     }
     StackFreeIni(&hIniStack);
 
+    aecColors.dwFlags=AECLR_ALL;
+    aecColors.crCaret=RGB(0x00, 0x00, 0x00);
+    aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+    aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+    aecColors.crActiveLineText=aecColors.crBasicText;
+    aecColors.crActiveLineBk=aecColors.crBasicBk;
     if (nDefaultCodePage == CP_UNICODE_UCS2_LE || nDefaultCodePage == CP_UNICODE_UCS2_BE || nDefaultCodePage == CP_UNICODE_UTF8)
       bDefaultBOM=TRUE;
     bCurrentBOM=bDefaultBOM;
@@ -788,14 +788,8 @@ extern "C" void _WinMain()
     lfEditFontW.lfHeight=-mod(lfEditFontW.lfHeight);
     lfEditFontW.lfWidth=0;
     memcpy(&lfPrintFontW, &lfEditFontW, sizeof(LOGFONTW));
-    aecColors.dwFlags=AECLR_ALL;
-    aecColors.crCaret=RGB(0x00, 0x00, 0x00);
     aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
     aecColors.crBasicBk=GetSysColor(COLOR_WINDOW);
-    aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
-    aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
-    aecColors.crActiveLineText=aecColors.crBasicText;
-    aecColors.crActiveLineBk=aecColors.crBasicBk;
     nAnsiCodePage=GetACP();
     nOemCodePage=GetOEMCP();
     nDefaultCodePage=nAnsiCodePage;
@@ -844,6 +838,12 @@ extern "C" void _WinMain()
     }
     StackFreeIni(&hIniStack);
 
+    aecColors.dwFlags=AECLR_ALL;
+    aecColors.crCaret=RGB(0x00, 0x00, 0x00);
+    aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+    aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+    aecColors.crActiveLineText=aecColors.crBasicText;
+    aecColors.crActiveLineBk=aecColors.crBasicBk;
     if (nDefaultCodePage == CP_UNICODE_UCS2_LE || nDefaultCodePage == CP_UNICODE_UCS2_BE || nDefaultCodePage == CP_UNICODE_UTF8)
       bDefaultBOM=TRUE;
     bCurrentBOM=bDefaultBOM;
