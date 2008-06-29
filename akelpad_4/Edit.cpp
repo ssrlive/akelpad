@@ -2194,7 +2194,7 @@ void DoNonMenuDelLine(HWND hWnd)
   if (IsReadOnly()) return;
 
   cr.ciMin.nCharInLine=0;
-  if (!SendMessage(hWnd, AEM_GETLINEINDEX, cr.ciMax.nLine + 1, (LPARAM)&cr.ciMax))
+  if (!SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTLINE, (LPARAM)&cr.ciMax))
     cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
   SetSel(hWnd, &cr, FALSE, NULL);
 
@@ -4641,7 +4641,11 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       //Update selection
       if (nRecentFiles && bSavePositions)
       {
-        SendMessage(hWnd, EM_SETSEL, lpdwRecentPositions[0], lpdwRecentPositions[0]);
+        CHARRANGE cr;
+
+        cr.cpMin=lpdwRecentPositions[0];
+        cr.cpMax=lpdwRecentPositions[0];
+        SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
       }
 
       //Print if "/p" option used in command line
@@ -4880,7 +4884,11 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       //Update selection
       if (nRecentFiles && bSavePositions)
       {
-        SendMessage(hWnd, EM_SETSEL, lpdwRecentPositions[0], lpdwRecentPositions[0]);
+        CHARRANGE cr;
+
+        cr.cpMin=lpdwRecentPositions[0];
+        cr.cpMax=lpdwRecentPositions[0];
+        SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
       }
 
       //Print if "/p" option used in command line
