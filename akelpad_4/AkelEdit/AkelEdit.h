@@ -112,30 +112,30 @@
 #define AECOOP_AND              2
 #define AECOOP_XOR              3
 
-#define AEGI_FIRSTCHAR         1
-#define AEGI_LASTCHAR          2
-#define AEGI_FIRSTSELCHAR      3
-#define AEGI_LASTSELCHAR       4
-#define AEGI_CARETCHAR         5
-#define AEGI_FIRSTVISIBLELINE  6
-#define AEGI_LASTVISIBLELINE   7
-#define AEGI_NEXTLINE          8
-#define AEGI_PREVLINE          9
-#define AEGI_NEXTCHAR          10
-#define AEGI_PREVCHAR          11
-#define AEGI_NEXTBREAK         12
-#define AEGI_PREVBREAK         13
-#define AEGI_WRAPLINEBEGIN     14
-#define AEGI_WRAPLINEEND       15
+#define AEGI_FIRSTCHAR          1
+#define AEGI_LASTCHAR           2
+#define AEGI_FIRSTSELCHAR       3
+#define AEGI_LASTSELCHAR        4
+#define AEGI_CARETCHAR          5
+#define AEGI_FIRSTVISIBLELINE   6
+#define AEGI_LASTVISIBLELINE    7
+#define AEGI_NEXTLINE           8
+#define AEGI_PREVLINE           9
+#define AEGI_NEXTCHAR           10
+#define AEGI_PREVCHAR           11
+#define AEGI_NEXTBREAK          12
+#define AEGI_PREVBREAK          13
+#define AEGI_WRAPLINEBEGIN      14
+#define AEGI_WRAPLINEEND        15
 
-#define AEPC_ERROR   0
-#define AEPC_EQUAL   1
-#define AEPC_BEFORE  2
-#define AEPC_AFTER   3
+#define AEPC_ERROR    0
+#define AEPC_EQUAL    1
+#define AEPC_BEFORE   2
+#define AEPC_AFTER    3
 
-#define AELS_EMPTY   1
-#define AELS_FULL    2
-#define AELS_PARTLY  3
+#define AELS_EMPTY    1
+#define AELS_FULL     2
+#define AELS_PARTLY   3
 
 #define AELB_ASIS     1
 #define AELB_ASINPUT  2
@@ -566,6 +566,9 @@ typedef struct _AKELEDIT {
   BOOL bCaretVisible;
   BOOL bColumnSel;
   BOOL bWordWrap;
+  POINT ptLButtonDownPrevPos;
+  int nLButtonDownPrevTime;
+  int nLButtonDownCount;
   DWORD dwMouseMoveTimer;
   DWORD dwWordBreak;
   wchar_t wszWordDelimiters[128];
@@ -661,8 +664,8 @@ BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, int nMinExtent, int
 int AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel);
 BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel);
 BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel);
-BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, BOOL bSearch);
-BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, BOOL bSearch);
+BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch);
+BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch);
 BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c);
 int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, POINT *ptSelStart, POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel);
 DWORD AE_GetTextRangeAnsi(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
