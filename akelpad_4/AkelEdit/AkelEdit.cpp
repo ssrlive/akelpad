@@ -1565,8 +1565,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
               ciCharIn=ae->ciSelStartIndex;
 
-            AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, ae->bColumnSel, FALSE);
-//            AE_GetPrevBreak(ae, &ciCharIn, &ciCharOut, ae->bColumnSel);
+            AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, ae->bColumnSel, ae->dwWordBreak, FALSE);
           }
           else
           {
@@ -1585,8 +1584,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
               ciCharIn=ae->ciSelEndIndex;
 
-            AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, ae->bColumnSel, FALSE);
-//            AE_GetNextBreak(ae, &ciCharIn, &ciCharOut, ae->bColumnSel);
+            AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, ae->bColumnSel, ae->dwWordBreak, FALSE);
           }
           else
           {
@@ -1727,19 +1725,22 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (wParam == AETIMERID_MOUSEMOVE)
       {
-        POINT ptPos;
+        POINT ptScreen;
 
-        GetCursorPos(&ptPos);
-        ScreenToClient(ae->hWndEdit, &ptPos);
-        AE_SetMouseSelection(ae, &ptPos, TRUE, ae->bColumnSel);
+        GetCursorPos(&ptScreen);
+        ScreenToClient(ae->hWndEdit, &ptScreen);
+        AE_SetMouseSelection(ae, &ptScreen, TRUE, ae->bColumnSel);
       }
       return 0;
     }
-    else if (uMsg == WM_LBUTTONDOWN)
+    else if (uMsg == WM_LBUTTONDOWN ||
+             uMsg == WM_LBUTTONDBLCLK)
     {
       POINT ptPos;
+      int nLButtonDownCurTime=GetMessageTime();
       BOOL bAlt=FALSE;
       BOOL bShift=FALSE;
+      BOOL bControl=FALSE;
       BOOL bRedrawAllSelection=FALSE;
 
       ptPos.x=LOWORD(lParam);
@@ -1747,100 +1748,141 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (GetKeyState(VK_MENU) < 0)
         bAlt=TRUE;
-      if (GetKeyState(VK_SHIFT) < 0)
+      if (wParam & MK_SHIFT)
         bShift=TRUE;
+      if (wParam & MK_CONTROL)
+        bControl=TRUE;
 
-      if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
+      if (ae->ptLButtonDownPrevPos.x == ptPos.x && ae->ptLButtonDownPrevPos.y == ptPos.y &&
+          GetDoubleClickTime() >= nLButtonDownCurTime - ae->nLButtonDownPrevTime)
       {
-        SetCapture(ae->hWndEdit);
-        ae->bDragging=TRUE;
-        SetCursor(hAkelEditCursorArrow);
+        ++ae->nLButtonDownCount;
+
+        //We support only three clicks
+        ae->nLButtonDownCount=ae->nLButtonDownCount % 3;
       }
-      else if (!ae->dwMouseMoveTimer)
+      else ae->nLButtonDownCount=0;
+
+      ae->ptLButtonDownPrevPos=ptPos;
+      ae->nLButtonDownPrevTime=nLButtonDownCurTime;
+
+      //One click
+      if (ae->nLButtonDownCount == 0)
       {
-        if (ae->bColumnSel != bAlt)
-          bRedrawAllSelection=TRUE;
-        ae->bColumnSel=bAlt;
-
-        if (GetFocus() != ae->hWndEdit)
-          SetFocus(ae->hWndEdit);
-        AE_SetMouseSelection(ae, &ptPos, bShift, ae->bColumnSel);
-
-        //Redraw lines
-        if (bRedrawAllSelection)
+        if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
         {
-          AE_RedrawLineRange(ae, ae->ciSelStartIndex.nLine, ae->ciSelEndIndex.nLine, FALSE);
+          SetCapture(ae->hWndEdit);
+          ae->bDragging=TRUE;
+          SetCursor(hAkelEditCursorArrow);
         }
+        else if (!ae->dwMouseMoveTimer)
+        {
+          if (ae->bColumnSel != bAlt)
+            bRedrawAllSelection=TRUE;
+          ae->bColumnSel=bAlt;
 
-        //Timer
-        ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-        SetCapture(ae->hWndEdit);
+          if (GetFocus() != ae->hWndEdit)
+            SetFocus(ae->hWndEdit);
+          AE_SetMouseSelection(ae, &ptPos, bShift, ae->bColumnSel);
+
+          //Redraw lines
+          if (bRedrawAllSelection)
+          {
+            AE_RedrawLineRange(ae, ae->ciSelStartIndex.nLine, ae->ciSelEndIndex.nLine, FALSE);
+          }
+
+          //Timer
+          ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+          SetCapture(ae->hWndEdit);
+        }
       }
-      return 0;
-    }
-    else if (uMsg == WM_LBUTTONDBLCLK)
-    {
-      AECHARINDEX ciPrevWord;
-      AECHARINDEX ciNextWord;
+      //Two clicks
+      else if (ae->nLButtonDownCount == 1)
+      {
+        AECHARINDEX ciPrevWord;
+        AECHARINDEX ciNextWord;
 
-      if (!AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel))
-        ciPrevWord=ae->ciCaretIndex;
-      if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel))
-        ciNextWord=ae->ciCaretIndex;
-      AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, TRUE);
+        if (!bControl)
+        {
+          if (!AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel))
+            ciPrevWord=ae->ciCaretIndex;
+          if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel))
+            ciNextWord=ae->ciCaretIndex;
+        }
+        else
+        {
+          if (!AE_GetPrevWord(ae, &ae->ciCaretIndex, &ciPrevWord, NULL, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, FALSE))
+            ciPrevWord=ae->ciCaretIndex;
+          if (!AE_GetNextWord(ae, &ciPrevWord, NULL, &ciNextWord, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, FALSE))
+            ciNextWord=ae->ciCaretIndex;
+        }
+        AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, TRUE);
+      }
+      //Three clicks
+      else if (ae->nLButtonDownCount == 2)
+      {
+        AECHARRANGE cr;
+
+        cr.ciMin=ae->ciCaretIndex;
+        cr.ciMax=ae->ciCaretIndex;
+        cr.ciMin.nCharInLine=0;
+        if (!AE_GetIndex(ae, AEGI_NEXTLINE, &cr.ciMax, &cr.ciMax, FALSE))
+          cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
+        AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, TRUE);
+      }
       return 0;
     }
     else if (uMsg == WM_MOUSEMOVE)
     {
-      if (ae->bDragging)
+      POINT ptPos;
+
+      ptPos.x=LOWORD(lParam);
+      ptPos.y=HIWORD(lParam);
+
+      if (!ae->bDragging && !ae->dwMouseMoveTimer)
       {
-        DWORD dwEffect;
-        DWORD dwResult;
-
-        ae->bDeleteSelection=TRUE;
-        AE_DataObjectCopySelection(ae);
-        dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, DROPEFFECT_COPY|DROPEFFECT_MOVE, &dwEffect);
-
-        if (dwResult == DRAGDROP_S_DROP)
+        if (AE_IsCursorOnSelection(ae, &ptPos))
         {
-          if (dwEffect & DROPEFFECT_MOVE)
-          {
-            if (ae->bDeleteSelection)
-            {
-              AE_StackUndoGroupStop(ae);
-              AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, NULL, TRUE, TRUE, TRUE);
-              AE_StackUndoGroupStop(ae);
-            }
-          }
+          SetCursor(hAkelEditCursorArrow);
         }
-        AE_DataObjectFreeSelection(ae);
-        ((IDataObject *)&ae->ido)->Release();
-        ((IDropSource *)&ae->ids)->Release();
-        ae->bDeleteSelection=FALSE;
-        ae->bDragging=FALSE;
-        ReleaseCapture();
-      }
-      else if (ae->dwMouseMoveTimer)
-      {
-        POINT ptPos;
-
-        GetCursorPos(&ptPos);
-        ScreenToClient(ae->hWndEdit, &ptPos);
-        AE_SetMouseSelection(ae, &ptPos, TRUE, ae->bColumnSel);
       }
       else
       {
-        if (!(ae->dwOptions & AECO_DISABLEDRAGDROP))
+        if (ae->bDragging)
         {
-          POINT ptPos;
+          DWORD dwEffect;
+          DWORD dwResult;
 
-          ptPos.x=LOWORD(lParam);
-          ptPos.y=HIWORD(lParam);
+          ae->bDeleteSelection=TRUE;
+          AE_DataObjectCopySelection(ae);
+          dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, DROPEFFECT_COPY|DROPEFFECT_MOVE, &dwEffect);
 
-          if (AE_IsCursorOnSelection(ae, &ptPos))
+          if (dwResult == DRAGDROP_S_DROP)
           {
-            SetCursor(hAkelEditCursorArrow);
+            if (dwEffect & DROPEFFECT_MOVE)
+            {
+              if (ae->bDeleteSelection)
+              {
+                AE_StackUndoGroupStop(ae);
+                AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, NULL, TRUE, TRUE, TRUE);
+                AE_StackUndoGroupStop(ae);
+              }
+            }
           }
+          AE_DataObjectFreeSelection(ae);
+          ((IDataObject *)&ae->ido)->Release();
+          ((IDropSource *)&ae->ids)->Release();
+          ae->bDeleteSelection=FALSE;
+          ae->bDragging=FALSE;
+          ReleaseCapture();
+        }
+        else if (ae->dwMouseMoveTimer)
+        {
+          POINT ptScreen;
+
+          GetCursorPos(&ptScreen);
+          ScreenToClient(ae->hWndEdit, &ptScreen);
+          AE_SetMouseSelection(ae, &ptScreen, TRUE, ae->bColumnSel);
         }
       }
       return 0;
@@ -4561,27 +4603,30 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bShift, BOOL bColumnS
 
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos)
 {
-  AECHARINDEX ciCharIndex;
-  int nSelStartY;
-  int nSelEndY;
-  int nResult;
-
-  if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+  if (!(ae->dwOptions & AECO_DISABLEDRAGDROP))
   {
-    nSelStartY=(ae->ciSelStartIndex.nLine * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
-    nSelEndY=((ae->ciSelEndIndex.nLine + 1) * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
+    AECHARINDEX ciCharIndex;
+    int nSelStartY;
+    int nSelEndY;
+    int nResult;
 
-    if (ptPos->y >= nSelStartY && ptPos->y <= nSelEndY)
+    if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
     {
-      if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, ae->bColumnSel))
+      nSelStartY=(ae->ciSelStartIndex.nLine * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
+      nSelEndY=((ae->ciSelEndIndex.nLine + 1) * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
+
+      if (ptPos->y >= nSelStartY && ptPos->y <= nSelEndY)
       {
-        if (ciCharIndex.lpLine->nSelStart != ciCharIndex.lpLine->nSelEnd &&
-            (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart ||
-             ciCharIndex.nCharInLine == ciCharIndex.lpLine->nSelStart && (nResult == AEPC_BEFORE || nResult == AEPC_EQUAL)) &&
-            (ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelEnd ||
-             ciCharIndex.nCharInLine == ciCharIndex.lpLine->nSelEnd && (nResult == AEPC_AFTER || nResult == AEPC_EQUAL)))
+        if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, ae->bColumnSel))
         {
-          return TRUE;
+          if (ciCharIndex.lpLine->nSelStart != ciCharIndex.lpLine->nSelEnd &&
+              (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart ||
+               ciCharIndex.nCharInLine == ciCharIndex.lpLine->nSelStart && (nResult == AEPC_BEFORE || nResult == AEPC_EQUAL)) &&
+              (ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelEnd ||
+               ciCharIndex.nCharInLine == ciCharIndex.lpLine->nSelEnd && (nResult == AEPC_AFTER || nResult == AEPC_EQUAL)))
+          {
+            return TRUE;
+          }
         }
       }
     }
@@ -5895,7 +5940,7 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
   return FALSE;
 }
 
-BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, BOOL bSearch)
+BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch)
 {
   AECHARINDEX ciStart=*ciChar;
   AECHARINDEX ciEnd=*ciChar;
@@ -5921,7 +5966,7 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
     {
       if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel))
       {
-        if (!bSearch && (ae->dwWordBreak & AEWB_RIGHTWORDSTART))
+        if (!bSearch && (dwFlags & AEWB_RIGHTWORDSTART))
         {
           if (ciWordStart) *ciWordStart=ciStart;
           if (ciWordEnd) *ciWordEnd=ciEnd;
@@ -5937,7 +5982,7 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
     {
       if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel))
       {
-        if (!bSearch && (ae->dwWordBreak & AEWB_RIGHTWORDSTART))
+        if (!bSearch && (dwFlags & AEWB_RIGHTWORDSTART))
         {
           if (ciWordStart) *ciWordStart=ciStart;
           if (ciWordEnd) *ciWordEnd=ciEnd;
@@ -5952,7 +5997,7 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
       {
         if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel))
         {
-          if (ae->dwWordBreak & AEWB_RIGHTWORDEND)
+          if (dwFlags & AEWB_RIGHTWORDEND)
           {
             if (ciWordStart) *ciWordStart=ciStart;
             if (ciWordEnd) *ciWordEnd=ciEnd;
@@ -5968,8 +6013,8 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 
   if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel))
   {
-    if (bSearch || (bInList && (ae->dwWordBreak & AEWB_RIGHTWORDEND)) ||
-                   (!bInList && (ae->dwWordBreak & AEWB_RIGHTWORDSTART)))
+    if (bSearch || (bInList && (dwFlags & AEWB_RIGHTWORDEND)) ||
+                   (!bInList && (dwFlags & AEWB_RIGHTWORDSTART)))
     {
       if (ciWordStart) *ciWordStart=ciStart;
       if (ciWordEnd) *ciWordEnd=ciEnd;
@@ -5979,7 +6024,7 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
   return FALSE;
 }
 
-BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, BOOL bSearch)
+BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch)
 {
   AECHARINDEX ciStart=*ciChar;
   AECHARINDEX ciEnd=*ciChar;
@@ -6005,7 +6050,7 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
     {
       if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel))
       {
-        if (!bSearch && (ae->dwWordBreak & AEWB_LEFTWORDEND))
+        if (!bSearch && (dwFlags & AEWB_LEFTWORDEND))
         {
           if (ciWordStart) *ciWordStart=ciStart;
           if (ciWordEnd) *ciWordEnd=ciEnd;
@@ -6021,7 +6066,7 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
     {
       if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel))
       {
-        if (!bSearch && (ae->dwWordBreak & AEWB_LEFTWORDEND))
+        if (!bSearch && (dwFlags & AEWB_LEFTWORDEND))
         {
           if (ciWordStart) *ciWordStart=ciStart;
           if (ciWordEnd) *ciWordEnd=ciEnd;
@@ -6036,7 +6081,7 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
       {
         if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel))
         {
-          if (ae->dwWordBreak & AEWB_LEFTWORDSTART)
+          if (dwFlags & AEWB_LEFTWORDSTART)
           {
             if (ciWordStart) *ciWordStart=ciStart;
             if (ciWordEnd) *ciWordEnd=ciEnd;
@@ -6052,8 +6097,8 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 
   if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel))
   {
-    if (bSearch || (bInList && (ae->dwWordBreak & AEWB_LEFTWORDSTART)) ||
-                   (!bInList && (ae->dwWordBreak & AEWB_LEFTWORDEND)))
+    if (bSearch || (bInList && (dwFlags & AEWB_LEFTWORDSTART)) ||
+                   (!bInList && (dwFlags & AEWB_LEFTWORDEND)))
     {
       if (ciWordStart) *ciWordStart=ciStart;
       if (ciWordEnd) *ciWordEnd=ciEnd;
@@ -8241,7 +8286,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
     {
       while (1)
       {
-        if (AE_GetNextWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, TRUE))
+        if (AE_GetNextWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, ae->dwWordBreak, TRUE))
         {
           if (AE_IndexCompare(&cr.ciMax, &ciCountEnd) >= 0)
             return FALSE;
@@ -8260,7 +8305,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
     {
       while (1)
       {
-        if (AE_GetPrevWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, TRUE))
+        if (AE_GetPrevWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, ae->dwWordBreak, TRUE))
         {
           if (AE_IndexCompare(&cr.ciMin, &ciCountEnd) < 0)
             return FALSE;
