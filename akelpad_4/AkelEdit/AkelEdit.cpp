@@ -1320,7 +1320,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_CLEAR)
     {
-      AE_EditKeyDelete(ae);
+      AE_EditKeyDelete(ae, FALSE);
       return 0;
     }
     else if (uMsg == WM_UNDO)
@@ -1429,12 +1429,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (wParam == VK_BACK)
       {
-        AE_EditKeyBackspace(ae);
+        AE_EditKeyBackspace(ae, bControl);
         return 0;
       }
       if (wParam == VK_DELETE)
       {
-        AE_EditKeyDelete(ae);
+        AE_EditKeyDelete(ae, bControl);
         return 0;
       }
       if (wParam == VK_TAB)
@@ -1754,7 +1754,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         bControl=TRUE;
 
       if (ae->ptLButtonDownPrevPos.x == ptPos.x && ae->ptLButtonDownPrevPos.y == ptPos.y &&
-          GetDoubleClickTime() >= nLButtonDownCurTime - ae->nLButtonDownPrevTime)
+          GetDoubleClickTime() >= (DWORD)(nLButtonDownCurTime - ae->nLButtonDownPrevTime))
       {
         ++ae->nLButtonDownCount;
 
@@ -1769,7 +1769,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //One click
       if (ae->nLButtonDownCount == 0)
       {
-        if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
+        if (!ae->bDragging && !bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
         {
           SetCapture(ae->hWndEdit);
           ae->bDragging=TRUE;
@@ -8926,7 +8926,7 @@ void AE_EditKeyReturn(AKELEDIT *ae)
   else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
 }
 
-void AE_EditKeyBackspace(AKELEDIT *ae)
+void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
 {
   if (!(ae->dwOptions & AECO_READONLY))
   {
@@ -8970,7 +8970,7 @@ void AE_EditKeyBackspace(AKELEDIT *ae)
   else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
 }
 
-void AE_EditKeyDelete(AKELEDIT *ae)
+void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
 {
   if (!(ae->dwOptions & AECO_READONLY))
   {
@@ -9799,6 +9799,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
   AKELEDIT *ae=(AKELEDIT *)pDropTarget->ae;
 
   *pdwEffect=AE_DropTargetDropEffect(grfKeyState, *pdwEffect);
+  ae->bDropping=FALSE;
 
   if (pDropTarget->bAllowDrop)
   {
