@@ -8947,7 +8947,8 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
         }
       }
 
-      if (AE_GetIndex(ae, AEGI_PREVCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE))
+      if ((bControl && AE_GetPrevWord(ae, &ae->ciSelStartIndex, &ciCharIndex, NULL, FALSE, ae->dwWordBreak, FALSE)) ||
+          (!bControl && AE_GetIndex(ae, AEGI_PREVCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
       {
         AE_StackUndoGroupStop(ae);
         AE_DeleteTextRange(ae, &ciCharIndex, &ae->ciSelStartIndex, FALSE, NULL, TRUE, TRUE, TRUE);
@@ -9003,7 +9004,8 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
         }
       }
 
-      if (AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE))
+      if ((bControl && AE_GetNextWord(ae, &ae->ciSelStartIndex, NULL, &ciCharIndex, FALSE, ae->dwWordBreak, FALSE)) ||
+          (!bControl && AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
       {
         AE_StackUndoGroupStop(ae);
         AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, NULL, TRUE, TRUE, TRUE);
