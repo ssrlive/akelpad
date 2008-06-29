@@ -1843,7 +1843,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (AE_IsCursorOnSelection(ae, &ptPos))
         {
-          SetCursor(hAkelEditCursorArrow);
+          if (!(wParam & MK_SHIFT) && GetKeyState(VK_MENU) >= 0)
+          {
+            SetCursor(hAkelEditCursorArrow);
+          }
         }
       }
       else
