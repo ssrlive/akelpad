@@ -403,16 +403,15 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_StackRedoDeleteAll(ae, NULL);
         return 0;
       }
-      if (uMsg == AEM_UNDOGROUPBEGIN)
+      if (uMsg == AEM_BEGINUNDOACTION)
       {
+        AE_StackUndoGroupStop(ae);
+        ae->bLockGroupStop=TRUE;
         return 0;
       }
-      if (uMsg == AEM_UNDOGROUPEND)
+      if (uMsg == AEM_ENDUNDOACTION)
       {
-        return 0;
-      }
-      if (uMsg == AEM_STOPGROUPTYPING)
-      {
+        ae->bLockGroupStop=FALSE;
         AE_StackUndoGroupStop(ae);
         return 0;
       }
@@ -574,7 +573,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (uMsg == AEM_GETSCROLLPOS)
       {
         POINT *pt=(POINT *)lParam;
-  
+
         pt->x=ae->nHScrollPos;
         pt->y=ae->nVScrollPos;
         return 0;
@@ -582,7 +581,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (uMsg == AEM_SETSCROLLPOS)
       {
         POINT *pt=(POINT *)lParam;
-  
+
         if (pt->x != ae->nHScrollPos)
           AE_ScrollEditWindow(ae, SB_HORZ, pt->x);
         if (pt->y != ae->nVScrollPos)
@@ -592,7 +591,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (uMsg == AEM_SCROLL)
       {
         int nScrolled=0;
-  
+
         if (wParam == SB_LINEUP ||
             wParam == SB_LINEDOWN ||
             wParam == SB_PAGEUP ||
@@ -2797,7 +2796,7 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
               lpElement=lpElement->next;
             if (lpElement) nDeleteStart=lpElement->nActionStartOffset;
 
-            //Insert complite string
+            //Insert complite string (AE_StackUndoItemInsert will erase all forward AEUN_SINGLECHAR actions)
             if (lpUndoElement=AE_StackUndoItemInsert(ae))
             {
               lpUndoElement->dwFlags=AEUN_DELETE;
@@ -2812,36 +2811,39 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
           }
         }
       }
-      lpStopElement->dwFlags|=AEUN_STOPGROUP;
-      ++ae->dwUndoCount;
-    }
-  }
-
-  //Undo limit is reached
-  while (ae->dwUndoCount > ae->dwUndoLimit)
-  {
-    AEUNDOITEM *lpElement=(AEUNDOITEM *)ae->hUndoStack.first;
-    AEUNDOITEM *lpTmp;
-
-    if (!ae->lpSavePoint)
-    {
-      ae->lpSavePoint=NULL;
-      ae->bSavePointExist=FALSE;
-    }
-
-    //Delete first undo group
-    while (lpElement)
-    {
-      if (lpElement->dwFlags & AEUN_STOPGROUP)
+      if (!ae->bLockGroupStop)
       {
-        AE_StackUndoItemDelete(ae, lpElement);
-        break;
+        lpStopElement->dwFlags|=AEUN_STOPGROUP;
+        ++ae->dwUndoCount;
       }
-      lpTmp=lpElement->next;
-      AE_StackUndoItemDelete(ae, lpElement);
-      lpElement=lpTmp;
     }
-    --ae->dwUndoCount;
+
+    //Undo limit is reached
+    while (ae->dwUndoCount > ae->dwUndoLimit)
+    {
+      AEUNDOITEM *lpElement=(AEUNDOITEM *)ae->hUndoStack.first;
+      AEUNDOITEM *lpTmp;
+
+      if (!ae->lpSavePoint)
+      {
+        ae->lpSavePoint=NULL;
+        ae->bSavePointExist=FALSE;
+      }
+
+      //Delete first undo group
+      while (lpElement)
+      {
+        if (lpElement->dwFlags & AEUN_STOPGROUP)
+        {
+          AE_StackUndoItemDelete(ae, lpElement);
+          break;
+        }
+        lpTmp=lpElement->next;
+        AE_StackUndoItemDelete(ae, lpElement);
+        lpElement=lpTmp;
+      }
+      --ae->dwUndoCount;
+    }
   }
 }
 
