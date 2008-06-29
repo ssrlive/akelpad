@@ -37,14 +37,13 @@
 #define AEM_UNDO              (WM_USER + 2053)
 #define AEM_REDO              (WM_USER + 2054)
 #define AEM_EMPTYUNDOBUFFER   (WM_USER + 2055)
-#define AEM_UNDOGROUPBEGIN    (WM_USER + 2056)
-#define AEM_UNDOGROUPEND      (WM_USER + 2057)
-#define AEM_STOPGROUPTYPING   (WM_USER + 2058)
-#define AEM_LOCKCOLLECTUNDO   (WM_USER + 2059)
-#define AEM_GETUNDOLIMIT      (WM_USER + 2060)
-#define AEM_SETUNDOLIMIT      (WM_USER + 2061)
-#define AEM_GETMODIFY         (WM_USER + 2062)
-#define AEM_SETMODIFY         (WM_USER + 2063)
+#define AEM_BEGINUNDOACTION   (WM_USER + 2056)
+#define AEM_ENDUNDOACTION     (WM_USER + 2057)
+#define AEM_LOCKCOLLECTUNDO   (WM_USER + 2058)
+#define AEM_GETUNDOLIMIT      (WM_USER + 2059)
+#define AEM_SETUNDOLIMIT      (WM_USER + 2060)
+#define AEM_GETMODIFY         (WM_USER + 2061)
+#define AEM_SETMODIFY         (WM_USER + 2062)
 
 #define AEM_GETSEL            (WM_USER + 2101)
 #define AEM_SETSEL            (WM_USER + 2102)
@@ -529,6 +528,7 @@ typedef struct _AKELEDIT {
   AEUNDOITEM *lpSavePoint;
   BOOL bSavePointExist;
   BOOL bModified;
+  BOOL bLockGroupStop;
   BOOL bLockCollectUndo;
   DWORD dwUndoLimit;
   DWORD dwUndoCount;
