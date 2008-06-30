@@ -566,13 +566,16 @@ typedef struct _AKELEDIT {
   BOOL bCaretVisible;
   BOOL bColumnSel;
   BOOL bWordWrap;
+  DWORD dwWordBreak;
+  wchar_t wszWordDelimiters[128];
+  wchar_t wszWrapDelimiters[128];
+  AECHARINDEX ciLButtonWordStart;
+  AECHARINDEX ciLButtonWordEnd;
+  AECHARINDEX ciLButtonClick;
   POINT ptLButtonDownPrevPos;
   int nLButtonDownPrevTime;
   int nLButtonDownCount;
   DWORD dwMouseMoveTimer;
-  DWORD dwWordBreak;
-  wchar_t wszWordDelimiters[128];
-  wchar_t wszWrapDelimiters[128];
 
   //RichEdit emulation
   BOOL bRichEditClass;
@@ -636,7 +639,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw);
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw);
 void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, BOOL bUpdate);
 void AE_UpdateSelection(AKELEDIT *ae);
-void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bShift, BOOL bColumnSel);
+void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShift);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos);
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, COLORREF crCaret, int nCaretWidth, int nCaretHeight);
 HBITMAP AE_LoadBitmapFromMemory(HDC hDC, BYTE *lpBmpFileData);

@@ -5,6 +5,10 @@ Changed: synchronized structures with AkelPad 3.x.x. Update yours plugins.
 Changed: backward compatibility with RichEdit is improved.
 Changed: more accurate scrolling, when the founded text is outside visibility.
 
+Added: processing triple mouse click, and also processing capture after double and triple
+       mouse clicks.
+Added: Ctrl+Delete deletes right word, Ctrl+Backspace deletes left word.
+
 Fixed: text Drag'n'Drop.
 Fixed: search of new line character.
 

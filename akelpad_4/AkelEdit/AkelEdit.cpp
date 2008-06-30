@@ -1729,7 +1729,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         GetCursorPos(&ptScreen);
         ScreenToClient(ae->hWndEdit, &ptScreen);
-        AE_SetMouseSelection(ae, &ptScreen, TRUE, ae->bColumnSel);
+        AE_SetMouseSelection(ae, &ptScreen, ae->bColumnSel, TRUE);
       }
       return 0;
     }
@@ -1783,7 +1783,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (GetFocus() != ae->hWndEdit)
             SetFocus(ae->hWndEdit);
-          AE_SetMouseSelection(ae, &ptPos, bShift, ae->bColumnSel);
+          AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, bShift);
 
           //Redraw lines
           if (bRedrawAllSelection)
@@ -1816,7 +1816,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (!AE_GetNextWord(ae, &ciPrevWord, NULL, &ciNextWord, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, FALSE))
             ciNextWord=ae->ciCaretIndex;
         }
+        ae->ciLButtonWordStart=ciPrevWord;
+        ae->ciLButtonWordEnd=ciNextWord;
+        ae->ciLButtonClick=ae->ciCaretIndex;
         AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, TRUE);
+
+        if (!ae->dwMouseMoveTimer)
+        {
+          //Timer
+          ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+          SetCapture(ae->hWndEdit);
+        }
       }
       //Three clicks
       else if (ae->nLButtonDownCount == 2)
@@ -1829,6 +1839,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!AE_GetIndex(ae, AEGI_NEXTLINE, &cr.ciMax, &cr.ciMax, FALSE))
           cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
         AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, TRUE);
+
+        if (!ae->dwMouseMoveTimer)
+        {
+          //Timer
+          ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+          SetCapture(ae->hWndEdit);
+        }
       }
       return 0;
     }
@@ -1885,7 +1902,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           GetCursorPos(&ptScreen);
           ScreenToClient(ae->hWndEdit, &ptScreen);
-          AE_SetMouseSelection(ae, &ptScreen, TRUE, ae->bColumnSel);
+          AE_SetMouseSelection(ae, &ptScreen, ae->bColumnSel, TRUE);
         }
       }
       return 0;
@@ -1913,7 +1930,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (GetFocus() != ae->hWndEdit)
             SetFocus(ae->hWndEdit);
-          AE_SetMouseSelection(ae, &ptPos, FALSE, ae->bColumnSel);
+          AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
         }
         if (ae->dwMouseMoveTimer)
         {
@@ -4572,34 +4589,65 @@ void AE_UpdateSelection(AKELEDIT *ae)
     AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelStartIndex, ae->bColumnSel, TRUE);
 }
 
-void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bShift, BOOL bColumnSel)
+void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShift)
 {
   AECHARINDEX ciCharIndex;
+  AECHARINDEX ciSelEnd;
 
   if (ae->rcDraw.bottom - ae->rcDraw.top > 0 && ae->rcDraw.right - ae->rcDraw.left > 0)
   {
     AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, bColumnSel);
 
-    //Set selection
+    //One click (capture)
+    if (ae->nLButtonDownCount == 0)
     {
-      AECHARINDEX ciSelEnd={0};
-
       if (bShift)
       {
         if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
         {
-          if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex))
-          {
-            ciSelEnd=ae->ciSelEndIndex;
-          }
-          else if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
-          {
+          if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
             ciSelEnd=ae->ciSelStartIndex;
-          }
+          else
+            ciSelEnd=ae->ciSelEndIndex;
           AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel, TRUE);
         }
       }
       else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel, TRUE);
+    }
+    //Two clicks (capture)
+    else if (ae->nLButtonDownCount == 1)
+    {
+      if (bShift)
+      {
+        if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonClick) < 0)
+        {
+          if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonWordStart) < 0)
+            AE_GetPrevWord(ae, &ciCharIndex, &ciCharIndex, NULL, bColumnSel, ae->dwWordBreak, FALSE);
+          else
+            ciCharIndex=ae->ciLButtonWordStart;
+          ciSelEnd=ae->ciLButtonWordEnd;
+        }
+        else
+        {
+          if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonWordEnd) > 0)
+            AE_GetNextWord(ae, &ciCharIndex, NULL, &ciCharIndex, bColumnSel, ae->dwWordBreak, FALSE);
+          else
+            ciCharIndex=ae->ciLButtonWordEnd;
+          ciSelEnd=ae->ciLButtonWordStart;
+        }
+
+        if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
+        {
+          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel, TRUE);
+        }
+      }
+    }
+    //Three clicks (capture)
+    else if (ae->nLButtonDownCount == 2)
+    {
+      if (bShift)
+      {
+      }
     }
   }
 }
