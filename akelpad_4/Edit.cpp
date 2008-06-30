@@ -15464,8 +15464,11 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveCodepages)
       SendMessage(hWndSaveCodepages, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndShowURL, FALSE);
+/*
     if (bShowURL)
       SendMessage(hWndShowURL, BM_SETCHECK, BST_CHECKED, 0);
+*/
     if (nClickURL == 1)
       SendMessage(hWndSingleClickURL, BM_SETCHECK, BST_CHECKED, 0);
     else
@@ -15564,8 +15567,11 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveCodepages)
       SendMessage(hWndSaveCodepages, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndShowURL, FALSE);
+/*
     if (bShowURL)
       SendMessage(hWndShowURL, BM_SETCHECK, BST_CHECKED, 0);
+*/
     if (nClickURL == 1)
       SendMessage(hWndSingleClickURL, BM_SETCHECK, BST_CHECKED, 0);
     else
