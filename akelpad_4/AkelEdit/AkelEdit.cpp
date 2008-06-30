@@ -4682,7 +4682,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos)
 {
-  if (!(ae->dwOptions & AECO_DISABLEDRAGDROP))
+  if (!(ae->dwOptions & AECO_DISABLEDRAG))
   {
     AECHARINDEX ciCharIndex;
     int nSelStartY;
@@ -9804,7 +9804,7 @@ HRESULT WINAPI AEIDropTarget_DragEnter(LPUNKNOWN lpTable, IDataObject *pDataObje
 
   *pdwEffect=AE_DropTargetDropEffect(grfKeyState, *pdwEffect);
 
-  if (!(ae->dwOptions & AECO_DISABLEDRAGDROP) && !(ae->dwOptions & AECO_READONLY))
+  if (!(ae->dwOptions & AECO_DISABLEDROP) && !(ae->dwOptions & AECO_READONLY))
   {
     fmtetc.cfFormat=CF_UNICODETEXT;
     fmtetc.ptd=0;
