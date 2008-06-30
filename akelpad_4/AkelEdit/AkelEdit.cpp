@@ -1816,9 +1816,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (!AE_GetNextWord(ae, &ciPrevWord, NULL, &ciNextWord, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, FALSE))
             ciNextWord=ae->ciCaretIndex;
         }
-        ae->ciLButtonWordStart=ciPrevWord;
-        ae->ciLButtonWordEnd=ciNextWord;
         ae->ciLButtonClick=ae->ciCaretIndex;
+        ae->ciLButtonStart=ciPrevWord;
+        ae->ciLButtonEnd=ciNextWord;
         AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, TRUE);
 
         if (!ae->dwMouseMoveTimer)
@@ -1838,6 +1838,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         cr.ciMin.nCharInLine=0;
         if (!AE_GetIndex(ae, AEGI_NEXTLINE, &cr.ciMax, &cr.ciMax, FALSE))
           cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
+
+        ae->ciLButtonClick=ae->ciCaretIndex;
+        ae->ciLButtonStart=cr.ciMin;
+        ae->ciLButtonEnd=cr.ciMax;
         AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, TRUE);
 
         if (!ae->dwMouseMoveTimer)
@@ -4621,19 +4625,19 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
       {
         if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonClick) < 0)
         {
-          if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonWordStart) < 0)
+          if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonStart) < 0)
             AE_GetPrevWord(ae, &ciCharIndex, &ciCharIndex, NULL, bColumnSel, ae->dwWordBreak, FALSE);
           else
-            ciCharIndex=ae->ciLButtonWordStart;
-          ciSelEnd=ae->ciLButtonWordEnd;
+            ciCharIndex=ae->ciLButtonStart;
+          ciSelEnd=ae->ciLButtonEnd;
         }
         else
         {
-          if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonWordEnd) > 0)
+          if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonEnd) > 0)
             AE_GetNextWord(ae, &ciCharIndex, NULL, &ciCharIndex, bColumnSel, ae->dwWordBreak, FALSE);
           else
-            ciCharIndex=ae->ciLButtonWordEnd;
-          ciSelEnd=ae->ciLButtonWordStart;
+            ciCharIndex=ae->ciLButtonEnd;
+          ciSelEnd=ae->ciLButtonStart;
         }
 
         if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
@@ -4647,6 +4651,30 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
     {
       if (bShift)
       {
+        if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonClick) < 0)
+        {
+          if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonStart) < 0)
+            ciCharIndex.nCharInLine=0;
+          else
+            ciCharIndex=ae->ciLButtonStart;
+          ciSelEnd=ae->ciLButtonEnd;
+        }
+        else
+        {
+          if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonEnd) > 0)
+          {
+            if (!AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIndex, &ciCharIndex, FALSE))
+              ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
+          }
+          else
+            ciCharIndex=ae->ciLButtonEnd;
+          ciSelEnd=ae->ciLButtonStart;
+        }
+
+        if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
+        {
+          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel, TRUE);
+        }
       }
     }
   }

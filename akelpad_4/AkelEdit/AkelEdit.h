@@ -569,9 +569,9 @@ typedef struct _AKELEDIT {
   DWORD dwWordBreak;
   wchar_t wszWordDelimiters[128];
   wchar_t wszWrapDelimiters[128];
-  AECHARINDEX ciLButtonWordStart;
-  AECHARINDEX ciLButtonWordEnd;
   AECHARINDEX ciLButtonClick;
+  AECHARINDEX ciLButtonStart;
+  AECHARINDEX ciLButtonEnd;
   POINT ptLButtonDownPrevPos;
   int nLButtonDownPrevTime;
   int nLButtonDownCount;
