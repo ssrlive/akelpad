@@ -9,7 +9,7 @@
 #include "ConvFunc.h"
 #include "StackFunc.h"
 #include "StrFunc.h"
-#include "AkelEdit\AkelEdit.h"
+#include "AkelEdit\AkelBuild.h"
 #include "AkelPad.h"
 #include "Edit.h"
 
