@@ -7285,18 +7285,9 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
     else if (nNewLine == AELB_ASOUTPUT)
       nNewLine=ae->nOutputNewLine;
 
-    if (bColumnSel && (*wpText == L'\r' || *wpText == L'\n'))
-    {
-      nLineOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom) - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
-      nStartOffset=nLineOffset + min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
-      nEndOffset=nStartOffset;
-    }
-    else
-    {
-      nLineOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom) - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
-      nStartOffset=nLineOffset + ciInsertFrom.nCharInLine;
-      nEndOffset=nStartOffset;
-    }
+    nLineOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom) - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
+    nStartOffset=nLineOffset + ciInsertFrom.nCharInLine;
+    nEndOffset=nStartOffset;
 
     if (bColumnSel)
     {
@@ -7312,7 +7303,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
       ciLastChar.nCharInLine=ciInsertFrom.nCharInLine;
       lpElement=ciInsertFrom.lpLine;
 
-      while (dwTextCount < dwTextLen)
+      while (dwTextCount <= dwTextLen)
       {
         if (lpNewElement=AE_StackLineInsertBefore(ae, ciInsertFrom.lpLine))
         {
@@ -7339,66 +7330,56 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
               lpNewElement->nLineBreak=lpElement->nLineBreak;
             else
               lpNewElement->nLineBreak=nLineBreak;
-            if (!nLineLen)
-              lpNewElement->nLineLen=lpElement->nLineLen;
-            else
-              lpNewElement->nLineLen=lpElement->nLineLen + max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
+            lpNewElement->nLineLen=lpElement->nLineLen + max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
             nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
 
             if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
             {
-              if (!nLineLen)
+              AE_memcpy(lpNewElement->wpLine, lpElement->wpLine, min(ciInsertFrom.nCharInLine, lpElement->nLineLen) * sizeof(wchar_t));
+
+              if (ciInsertFrom.nCharInLine > lpElement->nLineLen)
               {
-                AE_memcpy(lpNewElement->wpLine, lpElement->wpLine, lpElement->nLineLen * sizeof(wchar_t));
+                dwRichTextCount+=ciInsertFrom.nCharInLine - lpElement->nLineLen;
+
+                for (i=lpElement->nLineLen; i < ciInsertFrom.nCharInLine; ++i)
+                  lpNewElement->wpLine[i]=' ';
+                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
               }
               else
               {
-                AE_memcpy(lpNewElement->wpLine, lpElement->wpLine, min(ciInsertFrom.nCharInLine, lpElement->nLineLen) * sizeof(wchar_t));
+                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine + nLineLen, lpElement->wpLine + ciInsertFrom.nCharInLine, (lpElement->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+              }
 
-                if (ciInsertFrom.nCharInLine > lpElement->nLineLen)
+              //Add undo
+              if (bEnableUndo)
+              {
+                if (!ae->bLockCollectUndo)
                 {
-                  dwRichTextCount+=ciInsertFrom.nCharInLine - lpElement->nLineLen;
-
-                  for (i=lpElement->nLineLen; i < ciInsertFrom.nCharInLine; ++i)
-                    lpNewElement->wpLine[i]=' ';
-                  AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-                }
-                else
-                {
-                  AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-                  AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine + nLineLen, lpElement->wpLine + ciInsertFrom.nCharInLine, (lpElement->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
-                }
-
-                //Add undo
-                if (bEnableUndo)
-                {
-                  if (!ae->bLockCollectUndo)
+                  if (ae->dwUndoLimit)
                   {
-                    if (ae->dwUndoLimit)
+                    AEUNDOITEM *lpUndoElement;
+                    wchar_t *wpUndoText;
+                    DWORD dwUndoTextLen=max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
+
+                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
                     {
-                      AEUNDOITEM *lpUndoElement;
-                      wchar_t *wpUndoText;
-                      DWORD dwUndoTextLen=max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
+                      nSpaces=ciInsertFrom.nCharInLine - lpElement->nLineLen;
 
-                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                      for (i=0; i < nSpaces; ++i)
+                        wpUndoText[i]=' ';
+                      AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
+                      wpUndoText[dwUndoTextLen]=L'\0';
+
+                      if (lpUndoElement=AE_StackUndoItemInsert(ae))
                       {
-                        nSpaces=ciInsertFrom.nCharInLine - lpElement->nLineLen;
+                        lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
+                        lpUndoElement->nActionStartOffset=nLineOffset + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
+                        lpUndoElement->nActionEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
+                        lpUndoElement->wpText=wpUndoText;
+                        lpUndoElement->dwTextLen=dwUndoTextLen;
 
-                        for (i=0; i < nSpaces; ++i)
-                          wpUndoText[i]=' ';
-                        AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
-                        wpUndoText[dwUndoTextLen]=L'\0';
-
-                        if (lpUndoElement=AE_StackUndoItemInsert(ae))
-                        {
-                          lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                          lpUndoElement->nActionStartOffset=nLineOffset + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
-                          lpUndoElement->nActionEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
-                          lpUndoElement->wpText=wpUndoText;
-                          lpUndoElement->dwTextLen=dwUndoTextLen;
-
-                          ae->lpCurrentUndo=lpUndoElement;
-                        }
+                        ae->lpCurrentUndo=lpUndoElement;
                       }
                     }
                   }
@@ -7452,65 +7433,59 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           else
           {
             ciInsertFrom.nCharInLine=ptInsertFrom.x / ae->nSpaceCharWidth;
-            if (nLineBreak != AELB_EOF)
-              ++dwRichTextCount;
 
             lpNewElement->nLineWidth=-1;
             lpNewElement->nLineBreak=nLineBreak;
-            if (!nLineLen)
-              lpNewElement->nLineLen=0;
-            else
-              lpNewElement->nLineLen=ciInsertFrom.nCharInLine + nLineLen;
+            lpNewElement->nLineLen=ciInsertFrom.nCharInLine + nLineLen;
             nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
 
             if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
             {
-              if (nLineLen)
+              dwRichTextCount+=ciInsertFrom.nCharInLine;
+              if (nLineBreak != AELB_EOF)
+                ++dwRichTextCount;
+
+              for (i=0; i < ciInsertFrom.nCharInLine; ++i)
+                lpNewElement->wpLine[i]=' ';
+              AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+
+              //Add undo
+              if (bEnableUndo)
               {
-                dwRichTextCount+=ciInsertFrom.nCharInLine;
-
-                for (i=0; i < ciInsertFrom.nCharInLine; ++i)
-                  lpNewElement->wpLine[i]=' ';
-                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-
-                //Add undo
-                if (bEnableUndo)
+                if (!ae->bLockCollectUndo)
                 {
-                  if (!ae->bLockCollectUndo)
+                  if (ae->dwUndoLimit)
                   {
-                    if (ae->dwUndoLimit)
+                    AEUNDOITEM *lpUndoElement;
+                    wchar_t *wpUndoText;
+                    DWORD dwUndoTextLen=lpNewElement->nLineLen + 1;
+
+                    if (nLineBreak == AELB_EOF)
+                      --dwUndoTextLen;
+
+                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
                     {
-                      AEUNDOITEM *lpUndoElement;
-                      wchar_t *wpUndoText;
-                      DWORD dwUndoTextLen=lpNewElement->nLineLen + 1;
+                      nSpaces=ciInsertFrom.nCharInLine;
 
-                      if (nLineBreak == AELB_EOF)
-                        --dwUndoTextLen;
+                      for (i=0; i < nSpaces; ++i)
+                        wpUndoText[i]=' ';
+                      AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
+                      if (nLineBreak != AELB_EOF)
+                        wpUndoText[lpNewElement->nLineLen]=L'\n';
+                      wpUndoText[dwUndoTextLen]=L'\0';
 
-                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                      if (lpUndoElement=AE_StackUndoItemInsert(ae))
                       {
-                        nSpaces=ciInsertFrom.nCharInLine;
-
-                        for (i=0; i < nSpaces; ++i)
-                          wpUndoText[i]=' ';
-                        AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
+                        lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
+                        lpUndoElement->nActionStartOffset=nLineOffset;
                         if (nLineBreak != AELB_EOF)
-                          wpUndoText[lpNewElement->nLineLen]=L'\n';
-                        wpUndoText[dwUndoTextLen]=L'\0';
+                          lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
+                        else
+                          lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen;
+                        lpUndoElement->wpText=wpUndoText;
+                        lpUndoElement->dwTextLen=dwUndoTextLen;
 
-                        if (lpUndoElement=AE_StackUndoItemInsert(ae))
-                        {
-                          lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                          lpUndoElement->nActionStartOffset=nLineOffset;
-                          if (nLineBreak != AELB_EOF)
-                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
-                          else
-                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen;
-                          lpUndoElement->wpText=wpUndoText;
-                          lpUndoElement->dwTextLen=dwUndoTextLen;
-
-                          ae->lpCurrentUndo=lpUndoElement;
-                        }
+                        ae->lpCurrentUndo=lpUndoElement;
                       }
                     }
                   }
@@ -7520,7 +7495,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
             }
             ++nLineCount;
           }
-          if (dwTextCount >= dwTextLen) break;
           if (nLineBreak == AELB_EOF) break;
           if (lpNewElement->nLineBreak == AELB_WRAP)
             nLineOffset+=lpNewElement->nLineLen;
