@@ -259,9 +259,9 @@ typedef struct {
 } AETEXTRANGEW;
 
 typedef struct {
-  DWORD dwCookie;               //Specifies an application-defined value that the edit control passes to the AEStreamCallback callback function specified by the lpCallback member.
+  DWORD dwCookie;               //Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
   DWORD dwError;                //Indicates the results of the stream-in (read) or stream-out (write) operation.
-  AEStreamCallback lpCallback;  //Pointer to an EditStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
+  AEStreamCallback lpCallback;  //Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
   int nNewLine;                 //see AELB_* defines
   BOOL bColumnSel;              //Column selection
 } AESTREAM;
