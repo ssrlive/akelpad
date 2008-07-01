@@ -9,7 +9,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <richedit.h>
-#include <shlobj.h>
 #include "AkelBuild.h"
 #include "Resources\resource.h"
 
