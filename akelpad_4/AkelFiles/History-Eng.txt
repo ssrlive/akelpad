@@ -11,6 +11,7 @@ Added: Ctrl+Delete deletes right word, Ctrl+Backspace deletes left word.
 
 Fixed: text Drag'n'Drop.
 Fixed: search of new line character.
+Fixed: empty column insertion.
 
 
 AkelPad 4.0.0 alpha 5 (Jun 21, 2008)
