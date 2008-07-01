@@ -4,6 +4,7 @@
 
 //// Includes
 
+#include <shlobj.h>
 #include "AkelEdit.h"
 
 
