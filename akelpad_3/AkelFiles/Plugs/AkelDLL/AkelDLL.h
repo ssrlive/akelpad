@@ -2,13 +2,9 @@
 #define __AKELDLL_H__
 
 
-//// Includes
-
-#include "AkelEdit.h"
-
-
 //// Defines
 
+//Control IDs
 #define ID_EDIT           10001
 #define ID_STATUS         10002
 #define ID_TAB            10003
@@ -175,6 +171,19 @@ typedef struct _SAVEDOCUMENTW {
   BOOL bBOM;                  //File BOM
   BOOL bUpdate;               //Update file info
 } SAVEDOCUMENTW;
+
+#ifndef __AKELEDIT_H__
+  typedef struct {
+    DWORD dwFlags;              //Reserved                
+    COLORREF crCaret;           //Caret color                         
+    COLORREF crBasicText;       //Basic text color                    
+    COLORREF crBasicBk;         //Basic background color              
+    COLORREF crSelText;         //Text color in selection             
+    COLORREF crSelBk;           //Background color in selection       
+    COLORREF crActiveLineText;  //Text color in active line           
+    COLORREF crActiveLineBk;    //Background color in active line     
+  } AECOLORS;
+#endif
 
 typedef struct _WNDFRAMEA {
   HICON hIcon;                //Frame icon
