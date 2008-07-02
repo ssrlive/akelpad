@@ -1515,7 +1515,8 @@ _______________
 Scroll the caret into view in an edit control.
 
 (DWORD)wParam == see AECS_* defines.
-(DWORD)lParam == the low-order word contains the horizontal scroll unit and the high-order word contains the vertical scroll unit.
+(DWORD)lParam == the low-order word contains the horizontal scroll unit,
+                 the high-order word contains the vertical scroll unit.
 
 Return Value
  See AECSE_* defines.
@@ -1530,7 +1531,8 @@ ___________________
 Same as AEM_SCROLLCARET, but only test for scroll.
 
 (DWORD)wParam == see AECS_* defines.
-(DWORD)lParam == the low-order word contains the horizontal scroll unit and the high-order word contains the vertical scroll unit.
+(DWORD)lParam == the low-order word contains the horizontal scroll unit,
+                 the high-order word contains the vertical scroll unit.
 
 Return Value
  See AECSE_* defines.
@@ -1557,24 +1559,292 @@ Example:
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
  SendMessage(hWndEdit, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
-*/
 
-#define AEM_GETOPTIONS        (WM_USER + 2201)
-#define AEM_SETOPTIONS        (WM_USER + 2202)
-#define AEM_GETNEWLINE        (WM_USER + 2203)
-#define AEM_SETNEWLINE        (WM_USER + 2204)
-#define AEM_GETCOLORS         (WM_USER + 2205)
-#define AEM_SETCOLORS         (WM_USER + 2206)
-#define AEM_GETOVERTYPE       (WM_USER + 2207)
-#define AEM_SETOVERTYPE       (WM_USER + 2208)
-#define AEM_GETTABSTOP        (WM_USER + 2209)
-#define AEM_SETTABSTOP        (WM_USER + 2210)
-#define AEM_GETWORDWRAP       (WM_USER + 2211)
-#define AEM_SETWORDWRAP       (WM_USER + 2212)
-#define AEM_GETWORDDELIMITERS (WM_USER + 2213)
-#define AEM_SETWORDDELIMITERS (WM_USER + 2214)
-#define AEM_GETWRAPDELIMITERS (WM_USER + 2215)
-#define AEM_SETWRAPDELIMITERS (WM_USER + 2216)
-#define AEM_SHOWSCROLLBAR     (WM_USER + 2217)
+
+AEM_GETOPTIONS
+______________
+
+Retrieve edit control options.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Combination of the current option flag values described in the AEM_SETOPTIONS message.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETOPTIONS, 0, 0);
+
+
+AEM_SETOPTIONS
+______________
+
+Set the options for an edit control.
+
+(DWORD)wParam == see AECOOP_* defines.
+(DWORD)lParam == see AECO_* defines.
+
+Return Value
+ Current option of edit control.
+
+Example:
+ SendMessage(hWndEdit, AEM_SETOPTIONS, AECOOP_OR, AECO_DISABLEDRAG|AECO_DISABLEDROP);
+
+
+AEM_GETNEWLINE
+______________
+
+Retrieve the default new line options for an edit control.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ The low-order word contains the default input new line.
+ The high-order word contains the default output new line.
+
+Remarks
+ Possible new lines: AELB_ASIS, AELB_R, AELB_N, AELB_RN, AELB_RRN.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETNEWLINE, 0, 0);
+
+
+AEM_SETNEWLINE
+______________
+
+Set the default new line options for an edit control.
+
+(DWORD)wParam == see AENL_* defines.
+(DWORD)lParam == the low-order word contains the default input new line. Valid if AENL_INPUT is specified.
+                 the high-order word contains the default output new line. Valid if AENL_OUTPUT is specified.
+
+Return Value
+ zero
+
+Remarks
+ Possible new lines: AELB_ASIS, AELB_R, AELB_N, AELB_RN, AELB_RRN.
+
+Example:
+ SendMessage(hWndEdit, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_R, AELB_RN));
+
+
+AEM_GETCOLORS
+_____________
+
+Retrieve colors of the edit control.
+
+wParam             == not used.
+(AECOLORS *)lParam == pointer to a AECOLORS structure.
+
+Return Value
+ zero
+
+Example:
+ AECOLORS aec;
+
+ aec.dwFlags=AECLR_ALL;
+ SendMessage(hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&aec);
+
+
+AEM_SETCOLORS
+_____________
+
+Set colors of the edit control.
+
+wParam             == not used.
+(AECOLORS *)lParam == pointer to a AECOLORS structure.
+
+Return Value
+ zero
+
+Example:
+ AECOLORS aec;
+
+ aec.dwFlags=AECLR_BASICTEXT|AECLR_BASICBK;
+ aec.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
+ aec.crBasicBk=GetSysColor(COLOR_WINDOW);
+ SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aec);
+
+
+AEM_GETOVERTYPE
+_______________
+
+Retrieve type mode.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   control is in overtype mode
+ FALSE  control is in insert mode
+
+Example:
+ SendMessage(hWndEdit, AEM_GETOVERTYPE, 0, 0);
+
+
+AEM_SETOVERTYPE
+_______________
+
+Set type mode.
+
+(BOOL)wParam == TRUE   sets overtype mode
+                FALSE  sets insert mode
+lParam       == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, 0);
+
+
+AEM_GETTABSTOP
+______________
+
+Retrieve tab stop size.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Tab stop size in characters.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETTABSTOP, 0, 0);
+
+
+AEM_SETTABSTOP
+______________
+
+Set tab stop size.
+
+(int)wParam == new tab stop size in characters.
+lParam      == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETTABSTOP, 4, 0);
+
+
+AEM_GETWORDWRAP
+_______________
+
+Retrieve word wrap mode.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   control is in word wrap mode
+ FALSE  control is in non-wrap mode
+
+Example:
+ SendMessage(hWndEdit, AEM_GETWORDWRAP, 0, 0);
+
+
+AEM_SETWORDWRAP
+______________
+
+Set word wrap mode.
+
+(BOOL)wParam == TRUE   sets word wrap mode
+                FALSE  disables word wrap mode
+lParam      == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETWORDWRAP, TRUE, 0);
+
+
+AEM_GETWORDDELIMITERS
+_____________________
+
+Retrieve word delimiters information.
+
+(wchar_t *)wParam == pointer to a buffer that receives delimiter characters. Can be NULL.
+(int)lParam       == size of the buffer in TCHARs.
+
+Return Value
+ See AEWB_* defines.
+
+Example:
+ wchar_t wszDelimiters[128];
+
+ SendMessage(hWndEdit, AEM_GETWORDDELIMITERS, (WPARAM)wszDelimiters, 128);
+
+
+AEM_SETWORDDELIMITERS
+_____________________
+
+Set word delimiters information.
+
+(DWORD)wParam     == see AEWB_* defines.
+(wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
+
+Return Value
+ zero
+
+Example:
+ wchar_t wszDelimiters[128]=L" \t\n[](){}<>";
+
+ SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)wszDelimiters);
+
+
+AEM_GETWRAPDELIMITERS
+_____________________
+
+Retrieve word wrapping delimiters.
+
+(wchar_t *)wParam == pointer to a buffer that receives delimiter characters. Can be NULL.
+(int)lParam       == size of the buffer in TCHARs.
+
+Return Value
+ zero
+
+Example:
+ wchar_t wszDelimiters[128];
+
+ SendMessage(hWndEdit, AEM_GETWRAPDELIMITERS, (WPARAM)wszDelimiters, 128);
+
+
+AEM_SETWRAPDELIMITERS
+_____________________
+
+Set delimiters for word wrapping.
+
+wParam            == not used.
+(wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
+
+Return Value
+ zero
+
+Example:
+ wchar_t wszDelimiters[128]=L" \t\n[](){}<>";
+
+ SendMessage(hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)wszDelimiters);
+
+
+AEM_SHOWSCROLLBAR
+_________________
+
+Show or hide scroll bars in the edit control.
+
+(int)wParam  == SB_BOTH  horizontal and vertical scroll bars.
+                SB_HORZ  horizontal scroll bar.
+                SB_VERT  vertical scroll bar.
+(BOOL)lParam == TRUE   show.
+                FALSE  hide.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_BOTH, FALSE);
+*/
 
 #endif
