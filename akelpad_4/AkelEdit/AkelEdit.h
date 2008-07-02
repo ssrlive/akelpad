@@ -1558,6 +1558,7 @@ Example:
  SendMessage(hWndEdit, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 */
+
 #define AEM_GETOPTIONS        (WM_USER + 2201)
 #define AEM_SETOPTIONS        (WM_USER + 2202)
 #define AEM_GETNEWLINE        (WM_USER + 2203)
