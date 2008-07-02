@@ -9377,9 +9377,9 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
               ciFirstVisibleBefore=crRange.ciMin;
               SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&ciFirstVisibleBefore);
               IndexOffset(hWnd, &ciFirstVisibleBefore, pFirstVisible - szText, AELB_R);
-              SendMessage(hWnd, AEM_LINESCROLL, 0, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+              SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
-            else SendMessage(hWnd, AEM_LINESCROLL, 0, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+            else SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
           }
           API_HeapFree(hHeap, 0, (LPVOID)szReplaceText);
         }
@@ -9513,9 +9513,9 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
               ciFirstVisibleBefore=crRange.ciMin;
               SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&ciFirstVisibleBefore);
               IndexOffset(hWnd, &ciFirstVisibleBefore, wpFirstVisible - wszText, AELB_R);
-              SendMessage(hWnd, AEM_LINESCROLL, 0, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+              SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
-            else SendMessage(hWnd, AEM_LINESCROLL, 0, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+            else SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
           }
           API_HeapFree(hHeap, 0, (LPVOID)wszReplaceText);
         }
@@ -15899,7 +15899,7 @@ void RestoreLineScroll(HWND hWnd, int *nBeforeLine)
 
   if (*nBeforeLine != ciCharIndex.nLine)
   {
-    SendMessage(hWnd, AEM_LINESCROLL, 0, *nBeforeLine - ciCharIndex.nLine);
+    SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, *nBeforeLine - ciCharIndex.nLine);
   }
 }
 

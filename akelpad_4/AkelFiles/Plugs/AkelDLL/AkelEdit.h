@@ -87,7 +87,7 @@
                               AECLR_ACTIVELINETEXT|\
                               AECLR_ACTIVELINEBK)
 
-//AEM_SCROLLCARETTEST, AEM_SCROLLCARET flags
+//AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
 #define AECS_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number
 #define AECS_UNITPIXELY      0x00000002  //High word of the lParam specifies pixels number
 #define AECS_UNITCHARX       0x00000004  //Low word of the lParam specifies characters number
@@ -99,7 +99,7 @@
 #define AECS_FORCERIGHT      0x00000100  //Scrolls to the right even if caret visible
 #define AECS_FORCEBOTTOM     0x00000200  //Scrolls to the bottom even if caret visible
 
-//AEM_SCROLLCARETTEST, AEM_SCROLLCARET return flags
+//AEM_SCROLLCARET, AEM_SCROLLCARETTEST return flags
 #define AECSE_SCROLLEDX      0x00000001  //Edit control was horizontally scrolled
 #define AECSE_SCROLLEDY      0x00000002  //Edit control was vertically scrolled
 
@@ -393,8 +393,8 @@ typedef struct {
 #define AEM_SETSCROLLPOS      (WM_USER + 2156)
 #define AEM_SCROLL            (WM_USER + 2157)
 #define AEM_LINESCROLL        (WM_USER + 2158)
-#define AEM_SCROLLCARETTEST   (WM_USER + 2159)
-#define AEM_SCROLLCARET       (WM_USER + 2160)
+#define AEM_SCROLLCARET       (WM_USER + 2159)
+#define AEM_SCROLLCARETTEST   (WM_USER + 2160)
 #define AEM_LOCKSCROLL        (WM_USER + 2161)
 
 #define AEM_GETOPTIONS        (WM_USER + 2201)
@@ -1347,20 +1347,217 @@ Example:
  SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&recr);
  SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)recr.cpMin, (LPARAM)&aecr.ciMin);
  SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)recr.cpMax, (LPARAM)&aecr.ciMax);
+
+
+AEM_CHARFROMPOS
+_______________
+
+Retrieve the closest character to a specified point in the client area of an edit control.
+
+(POINT *)wParam       == coordinates of a point in the control's client area.
+(AECHARINDEX *)lParam == character index.
+
+Return Value
+ See AEPC_* defines.
+
+Example:
+ RECT rc;
+ AECHARINDEX ciFirstVisible;
+
+ SendMessage(hWndEdit, AEM_GETRECT, 0, (LPARAM)&rc);
+ SendMessage(hWndEdit, AEM_CHARFROMPOS, (WPARAM)&rc.left, (LPARAM)&ciFirstVisible);
+
+
+AEM_POSFROMCHAR
+_______________
+
+Retrieve the client area coordinates of a specified character in an edit control.
+
+(POINT *)wParam       == coordinates of a point in the control's client area.
+(AECHARINDEX *)lParam == character index.
+
+Return Value
+ See AEPC_* defines.
+
+Example:
+ POINT pt;
+ AECHARINDEX ciChar;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciChar);
+ SendMessage(hWndEdit, AEM_POSFROMCHAR, (WPARAM)&pt, (LPARAM)&ciChar);
+
+
+AEM_GETRECT
+___________
+
+Retrieve the formatting rectangle of an edit control. The formatting rectangle is the limiting rectangle into which the control draws the text.
+
+wParam         == not used.
+(RECT *)lParam == pointer to a RECT structure that receives the formatting rectangle.
+
+Return Value
+ zero
+
+Example:
+ RECT rc;
+
+ SendMessage(hWndEdit, AEM_GETRECT, 0, (LPARAM)&rc);
+
+
+AEM_SETRECT
+___________
+
+Set the formatting rectangle of an edit control. The formatting rectangle is the limiting rectangle into which the control draws the text.
+
+wParam         == not used.
+(RECT *)lParam == pointer to a RECT structure that specifies the new dimensions of the rectangle. If this parameter is NULL, the formatting rectangle is set to its default values.
+
+Return Value
+ zero
+
+Example:
+ RECT rc;
+
+ rc.left=10;
+ rc.top=10;
+ rc.right=200;
+ rc.bottom=200;
+ SendMessage(hWndEdit, AEM_SETRECT, 0, (LPARAM)&rc);
+
+
+AEM_GETSCROLLPOS
+________________
+
+Obtain the current scroll position of the edit control.
+
+wParam          == not used.
+(POINT *)lParam == pointer to a POINT structure that receives the upper-left corner position in the virtual text space of the document, expressed in pixels.
+
+Return Value
+ zero
+
+Example:
+ POINT pt;
+
+ SendMessage(hWndEdit, AEM_GETSCROLLPOS, 0, (LPARAM)&pt);
+
+
+AEM_SETSCROLLPOS
+________________
+
+Scroll an edit control to a particular point.
+
+wParam          == not used.
+(POINT *)lParam == pointer to a POINT structure which specifies a point in the virtual text space of the document, expressed in pixels.
+
+Return Value
+ zero
+
+Example:
+ POINT pt;
+
+ pt.x=20;
+ pt.y=10;
+ SendMessage(hWndEdit, AEM_SETSCROLLPOS, 0, (LPARAM)&pt);
+
+
+AEM_SCROLL
+__________
+
+Scroll the text horizontally or vertically in an edit control. This message is equivalent of WM_HSCROLL and WM_VSCROLL.
+
+(int)wParam == SB_HORZ  horizontal scroll.
+               SB_VERT  vertical scroll.
+(int)lParam == action that can be specified with SB_HORZ:
+                SB_LEFT      scrolls to the upper left.
+                SB_RIGHT     scrolls to the lower right.
+                SB_LINELEFT  scrolls left by one character.
+                SB_LINERIGHT scrolls right by one character.
+                SB_PAGELEFT  scrolls left by the width of the window.
+                SB_PAGERIGHT scrolls right by the width of the window.
+               action that can be specified with SB_VERT:
+                SB_TOP       scrolls to the upper left.
+                SB_BOTTOM    scrolls to the lower right.
+                SB_LINEUP    scrolls one line up.
+                SB_LINEDOWN  scrolls one line down.
+                SB_PAGEUP    scrolls one page up.
+                SB_PAGEDOWN  scrolls one page down.
+
+Return Value
+ If SB_HORZ specified, number of characters scrolled returns.
+ If SB_VERT specified, number of lines scrolled returns.
+
+Example:
+ SendMessage(hWndEdit, AEM_SCROLL, SB_VERT, SB_LINEDOWN);
+
+
+AEM_LINESCROLL
+______________
+
+Scroll the text horizontally or vertically on the specified number of characters or lines.
+
+(int)wParam == SB_HORZ  horizontal scroll.
+               SB_VERT  vertical scroll.
+(int)lParam == If SB_HORZ specified, the number of characters to scroll horizontally.
+               If SB_VERT specified, the number of lines to scroll vertically.
+
+Return Value
+ If SB_HORZ specified, number of characters scrolled returns.
+ If SB_VERT specified, number of lines scrolled returns.
+
+Example:
+ SendMessage(hWndEdit, AEM_LINESCROLL, SB_VERT, -10);
+
+
+AEM_SCROLLCARET
+_______________
+
+Scroll the caret into view in an edit control.
+
+(DWORD)wParam == see AECS_* defines.
+(DWORD)lParam == the low-order word contains the horizontal scroll unit and the high-order word contains the vertical scroll unit.
+
+Return Value
+ See AECSE_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_SCROLLCARET, AECS_UNITCHARX|AECS_UNITCHARY, MAKELONG(1, 1));
+
+
+AEM_SCROLLCARETTEST
+___________________
+
+Same as AEM_SCROLLCARET, but only test for scroll.
+
+(DWORD)wParam == see AECS_* defines.
+(DWORD)lParam == the low-order word contains the horizontal scroll unit and the high-order word contains the vertical scroll unit.
+
+Return Value
+ See AECSE_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AECS_UNITCHARX|AECS_UNITCHARY, MAKELONG(1, 1));
+
+
+AEM_LOCKSCROLL
+______________
+
+Lock scrolling of an edit control.
+
+(int)wParam  == SB_BOTH  lock horizontal and vertical scroll.
+                SB_HORZ  lock horizontal scroll.
+                SB_VERT  lock vertical scroll.
+(BOOL)lParam == TRUE   lock scroll.
+                FALSE  unlock scroll.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
+ SendMessage(hWndEdit, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
+ SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 */
-
-#define AEM_CHARFROMPOS       (WM_USER + 2151)
-#define AEM_POSFROMCHAR       (WM_USER + 2152)
-#define AEM_GETRECT           (WM_USER + 2153)
-#define AEM_SETRECT           (WM_USER + 2154)
-#define AEM_GETSCROLLPOS      (WM_USER + 2155)
-#define AEM_SETSCROLLPOS      (WM_USER + 2156)
-#define AEM_SCROLL            (WM_USER + 2157)
-#define AEM_LINESCROLL        (WM_USER + 2158)
-#define AEM_SCROLLCARETTEST   (WM_USER + 2159)
-#define AEM_SCROLLCARET       (WM_USER + 2160)
-#define AEM_LOCKSCROLL        (WM_USER + 2161)
-
 #define AEM_GETOPTIONS        (WM_USER + 2201)
 #define AEM_SETOPTIONS        (WM_USER + 2202)
 #define AEM_GETNEWLINE        (WM_USER + 2203)
