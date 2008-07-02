@@ -8876,7 +8876,7 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
 
   if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
-    if (OpenClipboard(ae->hWndEdit))
+    if (OpenClipboard(NULL))
     {
       EmptyClipboard();
 
