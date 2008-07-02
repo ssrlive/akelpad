@@ -902,7 +902,7 @@ void FileStreamIn(FILESTREAMDATA *lpData);
 int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdate);
 int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bUpdate);
 void FileStreamOut(FILESTREAMDATA *lpData);
-BOOL CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
+DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
 BOOL OpenDirectoryA(char *pPath, BOOL bSubDir);
 BOOL OpenDirectoryW(wchar_t *wpPath, BOOL bSubDir);
 

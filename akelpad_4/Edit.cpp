@@ -1213,9 +1213,9 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferLen * sizeof(wchar_t) + 2))
         {
           tr.cr=crRange;
+          tr.bColumnSel=FALSE;
           tr.wpText=wszRange + nStringLenAll;
           tr.nNewLine=AELB_ASIS;
-          tr.bColumnSel=FALSE;
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
           b=nStringLenAll;
 
@@ -1264,9 +1264,9 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, nRangeLen * sizeof(wchar_t) + 2))
         {
           tr.cr=crRange;
+          tr.bColumnSel=FALSE;
           tr.wpText=wszRange;
           tr.nNewLine=AELB_ASIS;
-          tr.bColumnSel=FALSE;
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
 
           if (nAction & STRSEL_TAB)
@@ -5394,14 +5394,15 @@ void FileStreamOut(FILESTREAMDATA *lpData)
 {
   AESTREAM aes;
 
-  aes.lpCallback=OutputStreamCallback;
   aes.dwCookie=(DWORD)lpData;
+  aes.lpCallback=OutputStreamCallback;
+  aes.bColumnSel=FALSE;
   aes.nNewLine=AELB_ASOUTPUT;
   SendMessage(lpData->hWnd, AEM_STREAMOUT, 0, (LPARAM)&aes);
   lpData->bResult=!aes.dwError;
 }
 
-BOOL CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
+DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
 {
   FILESTREAMDATA *lpData=(FILESTREAMDATA *)dwCookie;
   unsigned char *pDataToWrite=(unsigned char *)wszBuf;
@@ -9950,18 +9951,18 @@ int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
 
   tr.cr.ciMin=*ciMin;
   tr.cr.ciMax=*ciMax;
-  tr.pText=NULL;
-  tr.nNewLine=nNewLine;
   if (bColumnSel == -1)
     tr.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
     tr.bColumnSel=bColumnSel;
+  tr.pText=NULL;
+  tr.nNewLine=nNewLine;
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
   {
     if (tr.pText=(char *)API_HeapAlloc(hHeap, 0, nLen + 1))
     {
-      nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
+      SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
     }
   }
   *pText=tr.pText;
@@ -9975,18 +9976,18 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
 
   tr.cr.ciMin=*ciMin;
   tr.cr.ciMax=*ciMax;
-  tr.wpText=NULL;
-  tr.nNewLine=nNewLine;
   if (bColumnSel == -1)
     tr.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
     tr.bColumnSel=bColumnSel;
+  tr.wpText=NULL;
+  tr.nNewLine=nNewLine;
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
   {
     if (tr.wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t) + 2))
     {
-      nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+      SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
     }
   }
   *wpText=tr.wpText;
