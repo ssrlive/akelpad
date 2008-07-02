@@ -2,6 +2,11 @@
 #define __AKELEDIT_H__
 
 
+//// Includes
+
+#include <richedit.h>
+
+
 //// Defines
 
 #define AES_AKELEDITCLASSA     "AkelEditA"
@@ -110,9 +115,8 @@
 #define AEWB_RIGHTWORDEND    0x00000008  //Right movement is stopped, when word end is found.
 
 //AEM_STREAMIN, AEM_STREAMOUT flags
-#define AESF_SELECTION       0x00000001  //Stream the current selection
-#define AESF_COLUMNSEL       0x00000002  //Stream the current column selection
-#define AESF_FILLSPACES      0x00000004  //Stream the current column selection with the filling empty spaces
+#define AESF_SELECTION       0x00000001  //Stream-in (read) or stream-out (write) the current selection. If not specified, stream-in (read) or stream-out (write) the entire contents of the control.
+#define AESF_FILLSPACES      0x00000002  //Stream-out (write) the current column selection with the filling empty spaces. Valid if bColumnSel member of a AESTREAM structure is TRUE.
 
 #ifndef FR_DOWN
   #define FR_DOWN 0x00000001
@@ -151,7 +155,7 @@
   #define mod(a) (((a) < 0)?(0 - (a)):(a))
 #endif
 
-typedef BOOL (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
+typedef DWORD (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
 //dwCookie    Value of the dwCookie member of the AESTREAM structure. The application specifies this value when it sends the EM_STREAMIN or EM_STREAMOUT message.
 //wszBuf      Pointer to a buffer to read from or write to. For a stream-in (read) operation, the callback function fills this buffer with data to transfer into the edit control. For a stream-out (write) operation, the buffer contains data from the control that the callback function writes to some storage.
 //dwBufLen    Number of bytes to read or write.
@@ -161,9 +165,9 @@ typedef BOOL (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWORD
 //The callback function returns zero to indicate success.
 //
 //Remarks
-//The control continues to call the callback function until one of the following conditions occurs: 
-//* The callback function returns a nonzero value. 
-//* The callback function returns zero in the *dwBufDone parameter. 
+//The control continues to call the callback function until one of the following conditions occurs:
+//* The callback function returns a nonzero value.
+//* The callback function returns zero in the *dwBufDone parameter.
 
 
 //// Structures
@@ -247,14 +251,14 @@ typedef struct {
 typedef struct {
   AECHARRANGE cr;    //Characters range to retrieve
   BOOL bColumnSel;   //Column selection
-  char *pText;       //Pointer to buffer that receives the text
+  char *pText;       //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size.
   int nNewLine;      //see AELB_* defines
 } AETEXTRANGEA;
 
 typedef struct {
   AECHARRANGE cr;    //Characters range to retrieve
   BOOL bColumnSel;   //Column selection
-  wchar_t *wpText;   //Pointer to buffer that receives the text
+  wchar_t *wpText;   //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size.
   int nNewLine;      //see AELB_* defines
 } AETEXTRANGEW;
 
@@ -262,8 +266,8 @@ typedef struct {
   DWORD dwCookie;               //Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
   DWORD dwError;                //Indicates the results of the stream-in (read) or stream-out (write) operation.
   AEStreamCallback lpCallback;  //Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
-  int nNewLine;                 //see AELB_* defines
   BOOL bColumnSel;              //Column selection
+  int nNewLine;                 //see AELB_* defines
 } AESTREAM;
 
 typedef struct {
@@ -305,8 +309,8 @@ typedef struct {
 typedef struct {
   AECHARINDEX *ciChar1;   //First character index
   AECHARINDEX *ciChar2;   //Second character index
-  int nNewLine;           //See AELB_* defines
   BOOL bColumnSel;        //Column selection
+  int nNewLine;           //See AELB_* defines
 } AEINDEXSUBTRACT;
 
 typedef struct {
@@ -323,6 +327,10 @@ typedef struct {
   NMHDR hdr;
   BOOL bModified;  //TRUE document state is set to modified, TRUE document state is set to unmodified
 } AENMODIFYCHANGE;
+
+typedef struct {
+  NMHDR hdr;
+} AENERRSPACE;
 
 
 //// Messages
@@ -376,6 +384,970 @@ typedef struct {
 #define AEM_INDEXOFFSET       (WM_USER + 2111)
 #define AEM_INDEXTORICHOFFSET (WM_USER + 2112)
 #define AEM_RICHOFFSETTOINDEX (WM_USER + 2113)
+
+#define AEM_CHARFROMPOS       (WM_USER + 2151)
+#define AEM_POSFROMCHAR       (WM_USER + 2152)
+#define AEM_GETRECT           (WM_USER + 2153)
+#define AEM_SETRECT           (WM_USER + 2154)
+#define AEM_GETSCROLLPOS      (WM_USER + 2155)
+#define AEM_SETSCROLLPOS      (WM_USER + 2156)
+#define AEM_SCROLL            (WM_USER + 2157)
+#define AEM_LINESCROLL        (WM_USER + 2158)
+#define AEM_SCROLLCARETTEST   (WM_USER + 2159)
+#define AEM_SCROLLCARET       (WM_USER + 2160)
+#define AEM_LOCKSCROLL        (WM_USER + 2161)
+
+#define AEM_GETOPTIONS        (WM_USER + 2201)
+#define AEM_SETOPTIONS        (WM_USER + 2202)
+#define AEM_GETNEWLINE        (WM_USER + 2203)
+#define AEM_SETNEWLINE        (WM_USER + 2204)
+#define AEM_GETCOLORS         (WM_USER + 2205)
+#define AEM_SETCOLORS         (WM_USER + 2206)
+#define AEM_GETOVERTYPE       (WM_USER + 2207)
+#define AEM_SETOVERTYPE       (WM_USER + 2208)
+#define AEM_GETTABSTOP        (WM_USER + 2209)
+#define AEM_SETTABSTOP        (WM_USER + 2210)
+#define AEM_GETWORDWRAP       (WM_USER + 2211)
+#define AEM_SETWORDWRAP       (WM_USER + 2212)
+#define AEM_GETWORDDELIMITERS (WM_USER + 2213)
+#define AEM_SETWORDDELIMITERS (WM_USER + 2214)
+#define AEM_GETWRAPDELIMITERS (WM_USER + 2215)
+#define AEM_SETWRAPDELIMITERS (WM_USER + 2216)
+#define AEM_SHOWSCROLLBAR     (WM_USER + 2217)
+
+/*
+AEN_SELCHANGE
+_____________
+
+Notification message in the form of a WM_NOTIFY message.
+Sends to the parent window procedure after the current selection has changed.
+
+(int)wParam            == specifies the control identifier.
+(AENSELCHANGE *)lParam == pointer to a AENSELCHANGE structure.
+
+Return Value
+ zero
+
+
+AEN_TEXTCHANGE
+______________
+
+Notification message in the form of a WM_NOTIFY message.
+Sends to the parent window procedure after the document text has changed.
+
+(int)wParam             == specifies the control identifier.
+(AENTEXTCHANGE *)lParam == pointer to a AENTEXTCHANGE structure.
+
+Return Value
+ zero
+
+
+AEN_TEXTCHANGE
+______________
+
+Notification message in the form of a WM_NOTIFY message.
+Sends to the parent window procedure after the document text has changed.
+
+(int)wParam             == specifies the control identifier.
+(AENTEXTCHANGE *)lParam == pointer to a AENTEXTCHANGE structure.
+
+Return Value
+ zero
+
+
+AEN_MODIFYCHANGE
+________________
+
+Notification message in the form of a WM_NOTIFY message.
+Sends to the parent window procedure after the document modify state has changed.
+
+(int)wParam             == specifies the control identifier.
+(AENMODIFYCHANGE *)lParam == pointer to a AENMODIFYCHANGE structure.
+
+Return Value
+ zero
+
+
+AEN_ERRSPACE
+____________
+
+Notification message in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when an edit control cannot allocate enough memory.
+
+(int)wParam           == specifies the control identifier.
+(AENERRSPACE *)lParam == pointer to a AENERRSPACE structure.
+
+Return Value
+ zero
+
+
+AEM_SETTEXTA
+____________
+
+Set ansi text of the edit control.
+
+(DWORD)wParam  == text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+(char *)lParam == text pointer.
+
+Return Value
+ Text length.
+
+Example:
+ SendMessage(hWndEdit, AEM_SETTEXTA, (WPARAM)-1, (LPARAM)"SomeText");
+
+
+AEM_SETTEXTW
+____________
+
+Set unicode text of the edit control.
+
+(DWORD)wParam     == text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+(wchar_t *)lParam == text pointer.
+
+Return Value
+ Text length.
+
+Example:
+ SendMessage(hWndEdit, AEM_SETTEXTW, (WPARAM)-1, (LPARAM)L"SomeText");
+
+
+AEM_APPENDTEXTA
+_______________
+
+Append ansi text to the end of the edit control.
+
+wParam                  == not used.
+(AEAPPENDTEXTA *)lParam == pointer to a AEAPPENDTEXTA structure.
+
+Return Value
+ zero
+
+Example:
+ AEAPPENDTEXTA at;
+
+ at.pText="SomeText";
+ at.dwTextLen=(DWORD)-1;
+ at.bColumnSel=FALSE;
+ SendMessage(hWndEdit, AEM_APPENDTEXTA, 0, (LPARAM)&at);
+
+
+AEM_APPENDTEXTW
+_______________
+
+Append unicode text to the end of the edit control.
+
+wParam                  == not used.
+(AEAPPENDTEXTW *)lParam == pointer to a AEAPPENDTEXTW structure.
+
+Return Value
+ zero
+
+Example:
+ AEAPPENDTEXTW at;
+
+ at.wpText=L"SomeText";
+ at.dwTextLen=(DWORD)-1;
+ at.bColumnSel=FALSE;
+ SendMessage(hWndEdit, AEM_APPENDTEXTW, 0, (LPARAM)&at);
+
+
+AEM_REPLACESELA
+_______________
+
+Replace selection with the ansi text.
+
+wParam                  == not used.
+(AEREPLACESELA *)lParam == pointer to a AEREPLACESELA structure.
+
+Return Value
+ zero
+
+Example:
+ AEREPLACESELA rs;
+
+ rs.pText="SomeText";
+ rs.dwTextLen=(DWORD)-1;
+ rs.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
+ rs.ciInsertStart=NULL;
+ rs.ciInsertEnd=NULL;
+ SendMessage(hWndEdit, AEM_REPLACESELA, 0, (LPARAM)&rs);
+
+
+AEM_REPLACESELW
+_______________
+
+Replace selection with the unicode text.
+
+wParam                  == not used.
+(AEREPLACESELW *)lParam == pointer to a AEREPLACESELW structure.
+
+Return Value
+ zero
+
+Example:
+ AEREPLACESELW rs;
+
+ rs.wpText=L"SomeText";
+ rs.dwTextLen=(DWORD)-1;
+ rs.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
+ rs.ciInsertStart=NULL;
+ rs.ciInsertEnd=NULL;
+ SendMessage(hWndEdit, AEM_REPLACESELW, 0, (LPARAM)&rs);
+
+
+AEM_GETTEXTRANGEA
+_________________
+
+Retrieve a specified range of ansi characters from an edit control.
+
+wParam                 == not used.
+(AETEXTRANGEA *)lParam == pointer to a AETEXTRANGEA structure.
+
+Return Value
+ Number of characters copied, not including the terminating NULL character.
+
+Example:
+ AETEXTRANGEA tr;
+ int nLen;
+
+ SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr);
+ tr.pText=NULL;
+ tr.nNewLine=AELB_ASOUTPUT;
+
+ if (nLen=SendMessage(hWndEdit, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
+ {
+   if (tr.pText=(char *)GlobalAlloc(GPTR, nLen + 1))
+   {
+     SendMessage(hWndEdit, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
+     MessageBoxA(NULL, tr.pText, NULL, 0);
+
+     GlobalFree((HGLOBAL)tr.pText);
+   }
+ }
+
+
+AEM_GETTEXTRANGEW
+_________________
+
+Retrieve a specified range of unicode characters from an edit control.
+
+wParam                 == not used.
+(AETEXTRANGEW *)lParam == pointer to a AETEXTRANGEW structure.
+
+Return Value
+ Number of characters copied, not including the terminating NULL character.
+
+Example:
+ AETEXTRANGEW tr;
+ int nLen;
+
+ SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr);
+ tr.wpText=NULL;
+ tr.nNewLine=AELB_ASOUTPUT;
+
+ if (nLen=SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
+ {
+   if (tr.wpText=(wchar_t *)GlobalAlloc(GPTR, nLen * sizeof(wchar_t) + 2))
+   {
+     SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+     MessageBoxW(NULL, tr.wpText, NULL, 0);
+
+     GlobalFree((HGLOBAL)tr.wpText);
+   }
+ }
+
+
+AEM_STREAMIN
+____________
+
+Replace the contents of an edit control with a stream of data provided by an application defined callback function.
+
+(DWORD)wParam      == see AESF_* defines.
+(AESTREAM *)lParam == pointer to a AESTREAM structure.
+
+Return Value
+ Number of characters read.
+
+Example:
+typedef struct {
+  wchar_t *wpData;
+  int nDataLen;
+  int nCount;
+} STREAMINDATA;
+
+ AESTREAM aes;
+ STREAMINDATA sid;
+
+ sid.wpData=L"SomeText";
+ sid.nDataLen=lstrlenW(sid.wpData);
+ sid.nCount=0;
+
+ aes.dwCookie=(DWORD)&sid;
+ aes.lpCallback=InputStreamCallback;
+ aes.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
+ aes.nNewLine=AELB_ASINPUT;
+ SendMessage(hWndEdit, AEM_STREAMIN, AESF_SELECTION, (LPARAM)&aes);
+
+ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
+ {
+   STREAMINDATA *lpData=(STREAMINDATA *)dwCookie;
+   wchar_t *wpSrc=lpData->wpData;
+   wchar_t *wpDest=wszBuf;
+   DWORD dwDestLen=dwBufLen / sizeof(wchar_t);
+   DWORD i;
+
+   for (i=0; i < dwDestLen; ++i)
+   {
+     if (lpData->nCount >= lpData->nDataLen)
+       break;
+     wpDest[i]=wpSrc[lpData->nCount++];
+   }
+   *dwBufDone=i * sizeof(wchar_t);
+
+   return 0;
+ }
+
+
+AEM_STREAMOUT
+_____________
+
+Cause an edit control to pass its contents to an application defined callback function.
+The callback function can then write the stream of data to a file or any other location that it chooses.
+
+(DWORD)wParam      == see AESF_* defines.
+(AESTREAM *)lParam == pointer to a AESTREAM structure.
+
+Return Value
+ Number of characters written to the data stream.
+
+Example:
+typedef struct {
+  HANDLE hFile;
+} STREAMOUTDATA;
+
+ AESTREAM aes;
+ STREAMOUTDATA sod;
+
+ sod.hFile=CreateFileA("C:\\Test.tmp", GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+
+ if (sod.hFile != INVALID_HANDLE_VALUE)
+ {
+   aes.dwCookie=(DWORD)&sod;
+   aes.lpCallback=OutputStreamCallback;
+   aes.bColumnSel=FALSE;
+   aes.nNewLine=AELB_ASOUTPUT;
+   SendMessage(hWndEdit, AEM_STREAMOUT, 0, (LPARAM)&aes);
+
+   CloseHandle(sod.hFile);
+ }
+
+ DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
+ {
+   STREAMOUTDATA *lpData=(STREAMOUTDATA *)dwCookie;
+   unsigned char *pDataToWrite=(unsigned char *)wszBuf;
+   DWORD dwBytesToWrite=dwBufLen;
+
+   return !WriteFile(lpData->hFile, pDataToWrite, dwBytesToWrite, dwBufDone, NULL);
+ }
+
+
+AEM_CANPASTE
+____________
+
+Determine whether an edit control can paste a text from clipboard.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ SendMessage(hWndEdit, AEM_CANPASTE, 0, 0);
+
+
+AEM_PASTE
+_________
+
+Paste text from clipboard.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_PASTE, 0, 0);
+
+
+AEM_CUT
+_______
+
+Delete the current selection, if any, and copy the deleted text to the clipboard.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_CUT, 0, 0);
+
+
+AEM_COPY
+________
+
+Copy the current selection to the clipboard.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_COPY, 0, 0);
+
+
+AEM_FINDTEXTA
+_____________
+
+Find ansi text within an edit control.
+
+wParam                == not used.
+(AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure.
+
+Return Value
+ TRUE   founded
+ FALSE  not found
+
+Example:
+ AEFINDTEXTA ft;
+ AESELECTION aes;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
+ ft.dwFlags=AEFR_DOWN;
+ ft.pText="SomeText";
+ ft.dwTextLen=(DWORD)-1;
+ ft.nNewLine=AELB_ASIS;
+
+ if (SendMessage(hWndEdit, AEM_FINDTEXTA, 0, (LPARAM)&ft))
+ {
+   aes.crSel=ft.crFound;
+   aes.bColumnSel=FALSE;
+   SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
+ }
+
+
+AEM_FINDTEXTW
+_____________
+
+Find unicode text within an edit control.
+
+wParam                == not used.
+(AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure.
+
+Return Value
+ TRUE   founded
+ FALSE  not found
+
+Example:
+ AEFINDTEXTW ft;
+ AESELECTION aes;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
+ ft.dwFlags=AEFR_DOWN;
+ ft.wpText=L"SomeText";
+ ft.dwTextLen=(DWORD)-1;
+ ft.nNewLine=AELB_ASIS;
+
+ if (SendMessage(hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft))
+ {
+   aes.crSel=ft.crFound;
+   aes.bColumnSel=FALSE;
+   SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
+ }
+
+
+AEM_CHECKCODEPAGE
+_________________
+
+Check that the contents of an edit control can be converted to the specified code page.
+
+(int)wParam == code page to check.
+lParam == not used.
+
+Return Value
+ Zero if successful, otherwise returns first met line number containing nonconverted character.
+
+Example:
+ SendMessage(hWndEdit, AEM_CHECKCODEPAGE, 1251, 0);
+
+
+AEM_CANUNDO
+___________
+
+Determine whether there are any actions in an edit control's undo queue.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ SendMessage(hWndEdit, AEM_CANUNDO, 0, 0);
+
+
+AEM_CANREDO
+___________
+
+Determine whether there are any actions in an edit control's redo queue.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ SendMessage(hWndEdit, AEM_CANREDO, 0, 0);
+
+
+AEM_UNDO
+________
+
+Undo the last edit control operation in the control's undo queue.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_UNDO, 0, 0);
+
+
+AEM_REDO
+________
+
+Redo the next edit control operation in the control's redo queue.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_REDO, 0, 0);
+
+
+AEM_EMPTYUNDOBUFFER
+___________________
+
+Erase undo or redo history.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_EMPTYUNDOBUFFER, 0, 0);
+
+
+AEM_BEGINUNDOACTION
+___________________
+
+Beginning of a set of operations that will be undone all as one operation.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_BEGINUNDOACTION, 0, 0);
+ SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
+ SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"456");
+ SendMessage(hWndEdit, AEM_ENDUNDOACTION, 0, 0);
+
+
+AEM_ENDUNDOACTION
+_________________
+
+End of a set of operations that will be undone all as one operation.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_BEGINUNDOACTION, 0, 0);
+ SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
+ SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"456");
+ SendMessage(hWndEdit, AEM_ENDUNDOACTION, 0, 0);
+
+
+AEM_LOCKCOLLECTUNDO
+___________________
+
+Stop collect undo/redo history.
+
+(BOOL)wParam == TRUE   stop collect
+                FALSE  start collect
+lParam       == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_EMPTYUNDOBUFFER, 0, 0);
+ SendMessage(hWndEdit, AEM_LOCKCOLLECTUNDO, TRUE, 0);
+ SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
+ SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"456");
+ SendMessage(hWndEdit, AEM_LOCKCOLLECTUNDO, FALSE, 0);
+
+
+AEM_GETUNDOLIMIT
+________________
+
+Get the maximum number of actions that can stored in the undo queue.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_GETUNDOLIMIT, 0, 0);
+
+
+AEM_SETUNDOLIMIT
+________________
+
+Set the maximum number of actions that can stored in the undo queue.
+
+(DWORD)wParam == maximum number of actions that can be stored in the undo queue. By default, the maximum number of actions in the undo queue is unlimited.
+lParam        == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETUNDOLIMIT, 100, 0);
+
+
+AEM_GETMODIFY
+_____________
+
+Retrieve the state of an edit control's modification flag.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_GETMODIFY, 0, 0);
+
+
+AEM_SETMODIFY
+_____________
+
+Set the state of an edit control's modification flag.
+
+(BOOL)wParam == TRUE   text has been modified.
+                FALSE  text has not been modified.
+lParam       == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETMODIFY, FALSE, 0);
+
+
+AEM_GETSEL
+__________
+
+Retrieve the current selection information of an edit control.
+
+(AECHARINDEX *)wParam == caret index, NULL if not needed.
+(AESELECTION *)lParam == pointer to a AESELECTION structure, NULL if not needed.
+
+Return Value
+ zero
+
+Example:
+ AESELECTION aes;
+ AECHARINDEX ciCaret;
+
+ SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)&ciCaret, (LPARAM)&aes);
+
+
+AEM_SETSEL
+__________
+
+Set the current selection of an edit control.
+
+(AECHARINDEX *)wParam == caret index, can be NULL.
+(AESELECTION *)lParam == pointer to a AESELECTION structure.
+
+Return Value
+ zero
+
+Example:
+ AESELECTION aes;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&aes.crSel.ciMin);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&aes.crSel.ciMax);
+ aes.bColumnSel=FALSE;
+ SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)&aes.crSel.ciMax, (LPARAM)&aes);
+
+
+AEM_GETCOLUMNSEL
+________________
+
+Retrieve the column mode of the current selection.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   selection is in column mode
+ FALSE  selection is in non-column mode
+
+Example:
+ SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
+
+
+AEM_UPDATESEL
+_____________
+
+Update current selection. Edit control sends AEN_SELCHANGE notification message.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_UPDATESEL, 0, 0);
+
+
+AEM_GETLINECOUNT
+________________
+
+Retrieve the number of lines in an edit control.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ The return value is an integer specifying the total number of text lines. If the control has no text, the return value is 1.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
+
+
+AEM_GETINDEX
+____________
+
+Retrieve the specified character index.
+
+(int)wParam           == see AEGI_* defines.
+(AECHARINDEX *)lParam == character index.
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ AECHARINDEX ciChar;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar);
+
+
+AEM_GETLINEINDEX
+________________
+
+Retrieve the first character index in the specified line.
+
+(int)wParam           == zero based line number.
+(AECHARINDEX *)lParam == character index.
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ AECHARINDEX ciChar;
+
+ SendMessage(hWndEdit, AEM_GETLINEINDEX, 10, (LPARAM)&ciChar);
+
+
+AEM_UPDATEINDEX
+_______________
+
+Update lpLine member of the AECHARINDEX structure, to avoid dangling of a pointer after text change.
+
+wParam                == not used.
+(AECHARINDEX *)lParam == character index.
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ AESELECTION aes;
+
+ SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&aes);
+ SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
+ SendMessage(hWndEdit, AEM_UPDATEINDEX, 0, (LPARAM)&aes.crSel.ciMin);
+ SendMessage(hWndEdit, AEM_UPDATEINDEX, 0, (LPARAM)&aes.crSel.ciMax);
+
+
+AEM_INDEXCOMPARE
+________________
+
+Compare two character indexes.
+
+(AECHARINDEX *)wParam == first character index.
+(AECHARINDEX *)lParam == second character index.
+
+Return Value
+ -1  first index is less than second index
+ 0   first index is equal to second index
+ 1   first index is greater than second index
+
+Example:
+ AESELECTION aes;
+
+ SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&aes);
+ SendMessage(hWndEdit, AEM_INDEXCOMPARE, (WPARAM)&aes.crSel.ciMin, (LPARAM)&aes.crSel.ciMax);
+
+For better performance instead of AEM_INDEXCOMPARE message:
+ int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
+ {
+   if (ciChar1->nLine == ciChar2->nLine &&
+       ciChar1->nCharInLine == ciChar2->nCharInLine)
+   {
+     return 0;
+   }
+   if ((ciChar1->nLine < ciChar2->nLine) ||
+       (ciChar1->nLine == ciChar2->nLine &&
+        ciChar1->nCharInLine < ciChar2->nCharInLine))
+   {
+     return -1;
+   }
+   return 1;
+ }
+
+
+AEM_INDEXSUBTRACT
+_________________
+
+Retrieve how many characters between two character indexes.
+
+wParam                    == not used.
+(AEINDEXSUBTRACT *)lParam == pointer to a AEINDEXSUBTRACT structure.
+
+Return Value
+ Number of characters.
+
+Example:
+ AEINDEXSUBTRACT is;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&is.ciChar1);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&is.ciChar2);
+ is.bColumnSel=FALSE;
+ is.nNewLine=AELB_ASIS;
+ SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&is);
+
+
+AEM_INDEXOFFSET
+_______________
+
+Retrieve the target character index at the specified offset from source character index.
+
+wParam                  == not used.
+(AEINDEXOFFSET *)lParam == pointer to a AEINDEXOFFSET structure.
+
+Return Value
+ Processed number of characters.
+
+Example:
+ AEINDEXOFFSET io;
+ AECHARINDEX ciCharIn;
+ AECHARINDEX ciCharOut;
+
+ //Get 10 character index of the edit control
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciCharIn);
+ io.ciCharIn=&ciCharIn;
+ io.ciCharOut=&ciCharOut;
+ io.nOffset=10;
+ io.nNewLine=AELB_R;
+ SendMessage(hWnd, AEM_INDEXOFFSET, 0, (LPARAM)&io);
+
+
+AEM_INDEXTORICHOFFSET
+_____________________
+
+Convert AkelEdit character index to RichEdit offset.
+
+wParam                == not used.
+(AECHARINDEX *)lParam == AkelEdit character index.
+
+Return Value
+ RichEdit offset.
+
+Example:
+ AECHARRANGE aecr;
+ CHARRANGE recr;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&aecr.ciMin);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTVISIBLELINE, (LPARAM)&aecr.ciMax);
+ recr.cpMin=SendMessage(hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecr.ciMin);
+ recr.cpMax=SendMessage(hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&aecr.ciMax);
+ SendMessage(hWndEdit, EM_EXSETSEL, 0, (LPARAM)&recr);
+
+
+AEM_RICHOFFSETTOINDEX
+_____________________
+
+Convert RichEdit offset to AkelEdit character index.
+
+(DWORD)wParam         == RichEdit offset.
+(AECHARINDEX *)lParam == AkelEdit character index.
+
+Return Value
+ zero
+
+Example:
+ AECHARRANGE aecr;
+ CHARRANGE recr;
+
+ SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&recr);
+ SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)recr.cpMin, (LPARAM)&aecr.ciMin);
+ SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)recr.cpMax, (LPARAM)&aecr.ciMax);
+*/
 
 #define AEM_CHARFROMPOS       (WM_USER + 2151)
 #define AEM_POSFROMCHAR       (WM_USER + 2152)

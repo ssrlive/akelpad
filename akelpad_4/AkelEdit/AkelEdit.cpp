@@ -8,7 +8,6 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <richedit.h>
 #include "AkelBuild.h"
 #include "Resources\resource.h"
 
@@ -400,7 +399,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_EMPTYUNDOBUFFER)
       {
+        if (!ae->lpSavePoint)
+        {
+          ae->lpSavePoint=NULL;
+          ae->bSavePointExist=FALSE;
+        }
         AE_StackRedoDeleteAll(ae, NULL);
+        ae->lpCurrentUndo=NULL;
         return 0;
       }
       if (uMsg == AEM_BEGINUNDOACTION)
@@ -903,7 +908,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_EMPTYUNDOBUFFER)
     {
+      if (!ae->lpSavePoint)
+      {
+        ae->lpSavePoint=NULL;
+        ae->bSavePointExist=FALSE;
+      }
       AE_StackRedoDeleteAll(ae, NULL);
+      ae->lpCurrentUndo=NULL;
       return 0;
     }
     if (uMsg == EM_STOPGROUPTYPING)
@@ -1783,6 +1794,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (GetFocus() != ae->hWndEdit)
             SetFocus(ae->hWndEdit);
+
+          //Timer
+          ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+          SetCapture(ae->hWndEdit);
+
           AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, bShift);
 
           //Redraw lines
@@ -1790,10 +1806,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             AE_RedrawLineRange(ae, ae->ciSelStartIndex.nLine, ae->ciSelEndIndex.nLine, FALSE);
           }
-
-          //Timer
-          ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-          SetCapture(ae->hWndEdit);
         }
       }
       //Two clicks
@@ -1801,6 +1813,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AECHARINDEX ciPrevWord;
         AECHARINDEX ciNextWord;
+
+        if (!ae->dwMouseMoveTimer)
+        {
+          //Timer
+          ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
+          SetCapture(ae->hWndEdit);
+        }
 
         if (!bControl)
         {
@@ -1820,6 +1839,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->ciLButtonStart=ciPrevWord;
         ae->ciLButtonEnd=ciNextWord;
         AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, TRUE);
+      }
+      //Three clicks
+      else if (ae->nLButtonDownCount == 2)
+      {
+        AECHARRANGE cr;
 
         if (!ae->dwMouseMoveTimer)
         {
@@ -1827,11 +1851,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
           SetCapture(ae->hWndEdit);
         }
-      }
-      //Three clicks
-      else if (ae->nLButtonDownCount == 2)
-      {
-        AECHARRANGE cr;
 
         cr.ciMin=ae->ciCaretIndex;
         cr.ciMax=ae->ciCaretIndex;
@@ -1843,13 +1862,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->ciLButtonStart=cr.ciMin;
         ae->ciLButtonEnd=cr.ciMax;
         AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, TRUE);
-
-        if (!ae->dwMouseMoveTimer)
-        {
-          //Timer
-          ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-          SetCapture(ae->hWndEdit);
-        }
       }
       return 0;
     }
@@ -2471,12 +2483,12 @@ LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes)
     //Send AEN_ERRSPACE
     if (ae)
     {
-      NMHDR hdr;
+      AENERRSPACE es;
 
-      hdr.hwndFrom=ae->hWndEdit;
-      hdr.idFrom=ae->nEditCtrlID;
-      hdr.code=AEN_ERRSPACE;
-      SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+      es.hdr.hwndFrom=ae->hWndEdit;
+      es.hdr.idFrom=ae->nEditCtrlID;
+      es.hdr.code=AEN_ERRSPACE;
+      SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&es);
     }
   }
   return lpResult;
@@ -8104,7 +8116,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
     if (dwFlags & AESF_SELECTION)
     {
       AE_StackUndoGroupStop(ae);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (dwFlags & AESF_COLUMNSEL), NULL, TRUE, FALSE, FALSE);
+      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, NULL, TRUE, FALSE, FALSE);
     }
     else AE_SetText(ae, L"", 0, nNewLine);
 
@@ -8115,7 +8127,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
       if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) break;
       if (!dwBufDone) break;
       dwResult+=dwBufDone;
-      AE_InsertText(ae, &ae->ciSelStartIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, (dwFlags & AESF_COLUMNSEL), NULL, NULL, (dwFlags & AESF_SELECTION), FALSE, FALSE);
+      AE_InsertText(ae, &ae->ciSelStartIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, aes->bColumnSel, NULL, NULL, (dwFlags & AESF_SELECTION), FALSE, FALSE);
     }
 
     if (dwFlags & AESF_SELECTION)
@@ -8167,7 +8179,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
   {
     while (ciCount.lpLine)
     {
-      if (dwFlags & AESF_COLUMNSEL)
+      if (aes->bColumnSel)
       {
         ciCount.nCharInLine=ciCount.lpLine->nSelStart;
 
@@ -9093,16 +9105,15 @@ void AE_EditSelectAll(AKELEDIT *ae)
 
 void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
 {
-  aes->crSel.ciMin=ae->ciSelStartIndex;
-  aes->crSel.ciMax=ae->ciSelEndIndex;
-  aes->bColumnSel=ae->bColumnSel;
-
+  if (aes)
+  {
+    aes->crSel.ciMin=ae->ciSelStartIndex;
+    aes->crSel.ciMax=ae->ciSelEndIndex;
+    aes->bColumnSel=ae->bColumnSel;
+  }
   if (lpciCaret)
   {
-    if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
-      *lpciCaret=aes->crSel.ciMax;
-    else
-      *lpciCaret=aes->crSel.ciMin;
+    *lpciCaret=ae->ciCaretIndex;
   }
 }
 
