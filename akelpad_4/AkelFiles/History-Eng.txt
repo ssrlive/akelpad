@@ -1,10 +1,11 @@
 
-AkelPad 4.0.0 beta 1 (Jul 01, 2008)
+AkelPad 4.0.0 beta 1 (Jul 03, 2008)
 -----------------------------------
 Changed: synchronized structures with AkelPad 3.x.x. Update yours plugins.
 Changed: backward compatibility with RichEdit is improved.
 Changed: more accurate scrolling, when the founded text is outside visibility.
 
+Added: URL highlighting.
 Added: processing triple mouse click, and also processing capture after double and triple
        mouse clicks.
 Added: Ctrl+Delete deletes right word, Ctrl+Backspace deletes left word.
