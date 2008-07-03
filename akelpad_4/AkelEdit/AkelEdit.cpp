@@ -768,6 +768,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ShowScrollBar(ae->hWndEdit, wParam, lParam);
         return 0;
       }
+      if (uMsg == AEM_DETECTURL)
+      {
+        ae->bDetectUrl=wParam;
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+        return 0;
+      }
     }
 
 
