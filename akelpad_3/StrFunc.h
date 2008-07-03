@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v3.0                     *
+ *              String functions header v3.1                     *
  *                                                               *
  * 2008 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -25,8 +25,8 @@ BOOL xstrstrA(char *pText, char *pStr, BOOL bSensitive, char **pStrBegin, char *
 BOOL xstrstrW(wchar_t *wpText, wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd);
 int xstrcmpA(const char *pString, const char *pString2, BOOL bSensitive);
 int xstrcmpW(const wchar_t *wpString, const wchar_t *wpString2, BOOL bSensitive);
-int xstrcmpnA(const char *pString, const char *pString2, int nMaxLength, BOOL bSensitive);
-int xstrcmpnW(const wchar_t *wpString, const wchar_t *wpString2, int nMaxLength, BOOL bSensitive);
+int xstrcmpnA(const char *pString, const char *pString2, DWORD dwMaxLength, BOOL bSensitive);
+int xstrcmpnW(const wchar_t *wpString, const wchar_t *wpString2, DWORD dwMaxLength, BOOL bSensitive);
 int FindWordStringA(char *pText, char *pDelim, BOOL bSensitive, char *pWord, int *nMaxWord, char **ppWord);
 int FindWordStringW(wchar_t *wpText, wchar_t *wpDelim, BOOL bSensitive, wchar_t *wpWord, int *nMaxWord, wchar_t **wppWord);
 
@@ -1223,7 +1223,7 @@ int xstrcmpW(const wchar_t *wpString, const wchar_t *wpString2, BOOL bSensitive)
  *
  *[in] char *pString      First string to compare
  *[in] char *pString2     Second string to compare
- *[in] int nMaxLength     Number of characters to compare,
+ *[in] DWORD dwMaxLength  Number of characters to compare,
  *                         -1 compare until NULL character in pString
  *[in] BOOL bSensitive    TRUE   case sensitive
  *                        FALSE  case insensitive
@@ -1235,18 +1235,18 @@ int xstrcmpW(const wchar_t *wpString, const wchar_t *wpString2, BOOL bSensitive)
 #ifdef xstrcmpnA
 #define xstrcmpnA_INCLUDED
 #undef xstrcmpnA
-int xstrcmpnA(const char *pString, const char *pString2, int nMaxLength, BOOL bSensitive)
+int xstrcmpnA(const char *pString, const char *pString2, DWORD dwMaxLength, BOOL bSensitive)
 {
   DWORD i;
 
   for (i=0;
-       i < (DWORD)nMaxLength && pString[i] &&
+       i < dwMaxLength && pString[i] &&
        ((bSensitive == TRUE && pString[i] == pString2[i]) ||
         (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pString[i]) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pString2[i])));
        ++i);
 
-  if (nMaxLength == -1 && !pString[i]) return 0;
-  if (i >= (DWORD)nMaxLength) return 0;
+  if (dwMaxLength == (DWORD)-1 && !pString[i]) return 0;
+  if (i >= dwMaxLength) return 0;
   if (pString[i] == pString2[i]) return 0;
   if (bSensitive == TRUE)
   {
@@ -1270,7 +1270,7 @@ int xstrcmpnA(const char *pString, const char *pString2, int nMaxLength, BOOL bS
  *
  *[in] wchar_t *wpString    First string to compare
  *[in] wchar_t *wpString2   Second string to compare
- *[in] int nMaxLength       Number of characters to compare,
+ *[in] DWORD dwMaxLength    Number of characters to compare,
  *                           -1 compare until NULL character in wpString
  *[in] BOOL bSensitive      TRUE   case sensitive
  *                          FALSE  case insensitive
@@ -1282,18 +1282,18 @@ int xstrcmpnA(const char *pString, const char *pString2, int nMaxLength, BOOL bS
 #ifdef xstrcmpnW
 #define xstrcmpnW_INCLUDED
 #undef xstrcmpnW
-int xstrcmpnW(const wchar_t *wpString, const wchar_t *wpString2, int nMaxLength, BOOL bSensitive)
+int xstrcmpnW(const wchar_t *wpString, const wchar_t *wpString2, DWORD dwMaxLength, BOOL bSensitive)
 {
   DWORD i;
 
   for (i=0;
-       i < (DWORD)nMaxLength && wpString[i] &&
+       i < dwMaxLength && wpString[i] &&
        ((bSensitive == TRUE && wpString[i] == wpString2[i]) ||
         (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpString[i]) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpString2[i])));
        ++i);
 
-  if (nMaxLength == -1 && !wpString[i]) return 0;
-  if (i >= (DWORD)nMaxLength) return 0;
+  if (dwMaxLength == (DWORD)-1 && !wpString[i]) return 0;
+  if (i >= dwMaxLength) return 0;
   if (wpString[i] == wpString2[i]) return 0;
   if (bSensitive == TRUE)
   {
