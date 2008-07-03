@@ -8,7 +8,6 @@
 #include "ConvFunc.h"
 #include "StackFunc.h"
 #include "StrFunc.h"
-#include "AkelFiles\Plugs\AkelDLL\AkelEdit.h"
 #include "AkelPad.h"
 #include "Edit.h"
 
@@ -433,6 +432,7 @@ extern "C" void _WinMain()
     aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
     aecColors.crActiveLineText=aecColors.crBasicText;
     aecColors.crActiveLineBk=aecColors.crBasicBk;
+    aecColors.crUrlText=RGB(0x00, 0x00, 0xFF);
     if (nDefaultCodePage == CP_UNICODE_UCS2_LE || nDefaultCodePage == CP_UNICODE_UCS2_BE || nDefaultCodePage == CP_UNICODE_UTF8)
       bDefaultBOM=TRUE;
     bCurrentBOM=bDefaultBOM;
@@ -844,6 +844,7 @@ extern "C" void _WinMain()
     aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
     aecColors.crActiveLineText=aecColors.crBasicText;
     aecColors.crActiveLineBk=aecColors.crBasicBk;
+    aecColors.crUrlText=RGB(0x00, 0x00, 0xFF);
     if (nDefaultCodePage == CP_UNICODE_UCS2_LE || nDefaultCodePage == CP_UNICODE_UCS2_BE || nDefaultCodePage == CP_UNICODE_UTF8)
       bDefaultBOM=TRUE;
     bCurrentBOM=bDefaultBOM;

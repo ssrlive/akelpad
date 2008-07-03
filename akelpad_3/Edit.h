@@ -397,6 +397,39 @@ typedef struct _SAVEDOCUMENTW {
   BOOL bUpdate;
 } SAVEDOCUMENTW;
 
+#ifndef __AKELEDIT_H__
+  #define AECLR_DEFAULT        0x00000001
+  #define AECLR_CARET          0x00000002
+  #define AECLR_BASICTEXT      0x00000004
+  #define AECLR_BASICBK        0x00000008
+  #define AECLR_SELTEXT        0x00000010
+  #define AECLR_SELBK          0x00000020
+  #define AECLR_ACTIVELINETEXT 0x00000040
+  #define AECLR_ACTIVELINEBK   0x00000080
+  #define AECLR_URLTEXT        0x00000100
+  
+  #define AECLR_ALL            (AECLR_CARET         |\
+                                AECLR_BASICTEXT     |\
+                                AECLR_BASICBK       |\
+                                AECLR_SELTEXT       |\
+                                AECLR_SELBK         |\
+                                AECLR_ACTIVELINETEXT|\
+                                AECLR_ACTIVELINEBK  |\
+                                AECLR_URLTEXT)
+
+  typedef struct {
+    DWORD dwFlags;
+    COLORREF crCaret;
+    COLORREF crBasicText;
+    COLORREF crBasicBk;
+    COLORREF crSelText;
+    COLORREF crSelBk;
+    COLORREF crActiveLineText;
+    COLORREF crActiveLineBk;
+    COLORREF crUrlText;
+  } AECOLORS;
+#endif
+
 typedef struct _WNDFRAMEA {
   HICON hIcon;
   char szFile[MAX_PATH];
