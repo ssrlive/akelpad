@@ -329,7 +329,7 @@ void CreateEditWindowA(HWND hWnd)
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontA(hWndEdit, &lfEditFontA, TRUE);
-  ShowURL(hWndEdit, bShowURL);
+  SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
   SetWindowTextA(hWndEdit, "");
 
   OldEditProc=(WNDPROC)GetWindowLongA(hWndEdit, GWL_WNDPROC);
@@ -367,7 +367,7 @@ void CreateEditWindowW(HWND hWnd)
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontW(hWndEdit, &lfEditFontW, TRUE);
-  ShowURL(hWndEdit, bShowURL);
+  SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
   SetWindowTextW(hWndEdit, L"");
 
   OldEditProc=(WNDPROC)GetWindowLongW(hWndEdit, GWL_WNDPROC);
@@ -15579,7 +15579,7 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (a != bShowURL)
       {
         bShowURL=a;
-        ShowURL(hWndEdit, bShowURL);
+        SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
       }
       if (SendMessage(hWndSingleClickURL, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nClickURL=1;
@@ -15679,7 +15679,7 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (a != bShowURL)
       {
         bShowURL=a;
-        ShowURL(hWndEdit, bShowURL);
+        SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
       }
       if (SendMessage(hWndSingleClickURL, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nClickURL=1;
@@ -16898,15 +16898,6 @@ BOOL SaveChangedW()
     else if (nChoice == IDCANCEL) return FALSE;
   }
   return TRUE;
-}
-
-void ShowURL(HWND hWnd, BOOL bShow)
-{
-  DWORD dwEventMask;
-
-  SendMessage(hWnd, EM_AUTOURLDETECT, bShow, 0);
-  dwEventMask=SendMessage(hWnd, EM_GETEVENTMASK, 0, 0);
-  SendMessage(hWnd, EM_SETEVENTMASK, 0, bShow?(dwEventMask | ENM_LINK):(dwEventMask & ~ENM_LINK));
 }
 
 BOOL FileExistsA(char *pFile)

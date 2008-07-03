@@ -1154,7 +1154,6 @@ BOOL GetFileWriteTimeW(wchar_t *wpFile, FILETIME *ft);
 BOOL IsReadOnly();
 BOOL SaveChangedA();
 BOOL SaveChangedW();
-void ShowURL(HWND hWnd, BOOL bShow);
 BOOL FileExistsA(char *pFile);
 BOOL FileExistsW(wchar_t *wpFile);
 int IsFileA(char *pFile);

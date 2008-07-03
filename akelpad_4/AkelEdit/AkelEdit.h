@@ -419,6 +419,7 @@ typedef struct {
 #define AEM_GETWRAPDELIMITERS (WM_USER + 2215)
 #define AEM_SETWRAPDELIMITERS (WM_USER + 2216)
 #define AEM_SHOWSCROLLBAR     (WM_USER + 2217)
+#define AEM_DETECTURL         (WM_USER + 2218)
 
 /*
 AEN_SELCHANGE
@@ -1850,6 +1851,22 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_BOTH, FALSE);
+
+
+AEM_DETECTURL
+_____________
+
+Enables or disables detection and highligthing of URLs by an edit control.
+
+(BOOL)wParam == TRUE   enable URL detection.
+                FALSE  disable URL detection.
+lParam       == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_DETECTURL, TRUE, 0);
 */
 
 #endif
