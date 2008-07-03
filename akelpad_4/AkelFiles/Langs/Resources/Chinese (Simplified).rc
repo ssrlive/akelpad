@@ -463,11 +463,11 @@ BEGIN
     LTEXT           "到：",IDC_STATIC,12,37,17,8
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 130
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Colors..."
-FONT 9, "宋体"
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Color theme:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
@@ -476,9 +476,9 @@ BEGIN
     PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,56
-    PUSHBUTTON      "OK",IDOK,123,108,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,108,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,217,65
+    PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
+    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -793,15 +793,19 @@ BEGIN
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*"
     STR_NONE                "无"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
-    STR_AUTODETECT_RUSSIAN  "Cyrillic (ANSI, OEM, KOI8-R, UTF-8)"
     STR_PLUGIN_FUNCTION     "插件::函数"
     STR_HOTKEY              "热键"
-    STR_STATUS              "状态"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "Cyrillic (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "状态"
     STR_RUNNING             "正在运行"
     STR_EXECUTABLE_FILTER   "可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*"
     STR_FONT                "字体"
@@ -809,6 +813,7 @@ BEGIN
     STR_TOP                 "上："
     STR_BOTTOM              "下："
     STR_ELEMENT             "Element"
+    STR_STANDARDTHEME       "Standard"
     STR_TEXT                "Text"
     STR_BACKGROUND          "Background"
     STR_SAMPLE              "Sample"
@@ -816,7 +821,11 @@ BEGIN
     STR_SELECTION           "Selection"
     STR_ACTIVELINE          "Active line"
     STR_CARET               "Caret"
-    STR_STANDARDTHEME       "Standard"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_URL                 "Hiperlink"
 END
 
 #endif    // Chinese (P.R.C.) resources

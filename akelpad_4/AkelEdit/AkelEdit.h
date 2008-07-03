@@ -16,6 +16,7 @@
 
 #define AES_WORDDELIMITERSW   L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
 #define AES_WRAPDELIMITERSW   L" \t\n"
+#define AES_URLDELIMITERSW    L" \t\n()<>'`\""
 
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
@@ -79,13 +80,16 @@
 #define AECLR_SELBK          0x00000020  //Sets background in selection color. crSelBk member is valid.
 #define AECLR_ACTIVELINETEXT 0x00000040  //Sets active line text color. crActiveLineText member is valid.
 #define AECLR_ACTIVELINEBK   0x00000080  //Sets active line background color. crActiveLineBk member is valid.
+#define AECLR_URLTEXT        0x00000100  //Sets hiperlink text color. crUrlText member is valid.
+
 #define AECLR_ALL            (AECLR_CARET         |\
                               AECLR_BASICTEXT     |\
                               AECLR_BASICBK       |\
                               AECLR_SELTEXT       |\
                               AECLR_SELBK         |\
                               AECLR_ACTIVELINETEXT|\
-                              AECLR_ACTIVELINEBK)
+                              AECLR_ACTIVELINEBK  |\
+                              AECLR_URLTEXT)
 
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
 #define AECS_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number
@@ -297,6 +301,7 @@ typedef struct {
   COLORREF crSelBk;          //Background color in selection
   COLORREF crActiveLineText; //Text color in active line
   COLORREF crActiveLineBk;   //Background color in active line
+  COLORREF crUrlText;        //Hiperlink text color
 } AECOLORS;
 
 typedef struct {

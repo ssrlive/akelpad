@@ -66,7 +66,7 @@ BEGIN
         MENUITEM "&Перайсці да радка...\tCtrl+G", IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
         MENUITEM "Уставіць &знак\tCtrl+I",      IDM_EDIT_INSERTCHAR
-        MENUITEM "Уставіць &дату\tCtrl+D",        IDM_EDIT_INSERTDATE
+        MENUITEM "Уставіць &дату\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "Вы&лучэнне"
         BEGIN
             MENUITEM "&Дадаць Tab\tTab",            IDM_EDIT_INSERT_TAB_MENU
@@ -468,7 +468,7 @@ BEGIN
     LTEXT           "У:",IDC_STATIC,12,37,150,8
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 130
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Цвета..."
@@ -481,9 +481,9 @@ BEGIN
     PUSHBUTTON      "Удалить",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,56
-    PUSHBUTTON      "OK",IDOK,123,108,50,14,BS_CENTER
-    PUSHBUTTON      "Отмена",IDCANCEL,176,108,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,217,65
+    PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
+    PUSHBUTTON      "Отмена",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -826,15 +826,19 @@ BEGIN
     STR_LANGUAGE_NONE       "Унутраная"
     STR_FILE_FILTER         "Тэкставыя файлы (*.txt)|*.txt|Усе файлы (*.*)|*.*"
     STR_NONE                "Не"
-    STR_AUTODETECT_ENGLISH  "Латиница (OEM, UTF-8)"
-    STR_AUTODETECT_RUSSIAN  "Кірыліца (ANSI, OEM, KOI8-R, UTF-8)"
     STR_PLUGIN_FUNCTION     "Плагін::Функцыя"
     STR_HOTKEY              "Гарачая клавіша"
-    STR_STATUS              "Статус"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "Кірыліца (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Латиница (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "Статус"
     STR_RUNNING             "Працуе"
     STR_EXECUTABLE_FILTER   "Выконваемыя файлы (*.exe)|*.exe|Усе файлы (*.*)|*.*"
     STR_FONT                "Шрыфт"
@@ -842,6 +846,7 @@ BEGIN
     STR_TOP                 "Верхні:"
     STR_BOTTOM              "Ніжні:"
     STR_ELEMENT             "Элемент"
+    STR_STANDARDTHEME       "Стандартная"
     STR_TEXT                "Текст"
     STR_BACKGROUND          "Фон"
     STR_SAMPLE              "Образец"
@@ -849,7 +854,11 @@ BEGIN
     STR_SELECTION           "Выделение"
     STR_ACTIVELINE          "Активная строка"
     STR_CARET               "Каретка"
-    STR_STANDARDTHEME       "Стандартная"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_URL                 "Ссылка"
 END
 
 #endif    // Unknown language: 0x23, 0x1 resources

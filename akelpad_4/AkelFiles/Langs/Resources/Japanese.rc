@@ -66,7 +66,7 @@ BEGIN
         MENUITEM "行へ移動(&G)...\tCtrl+G",     IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
         MENUITEM "文字の挿入(&H)\tCtrl+I",      IDM_EDIT_INSERTCHAR
-        MENUITEM "日付の挿入(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
+        MENUITEM "日付の挿入(&T)\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "選択範囲(&S)"
         BEGIN
             MENUITEM "Tab インデント(&B)\tTab",     IDM_EDIT_INSERT_TAB_MENU
@@ -143,7 +143,7 @@ BEGIN
             MENUITEM "上(&T)",                      IDM_WINDOW_TABVIEW_TOP
             MENUITEM "下(&B)",                      IDM_WINDOW_TABVIEW_BOTTOM
 
-            MENUITEM "非表示にする(&H)",                  IDM_WINDOW_TABVIEW_NONE
+            MENUITEM "非表示にする(&H)",            IDM_WINDOW_TABVIEW_NONE
             MENUITEM SEPARATOR
             MENUITEM "標準(&S)",                    IDM_WINDOW_TABTYPE_STANDARD
 
@@ -469,11 +469,11 @@ BEGIN
     LTEXT           "先:",IDC_STATIC,12,37,150,8
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 130
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Colors..."
-FONT 9, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Color theme:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
@@ -482,9 +482,9 @@ BEGIN
     PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,56
-    PUSHBUTTON      "OK",IDOK,123,108,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,108,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,217,65
+    PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
+    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -807,15 +807,19 @@ BEGIN
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "テキスト ファイル (*.txt)|*.txt|すべてのファイル (*.*)|*.*"
     STR_NONE                "なし"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
-    STR_AUTODETECT_RUSSIAN  "キリル言語 (ANSI, OEM, KOI8-R, UTF-8)"
     STR_PLUGIN_FUNCTION     "プラグイン::関数"
     STR_HOTKEY              "ホットキー"
-    STR_STATUS              "状態"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "キリル言語 (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "状態"
     STR_RUNNING             "起動"
     STR_EXECUTABLE_FILTER   "実行ファイル (*.exe)|*.exe|すべてのファイル (*.*)|*.*"
     STR_FONT                "フォント"
@@ -823,6 +827,7 @@ BEGIN
     STR_TOP                 "上:"
     STR_BOTTOM              "下:"
     STR_ELEMENT             "Element"
+    STR_STANDARDTHEME       "Standard"
     STR_TEXT                "Text"
     STR_BACKGROUND          "Background"
     STR_SAMPLE              "Sample"
@@ -830,7 +835,11 @@ BEGIN
     STR_SELECTION           "Selection"
     STR_ACTIVELINE          "Active line"
     STR_CARET               "Caret"
-    STR_STANDARDTHEME       "Standard"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_URL                 "Hiperlink"
 END
 
 #endif    // Japanese resources

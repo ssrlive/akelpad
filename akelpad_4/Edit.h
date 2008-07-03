@@ -254,6 +254,7 @@
 #define LVI_COLOR_SELECTION    1
 #define LVI_COLOR_ACTIVELINE   2
 #define LVI_COLOR_CARET        3
+#define LVI_COLOR_URL          4
 
 #define LVSI_COLOR_ELEMENT     0
 #define LVSI_COLOR_TEXT        1

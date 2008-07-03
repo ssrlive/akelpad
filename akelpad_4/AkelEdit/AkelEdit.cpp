@@ -157,6 +157,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
       ae->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
       ae->crActiveLineBk=GetSysColor(COLOR_WINDOW);
+      ae->crUrlText=RGB(0x00, 0x00, 0xFF);
       ae->hBasicBk=CreateSolidBrush(ae->crBasicBk);
       ae->hSelBk=CreateSolidBrush(ae->crSelBk);
       ae->hActiveLineBk=CreateSolidBrush(ae->crActiveLineBk);
@@ -1240,7 +1241,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             nBorderX=GetSystemMetrics(SM_CXBORDER);
             nBorderY=GetSystemMetrics(SM_CYBORDER);
-  
+
             rcDraw.left=lprcDraw->left - nBorderX;
             rcDraw.top=lprcDraw->top - nBorderY;
             rcDraw.right=lprcDraw->right + nBorderX;
@@ -1293,6 +1294,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else aec.dwFlags|=AECLR_DEFAULT;
 
       AE_SetColors(ae, &aec);
+      return 0;
+    }
+    if (uMsg == EM_AUTOURLDETECT)
+    {
+      ae->bDetectUrl=wParam;
+      InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
       return 0;
     }
 
@@ -2091,334 +2098,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_PAINT)
     {
-      PAINTSTRUCT ps;
-
-      if (GetUpdateRect(ae->hWndEdit, &ae->rcErase, FALSE))
-      {
-        if (BeginPaint(ae->hWndEdit, &ps))
-        {
-          HRGN hDrawRgn;
-          AECHARINDEX ciDrawLine;
-          RECT rcDraw;
-          POINT ptDraw;
-          SIZE sizeLine;
-          RECT rcSpace;
-          wchar_t *wpLine;
-          int nLineSelection;
-          int nLineLen;
-          int nLineWidth;
-          DWORD dwColorBG;
-          DWORD dwColorText;
-          HBRUSH hbrBG;
-          int nMaxDrawCharsCount;
-          int nTabWidth;
-          int i;
-
-          //Set region
-          hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
-          if (hDrawRgn) SelectObject(ps.hdc, hDrawRgn);
-
-          //Set font
-          if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
-
-          rcDraw=ps.rcPaint;
-          if (rcDraw.top + ae->nCharHeight <= ae->rcDraw.top)
-            rcDraw.top=ae->rcDraw.top;
-          if (rcDraw.bottom > ae->rcDraw.bottom)
-            rcDraw.bottom=ae->rcDraw.bottom;
-
-          if (rcDraw.right > ae->rcDraw.left &&
-              rcDraw.bottom > ae->rcDraw.top)
-          {
-            ciDrawLine.nLine=(ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top)) / ae->nCharHeight;
-            ciDrawLine.lpLine=AE_GetLineData(ae, ciDrawLine.nLine);
-            ciDrawLine.nCharInLine=0;
-            ptDraw.y=(ciDrawLine.nLine * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
-
-            if (ciDrawLine.lpLine)
-            {
-              ae->nFirstDrawLineOffset=AE_AkelIndexToRichOffset(ae, &ciDrawLine);
-              ae->liFirstDrawLine.nLine=ciDrawLine.nLine;
-              ae->liFirstDrawLine.lpLine=ciDrawLine.lpLine;
-            }
-          }
-          else ciDrawLine.lpLine=NULL;
-
-          while (ciDrawLine.lpLine)
-          {
-            //Draw line
-            ptDraw.x=ae->rcDraw.left - ae->nHScrollPos;
-            nLineWidth=0;
-            nMaxDrawCharsCount=0;
-            wpLine=ciDrawLine.lpLine->wpLine;
-
-            if (ciDrawLine.lpLine->nSelStart == 0 && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen)
-            {
-              nLineSelection=AELS_FULL;
-              dwColorText=ae->crSelText;
-              dwColorBG=ae->crSelBk;
-              hbrBG=ae->hSelBk;
-            }
-            else if (ciDrawLine.lpLine->nSelStart == ciDrawLine.lpLine->nSelEnd)
-            {
-              nLineSelection=AELS_EMPTY;
-
-              if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-              {
-                dwColorText=ae->crActiveLineText;
-                dwColorBG=ae->crActiveLineBk;
-                hbrBG=ae->hActiveLineBk;
-              }
-              else
-              {
-                dwColorText=ae->crBasicText;
-                dwColorBG=ae->crBasicBk;
-                hbrBG=ae->hBasicBk;
-              }
-            }
-            else
-            {
-              nLineSelection=AELS_PARTLY;
-
-              if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-              {
-                dwColorText=ae->crActiveLineText;
-                dwColorBG=ae->crActiveLineBk;
-                hbrBG=ae->hActiveLineBk;
-              }
-              else
-              {
-                dwColorText=ae->crBasicText;
-                dwColorBG=ae->crBasicBk;
-                hbrBG=ae->hBasicBk;
-              }
-            }
-
-            for (i=0; i < ciDrawLine.lpLine->nLineLen; ++i)
-            {
-              if (nLineSelection == AELS_PARTLY)
-              {
-                if (ciDrawLine.lpLine->nSelStart == i)
-                {
-                  SetTextColor(ps.hdc, dwColorText);
-                  SetBkColor(ps.hdc, dwColorBG);
-                  nLineLen=i - (wpLine - ciDrawLine.lpLine->wpLine);
-
-                  if (nLineLen)
-                  {
-                    if (AE_GetTextExtentPoint32(ae, wpLine, nLineLen, &sizeLine))
-                    {
-                      if (ptDraw.x + nLineWidth + sizeLine.cx > ae->rcDraw.left && ptDraw.x + nLineWidth < ae->rcDraw.right)
-                        TextOutW(ps.hdc, ptDraw.x + nLineWidth, ptDraw.y, wpLine, nLineLen);
-                      nLineWidth+=sizeLine.cx;
-                      wpLine+=nLineLen;
-                    }
-                  }
-                  nMaxDrawCharsCount=0;
-                  dwColorText=ae->crSelText;
-                  dwColorBG=ae->crSelBk;
-                  hbrBG=ae->hSelBk;
-                }
-                else if (ciDrawLine.lpLine->nSelEnd == i)
-                {
-                  SetTextColor(ps.hdc, dwColorText);
-                  SetBkColor(ps.hdc, dwColorBG);
-                  nLineLen=i - (wpLine - ciDrawLine.lpLine->wpLine);
-
-                  if (nLineLen)
-                  {
-                    if (AE_GetTextExtentPoint32(ae, wpLine, nLineLen, &sizeLine))
-                    {
-                      if (ptDraw.x + nLineWidth + sizeLine.cx > ae->rcDraw.left && ptDraw.x + nLineWidth < ae->rcDraw.right)
-                        TextOutW(ps.hdc, ptDraw.x + nLineWidth, ptDraw.y, wpLine, nLineLen);
-                      nLineWidth+=sizeLine.cx;
-                      wpLine+=nLineLen;
-                    }
-                  }
-                  nMaxDrawCharsCount=0;
-
-                  if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-                  {
-                    dwColorText=ae->crActiveLineText;
-                    dwColorBG=ae->crActiveLineBk;
-                    hbrBG=ae->hActiveLineBk;
-                  }
-                  else
-                  {
-                    dwColorText=ae->crBasicText;
-                    dwColorBG=ae->crBasicBk;
-                    hbrBG=ae->hBasicBk;
-                  }
-                }
-              }
-
-              if (ciDrawLine.lpLine->wpLine[i] == L'\t')
-              {
-                nLineLen=i - (wpLine - ciDrawLine.lpLine->wpLine);
-
-                if (nLineLen)
-                {
-                  if (AE_GetTextExtentPoint32(ae, wpLine, nLineLen, &sizeLine))
-                  {
-                    if (ptDraw.x + nLineWidth + sizeLine.cx > ae->rcDraw.left && ptDraw.x + nLineWidth < ae->rcDraw.right)
-                    {
-                      SetTextColor(ps.hdc, dwColorText);
-                      SetBkColor(ps.hdc, dwColorBG);
-                      TextOutW(ps.hdc, ptDraw.x + nLineWidth, ptDraw.y, wpLine, nLineLen);
-                    }
-                    nLineWidth+=sizeLine.cx;
-                    wpLine+=nLineLen;
-                  }
-                }
-                nMaxDrawCharsCount=0;
-
-                nTabWidth=ae->nTabWidth - nLineWidth % ae->nTabWidth;
-                rcSpace.left=ptDraw.x + nLineWidth;
-                rcSpace.top=ptDraw.y;
-                rcSpace.right=rcSpace.left + nTabWidth;
-                rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-                FillRect(ps.hdc, &rcSpace, hbrBG);
-                nLineWidth+=nTabWidth;
-                wpLine+=1;
-              }
-
-              if (nMaxDrawCharsCount == 2048)
-              {
-                nLineLen=i - (wpLine - ciDrawLine.lpLine->wpLine);
-
-                if (nLineLen)
-                {
-                  if (AE_GetTextExtentPoint32(ae, wpLine, nLineLen, &sizeLine))
-                  {
-                    if (ptDraw.x + nLineWidth + sizeLine.cx > ae->rcDraw.left && ptDraw.x + nLineWidth < ae->rcDraw.right)
-                    {
-                      SetTextColor(ps.hdc, dwColorText);
-                      SetBkColor(ps.hdc, dwColorBG);
-                      TextOutW(ps.hdc, ptDraw.x + nLineWidth, ptDraw.y, wpLine, nLineLen);
-                    }
-                    nLineWidth+=sizeLine.cx;
-                    wpLine+=nLineLen;
-                  }
-                }
-                nMaxDrawCharsCount=0;
-              }
-              ++nMaxDrawCharsCount;
-            }
-
-            SetTextColor(ps.hdc, dwColorText);
-            SetBkColor(ps.hdc, dwColorBG);
-            nLineLen=i - (wpLine - ciDrawLine.lpLine->wpLine);
-
-            if (nLineLen)
-            {
-              if (AE_GetTextExtentPoint32(ae, wpLine, nLineLen, &sizeLine))
-              {
-                if (ptDraw.x + nLineWidth + sizeLine.cx > ae->rcDraw.left && ptDraw.x + nLineWidth < ae->rcDraw.right)
-                  TextOutW(ps.hdc, ptDraw.x + nLineWidth, ptDraw.y, wpLine, nLineLen);
-                nLineWidth+=sizeLine.cx;
-                wpLine+=nLineLen;
-              }
-            }
-
-            if (ae->bColumnSel)
-            {
-              if (nLineSelection == AELS_PARTLY)
-              {
-                nLineLen=ciDrawLine.lpLine->nLineLen;
-
-                if (ciDrawLine.lpLine->nSelStart >= ciDrawLine.lpLine->nLineLen)
-                {
-                  if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-                  {
-                    dwColorText=ae->crActiveLineText;
-                    dwColorBG=ae->crActiveLineBk;
-                    hbrBG=ae->hActiveLineBk;
-                  }
-                  else
-                  {
-                    dwColorText=ae->crBasicText;
-                    dwColorBG=ae->crBasicBk;
-                    hbrBG=ae->hBasicBk;
-                  }
-                  sizeLine.cx=(ciDrawLine.lpLine->nSelStart - nLineLen) * ae->nSpaceCharWidth;
-
-                  rcSpace.left=ptDraw.x + nLineWidth;
-                  rcSpace.top=ptDraw.y;
-                  rcSpace.right=rcSpace.left + sizeLine.cx;
-                  rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-                  FillRect(ps.hdc, &rcSpace, hbrBG);
-                  nLineWidth+=sizeLine.cx;
-                  nLineLen+=(ciDrawLine.lpLine->nSelStart - nLineLen);
-                }
-                if (ciDrawLine.lpLine->nSelEnd > ciDrawLine.lpLine->nLineLen)
-                {
-                  dwColorText=ae->crSelText;
-                  dwColorBG=ae->crSelBk;
-                  hbrBG=ae->hSelBk;
-                  sizeLine.cx=(ciDrawLine.lpLine->nSelEnd - nLineLen) * ae->nSpaceCharWidth;
-
-                  rcSpace.left=ptDraw.x + nLineWidth;
-                  rcSpace.top=ptDraw.y;
-                  rcSpace.right=rcSpace.left + sizeLine.cx;
-                  rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-                  FillRect(ps.hdc, &rcSpace, hbrBG);
-                  nLineWidth+=sizeLine.cx;
-                  nLineLen+=(ciDrawLine.lpLine->nSelEnd - nLineLen);
-                }
-              }
-            }
-            else
-            {
-              //Select new line space
-              if (ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
-                  ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
-              {
-//                if (ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
-                {
-                  hbrBG=ae->hSelBk;
-
-                  rcSpace.left=ptDraw.x + nLineWidth;
-                  rcSpace.top=ptDraw.y;
-                  rcSpace.right=rcSpace.left + ae->nAveCharWidth;
-                  rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-                  FillRect(ps.hdc, &rcSpace, hbrBG);
-                  nLineWidth+=ae->nAveCharWidth;
-                  nLineLen+=1;
-                }
-              }
-            }
-
-            if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-            {
-              dwColorText=ae->crActiveLineText;
-              dwColorBG=ae->crActiveLineBk;
-              hbrBG=ae->hActiveLineBk;
-            }
-            else
-            {
-              dwColorText=ae->crBasicText;
-              dwColorBG=ae->crBasicBk;
-              hbrBG=ae->hBasicBk;
-            }
-            rcSpace.left=ptDraw.x + nLineWidth;
-            rcSpace.top=ptDraw.y;
-            rcSpace.right=ae->rcDraw.right;
-            rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-            if (rcSpace.left < rcSpace.right)
-              FillRect(ps.hdc, &rcSpace, hbrBG);
-
-            ptDraw.y+=ae->nCharHeight;
-            if (ptDraw.y >= rcDraw.bottom)
-              break;
-
-            ++ciDrawLine.nLine;
-
-            ciDrawLine.lpLine=ciDrawLine.lpLine->next;
-          }
-          if (hDrawRgn) DeleteObject(hDrawRgn);
-          EndPaint(ae->hWndEdit, &ps);
-        }
-      }
+      AE_Paint(ae);
       return 0;
     }
     else if (uMsg == WM_DESTROY)
@@ -2430,6 +2110,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (ae->hDC)
       {
+        if (ae->hFontUrl)
+        {
+          DeleteObject(ae->hFontUrl);
+          ae->hFontUrl=NULL;
+        }
         if (ae->hBasicBk)
         {
           DeleteObject(ae->hBasicBk);
@@ -4406,6 +4091,12 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
   ae->lfEditA.lfHeight=-mod(ae->lfEditA.lfHeight);
   ae->lfEditA.lfWidth=0;
 
+  //Create URL font
+  if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
+  AE_memcpy(&ae->lfEditUrlA, &ae->lfEditA, sizeof(LOGFONTA));
+  ae->lfEditUrlA.lfUnderline=TRUE;
+  ae->hFontUrl=(HFONT)CreateFontIndirectA(&ae->lfEditUrlA);
+
   GetTextMetricsA(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
   ae->bFixedCharWidth=!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH);
@@ -4440,6 +4131,12 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
 
   ae->lfEditW.lfHeight=-mod(ae->lfEditW.lfHeight);
   ae->lfEditW.lfWidth=0;
+
+  //Create URL font
+  if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
+  AE_memcpy(&ae->lfEditUrlW, &ae->lfEditW, sizeof(LOGFONTW));
+  ae->lfEditUrlW.lfUnderline=TRUE;
+  ae->hFontUrl=(HFONT)CreateFontIndirectW(&ae->lfEditUrlW);
 
   GetTextMetricsW(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
@@ -5335,6 +5032,366 @@ int AE_VScrollLine(AKELEDIT *ae, int nLine)
   si.nPos=(si.nPos / ae->nCharHeight) * ae->nCharHeight;
 
   return AE_ScrollEditWindow(ae, SB_VERT, si.nPos);
+}
+
+void AE_Paint(AKELEDIT *ae)
+{
+  PAINTSTRUCT ps;
+
+  if (GetUpdateRect(ae->hWndEdit, &ae->rcErase, FALSE))
+  {
+    if (BeginPaint(ae->hWndEdit, &ps))
+    {
+      AECHARRANGE crLink={0};
+      AECHARINDEX ciDrawLine;
+      RECT rcDraw;
+      POINT ptDraw;
+      SIZE sizeLine;
+      RECT rcSpace;
+      wchar_t *wpLine;
+      int nLineSelection;
+      int nLineLen;
+      int nLineWidth;
+      DWORD dwColorBG;
+      DWORD dwColorText;
+      HRGN hDrawRgn;
+      HBRUSH hbrBG;
+      int nMaxDrawCharsCount;
+      int nTabWidth;
+
+      //Set region
+      hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
+      if (hDrawRgn) SelectObject(ps.hdc, hDrawRgn);
+
+      //Set font
+      if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
+
+      rcDraw=ps.rcPaint;
+      if (rcDraw.top + ae->nCharHeight <= ae->rcDraw.top)
+        rcDraw.top=ae->rcDraw.top;
+      if (rcDraw.bottom > ae->rcDraw.bottom)
+        rcDraw.bottom=ae->rcDraw.bottom;
+
+      if (rcDraw.right > ae->rcDraw.left &&
+          rcDraw.bottom > ae->rcDraw.top)
+      {
+        ciDrawLine.nLine=(ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top)) / ae->nCharHeight;
+        ciDrawLine.lpLine=AE_GetLineData(ae, ciDrawLine.nLine);
+        ciDrawLine.nCharInLine=0;
+        ptDraw.y=(ciDrawLine.nLine * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
+
+        if (ciDrawLine.lpLine)
+        {
+          ae->nFirstDrawLineOffset=AE_AkelIndexToRichOffset(ae, &ciDrawLine);
+          ae->liFirstDrawLine.nLine=ciDrawLine.nLine;
+          ae->liFirstDrawLine.lpLine=ciDrawLine.lpLine;
+        }
+      }
+      else ciDrawLine.lpLine=NULL;
+
+      while (ciDrawLine.lpLine)
+      {
+        //Draw line
+        ptDraw.x=ae->rcDraw.left - ae->nHScrollPos;
+        nLineWidth=0;
+        nMaxDrawCharsCount=0;
+        wpLine=ciDrawLine.lpLine->wpLine;
+
+        if (ciDrawLine.lpLine->nSelStart == 0 && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen)
+        {
+          nLineSelection=AELS_FULL;
+          dwColorText=ae->crSelText;
+          dwColorBG=ae->crSelBk;
+          hbrBG=ae->hSelBk;
+        }
+        else if (ciDrawLine.lpLine->nSelStart == ciDrawLine.lpLine->nSelEnd)
+        {
+          nLineSelection=AELS_EMPTY;
+
+          if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+          {
+            dwColorText=ae->crActiveLineText;
+            dwColorBG=ae->crActiveLineBk;
+            hbrBG=ae->hActiveLineBk;
+          }
+          else
+          {
+            dwColorText=ae->crBasicText;
+            dwColorBG=ae->crBasicBk;
+            hbrBG=ae->hBasicBk;
+          }
+        }
+        else
+        {
+          nLineSelection=AELS_PARTLY;
+
+          if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+          {
+            dwColorText=ae->crActiveLineText;
+            dwColorBG=ae->crActiveLineBk;
+            hbrBG=ae->hActiveLineBk;
+          }
+          else
+          {
+            dwColorText=ae->crBasicText;
+            dwColorBG=ae->crBasicBk;
+            hbrBG=ae->hBasicBk;
+          }
+        }
+
+        for (ciDrawLine.nCharInLine=0; ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nLineLen; ++ciDrawLine.nCharInLine)
+        {
+          if (ae->bDetectUrl)
+          {
+            //Detect URL
+            if (!crLink.ciMin.lpLine || !crLink.ciMax.lpLine)
+            {
+              wchar_t *lpPrefixes[]={L"http:", L"https:", L"ftp:", L"file:", L"mailto:", NULL};
+              int i=0;
+
+              for (i=0; lpPrefixes[i]; ++i)
+              {
+                if (!AE_WideStrCmpLenI(lpPrefixes[i], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
+                {
+                  crLink.ciMin=ciDrawLine;
+                  crLink.ciMax=ciDrawLine;
+
+                  while (crLink.ciMax.nCharInLine < crLink.ciMax.lpLine->nLineLen)
+                  {
+                    if (AE_IsInDelimiterList(AES_URLDELIMITERSW, crLink.ciMax.lpLine->wpLine[crLink.ciMax.nCharInLine]))
+                      break;
+
+                    ++crLink.ciMax.nCharInLine;
+                  }
+
+                  //Draw text before URL
+                  SetTextColor(ps.hdc, dwColorText);
+                  SetBkColor(ps.hdc, dwColorBG);
+                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+                  nMaxDrawCharsCount=0;
+                  break;
+                }
+              }
+            }
+
+            //Highlight URL
+            if (crLink.ciMin.lpLine && crLink.ciMax.lpLine)
+            {
+              if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
+              {
+                if (AE_IndexCompare(&crLink.ciMin, &ciDrawLine) < 0)
+                {
+                  //Draw URL before selection start
+                  if (ae->hFontUrl) SelectObject(ps.hdc, ae->hFontUrl);
+                  SetTextColor(ps.hdc, ae->crUrlText);
+                  SetBkColor(ps.hdc, dwColorBG);
+                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+                  nMaxDrawCharsCount=0;
+                  if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
+                }
+              }
+              if (AE_IndexCompare(&crLink.ciMax, &ciDrawLine) == 0)
+              {
+                if (crLink.ciMax.nCharInLine <= ciDrawLine.lpLine->nSelStart || crLink.ciMax.nCharInLine > ciDrawLine.lpLine->nSelEnd)
+                {
+                  //Draw full URL or last part of it
+                  if (ae->hFontUrl) SelectObject(ps.hdc, ae->hFontUrl);
+                  SetTextColor(ps.hdc, ae->crUrlText);
+                  SetBkColor(ps.hdc, dwColorBG);
+                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+                  nMaxDrawCharsCount=0;
+                  if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
+                }
+                crLink.ciMin.lpLine=NULL;
+                crLink.ciMax.lpLine=NULL;
+              }
+            }
+          }
+          if (ciDrawLine.nCharInLine == ciDrawLine.lpLine->nLineLen) break;
+
+          if (nLineSelection == AELS_PARTLY)
+          {
+            if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
+            {
+              SetTextColor(ps.hdc, dwColorText);
+              SetBkColor(ps.hdc, dwColorBG);
+              AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+              nMaxDrawCharsCount=0;
+
+              dwColorText=ae->crSelText;
+              dwColorBG=ae->crSelBk;
+              hbrBG=ae->hSelBk;
+            }
+            else if (ciDrawLine.lpLine->nSelEnd == ciDrawLine.nCharInLine)
+            {
+              SetTextColor(ps.hdc, dwColorText);
+              SetBkColor(ps.hdc, dwColorBG);
+              AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+              nMaxDrawCharsCount=0;
+
+              if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+              {
+                dwColorText=ae->crActiveLineText;
+                dwColorBG=ae->crActiveLineBk;
+                hbrBG=ae->hActiveLineBk;
+              }
+              else
+              {
+                dwColorText=ae->crBasicText;
+                dwColorBG=ae->crBasicBk;
+                hbrBG=ae->hBasicBk;
+              }
+            }
+          }
+
+          if (ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine] == L'\t')
+          {
+            SetTextColor(ps.hdc, dwColorText);
+            SetBkColor(ps.hdc, dwColorBG);
+            AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+            nMaxDrawCharsCount=0;
+
+            nTabWidth=ae->nTabWidth - nLineWidth % ae->nTabWidth;
+            rcSpace.left=ptDraw.x + nLineWidth;
+            rcSpace.top=ptDraw.y;
+            rcSpace.right=rcSpace.left + nTabWidth;
+            rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+            FillRect(ps.hdc, &rcSpace, hbrBG);
+            nLineWidth+=nTabWidth;
+            wpLine+=1;
+          }
+
+          if (nMaxDrawCharsCount >= 2048)
+          {
+            SetTextColor(ps.hdc, dwColorText);
+            SetBkColor(ps.hdc, dwColorBG);
+            AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+            nMaxDrawCharsCount=0;
+            continue;
+          }
+          ++nMaxDrawCharsCount;
+        }
+
+        SetTextColor(ps.hdc, dwColorText);
+        SetBkColor(ps.hdc, dwColorBG);
+        AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+
+        if (ae->bColumnSel)
+        {
+          if (nLineSelection == AELS_PARTLY)
+          {
+            nLineLen=ciDrawLine.lpLine->nLineLen;
+
+            if (ciDrawLine.lpLine->nSelStart >= ciDrawLine.lpLine->nLineLen)
+            {
+              if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+              {
+                dwColorText=ae->crActiveLineText;
+                dwColorBG=ae->crActiveLineBk;
+                hbrBG=ae->hActiveLineBk;
+              }
+              else
+              {
+                dwColorText=ae->crBasicText;
+                dwColorBG=ae->crBasicBk;
+                hbrBG=ae->hBasicBk;
+              }
+              sizeLine.cx=(ciDrawLine.lpLine->nSelStart - nLineLen) * ae->nSpaceCharWidth;
+
+              rcSpace.left=ptDraw.x + nLineWidth;
+              rcSpace.top=ptDraw.y;
+              rcSpace.right=rcSpace.left + sizeLine.cx;
+              rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+              FillRect(ps.hdc, &rcSpace, hbrBG);
+              nLineWidth+=sizeLine.cx;
+              nLineLen+=(ciDrawLine.lpLine->nSelStart - nLineLen);
+            }
+            if (ciDrawLine.lpLine->nSelEnd > ciDrawLine.lpLine->nLineLen)
+            {
+              dwColorText=ae->crSelText;
+              dwColorBG=ae->crSelBk;
+              hbrBG=ae->hSelBk;
+              sizeLine.cx=(ciDrawLine.lpLine->nSelEnd - nLineLen) * ae->nSpaceCharWidth;
+
+              rcSpace.left=ptDraw.x + nLineWidth;
+              rcSpace.top=ptDraw.y;
+              rcSpace.right=rcSpace.left + sizeLine.cx;
+              rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+              FillRect(ps.hdc, &rcSpace, hbrBG);
+              nLineWidth+=sizeLine.cx;
+              nLineLen+=(ciDrawLine.lpLine->nSelEnd - nLineLen);
+            }
+          }
+        }
+        else
+        {
+          //Select new line space
+          if (ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
+              ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
+          {
+//          if (ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+            {
+              hbrBG=ae->hSelBk;
+
+              rcSpace.left=ptDraw.x + nLineWidth;
+              rcSpace.top=ptDraw.y;
+              rcSpace.right=rcSpace.left + ae->nAveCharWidth;
+              rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+              FillRect(ps.hdc, &rcSpace, hbrBG);
+              nLineWidth+=ae->nAveCharWidth;
+              nLineLen+=1;
+            }
+          }
+        }
+
+        if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+        {
+          dwColorText=ae->crActiveLineText;
+          dwColorBG=ae->crActiveLineBk;
+          hbrBG=ae->hActiveLineBk;
+        }
+        else
+        {
+          dwColorText=ae->crBasicText;
+          dwColorBG=ae->crBasicBk;
+          hbrBG=ae->hBasicBk;
+        }
+        rcSpace.left=ptDraw.x + nLineWidth;
+        rcSpace.top=ptDraw.y;
+        rcSpace.right=ae->rcDraw.right;
+        rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+        if (rcSpace.left < rcSpace.right)
+          FillRect(ps.hdc, &rcSpace, hbrBG);
+
+        ptDraw.y+=ae->nCharHeight;
+        if (ptDraw.y >= rcDraw.bottom)
+          break;
+
+        ++ciDrawLine.nLine;
+        ciDrawLine.lpLine=ciDrawLine.lpLine->next;
+        ciDrawLine.nCharInLine=0;
+      }
+      if (hDrawRgn) DeleteObject(hDrawRgn);
+      EndPaint(ae->hWndEdit, &ps);
+    }
+  }
+}
+
+void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, POINT *ptDraw, wchar_t *wpLine, int nLineLen, wchar_t **wpTextInLine, int *nTextInLineWidth)
+{
+  SIZE sizeLine;
+  int nTextLen=nLineLen - (*wpTextInLine - wpLine);
+
+  if (nTextLen)
+  {
+    if (AE_GetTextExtentPoint32(ae, *wpTextInLine, nTextLen, &sizeLine))
+    {
+      if (ptDraw->x + *nTextInLineWidth + sizeLine.cx > ae->rcDraw.left && ptDraw->x + *nTextInLineWidth < ae->rcDraw.right)
+        TextOutW(hDC, ptDraw->x + *nTextInLineWidth, ptDraw->y, *wpTextInLine, nTextLen);
+      *nTextInLineWidth+=sizeLine.cx;
+      *wpTextInLine+=nTextLen;
+    }
+  }
 }
 
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase)
@@ -9255,6 +9312,13 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
     else
       aec->crActiveLineBk=ae->crActiveLineBk;
   }
+  if (aec->dwFlags & AECLR_URLTEXT)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      aec->crUrlText=RGB(0x00, 0x00, 0xFF);
+    else
+      aec->crUrlText=ae->crUrlText;
+  }
 }
 
 void AE_SetColors(AKELEDIT *ae, AECOLORS *aec)
@@ -9329,6 +9393,15 @@ void AE_SetColors(AKELEDIT *ae, AECOLORS *aec)
 
     if (ae->hActiveLineBk) DeleteObject(ae->hActiveLineBk);
     ae->hActiveLineBk=CreateSolidBrush(ae->crActiveLineBk);
+    bUpdateDrawRect=TRUE;
+  }
+  if (aec->dwFlags & AECLR_URLTEXT)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      ae->crUrlText=RGB(0x00, 0x00, 0xFF);
+    else
+      ae->crUrlText=aec->crUrlText;
+
     bUpdateDrawRect=TRUE;
   }
 
@@ -9769,6 +9842,34 @@ int AE_WideStrCmpI(const wchar_t *wpString, const wchar_t *wpString2)
   }
   if (*wpString == *wpString2) return 0;
   if ((DWORD)AE_WideCharUpper(*wpString) < (DWORD)AE_WideCharUpper(*wpString2)) return -1;
+  return 1;
+}
+
+int AE_WideStrCmpLen(const wchar_t *wpString, const wchar_t *wpString2, DWORD dwMaxLength)
+{
+  DWORD i;
+
+  for (i=0; i < dwMaxLength && wpString[i] && wpString[i] == wpString2[i]; ++i);
+
+  if (dwMaxLength == (DWORD)-1 && !wpString[i]) return 0;
+  if (i >= dwMaxLength) return 0;
+  if (wpString[i] == wpString2[i]) return 0;
+  if ((DWORD)wpString[i] < (DWORD)wpString2[i])
+    return -1;
+  return 1;
+}
+
+int AE_WideStrCmpLenI(const wchar_t *wpString, const wchar_t *wpString2, DWORD dwMaxLength)
+{
+  DWORD i;
+
+  for (i=0; i < dwMaxLength && wpString[i] && AE_WideCharUpper(wpString[i]) == AE_WideCharUpper(wpString2[i]); ++i);
+
+  if (dwMaxLength == (DWORD)-1 && !wpString[i]) return 0;
+  if (i >= dwMaxLength) return 0;
+  if (wpString[i] == wpString2[i]) return 0;
+  if ((DWORD)AE_WideCharUpper(wpString[i]) < (DWORD)AE_WideCharUpper(wpString2[i]))
+    return -1;
   return 1;
 }
 
