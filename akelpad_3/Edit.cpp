@@ -10,7 +10,6 @@
 #include "ConvFunc.h"
 #include "StackFunc.h"
 #include "StrFunc.h"
-#include "AkelFiles\Plugs\AkelDLL\AkelEdit.h"
 #include "AkelPad.h"
 #include "Edit.h"
 
@@ -12862,7 +12861,7 @@ BOOL TranslatePluginA(LPMSG lpMsg)
 
             while (pfElement)
             {
-              if (!xstrcmpnA(szPluginName, pfElement->szFunction, -1, FALSE))
+              if (!xstrcmpnA(szPluginName, pfElement->szFunction, (DWORD)-1, FALSE))
               {
                 if (pfElement->wHotkey || pfElement->bOnStart)
                   pfElement->bRunning=FALSE;
@@ -12944,7 +12943,7 @@ BOOL TranslatePluginW(LPMSG lpMsg)
 
             while (pfElement)
             {
-              if (!xstrcmpnW(wszPluginName, pfElement->wszFunction, -1, FALSE))
+              if (!xstrcmpnW(wszPluginName, pfElement->wszFunction, (DWORD)-1, FALSE))
               {
                 if (pfElement->wHotkey || pfElement->bOnStart)
                   pfElement->bRunning=FALSE;

@@ -174,14 +174,15 @@ typedef struct _SAVEDOCUMENTW {
 
 #ifndef __AKELEDIT_H__
   typedef struct {
-    DWORD dwFlags;              //Reserved                
-    COLORREF crCaret;           //Caret color                         
-    COLORREF crBasicText;       //Basic text color                    
-    COLORREF crBasicBk;         //Basic background color              
-    COLORREF crSelText;         //Text color in selection             
-    COLORREF crSelBk;           //Background color in selection       
-    COLORREF crActiveLineText;  //Text color in active line           
-    COLORREF crActiveLineBk;    //Background color in active line     
+    DWORD dwFlags;              //Reserved
+    COLORREF crCaret;           //Caret color
+    COLORREF crBasicText;       //Basic text color
+    COLORREF crBasicBk;         //Basic background color
+    COLORREF crSelText;         //Text color in selection
+    COLORREF crSelBk;           //Background color in selection
+    COLORREF crActiveLineText;  //Text color in active line
+    COLORREF crActiveLineBk;    //Background color in active line
+    COLORREF crUrlText;         //Hiperlink text color
   } AECOLORS;
 #endif
 
