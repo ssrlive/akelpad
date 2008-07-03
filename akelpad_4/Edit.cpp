@@ -4186,6 +4186,7 @@ void ReadThemesA()
   aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
   aec.crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
+  aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   StackThemeAddA(&hThemesStack, buf, &aec);
 
   if (nSaveSettings == SS_REGISTRY)
@@ -4235,6 +4236,7 @@ void ReadThemesA()
     aec.crSelBk=RGB(0xC0, 0xC0, 0xC0);
     aec.crActiveLineText=RGB(0x00, 0x00, 0x00);
     aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
+    aec.crUrlText=RGB(0x00, 0x00, 0xFF);
     StackThemeAddA(&hThemesStack, "Notepad++", &aec);
   }
 }
@@ -4257,6 +4259,7 @@ void ReadThemesW()
   aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
   aec.crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
+  aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   StackThemeAddW(&hThemesStack, wbuf, &aec);
 
   if (nSaveSettings == SS_REGISTRY)
@@ -4306,6 +4309,7 @@ void ReadThemesW()
     aec.crSelBk=RGB(0xC0, 0xC0, 0xC0);
     aec.crActiveLineText=RGB(0x00, 0x00, 0x00);
     aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
+    aec.crUrlText=RGB(0x00, 0x00, 0xFF);
     StackThemeAddW(&hThemesStack, L"Notepad++", &aec);
   }
 }
@@ -11103,10 +11107,17 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lviA.iSubItem=LVSI_COLOR_ELEMENT;
       SendMessage(hWndList, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
 
+      API_LoadStringA(hLangLib, STR_URL, buf, BUFFER_SIZE);
+      lviA.mask=LVIF_TEXT;
+      lviA.pszText=buf;
+      lviA.iItem=LVI_COLOR_URL;
+      lviA.iSubItem=LVSI_COLOR_ELEMENT;
+      SendMessage(hWndList, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
+
       //Set "Sample" text
       API_LoadStringA(hLangLib, STR_SAMPLE, buf, BUFFER_SIZE);
 
-      for (i=LVI_COLOR_BASIC; i < LVI_COLOR_CARET; ++i)
+      for (i=LVI_COLOR_BASIC; i < LVI_COLOR_URL; ++i)
       {
         lviA.mask=LVIF_TEXT;
         lviA.pszText=buf;
@@ -11228,6 +11239,21 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               lplvcd->clrTextBk=aecColorsDlg.crCaret;
             }
           }
+          else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_URL)
+          {
+            if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlText;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_BACKGROUND)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlText;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_SAMPLE)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlText;
+            }
+          }
           lResult=CDRF_DODEFAULT;
         }
         else lResult=CDRF_DODEFAULT;
@@ -11256,6 +11282,8 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crActiveLineText);
             else if (lvhti.iItem == LVI_COLOR_CARET)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crCaret);
+            else if (lvhti.iItem == LVI_COLOR_URL)
+              bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crUrlText);
           }
           else if (lvhti.iSubItem == LVSI_COLOR_BACKGROUND)
           {
@@ -11267,6 +11295,8 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crActiveLineBk);
             else if (lvhti.iItem == LVI_COLOR_CARET)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crCaret);
+            else if (lvhti.iItem == LVI_COLOR_URL)
+              bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crUrlText);
           }
           if (bResult)
           {
@@ -11487,10 +11517,17 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lviW.iSubItem=LVSI_COLOR_ELEMENT;
       SendMessage(hWndList, LVM_INSERTITEMW, 0, (LPARAM)&lviW);
 
+      API_LoadStringW(hLangLib, STR_URL, wbuf, BUFFER_SIZE);
+      lviW.mask=LVIF_TEXT;
+      lviW.pszText=wbuf;
+      lviW.iItem=LVI_COLOR_URL;
+      lviW.iSubItem=LVSI_COLOR_ELEMENT;
+      SendMessage(hWndList, LVM_INSERTITEMW, 0, (LPARAM)&lviW);
+
       //Set "Sample" text
       API_LoadStringW(hLangLib, STR_SAMPLE, wbuf, BUFFER_SIZE);
 
-      for (i=LVI_COLOR_BASIC; i < LVI_COLOR_CARET; ++i)
+      for (i=LVI_COLOR_BASIC; i < LVI_COLOR_URL; ++i)
       {
         lviW.mask=LVIF_TEXT;
         lviW.pszText=wbuf;
@@ -11612,6 +11649,21 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               lplvcd->clrTextBk=aecColorsDlg.crCaret;
             }
           }
+          else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_URL)
+          {
+            if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlText;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_BACKGROUND)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlText;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_SAMPLE)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crUrlText;
+            }
+          }
           lResult=CDRF_DODEFAULT;
         }
         else lResult=CDRF_DODEFAULT;
@@ -11640,6 +11692,8 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crActiveLineText);
             else if (lvhti.iItem == LVI_COLOR_CARET)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crCaret);
+            else if (lvhti.iItem == LVI_COLOR_URL)
+              bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crUrlText);
           }
           else if (lvhti.iSubItem == LVSI_COLOR_BACKGROUND)
           {
@@ -11651,6 +11705,8 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crActiveLineBk);
             else if (lvhti.iItem == LVI_COLOR_CARET)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crCaret);
+            else if (lvhti.iItem == LVI_COLOR_URL)
+              bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crUrlText);
           }
           if (bResult)
           {
@@ -13922,7 +13978,7 @@ BOOL TranslatePluginA(LPMSG lpMsg)
 
             while (pfElement)
             {
-              if (!xstrcmpnA(szPluginName, pfElement->szFunction, -1, FALSE))
+              if (!xstrcmpnA(szPluginName, pfElement->szFunction, (DWORD)-1, FALSE))
               {
                 if (pfElement->wHotkey || pfElement->bOnStart)
                   pfElement->bRunning=FALSE;
@@ -14004,7 +14060,7 @@ BOOL TranslatePluginW(LPMSG lpMsg)
 
             while (pfElement)
             {
-              if (!xstrcmpnW(wszPluginName, pfElement->wszFunction, -1, FALSE))
+              if (!xstrcmpnW(wszPluginName, pfElement->wszFunction, (DWORD)-1, FALSE))
               {
                 if (pfElement->wHotkey || pfElement->bOnStart)
                   pfElement->bRunning=FALSE;
@@ -15465,11 +15521,8 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveCodepages)
       SendMessage(hWndSaveCodepages, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndShowURL, FALSE);
-/*
     if (bShowURL)
       SendMessage(hWndShowURL, BM_SETCHECK, BST_CHECKED, 0);
-*/
     if (nClickURL == 1)
       SendMessage(hWndSingleClickURL, BM_SETCHECK, BST_CHECKED, 0);
     else
@@ -15485,6 +15538,7 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     if (LOWORD(wParam) == IDC_OPTIONS_URL_SHOW)
     {
       bState=SendMessage(hWndShowURL, BM_GETCHECK, 0, 0);
+/**/  bState=FALSE;
       EnableWindow(hWndSingleClickURL, bState);
       EnableWindow(hWndDoubleClickURL, bState);
       return TRUE;
@@ -15526,7 +15580,6 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       {
         bShowURL=a;
         ShowURL(hWndEdit, bShowURL);
-        bOptionsRestart=TRUE;
       }
       if (SendMessage(hWndSingleClickURL, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nClickURL=1;
@@ -15568,11 +15621,8 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveCodepages)
       SendMessage(hWndSaveCodepages, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndShowURL, FALSE);
-/*
     if (bShowURL)
       SendMessage(hWndShowURL, BM_SETCHECK, BST_CHECKED, 0);
-*/
     if (nClickURL == 1)
       SendMessage(hWndSingleClickURL, BM_SETCHECK, BST_CHECKED, 0);
     else
@@ -15588,6 +15638,7 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     if (LOWORD(wParam) == IDC_OPTIONS_URL_SHOW)
     {
       bState=SendMessage(hWndShowURL, BM_GETCHECK, 0, 0);
+/**/  bState=FALSE;
       EnableWindow(hWndSingleClickURL, bState);
       EnableWindow(hWndDoubleClickURL, bState);
       return TRUE;
@@ -15629,7 +15680,6 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       {
         bShowURL=a;
         ShowURL(hWndEdit, bShowURL);
-        bOptionsRestart=TRUE;
       }
       if (SendMessage(hWndSingleClickURL, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nClickURL=1;
@@ -16852,13 +16902,11 @@ BOOL SaveChangedW()
 
 void ShowURL(HWND hWnd, BOOL bShow)
 {
-/*
-  int i;
+  DWORD dwEventMask;
 
   SendMessage(hWnd, EM_AUTOURLDETECT, bShow, 0);
-  i=SendMessage(hWnd, EM_GETEVENTMASK, 0, 0);
-  SendMessage(hWnd, EM_SETEVENTMASK, 0, (bShow)?(i|ENM_LINK):(i & ~ENM_LINK));
-*/
+  dwEventMask=SendMessage(hWnd, EM_GETEVENTMASK, 0, 0);
+  SendMessage(hWnd, EM_SETEVENTMASK, 0, bShow?(dwEventMask | ENM_LINK):(dwEventMask & ~ENM_LINK));
 }
 
 BOOL FileExistsA(char *pFile)

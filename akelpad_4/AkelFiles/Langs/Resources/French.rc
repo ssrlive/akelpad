@@ -66,7 +66,7 @@ BEGIN
         MENUITEM "Aller à la &ligne...\tCtrl+G", IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
         MENUITEM "&Insérer un caractère\tCtrl+I", IDM_EDIT_INSERTCHAR
-        MENUITEM "Insérer la &date\tCtrl+D",        IDM_EDIT_INSERTDATE
+        MENUITEM "Insérer la &date\tCtrl+D",    IDM_EDIT_INSERTDATE
         POPUP "&Sélection"
         BEGIN
             MENUITEM "Décaler à droite d'une ta&bulation\tTab", 
@@ -472,7 +472,7 @@ BEGIN
     LTEXT           "En:",IDC_STATIC,12,37,150,8
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 130
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Colors..."
@@ -485,9 +485,9 @@ BEGIN
     PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,56
-    PUSHBUTTON      "OK",IDOK,123,108,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,108,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,217,65
+    PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
+    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -814,15 +814,19 @@ BEGIN
     STR_LANGUAGE_NONE       "Interne"
     STR_FILE_FILTER         "Fichiers texte (*.txt)|*.txt|Tous les fichiers (*.*)|*.*"
     STR_NONE                "Aucun"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
-    STR_AUTODETECT_RUSSIAN  "Cyrillique (ANSI, OEM, KOI8-R, UTF-8)"
     STR_PLUGIN_FUNCTION     "Plugin::Fonction"
     STR_HOTKEY              "Raccourci"
-    STR_STATUS              "Statut"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "Cyrillique (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "Statut"
     STR_RUNNING             "Actif"
     STR_EXECUTABLE_FILTER   "Fichiers exécutables (*.exe)|*.exe|Tous les fichiers (*.*)|*.*"
     STR_FONT                "Police"
@@ -830,6 +834,7 @@ BEGIN
     STR_TOP                 "Haut:"
     STR_BOTTOM              "Bas:"
     STR_ELEMENT             "Element"
+    STR_STANDARDTHEME       "Standard"
     STR_TEXT                "Text"
     STR_BACKGROUND          "Background"
     STR_SAMPLE              "Sample"
@@ -837,7 +842,11 @@ BEGIN
     STR_SELECTION           "Selection"
     STR_ACTIVELINE          "Active line"
     STR_CARET               "Caret"
-    STR_STANDARDTHEME       "Standard"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_URL                 "Hiperlink"
 END
 
 #endif    // French (France) resources

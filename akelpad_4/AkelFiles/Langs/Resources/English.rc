@@ -466,7 +466,7 @@ BEGIN
     LTEXT           "To:",IDC_STATIC,12,37,150,8
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 130
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Colors..."
@@ -479,9 +479,9 @@ BEGIN
     PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,56
-    PUSHBUTTON      "OK",IDOK,123,108,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,108,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,217,65
+    PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
+    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -802,14 +802,18 @@ BEGIN
     STR_LANGUAGE_NONE       "Internal"
     STR_FILE_FILTER         "Text files (*.txt)|*.txt|All files (*.*)|*.*"
     STR_NONE                "None"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
-    STR_AUTODETECT_RUSSIAN  "Cyrillic (ANSI, OEM, KOI8-R, UTF-8)"
     STR_PLUGIN_FUNCTION     "Plugin::Function"
+    STR_HOTKEY              "Hotkey"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_HOTKEY              "Hotkey"
+    STR_AUTODETECT_RUSSIAN  "Cyrillic (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_STATUS              "Status"
     STR_RUNNING             "Running"
     STR_EXECUTABLE_FILTER   "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
@@ -818,6 +822,7 @@ BEGIN
     STR_TOP                 "Top:"
     STR_BOTTOM              "Bottom:"
     STR_ELEMENT             "Element"
+    STR_STANDARDTHEME       "Standard"
     STR_TEXT                "Text"
     STR_BACKGROUND          "Background"
     STR_SAMPLE              "Sample"
@@ -829,7 +834,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_STANDARDTHEME       "Standard"
+    STR_URL                 "Hiperlink"
 END
 
 #endif    // English (U.S.) resources
