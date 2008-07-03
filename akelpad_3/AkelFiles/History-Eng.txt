@@ -1,5 +1,5 @@
 
-AkelPad 3.6.0 (Jul 01, 2008)
+AkelPad 3.6.0 (Jul 03, 2008)
 ----------------------------
 Changed: synchronized structures with AkelPad 4.x.x. Update yours plugins.
 
