@@ -5173,23 +5173,26 @@ void AE_Paint(AKELEDIT *ae)
               {
                 if (!AE_WideStrCmpLenI(lpPrefixes[i], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
                 {
-                  crLink.ciMin=ciDrawLine;
-                  crLink.ciMax=ciDrawLine;
-
-                  while (crLink.ciMax.nCharInLine < crLink.ciMax.lpLine->nLineLen)
+                  if (ciDrawLine.nCharInLine == 0 || AE_IsInDelimiterList(AES_URLDELIMITERSW, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine - 1]))
                   {
-                    if (AE_IsInDelimiterList(AES_URLDELIMITERSW, crLink.ciMax.lpLine->wpLine[crLink.ciMax.nCharInLine]))
-                      break;
+                    crLink.ciMin=ciDrawLine;
+                    crLink.ciMax=ciDrawLine;
 
-                    ++crLink.ciMax.nCharInLine;
+                    while (crLink.ciMax.nCharInLine < crLink.ciMax.lpLine->nLineLen)
+                    {
+                      if (AE_IsInDelimiterList(AES_URLDELIMITERSW, crLink.ciMax.lpLine->wpLine[crLink.ciMax.nCharInLine]))
+                        break;
+
+                      ++crLink.ciMax.nCharInLine;
+                    }
+
+                    //Draw text before URL
+                    SetTextColor(ps.hdc, dwColorText);
+                    SetBkColor(ps.hdc, dwColorBG);
+                    AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+                    nMaxDrawCharsCount=0;
+                    break;
                   }
-
-                  //Draw text before URL
-                  SetTextColor(ps.hdc, dwColorText);
-                  SetBkColor(ps.hdc, dwColorBG);
-                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
-                  nMaxDrawCharsCount=0;
-                  break;
                 }
               }
             }
