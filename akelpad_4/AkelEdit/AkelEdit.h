@@ -18,6 +18,11 @@
 #define AES_WRAPDELIMITERSW   L" \t\n"
 #define AES_URLDELIMITERSW    L" \t\n()<>'`\""
 
+//AEM_SETEVENTMASK flags
+#define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGE notifications.
+#define AENM_TEXTCHANGE         0x00000002  //Sends AEN_TEXTCHANGE notifications.
+#define AENM_MODIFYCHANGE       0x00000004  //Sends AEN_MODIFYCHANGE notifications.
+
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
 #define AECO_DISABLENOSCROLL    0x00000002  //Disables scroll bars instead of hiding them when they are not needed. You can use ES_DISABLENOSCROLL window style.
@@ -402,24 +407,26 @@ typedef struct {
 #define AEM_SCROLLCARETTEST   (WM_USER + 2160)
 #define AEM_LOCKSCROLL        (WM_USER + 2161)
 
-#define AEM_GETOPTIONS        (WM_USER + 2201)
-#define AEM_SETOPTIONS        (WM_USER + 2202)
-#define AEM_GETNEWLINE        (WM_USER + 2203)
-#define AEM_SETNEWLINE        (WM_USER + 2204)
-#define AEM_GETCOLORS         (WM_USER + 2205)
-#define AEM_SETCOLORS         (WM_USER + 2206)
-#define AEM_GETOVERTYPE       (WM_USER + 2207)
-#define AEM_SETOVERTYPE       (WM_USER + 2208)
-#define AEM_GETTABSTOP        (WM_USER + 2209)
-#define AEM_SETTABSTOP        (WM_USER + 2210)
-#define AEM_GETWORDWRAP       (WM_USER + 2211)
-#define AEM_SETWORDWRAP       (WM_USER + 2212)
-#define AEM_GETWORDDELIMITERS (WM_USER + 2213)
-#define AEM_SETWORDDELIMITERS (WM_USER + 2214)
-#define AEM_GETWRAPDELIMITERS (WM_USER + 2215)
-#define AEM_SETWRAPDELIMITERS (WM_USER + 2216)
-#define AEM_SHOWSCROLLBAR     (WM_USER + 2217)
-#define AEM_DETECTURL         (WM_USER + 2218)
+#define AEM_GETEVENTMASK      (WM_USER + 2201)
+#define AEM_SETEVENTMASK      (WM_USER + 2202)
+#define AEM_GETOPTIONS        (WM_USER + 2203)
+#define AEM_SETOPTIONS        (WM_USER + 2204)
+#define AEM_GETNEWLINE        (WM_USER + 2205)
+#define AEM_SETNEWLINE        (WM_USER + 2206)
+#define AEM_GETCOLORS         (WM_USER + 2207)
+#define AEM_SETCOLORS         (WM_USER + 2208)
+#define AEM_GETOVERTYPE       (WM_USER + 2209)
+#define AEM_SETOVERTYPE       (WM_USER + 2210)
+#define AEM_GETTABSTOP        (WM_USER + 2211)
+#define AEM_SETTABSTOP        (WM_USER + 2212)
+#define AEM_GETWORDWRAP       (WM_USER + 2213)
+#define AEM_SETWORDWRAP       (WM_USER + 2214)
+#define AEM_GETWORDDELIMITERS (WM_USER + 2215)
+#define AEM_SETWORDDELIMITERS (WM_USER + 2216)
+#define AEM_GETWRAPDELIMITERS (WM_USER + 2217)
+#define AEM_SETWRAPDELIMITERS (WM_USER + 2218)
+#define AEM_SHOWSCROLLBAR     (WM_USER + 2219)
+#define AEM_DETECTURL         (WM_USER + 2220)
 
 /*
 AEN_SELCHANGE
@@ -1565,6 +1572,36 @@ Example:
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
  SendMessage(hWndEdit, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
+
+
+AEM_GETEVENTMASK
+________________
+
+Set the event mask for an edit control. The event mask specifies which notification messages the control sends to its parent window.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ See AENM_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETEVENTMASK, 0, 0);
+
+
+AEM_SETEVENTMASK
+________________
+
+Set the event mask for an edit control. The event mask specifies which notification messages the control sends to its parent window.
+
+wParam        == not used.
+(DWORD)lParam == see AENM_* defines.
+
+Return Value
+ Previous event mask.
+
+Example:
+ SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE);
 
 
 AEM_GETOPTIONS

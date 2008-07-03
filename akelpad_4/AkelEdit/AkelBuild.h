@@ -121,6 +121,7 @@ typedef struct _AKELEDIT {
   HWND hWndEdit;
   HWND hWndParent;
   int nEditCtrlID;
+  DWORD dwEventMask;
   DWORD dwOptions;
   RECT rcEdit;
   RECT rcDraw;
@@ -209,7 +210,7 @@ typedef struct _AKELEDIT {
 
   //RichEdit emulation
   BOOL bRichEditClass;
-  DWORD dwEventMask;
+  DWORD dwRichEventMask;
 
   //OLE Drag'n'Drop
   AEIDropTargetCallbackVtbl idtVtbl;

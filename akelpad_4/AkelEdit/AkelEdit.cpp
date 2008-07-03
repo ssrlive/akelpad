@@ -640,6 +640,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Options
+      if (uMsg == AEM_GETEVENTMASK)
+      {
+        return ae->dwEventMask;
+      }
+      if (uMsg == AEM_SETEVENTMASK)
+      {
+        DWORD dwPrevMask=ae->dwEventMask;
+
+        ae->dwEventMask=lParam;
+        return dwPrevMask;
+      }
       if (uMsg == AEM_GETOPTIONS)
       {
         return ae->dwOptions;
@@ -1176,13 +1187,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_GETEVENTMASK)
     {
-      return ae->dwEventMask;
+      return ae->dwRichEventMask;
     }
     if (uMsg == EM_SETEVENTMASK)
     {
-      DWORD dwPrevMask=ae->dwEventMask;
+      DWORD dwPrevMask=ae->dwRichEventMask;
 
-      ae->dwEventMask=lParam;
+      ae->dwRichEventMask=lParam;
       return dwPrevMask;
     }
     if (uMsg == EM_SETREADONLY)
@@ -2183,15 +2194,17 @@ LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes)
 
   if (!(lpResult=HeapAlloc(hHeap, dwFlags, dwBytes)))
   {
-    //Send AEN_ERRSPACE
     if (ae)
     {
-      AENERRSPACE es;
+      //Send AEN_ERRSPACE
+      {
+        AENERRSPACE es;
 
-      es.hdr.hwndFrom=ae->hWndEdit;
-      es.hdr.idFrom=ae->nEditCtrlID;
-      es.hdr.code=AEN_ERRSPACE;
-      SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&es);
+        es.hdr.hwndFrom=ae->hWndEdit;
+        es.hdr.idFrom=ae->nEditCtrlID;
+        es.hdr.code=AEN_ERRSPACE;
+        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&es);
+      }
     }
   }
   return lpResult;
@@ -4285,6 +4298,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
       }
 
       //Send AEN_SELCHANGE
+      if (ae->dwEventMask & AENM_SELCHANGE)
       {
         AENSELCHANGE sc;
 
@@ -4296,7 +4310,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
       }
 
       //Send EN_SELCHANGE
-      if (ae->dwEventMask & ENM_SELCHANGE)
+      if (ae->dwRichEventMask & ENM_SELCHANGE)
       {
         SELCHANGE sc;
 
@@ -7044,6 +7058,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
     //if (bEnableUndo)
     {
       //Send AEN_SELCHANGE
+      if (ae->dwEventMask & AENM_SELCHANGE)
       {
         AENSELCHANGE sc;
 
@@ -7055,6 +7070,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
 
       //Send AEN_TEXTCHANGE
+      if (ae->dwEventMask & AENM_TEXTCHANGE)
       {
         AENTEXTCHANGE tc;
 
@@ -7065,7 +7081,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
 
       //Send EN_SELCHANGE
-      if (ae->dwEventMask & ENM_SELCHANGE)
+      if (ae->dwRichEventMask & ENM_SELCHANGE)
       {
         SELCHANGE sc;
 
@@ -7079,7 +7095,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
 
       //Send EN_CHANGE
-      if (ae->dwEventMask & ENM_CHANGE)
+      if (ae->dwRichEventMask & ENM_CHANGE)
       {
         SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
       }
@@ -8065,6 +8081,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
       //if (bEnableUndo)
       {
         //Send AEN_SELCHANGE
+        if (ae->dwEventMask & AENM_SELCHANGE)
         {
           AENSELCHANGE sc;
 
@@ -8076,6 +8093,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
 
         //Send AEN_TEXTCHANGE
+        if (ae->dwEventMask & AENM_TEXTCHANGE)
         {
           AENTEXTCHANGE tc;
 
@@ -8086,7 +8104,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
 
         //Send EN_SELCHANGE
-        if (ae->dwEventMask & ENM_SELCHANGE)
+        if (ae->dwRichEventMask & ENM_SELCHANGE)
         {
           SELCHANGE sc;
 
@@ -8100,7 +8118,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
 
         //Send EN_CHANGE
-        if (ae->dwEventMask & ENM_CHANGE)
+        if (ae->dwRichEventMask & ENM_CHANGE)
         {
           SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
         }
@@ -8655,6 +8673,7 @@ void AE_SetModify(AKELEDIT *ae, BOOL bState)
     ae->bModified=!ae->bModified;
 
     //Send AEN_MODIFYCHANGE
+    if (ae->dwEventMask & AENM_MODIFYCHANGE)
     {
       AENMODIFYCHANGE mc;
 

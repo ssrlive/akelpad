@@ -322,11 +322,12 @@ void CreateEditWindowA(HWND hWnd)
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
+  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE);
+  SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-  SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontA(hWndEdit, &lfEditFontA, TRUE);
   SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
@@ -360,11 +361,12 @@ void CreateEditWindowW(HWND hWnd)
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
+  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE);
+  SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-  SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontW(hWndEdit, &lfEditFontW, TRUE);
   SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
