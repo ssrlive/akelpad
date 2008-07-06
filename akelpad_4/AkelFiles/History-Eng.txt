@@ -1,4 +1,10 @@
 
+AkelPad 4.0.0 beta 2 ()
+-----------------------------------
+Fixed: speed slowdown of column's Undo/Redo in beta 1.
+Fixed: using word wrap, with no AECO_DISABLENOSCROLL flag.
+
+
 AkelPad 4.0.0 beta 1 (Jul 03, 2008)
 -----------------------------------
 Changed: synchronized structures with AkelPad 3.x.x. Update yours plugins.
