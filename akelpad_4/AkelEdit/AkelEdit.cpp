@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.0 beta 1                          *
+ *                      AkelEdit text control v1.0 beta 2                          *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -719,11 +719,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_UpdateSelection(ae);
           AE_UpdateCaret(ae, TRUE);
 
-          if (ae->bWordWrap)
-          {
-            AE_WrapLines(ae, NULL, NULL, NULL, NULL, NULL, ae->bWordWrap);
-            AE_UpdateSelection(ae);
-          }
+          if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, lParam);
         }
         return 0;
@@ -737,8 +733,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ae->bWordWrap != (int)wParam)
         {
           ae->bWordWrap=wParam;
-          AE_WrapLines(ae, NULL, NULL, NULL, NULL, NULL, ae->bWordWrap);
-          AE_UpdateSelection(ae);
+          AE_UpdateWrap(ae, ae->bWordWrap);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, lParam);
         }
         return 0;
@@ -777,6 +772,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (wParam == SB_BOTH || wParam == SB_VERT)
           ae->bVScrollShow=lParam;
         ShowScrollBar(ae->hWndEdit, wParam, lParam);
+        return 0;
+      }
+      if (uMsg == AEM_UPDATESCROLLBAR)
+      {
+        AE_UpdateScrollBars(ae, wParam);
         return 0;
       }
       if (uMsg == AEM_DETECTURL)
@@ -1342,11 +1342,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_UpdateSelection(ae);
       AE_UpdateCaret(ae, TRUE);
 
-      if (ae->bWordWrap)
-      {
-        AE_WrapLines(ae, NULL, NULL, NULL, NULL, NULL, ae->bWordWrap);
-        AE_UpdateSelection(ae);
-      }
+      if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, !lParam);
       return 0;
     }
@@ -1406,11 +1402,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
 
-        if (ae->bWordWrap)
-        {
-          AE_WrapLines(ae, NULL, NULL, NULL, NULL, NULL, ae->bWordWrap);
-          AE_UpdateSelection(ae);
-        }
+        if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
         AE_UpdateScrollBars(ae, SB_BOTH);
         AE_UpdateEditWindow(ae->hWndEdit, TRUE);
       }
@@ -3477,6 +3469,39 @@ BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar)
   return FALSE;
 }
 
+int AE_UpdateWrap(AKELEDIT *ae, BOOL bWrap)
+{
+  int nResult;
+
+  nResult=AE_WrapLines(ae, NULL, NULL, NULL, NULL, NULL, bWrap);
+
+  if (!bWrap)
+  {
+    //Calculate max width line
+    AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
+  }
+  else
+  {
+    if (ae->nHScrollMax)
+    {
+      ae->liMaxWidthLine.nLine=0;
+      ae->liMaxWidthLine.lpLine=NULL;
+      ae->nHScrollPos=0;
+      ae->nHScrollMax=0;
+      AE_UpdateScrollBars(ae, SB_HORZ);
+    }
+  }
+
+  if (nResult)
+  {
+    ae->nLineCount+=nResult;
+    ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+    AE_UpdateScrollBars(ae, SB_VERT);
+  }
+  AE_UpdateSelection(ae);
+  return nResult;
+}
+
 int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, AECHARINDEX *ciPointOne, AECHARINDEX *ciPointTwo, AECHARINDEX *ciPointThree, BOOL bWrap)
 {
   AECHARINDEX ciSelStart=ae->ciSelStartIndex;
@@ -3610,29 +3635,6 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
     ae->ciCaretIndex=ciSelStart;
   ae->ciSelStartIndex=ciSelStart;
   ae->ciSelEndIndex=ciSelEnd;
-
-  if (!bWrap)
-  {
-    AE_CalcLinesWidth(ae, liWrapStart, liWrapEnd, FALSE);
-  }
-  else
-  {
-    if (ae->nHScrollMax)
-    {
-      ae->liMaxWidthLine.nLine=0;
-      ae->liMaxWidthLine.lpLine=NULL;
-      ae->nHScrollPos=0;
-      ae->nHScrollMax=0;
-      AE_UpdateScrollBars(ae, SB_HORZ);
-    }
-  }
-
-  if (nLineCount)
-  {
-    ae->nLineCount+=nLineCount;
-    ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
-    AE_UpdateScrollBars(ae, SB_VERT);
-  }
   return nLineCount;
 }
 
@@ -5362,7 +5364,6 @@ void AE_Paint(AKELEDIT *ae)
               rcSpace.bottom=rcSpace.top + ae->nCharHeight;
               FillRect(ps.hdc, &rcSpace, hbrBG);
               nLineWidth+=ae->nAveCharWidth;
-              nLineLen+=1;
             }
           }
         }
@@ -6607,6 +6608,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
   int nRichTextCount=0;
   int nLastLineSelStart=0;
   int nLineCount=0;
+  int nWrapCount=0;
   int nHScrollPos;
   int nVScrollPos;
   int nStartOffset;
@@ -6734,7 +6736,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
           nLastLineSelStart=ciDeleteEnd.lpLine->nSelStart;
           break;
         }
-        ++nLineCount;
+        --nLineCount;
 
         if (lpNewElement->nLineBreak == AELB_WRAP)
           nLineOffset+=lpNewElement->nLineLen;
@@ -6777,6 +6779,8 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       //Set global
       nHScrollPos=ae->nHScrollPos;
       nVScrollPos=ae->nVScrollPos;
+      ae->nLineCount+=nLineCount;
+      ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
       AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
       ae->ciCaretIndex=ciFirstChar;
       ae->nSelStartCharOffset=nStartOffset;
@@ -6793,7 +6797,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         liWrapStart.lpLine=ciFirstChar.lpLine;
         liWrapEnd.nLine=ciLastChar.nLine;
         liWrapEnd.lpLine=ciLastChar.lpLine;
-        nLineCount+=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, ciPointOne, ae->bWordWrap);
+        nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, ciPointOne, ae->bWordWrap);
 
         //Set redraw lines
         nFirstRedrawLine=liWrapStart.nLine;
@@ -6806,6 +6810,14 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         ae->ciSelStartIndex=ciFirstChar;
         ae->nSelEndCharOffset=nStartOffset;
         ae->ciSelEndIndex=ciFirstChar;
+
+        //Update scroll bars
+        ae->nLineCount+=nWrapCount;
+        ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+        if (nLineCount + nWrapCount)
+        {
+          if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
+        }
       }
       else
       {
@@ -6813,6 +6825,11 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         nFirstRedrawLine=ciFirstChar.nLine;
         nLastRedrawLine=ciLastChar.nLine;
 
+        //Update scroll bars
+        if (nLineCount)
+        {
+          if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
+        }
         if (!ae->liMaxWidthLine.lpLine)
           AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
         else
@@ -6960,7 +6977,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
           AE_StackLineDelete(ae, lpElement);
           break;
         }
-        ++nLineCount;
+        --nLineCount;
         lpNextElement=lpElement->next;
         AE_StackLineDelete(ae, lpElement);
         lpElement=lpNextElement;
@@ -6972,16 +6989,16 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       //Update control points
       if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciFirstChar.nLine)
       {
-        ae->liFirstDrawLine.nLine-=nLineCount;
+        ae->liFirstDrawLine.nLine+=nLineCount;
         ae->nFirstDrawLineOffset+=nRichTextCount;
       }
       if (ae->liMaxWidthLine.lpLine && ae->liMaxWidthLine.nLine > ciFirstChar.nLine)
       {
-        ae->liMaxWidthLine.nLine-=nLineCount;
+        ae->liMaxWidthLine.nLine+=nLineCount;
       }
       if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciFirstChar.nLine)
       {
-        ae->ciLastCallIndex.nLine-=nLineCount;
+        ae->ciLastCallIndex.nLine+=nLineCount;
         ae->nLastCallOffset+=nRichTextCount;
       }
       ae->nLastCharOffset+=nRichTextCount;
@@ -6989,7 +7006,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       //Set global
       nHScrollPos=ae->nHScrollPos;
       nVScrollPos=ae->nVScrollPos;
-      ae->nLineCount-=nLineCount;
+      ae->nLineCount+=nLineCount;
       ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
       AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
       ae->ciCaretIndex=ciFirstChar;
@@ -7007,7 +7024,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         liWrapStart.lpLine=ciFirstChar.lpLine;
         liWrapEnd.nLine=ciLastChar.nLine;
         liWrapEnd.lpLine=ciLastChar.lpLine;
-        nLineCount+=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, ciPointOne, ae->bWordWrap);
+        nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, ciPointOne, ae->bWordWrap);
 
         //Set redraw lines
         nFirstRedrawLine=liWrapStart.nLine;
@@ -7020,6 +7037,14 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         ae->ciSelStartIndex=ciFirstChar;
         ae->nSelEndCharOffset=nStartOffset;
         ae->ciSelEndIndex=ciFirstChar;
+
+        //Update scroll bars
+        ae->nLineCount+=nWrapCount;
+        ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+        if (nLineCount + nWrapCount)
+        {
+          if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
+        }
       }
       else
       {
@@ -7029,8 +7054,11 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
           nLastRedrawLine=ciLastChar.nLine;
 
-        if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
-
+        //Update scroll bars
+        if (nLineCount)
+        {
+          if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
+        }
         if (!ae->liMaxWidthLine.lpLine)
           AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
         else
@@ -7283,7 +7311,8 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   ae->ciSelStartIndex=ae->ciCaretIndex;
   ae->ciSelEndIndex=ae->ciCaretIndex;
 
-  AE_UpdateScrollBars(ae, SB_BOTH);
+  if (!ae->bWordWrap) AE_UpdateScrollBars(ae, SB_HORZ);
+  AE_UpdateScrollBars(ae, SB_VERT);
   InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
   UpdateWindow(ae->hWndEdit);
 
@@ -7292,13 +7321,14 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   ae->nHorizCaretPos=ae->ptCaret.x;
   if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
 
-  AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
-
   if (ae->bWordWrap)
   {
-    AE_WrapLines(ae, NULL, NULL, NULL, NULL, NULL, ae->bWordWrap);
-    AE_UpdateSelection(ae);
+    AE_UpdateWrap(ae, ae->bWordWrap);
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+  }
+  else
+  {
+    AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
   }
   return dwTextLen;
 }
@@ -7408,6 +7438,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
   int nLineLen=0;
   int nLineBreak;
   int nLineCount=0;
+  int nWrapCount=0;
   int nCaretIndexInLine=0;
   int nSpaces=0;
   int nHScrollPos;
@@ -7700,7 +7731,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           liWrapStart.lpLine=ciFirstChar.lpLine;
           liWrapEnd.nLine=ciLastChar.nLine;
           liWrapEnd.lpLine=ciLastChar.lpLine;
-          AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, NULL, ae->bWordWrap);
+          nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, NULL, ae->bWordWrap);
 
           //Set redraw lines
           nFirstRedrawLine=liWrapStart.nLine;
@@ -7713,6 +7744,14 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           ae->ciSelStartIndex=ciFirstChar;
           ae->nSelEndCharOffset=nStartOffset;
           ae->ciSelEndIndex=ciFirstChar;
+
+          //Update scroll bars
+          ae->nLineCount+=nWrapCount;
+          ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+          if (nLineCount + nWrapCount)
+          {
+            if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
+          }
         }
         else
         {
@@ -7720,8 +7759,11 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           nFirstRedrawLine=ciFirstChar.nLine;
           nLastRedrawLine=ciLastChar.nLine;
 
-          if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
-
+          //Update scroll bars
+          if (nLineCount)
+          {
+            if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
+          }
           if (!ae->liMaxWidthLine.lpLine)
             AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
           else
@@ -7963,7 +8005,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           liWrapStart.lpLine=ciFirstChar.lpLine;
           liWrapEnd.nLine=ciLastChar.nLine;
           liWrapEnd.lpLine=ciLastChar.lpLine;
-          nLineCount+=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, NULL, ae->bWordWrap);
+          nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, &ciFirstChar, &ciLastChar, NULL, ae->bWordWrap);
 
           //Set redraw lines
           nFirstRedrawLine=liWrapStart.nLine;
@@ -7976,6 +8018,14 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           ae->ciSelStartIndex=ciLastChar;
           ae->nSelEndCharOffset=nEndOffset;
           ae->ciSelEndIndex=ciLastChar;
+
+          //Update scroll bars
+          ae->nLineCount+=nWrapCount;
+          ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+          if (nLineCount + nWrapCount)
+          {
+            if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
+          }
         }
         else
         {
@@ -7992,8 +8042,11 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           ae->nSelEndCharOffset=nEndOffset;
           ae->ciSelEndIndex=ciLastChar;
 
-          if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
-
+          //Update scroll bars
+          if (nLineCount)
+          {
+            if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
+          }
           if (!ae->liMaxWidthLine.lpLine)
             AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
           else
