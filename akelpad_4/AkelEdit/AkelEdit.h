@@ -426,7 +426,8 @@ typedef struct {
 #define AEM_GETWRAPDELIMITERS (WM_USER + 2217)
 #define AEM_SETWRAPDELIMITERS (WM_USER + 2218)
 #define AEM_SHOWSCROLLBAR     (WM_USER + 2219)
-#define AEM_DETECTURL         (WM_USER + 2220)
+#define AEM_UPDATESCROLLBAR   (WM_USER + 2220)
+#define AEM_DETECTURL         (WM_USER + 2221)
 
 /*
 AEN_SELCHANGE
@@ -1888,6 +1889,23 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_BOTH, FALSE);
+
+
+AEM_UPDATESCROLLBAR
+___________________
+
+Update scroll bars in the edit control.
+
+(int)wParam  == SB_BOTH  horizontal and vertical scroll bars.
+                SB_HORZ  horizontal scroll bar.
+                SB_VERT  vertical scroll bar.
+lParam       == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_UPDATESCROLLBAR, SB_BOTH, 0);
 
 
 AEM_DETECTURL

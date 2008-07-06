@@ -260,6 +260,7 @@ int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
 DWORD AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
 DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, int nOffset, int nNewLine);
 BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar);
+int AE_UpdateWrap(AKELEDIT *ae, BOOL bWrap);
 int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, AECHARINDEX *ciPointOne, AECHARINDEX *ciPointTwo, AECHARINDEX *ciPointThree, BOOL bWrap);
 int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwMaxWidth, AECHARINDEX *ciPointOne, AECHARINDEX *ciPointTwo, AECHARINDEX *ciPointThree, AECHARINDEX *ciPointFour, AECHARINDEX *ciPointFive);
 int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AECHARINDEX *ciPointOne, AECHARINDEX *ciPointTwo, AECHARINDEX *ciPointThree, AECHARINDEX *ciPointFour, AECHARINDEX *ciPointFive);
