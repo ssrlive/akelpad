@@ -97,7 +97,7 @@ const CLSID IID_IRichEditOle={0x00020D00, 0x00, 0x00, {0xC0, 0x00, 0x00, 0x00, 0
 const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
 
 #ifndef mod
-  #define mod(a) (((a) < 0)?(0 - (a)):(a))
+  #define mod(a)  ((((int)(a)) < 0) ? (0 - ((int)(a))) : (a))
 #endif
 
 #define BUFFER_SIZE                1024

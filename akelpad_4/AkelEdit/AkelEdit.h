@@ -161,7 +161,7 @@
   #define EM_SETSCROLLPOS (WM_USER + 222)
 #endif
 #ifndef mod
-  #define mod(a) (((a) < 0)?(0 - (a)):(a))
+  #define mod(a)  ((((int)(a)) < 0) ? (0 - ((int)(a))) : (a))
 #endif
 
 typedef DWORD (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
