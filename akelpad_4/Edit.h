@@ -46,7 +46,7 @@
   #define PROPSHEETHEADERW_V1_SIZE CCSIZEOF_STRUCT(PROPSHEETHEADERW, pfnCallback)
 #endif
 #ifndef mod
-  #define mod(a) (((a) < 0)?(0 - (a)):(a))
+  #define mod(a)  ((((int)(a)) < 0) ? (0 - ((int)(a))) : (a))
 #endif
 
 #define BUFFER_SIZE                1024
