@@ -1891,11 +1891,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETSELTEXTW)
     {
-      CHARRANGE cr;
+      int *nResultLen=(int *)lParam;
+      AECHARRANGE cr;
       wchar_t *wpText=NULL;
+      int nTextLen;
+      BOOL bColumnSel=FALSE;
 
-      SendMessage((HWND)wParam, EM_EXGETSEL, 0, (LPARAM)&cr);
-      GetRangeTextW((HWND)wParam, cr.cpMin, cr.cpMax, &wpText);
+      GetSel((HWND)wParam, &cr, &bColumnSel, NULL);
+      nTextLen=ExGetRangeTextW((HWND)wParam, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R);
+      if (nResultLen) *nResultLen=nTextLen;
       return (LRESULT)wpText;
     }
     if (uMsg == AKD_GETTEXTRANGE)
@@ -3561,11 +3565,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETSELTEXTW)
     {
-      CHARRANGE cr;
+      int *nResultLen=(int *)lParam;
+      AECHARRANGE cr;
       wchar_t *wpText=NULL;
+      int nTextLen;
+      BOOL bColumnSel=FALSE;
 
-      SendMessage((HWND)wParam, EM_EXGETSEL, 0, (LPARAM)&cr);
-      GetRangeTextW((HWND)wParam, cr.cpMin, cr.cpMax, &wpText);
+      GetSel((HWND)wParam, &cr, &bColumnSel, NULL);
+      nTextLen=ExGetRangeTextW((HWND)wParam, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R);
+      if (nResultLen) *nResultLen=nTextLen;
       return (LRESULT)wpText;
     }
     if (uMsg == AKD_GETTEXTRANGE)

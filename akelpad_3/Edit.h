@@ -15,8 +15,8 @@
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_ABOUT_VERSIONA           "AkelPad 3.6.0"
-#define APP_ABOUT_VERSIONW          L"AkelPad 3.6.0"
+#define APP_ABOUT_VERSIONA           "AkelPad 3.6.1"
+#define APP_ABOUT_VERSIONW          L"AkelPad 3.6.1"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -1038,7 +1038,7 @@ void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput);
 
 void ReplaceSelA(HWND hWnd, char *pData, int nDataLen);
 void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen);
-wchar_t* GetSelTextW(HWND hWnd);
+wchar_t* GetSelTextW(HWND hWnd, int *nTextLen);
 DWORD CALLBACK GetSelTextCallbackW(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
 void SetTextSel(HWND hWnd, int nMin, int nMax);
 int GetTextLength(HWND hWnd);

@@ -1674,16 +1674,17 @@ _______________
 
 Retrieves the currently selected text in a edit control.
 
-(HWND)wParam == edit window
-lParam       == not used
+(HWND)wParam  == edit window
+(int *)lParam == pointer to a variable that receive text length, can be NULL
 
 Return Value
  text pointer
 
 Example:
  wchar_t *wpText;
+ int nTextLen=0;
 
- wpText=SendMessage(pd->hMainWnd, AKD_GETSELTEXTW, (WPARAM)pd->hWndEdit, 0);
+ wpText=SendMessage(pd->hMainWnd, AKD_GETSELTEXTW, (WPARAM)pd->hWndEdit, (LPARAM)&nTextLen);
  SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpText);
 
 
