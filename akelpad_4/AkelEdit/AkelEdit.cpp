@@ -6736,7 +6736,6 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
           nLastLineSelStart=ciDeleteEnd.lpLine->nSelStart;
           break;
         }
-        --nLineCount;
 
         if (lpNewElement->nLineBreak == AELB_WRAP)
           nLineOffset+=lpNewElement->nLineLen;
@@ -6779,8 +6778,6 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       //Set global
       nHScrollPos=ae->nHScrollPos;
       nVScrollPos=ae->nVScrollPos;
-      ae->nLineCount+=nLineCount;
-      ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
       AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
       ae->ciCaretIndex=ciFirstChar;
       ae->nSelStartCharOffset=nStartOffset;
@@ -6814,7 +6811,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         //Update scroll bars
         ae->nLineCount+=nWrapCount;
         ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
-        if (nLineCount + nWrapCount)
+        if (nWrapCount)
         {
           if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
         }
@@ -6826,10 +6823,6 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         nLastRedrawLine=ciLastChar.nLine;
 
         //Update scroll bars
-        if (nLineCount)
-        {
-          if (bUpdate) AE_UpdateScrollBars(ae, SB_VERT);
-        }
         if (!ae->liMaxWidthLine.lpLine)
           AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
         else
