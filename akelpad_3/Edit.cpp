@@ -1122,7 +1122,7 @@ void DoEditCopy(HWND hWnd)
 
   if (cr.cpMin < cr.cpMax)
   {
-    if (wszSelection=GetSelTextW(hWnd))
+    if (wszSelection=GetSelTextW(hWnd, NULL))
     {
       if (OpenClipboard(hMainWnd))
       {
@@ -1491,7 +1491,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
 
   if (cr.cpMin < cr.cpMax)
   {
-    if (wszText=GetSelTextW(hWnd))
+    if (wszText=GetSelTextW(hWnd, NULL))
     {
       if (wszText[0] != '\0')
       {
@@ -1563,7 +1563,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   }
   nLen=(chrg.cpMax - chrg.cpMin) + 1;
 
-  if (wszText=GetSelTextW(hWnd))
+  if (wszText=GetSelTextW(hWnd, NULL))
   {
     for (a=0, b=0; b < nLen; wszText[a++]=wszText[b++])
     {
@@ -9633,7 +9633,7 @@ void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen)
   SendMessage(hWnd, EM_STREAMIN, SF_TEXT|SF_UNICODE|SFF_SELECTION, (LPARAM)&es);
 }
 
-wchar_t* GetSelTextW(HWND hWnd)
+wchar_t* GetSelTextW(HWND hWnd, int *nTextLen)
 {
   EDITSTREAM es;
   BUFFERSTREAMDATA bsd;
@@ -9656,9 +9656,11 @@ wchar_t* GetSelTextW(HWND hWnd)
       es.pfnCallback=GetSelTextCallbackW;
       SendMessage(hWnd, EM_STREAMOUT, SF_TEXT|SF_UNICODE|SFF_SELECTION, (LPARAM)&es);
       wszText[bsd.nCount]='\0';
+      if (nTextLen) *nTextLen=bsd.nCount;
       return wszText;
     }
   }
+  if (nTextLen) *nTextLen=0;
   return NULL;
 }
 
@@ -10726,7 +10728,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
     SetTextSel(hWnd, 0, -1);
   nUnicodeLen=(chrg.cpMax - chrg.cpMin) + 1;
 
-  if (wszSelText=GetSelTextW(hWnd))
+  if (wszSelText=GetSelTextW(hWnd, NULL))
   {
     nAnsiLen=WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen, NULL, 0, NULL, NULL);
 

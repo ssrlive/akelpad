@@ -1898,7 +1898,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETSELTEXTW)
     {
-      return (LRESULT)GetSelTextW((HWND)wParam);
+      return (LRESULT)GetSelTextW((HWND)wParam, (int *)lParam);
     }
     if (uMsg == AKD_GETTEXTRANGE)
     {
@@ -3570,7 +3570,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETSELTEXTW)
     {
-      return (LRESULT)GetSelTextW((HWND)wParam);
+      return (LRESULT)GetSelTextW((HWND)wParam, (int *)lParam);
     }
     if (uMsg == AKD_GETTEXTRANGE)
     {

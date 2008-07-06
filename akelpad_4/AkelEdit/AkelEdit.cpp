@@ -3516,7 +3516,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   BOOL bPrevLine=FALSE;
 
   if (bWrap)
-    dwMaxWidth=ae->rcDraw.right - ae->rcDraw.left;
+    dwMaxWidth=(ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth;
   else
     dwMaxWidth=(DWORD)-1;
 
@@ -3558,7 +3558,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
       if (liCount.lpLine->nLineWidth == -1)
         AE_GetLineWidth(ae, liCount.lpLine);
 
-      if ((DWORD)(liCount.lpLine->nLineWidth + ae->nAveCharWidth) > dwMaxWidth)
+      if ((DWORD)liCount.lpLine->nLineWidth > dwMaxWidth)
       {
         if (nWrapped=AE_LineWrap(ae, &liCount, (liCount.nLine == liFirst.nLine)?&liFirst:NULL, &liCount, dwMaxWidth, ciPointOne, ciPointTwo, ciPointThree, &ciSelStart, &ciSelEnd))
         {
@@ -3664,7 +3664,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
   NextLine:
   if (nCharEnd < lpInitialElement->nLineLen)
   {
-    if (AE_GetCharInLine(ae, lpInitialElement->wpLine + nCharStart, lpInitialElement->nLineLen - nCharStart, dwMaxWidth - ae->nAveCharWidth, FALSE, &nCharEnd, &nCharPos, FALSE))
+    if (AE_GetCharInLine(ae, lpInitialElement->wpLine + nCharStart, lpInitialElement->nLineLen - nCharStart, dwMaxWidth, FALSE, &nCharEnd, &nCharPos, FALSE))
     {
       nCharEnd+=nCharStart;
 
@@ -3851,7 +3851,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AECHARIND
   if (liLine->lpLine->nLineWidth == -1)
     AE_GetLineWidth(ae, liLine->lpLine);
 
-  if ((DWORD)(liLine->lpLine->nLineWidth + ae->nAveCharWidth * 2) < dwMaxWidth)
+  if ((DWORD)(liLine->lpLine->nLineWidth + ae->nAveCharWidth) < dwMaxWidth)
   {
     //Calculate unwrapped line info
     lpCurElement=liLine->lpLine;
@@ -3863,7 +3863,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AECHARIND
       dwUnwrapLineWidth+=lpCurElement->nLineWidth;
       dwUnwrapLineLen+=lpCurElement->nLineLen;
 
-      if (dwUnwrapLineWidth + ae->nAveCharWidth * 2 >= dwMaxWidth || lpCurElement->nLineBreak != AELB_WRAP)
+      if (dwUnwrapLineWidth + ae->nAveCharWidth >= dwMaxWidth || lpCurElement->nLineBreak != AELB_WRAP)
       {
         dwUnwrapLineBreak=lpCurElement->nLineBreak;
         break;
@@ -3940,7 +3940,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AECHARIND
             }
           }
 
-          if (dwCountWidth + ae->nAveCharWidth * 2 >= dwMaxWidth || lpCurElement->nLineBreak != AELB_WRAP)
+          if (dwCountWidth + ae->nAveCharWidth >= dwMaxWidth || lpCurElement->nLineBreak != AELB_WRAP)
           {
             AE_StackLineDelete(ae, lpCurElement);
             break;
