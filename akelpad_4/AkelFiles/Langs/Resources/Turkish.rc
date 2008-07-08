@@ -230,6 +230,7 @@ IDI_ICON_EMPTY          ICON    DISCARDABLE     "Empty.ico"
 // Cursor
 //
 
+IDC_AEMARGIN            CURSOR  DISCARDABLE     "Margin.cur"
 IDC_CURSOR_DRAGMOVE     CURSOR  DISCARDABLE     "DragMove.cur"
 
 /////////////////////////////////////////////////////////////////////////////

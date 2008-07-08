@@ -1,6 +1,8 @@
 
 AkelPad 4.0.0 beta 2 ()
 -----------------------------------
+Added: pressing on left mouse button in left margin selects line.
+
 Fixed: speed slowdown of column's Undo/Redo in beta 1.
 Fixed: using word wrap, with no AECO_DISABLENOSCROLL flag.
 

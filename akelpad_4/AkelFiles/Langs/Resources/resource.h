@@ -61,6 +61,7 @@
 #define STR_URL                         128
 #define STR_AUTODETECT_RUSSIAN          501
 #define STR_AUTODETECT_ENGLISH          502
+#define IDC_AEMARGIN                    900
 #define RESERVED                        1000
 #define IDI_ICON_MAIN                   1001
 #define IDI_ICON_EMPTY                  1002

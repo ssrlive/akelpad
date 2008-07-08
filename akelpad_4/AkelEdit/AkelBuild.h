@@ -207,6 +207,7 @@ typedef struct _AKELEDIT {
   int nLButtonDownPrevTime;
   int nLButtonDownCount;
   DWORD dwMouseMoveTimer;
+  BOOL bMarginSelect;
 
   //RichEdit emulation
   BOOL bRichEditClass;
@@ -272,6 +273,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw);
 void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, BOOL bUpdate);
 void AE_UpdateSelection(AKELEDIT *ae);
 void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShift);
+BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos);
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, COLORREF crCaret, int nCaretWidth, int nCaretHeight);
 HBITMAP AE_LoadBitmapFromMemory(HDC hDC, BYTE *lpBmpFileData);

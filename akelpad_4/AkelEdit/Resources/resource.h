@@ -2,7 +2,7 @@
 // Microsoft Developer Studio generated include file.
 // Used by AkelEdit.rc
 //
-#define IDC_STATIC                      -1
+#define IDC_AEMARGIN                    900
 
 // Next default values for new objects
 //
