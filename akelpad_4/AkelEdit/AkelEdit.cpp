@@ -1436,17 +1436,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_CHAR)
     {
-      if (wParam)
+      //Skip control characters
+      if (wParam >= 0x20)
       {
-        if (wParam != VK_RETURN &&
-            wParam != VK_BACK &&
-            wParam != VK_ESCAPE)
-        {
-          if (GetKeyState(VK_CONTROL) >= 0)
-          {
-            AE_EditChar(ae, wParam);
-          }
-        }
+        AE_EditChar(ae, wParam);
       }
       return 0;
     }
