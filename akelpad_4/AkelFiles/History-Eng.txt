@@ -1,6 +1,14 @@
 
 AkelPad 4.0.0 beta 2 ()
 -----------------------------------
+Changed: hotkeys (conflicted with AltGr key):
+        - Shift+Alt+W save as ANSI (Windows);
+        - Shift+Alt+D save as OEM (DOS);
+        - Shift+Alt+K save as KOI8-R.
+        - Shift+Alt+L save as UTF-16LE;
+        - Shift+Alt+B save as UTF-16BE;
+        - Shift+Alt+U save as UTF-8.
+
 Added: pressing on left mouse button in left margin selects line.
 
 Fixed: AltGr key didn't working.
