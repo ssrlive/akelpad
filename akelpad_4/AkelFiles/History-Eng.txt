@@ -1,5 +1,5 @@
 
-AkelPad 4.0.0 beta 2 ()
+AkelPad 4.0.0 beta 2 (Jul 11, 2008)
 -----------------------------------
 Changed: hotkeys (conflicted with AltGr key):
         - Shift+Alt+W save as ANSI (Windows);
