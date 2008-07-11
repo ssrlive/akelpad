@@ -102,7 +102,7 @@ BEGIN
     POPUP "&Ver"
     BEGIN
         MENUITEM "&Fuente...",                  IDM_VIEW_FONT
-        MENUITEM "&Colors...",                  IDM_VIEW_COLORS
+        MENUITEM "&Colores...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "A&juste de texto\tCtrl+U",    IDM_VIEW_WORDWRAP
         MENUITEM "Siempre &visible\tCtrl+T",    IDM_VIEW_ONTOP
@@ -474,19 +474,19 @@ END
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Colors..."
+CAPTION "Colores..."
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Color theme:",IDC_STATIC,11,6,103,8
+    LTEXT           "Tema de colores:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Save",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "Guardar",IDC_COLORS_THEME_SAVE,123,16,50,14
+    PUSHBUTTON      "Eliminar",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,217,65
-    PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
+    PUSHBUTTON      "Aceptar",IDOK,123,117,50,14,BS_CENTER
+    PUSHBUTTON      "Cancelar",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -639,7 +639,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,18,102,10
     CONTROL         "Recordar code page",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,29,102,10
-    GROUPBOX        "Hiperenlaces",IDC_STATIC,9,51,100,49
+    GROUPBOX        "Hipervínculos",IDC_STATIC,9,51,100,49
     CONTROL         "Mostrar",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,63,89,10
     CONTROL         "Un clic",IDC_OPTIONS_URL_SINGLECLICK,"Button",
@@ -690,7 +690,7 @@ END
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,0,0,0
- PRODUCTVERSION 3,0,0,0
+ PRODUCTVERSION 4,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -715,7 +715,7 @@ BEGIN
             VALUE "OriginalFilename", "\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "3, 0, 0, 0\0"
+            VALUE "ProductVersion", "4, 0, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -792,11 +792,11 @@ BEGIN
                             "El archivo será reabierto, todos los cambios se  perderán."
     MSG_FILE_CHANGED        """%s"" ha sido modificado fuera.\n\n¿Quiere reabrirlo?"
     MSG_CP_UNIMPLEMENTED    "El codepage ""%d"" no está implementado."
-    MSG_CP_MISMATCH         "Line ""%d"" contains symbols which will be lost at saving in this encoding. Continue?"
+    MSG_CP_MISMATCH         "La línea ""%d"" contiene símbolos que se perderían si se guardan en esta codificación. ¿Continuar?"
     MSG_RESTART_PROGRAM     "Los cambios se reflejaran al reiniciar el programa."
     MSG_SAVEIN_READONLY     """%s"" archivo de sólo lectura. ¿Continuar?"
     MSG_HOTKEY_EXISTS       "Tecla directa ya asignada a ""%s""."
-    MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" doesn't support autoload."
+    MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" no soporta autocargado."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -817,7 +817,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cirílico (ANSI, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latino (OEM, UTF-8)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -829,20 +829,20 @@ BEGIN
     STR_HEADLINE            "Titulares"
     STR_TOP                 "Superior:"
     STR_BOTTOM              "Inferior:"
-    STR_ELEMENT             "Element"
-    STR_STANDARDTHEME       "Standard"
-    STR_TEXT                "Text"
-    STR_BACKGROUND          "Background"
-    STR_SAMPLE              "Sample"
-    STR_BASIC               "Basic color"
-    STR_SELECTION           "Selection"
-    STR_ACTIVELINE          "Active line"
+    STR_ELEMENT             "Elemento"
+    STR_STANDARDTHEME       "Estándar"
+    STR_TEXT                "Texto"
+    STR_BACKGROUND          "Fondo"
+    STR_SAMPLE              "Muestra"
+    STR_BASIC               "Color básico"
+    STR_SELECTION           "Selección"
+    STR_ACTIVELINE          "Línea activa"
     STR_CARET               "Caret"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_URL                 "Hiperlink"
+    STR_URL                 "Hipervínculo"
 END
 
 #endif    // Spanish (Castilian) resources

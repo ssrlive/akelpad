@@ -685,7 +685,7 @@ END
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,0,0,0
- PRODUCTVERSION 3,0,0,0
+ PRODUCTVERSION 4,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -710,7 +710,7 @@ BEGIN
             VALUE "OriginalFilename", "\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "3, 0, 0, 0\0"
+            VALUE "ProductVersion", "4, 0, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
