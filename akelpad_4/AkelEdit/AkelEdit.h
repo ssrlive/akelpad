@@ -229,6 +229,13 @@ typedef struct {
   BOOL bColumnSel;    //Column selection
 } AESELECTION;
 
+typedef struct _AEPOINT {
+  struct _AEPOINT *next;   //Pointer to the next AEPOINT structure     
+  struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure 
+  AECHARINDEX ciPoint;     //Character index
+  BOOL bModify;            //Is ciPoint index modified
+} AEPOINT;
+
 typedef struct {
   char *pText;        //Text to append
   DWORD dwTextLen;    //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
@@ -394,6 +401,8 @@ typedef struct {
 #define AEM_INDEXOFFSET       (WM_USER + 2111)
 #define AEM_INDEXTORICHOFFSET (WM_USER + 2112)
 #define AEM_RICHOFFSETTOINDEX (WM_USER + 2113)
+#define AEM_ADDPOINT          (WM_USER + 2114)
+#define AEM_DELPOINT          (WM_USER + 2115)
 
 #define AEM_CHARFROMPOS       (WM_USER + 2151)
 #define AEM_POSFROMCHAR       (WM_USER + 2152)
@@ -1361,6 +1370,43 @@ Example:
  SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&recr);
  SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)recr.cpMin, (LPARAM)&aecr.ciMin);
  SendMessage(hWndEdit, AEM_RICHOFFSETTOINDEX, (WPARAM)recr.cpMax, (LPARAM)&aecr.ciMax);
+
+
+AEM_ADDPOINT
+____________
+
+Add character index to a points stack. Character index will be updated after every text change.
+
+wParam                == not used.
+(AECHARINDEX *)lParam == AkelEdit character index.
+
+Return Value
+ Pointer to a AEPOINT structure.
+
+Example:
+ AEPOINT *lpPoint;
+ AECHARINDEX ciChar;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&ciChar);
+ lpPoint=(AEPOINT *)SendMessage(hWndEdit, AEM_ADDPOINT, 0, (LPARAM)&ciChar);
+ SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
+ ciChar=lpPoint->ciPoint;  //Read new position
+ SendMessage(hWndEdit, AEM_DELPOINT, (WPARAM)lpPoint, 0);
+
+
+AEM_DELPOINT
+____________
+
+Delete character index from points stack.
+
+(AEPOINT *)wParam == pointer to a AEPOINT structure, returned by AEM_ADDPOINT.
+lParam            == not used.
+
+Return Value
+ zero
+
+Example:
+ See AEM_ADDPOINT example.
 
 
 AEM_CHARFROMPOS
