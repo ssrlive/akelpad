@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.0 beta 2                          *
+ *                      AkelEdit text control v1.0 beta 3                          *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1449,10 +1449,20 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_CHAR)
     {
-      //Skip control characters
-      if (wParam >= 0x20)
+      if (wParam == VK_RETURN)
+      {
+        AE_EditKeyReturn(ae);
+        return 0;
+      }
+      if (wParam == VK_TAB)
+      {
+        AE_EditChar(ae, VK_TAB);
+        return 0;
+      }
+      if (wParam >= 0x20 && wParam != 0x7F)
       {
         AE_EditChar(ae, wParam);
+        return 0;
       }
       return 0;
     }
@@ -1474,11 +1484,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (GetKeyState(VK_CONTROL) < 0)
         bControl=TRUE;
 
-      if (wParam == VK_RETURN)
-      {
-        AE_EditKeyReturn(ae);
-        return 0;
-      }
       if (wParam == VK_BACK)
       {
         AE_EditKeyBackspace(ae, bControl);
@@ -1487,14 +1492,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (wParam == VK_DELETE)
       {
         AE_EditKeyDelete(ae, bControl);
-        return 0;
-      }
-      if (wParam == VK_TAB)
-      {
-        if (bControl && !bShift && !bAlt)
-        {
-          AE_EditChar(ae, VK_TAB);
-        }
         return 0;
       }
       if (wParam == VK_INSERT)

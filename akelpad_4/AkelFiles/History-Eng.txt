@@ -1,4 +1,9 @@
 
+AkelPad 4.0.0 beta 3 (Jul 11, 2008)
+-----------------------------------
+Fixed: tab key didn't working.
+
+
 AkelPad 4.0.0 beta 2 (Jul 11, 2008)
 -----------------------------------
 Changed: hotkeys (conflicted with AltGr key):
