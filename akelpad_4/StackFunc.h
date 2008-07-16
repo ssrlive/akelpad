@@ -1,5 +1,5 @@
 /*****************************************************************
- *              Stack functions header v2.6                      *
+ *              Stack functions header v2.7                      *
  *                                                               *
  * 2008 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -1179,7 +1179,7 @@ void StackClear(stack **first, stack **last)
  *Note:
  *  StackReverse uses StackExchange
  ********************************************************************/
-#if (defined StackReverse || defined ALLSTACKFUNCS) && defined StackExchange_INCLUDED
+#if defined StackReverse || defined ALLSTACKFUNCS
 #define StackReverse_INCLUDED
 #undef StackReverse
 void StackReverse(stack **first, stack **last)
@@ -1227,7 +1227,7 @@ void StackReverse(stack **first, stack **last)
  *Note:
  *  StackCopy uses StackInsert
  ********************************************************************/
-#if (defined StackCopy || defined ALLSTACKFUNCS) && defined StackInsert_INCLUDED
+#if defined StackCopy || defined ALLSTACKFUNCS
 #define StackCopy_INCLUDED
 #undef StackCopy
 int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, int nBytes)
@@ -1282,7 +1282,7 @@ int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, in
  *  StackPushSortA uses StackInsert
  ********************************************************************/
 
-#if (defined StackPushSortA || defined ALLSTACKFUNCS) && defined StackInsert_INCLUDED
+#if defined StackPushSortA || defined ALLSTACKFUNCS
 #define StackPushSortA_INCLUDED
 #undef StackPushSortA
 int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pString, int nUpDown, int nBytes)
