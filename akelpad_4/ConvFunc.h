@@ -1,5 +1,5 @@
 /*****************************************************************
- *           Conversion functions header v2.3                    *
+ *           Conversion functions header v2.4                    *
  *                                                               *
  * 2008 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -10,7 +10,7 @@
  * hex2decA, hex2decW, dec2hexA, dec2hexW                        *
  *                                                               *
  *Special functions (ALLCONVFUNCS):                              *
- * str2hexA, hex2strA                                            *
+ * str2hexA, str2hexW, hex2strA, hex2strW                        *
  *                                                               *
  *****************************************************************/
 
@@ -32,8 +32,10 @@ int hex2decW(wchar_t *wpStrHex);
 int dec2hexA(unsigned int nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase);
 int dec2hexW(unsigned int nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLowerCase);
 
-void str2hexA(unsigned char *pStr, unsigned int nBytes, char *szStrHex, unsigned int nStrHexMax, BOOL bLowerCase);
-void hex2strA(char *pStrHex, char *szStr, unsigned int nStrMax);
+int str2hexA(unsigned char *pStr, int nBytes, char *szStrHex, int nStrHexMax, BOOL bLowerCase);
+int str2hexW(unsigned char *pStr, int nBytes, wchar_t *wszStrHex, int nStrHexMax, BOOL bLowerCase);
+int hex2strA(char *pStrHex, unsigned char *szStr, int nStrMax);
+int hex2strW(wchar_t *wpStrHex, unsigned char *szStr, int nStrMax);
 
 #endif
 
@@ -687,35 +689,79 @@ int dec2hexW(unsigned int nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bL
  *
  *Converts string to hex values.
  *
- *[in]   unsigned char *pStr     -string
- *[in]   unsigned int nBytes     -number of bytes in string
- *[out]  char *szStrHex          -hex string
- *[in]   unsigned int nStrHexMax -size of the hex string buffer
- *[in]   BOOL bLowerCase         -if TRUE hexadecimal value in lowercase
- *                                if FALSE in uppercase.
+ *[in]   unsigned char *pStr -string
+ *[in]   int nBytes          -number of bytes in string
+ *[out]  char *szStrHex      -hex string (output)
+ *[in]   int nStrHexMax      -size of the hex string buffer
+ *[in]   BOOL bLowerCase     -if TRUE hexadecimal value in lowercase
+ *                            if FALSE in uppercase.
+ *
+ *Returns: copied chars
  *
  *Note:
  *  str2hexA uses dec2hexA
  *
  *Examples:
- *  str2hexA((unsigned char *)"Some Text", lstrlen("Some Text"), szResult, MAX_PATH, TRUE);   //szResult == "536f6d652054657874"
+ *  str2hexA((unsigned char *)"Some Text", lstrlenA("Some Text"), szResult, MAX_PATH, TRUE);   //szResult == "536f6d652054657874"
  ********************************************************************/
 #if defined str2hexA || defined ALLCONVFUNCS
 #define str2hexA_INCLUDED
 #undef str2hexA
-void str2hexA(unsigned char *pStr, unsigned int nBytes, char *szStrHex, unsigned int nStrHexMax, BOOL bLowerCase)
+int str2hexA(unsigned char *pStr, int nBytes, char *szStrHex, int nStrHexMax, BOOL bLowerCase)
 {
-  char *pStrHex=szStrHex;
-  char *pStrHexMax=szStrHex + nStrHexMax - 2;
-  unsigned int i;
+  int a;
+  int b;
 
-  for (i=0; pStrHex <= pStrHexMax && i < nBytes; ++i)
+  nStrHexMax-=3;
+
+  for (a=0, b=0; a < nBytes && b <= nStrHexMax; ++a, b+=2)
   {
-    //wsprintfA(pStrHex, "%02x", (unsigned int)pStr[i]);
-    dec2hexA((unsigned int)pStr[i], pStrHex, 2, bLowerCase);
-    pStrHex+=2;
+    //wsprintfA(szStrHex, "%02x", (unsigned int)pStr[a]);
+    dec2hexA((unsigned int)pStr[a], szStrHex + b, 2, bLowerCase);
   }
-  *pStrHex='\0';
+  szStrHex[b]='\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  str2hexW
+ *
+ *Converts string to hex values.
+ *
+ *[in]   unsigned char *pStr -string
+ *[in]   int nBytes          -number of bytes in string
+ *[out]  wchar_t *wszStrHex  -hex string (output)
+ *[in]   int nStrHexMax      -size of the hex string buffer
+ *[in]   BOOL bLowerCase     -if TRUE hexadecimal value in lowercase
+ *                            if FALSE in uppercase.
+ *
+ *Returns: copied chars
+ *
+ *Note:
+ *  str2hexW uses dec2hexW
+ *
+ *Examples:
+ *  str2hexW((unsigned char *)"Some Text", lstrlenA("Some Text"), wszResult, MAX_PATH, TRUE);   //wszResult == L"536f6d652054657874"
+ ********************************************************************/
+#if defined str2hexW || defined ALLCONVFUNCS
+#define str2hexW_INCLUDED
+#undef str2hexW
+int str2hexW(unsigned char *pStr, int nBytes, wchar_t *wszStrHex, int nStrHexMax, BOOL bLowerCase)
+{
+  int a;
+  int b;
+
+  nStrHexMax-=3;
+
+  for (a=0, b=0; a < nBytes && b <= nStrHexMax; ++a, b+=2)
+  {
+    //wsprintfW(wszStrHex, L"%02x", (unsigned int)pStr[a]);
+    dec2hexW((unsigned int)pStr[a], wszStrHex + b, 2, bLowerCase);
+  }
+  wszStrHex[b]='\0';
+  return b;
 }
 #endif
 
@@ -726,39 +772,84 @@ void str2hexA(unsigned char *pStr, unsigned int nBytes, char *szStrHex, unsigned
  *Converts hex values to string.
  *
  *[in]   char *pStrHex        -hex string
- *[out]  char *szStr          -string
- *[in]   unsigned int nStrMax -size of the string buffer
+ *[out]  unsigned char *szStr -string (output)
+ *[in]   int nStrMax          -size of the string buffer
+ *
+ *Returns: copied bytes
  *
  *Note:
  *  hex2strA uses hex2decA
  *
  *Examples:
- *  hex2strA("536f6d652054657874", szResult, MAX_PATH);   //szResult == "Some Text"
+ *  hex2strA("536f6d652054657874", (unsigned char *)szResult, MAX_PATH);   //szResult == "Some Text"
  ********************************************************************/
 #if defined hex2strA || defined ALLCONVFUNCS
 #define hex2strA_INCLUDED
 #undef hex2strA
-void hex2strA(char *pStrHex, char *szStr, unsigned int nStrMax)
+int hex2strA(char *pStrHex, unsigned char *szStr, int nStrMax)
 {
-  char *pStr=szStr;
-  char *pStrMax=szStr + nStrMax;
-  char a[4];
+  char szHexChar[4];
+  int nHexChar;
+  int a;
   int b;
 
-  while (*pStrHex && pStr < pStrMax)
+  for (a=0, b=0; pStrHex[a] && b < nStrMax; ++a, ++b)
   {
-    a[0]=*pStrHex;
-    a[1]=*++pStrHex;
-    a[2]='\0';
+    szHexChar[0]=pStrHex[a];
+    if (!pStrHex[++a]) break;
+    szHexChar[1]=pStrHex[a];
+    szHexChar[2]='\0';
 
-    if (*pStrHex++)
-    {
-      if ((b=hex2decA(a)) > 0) *pStr++=b;
-      else break;
-    }
-    else break;
+    if ((nHexChar=hex2decA(szHexChar)) >= 0)
+      szStr[b]=nHexChar;
+    else
+      break;
   }
-  *pStr='\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  hex2strW
+ *
+ *Converts hex values to string.
+ *
+ *[in]   wchar_t *wpStrHex    -hex string
+ *[out]  unsigned char *szStr -string (output)
+ *[in]   int nStrMax          -size of the string buffer
+ *
+ *Returns: copied bytes
+ *
+ *Note:
+ *  hex2strW uses hex2decW
+ *
+ *Examples:
+ *  hex2strW(L"536f6d652054657874", (unsigned char *)szResult, MAX_PATH);   //szResult == "Some Text"
+ ********************************************************************/
+#if defined hex2strW || defined ALLCONVFUNCS
+#define hex2strW_INCLUDED
+#undef hex2strW
+int hex2strW(wchar_t *wpStrHex, unsigned char *szStr, int nStrMax)
+{
+  wchar_t wszHexChar[4];
+  int nHexChar;
+  int a;
+  int b;
+
+  for (a=0, b=0; wpStrHex[a] && b < nStrMax; ++a, ++b)
+  {
+    wszHexChar[0]=wpStrHex[a];
+    if (!wpStrHex[++a]) break;
+    wszHexChar[1]=wpStrHex[a];
+    wszHexChar[2]='\0';
+
+    if ((nHexChar=hex2decW(wszHexChar)) >= 0)
+      szStr[b]=nHexChar;
+    else
+      break;
+  }
+  return b;
 }
 #endif
 
