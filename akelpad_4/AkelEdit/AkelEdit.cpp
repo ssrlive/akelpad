@@ -4618,8 +4618,8 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFresh)
   {
     if (CreateCaret(ae->hWndEdit, (HBITMAP)hCaretBitmap, nCaretWidth, nCaretHeight))
     {
+      ae->bCaretVisible=FALSE;
       AE_SetCaretPos(ae, &ae->ptCaret);
-      if (ae->bCaretVisible) ShowCaret(ae->hWndEdit);
     }
     return TRUE;
   }
