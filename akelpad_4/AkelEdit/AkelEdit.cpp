@@ -5984,7 +5984,6 @@ int AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharIndex
 {
   int nCharPos;
   int nMaxExtent;
-  int nHScrollMax;
   int nFirstLine=0;
   int nLastLine=ae->nLineCount;
   int nResult;
@@ -5994,9 +5993,9 @@ int AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharIndex
   ciCharIndex->nLine=min(ciCharIndex->nLine, nLastLine);
   ciCharIndex->nCharInLine=0;
   if (ptGlobalPos) ptGlobalPos->y=ciCharIndex->nLine * ae->nCharHeight;
+
   nMaxExtent=ae->nHScrollPos + (ptClientPos->x - ae->rcDraw.left);
-  nHScrollMax=max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth * 2;
-  nMaxExtent=min(nHScrollMax, nMaxExtent);
+  nMaxExtent=min(ae->nHScrollMax - ae->nAveCharWidth, nMaxExtent);
 
   if (AE_UpdateIndex(ae, ciCharIndex))
   {
