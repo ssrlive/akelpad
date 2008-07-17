@@ -1133,8 +1133,8 @@ PLUGINFUNCTIONW* StackPluginAddW(HSTACK *hStack, wchar_t *wpString, int nStringL
 void StackPluginDelete(HSTACK *hStack, void *lpElement);
 BOOL StackPluginSaveA(HSTACK *hStack, BOOL bCleanOld);
 BOOL StackPluginSaveW(HSTACK *hStack, BOOL bCleanOld);
-void StackPluginCleanUpA(HSTACK *hStack);
-void StackPluginCleanUpW(HSTACK *hStack);
+void StackPluginCleanUpA(HSTACK *hStack, BOOL bDeleteNonExistentDLL);
+void StackPluginCleanUpW(HSTACK *hStack, BOOL bDeleteNonExistentDLL);
 void StackPluginFree(HSTACK *hStack);
 BOOL IsMainFunctionA(char *pFunction);
 BOOL IsMainFunctionW(wchar_t *wpFunction);

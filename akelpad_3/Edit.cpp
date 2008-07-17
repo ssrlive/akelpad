@@ -10963,7 +10963,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         }
 
         FreePluginList(&hPluginListStack);
-        StackPluginCleanUpA(&hPluginsStack);
+        StackPluginCleanUpA(&hPluginsStack, bListChanged?TRUE:FALSE);
         if (bListChanged) StackPluginSaveA(&hPluginsStack, TRUE);
 
         EndDialog(hDlg, 0);
@@ -10973,7 +10973,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     else if (LOWORD(wParam) == IDOK)
     {
       FreePluginList(&hPluginListStack);
-      StackPluginCleanUpA(&hPluginsStack);
+      StackPluginCleanUpA(&hPluginsStack, TRUE);
       StackPluginSaveA(&hPluginsStack, TRUE);
 
       EndDialog(hDlg, 0);
@@ -10990,7 +10990,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         pliElement=pliElement->prev;
       }
       FreePluginList(&hPluginListStack);
-      StackPluginCleanUpA(&hPluginsStack);
+      StackPluginCleanUpA(&hPluginsStack, FALSE);
 
       EndDialog(hDlg, 0);
     }
@@ -11187,7 +11187,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         }
 
         FreePluginList(&hPluginListStack);
-        StackPluginCleanUpW(&hPluginsStack);
+        StackPluginCleanUpW(&hPluginsStack, bListChanged?TRUE:FALSE);
         if (bListChanged) StackPluginSaveW(&hPluginsStack, TRUE);
 
         EndDialog(hDlg, 0);
@@ -11197,7 +11197,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     else if (LOWORD(wParam) == IDOK)
     {
       FreePluginList(&hPluginListStack);
-      StackPluginCleanUpW(&hPluginsStack);
+      StackPluginCleanUpW(&hPluginsStack, TRUE);
       StackPluginSaveW(&hPluginsStack, TRUE);
 
       EndDialog(hDlg, 0);
@@ -11214,7 +11214,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         pliElement=pliElement->prev;
       }
       FreePluginList(&hPluginListStack);
-      StackPluginCleanUpW(&hPluginsStack);
+      StackPluginCleanUpW(&hPluginsStack, FALSE);
 
       EndDialog(hDlg, 0);
     }
@@ -12667,34 +12667,68 @@ BOOL StackPluginSaveW(HSTACK *hStack, BOOL bCleanOld)
   return bResult;
 }
 
-void StackPluginCleanUpA(HSTACK *hStack)
+void StackPluginCleanUpA(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
 {
   PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->last;
   PLUGINFUNCTIONA *pfElement2;
+  char szDLL[MAX_PATH];
+  char szPlugin[MAX_PATH];
 
   while (pfElement)
   {
     pfElement2=pfElement->prev;
 
     if (!pfElement->wHotkey && !pfElement->bOnStart && !pfElement->bRunning)
+    {
       StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
+      pfElement=NULL;
+    }
+    if (bDeleteNonExistentDLL && pfElement)
+    {
+      if (ParsePluginNameA(pfElement->szFunction, szPlugin, NULL))
+      {
+        wsprintfA(szDLL, "%s\\AkelFiles\\Plugs\\%s.dll", szExeDir, szPlugin);
 
+        if (!FileExistsA(szDLL))
+        {
+          StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
+          pfElement=NULL;
+        }
+      }
+    }
     pfElement=pfElement2;
   }
 }
 
-void StackPluginCleanUpW(HSTACK *hStack)
+void StackPluginCleanUpW(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
 {
   PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->last;
   PLUGINFUNCTIONW *pfElement2;
+  wchar_t wszDLL[MAX_PATH];
+  wchar_t wszPlugin[MAX_PATH];
 
   while (pfElement)
   {
     pfElement2=pfElement->prev;
 
     if (!pfElement->wHotkey && !pfElement->bOnStart && !pfElement->bRunning)
+    {
       StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
+      pfElement=NULL;
+    }
+    if (bDeleteNonExistentDLL && pfElement)
+    {
+      if (ParsePluginNameW(pfElement->wszFunction, wszPlugin, NULL))
+      {
+        wsprintfW(wszDLL, L"%s\\AkelFiles\\Plugs\\%s.dll", wszExeDir, wszPlugin);
 
+        if (!FileExistsW(wszDLL))
+        {
+          StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
+          pfElement=NULL;
+        }
+      }
+    }
     pfElement=pfElement2;
   }
 }

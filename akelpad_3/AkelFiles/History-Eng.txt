@@ -1,4 +1,9 @@
 
+AkelPad 3.6.1 ()
+----------------------------
+Fixed: "OK" button in plugin dialog, didn't clear non-existent plugin records.
+
+
 AkelPad 3.6.0 (Jul 03, 2008)
 ----------------------------
 Changed: synchronized structures with AkelPad 4.x.x. Update yours plugins.
