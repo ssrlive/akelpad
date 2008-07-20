@@ -15869,14 +15869,14 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 
   if (hWnd)
   {
-    SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
-
     if (nNewLine & NEWLINE_MIX)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_ASIS, AELB_ASIS));
     else if (nNewLine & NEWLINE_WIN)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
     else if (nNewLine & NEWLINE_UNIX)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+
+    SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
   }
 
   if (nNewLine & NEWLINE_WIN)
@@ -15892,14 +15892,14 @@ void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 
   if (hWnd)
   {
-    SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
-
     if (nNewLine & NEWLINE_MIX)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_ASIS, AELB_ASIS));
     else if (nNewLine & NEWLINE_WIN)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
     else if (nNewLine & NEWLINE_UNIX)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+
+    SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
   }
 
   if (nNewLine & NEWLINE_WIN)
