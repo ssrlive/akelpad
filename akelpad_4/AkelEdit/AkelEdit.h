@@ -1790,6 +1790,42 @@ Example:
  SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, 0);
 
 
+AEM_GETCARETWIDTH
+_________________
+
+Retrieve caret width.
+
+wParam          == not used.
+(POINT *)lParam == pointer to a POINT structure that receives the insert mode caret width in x member and overtype mode caret height in y member.
+
+Return Value
+ zero
+
+Example:
+ POINT pt;
+
+ SendMessage(hWndEdit, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
+
+
+AEM_SETCARETWIDTH
+_________________
+
+Set caret width.
+
+wParam          == not used.
+(POINT *)lParam == pointer to a POINT structure which specifies the insert mode caret width in x member and overtype mode caret height in y member.
+
+Return Value
+ zero
+
+Example:
+ POINT pt;
+
+ pt.x=2;
+ pt.y=3;
+ SendMessage(hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
+
+
 AEM_GETTABSTOP
 ______________
 
