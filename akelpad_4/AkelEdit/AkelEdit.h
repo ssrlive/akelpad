@@ -171,12 +171,12 @@ typedef DWORD (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWOR
 //dwBufDone   Pointer to a variable that the callback function sets to the number of bytes actually read or written.
 //
 //Return Value
-//The callback function returns zero to indicate success.
+// The callback function returns zero to indicate success.
 //
 //Remarks
-//The control continues to call the callback function until one of the following conditions occurs:
-//* The callback function returns a nonzero value.
-//* The callback function returns zero in the *dwBufDone parameter.
+// The control continues to call the callback function until one of the following conditions occurs:
+// * The callback function returns a nonzero value.
+// * The callback function returns zero in the *dwBufDone parameter.
 
 
 //// Structures
@@ -230,8 +230,8 @@ typedef struct {
 } AESELECTION;
 
 typedef struct _AEPOINT {
-  struct _AEPOINT *next;   //Pointer to the next AEPOINT structure     
-  struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure 
+  struct _AEPOINT *next;   //Pointer to the next AEPOINT structure
+  struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure
   AECHARINDEX ciPoint;     //Character index
   BOOL bModify;            //Is ciPoint index modified
 } AEPOINT;
@@ -453,18 +453,8 @@ Sends to the parent window procedure after the current selection has changed.
 Return Value
  zero
 
-
-AEN_TEXTCHANGE
-______________
-
-Notification message in the form of a WM_NOTIFY message.
-Sends to the parent window procedure after the document text has changed.
-
-(int)wParam             == specifies the control identifier.
-(AENTEXTCHANGE *)lParam == pointer to a AENTEXTCHANGE structure.
-
-Return Value
- zero
+Remarks
+ To receive AEN_SELCHANGE notifications, specify AENM_SELCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_TEXTCHANGE
@@ -478,6 +468,9 @@ Sends to the parent window procedure after the document text has changed.
 
 Return Value
  zero
+
+Remarks
+ To receive AEN_TEXTCHANGE notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_MODIFYCHANGE
@@ -486,11 +479,14 @@ ________________
 Notification message in the form of a WM_NOTIFY message.
 Sends to the parent window procedure after the document modify state has changed.
 
-(int)wParam             == specifies the control identifier.
+(int)wParam               == specifies the control identifier.
 (AENMODIFYCHANGE *)lParam == pointer to a AENMODIFYCHANGE structure.
 
 Return Value
  zero
+
+Remarks
+ To receive AEN_MODIFYCHANGE notifications, specify AENM_MODIFYCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_ERRSPACE
@@ -694,11 +690,11 @@ Return Value
  Number of characters read.
 
 Example:
-typedef struct {
-  wchar_t *wpData;
-  int nDataLen;
-  int nCount;
-} STREAMINDATA;
+ typedef struct {
+   wchar_t *wpData;
+   int nDataLen;
+   int nCount;
+ } STREAMINDATA;
 
  AESTREAM aes;
  STREAMINDATA sid;
@@ -746,9 +742,9 @@ Return Value
  Number of characters written to the data stream.
 
 Example:
-typedef struct {
-  HANDLE hFile;
-} STREAMOUTDATA;
+ typedef struct {
+   HANDLE hFile;
+ } STREAMOUTDATA;
 
  AESTREAM aes;
  STREAMOUTDATA sod;
@@ -909,6 +905,9 @@ lParam == not used.
 
 Return Value
  Zero if successful, otherwise returns first met line number containing nonconverted character.
+
+Remarks
+ Windows 95 isn't supported.
 
 Example:
  SendMessage(hWndEdit, AEM_CHECKCODEPAGE, 1251, 0);
