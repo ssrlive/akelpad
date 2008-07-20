@@ -4167,12 +4167,14 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     if (bColumnSel)
     {
       AE_GetPosFromCharEx(ae, &ciSelStartNew, &ptSelStart, NULL);
-      if (ptSelStart.x > max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
-        return;
+      if (AE_IndexCompare(&ae->ciSelStartIndex, &ciSelStartNew))
+        if (ptSelStart.x > max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
+          return;
 
       AE_GetPosFromCharEx(ae, &ciSelEndNew, &ptSelEnd, NULL);
-      if (ptSelEnd.x > max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
-        return;
+      if (AE_IndexCompare(&ae->ciSelEndIndex, &ciSelEndNew))
+        if (ptSelEnd.x > max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
+          return;
     }
     else
     {
@@ -4204,7 +4206,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
 
       while (liLine.lpLine)
       {
-        AE_GetLineSelection(ae, &liLine, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, &liLine.lpLine->nSelStart, &liLine.lpLine->nSelEnd, bColumnSel);
+        AE_GetLineSelection(ae, &liLine, &ciSelStartNew, &ciSelEndNew, ptSelStart.x, ptSelEnd.x, &liLine.lpLine->nSelStart, &liLine.lpLine->nSelEnd, bColumnSel);
         if (liLine.lpLine == ciSelEndNew.lpLine) break;
         ++liLine.nLine;
 
@@ -6343,7 +6345,7 @@ BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c)
     return FALSE;
 }
 
-int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, POINT *ptSelStart, POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel)
+int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, int nSelStartX, int nSelEndX, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel)
 {
   if (ciSelStart->nLine > liLine->nLine || ciSelEnd->nLine < liLine->nLine)
     goto Empty;
@@ -6352,8 +6354,8 @@ int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARIND
 
   if (bColumnSel)
   {
-    int nStartX=min(ptSelStart->x, ptSelEnd->x);
-    int nEndX=max(ptSelStart->x, ptSelEnd->x);
+    int nStartX=min(nSelStartX, nSelEndX);
+    int nEndX=max(nSelStartX, nSelEndX);
     int nSelStart;
     int nSelEnd;
     int i;

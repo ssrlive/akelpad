@@ -5,6 +5,8 @@ Fixed: "OK" button in plugin dialog, didn't clear non-existent plugin records.
 Fixed: Ctrl+Tab combination didn't working in dialog.
 Fixed: mouse didn't select last symbol of a line with a biggest width.
 Fixed: caret hiding when text margins is changed.
+Fixed: column selection was deformed, if it left from visible limits at window resize
+       in word wrap mode.
 
 
 AkelPad 4.0.0 beta 3 (Jul 11, 2008)
