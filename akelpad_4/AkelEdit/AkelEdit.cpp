@@ -7285,6 +7285,10 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     ae->hLinesStack.first=0;
     ae->hLinesStack.last=0;
     ae->nLineCount=0;
+    ae->nHScrollPos=0;
+    ae->nVScrollPos=0;
+    ae->nHScrollMax=0;
+    ae->nVScrollMax=0;
     ae->hPointsStack.first=0;
     ae->hPointsStack.last=0;
     ae->lpCurrentUndo=NULL;
@@ -7297,6 +7301,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     ae->liMaxWidthLine.lpLine=NULL;
     ae->ptCaret.x=0;
     ae->ptCaret.y=0;
+    ae->nHorizCaretPos=0;
     ae->ciCaretIndex.nLine=0;
     ae->ciCaretIndex.nCharInLine=0;
     ae->ciCaretIndex.lpLine=NULL;
@@ -7356,18 +7361,25 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     {
       if (ae->nLineCount > nLinesInPage)
       {
-        if (ae->bWordWrap) ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
-
-        ae->nHScrollPos=0;
-        ae->nVScrollPos=0;
-        ae->nHScrollMax=0;
         ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
         AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
-        AE_GetPosFromCharEx(ae, &ciCaretChar, &ae->ptCaret, NULL);
         ae->ciCaretIndex=ciCaretChar;
         ae->ciSelStartIndex=ciCaretChar;
         ae->ciSelEndIndex=ciCaretChar;
 
+        if (!(ae->dwOptions & AECO_DISABLENOSCROLL))
+          AE_UpdateScrollBars(ae, SB_VERT);
+
+        if (ae->bWordWrap)
+        {
+          ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
+
+          ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+          AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+          ae->ciCaretIndex=ciCaretChar;
+          ae->ciSelStartIndex=ciCaretChar;
+          ae->ciSelEndIndex=ciCaretChar;
+        }
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         UpdateWindow(ae->hWndEdit);
         bUpdated=TRUE;
@@ -7392,37 +7404,35 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   }
   if (ae->nLineCount) --ae->nLineCount;
 
-  ae->nHScrollPos=0;
-  ae->nVScrollPos=0;
-  ae->nHScrollMax=0;
   ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
-  AE_GetPosFromCharEx(ae, &ciCaretChar, &ae->ptCaret, NULL);
   ae->ciCaretIndex=ciCaretChar;
   ae->ciSelStartIndex=ciCaretChar;
   ae->ciSelEndIndex=ciCaretChar;
 
-  AE_UpdateScrollBars(ae, SB_VERT);
-  if (!bUpdated)
-  {
-    InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-    UpdateWindow(ae->hWndEdit);
-  }
-
-  //Set caret position
-  AE_ScrollToCaret(ae, &ae->ptCaret);
-  ae->nHorizCaretPos=ae->ptCaret.x;
-  if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
-
   if (ae->bWordWrap)
   {
-    AE_UpdateWrap(ae, ae->bWordWrap);
+    ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
+
+    ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+    ae->ciCaretIndex=ciCaretChar;
+    ae->ciSelStartIndex=ciCaretChar;
+    ae->ciSelEndIndex=ciCaretChar;
+
+    AE_UpdateScrollBars(ae, SB_VERT);
     if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
   }
   else
   {
+    AE_UpdateScrollBars(ae, SB_VERT);
     AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
+    if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
   }
+
+  //Set caret position
+  if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+
   return dwTextLen;
 }
 
