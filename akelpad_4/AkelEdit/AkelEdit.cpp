@@ -722,6 +722,23 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
       }
+      if (uMsg == AEM_GETCARETWIDTH)
+      {
+        POINT *pt=(POINT *)lParam;
+
+        pt->x=ae->nCaretInsertWidth;
+        pt->y=ae->nCaretOvertypeHeight;
+        return 0;
+      }
+      if (uMsg == AEM_SETCARETWIDTH)
+      {
+        POINT *pt=(POINT *)lParam;
+
+        ae->nCaretInsertWidth=pt->x;
+        ae->nCaretOvertypeHeight=pt->y;
+        AE_UpdateCaret(ae, TRUE);
+        return 0;
+      }
       if (uMsg == AEM_GETTABSTOP)
       {
         return ae->nTabStop;
