@@ -7272,6 +7272,8 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   wchar_t *wpLineEnd=wpText;
   DWORD dwTextCount=0;
   int nMaxLineLen=0;
+  int nLinesInPage;
+  BOOL bUpdated=FALSE;
 
   //Free memory
   if (ae->hHeap)
@@ -7283,6 +7285,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     ae->hUndoStack.last=0;
     ae->hLinesStack.first=0;
     ae->hLinesStack.last=0;
+    ae->nLineCount=0;
     ae->hPointsStack.first=0;
     ae->hPointsStack.last=0;
     ae->lpCurrentUndo=NULL;
@@ -7321,10 +7324,13 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   else if (nNewLine == AELB_ASOUTPUT)
     nNewLine=ae->nOutputNewLine;
 
+  //Get lines in page
+  nLinesInPage=(ae->rcDraw.bottom - ae->rcDraw.top) / ae->nCharHeight;
+
   //Parse text
   if (dwTextLen == (DWORD)-1) dwTextLen=lstrlenW(wpText);
 
-  for (ae->nLineCount=0; dwTextCount < dwTextLen; ++ae->nLineCount)
+  while (dwTextCount < dwTextLen)
   {
     if (lpElement=AE_StackLineAdd(ae))
     {
@@ -7347,7 +7353,18 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
         lpElement->nLineWidth=-1;
       }
     }
+
+    if (!bUpdated)
+    {
+      if (ae->nLineCount > nLinesInPage)
+      {
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+        UpdateWindow(ae->hWndEdit);
+        bUpdated=TRUE;
+      }
+    }
     wpLineStart=wpLineEnd;
+    ++ae->nLineCount;
   }
 
   if (!lpElement || lpElement->nLineBreak != AELB_EOF)
@@ -7377,8 +7394,12 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
 
   if (!ae->bWordWrap) AE_UpdateScrollBars(ae, SB_HORZ);
   AE_UpdateScrollBars(ae, SB_VERT);
-  InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-  UpdateWindow(ae->hWndEdit);
+  if (!bUpdated)
+  {
+    InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+    UpdateWindow(ae->hWndEdit);
+    bUpdated=TRUE;
+  }
 
   //Set caret position
   AE_ScrollToCaret(ae, &ae->ptCaret);
