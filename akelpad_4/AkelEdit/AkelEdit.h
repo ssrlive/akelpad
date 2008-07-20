@@ -342,7 +342,7 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
-  BOOL bModified;  //TRUE document state is set to modified, TRUE document state is set to unmodified
+  BOOL bModified;  //TRUE document state is set to modified, FALSE document state is set to unmodified
 } AENMODIFYCHANGE;
 
 typedef struct {
