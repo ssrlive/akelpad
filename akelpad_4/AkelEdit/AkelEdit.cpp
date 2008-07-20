@@ -7271,7 +7271,6 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   wchar_t *wpLineStart=wpText;
   wchar_t *wpLineEnd=wpText;
   DWORD dwTextCount=0;
-  int nMaxLineLen=0;
   int nLinesInPage;
   BOOL bUpdated=FALSE;
 
@@ -7349,7 +7348,6 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
       {
         AE_memcpy(lpElement->wpLine, wpLineStart, lpElement->nLineLen * sizeof(wchar_t));
         lpElement->wpLine[lpElement->nLineLen]=L'\0';
-        nMaxLineLen=max(nMaxLineLen, lpElement->nLineLen);
         lpElement->nLineWidth=-1;
       }
     }
@@ -7358,6 +7356,18 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     {
       if (ae->nLineCount > nLinesInPage)
       {
+        if (ae->bWordWrap) ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
+
+        ae->nHScrollPos=0;
+        ae->nVScrollPos=0;
+        ae->nHScrollMax=0;
+        ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+        AE_GetPosFromCharEx(ae, &ciCaretChar, &ae->ptCaret, NULL);
+        ae->ciCaretIndex=ciCaretChar;
+        ae->ciSelStartIndex=ciCaretChar;
+        ae->ciSelEndIndex=ciCaretChar;
+
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         UpdateWindow(ae->hWndEdit);
         bUpdated=TRUE;
@@ -7384,21 +7394,19 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
 
   ae->nHScrollPos=0;
   ae->nVScrollPos=0;
-  ae->nHScrollMax=(nMaxLineLen + 1) * ae->nAveCharWidth;
+  ae->nHScrollMax=0;
   ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
   AE_GetPosFromCharEx(ae, &ciCaretChar, &ae->ptCaret, NULL);
   ae->ciCaretIndex=ciCaretChar;
-  ae->ciSelStartIndex=ae->ciCaretIndex;
-  ae->ciSelEndIndex=ae->ciCaretIndex;
+  ae->ciSelStartIndex=ciCaretChar;
+  ae->ciSelEndIndex=ciCaretChar;
 
-  if (!ae->bWordWrap) AE_UpdateScrollBars(ae, SB_HORZ);
   AE_UpdateScrollBars(ae, SB_VERT);
   if (!bUpdated)
   {
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
     UpdateWindow(ae->hWndEdit);
-    bUpdated=TRUE;
   }
 
   //Set caret position
@@ -7409,7 +7417,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   if (ae->bWordWrap)
   {
     AE_UpdateWrap(ae, ae->bWordWrap);
-    InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+    if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
   }
   else
   {
