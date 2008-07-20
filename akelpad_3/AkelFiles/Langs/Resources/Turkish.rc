@@ -272,14 +272,14 @@ BEGIN
     "9",            IDM_EDIT_TITLECASE,     VIRTKEY, CONTROL, NOINVERT
     "A",            IDM_EDIT_SELECTALL,     VIRTKEY, CONTROL, NOINVERT
     "B",            IDM_NONMENU_REOPENAS_UTF16BE, VIRTKEY, ALT, NOINVERT
-    "B",            IDM_NONMENU_SAVEAS_UTF16BE, VIRTKEY, CONTROL, ALT, 
+    "B",            IDM_NONMENU_SAVEAS_UTF16BE, VIRTKEY, SHIFT, ALT, 
                                                     NOINVERT
     "C",            IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
     "C",            IDM_EDIT_COPY,          VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     "D",            IDM_EDIT_INSERTDATE,    VIRTKEY, CONTROL, NOINVERT
     "D",            IDM_NONMENU_REOPENAS_OEM, VIRTKEY, ALT, NOINVERT
-    "D",            IDM_NONMENU_SAVEAS_OEM, VIRTKEY, CONTROL, ALT, NOINVERT
+    "D",            IDM_NONMENU_SAVEAS_OEM, VIRTKEY, SHIFT, ALT, NOINVERT
     "E",            IDM_OPTIONS_READONLY,   VIRTKEY, CONTROL, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
     "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
@@ -287,10 +287,10 @@ BEGIN
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT
     "K",            IDM_NONMENU_REOPENAS_KOIR, VIRTKEY, ALT, NOINVERT
-    "K",            IDM_NONMENU_SAVEAS_KOIR, VIRTKEY, CONTROL, ALT, NOINVERT
+    "K",            IDM_NONMENU_SAVEAS_KOIR, VIRTKEY, SHIFT, ALT, NOINVERT
     "L",            IDM_OPTIONS_KEEPSPACE,  VIRTKEY, CONTROL, NOINVERT
     "L",            IDM_NONMENU_REOPENAS_UTF16LE, VIRTKEY, ALT, NOINVERT
-    "L",            IDM_NONMENU_SAVEAS_UTF16LE, VIRTKEY, CONTROL, ALT, 
+    "L",            IDM_NONMENU_SAVEAS_UTF16LE, VIRTKEY, SHIFT, ALT, 
                                                     NOINVERT
     "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
     "N",            IDM_FILE_CREATENEW,     VIRTKEY, SHIFT, CONTROL, 
@@ -308,7 +308,7 @@ BEGIN
     "T",            IDM_VIEW_ONTOP,         VIRTKEY, CONTROL, NOINVERT
     "U",            IDM_VIEW_WORDWRAP,      VIRTKEY, CONTROL, NOINVERT
     "U",            IDM_NONMENU_REOPENAS_UTF8, VIRTKEY, ALT, NOINVERT
-    "U",            IDM_NONMENU_SAVEAS_UTF8, VIRTKEY, CONTROL, ALT, NOINVERT
+    "U",            IDM_NONMENU_SAVEAS_UTF8, VIRTKEY, SHIFT, ALT, NOINVERT
     "V",            IDM_EDIT_PASTE,         VIRTKEY, CONTROL, NOINVERT
     "V",            IDM_NONMENU_PASTEANSI,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
@@ -350,7 +350,7 @@ BEGIN
                                                     NOINVERT
     "W",            IDM_NONMENU_MDICLOSE,   VIRTKEY, CONTROL, NOINVERT
     "W",            IDM_NONMENU_REOPENAS_ANSI, VIRTKEY, ALT, NOINVERT
-    "W",            IDM_NONMENU_SAVEAS_ANSI, VIRTKEY, CONTROL, ALT, NOINVERT
+    "W",            IDM_NONMENU_SAVEAS_ANSI, VIRTKEY, SHIFT, ALT, NOINVERT
     "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
     "Y",            IDM_NONMENU_DELLINE,    VIRTKEY, CONTROL, NOINVERT
     "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
@@ -518,8 +518,8 @@ BEGIN
                     UDS_NOTHOUSANDS,113,57,11,13
     PUSHBUTTON      "Temizle",IDC_OPTIONS_SEARCHSTRINGS_CLEAR,141,56,54,14
     GROUPBOX        "Ýþlem",IDC_STATIC,9,83,199,77
-    LTEXT           "Komut (%f dosya, %a akelpad dizini):",IDC_STATIC,21,
-                    97,160,8,NOT WS_GROUP
+    LTEXT           "Komut (%f dosya, %a akelpad dizini):",IDC_STATIC,21,97,
+                    160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,108,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,108,14,13
     LTEXT           "Çalýþma dizini (%d dosya dizini):",IDC_STATIC,21,127,

@@ -1,6 +1,14 @@
 
 AkelPad 3.6.1 ()
 ----------------------------
+Changed: hotkeys (conflicted with AltGr key):
+        - Shift+Alt+W save as ANSI (Windows);
+        - Shift+Alt+D save as OEM (DOS);
+        - Shift+Alt+K save as KOI8-R.
+        - Shift+Alt+L save as UTF-16LE;
+        - Shift+Alt+B save as UTF-16BE;
+        - Shift+Alt+U save as UTF-8.
+
 Fixed: "OK" button in plugin dialog, didn't clear non-existent plugin records.
 
 
