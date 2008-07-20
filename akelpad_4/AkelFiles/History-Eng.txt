@@ -1,5 +1,5 @@
 
-AkelPad 4.0.0 beta 4 ()
+AkelPad 4.0.0 beta 4 (Jul 20, 2008)
 -----------------------------------
 Fixed: "OK" button in plugin dialog, didn't clear non-existent plugin records.
 Fixed: Ctrl+Tab combination didn't working in dialog.
