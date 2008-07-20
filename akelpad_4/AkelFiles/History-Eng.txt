@@ -4,7 +4,7 @@ AkelPad 4.0.0 beta 5 ()
 Added: instant access to the text at file opening (updating edit window at loading minimally
        necessary number of lines).
 
-Fixed: incorrect status bar selection length after new line format change.
+Fixed: incorrect selection length shown in status bar after new line format change.
 
 
 AkelPad 4.0.0 beta 4 (Jul 20, 2008)
