@@ -11119,7 +11119,7 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Set "Sample" text
       API_LoadStringA(hLangLib, STR_SAMPLE, buf, BUFFER_SIZE);
 
-      for (i=LVI_COLOR_BASIC; i < LVI_COLOR_URL; ++i)
+      for (i=LVI_COLOR_BASIC; i < LVI_COLOR_CARET; ++i)
       {
         lviA.mask=LVIF_TEXT;
         lviA.pszText=buf;
@@ -11529,7 +11529,7 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Set "Sample" text
       API_LoadStringW(hLangLib, STR_SAMPLE, wbuf, BUFFER_SIZE);
 
-      for (i=LVI_COLOR_BASIC; i < LVI_COLOR_URL; ++i)
+      for (i=LVI_COLOR_BASIC; i < LVI_COLOR_CARET; ++i)
       {
         lviW.mask=LVIF_TEXT;
         lviW.pszText=wbuf;
