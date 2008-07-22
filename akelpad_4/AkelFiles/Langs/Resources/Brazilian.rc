@@ -103,7 +103,7 @@ BEGIN
     POPUP "E&xibir"
     BEGIN
         MENUITEM "&Fonte...",                   IDM_VIEW_FONT
-        MENUITEM "&Colors...",                  IDM_VIEW_COLORS
+        MENUITEM "&Cores...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Quebrar linhas grandes\tCtrl+U", IDM_VIEW_WORDWRAP
         MENUITEM "&Sempre visível\tCtrl+T",     IDM_VIEW_ONTOP
@@ -475,19 +475,19 @@ END
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Colors..."
+CAPTION "Cores..."
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Color theme:",IDC_STATIC,11,6,103,8
+    LTEXT           "Tema:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Save",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "Salvar",IDC_COLORS_THEME_SAVE,123,16,50,14
+    PUSHBUTTON      "Apagar",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,217,65
     PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
+    PUSHBUTTON      "Cancelar",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -794,7 +794,7 @@ BEGIN
                             "O arquivo será reaberto; as mudanças se perderão."
     MSG_FILE_CHANGED        """%s"" foi modificado por outro programa.\n\nQuer reabri-lo ?"
     MSG_CP_UNIMPLEMENTED    "O código de página ""%d"" não está implementado."
-    MSG_CP_MISMATCH         "Line ""%d"" contains symbols which will be lost at saving in this encoding. Continue?"
+    MSG_CP_MISMATCH         "A linha ""%d"" contém caracteres que serão perdidos se salvar nesta codificação. Continuar ?"
     MSG_RESTART_PROGRAM     "As mudanças terão efeito a reiniciar o programa."
     MSG_SAVEIN_READONLY     """%s"" é um arquivo somente leitura. Continuar ?"
     MSG_HOTKEY_EXISTS       "Tecla de atalho já associada ao ""%s""."
@@ -820,7 +820,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cirílico (ANSI, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latim (OEM, UTF-8)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -833,14 +833,14 @@ BEGIN
     STR_TOP                 "Topo:"
     STR_BOTTOM              "Fundo:"
     STR_ELEMENT             "Element"
-    STR_STANDARDTHEME       "Standard"
-    STR_TEXT                "Text"
-    STR_BACKGROUND          "Background"
-    STR_SAMPLE              "Sample"
-    STR_BASIC               "Basic color"
-    STR_SELECTION           "Selection"
-    STR_ACTIVELINE          "Active line"
-    STR_CARET               "Caret"
+    STR_STANDARDTHEME       "Padrão"
+    STR_TEXT                "Texto"
+    STR_BACKGROUND          "Fundo"
+    STR_SAMPLE              "Amostra"
+    STR_BASIC               "Cor básica"
+    STR_SELECTION           "Seleção"
+    STR_ACTIVELINE          "Linha atual"
+    STR_CARET               "Cursor"
 END
 
 STRINGTABLE DISCARDABLE 
