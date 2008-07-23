@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.0 beta 5                          *
+ *                      AkelEdit text control v1.0 final                           *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1493,30 +1493,71 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (wParam == VK_TAB)
       {
-        AE_EditChar(ae, VK_TAB);
+        if (!bAlt)
+        {
+          AE_EditChar(ae, VK_TAB);
+        }
         return 0;
       }
       if (wParam == VK_RETURN)
       {
-        AE_EditKeyReturn(ae);
+        if (!bAlt)
+        {
+          AE_EditKeyReturn(ae);
+        }
         return 0;
       }
       if (wParam == VK_BACK)
       {
-        AE_EditKeyBackspace(ae, bControl);
+        if (!bAlt)
+        {
+          AE_EditKeyBackspace(ae, bControl);
+        }
+        else if (!bControl && !bShift)
+        {
+          AE_EditUndo(ae);
+        }
         return 0;
       }
       if (wParam == VK_DELETE)
       {
-        AE_EditKeyDelete(ae, bControl);
+        if (!bAlt)
+        {
+          if (!bShift)
+          {
+            AE_EditKeyDelete(ae, bControl);
+          }
+          else if (!bControl)
+          {
+            AE_EditCut(ae);
+          }
+        }
         return 0;
       }
       if (wParam == VK_INSERT)
       {
-        if (!bControl && !bShift && !bAlt)
+        if (!bAlt)
         {
-          ae->bOverType=!ae->bOverType;
-          AE_UpdateCaret(ae, FALSE);
+          if (!bControl && !bShift)
+          {
+            ae->bOverType=!ae->bOverType;
+            AE_UpdateCaret(ae, FALSE);
+          }
+          else
+          {
+            if (bControl && !bShift)
+            {
+              AE_EditCopyToClipboard(ae);
+            }
+            else if (!bControl && bShift)
+            {
+              AE_EditPasteFromClipboard(ae, FALSE);
+            }
+            else if (bControl && bShift)
+            {
+              AE_EditPasteFromClipboard(ae, TRUE);
+            }
+          }
         }
         return 0;
       }
@@ -1542,7 +1583,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           AE_EditPasteFromClipboard(ae, FALSE);
         }
-        if (bControl && bShift && !bAlt)
+        else if (bControl && bShift && !bAlt)
         {
           AE_EditPasteFromClipboard(ae, TRUE);
         }
@@ -1554,7 +1595,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           AE_EditUndo(ae);
         }
-        if (bControl && bShift && !bAlt)
+        else if (bControl && bShift && !bAlt)
         {
           AE_EditRedo(ae);
         }

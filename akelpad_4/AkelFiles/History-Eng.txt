@@ -1,9 +1,10 @@
 
-AkelPad 4.0.0 beta 5 ()
+AkelPad 4.0.0 final ()
 -----------------------------------
 Added: instant access to the text at file opening (updating edit window at loading minimally
        necessary number of lines).
 
+Fixed: combinations didn't working in dialog: Ctrl+Insert, Shift+Insert, Shift+Delete.
 Fixed: incorrect selection length shown in status bar after new line format change.
 
 
