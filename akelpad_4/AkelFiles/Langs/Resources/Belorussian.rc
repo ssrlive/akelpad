@@ -100,7 +100,7 @@ BEGIN
     POPUP "&Выгляд"
     BEGIN
         MENUITEM "&Шрыфт...",                   IDM_VIEW_FONT
-        MENUITEM "&Цвета...",                   IDM_VIEW_COLORS
+        MENUITEM "&Колеры...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "П&еранос па словах\tCtrl+U",  IDM_VIEW_WORDWRAP
         MENUITEM "&Па-над усімі вокнамі\tCtrl+T", IDM_VIEW_ONTOP
@@ -473,19 +473,19 @@ END
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Цвета..."
+CAPTION "Колеры..."
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Цветовая тема:",IDC_STATIC,11,6,103,8
+    LTEXT           "Каляровая тэма:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Сохранить",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "Удалить",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "Захаваць",IDC_COLORS_THEME_SAVE,123,16,50,14
+    PUSHBUTTON      "Выдаліць",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,217,65
     PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
-    PUSHBUTTON      "Отмена",IDCANCEL,176,117,50,14,BS_CENTER
+    PUSHBUTTON      "Адмена",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -810,7 +810,7 @@ BEGIN
                             "Файл будзе адчынены зноўку, усё змены будуць страчаны."
     MSG_FILE_CHANGED        """%s"" быў зменены звонку.\n\nПераадкрыць яго?"
     MSG_CP_UNIMPLEMENTED    """%d"" кодавая старонка не падтрымліваецца."
-    MSG_CP_MISMATCH         "Строка ""%d"" содержит символы, которые будут утеряны при сохранении в этой кодировке. Продолжить?"
+    MSG_CP_MISMATCH         "Радок ""%d"" змяшчае знакі, якія будуць згублены пры захаванні ў гэтай кадыроўцы. Працягнуць?"
     MSG_RESTART_PROGRAM     "Змены ўступяць у сілу пасля перазапуску праграмы."
     MSG_SAVEIN_READONLY     """%s"" файл мае атрыбут ""Толькі чытанне"". Працягнуць?"
     MSG_HOTKEY_EXISTS       "Гарачая клавіша ўжо прызначаная для ""%s""."
@@ -835,7 +835,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Кірыліца (ANSI, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_ENGLISH  "Латиница (OEM, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Лацінка (OEM, UTF-8)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -849,18 +849,18 @@ BEGIN
     STR_BOTTOM              "Ніжні:"
     STR_ELEMENT             "Элемент"
     STR_STANDARDTHEME       "Стандартная"
-    STR_TEXT                "Текст"
+    STR_TEXT                "Тэкст"
     STR_BACKGROUND          "Фон"
-    STR_SAMPLE              "Образец"
-    STR_BASIC               "Основной цвет"
-    STR_SELECTION           "Выделение"
-    STR_ACTIVELINE          "Активная строка"
-    STR_CARET               "Каретка"
+    STR_SAMPLE              "Узор"
+    STR_BASIC               "Асноўны колер"
+    STR_SELECTION           "Вылучэнне"
+    STR_ACTIVELINE          "Актыўны радок"
+    STR_CARET               "Карэтка"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_URL                 "Ссылка"
+    STR_URL                 "Спасылка"
 END
 
 #endif    // Unknown language: 0x23, 0x1 resources
