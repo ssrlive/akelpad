@@ -837,7 +837,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_URL                 "Hiperlink"
+    STR_URL                 "Hyperlink"
 END
 
 #endif    // Polish resources
