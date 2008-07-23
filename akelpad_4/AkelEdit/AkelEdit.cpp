@@ -2001,16 +2001,21 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (ae->bDragging)
       {
-        DWORD dwEffect;
+        DWORD dwEffectIn;
+        DWORD dwEffectOut;
         DWORD dwResult;
 
         ae->bDeleteSelection=TRUE;
         AE_DataObjectCopySelection(ae);
-        dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, DROPEFFECT_COPY|DROPEFFECT_MOVE, &dwEffect);
+
+        dwEffectIn=DROPEFFECT_COPY;
+        if (!(ae->dwOptions & AECO_READONLY))
+          dwEffectIn|=DROPEFFECT_MOVE;
+        dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
 
         if (dwResult == DRAGDROP_S_DROP)
         {
-          if (dwEffect & DROPEFFECT_MOVE)
+          if (dwEffectOut & DROPEFFECT_MOVE)
           {
             if (ae->bDeleteSelection)
             {
