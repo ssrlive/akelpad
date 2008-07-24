@@ -100,7 +100,7 @@ BEGIN
     POPUP "&Ansicht"
     BEGIN
         MENUITEM "&Font...",                    IDM_VIEW_FONT
-        MENUITEM "&Colors...",                  IDM_VIEW_COLORS
+        MENUITEM "Far&ben...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Zeilenumbruch\tCtrl+U",      IDM_VIEW_WORDWRAP
         MENUITEM "Immer im &Vordergrund\tCtrl+T", IDM_VIEW_ONTOP
@@ -475,19 +475,19 @@ END
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Colors..."
+CAPTION "Farben..."
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Color theme:",IDC_STATIC,11,6,103,8
+    LTEXT           "Farbschema:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Save",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "Speichern",IDC_COLORS_THEME_SAVE,123,16,50,14
+    PUSHBUTTON      "Entfernen",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,217,65
     PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
+    PUSHBUTTON      "Abbrechen",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -793,7 +793,7 @@ BEGIN
                             "Die Datei wird neu geöffnet, alle Änderungen werden verworfen."
     MSG_FILE_CHANGED        """%s"" wurde von außen verändert.\n\nWollen Sie diese Datei neu öffnen?"
     MSG_CP_UNIMPLEMENTED    """%d"" Zeichensatz wird nicht unterstützt."
-    MSG_CP_MISMATCH         "Line ""%d"" contains symbols which will be lost at saving in this encoding. Continue?"
+    MSG_CP_MISMATCH         "Die Zeile ""%d"" enthält Symbole, die verloren gehen, wenn in dieser Kodierung gespeichert wird. Fortsetzen?"
     MSG_RESTART_PROGRAM     "Die Änderungen werden nach einem Neustart wirksam."
     MSG_SAVEIN_READONLY     """%s"" ist eine schreibgeschützte Datei. Fortsetzen?"
     MSG_HOTKEY_EXISTS       "Ein Hotkey wurde bereits ""%s"" zugewiesen."
@@ -817,8 +817,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_AUTODETECT_RUSSIAN  "Kyrillische Schrift (ANSI, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+    STR_AUTODETECT_RUSSIAN  "Kyrillisch (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Westeuropäisch (OEM, UTF-8)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -833,17 +833,17 @@ BEGIN
     STR_ELEMENT             "Element"
     STR_STANDARDTHEME       "Standard"
     STR_TEXT                "Text"
-    STR_BACKGROUND          "Background"
-    STR_SAMPLE              "Sample"
-    STR_BASIC               "Basic color"
-    STR_SELECTION           "Selection"
-    STR_ACTIVELINE          "Active line"
-    STR_CARET               "Caret"
+    STR_BACKGROUND          "Hintergrund"
+    STR_SAMPLE              "Muster"
+    STR_BASIC               "Hauptfarbe"
+    STR_SELECTION           "Auswahl"
+    STR_ACTIVELINE          "Aktive Zeile"
+    STR_CARET               "Kursor"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_URL                 "Hyperlink"
+    STR_URL                 "Link"
 END
 
 #endif    // German (Germany) resources

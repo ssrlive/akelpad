@@ -103,7 +103,7 @@ BEGIN
     POPUP "&Visualizza"
     BEGIN
         MENUITEM "&Carattere...",               IDM_VIEW_FONT
-        MENUITEM "&Colors...",                  IDM_VIEW_COLORS
+        MENUITEM "&Colori...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "A capo automatico\tCtrl+U",   IDM_VIEW_WORDWRAP
         MENUITEM "Sempre in Primo Piano\tCtrl+T", IDM_VIEW_ONTOP
@@ -478,19 +478,19 @@ END
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Colors..."
+CAPTION "Colori..."
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Color theme:",IDC_STATIC,11,6,103,8
+    LTEXT           "Colore del tema:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Save",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "Salva",IDC_COLORS_THEME_SAVE,123,16,50,14
+    PUSHBUTTON      "Elimina",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,217,65
     PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
+    PUSHBUTTON      "Annulla",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -800,7 +800,7 @@ BEGIN
                             "Il file verrà riaperto, tutte le modifiche andranno perse."
     MSG_FILE_CHANGED        """%s"" è stato modificato dall'esterno.\n\nSi desidera riaprirlo?"
     MSG_CP_UNIMPLEMENTED    "Il codice della pagina ""%d"" non è stato implementato."
-    MSG_CP_MISMATCH         "Line ""%d"" contains symbols which will be lost at saving in this encoding. Continue?"
+    MSG_CP_MISMATCH         "La riga ""%d"" contiene dei simboli che verranno persi se salvati in questa codifica. Si desidera continuare?"
     MSG_RESTART_PROGRAM     "I cambiamenti saranno visibili al prossimo riavvio del programma."
     MSG_SAVEIN_READONLY     """%s"" è in sola-lettura. Continuare?"
     MSG_HOTKEY_EXISTS       "Tasto già assegnato a ""%s""."
@@ -826,7 +826,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cirillico (ANSI, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latino (OEM, UTF-8)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -838,15 +838,15 @@ BEGIN
     STR_HEADLINE            "Intestazione"
     STR_TOP                 "Su:"
     STR_BOTTOM              "Giù:"
-    STR_ELEMENT             "Element"
+    STR_ELEMENT             "Elemento"
     STR_STANDARDTHEME       "Standard"
-    STR_TEXT                "Text"
-    STR_BACKGROUND          "Background"
-    STR_SAMPLE              "Sample"
-    STR_BASIC               "Basic color"
-    STR_SELECTION           "Selection"
-    STR_ACTIVELINE          "Active line"
-    STR_CARET               "Caret"
+    STR_TEXT                "Testo"
+    STR_BACKGROUND          "Sfondo"
+    STR_SAMPLE              "Campione"
+    STR_BASIC               "Colore di base"
+    STR_SELECTION           "Selezione"
+    STR_ACTIVELINE          "Riga attiva"
+    STR_CARET               "Segno d'omissione"
 END
 
 STRINGTABLE DISCARDABLE 
