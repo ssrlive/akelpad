@@ -16156,19 +16156,26 @@ BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr)
 
   if (cr->ciMin.nCharInLine)
   {
-    if (wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, (cr->ciMin.nCharInLine + 2) * sizeof(wchar_t)))
+    //Calculate spaces
+    for (i=0; cr->ciMin.lpLine->wpLine[i] == ' ' || cr->ciMin.lpLine->wpLine[i] == '\t'; ++i);
+
+    if (i)
     {
-      wpText[0]='\n';
-
-      for (i=0; cr->ciMin.lpLine->wpLine[i] == ' ' || cr->ciMin.lpLine->wpLine[i] == '\t'; ++i)
+      //Insert spaces
+      if (wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, (i + 2) * sizeof(wchar_t)))
       {
-        wpText[i + 1]=cr->ciMin.lpLine->wpLine[i];
-      }
-      wpText[i + 1]='\0';
+        wpText[0]='\n';
 
-      ReplaceSelW(hWnd, wpText, -1, FALSE, NULL, NULL);
-      API_HeapFree(hHeap, 0, (LPVOID)wpText);
-      return TRUE;
+        for (i=0; cr->ciMin.lpLine->wpLine[i] == ' ' || cr->ciMin.lpLine->wpLine[i] == '\t'; ++i)
+        {
+          wpText[i + 1]=cr->ciMin.lpLine->wpLine[i];
+        }
+        wpText[i + 1]='\0';
+
+        ReplaceSelW(hWnd, wpText, -1, FALSE, NULL, NULL);
+        API_HeapFree(hHeap, 0, (LPVOID)wpText);
+        return TRUE;
+      }
     }
   }
   return FALSE;

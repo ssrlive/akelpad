@@ -2903,6 +2903,14 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return (LRESULT)NextDialog(TRUE);
     }
+    else if (LOWORD(wParam) == IDM_NONMENU_AUTOINDENT)
+    {
+      BOOL bResult;
+
+      if (!(bResult=AutoIndent(hWndEdit, &crSel)))
+        ReplaceSelW(hWndEdit, L"\n", -1, FALSE, NULL, NULL);
+      return bResult;
+    }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
       RECT rc;
@@ -4576,6 +4584,14 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_NONMENU_DLGPREV)
     {
       return (LRESULT)NextDialog(TRUE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_AUTOINDENT)
+    {
+      BOOL bResult;
+
+      if (!(bResult=AutoIndent(hWndEdit, &crSel)))
+        ReplaceSelW(hWndEdit, L"\n", -1, FALSE, NULL, NULL);
+      return bResult;
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
