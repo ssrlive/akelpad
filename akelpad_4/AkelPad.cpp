@@ -5545,8 +5545,13 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (bKeepSpace)
         {
-          if (AutoIndent(hWnd, &crSel))
-            return TRUE;
+          if (GetKeyState(VK_MENU) >= 0 &&
+              GetKeyState(VK_SHIFT) >= 0 &&
+              GetKeyState(VK_CONTROL) >= 0)
+          {
+            if (AutoIndent(hWnd, &crSel))
+              return TRUE;
+          }
         }
       }
     }
@@ -5588,8 +5593,13 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (bKeepSpace)
         {
-          if (AutoIndent(hWnd, &crSel))
-            return TRUE;
+          if (GetKeyState(VK_MENU) >= 0 &&
+              GetKeyState(VK_SHIFT) >= 0 &&
+              GetKeyState(VK_CONTROL) >= 0)
+          {
+            if (AutoIndent(hWnd, &crSel))
+              return TRUE;
+          }
         }
       }
     }
