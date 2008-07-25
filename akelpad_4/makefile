@@ -30,7 +30,7 @@ AkelEdit.o:
 	$(CC) $(CFLAGS) $(DEFINES) -c AkelEdit/AkelEdit.cpp
 
 Resource.o:
-	windres -D _MAC -I AkelFiles/Langs/Resources "AkelFiles/Langs/Resources/$(LANG).rc" -o Resource.o
+	windres -D EXE_VERSION -I AkelFiles/Langs/Resources "AkelFiles/Langs/Resources/$(LANG).rc" -o Resource.o
 
 clean:
 	$(DEL) AkelPad.o

@@ -8,6 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "winresrc.h"
+#include "version.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -102,7 +103,7 @@ BEGIN
     POPUP "&Ver"
     BEGIN
         MENUITEM "&Fuente...",                  IDM_VIEW_FONT
-        MENUITEM "&Colores...",                  IDM_VIEW_COLORS
+        MENUITEM "&Colores...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "A&juste de texto\tCtrl+U",    IDM_VIEW_WORDWRAP
         MENUITEM "Siempre &visible\tCtrl+T",    IDM_VIEW_ONTOP
@@ -744,6 +745,7 @@ END
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""winresrc.h""\r\n"
+    "#include ""version.h""\r\n"
     "\0"
 END
 
