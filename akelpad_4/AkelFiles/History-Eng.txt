@@ -3,8 +3,9 @@ AkelPad 4.0.0 final ()
 -----------------------------------
 Added: instant access to the text at file opening (updating edit window at loading minimally
        necessary number of lines).
-Added: Tatarish language module (Rustem Gimran).
+Added: version information in EXE.
 Added: Ctrl+Enter combination - new line with keeping left spaces.
+Added: Tatarish language module (Rustem Gimran).
 
 Fixed: combinations didn't working in dialog: Ctrl+Insert, Shift+Insert, Shift+Delete.
 Fixed: text Drag'n'Drop ignored AECO_READONLY flag.
