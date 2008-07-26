@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.0.0 beta 2"
+!define PRODUCT_VERSION "4.0.0 final"
 
 ;_____________________________________________________________________________________________
 ;
@@ -48,6 +48,7 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define LANG_KYRGYZ               1088
 !define LANG_POLISH               1045
 !define LANG_TURKISH              1055
+!define LANG_TATAR                1092
 
 !define INSTTYPE_STANDARD 1
 !define INSTTYPE_TOTALCMD 2
@@ -415,6 +416,7 @@ Section
 	File "Files\AkelFiles\Langs\Kyrgyz.dll"
 	File "Files\AkelFiles\Langs\Polish.dll"
 	File "Files\AkelFiles\Langs\Turkish.dll"
+	File "Files\AkelFiles\Langs\Tatar.dll"
 
 	SetOutPath "$SETUPDIR\AkelFiles\Plugs"
 
@@ -495,6 +497,8 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Polish.dll"
 	StrCmp $SYSLANGUAGE ${LANG_TURKISH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Turkish.dll"
+	StrCmp $SYSLANGUAGE ${LANG_TATAR} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Tatar.dll"
 
 	end:
 SectionEnd
@@ -611,6 +615,7 @@ Section un.install
 	Delete "$SETUPDIR\AkelFiles\Langs\Kyrgyz.dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Polish.dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Turkish.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\Tatar.dll"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Eng.htm"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Rus.htm"
 	Delete "$SETUPDIR\AkelFiles\History-Eng.txt"
