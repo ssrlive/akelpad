@@ -152,7 +152,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->hWndEdit=hWnd;
       ae->hWndParent=GetParent(ae->hWndEdit);
       ae->nEditCtrlID=GetDlgCtrlID(ae->hWndEdit);
-      ae->hHeap=HeapCreate(0, 0, 0);
+      ae->hHeap=NULL;
       ae->hDC=GetDC(ae->hWndEdit);
       ae->nCaretInsertWidth=1;
       ae->nCaretOvertypeHeight=2;
@@ -282,6 +282,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Register drop window
       CoLockObjectExternal((LPUNKNOWN)&ae->idt, TRUE, FALSE);
       RegisterDragDrop(ae->hWndEdit, (LPDROPTARGET)&ae->idt);
+
+      //Scrollbars updated in WM_SIZE
       return 0;
     }
     return -1;
@@ -1367,9 +1369,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_SETFONT)
     {
       if (!ae->bUnicodeWindow)
-        AE_SetEditFontA(ae, (HFONT)wParam, TRUE);
+        AE_SetEditFontA(ae, (HFONT)wParam, FALSE);
       else
-        AE_SetEditFontW(ae, (HFONT)wParam, TRUE);
+        AE_SetEditFontW(ae, (HFONT)wParam, FALSE);
 
       ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
       AE_UpdateScrollBars(ae, SB_VERT);
@@ -4113,7 +4115,7 @@ void AE_SetDrawRect(AKELEDIT *ae, RECT *lprcDraw, BOOL bRedraw)
   if (bRedraw) InvalidateRect(ae->hWndEdit, NULL, TRUE);
 }
 
-void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
+void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
   TEXTMETRICA tmEdit;
   SIZE sizeAverageWidth;
@@ -4151,10 +4153,10 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
   GetTextExtentPoint32A(ae->hDC, " ", 1, &sizeAverageWidth);
   ae->nSpaceCharWidth=sizeAverageWidth.cx;
 
-  InvalidateRect(ae->hWndEdit, &ae->rcDraw, !bNoRedraw);
+  InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 }
 
-void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
+void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
   TEXTMETRICW tmEdit;
   SIZE sizeAverageWidth;
@@ -4192,7 +4194,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bNoRedraw)
   GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeAverageWidth);
   ae->nSpaceCharWidth=sizeAverageWidth.cx;
 
-  InvalidateRect(ae->hWndEdit, &ae->rcDraw, !bNoRedraw);
+  InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 }
 
 void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, BOOL bUpdate)
@@ -7322,6 +7324,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   AELINEDATA *lpElement=NULL;
   wchar_t *wpLineStart=wpText;
   wchar_t *wpLineEnd=wpText;
+  HANDLE hHeap=ae->hHeap;
   DWORD dwTextCount=0;
   int nLinesInPage;
   BOOL bUpdated=FALSE;
@@ -7449,7 +7452,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     {
       if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, sizeof(wchar_t)))
       {
-        lpElement->nLineWidth=-1;
+        lpElement->nLineWidth=0;
         lpElement->wpLine[0]=L'\0';
 
         ++ae->nLineCount;
@@ -7465,24 +7468,27 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   ae->ciSelStartIndex=ciCaretChar;
   ae->ciSelEndIndex=ciCaretChar;
 
-  if (ae->bWordWrap)
+  if (hHeap)
   {
-    ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
+    if (ae->bWordWrap)
+    {
+      ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
 
-    ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
-    ae->ciCaretIndex=ciCaretChar;
-    ae->ciSelStartIndex=ciCaretChar;
-    ae->ciSelEndIndex=ciCaretChar;
+      ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+      AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+      ae->ciCaretIndex=ciCaretChar;
+      ae->ciSelStartIndex=ciCaretChar;
+      ae->ciSelEndIndex=ciCaretChar;
 
-    AE_UpdateScrollBars(ae, SB_VERT);
-    if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-  }
-  else
-  {
-    AE_UpdateScrollBars(ae, SB_VERT);
-    AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
-    if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+      AE_UpdateScrollBars(ae, SB_VERT);
+      if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+    }
+    else
+    {
+      AE_UpdateScrollBars(ae, SB_VERT);
+      AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
+      if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+    }
   }
 
   //Set caret position
