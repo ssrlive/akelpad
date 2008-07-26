@@ -5,7 +5,7 @@ Added: instant access to the text at file opening (updating edit window at loadi
        necessary number of lines).
 Added: version information in EXE.
 Added: Ctrl+Enter combination - new line with keeping left spaces.
-Added: Tatarish language module (Rustem Gimran).
+Added: Tatar language module (Rustem Gimran).
 
 Fixed: combinations didn't working in dialog: Ctrl+Insert, Shift+Insert, Shift+Delete.
 Fixed: text Drag'n'Drop ignored AECO_READONLY flag.
