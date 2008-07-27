@@ -1225,6 +1225,58 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return -1;
       }
     }
+    if (uMsg == EM_FINDWORDBREAK)
+    {
+      AECHARINDEX ciCharIn;
+      AECHARINDEX ciCharOut;
+      DWORD dwFlags=0;
+
+      if (wParam == WB_CLASSIFY)
+        return 0;
+
+      AE_RichOffsetToAkelIndex(ae, lParam, &ciCharIn);
+
+      if (wParam == WB_ISDELIMITER)
+        return AE_IsInDelimiterList(ae->wszWordDelimiters, ciCharIn.lpLine->wpLine[ciCharIn.nCharInLine]);
+
+      if (wParam == WB_LEFT ||
+          wParam == WB_LEFTBREAK ||
+          wParam == WB_PREVBREAK ||
+          wParam == WB_MOVEWORDLEFT ||
+          wParam == WB_MOVEWORDPREV)
+      {
+        if (wParam == WB_LEFT)
+          dwFlags=AEWB_LEFTWORDSTART;
+        else if (wParam == WB_LEFTBREAK || wParam == WB_PREVBREAK)
+          dwFlags=AEWB_LEFTWORDEND;
+        else if (wParam == WB_MOVEWORDLEFT || wParam == WB_MOVEWORDPREV)
+          dwFlags=ae->dwWordBreak;
+  
+        if (AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, FALSE, dwFlags, FALSE))
+          return AE_AkelIndexToRichOffset(ae, &ciCharOut);
+        else
+          return lParam;
+      }
+
+      if (wParam == WB_RIGHT ||
+          wParam == WB_RIGHTBREAK ||
+          wParam == WB_NEXTBREAK ||
+          wParam == WB_MOVEWORDRIGHT ||
+          wParam == WB_MOVEWORDNEXT)
+      {
+        if (wParam == WB_RIGHT)
+          dwFlags=AEWB_RIGHTWORDSTART;
+        else if (wParam == WB_RIGHTBREAK || wParam == WB_NEXTBREAK)
+          dwFlags=AEWB_RIGHTWORDEND;
+        else if (wParam == WB_MOVEWORDRIGHT || wParam == WB_MOVEWORDNEXT)
+          dwFlags=ae->dwWordBreak;
+  
+        if (AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, FALSE, dwFlags, FALSE))
+          return AE_AkelIndexToRichOffset(ae, &ciCharOut);
+        else
+          return lParam;
+      }
+    }
     if (uMsg == EM_SETUNDOLIMIT)
     {
       ae->dwUndoLimit=wParam;
