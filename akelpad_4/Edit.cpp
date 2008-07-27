@@ -308,7 +308,7 @@ void CreateEditWindowA(HWND hWnd)
   hWndEdit=CreateWindowExA(WS_EX_CLIENTEDGE,
                            "AkelEditA",
                            NULL,
-                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL,
+                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL|ES_NOHIDESEL,
                            0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
                            hWnd,
                            (HMENU)ID_EDIT,
@@ -330,7 +330,7 @@ void CreateEditWindowA(HWND hWnd)
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontA(hWndEdit, &lfEditFontA, TRUE);
-  SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
+  SendMessage(hWndEdit, AEM_SETDETECTURL, bShowURL, 0);
   SetWindowTextA(hWndEdit, "");
 
   OldEditProc=(WNDPROC)GetWindowLongA(hWndEdit, GWL_WNDPROC);
@@ -347,7 +347,7 @@ void CreateEditWindowW(HWND hWnd)
   hWndEdit=CreateWindowExW(WS_EX_CLIENTEDGE,
                            L"AkelEditW",
                            NULL,
-                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL,
+                           WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL|ES_NOHIDESEL,
                            0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
                            hWnd,
                            (HMENU)ID_EDIT,
@@ -369,7 +369,7 @@ void CreateEditWindowW(HWND hWnd)
   SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontW(hWndEdit, &lfEditFontW, TRUE);
-  SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
+  SendMessage(hWndEdit, AEM_SETDETECTURL, bShowURL, 0);
   SetWindowTextW(hWndEdit, L"");
 
   OldEditProc=(WNDPROC)GetWindowLongW(hWndEdit, GWL_WNDPROC);
@@ -15618,7 +15618,7 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (a != bShowURL)
       {
         bShowURL=a;
-        SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
+        SendMessage(hWndEdit, AEM_SETDETECTURL, bShowURL, 0);
       }
       if (SendMessage(hWndSingleClickURL, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nClickURL=1;
@@ -15717,7 +15717,7 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (a != bShowURL)
       {
         bShowURL=a;
-        SendMessage(hWndEdit, AEM_DETECTURL, bShowURL, 0);
+        SendMessage(hWndEdit, AEM_SETDETECTURL, bShowURL, 0);
       }
       if (SendMessage(hWndSingleClickURL, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nClickURL=1;
