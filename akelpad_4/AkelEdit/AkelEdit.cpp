@@ -949,6 +949,59 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return nResult;
       }
     }
+    if (uMsg == EM_GETTEXTLENGTHEX)
+    {
+      GETTEXTLENGTHEX *gtl=(GETTEXTLENGTHEX *)wParam;
+      int nResult=0;
+
+      //Answer is always GTL_PRECISE
+      if ((gtl->flags & GTL_PRECISE) && (gtl->flags & GTL_CLOSE))
+        return E_INVALIDARG;
+      if ((gtl->flags & GTL_NUMCHARS) && (gtl->flags & GTL_NUMBYTES))
+        return E_INVALIDARG;
+
+      if (!(gtl->flags & GTL_NUMBYTES))
+      {
+        nResult=ae->nLastCharOffset;
+        if (gtl->flags & GTL_USECRLF)
+          nResult+=ae->nLineCount;
+      }
+      else
+      {
+        if (gtl->codepage == 1200 || gtl->codepage == 1201)
+        {
+          nResult=ae->nLastCharOffset;
+          if (gtl->flags & GTL_USECRLF)
+            nResult+=ae->nLineCount;
+          nResult*=sizeof(wchar_t);
+        }
+        else
+        {
+          AELINEDATA *lpLine=(AELINEDATA *)ae->hLinesStack.first;
+
+          while (lpLine)
+          {
+            if (lpLine->nLineLen)
+            {
+              nResult+=WideCharToMultiByte(gtl->codepage, 0, lpLine->wpLine, lpLine->nLineLen, NULL, 0, NULL, NULL);
+            }
+            lpLine=lpLine->next;
+          }
+          nResult+=ae->nLineCount;
+          if (gtl->flags & GTL_USECRLF)
+            nResult+=ae->nLineCount;
+        }
+      }
+      return nResult;
+    }
+    if (uMsg == EM_GETTEXTEX)
+    {
+      return 0;
+    }
+    if (uMsg == EM_SETTEXTEX)
+    {
+      return 0;
+    }
     if (uMsg == EM_CANPASTE)
     {
       return AE_EditCanPaste(ae);
@@ -1251,7 +1304,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           dwFlags=AEWB_LEFTWORDEND;
         else if (wParam == WB_MOVEWORDLEFT || wParam == WB_MOVEWORDPREV)
           dwFlags=ae->dwWordBreak;
-  
+
         if (AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, FALSE, dwFlags, FALSE))
           return AE_AkelIndexToRichOffset(ae, &ciCharOut);
         else
@@ -1270,7 +1323,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           dwFlags=AEWB_RIGHTWORDEND;
         else if (wParam == WB_MOVEWORDRIGHT || wParam == WB_MOVEWORDNEXT)
           dwFlags=ae->dwWordBreak;
-  
+
         if (AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, FALSE, dwFlags, FALSE))
           return AE_AkelIndexToRichOffset(ae, &ciCharOut);
         else
