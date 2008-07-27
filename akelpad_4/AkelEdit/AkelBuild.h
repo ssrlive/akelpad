@@ -12,6 +12,11 @@
 
 #define AETIMERID_MOUSEMOVE    1
 
+#define AECC_IBEAM      0
+#define AECC_MARGIN     1
+#define AECC_SELECTION  2
+#define AECC_URL        3
+
 #define AELS_EMPTY    1
 #define AELS_FULL     2
 #define AELS_PARTLY   3
@@ -201,6 +206,7 @@ typedef struct _AKELEDIT {
   DWORD dwWordBreak;
   wchar_t wszWordDelimiters[128];
   wchar_t wszWrapDelimiters[128];
+  AECHARRANGE crMouseOnLink;
   AECHARINDEX ciLButtonClick;
   AECHARINDEX ciLButtonStart;
   AECHARINDEX ciLButtonEnd;
@@ -208,6 +214,7 @@ typedef struct _AKELEDIT {
   int nLButtonDownPrevTime;
   int nLButtonDownCount;
   DWORD dwMouseMoveTimer;
+  int nCurrentCursor;
   BOOL bMarginSelect;
 
   //RichEdit emulation
@@ -224,6 +231,7 @@ typedef struct _AKELEDIT {
   BOOL bDropping;
   BOOL bDragging;
   BOOL bDeleteSelection;
+  int nMoveBeforeDragging;
 } AKELEDIT;
 
 
@@ -280,6 +288,7 @@ void AE_UpdateSelection(AKELEDIT *ae);
 void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShift);
 BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos);
+BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink);
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, COLORREF crCaret, int nCaretWidth, int nCaretHeight);
 HBITMAP AE_LoadBitmapFromMemory(HDC hDC, BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFresh);
@@ -355,6 +364,7 @@ void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax);
 void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, AECOLORS *aec);
+BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink);
 wchar_t AE_WideCharUpper(wchar_t c);
 int AE_WideStrCmp(const wchar_t *wpString, const wchar_t *wpString2);
 int AE_WideStrCmpI(const wchar_t *wpString, const wchar_t *wpString2);

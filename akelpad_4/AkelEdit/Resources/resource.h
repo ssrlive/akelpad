@@ -3,6 +3,7 @@
 // Used by AkelEdit.rc
 //
 #define IDC_AEMARGIN                    900
+#define IDC_AEHAND                      901
 
 // Next default values for new objects
 //

@@ -27,6 +27,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 IDC_AEMARGIN            CURSOR  DISCARDABLE     "Margin.cur"
+IDC_AEHAND              CURSOR  DISCARDABLE     "Hand.cur"
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
