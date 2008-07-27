@@ -100,7 +100,7 @@ BEGIN
     POPUP "查看(&V)"
     BEGIN
         MENUITEM "字体(&F)...",                 IDM_VIEW_FONT
-        MENUITEM "颜色(&C)...",                  IDM_VIEW_COLORS
+        MENUITEM "颜色(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "自动换行(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
         MENUITEM "总在最前(&A)\tCtrl+T",        IDM_VIEW_ONTOP

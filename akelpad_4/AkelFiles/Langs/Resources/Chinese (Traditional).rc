@@ -102,7 +102,7 @@ BEGIN
     POPUP "檢視(&V)"
     BEGIN
         MENUITEM "字型(&F)...",                 IDM_VIEW_FONT
-        MENUITEM "顏色(&C)...",                  IDM_VIEW_COLORS
+        MENUITEM "顏色(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "自動換行(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
         MENUITEM "保持在上層(&A)\tCtrl+T",      IDM_VIEW_ONTOP
