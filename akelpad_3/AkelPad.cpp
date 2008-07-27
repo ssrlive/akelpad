@@ -4974,8 +4974,8 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               ShellExecuteA(hWndEdit, "open", szURL, NULL, NULL, SW_SHOWNORMAL);
               FreeText(szURL);
             }
+            return TRUE;
           }
-          return TRUE;
         }
       }
     }
@@ -5154,8 +5154,8 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               ShellExecuteW(hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
               FreeText(wszURL);
             }
+            return TRUE;
           }
-          return TRUE;
         }
       }
     }
