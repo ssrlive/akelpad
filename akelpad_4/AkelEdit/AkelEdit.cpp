@@ -6718,17 +6718,17 @@ int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARIND
 DWORD AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefaultChar, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, DWORD dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces)
 {
   wchar_t *wszText;
-  DWORD dwTextLen;
   DWORD dwAnsiBytes;
-  DWORD dwUnicodeBytes;
+  DWORD dwUnicodeLen;
 
-  if (dwUnicodeBytes=AE_GetTextRange(ae, ciRangeStart, ciRangeEnd, NULL, 0, nNewLine, bColumnSel, bFillSpaces) * sizeof(wchar_t))
+  if (dwUnicodeLen=AE_GetTextRange(ae, ciRangeStart, ciRangeEnd, NULL, 0, nNewLine, bColumnSel, bFillSpaces))
   {
-    if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
+    if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeLen * sizeof(wchar_t)))
     {
-      dwTextLen=AE_GetTextRange(ae, ciRangeStart, ciRangeEnd, wszText, (DWORD)-1, nNewLine, bColumnSel, bFillSpaces);
+      dwUnicodeLen=AE_GetTextRange(ae, ciRangeStart, ciRangeEnd, wszText, (DWORD)-1, nNewLine, bColumnSel, bFillSpaces);
 
-      dwAnsiBytes=WideCharToMultiByte(nCodePage, 0, wszText, dwTextLen, NULL, 0, lpDefaultChar, lpUsedDefaultChar);
+      //Get Ansi text
+      dwAnsiBytes=WideCharToMultiByte(nCodePage, 0, wszText, dwUnicodeLen + 1, NULL, 0, lpDefaultChar, lpUsedDefaultChar);
 
       if (szBuffer)
       {
@@ -6736,10 +6736,8 @@ DWORD AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultChar
 
         if (dwAnsiBytes)
         {
-          WideCharToMultiByte(nCodePage, 0, wszText, dwTextLen, szBuffer, dwAnsiBytes, lpDefaultChar, lpUsedDefaultChar);
-          if (dwAnsiBytes >= dwBufferSize && dwAnsiBytes > 0)
-            --dwAnsiBytes;
-          szBuffer[dwAnsiBytes]='\0';
+          WideCharToMultiByte(nCodePage, 0, wszText, dwUnicodeLen + 1, szBuffer, dwAnsiBytes, lpDefaultChar, lpUsedDefaultChar);
+          szBuffer[--dwAnsiBytes]='\0';
         }
       }
       AE_HeapFree(ae, 0, (LPVOID)wszText);
@@ -9453,7 +9451,8 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
   HGLOBAL hDataTargetW=NULL;
   LPVOID pDataTargetA;
   LPVOID pDataTargetW;
-  int nLen;
+  DWORD dwAnsiBytes;
+  DWORD dwUnicodeLen;
 
   if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
@@ -9461,19 +9460,22 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
     {
       EmptyClipboard();
 
-      if (nLen=AE_IndexSubtract(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->nOutputNewLine, ae->bColumnSel, TRUE))
+      if (dwUnicodeLen=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, NULL, 0, ae->nOutputNewLine, ae->bColumnSel, TRUE))
       {
-        if (hDataTargetW=GlobalAlloc(GMEM_MOVEABLE, nLen * sizeof(wchar_t) + 2))
+        if (hDataTargetW=GlobalAlloc(GMEM_MOVEABLE, dwUnicodeLen * sizeof(wchar_t)))
         {
           if (pDataTargetW=GlobalLock(hDataTargetW))
           {
-            AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (DWORD)-1, ae->nOutputNewLine, ae->bColumnSel, TRUE);
+            dwUnicodeLen=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (DWORD)-1, ae->nOutputNewLine, ae->bColumnSel, TRUE);
 
-            if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, nLen + 1))
+            //Get Ansi text
+            dwAnsiBytes=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen + 1, NULL, 0, NULL, NULL);
+
+            if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiBytes))
             {
               if (pDataTargetA=GlobalLock(hDataTargetA))
               {
-                WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, nLen + 1, (char *)pDataTargetA, nLen + 1, NULL, NULL);
+                WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen + 1, (char *)pDataTargetA, dwAnsiBytes, NULL, NULL);
                 GlobalUnlock(hDataTargetA);
               }
             }
@@ -11014,23 +11016,27 @@ void AE_DataObjectCopySelection(AKELEDIT *ae)
   HGLOBAL hDataTargetW=NULL;
   LPVOID pDataTargetA;
   LPVOID pDataTargetW;
-  int nLen;
+  DWORD dwAnsiBytes;
+  DWORD dwUnicodeLen;
 
   if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
-    if (nLen=AE_IndexSubtract(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->nOutputNewLine, ae->bColumnSel, TRUE))
+    if (dwUnicodeLen=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, NULL, 0, ae->nOutputNewLine, ae->bColumnSel, TRUE))
     {
-      if (hDataTargetW=GlobalAlloc(GMEM_MOVEABLE, nLen * sizeof(wchar_t) + 2))
+      if (hDataTargetW=GlobalAlloc(GMEM_MOVEABLE, dwUnicodeLen * sizeof(wchar_t)))
       {
         if (pDataTargetW=GlobalLock(hDataTargetW))
         {
-          AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (DWORD)-1, ae->nOutputNewLine, ae->bColumnSel, TRUE);
+          dwUnicodeLen=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (DWORD)-1, ae->nOutputNewLine, ae->bColumnSel, TRUE);
 
-          if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, nLen + 1))
+          //Get Ansi text
+          dwAnsiBytes=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen + 1, NULL, 0, NULL, NULL);
+
+          if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiBytes))
           {
             if (pDataTargetA=GlobalLock(hDataTargetA))
             {
-              WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, nLen + 1, (char *)pDataTargetA, nLen + 1, NULL, NULL);
+              WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen + 1, (char *)pDataTargetA, dwAnsiBytes, NULL, NULL);
               GlobalUnlock(hDataTargetA);
             }
           }
