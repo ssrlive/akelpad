@@ -9971,7 +9971,7 @@ int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
   {
     if (tr.pBuffer=(char *)API_HeapAlloc(hHeap, 0, nLen))
     {
-      SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
+      nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
     }
   }
   *pText=tr.pBuffer;
@@ -9997,7 +9997,7 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
   {
     if (tr.wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t)))
     {
-      SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+      nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
     }
   }
   *wpText=tr.wpBuffer;
