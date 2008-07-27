@@ -885,13 +885,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == EM_GETSELTEXT)
     {
       if (!ae->bUnicodeWindow)
-      {
         return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (char *)lParam, (DWORD)-1, AELB_R, FALSE, FALSE);
-      }
       else
-      {
         return AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)lParam, (DWORD)-1, AELB_R, FALSE, FALSE);
-      }
     }
     if (uMsg == EM_GETLINE)
     {
