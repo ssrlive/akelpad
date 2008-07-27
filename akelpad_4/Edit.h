@@ -625,6 +625,15 @@ typedef struct _GETTEXTRANGE {
   unsigned char *pText;
 } GETTEXTRANGE;
 
+#ifdef __AKELEDIT_H__
+typedef struct _EXGETTEXTRANGE {
+  AECHARRANGE cr;
+  BOOL bColumnSel;
+  unsigned char *pText;
+  int nNewLine;
+} EXGETTEXTRANGE;
+#endif
+
 typedef struct _RECENTFILESA {
   char (*lpszRecentNames)[MAX_PATH];
   DWORD *lpdwRecentPositions;
