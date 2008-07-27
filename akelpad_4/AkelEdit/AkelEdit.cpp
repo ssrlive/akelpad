@@ -5215,16 +5215,18 @@ void AE_Paint(AKELEDIT *ae)
       POINT ptDraw;
       SIZE sizeLine;
       RECT rcSpace;
-      wchar_t *wpLine;
-      int nLineSelection;
-      int nLineLen;
-      int nLineWidth;
       DWORD dwColorBG;
       DWORD dwColorText;
       HRGN hDrawRgn;
       HBRUSH hbrBG;
+      wchar_t *wpStartDraw;
+      int nLineSelection;
+      int nLineLen;
+      int nStartDrawWidth;
+      int nMaxLineWidth=0;
       int nMaxDrawCharsCount;
-      int nTabWidth;
+      int nLineWidth;
+      int nTabWidth=0;
 
       //Set region
       hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
@@ -5246,6 +5248,7 @@ void AE_Paint(AKELEDIT *ae)
         ciDrawLine.lpLine=AE_GetLineData(ae, ciDrawLine.nLine);
         ciDrawLine.nCharInLine=0;
         ptDraw.y=(ciDrawLine.nLine * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
+        nMaxLineWidth=ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left);
 
         if (ciDrawLine.lpLine)
         {
@@ -5260,9 +5263,10 @@ void AE_Paint(AKELEDIT *ae)
       {
         //Draw line
         ptDraw.x=ae->rcDraw.left - ae->nHScrollPos;
+        nStartDrawWidth=0;
         nLineWidth=0;
         nMaxDrawCharsCount=0;
-        wpLine=ciDrawLine.lpLine->wpLine;
+        wpStartDraw=ciDrawLine.lpLine->wpLine;
 
         if (ciDrawLine.lpLine->nSelStart == 0 && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen)
         {
@@ -5335,7 +5339,7 @@ void AE_Paint(AKELEDIT *ae)
                     //Draw text before URL
                     SetTextColor(ps.hdc, dwColorText);
                     SetBkColor(ps.hdc, dwColorBG);
-                    AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+                    AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
                     nMaxDrawCharsCount=0;
                     break;
                   }
@@ -5354,7 +5358,7 @@ void AE_Paint(AKELEDIT *ae)
                   if (ae->hFontUrl) SelectObject(ps.hdc, ae->hFontUrl);
                   SetTextColor(ps.hdc, ae->crUrlText);
                   SetBkColor(ps.hdc, dwColorBG);
-                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
                   nMaxDrawCharsCount=0;
                   if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
                 }
@@ -5367,7 +5371,7 @@ void AE_Paint(AKELEDIT *ae)
                   if (ae->hFontUrl) SelectObject(ps.hdc, ae->hFontUrl);
                   SetTextColor(ps.hdc, ae->crUrlText);
                   SetBkColor(ps.hdc, dwColorBG);
-                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
                   nMaxDrawCharsCount=0;
                   if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
                 }
@@ -5384,7 +5388,7 @@ void AE_Paint(AKELEDIT *ae)
             {
               SetTextColor(ps.hdc, dwColorText);
               SetBkColor(ps.hdc, dwColorBG);
-              AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+              AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
               nMaxDrawCharsCount=0;
 
               dwColorText=ae->crSelText;
@@ -5395,7 +5399,7 @@ void AE_Paint(AKELEDIT *ae)
             {
               SetTextColor(ps.hdc, dwColorText);
               SetBkColor(ps.hdc, dwColorBG);
-              AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+              AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
               nMaxDrawCharsCount=0;
 
               if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
@@ -5417,33 +5421,46 @@ void AE_Paint(AKELEDIT *ae)
           {
             SetTextColor(ps.hdc, dwColorText);
             SetBkColor(ps.hdc, dwColorBG);
-            AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+            AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
             nMaxDrawCharsCount=0;
 
-            nTabWidth=ae->nTabWidth - nLineWidth % ae->nTabWidth;
-            rcSpace.left=ptDraw.x + nLineWidth;
+            nTabWidth=ae->nTabWidth - nStartDrawWidth % ae->nTabWidth;
+            rcSpace.left=ptDraw.x + nStartDrawWidth;
             rcSpace.top=ptDraw.y;
             rcSpace.right=rcSpace.left + nTabWidth;
             rcSpace.bottom=rcSpace.top + ae->nCharHeight;
             FillRect(ps.hdc, &rcSpace, hbrBG);
-            nLineWidth+=nTabWidth;
-            wpLine+=1;
+            nStartDrawWidth+=nTabWidth;
+            wpStartDraw+=1;
           }
 
           if (nMaxDrawCharsCount >= 2048)
           {
             SetTextColor(ps.hdc, dwColorText);
             SetBkColor(ps.hdc, dwColorBG);
-            AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+            AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
             nMaxDrawCharsCount=0;
             continue;
           }
+          if (nLineWidth > nMaxLineWidth)
+          {
+            SetTextColor(ps.hdc, dwColorText);
+            SetBkColor(ps.hdc, dwColorBG);
+            AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+            goto NextLine;
+          }
+
+          if (ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine] == L'\t')
+            nLineWidth+=nTabWidth;
+          else
+            nLineWidth+=AE_GetCharWidth(ae, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine]);
+
           ++nMaxDrawCharsCount;
         }
 
         SetTextColor(ps.hdc, dwColorText);
         SetBkColor(ps.hdc, dwColorBG);
-        AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, &wpLine, &nLineWidth);
+        AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
 
         if (ae->bColumnSel)
         {
@@ -5467,12 +5484,12 @@ void AE_Paint(AKELEDIT *ae)
               }
               sizeLine.cx=(ciDrawLine.lpLine->nSelStart - nLineLen) * ae->nSpaceCharWidth;
 
-              rcSpace.left=ptDraw.x + nLineWidth;
+              rcSpace.left=ptDraw.x + nStartDrawWidth;
               rcSpace.top=ptDraw.y;
               rcSpace.right=rcSpace.left + sizeLine.cx;
               rcSpace.bottom=rcSpace.top + ae->nCharHeight;
               FillRect(ps.hdc, &rcSpace, hbrBG);
-              nLineWidth+=sizeLine.cx;
+              nStartDrawWidth+=sizeLine.cx;
               nLineLen+=(ciDrawLine.lpLine->nSelStart - nLineLen);
             }
             if (ciDrawLine.lpLine->nSelEnd > ciDrawLine.lpLine->nLineLen)
@@ -5482,12 +5499,12 @@ void AE_Paint(AKELEDIT *ae)
               hbrBG=ae->hSelBk;
               sizeLine.cx=(ciDrawLine.lpLine->nSelEnd - nLineLen) * ae->nSpaceCharWidth;
 
-              rcSpace.left=ptDraw.x + nLineWidth;
+              rcSpace.left=ptDraw.x + nStartDrawWidth;
               rcSpace.top=ptDraw.y;
               rcSpace.right=rcSpace.left + sizeLine.cx;
               rcSpace.bottom=rcSpace.top + ae->nCharHeight;
               FillRect(ps.hdc, &rcSpace, hbrBG);
-              nLineWidth+=sizeLine.cx;
+              nStartDrawWidth+=sizeLine.cx;
               nLineLen+=(ciDrawLine.lpLine->nSelEnd - nLineLen);
             }
           }
@@ -5502,12 +5519,12 @@ void AE_Paint(AKELEDIT *ae)
             {
               hbrBG=ae->hSelBk;
 
-              rcSpace.left=ptDraw.x + nLineWidth;
+              rcSpace.left=ptDraw.x + nStartDrawWidth;
               rcSpace.top=ptDraw.y;
               rcSpace.right=rcSpace.left + ae->nAveCharWidth;
               rcSpace.bottom=rcSpace.top + ae->nCharHeight;
               FillRect(ps.hdc, &rcSpace, hbrBG);
-              nLineWidth+=ae->nAveCharWidth;
+              nStartDrawWidth+=ae->nAveCharWidth;
             }
           }
         }
@@ -5524,13 +5541,14 @@ void AE_Paint(AKELEDIT *ae)
           dwColorBG=ae->crBasicBk;
           hbrBG=ae->hBasicBk;
         }
-        rcSpace.left=ptDraw.x + nLineWidth;
+        rcSpace.left=ptDraw.x + nStartDrawWidth;
         rcSpace.top=ptDraw.y;
         rcSpace.right=ae->rcDraw.right;
         rcSpace.bottom=rcSpace.top + ae->nCharHeight;
         if (rcSpace.left < rcSpace.right)
           FillRect(ps.hdc, &rcSpace, hbrBG);
 
+        NextLine:
         ptDraw.y+=ae->nCharHeight;
         if (ptDraw.y >= rcDraw.bottom)
           break;
@@ -5545,20 +5563,17 @@ void AE_Paint(AKELEDIT *ae)
   }
 }
 
-void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, POINT *ptDraw, wchar_t *wpLine, int nLineLen, wchar_t **wpTextInLine, int *nTextInLineWidth)
+void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, POINT *ptDraw, wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth)
 {
-  SIZE sizeLine;
   int nTextLen=nLineLen - (*wpTextInLine - wpLine);
+  int nTextWidth=nLineWidth - *nTextInLineWidth;
 
   if (nTextLen)
   {
-    if (AE_GetTextExtentPoint32(ae, *wpTextInLine, nTextLen, &sizeLine))
-    {
-      if (ptDraw->x + *nTextInLineWidth + sizeLine.cx > ae->rcDraw.left && ptDraw->x + *nTextInLineWidth < ae->rcDraw.right)
-        TextOutW(hDC, ptDraw->x + *nTextInLineWidth, ptDraw->y, *wpTextInLine, nTextLen);
-      *nTextInLineWidth+=sizeLine.cx;
-      *wpTextInLine+=nTextLen;
-    }
+    if (ptDraw->x + *nTextInLineWidth + nTextWidth > ae->rcDraw.left && ptDraw->x + *nTextInLineWidth < ae->rcDraw.right)
+      TextOutW(hDC, ptDraw->x + *nTextInLineWidth, ptDraw->y, *wpTextInLine, nTextLen);
+    *nTextInLineWidth+=nTextWidth;
+    *wpTextInLine+=nTextLen;
   }
 }
 
@@ -5628,6 +5643,15 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SI
   {
     return GetTextExtentPoint32W(ae->hDC, wpString, nStringLen, lpSize);
   }
+}
+
+int AE_GetCharWidth(AKELEDIT *ae, wchar_t wchChar)
+{
+  SIZE sizeChar;
+
+  if (AE_GetTextExtentPoint32(ae, &wchChar, 1, &sizeChar))
+    return sizeChar.cx;
+  return 0;
 }
 
 BOOL AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine)
