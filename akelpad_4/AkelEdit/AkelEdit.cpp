@@ -20,6 +20,8 @@ BOOL bAkelEditClassRegisteredW=FALSE;
 UINT cfAkelEditColumnSel=0;
 HCURSOR hAkelEditCursorArrow=NULL;
 HCURSOR hAkelEditCursorMargin=NULL;
+HCURSOR hAkelEditCursorHand=NULL;
+wchar_t *lpAkelEditUrlPrefixes[]={L"http:", L"https:", L"ftp:", L"file:", L"mailto:", NULL};
 
 
 //// Entry point
@@ -78,6 +80,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance)
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatA("MSDEVColumnSelect");
     if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorA(NULL, (char *)IDC_ARROW);
     if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorA(hInstance, (char *)IDC_AEMARGIN);
+    if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorA(hInstance, (char *)IDC_AEHAND);
   }
   return bAkelEditClassRegisteredA;
 }
@@ -108,6 +111,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance)
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatW(L"MSDEVColumnSelect");
     if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorW(NULL, (wchar_t *)IDC_ARROW);
     if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorW(hInstance, (wchar_t *)IDC_AEMARGIN);
+    if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorW(hInstance, (wchar_t *)IDC_AEHAND);
   }
   return bAkelEditClassRegisteredW;
 }
@@ -115,6 +119,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance)
 BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 {
   if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
+  if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
 
   if (bAkelEditClassRegisteredA)
   {
@@ -128,6 +133,7 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 BOOL AE_UnregisterClassW(HINSTANCE hInstance)
 {
   if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
+  if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
 
   if (bAkelEditClassRegisteredW)
   {
@@ -174,6 +180,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->bVScrollShow=TRUE;
       ae->bHScrollShow=TRUE;
       ae->dwWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
+      ae->nCurrentCursor=AECC_IBEAM;
 
       //OLE Drag'n'Drop
       ae->idtVtbl.QueryInterface=AEIDropTarget_QueryInterface;
@@ -1840,6 +1847,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bControl=FALSE;
       BOOL bRedrawAllSelection=FALSE;
 
+      if (ae->nCurrentCursor == AECC_URL)
+        if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
+          return 0;
+
       ptPos.x=LOWORD(lParam);
       ptPos.y=HIWORD(lParam);
 
@@ -1867,7 +1878,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (ae->nLButtonDownCount == 0)
       {
         //Start margin selection capture
-        if (!ae->bMarginSelect && !bAlt && !bShift && AE_IsCursorOnLeftMargin(ae, &ptPos))
+        if (!ae->bMarginSelect && !bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
         {
           AECHARRANGE cr;
           AECHARINDEX ciCharIndex;
@@ -1878,7 +1889,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
             SetCapture(ae->hWndEdit);
           }
-          SetCursor(hAkelEditCursorMargin);
           ae->bMarginSelect=TRUE;
 
           AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
@@ -1894,11 +1904,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, TRUE);
         }
         //Start drag source capture
-        else if (!ae->bDragging && !bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
+        else if (!ae->bDragging && !bAlt && !bShift && ae->nCurrentCursor == AECC_SELECTION)
         {
           SetCapture(ae->hWndEdit);
           ae->bDragging=TRUE;
-          SetCursor(hAkelEditCursorArrow);
+          ae->nMoveBeforeDragging=5;
         }
         //Start selection change capture
         else if (!ae->dwMouseMoveTimer)
@@ -1926,7 +1936,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Two clicks
       else if (ae->nLButtonDownCount == 1)
       {
-        if (!ae->bMarginSelect && !bAlt && !bShift && AE_IsCursorOnLeftMargin(ae, &ptPos))
+        if (!ae->bMarginSelect && !bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
         {
           //Two clicks in left margin are ignored
         }
@@ -1965,7 +1975,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Three clicks
       else if (ae->nLButtonDownCount == 2)
       {
-        if (!ae->bMarginSelect && !bAlt && !bShift && AE_IsCursorOnLeftMargin(ae, &ptPos))
+        if (!ae->bMarginSelect && !bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
         {
           AE_EditSelectAll(ae);
         }
@@ -1998,41 +2008,51 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       POINT ptPos;
 
+      if (ae->nCurrentCursor == AECC_URL)
+        if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
+          return 0;
+
       ptPos.x=LOWORD(lParam);
       ptPos.y=HIWORD(lParam);
 
       if (ae->bDragging)
       {
-        DWORD dwEffectIn;
-        DWORD dwEffectOut;
-        DWORD dwResult;
+        if (ae->nMoveBeforeDragging > 0)
+          --ae->nMoveBeforeDragging;
 
-        ae->bDeleteSelection=TRUE;
-        AE_DataObjectCopySelection(ae);
-
-        dwEffectIn=DROPEFFECT_COPY;
-        if (!(ae->dwOptions & AECO_READONLY))
-          dwEffectIn|=DROPEFFECT_MOVE;
-        dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
-
-        if (dwResult == DRAGDROP_S_DROP)
+        if (ae->nMoveBeforeDragging == 0)
         {
-          if (dwEffectOut & DROPEFFECT_MOVE)
+          DWORD dwEffectIn;
+          DWORD dwEffectOut;
+          DWORD dwResult;
+
+          ae->bDeleteSelection=TRUE;
+          AE_DataObjectCopySelection(ae);
+
+          dwEffectIn=DROPEFFECT_COPY;
+          if (!(ae->dwOptions & AECO_READONLY))
+            dwEffectIn|=DROPEFFECT_MOVE;
+          dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
+
+          if (dwResult == DRAGDROP_S_DROP)
           {
-            if (ae->bDeleteSelection)
+            if (dwEffectOut & DROPEFFECT_MOVE)
             {
-              AE_StackUndoGroupStop(ae);
-              AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, TRUE, TRUE);
-              AE_StackUndoGroupStop(ae);
+              if (ae->bDeleteSelection)
+              {
+                AE_StackUndoGroupStop(ae);
+                AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, TRUE, TRUE);
+                AE_StackUndoGroupStop(ae);
+              }
             }
           }
+          AE_DataObjectFreeSelection(ae);
+          ((IDataObject *)&ae->ido)->Release();
+          ((IDropSource *)&ae->ids)->Release();
+          ae->bDeleteSelection=FALSE;
+          ae->bDragging=FALSE;
+          ReleaseCapture();
         }
-        AE_DataObjectFreeSelection(ae);
-        ((IDataObject *)&ae->ido)->Release();
-        ((IDropSource *)&ae->ids)->Release();
-        ae->bDeleteSelection=FALSE;
-        ae->bDragging=FALSE;
-        ReleaseCapture();
       }
       else if (ae->dwMouseMoveTimer)
       {
@@ -2068,7 +2088,18 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       ae->bMarginSelect=FALSE;
 
+      if (ae->nCurrentCursor == AECC_URL)
+        if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
+          return 0;
       return 0;
+    }
+    else if (uMsg == WM_RBUTTONDOWN ||
+             uMsg == WM_RBUTTONDBLCLK ||
+             uMsg == WM_RBUTTONUP)
+    {
+      if (ae->nCurrentCursor == AECC_URL)
+        if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
+          return 0;
     }
     else if (uMsg == WM_CAPTURECHANGED)
     {
@@ -2099,13 +2130,24 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!bAlt && !bShift && AE_IsCursorOnLeftMargin(ae, &ptScreen))
         {
           SetCursor(hAkelEditCursorMargin);
+          ae->nCurrentCursor=AECC_MARGIN;
           return TRUE;
         }
         if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptScreen))
         {
           SetCursor(hAkelEditCursorArrow);
+          ae->nCurrentCursor=AECC_SELECTION;
           return TRUE;
         }
+        if (!bAlt && !bShift && AE_IsCursorOnUrl(ae, &ptScreen, &ae->crMouseOnLink))
+        {
+          SetCursor(hAkelEditCursorHand);
+          ae->nCurrentCursor=AECC_URL;
+
+          AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink);
+          return TRUE;
+        }
+        ae->nCurrentCursor=AECC_IBEAM;
       }
     }
     else if (uMsg == WM_TIMER)
@@ -4527,6 +4569,62 @@ BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos)
   return FALSE;
 }
 
+BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
+{
+  if (ae->bDetectUrl)
+  {
+    if ((ae->dwEventMask & AENM_LINK) ||
+        (ae->dwRichEventMask & ENM_LINK))
+    {
+      AECHARINDEX ciCharIndex;
+      int nStartUrl;
+      int nEndUrl;
+      int nPrefix;
+      int nResult;
+
+      if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, ae->bColumnSel))
+      {
+        if (nResult == AEPC_AFTER)
+          ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
+
+        for (nStartUrl=ciCharIndex.nCharInLine; nStartUrl >= 0; --nStartUrl)
+        {
+          if (AE_IsInDelimiterList(AES_URLDELIMITERSW, ciCharIndex.lpLine->wpLine[nStartUrl]))
+            return FALSE;
+
+          for (nPrefix=0; lpAkelEditUrlPrefixes[nPrefix]; ++nPrefix)
+          {
+            if (!AE_WideStrCmpLenI(lpAkelEditUrlPrefixes[nPrefix], ciCharIndex.lpLine->wpLine + nStartUrl, (DWORD)-1))
+            {
+              if (nStartUrl == 0 || AE_IsInDelimiterList(AES_URLDELIMITERSW, ciCharIndex.lpLine->wpLine[nStartUrl - 1]))
+              {
+                //Found end of URL
+                for (nEndUrl=ciCharIndex.nCharInLine; nEndUrl < ciCharIndex.lpLine->nLineLen; ++nEndUrl)
+                {
+                  if (AE_IsInDelimiterList(AES_URLDELIMITERSW, ciCharIndex.lpLine->wpLine[nEndUrl]))
+                    break;
+                }
+
+                if (crLink)
+                {
+                  crLink->ciMin.nLine=ciCharIndex.nLine;
+                  crLink->ciMin.lpLine=ciCharIndex.lpLine;
+                  crLink->ciMin.nCharInLine=nStartUrl;
+                  crLink->ciMax.nLine=ciCharIndex.nLine;
+                  crLink->ciMax.lpLine=ciCharIndex.lpLine;
+                  crLink->ciMax.nCharInLine=nEndUrl;
+                }
+                return TRUE;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, COLORREF crCaret, int nCaretWidth, int nCaretHeight)
 {
   BITMAPFILEHEADER *lpBmpFileHeader;
@@ -5239,12 +5337,11 @@ void AE_Paint(AKELEDIT *ae)
             //Detect URL
             if (!crLink.ciMin.lpLine || !crLink.ciMax.lpLine)
             {
-              wchar_t *lpPrefixes[]={L"http:", L"https:", L"ftp:", L"file:", L"mailto:", NULL};
-              int i=0;
+              int nPrefix;
 
-              for (i=0; lpPrefixes[i]; ++i)
+              for (nPrefix=0; lpAkelEditUrlPrefixes[nPrefix]; ++nPrefix)
               {
-                if (!AE_WideStrCmpLenI(lpPrefixes[i], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
+                if (!AE_WideStrCmpLenI(lpAkelEditUrlPrefixes[nPrefix], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
                 {
                   if (ciDrawLine.nCharInLine == 0 || AE_IsInDelimiterList(AES_URLDELIMITERSW, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine - 1]))
                   {
@@ -9770,6 +9867,47 @@ void AE_SetColors(AKELEDIT *ae, AECOLORS *aec)
     InvalidateRect(ae->hWndEdit, &ae->rcEdit, TRUE);
   else if (bUpdateDrawRect)
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+}
+
+BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink)
+{
+  LRESULT lResult1=0;
+  LRESULT lResult2=0;
+
+  //Send AEN_LINK
+  if (ae->dwEventMask & AENM_LINK)
+  {
+    AENLINK aenl;
+
+    aenl.hdr.hwndFrom=ae->hWndEdit;
+    aenl.hdr.idFrom=ae->nEditCtrlID;
+    aenl.hdr.code=AEN_LINK;
+    aenl.uMsg=uMsg;
+    aenl.wParam=wParam;
+    aenl.lParam=lParam;
+    aenl.crLink=*crLink;
+    lResult1=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenl);
+  }
+
+  //Send EN_LINK
+  if (ae->dwRichEventMask & ENM_LINK)
+  {
+    ENLINK enl;
+
+    enl.nmhdr.hwndFrom=ae->hWndEdit;
+    enl.nmhdr.idFrom=ae->nEditCtrlID;
+    enl.nmhdr.code=EN_LINK;
+    enl.msg=uMsg;
+    enl.wParam=wParam;
+    enl.lParam=lParam;
+    enl.chrg.cpMin=AE_AkelIndexToRichOffset(ae, &crLink->ciMin);
+    enl.chrg.cpMax=AE_AkelIndexToRichOffset(ae, &crLink->ciMax);
+    lResult2=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&enl);
+  }
+
+  if (lResult1 || lResult2)
+    return TRUE;
+  return FALSE;
 }
 
 wchar_t AE_WideCharUpper(wchar_t c)

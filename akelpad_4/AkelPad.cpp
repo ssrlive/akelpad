@@ -4924,6 +4924,24 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         API_LoadStringA(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, buf, BUFFER_SIZE);
         MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
       }
+      else if (((NMHDR *)lParam)->code == EN_LINK)
+      {
+        if ((nClickURL == 1 && ((ENLINK *)lParam)->msg == WM_LBUTTONUP) ||
+            (nClickURL == 2 && ((ENLINK *)lParam)->msg == WM_LBUTTONDBLCLK))
+        {
+          char *szURL;
+
+          if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+          {
+            if (GetRangeTextA(hWndEdit, ((ENLINK *)lParam)->chrg.cpMin, ((ENLINK *)lParam)->chrg.cpMax, &szURL))
+            {
+              ShellExecuteA(hWndEdit, "open", szURL, NULL, NULL, SW_SHOWNORMAL);
+              FreeText(szURL);
+            }
+            return TRUE;
+          }
+        }
+      }
     }
   }
   return FALSE;
@@ -5036,6 +5054,24 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, wbuf, BUFFER_SIZE);
         MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+      }
+      else if (((NMHDR *)lParam)->code == EN_LINK)
+      {
+        if ((nClickURL == 1 && ((ENLINK *)lParam)->msg == WM_LBUTTONUP) ||
+            (nClickURL == 2 && ((ENLINK *)lParam)->msg == WM_LBUTTONDBLCLK))
+        {
+          wchar_t *wszURL;
+
+          if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+          {
+            if (GetRangeTextW(hWndEdit, ((ENLINK *)lParam)->chrg.cpMin, ((ENLINK *)lParam)->chrg.cpMax, &wszURL))
+            {
+              ShellExecuteW(hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
+              FreeText(wszURL);
+            }
+            return TRUE;
+          }
+        }
       }
     }
   }

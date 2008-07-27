@@ -22,6 +22,7 @@
 #define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGE notifications.
 #define AENM_TEXTCHANGE         0x00000002  //Sends AEN_TEXTCHANGE notifications.
 #define AENM_MODIFYCHANGE       0x00000004  //Sends AEN_MODIFYCHANGE notifications.
+#define AENM_LINK               0x00000008  //Sends AEN_LINK notifications.
 
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
@@ -347,6 +348,14 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
+  UINT uMsg;
+  WPARAM wParam;
+  LPARAM lParam;
+  AECHARRANGE crLink;
+} AENLINK;
+
+typedef struct {
+  NMHDR hdr;
 } AENERRSPACE;
 
 
@@ -355,7 +364,8 @@ typedef struct {
 #define AEN_SELCHANGE         (WM_USER + 1001)
 #define AEN_TEXTCHANGE        (WM_USER + 1002)
 #define AEN_MODIFYCHANGE      (WM_USER + 1003)
-#define AEN_ERRSPACE          (WM_USER + 1004)
+#define AEN_LINK              (WM_USER + 1004)
+#define AEN_ERRSPACE          (WM_USER + 1005)
 
 #define AEM_SETTEXTA          (WM_USER + 2001)
 #define AEM_SETTEXTW          (WM_USER + 2002)
@@ -487,6 +497,22 @@ Return Value
 
 Remarks
  To receive AEN_MODIFYCHANGE notifications, specify AENM_MODIFYCHANGE in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_LINK
+________
+
+Notification message in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when edit control receives mouse messages while the mouse pointer is over URL.
+
+(int)wParam       == specifies the control identifier.
+(AENLINK *)lParam == pointer to a AENLINK structure.
+
+Return Value
+ zero
+
+Remarks
+ To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_ERRSPACE
