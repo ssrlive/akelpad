@@ -378,10 +378,21 @@ typedef struct _PLUGINOPTIONW {
 typedef struct _GETTEXTRANGE {
   int cpMin;                      //First character in the range. First char of text: 0.
   int cpMax;                      //Last character in the range. Last char of text: -1.
-  unsigned char *pText;           //Pointer to buffer that receives the text.
+  unsigned char *pText;           //Pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
                                   //char *pText      if bOldWindows == TRUE
                                   //wchar_t *pText   if bOldWindows == FALSE
 } GETTEXTRANGE;
+
+#ifdef __AKELEDIT_H__
+typedef struct _EXGETTEXTRANGE {
+  AECHARRANGE cr;                 //Characters range to retrieve
+  BOOL bColumnSel;                //Column selection. If this value is –1, active column selection mode is used.
+  unsigned char *pText;           //Pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
+                                  //char *pText      if bOldWindows == TRUE
+                                  //wchar_t *pText   if bOldWindows == FALSE
+  int nNewLine;                   //see AELB_* defines
+} EXGETTEXTRANGE;
+#endif
 
 typedef struct _RECENTFILESA {
   char (*lpszRecentNames)[MAX_PATH];      //Recent files names
@@ -2431,14 +2442,14 @@ ___________________
 
 Retrieves a specified range of characters from a AkelEdit control.
 
-(HWND)wParam           == AkelEdit window
-(AETEXTRANGEA *)lParam == pointer to a AETEXTRANGEA structure
+(HWND)wParam             == AkelEdit window
+(EXGETTEXTRANGE *)lParam == pointer to a EXGETTEXTRANGE structure
 
 Return Value
  Text length in TCHARs without null character
 
 Example:
- AETEXTRANGEA tr;
+ EXGETTEXTRANGE tr;
 
  SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
  tr.pText=NULL;
@@ -2446,7 +2457,7 @@ Example:
 
  if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEA, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
  {
-   MessageBoxA(pd->hMainWnd, tr.pText, "Test", MB_OK);
+   MessageBoxA(pd->hMainWnd, (char *)tr.pText, "Test", MB_OK);
    SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.pText);
  }
 
@@ -2456,23 +2467,23 @@ ___________________
 
 Retrieves a specified range of characters from a AkelEdit control.
 
-(HWND)wParam           == AkelEdit window
-(AETEXTRANGEW *)lParam == pointer to a AETEXTRANGEW structure
+(HWND)wParam             == AkelEdit window
+(EXGETTEXTRANGE *)lParam == pointer to a EXGETTEXTRANGE structure
 
 Return Value
  Text length in TCHARs without null character
 
 Example:
- AETEXTRANGEW tr;
+ EXGETTEXTRANGE tr;
 
  SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
- tr.wpText=NULL;
+ tr.pText=NULL;
  tr.nNewLine=AELB_ASIS;
 
  if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEW, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
  {
-   MessageBoxW(pd->hMainWnd, tr.wpText, L"Test", MB_OK);
-   SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.wpText);
+   MessageBoxW(pd->hMainWnd, (wchar_t *)tr.pText, L"Test", MB_OK);
+   SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.pText);
  }
 */
 
