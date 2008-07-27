@@ -160,6 +160,16 @@
 #endif
 #ifndef EM_SETTEXTEX
   #define EM_SETTEXTEX (WM_USER + 97)
+
+  #define ST_DEFAULT    0x0000
+  #define ST_KEEPUNDO   0x0001
+  #define ST_SELECTION  0x0002
+  #define ST_NEWCHARS   0x0004
+
+  typedef struct {
+    DWORD flags;
+    UINT codepage;
+  } SETTEXTEX;
 #endif
 #ifndef EM_GETSCROLLPOS
   #define EM_GETSCROLLPOS (WM_USER + 221)
