@@ -5440,8 +5440,9 @@ void AE_Paint(AKELEDIT *ae)
             SetBkColor(ps.hdc, dwColorBG);
             AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
             nMaxDrawCharsCount=0;
-            continue;
           }
+          else ++nMaxDrawCharsCount;
+
           if (nLineWidth > nMaxLineWidth)
           {
             SetTextColor(ps.hdc, dwColorText);
@@ -5449,13 +5450,10 @@ void AE_Paint(AKELEDIT *ae)
             AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
             goto NextLine;
           }
-
           if (ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine] == L'\t')
             nLineWidth+=nTabWidth;
           else
             nLineWidth+=AE_GetCharWidth(ae, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine]);
-
-          ++nMaxDrawCharsCount;
         }
 
         SetTextColor(ps.hdc, dwColorText);
@@ -5570,8 +5568,11 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, POINT *ptDraw, wchar_t *wpLine, int 
 
   if (nTextLen)
   {
-    if (ptDraw->x + *nTextInLineWidth + nTextWidth > ae->rcDraw.left && ptDraw->x + *nTextInLineWidth < ae->rcDraw.right)
+    if (ptDraw->x + *nTextInLineWidth + nTextWidth > ae->rcDraw.left &&
+        ptDraw->x + *nTextInLineWidth < ae->rcDraw.right)
+    {
       TextOutW(hDC, ptDraw->x + *nTextInLineWidth, ptDraw->y, *wpTextInLine, nTextLen);
+    }
     *nTextInLineWidth+=nTextWidth;
     *wpTextInLine+=nTextLen;
   }
