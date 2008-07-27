@@ -4368,31 +4368,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
         }
       }
 
-      //Send AEN_SELCHANGE
-      if (ae->dwEventMask & AENM_SELCHANGE)
-      {
-        AENSELCHANGE sc;
-
-        sc.hdr.hwndFrom=ae->hWndEdit;
-        sc.hdr.idFrom=ae->nEditCtrlID;
-        sc.hdr.code=AEN_SELCHANGE;
-        AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
-        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
-      }
-
-      //Send EN_SELCHANGE
-      if (ae->dwRichEventMask & ENM_SELCHANGE)
-      {
-        SELCHANGE sc;
-
-        sc.nmhdr.hwndFrom=ae->hWndEdit;
-        sc.nmhdr.idFrom=ae->nEditCtrlID;
-        sc.nmhdr.code=EN_SELCHANGE;
-        sc.chrg.cpMin=ae->nSelStartCharOffset;
-        sc.chrg.cpMax=ae->nSelEndCharOffset;
-        sc.seltyp=0;
-        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
-      }
+      AE_NotifySelChange(ae);
     }
   }
 }
@@ -7299,51 +7275,8 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
     }
 
-    //if (bEnableUndo)
-    {
-      //Send AEN_SELCHANGE
-      if (ae->dwEventMask & AENM_SELCHANGE)
-      {
-        AENSELCHANGE sc;
-
-        sc.hdr.hwndFrom=ae->hWndEdit;
-        sc.hdr.idFrom=ae->nEditCtrlID;
-        sc.hdr.code=AEN_SELCHANGE;
-        AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
-        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
-      }
-
-      //Send AEN_TEXTCHANGE
-      if (ae->dwEventMask & AENM_TEXTCHANGE)
-      {
-        AENTEXTCHANGE tc;
-
-        tc.hdr.hwndFrom=ae->hWndEdit;
-        tc.hdr.idFrom=ae->nEditCtrlID;
-        tc.hdr.code=AEN_TEXTCHANGE;
-        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
-      }
-
-      //Send EN_SELCHANGE
-      if (ae->dwRichEventMask & ENM_SELCHANGE)
-      {
-        SELCHANGE sc;
-
-        sc.nmhdr.hwndFrom=ae->hWndEdit;
-        sc.nmhdr.idFrom=ae->nEditCtrlID;
-        sc.nmhdr.code=EN_SELCHANGE;
-        sc.chrg.cpMin=ae->nSelStartCharOffset;
-        sc.chrg.cpMax=ae->nSelEndCharOffset;
-        sc.seltyp=0;
-        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
-      }
-
-      //Send EN_CHANGE
-      if (ae->dwRichEventMask & ENM_CHANGE)
-      {
-        SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
-      }
-    }
+    AE_NotifySelChange(ae);
+    AE_NotifyTextChange(ae);
   }
 }
 
@@ -8516,51 +8449,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
       }
 
-      //if (bEnableUndo)
-      {
-        //Send AEN_SELCHANGE
-        if (ae->dwEventMask & AENM_SELCHANGE)
-        {
-          AENSELCHANGE sc;
-
-          sc.hdr.hwndFrom=ae->hWndEdit;
-          sc.hdr.idFrom=ae->nEditCtrlID;
-          sc.hdr.code=AEN_SELCHANGE;
-          AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
-          SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
-        }
-
-        //Send AEN_TEXTCHANGE
-        if (ae->dwEventMask & AENM_TEXTCHANGE)
-        {
-          AENTEXTCHANGE tc;
-
-          tc.hdr.hwndFrom=ae->hWndEdit;
-          tc.hdr.idFrom=ae->nEditCtrlID;
-          tc.hdr.code=AEN_TEXTCHANGE;
-          SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
-        }
-
-        //Send EN_SELCHANGE
-        if (ae->dwRichEventMask & ENM_SELCHANGE)
-        {
-          SELCHANGE sc;
-
-          sc.nmhdr.hwndFrom=ae->hWndEdit;
-          sc.nmhdr.idFrom=ae->nEditCtrlID;
-          sc.nmhdr.code=EN_SELCHANGE;
-          sc.chrg.cpMin=ae->nSelStartCharOffset;
-          sc.chrg.cpMax=ae->nSelEndCharOffset;
-          sc.seltyp=0;
-          SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
-        }
-
-        //Send EN_CHANGE
-        if (ae->dwRichEventMask & ENM_CHANGE)
-        {
-          SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
-        }
-      }
+      AE_NotifySelChange(ae);
+      AE_NotifyTextChange(ae);
     }
   }
   return dwTextCount;
@@ -9867,6 +9757,55 @@ void AE_SetColors(AKELEDIT *ae, AECOLORS *aec)
     InvalidateRect(ae->hWndEdit, &ae->rcEdit, TRUE);
   else if (bUpdateDrawRect)
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+}
+
+void AE_NotifySelChange(AKELEDIT *ae)
+{
+  //Send AEN_SELCHANGE
+  if (ae->dwEventMask & AENM_SELCHANGE)
+  {
+    AENSELCHANGE sc;
+
+    sc.hdr.hwndFrom=ae->hWndEdit;
+    sc.hdr.idFrom=ae->nEditCtrlID;
+    sc.hdr.code=AEN_SELCHANGE;
+    AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
+  }
+
+  //Send EN_SELCHANGE
+  if (ae->dwRichEventMask & ENM_SELCHANGE)
+  {
+    SELCHANGE sc;
+
+    sc.nmhdr.hwndFrom=ae->hWndEdit;
+    sc.nmhdr.idFrom=ae->nEditCtrlID;
+    sc.nmhdr.code=EN_SELCHANGE;
+    sc.chrg.cpMin=ae->nSelStartCharOffset;
+    sc.chrg.cpMax=ae->nSelEndCharOffset;
+    sc.seltyp=0;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
+  }
+}
+
+void AE_NotifyTextChange(AKELEDIT *ae)
+{
+  //Send AEN_TEXTCHANGE
+  if (ae->dwEventMask & AENM_TEXTCHANGE)
+  {
+    AENTEXTCHANGE tc;
+
+    tc.hdr.hwndFrom=ae->hWndEdit;
+    tc.hdr.idFrom=ae->nEditCtrlID;
+    tc.hdr.code=AEN_TEXTCHANGE;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
+  }
+
+  //Send EN_CHANGE
+  if (ae->dwRichEventMask & ENM_CHANGE)
+  {
+    SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
+  }
 }
 
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink)

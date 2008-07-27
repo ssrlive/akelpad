@@ -364,6 +364,8 @@ void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax);
 void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, AECOLORS *aec);
+void AE_NotifySelChange(AKELEDIT *ae);
+void AE_NotifyTextChange(AKELEDIT *ae);
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink);
 wchar_t AE_WideCharUpper(wchar_t c);
 int AE_WideStrCmp(const wchar_t *wpString, const wchar_t *wpString2);
