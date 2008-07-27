@@ -1916,13 +1916,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->pText, tr->nNewLine);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->pBuffer, tr->nNewLine);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->wpText, tr->nNewLine);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->wpBuffer, tr->nNewLine);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -3598,13 +3598,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->pText, tr->nNewLine);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->pBuffer, tr->nNewLine);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->wpText, tr->nNewLine);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, &tr->wpBuffer, tr->nNewLine);
     }
     if (uMsg == AKD_FREETEXT)
     {

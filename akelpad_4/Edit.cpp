@@ -1216,7 +1216,8 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         {
           tr.cr=crRange;
           tr.bColumnSel=FALSE;
-          tr.wpText=wszRange + nStringLenAll;
+          tr.wpBuffer=wszRange + nStringLenAll;
+          tr.dwBufferMax=(DWORD)-1;
           tr.nNewLine=AELB_ASIS;
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
           b=nStringLenAll;
@@ -1267,7 +1268,8 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         {
           tr.cr=crRange;
           tr.bColumnSel=FALSE;
-          tr.wpText=wszRange;
+          tr.wpBuffer=wszRange;
+          tr.dwBufferMax=(DWORD)-1;
           tr.nNewLine=AELB_ASIS;
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
 
@@ -9961,17 +9963,18 @@ int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
     tr.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
     tr.bColumnSel=bColumnSel;
-  tr.pText=NULL;
+  tr.pBuffer=NULL;
+  tr.dwBufferMax=(DWORD)-1;
   tr.nNewLine=nNewLine;
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
   {
-    if (tr.pText=(char *)API_HeapAlloc(hHeap, 0, nLen + 1))
+    if (tr.pBuffer=(char *)API_HeapAlloc(hHeap, 0, nLen))
     {
       SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
     }
   }
-  *pText=tr.pText;
+  *pText=tr.pBuffer;
   return nLen;
 }
 
@@ -9986,17 +9989,18 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
     tr.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
     tr.bColumnSel=bColumnSel;
-  tr.wpText=NULL;
+  tr.wpBuffer=NULL;
+  tr.dwBufferMax=(DWORD)-1;
   tr.nNewLine=nNewLine;
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
   {
-    if (tr.wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t) + 2))
+    if (tr.wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t)))
     {
       SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
     }
   }
-  *wpText=tr.wpText;
+  *wpText=tr.wpBuffer;
   return nLen;
 }
 

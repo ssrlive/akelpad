@@ -143,6 +143,9 @@
 #ifndef EC_RIGHTMARGIN
   #define EC_RIGHTMARGIN 0x0002
 #endif
+#ifndef GT_SELECTION
+  #define GT_SELECTION 0x0002
+#endif
 #ifndef SPI_GETWHEELSCROLLLINES
   #define SPI_GETWHEELSCROLLLINES 0x0068
 #endif
@@ -154,6 +157,9 @@
 #endif
 #ifndef EM_SHOWSCROLLBAR
   #define EM_SHOWSCROLLBAR (WM_USER + 96)
+#endif
+#ifndef EM_SETTEXTEX
+  #define EM_SETTEXTEX (WM_USER + 97)
 #endif
 #ifndef EM_GETSCROLLPOS
   #define EM_GETSCROLLPOS (WM_USER + 221)
@@ -266,17 +272,19 @@ typedef struct {
 } AEREPLACESELW;
 
 typedef struct {
-  AECHARRANGE cr;    //Characters range to retrieve
-  BOOL bColumnSel;   //Column selection
-  char *pText;       //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size.
-  int nNewLine;      //see AELB_* defines
+  AECHARRANGE cr;     //Characters range to retrieve
+  BOOL bColumnSel;    //Column selection
+  char *pBuffer;      //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
+  DWORD dwBufferMax;  //Specifies the maximum number of characters to copy to the buffer, including the NULL character.
+  int nNewLine;       //see AELB_* defines
 } AETEXTRANGEA;
 
 typedef struct {
-  AECHARRANGE cr;    //Characters range to retrieve
-  BOOL bColumnSel;   //Column selection
-  wchar_t *wpText;   //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size.
-  int nNewLine;      //see AELB_* defines
+  AECHARRANGE cr;     //Characters range to retrieve
+  BOOL bColumnSel;    //Column selection
+  wchar_t *wpBuffer;  //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
+  DWORD dwBufferMax;  //Specifies the maximum number of characters to copy to the buffer, including the NULL character.
+  int nNewLine;       //see AELB_* defines
 } AETEXTRANGEW;
 
 typedef struct {
@@ -348,10 +356,10 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
-  UINT uMsg;
-  WPARAM wParam;
-  LPARAM lParam;
-  AECHARRANGE crLink;
+  UINT uMsg;           //Mouse message: WM_LBUTTONDBLCLK, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE, WM_RBUTTONDBLCLK, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_SETCURSOR
+  WPARAM wParam;       //First parameter of a message
+  LPARAM lParam;       //Second parameter of a message
+  AECHARRANGE crLink;  //Range of characters which contain URL text
 } AENLINK;
 
 typedef struct {
@@ -454,7 +462,7 @@ typedef struct {
 AEN_SELCHANGE
 _____________
 
-Notification message in the form of a WM_NOTIFY message.
+Notification message sends in the form of a WM_NOTIFY message.
 Sends to the parent window procedure after the current selection has changed.
 
 (int)wParam            == specifies the control identifier.
@@ -470,7 +478,7 @@ Remarks
 AEN_TEXTCHANGE
 ______________
 
-Notification message in the form of a WM_NOTIFY message.
+Notification message sends in the form of a WM_NOTIFY message.
 Sends to the parent window procedure after the document text has changed.
 
 (int)wParam             == specifies the control identifier.
@@ -486,7 +494,7 @@ Remarks
 AEN_MODIFYCHANGE
 ________________
 
-Notification message in the form of a WM_NOTIFY message.
+Notification message sends in the form of a WM_NOTIFY message.
 Sends to the parent window procedure after the document modify state has changed.
 
 (int)wParam               == specifies the control identifier.
@@ -502,23 +510,24 @@ Remarks
 AEN_LINK
 ________
 
-Notification message in the form of a WM_NOTIFY message.
+Notification message sends in the form of a WM_NOTIFY message.
 Sends to the parent window procedure when edit control receives mouse messages while the mouse pointer is over URL.
 
 (int)wParam       == specifies the control identifier.
 (AENLINK *)lParam == pointer to a AENLINK structure.
 
 Return Value
- zero
+ If zero, the control proceeds with its normal handling of the mouse message.
+ If a nonzero value, the control does not handle the mouse message.
 
 Remarks
- To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message.
+ To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message and turn on URL detection with the AEM_DETECTURL message.
 
 
 AEN_ERRSPACE
 ____________
 
-Notification message in the form of a WM_NOTIFY message.
+Notification message sends in the form of a WM_NOTIFY message.
 Sends to the parent window procedure when an edit control cannot allocate enough memory.
 
 (int)wParam           == specifies the control identifier.
