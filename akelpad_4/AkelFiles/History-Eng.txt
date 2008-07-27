@@ -1,6 +1,8 @@
 
 AkelPad 4.0.0 final (Jul 27, 2008)
 -----------------------------------
+Changed: optimized drawing of long lines.
+
 Added: fast access to the text at file opening (updating edit window at loading minimally
        necessary number of lines).
 Added: URL now clickable.
