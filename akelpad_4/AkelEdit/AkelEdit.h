@@ -27,12 +27,13 @@
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
 #define AECO_DISABLENOSCROLL    0x00000002  //Disables scroll bars instead of hiding them when they are not needed. You can use ES_DISABLENOSCROLL window style.
-#define AECO_WANTRETURN         0x00000004  //If you do not specify this style, pressing the ENTER key has the same effect as pressing the dialog box's default push button. You can use ES_WANTRETURN window style.
-#define AECO_DETAILEDUNDO       0x00000008  //The control stores any typing action, into a new action in the undo queue.
-#define AECO_DISABLEBEEP        0x00000010  //Disables sound beep, when unallowable action occur.
-#define AECO_PASTESELECTCOLUMN  0x00000020  //Selects pasted text in column mode.
-#define AECO_DISABLEDRAG        0x00000040  //Disables OLE text dragging.
-#define AECO_DISABLEDROP        0x00000080  //Disables OLE text dropping.
+#define AECO_NOHIDESEL          0x00000004  //If you do not specify this style, then hides the selection when the control loses the input focus and inverts the selection when the control receives the input focus. You can use ES_NOHIDESEL window style.
+#define AECO_WANTRETURN         0x00000008  //If you do not specify this style, pressing the ENTER key has the same effect as pressing the dialog box's default push button. You can use ES_WANTRETURN window style.
+#define AECO_DETAILEDUNDO       0x00000010  //The control stores any typing action, into a new action in the undo queue.
+#define AECO_DISABLEBEEP        0x00000020  //Disables sound beep, when unallowable action occur.
+#define AECO_PASTESELECTCOLUMN  0x00000040  //Selects pasted text in column mode.
+#define AECO_DISABLEDRAG        0x00000080  //Disables OLE text dragging.
+#define AECO_DISABLEDROP        0x00000100  //Disables OLE text dropping.
 
 #define AECOOP_SET              0  //Sets the options to those specified by lParam.
 #define AECOOP_OR               1  //Combines the specified options with the current options.
@@ -466,7 +467,9 @@ typedef struct {
 #define AEM_SETWRAPDELIMITERS (WM_USER + 2220)
 #define AEM_SHOWSCROLLBAR     (WM_USER + 2221)
 #define AEM_UPDATESCROLLBAR   (WM_USER + 2222)
-#define AEM_DETECTURL         (WM_USER + 2223)
+#define AEM_HIDESELECTION     (WM_USER + 2223)
+#define AEM_GETDETECTURL      (WM_USER + 2224)
+#define AEM_SETDETECTURL      (WM_USER + 2225)
 
 /*
 AEN_SELCHANGE
@@ -531,7 +534,7 @@ Return Value
  If a nonzero value, the control does not handle the mouse message.
 
 Remarks
- To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message and turn on URL detection with the AEM_DETECTURL message.
+ To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message and turn on URL detection with the AEM_SETDETECTURL message.
 
 
 AEN_ERRSPACE
@@ -2036,8 +2039,40 @@ Example:
  SendMessage(hWndEdit, AEM_UPDATESCROLLBAR, SB_BOTH, 0);
 
 
-AEM_DETECTURL
-_____________
+AEM_HIDESELECTION
+_________________
+
+Hides or shows the selection in an edit control.
+
+(BOOL)wParam == TRUE   hide selection.
+                FALSE  show selection.
+lParam       == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
+
+
+AEM_GETDETECTURL
+________________
+
+Retrieve whether the URL detection is turned on.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   URL detection is on
+ FALSE  URL detection is off
+
+Example:
+ SendMessage(hWndEdit, AEM_GETDETECTURL, 0, 0);
+
+
+AEM_SETDETECTURL
+________________
 
 Enables or disables detection and highligthing of URLs by an edit control.
 
@@ -2049,7 +2084,7 @@ Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_DETECTURL, TRUE, 0);
+ SendMessage(hWndEdit, AEM_SETDETECTURL, TRUE, 0);
 */
 
 #endif

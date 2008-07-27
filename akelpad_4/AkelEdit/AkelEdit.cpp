@@ -267,10 +267,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->nOutputNewLine=AELB_RN;
       }
 
-      if (cs->style & ES_DISABLENOSCROLL)
-        ae->dwOptions|=AECO_DISABLENOSCROLL;
       if (cs->style & ES_READONLY)
         ae->dwOptions|=AECO_READONLY;
+      if (cs->style & ES_DISABLENOSCROLL)
+        ae->dwOptions|=AECO_DISABLENOSCROLL;
+      if (cs->style & ES_NOHIDESEL)
+        ae->dwOptions|=AECO_NOHIDESEL;
       if (cs->style & ES_WANTRETURN)
         ae->dwOptions|=AECO_WANTRETURN;
       AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, (lstrlenW(AES_WORDDELIMITERSW) + 1) * sizeof(wchar_t));
@@ -805,7 +807,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_UpdateScrollBars(ae, wParam);
         return 0;
       }
-      if (uMsg == AEM_DETECTURL)
+      if (uMsg == AEM_HIDESELECTION)
+      {
+        AE_HideSelection(ae, wParam);
+        return 0;
+      }
+      if (uMsg == AEM_GETDETECTURL)
+      {
+        return ae->bDetectUrl;
+      }
+      if (uMsg == AEM_SETDETECTURL)
       {
         ae->bDetectUrl=wParam;
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
@@ -1245,6 +1256,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_ScrollToCaret(ae, &ae->ptCaret);
       return 0;
     }
+    if (uMsg == EM_GETTHUMB)
+    {
+      return ae->nVScrollPos;
+    }
     if (uMsg == EM_FINDTEXT ||
         uMsg == EM_FINDTEXTW ||
         uMsg == EM_FINDTEXTEX ||
@@ -1484,6 +1499,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       AE_SetColors(ae, &aec);
       return 0;
+    }
+    if (uMsg == EM_HIDESELECTION)
+    {
+      if (wParam)
+        ae->dwOptions&=~AECO_NOHIDESEL;
+      else
+        ae->dwOptions|=AECO_NOHIDESEL;
+      AE_HideSelection(ae, wParam);
+      return 0;
+    }
+    if (uMsg == EM_GETAUTOURLDETECT)
+    {
+      return ae->bDetectUrl;
     }
     if (uMsg == EM_AUTOURLDETECT)
     {
@@ -2320,10 +2348,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       ae->bFocus=TRUE;
       AE_UpdateCaret(ae, FALSE);
+
+      if (!(ae->dwOptions & AECO_NOHIDESEL))
+      {
+        AE_HideSelection(ae, FALSE);
+      }
       return 0;
     }
     else if (uMsg == WM_KILLFOCUS)
     {
+      if (!(ae->dwOptions & AECO_NOHIDESEL))
+      {
+        AE_HideSelection(ae, TRUE);
+      }
       ae->bFocus=FALSE;
       AE_StackUndoGroupStop(ae);
       DestroyCaret();
@@ -5400,45 +5437,55 @@ void AE_Paint(AKELEDIT *ae)
         nMaxDrawCharsCount=0;
         wpStartDraw=ciDrawLine.lpLine->wpLine;
 
-        if (ciDrawLine.lpLine->nSelStart == 0 && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen)
-        {
-          nLineSelection=AELS_FULL;
-          dwColorText=ae->crSelText;
-          dwColorBG=ae->crSelBk;
-          hbrBG=ae->hSelBk;
-        }
-        else if (ciDrawLine.lpLine->nSelStart == ciDrawLine.lpLine->nSelEnd)
+        if (ae->bHideSelection)
         {
           nLineSelection=AELS_EMPTY;
-
-          if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-          {
-            dwColorText=ae->crActiveLineText;
-            dwColorBG=ae->crActiveLineBk;
-            hbrBG=ae->hActiveLineBk;
-          }
-          else
-          {
-            dwColorText=ae->crBasicText;
-            dwColorBG=ae->crBasicBk;
-            hbrBG=ae->hBasicBk;
-          }
+          dwColorText=ae->crBasicText;
+          dwColorBG=ae->crBasicBk;
+          hbrBG=ae->hBasicBk;
         }
         else
         {
-          nLineSelection=AELS_PARTLY;
-
-          if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+          if (ciDrawLine.lpLine->nSelStart == 0 && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen)
           {
-            dwColorText=ae->crActiveLineText;
-            dwColorBG=ae->crActiveLineBk;
-            hbrBG=ae->hActiveLineBk;
+            nLineSelection=AELS_FULL;
+            dwColorText=ae->crSelText;
+            dwColorBG=ae->crSelBk;
+            hbrBG=ae->hSelBk;
+          }
+          else if (ciDrawLine.lpLine->nSelStart == ciDrawLine.lpLine->nSelEnd)
+          {
+            nLineSelection=AELS_EMPTY;
+
+            if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+            {
+              dwColorText=ae->crActiveLineText;
+              dwColorBG=ae->crActiveLineBk;
+              hbrBG=ae->hActiveLineBk;
+            }
+            else
+            {
+              dwColorText=ae->crBasicText;
+              dwColorBG=ae->crBasicBk;
+              hbrBG=ae->hBasicBk;
+            }
           }
           else
           {
-            dwColorText=ae->crBasicText;
-            dwColorBG=ae->crBasicBk;
-            hbrBG=ae->hBasicBk;
+            nLineSelection=AELS_PARTLY;
+
+            if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+            {
+              dwColorText=ae->crActiveLineText;
+              dwColorBG=ae->crActiveLineBk;
+              hbrBG=ae->hActiveLineBk;
+            }
+            else
+            {
+              dwColorText=ae->crBasicText;
+              dwColorBG=ae->crBasicBk;
+              hbrBG=ae->hBasicBk;
+            }
           }
         }
 
@@ -5645,7 +5692,7 @@ void AE_Paint(AKELEDIT *ae)
           if (ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
               ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
           {
-//          if (ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+            if (!ae->bHideSelection)
             {
               hbrBG=ae->hSelBk;
 
@@ -5742,6 +5789,13 @@ void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase
   rcRedraw.bottom=min(rcRedraw.bottom, ae->rcDraw.bottom);
 
   InvalidateRect(ae->hWndEdit, &rcRedraw, bErase);
+}
+
+void AE_HideSelection(AKELEDIT *ae, BOOL bHide)
+{
+  ae->bHideSelection=bHide;
+  AE_RedrawLineRange(ae, ae->ciSelStartIndex.nLine, ae->ciSelEndIndex.nLine, FALSE);
+  UpdateWindow(ae->hWndEdit);
 }
 
 int AE_GetFirstVisibleLine(AKELEDIT *ae)

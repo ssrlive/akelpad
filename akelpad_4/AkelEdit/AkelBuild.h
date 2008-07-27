@@ -202,6 +202,7 @@ typedef struct _AKELEDIT {
   BOOL bCaretVisible;
   BOOL bColumnSel;
   BOOL bDetectUrl;
+  BOOL bHideSelection;
   BOOL bWordWrap;
   DWORD dwWordBreak;
   wchar_t wszWordDelimiters[128];
@@ -307,6 +308,7 @@ void AE_Paint(AKELEDIT *ae);
 void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, POINT *ptDraw, wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
+void AE_HideSelection(AKELEDIT *ae, BOOL bHide);
 int AE_GetFirstVisibleLine(AKELEDIT *ae);
 int AE_GetLastVisibleLine(AKELEDIT *ae);
 BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SIZE *lpSize);
