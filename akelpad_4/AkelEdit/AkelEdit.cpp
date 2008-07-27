@@ -315,7 +315,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AEAPPENDTEXTA *at=(AEAPPENDTEXTA *)lParam;
 
-        AE_AppendTextAnsi(ae, at->pText, at->dwTextLen, at->bColumnSel);
+        AE_AppendTextAnsi(ae, CP_ACP, at->pText, at->dwTextLen, at->bColumnSel);
         return 0;
       }
       if (uMsg == AEM_APPENDTEXTW)
@@ -329,7 +329,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AEREPLACESELA *rs=(AEREPLACESELA *)lParam;
 
-        AE_ReplaceSelAnsi(ae, rs->pText, rs->dwTextLen, rs->bColumnSel, rs->ciInsertStart, rs->ciInsertEnd);
+        AE_ReplaceSelAnsi(ae, CP_ACP, rs->pText, rs->dwTextLen, rs->bColumnSel, rs->ciInsertStart, rs->ciInsertEnd);
         return 0;
       }
       if (uMsg == AEM_REPLACESELW)
@@ -384,7 +384,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_FINDTEXTA)
       {
-        return AE_FindTextAnsi(ae, (AEFINDTEXTA *)lParam);
+        return AE_FindTextAnsi(ae, CP_ACP, (AEFINDTEXTA *)lParam);
       }
       if (uMsg == AEM_FINDTEXTW)
       {
@@ -416,13 +416,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_EMPTYUNDOBUFFER)
       {
-        if (!ae->lpSavePoint)
-        {
-          ae->lpSavePoint=NULL;
-          ae->bSavePointExist=FALSE;
-        }
-        AE_StackRedoDeleteAll(ae, NULL);
-        ae->lpCurrentUndo=NULL;
+        AE_EmptyUndoBuffer(ae);
         return 0;
       }
       if (uMsg == AEM_BEGINUNDOACTION)
@@ -458,21 +452,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_SETMODIFY)
       {
-        if (ae->bModified != (int)wParam)
-        {
-          if (wParam)
-          {
-            ae->lpSavePoint=NULL;
-            ae->bSavePointExist=FALSE;
-          }
-          else
-          {
-            AE_StackUndoGroupStop(ae);
-            ae->lpSavePoint=ae->lpCurrentUndo;
-            ae->bSavePointExist=TRUE;
-          }
-          AE_SetModify(ae, wParam);
-        }
+        AE_SetModify(ae, wParam, TRUE);
         return 0;
       }
 
@@ -869,15 +849,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == EM_REPLACESEL)
     {
       if (!ae->bUnicodeWindow)
-      {
-        AE_ReplaceSelAnsi(ae, (char *)lParam, (DWORD)-1, FALSE, NULL, NULL);
-        return 0;
-      }
+        AE_ReplaceSelAnsi(ae, CP_ACP, (char *)lParam, (DWORD)-1, FALSE, NULL, NULL);
       else
-      {
         AE_ReplaceSel(ae, (wchar_t *)lParam, (DWORD)-1, FALSE, NULL, NULL);
-        return 0;
-      }
+      return 0;
     }
     if (uMsg == EM_GETTEXTRANGE)
     {
@@ -948,7 +923,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == EM_GETTEXTLENGTHEX)
     {
       GETTEXTLENGTHEX *gtl=(GETTEXTLENGTHEX *)wParam;
-      int nResult=0;
+      DWORD dwResult=0;
 
       //Answer is always GTL_PRECISE
       if ((gtl->flags & GTL_PRECISE) && (gtl->flags & GTL_CLOSE))
@@ -958,18 +933,18 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (!(gtl->flags & GTL_NUMBYTES))
       {
-        nResult=ae->nLastCharOffset;
+        dwResult=ae->nLastCharOffset;
         if (gtl->flags & GTL_USECRLF)
-          nResult+=ae->nLineCount;
+          dwResult+=ae->nLineCount;
       }
       else
       {
         if (gtl->codepage == 1200 || gtl->codepage == 1201)
         {
-          nResult=ae->nLastCharOffset;
+          dwResult=ae->nLastCharOffset;
           if (gtl->flags & GTL_USECRLF)
-            nResult+=ae->nLineCount;
-          nResult*=sizeof(wchar_t);
+            dwResult+=ae->nLineCount;
+          dwResult*=sizeof(wchar_t);
         }
         else
         {
@@ -979,23 +954,23 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (lpLine->nLineLen)
             {
-              nResult+=WideCharToMultiByte(gtl->codepage, 0, lpLine->wpLine, lpLine->nLineLen, NULL, 0, NULL, NULL);
+              dwResult+=WideCharToMultiByte(gtl->codepage, 0, lpLine->wpLine, lpLine->nLineLen, NULL, 0, NULL, NULL);
             }
             lpLine=lpLine->next;
           }
-          nResult+=ae->nLineCount;
+          dwResult+=ae->nLineCount;
           if (gtl->flags & GTL_USECRLF)
-            nResult+=ae->nLineCount;
+            dwResult+=ae->nLineCount;
         }
       }
-      return nResult;
+      return dwResult;
     }
     if (uMsg == EM_GETTEXTEX)
     {
       GETTEXTEX *gt=(GETTEXTEX *)wParam;
       AECHARRANGE cr;
       int nNewLine;
-      int nResult=0;
+      DWORD dwResult=0;
 
       if (gt->flags & GT_SELECTION)
       {
@@ -1015,21 +990,56 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (gt->codepage == 1200)
       {
-        nResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
+        dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
       }
       else if (gt->codepage == 1201)
       {
-        nResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
-        AE_ChangeByteOrder((unsigned char *)lParam, nResult * sizeof(wchar_t));
+        dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
+        AE_ChangeByteOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t));
       }
-      else nResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
+      else dwResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
 
-      return nResult;
+      return dwResult;
     }
     if (uMsg == EM_SETTEXTEX)
     {
-//      AE_SetTextAnsi(ae, CP_ACP, (char *)lParam, (DWORD)-1, ae->nInputNewLine);
-      return 0;
+      SETTEXTEX *st=(SETTEXTEX *)wParam;
+      BOOL bLockCollectUndo=ae->bLockCollectUndo;
+
+      if (!(st->flags & ST_KEEPUNDO))
+      {
+        AE_EmptyUndoBuffer(ae);
+        ae->bLockCollectUndo=TRUE;
+      }
+      if (!(st->flags & ST_SELECTION))
+        AE_EditSelectAll(ae);
+
+      if (st->codepage == 1200)
+      {
+        AE_ReplaceSel(ae, (wchar_t *)lParam, (DWORD)-1, FALSE, NULL, NULL);
+      }
+      else if (st->codepage == 1201)
+      {
+        wchar_t *wszText;
+        DWORD dwUnicodeBytes;
+
+        dwUnicodeBytes=lstrlenW((wchar_t *)lParam) * sizeof(wchar_t);
+
+        if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes + 2))
+        {
+          AE_memcpy(wszText, (wchar_t *)lParam, dwUnicodeBytes + 2);
+          AE_ChangeByteOrder((unsigned char *)wszText, dwUnicodeBytes);
+          AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), FALSE, NULL, NULL);
+          AE_HeapFree(NULL, 0, (LPVOID)wszText);
+        }
+      }
+      else AE_ReplaceSelAnsi(ae, st->codepage, (char *)lParam, (DWORD)-1, FALSE, NULL, NULL);
+
+      if (!(st->flags & ST_KEEPUNDO))
+        ae->bLockCollectUndo=bLockCollectUndo;
+      if (!(st->flags & ST_SELECTION))
+        AE_SetModify(ae, FALSE, TRUE);
+      return 1;
     }
     if (uMsg == EM_CANPASTE)
     {
@@ -1265,7 +1275,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ft.pText=(char *)ftRE->lpstrText;
           ft.dwTextLen=(DWORD)-1;
 
-          if (AE_FindTextAnsi(ae, &ft))
+          if (AE_FindTextAnsi(ae, CP_ACP, &ft))
           {
             if (uMsg == EM_FINDTEXTEX)
             {
@@ -1390,21 +1400,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_SETMODIFY)
     {
-      if (ae->bModified != (int)wParam)
-      {
-        if (wParam)
-        {
-          ae->lpSavePoint=NULL;
-          ae->bSavePointExist=FALSE;
-        }
-        else
-        {
-          AE_StackUndoGroupStop(ae);
-          ae->lpSavePoint=ae->lpCurrentUndo;
-          ae->bSavePointExist=TRUE;
-        }
-        AE_SetModify(ae, wParam);
-      }
+      AE_SetModify(ae, wParam, TRUE);
       return 0;
     }
     if (uMsg == EM_GETRECT)
@@ -7129,6 +7125,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
       AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
       if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
     }
+    AE_SetModify(ae, FALSE, TRUE);
   }
 
   //Set caret position
@@ -7137,17 +7134,17 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   return dwTextLen;
 }
 
-void AE_AppendTextAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel)
+void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen, BOOL bColumnSel)
 {
   wchar_t *wszText;
   DWORD dwUnicodeBytes;
 
-  dwUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pText, dwTextLen, NULL, 0) * sizeof(wchar_t);
+  dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, NULL, 0) * sizeof(wchar_t);
   if (dwTextLen == (DWORD)-1) dwUnicodeBytes-=2;
 
   if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
   {
-    MultiByteToWideChar(CP_ACP, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
+    MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
     AE_AppendText(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), bColumnSel);
 
     AE_HeapFree(ae, 0, (LPVOID)wszText);
@@ -7191,17 +7188,17 @@ void AE_AppendText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnS
   AE_StackUndoGroupStop(ae);
 }
 
-void AE_ReplaceSelAnsi(AKELEDIT *ae, char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
+void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   wchar_t *wszText;
   DWORD dwUnicodeBytes;
 
-  dwUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pText, dwTextLen, NULL, 0) * sizeof(wchar_t);
+  dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, NULL, 0) * sizeof(wchar_t);
   if (dwTextLen == (DWORD)-1) dwUnicodeBytes-=2;
 
   if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
   {
-    MultiByteToWideChar(CP_ACP, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
+    MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
     AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), bColumnSel, ciInsertStart, ciInsertEnd);
 
     AE_HeapFree(ae, 0, (LPVOID)wszText);
@@ -7495,7 +7492,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       {
         if (bEnableUndo)
         {
-          AE_SetModify(ae, TRUE);
+          AE_SetModify(ae, TRUE, FALSE);
 
           if (!ae->bLockCollectUndo)
           {
@@ -7540,7 +7537,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       //Add undo
       if (bEnableUndo)
       {
-        AE_SetModify(ae, TRUE);
+        AE_SetModify(ae, TRUE, FALSE);
 
         if (!ae->bLockCollectUndo)
         {
@@ -8172,7 +8169,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         //Add undo
         if (bEnableUndo)
         {
-          AE_SetModify(ae, TRUE);
+          AE_SetModify(ae, TRUE, FALSE);
 
           if (!ae->bLockCollectUndo)
           {
@@ -8514,7 +8511,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         //Add undo
         if (bEnableUndo)
         {
-          AE_SetModify(ae, TRUE);
+          AE_SetModify(ae, TRUE, FALSE);
 
           if (!ae->bLockCollectUndo)
           {
@@ -8892,7 +8889,7 @@ BOOL AE_StreamOutHelper(AESTREAM *aes, AECHARINDEX *ciCount, AECHARINDEX *ciEnd,
   return TRUE;
 }
 
-BOOL AE_FindTextAnsi(AKELEDIT *ae, AEFINDTEXTA *ftA)
+BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA)
 {
   AEFINDTEXTW ftW={0};
   wchar_t *wszText;
@@ -8902,11 +8899,11 @@ BOOL AE_FindTextAnsi(AKELEDIT *ae, AEFINDTEXTA *ftA)
   if (ftA->dwTextLen == (DWORD)-1)
     ftA->dwTextLen=lstrlenA(ftA->pText);
 
-  dwUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, ftA->pText, ftA->dwTextLen + 1, NULL, 0) * sizeof(wchar_t);
+  dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, NULL, 0) * sizeof(wchar_t);
 
   if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
   {
-    MultiByteToWideChar(CP_ACP, 0, ftA->pText, ftA->dwTextLen + 1, wszText, dwUnicodeBytes / sizeof(wchar_t));
+    MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, wszText, dwUnicodeBytes / sizeof(wchar_t));
 
     ftW.dwFlags=ftA->dwFlags;
     ftW.nNewLine=ftA->nNewLine;
@@ -9147,11 +9144,26 @@ BOOL AE_GetModify(AKELEDIT *ae)
   return TRUE;
 }
 
-void AE_SetModify(AKELEDIT *ae, BOOL bState)
+void AE_SetModify(AKELEDIT *ae, BOOL bState, BOOL bMessage)
 {
   if (ae->bModified != bState)
   {
     ae->bModified=!ae->bModified;
+
+    if (bMessage)
+    {
+      if (ae->bModified)
+      {
+        ae->lpSavePoint=NULL;
+        ae->bSavePointExist=FALSE;
+      }
+      else
+      {
+        AE_StackUndoGroupStop(ae);
+        ae->lpSavePoint=ae->lpCurrentUndo;
+        ae->bSavePointExist=TRUE;
+      }
+    }
 
     //Send AEN_MODIFYCHANGE
     if (ae->dwEventMask & AENM_MODIFYCHANGE)
@@ -9165,6 +9177,17 @@ void AE_SetModify(AKELEDIT *ae, BOOL bState)
       SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&mc);
     }
   }
+}
+
+void AE_EmptyUndoBuffer(AKELEDIT *ae)
+{
+  if (!ae->lpSavePoint)
+  {
+    ae->lpSavePoint=NULL;
+    ae->bSavePointExist=FALSE;
+  }
+  AE_StackRedoDeleteAll(ae, NULL);
+  ae->lpCurrentUndo=NULL;
 }
 
 BOOL AE_EditCanPaste(AKELEDIT *ae)
@@ -9313,7 +9336,7 @@ void AE_EditUndo(AKELEDIT *ae)
 
     if (ae->bModified != AE_GetModify(ae))
     {
-      AE_SetModify(ae, !ae->bModified);
+      AE_SetModify(ae, !ae->bModified, FALSE);
     }
   }
   else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
@@ -9406,7 +9429,7 @@ void AE_EditRedo(AKELEDIT *ae)
 
     if (ae->bModified != AE_GetModify(ae))
     {
-      AE_SetModify(ae, !ae->bModified);
+      AE_SetModify(ae, !ae->bModified, FALSE);
     }
   }
   else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
@@ -9490,7 +9513,7 @@ void AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
       {
         if (pData=GlobalLock(hData))
         {
-          AE_ReplaceSelAnsi(ae, (char *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
+          AE_ReplaceSelAnsi(ae, CP_ACP, (char *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
           GlobalUnlock(hData);
         }
       }
