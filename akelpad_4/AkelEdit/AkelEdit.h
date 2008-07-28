@@ -35,10 +35,10 @@
 #define AECO_DISABLEDRAG        0x00000080  //Disables OLE text dragging.
 #define AECO_DISABLEDROP        0x00000100  //Disables OLE text dropping.
 
-#define AECOOP_SET              0  //Sets the options to those specified by lParam.
-#define AECOOP_OR               1  //Combines the specified options with the current options.
-#define AECOOP_AND              2  //Retains only those current options that are also specified by lParam.
-#define AECOOP_XOR              3  //Logically exclusive OR the current options with those specified by lParam.
+#define AECOOP_SET              1  //Sets the options to those specified by lParam.
+#define AECOOP_OR               2  //Combines the specified options with the current options.
+#define AECOOP_AND              3  //Retains only those current options that are also specified by lParam.
+#define AECOOP_XOR              4  //Logically exclusive OR the current options with those specified by lParam.
 
 //AEM_GETINDEX flags
 #define AEGI_FIRSTCHAR          1   //First character
