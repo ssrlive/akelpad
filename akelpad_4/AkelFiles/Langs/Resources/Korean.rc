@@ -104,7 +104,7 @@ BEGIN
     POPUP "보기(&V)"
     BEGIN
         MENUITEM "글꼴(&F)...",                 IDM_VIEW_FONT
-        MENUITEM "&Colors...",                  IDM_VIEW_COLORS
+        MENUITEM "색상(&C)...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "자동 줄바꿈(&W)\tCtrl+U",     IDM_VIEW_WORDWRAP
         MENUITEM "항상 맨 위(&A)\tCtrl+T",      IDM_VIEW_ONTOP
@@ -474,19 +474,19 @@ END
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Colors..."
+CAPTION "색상..."
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Color theme:",IDC_STATIC,11,6,103,8
+    LTEXT           "색상 테마:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Save",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "저장",IDC_COLORS_THEME_SAVE,123,16,50,14
+    PUSHBUTTON      "지우기",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,217,65
-    PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
+    PUSHBUTTON      "확인",IDOK,123,117,50,14,BS_CENTER
+    PUSHBUTTON      "취소",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -790,7 +790,7 @@ BEGIN
                             "파일이 다시 열립니다. 변경사항은 저장되지 않습니다."
     MSG_FILE_CHANGED        """%s"" 파일이 외부에서 변경되었습니다.\n\n다시 읽을까요?"
     MSG_CP_UNIMPLEMENTED    """%d"" 코드페이지는 구현되지 않았습니다."
-    MSG_CP_MISMATCH         "Line ""%d"" contains symbols which will be lost at saving in this encoding. Continue?"
+    MSG_CP_MISMATCH         """%d""번째 줄에 이 인코딩에서 손실되는 문자가 포함되어 있습니다. 계속 진행하시겠습니까?"
     MSG_RESTART_PROGRAM     "프로그램을 재시작하면 변경사항이 적용됩니다."
     MSG_SAVEIN_READONLY     """%s"" 파일은 읽기 전용입니다. 계속 진행하겠습니까?"
     MSG_HOTKEY_EXISTS       "이미 ""%s""에 할당된 단축키입니다."
@@ -827,20 +827,20 @@ BEGIN
     STR_HEADLINE            "헤드라인"
     STR_TOP                 "위:"
     STR_BOTTOM              "아래:"
-    STR_ELEMENT             "Element"
-    STR_STANDARDTHEME       "Standard"
-    STR_TEXT                "Text"
-    STR_BACKGROUND          "Background"
-    STR_SAMPLE              "Sample"
-    STR_BASIC               "Basic color"
-    STR_SELECTION           "Selection"
-    STR_ACTIVELINE          "Active line"
-    STR_CARET               "Caret"
+    STR_ELEMENT             "엘리먼트"
+    STR_STANDARDTHEME       "표준"
+    STR_TEXT                "텍스트"
+    STR_BACKGROUND          "배경색"
+    STR_SAMPLE              "샘플"
+    STR_BASIC               "기본 색상"
+    STR_SELECTION           "선택영역"
+    STR_ACTIVELINE          "현재 줄"
+    STR_CARET               "캐럿"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_URL                 "Hyperlink"
+    STR_URL                 "하이퍼링크"
 END
 
 #endif    // Korean resources
