@@ -1726,8 +1726,24 @@ Set the options for an edit control.
 Return Value
  Current option of edit control.
 
-Example:
+Example 1:
  SendMessage(hWndEdit, AEM_SETOPTIONS, AECOOP_OR, AECO_DISABLEDRAG|AECO_DISABLEDROP);
+
+Example 2:
+ if (bDisableNoScroll)
+ {
+   SendMessage(hWndEdit, AEM_SETOPTIONS, AECOOP_OR, AECO_DISABLENOSCROLL);
+   ShowScrollBar(hWndEdit, SB_BOTH, TRUE);
+   SetScrollRange(hWndEdit, SB_HORZ, 0, 100, TRUE);
+   SetScrollRange(hWndEdit, SB_VERT, 0, 100, TRUE);
+   SendMessage(hWndEdit, AEM_UPDATESCROLLBAR, SB_BOTH, 0);
+ }
+ else
+ {
+   SendMessage(hWndEdit, AEM_SETOPTIONS, AECOOP_XOR, AECO_DISABLENOSCROLL);
+   ShowScrollBar(hWndEdit, SB_BOTH, TRUE);
+   SendMessage(hWndEdit, AEM_UPDATESCROLLBAR, SB_BOTH, 0);
+ }
 
 
 AEM_GETNEWLINE
