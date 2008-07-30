@@ -104,7 +104,7 @@ BEGIN
     POPUP "表示(&V)"
     BEGIN
         MENUITEM "フォント(&F)...",             IDM_VIEW_FONT
-        MENUITEM "&Colors...",                  IDM_VIEW_COLORS
+        MENUITEM "色(&C)...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "文章を折り返す(&W)\tCtrl+U",  IDM_VIEW_WORDWRAP
         MENUITEM "常に手前に表示(&A)\tCtrl+T",  IDM_VIEW_ONTOP
@@ -469,26 +469,26 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "OK",IDOK,36,73,50,14,BS_CENTER
     PUSHBUTTON      "キャンセル",IDCANCEL,90,73,50,14,BS_CENTER
-    LTEXT           "元:",IDC_STATIC,12,6,150,8
-    LTEXT           "先:",IDC_STATIC,12,37,150,8
+    LTEXT           "コード元:",IDC_STATIC,12,6,150,8
+    LTEXT           "コード先:",IDC_STATIC,12,37,150,8
 END
 
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 138
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Colors..."
-FONT 8, "MS Shell Dlg"
+CAPTION "色..."
+FONT 9, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Color theme:",IDC_STATIC,11,6,103,8
+    LTEXT           "カラー テーマ:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Save",IDC_COLORS_THEME_SAVE,123,16,50,14
-    PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
+    PUSHBUTTON      "保存",IDC_COLORS_THEME_SAVE,123,16,50,14
+    PUSHBUTTON      "削除",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,217,65
     PUSHBUTTON      "OK",IDOK,123,117,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,117,50,14,BS_CENTER
+    PUSHBUTTON      "キャンセル",IDCANCEL,176,117,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -532,22 +532,22 @@ BEGIN
                     UDS_NOTHOUSANDS,113,57,11,13
     PUSHBUTTON      "クリア",IDC_OPTIONS_SEARCHSTRINGS_CLEAR,141,56,54,14
     GROUPBOX        "実行",IDC_STATIC,9,83,199,77
-    LTEXT           "コマンド (%f ファイル、%a akelpad のディレクトリ):",
+    LTEXT           "コマンド (%f ファイル、%a akelpad のディレクトリー):",
                     IDC_STATIC,21,97,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,108,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,108,14,13
-    LTEXT           "作業ディレクトリ (%d ファイルのディレクトリ):",
+    LTEXT           "作業ディレクトリー (%d ファイルのディレクトリー):",
                     IDC_STATIC,21,127,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,138,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,138,14,13
     LTEXT           "既定のコードページ:",IDC_STATIC,12,169,150,8
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,180,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "フィルタ",IDC_OPTIONS_CODEPAGE_FILTER,168,180,40,13
+    PUSHBUTTON      "フィルター",IDC_OPTIONS_CODEPAGE_FILTER,168,180,40,13
     LTEXT           "コードページの認識:",IDC_STATIC,12,199,150,8
     COMBOBOX        IDC_OPTIONS_CODEPAGE_RECOGNITION,9,210,154,60,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "バッファ:",IDC_STATIC,170,199,37,8
+    LTEXT           "バッファー:",IDC_STATIC,170,199,37,8
     EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,210,40,13,
                     ES_NUMBER
 END
@@ -555,7 +555,7 @@ END
 IDD_OPTIONS_GENERAL_FILTER DIALOG DISCARDABLE  0, 0, 364, 255
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "フィルタ..."
+CAPTION "フィルター..."
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "カスタム:",IDC_STATIC,11,7,135,8
@@ -599,7 +599,7 @@ BEGIN
     CONTROL         "スペース",IDC_OPTIONS_TABSIZE_SPACES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,98,50,10
     GROUPBOX        "設定の保存",IDC_STATIC,118,83,91,34
-    CONTROL         "レジストリ",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
+    CONTROL         "レジストリー",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
                     BS_AUTORADIOBUTTON,127,93,77,10
     CONTROL         "INI ファイル",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
                     BS_AUTORADIOBUTTON,127,104,77,10
@@ -621,7 +621,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
-    CONTROL         "文章のデリミタ:",IDC_OPTIONS_ENABLE_DELIMITERS,"Button",
+    CONTROL         "文章のデリミッター:",IDC_OPTIONS_ENABLE_DELIMITERS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
     PUSHBUTTON      "リセット",IDC_OPTIONS_RESET_DELIMITERS,166,210,43,13,
@@ -772,7 +772,7 @@ BEGIN
     MSG_ERROR_CANNOT_OPEN_FILE "ファイル ""%s"" を開けません。"
     MSG_ERROR_SYNTAX        "構文エラーです。"
     MSG_ERROR_PRINT         "ドキュメントを印刷できません。"
-    MSG_ERROR_RUN           "プログラムを起動できません。"
+    MSG_ERROR_RUN           "プログラムを実行できません。"
     MSG_ERROR_FUNCTION_NOT_FOUND 
                             "関数 ""%s::%s"" が ""%s"" から見つかりません。"
     MSG_ERROR_LOAD_DLL      """%s"" を読み込めません。"
@@ -793,7 +793,7 @@ BEGIN
                             "ファイルは開き直され、すべての変更は失われます。"
     MSG_FILE_CHANGED        """%s"" は外部で変更されています。\n\n開き直しますか?"
     MSG_CP_UNIMPLEMENTED    """%d"" コード ページは実装されていません。"
-    MSG_CP_MISMATCH         "Line ""%d"" contains symbols which will be lost at saving in this encoding. Continue?"
+    MSG_CP_MISMATCH         "行 ""%d"" はこのエンコードでの保存時に失われる記号を含みます。続行しますか?"
     MSG_RESTART_PROGRAM     "変更はプログラムの再起動時に反映されます。"
     MSG_SAVEIN_READONLY     """%s"" は読み取り専用ファイルです。続行しますか?"
     MSG_HOTKEY_EXISTS       "ホットキーはすでに ""%s"" へ割り当てられています。"
@@ -818,33 +818,33 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_AUTODETECT_RUSSIAN  "キリル言語 (ANSI, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+    STR_AUTODETECT_RUSSIAN  "キリル言語 (ANSI、OEM、KOI8-R、UTF-8)"
+    STR_AUTODETECT_ENGLISH  "ラテン (OEM、UTF-8)"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_STATUS              "状態"
-    STR_RUNNING             "起動"
+    STR_RUNNING             "実行中"
     STR_EXECUTABLE_FILTER   "実行ファイル (*.exe)|*.exe|すべてのファイル (*.*)|*.*"
     STR_FONT                "フォント"
     STR_HEADLINE            "ヘッドライン"
     STR_TOP                 "上:"
     STR_BOTTOM              "下:"
-    STR_ELEMENT             "Element"
-    STR_STANDARDTHEME       "Standard"
-    STR_TEXT                "Text"
-    STR_BACKGROUND          "Background"
-    STR_SAMPLE              "Sample"
-    STR_BASIC               "Basic color"
-    STR_SELECTION           "Selection"
-    STR_ACTIVELINE          "Active line"
-    STR_CARET               "Caret"
+    STR_ELEMENT             "要素"
+    STR_STANDARDTHEME       "標準"
+    STR_TEXT                "テキスト"
+    STR_BACKGROUND          "背景"
+    STR_SAMPLE              "サンプル"
+    STR_BASIC               "基本色"
+    STR_SELECTION           "選択範囲"
+    STR_ACTIVELINE          "アクティブな行"
+    STR_CARET               "キャレット"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_URL                 "Hyperlink"
+    STR_URL                 "ハイパーリンク"
 END
 
 #endif    // Japanese resources
