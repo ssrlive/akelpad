@@ -5600,6 +5600,9 @@ void AE_Paint(AKELEDIT *ae)
               }
               if (AE_IndexCompare(&crLink.ciMax, &ciDrawLine) == 0)
               {
+                crLink.ciMin.lpLine=NULL;
+                crLink.ciMax.lpLine=NULL;
+
                 if (crLink.ciMax.nCharInLine <= ciDrawLine.lpLine->nSelStart || crLink.ciMax.nCharInLine > ciDrawLine.lpLine->nSelEnd)
                 {
                   //Draw full URL or last part of it
@@ -5610,8 +5613,6 @@ void AE_Paint(AKELEDIT *ae)
                   nMaxDrawCharsCount=0;
                   if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
                 }
-                crLink.ciMin.lpLine=NULL;
-                crLink.ciMax.lpLine=NULL;
               }
             }
           }
@@ -5669,6 +5670,7 @@ void AE_Paint(AKELEDIT *ae)
             wpStartDraw+=1;
           }
 
+          //Draw only 2048 characters at once
           if (nMaxDrawCharsCount >= 2048)
           {
             SetTextColor(ps.hdc, dwColorText);
@@ -5678,8 +5680,30 @@ void AE_Paint(AKELEDIT *ae)
           }
           else ++nMaxDrawCharsCount;
 
+          //Stop line drawing if it's outside draw area
           if (nLineWidth > nMaxLineWidth)
           {
+            if (ae->bDetectUrl)
+            {
+              //Highlight URL
+              if (crLink.ciMin.lpLine && crLink.ciMax.lpLine)
+              {
+                crLink.ciMin.lpLine=NULL;
+                crLink.ciMax.lpLine=NULL;
+
+                if (ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nSelStart || ciDrawLine.nCharInLine > ciDrawLine.lpLine->nSelEnd)
+                {
+                  //Draw full URL or last part of it
+                  if (ae->hFontUrl) SelectObject(ps.hdc, ae->hFontUrl);
+                  SetTextColor(ps.hdc, ae->crUrlText);
+                  SetBkColor(ps.hdc, dwColorBG);
+                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                  nMaxDrawCharsCount=0;
+                  if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
+                  goto NextLine;
+                }
+              }
+            }
             SetTextColor(ps.hdc, dwColorText);
             SetBkColor(ps.hdc, dwColorBG);
             AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
