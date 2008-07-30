@@ -1370,6 +1370,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else
           return lParam;
       }
+      return 0;
     }
     if (uMsg == EM_SETUNDOLIMIT)
     {
