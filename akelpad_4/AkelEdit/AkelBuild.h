@@ -207,6 +207,7 @@ typedef struct _AKELEDIT {
   DWORD dwWordBreak;
   wchar_t wszWordDelimiters[128];
   wchar_t wszWrapDelimiters[128];
+  wchar_t wszUrlDelimiters[128];
   AECHARRANGE crMouseOnLink;
   AECHARINDEX ciLButtonClick;
   AECHARINDEX ciLButtonStart;

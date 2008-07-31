@@ -54,8 +54,17 @@
 #define AEGI_PREVCHAR           11  //Previous character
 #define AEGI_NEXTBREAK          12  //Next break index, see AEM_SETWORDDELIMITERS
 #define AEGI_PREVBREAK          13  //Previous break index, see AEM_SETWORDDELIMITERS
-#define AEGI_WRAPLINEBEGIN      14  //First character of the unwrapped line
-#define AEGI_WRAPLINEEND        15  //Last character of the unwrapped line
+#define AEGI_NEXTWORDSTART      14  //Next word start index, see AEM_SETWORDDELIMITERS
+#define AEGI_NEXTWORDEND        15  //Next word end index, see AEM_SETWORDDELIMITERS
+#define AEGI_PREVWORDSTART      16  //Previous word start index, see AEM_SETWORDDELIMITERS
+#define AEGI_PREVWORDEND        17  //Previous word end index, see AEM_SETWORDDELIMITERS
+#define AEGI_WRAPLINEBEGIN      18  //First character of the unwrapped line
+#define AEGI_WRAPLINEEND        19  //Last character of the unwrapped line
+
+//AEM_ISDELIMITER parameter
+#define AEDLM_WORD    0  //Word delimiter
+#define AEDLM_WRAP    1  //Wrap delimiter
+#define AEDLM_URL     2  //URL delimiter
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error
@@ -465,11 +474,14 @@ typedef struct {
 #define AEM_SETWORDDELIMITERS (WM_USER + 2218)
 #define AEM_GETWRAPDELIMITERS (WM_USER + 2219)
 #define AEM_SETWRAPDELIMITERS (WM_USER + 2220)
-#define AEM_SHOWSCROLLBAR     (WM_USER + 2221)
-#define AEM_UPDATESCROLLBAR   (WM_USER + 2222)
-#define AEM_HIDESELECTION     (WM_USER + 2223)
-#define AEM_GETDETECTURL      (WM_USER + 2224)
-#define AEM_SETDETECTURL      (WM_USER + 2225)
+#define AEM_GETURLDELIMITERS  (WM_USER + 2221)
+#define AEM_SETURLDELIMITERS  (WM_USER + 2222)
+#define AEM_ISDELIMITER       (WM_USER + 2223)
+#define AEM_SHOWSCROLLBAR     (WM_USER + 2224)
+#define AEM_UPDATESCROLLBAR   (WM_USER + 2225)
+#define AEM_HIDESELECTION     (WM_USER + 2226)
+#define AEM_GETDETECTURL      (WM_USER + 2227)
+#define AEM_SETDETECTURL      (WM_USER + 2228)
 
 /*
 AEN_SELCHANGE
@@ -1957,8 +1969,8 @@ _____________________
 
 Retrieve word delimiters information.
 
-(wchar_t *)wParam == pointer to a buffer that receives delimiter characters. Can be NULL.
-(int)lParam       == size of the buffer in TCHARs.
+(int)wParam       == size of the buffer in TCHARs.
+(wchar_t *)lParam == pointer to a buffer that receives delimiter characters. Can be NULL.
 
 Return Value
  See AEWB_* defines.
@@ -1966,7 +1978,7 @@ Return Value
 Example:
  wchar_t wszDelimiters[128];
 
- SendMessage(hWndEdit, AEM_GETWORDDELIMITERS, (WPARAM)wszDelimiters, 128);
+ SendMessage(hWndEdit, AEM_GETWORDDELIMITERS, 128, (LPARAM)wszDelimiters);
 
 
 AEM_SETWORDDELIMITERS
@@ -1991,8 +2003,8 @@ _____________________
 
 Retrieve word wrapping delimiters.
 
-(wchar_t *)wParam == pointer to a buffer that receives delimiter characters. Can be NULL.
-(int)lParam       == size of the buffer in TCHARs.
+(int)wParam       == size of the buffer in TCHARs.
+(wchar_t *)lParam == pointer to a buffer that receives delimiter characters. Can be NULL.
 
 Return Value
  zero
@@ -2000,7 +2012,7 @@ Return Value
 Example:
  wchar_t wszDelimiters[128];
 
- SendMessage(hWndEdit, AEM_GETWRAPDELIMITERS, (WPARAM)wszDelimiters, 128);
+ SendMessage(hWndEdit, AEM_GETWRAPDELIMITERS, 128, (LPARAM)wszDelimiters);
 
 
 AEM_SETWRAPDELIMITERS
@@ -2018,6 +2030,58 @@ Example:
  wchar_t wszDelimiters[128]=L" \t\n[](){}<>";
 
  SendMessage(hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)wszDelimiters);
+
+
+AEM_GETURLDELIMITERS
+____________________
+
+Retrieve URL delimiters.
+
+(int)wParam       == size of the buffer in TCHARs.
+(wchar_t *)lParam == pointer to a buffer that receives delimiter characters. Can be NULL.
+
+Return Value
+ zero
+
+Example:
+ wchar_t wszDelimiters[128];
+
+ SendMessage(hWndEdit, AEM_GETURLDELIMITERS, 128, (LPARAM)wszDelimiters);
+
+
+AEM_SETURLDELIMITERS
+____________________
+
+Set delimiters for URL detection.
+
+wParam            == not used.
+(wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
+
+Return Value
+ zero
+
+Example:
+ wchar_t wszDelimiters[128]=L" \t\n[](){}<>";
+
+ SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszDelimiters);
+
+
+AEM_ISDELIMITER
+_______________
+
+Retrieve character index delimiter or not.
+
+(int)wParam           == see AEDLM_* defines.
+(AECHARINDEX *)lParam == character index.
+
+Return Value
+ TRUE   character index is a delimiter
+ FALSE  character index isn't a delimiter
+
+Example:
+ AECHARINDEX ciChar;
+
+ SendMessage(hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&ciChar);
 
 
 AEM_SHOWSCROLLBAR

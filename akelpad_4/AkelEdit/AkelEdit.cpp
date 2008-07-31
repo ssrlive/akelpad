@@ -277,6 +277,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->dwOptions|=AECO_WANTRETURN;
       AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, (lstrlenW(AES_WORDDELIMITERSW) + 1) * sizeof(wchar_t));
       AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, (lstrlenW(AES_WRAPDELIMITERSW) + 1) * sizeof(wchar_t));
+      AE_memcpy(ae->wszUrlDelimiters, AES_URLDELIMITERSW, (lstrlenW(AES_URLDELIMITERSW) + 1) * sizeof(wchar_t));
 
       GetClientRect(ae->hWndEdit, &ae->rcEdit);
       AE_SetDrawRect(ae, NULL, FALSE);
@@ -768,7 +769,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETWORDDELIMITERS)
       {
-        if (lParam) AE_memcpy((wchar_t *)lParam, ae->wszWordDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->wszWordDelimiters)));
+        if (wParam) AE_memcpy((wchar_t *)wParam, ae->wszWordDelimiters, min(lParam * sizeof(wchar_t), sizeof(ae->wszWordDelimiters)));
         return ae->dwWordBreak;
       }
       if (uMsg == AEM_SETWORDDELIMITERS)
@@ -782,7 +783,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETWRAPDELIMITERS)
       {
-        if (lParam) AE_memcpy((wchar_t *)lParam, ae->wszWrapDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->wszWrapDelimiters)));
+        if (wParam) AE_memcpy((wchar_t *)wParam, ae->wszWrapDelimiters, min(lParam * sizeof(wchar_t), sizeof(ae->wszWrapDelimiters)));
         return 0;
       }
       if (uMsg == AEM_SETWRAPDELIMITERS)
@@ -792,6 +793,31 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else
           AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, (lstrlenW(AES_WRAPDELIMITERSW) + 1) * sizeof(wchar_t));
         return 0;
+      }
+      if (uMsg == AEM_GETURLDELIMITERS)
+      {
+        if (wParam) AE_memcpy((wchar_t *)wParam, ae->wszUrlDelimiters, min(lParam * sizeof(wchar_t), sizeof(ae->wszUrlDelimiters)));
+        return 0;
+      }
+      if (uMsg == AEM_SETURLDELIMITERS)
+      {
+        if (lParam)
+          AE_memcpy(ae->wszUrlDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
+        else
+          AE_memcpy(ae->wszUrlDelimiters, AES_URLDELIMITERSW, (lstrlenW(AES_URLDELIMITERSW) + 1) * sizeof(wchar_t));
+        return 0;
+      }
+      if (uMsg == AEM_ISDELIMITER)
+      {
+        AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+
+        if (wParam == AEDLM_WORD)
+          return AE_IsInDelimiterList(ae->wszWordDelimiters, ciCharIndex->lpLine->wpLine[ciCharIndex->nCharInLine]);
+        if (wParam == AEDLM_WRAP)
+          return AE_IsInDelimiterList(ae->wszWrapDelimiters, ciCharIndex->lpLine->wpLine[ciCharIndex->nCharInLine]);
+        if (wParam == AEDLM_URL)
+          return AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex->lpLine->wpLine[ciCharIndex->nCharInLine]);
+        return -1;
       }
       if (uMsg == AEM_SHOWSCROLLBAR)
       {
@@ -3522,6 +3548,22 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
   {
     return AE_GetPrevBreak(ae, ciCharIn, ciCharOut, bColumnSel);
   }
+  else if (nType == AEGI_NEXTWORDSTART)
+  {
+    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDSTART, FALSE);
+  }
+  else if (nType == AEGI_NEXTWORDEND)
+  {
+    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDEND, FALSE);
+  }
+  else if (nType == AEGI_PREVWORDSTART)
+  {
+    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDSTART, FALSE);
+  }
+  else if (nType == AEGI_PREVWORDEND)
+  {
+    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDEND, FALSE);
+  }
   else if (nType == AEGI_WRAPLINEBEGIN)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
@@ -4757,34 +4799,37 @@ BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
         if (nResult == AEPC_AFTER)
           ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
 
-        for (nStartUrl=ciCharIndex.nCharInLine; nStartUrl >= 0; --nStartUrl)
+        if (ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelStart || ciCharIndex.nCharInLine >= ciCharIndex.lpLine->nSelEnd)
         {
-          if (AE_IsInDelimiterList(AES_URLDELIMITERSW, ciCharIndex.lpLine->wpLine[nStartUrl]))
-            return FALSE;
-
-          for (nPrefix=0; lpAkelEditUrlPrefixes[nPrefix]; ++nPrefix)
+          for (nStartUrl=ciCharIndex.nCharInLine; nStartUrl >= 0; --nStartUrl)
           {
-            if (!AE_WideStrCmpLenI(lpAkelEditUrlPrefixes[nPrefix], ciCharIndex.lpLine->wpLine + nStartUrl, (DWORD)-1))
-            {
-              if (nStartUrl == 0 || AE_IsInDelimiterList(AES_URLDELIMITERSW, ciCharIndex.lpLine->wpLine[nStartUrl - 1]))
-              {
-                //Found end of URL
-                for (nEndUrl=ciCharIndex.nCharInLine; nEndUrl < ciCharIndex.lpLine->nLineLen; ++nEndUrl)
-                {
-                  if (AE_IsInDelimiterList(AES_URLDELIMITERSW, ciCharIndex.lpLine->wpLine[nEndUrl]))
-                    break;
-                }
+            if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl]))
+              return FALSE;
 
-                if (crLink)
+            for (nPrefix=0; lpAkelEditUrlPrefixes[nPrefix]; ++nPrefix)
+            {
+              if (!AE_WideStrCmpLenI(lpAkelEditUrlPrefixes[nPrefix], ciCharIndex.lpLine->wpLine + nStartUrl, (DWORD)-1))
+              {
+                if (nStartUrl == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl - 1]))
                 {
-                  crLink->ciMin.nLine=ciCharIndex.nLine;
-                  crLink->ciMin.lpLine=ciCharIndex.lpLine;
-                  crLink->ciMin.nCharInLine=nStartUrl;
-                  crLink->ciMax.nLine=ciCharIndex.nLine;
-                  crLink->ciMax.lpLine=ciCharIndex.lpLine;
-                  crLink->ciMax.nCharInLine=nEndUrl;
+                  //Found end of URL
+                  for (nEndUrl=ciCharIndex.nCharInLine; nEndUrl < ciCharIndex.lpLine->nLineLen; ++nEndUrl)
+                  {
+                    if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nEndUrl]))
+                      break;
+                  }
+
+                  if (crLink)
+                  {
+                    crLink->ciMin.nLine=ciCharIndex.nLine;
+                    crLink->ciMin.lpLine=ciCharIndex.lpLine;
+                    crLink->ciMin.nCharInLine=nStartUrl;
+                    crLink->ciMax.nLine=ciCharIndex.nLine;
+                    crLink->ciMax.lpLine=ciCharIndex.lpLine;
+                    crLink->ciMax.nCharInLine=nEndUrl;
+                  }
+                  return TRUE;
                 }
-                return TRUE;
               }
             }
           }
@@ -5553,31 +5598,34 @@ void AE_Paint(AKELEDIT *ae)
             //Detect URL
             if (!crLink.ciMin.lpLine || !crLink.ciMax.lpLine)
             {
-              int nPrefix;
-
-              for (nPrefix=0; lpAkelEditUrlPrefixes[nPrefix]; ++nPrefix)
+              if (!(ciDrawLine.nCharInLine >= ciDrawLine.lpLine->nSelStart && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen))
               {
-                if (!AE_WideStrCmpLenI(lpAkelEditUrlPrefixes[nPrefix], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
+                int nPrefix;
+
+                for (nPrefix=0; lpAkelEditUrlPrefixes[nPrefix]; ++nPrefix)
                 {
-                  if (ciDrawLine.nCharInLine == 0 || AE_IsInDelimiterList(AES_URLDELIMITERSW, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine - 1]))
+                  if (!AE_WideStrCmpLenI(lpAkelEditUrlPrefixes[nPrefix], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
                   {
-                    crLink.ciMin=ciDrawLine;
-                    crLink.ciMax=ciDrawLine;
-
-                    while (crLink.ciMax.nCharInLine < crLink.ciMax.lpLine->nLineLen)
+                    if (ciDrawLine.nCharInLine == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine - 1]))
                     {
-                      if (AE_IsInDelimiterList(AES_URLDELIMITERSW, crLink.ciMax.lpLine->wpLine[crLink.ciMax.nCharInLine]))
-                        break;
+                      crLink.ciMin=ciDrawLine;
+                      crLink.ciMax=ciDrawLine;
 
-                      ++crLink.ciMax.nCharInLine;
+                      while (crLink.ciMax.nCharInLine < crLink.ciMax.lpLine->nLineLen)
+                      {
+                        if (AE_IsInDelimiterList(ae->wszUrlDelimiters, crLink.ciMax.lpLine->wpLine[crLink.ciMax.nCharInLine]))
+                          break;
+
+                        ++crLink.ciMax.nCharInLine;
+                      }
+
+                      //Draw text before URL
+                      SetTextColor(ps.hdc, dwColorText);
+                      SetBkColor(ps.hdc, dwColorBG);
+                      AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                      nMaxDrawCharsCount=0;
+                      break;
                     }
-
-                    //Draw text before URL
-                    SetTextColor(ps.hdc, dwColorText);
-                    SetBkColor(ps.hdc, dwColorBG);
-                    AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
-                    break;
                   }
                 }
               }
