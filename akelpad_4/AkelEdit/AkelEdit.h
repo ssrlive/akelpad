@@ -22,7 +22,8 @@
 #define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGE notifications.
 #define AENM_TEXTCHANGE         0x00000002  //Sends AEN_TEXTCHANGE notifications.
 #define AENM_MODIFYCHANGE       0x00000004  //Sends AEN_MODIFYCHANGE notifications.
-#define AENM_LINK               0x00000008  //Sends AEN_LINK notifications.
+#define AENM_SCROLL             0x00000008  //Sends AEN_HSCROLL and AEN_VSCROLL notifications.
+#define AENM_LINK               0x00000010  //Sends AEN_LINK notifications.
 
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
@@ -387,13 +388,17 @@ typedef struct {
 } AENERRSPACE;
 
 
-//// Messages
+//// AkelEdit messages
 
 #define AEN_SELCHANGE         (WM_USER + 1001)
 #define AEN_TEXTCHANGE        (WM_USER + 1002)
 #define AEN_MODIFYCHANGE      (WM_USER + 1003)
-#define AEN_LINK              (WM_USER + 1004)
-#define AEN_ERRSPACE          (WM_USER + 1005)
+#define AEN_ERRSPACE          (WM_USER + 1004)
+#define AEN_SETFOCUS          (WM_USER + 1005)
+#define AEN_KILLFOCUS         (WM_USER + 1006)
+#define AEN_HSCROLL           (WM_USER + 1007)
+#define AEN_VSCROLL           (WM_USER + 1008)
+#define AEN_LINK              (WM_USER + 1009)
 
 #define AEM_SETTEXTA          (WM_USER + 2001)
 #define AEM_SETTEXTW          (WM_USER + 2002)
@@ -462,26 +467,27 @@ typedef struct {
 #define AEM_SETNEWLINE        (WM_USER + 2206)
 #define AEM_GETCOLORS         (WM_USER + 2207)
 #define AEM_SETCOLORS         (WM_USER + 2208)
-#define AEM_GETOVERTYPE       (WM_USER + 2209)
-#define AEM_SETOVERTYPE       (WM_USER + 2210)
-#define AEM_GETCARETWIDTH     (WM_USER + 2211)
-#define AEM_SETCARETWIDTH     (WM_USER + 2212)
-#define AEM_GETTABSTOP        (WM_USER + 2213)
-#define AEM_SETTABSTOP        (WM_USER + 2214)
-#define AEM_GETWORDWRAP       (WM_USER + 2215)
-#define AEM_SETWORDWRAP       (WM_USER + 2216)
-#define AEM_GETWORDDELIMITERS (WM_USER + 2217)
-#define AEM_SETWORDDELIMITERS (WM_USER + 2218)
-#define AEM_GETWRAPDELIMITERS (WM_USER + 2219)
-#define AEM_SETWRAPDELIMITERS (WM_USER + 2220)
-#define AEM_GETURLDELIMITERS  (WM_USER + 2221)
-#define AEM_SETURLDELIMITERS  (WM_USER + 2222)
-#define AEM_ISDELIMITER       (WM_USER + 2223)
-#define AEM_SHOWSCROLLBAR     (WM_USER + 2224)
-#define AEM_UPDATESCROLLBAR   (WM_USER + 2225)
-#define AEM_HIDESELECTION     (WM_USER + 2226)
-#define AEM_GETDETECTURL      (WM_USER + 2227)
-#define AEM_SETDETECTURL      (WM_USER + 2228)
+#define AEM_GETDETECTURL      (WM_USER + 2209)
+#define AEM_SETDETECTURL      (WM_USER + 2210)
+#define AEM_GETOVERTYPE       (WM_USER + 2211)
+#define AEM_SETOVERTYPE       (WM_USER + 2212)
+#define AEM_GETCARETWIDTH     (WM_USER + 2213)
+#define AEM_SETCARETWIDTH     (WM_USER + 2214)
+#define AEM_GETTABSTOP        (WM_USER + 2215)
+#define AEM_SETTABSTOP        (WM_USER + 2216)
+#define AEM_GETWORDWRAP       (WM_USER + 2217)
+#define AEM_SETWORDWRAP       (WM_USER + 2218)
+#define AEM_GETWORDDELIMITERS (WM_USER + 2219)
+#define AEM_SETWORDDELIMITERS (WM_USER + 2220)
+#define AEM_GETWRAPDELIMITERS (WM_USER + 2221)
+#define AEM_SETWRAPDELIMITERS (WM_USER + 2222)
+#define AEM_GETURLDELIMITERS  (WM_USER + 2223)
+#define AEM_SETURLDELIMITERS  (WM_USER + 2224)
+#define AEM_ISDELIMITER       (WM_USER + 2225)
+#define AEM_SHOWSCROLLBAR     (WM_USER + 2226)
+#define AEM_UPDATESCROLLBAR   (WM_USER + 2227)
+#define AEM_HIDESELECTION     (WM_USER + 2228)
+
 
 /*
 AEN_SELCHANGE
@@ -532,6 +538,19 @@ Remarks
  To receive AEN_MODIFYCHANGE notifications, specify AENM_MODIFYCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
+AEN_ERRSPACE
+____________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when an edit control cannot allocate enough memory.
+
+(int)wParam           == specifies the control identifier.
+(AENERRSPACE *)lParam == pointer to a AENERRSPACE structure.
+
+Return Value
+ zero
+
+
 AEN_LINK
 ________
 
@@ -547,19 +566,6 @@ Return Value
 
 Remarks
  To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message and turn on URL detection with the AEM_SETDETECTURL message.
-
-
-AEN_ERRSPACE
-____________
-
-Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure when an edit control cannot allocate enough memory.
-
-(int)wParam           == specifies the control identifier.
-(AENERRSPACE *)lParam == pointer to a AENERRSPACE structure.
-
-Return Value
- zero
 
 
 AEM_SETTEXTA
@@ -1834,6 +1840,38 @@ Example:
  SendMessage(hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&aec);
 
 
+AEM_GETDETECTURL
+________________
+
+Retrieve whether the URL detection is turned on.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   URL detection is on
+ FALSE  URL detection is off
+
+Example:
+ SendMessage(hWndEdit, AEM_GETDETECTURL, 0, 0);
+
+
+AEM_SETDETECTURL
+________________
+
+Enables or disables detection and highligthing of URLs by an edit control.
+
+(BOOL)wParam == TRUE   enable URL detection.
+                FALSE  disable URL detection.
+lParam       == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETDETECTURL, TRUE, 0);
+
+
 AEM_GETOVERTYPE
 _______________
 
@@ -2133,38 +2171,84 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
+*/
 
 
-AEM_GETDETECTURL
-________________
+//// RichEdit messages
 
-Retrieve whether the URL detection is turned on.
+/*
+AkelEdit can emulate RichEdit 3.0 and support the following messages:
 
-wParam == not used.
-lParam == not used.
+EN_CHANGE
+EN_DRAGDROPDONE
+EN_DROPFILES
+EN_ERRSPACE
+EN_HSCROLL
+EN_KILLFOCUS
+EN_LINK
+EN_MSGFILTER
+EN_SELCHANGE
+EN_SETFOCUS
+EN_STOPNOUNDO
+EN_VSCROLL
 
-Return Value
- TRUE   URL detection is on
- FALSE  URL detection is off
-
-Example:
- SendMessage(hWndEdit, AEM_GETDETECTURL, 0, 0);
-
-
-AEM_SETDETECTURL
-________________
-
-Enables or disables detection and highligthing of URLs by an edit control.
-
-(BOOL)wParam == TRUE   enable URL detection.
-                FALSE  disable URL detection.
-lParam       == not used.
-
-Return Value
- zero
-
-Example:
- SendMessage(hWndEdit, AEM_SETDETECTURL, TRUE, 0);
+EM_AUTOURLDETECT
+EM_CANPASTE
+EM_CANREDO
+EM_CANUNDO
+EM_CHARFROMPOS
+EM_EMPTYUNDOBUFFER
+EM_EXGETSEL
+EM_EXLINEFROMCHAR
+EM_EXSETSEL
+EM_FINDTEXT
+EM_FINDTEXTEX
+EM_FINDTEXTEXW
+EM_FINDTEXTW
+EM_FINDWORDBREAK
+EM_GETAUTOURLDETECT
+EM_GETEVENTMASK
+EM_GETFIRSTVISIBLELINE
+EM_GETLINE
+EM_GETLINECOUNT
+EM_GETMARGINS
+EM_GETMODIFY
+EM_GETOPTIONS
+EM_GETRECT
+EM_GETSCROLLPOS
+EM_GETSEL
+EM_GETSELTEXT
+EM_GETTEXTEX
+EM_GETTEXTLENGTHEX
+EM_GETTEXTRANGE
+EM_GETTHUMB
+EM_HIDESELECTION
+EM_LINEFROMCHAR
+EM_LINEINDEX
+EM_LINELENGTH
+EM_LINESCROLL
+EM_POSFROMCHAR
+EM_REDO
+EM_REPLACESEL
+EM_SCROLL
+EM_SCROLLCARET
+EM_SETBKGNDCOLOR
+EM_SETEVENTMASK
+EM_SETMARGINS
+EM_SETMODIFY
+EM_SETOPTIONS
+EM_SETREADONLY
+EM_SETRECT
+EM_SETRECTNP
+EM_SETSCROLLPOS
+EM_SETSEL
+EM_SETTEXTEX
+EM_SETUNDOLIMIT
+EM_SHOWSCROLLBAR
+EM_STOPGROUPTYPING
+EM_STREAMIN
+EM_STREAMOUT
+EM_UNDO
 */
 
 #endif
