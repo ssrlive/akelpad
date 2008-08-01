@@ -11,6 +11,7 @@ Added: version information in EXE.
 Added: Ctrl+Enter combination - new line with keeping left spaces.
 Added: Tatar language module (Rustem Gimran).
 
+Fixed: column Undo/Redo.
 Fixed: combinations didn't working in dialog: Ctrl+Insert, Shift+Insert, Shift+Delete.
 Fixed: text Drag'n'Drop ignored AECO_READONLY flag.
 Fixed: incorrect selection length shown in status bar after new line format change.

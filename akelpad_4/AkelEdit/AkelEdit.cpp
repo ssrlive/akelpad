@@ -157,7 +157,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->bUnicodeWindow=IsWindowUnicode(hWnd);
       ae->hWndEdit=hWnd;
       ae->hWndParent=GetParent(ae->hWndEdit);
-      ae->nEditCtrlID=GetDlgCtrlID(ae->hWndEdit);
+      ae->nEditCtrlID=GetWindowLongA(ae->hWndEdit, GWLP_ID);
       ae->hHeap=NULL;
       ae->hDC=GetDC(ae->hWndEdit);
       ae->nCaretInsertWidth=1;
@@ -701,6 +701,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_SetColors(ae, (AECOLORS *)lParam);
         return 0;
       }
+      if (uMsg == AEM_GETDETECTURL)
+      {
+        return ae->bDetectUrl;
+      }
+      if (uMsg == AEM_SETDETECTURL)
+      {
+        ae->bDetectUrl=wParam;
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+        return 0;
+      }
       if (uMsg == AEM_GETOVERTYPE)
       {
         return ae->bOverType;
@@ -838,16 +848,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_HideSelection(ae, wParam);
         return 0;
       }
-      if (uMsg == AEM_GETDETECTURL)
-      {
-        return ae->bDetectUrl;
-      }
-      if (uMsg == AEM_SETDETECTURL)
-      {
-        ae->bDetectUrl=wParam;
-        InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
-        return 0;
-      }
     }
 
 
@@ -933,11 +933,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AELINEDATA *lpLine;
         char *szBuffer=(char *)lParam;
         int nMaxBuffer=*(WORD *)lParam;
-        int nResult;
+        int nResult=0;
 
-        lpLine=AE_GetLineData(ae, wParam);
-        nResult=min(nMaxBuffer, lpLine->nLineLen);
-        AE_memcpy(szBuffer, lpLine->wpLine, nResult);
+        szBuffer[0]='\0';
+
+        if (lpLine=AE_GetLineData(ae, wParam))
+        {
+          nResult=WideCharToMultiByte(CP_ACP, 0, lpLine->wpLine, lpLine->nLineLen, szBuffer, nMaxBuffer, NULL, NULL);
+          if (nResult < nMaxBuffer)
+            szBuffer[nResult++]='\r';
+        }
         return nResult;
       }
       else
@@ -945,11 +950,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AELINEDATA *lpLine;
         wchar_t *wszBuffer=(wchar_t *)lParam;
         int nMaxBuffer=*(WORD *)lParam;
-        int nResult;
+        int nResult=0;
 
-        lpLine=AE_GetLineData(ae, wParam);
-        nResult=min(nMaxBuffer, lpLine->nLineLen);
-        AE_memcpy(wszBuffer, lpLine->wpLine, nResult * sizeof(wchar_t));
+        wszBuffer[0]='\0';
+
+        if (lpLine=AE_GetLineData(ae, wParam))
+        {
+          nResult=min(nMaxBuffer, lpLine->nLineLen);
+          AE_memcpy(wszBuffer, lpLine->wpLine, nResult * sizeof(wchar_t));
+          if (nResult < nMaxBuffer)
+            wszBuffer[nResult++]=L'\r';
+        }
         return nResult;
       }
     }
@@ -1290,6 +1301,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           FINDTEXTEXA *ftRE=(FINDTEXTEXA *)lParam;
           AEFINDTEXTA ft={0};
+          CHARRANGE crFoundRE;
 
           if (wParam & FR_DOWN)
             ft.dwFlags|=AEFR_DOWN;
@@ -1305,12 +1317,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (AE_FindTextAnsi(ae, CP_ACP, &ft))
           {
+            crFoundRE.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
+            crFoundRE.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
+
             if (uMsg == EM_FINDTEXTEX)
             {
-              ftRE->chrgText.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
-              ftRE->chrgText.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
+              ftRE->chrgText=crFoundRE;
             }
-            return ftRE->chrgText.cpMin;
+            return crFoundRE.cpMin;
           }
           return -1;
         }
@@ -1320,6 +1334,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         FINDTEXTEXW *ftRE=(FINDTEXTEXW *)lParam;
         AEFINDTEXTW ft={0};
+        CHARRANGE crFoundRE;
 
         if (wParam & FR_DOWN)
           ft.dwFlags|=AEFR_DOWN;
@@ -1335,12 +1350,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (AE_FindText(ae, &ft))
         {
+          crFoundRE.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
+          crFoundRE.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
+
           if (uMsg == EM_FINDTEXTEX || uMsg == EM_FINDTEXTEXW)
           {
-            ftRE->chrgText.cpMin=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMin);
-            ftRE->chrgText.cpMax=AE_AkelIndexToRichOffset(ae, &ft.crFound.ciMax);
+            ftRE->chrgText=crFoundRE;
           }
-          return ftRE->chrgText.cpMin;
+          return crFoundRE.cpMin;
         }
         return -1;
       }
@@ -1684,15 +1701,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return uCode;
     }
-    else if (uMsg == WM_CHAR)
-    {
-      if (wParam == VK_TAB || (wParam >= 0x20 && wParam != 0x7F))
-      {
-        AE_EditChar(ae, wParam);
-        return 0;
-      }
-      return 0;
-    }
     else if (uMsg == WM_KEYDOWN ||
              uMsg == WM_SYSKEYDOWN)
     {
@@ -1703,6 +1711,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bShift=FALSE;
       BOOL bControl=FALSE;
       BOOL bRedrawAllSelection=FALSE;
+
+      if (ae->dwRichEventMask & ENM_KEYEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
 
       if (GetKeyState(VK_MENU) < 0)
         bAlt=TRUE;
@@ -2038,13 +2050,44 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return 0;
       }
     }
+    else if (uMsg == WM_CHAR)
+    {
+      if (ae->dwRichEventMask & ENM_KEYEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
+
+      if (wParam == VK_TAB || (wParam >= 0x20 && wParam != 0x7F))
+      {
+        AE_EditChar(ae, wParam);
+        return 0;
+      }
+      return 0;
+    }
+    else if (uMsg == WM_DEADCHAR ||
+             uMsg == WM_SYSCHAR ||
+             uMsg == WM_SYSDEADCHAR ||
+             uMsg == WM_KEYUP ||
+             uMsg == WM_SYSKEYUP)
+    {
+      if (ae->dwRichEventMask & ENM_KEYEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
+    }
     else if (uMsg == WM_HSCROLL)
     {
+      if (ae->dwRichEventMask & ENM_SCROLLEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
+
       AE_HScroll(ae, LOWORD(wParam));
       return 0;
     }
     else if (uMsg == WM_VSCROLL)
     {
+      if (ae->dwRichEventMask & ENM_SCROLLEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
+
       AE_VScroll(ae, LOWORD(wParam));
       return 0;
     }
@@ -2058,6 +2101,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bControl=FALSE;
       BOOL bRedrawAllSelection=FALSE;
 
+      if (ae->dwRichEventMask & ENM_MOUSEEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
       if (ae->nCurrentCursor == AECC_URL)
         if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
           return 0;
@@ -2219,6 +2265,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       POINT ptPos;
 
+      if (ae->dwRichEventMask & ENM_MOUSEEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
       if (ae->nCurrentCursor == AECC_URL)
         if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
           return 0;
@@ -2299,18 +2348,53 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       ae->bMarginSelect=FALSE;
 
+      if (ae->dwRichEventMask & ENM_MOUSEEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
       if (ae->nCurrentCursor == AECC_URL)
         if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
           return 0;
       return 0;
     }
     else if (uMsg == WM_RBUTTONDOWN ||
+             uMsg == WM_RBUTTONUP ||
              uMsg == WM_RBUTTONDBLCLK ||
-             uMsg == WM_RBUTTONUP)
+             uMsg == WM_MBUTTONDOWN ||
+             uMsg == WM_MBUTTONUP ||
+             uMsg == WM_MBUTTONDBLCLK)
     {
+      if (ae->dwRichEventMask & ENM_MOUSEEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
       if (ae->nCurrentCursor == AECC_URL)
         if (AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink))
           return 0;
+    }
+    else if (uMsg == WM_MOUSEWHEEL)
+    {
+      DWORD dwLines;
+
+      if (ae->dwRichEventMask & ENM_MOUSEEVENTS)
+        if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+          return 0;
+
+      SystemParametersInfoA(SPI_GETWHEELSCROLLLINES, 0, &dwLines, 0);
+
+      if ((short)HIWORD(wParam) < 0)
+      {
+        if (dwLines == (DWORD)-1)
+          AE_VScroll(ae, SB_PAGEDOWN);
+        else
+          AE_VScrollLine(ae, dwLines);
+      }
+      else
+      {
+        if (dwLines == (DWORD)-1)
+          AE_VScroll(ae, SB_PAGEUP);
+        else
+          AE_VScrollLine(ae, -(int)dwLines);
+      }
+      return 0;
     }
     else if (uMsg == WM_CAPTURECHANGED)
     {
@@ -2373,28 +2457,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return 0;
     }
-    else if (uMsg == WM_MOUSEWHEEL)
-    {
-      DWORD dwLines;
-
-      SystemParametersInfoA(SPI_GETWHEELSCROLLLINES, 0, &dwLines, 0);
-
-      if ((short)HIWORD(wParam) < 0)
-      {
-        if (dwLines == (DWORD)-1)
-          AE_VScroll(ae, SB_PAGEDOWN);
-        else
-          AE_VScrollLine(ae, dwLines);
-      }
-      else
-      {
-        if (dwLines == (DWORD)-1)
-          AE_VScroll(ae, SB_PAGEUP);
-        else
-          AE_VScrollLine(ae, -(int)dwLines);
-      }
-      return 0;
-    }
     else if (uMsg == WM_SETFOCUS)
     {
       ae->bFocus=TRUE;
@@ -2404,6 +2466,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AE_HideSelection(ae, FALSE);
       }
+      AE_NotifySetFocus(ae);
       return 0;
     }
     else if (uMsg == WM_KILLFOCUS)
@@ -2415,6 +2478,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->bFocus=FALSE;
       AE_StackUndoGroupStop(ae);
       DestroyCaret();
+      AE_NotifyKillFocus(ae);
       return 0;
     }
     else if (uMsg == WM_SYSCOLORCHANGE)
@@ -5301,6 +5365,8 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 
   if (nBar == SB_HORZ)
   {
+    AE_NotifyHScroll(ae);
+
     if (ae->bVScrollShow)
     {
       si.cbSize=sizeof(SCROLLINFO);
@@ -5332,6 +5398,8 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
   }
   else if (nBar == SB_VERT)
   {
+    AE_NotifyVScroll(ae);
+
     if (ae->bVScrollShow)
     {
       si.cbSize=sizeof(SCROLLINFO);
@@ -7445,6 +7513,13 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       ciDeleteEnd=ciTmp;
     }
     else if (nResult == 0) return;
+
+    //Force left-top to right-bottom selection
+    if (bColumnSel)
+    {
+      ciDeleteStart.nCharInLine=min(ciDeleteStart.nCharInLine, ciDeleteStart.lpLine->nSelStart);
+      ciDeleteEnd.nCharInLine=max(ciDeleteEnd.nCharInLine, ciDeleteEnd.lpLine->nSelEnd);
+    }
 
     nStartOffset=AE_AkelIndexToRichOffset(ae, &ciDeleteStart);
     nEndOffset=AE_AkelIndexToRichOffset(ae, &ciDeleteEnd);
@@ -10163,6 +10238,102 @@ void AE_NotifyTextChange(AKELEDIT *ae)
   {
     SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
   }
+}
+
+void AE_NotifySetFocus(AKELEDIT *ae)
+{
+  //Send AEN_SETFOCUS
+  {
+    NMHDR hdr;
+
+    hdr.hwndFrom=ae->hWndEdit;
+    hdr.idFrom=ae->nEditCtrlID;
+    hdr.code=AEN_SETFOCUS;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+  }
+
+  //Send EN_SETFOCUS
+  SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_SETFOCUS), (LPARAM)ae->hWndEdit);
+}
+
+void AE_NotifyKillFocus(AKELEDIT *ae)
+{
+  //Send AEN_KILLFOCUS
+  {
+    NMHDR hdr;
+
+    hdr.hwndFrom=ae->hWndEdit;
+    hdr.idFrom=ae->nEditCtrlID;
+    hdr.code=AEN_KILLFOCUS;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+  }
+
+  //Send EN_KILLFOCUS
+  SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_KILLFOCUS), (LPARAM)ae->hWndEdit);
+}
+
+void AE_NotifyHScroll(AKELEDIT *ae)
+{
+  //Send AEN_HSCROLL
+  if (ae->dwEventMask & AENM_SCROLL)
+  {
+    NMHDR hdr;
+
+    hdr.hwndFrom=ae->hWndEdit;
+    hdr.idFrom=ae->nEditCtrlID;
+    hdr.code=AEN_HSCROLL;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+  }
+
+  //Send EN_HSCROLL
+  if (ae->dwRichEventMask & ENM_SCROLL)
+  {
+    SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_HSCROLL), (LPARAM)ae->hWndEdit);
+  }
+}
+
+void AE_NotifyVScroll(AKELEDIT *ae)
+{
+  //Send AEN_VSCROLL
+  if (ae->dwEventMask & AENM_SCROLL)
+  {
+    NMHDR hdr;
+
+    hdr.hwndFrom=ae->hWndEdit;
+    hdr.idFrom=ae->nEditCtrlID;
+    hdr.code=AEN_VSCROLL;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+  }
+
+  //Send EN_VSCROLL
+  if (ae->dwRichEventMask & ENM_SCROLL)
+  {
+    SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_VSCROLL), (LPARAM)ae->hWndEdit);
+  }
+}
+
+BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam)
+{
+  BOOL bResult=FALSE;
+
+  //Send EN_MSGFILTER
+  {
+    MSGFILTER mf;
+
+    mf.nmhdr.hwndFrom=ae->hWndEdit;
+    mf.nmhdr.idFrom=ae->nEditCtrlID;
+    mf.nmhdr.code=EN_MSGFILTER;
+    mf.msg=uMsg;
+    mf.wParam=*wParam;
+    mf.lParam=*lParam;
+
+    if (!(bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&mf)))
+    {
+      *wParam=mf.wParam;
+      *lParam=mf.lParam;
+    }
+  }
+  return bResult;
 }
 
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink)
