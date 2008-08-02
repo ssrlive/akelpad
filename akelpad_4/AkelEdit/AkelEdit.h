@@ -5,6 +5,7 @@
 //// Includes
 
 #include <richedit.h>
+#include <shellapi.h>
 
 
 //// Defines
@@ -23,7 +24,8 @@
 #define AENM_TEXTCHANGE         0x00000002  //Sends AEN_TEXTCHANGE notifications.
 #define AENM_MODIFYCHANGE       0x00000004  //Sends AEN_MODIFYCHANGE notifications.
 #define AENM_SCROLL             0x00000008  //Sends AEN_HSCROLL and AEN_VSCROLL notifications.
-#define AENM_LINK               0x00000010  //Sends AEN_LINK notifications.
+#define AENM_DROPFILES          0x00000010  //Sends AEN_DROPFILES notifications.
+#define AENM_LINK               0x00000020  //Sends AEN_LINK notifications.
 
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
@@ -372,8 +374,20 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
-  BOOL bModified;  //TRUE document state is set to modified, FALSE document state is set to unmodified
+  BOOL bModified;      //TRUE document state is set to modified, FALSE document state is set to unmodified
 } AENMODIFYCHANGE;
+
+typedef struct {
+  NMHDR hdr;
+  int nScrollPos;      //Current scroll position.
+  int nScrollOffset;   //Scroll to specified offset.
+} AENSCROLL;
+
+typedef struct {
+  NMHDR hdr;
+  HDROP hDrop;         //Handle to the dropped files list (same as with WM_DROPFILES).
+  AECHARINDEX ciChar;  //Character index at which the dropped files would be inserted.
+} AENDROPFILES;
 
 typedef struct {
   NMHDR hdr;
@@ -390,15 +404,16 @@ typedef struct {
 
 //// AkelEdit messages
 
-#define AEN_SELCHANGE         (WM_USER + 1001)
-#define AEN_TEXTCHANGE        (WM_USER + 1002)
-#define AEN_MODIFYCHANGE      (WM_USER + 1003)
-#define AEN_ERRSPACE          (WM_USER + 1004)
-#define AEN_SETFOCUS          (WM_USER + 1005)
-#define AEN_KILLFOCUS         (WM_USER + 1006)
+#define AEN_ERRSPACE          (WM_USER + 1001)
+#define AEN_SETFOCUS          (WM_USER + 1002)
+#define AEN_KILLFOCUS         (WM_USER + 1003)
+#define AEN_SELCHANGE         (WM_USER + 1004)
+#define AEN_TEXTCHANGE        (WM_USER + 1005)
+#define AEN_MODIFYCHANGE      (WM_USER + 1006)
 #define AEN_HSCROLL           (WM_USER + 1007)
 #define AEN_VSCROLL           (WM_USER + 1008)
-#define AEN_LINK              (WM_USER + 1009)
+#define AEN_DROPFILES         (WM_USER + 1009)
+#define AEN_LINK              (WM_USER + 1010)
 
 #define AEM_SETTEXTA          (WM_USER + 2001)
 #define AEM_SETTEXTW          (WM_USER + 2002)
@@ -490,6 +505,45 @@ typedef struct {
 
 
 /*
+AEN_ERRSPACE
+____________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when an edit control cannot allocate enough memory.
+
+(int)wParam           == specifies the control identifier.
+(AENERRSPACE *)lParam == pointer to a AENERRSPACE structure.
+
+Return Value
+ zero
+
+
+AEN_SETFOCUS
+____________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when an edit control receives the keyboard focus.
+
+(int)wParam     == specifies the control identifier.
+(NMHDR *)lParam == pointer to a NMHDR structure.
+
+Return Value
+ zero
+
+
+AEN_KILLFOCUS
+_____________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when an edit control loses the keyboard focus.
+
+(int)wParam     == specifies the control identifier.
+(NMHDR *)lParam == pointer to a NMHDR structure.
+
+Return Value
+ zero
+
+
 AEN_SELCHANGE
 _____________
 
@@ -538,17 +592,56 @@ Remarks
  To receive AEN_MODIFYCHANGE notifications, specify AENM_MODIFYCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
-AEN_ERRSPACE
-____________
+AEN_HSCROLL
+___________
 
 Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure when an edit control cannot allocate enough memory.
+Sends to the parent window procedure before an edit control window scrolled horizontally.
 
-(int)wParam           == specifies the control identifier.
-(AENERRSPACE *)lParam == pointer to a AENERRSPACE structure.
+(int)wParam         == specifies the control identifier.
+(AENSCROLL *)lParam == pointer to a AENSCROLL structure.
 
 Return Value
- zero
+ If zero, the control allows scroll operation.
+ If a nonzero value, the control suppress scroll operation.
+
+Remarks
+ To receive AEN_HSCROLL notifications, specify AENM_SCROLL in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_VSCROLL
+___________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure before an edit control window scrolled horizontally.
+
+(int)wParam         == specifies the control identifier.
+(AENSCROLL *)lParam == pointer to a AENSCROLL structure.
+
+Return Value
+ If zero, the control allows scroll operation.
+ If a nonzero value, the control suppress scroll operation.
+
+Remarks
+ To receive AEN_VSCROLL notifications, specify AENM_SCROLL in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_DROPFILES
+_____________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when the user is attempting to drop files into the control (when it receives the WM_DROPFILES message).
+
+(int)wParam            == specifies the control identifier.
+(AENDROPFILES *)lParam == pointer to a AENDROPFILES structure.
+
+Return Value
+ If zero, the control ignores the drop operation.
+ If a nonzero value, the control allows the drop operation.
+
+Remarks
+ To receive AEN_DROPFILES notifications, specify AENM_DROPFILES in the mask sent with the AEM_SETEVENTMASK message.
+ To receive WM_DROPFILES messages, the parent window must register the control as a drop target by using the DragAcceptFiles function. The control does not register itself.
 
 
 AEN_LINK

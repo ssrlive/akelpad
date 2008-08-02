@@ -2457,6 +2457,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return 0;
     }
+    else if (uMsg == WM_DROPFILES)
+    {
+      if (!AE_NotifyDropFiles(ae, (HDROP)wParam))
+        return 0;
+    }
     else if (uMsg == WM_SETFOCUS)
     {
       ae->bFocus=TRUE;
@@ -5365,8 +5370,6 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 
   if (nBar == SB_HORZ)
   {
-    AE_NotifyHScroll(ae);
-
     if (ae->bVScrollShow)
     {
       si.cbSize=sizeof(SCROLLINFO);
@@ -5389,17 +5392,18 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
     {
       if (nPos != ae->nHScrollPos)
       {
-        ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
-        ae->nHScrollPos=nPos;
-        UpdateWindow(ae->hWndEdit);
+        if (!AE_NotifyHScroll(ae, nPos - ae->nHScrollPos))
+        {
+          ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
+          ae->nHScrollPos=nPos;
+          UpdateWindow(ae->hWndEdit);
+        }
       }
     }
     nScrollPos=ae->nHScrollPos - nScrollPos;
   }
   else if (nBar == SB_VERT)
   {
-    AE_NotifyVScroll(ae);
-
     if (ae->bVScrollShow)
     {
       si.cbSize=sizeof(SCROLLINFO);
@@ -5422,9 +5426,12 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
     {
       if (nPos != ae->nVScrollPos)
       {
-        ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
-        ae->nVScrollPos=nPos;
-        UpdateWindow(ae->hWndEdit);
+        if (!AE_NotifyVScroll(ae, nPos - ae->nVScrollPos))
+        {
+          ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
+          ae->nVScrollPos=nPos;
+          UpdateWindow(ae->hWndEdit);
+        }
       }
     }
     nScrollPos=ae->nVScrollPos - nScrollPos;
@@ -10272,17 +10279,21 @@ void AE_NotifyKillFocus(AKELEDIT *ae)
   SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_KILLFOCUS), (LPARAM)ae->hWndEdit);
 }
 
-void AE_NotifyHScroll(AKELEDIT *ae)
+BOOL AE_NotifyHScroll(AKELEDIT *ae, int nScrollOffset)
 {
+  BOOL bResult=FALSE;
+
   //Send AEN_HSCROLL
   if (ae->dwEventMask & AENM_SCROLL)
   {
-    NMHDR hdr;
+    AENSCROLL aens;
 
-    hdr.hwndFrom=ae->hWndEdit;
-    hdr.idFrom=ae->nEditCtrlID;
-    hdr.code=AEN_HSCROLL;
-    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+    aens.hdr.hwndFrom=ae->hWndEdit;
+    aens.hdr.idFrom=ae->nEditCtrlID;
+    aens.hdr.code=AEN_HSCROLL;
+    aens.nScrollPos=ae->nHScrollPos;
+    aens.nScrollOffset=nScrollOffset;
+    bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
   }
 
   //Send EN_HSCROLL
@@ -10290,19 +10301,24 @@ void AE_NotifyHScroll(AKELEDIT *ae)
   {
     SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_HSCROLL), (LPARAM)ae->hWndEdit);
   }
+  return bResult;
 }
 
-void AE_NotifyVScroll(AKELEDIT *ae)
+BOOL AE_NotifyVScroll(AKELEDIT *ae, int nScrollOffset)
 {
+  BOOL bResult=FALSE;
+
   //Send AEN_VSCROLL
   if (ae->dwEventMask & AENM_SCROLL)
   {
-    NMHDR hdr;
+    AENSCROLL aens;
 
-    hdr.hwndFrom=ae->hWndEdit;
-    hdr.idFrom=ae->nEditCtrlID;
-    hdr.code=AEN_VSCROLL;
-    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+    aens.hdr.hwndFrom=ae->hWndEdit;
+    aens.hdr.idFrom=ae->nEditCtrlID;
+    aens.hdr.code=AEN_VSCROLL;
+    aens.nScrollPos=ae->nVScrollPos;
+    aens.nScrollOffset=nScrollOffset;
+    bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
   }
 
   //Send EN_VSCROLL
@@ -10310,6 +10326,7 @@ void AE_NotifyVScroll(AKELEDIT *ae)
   {
     SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_VSCROLL), (LPARAM)ae->hWndEdit);
   }
+  return bResult;
 }
 
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam)
@@ -10334,6 +10351,57 @@ BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam)
     }
   }
   return bResult;
+}
+
+BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
+{
+  BOOL bResult1=TRUE;
+  BOOL bResult2=TRUE;
+
+  //Send AEN_DROPFILES
+  if (ae->dwEventMask & AENM_DROPFILES)
+  {
+    AENDROPFILES df;
+    AECHARINDEX ciCharIndex;
+    POINT pt;
+
+    GetCursorPos(&pt);
+    ScreenToClient(ae->hWndEdit, &pt);
+    AE_GetCharFromPos(ae, &pt, &ciCharIndex, NULL, FALSE);
+
+    df.hdr.hwndFrom=ae->hWndEdit;
+    df.hdr.idFrom=ae->nEditCtrlID;
+    df.hdr.code=AEN_DROPFILES;
+    df.hDrop=hDrop;
+    df.ciChar=ciCharIndex;
+
+    bResult1=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&df);
+  }
+
+  //Send EN_DROPFILES
+  if (ae->dwRichEventMask & ENM_DROPFILES)
+  {
+    ENDROPFILES df;
+    AECHARINDEX ciCharIndex;
+    POINT pt;
+
+    GetCursorPos(&pt);
+    ScreenToClient(ae->hWndEdit, &pt);
+    AE_GetCharFromPos(ae, &pt, &ciCharIndex, NULL, FALSE);
+
+    df.nmhdr.hwndFrom=ae->hWndEdit;
+    df.nmhdr.idFrom=ae->nEditCtrlID;
+    df.nmhdr.code=EN_DROPFILES;
+    df.hDrop=hDrop;
+    df.cp=AE_AkelIndexToRichOffset(ae, &ciCharIndex);
+    df.fProtected=FALSE;
+
+    bResult2=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&df);
+  }
+
+  if (!bResult1 || !bResult2)
+    return FALSE;
+  return TRUE;
 }
 
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink)
