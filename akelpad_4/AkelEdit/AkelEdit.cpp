@@ -2643,18 +2643,7 @@ LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes)
 
   if (!(lpResult=HeapAlloc(hHeap, dwFlags, dwBytes)))
   {
-    if (ae)
-    {
-      //Send AEN_ERRSPACE
-      {
-        AENERRSPACE es;
-
-        es.hdr.hwndFrom=ae->hWndEdit;
-        es.hdr.idFrom=ae->nEditCtrlID;
-        es.hdr.code=AEN_ERRSPACE;
-        SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&es);
-      }
-    }
+    if (ae) AE_NotifyErrSpace(ae);
   }
   return lpResult;
 }
@@ -10198,6 +10187,54 @@ void AE_SetColors(AKELEDIT *ae, AECOLORS *aec)
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
 }
 
+void AE_NotifyErrSpace(AKELEDIT *ae)
+{
+  //Send AEN_ERRSPACE
+  {
+    AENERRSPACE es;
+
+    es.hdr.hwndFrom=ae->hWndEdit;
+    es.hdr.idFrom=ae->nEditCtrlID;
+    es.hdr.code=AEN_ERRSPACE;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&es);
+  }
+
+  //Send EN_ERRSPACE
+  SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_ERRSPACE), (LPARAM)ae->hWndEdit);
+}
+
+void AE_NotifySetFocus(AKELEDIT *ae)
+{
+  //Send AEN_SETFOCUS
+  {
+    NMHDR hdr;
+
+    hdr.hwndFrom=ae->hWndEdit;
+    hdr.idFrom=ae->nEditCtrlID;
+    hdr.code=AEN_SETFOCUS;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+  }
+
+  //Send EN_SETFOCUS
+  SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_SETFOCUS), (LPARAM)ae->hWndEdit);
+}
+
+void AE_NotifyKillFocus(AKELEDIT *ae)
+{
+  //Send AEN_KILLFOCUS
+  {
+    NMHDR hdr;
+
+    hdr.hwndFrom=ae->hWndEdit;
+    hdr.idFrom=ae->nEditCtrlID;
+    hdr.code=AEN_KILLFOCUS;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+  }
+
+  //Send EN_KILLFOCUS
+  SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_KILLFOCUS), (LPARAM)ae->hWndEdit);
+}
+
 void AE_NotifySelChange(AKELEDIT *ae)
 {
   //Send AEN_SELCHANGE
@@ -10245,38 +10282,6 @@ void AE_NotifyTextChange(AKELEDIT *ae)
   {
     SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
   }
-}
-
-void AE_NotifySetFocus(AKELEDIT *ae)
-{
-  //Send AEN_SETFOCUS
-  {
-    NMHDR hdr;
-
-    hdr.hwndFrom=ae->hWndEdit;
-    hdr.idFrom=ae->nEditCtrlID;
-    hdr.code=AEN_SETFOCUS;
-    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
-  }
-
-  //Send EN_SETFOCUS
-  SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_SETFOCUS), (LPARAM)ae->hWndEdit);
-}
-
-void AE_NotifyKillFocus(AKELEDIT *ae)
-{
-  //Send AEN_KILLFOCUS
-  {
-    NMHDR hdr;
-
-    hdr.hwndFrom=ae->hWndEdit;
-    hdr.idFrom=ae->nEditCtrlID;
-    hdr.code=AEN_KILLFOCUS;
-    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
-  }
-
-  //Send EN_KILLFOCUS
-  SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_KILLFOCUS), (LPARAM)ae->hWndEdit);
 }
 
 BOOL AE_NotifyHScroll(AKELEDIT *ae, int nScrollOffset)
