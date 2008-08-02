@@ -6270,7 +6270,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               DOCK *dkPoint;
               int nSide=0;
 
-              if (dkPoint=StackDockFromPoint(&hDocksStack, &pt))
+              if ((dkPoint=StackDockFromPoint(&hDocksStack, &pt)) && !(dkPoint->dwFlags & DKF_HIDDEN))
               {
                 if (dkPoint != dkDropTarget)
                 {
