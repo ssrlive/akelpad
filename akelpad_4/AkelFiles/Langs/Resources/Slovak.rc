@@ -205,19 +205,19 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Znovu detekovaù",             IDM_NONMENU_REDETECT
     END
-    POPUP "HeadlinePopup"
+    POPUP "HlaviËka"
     BEGIN
-        MENUITEM "Page number[first page]\t%n[1]", 
+        MENUITEM "»Ìsl&o str·nky [ZaËaù od]\t%n[1]", 
                                                 IDM_POPUP_HEADLINE_PAGE_NUMBER
 
-        MENUITEM "File name\t%f",               IDM_POPUP_HEADLINE_FILE_NAME
-        MENUITEM "Symbol %\t%%",                IDM_POPUP_HEADLINE_SYMBOL
+        MENUITEM "&N·zov s˙boru\t%f",           IDM_POPUP_HEADLINE_FILE_NAME
+        MENUITEM "&Znak %\t%%",                 IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
-        MENUITEM "Align center\t%c",            IDM_POPUP_HEADLINE_ALIGN_CENTER
+        MENUITEM "Zarovnaù na &stred\t%c",      IDM_POPUP_HEADLINE_ALIGN_CENTER
 
-        MENUITEM "Align left\t%l",              IDM_POPUP_HEADLINE_ALIGN_LEFT
+        MENUITEM "Zarovnaù doæ&ava\t%l",        IDM_POPUP_HEADLINE_ALIGN_LEFT
 
-        MENUITEM "Align right\t%r",             IDM_POPUP_HEADLINE_ALIGN_RIGHT
+        MENUITEM "Zarovnaù do&prava\t%r",       IDM_POPUP_HEADLINE_ALIGN_RIGHT
 
     END
 END
