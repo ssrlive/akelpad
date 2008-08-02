@@ -157,7 +157,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->bUnicodeWindow=IsWindowUnicode(hWnd);
       ae->hWndEdit=hWnd;
       ae->hWndParent=GetParent(ae->hWndEdit);
-      ae->nEditCtrlID=GetWindowLongA(ae->hWndEdit, GWLP_ID);
+      ae->nEditCtrlID=GetWindowLongA(ae->hWndEdit, GWL_ID);
       ae->hHeap=NULL;
       ae->hDC=GetDC(ae->hWndEdit);
       ae->nCaretInsertWidth=1;
