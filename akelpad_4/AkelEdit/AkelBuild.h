@@ -376,6 +376,7 @@ BOOL AE_NotifyHScroll(AKELEDIT *ae, int nScrollOffset);
 BOOL AE_NotifyVScroll(AKELEDIT *ae, int nScrollOffset);
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam);
 BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop);
+void AE_NotifyDragDropDone(AKELEDIT *ae);
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink);
 wchar_t AE_WideCharUpper(wchar_t c);
 int AE_WideStrCmp(const wchar_t *wpString, const wchar_t *wpString2);

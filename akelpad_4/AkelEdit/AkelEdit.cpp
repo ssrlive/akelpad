@@ -2312,6 +2312,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->bDeleteSelection=FALSE;
           ae->bDragging=FALSE;
           ReleaseCapture();
+          AE_NotifyDragDropDone(ae);
         }
       }
       else if (ae->dwMouseMoveTimer)
@@ -10407,6 +10408,21 @@ BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
   if (!bResult1 || !bResult2)
     return FALSE;
   return TRUE;
+}
+
+void AE_NotifyDragDropDone(AKELEDIT *ae)
+{
+  //Send EN_DRAGDROPDONE
+  if (ae->dwRichEventMask & ENM_DRAGDROPDONE)
+  {
+    NMHDR hdr;
+
+    hdr.hwndFrom=ae->hWndEdit;
+    hdr.idFrom=ae->nEditCtrlID;
+    hdr.code=EN_DRAGDROPDONE;
+
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+  }
 }
 
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink)
