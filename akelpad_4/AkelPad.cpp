@@ -4944,7 +4944,8 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           bTextDropTarget=TRUE;
         }
-        else if (aendt->nAction == AEDT_TARGETLEAVE)
+        else if (aendt->nAction == AEDT_TARGETLEAVE ||
+                 aendt->nAction == AEDT_TARGETDROP)
         {
           bTextDropTarget=FALSE;
         }
@@ -5105,7 +5106,8 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           bTextDropTarget=TRUE;
         }
-        else if (aendt->nAction == AEDT_TARGETLEAVE)
+        else if (aendt->nAction == AEDT_TARGETLEAVE ||
+                 aendt->nAction == AEDT_TARGETDROP)
         {
           bTextDropTarget=FALSE;
         }
