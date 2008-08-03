@@ -25,7 +25,18 @@
 #define AENM_MODIFYCHANGE       0x00000004  //Sends AEN_MODIFYCHANGE notifications.
 #define AENM_SCROLL             0x00000008  //Sends AEN_HSCROLL and AEN_VSCROLL notifications.
 #define AENM_DROPFILES          0x00000010  //Sends AEN_DROPFILES notifications.
-#define AENM_LINK               0x00000020  //Sends AEN_LINK notifications.
+#define AENM_DRAGDROP           0x00000020  //Sends AEN_DROPSOURCE and AEN_DROPTARGET notifications.
+#define AENM_LINK               0x00000040  //Sends AEN_LINK notifications.
+
+//AEN_DROPTARGET actions
+#define AEDT_TARGETENTER        1  //Enter into the target window.
+#define AEDT_TARGETOVER         2  //Moving over the target window.
+#define AEDT_TARGETLEAVE        3  //Leaving the target window.
+#define AEDT_TARGETDROP         4  //Drops the data into the target window.
+
+//AEN_DROPSOURCE actions
+#define AEDS_SOURCEBEGIN        1  //Begin selection dragging.
+#define AEDS_SOURCEEND          2  //End selection dragging.
 
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
@@ -167,6 +178,9 @@
 #endif
 #ifndef WM_MOUSEWHEEL
   #define WM_MOUSEWHEEL 0x020A
+#endif
+#ifndef EN_DRAGDROPDONE
+  #define EN_DRAGDROPDONE 0x070c
 #endif
 #ifndef EM_SHOWSCROLLBAR
   #define EM_SHOWSCROLLBAR (WM_USER + 96)
@@ -391,6 +405,20 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
+  int nAction;         //See AEDS_* defines.
+  DWORD dwEffect;      //Cursor effect: DROPEFFECT_COPY, DROPEFFECT_MOVE or DROPEFFECT_NONE.
+  DWORD dwDropResult;  //Drop result, valid if nAction equal to AEDS_SOURCEEND.
+} AENDROPSOURCE;
+
+typedef struct {
+  NMHDR hdr;
+  int nAction;         //See AEDT_* defines.
+  POINT pt;            //Cursor position.
+  DWORD dwEffect;      //Cursor effect: DROPEFFECT_COPY, DROPEFFECT_MOVE or DROPEFFECT_NONE.
+} AENDROPTARGET;
+
+typedef struct {
+  NMHDR hdr;
   UINT uMsg;           //Mouse message: WM_LBUTTONDBLCLK, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE, WM_RBUTTONDBLCLK, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_SETCURSOR
   WPARAM wParam;       //First parameter of a message
   LPARAM lParam;       //Second parameter of a message
@@ -413,7 +441,9 @@ typedef struct {
 #define AEN_HSCROLL           (WM_USER + 1007)
 #define AEN_VSCROLL           (WM_USER + 1008)
 #define AEN_DROPFILES         (WM_USER + 1009)
-#define AEN_LINK              (WM_USER + 1010)
+#define AEN_DROPSOURCE        (WM_USER + 1010)
+#define AEN_DROPTARGET        (WM_USER + 1011)
+#define AEN_LINK              (WM_USER + 1012)
 
 #define AEM_SETTEXTA          (WM_USER + 2001)
 #define AEM_SETTEXTW          (WM_USER + 2002)
@@ -642,6 +672,40 @@ Return Value
 Remarks
  To receive AEN_DROPFILES notifications, specify AENM_DROPFILES in the mask sent with the AEM_SETEVENTMASK message.
  To receive WM_DROPFILES messages, the parent window must register the control as a drop target by using the DragAcceptFiles function. The control does not register itself.
+
+
+AEN_DROPSOURCE
+______________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when the user is dragging the selection.
+
+(int)wParam             == specifies the control identifier.
+(AENDROPSOURCE *)lParam == pointer to a AENDROPSOURCE structure.
+
+Return Value
+ If zero, the control ignores the drop operation.
+ If a nonzero value, the control allows the drop operation.
+
+Remarks
+ To receive AEN_DROPSOURCE notifications, specify AEN_DRAGDROP in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_DROPTARGET
+______________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when the user is attempting to drop data into the control.
+
+(int)wParam             == specifies the control identifier.
+(AENDROPTARGET *)lParam == pointer to a AENDROPTARGET structure.
+
+Return Value
+ If zero, the control ignores the drop operation.
+ If a nonzero value, the control allows the drop operation.
+
+Remarks
+ To receive AEN_DROPTARGET notifications, specify AEN_DRAGDROP in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_LINK
