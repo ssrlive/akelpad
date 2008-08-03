@@ -13,6 +13,7 @@ Added: Tatar language module (Rustem Gimran).
 Added: Slovak language module (pvagner).
 
 Fixed: column Undo/Redo.
+Fixed: text Drag'n'Drop between several AkelEdit windows.
 Fixed: combinations didn't working in dialog: Ctrl+Insert, Shift+Insert, Shift+Delete.
 Fixed: text Drag'n'Drop ignored AECO_READONLY flag.
 Fixed: incorrect selection length shown in status bar after new line format change.

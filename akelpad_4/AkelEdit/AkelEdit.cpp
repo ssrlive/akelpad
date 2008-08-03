@@ -720,7 +720,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ae->bOverType != (int)wParam)
         {
           ae->bOverType=wParam;
-          AE_UpdateCaret(ae, FALSE);
+          AE_UpdateCaret(ae, ae->bFocus, FALSE);
         }
         return 0;
       }
@@ -738,7 +738,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         ae->nCaretInsertWidth=pt->x;
         ae->nCaretOvertypeHeight=pt->y;
-        AE_UpdateCaret(ae, TRUE);
+        AE_UpdateCaret(ae, ae->bFocus, TRUE);
         return 0;
       }
       if (uMsg == AEM_GETTABSTOP)
@@ -756,7 +756,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->ptCaret.x=0;
           ae->ptCaret.y=0;
           AE_UpdateSelection(ae);
-          AE_UpdateCaret(ae, TRUE);
+          AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
           if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, lParam);
@@ -1608,7 +1608,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->ptCaret.x=0;
       ae->ptCaret.y=0;
       AE_UpdateSelection(ae);
-      AE_UpdateCaret(ae, TRUE);
+      AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
       if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, !lParam);
@@ -1773,7 +1773,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (!bControl && !bShift)
           {
             ae->bOverType=!ae->bOverType;
-            AE_UpdateCaret(ae, FALSE);
+            AE_UpdateCaret(ae, ae->bFocus, FALSE);
           }
           else
           {
@@ -2283,33 +2283,40 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ae->nMoveBeforeDragging == 0)
         {
           DWORD dwEffectIn;
-          DWORD dwEffectOut;
-          DWORD dwResult;
-
-          ae->bDeleteSelection=TRUE;
-          AE_DataObjectCopySelection(ae);
+          DWORD dwEffectOut=0;
+          DWORD dwResult=0;
 
           dwEffectIn=DROPEFFECT_COPY;
           if (!(ae->dwOptions & AECO_READONLY))
             dwEffectIn|=DROPEFFECT_MOVE;
-          dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
 
-          if (dwResult == DRAGDROP_S_DROP)
+          if (!AE_NotifyDropSource(ae, AEDS_SOURCEBEGIN, &dwEffectIn, 0))
           {
-            if (dwEffectOut & DROPEFFECT_MOVE)
+            ae->bDeleteSelection=TRUE;
+            AE_DataObjectCopySelection(ae);
+
+            dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
+
+            if (!AE_NotifyDropSource(ae, AEDS_SOURCEEND, &dwEffectOut, dwResult))
             {
-              if (ae->bDeleteSelection)
+              if (dwResult == DRAGDROP_S_DROP)
               {
-                AE_StackUndoGroupStop(ae);
-                AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, TRUE, TRUE);
-                AE_StackUndoGroupStop(ae);
+                if (dwEffectOut & DROPEFFECT_MOVE)
+                {
+                  if (ae->bDeleteSelection)
+                  {
+                    AE_StackUndoGroupStop(ae);
+                    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, TRUE, TRUE);
+                    AE_StackUndoGroupStop(ae);
+                  }
+                }
               }
             }
+            AE_DataObjectFreeSelection(ae);
+            ((IDataObject *)&ae->ido)->Release();
+            ((IDropSource *)&ae->ids)->Release();
+            ae->bDeleteSelection=FALSE;
           }
-          AE_DataObjectFreeSelection(ae);
-          ((IDataObject *)&ae->ido)->Release();
-          ((IDropSource *)&ae->ids)->Release();
-          ae->bDeleteSelection=FALSE;
           ae->bDragging=FALSE;
           ReleaseCapture();
           AE_NotifyDragDropDone(ae);
@@ -2466,7 +2473,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_SETFOCUS)
     {
       ae->bFocus=TRUE;
-      AE_UpdateCaret(ae, FALSE);
+      AE_UpdateCaret(ae, ae->bFocus, FALSE);
 
       if (!(ae->dwOptions & AECO_NOHIDESEL))
       {
@@ -2482,8 +2489,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_HideSelection(ae, TRUE);
       }
       ae->bFocus=FALSE;
-      AE_StackUndoGroupStop(ae);
       DestroyCaret();
+      AE_StackUndoGroupStop(ae);
       AE_NotifyKillFocus(ae);
       return 0;
     }
@@ -4993,13 +5000,13 @@ HBITMAP AE_LoadBitmapFromMemory(HDC hDC, BYTE *lpBmpFileData)
   return hBitmap;
 }
 
-BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFresh)
+BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh)
 {
   HBITMAP hCaretBitmap=NULL;
   int nCaretWidth;
   int nCaretHeight;
 
-  if (ae->bFocus)
+  if (bFocus)
   {
     DestroyCaret();
   }
@@ -5053,7 +5060,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFresh)
     }
   }
 
-  if (ae->bFocus)
+  if (bFocus)
   {
     if (CreateCaret(ae->hWndEdit, (HBITMAP)hCaretBitmap, nCaretWidth, nCaretHeight))
     {
@@ -10110,7 +10117,7 @@ void AE_SetColors(AKELEDIT *ae, AECOLORS *aec)
     else
       ae->crCaret=aec->crCaret;
 
-    AE_UpdateCaret(ae, TRUE);
+    AE_UpdateCaret(ae, ae->bFocus, TRUE);
   }
   if (aec->dwFlags & AECLR_BASICTEXT)
   {
@@ -10423,6 +10430,62 @@ void AE_NotifyDragDropDone(AKELEDIT *ae)
 
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
   }
+}
+
+BOOL AE_NotifyDropSource(AKELEDIT *ae, int nAction, DWORD *lpdwEffect, DWORD dwDropResult)
+{
+  BOOL bResult=FALSE;
+
+  //Send AEN_DROPSOURCE
+  if (ae->dwEventMask & AENM_DRAGDROP)
+  {
+    AENDROPSOURCE ds;
+
+    ds.hdr.hwndFrom=ae->hWndEdit;
+    ds.hdr.idFrom=ae->nEditCtrlID;
+    ds.hdr.code=AEN_DROPSOURCE;
+    ds.nAction=nAction;
+    if (lpdwEffect)
+      ds.dwEffect=*lpdwEffect;
+    else
+      ds.dwEffect=0;
+    ds.dwDropResult=dwDropResult;
+
+    bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&ds);
+
+    if (lpdwEffect) *lpdwEffect=ds.dwEffect;
+  }
+  return bResult;
+}
+
+BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect)
+{
+  BOOL bResult=FALSE;
+
+  //Send AEN_DROPTARGET
+  if (ae->dwEventMask & AENM_DRAGDROP)
+  {
+    AENDROPTARGET dt;
+
+    dt.hdr.hwndFrom=ae->hWndEdit;
+    dt.hdr.idFrom=ae->nEditCtrlID;
+    dt.hdr.code=AEN_DROPTARGET;
+    dt.nAction=nAction;
+    if (pt)
+      dt.pt=*pt;
+    else
+      GetCursorPos(&dt.pt);
+    if (lpdwEffect)
+      dt.dwEffect=*lpdwEffect;
+    else
+      dt.dwEffect=0;
+
+    bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&dt);
+
+    if (pt) *pt=dt.pt;
+    if (lpdwEffect) *lpdwEffect=dt.dwEffect;
+  }
+  return bResult;
 }
 
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink)
@@ -11006,10 +11069,12 @@ HRESULT WINAPI AEIDropTarget_DragEnter(LPUNKNOWN lpTable, IDataObject *pDataObje
   AEIDropTarget *pDropTarget=(AEIDropTarget *)lpTable;
   AKELEDIT *ae=(AKELEDIT *)pDropTarget->ae;
   FORMATETC fmtetc;
+  BOOL bNotify;
 
   *pdwEffect=AE_DropTargetDropEffect(grfKeyState, *pdwEffect);
+  bNotify=AE_NotifyDropTarget(ae, AEDT_TARGETENTER, (POINT *)&pt, pdwEffect);
 
-  if (!(ae->dwOptions & AECO_DISABLEDROP) && !(ae->dwOptions & AECO_READONLY))
+  if (!bNotify && !(ae->dwOptions & AECO_DISABLEDROP) && !(ae->dwOptions & AECO_READONLY))
   {
     fmtetc.cfFormat=CF_UNICODETEXT;
     fmtetc.ptd=0;
@@ -11042,9 +11107,15 @@ HRESULT WINAPI AEIDropTarget_DragEnter(LPUNKNOWN lpTable, IDataObject *pDataObje
     else
       pDropTarget->bColumnSel=FALSE;
 
-    ScreenToClient(ae->hWndEdit, (POINT *)&pt);
-    SetFocus(ae->hWndEdit);
+    if (!ae->bFocus)
+    {
+      if (GetFocus())
+        SetFocus(ae->hWndEdit);
+      else
+        AE_UpdateCaret(ae, TRUE, FALSE);
+    }
     ae->bDropping=TRUE;
+    ScreenToClient(ae->hWndEdit, (POINT *)&pt);
     AE_DropTargetDropCursor(pDropTarget, &pt, pdwEffect);
   }
   else *pdwEffect=DROPEFFECT_NONE;
@@ -11056,10 +11127,12 @@ HRESULT WINAPI AEIDropTarget_DragOver(LPUNKNOWN lpTable, DWORD grfKeyState, POIN
 {
   AEIDropTarget *pDropTarget=(AEIDropTarget *)lpTable;
   AKELEDIT *ae=(AKELEDIT *)pDropTarget->ae;
+  BOOL bNotify;
 
   *pdwEffect=AE_DropTargetDropEffect(grfKeyState, *pdwEffect);
+  bNotify=AE_NotifyDropTarget(ae, AEDT_TARGETOVER, (POINT *)&pt, pdwEffect);
 
-  if (pDropTarget->bAllowDrop)
+  if (!bNotify && pDropTarget->bAllowDrop)
   {
     ScreenToClient(ae->hWndEdit, (POINT *)&pt);
     AE_DropTargetDropCursor(pDropTarget, &pt, pdwEffect);
@@ -11076,6 +11149,8 @@ HRESULT WINAPI AEIDropTarget_DragLeave(LPUNKNOWN lpTable)
 
   AE_DropTargetDropCursor(pDropTarget, NULL, NULL);
   ae->bDropping=FALSE;
+  if (!ae->bFocus) DestroyCaret();
+  AE_NotifyDropTarget(ae, AEDT_TARGETLEAVE, NULL, NULL);
   return S_OK;
 }
 
@@ -11083,11 +11158,14 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
 {
   AEIDropTarget *pDropTarget=(AEIDropTarget *)lpTable;
   AKELEDIT *ae=(AKELEDIT *)pDropTarget->ae;
+  BOOL bNotify;
 
   *pdwEffect=AE_DropTargetDropEffect(grfKeyState, *pdwEffect);
   ae->bDropping=FALSE;
+  if (!ae->bFocus) DestroyCaret();
+  bNotify=AE_NotifyDropTarget(ae, AEDT_TARGETDROP, (POINT *)&pt, pdwEffect);
 
-  if (pDropTarget->bAllowDrop)
+  if (!bNotify && pDropTarget->bAllowDrop)
   {
     AECHARINDEX ciCharIndex;
     FORMATETC fmtetc;
@@ -11138,7 +11216,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
             AE_InsertText(ae, &ciCharIndex, (wchar_t *)pData, (DWORD)-1, ae->nInputNewLine, pDropTarget->bColumnSel, &ciStart, &ciEnd, TRUE, TRUE, TRUE);
           }
           AE_StackUndoGroupStop(ae);
-          AE_SetSelectionPos(ae, &ciStart, &ciEnd, pDropTarget->bColumnSel, TRUE);
+          AE_SetSelectionPos(ae, &ciEnd, &ciStart, pDropTarget->bColumnSel, TRUE);
 
           GlobalUnlock(stgmed.hGlobal);
         }
@@ -11195,7 +11273,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               }
             }
             AE_StackUndoGroupStop(ae);
-            AE_SetSelectionPos(ae, &ciStart, &ciEnd, pDropTarget->bColumnSel, TRUE);
+            AE_SetSelectionPos(ae, &ciEnd, &ciStart, pDropTarget->bColumnSel, TRUE);
 
             GlobalUnlock(stgmed.hGlobal);
           }
@@ -11237,14 +11315,14 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
   if (!pdwEffect || *pdwEffect == DROPEFFECT_NONE)
   {
     AE_ScrollToCaret(ae, &ae->ptCaret);
-    if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+    AE_SetCaretPos(ae, &ae->ptCaret);
   }
   else
   {
     if (!PtInRect(&ae->rcDraw, *(POINT *)pt))
     {
       //Deny dropping in non-rect
-      if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+      AE_SetCaretPos(ae, &ae->ptCaret);
       *pdwEffect=DROPEFFECT_NONE;
     }
     else
@@ -11266,13 +11344,13 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
       {
         //Scroll, but deny dropping in selection
         AE_ScrollToCaret(ae, &ptGlobal);
-        if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+        AE_SetCaretPos(ae, &ae->ptCaret);
         *pdwEffect=DROPEFFECT_NONE;
       }
       else
       {
         AE_ScrollToCaret(ae, &ptGlobal);
-        if (ae->bFocus) AE_SetCaretPos(ae, &ptGlobal);
+        AE_SetCaretPos(ae, &ptGlobal);
       }
     }
   }
