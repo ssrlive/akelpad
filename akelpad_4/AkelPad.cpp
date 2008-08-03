@@ -299,6 +299,8 @@ int nTabType=TAB_TYPE_STANDARD;
 int nTabSwitch=TAB_SWITCH_NEXTPREV;
 HIMAGELIST hImageList;
 BOOL bTabPressed=FALSE;
+BOOL bTextDropSource=FALSE;
+BOOL bTextDropTarget=FALSE;
 BOOL bFileExitError;
 DWORD dwMdiStyle=WS_MAXIMIZE;
 WNDPROC OldMdiClientProc;
@@ -4921,6 +4923,32 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
         SetModifyStatusA(hWndEdit, aenmc->bModified, FALSE);
       }
+      else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)
+      {
+        AENDROPSOURCE *aends=(AENDROPSOURCE *)lParam;
+
+        if (aends->nAction == AEDS_SOURCEBEGIN)
+        {
+          bTextDropSource=TRUE;
+        }
+        else if (aends->nAction == AEDS_SOURCEEND)
+        {
+          bTextDropSource=FALSE;
+        }
+      }
+      else if (((NMHDR *)lParam)->code == AEN_DROPTARGET)
+      {
+        AENDROPTARGET *aendt=(AENDROPTARGET *)lParam;
+
+        if (aendt->nAction == AEDT_TARGETENTER)
+        {
+          bTextDropTarget=TRUE;
+        }
+        else if (aendt->nAction == AEDT_TARGETLEAVE)
+        {
+          bTextDropTarget=FALSE;
+        }
+      }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
       {
         AENLINK *aenl=(AENLINK *)lParam;
@@ -5055,6 +5083,32 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         AENMODIFYCHANGE *aenmc=(AENMODIFYCHANGE *)lParam;
 
         SetModifyStatusW(hWndEdit, aenmc->bModified, FALSE);
+      }
+      else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)
+      {
+        AENDROPSOURCE *aends=(AENDROPSOURCE *)lParam;
+
+        if (aends->nAction == AEDS_SOURCEBEGIN)
+        {
+          bTextDropSource=TRUE;
+        }
+        else if (aends->nAction == AEDS_SOURCEEND)
+        {
+          bTextDropSource=FALSE;
+        }
+      }
+      else if (((NMHDR *)lParam)->code == AEN_DROPTARGET)
+      {
+        AENDROPTARGET *aendt=(AENDROPTARGET *)lParam;
+
+        if (aendt->nAction == AEDT_TARGETENTER)
+        {
+          bTextDropTarget=TRUE;
+        }
+        else if (aendt->nAction == AEDT_TARGETLEAVE)
+        {
+          bTextDropTarget=FALSE;
+        }
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
       {
@@ -6013,6 +6067,25 @@ LRESULT CALLBACK NewTabProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ReleaseCapture();
     }
   }
+  else if (uMsg == WM_NCHITTEST)
+  {
+    //Activate tab while text Drag'n'Drop
+    if (bTextDropSource && !bTextDropTarget)
+    {
+      TCHITTESTINFO thti;
+      int nItem;
+
+      thti.pt.x=LOWORD(lParam);
+      thti.pt.y=HIWORD(lParam);
+      ScreenToClient(hWnd, &thti.pt);
+      nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
+
+      if (nItem != -1)
+      {
+        SelectTabItem(hWnd, nItem);
+      }
+    }
+  }
 
   return CallWindowProcA(OldTabProc, hWnd, uMsg, wParam, lParam);
 }
@@ -6148,6 +6221,25 @@ LRESULT CALLBACK NewTabProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       bMouseDown=FALSE;
       ReleaseCapture();
+    }
+  }
+  else if (uMsg == WM_NCHITTEST)
+  {
+    //Activate tab while text Drag'n'Drop
+    if (bTextDropSource && !bTextDropTarget)
+    {
+      TCHITTESTINFO thti;
+      int nItem;
+
+      thti.pt.x=LOWORD(lParam);
+      thti.pt.y=HIWORD(lParam);
+      ScreenToClient(hWnd, &thti.pt);
+      nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
+
+      if (nItem != -1)
+      {
+        SelectTabItem(hWnd, nItem);
+      }
     }
   }
 
