@@ -28,4 +28,8 @@ BEGIN
             VALUE "ProductVersion", "0, 0, 0, 0\0"
         END
     END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0, 0
+    END
 END
