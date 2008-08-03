@@ -277,6 +277,8 @@ extern int nTabType;
 extern int nTabSwitch;
 extern HIMAGELIST hImageList;
 extern BOOL bTabPressed;
+extern BOOL bTextDropSource;
+extern BOOL bTextDropTarget;
 extern BOOL bFileExitError;
 extern DWORD dwMdiStyle;
 extern WNDPROC OldMdiClientProc;
@@ -322,7 +324,7 @@ void CreateEditWindowA(HWND hWnd)
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
-  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE|AENM_LINK);
+  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE|AENM_DRAGDROP|AENM_LINK);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
@@ -361,7 +363,7 @@ void CreateEditWindowW(HWND hWnd)
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
-  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE|AENM_LINK);
+  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE|AENM_DRAGDROP|AENM_LINK);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
