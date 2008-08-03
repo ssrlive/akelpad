@@ -4860,7 +4860,7 @@ BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
       int nPrefix;
       int nResult;
 
-      if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, ae->bColumnSel))
+      if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, FALSE))
       {
         if (nResult == AEPC_AFTER)
           ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
