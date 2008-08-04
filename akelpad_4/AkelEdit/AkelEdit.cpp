@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.0 final                           *
+ *                      AkelEdit text control v1.1                                 *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -6021,6 +6021,8 @@ int AE_GetLastVisibleLine(AKELEDIT *ae)
 
 BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SIZE *lpSize)
 {
+/*
+  //Some fonts have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
   if (ae->bFixedCharWidth)
   {
     lpSize->cx=ae->nAveCharWidth * nStringLen;
@@ -6028,6 +6030,7 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SI
     return TRUE;
   }
   else
+*/
   {
     return GetTextExtentPoint32W(ae->hDC, wpString, nStringLen, lpSize);
   }
