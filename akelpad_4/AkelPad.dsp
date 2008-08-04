@@ -19,6 +19,7 @@ CFG=AkelPad - Win32 Debug English
 !MESSAGE 
 !MESSAGE "AkelPad - Win32 Debug English" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "AkelPad - Win32 Release English" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "AkelPad - Win32 Dinamic Release English" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -83,18 +84,58 @@ LINK32=link.exe
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
 # SUBTRACT LINK32 /pdb:none
 
+!ELSEIF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "Release"
+# PROP BASE Intermediate_Dir "Release"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "Release"
+# PROP Intermediate_Dir "Release"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /D "STATIC_BUILD" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /YX /FD /c
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION"
+# ADD RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
+# SUBTRACT BASE LINK32 /pdb:none
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
+# SUBTRACT LINK32 /pdb:none
+
 !ENDIF 
 
 # Begin Target
 
 # Name "AkelPad - Win32 Debug English"
 # Name "AkelPad - Win32 Release English"
+# Name "AkelPad - Win32 Dinamic Release English"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
 SOURCE=.\AkelEdit\AkelEdit.cpp
+
+!IF  "$(CFG)" == "AkelPad - Win32 Debug English"
+
+!ELSEIF  "$(CFG)" == "AkelPad - Win32 Release English"
+
+!ELSEIF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
+
+# PROP Exclude_From_Build 1
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
