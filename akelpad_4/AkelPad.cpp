@@ -373,7 +373,6 @@ extern "C" void _WinMain()
     aecColors.crActiveLineText=aecColors.crBasicText;
     aecColors.crActiveLineBk=aecColors.crBasicBk;
     aecColors.crUrlText=RGB(0x00, 0x00, 0xFF);
-    SendMessage(hWndEdit, AEM_GETCOLORS, 0, (LPARAM)&aecColors);
     nAnsiCodePage=GetACP();
     nOemCodePage=GetOEMCP();
     nDefaultCodePage=nAnsiCodePage;
