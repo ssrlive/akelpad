@@ -179,7 +179,7 @@ BEGIN
         MENUITEM "&Annulla",                    IDM_EDIT_UNDO
         MENUITEM "&Ripeti",                     IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "&Tagli",                      IDM_EDIT_CUT
+        MENUITEM "&Taglia",                     IDM_EDIT_CUT
         MENUITEM "&Copia",                      IDM_EDIT_COPY
         MENUITEM "&Incolla",                    IDM_EDIT_PASTE
         MENUITEM "&Elimina",                    IDM_EDIT_CLEAR
@@ -190,7 +190,7 @@ BEGIN
     BEGIN
         MENUITEM "&Copia",                      IDM_EDIT_COPY
         MENUITEM SEPARATOR
-        MENUITEM "SSeleziona tutto",            IDM_EDIT_SELECTALL
+        MENUITEM "Seleziona tutto",            IDM_EDIT_SELECTALL
     END
     POPUP "CodepagePopup"
     BEGIN
@@ -589,13 +589,13 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Tipi di files",IDC_STATIC,9,6,200,70
     CONTROL         "Apri:",IDC_OPTIONS_ASSOCIATE_OPEN,"Button",
-                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,22,36,10
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,22,40,10
     EDITTEXT        IDC_OPTIONS_FILETYPES_OPEN,56,20,141,13,ES_AUTOHSCROLL
     CONTROL         "Modifica:",IDC_OPTIONS_ASSOCIATE_EDIT,"Button",
-                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,40,36,10
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,40,40,10
     EDITTEXT        IDC_OPTIONS_FILETYPES_EDIT,56,38,141,13,ES_AUTOHSCROLL
     CONTROL         "Stampa:",IDC_OPTIONS_ASSOCIATE_PRINT,"Button",
-                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,16,58,36,10
+                    BS_AUTOCHECKBOX | BS_LEFTTEXT | WS_TABSTOP,12,58,40,10
     EDITTEXT        IDC_OPTIONS_FILETYPES_PRINT,56,56,141,13,ES_AUTOHSCROLL
     GROUPBOX        "Grandezza Tabulazione",IDC_STATIC,9,83,101,34
     EDITTEXT        IDC_OPTIONS_TABSIZE,18,96,21,13,ES_NUMBER
