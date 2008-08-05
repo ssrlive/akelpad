@@ -32,7 +32,6 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvRe
 {
   if (fdwReason == DLL_PROCESS_ATTACH)
   {
-    hAkelEditProcessHeap=GetProcessHeap();
     OleInitialize(0);
     AE_RegisterClassA(hinstDLL);
     AE_RegisterClassW(hinstDLL);
@@ -79,6 +78,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance)
     wndclass.lpszClassName=AES_RICHEDITCLASSA;
     RegisterClassA(&wndclass);
 
+    if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatA("MSDEVColumnSelect");
     if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorA(NULL, (char *)IDC_ARROW);
     if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorA(hInstance, (char *)IDC_AEMARGIN);
@@ -110,6 +110,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance)
     wndclass.lpszClassName=AES_RICHEDITCLASSW;
     RegisterClassW(&wndclass);
 
+    if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatW(L"MSDEVColumnSelect");
     if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorW(NULL, (wchar_t *)IDC_ARROW);
     if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorW(hInstance, (wchar_t *)IDC_AEMARGIN);
