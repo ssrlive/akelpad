@@ -14,6 +14,7 @@
 
 //// Global variables
 
+HANDLE hAkelEditProcessHeap=0;
 HSTACK hAkelEditWindowsStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
@@ -31,6 +32,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvRe
 {
   if (fdwReason == DLL_PROCESS_ATTACH)
   {
+    hAkelEditProcessHeap=GetProcessHeap();
     OleInitialize(0);
     AE_RegisterClassA(hinstDLL);
     AE_RegisterClassW(hinstDLL);
@@ -2645,7 +2647,7 @@ LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes)
   HANDLE hHeap;
 
   if (!ae)
-    hHeap=GetProcessHeap();
+    hHeap=hAkelEditProcessHeap;
   else
     hHeap=ae->hHeap;
 
@@ -2661,7 +2663,7 @@ BOOL AE_HeapFree(AKELEDIT *ae, DWORD dwFlags, LPVOID lpMem)
   HANDLE hHeap;
 
   if (!ae)
-    hHeap=GetProcessHeap();
+    hHeap=hAkelEditProcessHeap;
   else
     hHeap=ae->hHeap;
 
@@ -2902,6 +2904,7 @@ void AE_StackWindowDelete(HSTACK *hStack, HWND hWndEdit)
         if (HeapDestroy(lpElement->hHeap))
           lpElement->hHeap=NULL;
 
+        AE_StackPointFree(lpElement);
 //        AE_StackLineFree(lpElement);
       }
       AE_HeapStackDelete(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement);
@@ -2914,6 +2917,41 @@ void AE_StackWindowDelete(HSTACK *hStack, HWND hWndEdit)
 void AE_StackWindowFree(HSTACK *hStack)
 {
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
+{
+  AEPOINT *lpElement=NULL;
+
+  AE_HeapStackInsert(NULL, (stack **)&ae->hPointsStack.first, (stack **)&ae->hPointsStack.last, (stack **)&lpElement, 1, sizeof(AEPOINT));
+
+  if (lpElement)
+  {
+    lpElement->ciPoint=*ciPoint;
+  }
+  return lpElement;
+}
+
+void AE_StackPointSetModify(AKELEDIT *ae, BOOL bModify)
+{
+  AEPOINT *lpElement=(AEPOINT *)ae->hPointsStack.last;
+
+  while (lpElement)
+  {
+    lpElement->bModify=bModify;
+
+    lpElement=lpElement->prev;
+  }
+}
+
+void AE_StackPointDelete(AKELEDIT *ae, AEPOINT *lpElement)
+{
+  AE_HeapStackDelete(NULL, (stack **)&ae->hPointsStack.first, (stack **)&ae->hPointsStack.last, (stack *)lpElement);
+}
+
+void AE_StackPointFree(AKELEDIT *ae)
+{
+  AE_HeapStackClear(NULL, (stack **)&ae->hPointsStack.first, (stack **)&ae->hPointsStack.last);
 }
 
 AEUNDOITEM* AE_StackUndoItemInsert(AKELEDIT *ae)
@@ -3160,41 +3198,6 @@ void AE_StackLineFree(AKELEDIT *ae)
     AE_StackLineDelete(ae, lpElement);
     lpElement=lpTmp;
   }
-}
-
-AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
-{
-  AEPOINT *lpElement=NULL;
-
-  AE_HeapStackInsert(ae, (stack **)&ae->hPointsStack.first, (stack **)&ae->hPointsStack.last, (stack **)&lpElement, 1, sizeof(AEPOINT));
-
-  if (lpElement)
-  {
-    lpElement->ciPoint=*ciPoint;
-  }
-  return lpElement;
-}
-
-void AE_StackPointSetModify(AKELEDIT *ae, BOOL bModify)
-{
-  AEPOINT *lpElement=(AEPOINT *)ae->hPointsStack.last;
-
-  while (lpElement)
-  {
-    lpElement->bModify=bModify;
-
-    lpElement=lpElement->prev;
-  }
-}
-
-void AE_StackPointDelete(AKELEDIT *ae, AEPOINT *lpElement)
-{
-  AE_HeapStackDelete(ae, (stack **)&ae->hPointsStack.first, (stack **)&ae->hPointsStack.last, (stack *)lpElement);
-}
-
-void AE_StackPointFree(AKELEDIT *ae)
-{
-  AE_HeapStackClear(ae, (stack **)&ae->hPointsStack.first, (stack **)&ae->hPointsStack.last);
 }
 
 AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
