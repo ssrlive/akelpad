@@ -1721,7 +1721,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         REGHANDLEA *rh;
 
-        if (rh=(REGHANDLEA *)API_HeapAlloc(hHeap, 0, sizeof(REGHANDLEA)))
+        if (rh=(REGHANDLEA *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(REGHANDLEA)))
         {
           rh->dwType=wParam;
 
@@ -3403,7 +3403,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         REGHANDLEW *rh;
 
-        if (rh=(REGHANDLEW *)API_HeapAlloc(hHeap, 0, sizeof(REGHANDLEW)))
+        if (rh=(REGHANDLEW *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(REGHANDLEW)))
         {
           rh->dwType=wParam;
 
@@ -5185,7 +5185,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_CREATE)
   {
-    if (lpWndFrameA=(WNDFRAMEA *)API_HeapAlloc(hHeap, 0, sizeof(WNDFRAMEA)))
+    if (lpWndFrameA=(WNDFRAMEA *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(WNDFRAMEA)))
     {
       TCITEMA tcItemA;
       int nIndex;
@@ -5389,7 +5389,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_CREATE)
   {
-    if (lpWndFrameW=(WNDFRAMEW *)API_HeapAlloc(hHeap, 0, sizeof(WNDFRAMEW)))
+    if (lpWndFrameW=(WNDFRAMEW *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(WNDFRAMEW)))
     {
       TCITEMW tcItemW;
       int nIndex;
