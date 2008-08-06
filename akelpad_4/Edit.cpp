@@ -316,12 +316,7 @@ void CreateEditWindowA(HWND hWnd)
                            (HMENU)ID_EDIT,
                            hInstance,
                            NULL);
-
-  if (bDelimitersEnable)
-    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszDelimiters);
-  else
-    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)NULL);
-
+  szCurrentFile[0]='\0';
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
   SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE|AENM_DRAGDROP|AENM_LINK);
@@ -333,7 +328,10 @@ void CreateEditWindowA(HWND hWnd)
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontA(hWndEdit, &lfEditFontA, TRUE);
   SendMessage(hWndEdit, AEM_SETDETECTURL, bShowURL, 0);
-  SetWindowTextA(hWndEdit, "");
+  if (bDelimitersEnable)
+    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszDelimiters);
+  else
+    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)NULL);
 
   OldEditProc=(WNDPROC)GetWindowLongA(hWndEdit, GWL_WNDPROC);
   SetWindowLongA(hWndEdit, GWL_WNDPROC, (LONG)CommonEditProcA);
@@ -356,11 +354,7 @@ void CreateEditWindowW(HWND hWnd)
                            hInstance,
                            NULL);
 
-  if (bDelimitersEnable)
-    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszDelimiters);
-  else
-    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)NULL);
-
+  wszCurrentFile[0]='\0';
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
   SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE|AENM_DRAGDROP|AENM_LINK);
@@ -372,7 +366,10 @@ void CreateEditWindowW(HWND hWnd)
   SetTabStops(hWndEdit, nTabStopSize, FALSE);
   SetChosenFontW(hWndEdit, &lfEditFontW, TRUE);
   SendMessage(hWndEdit, AEM_SETDETECTURL, bShowURL, 0);
-  SetWindowTextW(hWndEdit, L"");
+  if (bDelimitersEnable)
+    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszDelimiters);
+  else
+    SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)NULL);
 
   OldEditProc=(WNDPROC)GetWindowLongW(hWndEdit, GWL_WNDPROC);
   SetWindowLongW(hWndEdit, GWL_WNDPROC, (LONG)CommonEditProcW);
