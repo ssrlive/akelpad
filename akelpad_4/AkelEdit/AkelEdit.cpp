@@ -4597,6 +4597,9 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
       ciCaretNew.nCharInLine=min(ciCaretNew.nCharInLine, ciCaretNew.lpLine->nLineLen);
     }
 
+    //Notification
+    AE_NotifyAkelSelChanging(ae);
+
     //Clear old lines selection
     if (AE_IndexCompare(&ciSelStartOld, &ciSelEndOld))
     {
@@ -4674,10 +4677,9 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
             AE_RedrawLineRange(ae, min(ciSelEndOld.nLine, ciSelEndNew.nLine), max(ciSelEndOld.nLine, ciSelEndNew.nLine), FALSE);
         }
       }
-
-      AE_NotifyAkelSelChange(ae);
-      AE_NotifyRichSelChange(ae);
     }
+    AE_NotifyAkelSelChanged(ae);
+    AE_NotifyRichSelChange(ae);
   }
 }
 
@@ -7516,6 +7518,9 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
 
   if (ciRangeStart->lpLine && ciRangeEnd->lpLine)
   {
+    AE_NotifyAkelSelChanging(ae);
+    AE_NotifyTextChanging(ae);
+
     //Exchange indexes
     nResult=AE_IndexCompare(&ciDeleteStart, &ciDeleteEnd);
 
@@ -8027,9 +8032,9 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
     }
 
-    AE_NotifyAkelSelChange(ae);
+    AE_NotifyAkelSelChanged(ae);
     AE_NotifyRichSelChange(ae);
-    AE_NotifyTextChange(ae);
+    AE_NotifyTextChanged(ae);
   }
 }
 
@@ -8054,158 +8059,114 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
   int nWrapCount=0;
   int nCaretIndexInLine=0;
   int nSpaces=0;
-  int nHScrollPos;
-  int nVScrollPos;
+  int nHScrollPos=0;
+  int nVScrollPos=0;
   int nStartOffset;
   int nEndOffset;
   int nLineOffset;
-  int nFirstRedrawLine;
-  int nLastRedrawLine;
+  int nFirstRedrawLine=0;
+  int nLastRedrawLine=0;
   int i;
   DWORD dwTextCount=0;
   DWORD dwRichTextCount=0;
 
   if (ciInsertFrom.lpLine)
   {
-    //Set new line
-    if (nNewLine == AELB_ASINPUT)
-      nNewLine=ae->nInputNewLine;
-    else if (nNewLine == AELB_ASOUTPUT)
-      nNewLine=ae->nOutputNewLine;
+    if (dwTextLen == (DWORD)-1) dwTextLen=lstrlenW(wpText);
 
-    nLineOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom) - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
-    nStartOffset=nLineOffset + ciInsertFrom.nCharInLine;
-    nEndOffset=nStartOffset;
-
-    if (bColumnSel)
+    if (dwTextLen)
     {
-      //Parse text
-      if (dwTextLen == (DWORD)-1) dwTextLen=lstrlenW(wpText);
+      AE_NotifyAkelSelChanging(ae);
+      AE_NotifyTextChanging(ae);
 
-      AE_GetPosFromCharEx(ae, &ciInsertFrom, &ptInsertFrom, NULL);
-      ciFirstChar.nLine=ciInsertFrom.nLine;
-      ciFirstChar.lpLine=NULL;
-      ciFirstChar.nCharInLine=ciInsertFrom.nCharInLine;
-      ciLastChar.nLine=ciInsertFrom.nLine;
-      ciLastChar.lpLine=NULL;
-      ciLastChar.nCharInLine=ciInsertFrom.nCharInLine;
-      lpElement=ciInsertFrom.lpLine;
+      //Set new line
+      if (nNewLine == AELB_ASINPUT)
+        nNewLine=ae->nInputNewLine;
+      else if (nNewLine == AELB_ASOUTPUT)
+        nNewLine=ae->nOutputNewLine;
 
-      while (dwTextCount <= dwTextLen)
+      nLineOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom) - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
+      nStartOffset=nLineOffset + ciInsertFrom.nCharInLine;
+      nEndOffset=nStartOffset;
+
+      if (bColumnSel)
       {
-        if (lpNewElement=AE_StackLineInsertBefore(ae, ciInsertFrom.lpLine))
+        AE_GetPosFromCharEx(ae, &ciInsertFrom, &ptInsertFrom, NULL);
+        ciFirstChar.nLine=ciInsertFrom.nLine;
+        ciFirstChar.lpLine=NULL;
+        ciFirstChar.nCharInLine=ciInsertFrom.nCharInLine;
+        ciLastChar.nLine=ciInsertFrom.nLine;
+        ciLastChar.lpLine=NULL;
+        ciLastChar.nCharInLine=ciInsertFrom.nCharInLine;
+        lpElement=ciInsertFrom.lpLine;
+
+        while (dwTextCount <= dwTextLen)
         {
-          wpLineEnd=AE_GetNextLine(ae, wpLineStart, dwTextLen - dwTextCount, &nLineLen, &nLineBreak);
-          dwTextCount+=wpLineEnd - wpLineStart;
-          dwRichTextCount+=nLineLen;
-
-          if (nLineBreak != AELB_EOF)
+          if (lpNewElement=AE_StackLineInsertBefore(ae, ciInsertFrom.lpLine))
           {
-            if (nNewLine != AELB_ASIS)
-              nLineBreak=nNewLine;
-          }
+            wpLineEnd=AE_GetNextLine(ae, wpLineStart, dwTextLen - dwTextCount, &nLineLen, &nLineBreak);
+            dwTextCount+=wpLineEnd - wpLineStart;
+            dwRichTextCount+=nLineLen;
 
-          if (lpElement)
-          {
-            //First insert line
-            if (!ciFirstChar.lpLine)
-              ciFirstChar.lpLine=lpNewElement;
-            else
-              AE_GetCharInLineEx(ae, lpElement, ptInsertFrom.x, TRUE, &ciInsertFrom.nCharInLine, NULL, bColumnSel);
-
-            lpNewElement->nLineWidth=-1;
-            if (lpElement->nLineBreak != AELB_EOF)
-              lpNewElement->nLineBreak=lpElement->nLineBreak;
-            else
-              lpNewElement->nLineBreak=nLineBreak;
-            lpNewElement->nLineLen=lpElement->nLineLen + max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
-            nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
-
-            if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+            if (nLineBreak != AELB_EOF)
             {
-              AE_memcpy(lpNewElement->wpLine, lpElement->wpLine, min(ciInsertFrom.nCharInLine, lpElement->nLineLen) * sizeof(wchar_t));
-
-              if (ciInsertFrom.nCharInLine > lpElement->nLineLen)
-              {
-                dwRichTextCount+=ciInsertFrom.nCharInLine - lpElement->nLineLen;
-
-                for (i=lpElement->nLineLen; i < ciInsertFrom.nCharInLine; ++i)
-                  lpNewElement->wpLine[i]=L' ';
-                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-              }
-              else
-              {
-                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine + nLineLen, lpElement->wpLine + ciInsertFrom.nCharInLine, (lpElement->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
-              }
-
-              //Update points
-              for (lpPoint=(AEPOINT *)ae->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
-              {
-                if (!lpPoint->bModify)
-                {
-                  if (lpPoint->ciPoint.lpLine == lpElement)
-                  {
-                    lpPoint->ciPoint.lpLine=lpNewElement;
-
-                    if (lpPoint->ciPoint.nCharInLine >= ciInsertFrom.nCharInLine)
-                    {
-                      lpPoint->ciPoint.nCharInLine+=nLineLen;
-                    }
-                    lpPoint->bModify=TRUE;
-                  }
-                }
-              }
-
-              //Add undo
-              if (bEnableUndo)
-              {
-                if (!ae->bLockCollectUndo)
-                {
-                  if (ae->dwUndoLimit)
-                  {
-                    AEUNDOITEM *lpUndoElement;
-                    wchar_t *wpUndoText;
-                    DWORD dwUndoTextLen=max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
-
-                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
-                    {
-                      nSpaces=ciInsertFrom.nCharInLine - lpElement->nLineLen;
-
-                      for (i=0; i < nSpaces; ++i)
-                        wpUndoText[i]=L' ';
-                      AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
-                      wpUndoText[dwUndoTextLen]=L'\0';
-
-                      if (lpUndoElement=AE_StackUndoItemInsert(ae))
-                      {
-                        lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                        lpUndoElement->nActionStartOffset=nLineOffset + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
-                        lpUndoElement->nActionEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
-                        lpUndoElement->wpText=wpUndoText;
-                        lpUndoElement->dwTextLen=dwUndoTextLen;
-
-                        ae->lpCurrentUndo=lpUndoElement;
-                      }
-                      else break;
-                    }
-                    else break;
-                  }
-                }
-              }
-              lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+              if (nNewLine != AELB_ASIS)
+                nLineBreak=nNewLine;
             }
-            else break;
 
-            lpInsertToElement=lpElement;
-
-            if (!lpElement->next)
+            if (lpElement)
             {
-              if (nLineBreak != AELB_EOF)
-              {
-                ++dwRichTextCount;
+              //First insert line
+              if (!ciFirstChar.lpLine)
+                ciFirstChar.lpLine=lpNewElement;
+              else
+                AE_GetCharInLineEx(ae, lpElement, ptInsertFrom.x, TRUE, &ciInsertFrom.nCharInLine, NULL, bColumnSel);
 
-                //Insert new line
+              lpNewElement->nLineWidth=-1;
+              if (lpElement->nLineBreak != AELB_EOF)
+                lpNewElement->nLineBreak=lpElement->nLineBreak;
+              else
+                lpNewElement->nLineBreak=nLineBreak;
+              lpNewElement->nLineLen=lpElement->nLineLen + max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
+              nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
+
+              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+              {
+                AE_memcpy(lpNewElement->wpLine, lpElement->wpLine, min(ciInsertFrom.nCharInLine, lpElement->nLineLen) * sizeof(wchar_t));
+
+                if (ciInsertFrom.nCharInLine > lpElement->nLineLen)
+                {
+                  dwRichTextCount+=ciInsertFrom.nCharInLine - lpElement->nLineLen;
+
+                  for (i=lpElement->nLineLen; i < ciInsertFrom.nCharInLine; ++i)
+                    lpNewElement->wpLine[i]=L' ';
+                  AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                }
+                else
+                {
+                  AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                  AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine + nLineLen, lpElement->wpLine + ciInsertFrom.nCharInLine, (lpElement->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                }
+
+                //Update points
+                for (lpPoint=(AEPOINT *)ae->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
+                {
+                  if (!lpPoint->bModify)
+                  {
+                    if (lpPoint->ciPoint.lpLine == lpElement)
+                    {
+                      lpPoint->ciPoint.lpLine=lpNewElement;
+
+                      if (lpPoint->ciPoint.nCharInLine >= ciInsertFrom.nCharInLine)
+                      {
+                        lpPoint->ciPoint.nCharInLine+=nLineLen;
+                      }
+                      lpPoint->bModify=TRUE;
+                    }
+                  }
+                }
+
+                //Add undo
                 if (bEnableUndo)
                 {
                   if (!ae->bLockCollectUndo)
@@ -8214,19 +8175,22 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                     {
                       AEUNDOITEM *lpUndoElement;
                       wchar_t *wpUndoText;
-                      wchar_t *wpLineBreak;
-                      DWORD dwUndoTextLen=AE_GetNewLineString(ae, lpNewElement->nLineBreak, &wpLineBreak);
+                      DWORD dwUndoTextLen=max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
 
                       if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
                       {
-                        AE_memcpy(wpUndoText, wpLineBreak, dwUndoTextLen * sizeof(wchar_t));
+                        nSpaces=ciInsertFrom.nCharInLine - lpElement->nLineLen;
+
+                        for (i=0; i < nSpaces; ++i)
+                          wpUndoText[i]=L' ';
+                        AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
                         wpUndoText[dwUndoTextLen]=L'\0';
 
                         if (lpUndoElement=AE_StackUndoItemInsert(ae))
                         {
                           lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                          lpUndoElement->nActionStartOffset=nLineOffset + lpNewElement->nLineLen;
-                          lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
+                          lpUndoElement->nActionStartOffset=nLineOffset + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
+                          lpUndoElement->nActionEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
                           lpUndoElement->wpText=wpUndoText;
                           lpUndoElement->dwTextLen=dwUndoTextLen;
 
@@ -8238,66 +8202,357 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                     }
                   }
                 }
+                lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+              }
+              else break;
+
+              lpInsertToElement=lpElement;
+
+              if (!lpElement->next)
+              {
+                if (nLineBreak != AELB_EOF)
+                {
+                  ++dwRichTextCount;
+
+                  //Insert new line
+                  if (bEnableUndo)
+                  {
+                    if (!ae->bLockCollectUndo)
+                    {
+                      if (ae->dwUndoLimit)
+                      {
+                        AEUNDOITEM *lpUndoElement;
+                        wchar_t *wpUndoText;
+                        wchar_t *wpLineBreak;
+                        DWORD dwUndoTextLen=AE_GetNewLineString(ae, lpNewElement->nLineBreak, &wpLineBreak);
+
+                        if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                        {
+                          AE_memcpy(wpUndoText, wpLineBreak, dwUndoTextLen * sizeof(wchar_t));
+                          wpUndoText[dwUndoTextLen]=L'\0';
+
+                          if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                          {
+                            lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
+                            lpUndoElement->nActionStartOffset=nLineOffset + lpNewElement->nLineLen;
+                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
+                            lpUndoElement->wpText=wpUndoText;
+                            lpUndoElement->dwTextLen=dwUndoTextLen;
+
+                            ae->lpCurrentUndo=lpUndoElement;
+                          }
+                          else break;
+                        }
+                        else break;
+                      }
+                    }
+                  }
+                }
+              }
+              lpElement=lpElement->next;
+            }
+            else
+            {
+              ciInsertFrom.nCharInLine=ptInsertFrom.x / ae->nSpaceCharWidth;
+
+              lpNewElement->nLineWidth=-1;
+              lpNewElement->nLineBreak=nLineBreak;
+              lpNewElement->nLineLen=ciInsertFrom.nCharInLine + nLineLen;
+              nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
+
+              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+              {
+                dwRichTextCount+=ciInsertFrom.nCharInLine;
+                if (nLineBreak != AELB_EOF)
+                  ++dwRichTextCount;
+
+                for (i=0; i < ciInsertFrom.nCharInLine; ++i)
+                  lpNewElement->wpLine[i]=L' ';
+                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+
+                //Add undo
+                if (bEnableUndo)
+                {
+                  if (!ae->bLockCollectUndo)
+                  {
+                    if (ae->dwUndoLimit)
+                    {
+                      AEUNDOITEM *lpUndoElement;
+                      wchar_t *wpUndoText;
+                      DWORD dwUndoTextLen=lpNewElement->nLineLen + 1;
+
+                      if (nLineBreak == AELB_EOF)
+                        --dwUndoTextLen;
+
+                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                      {
+                        nSpaces=ciInsertFrom.nCharInLine;
+
+                        for (i=0; i < nSpaces; ++i)
+                          wpUndoText[i]=L' ';
+                        AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
+                        if (nLineBreak != AELB_EOF)
+                          wpUndoText[lpNewElement->nLineLen]=L'\n';
+                        wpUndoText[dwUndoTextLen]=L'\0';
+
+                        if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                        {
+                          lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
+                          lpUndoElement->nActionStartOffset=nLineOffset;
+                          if (nLineBreak != AELB_EOF)
+                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
+                          else
+                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen;
+                          lpUndoElement->wpText=wpUndoText;
+                          lpUndoElement->dwTextLen=dwUndoTextLen;
+
+                          ae->lpCurrentUndo=lpUndoElement;
+                        }
+                        else break;
+                      }
+                      else break;
+                    }
+                  }
+                }
+                lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+
+                ++nLineCount;
+              }
+              else break;
+            }
+            if (nLineBreak == AELB_EOF) break;
+            if (lpNewElement->nLineBreak == AELB_WRAP)
+              nLineOffset+=lpNewElement->nLineLen;
+            else
+              nLineOffset+=lpNewElement->nLineLen + 1;
+            ++ciLastChar.nLine;
+            wpLineStart=wpLineEnd;
+          }
+          else break;
+        }
+
+        if (dwTextCount)
+        {
+          //Last insert line
+          ciLastChar.lpLine=lpNewElement;
+          ciLastChar.nCharInLine=nCaretIndexInLine;
+
+          //Delete lines in range
+          lpElement=ciInsertFrom.lpLine;
+
+          while (lpElement)
+          {
+            if (lpElement == lpInsertToElement)
+            {
+              AE_StackLineDelete(ae, lpElement);
+              break;
+            }
+
+            lpNextElement=lpElement->next;
+            AE_StackLineDelete(ae, lpElement);
+            lpElement=lpNextElement;
+          }
+
+          //Update control points
+          if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciInsertFrom.nLine)
+            ae->nFirstDrawLineOffset+=dwRichTextCount;
+          if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciInsertFrom.nLine)
+            ae->nLastCallOffset+=dwRichTextCount;
+          ae->nLastCharOffset+=dwRichTextCount;
+
+          //Set global
+          nHScrollPos=ae->nHScrollPos;
+          nVScrollPos=ae->nVScrollPos;
+          ae->nLineCount+=nLineCount;
+          ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+          AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
+          ae->ciCaretIndex=ciFirstChar;
+          ae->nSelStartCharOffset=nStartOffset;
+          ae->ciSelStartIndex=ciFirstChar;
+          ae->nSelEndCharOffset=nStartOffset;
+          ae->ciSelEndIndex=ciFirstChar;
+          nEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
+
+          //Post processing
+          lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
+          lpPointTwo=AE_StackPointInsert(ae, &ciLastChar);
+
+          if (ae->bWordWrap)
+          {
+            AELINEINDEX liWrapStart;
+            AELINEINDEX liWrapEnd;
+
+            liWrapStart.nLine=ciFirstChar.nLine;
+            liWrapStart.lpLine=ciFirstChar.lpLine;
+            liWrapEnd.nLine=ciLastChar.nLine;
+            liWrapEnd.lpLine=ciLastChar.lpLine;
+            nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->bWordWrap);
+            ciFirstChar=lpPointOne->ciPoint;
+            ciLastChar=lpPointTwo->ciPoint;
+
+            //Set redraw lines
+            nFirstRedrawLine=liWrapStart.nLine;
+            nLastRedrawLine=-1;
+
+            //Set control points to "insert from" position
+            AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
+            ae->ciCaretIndex=ciFirstChar;
+            ae->nSelStartCharOffset=nStartOffset;
+            ae->ciSelStartIndex=ciFirstChar;
+            ae->nSelEndCharOffset=nStartOffset;
+            ae->ciSelEndIndex=ciFirstChar;
+
+            //Update scroll bars
+            ae->nLineCount+=nWrapCount;
+            ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+            if (nLineCount + nWrapCount)
+            {
+              if (bUpdate)
+              {
+                AE_UpdateScrollBars(ae, SB_VERT);
+                ciFirstChar=lpPointOne->ciPoint;
+                ciLastChar=lpPointTwo->ciPoint;
               }
             }
-            lpElement=lpElement->next;
           }
           else
           {
-            ciInsertFrom.nCharInLine=ptInsertFrom.x / ae->nSpaceCharWidth;
+            //Set redraw lines
+            nFirstRedrawLine=ciFirstChar.nLine;
+            nLastRedrawLine=ciLastChar.nLine;
 
-            lpNewElement->nLineWidth=-1;
-            lpNewElement->nLineBreak=nLineBreak;
-            lpNewElement->nLineLen=ciInsertFrom.nCharInLine + nLineLen;
-            nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
-
-            if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+            //Update scroll bars
+            if (nLineCount)
             {
-              dwRichTextCount+=ciInsertFrom.nCharInLine;
-              if (nLineBreak != AELB_EOF)
-                ++dwRichTextCount;
-
-              for (i=0; i < ciInsertFrom.nCharInLine; ++i)
-                lpNewElement->wpLine[i]=L' ';
-              AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-
-              //Add undo
-              if (bEnableUndo)
+              if (bUpdate)
               {
-                if (!ae->bLockCollectUndo)
+                AE_UpdateScrollBars(ae, SB_VERT);
+                ciFirstChar=lpPointOne->ciPoint;
+                ciLastChar=lpPointTwo->ciPoint;
+              }
+            }
+            if (!ae->liMaxWidthLine.lpLine)
+              AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
+            else
+              AE_CalcLinesWidth(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, FALSE);
+            ciFirstChar=lpPointOne->ciPoint;
+            ciLastChar=lpPointTwo->ciPoint;
+          }
+          AE_StackPointDelete(ae, lpPointOne);
+          AE_StackPointDelete(ae, lpPointTwo);
+
+          //Add undo
+          if (bEnableUndo)
+          {
+            AE_SetModify(ae, TRUE, FALSE);
+
+            if (!ae->bLockCollectUndo)
+            {
+              if (ae->dwUndoLimit)
+              {
+                //Set selection
                 {
-                  if (ae->dwUndoLimit)
+                  AEUNDOITEM *lpUndoElement;
+
+                  if (lpUndoElement=AE_StackUndoItemInsert(ae))
                   {
-                    AEUNDOITEM *lpUndoElement;
-                    wchar_t *wpUndoText;
-                    DWORD dwUndoTextLen=lpNewElement->nLineLen + 1;
+                    lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_REDOONLY;
+                    lpUndoElement->nActionStartOffset=nStartOffset;
+                    lpUndoElement->nActionEndOffset=nEndOffset;
+                    lpUndoElement->wpText=NULL;
+                    lpUndoElement->dwTextLen=0;
 
-                    if (nLineBreak == AELB_EOF)
-                      --dwUndoTextLen;
+                    ae->lpCurrentUndo=lpUndoElement;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      else
+      {
+        lpNewElement=ciInsertFrom.lpLine;
 
-                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+        while (dwTextCount < dwTextLen)
+        {
+          if (lpNewElement=AE_StackLineInsertAfter(ae, lpNewElement))
+          {
+            wpLineEnd=AE_GetNextLine(ae, wpLineStart, dwTextLen - dwTextCount, &nLineLen, &nLineBreak);
+            dwTextCount+=wpLineEnd - wpLineStart;
+            dwRichTextCount+=nLineLen + 1;
+
+            if (nLineBreak != AELB_EOF)
+            {
+              if (nNewLine != AELB_ASIS)
+                nLineBreak=nNewLine;
+            }
+            else --dwRichTextCount;
+
+            //First line
+            if (!nLineCount)
+            {
+              //Start index
+              ciFirstChar.nLine=ciInsertFrom.nLine;
+              ciFirstChar.lpLine=lpNewElement;
+              ciFirstChar.nCharInLine=min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
+
+              if (nLineBreak == AELB_EOF)
+              {
+                lpNewElement->nLineWidth=-1;
+                lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
+                lpNewElement->nLineLen=ciInsertFrom.lpLine->nLineLen + max(ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen, 0) + nLineLen;
+                nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
+              }
+              else
+              {
+                lpNewElement->nLineWidth=-1;
+                lpNewElement->nLineBreak=nLineBreak;
+                lpNewElement->nLineLen=min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen) + max(ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen, 0) + nLineLen;
+                nCaretIndexInLine=0;
+              }
+
+              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+              {
+                AE_memcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine, min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen) * sizeof(wchar_t));
+
+                if (ciInsertFrom.nCharInLine > ciInsertFrom.lpLine->nLineLen)
+                {
+                  dwRichTextCount+=ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen;
+                  nSpaces=ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen;
+
+                  for (i=ciInsertFrom.lpLine->nLineLen; i < ciInsertFrom.nCharInLine; ++i)
+                    lpNewElement->wpLine[i]=L' ';
+                }
+
+                if (nLineBreak == AELB_EOF)
+                {
+                  //wpText - one line
+                  AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                  if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
+                    AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine + nLineLen, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                  lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+                }
+                else
+                {
+                  AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                  lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+
+                  if (dwTextCount >= dwTextLen)
+                  {
+                    //End of line as new line
+                    if (lpNewElement=AE_StackLineInsertAfter(ae, lpNewElement))
                     {
-                      nSpaces=ciInsertFrom.nCharInLine;
+                      lpNewElement->nLineWidth=-1;
+                      lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
+                      lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0);
+                      nCaretIndexInLine=0;
 
-                      for (i=0; i < nSpaces; ++i)
-                        wpUndoText[i]=L' ';
-                      AE_memcpy(wpUndoText + i, wpLineStart, nLineLen * sizeof(wchar_t));
-                      if (nLineBreak != AELB_EOF)
-                        wpUndoText[lpNewElement->nLineLen]=L'\n';
-                      wpUndoText[dwUndoTextLen]=L'\0';
-
-                      if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                      if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
                       {
-                        lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                        lpUndoElement->nActionStartOffset=nLineOffset;
-                        if (nLineBreak != AELB_EOF)
-                          lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
-                        else
-                          lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen;
-                        lpUndoElement->wpText=wpUndoText;
-                        lpUndoElement->dwTextLen=dwUndoTextLen;
-
-                        ae->lpCurrentUndo=lpUndoElement;
+                        if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
+                          AE_memcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                        lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
                       }
                       else break;
                     }
@@ -8305,283 +8560,71 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
                   }
                 }
               }
-              lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+              else break;
 
+              if (nLineBreak == AELB_EOF) break;
               ++nLineCount;
-            }
-            else break;
-          }
-          if (nLineBreak == AELB_EOF) break;
-          if (lpNewElement->nLineBreak == AELB_WRAP)
-            nLineOffset+=lpNewElement->nLineLen;
-          else
-            nLineOffset+=lpNewElement->nLineLen + 1;
-          ++ciLastChar.nLine;
-          wpLineStart=wpLineEnd;
-        }
-        else break;
-      }
-
-      if (dwTextCount)
-      {
-        //Last insert line
-        ciLastChar.lpLine=lpNewElement;
-        ciLastChar.nCharInLine=nCaretIndexInLine;
-
-        //Delete lines in range
-        lpElement=ciInsertFrom.lpLine;
-
-        while (lpElement)
-        {
-          if (lpElement == lpInsertToElement)
-          {
-            AE_StackLineDelete(ae, lpElement);
-            break;
-          }
-
-          lpNextElement=lpElement->next;
-          AE_StackLineDelete(ae, lpElement);
-          lpElement=lpNextElement;
-        }
-
-        //Update control points
-        if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciInsertFrom.nLine)
-          ae->nFirstDrawLineOffset+=dwRichTextCount;
-        if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciInsertFrom.nLine)
-          ae->nLastCallOffset+=dwRichTextCount;
-        ae->nLastCharOffset+=dwRichTextCount;
-
-        //Set global
-        nHScrollPos=ae->nHScrollPos;
-        nVScrollPos=ae->nVScrollPos;
-        ae->nLineCount+=nLineCount;
-        ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
-        AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
-        ae->ciCaretIndex=ciFirstChar;
-        ae->nSelStartCharOffset=nStartOffset;
-        ae->ciSelStartIndex=ciFirstChar;
-        ae->nSelEndCharOffset=nStartOffset;
-        ae->ciSelEndIndex=ciFirstChar;
-        nEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
-
-        //Post processing
-        lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
-        lpPointTwo=AE_StackPointInsert(ae, &ciLastChar);
-
-        if (ae->bWordWrap)
-        {
-          AELINEINDEX liWrapStart;
-          AELINEINDEX liWrapEnd;
-
-          liWrapStart.nLine=ciFirstChar.nLine;
-          liWrapStart.lpLine=ciFirstChar.lpLine;
-          liWrapEnd.nLine=ciLastChar.nLine;
-          liWrapEnd.lpLine=ciLastChar.lpLine;
-          nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->bWordWrap);
-          ciFirstChar=lpPointOne->ciPoint;
-          ciLastChar=lpPointTwo->ciPoint;
-
-          //Set redraw lines
-          nFirstRedrawLine=liWrapStart.nLine;
-          nLastRedrawLine=-1;
-
-          //Set control points to "insert from" position
-          AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
-          ae->ciCaretIndex=ciFirstChar;
-          ae->nSelStartCharOffset=nStartOffset;
-          ae->ciSelStartIndex=ciFirstChar;
-          ae->nSelEndCharOffset=nStartOffset;
-          ae->ciSelEndIndex=ciFirstChar;
-
-          //Update scroll bars
-          ae->nLineCount+=nWrapCount;
-          ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
-          if (nLineCount + nWrapCount)
-          {
-            if (bUpdate)
-            {
-              AE_UpdateScrollBars(ae, SB_VERT);
-              ciFirstChar=lpPointOne->ciPoint;
-              ciLastChar=lpPointTwo->ciPoint;
-            }
-          }
-        }
-        else
-        {
-          //Set redraw lines
-          nFirstRedrawLine=ciFirstChar.nLine;
-          nLastRedrawLine=ciLastChar.nLine;
-
-          //Update scroll bars
-          if (nLineCount)
-          {
-            if (bUpdate)
-            {
-              AE_UpdateScrollBars(ae, SB_VERT);
-              ciFirstChar=lpPointOne->ciPoint;
-              ciLastChar=lpPointTwo->ciPoint;
-            }
-          }
-          if (!ae->liMaxWidthLine.lpLine)
-            AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
-          else
-            AE_CalcLinesWidth(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, FALSE);
-          ciFirstChar=lpPointOne->ciPoint;
-          ciLastChar=lpPointTwo->ciPoint;
-        }
-        AE_StackPointDelete(ae, lpPointOne);
-        AE_StackPointDelete(ae, lpPointTwo);
-
-        //Add undo
-        if (bEnableUndo)
-        {
-          AE_SetModify(ae, TRUE, FALSE);
-
-          if (!ae->bLockCollectUndo)
-          {
-            if (ae->dwUndoLimit)
-            {
-              //Set selection
-              {
-                AEUNDOITEM *lpUndoElement;
-
-                if (lpUndoElement=AE_StackUndoItemInsert(ae))
-                {
-                  lpUndoElement->dwFlags=AEUN_SETSEL|AEUN_COLUMNSEL|AEUN_REDOONLY;
-                  lpUndoElement->nActionStartOffset=nStartOffset;
-                  lpUndoElement->nActionEndOffset=nEndOffset;
-                  lpUndoElement->wpText=NULL;
-                  lpUndoElement->dwTextLen=0;
-
-                  ae->lpCurrentUndo=lpUndoElement;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    else
-    {
-      //Parse text
-      if (dwTextLen == (DWORD)-1) dwTextLen=lstrlenW(wpText);
-
-      lpNewElement=ciInsertFrom.lpLine;
-
-      while (dwTextCount < dwTextLen)
-      {
-        if (lpNewElement=AE_StackLineInsertAfter(ae, lpNewElement))
-        {
-          wpLineEnd=AE_GetNextLine(ae, wpLineStart, dwTextLen - dwTextCount, &nLineLen, &nLineBreak);
-          dwTextCount+=wpLineEnd - wpLineStart;
-          dwRichTextCount+=nLineLen + 1;
-
-          if (nLineBreak != AELB_EOF)
-          {
-            if (nNewLine != AELB_ASIS)
-              nLineBreak=nNewLine;
-          }
-          else --dwRichTextCount;
-
-          //First line
-          if (!nLineCount)
-          {
-            //Start index
-            ciFirstChar.nLine=ciInsertFrom.nLine;
-            ciFirstChar.lpLine=lpNewElement;
-            ciFirstChar.nCharInLine=min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
-
-            if (nLineBreak == AELB_EOF)
-            {
-              lpNewElement->nLineWidth=-1;
-              lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
-              lpNewElement->nLineLen=ciInsertFrom.lpLine->nLineLen + max(ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen, 0) + nLineLen;
-              nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
-            }
-            else
-            {
-              lpNewElement->nLineWidth=-1;
-              lpNewElement->nLineBreak=nLineBreak;
-              lpNewElement->nLineLen=min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen) + max(ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen, 0) + nLineLen;
-              nCaretIndexInLine=0;
+              wpLineStart=wpLineEnd;
+              continue;
             }
 
-            if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+            //Last line
+            if (dwTextCount >= dwTextLen)
             {
-              AE_memcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine, min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen) * sizeof(wchar_t));
-
-              if (ciInsertFrom.nCharInLine > ciInsertFrom.lpLine->nLineLen)
-              {
-                dwRichTextCount+=ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen;
-                nSpaces=ciInsertFrom.nCharInLine - ciInsertFrom.lpLine->nLineLen;
-
-                for (i=ciInsertFrom.lpLine->nLineLen; i < ciInsertFrom.nCharInLine; ++i)
-                  lpNewElement->wpLine[i]=L' ';
-              }
-
               if (nLineBreak == AELB_EOF)
               {
-                //wpText - one line
-                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-                if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
-                  AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine + nLineLen, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
-                lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+                lpNewElement->nLineWidth=-1;
+                lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
+                lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0) + nLineLen;
+                nCaretIndexInLine=nLineLen;
+
+                if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+                {
+                  AE_memcpy(lpNewElement->wpLine, wpLineStart, nLineLen * sizeof(wchar_t));
+                  if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
+                    AE_memcpy(lpNewElement->wpLine + nLineLen, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                  lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+                }
+                else break;
               }
               else
               {
-                AE_memcpy(lpNewElement->wpLine + ciInsertFrom.nCharInLine, wpLineStart, nLineLen * sizeof(wchar_t));
-                lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+                lpNewElement->nLineWidth=-1;
+                lpNewElement->nLineBreak=nLineBreak;
+                lpNewElement->nLineLen=nLineLen;
+                nCaretIndexInLine=0;
 
-                if (dwTextCount >= dwTextLen)
+                if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
                 {
-                  //End of line as new line
-                  if (lpNewElement=AE_StackLineInsertAfter(ae, lpNewElement))
-                  {
-                    lpNewElement->nLineWidth=-1;
-                    lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
-                    lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0);
-                    nCaretIndexInLine=0;
+                  AE_memcpy(lpNewElement->wpLine, wpLineStart, lpNewElement->nLineLen * sizeof(wchar_t));
+                  lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
 
-                    if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
-                    {
-                      if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
-                        AE_memcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
-                      lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
-                    }
-                    else break;
+                  ++nLineCount;
+                }
+                else break;
+
+                //End of line as new line
+                if (lpNewElement=AE_StackLineInsertAfter(ae, lpNewElement))
+                {
+                  lpNewElement->nLineWidth=-1;
+                  lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
+                  lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0);
+                  nCaretIndexInLine=0;
+
+                  if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+                  {
+                    if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
+                      AE_memcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
+                    lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
                   }
                   else break;
                 }
+                else break;
               }
+              break;
             }
-            else break;
 
-            if (nLineBreak == AELB_EOF) break;
-            ++nLineCount;
-            wpLineStart=wpLineEnd;
-            continue;
-          }
-
-          //Last line
-          if (dwTextCount >= dwTextLen)
-          {
-            if (nLineBreak == AELB_EOF)
-            {
-              lpNewElement->nLineWidth=-1;
-              lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
-              lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0) + nLineLen;
-              nCaretIndexInLine=nLineLen;
-
-              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
-              {
-                AE_memcpy(lpNewElement->wpLine, wpLineStart, nLineLen * sizeof(wchar_t));
-                if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
-                  AE_memcpy(lpNewElement->wpLine + nLineLen, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
-                lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
-              }
-              else break;
-            }
-            else
+            //Center lines
             {
               lpNewElement->nLineWidth=-1;
               lpNewElement->nLineBreak=nLineBreak;
@@ -8597,240 +8640,201 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
               }
               else break;
 
-              //End of line as new line
-              if (lpNewElement=AE_StackLineInsertAfter(ae, lpNewElement))
-              {
-                lpNewElement->nLineWidth=-1;
-                lpNewElement->nLineBreak=ciInsertFrom.lpLine->nLineBreak;
-                lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0);
-                nCaretIndexInLine=0;
-
-                if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
-                {
-                  if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
-                    AE_memcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
-                  lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
-                }
-                else break;
-              }
-              else break;
+              wpLineStart=wpLineEnd;
             }
-            break;
           }
-
-          //Center lines
-          {
-            lpNewElement->nLineWidth=-1;
-            lpNewElement->nLineBreak=nLineBreak;
-            lpNewElement->nLineLen=nLineLen;
-            nCaretIndexInLine=0;
-
-            if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
-            {
-              AE_memcpy(lpNewElement->wpLine, wpLineStart, lpNewElement->nLineLen * sizeof(wchar_t));
-              lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
-
-              ++nLineCount;
-            }
-            else break;
-
-            wpLineStart=wpLineEnd;
-          }
+          else break;
         }
-        else break;
-      }
 
-      if (dwTextCount)
-      {
-        //Update points
-        for (lpPoint=(AEPOINT *)ae->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
+        if (dwTextCount)
         {
-          if (!lpPoint->bModify)
+          //Update points
+          for (lpPoint=(AEPOINT *)ae->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
           {
-            if (lpPoint->ciPoint.nLine > ciInsertFrom.nLine)
+            if (!lpPoint->bModify)
             {
-              lpPoint->ciPoint.nLine+=nLineCount;
-            }
-            else if (lpPoint->ciPoint.nLine == ciInsertFrom.nLine)
-            {
-              if (lpPoint->ciPoint.nCharInLine < ciInsertFrom.nCharInLine)
-              {
-                lpPoint->ciPoint.lpLine=ciFirstChar.lpLine;
-              }
-              else
+              if (lpPoint->ciPoint.nLine > ciInsertFrom.nLine)
               {
                 lpPoint->ciPoint.nLine+=nLineCount;
-                lpPoint->ciPoint.lpLine=lpNewElement;
-                lpPoint->ciPoint.nCharInLine=nCaretIndexInLine + (lpPoint->ciPoint.nCharInLine - ciInsertFrom.nCharInLine);
+              }
+              else if (lpPoint->ciPoint.nLine == ciInsertFrom.nLine)
+              {
+                if (lpPoint->ciPoint.nCharInLine < ciInsertFrom.nCharInLine)
+                {
+                  lpPoint->ciPoint.lpLine=ciFirstChar.lpLine;
+                }
+                else
+                {
+                  lpPoint->ciPoint.nLine+=nLineCount;
+                  lpPoint->ciPoint.lpLine=lpNewElement;
+                  lpPoint->ciPoint.nCharInLine=nCaretIndexInLine + (lpPoint->ciPoint.nCharInLine - ciInsertFrom.nCharInLine);
+                }
+              }
+              lpPoint->bModify=TRUE;
+            }
+          }
+
+          AE_StackLineDelete(ae, ciInsertFrom.lpLine);
+
+          //Update control points
+          if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciInsertFrom.nLine)
+          {
+            ae->liFirstDrawLine.nLine+=nLineCount;
+            ae->nFirstDrawLineOffset+=dwRichTextCount;
+          }
+          if (ae->liMaxWidthLine.lpLine && ae->liMaxWidthLine.nLine > ciInsertFrom.nLine)
+          {
+            ae->liMaxWidthLine.nLine+=nLineCount;
+          }
+          if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciInsertFrom.nLine)
+          {
+            ae->ciLastCallIndex.nLine+=nLineCount;
+            ae->nLastCallOffset+=dwRichTextCount;
+          }
+          ae->nLastCharOffset+=dwRichTextCount;
+
+          //Set global
+          nHScrollPos=ae->nHScrollPos;
+          nVScrollPos=ae->nVScrollPos;
+          ae->nLineCount+=nLineCount;
+          ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+          ciLastChar.nLine=ciInsertFrom.nLine + nLineCount;
+          ciLastChar.lpLine=lpNewElement;
+          ciLastChar.nCharInLine=nCaretIndexInLine;
+          nEndOffset=nStartOffset - nSpaces + dwRichTextCount;
+
+          //Post processing
+          lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
+          lpPointTwo=AE_StackPointInsert(ae, &ciLastChar);
+
+          if (ae->bWordWrap)
+          {
+            AELINEINDEX liWrapStart;
+            AELINEINDEX liWrapEnd;
+
+            liWrapStart.nLine=ciFirstChar.nLine;
+            liWrapStart.lpLine=ciFirstChar.lpLine;
+            liWrapEnd.nLine=ciLastChar.nLine;
+            liWrapEnd.lpLine=ciLastChar.lpLine;
+            nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->bWordWrap);
+            ciFirstChar=lpPointOne->ciPoint;
+            ciLastChar=lpPointTwo->ciPoint;
+
+            //Set redraw lines
+            nFirstRedrawLine=liWrapStart.nLine;
+            nLastRedrawLine=-1;
+
+            //Set control points to "insert to" position
+            AE_GetPosFromCharEx(ae, &ciLastChar, &ae->ptCaret, NULL);
+            ae->ciCaretIndex=ciLastChar;
+            ae->nSelStartCharOffset=nEndOffset;
+            ae->ciSelStartIndex=ciLastChar;
+            ae->nSelEndCharOffset=nEndOffset;
+            ae->ciSelEndIndex=ciLastChar;
+
+            //Update scroll bars
+            ae->nLineCount+=nWrapCount;
+            ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
+            if (nLineCount + nWrapCount)
+            {
+              if (bUpdate)
+              {
+                AE_UpdateScrollBars(ae, SB_VERT);
+                ciFirstChar=lpPointOne->ciPoint;
+                ciLastChar=lpPointTwo->ciPoint;
               }
             }
-            lpPoint->bModify=TRUE;
           }
-        }
-
-        AE_StackLineDelete(ae, ciInsertFrom.lpLine);
-
-        //Update control points
-        if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciInsertFrom.nLine)
-        {
-          ae->liFirstDrawLine.nLine+=nLineCount;
-          ae->nFirstDrawLineOffset+=dwRichTextCount;
-        }
-        if (ae->liMaxWidthLine.lpLine && ae->liMaxWidthLine.nLine > ciInsertFrom.nLine)
-        {
-          ae->liMaxWidthLine.nLine+=nLineCount;
-        }
-        if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciInsertFrom.nLine)
-        {
-          ae->ciLastCallIndex.nLine+=nLineCount;
-          ae->nLastCallOffset+=dwRichTextCount;
-        }
-        ae->nLastCharOffset+=dwRichTextCount;
-
-        //Set global
-        nHScrollPos=ae->nHScrollPos;
-        nVScrollPos=ae->nVScrollPos;
-        ae->nLineCount+=nLineCount;
-        ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
-        ciLastChar.nLine=ciInsertFrom.nLine + nLineCount;
-        ciLastChar.lpLine=lpNewElement;
-        ciLastChar.nCharInLine=nCaretIndexInLine;
-        nEndOffset=nStartOffset - nSpaces + dwRichTextCount;
-
-        //Post processing
-        lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
-        lpPointTwo=AE_StackPointInsert(ae, &ciLastChar);
-
-        if (ae->bWordWrap)
-        {
-          AELINEINDEX liWrapStart;
-          AELINEINDEX liWrapEnd;
-
-          liWrapStart.nLine=ciFirstChar.nLine;
-          liWrapStart.lpLine=ciFirstChar.lpLine;
-          liWrapEnd.nLine=ciLastChar.nLine;
-          liWrapEnd.lpLine=ciLastChar.lpLine;
-          nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->bWordWrap);
-          ciFirstChar=lpPointOne->ciPoint;
-          ciLastChar=lpPointTwo->ciPoint;
-
-          //Set redraw lines
-          nFirstRedrawLine=liWrapStart.nLine;
-          nLastRedrawLine=-1;
-
-          //Set control points to "insert to" position
-          AE_GetPosFromCharEx(ae, &ciLastChar, &ae->ptCaret, NULL);
-          ae->ciCaretIndex=ciLastChar;
-          ae->nSelStartCharOffset=nEndOffset;
-          ae->ciSelStartIndex=ciLastChar;
-          ae->nSelEndCharOffset=nEndOffset;
-          ae->ciSelEndIndex=ciLastChar;
-
-          //Update scroll bars
-          ae->nLineCount+=nWrapCount;
-          ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
-          if (nLineCount + nWrapCount)
-          {
-            if (bUpdate)
-            {
-              AE_UpdateScrollBars(ae, SB_VERT);
-              ciFirstChar=lpPointOne->ciPoint;
-              ciLastChar=lpPointTwo->ciPoint;
-            }
-          }
-        }
-        else
-        {
-          //Set redraw lines
-          nFirstRedrawLine=ciFirstChar.nLine;
-          nLastRedrawLine=-1;
-          if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
-            nLastRedrawLine=ciLastChar.nLine;
-
-          AE_GetPosFromCharEx(ae, &ciLastChar, &ae->ptCaret, NULL);
-          ae->ciCaretIndex=ciLastChar;
-          ae->nSelStartCharOffset=nEndOffset;
-          ae->ciSelStartIndex=ciLastChar;
-          ae->nSelEndCharOffset=nEndOffset;
-          ae->ciSelEndIndex=ciLastChar;
-
-          //Update scroll bars
-          if (nLineCount)
-          {
-            if (bUpdate)
-            {
-              AE_UpdateScrollBars(ae, SB_VERT);
-              ciFirstChar=lpPointOne->ciPoint;
-              ciLastChar=lpPointTwo->ciPoint;
-            }
-          }
-          if (!ae->liMaxWidthLine.lpLine)
-            AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
           else
-            AE_CalcLinesWidth(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, FALSE);
-          ciFirstChar=lpPointOne->ciPoint;
-          ciLastChar=lpPointTwo->ciPoint;
-        }
-        AE_StackPointDelete(ae, lpPointOne);
-        AE_StackPointDelete(ae, lpPointTwo);
-
-        //Add undo
-        if (bEnableUndo)
-        {
-          AE_SetModify(ae, TRUE, FALSE);
-
-          if (!ae->bLockCollectUndo)
           {
-            if (ae->dwUndoLimit)
-            {
-              AEUNDOITEM *lpUndoElement;
-              wchar_t *wpUndoText;
+            //Set redraw lines
+            nFirstRedrawLine=ciFirstChar.nLine;
+            nLastRedrawLine=-1;
+            if (!nLineCount && ciFirstChar.nLine == ciLastChar.nLine)
+              nLastRedrawLine=ciLastChar.nLine;
 
-              if (nSpaces > 0)
+            AE_GetPosFromCharEx(ae, &ciLastChar, &ae->ptCaret, NULL);
+            ae->ciCaretIndex=ciLastChar;
+            ae->nSelStartCharOffset=nEndOffset;
+            ae->ciSelStartIndex=ciLastChar;
+            ae->nSelEndCharOffset=nEndOffset;
+            ae->ciSelEndIndex=ciLastChar;
+
+            //Update scroll bars
+            if (nLineCount)
+            {
+              if (bUpdate)
               {
-                if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, nSpaces * sizeof(wchar_t) + 2))
+                AE_UpdateScrollBars(ae, SB_VERT);
+                ciFirstChar=lpPointOne->ciPoint;
+                ciLastChar=lpPointTwo->ciPoint;
+              }
+            }
+            if (!ae->liMaxWidthLine.lpLine)
+              AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
+            else
+              AE_CalcLinesWidth(ae, (AELINEINDEX *)&ciFirstChar, (AELINEINDEX *)&ciLastChar, FALSE);
+            ciFirstChar=lpPointOne->ciPoint;
+            ciLastChar=lpPointTwo->ciPoint;
+          }
+          AE_StackPointDelete(ae, lpPointOne);
+          AE_StackPointDelete(ae, lpPointTwo);
+
+          //Add undo
+          if (bEnableUndo)
+          {
+            AE_SetModify(ae, TRUE, FALSE);
+
+            if (!ae->bLockCollectUndo)
+            {
+              if (ae->dwUndoLimit)
+              {
+                AEUNDOITEM *lpUndoElement;
+                wchar_t *wpUndoText;
+
+                if (nSpaces > 0)
                 {
-                  for (i=0; i < nSpaces; ++i)
-                    wpUndoText[i]=L' ';
-                  wpUndoText[nSpaces]=L'\0';
+                  if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, nSpaces * sizeof(wchar_t) + 2))
+                  {
+                    for (i=0; i < nSpaces; ++i)
+                      wpUndoText[i]=L' ';
+                    wpUndoText[nSpaces]=L'\0';
+
+                    if (lpUndoElement=AE_StackUndoItemInsert(ae))
+                    {
+                      lpUndoElement->dwFlags=AEUN_DELETE;
+                      lpUndoElement->nActionStartOffset=nStartOffset - nSpaces;
+                      lpUndoElement->nActionEndOffset=nStartOffset;
+                      lpUndoElement->wpText=wpUndoText;
+                      lpUndoElement->dwTextLen=nSpaces;
+
+                      ae->lpCurrentUndo=lpUndoElement;
+                    }
+                  }
+                }
+
+                if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwTextLen * sizeof(wchar_t) + 2))
+                {
+                  AE_memcpy(wpUndoText, wpText, dwTextLen * sizeof(wchar_t));
+                  wpUndoText[dwTextLen]=L'\0';
 
                   if (lpUndoElement=AE_StackUndoItemInsert(ae))
                   {
                     lpUndoElement->dwFlags=AEUN_DELETE;
-                    lpUndoElement->nActionStartOffset=nStartOffset - nSpaces;
-                    lpUndoElement->nActionEndOffset=nStartOffset;
+                    lpUndoElement->nActionStartOffset=nStartOffset;
+                    lpUndoElement->nActionEndOffset=nEndOffset;
                     lpUndoElement->wpText=wpUndoText;
-                    lpUndoElement->dwTextLen=nSpaces;
+                    lpUndoElement->dwTextLen=dwTextLen;
 
                     ae->lpCurrentUndo=lpUndoElement;
                   }
                 }
               }
-
-              if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwTextLen * sizeof(wchar_t) + 2))
-              {
-                AE_memcpy(wpUndoText, wpText, dwTextLen * sizeof(wchar_t));
-                wpUndoText[dwTextLen]=L'\0';
-
-                if (lpUndoElement=AE_StackUndoItemInsert(ae))
-                {
-                  lpUndoElement->dwFlags=AEUN_DELETE;
-                  lpUndoElement->nActionStartOffset=nStartOffset;
-                  lpUndoElement->nActionEndOffset=nEndOffset;
-                  lpUndoElement->wpText=wpUndoText;
-                  lpUndoElement->dwTextLen=dwTextLen;
-
-                  ae->lpCurrentUndo=lpUndoElement;
-                }
-              }
             }
           }
         }
       }
-    }
 
-    if (dwTextCount)
-    {
       //Result indexes
       if (ciInsertStart)
       {
@@ -8865,9 +8869,9 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
       }
 
-      AE_NotifyAkelSelChange(ae);
+      AE_NotifyAkelSelChanged(ae);
       AE_NotifyRichSelChange(ae);
-      AE_NotifyTextChange(ae);
+      AE_NotifyTextChanged(ae);
     }
   }
   return dwTextCount;
@@ -9432,16 +9436,16 @@ void AE_SetModify(AKELEDIT *ae, BOOL bState, BOOL bMessage)
       }
     }
 
-    //Send AEN_MODIFYCHANGE
-    if (ae->dwEventMask & AENM_MODIFYCHANGE)
+    //Send AEN_MODIFY
+    if (ae->dwEventMask & AENM_MODIFY)
     {
-      AENMODIFYCHANGE mc;
+      AENMODIFY aenm;
 
-      mc.hdr.hwndFrom=ae->hWndEdit;
-      mc.hdr.idFrom=ae->nEditCtrlID;
-      mc.hdr.code=AEN_MODIFYCHANGE;
-      mc.bModified=ae->bModified;
-      SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&mc);
+      aenm.hdr.hwndFrom=ae->hWndEdit;
+      aenm.hdr.idFrom=ae->nEditCtrlID;
+      aenm.hdr.code=AEN_MODIFY;
+      aenm.bModified=ae->bModified;
+      SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenm);
     }
   }
 }
@@ -10254,16 +10258,31 @@ void AE_NotifyKillFocus(AKELEDIT *ae)
   SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_KILLFOCUS), (LPARAM)ae->hWndEdit);
 }
 
-void AE_NotifyAkelSelChange(AKELEDIT *ae)
+void AE_NotifyAkelSelChanging(AKELEDIT *ae)
 {
-  //Send AEN_SELCHANGE
+  //Send AEN_SELCHANGING
   if (ae->dwEventMask & AENM_SELCHANGE)
   {
     AENSELCHANGE sc;
 
     sc.hdr.hwndFrom=ae->hWndEdit;
     sc.hdr.idFrom=ae->nEditCtrlID;
-    sc.hdr.code=AEN_SELCHANGE;
+    sc.hdr.code=AEN_SELCHANGING;
+    AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
+  }
+}
+
+void AE_NotifyAkelSelChanged(AKELEDIT *ae)
+{
+  //Send AEN_SELCHANGED
+  if (ae->dwEventMask & AENM_SELCHANGE)
+  {
+    AENSELCHANGE sc;
+
+    sc.hdr.hwndFrom=ae->hWndEdit;
+    sc.hdr.idFrom=ae->nEditCtrlID;
+    sc.hdr.code=AEN_SELCHANGED;
     AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
@@ -10286,16 +10305,30 @@ void AE_NotifyRichSelChange(AKELEDIT *ae)
   }
 }
 
-void AE_NotifyTextChange(AKELEDIT *ae)
+void AE_NotifyTextChanging(AKELEDIT *ae)
 {
-  //Send AEN_TEXTCHANGE
+  //Send AEN_TEXTCHANGING
   if (ae->dwEventMask & AENM_TEXTCHANGE)
   {
     AENTEXTCHANGE tc;
 
     tc.hdr.hwndFrom=ae->hWndEdit;
     tc.hdr.idFrom=ae->nEditCtrlID;
-    tc.hdr.code=AEN_TEXTCHANGE;
+    tc.hdr.code=AEN_TEXTCHANGING;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
+  }
+}
+
+void AE_NotifyTextChanged(AKELEDIT *ae)
+{
+  //Send AEN_TEXTCHANGED
+  if (ae->dwEventMask & AENM_TEXTCHANGE)
+  {
+    AENTEXTCHANGE tc;
+
+    tc.hdr.hwndFrom=ae->hWndEdit;
+    tc.hdr.idFrom=ae->nEditCtrlID;
+    tc.hdr.code=AEN_TEXTCHANGED;
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
 
