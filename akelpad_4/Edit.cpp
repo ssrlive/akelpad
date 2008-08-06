@@ -316,7 +316,7 @@ void CreateEditWindowA(HWND hWnd)
                            (HMENU)ID_EDIT,
                            hInstance,
                            NULL);
-  szCurrentFile[0]='\0';
+
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
   SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE|AENM_DRAGDROP|AENM_LINK);
@@ -354,7 +354,6 @@ void CreateEditWindowW(HWND hWnd)
                            hInstance,
                            NULL);
 
-  wszCurrentFile[0]='\0';
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
   SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE|AENM_DRAGDROP|AENM_LINK);
@@ -4464,8 +4463,11 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     goto End;
   }
 
-  if (!(bFileExist=GetFullNameA(szFile)))
+  if (!(bFileExist=GetFullNameA(szFile, MAX_PATH)))
   {
+    //Compare paths
+    nFileCmp=lstrcmpiA(szCurrentFile, szFile);
+
     //File doesn't exist
     if (nMsgCreate == AUTOANSWER_ASK)
     {
@@ -4488,10 +4490,13 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   }
   else
   {
+    //Compare paths
+    nFileCmp=lstrcmpiA(szCurrentFile, szFile);
+
     if (hWnd == hWndEdit)
     {
       //File exists
-      if (!bMDI && !bMdiReopen && bSingleOpenFile && lstrcmpiA(szFile, szCurrentFile))
+      if (!bMDI && !bMdiReopen && bSingleOpenFile && nFileCmp)
       {
         if ((hWndFriend=FindWindowA(APP_SDI_CLASSA, szFile)) &&
             (hWndFriend=GetParent(hWndFriend)))
@@ -4504,7 +4509,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       }
       if (bMDI && !bMdiReopen && bSingleOpenFile)
       {
-        if (!lstrcmpiA(szFile, szCurrentFile) || (hWndFriend=FindWindowExA(hMdiClient, NULL, APP_MDI_CLASSA, szFile)))
+        if (!nFileCmp || (hWndFriend=FindWindowExA(hMdiClient, NULL, APP_MDI_CLASSA, szFile)))
         {
           if (hWndFriend)
           {
@@ -4620,9 +4625,6 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
 
     if (fsd.bResult)
     {
-      //Compare paths
-      nFileCmp=lstrcmpiA(szCurrentFile, szFile);
-
       if (nFileCmp || nCurrentCodePage != nCodePage)
       {
         //Read position of the new document
@@ -4707,8 +4709,12 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     nResult=EOD_STOP;
     goto End;
   }
-  if (!(bFileExist=GetFullNameW(wszFile)))
+
+  if (!(bFileExist=GetFullNameW(wszFile, MAX_PATH)))
   {
+    //Compare paths
+    nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
+
     //File doesn't exist
     if (nMsgCreate == AUTOANSWER_ASK)
     {
@@ -4731,10 +4737,13 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   }
   else
   {
+    //Compare paths
+    nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
+
     if (hWnd == hWndEdit)
     {
       //File exists
-      if (!bMDI && !bMdiReopen && bSingleOpenFile && lstrcmpiW(wszFile, wszCurrentFile))
+      if (!bMDI && !bMdiReopen && bSingleOpenFile && nFileCmp)
       {
         if ((hWndFriend=FindWindowW(APP_SDI_CLASSW, wszFile)) &&
             (hWndFriend=GetParent(hWndFriend)))
@@ -4747,7 +4756,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       }
       if (bMDI && !bMdiReopen && bSingleOpenFile)
       {
-        if (!lstrcmpiW(wszFile, wszCurrentFile) || (hWndFriend=FindWindowExW(hMdiClient, NULL, APP_MDI_CLASSW, wszFile)))
+        if (!nFileCmp || (hWndFriend=FindWindowExW(hMdiClient, NULL, APP_MDI_CLASSW, wszFile)))
         {
           if (hWndFriend)
           {
@@ -4863,9 +4872,6 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
 
     if (fsd.bResult)
     {
-      //Compare paths
-      nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
-
       if (nFileCmp || nCurrentCodePage != nCodePage)
       {
         //Read position of the new document
@@ -5028,6 +5034,9 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
     goto End;
   }
 
+  //Compare paths
+  nFileCmp=lstrcmpiA(szCurrentFile, szFile);
+
   //Check code page
   if (!IsCodePageValid(nCodePage))
   {
@@ -5128,9 +5137,6 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
     //Update file info
     if (bUpdate)
     {
-      //Compare paths
-      nFileCmp=lstrcmpiA(szCurrentFile, szFile);
-
       if (nFileCmp || nCurrentCodePage != nCodePage)
       {
         //Save position of the document
@@ -5225,6 +5231,9 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
     nResult=ESD_STOP;
     goto End;
   }
+
+  //Compare paths
+  nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
 
   //Check code page
   if (!IsCodePageValid(nCodePage))
@@ -5326,9 +5335,6 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
     //Update file info
     if (bUpdate)
     {
-      //Compare paths
-      nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
-
       if (nFileCmp || nCurrentCodePage != nCodePage)
       {
         //Save position of the document
@@ -17074,7 +17080,7 @@ int GetFileDirW(wchar_t *wpFile, wchar_t *wszFileDir, int nFileDirLen)
   return 0;
 }
 
-BOOL GetFullNameA(char *szFile)
+BOOL GetFullNameA(char *szFile, int nFileLen)
 {
   char *pFileName;
 
@@ -17083,17 +17089,17 @@ BOOL GetFullNameA(char *szFile)
     if (FileExistsA(szFile))
     {
       if (GetLongPathNameAPtr)
-        (*GetLongPathNameAPtr)(buf, szFile, MAX_PATH);
+        (*GetLongPathNameAPtr)(buf, szFile, nFileLen);
       else
-        lstrcpynA(szFile, buf, MAX_PATH);
+        lstrcpynA(szFile, buf, nFileLen);
       return TRUE;
     }
-    lstrcpynA(szFile, buf, MAX_PATH);
+    lstrcpynA(szFile, buf, nFileLen);
   }
   return FALSE;
 }
 
-BOOL GetFullNameW(wchar_t *wszFile)
+BOOL GetFullNameW(wchar_t *wszFile, int nFileLen)
 {
   wchar_t *wpFileName;
 
@@ -17102,12 +17108,12 @@ BOOL GetFullNameW(wchar_t *wszFile)
     if (FileExistsW(wszFile))
     {
       if (GetLongPathNameWPtr)
-        (*GetLongPathNameWPtr)(wbuf, wszFile, MAX_PATH);
+        (*GetLongPathNameWPtr)(wbuf, wszFile, nFileLen);
       else
-        lstrcpynW(wszFile, wbuf, MAX_PATH);
+        lstrcpynW(wszFile, wbuf, nFileLen);
       return TRUE;
     }
-    lstrcpynW(wszFile, wbuf, MAX_PATH);
+    lstrcpynW(wszFile, wbuf, nFileLen);
   }
   return FALSE;
 }

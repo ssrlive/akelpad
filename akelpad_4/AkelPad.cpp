@@ -572,7 +572,7 @@ extern "C" void _WinMain()
         {
           if (bSingleOpenFile)
           {
-            if (GetFullNameA(szFileBuffer))
+            if (GetFullNameA(szFileBuffer, MAX_PATH))
             {
               if ((hWndFriend=FindWindowA(APP_SDI_CLASSA, szFileBuffer)) &&
                   (hWndFriend=GetParent(hWndFriend)))
@@ -984,7 +984,7 @@ extern "C" void _WinMain()
         {
           if (bSingleOpenFile)
           {
-            if (GetFullNameW(wszFileBuffer))
+            if (GetFullNameW(wszFileBuffer, MAX_PATH))
             {
               if ((hWndFriend=FindWindowW(APP_SDI_CLASSW, wszFileBuffer)) &&
                   (hWndFriend=GetParent(hWndFriend)))
@@ -1658,6 +1658,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Apply settings
+      szCurrentFile[0]='\0';
       SetFocus(hWndEdit);
       SetNewLineStatusA(NULL, NEWLINE_WIN, 0, TRUE);
       SetInsertStateStatusA(NULL, FALSE, TRUE);
@@ -3339,6 +3340,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Apply settings
+      wszCurrentFile[0]='\0';
       SetFocus(hWndEdit);
       SetNewLineStatusW(NULL, NEWLINE_WIN, 0, TRUE);
       SetInsertStateStatusW(NULL, FALSE, TRUE);
