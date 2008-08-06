@@ -1658,7 +1658,6 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Apply settings
-      szCurrentFile[0]='\0';
       SetFocus(hWndEdit);
       SetNewLineStatusA(NULL, NEWLINE_WIN, 0, TRUE);
       SetInsertStateStatusA(NULL, FALSE, TRUE);
@@ -3340,7 +3339,6 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Apply settings
-      wszCurrentFile[0]='\0';
       SetFocus(hWndEdit);
       SetNewLineStatusW(NULL, NEWLINE_WIN, 0, TRUE);
       SetInsertStateStatusW(NULL, FALSE, TRUE);
