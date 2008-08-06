@@ -20,9 +20,9 @@
 #define AES_URLDELIMITERSW    L" \t\n()<>'`\""
 
 //AEM_SETEVENTMASK flags
-#define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGE notifications.
-#define AENM_TEXTCHANGE         0x00000002  //Sends AEN_TEXTCHANGE notifications.
-#define AENM_MODIFYCHANGE       0x00000004  //Sends AEN_MODIFYCHANGE notifications.
+#define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGING and AEN_SELCHANGED notifications.
+#define AENM_TEXTCHANGE         0x00000002  //Sends AEN_TEXTCHANGING and AEN_TEXTCHANGED notifications.
+#define AENM_MODIFY             0x00000004  //Sends AEN_MODIFY notifications.
 #define AENM_SCROLL             0x00000008  //Sends AEN_HSCROLL and AEN_VSCROLL notifications.
 #define AENM_DROPFILES          0x00000010  //Sends AEN_DROPFILES notifications.
 #define AENM_DRAGDROP           0x00000020  //Sends AEN_DROPSOURCE and AEN_DROPTARGET notifications.
@@ -389,7 +389,7 @@ typedef struct {
 typedef struct {
   NMHDR hdr;
   BOOL bModified;      //TRUE document state is set to modified, FALSE document state is set to unmodified
-} AENMODIFYCHANGE;
+} AENMODIFY;
 
 typedef struct {
   NMHDR hdr;
@@ -435,15 +435,17 @@ typedef struct {
 #define AEN_ERRSPACE          (WM_USER + 1001)
 #define AEN_SETFOCUS          (WM_USER + 1002)
 #define AEN_KILLFOCUS         (WM_USER + 1003)
-#define AEN_SELCHANGE         (WM_USER + 1004)
-#define AEN_TEXTCHANGE        (WM_USER + 1005)
-#define AEN_MODIFYCHANGE      (WM_USER + 1006)
-#define AEN_HSCROLL           (WM_USER + 1007)
-#define AEN_VSCROLL           (WM_USER + 1008)
-#define AEN_DROPFILES         (WM_USER + 1009)
-#define AEN_DROPSOURCE        (WM_USER + 1010)
-#define AEN_DROPTARGET        (WM_USER + 1011)
-#define AEN_LINK              (WM_USER + 1012)
+#define AEN_SELCHANGING       (WM_USER + 1004)
+#define AEN_SELCHANGED        (WM_USER + 1005)
+#define AEN_TEXTCHANGING      (WM_USER + 1006)
+#define AEN_TEXTCHANGED       (WM_USER + 1007)
+#define AEN_MODIFY            (WM_USER + 1008)
+#define AEN_HSCROLL           (WM_USER + 1009)
+#define AEN_VSCROLL           (WM_USER + 1010)
+#define AEN_DROPFILES         (WM_USER + 1011)
+#define AEN_DROPSOURCE        (WM_USER + 1012)
+#define AEN_DROPTARGET        (WM_USER + 1013)
+#define AEN_LINK              (WM_USER + 1014)
 
 #define AEM_SETTEXTA          (WM_USER + 2001)
 #define AEM_SETTEXTW          (WM_USER + 2002)
@@ -574,8 +576,24 @@ Return Value
  zero
 
 
-AEN_SELCHANGE
-_____________
+AEN_SELCHANGING
+_______________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure before the current selection has changed.
+
+(int)wParam            == specifies the control identifier.
+(AENSELCHANGE *)lParam == pointer to a AENSELCHANGE structure.
+
+Return Value
+ zero
+
+Remarks
+ To receive AEN_SELCHANGING notifications, specify AENM_SELCHANGING in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_SELCHANGED
+______________
 
 Notification message sends in the form of a WM_NOTIFY message.
 Sends to the parent window procedure after the current selection has changed.
@@ -587,11 +605,27 @@ Return Value
  zero
 
 Remarks
- To receive AEN_SELCHANGE notifications, specify AENM_SELCHANGE in the mask sent with the AEM_SETEVENTMASK message.
+ To receive AEN_SELCHANGED notifications, specify AENM_SELCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
-AEN_TEXTCHANGE
-______________
+AEN_TEXTCHANGING
+________________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure before the document text has changed.
+
+(int)wParam             == specifies the control identifier.
+(AENTEXTCHANGE *)lParam == pointer to a AENTEXTCHANGE structure.
+
+Return Value
+ zero
+
+Remarks
+ To receive AEN_TEXTCHANGING notifications, specify AENM_TEXTCHANGING in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_TEXTCHANGED
+_______________
 
 Notification message sends in the form of a WM_NOTIFY message.
 Sends to the parent window procedure after the document text has changed.
@@ -603,23 +637,23 @@ Return Value
  zero
 
 Remarks
- To receive AEN_TEXTCHANGE notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
+ To receive AEN_TEXTCHANGED notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
-AEN_MODIFYCHANGE
-________________
+AEN_MODIFY
+__________
 
 Notification message sends in the form of a WM_NOTIFY message.
 Sends to the parent window procedure after the document modify state has changed.
 
-(int)wParam               == specifies the control identifier.
-(AENMODIFYCHANGE *)lParam == pointer to a AENMODIFYCHANGE structure.
+(int)wParam         == specifies the control identifier.
+(AENMODIFY *)lParam == pointer to a AENMODIFY structure.
 
 Return Value
  zero
 
 Remarks
- To receive AEN_MODIFYCHANGE notifications, specify AENM_MODIFYCHANGE in the mask sent with the AEM_SETEVENTMASK message.
+ To receive AEN_MODIFY notifications, specify AENM_MODIFY in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_HSCROLL
@@ -1872,7 +1906,7 @@ Return Value
  Previous event mask.
 
 Example:
- SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFYCHANGE);
+ SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY);
 
 
 AEM_GETOPTIONS
@@ -2346,7 +2380,6 @@ EN_LINK
 EN_MSGFILTER
 EN_SELCHANGE
 EN_SETFOCUS
-EN_STOPNOUNDO
 EN_VSCROLL
 
 EM_AUTOURLDETECT
