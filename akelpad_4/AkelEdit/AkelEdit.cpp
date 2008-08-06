@@ -2483,6 +2483,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_HideSelection(ae, FALSE);
       }
       AE_NotifySetFocus(ae);
+      AE_NotifyRichSelChange(ae);
       return 0;
     }
     else if (uMsg == WM_KILLFOCUS)
@@ -4674,7 +4675,8 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
         }
       }
 
-      AE_NotifySelChange(ae);
+      AE_NotifyAkelSelChange(ae);
+      AE_NotifyRichSelChange(ae);
     }
   }
 }
@@ -8025,7 +8027,8 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
     }
 
-    AE_NotifySelChange(ae);
+    AE_NotifyAkelSelChange(ae);
+    AE_NotifyRichSelChange(ae);
     AE_NotifyTextChange(ae);
   }
 }
@@ -8862,7 +8865,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
       }
 
-      AE_NotifySelChange(ae);
+      AE_NotifyAkelSelChange(ae);
+      AE_NotifyRichSelChange(ae);
       AE_NotifyTextChange(ae);
     }
   }
@@ -10250,7 +10254,7 @@ void AE_NotifyKillFocus(AKELEDIT *ae)
   SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_KILLFOCUS), (LPARAM)ae->hWndEdit);
 }
 
-void AE_NotifySelChange(AKELEDIT *ae)
+void AE_NotifyAkelSelChange(AKELEDIT *ae)
 {
   //Send AEN_SELCHANGE
   if (ae->dwEventMask & AENM_SELCHANGE)
@@ -10263,7 +10267,10 @@ void AE_NotifySelChange(AKELEDIT *ae)
     AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
+}
 
+void AE_NotifyRichSelChange(AKELEDIT *ae)
+{
   //Send EN_SELCHANGE
   if (ae->dwRichEventMask & ENM_SELCHANGE)
   {
