@@ -1421,6 +1421,8 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
     FreeText(wszRange);
     return TRUE;
   }
+  SendMessage(hWnd, WM_KEYDOWN, VK_BACK, 0);
+  SendMessage(hWnd, WM_KEYUP, VK_BACK, 0);
   return FALSE;
 }
 
