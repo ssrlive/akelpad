@@ -4465,9 +4465,6 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
 
   if (!(bFileExist=GetFullNameA(szFile, MAX_PATH)))
   {
-    //Compare paths
-    nFileCmp=lstrcmpiA(szCurrentFile, szFile);
-
     //File doesn't exist
     if (nMsgCreate == AUTOANSWER_ASK)
     {
@@ -4490,13 +4487,10 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   }
   else
   {
-    //Compare paths
-    nFileCmp=lstrcmpiA(szCurrentFile, szFile);
-
     if (hWnd == hWndEdit)
     {
       //File exists
-      if (!bMDI && !bMdiReopen && bSingleOpenFile && nFileCmp)
+      if (!bMDI && !bMdiReopen && bSingleOpenFile && lstrcmpiA(szFile, szCurrentFile))
       {
         if ((hWndFriend=FindWindowA(APP_SDI_CLASSA, szFile)) &&
             (hWndFriend=GetParent(hWndFriend)))
@@ -4509,7 +4503,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       }
       if (bMDI && !bMdiReopen && bSingleOpenFile)
       {
-        if (!nFileCmp || (hWndFriend=FindWindowExA(hMdiClient, NULL, APP_MDI_CLASSA, szFile)))
+        if (!lstrcmpiA(szFile, szCurrentFile) || (hWndFriend=FindWindowExA(hMdiClient, NULL, APP_MDI_CLASSA, szFile)))
         {
           if (hWndFriend)
           {
@@ -4625,6 +4619,9 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
 
     if (fsd.bResult)
     {
+      //Compare paths
+      nFileCmp=lstrcmpiA(szCurrentFile, szFile);
+
       if (nFileCmp || nCurrentCodePage != nCodePage)
       {
         //Read position of the new document
@@ -4709,12 +4706,8 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     nResult=EOD_STOP;
     goto End;
   }
-
   if (!(bFileExist=GetFullNameW(wszFile, MAX_PATH)))
   {
-    //Compare paths
-    nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
-
     //File doesn't exist
     if (nMsgCreate == AUTOANSWER_ASK)
     {
@@ -4737,13 +4730,10 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   }
   else
   {
-    //Compare paths
-    nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
-
     if (hWnd == hWndEdit)
     {
       //File exists
-      if (!bMDI && !bMdiReopen && bSingleOpenFile && nFileCmp)
+      if (!bMDI && !bMdiReopen && bSingleOpenFile && lstrcmpiW(wszFile, wszCurrentFile))
       {
         if ((hWndFriend=FindWindowW(APP_SDI_CLASSW, wszFile)) &&
             (hWndFriend=GetParent(hWndFriend)))
@@ -4756,7 +4746,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       }
       if (bMDI && !bMdiReopen && bSingleOpenFile)
       {
-        if (!nFileCmp || (hWndFriend=FindWindowExW(hMdiClient, NULL, APP_MDI_CLASSW, wszFile)))
+        if (!lstrcmpiW(wszFile, wszCurrentFile) || (hWndFriend=FindWindowExW(hMdiClient, NULL, APP_MDI_CLASSW, wszFile)))
         {
           if (hWndFriend)
           {
@@ -4872,6 +4862,9 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
 
     if (fsd.bResult)
     {
+      //Compare paths
+      nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
+
       if (nFileCmp || nCurrentCodePage != nCodePage)
       {
         //Read position of the new document
@@ -5034,9 +5027,6 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
     goto End;
   }
 
-  //Compare paths
-  nFileCmp=lstrcmpiA(szCurrentFile, szFile);
-
   //Check code page
   if (!IsCodePageValid(nCodePage))
   {
@@ -5137,6 +5127,9 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
     //Update file info
     if (bUpdate)
     {
+      //Compare paths
+      nFileCmp=lstrcmpiA(szCurrentFile, szFile);
+
       if (nFileCmp || nCurrentCodePage != nCodePage)
       {
         //Save position of the document
@@ -5231,9 +5224,6 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
     nResult=ESD_STOP;
     goto End;
   }
-
-  //Compare paths
-  nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
 
   //Check code page
   if (!IsCodePageValid(nCodePage))
@@ -5335,6 +5325,9 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
     //Update file info
     if (bUpdate)
     {
+      //Compare paths
+      nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
+
       if (nFileCmp || nCurrentCodePage != nCodePage)
       {
         //Save position of the document
