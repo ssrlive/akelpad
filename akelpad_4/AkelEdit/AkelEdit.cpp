@@ -2483,7 +2483,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_HideSelection(ae, FALSE);
       }
       AE_NotifySetFocus(ae);
-      AE_NotifyRichSelChange(ae);
       return 0;
     }
     else if (uMsg == WM_KILLFOCUS)
@@ -4600,7 +4599,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     //Notification
     if (bUpdate)
     {
-      AE_NotifyAkelSelChanging(ae);
+      AE_NotifySelChanging(ae);
     }
 
     //Clear old lines selection
@@ -4680,8 +4679,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
             AE_RedrawLineRange(ae, min(ciSelEndOld.nLine, ciSelEndNew.nLine), max(ciSelEndOld.nLine, ciSelEndNew.nLine), FALSE);
         }
       }
-      AE_NotifyAkelSelChanged(ae);
-      AE_NotifyRichSelChange(ae);
+      AE_NotifySelChanged(ae);
     }
   }
 }
@@ -7521,7 +7519,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
 
   if (ciRangeStart->lpLine && ciRangeEnd->lpLine)
   {
-    AE_NotifyAkelSelChanging(ae);
+    AE_NotifySelChanging(ae);
     AE_NotifyTextChanging(ae);
 
     //Exchange indexes
@@ -8035,8 +8033,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       }
     }
 
-    AE_NotifyAkelSelChanged(ae);
-    AE_NotifyRichSelChange(ae);
+    AE_NotifySelChanged(ae);
     AE_NotifyTextChanged(ae);
   }
 }
@@ -8079,7 +8076,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
 
     if (dwTextLen)
     {
-      AE_NotifyAkelSelChanging(ae);
+      AE_NotifySelChanging(ae);
       AE_NotifyTextChanging(ae);
 
       //Set new line
@@ -8838,43 +8835,45 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
         }
       }
 
-      //Result indexes
-      if (ciInsertStart)
+      if (dwTextCount)
       {
-        ciInsertStart->nLine=ciFirstChar.nLine;
-        ciInsertStart->lpLine=ciFirstChar.lpLine;
-        ciInsertStart->nCharInLine=ciFirstChar.nCharInLine;
-      }
-      if (ciInsertEnd)
-      {
-        ciInsertEnd->nLine=ciLastChar.nLine;
-        ciInsertEnd->lpLine=ciLastChar.lpLine;
-        ciInsertEnd->nCharInLine=ciLastChar.nCharInLine;
-      }
-
-      if (bScroll)
-      {
-        //Set caret position
-        AE_ScrollToCaret(ae, &ae->ptCaret);
-        ae->nHorizCaretPos=ae->ptCaret.x;
-        if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
-      }
-      if (bUpdate)
-      {
-        //Redraw lines
-        if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
+        //Result indexes
+        if (ciInsertStart)
         {
-          InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+          ciInsertStart->nLine=ciFirstChar.nLine;
+          ciInsertStart->lpLine=ciFirstChar.lpLine;
+          ciInsertStart->nCharInLine=ciFirstChar.nCharInLine;
         }
-        else
+        if (ciInsertEnd)
         {
-          AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, FALSE);
+          ciInsertEnd->nLine=ciLastChar.nLine;
+          ciInsertEnd->lpLine=ciLastChar.lpLine;
+          ciInsertEnd->nCharInLine=ciLastChar.nCharInLine;
         }
-      }
 
-      AE_NotifyAkelSelChanged(ae);
-      AE_NotifyRichSelChange(ae);
-      AE_NotifyTextChanged(ae);
+        if (bScroll)
+        {
+          //Set caret position
+          AE_ScrollToCaret(ae, &ae->ptCaret);
+          ae->nHorizCaretPos=ae->ptCaret.x;
+          if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+        }
+        if (bUpdate)
+        {
+          //Redraw lines
+          if (nHScrollPos != ae->nHScrollPos || nVScrollPos != ae->nVScrollPos)
+          {
+            InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+          }
+          else
+          {
+            AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, FALSE);
+          }
+        }
+
+        AE_NotifySelChanged(ae);
+        AE_NotifyTextChanged(ae);
+      }
     }
   }
   return dwTextCount;
@@ -10261,7 +10260,7 @@ void AE_NotifyKillFocus(AKELEDIT *ae)
   SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_KILLFOCUS), (LPARAM)ae->hWndEdit);
 }
 
-void AE_NotifyAkelSelChanging(AKELEDIT *ae)
+void AE_NotifySelChanging(AKELEDIT *ae)
 {
   //Send AEN_SELCHANGING
   if (ae->dwEventMask & AENM_SELCHANGE)
@@ -10276,7 +10275,7 @@ void AE_NotifyAkelSelChanging(AKELEDIT *ae)
   }
 }
 
-void AE_NotifyAkelSelChanged(AKELEDIT *ae)
+void AE_NotifySelChanged(AKELEDIT *ae)
 {
   //Send AEN_SELCHANGED
   if (ae->dwEventMask & AENM_SELCHANGE)
@@ -10289,10 +10288,7 @@ void AE_NotifyAkelSelChanged(AKELEDIT *ae)
     AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
-}
 
-void AE_NotifyRichSelChange(AKELEDIT *ae)
-{
   //Send EN_SELCHANGE
   if (ae->dwRichEventMask & ENM_SELCHANGE)
   {
