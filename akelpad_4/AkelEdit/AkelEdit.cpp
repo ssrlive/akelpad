@@ -4598,7 +4598,10 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     }
 
     //Notification
-    AE_NotifyAkelSelChanging(ae);
+    if (bUpdate)
+    {
+      AE_NotifyAkelSelChanging(ae);
+    }
 
     //Clear old lines selection
     if (AE_IndexCompare(&ciSelStartOld, &ciSelEndOld))
@@ -4677,9 +4680,9 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
             AE_RedrawLineRange(ae, min(ciSelEndOld.nLine, ciSelEndNew.nLine), max(ciSelEndOld.nLine, ciSelEndNew.nLine), FALSE);
         }
       }
+      AE_NotifyAkelSelChanged(ae);
+      AE_NotifyRichSelChange(ae);
     }
-    AE_NotifyAkelSelChanged(ae);
-    AE_NotifyRichSelChange(ae);
   }
 }
 
