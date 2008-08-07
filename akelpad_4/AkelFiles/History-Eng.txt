@@ -2,6 +2,7 @@
 AkelPad 4.0.1 ()
 ----------------------------
 Fixed: draw text with monospaced font.
+Fixed: program blocked Shift+Enter hotkey, if selection was empty.
 
 
 AkelPad 4.0.0 final (Aug 03, 2008)
