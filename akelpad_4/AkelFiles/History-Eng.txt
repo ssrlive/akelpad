@@ -4,6 +4,7 @@ AkelPad 4.0.1 ()
 Added: Romanian language module (Alexandru Bogdan Munteanu).
 
 Fixed: draw text with monospaced font.
+Fixed: caret position after text deletion.
 Fixed: program blocked Shift+BackSpace hotkey, if selection was empty.
 
 
