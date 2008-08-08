@@ -9386,23 +9386,23 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 
     if (nLineBreak == AELB_R)
     {
-      if (*wpStrCount != L'\r') return FALSE;
+      if (*wpStrCount++ != L'\r') return FALSE;
     }
     else if (nLineBreak == AELB_N)
     {
-      if (*wpStrCount != L'\n') return FALSE;
+      if (*wpStrCount++ != L'\n') return FALSE;
     }
     else if (nLineBreak == AELB_RN)
     {
-      if (*wpStrCount != L'\r') return FALSE;
-      if (*++wpStrCount != L'\n') return FALSE;
+      if (*wpStrCount++ != L'\r') return FALSE;
+      if (*wpStrCount++ != L'\n') return FALSE;
     }
     else if (nLineBreak == AELB_RRN)
     {
-      if (*wpStrCount != L'\r') return FALSE;
-      if (*++wpStrCount != L'\n') return FALSE;
+      if (*wpStrCount++ != L'\r') return FALSE;
+      if (*wpStrCount++ != L'\n') return FALSE;
     }
-    if (!*++wpStrCount) goto Founded;
+    if (!*wpStrCount) goto Founded;
   }
 
   Founded:
