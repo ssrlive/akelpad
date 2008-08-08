@@ -7473,7 +7473,13 @@ void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnS
 
   AE_StackUndoGroupStop(ae);
   AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, TRUE, FALSE, TRUE);
-  AE_InsertText(ae, &ae->ciSelStartIndex, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, &ciStart, &ciEnd, TRUE, TRUE, TRUE);
+  if (!AE_InsertText(ae, &ae->ciSelStartIndex, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, &ciStart, &ciEnd, TRUE, TRUE, TRUE))
+  {
+    //Set caret position
+    AE_ScrollToCaret(ae, &ae->ptCaret);
+    ae->nHorizCaretPos=ae->ptCaret.x;
+    if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+  }
   AE_StackUndoGroupStop(ae);
 
   if (bColumnSel)
