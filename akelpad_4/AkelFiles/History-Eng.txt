@@ -6,6 +6,7 @@ Added: file opening and word wrapping progress indicator, if text processed more
 Added: Romanian language module (Alexandru Bogdan Munteanu).
 
 Fixed: draw text with monospaced font.
+Fixed: selection on tab switching in word wrap mode (MDI).
 Fixed: search in word wrap mode.
 Fixed: caret position after text deletion.
 Fixed: program blocked Shift+BackSpace hotkey, if selection was empty.
