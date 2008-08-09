@@ -7313,6 +7313,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
         AE_memcpy(lpElement->wpLine, wpLineStart, lpElement->nLineLen * sizeof(wchar_t));
         lpElement->wpLine[lpElement->nLineLen]=L'\0';
         lpElement->nLineWidth=-1;
+        AE_GetLineWidth(ae, lpElement);
       }
       else break;
     }
