@@ -4944,13 +4944,14 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatusA(hWndEdit, &aensc->aes.crSel, &aensc->ciCaret);
+        if (aensc->hdr.hwndFrom == hWndEdit)
+          SetSelectionStatusA(hWndEdit, &aensc->aes.crSel, &aensc->ciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
       {
         AENMODIFY *aenm=(AENMODIFY *)lParam;
 
-        SetModifyStatusA(hWndEdit, aenm->bModified, FALSE);
+        SetModifyStatusA(NULL, aenm->bModified, FALSE);
       }
       else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)
       {
@@ -5150,13 +5151,14 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatusW(hWndEdit, &aensc->aes.crSel, &aensc->ciCaret);
+        if (aensc->hdr.hwndFrom == hWndEdit)
+          SetSelectionStatusW(hWndEdit, &aensc->aes.crSel, &aensc->ciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
       {
         AENMODIFY *aenm=(AENMODIFY *)lParam;
 
-        SetModifyStatusW(hWndEdit, aenm->bModified, FALSE);
+        SetModifyStatusW(NULL, aenm->bModified, FALSE);
       }
       else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)
       {
