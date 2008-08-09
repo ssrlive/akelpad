@@ -4611,7 +4611,6 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
   fsd.nBytesMax=-1;
-  fsd.bProgress=TRUE;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
@@ -4855,7 +4854,6 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
   fsd.nBytesMax=-1;
-  fsd.bProgress=TRUE;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
@@ -4938,10 +4936,10 @@ void FileStreamIn(FILESTREAMDATA *lpData)
   DWORD dwCharsConverted;
   DWORD i;
 
+  dwProgressStartTime=GetTickCount();
+
   if ((dwFileSize=GetFileSize(lpData->hFile, NULL)) != INVALID_FILE_SIZE)
   {
-    if (lpData->bProgress)
-      dwProgressStartTime=GetTickCount();
     if (lpData->nBytesMax == -1)
       lpData->nBytesMax=dwFileSize;
 
@@ -4997,16 +4995,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
         }
 
         //Send to AkelEdit
-        if (lpData->bProgress)
-          ShowWindow(hProgress, TRUE);
-
         SendMessage(lpData->hWnd, AEM_SETTEXTW, (LPARAM)dwCharsConverted, (WPARAM)wpBuffer);
-
-        if (lpData->bProgress)
-        {
-          ShowWindow(hProgress, FALSE);
-          SendMessage(hProgress, PBM_SETPOS, 0, 0);
-        }
       }
       else lpData->bResult=FALSE;
 
@@ -5118,7 +5107,6 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
-  fsd.bProgress=FALSE;
   fsd.bResult=TRUE;
   FileStreamOut(&fsd);
   CloseHandle(hFile);
@@ -5317,7 +5305,6 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
-  fsd.bProgress=FALSE;
   fsd.bResult=TRUE;
   FileStreamOut(&fsd);
   CloseHandle(hFile);
@@ -7470,7 +7457,6 @@ int FilePreviewA(HWND hWnd, char *pFile, int nPreviewBytes, DWORD dwFlags, int *
   fsd.hFile=hFile;
   fsd.nCodePage=*nCodePage;
   fsd.nBytesMax=nPreviewBytes;
-  fsd.bProgress=FALSE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
 
@@ -7509,7 +7495,6 @@ int FilePreviewW(HWND hWnd, wchar_t *wpFile, int nPreviewBytes, DWORD dwFlags, i
   fsd.hFile=hFile;
   fsd.nCodePage=*nCodePage;
   fsd.nBytesMax=nPreviewBytes;
-  fsd.bProgress=FALSE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
 

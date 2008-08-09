@@ -1,7 +1,8 @@
 
 AkelPad 4.0.1 ()
 ----------------------------
-Added: file opening progress indicator, if file opens more then 0,5 second.
+Added: file opening and word wrapping progress indicator, if text processed more
+       then 0,5 second.
 Added: Romanian language module (Alexandru Bogdan Munteanu).
 
 Fixed: draw text with monospaced font.
