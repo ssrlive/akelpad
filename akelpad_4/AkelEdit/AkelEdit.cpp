@@ -4084,18 +4084,6 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
 
   while (liCount.lpLine)
   {
-    if (ae->dwEventMask & AENM_PROGRESS)
-    {
-      if (!liWrapStart && !liWrapEnd)
-      {
-        if (!(liCount.nLine % nProgressStep))
-        {
-          if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, &nProgressStep, liCount.nLine, nStopLine))
-            break;
-        }
-      }
-    }
-
     if (bWrap)
     {
       if (liCount.lpLine->nLineWidth == -1)
@@ -4119,6 +4107,18 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
         if (liCount.nLine == liFirst.nLine)
           liFirst.lpLine=liCount.lpLine;
         if (bWrap) continue;
+      }
+    }
+
+    if (ae->dwEventMask & AENM_PROGRESS)
+    {
+      if (!liWrapStart && !liWrapEnd)
+      {
+        if (!(liCount.nLine % nProgressStep))
+        {
+          if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, &nProgressStep, liCount.nLine, nStopLine))
+            break;
+        }
       }
     }
 
