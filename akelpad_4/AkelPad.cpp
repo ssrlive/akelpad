@@ -5002,16 +5002,27 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
       {
         AENPROGRESS *aenp=(AENPROGRESS *)lParam;
+        static int nIncrement;
+        static int nBarrier;
 
         if (aenp->dwType & AEPGS_SETTEXT)
         {
           if (!aenp->nCurrent)
+          {
             SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
+            nIncrement=aenp->nMaximum / 100;
+            nBarrier=nIncrement;
+          }
 
           if (dwProgressStartTime == (DWORD)-1 || GetTickCount() - dwProgressStartTime > 500)
           {
             dwProgressStartTime=(DWORD)-1;
-            SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
+
+            if (aenp->nCurrent >= nBarrier)
+            {
+              SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
+              nBarrier+=nIncrement;
+            }
           }
         }
       }
@@ -5177,16 +5188,27 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
       {
         AENPROGRESS *aenp=(AENPROGRESS *)lParam;
+        static int nIncrement;
+        static int nBarrier;
 
         if (aenp->dwType & AEPGS_SETTEXT)
         {
           if (!aenp->nCurrent)
+          {
             SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
+            nIncrement=aenp->nMaximum / 100;
+            nBarrier=nIncrement;
+          }
 
           if (dwProgressStartTime == (DWORD)-1 || GetTickCount() - dwProgressStartTime > 500)
           {
             dwProgressStartTime=(DWORD)-1;
-            SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
+
+            if (aenp->nCurrent >= nBarrier)
+            {
+              SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
+              nBarrier+=nIncrement;
+            }
           }
         }
       }
