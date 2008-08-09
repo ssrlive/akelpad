@@ -108,10 +108,12 @@ HWND hMainWnd;
 HWND hWndEdit=NULL;
 HWND hDummyWindow;
 HWND hStatus;
+HWND hProgress;
 HWND hDlgModeless=NULL;
 RECT rcMainWindowRestored={CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT};
 DWORD dwMainStyle=0;
 DWORD dwLastMainSize=0;
+DWORD dwProgressStartTime=0;
 int nStatusHeight=0;
 BOOL bStatusSelUpdate=TRUE;
 HACCEL hGlobalAccel;
@@ -1458,6 +1460,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   if (uMsg == WM_CREATE)
   {
     int iSBParts[]={110, 220, 250, 280, -1};
+    int iBorders[3];
     CLIENTCREATESTRUCT ccs;
     DWORD dwClassStyle;
     RECT rcRect;
@@ -1552,6 +1555,18 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hStatus, SB_SETPARTS, STATUS_PARTS, (LPARAM)&iSBParts);
     GetWindowRect(hStatus, &rcRect);
     nStatusHeight=rcRect.bottom - rcRect.top;
+
+    //Progress Bar
+    SendMessage(hStatus, SB_GETBORDERS, 0, (LPARAM)&iBorders);
+
+    hProgress=CreateWindowA("msctls_progress32",
+                          NULL,
+                          WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|PBS_SMOOTH,
+                          iSBParts[0] + iBorders[2], iBorders[1], (iSBParts[1] - iSBParts[0]) - iBorders[2], nStatusHeight - iBorders[1],
+                          hStatus,
+                          (HMENU)ID_PROGRESS,
+                          hInstance,
+                          NULL);
 
     PostMessage(hWnd, AKDN_MAIN_ONSTART, 0, 0);
   }
@@ -3140,6 +3155,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   if (uMsg == WM_CREATE)
   {
     int iSBParts[]={110, 220, 250, 280, -1};
+    int iBorders[3];
     CLIENTCREATESTRUCT ccs;
     DWORD dwClassStyle;
     RECT rcRect;
@@ -3234,6 +3250,18 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hStatus, SB_SETPARTS, STATUS_PARTS, (LPARAM)&iSBParts);
     GetWindowRect(hStatus, &rcRect);
     nStatusHeight=rcRect.bottom - rcRect.top;
+
+    //Progress Bar
+    SendMessage(hStatus, SB_GETBORDERS, 0, (LPARAM)&iBorders);
+
+    hProgress=CreateWindowW(L"msctls_progress32",
+                          NULL,
+                          WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|PBS_SMOOTH,
+                          iSBParts[0] + iBorders[2], iBorders[1], (iSBParts[1] - iSBParts[0]) - iBorders[2], nStatusHeight - iBorders[1],
+                          hStatus,
+                          (HMENU)ID_PROGRESS,
+                          hInstance,
+                          NULL);
 
     PostMessage(hWnd, AKDN_MAIN_ONSTART, 0, 0);
   }
@@ -4907,7 +4935,12 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   {
     if (wParam == ID_EDIT)
     {
-      if (((NMHDR *)lParam)->code == AEN_SELCHANGED)
+      if (((NMHDR *)lParam)->code == AEN_ERRSPACE)
+      {
+        API_LoadStringA(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, buf, BUFFER_SIZE);
+        MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
+      }
+      else if (((NMHDR *)lParam)->code == AEN_SELCHANGED)
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
@@ -4966,10 +4999,21 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
           }
         }
       }
-      else if (((NMHDR *)lParam)->code == AEN_ERRSPACE)
+      else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
       {
-        API_LoadStringA(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, buf, BUFFER_SIZE);
-        MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
+        AENPROGRESS *aenp=(AENPROGRESS *)lParam;
+
+        if (aenp->dwType & AEPGS_SETTEXT)
+        {
+          if (!aenp->nCurrent)
+            SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
+
+          if (dwProgressStartTime == (DWORD)-1 || GetTickCount() - dwProgressStartTime > 500)
+          {
+            dwProgressStartTime=(DWORD)-1;
+            SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
+          }
+        }
       }
     }
   }
@@ -5066,7 +5110,12 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   {
     if (wParam == ID_EDIT)
     {
-      if (((NMHDR *)lParam)->code == AEN_SELCHANGED)
+      if (((NMHDR *)lParam)->code == AEN_ERRSPACE)
+      {
+        API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, wbuf, BUFFER_SIZE);
+        MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+      }
+      else if (((NMHDR *)lParam)->code == AEN_SELCHANGED)
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
@@ -5125,10 +5174,21 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
           }
         }
       }
-      else if (((NMHDR *)lParam)->code == AEN_ERRSPACE)
+      else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
       {
-        API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, wbuf, BUFFER_SIZE);
-        MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+        AENPROGRESS *aenp=(AENPROGRESS *)lParam;
+
+        if (aenp->dwType & AEPGS_SETTEXT)
+        {
+          if (!aenp->nCurrent)
+            SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
+
+          if (dwProgressStartTime == (DWORD)-1 || GetTickCount() - dwProgressStartTime > 500)
+          {
+            dwProgressStartTime=(DWORD)-1;
+            SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
+          }
+        }
       }
     }
   }

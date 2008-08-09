@@ -27,6 +27,7 @@
 #define AENM_DROPFILES          0x00000010  //Sends AEN_DROPFILES notifications.
 #define AENM_DRAGDROP           0x00000020  //Sends AEN_DROPSOURCE and AEN_DROPTARGET notifications.
 #define AENM_LINK               0x00000040  //Sends AEN_LINK notifications.
+#define AENM_PROGRESS           0x00000080  //Sends AEN_PROGRESS notifications.
 
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
@@ -37,6 +38,11 @@
 //AEN_DROPSOURCE actions
 #define AEDS_SOURCEBEGIN        1  //Begin selection dragging.
 #define AEDS_SOURCEEND          2  //End selection dragging.
+
+//AEN_PROGRESS type
+#define AEPGS_SETTEXT           0x00000001  //Setting text.
+#define AEPGS_INSERTTEXT        0x00000002  //Inserting text.
+#define AEPGS_DELETETEXT        0x00000004  //Deleting text.
 
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
@@ -378,6 +384,10 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
+} AENERRSPACE;
+
+typedef struct {
+  NMHDR hdr;
   AESELECTION aes;      //Current selection
   AECHARINDEX ciCaret;  //Caret character index position
 } AENSELCHANGE;
@@ -427,7 +437,11 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
-} AENERRSPACE;
+  DWORD dwType;  //See AEPGS_* defines.
+  int nStep;     //Minimum number of lines to process before calling AEN_PROGRESS. Application can change this member.
+  int nCurrent;  //Characters processed.
+  int nMaximum;  //Total number of characters.
+} AENPROGRESS;
 
 
 //// AkelEdit messages
@@ -446,6 +460,7 @@ typedef struct {
 #define AEN_DROPSOURCE        (WM_USER + 1012)
 #define AEN_DROPTARGET        (WM_USER + 1013)
 #define AEN_LINK              (WM_USER + 1014)
+#define AEN_PROGRESS          (WM_USER + 1015)
 
 #define AEM_SETTEXTA          (WM_USER + 2001)
 #define AEM_SETTEXTW          (WM_USER + 2002)
@@ -757,6 +772,23 @@ Return Value
 
 Remarks
  To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message and turn on URL detection with the AEM_SETDETECTURL message.
+
+
+AEN_PROGRESS
+____________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when required number of lines was proceed.
+
+(int)wParam           == specifies the control identifier.
+(AENPROGRESS *)lParam == pointer to a AENPROGRESS structure.
+
+Return Value
+ If zero, the control continues operation.
+ If a nonzero value, the control stops operation.
+
+Remarks
+ To receive AEN_PROGRESS notifications, specify AENM_PROGRESS in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEM_SETTEXTA

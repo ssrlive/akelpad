@@ -120,6 +120,7 @@
 #define ID_EDIT           10001
 #define ID_STATUS         10002
 #define ID_TAB            10003
+#define ID_PROGRESS       10004
 #define ID_FIRSTMDI       10010
 
 LRESULT CALLBACK CommonMainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

@@ -7224,6 +7224,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   HANDLE hHeap=ae->hHeap;
   DWORD dwTextCount=0;
   int nLinesInPage;
+  int nProgressStep=1000;
   BOOL bUpdated=FALSE;
 
   //Free memory
@@ -7288,6 +7289,9 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
 
   while (dwTextCount < dwTextLen)
   {
+    if (AE_NotifyProgress(ae, AEPGS_SETTEXT, &nProgressStep, dwTextCount, dwTextLen))
+      break;
+
     if (lpElement=AE_StackLineAdd(ae))
     {
       wpLineEnd=AE_GetNextLine(ae, wpLineStart, dwTextLen - dwTextCount, &lpElement->nLineLen, &lpElement->nLineBreak);
@@ -10580,6 +10584,33 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHAR
     return TRUE;
   return FALSE;
 }
+
+BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, int *nStep, int nCurrent, int nMaximum)
+{
+  BOOL bResult=FALSE;
+
+  //Send AEN_PROGRESS
+  if (ae->dwEventMask & AENM_PROGRESS)
+  {
+    if (!(ae->nLineCount % *nStep))
+    {
+      AENPROGRESS aenp;
+
+      aenp.hdr.hwndFrom=ae->hWndEdit;
+      aenp.hdr.idFrom=ae->nEditCtrlID;
+      aenp.hdr.code=AEN_PROGRESS;
+      aenp.dwType=dwType;
+      aenp.nStep=*nStep;
+      aenp.nCurrent=nCurrent;
+      aenp.nMaximum=nMaximum;
+      bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenp);
+
+      *nStep=aenp.nStep;
+    }
+  }
+  return bResult;
+}
+
 
 wchar_t AE_WideCharUpper(wchar_t c)
 {
