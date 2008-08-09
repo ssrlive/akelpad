@@ -86,10 +86,12 @@ extern HWND hMainWnd;
 extern HWND hWndEdit;
 extern HWND hDummyWindow;
 extern HWND hStatus;
+extern HWND hProgress;
 extern HWND hDlgModeless;
 extern RECT rcMainWindowRestored;
 extern DWORD dwMainStyle;
 extern DWORD dwLastMainSize;
+extern DWORD dwProgressStartTime;
 extern int nStatusHeight;
 extern BOOL bStatusSelUpdate;
 extern HACCEL hGlobalAccel;
@@ -319,7 +321,7 @@ void CreateEditWindowA(HWND hWnd)
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
-  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_DRAGDROP|AENM_LINK);
+  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_DRAGDROP|AENM_LINK|AENM_PROGRESS);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
@@ -356,7 +358,7 @@ void CreateEditWindowW(HWND hWnd)
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
-  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_DRAGDROP|AENM_LINK);
+  SendMessage(hWndEdit, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_DRAGDROP|AENM_LINK|AENM_PROGRESS);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
@@ -4609,6 +4611,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
   fsd.nBytesMax=-1;
+  fsd.bProgress=TRUE;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
@@ -4852,6 +4855,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
   fsd.nBytesMax=-1;
+  fsd.bProgress=TRUE;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
@@ -4936,6 +4940,8 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 
   if ((dwFileSize=GetFileSize(lpData->hFile, NULL)) != INVALID_FILE_SIZE)
   {
+    if (lpData->bProgress)
+      dwProgressStartTime=GetTickCount();
     if (lpData->nBytesMax == -1)
       lpData->nBytesMax=dwFileSize;
 
@@ -4991,7 +4997,16 @@ void FileStreamIn(FILESTREAMDATA *lpData)
         }
 
         //Send to AkelEdit
+        if (lpData->bProgress)
+          ShowWindow(hProgress, TRUE);
+
         SendMessage(lpData->hWnd, AEM_SETTEXTW, (LPARAM)dwCharsConverted, (WPARAM)wpBuffer);
+
+        if (lpData->bProgress)
+        {
+          ShowWindow(hProgress, FALSE);
+          SendMessage(hProgress, PBM_SETPOS, 0, 0);
+        }
       }
       else lpData->bResult=FALSE;
 
@@ -5103,6 +5118,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.bProgress=FALSE;
   fsd.bResult=TRUE;
   FileStreamOut(&fsd);
   CloseHandle(hFile);
@@ -5301,6 +5317,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.bProgress=FALSE;
   fsd.bResult=TRUE;
   FileStreamOut(&fsd);
   CloseHandle(hFile);
@@ -7453,6 +7470,7 @@ int FilePreviewA(HWND hWnd, char *pFile, int nPreviewBytes, DWORD dwFlags, int *
   fsd.hFile=hFile;
   fsd.nCodePage=*nCodePage;
   fsd.nBytesMax=nPreviewBytes;
+  fsd.bProgress=FALSE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
 
@@ -7491,6 +7509,7 @@ int FilePreviewW(HWND hWnd, wchar_t *wpFile, int nPreviewBytes, DWORD dwFlags, i
   fsd.hFile=hFile;
   fsd.nCodePage=*nCodePage;
   fsd.nBytesMax=nPreviewBytes;
+  fsd.bProgress=FALSE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
 
