@@ -589,7 +589,7 @@ Return Value
  zero
 
 Remarks
- To receive AEN_SELCHANGING notifications, specify AENM_SELCHANGING in the mask sent with the AEM_SETEVENTMASK message.
+ To receive AEN_SELCHANGING notifications, specify AENM_SELCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_SELCHANGED
@@ -1882,7 +1882,7 @@ Example:
 AEM_GETEVENTMASK
 ________________
 
-Set the event mask for an edit control. The event mask specifies which notification messages the control sends to its parent window.
+Retrieve the event mask for an edit control. The event mask specifies which notification messages the control sends to its parent window.
 
 wParam == not used.
 lParam == not used.
