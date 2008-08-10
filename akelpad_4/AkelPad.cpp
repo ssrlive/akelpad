@@ -5003,7 +5003,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
       {
         AENPROGRESS *aenp=(AENPROGRESS *)lParam;
-        static int dwProgressType=0;
+        static DWORD dwProgressType=0;
         static int nIncrement;
         static int nBarrier;
 
@@ -5217,7 +5217,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
       {
         AENPROGRESS *aenp=(AENPROGRESS *)lParam;
-        static int dwProgressType=0;
+        static DWORD dwProgressType=0;
         static int nIncrement;
         static int nBarrier;
 
