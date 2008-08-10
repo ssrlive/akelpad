@@ -41,9 +41,9 @@
 
 //AEN_PROGRESS type
 #define AEPGS_SETTEXT           0x00000001  //Setting text.
-#define AEPGS_INSERTTEXT        0x00000002  //Inserting text.
-#define AEPGS_DELETETEXT        0x00000004  //Deleting text.
-#define AEPGS_WRAPTEXT          0x00000008  //Wrapping text.
+#define AEPGS_WRAPTEXT          0x00000002  //Wrapping text.
+#define AEPGS_INSERTTEXT        0x00000004  //Inserting text (not implemented).
+#define AEPGS_DELETETEXT        0x00000008  //Deleting text (not implemented).
 
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
