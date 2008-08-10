@@ -4082,6 +4082,16 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
     nStopLine=liWrapEnd->nLine;
   }
 
+  //Start progress
+  if (ae->dwEventMask & AENM_PROGRESS)
+  {
+    if (!liWrapStart && !liWrapEnd)
+    {
+      if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, &nProgressStep, liCount.nLine, nStopLine))
+        return 0;
+    }
+  }
+
   while (liCount.lpLine)
   {
     if (bWrap)
