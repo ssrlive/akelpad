@@ -670,16 +670,19 @@ typedef struct _NSIZE {
 #define IDM_EDIT_INVERTCASE             4179  //Convert text to iNVERT cASE
                                               //Return Value: zero
                                               //
-#define IDM_EDIT_NEWLINE_WIN            4180  //Windows new line format
-                                              //Return Value: zero
-                                              //
-#define IDM_EDIT_NEWLINE_UNIX           4181  //Unix new line format
-                                              //Return Value: zero
-                                              //
 #define IDM_EDIT_RECODE                 4182  //Recode dialog
                                               //Return Value: zero
                                               //
 #define IDM_EDIT_INSERTDATE             4183  //Insert date
+                                              //Return Value: zero
+                                              //
+#define IDM_EDIT_NEWLINE_WIN            4184  //Windows new line format
+                                              //Return Value: zero
+                                              //
+#define IDM_EDIT_NEWLINE_UNIX           4185  //Unix new line format
+                                              //Return Value: zero
+                                              //
+#define IDM_EDIT_NEWLINE_MAC            4186  //Mac new line format
                                               //Return Value: zero
                                               //
 #define IDM_VIEW_FONT                   4201  //Font dialog

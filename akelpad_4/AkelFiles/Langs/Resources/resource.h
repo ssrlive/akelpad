@@ -209,10 +209,11 @@
 #define IDM_EDIT_SENTENCECASE           4177
 #define IDM_EDIT_TITLECASE              4178
 #define IDM_EDIT_INVERTCASE             4179
-#define IDM_EDIT_NEWLINE_WIN            4180
-#define IDM_EDIT_NEWLINE_UNIX           4181
 #define IDM_EDIT_RECODE                 4182
 #define IDM_EDIT_INSERTDATE             4183
+#define IDM_EDIT_NEWLINE_WIN            4184
+#define IDM_EDIT_NEWLINE_UNIX           4185
+#define IDM_EDIT_NEWLINE_MAC            4186
 #define IDM_VIEW_FONT                   4201
 #define IDM_VIEW_COLORS                 4202
 #define IDM_VIEW_INCREASE_FONT          4204
