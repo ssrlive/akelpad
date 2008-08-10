@@ -17437,6 +17437,7 @@ HWND NextDialog(BOOL bPrevious)
 
 void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight)
 {
+  UpdateWindow(hStatus);
   MoveWindow(hWnd, X, Y, nWidth, nHeight, TRUE);
 }
 
@@ -17467,12 +17468,17 @@ void UpdateSize()
     {
       i=nsSize.rcCurrent.bottom - (nTabView?TAB_HEIGHT:0);
 
-      MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((nTabView == TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, i, TRUE);
-
       if (nTabView == TAB_VIEW_TOP)
+      {
         MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, TAB_HEIGHT, TRUE);
+        UpdateWindow(hTab);
+      }
       else if (nTabView == TAB_VIEW_BOTTOM)
+      {
         MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + i, nsSize.rcCurrent.right, TAB_HEIGHT, TRUE);
+        UpdateWindow(hTab);
+      }
+      MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((nTabView == TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, i, TRUE);
     }
 
     hDocksStack.bSizing=FALSE;

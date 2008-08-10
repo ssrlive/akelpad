@@ -2392,8 +2392,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         GetWindowPos(hWnd, NULL, &rcMainWindowRestored);
       }
       dwLastMainSize=wParam;
-      UpdateSize();
       SendMessage(hStatus, WM_SIZE, wParam, lParam);
+      UpdateSize();
       return TRUE;
     }
   }
@@ -4087,8 +4087,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         GetWindowPos(hWnd, NULL, &rcMainWindowRestored);
       }
       dwLastMainSize=wParam;
-      UpdateSize();
       SendMessage(hStatus, WM_SIZE, wParam, lParam);
+      UpdateSize();
       return TRUE;
     }
   }

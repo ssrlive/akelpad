@@ -1,4 +1,9 @@
 
+AkelPad 4.0.2 ()
+----------------------------
+Changed: improved status bar painting on main window resize.
+
+
 AkelPad 4.0.1 (Aug 10, 2008)
 ----------------------------
 Added: file opening and word wrapping progress indicator, if text processed more
