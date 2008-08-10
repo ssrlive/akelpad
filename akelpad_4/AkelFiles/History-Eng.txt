@@ -5,6 +5,8 @@ Changed: improved status bar painting on main window resize.
 
 Added: support for "Mac (0Dh)" new line format.
 
+Fixed: changing the formatting rectangle (AEM_SETRECT) in word wrap mode.
+
 
 AkelPad 4.0.1 (Aug 10, 2008)
 ----------------------------

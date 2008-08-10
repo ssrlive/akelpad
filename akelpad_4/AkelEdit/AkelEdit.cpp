@@ -588,6 +588,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RECT *rcDraw=(RECT *)lParam;
 
         AE_SetDrawRect(ae, rcDraw, TRUE);
+        if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
         AE_UpdateScrollBars(ae, SB_BOTH);
         return 0;
       }
@@ -1526,6 +1527,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
       AE_SetDrawRect(ae, lprcDraw, (uMsg == EM_SETRECT)?TRUE:FALSE);
+      if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
       AE_UpdateScrollBars(ae, SB_BOTH);
       return 0;
     }
@@ -1678,7 +1680,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (lParam)
       {
         AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
-
         if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
         AE_UpdateScrollBars(ae, SB_BOTH);
         AE_UpdateEditWindow(ae->hWndEdit, TRUE);
