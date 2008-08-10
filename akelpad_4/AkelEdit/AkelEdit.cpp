@@ -6312,6 +6312,7 @@ int AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, int 
   SIZE sizeChar={0};
   int nStringWidth=0;
   int nTabWidth;
+  int nHScrollMax;
   int i=0;
 
   if (wpString)
@@ -6349,7 +6350,9 @@ int AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, int 
   {
     if (nStringWidth > nMaxExtent)
     {
-      if (bHalfFit)
+      nHScrollMax=max(ae->nHScrollMax, (ae->rcDraw.right - ae->rcDraw.left));
+
+      if (bHalfFit && nStringWidth + sizeChar.cx <= nHScrollMax - ae->nAveCharWidth)
       {
         if (nStringWidth - nMaxExtent > sizeChar.cx / 2)
         {
@@ -6384,6 +6387,7 @@ int AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, B
   int nStringWidth=0;
   int nStartChar=0;
   int nTabWidth;
+  int nHScrollMax;
   int i;
 
   if (lpLine)
@@ -6455,7 +6459,9 @@ int AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, B
       {
         if (nStringWidth > nMaxExtent)
         {
-          if (bHalfFit)
+          nHScrollMax=max(ae->nHScrollMax, (ae->rcDraw.right - ae->rcDraw.left));
+
+          if (bHalfFit && nStringWidth + sizeChar.cx <= nHScrollMax - ae->nAveCharWidth)
           {
             if (nStringWidth - nMaxExtent > sizeChar.cx / 2)
             {
@@ -6595,7 +6601,7 @@ int AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharIndex
   if (ptGlobalPos) ptGlobalPos->y=ciCharIndex->nLine * ae->nCharHeight;
 
   nMaxExtent=ae->nHScrollPos + (ptClientPos->x - ae->rcDraw.left);
-  nHScrollMax=max(ae->nHScrollMax, (ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth);
+  nHScrollMax=max(ae->nHScrollMax, (ae->rcDraw.right - ae->rcDraw.left));
   nMaxExtent=min(nHScrollMax - ae->nAveCharWidth, nMaxExtent);
 
   if (AE_UpdateIndex(ae, ciCharIndex))
