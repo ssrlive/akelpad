@@ -4120,6 +4120,12 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
       }
     }
 
+    if (liCount.nLine >= nStopLine + nLineCount)
+      break;
+    ++liCount.nLine;
+    liCount.lpLine=liCount.lpLine->next;
+
+    //Progressing
     if (ae->dwEventMask & AENM_PROGRESS)
     {
       if (!liWrapStart && !liWrapEnd)
@@ -4131,11 +4137,6 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
         }
       }
     }
-
-    if (liCount.nLine >= nStopLine + nLineCount)
-      break;
-    ++liCount.nLine;
-    liCount.lpLine=liCount.lpLine->next;
   }
 
   //End progress
