@@ -99,6 +99,7 @@ BEGIN
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
+            MENUITEM "Mac (0Dh)",                  IDM_EDIT_NEWLINE_MAC
         END
     END
     POPUP "&Visualizza"

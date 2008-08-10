@@ -4982,6 +4982,22 @@ void FileStreamIn(FILESTREAMDATA *lpData)
         {
           if (wpBuffer[i] == '\r')
           {
+            if (wpBuffer[i + 1] == '\r' && wpBuffer[i + 2] == '\n')
+            {
+              //Windows format \r\r\n
+              break;
+            }
+            else if (wpBuffer[i + 1] == '\n')
+            {
+              //Windows format \r\n
+              break;
+            }
+
+            //MacOS format \r
+            if (bOldWindows)
+              SetNewLineStatusA(NULL, NEWLINE_MAC, 0, FALSE);
+            else
+              SetNewLineStatusW(NULL, NEWLINE_MAC, 0, FALSE);
             break;
           }
           else if (wpBuffer[i] == '\n')
@@ -15881,6 +15897,8 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
     else if (nNewLine & NEWLINE_UNIX)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+    else if (nNewLine & NEWLINE_MAC)
+      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
 
     SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
   }
@@ -15889,6 +15907,8 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
     SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Win");
   if (nNewLine & NEWLINE_UNIX)
     SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Unix");
+  if (nNewLine & NEWLINE_MAC)
+    SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)"Mac");
 }
 
 void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
@@ -15904,6 +15924,8 @@ void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
     else if (nNewLine & NEWLINE_UNIX)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+    else if (nNewLine & NEWLINE_MAC)
+      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
 
     SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
   }
@@ -15912,6 +15934,8 @@ void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
     SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Win");
   if (nNewLine & NEWLINE_UNIX)
     SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Unix");
+  if (nNewLine & NEWLINE_MAC)
+    SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Mac");
 }
 
 void SetInsertStateStatusA(HWND hWnd, BOOL bState, BOOL bFirst)

@@ -3,6 +3,8 @@ AkelPad 4.0.2 ()
 ----------------------------
 Changed: improved status bar painting on main window resize.
 
+Added: support for "Mac (0Dh)" new line format.
+
 
 AkelPad 4.0.1 (Aug 10, 2008)
 ----------------------------

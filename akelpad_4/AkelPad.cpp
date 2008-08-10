@@ -2346,7 +2346,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (!lParam || (lParam & IMENU_CHECKS))
     {
-      CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_UNIX, (nNewLine & NEWLINE_WIN)?IDM_EDIT_NEWLINE_WIN:IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
+      if (nNewLine & NEWLINE_WIN)
+        CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_WIN, MF_BYCOMMAND);
+      else if (nNewLine & NEWLINE_UNIX)
+        CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
+      else if (nNewLine & NEWLINE_MAC)
+        CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_MAC, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
     }
@@ -2697,6 +2702,17 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     }
+    else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_MAC)
+    {
+      if (!IsReadOnly())
+      {
+        if (!(nNewLine & NEWLINE_MAC))
+        {
+          SetNewLineStatusA(hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT, TRUE);
+          SetModifyStatusA(hWndEdit, TRUE, FALSE);
+        }
+      }
+    }
     else if (LOWORD(wParam) == IDM_EDIT_FIND)
     {
       DoEditFindA();
@@ -3028,6 +3044,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (nNewLine & NEWLINE_WIN)
               SetNewLineStatusA(hWndEdit, NEWLINE_UNIX, AENL_INPUT|AENL_OUTPUT, TRUE);
             else if (nNewLine & NEWLINE_UNIX)
+              SetNewLineStatusA(hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT, TRUE);
+            else if (nNewLine & NEWLINE_MAC)
               SetNewLineStatusA(hWndEdit, NEWLINE_WIN, AENL_INPUT|AENL_OUTPUT, TRUE);
             SetModifyStatusA(hWndEdit, TRUE, FALSE);
           }
@@ -4041,7 +4059,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (!lParam || (lParam & IMENU_CHECKS))
     {
-      CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_UNIX, (nNewLine & NEWLINE_WIN)?IDM_EDIT_NEWLINE_WIN:IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
+      if (nNewLine & NEWLINE_WIN)
+        CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_WIN, MF_BYCOMMAND);
+      else if (nNewLine & NEWLINE_UNIX)
+        CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
+      else if (nNewLine & NEWLINE_MAC)
+        CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_MAC, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
     }
@@ -4392,6 +4415,17 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     }
+    else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_MAC)
+    {
+      if (!IsReadOnly())
+      {
+        if (!(nNewLine & NEWLINE_MAC))
+        {
+          SetNewLineStatusW(hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT, TRUE);
+          SetModifyStatusW(hWndEdit, TRUE, FALSE);
+        }
+      }
+    }
     else if (LOWORD(wParam) == IDM_EDIT_FIND)
     {
       DoEditFindW();
@@ -4723,6 +4757,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (nNewLine & NEWLINE_WIN)
               SetNewLineStatusW(hWndEdit, NEWLINE_UNIX, AENL_INPUT|AENL_OUTPUT, TRUE);
             else if (nNewLine & NEWLINE_UNIX)
+              SetNewLineStatusW(hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT, TRUE);
+            else if (nNewLine & NEWLINE_MAC)
               SetNewLineStatusW(hWndEdit, NEWLINE_WIN, AENL_INPUT|AENL_OUTPUT, TRUE);
             SetModifyStatusW(hWndEdit, TRUE, FALSE);
           }
@@ -5387,6 +5423,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_EDIT_FINDNEXTUP,
                      IDM_EDIT_REPLACE,
                      IDM_EDIT_GOTOLINE,
+                     IDM_EDIT_INSERTDATE,
                      IDM_EDIT_INSERT_TAB_MENU,
                      IDM_EDIT_DELETE_TAB_MENU,
                      IDM_EDIT_INSERT_SPACE_MENU,
@@ -5398,9 +5435,10 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_EDIT_SENTENCECASE,
                      IDM_EDIT_TITLECASE,
                      IDM_EDIT_INVERTCASE,
+                     IDM_EDIT_RECODE,
                      IDM_EDIT_NEWLINE_WIN,
                      IDM_EDIT_NEWLINE_UNIX,
-                     IDM_EDIT_RECODE,
+                     IDM_EDIT_NEWLINE_MAC,
                      IDM_VIEW_FONT,
                      IDM_VIEW_COLORS,
                      IDM_VIEW_WORDWRAP,
@@ -5591,6 +5629,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_EDIT_FINDNEXTUP,
                      IDM_EDIT_REPLACE,
                      IDM_EDIT_GOTOLINE,
+                     IDM_EDIT_INSERTDATE,
                      IDM_EDIT_INSERT_TAB_MENU,
                      IDM_EDIT_DELETE_TAB_MENU,
                      IDM_EDIT_INSERT_SPACE_MENU,
@@ -5602,9 +5641,10 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_EDIT_SENTENCECASE,
                      IDM_EDIT_TITLECASE,
                      IDM_EDIT_INVERTCASE,
+                     IDM_EDIT_RECODE,
                      IDM_EDIT_NEWLINE_WIN,
                      IDM_EDIT_NEWLINE_UNIX,
-                     IDM_EDIT_RECODE,
+                     IDM_EDIT_NEWLINE_MAC,
                      IDM_VIEW_FONT,
                      IDM_VIEW_COLORS,
                      IDM_VIEW_WORDWRAP,
