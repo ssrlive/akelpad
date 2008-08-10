@@ -14448,6 +14448,8 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 1, 0);
     else if (dwLangCodepageRecognition == LANGID_RUSSIAN)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
+    else
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -14634,6 +14636,8 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 1, 0);
     else if (dwLangCodepageRecognition == LANGID_RUSSIAN)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
+    else
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
