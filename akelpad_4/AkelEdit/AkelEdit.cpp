@@ -4037,7 +4037,7 @@ int AE_UpdateWrap(AKELEDIT *ae, BOOL bWrap)
     ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
     AE_UpdateScrollBars(ae, SB_VERT);
   }
-  AE_UpdateSelection(ae, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL);
+  AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
   AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae));
   return nResult;
 }
