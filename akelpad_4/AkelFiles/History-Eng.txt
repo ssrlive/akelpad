@@ -6,6 +6,7 @@ Changed: at window resize in a word wrap mode, AkelEdit adjusts position of the 
 Changed: improved status bar painting on main window resize.
 
 Added: support for "Mac (0Dh)" new line format.
+Added: text Drag'n'Drop between tab buttons from external applications (MDI).
 
 Fixed: changing the formatting rectangle (AEM_SETRECT) in word wrap mode.
 Fixed: with variable font, mouse didn't select last symbol of a wrapped line.
