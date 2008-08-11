@@ -1,6 +1,8 @@
 
 AkelPad 4.0.2 ()
 ----------------------------
+Changed: at window resize in a word wrap mode, AkelEdit adjusts position of the text according
+         to the first visible line.
 Changed: improved status bar painting on main window resize.
 
 Added: support for "Mac (0Dh)" new line format.

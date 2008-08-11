@@ -12,15 +12,32 @@
 
 #define AETIMERID_MOUSEMOVE    1
 
+//WM_SETCURSOR
 #define AECC_IBEAM      0
 #define AECC_MARGIN     1
 #define AECC_SELECTION  2
 #define AECC_URL        3
 
+//Line selection
 #define AELS_EMPTY    1
 #define AELS_FULL     2
 #define AELS_PARTLY   3
 
+//AE_SetSelectionPos flags
+#define AESELT_LOCKSCROLL      0x00000001
+#define AESELT_LOCKUPDATE      0x00000002
+
+//AE_InsertText flags
+#define AEINST_LOCKUNDO        0x00000001
+#define AEINST_LOCKSCROLL      0x00000002
+#define AEINST_LOCKUPDATE      0x00000004
+
+//AE_DeleteText flags
+#define AEDELT_LOCKUNDO        0x00000001
+#define AEDELT_LOCKSCROLL      0x00000002
+#define AEDELT_LOCKUPDATE      0x00000004
+
+//Undo/Redo flags
 #define AEUN_INSERT          0x00000001
 #define AEUN_DELETE          0x00000002
 #define AEUN_SETSEL          0x00000004
@@ -35,6 +52,7 @@
 #define AEUN_UNDOONLY        0x00000800
 #define AEUN_REDOONLY        0x00001000
 
+//Undo element
 typedef struct _AEUNDOITEM {
   struct _AEUNDOITEM *next;
   struct _AEUNDOITEM *prev;
@@ -285,8 +303,8 @@ int AE_CheckCodepage(AKELEDIT *ae, int nCodePage);
 void AE_SetDrawRect(AKELEDIT *ae, RECT *lprcDraw, BOOL bRedraw);
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
-void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, BOOL bUpdate);
-void AE_UpdateSelection(AKELEDIT *ae);
+void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, DWORD dwSelFlags);
+void AE_UpdateSelection(AKELEDIT *ae, DWORD dwSelFlags);
 void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShift);
 BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos);
@@ -335,8 +353,8 @@ void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen
 void AE_AppendText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel);
 void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
-void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, BOOL bColumnSel, BOOL bEnableUndo, BOOL bScroll, BOOL bUpdate);
-DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd, BOOL bEnableUndo, BOOL bScroll, BOOL bUpdate);
+void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, BOOL bColumnSel, DWORD dwDeleteFlags);
+DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, DWORD dwInsertFlags, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 wchar_t* AE_GetNextLine(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int *nLineLen, int *nLineBreak);
 int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine);
 DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes);
