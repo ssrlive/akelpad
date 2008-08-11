@@ -301,8 +301,6 @@ int nTabType=TAB_TYPE_STANDARD;
 int nTabSwitch=TAB_SWITCH_NEXTPREV;
 HIMAGELIST hImageList;
 BOOL bTabPressed=FALSE;
-BOOL bTextDropSource=FALSE;
-BOOL bTextDropTarget=FALSE;
 BOOL bFileExitError;
 DWORD dwMdiStyle=WS_MAXIMIZE;
 WNDPROC OldMdiClientProc;
@@ -1538,7 +1536,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       hImageList=ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), ILC_COLOR32|ILC_MASK, 0, 0);
       ImageList_SetBkColor(hImageList, GetSysColor(COLOR_BTNFACE));
       SendMessage(hTab, TCM_SETIMAGELIST, 0, (LPARAM)hImageList);
-      SendMessage(hTab, TCM_SETEXTENDEDSTYLE, 0, TCS_EX_FLATSEPARATORS);
+      SendMessage(hTab, TCM_SETEXTENDEDSTYLE, 0, TCS_EX_FLATSEPARATORS|TCS_EX_REGISTERDROP);
     }
 
     //Status Bar
@@ -3080,6 +3078,21 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)tcItemA.lParam, 0);
           bTabPressed=FALSE;
         }
+        else if (((NMHDR *)lParam)->code == TCN_GETOBJECT)
+        {
+          TCHITTESTINFO thti;
+          int nItem;
+
+          GetCursorPos(&thti.pt);
+          ScreenToClient(hWnd, &thti.pt);
+          nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
+
+          if (nItem != -1)
+          {
+            SelectTabItem(hWnd, nItem);
+          }
+          return 0;
+        }
       }
     }
   }
@@ -3251,7 +3264,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       hImageList=ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), ILC_COLOR32|ILC_MASK, 0, 0);
       ImageList_SetBkColor(hImageList, GetSysColor(COLOR_BTNFACE));
       SendMessage(hTab, TCM_SETIMAGELIST, 0, (LPARAM)hImageList);
-      SendMessage(hTab, TCM_SETEXTENDEDSTYLE, 0, TCS_EX_FLATSEPARATORS);
+      SendMessage(hTab, TCM_SETEXTENDEDSTYLE, 0, TCS_EX_FLATSEPARATORS|TCS_EX_REGISTERDROP);
     }
 
     //Status Bar
@@ -4793,6 +4806,21 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)tcItemW.lParam, 0);
           bTabPressed=FALSE;
         }
+        else if (((NMHDR *)lParam)->code == TCN_GETOBJECT)
+        {
+          TCHITTESTINFO thti;
+          int nItem;
+
+          GetCursorPos(&thti.pt);
+          ScreenToClient(hWnd, &thti.pt);
+          nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
+
+          if (nItem != -1)
+          {
+            SelectTabItem(hWnd, nItem);
+          }
+          return 0;
+        }
       }
     }
   }
@@ -4989,33 +5017,6 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
         SetModifyStatusA(NULL, aenm->bModified, FALSE);
       }
-      else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)
-      {
-        AENDROPSOURCE *aends=(AENDROPSOURCE *)lParam;
-
-        if (aends->nAction == AEDS_SOURCEBEGIN)
-        {
-          bTextDropSource=TRUE;
-        }
-        else if (aends->nAction == AEDS_SOURCEEND)
-        {
-          bTextDropSource=FALSE;
-        }
-      }
-      else if (((NMHDR *)lParam)->code == AEN_DROPTARGET)
-      {
-        AENDROPTARGET *aendt=(AENDROPTARGET *)lParam;
-
-        if (aendt->nAction == AEDT_TARGETENTER)
-        {
-          bTextDropTarget=TRUE;
-        }
-        else if (aendt->nAction == AEDT_TARGETLEAVE ||
-                 aendt->nAction == AEDT_TARGETDROP)
-        {
-          bTextDropTarget=FALSE;
-        }
-      }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
       {
         AENLINK *aenl=(AENLINK *)lParam;
@@ -5202,33 +5203,6 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         AENMODIFY *aenm=(AENMODIFY *)lParam;
 
         SetModifyStatusW(NULL, aenm->bModified, FALSE);
-      }
-      else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)
-      {
-        AENDROPSOURCE *aends=(AENDROPSOURCE *)lParam;
-
-        if (aends->nAction == AEDS_SOURCEBEGIN)
-        {
-          bTextDropSource=TRUE;
-        }
-        else if (aends->nAction == AEDS_SOURCEEND)
-        {
-          bTextDropSource=FALSE;
-        }
-      }
-      else if (((NMHDR *)lParam)->code == AEN_DROPTARGET)
-      {
-        AENDROPTARGET *aendt=(AENDROPTARGET *)lParam;
-
-        if (aendt->nAction == AEDT_TARGETENTER)
-        {
-          bTextDropTarget=TRUE;
-        }
-        else if (aendt->nAction == AEDT_TARGETLEAVE ||
-                 aendt->nAction == AEDT_TARGETDROP)
-        {
-          bTextDropTarget=FALSE;
-        }
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
       {
@@ -6240,25 +6214,6 @@ LRESULT CALLBACK NewTabProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ReleaseCapture();
     }
   }
-  else if (uMsg == WM_NCHITTEST)
-  {
-    //Activate tab while text Drag'n'Drop
-    if (bTextDropSource && !bTextDropTarget)
-    {
-      TCHITTESTINFO thti;
-      int nItem;
-
-      thti.pt.x=LOWORD(lParam);
-      thti.pt.y=HIWORD(lParam);
-      ScreenToClient(hWnd, &thti.pt);
-      nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
-
-      if (nItem != -1)
-      {
-        SelectTabItem(hWnd, nItem);
-      }
-    }
-  }
 
   return CallWindowProcA(OldTabProc, hWnd, uMsg, wParam, lParam);
 }
@@ -6394,25 +6349,6 @@ LRESULT CALLBACK NewTabProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       bMouseDown=FALSE;
       ReleaseCapture();
-    }
-  }
-  else if (uMsg == WM_NCHITTEST)
-  {
-    //Activate tab while text Drag'n'Drop
-    if (bTextDropSource && !bTextDropTarget)
-    {
-      TCHITTESTINFO thti;
-      int nItem;
-
-      thti.pt.x=LOWORD(lParam);
-      thti.pt.y=HIWORD(lParam);
-      ScreenToClient(hWnd, &thti.pt);
-      nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
-
-      if (nItem != -1)
-      {
-        SelectTabItem(hWnd, nItem);
-      }
     }
   }
 
