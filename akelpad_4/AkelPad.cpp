@@ -3080,16 +3080,26 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (((NMHDR *)lParam)->code == TCN_GETOBJECT)
         {
+          TCITEMA tcItemA;
           TCHITTESTINFO thti;
           int nItem;
 
           GetCursorPos(&thti.pt);
-          ScreenToClient(hWnd, &thti.pt);
-          nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
+          ScreenToClient(hTab, &thti.pt);
+          nItem=SendMessage(hTab, TCM_HITTEST, 0, (LPARAM)&thti);
 
           if (nItem != -1)
           {
-            SelectTabItem(hWnd, nItem);
+            SelectTabItem(hTab, nItem);
+
+            //Restore minimized frame
+            tcItemA.mask=TCIF_PARAM;
+            SendMessage(hTab, TCM_GETITEMA, nItem, (LPARAM)&tcItemA);
+
+            if (GetWindowLongA((HWND)tcItemA.lParam, GWL_STYLE) & WS_MINIMIZE)
+            {
+              SendMessage(hMdiClient, WM_MDIRESTORE, (WPARAM)tcItemA.lParam, 0);
+            }
           }
           return 0;
         }
@@ -4808,16 +4818,26 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (((NMHDR *)lParam)->code == TCN_GETOBJECT)
         {
+          TCITEMW tcItemW;
           TCHITTESTINFO thti;
           int nItem;
 
           GetCursorPos(&thti.pt);
-          ScreenToClient(hWnd, &thti.pt);
-          nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
+          ScreenToClient(hTab, &thti.pt);
+          nItem=SendMessage(hTab, TCM_HITTEST, 0, (LPARAM)&thti);
 
           if (nItem != -1)
           {
-            SelectTabItem(hWnd, nItem);
+            SelectTabItem(hTab, nItem);
+
+            //Restore minimized frame
+            tcItemW.mask=TCIF_PARAM;
+            SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW);
+
+            if (GetWindowLongW((HWND)tcItemW.lParam, GWL_STYLE) & WS_MINIMIZE)
+            {
+              SendMessage(hMdiClient, WM_MDIRESTORE, (WPARAM)tcItemW.lParam, 0);
+            }
           }
           return 0;
         }
