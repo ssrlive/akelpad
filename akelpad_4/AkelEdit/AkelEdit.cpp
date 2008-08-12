@@ -4140,7 +4140,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
       {
         if (!(liCount.nLine % nProgressStep))
         {
-          if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, &nProgressStep, liCount.nLine, nStopLine))
+          if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, &nProgressStep, liCount.nLine - nLineCount, nStopLine))
             break;
         }
       }
