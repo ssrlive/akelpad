@@ -5,6 +5,7 @@ Changed: at window resize in a word wrap mode, AkelEdit adjusts position of the 
          to the first visible line.
 Changed: improved status bar painting on main window resize.
 Changed: increased accuracy of the wrapping progress indicator.
+Changed: default word breaking now has RichEdit format.
 
 Added: support for "Mac (0Dh)" new line format.
 Added: text Drag'n'Drop between tab buttons from external applications (MDI).

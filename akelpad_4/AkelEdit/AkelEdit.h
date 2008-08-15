@@ -154,6 +154,10 @@
 #define AEWB_LEFTWORDEND     0x00000002  //Left movement is stopped, when word end is found.
 #define AEWB_RIGHTWORDSTART  0x00000004  //Right movement is stopped, when word start is found.
 #define AEWB_RIGHTWORDEND    0x00000008  //Right movement is stopped, when word end is found.
+#define AEWB_STOPSPACESTART  0x00000010  //Movement is stopped, when spacing start is found. Cannot be combined with AEWB_SKIPSPACESTART.
+#define AEWB_STOPSPACEEND    0x00000020  //Movement is stopped, when spacing end is found. Cannot be combined with AEWB_SKIPSPACEEND.
+#define AEWB_SKIPSPACESTART  0x00000040  //Movement is continued, when spacing start is found. Cannot be combined with AEWB_STOPSPACESTART.
+#define AEWB_SKIPSPACEEND    0x00000080  //Movement is continued, when spacing end is found. Cannot be combined with AEWB_STOPSPACEEND.
 
 //AEM_STREAMIN, AEM_STREAMOUT flags
 #define AESF_SELECTION       0x00000001  //Stream-in (read) or stream-out (write) the current selection. If not specified, stream-in (read) or stream-out (write) the entire contents of the control.
