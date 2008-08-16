@@ -18,6 +18,7 @@
 #define AES_WORDDELIMITERSW   L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
 #define AES_WRAPDELIMITERSW   L" \t\n"
 #define AES_URLDELIMITERSW    L" \t\n()<>'`\""
+#define AES_URLPREFIXESW      L"http:\0https:\0ftp:\0file:\0mailto:\0\0"
 
 //AEM_SETEVENTMASK flags
 #define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGING and AEN_SELCHANGED notifications.
@@ -550,10 +551,13 @@ typedef struct {
 #define AEM_SETWRAPDELIMITERS (WM_USER + 2222)
 #define AEM_GETURLDELIMITERS  (WM_USER + 2223)
 #define AEM_SETURLDELIMITERS  (WM_USER + 2224)
-#define AEM_ISDELIMITER       (WM_USER + 2225)
-#define AEM_SHOWSCROLLBAR     (WM_USER + 2226)
-#define AEM_UPDATESCROLLBAR   (WM_USER + 2227)
-#define AEM_HIDESELECTION     (WM_USER + 2228)
+#define AEM_GETURLPREFIXES    (WM_USER + 2225)
+#define AEM_SETURLPREFIXES    (WM_USER + 2226)
+
+#define AEM_ISDELIMITER       (WM_USER + 2251)
+#define AEM_SHOWSCROLLBAR     (WM_USER + 2252)
+#define AEM_UPDATESCROLLBAR   (WM_USER + 2253)
+#define AEM_HIDESELECTION     (WM_USER + 2254)
 
 
 /*
@@ -2270,7 +2274,7 @@ _____________________
 Retrieve word wrapping delimiters.
 
 (int)wParam       == size of the buffer in TCHARs.
-(wchar_t *)lParam == pointer to a buffer that receives delimiter characters. Can be NULL.
+(wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
  zero
@@ -2304,7 +2308,7 @@ ____________________
 Retrieve URL delimiters.
 
 (int)wParam       == size of the buffer in TCHARs.
-(wchar_t *)lParam == pointer to a buffer that receives delimiter characters. Can be NULL.
+(wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
  zero
@@ -2330,6 +2334,40 @@ Example:
  wchar_t wszDelimiters[128]=L" \t\n[](){}<>";
 
  SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszDelimiters);
+
+
+AEM_GETURLPREFIXES
+__________________
+
+Retrieve URL prefixes.
+
+(int)wParam       == size of the buffer in TCHARs.
+(wchar_t *)lParam == pointer to a buffer that receives pairs of null-terminated prefixes strings. The last string terminated by two NULL characters.
+
+Return Value
+ zero
+
+Example:
+ wchar_t wszPrefixes[128];
+
+ SendMessage(hWndEdit, AEM_GETURLPREFIXES, 128, (LPARAM)wszPrefixes);
+
+
+AEM_SETURLPREFIXES
+__________________
+
+Set prefixes for URL detection.
+
+wParam            == not used.
+(wchar_t *)lParam == buffer containing pairs of null-terminated prefixes strings. The last string in the buffer must be terminated by two NULL characters. If NULL, then default prefixes will be used.
+
+Return Value
+ zero
+
+Example:
+ wchar_t wszPrefixes[128]=L"http:\0https:\0ftp:\0file:\0mailto:\0\0"
+
+ SendMessage(hWndEdit, AEM_SETURLPREFIXES, 0, (LPARAM)wszPrefixes);
 
 
 AEM_ISDELIMITER

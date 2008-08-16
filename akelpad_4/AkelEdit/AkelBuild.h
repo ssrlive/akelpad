@@ -227,6 +227,8 @@ typedef struct _AKELEDIT {
   wchar_t wszWordDelimiters[128];
   wchar_t wszWrapDelimiters[128];
   wchar_t wszUrlDelimiters[128];
+  wchar_t wszUrlPrefixes[128];
+  wchar_t *lpUrlPrefixes[32];
   AECHARRANGE crMouseOnLink;
   AECHARINDEX ciLButtonClick;
   AECHARINDEX ciLButtonStart;
@@ -346,6 +348,7 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch);
 BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c);
 BOOL AE_IsSpace(wchar_t c);
+int AE_GetUrlPrefixes(AKELEDIT *ae);
 int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, POINT *ptSelStart, POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel);
 DWORD AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefaultChar, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, DWORD dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
 DWORD AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, wchar_t *wszBuffer, DWORD dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
