@@ -22,7 +22,6 @@ UINT cfAkelEditColumnSel=0;
 HCURSOR hAkelEditCursorArrow=NULL;
 HCURSOR hAkelEditCursorMargin=NULL;
 HCURSOR hAkelEditCursorHand=NULL;
-wchar_t *lpAkelEditUrlPrefixes[]={L"http:", L"https:", L"ftp:", L"file:", L"mailto:", NULL};
 
 
 //// Entry point
@@ -278,9 +277,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->dwOptions|=AECO_NOHIDESEL;
       if (cs->style & ES_WANTRETURN)
         ae->dwOptions|=AECO_WANTRETURN;
-      AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, (lstrlenW(AES_WORDDELIMITERSW) + 1) * sizeof(wchar_t));
-      AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, (lstrlenW(AES_WRAPDELIMITERSW) + 1) * sizeof(wchar_t));
-      AE_memcpy(ae->wszUrlDelimiters, AES_URLDELIMITERSW, (lstrlenW(AES_URLDELIMITERSW) + 1) * sizeof(wchar_t));
+      AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, sizeof(AES_WORDDELIMITERSW));
+      AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
+      AE_memcpy(ae->wszUrlDelimiters, AES_URLDELIMITERSW, sizeof(AES_URLDELIMITERSW));
+      AE_memcpy(ae->wszUrlPrefixes, AES_URLPREFIXESW, sizeof(AES_URLPREFIXESW));
+      AE_GetUrlPrefixes(ae);
 
       GetClientRect(ae->hWndEdit, &ae->rcEdit);
       AE_SetDrawRect(ae, NULL, FALSE);
@@ -791,7 +792,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lParam)
           AE_memcpy(ae->wszWordDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
         else
-          AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, (lstrlenW(AES_WORDDELIMITERSW) + 1) * sizeof(wchar_t));
+          AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, sizeof(AES_WORDDELIMITERSW));
         ae->dwWordBreak=wParam;
         return 0;
       }
@@ -805,7 +806,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lParam)
           AE_memcpy(ae->wszWrapDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
         else
-          AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, (lstrlenW(AES_WRAPDELIMITERSW) + 1) * sizeof(wchar_t));
+          AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
         return 0;
       }
       if (uMsg == AEM_GETURLDELIMITERS)
@@ -818,7 +819,20 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lParam)
           AE_memcpy(ae->wszUrlDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
         else
-          AE_memcpy(ae->wszUrlDelimiters, AES_URLDELIMITERSW, (lstrlenW(AES_URLDELIMITERSW) + 1) * sizeof(wchar_t));
+          AE_memcpy(ae->wszUrlDelimiters, AES_URLDELIMITERSW, sizeof(AES_URLDELIMITERSW));
+        return 0;
+      }
+      if (uMsg == AEM_GETURLPREFIXES)
+      {
+        if (wParam) AE_memcpy((wchar_t *)wParam, ae->wszUrlPrefixes, min(lParam * sizeof(wchar_t), sizeof(ae->wszUrlPrefixes)));
+        return 0;
+      }
+      if (uMsg == AEM_SETURLPREFIXES)
+      {
+        if (lParam)
+          AE_memcpy(ae->wszUrlPrefixes, (wchar_t *)lParam, sizeof(AES_URLPREFIXESW));
+        else
+          AE_memcpy(ae->wszUrlPrefixes, AES_URLPREFIXESW, sizeof(AES_URLPREFIXESW));
         return 0;
       }
       if (uMsg == AEM_ISDELIMITER)
@@ -4930,9 +4944,9 @@ BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
             if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl]))
               return FALSE;
 
-            for (nPrefix=0; lpAkelEditUrlPrefixes[nPrefix]; ++nPrefix)
+            for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
             {
-              if (!AE_WideStrCmpLenI(lpAkelEditUrlPrefixes[nPrefix], ciCharIndex.lpLine->wpLine + nStartUrl, (DWORD)-1))
+              if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciCharIndex.lpLine->wpLine + nStartUrl, (DWORD)-1))
               {
                 if (nStartUrl == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl - 1]))
                 {
@@ -5732,9 +5746,9 @@ void AE_Paint(AKELEDIT *ae)
               {
                 int nPrefix;
 
-                for (nPrefix=0; lpAkelEditUrlPrefixes[nPrefix]; ++nPrefix)
+                for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
                 {
-                  if (!AE_WideStrCmpLenI(lpAkelEditUrlPrefixes[nPrefix], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
+                  if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
                   {
                     if (ciDrawLine.nCharInLine == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine - 1]))
                     {
@@ -7070,6 +7084,30 @@ BOOL AE_IsSpace(wchar_t c)
     return TRUE;
   else
     return FALSE;
+}
+
+int AE_GetUrlPrefixes(AKELEDIT *ae)
+{
+  int nPrefix=0;
+  int nStart=0;
+  int nEnd=0;
+
+  while (1)
+  {
+    if (!ae->wszUrlPrefixes[nEnd])
+    {
+      if (nStart == nEnd)
+      {
+        ae->lpUrlPrefixes[nPrefix]=NULL;
+        break;
+      }
+      ae->lpUrlPrefixes[nPrefix++]=ae->wszUrlPrefixes + nStart;
+      nStart=++nEnd;
+      continue;
+    }
+    ++nEnd;
+  }
+  return nPrefix;
 }
 
 int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, POINT *ptSelStart, POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel)
