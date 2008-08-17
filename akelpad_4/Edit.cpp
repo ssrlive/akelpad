@@ -4039,7 +4039,7 @@ BOOL IniSaveOptionsA()
 
   if (!IniSetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t)))
+  if (!IniSetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)))
     goto Error;
@@ -4047,11 +4047,11 @@ BOOL IniSaveOptionsA()
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, wcslen(wszUrlPrefixes) * sizeof(wchar_t)))
+  if (!IniSetValueA(&hIniStack, "Options", "UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, wcslen(wszUrlPrefixes) * sizeof(wchar_t) + 2))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "UrlDelimitersEnable", INI_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, wcslen(wszUrlDelimiters) * sizeof(wchar_t)))
+  if (!IniSetValueA(&hIniStack, "Options", "UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, wcslen(wszUrlDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (bEditFontChanged)
   {
@@ -4192,7 +4192,7 @@ BOOL IniSaveOptionsW()
 
   if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t)))
+  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)))
     goto Error;
@@ -4200,11 +4200,11 @@ BOOL IniSaveOptionsW()
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, lstrlenW(wszUrlPrefixes) * sizeof(wchar_t)))
+  if (!IniSetValueW(&hIniStack, L"Options", L"UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, lstrlenW(wszUrlPrefixes) * sizeof(wchar_t) + 2))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"UrlDelimitersEnable", INI_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, lstrlenW(wszUrlDelimiters) * sizeof(wchar_t)))
+  if (!IniSetValueW(&hIniStack, L"Options", L"UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, lstrlenW(wszUrlDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (bEditFontChanged)
   {

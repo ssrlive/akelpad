@@ -4160,7 +4160,7 @@ BOOL IniSaveOptionsA()
 
   if (!IniSetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszDelimiters, wcslen(wszDelimiters) * sizeof(wchar_t)))
+  if (!IniSetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszDelimiters, wcslen(wszDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (bEditFontChanged)
   {
@@ -4305,7 +4305,7 @@ BOOL IniSaveOptionsW()
 
   if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszDelimiters, lstrlenW(wszDelimiters) * sizeof(wchar_t)))
+  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszDelimiters, lstrlenW(wszDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (bEditFontChanged)
   {
