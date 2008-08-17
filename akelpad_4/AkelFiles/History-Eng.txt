@@ -14,6 +14,7 @@ Added: text Drag'n'Drop between tab buttons from external applications (MDI).
 Fixed: changing the formatting rectangle (AEM_SETRECT) in word wrap mode.
 Fixed: with variable font, mouse didn't select last symbol of a wrapped line.
 Fixed: updating edit window at loading minimally necessary number of lines.
+Fixed: word delimiters saving in INI file.
 
 
 AkelPad 4.0.1 (Aug 10, 2008)
