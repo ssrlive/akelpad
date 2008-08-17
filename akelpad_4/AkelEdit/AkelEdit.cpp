@@ -7561,6 +7561,15 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         UpdateWindow(ae->hWndEdit);
         bUpdated=TRUE;
+
+        //Restore variables
+        ae->liFirstDrawLine.nLine=0;
+        ae->liFirstDrawLine.lpLine=NULL;
+        ae->ciLastCallIndex.nLine=0;
+        ae->ciLastCallIndex.nCharInLine=0;
+        ae->ciLastCallIndex.lpLine=NULL;
+        ae->nFirstDrawLineOffset=0;
+        ae->nLastCallOffset=0;
       }
     }
     wpLineStart=wpLineEnd;
