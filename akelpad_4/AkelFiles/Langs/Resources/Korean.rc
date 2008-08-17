@@ -99,13 +99,13 @@ BEGIN
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
-            MENUITEM "Mac (0Dh)",                  IDM_EDIT_NEWLINE_MAC
+            MENUITEM "Mac (0Dh)",                   IDM_EDIT_NEWLINE_MAC
         END
     END
     POPUP "보기(&V)"
     BEGIN
         MENUITEM "글꼴(&F)...",                 IDM_VIEW_FONT
-        MENUITEM "색상(&C)...",                  IDM_VIEW_COLORS
+        MENUITEM "색상(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "자동 줄바꿈(&W)\tCtrl+U",     IDM_VIEW_WORDWRAP
         MENUITEM "항상 맨 위(&A)\tCtrl+T",      IDM_VIEW_ONTOP
@@ -608,7 +608,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,136,
                     11,13
-    CONTROL         "자세히",IDC_OPTIONS_DETAILED_UNDO,"Button",
+    CONTROL         "자세히",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,137,50,10
     GROUPBOX        "텍스트 여백",IDC_STATIC,9,162,200,31
     RTEXT           "왼쪽:",IDC_STATIC,12,176,35,12,NOT WS_GROUP
@@ -621,9 +621,9 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
-    CONTROL         "단어 구분자:",IDC_OPTIONS_ENABLE_DELIMITERS,"Button",
+    CONTROL         "단어 구분자:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
-    EDITTEXT        IDC_OPTIONS_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
     PUSHBUTTON      "재설정",IDC_OPTIONS_RESET_DELIMITERS,166,210,43,13,
                     BS_CENTER
 END
@@ -639,19 +639,25 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,18,102,10
     CONTROL         "코드페이지 기억",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,29,102,10
-    GROUPBOX        "하이퍼링크",IDC_STATIC,9,51,100,49
+    GROUPBOX        "하이퍼링크",IDC_STATIC,9,51,200,120
     CONTROL         "보이기",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,63,89,10
+                    WS_TABSTOP,17,64,85,10
     CONTROL         "한번 클릭",IDC_OPTIONS_URL_SINGLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,28,74,79,10
+                    BS_AUTORADIOBUTTON,23,78,75,10
     CONTROL         "더블 클릭",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,28,85,79,10
+                    BS_AUTORADIOBUTTON,23,89,75,10
+    CONTROL         "Prefixes",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,105,89,10
+    EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,117,172,13,ES_AUTOHSCROLL
+    CONTROL         "Delimiters",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,136,89,10
+    EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,148,172,13,ES_AUTOHSCROLL
     CONTROL         "모두 바꾸기 - 대화상자 닫기",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,108,200,10
+                    WS_TABSTOP,9,178,200,10
     CONTROL         "읽기전용 파일 저장시 경고",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,120,200,10
+                    WS_TABSTOP,9,190,200,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

@@ -99,7 +99,7 @@ BEGIN
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
-            MENUITEM "Mac (0Dh)",                  IDM_EDIT_NEWLINE_MAC
+            MENUITEM "Mac (0Dh)",                   IDM_EDIT_NEWLINE_MAC
         END
     END
     POPUP "&Visualizza"
@@ -191,7 +191,7 @@ BEGIN
     BEGIN
         MENUITEM "&Copia",                      IDM_EDIT_COPY
         MENUITEM SEPARATOR
-        MENUITEM "Seleziona tutto",            IDM_EDIT_SELECTALL
+        MENUITEM "Seleziona tutto",             IDM_EDIT_SELECTALL
     END
     POPUP "CodepagePopup"
     BEGIN
@@ -615,7 +615,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,136,
                     11,13
-    CONTROL         "Dettagliati",IDC_OPTIONS_DETAILED_UNDO,"Button",
+    CONTROL         "Dettagliati",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,137,50,10
     GROUPBOX        "Margini del testo",IDC_STATIC,9,162,200,31
     RTEXT           "Sinistra:",IDC_STATIC,12,176,35,12,NOT WS_GROUP
@@ -629,9 +629,9 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
     CONTROL         "Delimitatori delle parole:",
-                    IDC_OPTIONS_ENABLE_DELIMITERS,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,199,150,8
-    EDITTEXT        IDC_OPTIONS_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
+                    IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
+    EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Reset",IDC_OPTIONS_RESET_DELIMITERS,166,210,43,13,
                     BS_CENTER
 END
@@ -649,19 +649,25 @@ BEGIN
     CONTROL         "Memorizza il codice della pagina",
                     IDC_OPTIONS_SAVECODEPAGES,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,29,123,10
-    GROUPBOX        "HyperLinks",IDC_STATIC,9,51,100,49
+    GROUPBOX        "HyperLinks",IDC_STATIC,9,51,200,120
     CONTROL         "Visualizza",IDC_OPTIONS_URL_SHOW,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,63,89,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,64,85,10
     CONTROL         "Click singolo",IDC_OPTIONS_URL_SINGLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,28,74,77,10
+                    BS_AUTORADIOBUTTON,23,78,75,10
     CONTROL         "Doppio click",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,28,85,77,10
+                    BS_AUTORADIOBUTTON,23,89,75,10
+    CONTROL         "Prefixes",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,105,89,10
+    EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,117,172,13,ES_AUTOHSCROLL
+    CONTROL         "Delimiters",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,136,89,10
+    EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,148,172,13,ES_AUTOHSCROLL
     CONTROL         "Sostituisci tutto - chiudi la finestra",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,108,200,10
+                    WS_TABSTOP,9,178,200,10
     CONTROL         "Chiedi conferma se si salva un file in sola-lettura",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,120,200,10
+                    WS_TABSTOP,9,190,200,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

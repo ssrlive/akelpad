@@ -807,6 +807,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_memcpy(ae->wszWrapDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
         else
           AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
+        if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         return 0;
       }
       if (uMsg == AEM_GETURLDELIMITERS)
@@ -820,6 +822,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_memcpy(ae->wszUrlDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
         else
           AE_memcpy(ae->wszUrlDelimiters, AES_URLDELIMITERSW, sizeof(AES_URLDELIMITERSW));
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
         return 0;
       }
       if (uMsg == AEM_GETURLPREFIXES)
@@ -829,11 +832,15 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_SETURLPREFIXES)
       {
+        int nPrefix;
+
         if (lParam)
-          AE_memcpy(ae->wszUrlPrefixes, (wchar_t *)lParam, sizeof(AES_URLPREFIXESW));
+          AE_memcpy(ae->wszUrlPrefixes, (wchar_t *)lParam, sizeof(ae->wszUrlPrefixes));
         else
           AE_memcpy(ae->wszUrlPrefixes, AES_URLPREFIXESW, sizeof(AES_URLPREFIXESW));
-        return 0;
+        nPrefix=AE_GetUrlPrefixes(ae);
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, FALSE);
+        return nPrefix;
       }
       if (uMsg == AEM_ISDELIMITER)
       {
@@ -4932,41 +4939,44 @@ BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
       int nPrefix;
       int nResult;
 
-      if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, FALSE))
+      if (PtInRect(&ae->rcDraw, *ptPos))
       {
-        if (nResult == AEPC_AFTER)
-          ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
-
-        if (ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelStart || ciCharIndex.nCharInLine >= ciCharIndex.lpLine->nSelEnd)
+        if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, FALSE))
         {
-          for (nStartUrl=ciCharIndex.nCharInLine; nStartUrl >= 0; --nStartUrl)
+          if (nResult == AEPC_AFTER)
+            ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
+
+          if (ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelStart || ciCharIndex.nCharInLine >= ciCharIndex.lpLine->nSelEnd)
           {
-            if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl]))
-              return FALSE;
-
-            for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
+            for (nStartUrl=ciCharIndex.nCharInLine; nStartUrl >= 0; --nStartUrl)
             {
-              if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciCharIndex.lpLine->wpLine + nStartUrl, (DWORD)-1))
-              {
-                if (nStartUrl == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl - 1]))
-                {
-                  //Found end of URL
-                  for (nEndUrl=ciCharIndex.nCharInLine; nEndUrl < ciCharIndex.lpLine->nLineLen; ++nEndUrl)
-                  {
-                    if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nEndUrl]))
-                      break;
-                  }
+              if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl]))
+                return FALSE;
 
-                  if (crLink)
+              for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
+              {
+                if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciCharIndex.lpLine->wpLine + nStartUrl, (DWORD)-1))
+                {
+                  if (nStartUrl == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl - 1]))
                   {
-                    crLink->ciMin.nLine=ciCharIndex.nLine;
-                    crLink->ciMin.lpLine=ciCharIndex.lpLine;
-                    crLink->ciMin.nCharInLine=nStartUrl;
-                    crLink->ciMax.nLine=ciCharIndex.nLine;
-                    crLink->ciMax.lpLine=ciCharIndex.lpLine;
-                    crLink->ciMax.nCharInLine=nEndUrl;
+                    //Found end of URL
+                    for (nEndUrl=ciCharIndex.nCharInLine; nEndUrl < ciCharIndex.lpLine->nLineLen; ++nEndUrl)
+                    {
+                      if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nEndUrl]))
+                        break;
+                    }
+
+                    if (crLink)
+                    {
+                      crLink->ciMin.nLine=ciCharIndex.nLine;
+                      crLink->ciMin.lpLine=ciCharIndex.lpLine;
+                      crLink->ciMin.nCharInLine=nStartUrl;
+                      crLink->ciMax.nLine=ciCharIndex.nLine;
+                      crLink->ciMax.lpLine=ciCharIndex.lpLine;
+                      crLink->ciMax.nCharInLine=nEndUrl;
+                    }
+                    return TRUE;
                   }
-                  return TRUE;
                 }
               }
             }

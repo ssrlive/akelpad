@@ -7,6 +7,7 @@ Changed: improved status bar painting on main window resize.
 Changed: increased accuracy of the wrapping progress indicator.
 Changed: default word breaking now has RichEdit format.
 
+Added: URL prefixes and delimiters setup.
 Added: support for "Mac (0Dh)" new line format.
 Added: text Drag'n'Drop between tab buttons from external applications (MDI).
 
