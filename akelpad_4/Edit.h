@@ -53,7 +53,9 @@
 #define FILELIST_BUFFER_SIZE       8192
 #define TRANSLATE_BUFFER_SIZE      8192
 #define PREVIEW_SIZE               8188  //4094*2; -1 preview all file
-#define DELIMITERS_SIZE            128
+#define WORD_DELIMITERS_SIZE       128
+#define URL_PREFIXES_SIZE          128
+#define URL_DELIMITERS_SIZE        128
 #define DETECT_CODEPAGE_SIZE       1024
 #define RECENTFILES_AMOUNT         10
 #define RECENTFILES_RECORD_LENGTH  90
@@ -69,6 +71,8 @@
 #define ASSOCIATE_PRINTW          L"txt;log;ini;inf"
 #define WORD_DELIMITERSW          L" \t\r\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
 #define WORD_WHITESPACESW         L" \t\r"
+#define URL_DELIMITERSW           L" \t\n()<>'`\""
+#define URL_PREFIXESW             L"http: https: ftp: file: mailto:"
 #define SENTENCE_DELIMITERSA       ".?!"
 #define SENTENCE_DELIMITERSW      L".?!"
 #define TITLE_DELIMITERSA          " \t\r\n"
@@ -360,46 +364,6 @@ typedef struct _SAVEDOCUMENTW {
   BOOL bUpdate;
 } SAVEDOCUMENTW;
 
-typedef struct _WNDFRAMEA {
-  HICON hIcon;
-  char szFile[MAX_PATH];
-  int nCodePage;
-  BOOL bBOM;
-  int nNewLine;
-  BOOL bModified;
-  BOOL bReadOnly;
-  BOOL bWordWrap;
-  BOOL bInsertState;
-  int nTabStopSize;
-  int nUndoLimit;
-  BOOL bShowURL;
-  DWORD dwEditMargins;
-  BOOL bDelimitersEnable;
-  FILETIME ft;
-  LOGFONTA lf;
-  AECOLORS aec;
-} WNDFRAMEA;
-
-typedef struct _WNDFRAMEW {
-  HICON hIcon;
-  wchar_t wszFile[MAX_PATH];
-  int nCodePage;
-  BOOL bBOM;
-  int nNewLine;
-  BOOL bModified;
-  BOOL bReadOnly;
-  BOOL bWordWrap;
-  BOOL bInsertState;
-  int nTabStopSize;
-  int nUndoLimit;
-  BOOL bShowURL;
-  DWORD dwEditMargins;
-  BOOL bDelimitersEnable;
-  FILETIME ft;
-  LOGFONTW lf;
-  AECOLORS aec;
-} WNDFRAMEW;
-
 typedef struct _EDITINFO {
   HWND hWndEdit;
   unsigned char *pFile;
@@ -414,12 +378,28 @@ typedef struct _EDITINFO {
   BOOL bTabStopAsSpaces;
   int nUndoLimit;
   BOOL bDetailedUndo;
-  BOOL bShowURL;
   DWORD dwEditMargins;
-  BOOL bDelimitersEnable;
+  BOOL bWordDelimitersEnable;
+  BOOL bShowURL;
+  BOOL bUrlPrefixesEnable;
+  BOOL bUrlDelimitersEnable;
   FILETIME ft;
   AECOLORS aec;
 } EDITINFO;
+
+typedef struct _WNDFRAMEA {
+  HICON hIcon;
+  char szFile[MAX_PATH];
+  LOGFONTA lf;
+  EDITINFO ei;
+} WNDFRAMEA;
+
+typedef struct _WNDFRAMEW {
+  HICON hIcon;
+  wchar_t wszFile[MAX_PATH];
+  LOGFONTW lf;
+  EDITINFO ei;
+} WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
   struct _WNDPROCDATA *next;
@@ -787,8 +767,8 @@ typedef struct _NSIZE {
 
 //// Functions prototype
 
-void CreateEditWindowA(HWND hWnd);
-void CreateEditWindowW(HWND hWnd);
+HWND CreateEditWindowA(HWND hWnd);
+HWND CreateEditWindowW(HWND hWnd);
 
 BOOL DoFileNewA();
 BOOL DoFileNewW();
@@ -1158,6 +1138,7 @@ void GetAssociatedIconA(char *pExt, char *szFile, int *nIconIndex, HICON *phicon
 void GetAssociatedIconW(wchar_t *wpExt, wchar_t *wszFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
 void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags);
 void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlags);
+int SetUrlPrefixes(HWND hWnd, wchar_t *wpPrefixes);
 BOOL GetFileWriteTimeA(char *pFile, FILETIME *ft);
 BOOL GetFileWriteTimeW(wchar_t *wpFile, FILETIME *ft);
 BOOL IsReadOnly();

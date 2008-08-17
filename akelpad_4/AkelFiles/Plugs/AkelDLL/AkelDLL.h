@@ -186,68 +186,44 @@ typedef struct _SAVEDOCUMENTW {
   } AECOLORS;
 #endif
 
+typedef struct _EDITINFO {
+  HWND hWndEdit;              //Edit window
+  unsigned char *pFile;       //Current editing file
+                              //char *pFile         if bOldWindows == TRUE
+                              //wchar_t *pFile      if bOldWindows == FALSE
+  int nCodePage;              //Current code page
+  BOOL bBOM;                  //Current BOM
+  int nNewLine;               //Current new line format
+  BOOL bModified;             //File has been modified
+  BOOL bReadOnly;             //Read only
+  BOOL bWordWrap;             //Word wrap
+  BOOL bInsertState;          //Insert mode
+  int nTabStopSize;           //Tab stop size
+  BOOL bTabStopAsSpaces;      //Insert tab stop as spaces
+  int nUndoLimit;             //Undo limit
+  BOOL bDetailedUndo;         //Detailed undo
+  DWORD dwEditMargins;        //Edit margins
+  BOOL bWordDelimitersEnable; //Delimiters enabled
+  BOOL bShowURL;              //Show URL
+  BOOL bUrlPrefixesEnable;
+  BOOL bUrlDelimitersEnable;
+  FILETIME ft;                //File time
+  AECOLORS aec;               //Edit colors
+} EDITINFO;
+
 typedef struct _WNDFRAMEA {
   HICON hIcon;                //Frame icon
   char szFile[MAX_PATH];      //Frame file
-  int nCodePage;              //Frame edit code page
-  BOOL bBOM;                  //Frame edit BOM
-  int nNewLine;               //Frame edit new line
-  BOOL bModified;             //Frame edit modified
-  BOOL bReadOnly;             //Frame edit read only
-  BOOL bWordWrap;             //Frame edit word wrap
-  BOOL bInsertState;          //Frame edit insert state
-  int nTabStopSize;           //Frame edit tab stop size
-  int nUndoLimit;             //Frame edit undo limit
-  BOOL bShowURL;              //Frame edit show URL
-  DWORD dwEditMargins;        //Frame edit margins
-  BOOL bDelimitersEnable;     //Frame edit delimiters enabled
-  FILETIME ft;                //Frame file time
-  LOGFONTA lf;                //Frame edit font
-  AECOLORS aec;               //Frame edit colors
+  LOGFONTA lf;                //Edit font
+  EDITINFO ei;                //Edit info
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
   HICON hIcon;                //Frame icon
   wchar_t wszFile[MAX_PATH];  //Frame file
-  int nCodePage;              //Frame edit code page
-  BOOL bBOM;                  //Frame edit BOM
-  int nNewLine;               //Frame edit new line
-  BOOL bModified;             //Frame edit modified
-  BOOL bReadOnly;             //Frame edit read only
-  BOOL bWordWrap;             //Frame edit word wrap
-  BOOL bInsertState;          //Frame edit insert state
-  int nTabStopSize;           //Frame edit tab stop size
-  int nUndoLimit;             //Frame edit undo limit
-  BOOL bShowURL;              //Frame edit show URL
-  DWORD dwEditMargins;        //Frame edit margins
-  BOOL bDelimitersEnable;     //Frame edit delimiters enabled
-  FILETIME ft;                //Frame file time
-  LOGFONTW lf;                //Frame edit font
-  AECOLORS aec;               //Frame edit colors
+  LOGFONTW lf;                //Edit font
+  EDITINFO ei;                //Edit info
 } WNDFRAMEW;
-
-typedef struct _EDITINFO {
-  HWND hWndEdit;            //Edit window
-  unsigned char *pFile;     //Current editing file
-                            //char *pFile         if bOldWindows == TRUE
-                            //wchar_t *pFile      if bOldWindows == FALSE
-  int nCodePage;            //Current code page
-  BOOL bBOM;                //Current BOM
-  int nNewLine;             //Current new line format
-  BOOL bModified;           //File has been modified
-  BOOL bReadOnly;           //Read only
-  BOOL bWordWrap;           //Word wrap
-  BOOL bInsertState;        //Insert mode
-  int nTabStopSize;         //Tab stop size
-  BOOL bTabStopAsSpaces;    //Insert tab stop as spaces
-  int nUndoLimit;           //Undo limit
-  BOOL bDetailedUndo;       //Detailed undo
-  BOOL bShowURL;            //Show URL
-  DWORD dwEditMargins;      //Edit margins
-  BOOL bDelimitersEnable;   //Delimiters enabled
-  FILETIME ft;              //File time
-  AECOLORS aec;             //Edit colors
-} EDITINFO;
 
 typedef struct _WNDPROCDATA {
   struct _WNDPROCDATA *next;

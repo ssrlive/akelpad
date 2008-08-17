@@ -2362,7 +2362,7 @@ wParam            == not used.
 (wchar_t *)lParam == buffer containing pairs of null-terminated prefixes strings. The last string in the buffer must be terminated by two NULL characters. If NULL, then default prefixes will be used.
 
 Return Value
- zero
+ Number of prefixes strings.
 
 Example:
  wchar_t wszPrefixes[128]=L"http:\0https:\0ftp:\0file:\0mailto:\0\0"

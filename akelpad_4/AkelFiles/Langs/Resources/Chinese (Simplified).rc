@@ -95,7 +95,7 @@ BEGIN
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
-            MENUITEM "Mac (0Dh)",                  IDM_EDIT_NEWLINE_MAC
+            MENUITEM "Mac (0Dh)",                   IDM_EDIT_NEWLINE_MAC
         END
     END
     POPUP "查看(&V)"
@@ -603,7 +603,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,136,
                     11,13
-    CONTROL         "详细信息",IDC_OPTIONS_DETAILED_UNDO,"Button",
+    CONTROL         "详细信息",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,137,48,10
     GROUPBOX        "文本边距",IDC_STATIC,9,162,200,31
     RTEXT           "左：",IDC_STATIC,12,176,17,8,NOT WS_GROUP
@@ -616,9 +616,9 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
-    CONTROL         "单词分隔符：",IDC_OPTIONS_ENABLE_DELIMITERS,"Button",
+    CONTROL         "单词分隔符：",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,199,64,10
-    EDITTEXT        IDC_OPTIONS_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
+    EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
     PUSHBUTTON      "重置",IDC_OPTIONS_RESET_DELIMITERS,166,210,43,13,
                     BS_CENTER
 END
@@ -634,17 +634,23 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,18,72,10
     CONTROL         "记住代码页",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,29,56,10
-    GROUPBOX        "超链接",IDC_STATIC,9,51,100,49
+    GROUPBOX        "超链接",IDC_STATIC,9,51,200,120
     CONTROL         "显示",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,63,32,10
+                    WS_TABSTOP,17,64,85,10
     CONTROL         "单击打开",IDC_OPTIONS_URL_SINGLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,28,74,48,10
+                    BS_AUTORADIOBUTTON,23,78,75,10
     CONTROL         "双击打开",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,28,85,48,10
+                    BS_AUTORADIOBUTTON,23,89,75,10
+    CONTROL         "Prefixes",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,105,89,10
+    EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,117,172,13,ES_AUTOHSCROLL
+    CONTROL         "Delimiters",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,23,136,89,10
+    EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,148,172,13,ES_AUTOHSCROLL
     CONTROL         "全部替换 - 关闭对话框",IDC_OPTIONS_REPLACEALL_CLOSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,108,100,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,178,200,10
     CONTROL         "保存到只读文件时警告",IDC_OPTIONS_SAVEIN_READONLY_MSG,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,120,96,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,190,200,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
