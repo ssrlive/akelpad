@@ -58,8 +58,10 @@
 #define SS_INI       2 //INI file
 
 //New line format
-#define NEWLINE_WIN  1  //Windows/DOS new line format (\r\n)
-#define NEWLINE_UNIX 2  //Unix new line format (\n)
+#define NEWLINE_WIN  0x00000001  //Windows/DOS new line format (\r\n)
+#define NEWLINE_UNIX 0x00000002  //Unix new line format (\n)
+#define NEWLINE_MAC  0x00000004  //MacOS new line format (\r)
+#define NEWLINE_MIX  0x00000008  //Mixed new lines
 
 //Options flags
 #define POB_READ     0x1   //Begins read options
