@@ -610,8 +610,8 @@ BEGIN
     CONTROL         "Kelime sýnýrlayýcý:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Sýfýrla",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,13,
-                    BS_CENTER
+    PUSHBUTTON      "Sýfýrla",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED2 DIALOG DISCARDABLE  0, 0, 220, 230
@@ -796,14 +796,19 @@ BEGIN
     STR_LANGUAGE_NONE       "Dahili"
     STR_FILE_FILTER         "Metin dosyalarý (*.txt)|*.txt|Tüm dosyalar (*.*)|*.*"
     STR_NONE                "Hiçbiri"
-    STR_AUTODETECT_RUSSIAN  "Kiril (1251, 866, 20866)"
     STR_PLUGIN_FUNCTION     "Eklenti::Ýþlev"
     STR_HOTKEY              "Kýsayol"
-    STR_STATUS              "Durum"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "Kiril (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "Durum"
     STR_RUNNING             "Çalýþýyor"
     STR_EXECUTABLE_FILTER   "Ýþletilebilir dosyalar (*.exe)|*.exe|Tüm dosyalar (*.*)|*.*"
     STR_FONT                "Font"

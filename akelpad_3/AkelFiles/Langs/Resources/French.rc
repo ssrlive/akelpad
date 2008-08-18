@@ -618,8 +618,9 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
-    CONTROL         "Délimiteurs des mots:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
+    CONTROL         "Délimiteurs des mots:",
+                    IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Défaut",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,13,
                     BS_CENTER
@@ -809,14 +810,19 @@ BEGIN
     STR_LANGUAGE_NONE       "Interne"
     STR_FILE_FILTER         "Fichiers texte (*.txt)|*.txt|Tous les fichiers (*.*)|*.*"
     STR_NONE                "Aucun"
-    STR_AUTODETECT_RUSSIAN  "Cyrillique (1251, 866, 20866)"
     STR_PLUGIN_FUNCTION     "Plugin::Fonction"
     STR_HOTKEY              "Raccourci"
-    STR_STATUS              "Statut"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "Cyrillique (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "Statut"
     STR_RUNNING             "Actif"
     STR_EXECUTABLE_FILTER   "Fichiers exécutables (*.exe)|*.exe|Tous les fichiers (*.*)|*.*"
     STR_FONT                "Police"

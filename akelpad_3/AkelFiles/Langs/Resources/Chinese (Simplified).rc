@@ -788,14 +788,19 @@ BEGIN
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*"
     STR_NONE                "无"
-    STR_AUTODETECT_RUSSIAN  "Cyrillic (1251, 866, 20866)"
     STR_PLUGIN_FUNCTION     "插件::函数"
     STR_HOTKEY              "热键"
-    STR_STATUS              "状态"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "西里尔文 (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "拉丁文 (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "状态"
     STR_RUNNING             "正在运行"
     STR_EXECUTABLE_FILTER   "可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*"
     STR_FONT                "字体"

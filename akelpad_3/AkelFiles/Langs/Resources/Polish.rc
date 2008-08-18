@@ -614,8 +614,8 @@ BEGIN
     CONTROL         "Odgraniczniki s³ów:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,13,
-                    BS_CENTER
+    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED2 DIALOG DISCARDABLE  0, 0, 220, 230
@@ -799,14 +799,19 @@ BEGIN
     STR_LANGUAGE_NONE       "Wbudowany"
     STR_FILE_FILTER         "Dokumenty tekstowe (*.txt)|*.txt|Wszystkie pliki (*.*)|*.*"
     STR_NONE                "Brak"
-    STR_AUTODETECT_RUSSIAN  "Cyrylica (1251, 866, 20866)"
     STR_PLUGIN_FUNCTION     "Plug-in::Funkcja"
     STR_HOTKEY              "Klawisz skrótu"
-    STR_STATUS              "Status"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "Cyrylica (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "Status"
     STR_RUNNING             "Uruchomione"
     STR_EXECUTABLE_FILTER   "Pliki wykonawcze (*.exe)|*.exe|Wszystkie pliki (*.*)|*.*"
     STR_FONT                "Czcionka"

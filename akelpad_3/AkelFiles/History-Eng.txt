@@ -9,6 +9,8 @@ Changed: hotkeys (conflicted with AltGr key):
         - Shift+Alt+B save as UTF-16BE;
         - Shift+Alt+U save as UTF-8.
 
+Added: Latin recognition OEM and UTF-8.
+
 Fixed: "OK" button in plugin dialog, didn't clear non-existent plugin records.
 Fixed: word delimiters saving in INI file.
 
