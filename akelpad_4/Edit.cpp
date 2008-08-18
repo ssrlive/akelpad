@@ -2226,7 +2226,9 @@ void DoNonMenuDelLine(HWND hWnd)
   cr.ciMin.nCharInLine=0;
   if (!SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTLINE, (LPARAM)&cr.ciMax))
     cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
+  SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
   SetSel(hWnd, &cr, FALSE, NULL);
+  SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
   ReplaceSelW(hWnd, L"", -1, FALSE, NULL, NULL);
 }
