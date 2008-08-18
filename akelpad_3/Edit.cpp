@@ -303,96 +303,102 @@ extern LPITEMIDLIST (WINAPI *SHBrowseForFolderWPrt) (LPBROWSEINFOW);
 
 //// Init function
 
-void CreateEditWindowA(HWND hWnd)
+HWND CreateEditWindowA(HWND hWndParent)
 {
   RECT rcRect;
+  HWND hWndEditNew;
   int nLangOptions;
   BOOL bModifiedTmp=bModified;
 
-  GetClientRect(hWnd, &rcRect);
+  GetClientRect(hWndParent, &rcRect);
 
-  hWndEdit=CreateWindowExA(WS_EX_CLIENTEDGE,
+  hWndEditNew=CreateWindowExA(WS_EX_CLIENTEDGE,
                         "RichEdit20A",
                         NULL,
                         WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
                           ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|
                           ES_SUNKEN|ES_NOHIDESEL,
                         0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
-                        hWnd,
+                        hWndParent,
                         (HMENU)ID_EDIT,
                         hInstance,
                         NULL);
 
-  SendMessage(hWndEdit, EM_SETOLECALLBACK, 0, (LPARAM)&rl);
-  SendMessage(hWndEdit, EM_EXLIMITTEXT, 0, nMaxChars);
-  nLangOptions=SendMessage(hWndEdit, EM_GETLANGOPTIONS, 0, 0);
+  SendMessage(hWndEditNew, EM_SETOLECALLBACK, 0, (LPARAM)&rl);
+  SendMessage(hWndEditNew, EM_EXLIMITTEXT, 0, nMaxChars);
+  nLangOptions=SendMessage(hWndEditNew, EM_GETLANGOPTIONS, 0, 0);
   nLangOptions&=~IMF_AUTOFONT;
   nLangOptions&=~IMF_AUTOFONTSIZEADJUST;
-  SendMessage(hWndEdit, EM_SETLANGOPTIONS, 0, nLangOptions);
-  SendMessage(hWndEdit, EM_SETTEXTMODE, TM_RICHTEXT|TM_MULTILEVELUNDO|TM_MULTICODEPAGE, 0);
-  SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
-  if (bWordDelimitersEnable) SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
+  SendMessage(hWndEditNew, EM_SETLANGOPTIONS, 0, nLangOptions);
+  SendMessage(hWndEditNew, EM_SETTEXTMODE, TM_RICHTEXT|TM_MULTILEVELUNDO|TM_MULTICODEPAGE, 0);
+  SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
+  if (bWordDelimitersEnable) SendMessage(hWndEditNew, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
 
-  DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
-  DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
-  SendMessage(hWndEdit, EM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
-  SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
-  SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
-  SetChosenFontA(hWndEdit, &lfEditFontA);
-  SetChosenFontColorA(hWndEdit, aecColors.crBasicText);
-  ShowURL(hWndEdit, bShowURL);
-  SetWindowTextA(hWndEdit, "");
-  SetModifyA(hWndEdit, bModifiedTmp, FALSE);
+  DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
+  DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
+  SendMessage(hWndEditNew, EM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
+  SendMessage(hWndEditNew, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
+  SendMessage(hWndEditNew, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
+  SetChosenFontA(hWndEditNew, &lfEditFontA);
+  SetChosenFontColorA(hWndEditNew, aecColors.crBasicText);
+  ShowURL(hWndEditNew, bShowURL);
+  SetWindowTextA(hWndEditNew, "");
+  SetModifyStatusA(hWndEditNew, bModifiedTmp, FALSE);
 
-  OldEditProc=(WNDPROC)GetWindowLongA(hWndEdit, GWL_WNDPROC);
-  SetWindowLongA(hWndEdit, GWL_WNDPROC, (LONG)CommonEditProcA);
-  SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)hWndEdit, 0);
+  OldEditProc=(WNDPROC)GetWindowLongA(hWndEditNew, GWL_WNDPROC);
+  SetWindowLongA(hWndEditNew, GWL_WNDPROC, (LONG)CommonEditProcA);
+  SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)hWndEditNew, 0);
+
+  return hWndEditNew;
 }
 
-void CreateEditWindowW(HWND hWnd)
+HWND CreateEditWindowW(HWND hWndParent)
 {
   RECT rcRect;
+  HWND hWndEditNew;
   int nLangOptions;
   BOOL bModifiedTmp=bModified;
 
-  GetClientRect(hWnd, &rcRect);
+  GetClientRect(hWndParent, &rcRect);
 
-  hWndEdit=CreateWindowExW(WS_EX_CLIENTEDGE,
+  hWndEditNew=CreateWindowExW(WS_EX_CLIENTEDGE,
                        L"RichEdit20W",
                         NULL,
                         WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
                           ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|
                           ES_SUNKEN|ES_NOHIDESEL,
                         0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
-                        hWnd,
+                        hWndParent,
                         (HMENU)ID_EDIT,
                         hInstance,
                         NULL);
 
-  SendMessage(hWndEdit, EM_SETOLECALLBACK, 0, (LPARAM)&rl);
-  SendMessage(hWndEdit, EM_EXLIMITTEXT, 0, nMaxChars);
-  nLangOptions=SendMessage(hWndEdit, EM_GETLANGOPTIONS, 0, 0);
+  SendMessage(hWndEditNew, EM_SETOLECALLBACK, 0, (LPARAM)&rl);
+  SendMessage(hWndEditNew, EM_EXLIMITTEXT, 0, nMaxChars);
+  nLangOptions=SendMessage(hWndEditNew, EM_GETLANGOPTIONS, 0, 0);
   nLangOptions&=~IMF_AUTOFONT;
   nLangOptions&=~IMF_AUTOFONTSIZEADJUST;
-  SendMessage(hWndEdit, EM_SETLANGOPTIONS, 0, nLangOptions);
-  SendMessage(hWndEdit, EM_SETTEXTMODE, TM_RICHTEXT|TM_MULTILEVELUNDO|TM_MULTICODEPAGE, 0);
-  SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
-  if (bWordDelimitersEnable) SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
+  SendMessage(hWndEditNew, EM_SETLANGOPTIONS, 0, nLangOptions);
+  SendMessage(hWndEditNew, EM_SETTEXTMODE, TM_RICHTEXT|TM_MULTILEVELUNDO|TM_MULTICODEPAGE, 0);
+  SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
+  if (bWordDelimitersEnable) SendMessage(hWndEditNew, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
 
-  DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
-  DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
-  SendMessage(hWndEdit, EM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
-  SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
-  SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
-  SetChosenFontW(hWndEdit, &lfEditFontW);
-  SetChosenFontColorW(hWndEdit, aecColors.crBasicText);
-  ShowURL(hWndEdit, bShowURL);
-  SetWindowTextW(hWndEdit, L"");
-  SetModifyW(hWndEdit, bModifiedTmp, FALSE);
+  DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
+  DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
+  SendMessage(hWndEditNew, EM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
+  SendMessage(hWndEditNew, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
+  SendMessage(hWndEditNew, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
+  SetChosenFontW(hWndEditNew, &lfEditFontW);
+  SetChosenFontColorW(hWndEditNew, aecColors.crBasicText);
+  ShowURL(hWndEditNew, bShowURL);
+  SetWindowTextW(hWndEditNew, L"");
+  SetModifyStatusW(hWndEditNew, bModifiedTmp, FALSE);
 
-  OldEditProc=(WNDPROC)GetWindowLongW(hWndEdit, GWL_WNDPROC);
-  SetWindowLongW(hWndEdit, GWL_WNDPROC, (LONG)CommonEditProcW);
-  SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)hWndEdit, 0);
+  OldEditProc=(WNDPROC)GetWindowLongW(hWndEditNew, GWL_WNDPROC);
+  SetWindowLongW(hWndEditNew, GWL_WNDPROC, (LONG)CommonEditProcW);
+  SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)hWndEditNew, 0);
+
+  return hWndEditNew;
 }
 
 
@@ -442,9 +448,9 @@ BOOL DoFileCloseA()
   SetWindowTextA(hWndEdit, "");
   ShowCaret(NULL);
   szCurrentFile[0]='\0';
-  SetNewLineA(hWndEdit, NEWLINE_WIN, FALSE);
-  SetModifyA(hWndEdit, FALSE, FALSE);
-  SetCodePageA(nDefaultCodePage, bDefaultBOM, FALSE);
+  SetNewLineStatusA(hWndEdit, NEWLINE_WIN, FALSE);
+  SetModifyStatusA(hWndEdit, FALSE, FALSE);
+  SetCodePageStatusA(nDefaultCodePage, bDefaultBOM, FALSE);
   UpdateTitleA(GetParent(hWndEdit), "");
 
   return TRUE;
@@ -466,9 +472,9 @@ BOOL DoFileCloseW()
   SetWindowTextW(hWndEdit, L"");
   ShowCaret(NULL);
   wszCurrentFile[0]='\0';
-  SetNewLineW(hWndEdit, NEWLINE_WIN, FALSE);
-  SetModifyW(hWndEdit, FALSE, FALSE);
-  SetCodePageW(nDefaultCodePage, bDefaultBOM, FALSE);
+  SetNewLineStatusW(hWndEdit, NEWLINE_WIN, FALSE);
+  SetModifyStatusW(hWndEdit, FALSE, FALSE);
+  SetCodePageStatusW(nDefaultCodePage, bDefaultBOM, FALSE);
   UpdateTitleW(GetParent(hWndEdit), L"");
 
   return TRUE;
@@ -2030,7 +2036,7 @@ void DoViewAlignmentA(HWND hWnd, WORD wAlignment)
     SetTextSel(hWnd, crInitial.cpMin, crInitial.cpMax);
 
   //Restore state
-  if (hWnd == hWndEdit) SetModifyA(hWndEdit, bModifiedTmp, FALSE);
+  if (hWnd == hWndEdit) SetModifyStatusA(hWndEdit, bModifiedTmp, FALSE);
   RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, FALSE);
@@ -2063,7 +2069,7 @@ void DoViewAlignmentW(HWND hWnd, WORD wAlignment)
     SetTextSel(hWnd, crInitial.cpMin, crInitial.cpMax);
 
   //Restore state
-  if (hWnd == hWndEdit) SetModifyW(hWndEdit, bModifiedTmp, FALSE);
+  if (hWnd == hWndEdit) SetModifyStatusW(hWndEdit, bModifiedTmp, FALSE);
   RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, FALSE);
@@ -4564,9 +4570,9 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       }
 
       //Update titles
-      SetNewLineA(hWndEdit, nNewLine, TRUE);
-      SetModifyA(hWndEdit, FALSE, FALSE);
-      SetCodePageA(nCodePage, bBOM, FALSE);
+      SetNewLineStatusA(hWndEdit, nNewLine, TRUE);
+      SetModifyStatusA(hWndEdit, FALSE, FALSE);
+      SetCodePageStatusA(nCodePage, bBOM, FALSE);
 
       if (nFileCmp)
       {
@@ -4803,9 +4809,9 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       }
 
       //Update titles
-      SetNewLineW(hWndEdit, nNewLine, TRUE);
-      SetModifyW(hWndEdit, FALSE, FALSE);
-      SetCodePageW(nCodePage, bBOM, FALSE);
+      SetNewLineStatusW(hWndEdit, nNewLine, TRUE);
+      SetModifyStatusW(hWndEdit, FALSE, FALSE);
+      SetCodePageStatusW(nCodePage, bBOM, FALSE);
 
       if (nFileCmp)
       {
@@ -4905,7 +4911,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
           }
           else if (wpBuffer[i] == '\n')
           {
-            SetNewLineW(hWndEdit, NEWLINE_UNIX, FALSE);
+            SetNewLineStatusW(hWndEdit, NEWLINE_UNIX, FALSE);
             break;
           }
         }
@@ -5100,8 +5106,8 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
       if (hWnd == hWndEdit)
       {
         GetFileWriteTimeA(szFile, &ftFileTime);
-        SetModifyA(hWndEdit, FALSE, FALSE);
-        SetCodePageA(nCodePage, bBOM, FALSE);
+        SetModifyStatusA(hWndEdit, FALSE, FALSE);
+        SetCodePageStatusA(nCodePage, bBOM, FALSE);
 
         if (nFileCmp)
         {
@@ -5120,10 +5126,10 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
           if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
           {
             GetFileWriteTimeA(szFile, &ft);
-            wf->ft=ft;
-            wf->bModified=FALSE;
-            wf->nCodePage=nCodePage;
-            wf->bBOM=bBOM;
+            wf->ei.nCodePage=nCodePage;
+            wf->ei.bBOM=bBOM;
+            wf->ei.bModified=FALSE;
+            wf->ei.ft=ft;
 
             if (lstrcmpiA(wf->szFile, szFile))
             {
@@ -5284,8 +5290,8 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
       if (hWnd == hWndEdit)
       {
         GetFileWriteTimeW(wszFile, &ftFileTime);
-        SetModifyW(hWndEdit, FALSE, FALSE);
-        SetCodePageW(nCodePage, bBOM, FALSE);
+        SetModifyStatusW(hWndEdit, FALSE, FALSE);
+        SetCodePageStatusW(nCodePage, bBOM, FALSE);
 
         if (nFileCmp)
         {
@@ -5304,10 +5310,10 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
           if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
           {
             GetFileWriteTimeW(wszFile, &ft);
-            wf->ft=ft;
-            wf->bModified=FALSE;
-            wf->nCodePage=nCodePage;
-            wf->bBOM=bBOM;
+            wf->ei.nCodePage=nCodePage;
+            wf->ei.bBOM=bBOM;
+            wf->ei.bModified=FALSE;
+            wf->ei.ft=ft;
 
             if (lstrcmpiW(wf->wszFile, wszFile))
             {
@@ -14673,7 +14679,7 @@ BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 //// Status bar
 
-void SetModifyA(HWND hWnd, BOOL bState, BOOL bFirst)
+void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 {
   if (!hWnd) hWnd=hWndEdit;
 
@@ -14695,13 +14701,13 @@ void SetModifyA(HWND hWnd, BOOL bState, BOOL bFirst)
       if (hWndFrame=GetParent(hWnd))
       {
         if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
-          wf->bModified=bState;
+          wf->ei.bModified=bState;
       }
     }
   }
 }
 
-void SetModifyW(HWND hWnd, BOOL bState, BOOL bFirst)
+void SetModifyStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
 {
   if (!hWnd) hWnd=hWndEdit;
 
@@ -14723,13 +14729,13 @@ void SetModifyW(HWND hWnd, BOOL bState, BOOL bFirst)
       if (hWndFrame=GetParent(hWnd))
       {
         if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
-          wf->bModified=bState;
+          wf->ei.bModified=bState;
       }
     }
   }
 }
 
-void SetNewLineA(HWND hWnd, int nState, BOOL bFirst)
+void SetNewLineStatusA(HWND hWnd, int nState, BOOL bFirst)
 {
   if (!hWnd) hWnd=hWndEdit;
 
@@ -14759,13 +14765,13 @@ void SetNewLineA(HWND hWnd, int nState, BOOL bFirst)
       if (hWndFrame=GetParent(hWnd))
       {
         if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
-          wf->nNewLine=nState;
+          wf->ei.nNewLine=nState;
       }
     }
   }
 }
 
-void SetNewLineW(HWND hWnd, int nState, BOOL bFirst)
+void SetNewLineStatusW(HWND hWnd, int nState, BOOL bFirst)
 {
   if (!hWnd) hWnd=hWndEdit;
 
@@ -14795,13 +14801,13 @@ void SetNewLineW(HWND hWnd, int nState, BOOL bFirst)
       if (hWndFrame=GetParent(hWnd))
       {
         if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
-          wf->nNewLine=nState;
+          wf->ei.nNewLine=nState;
       }
     }
   }
 }
 
-void SetInsertStateA(HWND hWnd, BOOL bState, BOOL bFirst)
+void SetInsertStateStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 {
   if (bFirst != TRUE && bInsertState == bState) return;
   bInsertState=bState;
@@ -14819,7 +14825,7 @@ void SetInsertStateA(HWND hWnd, BOOL bState, BOOL bFirst)
   SendMessage(hStatus, SB_SETTEXTA, STATUS_INSERT, (LPARAM)(bInsertState?"Ovr":"Ins"));
 }
 
-void SetInsertStateW(HWND hWnd, BOOL bState, BOOL bFirst)
+void SetInsertStateStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
 {
   if (bFirst != TRUE && bInsertState == bState) return;
   bInsertState=bState;
@@ -14837,7 +14843,7 @@ void SetInsertStateW(HWND hWnd, BOOL bState, BOOL bFirst)
   SendMessage(hStatus, SB_SETTEXTW, STATUS_INSERT, (LPARAM)(bInsertState?L"Ovr":L"Ins"));
 }
 
-void SetCodePageA(int nCodePage, BOOL bBOM, BOOL bFirst)
+void SetCodePageStatusA(int nCodePage, BOOL bBOM, BOOL bFirst)
 {
   if (bFirst != TRUE && nCurrentCodePage == nCodePage && bCurrentBOM == bBOM) return;
   nCurrentCodePage=nCodePage;
@@ -14856,7 +14862,7 @@ void SetCodePageA(int nCodePage, BOOL bBOM, BOOL bFirst)
   SendMessage(hStatus, SB_SETTEXTA, STATUS_CODEPAGE, (LPARAM)buf);
 }
 
-void SetCodePageW(int nCodePage, BOOL bBOM, BOOL bFirst)
+void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst)
 {
   if (bFirst != TRUE && nCurrentCodePage == nCodePage && bCurrentBOM == bBOM) return;
   nCurrentCodePage=nCodePage;
@@ -15008,7 +15014,7 @@ void SetChosenFontA(HWND hWnd, LOGFONTA *lfA)
   SetTabStopsA(hWnd, nTabStopSize, FALSE);
 
   //Restore state
-  if (hWnd == hWndEdit) SetModifyA(hWndEdit, bModifiedTmp, FALSE);
+  if (hWnd == hWndEdit) SetModifyStatusA(hWndEdit, bModifiedTmp, FALSE);
   RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, FALSE);
@@ -15045,7 +15051,7 @@ void SetChosenFontW(HWND hWnd, LOGFONTW *lfW)
   SetTabStopsW(hWnd, nTabStopSize, FALSE);
 
   //Restore state
-  if (hWnd == hWndEdit) SetModifyW(hWndEdit, bModifiedTmp, FALSE);
+  if (hWnd == hWndEdit) SetModifyStatusW(hWndEdit, bModifiedTmp, FALSE);
   RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, FALSE);
@@ -15068,7 +15074,7 @@ void SetChosenFontColorA(HWND hWnd, COLORREF crFont)
   SendMessageA(hWnd, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cfmtA);
 
   //Restore state
-  if (hWnd == hWndEdit) SetModifyA(hWndEdit, bModifiedTmp, FALSE);
+  if (hWnd == hWndEdit) SetModifyStatusA(hWndEdit, bModifiedTmp, FALSE);
 }
 
 void SetChosenFontColorW(HWND hWnd, COLORREF crFont)
@@ -15088,7 +15094,7 @@ void SetChosenFontColorW(HWND hWnd, COLORREF crFont)
   SendMessageW(hWnd, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cfmtW);
 
   //Restore state
-  if (hWnd == hWndEdit) SetModifyW(hWndEdit, bModifiedTmp, FALSE);
+  if (hWnd == hWndEdit) SetModifyStatusW(hWndEdit, bModifiedTmp, FALSE);
 }
 
 void SetChosenFontSizeA(HWND hWnd, int nPixelHeight)
@@ -15114,7 +15120,7 @@ void SetChosenFontSizeA(HWND hWnd, int nPixelHeight)
   SetTabStopsA(hWnd, nTabStopSize, FALSE);
 
   //Restore state
-  if (hWnd == hWndEdit) SetModifyA(hWndEdit, bModifiedTmp, FALSE);
+  if (hWnd == hWndEdit) SetModifyStatusA(hWndEdit, bModifiedTmp, FALSE);
   RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, FALSE);
@@ -15143,7 +15149,7 @@ void SetChosenFontSizeW(HWND hWnd, int nPixelHeight)
   SetTabStopsW(hWnd, nTabStopSize, FALSE);
 
   //Restore state
-  if (hWnd == hWndEdit) SetModifyW(hWndEdit, bModifiedTmp, FALSE);
+  if (hWnd == hWndEdit) SetModifyStatusW(hWndEdit, bModifiedTmp, FALSE);
   RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, FALSE);
@@ -15186,7 +15192,7 @@ void SetTabStopsA(HWND hWnd, int nTabStops, BOOL bSetRedraw)
   //Restore state
   if (bSetRedraw)
   {
-    if (hWnd == hWndEdit) SetModifyA(hWndEdit, bModifiedTmp, FALSE);
+    if (hWnd == hWndEdit) SetModifyStatusA(hWndEdit, bModifiedTmp, FALSE);
     RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
     SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
     InvalidateRect(hWnd, NULL, FALSE);
@@ -15230,7 +15236,7 @@ void SetTabStopsW(HWND hWnd, int nTabStops, BOOL bSetRedraw)
   //Restore state
   if (bSetRedraw)
   {
-    if (hWnd == hWndEdit) SetModifyW(hWndEdit, bModifiedTmp, FALSE);
+    if (hWnd == hWndEdit) SetModifyStatusW(hWndEdit, bModifiedTmp, FALSE);
     RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
     SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
     InvalidateRect(hWnd, NULL, FALSE);

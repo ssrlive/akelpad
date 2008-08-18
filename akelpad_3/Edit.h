@@ -430,46 +430,6 @@ typedef struct _SAVEDOCUMENTW {
   } AECOLORS;
 #endif
 
-typedef struct _WNDFRAMEA {
-  HICON hIcon;
-  char szFile[MAX_PATH];
-  int nCodePage;
-  BOOL bBOM;
-  int nNewLine;
-  BOOL bModified;
-  BOOL bReadOnly;
-  BOOL bWordWrap;
-  BOOL bInsertState;
-  int nTabStopSize;
-  int nUndoLimit;
-  BOOL bShowURL;
-  DWORD dwEditMargins;
-  BOOL bDelimitersEnable;
-  FILETIME ft;
-  LOGFONTA lf;
-  AECOLORS aec;
-} WNDFRAMEA;
-
-typedef struct _WNDFRAMEW {
-  HICON hIcon;
-  wchar_t wszFile[MAX_PATH];
-  int nCodePage;
-  BOOL bBOM;
-  int nNewLine;
-  BOOL bModified;
-  BOOL bReadOnly;
-  BOOL bWordWrap;
-  BOOL bInsertState;
-  int nTabStopSize;
-  int nUndoLimit;
-  BOOL bShowURL;
-  DWORD dwEditMargins;
-  BOOL bDelimitersEnable;
-  FILETIME ft;
-  LOGFONTW lf;
-  AECOLORS aec;
-} WNDFRAMEW;
-
 typedef struct _EDITINFO {
   HWND hWndEdit;
   unsigned char *pFile;
@@ -484,12 +444,28 @@ typedef struct _EDITINFO {
   BOOL bTabStopAsSpaces;
   int nUndoLimit;
   BOOL bDetailedUndo;
-  BOOL bShowURL;
   DWORD dwEditMargins;
-  BOOL bDelimitersEnable;
+  BOOL bWordDelimitersEnable;
+  BOOL bShowURL;
+  BOOL bUrlPrefixesEnable;
+  BOOL bUrlDelimitersEnable;
   FILETIME ft;
   AECOLORS aec;
 } EDITINFO;
+
+typedef struct _WNDFRAMEA {
+  HICON hIcon;
+  char szFile[MAX_PATH];
+  LOGFONTA lf;
+  EDITINFO ei;
+} WNDFRAMEA;
+
+typedef struct _WNDFRAMEW {
+  HICON hIcon;
+  wchar_t wszFile[MAX_PATH];
+  LOGFONTW lf;
+  EDITINFO ei;
+} WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
   struct _WNDPROCDATA *next;
@@ -838,8 +814,8 @@ typedef struct _NSIZE {
 
 //// Functions prototype
 
-void CreateEditWindowA(HWND hWnd);
-void CreateEditWindowW(HWND hWnd);
+HWND CreateEditWindowA(HWND hWndParent);
+HWND CreateEditWindowW(HWND hWndParent);
 
 BOOL DoFileNewA();
 BOOL DoFileNewW();
@@ -1164,14 +1140,14 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 BOOL CALLBACK AboutDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-void SetModifyA(HWND hWnd, BOOL bState, BOOL bFirst);
-void SetModifyW(HWND hWnd, BOOL bState, BOOL bFirst);
-void SetNewLineA(HWND hWnd, BOOL bState, BOOL bFirst);
-void SetNewLineW(HWND hWnd, BOOL bState, BOOL bFirst);
-void SetInsertStateA(HWND hWnd, BOOL bState, BOOL bFirst);
-void SetInsertStateW(HWND hWnd, BOOL bState, BOOL bFirst);
-void SetCodePageA(int nCodePage, BOOL bBOM, BOOL bFirst);
-void SetCodePageW(int nCodePage, BOOL bBOM, BOOL bFirst);
+void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst);
+void SetModifyStatusW(HWND hWnd, BOOL bState, BOOL bFirst);
+void SetNewLineStatusA(HWND hWnd, BOOL bState, BOOL bFirst);
+void SetNewLineStatusW(HWND hWnd, BOOL bState, BOOL bFirst);
+void SetInsertStateStatusA(HWND hWnd, BOOL bState, BOOL bFirst);
+void SetInsertStateStatusW(HWND hWnd, BOOL bState, BOOL bFirst);
+void SetCodePageStatusA(int nCodePage, BOOL bBOM, BOOL bFirst);
+void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst);
 
 int SetLayout(HWND hWnd);
 void RestoreLayout(HWND hWnd, DWORD dwLayout);
