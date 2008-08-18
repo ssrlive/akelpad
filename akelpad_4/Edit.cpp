@@ -16099,78 +16099,134 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 
 void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 {
-  if (bFirst != TRUE && bModified == bState) return;
-  bModified=bState;
+  if (!hWnd || hWnd == hWndEdit)
+  {
+    if (bFirst != TRUE && bModified == bState) return;
+    bModified=bState;
 
-  if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bModified, 0);
+    if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bModified, 0);
 
-  API_LoadStringA(hLangLib, STR_MODIFIED, buf, BUFFER_SIZE);
-  SendMessage(hStatus, SB_SETTEXTA, STATUS_MODIFY, (LPARAM)(bModified?buf:""));
+    API_LoadStringA(hLangLib, STR_MODIFIED, buf, BUFFER_SIZE);
+    SendMessage(hStatus, SB_SETTEXTA, STATUS_MODIFY, (LPARAM)(bModified?buf:""));
+  }
+  else
+  {
+    WNDFRAMEA *wf;
+    HWND hWndFrame;
+
+    if (hWndFrame=GetParent(hWnd))
+    {
+      if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
+        wf->ei.bModified=bState;
+    }
+  }
 }
 
 void SetModifyStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
 {
-  if (bFirst != TRUE && bModified == bState) return;
-  bModified=bState;
+  if (!hWnd || hWnd == hWndEdit)
+  {
+    if (bFirst != TRUE && bModified == bState) return;
+    bModified=bState;
 
-  if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bModified, 0);
+    if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bModified, 0);
 
-  API_LoadStringW(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
-  SendMessage(hStatus, SB_SETTEXTW, STATUS_MODIFY, (LPARAM)(bModified?wbuf:L""));
+    API_LoadStringW(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
+    SendMessage(hStatus, SB_SETTEXTW, STATUS_MODIFY, (LPARAM)(bModified?wbuf:L""));
+  }
+  else
+  {
+    WNDFRAMEW *wf;
+    HWND hWndFrame;
+
+    if (hWndFrame=GetParent(hWnd))
+    {
+      if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
+        wf->ei.bModified=bState;
+    }
+  }
 }
 
 void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 {
-  if (bFirst != TRUE && nNewLine == nState) return;
-  nNewLine=nState;
-
-  if (hWnd)
+  if (!hWnd || hWnd == hWndEdit)
   {
-    if (nNewLine & NEWLINE_MIX)
-      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_ASIS, AELB_ASIS));
-    else if (nNewLine & NEWLINE_WIN)
-      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
-    else if (nNewLine & NEWLINE_UNIX)
-      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
-    else if (nNewLine & NEWLINE_MAC)
-      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
+    if (bFirst != TRUE && nNewLine == nState) return;
+    nNewLine=nState;
 
-    SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
+    if (hWnd)
+    {
+      if (nNewLine & NEWLINE_MIX)
+        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_ASIS, AELB_ASIS));
+      else if (nNewLine & NEWLINE_WIN)
+        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
+      else if (nNewLine & NEWLINE_UNIX)
+        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+      else if (nNewLine & NEWLINE_MAC)
+        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
+
+      SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
+    }
+
+    if (nNewLine & NEWLINE_WIN)
+      SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Win");
+    if (nNewLine & NEWLINE_UNIX)
+      SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Unix");
+    if (nNewLine & NEWLINE_MAC)
+      SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)"Mac");
   }
+  else
+  {
+    WNDFRAMEA *wf;
+    HWND hWndFrame;
 
-  if (nNewLine & NEWLINE_WIN)
-    SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Win");
-  if (nNewLine & NEWLINE_UNIX)
-    SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Unix");
-  if (nNewLine & NEWLINE_MAC)
-    SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)"Mac");
+    if (hWndFrame=GetParent(hWnd))
+    {
+      if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
+        wf->ei.nNewLine=nState;
+    }
+  }
 }
 
 void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 {
-  if (bFirst != TRUE && nNewLine == nState) return;
-  nNewLine=nState;
-
-  if (hWnd)
+  if (!hWnd || hWnd == hWndEdit)
   {
-    if (nNewLine & NEWLINE_MIX)
-      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_ASIS, AELB_ASIS));
-    else if (nNewLine & NEWLINE_WIN)
-      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
-    else if (nNewLine & NEWLINE_UNIX)
-      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
-    else if (nNewLine & NEWLINE_MAC)
-      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
+    if (bFirst != TRUE && nNewLine == nState) return;
+    nNewLine=nState;
 
-    SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
+    if (hWnd)
+    {
+      if (nNewLine & NEWLINE_MIX)
+        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_ASIS, AELB_ASIS));
+      else if (nNewLine & NEWLINE_WIN)
+        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
+      else if (nNewLine & NEWLINE_UNIX)
+        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+      else if (nNewLine & NEWLINE_MAC)
+        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
+
+      SendMessage(hWnd, AEM_UPDATESEL, 0, 0);
+    }
+
+    if (nNewLine & NEWLINE_WIN)
+      SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Win");
+    if (nNewLine & NEWLINE_UNIX)
+      SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Unix");
+    if (nNewLine & NEWLINE_MAC)
+      SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Mac");
   }
+  else
+  {
+    WNDFRAMEW *wf;
+    HWND hWndFrame;
 
-  if (nNewLine & NEWLINE_WIN)
-    SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Win");
-  if (nNewLine & NEWLINE_UNIX)
-    SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Unix");
-  if (nNewLine & NEWLINE_MAC)
-    SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Mac");
+    if (hWndFrame=GetParent(hWnd))
+    {
+      if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
+        wf->ei.nNewLine=nState;
+    }
+  }
 }
 
 void SetInsertStateStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
