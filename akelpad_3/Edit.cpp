@@ -240,8 +240,8 @@ extern FILETIME ftFileTime;
 extern WNDPROC OldEditProc;
 
 //Word breaking
-extern wchar_t wszDelimiters[DELIMITERS_SIZE];
-extern BOOL bDelimitersEnable;
+extern wchar_t wszWordDelimiters[DELIMITERS_SIZE];
+extern BOOL bWordDelimitersEnable;
 extern BOOL bFirstWordBreak;
 
 //Execute
@@ -331,7 +331,7 @@ void CreateEditWindowA(HWND hWnd)
   SendMessage(hWndEdit, EM_SETLANGOPTIONS, 0, nLangOptions);
   SendMessage(hWndEdit, EM_SETTEXTMODE, TM_RICHTEXT|TM_MULTILEVELUNDO|TM_MULTICODEPAGE, 0);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
-  if (bDelimitersEnable) SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
+  if (bWordDelimitersEnable) SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
@@ -377,7 +377,7 @@ void CreateEditWindowW(HWND hWnd)
   SendMessage(hWndEdit, EM_SETLANGOPTIONS, 0, nLangOptions);
   SendMessage(hWndEdit, EM_SETTEXTMODE, TM_RICHTEXT|TM_MULTILEVELUNDO|TM_MULTICODEPAGE, 0);
   SendMessage(hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE);
-  if (bDelimitersEnable) SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
+  if (bWordDelimitersEnable) SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
 
   DoViewWordWrap(hWndEdit, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEdit, bReadOnly, TRUE);
@@ -3238,10 +3238,10 @@ void RegReadOptionsA()
   }
 
   dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bDelimitersEnable, &dwSize);
+  RegQueryValueExA(hKey, "WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bWordDelimitersEnable, &dwSize);
 
   dwSize=DELIMITERS_SIZE * sizeof(wchar_t);
-  RegQueryValueExA(hKey, "WordDelimiters", NULL, &dwType, (LPBYTE)wszDelimiters, &dwSize);
+  RegQueryValueExA(hKey, "WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
 
   dwSize=sizeof(LOGFONTA) - LF_FACESIZE;
   RegQueryValueExA(hKey, "Font", NULL, &dwType, (LPBYTE)&lfEditFontA, &dwSize);
@@ -3421,10 +3421,10 @@ void RegReadOptionsW()
   }
 
   dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bDelimitersEnable, &dwSize);
+  RegQueryValueExW(hKey, L"WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bWordDelimitersEnable, &dwSize);
 
   dwSize=DELIMITERS_SIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"WordDelimiters", NULL, &dwType, (LPBYTE)wszDelimiters, &dwSize);
+  RegQueryValueExW(hKey, L"WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
 
   dwSize=sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t);
   RegQueryValueExW(hKey, L"Font", NULL, &dwType, (LPBYTE)&lfEditFontW, &dwSize);
@@ -3532,8 +3532,8 @@ void IniReadOptionsA()
     IniGetValueA(&hIniStack, "Options", "WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD));
   }
 
-  IniGetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bDelimitersEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszDelimiters, DELIMITERS_SIZE * sizeof(wchar_t));
+  IniGetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
+  IniGetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, DELIMITERS_SIZE * sizeof(wchar_t));
   IniGetValueA(&hIniStack, "Options", "Font", INI_BINARY, (LPBYTE)&lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
   IniGetValueA(&hIniStack, "Options", "FontFace", INI_STRINGANSI, (LPBYTE)&lfEditFontA.lfFaceName, LF_FACESIZE);
   IniGetValueA(&hIniStack, "Options", "PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
@@ -3605,8 +3605,8 @@ void IniReadOptionsW()
     IniGetValueW(&hIniStack, L"Options", L"WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD));
   }
 
-  IniGetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bDelimitersEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszDelimiters, DELIMITERS_SIZE * sizeof(wchar_t));
+  IniGetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
+  IniGetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, DELIMITERS_SIZE * sizeof(wchar_t));
   IniGetValueW(&hIniStack, L"Options", L"Font", INI_BINARY, (LPBYTE)&lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
   IniGetValueW(&hIniStack, L"Options", L"FontFace", INI_STRINGUNICODE, (LPBYTE)&lfEditFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
   IniGetValueW(&hIniStack, L"Options", L"PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
@@ -3872,9 +3872,9 @@ BOOL RegSaveOptionsA()
       goto Error;
   }
 
-  if (RegSetValueExA(hKey, "WordDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (RegSetValueExA(hKey, "WordDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
-  if (RegSetValueExA(hKey, "WordDelimiters", 0, REG_BINARY, (LPBYTE)wszDelimiters, wcslen(wszDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (RegSetValueExA(hKey, "WordDelimiters", 0, REG_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
     goto Error;
   if (bEditFontChanged)
   {
@@ -4015,9 +4015,9 @@ BOOL RegSaveOptionsW()
       goto Error;
   }
 
-  if (RegSetValueExW(hKey, L"WordDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (RegSetValueExW(hKey, L"WordDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
-  if (RegSetValueExW(hKey, L"WordDelimiters", 0, REG_BINARY, (LPBYTE)wszDelimiters, lstrlenW(wszDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (RegSetValueExW(hKey, L"WordDelimiters", 0, REG_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
     goto Error;
   if (bEditFontChanged)
   {
@@ -4158,9 +4158,9 @@ BOOL IniSaveOptionsA()
       goto Error;
   }
 
-  if (!IniSetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bDelimitersEnable, sizeof(DWORD)))
+  if (!IniSetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszDelimiters, wcslen(wszDelimiters) * sizeof(wchar_t) + 2))
+  if (!IniSetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (bEditFontChanged)
   {
@@ -4303,9 +4303,9 @@ BOOL IniSaveOptionsW()
       goto Error;
   }
 
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bDelimitersEnable, sizeof(DWORD)))
+  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszDelimiters, lstrlenW(wszDelimiters) * sizeof(wchar_t) + 2))
+  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (bEditFontChanged)
   {
@@ -10630,7 +10630,7 @@ void ShowMenuPopupCodepageW(POINT *pt)
 
 BOOL isInDelimiterList(wchar_t c)
 {
-  if (wcschr(wszDelimiters, c) != NULL)
+  if (wcschr(wszWordDelimiters, c) != NULL)
     return TRUE;
   else
     return FALSE;
@@ -13889,13 +13889,13 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     hWndSaveINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_INI);
     hWndUndoLimit=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT);
     hWndUndoLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT_SPIN);
-    hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_DETAILED_UNDO);
+    hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_DETAILED);
     hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
     hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
     hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
     hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
-    hWndDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_ENABLE_DELIMITERS);
-    hWndDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_DELIMITERS);
+    hWndDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
+    hWndDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
 
     if (dwFileTypesAssociated & AE_OPEN) SendMessage(hWndAssociateOpen, BM_SETCHECK, BST_CHECKED, 0);
     if (dwFileTypesAssociated & AE_EDIT) SendMessage(hWndAssociateEdit, BM_SETCHECK, BST_CHECKED, 0);
@@ -13934,10 +13934,10 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     else
       SendMessage(hWndSaveINI, BM_SETCHECK, BST_CHECKED, 0);
 
-    if (bDelimitersEnable)
+    if (bWordDelimitersEnable)
       SendMessage(hWndDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndDelimiters, bDelimitersEnable);
-    EscapeDataToEscapeStringW(wszDelimiters, (wchar_t *)buf);
+    EnableWindow(hWndDelimiters, bWordDelimitersEnable);
+    EscapeDataToEscapeStringW(wszWordDelimiters, (wchar_t *)buf);
     WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
     SetWindowTextA(hWndDelimiters, buf2);
   }
@@ -13964,17 +13964,17 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (!bState) SetWindowTextA(hWndFileTypesPrint, szFileTypesPrint);
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDC_OPTIONS_ENABLE_DELIMITERS)
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
     {
       bState=SendMessage(hWndDelimitersEnable, BM_GETCHECK, 0, 0);
       EnableWindow(hWndDelimiters, bState);
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDC_OPTIONS_RESET_DELIMITERS)
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
     {
       EscapeDataToEscapeStringW(WORD_DELIMITERSW, (wchar_t *)buf);
       WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
-      SetDlgItemTextA(hDlg, IDC_OPTIONS_DELIMITERS, buf2);
+      SetDlgItemTextA(hDlg, IDC_OPTIONS_WORD_DELIMITERS, buf2);
       return TRUE;
     }
   }
@@ -14097,11 +14097,11 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
       //Word delimiters
       a=SendMessage(hWndDelimitersEnable, BM_GETCHECK, 0, 0);
-      if (a != bDelimitersEnable)
+      if (a != bWordDelimitersEnable)
       {
-        bDelimitersEnable=a;
+        bWordDelimitersEnable=a;
 
-        if (bDelimitersEnable)
+        if (bWordDelimitersEnable)
         {
           SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
         }
@@ -14115,7 +14115,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       }
       a=GetWindowTextA(hWndDelimiters, buf, BUFFER_SIZE);
       MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
-      EscapeStringToEscapeDataW((wchar_t *)buf2, wszDelimiters);
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWordDelimiters);
 
       //Save settings
       if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
@@ -14173,13 +14173,13 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     hWndSaveINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_INI);
     hWndUndoLimit=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT);
     hWndUndoLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT_SPIN);
-    hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_DETAILED_UNDO);
+    hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_DETAILED);
     hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
     hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
     hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
     hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
-    hWndDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_ENABLE_DELIMITERS);
-    hWndDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_DELIMITERS);
+    hWndDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
+    hWndDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
 
     if (dwFileTypesAssociated & AE_OPEN) SendMessage(hWndAssociateOpen, BM_SETCHECK, BST_CHECKED, 0);
     if (dwFileTypesAssociated & AE_EDIT) SendMessage(hWndAssociateEdit, BM_SETCHECK, BST_CHECKED, 0);
@@ -14218,10 +14218,10 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     else
       SendMessage(hWndSaveINI, BM_SETCHECK, BST_CHECKED, 0);
 
-    if (bDelimitersEnable)
+    if (bWordDelimitersEnable)
       SendMessage(hWndDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndDelimiters, bDelimitersEnable);
-    EscapeDataToEscapeStringW(wszDelimiters, wbuf);
+    EnableWindow(hWndDelimiters, bWordDelimitersEnable);
+    EscapeDataToEscapeStringW(wszWordDelimiters, wbuf);
     SetWindowTextW(hWndDelimiters, wbuf);
   }
   else if (uMsg == WM_COMMAND)
@@ -14247,16 +14247,16 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (!bState) SetWindowTextW(hWndFileTypesPrint, wszFileTypesPrint);
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDC_OPTIONS_ENABLE_DELIMITERS)
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
     {
       bState=SendMessage(hWndDelimitersEnable, BM_GETCHECK, 0, 0);
       EnableWindow(hWndDelimiters, bState);
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDC_OPTIONS_RESET_DELIMITERS)
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
     {
       EscapeDataToEscapeStringW(WORD_DELIMITERSW, wbuf);
-      SetDlgItemTextW(hDlg, IDC_OPTIONS_DELIMITERS, wbuf);
+      SetDlgItemTextW(hDlg, IDC_OPTIONS_WORD_DELIMITERS, wbuf);
       return TRUE;
     }
   }
@@ -14379,11 +14379,11 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
       //Word delimiters
       a=SendMessage(hWndDelimitersEnable, BM_GETCHECK, 0, 0);
-      if (a != bDelimitersEnable)
+      if (a != bWordDelimitersEnable)
       {
-        bDelimitersEnable=a;
+        bWordDelimitersEnable=a;
 
-        if (bDelimitersEnable)
+        if (bWordDelimitersEnable)
         {
           SendMessage(hWndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
         }
@@ -14396,7 +14396,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
         }
       }
       GetWindowTextW(hWndDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, wszDelimiters);
+      EscapeStringToEscapeDataW(wbuf, wszWordDelimiters);
 
       //Save settings
       if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
