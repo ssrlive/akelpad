@@ -322,6 +322,7 @@ HWND CreateEditWindowA(HWND hWndParent)
                               hInstance,
                               NULL);
 
+  if (!hWndEdit) hWndEdit=hWndEditNew;
   DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_LINK|AENM_PROGRESS);
@@ -369,6 +370,7 @@ HWND CreateEditWindowW(HWND hWndParent)
                               hInstance,
                               NULL);
 
+  if (!hWndEdit) hWndEdit=hWndEditNew;
   DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_LINK|AENM_PROGRESS);

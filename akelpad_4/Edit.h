@@ -36,6 +36,9 @@
 #define STR_NOBOMA             "  *BOM"
 #define STR_NOBOMW            L"  *BOM"
 
+#ifndef TCN_GETOBJECT
+  #define TCN_GETOBJECT (TCN_FIRST - 3)
+#endif
 #ifndef BIF_NEWDIALOGSTYLE
   #define BIF_NEWDIALOGSTYLE 0x0040
 #endif
