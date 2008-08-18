@@ -609,8 +609,8 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
-    CONTROL         "單字分隔符號:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
+    CONTROL         "單字分隔符號:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
     PUSHBUTTON      "重設",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,13,
                     BS_CENTER
@@ -793,14 +793,19 @@ BEGIN
     STR_LANGUAGE_NONE       "系統內定"
     STR_FILE_FILTER         "純文字檔 (*.txt)|*.txt|所有格式 (*.*)|*.*"
     STR_NONE                "無"
-    STR_AUTODETECT_RUSSIAN  "Cyrillic (1251, 866, 20866)"
     STR_PLUGIN_FUNCTION     "外掛元件::函式"
     STR_HOTKEY              "快捷鍵"
-    STR_STATUS              "狀態"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "西里爾文(ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "拉丁文(OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "狀態"
     STR_RUNNING             "執行中"
     STR_EXECUTABLE_FILTER   "可執行檔 (*.exe)|*.exe|所有格式 (*.*)|*.*"
     STR_FONT                "字型"

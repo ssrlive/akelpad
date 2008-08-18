@@ -617,11 +617,11 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
     CONTROL         "Delimitadores de palabras:",
-                    IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,199,150,8
+                    IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,150,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Restablecer",IDC_OPTIONS_WORD_DELIMITERS_RESET,161,210,48,13,
-                    BS_CENTER
+    PUSHBUTTON      "Restablecer",IDC_OPTIONS_WORD_DELIMITERS_RESET,161,210,
+                    48,13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED2 DIALOG DISCARDABLE  0, 0, 220, 230
@@ -805,14 +805,19 @@ BEGIN
     STR_LANGUAGE_NONE       "Interno"
     STR_FILE_FILTER         "Archivos de texto (*.txt)|*.txt|Todos los archivos (*.*)|*.*"
     STR_NONE                "Ninguno"
-    STR_AUTODETECT_RUSSIAN  "Cirílico (1251, 866, 20866)"
     STR_PLUGIN_FUNCTION     "Plugin::Función"
     STR_HOTKEY              "Tecla directa"
-    STR_STATUS              "Estado"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "Cirílico (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latino (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "Estado"
     STR_RUNNING             "En ejecución"
     STR_EXECUTABLE_FILTER   "Archivos ejecutables (*.exe)|*.exe|Todos los archivos (*.*)|*.*"
     STR_FONT                "Fuente"

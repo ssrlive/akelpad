@@ -609,8 +609,8 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
-    CONTROL         "Words delimiters:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
+    CONTROL         "Words delimiters:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Reset",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,13,
                     BS_CENTER
@@ -796,14 +796,19 @@ BEGIN
     STR_LANGUAGE_NONE       "Internal"
     STR_FILE_FILTER         "Text files (*.txt)|*.txt|All files (*.*)|*.*"
     STR_NONE                "None"
-    STR_AUTODETECT_RUSSIAN  "Cyrillic (1251, 866, 20866)"
     STR_PLUGIN_FUNCTION     "Plugin::Function"
     STR_HOTKEY              "Hotkey"
-    STR_STATUS              "Status"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "Cyrillic (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Latin (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "Status"
     STR_RUNNING             "Running"
     STR_EXECUTABLE_FILTER   "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
     STR_FONT                "Font"

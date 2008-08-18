@@ -611,11 +611,11 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
-    CONTROL         "Разделители слов:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
+    CONTROL         "Разделители слов:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Сбросить",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,13,
-                    BS_CENTER
+    PUSHBUTTON      "Сбросить",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED2 DIALOG DISCARDABLE  0, 0, 220, 230
@@ -820,14 +820,19 @@ BEGIN
     STR_LANGUAGE_NONE       "Внутренний"
     STR_FILE_FILTER         "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*"
     STR_NONE                "Нет"
-    STR_AUTODETECT_RUSSIAN  "Кириллица (1251, 866, 20866)"
     STR_PLUGIN_FUNCTION     "Плагин::Функция"
     STR_HOTKEY              "Горячая клавиша"
-    STR_STATUS              "Статус"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_AUTODETECT_RUSSIAN  "Кириллица (ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_ENGLISH  "Латиница (OEM, UTF-8)"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    STR_STATUS              "Статус"
     STR_RUNNING             "Работает"
     STR_EXECUTABLE_FILTER   "Исполняемые файлы (*.exe)|*.exe|Все файлы (*.*)|*.*"
     STR_FONT                "Шрифт"
