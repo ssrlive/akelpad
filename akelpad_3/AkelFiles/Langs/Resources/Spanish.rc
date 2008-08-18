@@ -603,7 +603,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,136,
                     11,13
-    CONTROL         "Detallado",IDC_OPTIONS_DETAILED_UNDO,"Button",
+    CONTROL         "Detallado",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,137,50,10
     GROUPBOX        "Margen del texto",IDC_STATIC,9,162,200,31
     RTEXT           "Izquierdo:",IDC_STATIC,12,176,35,12,NOT WS_GROUP
@@ -617,10 +617,10 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,173,11,13
     CONTROL         "Delimitadores de palabras:",
-                    IDC_OPTIONS_ENABLE_DELIMITERS,"Button",BS_AUTOCHECKBOX | 
+                    IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,199,150,8
-    EDITTEXT        IDC_OPTIONS_DELIMITERS,9,210,150,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Restablecer",IDC_OPTIONS_RESET_DELIMITERS,161,210,48,13,
+    EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,150,13,ES_AUTOHSCROLL
+    PUSHBUTTON      "Restablecer",IDC_OPTIONS_WORD_DELIMITERS_RESET,161,210,48,13,
                     BS_CENTER
 END
 

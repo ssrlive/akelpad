@@ -260,8 +260,8 @@ FILETIME ftFileTime={0};
 WNDPROC OldEditProc;
 
 //Word breaking
-wchar_t wszDelimiters[DELIMITERS_SIZE]=WORD_DELIMITERSW;
-BOOL bDelimitersEnable=TRUE;
+wchar_t wszWordDelimiters[DELIMITERS_SIZE]=WORD_DELIMITERSW;
+BOOL bWordDelimitersEnable=TRUE;
 BOOL bFirstWordBreak=TRUE;
 
 //Execute
@@ -5228,7 +5228,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->nUndoLimit=nUndoLimit;
       lpWndFrameA->bShowURL=bShowURL;
       lpWndFrameA->dwEditMargins=dwEditMargins;
-      lpWndFrameA->bDelimitersEnable=bDelimitersEnable;
+      lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
       memset(&lpWndFrameA->ft, 0, sizeof(FILETIME));
       memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
       lpWndFrameA->aec=aecColors;
@@ -5354,7 +5354,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->nUndoLimit=nUndoLimit;
             lpWndFrameA->bShowURL=bShowURL;
             lpWndFrameA->dwEditMargins=dwEditMargins;
-            lpWndFrameA->bDelimitersEnable=bDelimitersEnable;
+            lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
             lpWndFrameA->ft=ftFileTime;
             memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
             lpWndFrameA->aec=aecColors;
@@ -5378,7 +5378,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           nTabStopSize=lpWndFrameA->nTabStopSize;
           nUndoLimit=lpWndFrameA->nUndoLimit;
           dwEditMargins=lpWndFrameA->dwEditMargins;
-          bDelimitersEnable=lpWndFrameA->bDelimitersEnable;
+          bWordDelimitersEnable=lpWndFrameA->bWordDelimitersEnable;
           ftFileTime=lpWndFrameA->ft;
           memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
           aecColors=lpWndFrameA->aec;
@@ -5442,7 +5442,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->nUndoLimit=nUndoLimit;
       lpWndFrameW->bShowURL=bShowURL;
       lpWndFrameW->dwEditMargins=dwEditMargins;
-      lpWndFrameW->bDelimitersEnable=bDelimitersEnable;
+      lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
       memset(&lpWndFrameW->ft, 0, sizeof(FILETIME));
       memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
       lpWndFrameW->aec=aecColors;
@@ -5568,7 +5568,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->nUndoLimit=nUndoLimit;
             lpWndFrameW->bShowURL=bShowURL;
             lpWndFrameW->dwEditMargins=dwEditMargins;
-            lpWndFrameW->bDelimitersEnable=bDelimitersEnable;
+            lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
             lpWndFrameW->ft=ftFileTime;
             memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
             lpWndFrameW->aec=aecColors;
@@ -5592,7 +5592,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           nTabStopSize=lpWndFrameW->nTabStopSize;
           nUndoLimit=lpWndFrameW->nUndoLimit;
           dwEditMargins=lpWndFrameW->dwEditMargins;
-          bDelimitersEnable=lpWndFrameW->bDelimitersEnable;
+          bWordDelimitersEnable=lpWndFrameW->bWordDelimitersEnable;
           ftFileTime=lpWndFrameW->ft;
           memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
           aecColors=lpWndFrameW->aec;
