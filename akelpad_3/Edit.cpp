@@ -324,6 +324,7 @@ HWND CreateEditWindowA(HWND hWndParent)
                         hInstance,
                         NULL);
 
+  if (!hWndEdit) hWndEdit=hWndEditNew;
   SendMessage(hWndEditNew, EM_SETOLECALLBACK, 0, (LPARAM)&rl);
   SendMessage(hWndEditNew, EM_EXLIMITTEXT, 0, nMaxChars);
   nLangOptions=SendMessage(hWndEditNew, EM_GETLANGOPTIONS, 0, 0);
@@ -373,6 +374,7 @@ HWND CreateEditWindowW(HWND hWndParent)
                         hInstance,
                         NULL);
 
+  if (!hWndEdit) hWndEdit=hWndEditNew;
   SendMessage(hWndEditNew, EM_SETOLECALLBACK, 0, (LPARAM)&rl);
   SendMessage(hWndEditNew, EM_EXLIMITTEXT, 0, nMaxChars);
   nLangOptions=SendMessage(hWndEditNew, EM_GETLANGOPTIONS, 0, 0);
