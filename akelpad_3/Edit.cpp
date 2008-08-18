@@ -5129,7 +5129,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
             wf->ei.nCodePage=nCodePage;
             wf->ei.bBOM=bBOM;
             wf->ei.bModified=FALSE;
-            wf->ei.ft=ft;
+            wf->ft=ft;
 
             if (lstrcmpiA(wf->szFile, szFile))
             {
@@ -5313,7 +5313,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
             wf->ei.nCodePage=nCodePage;
             wf->ei.bBOM=bBOM;
             wf->ei.bModified=FALSE;
-            wf->ei.ft=ft;
+            wf->ft=ft;
 
             if (lstrcmpiW(wf->wszFile, wszFile))
             {

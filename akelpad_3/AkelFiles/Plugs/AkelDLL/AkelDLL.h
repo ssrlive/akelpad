@@ -198,6 +198,15 @@ typedef struct _EDITINFO {
   BOOL bReadOnly;             //Read only
   BOOL bWordWrap;             //Word wrap
   BOOL bInsertState;          //Insert mode
+} EDITINFO;
+
+typedef struct _WNDFRAMEA {
+  HICON hIcon;                //Frame icon
+  char szFile[MAX_PATH];      //Frame file
+  EDITINFO ei;                //Edit info
+  LOGFONTA lf;                //Edit font
+  AECOLORS aec;               //Edit colors
+  FILETIME ft;                //File time
   int nTabStopSize;           //Tab stop size
   BOOL bTabStopAsSpaces;      //Insert tab stop as spaces
   int nUndoLimit;             //Undo limit
@@ -207,22 +216,24 @@ typedef struct _EDITINFO {
   BOOL bShowURL;              //Show URL
   BOOL bUrlPrefixesEnable;    //URL prefixes enable (4.x only)
   BOOL bUrlDelimitersEnable;  //URL delimiters enable (4.x only)
-  FILETIME ft;                //File time
-  AECOLORS aec;               //Edit colors
-} EDITINFO;
-
-typedef struct _WNDFRAMEA {
-  HICON hIcon;                //Frame icon
-  char szFile[MAX_PATH];      //Frame file
-  LOGFONTA lf;                //Edit font
-  EDITINFO ei;                //Edit info
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
   HICON hIcon;                //Frame icon
   wchar_t wszFile[MAX_PATH];  //Frame file
-  LOGFONTW lf;                //Edit font
   EDITINFO ei;                //Edit info
+  LOGFONTW lf;                //Edit font
+  AECOLORS aec;               //Edit colors
+  FILETIME ft;                //File time
+  int nTabStopSize;           //Tab stop size
+  BOOL bTabStopAsSpaces;      //Insert tab stop as spaces
+  int nUndoLimit;             //Undo limit
+  BOOL bDetailedUndo;         //Detailed undo
+  DWORD dwEditMargins;        //Edit margins
+  BOOL bWordDelimitersEnable; //Delimiters enabled
+  BOOL bShowURL;              //Show URL
+  BOOL bUrlPrefixesEnable;    //URL prefixes enable (4.x only)
+  BOOL bUrlDelimitersEnable;  //URL delimiters enable (4.x only)
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {

@@ -374,6 +374,15 @@ typedef struct _EDITINFO {
   BOOL bReadOnly;
   BOOL bWordWrap;
   BOOL bInsertState;
+} EDITINFO;
+
+typedef struct _WNDFRAMEA {
+  HICON hIcon;
+  char szFile[MAX_PATH];
+  EDITINFO ei;
+  LOGFONTA lf;
+  AECOLORS aec;
+  FILETIME ft;
   int nTabStopSize;
   BOOL bTabStopAsSpaces;
   int nUndoLimit;
@@ -383,22 +392,24 @@ typedef struct _EDITINFO {
   BOOL bShowURL;
   BOOL bUrlPrefixesEnable;
   BOOL bUrlDelimitersEnable;
-  FILETIME ft;
-  AECOLORS aec;
-} EDITINFO;
-
-typedef struct _WNDFRAMEA {
-  HICON hIcon;
-  char szFile[MAX_PATH];
-  LOGFONTA lf;
-  EDITINFO ei;
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
   HICON hIcon;
   wchar_t wszFile[MAX_PATH];
-  LOGFONTW lf;
   EDITINFO ei;
+  LOGFONTW lf;
+  AECOLORS aec;
+  FILETIME ft;
+  int nTabStopSize;
+  BOOL bTabStopAsSpaces;
+  int nUndoLimit;
+  BOOL bDetailedUndo;
+  DWORD dwEditMargins;
+  BOOL bWordDelimitersEnable;
+  BOOL bShowURL;
+  BOOL bUrlPrefixesEnable;
+  BOOL bUrlDelimitersEnable;
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
