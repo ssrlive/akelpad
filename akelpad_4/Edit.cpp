@@ -5277,7 +5277,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
             wf->ei.nCodePage=nCodePage;
             wf->ei.bBOM=bBOM;
             wf->ei.bModified=FALSE;
-            wf->ei.ft=ft;
+            wf->ft=ft;
 
             if (lstrcmpiA(wf->szFile, szFile))
             {
@@ -5475,7 +5475,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
             wf->ei.nCodePage=nCodePage;
             wf->ei.bBOM=bBOM;
             wf->ei.bModified=FALSE;
-            wf->ei.ft=ft;
+            wf->ft=ft;
 
             if (lstrcmpiW(wf->wszFile, wszFile))
             {
@@ -15214,7 +15214,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       EnableWindow(hWndWordDelimiters, bState);
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDC_OPTIONS_RESET_DELIMITERS)
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
     {
       EscapeDataToEscapeStringW(WORD_DELIMITERSW, (wchar_t *)buf);
       WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
@@ -15492,7 +15492,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       EnableWindow(hWndWordDelimiters, bState);
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDC_OPTIONS_RESET_DELIMITERS)
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
     {
       EscapeDataToEscapeStringW(WORD_DELIMITERSW, wbuf);
       SetDlgItemTextW(hDlg, IDC_OPTIONS_WORD_DELIMITERS, wbuf);

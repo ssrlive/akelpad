@@ -2040,17 +2040,6 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->bReadOnly=bReadOnly;
           ei->bWordWrap=bWordWrap;
           ei->bInsertState=bInsertState;
-          ei->nTabStopSize=nTabStopSize;
-          ei->bTabStopAsSpaces=bTabStopAsSpaces;
-          ei->nUndoLimit=nUndoLimit;
-          ei->bDetailedUndo=bDetailedUndo;
-          ei->dwEditMargins=dwEditMargins;
-          ei->bWordDelimitersEnable=bWordDelimitersEnable;
-          ei->bShowURL=bShowURL;
-          ei->bUrlPrefixesEnable=bUrlPrefixesEnable;
-          ei->bUrlDelimitersEnable=bUrlDelimitersEnable;
-          ei->ft=ftFileTime;
-          ei->aec=aecColors;
           return TRUE;
         }
         return FALSE;
@@ -3765,17 +3754,6 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->bReadOnly=bReadOnly;
           ei->bWordWrap=bWordWrap;
           ei->bInsertState=bInsertState;
-          ei->nTabStopSize=nTabStopSize;
-          ei->bTabStopAsSpaces=bTabStopAsSpaces;
-          ei->nUndoLimit=nUndoLimit;
-          ei->bDetailedUndo=bDetailedUndo;
-          ei->dwEditMargins=dwEditMargins;
-          ei->bWordDelimitersEnable=bWordDelimitersEnable;
-          ei->bShowURL=bShowURL;
-          ei->bUrlPrefixesEnable=bUrlPrefixesEnable;
-          ei->bUrlDelimitersEnable=bUrlDelimitersEnable;
-          ei->ft=ftFileTime;
-          ei->aec=aecColors;
           return TRUE;
         }
         return FALSE;
@@ -5333,8 +5311,6 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       lpWndFrameA->hIcon=hIconEmpty;
       lpWndFrameA->szFile[0]='\0';
-      memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-
       lpWndFrameA->ei.hWndEdit=CreateEditWindowA(hWnd);
       lpWndFrameA->ei.pFile=(unsigned char *)lpWndFrameA->szFile;
       lpWndFrameA->ei.nCodePage=nDefaultCodePage;
@@ -5344,18 +5320,20 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->ei.bReadOnly=bReadOnly;
       lpWndFrameA->ei.bWordWrap=bWordWrap;
       lpWndFrameA->ei.bInsertState=FALSE;
-      lpWndFrameA->ei.nTabStopSize=nTabStopSize;
-      lpWndFrameA->ei.bTabStopAsSpaces=bTabStopAsSpaces;
-      lpWndFrameA->ei.nUndoLimit=nUndoLimit;
-      lpWndFrameA->ei.bDetailedUndo=bDetailedUndo;
-      lpWndFrameA->ei.dwEditMargins=dwEditMargins;
-      lpWndFrameA->ei.bWordDelimitersEnable=bWordDelimitersEnable;
-      lpWndFrameA->ei.bShowURL=bShowURL;
-      lpWndFrameA->ei.bUrlPrefixesEnable=bUrlPrefixesEnable;
-      lpWndFrameA->ei.bUrlDelimitersEnable=bUrlDelimitersEnable;
-      lpWndFrameA->ei.ft.dwLowDateTime=0;
-      lpWndFrameA->ei.ft.dwHighDateTime=0;
-      lpWndFrameA->ei.aec=aecColors;
+      memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+
+      lpWndFrameA->aec=aecColors;
+      lpWndFrameA->ft.dwLowDateTime=0;
+      lpWndFrameA->ft.dwHighDateTime=0;
+      lpWndFrameA->nTabStopSize=nTabStopSize;
+      lpWndFrameA->bTabStopAsSpaces=bTabStopAsSpaces;
+      lpWndFrameA->nUndoLimit=nUndoLimit;
+      lpWndFrameA->bDetailedUndo=bDetailedUndo;
+      lpWndFrameA->dwEditMargins=dwEditMargins;
+      lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
+      lpWndFrameA->bShowURL=bShowURL;
+      lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
+      lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
       SetWindowLongA(hWnd, GWL_USERDATA, (LONG)lpWndFrameA);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5462,8 +5440,6 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lpWndFrameA=(WNDFRAMEA *)GetWindowLongA((HWND)wParam, GWL_USERDATA))
           {
             lstrcpynA(lpWndFrameA->szFile, szCurrentFile, MAX_PATH);
-            memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-
             lpWndFrameA->ei.hWndEdit=hWndEdit;
             lpWndFrameA->ei.pFile=(unsigned char *)lpWndFrameA->szFile;
             lpWndFrameA->ei.nCodePage=nCurrentCodePage;
@@ -5473,17 +5449,19 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->ei.bReadOnly=bReadOnly;
             lpWndFrameA->ei.bWordWrap=bWordWrap;
             lpWndFrameA->ei.bInsertState=bInsertState;
-            lpWndFrameA->ei.nTabStopSize=nTabStopSize;
-            lpWndFrameA->ei.bTabStopAsSpaces=bTabStopAsSpaces;
-            lpWndFrameA->ei.nUndoLimit=nUndoLimit;
-            lpWndFrameA->ei.bDetailedUndo=bDetailedUndo;
-            lpWndFrameA->ei.dwEditMargins=dwEditMargins;
-            lpWndFrameA->ei.bWordDelimitersEnable=bWordDelimitersEnable;
-            lpWndFrameA->ei.bShowURL=bShowURL;
-            lpWndFrameA->ei.bUrlPrefixesEnable=bUrlPrefixesEnable;
-            lpWndFrameA->ei.bUrlDelimitersEnable=bUrlDelimitersEnable;
-            lpWndFrameA->ei.ft=ftFileTime;
-            lpWndFrameA->ei.aec=aecColors;
+            memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+
+            lpWndFrameA->aec=aecColors;
+            lpWndFrameA->ft=ftFileTime;
+            lpWndFrameA->nTabStopSize=nTabStopSize;
+            lpWndFrameA->bTabStopAsSpaces=bTabStopAsSpaces;
+            lpWndFrameA->nUndoLimit=nUndoLimit;
+            lpWndFrameA->bDetailedUndo=bDetailedUndo;
+            lpWndFrameA->dwEditMargins=dwEditMargins;
+            lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
+            lpWndFrameA->bShowURL=bShowURL;
+            lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
+            lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
           }
         }
         //Handles
@@ -5494,8 +5472,6 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpWndFrameA=(WNDFRAMEA *)GetWindowLongA((HWND)lParam, GWL_USERDATA))
         {
           lstrcpynA(szCurrentFile, lpWndFrameA->szFile, MAX_PATH);
-          memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
-
           hWndEdit=lpWndFrameA->ei.hWndEdit;
           SetCodePageStatusA(lpWndFrameA->ei.nCodePage, lpWndFrameA->ei.bBOM, FALSE);
           SetNewLineStatusA(NULL, lpWndFrameA->ei.nNewLine, 0, FALSE);
@@ -5503,17 +5479,19 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bReadOnly=lpWndFrameA->ei.bReadOnly;
           bWordWrap=lpWndFrameA->ei.bWordWrap;
           SetInsertStateStatusA(NULL, lpWndFrameA->ei.bInsertState, FALSE);
-          nTabStopSize=lpWndFrameA->ei.nTabStopSize;
-          bTabStopAsSpaces=lpWndFrameA->ei.bTabStopAsSpaces;
-          nUndoLimit=lpWndFrameA->ei.nUndoLimit;
-          bDetailedUndo=lpWndFrameA->ei.bDetailedUndo;
-          dwEditMargins=lpWndFrameA->ei.dwEditMargins;
-          bWordDelimitersEnable=lpWndFrameA->ei.bWordDelimitersEnable;
-          bShowURL=lpWndFrameA->ei.bShowURL;
-          bUrlPrefixesEnable=lpWndFrameA->ei.bUrlPrefixesEnable;
-          bUrlDelimitersEnable=lpWndFrameA->ei.bUrlDelimitersEnable;
-          ftFileTime=lpWndFrameA->ei.ft;
-          aecColors=lpWndFrameA->ei.aec;
+          memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
+
+          aecColors=lpWndFrameA->aec;
+          ftFileTime=lpWndFrameA->ft;
+          nTabStopSize=lpWndFrameA->nTabStopSize;
+          bTabStopAsSpaces=lpWndFrameA->bTabStopAsSpaces;
+          nUndoLimit=lpWndFrameA->nUndoLimit;
+          bDetailedUndo=lpWndFrameA->bDetailedUndo;
+          dwEditMargins=lpWndFrameA->dwEditMargins;
+          bWordDelimitersEnable=lpWndFrameA->bWordDelimitersEnable;
+          bShowURL=lpWndFrameA->bShowURL;
+          bUrlPrefixesEnable=lpWndFrameA->bUrlPrefixesEnable;
+          bUrlDelimitersEnable=lpWndFrameA->bUrlDelimitersEnable;
         }
 
         //Update selection
@@ -5558,8 +5536,6 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       lpWndFrameW->hIcon=hIconEmpty;
       lpWndFrameW->wszFile[0]='\0';
-      memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-
       lpWndFrameW->ei.hWndEdit=CreateEditWindowW(hWnd);
       lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->wszFile;
       lpWndFrameW->ei.nCodePage=nDefaultCodePage;
@@ -5569,18 +5545,20 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->ei.bReadOnly=bReadOnly;
       lpWndFrameW->ei.bWordWrap=bWordWrap;
       lpWndFrameW->ei.bInsertState=FALSE;
-      lpWndFrameW->ei.nTabStopSize=nTabStopSize;
-      lpWndFrameW->ei.bTabStopAsSpaces=bTabStopAsSpaces;
-      lpWndFrameW->ei.nUndoLimit=nUndoLimit;
-      lpWndFrameW->ei.bDetailedUndo=bDetailedUndo;
-      lpWndFrameW->ei.dwEditMargins=dwEditMargins;
-      lpWndFrameW->ei.bWordDelimitersEnable=bWordDelimitersEnable;
-      lpWndFrameW->ei.bShowURL=bShowURL;
-      lpWndFrameW->ei.bUrlPrefixesEnable=bUrlPrefixesEnable;
-      lpWndFrameW->ei.bUrlDelimitersEnable=bUrlDelimitersEnable;
-      lpWndFrameW->ei.ft.dwLowDateTime=0;
-      lpWndFrameW->ei.ft.dwHighDateTime=0;
-      lpWndFrameW->ei.aec=aecColors;
+      memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+
+      lpWndFrameW->aec=aecColors;
+      lpWndFrameW->ft.dwLowDateTime=0;
+      lpWndFrameW->ft.dwHighDateTime=0;
+      lpWndFrameW->nTabStopSize=nTabStopSize;
+      lpWndFrameW->bTabStopAsSpaces=bTabStopAsSpaces;
+      lpWndFrameW->nUndoLimit=nUndoLimit;
+      lpWndFrameW->bDetailedUndo=bDetailedUndo;
+      lpWndFrameW->dwEditMargins=dwEditMargins;
+      lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
+      lpWndFrameW->bShowURL=bShowURL;
+      lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
+      lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
       SetWindowLongW(hWnd, GWL_USERDATA, (LONG)lpWndFrameW);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5687,8 +5665,6 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lpWndFrameW=(WNDFRAMEW *)GetWindowLongW((HWND)wParam, GWL_USERDATA))
           {
             lstrcpynW(lpWndFrameW->wszFile, wszCurrentFile, MAX_PATH);
-            memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-
             lpWndFrameW->ei.hWndEdit=hWndEdit;
             lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->wszFile;
             lpWndFrameW->ei.nCodePage=nCurrentCodePage;
@@ -5698,17 +5674,19 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->ei.bReadOnly=bReadOnly;
             lpWndFrameW->ei.bWordWrap=bWordWrap;
             lpWndFrameW->ei.bInsertState=bInsertState;
-            lpWndFrameW->ei.nTabStopSize=nTabStopSize;
-            lpWndFrameW->ei.bTabStopAsSpaces=bTabStopAsSpaces;
-            lpWndFrameW->ei.nUndoLimit=nUndoLimit;
-            lpWndFrameW->ei.bDetailedUndo=bDetailedUndo;
-            lpWndFrameW->ei.dwEditMargins=dwEditMargins;
-            lpWndFrameW->ei.bWordDelimitersEnable=bWordDelimitersEnable;
-            lpWndFrameW->ei.bShowURL=bShowURL;
-            lpWndFrameW->ei.bUrlPrefixesEnable=bUrlPrefixesEnable;
-            lpWndFrameW->ei.bUrlDelimitersEnable=bUrlDelimitersEnable;
-            lpWndFrameW->ei.ft=ftFileTime;
-            lpWndFrameW->ei.aec=aecColors;
+            memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+
+            lpWndFrameW->aec=aecColors;
+            lpWndFrameW->ft=ftFileTime;
+            lpWndFrameW->nTabStopSize=nTabStopSize;
+            lpWndFrameW->bTabStopAsSpaces=bTabStopAsSpaces;
+            lpWndFrameW->nUndoLimit=nUndoLimit;
+            lpWndFrameW->bDetailedUndo=bDetailedUndo;
+            lpWndFrameW->dwEditMargins=dwEditMargins;
+            lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
+            lpWndFrameW->bShowURL=bShowURL;
+            lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
+            lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
           }
         }
         //Handles
@@ -5719,8 +5697,6 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpWndFrameW=(WNDFRAMEW *)GetWindowLongW((HWND)lParam, GWL_USERDATA))
         {
           lstrcpynW(wszCurrentFile, lpWndFrameW->wszFile, MAX_PATH);
-          memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
-
           hWndEdit=lpWndFrameW->ei.hWndEdit;
           SetCodePageStatusW(lpWndFrameW->ei.nCodePage, lpWndFrameW->ei.bBOM, FALSE);
           SetNewLineStatusW(NULL, lpWndFrameW->ei.nNewLine, 0, FALSE);
@@ -5728,17 +5704,19 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bReadOnly=lpWndFrameW->ei.bReadOnly;
           bWordWrap=lpWndFrameW->ei.bWordWrap;
           SetInsertStateStatusW(NULL, lpWndFrameW->ei.bInsertState, FALSE);
-          nTabStopSize=lpWndFrameW->ei.nTabStopSize;
-          bTabStopAsSpaces=lpWndFrameW->ei.bTabStopAsSpaces;
-          nUndoLimit=lpWndFrameW->ei.nUndoLimit;
-          bDetailedUndo=lpWndFrameW->ei.bDetailedUndo;
-          dwEditMargins=lpWndFrameW->ei.dwEditMargins;
-          bWordDelimitersEnable=lpWndFrameW->ei.bWordDelimitersEnable;
-          bShowURL=lpWndFrameW->ei.bShowURL;
-          bUrlPrefixesEnable=lpWndFrameW->ei.bUrlPrefixesEnable;
-          bUrlDelimitersEnable=lpWndFrameW->ei.bUrlDelimitersEnable;
-          ftFileTime=lpWndFrameW->ei.ft;
-          aecColors=lpWndFrameW->ei.aec;
+          memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
+
+          aecColors=lpWndFrameW->aec;
+          ftFileTime=lpWndFrameW->ft;
+          nTabStopSize=lpWndFrameW->nTabStopSize;
+          bTabStopAsSpaces=lpWndFrameW->bTabStopAsSpaces;
+          nUndoLimit=lpWndFrameW->nUndoLimit;
+          bDetailedUndo=lpWndFrameW->bDetailedUndo;
+          dwEditMargins=lpWndFrameW->dwEditMargins;
+          bWordDelimitersEnable=lpWndFrameW->bWordDelimitersEnable;
+          bShowURL=lpWndFrameW->bShowURL;
+          bUrlPrefixesEnable=lpWndFrameW->bUrlPrefixesEnable;
+          bUrlDelimitersEnable=lpWndFrameW->bUrlDelimitersEnable;
         }
 
         //Update selection
