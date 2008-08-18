@@ -1666,10 +1666,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Apply settings
       szCurrentFile[0]='\0';
       SetFocus(hWndEdit);
-      SetNewLineA(hWndEdit, NEWLINE_WIN, TRUE);
-      SetInsertStateA(NULL, FALSE, TRUE);
-      SetModifyA(hWndEdit, FALSE, TRUE);
-      SetCodePageA(nDefaultCodePage, bDefaultBOM, TRUE);
+      SetNewLineStatusA(hWndEdit, NEWLINE_WIN, TRUE);
+      SetInsertStateStatusA(NULL, FALSE, TRUE);
+      SetModifyStatusA(hWndEdit, FALSE, TRUE);
+      SetCodePageStatusA(nDefaultCodePage, bDefaultBOM, TRUE);
       DoViewOnTop(bOnTop, TRUE);
       DoViewShowStatusBar(bStatusBar, TRUE);
       DoSettingsSaveTime(bSaveTime);
@@ -2008,8 +2008,11 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->bTabStopAsSpaces=bTabStopAsSpaces;
           ei->nUndoLimit=nUndoLimit;
           ei->bDetailedUndo=bDetailedUndo;
-          ei->bShowURL=bShowURL;
           ei->dwEditMargins=dwEditMargins;
+          ei->bWordDelimitersEnable=bWordDelimitersEnable;
+          ei->bShowURL=bShowURL;
+          ei->bUrlPrefixesEnable=FALSE;
+          ei->bUrlDelimitersEnable=FALSE;
           ei->ft=ftFileTime;
           ei->aec=aecColors;
           return TRUE;
@@ -2025,23 +2028,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
           {
-            ei->hWndEdit=(HWND)wParam;
-            ei->pFile=(unsigned char *)wf->szFile;
-            ei->nCodePage=wf->nCodePage;
-            ei->bBOM=wf->bBOM;
-            ei->nNewLine=wf->nNewLine;
-            ei->bModified=wf->bModified;
-            ei->bReadOnly=wf->bReadOnly;
-            ei->bWordWrap=wf->bWordWrap;
-            ei->bInsertState=wf->bInsertState;
-            ei->nTabStopSize=wf->nTabStopSize;
-            ei->bTabStopAsSpaces=bTabStopAsSpaces;
-            ei->nUndoLimit=wf->nUndoLimit;
-            ei->bDetailedUndo=bDetailedUndo;
-            ei->bShowURL=wf->bShowURL;
-            ei->dwEditMargins=wf->dwEditMargins;
-            ei->ft=wf->ft;
-            ei->aec=wf->aec;
+            *ei=wf->ei;
             return TRUE;
           }
         }
@@ -2074,12 +2061,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETMODIFY)
     {
-      SetModifyA((HWND)wParam, lParam, FALSE);
+      SetModifyStatusA((HWND)wParam, lParam, FALSE);
       return 0;
     }
     if (uMsg == AKD_SETNEWLINE)
     {
-      SetNewLineA((HWND)wParam, lParam, FALSE);
+      SetNewLineStatusA((HWND)wParam, lParam, FALSE);
       return 0;
     }
     if (uMsg == AKD_SETFILEPRINT)
@@ -2642,8 +2629,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (nNewLine != NEWLINE_WIN)
         {
-          SetNewLineA(hWndEdit, NEWLINE_WIN, FALSE);
-          SetModifyA(hWndEdit, TRUE, FALSE);
+          SetNewLineStatusA(hWndEdit, NEWLINE_WIN, FALSE);
+          SetModifyStatusA(hWndEdit, TRUE, FALSE);
         }
       }
     }
@@ -2653,8 +2640,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (nNewLine != NEWLINE_UNIX)
         {
-          SetNewLineA(hWndEdit, NEWLINE_UNIX, FALSE);
-          SetModifyA(hWndEdit, TRUE, FALSE);
+          SetNewLineStatusA(hWndEdit, NEWLINE_UNIX, FALSE);
+          SetModifyStatusA(hWndEdit, TRUE, FALSE);
         }
       }
     }
@@ -2897,7 +2884,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
-      if (hWndEdit) SetInsertStateA(hWndEdit, !bInsertState, FALSE);
+      if (hWndEdit) SetInsertStateStatusA(hWndEdit, !bInsertState, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_FILECLOSE)
     {
@@ -3003,15 +2990,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 2)
         {
-          SetInsertStateA(hWndEdit, !bInsertState, FALSE);
+          SetInsertStateStatusA(hWndEdit, !bInsertState, FALSE);
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 3)
         {
           if (!IsReadOnly())
           {
-            if (nNewLine == NEWLINE_WIN) SetNewLineA(hWndEdit, NEWLINE_UNIX, FALSE);
-            else if (nNewLine == NEWLINE_UNIX) SetNewLineA(hWndEdit, NEWLINE_WIN, FALSE);
-            SetModifyA(hWndEdit, TRUE, FALSE);
+            if (nNewLine == NEWLINE_WIN) SetNewLineStatusA(hWndEdit, NEWLINE_UNIX, FALSE);
+            else if (nNewLine == NEWLINE_UNIX) SetNewLineStatusA(hWndEdit, NEWLINE_WIN, FALSE);
+            SetModifyStatusA(hWndEdit, TRUE, FALSE);
           }
         }
       }
@@ -3338,10 +3325,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Apply settings
       wszCurrentFile[0]='\0';
       SetFocus(hWndEdit);
-      SetNewLineW(hWndEdit, NEWLINE_WIN, TRUE);
-      SetInsertStateW(NULL, FALSE, TRUE);
-      SetModifyW(hWndEdit, FALSE, TRUE);
-      SetCodePageW(nDefaultCodePage, bDefaultBOM, TRUE);
+      SetNewLineStatusW(hWndEdit, NEWLINE_WIN, TRUE);
+      SetInsertStateStatusW(NULL, FALSE, TRUE);
+      SetModifyStatusW(hWndEdit, FALSE, TRUE);
+      SetCodePageStatusW(nDefaultCodePage, bDefaultBOM, TRUE);
       DoViewOnTop(bOnTop, TRUE);
       DoViewShowStatusBar(bStatusBar, TRUE);
       DoSettingsSaveTime(bSaveTime);
@@ -3680,8 +3667,11 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->bTabStopAsSpaces=bTabStopAsSpaces;
           ei->nUndoLimit=nUndoLimit;
           ei->bDetailedUndo=bDetailedUndo;
-          ei->bShowURL=bShowURL;
           ei->dwEditMargins=dwEditMargins;
+          ei->bWordDelimitersEnable=bWordDelimitersEnable;
+          ei->bShowURL=bShowURL;
+          ei->bUrlPrefixesEnable=FALSE;
+          ei->bUrlDelimitersEnable=FALSE;
           ei->ft=ftFileTime;
           ei->aec=aecColors;
           return TRUE;
@@ -3697,23 +3687,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
           {
-            ei->hWndEdit=(HWND)wParam;
-            ei->pFile=(unsigned char *)wf->wszFile;
-            ei->nCodePage=wf->nCodePage;
-            ei->bBOM=wf->bBOM;
-            ei->nNewLine=wf->nNewLine;
-            ei->bModified=wf->bModified;
-            ei->bReadOnly=wf->bReadOnly;
-            ei->bWordWrap=wf->bWordWrap;
-            ei->bInsertState=wf->bInsertState;
-            ei->nTabStopSize=wf->nTabStopSize;
-            ei->bTabStopAsSpaces=bTabStopAsSpaces;
-            ei->nUndoLimit=wf->nUndoLimit;
-            ei->bDetailedUndo=bDetailedUndo;
-            ei->bShowURL=wf->bShowURL;
-            ei->dwEditMargins=wf->dwEditMargins;
-            ei->ft=wf->ft;
-            ei->aec=wf->aec;
+            *ei=wf->ei;
             return TRUE;
           }
         }
@@ -3746,12 +3720,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETMODIFY)
     {
-      SetModifyW((HWND)wParam, lParam, FALSE);
+      SetModifyStatusW((HWND)wParam, lParam, FALSE);
       return 0;
     }
     if (uMsg == AKD_SETNEWLINE)
     {
-      SetNewLineW((HWND)wParam, lParam, FALSE);
+      SetNewLineStatusW((HWND)wParam, lParam, FALSE);
       return 0;
     }
     if (uMsg == AKD_SETFILEPRINT)
@@ -4314,8 +4288,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (nNewLine != NEWLINE_WIN)
         {
-          SetNewLineW(hWndEdit, NEWLINE_WIN, FALSE);
-          SetModifyW(hWndEdit, TRUE, FALSE);
+          SetNewLineStatusW(hWndEdit, NEWLINE_WIN, FALSE);
+          SetModifyStatusW(hWndEdit, TRUE, FALSE);
         }
       }
     }
@@ -4325,8 +4299,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (nNewLine != NEWLINE_UNIX)
         {
-          SetNewLineW(hWndEdit, NEWLINE_UNIX, FALSE);
-          SetModifyW(hWndEdit, TRUE, FALSE);
+          SetNewLineStatusW(hWndEdit, NEWLINE_UNIX, FALSE);
+          SetModifyStatusW(hWndEdit, TRUE, FALSE);
         }
       }
     }
@@ -4569,7 +4543,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
-      if (hWndEdit) SetInsertStateW(hWndEdit, !bInsertState, FALSE);
+      if (hWndEdit) SetInsertStateStatusW(hWndEdit, !bInsertState, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_FILECLOSE)
     {
@@ -4675,15 +4649,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 2)
         {
-          SetInsertStateW(hWndEdit, !bInsertState, FALSE);
+          SetInsertStateStatusW(hWndEdit, !bInsertState, FALSE);
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 3)
         {
           if (!IsReadOnly())
           {
-            if (nNewLine == NEWLINE_WIN) SetNewLineW(hWndEdit, NEWLINE_UNIX, FALSE);
-            else if (nNewLine == NEWLINE_UNIX) SetNewLineW(hWndEdit, NEWLINE_WIN, FALSE);
-            SetModifyW(hWndEdit, TRUE, FALSE);
+            if (nNewLine == NEWLINE_WIN) SetNewLineStatusW(hWndEdit, NEWLINE_UNIX, FALSE);
+            else if (nNewLine == NEWLINE_UNIX) SetNewLineStatusW(hWndEdit, NEWLINE_WIN, FALSE);
+            SetModifyStatusW(hWndEdit, TRUE, FALSE);
           }
         }
       }
@@ -4902,13 +4876,13 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
           WNDFRAMEA *wf;
 
           if (wf=(WNDFRAMEA *)GetWindowLongA(GetParent((HWND)lParam), GWL_USERDATA))
-            wf->bModified=TRUE;
+            wf->ei.bModified=TRUE;
         }
         else
         {
           if (bDetailedUndo && chrg.cpMin == chrg.cpMax)
             SendMessage(hWndEdit, EM_STOPGROUPTYPING, 0, 0);
-          SetModifyA(hWndEdit, TRUE, FALSE);
+          SetModifyStatusA(hWndEdit, TRUE, FALSE);
         }
       }
       else if (HIWORD(wParam) == EN_MAXTEXT)
@@ -5082,13 +5056,13 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
           WNDFRAMEW *wf;
 
           if (wf=(WNDFRAMEW *)GetWindowLongW(GetParent((HWND)lParam), GWL_USERDATA))
-            wf->bModified=TRUE;
+            wf->ei.bModified=TRUE;
         }
         else
         {
           if (bDetailedUndo && chrg.cpMin == chrg.cpMax)
             SendMessage(hWndEdit, EM_STOPGROUPTYPING, 0, 0);
-          SetModifyW(hWndEdit, TRUE, FALSE);
+          SetModifyStatusW(hWndEdit, TRUE, FALSE);
         }
       }
       else if (HIWORD(wParam) == EN_MAXTEXT)
@@ -5213,25 +5187,31 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nIndex;
       int nItemSum;
 
-      CreateEditWindowA(hWnd);
-
       lpWndFrameA->hIcon=hIconEmpty;
       lpWndFrameA->szFile[0]='\0';
-      lpWndFrameA->nCodePage=nDefaultCodePage;
-      lpWndFrameA->bBOM=bDefaultBOM;
-      lpWndFrameA->nNewLine=NEWLINE_WIN;
-      lpWndFrameA->bModified=FALSE;
-      lpWndFrameA->bReadOnly=bReadOnly;
-      lpWndFrameA->bWordWrap=bWordWrap;
-      lpWndFrameA->bInsertState=FALSE;
-      lpWndFrameA->nTabStopSize=nTabStopSize;
-      lpWndFrameA->nUndoLimit=nUndoLimit;
-      lpWndFrameA->bShowURL=bShowURL;
-      lpWndFrameA->dwEditMargins=dwEditMargins;
-      lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
-      memset(&lpWndFrameA->ft, 0, sizeof(FILETIME));
       memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-      lpWndFrameA->aec=aecColors;
+
+      lpWndFrameA->ei.hWndEdit=CreateEditWindowA(hWnd);
+      lpWndFrameA->ei.pFile=(unsigned char *)lpWndFrameA->szFile;
+      lpWndFrameA->ei.nCodePage=nDefaultCodePage;
+      lpWndFrameA->ei.bBOM=bDefaultBOM;
+      lpWndFrameA->ei.nNewLine=NEWLINE_WIN;
+      lpWndFrameA->ei.bModified=FALSE;
+      lpWndFrameA->ei.bReadOnly=bReadOnly;
+      lpWndFrameA->ei.bWordWrap=bWordWrap;
+      lpWndFrameA->ei.bInsertState=FALSE;
+      lpWndFrameA->ei.nTabStopSize=nTabStopSize;
+      lpWndFrameA->ei.bTabStopAsSpaces=bTabStopAsSpaces;
+      lpWndFrameA->ei.nUndoLimit=nUndoLimit;
+      lpWndFrameA->ei.bDetailedUndo=bDetailedUndo;
+      lpWndFrameA->ei.dwEditMargins=dwEditMargins;
+      lpWndFrameA->ei.bWordDelimitersEnable=bWordDelimitersEnable;
+      lpWndFrameA->ei.bShowURL=bShowURL;
+      lpWndFrameA->ei.bUrlPrefixesEnable=FALSE;
+      lpWndFrameA->ei.bUrlDelimitersEnable=FALSE;
+      lpWndFrameA->ei.ft.dwLowDateTime=0;
+      lpWndFrameA->ei.ft.dwHighDateTime=0;
+      lpWndFrameA->ei.aec=aecColors;
       SetWindowLongA(hWnd, GWL_USERDATA, (LONG)lpWndFrameA);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5329,10 +5309,10 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           EnableMenuItem(hMainMenu, nMessages[i], MF_ENABLED);
         bMdiNoWindows=FALSE;
 
-        SetNewLineA(hWndEdit, NEWLINE_WIN, TRUE);
-        SetInsertStateA(NULL, FALSE, TRUE);
-        SetModifyA(hWndEdit, FALSE, TRUE);
-        SetCodePageA(nDefaultCodePage, bDefaultBOM, TRUE);
+        SetNewLineStatusA(hWndEdit, NEWLINE_WIN, TRUE);
+        SetInsertStateStatusA(NULL, FALSE, TRUE);
+        SetModifyStatusA(hWndEdit, FALSE, TRUE);
+        SetCodePageStatusA(nDefaultCodePage, bDefaultBOM, TRUE);
       }
 
       if ((HWND)wParam == hWndFrameActive)
@@ -5343,21 +5323,28 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lpWndFrameA=(WNDFRAMEA *)GetWindowLongA((HWND)wParam, GWL_USERDATA))
           {
             lstrcpynA(lpWndFrameA->szFile, szCurrentFile, MAX_PATH);
-            lpWndFrameA->nCodePage=nCurrentCodePage;
-            lpWndFrameA->bBOM=bCurrentBOM;
-            lpWndFrameA->nNewLine=nNewLine;
-            lpWndFrameA->bModified=bModified;
-            lpWndFrameA->bReadOnly=bReadOnly;
-            lpWndFrameA->bWordWrap=bWordWrap;
-            lpWndFrameA->bInsertState=bInsertState;
-            lpWndFrameA->nTabStopSize=nTabStopSize;
-            lpWndFrameA->nUndoLimit=nUndoLimit;
-            lpWndFrameA->bShowURL=bShowURL;
-            lpWndFrameA->dwEditMargins=dwEditMargins;
-            lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
-            lpWndFrameA->ft=ftFileTime;
             memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-            lpWndFrameA->aec=aecColors;
+
+            lpWndFrameA->ei.hWndEdit=hWndEdit;
+            lpWndFrameA->ei.pFile=(unsigned char *)lpWndFrameA->szFile;
+            lpWndFrameA->ei.nCodePage=nCurrentCodePage;
+            lpWndFrameA->ei.bBOM=bCurrentBOM;
+            lpWndFrameA->ei.nNewLine=nNewLine;
+            lpWndFrameA->ei.bModified=bModified;
+            lpWndFrameA->ei.bReadOnly=bReadOnly;
+            lpWndFrameA->ei.bWordWrap=bWordWrap;
+            lpWndFrameA->ei.bInsertState=bInsertState;
+            lpWndFrameA->ei.nTabStopSize=nTabStopSize;
+            lpWndFrameA->ei.bTabStopAsSpaces=bTabStopAsSpaces;
+            lpWndFrameA->ei.nUndoLimit=nUndoLimit;
+            lpWndFrameA->ei.bDetailedUndo=bDetailedUndo;
+            lpWndFrameA->ei.dwEditMargins=dwEditMargins;
+            lpWndFrameA->ei.bWordDelimitersEnable=bWordDelimitersEnable;
+            lpWndFrameA->ei.bShowURL=bShowURL;
+            lpWndFrameA->ei.bUrlPrefixesEnable=FALSE;
+            lpWndFrameA->ei.bUrlDelimitersEnable=FALSE;
+            lpWndFrameA->ei.ft=ftFileTime;
+            lpWndFrameA->ei.aec=aecColors;
           }
         }
         //Handles
@@ -5369,19 +5356,26 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpWndFrameA=(WNDFRAMEA *)GetWindowLongA((HWND)lParam, GWL_USERDATA))
         {
           lstrcpynA(szCurrentFile, lpWndFrameA->szFile, MAX_PATH);
-          SetCodePageA(lpWndFrameA->nCodePage, lpWndFrameA->bBOM, FALSE);
-          SetNewLineA(hWndEdit, lpWndFrameA->nNewLine, FALSE);
-          SetModifyA(hWndEdit, lpWndFrameA->bModified, FALSE);
-          bReadOnly=lpWndFrameA->bReadOnly;
-          bWordWrap=lpWndFrameA->bWordWrap;
-          SetInsertStateA(NULL, lpWndFrameA->bInsertState, FALSE);
-          nTabStopSize=lpWndFrameA->nTabStopSize;
-          nUndoLimit=lpWndFrameA->nUndoLimit;
-          dwEditMargins=lpWndFrameA->dwEditMargins;
-          bWordDelimitersEnable=lpWndFrameA->bWordDelimitersEnable;
-          ftFileTime=lpWndFrameA->ft;
           memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
-          aecColors=lpWndFrameA->aec;
+
+          hWndEdit=lpWndFrameA->ei.hWndEdit;
+          SetCodePageStatusA(lpWndFrameA->ei.nCodePage, lpWndFrameA->ei.bBOM, FALSE);
+          SetNewLineStatusA(NULL, lpWndFrameA->ei.nNewLine, FALSE);
+          SetModifyStatusA(NULL, lpWndFrameA->ei.bModified, FALSE);
+          bReadOnly=lpWndFrameA->ei.bReadOnly;
+          bWordWrap=lpWndFrameA->ei.bWordWrap;
+          SetInsertStateStatusA(NULL, lpWndFrameA->ei.bInsertState, FALSE);
+          nTabStopSize=lpWndFrameA->ei.nTabStopSize;
+          bTabStopAsSpaces=lpWndFrameA->ei.bTabStopAsSpaces;
+          nUndoLimit=lpWndFrameA->ei.nUndoLimit;
+          bDetailedUndo=lpWndFrameA->ei.bDetailedUndo;
+          dwEditMargins=lpWndFrameA->ei.dwEditMargins;
+          bWordDelimitersEnable=lpWndFrameA->ei.bWordDelimitersEnable;
+          bShowURL=lpWndFrameA->ei.bShowURL;
+          //bUrlPrefixesEnable=lpWndFrameA->ei.bUrlPrefixesEnable;
+          //bUrlDelimitersEnable=lpWndFrameA->ei.bUrlDelimitersEnable;
+          ftFileTime=lpWndFrameA->ei.ft;
+          aecColors=lpWndFrameA->ei.aec;
         }
 
         //Update selection
@@ -5427,25 +5421,31 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nIndex;
       int nItemSum;
 
-      CreateEditWindowW(hWnd);
-
       lpWndFrameW->hIcon=hIconEmpty;
       lpWndFrameW->wszFile[0]='\0';
-      lpWndFrameW->nCodePage=nDefaultCodePage;
-      lpWndFrameW->bBOM=bDefaultBOM;
-      lpWndFrameW->nNewLine=NEWLINE_WIN;
-      lpWndFrameW->bModified=FALSE;
-      lpWndFrameW->bReadOnly=bReadOnly;
-      lpWndFrameW->bWordWrap=bWordWrap;
-      lpWndFrameW->bInsertState=FALSE;
-      lpWndFrameW->nTabStopSize=nTabStopSize;
-      lpWndFrameW->nUndoLimit=nUndoLimit;
-      lpWndFrameW->bShowURL=bShowURL;
-      lpWndFrameW->dwEditMargins=dwEditMargins;
-      lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
-      memset(&lpWndFrameW->ft, 0, sizeof(FILETIME));
       memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-      lpWndFrameW->aec=aecColors;
+
+      lpWndFrameW->ei.hWndEdit=CreateEditWindowW(hWnd);
+      lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->wszFile;
+      lpWndFrameW->ei.nCodePage=nDefaultCodePage;
+      lpWndFrameW->ei.bBOM=bDefaultBOM;
+      lpWndFrameW->ei.nNewLine=NEWLINE_WIN;
+      lpWndFrameW->ei.bModified=FALSE;
+      lpWndFrameW->ei.bReadOnly=bReadOnly;
+      lpWndFrameW->ei.bWordWrap=bWordWrap;
+      lpWndFrameW->ei.bInsertState=FALSE;
+      lpWndFrameW->ei.nTabStopSize=nTabStopSize;
+      lpWndFrameW->ei.bTabStopAsSpaces=bTabStopAsSpaces;
+      lpWndFrameW->ei.nUndoLimit=nUndoLimit;
+      lpWndFrameW->ei.bDetailedUndo=bDetailedUndo;
+      lpWndFrameW->ei.dwEditMargins=dwEditMargins;
+      lpWndFrameW->ei.bWordDelimitersEnable=bWordDelimitersEnable;
+      lpWndFrameW->ei.bShowURL=bShowURL;
+      lpWndFrameW->ei.bUrlPrefixesEnable=FALSE;
+      lpWndFrameW->ei.bUrlDelimitersEnable=FALSE;
+      lpWndFrameW->ei.ft.dwLowDateTime=0;
+      lpWndFrameW->ei.ft.dwHighDateTime=0;
+      lpWndFrameW->ei.aec=aecColors;
       SetWindowLongW(hWnd, GWL_USERDATA, (LONG)lpWndFrameW);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5543,10 +5543,10 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           EnableMenuItem(hMainMenu, nMessages[i], MF_ENABLED);
         bMdiNoWindows=FALSE;
 
-        SetNewLineW(hWndEdit, NEWLINE_WIN, TRUE);
-        SetInsertStateW(NULL, FALSE, TRUE);
-        SetModifyW(hWndEdit, FALSE, TRUE);
-        SetCodePageW(nDefaultCodePage, bDefaultBOM, TRUE);
+        SetNewLineStatusW(hWndEdit, NEWLINE_WIN, TRUE);
+        SetInsertStateStatusW(NULL, FALSE, TRUE);
+        SetModifyStatusW(hWndEdit, FALSE, TRUE);
+        SetCodePageStatusW(nDefaultCodePage, bDefaultBOM, TRUE);
       }
 
       if ((HWND)wParam == hWndFrameActive)
@@ -5557,21 +5557,28 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (lpWndFrameW=(WNDFRAMEW *)GetWindowLongW((HWND)wParam, GWL_USERDATA))
           {
             lstrcpynW(lpWndFrameW->wszFile, wszCurrentFile, MAX_PATH);
-            lpWndFrameW->nCodePage=nCurrentCodePage;
-            lpWndFrameW->bBOM=bCurrentBOM;
-            lpWndFrameW->nNewLine=nNewLine;
-            lpWndFrameW->bModified=bModified;
-            lpWndFrameW->bReadOnly=bReadOnly;
-            lpWndFrameW->bWordWrap=bWordWrap;
-            lpWndFrameW->bInsertState=bInsertState;
-            lpWndFrameW->nTabStopSize=nTabStopSize;
-            lpWndFrameW->nUndoLimit=nUndoLimit;
-            lpWndFrameW->bShowURL=bShowURL;
-            lpWndFrameW->dwEditMargins=dwEditMargins;
-            lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
-            lpWndFrameW->ft=ftFileTime;
             memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-            lpWndFrameW->aec=aecColors;
+
+            lpWndFrameW->ei.hWndEdit=hWndEdit;
+            lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->wszFile;
+            lpWndFrameW->ei.nCodePage=nCurrentCodePage;
+            lpWndFrameW->ei.bBOM=bCurrentBOM;
+            lpWndFrameW->ei.nNewLine=nNewLine;
+            lpWndFrameW->ei.bModified=bModified;
+            lpWndFrameW->ei.bReadOnly=bReadOnly;
+            lpWndFrameW->ei.bWordWrap=bWordWrap;
+            lpWndFrameW->ei.bInsertState=bInsertState;
+            lpWndFrameW->ei.nTabStopSize=nTabStopSize;
+            lpWndFrameW->ei.bTabStopAsSpaces=bTabStopAsSpaces;
+            lpWndFrameW->ei.nUndoLimit=nUndoLimit;
+            lpWndFrameW->ei.bDetailedUndo=bDetailedUndo;
+            lpWndFrameW->ei.dwEditMargins=dwEditMargins;
+            lpWndFrameW->ei.bWordDelimitersEnable=bWordDelimitersEnable;
+            lpWndFrameW->ei.bShowURL=bShowURL;
+            lpWndFrameW->ei.bUrlPrefixesEnable=FALSE;
+            lpWndFrameW->ei.bUrlDelimitersEnable=FALSE;
+            lpWndFrameW->ei.ft=ftFileTime;
+            lpWndFrameW->ei.aec=aecColors;
           }
         }
         //Handles
@@ -5583,19 +5590,26 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpWndFrameW=(WNDFRAMEW *)GetWindowLongW((HWND)lParam, GWL_USERDATA))
         {
           lstrcpynW(wszCurrentFile, lpWndFrameW->wszFile, MAX_PATH);
-          SetCodePageW(lpWndFrameW->nCodePage, lpWndFrameW->bBOM, FALSE);
-          SetNewLineW(hWndEdit, lpWndFrameW->nNewLine, FALSE);
-          SetModifyW(hWndEdit, lpWndFrameW->bModified, FALSE);
-          bReadOnly=lpWndFrameW->bReadOnly;
-          bWordWrap=lpWndFrameW->bWordWrap;
-          SetInsertStateW(NULL, lpWndFrameW->bInsertState, FALSE);
-          nTabStopSize=lpWndFrameW->nTabStopSize;
-          nUndoLimit=lpWndFrameW->nUndoLimit;
-          dwEditMargins=lpWndFrameW->dwEditMargins;
-          bWordDelimitersEnable=lpWndFrameW->bWordDelimitersEnable;
-          ftFileTime=lpWndFrameW->ft;
           memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
-          aecColors=lpWndFrameW->aec;
+
+          hWndEdit=lpWndFrameW->ei.hWndEdit;
+          SetCodePageStatusW(lpWndFrameW->ei.nCodePage, lpWndFrameW->ei.bBOM, FALSE);
+          SetNewLineStatusW(NULL, lpWndFrameW->ei.nNewLine, FALSE);
+          SetModifyStatusW(NULL, lpWndFrameW->ei.bModified, FALSE);
+          bReadOnly=lpWndFrameW->ei.bReadOnly;
+          bWordWrap=lpWndFrameW->ei.bWordWrap;
+          SetInsertStateStatusW(NULL, lpWndFrameW->ei.bInsertState, FALSE);
+          nTabStopSize=lpWndFrameW->ei.nTabStopSize;
+          bTabStopAsSpaces=lpWndFrameW->ei.bTabStopAsSpaces;
+          nUndoLimit=lpWndFrameW->ei.nUndoLimit;
+          bDetailedUndo=lpWndFrameW->ei.bDetailedUndo;
+          dwEditMargins=lpWndFrameW->ei.dwEditMargins;
+          bWordDelimitersEnable=lpWndFrameW->ei.bWordDelimitersEnable;
+          bShowURL=lpWndFrameW->ei.bShowURL;
+          //bUrlPrefixesEnable=lpWndFrameW->ei.bUrlPrefixesEnable;
+          //bUrlDelimitersEnable=lpWndFrameW->ei.bUrlDelimitersEnable;
+          ftFileTime=lpWndFrameW->ei.ft;
+          aecColors=lpWndFrameW->ei.aec;
         }
 
         //Update selection
