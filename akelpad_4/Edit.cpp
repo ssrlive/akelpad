@@ -17204,12 +17204,14 @@ int SetUrlPrefixes(HWND hWnd, wchar_t *wpPrefixes)
 {
   wchar_t wszBuffer[URL_PREFIXES_SIZE];
   int nUrlPrefixMax=URL_PREFIXES_SIZE - 2;
-  int a;
-  int b;
+  int a=0;
+  int b=0;
 
   if (wpPrefixes)
   {
-    for (a=0, b=0; b < nUrlPrefixMax; ++a, ++b)
+    while (wpPrefixes[a] == ' ') ++a;
+
+    for (; b < nUrlPrefixMax; ++a, ++b)
     {
       if (wpPrefixes[a])
       {
