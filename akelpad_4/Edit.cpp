@@ -3748,11 +3748,11 @@ BOOL RegSaveOptionsA()
     goto Error;
   if (RegSetValueExA(hKey, "UrlPrefixesEnable", 0, REG_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
-  if (RegSetValueExA(hKey, "UrlPrefixes", 0, REG_BINARY, (LPBYTE)wszUrlPrefixes, wcslen(URL_PREFIXESW) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (RegSetValueExA(hKey, "UrlPrefixes", 0, REG_BINARY, (LPBYTE)wszUrlPrefixes, wcslen(wszUrlPrefixes) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExA(hKey, "UrlDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
-  if (RegSetValueExA(hKey, "UrlDelimiters", 0, REG_BINARY, (LPBYTE)wszUrlDelimiters, wcslen(URL_DELIMITERSW) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (RegSetValueExA(hKey, "UrlDelimiters", 0, REG_BINARY, (LPBYTE)wszUrlDelimiters, wcslen(wszUrlDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
     goto Error;
 
   if (bEditFontChanged)
@@ -3900,11 +3900,11 @@ BOOL RegSaveOptionsW()
     goto Error;
   if (RegSetValueExW(hKey, L"UrlPrefixesEnable", 0, REG_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
-  if (RegSetValueExW(hKey, L"UrlPrefixes", 0, REG_BINARY, (LPBYTE)wszUrlPrefixes, lstrlenW(URL_PREFIXESW) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (RegSetValueExW(hKey, L"UrlPrefixes", 0, REG_BINARY, (LPBYTE)wszUrlPrefixes, lstrlenW(wszUrlPrefixes) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExW(hKey, L"UrlDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
-  if (RegSetValueExW(hKey, L"UrlDelimiters", 0, REG_BINARY, (LPBYTE)wszUrlDelimiters, lstrlenW(URL_DELIMITERSW) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (RegSetValueExW(hKey, L"UrlDelimiters", 0, REG_BINARY, (LPBYTE)wszUrlDelimiters, lstrlenW(wszUrlDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
     goto Error;
   if (bEditFontChanged)
   {
