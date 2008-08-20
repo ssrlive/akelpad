@@ -716,7 +716,7 @@ int str2hexA(unsigned char *pStr, int nBytes, char *szStrHex, int nStrHexMax, BO
 
   for (a=0, b=0; a < nBytes && b <= nStrHexMax; ++a, b+=2)
   {
-    //wsprintfA(szStrHex, "%02x", (unsigned int)pStr[a]);
+    //wsprintfA(szStrHex + b, "%02x", (unsigned int)pStr[a]);
     dec2hexA((unsigned int)pStr[a], szStrHex + b, 2, bLowerCase);
   }
   szStrHex[b]='\0';
@@ -757,7 +757,7 @@ int str2hexW(unsigned char *pStr, int nBytes, wchar_t *wszStrHex, int nStrHexMax
 
   for (a=0, b=0; a < nBytes && b <= nStrHexMax; ++a, b+=2)
   {
-    //wsprintfW(wszStrHex, L"%02x", (unsigned int)pStr[a]);
+    //wsprintfW(wszStrHex + b, L"%02x", (unsigned int)pStr[a]);
     dec2hexW((unsigned int)pStr[a], wszStrHex + b, 2, bLowerCase);
   }
   wszStrHex[b]='\0';
