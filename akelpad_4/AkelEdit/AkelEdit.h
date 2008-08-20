@@ -18,7 +18,7 @@
 #define AES_WORDDELIMITERSW   L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
 #define AES_WRAPDELIMITERSW   L" \t\n"
 #define AES_URLDELIMITERSW    L" \t\n()<>'`\""
-#define AES_URLPREFIXESW      L"http:\0https:\0ftp:\0file:\0mailto:\0\0"
+#define AES_URLPREFIXESW      L"http:\0https:\0www.\0ftp:\0file:\0mailto:\0\0"
 
 //AEM_SETEVENTMASK flags
 #define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGING and AEN_SELCHANGED notifications.

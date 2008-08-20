@@ -75,7 +75,7 @@
 #define WORD_DELIMITERSW          L" \t\r\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
 #define WORD_WHITESPACESW         L" \t\r"
 #define URL_DELIMITERSW           L" \t\n()<>'`\""
-#define URL_PREFIXESW             L"http: https: ftp: file: mailto:"
+#define URL_PREFIXESW             L"http: https: www. ftp: file: mailto:"
 #define SENTENCE_DELIMITERSA       ".?!"
 #define SENTENCE_DELIMITERSW      L".?!"
 #define TITLE_DELIMITERSA          " \t\r\n"
