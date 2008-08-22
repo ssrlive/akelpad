@@ -8124,7 +8124,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
           {
             if (lpPoint->ciPoint.nLine <= ciDeleteEnd.nLine)
             {
-              if (lpPoint->ciPoint.nCharInLine > ciDeleteStart.nCharInLine)
+              if (!(lpPoint->ciPoint.nLine == ciDeleteStart.nLine && lpPoint->ciPoint.nCharInLine <= ciDeleteStart.nCharInLine))
               {
                 if (lpPoint->ciPoint.nLine == ciDeleteEnd.nLine && lpPoint->ciPoint.nCharInLine > ciDeleteEnd.nCharInLine)
                   lpPoint->ciPoint.nCharInLine=ciDeleteStart.nCharInLine + (lpPoint->ciPoint.nCharInLine - ciDeleteEnd.nCharInLine);

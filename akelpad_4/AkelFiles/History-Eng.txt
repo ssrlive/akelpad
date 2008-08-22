@@ -5,6 +5,7 @@ Changed: improved file opening and word wrapping progress indicator.
 
 Added: URL prefix "www." in settings by default.
 
+Fixed: text Drag'n'Drop.
 Fixed: URL prefixes and delimiters saving in registry.
 
 
