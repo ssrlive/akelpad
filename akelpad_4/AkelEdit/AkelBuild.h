@@ -12,6 +12,8 @@
 
 #define AETIMERID_MOUSEMOVE    1
 
+#define AETIME_PROGRESS        0
+
 //WM_SETCURSOR
 #define AECC_IBEAM      0
 #define AECC_MARGIN     1
@@ -405,7 +407,7 @@ void AE_NotifyDragDropDone(AKELEDIT *ae);
 BOOL AE_NotifyDropSource(AKELEDIT *ae, int nAction, DWORD *lpdwEffect, DWORD dwDropResult);
 BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect);
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink);
-BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, int *nStep, int nCurrent, int nMaximum);
+BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, int nCurrent, int nMaximum);
 wchar_t AE_WideCharUpper(wchar_t c);
 int AE_WideStrCmp(const wchar_t *wpString, const wchar_t *wpString2);
 int AE_WideStrCmpI(const wchar_t *wpString, const wchar_t *wpString2);

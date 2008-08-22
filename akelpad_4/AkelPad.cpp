@@ -113,8 +113,8 @@ HWND hDlgModeless=NULL;
 RECT rcMainWindowRestored={CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT};
 DWORD dwMainStyle=0;
 DWORD dwLastMainSize=0;
-DWORD dwProgressStartTime=0;
 int nStatusHeight=0;
+int nProgressWidth=0;
 BOOL bStatusSelUpdate=TRUE;
 HACCEL hGlobalAccel;
 HACCEL hMainAccel;
@@ -1560,11 +1560,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //Progress Bar
     SendMessage(hStatus, SB_GETBORDERS, 0, (LPARAM)&iBorders);
+    nProgressWidth=(iSBParts[1] - iSBParts[0]) - iBorders[2];
 
     hProgress=CreateWindowA("msctls_progress32",
                           NULL,
                           WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|PBS_SMOOTH,
-                          iSBParts[0] + iBorders[2], iBorders[1], (iSBParts[1] - iSBParts[0]) - iBorders[2], nStatusHeight - iBorders[1],
+                          iSBParts[0] + iBorders[2], iBorders[1], nProgressWidth, nStatusHeight - iBorders[1],
                           hStatus,
                           (HMENU)ID_PROGRESS,
                           hInstance,
@@ -3274,11 +3275,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //Progress Bar
     SendMessage(hStatus, SB_GETBORDERS, 0, (LPARAM)&iBorders);
+    nProgressWidth=(iSBParts[1] - iSBParts[0]) - iBorders[2];
 
     hProgress=CreateWindowW(L"msctls_progress32",
                           NULL,
                           WS_CHILD|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|PBS_SMOOTH,
-                          iSBParts[0] + iBorders[2], iBorders[1], (iSBParts[1] - iSBParts[0]) - iBorders[2], nStatusHeight - iBorders[1],
+                          iSBParts[0] + iBorders[2], iBorders[1], nProgressWidth, nStatusHeight - iBorders[1],
                           hStatus,
                           (HMENU)ID_PROGRESS,
                           hInstance,
@@ -5020,50 +5022,38 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         static int nIncrement;
         static int nBarrier;
 
-        //Start progress
-        if (aenp->nCurrent == 0)
-        {
-          if (!dwProgressType)
-            dwProgressType=aenp->dwType;
-
-          if (dwProgressType & AEPGS_WRAPTEXT)
-          {
-            dwProgressStartTime=GetTickCount();
-          }
-        }
-
-        if (dwProgressType == aenp->dwType)
+        if (!dwProgressType || dwProgressType == aenp->dwType)
         {
           //Start indication if elapsed time more than 0,5 second
-          if (dwProgressStartTime == (DWORD)-1 || GetTickCount() - dwProgressStartTime > 500)
+          if (aenp->dwTimeElapsed > 500)
           {
-            if (dwProgressStartTime != (DWORD)-1)
+            //Start progress
+            if (!dwProgressType)
             {
+              dwProgressType=aenp->dwType;
+
               SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
               SendMessage(hProgress, PBM_SETPOS, 0, 0);
               ShowWindow(hProgress, TRUE);
-              nIncrement=aenp->nMaximum / 100;
-              nBarrier=nIncrement;
+              nIncrement=aenp->nMaximum / nProgressWidth;
+              nBarrier=(aenp->nCurrent / nIncrement) * nIncrement;
             }
-            dwProgressStartTime=(DWORD)-1;
 
+            //Change position
             if (aenp->nCurrent >= nBarrier)
             {
               SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
               nBarrier+=nIncrement;
             }
-          }
 
-          //End progress
-          if (aenp->nCurrent == aenp->nMaximum)
-          {
-            if (dwProgressStartTime == (DWORD)-1)
+            //End progress
+            if (aenp->nCurrent == aenp->nMaximum)
             {
               ShowWindow(hProgress, FALSE);
               UpdateWindow(hStatus);
+
+              dwProgressType=0;
             }
-            dwProgressStartTime=0;
-            dwProgressType=0;
           }
         }
       }
@@ -5207,50 +5197,38 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         static int nIncrement;
         static int nBarrier;
 
-        //Start progress
-        if (aenp->nCurrent == 0)
-        {
-          if (!dwProgressType)
-            dwProgressType=aenp->dwType;
-
-          if (dwProgressType & AEPGS_WRAPTEXT)
-          {
-            dwProgressStartTime=GetTickCount();
-          }
-        }
-
-        if (dwProgressType == aenp->dwType)
+        if (!dwProgressType || dwProgressType == aenp->dwType)
         {
           //Start indication if elapsed time more than 0,5 second
-          if (dwProgressStartTime == (DWORD)-1 || GetTickCount() - dwProgressStartTime > 500)
+          if (aenp->dwTimeElapsed > 500)
           {
-            if (dwProgressStartTime != (DWORD)-1)
+            //Start progress
+            if (!dwProgressType)
             {
+              dwProgressType=aenp->dwType;
+
               SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
               SendMessage(hProgress, PBM_SETPOS, 0, 0);
               ShowWindow(hProgress, TRUE);
-              nIncrement=aenp->nMaximum / 100;
-              nBarrier=nIncrement;
+              nIncrement=aenp->nMaximum / nProgressWidth;
+              nBarrier=(aenp->nCurrent / nIncrement) * nIncrement;
             }
-            dwProgressStartTime=(DWORD)-1;
 
+            //Change position
             if (aenp->nCurrent >= nBarrier)
             {
               SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
               nBarrier+=nIncrement;
             }
-          }
 
-          //End progress
-          if (aenp->nCurrent == aenp->nMaximum)
-          {
-            if (dwProgressStartTime == (DWORD)-1)
+            //End progress
+            if (aenp->nCurrent == aenp->nMaximum)
             {
               ShowWindow(hProgress, FALSE);
               UpdateWindow(hStatus);
+
+              dwProgressType=0;
             }
-            dwProgressStartTime=0;
-            dwProgressType=0;
           }
         }
       }
