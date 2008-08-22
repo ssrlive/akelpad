@@ -444,7 +444,7 @@ typedef struct {
 typedef struct {
   NMHDR hdr;
   DWORD dwType;        //See AEPGS_* defines.
-  DWORD dwTimeElapsed; //Elapsed time from first message.
+  DWORD dwTimeElapsed; //Elapsed time since action was start.
   int nCurrent;        //Characters processed. Equal to zero, if first message.
   int nMaximum;        //Total number of characters. Equal to nCurrent member, if last message.
 } AENPROGRESS;
