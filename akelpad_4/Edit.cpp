@@ -91,8 +91,8 @@ extern HWND hDlgModeless;
 extern RECT rcMainWindowRestored;
 extern DWORD dwMainStyle;
 extern DWORD dwLastMainSize;
-extern DWORD dwProgressStartTime;
 extern int nStatusHeight;
+extern int nProgressWidth;
 extern BOOL bStatusSelUpdate;
 extern HACCEL hGlobalAccel;
 extern HACCEL hMainAccel;
@@ -5027,8 +5027,6 @@ void FileStreamIn(FILESTREAMDATA *lpData)
   DWORD dwBytesRead;
   DWORD dwCharsConverted;
   DWORD i;
-
-  dwProgressStartTime=GetTickCount();
 
   if ((dwFileSize=GetFileSize(lpData->hFile, NULL)) != INVALID_FILE_SIZE)
   {

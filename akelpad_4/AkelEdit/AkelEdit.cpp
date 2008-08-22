@@ -4068,11 +4068,13 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   AELINEINDEX liFirst;
   AELINEINDEX liCount;
   DWORD dwMaxWidth;
+  DWORD dwStartTime=GetTickCount();
+  DWORD dwProgressTime=0;
+  DWORD dwCurrentTime=0;
   int nLineCount=0;
   int nWrapped=0;
   int nUnwrapped=0;
   int nStopLine;
-  int nProgressStep=1000;
   BOOL bPrevLine=FALSE;
 
   if (bWrap)
@@ -4116,7 +4118,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   {
     if (!liWrapStart && !liWrapEnd)
     {
-      if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, &nProgressStep, liCount.nLine, nStopLine))
+      if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, GetTickCount() - dwStartTime, liCount.nLine, nStopLine))
         return 0;
     }
   }
@@ -4159,10 +4161,13 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
     {
       if (!liWrapStart && !liWrapEnd)
       {
-        if (!(liCount.nLine % nProgressStep))
+        dwCurrentTime=GetTickCount();
+
+        if (dwCurrentTime - dwProgressTime > AETIME_PROGRESS)
         {
-          if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, &nProgressStep, liCount.nLine - nLineCount, nStopLine))
+          if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, dwCurrentTime - dwStartTime, liCount.nLine - nLineCount, nStopLine))
             break;
+          dwProgressTime=GetTickCount();
         }
       }
     }
@@ -4173,8 +4178,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   {
     if (!liWrapStart && !liWrapEnd)
     {
-      nProgressStep=0;
-      AE_NotifyProgress(ae, AEPGS_WRAPTEXT, &nProgressStep, nStopLine, nStopLine);
+      AE_NotifyProgress(ae, AEPGS_WRAPTEXT, GetTickCount() - dwStartTime, nStopLine, nStopLine);
     }
   }
 
@@ -7436,8 +7440,10 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   wchar_t *wpLineEnd=wpText;
   HANDLE hHeap=ae->hHeap;
   DWORD dwTextCount=0;
+  DWORD dwStartTime=GetTickCount();
+  DWORD dwProgressTime=0;
+  DWORD dwCurrentTime=0;
   int nLinesInPage;
-  int nProgressStep=1000;
   BOOL bUpdated=FALSE;
 
   //Free memory
@@ -7504,10 +7510,13 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   {
     if (ae->dwEventMask & AENM_PROGRESS)
     {
-      if (!(ae->nLineCount % nProgressStep))
+      dwCurrentTime=GetTickCount();
+
+      if (dwCurrentTime - dwProgressTime > AETIME_PROGRESS)
       {
-        if (AE_NotifyProgress(ae, AEPGS_SETTEXT, &nProgressStep, dwTextCount, dwTextLen))
+        if (AE_NotifyProgress(ae, AEPGS_SETTEXT, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
           break;
+        dwProgressTime=GetTickCount();
       }
     }
 
@@ -7579,8 +7588,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   //End progress
   if (ae->dwEventMask & AENM_PROGRESS)
   {
-    nProgressStep=0;
-    AE_NotifyProgress(ae, AEPGS_SETTEXT, &nProgressStep, dwTextLen, dwTextLen);
+    AE_NotifyProgress(ae, AEPGS_SETTEXT, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
   }
 
   //Last line
@@ -10831,24 +10839,23 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHAR
   return FALSE;
 }
 
-BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, int *nStep, int nCurrent, int nMaximum)
+BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, int nCurrent, int nMaximum)
 {
   BOOL bResult=FALSE;
 
   //Send AEN_PROGRESS
-  AENPROGRESS aenp;
+  {
+    AENPROGRESS aenp;
 
-  aenp.hdr.hwndFrom=ae->hWndEdit;
-  aenp.hdr.idFrom=ae->nEditCtrlID;
-  aenp.hdr.code=AEN_PROGRESS;
-  aenp.dwType=dwType;
-  aenp.nStep=*nStep;
-  aenp.nCurrent=nCurrent;
-  aenp.nMaximum=nMaximum;
-  bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenp);
-
-  *nStep=aenp.nStep;
-
+    aenp.hdr.hwndFrom=ae->hWndEdit;
+    aenp.hdr.idFrom=ae->nEditCtrlID;
+    aenp.hdr.code=AEN_PROGRESS;
+    aenp.dwType=dwType;
+    aenp.dwTimeElapsed=dwTimeElapsed;
+    aenp.nCurrent=nCurrent;
+    aenp.nMaximum=nMaximum;
+    bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenp);
+  }
   return bResult;
 }
 

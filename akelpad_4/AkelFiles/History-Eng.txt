@@ -1,6 +1,8 @@
 
 AkelPad 4.0.3 ()
 ----------------------------
+Changed: improved file opening and word wrapping progress indicator.
+
 Added: URL prefix "www." in settings by default.
 
 Fixed: URL prefixes and delimiters saving in registry.

@@ -443,10 +443,10 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
-  DWORD dwType;  //See AEPGS_* defines.
-  int nStep;     //Minimum number of lines to process before calling AEN_PROGRESS. Application can change this member.
-  int nCurrent;  //Characters processed.
-  int nMaximum;  //Total number of characters.
+  DWORD dwType;        //See AEPGS_* defines.
+  DWORD dwTimeElapsed; //Elapsed time from first message.
+  int nCurrent;        //Characters processed. Equal to zero, if first message.
+  int nMaximum;        //Total number of characters. Equal to nCurrent member, if last message.
 } AENPROGRESS;
 
 
