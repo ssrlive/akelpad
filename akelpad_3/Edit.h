@@ -1151,6 +1151,8 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 BOOL CALLBACK AboutDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+void SetSelectionStatusA(HWND hWnd, CHARRANGE *cr);
+void SetSelectionStatusW(HWND hWnd, CHARRANGE *cr);
 void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst);
 void SetModifyStatusW(HWND hWnd, BOOL bState, BOOL bFirst);
 void SetNewLineStatusA(HWND hWnd, BOOL bState, BOOL bFirst);

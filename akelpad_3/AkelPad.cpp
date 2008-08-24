@@ -4885,32 +4885,14 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
     {
       if (((NMHDR *)lParam)->code == EN_SELCHANGE)
       {
-        char szStatus[MAX_PATH];
+        SELCHANGE *sc=(SELCHANGE *)lParam;
         CHARRANGE cr;
-        int nLine;
-        int nColumn;
-        int nLinebreaks=0;
 
-        SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
-        nPositionOld=nPosition;
-        nPosition=(cr.cpMin == chrg.cpMin || cr.cpMin == chrg.cpMax)?cr.cpMax:cr.cpMin;
-        chrg.cpMin=cr.cpMin;
-        chrg.cpMax=cr.cpMax;
-
-        nLine=SendMessage(hWndEdit, EM_EXLINEFROMCHAR, 0, nPosition) + 1;
-        nColumn=SendMessage(hWndEdit, EM_LINEINDEX, nLine - 1, 0);
-        nColumn=nPosition - nColumn + 1;
-
-        if (chrg.cpMin == chrg.cpMax)
+        if (sc->nmhdr.hwndFrom == hWndEdit)
         {
-          wsprintfA(szStatus, "%u:%u", nLine, nColumn);
+          SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
+          SetSelectionStatusA(hWndEdit, &cr);
         }
-        else
-        {
-          if (nNewLine == NEWLINE_WIN) nLinebreaks=SendMessage(hWndEdit, EM_EXLINEFROMCHAR, 0, chrg.cpMax) - SendMessage(hWndEdit, EM_EXLINEFROMCHAR, 0, chrg.cpMin);
-          wsprintfA(szStatus, "%u:%u, %u", nLine, nColumn, chrg.cpMax - chrg.cpMin + nLinebreaks);
-        }
-        SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
       }
       else if (((NMHDR *)lParam)->code == EN_LINK)
       {
@@ -5065,32 +5047,14 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
     {
       if (((NMHDR *)lParam)->code == EN_SELCHANGE)
       {
-        wchar_t wszStatus[MAX_PATH];
+        SELCHANGE *sc=(SELCHANGE *)lParam;
         CHARRANGE cr;
-        int nLine;
-        int nColumn;
-        int nLinebreaks=0;
 
-        SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
-        nPositionOld=nPosition;
-        nPosition=(cr.cpMin == chrg.cpMin || cr.cpMin == chrg.cpMax)?cr.cpMax:cr.cpMin;
-        chrg.cpMin=cr.cpMin;
-        chrg.cpMax=cr.cpMax;
-
-        nLine=SendMessage(hWndEdit, EM_EXLINEFROMCHAR, 0, nPosition) + 1;
-        nColumn=SendMessage(hWndEdit, EM_LINEINDEX, nLine - 1, 0);
-        nColumn=nPosition - nColumn + 1;
-
-        if (chrg.cpMin == chrg.cpMax)
+        if (sc->nmhdr.hwndFrom == hWndEdit)
         {
-          wsprintfW(wszStatus, L"%u:%u", nLine, nColumn);
+          SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
+          SetSelectionStatusW(hWndEdit, &cr);
         }
-        else
-        {
-          if (nNewLine == NEWLINE_WIN) nLinebreaks=SendMessage(hWndEdit, EM_EXLINEFROMCHAR, 0, chrg.cpMax) - SendMessage(hWndEdit, EM_EXLINEFROMCHAR, 0, chrg.cpMin);
-          wsprintfW(wszStatus, L"%u:%u, %u", nLine, nColumn, chrg.cpMax - chrg.cpMin + nLinebreaks);
-        }
-        SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
       }
       else if (((NMHDR *)lParam)->code == EN_LINK)
       {
@@ -5216,7 +5180,6 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_MDIACTIVATE)
   {
-    NMHDR nmhdr;
     int i;
     int nMessages[]={IDM_FILE_REOPEN,
                      IDM_FILE_SAVE,
@@ -5326,7 +5289,6 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
         //Handles
-        hWndEdit=GetDlgItem((HWND)lParam, ID_EDIT);
         hWndFrameActive=(HWND)lParam;
         hWndFrameDestroyed=NULL;
 
@@ -5357,10 +5319,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         //Update selection
-        nmhdr.hwndFrom=hWndEdit;
-        nmhdr.idFrom=ID_EDIT;
-        nmhdr.code=EN_SELCHANGE;
-        SendMessage((HWND)lParam, WM_NOTIFY, ID_EDIT, (LPARAM)&nmhdr);
+        SetSelectionStatusA(hWndEdit, NULL);
 
         //Update tabs
         if (!bTabPressed)
@@ -5371,6 +5330,8 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             UpdateTabs(hTab);
           }
         }
+
+        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)hWndFrameActive);
       }
       else
       {
@@ -5450,7 +5411,6 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_MDIACTIVATE)
   {
-    NMHDR nmhdr;
     int i;
     int nMessages[]={IDM_FILE_REOPEN,
                      IDM_FILE_SAVE,
@@ -5560,7 +5520,6 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
         //Handles
-        hWndEdit=GetDlgItem((HWND)lParam, ID_EDIT);
         hWndFrameActive=(HWND)lParam;
         hWndFrameDestroyed=NULL;
 
@@ -5591,10 +5550,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         //Update selection
-        nmhdr.hwndFrom=hWndEdit;
-        nmhdr.idFrom=ID_EDIT;
-        nmhdr.code=EN_SELCHANGE;
-        SendMessage((HWND)lParam, WM_NOTIFY, ID_EDIT, (LPARAM)&nmhdr);
+        SetSelectionStatusW(hWndEdit, NULL);
 
         //Update tabs
         if (!bTabPressed)
@@ -5605,6 +5561,8 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             UpdateTabs(hTab);
           }
         }
+
+        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)hWndFrameActive);
       }
       else
       {

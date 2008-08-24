@@ -14751,6 +14751,76 @@ BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 //// Status bar
 
+void SetSelectionStatusA(HWND hWnd, CHARRANGE *cr)
+{
+  char szStatus[MAX_PATH];
+  int nLine;
+  int nColumn;
+  int nLinebreaks=0;
+
+  if (cr)
+  {
+    nPositionOld=nPosition;
+    nPosition=(cr->cpMin == chrg.cpMin || cr->cpMin == chrg.cpMax)?cr->cpMax:cr->cpMin;
+    chrg=*cr;
+  }
+  else
+  {
+    SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&chrg);
+    nPositionOld=chrg.cpMax;
+    nPosition=chrg.cpMax;
+  }
+  nLine=SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, nPosition) + 1;
+  nColumn=SendMessage(hWnd, EM_LINEINDEX, nLine - 1, 0);
+  nColumn=nPosition - nColumn + 1;
+
+  if (chrg.cpMin == chrg.cpMax)
+  {
+    wsprintfA(szStatus, "%u:%u", nLine, nColumn);
+  }
+  else
+  {
+    if (nNewLine == NEWLINE_WIN) nLinebreaks=SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMax) - SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMin);
+    wsprintfA(szStatus, "%u:%u, %u", nLine, nColumn, chrg.cpMax - chrg.cpMin + nLinebreaks);
+  }
+  SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
+}
+
+void SetSelectionStatusW(HWND hWnd, CHARRANGE *cr)
+{
+  wchar_t wszStatus[MAX_PATH];
+  int nLine;
+  int nColumn;
+  int nLinebreaks=0;
+
+  if (cr)
+  {
+    nPositionOld=nPosition;
+    nPosition=(cr->cpMin == chrg.cpMin || cr->cpMin == chrg.cpMax)?cr->cpMax:cr->cpMin;
+    chrg=*cr;
+  }
+  else
+  {
+    SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&chrg);
+    nPositionOld=chrg.cpMax;
+    nPosition=chrg.cpMax;
+  }
+  nLine=SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, nPosition) + 1;
+  nColumn=SendMessage(hWnd, EM_LINEINDEX, nLine - 1, 0);
+  nColumn=nPosition - nColumn + 1;
+
+  if (chrg.cpMin == chrg.cpMax)
+  {
+    wsprintfW(wszStatus, L"%u:%u", nLine, nColumn);
+  }
+  else
+  {
+    if (nNewLine == NEWLINE_WIN) nLinebreaks=SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMax) - SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMin);
+    wsprintfW(wszStatus, L"%u:%u, %u", nLine, nColumn, chrg.cpMax - chrg.cpMin + nLinebreaks);
+  }
+  SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
+}
+
 void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 {
   if (!hWnd) hWnd=hWndEdit;
