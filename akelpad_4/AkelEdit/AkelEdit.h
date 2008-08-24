@@ -1199,7 +1199,7 @@ _________________
 Check that the contents of an edit control can be converted to the specified code page.
 
 (int)wParam == code page to check.
-lParam == not used.
+lParam      == not used.
 
 Return Value
  Zero if successful, otherwise returns first met line number containing nonconverted character.
