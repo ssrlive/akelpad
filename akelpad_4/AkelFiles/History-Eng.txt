@@ -1,4 +1,10 @@
 
+AkelPad 4.0.4 ()
+----------------------------
+Changed: at font size change, AkelEdit adjusts position of the text according to the first
+         visible line.
+
+
 AkelPad 4.0.3 (Aug 24, 2008)
 ----------------------------
 Changed: improved file opening and word wrapping progress indicator.
