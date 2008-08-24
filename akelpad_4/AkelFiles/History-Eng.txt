@@ -1,5 +1,5 @@
 
-AkelPad 4.0.3 ()
+AkelPad 4.0.3 (Aug 24, 2008)
 ----------------------------
 Changed: improved file opening and word wrapping progress indicator.
 
