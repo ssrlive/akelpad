@@ -24,6 +24,8 @@
 #define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 19)
 #define AKDN_DLLCALL               (WM_USER + 20)
 #define AKDN_DLLUNLOAD             (WM_USER + 21)
+#define AKDN_FRAME_ACTIVATE        (WM_USER + 22)
+
 #define AKD_GETMAINPROC            (WM_USER + 101)
 #define AKD_SETMAINPROC            (WM_USER + 102)
 #define AKD_GETMAINPROCRET         (WM_USER + 103)

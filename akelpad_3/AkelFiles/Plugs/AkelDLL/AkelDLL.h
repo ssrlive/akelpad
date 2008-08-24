@@ -873,6 +873,7 @@ typedef struct _NSIZE {
 #define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 19)
 #define AKDN_DLLCALL               (WM_USER + 20)
 #define AKDN_DLLUNLOAD             (WM_USER + 21)
+#define AKDN_FRAME_ACTIVATE        (WM_USER + 22)
 
 //AkelPad 3.x and AkelPad 4.x messages
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -1056,6 +1057,18 @@ Notification message, sends to the main procedure when no frame windows in MDI c
 
 wParam == not used
 lParam == not used
+
+Return Value
+ zero
+
+
+AKDN_FRAME_ACTIVATE
+___________________
+
+Notification message, sends to the main procedure when frame window has been activated.
+
+wParam       == not used
+(HWND)lParam == handle to the MDI frame window being activated
 
 Return Value
  zero

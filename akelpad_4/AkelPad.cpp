@@ -5484,6 +5484,8 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             UpdateTabs(hTab);
           }
         }
+
+        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)hWndFrameActive);
       }
       else
       {
@@ -5709,6 +5711,8 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             UpdateTabs(hTab);
           }
         }
+
+        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)hWndFrameActive);
       }
       else
       {
