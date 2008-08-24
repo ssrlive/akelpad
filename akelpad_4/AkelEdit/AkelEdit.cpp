@@ -1888,7 +1888,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (ae->bColumnSel != bAlt)
           bRedrawAllSelection=TRUE;
-        ae->bColumnSel=bAlt;
 
         if (wParam == VK_HOME)
         {
@@ -1897,7 +1896,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bControl)
           {
-            AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCharOut, ae->bColumnSel);
+            AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCharOut, bAlt);
           }
           else
           {
@@ -1913,7 +1912,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bControl)
           {
-            AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciCharOut, ae->bColumnSel);
+            AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciCharOut, bAlt);
           }
           else
           {
@@ -1929,7 +1928,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
               ciCharIn=ae->ciSelStartIndex;
 
-            AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, ae->bColumnSel, ae->dwWordBreak, FALSE);
+            AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, bAlt, ae->dwWordBreak, FALSE);
           }
           else
           {
@@ -1938,7 +1937,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ciCharIn=ae->ciSelStartIndex;
               ciCharOut=ae->ciSelStartIndex;
             }
-            else AE_GetIndex(ae, AEGI_PREVCHAR, &ciCharIn, &ciCharOut, ae->bColumnSel);
+            else AE_GetIndex(ae, AEGI_PREVCHAR, &ciCharIn, &ciCharOut, bAlt);
           }
         }
         else if (wParam == VK_RIGHT)
@@ -1948,7 +1947,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
               ciCharIn=ae->ciSelEndIndex;
 
-            AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, ae->bColumnSel, ae->dwWordBreak, FALSE);
+            AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, bAlt, ae->dwWordBreak, FALSE);
           }
           else
           {
@@ -1957,7 +1956,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ciCharIn=ae->ciSelEndIndex;
               ciCharOut=ae->ciSelEndIndex;
             }
-            else AE_GetIndex(ae, AEGI_NEXTCHAR, &ciCharIn, &ciCharOut, ae->bColumnSel);
+            else AE_GetIndex(ae, AEGI_NEXTCHAR, &ciCharIn, &ciCharOut, bAlt);
           }
         }
         else if (wParam == VK_UP)
@@ -1965,12 +1964,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
             ciCharIn=ae->ciSelStartIndex;
 
-          if (AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, ae->bColumnSel))
+          if (AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, bAlt))
           {
             if (bControl)
               nHorizCaretPos=ae->nHScrollPos;
             else
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt);
           }
         }
         else if (wParam == VK_DOWN)
@@ -1978,12 +1977,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
             ciCharIn=ae->ciSelEndIndex;
 
-          if (AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIn, &ciCharOut, ae->bColumnSel))
+          if (AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIn, &ciCharOut, bAlt))
           {
             if (bControl)
               nHorizCaretPos=ae->nHScrollPos;
             else
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt);
           }
         }
         else if (wParam == VK_PRIOR)
@@ -1993,7 +1992,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bControl)
           {
-            AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciCharOut, ae->bColumnSel);
+            AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciCharOut, bAlt);
           }
           else
           {
@@ -2003,7 +2002,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt);
             }
           }
         }
@@ -2014,7 +2013,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bControl)
           {
-            AE_GetIndex(ae, AEGI_LASTVISIBLELINE, NULL, &ciCharOut, ae->bColumnSel);
+            AE_GetIndex(ae, AEGI_LASTVISIBLELINE, NULL, &ciCharOut, bAlt);
           }
           else
           {
@@ -2024,7 +2023,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, ae->bColumnSel);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt);
             }
           }
         }
@@ -2053,9 +2052,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               ciSelEnd=ae->ciSelStartIndex;
             }
-            AE_SetSelectionPos(ae, &ciCharOut, &ciSelEnd, ae->bColumnSel, 0);
+            AE_SetSelectionPos(ae, &ciCharOut, &ciSelEnd, bAlt, 0);
           }
-          else AE_SetSelectionPos(ae, &ciCharOut, &ciCharOut, ae->bColumnSel, 0);
+          else AE_SetSelectionPos(ae, &ciCharOut, &ciCharOut, bAlt, 0);
         }
 
         //Set horizontal caret
@@ -2197,7 +2196,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (ae->bColumnSel != bAlt)
             bRedrawAllSelection=TRUE;
-          ae->bColumnSel=bAlt;
 
           if (GetFocus() != ae->hWndEdit)
             SetFocus(ae->hWndEdit);
@@ -2206,7 +2204,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
           SetCapture(ae->hWndEdit);
 
-          AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, bShift);
+          AE_SetMouseSelection(ae, &ptPos, bAlt, bShift);
 
           //Redraw lines
           if (bRedrawAllSelection)
@@ -4805,7 +4803,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 
           if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
           {
-            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel, 0);
+            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
           }
         }
       }
@@ -4814,16 +4812,16 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
         //Characters selection
         if (bShift)
         {
-          if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
+          if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex) || ae->bColumnSel != bColumnSel)
           {
             if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
               ciSelEnd=ae->ciSelStartIndex;
             else
               ciSelEnd=ae->ciSelEndIndex;
-            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel, 0);
+            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
           }
         }
-        else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel, 0);
+        else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, bColumnSel, 0);
       }
     }
     //Two clicks (capture)
@@ -4850,7 +4848,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 
         if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
         {
-          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel, 0);
+          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
         }
       }
     }
@@ -4881,7 +4879,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 
         if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
         {
-          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, ae->bColumnSel, 0);
+          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
         }
       }
     }

@@ -7,6 +7,7 @@ Added: URL prefix "www." in settings by default.
 
 Fixed: text Drag'n'Drop.
 Fixed: URL prefixes and delimiters saving in registry.
+Fixed: selection type modification with mouse.
 
 
 AkelPad 4.0.2 (Aug 18, 2008)
