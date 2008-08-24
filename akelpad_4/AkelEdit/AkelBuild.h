@@ -25,11 +25,6 @@
 #define AELS_FULL     2
 #define AELS_PARTLY   3
 
-//AE_SetSelectionPos flags
-#define AESELT_LOCKNOTIFY      0x00000001
-#define AESELT_LOCKSCROLL      0x00000002
-#define AESELT_LOCKUPDATE      0x00000004
-
 //AE_InsertText flags
 #define AEINST_LOCKUNDO        0x00000001
 #define AEINST_LOCKSCROLL      0x00000002

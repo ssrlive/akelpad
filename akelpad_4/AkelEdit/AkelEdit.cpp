@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.3                                 *
+ *                      AkelEdit text control v1.4                                 *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -486,7 +486,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_UPDATESEL)
       {
-        AE_UpdateSelection(ae, 0);
+        AE_UpdateSelection(ae, wParam);
         return 0;
       }
       if (uMsg == AEM_GETLINECOUNT)
@@ -760,7 +760,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_CalcLinesWidth(ae, NULL, NULL, TRUE);
           ae->ptCaret.x=0;
           ae->ptCaret.y=0;
-          AE_UpdateSelection(ae, 0);
+          AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
           AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
           if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
@@ -1623,6 +1623,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_SETFONT)
     {
+      AECHARINDEX ciFirstVisibleLineAfterWrap;
+
+      AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisibleLineAfterWrap, FALSE);
+
       if (!ae->bUnicodeWindow)
         AE_SetEditFontA(ae, (HFONT)wParam, FALSE);
       else
@@ -1633,7 +1637,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_CalcLinesWidth(ae, NULL, NULL, TRUE);
       ae->ptCaret.x=0;
       ae->ptCaret.y=0;
-      AE_UpdateSelection(ae, 0);
+      AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
+      AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae));
       AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
       if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);

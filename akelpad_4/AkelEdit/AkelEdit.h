@@ -88,6 +88,11 @@
 #define AEDLM_WRAP    1  //Wrap delimiter
 #define AEDLM_URL     2  //URL delimiter
 
+//AEM_UPDATESEL flags
+#define AESELT_LOCKNOTIFY  0x00000001  //Disable AEN_SELCHANGING and AEN_SELCHANGED notifications.
+#define AESELT_LOCKSCROLL  0x00000002  //Lock edit window scroll.
+#define AESELT_LOCKUPDATE  0x00000004  //Lock edit window update.
+
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error
 #define AEPC_EQUAL    1  //Char exactly in specified position
@@ -1462,16 +1467,16 @@ Example:
 AEM_UPDATESEL
 _____________
 
-Update current selection. Edit control sends AEN_SELCHANGE notification message.
+Update current selection.
 
-wParam == not used.
-lParam == not used.
+(DWORD)wParam == see AESELT_* defines.
+lParam        == not used.
 
 Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_UPDATESEL, 0, 0);
+ SendMessage(hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
 
 
 AEM_GETLINECOUNT
