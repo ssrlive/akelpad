@@ -1623,9 +1623,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_SETFONT)
     {
-      AECHARINDEX ciFirstVisibleLineAfterWrap;
-
-      AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisibleLineAfterWrap, FALSE);
+      int nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
 
       if (!ae->bUnicodeWindow)
         AE_SetEditFontA(ae, (HFONT)wParam, FALSE);
@@ -1638,7 +1636,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->ptCaret.x=0;
       ae->ptCaret.y=0;
       AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
-      AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae));
+      AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae));
       AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
       if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
