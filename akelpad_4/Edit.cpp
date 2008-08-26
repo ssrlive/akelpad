@@ -16376,19 +16376,18 @@ HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA, BOOL bDeleteOld)
   HFONT hOldFont=NULL;
   HFONT hNewFont=NULL;
 
-  if (bDeleteOld)
-  {
-    if (hOldFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
-    {
-      DeleteObject(hOldFont);
-      hOldFont=NULL;
-    }
-  }
-
   if (lfA)
   {
     if (hNewFont=(HFONT)CreateFontIndirectA(lfA))
     {
+      if (bDeleteOld)
+      {
+        if (hOldFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
+        {
+          DeleteObject(hOldFont);
+          hOldFont=NULL;
+        }
+      }
       SendMessage(hWnd, WM_SETFONT, (WPARAM)hNewFont, FALSE);
     }
   }
@@ -16400,19 +16399,18 @@ HFONT SetChosenFontW(HWND hWnd, LOGFONTW *lfW, BOOL bDeleteOld)
   HFONT hOldFont=NULL;
   HFONT hNewFont=NULL;
 
-  if (bDeleteOld)
-  {
-    if (hOldFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
-    {
-      DeleteObject(hOldFont);
-      hOldFont=NULL;
-    }
-  }
-
   if (lfW)
   {
     if (hNewFont=(HFONT)CreateFontIndirectW(lfW))
     {
+      if (bDeleteOld)
+      {
+        if (hOldFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
+        {
+          DeleteObject(hOldFont);
+          hOldFont=NULL;
+        }
+      }
       SendMessage(hWnd, WM_SETFONT, (WPARAM)hNewFont, FALSE);
     }
   }
