@@ -2044,9 +2044,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETFONT)
     {
-      SetChosenFontA((HWND)wParam, (LOGFONTA *)lParam);
-      bEditFontChanged=TRUE;
-      return 0;
+      if (SetChosenFontA((HWND)wParam, (LOGFONTA *)lParam))
+      {
+        memcpy(&lfEditFontA, (LOGFONTA *)lParam, sizeof(LOGFONTA));
+        bEditFontChanged=TRUE;
+        return TRUE;
+      }
+      return FALSE;
     }
     if (uMsg == AKD_SETMODIFY)
     {
@@ -2656,11 +2660,18 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_FONT)
     {
-      if (DoViewFontA(hMainWnd, &lfEditFontA))
+      LOGFONTA lf;
+
+      memcpy(&lf, &lfEditFontA, sizeof(LOGFONTA));
+
+      if (DoViewFontA(hMainWnd, &lf))
       {
-        SetChosenFontA(hWndEdit, &lfEditFontA);
-        bEditFontChanged=TRUE;
-        return TRUE;
+        if (SetChosenFontA(hWndEdit, &lf))
+        {
+          memcpy(&lfEditFontA, &lf, sizeof(LOGFONTA));
+          bEditFontChanged=TRUE;
+          return TRUE;
+        }
       }
       return FALSE;
     }
@@ -3692,9 +3703,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETFONT)
     {
-      SetChosenFontW((HWND)wParam, (LOGFONTW *)lParam);
-      bEditFontChanged=TRUE;
-      return 0;
+      if (SetChosenFontW((HWND)wParam, (LOGFONTW *)lParam))
+      {
+        memcpy(&lfEditFontW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
+        bEditFontChanged=TRUE;
+        return TRUE;
+      }
+      return FALSE;
     }
     if (uMsg == AKD_SETMODIFY)
     {
@@ -4304,11 +4319,18 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_FONT)
     {
-      if (DoViewFontW(hMainWnd, &lfEditFontW))
+      LOGFONTW lf;
+
+      memcpy(&lf, &lfEditFontW, sizeof(LOGFONTW));
+
+      if (DoViewFontW(hMainWnd, &lf))
       {
-        SetChosenFontW(hWndEdit, &lfEditFontW);
-        bEditFontChanged=TRUE;
-        return TRUE;
+        if (SetChosenFontW(hWndEdit, &lf))
+        {
+          memcpy(&lfEditFontW, &lf, sizeof(LOGFONTW));
+          bEditFontChanged=TRUE;
+          return TRUE;
+        }
       }
       return FALSE;
     }

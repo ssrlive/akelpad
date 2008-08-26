@@ -15125,12 +15125,13 @@ void RestoreLineScroll(HWND hWnd, RECT *rc, int *nBeforeLine)
   }
 }
 
-void SetChosenFontA(HWND hWnd, LOGFONTA *lfA)
+BOOL SetChosenFontA(HWND hWnd, LOGFONTA *lfA)
 {
   CHARFORMATA cfmtA;
   RECT rcEdit;
   int nFirstVisibleChar;
   BOOL bModifiedTmp=FALSE;
+  BOOL bResult;
 
   //Reserve state
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
@@ -15150,7 +15151,7 @@ void SetChosenFontA(HWND hWnd, LOGFONTA *lfA)
   if (lfA->lfItalic)
     cfmtA.dwEffects|=CFE_ITALIC;
 
-  SendMessageA(hWnd, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cfmtA);
+  bResult=SendMessageA(hWnd, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cfmtA);
 
   //Update tab stops
   SetTabStopsA(hWnd, nTabStopSize, FALSE);
@@ -15160,14 +15161,16 @@ void SetChosenFontA(HWND hWnd, LOGFONTA *lfA)
   RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, FALSE);
+  return bResult;
 }
 
-void SetChosenFontW(HWND hWnd, LOGFONTW *lfW)
+BOOL SetChosenFontW(HWND hWnd, LOGFONTW *lfW)
 {
   CHARFORMATW cfmtW;
   RECT rcEdit;
   int nFirstVisibleChar;
   BOOL bModifiedTmp=FALSE;
+  BOOL bResult;
 
   //Reserve state
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
@@ -15187,7 +15190,7 @@ void SetChosenFontW(HWND hWnd, LOGFONTW *lfW)
   if (lfW->lfItalic)
     cfmtW.dwEffects|=CFE_ITALIC;
 
-  SendMessageW(hWnd, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cfmtW);
+  bResult=SendMessageW(hWnd, EM_SETCHARFORMAT, SCF_ALL, (LPARAM)&cfmtW);
 
   //Update tab stops
   SetTabStopsW(hWnd, nTabStopSize, FALSE);
@@ -15197,6 +15200,7 @@ void SetChosenFontW(HWND hWnd, LOGFONTW *lfW)
   RestoreCharScroll(hWnd, &rcEdit, &nFirstVisibleChar);
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, FALSE);
+  return bResult;
 }
 
 void SetChosenFontColorA(HWND hWnd, COLORREF crFont)

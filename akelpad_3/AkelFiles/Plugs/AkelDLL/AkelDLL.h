@@ -1955,7 +1955,8 @@ Set font.
 (LOGFONT *)lParam == pointer to a LOGFONT structure
 
 Return Value
- zero
+ TRUE   success
+ FALSE  failed
 
 Example (bOldWindows == TRUE):
  LOGFONTA *lf;

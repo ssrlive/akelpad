@@ -2081,9 +2081,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETFONT)
     {
-      SetChosenFontA((HWND)wParam, (LOGFONTA *)lParam, TRUE);
-      bEditFontChanged=TRUE;
-      return 0;
+      if (SetChosenFontA((HWND)wParam, (LOGFONTA *)lParam, TRUE))
+      {
+        memcpy(&lfEditFontA, (LOGFONTA *)lParam, sizeof(LOGFONTA));
+        bEditFontChanged=TRUE;
+        return TRUE;
+      }
+      return FALSE;
     }
     if (uMsg == AKD_SETMODIFY)
     {
@@ -2714,11 +2718,18 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_FONT)
     {
-      if (DoViewFontA(hMainWnd, &lfEditFontA))
+      LOGFONTA lf;
+
+      memcpy(&lf, &lfEditFontA, sizeof(LOGFONTA));
+
+      if (DoViewFontA(hMainWnd, &lf))
       {
-        SetChosenFontA(hWndEdit, &lfEditFontA, TRUE);
-        bEditFontChanged=TRUE;
-        return TRUE;
+        if (SetChosenFontA(hWndEdit, &lf, TRUE))
+        {
+          memcpy(&lfEditFontA, &lf, sizeof(LOGFONTA));
+          bEditFontChanged=TRUE;
+          return TRUE;
+        }
       }
       return FALSE;
     }
@@ -3796,9 +3807,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETFONT)
     {
-      SetChosenFontW((HWND)wParam, (LOGFONTW *)lParam, TRUE);
-      bEditFontChanged=TRUE;
-      return 0;
+      if (SetChosenFontW((HWND)wParam, (LOGFONTW *)lParam, TRUE))
+      {
+        memcpy(&lfEditFontW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
+        bEditFontChanged=TRUE;
+        return TRUE;
+      }
+      return FALSE;
     }
     if (uMsg == AKD_SETMODIFY)
     {
@@ -4429,11 +4444,18 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_FONT)
     {
-      if (DoViewFontW(hMainWnd, &lfEditFontW))
+      LOGFONTW lf;
+
+      memcpy(&lf, &lfEditFontW, sizeof(LOGFONTW));
+
+      if (DoViewFontW(hMainWnd, &lf))
       {
-        SetChosenFontW(hWndEdit, &lfEditFontW, TRUE);
-        bEditFontChanged=TRUE;
-        return TRUE;
+        if (SetChosenFontW(hWndEdit, &lf, TRUE))
+        {
+          memcpy(&lfEditFontW, &lf, sizeof(LOGFONTW));
+          bEditFontChanged=TRUE;
+          return TRUE;
+        }
       }
       return FALSE;
     }
@@ -5802,9 +5824,9 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (LOWORD(wParam) == MK_CONTROL)
     {
       if ((short)HIWORD(wParam) < 0)
-        DoViewFontSizeA(hWndEdit, DECREASE_FONT);
+        DoViewFontSizeA(hWnd, DECREASE_FONT);
       else
-        DoViewFontSizeA(hWndEdit, INCREASE_FONT);
+        DoViewFontSizeA(hWnd, INCREASE_FONT);
       return TRUE;
     }
   }
@@ -5812,7 +5834,7 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     HFONT hFont;
 
-    if (hFont=(HFONT)SendMessage(hWndEdit, WM_GETFONT, 0, 0))
+    if (hFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
       DeleteObject(hFont);
   }
 
@@ -5850,9 +5872,9 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (LOWORD(wParam) == MK_CONTROL)
     {
       if ((short)HIWORD(wParam) < 0)
-        DoViewFontSizeW(hWndEdit, DECREASE_FONT);
+        DoViewFontSizeW(hWnd, DECREASE_FONT);
       else
-        DoViewFontSizeW(hWndEdit, INCREASE_FONT);
+        DoViewFontSizeW(hWnd, INCREASE_FONT);
       return TRUE;
     }
   }
@@ -5860,7 +5882,7 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     HFONT hFont;
 
-    if (hFont=(HFONT)SendMessage(hWndEdit, WM_GETFONT, 0, 0))
+    if (hFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
       DeleteObject(hFont);
   }
 
