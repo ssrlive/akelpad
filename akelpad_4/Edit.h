@@ -434,6 +434,7 @@ typedef struct _FILESTREAMDATA {
   HWND hWnd;
   HANDLE hFile;
   int nCodePage;
+  int nNewLine;
   int nBytesMax;
   BOOL bResult;
 } FILESTREAMDATA;
