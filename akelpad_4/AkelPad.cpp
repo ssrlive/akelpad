@@ -2329,11 +2329,11 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (!lParam || (lParam & IMENU_CHECKS))
     {
-      if (nNewLine & NEWLINE_WIN)
+      if (nNewLine == NEWLINE_WIN)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_WIN, MF_BYCOMMAND);
-      else if (nNewLine & NEWLINE_UNIX)
+      else if (nNewLine == NEWLINE_UNIX)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
-      else if (nNewLine & NEWLINE_MAC)
+      else if (nNewLine == NEWLINE_MAC)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_MAC, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
@@ -2667,7 +2667,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (!(nNewLine & NEWLINE_WIN))
+        if (!(nNewLine == NEWLINE_WIN))
         {
           SetNewLineStatusA(hWndEdit, NEWLINE_WIN, AENL_INPUT|AENL_OUTPUT, TRUE);
           SetModifyStatusA(hWndEdit, TRUE, FALSE);
@@ -2678,7 +2678,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (!(nNewLine & NEWLINE_UNIX))
+        if (!(nNewLine == NEWLINE_UNIX))
         {
           SetNewLineStatusA(hWndEdit, NEWLINE_UNIX, AENL_INPUT|AENL_OUTPUT, TRUE);
           SetModifyStatusA(hWndEdit, TRUE, FALSE);
@@ -2689,7 +2689,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (!(nNewLine & NEWLINE_MAC))
+        if (!(nNewLine == NEWLINE_MAC))
         {
           SetNewLineStatusA(hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT, TRUE);
           SetModifyStatusA(hWndEdit, TRUE, FALSE);
@@ -3031,11 +3031,11 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (!IsReadOnly())
           {
-            if (nNewLine & NEWLINE_WIN)
+            if (nNewLine == NEWLINE_WIN)
               SetNewLineStatusA(hWndEdit, NEWLINE_UNIX, AENL_INPUT|AENL_OUTPUT, TRUE);
-            else if (nNewLine & NEWLINE_UNIX)
+            else if (nNewLine == NEWLINE_UNIX)
               SetNewLineStatusA(hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT, TRUE);
-            else if (nNewLine & NEWLINE_MAC)
+            else if (nNewLine == NEWLINE_MAC)
               SetNewLineStatusA(hWndEdit, NEWLINE_WIN, AENL_INPUT|AENL_OUTPUT, TRUE);
             SetModifyStatusA(hWndEdit, TRUE, FALSE);
           }
@@ -4055,11 +4055,11 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (!lParam || (lParam & IMENU_CHECKS))
     {
-      if (nNewLine & NEWLINE_WIN)
+      if (nNewLine == NEWLINE_WIN)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_WIN, MF_BYCOMMAND);
-      else if (nNewLine & NEWLINE_UNIX)
+      else if (nNewLine == NEWLINE_UNIX)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
-      else if (nNewLine & NEWLINE_MAC)
+      else if (nNewLine == NEWLINE_MAC)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_MAC, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
@@ -4393,7 +4393,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (!(nNewLine & NEWLINE_WIN))
+        if (!(nNewLine == NEWLINE_WIN))
         {
           SetNewLineStatusW(hWndEdit, NEWLINE_WIN, AENL_INPUT|AENL_OUTPUT, TRUE);
           SetModifyStatusW(hWndEdit, TRUE, FALSE);
@@ -4404,7 +4404,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (!(nNewLine & NEWLINE_UNIX))
+        if (!(nNewLine == NEWLINE_UNIX))
         {
           SetNewLineStatusW(hWndEdit, NEWLINE_UNIX, AENL_INPUT|AENL_OUTPUT, TRUE);
           SetModifyStatusW(hWndEdit, TRUE, FALSE);
@@ -4415,7 +4415,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (!(nNewLine & NEWLINE_MAC))
+        if (!(nNewLine == NEWLINE_MAC))
         {
           SetNewLineStatusW(hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT, TRUE);
           SetModifyStatusW(hWndEdit, TRUE, FALSE);
@@ -4757,11 +4757,11 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (!IsReadOnly())
           {
-            if (nNewLine & NEWLINE_WIN)
+            if (nNewLine == NEWLINE_WIN)
               SetNewLineStatusW(hWndEdit, NEWLINE_UNIX, AENL_INPUT|AENL_OUTPUT, TRUE);
-            else if (nNewLine & NEWLINE_UNIX)
+            else if (nNewLine == NEWLINE_UNIX)
               SetNewLineStatusW(hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT, TRUE);
-            else if (nNewLine & NEWLINE_MAC)
+            else if (nNewLine == NEWLINE_MAC)
               SetNewLineStatusW(hWndEdit, NEWLINE_WIN, AENL_INPUT|AENL_OUTPUT, TRUE);
             SetModifyStatusW(hWndEdit, TRUE, FALSE);
           }
