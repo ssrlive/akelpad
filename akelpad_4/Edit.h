@@ -143,10 +143,9 @@
 #define SS_INI      2
 
 //New line formats
-#define NEWLINE_WIN  0x00000001
-#define NEWLINE_UNIX 0x00000002
-#define NEWLINE_MAC  0x00000004
-#define NEWLINE_MIX  0x00000008
+#define NEWLINE_WIN   1
+#define NEWLINE_UNIX  2
+#define NEWLINE_MAC   3
 
 //Autoanswer
 #define AUTOANSWER_ASK  0

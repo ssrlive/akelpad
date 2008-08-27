@@ -333,6 +333,7 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontA(hWndEditNew, &lfEditFontA, TRUE);
+  SetNewLineStatusA(hWndEditNew, NEWLINE_WIN, AENL_INPUT, TRUE);
 
   if (bShowURL)
   {
@@ -381,6 +382,7 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontW(hWndEditNew, &lfEditFontW, TRUE);
+  SetNewLineStatusW(hWndEditNew, NEWLINE_WIN, AENL_INPUT, TRUE);
 
   if (bShowURL)
   {
@@ -448,7 +450,7 @@ BOOL DoFileCloseA()
   SetWindowTextA(hWndEdit, "");
   ShowCaret(NULL);
   szCurrentFile[0]='\0';
-  SetNewLineStatusA(hWndEdit, NEWLINE_WIN|NEWLINE_MIX, AENL_INPUT|AENL_OUTPUT, TRUE);
+  SetNewLineStatusA(hWndEdit, NEWLINE_WIN, AENL_INPUT, TRUE);
   SetModifyStatusA(hWndEdit, FALSE, FALSE);
   SetCodePageStatusA(nDefaultCodePage, bDefaultBOM, FALSE);
   UpdateTitleA(GetParent(hWndEdit), "");
@@ -472,7 +474,7 @@ BOOL DoFileCloseW()
   SetWindowTextW(hWndEdit, L"");
   ShowCaret(NULL);
   wszCurrentFile[0]='\0';
-  SetNewLineStatusW(hWndEdit, NEWLINE_WIN|NEWLINE_MIX, AENL_INPUT|AENL_OUTPUT, TRUE);
+  SetNewLineStatusW(hWndEdit, NEWLINE_WIN, AENL_INPUT, TRUE);
   SetModifyStatusW(hWndEdit, FALSE, FALSE);
   SetCodePageStatusW(nDefaultCodePage, bDefaultBOM, FALSE);
   UpdateTitleW(GetParent(hWndEdit), L"");
@@ -4693,7 +4695,6 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     //Get file write time
     GetFileTime(hFile, NULL, NULL, &ftFileTime);
 
-    SetNewLineStatusA(hWndEdit, NEWLINE_WIN|NEWLINE_MIX, AENL_INPUT|AENL_OUTPUT, TRUE);
     nNewLine=NEWLINE_WIN;
     HideCaret(NULL);
   }
@@ -4936,7 +4937,6 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     //Get file write time
     GetFileTime(hFile, NULL, NULL, &ftFileTime);
 
-    SetNewLineStatusW(hWndEdit, NEWLINE_WIN|NEWLINE_MIX, AENL_INPUT|AENL_OUTPUT, TRUE);
     nNewLine=NEWLINE_WIN;
     HideCaret(NULL);
   }
@@ -16099,12 +16099,12 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 
 void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 {
+  if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bState, 0);
+
   if (!hWnd || hWnd == hWndEdit)
   {
     if (bFirst != TRUE && bModified == bState) return;
     bModified=bState;
-
-    if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bModified, 0);
 
     API_LoadStringA(hLangLib, STR_MODIFIED, buf, BUFFER_SIZE);
     SendMessage(hStatus, SB_SETTEXTA, STATUS_MODIFY, (LPARAM)(bModified?buf:""));
@@ -16124,12 +16124,12 @@ void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 
 void SetModifyStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
 {
+  if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bState, 0);
+
   if (!hWnd || hWnd == hWndEdit)
   {
     if (bFirst != TRUE && bModified == bState) return;
     bModified=bState;
-
-    if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bModified, 0);
 
     API_LoadStringW(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
     SendMessage(hStatus, SB_SETTEXTW, STATUS_MODIFY, (LPARAM)(bModified?wbuf:L""));
@@ -16149,30 +16149,30 @@ void SetModifyStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
 
 void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 {
+  if (hWnd)
+  {
+    SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
+
+    if (nState == NEWLINE_WIN)
+      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
+    else if (nState == NEWLINE_UNIX)
+      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+    else if (nState == NEWLINE_MAC)
+      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
+
+    SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
+  }
+
   if (!hWnd || hWnd == hWndEdit)
   {
     if (bFirst != TRUE && nNewLine == nState) return;
     nNewLine=nState;
 
-    if (hWnd)
-    {
-      if (nNewLine & NEWLINE_MIX)
-        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_ASIS, AELB_ASIS));
-      else if (nNewLine & NEWLINE_WIN)
-        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
-      else if (nNewLine & NEWLINE_UNIX)
-        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
-      else if (nNewLine & NEWLINE_MAC)
-        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
-
-      SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
-    }
-
-    if (nNewLine & NEWLINE_WIN)
+    if (nNewLine == NEWLINE_WIN)
       SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Win");
-    if (nNewLine & NEWLINE_UNIX)
+    if (nNewLine == NEWLINE_UNIX)
       SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Unix");
-    if (nNewLine & NEWLINE_MAC)
+    if (nNewLine == NEWLINE_MAC)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)"Mac");
   }
   else
@@ -16190,30 +16190,30 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 
 void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 {
+  if (hWnd)
+  {
+    SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
+
+    if (nState == NEWLINE_WIN)
+      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
+    else if (nState == NEWLINE_UNIX)
+      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+    else if (nState == NEWLINE_MAC)
+      SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
+
+    SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
+  }
+
   if (!hWnd || hWnd == hWndEdit)
   {
     if (bFirst != TRUE && nNewLine == nState) return;
     nNewLine=nState;
 
-    if (hWnd)
-    {
-      if (nNewLine & NEWLINE_MIX)
-        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_ASIS, AELB_ASIS));
-      else if (nNewLine & NEWLINE_WIN)
-        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
-      else if (nNewLine & NEWLINE_UNIX)
-        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
-      else if (nNewLine & NEWLINE_MAC)
-        SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
-
-      SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
-    }
-
-    if (nNewLine & NEWLINE_WIN)
+    if (nNewLine == NEWLINE_WIN)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Win");
-    if (nNewLine & NEWLINE_UNIX)
+    if (nNewLine == NEWLINE_UNIX)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Unix");
-    if (nNewLine & NEWLINE_MAC)
+    if (nNewLine == NEWLINE_MAC)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Mac");
   }
   else
