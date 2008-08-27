@@ -4695,7 +4695,6 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     //Get file write time
     GetFileTime(hFile, NULL, NULL, &ftFileTime);
 
-    nNewLine=NEWLINE_WIN;
     HideCaret(NULL);
   }
 
@@ -4703,6 +4702,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.nNewLine=NEWLINE_WIN;
   fsd.nBytesMax=-1;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
@@ -4731,7 +4731,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       }
 
       //Update titles
-      SetNewLineStatusA(hWndEdit, nNewLine, AENL_INPUT, TRUE);
+      SetNewLineStatusA(hWndEdit, fsd.nNewLine, AENL_INPUT, TRUE);
       SetModifyStatusA(NULL, FALSE, FALSE);
       SetCodePageStatusA(nCodePage, bBOM, FALSE);
 
@@ -4937,7 +4937,6 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     //Get file write time
     GetFileTime(hFile, NULL, NULL, &ftFileTime);
 
-    nNewLine=NEWLINE_WIN;
     HideCaret(NULL);
   }
 
@@ -4945,6 +4944,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.nNewLine=NEWLINE_WIN;
   fsd.nBytesMax=-1;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
@@ -4973,7 +4973,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       }
 
       //Update titles
-      SetNewLineStatusW(hWndEdit, nNewLine, AENL_INPUT, TRUE);
+      SetNewLineStatusW(hWndEdit, fsd.nNewLine, AENL_INPUT, TRUE);
       SetModifyStatusW(NULL, FALSE, FALSE);
       SetCodePageStatusW(nCodePage, bBOM, FALSE);
 
@@ -5075,32 +5075,30 @@ void FileStreamIn(FILESTREAMDATA *lpData)
             if (wpBuffer[i + 1] == '\r' && wpBuffer[i + 2] == '\n')
             {
               //Windows format \r\r\n
+              lpData->nNewLine=NEWLINE_WIN;
               break;
             }
             else if (wpBuffer[i + 1] == '\n')
             {
               //Windows format \r\n
+              lpData->nNewLine=NEWLINE_WIN;
               break;
             }
 
             //MacOS format \r
-            if (bOldWindows)
-              SetNewLineStatusA(NULL, NEWLINE_MAC, 0, FALSE);
-            else
-              SetNewLineStatusW(NULL, NEWLINE_MAC, 0, FALSE);
+            lpData->nNewLine=NEWLINE_MAC;
             break;
           }
           else if (wpBuffer[i] == '\n')
           {
-            if (bOldWindows)
-              SetNewLineStatusA(NULL, NEWLINE_UNIX, 0, FALSE);
-            else
-              SetNewLineStatusW(NULL, NEWLINE_UNIX, 0, FALSE);
+            //Unix format \n
+            lpData->nNewLine=NEWLINE_UNIX;
             break;
           }
         }
 
         //Send to AkelEdit
+        SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
         SendMessage(lpData->hWnd, AEM_SETTEXTW, (LPARAM)dwCharsConverted, (WPARAM)wpBuffer);
       }
       else lpData->bResult=FALSE;
@@ -16170,9 +16168,9 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 
     if (nNewLine == NEWLINE_WIN)
       SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Win");
-    if (nNewLine == NEWLINE_UNIX)
+    else if (nNewLine == NEWLINE_UNIX)
       SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Unix");
-    if (nNewLine == NEWLINE_MAC)
+    else if (nNewLine == NEWLINE_MAC)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)"Mac");
   }
   else
@@ -16211,9 +16209,9 @@ void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 
     if (nNewLine == NEWLINE_WIN)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Win");
-    if (nNewLine == NEWLINE_UNIX)
+    else if (nNewLine == NEWLINE_UNIX)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Unix");
-    if (nNewLine == NEWLINE_MAC)
+    else if (nNewLine == NEWLINE_MAC)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Mac");
   }
   else
