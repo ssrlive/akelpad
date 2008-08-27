@@ -118,6 +118,7 @@ extern NSIZE nsSize;
 extern WNDPROC OldDockProc;
 
 //Codepages
+extern RECT rcRecodeDlg;
 extern int *lpCodepageList;
 extern int nCodepageListLen;
 extern BOOL bDefaultBOM;
@@ -160,6 +161,7 @@ extern BOOL bSaveInReadOnlyMsg;
 extern WNDPROC OldPreviewProc;
 
 //Find/Replace dialog
+extern RECT rcFindAndReplaceDlg;
 extern DWORD ftflags;
 extern BOOL bReplaceDlg;
 extern BOOL bReplaceAllAndClose;
@@ -173,6 +175,9 @@ extern wchar_t *wszFind;
 extern char *szReplace;
 extern wchar_t *wszReplace;
 extern WNDPROC OldComboboxEdit;
+
+//Go to line dialog
+extern RECT rcGoToLineDlg;
 
 //Options dialog
 extern PROPSHEETHEADERA pshA;
@@ -8296,6 +8301,8 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         SetWindowLongA(hWndComboboxEdit, GWL_WNDPROC, (LONG)NewComboboxEditProcA);
       }
     }
+    if (rcFindAndReplaceDlg.right && rcFindAndReplaceDlg.bottom)
+      SetWindowPos(hDlg, 0, rcFindAndReplaceDlg.left, rcFindAndReplaceDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
 
     SendMessage(hDlg, WM_COMMAND, IDC_SETREADONLY, 0);
   }
@@ -8396,6 +8403,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       if (bSpecialCheck == TRUE || (ftflags & AEFR_ALLFILES)) ftflags|=AEFR_BEGINNING;
       if (nSearchStrings) SaveComboboxSearchA(hWndFind, hWndReplace);
+      GetWindowPos(hDlg, NULL, &rcFindAndReplaceDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       return TRUE;
@@ -8697,6 +8705,8 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         SetWindowLongW(hWndComboboxEdit, GWL_WNDPROC, (LONG)NewComboboxEditProcW);
       }
     }
+    if (rcFindAndReplaceDlg.right && rcFindAndReplaceDlg.bottom)
+      SetWindowPos(hDlg, 0, rcFindAndReplaceDlg.left, rcFindAndReplaceDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
 
     SendMessage(hDlg, WM_COMMAND, IDC_SETREADONLY, 0);
   }
@@ -8797,6 +8807,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       if (bSpecialCheck == TRUE || (ftflags & AEFR_ALLFILES)) ftflags|=AEFR_BEGINNING;
       if (nSearchStrings) SaveComboboxSearchW(hWndFind, hWndReplace);
+      GetWindowPos(hDlg, NULL, &rcFindAndReplaceDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       return TRUE;
@@ -10233,6 +10244,9 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     SetDlgItemInt(hDlg, IDC_GOTOLINE, ciCaret.nLine + 1, FALSE);
+
+    if (rcGoToLineDlg.right && rcGoToLineDlg.bottom)
+      SetWindowPos(hDlg, 0, rcGoToLineDlg.left, rcGoToLineDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -10263,6 +10277,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
     {
+      GetWindowPos(hDlg, NULL, &rcGoToLineDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       return TRUE;
@@ -10281,6 +10296,9 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     SetDlgItemInt(hDlg, IDC_GOTOLINE, ciCaret.nLine + 1, FALSE);
+
+    if (rcGoToLineDlg.right && rcGoToLineDlg.bottom)
+      SetWindowPos(hDlg, 0, rcGoToLineDlg.left, rcGoToLineDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -10311,6 +10329,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
     {
+      GetWindowPos(hDlg, NULL, &rcGoToLineDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       return TRUE;
@@ -11062,6 +11081,9 @@ BOOL CALLBACK RecodeDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (!nCodePageTo || SelectComboboxCodepageA(hWndCodePageTo, nCodePageTo) == CB_ERR)
       SendMessage(hWndCodePageTo, CB_SETCURSEL, 0, 0);
 
+    if (rcRecodeDlg.right && rcRecodeDlg.bottom)
+      SetWindowPos(hDlg, 0, rcRecodeDlg.left, rcRecodeDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+
     SendMessage(hDlg, WM_COMMAND, IDC_SETREADONLY, 0);
   }
   else if (uMsg == WM_COMMAND)
@@ -11082,6 +11104,7 @@ BOOL CALLBACK RecodeDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
+      GetWindowPos(hDlg, NULL, &rcRecodeDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       return TRUE;
@@ -11113,6 +11136,9 @@ BOOL CALLBACK RecodeDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (!nCodePageTo || SelectComboboxCodepageW(hWndCodePageTo, nCodePageTo) == CB_ERR)
       SendMessage(hWndCodePageTo, CB_SETCURSEL, 0, 0);
 
+    if (rcRecodeDlg.right && rcRecodeDlg.bottom)
+      SetWindowPos(hDlg, 0, rcRecodeDlg.left, rcRecodeDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+
     SendMessage(hDlg, WM_COMMAND, IDC_SETREADONLY, 0);
   }
   else if (uMsg == WM_COMMAND)
@@ -11133,6 +11159,7 @@ BOOL CALLBACK RecodeDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
+      GetWindowPos(hDlg, NULL, &rcRecodeDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       return TRUE;
