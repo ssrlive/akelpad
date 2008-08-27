@@ -4,6 +4,8 @@ AkelPad 4.0.4 ()
 Changed: at font size change, AkelEdit adjusts position of the text according to the first
          visible line.
 
+Added: position of modeless dialogs is locally remembered.
+
 Fixed: new line manipulation.
 
 
