@@ -229,6 +229,7 @@ extern BOOL bWatchFile;
 extern BOOL bSingleOpenFile;
 extern BOOL bSingleOpenProgram;
 extern BOOL bKeepSpace;
+extern int nLoopCase;
 extern int nTabStopSize;
 extern BOOL bTabStopAsSpaces;
 extern int nUndoLimit;
