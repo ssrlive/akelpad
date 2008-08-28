@@ -5,6 +5,7 @@ Changed: at font size change, AkelEdit adjusts position of the text according to
          visible line.
 
 Added: position of modeless dialogs is locally remembered.
+Added: command 4180 for cycle text case changing.
 
 Fixed: new line manipulation.
 

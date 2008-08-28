@@ -217,13 +217,9 @@ extern BOOL bPrintFooterEnable;
 extern BOOL bGlobalPrint;
 extern BOOL bPrintFontChanged;
 
-//Edit position
+//Edit state
 extern AECHARRANGE crSel;
 extern AECHARINDEX ciCaret;
-extern int nMaxChars;
-extern int nMcstep;
-
-//Edit state
 extern BOOL bModified;
 extern BOOL bInsertState;
 extern int nNewLine;
@@ -236,6 +232,7 @@ extern BOOL bWatchFile;
 extern BOOL bSingleOpenFile;
 extern BOOL bSingleOpenProgram;
 extern BOOL bKeepSpace;
+extern int nLoopCase;
 extern int nTabStopSize;
 extern BOOL bTabStopAsSpaces;
 extern int nUndoLimit;
