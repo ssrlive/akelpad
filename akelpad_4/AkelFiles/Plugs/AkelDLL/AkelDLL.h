@@ -876,6 +876,7 @@ typedef struct _NSIZE {
 #define AKDN_DLLCALL               (WM_USER + 20)
 #define AKDN_DLLUNLOAD             (WM_USER + 21)
 #define AKDN_FRAME_ACTIVATE        (WM_USER + 22)
+#define AKDN_HOTKEY                (WM_USER + 23)
 
 //AkelPad 3.x and AkelPad 4.x messages
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -1109,6 +1110,19 @@ wParam                  == not used
 (unsigned char *)lParam == unloaded function name, format "Plugin::Function"
                            (char *)lParam     if bOldWindows == TRUE
                            (wchar_t *)lParam  if bOldWindows == FALSE
+
+Return Value
+ zero
+
+
+AKDN_HOTKEY
+___________
+
+Notification message, sends to the main procedure when keyboard key is pressed.
+
+(WORD)wParam   == hotkey returned by HKM_GETHOTKEY
+(BOOL *)lParam == TRUE   stop message processing
+                  FALSE  continue message processing (default)
 
 Return Value
  zero
