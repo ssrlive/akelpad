@@ -239,13 +239,9 @@ BOOL bPrintFooterEnable=FALSE;
 BOOL bGlobalPrint=FALSE;
 BOOL bPrintFontChanged=FALSE;
 
-//Edit position
+//Edit state
 AECHARRANGE crSel={0};
 AECHARINDEX ciCaret={0};
-int nMaxChars=0x0FFFFFFF;
-int nMcstep=0x0FFFFFFF;
-
-//Edit state
 BOOL bModified=FALSE;
 BOOL bInsertState=FALSE;
 int nNewLine=NEWLINE_WIN;
@@ -258,6 +254,7 @@ BOOL bWatchFile=FALSE;
 BOOL bSingleOpenFile=FALSE;
 BOOL bSingleOpenProgram=TRUE;
 BOOL bKeepSpace=FALSE;
+int nLoopCase=0;
 int nTabStopSize=EDIT_TABSTOPS;
 BOOL bTabStopAsSpaces=FALSE;
 int nUndoLimit=EDIT_UNDOLIMIT;
@@ -2668,6 +2665,17 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoEditChangeCaseA(hWndEdit, INVERTCASE);
     }
+    else if (LOWORD(wParam) == IDM_EDIT_LOOPCASE)
+    {
+      int nCase=nLoopCase;
+
+      if (nCase >= INVERTCASE)
+        nCase=UPPERCASE;
+      else
+        ++nCase;
+      DoEditChangeCaseA(hWndEdit, nCase);
+      nLoopCase=nCase;
+    }
     else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_WIN)
     {
       if (!IsReadOnly())
@@ -4394,6 +4402,17 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoEditChangeCaseW(hWndEdit, INVERTCASE);
     }
+    else if (LOWORD(wParam) == IDM_EDIT_LOOPCASE)
+    {
+      int nCase=nLoopCase;
+
+      if (nCase >= INVERTCASE)
+        nCase=UPPERCASE;
+      else
+        ++nCase;
+      DoEditChangeCaseW(hWndEdit, nCase);
+      nLoopCase=nCase;
+    }
     else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_WIN)
     {
       if (!IsReadOnly())
@@ -5014,7 +5033,10 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
         if (aensc->hdr.hwndFrom == hWndEdit)
+        {
           SetSelectionStatusA(hWndEdit, &aensc->aes.crSel, &aensc->ciCaret);
+          nLoopCase=0;
+        }
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
       {
@@ -5189,7 +5211,10 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
         if (aensc->hdr.hwndFrom == hWndEdit)
+        {
           SetSelectionStatusW(hWndEdit, &aensc->aes.crSel, &aensc->ciCaret);
+          nLoopCase=0;
+        }
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
       {

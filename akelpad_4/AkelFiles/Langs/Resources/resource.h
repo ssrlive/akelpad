@@ -213,6 +213,7 @@
 #define IDM_EDIT_SENTENCECASE           4177
 #define IDM_EDIT_TITLECASE              4178
 #define IDM_EDIT_INVERTCASE             4179
+#define IDM_EDIT_LOOPCASE               4180
 #define IDM_EDIT_RECODE                 4182
 #define IDM_EDIT_INSERTDATE             4183
 #define IDM_EDIT_NEWLINE_WIN            4184
