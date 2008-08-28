@@ -25,6 +25,7 @@
 #define AKDN_DLLCALL               (WM_USER + 20)
 #define AKDN_DLLUNLOAD             (WM_USER + 21)
 #define AKDN_FRAME_ACTIVATE        (WM_USER + 22)
+#define AKDN_HOTKEY                (WM_USER + 23)
 
 #define AKD_GETMAINPROC            (WM_USER + 101)
 #define AKD_SETMAINPROC            (WM_USER + 102)

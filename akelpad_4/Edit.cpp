@@ -14260,79 +14260,47 @@ BOOL TranslatePluginW(LPMSG lpMsg)
 BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
 {
   PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->last;
-  int nControl=-1;
-  int nAlt=-1;
-  int nShift=-1;
+  BYTE bMod=0;
+  WORD wHotkey;
+  BOOL bResult;
 
-  if (lpMsg->message == WM_SYSKEYDOWN)
+  if (lpMsg->message == WM_SYSKEYDOWN ||  //Alt+..., Shift+Alt+...
+      lpMsg->message == WM_KEYDOWN)       //Other combinations
   {
-    //Alt+..., Shift+Alt+...
+    if (GetKeyState(VK_CONTROL) < 0)
+      bMod|=HOTKEYF_CONTROL;
+    if (GetKeyState(VK_MENU) < 0)
+      bMod|=HOTKEYF_ALT;
+    if (GetKeyState(VK_SHIFT) < 0)
+      bMod|=HOTKEYF_SHIFT;
+    wHotkey=MAKEWORD(lpMsg->wParam, bMod);
+
     while (pfElement)
     {
-      if (LOBYTE(pfElement->wHotkey) == lpMsg->wParam)
+      if (pfElement->wHotkey == wHotkey)
       {
-        if (nShift == -1) nShift=GetKeyState(VK_SHIFT) & 0x80;
-
-        if (!(HIBYTE(pfElement->wHotkey) & HOTKEYF_CONTROL) &&
-             (HIBYTE(pfElement->wHotkey) & HOTKEYF_ALT) &&
-            !(HIBYTE(pfElement->wHotkey) & HOTKEYF_SHIFT) == !nShift)
+        if (pfElement->PluginProc)
         {
-          if (pfElement->PluginProc)
-          {
-            (pfElement->PluginProc)(pfElement->lpParameter);
-          }
-          else
-          {
-            int nResult=EDL_FAILED;
-
-            nResult=CallPluginA(pfElement, pfElement->szFunction, FALSE, 0, NULL);
-
-            if (nResult == EDL_NONUNLOADED_ACTIVE)
-              pfElement->bRunning=TRUE;
-            else if (nResult != EDL_NONUNLOADED)
-              pfElement->bRunning=FALSE;
-          }
-          return TRUE;
+          (pfElement->PluginProc)(pfElement->lpParameter);
         }
+        else
+        {
+          int nResult=EDL_FAILED;
+
+          nResult=CallPluginA(pfElement, pfElement->szFunction, FALSE, 0, NULL);
+
+          if (nResult == EDL_NONUNLOADED_ACTIVE)
+            pfElement->bRunning=TRUE;
+          else if (nResult != EDL_NONUNLOADED)
+            pfElement->bRunning=FALSE;
+        }
+        return TRUE;
       }
       pfElement=pfElement->prev;
     }
-  }
-  else if (lpMsg->message == WM_KEYDOWN)
-  {
-    //Other combinations
-    while (pfElement)
-    {
-      if (LOBYTE(pfElement->wHotkey) == lpMsg->wParam)
-      {
-        if (nControl == -1) nControl=GetKeyState(VK_CONTROL) & 0x80;
-        if (nAlt == -1) nAlt=GetKeyState(VK_MENU) & 0x80;
-        if (nShift == -1) nShift=GetKeyState(VK_SHIFT) & 0x80;
-
-        if (!(HIBYTE(pfElement->wHotkey) & HOTKEYF_CONTROL) == !nControl &&
-            !(HIBYTE(pfElement->wHotkey) & HOTKEYF_ALT) == !nAlt &&
-            !(HIBYTE(pfElement->wHotkey) & HOTKEYF_SHIFT) == !nShift)
-        {
-          if (pfElement->PluginProc)
-          {
-            (pfElement->PluginProc)(pfElement->lpParameter);
-          }
-          else
-          {
-            int nResult=EDL_FAILED;
-
-            nResult=CallPluginA(pfElement, pfElement->szFunction, FALSE, 0, NULL);
-
-            if (nResult == EDL_NONUNLOADED_ACTIVE)
-              pfElement->bRunning=TRUE;
-            else if (nResult != EDL_NONUNLOADED)
-              pfElement->bRunning=FALSE;
-          }
-          return TRUE;
-        }
-      }
-      pfElement=pfElement->prev;
-    }
+    bResult=FALSE;
+    SendMessage(hMainWnd, AKDN_HOTKEY, (WPARAM)wHotkey, (LPARAM)&bResult);
+    return bResult;
   }
   return FALSE;
 }
@@ -14340,79 +14308,47 @@ BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
 BOOL TranslateHotkeyW(HSTACK *hStack, LPMSG lpMsg)
 {
   PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->last;
-  int nControl=-1;
-  int nAlt=-1;
-  int nShift=-1;
+  BYTE bMod=0;
+  WORD wHotkey;
+  BOOL bResult;
 
-  if (lpMsg->message == WM_SYSKEYDOWN)
+  if (lpMsg->message == WM_SYSKEYDOWN ||  //Alt+..., Shift+Alt+...
+      lpMsg->message == WM_KEYDOWN)       //Other combinations
   {
-    //Alt+..., Shift+Alt+...
+    if (GetKeyState(VK_CONTROL) < 0)
+      bMod|=HOTKEYF_CONTROL;
+    if (GetKeyState(VK_MENU) < 0)
+      bMod|=HOTKEYF_ALT;
+    if (GetKeyState(VK_SHIFT) < 0)
+      bMod|=HOTKEYF_SHIFT;
+    wHotkey=MAKEWORD(lpMsg->wParam, bMod);
+
     while (pfElement)
     {
-      if (LOBYTE(pfElement->wHotkey) == lpMsg->wParam)
+      if (pfElement->wHotkey == wHotkey)
       {
-        if (nShift == -1) nShift=GetKeyState(VK_SHIFT) & 0x80;
-
-        if (!(HIBYTE(pfElement->wHotkey) & HOTKEYF_CONTROL) &&
-             (HIBYTE(pfElement->wHotkey) & HOTKEYF_ALT) &&
-            !(HIBYTE(pfElement->wHotkey) & HOTKEYF_SHIFT) == !nShift)
+        if (pfElement->PluginProc)
         {
-          if (pfElement->PluginProc)
-          {
-            (pfElement->PluginProc)(pfElement->lpParameter);
-          }
-          else
-          {
-            int nResult=EDL_FAILED;
-
-            nResult=CallPluginW(pfElement, pfElement->wszFunction, FALSE, 0, NULL);
-
-            if (nResult == EDL_NONUNLOADED_ACTIVE)
-              pfElement->bRunning=TRUE;
-            else if (nResult != EDL_NONUNLOADED)
-              pfElement->bRunning=FALSE;
-          }
-          return TRUE;
+          (pfElement->PluginProc)(pfElement->lpParameter);
         }
+        else
+        {
+          int nResult=EDL_FAILED;
+
+          nResult=CallPluginW(pfElement, pfElement->wszFunction, FALSE, 0, NULL);
+
+          if (nResult == EDL_NONUNLOADED_ACTIVE)
+            pfElement->bRunning=TRUE;
+          else if (nResult != EDL_NONUNLOADED)
+            pfElement->bRunning=FALSE;
+        }
+        return TRUE;
       }
       pfElement=pfElement->prev;
     }
-  }
-  else if (lpMsg->message == WM_KEYDOWN)
-  {
-    //Other combinations
-    while (pfElement)
-    {
-      if (LOBYTE(pfElement->wHotkey) == lpMsg->wParam)
-      {
-        if (nControl == -1) nControl=GetKeyState(VK_CONTROL) & 0x80;
-        if (nAlt == -1) nAlt=GetKeyState(VK_MENU) & 0x80;
-        if (nShift == -1) nShift=GetKeyState(VK_SHIFT) & 0x80;
-
-        if (!(HIBYTE(pfElement->wHotkey) & HOTKEYF_CONTROL) == !nControl &&
-            !(HIBYTE(pfElement->wHotkey) & HOTKEYF_ALT) == !nAlt &&
-            !(HIBYTE(pfElement->wHotkey) & HOTKEYF_SHIFT) == !nShift)
-        {
-          if (pfElement->PluginProc)
-          {
-            (pfElement->PluginProc)(pfElement->lpParameter);
-          }
-          else
-          {
-            int nResult=EDL_FAILED;
-
-            nResult=CallPluginW(pfElement, pfElement->wszFunction, FALSE, 0, NULL);
-
-            if (nResult == EDL_NONUNLOADED_ACTIVE)
-              pfElement->bRunning=TRUE;
-            else if (nResult != EDL_NONUNLOADED)
-              pfElement->bRunning=FALSE;
-          }
-          return TRUE;
-        }
-      }
-      pfElement=pfElement->prev;
-    }
+    bResult=FALSE;
+    SendMessage(hMainWnd, AKDN_HOTKEY, (WPARAM)wHotkey, (LPARAM)&bResult);
+    return bResult;
   }
   return FALSE;
 }
