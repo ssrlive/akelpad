@@ -658,6 +658,9 @@ typedef struct _NSIZE {
 #define IDM_EDIT_INVERTCASE             4179  //Convert text to iNVERT cASE
                                               //Return Value: zero
                                               //
+#define IDM_EDIT_LOOPCASE               4180  //Cycle case
+                                              //Return Value: zero
+                                              //
 #define IDM_EDIT_RECODE                 4182  //Recode dialog
                                               //Return Value: zero
                                               //

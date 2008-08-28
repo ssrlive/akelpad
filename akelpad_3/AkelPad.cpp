@@ -249,6 +249,7 @@ BOOL bWatchFile=FALSE;
 BOOL bSingleOpenFile=FALSE;
 BOOL bSingleOpenProgram=TRUE;
 BOOL bKeepSpace=FALSE;
+int nLoopCase=0;
 int nTabStopSize=EDIT_TABSTOPS;
 BOOL bTabStopAsSpaces=FALSE;
 int nUndoLimit=EDIT_UNDOLIMIT;
@@ -2616,6 +2617,17 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoEditChangeCaseA(hWndEdit, INVERTCASE);
     }
+    else if (LOWORD(wParam) == IDM_EDIT_LOOPCASE)
+    {
+      int nCase=nLoopCase;
+
+      if (nCase >= INVERTCASE)
+        nCase=UPPERCASE;
+      else
+        ++nCase;
+      DoEditChangeCaseA(hWndEdit, nCase);
+      nLoopCase=nCase;
+    }
     else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_WIN)
     {
       if (!IsReadOnly())
@@ -4275,6 +4287,17 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoEditChangeCaseW(hWndEdit, INVERTCASE);
     }
+    else if (LOWORD(wParam) == IDM_EDIT_LOOPCASE)
+    {
+      int nCase=nLoopCase;
+
+      if (nCase >= INVERTCASE)
+        nCase=UPPERCASE;
+      else
+        ++nCase;
+      DoEditChangeCaseW(hWndEdit, nCase);
+      nLoopCase=nCase;
+    }
     else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_WIN)
     {
       if (!IsReadOnly())
@@ -4914,6 +4937,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
           SetSelectionStatusA(hWndEdit, &cr);
+          nLoopCase=0;
         }
       }
       else if (((NMHDR *)lParam)->code == EN_LINK)
@@ -5076,6 +5100,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
           SetSelectionStatusW(hWndEdit, &cr);
+          nLoopCase=0;
         }
       }
       else if (((NMHDR *)lParam)->code == EN_LINK)
