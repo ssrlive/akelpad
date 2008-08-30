@@ -8,6 +8,7 @@ Added: position of modeless dialogs is locally remembered.
 Added: command 4180 for cycle text case changing.
 
 Fixed: new line manipulation.
+Fixed: caret color on non-white background.
 
 
 AkelPad 4.0.3 (Aug 24, 2008)

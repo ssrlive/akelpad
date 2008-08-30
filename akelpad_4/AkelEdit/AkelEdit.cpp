@@ -4993,7 +4993,7 @@ BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
   return FALSE;
 }
 
-HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, COLORREF crCaret, int nCaretWidth, int nCaretHeight)
+HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
 {
   BITMAPFILEHEADER *lpBmpFileHeader;
   BITMAPINFOHEADER *lpBmpInfoHeader;
@@ -5041,22 +5041,22 @@ HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, COLORREF crCaret, int nCaretWidth, in
     {
       for (b=0; b < lpBmpInfoHeader->biWidth * 3; b+=3)
       {
-        lpBitmapBits[a + 0]=GetBValue(crCaret);
-        lpBitmapBits[a + 1]=GetGValue(crCaret);
-        lpBitmapBits[a + 2]=GetRValue(crCaret);
+        lpBitmapBits[a + 0]=0xFF - mod(GetBValue(ae->crActiveLineBk) - GetBValue(ae->crCaret));
+        lpBitmapBits[a + 1]=0xFF - mod(GetGValue(ae->crActiveLineBk) - GetGValue(ae->crCaret));
+        lpBitmapBits[a + 2]=0xFF - mod(GetRValue(ae->crActiveLineBk) - GetRValue(ae->crCaret));
         a+=3;
       }
       while (a % 4) lpBitmapBits[a++]=0x00;
     }
 
-    hCaretBitmap=AE_LoadBitmapFromMemory(ae->hDC, (unsigned char *)lpBmpFileData);
+    hCaretBitmap=AE_LoadBitmapFromMemory(ae, (unsigned char *)lpBmpFileData);
 
     AE_HeapFree(ae, 0, (LPVOID)lpBmpFileData);
   }
   return hCaretBitmap;
 }
 
-HBITMAP AE_LoadBitmapFromMemory(HDC hDC, BYTE *lpBmpFileData)
+HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, BYTE *lpBmpFileData)
 {
   BITMAPFILEHEADER *lpBmpFileHeader=(BITMAPFILEHEADER *)lpBmpFileData;
   BITMAPINFOHEADER *lpBmpInfoHeader=(BITMAPINFOHEADER *)(lpBmpFileData + sizeof(BITMAPFILEHEADER));
@@ -5069,16 +5069,16 @@ HBITMAP AE_LoadBitmapFromMemory(HDC hDC, BYTE *lpBmpFileData)
 
   bi.bmiHeader=*lpBmpInfoHeader;
 
-  if (hBitmap=CreateDIBSection(hDC, &bi, DIB_RGB_COLORS, (void **)&lpSectionBits, NULL, 0))
+  if (hBitmap=CreateDIBSection(ae->hDC, &bi, DIB_RGB_COLORS, (void **)&lpSectionBits, NULL, 0))
   {
     for (a=0; a < bi.bmiHeader.biSizeImage;)
     {
       for (b=0; b < bi.bmiHeader.biWidth * 3; b+=3)
       {
         //Copy inverted bits
-        lpSectionBits[a + 0]=255 - lpBitmapBits[a + 0];
-        lpSectionBits[a + 1]=255 - lpBitmapBits[a + 1];
-        lpSectionBits[a + 2]=255 - lpBitmapBits[a + 2];
+        lpSectionBits[a + 0]=0xFF - lpBitmapBits[a + 0];
+        lpSectionBits[a + 1]=0xFF - lpBitmapBits[a + 1];
+        lpSectionBits[a + 2]=0xFF - lpBitmapBits[a + 2];
         a+=3;
       }
       while (a % 4) lpSectionBits[a++]=0x00;
@@ -5122,7 +5122,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh)
     {
       if (ae->crCaret)
       {
-        if (hCaretBitmap=AE_CreateCaretBitmap(ae, ae->crCaret, nCaretWidth, nCaretHeight))
+        if (hCaretBitmap=AE_CreateCaretBitmap(ae, nCaretWidth, nCaretHeight))
         {
           ae->hCaretInsert=hCaretBitmap;
         }
@@ -5139,7 +5139,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh)
     {
       if (ae->crCaret)
       {
-        if (hCaretBitmap=AE_CreateCaretBitmap(ae, ae->crCaret, nCaretWidth, nCaretHeight))
+        if (hCaretBitmap=AE_CreateCaretBitmap(ae, nCaretWidth, nCaretHeight))
         {
           ae->hCaretOvertype=hCaretBitmap;
         }
@@ -10459,6 +10459,7 @@ void AE_SetColors(AKELEDIT *ae, AECOLORS *aec)
 
     if (ae->hActiveLineBk) DeleteObject(ae->hActiveLineBk);
     ae->hActiveLineBk=CreateSolidBrush(ae->crActiveLineBk);
+    AE_UpdateCaret(ae, ae->bFocus, TRUE);
     bUpdateDrawRect=TRUE;
   }
   if (aec->dwFlags & AECLR_URLTEXT)
