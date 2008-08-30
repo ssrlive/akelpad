@@ -5041,9 +5041,9 @@ HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
     {
       for (b=0; b < lpBmpInfoHeader->biWidth * 3; b+=3)
       {
-        lpBitmapBits[a + 0]=0xFF - mod(GetBValue(ae->crActiveLineBk) - GetBValue(ae->crCaret));
-        lpBitmapBits[a + 1]=0xFF - mod(GetGValue(ae->crActiveLineBk) - GetGValue(ae->crCaret));
-        lpBitmapBits[a + 2]=0xFF - mod(GetRValue(ae->crActiveLineBk) - GetRValue(ae->crCaret));
+        lpBitmapBits[a + 0]=mod(GetBValue(ae->crActiveLineBk) - GetBValue(ae->crCaret));
+        lpBitmapBits[a + 1]=mod(GetGValue(ae->crActiveLineBk) - GetGValue(ae->crCaret));
+        lpBitmapBits[a + 2]=mod(GetRValue(ae->crActiveLineBk) - GetRValue(ae->crCaret));
         a+=3;
       }
       while (a % 4) lpBitmapBits[a++]=0x00;
@@ -5076,9 +5076,9 @@ HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, BYTE *lpBmpFileData)
       for (b=0; b < bi.bmiHeader.biWidth * 3; b+=3)
       {
         //Copy inverted bits
-        lpSectionBits[a + 0]=0xFF - lpBitmapBits[a + 0];
-        lpSectionBits[a + 1]=0xFF - lpBitmapBits[a + 1];
-        lpSectionBits[a + 2]=0xFF - lpBitmapBits[a + 2];
+        lpSectionBits[a + 0]=lpBitmapBits[a + 0];
+        lpSectionBits[a + 1]=lpBitmapBits[a + 1];
+        lpSectionBits[a + 2]=lpBitmapBits[a + 2];
         a+=3;
       }
       while (a % 4) lpSectionBits[a++]=0x00;
