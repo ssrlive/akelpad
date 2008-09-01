@@ -1,5 +1,5 @@
 
-AkelPad 4.0.4 ()
+AkelPad 4.0.4 (Sep 01, 2008)
 ----------------------------
 Changed: at font size change, AkelEdit adjusts position of the text according to the first
          visible line.
