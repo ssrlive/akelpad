@@ -135,6 +135,7 @@ NSIZE nsSize;
 WNDPROC OldDockProc=NULL;
 
 //Codepages
+RECT rcRecodeDlg={0};
 int *lpCodepageList=NULL;
 int nCodepageListLen=0;
 BOOL bDefaultBOM;
@@ -177,6 +178,7 @@ BOOL bSaveInReadOnlyMsg=FALSE;
 WNDPROC OldPreviewProc;
 
 //Find/Replace dialog
+RECT rcFindAndReplaceDlg={0};
 DWORD ftflags=FR_DOWN;
 BOOL bReplaceDlg;
 BOOL bReplaceAllAndClose=FALSE;
@@ -190,6 +192,9 @@ wchar_t *wszFind=NULL;
 char *szReplace=NULL;
 wchar_t *wszReplace=NULL;
 WNDPROC OldComboboxEdit;
+
+//Go to line dialog
+RECT rcGoToLineDlg={0};
 
 //Options dialog
 PROPSHEETHEADERA pshA={0};
