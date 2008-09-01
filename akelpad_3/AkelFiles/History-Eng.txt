@@ -10,6 +10,7 @@ Changed: hotkeys (conflicted with AltGr key):
         - Shift+Alt+U save as UTF-8.
 
 Added: Latin recognition OEM and UTF-8.
+Added: position of modeless dialogs is locally remembered.
 Added: command 4180 for cycle text case changing.
 
 Fixed: "OK" button in plugin dialog, didn't clear non-existent plugin records.
