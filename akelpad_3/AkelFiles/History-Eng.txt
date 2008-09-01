@@ -1,5 +1,5 @@
 
-AkelPad 3.6.1 ()
+AkelPad 3.6.1 (Sep 01, 2008)
 ----------------------------
 Changed: hotkeys (conflicted with AltGr key):
         - Shift+Alt+W save as ANSI (Windows);
