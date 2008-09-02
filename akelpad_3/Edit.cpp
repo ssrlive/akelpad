@@ -13098,20 +13098,18 @@ BOOL TranslatePluginW(LPMSG lpMsg)
 BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
 {
   PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->last;
-  BYTE bMod=0;
+  BYTE nMod=0;
   WORD wHotkey;
   BOOL bResult;
 
   if (lpMsg->message == WM_SYSKEYDOWN ||  //Alt+..., Shift+Alt+...
       lpMsg->message == WM_KEYDOWN)       //Other combinations
   {
-    if (GetKeyState(VK_CONTROL) < 0)
-      bMod|=HOTKEYF_CONTROL;
-    if (GetKeyState(VK_MENU) < 0)
-      bMod|=HOTKEYF_ALT;
-    if (GetKeyState(VK_SHIFT) < 0)
-      bMod|=HOTKEYF_SHIFT;
-    wHotkey=MAKEWORD(lpMsg->wParam, bMod);
+    if ((lpMsg->lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
+    if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
+    if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
+    if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
+    wHotkey=MAKEWORD(lpMsg->wParam, nMod);
 
     while (pfElement)
     {
@@ -13146,20 +13144,18 @@ BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
 BOOL TranslateHotkeyW(HSTACK *hStack, LPMSG lpMsg)
 {
   PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->last;
-  BYTE bMod=0;
+  BYTE nMod=0;
   WORD wHotkey;
   BOOL bResult;
 
   if (lpMsg->message == WM_SYSKEYDOWN ||  //Alt+..., Shift+Alt+...
       lpMsg->message == WM_KEYDOWN)       //Other combinations
   {
-    if (GetKeyState(VK_CONTROL) < 0)
-      bMod|=HOTKEYF_CONTROL;
-    if (GetKeyState(VK_MENU) < 0)
-      bMod|=HOTKEYF_ALT;
-    if (GetKeyState(VK_SHIFT) < 0)
-      bMod|=HOTKEYF_SHIFT;
-    wHotkey=MAKEWORD(lpMsg->wParam, bMod);
+    if ((lpMsg->lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
+    if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
+    if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
+    if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
+    wHotkey=MAKEWORD(lpMsg->wParam, nMod);
 
     while (pfElement)
     {
