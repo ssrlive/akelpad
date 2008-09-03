@@ -1,4 +1,9 @@
 
+AkelPad 3.6.2 ()
+----------------------------
+Fixed: extended hotkey didn't working.
+
+
 AkelPad 3.6.1 (Sep 01, 2008)
 ----------------------------
 Changed: hotkeys (conflicted with AltGr key):

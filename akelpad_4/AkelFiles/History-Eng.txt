@@ -1,4 +1,9 @@
 
+AkelPad 4.0.5 ()
+----------------------------
+Fixed: extended hotkey didn't working.
+
+
 AkelPad 4.0.4 (Sep 01, 2008)
 ----------------------------
 Changed: at font size change, AkelEdit adjusts position of the text according to the first
