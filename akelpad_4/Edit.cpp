@@ -327,7 +327,7 @@ HWND CreateEditWindowA(HWND hWndParent)
   if (!hWndEdit) hWndEdit=hWndEditNew;
   DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
-  SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_LINK|AENM_PROGRESS);
+  SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_LINK|AENM_PROGRESS|AENM_SCROLL);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
@@ -376,7 +376,7 @@ HWND CreateEditWindowW(HWND hWndParent)
   if (!hWndEdit) hWndEdit=hWndEditNew;
   DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
-  SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_LINK|AENM_PROGRESS);
+  SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_LINK|AENM_PROGRESS|AENM_SCROLL);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
