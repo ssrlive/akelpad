@@ -5276,9 +5276,9 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
           if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
           {
             GetFileWriteTimeA(szFile, &ft);
+            SetModifyStatusA(hWnd, FALSE, FALSE);
             wf->ei.nCodePage=nCodePage;
             wf->ei.bBOM=bBOM;
-            wf->ei.bModified=FALSE;
             wf->ft=ft;
 
             if (lstrcmpiA(wf->szFile, szFile))
@@ -5474,9 +5474,9 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
           if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
           {
             GetFileWriteTimeW(wszFile, &ft);
+            SetModifyStatusW(hWnd, FALSE, FALSE);
             wf->ei.nCodePage=nCodePage;
             wf->ei.bBOM=bBOM;
-            wf->ei.bModified=FALSE;
             wf->ft=ft;
 
             if (lstrcmpiW(wf->wszFile, wszFile))
