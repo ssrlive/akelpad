@@ -414,8 +414,9 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
-  int nScrollPos;      //Current scroll position.
-  int nScrollOffset;   //Scroll to specified offset.
+  int nPosNew;         //Current scroll position.
+  int nPosOld;         //Previous scroll position.
+  int nPosMax;         //Maximum scroll position.
 } AENSCROLL;
 
 typedef struct {

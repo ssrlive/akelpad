@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.4                                 *
+ *                      AkelEdit text control v1.5                                 *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -5404,6 +5404,12 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
       }
       ae->nHScrollPos=0;
     }
+
+    if (ae->nHScrollPos != ae->nLastHScrollPos)
+    {
+      AE_NotifyHScroll(ae);
+      ae->nLastHScrollPos=ae->nHScrollPos;
+    }
   }
 
   if (nBar == SB_BOTH || nBar == SB_VERT)
@@ -5442,6 +5448,12 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
       }
       ae->nVScrollPos=0;
     }
+
+    if (ae->nVScrollPos != ae->nLastVScrollPos)
+    {
+      AE_NotifyVScroll(ae);
+      ae->nLastVScrollPos=ae->nVScrollPos;
+    }
   }
 
   if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
@@ -5476,11 +5488,14 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
     {
       if (nPos != ae->nHScrollPos)
       {
-        if (!AE_NotifyHScroll(ae, nPos - ae->nHScrollPos))
+        ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
+        ae->nHScrollPos=nPos;
+        UpdateWindow(ae->hWndEdit);
+
+        if (ae->nHScrollPos != ae->nLastHScrollPos)
         {
-          ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
-          ae->nHScrollPos=nPos;
-          UpdateWindow(ae->hWndEdit);
+          AE_NotifyHScroll(ae);
+          ae->nLastHScrollPos=ae->nHScrollPos;
         }
       }
     }
@@ -5510,11 +5525,14 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
     {
       if (nPos != ae->nVScrollPos)
       {
-        if (!AE_NotifyVScroll(ae, nPos - ae->nVScrollPos))
+        ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
+        ae->nVScrollPos=nPos;
+        UpdateWindow(ae->hWndEdit);
+
+        if (ae->nVScrollPos != ae->nLastVScrollPos)
         {
-          ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
-          ae->nVScrollPos=nPos;
-          UpdateWindow(ae->hWndEdit);
+          AE_NotifyVScroll(ae);
+          ae->nLastVScrollPos=ae->nVScrollPos;
         }
       }
     }
@@ -7460,6 +7478,8 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     ae->nLineCount=0;
     ae->nHScrollPos=0;
     ae->nVScrollPos=0;
+    ae->nLastHScrollPos=0;
+    ae->nLastVScrollPos=0;
     ae->nHScrollMax=0;
     ae->nVScrollMax=0;
     ae->hPointsStack.first=0;
@@ -10604,10 +10624,8 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
   }
 }
 
-BOOL AE_NotifyHScroll(AKELEDIT *ae, int nScrollOffset)
+void AE_NotifyHScroll(AKELEDIT *ae)
 {
-  BOOL bResult=FALSE;
-
   //Send AEN_HSCROLL
   if (ae->dwEventMask & AENM_SCROLL)
   {
@@ -10616,9 +10634,10 @@ BOOL AE_NotifyHScroll(AKELEDIT *ae, int nScrollOffset)
     aens.hdr.hwndFrom=ae->hWndEdit;
     aens.hdr.idFrom=ae->nEditCtrlID;
     aens.hdr.code=AEN_HSCROLL;
-    aens.nScrollPos=ae->nHScrollPos;
-    aens.nScrollOffset=nScrollOffset;
-    bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
+    aens.nPosNew=ae->nHScrollPos;
+    aens.nPosOld=ae->nLastHScrollPos;
+    aens.nPosMax=ae->nHScrollMax;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
   }
 
   //Send EN_HSCROLL
@@ -10626,13 +10645,10 @@ BOOL AE_NotifyHScroll(AKELEDIT *ae, int nScrollOffset)
   {
     SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_HSCROLL), (LPARAM)ae->hWndEdit);
   }
-  return bResult;
 }
 
-BOOL AE_NotifyVScroll(AKELEDIT *ae, int nScrollOffset)
+void AE_NotifyVScroll(AKELEDIT *ae)
 {
-  BOOL bResult=FALSE;
-
   //Send AEN_VSCROLL
   if (ae->dwEventMask & AENM_SCROLL)
   {
@@ -10641,9 +10657,10 @@ BOOL AE_NotifyVScroll(AKELEDIT *ae, int nScrollOffset)
     aens.hdr.hwndFrom=ae->hWndEdit;
     aens.hdr.idFrom=ae->nEditCtrlID;
     aens.hdr.code=AEN_VSCROLL;
-    aens.nScrollPos=ae->nVScrollPos;
-    aens.nScrollOffset=nScrollOffset;
-    bResult=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
+    aens.nPosNew=ae->nVScrollPos;
+    aens.nPosOld=ae->nLastVScrollPos;
+    aens.nPosMax=ae->nVScrollMax;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
   }
 
   //Send EN_VSCROLL
@@ -10651,7 +10668,6 @@ BOOL AE_NotifyVScroll(AKELEDIT *ae, int nScrollOffset)
   {
     SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_VSCROLL), (LPARAM)ae->hWndEdit);
   }
-  return bResult;
 }
 
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam)
