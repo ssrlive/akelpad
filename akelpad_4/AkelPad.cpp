@@ -5048,19 +5048,22 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENLINK *aenl=(AENLINK *)lParam;
 
-        if ((nClickURL == 1 && aenl->uMsg == WM_LBUTTONUP) ||
-            (nClickURL == 2 && aenl->uMsg == WM_LBUTTONDBLCLK))
+        if (aenl->hdr.hwndFrom == hWndEdit)
         {
-          char *szURL;
-
-          if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+          if ((nClickURL == 1 && aenl->uMsg == WM_LBUTTONUP) ||
+              (nClickURL == 2 && aenl->uMsg == WM_LBUTTONDBLCLK))
           {
-            if (ExGetRangeTextA(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &szURL, AELB_ASIS))
+            char *szURL;
+
+            if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
             {
-              ShellExecuteA(hWndEdit, "open", szURL, NULL, NULL, SW_SHOWNORMAL);
-              FreeText(szURL);
+              if (ExGetRangeTextA(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &szURL, AELB_ASIS))
+              {
+                ShellExecuteA(hWndEdit, "open", szURL, NULL, NULL, SW_SHOWNORMAL);
+                FreeText(szURL);
+              }
+              return TRUE;
             }
-            return TRUE;
           }
         }
       }
@@ -5226,19 +5229,22 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENLINK *aenl=(AENLINK *)lParam;
 
-        if ((nClickURL == 1 && aenl->uMsg == WM_LBUTTONUP) ||
-            (nClickURL == 2 && aenl->uMsg == WM_LBUTTONDBLCLK))
+        if (aenl->hdr.hwndFrom == hWndEdit)
         {
-          wchar_t *wszURL;
-
-          if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+          if ((nClickURL == 1 && aenl->uMsg == WM_LBUTTONUP) ||
+              (nClickURL == 2 && aenl->uMsg == WM_LBUTTONDBLCLK))
           {
-            if (ExGetRangeTextW(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &wszURL, AELB_ASIS))
+            wchar_t *wszURL;
+
+            if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
             {
-              ShellExecuteW(hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
-              FreeText(wszURL);
+              if (ExGetRangeTextW(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &wszURL, AELB_ASIS))
+              {
+                ShellExecuteW(hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
+                FreeText(wszURL);
+              }
+              return TRUE;
             }
-            return TRUE;
           }
         }
       }
