@@ -2,6 +2,7 @@
 AkelPad 4.0.5 ()
 ----------------------------
 Fixed: extended hotkey didn't working.
+Fixed: insert tabulation as spaces.
 
 
 AkelPad 4.0.4 (Sep 01, 2008)
