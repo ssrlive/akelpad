@@ -16379,16 +16379,26 @@ void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw)
 BOOL InsertTabStopW(HWND hWnd)
 {
   wchar_t wszSpaces[MAX_PATH];
-  int nMaxSpaces;
+  int nSpaces;
   int i;
 
   if (IsReadOnly()) return FALSE;
 
   if (bTabStopAsSpaces)
   {
-    nMaxSpaces=min(nTabStopSize, MAX_PATH - 1);
+    for (i=min(ciCaret.lpLine->nLineLen, ciCaret.nCharInLine) - 1; i > 0; --i)
+    {
+      if (ciCaret.lpLine->wpLine[i] == L'\t')
+      {
+        ++i;
+        break;
+      }
+    }
+    i=max(i, 0);
+    nSpaces=nTabStopSize - (ciCaret.nCharInLine - i) % nTabStopSize;
+    nSpaces=min(nSpaces, MAX_PATH - 1);
 
-    for (i=0; i < nMaxSpaces; ++i)
+    for (i=0; i < nSpaces; ++i)
       wszSpaces[i]=' ';
     wszSpaces[i]='\0';
     ReplaceSelW(hWnd, wszSpaces, -1, -1, NULL, NULL);
@@ -16402,16 +16412,16 @@ BOOL InsertTabStopW(HWND hWnd)
 BOOL IndentTabStopW(HWND hWnd, int nAction)
 {
   wchar_t wszSpaces[MAX_PATH];
-  int nMaxSpaces;
+  int nSpaces;
   int i;
 
   if (IsReadOnly()) return FALSE;
 
   if (bTabStopAsSpaces)
   {
-    nMaxSpaces=min(nTabStopSize, MAX_PATH - 1);
+    nSpaces=min(nTabStopSize, MAX_PATH - 1);
 
-    for (i=0; i < nMaxSpaces; ++i)
+    for (i=0; i < nSpaces; ++i)
       wszSpaces[i]=' ';
     wszSpaces[i]='\0';
     DoEditInsertStringInSelectionW(hWnd, nAction, wszSpaces);
