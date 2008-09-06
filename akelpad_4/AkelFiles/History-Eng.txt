@@ -1,5 +1,5 @@
 
-AkelPad 4.0.5 ()
+AkelPad 4.0.5 (Sep 06, 2008)
 ----------------------------
 Changed: improved PageUp/PageDown text navigation.
 
