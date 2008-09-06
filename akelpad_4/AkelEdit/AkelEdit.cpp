@@ -1930,6 +1930,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
               ciCharIn=ae->ciSelStartIndex;
+            if (ae->dwOptions & AECO_CARETOUTEDGE)
+              ciCharIn.nCharInLine=min(ciCharIn.nCharInLine, ciCharIn.lpLine->nLineLen);
 
             AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, bAlt, ae->dwWordBreak, FALSE);
           }
@@ -1940,7 +1942,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ciCharIn=ae->ciSelStartIndex;
               ciCharOut=ae->ciSelStartIndex;
             }
-            else AE_GetIndex(ae, AEGI_PREVCHAR, &ciCharIn, &ciCharOut, bAlt);
+            else AE_GetIndex(ae, AEGI_PREVCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
           }
         }
         else if (wParam == VK_RIGHT)
@@ -1949,6 +1951,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
               ciCharIn=ae->ciSelEndIndex;
+            if (ae->dwOptions & AECO_CARETOUTEDGE)
+              ciCharIn.nCharInLine=min(ciCharIn.nCharInLine, ciCharIn.lpLine->nLineLen);
 
             AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, bAlt, ae->dwWordBreak, FALSE);
           }
@@ -1959,7 +1963,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ciCharIn=ae->ciSelEndIndex;
               ciCharOut=ae->ciSelEndIndex;
             }
-            else AE_GetIndex(ae, AEGI_NEXTCHAR, &ciCharIn, &ciCharOut, bAlt);
+            else AE_GetIndex(ae, AEGI_NEXTCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
           }
         }
         else if (wParam == VK_UP)
@@ -1972,7 +1976,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (bControl)
               nHorizCaretPos=ae->nHScrollPos;
             else
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
           }
         }
         else if (wParam == VK_DOWN)
@@ -1985,7 +1989,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (bControl)
               nHorizCaretPos=ae->nHScrollPos;
             else
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
           }
         }
         else if (wParam == VK_PRIOR)
@@ -2047,14 +2051,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bShift)
           {
-            if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex))
-            {
-              ciSelEnd=ae->ciSelEndIndex;
-            }
-            else if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
-            {
+            if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+              ciSelEnd=ae->ciCaretIndex;
+            else if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
               ciSelEnd=ae->ciSelStartIndex;
-            }
+            else
+              ciSelEnd=ae->ciSelEndIndex;
+
             AE_SetSelectionPos(ae, &ciCharOut, &ciSelEnd, bAlt, 0);
           }
           else AE_SetSelectionPos(ae, &ciCharOut, &ciCharOut, bAlt, 0);
@@ -4029,7 +4032,7 @@ int AE_UpdateWrap(AKELEDIT *ae, BOOL bWrap)
 
   ae->ptCaret.x=0;
   ae->ptCaret.y=0;
-  if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+  if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
     ae->ciCaretIndex=ciSelEnd;
   else
     ae->ciCaretIndex=ciSelStart;
@@ -4661,7 +4664,17 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     {
       ciSelStartNew.nCharInLine=min(ciSelStartNew.nCharInLine, ciSelStartNew.lpLine->nLineLen);
       ciSelEndNew.nCharInLine=min(ciSelEndNew.nCharInLine, ciSelEndNew.lpLine->nLineLen);
-      ciCaretNew.nCharInLine=min(ciCaretNew.nCharInLine, ciCaretNew.lpLine->nLineLen);
+
+      if (ae->dwOptions & AECO_CARETOUTEDGE)
+      {
+        if (AE_IndexCompare(&ae->ciCaretIndex, &ciCaretNew))
+        {
+          AE_GetPosFromCharEx(ae, &ciCaretNew, &ptSelStart, NULL);
+          if (ptSelStart.x > max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
+            return;
+        }
+      }
+      else ciCaretNew.nCharInLine=min(ciCaretNew.nCharInLine, ciCaretNew.lpLine->nLineLen);
     }
 
     //Notification
@@ -4761,7 +4774,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
 
 void AE_UpdateSelection(AKELEDIT *ae, DWORD dwSelFlags)
 {
-  if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciCaretIndex))
+  if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex) <= 0)
     AE_SetSelectionPos(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, dwSelFlags);
   else
     AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelStartIndex, ae->bColumnSel, dwSelFlags);
@@ -4774,7 +4787,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 
   if (ae->rcDraw.bottom - ae->rcDraw.top > 0 && ae->rcDraw.right - ae->rcDraw.left > 0)
   {
-    AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, bColumnSel);
+    AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, bColumnSel || (ae->dwOptions & AECO_CARETOUTEDGE));
 
     //One click (capture)
     if (ae->nLButtonDownCount == 0)
@@ -4817,10 +4830,13 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
         {
           if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex) || ae->bColumnSel != bColumnSel)
           {
-            if (!AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex))
+            if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+              ciSelEnd=ae->ciCaretIndex;
+            else if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
               ciSelEnd=ae->ciSelStartIndex;
             else
               ciSelEnd=ae->ciSelEndIndex;
+
             AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
           }
         }
@@ -5271,28 +5287,28 @@ DWORD AE_ScrollToCaretEx(AKELEDIT *ae, POINT *ptCaret, DWORD dwFlags, WORD wUnit
   int y=-1;
   DWORD dwResult=0;
 
-  if (dwFlags & AECS_UNITPIXELX)
+  if (dwFlags & AESC_UNITPIXELX)
   {
     x=wUnitX;
   }
-  else if (dwFlags & AECS_UNITCHARX)
+  else if (dwFlags & AESC_UNITCHARX)
   {
     x=ae->nAveCharWidth * wUnitX;
   }
-  else if (dwFlags & AECS_UNITRECTDIVX)
+  else if (dwFlags & AESC_UNITRECTDIVX)
   {
     x=(ae->rcDraw.right - ae->rcDraw.left) / wUnitX;
   }
 
-  if (dwFlags & AECS_UNITPIXELY)
+  if (dwFlags & AESC_UNITPIXELY)
   {
     y=wUnitY;
   }
-  else if (dwFlags & AECS_UNITCHARY)
+  else if (dwFlags & AESC_UNITCHARY)
   {
     y=ae->nCharHeight * wUnitY;
   }
-  else if (dwFlags & AECS_UNITRECTDIVY)
+  else if (dwFlags & AESC_UNITRECTDIVY)
   {
     y=(ae->rcDraw.bottom - ae->rcDraw.top) / wUnitY;
   }
@@ -5309,12 +5325,12 @@ DWORD AE_ScrollToCaretEx(AKELEDIT *ae, POINT *ptCaret, DWORD dwFlags, WORD wUnit
     }
     else
     {
-      if (dwFlags & AECS_FORCELEFT)
+      if (dwFlags & AESC_FORCELEFT)
       {
         if (!bTest) AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - x, 0));
         dwResult|=AECSE_SCROLLEDX;
       }
-      else if (dwFlags & AECS_FORCERIGHT)
+      else if (dwFlags & AESC_FORCERIGHT)
       {
         if (!bTest) AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + x + 1, 0));
         dwResult|=AECSE_SCROLLEDX;
@@ -5337,12 +5353,12 @@ DWORD AE_ScrollToCaretEx(AKELEDIT *ae, POINT *ptCaret, DWORD dwFlags, WORD wUnit
 
   if (y != -1)
   {
-    if (dwFlags & AECS_FORCETOP)
+    if (dwFlags & AESC_FORCETOP)
     {
       if (!bTest) AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - y, 0));
       dwResult|=AECSE_SCROLLEDY;
     }
-    else if (dwFlags & AECS_FORCEBOTTOM)
+    else if (dwFlags & AESC_FORCEBOTTOM)
     {
       if (!bTest) AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + y + 1, 0));
       dwResult|=AECSE_SCROLLEDY;
@@ -7743,7 +7759,7 @@ void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnS
 
   AE_StackUndoGroupStop(ae);
   AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
-  if (!AE_InsertText(ae, &ae->ciSelStartIndex, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, 0, &ciStart, &ciEnd))
+  if (!AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, ae->nInputNewLine, bColumnSel, 0, &ciStart, &ciEnd))
   {
     //Set caret position
     AE_ScrollToCaret(ae, &ae->ptCaret);
@@ -9294,7 +9310,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
       if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) break;
       if (!dwBufDone) break;
       dwResult+=dwBufDone;
-      AE_InsertText(ae, &ae->ciSelStartIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, aes->bColumnSel, dwInsertFlags, NULL, NULL);
+      AE_InsertText(ae, &ae->ciCaretIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, aes->bColumnSel, dwInsertFlags, NULL, NULL);
     }
 
     if (dwFlags & AESF_SELECTION)
@@ -10110,7 +10126,7 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
       }
       MultiByteToWideChar(CP_ACP, 0, &chChar, 1, &wchChar, 1);
       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
-      AE_InsertText(ae, &ae->ciSelStartIndex, &wchChar, 1, ae->nInputNewLine, FALSE, 0, NULL, NULL);
+      AE_InsertText(ae, &ae->ciCaretIndex, &wchChar, 1, ae->nInputNewLine, FALSE, 0, NULL, NULL);
 
       if (!ae->bLockCollectUndo)
       {
@@ -10142,7 +10158,7 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
         }
       }
       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
-      AE_InsertText(ae, &ae->ciSelStartIndex, &wchChar, 1, ae->nInputNewLine, FALSE, 0, NULL, NULL);
+      AE_InsertText(ae, &ae->ciCaretIndex, &wchChar, 1, ae->nInputNewLine, FALSE, 0, NULL, NULL);
 
       if (!ae->bLockCollectUndo)
       {
@@ -10163,12 +10179,15 @@ void AE_EditKeyReturn(AKELEDIT *ae)
 {
   if (!(ae->dwOptions & AECO_READONLY))
   {
+    AECHARINDEX ciCharIndex;
     wchar_t *wpNewLine;
     int nNewLine;
 
     nNewLine=AE_GetNewLineString(ae, ae->nOutputNewLine, &wpNewLine);
     AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
-    AE_InsertText(ae, &ae->ciSelStartIndex, wpNewLine, nNewLine, ae->nInputNewLine, FALSE, 0, NULL, NULL);
+    ciCharIndex=ae->ciCaretIndex;
+    ciCharIndex.nCharInLine=min(ciCharIndex.nCharInLine, ciCharIndex.lpLine->nLineLen);
+    AE_InsertText(ae, &ciCharIndex, wpNewLine, nNewLine, ae->nInputNewLine, FALSE, 0, NULL, NULL);
 
     if (!ae->bLockCollectUndo)
     {
@@ -10192,7 +10211,7 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
 
     if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
     {
-      if (ae->bColumnSel)
+      if (ae->bColumnSel || (ae->dwOptions & AECO_CARETOUTEDGE))
       {
         if (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nLineLen)
         {
@@ -10234,14 +10253,16 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
   if (!(ae->dwOptions & AECO_READONLY))
   {
     AECHARINDEX ciCharIndex=ae->ciCaretIndex;
+    int nSpaces=0;
 
     if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
     {
-      if (ae->bColumnSel)
+      if (ae->bColumnSel || (ae->dwOptions & AECO_CARETOUTEDGE))
       {
         wchar_t *wpSpaces;
-        int nSpaces=ciCharIndex.nCharInLine - ciCharIndex.lpLine->nLineLen;
         int i;
+
+        nSpaces=ciCharIndex.nCharInLine - ciCharIndex.lpLine->nLineLen;
 
         if (nSpaces > 0)
         {
@@ -10252,6 +10273,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
             wpSpaces[nSpaces]=L'\0';
 
             ciCharIndex.nCharInLine=min(ciCharIndex.nCharInLine, ciCharIndex.lpLine->nLineLen);
+            AE_StackUndoGroupStop(ae);
             AE_InsertText(ae, &ciCharIndex, wpSpaces, nSpaces, AELB_ASIS, FALSE, 0, NULL, NULL);
 
             AE_HeapFree(ae, 0, (LPVOID)wpSpaces);
@@ -10262,7 +10284,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
       if ((bControl && AE_GetNextWord(ae, &ae->ciSelStartIndex, NULL, &ciCharIndex, FALSE, ae->dwWordBreak, FALSE)) ||
           (!bControl && AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
       {
-        AE_StackUndoGroupStop(ae);
+        if (!nSpaces) AE_StackUndoGroupStop(ae);
         AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, 0);
         AE_StackUndoGroupStop(ae);
 
@@ -10314,14 +10336,14 @@ void AE_AkelEditSetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
 {
   if (!lpciCaret)
   {
-    if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+    if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
       AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, aes->bColumnSel, 0);
     else
       AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, aes->bColumnSel, 0);
   }
   else
   {
-    if (!AE_IndexCompare(&aes->crSel.ciMax, lpciCaret))
+    if (AE_IndexCompare(lpciCaret, &aes->crSel.ciMax) >= 0)
       AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, aes->bColumnSel, 0);
     else
       AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, aes->bColumnSel, 0);
@@ -10341,7 +10363,7 @@ void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel)
   AE_RichOffsetToAkelIndex(ae, nMin, &cr.ciMin);
   AE_RichOffsetToAkelIndex(ae, nMax, &cr.ciMax);
 
-  if (!AE_IndexCompare(&ae->ciSelEndIndex, &ae->ciCaretIndex))
+  if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
     AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, bColumnSel, 0);
   else
     AE_SetSelectionPos(ae, &cr.ciMin, &cr.ciMax, bColumnSel, 0);

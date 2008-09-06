@@ -9330,11 +9330,11 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
     SetSel(hWnd, &ft.crFound, FALSE, NULL);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AECS_UNITCHARX|AECS_UNITCHARY, MAKELONG(1, 1));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
     if (dwScrollResult & AECSE_SCROLLEDX)
-      dwScrollFlags|=AECS_UNITRECTDIVX;
+      dwScrollFlags|=AESC_UNITRECTDIVX;
     if (dwScrollResult & AECSE_SCROLLEDY)
-      dwScrollFlags|=AECS_UNITRECTDIVY;
+      dwScrollFlags|=AESC_UNITRECTDIVY;
     SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
@@ -9381,11 +9381,11 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
     SetSel(hWnd, &ft.crFound, FALSE, NULL);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AECS_UNITCHARX|AECS_UNITCHARY, MAKELONG(1, 1));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
     if (dwScrollResult & AECSE_SCROLLEDX)
-      dwScrollFlags|=AECS_UNITRECTDIVX;
+      dwScrollFlags|=AESC_UNITRECTDIVX;
     if (dwScrollResult & AECSE_SCROLLEDY)
-      dwScrollFlags|=AECS_UNITRECTDIVY;
+      dwScrollFlags|=AESC_UNITRECTDIVY;
     SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
