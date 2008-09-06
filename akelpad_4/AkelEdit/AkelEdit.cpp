@@ -1999,7 +1999,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bControl)
           {
-            AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciCharOut, bAlt);
+            //First fully visible line
+            ciCharOut.nLine=AE_GetFirstVisibleLine(ae);
+            if (ciCharOut.nLine * ae->nCharHeight < ae->nVScrollPos)
+               ciCharOut.nLine=min(ciCharOut.nLine + 1, ae->nLineCount);
+            ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
+            ciCharOut.nCharInLine=0;
           }
           else
           {
@@ -2022,7 +2027,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bControl)
           {
-            AE_GetIndex(ae, AEGI_LASTVISIBLELINE, NULL, &ciCharOut, bAlt);
+            //Last fully visible line
+            ciCharOut.nLine=AE_GetLastVisibleLine(ae);
+            if (ciCharOut.nLine * ae->nCharHeight + ae->nCharHeight > ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top))
+               ciCharOut.nLine=max(ciCharOut.nLine - 1, 0);
+            ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
+            ciCharOut.nCharInLine=ciCharOut.lpLine->nLineLen;
           }
           else
           {
