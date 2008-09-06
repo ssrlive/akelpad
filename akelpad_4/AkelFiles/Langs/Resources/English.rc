@@ -359,7 +359,7 @@ END
 
 IDD_OFN DIALOGEX 0, 0, 285, 100
 STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "&Codepage:",IDC_OFN_CODEPAGE_LABEL,5,4,40,8
     COMBOBOX        IDC_OFN_CODEPAGE,53,2,155,130,CBS_DROPDOWNLIST | 
@@ -650,12 +650,15 @@ BEGIN
     CONTROL         "Delimiters:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,136,89,10
     EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,148,172,13,ES_AUTOHSCROLL
+    CONTROL         "Allow caret moving out of the line edge",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,178,200,10
     CONTROL         "Replace all - closes dialog",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,178,200,10
+                    WS_TABSTOP,9,190,200,10
     CONTROL         "Save in read-only files warning",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,190,200,10
+                    WS_TABSTOP,9,202,200,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

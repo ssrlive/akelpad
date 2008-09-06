@@ -259,13 +259,14 @@ int nTabStopSize=EDIT_TABSTOPS;
 BOOL bTabStopAsSpaces=FALSE;
 int nUndoLimit=EDIT_UNDOLIMIT;
 BOOL bDetailedUndo=FALSE;
+DWORD dwEditMargins=EDIT_MARGINS;
 BOOL bShowURL=FALSE;
+int nClickURL=2;
 wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE]=URL_PREFIXESW;
 BOOL bUrlPrefixesEnable=FALSE;
 wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE]=URL_DELIMITERSW;
 BOOL bUrlDelimitersEnable=FALSE;
-int nClickURL=2;
-DWORD dwEditMargins=EDIT_MARGINS;
+BOOL bCaretOutEdge=FALSE;
 FILETIME ftFileTime={0};
 WNDPROC OldEditProc;
 
@@ -5370,6 +5371,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bShowURL=bShowURL;
       lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
+      lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
       SetWindowLongA(hWnd, GWL_USERDATA, (LONG)lpWndFrameA);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5498,6 +5500,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bShowURL=bShowURL;
             lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
+            lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
           }
         }
         //Handles
@@ -5528,6 +5531,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bShowURL=lpWndFrameA->bShowURL;
           bUrlPrefixesEnable=lpWndFrameA->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameA->bUrlDelimitersEnable;
+          bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
         }
 
         //Update selection
@@ -5597,6 +5601,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bShowURL=bShowURL;
       lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
+      lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
       SetWindowLongW(hWnd, GWL_USERDATA, (LONG)lpWndFrameW);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5725,6 +5730,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bShowURL=bShowURL;
             lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
+            lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
           }
         }
         //Handles
@@ -5755,6 +5761,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bShowURL=lpWndFrameW->bShowURL;
           bUrlPrefixesEnable=lpWndFrameW->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameW->bUrlDelimitersEnable;
+          bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
         }
 
         //Update selection
