@@ -217,6 +217,7 @@ typedef struct _WNDFRAMEA {
   BOOL bShowURL;              //Show URL
   BOOL bUrlPrefixesEnable;    //URL prefixes enable (4.x only)
   BOOL bUrlDelimitersEnable;  //URL delimiters enable (4.x only)
+  BOOL bCaretOutEdge;         //Allow caret moving out of the line edge (4.x only)
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -235,6 +236,7 @@ typedef struct _WNDFRAMEW {
   BOOL bShowURL;              //Show URL
   BOOL bUrlPrefixesEnable;    //URL prefixes enable (4.x only)
   BOOL bUrlDelimitersEnable;  //URL delimiters enable (4.x only)
+  BOOL bCaretOutEdge;         //Allow caret moving out of the line edge (4.x only)
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
