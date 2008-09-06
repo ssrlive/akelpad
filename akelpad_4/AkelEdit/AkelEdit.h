@@ -56,6 +56,7 @@
 #define AECO_PASTESELECTCOLUMN  0x00000040  //Selects pasted text in column mode.
 #define AECO_DISABLEDRAG        0x00000080  //Disables OLE text dragging.
 #define AECO_DISABLEDROP        0x00000100  //Disables OLE text dropping.
+#define AECO_CARETOUTEDGE       0x00000200  //Allow caret moving out of the line edge.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -135,16 +136,16 @@
                               AECLR_URLTEXT)
 
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
-#define AECS_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number
-#define AECS_UNITPIXELY      0x00000002  //High word of the lParam specifies pixels number
-#define AECS_UNITCHARX       0x00000004  //Low word of the lParam specifies characters number
-#define AECS_UNITCHARY       0x00000008  //High word of the lParam specifies characters number
-#define AECS_UNITRECTDIVX    0x00000010  //Low word of the lParam specifies divisor of the edit rect width
-#define AECS_UNITRECTDIVY    0x00000020  //High word of the lParam specifies divisor of the edit rect width
-#define AECS_FORCELEFT       0x00000040  //Scrolls to the left even if caret visible
-#define AECS_FORCETOP        0x00000080  //Scrolls to the top even if caret visible
-#define AECS_FORCERIGHT      0x00000100  //Scrolls to the right even if caret visible
-#define AECS_FORCEBOTTOM     0x00000200  //Scrolls to the bottom even if caret visible
+#define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number
+#define AESC_UNITPIXELY      0x00000002  //High word of the lParam specifies pixels number
+#define AESC_UNITCHARX       0x00000004  //Low word of the lParam specifies characters number
+#define AESC_UNITCHARY       0x00000008  //High word of the lParam specifies characters number
+#define AESC_UNITRECTDIVX    0x00000010  //Low word of the lParam specifies divisor of the edit rect width
+#define AESC_UNITRECTDIVY    0x00000020  //High word of the lParam specifies divisor of the edit rect width
+#define AESC_FORCELEFT       0x00000040  //Scrolls to the left even if caret visible
+#define AESC_FORCETOP        0x00000080  //Scrolls to the top even if caret visible
+#define AESC_FORCERIGHT      0x00000100  //Scrolls to the right even if caret visible
+#define AESC_FORCEBOTTOM     0x00000200  //Scrolls to the bottom even if caret visible
 
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST return flags
 #define AECSE_SCROLLEDX      0x00000001  //Edit control was horizontally scrolled
@@ -1879,7 +1880,7 @@ _______________
 
 Scroll the caret into view in an edit control.
 
-(DWORD)wParam == see AECS_* defines.
+(DWORD)wParam == see AESC_* defines.
 (DWORD)lParam == the low-order word contains the horizontal scroll unit,
                  the high-order word contains the vertical scroll unit.
 
@@ -1887,7 +1888,7 @@ Return Value
  See AECSE_* defines.
 
 Example:
- SendMessage(hWndEdit, AEM_SCROLLCARET, AECS_UNITCHARX|AECS_UNITCHARY, MAKELONG(1, 1));
+ SendMessage(hWndEdit, AEM_SCROLLCARET, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
 
 
 AEM_SCROLLCARETTEST
@@ -1895,7 +1896,7 @@ ___________________
 
 Same as AEM_SCROLLCARET, but only test for scroll.
 
-(DWORD)wParam == see AECS_* defines.
+(DWORD)wParam == see AESC_* defines.
 (DWORD)lParam == the low-order word contains the horizontal scroll unit,
                  the high-order word contains the vertical scroll unit.
 
@@ -1903,7 +1904,7 @@ Return Value
  See AECSE_* defines.
 
 Example:
- SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AECS_UNITCHARX|AECS_UNITCHARY, MAKELONG(1, 1));
+ SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
 
 
 AEM_LOCKSCROLL
