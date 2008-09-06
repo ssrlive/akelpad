@@ -2009,7 +2009,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
             }
           }
         }
@@ -2030,7 +2030,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt);
+              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
             }
           }
         }
