@@ -1,6 +1,8 @@
 
 AkelPad 4.0.5 ()
 ----------------------------
+Changed: improved PageUp/PageDown text navigation.
+
 Added: option for caret moving out of the line edge.
 
 Fixed: extended hotkey didn't working.

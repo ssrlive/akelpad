@@ -2007,9 +2007,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (ciCharIn.nLine != ciCharOut.nLine)
             {
-              AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
               AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
+
+              if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
+                AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->nCharHeight - (ciCharIn.nLine * ae->nCharHeight - ae->nVScrollPos));
             }
           }
         }
@@ -2028,9 +2030,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (ciCharIn.nLine != ciCharOut.nLine)
             {
-              AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top));
               AE_UpdateIndex(ae, &ciCharOut);
               AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
+
+              if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
+                AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->nCharHeight - (ciCharIn.nLine * ae->nCharHeight - ae->nVScrollPos));
             }
           }
         }
