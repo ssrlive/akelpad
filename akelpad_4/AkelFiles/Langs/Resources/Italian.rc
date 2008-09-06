@@ -662,12 +662,15 @@ BEGIN
     CONTROL         "Delimiters:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,136,89,10
     EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,148,172,13,ES_AUTOHSCROLL
+    CONTROL         "Allow caret moving out of the line edge",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,178,200,10
     CONTROL         "Sostituisci tutto - chiudi la finestra",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,178,200,10
+                    WS_TABSTOP,9,190,200,10
     CONTROL         "Chiedi conferma se si salva un file in sola-lettura",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,190,200,10
+                    WS_TABSTOP,9,202,200,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
