@@ -15791,6 +15791,8 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
       //Allow caret moving out of the line edge
       bCaretOutEdge=SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
+      SendMessage(hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
 
       //ReplaceAll and close dialog
       bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
@@ -15966,6 +15968,7 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       //Allow caret moving out of the line edge
       bCaretOutEdge=SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0);
       SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
+      SendMessage(hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
 
       //ReplaceAll and close dialog
       bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
