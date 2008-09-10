@@ -9289,7 +9289,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 {
   wchar_t *wszBuf;
   int nNewLine=aes->nNewLine;
-  DWORD dwBufLen=4096;
+  DWORD dwBufLen=2048;
   DWORD dwBufDone;
   DWORD dwInsertFlags;
   DWORD dwResult=0;
@@ -9349,7 +9349,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
   wchar_t *wszBuf;
   int nNewLine=aes->nNewLine;
   int nLineBreak;
-  DWORD dwBufLen=4096;
+  DWORD dwBufLen=2048;
   DWORD dwBufCount=0;
   DWORD dwResult=0;
 
