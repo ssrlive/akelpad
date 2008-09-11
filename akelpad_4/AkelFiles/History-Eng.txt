@@ -1,6 +1,7 @@
 
 AkelPad 4.0.6 ()
 --------------------------
+Changed: backward compatibility with RichEdit is improved.
 Changed: tabulation width calculated from space width.
 
 Fixed: saving in UTF-8.
