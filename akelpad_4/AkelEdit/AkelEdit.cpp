@@ -755,7 +755,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ae->nTabStop != (int)wParam)
         {
           ae->nTabStop=wParam;
-          ae->nTabWidth=ae->nAveCharWidth * ae->nTabStop;
+          ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
 
           AE_CalcLinesWidth(ae, NULL, NULL, TRUE);
           ae->ptCaret.x=0;
@@ -4582,9 +4582,9 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
   GetTextExtentPoint32A(ae->hDC, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeAverageWidth);
   ae->nAveCharWidth=sizeAverageWidth.cx / 52;
-  ae->nTabWidth=ae->nAveCharWidth * ae->nTabStop;
   GetTextExtentPoint32A(ae->hDC, " ", 1, &sizeAverageWidth);
   ae->nSpaceCharWidth=sizeAverageWidth.cx;
+  ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
 
   InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 }
@@ -4623,9 +4623,9 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
   GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeAverageWidth);
   ae->nAveCharWidth=sizeAverageWidth.cx / 52;
-  ae->nTabWidth=ae->nAveCharWidth * ae->nTabStop;
   GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeAverageWidth);
   ae->nSpaceCharWidth=sizeAverageWidth.cx;
+  ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
 
   InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 }
