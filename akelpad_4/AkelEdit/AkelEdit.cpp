@@ -1739,6 +1739,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bShift=FALSE;
       BOOL bControl=FALSE;
       BOOL bRedrawAllSelection=FALSE;
+      BOOL bSetHorizCaretPos=TRUE;
 
       if (ae->dwRichEventMask & ENM_KEYEVENTS)
         if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
@@ -1906,7 +1907,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ciCharOut.nLine=ciCharIn.nLine;
             ciCharOut.lpLine=ciCharIn.lpLine;
             ciCharOut.nCharInLine=0;
-         }
+          }
         }
         else if (wParam == VK_END)
         {
@@ -1973,10 +1974,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, bAlt))
           {
-            if (bControl)
-              nHorizCaretPos=ae->nHScrollPos;
-            else
+            if (!bControl)
+            {
               AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
+              bSetHorizCaretPos=FALSE;
+            }
           }
         }
         else if (wParam == VK_DOWN)
@@ -1986,10 +1988,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIn, &ciCharOut, bAlt))
           {
-            if (bControl)
-              nHorizCaretPos=ae->nHScrollPos;
-            else
+            if (!bControl)
+            {
               AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->dwOptions & AECO_CARETOUTEDGE));
+              bSetHorizCaretPos=FALSE;
+            }
           }
         }
         else if (wParam == VK_PRIOR)
@@ -2018,6 +2021,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
                 AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->nCharHeight - (ciCharIn.nLine * ae->nCharHeight - ae->nVScrollPos));
             }
+            bSetHorizCaretPos=FALSE;
           }
         }
         else if (wParam == VK_NEXT)
@@ -2046,6 +2050,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
                 AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->nCharHeight - (ciCharIn.nLine * ae->nCharHeight - ae->nVScrollPos));
             }
+            bSetHorizCaretPos=FALSE;
           }
         }
 
@@ -2078,10 +2083,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         //Set horizontal caret
-        if (wParam == VK_UP ||
-            wParam == VK_DOWN ||
-            wParam == VK_PRIOR ||
-            wParam == VK_NEXT)
+        if (!bSetHorizCaretPos)
         {
           ae->nHorizCaretPos=nHorizCaretPos;
         }
