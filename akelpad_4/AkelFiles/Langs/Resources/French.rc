@@ -129,9 +129,9 @@ BEGIN
                                                 IDM_OPTIONS_WATCHFILE
         MENUITEM "Ne pas changer la da&te et l'heure des fichiers", 
                                                 IDM_OPTIONS_SAVETIME
-        MENUITEM "Ne pas ouvrir un &fichier deux fois", 
+        MENUITEM "Ne pas réouvrir le même &fichier", 
                                                 IDM_OPTIONS_SINGLEOPEN_FILE
-        MENUITEM "Ne pas ouvrir un &programme deux fois", 
+        MENUITEM "Ne pas ouvrir le &programme plusieurs fois", 
                                                 IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
         MENUITEM SEPARATOR
@@ -655,13 +655,13 @@ BEGIN
                     BS_AUTORADIOBUTTON,23,78,75,10
     CONTROL         "Double clic",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
                     BS_AUTORADIOBUTTON,23,89,75,10
-    CONTROL         "Prefixes:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
+    CONTROL         "Préfixes:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,105,89,10
     EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,117,172,13,ES_AUTOHSCROLL
-    CONTROL         "Delimiters:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
+    CONTROL         "Délimiteurs:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,136,89,10
     EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,148,172,13,ES_AUTOHSCROLL
-    CONTROL         "Allow caret moving out of the line edge",
+    CONTROL         "Autoriser le curseur à dépasser la fin de ligne",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,178,200,10
     CONTROL         "Remplacer tout - ferme le dialogue",
