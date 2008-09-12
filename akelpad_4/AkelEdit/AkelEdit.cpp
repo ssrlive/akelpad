@@ -2007,7 +2007,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (ciCharOut.nLine * ae->nCharHeight < ae->nVScrollPos)
                ciCharOut.nLine=min(ciCharOut.nLine + 1, ae->nLineCount);
             ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
-            ciCharOut.nCharInLine=0;
+            if (bAlt || (ae->dwOptions & AECO_CARETOUTEDGE))
+              ciCharOut.nCharInLine=ciCharIn.nCharInLine;
+            else
+              ciCharOut.nCharInLine=0;
           }
           else
           {
@@ -2036,7 +2039,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (ciCharOut.nLine * ae->nCharHeight + ae->nCharHeight > ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top))
                ciCharOut.nLine=max(ciCharOut.nLine - 1, 0);
             ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
-            ciCharOut.nCharInLine=ciCharOut.lpLine->nLineLen;
+            if (bAlt || (ae->dwOptions & AECO_CARETOUTEDGE))
+              ciCharOut.nCharInLine=ciCharIn.nCharInLine;
+            else
+              ciCharOut.nCharInLine=ciCharOut.lpLine->nLineLen;
           }
           else
           {
