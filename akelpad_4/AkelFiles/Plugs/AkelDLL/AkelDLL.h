@@ -145,7 +145,7 @@ typedef struct _OPENDOCUMENTA {
   HWND hWnd;                   //Window to fill in, NULL for current edit window
   char szFile[MAX_PATH];       //File to open
   char szWorkDir[MAX_PATH];    //Set working directory before open, if (!*szWorkDir) then don't set
-  DWORD dwFlags;               //open flags. See OD_ADT_* defines
+  DWORD dwFlags;               //Open flags. See OD_ADT_* defines
   int nCodePage;               //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
   BOOL bBOM;                   //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
 } OPENDOCUMENTA;
@@ -154,7 +154,7 @@ typedef struct _OPENDOCUMENTW {
   HWND hWnd;                     //Window to fill in, NULL for current edit window
   wchar_t wszFile[MAX_PATH];     //File to open
   wchar_t wszWorkDir[MAX_PATH];  //Set working directory before open, if (!*wszWorkDir) then don't set
-  DWORD dwFlags;                 //open flags. See OD_ADT_* defines
+  DWORD dwFlags;                 //Open flags. See OD_ADT_* defines
   int nCodePage;                 //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
   BOOL bBOM;                     //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
 } OPENDOCUMENTW;
