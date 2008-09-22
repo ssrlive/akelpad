@@ -2113,7 +2113,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_EditChar(ae, wParam);
         return 0;
       }
-      return 0;
     }
     else if (uMsg == WM_DEADCHAR ||
              uMsg == WM_SYSCHAR ||
