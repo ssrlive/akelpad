@@ -4950,7 +4950,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
         API_LoadStringA(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
         wsprintfA(buf2, buf, szCurrentFile);
-        MessageBoxA(NULL, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+        MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
       }
       else if (GetFileWriteTimeA(szCurrentFile, &ftTmp))
       {
@@ -5131,7 +5131,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
         API_LoadStringW(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
         wsprintfW(wbuf2, wbuf, wszCurrentFile);
-        MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
       else if (GetFileWriteTimeW(wszCurrentFile, &ftTmp))
       {
