@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.6                                 *
+ *                      AkelEdit text control v1.7                                 *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1754,11 +1754,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (wParam == VK_TAB)
       {
-        if (!bAlt)
+        if (!bAlt && bControl)
         {
           AE_EditChar(ae, VK_TAB);
+          return 0;
         }
-        return 0;
       }
       if (wParam == VK_RETURN)
       {
@@ -4558,8 +4558,13 @@ void AE_SetDrawRect(AKELEDIT *ae, RECT *lprcDraw, BOOL bRedraw)
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
   TEXTMETRICA tmEdit;
-  SIZE sizeAverageWidth;
+  SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
+  wchar_t *wpAlphabet=L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  int nAlphabetLen=52;
+  int nAlphabetWidth=0;
+  int nPrevCharWidth=0;
+  int i;
 
   ae->hFont=hFont;
 
@@ -4585,12 +4590,39 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
   GetTextMetricsA(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
-  ae->bFixedCharWidth=!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH);
+  if (!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH) &&
+       (tmEdit.tmCharSet != GB2312_CHARSET ||
+        tmEdit.tmCharSet != SHIFTJIS_CHARSET ||
+        tmEdit.tmCharSet != HANGUL_CHARSET ||
+        tmEdit.tmCharSet != VIETNAMESE_CHARSET))
+  {
+    ae->bFixedCharWidth=TRUE;
+  }
+  else
+  {
+    //Some fonts with CJKV characters (Chinese, Japanese, Korean, Vietnamese) have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
+    ae->bFixedCharWidth=FALSE;
+  }
 
-  GetTextExtentPoint32A(ae->hDC, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeAverageWidth);
-  ae->nAveCharWidth=sizeAverageWidth.cx / 52;
-  GetTextExtentPoint32A(ae->hDC, " ", 1, &sizeAverageWidth);
-  ae->nSpaceCharWidth=sizeAverageWidth.cx;
+  for (i=0; i < nAlphabetLen; ++i)
+  {
+    if (GetTextExtentPoint32W(ae->hDC, &wpAlphabet[i], 1, &sizeWidth))
+    {
+      if (nPrevCharWidth)
+      {
+        if (nPrevCharWidth != sizeWidth.cx)
+        {
+          //Some fonts have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
+          ae->bFixedCharWidth=FALSE;
+        }
+      }
+      nPrevCharWidth=sizeWidth.cx;
+      nAlphabetWidth+=sizeWidth.cx;
+    }
+  }
+  ae->nAveCharWidth=nAlphabetWidth / nAlphabetLen;
+  GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeWidth);
+  ae->nSpaceCharWidth=sizeWidth.cx;
   ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
 
   InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
@@ -4599,8 +4631,13 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
   TEXTMETRICW tmEdit;
-  SIZE sizeAverageWidth;
+  SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
+  wchar_t *wpAlphabet=L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  int nAlphabetLen=52;
+  int nAlphabetWidth=0;
+  int nPrevCharWidth=0;
+  int i;
 
   ae->hFont=hFont;
 
@@ -4626,12 +4663,39 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
   GetTextMetricsW(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
-  ae->bFixedCharWidth=!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH);
+  if (!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH) &&
+       (tmEdit.tmCharSet != GB2312_CHARSET ||
+        tmEdit.tmCharSet != SHIFTJIS_CHARSET ||
+        tmEdit.tmCharSet != HANGUL_CHARSET ||
+        tmEdit.tmCharSet != VIETNAMESE_CHARSET))
+  {
+    ae->bFixedCharWidth=TRUE;
+  }
+  else
+  {
+    //Some fonts with CJKV characters (Chinese, Japanese, Korean, Vietnamese) have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
+    ae->bFixedCharWidth=FALSE;
+  }
 
-  GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeAverageWidth);
-  ae->nAveCharWidth=sizeAverageWidth.cx / 52;
-  GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeAverageWidth);
-  ae->nSpaceCharWidth=sizeAverageWidth.cx;
+  for (i=0; i < nAlphabetLen; ++i)
+  {
+    if (GetTextExtentPoint32W(ae->hDC, &wpAlphabet[i], 1, &sizeWidth))
+    {
+      if (nPrevCharWidth)
+      {
+        if (nPrevCharWidth != sizeWidth.cx)
+        {
+          //Some fonts have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
+          ae->bFixedCharWidth=FALSE;
+        }
+      }
+      nPrevCharWidth=sizeWidth.cx;
+      nAlphabetWidth+=sizeWidth.cx;
+    }
+  }
+  ae->nAveCharWidth=nAlphabetWidth / nAlphabetLen;
+  GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeWidth);
+  ae->nSpaceCharWidth=sizeWidth.cx;
   ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
 
   InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
@@ -6163,8 +6227,6 @@ int AE_GetLastVisibleLine(AKELEDIT *ae)
 
 BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SIZE *lpSize)
 {
-/*
-  //Some fonts have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
   if (ae->bFixedCharWidth)
   {
     lpSize->cx=ae->nAveCharWidth * nStringLen;
@@ -6172,7 +6234,6 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SI
     return TRUE;
   }
   else
-*/
   {
     return GetTextExtentPoint32W(ae->hDC, wpString, nStringLen, lpSize);
   }
