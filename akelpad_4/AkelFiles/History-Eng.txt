@@ -1,5 +1,5 @@
 
-AkelPad 4.0.7 ()
+AkelPad 4.0.7 (Oct 07, 2008)
 ----------------------------
 Changed: speed of files processing with monospaced font is increased (exception is CJKV
          character sets).
