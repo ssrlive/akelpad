@@ -6788,8 +6788,7 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       }
       else
       {
-        pt.x=LOWORD(lParam);
-        pt.y=HIWORD(lParam);
+        GetCursorPos(&pt);
       }
       GetSel((HWND)wParam, &cr, NULL, NULL);
       EnableMenuItem(hPopupView, IDM_EDIT_COPY, AEC_IndexCompare(&cr.ciMin, &cr.ciMax)?MF_ENABLED:MF_GRAYED);
@@ -7014,8 +7013,7 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       }
       else
       {
-        pt.x=LOWORD(lParam);
-        pt.y=HIWORD(lParam);
+        GetCursorPos(&pt);
       }
       GetSel((HWND)wParam, &cr, NULL, NULL);
       EnableMenuItem(hPopupView, IDM_EDIT_COPY, AEC_IndexCompare(&cr.ciMin, &cr.ciMax)?MF_ENABLED:MF_GRAYED);
