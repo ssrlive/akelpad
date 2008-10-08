@@ -1,4 +1,9 @@
 
+AkelPad 3.6.3 ()
+----------------------------
+Fixed: context menu on two monitors.
+
+
 AkelPad 3.6.2 (Oct 07, 2008)
 ----------------------------
 Fixed: extended hotkey didn't working.
