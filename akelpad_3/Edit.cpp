@@ -6626,8 +6626,7 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       }
       else
       {
-        pt.x=LOWORD(lParam);
-        pt.y=HIWORD(lParam);
+        GetCursorPos(&pt);
       }
       SendMessage((HWND)wParam, EM_EXGETSEL, 0, (LPARAM)&cr);
       EnableMenuItem(hPopupView, IDM_EDIT_COPY, (cr.cpMin < cr.cpMax)?MF_ENABLED:MF_GRAYED);
@@ -6845,8 +6844,7 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       }
       else
       {
-        pt.x=LOWORD(lParam);
-        pt.y=HIWORD(lParam);
+        GetCursorPos(&pt);
       }
       SendMessage((HWND)wParam, EM_EXGETSEL, 0, (LPARAM)&cr);
       EnableMenuItem(hPopupView, IDM_EDIT_COPY, (cr.cpMin < cr.cpMax)?MF_ENABLED:MF_GRAYED);

@@ -4862,8 +4862,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       }
       else
       {
-        pt.x=LOWORD(lParam);
-        pt.y=HIWORD(lParam);
+        GetCursorPos(&pt);
       }
 
       ncm.hWnd=hWndEdit;
@@ -5025,8 +5024,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       }
       else
       {
-        pt.x=LOWORD(lParam);
-        pt.y=HIWORD(lParam);
+        GetCursorPos(&pt);
       }
 
       ncm.hWnd=hWndEdit;
@@ -6139,8 +6137,8 @@ LRESULT CALLBACK NewTabProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nItem;
       int i;
 
-      pt.x=thti.pt.x=LOWORD(lParam);
-      pt.y=thti.pt.y=HIWORD(lParam);
+      GetCursorPos(&pt);
+      thti.pt=pt;
       ScreenToClient(hWnd, &thti.pt);
       nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
 
@@ -6276,8 +6274,8 @@ LRESULT CALLBACK NewTabProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nItem;
       int i;
 
-      pt.x=thti.pt.x=LOWORD(lParam);
-      pt.y=thti.pt.y=HIWORD(lParam);
+      GetCursorPos(&pt);
+      thti.pt=pt;
       ScreenToClient(hWnd, &thti.pt);
       nItem=SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
 
