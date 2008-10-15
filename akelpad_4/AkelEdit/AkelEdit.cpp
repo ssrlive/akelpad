@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.7                                 *
+ *                      AkelEdit text control v1.8                                 *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1134,13 +1134,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_EMPTYUNDOBUFFER)
     {
-      if (!ae->lpSavePoint)
-      {
-        ae->lpSavePoint=NULL;
-        ae->bSavePointExist=FALSE;
-      }
-      AE_StackRedoDeleteAll(ae, NULL);
-      ae->lpCurrentUndo=NULL;
+      AE_EmptyUndoBuffer(ae);
       return 0;
     }
     if (uMsg == EM_STOPGROUPTYPING)
