@@ -3,7 +3,7 @@
 
 CC = g++
 CFLAGS = -Wall -Os
-LDFLAGS = -mwindows -e __WinMain -lkernel32 -luser32 -lgdi32 -ladvapi32 -lshell32 -lcomctl32 -lcomdlg32 -lole32 -luuid -lversion
+LDFLAGS = -mwindows -e __WinMain -lkernel32 -luser32 -lgdi32 -ladvapi32 -lshell32 -lcomctl32 -lcomdlg32 -lole32 -luuid -limm32 -lversion
 DEFINES = -D STATIC_BUILD
 ifndef LANG
   LANG = English
