@@ -6,8 +6,12 @@
  * License: this source is distributed under "BSD license" conditions.             *
  ***********************************************************************************/
 
+
+//// Includes
+
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <imm.h>
 #include "AkelBuild.h"
 #include "Resources\resource.h"
 
@@ -2117,6 +2121,47 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (ae->dwRichEventMask & ENM_KEYEVENTS)
         if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
           return 0;
+    }
+    else if (uMsg == WM_IME_STARTCOMPOSITION)
+    {
+      if (!ae->bUnicodeWindow)
+      {
+        COMPOSITIONFORM cf;
+        HIMC hIMC;
+        LOGFONTA lfA;
+
+        if (hIMC=ImmGetContext(ae->hWndEdit))
+        {
+          cf.dwStyle=CFS_POINT;
+          cf.ptCurrentPos.x=ae->rcDraw.left + ae->ptCaret.x;
+          cf.ptCurrentPos.y=ae->rcDraw.top + ae->ptCaret.y;
+          ImmSetCompositionWindow(hIMC, &cf);
+
+          GetObjectA(ae->hFont, sizeof(LOGFONTA), &lfA);
+          ImmSetCompositionFontA(hIMC, &lfA);
+
+          ImmReleaseContext(ae->hWndEdit, hIMC);
+        }
+      }
+      else
+      {
+        COMPOSITIONFORM cf;
+        HIMC hIMC;
+        LOGFONTW lfW;
+
+        if (hIMC=ImmGetContext(ae->hWndEdit))
+        {
+          cf.dwStyle=CFS_POINT;
+          cf.ptCurrentPos.x=ae->rcDraw.left + ae->ptCaret.x;
+          cf.ptCurrentPos.y=ae->rcDraw.top + ae->ptCaret.y;
+          ImmSetCompositionWindow(hIMC, &cf);
+
+          GetObjectW(ae->hFont, sizeof(LOGFONTW), &lfW);
+          ImmSetCompositionFontW(hIMC, &lfW);
+
+          ImmReleaseContext(ae->hWndEdit, hIMC);
+        }
+      }
     }
     else if (uMsg == WM_HSCROLL)
     {
@@ -4585,9 +4630,9 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   GetTextMetricsA(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
   if (!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH) &&
-       (tmEdit.tmCharSet != GB2312_CHARSET ||
-        tmEdit.tmCharSet != SHIFTJIS_CHARSET ||
-        tmEdit.tmCharSet != HANGUL_CHARSET ||
+       (tmEdit.tmCharSet != GB2312_CHARSET &&
+        tmEdit.tmCharSet != SHIFTJIS_CHARSET &&
+        tmEdit.tmCharSet != HANGUL_CHARSET &&
         tmEdit.tmCharSet != VIETNAMESE_CHARSET))
   {
     ae->bFixedCharWidth=TRUE;
@@ -4658,9 +4703,9 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   GetTextMetricsW(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
   if (!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH) &&
-       (tmEdit.tmCharSet != GB2312_CHARSET ||
-        tmEdit.tmCharSet != SHIFTJIS_CHARSET ||
-        tmEdit.tmCharSet != HANGUL_CHARSET ||
+       (tmEdit.tmCharSet != GB2312_CHARSET &&
+        tmEdit.tmCharSet != SHIFTJIS_CHARSET &&
+        tmEdit.tmCharSet != HANGUL_CHARSET &&
         tmEdit.tmCharSet != VIETNAMESE_CHARSET))
   {
     ae->bFixedCharWidth=TRUE;
