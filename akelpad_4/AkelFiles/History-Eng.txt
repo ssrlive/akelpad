@@ -1,6 +1,8 @@
 
 AkelPad 4.0.8 ()
 ----------------------------
+Changed: improved work with Input Method Editors (IME).
+
 Fixed: context menu on two monitors.
 
 
