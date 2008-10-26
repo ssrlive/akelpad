@@ -289,7 +289,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       GetClientRect(ae->hWndEdit, &ae->rcEdit);
       AE_SetDrawRect(ae, NULL, FALSE);
-      ae->lpCharWidths=(int *)AE_HeapAlloc(NULL, 0, sizeof(int) * 65535);
+      ae->lpCharWidths=(int *)AE_HeapAlloc(NULL, 0, AEFONT_MAX_CHAR * sizeof(int));
 
       if (!ae->bUnicodeWindow)
         AE_SetEditFontA(ae, NULL, FALSE);
@@ -4603,7 +4603,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
 
-  AE_memset(ae->lpCharWidths, 0, 65535);
+  AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
   ae->hFont=hFont;
 
   if (ae->hFont)
@@ -4644,7 +4644,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
 
-  AE_memset(ae->lpCharWidths, 0, 65535);
+  AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
   ae->hFont=hFont;
 
   if (ae->hFont)

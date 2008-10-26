@@ -14,6 +14,8 @@
 
 #define AETIME_PROGRESS        0
 
+#define AEFONT_MAX_CHAR        65535
+
 //WM_SETCURSOR
 #define AECC_IBEAM      0
 #define AECC_MARGIN     1
