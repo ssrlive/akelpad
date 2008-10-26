@@ -5070,9 +5070,11 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
       {
         AENPROGRESS *aenp=(AENPROGRESS *)lParam;
+        MSG msg;
         static DWORD dwProgressType=0;
         static int nIncrement;
         static int nBarrier;
+        static int nSeconds;
 
         if (aenp->nMaximum)
         {
@@ -5091,6 +5093,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                 ShowWindow(hProgress, TRUE);
                 nIncrement=aenp->nMaximum / nProgressWidth;
                 nBarrier=(aenp->nCurrent / nIncrement) * nIncrement;
+                nSeconds=1;
               }
 
               //Change position
@@ -5098,6 +5101,18 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               {
                 SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
                 nBarrier+=nIncrement;
+              }
+
+              //Check for update window every second
+              if (aenp->dwTimeElapsed / 1000 > nSeconds)
+              {
+                nSeconds=aenp->dwTimeElapsed / 1000;
+
+                while (PeekMessageA(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
+                {
+                  TranslateMessage(&msg);
+                  DispatchMessageA(&msg);
+                }
               }
 
               //End progress
@@ -5253,9 +5268,11 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       else if (((NMHDR *)lParam)->code == AEN_PROGRESS)
       {
         AENPROGRESS *aenp=(AENPROGRESS *)lParam;
+        MSG msg;
         static DWORD dwProgressType=0;
         static int nIncrement;
         static int nBarrier;
+        static int nSeconds;
 
         if (aenp->nMaximum)
         {
@@ -5274,6 +5291,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                 ShowWindow(hProgress, TRUE);
                 nIncrement=aenp->nMaximum / nProgressWidth;
                 nBarrier=(aenp->nCurrent / nIncrement) * nIncrement;
+                nSeconds=1;
               }
 
               //Change position
@@ -5281,6 +5299,18 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               {
                 SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
                 nBarrier+=nIncrement;
+              }
+
+              //Check for update window every second
+              if (aenp->dwTimeElapsed / 1000 > nSeconds)
+              {
+                nSeconds=aenp->dwTimeElapsed / 1000;
+
+                while (PeekMessageW(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
+                {
+                  TranslateMessage(&msg);
+                  DispatchMessageW(&msg);
+                }
               }
 
               //End progress
