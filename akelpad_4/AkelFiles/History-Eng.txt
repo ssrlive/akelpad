@@ -1,6 +1,8 @@
 
 AkelPad 4.0.8 ()
 ----------------------------
+Changed: speed of work with text is greatly increased. Now files equally quickly opens/edits,
+         independent from monospaced font or not, and also independent from character set.
 Changed: improved work with Input Method Editors (IME).
 Changed: improved main window painting at long file opening.
 

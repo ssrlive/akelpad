@@ -289,6 +289,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       GetClientRect(ae->hWndEdit, &ae->rcEdit);
       AE_SetDrawRect(ae, NULL, FALSE);
+      ae->lpCharWidths=(int *)AE_HeapAlloc(NULL, 0, sizeof(int) * 65535);
 
       if (!ae->bUnicodeWindow)
         AE_SetEditFontA(ae, NULL, FALSE);
@@ -2127,8 +2128,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!ae->bUnicodeWindow)
       {
         COMPOSITIONFORM cf;
-        HIMC hIMC;
         LOGFONTA lfA;
+        HIMC hIMC;
 
         if (hIMC=ImmGetContext(ae->hWndEdit))
         {
@@ -2146,8 +2147,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
       {
         COMPOSITIONFORM cf;
-        HIMC hIMC;
         LOGFONTW lfW;
+        HIMC hIMC;
 
         if (hIMC=ImmGetContext(ae->hWndEdit))
         {
@@ -2666,6 +2667,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_DESTROY)
     {
+      AE_HeapFree(NULL, 0, (LPVOID)ae->lpCharWidths);
+
       //Unregister drop window
       RevokeDragDrop(ae->hWndEdit);
       CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
@@ -4599,12 +4602,8 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   TEXTMETRICA tmEdit;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
-  wchar_t *wpAlphabet=L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  int nAlphabetLen=52;
-  int nAlphabetWidth=0;
-  int nPrevCharWidth=0;
-  int i;
 
+  AE_memset(ae->lpCharWidths, 0, 65535);
   ae->hFont=hFont;
 
   if (ae->hFont)
@@ -4629,37 +4628,9 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
   GetTextMetricsA(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
-  if (!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH) &&
-       (tmEdit.tmCharSet != GB2312_CHARSET &&
-        tmEdit.tmCharSet != SHIFTJIS_CHARSET &&
-        tmEdit.tmCharSet != HANGUL_CHARSET &&
-        tmEdit.tmCharSet != VIETNAMESE_CHARSET))
-  {
-    ae->bFixedCharWidth=TRUE;
-  }
-  else
-  {
-    //Some fonts with CJKV characters (Chinese, Japanese, Korean, Vietnamese) have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
-    ae->bFixedCharWidth=FALSE;
-  }
 
-  for (i=0; i < nAlphabetLen; ++i)
-  {
-    if (GetTextExtentPoint32W(ae->hDC, &wpAlphabet[i], 1, &sizeWidth))
-    {
-      if (nPrevCharWidth)
-      {
-        if (nPrevCharWidth != sizeWidth.cx)
-        {
-          //Some fonts have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
-          ae->bFixedCharWidth=FALSE;
-        }
-      }
-      nPrevCharWidth=sizeWidth.cx;
-      nAlphabetWidth+=sizeWidth.cx;
-    }
-  }
-  ae->nAveCharWidth=nAlphabetWidth / nAlphabetLen;
+  GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
+  ae->nAveCharWidth=sizeWidth.cx / 52;
   GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeWidth);
   ae->nSpaceCharWidth=sizeWidth.cx;
   ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
@@ -4672,12 +4643,8 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   TEXTMETRICW tmEdit;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
-  wchar_t *wpAlphabet=L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-  int nAlphabetLen=52;
-  int nAlphabetWidth=0;
-  int nPrevCharWidth=0;
-  int i;
 
+  AE_memset(ae->lpCharWidths, 0, 65535);
   ae->hFont=hFont;
 
   if (ae->hFont)
@@ -4702,37 +4669,9 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
   GetTextMetricsW(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
-  if (!(tmEdit.tmPitchAndFamily & TMPF_FIXED_PITCH) &&
-       (tmEdit.tmCharSet != GB2312_CHARSET &&
-        tmEdit.tmCharSet != SHIFTJIS_CHARSET &&
-        tmEdit.tmCharSet != HANGUL_CHARSET &&
-        tmEdit.tmCharSet != VIETNAMESE_CHARSET))
-  {
-    ae->bFixedCharWidth=TRUE;
-  }
-  else
-  {
-    //Some fonts with CJKV characters (Chinese, Japanese, Korean, Vietnamese) have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
-    ae->bFixedCharWidth=FALSE;
-  }
 
-  for (i=0; i < nAlphabetLen; ++i)
-  {
-    if (GetTextExtentPoint32W(ae->hDC, &wpAlphabet[i], 1, &sizeWidth))
-    {
-      if (nPrevCharWidth)
-      {
-        if (nPrevCharWidth != sizeWidth.cx)
-        {
-          //Some fonts have TMPF_FIXED_PITCH flag, but not actually have fixed width characters
-          ae->bFixedCharWidth=FALSE;
-        }
-      }
-      nPrevCharWidth=sizeWidth.cx;
-      nAlphabetWidth+=sizeWidth.cx;
-    }
-  }
-  ae->nAveCharWidth=nAlphabetWidth / nAlphabetLen;
+  GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
+  ae->nAveCharWidth=sizeWidth.cx / 52;
   GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeWidth);
   ae->nSpaceCharWidth=sizeWidth.cx;
   ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
@@ -5799,6 +5738,7 @@ void AE_Paint(AKELEDIT *ae)
     {
       AECHARRANGE crLink={0};
       AECHARINDEX ciDrawLine;
+      AECHARINDEX ciCount;
       RECT rcDraw;
       POINT ptDraw;
       SIZE sizeLine;
@@ -5815,6 +5755,7 @@ void AE_Paint(AKELEDIT *ae)
       int nMaxDrawCharsCount;
       int nLineWidth;
       int nTabWidth=0;
+      int nLastDrawLine=0;
 
       //Set region
       hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
@@ -5835,6 +5776,10 @@ void AE_Paint(AKELEDIT *ae)
         ciDrawLine.nLine=(ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top)) / ae->nCharHeight;
         ciDrawLine.lpLine=AE_GetLineData(ae, ciDrawLine.nLine);
         ciDrawLine.nCharInLine=0;
+
+        nLastDrawLine=(ae->nVScrollPos + (rcDraw.bottom - ae->rcDraw.top)) / ae->nCharHeight;
+        nLastDrawLine=min(nLastDrawLine, ae->nLineCount);
+
         ptDraw.y=(ciDrawLine.nLine * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
         nMaxLineWidth=ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left);
 
@@ -5912,45 +5857,100 @@ void AE_Paint(AKELEDIT *ae)
         {
           if (ae->bDetectUrl)
           {
+            int nPrefix;
+
             //Detect URL
             if (!crLink.ciMin.lpLine || !crLink.ciMax.lpLine)
             {
-              if (!(ciDrawLine.nCharInLine >= ciDrawLine.lpLine->nSelStart && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen))
+              //Is first draw char located in URL
+              if (ciDrawLine.nCharInLine == 0 && ae->liFirstDrawLine.nLine == ciDrawLine.nLine)
               {
-                int nPrefix;
-
-                for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
+                //Is previous line wrapped
+                if (ciDrawLine.lpLine->prev && ciDrawLine.lpLine->prev->nLineBreak == AELB_WRAP)
                 {
-                  if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
+                  ciCount.nLine=ciDrawLine.nLine - 1;
+                  ciCount.lpLine=ciDrawLine.lpLine->prev;
+                  ciCount.nCharInLine=max(ciCount.lpLine->nLineLen - 1, 0);
+
+                  //Find URL beginning (backward)
+                  while (ciCount.lpLine)
                   {
-                    if (ciDrawLine.nCharInLine == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine - 1]))
+                    while (ciCount.nCharInLine >= 0)
                     {
-                      crLink.ciMin=ciDrawLine;
-                      crLink.ciMax=ciDrawLine;
+                      if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
+                        goto FindUrlBeginning;
 
-                      while (crLink.ciMax.nCharInLine < crLink.ciMax.lpLine->nLineLen)
+                      for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
                       {
-                        if (AE_IsInDelimiterList(ae->wszUrlDelimiters, crLink.ciMax.lpLine->wpLine[crLink.ciMax.nCharInLine]))
-                          break;
-
-                        ++crLink.ciMax.nCharInLine;
+                        if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciCount.lpLine->wpLine + ciCount.nCharInLine, (DWORD)-1))
+                        {
+                          if (ciCount.nCharInLine == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine - 1]))
+                          {
+                            crLink.ciMin=ciDrawLine;
+                            crLink.ciMax=ciDrawLine;
+                            goto FindUrlEnding;
+                          }
+                        }
                       }
-
-                      //Draw text before URL
-                      SetTextColor(ps.hdc, dwColorText);
-                      SetBkColor(ps.hdc, dwColorBG);
-                      AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                      nMaxDrawCharsCount=0;
-                      break;
+                      --ciCount.nCharInLine;
                     }
+                    ciCount.nLine-=1;
+                    ciCount.lpLine=ciCount.lpLine->prev;
+                    ciCount.nCharInLine=max(ciCount.lpLine->nLineLen - 1, 0);
                   }
                 }
+              }
+
+              //Find URL beginning (forward)
+              FindUrlBeginning:
+              for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
+              {
+                if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
+                {
+                  if (ciDrawLine.nCharInLine == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine - 1]))
+                  {
+                    crLink.ciMin=ciDrawLine;
+                    crLink.ciMax=ciDrawLine;
+                    goto FindUrlEnding;
+                  }
+                }
+              }
+              goto HighlightUrl;
+
+              //Find URL ending (forward)
+              FindUrlEnding:
+              while (crLink.ciMax.nLine <= nLastDrawLine)
+              {
+                while (crLink.ciMax.nCharInLine < crLink.ciMax.lpLine->nLineLen)
+                {
+                  if (AE_IsInDelimiterList(ae->wszUrlDelimiters, crLink.ciMax.lpLine->wpLine[crLink.ciMax.nCharInLine]))
+                    goto HighlightUrl;
+
+                  ++crLink.ciMax.nCharInLine;
+                }
+
+                if (crLink.ciMax.lpLine->next)
+                {
+                  crLink.ciMax.nLine+=1;
+                  crLink.ciMax.lpLine=crLink.ciMax.lpLine->next;
+                  crLink.ciMax.nCharInLine=0;
+                }
+                else break;
               }
             }
 
             //Highlight URL
+            HighlightUrl:
             if (crLink.ciMin.lpLine && crLink.ciMax.lpLine)
             {
+              if (AE_IndexCompare(&crLink.ciMin, &ciDrawLine) == 0)
+              {
+                //Draw text before URL
+                SetTextColor(ps.hdc, dwColorText);
+                SetBkColor(ps.hdc, dwColorBG);
+                AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                nMaxDrawCharsCount=0;
+              }
               if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
               {
                 if (AE_IndexCompare(&crLink.ciMin, &ciDrawLine) < 0)
@@ -6046,132 +6046,137 @@ void AE_Paint(AKELEDIT *ae)
           }
           else ++nMaxDrawCharsCount;
 
-          //Stop line drawing if it's outside draw area
+          //Stop line checking and draw it, if it's outside draw area
           if (nLineWidth > nMaxLineWidth)
-          {
-            if (ae->bDetectUrl)
-            {
-              //Highlight URL
-              if (crLink.ciMin.lpLine && crLink.ciMax.lpLine)
-              {
-                crLink.ciMin.lpLine=NULL;
-                crLink.ciMax.lpLine=NULL;
+            break;
 
-                if (ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nSelStart || ciDrawLine.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-                {
-                  //Draw full URL or last part of it
-                  if (ae->hFontUrl) SelectObject(ps.hdc, ae->hFontUrl);
-                  SetTextColor(ps.hdc, ae->crUrlText);
-                  SetBkColor(ps.hdc, dwColorBG);
-                  AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                  nMaxDrawCharsCount=0;
-                  if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
-                  goto NextLine;
-                }
-              }
-            }
-            SetTextColor(ps.hdc, dwColorText);
-            SetBkColor(ps.hdc, dwColorBG);
-            AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-            goto NextLine;
-          }
+          //Increment line width
           if (ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine] == L'\t')
             nLineWidth+=nTabWidth;
           else
             nLineWidth+=AE_GetCharWidth(ae, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine]);
         }
 
+        //Draw text line
+        if (ae->bDetectUrl)
+        {
+          //Highlight URL
+          if (crLink.ciMin.lpLine && crLink.ciMax.lpLine)
+          {
+            ciCount.nLine=ciDrawLine.nLine;
+            ciCount.lpLine=ciDrawLine.lpLine;
+            ciCount.nCharInLine=ciDrawLine.lpLine->nLineLen;
+
+            if (AE_IndexCompare(&crLink.ciMax, &ciCount) < 0)
+            {
+              crLink.ciMin.lpLine=NULL;
+              crLink.ciMax.lpLine=NULL;
+            }
+            if (ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nSelStart || ciDrawLine.nCharInLine > ciDrawLine.lpLine->nSelEnd)
+            {
+              if (ae->hFontUrl) SelectObject(ps.hdc, ae->hFontUrl);
+              SetTextColor(ps.hdc, ae->crUrlText);
+              SetBkColor(ps.hdc, dwColorBG);
+              AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+              nMaxDrawCharsCount=0;
+              if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
+              goto AfterText;
+            }
+          }
+        }
         SetTextColor(ps.hdc, dwColorText);
         SetBkColor(ps.hdc, dwColorBG);
         AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
 
-        if (ae->bColumnSel)
+        AfterText:
+        if (nLineWidth <= nMaxLineWidth)
         {
-          if (nLineSelection == AELS_PARTLY)
+          if (ae->bColumnSel)
           {
-            nLineLen=ciDrawLine.lpLine->nLineLen;
-
-            if (ciDrawLine.lpLine->nSelStart >= ciDrawLine.lpLine->nLineLen)
+            if (nLineSelection == AELS_PARTLY)
             {
-              if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-              {
-                dwColorText=ae->crActiveLineText;
-                dwColorBG=ae->crActiveLineBk;
-                hbrBG=ae->hActiveLineBk;
-              }
-              else
-              {
-                dwColorText=ae->crBasicText;
-                dwColorBG=ae->crBasicBk;
-                hbrBG=ae->hBasicBk;
-              }
-              sizeLine.cx=(ciDrawLine.lpLine->nSelStart - nLineLen) * ae->nSpaceCharWidth;
+              nLineLen=ciDrawLine.lpLine->nLineLen;
 
-              rcSpace.left=ptDraw.x + nStartDrawWidth;
-              rcSpace.top=ptDraw.y;
-              rcSpace.right=rcSpace.left + sizeLine.cx;
-              rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-              FillRect(ps.hdc, &rcSpace, hbrBG);
-              nStartDrawWidth+=sizeLine.cx;
-              nLineLen+=(ciDrawLine.lpLine->nSelStart - nLineLen);
-            }
-            if (ciDrawLine.lpLine->nSelEnd > ciDrawLine.lpLine->nLineLen)
-            {
-              dwColorText=ae->crSelText;
-              dwColorBG=ae->crSelBk;
-              hbrBG=ae->hSelBk;
-              sizeLine.cx=(ciDrawLine.lpLine->nSelEnd - nLineLen) * ae->nSpaceCharWidth;
+              if (ciDrawLine.lpLine->nSelStart >= ciDrawLine.lpLine->nLineLen)
+              {
+                if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+                {
+                  dwColorText=ae->crActiveLineText;
+                  dwColorBG=ae->crActiveLineBk;
+                  hbrBG=ae->hActiveLineBk;
+                }
+                else
+                {
+                  dwColorText=ae->crBasicText;
+                  dwColorBG=ae->crBasicBk;
+                  hbrBG=ae->hBasicBk;
+                }
+                sizeLine.cx=(ciDrawLine.lpLine->nSelStart - nLineLen) * ae->nSpaceCharWidth;
 
-              rcSpace.left=ptDraw.x + nStartDrawWidth;
-              rcSpace.top=ptDraw.y;
-              rcSpace.right=rcSpace.left + sizeLine.cx;
-              rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-              FillRect(ps.hdc, &rcSpace, hbrBG);
-              nStartDrawWidth+=sizeLine.cx;
-              nLineLen+=(ciDrawLine.lpLine->nSelEnd - nLineLen);
+                rcSpace.left=ptDraw.x + nStartDrawWidth;
+                rcSpace.top=ptDraw.y;
+                rcSpace.right=rcSpace.left + sizeLine.cx;
+                rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+                FillRect(ps.hdc, &rcSpace, hbrBG);
+                nStartDrawWidth+=sizeLine.cx;
+                nLineLen+=(ciDrawLine.lpLine->nSelStart - nLineLen);
+              }
+              if (ciDrawLine.lpLine->nSelEnd > ciDrawLine.lpLine->nLineLen)
+              {
+                dwColorText=ae->crSelText;
+                dwColorBG=ae->crSelBk;
+                hbrBG=ae->hSelBk;
+                sizeLine.cx=(ciDrawLine.lpLine->nSelEnd - nLineLen) * ae->nSpaceCharWidth;
+
+                rcSpace.left=ptDraw.x + nStartDrawWidth;
+                rcSpace.top=ptDraw.y;
+                rcSpace.right=rcSpace.left + sizeLine.cx;
+                rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+                FillRect(ps.hdc, &rcSpace, hbrBG);
+                nStartDrawWidth+=sizeLine.cx;
+                nLineLen+=(ciDrawLine.lpLine->nSelEnd - nLineLen);
+              }
             }
           }
-        }
-        else
-        {
-          //Select new line space
-          if (ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
-              ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
+          else
           {
-            if (!ae->bHideSelection)
+            //Select new line space
+            if (ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
+                ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
             {
-              hbrBG=ae->hSelBk;
+              if (!ae->bHideSelection)
+              {
+                hbrBG=ae->hSelBk;
 
-              rcSpace.left=ptDraw.x + nStartDrawWidth;
-              rcSpace.top=ptDraw.y;
-              rcSpace.right=rcSpace.left + ae->nAveCharWidth;
-              rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-              FillRect(ps.hdc, &rcSpace, hbrBG);
-              nStartDrawWidth+=ae->nAveCharWidth;
+                rcSpace.left=ptDraw.x + nStartDrawWidth;
+                rcSpace.top=ptDraw.y;
+                rcSpace.right=rcSpace.left + ae->nAveCharWidth;
+                rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+                FillRect(ps.hdc, &rcSpace, hbrBG);
+                nStartDrawWidth+=ae->nAveCharWidth;
+              }
             }
           }
-        }
 
-        if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-        {
-          dwColorText=ae->crActiveLineText;
-          dwColorBG=ae->crActiveLineBk;
-          hbrBG=ae->hActiveLineBk;
+          if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+          {
+            dwColorText=ae->crActiveLineText;
+            dwColorBG=ae->crActiveLineBk;
+            hbrBG=ae->hActiveLineBk;
+          }
+          else
+          {
+            dwColorText=ae->crBasicText;
+            dwColorBG=ae->crBasicBk;
+            hbrBG=ae->hBasicBk;
+          }
+          rcSpace.left=ptDraw.x + nStartDrawWidth;
+          rcSpace.top=ptDraw.y;
+          rcSpace.right=ae->rcDraw.right;
+          rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+          if (rcSpace.left < rcSpace.right)
+            FillRect(ps.hdc, &rcSpace, hbrBG);
         }
-        else
-        {
-          dwColorText=ae->crBasicText;
-          dwColorBG=ae->crBasicBk;
-          hbrBG=ae->hBasicBk;
-        }
-        rcSpace.left=ptDraw.x + nStartDrawWidth;
-        rcSpace.top=ptDraw.y;
-        rcSpace.right=ae->rcDraw.right;
-        rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-        if (rcSpace.left < rcSpace.right)
-          FillRect(ps.hdc, &rcSpace, hbrBG);
-
-        NextLine:
         ptDraw.y+=ae->nCharHeight;
         if (ptDraw.y >= rcDraw.bottom)
           break;
@@ -6266,16 +6271,27 @@ int AE_GetLastVisibleLine(AKELEDIT *ae)
 
 BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SIZE *lpSize)
 {
-  if (ae->bFixedCharWidth)
+  SIZE sizeChar;
+  int nStringWidth=0;
+  int i;
+
+  for (i=0; i < nStringLen; ++i)
   {
-    lpSize->cx=ae->nAveCharWidth * nStringLen;
-    lpSize->cy=ae->nCharHeight;
-    return TRUE;
+    if (ae->lpCharWidths[wpString[i]])
+    {
+      nStringWidth+=ae->lpCharWidths[wpString[i]];
+    }
+    else
+    {
+      if (!GetTextExtentPoint32W(ae->hDC, &wpString[i], 1, &sizeChar))
+        return FALSE;
+      ae->lpCharWidths[wpString[i]]=sizeChar.cx;
+      nStringWidth+=sizeChar.cx;
+    }
   }
-  else
-  {
-    return GetTextExtentPoint32W(ae->hDC, wpString, nStringLen, lpSize);
-  }
+  lpSize->cx=nStringWidth;
+  lpSize->cy=ae->nCharHeight;
+  return TRUE;
 }
 
 int AE_GetCharWidth(AKELEDIT *ae, wchar_t wchChar)
@@ -11524,6 +11540,15 @@ void* AE_memcpy(void *dest, const void *src, unsigned int count)
 
   if (byte_dest != byte_src)
     while (count--) *byte_dest++=*byte_src++;
+
+  return dest;
+}
+
+void* AE_memset(void *dest, int c, unsigned int count)
+{
+  unsigned char *byte_dest=(unsigned char *)dest;
+
+  while (count--) *byte_dest++=c;
 
   return dest;
 }

@@ -171,7 +171,7 @@ typedef struct _AKELEDIT {
   int nAveCharWidth;
   int nSpaceCharWidth;
   int nTabWidth;
-  BOOL bFixedCharWidth;
+  int *lpCharWidths;
   int nTabStop;
   BOOL bOverType;
   HSTACK hUndoStack;
@@ -413,6 +413,7 @@ int AE_WideStrCmpLenI(const wchar_t *wpString, const wchar_t *wpString2, DWORD d
 void AE_ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
 wchar_t* AE_wcschr(const wchar_t *s, wchar_t c);
 void* AE_memcpy(void *dest, const void *src, unsigned int count);
+void* AE_memset(void *dest, int c, unsigned int count);
 
 HRESULT WINAPI AEIDropTarget_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj);
 ULONG WINAPI AEIDropTarget_AddRef(LPUNKNOWN lpTable);
