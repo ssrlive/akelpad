@@ -6,6 +6,8 @@ Changed: speed of work with text is greatly increased. Now files equally quickly
 Changed: improved work with Input Method Editors (IME).
 Changed: improved main window painting at long file opening.
 
+Added: support for multiline URL in word wrap mode.
+
 Fixed: context menu on two monitors.
 
 

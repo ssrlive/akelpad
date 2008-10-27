@@ -5018,9 +5018,6 @@ BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
         (ae->dwRichEventMask & ENM_LINK))
     {
       AECHARINDEX ciCharIndex;
-      int nStartUrl;
-      int nEndUrl;
-      int nPrefix;
       int nResult;
 
       if (PtInRect(&ae->rcDraw, *ptPos))
@@ -5030,46 +5027,94 @@ BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
           if (nResult == AEPC_AFTER)
             ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
 
-          if (ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelStart || ciCharIndex.nCharInLine >= ciCharIndex.lpLine->nSelEnd)
-          {
-            for (nStartUrl=ciCharIndex.nCharInLine; nStartUrl >= 0; --nStartUrl)
-            {
-              if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl]))
-                return FALSE;
-
-              for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
-              {
-                if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciCharIndex.lpLine->wpLine + nStartUrl, (DWORD)-1))
-                {
-                  if (nStartUrl == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nStartUrl - 1]))
-                  {
-                    //Found end of URL
-                    for (nEndUrl=ciCharIndex.nCharInLine; nEndUrl < ciCharIndex.lpLine->nLineLen; ++nEndUrl)
-                    {
-                      if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCharIndex.lpLine->wpLine[nEndUrl]))
-                        break;
-                    }
-
-                    if (crLink)
-                    {
-                      crLink->ciMin.nLine=ciCharIndex.nLine;
-                      crLink->ciMin.lpLine=ciCharIndex.lpLine;
-                      crLink->ciMin.nCharInLine=nStartUrl;
-                      crLink->ciMax.nLine=ciCharIndex.nLine;
-                      crLink->ciMax.lpLine=ciCharIndex.lpLine;
-                      crLink->ciMax.nCharInLine=nEndUrl;
-                    }
-                    return TRUE;
-                  }
-                }
-              }
-            }
-          }
+          return AE_CharInUrl(ae, &ciCharIndex, AECU_ANYWHERE, ae->nLineCount, crLink);
         }
       }
     }
   }
   return FALSE;
+}
+
+BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, int nSearchType, int nLastLine, AECHARRANGE *crLink)
+{
+  AECHARINDEX ciCount;
+  wchar_t wchChar='\0';
+  int nPrefix;
+
+  //Find URL beginning (backward)
+  ciCount=*ciChar;
+
+  while (ciCount.lpLine)
+  {
+    while (ciCount.nCharInLine >= 0)
+    {
+      if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
+        return FALSE;
+
+      for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
+      {
+        if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciCount.lpLine->wpLine + ciCount.nCharInLine, (DWORD)-1))
+        {
+          if (ciCount.nCharInLine == 0)
+          {
+            if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP && ciCount.lpLine->prev->nLineLen)
+            {
+              wchChar=ciCount.lpLine->prev->wpLine[ciCount.lpLine->prev->nLineLen - 1];
+            }
+            else wchChar=L'\n';
+          }
+          else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine - 1];
+
+          if (AE_IsInDelimiterList(ae->wszUrlDelimiters, wchChar))
+          {
+            crLink->ciMin=ciCount;
+            goto FindUrlEnding;
+          }
+        }
+      }
+      if (nSearchType == AECU_BEGINNING)
+        return FALSE;
+
+      --ciCount.nCharInLine;
+    }
+    if (nSearchType == AECU_BEGINNING)
+      return FALSE;
+
+    if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
+    {
+      ciCount.nLine-=1;
+      ciCount.lpLine=ciCount.lpLine->prev;
+      ciCount.nCharInLine=max(ciCount.lpLine->nLineLen - 1, 0);
+    }
+    else return FALSE;
+  }
+  return FALSE;
+
+  //Find URL ending (forward)
+  FindUrlEnding:
+  ciCount=*ciChar;
+
+  while (ciCount.nLine <= nLastLine)
+  {
+    while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+    {
+      if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
+        goto End;
+      ++ciCount.nCharInLine;
+    }
+
+    if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
+    {
+      ciCount.nLine+=1;
+      ciCount.lpLine=ciCount.lpLine->next;
+      ciCount.nCharInLine=0;
+    }
+    else goto End;
+  }
+
+  End:
+  crLink->ciMax=ciCount;
+  return TRUE;
 }
 
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
@@ -5857,85 +5902,23 @@ void AE_Paint(AKELEDIT *ae)
         {
           if (ae->bDetectUrl)
           {
-            int nPrefix;
-
             //Detect URL
             if (!crLink.ciMin.lpLine || !crLink.ciMax.lpLine)
             {
               //Is first draw char located in URL
               if (ciDrawLine.nCharInLine == 0 && ae->liFirstDrawLine.nLine == ciDrawLine.nLine)
               {
-                //Is previous line wrapped
-                if (ciDrawLine.lpLine->prev && ciDrawLine.lpLine->prev->nLineBreak == AELB_WRAP)
+                if (AE_CharInUrl(ae, &ciDrawLine, AECU_ANYWHERE, nLastDrawLine, &crLink))
                 {
-                  ciCount.nLine=ciDrawLine.nLine - 1;
-                  ciCount.lpLine=ciDrawLine.lpLine->prev;
-                  ciCount.nCharInLine=max(ciCount.lpLine->nLineLen - 1, 0);
-
-                  //Find URL beginning (backward)
-                  while (ciCount.lpLine)
-                  {
-                    while (ciCount.nCharInLine >= 0)
-                    {
-                      if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
-                        goto FindUrlBeginning;
-
-                      for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
-                      {
-                        if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciCount.lpLine->wpLine + ciCount.nCharInLine, (DWORD)-1))
-                        {
-                          if (ciCount.nCharInLine == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine - 1]))
-                          {
-                            crLink.ciMin=ciDrawLine;
-                            crLink.ciMax=ciDrawLine;
-                            goto FindUrlEnding;
-                          }
-                        }
-                      }
-                      --ciCount.nCharInLine;
-                    }
-                    ciCount.nLine-=1;
-                    ciCount.lpLine=ciCount.lpLine->prev;
-                    ciCount.nCharInLine=max(ciCount.lpLine->nLineLen - 1, 0);
-                  }
+                  crLink.ciMin=ciDrawLine;
+                  goto HighlightUrl;
                 }
               }
 
-              //Find URL beginning (forward)
-              FindUrlBeginning:
-              for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
+              if (AE_CharInUrl(ae, &ciDrawLine, AECU_BEGINNING, nLastDrawLine, &crLink))
               {
-                if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine, (DWORD)-1))
-                {
-                  if (ciDrawLine.nCharInLine == 0 || AE_IsInDelimiterList(ae->wszUrlDelimiters, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine - 1]))
-                  {
-                    crLink.ciMin=ciDrawLine;
-                    crLink.ciMax=ciDrawLine;
-                    goto FindUrlEnding;
-                  }
-                }
-              }
-              goto HighlightUrl;
-
-              //Find URL ending (forward)
-              FindUrlEnding:
-              while (crLink.ciMax.nLine <= nLastDrawLine)
-              {
-                while (crLink.ciMax.nCharInLine < crLink.ciMax.lpLine->nLineLen)
-                {
-                  if (AE_IsInDelimiterList(ae->wszUrlDelimiters, crLink.ciMax.lpLine->wpLine[crLink.ciMax.nCharInLine]))
-                    goto HighlightUrl;
-
-                  ++crLink.ciMax.nCharInLine;
-                }
-
-                if (crLink.ciMax.lpLine->next)
-                {
-                  crLink.ciMax.nLine+=1;
-                  crLink.ciMax.lpLine=crLink.ciMax.lpLine->next;
-                  crLink.ciMax.nCharInLine=0;
-                }
-                else break;
+                crLink.ciMin=ciDrawLine;
+                goto HighlightUrl;
               }
             }
 
@@ -6067,7 +6050,7 @@ void AE_Paint(AKELEDIT *ae)
             ciCount.lpLine=ciDrawLine.lpLine;
             ciCount.nCharInLine=ciDrawLine.lpLine->nLineLen;
 
-            if (AE_IndexCompare(&crLink.ciMax, &ciCount) < 0)
+            if (AE_IndexCompare(&crLink.ciMax, &ciCount) <= 0)
             {
               crLink.ciMin.lpLine=NULL;
               crLink.ciMax.lpLine=NULL;
