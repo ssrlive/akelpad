@@ -1,4 +1,9 @@
 
+AkelPad 4.0.9 ()
+----------------------------
+Changed: right mouse click on non-active AkelEdit window activate it (MDI).
+
+
 AkelPad 4.0.8 (Oct 27, 2008)
 ----------------------------
 Changed: speed of work with text is greatly increased. Now files equally quickly opens/edits,
