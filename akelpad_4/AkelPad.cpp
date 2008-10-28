@@ -4968,6 +4968,17 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
+    if (bMDI)
+    {
+      if ((HWND)wParam != hWndEdit)
+      {
+        if (GetWindowLongA((HWND)wParam, GWL_ID) == ID_EDIT)
+        {
+          SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
+        }
+      }
+    }
+
     if ((HWND)wParam == hWndEdit)
     {
       NCONTEXTMENU ncm;
@@ -5074,7 +5085,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         static DWORD dwProgressType=0;
         static int nIncrement;
         static int nBarrier;
-        static int nSeconds;
+        static DWORD dwSeconds;
 
         if (aenp->nMaximum)
         {
@@ -5093,7 +5104,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                 ShowWindow(hProgress, TRUE);
                 nIncrement=aenp->nMaximum / nProgressWidth;
                 nBarrier=(aenp->nCurrent / nIncrement) * nIncrement;
-                nSeconds=1;
+                dwSeconds=1;
               }
 
               //Change position
@@ -5104,9 +5115,9 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               }
 
               //Check for update window every second
-              if (aenp->dwTimeElapsed / 1000 > nSeconds)
+              if (aenp->dwTimeElapsed / 1000 > dwSeconds)
               {
-                nSeconds=aenp->dwTimeElapsed / 1000;
+                dwSeconds=aenp->dwTimeElapsed / 1000;
 
                 while (PeekMessageA(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
                 {
@@ -5166,6 +5177,17 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
+    if (bMDI)
+    {
+      if ((HWND)wParam != hWndEdit)
+      {
+        if (GetWindowLongW((HWND)wParam, GWL_ID) == ID_EDIT)
+        {
+          SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
+        }
+      }
+    }
+
     if ((HWND)wParam == hWndEdit)
     {
       NCONTEXTMENU ncm;
@@ -5216,6 +5238,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         TrackPopupMenu(hTrackMenu, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt.x, pt.y, 0, hMainWnd, NULL);
       }
     }
+    else SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -5272,7 +5295,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         static DWORD dwProgressType=0;
         static int nIncrement;
         static int nBarrier;
-        static int nSeconds;
+        static DWORD dwSeconds;
 
         if (aenp->nMaximum)
         {
@@ -5291,7 +5314,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
                 ShowWindow(hProgress, TRUE);
                 nIncrement=aenp->nMaximum / nProgressWidth;
                 nBarrier=(aenp->nCurrent / nIncrement) * nIncrement;
-                nSeconds=1;
+                dwSeconds=1;
               }
 
               //Change position
@@ -5302,9 +5325,9 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               }
 
               //Check for update window every second
-              if (aenp->dwTimeElapsed / 1000 > nSeconds)
+              if (aenp->dwTimeElapsed / 1000 > dwSeconds)
               {
-                nSeconds=aenp->dwTimeElapsed / 1000;
+                dwSeconds=aenp->dwTimeElapsed / 1000;
 
                 while (PeekMessageW(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
                 {
