@@ -3,6 +3,8 @@ AkelPad 4.0.9 ()
 ----------------------------
 Changed: right mouse click on non-active AkelEdit window activate it (MDI).
 
+Fixed: work with Input Method Editors (IME).
+
 
 AkelPad 4.0.8 (Oct 27, 2008)
 ----------------------------

@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.8                                 *
+ *                      AkelEdit text control v1.9                                 *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -2134,8 +2134,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (hIMC=ImmGetContext(ae->hWndEdit))
         {
           cf.dwStyle=CFS_POINT;
-          cf.ptCurrentPos.x=ae->rcDraw.left + ae->ptCaret.x;
-          cf.ptCurrentPos.y=ae->rcDraw.top + ae->ptCaret.y;
+          cf.ptCurrentPos.x=ae->rcDraw.left + (ae->ptCaret.x - ae->nHScrollPos);
+          cf.ptCurrentPos.y=ae->rcDraw.top + (ae->ptCaret.y - ae->nVScrollPos);
           ImmSetCompositionWindow(hIMC, &cf);
 
           GetObjectA(ae->hFont, sizeof(LOGFONTA), &lfA);
@@ -2153,8 +2153,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (hIMC=ImmGetContext(ae->hWndEdit))
         {
           cf.dwStyle=CFS_POINT;
-          cf.ptCurrentPos.x=ae->rcDraw.left + ae->ptCaret.x;
-          cf.ptCurrentPos.y=ae->rcDraw.top + ae->ptCaret.y;
+          cf.ptCurrentPos.x=ae->rcDraw.left + (ae->ptCaret.x - ae->nHScrollPos);
+          cf.ptCurrentPos.y=ae->rcDraw.top + (ae->ptCaret.y - ae->nVScrollPos);
           ImmSetCompositionWindow(hIMC, &cf);
 
           GetObjectW(ae->hFont, sizeof(LOGFONTW), &lfW);
