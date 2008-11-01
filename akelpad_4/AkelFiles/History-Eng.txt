@@ -6,6 +6,7 @@ Changed: right mouse click on non-active AkelEdit window activate it (MDI).
 Added: Dutch language module ().
 
 Fixed: work with Input Method Editors (IME).
+Fixed: divide by zero problem in file opening and word wrapping progress indicator.
 
 
 AkelPad 4.0.8 (Oct 27, 2008)

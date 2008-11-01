@@ -5087,53 +5087,53 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         static int nBarrier;
         static DWORD dwSeconds;
 
-        if (aenp->nMaximum)
+        if (!dwProgressType || dwProgressType == aenp->dwType)
         {
-          if (!dwProgressType || dwProgressType == aenp->dwType)
+          //Start indication if elapsed time more than 0,5 second
+          if (aenp->dwTimeElapsed > 500)
           {
-            //Start indication if elapsed time more than 0,5 second
-            if (aenp->dwTimeElapsed > 500)
+            //Start progress
+            if (!dwProgressType)
             {
-              //Start progress
-              if (!dwProgressType)
-              {
-                dwProgressType=aenp->dwType;
+              dwProgressType=aenp->dwType;
 
-                SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
-                SendMessage(hProgress, PBM_SETPOS, 0, 0);
-                ShowWindow(hProgress, TRUE);
-                nIncrement=aenp->nMaximum / nProgressWidth;
+              SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
+              SendMessage(hProgress, PBM_SETPOS, 0, 0);
+              ShowWindow(hProgress, TRUE);
+              nIncrement=aenp->nMaximum / nProgressWidth;
+              if (!nIncrement)
+                nBarrier=0;
+              else
                 nBarrier=(aenp->nCurrent / nIncrement) * nIncrement;
-                dwSeconds=1;
-              }
+              dwSeconds=1;
+            }
 
-              //Change position
-              if (aenp->nCurrent >= nBarrier)
+            //Change position
+            if (aenp->nCurrent >= nBarrier)
+            {
+              SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
+              nBarrier+=nIncrement;
+            }
+
+            //Check for update window every second
+            if (aenp->dwTimeElapsed / 1000 > dwSeconds)
+            {
+              dwSeconds=aenp->dwTimeElapsed / 1000;
+
+              while (PeekMessageA(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
               {
-                SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
-                nBarrier+=nIncrement;
+                TranslateMessage(&msg);
+                DispatchMessageA(&msg);
               }
+            }
 
-              //Check for update window every second
-              if (aenp->dwTimeElapsed / 1000 > dwSeconds)
-              {
-                dwSeconds=aenp->dwTimeElapsed / 1000;
+            //End progress
+            if (aenp->nCurrent == aenp->nMaximum)
+            {
+              ShowWindow(hProgress, FALSE);
+              UpdateWindow(hStatus);
 
-                while (PeekMessageA(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
-                {
-                  TranslateMessage(&msg);
-                  DispatchMessageA(&msg);
-                }
-              }
-
-              //End progress
-              if (aenp->nCurrent == aenp->nMaximum)
-              {
-                ShowWindow(hProgress, FALSE);
-                UpdateWindow(hStatus);
-
-                dwProgressType=0;
-              }
+              dwProgressType=0;
             }
           }
         }
@@ -5297,53 +5297,53 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         static int nBarrier;
         static DWORD dwSeconds;
 
-        if (aenp->nMaximum)
+        if (!dwProgressType || dwProgressType == aenp->dwType)
         {
-          if (!dwProgressType || dwProgressType == aenp->dwType)
+          //Start indication if elapsed time more than 0,5 second
+          if (aenp->dwTimeElapsed > 500)
           {
-            //Start indication if elapsed time more than 0,5 second
-            if (aenp->dwTimeElapsed > 500)
+            //Start progress
+            if (!dwProgressType)
             {
-              //Start progress
-              if (!dwProgressType)
-              {
-                dwProgressType=aenp->dwType;
+              dwProgressType=aenp->dwType;
 
-                SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
-                SendMessage(hProgress, PBM_SETPOS, 0, 0);
-                ShowWindow(hProgress, TRUE);
-                nIncrement=aenp->nMaximum / nProgressWidth;
+              SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
+              SendMessage(hProgress, PBM_SETPOS, 0, 0);
+              ShowWindow(hProgress, TRUE);
+              nIncrement=aenp->nMaximum / nProgressWidth;
+              if (!nIncrement)
+                nBarrier=0;
+              else
                 nBarrier=(aenp->nCurrent / nIncrement) * nIncrement;
-                dwSeconds=1;
-              }
+              dwSeconds=1;
+            }
 
-              //Change position
-              if (aenp->nCurrent >= nBarrier)
+            //Change position
+            if (aenp->nCurrent >= nBarrier)
+            {
+              SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
+              nBarrier+=nIncrement;
+            }
+
+            //Check for update window every second
+            if (aenp->dwTimeElapsed / 1000 > dwSeconds)
+            {
+              dwSeconds=aenp->dwTimeElapsed / 1000;
+
+              while (PeekMessageW(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
               {
-                SendMessage(hProgress, PBM_SETPOS, aenp->nCurrent, 0);
-                nBarrier+=nIncrement;
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
               }
+            }
 
-              //Check for update window every second
-              if (aenp->dwTimeElapsed / 1000 > dwSeconds)
-              {
-                dwSeconds=aenp->dwTimeElapsed / 1000;
+            //End progress
+            if (aenp->nCurrent == aenp->nMaximum)
+            {
+              ShowWindow(hProgress, FALSE);
+              UpdateWindow(hStatus);
 
-                while (PeekMessageW(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
-                {
-                  TranslateMessage(&msg);
-                  DispatchMessageW(&msg);
-                }
-              }
-
-              //End progress
-              if (aenp->nCurrent == aenp->nMaximum)
-              {
-                ShowWindow(hProgress, FALSE);
-                UpdateWindow(hStatus);
-
-                dwProgressType=0;
-              }
+              dwProgressType=0;
             }
           }
         }
