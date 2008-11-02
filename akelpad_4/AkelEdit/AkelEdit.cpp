@@ -5052,7 +5052,7 @@ BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, i
       {
         if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
           return FALSE;
-  
+
         for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
         {
           if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciCount.lpLine->wpLine + ciCount.nCharInLine, (DWORD)-1))
@@ -5066,7 +5066,7 @@ BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, i
               else wchChar=L'\n';
             }
             else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine - 1];
-  
+
             if (AE_IsInDelimiterList(ae->wszUrlDelimiters, wchChar))
             {
               crLink->ciMin=ciCount;
@@ -5076,12 +5076,12 @@ BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, i
         }
         if (dwSearchType & AECU_ISFIRSTCHAR)
           return FALSE;
-  
+
         --ciCount.nCharInLine;
       }
       if (dwSearchType & AECU_ISFIRSTCHAR)
         return FALSE;
-  
+
       if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
       {
         ciCount.nLine-=1;
@@ -6133,16 +6133,19 @@ void AE_Paint(AKELEDIT *ae)
             if (ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
                 ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
             {
-              if (!ae->bHideSelection)
+              if (ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
               {
-                hbrBG=ae->hSelBk;
+                if (!ae->bHideSelection)
+                {
+                  hbrBG=ae->hSelBk;
 
-                rcSpace.left=ptDraw.x + nStartDrawWidth;
-                rcSpace.top=ptDraw.y;
-                rcSpace.right=rcSpace.left + ae->nAveCharWidth;
-                rcSpace.bottom=rcSpace.top + ae->nCharHeight;
-                FillRect(ps.hdc, &rcSpace, hbrBG);
-                nStartDrawWidth+=ae->nAveCharWidth;
+                  rcSpace.left=ptDraw.x + nStartDrawWidth;
+                  rcSpace.top=ptDraw.y;
+                  rcSpace.right=rcSpace.left + ae->nAveCharWidth;
+                  rcSpace.bottom=rcSpace.top + ae->nCharHeight;
+                  FillRect(ps.hdc, &rcSpace, hbrBG);
+                  nStartDrawWidth+=ae->nAveCharWidth;
+                }
               }
             }
           }
