@@ -23,8 +23,9 @@
 #define AECC_URL        3
 
 //AE_CharInUrl search types
-#define AECU_ANYWHERE   0
-#define AECU_BEGINNING  1
+#define AECU_FINDFIRSTCHAR   0x00000001
+#define AECU_FINDLASTCHAR    0x00000002
+#define AECU_ISFIRSTCHAR     0x00000004
 
 //Line selection
 #define AELS_EMPTY    1
@@ -317,7 +318,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos);
 BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink);
-BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, int nSearchType, int nLastLine, AECHARRANGE *crLink);
+BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight);
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh);

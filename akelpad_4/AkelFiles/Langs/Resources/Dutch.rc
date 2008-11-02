@@ -724,7 +724,7 @@ BEGIN
             VALUE "FileDescription", "AkelPad text editor language module\0"
             VALUE "FileVersion", "1, 0, 0, 0\0"
             VALUE "InternalName", "AkelPad\0"
-            VALUE "LegalCopyright", "© 2008 Shengalts Aleksander aka Instructor\0"
+            VALUE "LegalCopyright", "© 2008 Henk G. Zikken\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "\0"
             VALUE "PrivateBuild", "\0"
