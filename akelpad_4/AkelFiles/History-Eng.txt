@@ -1,5 +1,5 @@
 
-AkelPad 4.0.9 ()
+AkelPad 4.0.9 (Nov 02, 2008)
 ----------------------------
 Changed: right mouse click on non-active AkelEdit window activate it (MDI).
 
