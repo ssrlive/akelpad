@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.0.8"
+!define PRODUCT_VERSION "4.0.9"
 
 ;_____________________________________________________________________________________________
 ;
@@ -51,6 +51,7 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define LANG_TATAR                1092
 !define LANG_SLOVAK               1051
 !define LANG_ROMANIAN             1048
+!define LANG_DUTCH                1043
 
 !define INSTTYPE_STANDARD 1
 !define INSTTYPE_TOTALCMD 2
@@ -421,6 +422,7 @@ Section
 	File "Files\AkelFiles\Langs\Tatar.dll"
 	File "Files\AkelFiles\Langs\Slovak.dll"
 	File "Files\AkelFiles\Langs\Romanian.dll"
+	File "Files\AkelFiles\Langs\Dutch.dll"
 
 	SetOutPath "$SETUPDIR\AkelFiles\Plugs"
 
@@ -507,6 +509,8 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Slovak.dll"
 	StrCmp $SYSLANGUAGE ${LANG_ROMANIAN} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Romanian.dll"
+	StrCmp $SYSLANGUAGE ${LANG_DUTCH} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Dutch.dll"
 
 	end:
 SectionEnd
@@ -626,6 +630,7 @@ Section un.install
 	Delete "$SETUPDIR\AkelFiles\Langs\Tatar.dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Slovak.dll"
 	Delete "$SETUPDIR\AkelFiles\Langs\Romanian.dll"
+	Delete "$SETUPDIR\AkelFiles\Langs\Dutch.dll"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Eng.htm"
 	Delete "$SETUPDIR\AkelFiles\AkelPad-Rus.htm"
 	Delete "$SETUPDIR\AkelFiles\History-Eng.txt"
