@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.9                                 *
+ *                      AkelEdit text control v2.0                                 *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1755,7 +1755,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!bAlt && bControl)
         {
-          AE_EditChar(ae, VK_TAB);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditChar(ae, VK_TAB);
+          }
           return 0;
         }
       }
@@ -1763,7 +1766,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!bAlt)
         {
-          AE_EditKeyReturn(ae);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditKeyReturn(ae);
+          }
         }
         return 0;
       }
@@ -1771,11 +1777,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!bAlt)
         {
-          AE_EditKeyBackspace(ae, bControl);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditKeyBackspace(ae, bControl);
+          }
         }
         else if (!bControl && !bShift)
         {
-          AE_EditUndo(ae);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditUndo(ae);
+          }
         }
         return 0;
       }
@@ -1785,11 +1797,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (!bShift)
           {
-            AE_EditKeyDelete(ae, bControl);
+            if (!AE_IsReadOnly(ae))
+            {
+              AE_EditKeyDelete(ae, bControl);
+            }
           }
           else if (!bControl)
           {
-            AE_EditCut(ae);
+            if (!AE_IsReadOnly(ae))
+            {
+              AE_EditCut(ae);
+            }
           }
         }
         return 0;
@@ -1811,11 +1829,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             else if (!bControl && bShift)
             {
-              AE_EditPasteFromClipboard(ae, FALSE);
+              if (!AE_IsReadOnly(ae))
+              {
+                AE_EditPasteFromClipboard(ae, FALSE);
+              }
             }
             else if (bControl && bShift)
             {
-              AE_EditPasteFromClipboard(ae, TRUE);
+              if (!AE_IsReadOnly(ae))
+              {
+                AE_EditPasteFromClipboard(ae, TRUE);
+              }
             }
           }
         }
@@ -1825,7 +1849,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (bControl && !bShift && !bAlt)
         {
-          AE_EditCut(ae);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditCut(ae);
+          }
         }
         return 0;
       }
@@ -1841,11 +1868,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (bControl && !bShift && !bAlt)
         {
-          AE_EditPasteFromClipboard(ae, FALSE);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditPasteFromClipboard(ae, FALSE);
+          }
         }
         else if (bControl && bShift && !bAlt)
         {
-          AE_EditPasteFromClipboard(ae, TRUE);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditPasteFromClipboard(ae, TRUE);
+          }
         }
         return 0;
       }
@@ -1853,11 +1886,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (bControl && !bShift && !bAlt)
         {
-          AE_EditUndo(ae);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditUndo(ae);
+          }
         }
         else if (bControl && bShift && !bAlt)
         {
-          AE_EditRedo(ae);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditRedo(ae);
+          }
         }
         return 0;
       }
@@ -1865,7 +1904,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (bControl && !bShift && !bAlt)
         {
-          AE_EditRedo(ae);
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditRedo(ae);
+          }
         }
         return 0;
       }
@@ -2109,7 +2151,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (wParam == VK_TAB || (wParam >= 0x20 && wParam != 0x7F))
       {
-        AE_EditChar(ae, wParam);
+        if (!AE_IsReadOnly(ae))
+        {
+          AE_EditChar(ae, wParam);
+        }
         return 0;
       }
     }
@@ -9893,6 +9938,17 @@ void AE_EmptyUndoBuffer(AKELEDIT *ae)
   ae->lpCurrentUndo=NULL;
 }
 
+BOOL AE_IsReadOnly(AKELEDIT *ae)
+{
+  if (ae->dwOptions & AECO_READONLY)
+  {
+    if (!(ae->dwOptions & AECO_DISABLEBEEP))
+      MessageBeep(MB_OK);
+    return TRUE;
+  }
+  return FALSE;
+}
+
 BOOL AE_EditCanPaste(AKELEDIT *ae)
 {
   BOOL bResult=FALSE;
@@ -9945,209 +10001,197 @@ BOOL AE_EditCanUndo(AKELEDIT *ae)
 
 void AE_EditUndo(AKELEDIT *ae)
 {
-  if (!(ae->dwOptions & AECO_READONLY))
+  AEUNDOITEM *lpCurElement;
+  AEUNDOITEM *lpNextElement;
+  AECHARINDEX ciActionStart;
+  AECHARINDEX ciActionEnd;
+  AECHARINDEX ciInsertStart;
+  AECHARINDEX ciInsertEnd;
+  BOOL bColumnSel;
+
+  AE_StackUndoGroupStop(ae);
+  lpCurElement=ae->lpCurrentUndo;
+
+  while (lpCurElement)
   {
-    AEUNDOITEM *lpCurElement;
-    AEUNDOITEM *lpNextElement;
-    AECHARINDEX ciActionStart;
-    AECHARINDEX ciActionEnd;
-    AECHARINDEX ciInsertStart;
-    AECHARINDEX ciInsertEnd;
-    BOOL bColumnSel;
+    lpNextElement=lpCurElement->prev;
 
-    AE_StackUndoGroupStop(ae);
-    lpCurElement=ae->lpCurrentUndo;
-
-    while (lpCurElement)
+    if (!(lpCurElement->dwFlags & AEUN_REDOONLY))
     {
-      lpNextElement=lpCurElement->prev;
+      if (lpCurElement->dwFlags & AEUN_COLUMNSEL)
+        bColumnSel=TRUE;
+      else
+        bColumnSel=FALSE;
 
-      if (!(lpCurElement->dwFlags & AEUN_REDOONLY))
+      if (lpCurElement->dwFlags & AEUN_INSERT)
       {
-        if (lpCurElement->dwFlags & AEUN_COLUMNSEL)
-          bColumnSel=TRUE;
-        else
-          bColumnSel=FALSE;
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
+        if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
+          ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
+        AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+        AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, ae->nInputNewLine, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd);
 
-        if (lpCurElement->dwFlags & AEUN_INSERT)
+        if (!lpNextElement || (lpNextElement->dwFlags & AEUN_STOPGROUP) || !(lpNextElement->dwFlags & AEUN_INSERT))
         {
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
-          if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
-            ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
-          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-          AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, ae->nInputNewLine, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd);
-
-          if (!lpNextElement || (lpNextElement->dwFlags & AEUN_STOPGROUP) || !(lpNextElement->dwFlags & AEUN_INSERT))
-          {
-            if (lpCurElement->dwFlags & AEUN_BACKSPACEKEY)
-              AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-            else if (lpCurElement->dwFlags & AEUN_DELETEKEY)
-              AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-            else if (lpCurElement->dwFlags & AEUN_OVERTYPECHAR)
-              AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-            else
-              AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-          }
-        }
-        else if (lpCurElement->dwFlags & AEUN_DELETE)
-        {
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionEndOffset, &ciActionEnd);
-          if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
-          {
-            ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
-            ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
-          }
-
-          if (bColumnSel)
-            AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+          if (lpCurElement->dwFlags & AEUN_BACKSPACEKEY)
+            AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+          else if (lpCurElement->dwFlags & AEUN_DELETEKEY)
+            AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+          else if (lpCurElement->dwFlags & AEUN_OVERTYPECHAR)
+            AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
           else
-            AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-          AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
-        }
-        else if (lpCurElement->dwFlags & AEUN_SETSEL)
-        {
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionEndOffset, &ciActionEnd);
-          if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
-          {
-            ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
-            ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
-          }
-
-          AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-        }
-
-        //Update window
-        if (!lpNextElement || (lpNextElement->dwFlags & AEUN_STOPGROUP))
-        {
-          AE_UpdateScrollBars(ae, SB_VERT);
-          AE_ScrollToCaret(ae, &ae->ptCaret);
-          ae->nHorizCaretPos=ae->ptCaret.x;
-          if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
-          InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+            AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
         }
       }
-      lpCurElement=lpNextElement;
+      else if (lpCurElement->dwFlags & AEUN_DELETE)
+      {
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionEndOffset, &ciActionEnd);
+        if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
+        {
+          ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
+          ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
+        }
 
-      //Stop undo
-      ae->lpCurrentUndo=lpCurElement;
-      if (ae->lpCurrentUndo)
-        if (ae->lpCurrentUndo->dwFlags & AEUN_STOPGROUP)
-          break;
-    }
+        if (bColumnSel)
+          AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+        else
+          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
+      }
+      else if (lpCurElement->dwFlags & AEUN_SETSEL)
+      {
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionEndOffset, &ciActionEnd);
+        if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
+        {
+          ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
+          ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
+        }
 
-    if (ae->bModified != AE_GetModify(ae))
-    {
-      AE_SetModify(ae, !ae->bModified, FALSE);
+        AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+      }
+
+      //Update window
+      if (!lpNextElement || (lpNextElement->dwFlags & AEUN_STOPGROUP))
+      {
+        AE_UpdateScrollBars(ae, SB_VERT);
+        AE_ScrollToCaret(ae, &ae->ptCaret);
+        ae->nHorizCaretPos=ae->ptCaret.x;
+        if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+      }
     }
+    lpCurElement=lpNextElement;
+
+    //Stop undo
+    ae->lpCurrentUndo=lpCurElement;
+    if (ae->lpCurrentUndo)
+      if (ae->lpCurrentUndo->dwFlags & AEUN_STOPGROUP)
+        break;
   }
-  else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
+
+  if (ae->bModified != AE_GetModify(ae))
+  {
+    AE_SetModify(ae, !ae->bModified, FALSE);
+  }
 }
 
 void AE_EditRedo(AKELEDIT *ae)
 {
-  if (!(ae->dwOptions & AECO_READONLY))
+  AEUNDOITEM *lpCurElement=ae->lpCurrentUndo;
+  AEUNDOITEM *lpNextElement;
+  AECHARINDEX ciActionStart;
+  AECHARINDEX ciActionEnd;
+  AECHARINDEX ciInsertStart;
+  AECHARINDEX ciInsertEnd;
+  BOOL bColumnSel;
+
+  if (!lpCurElement)
+    lpCurElement=(AEUNDOITEM *)ae->hUndoStack.first;
+  else
+    lpCurElement=lpCurElement->next;
+
+  while (lpCurElement)
   {
-    AEUNDOITEM *lpCurElement=ae->lpCurrentUndo;
-    AEUNDOITEM *lpNextElement;
-    AECHARINDEX ciActionStart;
-    AECHARINDEX ciActionEnd;
-    AECHARINDEX ciInsertStart;
-    AECHARINDEX ciInsertEnd;
-    BOOL bColumnSel;
+    lpNextElement=lpCurElement->next;
 
-    if (!lpCurElement)
-      lpCurElement=(AEUNDOITEM *)ae->hUndoStack.first;
-    else
-      lpCurElement=lpCurElement->next;
-
-    while (lpCurElement)
+    if (!(lpCurElement->dwFlags & AEUN_UNDOONLY))
     {
-      lpNextElement=lpCurElement->next;
+      if (lpCurElement->dwFlags & AEUN_COLUMNSEL)
+        bColumnSel=TRUE;
+      else
+        bColumnSel=FALSE;
 
-      if (!(lpCurElement->dwFlags & AEUN_UNDOONLY))
+      if (lpCurElement->dwFlags & AEUN_INSERT)
       {
-        if (lpCurElement->dwFlags & AEUN_COLUMNSEL)
-          bColumnSel=TRUE;
-        else
-          bColumnSel=FALSE;
-
-        if (lpCurElement->dwFlags & AEUN_INSERT)
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionEndOffset, &ciActionEnd);
+        if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
         {
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionEndOffset, &ciActionEnd);
-          if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
-          {
-            ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
-            ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
-          }
-
-          if (bColumnSel)
-            AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-          else
-            AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-          AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
+          ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
+          ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
         }
-        else if (lpCurElement->dwFlags & AEUN_DELETE)
-        {
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
-          if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
-            ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
 
-          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-          AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, ae->nInputNewLine, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd);
-        }
-        else if (lpCurElement->dwFlags & AEUN_SETSEL)
-        {
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
-          AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionEndOffset, &ciActionEnd);
-          if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
-          {
-            ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
-            ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
-          }
-
+        if (bColumnSel)
           AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+        else
+          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+        AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
+      }
+      else if (lpCurElement->dwFlags & AEUN_DELETE)
+      {
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
+        if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
+          ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
+
+        AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+        AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, ae->nInputNewLine, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd);
+      }
+      else if (lpCurElement->dwFlags & AEUN_SETSEL)
+      {
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
+        AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionEndOffset, &ciActionEnd);
+        if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
+        {
+          ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
+          ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
         }
 
-        //Update window
-        if (!lpNextElement || (lpCurElement->dwFlags & AEUN_STOPGROUP))
-        {
-          AE_UpdateScrollBars(ae, SB_VERT);
-          AE_ScrollToCaret(ae, &ae->ptCaret);
-          ae->nHorizCaretPos=ae->ptCaret.x;
-          if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
-          InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-        }
+        AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
       }
 
-      //Stop undo
-      ae->lpCurrentUndo=lpCurElement;
-      if (ae->lpCurrentUndo->dwFlags & AEUN_STOPGROUP)
-        break;
-
-      lpCurElement=lpNextElement;
+      //Update window
+      if (!lpNextElement || (lpCurElement->dwFlags & AEUN_STOPGROUP))
+      {
+        AE_UpdateScrollBars(ae, SB_VERT);
+        AE_ScrollToCaret(ae, &ae->ptCaret);
+        ae->nHorizCaretPos=ae->ptCaret.x;
+        if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+      }
     }
 
-    if (ae->bModified != AE_GetModify(ae))
-    {
-      AE_SetModify(ae, !ae->bModified, FALSE);
-    }
+    //Stop undo
+    ae->lpCurrentUndo=lpCurElement;
+    if (ae->lpCurrentUndo->dwFlags & AEUN_STOPGROUP)
+      break;
+
+    lpCurElement=lpNextElement;
   }
-  else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
+
+  if (ae->bModified != AE_GetModify(ae))
+  {
+    AE_SetModify(ae, !ae->bModified, FALSE);
+  }
 }
 
 void AE_EditCut(AKELEDIT *ae)
 {
-  if (!(ae->dwOptions & AECO_READONLY))
-  {
-    AE_EditCopyToClipboard(ae);
-    AE_StackUndoGroupStop(ae);
-    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
-    AE_StackUndoGroupStop(ae);
-  }
-  else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
+  AE_EditCopyToClipboard(ae);
+  AE_StackUndoGroupStop(ae);
+  AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
+  AE_StackUndoGroupStop(ae);
 }
 
 void AE_EditCopyToClipboard(AKELEDIT *ae)
@@ -10198,125 +10242,58 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
 
 void AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
 {
-  if (!(ae->dwOptions & AECO_READONLY))
+  HGLOBAL hData;
+  LPVOID pData;
+  BOOL bColumnSel;
+
+  bColumnSel=IsClipboardFormatAvailable(cfAkelEditColumnSel);
+
+  if (OpenClipboard(NULL))
   {
-    HGLOBAL hData;
-    LPVOID pData;
-    BOOL bColumnSel;
-
-    bColumnSel=IsClipboardFormatAvailable(cfAkelEditColumnSel);
-
-    if (OpenClipboard(NULL))
+    if (!bAnsi && (hData=GetClipboardData(CF_UNICODETEXT)))
     {
-      if (!bAnsi && (hData=GetClipboardData(CF_UNICODETEXT)))
+      if (pData=GlobalLock(hData))
       {
-        if (pData=GlobalLock(hData))
-        {
-          AE_ReplaceSel(ae, (wchar_t *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
-          GlobalUnlock(hData);
-        }
+        AE_ReplaceSel(ae, (wchar_t *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
+        GlobalUnlock(hData);
       }
-      else if (hData=GetClipboardData(CF_TEXT))
-      {
-        if (pData=GlobalLock(hData))
-        {
-          AE_ReplaceSelAnsi(ae, CP_ACP, (char *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
-          GlobalUnlock(hData);
-        }
-      }
-      CloseClipboard();
     }
+    else if (hData=GetClipboardData(CF_TEXT))
+    {
+      if (pData=GlobalLock(hData))
+      {
+        AE_ReplaceSelAnsi(ae, CP_ACP, (char *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
+        GlobalUnlock(hData);
+      }
+    }
+    CloseClipboard();
   }
-  else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
 }
 
 void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
 {
-  if (!(ae->dwOptions & AECO_READONLY))
+  if (!ae->bUnicodeWindow)
   {
-    if (!ae->bUnicodeWindow)
+    char chChar=(char)(WORD)wParam;
+    wchar_t wchChar;
+
+    if (ae->bOverType)
     {
-      char chChar=(char)(WORD)wParam;
-      wchar_t wchChar;
-
-      if (ae->bOverType)
+      if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
       {
-        if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-        {
-          AECHARINDEX ciCharIndex=ae->ciCaretIndex;
+        AECHARINDEX ciCharIndex=ae->ciCaretIndex;
 
-          if (ciCharIndex.nCharInLine + 1 <= ciCharIndex.lpLine->nLineLen)
-          {
-            ++ciCharIndex.nCharInLine;
-            AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
-            ae->lpCurrentUndo->dwFlags|=AEUN_OVERTYPECHAR;
-          }
-        }
-      }
-      MultiByteToWideChar(CP_ACP, 0, &chChar, 1, &wchChar, 1);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
-      AE_InsertText(ae, &ae->ciCaretIndex, &wchChar, 1, ae->nInputNewLine, FALSE, 0, NULL, NULL);
-
-      if (!ae->bLockCollectUndo)
-      {
-        if (ae->dwUndoLimit)
+        if (ciCharIndex.nCharInLine + 1 <= ciCharIndex.lpLine->nLineLen)
         {
-          if (ae->dwOptions & AECO_DETAILEDUNDO)
-            AE_StackUndoGroupStop(ae);
-          else
-            ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
+          ++ciCharIndex.nCharInLine;
+          AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
+          ae->lpCurrentUndo->dwFlags|=AEUN_OVERTYPECHAR;
         }
       }
     }
-    else
-    {
-      wchar_t wchChar=(wchar_t)(WORD)wParam;
-
-      if (ae->bOverType)
-      {
-        if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-        {
-          AECHARINDEX ciCharIndex=ae->ciCaretIndex;
-
-          if (ciCharIndex.nCharInLine + 1 <= ciCharIndex.lpLine->nLineLen)
-          {
-            ++ciCharIndex.nCharInLine;
-            AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
-            ae->lpCurrentUndo->dwFlags|=AEUN_OVERTYPECHAR;
-          }
-        }
-      }
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
-      AE_InsertText(ae, &ae->ciCaretIndex, &wchChar, 1, ae->nInputNewLine, FALSE, 0, NULL, NULL);
-
-      if (!ae->bLockCollectUndo)
-      {
-        if (ae->dwUndoLimit)
-        {
-          if (ae->dwOptions & AECO_DETAILEDUNDO)
-            AE_StackUndoGroupStop(ae);
-          else
-            ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
-        }
-      }
-    }
-  }
-  else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
-}
-
-void AE_EditKeyReturn(AKELEDIT *ae)
-{
-  if (!(ae->dwOptions & AECO_READONLY))
-  {
-    AECHARINDEX ciCharIndex;
-    wchar_t *wpNewLine;
-    int nNewLine;
-
-    nNewLine=AE_GetNewLineString(ae, ae->nOutputNewLine, &wpNewLine);
+    MultiByteToWideChar(CP_ACP, 0, &chChar, 1, &wchChar, 1);
     AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
-    ciCharIndex=ae->ciCaretIndex;
-    ciCharIndex.nCharInLine=min(ciCharIndex.nCharInLine, ciCharIndex.lpLine->nLineLen);
-    AE_InsertText(ae, &ciCharIndex, wpNewLine, nNewLine, ae->nInputNewLine, FALSE, 0, NULL, NULL);
+    AE_InsertText(ae, &ae->ciCaretIndex, &wchChar, 1, ae->nInputNewLine, FALSE, 0, NULL, NULL);
 
     if (!ae->bLockCollectUndo)
     {
@@ -10329,112 +10306,159 @@ void AE_EditKeyReturn(AKELEDIT *ae)
       }
     }
   }
-  else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
+  else
+  {
+    wchar_t wchChar=(wchar_t)(WORD)wParam;
+
+    if (ae->bOverType)
+    {
+      if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+      {
+        AECHARINDEX ciCharIndex=ae->ciCaretIndex;
+
+        if (ciCharIndex.nCharInLine + 1 <= ciCharIndex.lpLine->nLineLen)
+        {
+          ++ciCharIndex.nCharInLine;
+          AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
+          ae->lpCurrentUndo->dwFlags|=AEUN_OVERTYPECHAR;
+        }
+      }
+    }
+    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
+    AE_InsertText(ae, &ae->ciCaretIndex, &wchChar, 1, ae->nInputNewLine, FALSE, 0, NULL, NULL);
+
+    if (!ae->bLockCollectUndo)
+    {
+      if (ae->dwUndoLimit)
+      {
+        if (ae->dwOptions & AECO_DETAILEDUNDO)
+          AE_StackUndoGroupStop(ae);
+        else
+          ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
+      }
+    }
+  }
+}
+
+void AE_EditKeyReturn(AKELEDIT *ae)
+{
+  AECHARINDEX ciCharIndex;
+  wchar_t *wpNewLine;
+  int nNewLine;
+
+  nNewLine=AE_GetNewLineString(ae, ae->nOutputNewLine, &wpNewLine);
+  AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
+  ciCharIndex=ae->ciCaretIndex;
+  ciCharIndex.nCharInLine=min(ciCharIndex.nCharInLine, ciCharIndex.lpLine->nLineLen);
+  AE_InsertText(ae, &ciCharIndex, wpNewLine, nNewLine, ae->nInputNewLine, FALSE, 0, NULL, NULL);
+
+  if (!ae->bLockCollectUndo)
+  {
+    if (ae->dwUndoLimit)
+    {
+      if (ae->dwOptions & AECO_DETAILEDUNDO)
+        AE_StackUndoGroupStop(ae);
+      else
+        ae->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
+    }
+  }
 }
 
 void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
 {
-  if (!(ae->dwOptions & AECO_READONLY))
+  AECHARINDEX ciCharIndex=ae->ciCaretIndex;
+
+  if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
-    AECHARINDEX ciCharIndex=ae->ciCaretIndex;
-
-    if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+    if (ae->bColumnSel || (ae->dwOptions & AECO_CARETOUTEDGE))
     {
-      if (ae->bColumnSel || (ae->dwOptions & AECO_CARETOUTEDGE))
+      if (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nLineLen)
       {
-        if (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nLineLen)
-        {
-          ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
-          AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel, 0);
-          return;
-        }
+        ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
+        AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel, 0);
+        return;
       }
-
-      if ((bControl && AE_GetPrevWord(ae, &ae->ciSelStartIndex, &ciCharIndex, NULL, FALSE, ae->dwWordBreak, FALSE)) ||
-          (!bControl && AE_GetIndex(ae, AEGI_PREVCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
-      {
-        AE_StackUndoGroupStop(ae);
-        AE_DeleteTextRange(ae, &ciCharIndex, &ae->ciSelStartIndex, FALSE, 0);
-        AE_StackUndoGroupStop(ae);
-
-        if (!ae->bLockCollectUndo)
-        {
-          if (ae->dwUndoLimit)
-          {
-            ae->lpCurrentUndo->dwFlags|=AEUN_BACKSPACEKEY;
-          }
-        }
-      }
-      else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
     }
-    else
+
+    if ((bControl && AE_GetPrevWord(ae, &ae->ciSelStartIndex, &ciCharIndex, NULL, FALSE, ae->dwWordBreak, FALSE)) ||
+        (!bControl && AE_GetIndex(ae, AEGI_PREVCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
     {
       AE_StackUndoGroupStop(ae);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
+      AE_DeleteTextRange(ae, &ciCharIndex, &ae->ciSelStartIndex, FALSE, 0);
       AE_StackUndoGroupStop(ae);
+
+      if (!ae->bLockCollectUndo)
+      {
+        if (ae->dwUndoLimit)
+        {
+          ae->lpCurrentUndo->dwFlags|=AEUN_BACKSPACEKEY;
+        }
+      }
     }
+    else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
   }
-  else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
+  else
+  {
+    AE_StackUndoGroupStop(ae);
+    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
+    AE_StackUndoGroupStop(ae);
+  }
 }
 
 void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
 {
-  if (!(ae->dwOptions & AECO_READONLY))
+  AECHARINDEX ciCharIndex=ae->ciCaretIndex;
+  int nSpaces=0;
+
+  if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
-    AECHARINDEX ciCharIndex=ae->ciCaretIndex;
-    int nSpaces=0;
-
-    if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+    if (ae->bColumnSel || (ae->dwOptions & AECO_CARETOUTEDGE))
     {
-      if (ae->bColumnSel || (ae->dwOptions & AECO_CARETOUTEDGE))
+      wchar_t *wpSpaces;
+      int i;
+
+      nSpaces=ciCharIndex.nCharInLine - ciCharIndex.lpLine->nLineLen;
+
+      if (nSpaces > 0)
       {
-        wchar_t *wpSpaces;
-        int i;
-
-        nSpaces=ciCharIndex.nCharInLine - ciCharIndex.lpLine->nLineLen;
-
-        if (nSpaces > 0)
+        if (wpSpaces=(wchar_t *)AE_HeapAlloc(ae, 0, nSpaces * sizeof(wchar_t) + 2))
         {
-          if (wpSpaces=(wchar_t *)AE_HeapAlloc(ae, 0, nSpaces * sizeof(wchar_t) + 2))
-          {
-            for (i=0; i < nSpaces; ++i)
-              wpSpaces[i]=L' ';
-            wpSpaces[nSpaces]=L'\0';
+          for (i=0; i < nSpaces; ++i)
+            wpSpaces[i]=L' ';
+          wpSpaces[nSpaces]=L'\0';
 
-            ciCharIndex.nCharInLine=min(ciCharIndex.nCharInLine, ciCharIndex.lpLine->nLineLen);
-            AE_StackUndoGroupStop(ae);
-            AE_InsertText(ae, &ciCharIndex, wpSpaces, nSpaces, AELB_ASIS, FALSE, 0, NULL, NULL);
+          ciCharIndex.nCharInLine=min(ciCharIndex.nCharInLine, ciCharIndex.lpLine->nLineLen);
+          AE_StackUndoGroupStop(ae);
+          AE_InsertText(ae, &ciCharIndex, wpSpaces, nSpaces, AELB_ASIS, FALSE, 0, NULL, NULL);
 
-            AE_HeapFree(ae, 0, (LPVOID)wpSpaces);
-          }
+          AE_HeapFree(ae, 0, (LPVOID)wpSpaces);
         }
       }
+    }
 
-      if ((bControl && AE_GetNextWord(ae, &ae->ciSelStartIndex, NULL, &ciCharIndex, FALSE, ae->dwWordBreak, FALSE)) ||
-          (!bControl && AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
+    if ((bControl && AE_GetNextWord(ae, &ae->ciSelStartIndex, NULL, &ciCharIndex, FALSE, ae->dwWordBreak, FALSE)) ||
+        (!bControl && AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
+    {
+      if (!nSpaces) AE_StackUndoGroupStop(ae);
+      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, 0);
+      AE_StackUndoGroupStop(ae);
+
+      if (!ae->bLockCollectUndo)
       {
-        if (!nSpaces) AE_StackUndoGroupStop(ae);
-        AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ciCharIndex, FALSE, 0);
-        AE_StackUndoGroupStop(ae);
-
-        if (!ae->bLockCollectUndo)
+        if (ae->dwUndoLimit)
         {
-          if (ae->dwUndoLimit)
-          {
-            ae->lpCurrentUndo->dwFlags|=AEUN_DELETEKEY;
-          }
+          ae->lpCurrentUndo->dwFlags|=AEUN_DELETEKEY;
         }
       }
-      else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
     }
-    else
-    {
-      AE_StackUndoGroupStop(ae);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
-      AE_StackUndoGroupStop(ae);
-    }
+    else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
   }
-  else if (!(ae->dwOptions & AECO_DISABLEBEEP)) MessageBeep(MB_OK);
+  else
+  {
+    AE_StackUndoGroupStop(ae);
+    AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
+    AE_StackUndoGroupStop(ae);
+  }
 }
 
 void AE_EditSelectAll(AKELEDIT *ae)
