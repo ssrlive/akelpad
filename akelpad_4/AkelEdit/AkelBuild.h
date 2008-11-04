@@ -378,6 +378,7 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
 BOOL AE_GetModify(AKELEDIT *ae);
 void AE_SetModify(AKELEDIT *ae, BOOL bState, BOOL bMessage);
 void AE_EmptyUndoBuffer(AKELEDIT *ae);
+BOOL AE_IsReadOnly(AKELEDIT *ae);
 BOOL AE_EditCanPaste(AKELEDIT *ae);
 BOOL AE_EditCanRedo(AKELEDIT *ae);
 BOOL AE_EditCanUndo(AKELEDIT *ae);
