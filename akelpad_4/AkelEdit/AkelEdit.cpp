@@ -5888,6 +5888,7 @@ void AE_Paint(AKELEDIT *ae)
         nLastDrawLine=(ae->nVScrollPos + (rcDraw.bottom - ae->rcDraw.top)) / ae->nCharHeight;
         nLastDrawLine=min(nLastDrawLine, ae->nLineCount);
 
+        ptDraw.x=ae->rcDraw.left - ae->nHScrollPos;
         ptDraw.y=(ciDrawLine.nLine * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
         nMinPaintWidth=ae->nHScrollPos + max(rcDraw.left - ae->rcDraw.left, 0);
         nMaxPaintWidth=ae->nHScrollPos + max(rcDraw.right - ae->rcDraw.left, 0);
@@ -5903,13 +5904,12 @@ void AE_Paint(AKELEDIT *ae)
 
       while (ciDrawLine.lpLine)
       {
-        //Draw line
-        ptDraw.x=ae->rcDraw.left - ae->nHScrollPos;
-        nStartDrawWidth=0;
-        nLineWidth=0;
+        //Get first paint char in line
+        AE_GetCharInLineEx(ae, ciDrawLine.lpLine, nMinPaintWidth, FALSE, &ciDrawLine.nCharInLine, &nLineWidth, FALSE);
+        nStartDrawWidth=nLineWidth;
         nMaxDrawCharsCount=0;
-        wpStartDraw=ciDrawLine.lpLine->wpLine;
-        nFirstPaintChar=-1;
+        wpStartDraw=ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine;
+        nFirstPaintChar=ciDrawLine.nCharInLine;
 
         if (ae->bHideSelection)
         {
@@ -5948,7 +5948,14 @@ void AE_Paint(AKELEDIT *ae)
           {
             nLineSelection=AELS_PARTLY;
 
-            if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+            if (ciDrawLine.lpLine->nSelStart <= ciDrawLine.nCharInLine &&
+                ciDrawLine.lpLine->nSelEnd > ciDrawLine.nCharInLine)
+            {
+              dwColorText=ae->crSelText;
+              dwColorBG=ae->crSelBk;
+              hbrBG=ae->hSelBk;
+            }
+            else if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
             {
               dwColorText=ae->crActiveLineText;
               dwColorBG=ae->crActiveLineBk;
@@ -5963,7 +5970,7 @@ void AE_Paint(AKELEDIT *ae)
           }
         }
 
-        for (ciDrawLine.nCharInLine=0; ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nLineLen; ++ciDrawLine.nCharInLine)
+        for (; ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nLineLen; ++ciDrawLine.nCharInLine)
         {
           if (ciDrawLine.nCharInLine < ciDrawLine.lpLine->nLineLen)
           {
@@ -5981,10 +5988,8 @@ void AE_Paint(AKELEDIT *ae)
               if (nLineWidth + nCharWidth >= nMinPaintWidth)
               {
                 //Is first draw char located in URL
-                if (nFirstPaintChar == -1)
+                if (nFirstPaintChar == ciDrawLine.nCharInLine)
                 {
-                  nFirstPaintChar=ciDrawLine.nCharInLine;
-
                   if (AE_CharInUrl(ae, &ciDrawLine, AECU_FINDFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
                   {
                     crLink.ciMin=ciDrawLine;
@@ -6799,11 +6804,6 @@ int AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, B
             nStringWidth+=sizeChar.cx;
             ++i;
           }
-        }
-        else
-        {
-          nStringWidth+=sizeChar.cx;
-          ++i;
         }
       }
     }
