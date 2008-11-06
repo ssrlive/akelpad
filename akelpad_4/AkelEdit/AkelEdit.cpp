@@ -5856,11 +5856,14 @@ void AE_Paint(AKELEDIT *ae)
       int nLineSelection;
       int nLineLen;
       int nStartDrawWidth;
-      int nMaxLineWidth=0;
+      int nMinPaintWidth=0;
+      int nMaxPaintWidth=0;
       int nMaxDrawCharsCount;
+      int nCharWidth=0;
       int nLineWidth;
       int nTabWidth=0;
       int nLastDrawLine=0;
+      int nFirstPaintChar;
 
       //Set region
       hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
@@ -5886,7 +5889,8 @@ void AE_Paint(AKELEDIT *ae)
         nLastDrawLine=min(nLastDrawLine, ae->nLineCount);
 
         ptDraw.y=(ciDrawLine.nLine * ae->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
-        nMaxLineWidth=ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left);
+        nMinPaintWidth=ae->nHScrollPos + max(rcDraw.left - ae->rcDraw.left, 0);
+        nMaxPaintWidth=ae->nHScrollPos + max(rcDraw.right - ae->rcDraw.left, 0);
 
         if (ciDrawLine.lpLine)
         {
@@ -5905,6 +5909,7 @@ void AE_Paint(AKELEDIT *ae)
         nLineWidth=0;
         nMaxDrawCharsCount=0;
         wpStartDraw=ciDrawLine.lpLine->wpLine;
+        nFirstPaintChar=-1;
 
         if (ae->bHideSelection)
         {
@@ -5960,30 +5965,42 @@ void AE_Paint(AKELEDIT *ae)
 
         for (ciDrawLine.nCharInLine=0; ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nLineLen; ++ciDrawLine.nCharInLine)
         {
+          if (ciDrawLine.nCharInLine < ciDrawLine.lpLine->nLineLen)
+          {
+            if (ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine] == L'\t')
+              nCharWidth=nTabWidth;
+            else
+              nCharWidth=AE_GetCharWidth(ae, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine]);
+          }
+
           if (ae->bDetectUrl)
           {
             //Detect URL
             if (!crLink.ciMin.lpLine || !crLink.ciMax.lpLine)
             {
-              //Is first draw char located in URL
-              if (ciDrawLine.nCharInLine == 0 && ae->liFirstDrawLine.nLine == ciDrawLine.nLine)
+              if (nLineWidth + nCharWidth >= nMinPaintWidth)
               {
-                if (AE_CharInUrl(ae, &ciDrawLine, AECU_FINDFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
+                //Is first draw char located in URL
+                if (nFirstPaintChar == -1)
                 {
-                  crLink.ciMin=ciDrawLine;
-                  goto HighlightUrl;
-                }
-              }
+                  nFirstPaintChar=ciDrawLine.nCharInLine;
 
-              if (AE_CharInUrl(ae, &ciDrawLine, AECU_ISFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
-              {
-                crLink.ciMin=ciDrawLine;
-                goto HighlightUrl;
+                  if (AE_CharInUrl(ae, &ciDrawLine, AECU_FINDFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
+                  {
+                    crLink.ciMin=ciDrawLine;
+                  }
+                }
+                else
+                {
+                  if (AE_CharInUrl(ae, &ciDrawLine, AECU_ISFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
+                  {
+                    crLink.ciMin=ciDrawLine;
+                  }
+                }
               }
             }
 
             //Highlight URL
-            HighlightUrl:
             if (crLink.ciMin.lpLine && crLink.ciMax.lpLine)
             {
               if (AE_IndexCompare(&crLink.ciMin, &ciDrawLine) == 0)
@@ -6090,14 +6107,11 @@ void AE_Paint(AKELEDIT *ae)
           else ++nMaxDrawCharsCount;
 
           //Stop line checking and draw it, if it's outside draw area
-          if (nLineWidth > nMaxLineWidth)
+          if (nLineWidth > nMaxPaintWidth)
             break;
 
           //Increment line width
-          if (ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine] == L'\t')
-            nLineWidth+=nTabWidth;
-          else
-            nLineWidth+=AE_GetCharWidth(ae, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine]);
+          nLineWidth+=nCharWidth;
         }
 
         //Draw text line
@@ -6132,7 +6146,7 @@ void AE_Paint(AKELEDIT *ae)
         AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
 
         AfterText:
-        if (nLineWidth <= nMaxLineWidth)
+        if (nLineWidth <= nMaxPaintWidth)
         {
           if (ae->bColumnSel)
           {
