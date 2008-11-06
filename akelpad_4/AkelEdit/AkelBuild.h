@@ -16,6 +16,8 @@
 
 #define AEFONT_MAX_CHAR        65536
 
+#define AEURL_MAX_LENGTH       512
+
 //WM_SETCURSOR
 #define AECC_IBEAM      0
 #define AECC_MARGIN     1
@@ -317,8 +319,8 @@ void AE_UpdateSelection(AKELEDIT *ae, DWORD dwSelFlags);
 void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShift);
 BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos);
-BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink);
-BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
+int AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink);
+int AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight);
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh);

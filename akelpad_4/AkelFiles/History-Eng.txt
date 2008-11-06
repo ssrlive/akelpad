@@ -1,4 +1,9 @@
 
+AkelPad 4.1.0 ()
+----------------------------
+Changed: now URL max length is 512 characters (as in RichEdit) to speed up work with text.
+
+
 AkelPad 4.0.9 (Nov 02, 2008)
 ----------------------------
 Changed: right mouse click on non-active AkelEdit window activate it (MDI).
