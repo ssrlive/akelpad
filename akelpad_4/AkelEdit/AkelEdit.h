@@ -560,6 +560,8 @@ typedef struct {
 #define AEM_SETURLDELIMITERS  (WM_USER + 2224)
 #define AEM_GETURLPREFIXES    (WM_USER + 2225)
 #define AEM_SETURLPREFIXES    (WM_USER + 2226)
+#define AEM_GETURLMAXLENGTH   (WM_USER + 2227)
+#define AEM_SETURLMAXLENGTH   (WM_USER + 2228)
 
 #define AEM_ISDELIMITER       (WM_USER + 2251)
 #define AEM_SHOWSCROLLBAR     (WM_USER + 2252)
@@ -1086,8 +1088,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   success
- FALSE  failed
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  SendMessage(hWndEdit, AEM_CANPASTE, 0, 0);
@@ -1147,8 +1149,8 @@ wParam                == not used.
 (AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure.
 
 Return Value
- TRUE   founded
- FALSE  not found
+ TRUE   founded.
+ FALSE  not found.
 
 Example:
  AEFINDTEXTA ft;
@@ -1178,8 +1180,8 @@ wParam                == not used.
 (AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure.
 
 Return Value
- TRUE   founded
- FALSE  not found
+ TRUE   founded.
+ FALSE  not found.
 
 Example:
  AEFINDTEXTW ft;
@@ -1227,8 +1229,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   success
- FALSE  failed
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  SendMessage(hWndEdit, AEM_CANUNDO, 0, 0);
@@ -1243,8 +1245,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   success
- FALSE  failed
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  SendMessage(hWndEdit, AEM_CANREDO, 0, 0);
@@ -1360,7 +1362,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Maximum number of actions that can be stored in the undo queue.
 
 Example:
  SendMessage(hWndEdit, AEM_GETUNDOLIMIT, 0, 0);
@@ -1390,7 +1392,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ TRUE   text has been modified.
+ FALSE  text has not been modified.
 
 Example:
  SendMessage(hWndEdit, AEM_GETMODIFY, 0, 0);
@@ -1459,8 +1462,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   selection is in column mode
- FALSE  selection is in non-column mode
+ TRUE   selection is in column mode.
+ FALSE  selection is in non-column mode.
 
 Example:
  SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
@@ -1505,8 +1508,8 @@ Retrieve the specified character index.
 (AECHARINDEX *)lParam == character index.
 
 Return Value
- TRUE   success
- FALSE  failed
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  AECHARINDEX ciChar;
@@ -1523,8 +1526,8 @@ Retrieve the first character index in the specified line.
 (AECHARINDEX *)lParam == character index.
 
 Return Value
- TRUE   success
- FALSE  failed
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  AECHARINDEX ciChar;
@@ -1541,8 +1544,8 @@ wParam                == not used.
 (AECHARINDEX *)lParam == character index.
 
 Return Value
- TRUE   success
- FALSE  failed
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  AESELECTION aes;
@@ -2088,8 +2091,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   URL detection is on
- FALSE  URL detection is off
+ TRUE   URL detection is on.
+ FALSE  URL detection is off.
 
 Example:
  SendMessage(hWndEdit, AEM_GETDETECTURL, 0, 0);
@@ -2120,8 +2123,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   control is in overtype mode
- FALSE  control is in insert mode
+ TRUE   control is in overtype mode.
+ FALSE  control is in insert mode.
 
 Example:
  SendMessage(hWndEdit, AEM_GETOVERTYPE, 0, 0);
@@ -2132,8 +2135,8 @@ _______________
 
 Set type mode.
 
-(BOOL)wParam == TRUE   sets overtype mode
-                FALSE  sets insert mode
+(BOOL)wParam == TRUE   sets overtype mode.
+                FALSE  sets insert mode.
 lParam       == not used.
 
 Return Value
@@ -2218,8 +2221,8 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   control is in word wrap mode
- FALSE  control is in non-wrap mode
+ TRUE   control is in word wrap mode.
+ FALSE  control is in non-wrap mode.
 
 Example:
  SendMessage(hWndEdit, AEM_GETWORDWRAP, 0, 0);
@@ -2230,8 +2233,8 @@ ______________
 
 Set word wrap mode.
 
-(BOOL)wParam == TRUE   sets word wrap mode
-                FALSE  disables word wrap mode
+(BOOL)wParam == TRUE   sets word wrap mode.
+                FALSE  disables word wrap mode.
 lParam      == not used.
 
 Return Value
@@ -2377,6 +2380,36 @@ Example:
  SendMessage(hWndEdit, AEM_SETURLPREFIXES, 0, (LPARAM)wszPrefixes);
 
 
+AEM_GETURLMAXLENGTH
+___________________
+
+Retrieve URL maximum length.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ URL maximum length.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETURLMAXLENGTH, 0, 0);
+
+
+AEM_SETURLMAXLENGTH
+___________________
+
+Set URL maximum length.
+
+(DWORD)wParam == URL maximum length.
+lParam        == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETURLMAXLENGTH, 1024, 0);
+
+
 AEM_ISDELIMITER
 _______________
 
@@ -2386,8 +2419,8 @@ Retrieve character index delimiter or not.
 (AECHARINDEX *)lParam == character index.
 
 Return Value
- TRUE   character index is a delimiter
- FALSE  character index isn't a delimiter
+ TRUE   character index is a delimiter.
+ FALSE  character index isn't a delimiter.
 
 Example:
  AECHARINDEX ciChar;
