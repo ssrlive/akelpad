@@ -5055,7 +5055,7 @@ BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos)
   return FALSE;
 }
 
-BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
+int AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
 {
   if (ae->bDetectUrl)
   {
@@ -5077,14 +5077,15 @@ BOOL AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
       }
     }
   }
-  return FALSE;
+  return 0;
 }
 
-BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink)
+int AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink)
 {
   AECHARINDEX ciCount;
   wchar_t wchChar='\0';
   int nPrefix;
+  int nUrlLength=0;
 
   //Find URL beginning (backward)
   ciCount=*ciChar;
@@ -5096,7 +5097,7 @@ BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, i
       while (ciCount.nCharInLine >= 0)
       {
         if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
-          return FALSE;
+          return 0;
 
         for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
         {
@@ -5120,12 +5121,16 @@ BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, i
           }
         }
         if (dwSearchType & AECU_ISFIRSTCHAR)
-          return FALSE;
+          return 0;
 
+        ++nUrlLength;
         --ciCount.nCharInLine;
+
+        if (nUrlLength >= AEURL_MAX_LENGTH)
+          return 0;
       }
       if (dwSearchType & AECU_ISFIRSTCHAR)
-        return FALSE;
+        return 0;
 
       if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
       {
@@ -5133,9 +5138,9 @@ BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, i
         ciCount.lpLine=ciCount.lpLine->prev;
         ciCount.nCharInLine=max(ciCount.lpLine->nLineLen - 1, 0);
       }
-      else return FALSE;
+      else return 0;
     }
-    return FALSE;
+    return 0;
   }
 
   //Find URL ending (forward)
@@ -5150,6 +5155,10 @@ BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, i
       {
         if (AE_IsInDelimiterList(ae->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
           goto End;
+        if (nUrlLength >= AEURL_MAX_LENGTH)
+          goto End;
+
+        ++nUrlLength;
         ++ciCount.nCharInLine;
       }
 
@@ -5165,7 +5174,7 @@ BOOL AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, i
 
   End:
   crLink->ciMax=ciCount;
-  return TRUE;
+  return nUrlLength;
 }
 
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
