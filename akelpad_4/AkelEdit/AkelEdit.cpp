@@ -5871,7 +5871,6 @@ void AE_Paint(AKELEDIT *ae)
       int nMaxDrawCharsCount;
       int nCharWidth=0;
       int nLineWidth;
-      int nTabWidth=0;
       int nLastDrawLine=0;
       int nFirstPaintChar;
 
@@ -5985,7 +5984,7 @@ void AE_Paint(AKELEDIT *ae)
           if (ciDrawLine.nCharInLine < ciDrawLine.lpLine->nLineLen)
           {
             if (ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine] == L'\t')
-              nCharWidth=nTabWidth;
+              nCharWidth=ae->nTabWidth - nLineWidth % ae->nTabWidth;
             else
               nCharWidth=AE_GetCharWidth(ae, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine]);
           }
@@ -6101,13 +6100,12 @@ void AE_Paint(AKELEDIT *ae)
             AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
             nMaxDrawCharsCount=0;
 
-            nTabWidth=ae->nTabWidth - nStartDrawWidth % ae->nTabWidth;
             rcSpace.left=ptDraw.x + nStartDrawWidth;
             rcSpace.top=ptDraw.y;
-            rcSpace.right=rcSpace.left + nTabWidth;
+            rcSpace.right=rcSpace.left + nCharWidth;
             rcSpace.bottom=rcSpace.top + ae->nCharHeight;
             FillRect(ps.hdc, &rcSpace, hbrBG);
-            nStartDrawWidth+=nTabWidth;
+            nStartDrawWidth+=nCharWidth;
             wpStartDraw+=1;
           }
 
