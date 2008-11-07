@@ -5994,22 +5994,19 @@ void AE_Paint(AKELEDIT *ae)
             //Detect URL
             if (!crLink.ciMin.lpLine || !crLink.ciMax.lpLine)
             {
-              if (nLineWidth + nCharWidth >= nMinPaintWidth)
+              //Is first draw char located in URL
+              if (nFirstPaintChar == ciDrawLine.nCharInLine)
               {
-                //Is first draw char located in URL
-                if (nFirstPaintChar == ciDrawLine.nCharInLine)
+                if (AE_CharInUrl(ae, &ciDrawLine, AECU_FINDFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
                 {
-                  if (AE_CharInUrl(ae, &ciDrawLine, AECU_FINDFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
-                  {
-                    crLink.ciMin=ciDrawLine;
-                  }
+                  crLink.ciMin=ciDrawLine;
                 }
-                else
+              }
+              else
+              {
+                if (AE_CharInUrl(ae, &ciDrawLine, AECU_ISFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
                 {
-                  if (AE_CharInUrl(ae, &ciDrawLine, AECU_ISFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
-                  {
-                    crLink.ciMin=ciDrawLine;
-                  }
+                  crLink.ciMin=ciDrawLine;
                 }
               }
             }
