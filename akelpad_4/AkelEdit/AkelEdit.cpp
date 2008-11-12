@@ -1628,7 +1628,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (uMsg == WM_GETFONT)
     {
-      return (LRESULT)ae->hFont;
+      if (ae->hFont == (HFONT)GetStockObject(SYSTEM_FONT))
+        return (LRESULT)NULL;
+      else
+        return (LRESULT)ae->hFont;
     }
     else if (uMsg == WM_SETFONT)
     {
@@ -4658,22 +4661,26 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
 
-  AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
-  ae->hFont=hFont;
-
-  if (ae->hFont)
+  if (hFont)
   {
-    SelectObject(ae->hDC, ae->hFont);
-    GetObjectA(ae->hFont, sizeof(LOGFONTA), &ae->lfEditA);
+    SelectObject(ae->hDC, hFont);
+    GetObjectA(hFont, sizeof(LOGFONTA), &ae->lfEditA);
+    if (!GetTextMetricsA(ae->hDC, &tmEdit))
+      hFont=NULL;
   }
-  else
+  if (!hFont)
   {
     SelectObject(ae->hDC, hFontSystem);
     GetObjectA((HGDIOBJ)hFontSystem, sizeof(LOGFONTA), &ae->lfEditA);
+    if (!GetTextMetricsA(ae->hDC, &tmEdit))
+      return;
+    hFont=hFontSystem;
   }
 
+  ae->hFont=hFont;
   ae->lfEditA.lfHeight=-mod(ae->lfEditA.lfHeight);
   ae->lfEditA.lfWidth=0;
+  AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
 
   //Create URL font
   if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
@@ -4681,9 +4688,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   ae->lfEditUrlA.lfUnderline=TRUE;
   ae->hFontUrl=(HFONT)CreateFontIndirectA(&ae->lfEditUrlA);
 
-  GetTextMetricsA(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
-
   GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
   ae->nAveCharWidth=sizeWidth.cx / 52;
   GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeWidth);
@@ -4699,22 +4704,26 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
 
-  AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
-  ae->hFont=hFont;
-
-  if (ae->hFont)
+  if (hFont)
   {
-    SelectObject(ae->hDC, ae->hFont);
-    GetObjectW(ae->hFont, sizeof(LOGFONTW), &ae->lfEditW);
+    SelectObject(ae->hDC, hFont);
+    GetObjectW(hFont, sizeof(LOGFONTW), &ae->lfEditW);
+    if (!GetTextMetricsW(ae->hDC, &tmEdit))
+      hFont=NULL;
   }
-  else
+  if (!hFont)
   {
     SelectObject(ae->hDC, hFontSystem);
     GetObjectW((HGDIOBJ)hFontSystem, sizeof(LOGFONTW), &ae->lfEditW);
+    if (!GetTextMetricsW(ae->hDC, &tmEdit))
+      return;
+    hFont=hFontSystem;
   }
 
+  ae->hFont=hFont;
   ae->lfEditW.lfHeight=-mod(ae->lfEditW.lfHeight);
   ae->lfEditW.lfWidth=0;
+  AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
 
   //Create URL font
   if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
@@ -4722,9 +4731,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   ae->lfEditUrlW.lfUnderline=TRUE;
   ae->hFontUrl=(HFONT)CreateFontIndirectW(&ae->lfEditUrlW);
 
-  GetTextMetricsW(ae->hDC, &tmEdit);
   ae->nCharHeight=tmEdit.tmHeight;
-
   GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
   ae->nAveCharWidth=sizeWidth.cx / 52;
   GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeWidth);
