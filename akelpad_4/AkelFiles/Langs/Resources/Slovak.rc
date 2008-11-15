@@ -380,10 +380,10 @@ IDD_FIND DIALOGEX 70, 70, 257, 108
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
-CAPTION "Find"
+CAPTION "Hæadaù"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "What:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
+    LTEXT           "Hæ&adaù:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Rozliöovaù malÈ a†VEºK… pÌsmen·",IDC_SEARCH_MATCHCASE,
@@ -405,7 +405,7 @@ BEGIN
     DEFPUSHBUTTON   "&Hæadaù Ôalej",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
                     BS_CENTER
     PUSHBUTTON      "&Zruöiù",IDCANCEL,196,23,54,14,BS_CENTER
-    LTEXT           "(\\[...] - hex string,\n \\\\ - backslash,\n \\n - line feed,\n \\t - tabulation)",
+    LTEXT           "(\\[...] - hexadecim·lny reùazec,\n \\\\ - opaËnÈ lomeno,\n \\n - nov˝ riadok,\n \\t - znak tab)",
                     IDC_STATIC,21,53,97,33,NOT WS_GROUP
 END
 
@@ -413,13 +413,13 @@ IDD_REPLACE DIALOGEX 70, 70, 257, 122
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
-CAPTION "Replace"
+CAPTION "Nahradiù"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    LTEXT           "What:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
+    LTEXT           "Hæ&adaù:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "With:",IDC_STATIC,4,25,22,12,NOT WS_GROUP
+    LTEXT           "Nahrad&iù:",IDC_STATIC,4,25,22,12,NOT WS_GROUP
     COMBOBOX        IDC_SEARCH_REPLACE,27,23,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Rozliöovaù malÈ a†VEºK… pÌsmen·",IDC_SEARCH_MATCHCASE,
@@ -446,7 +446,7 @@ BEGIN
                     BS_CENTER
     PUSHBUTTON      "&Zruöiù",IDCANCEL,196,55,54,14,BS_CENTER
     LTEXT           "With:",IDC_STATIC,4,25,22,12,NOT WS_GROUP
-    LTEXT           "(\\[...] - hex string,\n \\\\ - backslash,\n \\n - line feed,\n \\t - tabulation)",
+    LTEXT           "(\\[...] - hexadecim·lny reùazec,\n \\\\ - opaËnÈ lomeno,\n \\n - nov˝ riadok,\n \\t - znak tab)",
                     IDC_STATIC,21,67,97,33,NOT WS_GROUP
 END
 
@@ -661,7 +661,7 @@ BEGIN
     CONTROL         "O&ddeæovaËe:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,136,89,10
     EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,148,172,13,ES_AUTOHSCROLL
-    CONTROL         "Allow caret moving out of the line edge",
+    CONTROL         "Povoliù presun kurzora za hranice riadku",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,178,200,10
     CONTROL         "TlaËidlo &Nahradiù vöetko zatvorÌ dialÛg",
