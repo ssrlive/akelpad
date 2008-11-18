@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /debug /machine:I386 /nodefaultlib /out:"Debug/notepad.exe" /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib advapi32.lib comdlg32.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /debug /machine:I386 /nodefaultlib /out:"Debug/notepad.exe" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "Redirect - Win32 Release"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /out:"Release/notepad.exe" /opt:nowin98
+# ADD LINK32 kernel32.lib user32.lib advapi32.lib comdlg32.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /out:"Release/notepad.exe" /opt:nowin98
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
