@@ -1,8 +1,11 @@
 
-AkelPad 4.1.0 ()
+AkelPad 4.1.0 (Nov 19, 2008)
 ----------------------------
 Changed: optimized drawing of long lines.
 Changed: now URL max length is 512 characters (as in RichEdit) to speed up work with text.
+Changed: documentation now located in Docs folder.
+
+Added: plugins in installer.
 
 Fixed: combining mouse capture and text insertion.
 Fixed: updating after text insertion in a word wrap mode.

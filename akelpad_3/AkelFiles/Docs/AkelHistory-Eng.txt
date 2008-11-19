@@ -1,6 +1,10 @@
 
-AkelPad 3.6.3 ()
+AkelPad 3.6.3 (Nov 19, 2008)
 ----------------------------
+Changed: documentation now located in Docs folder.
+
+Added: plugins in installer.
+
 Fixed: context menu on two monitors.
 
 
