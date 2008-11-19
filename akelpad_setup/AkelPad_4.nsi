@@ -385,9 +385,9 @@ Function DirectoryLeave
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$SETUPEXE"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk" "$SETUPDIR\AkelFiles\Uninstall.exe"
 	StrCmp $SYSLANGUAGE ${LANG_RUSSIAN} 0 +3
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$SETUPDIR\AkelFiles\AkelPad-Rus.htm"
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$SETUPDIR\AkelFiles\Docs\AkelHelp-Rus.htm"
 	goto +2
-	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$SETUPDIR\AkelFiles\AkelPad-Eng.htm"
+	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk" "$SETUPDIR\AkelFiles\Docs\AkelHelp-Eng.htm"
 
 	end:
 FunctionEnd
