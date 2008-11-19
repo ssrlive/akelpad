@@ -7710,6 +7710,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
     ae->hPointsStack.first=0;
     ae->hPointsStack.last=0;
     ae->lpCurrentUndo=NULL;
+    ae->lpSavePoint=NULL;
     ae->bSavePointExist=TRUE;
     ae->bModified=FALSE;
     ae->dwUndoCount=0;
@@ -9370,7 +9371,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
           }
           else
           {
-            AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, FALSE);
+            AE_RedrawLineRange(ae, nFirstRedrawLine, nLastRedrawLine, TRUE);
           }
         }
 
