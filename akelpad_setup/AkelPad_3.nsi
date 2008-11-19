@@ -516,6 +516,9 @@ FunctionEnd
 Section un.install
 	${un.GetParent} "$INSTDIR" $SETUPDIR
 
+	IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
+	UnRegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
+
 #	_notepad:
 	StrCmp $SETUPDIR $SYSDIR +2
 	StrCmp $SETUPDIR $WINDIR 0 _totalcmd
