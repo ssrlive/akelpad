@@ -12,6 +12,7 @@ OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}-setup.exe"
 SetCompressor /SOLID lzma
 SubCaption 3 ' '
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 
 ############  Functions  ############
 !include "FileFunc.nsh"
@@ -19,6 +20,9 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !insertmacro un.GetFileName
 !insertmacro GetParent
 !insertmacro un.GetParent
+
+!include "WordFunc.nsh"
+!insertmacro WordReplace
 
 ############  MUI  ############
 !include "MUI.nsh"
@@ -61,6 +65,7 @@ Var INSTTYPE
 Var SETUPDIR
 Var SETUPEXE
 Var TCDIR
+Var TCINI
 Var SYSLANGUAGE
 Var UNSETTINGS
 Var UNRESULT
@@ -266,20 +271,20 @@ Function CustomLeave
 	${GetParent} "$0" $0
 	${GetParent} "$0" $0
 	IfFileExists "$0\TotalCmd.exe" 0 +3
-	StrCpy $INSTDIR "$0"
+	StrCpy $INSTDIR "$0\${PRODUCT_NAME}"
 	goto end
 
 	Ghisler:
 	ReadRegStr $0 HKCU "SOFTWARE\Ghisler\Total Commander" "InstallDir"
 	StrCmp $0 '' +4
 	IfFileExists "$0\TotalCmd.exe" 0 +3
-	StrCpy $INSTDIR "$0"
+	StrCpy $INSTDIR "$0\${PRODUCT_NAME}"
 	goto end
 	IfFileExists "C:\TotalCmd\TotalCmd.exe" 0 +3
-	StrCpy $INSTDIR "C:\TotalCmd"
+	StrCpy $INSTDIR "C:\TotalCmd\${PRODUCT_NAME}"
 	goto end
 	IfFileExists "C:\TC\TotalCmd.exe" 0 +3
-	StrCpy $INSTDIR "C:\TC"
+	StrCpy $INSTDIR "C:\TC\${PRODUCT_NAME}"
 	goto end
 	StrCpy $INSTDIR ""
 	goto end
@@ -329,34 +334,26 @@ Function DirectoryShow
 
 	StrCmp $INSTTYPE ${INSTTYPE_STANDARD} 0 +2
 	SendMessage $0 ${BM_SETCHECK} 1 0
-
-	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 +5
-	GetDlgItem $0 $R0 1019
-	EnableWindow $0 0
-	GetDlgItem $0 $R0 1001
-	EnableWindow $0 0
 FunctionEnd
 
 Function .onVerifyInstDir
 	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 end
-	IfFileExists "$INSTDIR\totalcmd.exe" end
+	StrCpy $TCDIR $INSTDIR
+	IfFileExists "$TCDIR\totalcmd.exe" end
+	${GetParent} "$INSTDIR" $TCDIR
+	IfFileExists "$TCDIR\totalcmd.exe" end
 	Abort
 
 	end:
 FunctionEnd
 
 Function DirectoryLeave
-	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 +4
 	StrCpy $SETUPDIR "$INSTDIR"
+	StrCpy $SETUPEXE "$SETUPDIR\AkelPad.exe"
+	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 quicklaunch
+	StrCmp $SETUPDIR $WINDIR +2
+	StrCmp $SETUPDIR $SYSDIR 0 +2
 	StrCpy $SETUPEXE "$SETUPDIR\notepad.exe"
-	goto quicklaunch
-	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 +5
-	StrCpy $SETUPDIR "$INSTDIR\AkelPad"
-	StrCpy $SETUPEXE "$SETUPDIR\AkelPad.exe"
-	StrCpy $TCDIR "$INSTDIR"
-	goto quicklaunch
-	StrCpy $SETUPDIR "$INSTDIR"
-	StrCpy $SETUPEXE "$SETUPDIR\AkelPad.exe"
 
 	quicklaunch:
 	GetDlgItem $0 $R0 1051
@@ -403,34 +400,59 @@ Section
 	_totalcmd:
 	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 _notepad
 	ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
-	StrCpy $0 "$TCDIR\Wincmd.ini"
-	IfFileExists "$0" +3
-	SearchPath $0 "Wincmd.ini"
-	StrCmp $0 '' RegInfo
-	ReadINIStr $1 "$0" "Configuration" "Editor"
+	StrCpy $TCINI "$TCDIR\Wincmd.ini"
+	IfFileExists "$TCINI" +3
+	SearchPath $TCINI "Wincmd.ini"
+	StrCmp $TCINI '' RegInfo
+	ReadINIStr $1 "$TCINI" "Configuration" "Editor"
 	StrCmp $1 '' WriteINIEditor
 	${GetFileName} "$1" $2
 	StrCmp $2 "Akelpad.exe" WriteINIEditor
-	WriteINIStr "$0" "Configuration" "Editor_AkelUndo" "$1"
+	WriteINIStr "$TCINI" "Configuration" "Editor_AkelUndo" "$1"
 	WriteINIEditor:
-	WriteINIStr "$0" "Configuration" "Editor" "%COMMANDER_PATH%\AkelPad\Akelpad.exe"
+	${WordReplace} "$SETUPDIR\AkelPad.exe" "$TCDIR" "%COMMANDER_PATH%" "+" $1
+	WriteINIStr "$TCINI" "Configuration" "Editor" "$1"
 	goto RegInfo
 
 	_notepad:
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
-	IfFileExists "$SETUPDIR\notepad_AkelUndo.exe" +2
-	CopyFiles /SILENT "$SETUPDIR\notepad.exe" "$SETUPDIR\notepad_AkelUndo.exe"
-	IfFileExists "$SETUPDIR\DLLCACHE\notepad.exe" 0 +3
-	Delete "$SETUPDIR\DLLCACHE\notepad.exe"
-	CopyFiles /SILENT "$SETUPDIR\AkelPad.exe" "$SETUPDIR\DLLCACHE\notepad.exe"
+	IfFileExists "$WINDIR\notepad_AkelUndo.exe" +2
+	CopyFiles /SILENT "$WINDIR\notepad.exe" "$WINDIR\notepad_AkelUndo.exe"
+	IfFileExists "$SYSDIR\notepad_AkelUndo.exe" +2
+	CopyFiles /SILENT "$SYSDIR\notepad.exe" "$SYSDIR\notepad_AkelUndo.exe"
+	IfFileExists "$SYSDIR\DLLCACHE\notepad.exe" 0 +3
+	Delete "$SYSDIR\DLLCACHE\notepad.exe"
+	CopyFiles /SILENT "$SETUPDIR\AkelPad.exe" "$SYSDIR\DLLCACHE\notepad.exe"
+
+#	__windir:
+	StrCmp $SETUPDIR $WINDIR 0 __sysdir
 	IfFileExists "$SETUPDIR\notepad.exe" 0 +2
 	Delete "$SETUPDIR\notepad.exe"
 	Rename "$SETUPDIR\AkelPad.exe" "$SETUPDIR\notepad.exe"
 	ExecWait '"$SETUPDIR\notepad.exe" /reassoc /quit'
+	SetOutPath "$SYSDIR"
+	File "Redirect\notepad.exe"
+	WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\notepad.exe"
+	goto RegInfo
 
-	StrCmp $SETUPDIR $SYSDIR 0 RegInfo
+	__sysdir:
+	StrCmp $SETUPDIR $SYSDIR 0 __nonsystem
+	IfFileExists "$SETUPDIR\notepad.exe" 0 +2
+	Delete "$SETUPDIR\notepad.exe"
+	Rename "$SETUPDIR\AkelPad.exe" "$SETUPDIR\notepad.exe"
+	ExecWait '"$SETUPDIR\notepad.exe" /reassoc /quit'
 	SetOutPath "$WINDIR"
 	File "Redirect\notepad.exe"
+	WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\notepad.exe"
+	goto RegInfo
+
+	__nonsystem:
+	ExecWait '"$SETUPDIR\AkelPad.exe" /reassoc /quit'
+	SetOutPath "$WINDIR"
+	File "Redirect\notepad.exe"
+	SetOutPath "$SYSDIR"
+	File "Redirect\notepad.exe"
+	WriteRegStr HKLM "Software\Akelsoft\AkelPad" "Path" "$SETUPDIR\AkelPad.exe"
 
 	RegInfo:
 	WriteUninstaller "$SETUPDIR\AkelFiles\Uninstall.exe"
@@ -520,39 +542,44 @@ Section un.install
 	UnRegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
 
 #	_notepad:
-	StrCmp $SETUPDIR $SYSDIR +2
-	StrCmp $SETUPDIR $WINDIR 0 _totalcmd
-	IfFileExists "$SETUPDIR\notepad_AkelUndo.exe" 0 _totalcmd
-	ExecWait '"$SETUPDIR\notepad.exe" /deassoc /quit'
-	IfFileExists "$SETUPDIR\DLLCACHE\notepad.exe" 0 +3
-	Delete "$SETUPDIR\DLLCACHE\notepad.exe"
-	CopyFiles /SILENT "$SETUPDIR\notepad_AkelUndo.exe" "$SETUPDIR\DLLCACHE\notepad.exe"
-	Delete "$SETUPDIR\notepad.exe"
-	Rename "$SETUPDIR\notepad_AkelUndo.exe" "$SETUPDIR\notepad.exe"
+	IfFileExists "$WINDIR\notepad_AkelUndo.exe" 0 +3
+	ExecWait '"$WINDIR\notepad.exe" /deassoc /quit'
+	goto +3
+	IfFileExists "$SYSDIR\notepad_AkelUndo.exe" 0 _totalcmd
+	ExecWait '"$SYSDIR\notepad.exe" /deassoc /quit'
 
-	StrCmp $SETUPDIR $SYSDIR 0 DeleteSettings
+	IfFileExists "$WINDIR\notepad_AkelUndo.exe" 0 +3
 	Delete "$WINDIR\notepad.exe"
-	CopyFiles /SILENT "$SYSDIR\notepad.exe" "$WINDIR\notepad.exe"
-	goto DeleteSettings
+	Rename "$WINDIR\notepad_AkelUndo.exe" "$WINDIR\notepad.exe"
+	IfFileExists "$SYSDIR\notepad_AkelUndo.exe" 0 +3
+	Delete "$SYSDIR\notepad.exe"
+	Rename "$SYSDIR\notepad_AkelUndo.exe" "$SYSDIR\notepad.exe"
+
+	IfFileExists "$SYSDIR\DLLCACHE\notepad.exe" 0 +3
+	Delete "$SYSDIR\DLLCACHE\notepad.exe"
+	CopyFiles /SILENT "$SYSDIR\notepad.exe" "$SYSDIR\DLLCACHE\notepad.exe"
+	DeleteRegValue HKLM "Software\Akelsoft\AkelPad" "Path"
 
 	_totalcmd:
+	StrCpy $TCDIR $SETUPDIR
+	IfFileExists "$TCDIR\totalcmd.exe" +3
 	${un.GetParent} "$SETUPDIR" $TCDIR
-	IfFileExists "$TCDIR\Totalcmd.exe" 0 _standard
+	IfFileExists "$TCDIR\totalcmd.exe" 0 _standard
 	ExecWait '"$SETUPDIR\AkelPad.exe" /deassoc /quit'
-	StrCpy $0 "$TCDIR\Wincmd.ini"
-	IfFileExists "$0" +3
-	SearchPath $0 "Wincmd.ini"
-	StrCmp $0 '' DeleteSettings
-	ReadINIStr $1 "$0" "Configuration" "Editor"
+	StrCpy $TCINI "$TCDIR\Wincmd.ini"
+	IfFileExists "$TCINI" +3
+	SearchPath $TCINI "Wincmd.ini"
+	StrCmp $TCINI '' DeleteSettings
+	ReadINIStr $1 "$TCINI" "Configuration" "Editor"
 	StrCmp $1 '' RestoreAkelUndo
 	${un.GetFileName} "$1" $2
 	StrCmp $2 "Akelpad.exe" 0 DeleteSettings
-	DeleteINIStr "$0" "Configuration" "Editor"
+	DeleteINIStr "$TCINI" "Configuration" "Editor"
 	RestoreAkelUndo:
-	ReadINIStr $1 "$0" "Configuration" "Editor_AkelUndo"
+	ReadINIStr $1 "$TCINI" "Configuration" "Editor_AkelUndo"
 	StrCmp $1 '' DeleteSettings
-	WriteINIStr "$0" "Configuration" "Editor" "$1"
-	DeleteINIStr "$0" "Configuration" "Editor_AkelUndo"
+	WriteINIStr "$TCINI" "Configuration" "Editor" "$1"
+	DeleteINIStr "$TCINI" "Configuration" "Editor_AkelUndo"
 	goto DeleteSettings
 
 	_standard:
