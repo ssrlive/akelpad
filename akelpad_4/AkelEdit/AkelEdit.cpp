@@ -2710,7 +2710,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       //Erase only a space after the last line
       rcErase=ae->rcErase;
-      rcErase.top=max(rcErase.top, ae->nLineCount * ae->nCharHeight - ae->nVScrollPos);
+      rcErase.top=max(rcErase.top, ae->rcDraw.top + (ae->nLineCount * ae->nCharHeight - ae->nVScrollPos) + ae->nCharHeight);
 
       if (rcErase.top < rcErase.bottom)
       {
