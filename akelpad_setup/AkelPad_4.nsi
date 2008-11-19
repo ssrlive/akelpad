@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.0.9"
+!define PRODUCT_VERSION "4.1.0"
 
 ;_____________________________________________________________________________________________
 ;
@@ -394,37 +394,7 @@ FunctionEnd
 
 Section
 	SetOutPath "$SETUPDIR"
-	File "Files\AkelPad.exe"
-
-	SetOutPath "$SETUPDIR\AkelFiles"
-	File "Files\AkelFiles\AkelPad-Eng.htm"
-	File "Files\AkelFiles\AkelPad-Rus.htm"
-	File "Files\AkelFiles\History-Eng.txt"
-	File "Files\AkelFiles\History-Rus.txt"
-
-	SetOutPath "$SETUPDIR\AkelFiles\Langs"
-	File "Files\AkelFiles\Langs\English.dll"
-	File "Files\AkelFiles\Langs\Russian.dll"
-	File "Files\AkelFiles\Langs\German.dll"
-	File "Files\AkelFiles\Langs\Spanish.dll"
-	File "Files\AkelFiles\Langs\Ukrainian.dll"
-	File "Files\AkelFiles\Langs\Belorussian.dll"
-	File "Files\AkelFiles\Langs\French.dll"
-	File "Files\AkelFiles\Langs\Japanese.dll"
-	File "Files\AkelFiles\Langs\Brazilian.dll"
-	File "Files\AkelFiles\Langs\Italian.dll"
-	File "Files\AkelFiles\Langs\Korean.dll"
-	File "Files\AkelFiles\Langs\Chinese (Traditional).dll"
-	File "Files\AkelFiles\Langs\Chinese (Simplified).dll"
-	File "Files\AkelFiles\Langs\Kyrgyz.dll"
-	File "Files\AkelFiles\Langs\Polish.dll"
-	File "Files\AkelFiles\Langs\Turkish.dll"
-	File "Files\AkelFiles\Langs\Tatar.dll"
-	File "Files\AkelFiles\Langs\Slovak.dll"
-	File "Files\AkelFiles\Langs\Romanian.dll"
-	File "Files\AkelFiles\Langs\Dutch.dll"
-
-	SetOutPath "$SETUPDIR\AkelFiles\Plugs"
+	File /r "Files\*.*"
 
 #	_standard:
 	StrCmp $INSTTYPE ${INSTTYPE_STANDARD} 0 _totalcmd
@@ -611,35 +581,11 @@ Section un.install
 	Delete "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk"
 	RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
 
-	Delete "$SETUPDIR\AkelFiles\Langs\English.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Russian.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\German.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Spanish.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Ukrainian.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Belorussian.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\French.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Japanese.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Brazilian.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Italian.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Korean.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Chinese (Traditional).dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Chinese (Simplified).dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Kyrgyz.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Polish.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Turkish.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Tatar.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Slovak.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Romanian.dll"
-	Delete "$SETUPDIR\AkelFiles\Langs\Dutch.dll"
-	Delete "$SETUPDIR\AkelFiles\AkelPad-Eng.htm"
-	Delete "$SETUPDIR\AkelFiles\AkelPad-Rus.htm"
-	Delete "$SETUPDIR\AkelFiles\History-Eng.txt"
-	Delete "$SETUPDIR\AkelFiles\History-Rus.txt"
 	Delete "$SETUPDIR\AkelFiles\Uninstall.exe"
-	Delete "$SETUPDIR\AkelPad.exe"
-	RMDir "$SETUPDIR\AkelFiles\Langs"
-	RMDir "$SETUPDIR\AkelFiles\Plugs"
-	RMDir "$SETUPDIR\AkelFiles"
+	;Generate list and include it in script at compile-time
+	!execute 'unList\unList.exe /DATE=0 /INSTDIR="Files" /LOG=unList.txt /UNDIR_VAR=$SETUPDIR /MB=0'
+	!include 'unList\unList.txt'
+	!delfile 'unList\unList.txt'
 	RMDir "$SETUPDIR"
 
 	StrCpy $UNRESULT SuccessUninstall
