@@ -109,7 +109,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
 # SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib imm32.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
