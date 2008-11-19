@@ -4124,6 +4124,15 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
 
 BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar)
 {
+  AECHARINDEX ciLastChar;
+
+  AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
+
+  if (AE_IndexCompare(ciChar, &ciLastChar) > 0)
+  {
+    *ciChar=ciLastChar;
+    return TRUE;
+  }
   if (ciChar->lpLine=AE_GetLineData(ae, ciChar->nLine))
     return TRUE;
   return FALSE;
@@ -4944,6 +4953,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 
           if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
           {
+            AE_UpdateIndex(ae, &ciCharIndex);
+            AE_UpdateIndex(ae, &ciSelEnd);
             AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
           }
         }
@@ -4992,6 +5003,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 
         if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
         {
+          AE_UpdateIndex(ae, &ciCharIndex);
+          AE_UpdateIndex(ae, &ciSelEnd);
           AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
         }
       }
@@ -5023,6 +5036,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 
         if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
         {
+          AE_UpdateIndex(ae, &ciCharIndex);
+          AE_UpdateIndex(ae, &ciSelEnd);
           AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
         }
       }
