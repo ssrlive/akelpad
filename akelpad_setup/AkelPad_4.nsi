@@ -394,7 +394,10 @@ FunctionEnd
 
 Section
 	SetOutPath "$SETUPDIR"
-	File /r "Files\*.*"
+	File /r /x Justify*.* /x PlainText*.* /x PrintClassic*.* "Files\*.*"
+
+	IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
+	RegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
 
 #	_standard:
 	StrCmp $INSTTYPE ${INSTTYPE_STANDARD} 0 _totalcmd
