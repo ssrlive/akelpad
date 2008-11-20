@@ -48,7 +48,7 @@
 #define ESD_SUCCESS         0   //Success
 #define ESD_OPEN            -1  //Can't open file
 #define ESD_WRITE           -2  //Can't write to file
-#define ESD_READONLY        -3  //File has read-pnly attribute
+#define ESD_READONLY        -3  //File has read-only attribute
 #define ESD_CODEPAGE_ERROR  -4  //Code page isn't implemented
 #define ESD_STOP            -5  //Stopped from AKDN_SAVEDOCUMENT_START
 #define ESD_STREAMOUT       -6  //Error in EM_STREAMOUT
@@ -194,7 +194,7 @@ typedef struct _EDITINFO {
                               //wchar_t *pFile      if bOldWindows == FALSE
   int nCodePage;              //Current code page
   BOOL bBOM;                  //Current BOM
-  int nNewLine;               //Current new line format
+  int nNewLine;               //Current new line format, see NEWLINE_* defines
   BOOL bModified;             //File has been modified
   BOOL bReadOnly;             //Read only
   BOOL bWordWrap;             //Word wrap
