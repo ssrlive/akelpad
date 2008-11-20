@@ -5120,13 +5120,10 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
             {
               dwSeconds=aenp->dwTimeElapsed / 1000;
 
-              while (PeekMessageA(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
+              while (PeekMessageA(&msg, hProgress, 0, 0, PM_REMOVE))
               {
-                if (GetWindowLongA(msg.hwnd, GWL_ID) != ID_EDIT)
-                {
-                  TranslateMessage(&msg);
-                  DispatchMessageA(&msg);
-                }
+                TranslateMessage(&msg);
+                DispatchMessageA(&msg);
               }
             }
 
@@ -5333,13 +5330,10 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
             {
               dwSeconds=aenp->dwTimeElapsed / 1000;
 
-              while (PeekMessageW(&msg, NULL, WM_PAINT, WM_PAINT, PM_REMOVE))
+              while (PeekMessageW(&msg, hProgress, 0, 0, PM_REMOVE))
               {
-                if (GetWindowLongW(msg.hwnd, GWL_ID) != ID_EDIT)
-                {
-                  TranslateMessage(&msg);
-                  DispatchMessageW(&msg);
-                }
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
               }
             }
 
