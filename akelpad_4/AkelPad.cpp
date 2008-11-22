@@ -5053,7 +5053,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENMODIFY *aenm=(AENMODIFY *)lParam;
 
-        SetModifyStatusA(NULL, aenm->bModified, FALSE);
+        SetModifyStatusA(aenm->hdr.hwndFrom, aenm->bModified, FALSE);
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
       {
@@ -5263,7 +5263,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENMODIFY *aenm=(AENMODIFY *)lParam;
 
-        SetModifyStatusW(NULL, aenm->bModified, FALSE);
+        SetModifyStatusW(aenm->hdr.hwndFrom, aenm->bModified, FALSE);
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
       {
