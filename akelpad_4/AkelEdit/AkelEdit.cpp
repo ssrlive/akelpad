@@ -2311,6 +2311,24 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return 0;
       }
 
+      //Stop scroll
+      if (uMsg == WM_LBUTTONDOWN ||
+          uMsg == WM_RBUTTONDOWN ||
+          uMsg == WM_MBUTTONDOWN)
+      {
+        if (ae->bMButtonDown)
+        {
+          if (ae->dwMouseScrollTimer)
+          {
+            KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
+            ae->dwMouseScrollTimer=0;
+          }
+          AE_MButtonErase(ae);
+          ae->bMButtonDown=FALSE;
+          return 0;
+        }
+      }
+
       if (uMsg == WM_LBUTTONDOWN ||
           uMsg == WM_LBUTTONDBLCLK)
       {
@@ -2499,16 +2517,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ae->dwMouseScrollTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSESCROLL, 100, NULL);
             }
           }
-        }
-        else
-        {
-          if (ae->dwMouseScrollTimer)
-          {
-            KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
-            ae->dwMouseScrollTimer=0;
-          }
-          AE_MButtonErase(ae);
-          ae->bMButtonDown=FALSE;
         }
         return 0;
       }
@@ -5474,39 +5482,39 @@ void AE_MouseMove(AKELEDIT *ae)
       }
       else if (ae->nCurrentCursor == AECC_MLEFT)
       {
-        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x));
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
       }
       else if (ae->nCurrentCursor == AECC_MLEFTTOP)
       {
-        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x));
-        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y));
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
       }
       else if (ae->nCurrentCursor == AECC_MTOP)
       {
-        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
       }
       else if (ae->nCurrentCursor == AECC_MRIGHTTOP)
       {
-        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x));
-        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y));
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
       }
       else if (ae->nCurrentCursor == AECC_MRIGHT)
       {
-        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x));
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
       }
       else if (ae->nCurrentCursor == AECC_MRIGHTBOTTOM)
       {
-        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x));
-        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y));
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
       }
       else if (ae->nCurrentCursor == AECC_MBOTTOM)
       {
-        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
       }
       else if (ae->nCurrentCursor == AECC_MLEFTBOTTOM)
       {
-        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x));
-        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y));
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
       }
     }
   }
