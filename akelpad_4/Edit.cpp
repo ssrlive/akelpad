@@ -4642,28 +4642,31 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     //Autodetect code page
     if ((nDetect=AutodetectCodePageA(szFile, dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
     {
-      if (nDetect == EDT_BINARY)
+      if (!bMdiReopen)
       {
-        if (nMsgBinary == AUTOANSWER_ASK)
+        if (nDetect == EDT_BINARY)
         {
-          API_LoadStringA(hLangLib, MSG_ERROR_BINARY, buf, BUFFER_SIZE);
-          wsprintfA(buf2, buf, szFile);
-          if (MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
+          if (nMsgBinary == AUTOANSWER_ASK)
+          {
+            API_LoadStringA(hLangLib, MSG_ERROR_BINARY, buf, BUFFER_SIZE);
+            wsprintfA(buf2, buf, szFile);
+            if (MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
+            {
+              nResult=EOD_CANCEL;
+              goto End;
+            }
+          }
+          else if (nMsgBinary == AUTOANSWER_NO)
           {
             nResult=EOD_CANCEL;
             goto End;
           }
         }
-        else if (nMsgBinary == AUTOANSWER_NO)
+        else
         {
-          nResult=EOD_CANCEL;
+          nResult=nDetect;
           goto End;
         }
-      }
-      else
-      {
-        nResult=nDetect;
-        goto End;
       }
     }
   }
@@ -4884,28 +4887,31 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     //Autodetect code page
     if ((nDetect=AutodetectCodePageW(wszFile, dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
     {
-      if (nDetect == EDT_BINARY)
+      if (!bMdiReopen)
       {
-        if (nMsgBinary == AUTOANSWER_ASK)
+        if (nDetect == EDT_BINARY)
         {
-          API_LoadStringW(hLangLib, MSG_ERROR_BINARY, wbuf, BUFFER_SIZE);
-          wsprintfW(wbuf2, wbuf, wszFile);
-          if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
+          if (nMsgBinary == AUTOANSWER_ASK)
+          {
+            API_LoadStringW(hLangLib, MSG_ERROR_BINARY, wbuf, BUFFER_SIZE);
+            wsprintfW(wbuf2, wbuf, wszFile);
+            if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
+            {
+              nResult=EOD_CANCEL;
+              goto End;
+            }
+          }
+          else if (nMsgBinary == AUTOANSWER_NO)
           {
             nResult=EOD_CANCEL;
             goto End;
           }
         }
-        else if (nMsgBinary == AUTOANSWER_NO)
+        else
         {
-          nResult=EOD_CANCEL;
+          nResult=nDetect;
           goto End;
         }
-      }
-      else
-      {
-        nResult=nDetect;
-        goto End;
       }
     }
   }
