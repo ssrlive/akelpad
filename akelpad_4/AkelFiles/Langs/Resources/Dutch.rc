@@ -8,6 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "winresrc.h"
+#include "staticedit.h"
 #include "version.h"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -239,8 +240,6 @@ IDI_ICON_EMPTY          ICON    DISCARDABLE     "Empty.ico"
 // Cursor
 //
 
-IDC_AEMARGIN            CURSOR  DISCARDABLE     "Margin.cur"
-IDC_AEHAND              CURSOR  DISCARDABLE     "Hand.cur"
 IDC_CURSOR_DRAGMOVE     CURSOR  DISCARDABLE     "DragMove.cur"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -756,6 +755,7 @@ END
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""winresrc.h""\r\n"
+    "#include ""staticedit.h""\r\n"
     "#include ""version.h""\r\n"
     "\0"
 END
