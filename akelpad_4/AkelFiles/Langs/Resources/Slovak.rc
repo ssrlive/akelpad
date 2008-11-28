@@ -8,6 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "winresrc.h"
+#include "staticedit.h"
 #include "version.h"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -239,8 +240,6 @@ IDI_ICON_EMPTY          ICON    DISCARDABLE     "Empty.ico"
 // Cursor
 //
 
-IDC_AEMARGIN            CURSOR  DISCARDABLE     "Margin.cur"
-IDC_AEHAND              CURSOR  DISCARDABLE     "Hand.cur"
 IDC_CURSOR_DRAGMOVE     CURSOR  DISCARDABLE     "DragMove.cur"
 
 /////////////////////////////////////////////////////////////////////////////
@@ -631,8 +630,8 @@ BEGIN
     CONTROL         "O&ddeæovaËe slov:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,210,155,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Ob&noviù",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,13,
-                    BS_CENTER
+    PUSHBUTTON      "Ob&noviù",IDC_OPTIONS_WORD_DELIMITERS_RESET,166,210,43,
+                    13,BS_CENTER
 END
 
 IDD_OPTIONS_ADVANCED2 DIALOG DISCARDABLE  0, 0, 220, 230
@@ -760,6 +759,7 @@ END
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""winresrc.h""\r\n"
+    "#include ""staticedit.h""\r\n"
     "#include ""version.h""\r\n"
     "\0"
 END
