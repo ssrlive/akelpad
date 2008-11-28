@@ -2493,18 +2493,20 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             AE_MButtonDraw(ae);
 
-/*
-            if (!ae->dwMouseMoveTimer)
+            if (!ae->dwMouseScrollTimer)
             {
               //Timer
-              ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-              SetCapture(ae->hWndEdit);
+              ae->dwMouseScrollTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSESCROLL, 100, NULL);
             }
-*/
           }
         }
         else
         {
+          if (ae->dwMouseScrollTimer)
+          {
+            KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
+            ae->dwMouseScrollTimer=0;
+          }
           AE_MButtonErase(ae);
           ae->bMButtonDown=FALSE;
         }
@@ -2559,63 +2561,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             AE_NotifyDragDropDone(ae);
           }
         }
-        else if (ae->bMButtonDown)
-        {
-          POINT ptPos;
-
-          GetCursorPos(&ptPos);
-          ScreenToClient(ae->hWndEdit, &ptPos);
-
-          if (ae->nCurrentCursor == AECC_MCENTER)
-          {
-          }
-          else if (ae->nCurrentCursor == AECC_MLEFT)
-          {
-            AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x));
-          }
-          else if (ae->nCurrentCursor == AECC_MLEFTTOP)
-          {
-            AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x));
-            AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y));
-          }
-          else if (ae->nCurrentCursor == AECC_MTOP)
-          {
-            AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y));
-          }
-          else if (ae->nCurrentCursor == AECC_MRIGHTTOP)
-          {
-            AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x));
-            AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y));
-          }
-          else if (ae->nCurrentCursor == AECC_MRIGHT)
-          {
-            AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x));
-          }
-          else if (ae->nCurrentCursor == AECC_MRIGHTBOTTOM)
-          {
-            AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x));
-            AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y));
-          }
-          else if (ae->nCurrentCursor == AECC_MBOTTOM)
-          {
-            AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y));
-          }
-          else if (ae->nCurrentCursor == AECC_MLEFTBOTTOM)
-          {
-            AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x));
-            AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y));
-          }
-        }
         else
         {
-          if (ae->dwMouseMoveTimer)
-          {
-            POINT ptPos;
-
-            GetCursorPos(&ptPos);
-            ScreenToClient(ae->hWndEdit, &ptPos);
-            AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, TRUE);
-          }
+          AE_MouseMove(ae);
         }
         return 0;
       }
@@ -2898,13 +2846,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_TIMER)
     {
-      if (wParam == AETIMERID_MOUSEMOVE)
+      if (wParam == AETIMERID_MOUSEMOVE ||
+          wParam == AETIMERID_MOUSESCROLL)
       {
-        POINT ptPos;
-
-        GetCursorPos(&ptPos);
-        ScreenToClient(ae->hWndEdit, &ptPos);
-        AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, TRUE);
+        AE_MouseMove(ae);
       }
       return 0;
     }
@@ -5511,6 +5456,71 @@ DWORD AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, 
   End:
   crLink->ciMax=ciCount;
   return dwUrlLength;
+}
+
+void AE_MouseMove(AKELEDIT *ae)
+{
+  if (ae->bMButtonDown)
+  {
+    if (ae->dwMouseScrollTimer)
+    {
+      POINT ptPos;
+
+      GetCursorPos(&ptPos);
+      ScreenToClient(ae->hWndEdit, &ptPos);
+
+      if (ae->nCurrentCursor == AECC_MCENTER)
+      {
+      }
+      else if (ae->nCurrentCursor == AECC_MLEFT)
+      {
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x));
+      }
+      else if (ae->nCurrentCursor == AECC_MLEFTTOP)
+      {
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y));
+      }
+      else if (ae->nCurrentCursor == AECC_MTOP)
+      {
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y));
+      }
+      else if (ae->nCurrentCursor == AECC_MRIGHTTOP)
+      {
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y));
+      }
+      else if (ae->nCurrentCursor == AECC_MRIGHT)
+      {
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x));
+      }
+      else if (ae->nCurrentCursor == AECC_MRIGHTBOTTOM)
+      {
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y));
+      }
+      else if (ae->nCurrentCursor == AECC_MBOTTOM)
+      {
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y));
+      }
+      else if (ae->nCurrentCursor == AECC_MLEFTBOTTOM)
+      {
+        AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x));
+        AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y));
+      }
+    }
+  }
+  else
+  {
+    if (ae->dwMouseMoveTimer)
+    {
+      POINT ptPos;
+
+      GetCursorPos(&ptPos);
+      ScreenToClient(ae->hWndEdit, &ptPos);
+      AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, TRUE);
+    }
+  }
 }
 
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
