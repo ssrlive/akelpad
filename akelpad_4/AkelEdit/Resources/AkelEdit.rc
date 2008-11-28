@@ -23,11 +23,31 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Bitmap
+//
+
+IDB_BITMAP_MCENTERALL   BITMAP  DISCARDABLE     "MCenterAll.bmp"
+IDB_BITMAP_MCENTERLEFTRIGHT BITMAP  DISCARDABLE     "MCenterLeftRight.bmp"
+IDB_BITMAP_MCENTERTOPBOTTOM BITMAP  DISCARDABLE     "MCenterTopBottom.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Cursor
 //
 
 IDC_AEMARGIN            CURSOR  DISCARDABLE     "Margin.cur"
 IDC_AEHAND              CURSOR  DISCARDABLE     "Hand.cur"
+IDC_AEMCENTERALL        CURSOR  DISCARDABLE     "MCenterAll.cur"
+IDC_AEMCENTERLEFTRIGHT  CURSOR  DISCARDABLE     "MCenterLeftRight.cur"
+IDC_AEMCENTERTOPBOTTOM  CURSOR  DISCARDABLE     "MCenterTopBottom.cur"
+IDC_AEMLEFT             CURSOR  DISCARDABLE     "MLeft.cur"
+IDC_AEMLEFTTOP          CURSOR  DISCARDABLE     "MLeftTop.cur"
+IDC_AEMTOP              CURSOR  DISCARDABLE     "MTop.cur"
+IDC_AEMRIGHTTOP         CURSOR  DISCARDABLE     "MRightTop.cur"
+IDC_AEMRIGHT            CURSOR  DISCARDABLE     "MRight.cur"
+IDC_AEMRIGHTBOTTOM      CURSOR  DISCARDABLE     "MRightBottom.cur"
+IDC_AEMBOTTOM           CURSOR  DISCARDABLE     "MBottom.cur"
+IDC_AEMLEFTBOTTOM       CURSOR  DISCARDABLE     "MLeftBottom.cur"
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -36,7 +56,7 @@ IDC_AEHAND              CURSOR  DISCARDABLE     "Hand.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,0,0,0
+ FILEVERSION 2,1,0,0
  PRODUCTVERSION 0,0,0,0
  FILEFLAGSMASK 0x0L
 #ifdef _DEBUG
