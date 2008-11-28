@@ -18,7 +18,9 @@
 
 #define AEURL_MAX_LENGTH       512
 
-#define NOTSRCINVERT           (DWORD)0x00990066 /* dest = (NOT source) XOR dest */
+#ifndef NOTSRCINVERT
+  #define NOTSRCINVERT         (DWORD)0x00990066 /* dest = (NOT source) XOR dest */
+#endif
 
 //WM_SETCURSOR
 #define AECC_IBEAM          0
