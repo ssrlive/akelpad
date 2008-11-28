@@ -2489,8 +2489,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             GetCursorPos(&ae->ptMButtonDown);
             ScreenToClient(ae->hWndEdit, &ae->ptMButtonDown);
-            ae->ptMButtonScroll.x=ae->nHScrollPos;
-            ae->ptMButtonScroll.y=ae->nVScrollPos;
             ae->bMButtonDown=TRUE;
 
             AE_MButtonDraw(ae);
@@ -2909,8 +2907,15 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_PAINT)
     {
       AE_Paint(ae);
-      AE_MButtonErase(ae);
-      AE_MButtonDraw(ae);
+
+      if (ae->bMButtonDown)
+      {
+        AE_MButtonErase(ae);
+        ae->bMButtonDown=FALSE;
+        UpdateWindow(ae->hWndEdit);
+        ae->bMButtonDown=TRUE;
+        AE_MButtonDraw(ae);
+      }
       return 0;
     }
     else if (uMsg == WM_DESTROY)
@@ -5894,6 +5899,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
     {
       if (nPos != ae->nHScrollPos)
       {
+        AE_MButtonErase(ae);
         ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
         ae->nHScrollPos=nPos;
         UpdateWindow(ae->hWndEdit);
@@ -5931,6 +5937,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
     {
       if (nPos != ae->nVScrollPos)
       {
+        AE_MButtonErase(ae);
         ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
         ae->nVScrollPos=nPos;
         UpdateWindow(ae->hWndEdit);
@@ -6494,13 +6501,19 @@ void AE_MButtonDraw(AKELEDIT *ae)
 {
   if (ae->bMButtonDown)
   {
-    HDC hdcSkin;
-
-    if (hdcSkin=CreateCompatibleDC(ae->hDC))
+    if (!ae->bMButtonBitmapDraw)
     {
-      SelectObject(hdcSkin, ae->hMButtonBitmap);
-      BitBlt(ae->hDC, ae->ptMButtonDown.x - 11, ae->ptMButtonDown.y - 11, 22, 22, hdcSkin, 0, 0, NOTSRCINVERT);
-      DeleteDC(hdcSkin);
+      HDC hdcSkin;
+
+      if (hdcSkin=CreateCompatibleDC(ae->hDC))
+      {
+        SelectObject(hdcSkin, ae->hMButtonBitmap);
+        BitBlt(ae->hDC, ae->ptMButtonDown.x - 11, ae->ptMButtonDown.y - 11, 22, 22, hdcSkin, 0, 0, NOTSRCINVERT);
+        DeleteDC(hdcSkin);
+      }
+      ae->ptMButtonScroll.x=ae->nHScrollPos;
+      ae->ptMButtonScroll.y=ae->nVScrollPos;
+      ae->bMButtonBitmapDraw=TRUE;
     }
   }
 }
@@ -6509,20 +6522,19 @@ void AE_MButtonErase(AKELEDIT *ae)
 {
   if (ae->bMButtonDown)
   {
-    RECT rcMButtonDown;
+    if (ae->bMButtonBitmapDraw)
+    {
+      RECT rcMButtonDown;
 
-    rcMButtonDown.left=ae->ptMButtonDown.x + (ae->ptMButtonScroll.x - ae->nHScrollPos) - 11;
-    rcMButtonDown.top=ae->ptMButtonDown.y + (ae->ptMButtonScroll.y - ae->nVScrollPos) - 11;
-    rcMButtonDown.right=ae->ptMButtonDown.x + (ae->ptMButtonScroll.x - ae->nHScrollPos) + 11;
-    rcMButtonDown.bottom=ae->ptMButtonDown.y + (ae->ptMButtonScroll.y - ae->nVScrollPos) + 11;
+      rcMButtonDown.left=ae->ptMButtonDown.x + (ae->ptMButtonScroll.x - ae->nHScrollPos) - 11;
+      rcMButtonDown.top=ae->ptMButtonDown.y + (ae->ptMButtonScroll.y - ae->nVScrollPos) - 11;
+      rcMButtonDown.right=ae->ptMButtonDown.x + (ae->ptMButtonScroll.x - ae->nHScrollPos) + 11;
+      rcMButtonDown.bottom=ae->ptMButtonDown.y + (ae->ptMButtonScroll.y - ae->nVScrollPos) + 11;
 
-    ae->bMButtonDown=FALSE;
-    InvalidateRect(ae->hWndEdit, &rcMButtonDown, TRUE);
-    UpdateWindow(ae->hWndEdit);
-    ae->bMButtonDown=TRUE;
+      InvalidateRect(ae->hWndEdit, &rcMButtonDown, TRUE);
 
-    ae->ptMButtonScroll.x=ae->nHScrollPos;
-    ae->ptMButtonScroll.y=ae->nVScrollPos;
+      ae->bMButtonBitmapDraw=FALSE;
+    }
   }
 }
 
