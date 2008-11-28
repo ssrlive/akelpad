@@ -11,6 +11,7 @@
 //// Defines
 
 #define AETIMERID_MOUSEMOVE    1
+#define AETIMERID_MOUSESCROLL  2
 
 #define AETIME_PROGRESS        0
 
@@ -259,6 +260,7 @@ typedef struct _AKELEDIT {
   int nLButtonDownPrevTime;
   int nLButtonDownCount;
   DWORD dwMouseMoveTimer;
+  DWORD dwMouseScrollTimer;
   int nCurrentCursor;
   BOOL bMarginSelect;
   POINT ptMButtonDown;
@@ -340,6 +342,7 @@ BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos);
 DWORD AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink);
 DWORD AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
+void AE_MouseMove(AKELEDIT *ae);
 HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight);
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh);
