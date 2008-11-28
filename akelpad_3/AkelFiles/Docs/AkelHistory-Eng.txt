@@ -1,4 +1,9 @@
 
+AkelPad 3.6.4 ()
+----------------------------
+Fixed: binary file could open as UTF-16.
+
+
 AkelPad 3.6.3 (Nov 20, 2008)
 ----------------------------
 Changed: documentation now located in Docs folder.

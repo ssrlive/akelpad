@@ -3,6 +3,8 @@ AkelPad 4.1.1 ()
 ----------------------------
 Added: scrolling with middle mouse button.
 
+Fixed: binary file could open as UTF-16.
+
 
 AkelPad 4.1.0 (Nov 20, 2008)
 ----------------------------

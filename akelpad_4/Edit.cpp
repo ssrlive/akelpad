@@ -7632,6 +7632,8 @@ int AutodetectCodePageA(char *pFile, DWORD dwBytesToCheck, DWORD dwFlags, int *n
   int nRegCodePage=0;
   int a;
   int b;
+  BOOL bUtfCodePage=FALSE;
+  BOOL bUtfBOM=FALSE;
 
   //Remembered code page from registry
   if (dwFlags & ADT_REG_CODEPAGE)
@@ -7732,6 +7734,8 @@ int AutodetectCodePageA(char *pFile, DWORD dwBytesToCheck, DWORD dwFlags, int *n
           {
             if (pBuffer[a] == 0x00 && pBuffer[a + 1] == 0x00)
             {
+              if (bUtfCodePage) *nCodePage=nDefaultCodePage;
+              if (bUtfBOM) *bBOM=FALSE;
               API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
               return EDT_BINARY;
             }
@@ -7744,22 +7748,26 @@ int AutodetectCodePageA(char *pFile, DWORD dwBytesToCheck, DWORD dwFlags, int *n
             {
               *nCodePage=CP_UNICODE_UCS2_LE;
               dwFlags&=~ADT_DETECT_CODEPAGE;
+              bUtfCodePage=TRUE;
 
               if (dwFlags & ADT_DETECT_BOM)
               {
                 *bBOM=FALSE;
                 dwFlags&=~ADT_DETECT_BOM;
+                bUtfBOM=TRUE;
               }
             }
             else if (pBuffer[a] == 0x00 && (pBuffer[a + 1] == 0x0D || pBuffer[a + 1] == 0x0A))
             {
               *nCodePage=CP_UNICODE_UCS2_BE;
               dwFlags&=~ADT_DETECT_CODEPAGE;
+              bUtfCodePage=TRUE;
 
               if (dwFlags & ADT_DETECT_BOM)
               {
                 *bBOM=FALSE;
                 dwFlags&=~ADT_DETECT_BOM;
+                bUtfBOM=TRUE;
               }
             }
           }
@@ -7800,6 +7808,8 @@ int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, in
   int nRegCodePage=0;
   int a;
   int b;
+  BOOL bUtfCodePage=FALSE;
+  BOOL bUtfBOM=FALSE;
 
   //Remembered code page from registry
   if (dwFlags & ADT_REG_CODEPAGE)
@@ -7900,6 +7910,8 @@ int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, in
           {
             if (pBuffer[a] == 0x00 && pBuffer[a + 1] == 0x00)
             {
+              if (bUtfCodePage) *nCodePage=nDefaultCodePage;
+              if (bUtfBOM) *bBOM=FALSE;
               API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
               return EDT_BINARY;
             }
@@ -7912,22 +7924,26 @@ int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, in
             {
               *nCodePage=CP_UNICODE_UCS2_LE;
               dwFlags&=~ADT_DETECT_CODEPAGE;
+              bUtfCodePage=TRUE;
 
               if (dwFlags & ADT_DETECT_BOM)
               {
                 *bBOM=FALSE;
                 dwFlags&=~ADT_DETECT_BOM;
+                bUtfBOM=TRUE;
               }
             }
             else if (pBuffer[a] == 0x00 && (pBuffer[a + 1] == 0x0D || pBuffer[a + 1] == 0x0A))
             {
               *nCodePage=CP_UNICODE_UCS2_BE;
               dwFlags&=~ADT_DETECT_CODEPAGE;
+              bUtfCodePage=TRUE;
 
               if (dwFlags & ADT_DETECT_BOM)
               {
                 *bBOM=FALSE;
                 dwFlags&=~ADT_DETECT_BOM;
+                bUtfBOM=TRUE;
               }
             }
           }
