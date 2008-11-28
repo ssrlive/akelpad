@@ -18,11 +18,22 @@
 
 #define AEURL_MAX_LENGTH       512
 
+#define NOTSRCINVERT           (DWORD)0x00990066 /* dest = (NOT source) XOR dest */
+
 //WM_SETCURSOR
-#define AECC_IBEAM      0
-#define AECC_MARGIN     1
-#define AECC_SELECTION  2
-#define AECC_URL        3
+#define AECC_IBEAM          0
+#define AECC_MARGIN         1
+#define AECC_SELECTION      2
+#define AECC_URL            3
+#define AECC_MCENTER        4
+#define AECC_MLEFT          5
+#define AECC_MLEFTTOP       6
+#define AECC_MTOP           7
+#define AECC_MRIGHTTOP      8
+#define AECC_MRIGHT         9
+#define AECC_MRIGHTBOTTOM   10
+#define AECC_MBOTTOM        11
+#define AECC_MLEFTBOTTOM    12
 
 //AE_CharInUrl search types
 #define AECU_FINDFIRSTCHAR   0x00000001
@@ -248,6 +259,10 @@ typedef struct _AKELEDIT {
   DWORD dwMouseMoveTimer;
   int nCurrentCursor;
   BOOL bMarginSelect;
+  POINT ptMButtonDown;
+  POINT ptMButtonScroll;
+  HBITMAP hMButtonBitmap;
+  BOOL bMButtonDown;
 
   //RichEdit emulation
   BOOL bRichEditClass;
@@ -338,6 +353,8 @@ int AE_HScrollLine(AKELEDIT *ae, int nChar);
 int AE_VScrollLine(AKELEDIT *ae, int nLine);
 void AE_Paint(AKELEDIT *ae);
 void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, POINT *ptDraw, wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
+void AE_MButtonDraw(AKELEDIT *ae);
+void AE_MButtonErase(AKELEDIT *ae);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide);
