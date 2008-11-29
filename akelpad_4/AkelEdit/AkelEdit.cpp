@@ -2575,8 +2575,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
       }
-      else if (uMsg == WM_LBUTTONUP ||
-               uMsg == WM_CAPTURECHANGED)
+      else if (uMsg == WM_LBUTTONUP)
       {
         if (ae->bDragging)
         {
@@ -2592,6 +2591,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
           }
         }
+        if (ae->dwMouseMoveTimer)
+        {
+          KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
+          ae->dwMouseMoveTimer=0;
+          ReleaseCapture();
+        }
+        ae->bMarginSelect=FALSE;
+      }
+      else if (uMsg == WM_CAPTURECHANGED)
+      {
         if (ae->dwMouseMoveTimer)
         {
           KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
