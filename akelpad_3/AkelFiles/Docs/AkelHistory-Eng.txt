@@ -1,6 +1,8 @@
 
 AkelPad 3.6.4 ()
 ----------------------------
+Added: hMainAccel parameter in plugin structure.
+
 Fixed: binary file could open as UTF-16.
 
 

@@ -531,7 +531,7 @@ typedef struct _PLUGINDATA {
   HMENU hMenuLanguage;
   HMENU hPopupMenu;
   HICON hMainIcon;
-  HACCEL hGlobalAccel;
+  void *lpReserved;
   BOOL bOldWindows;
   BOOL bOldRichEdit;
   BOOL bOldComctl32;
@@ -540,6 +540,8 @@ typedef struct _PLUGINDATA {
   int nSaveSettings;
   unsigned char *pLangModule;
   LANGID wLangSystem;
+  HACCEL hGlobalAccel;
+  HACCEL hMainAccel;
 } PLUGINDATA;
 
 typedef struct _PLUGINFUNCTIONA {

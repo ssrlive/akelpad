@@ -284,7 +284,7 @@ typedef struct _PLUGINDATA {
   HMENU hMenuLanguage;        //Language menu
   HMENU hPopupMenu;           //Right click menu
   HICON hMainIcon;            //Main window icon handle
-  HACCEL hGlobalAccel;        //Global accelerator table
+  void *lpReserved;           //Reserved
   BOOL bOldWindows;           //Non-Unicode Windows
   BOOL bOldRichEdit;          //riched20.dll lower then 5.30 (v3.0)
   BOOL bOldComctl32;          //comctl32.dll lower then 4.71
@@ -295,6 +295,8 @@ typedef struct _PLUGINDATA {
                               //char *pLangModule      if bOldWindows == TRUE
                               //wchar_t *pLangModule   if bOldWindows == FALSE
   LANGID wLangSystem;         //System language ID
+  HACCEL hGlobalAccel;        //Global accelerator table (highest priority)
+  HACCEL hMainAccel;          //Main accelerator table (lowest priority)
 } PLUGINDATA;
 
 typedef struct _PLUGINFUNCTIONA {

@@ -11785,7 +11785,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         pd.hMenuLanguage=hMenuLanguage;
         pd.hPopupMenu=hPopupMenu;
         pd.hMainIcon=hMainIcon;
-        pd.hGlobalAccel=hGlobalAccel;
+        pd.lpReserved=NULL;
         pd.bOldWindows=bOldWindows;
         pd.bOldRichEdit=bOldRichEdit;
         pd.bOldComctl32=bOldComctl32;
@@ -11794,6 +11794,8 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         pd.nSaveSettings=nSaveSettings;
         pd.pLangModule=(unsigned char *)szLangModule;
         pd.wLangSystem=(WORD)dwLangSystem;
+        pd.hGlobalAccel=hGlobalAccel;
+        pd.hMainAccel=hMainAccel;
 
         (*PluginFunctionPtr)(&pd);
         SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
@@ -11882,7 +11884,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         pd.hMenuLanguage=hMenuLanguage;
         pd.hPopupMenu=hPopupMenu;
         pd.hMainIcon=hMainIcon;
-        pd.hGlobalAccel=hGlobalAccel;
+        pd.lpReserved=NULL;
         pd.bOldWindows=bOldWindows;
         pd.bOldRichEdit=bOldRichEdit;
         pd.bOldComctl32=bOldComctl32;
@@ -11891,6 +11893,8 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         pd.nSaveSettings=nSaveSettings;
         pd.pLangModule=(unsigned char *)wszLangModule;
         pd.wLangSystem=(WORD)dwLangSystem;
+        pd.hGlobalAccel=hGlobalAccel;
+        pd.hMainAccel=hMainAccel;
 
         (*PluginFunctionPtr)(&pd);
         SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);

@@ -1981,7 +1981,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
-      pd->hGlobalAccel=hGlobalAccel;
+      pd->lpReserved=NULL;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
@@ -1990,6 +1990,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->nSaveSettings=nSaveSettings;
       pd->pLangModule=(unsigned char *)szLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
+      pd->hGlobalAccel=hGlobalAccel;
+      pd->hMainAccel=hMainAccel;
 
       return 0;
     }
@@ -3651,7 +3653,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
-      pd->hGlobalAccel=hGlobalAccel;
+      pd->lpReserved=NULL;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
@@ -3660,6 +3662,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->nSaveSettings=nSaveSettings;
       pd->pLangModule=(unsigned char *)wszLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
+      pd->hGlobalAccel=hGlobalAccel;
+      pd->hMainAccel=hMainAccel;
 
       return 0;
     }
