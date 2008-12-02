@@ -2,6 +2,7 @@
 AkelPad 4.1.1 ()
 ----------------------------
 Added: scrolling with middle mouse button.
+Added: hMainAccel parameter in plugin structure.
 
 Fixed: binary file could open as UTF-16.
 
