@@ -2365,6 +2365,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //One click
         if (ae->nLButtonDownCount == 0)
         {
+          if (GetFocus() != ae->hWndEdit)
+            SetFocus(ae->hWndEdit);
+
           //Start margin selection capture
           if (!ae->bMarginSelect && !bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
           {
@@ -4923,9 +4926,14 @@ int AE_CheckCodepage(AKELEDIT *ae, int nCodePage)
 void AE_SetDrawRect(AKELEDIT *ae, RECT *lprcDraw, BOOL bRedraw)
 {
   if (lprcDraw)
+  {
     ae->rcDraw=*lprcDraw;
+  }
   else
+  {
     ae->rcDraw=ae->rcEdit;
+    ae->rcDraw.left+=1;
+  }
 
   if (bRedraw) InvalidateRect(ae->hWndEdit, NULL, TRUE);
 }
