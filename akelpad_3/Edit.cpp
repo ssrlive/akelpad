@@ -11713,7 +11713,7 @@ BOOL ParsePluginNameA(char *pFullName, char *szPlugin, char *szFunction)
 
   if ((pFunction=strchr(pFullName, ':')) && *(pFunction + 1) == ':')
   {
-    if (szPlugin) lstrcpynA(szPlugin, pFullName, pFunction - pFullName + 1);
+    if (szPlugin) lstrcpynA(szPlugin, pFullName, min(pFunction - pFullName + 1, MAX_PATH));
     if (szFunction) lstrcpynA(szFunction, pFunction + 2, MAX_PATH);
     return TRUE;
   }
@@ -11726,7 +11726,7 @@ BOOL ParsePluginNameW(wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunct
 
   if ((wpFunction=wcschr(wpFullName, ':')) && *(wpFunction + 1) == ':')
   {
-    if (wszPlugin) lstrcpynW(wszPlugin, wpFullName, wpFunction - wpFullName + 1);
+    if (wszPlugin) lstrcpynW(wszPlugin, wpFullName, min(wpFunction - wpFullName + 1, MAX_PATH));
     if (wszFunction) lstrcpynW(wszFunction, wpFunction + 2, MAX_PATH);
     return TRUE;
   }

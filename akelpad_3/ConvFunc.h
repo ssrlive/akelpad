@@ -1,5 +1,5 @@
 /*****************************************************************
- *           Conversion functions header v2.4                    *
+ *           Conversion functions header v2.5                    *
  *                                                               *
  * 2008 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -793,11 +793,11 @@ int hex2strA(char *pStrHex, unsigned char *szStr, int nStrMax)
   int a;
   int b;
 
-  for (a=0, b=0; pStrHex[a] && b < nStrMax; ++a, ++b)
+  for (a=0, b=0; pStrHex[a] && b < nStrMax; ++b)
   {
-    szHexChar[0]=pStrHex[a];
-    if (!pStrHex[++a]) break;
-    szHexChar[1]=pStrHex[a];
+    szHexChar[0]=pStrHex[a++];
+    if (!pStrHex[a]) break;
+    szHexChar[1]=pStrHex[a++];
     szHexChar[2]='\0';
 
     if ((nHexChar=hex2decA(szHexChar)) >= 0)
@@ -837,11 +837,11 @@ int hex2strW(wchar_t *wpStrHex, unsigned char *szStr, int nStrMax)
   int a;
   int b;
 
-  for (a=0, b=0; wpStrHex[a] && b < nStrMax; ++a, ++b)
+  for (a=0, b=0; wpStrHex[a] && b < nStrMax; ++b)
   {
-    wszHexChar[0]=wpStrHex[a];
-    if (!wpStrHex[++a]) break;
-    wszHexChar[1]=wpStrHex[a];
+    wszHexChar[0]=wpStrHex[a++];
+    if (!wpStrHex[a]) break;
+    wszHexChar[1]=wpStrHex[a++];
     wszHexChar[2]='\0';
 
     if ((nHexChar=hex2decW(wszHexChar)) >= 0)
