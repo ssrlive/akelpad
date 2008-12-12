@@ -1,5 +1,5 @@
 
-AkelPad 4.1.1 ()
+AkelPad 4.1.1 (Dec 13, 2008)
 ----------------------------
 Added: scrolling with middle mouse button.
 Added: hMainAccel parameter in plugin structure.
