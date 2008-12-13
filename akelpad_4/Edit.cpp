@@ -10311,7 +10311,9 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         //Only numeral
         for (a=0, b=0; buf[a]; ++a)
         {
-          if ((buf[a] >= '0' && buf[a] <= '9') || wbuf[a] == '-')
+          if (buf[a] >= '0' && buf[a] <= '9')
+            buf2[b++]=buf[a];
+          else if (buf[a] == '-' && b == 0)
             buf2[b++]=buf[a];
         }
         buf2[b]='\0';
@@ -10376,7 +10378,9 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         //Only numeral
         for (a=0, b=0; wbuf[a]; ++a)
         {
-          if ((wbuf[a] >= '0' && wbuf[a] <= '9') || wbuf[a] == '-')
+          if (wbuf[a] >= '0' && wbuf[a] <= '9')
+            wbuf2[b++]=wbuf[a];
+          else if (wbuf[a] == '-' && b == 0)
             wbuf2[b++]=wbuf[a];
         }
         wbuf2[b]='\0';
