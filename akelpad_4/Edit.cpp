@@ -10289,8 +10289,10 @@ void PasteInEditAsRichEdit(HWND hWnd)
 BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   AECHARRANGE cr;
-  int nLineNumber;
-  int nLineCount;
+  int nLineNumber=0;
+  int nLineCount=0;
+  int a;
+  int b;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -10304,7 +10306,18 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   {
     if (LOWORD(wParam) == IDOK)
     {
-      nLineNumber=GetDlgItemInt(hDlg, IDC_GOTOLINE, NULL, TRUE);
+      if (GetDlgItemTextA(hDlg, IDC_GOTOLINE, buf, BUFFER_SIZE))
+      {
+        //Only numeral
+        for (a=0, b=0; buf[a]; ++a)
+        {
+          if ((buf[a] >= '0' && buf[a] <= '9') || wbuf[a] == '-')
+            buf2[b++]=buf[a];
+        }
+        buf2[b]='\0';
+
+        nLineNumber=xatoiA(buf2);
+      }
       nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
       if (!nLineNumber)
@@ -10341,8 +10354,10 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   AECHARRANGE cr;
-  int nLineNumber;
-  int nLineCount;
+  int nLineNumber=0;
+  int nLineCount=0;
+  int a;
+  int b;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -10356,7 +10371,18 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   {
     if (LOWORD(wParam) == IDOK)
     {
-      nLineNumber=GetDlgItemInt(hDlg, IDC_GOTOLINE, NULL, TRUE);
+      if (GetDlgItemTextW(hDlg, IDC_GOTOLINE, wbuf, BUFFER_SIZE))
+      {
+        //Only numeral
+        for (a=0, b=0; wbuf[a]; ++a)
+        {
+          if ((wbuf[a] >= '0' && wbuf[a] <= '9') || wbuf[a] == '-')
+            wbuf2[b++]=wbuf[a];
+        }
+        wbuf2[b]='\0';
+
+        nLineNumber=xatoiW(wbuf2);
+      }
       nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
       if (!nLineNumber)
