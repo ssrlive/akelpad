@@ -2521,7 +2521,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ScreenToClient(ae->hWndEdit, &ae->ptMButtonDown);
             ae->bMButtonDown=TRUE;
             ae->bMButtonUp=FALSE;
-            ae->bMButtonMove=FALSE;
+            ae->nMButtonMove=1;
 
             AE_MButtonDraw(ae);
 
@@ -2588,7 +2588,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_MouseMove(ae);
 
           if (ae->bMButtonDown)
-           ae->bMButtonMove=TRUE;
+          {
+            if (ae->nMButtonMove > 0)
+              --ae->nMButtonMove;
+          }
         }
         return 0;
       }
@@ -2622,18 +2625,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (!ae->bMButtonUp)
           {
-            if (ae->bMButtonMove)
+            if (!ae->nMButtonMove)
             {
-              if (ae->bMButtonDown)
+              if (ae->dwMouseScrollTimer)
               {
-                if (ae->dwMouseScrollTimer)
-                {
-                  KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
-                  ae->dwMouseScrollTimer=0;
-                }
-                AE_MButtonErase(ae);
-                ae->bMButtonDown=FALSE;
+                KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
+                ae->dwMouseScrollTimer=0;
               }
+              AE_MButtonErase(ae);
+              ae->bMButtonDown=FALSE;
+
+              AE_UpdateCursor();
             }
             else ae->bMButtonUp=TRUE;
           }
@@ -2693,212 +2695,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!ae->bDragging && !ae->dwMouseMoveTimer)
       {
-        POINT ptPos;
-        BOOL bAlt=FALSE;
-        BOOL bShift=FALSE;
+        ae->nCurrentCursor=AE_SetCursor(ae);
 
-        if (GetKeyState(VK_MENU) < 0)
-          bAlt=TRUE;
-        if (GetKeyState(VK_SHIFT) < 0)
-          bShift=TRUE;
-
-        GetCursorPos(&ptPos);
-        ScreenToClient(ae->hWndEdit, &ptPos);
-
-        if (ae->bMButtonDown)
-        {
-          if (ptPos.x >= ae->ptMButtonDown.x - 5 &&
-              ptPos.x <= ae->ptMButtonDown.x + 5 &&
-              ptPos.y >= ae->ptMButtonDown.y - 5 &&
-              ptPos.y <= ae->ptMButtonDown.y + 5)
-          {
-            if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
-              SetCursor(hAkelEditCursorMCenterAll);
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
-              SetCursor(hAkelEditCursorMCenterLeftRight);
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
-              SetCursor(hAkelEditCursorMCenterTopBottom);
-            ae->nCurrentCursor=AECC_MCENTER;
-          }
-          else if (ptPos.x < ae->ptMButtonDown.x - 5 &&
-                   ptPos.y >= ae->ptMButtonDown.y - 5 &&
-                   ptPos.y <= ae->ptMButtonDown.y + 5)
-          {
-            if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
-            {
-              SetCursor(hAkelEditCursorMLeft);
-              ae->nCurrentCursor=AECC_MLEFT;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
-            {
-              SetCursor(hAkelEditCursorMLeft);
-              ae->nCurrentCursor=AECC_MLEFT;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
-            {
-              SetCursor(hAkelEditCursorMCenterTopBottom);
-              ae->nCurrentCursor=AECC_MCENTER;
-            }
-          }
-          else if (ptPos.x < ae->ptMButtonDown.x - 5 &&
-                   ptPos.y < ae->ptMButtonDown.y - 5)
-          {
-            if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
-            {
-              SetCursor(hAkelEditCursorMLeftTop);
-              ae->nCurrentCursor=AECC_MLEFTTOP;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
-            {
-              SetCursor(hAkelEditCursorMLeft);
-              ae->nCurrentCursor=AECC_MLEFT;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
-            {
-              SetCursor(hAkelEditCursorMTop);
-              ae->nCurrentCursor=AECC_MTOP;
-            }
-          }
-          else if (ptPos.x >= ae->ptMButtonDown.x - 5 &&
-                   ptPos.x <= ae->ptMButtonDown.x + 5 &&
-                   ptPos.y < ae->ptMButtonDown.y - 5)
-          {
-            if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
-            {
-              SetCursor(hAkelEditCursorMTop);
-              ae->nCurrentCursor=AECC_MTOP;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
-            {
-              SetCursor(hAkelEditCursorMCenterLeftRight);
-              ae->nCurrentCursor=AECC_MCENTER;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
-            {
-              SetCursor(hAkelEditCursorMTop);
-              ae->nCurrentCursor=AECC_MTOP;
-            }
-          }
-          else if (ptPos.x > ae->ptMButtonDown.x + 5 &&
-                   ptPos.y < ae->ptMButtonDown.y - 5)
-          {
-            if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
-            {
-              SetCursor(hAkelEditCursorMRightTop);
-              ae->nCurrentCursor=AECC_MRIGHTTOP;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
-            {
-              SetCursor(hAkelEditCursorMRight);
-              ae->nCurrentCursor=AECC_MRIGHT;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
-            {
-              SetCursor(hAkelEditCursorMTop);
-              ae->nCurrentCursor=AECC_MTOP;
-            }
-          }
-          else if (ptPos.x > ae->ptMButtonDown.x + 5 &&
-                   ptPos.y >= ae->ptMButtonDown.y - 5 &&
-                   ptPos.y <= ae->ptMButtonDown.y + 5)
-          {
-            if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
-            {
-              SetCursor(hAkelEditCursorMRight);
-              ae->nCurrentCursor=AECC_MRIGHT;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
-            {
-              SetCursor(hAkelEditCursorMRight);
-              ae->nCurrentCursor=AECC_MRIGHT;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
-            {
-              SetCursor(hAkelEditCursorMCenterTopBottom);
-              ae->nCurrentCursor=AECC_MCENTER;
-            }
-          }
-          else if (ptPos.x > ae->ptMButtonDown.x + 5 &&
-                   ptPos.y > ae->ptMButtonDown.y + 5)
-          {
-            if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
-            {
-              SetCursor(hAkelEditCursorMRightBottom);
-              ae->nCurrentCursor=AECC_MRIGHTBOTTOM;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
-            {
-              SetCursor(hAkelEditCursorMRight);
-              ae->nCurrentCursor=AECC_MRIGHT;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
-            {
-              SetCursor(hAkelEditCursorMBottom);
-              ae->nCurrentCursor=AECC_MBOTTOM;
-            }
-          }
-          else if (ptPos.x >= ae->ptMButtonDown.x - 5 &&
-                   ptPos.x <= ae->ptMButtonDown.x + 5 &&
-                   ptPos.y > ae->ptMButtonDown.y + 5)
-          {
-            if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
-            {
-              SetCursor(hAkelEditCursorMBottom);
-              ae->nCurrentCursor=AECC_MBOTTOM;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
-            {
-              SetCursor(hAkelEditCursorMCenterLeftRight);
-              ae->nCurrentCursor=AECC_MCENTER;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
-            {
-              SetCursor(hAkelEditCursorMBottom);
-              ae->nCurrentCursor=AECC_MBOTTOM;
-            }
-          }
-          else if (ptPos.x < ae->ptMButtonDown.x - 5 &&
-                   ptPos.y > ae->ptMButtonDown.y + 5)
-          {
-            if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
-            {
-              SetCursor(hAkelEditCursorMLeftBottom);
-              ae->nCurrentCursor=AECC_MLEFTBOTTOM;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
-            {
-              SetCursor(hAkelEditCursorMLeft);
-              ae->nCurrentCursor=AECC_MLEFT;
-            }
-            else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
-            {
-              SetCursor(hAkelEditCursorMBottom);
-              ae->nCurrentCursor=AECC_MBOTTOM;
-            }
-          }
-          return TRUE;
-        }
-        if (!bAlt && !bShift && AE_IsCursorOnLeftMargin(ae, &ptPos))
-        {
-          SetCursor(hAkelEditCursorMargin);
-          ae->nCurrentCursor=AECC_MARGIN;
-          return TRUE;
-        }
-        if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
-        {
-          SetCursor(hAkelEditCursorArrow);
-          ae->nCurrentCursor=AECC_SELECTION;
-          return TRUE;
-        }
-        if (!bAlt && !bShift && AE_IsCursorOnUrl(ae, &ptPos, &ae->crMouseOnLink))
-        {
-          SetCursor(hAkelEditCursorHand);
-          ae->nCurrentCursor=AECC_URL;
-
+        if (ae->nCurrentCursor == AECC_URL)
           AE_NotifyLink(ae, uMsg, wParam, lParam, &ae->crMouseOnLink);
+        if (ae->nCurrentCursor != AECC_IBEAM)
           return TRUE;
-        }
-        ae->nCurrentCursor=AECC_IBEAM;
       }
     }
     else if (uMsg == WM_TIMER)
@@ -5354,6 +5156,221 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
       }
     }
   }
+}
+
+void AE_UpdateCursor()
+{
+  POINT ptPos;
+  
+  if (GetCursorPos(&ptPos))
+    SetCursorPos(ptPos.x, ptPos.y);
+}
+
+int AE_SetCursor(AKELEDIT *ae)
+{
+  POINT ptPos;
+  BOOL bAlt=FALSE;
+  BOOL bShift=FALSE;
+  int nResult;
+
+  if (GetKeyState(VK_MENU) < 0)
+    bAlt=TRUE;
+  if (GetKeyState(VK_SHIFT) < 0)
+    bShift=TRUE;
+
+  GetCursorPos(&ptPos);
+  ScreenToClient(ae->hWndEdit, &ptPos);
+
+  if (ae->bMButtonDown)
+  {
+    if (ptPos.x >= ae->ptMButtonDown.x - 5 &&
+        ptPos.x <= ae->ptMButtonDown.x + 5 &&
+        ptPos.y >= ae->ptMButtonDown.y - 5 &&
+        ptPos.y <= ae->ptMButtonDown.y + 5)
+    {
+      if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
+        SetCursor(hAkelEditCursorMCenterAll);
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
+        SetCursor(hAkelEditCursorMCenterLeftRight);
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
+        SetCursor(hAkelEditCursorMCenterTopBottom);
+      nResult=AECC_MCENTER;
+    }
+    else if (ptPos.x < ae->ptMButtonDown.x - 5 &&
+             ptPos.y >= ae->ptMButtonDown.y - 5 &&
+             ptPos.y <= ae->ptMButtonDown.y + 5)
+    {
+      if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
+      {
+        SetCursor(hAkelEditCursorMLeft);
+        nResult=AECC_MLEFT;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
+      {
+        SetCursor(hAkelEditCursorMLeft);
+        nResult=AECC_MLEFT;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
+      {
+        SetCursor(hAkelEditCursorMCenterTopBottom);
+        nResult=AECC_MCENTER;
+      }
+    }
+    else if (ptPos.x < ae->ptMButtonDown.x - 5 &&
+             ptPos.y < ae->ptMButtonDown.y - 5)
+    {
+      if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
+      {
+        SetCursor(hAkelEditCursorMLeftTop);
+        nResult=AECC_MLEFTTOP;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
+      {
+        SetCursor(hAkelEditCursorMLeft);
+        nResult=AECC_MLEFT;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
+      {
+        SetCursor(hAkelEditCursorMTop);
+        nResult=AECC_MTOP;
+      }
+    }
+    else if (ptPos.x >= ae->ptMButtonDown.x - 5 &&
+             ptPos.x <= ae->ptMButtonDown.x + 5 &&
+             ptPos.y < ae->ptMButtonDown.y - 5)
+    {
+      if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
+      {
+        SetCursor(hAkelEditCursorMTop);
+        nResult=AECC_MTOP;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
+      {
+        SetCursor(hAkelEditCursorMCenterLeftRight);
+        nResult=AECC_MCENTER;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
+      {
+        SetCursor(hAkelEditCursorMTop);
+        nResult=AECC_MTOP;
+      }
+    }
+    else if (ptPos.x > ae->ptMButtonDown.x + 5 &&
+             ptPos.y < ae->ptMButtonDown.y - 5)
+    {
+      if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
+      {
+        SetCursor(hAkelEditCursorMRightTop);
+        nResult=AECC_MRIGHTTOP;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
+      {
+        SetCursor(hAkelEditCursorMRight);
+        nResult=AECC_MRIGHT;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
+      {
+        SetCursor(hAkelEditCursorMTop);
+        nResult=AECC_MTOP;
+      }
+    }
+    else if (ptPos.x > ae->ptMButtonDown.x + 5 &&
+             ptPos.y >= ae->ptMButtonDown.y - 5 &&
+             ptPos.y <= ae->ptMButtonDown.y + 5)
+    {
+      if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
+      {
+        SetCursor(hAkelEditCursorMRight);
+        nResult=AECC_MRIGHT;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
+      {
+        SetCursor(hAkelEditCursorMRight);
+        nResult=AECC_MRIGHT;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
+      {
+        SetCursor(hAkelEditCursorMCenterTopBottom);
+        nResult=AECC_MCENTER;
+      }
+    }
+    else if (ptPos.x > ae->ptMButtonDown.x + 5 &&
+             ptPos.y > ae->ptMButtonDown.y + 5)
+    {
+      if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
+      {
+        SetCursor(hAkelEditCursorMRightBottom);
+        nResult=AECC_MRIGHTBOTTOM;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
+      {
+        SetCursor(hAkelEditCursorMRight);
+        nResult=AECC_MRIGHT;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
+      {
+        SetCursor(hAkelEditCursorMBottom);
+        nResult=AECC_MBOTTOM;
+      }
+    }
+    else if (ptPos.x >= ae->ptMButtonDown.x - 5 &&
+             ptPos.x <= ae->ptMButtonDown.x + 5 &&
+             ptPos.y > ae->ptMButtonDown.y + 5)
+    {
+      if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
+      {
+        SetCursor(hAkelEditCursorMBottom);
+        nResult=AECC_MBOTTOM;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
+      {
+        SetCursor(hAkelEditCursorMCenterLeftRight);
+        nResult=AECC_MCENTER;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
+      {
+        SetCursor(hAkelEditCursorMBottom);
+        nResult=AECC_MBOTTOM;
+      }
+    }
+    else if (ptPos.x < ae->ptMButtonDown.x - 5 &&
+             ptPos.y > ae->ptMButtonDown.y + 5)
+    {
+      if (ae->hMButtonBitmap == hAkelEditBitmapMCenterAll)
+      {
+        SetCursor(hAkelEditCursorMLeftBottom);
+        nResult=AECC_MLEFTBOTTOM;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterLeftRight)
+      {
+        SetCursor(hAkelEditCursorMLeft);
+        nResult=AECC_MLEFT;
+      }
+      else if (ae->hMButtonBitmap == hAkelEditBitmapMCenterTopBottom)
+      {
+        SetCursor(hAkelEditCursorMBottom);
+        nResult=AECC_MBOTTOM;
+      }
+    }
+  }
+  else if (!bAlt && !bShift && AE_IsCursorOnLeftMargin(ae, &ptPos))
+  {
+    SetCursor(hAkelEditCursorMargin);
+    nResult=AECC_MARGIN;
+  }
+  else if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
+  {
+    SetCursor(hAkelEditCursorArrow);
+    nResult=AECC_SELECTION;
+  }
+  else if (!bAlt && !bShift && AE_IsCursorOnUrl(ae, &ptPos, &ae->crMouseOnLink))
+  {
+    SetCursor(hAkelEditCursorHand);
+    nResult=AECC_URL;
+  }
+  else nResult=AECC_IBEAM;
+
+  return nResult;
 }
 
 BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos)
