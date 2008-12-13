@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v2.1                                 *
+ *                      AkelEdit text control v2.2                                 *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -833,7 +833,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (uMsg == AEM_GETWORDDELIMITERS)
       {
         if (wParam) AE_memcpy((wchar_t *)wParam, ae->wszWordDelimiters, min(lParam * sizeof(wchar_t), sizeof(ae->wszWordDelimiters)));
-        return ae->dwWordBreak;
+        return 0;
       }
       if (uMsg == AEM_SETWORDDELIMITERS)
       {
@@ -841,7 +841,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_memcpy(ae->wszWordDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
         else
           AE_memcpy(ae->wszWordDelimiters, AES_WORDDELIMITERSW, sizeof(AES_WORDDELIMITERSW));
-        ae->dwWordBreak=wParam;
         return 0;
       }
       if (uMsg == AEM_GETWRAPDELIMITERS)
@@ -899,6 +898,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->dwUrlMaxLength=wParam;
         return 0;
       }
+      if (uMsg == AEM_GETWORDBREAK)
+      {
+        return ae->dwWordBreak;
+      }
+      if (uMsg == AEM_SETWORDBREAK)
+      {
+        ae->dwWordBreak=wParam;
+        return 0;
+      }
+
       if (uMsg == AEM_ISDELIMITER)
       {
         AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
@@ -2511,6 +2520,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             GetCursorPos(&ae->ptMButtonDown);
             ScreenToClient(ae->hWndEdit, &ae->ptMButtonDown);
             ae->bMButtonDown=TRUE;
+            ae->bMButtonUp=FALSE;
+            ae->bMButtonMove=FALSE;
 
             AE_MButtonDraw(ae);
 
@@ -2575,6 +2586,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else
         {
           AE_MouseMove(ae);
+
+          if (ae->bMButtonDown)
+           ae->bMButtonMove=TRUE;
         }
         return 0;
       }
@@ -2601,6 +2615,29 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ReleaseCapture();
         }
         ae->bMarginSelect=FALSE;
+      }
+      else if (uMsg == WM_MBUTTONUP)
+      {
+        if (ae->bMButtonDown)
+        {
+          if (!ae->bMButtonUp)
+          {
+            if (ae->bMButtonMove)
+            {
+              if (ae->bMButtonDown)
+              {
+                if (ae->dwMouseScrollTimer)
+                {
+                  KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
+                  ae->dwMouseScrollTimer=0;
+                }
+                AE_MButtonErase(ae);
+                ae->bMButtonDown=FALSE;
+              }
+            }
+            else ae->bMButtonUp=TRUE;
+          }
+        }
       }
       else if (uMsg == WM_CAPTURECHANGED)
       {

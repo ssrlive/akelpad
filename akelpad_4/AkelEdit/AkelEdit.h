@@ -156,7 +156,7 @@
 #define AEFR_WHOLEWORD       0x00000002  //If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
 #define AEFR_MATCHCASE       0x00000004  //If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
 
-//AEM_SETWORDDELIMITERS flags
+//AEM_SETWORDBREAK flags
 #define AEWB_LEFTWORDSTART   0x00000001  //Left movement is stopped, when word start is found.
 #define AEWB_LEFTWORDEND     0x00000002  //Left movement is stopped, when word end is found.
 #define AEWB_RIGHTWORDSTART  0x00000004  //Right movement is stopped, when word start is found.
@@ -562,6 +562,8 @@ typedef struct {
 #define AEM_SETURLPREFIXES    (WM_USER + 2226)
 #define AEM_GETURLMAXLENGTH   (WM_USER + 2227)
 #define AEM_SETURLMAXLENGTH   (WM_USER + 2228)
+#define AEM_GETWORDBREAK      (WM_USER + 2229)
+#define AEM_SETWORDBREAK      (WM_USER + 2230)
 
 #define AEM_ISDELIMITER       (WM_USER + 2251)
 #define AEM_SHOWSCROLLBAR     (WM_USER + 2252)
@@ -2247,13 +2249,13 @@ Example:
 AEM_GETWORDDELIMITERS
 _____________________
 
-Retrieve word delimiters information.
+Retrieve word break delimiters.
 
 (int)wParam       == size of the buffer in TCHARs.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters. Can be NULL.
 
 Return Value
- See AEWB_* defines.
+ zero
 
 Example:
  wchar_t wszDelimiters[128];
@@ -2264,9 +2266,9 @@ Example:
 AEM_SETWORDDELIMITERS
 _____________________
 
-Set word delimiters information.
+Set word break delimiters.
 
-(DWORD)wParam     == see AEWB_* defines.
+wParam            == not used.
 (wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
 
 Return Value
@@ -2275,7 +2277,7 @@ Return Value
 Example:
  wchar_t wszDelimiters[128]=L" \t\n[](){}<>";
 
- SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, (LPARAM)wszDelimiters);
+ SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszDelimiters);
 
 
 AEM_GETWRAPDELIMITERS
@@ -2408,6 +2410,36 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_SETURLMAXLENGTH, 1024, 0);
+
+
+AEM_GETWORDBREAK
+________________
+
+Retrieve word break movement.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ See AEWB_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETWORDBREAK, 0, 0);
+
+
+AEM_SETWORDBREAK
+________________
+
+Set word break movement.
+
+(DWORD)wParam == see AEWB_* defines.
+lParam        == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, 0);
 
 
 AEM_ISDELIMITER

@@ -268,6 +268,8 @@ typedef struct _AKELEDIT {
   HBITMAP hMButtonBitmap;
   BOOL bMButtonBitmapDraw;
   BOOL bMButtonDown;
+  BOOL bMButtonUp;
+  BOOL bMButtonMove;
 
   //RichEdit emulation
   BOOL bRichEditClass;
