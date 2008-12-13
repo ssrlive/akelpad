@@ -349,7 +349,10 @@ HWND CreateEditWindowA(HWND hWndParent)
       SendMessage(hWndEditNew, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
   }
   if (bWordDelimitersEnable)
-    SendMessage(hWndEditNew, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszWordDelimiters);
+  {
+    SendMessage(hWndEditNew, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, 0);
+    SendMessage(hWndEditNew, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
+  }
 
   OldEditProc=(WNDPROC)GetWindowLongA(hWndEditNew, GWL_WNDPROC);
   SetWindowLongA(hWndEditNew, GWL_WNDPROC, (LONG)CommonEditProcA);
@@ -399,7 +402,10 @@ HWND CreateEditWindowW(HWND hWndParent)
       SendMessage(hWndEditNew, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
   }
   if (bWordDelimitersEnable)
-    SendMessage(hWndEditNew, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszWordDelimiters);
+  {
+    SendMessage(hWndEditNew, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, 0);
+    SendMessage(hWndEditNew, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
+  }
 
   OldEditProc=(WNDPROC)GetWindowLongW(hWndEditNew, GWL_WNDPROC);
   SetWindowLongW(hWndEditNew, GWL_WNDPROC, (LONG)CommonEditProcW);
@@ -15356,9 +15362,15 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
       bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bWordDelimitersEnable)
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszWordDelimiters);
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
+      }
       else
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND, (LPARAM)NULL);
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+      }
 
       //Save settings
       if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
@@ -15632,9 +15644,15 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
       bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bWordDelimitersEnable)
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)wszWordDelimiters);
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
+      }
       else
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND, (LPARAM)NULL);
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+      }
 
       //Save settings
       if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
