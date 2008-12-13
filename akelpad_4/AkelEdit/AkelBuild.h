@@ -269,7 +269,7 @@ typedef struct _AKELEDIT {
   BOOL bMButtonBitmapDraw;
   BOOL bMButtonDown;
   BOOL bMButtonUp;
-  BOOL bMButtonMove;
+  int nMButtonMove;
 
   //RichEdit emulation
   BOOL bRichEditClass;
@@ -340,6 +340,8 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
 void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, DWORD dwSelFlags);
 void AE_UpdateSelection(AKELEDIT *ae, DWORD dwSelFlags);
 void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShift);
+void AE_UpdateCursor();
+int AE_SetCursor(AKELEDIT *ae);
 BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos);
 DWORD AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink);
