@@ -10442,17 +10442,10 @@ BOOL AE_EditCanPaste(AKELEDIT *ae)
 
   if (!(ae->dwOptions & AECO_READONLY))
   {
-    if (OpenClipboard(NULL))
+    if (IsClipboardFormatAvailable(CF_UNICODETEXT) ||
+        IsClipboardFormatAvailable(CF_TEXT))
     {
-      if (GetClipboardData(CF_UNICODETEXT))
-      {
-        bResult=TRUE;
-      }
-      else if (GetClipboardData(CF_TEXT))
-      {
-        bResult=TRUE;
-      }
-      CloseClipboard();
+      bResult=TRUE;
     }
   }
   return bResult;
