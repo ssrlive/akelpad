@@ -5161,7 +5161,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
 void AE_UpdateCursor()
 {
   POINT ptPos;
-  
+
   if (GetCursorPos(&ptPos))
     SetCursorPos(ptPos.x, ptPos.y);
 }
