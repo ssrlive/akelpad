@@ -16505,16 +16505,16 @@ BOOL InsertTabStopW(HWND hWnd)
 
   if (bTabStopAsSpaces)
   {
-    for (i=min(ciCaret.lpLine->nLineLen, ciCaret.nCharInLine) - 1; i > 0; --i)
+    for (i=min(crSel.ciMin.lpLine->nLineLen, crSel.ciMin.nCharInLine) - 1; i > 0; --i)
     {
-      if (ciCaret.lpLine->wpLine[i] == L'\t')
+      if (crSel.ciMin.lpLine->wpLine[i] == L'\t')
       {
         ++i;
         break;
       }
     }
     i=max(i, 0);
-    nSpaces=nTabStopSize - (ciCaret.nCharInLine - i) % nTabStopSize;
+    nSpaces=nTabStopSize - (crSel.ciMin.nCharInLine - i) % nTabStopSize;
     nSpaces=min(nSpaces, MAX_PATH - 1);
 
     for (i=0; i < nSpaces; ++i)
