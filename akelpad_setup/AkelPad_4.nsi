@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.1.1"
+!define PRODUCT_VERSION "4.1.2"
 
 ;_____________________________________________________________________________________________
 ;
@@ -12,10 +12,11 @@ OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}-setup.exe"
 SetCompressor /SOLID lzma
 SubCaption 3 ' '
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 
 ############  Functions  ############
 !include "FileFunc.nsh"
+!insertmacro GetParameters
+!insertmacro GetOptions
 !insertmacro GetFileName
 !insertmacro un.GetFileName
 !insertmacro GetParent
@@ -57,15 +58,21 @@ InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 !define LANG_ROMANIAN             1048
 !define LANG_DUTCH                1043
 
-!define INSTTYPE_STANDARD 1
-!define INSTTYPE_TOTALCMD 2
-!define INSTTYPE_NOTEPAD  3
+!define INSTTYPE_STANDARD  1
+!define INSTTYPE_TOTALCMD  2
+!define INSTTYPE_NOTEPAD   3
+
+!define SHORTCUT_QUICKLAUNCH  0x1
+!define SHORTCUT_DESKTOP      0x2
+!define SHORTCUT_STARTMENU    0x4
 
 ############  Variables  ############
+Var PARAMETERS
 Var INI
 Var HWND
 Var REDCTL
 Var INSTTYPE
+Var SHORTCUT
 Var SETUPDIR
 Var SETUPEXE
 Var TCDIR
@@ -150,6 +157,36 @@ LangString UninstallSuccess ${LANG_ENGLISH} 'Uninstall was completed successfull
 LangString UninstallSuccess ${LANG_RUSSIAN} 'Удаление программы успешно завершено.'
 
 Function .onInit
+	#Help message
+	${GetParameters} $PARAMETERS
+	ExpandEnvStrings $PARAMETERS $PARAMETERS
+	StrCmp $PARAMETERS '/?' 0 CheckWindow
+	MessageBox MB_OK \
+	`|   Command line options:$\n\
+	 |   $\n\
+	 |   /S$\n\
+	 |     Silent mode$\n\
+	 |   /TYPE=[1|2|3]$\n\
+	 |     Installation type:$\n\
+	 |     1 - Standard install$\n\
+	 |     2 - Editor for Total Commander$\n\
+	 |     3 - Windows notepad replacement$\n\
+	 |     default: 1$\n\
+	 |   /DIR=[path]$\n\
+	 |     Installation directory$\n\
+	 |     default: %Program Files%\AkelPad$\n\
+	 |   /SHORTCUT=[0x0]$\n\
+	 |     Create shortcuts:$\n\
+	 |     0x1 - quick launch$\n\
+	 |     0x2 - desktop$\n\
+	 |     0x4 - start menu$\n\
+	 |     default: 0x0$\n\
+	 $\n\
+	 Example:$\n\
+	 setup.exe /S /DIR="%SystemDrive%\AkelPad" /TYPE=1 /SHORTCUT=0x7`
+	quit
+
+	#Is AkelPad running?
 	CheckWindow:
 	FindWindow $0 "AkelPad4"
 	IsWindow $0 +5
@@ -160,8 +197,38 @@ Function .onInit
 	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(InstallAlreadyRun)" IDRETRY CheckWindow
 	quit
 
-	# Custom page #
+	#Variables
+	StrCpy $SYSLANGUAGE $LANGUAGE
+	StrCpy $INSTTYPE ${INSTTYPE_STANDARD}
+	StrCpy $SHORTCUT 0
+
+	${GetOptions} $PARAMETERS "/TYPE=" $0
+	IfErrors dir
+	StrCpy $INSTTYPE $0
+	dir:
+	StrCmp $INSTDIR '' 0 shortcut
+	${GetOptions} $PARAMETERS "/DIR=" $0
+	IfErrors shortcut
+	StrCpy $INSTDIR $0
+	shortcut:
+	${GetOptions} $PARAMETERS "/SHORTCUT=" $0
+	IfErrors silent
+	StrCpy $SHORTCUT $0
+
+	#Silent install
+	silent:
+	IfSilent 0 custom
+	StrCmp $INSTDIR '' 0 +2
+	Call GetInstallDirectory
+	Call SetInstallDirectory
+	Call CreateShortcuts
+	Return
+
+	#Custom page
+	custom:
 	InitPluginsDir
+
+	StrCpy $REDCTL 0
 
 	GetTempFileName $INI $PLUGINSDIR
 	File /oname=$INI "Pages\InstallType.ini"
@@ -181,9 +248,6 @@ Function .onInit
 	GetTempFileName $0 $PLUGINSDIR
 	File /oname=$0 "Graphics\WizardWelcome.bmp"
 	WriteINIStr "$INI" "Field 10" "Text" "$0"
-
-	StrCpy $REDCTL 0
-	StrCpy $SYSLANGUAGE $LANGUAGE
 FunctionEnd
 
 Function CustomShow
@@ -250,61 +314,20 @@ Function CustomLeave
 	abort
 
 	next:
-
-#	_standard:
 	ReadINIStr $0 "$INI" "Field 1" "State"
-	StrCmp $0 1 0 _totalcmd
+	StrCmp $0 1 0 +3
 	StrCpy $INSTTYPE ${INSTTYPE_STANDARD}
-
-	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString"
-	StrCmp $0 '' 0 +3
-	StrCpy $INSTDIR "$PROGRAMFILES\${PRODUCT_NAME}"
-	goto end
-	${GetParent} "$0" $0
-	${GetParent} "$0" $INSTDIR
-	goto end
-
-	_totalcmd:
+	goto getdir
 	ReadINIStr $0 "$INI" "Field 2" "State"
-	StrCmp $0 1 0 _notepad
+	StrCmp $0 1 0 +3
 	StrCpy $INSTTYPE ${INSTTYPE_TOTALCMD}
-
-	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString"
-	StrCmp $0 '' Ghisler
-	${GetParent} "$0" $0
-	${GetParent} "$0" $0
-	${GetParent} "$0" $0
-	IfFileExists "$0\TotalCmd.exe" 0 +3
-	StrCpy $INSTDIR "$0\${PRODUCT_NAME}"
-	goto end
-
-	Ghisler:
-	ReadRegStr $0 HKCU "SOFTWARE\Ghisler\Total Commander" "InstallDir"
-	StrCmp $0 '' +4
-	IfFileExists "$0\TotalCmd.exe" 0 +3
-	StrCpy $INSTDIR "$0\${PRODUCT_NAME}"
-	goto end
-	IfFileExists "C:\TotalCmd\TotalCmd.exe" 0 +3
-	StrCpy $INSTDIR "C:\TotalCmd\${PRODUCT_NAME}"
-	goto end
-	IfFileExists "C:\TC\TotalCmd.exe" 0 +3
-	StrCpy $INSTDIR "C:\TC\${PRODUCT_NAME}"
-	goto end
-	StrCpy $INSTDIR ""
-	goto end
-
-	_notepad:
+	goto getdir
 	ReadINIStr $0 "$INI" "Field 3" "State"
-	StrCmp $0 1 0 end
+	StrCmp $0 1 0 getdir
 	StrCpy $INSTTYPE ${INSTTYPE_NOTEPAD}
 
-	ReadRegStr $0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion" "VersionNumber"
-	StrCmp $0 '' 0 +3
-	StrCpy $INSTDIR "$SYSDIR"
-	goto end
-	StrCpy $INSTDIR "$WINDIR"
-
-	end:
+	getdir:
+	Call GetInstallDirectory
 FunctionEnd
 
 Function DirectoryShow
@@ -352,31 +375,99 @@ Function .onVerifyInstDir
 FunctionEnd
 
 Function DirectoryLeave
+	Call SetInstallDirectory
+
+	GetDlgItem $0 $R0 1051
+	SendMessage $0 ${BM_GETSTATE} 0 0 $1
+	StrCmp $1 1 0 +2
+	IntOp $SHORTCUT $SHORTCUT | ${SHORTCUT_QUICKLAUNCH}
+	GetDlgItem $0 $R0 1052
+	SendMessage $0 ${BM_GETSTATE} 0 0 $1
+	StrCmp $1 1 0 +2
+	IntOp $SHORTCUT $SHORTCUT | ${SHORTCUT_DESKTOP}
+	GetDlgItem $0 $R0 1053
+	SendMessage $0 ${BM_GETSTATE} 0 0 $1
+	StrCmp $1 1 0 +2
+	IntOp $SHORTCUT $SHORTCUT | ${SHORTCUT_STARTMENU}
+
+	Call CreateShortcuts
+FunctionEnd
+
+Function GetInstallDirectory
+	#_standart:
+	StrCmp $INSTTYPE ${INSTTYPE_STANDARD} 0 _totalcmd
+	StrCpy $INSTDIR "$PROGRAMFILES\${PRODUCT_NAME}"
+	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString"
+	${GetParent} "$0" $0
+	${GetParent} "$0" $0
+	StrCmp $0 '' end
+	StrCpy $INSTDIR $0
+	goto end
+
+	_totalcmd:
+	StrCmp $INSTTYPE ${INSTTYPE_TOTALCMD} 0 _notepad
+	ReadRegStr $0 HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString"
+	StrCmp $0 '' Ghisler
+	${GetParent} "$0" $0
+	${GetParent} "$0" $0
+	${GetParent} "$0" $0
+	IfFileExists "$0\TotalCmd.exe" 0 +3
+	StrCpy $INSTDIR "$0\${PRODUCT_NAME}"
+	goto end
+
+	Ghisler:
+	ReadRegStr $0 HKCU "SOFTWARE\Ghisler\Total Commander" "InstallDir"
+	StrCmp $0 '' +4
+	IfFileExists "$0\TotalCmd.exe" 0 +3
+	StrCpy $INSTDIR "$0\${PRODUCT_NAME}"
+	goto end
+	IfFileExists "C:\TotalCmd\TotalCmd.exe" 0 +3
+	StrCpy $INSTDIR "C:\TotalCmd\${PRODUCT_NAME}"
+	goto end
+	IfFileExists "C:\TC\TotalCmd.exe" 0 +3
+	StrCpy $INSTDIR "C:\TC\${PRODUCT_NAME}"
+	goto end
+	StrCpy $INSTDIR ""
+	goto end
+
+	_notepad:
+	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 end
+	ReadRegStr $0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion" "VersionNumber"
+	StrCmp $0 '' 0 +3
+	StrCpy $INSTDIR "$SYSDIR"
+	goto end
+	StrCpy $INSTDIR "$WINDIR"
+
+	end:
+FunctionEnd
+
+Function SetInstallDirectory
 	StrCpy $SETUPDIR "$INSTDIR"
 	StrCpy $SETUPEXE "$SETUPDIR\AkelPad.exe"
-	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 quicklaunch
+	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 end
 	StrCmp $SETUPDIR $WINDIR +2
 	StrCmp $SETUPDIR $SYSDIR 0 +2
 	StrCpy $SETUPEXE "$SETUPDIR\notepad.exe"
 
-	quicklaunch:
-	GetDlgItem $0 $R0 1051
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
-	StrCmp $1 1 0 desktop
+	end:
+FunctionEnd
+
+Function CreateShortcuts
+	#quicklaunch:
+	IntOp $0 $SHORTCUT & ${SHORTCUT_QUICKLAUNCH}
+	IntCmp $0 0 desktop
 	SetOutPath "$SETUPDIR"
 	CreateShortCut "$QUICKLAUNCH\${PRODUCT_NAME}.lnk" "$SETUPEXE"
 
 	desktop:
-	GetDlgItem $0 $R0 1052
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
-	StrCmp $1 1 0 startmenu
+	IntOp $0 $SHORTCUT & ${SHORTCUT_DESKTOP}
+	IntCmp $0 0 startmenu
 	SetOutPath "$SETUPDIR"
 	CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$SETUPEXE"
 
 	startmenu:
-	GetDlgItem $0 $R0 1053
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
-	StrCmp $1 1 0 end
+	IntOp $0 $SHORTCUT & ${SHORTCUT_STARTMENU}
+	IntCmp $0 0 end
 	SetOutPath "$SETUPDIR"
 	CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
 	CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$SETUPEXE"
