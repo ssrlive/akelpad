@@ -4,6 +4,8 @@ AkelPad 4.1.2 ()
 Changed: scrolling with middle mouse button.
 Changed: "Go to line" dialog now accepts numbers in more free form, for example, "2 123".
 
+Added: silent install support.
+
 Fixed: AEM_CANPASTE message.
 Fixed: insert tabulation as spaces.
 
