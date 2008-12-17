@@ -839,6 +839,7 @@ BEGIN
     STR_HEADLINE            "Колонтитулы"
     STR_TOP                 "Верхний:"
     STR_BOTTOM              "Нижний:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Russian resources

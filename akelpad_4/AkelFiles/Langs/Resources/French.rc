@@ -864,6 +864,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_URL                 "Hyperlien"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // French (France) resources

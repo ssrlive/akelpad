@@ -852,6 +852,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_URL                 "Hyperlink"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Polish resources

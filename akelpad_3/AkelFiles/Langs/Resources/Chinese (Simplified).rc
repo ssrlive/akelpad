@@ -807,6 +807,7 @@ BEGIN
     STR_HEADLINE            "标题行"
     STR_TOP                 "上："
     STR_BOTTOM              "下："
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Chinese (P.R.C.) resources

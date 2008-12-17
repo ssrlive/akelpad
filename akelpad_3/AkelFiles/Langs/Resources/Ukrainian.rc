@@ -841,6 +841,7 @@ BEGIN
     STR_HEADLINE            "Колонтитули"
     STR_TOP                 "Верхній:"
     STR_BOTTOM              "Нижній:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Unknown language: 0x22, 0x1 resources

@@ -720,9 +720,13 @@ BOOL DoFileSaveW()
 
 BOOL DoFileSaveAsA()
 {
+  char szDefaultExt[MAX_PATH];
+
   bSaveDlg=TRUE;
+  API_LoadStringA(hLangLib, STR_DEFAULT_SAVE_EXT, szDefaultExt, MAX_PATH);
+
   ofnA.lStructSize=sizeof(OPENFILENAMEA);
-  ofnA.lpstrDefExt="txt";
+  ofnA.lpstrDefExt=szDefaultExt;
   ofnA.Flags&=~OFN_ALLOWMULTISELECT;
   lstrcpynA(szFileBuffer, szCurrentFile, MAX_PATH);
 
@@ -739,9 +743,13 @@ BOOL DoFileSaveAsA()
 
 BOOL DoFileSaveAsW()
 {
+  wchar_t wszDefaultExt[MAX_PATH];
+
   bSaveDlg=TRUE;
+  API_LoadStringW(hLangLib, STR_DEFAULT_SAVE_EXT, wszDefaultExt, MAX_PATH);
+
   ofnW.lStructSize=sizeof(OPENFILENAMEW);
-  ofnW.lpstrDefExt=L"txt";
+  ofnW.lpstrDefExt=wszDefaultExt;
   ofnW.Flags&=~OFN_ALLOWMULTISELECT;
   lstrcpynW(wszFileBuffer, wszCurrentFile, MAX_PATH);
 

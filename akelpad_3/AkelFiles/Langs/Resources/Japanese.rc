@@ -823,6 +823,7 @@ BEGIN
     STR_HEADLINE            "ÉwÉbÉhÉâÉCÉì"
     STR_TOP                 "è„:"
     STR_BOTTOM              "â∫:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Japanese resources

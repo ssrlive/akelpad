@@ -825,6 +825,7 @@ BEGIN
     STR_HEADLINE            "Cabeçalhos"
     STR_TOP                 "Topo:"
     STR_BOTTOM              "Fundo:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Portuguese (Brazil) resources

@@ -829,6 +829,7 @@ BEGIN
     STR_HEADLINE            "Titres"
     STR_TOP                 "Haut:"
     STR_BOTTOM              "Bas:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // French (France) resources

@@ -815,6 +815,7 @@ BEGIN
     STR_HEADLINE            "Headlines"
     STR_TOP                 "Top:"
     STR_BOTTOM              "Bottom:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // English (U.S.) resources

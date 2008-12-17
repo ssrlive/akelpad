@@ -59,6 +59,7 @@
 #define STR_ACTIVELINE                  126
 #define STR_CARET                       127
 #define STR_URL                         128
+#define STR_DEFAULT_SAVE_EXT            129
 #define STR_AUTODETECT_RUSSIAN          501
 #define STR_AUTODETECT_ENGLISH          502
 #define RESERVED                        1000

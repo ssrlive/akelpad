@@ -824,6 +824,7 @@ BEGIN
     STR_HEADLINE            "Titulares"
     STR_TOP                 "Superior:"
     STR_BOTTOM              "Inferior:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Spanish (Castilian) resources

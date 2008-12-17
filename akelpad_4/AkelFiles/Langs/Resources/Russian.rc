@@ -874,6 +874,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_URL                 "—сылка"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Russian resources

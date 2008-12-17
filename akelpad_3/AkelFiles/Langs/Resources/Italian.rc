@@ -830,6 +830,7 @@ BEGIN
     STR_HEADLINE            "Intestazione"
     STR_TOP                 "Su:"
     STR_BOTTOM              "Giù:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Italian (Italy) resources
