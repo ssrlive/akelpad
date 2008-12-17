@@ -183,7 +183,7 @@ Function .onInit
 	 |     default: 0x0$\n\
 	 $\n\
 	 Example:$\n\
-	 setup.exe /S /DIR="%SystemDrive%\AkelPad" /TYPE=1 /SHORTCUT=0x7`
+	 setup.exe /S /TYPE=1 /DIR="%SystemDrive%\AkelPad" /SHORTCUT=0x7`
 	quit
 
 	#Is AkelPad running?
