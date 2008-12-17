@@ -3,6 +3,7 @@ AkelPad 4.1.2 ()
 ----------------------------
 Changed: scrolling with middle mouse button.
 Changed: "Go to line" dialog now accepts numbers in more free form, for example, "2 123".
+Changed: double mouse click selection.
 
 Added: silent install support (/? for help).
 
