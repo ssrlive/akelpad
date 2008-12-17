@@ -815,6 +815,7 @@ BEGIN
     STR_HEADLINE            "BaþlýkSatrýrlarý"
     STR_TOP                 "Üst:"
     STR_BOTTOM              "Alt:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Turkish resources

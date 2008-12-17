@@ -812,6 +812,7 @@ BEGIN
     STR_HEADLINE            "標題"
     STR_TOP                 "上:"
     STR_BOTTOM              "下:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Chinese (Taiwan) resources

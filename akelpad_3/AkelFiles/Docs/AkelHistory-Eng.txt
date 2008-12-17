@@ -2,6 +2,7 @@
 AkelPad 3.6.4 ()
 ----------------------------
 Added: silent install support (/? for help).
+Added: possibility to change default extention of a file save dialog (in program resources).
 Added: hMainAccel parameter in plugin structure.
 
 Fixed: binary file could open as UTF-16.

@@ -822,6 +822,7 @@ BEGIN
     STR_HEADLINE            "Kolumnentitel"
     STR_TOP                 "Kopfzeile:"
     STR_BOTTOM              "Fuﬂzeile:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // German (Germany) resources

@@ -840,6 +840,7 @@ BEGIN
     STR_HEADLINE            "Калантытулы"
     STR_TOP                 "Верхні:"
     STR_BOTTOM              "Ніжні:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Unknown language: 0x23, 0x1 resources

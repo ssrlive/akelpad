@@ -48,6 +48,7 @@
 #define STR_HEADLINE                    116
 #define STR_TOP                         117
 #define STR_BOTTOM                      118
+#define STR_DEFAULT_SAVE_EXT            119
 #define STR_AUTODETECT_RUSSIAN          501
 #define STR_AUTODETECT_ENGLISH          502
 #define RESERVED                        1000

@@ -842,6 +842,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_URL                 "³¬Á´½Ó"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Chinese (P.R.C.) resources

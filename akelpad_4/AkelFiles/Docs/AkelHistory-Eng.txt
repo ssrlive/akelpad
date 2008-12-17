@@ -2,10 +2,11 @@
 AkelPad 4.1.2 ()
 ----------------------------
 Changed: scrolling with middle mouse button.
-Changed: "Go to line" dialog now accepts numbers in more free form, for example, "2 123".
 Changed: double mouse click selection.
+Changed: "Go to line" dialog now accepts numbers in more free form, for example, "2 123".
 
 Added: silent install support (/? for help).
+Added: possibility to change default extention of a file save dialog (in program resources).
 
 Fixed: AEM_CANPASTE message.
 Fixed: insert tabulation as spaces.

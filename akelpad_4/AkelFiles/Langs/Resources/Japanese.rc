@@ -856,6 +856,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_URL                 "ハイパーリンク"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Japanese resources

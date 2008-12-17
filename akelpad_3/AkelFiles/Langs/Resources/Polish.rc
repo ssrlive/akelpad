@@ -818,6 +818,7 @@ BEGIN
     STR_HEADLINE            "Nag³ówki"
     STR_TOP                 "Góra:"
     STR_BOTTOM              "Dó³:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Polish resources

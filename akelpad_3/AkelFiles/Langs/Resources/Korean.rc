@@ -817,6 +817,7 @@ BEGIN
     STR_HEADLINE            "헤드라인"
     STR_TOP                 "위:"
     STR_BOTTOM              "아래:"
+    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Korean resources
