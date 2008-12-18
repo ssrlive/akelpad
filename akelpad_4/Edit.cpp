@@ -9495,31 +9495,39 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
   int nReplaceTextLen;
   int nChanges=0;
   int nResult=-1;
+  BOOL bInitialColumnSel;
+  BOOL bColumnSel;
 
   if (bAll)
   {
+    bInitialColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
+
     if (dwFlags & AEFR_SELECTION)
     {
       crRange=crSel;
+      bColumnSel=bInitialColumnSel;
     }
     else if (dwFlags & AEFR_BEGINNING)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
+      bColumnSel=FALSE;
     }
     else if (dwFlags & AEFR_DOWN)
     {
       crRange.ciMin=crSel.ciMin;
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
+      bColumnSel=FALSE;
     }
     else if (dwFlags & AEFR_UP)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
       crRange.ciMax=crSel.ciMax;
+      bColumnSel=FALSE;
     }
     else return FALSE;
 
-    if (ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, FALSE, &szText, AELB_R))
+    if (ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szText, AELB_R))
     {
       if (StrReplaceA(szText, pFindIt, pReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
       {
@@ -9554,8 +9562,9 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
             //Stop redraw
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
-            SetSel(hWnd, &crRange, FALSE, NULL);
-            ReplaceSelA(hWnd, szReplaceText, -1, FALSE, NULL, NULL);
+            if (!(dwFlags & AEFR_SELECTION))
+              SetSel(hWnd, &crRange, FALSE, NULL);
+            ReplaceSelA(hWnd, szReplaceText, -1, bColumnSel, NULL, NULL);
 
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
@@ -9571,9 +9580,9 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
               IndexOffset(hWnd, &crInitialSel.ciMax, pMax - pMin, AELB_R);
             }
             if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-              SetSel(hWnd, &crInitialSel, FALSE, &crInitialSel.ciMin);
+              SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMin);
             else
-              SetSel(hWnd, &crInitialSel, FALSE, &crInitialSel.ciMax);
+              SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMax);
 
             //Start redraw
             SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
@@ -9631,31 +9640,39 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
   int nReplaceTextLen;
   int nChanges=0;
   int nResult=-1;
+  BOOL bInitialColumnSel;
+  BOOL bColumnSel;
 
   if (bAll)
   {
+    bInitialColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
+
     if (dwFlags & AEFR_SELECTION)
     {
       crRange=crSel;
+      bColumnSel=bInitialColumnSel;
     }
     else if (dwFlags & AEFR_BEGINNING)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
+      bColumnSel=FALSE;
     }
     else if (dwFlags & AEFR_DOWN)
     {
       crRange.ciMin=crSel.ciMin;
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
+      bColumnSel=FALSE;
     }
     else if (dwFlags & AEFR_UP)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
       crRange.ciMax=crSel.ciMax;
+      bColumnSel=FALSE;
     }
     else return FALSE;
 
-    if (ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, FALSE, &wszText, AELB_R))
+    if (ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszText, AELB_R))
     {
       if (StrReplaceW(wszText, wpFindIt, wpReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
       {
@@ -9690,8 +9707,9 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
             //Stop redraw
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
-            SetSel(hWnd, &crRange, FALSE, NULL);
-            ReplaceSelW(hWnd, wszReplaceText, -1, FALSE, NULL, NULL);
+            if (!(dwFlags & AEFR_SELECTION))
+              SetSel(hWnd, &crRange, FALSE, NULL);
+            ReplaceSelW(hWnd, wszReplaceText, -1, bColumnSel, NULL, NULL);
 
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
@@ -9707,9 +9725,9 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
               IndexOffset(hWnd, &crInitialSel.ciMax, wpMax - wpMin, AELB_R);
             }
             if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-              SetSel(hWnd, &crInitialSel, FALSE, &crInitialSel.ciMin);
+              SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMin);
             else
-              SetSel(hWnd, &crInitialSel, FALSE, &crInitialSel.ciMax);
+              SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMax);
 
             //Start redraw
             SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
