@@ -2436,7 +2436,7 @@ Set word break movement.
 lParam        == not used.
 
 Return Value
- zero
+ Previous word break movement. See AEWB_* defines.
 
 Example:
  SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, 0);

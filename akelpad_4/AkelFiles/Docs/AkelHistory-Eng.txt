@@ -7,6 +7,21 @@ Changed: "Go to line" dialog now accepts numbers in more free form, for example,
 
 Added: silent install support (/? for help).
 Added: possibility to change default extention of a file save dialog (in program resources).
+Added: parameter "WordBreak". Works only if enabled "Word delimiters" in settings. Sets,
+       how the caret on Ctrl+Left/Ctrl+Right will move, by the sum of members:
+         1  Left movement is stopped, when word start is found.
+         2  Left movement is stopped, when word end is found.
+         4  Right movement is stopped, when word start is found.
+         8  Right movement is stopped, when word end is found.
+        16  Movement is stopped, when spacing start is found.
+            Cannot be combined with 64.
+        32  Movement is stopped, when spacing end is found.
+            Cannot be combined with 128.
+        64  Movement is continued, when spacing start is found.
+            Cannot be combined with 16.
+       128  Movement is continued, when spacing end is found.
+            Cannot be combined with 32.
+       By default: 1+2+4+8+32+64=111 (AkelEdit), 1+8=9 (AkelPad).
 
 Fixed: AEM_CANPASTE message.
 Fixed: insert tabulation as spaces.

@@ -273,7 +273,8 @@ WNDPROC OldEditProc;
 //Word breaking
 wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE]=WORD_DELIMITERSW;
 BOOL bWordDelimitersEnable=TRUE;
-BOOL bFirstWordBreak=TRUE;
+DWORD dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
+DWORD dwDefaultWordBreak=0;
 
 //Execute
 char szCommand[BUFFER_SIZE]="";

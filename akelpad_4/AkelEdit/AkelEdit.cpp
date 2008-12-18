@@ -904,8 +904,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_SETWORDBREAK)
       {
+        DWORD dwWordBreak=ae->dwWordBreak;
+
         ae->dwWordBreak=wParam;
-        return 0;
+        return dwWordBreak;
       }
 
       if (uMsg == AEM_ISDELIMITER)

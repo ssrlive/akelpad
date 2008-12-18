@@ -251,7 +251,8 @@ extern WNDPROC OldEditProc;
 //Word breaking
 extern wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
 extern BOOL bWordDelimitersEnable;
-extern BOOL bFirstWordBreak;
+extern DWORD dwCustomWordBreak;
+extern DWORD dwDefaultWordBreak;
 
 //Execute
 extern char szCommand[BUFFER_SIZE];
@@ -348,9 +349,12 @@ HWND CreateEditWindowA(HWND hWndParent)
     if (bUrlDelimitersEnable)
       SendMessage(hWndEditNew, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
   }
+
+  dwDefaultWordBreak=SendMessage(hWndEditNew, AEM_GETWORDBREAK, 0, 0);
+
   if (bWordDelimitersEnable)
   {
-    SendMessage(hWndEditNew, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, 0);
+    SendMessage(hWndEditNew, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
     SendMessage(hWndEditNew, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
   }
 
@@ -401,9 +405,12 @@ HWND CreateEditWindowW(HWND hWndParent)
     if (bUrlDelimitersEnable)
       SendMessage(hWndEditNew, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
   }
+
+  dwDefaultWordBreak=SendMessage(hWndEditNew, AEM_GETWORDBREAK, 0, 0);
+
   if (bWordDelimitersEnable)
   {
-    SendMessage(hWndEditNew, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, 0);
+    SendMessage(hWndEditNew, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
     SendMessage(hWndEditNew, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
   }
 
@@ -3109,6 +3116,9 @@ void RegReadOptionsA()
   RegQueryValueExA(hKey, "WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExA(hKey, "WordBreak", NULL, &dwType, (LPBYTE)&dwCustomWordBreak, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "ShowURL", NULL, &dwType, (LPBYTE)&bShowURL, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3307,6 +3317,9 @@ void RegReadOptionsW()
   RegQueryValueExW(hKey, L"WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExW(hKey, L"WordBreak", NULL, &dwType, (LPBYTE)&dwCustomWordBreak, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"ShowURL", NULL, &dwType, (LPBYTE)&bShowURL, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3432,6 +3445,7 @@ void IniReadOptionsA()
 
   IniGetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, WORD_DELIMITERS_SIZE * sizeof(wchar_t));
+  IniGetValueA(&hIniStack, "Options", "WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD));
@@ -3510,6 +3524,7 @@ void IniReadOptionsW()
 
   IniGetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, WORD_DELIMITERS_SIZE * sizeof(wchar_t));
+  IniGetValueW(&hIniStack, L"Options", L"WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD));
@@ -3783,6 +3798,8 @@ BOOL RegSaveOptionsA()
     goto Error;
   if (RegSetValueExA(hKey, "WordDelimiters", 0, REG_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExA(hKey, "WordBreak", 0, REG_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExA(hKey, "ShowURL", 0, REG_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExA(hKey, "ClickURL", 0, REG_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -3937,6 +3954,8 @@ BOOL RegSaveOptionsW()
     goto Error;
   if (RegSetValueExW(hKey, L"WordDelimiters", 0, REG_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExW(hKey, L"WordBreak", 0, REG_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExW(hKey, L"ShowURL", 0, REG_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExW(hKey, L"ClickURL", 0, REG_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -4089,6 +4108,8 @@ BOOL IniSaveOptionsA()
   if (!IniSetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+  if (!IniSetValueA(&hIniStack, "Options", "WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)))
     goto Error;
@@ -4244,6 +4265,8 @@ BOOL IniSaveOptionsW()
   if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+  if (!IniSetValueW(&hIniStack, L"Options", L"WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)))
     goto Error;
@@ -15401,12 +15424,12 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bWordDelimitersEnable)
       {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, 0);
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
         SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
       }
       else
       {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND, 0);
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwDefaultWordBreak, 0);
         SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
       }
 
@@ -15683,12 +15706,12 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bWordDelimitersEnable)
       {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, 0);
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
         SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
       }
       else
       {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND, 0);
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwDefaultWordBreak, 0);
         SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
       }
 
