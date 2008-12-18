@@ -1,5 +1,5 @@
 
-AkelPad 4.1.2 ()
+AkelPad 4.1.2 (Dec 18, 2008)
 ----------------------------
 Changed: scrolling with middle mouse button.
 Changed: double mouse click selection.
