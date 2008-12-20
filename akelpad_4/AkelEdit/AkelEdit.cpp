@@ -5420,7 +5420,7 @@ BOOL AE_IsCursorOnSelection(AKELEDIT *ae, const POINT *ptPos)
           {
             AE_GlobalToClient(ae, &ptChar, &ptChar);
 
-            if (ptPos->x > ptChar.x && ptPos->x <= ptChar.x + ae->nAveCharWidth)
+            if (ptPos->x >= ptChar.x && ptPos->x <= ptChar.x + ae->nAveCharWidth)
               return TRUE;
           }
         }
