@@ -4672,7 +4672,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
   return nLineCount;
 }
 
-void AE_CalcLinesWidth(AKELEDIT *ae, AELINEINDEX *liStartLine, AELINEINDEX *liEndLine, BOOL bFresh)
+void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELINEINDEX *liEndLine, BOOL bFresh)
 {
   AELINEINDEX liStart;
   AELINEINDEX liEnd;
@@ -4753,7 +4753,7 @@ int AE_CheckCodepage(AKELEDIT *ae, int nCodePage)
   return 0;
 }
 
-void AE_SetDrawRect(AKELEDIT *ae, RECT *lprcDraw, BOOL bRedraw)
+void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw)
 {
   if (lprcDraw)
   {
@@ -5018,7 +5018,7 @@ void AE_UpdateSelection(AKELEDIT *ae, DWORD dwSelFlags)
     AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelStartIndex, ae->bColumnSel, dwSelFlags);
 }
 
-void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShift)
+void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOOL bShift)
 {
   AECHARINDEX ciCharIndex;
   AECHARINDEX ciSelEnd;
@@ -5376,7 +5376,7 @@ int AE_SetCursor(AKELEDIT *ae)
   return nResult;
 }
 
-BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos)
+BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, const POINT *ptPos)
 {
   if (ptPos->x >= 0 && ptPos->x < ae->rcDraw.left && ptPos->y > ae->rcDraw.top && ptPos->y < ae->rcDraw.bottom)
   {
@@ -5385,7 +5385,7 @@ BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, POINT *ptPos)
   return FALSE;
 }
 
-BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos)
+BOOL AE_IsCursorOnSelection(AKELEDIT *ae, const POINT *ptPos)
 {
   if (!(ae->dwOptions & AECO_DISABLEDRAG))
   {
@@ -5430,7 +5430,7 @@ BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos)
   return FALSE;
 }
 
-DWORD AE_IsCursorOnUrl(AKELEDIT *ae, POINT *ptPos, AECHARRANGE *crLink)
+DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink)
 {
   if (ae->bDetectUrl)
   {
@@ -5680,7 +5680,7 @@ HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
   return hCaretBitmap;
 }
 
-HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, BYTE *lpBmpFileData)
+HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData)
 {
   BITMAPFILEHEADER *lpBmpFileHeader=(BITMAPFILEHEADER *)lpBmpFileData;
   BITMAPINFOHEADER *lpBmpInfoHeader=(BITMAPINFOHEADER *)(lpBmpFileData + sizeof(BITMAPFILEHEADER));
@@ -5783,7 +5783,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh)
   return FALSE;
 }
 
-BOOL AE_SetCaretPos(AKELEDIT *ae, POINT *ptCaret)
+BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret)
 {
   POINT ptClient;
   BOOL bResult;
@@ -5799,7 +5799,7 @@ BOOL AE_SetCaretPos(AKELEDIT *ae, POINT *ptCaret)
   return bResult;
 }
 
-void SetCaretVis(AKELEDIT *ae, POINT *ptCaret)
+void SetCaretVis(AKELEDIT *ae, const POINT *ptCaret)
 {
   POINT ptClient;
 
@@ -5826,7 +5826,7 @@ void SetCaretVis(AKELEDIT *ae, POINT *ptCaret)
   }
 }
 
-void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret)
+void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret)
 {
   if (ae->bWordWrap)
   {
@@ -5896,7 +5896,7 @@ void AE_ScrollToCaret(AKELEDIT *ae, POINT *ptCaret)
   }
 }
 
-DWORD AE_ScrollToCaretEx(AKELEDIT *ae, POINT *ptCaret, DWORD dwFlags, WORD wUnitX, WORD wUnitY, BOOL bTest)
+DWORD AE_ScrollToCaretEx(AKELEDIT *ae, const POINT *ptCaret, DWORD dwFlags, WORD wUnitX, WORD wUnitY, BOOL bTest)
 {
   int x=-1;
   int y=-1;
@@ -6700,7 +6700,7 @@ void AE_Paint(AKELEDIT *ae)
   }
 }
 
-void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, POINT *ptDraw, wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth)
+void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth)
 {
   int nTextLen=nLineLen - (*wpTextInLine - wpLine);
   int nTextWidth=nLineWidth - *nTextInLineWidth;
@@ -6819,7 +6819,7 @@ int AE_GetLastVisibleLine(AKELEDIT *ae)
   return min(nLastLine, ae->nLineCount);
 }
 
-BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, wchar_t *wpString, int nStringLen, SIZE *lpSize)
+BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE *lpSize)
 {
   SIZE sizeChar;
   int nStringWidth=0;
@@ -7344,7 +7344,7 @@ BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, int nMinExtent, int
   return TRUE;
 }
 
-int AE_GetCharFromPos(AKELEDIT *ae, POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel)
+int AE_GetCharFromPos(AKELEDIT *ae, const POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel)
 {
   int nCharPos;
   int nMaxExtent;
@@ -8142,7 +8142,7 @@ DWORD AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHA
   return dwCopied;
 }
 
-DWORD AE_SetTextAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen, int nNewLine)
+DWORD AE_SetTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, int nNewLine)
 {
   wchar_t *wszText;
   DWORD dwUnicodeBytes;
@@ -8161,12 +8161,12 @@ DWORD AE_SetTextAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen, 
   return dwResult;
 }
 
-DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
+DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewLine)
 {
   AECHARINDEX ciCaretChar;
   AELINEDATA *lpElement=NULL;
-  wchar_t *wpLineStart=wpText;
-  wchar_t *wpLineEnd=wpText;
+  wchar_t *wpLineStart=(wchar_t *)wpText;
+  wchar_t *wpLineEnd=(wchar_t *)wpText;
   HANDLE hHeap=ae->hHeap;
   DWORD dwTextCount=0;
   DWORD dwStartTime=GetTickCount();
@@ -8376,7 +8376,7 @@ DWORD AE_SetText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int nNewLine)
   return dwTextLen;
 }
 
-void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen, BOOL bColumnSel)
+void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, BOOL bColumnSel)
 {
   wchar_t *wszText;
   DWORD dwUnicodeBytes;
@@ -8393,7 +8393,7 @@ void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen
   }
 }
 
-void AE_AppendText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel)
+void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel)
 {
   AECHARINDEX ciCaretIndex;
   AECHARINDEX ciSelStartIndex;
@@ -8430,7 +8430,7 @@ void AE_AppendText(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnS
   AE_StackUndoGroupStop(ae);
 }
 
-void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
+void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   wchar_t *wszText;
   DWORD dwUnicodeBytes;
@@ -8447,7 +8447,7 @@ void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, char *pText, DWORD dwTextLen
   }
 }
 
-void AE_ReplaceSel(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
+void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   AECHARINDEX ciStart={0};
   AECHARINDEX ciEnd={0};
@@ -9025,7 +9025,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
   }
 }
 
-DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, DWORD dwInsertFlags, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
+DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, DWORD dwInsertFlags, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   AECHARINDEX ciInsertFrom=*ciInsertPos;
   AECHARINDEX ciFirstChar;
@@ -9038,7 +9038,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
   AEPOINT *lpPointOne;
   AEPOINT *lpPointTwo;
   POINT ptInsertFrom;
-  wchar_t *wpLineStart=wpText;
+  wchar_t *wpLineStart=(wchar_t *)wpText;
   wchar_t *wpLineEnd;
   int nLineLen=0;
   int nLineBreak;
@@ -9868,72 +9868,73 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, wchar_t *wpTex
   return dwTextCount;
 }
 
-wchar_t* AE_GetNextLine(AKELEDIT *ae, wchar_t *wpText, DWORD dwTextLen, int *nLineLen, int *nLineBreak)
+wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int *nLineLen, int *nLineBreak)
 {
+  wchar_t *wpLineStart=(wchar_t *)wpText;
   wchar_t *wpLineEnd;
   DWORD i;
 
   if (dwTextLen == (DWORD)-1)
   {
-    for (i=0; wpText[i] && wpText[i] != L'\r' && wpText[i] != L'\n'; ++i);
+    for (i=0; wpLineStart[i] && wpLineStart[i] != L'\r' && wpLineStart[i] != L'\n'; ++i);
 
     if (nLineLen) *nLineLen=i;
     if (nLineBreak) *nLineBreak=AELB_EOF;
-    wpLineEnd=wpText + i;
+    wpLineEnd=wpLineStart + i;
 
-    if (wpText[i])
+    if (wpLineStart[i])
     {
-      if (wpText[i] == L'\r' && wpText[i + 1] == L'\n')
+      if (wpLineStart[i] == L'\r' && wpLineStart[i + 1] == L'\n')
       {
         if (nLineBreak) *nLineBreak=AELB_RN;
-        wpLineEnd=wpText + i + 2;
+        wpLineEnd=wpLineStart + i + 2;
       }
-      else if (wpText[i] == L'\r' && wpText[i + 1] == L'\r' && wpText[i + 2] == L'\n')
+      else if (wpLineStart[i] == L'\r' && wpLineStart[i + 1] == L'\r' && wpLineStart[i + 2] == L'\n')
       {
         if (nLineBreak) *nLineBreak=AELB_RRN;
-        wpLineEnd=wpText + i + 3;
+        wpLineEnd=wpLineStart + i + 3;
       }
-      else if (wpText[i] == L'\n')
+      else if (wpLineStart[i] == L'\n')
       {
         if (nLineBreak) *nLineBreak=AELB_N;
-        wpLineEnd=wpText + i + 1;
+        wpLineEnd=wpLineStart + i + 1;
       }
-      else if (wpText[i] == L'\r')
+      else if (wpLineStart[i] == L'\r')
       {
         if (nLineBreak) *nLineBreak=AELB_R;
-        wpLineEnd=wpText + i + 1;
+        wpLineEnd=wpLineStart + i + 1;
       }
     }
   }
   else
   {
-    for (i=0; i < dwTextLen && wpText[i] != L'\r' && wpText[i] != L'\n'; ++i);
+    for (i=0; i < dwTextLen && wpLineStart[i] != L'\r' && wpLineStart[i] != L'\n'; ++i);
 
     if (nLineLen) *nLineLen=i;
     if (nLineBreak) *nLineBreak=AELB_EOF;
-    wpLineEnd=wpText + i;
+    wpLineEnd=wpLineStart + i;
 
     if (i < dwTextLen)
     {
-      if (i + 1 < dwTextLen && (wpText[i] == L'\r' && wpText[i + 1] == L'\n'))
+      if (i + 1 < dwTextLen && (wpLineStart[i] == L'\r' && wpLineStart[i + 1] == L'\n'))
       {
         if (nLineBreak) *nLineBreak=AELB_RN;
-        wpLineEnd=wpText + i + 2;
+        wpLineEnd=wpLineStart + i + 2;
       }
-      else if (i + 2 < dwTextLen && (wpText[i] == L'\r' && wpText[i + 1] == L'\r' && wpText[i + 2] == L'\n'))
+      else if (i + 2 < dwTextLen && (wpLineStart[i] == L'\r' && wpLineStart[i + 1] == L'\r' && wpLineStart[i + 2] == L'\n'))
       {
         if (nLineBreak) *nLineBreak=AELB_RRN;
-        wpLineEnd=wpText + i + 3;
+        wpLineEnd=wpLineStart + i + 3;
       }
-      else if (wpText[i] == L'\n')
+      else if (wpLineStart[i] == L'\n')
       {
         if (nLineBreak) *nLineBreak=AELB_N;
-        wpLineEnd=wpText + i + 1;
+        wpLineEnd=wpLineStart + i + 1;
       }
-      else if (wpText[i] == L'\r')
+      else if (wpLineStart[i] == L'\r')
       {
         if (nLineBreak) *nLineBreak=AELB_R;
-        wpLineEnd=wpText + i + 1;
+        wpLineEnd=wpLineStart + i + 1;
       }
     }
   }
@@ -10132,7 +10133,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
   return dwResult;
 }
 
-BOOL AE_StreamOutHelper(AESTREAM *aes, AECHARINDEX *ciCount, AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, DWORD *dwResult)
+BOOL AE_StreamOutHelper(AESTREAM *aes, const AECHARINDEX *ciCount, const AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, DWORD *dwResult)
 {
   DWORD dwBufDone=0;
 
@@ -10999,7 +11000,7 @@ void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
   }
 }
 
-void AE_AkelEditSetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
+void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *lpciCaret)
 {
   if (!lpciCaret)
   {
@@ -11096,7 +11097,7 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
   }
 }
 
-void AE_SetColors(AKELEDIT *ae, AECOLORS *aec)
+void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
 {
   BOOL bUpdateDrawRect=FALSE;
   BOOL bUpdateEditRect=FALSE;
@@ -11505,7 +11506,7 @@ BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect
   return bResult;
 }
 
-BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, AECHARRANGE *crLink)
+BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const AECHARRANGE *crLink)
 {
   LRESULT lResult1=0;
   LRESULT lResult2=0;
