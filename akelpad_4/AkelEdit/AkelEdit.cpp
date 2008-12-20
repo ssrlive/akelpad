@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v2.2                                 *
+ *                      AkelEdit text control v2.3                                 *
  *                                                                                 *
  * Copyright 2007-2008 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -5151,6 +5151,18 @@ void AE_SetMouseSelection(AKELEDIT *ae, POINT *ptPos, BOOL bColumnSel, BOOL bShi
   }
 }
 
+void AE_GlobalToClient(AKELEDIT *ae, const POINT *ptGlobal, POINT *ptClient)
+{
+  ptClient->x=ae->rcDraw.left + (ptGlobal->x - ae->nHScrollPos);
+  ptClient->y=ae->rcDraw.top + (ptGlobal->y - ae->nVScrollPos);
+}
+
+void AE_ClientToGlobal(AKELEDIT *ae, const POINT *ptClient, POINT *ptGlobal)
+{
+  ptGlobal->x=ae->nHScrollPos + (ptClient->x - ae->rcDraw.left);
+  ptGlobal->y=ae->nVScrollPos + (ptClient->y - ae->rcDraw.top);
+}
+
 void AE_UpdateCursor()
 {
   POINT ptPos;
@@ -5380,6 +5392,7 @@ BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos)
   if (!(ae->dwOptions & AECO_DISABLEDRAG))
   {
     AECHARINDEX ciCharIndex;
+    POINT ptChar;
     int nSelStartY;
     int nSelEndY;
     int nResult;
@@ -5391,7 +5404,7 @@ BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos)
 
       if (ptPos->y >= nSelStartY && ptPos->y <= nSelEndY)
       {
-        if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, ae->bColumnSel))
+        if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, &ptChar, ae->bColumnSel))
         {
           if (ciCharIndex.lpLine->nSelStart != ciCharIndex.lpLine->nSelEnd &&
               (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart ||
@@ -5400,6 +5413,17 @@ BOOL AE_IsCursorOnSelection(AKELEDIT *ae, POINT *ptPos)
                ciCharIndex.nCharInLine == ciCharIndex.lpLine->nSelEnd && (nResult == AEPC_AFTER || nResult == AEPC_EQUAL)))
           {
             return TRUE;
+          }
+
+          //Is on new line
+          if (ciCharIndex.nLine >= ae->ciSelStartIndex.nLine &&
+              ciCharIndex.nLine < ae->ciSelEndIndex.nLine &&
+              ciCharIndex.nCharInLine == ciCharIndex.lpLine->nLineLen)
+          {
+            AE_GlobalToClient(ae, &ptChar, &ptChar);
+
+            if (ptPos->x > ptChar.x && ptPos->x <= ptChar.x + ae->nAveCharWidth)
+              return TRUE;
           }
         }
       }
@@ -5763,12 +5787,15 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh)
 
 BOOL AE_SetCaretPos(AKELEDIT *ae, POINT *ptCaret)
 {
+  POINT ptClient;
   BOOL bResult;
 
+  AE_GlobalToClient(ae, ptCaret, &ptClient);
+
   if (ae->bOverType)
-    bResult=SetCaretPos((ptCaret->x - ae->nHScrollPos) + ae->rcDraw.left, (ptCaret->y - ae->nVScrollPos) + ae->rcDraw.top + max(ae->nCharHeight - ae->nCaretOvertypeHeight, 0));
+    bResult=SetCaretPos(ptClient.x, ptClient.y + max(ae->nCharHeight - ae->nCaretOvertypeHeight, 0));
   else
-    bResult=SetCaretPos((ptCaret->x - ae->nHScrollPos) + ae->rcDraw.left, (ptCaret->y - ae->nVScrollPos) + ae->rcDraw.top);
+    bResult=SetCaretPos(ptClient.x, ptClient.y);
 
   SetCaretVis(ae, ptCaret);
   return bResult;
@@ -5776,10 +5803,14 @@ BOOL AE_SetCaretPos(AKELEDIT *ae, POINT *ptCaret)
 
 void SetCaretVis(AKELEDIT *ae, POINT *ptCaret)
 {
-  if ((ptCaret->x - ae->nHScrollPos) + ae->rcDraw.left < ae->rcDraw.left ||
-      (ptCaret->x - ae->nHScrollPos) + ae->rcDraw.left > ae->rcDraw.right ||
-      (ptCaret->y - ae->nVScrollPos) + ae->rcDraw.top < ae->rcDraw.top - ae->nCharHeight ||
-      (ptCaret->y - ae->nVScrollPos) + ae->rcDraw.top > ae->rcDraw.bottom)
+  POINT ptClient;
+
+  AE_GlobalToClient(ae, ptCaret, &ptClient);
+
+  if (ptClient.x < ae->rcDraw.left ||
+      ptClient.x > ae->rcDraw.right ||
+      ptClient.y < ae->rcDraw.top - ae->nCharHeight ||
+      ptClient.y > ae->rcDraw.bottom)
   {
     if (ae->bCaretVisible)
     {
