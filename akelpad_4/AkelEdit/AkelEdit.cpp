@@ -2245,8 +2245,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (hIMC=ImmGetContext(ae->hWndEdit))
         {
           cf.dwStyle=CFS_POINT;
-          cf.ptCurrentPos.x=ae->rcDraw.left + (ae->ptCaret.x - ae->nHScrollPos);
-          cf.ptCurrentPos.y=ae->rcDraw.top + (ae->ptCaret.y - ae->nVScrollPos);
+          AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
           ImmSetCompositionWindow(hIMC, &cf);
 
           GetObjectA(ae->hFont, sizeof(LOGFONTA), &lfA);
@@ -2264,8 +2263,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (hIMC=ImmGetContext(ae->hWndEdit))
         {
           cf.dwStyle=CFS_POINT;
-          cf.ptCurrentPos.x=ae->rcDraw.left + (ae->ptCaret.x - ae->nHScrollPos);
-          cf.ptCurrentPos.y=ae->rcDraw.top + (ae->ptCaret.y - ae->nVScrollPos);
+          AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
           ImmSetCompositionWindow(hIMC, &cf);
 
           GetObjectW(ae->hFont, sizeof(LOGFONTW), &lfW);
