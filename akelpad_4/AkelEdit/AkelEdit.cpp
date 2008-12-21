@@ -6702,15 +6702,21 @@ void AE_Paint(AKELEDIT *ae)
 
 void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth)
 {
+  RECT rcTextOut;
   int nTextLen=nLineLen - (*wpTextInLine - wpLine);
   int nTextWidth=nLineWidth - *nTextInLineWidth;
 
   if (nTextLen)
   {
-    if (ptDraw->x + *nTextInLineWidth + nTextWidth > ae->rcDraw.left &&
-        ptDraw->x + *nTextInLineWidth < ae->rcDraw.right)
+    rcTextOut.left=ptDraw->x + *nTextInLineWidth;
+    rcTextOut.top=ptDraw->y;
+    rcTextOut.right=rcTextOut.left + nTextWidth;
+    rcTextOut.bottom=rcTextOut.top + ae->nCharHeight;
+
+    if (rcTextOut.left + nTextWidth > ae->rcDraw.left &&
+        rcTextOut.left < ae->rcDraw.right)
     {
-      TextOutW(hDC, ptDraw->x + *nTextInLineWidth, ptDraw->y, *wpTextInLine, nTextLen);
+      ExtTextOutW(hDC, rcTextOut.left, rcTextOut.top, ETO_OPAQUE, &rcTextOut, *wpTextInLine, nTextLen, NULL);
     }
     *nTextInLineWidth+=nTextWidth;
     *wpTextInLine+=nTextLen;
