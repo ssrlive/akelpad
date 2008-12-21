@@ -6295,7 +6295,6 @@ void AE_Paint(AKELEDIT *ae)
       AECHARINDEX ciCount;
       RECT rcDraw;
       POINT ptDraw;
-      SIZE sizeLine;
       RECT rcSpace;
       DWORD dwColorBG;
       DWORD dwColorText;
@@ -6437,16 +6436,12 @@ void AE_Paint(AKELEDIT *ae)
               if (nFirstPaintChar == ciDrawLine.nCharInLine)
               {
                 if (AE_CharInUrl(ae, &ciDrawLine, AECU_FINDFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
-                {
                   crLink.ciMin=ciDrawLine;
-                }
               }
               else
               {
                 if (AE_CharInUrl(ae, &ciDrawLine, AECU_ISFIRSTCHAR|AECU_FINDLASTCHAR, nLastDrawLine, &crLink))
-                {
                   crLink.ciMin=ciDrawLine;
-                }
               }
             }
 
@@ -6606,40 +6601,28 @@ void AE_Paint(AKELEDIT *ae)
               if (ciDrawLine.lpLine->nSelStart >= ciDrawLine.lpLine->nLineLen)
               {
                 if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-                {
-                  dwColorText=ae->crActiveLineText;
-                  dwColorBG=ae->crActiveLineBk;
                   hbrBG=ae->hActiveLineBk;
-                }
                 else
-                {
-                  dwColorText=ae->crBasicText;
-                  dwColorBG=ae->crBasicBk;
                   hbrBG=ae->hBasicBk;
-                }
-                sizeLine.cx=(ciDrawLine.lpLine->nSelStart - nLineLen) * ae->nSpaceCharWidth;
 
                 rcSpace.left=ptDraw.x + nStartDrawWidth;
                 rcSpace.top=ptDraw.y;
-                rcSpace.right=rcSpace.left + sizeLine.cx;
+                rcSpace.right=rcSpace.left + (ciDrawLine.lpLine->nSelStart - nLineLen) * ae->nSpaceCharWidth;
                 rcSpace.bottom=rcSpace.top + ae->nCharHeight;
                 FillRect(ps.hdc, &rcSpace, hbrBG);
-                nStartDrawWidth+=sizeLine.cx;
+                nStartDrawWidth+=(rcSpace.right - rcSpace.left);
                 nLineLen+=(ciDrawLine.lpLine->nSelStart - nLineLen);
               }
               if (ciDrawLine.lpLine->nSelEnd > ciDrawLine.lpLine->nLineLen)
               {
-                dwColorText=ae->crSelText;
-                dwColorBG=ae->crSelBk;
                 hbrBG=ae->hSelBk;
-                sizeLine.cx=(ciDrawLine.lpLine->nSelEnd - nLineLen) * ae->nSpaceCharWidth;
 
                 rcSpace.left=ptDraw.x + nStartDrawWidth;
                 rcSpace.top=ptDraw.y;
-                rcSpace.right=rcSpace.left + sizeLine.cx;
+                rcSpace.right=rcSpace.left + (ciDrawLine.lpLine->nSelEnd - nLineLen) * ae->nSpaceCharWidth;
                 rcSpace.bottom=rcSpace.top + ae->nCharHeight;
                 FillRect(ps.hdc, &rcSpace, hbrBG);
-                nStartDrawWidth+=sizeLine.cx;
+                nStartDrawWidth+=(rcSpace.right - rcSpace.left);
                 nLineLen+=(ciDrawLine.lpLine->nSelEnd - nLineLen);
               }
             }
@@ -6668,17 +6651,9 @@ void AE_Paint(AKELEDIT *ae)
           }
 
           if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-          {
-            dwColorText=ae->crActiveLineText;
-            dwColorBG=ae->crActiveLineBk;
             hbrBG=ae->hActiveLineBk;
-          }
           else
-          {
-            dwColorText=ae->crBasicText;
-            dwColorBG=ae->crBasicBk;
             hbrBG=ae->hBasicBk;
-          }
           rcSpace.left=ptDraw.x + nStartDrawWidth;
           rcSpace.top=ptDraw.y;
           rcSpace.right=ae->rcDraw.right;
