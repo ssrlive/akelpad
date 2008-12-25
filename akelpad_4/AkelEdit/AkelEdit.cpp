@@ -1116,8 +1116,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else
       {
-        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin, ae->bColumnSel);
-        AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax, ae->bColumnSel);
+        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &cr.ciMin, FALSE);
+        AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &cr.ciMax, FALSE);
       }
 
       if (gt->flags & GT_USECRLF)
@@ -2007,7 +2007,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bControl)
           {
-            AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCharOut, bAlt);
+            AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCharOut, FALSE);
           }
           else
           {
@@ -2023,7 +2023,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (bControl)
           {
-            AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciCharOut, bAlt);
+            AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciCharOut, FALSE);
           }
           else
           {
@@ -2079,7 +2079,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
             ciCharIn=ae->ciSelStartIndex;
 
-          if (AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, bAlt))
+          if (AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, FALSE))
           {
             if (!bControl)
             {
@@ -2093,7 +2093,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
             ciCharIn=ae->ciSelEndIndex;
 
-          if (AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIn, &ciCharOut, bAlt))
+          if (AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIn, &ciCharOut, FALSE))
           {
             if (!bControl)
             {
@@ -3569,14 +3569,16 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharI
   }
   else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth && dwFourth <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciElement, FALSE);
-    ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
+    ciElement.nLine=ae->ciSelStartIndex.nLine;
+    ciElement.lpLine=ae->ciSelStartIndex.lpLine;
+    ciElement.nCharInLine=min(ae->ciSelStartIndex.nCharInLine, ae->ciSelStartIndex.lpLine->nLineLen);
     nElementLineOffset=dwOffset - ae->nSelStartCharOffset;
   }
   else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth && dwFifth <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciElement, FALSE);
-    ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
+    ciElement.nLine=ae->ciSelEndIndex.nLine;
+    ciElement.lpLine=ae->ciSelEndIndex.lpLine;
+    ciElement.nCharInLine=min(ae->ciSelEndIndex.nCharInLine, ae->ciSelEndIndex.lpLine->nLineLen);
     nElementLineOffset=dwOffset - ae->nSelEndCharOffset;
   }
   else if (dwSixth <= dwFirst && dwSixth <= dwSecond && dwSixth <= dwThird && dwSixth <= dwFourth && dwSixth <= dwFifth)
@@ -3651,14 +3653,16 @@ int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
   }
   else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth && dwFourth <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciElement, FALSE);
-    ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
+    ciElement.nLine=ae->ciSelStartIndex.nLine;
+    ciElement.lpLine=ae->ciSelStartIndex.lpLine;
+    ciElement.nCharInLine=min(ae->ciSelStartIndex.nCharInLine, ae->ciSelStartIndex.lpLine->nLineLen);
     nElementLineOffset=ae->nSelStartCharOffset;
   }
   else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth && dwFifth <= dwSixth)
   {
-    AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciElement, FALSE);
-    ciElement.nCharInLine=min(ciElement.nCharInLine, ciElement.lpLine->nLineLen);
+    ciElement.nLine=ae->ciSelEndIndex.nLine;
+    ciElement.lpLine=ae->ciSelEndIndex.lpLine;
+    ciElement.nCharInLine=min(ae->ciSelEndIndex.nCharInLine, ae->ciSelEndIndex.lpLine->nLineLen);
     nElementLineOffset=ae->nSelEndCharOffset;
   }
   else if (dwSixth <= dwFirst && dwSixth <= dwSecond && dwSixth <= dwThird && dwSixth <= dwFourth && dwSixth <= dwFifth)
@@ -3702,12 +3706,26 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
   }
   else if (nType == AEGI_FIRSTSELCHAR)
   {
-    *ciCharOut=ae->ciSelStartIndex;
+    if (ae->bColumnSel)
+    {
+      ciCharOut->nLine=ae->ciSelStartIndex.nLine;
+      ciCharOut->lpLine=ae->ciSelStartIndex.lpLine;
+      ciCharOut->nCharInLine=min(ae->ciSelStartIndex.nCharInLine, ae->ciSelEndIndex.nCharInLine);
+    }
+    else *ciCharOut=ae->ciSelStartIndex;
+
     return TRUE;
   }
   else if (nType == AEGI_LASTSELCHAR)
   {
-    *ciCharOut=ae->ciSelEndIndex;
+    if (ae->bColumnSel)
+    {
+      ciCharOut->nLine=ae->ciSelEndIndex.nLine;
+      ciCharOut->lpLine=ae->ciSelEndIndex.lpLine;
+      ciCharOut->nCharInLine=max(ae->ciSelStartIndex.nCharInLine, ae->ciSelEndIndex.nCharInLine);
+    }
+    else *ciCharOut=ae->ciSelEndIndex;
+
     return TRUE;
   }
   else if (nType == AEGI_CARETCHAR)
