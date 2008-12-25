@@ -3710,7 +3710,7 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
     {
       ciCharOut->nLine=ae->ciSelStartIndex.nLine;
       ciCharOut->lpLine=ae->ciSelStartIndex.lpLine;
-      ciCharOut->nCharInLine=min(ae->ciSelStartIndex.nCharInLine, ae->ciSelEndIndex.nCharInLine);
+      ciCharOut->nCharInLine=ae->ciSelStartIndex.lpLine->nSelStart;
     }
     else *ciCharOut=ae->ciSelStartIndex;
 
@@ -3722,7 +3722,7 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
     {
       ciCharOut->nLine=ae->ciSelEndIndex.nLine;
       ciCharOut->lpLine=ae->ciSelEndIndex.lpLine;
-      ciCharOut->nCharInLine=max(ae->ciSelStartIndex.nCharInLine, ae->ciSelEndIndex.nCharInLine);
+      ciCharOut->nCharInLine=ae->ciSelStartIndex.lpLine->nSelEnd;
     }
     else *ciCharOut=ae->ciSelEndIndex;
 
