@@ -12220,7 +12220,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
     LPVOID pData;
 
     ScreenToClient(ae->hWndEdit, (POINT *)&pt);
-    AE_GetCharFromPos(ae, (POINT *)&pt, &ciCharIndex, NULL, pDropTarget->bColumnSel);
+    AE_GetCharFromPos(ae, (POINT *)&pt, &ciCharIndex, NULL, pDropTarget->bColumnSel || (ae->dwOptions & AECO_CARETOUTEDGE));
 
     fmtetc.cfFormat=CF_UNICODETEXT;
     fmtetc.ptd=0;
@@ -12261,6 +12261,12 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
           {
             if (bSetSel) AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, 0);
             AE_InsertText(ae, &ciCharIndex, (wchar_t *)pData, (DWORD)-1, ae->nInputNewLine, pDropTarget->bColumnSel, 0, &ciStart, &ciEnd);
+
+            if (ae->dwOptions & AECO_CARETOUTEDGE)
+            {
+              AE_UpdateIndex(ae, &ciCharIndex);
+              ciStart=ciCharIndex;
+            }
           }
           AE_StackUndoGroupStop(ae);
           AE_SetSelectionPos(ae, &ciEnd, &ciStart, pDropTarget->bColumnSel, 0);
@@ -12316,6 +12322,11 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
                 if (bSetSel) AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, 0);
                 AE_InsertText(ae, &ciCharIndex, wszText, dwUnicodeBytes / sizeof(wchar_t) - 1, ae->nInputNewLine, pDropTarget->bColumnSel, 0, &ciStart, &ciEnd);
 
+                if (ae->dwOptions & AECO_CARETOUTEDGE)
+                {
+                  AE_UpdateIndex(ae, &ciCharIndex);
+                  ciStart=ciCharIndex;
+                }
                 AE_HeapFree(ae, 0, (LPVOID)wszText);
               }
             }
@@ -12377,7 +12388,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
       AECHARINDEX ciCharIndex;
       POINT ptGlobal;
 
-      AE_GetCharFromPos(ae, (POINT *)pt, &ciCharIndex, &ptGlobal, pDropTarget->bColumnSel);
+      AE_GetCharFromPos(ae, (POINT *)pt, &ciCharIndex, &ptGlobal, pDropTarget->bColumnSel || (ae->dwOptions & AECO_CARETOUTEDGE));
 
       if (ae->bDragging &&
           (((*pdwEffect & DROPEFFECT_COPY) &&
