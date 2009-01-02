@@ -225,8 +225,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->nTabStop=8;
       ae->bSavePointExist=TRUE;
       ae->dwUndoLimit=(DWORD)-1;
-      ae->bVScrollShow=TRUE;
       ae->bHScrollShow=TRUE;
+      ae->bVScrollShow=TRUE;
       ae->dwUrlMaxLength=AEURL_MAX_LENGTH;
       ae->dwWordBreak=AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND;
       ae->nCurrentCursor=AECC_IBEAM;
@@ -6115,7 +6115,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 
   if (nBar == SB_HORZ)
   {
-    if (ae->bVScrollShow)
+    if (ae->bHScrollShow)
     {
       si.cbSize=sizeof(SCROLLINFO);
       si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
