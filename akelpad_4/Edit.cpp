@@ -9416,7 +9416,7 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
     SetSel(hWnd, &ft.crFound, FALSE, NULL);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
     if (dwScrollResult & AECSE_SCROLLEDX)
       dwScrollFlags|=AESC_UNITRECTDIVX;
     if (dwScrollResult & AECSE_SCROLLEDY)
@@ -9467,7 +9467,7 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
     SetSel(hWnd, &ft.crFound, FALSE, NULL);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
     if (dwScrollResult & AECSE_SCROLLEDX)
       dwScrollFlags|=AESC_UNITRECTDIVX;
     if (dwScrollResult & AECSE_SCROLLEDY)
@@ -10386,8 +10386,20 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
       if (SendMessage(hWndEdit, AEM_GETLINEINDEX, nLineNumber - 1, (LPARAM)&cr.ciMin))
       {
+        DWORD dwScrollResult=0;
+        DWORD dwScrollFlags=0;
+
+        SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.ciMax=cr.ciMin;
         SetSel(hWndEdit, &cr, FALSE, NULL);
+        SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
+
+        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
+        if (dwScrollResult & AECSE_SCROLLEDX)
+          dwScrollFlags|=AESC_UNITRECTDIVX;
+        if (dwScrollResult & AECSE_SCROLLEDY)
+          dwScrollFlags|=AESC_UNITRECTDIVY;
+        SendMessage(hWndEdit, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
       }
     }
     if (LOWORD(wParam) == IDOK ||
@@ -10453,8 +10465,20 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
       if (SendMessage(hWndEdit, AEM_GETLINEINDEX, nLineNumber - 1, (LPARAM)&cr.ciMin))
       {
+        DWORD dwScrollResult=0;
+        DWORD dwScrollFlags=0;
+
+        SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.ciMax=cr.ciMin;
         SetSel(hWndEdit, &cr, FALSE, NULL);
+        SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
+
+        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
+        if (dwScrollResult & AECSE_SCROLLEDX)
+          dwScrollFlags|=AESC_UNITRECTDIVX;
+        if (dwScrollResult & AECSE_SCROLLEDY)
+          dwScrollFlags|=AESC_UNITRECTDIVY;
+        SendMessage(hWndEdit, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
       }
     }
     if (LOWORD(wParam) == IDOK ||
