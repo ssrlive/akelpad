@@ -9380,8 +9380,6 @@ void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace)
 int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
 {
   AEFINDTEXTA ft;
-  DWORD dwScrollFlags=0;
-  DWORD dwScrollResult;
   BOOL bResult;
 
   if (dwFlags & AEFR_SELECTION)
@@ -9412,11 +9410,14 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTA, 0, (LPARAM)&ft))
   {
+    DWORD dwScrollFlags=0;
+    DWORD dwScrollResult;
+
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
     SetSel(hWnd, &ft.crFound, FALSE, NULL);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
     if (dwScrollResult & AECSE_SCROLLEDX)
       dwScrollFlags|=AESC_UNITRECTDIVX;
     if (dwScrollResult & AECSE_SCROLLEDY)
@@ -9431,8 +9432,6 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
 int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
 {
   AEFINDTEXTW ft;
-  DWORD dwScrollFlags=0;
-  DWORD dwScrollResult;
   BOOL bResult;
 
   if (dwFlags & AEFR_SELECTION)
@@ -9463,11 +9462,14 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTW, 0, (LPARAM)&ft))
   {
+    DWORD dwScrollFlags=0;
+    DWORD dwScrollResult;
+
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
     SetSel(hWnd, &ft.crFound, FALSE, NULL);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
     if (dwScrollResult & AECSE_SCROLLEDX)
       dwScrollFlags|=AESC_UNITRECTDIVX;
     if (dwScrollResult & AECSE_SCROLLEDY)
@@ -10386,15 +10388,15 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
       if (SendMessage(hWndEdit, AEM_GETLINEINDEX, nLineNumber - 1, (LPARAM)&cr.ciMin))
       {
-        DWORD dwScrollResult=0;
         DWORD dwScrollFlags=0;
+        DWORD dwScrollResult;
 
         SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.ciMax=cr.ciMin;
         SetSel(hWndEdit, &cr, FALSE, NULL);
         SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
+        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
         if (dwScrollResult & AECSE_SCROLLEDX)
           dwScrollFlags|=AESC_UNITRECTDIVX;
         if (dwScrollResult & AECSE_SCROLLEDY)
@@ -10465,15 +10467,15 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
       if (SendMessage(hWndEdit, AEM_GETLINEINDEX, nLineNumber - 1, (LPARAM)&cr.ciMin))
       {
-        DWORD dwScrollResult=0;
         DWORD dwScrollFlags=0;
+        DWORD dwScrollResult;
 
         SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.ciMax=cr.ciMin;
         SetSel(hWndEdit, &cr, FALSE, NULL);
         SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
+        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
         if (dwScrollResult & AECSE_SCROLLEDX)
           dwScrollFlags|=AESC_UNITRECTDIVX;
         if (dwScrollResult & AECSE_SCROLLEDY)
