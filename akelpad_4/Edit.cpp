@@ -141,7 +141,7 @@ extern int nRecentFiles;
 extern BOOL bSavePositions;
 extern BOOL bSaveCodepages;
 
-//Open/Save dialog
+//Open/Save document
 extern OPENFILENAMEA ofnA;
 extern OPENFILENAMEW ofnW;
 extern char szFileBuffer[FILELIST_BUFFER_SIZE];
@@ -157,6 +157,8 @@ extern BOOL bOfnBOM;
 extern int nOfnCodePage;
 extern int nMsgCreate;
 extern int nMsgBinary;
+extern POINT ptDocumentPos;
+extern BOOL bDocumentReopen;
 extern BOOL bSaveInReadOnlyMsg;
 extern WNDPROC OldPreviewProc;
 
@@ -279,7 +281,6 @@ extern HWND hWndFrameActive;
 extern HWND hWndFrameDestroyed;
 extern BOOL bMdiMaximize;
 extern BOOL bMdiNoWindows;
-extern BOOL bMdiReopen;
 extern BOOL bMdiClientRedraw;
 extern HWND hTab;
 extern int nTabView;
@@ -691,9 +692,9 @@ void DoFileReopenAsA(DWORD dwFlags, int nCodePage, BOOL bBOM)
   }
   if (!bModified || nAnswer == IDOK)
   {
-    bMdiReopen=TRUE;
+    bDocumentReopen=TRUE;
     OpenDocumentA(hWndEdit, szCurrentFile, dwFlags, nCodePage, bBOM);
-    bMdiReopen=FALSE;
+    bDocumentReopen=FALSE;
   }
 }
 
@@ -710,9 +711,9 @@ void DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM)
   }
   if (!bModified || nAnswer == IDOK)
   {
-    bMdiReopen=TRUE;
+    bDocumentReopen=TRUE;
     OpenDocumentW(hWndEdit, wszCurrentFile, dwFlags, nCodePage, bBOM);
-    bMdiReopen=FALSE;
+    bDocumentReopen=FALSE;
   }
 }
 
@@ -4654,7 +4655,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     if (hWnd == hWndEdit)
     {
       //File exists
-      if (!bMDI && !bMdiReopen && bSingleOpenFile && lstrcmpiA(szFile, szCurrentFile))
+      if (!bMDI && !bDocumentReopen && bSingleOpenFile && lstrcmpiA(szFile, szCurrentFile))
       {
         if ((hWndFriend=FindWindowA(APP_SDI_CLASSA, szFile)) &&
             (hWndFriend=GetParent(hWndFriend)))
@@ -4665,7 +4666,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
           goto End;
         }
       }
-      if (bMDI && !bMdiReopen && bSingleOpenFile)
+      if (bMDI && !bDocumentReopen && bSingleOpenFile)
       {
         if (!lstrcmpiA(szFile, szCurrentFile) || (hWndFriend=FindWindowExA(hMdiClient, NULL, APP_MDI_CLASSA, szFile)))
         {
@@ -4676,20 +4677,25 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
           }
           if (SaveChangedA())
           {
-            bMdiReopen=TRUE;
+            bDocumentReopen=TRUE;
             OpenDocumentA(hWnd, szFile, dwFlags, nCodePage, bBOM);
-            bMdiReopen=FALSE;
+            bDocumentReopen=FALSE;
           }
           nResult=EOD_WINDOW_EXIST;
           goto End;
         }
+      }
+
+      if (bDocumentReopen)
+      {
+        SendMessage(hWnd, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
       }
     }
 
     //Autodetect code page
     if ((nDetect=AutodetectCodePageA(szFile, dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
     {
-      if (!bMdiReopen)
+      if (!bDocumentReopen)
       {
         if (nDetect == EDT_BINARY)
         {
@@ -4756,7 +4762,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       RecentFilesSaveA();
     }
 
-    if (bMDI && !bMdiReopen && (!hWndFrameActive || bModified || szCurrentFile[0]))
+    if (bMDI && !bDocumentReopen && (!hWndFrameActive || bModified || szCurrentFile[0]))
     {
       if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
       CreateMDIWindowA(APP_MDI_CLASSA, "", (bMdiMaximize == TRUE)?WS_MAXIMIZE:0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hMdiClient, hInstance, 0);
@@ -4817,9 +4823,20 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       {
         CHARRANGE cr;
 
+        if (bDocumentReopen)
+        {
+          SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
+        }
+
         cr.cpMin=lpdwRecentPositions[0];
         cr.cpMax=lpdwRecentPositions[0];
         SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
+
+        if (bDocumentReopen)
+        {
+          SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
+          SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+        }
       }
 
       //Print if "/p" option used in command line
@@ -4899,7 +4916,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     if (hWnd == hWndEdit)
     {
       //File exists
-      if (!bMDI && !bMdiReopen && bSingleOpenFile && lstrcmpiW(wszFile, wszCurrentFile))
+      if (!bMDI && !bDocumentReopen && bSingleOpenFile && lstrcmpiW(wszFile, wszCurrentFile))
       {
         if ((hWndFriend=FindWindowW(APP_SDI_CLASSW, wszFile)) &&
             (hWndFriend=GetParent(hWndFriend)))
@@ -4910,7 +4927,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
           goto End;
         }
       }
-      if (bMDI && !bMdiReopen && bSingleOpenFile)
+      if (bMDI && !bDocumentReopen && bSingleOpenFile)
       {
         if (!lstrcmpiW(wszFile, wszCurrentFile) || (hWndFriend=FindWindowExW(hMdiClient, NULL, APP_MDI_CLASSW, wszFile)))
         {
@@ -4921,20 +4938,25 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
           }
           if (SaveChangedW())
           {
-            bMdiReopen=TRUE;
+            bDocumentReopen=TRUE;
             OpenDocumentW(hWnd, wszFile, dwFlags, nCodePage, bBOM);
-            bMdiReopen=FALSE;
+            bDocumentReopen=FALSE;
           }
           nResult=EOD_WINDOW_EXIST;
           goto End;
         }
+      }
+
+      if (bDocumentReopen)
+      {
+        SendMessage(hWnd, AEM_GETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
       }
     }
 
     //Autodetect code page
     if ((nDetect=AutodetectCodePageW(wszFile, dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
     {
-      if (!bMdiReopen)
+      if (!bDocumentReopen)
       {
         if (nDetect == EDT_BINARY)
         {
@@ -5001,7 +5023,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       RecentFilesSaveW();
     }
 
-    if (bMDI && !bMdiReopen && (!hWndFrameActive || bModified || wszCurrentFile[0]))
+    if (bMDI && !bDocumentReopen && (!hWndFrameActive || bModified || wszCurrentFile[0]))
     {
       if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
       CreateMDIWindowW(APP_MDI_CLASSW, L"", (bMdiMaximize == TRUE)?WS_MAXIMIZE:0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hMdiClient, hInstance, 0);
@@ -5062,9 +5084,20 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       {
         CHARRANGE cr;
 
+        if (bDocumentReopen)
+        {
+          SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
+        }
+
         cr.cpMin=lpdwRecentPositions[0];
         cr.cpMax=lpdwRecentPositions[0];
         SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
+
+        if (bDocumentReopen)
+        {
+          SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
+          SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+        }
       }
 
       //Print if "/p" option used in command line
