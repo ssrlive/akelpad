@@ -163,7 +163,7 @@ int nRecentFiles=RECENTFILES_AMOUNT;
 BOOL bSavePositions=TRUE;
 BOOL bSaveCodepages=TRUE;
 
-//Open/Save dialog
+//Open/Save document
 OPENFILENAMEA ofnA={0};
 OPENFILENAMEW ofnW={0};
 char szFileBuffer[FILELIST_BUFFER_SIZE];
@@ -179,6 +179,8 @@ BOOL bOfnBOM=FALSE;
 int nOfnCodePage;
 int nMsgCreate=AUTOANSWER_ASK;
 int nMsgBinary=AUTOANSWER_ASK;
+POINT ptDocumentPos;
+BOOL bDocumentReopen=FALSE;
 BOOL bSaveInReadOnlyMsg=FALSE;
 WNDPROC OldPreviewProc;
 
@@ -301,7 +303,6 @@ HWND hWndFrameActive=0;
 HWND hWndFrameDestroyed=0;
 BOOL bMdiMaximize;
 BOOL bMdiNoWindows=FALSE;
-BOOL bMdiReopen=FALSE;
 BOOL bMdiClientRedraw=TRUE;
 HWND hTab=NULL;
 int nTabView=TAB_VIEW_TOP;
@@ -2868,9 +2869,9 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wsprintfA(buf2, buf, szCurrentFile);
         if (MessageBoxA(hWnd, buf2, APP_MAIN_TITLEA, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
         {
-          bMdiReopen=TRUE;
+          bDocumentReopen=TRUE;
           OpenDocumentA(hWndEdit, szCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
-          bMdiReopen=FALSE;
+          bDocumentReopen=FALSE;
         }
       }
     }
@@ -4607,9 +4608,9 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wsprintfW(wbuf2, wbuf, wszCurrentFile);
         if (MessageBoxW(hWnd, wbuf2, APP_MAIN_TITLEW, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
         {
-          bMdiReopen=TRUE;
+          bDocumentReopen=TRUE;
           OpenDocumentW(hWndEdit, wszCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
-          bMdiReopen=FALSE;
+          bDocumentReopen=FALSE;
         }
       }
     }
