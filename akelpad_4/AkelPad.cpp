@@ -190,14 +190,16 @@ DWORD ftflags=FR_DOWN;
 BOOL bReplaceDlg;
 BOOL bReplaceAllAndClose=FALSE;
 int nSearchStrings=SEARCHSTRINGS_AMOUNT;
-char *szFind_orig=NULL;
-wchar_t *wszFind_orig=NULL;
-char *szReplace_orig=NULL;
-wchar_t *wszReplace_orig=NULL;
-char *szFind=NULL;
-wchar_t *wszFind=NULL;
-char *szReplace=NULL;
-wchar_t *wszReplace=NULL;
+char *szFindText_orig=NULL;
+wchar_t *wszFindText_orig=NULL;
+char *szReplaceText_orig=NULL;
+wchar_t *wszReplaceText_orig=NULL;
+char *szFindText=NULL;
+wchar_t *wszFindText=NULL;
+char *szReplaceText=NULL;
+wchar_t *wszReplaceText=NULL;
+int nFindTextLen=0;
+int nReplaceTextLen=0;
 WNDPROC OldComboboxEdit;
 
 //Go to line dialog
@@ -1976,13 +1978,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       TEXTFINDA *ft=(TEXTFINDA *)lParam;
 
-      return FindTextA((HWND)wParam, ft->dwFlags, ft->pFindIt);
+      return FindTextA((HWND)wParam, ft->dwFlags, ft->pFindIt, -1);
     }
     if (uMsg == AKD_TEXTREPLACE)
     {
       TEXTREPLACEA *rt=(TEXTREPLACEA *)lParam;
 
-      return ReplaceTextA((HWND)wParam, rt->dwFlags, rt->pFindIt, rt->pReplaceWith, rt->bAll, &rt->nChanges);
+      return ReplaceTextA((HWND)wParam, rt->dwFlags, rt->pFindIt, -1, rt->pReplaceWith, -1, rt->bAll, &rt->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {
@@ -3715,13 +3717,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       TEXTFINDW *ft=(TEXTFINDW *)lParam;
 
-      return FindTextW((HWND)wParam, ft->dwFlags, ft->wpFindIt);
+      return FindTextW((HWND)wParam, ft->dwFlags, ft->wpFindIt, -1);
     }
     if (uMsg == AKD_TEXTREPLACE)
     {
       TEXTREPLACEW *rt=(TEXTREPLACEW *)lParam;
 
-      return ReplaceTextW((HWND)wParam, rt->dwFlags, rt->wpFindIt, rt->wpReplaceWith, rt->bAll, &rt->nChanges);
+      return ReplaceTextW((HWND)wParam, rt->dwFlags, rt->wpFindIt, -1, rt->wpReplaceWith, -1, rt->bAll, &rt->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {
