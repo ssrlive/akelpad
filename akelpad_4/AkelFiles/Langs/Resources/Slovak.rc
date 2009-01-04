@@ -683,7 +683,7 @@ BEGIN
     LTEXT           "Web stránka:",IDC_STATIC,19,41,85,11
     PUSHBUTTON      "",IDC_ABOUT_HOMEPAGE,105,40,92,14,0,WS_EX_STATICEDGE
     GROUPBOX        "Authors:",IDC_STATIC,20,62,177,109
-    LTEXT           "Shengalts Aleksander, 2006-2008",IDC_STATIC,73,82,120,
+    LTEXT           "Shengalts Aleksander, 2006-2009",IDC_STATIC,73,82,120,
                     12,NOT WS_GROUP
     LTEXT           "E-Mail:",IDC_STATIC,46,98,22,12,NOT WS_GROUP,
                     WS_EX_RIGHT
@@ -727,7 +727,7 @@ BEGIN
             VALUE "FileDescription", "AkelPad text editor language module\0"
             VALUE "FileVersion", "1, 0, 0, 0\0"
             VALUE "InternalName", "AkelPad\0"
-            VALUE "LegalCopyright", "© 2008 pvagner\0"
+            VALUE "LegalCopyright", "© 2009 pvagner\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "\0"
             VALUE "PrivateBuild", "\0"

@@ -679,7 +679,7 @@ BEGIN
                     WS_BORDER,WS_EX_STATICEDGE
     EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
                     NOT WS_BORDER,WS_EX_STATICEDGE
-    LTEXT           "Shengalts Aleksander, 2006-2008",IDC_STATIC,73,82,120,
+    LTEXT           "Shengalts Aleksander, 2006-2009",IDC_STATIC,73,82,120,
                     12,NOT WS_GROUP
     LTEXT           "Alexey Kuznetsov, 2003-2006",IDC_STATIC,73,125,120,12,
                     NOT WS_GROUP
@@ -723,7 +723,7 @@ BEGIN
             VALUE "FileDescription", "AkelPad text editor language module\0"
             VALUE "FileVersion", "1, 0, 0, 0\0"
             VALUE "InternalName", "AkelPad\0"
-            VALUE "LegalCopyright", "© 2008 Henk G. Zikken\0"
+            VALUE "LegalCopyright", "© 2009 Henk G. Zikken\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "\0"
             VALUE "PrivateBuild", "\0"

@@ -77,7 +77,7 @@ BEGIN
             VALUE "FileDescription", "AkelEdit text edit control\0"
             VALUE "FileVersion", "0, 0, 0, 0\0"
             VALUE "InternalName", "\0"
-            VALUE "LegalCopyright", "© 2007-2008 Shengalts Aleksander aka Instructor\0"
+            VALUE "LegalCopyright", "© 2007-2009 Shengalts Aleksander aka Instructor\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "\0"
             VALUE "PrivateBuild", "\0"
