@@ -9522,14 +9522,20 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
   CHARRANGE crInitialRE;
   char *szRangeText;
   char *szResultText;
-  char *pMin;
-  char *pMax;
-  char *pFirstVisible;
-  int nReplaceTextLen;
+  int nMin;
+  int nMax;
+  int nFirstVisible;
+  int nRangeTextLen;
+  int nResultTextLen;
   int nChanges=0;
   int nResult=-1;
   BOOL bInitialColumnSel;
   BOOL bColumnSel;
+
+  if (nFindItLen == -1)
+    nFindItLen=lstrlenA(pFindIt);
+  if (nReplaceWithLen == -1)
+    nReplaceWithLen=lstrlenA(pReplaceWith);
 
   if (bAll)
   {
@@ -9560,57 +9566,56 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
     }
     else return FALSE;
 
-    if (ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szRangeText, AELB_R))
+    if (nRangeTextLen=ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szRangeText, AELB_R))
     {
-      if (StrReplaceA(szRangeText, pFindIt, pReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
+      if (StrReplaceA(szRangeText, nRangeTextLen, pFindIt, nFindItLen, pReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nResultTextLen, NULL, NULL, NULL))
       {
-        if (szResultText=(char *)API_HeapAlloc(hHeap, 0, nReplaceTextLen + 1))
+        if (szResultText=(char *)API_HeapAlloc(hHeap, 0, nResultTextLen + 1))
         {
           //Remember selection
           SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
           if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
           {
-            pMin=szRangeText + crInitialRE.cpMin;
-            pMax=szRangeText + crInitialRE.cpMax;
+            nMin=crInitialRE.cpMin;
+            nMax=crInitialRE.cpMax;
           }
           else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
           {
-            pMin=szRangeText;
-            pMax=szRangeText + (crInitialRE.cpMax - crInitialRE.cpMin);
+            nMin=0;
+            nMax=crInitialRE.cpMax - crInitialRE.cpMin;
           }
 
           //Remember scroll
           SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-          {
-            pFirstVisible=szRangeText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
-          }
-          else pFirstVisible=NULL;
+            nFirstVisible=IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
+          else
+            nFirstVisible=-0x7FFFFFFF;
 
           //Replace operation
-          if (nChanges=StrReplaceA(szRangeText, pFindIt, pReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, szResultText, NULL, &pMin, &pMax, &pFirstVisible))
+          if (nChanges=StrReplaceA(szRangeText, nRangeTextLen, pFindIt, nFindItLen, pReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, szResultText, NULL, &nMin, &nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
           {
             //Stop redraw
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
             if (!(dwFlags & AEFR_SELECTION))
               SetSel(hWnd, &crRange, FALSE, NULL);
-            ReplaceSelA(hWnd, szResultText, -1, bColumnSel, NULL, NULL);
+            ReplaceSelA(hWnd, szResultText, nResultTextLen, bColumnSel, NULL, NULL);
 
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
             {
-              RichOffsetToAkelIndex(hWnd, pMin - szRangeText, &crInitialSel.ciMin);
+              RichOffsetToAkelIndex(hWnd, nMin, &crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
-              IndexOffset(hWnd, &crInitialSel.ciMax, pMax - pMin, AELB_R);
+              IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, AELB_R);
             }
             else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
             {
               SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
-              IndexOffset(hWnd, &crInitialSel.ciMax, pMax - pMin, AELB_R);
+              IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, AELB_R);
             }
             if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
               SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMin);
@@ -9624,11 +9629,11 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
             //Restore scroll
             SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
 
-            if (pFirstVisible)
+            if (nFirstVisible != -0x7FFFFFFF)
             {
               ciFirstVisibleBefore=crRange.ciMin;
               SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&ciFirstVisibleBefore);
-              IndexOffset(hWnd, &ciFirstVisibleBefore, pFirstVisible - szRangeText, AELB_R);
+              IndexOffset(hWnd, &ciFirstVisibleBefore, nFirstVisible, AELB_R);
               SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
             else SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
@@ -9672,14 +9677,20 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
   CHARRANGE crInitialRE;
   wchar_t *wszRangeText;
   wchar_t *wszResultText;
-  wchar_t *wpMin;
-  wchar_t *wpMax;
-  wchar_t *wpFirstVisible;
-  int nReplaceTextLen;
+  int nMin;
+  int nMax;
+  int nFirstVisible;
+  int nRangeTextLen;
+  int nResultTextLen;
   int nChanges=0;
   int nResult=-1;
   BOOL bInitialColumnSel;
   BOOL bColumnSel;
+
+  if (nFindItLen == -1)
+    nFindItLen=lstrlenW(wpFindIt);
+  if (nReplaceWithLen == -1)
+    nReplaceWithLen=lstrlenW(wpReplaceWith);
 
   if (bAll)
   {
@@ -9710,57 +9721,56 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
     }
     else return FALSE;
 
-    if (ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszRangeText, AELB_R))
+    if (nRangeTextLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszRangeText, AELB_R))
     {
-      if (StrReplaceW(wszRangeText, wpFindIt, wpReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
+      if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nResultTextLen, NULL, NULL, NULL))
       {
-        if (wszResultText=(wchar_t *)API_HeapAlloc(hHeap, 0, nReplaceTextLen * sizeof(wchar_t) + 2))
+        if (wszResultText=(wchar_t *)API_HeapAlloc(hHeap, 0, nResultTextLen * sizeof(wchar_t) + 2))
         {
           //Remember selection
           SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
           if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
           {
-            wpMin=wszRangeText + crInitialRE.cpMin;
-            wpMax=wszRangeText + crInitialRE.cpMax;
+            nMin=crInitialRE.cpMin;
+            nMax=crInitialRE.cpMax;
           }
           else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
           {
-            wpMin=wszRangeText;
-            wpMax=wszRangeText + (crInitialRE.cpMax - crInitialRE.cpMin);
+            nMin=0;
+            nMax=crInitialRE.cpMax - crInitialRE.cpMin;
           }
 
           //Remember scroll
           SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-          {
-            wpFirstVisible=wszRangeText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
-          }
-          else wpFirstVisible=NULL;
+            nFirstVisible=IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
+          else
+            nFirstVisible=-0x7FFFFFFF;
 
           //Replace operation
-          if (nChanges=StrReplaceW(wszRangeText, wpFindIt, wpReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, wszResultText, NULL, &wpMin, &wpMax, &wpFirstVisible))
+          if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, wszResultText, NULL, &nMin, &nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
           {
             //Stop redraw
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
             if (!(dwFlags & AEFR_SELECTION))
               SetSel(hWnd, &crRange, FALSE, NULL);
-            ReplaceSelW(hWnd, wszResultText, -1, bColumnSel, NULL, NULL);
+            ReplaceSelW(hWnd, wszResultText, nResultTextLen, bColumnSel, NULL, NULL);
 
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
             {
-              RichOffsetToAkelIndex(hWnd, wpMin - wszRangeText, &crInitialSel.ciMin);
+              RichOffsetToAkelIndex(hWnd, nMin, &crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
-              IndexOffset(hWnd, &crInitialSel.ciMax, wpMax - wpMin, AELB_R);
+              IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, AELB_R);
             }
             else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
             {
               SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
-              IndexOffset(hWnd, &crInitialSel.ciMax, wpMax - wpMin, AELB_R);
+              IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, AELB_R);
             }
             if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
               SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMin);
@@ -9774,11 +9784,11 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
             //Restore scroll
             SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
 
-            if (wpFirstVisible)
+            if (nFirstVisible != -0x7FFFFFFF)
             {
               ciFirstVisibleBefore=crRange.ciMin;
               SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&ciFirstVisibleBefore);
-              IndexOffset(hWnd, &ciFirstVisibleBefore, wpFirstVisible - wszRangeText, AELB_R);
+              IndexOffset(hWnd, &ciFirstVisibleBefore, nFirstVisible, AELB_R);
               SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
             else SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
@@ -9812,145 +9822,149 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
   return nResult;
 }
 
-int StrReplaceA(char *pText, char *pIt, char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppMin, char **ppMax, char **ppFirstVisible)
+int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, int nWithLen, BOOL bSensitive, char *szResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible)
 {
-  char *pTextCount;
-  char *pItCount;
   char *pResult=szResult;
-  char *pMin=NULL;
-  char *pMax=NULL;
-  char *pFirstVisible=NULL;
-  int nItLen=lstrlenA(pIt);
-  int nWithLen=lstrlenA(pWith);
+  int nMinOffset=0;
+  int nMaxOffset=0;
+  int nFirstVisibleOffset=0;
+  int nTextCount;
+  int nMatchCount;
+  int nItCount;
+  int nWithCount;
+  int nDiff;
   int nChanges=0;
-  int nDiff=nItLen - nWithLen;
-  int i;
 
-  if (ppMin) pMin=*ppMin;
-  if (ppMax) pMax=*ppMax;
-  if (ppFirstVisible) pFirstVisible=*ppFirstVisible;
+  if (nItLen == -1)
+    nItLen=lstrlenA(pIt);
+  if (nWithLen == -1)
+    nWithLen=lstrlenA(pWith);
+  nDiff=nItLen - nWithLen;
 
-  for (pTextCount=pText; *pText; ++pText)
+  if (nMin) nMinOffset=*nMin;
+  if (nMax) nMaxOffset=*nMax;
+  if (nFirstVisible) nFirstVisibleOffset=*nFirstVisible;
+
+  for (nTextCount=0; nTextCount < nTextLen; ++nTextCount)
   {
-    for (pTextCount=pText, pItCount=pIt;
-         (bSensitive == TRUE && *pTextCount == *pItCount) ||
-         (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pTextCount) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pItCount));
-         ++pTextCount)
+    for (nMatchCount=nTextCount, nItCount=0;
+         (bSensitive == TRUE && pText[nMatchCount] == pIt[nItCount]) ||
+         (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pText[nMatchCount]) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pIt[nItCount]));
+         ++nMatchCount)
     {
-      if (!*++pItCount)
+      if (++nItCount >= nItLen)
       {
         if (szResult)
         {
-          if (ppMin && *ppMin)
+          if (nMin)
           {
-            if (*ppMin > pTextCount) pMin-=nDiff;
-            else if (*ppMin > pText && *ppMin <= pTextCount) pMin=pMin - (*ppMin - pText);
+            if (*nMin > nMatchCount) nMinOffset-=nDiff;
+            else if (*nMin > nTextCount && *nMin <= nMatchCount) nMinOffset-=(*nMin - nTextCount);
           }
-          if (ppMax && *ppMax)
+          if (nMax)
           {
-            if (*ppMax > pTextCount) pMax-=nDiff;
-            else if (*ppMax > pText && *ppMax <= pTextCount) pMax=pMax - (*ppMax - pText) + nWithLen;
+            if (*nMax > nMatchCount) nMaxOffset-=nDiff;
+            else if (*nMax > nTextCount && *nMax <= nMatchCount) nMaxOffset-=(*nMax - nTextCount) + nWithLen;
           }
-          if (ppFirstVisible && *ppFirstVisible)
+          if (nFirstVisible)
           {
-            if (*ppFirstVisible > pTextCount) pFirstVisible-=nDiff;
-            else if (*ppFirstVisible > pText && *ppFirstVisible <= pTextCount) pFirstVisible=pFirstVisible - (*ppFirstVisible - pText);
+            if (*nFirstVisible > nMatchCount) nFirstVisibleOffset-=nDiff;
+            else if (*nFirstVisible > nTextCount && *nFirstVisible <= nMatchCount) nFirstVisibleOffset-=(*nFirstVisible - nTextCount);
           }
-          for (i=0; i < nWithLen; ++i)
-            *pResult++=pWith[i];
+          for (nWithCount=0; nWithCount < nWithLen; ++nWithCount)
+            *pResult++=pWith[nWithCount];
         }
         else pResult+=nWithLen;
 
-        pText=pTextCount + 1;
-        pItCount=pIt;
+        nTextCount=nMatchCount + 1;
+        nItCount=0;
         ++nChanges;
-        if (!*pText) goto End;
+        if (nTextCount >= nTextLen) goto End;
       }
     }
-    if (szResult) *pResult=*pText;
+    if (szResult) *pResult=pText[nTextCount];
     ++pResult;
   }
 
   End:
-  if (szResult) *pResult=*pText;
-  if (nMaxResult) *nMaxResult=(pResult - szResult) + 1;
-  if (ppMin && ppMax && ppFirstVisible)
-  {
-    if (*ppMax) *ppMax=(*ppMin == *ppMax)?pMin:pMax;
-    if (*ppMin) *ppMin=pMin;
-    if (*ppFirstVisible) *ppFirstVisible=pFirstVisible;
-  }
+  if (szResult) *pResult=pText[nTextCount];
+  if (nResultLen) *nResultLen=(pResult - szResult) + 1;
+  if (nMax) *nMax=(*nMin == *nMax)?nMinOffset:nMaxOffset;
+  if (nMin) *nMin=nMinOffset;
+  if (nFirstVisible) *nFirstVisible=nFirstVisibleOffset;
   return nChanges;
 }
 
-int StrReplaceW(wchar_t *wpText, wchar_t *wpIt, wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppMin, wchar_t **wppMax, wchar_t **wppFirstVisible)
+int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_t *wpWith, int nWithLen, BOOL bSensitive, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible)
 {
-  wchar_t *wpTextCount;
-  wchar_t *wpItCount;
   wchar_t *wpResult=wszResult;
-  wchar_t *wpMin=NULL;
-  wchar_t *wpMax=NULL;
-  wchar_t *wpFirstVisible=NULL;
-  int nItLen=lstrlenW(wpIt);
-  int nWithLen=lstrlenW(wpWith);
+  int nMinOffset=0;
+  int nMaxOffset=0;
+  int nFirstVisibleOffset=0;
+  int nTextCount;
+  int nMatchCount;
+  int nItCount;
+  int nWithCount;
+  int nDiff;
   int nChanges=0;
-  int nDiff=nItLen - nWithLen;
-  int i;
 
-  if (wppMin) wpMin=*wppMin;
-  if (wppMax) wpMax=*wppMax;
-  if (wppFirstVisible) wpFirstVisible=*wppFirstVisible;
+  if (nItLen == -1)
+    nItLen=lstrlenW(wpIt);
+  if (nWithLen == -1)
+    nWithLen=lstrlenW(wpWith);
+  nDiff=nItLen - nWithLen;
 
-  for (wpTextCount=wpText; *wpText; ++wpText)
+  if (nMin) nMinOffset=*nMin;
+  if (nMax) nMaxOffset=*nMax;
+  if (nFirstVisible) nFirstVisibleOffset=*nFirstVisible;
+
+  for (nTextCount=0; nTextCount < nTextLen; ++nTextCount)
   {
-    for (wpTextCount=wpText, wpItCount=wpIt;
-         (bSensitive == TRUE && *wpTextCount == *wpItCount) ||
-         (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextCount) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpItCount));
-         ++wpTextCount)
+    for (nMatchCount=nTextCount, nItCount=0;
+         (bSensitive == TRUE && wpText[nMatchCount] == wpIt[nItCount]) ||
+         (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpText[nMatchCount]) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpIt[nItCount]));
+         ++nMatchCount)
     {
-      if (!*++wpItCount)
+      if (++nItCount >= nItLen)
       {
         if (wszResult)
         {
-          if (wppMin && *wppMin)
+          if (nMin)
           {
-            if (*wppMin > wpTextCount) wpMin-=nDiff;
-            else if (*wppMin > wpText && *wppMin <= wpTextCount) wpMin=wpMin - (*wppMin - wpText);
+            if (*nMin > nMatchCount) nMinOffset-=nDiff;
+            else if (*nMin > nTextCount && *nMin <= nMatchCount) nMinOffset-=(*nMin - nTextCount);
           }
-          if (wppMax && *wppMax)
+          if (nMax)
           {
-            if (*wppMax > wpTextCount) wpMax-=nDiff;
-            else if (*wppMax > wpText && *wppMax <= wpTextCount) wpMax=wpMax - (*wppMax - wpText) + nWithLen;
+            if (*nMax > nMatchCount) nMaxOffset-=nDiff;
+            else if (*nMax > nTextCount && *nMax <= nMatchCount) nMaxOffset-=(*nMax - nTextCount) + nWithLen;
           }
-          if (wppFirstVisible && *wppFirstVisible)
+          if (nFirstVisible)
           {
-            if (*wppFirstVisible > wpTextCount) wpFirstVisible-=nDiff;
-            else if (*wppFirstVisible > wpText && *wppFirstVisible <= wpTextCount) wpFirstVisible=wpFirstVisible - (*wppFirstVisible - wpText);
+            if (*nFirstVisible > nMatchCount) nFirstVisibleOffset-=nDiff;
+            else if (*nFirstVisible > nTextCount && *nFirstVisible <= nMatchCount) nFirstVisibleOffset-=(*nFirstVisible - nTextCount);
           }
-          for (i=0; i < nWithLen; ++i)
-            *wpResult++=wpWith[i];
+          for (nWithCount=0; nWithCount < nWithLen; ++nWithCount)
+            *wpResult++=wpWith[nWithCount];
         }
         else wpResult+=nWithLen;
 
-        wpText=wpTextCount + 1;
-        wpItCount=wpIt;
+        nTextCount=nMatchCount + 1;
+        nItCount=0;
         ++nChanges;
-        if (!*wpText) goto End;
+        if (nTextCount >= nTextLen) goto End;
       }
     }
-    if (wszResult) *wpResult=*wpText;
+    if (wszResult) *wpResult=wpText[nTextCount];
     ++wpResult;
   }
 
   End:
-  if (wszResult) *wpResult=*wpText;
-  if (nMaxResult) *nMaxResult=(wpResult - wszResult) + 1;
-  if (wppMin && wppMax && wppFirstVisible)
-  {
-    if (*wppMax) *wppMax=(*wppMin == *wppMax)?wpMin:wpMax;
-    if (*wppMin) *wppMin=wpMin;
-    if (*wppFirstVisible) *wppFirstVisible=wpFirstVisible;
-  }
+  if (wszResult) *wpResult=wpText[nTextCount];
+  if (nResultLen) *nResultLen=(wpResult - wszResult) + 1;
+  if (nMax) *nMax=(*nMin == *nMax)?nMinOffset:nMaxOffset;
+  if (nMin) *nMin=nMinOffset;
+  if (nFirstVisible) *nFirstVisible=nFirstVisibleOffset;
   return nChanges;
 }
 
