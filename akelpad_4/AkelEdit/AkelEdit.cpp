@@ -10380,7 +10380,7 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   AECHARINDEX ciCount=*ciChar;
   int nLineBreak;
   int nNewLine=ft->nNewLine;
-  int nCount=0;
+  DWORD dwCount=0;
 
   //Set new line
   if (nNewLine == AELB_ASINPUT)
@@ -10392,10 +10392,10 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   {
     for (; ciCount.nCharInLine < ciCount.lpLine->nLineLen; ++ciCount.nCharInLine)
     {
-      if (((ft->dwFlags & AEFR_MATCHCASE) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == ft->wpText[nCount]) ||
-          (!(ft->dwFlags & AEFR_MATCHCASE) && AE_WideCharUpper(ciCount.lpLine->wpLine[ciCount.nCharInLine]) == AE_WideCharUpper(ft->wpText[nCount])))
+      if (((ft->dwFlags & AEFR_MATCHCASE) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == ft->wpText[dwCount]) ||
+          (!(ft->dwFlags & AEFR_MATCHCASE) && AE_WideCharUpper(ciCount.lpLine->wpLine[ciCount.nCharInLine]) == AE_WideCharUpper(ft->wpText[dwCount])))
       {
-        if (++nCount >= ft->dwTextLen)
+        if (++dwCount >= ft->dwTextLen)
         {
           ++ciCount.nCharInLine;
           goto Founded;
@@ -10427,23 +10427,23 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 
     if (nLineBreak == AELB_R)
     {
-      if (ft->wpText[nCount++] != L'\r') return FALSE;
+      if (ft->wpText[dwCount++] != L'\r') return FALSE;
     }
     else if (nLineBreak == AELB_N)
     {
-      if (ft->wpText[nCount++] != L'\n') return FALSE;
+      if (ft->wpText[dwCount++] != L'\n') return FALSE;
     }
     else if (nLineBreak == AELB_RN)
     {
-      if (ft->wpText[nCount++] != L'\r') return FALSE;
-      if (ft->wpText[nCount++] != L'\n') return FALSE;
+      if (ft->wpText[dwCount++] != L'\r') return FALSE;
+      if (ft->wpText[dwCount++] != L'\n') return FALSE;
     }
     else if (nLineBreak == AELB_RRN)
     {
-      if (ft->wpText[nCount++] != L'\r') return FALSE;
-      if (ft->wpText[nCount++] != L'\n') return FALSE;
+      if (ft->wpText[dwCount++] != L'\r') return FALSE;
+      if (ft->wpText[dwCount++] != L'\n') return FALSE;
     }
-    if (nCount >= ft->dwTextLen) goto Founded;
+    if (dwCount >= ft->dwTextLen) goto Founded;
   }
 
   Founded:
