@@ -22,7 +22,7 @@ BEGIN
         BEGIN
             VALUE "FileDescription", "AkelPad text editor\0"
             VALUE "FileVersion", "0, 0, 0, 0\0"
-            VALUE "LegalCopyright", "Copyright © AkelSoft 2003-2008\0"
+            VALUE "LegalCopyright", "Copyright © AkelSoft 2003-2009\0"
             VALUE "OriginalFilename", "AkelPad.exe\0"
             VALUE "ProductName", "AkelPad\0"
             VALUE "ProductVersion", "0, 0, 0, 0\0"
