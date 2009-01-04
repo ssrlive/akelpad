@@ -9448,7 +9448,7 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen)
     SetSel(hWnd, &ft.crFound, FALSE, NULL);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
     if (dwScrollResult & AECSE_SCROLLEDX)
       dwScrollFlags|=AESC_UNITRECTDIVX;
     if (dwScrollResult & AECSE_SCROLLEDY)
@@ -9500,7 +9500,7 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen)
     SetSel(hWnd, &ft.crFound, FALSE, NULL);
     SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
+    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
     if (dwScrollResult & AECSE_SCROLLEDX)
       dwScrollFlags|=AESC_UNITRECTDIVX;
     if (dwScrollResult & AECSE_SCROLLEDY)
@@ -10451,7 +10451,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         SetSel(hWndEdit, &cr, FALSE, NULL);
         SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
+        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
         if (dwScrollResult & AECSE_SCROLLEDX)
           dwScrollFlags|=AESC_UNITRECTDIVX;
         if (dwScrollResult & AECSE_SCROLLEDY)
@@ -10530,7 +10530,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         SetSel(hWndEdit, &cr, FALSE, NULL);
         SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
-        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
+        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(0, 0));
         if (dwScrollResult & AECSE_SCROLLEDX)
           dwScrollFlags|=AESC_UNITRECTDIVX;
         if (dwScrollResult & AECSE_SCROLLEDY)
