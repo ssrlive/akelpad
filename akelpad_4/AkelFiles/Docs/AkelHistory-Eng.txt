@@ -3,8 +3,8 @@ AkelPad 4.1.3 ()
 ----------------------------
 Changed: after reopening document, text position is restored.
 
-Added: new line Drag'n'Drop.
 Added: NULL character processing \[0000] in Esc-senquence.
+Added: new line Drag'n'Drop.
 
 Fixed: replace text with column selection.
 Fixed: when caret out of the edge is on, Drag'n'Drop not allowing drop out of the edge.
