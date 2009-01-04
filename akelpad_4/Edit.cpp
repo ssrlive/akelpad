@@ -168,14 +168,16 @@ extern DWORD ftflags;
 extern BOOL bReplaceDlg;
 extern BOOL bReplaceAllAndClose;
 extern int nSearchStrings;
-extern char *szFind_orig;
-extern wchar_t *wszFind_orig;
-extern char *szReplace_orig;
-extern wchar_t *wszReplace_orig;
-extern char *szFind;
-extern wchar_t *wszFind;
-extern char *szReplace;
-extern wchar_t *wszReplace;
+extern char *szFindText_orig;
+extern wchar_t *wszFindText_orig;
+extern char *szReplaceText_orig;
+extern wchar_t *wszReplaceText_orig;
+extern char *szFindText;
+extern wchar_t *wszFindText;
+extern char *szReplaceText;
+extern wchar_t *wszReplaceText;
+extern int nFindTextLen;
+extern int nReplaceTextLen;
 extern WNDPROC OldComboboxEdit;
 
 //Go to line dialog
@@ -1804,8 +1806,8 @@ void DoEditFindNextDownA(HWND hWnd)
 {
   DWORD dwFlags=(ftflags & ~AEFR_UP & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_DOWN;
 
-  if (szFind)
-    FindTextA(hWnd, dwFlags, szFind);
+  if (szFindText)
+    FindTextA(hWnd, dwFlags, szFindText, nFindTextLen);
   else
     DoEditFindA();
 }
@@ -1814,8 +1816,8 @@ void DoEditFindNextDownW(HWND hWnd)
 {
   DWORD dwFlags=(ftflags & ~AEFR_UP & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_DOWN;
 
-  if (wszFind)
-    FindTextW(hWnd, dwFlags, wszFind);
+  if (wszFindText)
+    FindTextW(hWnd, dwFlags, wszFindText, nFindTextLen);
   else
     DoEditFindW();
 }
@@ -1824,8 +1826,8 @@ void DoEditFindNextUpA(HWND hWnd)
 {
   DWORD dwFlags=(ftflags & ~AEFR_DOWN & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_UP;
 
-  if (szFind)
-    FindTextA(hWnd, dwFlags, szFind);
+  if (szFindText)
+    FindTextA(hWnd, dwFlags, szFindText, nFindTextLen);
   else
     DoEditFindA();
 }
@@ -1834,8 +1836,8 @@ void DoEditFindNextUpW(HWND hWnd)
 {
   DWORD dwFlags=(ftflags & ~AEFR_DOWN & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_UP;
 
-  if (wszFind)
-    FindTextW(hWnd, dwFlags, wszFind);
+  if (wszFindText)
+    FindTextW(hWnd, dwFlags, wszFindText, nFindTextLen);
   else
     DoEditFindW();
 }
@@ -3667,15 +3669,15 @@ void RegReadSearchA()
 
   if (RegQueryValueExA(hKey, "find0", NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
   {
-    if (szFind_orig=szFind=(char *)API_HeapAlloc(hHeap, 0, dwSize + 1))
+    if (szFindText_orig=szFindText=(char *)API_HeapAlloc(hHeap, 0, dwSize + 1))
     {
-      if (RegQueryValueExA(hKey, "find0", NULL, &dwType, (LPBYTE)szFind_orig, &dwSize) == ERROR_SUCCESS)
+      if (RegQueryValueExA(hKey, "find0", NULL, &dwType, (LPBYTE)szFindText_orig, &dwSize) == ERROR_SUCCESS)
       {
         if (ftflags & AEFR_ESCAPESEQ)
         {
-          if (szFind=(char *)API_HeapAlloc(hHeap, 0, dwSize + 1))
+          if (szFindText=(char *)API_HeapAlloc(hHeap, 0, dwSize + 1))
           {
-            EscapeStringToEscapeDataA(szFind_orig, szFind);
+            nFindTextLen=EscapeStringToEscapeDataA(szFindText_orig, szFindText);
           }
         }
       }
@@ -3695,15 +3697,15 @@ void RegReadSearchW()
 
   if (RegQueryValueExW(hKey, L"find0", NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
   {
-    if (wszFind_orig=wszFind=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize + 2))
+    if (wszFindText_orig=wszFindText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize + 2))
     {
-      if (RegQueryValueExW(hKey, L"find0", NULL, &dwType, (LPBYTE)wszFind_orig, &dwSize) == ERROR_SUCCESS)
+      if (RegQueryValueExW(hKey, L"find0", NULL, &dwType, (LPBYTE)wszFindText_orig, &dwSize) == ERROR_SUCCESS)
       {
         if (ftflags & AEFR_ESCAPESEQ)
         {
-          if (wszFind=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize + 2))
+          if (wszFindText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize + 2))
           {
-            EscapeStringToEscapeDataW(wszFind_orig, wszFind);
+            nFindTextLen=EscapeStringToEscapeDataW(wszFindText_orig, wszFindText);
           }
         }
       }
@@ -8538,14 +8540,14 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       FreeMemorySearchA();
 
-      if (!GetComboboxSearchTextA(hWndFind, &szFind_orig, &szFind))
+      if (!(nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText)))
       {
         FreeMemorySearchA();
         return TRUE;
       }
       if (bReplaceDlg == TRUE)
       {
-        if (!GetComboboxSearchTextA(hWndReplace, &szReplace_orig, &szReplace))
+        if (!(nReplaceTextLen=GetComboboxSearchTextA(hWndReplace, &szReplaceText_orig, &szReplaceText)))
         {
           FreeMemorySearchA();
           return TRUE;
@@ -8574,7 +8576,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
           do
           {
-            ReplaceTextA(hWndEdit, ftflags, szFind, szReplace, TRUE, &nReplaceCount);
+            ReplaceTextA(hWndEdit, ftflags, szFindText, nFindTextLen, szReplaceText, nReplaceTextLen, TRUE, &nReplaceCount);
             if (!hDlgModeless) break;
 
             if (nReplaceCount)
@@ -8609,9 +8611,9 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
           do
           {
             if (bReplace == TRUE && bCanReplace == TRUE)
-              nResult=ReplaceTextA(hWndEdit, ftflags, szFind, szReplace, FALSE, NULL);
+              nResult=ReplaceTextA(hWndEdit, ftflags, szFindText, nFindTextLen, szReplaceText, nReplaceTextLen, FALSE, NULL);
             else
-              nResult=FindTextA(hWndEdit, ftflags, szFind);
+              nResult=FindTextA(hWndEdit, ftflags, szFindText, nFindTextLen);
 
             if (nResult == -1)
             {
@@ -8640,9 +8642,9 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       else
       {
         if (bReplaceDlg == TRUE && (bReplace == TRUE || bReplaceAll == TRUE))
-          nResult=ReplaceTextA(hWndEdit, ftflags, szFind, szReplace, bReplaceAll, &nReplaceCount);
+          nResult=ReplaceTextA(hWndEdit, ftflags, szFindText, nFindTextLen, szReplaceText, nReplaceTextLen, bReplaceAll, &nReplaceCount);
         else
-          nResult=FindTextA(hWndEdit, ftflags, szFind);
+          nResult=FindTextA(hWndEdit, ftflags, szFindText, nFindTextLen);
 
         if (nResult == -1)
         {
@@ -8698,7 +8700,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       {
         FreeMemorySearchA();
 
-        if (!GetComboboxSearchTextA(hWndFind, &szFind_orig, &szFind))
+        if (!(nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText)))
         {
           FreeMemorySearchA();
           return TRUE;
@@ -8942,14 +8944,14 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       FreeMemorySearchW();
 
-      if (!GetComboboxSearchTextW(hWndFind, &wszFind_orig, &wszFind))
+      if (!(nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText)))
       {
         FreeMemorySearchW();
         return TRUE;
       }
       if (bReplaceDlg == TRUE)
       {
-        if (!GetComboboxSearchTextW(hWndReplace, &wszReplace_orig, &wszReplace))
+        if (!(nReplaceTextLen=GetComboboxSearchTextW(hWndReplace, &wszReplaceText_orig, &wszReplaceText)))
         {
           FreeMemorySearchW();
           return TRUE;
@@ -8978,7 +8980,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
           do
           {
-            ReplaceTextW(hWndEdit, ftflags, wszFind, wszReplace, TRUE, &nReplaceCount);
+            ReplaceTextW(hWndEdit, ftflags, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, TRUE, &nReplaceCount);
             if (!hDlgModeless) break;
 
             if (nReplaceCount)
@@ -9013,9 +9015,9 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
           do
           {
             if (bReplace == TRUE && bCanReplace == TRUE)
-              nResult=ReplaceTextW(hWndEdit, ftflags, wszFind, wszReplace, FALSE, NULL);
+              nResult=ReplaceTextW(hWndEdit, ftflags, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, FALSE, NULL);
             else
-              nResult=FindTextW(hWndEdit, ftflags, wszFind);
+              nResult=FindTextW(hWndEdit, ftflags, wszFindText, nFindTextLen);
 
             if (nResult == -1)
             {
@@ -9044,9 +9046,9 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       else
       {
         if (bReplaceDlg == TRUE && (bReplace == TRUE || bReplaceAll == TRUE))
-          nResult=ReplaceTextW(hWndEdit, ftflags, wszFind, wszReplace, bReplaceAll, &nReplaceCount);
+          nResult=ReplaceTextW(hWndEdit, ftflags, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, bReplaceAll, &nReplaceCount);
         else
-          nResult=FindTextW(hWndEdit, ftflags, wszFind);
+          nResult=FindTextW(hWndEdit, ftflags, wszFindText, nFindTextLen);
 
         if (nResult == -1)
         {
@@ -9102,7 +9104,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       {
         FreeMemorySearchW();
 
-        if (!GetComboboxSearchTextW(hWndFind, &wszFind_orig, &wszFind))
+        if (!(nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText)))
         {
           FreeMemorySearchW();
           return TRUE;
@@ -9228,17 +9230,18 @@ void FillComboboxSearchW(HWND hWndFind, HWND hWndReplace)
   RegCloseKey(hKey);
 }
 
-BOOL GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText)
+int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText)
 {
+  int nTextLen_orig;
+  int nTextLen=0;
   int nIndex;
-  int nTextLen;
   int nItemLen;
 
-  nTextLen=GetWindowTextLength(hWnd) + 1;
+  nTextLen_orig=GetWindowTextLength(hWnd) + 1;
 
-  if (*szText_orig=*szText=(char *)API_HeapAlloc(hHeap, 0, nTextLen + 1))
+  if (*szText_orig=*szText=(char *)API_HeapAlloc(hHeap, 0, nTextLen_orig + 1))
   {
-    GetWindowTextA(hWnd, *szText_orig, nTextLen);
+    nTextLen=GetWindowTextA(hWnd, *szText_orig, nTextLen_orig);
 
     if (nSearchStrings)
     {
@@ -9259,34 +9262,32 @@ BOOL GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText)
 
     if (ftflags & AEFR_ESCAPESEQ)
     {
-      if (*szText=(char *)API_HeapAlloc(hHeap, 0, nTextLen + 1))
+      if (*szText=(char *)API_HeapAlloc(hHeap, 0, nTextLen_orig + 1))
       {
-        if (!EscapeStringToEscapeDataA(*szText_orig, *szText))
+        if (!(nTextLen=EscapeStringToEscapeDataA(*szText_orig, *szText)))
         {
           API_LoadStringA(hLangLib, MSG_ERROR_SYNTAX, buf, BUFFER_SIZE);
           MessageBoxA(GetParent(hWnd), buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
-          return FALSE;
         }
       }
-      else return FALSE;
+      else nTextLen=0;
     }
   }
-  else return FALSE;
-
-  return TRUE;
+  return nTextLen;
 }
 
-BOOL GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText)
+int GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText)
 {
+  int nTextLen_orig;
+  int nTextLen=0;
   int nIndex;
-  int nTextLen;
   int nItemLen;
 
-  nTextLen=GetWindowTextLengthW(hWnd) + 1;
+  nTextLen_orig=GetWindowTextLengthW(hWnd) + 1;
 
-  if (*wszText_orig=*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nTextLen * sizeof(wchar_t) + 2))
+  if (*wszText_orig=*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nTextLen_orig * sizeof(wchar_t) + 2))
   {
-    GetWindowTextW(hWnd, *wszText_orig, nTextLen);
+    nTextLen=GetWindowTextW(hWnd, *wszText_orig, nTextLen_orig);
 
     if (nSearchStrings)
     {
@@ -9307,21 +9308,18 @@ BOOL GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText
 
     if (ftflags & AEFR_ESCAPESEQ)
     {
-      if (*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nTextLen * sizeof(wchar_t) + 2))
+      if (*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nTextLen_orig * sizeof(wchar_t) + 2))
       {
-        if (!EscapeStringToEscapeDataW(*wszText_orig, *wszText))
+        if (!(nTextLen=EscapeStringToEscapeDataW(*wszText_orig, *wszText)))
         {
           API_LoadStringW(hLangLib, MSG_ERROR_SYNTAX, wbuf, BUFFER_SIZE);
           MessageBoxW(GetParent(hWnd), wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-          return FALSE;
         }
       }
-      else return FALSE;
+      else nTextLen=0;
     }
   }
-  else return FALSE;
-
-  return TRUE;
+  return nTextLen;
 }
 
 void SaveComboboxSearchA(HWND hWndFind, HWND hWndReplace)
@@ -9410,7 +9408,7 @@ void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace)
   RegCloseKey(hKey);
 }
 
-int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
+int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen)
 {
   AEFINDTEXTA ft;
   BOOL bResult;
@@ -9438,7 +9436,7 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
 
   ft.dwFlags=dwFlags;
   ft.pText=pFindIt;
-  ft.dwTextLen=(DWORD)-1;
+  ft.dwTextLen=nFindItLen;
   ft.nNewLine=AELB_R;
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTA, 0, (LPARAM)&ft))
@@ -9462,7 +9460,7 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt)
   return bResult?0:-1;
 }
 
-int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
+int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen)
 {
   AEFINDTEXTW ft;
   BOOL bResult;
@@ -9490,7 +9488,7 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
 
   ft.dwFlags=dwFlags;
   ft.wpText=wpFindIt;
-  ft.dwTextLen=(DWORD)-1;
+  ft.dwTextLen=nFindItLen;
   ft.nNewLine=AELB_R;
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTW, 0, (LPARAM)&ft))
@@ -9514,7 +9512,7 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt)
   return bResult?0:-1;
 }
 
-int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BOOL bAll, int *nReplaceCount)
+int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *pReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount)
 {
   AECHARRANGE crInitialSel=crSel;
   AECHARRANGE crRange;
@@ -9522,8 +9520,8 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
   AECHARINDEX ciFirstVisibleBefore;
   AECHARINDEX ciFirstVisibleAfter;
   CHARRANGE crInitialRE;
-  char *szText;
-  char *szReplaceText;
+  char *szRangeText;
+  char *szResultText;
   char *pMin;
   char *pMax;
   char *pFirstVisible;
@@ -9562,24 +9560,24 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
     }
     else return FALSE;
 
-    if (ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szText, AELB_R))
+    if (ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szRangeText, AELB_R))
     {
-      if (StrReplaceA(szText, pFindIt, pReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
+      if (StrReplaceA(szRangeText, pFindIt, pReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
       {
-        if (szReplaceText=(char *)API_HeapAlloc(hHeap, 0, nReplaceTextLen + 1))
+        if (szResultText=(char *)API_HeapAlloc(hHeap, 0, nReplaceTextLen + 1))
         {
           //Remember selection
           SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
           if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
           {
-            pMin=szText + crInitialRE.cpMin;
-            pMax=szText + crInitialRE.cpMax;
+            pMin=szRangeText + crInitialRE.cpMin;
+            pMax=szRangeText + crInitialRE.cpMax;
           }
           else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
           {
-            pMin=szText;
-            pMax=szText + (crInitialRE.cpMax - crInitialRE.cpMin);
+            pMin=szRangeText;
+            pMax=szRangeText + (crInitialRE.cpMax - crInitialRE.cpMin);
           }
 
           //Remember scroll
@@ -9587,24 +9585,24 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
           {
-            pFirstVisible=szText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
+            pFirstVisible=szRangeText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
           }
           else pFirstVisible=NULL;
 
           //Replace operation
-          if (nChanges=StrReplaceA(szText, pFindIt, pReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, szReplaceText, NULL, &pMin, &pMax, &pFirstVisible))
+          if (nChanges=StrReplaceA(szRangeText, pFindIt, pReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, szResultText, NULL, &pMin, &pMax, &pFirstVisible))
           {
             //Stop redraw
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
             if (!(dwFlags & AEFR_SELECTION))
               SetSel(hWnd, &crRange, FALSE, NULL);
-            ReplaceSelA(hWnd, szReplaceText, -1, bColumnSel, NULL, NULL);
+            ReplaceSelA(hWnd, szResultText, -1, bColumnSel, NULL, NULL);
 
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
             {
-              RichOffsetToAkelIndex(hWnd, pMin - szText, &crInitialSel.ciMin);
+              RichOffsetToAkelIndex(hWnd, pMin - szRangeText, &crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
               IndexOffset(hWnd, &crInitialSel.ciMax, pMax - pMin, AELB_R);
             }
@@ -9630,36 +9628,41 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BO
             {
               ciFirstVisibleBefore=crRange.ciMin;
               SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&ciFirstVisibleBefore);
-              IndexOffset(hWnd, &ciFirstVisibleBefore, pFirstVisible - szText, AELB_R);
+              IndexOffset(hWnd, &ciFirstVisibleBefore, pFirstVisible - szRangeText, AELB_R);
               SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
             else SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
           }
-          API_HeapFree(hHeap, 0, (LPVOID)szReplaceText);
+          API_HeapFree(hHeap, 0, (LPVOID)szResultText);
         }
       }
-      FreeText(szText);
+      FreeText(szRangeText);
     }
   }
   else
   {
-    if (ExGetRangeTextA(hWnd, &crSel.ciMin, &crSel.ciMax, FALSE, &szText, AELB_R))
+    AEFINDTEXTA ft;
+
+    ft.dwFlags=dwFlags;
+    ft.pText=pFindIt;
+    ft.dwTextLen=nFindItLen;
+    ft.nNewLine=AELB_R;
+
+    if (SendMessage(hWnd, AEM_ISMATCHA, (WPARAM)&crSel.ciMin, (LPARAM)&ft))
     {
-      if (((dwFlags & AEFR_MATCHCASE) && !lstrcmpA(pFindIt, szText)) ||
-          (!(dwFlags & AEFR_MATCHCASE) && !lstrcmpiA(pFindIt, szText)))
+      if (!AEC_IndexCompare(&crSel.ciMax, &ft.crFound.ciMax))
       {
-        ReplaceSelA(hWnd, pReplaceWith, -1, FALSE, NULL, NULL);
+        ReplaceSelA(hWnd, pReplaceWith, nReplaceWithLen, FALSE, NULL, NULL);
         nChanges=1;
       }
-      FreeText(szText);
     }
-    nResult=FindTextA(hWnd, dwFlags, pFindIt);
+    nResult=FindTextA(hWnd, dwFlags, pFindIt, nFindItLen);
   }
   if (nReplaceCount) *nReplaceCount=nChanges;
   return nResult;
 }
 
-int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplaceWith, BOOL bAll, int *nReplaceCount)
+int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount)
 {
   AECHARRANGE crInitialSel=crSel;
   AECHARRANGE crRange;
@@ -9667,8 +9670,8 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
   AECHARINDEX ciFirstVisibleBefore;
   AECHARINDEX ciFirstVisibleAfter;
   CHARRANGE crInitialRE;
-  wchar_t *wszText;
-  wchar_t *wszReplaceText;
+  wchar_t *wszRangeText;
+  wchar_t *wszResultText;
   wchar_t *wpMin;
   wchar_t *wpMax;
   wchar_t *wpFirstVisible;
@@ -9707,24 +9710,24 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
     }
     else return FALSE;
 
-    if (ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszText, AELB_R))
+    if (ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszRangeText, AELB_R))
     {
-      if (StrReplaceW(wszText, wpFindIt, wpReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
+      if (StrReplaceW(wszRangeText, wpFindIt, wpReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nReplaceTextLen, NULL, NULL, NULL))
       {
-        if (wszReplaceText=(wchar_t *)API_HeapAlloc(hHeap, 0, nReplaceTextLen * sizeof(wchar_t) + 2))
+        if (wszResultText=(wchar_t *)API_HeapAlloc(hHeap, 0, nReplaceTextLen * sizeof(wchar_t) + 2))
         {
           //Remember selection
           SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
           if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
           {
-            wpMin=wszText + crInitialRE.cpMin;
-            wpMax=wszText + crInitialRE.cpMax;
+            wpMin=wszRangeText + crInitialRE.cpMin;
+            wpMax=wszRangeText + crInitialRE.cpMax;
           }
           else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
           {
-            wpMin=wszText;
-            wpMax=wszText + (crInitialRE.cpMax - crInitialRE.cpMin);
+            wpMin=wszRangeText;
+            wpMax=wszRangeText + (crInitialRE.cpMax - crInitialRE.cpMin);
           }
 
           //Remember scroll
@@ -9732,24 +9735,24 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
           {
-            wpFirstVisible=wszText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
+            wpFirstVisible=wszRangeText + IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, AELB_R, FALSE);
           }
           else wpFirstVisible=NULL;
 
           //Replace operation
-          if (nChanges=StrReplaceW(wszText, wpFindIt, wpReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, wszReplaceText, NULL, &wpMin, &wpMax, &wpFirstVisible))
+          if (nChanges=StrReplaceW(wszRangeText, wpFindIt, wpReplaceWith, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, wszResultText, NULL, &wpMin, &wpMax, &wpFirstVisible))
           {
             //Stop redraw
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
             if (!(dwFlags & AEFR_SELECTION))
               SetSel(hWnd, &crRange, FALSE, NULL);
-            ReplaceSelW(hWnd, wszReplaceText, -1, bColumnSel, NULL, NULL);
+            ReplaceSelW(hWnd, wszResultText, -1, bColumnSel, NULL, NULL);
 
             //Restore selection
             if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
             {
-              RichOffsetToAkelIndex(hWnd, wpMin - wszText, &crInitialSel.ciMin);
+              RichOffsetToAkelIndex(hWnd, wpMin - wszRangeText, &crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
               IndexOffset(hWnd, &crInitialSel.ciMax, wpMax - wpMin, AELB_R);
             }
@@ -9775,30 +9778,35 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplace
             {
               ciFirstVisibleBefore=crRange.ciMin;
               SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&ciFirstVisibleBefore);
-              IndexOffset(hWnd, &ciFirstVisibleBefore, wpFirstVisible - wszText, AELB_R);
+              IndexOffset(hWnd, &ciFirstVisibleBefore, wpFirstVisible - wszRangeText, AELB_R);
               SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
             else SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
           }
-          API_HeapFree(hHeap, 0, (LPVOID)wszReplaceText);
+          API_HeapFree(hHeap, 0, (LPVOID)wszResultText);
         }
       }
-      FreeText(wszText);
+      FreeText(wszRangeText);
     }
   }
   else
   {
-    if (ExGetRangeTextW(hWnd, &crSel.ciMin, &crSel.ciMax, FALSE, &wszText, AELB_R))
+    AEFINDTEXTW ft;
+
+    ft.dwFlags=dwFlags;
+    ft.wpText=wpFindIt;
+    ft.dwTextLen=nFindItLen;
+    ft.nNewLine=AELB_R;
+
+    if (SendMessage(hWnd, AEM_ISMATCHW, (WPARAM)&crSel.ciMin, (LPARAM)&ft))
     {
-      if (((dwFlags & AEFR_MATCHCASE) && !lstrcmpW(wpFindIt, wszText)) ||
-          (!(dwFlags & AEFR_MATCHCASE) && !lstrcmpiW(wpFindIt, wszText)))
+      if (!AEC_IndexCompare(&crSel.ciMax, &ft.crFound.ciMax))
       {
-        ReplaceSelW(hWnd, wpReplaceWith, -1, FALSE, NULL, NULL);
+        ReplaceSelW(hWnd, wpReplaceWith, nReplaceWithLen, FALSE, NULL, NULL);
         nChanges=1;
       }
-      FreeText(wszText);
     }
-    nResult=FindTextW(hWnd, dwFlags, wpFindIt);
+    nResult=FindTextW(hWnd, dwFlags, wpFindIt, nFindItLen);
   }
   if (nReplaceCount) *nReplaceCount=nChanges;
   return nResult;
@@ -9946,7 +9954,7 @@ int StrReplaceW(wchar_t *wpText, wchar_t *wpIt, wchar_t *wpWith, BOOL bSensitive
   return nChanges;
 }
 
-BOOL EscapeStringToEscapeDataA(char *pInput, char *szOutput)
+int EscapeStringToEscapeDataA(char *pInput, char *szOutput)
 {
   char *a=pInput;
   char *b=szOutput;
@@ -9967,9 +9975,9 @@ BOOL EscapeStringToEscapeDataA(char *pInput, char *szOutput)
         do
         {
           hex[0]=*a;
-          if (*a == 0) goto Error;
+          if (!*a) goto Error;
           hex[1]=*++a;
-          if (*a == 0) goto Error;
+          if (!*a) goto Error;
           *b=nDec=hex2decA(hex);
           if (nDec == -1) goto Error;
           while (*++a == ' ');
@@ -9983,14 +9991,14 @@ BOOL EscapeStringToEscapeDataA(char *pInput, char *szOutput)
     else *b=*a;
   }
   *b='\0';
-  return TRUE;
+  return (b - szOutput);
 
   Error:
   *szOutput='\0';
-  return FALSE;
+  return 0;
 }
 
-BOOL EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput)
+int EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput)
 {
   wchar_t *a=wpInput;
   wchar_t *b=wszOutput;
@@ -10011,13 +10019,13 @@ BOOL EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput)
         do
         {
           whex[0]=*a;
-          if (*a == 0) goto Error;
+          if (!*a) goto Error;
           whex[1]=*++a;
-          if (*a == 0) goto Error;
+          if (!*a) goto Error;
           whex[2]=*++a;
-          if (*a == 0) goto Error;
+          if (!*a) goto Error;
           whex[3]=*++a;
-          if (*a == 0) goto Error;
+          if (!*a) goto Error;
           *b=nDec=hex2decW(whex);
           if (nDec == -1) goto Error;
           while (*++a == ' ');
@@ -10031,11 +10039,11 @@ BOOL EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput)
     else *b=*a;
   }
   *b='\0';
-  return TRUE;
+  return (b - wszOutput);
 
   Error:
   *wszOutput='\0';
-  return FALSE;
+  return 0;
 }
 
 void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput)
@@ -18404,59 +18412,59 @@ BOOL DeleteTabItem(HWND hWnd, int nIndex)
 
 void FreeMemorySearchA()
 {
-  if (szFind_orig)
+  if (szFindText_orig)
   {
-    if (szFind_orig == szFind)
-      szFind=NULL;
-    API_HeapFree(hHeap, 0, (LPVOID)szFind_orig);
-    szFind_orig=NULL;
+    if (szFindText_orig == szFindText)
+      szFindText=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)szFindText_orig);
+    szFindText_orig=NULL;
   }
-  if (szReplace_orig)
+  if (szReplaceText_orig)
   {
-    if (szReplace_orig == szReplace)
-      szReplace=NULL;
-    API_HeapFree(hHeap, 0, (LPVOID)szReplace_orig);
-    szReplace_orig=NULL;
+    if (szReplaceText_orig == szReplaceText)
+      szReplaceText=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)szReplaceText_orig);
+    szReplaceText_orig=NULL;
   }
 
-  if (szFind)
+  if (szFindText)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)szFind);
-    szFind=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)szFindText);
+    szFindText=NULL;
   }
-  if (szReplace)
+  if (szReplaceText)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)szReplace);
-    szReplace=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)szReplaceText);
+    szReplaceText=NULL;
   }
 }
 
 void FreeMemorySearchW()
 {
-  if (wszFind_orig)
+  if (wszFindText_orig)
   {
-    if (wszFind_orig == wszFind)
-      wszFind=NULL;
-    API_HeapFree(hHeap, 0, (LPVOID)wszFind_orig);
-    wszFind_orig=NULL;
+    if (wszFindText_orig == wszFindText)
+      wszFindText=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)wszFindText_orig);
+    wszFindText_orig=NULL;
   }
-  if (wszReplace_orig)
+  if (wszReplaceText_orig)
   {
-    if (wszReplace_orig == wszReplace)
-      wszReplace=NULL;
-    API_HeapFree(hHeap, 0, (LPVOID)wszReplace_orig);
-    wszReplace_orig=NULL;
+    if (wszReplaceText_orig == wszReplaceText)
+      wszReplaceText=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)wszReplaceText_orig);
+    wszReplaceText_orig=NULL;
   }
 
-  if (wszFind)
+  if (wszFindText)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)wszFind);
-    wszFind=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)wszFindText);
+    wszFindText=NULL;
   }
-  if (wszReplace)
+  if (wszReplaceText)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)wszReplace);
-    wszReplace=NULL;
+    API_HeapFree(hHeap, 0, (LPVOID)wszReplaceText);
+    wszReplaceText=NULL;
   }
 }
 

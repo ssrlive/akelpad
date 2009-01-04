@@ -967,18 +967,18 @@ LRESULT CALLBACK NewComboboxEditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 LRESULT CALLBACK NewComboboxEditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxSearchA(HWND hWndFind, HWND hWndReplace);
 void FillComboboxSearchW(HWND hWndFind, HWND hWndReplace);
-BOOL GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText);
-BOOL GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText);
+int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText);
+int GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText);
 void SaveComboboxSearchA(HWND hWndFind, HWND hWndReplace);
 void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace);
-int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt);
-int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt);
-int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, char *pReplaceWith, BOOL bAll, int *nReplaceCount);
-int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, wchar_t *wpReplaceWith, BOOL bAll, int *nReplaceCount);
+int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen);
+int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen);
+int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *pReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount);
+int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount);
 int StrReplaceA(char *pText, char *pIt, char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppMin, char **ppMax, char **ppFirstVisible);
 int StrReplaceW(wchar_t *wpText, wchar_t *wpIt, wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppMin, wchar_t **wppMax, wchar_t **wppFirstVisible);
-BOOL EscapeStringToEscapeDataA(char *pInput, char *szOutput);
-BOOL EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput);
+int EscapeStringToEscapeDataA(char *pInput, char *szOutput);
+int EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput);
 void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput);
 
 void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);

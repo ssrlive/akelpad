@@ -437,6 +437,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_EditCopyToClipboard(ae);
         return 0;
       }
+      if (uMsg == AEM_CHECKCODEPAGE)
+      {
+        return AE_CheckCodepage(ae, wParam);
+      }
       if (uMsg == AEM_FINDTEXTA)
       {
         return AE_FindTextAnsi(ae, CP_ACP, (AEFINDTEXTA *)lParam);
@@ -445,9 +449,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AE_FindText(ae, (AEFINDTEXTW *)lParam);
       }
-      if (uMsg == AEM_CHECKCODEPAGE)
+      if (uMsg == AEM_ISMATCHA)
       {
-        return AE_CheckCodepage(ae, wParam);
+        return AE_IsMatchAnsi(ae, CP_ACP, (AEFINDTEXTA *)lParam, (AECHARINDEX *)wParam);
+      }
+      if (uMsg == AEM_ISMATCHW)
+      {
+        return AE_IsMatch(ae, (AEFINDTEXTW *)lParam, (AECHARINDEX *)wParam);
       }
 
       //Undo and Redo
@@ -10175,6 +10183,8 @@ BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA)
 
   if (ftA->dwTextLen == (DWORD)-1)
     ftA->dwTextLen=lstrlenA(ftA->pText);
+  if (!ftA->dwTextLen)
+    return FALSE;
 
   dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, NULL, 0) * sizeof(wchar_t);
 
@@ -10203,6 +10213,8 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 
   if (ft->dwTextLen == (DWORD)-1)
     ft->dwTextLen=lstrlenW(ft->wpText);
+  if (!ft->dwTextLen)
+    return FALSE;
 
   if (ft->dwFlags & AEFR_DOWN)
   {
@@ -10332,12 +10344,43 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   return FALSE;
 }
 
+BOOL AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHARINDEX *ciChar)
+{
+  AEFINDTEXTW ftW={0};
+  wchar_t *wszText;
+  DWORD dwUnicodeBytes;
+  BOOL bResult=FALSE;
+
+  if (ftA->dwTextLen == (DWORD)-1)
+    ftA->dwTextLen=lstrlenA(ftA->pText);
+  if (!ftA->dwTextLen)
+    return FALSE;
+
+  dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, NULL, 0) * sizeof(wchar_t);
+
+  if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
+  {
+    MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, wszText, dwUnicodeBytes / sizeof(wchar_t));
+
+    ftW.dwFlags=ftA->dwFlags;
+    ftW.nNewLine=ftA->nNewLine;
+    ftW.crSearch=ftA->crSearch;
+    ftW.wpText=wszText;
+    ftW.dwTextLen=dwUnicodeBytes / sizeof(wchar_t) - 1;
+    bResult=AE_IsMatch(ae, &ftW, ciChar);
+    ftA->crFound=ftW.crFound;
+
+    AE_HeapFree(ae, 0, (LPVOID)wszText);
+  }
+  return bResult;
+}
+
 BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   AECHARINDEX ciCount=*ciChar;
-  wchar_t *wpStrCount=ft->wpText;
   int nLineBreak;
   int nNewLine=ft->nNewLine;
+  int nCount=0;
 
   //Set new line
   if (nNewLine == AELB_ASINPUT)
@@ -10349,10 +10392,10 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   {
     for (; ciCount.nCharInLine < ciCount.lpLine->nLineLen; ++ciCount.nCharInLine)
     {
-      if (((ft->dwFlags & AEFR_MATCHCASE) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == *wpStrCount) ||
-          (!(ft->dwFlags & AEFR_MATCHCASE) && AE_WideCharUpper(ciCount.lpLine->wpLine[ciCount.nCharInLine]) == AE_WideCharUpper(*wpStrCount)))
+      if (((ft->dwFlags & AEFR_MATCHCASE) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == ft->wpText[nCount]) ||
+          (!(ft->dwFlags & AEFR_MATCHCASE) && AE_WideCharUpper(ciCount.lpLine->wpLine[ciCount.nCharInLine]) == AE_WideCharUpper(ft->wpText[nCount])))
       {
-        if (!*++wpStrCount)
+        if (++nCount >= ft->dwTextLen)
         {
           ++ciCount.nCharInLine;
           goto Founded;
@@ -10384,23 +10427,23 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 
     if (nLineBreak == AELB_R)
     {
-      if (*wpStrCount++ != L'\r') return FALSE;
+      if (ft->wpText[nCount++] != L'\r') return FALSE;
     }
     else if (nLineBreak == AELB_N)
     {
-      if (*wpStrCount++ != L'\n') return FALSE;
+      if (ft->wpText[nCount++] != L'\n') return FALSE;
     }
     else if (nLineBreak == AELB_RN)
     {
-      if (*wpStrCount++ != L'\r') return FALSE;
-      if (*wpStrCount++ != L'\n') return FALSE;
+      if (ft->wpText[nCount++] != L'\r') return FALSE;
+      if (ft->wpText[nCount++] != L'\n') return FALSE;
     }
     else if (nLineBreak == AELB_RRN)
     {
-      if (*wpStrCount++ != L'\r') return FALSE;
-      if (*wpStrCount++ != L'\n') return FALSE;
+      if (ft->wpText[nCount++] != L'\r') return FALSE;
+      if (ft->wpText[nCount++] != L'\n') return FALSE;
     }
-    if (!*wpStrCount) goto Founded;
+    if (nCount >= ft->dwTextLen) goto Founded;
   }
 
   Founded:
