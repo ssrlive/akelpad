@@ -9824,7 +9824,6 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
 
 int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, int nWithLen, BOOL bSensitive, char *szResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible)
 {
-  char *pResult=szResult;
   int nMinOffset=0;
   int nMaxOffset=0;
   int nFirstVisibleOffset=0;
@@ -9832,6 +9831,7 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
   int nMatchCount;
   int nItCount;
   int nWithCount;
+  int nResultCount=0;
   int nDiff;
   int nChanges=0;
 
@@ -9847,10 +9847,11 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
 
   for (nTextCount=0; nTextCount < nTextLen; ++nTextCount)
   {
-    for (nMatchCount=nTextCount, nItCount=0;
-         (bSensitive == TRUE && pText[nMatchCount] == pIt[nItCount]) ||
-         (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pText[nMatchCount]) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pIt[nItCount]));
-         ++nMatchCount)
+    nMatchCount=nTextCount;
+    nItCount=0;
+
+    while ((bSensitive == TRUE && pText[nMatchCount] == pIt[nItCount]) ||
+           (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pText[nMatchCount]) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pIt[nItCount])))
     {
       if (++nItCount >= nItLen)
       {
@@ -9872,23 +9873,22 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
             else if (*nFirstVisible > nTextCount && *nFirstVisible <= nMatchCount) nFirstVisibleOffset-=(*nFirstVisible - nTextCount);
           }
           for (nWithCount=0; nWithCount < nWithLen; ++nWithCount)
-            *pResult++=pWith[nWithCount];
+            szResult[nResultCount++]=pWith[nWithCount];
         }
-        else pResult+=nWithLen;
+        else nResultCount+=nWithLen;
 
         nTextCount=nMatchCount + 1;
         nItCount=0;
         ++nChanges;
-        if (nTextCount >= nTextLen) goto End;
       }
+      if (++nMatchCount >= nTextLen) goto End;
     }
-    if (szResult) *pResult=pText[nTextCount];
-    ++pResult;
+    if (szResult) szResult[nResultCount]=pText[nTextCount];
+    ++nResultCount;
   }
 
   End:
-  if (szResult) *pResult=pText[nTextCount];
-  if (nResultLen) *nResultLen=(pResult - szResult) + 1;
+  if (nResultLen) *nResultLen=nResultCount;
   if (nMax) *nMax=(*nMin == *nMax)?nMinOffset:nMaxOffset;
   if (nMin) *nMin=nMinOffset;
   if (nFirstVisible) *nFirstVisible=nFirstVisibleOffset;
@@ -9897,7 +9897,6 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
 
 int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_t *wpWith, int nWithLen, BOOL bSensitive, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible)
 {
-  wchar_t *wpResult=wszResult;
   int nMinOffset=0;
   int nMaxOffset=0;
   int nFirstVisibleOffset=0;
@@ -9905,6 +9904,7 @@ int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_
   int nMatchCount;
   int nItCount;
   int nWithCount;
+  int nResultCount=0;
   int nDiff;
   int nChanges=0;
 
@@ -9920,10 +9920,11 @@ int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_
 
   for (nTextCount=0; nTextCount < nTextLen; ++nTextCount)
   {
-    for (nMatchCount=nTextCount, nItCount=0;
-         (bSensitive == TRUE && wpText[nMatchCount] == wpIt[nItCount]) ||
-         (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpText[nMatchCount]) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpIt[nItCount]));
-         ++nMatchCount)
+    nMatchCount=nTextCount;
+    nItCount=0;
+
+    while ((bSensitive == TRUE && wpText[nMatchCount] == wpIt[nItCount]) ||
+           (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpText[nMatchCount]) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpIt[nItCount])))
     {
       if (++nItCount >= nItLen)
       {
@@ -9945,23 +9946,22 @@ int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_
             else if (*nFirstVisible > nTextCount && *nFirstVisible <= nMatchCount) nFirstVisibleOffset-=(*nFirstVisible - nTextCount);
           }
           for (nWithCount=0; nWithCount < nWithLen; ++nWithCount)
-            *wpResult++=wpWith[nWithCount];
+            wszResult[nResultCount++]=wpWith[nWithCount];
         }
-        else wpResult+=nWithLen;
+        else nResultCount+=nWithLen;
 
         nTextCount=nMatchCount + 1;
         nItCount=0;
         ++nChanges;
-        if (nTextCount >= nTextLen) goto End;
       }
+      if (++nMatchCount >= nTextLen) goto End;
     }
-    if (wszResult) *wpResult=wpText[nTextCount];
-    ++wpResult;
+    if (wszResult) wszResult[nResultCount]=wpText[nTextCount];
+    ++nResultCount;
   }
 
   End:
-  if (wszResult) *wpResult=wpText[nTextCount];
-  if (nResultLen) *nResultLen=(wpResult - wszResult) + 1;
+  if (nResultLen) *nResultLen=nResultCount;
   if (nMax) *nMax=(*nMin == *nMax)?nMinOffset:nMaxOffset;
   if (nMin) *nMin=nMinOffset;
   if (nFirstVisible) *nFirstVisible=nFirstVisibleOffset;
