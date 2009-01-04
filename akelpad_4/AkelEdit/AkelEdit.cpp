@@ -6131,26 +6131,26 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 
   if (nBar == SB_HORZ)
   {
-    if (ae->bHScrollShow)
-    {
-      si.cbSize=sizeof(SCROLLINFO);
-      si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
-      si.nPos=nPos;
-      SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
-
-      si.fMask=SIF_POS;
-      GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
-      nPos=si.nPos;
-    }
-    else
-    {
-      nPos=min(nPos, ae->nHScrollMax - (ae->rcDraw.right - ae->rcDraw.left));
-      nPos=max(nPos, 0);
-    }
-    nScrollPos=ae->nHScrollPos;
-
     if (!ae->bHScrollLock)
     {
+      if (ae->bHScrollShow)
+      {
+        si.cbSize=sizeof(SCROLLINFO);
+        si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
+        si.nPos=nPos;
+        SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
+  
+        si.fMask=SIF_POS;
+        GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
+        nPos=si.nPos;
+      }
+      else
+      {
+        nPos=min(nPos, ae->nHScrollMax - (ae->rcDraw.right - ae->rcDraw.left));
+        nPos=max(nPos, 0);
+      }
+      nScrollPos=ae->nHScrollPos;
+
       if (nPos != ae->nHScrollPos)
       {
         AE_MButtonErase(ae);
@@ -6164,31 +6164,31 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
           ae->nLastHScrollPos=ae->nHScrollPos;
         }
       }
+      nScrollPos=ae->nHScrollPos - nScrollPos;
     }
-    nScrollPos=ae->nHScrollPos - nScrollPos;
   }
   else if (nBar == SB_VERT)
   {
-    if (ae->bVScrollShow)
-    {
-      si.cbSize=sizeof(SCROLLINFO);
-      si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
-      si.nPos=nPos;
-      SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
-
-      si.fMask=SIF_POS;
-      GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
-      nPos=si.nPos;
-    }
-    else
-    {
-      nPos=min(nPos, ae->nVScrollMax - (ae->rcDraw.bottom - ae->rcDraw.top));
-      nPos=max(nPos, 0);
-    }
-    nScrollPos=ae->nVScrollPos;
-
     if (!ae->bVScrollLock)
     {
+      if (ae->bVScrollShow)
+      {
+        si.cbSize=sizeof(SCROLLINFO);
+        si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
+        si.nPos=nPos;
+        SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
+  
+        si.fMask=SIF_POS;
+        GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+        nPos=si.nPos;
+      }
+      else
+      {
+        nPos=min(nPos, ae->nVScrollMax - (ae->rcDraw.bottom - ae->rcDraw.top));
+        nPos=max(nPos, 0);
+      }
+      nScrollPos=ae->nVScrollPos;
+
       if (nPos != ae->nVScrollPos)
       {
         AE_MButtonErase(ae);
@@ -6202,8 +6202,8 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
           ae->nLastVScrollPos=ae->nVScrollPos;
         }
       }
+      nScrollPos=ae->nVScrollPos - nScrollPos;
     }
-    nScrollPos=ae->nVScrollPos - nScrollPos;
   }
 
   SetCaretVis(ae, &ae->ptCaret);
