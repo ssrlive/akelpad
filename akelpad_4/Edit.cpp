@@ -8097,6 +8097,7 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
     lstrcpyA(szANSIwatermark, "\xA1\xA2\xA3\xA4\xA5\xA6");
     lstrcpyA(szUTF8watermark, "\xE3\xE4\xE5\xE6\xE7\xE8");
   }
+  else return FALSE;
 
   //Zero counter
   memset(dwCounter, 0, 0x80 * sizeof(DWORD));
