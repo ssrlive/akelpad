@@ -4,7 +4,7 @@ AkelPad 4.1.3 ()
 Changed: after reopening document, text position is restored.
 
 Added: possibility to specify null character \[0000] in "Esc-sequences".
-Added: Chinese recognition ANSI and UTF-8.
+Added: Chinese recognition (UTF-8).
 Added: new line Drag'n'Drop.
 
 Fixed: replace text with column selection.
