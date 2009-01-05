@@ -62,6 +62,7 @@
 #define STR_DEFAULT_SAVE_EXT            129
 #define STR_AUTODETECT_RUSSIAN          501
 #define STR_AUTODETECT_ENGLISH          502
+#define STR_AUTODETECT_CHINESE          503
 #define RESERVED                        1000
 #define IDI_ICON_MAIN                   1001
 #define IDI_ICON_EMPTY                  1002
