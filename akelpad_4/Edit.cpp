@@ -7869,7 +7869,7 @@ int AutodetectCodePageA(char *pFile, DWORD dwBytesToCheck, DWORD dwFlags, int *n
   {
     if (dwFlags & ADT_DETECT_CODEPAGE)
     {
-      if (!AutodetectMultibyte(dwLangCodepageRecognition, pBuffer, dwBytesRead, nCodePage))
+      if (!AutodetectMultibyte(PRIMARYLANGID(dwLangCodepageRecognition), pBuffer, dwBytesRead, nCodePage))
       {
         *nCodePage=nDefaultCodePage;
         dwFlags&=~ADT_DETECT_CODEPAGE;
@@ -8045,7 +8045,7 @@ int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, in
   {
     if (dwFlags & ADT_DETECT_CODEPAGE)
     {
-      if (!AutodetectMultibyte(dwLangCodepageRecognition, pBuffer, dwBytesRead, nCodePage))
+      if (!AutodetectMultibyte(PRIMARYLANGID(dwLangCodepageRecognition), pBuffer, dwBytesRead, nCodePage))
       {
         *nCodePage=nDefaultCodePage;
         dwFlags&=~ADT_DETECT_CODEPAGE;
@@ -8066,120 +8066,100 @@ int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, in
 
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage)
 {
-  if (dwLangID == LANGID_ENGLISH)
+  char szANSIwatermark[128]="";
+  char szOEMwatermark[128]="";
+  char szKOIwatermark[128]="";
+  char szUTF8watermark[128]="";
+  int nANSIrate=5;
+  int nOEMrate=0;
+  int nKOIrate=0;
+  int nUTF8rate=0;
+  DWORD dwCounter[0x80];
+  DWORD dwMaxIndex=0;
+  DWORD dwMaxCount=0;
+  DWORD i;
+  DWORD j;
+
+  //Watermarks
+  if (dwLangID == LANG_RUSSIAN)
   {
-    char szOEMwatermark[]="\xBA\xB3\xB0\xB1\xB2\xDB";
-    char szUTF8watermark[]="\xD0\xD1";
-    int nANSIrate=5;
-    int nOEMrate=0;
-    int nUTF8rate=0;
-    DWORD dwCounter[0x80];
-    DWORD dwMaxIndex=0;
-    DWORD dwMaxCount=0;
-    DWORD i;
-    DWORD j;
+    lstrcpyA(szANSIwatermark, "\xE0\xE1\xE2\xE5\xE8\xED\xEE\xEF\xF0\xF2\xC0\xC1\xC2\xC5\xC8\xCD\xCE\xCF\xD2");  //‡·‚ÂËÌÓÔÚ¿¡¬≈»ÕŒœ“
+    lstrcpyA(szOEMwatermark,  "\xAE\xA5\xA0\xA8\xAD\xE2\x8E\x45\x80\x88\x8D\x92\xB0\xB1\xB2\xB3\xBA\xDB");      //Character graphics simbols: \xB0\xB1\xB2\xB3\xBA\xDB
+    lstrcpyA(szKOIwatermark,  "\xC1\xC2\xD7\xC5\xC9\xCE\xCF\xD2\xD4\xE1\xE2\xF7\xE5\xE9\xEE\xEF\xF0\xF2\xF4");  //¡¬◊≈…Œœ“‘·‚˜ÂÈÓÔÚÙ
+    lstrcpyA(szUTF8watermark, "\xD0\xD1");
+  }
+  else if (dwLangID == LANG_ENGLISH)
+  {
+    lstrcpyA(szOEMwatermark, "\xB0\xB1\xB2\xB3\xBA\xDB");
+  }
+  else if (dwLangID == LANG_CHINESE)
+  {
+    lstrcpyA(szANSIwatermark, "\xA1\xA2\xA3\xA4\xA5\xA6");
+    lstrcpyA(szUTF8watermark, "\xE3\xE4\xE5\xE6\xE7\xE8");
+  }
 
-    memset(dwCounter, 0, 0x80 * sizeof(DWORD));
+  //Zero counter
+  memset(dwCounter, 0, 0x80 * sizeof(DWORD));
 
-    //Count number of each character in input buffer
-    for (j=0, i=0; i < dwBytesToCheck; ++i)
+  //Count number of each character in input buffer
+  for (j=0, i=0; i < dwBytesToCheck; ++i)
+  {
+    //Char in range 0x80 - 0xFF
+    if (pBuffer[i] >= 0x80)
     {
-      //Char in range 0x80 - 0xFF
-      if (pBuffer[i] >= 0x80)
-      {
-        ++j;
-        dwCounter[pBuffer[i] - 0x80]++;
-      }
-    }
-
-    //Give it up if there's no representative selection
-    if (j > 10)
-    {
-      for (j=0; j < 10; ++j)
-      {
-        //Get max element
-        for (dwMaxCount=0, i=0; i < 0x80; ++i)
-        {
-          if (dwCounter[i] > dwMaxCount)
-          {
-            dwMaxCount=dwCounter[i];
-            dwMaxIndex=i;
-          }
-        }
-        if (!dwCounter[dwMaxIndex]) break;
-
-        if (strchr(szOEMwatermark, dwMaxIndex + 0x80)) nOEMrate+=dwCounter[dwMaxIndex];
-        if (strchr(szUTF8watermark, dwMaxIndex + 0x80)) nUTF8rate+=dwCounter[dwMaxIndex];
-        dwCounter[dwMaxIndex]=0;
-      }
-
-      if (nANSIrate >= nOEMrate && nANSIrate >= nUTF8rate)
-        *nCodePage=nAnsiCodePage;
-      else if (nOEMrate >= nUTF8rate)
-        *nCodePage=nOemCodePage;
-      else
-        *nCodePage=CP_UNICODE_UTF8;
-      return TRUE;
+      ++j;
+      dwCounter[pBuffer[i] - 0x80]++;
     }
   }
-  else if (dwLangID == LANGID_RUSSIAN)
+
+  //Give it up if there's no representative selection
+  if (j > 10)
   {
-    char szANSIwatermark[]="\xE0\xE1\xE2\xE5\xE8\xED\xEE\xEF\xF0\xF2\xC0\xC1\xC2\xC5\xC8\xCD\xCE\xCF\xD2"; //‡·‚ÂËÌÓÔÚ¿¡¬≈»ÕŒœ“
-    char szOEMwatermark[]="\xAE\xA5\xA0\xA8\xAD\xE2\x8E\x45\x80\x88\x8D\x92\xBA\xB3\xB0\xB1\xB2\xDB";      //Character graphics simbols: \xBA\xB3\xB0\xB1\xB2\xDB
-    char szKOIwatermark[]="\xC1\xC2\xD7\xC5\xC9\xCE\xCF\xD2\xD4\xE1\xE2\xF7\xE5\xE9\xEE\xEF\xF0\xF2\xF4";  //¡¬◊≈…Œœ“‘·‚˜ÂÈÓÔÚÙ
-    char szUTF8watermark[]="\xD0\xD1";
-    int nANSIrate=5;
-    int nOEMrate=0;
-    int nKOIrate=0;
-    int nUTF8rate=0;
-    DWORD dwCounter[0x80];
-    DWORD dwMaxIndex=0;
-    DWORD dwMaxCount=0;
-    DWORD i;
-    DWORD j;
-
-    memset(dwCounter, 0, 0x80 * sizeof(DWORD));
-
-    //Count number of each character in input buffer
-    for (j=0, i=0; i < dwBytesToCheck; ++i)
+    for (j=0; j < 10; ++j)
     {
-      //Char in range 0x80 - 0xFF
-      if (pBuffer[i] >= 0x80)
+      //Get max element
+      for (dwMaxCount=0, i=0; i < 0x80; ++i)
       {
-        ++j;
-        dwCounter[pBuffer[i] - 0x80]++;
+        if (dwCounter[i] > dwMaxCount)
+        {
+          dwMaxCount=dwCounter[i];
+          dwMaxIndex=i;
+        }
       }
+      if (!dwCounter[dwMaxIndex]) break;
+
+      if (strchr(szANSIwatermark, dwMaxIndex + 0x80)) nANSIrate+=dwCounter[dwMaxIndex];
+      if (strchr(szOEMwatermark, dwMaxIndex + 0x80)) nOEMrate+=dwCounter[dwMaxIndex];
+      if (strchr(szKOIwatermark, dwMaxIndex + 0x80)) nKOIrate+=dwCounter[dwMaxIndex];
+      if (strchr(szUTF8watermark, dwMaxIndex + 0x80)) nUTF8rate+=dwCounter[dwMaxIndex];
+      dwCounter[dwMaxIndex]=0;
     }
 
-    //Give it up if there's no representative selection
-    if (j > 10)
+    //Set code page
+    if (dwLangID == LANG_RUSSIAN)
     {
-      for (j=0; j < 10; ++j)
-      {
-        //Get max element
-        for (dwMaxCount=0, i=0; i < 0x80; ++i)
-        {
-          if (dwCounter[i] > dwMaxCount)
-          {
-            dwMaxCount=dwCounter[i];
-            dwMaxIndex=i;
-          }
-        }
-        if (!dwCounter[dwMaxIndex]) break;
-
-        if (strchr(szANSIwatermark, dwMaxIndex + 0x80)) nANSIrate+=dwCounter[dwMaxIndex];
-        if (strchr(szOEMwatermark, dwMaxIndex + 0x80)) nOEMrate+=dwCounter[dwMaxIndex];
-        if (strchr(szKOIwatermark, dwMaxIndex + 0x80)) nKOIrate+=dwCounter[dwMaxIndex];
-        if (strchr(szUTF8watermark, dwMaxIndex + 0x80)) nUTF8rate+=dwCounter[dwMaxIndex];
-        dwCounter[dwMaxIndex]=0;
-      }
-
       if (nANSIrate >= nOEMrate && nANSIrate >= nKOIrate && nANSIrate >= nUTF8rate)
         *nCodePage=1251;
       else if (nOEMrate >= nKOIrate && nOEMrate >= nUTF8rate)
         *nCodePage=866;
       else if (nKOIrate >= nUTF8rate)
         *nCodePage=CP_KOI8_R;
+      else
+        *nCodePage=CP_UNICODE_UTF8;
+      return TRUE;
+    }
+    else if (dwLangID == LANG_ENGLISH)
+    {
+      if (nANSIrate >= nOEMrate)
+        *nCodePage=nAnsiCodePage;
+      else
+        *nCodePage=nOemCodePage;
+      return TRUE;
+    }
+    else if (dwLangID == LANG_CHINESE)
+    {
+      if (nANSIrate >= nUTF8rate)
+        *nCodePage=nAnsiCodePage;
       else
         *nCodePage=CP_UNICODE_UTF8;
       return TRUE;
@@ -14703,15 +14683,19 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
     API_LoadStringA(hLangLib, STR_NONE, buf, BUFFER_SIZE);
     SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
-    API_LoadStringA(hLangLib, STR_AUTODETECT_ENGLISH, buf, BUFFER_SIZE);
-    SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
     API_LoadStringA(hLangLib, STR_AUTODETECT_RUSSIAN, buf, BUFFER_SIZE);
     SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
+    API_LoadStringA(hLangLib, STR_AUTODETECT_ENGLISH, buf, BUFFER_SIZE);
+    SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
+    API_LoadStringA(hLangLib, STR_AUTODETECT_CHINESE, buf, BUFFER_SIZE);
+    SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
 
-    if (dwLangCodepageRecognition == LANGID_ENGLISH)
+    if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_RUSSIAN)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 1, 0);
-    else if (dwLangCodepageRecognition == LANGID_RUSSIAN)
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_ENGLISH)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_CHINESE)
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 3, 0);
     else
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
   }
@@ -14831,9 +14815,11 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (i == 0)
         dwLangCodepageRecognition=0;
       else if (i == 1)
-        dwLangCodepageRecognition=LANGID_ENGLISH;
-      else if (i == 2)
         dwLangCodepageRecognition=LANGID_RUSSIAN;
+      else if (i == 2)
+        dwLangCodepageRecognition=LANGID_ENGLISH;
+      else if (i == 3)
+        dwLangCodepageRecognition=LANGID_CHINESE;
 
       //Autodetect codepage buffer
       dwCodepageRecognitionBuffer=GetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, NULL, FALSE);
@@ -14891,15 +14877,19 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
     API_LoadStringW(hLangLib, STR_NONE, wbuf, BUFFER_SIZE);
     SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
-    API_LoadStringW(hLangLib, STR_AUTODETECT_ENGLISH, wbuf, BUFFER_SIZE);
-    SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
     API_LoadStringW(hLangLib, STR_AUTODETECT_RUSSIAN, wbuf, BUFFER_SIZE);
     SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
+    API_LoadStringW(hLangLib, STR_AUTODETECT_ENGLISH, wbuf, BUFFER_SIZE);
+    SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
+    API_LoadStringW(hLangLib, STR_AUTODETECT_CHINESE, wbuf, BUFFER_SIZE);
+    SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
 
-    if (dwLangCodepageRecognition == LANGID_ENGLISH)
+    if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_RUSSIAN)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 1, 0);
-    else if (dwLangCodepageRecognition == LANGID_RUSSIAN)
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_ENGLISH)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_CHINESE)
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 3, 0);
     else
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
   }
@@ -15018,9 +15008,11 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (i == 0)
         dwLangCodepageRecognition=0;
       else if (i == 1)
-        dwLangCodepageRecognition=LANGID_ENGLISH;
-      else if (i == 2)
         dwLangCodepageRecognition=LANGID_RUSSIAN;
+      else if (i == 2)
+        dwLangCodepageRecognition=LANGID_ENGLISH;
+      else if (i == 3)
+        dwLangCodepageRecognition=LANGID_CHINESE;
 
       //Autodetect codepage buffer
       dwCodepageRecognitionBuffer=GetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, NULL, FALSE);
