@@ -15,8 +15,8 @@
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_ABOUT_VERSIONA           "AkelPad 3.6.4"
-#define APP_ABOUT_VERSIONW          L"AkelPad 3.6.4"
+#define APP_ABOUT_VERSIONA           "AkelPad 3.6.5"
+#define APP_ABOUT_VERSIONW          L"AkelPad 3.6.5"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -168,6 +168,7 @@ const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00,
 //Language identifiers
 #define LANGID_ENGLISH    0x0409
 #define LANGID_RUSSIAN    0x0419
+#define LANGID_CHINESE    0x0404
 
 //Code pages int
 #define CP_UNICODE_UCS2_LE  1200
