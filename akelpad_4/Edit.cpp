@@ -8151,19 +8151,19 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
     }
     else if (dwLangID == LANG_ENGLISH)
     {
-      if (nANSIrate >= nOEMrate)
-        *nCodePage=nAnsiCodePage;
-      else
+      if (nOEMrate > nANSIrate)
+      {
         *nCodePage=nOemCodePage;
-      return TRUE;
+        return TRUE;
+      }
     }
     else if (dwLangID == LANG_CHINESE)
     {
-      if (nANSIrate >= nUTF8rate)
-        *nCodePage=nAnsiCodePage;
-      else
+      if (nUTF8rate > nANSIrate)
+      {
         *nCodePage=CP_UNICODE_UTF8;
-      return TRUE;
+        return TRUE;
+      }
     }
   }
   return FALSE;
