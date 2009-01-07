@@ -5155,7 +5155,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
             if (ptPos->x < ae->rcDraw.left)
               ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
             else if (ptPos->x > ae->rcDraw.right)
-              ciCharIndex.nCharInLine=min(ciCharIndex.nCharInLine + 1, ciCharIndex.lpLine->nLineLen);
+              ciCharIndex.nCharInLine=ciCharIndex.nCharInLine + 1;
           }
 
           if (AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex) || ae->bColumnSel != bColumnSel)
