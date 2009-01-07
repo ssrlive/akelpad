@@ -57,6 +57,7 @@
 #define AECO_DISABLEDRAG        0x00000080  //Disables OLE text dragging.
 #define AECO_DISABLEDROP        0x00000100  //Disables OLE text dropping.
 #define AECO_CARETOUTEDGE       0x00000200  //Allow caret moving out of the line edge.
+#define AECO_CARETVERTLINE      0x00000400  //Draw caret vertical line.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.

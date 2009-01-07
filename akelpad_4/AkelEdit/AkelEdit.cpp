@@ -40,6 +40,7 @@ HCURSOR hAkelEditCursorMLeftBottom=NULL;
 HBITMAP hAkelEditBitmapMCenterAll=NULL;
 HBITMAP hAkelEditBitmapMCenterLeftRight=NULL;
 HBITMAP hAkelEditBitmapMCenterTopBottom=NULL;
+HBRUSH hAkelEditBrushCaretVert=NULL;
 
 
 //// Entry point
@@ -114,6 +115,18 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance)
     if (!hAkelEditBitmapMCenterAll) hAkelEditBitmapMCenterAll=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERALL), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterLeftRight) hAkelEditBitmapMCenterLeftRight=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERLEFTRIGHT), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterTopBottom) hAkelEditBitmapMCenterTopBottom=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERTOPBOTTOM), IMAGE_BITMAP, 0, 0, 0);
+
+    //Create brush
+    {
+      const WORD DotPattern[]={0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00};
+      HBITMAP hBitmapCaretVert;
+
+      if (hBitmapCaretVert=CreateBitmap(8, 8, 1, 1, DotPattern))
+      {
+        hAkelEditBrushCaretVert=CreatePatternBrush(hBitmapCaretVert);
+        DeleteObject(hBitmapCaretVert);
+      }
+    }
   }
   return bAkelEditClassRegisteredA;
 }
@@ -160,6 +173,18 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance)
     if (!hAkelEditBitmapMCenterAll) hAkelEditBitmapMCenterAll=(HBITMAP)LoadImageW(hInstance, MAKEINTRESOURCEW(IDB_BITMAP_MCENTERALL), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterLeftRight) hAkelEditBitmapMCenterLeftRight=(HBITMAP)LoadImageW(hInstance, MAKEINTRESOURCEW(IDB_BITMAP_MCENTERLEFTRIGHT), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterTopBottom) hAkelEditBitmapMCenterTopBottom=(HBITMAP)LoadImageW(hInstance, MAKEINTRESOURCEW(IDB_BITMAP_MCENTERTOPBOTTOM), IMAGE_BITMAP, 0, 0, 0);
+
+    //Create brush
+    {
+      const WORD DotPattern[]={0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00};
+      HBITMAP hBitmapCaretVert;
+
+      if (hBitmapCaretVert=CreateBitmap(8, 8, 1, 1, DotPattern))
+      {
+        hAkelEditBrushCaretVert=CreatePatternBrush(hBitmapCaretVert);
+        DeleteObject(hBitmapCaretVert);
+      }
+    }
   }
   return bAkelEditClassRegisteredW;
 }
@@ -168,6 +193,7 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 {
   if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
   if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
+  if (hAkelEditBrushCaretVert) DeleteObject(hAkelEditBrushCaretVert);
 
   if (bAkelEditClassRegisteredA)
   {
@@ -182,6 +208,7 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
 {
   if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
   if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
+  if (hAkelEditBrushCaretVert) DeleteObject(hAkelEditBrushCaretVert);
 
   if (bAkelEditClassRegisteredW)
   {
@@ -730,6 +757,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_SETOPTIONS)
       {
+        DWORD dwOptionsOld=ae->dwOptions;
+
         if (wParam == AECOOP_SET)
           ae->dwOptions=lParam;
         else if (wParam == AECOOP_OR)
@@ -738,6 +767,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->dwOptions&=lParam;
         else if (wParam == AECOOP_XOR)
           ae->dwOptions&=~lParam;
+
+        if ((dwOptionsOld & AECO_CARETVERTLINE) && !(ae->dwOptions  & AECO_CARETVERTLINE))
+          AE_CaretVertErase(ae);
         return ae->dwOptions;
       }
       if (uMsg == AEM_GETNEWLINE)
@@ -2818,6 +2850,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_PAINT)
     {
+      AE_CaretVertErase(ae);
+
       AE_Paint(ae);
 
       if (ae->bMButtonDown)
@@ -2827,6 +2861,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         UpdateWindow(ae->hWndEdit);
         ae->bMButtonDown=TRUE;
         AE_MButtonDraw(ae);
+      }
+      if (ae->dwOptions & AECO_CARETVERTLINE)
+      {
+        if (!ae->bCaretVertDraw)
+        {
+          //Draw new vertical line
+          AE_GlobalToClient(ae, &ae->ptCaret, &ae->ptCaretVertDraw);
+          AE_CaretVertDraw(ae);
+          ae->bCaretVertDraw=TRUE;
+        }
       }
       return 0;
     }
@@ -6139,7 +6183,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
         si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
         si.nPos=nPos;
         SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
-  
+
         si.fMask=SIF_POS;
         GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
         nPos=si.nPos;
@@ -6154,6 +6198,8 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
       if (nPos != ae->nHScrollPos)
       {
         AE_MButtonErase(ae);
+        AE_CaretVertErase(ae);
+
         ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
         ae->nHScrollPos=nPos;
         UpdateWindow(ae->hWndEdit);
@@ -6177,7 +6223,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
         si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
         si.nPos=nPos;
         SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
-  
+
         si.fMask=SIF_POS;
         GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
         nPos=si.nPos;
@@ -6192,6 +6238,8 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
       if (nPos != ae->nVScrollPos)
       {
         AE_MButtonErase(ae);
+        AE_CaretVertErase(ae);
+
         ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
         ae->nVScrollPos=nPos;
         UpdateWindow(ae->hWndEdit);
@@ -6769,6 +6817,31 @@ void AE_MButtonErase(AKELEDIT *ae)
       InvalidateRect(ae->hWndEdit, &rcMButtonDown, TRUE);
 
       ae->bMButtonBitmapDraw=FALSE;
+    }
+  }
+}
+
+void AE_CaretVertDraw(AKELEDIT *ae)
+{
+  if (ae->dwOptions & AECO_CARETVERTLINE)
+  {
+    HBRUSH hBrushOld;
+
+    hBrushOld=(HBRUSH)SelectObject(ae->hDC, hAkelEditBrushCaretVert);
+    PatBlt(ae->hDC, ae->ptCaretVertDraw.x, ae->rcDraw.top, 2, ae->ptCaretVertDraw.y - ae->rcDraw.top, PATINVERT);
+    PatBlt(ae->hDC, ae->ptCaretVertDraw.x, ae->ptCaretVertDraw.y + ae->nCharHeight, 2, ae->rcDraw.bottom - (ae->ptCaretVertDraw.y + ae->nCharHeight), PATINVERT);
+    SelectObject(ae->hDC, hBrushOld);
+  }
+}
+
+void AE_CaretVertErase(AKELEDIT *ae)
+{
+  if (ae->dwOptions & AECO_CARETVERTLINE)
+  {
+    if (ae->bCaretVertDraw)
+    {
+      AE_CaretVertDraw(ae);
+      ae->bCaretVertDraw=FALSE;
     }
   }
 }

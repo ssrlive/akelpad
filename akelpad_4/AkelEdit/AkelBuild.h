@@ -239,6 +239,8 @@ typedef struct _AKELEDIT {
   int nCaretOvertypeHeight;
   POINT ptCaret;
   int nHorizCaretPos;
+  POINT ptCaretVertDraw;
+  BOOL bCaretVertDraw;
   BOOL bFocus;
   BOOL bCaretVisible;
   BOOL bColumnSel;
@@ -366,6 +368,8 @@ void AE_Paint(AKELEDIT *ae);
 void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
+void AE_CaretVertDraw(AKELEDIT *ae);
+void AE_CaretVertErase(AKELEDIT *ae);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide);
