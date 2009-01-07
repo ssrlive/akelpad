@@ -396,6 +396,7 @@ typedef struct _WNDFRAMEA {
   BOOL bUrlPrefixesEnable;
   BOOL bUrlDelimitersEnable;
   BOOL bCaretOutEdge;
+  BOOL bCaretVertLine;
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -415,6 +416,7 @@ typedef struct _WNDFRAMEW {
   BOOL bUrlPrefixesEnable;
   BOOL bUrlDelimitersEnable;
   BOOL bCaretOutEdge;
+  BOOL bCaretVertLine;
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {

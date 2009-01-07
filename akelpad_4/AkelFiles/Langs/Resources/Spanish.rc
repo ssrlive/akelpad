@@ -659,12 +659,14 @@ BEGIN
     CONTROL         "Permitir que el caret se mueva fuera del borde de línea",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,178,200,10
+    CONTROL         "Draw caret vertical line",IDC_OPTIONS_CARETVERTLINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,190,200,10
     CONTROL         "Reemplazar todo - cerrar diálogo",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,190,200,10
+                    WS_TABSTOP,9,202,200,10
     CONTROL         "Advertencia al guardar archivos de sólo lectura",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,202,200,10
+                    WS_TABSTOP,9,214,200,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

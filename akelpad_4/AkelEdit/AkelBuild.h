@@ -239,6 +239,7 @@ typedef struct _AKELEDIT {
   int nCaretOvertypeHeight;
   POINT ptCaret;
   int nHorizCaretPos;
+  HBRUSH hCaretVert;
   POINT ptCaretVertDraw;
   BOOL bCaretVertDraw;
   BOOL bFocus;

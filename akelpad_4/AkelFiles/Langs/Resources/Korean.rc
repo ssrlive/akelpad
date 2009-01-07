@@ -653,12 +653,14 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,148,172,13,ES_AUTOHSCROLL
     CONTROL         "커서가 줄 끝을 지나 이동 가능",IDC_OPTIONS_CARETOUTEDGE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,178,200,10
+    CONTROL         "Draw caret vertical line",IDC_OPTIONS_CARETVERTLINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,190,200,10
     CONTROL         "모두 바꾸기 - 대화상자 닫기",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,190,200,10
+                    WS_TABSTOP,9,202,200,10
     CONTROL         "읽기전용 파일 저장시 경고",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,202,200,10
+                    WS_TABSTOP,9,214,200,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
