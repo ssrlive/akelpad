@@ -40,7 +40,6 @@ HCURSOR hAkelEditCursorMLeftBottom=NULL;
 HBITMAP hAkelEditBitmapMCenterAll=NULL;
 HBITMAP hAkelEditBitmapMCenterLeftRight=NULL;
 HBITMAP hAkelEditBitmapMCenterTopBottom=NULL;
-HBRUSH hAkelEditBrushCaretVert=NULL;
 
 
 //// Entry point
@@ -115,18 +114,6 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance)
     if (!hAkelEditBitmapMCenterAll) hAkelEditBitmapMCenterAll=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERALL), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterLeftRight) hAkelEditBitmapMCenterLeftRight=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERLEFTRIGHT), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterTopBottom) hAkelEditBitmapMCenterTopBottom=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERTOPBOTTOM), IMAGE_BITMAP, 0, 0, 0);
-
-    //Create brush
-    {
-      const WORD DotPattern[]={0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00};
-      HBITMAP hBitmapCaretVert;
-
-      if (hBitmapCaretVert=CreateBitmap(8, 8, 1, 1, DotPattern))
-      {
-        hAkelEditBrushCaretVert=CreatePatternBrush(hBitmapCaretVert);
-        DeleteObject(hBitmapCaretVert);
-      }
-    }
   }
   return bAkelEditClassRegisteredA;
 }
@@ -173,18 +160,6 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance)
     if (!hAkelEditBitmapMCenterAll) hAkelEditBitmapMCenterAll=(HBITMAP)LoadImageW(hInstance, MAKEINTRESOURCEW(IDB_BITMAP_MCENTERALL), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterLeftRight) hAkelEditBitmapMCenterLeftRight=(HBITMAP)LoadImageW(hInstance, MAKEINTRESOURCEW(IDB_BITMAP_MCENTERLEFTRIGHT), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterTopBottom) hAkelEditBitmapMCenterTopBottom=(HBITMAP)LoadImageW(hInstance, MAKEINTRESOURCEW(IDB_BITMAP_MCENTERTOPBOTTOM), IMAGE_BITMAP, 0, 0, 0);
-
-    //Create brush
-    {
-      const WORD DotPattern[]={0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00};
-      HBITMAP hBitmapCaretVert;
-
-      if (hBitmapCaretVert=CreateBitmap(8, 8, 1, 1, DotPattern))
-      {
-        hAkelEditBrushCaretVert=CreatePatternBrush(hBitmapCaretVert);
-        DeleteObject(hBitmapCaretVert);
-      }
-    }
   }
   return bAkelEditClassRegisteredW;
 }
@@ -193,7 +168,6 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 {
   if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
   if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
-  if (hAkelEditBrushCaretVert) DeleteObject(hAkelEditBrushCaretVert);
 
   if (bAkelEditClassRegisteredA)
   {
@@ -208,7 +182,6 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
 {
   if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
   if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
-  if (hAkelEditBrushCaretVert) DeleteObject(hAkelEditBrushCaretVert);
 
   if (bAkelEditClassRegisteredW)
   {
@@ -768,8 +741,24 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (wParam == AECOOP_XOR)
           ae->dwOptions&=~lParam;
 
-        if ((dwOptionsOld & AECO_CARETVERTLINE) && !(ae->dwOptions  & AECO_CARETVERTLINE))
+        if (!(dwOptionsOld & AECO_CARETVERTLINE) && (ae->dwOptions  & AECO_CARETVERTLINE))
+        {
+          if (!ae->hCaretVert)
+          {
+            const WORD DotPattern[]={0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00};
+            HBITMAP hBitmapCaretVert;
+      
+            if (hBitmapCaretVert=CreateBitmap(8, 8, 1, 1, DotPattern))
+            {
+              ae->hCaretVert=CreatePatternBrush(hBitmapCaretVert);
+              DeleteObject(hBitmapCaretVert);
+            }
+          }
+        }
+        else if ((dwOptionsOld & AECO_CARETVERTLINE) && !(ae->dwOptions  & AECO_CARETVERTLINE))
+        {
           AE_CaretVertErase(ae);
+        }
         return ae->dwOptions;
       }
       if (uMsg == AEM_GETNEWLINE)
@@ -2904,6 +2893,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           DeleteObject(ae->hActiveLineBk);
           ae->hActiveLineBk=NULL;
+        }
+        if (ae->hCaretVert)
+        {
+          DeleteObject(ae->hCaretVert);
+          ae->hCaretVert=NULL;
         }
         if (ae->hCaretInsert)
         {
@@ -6841,7 +6835,7 @@ void AE_CaretVertDraw(AKELEDIT *ae)
 
     if (ae->ptCaretVertDraw.x >= ae->rcDraw.left && ae->ptCaretVertDraw.x <= ae->rcDraw.right)
     {
-      hBrushOld=(HBRUSH)SelectObject(ae->hDC, hAkelEditBrushCaretVert);
+      hBrushOld=(HBRUSH)SelectObject(ae->hDC, ae->hCaretVert);
       if (ae->ptCaretVertDraw.y > ae->rcDraw.top)
         PatBlt(ae->hDC, ae->ptCaretVertDraw.x, ae->rcDraw.top, 2, ae->ptCaretVertDraw.y - ae->rcDraw.top, PATINVERT);
       if (ae->rcDraw.bottom > ae->ptCaretVertDraw.y + ae->nCharHeight)

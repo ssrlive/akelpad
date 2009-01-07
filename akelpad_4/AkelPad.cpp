@@ -271,6 +271,7 @@ BOOL bUrlPrefixesEnable=FALSE;
 wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE]=URL_DELIMITERSW;
 BOOL bUrlDelimitersEnable=FALSE;
 BOOL bCaretOutEdge=FALSE;
+BOOL bCaretVertLine=FALSE;
 FILETIME ftFileTime={0};
 WNDPROC OldEditProc;
 
@@ -5437,6 +5438,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
       lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
+      lpWndFrameA->bCaretVertLine=bCaretVertLine;
       SetWindowLongA(hWnd, GWL_USERDATA, (LONG)lpWndFrameA);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5566,6 +5568,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
             lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
+            lpWndFrameA->bCaretVertLine=bCaretVertLine;
           }
         }
         //Handles
@@ -5597,6 +5600,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bUrlPrefixesEnable=lpWndFrameA->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameA->bUrlDelimitersEnable;
           bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
+          bCaretVertLine=lpWndFrameA->bCaretVertLine;
         }
 
         //Update selection
@@ -5667,6 +5671,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
       lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
+      lpWndFrameW->bCaretVertLine=bCaretVertLine;
       SetWindowLongW(hWnd, GWL_USERDATA, (LONG)lpWndFrameW);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5796,6 +5801,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
             lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
+            lpWndFrameW->bCaretVertLine=bCaretVertLine;
           }
         }
         //Handles
@@ -5827,6 +5833,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bUrlPrefixesEnable=lpWndFrameW->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameW->bUrlDelimitersEnable;
           bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
+          bCaretVertLine=lpWndFrameW->bCaretVertLine;
         }
 
         //Update selection
