@@ -6827,10 +6827,15 @@ void AE_CaretVertDraw(AKELEDIT *ae)
   {
     HBRUSH hBrushOld;
 
-    hBrushOld=(HBRUSH)SelectObject(ae->hDC, hAkelEditBrushCaretVert);
-    PatBlt(ae->hDC, ae->ptCaretVertDraw.x, ae->rcDraw.top, 2, ae->ptCaretVertDraw.y - ae->rcDraw.top, PATINVERT);
-    PatBlt(ae->hDC, ae->ptCaretVertDraw.x, ae->ptCaretVertDraw.y + ae->nCharHeight, 2, ae->rcDraw.bottom - (ae->ptCaretVertDraw.y + ae->nCharHeight), PATINVERT);
-    SelectObject(ae->hDC, hBrushOld);
+    if (ae->ptCaretVertDraw.x >= ae->rcDraw.left && ae->ptCaretVertDraw.x <= ae->rcDraw.right)
+    {
+      hBrushOld=(HBRUSH)SelectObject(ae->hDC, hAkelEditBrushCaretVert);
+      if (ae->ptCaretVertDraw.y > ae->rcDraw.top)
+        PatBlt(ae->hDC, ae->ptCaretVertDraw.x, ae->rcDraw.top, 2, ae->ptCaretVertDraw.y - ae->rcDraw.top, PATINVERT);
+      if (ae->rcDraw.bottom > ae->ptCaretVertDraw.y + ae->nCharHeight)
+        PatBlt(ae->hDC, ae->ptCaretVertDraw.x, ae->ptCaretVertDraw.y + ae->nCharHeight, 2, ae->rcDraw.bottom - (ae->ptCaretVertDraw.y + ae->nCharHeight), PATINVERT);
+      SelectObject(ae->hDC, hBrushOld);
+    }
   }
 }
 
