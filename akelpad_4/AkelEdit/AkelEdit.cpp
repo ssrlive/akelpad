@@ -4928,6 +4928,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
 {
   AECHARINDEX ciSelStartOld;
   AECHARINDEX ciSelEndOld;
+  AECHARINDEX ciCaretOld;
   AECHARINDEX ciCaretNew;
   AECHARINDEX ciSelStartNew;
   AECHARINDEX ciSelEndNew;
@@ -4943,6 +4944,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     ae->bColumnSel=bColumnSel;
     ciSelStartOld=ae->ciSelStartIndex;
     ciSelEndOld=ae->ciSelEndIndex;
+    ciCaretOld=ae->ciCaretIndex;
     ciSelStartNew=*ciSelStart;
     ciSelEndNew=*ciSelEnd;
     ciCaretNew=*ciSelStart;
@@ -4975,7 +4977,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
 
       if (ae->dwOptions & AECO_CARETOUTEDGE)
       {
-        if (AE_IndexCompare(&ae->ciCaretIndex, &ciCaretNew))
+        if (AE_IndexCompare(&ciCaretOld, &ciCaretNew))
         {
           AE_GetPosFromCharEx(ae, &ciCaretNew, &ptSelStart, NULL);
           if (ptSelStart.x > max(ae->nHScrollMax, ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth)
@@ -5070,6 +5072,16 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
             AE_RedrawLineRange(ae, min(ciSelStartOld.nLine, ciSelStartNew.nLine), max(ciSelStartOld.nLine, ciSelStartNew.nLine), FALSE);
           if (AE_IndexCompare(&ciSelEndOld, &ciSelEndNew))
             AE_RedrawLineRange(ae, min(ciSelEndOld.nLine, ciSelEndNew.nLine), max(ciSelEndOld.nLine, ciSelEndNew.nLine), FALSE);
+
+          if (ae->dwOptions & AECO_CARETOUTEDGE)
+          {
+            if (!AE_IndexCompare(&ciSelStartOld, &ciSelStartNew) &&
+                !AE_IndexCompare(&ciSelEndOld, &ciSelEndNew) &&
+                 AE_IndexCompare(&ciCaretOld, &ciCaretNew))
+            {
+              AE_RedrawLineRange(ae, ciCaretNew.nLine, ciCaretNew.nLine, FALSE);
+            }
+          }
         }
       }
     }
