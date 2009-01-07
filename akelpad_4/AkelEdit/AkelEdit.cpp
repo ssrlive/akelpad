@@ -741,7 +741,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (wParam == AECOOP_XOR)
           ae->dwOptions&=~lParam;
 
-        if (!(dwOptionsOld & AECO_CARETVERTLINE) && (ae->dwOptions  & AECO_CARETVERTLINE))
+        if ((dwOptionsOld & AECO_CARETOUTEDGE) && !(ae->dwOptions & AECO_CARETOUTEDGE))
+        {
+          AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
+        }
+        if (!(dwOptionsOld & AECO_CARETVERTLINE) && (ae->dwOptions & AECO_CARETVERTLINE))
         {
           if (!ae->hCaretVert)
           {
@@ -755,7 +759,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
           }
         }
-        else if ((dwOptionsOld & AECO_CARETVERTLINE) && !(ae->dwOptions  & AECO_CARETVERTLINE))
+        else if ((dwOptionsOld & AECO_CARETVERTLINE) && !(ae->dwOptions & AECO_CARETVERTLINE))
         {
           AE_CaretVertErase(ae);
         }
