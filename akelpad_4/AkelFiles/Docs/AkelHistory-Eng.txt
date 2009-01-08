@@ -1,12 +1,16 @@
 
 AkelPad 4.1.3 ()
 ----------------------------
+Changed: settings dialog of the program is reorganized.
 Changed: after reopening document, text position is restored.
 
 Added: option for drawing caret vertical line.
+Added: option for setting caret width.
+Added: option for setting default newline format.
 Added: possibility to specify null character \[0000] in "Esc-sequences".
 Added: Chinese recognition (UTF-8).
 Added: new line Drag'n'Drop.
+Added: command 4426 for file saving in UTF-8 without BOM.
 
 Fixed: replace text with column selection.
 Fixed: when caret out of the edge is on, Drag'n'Drop not allowing drop out of the edge.

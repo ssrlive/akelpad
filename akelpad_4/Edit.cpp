@@ -189,6 +189,7 @@ extern PROPSHEETHEADERW pshW;
 extern PROPSHEETPAGEA pspA[2];
 extern PROPSHEETPAGEW pspW[2];
 extern HHOOK hHookOptions;
+extern BOOL bOptionsSave;
 extern BOOL bOptionsRestart;
 
 //Font/Color
@@ -226,7 +227,8 @@ extern AECHARRANGE crSel;
 extern AECHARINDEX ciCaret;
 extern BOOL bModified;
 extern BOOL bInsertState;
-extern int nNewLine;
+extern int nCurrentNewLine;
+extern int nDefaultNewLine;
 extern BOOL bWordWrap;
 extern BOOL bOnTop;
 extern BOOL bStatusBar;
@@ -250,6 +252,7 @@ extern wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];
 extern BOOL bUrlDelimitersEnable;
 extern BOOL bCaretOutEdge;
 extern BOOL bCaretVertLine;
+extern int nCaretWidth;
 extern FILETIME ftFileTime;
 extern WNDPROC OldEditProc;
 
@@ -343,8 +346,16 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontA(hWndEditNew, &lfEditFontA, TRUE);
-  SetNewLineStatusA(hWndEditNew, NEWLINE_WIN, AENL_INPUT, TRUE);
+  SetNewLineStatusA(hWndEditNew, nDefaultNewLine, AENL_INPUT, TRUE);
 
+  if (nCaretWidth != 1)
+  {
+    POINT pt;
+
+    SendMessage(hWndEditNew, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
+    pt.x=nCaretWidth;
+    SendMessage(hWndEditNew, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
+  }
   if (bShowURL)
   {
     SendMessage(hWndEditNew, AEM_SETDETECTURL, bShowURL, 0);
@@ -400,8 +411,16 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontW(hWndEditNew, &lfEditFontW, TRUE);
-  SetNewLineStatusW(hWndEditNew, NEWLINE_WIN, AENL_INPUT, TRUE);
+  SetNewLineStatusW(hWndEditNew, nDefaultNewLine, AENL_INPUT, TRUE);
 
+  if (nCaretWidth != 1)
+  {
+    POINT pt;
+
+    SendMessage(hWndEditNew, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
+    pt.x=nCaretWidth;
+    SendMessage(hWndEditNew, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
+  }
   if (bShowURL)
   {
     SendMessage(hWndEditNew, AEM_SETDETECTURL, bShowURL, 0);
@@ -474,7 +493,7 @@ BOOL DoFileCloseA()
   SetWindowTextA(hWndEdit, "");
   ShowCaret(NULL);
   szCurrentFile[0]='\0';
-  SetNewLineStatusA(hWndEdit, NEWLINE_WIN, AENL_INPUT, TRUE);
+  SetNewLineStatusA(hWndEdit, nDefaultNewLine, AENL_INPUT, TRUE);
   SetModifyStatusA(hWndEdit, FALSE, FALSE);
   SetCodePageStatusA(nDefaultCodePage, bDefaultBOM, FALSE);
   UpdateTitleA(GetParent(hWndEdit), "");
@@ -498,7 +517,7 @@ BOOL DoFileCloseW()
   SetWindowTextW(hWndEdit, L"");
   ShowCaret(NULL);
   wszCurrentFile[0]='\0';
-  SetNewLineStatusW(hWndEdit, NEWLINE_WIN, AENL_INPUT, TRUE);
+  SetNewLineStatusW(hWndEdit, nDefaultNewLine, AENL_INPUT, TRUE);
   SetModifyStatusW(hWndEdit, FALSE, FALSE);
   SetCodePageStatusW(nDefaultCodePage, bDefaultBOM, FALSE);
   UpdateTitleW(GetParent(hWndEdit), L"");
@@ -2155,10 +2174,21 @@ void DoSettingsOptionsA()
   hHookOptions=SetWindowsHookEx(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
   API_LoadStringA(hLangLib, STR_OPTIONS, buf, BUFFER_SIZE);
   pshA.pszCaption=buf;
+  bOptionsSave=FALSE;
   bOptionsRestart=FALSE;
 
   PropertySheetA(&pshA);
 
+  if (bOptionsSave)
+  {
+    bEditFontChanged=TRUE;
+    bColorsChanged=TRUE;
+    bPrintFontChanged=TRUE;
+    IniSaveOptionsA();
+    RegSaveOptionsA();
+    SaveThemesA(TRUE);
+    StackPluginSaveA(&hPluginsStack, TRUE);
+  }
   if (bOptionsRestart)
   {
     API_LoadStringA(hLangLib, MSG_RESTART_PROGRAM, buf, BUFFER_SIZE);
@@ -2171,10 +2201,21 @@ void DoSettingsOptionsW()
   hHookOptions=SetWindowsHookEx(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
   API_LoadStringW(hLangLib, STR_OPTIONS, wbuf, BUFFER_SIZE);
   pshW.pszCaption=wbuf;
+  bOptionsSave=FALSE;
   bOptionsRestart=FALSE;
 
   PropertySheetW(&pshW);
 
+  if (bOptionsSave)
+  {
+    bEditFontChanged=TRUE;
+    bColorsChanged=TRUE;
+    bPrintFontChanged=TRUE;
+    IniSaveOptionsW();
+    RegSaveOptionsW();
+    SaveThemesW(TRUE);
+    StackPluginSaveW(&hPluginsStack, TRUE);
+  }
   if (bOptionsRestart)
   {
     API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wbuf, BUFFER_SIZE);
@@ -3044,6 +3085,9 @@ void RegReadOptionsA()
   RegQueryValueExA(hKey, "CaretVertLine", NULL, &dwType, (LPBYTE)&bCaretVertLine, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExA(hKey, "CaretWidth", NULL, &dwType, (LPBYTE)&nCaretWidth, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "ReplaceAllAndClose", NULL, &dwType, (LPBYTE)&bReplaceAllAndClose, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3069,6 +3113,9 @@ void RegReadOptionsA()
 
   dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "DefaultCodepage", NULL, &dwType, (LPBYTE)&nDefaultCodePage, &dwSize);
+
+  dwSize=sizeof(DWORD);
+  RegQueryValueExA(hKey, "DefaultNewLine", NULL, &dwType, (LPBYTE)&nDefaultNewLine, &dwSize);
 
   dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "CodepageRecognition", NULL, &dwType, (LPBYTE)&dwLangCodepageRecognition, &dwSize);
@@ -3248,6 +3295,9 @@ void RegReadOptionsW()
   RegQueryValueExW(hKey, L"CaretVertLine", NULL, &dwType, (LPBYTE)&bCaretVertLine, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExW(hKey, L"CaretWidth", NULL, &dwType, (LPBYTE)&nCaretWidth, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"ReplaceAllAndClose", NULL, &dwType, (LPBYTE)&bReplaceAllAndClose, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3273,6 +3323,9 @@ void RegReadOptionsW()
 
   dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"DefaultCodepage", NULL, &dwType, (LPBYTE)&nDefaultCodePage, &dwSize);
+
+  dwSize=sizeof(DWORD);
+  RegQueryValueExW(hKey, L"DefaultNewLine", NULL, &dwType, (LPBYTE)&nDefaultNewLine, &dwSize);
 
   dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"CodepageRecognition", NULL, &dwType, (LPBYTE)&dwLangCodepageRecognition, &dwSize);
@@ -3426,6 +3479,7 @@ void IniReadOptionsA()
   IniGetValueA(&hIniStack, "Options", "DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD));
+  IniGetValueA(&hIniStack, "Options", "CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD));
@@ -3435,6 +3489,7 @@ void IniReadOptionsA()
   IniGetValueA(&hIniStack, "Options", "SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD));
+  IniGetValueA(&hIniStack, "Options", "DefaultNewLine", INI_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD));
@@ -3507,6 +3562,7 @@ void IniReadOptionsW()
   IniGetValueW(&hIniStack, L"Options", L"DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD));
+  IniGetValueW(&hIniStack, L"Options", L"CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD));
@@ -3516,6 +3572,7 @@ void IniReadOptionsW()
   IniGetValueW(&hIniStack, L"Options", L"SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD));
+  IniGetValueW(&hIniStack, L"Options", L"DefaultNewLine", INI_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD));
@@ -3757,6 +3814,8 @@ BOOL RegSaveOptionsA()
     goto Error;
   if (RegSetValueExA(hKey, "CaretVertLine", 0, REG_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExA(hKey, "CaretWidth", 0, REG_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExA(hKey, "ReplaceAllAndClose", 0, REG_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExA(hKey, "SaveInReadOnlyMsg", 0, REG_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -3774,6 +3833,8 @@ BOOL RegSaveOptionsA()
   if (RegSetValueExA(hKey, "SaveCodepages", 0, REG_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExA(hKey, "DefaultCodepage", 0, REG_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
+  if (RegSetValueExA(hKey, "DefaultNewLine", 0, REG_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExA(hKey, "CodepageRecognition", 0, REG_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
@@ -3915,6 +3976,8 @@ BOOL RegSaveOptionsW()
     goto Error;
   if (RegSetValueExW(hKey, L"CaretVertLine", 0, REG_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExW(hKey, L"CaretWidth", 0, REG_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExW(hKey, L"ReplaceAllAndClose", 0, REG_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExW(hKey, L"SaveInReadOnlyMsg", 0, REG_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -3932,6 +3995,8 @@ BOOL RegSaveOptionsW()
   if (RegSetValueExW(hKey, L"SaveCodepages", 0, REG_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExW(hKey, L"DefaultCodepage", 0, REG_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
+  if (RegSetValueExW(hKey, L"DefaultNewLine", 0, REG_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExW(hKey, L"CodepageRecognition", 0, REG_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
@@ -4072,6 +4137,8 @@ BOOL IniSaveOptionsA()
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)))
     goto Error;
+  if (!IniSetValueA(&hIniStack, "Options", "CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD)))
+    goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)))
@@ -4089,6 +4156,8 @@ BOOL IniSaveOptionsA()
   if (!IniSetValueA(&hIniStack, "Options", "SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)))
+    goto Error;
+  if (!IniSetValueA(&hIniStack, "Options", "DefaultNewLine", INI_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)))
     goto Error;
@@ -4231,6 +4300,8 @@ BOOL IniSaveOptionsW()
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)))
     goto Error;
+  if (!IniSetValueW(&hIniStack, L"Options", L"CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD)))
+    goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)))
@@ -4248,6 +4319,8 @@ BOOL IniSaveOptionsW()
   if (!IniSetValueW(&hIniStack, L"Options", L"SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)))
+    goto Error;
+  if (!IniSetValueW(&hIniStack, L"Options", L"DefaultNewLine", INI_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)))
     goto Error;
@@ -4800,7 +4873,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
-  fsd.nNewLine=NEWLINE_WIN;
+  fsd.nNewLine=nDefaultNewLine;
   fsd.nBytesMax=-1;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
@@ -5061,7 +5134,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
-  fsd.nNewLine=NEWLINE_WIN;
+  fsd.nNewLine=nDefaultNewLine;
   fsd.nBytesMax=-1;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
@@ -14656,50 +14729,36 @@ int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam)
 
 BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndDefaultCP;
+  static HWND hWndCommand;
+  static HWND hWndDirectory;
   static HWND hWndAutodetectCP;
   static HWND hWndAutodetectCPBuffer;
-  HWND hWndRecentFiles;
-  HWND hWndRecentFilesSpin;
-  HWND hWndRecentFilesClear;
-  HWND hWndSearchStrings;
-  HWND hWndSearchStringsSpin;
-  HWND hWndSearchStringsClear;
-  HWND hWndCommand;
-  HWND hWndDirectory;
+  static HWND hWndDefaultCP;
+  static HWND hWndDefaultNewLineWin;
+  static HWND hWndDefaultNewLineUnix;
+  static HWND hWndDefaultNewLineMac;
+  static HWND hWndReplaceAllAndClose;
+  static HWND hWndSaveInReadOnlyMsg;
   int i;
 
   if (uMsg == WM_INITDIALOG)
   {
-    hWndRecentFiles=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT);
-    hWndRecentFilesSpin=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN);
-    hWndRecentFilesClear=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_CLEAR);
-    hWndSearchStrings=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT);
-    hWndSearchStringsSpin=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN);
-    hWndSearchStringsClear=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_CLEAR);
     hWndCommand=GetDlgItem(hDlg, IDC_OPTIONS_EXECCOM);
     hWndDirectory=GetDlgItem(hDlg, IDC_OPTIONS_EXECDIR);
-    hWndDefaultCP=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_CODEPAGE);
     hWndAutodetectCP=GetDlgItem(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION);
     hWndAutodetectCPBuffer=GetDlgItem(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER);
+    hWndDefaultCP=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_CODEPAGE);
+    hWndDefaultNewLineWin=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_WIN);
+    hWndDefaultNewLineUnix=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_UNIX);
+    hWndDefaultNewLineMac=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_MAC);
+    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
+    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
     SendMessage(hWndCommand, EM_LIMITTEXT, (WPARAM)BUFFER_SIZE, 0);
     SendMessage(hWndDirectory, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
-    SendMessage(hWndRecentFilesSpin, UDM_SETBUDDY, (WPARAM)hWndRecentFiles, 0);
-    SendMessage(hWndRecentFilesSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
-    SendMessage(hWndSearchStringsSpin, UDM_SETBUDDY, (WPARAM)hWndSearchStrings, 0);
-    SendMessage(hWndSearchStringsSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
 
-    SetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, nRecentFiles, FALSE);
-    if (!nRecentFiles || !*lpszRecentNames[0]) EnableWindow(hWndRecentFilesClear, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, nSearchStrings, FALSE);
-    if (!nSearchStrings) EnableWindow(hWndSearchStringsClear, FALSE);
     SetWindowTextA(hWndCommand, szCommand);
     SetWindowTextA(hWndDirectory, szWorkDir);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, dwCodepageRecognitionBuffer, FALSE);
-
-    FillComboboxCodepageA(hWndDefaultCP, lpCodepageList);
-    SelectComboboxCodepageA(hWndDefaultCP, nDefaultCodePage);
 
     API_LoadStringA(hLangLib, STR_NONE, buf, BUFFER_SIZE);
     SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
@@ -14718,24 +14777,25 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 3, 0);
     else
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, dwCodepageRecognitionBuffer, FALSE);
+
+    FillComboboxCodepageA(hWndDefaultCP, lpCodepageList);
+    SelectComboboxCodepageA(hWndDefaultCP, nDefaultCodePage);
+
+    if (nDefaultNewLine == NEWLINE_WIN)
+      SendMessage(hWndDefaultNewLineWin, BM_SETCHECK, BST_CHECKED, 0);
+    else if (nDefaultNewLine == NEWLINE_UNIX)
+      SendMessage(hWndDefaultNewLineUnix, BM_SETCHECK, BST_CHECKED, 0);
+    else if (nDefaultNewLine == NEWLINE_MAC)
+      SendMessage(hWndDefaultNewLineMac, BM_SETCHECK, BST_CHECKED, 0);
+    if (bReplaceAllAndClose)
+      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
+    if (bSaveInReadOnlyMsg)
+      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDC_OPTIONS_RECENTFILES_CLEAR)
-    {
-      RecentFilesZeroA();
-      RecentFilesSaveA();
-      bMenuRecentFiles=TRUE;
-      EnableWindow((HWND)lParam, FALSE);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDC_OPTIONS_SEARCHSTRINGS_CLEAR)
-    {
-      RegClearKeyA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Search");
-      EnableWindow((HWND)lParam, FALSE);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDC_OPTIONS_EXECCOM_BROWSE)
+    if (LOWORD(wParam) == IDC_OPTIONS_EXECCOM_BROWSE)
     {
       OPENFILENAMEA efnA={0};
       char szExeFilter[MAX_PATH];
@@ -14798,36 +14858,9 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   {
     if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
-      //Recent files
-      i=GetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, NULL, FALSE);
-      if (nRecentFiles != i)
-      {
-        nRecentFiles=i;
-        FreeMemoryRecentFilesA();
-
-        if (nRecentFiles)
-        {
-          if (RecentFilesAllocA())
-          {
-            RecentFilesZeroA();
-            RecentFilesReadA();
-          }
-        }
-        bMenuRecentFiles=TRUE;
-
-        RegClearKeyA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Recent");
-        RecentFilesSaveA();
-      }
-
-      //Search history
-      nSearchStrings=GetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, NULL, FALSE);
-
       //Execute
       GetDlgItemTextA(hDlg, IDC_OPTIONS_EXECCOM, szCommand, BUFFER_SIZE);
       GetDlgItemTextA(hDlg, IDC_OPTIONS_EXECDIR, szWorkDir, MAX_PATH);
-
-      //Default codepage
-      nDefaultCodePage=GetComboboxCodepageA(hWndDefaultCP);
 
       //Autodetect codepage
       i=SendMessage(hWndAutodetectCP, CB_GETCURSEL, 0, 0);
@@ -14843,6 +14876,23 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
       //Autodetect codepage buffer
       dwCodepageRecognitionBuffer=GetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, NULL, FALSE);
+
+      //Default codepage
+      nDefaultCodePage=GetComboboxCodepageA(hWndDefaultCP);
+
+      //Default newline
+      if (SendMessage(hWndDefaultNewLineWin, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nDefaultNewLine=NEWLINE_WIN;
+      else if (SendMessage(hWndDefaultNewLineUnix, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nDefaultNewLine=NEWLINE_UNIX;
+      else if (SendMessage(hWndDefaultNewLineMac, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nDefaultNewLine=NEWLINE_MAC;
+
+      //ReplaceAll and close dialog
+      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
+
+      //Save in read only file message
+      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
@@ -14850,50 +14900,36 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndDefaultCP;
+  static HWND hWndCommand;
+  static HWND hWndDirectory;
   static HWND hWndAutodetectCP;
   static HWND hWndAutodetectCPBuffer;
-  HWND hWndRecentFiles;
-  HWND hWndRecentFilesSpin;
-  HWND hWndRecentFilesClear;
-  HWND hWndSearchStrings;
-  HWND hWndSearchStringsSpin;
-  HWND hWndSearchStringsClear;
-  HWND hWndCommand;
-  HWND hWndDirectory;
+  static HWND hWndDefaultCP;
+  static HWND hWndDefaultNewLineWin;
+  static HWND hWndDefaultNewLineUnix;
+  static HWND hWndDefaultNewLineMac;
+  static HWND hWndReplaceAllAndClose;
+  static HWND hWndSaveInReadOnlyMsg;
   int i;
 
   if (uMsg == WM_INITDIALOG)
   {
-    hWndRecentFiles=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT);
-    hWndRecentFilesSpin=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN);
-    hWndRecentFilesClear=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_CLEAR);
-    hWndSearchStrings=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT);
-    hWndSearchStringsSpin=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN);
-    hWndSearchStringsClear=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_CLEAR);
     hWndCommand=GetDlgItem(hDlg, IDC_OPTIONS_EXECCOM);
     hWndDirectory=GetDlgItem(hDlg, IDC_OPTIONS_EXECDIR);
-    hWndDefaultCP=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_CODEPAGE);
     hWndAutodetectCP=GetDlgItem(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION);
     hWndAutodetectCPBuffer=GetDlgItem(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER);
+    hWndDefaultCP=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_CODEPAGE);
+    hWndDefaultNewLineWin=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_WIN);
+    hWndDefaultNewLineUnix=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_UNIX);
+    hWndDefaultNewLineMac=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_MAC);
+    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
+    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
     SendMessage(hWndCommand, EM_LIMITTEXT, (WPARAM)BUFFER_SIZE, 0);
     SendMessage(hWndDirectory, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
-    SendMessage(hWndRecentFilesSpin, UDM_SETBUDDY, (WPARAM)hWndRecentFiles, 0);
-    SendMessage(hWndRecentFilesSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
-    SendMessage(hWndSearchStringsSpin, UDM_SETBUDDY, (WPARAM)hWndSearchStrings, 0);
-    SendMessage(hWndSearchStringsSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
 
-    SetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, nRecentFiles, FALSE);
-    if (!nRecentFiles || !*lpwszRecentNames[0]) EnableWindow(hWndRecentFilesClear, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, nSearchStrings, FALSE);
-    if (!nSearchStrings) EnableWindow(hWndSearchStringsClear, FALSE);
     SetWindowTextW(hWndCommand, wszCommand);
     SetWindowTextW(hWndDirectory, wszWorkDir);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, dwCodepageRecognitionBuffer, FALSE);
-
-    FillComboboxCodepageW(hWndDefaultCP, lpCodepageList);
-    SelectComboboxCodepageW(hWndDefaultCP, nDefaultCodePage);
 
     API_LoadStringW(hLangLib, STR_NONE, wbuf, BUFFER_SIZE);
     SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
@@ -14912,24 +14948,25 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 3, 0);
     else
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, dwCodepageRecognitionBuffer, FALSE);
+
+    FillComboboxCodepageW(hWndDefaultCP, lpCodepageList);
+    SelectComboboxCodepageW(hWndDefaultCP, nDefaultCodePage);
+
+    if (nDefaultNewLine == NEWLINE_WIN)
+      SendMessage(hWndDefaultNewLineWin, BM_SETCHECK, BST_CHECKED, 0);
+    else if (nDefaultNewLine == NEWLINE_UNIX)
+      SendMessage(hWndDefaultNewLineUnix, BM_SETCHECK, BST_CHECKED, 0);
+    else if (nDefaultNewLine == NEWLINE_MAC)
+      SendMessage(hWndDefaultNewLineMac, BM_SETCHECK, BST_CHECKED, 0);
+    if (bReplaceAllAndClose)
+      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
+    if (bSaveInReadOnlyMsg)
+      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDC_OPTIONS_RECENTFILES_CLEAR)
-    {
-      RecentFilesZeroW();
-      RecentFilesSaveW();
-      bMenuRecentFiles=TRUE;
-      EnableWindow((HWND)lParam, FALSE);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDC_OPTIONS_SEARCHSTRINGS_CLEAR)
-    {
-      RegClearKeyW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Search");
-      EnableWindow((HWND)lParam, FALSE);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDC_OPTIONS_EXECCOM_BROWSE)
+    if (LOWORD(wParam) == IDC_OPTIONS_EXECCOM_BROWSE)
     {
       OPENFILENAMEW efnW={0};
       wchar_t wszExeFilter[MAX_PATH];
@@ -14992,35 +15029,9 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   {
     if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
-      i=GetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, NULL, FALSE);
-      if (nRecentFiles != i)
-      {
-        nRecentFiles=i;
-        FreeMemoryRecentFilesW();
-
-        if (nRecentFiles)
-        {
-          if (RecentFilesAllocW())
-          {
-            RecentFilesZeroW();
-            RecentFilesReadW();
-          }
-        }
-        bMenuRecentFiles=TRUE;
-
-        RegClearKeyW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Recent");
-        RecentFilesSaveW();
-      }
-
-      //Search history
-      nSearchStrings=GetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, NULL, FALSE);
-
       //Execute
       GetDlgItemTextW(hDlg, IDC_OPTIONS_EXECCOM, wszCommand, BUFFER_SIZE);
       GetDlgItemTextW(hDlg, IDC_OPTIONS_EXECDIR, wszWorkDir, MAX_PATH);
-
-      //Default codepage
-      nDefaultCodePage=GetComboboxCodepageW(hWndDefaultCP);
 
       //Autodetect codepage
       i=SendMessage(hWndAutodetectCP, CB_GETCURSEL, 0, 0);
@@ -15036,6 +15047,23 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
       //Autodetect codepage buffer
       dwCodepageRecognitionBuffer=GetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, NULL, FALSE);
+
+      //Default codepage
+      nDefaultCodePage=GetComboboxCodepageW(hWndDefaultCP);
+
+      //Default newline
+      if (SendMessage(hWndDefaultNewLineWin, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nDefaultNewLine=NEWLINE_WIN;
+      else if (SendMessage(hWndDefaultNewLineUnix, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nDefaultNewLine=NEWLINE_UNIX;
+      else if (SendMessage(hWndDefaultNewLineMac, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nDefaultNewLine=NEWLINE_MAC;
+
+      //ReplaceAll and close dialog
+      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
+
+      //Save in read only file message
+      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
@@ -15281,52 +15309,49 @@ BOOL CALLBACK OptionsGeneralFilterDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, 
   return FALSE;
 }
 
-BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK OptionsRegistryDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndSaveRegistry;
+  static HWND hWndSaveINI;
+  static HWND hWndSavePositions;
+  static HWND hWndSaveCodepages;
+  static HWND hWndRecentFiles;
+  static HWND hWndRecentFilesSpin;
+  static HWND hWndRecentFilesClear;
+  static HWND hWndSearchStrings;
+  static HWND hWndSearchStringsSpin;
+  static HWND hWndSearchStringsClear;
   static HWND hWndFileTypesOpen;
   static HWND hWndAssociateOpen;
   static HWND hWndFileTypesEdit;
   static HWND hWndAssociateEdit;
   static HWND hWndFileTypesPrint;
   static HWND hWndAssociatePrint;
-  static HWND hWndTabSize;
-  static HWND hWndTabSizeSpaces;
-  static HWND hWndSaveRegistry;
-  static HWND hWndSaveINI;
-  static HWND hWndUndoLimit;
-  static HWND hWndDetailedUndo;
-  static HWND hWndWordDelimitersEnable;
-  static HWND hWndWordDelimiters;
-  HWND hWndTabSizeSpin;
-  HWND hWndUndoLimitSpin;
-  HWND hWndMarginLeft;
-  HWND hWndMarginLeftSpin;
-  HWND hWndMarginRight;
-  HWND hWndMarginRightSpin;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndSaveRegistry=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_REGISTRY);
+    hWndSaveINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_INI);
+    hWndSavePositions=GetDlgItem(hDlg, IDC_OPTIONS_SAVEPOSITIONS);
+    hWndSaveCodepages=GetDlgItem(hDlg, IDC_OPTIONS_SAVECODEPAGES);
+    hWndRecentFiles=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT);
+    hWndRecentFilesSpin=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN);
+    hWndRecentFilesClear=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_CLEAR);
+    hWndSearchStrings=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT);
+    hWndSearchStringsSpin=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN);
+    hWndSearchStringsClear=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_CLEAR);
     hWndFileTypesOpen=GetDlgItem(hDlg, IDC_OPTIONS_FILETYPES_OPEN);
     hWndAssociateOpen=GetDlgItem(hDlg, IDC_OPTIONS_ASSOCIATE_OPEN);
     hWndFileTypesEdit=GetDlgItem(hDlg, IDC_OPTIONS_FILETYPES_EDIT);
     hWndAssociateEdit=GetDlgItem(hDlg, IDC_OPTIONS_ASSOCIATE_EDIT);
     hWndFileTypesPrint=GetDlgItem(hDlg, IDC_OPTIONS_FILETYPES_PRINT);
     hWndAssociatePrint=GetDlgItem(hDlg, IDC_OPTIONS_ASSOCIATE_PRINT);
-    hWndTabSize=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE);
-    hWndTabSizeSpin=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPIN);
-    hWndTabSizeSpaces=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPACES);
-    hWndSaveRegistry=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_REGISTRY);
-    hWndSaveINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_INI);
-    hWndUndoLimit=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT);
-    hWndUndoLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT_SPIN);
-    hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_DETAILED);
-    hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
-    hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
-    hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
-    hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
-    hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
-    hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
+
+    SendMessage(hWndRecentFilesSpin, UDM_SETBUDDY, (WPARAM)hWndRecentFiles, 0);
+    SendMessage(hWndRecentFilesSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndSearchStringsSpin, UDM_SETBUDDY, (WPARAM)hWndSearchStrings, 0);
+    SendMessage(hWndSearchStringsSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
 
     if (dwFileTypesAssociated & AE_OPEN) SendMessage(hWndAssociateOpen, BM_SETCHECK, BST_CHECKED, 0);
     if (dwFileTypesAssociated & AE_EDIT) SendMessage(hWndAssociateEdit, BM_SETCHECK, BST_CHECKED, 0);
@@ -15337,44 +15362,42 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     SendMessage(hWndFileTypesOpen, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
     SendMessage(hWndFileTypesEdit, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
     SendMessage(hWndFileTypesPrint, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
-    SendMessage(hWndTabSizeSpin, UDM_SETBUDDY, (WPARAM)hWndTabSize, 0);
-    SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
-    SendMessage(hWndUndoLimitSpin, UDM_SETBUDDY, (WPARAM)hWndUndoLimit, 0);
-    SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
-    SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
-    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
-    SendMessage(hWndMarginRightSpin, UDM_SETBUDDY, (WPARAM)hWndMarginRight, 0);
-    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
-    SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
+
+    SetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, nRecentFiles, FALSE);
+    if (!nRecentFiles || !*lpszRecentNames[0]) EnableWindow(hWndRecentFilesClear, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, nSearchStrings, FALSE);
+    if (!nSearchStrings) EnableWindow(hWndSearchStringsClear, FALSE);
 
     SetWindowTextA(hWndFileTypesOpen, szFileTypesOpen);
     SetWindowTextA(hWndFileTypesEdit, szFileTypesEdit);
     SetWindowTextA(hWndFileTypesPrint, szFileTypesPrint);
 
-    SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
-
-    if (bTabStopAsSpaces)
-      SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
-    if (bDetailedUndo)
-      SendMessage(hWndDetailedUndo, BM_SETCHECK, BST_CHECKED, 0);
     if (nSaveSettings == SS_REGISTRY)
       SendMessage(hWndSaveRegistry, BM_SETCHECK, BST_CHECKED, 0);
     else
       SendMessage(hWndSaveINI, BM_SETCHECK, BST_CHECKED, 0);
-
-    if (bWordDelimitersEnable)
-      SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndWordDelimiters, bWordDelimitersEnable);
-    EscapeDataToEscapeStringW(wszWordDelimiters, (wchar_t *)buf);
-    WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
-    SetWindowTextA(hWndWordDelimiters, buf2);
+    if (bSavePositions)
+      SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
+    if (bSaveCodepages)
+      SendMessage(hWndSaveCodepages, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDC_OPTIONS_ASSOCIATE_OPEN)
+    if (LOWORD(wParam) == IDC_OPTIONS_RECENTFILES_CLEAR)
+    {
+      RecentFilesZeroA();
+      RecentFilesSaveA();
+      bMenuRecentFiles=TRUE;
+      EnableWindow((HWND)lParam, FALSE);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_SEARCHSTRINGS_CLEAR)
+    {
+      RegClearKeyA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Search");
+      EnableWindow((HWND)lParam, FALSE);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_ASSOCIATE_OPEN)
     {
       bState=SendMessage(hWndAssociateOpen, BM_GETCHECK, 0, 0);
       EnableWindow(hWndFileTypesOpen, bState);
@@ -15395,19 +15418,6 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (!bState) SetWindowTextA(hWndFileTypesPrint, szFileTypesPrint);
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
-    {
-      bState=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndWordDelimiters, bState);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
-    {
-      EscapeDataToEscapeStringW(WORD_DELIMITERSW, (wchar_t *)buf);
-      WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
-      SetDlgItemTextA(hDlg, IDC_OPTIONS_WORD_DELIMITERS, buf2);
-      return TRUE;
-    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -15417,6 +15427,63 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       BOOL bShellRefresh=FALSE;
       int a;
       int b;
+
+      //Save settings
+      if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        a=SS_REGISTRY;
+      else
+        a=SS_INI;
+      if (nSaveSettings != a)
+      {
+        nSaveSettings=a;
+        bOptionsSave=TRUE;
+      }
+
+      //Recent files
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, NULL, FALSE);
+      if (nRecentFiles != a)
+      {
+        nRecentFiles=a;
+        FreeMemoryRecentFilesA();
+
+        if (nRecentFiles)
+        {
+          if (RecentFilesAllocA())
+          {
+            RecentFilesZeroA();
+            RecentFilesReadA();
+          }
+        }
+        bMenuRecentFiles=TRUE;
+
+        RegClearKeyA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Recent");
+        RecentFilesSaveA();
+      }
+
+      a=SendMessage(hWndSavePositions, BM_GETCHECK, 0, 0);
+      b=SendMessage(hWndSaveCodepages, BM_GETCHECK, 0, 0);
+      if (a != bSavePositions || b != bSaveCodepages)
+      {
+        bSavePositions=a;
+        bSaveCodepages=b;
+        FreeMemoryRecentFilesA();
+
+        if (nRecentFiles)
+        {
+          if (RecentFilesAllocA())
+          {
+            RecentFilesZeroA();
+            RecentFilesReadA();
+          }
+        }
+        bMenuRecentFiles=TRUE;
+
+        RegClearKeyA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Recent");
+        RecentFilesSaveA();
+      }
+
+      //Search history
+      nSearchStrings=GetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, NULL, FALSE);
 
       //Associations
       bState=SendMessage(hWndAssociateOpen, BM_GETCHECK, 0, 0);
@@ -15497,121 +15564,54 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
         bShellRefresh=TRUE;
       }
       if (bShellRefresh) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
-
-      //Tab stops
-      a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);
-      if (nTabStopSize != a)
-      {
-        nTabStopSize=a;
-        SetTabStops(hWndEdit, nTabStopSize, TRUE);
-      }
-      bTabStopAsSpaces=SendMessage(hWndTabSizeSpaces, BM_GETCHECK, 0, 0);
-
-      //Undo
-      a=GetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, NULL, FALSE);
-      if (nUndoLimit != a)
-      {
-        nUndoLimit=a;
-        SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
-      }
-      bDetailedUndo=SendMessage(hWndDetailedUndo, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
-
-      //Margins
-      a=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, NULL, FALSE);
-      b=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, NULL, FALSE);
-      if (dwEditMargins != (DWORD)MAKELONG(a, b))
-      {
-        dwEditMargins=MAKELONG(a, b);
-        SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
-        InvalidateRect(hWndEdit, NULL, TRUE);
-      }
-
-      //Word delimiters
-      a=GetWindowTextA(hWndWordDelimiters, buf, BUFFER_SIZE);
-      MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
-      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWordDelimiters);
-
-      bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
-      if (bWordDelimitersEnable)
-      {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
-      }
-      else
-      {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwDefaultWordBreak, 0);
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
-      }
-
-      //Save settings
-      if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        a=SS_REGISTRY;
-      else
-        a=SS_INI;
-      if (nSaveSettings != a)
-      {
-        nSaveSettings=a;
-
-        bEditFontChanged=TRUE;
-        bColorsChanged=TRUE;
-        bPrintFontChanged=TRUE;
-        IniSaveOptionsA();
-        RegSaveOptionsA();
-        SaveThemesA(TRUE);
-        StackPluginSaveA(&hPluginsStack, TRUE);
-      }
     }
   }
   return FALSE;
 }
 
-BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK OptionsRegistryDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndSaveRegistry;
+  static HWND hWndSaveINI;
+  static HWND hWndSavePositions;
+  static HWND hWndSaveCodepages;
+  static HWND hWndRecentFiles;
+  static HWND hWndRecentFilesSpin;
+  static HWND hWndRecentFilesClear;
+  static HWND hWndSearchStrings;
+  static HWND hWndSearchStringsSpin;
+  static HWND hWndSearchStringsClear;
   static HWND hWndFileTypesOpen;
   static HWND hWndAssociateOpen;
   static HWND hWndFileTypesEdit;
   static HWND hWndAssociateEdit;
   static HWND hWndFileTypesPrint;
   static HWND hWndAssociatePrint;
-  static HWND hWndTabSize;
-  static HWND hWndTabSizeSpaces;
-  static HWND hWndSaveRegistry;
-  static HWND hWndSaveINI;
-  static HWND hWndUndoLimit;
-  static HWND hWndDetailedUndo;
-  static HWND hWndWordDelimitersEnable;
-  static HWND hWndWordDelimiters;
-  HWND hWndTabSizeSpin;
-  HWND hWndUndoLimitSpin;
-  HWND hWndMarginLeft;
-  HWND hWndMarginLeftSpin;
-  HWND hWndMarginRight;
-  HWND hWndMarginRightSpin;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndSaveRegistry=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_REGISTRY);
+    hWndSaveINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_INI);
+    hWndSavePositions=GetDlgItem(hDlg, IDC_OPTIONS_SAVEPOSITIONS);
+    hWndSaveCodepages=GetDlgItem(hDlg, IDC_OPTIONS_SAVECODEPAGES);
+    hWndRecentFiles=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT);
+    hWndRecentFilesSpin=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN);
+    hWndRecentFilesClear=GetDlgItem(hDlg, IDC_OPTIONS_RECENTFILES_CLEAR);
+    hWndSearchStrings=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT);
+    hWndSearchStringsSpin=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN);
+    hWndSearchStringsClear=GetDlgItem(hDlg, IDC_OPTIONS_SEARCHSTRINGS_CLEAR);
     hWndFileTypesOpen=GetDlgItem(hDlg, IDC_OPTIONS_FILETYPES_OPEN);
     hWndAssociateOpen=GetDlgItem(hDlg, IDC_OPTIONS_ASSOCIATE_OPEN);
     hWndFileTypesEdit=GetDlgItem(hDlg, IDC_OPTIONS_FILETYPES_EDIT);
     hWndAssociateEdit=GetDlgItem(hDlg, IDC_OPTIONS_ASSOCIATE_EDIT);
     hWndFileTypesPrint=GetDlgItem(hDlg, IDC_OPTIONS_FILETYPES_PRINT);
     hWndAssociatePrint=GetDlgItem(hDlg, IDC_OPTIONS_ASSOCIATE_PRINT);
-    hWndTabSize=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE);
-    hWndTabSizeSpin=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPIN);
-    hWndTabSizeSpaces=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPACES);
-    hWndSaveRegistry=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_REGISTRY);
-    hWndSaveINI=GetDlgItem(hDlg, IDC_OPTIONS_SAVESETTINGS_INI);
-    hWndUndoLimit=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT);
-    hWndUndoLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT_SPIN);
-    hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_DETAILED);
-    hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
-    hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
-    hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
-    hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
-    hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
-    hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
+
+    SendMessage(hWndRecentFilesSpin, UDM_SETBUDDY, (WPARAM)hWndRecentFiles, 0);
+    SendMessage(hWndRecentFilesSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndSearchStringsSpin, UDM_SETBUDDY, (WPARAM)hWndSearchStrings, 0);
+    SendMessage(hWndSearchStringsSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
 
     if (dwFileTypesAssociated & AE_OPEN) SendMessage(hWndAssociateOpen, BM_SETCHECK, BST_CHECKED, 0);
     if (dwFileTypesAssociated & AE_EDIT) SendMessage(hWndAssociateEdit, BM_SETCHECK, BST_CHECKED, 0);
@@ -15622,43 +15622,42 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     SendMessage(hWndFileTypesOpen, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
     SendMessage(hWndFileTypesEdit, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
     SendMessage(hWndFileTypesPrint, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
-    SendMessage(hWndTabSizeSpin, UDM_SETBUDDY, (WPARAM)hWndTabSize, 0);
-    SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
-    SendMessage(hWndUndoLimitSpin, UDM_SETBUDDY, (WPARAM)hWndUndoLimit, 0);
-    SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
-    SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
-    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
-    SendMessage(hWndMarginRightSpin, UDM_SETBUDDY, (WPARAM)hWndMarginRight, 0);
-    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
-    SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
+
+    SetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, nRecentFiles, FALSE);
+    if (!nRecentFiles || !*lpwszRecentNames[0]) EnableWindow(hWndRecentFilesClear, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, nSearchStrings, FALSE);
+    if (!nSearchStrings) EnableWindow(hWndSearchStringsClear, FALSE);
 
     SetWindowTextW(hWndFileTypesOpen, wszFileTypesOpen);
     SetWindowTextW(hWndFileTypesEdit, wszFileTypesEdit);
     SetWindowTextW(hWndFileTypesPrint, wszFileTypesPrint);
 
-    SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
-
-    if (bTabStopAsSpaces)
-      SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
-    if (bDetailedUndo)
-      SendMessage(hWndDetailedUndo, BM_SETCHECK, BST_CHECKED, 0);
     if (nSaveSettings == SS_REGISTRY)
       SendMessage(hWndSaveRegistry, BM_SETCHECK, BST_CHECKED, 0);
     else
       SendMessage(hWndSaveINI, BM_SETCHECK, BST_CHECKED, 0);
-
-    if (bWordDelimitersEnable)
-      SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndWordDelimiters, bWordDelimitersEnable);
-    EscapeDataToEscapeStringW(wszWordDelimiters, wbuf);
-    SetWindowTextW(hWndWordDelimiters, wbuf);
+    if (bSavePositions)
+      SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
+    if (bSaveCodepages)
+      SendMessage(hWndSaveCodepages, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDC_OPTIONS_ASSOCIATE_OPEN)
+    if (LOWORD(wParam) == IDC_OPTIONS_RECENTFILES_CLEAR)
+    {
+      RecentFilesZeroW();
+      RecentFilesSaveW();
+      bMenuRecentFiles=TRUE;
+      EnableWindow((HWND)lParam, FALSE);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_SEARCHSTRINGS_CLEAR)
+    {
+      RegClearKeyW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Search");
+      EnableWindow((HWND)lParam, FALSE);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_ASSOCIATE_OPEN)
     {
       bState=SendMessage(hWndAssociateOpen, BM_GETCHECK, 0, 0);
       EnableWindow(hWndFileTypesOpen, bState);
@@ -15679,18 +15678,6 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (!bState) SetWindowTextW(hWndFileTypesPrint, wszFileTypesPrint);
       return TRUE;
     }
-    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
-    {
-      bState=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndWordDelimiters, bState);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
-    {
-      EscapeDataToEscapeStringW(WORD_DELIMITERSW, wbuf);
-      SetDlgItemTextW(hDlg, IDC_OPTIONS_WORD_DELIMITERS, wbuf);
-      return TRUE;
-    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -15700,6 +15687,63 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       BOOL bShellRefresh=FALSE;
       int a;
       int b;
+
+      //Save settings
+      if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        a=SS_REGISTRY;
+      else
+        a=SS_INI;
+      if (nSaveSettings != a)
+      {
+        nSaveSettings=a;
+        bOptionsSave=TRUE;
+      }
+
+      //Recent files
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_RECENTFILES_AMOUNT, NULL, FALSE);
+      if (nRecentFiles != a)
+      {
+        nRecentFiles=a;
+        FreeMemoryRecentFilesW();
+
+        if (nRecentFiles)
+        {
+          if (RecentFilesAllocW())
+          {
+            RecentFilesZeroW();
+            RecentFilesReadW();
+          }
+        }
+        bMenuRecentFiles=TRUE;
+
+        RegClearKeyW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Recent");
+        RecentFilesSaveW();
+      }
+
+      a=SendMessage(hWndSavePositions, BM_GETCHECK, 0, 0);
+      b=SendMessage(hWndSaveCodepages, BM_GETCHECK, 0, 0);
+      if (a != bSavePositions || b != bSaveCodepages)
+      {
+        bSavePositions=a;
+        bSaveCodepages=b;
+        FreeMemoryRecentFilesW();
+
+        if (nRecentFiles)
+        {
+          if (RecentFilesAllocW())
+          {
+            RecentFilesZeroW();
+            RecentFilesReadW();
+          }
+        }
+        bMenuRecentFiles=TRUE;
+
+        RegClearKeyW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Recent");
+        RecentFilesSaveW();
+      }
+
+      //Search history
+      nSearchStrings=GetDlgItemInt(hDlg, IDC_OPTIONS_SEARCHSTRINGS_AMOUNT, NULL, FALSE);
 
       //Associations
       bState=SendMessage(hWndAssociateOpen, BM_GETCHECK, 0, 0);
@@ -15780,6 +15824,115 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
         bShellRefresh=TRUE;
       }
       if (bShellRefresh) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
+    }
+  }
+  return FALSE;
+}
+
+BOOL CALLBACK OptionsEditor1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndMarginLeft;
+  static HWND hWndMarginLeftSpin;
+  static HWND hWndMarginRight;
+  static HWND hWndMarginRightSpin;
+  static HWND hWndTabSize;
+  static HWND hWndTabSizeSpin;
+  static HWND hWndTabSizeSpaces;
+  static HWND hWndUndoLimit;
+  static HWND hWndUndoLimitSpin;
+  static HWND hWndDetailedUndo;
+  static HWND hWndCaretOutEdge;
+  static HWND hWndCaretVertLine;
+  static HWND hWndCaretWidth;
+  static HWND hWndCaretWidthSpin;
+  static HWND hWndWordDelimitersEnable;
+  static HWND hWndWordDelimiters;
+  BOOL bState;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
+    hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
+    hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
+    hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
+    hWndTabSize=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE);
+    hWndTabSizeSpin=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPIN);
+    hWndTabSizeSpaces=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPACES);
+    hWndUndoLimit=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT);
+    hWndUndoLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT_SPIN);
+    hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_DETAILED);
+    hWndCaretOutEdge=GetDlgItem(hDlg, IDC_OPTIONS_CARETOUTEDGE);
+    hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
+    hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
+    hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
+    hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
+    hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
+
+    SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
+    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndMarginRightSpin, UDM_SETBUDDY, (WPARAM)hWndMarginRight, 0);
+    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndTabSizeSpin, UDM_SETBUDDY, (WPARAM)hWndTabSize, 0);
+    SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndUndoLimitSpin, UDM_SETBUDDY, (WPARAM)hWndUndoLimit, 0);
+    SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
+    SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
+
+    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
+
+    if (bTabStopAsSpaces)
+      SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
+    if (bDetailedUndo)
+      SendMessage(hWndDetailedUndo, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCaretOutEdge)
+      SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCaretVertLine)
+      SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
+    if (bWordDelimitersEnable)
+      SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndWordDelimiters, bWordDelimitersEnable);
+    EscapeDataToEscapeStringW(wszWordDelimiters, (wchar_t *)buf);
+    WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
+    SetWindowTextA(hWndWordDelimiters, buf2);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
+    {
+      bState=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndWordDelimiters, bState);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
+    {
+      EscapeDataToEscapeStringW(WORD_DELIMITERSW, (wchar_t *)buf);
+      WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
+      SetDlgItemTextA(hDlg, IDC_OPTIONS_WORD_DELIMITERS, buf2);
+      return TRUE;
+    }
+  }
+  else if (uMsg == WM_NOTIFY)
+  {
+    if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    {
+      int a;
+      int b;
+
+      //Margins
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, NULL, FALSE);
+      b=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, NULL, FALSE);
+      if (dwEditMargins != (DWORD)MAKELONG(a, b))
+      {
+        dwEditMargins=MAKELONG(a, b);
+        SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
+        InvalidateRect(hWndEdit, NULL, TRUE);
+      }
 
       //Tab stops
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);
@@ -15800,6 +15953,144 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       bDetailedUndo=SendMessage(hWndDetailedUndo, BM_GETCHECK, 0, 0);
       SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
 
+      //Allow caret moving out of the line edge
+      bCaretOutEdge=SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
+
+      //Draw caret vertical line
+      bCaretVertLine=SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_CARETVERTLINE);
+
+      //Caret width
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, NULL, FALSE);
+      if (nCaretWidth != a)
+      {
+        nCaretWidth=a;
+
+        //Update width
+        {
+          POINT pt;
+
+          SendMessage(hWndEdit, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
+          pt.x=nCaretWidth;
+          SendMessage(hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
+        }
+      }
+
+      //Word delimiters
+      a=GetWindowTextA(hWndWordDelimiters, buf, BUFFER_SIZE);
+      MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWordDelimiters);
+
+      bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
+      if (bWordDelimitersEnable)
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
+      }
+      else
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwDefaultWordBreak, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+      }
+    }
+  }
+  return FALSE;
+}
+
+BOOL CALLBACK OptionsEditor1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndMarginLeft;
+  static HWND hWndMarginLeftSpin;
+  static HWND hWndMarginRight;
+  static HWND hWndMarginRightSpin;
+  static HWND hWndTabSize;
+  static HWND hWndTabSizeSpin;
+  static HWND hWndTabSizeSpaces;
+  static HWND hWndUndoLimit;
+  static HWND hWndUndoLimitSpin;
+  static HWND hWndDetailedUndo;
+  static HWND hWndCaretOutEdge;
+  static HWND hWndCaretVertLine;
+  static HWND hWndCaretWidth;
+  static HWND hWndCaretWidthSpin;
+  static HWND hWndWordDelimitersEnable;
+  static HWND hWndWordDelimiters;
+  BOOL bState;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
+    hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
+    hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
+    hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
+    hWndTabSize=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE);
+    hWndTabSizeSpin=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPIN);
+    hWndTabSizeSpaces=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE_SPACES);
+    hWndUndoLimit=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT);
+    hWndUndoLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_LIMIT_SPIN);
+    hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_DETAILED);
+    hWndCaretOutEdge=GetDlgItem(hDlg, IDC_OPTIONS_CARETOUTEDGE);
+    hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
+    hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
+    hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
+    hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
+    hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
+
+    SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
+    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndMarginRightSpin, UDM_SETBUDDY, (WPARAM)hWndMarginRight, 0);
+    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndTabSizeSpin, UDM_SETBUDDY, (WPARAM)hWndTabSize, 0);
+    SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndUndoLimitSpin, UDM_SETBUDDY, (WPARAM)hWndUndoLimit, 0);
+    SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
+    SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
+
+    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
+
+    if (bTabStopAsSpaces)
+      SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
+    if (bDetailedUndo)
+      SendMessage(hWndDetailedUndo, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCaretOutEdge)
+      SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
+    if (bCaretVertLine)
+      SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
+    if (bWordDelimitersEnable)
+      SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndWordDelimiters, bWordDelimitersEnable);
+    EscapeDataToEscapeStringW(wszWordDelimiters, wbuf);
+    SetWindowTextW(hWndWordDelimiters, wbuf);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
+    {
+      bState=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndWordDelimiters, bState);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
+    {
+      EscapeDataToEscapeStringW(WORD_DELIMITERSW, wbuf);
+      SetDlgItemTextW(hDlg, IDC_OPTIONS_WORD_DELIMITERS, wbuf);
+      return TRUE;
+    }
+  }
+  else if (uMsg == WM_NOTIFY)
+  {
+    if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    {
+      int a;
+      int b;
+
       //Margins
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, NULL, FALSE);
       b=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, NULL, FALSE);
@@ -15808,6 +16099,49 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
         dwEditMargins=MAKELONG(a, b);
         SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
         InvalidateRect(hWndEdit, NULL, TRUE);
+      }
+
+      //Tab stops
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);
+      if (nTabStopSize != a)
+      {
+        nTabStopSize=a;
+        SetTabStops(hWndEdit, nTabStopSize, TRUE);
+      }
+      bTabStopAsSpaces=SendMessage(hWndTabSizeSpaces, BM_GETCHECK, 0, 0);
+
+      //Undo
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, NULL, FALSE);
+      if (nUndoLimit != a)
+      {
+        nUndoLimit=a;
+        SendMessage(hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
+      }
+      bDetailedUndo=SendMessage(hWndDetailedUndo, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
+
+      //Allow caret moving out of the line edge
+      bCaretOutEdge=SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
+
+      //Draw caret vertical line
+      bCaretVertLine=SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_CARETVERTLINE);
+
+      //Caret width
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, NULL, FALSE);
+      if (nCaretWidth != a)
+      {
+        nCaretWidth=a;
+
+        //Update width
+        {
+          POINT pt;
+
+          SendMessage(hWndEdit, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
+          pt.x=nCaretWidth;
+          SendMessage(hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
+        }
       }
 
       //Word delimiters
@@ -15825,33 +16159,13 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
         SendMessage(hWndEdit, AEM_SETWORDBREAK, dwDefaultWordBreak, 0);
         SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
       }
-
-      //Save settings
-      if (SendMessage(hWndSaveRegistry, BM_GETCHECK, 0, 0) == BST_CHECKED)
-        a=SS_REGISTRY;
-      else
-        a=SS_INI;
-      if (nSaveSettings != a)
-      {
-        nSaveSettings=a;
-
-        bEditFontChanged=TRUE;
-        bColorsChanged=TRUE;
-        bPrintFontChanged=TRUE;
-        IniSaveOptionsW();
-        RegSaveOptionsW();
-        SaveThemesW(TRUE);
-        StackPluginSaveW(&hPluginsStack, TRUE);
-      }
     }
   }
   return FALSE;
 }
 
-BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK OptionsEditor2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndSavePositions;
-  static HWND hWndSaveCodepages;
   static HWND hWndShowURL;
   static HWND hWndSingleClickURL;
   static HWND hWndDoubleClickURL;
@@ -15859,16 +16173,10 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
   static HWND hWndUrlPrefixes;
   static HWND hWndUrlDelimitersEnable;
   static HWND hWndUrlDelimiters;
-  static HWND hWndCaretOutEdge;
-  static HWND hWndCaretVertLine;
-  static HWND hWndReplaceAllAndClose;
-  static HWND hWndSaveInReadOnlyMsg;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
-    hWndSavePositions=GetDlgItem(hDlg, IDC_OPTIONS_SAVEPOSITIONS);
-    hWndSaveCodepages=GetDlgItem(hDlg, IDC_OPTIONS_SAVECODEPAGES);
     hWndShowURL=GetDlgItem(hDlg, IDC_OPTIONS_URL_SHOW);
     hWndSingleClickURL=GetDlgItem(hDlg, IDC_OPTIONS_URL_SINGLECLICK);
     hWndDoubleClickURL=GetDlgItem(hDlg, IDC_OPTIONS_URL_DOUBLECLICK);
@@ -15876,15 +16184,7 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     hWndUrlPrefixes=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES);
     hWndUrlDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS_ENABLE);
     hWndUrlDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS);
-    hWndCaretOutEdge=GetDlgItem(hDlg, IDC_OPTIONS_CARETOUTEDGE);
-    hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
-    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
-    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
-    if (bSavePositions)
-      SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
-    if (bSaveCodepages)
-      SendMessage(hWndSaveCodepages, BM_SETCHECK, BST_CHECKED, 0);
     if (bShowURL)
       SendMessage(hWndShowURL, BM_SETCHECK, BST_CHECKED, 0);
     if (nClickURL == 1)
@@ -15907,14 +16207,6 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     SetWindowTextA(hWndUrlDelimiters, buf2);
     SendMessage(hWndUrlDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
 
-    if (bCaretOutEdge)
-      SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
-    if (bCaretVertLine)
-      SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
-    if (bReplaceAllAndClose)
-      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
-    if (bSaveInReadOnlyMsg)
-      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
     PostMessage(hDlg, WM_COMMAND, IDC_OPTIONS_URL_SHOW, 0);
   }
   else if (uMsg == WM_COMMAND)
@@ -15959,30 +16251,6 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
       int a;
-      int b;
-
-      //Recent files
-      a=SendMessage(hWndSavePositions, BM_GETCHECK, 0, 0);
-      b=SendMessage(hWndSaveCodepages, BM_GETCHECK, 0, 0);
-      if (a != bSavePositions || b != bSaveCodepages)
-      {
-        bSavePositions=a;
-        bSaveCodepages=b;
-        FreeMemoryRecentFilesA();
-
-        if (nRecentFiles)
-        {
-          if (RecentFilesAllocA())
-          {
-            RecentFilesZeroA();
-            RecentFilesReadA();
-          }
-        }
-        bMenuRecentFiles=TRUE;
-
-        RegClearKeyA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Recent");
-        RecentFilesSaveA();
-      }
 
       //HyperLinks
       a=SendMessage(hWndShowURL, BM_GETCHECK, 0, 0);
@@ -16016,29 +16284,13 @@ BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
       else
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)NULL);
-
-      //Allow caret moving out of the line edge
-      bCaretOutEdge=SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
-
-      //Draw caret vertical line
-      bCaretVertLine=SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_CARETVERTLINE);
-
-      //ReplaceAll and close dialog
-      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
-
-      //Save in read only file message
-      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
 }
 
-BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndSavePositions;
-  static HWND hWndSaveCodepages;
   static HWND hWndShowURL;
   static HWND hWndSingleClickURL;
   static HWND hWndDoubleClickURL;
@@ -16046,16 +16298,10 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
   static HWND hWndUrlPrefixes;
   static HWND hWndUrlDelimitersEnable;
   static HWND hWndUrlDelimiters;
-  static HWND hWndCaretOutEdge;
-  static HWND hWndCaretVertLine;
-  static HWND hWndReplaceAllAndClose;
-  static HWND hWndSaveInReadOnlyMsg;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
-    hWndSavePositions=GetDlgItem(hDlg, IDC_OPTIONS_SAVEPOSITIONS);
-    hWndSaveCodepages=GetDlgItem(hDlg, IDC_OPTIONS_SAVECODEPAGES);
     hWndShowURL=GetDlgItem(hDlg, IDC_OPTIONS_URL_SHOW);
     hWndSingleClickURL=GetDlgItem(hDlg, IDC_OPTIONS_URL_SINGLECLICK);
     hWndDoubleClickURL=GetDlgItem(hDlg, IDC_OPTIONS_URL_DOUBLECLICK);
@@ -16063,15 +16309,7 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     hWndUrlPrefixes=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES);
     hWndUrlDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS_ENABLE);
     hWndUrlDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS);
-    hWndCaretOutEdge=GetDlgItem(hDlg, IDC_OPTIONS_CARETOUTEDGE);
-    hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
-    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
-    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
-    if (bSavePositions)
-      SendMessage(hWndSavePositions, BM_SETCHECK, BST_CHECKED, 0);
-    if (bSaveCodepages)
-      SendMessage(hWndSaveCodepages, BM_SETCHECK, BST_CHECKED, 0);
     if (bShowURL)
       SendMessage(hWndShowURL, BM_SETCHECK, BST_CHECKED, 0);
     if (nClickURL == 1)
@@ -16092,14 +16330,6 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     SetWindowTextW(hWndUrlDelimiters, wbuf);
     SendMessage(hWndUrlDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
 
-    if (bCaretOutEdge)
-      SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
-    if (bCaretVertLine)
-      SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
-    if (bReplaceAllAndClose)
-      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
-    if (bSaveInReadOnlyMsg)
-      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
     PostMessage(hDlg, WM_COMMAND, IDC_OPTIONS_URL_SHOW, 0);
   }
   else if (uMsg == WM_COMMAND)
@@ -16144,30 +16374,6 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
       int a;
-      int b;
-
-      //Recent files
-      a=SendMessage(hWndSavePositions, BM_GETCHECK, 0, 0);
-      b=SendMessage(hWndSaveCodepages, BM_GETCHECK, 0, 0);
-      if (a != bSavePositions || b != bSaveCodepages)
-      {
-        bSavePositions=a;
-        bSaveCodepages=b;
-        FreeMemoryRecentFilesW();
-
-        if (nRecentFiles)
-        {
-          if (RecentFilesAllocW())
-          {
-            RecentFilesZeroW();
-            RecentFilesReadW();
-          }
-        }
-        bMenuRecentFiles=TRUE;
-
-        RegClearKeyW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Recent");
-        RecentFilesSaveW();
-      }
 
       //HyperLinks
       a=SendMessage(hWndShowURL, BM_GETCHECK, 0, 0);
@@ -16199,20 +16405,6 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
       else
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)NULL);
-
-      //Allow caret moving out of the line edge
-      bCaretOutEdge=SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
-
-      //Draw caret vertical line
-      bCaretVertLine=SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_CARETVERTLINE);
-
-      //ReplaceAll and close dialog
-      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
-
-      //Save in read only file message
-      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
@@ -16394,14 +16586,14 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 
   if (!hWnd || hWnd == hWndEdit)
   {
-    if (bFirst != TRUE && nNewLine == nState) return;
-    nNewLine=nState;
+    if (bFirst != TRUE && nCurrentNewLine == nState) return;
+    nCurrentNewLine=nState;
 
-    if (nNewLine == NEWLINE_WIN)
+    if (nCurrentNewLine == NEWLINE_WIN)
       SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Win");
-    else if (nNewLine == NEWLINE_UNIX)
+    else if (nCurrentNewLine == NEWLINE_UNIX)
       SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Unix");
-    else if (nNewLine == NEWLINE_MAC)
+    else if (nCurrentNewLine == NEWLINE_MAC)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)"Mac");
   }
   else
@@ -16435,14 +16627,14 @@ void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 
   if (!hWnd || hWnd == hWndEdit)
   {
-    if (bFirst != TRUE && nNewLine == nState) return;
-    nNewLine=nState;
+    if (bFirst != TRUE && nCurrentNewLine == nState) return;
+    nCurrentNewLine=nState;
 
-    if (nNewLine == NEWLINE_WIN)
+    if (nCurrentNewLine == NEWLINE_WIN)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Win");
-    else if (nNewLine == NEWLINE_UNIX)
+    else if (nCurrentNewLine == NEWLINE_UNIX)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Unix");
-    else if (nNewLine == NEWLINE_MAC)
+    else if (nCurrentNewLine == NEWLINE_MAC)
       SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Mac");
   }
   else
