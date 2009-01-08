@@ -1933,7 +1933,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bColumnSel=FALSE;
 
       GetSel((HWND)wParam, &cr, &bColumnSel, NULL);
-      nTextLen=ExGetRangeTextW((HWND)wParam, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R);
+      nTextLen=ExGetRangeTextW((HWND)wParam, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
       if (nResultLen) *nResultLen=nTextLen;
       return (LRESULT)wpText;
     }
@@ -1951,13 +1951,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
 
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -3681,7 +3681,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bColumnSel=FALSE;
 
       GetSel((HWND)wParam, &cr, &bColumnSel, NULL);
-      nTextLen=ExGetRangeTextW((HWND)wParam, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R);
+      nTextLen=ExGetRangeTextW((HWND)wParam, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
       if (nResultLen) *nResultLen=nTextLen;
       return (LRESULT)wpText;
     }
@@ -3699,13 +3699,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine);
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
       EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
 
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine);
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -5098,7 +5098,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
             if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
             {
-              if (ExGetRangeTextA(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &szURL, AELB_ASIS))
+              if (ExGetRangeTextA(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &szURL, AELB_ASIS, FALSE))
               {
                 ShellExecuteA(hWndEdit, "open", szURL, NULL, NULL, SW_SHOWNORMAL);
                 FreeText(szURL);
@@ -5308,7 +5308,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
             if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
             {
-              if (ExGetRangeTextW(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &wszURL, AELB_ASIS))
+              if (ExGetRangeTextW(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &wszURL, AELB_ASIS, FALSE))
               {
                 ShellExecuteW(hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
                 FreeText(wszURL);

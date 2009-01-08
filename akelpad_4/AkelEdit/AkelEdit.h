@@ -333,6 +333,7 @@ typedef struct {
   char *pBuffer;      //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
   DWORD dwBufferMax;  //Specifies the maximum number of characters to copy to the buffer, including the NULL character.
   int nNewLine;       //see AELB_* defines
+  BOOL bFillSpaces;   //If bColumnSel is TRUE, fill empties with spaces.
 } AETEXTRANGEA;
 
 typedef struct {
@@ -341,6 +342,7 @@ typedef struct {
   wchar_t *wpBuffer;  //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
   DWORD dwBufferMax;  //Specifies the maximum number of characters to copy to the buffer, including the NULL character.
   int nNewLine;       //see AELB_* defines
+  BOOL bFillSpaces;   //If bColumnSel is TRUE, fill empties with spaces.
 } AETEXTRANGEW;
 
 typedef struct {
@@ -946,6 +948,7 @@ Example:
  SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr);
  tr.pText=NULL;
  tr.nNewLine=AELB_ASOUTPUT;
+ tr.bFillSpaces=FALSE;
 
  if (nLen=SendMessage(hWndEdit, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
  {
@@ -977,6 +980,7 @@ Example:
  SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr);
  tr.wpText=NULL;
  tr.nNewLine=AELB_ASOUTPUT;
+ tr.bFillSpaces=FALSE;
 
  if (nLen=SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
  {
