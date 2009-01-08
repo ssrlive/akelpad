@@ -80,8 +80,8 @@
 #define IDD_OPTIONS_GENERAL             2008
 #define IDD_OPTIONS_GENERAL_FILTER      2009
 #define IDD_OPTIONS_REGISTRY            2010
-#define IDD_OPTIONS_EDITOR1             2011
-#define IDD_OPTIONS_EDITOR2             2012
+#define IDD_OPTIONS_EDITOR              2011
+#define IDD_OPTIONS_ADVANCED            2012
 #define IDD_ABOUT                       2051
 #define IDC_OFN_AUTODETECT              3001
 #define IDC_OFN_CODEPAGE                3002

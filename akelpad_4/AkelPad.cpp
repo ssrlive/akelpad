@@ -1635,13 +1635,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pspA[2].dwSize      =sizeof(PROPSHEETPAGEA);
       pspA[2].dwFlags     =PSP_DEFAULT;
       pspA[2].hInstance   =hLangLib;
-      pspA[2].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_EDITOR1);
-      pspA[2].pfnDlgProc  =(DLGPROC)OptionsEditor1DlgProcA;
+      pspA[2].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_EDITOR);
+      pspA[2].pfnDlgProc  =(DLGPROC)OptionsEditorDlgProcA;
       pspA[3].dwSize      =sizeof(PROPSHEETPAGEA);
       pspA[3].dwFlags     =PSP_DEFAULT;
       pspA[3].hInstance   =hLangLib;
-      pspA[3].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_EDITOR2);
-      pspA[3].pfnDlgProc  =(DLGPROC)OptionsEditor2DlgProcA;
+      pspA[3].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_ADVANCED);
+      pspA[3].pfnDlgProc  =(DLGPROC)OptionsAdvancedDlgProcA;
 
       pshA.dwSize      =(bOldComctl32)?(PROPSHEETHEADERA_V1_SIZE):(sizeof(PROPSHEETHEADERA));
       pshA.dwFlags     =PSH_PROPSHEETPAGE|PSH_NOAPPLYNOW|PSH_USEICONID|PSH_USECALLBACK;
@@ -3383,13 +3383,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pspW[2].dwSize      =sizeof(PROPSHEETPAGEW);
       pspW[2].dwFlags     =PSP_DEFAULT;
       pspW[2].hInstance   =hLangLib;
-      pspW[2].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_EDITOR1);
-      pspW[2].pfnDlgProc  =(DLGPROC)OptionsEditor1DlgProcW;
+      pspW[2].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_EDITOR);
+      pspW[2].pfnDlgProc  =(DLGPROC)OptionsEditorDlgProcW;
       pspW[3].dwSize      =sizeof(PROPSHEETPAGEW);
       pspW[3].dwFlags     =PSP_DEFAULT;
       pspW[3].hInstance   =hLangLib;
-      pspW[3].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_EDITOR2);
-      pspW[3].pfnDlgProc  =(DLGPROC)OptionsEditor2DlgProcW;
+      pspW[3].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_ADVANCED);
+      pspW[3].pfnDlgProc  =(DLGPROC)OptionsAdvancedDlgProcW;
 
       pshW.dwSize      =sizeof(PROPSHEETHEADERW);
       pshW.dwFlags     =PSH_PROPSHEETPAGE|PSH_NOAPPLYNOW|PSH_USEICONID|PSH_USECALLBACK;
