@@ -14737,8 +14737,6 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndDefaultNewLineWin;
   static HWND hWndDefaultNewLineUnix;
   static HWND hWndDefaultNewLineMac;
-  static HWND hWndReplaceAllAndClose;
-  static HWND hWndSaveInReadOnlyMsg;
   int i;
 
   if (uMsg == WM_INITDIALOG)
@@ -14751,8 +14749,6 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndDefaultNewLineWin=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_WIN);
     hWndDefaultNewLineUnix=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_UNIX);
     hWndDefaultNewLineMac=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_MAC);
-    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
-    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
     SendMessage(hWndCommand, EM_LIMITTEXT, (WPARAM)BUFFER_SIZE, 0);
     SendMessage(hWndDirectory, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
@@ -14788,10 +14784,6 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndDefaultNewLineUnix, BM_SETCHECK, BST_CHECKED, 0);
     else if (nDefaultNewLine == NEWLINE_MAC)
       SendMessage(hWndDefaultNewLineMac, BM_SETCHECK, BST_CHECKED, 0);
-    if (bReplaceAllAndClose)
-      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
-    if (bSaveInReadOnlyMsg)
-      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -14887,12 +14879,6 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         nDefaultNewLine=NEWLINE_UNIX;
       else if (SendMessage(hWndDefaultNewLineMac, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nDefaultNewLine=NEWLINE_MAC;
-
-      //ReplaceAll and close dialog
-      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
-
-      //Save in read only file message
-      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
@@ -14908,8 +14894,6 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndDefaultNewLineWin;
   static HWND hWndDefaultNewLineUnix;
   static HWND hWndDefaultNewLineMac;
-  static HWND hWndReplaceAllAndClose;
-  static HWND hWndSaveInReadOnlyMsg;
   int i;
 
   if (uMsg == WM_INITDIALOG)
@@ -14922,8 +14906,6 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndDefaultNewLineWin=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_WIN);
     hWndDefaultNewLineUnix=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_UNIX);
     hWndDefaultNewLineMac=GetDlgItem(hDlg, IDC_OPTIONS_NEWLINE_MAC);
-    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
-    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
     SendMessage(hWndCommand, EM_LIMITTEXT, (WPARAM)BUFFER_SIZE, 0);
     SendMessage(hWndDirectory, EM_LIMITTEXT, (WPARAM)MAX_PATH, 0);
@@ -14959,10 +14941,6 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndDefaultNewLineUnix, BM_SETCHECK, BST_CHECKED, 0);
     else if (nDefaultNewLine == NEWLINE_MAC)
       SendMessage(hWndDefaultNewLineMac, BM_SETCHECK, BST_CHECKED, 0);
-    if (bReplaceAllAndClose)
-      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
-    if (bSaveInReadOnlyMsg)
-      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -15058,12 +15036,6 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         nDefaultNewLine=NEWLINE_UNIX;
       else if (SendMessage(hWndDefaultNewLineMac, BM_GETCHECK, 0, 0) == BST_CHECKED)
         nDefaultNewLine=NEWLINE_MAC;
-
-      //ReplaceAll and close dialog
-      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
-
-      //Save in read only file message
-      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
@@ -15829,7 +15801,7 @@ BOOL CALLBACK OptionsRegistryDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
   return FALSE;
 }
 
-BOOL CALLBACK OptionsEditor1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndMarginLeft;
   static HWND hWndMarginLeftSpin;
@@ -15998,7 +15970,7 @@ BOOL CALLBACK OptionsEditor1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   return FALSE;
 }
 
-BOOL CALLBACK OptionsEditor1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndMarginLeft;
   static HWND hWndMarginLeftSpin;
@@ -16164,7 +16136,7 @@ BOOL CALLBACK OptionsEditor1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   return FALSE;
 }
 
-BOOL CALLBACK OptionsEditor2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndShowURL;
   static HWND hWndSingleClickURL;
@@ -16173,6 +16145,8 @@ BOOL CALLBACK OptionsEditor2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndUrlPrefixes;
   static HWND hWndUrlDelimitersEnable;
   static HWND hWndUrlDelimiters;
+  static HWND hWndReplaceAllAndClose;
+  static HWND hWndSaveInReadOnlyMsg;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
@@ -16184,6 +16158,8 @@ BOOL CALLBACK OptionsEditor2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndUrlPrefixes=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES);
     hWndUrlDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS_ENABLE);
     hWndUrlDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS);
+    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
+    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
     if (bShowURL)
       SendMessage(hWndShowURL, BM_SETCHECK, BST_CHECKED, 0);
@@ -16207,6 +16183,10 @@ BOOL CALLBACK OptionsEditor2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     SetWindowTextA(hWndUrlDelimiters, buf2);
     SendMessage(hWndUrlDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
 
+    if (bReplaceAllAndClose)
+      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
+    if (bSaveInReadOnlyMsg)
+      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
     PostMessage(hDlg, WM_COMMAND, IDC_OPTIONS_URL_SHOW, 0);
   }
   else if (uMsg == WM_COMMAND)
@@ -16284,12 +16264,18 @@ BOOL CALLBACK OptionsEditor2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
       else
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)NULL);
+
+      //ReplaceAll and close dialog
+      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
+
+      //Save in read only file message
+      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
 }
 
-BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndShowURL;
   static HWND hWndSingleClickURL;
@@ -16298,6 +16284,8 @@ BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndUrlPrefixes;
   static HWND hWndUrlDelimitersEnable;
   static HWND hWndUrlDelimiters;
+  static HWND hWndReplaceAllAndClose;
+  static HWND hWndSaveInReadOnlyMsg;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
@@ -16309,6 +16297,8 @@ BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndUrlPrefixes=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES);
     hWndUrlDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS_ENABLE);
     hWndUrlDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS);
+    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
+    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
     if (bShowURL)
       SendMessage(hWndShowURL, BM_SETCHECK, BST_CHECKED, 0);
@@ -16330,6 +16320,10 @@ BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     SetWindowTextW(hWndUrlDelimiters, wbuf);
     SendMessage(hWndUrlDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
 
+    if (bReplaceAllAndClose)
+      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
+    if (bSaveInReadOnlyMsg)
+      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
     PostMessage(hDlg, WM_COMMAND, IDC_OPTIONS_URL_SHOW, 0);
   }
   else if (uMsg == WM_COMMAND)
@@ -16405,6 +16399,12 @@ BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
       else
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)NULL);
+
+      //ReplaceAll and close dialog
+      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
+
+      //Save in read only file message
+      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
