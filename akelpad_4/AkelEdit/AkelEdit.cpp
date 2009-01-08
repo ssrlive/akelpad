@@ -8627,8 +8627,10 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
     //Force left-top to right-bottom selection
     if (bColumnSel)
     {
-      ciDeleteStart.nCharInLine=min(ciDeleteStart.nCharInLine, ciDeleteStart.lpLine->nSelStart);
-      ciDeleteEnd.nCharInLine=max(ciDeleteEnd.nCharInLine, ciDeleteEnd.lpLine->nSelEnd);
+      if (ciDeleteStart.lpLine->nSelStart != ciDeleteStart.lpLine->nSelEnd)
+        ciDeleteStart.nCharInLine=min(ciDeleteStart.nCharInLine, ciDeleteStart.lpLine->nSelStart);
+      if (ciDeleteEnd.lpLine->nSelStart != ciDeleteEnd.lpLine->nSelEnd)
+        ciDeleteEnd.nCharInLine=max(ciDeleteEnd.nCharInLine, ciDeleteEnd.lpLine->nSelEnd);
     }
 
     nStartOffset=AE_AkelIndexToRichOffset(ae, &ciDeleteStart);
