@@ -875,7 +875,7 @@ BOOL DoFilePrintA(BOOL bSilent)
       SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMax);
     }
 
-    if (ExGetRangeTextA(hWndEdit, &cr.ciMin, &cr.ciMax, -1, &szBuffer, AELB_RN))
+    if (ExGetRangeTextA(hWndEdit, &cr.ciMin, &cr.ciMax, -1, &szBuffer, AELB_RN, TRUE))
     {
       pText=szBuffer;
 
@@ -1017,7 +1017,7 @@ BOOL DoFilePrintW(BOOL bSilent)
       SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMax);
     }
 
-    if (ExGetRangeTextW(hWndEdit, &cr.ciMin, &cr.ciMax, -1, &wszBuffer, AELB_RN))
+    if (ExGetRangeTextW(hWndEdit, &cr.ciMin, &cr.ciMax, -1, &wszBuffer, AELB_RN, TRUE))
     {
       wpText=wszBuffer;
 
@@ -1458,7 +1458,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
 
   if (IsReadOnly()) return FALSE;
 
-  if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszRange, AELB_ASIS))
+  if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszRange, AELB_ASIS, TRUE))
   {
     bDelete=TRUE;
     a=0, b=0;
@@ -1532,7 +1532,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
     bSelection=TRUE;
   }
 
-  if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszRange, AELB_ASIS))
+  if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszRange, AELB_ASIS, TRUE))
   {
     for (a=0, b=0; b < nRangeLen; wszRange[a++]=wszRange[b++])
     {
@@ -1603,7 +1603,7 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     bSelection=TRUE;
   }
 
-  if (nRangeLen=ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &szRange, AELB_ASIS))
+  if (nRangeLen=ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &szRange, AELB_ASIS, TRUE))
   {
     pStart=szRange;
     pEnd=pStart + nRangeLen;
@@ -1715,7 +1715,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     bSelection=TRUE;
   }
 
-  if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszRange, AELB_ASIS))
+  if (nRangeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszRange, AELB_ASIS, TRUE))
   {
     wpStart=wszRange;
     wpEnd=wpStart + nRangeLen;
@@ -8447,7 +8447,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else
     {
-      if (ExGetRangeTextA(hWndEdit, &crSel.ciMin, &crSel.ciMax, FALSE, &szData, AELB_R))
+      if (ExGetRangeTextA(hWndEdit, &crSel.ciMin, &crSel.ciMax, FALSE, &szData, AELB_R, FALSE))
       {
         SetWindowTextA(hWndFind, szData);
         FreeText((LPVOID)szData);
@@ -8851,7 +8851,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else
     {
-      if (ExGetRangeTextW(hWndEdit, &crSel.ciMin, &crSel.ciMax, FALSE, &wszData, AELB_R))
+      if (ExGetRangeTextW(hWndEdit, &crSel.ciMin, &crSel.ciMax, FALSE, &wszData, AELB_R, FALSE))
       {
         SetWindowTextW(hWndFind, wszData);
         FreeText((LPVOID)wszData);
@@ -9639,7 +9639,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
     }
     else return FALSE;
 
-    if (nRangeTextLen=ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szRangeText, AELB_R))
+    if (nRangeTextLen=ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szRangeText, AELB_R, TRUE))
     {
       if (StrReplaceA(szRangeText, nRangeTextLen, pFindIt, nFindItLen, pReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nResultTextLen, NULL, NULL, NULL))
       {
@@ -9794,7 +9794,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
     }
     else return FALSE;
 
-    if (nRangeTextLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszRangeText, AELB_R))
+    if (nRangeTextLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszRangeText, AELB_R, TRUE))
     {
       if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nResultTextLen, NULL, NULL, NULL))
       {
@@ -10303,7 +10303,7 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
   return 0;
 }
 
-int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine)
+int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces)
 {
   AETEXTRANGEA tr;
   int nLen;
@@ -10317,6 +10317,7 @@ int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
   tr.pBuffer=NULL;
   tr.dwBufferMax=(DWORD)-1;
   tr.nNewLine=nNewLine;
+  tr.bFillSpaces=bFillSpaces;
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
   {
@@ -10329,7 +10330,7 @@ int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
   return nLen;
 }
 
-int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine)
+int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine, BOOL bFillSpaces)
 {
   AETEXTRANGEW tr;
   int nLen;
@@ -10343,6 +10344,7 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
   tr.wpBuffer=NULL;
   tr.dwBufferMax=(DWORD)-1;
   tr.nNewLine=nNewLine;
+  tr.bFillSpaces=bFillSpaces;
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
   {
@@ -11304,7 +11306,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
     bSelection=TRUE;
   }
 
-  if (nUnicodeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszSelText, AELB_ASIS))
+  if (nUnicodeLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &wszSelText, AELB_ASIS, TRUE))
   {
     nAnsiLen=WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, NULL, 0, NULL, NULL);
 

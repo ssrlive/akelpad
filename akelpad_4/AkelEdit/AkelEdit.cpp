@@ -398,13 +398,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-        return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &tr->cr.ciMin, &tr->cr.ciMax, tr->pBuffer, tr->dwBufferMax, tr->nNewLine, tr->bColumnSel, FALSE);
+        return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &tr->cr.ciMin, &tr->cr.ciMax, tr->pBuffer, tr->dwBufferMax, tr->nNewLine, tr->bColumnSel, tr->bFillSpaces);
       }
       if (uMsg == AEM_GETTEXTRANGEW)
       {
         AETEXTRANGEW *tr=(AETEXTRANGEW *)lParam;
 
-        return AE_GetTextRange(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->wpBuffer, tr->dwBufferMax, tr->nNewLine, tr->bColumnSel, FALSE);
+        return AE_GetTextRange(ae, &tr->cr.ciMin, &tr->cr.ciMax, tr->wpBuffer, tr->dwBufferMax, tr->nNewLine, tr->bColumnSel, tr->bFillSpaces);
       }
       if (uMsg == AEM_STREAMIN)
       {
