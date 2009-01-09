@@ -814,6 +814,11 @@ BOOL DoFilePrintA(BOOL bSilent)
   }
   else
   {
+    if (chrg.cpMin == chrg.cpMax)
+      pdA.Flags|=PD_NOSELECTION;
+    else
+      pdA.Flags&=~PD_NOSELECTION;
+
     if (!PrintDlgA(&pdA)) return FALSE;
     psdPageA.hDevMode=pdA.hDevMode;
     psdPageA.hDevNames=pdA.hDevNames;
@@ -957,6 +962,11 @@ BOOL DoFilePrintW(BOOL bSilent)
   }
   else
   {
+    if (chrg.cpMin == chrg.cpMax)
+      pdW.Flags|=PD_NOSELECTION;
+    else
+      pdW.Flags&=~PD_NOSELECTION;
+
     if (!PrintDlgW(&pdW)) return FALSE;
     psdPageW.hDevMode=pdW.hDevMode;
     psdPageW.hDevNames=pdW.hDevNames;
