@@ -386,17 +386,21 @@ typedef struct _WNDFRAMEA {
   LOGFONTA lf;
   AECOLORS aec;
   FILETIME ft;
+  DWORD dwEditMargins;
   int nTabStopSize;
   BOOL bTabStopAsSpaces;
   int nUndoLimit;
   BOOL bDetailedUndo;
-  DWORD dwEditMargins;
-  BOOL bWordDelimitersEnable;
-  BOOL bShowURL;
-  BOOL bUrlPrefixesEnable;
-  BOOL bUrlDelimitersEnable;
   BOOL bCaretOutEdge;
   BOOL bCaretVertLine;
+  int nCaretWidth;
+  BOOL bWordDelimitersEnable;
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
+  BOOL bShowURL;
+  BOOL bUrlPrefixesEnable;
+  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];
+  BOOL bUrlDelimitersEnable;
+  wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -406,17 +410,21 @@ typedef struct _WNDFRAMEW {
   LOGFONTW lf;
   AECOLORS aec;
   FILETIME ft;
+  DWORD dwEditMargins;
   int nTabStopSize;
   BOOL bTabStopAsSpaces;
   int nUndoLimit;
   BOOL bDetailedUndo;
-  DWORD dwEditMargins;
-  BOOL bWordDelimitersEnable;
-  BOOL bShowURL;
-  BOOL bUrlPrefixesEnable;
-  BOOL bUrlDelimitersEnable;
   BOOL bCaretOutEdge;
   BOOL bCaretVertLine;
+  int nCaretWidth;
+  BOOL bWordDelimitersEnable;
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
+  BOOL bShowURL;
+  BOOL bUrlPrefixesEnable;
+  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];
+  BOOL bUrlDelimitersEnable;
+  wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
