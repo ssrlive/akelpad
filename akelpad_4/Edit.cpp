@@ -3751,6 +3751,8 @@ void RegReadSearchA()
     {
       if (RegQueryValueExA(hKey, "find0", NULL, &dwType, (LPBYTE)szFindText_orig, &dwSize) == ERROR_SUCCESS)
       {
+        nFindTextLen=dwSize / sizeof(wchar_t) - 1;
+
         if (ftflags & AEFR_ESCAPESEQ)
         {
           if (szFindText=(char *)API_HeapAlloc(hHeap, 0, dwSize + 1))
@@ -3779,6 +3781,8 @@ void RegReadSearchW()
     {
       if (RegQueryValueExW(hKey, L"find0", NULL, &dwType, (LPBYTE)wszFindText_orig, &dwSize) == ERROR_SUCCESS)
       {
+        nFindTextLen=dwSize / sizeof(wchar_t) - 1;
+
         if (ftflags & AEFR_ESCAPESEQ)
         {
           if (wszFindText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize + 2))
