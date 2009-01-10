@@ -838,6 +838,12 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_DLGPREV             4424  //Activate previous dialog window
                                               //Return Value: activated dialog handle
                                               //
+#define IDM_NONMENU_AUTOINDENT          4425  //Insert new line with keeping left spaces
+                                              //Return Value: TRUE - inserted with spaces, FALSE - inserted without spaces
+                                              //
+#define IDM_NONMENU_SAVEAS_UTF8_NOBOM   4426  //Save file as UTF8 without BOM
+                                              //Return Value: see ESD_* defines
+                                              //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files
                                               //5001 + n  open recent file n
                                               //Return Value: zero
