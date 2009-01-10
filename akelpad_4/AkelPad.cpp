@@ -261,28 +261,26 @@ BOOL bSingleOpenFile=FALSE;
 BOOL bSingleOpenProgram=TRUE;
 BOOL bKeepSpace=FALSE;
 int nLoopCase=0;
+DWORD dwEditMargins=EDIT_MARGINS;
 int nTabStopSize=EDIT_TABSTOPS;
 BOOL bTabStopAsSpaces=FALSE;
 int nUndoLimit=EDIT_UNDOLIMIT;
 BOOL bDetailedUndo=FALSE;
-DWORD dwEditMargins=EDIT_MARGINS;
+BOOL bCaretOutEdge=FALSE;
+BOOL bCaretVertLine=FALSE;
+int nCaretWidth=1;
+wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE]=WORD_DELIMITERSW;
+BOOL bWordDelimitersEnable=TRUE;
+DWORD dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
+DWORD dwDefaultWordBreak=0;
 BOOL bShowURL=FALSE;
 int nClickURL=2;
 wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE]=URL_PREFIXESW;
 BOOL bUrlPrefixesEnable=FALSE;
 wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE]=URL_DELIMITERSW;
 BOOL bUrlDelimitersEnable=FALSE;
-BOOL bCaretOutEdge=FALSE;
-BOOL bCaretVertLine=FALSE;
-int nCaretWidth=1;
 FILETIME ftFileTime={0};
 WNDPROC OldEditProc;
-
-//Word breaking
-wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE]=WORD_DELIMITERSW;
-BOOL bWordDelimitersEnable=TRUE;
-DWORD dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
-DWORD dwDefaultWordBreak=0;
 
 //Execute
 char szCommand[BUFFER_SIZE]="";
@@ -5445,21 +5443,25 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->ei.bWordWrap=bWordWrap;
       lpWndFrameA->ei.bInsertState=FALSE;
       memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+      memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
+      memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
+      memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
 
       lpWndFrameA->aec=aecColors;
       lpWndFrameA->ft.dwLowDateTime=0;
       lpWndFrameA->ft.dwHighDateTime=0;
+      lpWndFrameA->dwEditMargins=dwEditMargins;
       lpWndFrameA->nTabStopSize=nTabStopSize;
       lpWndFrameA->bTabStopAsSpaces=bTabStopAsSpaces;
       lpWndFrameA->nUndoLimit=nUndoLimit;
       lpWndFrameA->bDetailedUndo=bDetailedUndo;
-      lpWndFrameA->dwEditMargins=dwEditMargins;
+      lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
+      lpWndFrameA->bCaretVertLine=bCaretVertLine;
+      lpWndFrameA->nCaretWidth=nCaretWidth;
       lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
       lpWndFrameA->bShowURL=bShowURL;
       lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
-      lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
-      lpWndFrameA->bCaretVertLine=bCaretVertLine;
       SetWindowLongA(hWnd, GWL_USERDATA, (LONG)lpWndFrameA);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5576,20 +5578,24 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->ei.bWordWrap=bWordWrap;
             lpWndFrameA->ei.bInsertState=bInsertState;
             memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+            memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
+            memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
+            memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
 
             lpWndFrameA->aec=aecColors;
             lpWndFrameA->ft=ftFileTime;
+            lpWndFrameA->dwEditMargins=dwEditMargins;
             lpWndFrameA->nTabStopSize=nTabStopSize;
             lpWndFrameA->bTabStopAsSpaces=bTabStopAsSpaces;
             lpWndFrameA->nUndoLimit=nUndoLimit;
             lpWndFrameA->bDetailedUndo=bDetailedUndo;
-            lpWndFrameA->dwEditMargins=dwEditMargins;
+            lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
+            lpWndFrameA->bCaretVertLine=bCaretVertLine;
+            lpWndFrameA->nCaretWidth=nCaretWidth;
             lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
             lpWndFrameA->bShowURL=bShowURL;
             lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
-            lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
-            lpWndFrameA->bCaretVertLine=bCaretVertLine;
           }
         }
         //Handles
@@ -5608,20 +5614,24 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bWordWrap=lpWndFrameA->ei.bWordWrap;
           SetInsertStateStatusA(NULL, lpWndFrameA->ei.bInsertState, FALSE);
           memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
+          memcpy(wszWordDelimiters, &lpWndFrameA->wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
+          memcpy(wszUrlPrefixes, &lpWndFrameA->wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
+          memcpy(wszUrlDelimiters, &lpWndFrameA->wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
 
           aecColors=lpWndFrameA->aec;
           ftFileTime=lpWndFrameA->ft;
           nTabStopSize=lpWndFrameA->nTabStopSize;
+          dwEditMargins=lpWndFrameA->dwEditMargins;
           bTabStopAsSpaces=lpWndFrameA->bTabStopAsSpaces;
           nUndoLimit=lpWndFrameA->nUndoLimit;
           bDetailedUndo=lpWndFrameA->bDetailedUndo;
-          dwEditMargins=lpWndFrameA->dwEditMargins;
+          bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
+          bCaretVertLine=lpWndFrameA->bCaretVertLine;
+          nCaretWidth=lpWndFrameA->nCaretWidth;
           bWordDelimitersEnable=lpWndFrameA->bWordDelimitersEnable;
           bShowURL=lpWndFrameA->bShowURL;
           bUrlPrefixesEnable=lpWndFrameA->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameA->bUrlDelimitersEnable;
-          bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
-          bCaretVertLine=lpWndFrameA->bCaretVertLine;
         }
 
         //Update selection
@@ -5678,21 +5688,25 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->ei.bWordWrap=bWordWrap;
       lpWndFrameW->ei.bInsertState=FALSE;
       memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+      memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
+      memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
+      memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
 
       lpWndFrameW->aec=aecColors;
       lpWndFrameW->ft.dwLowDateTime=0;
       lpWndFrameW->ft.dwHighDateTime=0;
+      lpWndFrameW->dwEditMargins=dwEditMargins;
       lpWndFrameW->nTabStopSize=nTabStopSize;
       lpWndFrameW->bTabStopAsSpaces=bTabStopAsSpaces;
       lpWndFrameW->nUndoLimit=nUndoLimit;
       lpWndFrameW->bDetailedUndo=bDetailedUndo;
-      lpWndFrameW->dwEditMargins=dwEditMargins;
+      lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
+      lpWndFrameW->bCaretVertLine=bCaretVertLine;
+      lpWndFrameW->nCaretWidth=nCaretWidth;
       lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
       lpWndFrameW->bShowURL=bShowURL;
       lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
-      lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
-      lpWndFrameW->bCaretVertLine=bCaretVertLine;
       SetWindowLongW(hWnd, GWL_USERDATA, (LONG)lpWndFrameW);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5809,20 +5823,24 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->ei.bWordWrap=bWordWrap;
             lpWndFrameW->ei.bInsertState=bInsertState;
             memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+            memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
+            memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
+            memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
 
             lpWndFrameW->aec=aecColors;
             lpWndFrameW->ft=ftFileTime;
+            lpWndFrameW->dwEditMargins=dwEditMargins;
             lpWndFrameW->nTabStopSize=nTabStopSize;
             lpWndFrameW->bTabStopAsSpaces=bTabStopAsSpaces;
             lpWndFrameW->nUndoLimit=nUndoLimit;
             lpWndFrameW->bDetailedUndo=bDetailedUndo;
-            lpWndFrameW->dwEditMargins=dwEditMargins;
+            lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
+            lpWndFrameW->bCaretVertLine=bCaretVertLine;
+            lpWndFrameW->nCaretWidth=nCaretWidth;
             lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
             lpWndFrameW->bShowURL=bShowURL;
             lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
-            lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
-            lpWndFrameW->bCaretVertLine=bCaretVertLine;
           }
         }
         //Handles
@@ -5841,20 +5859,24 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bWordWrap=lpWndFrameW->ei.bWordWrap;
           SetInsertStateStatusW(NULL, lpWndFrameW->ei.bInsertState, FALSE);
           memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
+          memcpy(wszWordDelimiters, &lpWndFrameW->wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
+          memcpy(wszUrlPrefixes, &lpWndFrameW->wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
+          memcpy(wszUrlDelimiters, &lpWndFrameW->wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
 
           aecColors=lpWndFrameW->aec;
           ftFileTime=lpWndFrameW->ft;
+          dwEditMargins=lpWndFrameW->dwEditMargins;
           nTabStopSize=lpWndFrameW->nTabStopSize;
           bTabStopAsSpaces=lpWndFrameW->bTabStopAsSpaces;
           nUndoLimit=lpWndFrameW->nUndoLimit;
           bDetailedUndo=lpWndFrameW->bDetailedUndo;
-          dwEditMargins=lpWndFrameW->dwEditMargins;
+          bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
+          bCaretVertLine=lpWndFrameW->bCaretVertLine;
+          nCaretWidth=lpWndFrameW->nCaretWidth;
           bWordDelimitersEnable=lpWndFrameW->bWordDelimitersEnable;
           bShowURL=lpWndFrameW->bShowURL;
           bUrlPrefixesEnable=lpWndFrameW->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameW->bUrlDelimitersEnable;
-          bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
-          bCaretVertLine=lpWndFrameW->bCaretVertLine;
         }
 
         //Update selection

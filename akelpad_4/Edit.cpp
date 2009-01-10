@@ -239,28 +239,26 @@ extern BOOL bSingleOpenFile;
 extern BOOL bSingleOpenProgram;
 extern BOOL bKeepSpace;
 extern int nLoopCase;
+extern DWORD dwEditMargins;
 extern int nTabStopSize;
 extern BOOL bTabStopAsSpaces;
 extern int nUndoLimit;
 extern BOOL bDetailedUndo;
-extern DWORD dwEditMargins;
+extern BOOL bCaretOutEdge;
+extern BOOL bCaretVertLine;
+extern int nCaretWidth;
+extern wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
+extern BOOL bWordDelimitersEnable;
+extern DWORD dwCustomWordBreak;
+extern DWORD dwDefaultWordBreak;
 extern BOOL bShowURL;
 extern int nClickURL;
 extern wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];
 extern BOOL bUrlPrefixesEnable;
 extern wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];
 extern BOOL bUrlDelimitersEnable;
-extern BOOL bCaretOutEdge;
-extern BOOL bCaretVertLine;
-extern int nCaretWidth;
 extern FILETIME ftFileTime;
 extern WNDPROC OldEditProc;
-
-//Word breaking
-extern wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
-extern BOOL bWordDelimitersEnable;
-extern DWORD dwCustomWordBreak;
-extern DWORD dwDefaultWordBreak;
 
 //Execute
 extern char szCommand[BUFFER_SIZE];

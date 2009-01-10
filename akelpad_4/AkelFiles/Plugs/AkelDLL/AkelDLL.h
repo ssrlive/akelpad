@@ -10,6 +10,11 @@
 #define ID_TAB            10003
 #define ID_FIRSTMDI       10010
 
+//Sizes
+#define WORD_DELIMITERS_SIZE    128
+#define URL_PREFIXES_SIZE       128
+#define URL_DELIMITERS_SIZE     128
+
 //Plugin call error
 #define EDL_FAILED                 0  //Operation failed
 #define EDL_UNLOADED               1  //Plugin unloaded
@@ -202,43 +207,51 @@ typedef struct _EDITINFO {
 } EDITINFO;
 
 typedef struct _WNDFRAMEA {
-  HICON hIcon;                //Frame icon
-  char szFile[MAX_PATH];      //Frame file
-  EDITINFO ei;                //Edit info
-  LOGFONTA lf;                //Edit font
-  AECOLORS aec;               //Edit colors
-  FILETIME ft;                //File time
-  int nTabStopSize;           //Tab stop size
-  BOOL bTabStopAsSpaces;      //Insert tab stop as spaces
-  int nUndoLimit;             //Undo limit
-  BOOL bDetailedUndo;         //Detailed undo
-  DWORD dwEditMargins;        //Edit margins
-  BOOL bWordDelimitersEnable; //Delimiters enabled
-  BOOL bShowURL;              //Show URL
-  BOOL bUrlPrefixesEnable;    //URL prefixes enable (4.x only)
-  BOOL bUrlDelimitersEnable;  //URL delimiters enable (4.x only)
-  BOOL bCaretOutEdge;         //Allow caret moving out of the line edge (4.x only)
-  BOOL bCaretVertLine;        //Draw caret vertical line (4.x only)
+  HICON hIcon;                                      //Frame icon
+  char szFile[MAX_PATH];                            //Frame file
+  EDITINFO ei;                                      //Edit info
+  LOGFONTA lf;                                      //Edit font
+  AECOLORS aec;                                     //Edit colors
+  FILETIME ft;                                      //File time
+  DWORD dwEditMargins;                              //Edit margins
+  int nTabStopSize;                                 //Tab stop size
+  BOOL bTabStopAsSpaces;                            //Insert tab stop as spaces
+  int nUndoLimit;                                   //Undo limit
+  BOOL bDetailedUndo;                               //Detailed undo
+  BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
+  BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
+  int nCaretWidth;                                  //Caret width (4.x only)
+  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
+  BOOL bShowURL;                                    //Show URL
+  BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
+  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
+  BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
+  wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
-  HICON hIcon;                //Frame icon
-  wchar_t wszFile[MAX_PATH];  //Frame file
-  EDITINFO ei;                //Edit info
-  LOGFONTW lf;                //Edit font
-  AECOLORS aec;               //Edit colors
-  FILETIME ft;                //File time
-  int nTabStopSize;           //Tab stop size
-  BOOL bTabStopAsSpaces;      //Insert tab stop as spaces
-  int nUndoLimit;             //Undo limit
-  BOOL bDetailedUndo;         //Detailed undo
-  DWORD dwEditMargins;        //Edit margins
-  BOOL bWordDelimitersEnable; //Delimiters enabled
-  BOOL bShowURL;              //Show URL
-  BOOL bUrlPrefixesEnable;    //URL prefixes enable (4.x only)
-  BOOL bUrlDelimitersEnable;  //URL delimiters enable (4.x only)
-  BOOL bCaretOutEdge;         //Allow caret moving out of the line edge (4.x only)
-  BOOL bCaretVertLine;        //Draw caret vertical line (4.x only)
+  HICON hIcon;                                      //Frame icon
+  wchar_t wszFile[MAX_PATH];                        //Frame file
+  EDITINFO ei;                                      //Edit info
+  LOGFONTW lf;                                      //Edit font
+  AECOLORS aec;                                     //Edit colors
+  FILETIME ft;                                      //File time
+  DWORD dwEditMargins;                              //Edit margins
+  int nTabStopSize;                                 //Tab stop size
+  BOOL bTabStopAsSpaces;                            //Insert tab stop as spaces
+  int nUndoLimit;                                   //Undo limit
+  BOOL bDetailedUndo;                               //Detailed undo
+  BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
+  BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
+  int nCaretWidth;                                  //Caret width (4.x only)
+  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
+  BOOL bShowURL;                                    //Show URL
+  BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
+  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
+  BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
+  wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
