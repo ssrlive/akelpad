@@ -69,7 +69,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Insereazã un Caracter\tCtrl+I", IDM_EDIT_INSERTCHAR
         MENUITEM "Ins&ereazã Data\tCtrl+D",     IDM_EDIT_INSERTDATE
-        POPUP "&Selecþie"
+        POPUP "Textul &Selectat"
         BEGIN
             MENUITEM "Indenteazã cu Ta&bulatorul\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
@@ -536,11 +536,11 @@ BEGIN
     LTEXT           "Tampon:",IDC_STATIC,170,110,37,8
     EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,121,40,13,
                     ES_NUMBER
-    LTEXT           "Codpaginã Implicitã:",IDC_STATIC,12,150,150,8
+    LTEXT           "Codpaginã Implicitã (codepage):",IDC_STATIC,12,150,150,8
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,161,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Filtreazã",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
-    GROUPBOX        "Linienouã Implicitã (newline)",IDC_STATIC,9,190,200,33
+    GROUPBOX        "Formatul implicit de linienouã (newline)",IDC_STATIC,9,190,200,33
     CONTROL         "Windows",IDC_OPTIONS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,22,205,65,10
     CONTROL         "Unix",IDC_OPTIONS_NEWLINE_UNIX,"Button",
@@ -645,10 +645,10 @@ BEGIN
     CONTROL         "Detalii",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
     GROUPBOX        "Cursor",IDC_STATIC,9,130,200,60
-    CONTROL         "Permite mutarea cursorului în afara marginii textului",
+    CONTROL         "Permite plasarea cursorului dincolo de limita textului",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Liniuþa verticalã a cursorului",
+    CONTROL         "Aratã o linie punctatã verticalã pe direcþia cursorului",
                     IDC_OPTIONS_CARETVERTLINE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,155,185,10
     RTEXT           "Lãþime:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
@@ -673,9 +673,9 @@ BEGIN
     GROUPBOX        "Legãturi",IDC_STATIC,9,6,200,120
     CONTROL         "Aratã",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,19,178,10
-    CONTROL         "Clic simplu",IDC_OPTIONS_URL_SINGLECLICK,"Button",
+    CONTROL         "Lanseazã cu clic simplu",IDC_OPTIONS_URL_SINGLECLICK,"Button",
                     BS_AUTORADIOBUTTON,23,33,172,10
-    CONTROL         "Clic dublu",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
+    CONTROL         "Lanseazã cu clic dublu",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
                     BS_AUTORADIOBUTTON,23,44,172,10
     CONTROL         "Prefixe:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,60,172,10
@@ -683,10 +683,10 @@ BEGIN
     CONTROL         "Delimitatoare:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,91,172,10
     EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,103,172,13,ES_AUTOHSCROLL
-    CONTROL         "Înlocuieºte Tot - închide dialogul",
+    CONTROL         "Înlocuieºte Tot : duce la închiderea dialogului de înlocuire",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,137,200,10
-    CONTROL         "Atenþionare la salvarea fiºierelor nemodificabile (doar-citire)",
+    CONTROL         "Avertizare la salvarea fiºierelor nemodificabile (doar-citire)",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,149,200,10
 END
@@ -857,7 +857,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Chirilic (ANSI, OEM, KOI8-R, UTF-8)"
     STR_AUTODETECT_ENGLISH  "Latin (OEM)"
-    STR_AUTODETECT_CHINESE  "Chinese (UTF-8)"
+    STR_AUTODETECT_CHINESE  "Chinez (UTF-8)"
 END
 
 STRINGTABLE DISCARDABLE 
