@@ -5443,9 +5443,9 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->ei.bWordWrap=bWordWrap;
       lpWndFrameA->ei.bInsertState=FALSE;
       memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-      memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
-      memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
-      memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
+      memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+      memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+      memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
       lpWndFrameA->aec=aecColors;
       lpWndFrameA->ft.dwLowDateTime=0;
@@ -5578,9 +5578,9 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->ei.bWordWrap=bWordWrap;
             lpWndFrameA->ei.bInsertState=bInsertState;
             memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-            memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
-            memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
-            memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
+            memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+            memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+            memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
             lpWndFrameA->aec=aecColors;
             lpWndFrameA->ft=ftFileTime;
@@ -5614,9 +5614,9 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bWordWrap=lpWndFrameA->ei.bWordWrap;
           SetInsertStateStatusA(NULL, lpWndFrameA->ei.bInsertState, FALSE);
           memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
-          memcpy(wszWordDelimiters, &lpWndFrameA->wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
-          memcpy(wszUrlPrefixes, &lpWndFrameA->wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
-          memcpy(wszUrlDelimiters, &lpWndFrameA->wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
+          memcpy(wszWordDelimiters, &lpWndFrameA->wszWordDelimiters, sizeof(wszWordDelimiters));
+          memcpy(wszUrlPrefixes, &lpWndFrameA->wszUrlPrefixes, sizeof(wszUrlPrefixes));
+          memcpy(wszUrlDelimiters, &lpWndFrameA->wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
           aecColors=lpWndFrameA->aec;
           ftFileTime=lpWndFrameA->ft;
@@ -5688,9 +5688,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->ei.bWordWrap=bWordWrap;
       lpWndFrameW->ei.bInsertState=FALSE;
       memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-      memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
-      memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
-      memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
+      memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+      memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+      memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
       lpWndFrameW->aec=aecColors;
       lpWndFrameW->ft.dwLowDateTime=0;
@@ -5823,9 +5823,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->ei.bWordWrap=bWordWrap;
             lpWndFrameW->ei.bInsertState=bInsertState;
             memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-            memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
-            memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
-            memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
+            memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+            memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+            memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
             lpWndFrameW->aec=aecColors;
             lpWndFrameW->ft=ftFileTime;
@@ -5859,9 +5859,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bWordWrap=lpWndFrameW->ei.bWordWrap;
           SetInsertStateStatusW(NULL, lpWndFrameW->ei.bInsertState, FALSE);
           memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
-          memcpy(wszWordDelimiters, &lpWndFrameW->wszWordDelimiters, sizeof(WORD_DELIMITERS_SIZE));
-          memcpy(wszUrlPrefixes, &lpWndFrameW->wszUrlPrefixes, sizeof(URL_PREFIXES_SIZE));
-          memcpy(wszUrlDelimiters, &lpWndFrameW->wszUrlDelimiters, sizeof(URL_DELIMITERS_SIZE));
+          memcpy(wszWordDelimiters, &lpWndFrameW->wszWordDelimiters, sizeof(wszWordDelimiters));
+          memcpy(wszUrlPrefixes, &lpWndFrameW->wszUrlPrefixes, sizeof(wszUrlPrefixes));
+          memcpy(wszUrlDelimiters, &lpWndFrameW->wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
           aecColors=lpWndFrameW->aec;
           ftFileTime=lpWndFrameW->ft;

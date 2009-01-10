@@ -3176,7 +3176,7 @@ void RegReadOptionsA()
   dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bWordDelimitersEnable, &dwSize);
 
-  dwSize=WORD_DELIMITERS_SIZE * sizeof(wchar_t);
+  dwSize=sizeof(wszWordDelimiters);
   RegQueryValueExA(hKey, "WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3191,13 +3191,13 @@ void RegReadOptionsA()
   dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "UrlPrefixesEnable", NULL, &dwType, (LPBYTE)&bUrlPrefixesEnable, &dwSize);
 
-  dwSize=URL_PREFIXES_SIZE * sizeof(wchar_t);
+  dwSize=sizeof(wszUrlPrefixes);
   RegQueryValueExA(hKey, "UrlPrefixes", NULL, &dwType, (LPBYTE)wszUrlPrefixes, &dwSize);
 
   dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "UrlDelimitersEnable", NULL, &dwType, (LPBYTE)&bUrlDelimitersEnable, &dwSize);
 
-  dwSize=URL_DELIMITERS_SIZE * sizeof(wchar_t);
+  dwSize=sizeof(wszUrlDelimiters);
   RegQueryValueExA(hKey, "UrlDelimiters", NULL, &dwType, (LPBYTE)wszUrlDelimiters, &dwSize);
 
   dwSize=sizeof(LOGFONTA) - LF_FACESIZE;
@@ -3386,7 +3386,7 @@ void RegReadOptionsW()
   dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bWordDelimitersEnable, &dwSize);
 
-  dwSize=WORD_DELIMITERS_SIZE * sizeof(wchar_t);
+  dwSize=sizeof(wszWordDelimiters);
   RegQueryValueExW(hKey, L"WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3401,13 +3401,13 @@ void RegReadOptionsW()
   dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"UrlPrefixesEnable", NULL, &dwType, (LPBYTE)&bUrlPrefixesEnable, &dwSize);
 
-  dwSize=URL_PREFIXES_SIZE * sizeof(wchar_t);
+  dwSize=sizeof(wszUrlPrefixes);
   RegQueryValueExW(hKey, L"UrlPrefixes", NULL, &dwType, (LPBYTE)wszUrlPrefixes, &dwSize);
 
   dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"UrlDelimitersEnable", NULL, &dwType, (LPBYTE)&bUrlDelimitersEnable, &dwSize);
 
-  dwSize=URL_DELIMITERS_SIZE * sizeof(wchar_t);
+  dwSize=sizeof(wszUrlDelimiters);
   RegQueryValueExW(hKey, L"UrlDelimiters", NULL, &dwType, (LPBYTE)wszUrlDelimiters, &dwSize);
 
   dwSize=sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t);
@@ -3520,14 +3520,14 @@ void IniReadOptionsA()
 
 
   IniGetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, WORD_DELIMITERS_SIZE * sizeof(wchar_t));
+  IniGetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, sizeof(wszWordDelimiters));
   IniGetValueA(&hIniStack, "Options", "WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, URL_PREFIXES_SIZE * sizeof(wchar_t));
+  IniGetValueA(&hIniStack, "Options", "UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, sizeof(wszUrlPrefixes));
   IniGetValueA(&hIniStack, "Options", "UrlDelimitersEnable", INI_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, URL_DELIMITERS_SIZE * sizeof(wchar_t));
+  IniGetValueA(&hIniStack, "Options", "UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, sizeof(wszUrlDelimiters));
   IniGetValueA(&hIniStack, "Options", "Font", INI_BINARY, (LPBYTE)&lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
   IniGetValueA(&hIniStack, "Options", "FontFace", INI_STRINGANSI, (LPBYTE)&lfEditFontA.lfFaceName, LF_FACESIZE);
   IniGetValueA(&hIniStack, "Options", "PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
@@ -3602,14 +3602,14 @@ void IniReadOptionsW()
   }
 
   IniGetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, WORD_DELIMITERS_SIZE * sizeof(wchar_t));
+  IniGetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, sizeof(wszWordDelimiters));
   IniGetValueW(&hIniStack, L"Options", L"WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, URL_PREFIXES_SIZE * sizeof(wchar_t));
+  IniGetValueW(&hIniStack, L"Options", L"UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, sizeof(wszUrlPrefixes));
   IniGetValueW(&hIniStack, L"Options", L"UrlDelimitersEnable", INI_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, URL_DELIMITERS_SIZE * sizeof(wchar_t));
+  IniGetValueW(&hIniStack, L"Options", L"UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, sizeof(wszUrlDelimiters));
   IniGetValueW(&hIniStack, L"Options", L"Font", INI_BINARY, (LPBYTE)&lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
   IniGetValueW(&hIniStack, L"Options", L"FontFace", INI_STRINGUNICODE, (LPBYTE)&lfEditFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
   IniGetValueW(&hIniStack, L"Options", L"PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
