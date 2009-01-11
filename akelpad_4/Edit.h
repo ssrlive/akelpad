@@ -391,6 +391,7 @@ typedef struct _WNDFRAMEA {
   BOOL bTabStopAsSpaces;
   int nUndoLimit;
   BOOL bDetailedUndo;
+  int nWrapType;
   BOOL bCaretOutEdge;
   BOOL bCaretVertLine;
   int nCaretWidth;
@@ -415,6 +416,7 @@ typedef struct _WNDFRAMEW {
   BOOL bTabStopAsSpaces;
   int nUndoLimit;
   BOOL bDetailedUndo;
+  int nWrapType;
   BOOL bCaretOutEdge;
   BOOL bCaretVertLine;
   int nCaretWidth;

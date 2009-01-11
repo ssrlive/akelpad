@@ -159,8 +159,8 @@
 
 //AEM_SETWORDWRAP flags
 #define AEWW_NONE            0  //Wrap is off.
-#define AEWW_SYMBOL          1  //Wrap by symbols.
-#define AEWW_WORD            2  //Wrap by words.
+#define AEWW_WORD            1  //Wrap by words.
+#define AEWW_SYMBOL          2  //Wrap by symbols.
 
 //AEM_SETWORDBREAK flags
 #define AEWB_LEFTWORDSTART   0x00000001  //Left movement is stopped, when word start is found.

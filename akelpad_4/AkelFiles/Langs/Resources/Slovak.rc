@@ -632,20 +632,25 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,20,11,13
-    GROUPBOX        "Veækosù tabul·tora",IDC_STATIC,9,46,120,34
+    GROUPBOX        "Veækosù tabul·tora",IDC_STATIC,9,46,105,34
     EDITTEXT        IDC_OPTIONS_TABSIZE,18,60,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_TABSIZE_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,60,
                     11,13
     CONTROL         "&Medzier",IDC_OPTIONS_TABSIZE_SPACES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,62,50,10
-    GROUPBOX        "Limit pre akciu Sp‰ù",IDC_STATIC,9,88,120,34
+    GROUPBOX        "Limit pre akciu Sp‰ù",IDC_STATIC,9,88,105,34
     EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,102,
                     11,13
     CONTROL         "Podro&bnÈ",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
+    GROUPBOX        "Wrap",IDC_STATIC,123,46,85,76
+    CONTROL         "By words",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
+                    BS_AUTORADIOBUTTON,135,69,70,10
+    CONTROL         "By symbols",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
+                    BS_AUTORADIOBUTTON,135,94,70,10
     GROUPBOX        "Caret",IDC_STATIC,9,130,200,60
     CONTROL         "Povoliù presun kurzora za hranice riadku",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 

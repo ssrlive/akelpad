@@ -7,6 +7,7 @@ Changed: after reopening document, text position is restored.
 Added: option for drawing caret vertical line.
 Added: option for setting caret width.
 Added: option for setting default newline format.
+Added: possibility to wrap lines by symbols.
 Added: possibility to specify null character \[0000] in "Esc-sequences".
 Added: Chinese recognition (UTF-8).
 Added: new line Drag'n'Drop.
