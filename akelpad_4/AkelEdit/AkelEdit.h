@@ -157,6 +157,11 @@
 #define AEFR_WHOLEWORD       0x00000002  //If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
 #define AEFR_MATCHCASE       0x00000004  //If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
 
+//AEM_SETWORDWRAP flags
+#define AEWW_NONE            0  //Wrap is off.
+#define AEWW_SYMBOL          1  //Wrap by symbols.
+#define AEWW_WORD            2  //Wrap by words.
+
 //AEM_SETWORDBREAK flags
 #define AEWB_LEFTWORDSTART   0x00000001  //Left movement is stopped, when word start is found.
 #define AEWB_LEFTWORDEND     0x00000002  //Left movement is stopped, when word end is found.
@@ -355,19 +360,19 @@ typedef struct {
 
 typedef struct {
   DWORD dwFlags;           //See AEFR_* defines
-  AECHARRANGE crSearch;    //Range of characters to search
   char *pText;             //Text to find
   DWORD dwTextLen;         //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;            //See AELB_* defines
+  AECHARRANGE crSearch;    //Range of characters to search
   AECHARRANGE crFound;     //Range of characters in which text is found
 } AEFINDTEXTA;
 
 typedef struct {
   DWORD dwFlags;           //See AEFR_* defines
-  AECHARRANGE crSearch;    //Range of characters to search
   wchar_t *wpText;         //Text to find
   DWORD dwTextLen;         //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;            //See AELB_* defines
+  AECHARRANGE crSearch;    //Range of characters to search
   AECHARRANGE crFound;     //Range of characters in which text is found
 } AEFINDTEXTW;
 
@@ -1149,6 +1154,24 @@ Example:
  SendMessage(hWndEdit, AEM_COPY, 0, 0);
 
 
+AEM_CHECKCODEPAGE
+_________________
+
+Check that the contents of an edit control can be converted to the specified code page.
+
+(int)wParam == code page to check.
+lParam      == not used.
+
+Return Value
+ Zero if successful, otherwise returns first met line number containing nonconverted character.
+
+Remarks
+ Windows 95 isn't supported.
+
+Example:
+ SendMessage(hWndEdit, AEM_CHECKCODEPAGE, 1251, 0);
+
+
 AEM_FINDTEXTA
 _____________
 
@@ -1165,12 +1188,12 @@ Example:
  AEFINDTEXTA ft;
  AESELECTION aes;
 
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
  ft.dwFlags=AEFR_DOWN;
  ft.pText="SomeText";
  ft.dwTextLen=(DWORD)-1;
  ft.nNewLine=AELB_ASIS;
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
 
  if (SendMessage(hWndEdit, AEM_FINDTEXTA, 0, (LPARAM)&ft))
  {
@@ -1196,12 +1219,12 @@ Example:
  AEFINDTEXTW ft;
  AESELECTION aes;
 
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
  ft.dwFlags=AEFR_DOWN;
  ft.wpText=L"SomeText";
  ft.dwTextLen=(DWORD)-1;
  ft.nNewLine=AELB_ASIS;
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
 
  if (SendMessage(hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft))
  {
@@ -1211,22 +1234,66 @@ Example:
  }
 
 
-AEM_CHECKCODEPAGE
-_________________
+AEM_ISMATCHA
+____________
 
-Check that the contents of an edit control can be converted to the specified code page.
+Is ansi text matched with text at specified position.
 
-(int)wParam == code page to check.
-lParam      == not used.
+(AECHARINDEX *)wParam == position to check from.
+(AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure.
 
 Return Value
- Zero if successful, otherwise returns first met line number containing nonconverted character.
-
-Remarks
- Windows 95 isn't supported.
+ TRUE   matched.
+ FALSE  not matched.
 
 Example:
- SendMessage(hWndEdit, AEM_CHECKCODEPAGE, 1251, 0);
+ AEFINDTEXTA ft;
+ AECHARINDEX ciChar;
+ AESELECTION aes;
+
+ ft.dwFlags=AEFR_MATCHCASE;
+ ft.pText="SomeText";
+ ft.dwTextLen=(DWORD)-1;
+ ft.nNewLine=AELB_ASIS;
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&ciChar);
+
+ if (SendMessage(hWndEdit, AEM_ISMATCHA, (WPARAM)&ciChar, (LPARAM)&ft))
+ {
+   aes.crSel=ft.crFound;
+   aes.bColumnSel=FALSE;
+   SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
+ }
+
+
+AEM_ISMATCHW
+____________
+
+Is unicode text matched with text at specified position.
+
+(AECHARINDEX *)wParam == position to check from.
+(AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure.
+
+Return Value
+ TRUE   matched.
+ FALSE  not matched.
+
+Example:
+ AEFINDTEXTW ft;
+ AECHARINDEX ciChar;
+ AESELECTION aes;
+
+ ft.dwFlags=AEFR_MATCHCASE;
+ ft.wpText=L"SomeText";
+ ft.dwTextLen=(DWORD)-1;
+ ft.nNewLine=AELB_ASIS;
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&ciChar);
+
+ if (SendMessage(hWndEdit, AEM_ISMATCHW, (WPARAM)&ciChar, (LPARAM)&ft))
+ {
+   aes.crSel=ft.crFound;
+   aes.bColumnSel=FALSE;
+   SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
+ }
 
 
 AEM_CANUNDO
@@ -2230,8 +2297,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- TRUE   control is in word wrap mode.
- FALSE  control is in non-wrap mode.
+ see AEWW_* defines.
 
 Example:
  SendMessage(hWndEdit, AEM_GETWORDWRAP, 0, 0);
@@ -2242,15 +2308,14 @@ ______________
 
 Set word wrap mode.
 
-(BOOL)wParam == TRUE   sets word wrap mode.
-                FALSE  disables word wrap mode.
+(int)wParam == see AEWW_* defines.
 lParam      == not used.
 
 Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_SETWORDWRAP, TRUE, 0);
+ SendMessage(hWndEdit, AEM_SETWORDWRAP, AEWW_WORD, 0);
 
 
 AEM_GETWORDDELIMITERS

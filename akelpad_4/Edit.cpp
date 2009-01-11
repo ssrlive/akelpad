@@ -2015,11 +2015,11 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
   if (bWordWrap)
   {
     SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
-    SendMessage(hWnd, AEM_SETWORDWRAP, TRUE, TRUE);
+    SendMessage(hWnd, AEM_SETWORDWRAP, AEWW_WORD, 0);
   }
   else
   {
-    SendMessage(hWnd, AEM_SETWORDWRAP, FALSE, TRUE);
+    SendMessage(hWnd, AEM_SETWORDWRAP, AEWW_NONE, 0);
     SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
   }
 }
