@@ -15972,7 +15972,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if (nWrapType != a)
       {
         nWrapType=a;
-        SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, 0);
+        if (bWordWrap) SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, 0);
       }
 
       //Allow caret moving out of the line edge
@@ -16158,7 +16158,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if (nWrapType != a)
       {
         nWrapType=a;
-        SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, 0);
+        if (bWordWrap) SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, 0);
       }
 
       //Allow caret moving out of the line edge
