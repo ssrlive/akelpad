@@ -860,6 +860,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (ae->nWordWrap != (int)wParam)
         {
+          if (wParam && ae->nWordWrap)
+            AE_UpdateWrap(ae, AEWW_NONE);
+
           ae->nWordWrap=wParam;
           AE_UpdateWrap(ae, ae->nWordWrap);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, lParam);
