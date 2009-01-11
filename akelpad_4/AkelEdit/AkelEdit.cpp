@@ -645,7 +645,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RECT *rcDraw=(RECT *)lParam;
 
         AE_SetDrawRect(ae, rcDraw, TRUE);
-        if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
+        if (ae->nWordWrap) AE_UpdateWrap(ae, ae->nWordWrap);
         AE_UpdateScrollBars(ae, SB_BOTH);
         return 0;
       }
@@ -752,7 +752,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             const WORD DotPattern[]={0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00};
             HBITMAP hBitmapCaretVert;
-      
+
             if (hBitmapCaretVert=CreateBitmap(8, 8, 1, 1, DotPattern))
             {
               ae->hCaretVert=CreatePatternBrush(hBitmapCaretVert);
@@ -847,21 +847,21 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
           AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
-          if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
+          if (ae->nWordWrap) AE_UpdateWrap(ae, ae->nWordWrap);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, lParam);
         }
         return 0;
       }
       if (uMsg == AEM_GETWORDWRAP)
       {
-        return ae->bWordWrap;
+        return ae->nWordWrap;
       }
       if (uMsg == AEM_SETWORDWRAP)
       {
-        if (ae->bWordWrap != (int)wParam)
+        if (ae->nWordWrap != (int)wParam)
         {
-          ae->bWordWrap=wParam;
-          AE_UpdateWrap(ae, ae->bWordWrap);
+          ae->nWordWrap=wParam;
+          AE_UpdateWrap(ae, ae->nWordWrap);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, lParam);
         }
         return 0;
@@ -890,7 +890,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_memcpy(ae->wszWrapDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
         else
           AE_memcpy(ae->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
-        if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
+        if (ae->nWordWrap) AE_UpdateWrap(ae, ae->nWordWrap);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         return 0;
       }
@@ -1432,11 +1432,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ft.dwFlags|=AEFR_MATCHCASE;
           if (wParam & FR_WHOLEWORD)
             ft.dwFlags|=AEFR_WHOLEWORD;
+          ft.pText=(char *)ftRE->lpstrText;
+          ft.dwTextLen=(DWORD)-1;
           ft.nNewLine=AELB_R;
           AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
           AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
-          ft.pText=(char *)ftRE->lpstrText;
-          ft.dwTextLen=(DWORD)-1;
 
           if (AE_FindTextAnsi(ae, CP_ACP, &ft))
           {
@@ -1465,11 +1465,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ft.dwFlags|=AEFR_MATCHCASE;
         if (wParam & FR_WHOLEWORD)
           ft.dwFlags|=AEFR_WHOLEWORD;
+        ft.wpText=(wchar_t *)ftRE->lpstrText;
+        ft.dwTextLen=(DWORD)-1;
         ft.nNewLine=AELB_R;
         AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMin, &ft.crSearch.ciMin);
         AE_RichOffsetToAkelIndex(ae, ftRE->chrg.cpMax, &ft.crSearch.ciMax);
-        ft.wpText=(wchar_t *)ftRE->lpstrText;
-        ft.dwTextLen=(DWORD)-1;
 
         if (AE_FindText(ae, &ft))
         {
@@ -1646,7 +1646,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
       AE_SetDrawRect(ae, lprcDraw, (uMsg == EM_SETRECT)?TRUE:FALSE);
-      if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
+      if (ae->nWordWrap) AE_UpdateWrap(ae, ae->nWordWrap);
       AE_UpdateScrollBars(ae, SB_BOTH);
       return 0;
     }
@@ -1740,7 +1740,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae));
       AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
-      if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
+      if (ae->nWordWrap) AE_UpdateWrap(ae, ae->nWordWrap);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, !lParam);
       return 0;
     }
@@ -1805,7 +1805,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (lParam)
       {
         AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
-        if (ae->bWordWrap) AE_UpdateWrap(ae, ae->bWordWrap);
+        if (ae->nWordWrap) AE_UpdateWrap(ae, ae->nWordWrap);
         AE_UpdateScrollBars(ae, SB_BOTH);
         AE_UpdateEditWindow(ae->hWndEdit, TRUE);
       }
@@ -4308,7 +4308,7 @@ BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar)
   return FALSE;
 }
 
-int AE_UpdateWrap(AKELEDIT *ae, BOOL bWrap)
+int AE_UpdateWrap(AKELEDIT *ae, int nWrap)
 {
   AECHARINDEX ciSelStart=ae->ciSelStartIndex;
   AECHARINDEX ciSelEnd=ae->ciSelEndIndex;
@@ -4322,7 +4322,7 @@ int AE_UpdateWrap(AKELEDIT *ae, BOOL bWrap)
   lpPointOne=AE_StackPointInsert(ae, &ciSelStart);
   lpPointTwo=AE_StackPointInsert(ae, &ciSelEnd);
   lpPointThree=AE_StackPointInsert(ae, &ciFirstVisibleLineAfterWrap);
-  nResult=AE_WrapLines(ae, NULL, NULL, bWrap);
+  nResult=AE_WrapLines(ae, NULL, NULL, nWrap);
   ciSelStart=lpPointOne->ciPoint;
   ciSelEnd=lpPointTwo->ciPoint;
   ciFirstVisibleLineAfterWrap=lpPointThree->ciPoint;
@@ -4339,7 +4339,7 @@ int AE_UpdateWrap(AKELEDIT *ae, BOOL bWrap)
   ae->ciSelStartIndex=ciSelStart;
   ae->ciSelEndIndex=ciSelEnd;
 
-  if (!bWrap)
+  if (!nWrap)
   {
     //Calculate max width line
     AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
@@ -4367,7 +4367,7 @@ int AE_UpdateWrap(AKELEDIT *ae, BOOL bWrap)
   return nResult;
 }
 
-int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, BOOL bWrap)
+int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, int nWrap)
 {
   AELINEINDEX liFirst;
   AELINEINDEX liCount;
@@ -4381,7 +4381,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   int nStopLine;
   BOOL bPrevLine=FALSE;
 
-  if (bWrap)
+  if (nWrap)
     dwMaxWidth=(ae->rcDraw.right - ae->rcDraw.left) - ae->nAveCharWidth;
   else
     dwMaxWidth=(DWORD)-1;
@@ -4429,14 +4429,14 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
 
   while (liCount.lpLine)
   {
-    if (bWrap)
+    if (nWrap)
     {
       if (liCount.lpLine->nLineWidth == -1)
         AE_GetLineWidth(ae, liCount.lpLine);
 
       if ((DWORD)liCount.lpLine->nLineWidth > dwMaxWidth)
       {
-        if (nWrapped=AE_LineWrap(ae, &liCount, (liCount.nLine == liFirst.nLine)?&liFirst:NULL, &liCount, dwMaxWidth))
+        if (nWrapped=AE_LineWrap(ae, &liCount, (liCount.nLine == liFirst.nLine)?&liFirst:NULL, &liCount, dwMaxWidth, nWrap))
         {
           nLineCount+=nWrapped;
         }
@@ -4451,7 +4451,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
 
         if (liCount.nLine == liFirst.nLine)
           liFirst.lpLine=liCount.lpLine;
-        if (bWrap) continue;
+        if (nWrap) continue;
       }
     }
 
@@ -4530,7 +4530,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   return nLineCount;
 }
 
-int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwMaxWidth)
+int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwMaxWidth, int nWrap)
 {
   AELINEINDEX liStart=*liLine;
   AELINEINDEX liEnd=*liLine;
@@ -4553,15 +4553,18 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
       nCharEnd+=nCharStart;
 
       //Find end of word
-      if (nCharEnd < lpInitialElement->nLineLen)
+      if (nWrap == AEWW_WORD)
       {
-        for (i=nCharEnd - 1; i >= nCharStart; --i)
+        if (nCharEnd < lpInitialElement->nLineLen)
         {
-          if (AE_IsInDelimiterList(ae->wszWrapDelimiters, lpInitialElement->wpLine[i]))
-            break;
+          for (i=nCharEnd - 1; i >= nCharStart; --i)
+          {
+            if (AE_IsInDelimiterList(ae->wszWrapDelimiters, lpInitialElement->wpLine[i]))
+              break;
+          }
+          if (i >= nCharStart)
+            nCharEnd=i + 1;
         }
-        if (i >= nCharStart)
-          nCharEnd=i + 1;
       }
 
       //Wrap
@@ -5548,10 +5551,16 @@ DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink)
 
 DWORD AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink)
 {
+  AEFINDTEXTW ft;
   AECHARINDEX ciCount;
   wchar_t wchChar='\0';
   int nPrefix;
   DWORD dwUrlLength=0;
+
+  ft.dwFlags=0;
+  ft.wpText=NULL;
+  ft.dwTextLen=(DWORD)-1;
+  ft.nNewLine=AELB_ASIS;
 
   //Find URL beginning (backward)
   ciCount=*ciChar;
@@ -5567,7 +5576,9 @@ DWORD AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, 
 
         for (nPrefix=0; ae->lpUrlPrefixes[nPrefix]; ++nPrefix)
         {
-          if (!AE_WideStrCmpLenI(ae->lpUrlPrefixes[nPrefix], ciCount.lpLine->wpLine + ciCount.nCharInLine, (DWORD)-1))
+          ft.wpText=ae->lpUrlPrefixes[nPrefix];
+
+          if (AE_IsMatch(ae, &ft, &ciCount))
           {
             if (ciCount.nCharInLine == 0)
             {
@@ -5919,7 +5930,7 @@ void SetCaretVis(AKELEDIT *ae, const POINT *ptCaret)
 
 void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret)
 {
-  if (ae->bWordWrap)
+  if (ae->nWordWrap)
   {
     if (ptCaret->x < ae->nHScrollPos)
     {
@@ -6021,7 +6032,7 @@ DWORD AE_ScrollToCaretEx(AKELEDIT *ae, const POINT *ptCaret, DWORD dwFlags, WORD
 
   if (x != -1)
   {
-    if (ae->bWordWrap)
+    if (ae->nWordWrap)
     {
       if (ptCaret->x < ae->nHScrollPos)
       {
@@ -8395,9 +8406,9 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
         if (!(ae->dwOptions & AECO_DISABLENOSCROLL))
           AE_UpdateScrollBars(ae, SB_VERT);
 
-        if (ae->bWordWrap)
+        if (ae->nWordWrap)
         {
-          ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
+          ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->nWordWrap);
 
           ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
           AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
@@ -8454,9 +8465,9 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
 
   if (hHeap)
   {
-    if (ae->bWordWrap)
+    if (ae->nWordWrap)
     {
-      ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->bWordWrap);
+      ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->nWordWrap);
 
       ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
       AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
@@ -8796,7 +8807,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
       lpPointTwo=AE_StackPointInsert(ae, &ciLastChar);
 
-      if (ae->bWordWrap)
+      if (ae->nWordWrap)
       {
         AELINEINDEX liWrapStart;
         AELINEINDEX liWrapEnd;
@@ -8805,7 +8816,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         liWrapStart.lpLine=ciFirstChar.lpLine;
         liWrapEnd.nLine=ciLastChar.nLine;
         liWrapEnd.lpLine=ciLastChar.lpLine;
-        nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->bWordWrap);
+        nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->nWordWrap);
         ciFirstChar=lpPointOne->ciPoint;
         ciLastChar=lpPointTwo->ciPoint;
 
@@ -9039,7 +9050,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
       lpPointTwo=AE_StackPointInsert(ae, &ciLastChar);
 
-      if (ae->bWordWrap)
+      if (ae->nWordWrap)
       {
         AELINEINDEX liWrapStart;
         AELINEINDEX liWrapEnd;
@@ -9048,7 +9059,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
         liWrapStart.lpLine=ciFirstChar.lpLine;
         liWrapEnd.nLine=ciLastChar.nLine;
         liWrapEnd.lpLine=ciLastChar.lpLine;
-        nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->bWordWrap);
+        nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->nWordWrap);
         ciFirstChar=lpPointOne->ciPoint;
         ciLastChar=lpPointTwo->ciPoint;
 
@@ -9472,7 +9483,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
           lpPointTwo=AE_StackPointInsert(ae, &ciLastChar);
 
-          if (ae->bWordWrap)
+          if (ae->nWordWrap)
           {
             AELINEINDEX liWrapStart;
             AELINEINDEX liWrapEnd;
@@ -9481,7 +9492,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
             liWrapStart.lpLine=ciFirstChar.lpLine;
             liWrapEnd.nLine=ciLastChar.nLine;
             liWrapEnd.lpLine=ciLastChar.lpLine;
-            nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->bWordWrap);
+            nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->nWordWrap);
             ciFirstChar=lpPointOne->ciPoint;
             ciLastChar=lpPointTwo->ciPoint;
 
@@ -9802,7 +9813,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
           lpPointTwo=AE_StackPointInsert(ae, &ciLastChar);
 
-          if (ae->bWordWrap)
+          if (ae->nWordWrap)
           {
             AELINEINDEX liWrapStart;
             AELINEINDEX liWrapEnd;
@@ -9811,7 +9822,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
             liWrapStart.lpLine=ciFirstChar.lpLine;
             liWrapEnd.nLine=ciLastChar.nLine;
             liWrapEnd.lpLine=ciLastChar.lpLine;
-            nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->bWordWrap);
+            nWrapCount=AE_WrapLines(ae, &liWrapStart, &liWrapEnd, ae->nWordWrap);
             ciFirstChar=lpPointOne->ciPoint;
             ciLastChar=lpPointTwo->ciPoint;
 
@@ -10286,10 +10297,10 @@ BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA)
     MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, wszText, dwUnicodeBytes / sizeof(wchar_t));
 
     ftW.dwFlags=ftA->dwFlags;
-    ftW.nNewLine=ftA->nNewLine;
-    ftW.crSearch=ftA->crSearch;
     ftW.wpText=wszText;
     ftW.dwTextLen=dwUnicodeBytes / sizeof(wchar_t) - 1;
+    ftW.nNewLine=ftA->nNewLine;
+    ftW.crSearch=ftA->crSearch;
     bResult=AE_FindText(ae, &ftW);
     ftA->crFound=ftW.crFound;
 
@@ -10456,10 +10467,10 @@ BOOL AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHARI
     MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, wszText, dwUnicodeBytes / sizeof(wchar_t));
 
     ftW.dwFlags=ftA->dwFlags;
-    ftW.nNewLine=ftA->nNewLine;
-    ftW.crSearch=ftA->crSearch;
     ftW.wpText=wszText;
     ftW.dwTextLen=dwUnicodeBytes / sizeof(wchar_t) - 1;
+    ftW.nNewLine=ftA->nNewLine;
+    ftW.crSearch=ftA->crSearch;
     bResult=AE_IsMatch(ae, &ftW, ciChar);
     ftA->crFound=ftW.crFound;
 
@@ -10488,7 +10499,15 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
       if (((ft->dwFlags & AEFR_MATCHCASE) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == ft->wpText[dwCount]) ||
           (!(ft->dwFlags & AEFR_MATCHCASE) && AE_WideCharUpper(ciCount.lpLine->wpLine[ciCount.nCharInLine]) == AE_WideCharUpper(ft->wpText[dwCount])))
       {
-        if (++dwCount >= ft->dwTextLen)
+        if (ft->dwTextLen == (DWORD)-1)
+        {
+          if (!ft->wpText[++dwCount])
+          {
+            ++ciCount.nCharInLine;
+            goto Founded;
+          }
+        }
+        else if (++dwCount >= ft->dwTextLen)
         {
           ++ciCount.nCharInLine;
           goto Founded;
@@ -10536,7 +10555,17 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
       if (ft->wpText[dwCount++] != L'\r') return FALSE;
       if (ft->wpText[dwCount++] != L'\n') return FALSE;
     }
-    if (dwCount >= ft->dwTextLen) goto Founded;
+
+    if (ft->dwTextLen == (DWORD)-1)
+    {
+      if (!ft->wpText[dwCount])
+        goto Founded;
+    }
+    else
+    {
+      if (dwCount >= ft->dwTextLen)
+        goto Founded;
+    }
   }
 
   Founded:
