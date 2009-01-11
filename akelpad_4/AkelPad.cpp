@@ -252,6 +252,7 @@ BOOL bInsertState=FALSE;
 int nCurrentNewLine=NEWLINE_WIN;
 int nDefaultNewLine=NEWLINE_WIN;
 BOOL bWordWrap=FALSE;
+int nWrapType=AEWW_WORD;
 BOOL bOnTop=FALSE;
 BOOL bStatusBar=TRUE;
 BOOL bReadOnly=FALSE;
@@ -5455,6 +5456,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bTabStopAsSpaces=bTabStopAsSpaces;
       lpWndFrameA->nUndoLimit=nUndoLimit;
       lpWndFrameA->bDetailedUndo=bDetailedUndo;
+      lpWndFrameA->nWrapType=nWrapType;
       lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameA->bCaretVertLine=bCaretVertLine;
       lpWndFrameA->nCaretWidth=nCaretWidth;
@@ -5589,6 +5591,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bTabStopAsSpaces=bTabStopAsSpaces;
             lpWndFrameA->nUndoLimit=nUndoLimit;
             lpWndFrameA->bDetailedUndo=bDetailedUndo;
+            lpWndFrameA->nWrapType=nWrapType;
             lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameA->bCaretVertLine=bCaretVertLine;
             lpWndFrameA->nCaretWidth=nCaretWidth;
@@ -5625,6 +5628,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bTabStopAsSpaces=lpWndFrameA->bTabStopAsSpaces;
           nUndoLimit=lpWndFrameA->nUndoLimit;
           bDetailedUndo=lpWndFrameA->bDetailedUndo;
+          nWrapType=lpWndFrameA->nWrapType;
           bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
           bCaretVertLine=lpWndFrameA->bCaretVertLine;
           nCaretWidth=lpWndFrameA->nCaretWidth;
@@ -5700,6 +5704,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bTabStopAsSpaces=bTabStopAsSpaces;
       lpWndFrameW->nUndoLimit=nUndoLimit;
       lpWndFrameW->bDetailedUndo=bDetailedUndo;
+      lpWndFrameW->nWrapType=nWrapType;
       lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameW->bCaretVertLine=bCaretVertLine;
       lpWndFrameW->nCaretWidth=nCaretWidth;
@@ -5834,6 +5839,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bTabStopAsSpaces=bTabStopAsSpaces;
             lpWndFrameW->nUndoLimit=nUndoLimit;
             lpWndFrameW->bDetailedUndo=bDetailedUndo;
+            lpWndFrameW->nWrapType=nWrapType;
             lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameW->bCaretVertLine=bCaretVertLine;
             lpWndFrameW->nCaretWidth=nCaretWidth;
@@ -5870,6 +5876,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bTabStopAsSpaces=lpWndFrameW->bTabStopAsSpaces;
           nUndoLimit=lpWndFrameW->nUndoLimit;
           bDetailedUndo=lpWndFrameW->bDetailedUndo;
+          nWrapType=lpWndFrameW->nWrapType;
           bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
           bCaretVertLine=lpWndFrameW->bCaretVertLine;
           nCaretWidth=lpWndFrameW->nCaretWidth;
