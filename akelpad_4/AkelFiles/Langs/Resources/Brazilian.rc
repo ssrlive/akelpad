@@ -574,7 +574,7 @@ END
 IDD_OPTIONS_REGISTRY DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Registry"
+CAPTION "Registro"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Salvar configurações",IDC_STATIC,9,6,200,29
@@ -585,7 +585,7 @@ BEGIN
     GROUPBOX        "Arquivos recentes",IDC_STATIC,9,42,200,64
     CONTROL         "Lembrar posição do cursor",IDC_OPTIONS_SAVEPOSITIONS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,55,185,10
-    CONTROL         "Lembrar",IDC_OPTIONS_SAVECODEPAGES,"Button",
+    CONTROL         "Lembrar código de página",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,66,185,10
     LTEXT           "Quantidade:",IDC_STATIC,19,88,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,86,18,13,ES_NUMBER
