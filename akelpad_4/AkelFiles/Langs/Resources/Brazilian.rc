@@ -538,7 +538,7 @@ BEGIN
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,161,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Filtrar...",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
-    GROUPBOX        "Default newline",IDC_STATIC,9,190,200,33
+    GROUPBOX        "Nova linha padrão",IDC_STATIC,9,190,200,33
     CONTROL         "Windows",IDC_OPTIONS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,22,205,65,10
     CONTROL         "Unix",IDC_OPTIONS_NEWLINE_UNIX,"Button",
@@ -652,9 +652,9 @@ BEGIN
     CONTROL         "Deixar cursor mover-se além do fim da linha",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Draw caret vertical line",IDC_OPTIONS_CARETVERTLINE,
+    CONTROL         "Desenhar linha vertical de cursor",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
-    RTEXT           "Width:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
+    RTEXT           "Largura:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,174,
