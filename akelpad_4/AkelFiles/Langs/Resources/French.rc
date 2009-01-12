@@ -541,7 +541,7 @@ BEGIN
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,161,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Filtrer",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
-    GROUPBOX        "Default newline",IDC_STATIC,9,190,200,33
+    GROUPBOX        "Format de fin de ligne par défaut",IDC_STATIC,9,190,200,33
     CONTROL         "Windows",IDC_OPTIONS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,22,205,65,10
     CONTROL         "Unix",IDC_OPTIONS_NEWLINE_UNIX,"Button",
@@ -619,7 +619,7 @@ END
 IDD_OPTIONS_EDITOR DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Editor"
+CAPTION "Editeur"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Marges du texte",IDC_STATIC,9,6,200,34
@@ -652,13 +652,13 @@ BEGIN
                     BS_AUTORADIOBUTTON,135,69,70,10
     CONTROL         "By symbols",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,135,94,70,10
-    GROUPBOX        "Caret",IDC_STATIC,9,130,200,60
+    GROUPBOX        "Curseur",IDC_STATIC,9,130,200,60
     CONTROL         "Autoriser le curseur à dépasser la fin de ligne",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Draw caret vertical line",IDC_OPTIONS_CARETVERTLINE,
+    CONTROL         "Dessiner la ligne verticale du curseur",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
-    RTEXT           "Width:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
+    RTEXT           "Largeur:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,174,
