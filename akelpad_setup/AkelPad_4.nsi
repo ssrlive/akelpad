@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.1.2"
+!define PRODUCT_VERSION "4.1.3"
 
 ;_____________________________________________________________________________________________
 ;
@@ -482,7 +482,7 @@ FunctionEnd
 
 Section
 	SetOutPath "$SETUPDIR"
-	File /r /x Justify*.* /x PlainText*.* /x PrintClassic*.* "Files\*.*"
+	File /r /x Caret*.* /x Justify*.* /x PlainText*.* /x PrintClassic*.* "Files\*.*"
 
 	IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
 	RegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
