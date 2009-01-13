@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v2.3                                 *
+ *                      AkelEdit text control v2.4                                 *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -2038,6 +2038,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (ae->bColumnSel != bAlt)
           bRedrawAllSelection=TRUE;
+        if (bAlt || (ae->dwOptions & AECO_CARETOUTEDGE))
+          nHorizCaretPos=ae->ptCaret.x;
 
         if (wParam == VK_HOME)
         {
