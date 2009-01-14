@@ -643,7 +643,7 @@ BEGIN
     CONTROL         "允许插入点移动到行末边缘的右边",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "绘制插入点垂直线",IDC_OPTIONS_CARETVERTLINE,
+    CONTROL         "Show active column",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
     RTEXT           "宽：",IDC_STATIC,116,172,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,18,13,ES_NUMBER
