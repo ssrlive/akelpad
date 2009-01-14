@@ -259,11 +259,12 @@
 #define AE_PRINT         0x00000010
 
 //Colors list
-#define LVI_COLOR_BASIC        0
-#define LVI_COLOR_SELECTION    1
-#define LVI_COLOR_ACTIVELINE   2
-#define LVI_COLOR_CARET        3
-#define LVI_COLOR_URL          4
+#define LVI_COLOR_BASIC         0
+#define LVI_COLOR_SELECTION     1
+#define LVI_COLOR_ACTIVELINE    2
+#define LVI_COLOR_ACTIVECOLUMN  3
+#define LVI_COLOR_CARET         4
+#define LVI_COLOR_URL           5
 
 #define LVSI_COLOR_ELEMENT     0
 #define LVSI_COLOR_TEXT        1

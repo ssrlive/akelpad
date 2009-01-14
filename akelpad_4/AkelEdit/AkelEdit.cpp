@@ -218,6 +218,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
       ae->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
       ae->crActiveLineBk=GetSysColor(COLOR_WINDOW);
+      ae->crActiveColumn=RGB(0x00, 0x00, 0x00);
       ae->crUrlText=RGB(0x00, 0x00, 0xFF);
       ae->hBasicBk=CreateSolidBrush(ae->crBasicBk);
       ae->hSelBk=CreateSolidBrush(ae->crSelBk);
@@ -746,23 +747,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
         }
-        if (!(dwOptionsOld & AECO_CARETVERTLINE) && (dwOptionsNew & AECO_CARETVERTLINE))
+        if (!(dwOptionsOld & AECO_ACTIVECOLUMN) && (dwOptionsNew & AECO_ACTIVECOLUMN))
         {
-          if (!ae->hCaretVert)
-          {
-            const WORD DotPattern[]={0x55, 0x00, 0x55, 0x00, 0x55, 0x00, 0x55, 0x00};
-            HBITMAP hBitmapCaretVert;
-
-            if (hBitmapCaretVert=CreateBitmap(8, 8, 1, 1, DotPattern))
-            {
-              ae->hCaretVert=CreatePatternBrush(hBitmapCaretVert);
-              DeleteObject(hBitmapCaretVert);
-            }
-          }
+          AE_ActiveColumnCreate(ae);
         }
-        else if ((dwOptionsOld & AECO_CARETVERTLINE) && !(dwOptionsNew & AECO_CARETVERTLINE))
+        else if ((dwOptionsOld & AECO_ACTIVECOLUMN) && !(dwOptionsNew & AECO_ACTIVECOLUMN))
         {
-          AE_CaretVertErase(ae);
+          AE_ActiveColumnErase(ae);
         }
 
         ae->dwOptions=dwOptionsNew;
@@ -2851,7 +2842,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_PAINT)
     {
-      AE_CaretVertErase(ae);
+      AE_ActiveColumnErase(ae);
 
       AE_Paint(ae);
 
@@ -2863,14 +2854,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->bMButtonDown=TRUE;
         AE_MButtonDraw(ae);
       }
-      if (ae->dwOptions & AECO_CARETVERTLINE)
+      if (ae->dwOptions & AECO_ACTIVECOLUMN)
       {
-        if (!ae->bCaretVertDraw)
+        if (!ae->bActiveColumnDraw)
         {
           //Draw new vertical line
-          AE_GlobalToClient(ae, &ae->ptCaret, &ae->ptCaretVertDraw);
-          AE_CaretVertDraw(ae);
-          ae->bCaretVertDraw=TRUE;
+          AE_GlobalToClient(ae, &ae->ptCaret, &ae->ptActiveColumnDraw);
+          AE_ActiveColumnDraw(ae);
+          ae->bActiveColumnDraw=TRUE;
         }
       }
       return 0;
@@ -2906,10 +2897,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           DeleteObject(ae->hActiveLineBk);
           ae->hActiveLineBk=NULL;
         }
-        if (ae->hCaretVert)
+        if (ae->hActiveColumn)
         {
-          DeleteObject(ae->hCaretVert);
-          ae->hCaretVert=NULL;
+          DeleteObject(ae->hActiveColumn);
+          ae->hActiveColumn=NULL;
         }
         if (ae->hCaretInsert)
         {
@@ -5724,7 +5715,7 @@ void AE_MouseMove(AKELEDIT *ae)
   }
 }
 
-HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
+HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra)
 {
   BITMAPFILEHEADER *lpBmpFileHeader;
   BITMAPINFOHEADER *lpBmpInfoHeader;
@@ -5738,10 +5729,10 @@ HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
   //Bitmap data size
   nBmpFileData=sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 
-  if ((nCaretWidth * 3) % 4 == 0)
-    nBmpFileData+=(nCaretWidth * 3) * nCaretHeight;
+  if ((nWidth * 3) % 4 == 0)
+    nBmpFileData+=(nWidth * 3) * nHeight;
   else
-    nBmpFileData+=((nCaretWidth * 3) + (4 - ((nCaretWidth * 3) % 4))) * nCaretHeight;
+    nBmpFileData+=((nWidth * 3) + (4 - ((nWidth * 3) % 4))) * nHeight;
 
   //Allocate bitmap data
   if (lpBmpFileData=(BYTE *)AE_HeapAlloc(ae, 0, nBmpFileData))
@@ -5757,8 +5748,8 @@ HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
     lpBmpFileHeader->bfOffBits=sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 
     lpBmpInfoHeader->biSize=sizeof(BITMAPINFOHEADER);
-    lpBmpInfoHeader->biWidth=nCaretWidth;
-    lpBmpInfoHeader->biHeight=nCaretHeight;
+    lpBmpInfoHeader->biWidth=nWidth;
+    lpBmpInfoHeader->biHeight=nHeight;
     lpBmpInfoHeader->biPlanes=1;
     lpBmpInfoHeader->biBitCount=24;
     lpBmpInfoHeader->biCompression=BI_RGB;
@@ -5770,14 +5761,27 @@ HBITMAP AE_CreateCaretBitmap(AKELEDIT *ae, int nCaretWidth, int nCaretHeight)
 
     for (a=0; a < lpBmpInfoHeader->biSizeImage;)
     {
+      //Fill line
       for (b=0; b < lpBmpInfoHeader->biWidth * 3; b+=3)
       {
-        lpBitmapBits[a + 0]=mod(GetBValue(ae->crActiveLineBk) - GetBValue(ae->crCaret));
-        lpBitmapBits[a + 1]=mod(GetGValue(ae->crActiveLineBk) - GetGValue(ae->crCaret));
-        lpBitmapBits[a + 2]=mod(GetRValue(ae->crActiveLineBk) - GetRValue(ae->crCaret));
+        lpBitmapBits[a + 0]=mod(GetBValue(crInvert) - GetBValue(crBasic));
+        lpBitmapBits[a + 1]=mod(GetGValue(crInvert) - GetGValue(crBasic));
+        lpBitmapBits[a + 2]=mod(GetRValue(crInvert) - GetRValue(crBasic));
         a+=3;
       }
       while (a % 4) lpBitmapBits[a++]=0x00;
+
+      if (bZebra)
+      {
+        for (b=0; b < lpBmpInfoHeader->biWidth * 3; b+=3)
+        {
+          lpBitmapBits[a + 0]=0x00;
+          lpBitmapBits[a + 1]=0x00;
+          lpBitmapBits[a + 2]=0x00;
+          a+=3;
+        }
+        while (a % 4) lpBitmapBits[a++]=0x00;
+      }
     }
 
     hCaretBitmap=AE_LoadBitmapFromMemory(ae, (unsigned char *)lpBmpFileData);
@@ -5806,7 +5810,7 @@ HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData)
     {
       for (b=0; b < bi.bmiHeader.biWidth * 3; b+=3)
       {
-        //Copy inverted bits
+        //Copy bits
         lpSectionBits[a + 0]=lpBitmapBits[a + 0];
         lpSectionBits[a + 1]=lpBitmapBits[a + 1];
         lpSectionBits[a + 2]=lpBitmapBits[a + 2];
@@ -5853,7 +5857,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh)
     {
       if (ae->crCaret)
       {
-        if (hCaretBitmap=AE_CreateCaretBitmap(ae, nCaretWidth, nCaretHeight))
+        if (hCaretBitmap=AE_CreateBitmap(ae, nCaretWidth, nCaretHeight, ae->crCaret, ae->crActiveLineBk, FALSE))
         {
           ae->hCaretInsert=hCaretBitmap;
         }
@@ -5870,7 +5874,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh)
     {
       if (ae->crCaret)
       {
-        if (hCaretBitmap=AE_CreateCaretBitmap(ae, nCaretWidth, nCaretHeight))
+        if (hCaretBitmap=AE_CreateBitmap(ae, nCaretWidth, nCaretHeight, ae->crCaret, ae->crActiveLineBk, FALSE))
         {
           ae->hCaretOvertype=hCaretBitmap;
         }
@@ -6227,7 +6231,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
       if (nPos != ae->nHScrollPos)
       {
         AE_MButtonErase(ae);
-        AE_CaretVertErase(ae);
+        AE_ActiveColumnErase(ae);
 
         ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
         ae->nHScrollPos=nPos;
@@ -6267,7 +6271,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
       if (nPos != ae->nVScrollPos)
       {
         AE_MButtonErase(ae);
-        AE_CaretVertErase(ae);
+        AE_ActiveColumnErase(ae);
 
         ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
         ae->nVScrollPos=nPos;
@@ -6850,32 +6854,54 @@ void AE_MButtonErase(AKELEDIT *ae)
   }
 }
 
-void AE_CaretVertDraw(AKELEDIT *ae)
+BOOL AE_ActiveColumnCreate(AKELEDIT *ae)
 {
-  if (ae->dwOptions & AECO_CARETVERTLINE)
+  if (ae->hActiveColumn)
+  {
+    DeleteObject(ae->hActiveColumn);
+    ae->hActiveColumn=NULL;
+  }
+
+  if (!ae->hActiveColumn)
+  {
+    HBITMAP hBitmap;
+
+    if (hBitmap=AE_CreateBitmap(ae, 2, 2, ae->crActiveColumn, ae->crBasicBk, TRUE))
+    {
+      ae->hActiveColumn=CreatePatternBrush(hBitmap);
+      DeleteObject(hBitmap);
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+void AE_ActiveColumnDraw(AKELEDIT *ae)
+{
+  if (ae->dwOptions & AECO_ACTIVECOLUMN)
   {
     HBRUSH hBrushOld;
 
-    if (ae->ptCaretVertDraw.x >= ae->rcDraw.left && ae->ptCaretVertDraw.x <= ae->rcDraw.right)
+    if (ae->ptActiveColumnDraw.x >= ae->rcDraw.left && ae->ptActiveColumnDraw.x <= ae->rcDraw.right)
     {
-      hBrushOld=(HBRUSH)SelectObject(ae->hDC, ae->hCaretVert);
-      if (ae->ptCaretVertDraw.y > ae->rcDraw.top)
-        PatBlt(ae->hDC, ae->ptCaretVertDraw.x, ae->rcDraw.top, 2, ae->ptCaretVertDraw.y - ae->rcDraw.top, PATINVERT);
-      if (ae->rcDraw.bottom > ae->ptCaretVertDraw.y + ae->nCharHeight)
-        PatBlt(ae->hDC, ae->ptCaretVertDraw.x, ae->ptCaretVertDraw.y + ae->nCharHeight, 2, ae->rcDraw.bottom - (ae->ptCaretVertDraw.y + ae->nCharHeight), PATINVERT);
+      hBrushOld=(HBRUSH)SelectObject(ae->hDC, ae->hActiveColumn);
+      if (ae->ptActiveColumnDraw.y > ae->rcDraw.top)
+        PatBlt(ae->hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->ptActiveColumnDraw.y - ae->rcDraw.top, PATINVERT);
+      if (ae->rcDraw.bottom > ae->ptActiveColumnDraw.y + ae->nCharHeight)
+        PatBlt(ae->hDC, ae->ptActiveColumnDraw.x, ae->ptActiveColumnDraw.y + ae->nCharHeight, 1, ae->rcDraw.bottom - (ae->ptActiveColumnDraw.y + ae->nCharHeight), PATINVERT);
       SelectObject(ae->hDC, hBrushOld);
     }
   }
 }
 
-void AE_CaretVertErase(AKELEDIT *ae)
+void AE_ActiveColumnErase(AKELEDIT *ae)
 {
-  if (ae->dwOptions & AECO_CARETVERTLINE)
+  if (ae->dwOptions & AECO_ACTIVECOLUMN)
   {
-    if (ae->bCaretVertDraw)
+    if (ae->bActiveColumnDraw)
     {
-      AE_CaretVertDraw(ae);
-      ae->bCaretVertDraw=FALSE;
+      AE_ActiveColumnDraw(ae);
+      ae->bActiveColumnDraw=FALSE;
     }
   }
 }
@@ -11279,15 +11305,6 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
   BOOL bUpdateDrawRect=FALSE;
   BOOL bUpdateEditRect=FALSE;
 
-  if (aec->dwFlags & AECLR_CARET)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
-      ae->crCaret=RGB(0x00, 0x00, 0x00);
-    else
-      ae->crCaret=aec->crCaret;
-
-    AE_UpdateCaret(ae, ae->bFocus, TRUE);
-  }
   if (aec->dwFlags & AECLR_BASICTEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
@@ -11307,6 +11324,9 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
     if (ae->hBasicBk) DeleteObject(ae->hBasicBk);
     ae->hBasicBk=CreateSolidBrush(ae->crBasicBk);
     bUpdateEditRect=TRUE;
+
+    if (ae->dwOptions & AECO_ACTIVECOLUMN)
+      AE_ActiveColumnCreate(ae);
   }
   if (aec->dwFlags & AECLR_SELTEXT)
   {
@@ -11346,8 +11366,28 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
 
     if (ae->hActiveLineBk) DeleteObject(ae->hActiveLineBk);
     ae->hActiveLineBk=CreateSolidBrush(ae->crActiveLineBk);
-    AE_UpdateCaret(ae, ae->bFocus, TRUE);
     bUpdateDrawRect=TRUE;
+
+    AE_UpdateCaret(ae, ae->bFocus, TRUE);
+  }
+  if (aec->dwFlags & AECLR_ACTIVECOLUMN)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      ae->crActiveColumn=RGB(0x00, 0x00, 0x00);
+    else
+      ae->crActiveColumn=aec->crActiveColumn;
+
+    if (ae->dwOptions & AECO_ACTIVECOLUMN)
+      AE_ActiveColumnCreate(ae);
+  }
+  if (aec->dwFlags & AECLR_CARET)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      ae->crCaret=RGB(0x00, 0x00, 0x00);
+    else
+      ae->crCaret=aec->crCaret;
+
+    AE_UpdateCaret(ae, ae->bFocus, TRUE);
   }
   if (aec->dwFlags & AECLR_URLTEXT)
   {
