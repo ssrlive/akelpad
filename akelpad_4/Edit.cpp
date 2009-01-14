@@ -8672,14 +8672,14 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       FreeMemorySearchA();
 
-      if (!(nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText)))
+      if ((nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText)) <= 0)
       {
         FreeMemorySearchA();
         return TRUE;
       }
       if (bReplaceDlg == TRUE)
       {
-        if (!(nReplaceTextLen=GetComboboxSearchTextA(hWndReplace, &szReplaceText_orig, &szReplaceText)))
+        if ((nReplaceTextLen=GetComboboxSearchTextA(hWndReplace, &szReplaceText_orig, &szReplaceText)) < 0)
         {
           FreeMemorySearchA();
           return TRUE;
@@ -8832,7 +8832,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       {
         FreeMemorySearchA();
 
-        if (!(nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText)))
+        if ((nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText)) <= 0)
         {
           FreeMemorySearchA();
           return TRUE;
@@ -9076,14 +9076,14 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       FreeMemorySearchW();
 
-      if (!(nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText)))
+      if ((nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText)) <= 0)
       {
         FreeMemorySearchW();
         return TRUE;
       }
       if (bReplaceDlg == TRUE)
       {
-        if (!(nReplaceTextLen=GetComboboxSearchTextW(hWndReplace, &wszReplaceText_orig, &wszReplaceText)))
+        if ((nReplaceTextLen=GetComboboxSearchTextW(hWndReplace, &wszReplaceText_orig, &wszReplaceText)) < 0)
         {
           FreeMemorySearchW();
           return TRUE;
@@ -9236,7 +9236,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       {
         FreeMemorySearchW();
 
-        if (!(nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText)))
+        if ((nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText)) <= 0)
         {
           FreeMemorySearchW();
           return TRUE;
@@ -9365,7 +9365,7 @@ void FillComboboxSearchW(HWND hWndFind, HWND hWndReplace)
 int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText)
 {
   int nTextLen_orig;
-  int nTextLen=0;
+  int nTextLen=-1;
   int nIndex;
   int nItemLen;
 
@@ -9392,17 +9392,21 @@ int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText)
       SendMessage(hWnd, CB_SETCURSEL, 0, 0);
     }
 
-    if (ftflags & AEFR_ESCAPESEQ)
+    if (nTextLen)
     {
-      if (*szText=(char *)API_HeapAlloc(hHeap, 0, nTextLen_orig + 1))
+      if (ftflags & AEFR_ESCAPESEQ)
       {
-        if (!(nTextLen=EscapeStringToEscapeDataA(*szText_orig, *szText)))
+        if (*szText=(char *)API_HeapAlloc(hHeap, 0, nTextLen_orig + 1))
         {
-          API_LoadStringA(hLangLib, MSG_ERROR_SYNTAX, buf, BUFFER_SIZE);
-          MessageBoxA(GetParent(hWnd), buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
+          if (!(nTextLen=EscapeStringToEscapeDataA(*szText_orig, *szText)))
+          {
+            API_LoadStringA(hLangLib, MSG_ERROR_SYNTAX, buf, BUFFER_SIZE);
+            MessageBoxA(GetParent(hWnd), buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
+            nTextLen=-1;
+          }
         }
+        else nTextLen=-1;
       }
-      else nTextLen=0;
     }
   }
   return nTextLen;
@@ -9411,7 +9415,7 @@ int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText)
 int GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText)
 {
   int nTextLen_orig;
-  int nTextLen=0;
+  int nTextLen=-1;
   int nIndex;
   int nItemLen;
 
@@ -9438,17 +9442,21 @@ int GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText)
       SendMessage(hWnd, CB_SETCURSEL, 0, 0);
     }
 
-    if (ftflags & AEFR_ESCAPESEQ)
+    if (nTextLen)
     {
-      if (*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nTextLen_orig * sizeof(wchar_t) + 2))
+      if (ftflags & AEFR_ESCAPESEQ)
       {
-        if (!(nTextLen=EscapeStringToEscapeDataW(*wszText_orig, *wszText)))
+        if (*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nTextLen_orig * sizeof(wchar_t) + 2))
         {
-          API_LoadStringW(hLangLib, MSG_ERROR_SYNTAX, wbuf, BUFFER_SIZE);
-          MessageBoxW(GetParent(hWnd), wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+          if (!(nTextLen=EscapeStringToEscapeDataW(*wszText_orig, *wszText)))
+          {
+            API_LoadStringW(hLangLib, MSG_ERROR_SYNTAX, wbuf, BUFFER_SIZE);
+            MessageBoxW(GetParent(hWnd), wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+            nTextLen=-1;
+          }
         }
+        else nTextLen=-1;
       }
-      else nTextLen=0;
     }
   }
   return nTextLen;
