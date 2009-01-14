@@ -11242,13 +11242,6 @@ void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel)
 
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
 {
-  if (aec->dwFlags & AECLR_CARET)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
-      aec->crCaret=RGB(0x00, 0x00, 0x00);
-    else
-      aec->crCaret=ae->crCaret;
-  }
   if (aec->dwFlags & AECLR_BASICTEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
@@ -11290,6 +11283,20 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
       aec->crActiveLineBk=GetSysColor(COLOR_WINDOW);
     else
       aec->crActiveLineBk=ae->crActiveLineBk;
+  }
+  if (aec->dwFlags & AECLR_ACTIVECOLUMN)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      aec->crActiveColumn=RGB(0x00, 0x00, 0x00);
+    else
+      aec->crActiveColumn=ae->crActiveColumn;
+  }
+  if (aec->dwFlags & AECLR_CARET)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      aec->crCaret=RGB(0x00, 0x00, 0x00);
+    else
+      aec->crCaret=ae->crCaret;
   }
   if (aec->dwFlags & AECLR_URLTEXT)
   {

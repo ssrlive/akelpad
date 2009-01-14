@@ -5,6 +5,8 @@ Added: active column color modification.
 Added: Japanese recognition (UTF-8).
 Added: Korean recognition (UTF-8).
 
+Fixed: replace text with empty string.
+
 
 AkelPad 4.1.3 (Jan 13, 2009)
 ----------------------------
