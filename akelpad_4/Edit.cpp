@@ -4478,8 +4478,8 @@ void ReadThemesA()
   aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
   aec.crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
-  aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   aec.crUrlText=RGB(0x00, 0x00, 0xFF);
+  aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   StackThemeAddA(&hThemesStack, buf, &aec);
 
   if (nSaveSettings == SS_REGISTRY)
@@ -4529,8 +4529,8 @@ void ReadThemesA()
     aec.crSelBk=RGB(0xC0, 0xC0, 0xC0);
     aec.crActiveLineText=RGB(0x00, 0x00, 0x00);
     aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
-    aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
     aec.crUrlText=RGB(0x00, 0x00, 0xFF);
+    aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
     StackThemeAddA(&hThemesStack, "Notepad++", &aec);
   }
 }
@@ -4553,8 +4553,8 @@ void ReadThemesW()
   aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
   aec.crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
-  aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   aec.crUrlText=RGB(0x00, 0x00, 0xFF);
+  aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   StackThemeAddW(&hThemesStack, wbuf, &aec);
 
   if (nSaveSettings == SS_REGISTRY)
@@ -4604,8 +4604,8 @@ void ReadThemesW()
     aec.crSelBk=RGB(0xC0, 0xC0, 0xC0);
     aec.crActiveLineText=RGB(0x00, 0x00, 0x00);
     aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
-    aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
     aec.crUrlText=RGB(0x00, 0x00, 0xFF);
+    aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
     StackThemeAddW(&hThemesStack, L"Notepad++", &aec);
   }
 }

@@ -899,7 +899,7 @@ BEGIN
     STR_BASIC               "Основной цвет"
     STR_SELECTION           "Выделение"
     STR_ACTIVELINE          "Активная строка"
-    STR_ACTIVECOLUMN        "Active column"
+    STR_ACTIVECOLUMN        "Активный столбец"
     STR_CARET               "Каретка"
 END
 

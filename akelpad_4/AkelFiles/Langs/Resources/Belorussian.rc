@@ -900,7 +900,7 @@ BEGIN
     STR_BASIC               "Асноўны колер"
     STR_SELECTION           "Вылучэнне"
     STR_ACTIVELINE          "Актыўны радок"
-    STR_ACTIVECOLUMN        "Active column"
+    STR_ACTIVECOLUMN        "Активный столбец"
     STR_CARET               "Карэтка"
 END
 
