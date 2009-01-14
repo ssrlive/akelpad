@@ -652,7 +652,7 @@ BEGIN
     CONTROL         "Cursor mag buiten regelgebied bewogen worden",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Teken vertikale lijn",IDC_OPTIONS_CARETVERTLINE,
+    CONTROL         "Show active column",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
     RTEXT           "Breedte:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,18,13,ES_NUMBER

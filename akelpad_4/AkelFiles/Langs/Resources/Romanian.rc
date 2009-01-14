@@ -653,7 +653,7 @@ BEGIN
     CONTROL         "Permite plasarea cursorului dincolo de limita textului",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Aratã o linie punctatã verticalã pe direcþia cursorului",
+    CONTROL         "Show active column",
                     IDC_OPTIONS_CARETVERTLINE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,155,185,10
     RTEXT           "Lãþime:",IDC_STATIC,116,172,35,8,NOT WS_GROUP

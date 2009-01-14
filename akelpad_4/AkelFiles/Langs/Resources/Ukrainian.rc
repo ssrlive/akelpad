@@ -650,7 +650,7 @@ BEGIN
     CONTROL         "Дозволити вихід каретки за межі рядків",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Рисувати вертикальну лінію каретки",
+    CONTROL         "Показывать активный столбец",
                     IDC_OPTIONS_CARETVERTLINE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,155,185,10
     RTEXT           "Ширина:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
