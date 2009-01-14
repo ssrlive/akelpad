@@ -57,7 +57,7 @@
 #define AECO_DISABLEDRAG        0x00000080  //Disables OLE text dragging.
 #define AECO_DISABLEDROP        0x00000100  //Disables OLE text dropping.
 #define AECO_CARETOUTEDGE       0x00000200  //Allow caret moving out of the line edge.
-#define AECO_CARETVERTLINE      0x00000400  //Draw caret vertical line.
+#define AECO_ACTIVECOLUMN       0x00000400  //Draw caret vertical line.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -126,6 +126,7 @@
 #define AECLR_ACTIVELINETEXT 0x00000040  //Sets active line text color. crActiveLineText member is valid.
 #define AECLR_ACTIVELINEBK   0x00000080  //Sets active line background color. crActiveLineBk member is valid.
 #define AECLR_URLTEXT        0x00000100  //Sets hiperlink text color. crUrlText member is valid.
+#define AECLR_ACTIVECOLUMN   0x00000200  //Sets active column color. crActiveColumn member is valid.
 
 #define AECLR_ALL            (AECLR_CARET         |\
                               AECLR_BASICTEXT     |\
@@ -134,7 +135,8 @@
                               AECLR_SELBK         |\
                               AECLR_ACTIVELINETEXT|\
                               AECLR_ACTIVELINEBK  |\
-                              AECLR_URLTEXT)
+                              AECLR_URLTEXT       |\
+                              AECLR_ACTIVECOLUMN)
 
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
 #define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number
@@ -386,6 +388,7 @@ typedef struct {
   COLORREF crActiveLineText; //Text color in active line
   COLORREF crActiveLineBk;   //Background color in active line
   COLORREF crUrlText;        //Hiperlink text color
+  COLORREF crActiveColumn;   //Active column color
 } AECOLORS;
 
 typedef struct {

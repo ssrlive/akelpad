@@ -1,6 +1,7 @@
 
 AkelPad 4.1.4 ()
 ----------------------------
+Added: active column color modification.
 Added: Japanese recognition (UTF-8).
 Added: Korean recognition (UTF-8).
 
