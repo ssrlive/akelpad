@@ -125,6 +125,8 @@
 #define LANGID_ENGLISH    0x0409
 #define LANGID_RUSSIAN    0x0419
 #define LANGID_CHINESE    0x0404
+#define LANGID_JAPANESE   0x0411
+#define LANGID_KOREAN     0x0412
 
 //Code pages int
 #define CP_UNICODE_UCS2_LE  1200

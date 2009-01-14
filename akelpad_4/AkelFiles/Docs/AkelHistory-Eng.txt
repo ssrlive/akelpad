@@ -1,4 +1,10 @@
 
+AkelPad 4.1.4 ()
+----------------------------
+Added: Japanese recognition (UTF-8).
+Added: Korean recognition (UTF-8).
+
+
 AkelPad 4.1.3 (Jan 13, 2009)
 ----------------------------
 Changed: settings dialog of the program is reorganized.
