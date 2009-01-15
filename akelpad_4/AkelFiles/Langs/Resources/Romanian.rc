@@ -536,11 +536,13 @@ BEGIN
     LTEXT           "Tampon:",IDC_STATIC,170,110,37,8
     EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,121,40,13,
                     ES_NUMBER
-    LTEXT           "Codpaginã Implicitã (codepage):",IDC_STATIC,12,150,150,8
+    LTEXT           "Codpaginã Implicitã (codepage):",IDC_STATIC,12,150,150,
+                    8
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,161,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Filtreazã",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
-    GROUPBOX        "Formatul implicit de linienouã (newline)",IDC_STATIC,9,190,200,33
+    GROUPBOX        "Formatul implicit de linienouã (newline)",IDC_STATIC,9,
+                    190,200,33
     CONTROL         "Windows",IDC_OPTIONS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,22,205,65,10
     CONTROL         "Unix",IDC_OPTIONS_NEWLINE_UNIX,"Button",
@@ -653,9 +655,8 @@ BEGIN
     CONTROL         "Permite plasarea cursorului dincolo de limita textului",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Show active column",
-                    IDC_OPTIONS_CARETVERTLINE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,155,185,10
+    CONTROL         "Aratã coloana activã",IDC_OPTIONS_CARETVERTLINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
     RTEXT           "Lãþime:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
@@ -678,10 +679,10 @@ BEGIN
     GROUPBOX        "Legãturi",IDC_STATIC,9,6,200,120
     CONTROL         "Aratã",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,19,178,10
-    CONTROL         "Lanseazã cu clic simplu",IDC_OPTIONS_URL_SINGLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,23,33,172,10
-    CONTROL         "Lanseazã cu clic dublu",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,23,44,172,10
+    CONTROL         "Lanseazã cu clic simplu",IDC_OPTIONS_URL_SINGLECLICK,
+                    "Button",BS_AUTORADIOBUTTON,23,33,172,10
+    CONTROL         "Lanseazã cu clic dublu",IDC_OPTIONS_URL_DOUBLECLICK,
+                    "Button",BS_AUTORADIOBUTTON,23,44,172,10
     CONTROL         "Prefixe:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,60,172,10
     EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,72,172,13,ES_AUTOHSCROLL
@@ -863,8 +864,8 @@ BEGIN
     STR_AUTODETECT_RUSSIAN  "Chirilic (ANSI, OEM, KOI8-R, UTF-8)"
     STR_AUTODETECT_ENGLISH  "Latin (OEM)"
     STR_AUTODETECT_CHINESE  "Chinez (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Japanese (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Korean (UTF-8)"
+    STR_AUTODETECT_JAPANESE "Japonez (UTF-8)"
+    STR_AUTODETECT_KOREAN   "Coreean (UTF-8)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -884,12 +885,12 @@ BEGIN
     STR_BASIC               "Culoare de Bazã"
     STR_SELECTION           "Selecþie"
     STR_ACTIVELINE          "Linie Activã"
-    STR_ACTIVECOLUMN        "Active column"
-    STR_CARET               "Cursor"
+    STR_ACTIVECOLUMN        "Coloanã Activã"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_CARET               "Cursor"
     STR_URL                 "Legãturã"
     STR_DEFAULT_SAVE_EXT    "txt"
 END
