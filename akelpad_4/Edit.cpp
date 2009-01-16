@@ -8217,6 +8217,12 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   {
     lstrcpyA(szOEMwatermark, "\xB0\xB1\xB2\xB3\xBA\xDB");
   }
+  else if (dwLangID == LANG_TURKISH)
+  {
+    lstrcpyA(szANSIwatermark, "\xFC\xFD\xFE");
+    lstrcpyA(szOEMwatermark,  "\x81\x87\x8D\xB0\xB1\xB2\xB3\xBA\xDB");  //Character graphics simbols: \xB0\xB1\xB2\xB3\xBA\xDB
+    lstrcpyA(szUTF8watermark, "\xB0\xB1\xBC\xC3\xC4\xC5");
+  }
   else if (dwLangID == LANG_CHINESE)
   {
     lstrcpyA(szANSIwatermark, "\xA1\xA2\xA3\xA4\xA5\xA6");
@@ -8275,13 +8281,21 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
     if (dwLangID == LANG_RUSSIAN)
     {
       if (nANSIrate >= nOEMrate && nANSIrate >= nKOIrate && nANSIrate >= nUTF8rate)
+      {
         *nCodePage=1251;
+      }
       else if (nOEMrate >= nKOIrate && nOEMrate >= nUTF8rate)
+      {
         *nCodePage=866;
+      }
       else if (nKOIrate >= nUTF8rate)
+      {
         *nCodePage=CP_KOI8_R;
+      }
       else
+      {
         *nCodePage=CP_UNICODE_UTF8;
+      }
       return TRUE;
     }
     else if (dwLangID == LANG_ENGLISH)
@@ -8289,6 +8303,22 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
       if (nOEMrate > nANSIrate)
       {
         *nCodePage=nOemCodePage;
+        return TRUE;
+      }
+    }
+    else if (dwLangID == LANG_TURKISH)
+    {
+      if (nANSIrate >= nOEMrate && nANSIrate >= nUTF8rate)
+      {
+      }
+      else if (nOEMrate >= nUTF8rate)
+      {
+        *nCodePage=857;
+        return TRUE;
+      }
+      else
+      {
+        *nCodePage=CP_UNICODE_UTF8;
         return TRUE;
       }
     }
@@ -14883,6 +14913,8 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
     API_LoadStringA(hLangLib, STR_AUTODETECT_ENGLISH, buf, BUFFER_SIZE);
     SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
+    API_LoadStringA(hLangLib, STR_AUTODETECT_TURKISH, buf, BUFFER_SIZE);
+    SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
     API_LoadStringA(hLangLib, STR_AUTODETECT_CHINESE, buf, BUFFER_SIZE);
     SendMessageA(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)buf);
     API_LoadStringA(hLangLib, STR_AUTODETECT_JAPANESE, buf, BUFFER_SIZE);
@@ -14894,12 +14926,14 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 1, 0);
     else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_ENGLISH)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
-    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_CHINESE)
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_TURKISH)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 3, 0);
-    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_JAPANESE)
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_CHINESE)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 4, 0);
-    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_KOREAN)
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_JAPANESE)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 5, 0);
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_KOREAN)
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 6, 0);
     else
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, dwCodepageRecognitionBuffer, FALSE);
@@ -14993,10 +15027,12 @@ BOOL CALLBACK OptionsGeneralDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       else if (i == 2)
         dwLangCodepageRecognition=LANGID_ENGLISH;
       else if (i == 3)
-        dwLangCodepageRecognition=LANGID_CHINESE;
+        dwLangCodepageRecognition=LANGID_TURKISH;
       else if (i == 4)
-        dwLangCodepageRecognition=LANGID_JAPANESE;
+        dwLangCodepageRecognition=LANGID_CHINESE;
       else if (i == 5)
+        dwLangCodepageRecognition=LANGID_JAPANESE;
+      else if (i == 6)
         dwLangCodepageRecognition=LANGID_KOREAN;
 
       //Autodetect codepage buffer
@@ -15052,6 +15088,8 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
     API_LoadStringW(hLangLib, STR_AUTODETECT_ENGLISH, wbuf, BUFFER_SIZE);
     SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
+    API_LoadStringW(hLangLib, STR_AUTODETECT_TURKISH, wbuf, BUFFER_SIZE);
+    SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
     API_LoadStringW(hLangLib, STR_AUTODETECT_CHINESE, wbuf, BUFFER_SIZE);
     SendMessageW(hWndAutodetectCP, CB_ADDSTRING, 0, (LPARAM)wbuf);
     API_LoadStringW(hLangLib, STR_AUTODETECT_JAPANESE, wbuf, BUFFER_SIZE);
@@ -15063,12 +15101,14 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 1, 0);
     else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_ENGLISH)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 2, 0);
-    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_CHINESE)
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_TURKISH)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 3, 0);
-    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_JAPANESE)
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_CHINESE)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 4, 0);
-    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_KOREAN)
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_JAPANESE)
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 5, 0);
+    else if (PRIMARYLANGID(dwLangCodepageRecognition) == LANG_KOREAN)
+      SendMessage(hWndAutodetectCP, CB_SETCURSEL, 6, 0);
     else
       SendMessage(hWndAutodetectCP, CB_SETCURSEL, 0, 0);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER, dwCodepageRecognitionBuffer, FALSE);
@@ -15162,10 +15202,12 @@ BOOL CALLBACK OptionsGeneralDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       else if (i == 2)
         dwLangCodepageRecognition=LANGID_ENGLISH;
       else if (i == 3)
-        dwLangCodepageRecognition=LANGID_CHINESE;
+        dwLangCodepageRecognition=LANGID_TURKISH;
       else if (i == 4)
-        dwLangCodepageRecognition=LANGID_JAPANESE;
+        dwLangCodepageRecognition=LANGID_CHINESE;
       else if (i == 5)
+        dwLangCodepageRecognition=LANGID_JAPANESE;
+      else if (i == 6)
         dwLangCodepageRecognition=LANGID_KOREAN;
 
       //Autodetect codepage buffer

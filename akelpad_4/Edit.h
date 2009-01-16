@@ -122,8 +122,9 @@
 #define CD_OPENDOCUMENT   1
 
 //Language identifiers
-#define LANGID_ENGLISH    0x0409
 #define LANGID_RUSSIAN    0x0419
+#define LANGID_ENGLISH    0x0409
+#define LANGID_TURKISH    0x041F
 #define LANGID_CHINESE    0x0404
 #define LANGID_JAPANESE   0x0411
 #define LANGID_KOREAN     0x0412
