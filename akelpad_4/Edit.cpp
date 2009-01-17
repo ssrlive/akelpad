@@ -10567,7 +10567,8 @@ void PasteInEditAsRichEdit(HWND hWnd)
 BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   AECHARRANGE cr;
-  int nLineNumber=0;
+  int nNumberType=NT_LINE;
+  int nNumber=0;
   int nLineCount=0;
   int a;
   int b;
@@ -10586,6 +10587,9 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
       if (GetDlgItemTextA(hDlg, IDC_GOTOLINE, buf, BUFFER_SIZE))
       {
+        if (buf[0] == '#')
+          nNumberType=NT_OFFSET;
+
         //Only numeral
         for (a=0, b=0; buf[a]; ++a)
         {
@@ -10596,24 +10600,34 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         }
         buf2[b]='\0';
 
-        nLineNumber=xatoiA(buf2);
+        nNumber=xatoiA(buf2);
       }
-      nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
-      if (!nLineNumber)
+      if (nNumberType == NT_LINE)
       {
-        API_LoadStringA(hLangLib, MSG_WRONG_STRING, buf, BUFFER_SIZE);
-        MessageBoxA(hDlg, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
-        return FALSE;
-      }
-      else if (nLineNumber < 0)
-      {
-        nLineNumber=nLineCount + nLineNumber + 1;
-        if (nLineNumber <= 0) nLineNumber=1;
-      }
-      nLineNumber=min(nLineNumber, nLineCount);
+        nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
-      if (SendMessage(hWndEdit, AEM_GETLINEINDEX, nLineNumber - 1, (LPARAM)&cr.ciMin))
+        if (!nNumber)
+        {
+          API_LoadStringA(hLangLib, MSG_WRONG_STRING, buf, BUFFER_SIZE);
+          MessageBoxA(hDlg, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
+          return FALSE;
+        }
+        else if (nNumber < 0)
+        {
+          nNumber=nLineCount + nNumber + 1;
+          if (nNumber <= 0) nNumber=1;
+        }
+        nNumber=min(nNumber, nLineCount);
+        SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
+      }
+      else
+      {
+        SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+        IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
+      }
+
+      //Set selection
       {
         DWORD dwScrollFlags=0;
         DWORD dwScrollResult;
@@ -10646,7 +10660,8 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   AECHARRANGE cr;
-  int nLineNumber=0;
+  int nNumberType=NT_LINE;
+  int nNumber=0;
   int nLineCount=0;
   int a;
   int b;
@@ -10665,6 +10680,9 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
       if (GetDlgItemTextW(hDlg, IDC_GOTOLINE, wbuf, BUFFER_SIZE))
       {
+        if (wbuf[0] == '#')
+          nNumberType=NT_OFFSET;
+
         //Only numeral
         for (a=0, b=0; wbuf[a]; ++a)
         {
@@ -10675,24 +10693,34 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         }
         wbuf2[b]='\0';
 
-        nLineNumber=xatoiW(wbuf2);
+        nNumber=xatoiW(wbuf2);
       }
-      nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
-      if (!nLineNumber)
+      if (nNumberType == NT_LINE)
       {
-        API_LoadStringW(hLangLib, MSG_WRONG_STRING, wbuf, BUFFER_SIZE);
-        MessageBoxW(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-        return FALSE;
-      }
-      else if (nLineNumber < 0)
-      {
-        nLineNumber=nLineCount + nLineNumber + 1;
-        if (nLineNumber <= 0) nLineNumber=1;
-      }
-      nLineNumber=min(nLineNumber, nLineCount);
+        nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
-      if (SendMessage(hWndEdit, AEM_GETLINEINDEX, nLineNumber - 1, (LPARAM)&cr.ciMin))
+        if (!nNumber)
+        {
+          API_LoadStringW(hLangLib, MSG_WRONG_STRING, wbuf, BUFFER_SIZE);
+          MessageBoxW(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+          return FALSE;
+        }
+        else if (nNumber < 0)
+        {
+          nNumber=nLineCount + nNumber + 1;
+          if (nNumber <= 0) nNumber=1;
+        }
+        nNumber=min(nNumber, nLineCount);
+        SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
+      }
+      else
+      {
+        SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+        IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
+      }
+
+      //Set selection
       {
         DWORD dwScrollFlags=0;
         DWORD dwScrollResult;
