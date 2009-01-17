@@ -234,6 +234,7 @@ extern BOOL bWordWrap;
 extern int nWrapType;
 extern BOOL bOnTop;
 extern BOOL bStatusBar;
+extern DWORD dwStatusPosType;
 extern BOOL bReadOnly;
 extern BOOL bSaveTime;
 extern BOOL bWatchFile;
@@ -3074,6 +3075,9 @@ void RegReadOptionsA()
   RegQueryValueExA(hKey, "StatusBar", NULL, &dwType, (LPBYTE)&bStatusBar, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExA(hKey, "StatusPosType", NULL, &dwType, (LPBYTE)&dwStatusPosType, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "ReadOnly", NULL, &dwType, (LPBYTE)&bReadOnly, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3287,6 +3291,9 @@ void RegReadOptionsW()
   RegQueryValueExW(hKey, L"StatusBar", NULL, &dwType, (LPBYTE)&bStatusBar, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExW(hKey, L"StatusPosType", NULL, &dwType, (LPBYTE)&dwStatusPosType, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"ReadOnly", NULL, &dwType, (LPBYTE)&bReadOnly, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3488,6 +3495,7 @@ void IniReadOptionsA()
   IniGetValueA(&hIniStack, "Options", "WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD));
+  IniGetValueA(&hIniStack, "Options", "StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD));
@@ -3572,6 +3580,7 @@ void IniReadOptionsW()
   IniGetValueW(&hIniStack, L"Options", L"WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD));
+  IniGetValueW(&hIniStack, L"Options", L"StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD));
@@ -3822,6 +3831,8 @@ BOOL RegSaveOptionsA()
     goto Error;
   if (RegSetValueExA(hKey, "StatusBar", 0, REG_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExA(hKey, "StatusPosType", 0, REG_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExA(hKey, "ReadOnly", 0, REG_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExA(hKey, "SaveTime", 0, REG_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -3986,6 +3997,8 @@ BOOL RegSaveOptionsW()
     goto Error;
   if (RegSetValueExW(hKey, L"StatusBar", 0, REG_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExW(hKey, L"StatusPosType", 0, REG_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExW(hKey, L"ReadOnly", 0, REG_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExW(hKey, L"SaveTime", 0, REG_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -4148,6 +4161,8 @@ BOOL IniSaveOptionsA()
   if (!IniSetValueA(&hIniStack, "Options", "OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)))
+    goto Error;
+  if (!IniSetValueA(&hIniStack, "Options", "StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)))
     goto Error;
@@ -4313,6 +4328,8 @@ BOOL IniSaveOptionsW()
   if (!IniSetValueW(&hIniStack, L"Options", L"OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)))
+    goto Error;
+  if (!IniSetValueW(&hIniStack, L"Options", L"StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)))
     goto Error;
@@ -16809,6 +16826,9 @@ BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
   char szStatus[MAX_PATH];
+  int nTabColumn=0;
+  int nScanLimit;
+  int i;
 
   if (cr && ci)
   {
@@ -16822,10 +16842,25 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 
   if (bStatusSelUpdate)
   {
+    if (dwStatusPosType & SPT_LINECOLUMN)
+    {
+      nScanLimit=min(ciCaret.nCharInLine, ciCaret.lpLine->nLineLen);
+
+      for (i=0; i < nScanLimit; ++i)
+      {
+        if (ciCaret.lpLine->wpLine[i] == '\t')
+          nTabColumn+=nTabStopSize - nTabColumn % nTabStopSize;
+        else
+          ++nTabColumn;
+      }
+      nTabColumn+=ciCaret.nCharInLine - nScanLimit + 1;
+    }
+    else nTabColumn=ciCaret.nCharInLine + 1;
+
     if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-      wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1);
+      wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, nTabColumn);
     else
-      wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+      wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, nTabColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
     SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
   }
@@ -16834,6 +16869,9 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
   wchar_t wszStatus[MAX_PATH];
+  int nTabColumn=0;
+  int nScanLimit;
+  int i;
 
   if (cr && ci)
   {
@@ -16847,10 +16885,25 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 
   if (bStatusSelUpdate)
   {
+    if (dwStatusPosType & SPT_LINECOLUMN)
+    {
+      nScanLimit=min(ciCaret.nCharInLine, ciCaret.lpLine->nLineLen);
+
+      for (i=0; i < nScanLimit; ++i)
+      {
+        if (ciCaret.lpLine->wpLine[i] == '\t')
+          nTabColumn+=nTabStopSize - nTabColumn % nTabStopSize;
+        else
+          ++nTabColumn;
+      }
+      nTabColumn+=ciCaret.nCharInLine - nScanLimit + 1;
+    }
+    else nTabColumn=ciCaret.nCharInLine + 1;
+
     if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-      wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1);
+      wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, nTabColumn);
     else
-      wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, ciCaret.nCharInLine + 1, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+      wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, nTabColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
     SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
   }

@@ -252,6 +252,10 @@
 #define INCREASE_FONT  1
 #define DECREASE_FONT  2
 
+//StatusBar position type
+#define SPT_LINESYMBOL  0x00000000
+#define SPT_LINECOLUMN  0x00000001
+
 //Go to line
 #define NT_LINE    1
 #define NT_OFFSET  2
