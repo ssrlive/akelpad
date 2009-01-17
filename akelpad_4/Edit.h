@@ -252,6 +252,10 @@
 #define INCREASE_FONT  1
 #define DECREASE_FONT  2
 
+//Go to line
+#define NT_LINE    1
+#define NT_OFFSET  2
+
 //File types association
 #define AE_ASSOCIATE     0x00000001
 #define AE_DEASSOCIATE   0x00000002
