@@ -3,6 +3,9 @@ AkelPad 4.1.4 ()
 ----------------------------
 Added: active column color modification.
 Added: option for going to specified offset in "Go to line..." dialog.
+Added: parameter "StatusPosType":
+       0  status bar show statistics in "Line:Symbol".
+       1  status bar show statistics in "Line:Column".
 Added: Japanese recognition (UTF-8).
 Added: Korean recognition (UTF-8).
 Added: Turkish recognition (OEM, UTF-8).
