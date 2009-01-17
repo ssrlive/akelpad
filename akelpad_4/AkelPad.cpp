@@ -203,7 +203,8 @@ int nReplaceTextLen=0;
 WNDPROC OldComboboxEdit;
 
 //Go to line dialog
-RECT rcGoToLineDlg={0};
+RECT rcGotoLineDlg={0};
+int nGotoType=NT_LINE;
 
 //Options dialog
 PROPSHEETHEADERA pshA={0};

@@ -105,7 +105,9 @@
 #define IDC_SEARCH_ALLFILES             3063
 #define IDC_SEARCH_ALLFILES_GROUP       3064
 #define IDC_SETREADONLY                 3065
-#define IDC_GOTOLINE                    3101
+#define IDC_GOTOLINE_NUMBER             3101
+#define IDC_GOTOLINE_LINE               3102
+#define IDC_GOTOLINE_OFFSET             3103
 #define IDC_RECODE_CODEPAGE_FROM        3151
 #define IDC_RECODE_CODEPAGE_TO          3152
 #define IDC_COLORS_LIST                 3201

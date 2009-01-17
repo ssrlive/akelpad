@@ -181,7 +181,8 @@ extern int nReplaceTextLen;
 extern WNDPROC OldComboboxEdit;
 
 //Go to line dialog
-extern RECT rcGoToLineDlg;
+extern RECT rcGotoLineDlg;
+extern int nGotoType;
 
 //Options dialog
 extern PROPSHEETHEADERA pshA;
@@ -10566,8 +10567,10 @@ void PasteInEditAsRichEdit(HWND hWnd)
 
 BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndNumber;
+  static HWND hWndLine;
+  static HWND hWndOffset;
   AECHARRANGE cr;
-  int nNumberType=NT_LINE;
   int nNumber=0;
   int nLineCount=0;
   int a;
@@ -10576,20 +10579,57 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   if (uMsg == WM_INITDIALOG)
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
-    SetDlgItemInt(hDlg, IDC_GOTOLINE, ciCaret.nLine + 1, FALSE);
+    hWndNumber=GetDlgItem(hDlg, IDC_GOTOLINE_NUMBER);
+    hWndLine=GetDlgItem(hDlg, IDC_GOTOLINE_LINE);
+    hWndOffset=GetDlgItem(hDlg, IDC_GOTOLINE_OFFSET);
 
-    if (rcGoToLineDlg.right && rcGoToLineDlg.bottom)
-      SetWindowPos(hDlg, 0, rcGoToLineDlg.left, rcGoToLineDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+    if (rcGotoLineDlg.right && rcGotoLineDlg.bottom)
+      SetWindowPos(hDlg, 0, rcGotoLineDlg.left, rcGotoLineDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+
+    if (nGotoType == NT_LINE)
+    {
+      SendMessage(hWndLine, BM_SETCHECK, BST_CHECKED, 0);
+      SendMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_LINE, 0);
+    }
+    else if (nGotoType == NT_OFFSET)
+    {
+      SendMessage(hWndOffset, BM_SETCHECK, BST_CHECKED, 0);
+      SendMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_OFFSET, 0);
+    }
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDOK)
+    if (LOWORD(wParam) == IDC_GOTOLINE_LINE ||
+        LOWORD(wParam) == IDC_GOTOLINE_OFFSET)
     {
-      if (GetDlgItemTextA(hDlg, IDC_GOTOLINE, buf, BUFFER_SIZE))
-      {
-        if (buf[0] == '#')
-          nNumberType=NT_OFFSET;
+      if (LOWORD(wParam) == IDC_GOTOLINE_LINE)
+        nGotoType=NT_LINE;
+      else if (LOWORD(wParam) == IDC_GOTOLINE_OFFSET)
+        nGotoType=NT_OFFSET;
 
+      if (nGotoType == NT_LINE)
+      {
+        if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
+        {
+          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, ciCaret.nLine + 1, FALSE);
+          SendMessage(hWndNumber, EM_SETSEL, 0, -1);
+        }
+      }
+      else if (nGotoType == NT_OFFSET)
+      {
+        if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
+        {
+          SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+          a=IndexSubtract(hWndEdit, &cr.ciMin, &ciCaret, AELB_ASIS, FALSE);
+          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, a, FALSE);
+          SendMessage(hWndNumber, EM_SETSEL, 0, -1);
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDOK)
+    {
+      if (GetDlgItemTextA(hDlg, IDC_GOTOLINE_NUMBER, buf, BUFFER_SIZE))
+      {
         //Only numeral
         for (a=0, b=0; buf[a]; ++a)
         {
@@ -10603,7 +10643,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         nNumber=xatoiA(buf2);
       }
 
-      if (nNumberType == NT_LINE)
+      if (nGotoType == NT_LINE)
       {
         nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
@@ -10621,9 +10661,12 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         nNumber=min(nNumber, nLineCount);
         SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
       }
-      else
+      else if (nGotoType == NT_OFFSET)
       {
-        SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+        if (nNumber >= 0)
+          SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+        else
+          SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMin);
         IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
       }
 
@@ -10648,7 +10691,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
     {
-      GetWindowPos(hDlg, NULL, &rcGoToLineDlg);
+      GetWindowPos(hDlg, NULL, &rcGotoLineDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       return TRUE;
@@ -10659,8 +10702,10 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
 BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndNumber;
+  static HWND hWndLine;
+  static HWND hWndOffset;
   AECHARRANGE cr;
-  int nNumberType=NT_LINE;
   int nNumber=0;
   int nLineCount=0;
   int a;
@@ -10669,20 +10714,57 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   if (uMsg == WM_INITDIALOG)
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
-    SetDlgItemInt(hDlg, IDC_GOTOLINE, ciCaret.nLine + 1, FALSE);
+    hWndNumber=GetDlgItem(hDlg, IDC_GOTOLINE_NUMBER);
+    hWndLine=GetDlgItem(hDlg, IDC_GOTOLINE_LINE);
+    hWndOffset=GetDlgItem(hDlg, IDC_GOTOLINE_OFFSET);
 
-    if (rcGoToLineDlg.right && rcGoToLineDlg.bottom)
-      SetWindowPos(hDlg, 0, rcGoToLineDlg.left, rcGoToLineDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+    if (rcGotoLineDlg.right && rcGotoLineDlg.bottom)
+      SetWindowPos(hDlg, 0, rcGotoLineDlg.left, rcGotoLineDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+
+    if (nGotoType == NT_LINE)
+    {
+      SendMessage(hWndLine, BM_SETCHECK, BST_CHECKED, 0);
+      SendMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_LINE, 0);
+    }
+    else if (nGotoType == NT_OFFSET)
+    {
+      SendMessage(hWndOffset, BM_SETCHECK, BST_CHECKED, 0);
+      SendMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_OFFSET, 0);
+    }
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDOK)
+    if (LOWORD(wParam) == IDC_GOTOLINE_LINE ||
+        LOWORD(wParam) == IDC_GOTOLINE_OFFSET)
     {
-      if (GetDlgItemTextW(hDlg, IDC_GOTOLINE, wbuf, BUFFER_SIZE))
-      {
-        if (wbuf[0] == '#')
-          nNumberType=NT_OFFSET;
+      if (LOWORD(wParam) == IDC_GOTOLINE_LINE)
+        nGotoType=NT_LINE;
+      else if (LOWORD(wParam) == IDC_GOTOLINE_OFFSET)
+        nGotoType=NT_OFFSET;
 
+      if (nGotoType == NT_LINE)
+      {
+        if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
+        {
+          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, ciCaret.nLine + 1, FALSE);
+          SendMessage(hWndNumber, EM_SETSEL, 0, -1);
+        }
+      }
+      else if (nGotoType == NT_OFFSET)
+      {
+        if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
+        {
+          SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+          a=IndexSubtract(hWndEdit, &cr.ciMin, &ciCaret, AELB_ASIS, FALSE);
+          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, a, FALSE);
+          SendMessage(hWndNumber, EM_SETSEL, 0, -1);
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDOK)
+    {
+      if (GetDlgItemTextW(hDlg, IDC_GOTOLINE_NUMBER, wbuf, BUFFER_SIZE))
+      {
         //Only numeral
         for (a=0, b=0; wbuf[a]; ++a)
         {
@@ -10696,7 +10778,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         nNumber=xatoiW(wbuf2);
       }
 
-      if (nNumberType == NT_LINE)
+      if (nGotoType == NT_LINE)
       {
         nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
 
@@ -10714,9 +10796,12 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         nNumber=min(nNumber, nLineCount);
         SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
       }
-      else
+      else if (nGotoType == NT_OFFSET)
       {
-        SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+        if (nNumber >= 0)
+          SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+        else
+          SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMin);
         IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
       }
 
@@ -10741,7 +10826,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
     {
-      GetWindowPos(hDlg, NULL, &rcGoToLineDlg);
+      GetWindowPos(hDlg, NULL, &rcGotoLineDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       return TRUE;
