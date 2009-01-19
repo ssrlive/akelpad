@@ -197,6 +197,7 @@ typedef struct _AKELEDIT {
   int *lpCharWidths;
   int nTabStop;
   BOOL bOverType;
+  DWORD dwInputLanguage;
   HSTACK hUndoStack;
   AEUNDOITEM *lpCurrentUndo;
   AEUNDOITEM *lpSavePoint;
