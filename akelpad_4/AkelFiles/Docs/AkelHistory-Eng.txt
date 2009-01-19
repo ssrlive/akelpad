@@ -1,5 +1,5 @@
 
-AkelPad 4.1.4 ()
+AkelPad 4.1.4 (Jan 19, 2009)
 ----------------------------
 Added: active column color modification.
 Added: option for going to specified offset in "Go to line..." dialog.
