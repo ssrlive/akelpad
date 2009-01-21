@@ -484,16 +484,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_EmptyUndoBuffer(ae);
         return 0;
       }
-      if (uMsg == AEM_BEGINUNDOACTION)
+      if (uMsg == AEM_STOPGROUPTYPING)
       {
         AE_StackUndoGroupStop(ae);
-        ae->bLockGroupStop=TRUE;
+        return 0;
+      }
+      if (uMsg == AEM_BEGINUNDOACTION)
+      {
+        ae->bLockGroupStopExt=TRUE;
         return 0;
       }
       if (uMsg == AEM_ENDUNDOACTION)
       {
-        ae->bLockGroupStop=FALSE;
-        AE_StackUndoGroupStop(ae);
+        ae->bLockGroupStopExt=FALSE;
         return 0;
       }
       if (uMsg == AEM_LOCKCOLLECTUNDO)
@@ -2273,8 +2276,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_STARTCOMPOSITION)
     {
+      ae->dwImeMsg=uMsg;
+
       if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
+      {
+        ae->bLockGroupStopInt=TRUE;
         return 0;
+      }
 
       if (!ae->bUnicodeWindow)
       {
@@ -2332,6 +2340,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 AE_ReplaceSel(ae, wszCompStr, nStrLen / sizeof(wchar_t), FALSE, NULL, NULL);
 
+                if (ae->dwOptions & AECO_DETAILEDUNDO)
+                {
+                  ae->bLockGroupStopInt=FALSE;
+                  AE_StackUndoGroupStop(ae);
+                  ae->bLockGroupStopInt=TRUE;
+                }
+                if (ae->dwImeMsg == WM_IME_ENDCOMPOSITION)
+                {
+                  ae->bLockGroupStopInt=FALSE;
+                }
+
                 if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_COMPSTR, wszCompStr, 16)) > 0)
                 {
                   AE_EditChar(ae, wszCompStr[0]);
@@ -2368,6 +2387,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_ENDCOMPOSITION)
     {
+      ae->dwImeMsg=uMsg;
     }
     else if (uMsg == WM_IME_CHAR)
     {
@@ -3452,7 +3472,7 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
           }
         }
       }
-      if (!ae->bLockGroupStop)
+      if (!ae->bLockGroupStopInt && !ae->bLockGroupStopExt)
       {
         lpStopElement->dwFlags|=AEUN_STOPGROUP;
         ++ae->dwUndoCount;

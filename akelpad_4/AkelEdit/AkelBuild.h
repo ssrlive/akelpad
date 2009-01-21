@@ -203,7 +203,8 @@ typedef struct _AKELEDIT {
   AEUNDOITEM *lpSavePoint;
   BOOL bSavePointExist;
   BOOL bModified;
-  BOOL bLockGroupStop;
+  BOOL bLockGroupStopInt;
+  BOOL bLockGroupStopExt;
   BOOL bLockCollectUndo;
   DWORD dwUndoLimit;
   DWORD dwUndoCount;
@@ -275,6 +276,7 @@ typedef struct _AKELEDIT {
   BOOL bMButtonDown;
   BOOL bMButtonUp;
   int nMButtonMove;
+  DWORD dwImeMsg;
 
   //RichEdit emulation
   BOOL bRichEditClass;

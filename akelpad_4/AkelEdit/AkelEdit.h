@@ -511,13 +511,14 @@ typedef struct {
 #define AEM_UNDO              (WM_USER + 2053)
 #define AEM_REDO              (WM_USER + 2054)
 #define AEM_EMPTYUNDOBUFFER   (WM_USER + 2055)
-#define AEM_BEGINUNDOACTION   (WM_USER + 2056)
-#define AEM_ENDUNDOACTION     (WM_USER + 2057)
-#define AEM_LOCKCOLLECTUNDO   (WM_USER + 2058)
-#define AEM_GETUNDOLIMIT      (WM_USER + 2059)
-#define AEM_SETUNDOLIMIT      (WM_USER + 2060)
-#define AEM_GETMODIFY         (WM_USER + 2061)
-#define AEM_SETMODIFY         (WM_USER + 2062)
+#define AEM_STOPGROUPTYPING   (WM_USER + 2056)
+#define AEM_BEGINUNDOACTION   (WM_USER + 2057)
+#define AEM_ENDUNDOACTION     (WM_USER + 2058)
+#define AEM_LOCKCOLLECTUNDO   (WM_USER + 2059)
+#define AEM_GETUNDOLIMIT      (WM_USER + 2060)
+#define AEM_SETUNDOLIMIT      (WM_USER + 2061)
+#define AEM_GETMODIFY         (WM_USER + 2062)
+#define AEM_SETMODIFY         (WM_USER + 2063)
 
 #define AEM_GETSEL            (WM_USER + 2101)
 #define AEM_SETSEL            (WM_USER + 2102)
@@ -1376,6 +1377,22 @@ Example:
  SendMessage(hWndEdit, AEM_EMPTYUNDOBUFFER, 0, 0);
 
 
+AEM_STOPGROUPTYPING
+___________________
+
+Stops the control from collecting additional typing actions into the current undo action.
+The control stores the next typing action, if any, into a new action in the undo queue. 
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_STOPGROUPTYPING, 0, 0);
+
+
 AEM_BEGINUNDOACTION
 ___________________
 
@@ -1389,8 +1406,10 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_BEGINUNDOACTION, 0, 0);
+ SendMessage(hWndEdit, AEM_STOPGROUPTYPING, 0, 0);
  SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
  SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"456");
+ SendMessage(hWndEdit, AEM_STOPGROUPTYPING, 0, 0);
  SendMessage(hWndEdit, AEM_ENDUNDOACTION, 0, 0);
 
 
@@ -1406,10 +1425,7 @@ Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_BEGINUNDOACTION, 0, 0);
- SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
- SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"456");
- SendMessage(hWndEdit, AEM_ENDUNDOACTION, 0, 0);
+ See AEM_BEGINUNDOACTION example.
 
 
 AEM_LOCKCOLLECTUNDO
