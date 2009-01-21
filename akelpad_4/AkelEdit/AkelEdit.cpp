@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v2.4                                 *
+ *                      AkelEdit text control v2.5                                 *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -2280,16 +2280,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           COMPOSITIONFORM cf;
           LOGFONTA lfA;
           HIMC hIMC;
-  
+
           if (hIMC=ImmGetContext(ae->hWndEdit))
           {
             cf.dwStyle=CFS_POINT;
             AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
             ImmSetCompositionWindow(hIMC, &cf);
-  
+
             GetObjectA(ae->hFont, sizeof(LOGFONTA), &lfA);
             ImmSetCompositionFontA(hIMC, &lfA);
-  
+
             ImmReleaseContext(ae->hWndEdit, hIMC);
           }
         }
@@ -2298,16 +2298,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           COMPOSITIONFORM cf;
           LOGFONTW lfW;
           HIMC hIMC;
-  
+
           if (hIMC=ImmGetContext(ae->hWndEdit))
           {
             cf.dwStyle=CFS_POINT;
             AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
             ImmSetCompositionWindow(hIMC, &cf);
-  
+
             GetObjectW(ae->hFont, sizeof(LOGFONTW), &lfW);
             ImmSetCompositionFontW(hIMC, &lfW);
-  
+
             ImmReleaseContext(ae->hWndEdit, hIMC);
           }
         }
@@ -5767,7 +5767,7 @@ HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic,
   BITMAPINFOHEADER *lpBmpInfoHeader;
   BYTE *lpBitmapBits;
   BYTE *lpBmpFileData;
-  HBITMAP hCaretBitmap=NULL;
+  HBITMAP hBitmap=NULL;
   int nBmpFileData;
   DWORD a;
   int b;
@@ -5830,11 +5830,11 @@ HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic,
       }
     }
 
-    hCaretBitmap=AE_LoadBitmapFromMemory(ae, (unsigned char *)lpBmpFileData);
+    hBitmap=AE_LoadBitmapFromMemory(ae, (unsigned char *)lpBmpFileData);
 
     AE_HeapFree(ae, 0, (LPVOID)lpBmpFileData);
   }
-  return hCaretBitmap;
+  return hBitmap;
 }
 
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData)
@@ -6912,7 +6912,7 @@ BOOL AE_ActiveColumnCreate(AKELEDIT *ae)
   {
     HBITMAP hBitmap;
 
-    if (hBitmap=AE_CreateBitmap(ae, 2, 2, ae->crActiveColumn, ae->crBasicBk, TRUE))
+    if (hBitmap=AE_CreateBitmap(ae, 8, 8, ae->crActiveColumn, ae->crBasicBk, TRUE))
     {
       ae->hActiveColumn=CreatePatternBrush(hBitmap);
       DeleteObject(hBitmap);
