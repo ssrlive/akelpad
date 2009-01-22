@@ -2372,7 +2372,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0);
                 }
               }
-              else AE_EditKeyBackspace(ae, FALSE);
+              else
+              {
+                AE_EditKeyBackspace(ae, FALSE);
+                ae->bLockGroupStopInt=FALSE;
+              }
             }
             ImmReleaseContext(ae->hWndEdit, hIMC);
           }
@@ -3384,44 +3388,48 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
     if (!(lpStopElement->dwFlags & AEUN_STOPGROUP))
     {
       //Clearing mutually exclusive actions after using ae->bLockGroupStop
+      AEUNDOITEM *lpElement=lpStopElement;
+      AEUNDOITEM *lpExclusiveOneElement;
+      AEUNDOITEM *lpExclusiveTwoElement;
+
+      while (lpElement)
       {
-        AEUNDOITEM *lpElement=lpStopElement;
-        AEUNDOITEM *lpExclusiveOneElement;
-        AEUNDOITEM *lpExclusiveTwoElement;
+        lpExclusiveOneElement=lpElement;
+        lpExclusiveTwoElement=lpElement->prev;
 
-        while (lpElement)
+        if (!lpExclusiveOneElement || (lpExclusiveOneElement->dwFlags & AEUN_STOPGROUP))
+          break;
+        if (!lpExclusiveTwoElement || (lpExclusiveTwoElement->dwFlags & AEUN_STOPGROUP))
+          break;
+
+        if ((lpExclusiveOneElement->dwFlags & AEUN_INSERT) &&
+            (lpExclusiveTwoElement->dwFlags & AEUN_DELETE))
         {
-          lpExclusiveOneElement=lpElement;
-          lpExclusiveTwoElement=lpElement->prev;
-
-          if (!lpExclusiveOneElement || (lpExclusiveOneElement->dwFlags & AEUN_STOPGROUP))
-            break;
-          if (!lpExclusiveTwoElement || (lpExclusiveTwoElement->dwFlags & AEUN_STOPGROUP))
-            break;
-
-          if ((lpExclusiveOneElement->dwFlags & AEUN_INSERT) &&
-              (lpExclusiveTwoElement->dwFlags & AEUN_DELETE))
+          if (lpExclusiveOneElement->nActionStartOffset == lpExclusiveTwoElement->nActionStartOffset &&
+              lpExclusiveOneElement->nActionEndOffset == lpExclusiveTwoElement->nActionEndOffset &&
+              lpExclusiveOneElement->nExtraStartOffset == lpExclusiveTwoElement->nExtraStartOffset &&
+              lpExclusiveOneElement->nExtraEndOffset == lpExclusiveTwoElement->nExtraEndOffset)
           {
-            if (lpExclusiveOneElement->nActionStartOffset == lpExclusiveTwoElement->nActionStartOffset &&
-                lpExclusiveOneElement->nActionEndOffset == lpExclusiveTwoElement->nActionEndOffset &&
-                lpExclusiveOneElement->nExtraStartOffset == lpExclusiveTwoElement->nExtraStartOffset &&
-                lpExclusiveOneElement->nExtraEndOffset == lpExclusiveTwoElement->nExtraEndOffset)
-            {
-              lpElement=lpExclusiveTwoElement->prev;
-              AE_StackUndoItemDelete(ae, lpExclusiveOneElement);
-              AE_StackUndoItemDelete(ae, lpExclusiveTwoElement);
-              continue;
-            }
+            lpElement=lpExclusiveTwoElement->prev;
+            AE_StackUndoItemDelete(ae, lpExclusiveOneElement);
+            AE_StackUndoItemDelete(ae, lpExclusiveTwoElement);
+            continue;
           }
-          lpElement=lpElement->prev;
         }
-        lpStopElement=(AEUNDOITEM *)ae->hUndoStack.last;
-        ae->lpCurrentUndo=lpStopElement;
+        lpElement=lpElement->prev;
       }
+      lpStopElement=(AEUNDOITEM *)ae->hUndoStack.last;
+      ae->lpCurrentUndo=lpStopElement;
+    }
+  }
 
-      //Merge typing characters to one undo action
+  if (lpStopElement)
+  {
+    if (!(lpStopElement->dwFlags & AEUN_STOPGROUP))
+    {
       if (lpStopElement->dwFlags & AEUN_SINGLECHAR)
       {
+        //Merge typing characters to one undo action
         AEUNDOITEM *lpElement=lpStopElement;
         AEUNDOITEM *lpUndoElement;
         int nDeleteStart=0;
