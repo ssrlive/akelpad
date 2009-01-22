@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v2.5                                 *
+ *                      AkelEdit text control v1.1.5                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -3389,9 +3389,45 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
   {
     if (!(lpStopElement->dwFlags & AEUN_STOPGROUP))
     {
+      //Clearing mutually exclusive actions
+      {
+        AEUNDOITEM *lpElement=lpStopElement;
+        AEUNDOITEM *lpExclusiveOneElement;
+        AEUNDOITEM *lpExclusiveTwoElement;
+
+        while (lpElement)
+        {
+          lpExclusiveOneElement=lpElement;
+          lpExclusiveTwoElement=lpElement->prev;
+
+          if (!lpExclusiveOneElement || (lpExclusiveOneElement->dwFlags & AEUN_STOPGROUP))
+            break;
+          if (!lpExclusiveTwoElement || (lpExclusiveTwoElement->dwFlags & AEUN_STOPGROUP))
+            break;
+
+          if ((lpExclusiveOneElement->dwFlags & AEUN_INSERT) &&
+              (lpExclusiveTwoElement->dwFlags & AEUN_DELETE))
+          {
+            if (lpExclusiveOneElement->nActionStartOffset == lpExclusiveTwoElement->nActionStartOffset &&
+                lpExclusiveOneElement->nActionEndOffset == lpExclusiveTwoElement->nActionEndOffset &&
+                lpExclusiveOneElement->nExtraStartOffset == lpExclusiveTwoElement->nExtraStartOffset &&
+                lpExclusiveOneElement->nExtraEndOffset == lpExclusiveTwoElement->nExtraEndOffset)
+            {
+              lpElement=lpExclusiveTwoElement->prev;
+              AE_StackUndoItemDelete(ae, lpExclusiveOneElement);
+              AE_StackUndoItemDelete(ae, lpExclusiveTwoElement);
+              continue;
+            }
+          }
+          lpElement=lpElement->prev;
+        }
+        lpStopElement=(AEUNDOITEM *)ae->hUndoStack.last;
+        ae->lpCurrentUndo=lpStopElement;
+      }
+
+      //Merge typing characters to one undo action
       if (lpStopElement->dwFlags & AEUN_SINGLECHAR)
       {
-        //Merge typing characters to one undo action
         AEUNDOITEM *lpElement=lpStopElement;
         AEUNDOITEM *lpUndoElement;
         int nDeleteStart=0;
@@ -3466,8 +3502,8 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
               lpUndoElement->wpText=wpUndoText;
               lpUndoElement->dwTextLen=dwUndoTextLen;
 
-              ae->lpCurrentUndo=lpUndoElement;
               lpStopElement=lpUndoElement;
+              ae->lpCurrentUndo=lpStopElement;
             }
           }
         }
@@ -3486,10 +3522,7 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
       AEUNDOITEM *lpTmp;
 
       if (!ae->lpSavePoint)
-      {
-        ae->lpSavePoint=NULL;
         ae->bSavePointExist=FALSE;
-      }
 
       //Delete first undo group
       while (lpElement)
@@ -10742,10 +10775,7 @@ void AE_SetModify(AKELEDIT *ae, BOOL bState, BOOL bMessage)
 void AE_EmptyUndoBuffer(AKELEDIT *ae)
 {
   if (!ae->lpSavePoint)
-  {
-    ae->lpSavePoint=NULL;
     ae->bSavePointExist=FALSE;
-  }
   AE_StackRedoDeleteAll(ae, NULL);
   ae->lpCurrentUndo=NULL;
 }
