@@ -276,7 +276,6 @@ typedef struct _AKELEDIT {
   BOOL bMButtonDown;
   BOOL bMButtonUp;
   int nMButtonMove;
-  DWORD dwImeMsg;
 
   //RichEdit emulation
   BOOL bRichEditClass;
