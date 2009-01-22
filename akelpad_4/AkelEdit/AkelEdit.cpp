@@ -3387,39 +3387,42 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
   {
     if (!(lpStopElement->dwFlags & AEUN_STOPGROUP))
     {
-      //Clearing mutually exclusive actions after using ae->bLockGroupStop
-      AEUNDOITEM *lpElement=lpStopElement;
-      AEUNDOITEM *lpExclusiveOneElement;
-      AEUNDOITEM *lpExclusiveTwoElement;
-
-      while (lpElement)
+      if (!ae->bLockGroupStopInt && !ae->bLockGroupStopExt)
       {
-        lpExclusiveOneElement=lpElement;
-        lpExclusiveTwoElement=lpElement->prev;
+        //Clearing mutually exclusive actions after using ae->bLockGroupStop
+        AEUNDOITEM *lpElement=lpStopElement;
+        AEUNDOITEM *lpExclusiveOneElement;
+        AEUNDOITEM *lpExclusiveTwoElement;
 
-        if (!lpExclusiveOneElement || (lpExclusiveOneElement->dwFlags & AEUN_STOPGROUP))
-          break;
-        if (!lpExclusiveTwoElement || (lpExclusiveTwoElement->dwFlags & AEUN_STOPGROUP))
-          break;
-
-        if ((lpExclusiveOneElement->dwFlags & AEUN_INSERT) &&
-            (lpExclusiveTwoElement->dwFlags & AEUN_DELETE))
+        while (lpElement)
         {
-          if (lpExclusiveOneElement->nActionStartOffset == lpExclusiveTwoElement->nActionStartOffset &&
-              lpExclusiveOneElement->nActionEndOffset == lpExclusiveTwoElement->nActionEndOffset &&
-              lpExclusiveOneElement->nExtraStartOffset == lpExclusiveTwoElement->nExtraStartOffset &&
-              lpExclusiveOneElement->nExtraEndOffset == lpExclusiveTwoElement->nExtraEndOffset)
+          lpExclusiveOneElement=lpElement;
+          lpExclusiveTwoElement=lpElement->prev;
+
+          if (!lpExclusiveOneElement || (lpExclusiveOneElement->dwFlags & AEUN_STOPGROUP))
+            break;
+          if (!lpExclusiveTwoElement || (lpExclusiveTwoElement->dwFlags & AEUN_STOPGROUP))
+            break;
+
+          if ((lpExclusiveOneElement->dwFlags & AEUN_INSERT) &&
+              (lpExclusiveTwoElement->dwFlags & AEUN_DELETE))
           {
-            lpElement=lpExclusiveTwoElement->prev;
-            AE_StackUndoItemDelete(ae, lpExclusiveOneElement);
-            AE_StackUndoItemDelete(ae, lpExclusiveTwoElement);
-            continue;
+            if (lpExclusiveOneElement->nActionStartOffset == lpExclusiveTwoElement->nActionStartOffset &&
+                lpExclusiveOneElement->nActionEndOffset == lpExclusiveTwoElement->nActionEndOffset &&
+                lpExclusiveOneElement->nExtraStartOffset == lpExclusiveTwoElement->nExtraStartOffset &&
+                lpExclusiveOneElement->nExtraEndOffset == lpExclusiveTwoElement->nExtraEndOffset)
+            {
+              lpElement=lpExclusiveTwoElement->prev;
+              AE_StackUndoItemDelete(ae, lpExclusiveOneElement);
+              AE_StackUndoItemDelete(ae, lpExclusiveTwoElement);
+              continue;
+            }
           }
+          lpElement=lpElement->prev;
         }
-        lpElement=lpElement->prev;
+        lpStopElement=(AEUNDOITEM *)ae->hUndoStack.last;
+        ae->lpCurrentUndo=lpStopElement;
       }
-      lpStopElement=(AEUNDOITEM *)ae->hUndoStack.last;
-      ae->lpCurrentUndo=lpStopElement;
     }
   }
 
