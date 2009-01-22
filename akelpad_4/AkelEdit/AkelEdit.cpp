@@ -3389,7 +3389,7 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
   {
     if (!(lpStopElement->dwFlags & AEUN_STOPGROUP))
     {
-      //Clearing mutually exclusive actions
+      //Clearing mutually exclusive actions after using ae->bLockGroupStop
       {
         AEUNDOITEM *lpElement=lpStopElement;
         AEUNDOITEM *lpExclusiveOneElement;
