@@ -2375,7 +2375,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               else
               {
                 AE_EditKeyBackspace(ae, FALSE);
+
                 ae->bLockGroupStopInt=FALSE;
+                AE_StackUndoGroupStop(ae);
+                if (ae->bModified != AE_GetModify(ae))
+                  AE_SetModify(ae, !ae->bModified, FALSE);
               }
             }
             ImmReleaseContext(ae->hWndEdit, hIMC);
@@ -10932,9 +10936,7 @@ void AE_EditUndo(AKELEDIT *ae)
   }
 
   if (ae->bModified != AE_GetModify(ae))
-  {
     AE_SetModify(ae, !ae->bModified, FALSE);
-  }
 }
 
 void AE_EditRedo(AKELEDIT *ae)
@@ -11021,9 +11023,7 @@ void AE_EditRedo(AKELEDIT *ae)
   }
 
   if (ae->bModified != AE_GetModify(ae))
-  {
     AE_SetModify(ae, !ae->bModified, FALSE);
-  }
 }
 
 void AE_EditCut(AKELEDIT *ae)
