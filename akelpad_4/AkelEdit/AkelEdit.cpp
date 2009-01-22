@@ -2276,8 +2276,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_STARTCOMPOSITION)
     {
-      ae->dwImeMsg=uMsg;
-
       if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
       {
         ae->bLockGroupStopInt=TRUE;
@@ -2328,7 +2326,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!AE_IsReadOnly(ae))
         {
           AECHARINDEX ciSelStart;
-          wchar_t wszCompStr[16];
+          wchar_t wszCompStr[2];
           HIMC hIMC;
           int nStrLen;
 
@@ -2336,7 +2334,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (lParam & GCS_RESULTSTR)
             {
-              if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, wszCompStr, 16)) > 0)
+              if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
               {
                 AE_ReplaceSel(ae, wszCompStr, nStrLen / sizeof(wchar_t), FALSE, NULL, NULL);
 
@@ -2346,12 +2344,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   AE_StackUndoGroupStop(ae);
                   ae->bLockGroupStopInt=TRUE;
                 }
-                if (ae->dwImeMsg == WM_IME_ENDCOMPOSITION)
-                {
-                  ae->bLockGroupStopInt=FALSE;
-                }
 
-                if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_COMPSTR, wszCompStr, 16)) > 0)
+                if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_COMPSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
                 {
                   AE_EditChar(ae, wszCompStr[0]);
 
@@ -2360,6 +2354,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   ciSelStart.nCharInLine=ae->ciSelStartIndex.nCharInLine - 1;
                   AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0);
                 }
+                else ae->bLockGroupStopInt=FALSE;
               }
             }
 
@@ -2387,7 +2382,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_ENDCOMPOSITION)
     {
-      ae->dwImeMsg=uMsg;
     }
     else if (uMsg == WM_IME_CHAR)
     {
