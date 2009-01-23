@@ -2352,7 +2352,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 else
                 {
                   if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-                    AE_SetSelectionPos(ae, &ae->ciSelStartIndex, &ae->ciSelStartIndex, FALSE, 0);
+                    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelEndIndex, FALSE, 0);
                 }
               }
 
