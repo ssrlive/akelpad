@@ -417,6 +417,7 @@ BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA);
 BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft);
 BOOL AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHARINDEX *ciChar);
 BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
+void AE_UpdateCandidatePos(AKELEDIT *ae);
 BOOL AE_GetModify(AKELEDIT *ae);
 void AE_SetModify(AKELEDIT *ae, BOOL bState, BOOL bMessage);
 void AE_EmptyUndoBuffer(AKELEDIT *ae);
