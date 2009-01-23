@@ -2277,10 +2277,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_IME_STARTCOMPOSITION)
     {
       if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
-      {
-        ae->bLockGroupStopInt=TRUE;
         return 0;
-      }
 
       if (!ae->bUnicodeWindow)
       {
@@ -2334,42 +2331,61 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (lParam & GCS_RESULTSTR)
             {
+              ae->bLockGroupStopInt=TRUE;
+
               if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
               {
-                AE_ReplaceSel(ae, wszCompStr, nStrLen / sizeof(wchar_t), FALSE, NULL, NULL);
-
-                if (ae->dwOptions & AECO_DETAILEDUNDO)
+                if (nStrLen > sizeof(wchar_t) || wszCompStr[0] != ae->dwImeChar)
                 {
-                  ae->bLockGroupStopInt=FALSE;
-                  AE_StackUndoGroupStop(ae);
-                  ae->bLockGroupStopInt=TRUE;
-                }
+                  if (nStrLen == sizeof(wchar_t))
+                    AE_EditChar(ae, wszCompStr[0]);
+                  else
+                    AE_ReplaceSel(ae, wszCompStr, nStrLen / sizeof(wchar_t), FALSE, NULL, NULL);
 
-                if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_COMPSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
+                  if (ae->dwOptions & AECO_DETAILEDUNDO)
+                  {
+                    ae->bLockGroupStopInt=FALSE;
+                    AE_StackUndoGroupStop(ae);
+                    ae->bLockGroupStopInt=TRUE;
+                  }
+                }
+                else
                 {
-                  AE_EditChar(ae, wszCompStr[0]);
-
-                  ciSelStart.nLine=ae->ciSelStartIndex.nLine;
-                  ciSelStart.lpLine=ae->ciSelStartIndex.lpLine;
-                  ciSelStart.nCharInLine=ae->ciSelStartIndex.nCharInLine - 1;
-                  AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0);
+                  if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+                    AE_SetSelectionPos(ae, &ae->ciSelStartIndex, &ae->ciSelStartIndex, FALSE, 0);
                 }
-                else ae->bLockGroupStopInt=FALSE;
               }
-            }
 
+              if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_COMPSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
+              {
+                AE_EditChar(ae, wszCompStr[0]);
+                ae->dwImeChar=wszCompStr[0];
+
+                ciSelStart.nLine=ae->ciSelStartIndex.nLine;
+                ciSelStart.lpLine=ae->ciSelStartIndex.lpLine;
+                ciSelStart.nCharInLine=ae->ciSelStartIndex.nCharInLine - 1;
+                AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0);
+              }
+              else ae->bLockGroupStopInt=FALSE;
+            }
             if (lParam & GCS_COMPSTR)
             {
+              ae->bLockGroupStopInt=TRUE;
+
               if (wParam)
               {
-                if (ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, NULL, 0) <= 0)
+                if (wParam != ae->dwImeChar)
                 {
-                  AE_EditChar(ae, wParam);
+                  if (ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, NULL, 0) <= 0)
+                  {
+                    AE_EditChar(ae, wParam);
+                    ae->dwImeChar=wParam;
 
-                  ciSelStart.nLine=ae->ciSelStartIndex.nLine;
-                  ciSelStart.lpLine=ae->ciSelStartIndex.lpLine;
-                  ciSelStart.nCharInLine=ae->ciSelStartIndex.nCharInLine - 1;
-                  AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0);
+                    ciSelStart.nLine=ae->ciSelStartIndex.nLine;
+                    ciSelStart.lpLine=ae->ciSelStartIndex.lpLine;
+                    ciSelStart.nCharInLine=ae->ciSelStartIndex.nCharInLine - 1;
+                    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0);
+                  }
                 }
               }
               else
@@ -2390,6 +2406,37 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_ENDCOMPOSITION)
     {
+    }
+    else if (uMsg == WM_IME_KEYDOWN)
+    {
+      if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
+      {
+        if (wParam == VK_HANJA)
+        {
+          AECHARRANGE crSel;
+          CANDIDATEFORM cf;
+          HIMC hIMC;
+
+          if (hIMC=ImmGetContext(ae->hWndEdit))
+          {
+            AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &crSel.ciMax, FALSE);
+            AE_GetIndex(ae, AEGI_PREVCHAR, &crSel.ciMax, &crSel.ciMin, FALSE);
+            ae->dwImeChar=*(crSel.ciMin.lpLine->wpLine + crSel.ciMin.nCharInLine);
+
+            if (ImmEscapeW((HKL)ae->dwInputLanguage, hIMC, IME_ESC_HANJA_MODE, &ae->dwImeChar))
+            {
+              AE_SetSelectionPos(ae, &crSel.ciMax, &crSel.ciMin, FALSE, 0);
+
+              cf.dwIndex=0;
+              cf.dwStyle=CFS_CANDIDATEPOS;
+              AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
+              cf.ptCurrentPos.y+=ae->nCharHeight;
+              ImmSetCandidateWindow(hIMC, &cf);
+            }
+            ImmReleaseContext(ae->hWndEdit, hIMC);
+          }
+        }
+      }
     }
     else if (uMsg == WM_IME_CHAR)
     {
