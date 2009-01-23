@@ -1381,7 +1381,7 @@ AEM_STOPGROUPTYPING
 ___________________
 
 Stops the control from collecting additional typing actions into the current undo action.
-The control stores the next typing action, if any, into a new action in the undo queue. 
+The control stores the next typing action, if any, into a new action in the undo queue.
 
 wParam == not used.
 lParam == not used.
@@ -1405,12 +1405,12 @@ Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_BEGINUNDOACTION, 0, 0);
  SendMessage(hWndEdit, AEM_STOPGROUPTYPING, 0, 0);
+ SendMessage(hWndEdit, AEM_BEGINUNDOACTION, 0, 0);
  SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
  SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"456");
- SendMessage(hWndEdit, AEM_STOPGROUPTYPING, 0, 0);
  SendMessage(hWndEdit, AEM_ENDUNDOACTION, 0, 0);
+ SendMessage(hWndEdit, AEM_STOPGROUPTYPING, 0, 0);
 
 
 AEM_ENDUNDOACTION
