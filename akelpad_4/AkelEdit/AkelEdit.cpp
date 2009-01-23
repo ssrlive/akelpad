@@ -2335,7 +2335,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
               if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
               {
-                if (nStrLen > sizeof(wchar_t) || wszCompStr[0] != ae->dwImeChar)
+                if ((DWORD)nStrLen > sizeof(wchar_t) || wszCompStr[0] != ae->dwImeChar)
                 {
                   if (nStrLen == sizeof(wchar_t))
                     AE_EditChar(ae, wszCompStr[0]);
@@ -2407,6 +2407,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_IME_ENDCOMPOSITION)
     {
     }
+    else if (uMsg == WM_IME_NOTIFY)
+    {
+      if (wParam == IMN_OPENCANDIDATE)
+      {
+        AE_UpdateCandidatePos(ae);
+      }
+    }
     else if (uMsg == WM_IME_KEYDOWN)
     {
       if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
@@ -2414,7 +2421,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (wParam == VK_HANJA)
         {
           AECHARRANGE crSel;
-          CANDIDATEFORM cf;
           HIMC hIMC;
 
           if (hIMC=ImmGetContext(ae->hWndEdit))
@@ -2426,12 +2432,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (ImmEscapeW((HKL)ae->dwInputLanguage, hIMC, IME_ESC_HANJA_MODE, &ae->dwImeChar))
             {
               AE_SetSelectionPos(ae, &crSel.ciMax, &crSel.ciMin, FALSE, 0);
-
-              cf.dwIndex=0;
-              cf.dwStyle=CFS_CANDIDATEPOS;
-              AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
-              cf.ptCurrentPos.y+=ae->nCharHeight;
-              ImmSetCandidateWindow(hIMC, &cf);
+              AE_UpdateCandidatePos(ae);
             }
             ImmReleaseContext(ae->hWndEdit, hIMC);
           }
@@ -10781,6 +10782,23 @@ BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   ft->crFound.ciMax.lpLine=ciCount.lpLine;
   ft->crFound.ciMax.nCharInLine=ciCount.nCharInLine;
   return TRUE;
+}
+
+void AE_UpdateCandidatePos(AKELEDIT *ae)
+{
+  CANDIDATEFORM cf;
+  HIMC hIMC;
+
+  if (hIMC=ImmGetContext(ae->hWndEdit))
+  {
+    cf.dwIndex=0;
+    cf.dwStyle=CFS_CANDIDATEPOS;
+    AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
+    cf.ptCurrentPos.y+=ae->nCharHeight;
+    ImmSetCandidateWindow(hIMC, &cf);
+
+    ImmReleaseContext(ae->hWndEdit, hIMC);
+  }
 }
 
 BOOL AE_GetModify(AKELEDIT *ae)
