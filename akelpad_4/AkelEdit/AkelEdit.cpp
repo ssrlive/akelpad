@@ -2409,9 +2409,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_NOTIFY)
     {
-      if (wParam == IMN_OPENCANDIDATE)
+      if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
       {
-        AE_UpdateCandidatePos(ae);
+        if (wParam == IMN_OPENCANDIDATE)
+        {
+          AE_UpdateCandidatePos(ae);
+        }
       }
     }
     else if (uMsg == WM_IME_KEYDOWN)
