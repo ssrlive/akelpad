@@ -1207,6 +1207,8 @@ int GetBaseNameA(char *pFile, char *szBaseName, int nBaseNameMaxLen);
 int GetBaseNameW(wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
 char* GetFileExtA(char *pFile);
 wchar_t* GetFileExtW(wchar_t *wpFile);
+void TrimModifyStateA(char *szFile);
+void TrimModifyStateW(wchar_t *wszFile);
 BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);
 BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);
 int TranslateFileStringA(char *pCommand, char *szBuffer, int nBufferSize);

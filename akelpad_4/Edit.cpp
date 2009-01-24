@@ -5534,7 +5534,6 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
             if (lstrcmpiA(wf->szFile, szFile))
             {
               UpdateTitleA(hWndFrame, szFile);
-              lstrcpynA(wf->szFile, szFile, MAX_PATH);
             }
           }
         }
@@ -5732,7 +5731,6 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
             if (lstrcmpiW(wf->wszFile, wszFile))
             {
               UpdateTitleW(hWndFrame, wszFile);
-              lstrcpynW(wf->wszFile, wszFile, MAX_PATH);
             }
           }
         }
@@ -18381,6 +18379,32 @@ wchar_t* GetFileExtW(wchar_t *wpFile)
     else if (wpFile[i] == '\\') break;
   }
   return L"";
+}
+
+void TrimModifyStateA(char *szFile)
+{
+  int i;
+
+  for (i=lstrlenA(szFile) - 1; i >= 0; --i)
+  {
+    if (szFile[i] == '*' || szFile[i] == ' ')
+      szFile[i]='\0';
+    else
+      break;
+  }
+}
+
+void TrimModifyStateW(wchar_t *wszFile)
+{
+  int i;
+
+  for (i=lstrlenW(wszFile) - 1; i >= 0; --i)
+  {
+    if (wszFile[i] == '*' || wszFile[i] == ' ')
+      wszFile[i]='\0';
+    else
+      break;
+  }
 }
 
 BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild)
