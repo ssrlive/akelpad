@@ -5084,6 +5084,37 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENMODIFY *aenm=(AENMODIFY *)lParam;
 
+/*
+        //Set tab item changed state
+        if (bMDI)
+        {
+          TCITEMA tcItemA;
+          char szTabFileName[MAX_PATH];
+          int nCurSel;
+          int i;
+
+          nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+          tcItemA.mask=TCIF_TEXT;
+          tcItemA.pszText=szTabFileName;
+          tcItemA.cchTextMax=MAX_PATH;
+          SendMessage(hTab, TCM_GETITEMA, nCurSel, (LPARAM)&tcItemA);
+
+          if (aenm->bModified)
+          {
+            lstrcatA(szTabFileName, " *");
+          }
+          else
+          {
+            for (i=lstrlenA(szTabFileName) - 1; i >= 0; --i)
+            {
+              if (szTabFileName[i] == '*' || szTabFileName[i] == ' ')
+                szTabFileName[i]='\0';
+              else
+                break;
+            }
+          }
+        }
+*/
         SetModifyStatusA(aenm->hdr.hwndFrom, aenm->bModified, FALSE);
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
@@ -5294,6 +5325,38 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENMODIFY *aenm=(AENMODIFY *)lParam;
 
+/*
+        //Set tab item changed state
+        if (bMDI)
+        {
+          TCITEMW tcItemW;
+          wchar_t wszTabFileName[MAX_PATH];
+          int nCurSel;
+          int i;
+
+          nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+          tcItemW.mask=TCIF_TEXT;
+          tcItemW.pszText=wszTabFileName;
+          tcItemW.cchTextMax=MAX_PATH;
+          SendMessage(hTab, TCM_GETITEMW, nCurSel, (LPARAM)&tcItemW);
+
+          if (aenm->bModified)
+          {
+            lstrcatW(wszTabFileName, L" *");
+          }
+          else
+          {
+            for (i=lstrlenW(wszTabFileName) - 1; i >= 0; --i)
+            {
+              if (wszTabFileName[i] == '*' || wszTabFileName[i] == ' ')
+                wszTabFileName[i]='\0';
+              else
+                break;
+            }
+          }
+          SendMessage(hTab, TCM_SETITEMW, nCurSel, (LPARAM)&tcItemW);
+        }
+*/
         SetModifyStatusW(aenm->hdr.hwndFrom, aenm->bModified, FALSE);
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
@@ -6376,17 +6439,20 @@ LRESULT CALLBACK NewTabProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       bMouseDown=FALSE;
       ReleaseCapture();
 
-      GetCursorPos(&pt);
-      nDropItem=GetTabItemFromPoint(hWnd, &pt);
-
-      if (nDropItem != -1 && nDropItem != nDragItem)
+      if (nMouseMove == 0)
       {
-        tcItemA.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
-        tcItemA.pszText=buf;
-        tcItemA.cchTextMax=BUFFER_SIZE;
-        SendMessage(hWnd, TCM_GETITEMA, nDragItem, (LPARAM)&tcItemA);
-        SendMessage(hWnd, TCM_DELETEITEM, nDragItem, 0);
-        SendMessage(hWnd, TCM_INSERTITEMA, nDropItem, (LPARAM)&tcItemA);
+        GetCursorPos(&pt);
+        nDropItem=GetTabItemFromPoint(hWnd, &pt);
+
+        if (nDropItem != -1 && nDropItem != nDragItem)
+        {
+          tcItemA.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
+          tcItemA.pszText=buf;
+          tcItemA.cchTextMax=BUFFER_SIZE;
+          SendMessage(hWnd, TCM_GETITEMA, nDragItem, (LPARAM)&tcItemA);
+          SendMessage(hWnd, TCM_DELETEITEM, nDragItem, 0);
+          SendMessage(hWnd, TCM_INSERTITEMA, nDropItem, (LPARAM)&tcItemA);
+        }
       }
       return TRUE;
     }
@@ -6513,17 +6579,20 @@ LRESULT CALLBACK NewTabProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       bMouseDown=FALSE;
       ReleaseCapture();
 
-      GetCursorPos(&pt);
-      nDropItem=GetTabItemFromPoint(hWnd, &pt);
-
-      if (nDropItem != -1 && nDropItem != nDragItem)
+      if (nMouseMove == 0)
       {
-        tcItemW.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
-        tcItemW.pszText=wbuf;
-        tcItemW.cchTextMax=BUFFER_SIZE;
-        SendMessage(hWnd, TCM_GETITEMW, nDragItem, (LPARAM)&tcItemW);
-        SendMessage(hWnd, TCM_DELETEITEM, nDragItem, 0);
-        SendMessage(hWnd, TCM_INSERTITEMW, nDropItem, (LPARAM)&tcItemW);
+        GetCursorPos(&pt);
+        nDropItem=GetTabItemFromPoint(hWnd, &pt);
+
+        if (nDropItem != -1 && nDropItem != nDragItem)
+        {
+          tcItemW.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
+          tcItemW.pszText=wbuf;
+          tcItemW.cchTextMax=BUFFER_SIZE;
+          SendMessage(hWnd, TCM_GETITEMW, nDragItem, (LPARAM)&tcItemW);
+          SendMessage(hWnd, TCM_DELETEITEM, nDragItem, 0);
+          SendMessage(hWnd, TCM_INSERTITEMW, nDropItem, (LPARAM)&tcItemW);
+        }
       }
       return TRUE;
     }
