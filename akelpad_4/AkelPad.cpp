@@ -5084,37 +5084,52 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENMODIFY *aenm=(AENMODIFY *)lParam;
 
-/*
-        //Set tab item changed state
-        if (bMDI)
+        //Synchronize changed state
+        if (!bMDI)
         {
-          TCITEMA tcItemA;
-          char szTabFileName[MAX_PATH];
-          int nCurSel;
-          int i;
-
-          nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
-          tcItemA.mask=TCIF_TEXT;
-          tcItemA.pszText=szTabFileName;
-          tcItemA.cchTextMax=MAX_PATH;
-          SendMessage(hTab, TCM_GETITEMA, nCurSel, (LPARAM)&tcItemA);
+          char szMainName[MAX_PATH];
+          char *pFileName=GetFileNameA(szCurrentFile);
 
           if (aenm->bModified)
-          {
-            lstrcatA(szTabFileName, " *");
-          }
+            wsprintfA(szMainName, "* %s - %s", pFileName, APP_MAIN_TITLEA);
           else
+            wsprintfA(szMainName, "%s - %s", pFileName, APP_MAIN_TITLEA);
+          SetWindowTextA(hMainWnd, szMainName);
+        }
+        else
+        {
+          char szTabName[MAX_PATH];
+          char szFrameName[MAX_PATH];
+          TCITEMA tcItemA;
+          WNDFRAMEA *wf;
+          HWND hWndFrame;
+          int nCurSel;
+
+          if (hWndFrame=GetParent(aenm->hdr.hwndFrom))
           {
-            for (i=lstrlenA(szTabFileName) - 1; i >= 0; --i)
+            if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
             {
-              if (szTabFileName[i] == '*' || szTabFileName[i] == ' ')
-                szTabFileName[i]='\0';
+              nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+              tcItemA.mask=TCIF_TEXT;
+              tcItemA.pszText=szTabName;
+              tcItemA.cchTextMax=MAX_PATH;
+              SendMessage(hTab, TCM_GETITEMA, nCurSel, (LPARAM)&tcItemA);
+
+              if (aenm->bModified)
+              {
+                lstrcatA(szTabName, " *");
+                wsprintfA(szFrameName, "%s *", wf->szFile);
+              }
               else
-                break;
+              {
+                TrimModifyStateA(szTabName);
+                lstrcpynA(szFrameName, wf->szFile, MAX_PATH);
+              }
+              SendMessage(hTab, TCM_SETITEMA, nCurSel, (LPARAM)&tcItemA);
+              SetWindowTextA(hWndFrame, szFrameName);
             }
           }
         }
-*/
         SetModifyStatusA(aenm->hdr.hwndFrom, aenm->bModified, FALSE);
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
@@ -5325,38 +5340,52 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENMODIFY *aenm=(AENMODIFY *)lParam;
 
-/*
-        //Set tab item changed state
-        if (bMDI)
+        //Synchronize changed state
+        if (!bMDI)
         {
-          TCITEMW tcItemW;
-          wchar_t wszTabFileName[MAX_PATH];
-          int nCurSel;
-          int i;
-
-          nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
-          tcItemW.mask=TCIF_TEXT;
-          tcItemW.pszText=wszTabFileName;
-          tcItemW.cchTextMax=MAX_PATH;
-          SendMessage(hTab, TCM_GETITEMW, nCurSel, (LPARAM)&tcItemW);
+          wchar_t wszMainName[MAX_PATH];
+          wchar_t *wpFileName=GetFileNameW(wszCurrentFile);
 
           if (aenm->bModified)
-          {
-            lstrcatW(wszTabFileName, L" *");
-          }
+            wsprintfW(wszMainName, L"* %s - %s", wpFileName, APP_MAIN_TITLEW);
           else
+            wsprintfW(wszMainName, L"%s - %s", wpFileName, APP_MAIN_TITLEW);
+          SetWindowTextW(hMainWnd, wszMainName);
+        }
+        else
+        {
+          wchar_t wszTabName[MAX_PATH];
+          wchar_t wszFrameName[MAX_PATH];
+          TCITEMW tcItemW;
+          WNDFRAMEW *wf;
+          HWND hWndFrame;
+          int nCurSel;
+
+          if (hWndFrame=GetParent(aenm->hdr.hwndFrom))
           {
-            for (i=lstrlenW(wszTabFileName) - 1; i >= 0; --i)
+            if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
             {
-              if (wszTabFileName[i] == '*' || wszTabFileName[i] == ' ')
-                wszTabFileName[i]='\0';
+              nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+              tcItemW.mask=TCIF_TEXT;
+              tcItemW.pszText=wszTabName;
+              tcItemW.cchTextMax=MAX_PATH;
+              SendMessage(hTab, TCM_GETITEMW, nCurSel, (LPARAM)&tcItemW);
+
+              if (aenm->bModified)
+              {
+                lstrcatW(wszTabName, L" *");
+                wsprintfW(wszFrameName, L"%s *", wf->wszFile);
+              }
               else
-                break;
+              {
+                TrimModifyStateW(wszTabName);
+                lstrcpynW(wszFrameName, wf->wszFile, MAX_PATH);
+              }
+              SendMessage(hTab, TCM_SETITEMW, nCurSel, (LPARAM)&tcItemW);
+              SetWindowTextW(hWndFrame, wszFrameName);
             }
           }
-          SendMessage(hTab, TCM_SETITEMW, nCurSel, (LPARAM)&tcItemW);
         }
-*/
         SetModifyStatusW(aenm->hdr.hwndFrom, aenm->bModified, FALSE);
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
