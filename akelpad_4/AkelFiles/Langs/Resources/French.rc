@@ -651,7 +651,7 @@ BEGIN
                     11,13
     CONTROL         "Détaillées",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
-    GROUPBOX        "Wrap",IDC_STATIC,123,46,85,76
+    GROUPBOX        "Retour à la ligne",IDC_STATIC,123,46,85,76
     CONTROL         "Par mot",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,135,69,70,10
     CONTROL         "Par symbole",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
