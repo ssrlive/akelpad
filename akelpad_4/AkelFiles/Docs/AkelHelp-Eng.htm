@@ -46,7 +46,6 @@
     <li>Support of language modules;
     <li>Plugins support (syntax highlighting, auto-completion, scripts execution, keyboard macros and much more).
   </ul>
-  Settings are saved in AkelPad.ini or in registry (<i>HKEY_CURRENT_USER\Software\Akelsoft\AkelPad</i>).
 
 <a name=ch3><h3>Command line parameters</h3></a>
   AkelPad.exe [options] "file1.ext" "file2.ext" ...
@@ -95,309 +94,423 @@
     </table>
   </ul>
 
+<a name=ch3><h3>Manual settings</h3></a>
+  Settings are saved in AkelPad.ini or in registry (<i>HKEY_CURRENT_USER\Software\Akelsoft\AkelPad</i>).
+  <ul>
+    <table cellspacing=0 cellpadding=5 border=1>
+      <tr>
+        <td><b>ShowModify</b></td>
+        <td>Defines, where it will be possible to see, that the document is changed. Sets by the sum of members:
+          <br><li>1 - Display "Modified" in status bar.
+          <br><li>2 - Display asterisk * in main window title (SDI).
+          <br><li>4 - Display asterisk * in frame window title (MDI).
+          <br><li>8 - Display asterisk * in tab button name (MDI).
+          <br>By default: 1, show all: 1+2+4+8=15.
+        </td>
+      </tr>
+      <tr>
+        <td><b>StatusPosType</b></td>
+        <td>Shows status bar statistics in:
+          <br><li>0 - "Line:Symbol".
+          <br><li>1 - "Line:Column".
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>WordBreak</b></td>
+        <td>Defines how the caret on Ctrl+Left/Ctrl+Right will move. Works only if enabled "Word delimiters" in settings (WordDelimitersEnable=1). Sets by the sum of members:
+          <br><li>1 - Left movement is stopped, when word start is found.
+          <br><li>2 - Left movement is stopped, when word end is found.
+          <br><li>4 - Right movement is stopped, when word start is found.
+          <br><li>8 - Right movement is stopped, when word end is found.
+          <br><li>16 - Movement is stopped, when spacing start is found. Cannot be combined with 64.
+          <br><li>32 - Movement is stopped, when spacing end is found. Cannot be combined with 128.
+          <br><li>64 - Movement is continued, when spacing start is found. Cannot be combined with 16.
+          <br><li>128 - Movement is continued, when spacing end is found. Cannot be combined with 32.
+          <br>By default: 1+2+4+8+32+64=111 (AkelEdit), 1+8=9 (AkelPad).
+        </td>
+      </tr>
+    </table>
+  </ul>
+
 <a name=ch4><h3>Keyboard commands</h3></a>
   <ul>
-  <table cellspacing=0 cellpadding=0 border=0>
+  <table cellspacing=0 cellpadding=1 border=1>
     <tr>
-      <td width="149"><li><b>Ctrl+X</b> or <b>Shift+Del</b></td>
-      <td width="651"> - cut</td>
+      <td><b>Ctrl+X</b><br><b>Shift+Del</b></td>
+      <td>cut</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+C</b> or <b>Ctrl+Ins</b></td>
-      <td> - copy</td>
+      <td><b>Ctrl+C</b><br><b>Ctrl+Ins</b></td>
+      <td>copy</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+V</b> or <b>Shift+Ins</b></td>
-      <td> - paste</td>
+      <td><b>Ctrl+V</b><br><b>Shift+Ins</b></td>
+      <td>paste</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Shift+V</b> or <b>Ctrl+Shift+Ins</b></td>
-      <td> - paste text as ANSI</td>
+      <td><b>Ctrl+Shift+V</b><br><b>Ctrl+Shift+Ins</b></td>
+      <td>paste text as ANSI</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+A</b></td>
-      <td> - select all</td>
+      <td><b>Ctrl+A</b></td>
+      <td>select all</td>
     </tr>
+
     <tr>
-      <td><li><b>Backspace</b></td>
-      <td> - delete from left</td>
+      <td><b>Backspace</b></td>
+      <td>delete from left</td>
     </tr>
+
     <tr>
-      <td><li><b>Del</b></td>
-      <td> - delete from right</td>
+      <td><b>Del</b></td>
+      <td>delete from right</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Z</b></td>
-      <td> - undo</td>
+      <td><b>Ctrl+Z</b></td>
+      <td>undo</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Shift+Z</b></td>
-      <td> - redo</td>
+      <td><b>Ctrl+Shift+Z</b></td>
+      <td>redo</td>
     </tr>
+
     <tr>
-      <td><li><b>Home</b></td>
-      <td> - go to start of line</td>
+      <td><b>Home</b></td>
+      <td>go to start of line</td>
     </tr>
+
     <tr>
-      <td><li><b>End</b></td>
-      <td> - go to end of line</td>
+      <td><b>End</b></td>
+      <td>go to end of line</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Home</b></td>
-      <td> - go to start of text</td>
+      <td><b>Ctrl+Home</b></td>
+      <td>go to start of text</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+End</b></td>
-      <td> - go to end of text</td>
+      <td><b>Ctrl+End</b></td>
+      <td>go to end of text</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Left</b></td>
-      <td> - go to start of word</td>
+      <td><b>Ctrl+Left</b></td>
+      <td>go to start of word</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Right</b></td>
-      <td> - go to end of word</td>
+      <td><b>Ctrl+Right</b></td>
+      <td>go to end of word</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Up</b></td>
-      <td>- go to start of previous line</td>
+      <td><b>Ctrl+Up</b></td>
+      <td>go to start of previous line</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Down</b></td>
-      <td> - go to start of next line</td>
+      <td><b>Ctrl+Down</b></td>
+      <td>go to start of next line</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+PageUp</b></td>
-      <td> - go to first visible character</td>
+      <td><b>Ctrl+PageUp</b></td>
+      <td>go to first visible character</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+PageDown</b></td>
-      <td> - go to last visible character</td>
+      <td><b>Ctrl+PageDown</b></td>
+      <td>go to last visible character</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Backspace</b></td>
-      <td> - delete left word</td>
+      <td><b>Ctrl+Backspace</b></td>
+      <td>delete left word</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Del</b></td>
-      <td> - delete right word</td>
+      <td><b>Ctrl+Del</b></td>
+      <td>delete right word</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+N</b></td>
-      <td> - create new file</td>
+      <td><b>Ctrl+N</b></td>
+      <td>create new file</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Shift+N</b></td>
-      <td> - create new window</td>
+      <td><b>Ctrl+Shift+N</b></td>
+      <td>create new window</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+O</b></td>
-      <td> - open file</td>
+      <td><b>Ctrl+O</b></td>
+      <td>open file</td>
     </tr>
+
     <tr>
-      <td><li><b>F5</b> or <b>Ctrl+Shift+O</b></td>
-      <td> - reopen file</td>
+      <td><b>F5</b><br><b>Ctrl+Shift+O</b></td>
+      <td>reopen file</td>
     </tr>
+
     <tr>
-      <td><li><b>F2</b> or <b>Ctrl+S</b></td>
-      <td> - save</td>
+      <td><b>F2</b><br><b>Ctrl+S</b></td>
+      <td>save</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+F2</b> or <b>Ctrl+Shift+S</b></td>
-      <td> - save as</td>
+      <td><b>Shift+F2</b><br><b>Ctrl+Shift+S</b></td>
+      <td>save as</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Alt+F2</b></td>
-      <td> - save all</td>
+      <td><b>Ctrl+Alt+F2</b></td>
+      <td>save all</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Alt+F4</b></td>
-      <td> - close all</td>
+      <td><b>Ctrl+Alt+F4</b></td>
+      <td>close all</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+P</b></td>
-      <td> - print</td>
+      <td><b>Ctrl+P</b></td>
+      <td>print</td>
     </tr>
+
     <tr>
-      <td><li><b>Esc</b> or <b>Alt+F4</b></td>
-      <td> - exit</td>
+      <td><b>Esc</b><br><b>Alt+F4</b></td>
+      <td>exit</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+F</b></td>
-      <td> - find</td>
+      <td><b>Ctrl+F</b></td>
+      <td>find</td>
     </tr>
+
     <tr>
-      <td><li><b>F3</b></td>
-      <td> - find next down. Search/replace dialog: close dialog and find next down.</td>
+      <td><b>F3</b></td>
+      <td>find next down. Search/replace dialog: close dialog and find next down.</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+F3</b></td>
-      <td> - find next up. Search/replace dialog: close dialog and find next up.</td>
+      <td><b>Shift+F3</b></td>
+      <td>find next up. Search/replace dialog: close dialog and find next up.</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+R</b> or <b>Ctrl+H</b></td>
-      <td> - find and replace</td>
+      <td><b>Ctrl+R</b><br><b>Ctrl+H</b></td>
+      <td>find and replace</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+G</b></td>
-      <td> - go to line (by number)</td>
+      <td><b>Ctrl+G</b></td>
+      <td>go to line (by number)</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+I</b></td>
-      <td> - run "Character map"</td>
+      <td><b>Ctrl+I</b></td>
+      <td>run "Character map"</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+T</b></td>
-      <td> - on/off "Always on top"</td>
+      <td><b>Ctrl+T</b></td>
+      <td>on/off "Always on top"</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+U</b></td>
-      <td> - on/off "Word wrap"</td>
+      <td><b>Ctrl+U</b></td>
+      <td>on/off "Word wrap"</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+E</b></td>
-      <td> - on/off "Read only"</td>
+      <td><b>Ctrl+E</b></td>
+      <td>on/off "Read only"</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+W</b></td>
-      <td> - reopen file as ANSI (Windows)</td>
+      <td><b>Alt+W</b></td>
+      <td>reopen file as ANSI (Windows)</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+D</b></td>
-      <td> - reopen file as OEM (DOS)</td>
+      <td><b>Alt+D</b></td>
+      <td>reopen file as OEM (DOS)</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+K</b></td>
-      <td> - reopen file as KOI8-R</td>
+      <td><b>Alt+K</b></td>
+      <td>reopen file as KOI8-R</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+L</b></td>
-      <td> - reopen file as UTF-16LE</td>
+      <td><b>Alt+L</b></td>
+      <td>reopen file as UTF-16LE</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+B</b></td>
-      <td> - reopen file as UTF-16BE</td>
+      <td><b>Alt+B</b></td>
+      <td>reopen file as UTF-16BE</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+U</b></td>
-      <td> - reopen file as UTF-8</td>
+      <td><b>Alt+U</b></td>
+      <td>reopen file as UTF-8</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+Alt+W</b></td>
-      <td> - save file as ANSI (Windows)</td>
+      <td><b>Shift+Alt+W</b></td>
+      <td>save file as ANSI (Windows)</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+Alt+D</b></td>
-      <td> - save file as OEM (DOS)</td>
+      <td><b>Shift+Alt+D</b></td>
+      <td>save file as OEM (DOS)</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+Alt+K</b></td>
-      <td> - save file as KOI8-R</td>
+      <td><b>Shift+Alt+K</b></td>
+      <td>save file as KOI8-R</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+Alt+L</b></td>
-      <td> - save file as UTF-16LE</td>
+      <td><b>Shift+Alt+L</b></td>
+      <td>save file as UTF-16LE</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+Alt+B</b></td>
-      <td> - save file as UTF-16BE</td>
+      <td><b>Shift+Alt+B</b></td>
+      <td>save file as UTF-16BE</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+Alt+U</b></td>
-      <td> - save file as UTF-8</td>
+      <td><b>Shift+Alt+U</b></td>
+      <td>save file as UTF-8</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+F5</b></td>
-      <td> - reopen file with code page detect</td>
+      <td><b>Alt+F5</b></td>
+      <td>reopen file with code page detect</td>
     </tr>
+
     <tr>
-      <td><li><b>F12</b></td>
-      <td> - show context menu for fast reopenning/saving in wanted code page</td>
+      <td><b>F12</b></td>
+      <td>show context menu for fast reopenning/saving in wanted code page</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+R</b></td>
-      <td> - recode text</td>
+      <td><b>Alt+R</b></td>
+      <td>recode text</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+Backspace</b></td>
-      <td> - delete first char</td>
+      <td><b>Shift+Backspace</b></td>
+      <td>delete first char</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+Backspace</b></td>
-      <td> - trim trailing whitespaces</td>
+      <td><b>Alt+Backspace</b></td>
+      <td>trim trailing whitespaces</td>
     </tr>
+
     <tr>
-      <td><li><b>Alt+P</b></td>
-      <td> - plugins</td>
+      <td><b>Alt+P</b></td>
+      <td>plugins</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+F5</b></td>
-      <td> - execute command</td>
+      <td><b>Ctrl+F5</b></td>
+      <td>execute command</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+L</b></td>
-      <td> - on/off "Keep left spaces"</td>
+      <td><b>Ctrl+L</b></td>
+      <td>on/off "Keep left spaces"</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Enter</b></td>
-      <td> - new line with keeping left spaces</td>
+      <td><b>Ctrl+Enter</b></td>
+      <td>new line with keeping left spaces</td>
     </tr>
+
     <tr>
-      <td><li><b>F4</b> or <b>Alt+Enter</b></td>
-      <td> - maximize/restore window</td>
+      <td><b>F4</b><br><b>Alt+Enter</b></td>
+      <td>maximize/restore window</td>
     </tr>
+
     <tr>
-      <td><li><b>F8</b> or <b>Ctrl+Y</b></td>
-      <td> - delete current line</td>
+      <td><b>F8</b><br><b>Ctrl+Y</b></td>
+      <td>delete current line</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Num +</b></td>
-      <td> - increase font by 1 pt</td>
+      <td><b>Ctrl+Num +</b></td>
+      <td>increase font by 1 pt</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Num -</b></td>
-      <td> - decrease font by 1 pt</td>
+      <td><b>Ctrl+Num -</b></td>
+      <td>decrease font by 1 pt</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+6</b></td>
-      <td> - selected text, as "UPPERCASE"</td>
+      <td><b>Ctrl+6</b></td>
+      <td>selected text, as "UPPERCASE"</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+7</b></td>
-      <td> - selected text, as "lowercase"</td>
+      <td><b>Ctrl+7</b></td>
+      <td>selected text, as "lowercase"</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+8</b></td>
-      <td> - selected text, as "Sentence case."</td>
+      <td><b>Ctrl+8</b></td>
+      <td>selected text, as "Sentence case."</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+9</b></td>
-      <td> - selected text, as "Title Case"</td>
+      <td><b>Ctrl+9</b></td>
+      <td>selected text, as "Title Case"</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+0</b></td>
-      <td> - selected text, as "iNVERT cASE"</td>
+      <td><b>Ctrl+0</b></td>
+      <td>selected text, as "iNVERT cASE"</td>
     </tr>
+
     <tr>
-      <td><li><b>F6</b></td>
-      <td> - go to next dialog</td>
+      <td><b>F6</b></td>
+      <td>go to next dialog</td>
     </tr>
+
     <tr>
-      <td><li><b>Shift+F6</b></td>
-      <td> - go to previous dialog</td>
+      <td><b>Shift+F6</b></td>
+      <td>go to previous dialog</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Tab</b> or <b>Ctrl+F6</b></td>
-      <td> - next window (MDI)</td>
+      <td><b>Ctrl+Tab</b><br><b>Ctrl+F6</b></td>
+      <td>next window (MDI)</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+Shift+Tab</b> or <b>Ctrl+Shift+F6</b></td>
-      <td> - previous window (MDI)</td>
+      <td><b>Ctrl+Shift+Tab</b><br><b>Ctrl+Shift+F6</b></td>
+      <td>previous window (MDI)</td>
     </tr>
+
     <tr>
-      <td><li><b>Ctrl+F4</b> or <b>Ctrl+W</b></td>
-      <td> - close window (MDI)</td>
+      <td><b>Ctrl+F4</b><br><b>Ctrl+W</b></td>
+      <td>close window (MDI)</td>
     </tr>
+
   </table>
   </ul>
 
