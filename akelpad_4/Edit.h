@@ -252,7 +252,14 @@
 #define INCREASE_FONT  1
 #define DECREASE_FONT  2
 
-//StatusBar position type
+//Show modify
+#define SM_NONE           0x00000000
+#define SM_STATUSBAR      0x00000001
+#define SM_MAINTITLE_SDI  0x00000002
+#define SM_FRAMETITLE_MDI 0x00000004
+#define SM_TABTITLE_MDI   0x00000008
+
+//Status bar position type
 #define SPT_LINESYMBOL  0x00000000
 #define SPT_LINECOLUMN  0x00000001
 

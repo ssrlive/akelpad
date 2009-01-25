@@ -3,6 +3,14 @@ AkelPad 4.1.5 ()
 ----------------------------
 Changed: work with memory is considerably improved when many files opened (MDI).
 
+Added: parameter "ShowModify" - defines, where it will be possible to see, that the document
+       is changed. Sets by the sum of members:
+         1  Display "Modified" in status bar.
+         2  Display asterisk * in main window title (SDI).
+         4  Display asterisk * in frame window title (MDI).
+         8  Display asterisk * in tab button name (MDI).
+       By default: 1, show all: 1+2+4+8=15.
+
 Fixed: active column painting (Win98/Me).
 Fixed: work with Korean Input Method Editors (IME).
 
