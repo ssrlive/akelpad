@@ -17117,6 +17117,7 @@ BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei)
       ei->bInsertState=bInsertState;
       return TRUE;
     }
+    return FALSE;
   }
   if (bMDI)
   {
@@ -17152,6 +17153,7 @@ BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei)
       ei->bInsertState=bInsertState;
       return TRUE;
     }
+    return FALSE;
   }
   if (bMDI)
   {
