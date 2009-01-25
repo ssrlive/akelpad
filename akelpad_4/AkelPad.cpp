@@ -256,6 +256,7 @@ BOOL bWordWrap=FALSE;
 int nWrapType=AEWW_WORD;
 BOOL bOnTop=FALSE;
 BOOL bStatusBar=TRUE;
+DWORD dwShowModify=SM_STATUSBAR;
 DWORD dwStatusPosType=SPT_LINESYMBOL;
 BOOL bReadOnly=FALSE;
 BOOL bSaveTime=FALSE;
@@ -5021,46 +5022,54 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         //Synchronize changed state
         if (!bMDI)
         {
-          char szMainName[MAX_PATH];
-          char *pFileName=GetFileNameA(szCurrentFile);
+          if (dwShowModify & SM_MAINTITLE_SDI)
+          {
+            char szMainName[MAX_PATH];
+            char *pFileName=GetFileNameA(szCurrentFile);
 
-          if (aenm->bModified)
-            wsprintfA(szMainName, "* %s - %s", pFileName, APP_MAIN_TITLEA);
-          else
-            wsprintfA(szMainName, "%s - %s", pFileName, APP_MAIN_TITLEA);
-          SetWindowTextA(hMainWnd, szMainName);
+            if (aenm->bModified)
+              wsprintfA(szMainName, "* %s - %s", pFileName, APP_MAIN_TITLEA);
+            else
+              wsprintfA(szMainName, "%s - %s", pFileName, APP_MAIN_TITLEA);
+            SetWindowTextA(hMainWnd, szMainName);
+          }
         }
         else
         {
-          char szTabName[MAX_PATH];
-          char szFrameName[MAX_PATH];
-          TCITEMA tcItemA;
-          WNDFRAMEA *wf;
-          HWND hWndFrame;
-          int nCurSel;
-
-          if (hWndFrame=GetParent(aenm->hdr.hwndFrom))
+          if (dwShowModify & SM_TABTITLE_MDI)
           {
-            if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
-            {
-              nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
-              tcItemA.mask=TCIF_TEXT;
-              tcItemA.pszText=szTabName;
-              tcItemA.cchTextMax=MAX_PATH;
-              SendMessage(hTab, TCM_GETITEMA, nCurSel, (LPARAM)&tcItemA);
+            char szTabName[MAX_PATH];
+            TCITEMA tcItemA;
+            int nCurSel;
 
-              if (aenm->bModified)
+            nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+            tcItemA.mask=TCIF_TEXT;
+            tcItemA.pszText=szTabName;
+            tcItemA.cchTextMax=MAX_PATH;
+            SendMessage(hTab, TCM_GETITEMA, nCurSel, (LPARAM)&tcItemA);
+
+            if (aenm->bModified)
+              lstrcatA(szTabName, " *");
+            else
+              TrimModifyStateA(szTabName);
+            SendMessage(hTab, TCM_SETITEMA, nCurSel, (LPARAM)&tcItemA);
+          }
+          if (dwShowModify & SM_FRAMETITLE_MDI)
+          {
+            char szFrameName[MAX_PATH];
+            WNDFRAMEA *wf;
+            HWND hWndFrame;
+
+            if (hWndFrame=GetParent(aenm->hdr.hwndFrom))
+            {
+              if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
               {
-                lstrcatA(szTabName, " *");
-                wsprintfA(szFrameName, "%s *", wf->szFile);
+                if (aenm->bModified)
+                  wsprintfA(szFrameName, "%s *", wf->szFile);
+                else
+                  lstrcpynA(szFrameName, wf->szFile, MAX_PATH);
+                SetWindowTextA(hWndFrame, szFrameName);
               }
-              else
-              {
-                TrimModifyStateA(szTabName);
-                lstrcpynA(szFrameName, wf->szFile, MAX_PATH);
-              }
-              SendMessage(hTab, TCM_SETITEMA, nCurSel, (LPARAM)&tcItemA);
-              SetWindowTextA(hWndFrame, szFrameName);
             }
           }
         }
@@ -5277,46 +5286,54 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         //Synchronize changed state
         if (!bMDI)
         {
-          wchar_t wszMainName[MAX_PATH];
-          wchar_t *wpFileName=GetFileNameW(wszCurrentFile);
+          if (dwShowModify & SM_MAINTITLE_SDI)
+          {
+            wchar_t wszMainName[MAX_PATH];
+            wchar_t *wpFileName=GetFileNameW(wszCurrentFile);
 
-          if (aenm->bModified)
-            wsprintfW(wszMainName, L"* %s - %s", wpFileName, APP_MAIN_TITLEW);
-          else
-            wsprintfW(wszMainName, L"%s - %s", wpFileName, APP_MAIN_TITLEW);
-          SetWindowTextW(hMainWnd, wszMainName);
+            if (aenm->bModified)
+              wsprintfW(wszMainName, L"* %s - %s", wpFileName, APP_MAIN_TITLEW);
+            else
+              wsprintfW(wszMainName, L"%s - %s", wpFileName, APP_MAIN_TITLEW);
+            SetWindowTextW(hMainWnd, wszMainName);
+          }
         }
         else
         {
-          wchar_t wszTabName[MAX_PATH];
-          wchar_t wszFrameName[MAX_PATH];
-          TCITEMW tcItemW;
-          WNDFRAMEW *wf;
-          HWND hWndFrame;
-          int nCurSel;
-
-          if (hWndFrame=GetParent(aenm->hdr.hwndFrom))
+          if (dwShowModify & SM_TABTITLE_MDI)
           {
-            if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
-            {
-              nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
-              tcItemW.mask=TCIF_TEXT;
-              tcItemW.pszText=wszTabName;
-              tcItemW.cchTextMax=MAX_PATH;
-              SendMessage(hTab, TCM_GETITEMW, nCurSel, (LPARAM)&tcItemW);
+            wchar_t wszTabName[MAX_PATH];
+            TCITEMW tcItemW;
+            int nCurSel;
 
-              if (aenm->bModified)
+            nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+            tcItemW.mask=TCIF_TEXT;
+            tcItemW.pszText=wszTabName;
+            tcItemW.cchTextMax=MAX_PATH;
+            SendMessage(hTab, TCM_GETITEMW, nCurSel, (LPARAM)&tcItemW);
+
+            if (aenm->bModified)
+              lstrcatW(wszTabName, L" *");
+            else
+              TrimModifyStateW(wszTabName);
+            SendMessage(hTab, TCM_SETITEMW, nCurSel, (LPARAM)&tcItemW);
+          }
+          if (dwShowModify & SM_FRAMETITLE_MDI)
+          {
+            wchar_t wszFrameName[MAX_PATH];
+            WNDFRAMEW *wf;
+            HWND hWndFrame;
+
+            if (hWndFrame=GetParent(aenm->hdr.hwndFrom))
+            {
+              if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
               {
-                lstrcatW(wszTabName, L" *");
-                wsprintfW(wszFrameName, L"%s *", wf->wszFile);
+                if (aenm->bModified)
+                  wsprintfW(wszFrameName, L"%s *", wf->wszFile);
+                else
+                  lstrcpynW(wszFrameName, wf->wszFile, MAX_PATH);
+                SetWindowTextW(hWndFrame, wszFrameName);
               }
-              else
-              {
-                TrimModifyStateW(wszTabName);
-                lstrcpynW(wszFrameName, wf->wszFile, MAX_PATH);
-              }
-              SendMessage(hTab, TCM_SETITEMW, nCurSel, (LPARAM)&tcItemW);
-              SetWindowTextW(hWndFrame, wszFrameName);
             }
           }
         }

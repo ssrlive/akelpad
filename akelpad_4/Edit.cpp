@@ -234,6 +234,7 @@ extern BOOL bWordWrap;
 extern int nWrapType;
 extern BOOL bOnTop;
 extern BOOL bStatusBar;
+extern DWORD dwShowModify;
 extern DWORD dwStatusPosType;
 extern BOOL bReadOnly;
 extern BOOL bSaveTime;
@@ -3075,6 +3076,9 @@ void RegReadOptionsA()
   RegQueryValueExA(hKey, "StatusBar", NULL, &dwType, (LPBYTE)&bStatusBar, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExA(hKey, "ShowModify", NULL, &dwType, (LPBYTE)&dwShowModify, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "StatusPosType", NULL, &dwType, (LPBYTE)&dwStatusPosType, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3291,6 +3295,9 @@ void RegReadOptionsW()
   RegQueryValueExW(hKey, L"StatusBar", NULL, &dwType, (LPBYTE)&bStatusBar, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExW(hKey, L"ShowModify", NULL, &dwType, (LPBYTE)&dwShowModify, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"StatusPosType", NULL, &dwType, (LPBYTE)&dwStatusPosType, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3495,6 +3502,7 @@ void IniReadOptionsA()
   IniGetValueA(&hIniStack, "Options", "WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD));
+  IniGetValueA(&hIniStack, "Options", "ShowModify", INI_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD));
@@ -3580,6 +3588,7 @@ void IniReadOptionsW()
   IniGetValueW(&hIniStack, L"Options", L"WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD));
+  IniGetValueW(&hIniStack, L"Options", L"ShowModify", INI_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD));
@@ -3831,6 +3840,8 @@ BOOL RegSaveOptionsA()
     goto Error;
   if (RegSetValueExA(hKey, "StatusBar", 0, REG_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExA(hKey, "ShowModify", 0, REG_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExA(hKey, "StatusPosType", 0, REG_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExA(hKey, "ReadOnly", 0, REG_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -3997,6 +4008,8 @@ BOOL RegSaveOptionsW()
     goto Error;
   if (RegSetValueExW(hKey, L"StatusBar", 0, REG_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExW(hKey, L"ShowModify", 0, REG_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExW(hKey, L"StatusPosType", 0, REG_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExW(hKey, L"ReadOnly", 0, REG_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -4161,6 +4174,8 @@ BOOL IniSaveOptionsA()
   if (!IniSetValueA(&hIniStack, "Options", "OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)))
+    goto Error;
+  if (!IniSetValueA(&hIniStack, "Options", "ShowModify", INI_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)))
     goto Error;
@@ -4328,6 +4343,8 @@ BOOL IniSaveOptionsW()
   if (!IniSetValueW(&hIniStack, L"Options", L"OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)))
+    goto Error;
+  if (!IniSetValueW(&hIniStack, L"Options", L"ShowModify", INI_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)))
     goto Error;
@@ -16916,8 +16933,11 @@ void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
     if (bFirst != TRUE && bModified == bState) return;
     bModified=bState;
 
-    API_LoadStringA(hLangLib, STR_MODIFIED, buf, BUFFER_SIZE);
-    SendMessage(hStatus, SB_SETTEXTA, STATUS_MODIFY, (LPARAM)(bModified?buf:""));
+    if (dwShowModify & SM_STATUSBAR)
+    {
+      API_LoadStringA(hLangLib, STR_MODIFIED, buf, BUFFER_SIZE);
+      SendMessage(hStatus, SB_SETTEXTA, STATUS_MODIFY, (LPARAM)(bModified?buf:""));
+    }
   }
   else
   {
@@ -16941,8 +16961,11 @@ void SetModifyStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
     if (bFirst != TRUE && bModified == bState) return;
     bModified=bState;
 
-    API_LoadStringW(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
-    SendMessage(hStatus, SB_SETTEXTW, STATUS_MODIFY, (LPARAM)(bModified?wbuf:L""));
+    if (dwShowModify & SM_STATUSBAR)
+    {
+      API_LoadStringW(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
+      SendMessage(hStatus, SB_SETTEXTW, STATUS_MODIFY, (LPARAM)(bModified?wbuf:L""));
+    }
   }
   else
   {
