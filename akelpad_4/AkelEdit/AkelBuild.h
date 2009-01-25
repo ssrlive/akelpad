@@ -15,8 +15,6 @@
 
 #define AETIME_PROGRESS        0
 
-#define AEFONT_MAX_CHAR        65536
-
 #define AEURL_MAX_LENGTH       512
 
 #ifndef NOTSRCINVERT
@@ -153,6 +151,23 @@ typedef struct _AEIDataObject {
   STGMEDIUM stgmed[3];
   LONG nNumFormats;
 } AEIDataObject;
+
+
+//// Font widths
+
+typedef struct _AEFONTCHARSA {
+  struct _AEFONTCHARSA *next;
+  struct _AEFONTCHARSA *prev;
+  LOGFONTA lfEdit;
+  WORD lpCharWidths[65536];
+} AEFONTCHARSA;
+
+typedef struct _AEFONTCHARSW {
+  struct _AEFONTCHARSW *next;
+  struct _AEFONTCHARSW *prev;
+  LOGFONTW lfEdit;
+  WORD lpCharWidths[65536];
+} AEFONTCHARSW;
 
 
 //// AKELEDIT
@@ -314,6 +329,11 @@ AKELEDIT* AE_StackWindowInsert(HSTACK *hStack);
 AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit);
 void AE_StackWindowDelete(HSTACK *hStack, HWND hWndEdit);
 void AE_StackWindowFree(HSTACK *hStack);
+WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfEdit);
+WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfEdit);
+WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfEdit);
+WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfEdit);
+void AE_StackFontCharsFree(HSTACK *hStack);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointSetModify(AKELEDIT *ae, BOOL bModify);
 void AE_StackPointDelete(AKELEDIT *ae, AEPOINT *lpElement);

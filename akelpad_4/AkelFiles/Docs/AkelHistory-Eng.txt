@@ -1,6 +1,8 @@
 
 AkelPad 4.1.5 ()
 ----------------------------
+Changed: work with memory is considerably improved when many files opened (MDI).
+
 Fixed: active column painting (Win98/Me).
 Fixed: work with Korean Input Method Editors (IME).
 

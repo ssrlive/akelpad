@@ -20,6 +20,7 @@
 
 HANDLE hAkelEditProcessHeap=0;
 HSTACK hAkelEditWindowsStack={0};
+HSTACK hAkelEditFontCharsStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
 UINT cfAkelEditColumnSel=0;
@@ -168,6 +169,8 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 {
   if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
   if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
+  AE_StackFontCharsFree(&hAkelEditFontCharsStack);
+  AE_StackWindowFree(&hAkelEditWindowsStack);
 
   if (bAkelEditClassRegisteredA)
   {
@@ -182,6 +185,8 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
 {
   if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
   if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
+  AE_StackFontCharsFree(&hAkelEditFontCharsStack);
+  AE_StackWindowFree(&hAkelEditWindowsStack);
 
   if (bAkelEditClassRegisteredW)
   {
@@ -333,7 +338,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       GetClientRect(ae->hWndEdit, &ae->rcEdit);
       AE_SetDrawRect(ae, NULL, FALSE);
-      ae->lpCharWidths=(WORD *)AE_HeapAlloc(NULL, 0, AEFONT_MAX_CHAR * sizeof(WORD));
 
       if (!ae->bUnicodeWindow)
         AE_SetEditFontA(ae, NULL, FALSE);
@@ -3012,8 +3016,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_DESTROY)
     {
-      AE_HeapFree(NULL, 0, (LPVOID)ae->lpCharWidths);
-
       //Unregister drop window
       RevokeDragDrop(ae->hWndEdit);
       CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
@@ -3350,6 +3352,67 @@ void AE_StackWindowDelete(HSTACK *hStack, HWND hWndEdit)
 }
 
 void AE_StackWindowFree(HSTACK *hStack)
+{
+  AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfEdit)
+{
+  AEFONTCHARSA *lpElement=NULL;
+
+  if (!AE_HeapStackInsert(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, 1, sizeof(AEFONTCHARSA)))
+  {
+    AE_memcpy(&lpElement->lfEdit, lfEdit, sizeof(LOGFONTA));
+    return lpElement->lpCharWidths;
+  }
+  return NULL;
+}
+
+WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfEdit)
+{
+  AEFONTCHARSW *lpElement=NULL;
+
+  if (!AE_HeapStackInsert(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, 1, sizeof(AEFONTCHARSW)))
+  {
+    AE_memcpy(&lpElement->lfEdit, lfEdit, sizeof(LOGFONTW));
+    return lpElement->lpCharWidths;
+  }
+  return NULL;
+}
+
+WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfEdit)
+{
+  AEFONTCHARSA *lpElement=(AEFONTCHARSA *)hStack->last;
+
+  while (lpElement)
+  {
+    if (lpElement->lfEdit.lfHeight == lfEdit->lfHeight)
+    {
+      if (!lstrcmpiA(lpElement->lfEdit.lfFaceName, lfEdit->lfFaceName))
+        return lpElement->lpCharWidths;
+    }
+    lpElement=lpElement->prev;
+  }
+  return NULL;
+}
+
+WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfEdit)
+{
+  AEFONTCHARSW *lpElement=(AEFONTCHARSW *)hStack->last;
+
+  while (lpElement)
+  {
+    if (lpElement->lfEdit.lfHeight == lfEdit->lfHeight)
+    {
+      if (!lstrcmpiW(lpElement->lfEdit.lfFaceName, lfEdit->lfFaceName))
+        return lpElement->lpCharWidths;
+    }
+    lpElement=lpElement->prev;
+  }
+  return NULL;
+}
+
+void AE_StackFontCharsFree(HSTACK *hStack)
 {
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
@@ -5045,7 +5108,8 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     ae->hFont=hFont;
     ae->lfEditA.lfHeight=-mod(ae->lfEditA.lfHeight);
     ae->lfEditA.lfWidth=0;
-    AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(WORD));
+    if (!(ae->lpCharWidths=AE_StackFontCharsGetA(&hAkelEditFontCharsStack, &ae->lfEditA)))
+      ae->lpCharWidths=AE_StackFontCharsInsertA(&hAkelEditFontCharsStack, &ae->lfEditA);
 
     //Create URL font
     if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
@@ -5094,7 +5158,8 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     ae->hFont=hFont;
     ae->lfEditW.lfHeight=-mod(ae->lfEditW.lfHeight);
     ae->lfEditW.lfWidth=0;
-    AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(WORD));
+    if (!(ae->lpCharWidths=AE_StackFontCharsGetW(&hAkelEditFontCharsStack, &ae->lfEditW)))
+      ae->lpCharWidths=AE_StackFontCharsInsertW(&hAkelEditFontCharsStack, &ae->lfEditW);
 
     //Create URL font
     if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
@@ -7202,7 +7267,7 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringL
           bResult=FALSE;
           break;
         }
-        ae->lpCharWidths[wpString[i]]=sizeChar.cx;
+        ae->lpCharWidths[wpString[i]]=(WORD)sizeChar.cx;
         nStringWidth+=sizeChar.cx;
       }
       else return FALSE;
