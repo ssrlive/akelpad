@@ -333,7 +333,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       GetClientRect(ae->hWndEdit, &ae->rcEdit);
       AE_SetDrawRect(ae, NULL, FALSE);
-      ae->lpCharWidths=(int *)AE_HeapAlloc(NULL, 0, AEFONT_MAX_CHAR * sizeof(int));
+      ae->lpCharWidths=(WORD *)AE_HeapAlloc(NULL, 0, AEFONT_MAX_CHAR * sizeof(WORD));
 
       if (!ae->bUnicodeWindow)
         AE_SetEditFontA(ae, NULL, FALSE);
@@ -5045,7 +5045,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     ae->hFont=hFont;
     ae->lfEditA.lfHeight=-mod(ae->lfEditA.lfHeight);
     ae->lfEditA.lfWidth=0;
-    AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
+    AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(WORD));
 
     //Create URL font
     if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
@@ -5094,7 +5094,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     ae->hFont=hFont;
     ae->lfEditW.lfHeight=-mod(ae->lfEditW.lfHeight);
     ae->lfEditW.lfWidth=0;
-    AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
+    AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(WORD));
 
     //Create URL font
     if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
