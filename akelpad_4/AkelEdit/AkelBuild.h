@@ -194,8 +194,8 @@ typedef struct _AKELEDIT {
   int nAveCharWidth;
   int nSpaceCharWidth;
   int nTabWidth;
-  int *lpCharWidths;
   int nTabStop;
+  WORD *lpCharWidths;
   BOOL bOverType;
   DWORD dwInputLanguage;
   DWORD dwImeChar;
