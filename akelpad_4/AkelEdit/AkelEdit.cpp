@@ -207,7 +207,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->hWndParent=GetParent(ae->hWndEdit);
       ae->nEditCtrlID=GetWindowLongA(ae->hWndEdit, GWL_ID);
       ae->hHeap=NULL;
-      ae->hDC=GetDC(ae->hWndEdit);
       ae->dwInputLanguage=LOWORD(GetKeyboardLayout(0));
       ae->nCaretInsertWidth=1;
       ae->nCaretOvertypeHeight=2;
@@ -2982,27 +2981,32 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_PAINT)
     {
-      AE_ActiveColumnErase(ae);
-
-      AE_Paint(ae);
-
-      if (ae->bMButtonDown)
+      if (ae->hDC=GetDC(ae->hWndEdit))
       {
-        AE_MButtonErase(ae);
-        ae->bMButtonDown=FALSE;
-        UpdateWindow(ae->hWndEdit);
-        ae->bMButtonDown=TRUE;
-        AE_MButtonDraw(ae);
-      }
-      if (ae->dwOptions & AECO_ACTIVECOLUMN)
-      {
-        if (!ae->bActiveColumnDraw)
+        if (ae->hFont) SelectObject(ae->hDC, ae->hFont);
+        AE_ActiveColumnErase(ae);
+        AE_Paint(ae);
+
+        if (ae->bMButtonDown)
         {
-          //Draw new vertical line
-          AE_GlobalToClient(ae, &ae->ptCaret, &ae->ptActiveColumnDraw);
-          AE_ActiveColumnDraw(ae);
-          ae->bActiveColumnDraw=TRUE;
+          AE_MButtonErase(ae);
+          ae->bMButtonDown=FALSE;
+          UpdateWindow(ae->hWndEdit);
+          ae->bMButtonDown=TRUE;
+          AE_MButtonDraw(ae);
         }
+        if (ae->dwOptions & AECO_ACTIVECOLUMN)
+        {
+          if (!ae->bActiveColumnDraw)
+          {
+            //Draw new vertical line
+            AE_GlobalToClient(ae, &ae->ptCaret, &ae->ptActiveColumnDraw);
+            AE_ActiveColumnDraw(ae);
+            ae->bActiveColumnDraw=TRUE;
+          }
+        }
+        ReleaseDC(ae->hWndEdit, ae->hDC);
+        ae->hDC=NULL;
       }
       return 0;
     }
@@ -3015,45 +3019,40 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
       ((IDropTarget *)&ae->idt)->Release();
 
-      if (ae->hDC)
+      if (ae->hFontUrl)
       {
-        if (ae->hFontUrl)
-        {
-          DeleteObject(ae->hFontUrl);
-          ae->hFontUrl=NULL;
-        }
-        if (ae->hBasicBk)
-        {
-          DeleteObject(ae->hBasicBk);
-          ae->hBasicBk=NULL;
-        }
-        if (ae->hSelBk)
-        {
-          DeleteObject(ae->hSelBk);
-          ae->hSelBk=NULL;
-        }
-        if (ae->hActiveLineBk)
-        {
-          DeleteObject(ae->hActiveLineBk);
-          ae->hActiveLineBk=NULL;
-        }
-        if (ae->hActiveColumn)
-        {
-          DeleteObject(ae->hActiveColumn);
-          ae->hActiveColumn=NULL;
-        }
-        if (ae->hCaretInsert)
-        {
-          DeleteObject(ae->hCaretInsert);
-          ae->hCaretInsert=NULL;
-        }
-        if (ae->hCaretOvertype)
-        {
-          DeleteObject(ae->hCaretOvertype);
-          ae->hCaretOvertype=NULL;
-        }
-        ReleaseDC(ae->hWndEdit, ae->hDC);
-        ae->hDC=NULL;
+        DeleteObject(ae->hFontUrl);
+        ae->hFontUrl=NULL;
+      }
+      if (ae->hBasicBk)
+      {
+        DeleteObject(ae->hBasicBk);
+        ae->hBasicBk=NULL;
+      }
+      if (ae->hSelBk)
+      {
+        DeleteObject(ae->hSelBk);
+        ae->hSelBk=NULL;
+      }
+      if (ae->hActiveLineBk)
+      {
+        DeleteObject(ae->hActiveLineBk);
+        ae->hActiveLineBk=NULL;
+      }
+      if (ae->hActiveColumn)
+      {
+        DeleteObject(ae->hActiveColumn);
+        ae->hActiveColumn=NULL;
+      }
+      if (ae->hCaretInsert)
+      {
+        DeleteObject(ae->hCaretInsert);
+        ae->hCaretInsert=NULL;
+      }
+      if (ae->hCaretOvertype)
+      {
+        DeleteObject(ae->hCaretOvertype);
+        ae->hCaretOvertype=NULL;
       }
       AE_StackWindowDelete(&hAkelEditWindowsStack, hWnd);
       ae=NULL;
@@ -5023,42 +5022,48 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   TEXTMETRICA tmEdit;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
+  HDC hDC=ae->hDC;
 
-  if (hFont)
+  if (hDC || (hDC=GetDC(ae->hWndEdit)))
   {
-    SelectObject(ae->hDC, hFont);
-    GetObjectA(hFont, sizeof(LOGFONTA), &ae->lfEditA);
-    if (!GetTextMetricsA(ae->hDC, &tmEdit))
-      hFont=NULL;
+    if (hFont)
+    {
+      SelectObject(hDC, hFont);
+      GetObjectA(hFont, sizeof(LOGFONTA), &ae->lfEditA);
+      if (!GetTextMetricsA(hDC, &tmEdit))
+        hFont=NULL;
+    }
+    if (!hFont)
+    {
+      SelectObject(hDC, hFontSystem);
+      GetObjectA((HGDIOBJ)hFontSystem, sizeof(LOGFONTA), &ae->lfEditA);
+      if (!GetTextMetricsA(hDC, &tmEdit))
+        return;
+      hFont=hFontSystem;
+    }
+
+    ae->hFont=hFont;
+    ae->lfEditA.lfHeight=-mod(ae->lfEditA.lfHeight);
+    ae->lfEditA.lfWidth=0;
+    AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
+
+    //Create URL font
+    if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
+    AE_memcpy(&ae->lfEditUrlA, &ae->lfEditA, sizeof(LOGFONTA));
+    ae->lfEditUrlA.lfUnderline=TRUE;
+    ae->hFontUrl=(HFONT)CreateFontIndirectA(&ae->lfEditUrlA);
+
+    ae->nCharHeight=tmEdit.tmHeight;
+    GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
+    ae->nAveCharWidth=sizeWidth.cx / 52;
+    GetTextExtentPoint32W(hDC, L" ", 1, &sizeWidth);
+    ae->nSpaceCharWidth=sizeWidth.cx;
+    ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
+
+    InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
+
+    if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
   }
-  if (!hFont)
-  {
-    SelectObject(ae->hDC, hFontSystem);
-    GetObjectA((HGDIOBJ)hFontSystem, sizeof(LOGFONTA), &ae->lfEditA);
-    if (!GetTextMetricsA(ae->hDC, &tmEdit))
-      return;
-    hFont=hFontSystem;
-  }
-
-  ae->hFont=hFont;
-  ae->lfEditA.lfHeight=-mod(ae->lfEditA.lfHeight);
-  ae->lfEditA.lfWidth=0;
-  AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
-
-  //Create URL font
-  if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
-  AE_memcpy(&ae->lfEditUrlA, &ae->lfEditA, sizeof(LOGFONTA));
-  ae->lfEditUrlA.lfUnderline=TRUE;
-  ae->hFontUrl=(HFONT)CreateFontIndirectA(&ae->lfEditUrlA);
-
-  ae->nCharHeight=tmEdit.tmHeight;
-  GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
-  ae->nAveCharWidth=sizeWidth.cx / 52;
-  GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeWidth);
-  ae->nSpaceCharWidth=sizeWidth.cx;
-  ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
-
-  InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 }
 
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
@@ -5066,42 +5071,48 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   TEXTMETRICW tmEdit;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
+  HDC hDC=ae->hDC;
 
-  if (hFont)
+  if (hDC || (hDC=GetDC(ae->hWndEdit)))
   {
-    SelectObject(ae->hDC, hFont);
-    GetObjectW(hFont, sizeof(LOGFONTW), &ae->lfEditW);
-    if (!GetTextMetricsW(ae->hDC, &tmEdit))
-      hFont=NULL;
+    if (hFont)
+    {
+      SelectObject(hDC, hFont);
+      GetObjectW(hFont, sizeof(LOGFONTW), &ae->lfEditW);
+      if (!GetTextMetricsW(hDC, &tmEdit))
+        hFont=NULL;
+    }
+    if (!hFont)
+    {
+      SelectObject(hDC, hFontSystem);
+      GetObjectW((HGDIOBJ)hFontSystem, sizeof(LOGFONTW), &ae->lfEditW);
+      if (!GetTextMetricsW(hDC, &tmEdit))
+        return;
+      hFont=hFontSystem;
+    }
+
+    ae->hFont=hFont;
+    ae->lfEditW.lfHeight=-mod(ae->lfEditW.lfHeight);
+    ae->lfEditW.lfWidth=0;
+    AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
+
+    //Create URL font
+    if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
+    AE_memcpy(&ae->lfEditUrlW, &ae->lfEditW, sizeof(LOGFONTW));
+    ae->lfEditUrlW.lfUnderline=TRUE;
+    ae->hFontUrl=(HFONT)CreateFontIndirectW(&ae->lfEditUrlW);
+
+    ae->nCharHeight=tmEdit.tmHeight;
+    GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
+    ae->nAveCharWidth=sizeWidth.cx / 52;
+    GetTextExtentPoint32W(hDC, L" ", 1, &sizeWidth);
+    ae->nSpaceCharWidth=sizeWidth.cx;
+    ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
+
+    InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
+
+    if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
   }
-  if (!hFont)
-  {
-    SelectObject(ae->hDC, hFontSystem);
-    GetObjectW((HGDIOBJ)hFontSystem, sizeof(LOGFONTW), &ae->lfEditW);
-    if (!GetTextMetricsW(ae->hDC, &tmEdit))
-      return;
-    hFont=hFontSystem;
-  }
-
-  ae->hFont=hFont;
-  ae->lfEditW.lfHeight=-mod(ae->lfEditW.lfHeight);
-  ae->lfEditW.lfWidth=0;
-  AE_memset(ae->lpCharWidths, 0, AEFONT_MAX_CHAR * sizeof(int));
-
-  //Create URL font
-  if (ae->hFontUrl) DeleteObject(ae->hFontUrl);
-  AE_memcpy(&ae->lfEditUrlW, &ae->lfEditW, sizeof(LOGFONTW));
-  ae->lfEditUrlW.lfUnderline=TRUE;
-  ae->hFontUrl=(HFONT)CreateFontIndirectW(&ae->lfEditUrlW);
-
-  ae->nCharHeight=tmEdit.tmHeight;
-  GetTextExtentPoint32W(ae->hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
-  ae->nAveCharWidth=sizeWidth.cx / 52;
-  GetTextExtentPoint32W(ae->hDC, L" ", 1, &sizeWidth);
-  ae->nSpaceCharWidth=sizeWidth.cx;
-  ae->nTabWidth=ae->nSpaceCharWidth * ae->nTabStop;
-
-  InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 }
 
 void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, DWORD dwSelFlags)
@@ -5973,6 +5984,7 @@ HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic,
 
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData)
 {
+  HDC hDC=ae->hDC;
   BITMAPFILEHEADER *lpBmpFileHeader=(BITMAPFILEHEADER *)lpBmpFileData;
   BITMAPINFOHEADER *lpBmpInfoHeader=(BITMAPINFOHEADER *)(lpBmpFileData + sizeof(BITMAPFILEHEADER));
   BYTE *lpBitmapBits=(BYTE *)(lpBmpFileData + lpBmpFileHeader->bfOffBits);
@@ -5982,22 +5994,26 @@ HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData)
   DWORD a;
   int b;
 
-  bi.bmiHeader=*lpBmpInfoHeader;
-
-  if (hBitmap=CreateDIBSection(ae->hDC, &bi, DIB_RGB_COLORS, (void **)&lpSectionBits, NULL, 0))
+  if (hDC || (hDC=GetDC(ae->hWndEdit)))
   {
-    for (a=0; a < bi.bmiHeader.biSizeImage;)
+    bi.bmiHeader=*lpBmpInfoHeader;
+
+    if (hBitmap=CreateDIBSection(hDC, &bi, DIB_RGB_COLORS, (void **)&lpSectionBits, NULL, 0))
     {
-      for (b=0; b < bi.bmiHeader.biWidth * 3; b+=3)
+      for (a=0; a < bi.bmiHeader.biSizeImage;)
       {
-        //Copy bits
-        lpSectionBits[a + 0]=lpBitmapBits[a + 0];
-        lpSectionBits[a + 1]=lpBitmapBits[a + 1];
-        lpSectionBits[a + 2]=lpBitmapBits[a + 2];
-        a+=3;
+        for (b=0; b < bi.bmiHeader.biWidth * 3; b+=3)
+        {
+          //Copy bits
+          lpSectionBits[a + 0]=lpBitmapBits[a + 0];
+          lpSectionBits[a + 1]=lpBitmapBits[a + 1];
+          lpSectionBits[a + 2]=lpBitmapBits[a + 2];
+          a+=3;
+        }
+        while (a % 4) lpSectionBits[a++]=0x00;
       }
-      while (a % 4) lpSectionBits[a++]=0x00;
     }
+    if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
   }
   return hBitmap;
 }
@@ -7000,12 +7016,17 @@ void AE_MButtonDraw(AKELEDIT *ae)
     if (!ae->bMButtonBitmapDraw)
     {
       HDC hdcSkin;
+      HDC hDC=ae->hDC;
 
-      if (hdcSkin=CreateCompatibleDC(ae->hDC))
+      if (hDC || (hDC=GetDC(ae->hWndEdit)))
       {
-        SelectObject(hdcSkin, ae->hMButtonBitmap);
-        BitBlt(ae->hDC, ae->ptMButtonDown.x - 11, ae->ptMButtonDown.y - 11, 22, 22, hdcSkin, 0, 0, NOTSRCINVERT);
-        DeleteDC(hdcSkin);
+        if (hdcSkin=CreateCompatibleDC(hDC))
+        {
+          SelectObject(hdcSkin, ae->hMButtonBitmap);
+          BitBlt(hDC, ae->ptMButtonDown.x - 11, ae->ptMButtonDown.y - 11, 22, 22, hdcSkin, 0, 0, NOTSRCINVERT);
+          DeleteDC(hdcSkin);
+        }
+        if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
       }
       ae->ptMButtonScroll.x=ae->nHScrollPos;
       ae->ptMButtonScroll.y=ae->nVScrollPos;
@@ -7061,15 +7082,21 @@ void AE_ActiveColumnDraw(AKELEDIT *ae)
   if (ae->dwOptions & AECO_ACTIVECOLUMN)
   {
     HBRUSH hBrushOld;
+    HDC hDC=ae->hDC;
 
     if (ae->ptActiveColumnDraw.x >= ae->rcDraw.left && ae->ptActiveColumnDraw.x <= ae->rcDraw.right)
     {
-      hBrushOld=(HBRUSH)SelectObject(ae->hDC, ae->hActiveColumn);
-      if (ae->ptActiveColumnDraw.y > ae->rcDraw.top)
-        PatBlt(ae->hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->ptActiveColumnDraw.y - ae->rcDraw.top, PATINVERT);
-      if (ae->rcDraw.bottom > ae->ptActiveColumnDraw.y + ae->nCharHeight)
-        PatBlt(ae->hDC, ae->ptActiveColumnDraw.x, ae->ptActiveColumnDraw.y + ae->nCharHeight, 1, ae->rcDraw.bottom - (ae->ptActiveColumnDraw.y + ae->nCharHeight), PATINVERT);
-      SelectObject(ae->hDC, hBrushOld);
+      if (hDC || (hDC=GetDC(ae->hWndEdit)))
+      {
+        hBrushOld=(HBRUSH)SelectObject(hDC, ae->hActiveColumn);
+        if (ae->ptActiveColumnDraw.y > ae->rcDraw.top)
+          PatBlt(hDC, ae->ptActiveColumnDraw.x, ae->rcDraw.top, 1, ae->ptActiveColumnDraw.y - ae->rcDraw.top, PATINVERT);
+        if (ae->rcDraw.bottom > ae->ptActiveColumnDraw.y + ae->nCharHeight)
+          PatBlt(hDC, ae->ptActiveColumnDraw.x, ae->ptActiveColumnDraw.y + ae->nCharHeight, 1, ae->rcDraw.bottom - (ae->ptActiveColumnDraw.y + ae->nCharHeight), PATINVERT);
+        SelectObject(hDC, hBrushOld);
+
+        if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
+      }
     }
   }
 }
@@ -7149,9 +7176,11 @@ int AE_GetLastVisibleLine(AKELEDIT *ae)
 
 BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE *lpSize)
 {
+  HDC hDC=ae->hDC;
   SIZE sizeChar;
   int nStringWidth=0;
   int i;
+  BOOL bResult=TRUE;
 
   for (i=0; i < nStringLen; ++i)
   {
@@ -7161,15 +7190,32 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringL
     }
     else
     {
-      if (!GetTextExtentPoint32W(ae->hDC, &wpString[i], 1, &sizeChar))
-        return FALSE;
-      ae->lpCharWidths[wpString[i]]=sizeChar.cx;
-      nStringWidth+=sizeChar.cx;
+      if (!hDC)
+      {
+        if (hDC=GetDC(ae->hWndEdit))
+          if (ae->hFont) SelectObject(hDC, ae->hFont);
+      }
+      if (hDC)
+      {
+        if (!GetTextExtentPoint32W(hDC, &wpString[i], 1, &sizeChar))
+        {
+          bResult=FALSE;
+          break;
+        }
+        ae->lpCharWidths[wpString[i]]=sizeChar.cx;
+        nStringWidth+=sizeChar.cx;
+      }
+      else return FALSE;
     }
   }
-  lpSize->cx=nStringWidth;
-  lpSize->cy=ae->nCharHeight;
-  return TRUE;
+  if (!ae->hDC && hDC) ReleaseDC(ae->hWndEdit, hDC);
+
+  if (bResult)
+  {
+    lpSize->cx=nStringWidth;
+    lpSize->cy=ae->nCharHeight;
+  }
+  return bResult;
 }
 
 int AE_GetCharWidth(AKELEDIT *ae, wchar_t wchChar)
