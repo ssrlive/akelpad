@@ -1162,6 +1162,8 @@ void SetInsertStateStatusW(HWND hWnd, BOOL bState, BOOL bFirst);
 void SetCodePageStatusA(int nCodePage, BOOL bBOM, BOOL bFirst);
 void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst);
 
+BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei);
+BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei);
 void SaveLineScroll(HWND hWnd, int *nBeforeLine);
 void RestoreLineScroll(HWND hWnd, int *nBeforeLine);
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor);

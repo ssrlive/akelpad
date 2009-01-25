@@ -17100,6 +17100,76 @@ void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst)
 
 //// Other functions
 
+BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei)
+{
+  if (!hWnd || hWnd == hWndEdit)
+  {
+    if (hWndEdit)
+    {
+      ei->hWndEdit=hWndEdit;
+      ei->pFile=(unsigned char *)szCurrentFile;
+      ei->nCodePage=nCurrentCodePage;
+      ei->bBOM=bCurrentBOM;
+      ei->nNewLine=nCurrentNewLine;
+      ei->bModified=bModified;
+      ei->bReadOnly=bReadOnly;
+      ei->bWordWrap=bWordWrap;
+      ei->bInsertState=bInsertState;
+      return TRUE;
+    }
+  }
+  if (bMDI)
+  {
+    WNDFRAMEA *wf;
+    HWND hWndFrame;
+
+    if (hWndFrame=GetParent(hWnd))
+    {
+      if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
+      {
+        *ei=wf->ei;
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei)
+{
+  if (!hWnd || hWnd == hWndEdit)
+  {
+    if (hWndEdit)
+    {
+      ei->hWndEdit=hWndEdit;
+      ei->pFile=(unsigned char *)wszCurrentFile;
+      ei->nCodePage=nCurrentCodePage;
+      ei->bBOM=bCurrentBOM;
+      ei->nNewLine=nCurrentNewLine;
+      ei->bModified=bModified;
+      ei->bReadOnly=bReadOnly;
+      ei->bWordWrap=bWordWrap;
+      ei->bInsertState=bInsertState;
+      return TRUE;
+    }
+  }
+  if (bMDI)
+  {
+    WNDFRAMEW *wf;
+    HWND hWndFrame;
+
+    if (hWndFrame=GetParent(hWnd))
+    {
+      if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
+      {
+        *ei=wf->ei;
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
 void SaveLineScroll(HWND hWnd, int *nBeforeLine)
 {
   AECHARINDEX ciCharIndex;

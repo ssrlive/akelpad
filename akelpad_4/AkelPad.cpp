@@ -2045,40 +2045,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETEDITINFO)
     {
-      EDITINFO *ei=(EDITINFO *)lParam;
-
-      if (!wParam || (HWND)wParam == hWndEdit)
-      {
-        if (hWndEdit)
-        {
-          ei->hWndEdit=hWndEdit;
-          ei->pFile=(unsigned char *)szCurrentFile;
-          ei->nCodePage=nCurrentCodePage;
-          ei->bBOM=bCurrentBOM;
-          ei->nNewLine=nCurrentNewLine;
-          ei->bModified=bModified;
-          ei->bReadOnly=bReadOnly;
-          ei->bWordWrap=bWordWrap;
-          ei->bInsertState=bInsertState;
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (bMDI)
-      {
-        WNDFRAMEA *wf;
-        HWND hWndFrame;
-
-        if (hWndFrame=GetParent((HWND)wParam))
-        {
-          if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
-          {
-            *ei=wf->ei;
-            return TRUE;
-          }
-        }
-      }
-      return FALSE;
+      return GetEditInfoA((HWND)wParam, (EDITINFO *)lParam);
     }
     if (uMsg == AKD_GETFONT)
     {
@@ -3793,40 +3760,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETEDITINFO)
     {
-      EDITINFO *ei=(EDITINFO *)lParam;
-
-      if (!wParam || (HWND)wParam == hWndEdit)
-      {
-        if (hWndEdit)
-        {
-          ei->hWndEdit=hWndEdit;
-          ei->pFile=(unsigned char *)wszCurrentFile;
-          ei->nCodePage=nCurrentCodePage;
-          ei->bBOM=bCurrentBOM;
-          ei->nNewLine=nCurrentNewLine;
-          ei->bModified=bModified;
-          ei->bReadOnly=bReadOnly;
-          ei->bWordWrap=bWordWrap;
-          ei->bInsertState=bInsertState;
-          return TRUE;
-        }
-        return FALSE;
-      }
-      if (bMDI)
-      {
-        WNDFRAMEW *wf;
-        HWND hWndFrame;
-
-        if (hWndFrame=GetParent((HWND)wParam))
-        {
-          if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
-          {
-            *ei=wf->ei;
-            return TRUE;
-          }
-        }
-      }
-      return FALSE;
+      return GetEditInfoW((HWND)wParam, (EDITINFO *)lParam);
     }
     if (uMsg == AKD_GETFONT)
     {
