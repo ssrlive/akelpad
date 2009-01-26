@@ -453,9 +453,9 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Номер:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
     EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
-    CONTROL         "Строка",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
+    CONTROL         "Рядок",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
                     40,52,10
-    CONTROL         "Смещение",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "Зміщення",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
                     72,40,52,10
     PUSHBUTTON      "Перейти",IDOK,18,60,50,14,BS_CENTER
     PUSHBUTTON      "Скасувати",IDCANCEL,72,60,50,14,BS_CENTER
@@ -645,7 +645,7 @@ BEGIN
                     11,13
     CONTROL         "Докладно",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
-    GROUPBOX        "Перенос",IDC_STATIC,123,46,85,76
+    GROUPBOX        "Перенесення",IDC_STATIC,123,46,85,76
     CONTROL         "По словам",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,135,69,70,10
     CONTROL         "По символам",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
@@ -654,7 +654,7 @@ BEGIN
     CONTROL         "Дозволити вихід каретки за межі рядків",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Показывать активный столбец",
+    CONTROL         "Показувати активний стовпчик",
                     IDC_OPTIONS_CARETVERTLINE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,155,185,10
     RTEXT           "Ширина:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
@@ -883,10 +883,10 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Кирилиця (ANSI, OEM, KOI8-R, UTF-8)"
     STR_AUTODETECT_ENGLISH  "Латиниця (OEM)"
-    STR_AUTODETECT_TURKISH  "Турецкий (OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "Китайский (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Японский (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Корейский (UTF-8)"
+    STR_AUTODETECT_TURKISH  "Турецька (OEM, UTF-8)"
+    STR_AUTODETECT_CHINESE  "Китайська (UTF-8)"
+    STR_AUTODETECT_JAPANESE "Японська (UTF-8)"
+    STR_AUTODETECT_KOREAN   "Корейська (UTF-8)"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -906,7 +906,7 @@ BEGIN
     STR_BASIC               "Основний колір"
     STR_SELECTION           "Виділення"
     STR_ACTIVELINE          "Активний рядок"
-    STR_ACTIVECOLUMN        "Активный столбец"
+    STR_ACTIVECOLUMN        "Активний стовпчик"
     STR_CARET               "Каретка"
 END
 
