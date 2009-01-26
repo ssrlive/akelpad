@@ -8678,7 +8678,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   }
   ae->hHeap=HeapCreate(0, 0, 0);
 
-  //Get DC
+  //Get DC for faster AE_GetTextExtentPoint32
   if (!ae->hDC)
   {
     if (ae->hDC=GetDC(ae->hWndEdit))
@@ -8691,19 +8691,19 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       nNewLine=ae->nInputNewLine;
     else if (nNewLine == AELB_ASOUTPUT)
       nNewLine=ae->nOutputNewLine;
-  
+
     //Get lines in page
     nLinesInPage=(ae->rcDraw.bottom - ae->rcDraw.top) / ae->nCharHeight;
-  
+
     //Parse text
     if (dwTextLen == (DWORD)-1) dwTextLen=lstrlenW(wpText);
-  
+
     while (dwTextCount < dwTextLen)
     {
       if (ae->dwEventMask & AENM_PROGRESS)
       {
         dwCurrentTime=GetTickCount();
-  
+
         if (dwCurrentTime - dwProgressTime > AETIME_PROGRESS)
         {
           if (AE_NotifyProgress(ae, AEPGS_SETTEXT, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
@@ -8711,20 +8711,20 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
           dwProgressTime=GetTickCount();
         }
       }
-  
+
       if (lpElement=AE_StackLineAdd(ae))
       {
         wpLineEnd=AE_GetNextLine(ae, wpLineStart, dwTextLen - dwTextCount, &lpElement->nLineLen, &lpElement->nLineBreak);
         dwTextCount+=wpLineEnd - wpLineStart;
         ae->nLastCharOffset+=lpElement->nLineLen + 1;
-  
+
         if (lpElement->nLineBreak != AELB_EOF)
         {
           if (nNewLine != AELB_ASIS)
             lpElement->nLineBreak=nNewLine;
         }
         else --ae->nLastCharOffset;
-  
+
         if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpElement->nLineLen * sizeof(wchar_t) + 2))
         {
           AE_memcpy(lpElement->wpLine, wpLineStart, lpElement->nLineLen * sizeof(wchar_t));
@@ -8735,7 +8735,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
         else break;
       }
       else break;
-  
+
       if (!bUpdated)
       {
         if (ae->nLineCount > nLinesInPage)
@@ -8745,14 +8745,14 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
           ae->ciCaretIndex=ciCaretChar;
           ae->ciSelStartIndex=ciCaretChar;
           ae->ciSelEndIndex=ciCaretChar;
-  
+
           if (!(ae->dwOptions & AECO_DISABLENOSCROLL))
             AE_UpdateScrollBars(ae, SB_VERT);
-  
+
           if (ae->nWordWrap)
           {
             ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->nWordWrap);
-  
+
             ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
             AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
             ae->ciCaretIndex=ciCaretChar;
@@ -8762,7 +8762,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
           UpdateWindow(ae->hWndEdit);
           bUpdated=TRUE;
-  
+
           //Restore variables
           ae->liFirstDrawLine.nLine=0;
           ae->liFirstDrawLine.lpLine=NULL;
@@ -8776,13 +8776,13 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       wpLineStart=wpLineEnd;
       ++ae->nLineCount;
     }
-  
+
     //End progress
     if (ae->dwEventMask & AENM_PROGRESS)
     {
       AE_NotifyProgress(ae, AEPGS_SETTEXT, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
     }
-  
+
     //Last line
     if (!lpElement || lpElement->nLineBreak != AELB_EOF)
     {
@@ -8792,32 +8792,32 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
         {
           lpElement->nLineWidth=0;
           lpElement->wpLine[0]=L'\0';
-  
+
           ++ae->nLineCount;
         }
         lpElement->nLineBreak=AELB_EOF;
       }
     }
     if (ae->nLineCount) --ae->nLineCount;
-  
+
     ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
     ae->ciCaretIndex=ciCaretChar;
     ae->ciSelStartIndex=ciCaretChar;
     ae->ciSelEndIndex=ciCaretChar;
-  
+
     if (hHeap)
     {
       if (ae->nWordWrap)
       {
         ae->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->nWordWrap);
-  
+
         ae->nVScrollMax=(ae->nLineCount + 1) * ae->nCharHeight;
         AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
         ae->ciCaretIndex=ciCaretChar;
         ae->ciSelStartIndex=ciCaretChar;
         ae->ciSelEndIndex=ciCaretChar;
-  
+
         AE_UpdateScrollBars(ae, SB_VERT);
         if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
       }
@@ -8829,7 +8829,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       }
       AE_SetModify(ae, FALSE, TRUE);
     }
-  
+
     //Set caret position
     if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
 
