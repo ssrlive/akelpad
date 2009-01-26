@@ -10,6 +10,9 @@ Added: parameter "ShowModify" - defines, where it will be possible to see, that 
          4  Display asterisk * in frame window title (MDI).
          8  Display asterisk * in tab button name (MDI).
        By default: 1, show all: 1+2+4+8=15.
+Added: description in AkelHelp-Eng.htm of parameters, that sets by user manually, and also
+       description of the internal commands used in ContextMenu, ToolBar, Hotkeys and
+       Scripts plugins.
 
 Fixed: work with Korean Input Method Editors (IME).
 Fixed: active column painting (Win98/Me).
