@@ -199,6 +199,7 @@ typedef struct _AKELEDIT {
   COLORREF crEnableBasicBk;
   COLORREF crEnableSelBk;
   COLORREF crEnableActiveLineBk;
+  BOOL bDefaultColors;
   HDC hDC;
   HFONT hFont;
   HFONT hFontUrl;

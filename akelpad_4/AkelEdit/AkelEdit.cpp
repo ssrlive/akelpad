@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.1.5                               *
+ *                      AkelEdit text control v1.1.6                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -225,6 +225,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->crActiveLineBk=GetSysColor(COLOR_WINDOW);
       ae->crActiveColumn=RGB(0x00, 0x00, 0x00);
       ae->crUrlText=RGB(0x00, 0x00, 0xFF);
+      ae->bDefaultColors=TRUE;
       ae->hBasicBk=CreateSolidBrush(ae->crBasicBk);
       ae->hSelBk=CreateSolidBrush(ae->crSelBk);
       ae->hActiveLineBk=CreateSolidBrush(ae->crActiveLineBk);
@@ -2909,6 +2910,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_SYSCOLORCHANGE)
     {
+      if (ae->bDefaultColors)
+      {
+        AECOLORS aec;
+
+        aec.dwFlags=AECLR_DEFAULT|AECLR_ALL;
+        AE_SetColors(ae, &aec);
+        ae->bDefaultColors=TRUE;
+      }
     }
     else if (uMsg == WM_ENABLE)
     {
@@ -11644,19 +11653,27 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
   if (aec->dwFlags & AECLR_BASICTEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
+    {
       ae->crBasicText=GetSysColor(COLOR_WINDOWTEXT);
+    }
     else
+    {
       ae->crBasicText=aec->crBasicText;
-
+      ae->bDefaultColors=FALSE;
+    }
     bUpdateDrawRect=TRUE;
   }
   if (aec->dwFlags & AECLR_BASICBK)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
+    {
       ae->crBasicBk=GetSysColor(COLOR_WINDOW);
+    }
     else
+    {
       ae->crBasicBk=aec->crBasicBk;
-
+      ae->bDefaultColors=FALSE;
+    }
     if (ae->hBasicBk) DeleteObject(ae->hBasicBk);
     ae->hBasicBk=CreateSolidBrush(ae->crBasicBk);
     bUpdateEditRect=TRUE;
@@ -11667,19 +11684,27 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
   if (aec->dwFlags & AECLR_SELTEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
+    {
       ae->crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+    }
     else
+    {
       ae->crSelText=aec->crSelText;
-
+      ae->bDefaultColors=FALSE;
+    }
     bUpdateDrawRect=TRUE;
   }
   if (aec->dwFlags & AECLR_SELBK)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
+    {
       ae->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+    }
     else
+    {
       ae->crSelBk=aec->crSelBk;
-
+      ae->bDefaultColors=FALSE;
+    }
     if (ae->hSelBk) DeleteObject(ae->hSelBk);
     ae->hSelBk=CreateSolidBrush(ae->crSelBk);
     bUpdateDrawRect=TRUE;
@@ -11687,19 +11712,27 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
   if (aec->dwFlags & AECLR_ACTIVELINETEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
+    {
       ae->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
+    }
     else
+    {
       ae->crActiveLineText=aec->crActiveLineText;
-
+      ae->bDefaultColors=FALSE;
+    }
     bUpdateDrawRect=TRUE;
   }
   if (aec->dwFlags & AECLR_ACTIVELINEBK)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
+    {
       ae->crActiveLineBk=GetSysColor(COLOR_WINDOW);
+    }
     else
+    {
       ae->crActiveLineBk=aec->crActiveLineBk;
-
+      ae->bDefaultColors=FALSE;
+    }
     if (ae->hActiveLineBk) DeleteObject(ae->hActiveLineBk);
     ae->hActiveLineBk=CreateSolidBrush(ae->crActiveLineBk);
     bUpdateDrawRect=TRUE;
@@ -11709,29 +11742,41 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
   if (aec->dwFlags & AECLR_ACTIVECOLUMN)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
+    {
       ae->crActiveColumn=RGB(0x00, 0x00, 0x00);
+    }
     else
+    {
       ae->crActiveColumn=aec->crActiveColumn;
-
+      ae->bDefaultColors=FALSE;
+    }
     if (ae->dwOptions & AECO_ACTIVECOLUMN)
       AE_ActiveColumnCreate(ae);
   }
   if (aec->dwFlags & AECLR_CARET)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
+    {
       ae->crCaret=RGB(0x00, 0x00, 0x00);
+    }
     else
+    {
       ae->crCaret=aec->crCaret;
-
+      ae->bDefaultColors=FALSE;
+    }
     AE_UpdateCaret(ae, ae->bFocus, TRUE);
   }
   if (aec->dwFlags & AECLR_URLTEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
+    {
       ae->crUrlText=RGB(0x00, 0x00, 0xFF);
+    }
     else
+    {
       ae->crUrlText=aec->crUrlText;
-
+      ae->bDefaultColors=FALSE;
+    }
     bUpdateDrawRect=TRUE;
   }
 
