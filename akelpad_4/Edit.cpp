@@ -19145,7 +19145,7 @@ BOOL DeleteTabItem(HWND hWnd, int nIndex)
   tcItemA.mask=TCIF_IMAGE;
   if (SendMessage(hWnd, TCM_GETITEMA, nIndex, (LPARAM)&tcItemA))
   {
-    SendMessage(hTab, TCM_REMOVEIMAGE, tcItemA.iImage, 0);
+    SendMessage(hWnd, TCM_REMOVEIMAGE, tcItemA.iImage, 0);
     SendMessage(hWnd, TCM_DELETEITEM, nIndex, 0);
     return TRUE;
   }
