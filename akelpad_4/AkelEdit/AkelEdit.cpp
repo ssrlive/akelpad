@@ -212,7 +212,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->hWndParent=GetParent(ae->hWndEdit);
       ae->nEditCtrlID=GetWindowLongA(ae->hWndEdit, GWL_ID);
       ae->hHeap=NULL;
-      ae->dwInputLanguage=LOWORD(GetKeyboardLayout(0));
+      ae->hKeybLayout=GetKeyboardLayout(0);
       ae->nCaretInsertWidth=1;
       ae->nCaretOvertypeHeight=2;
       ae->bCaretVisible=TRUE;
@@ -2276,11 +2276,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_INPUTLANGCHANGE)
     {
-      ae->dwInputLanguage=lParam;
+      ae->hKeybLayout=(HKL)lParam;
     }
     else if (uMsg == WM_IME_STARTCOMPOSITION)
     {
-      if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
+      if (PRIMARYLANGID(ae->hKeybLayout) == LANG_KOREAN)
         return 0;
 
       if (!ae->bUnicodeWindow)
@@ -2322,7 +2322,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_COMPOSITION)
     {
-      if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
+      if (PRIMARYLANGID(ae->hKeybLayout) == LANG_KOREAN)
       {
         if (!AE_IsReadOnly(ae))
         {
@@ -2413,7 +2413,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_NOTIFY)
     {
-      if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
+      if (PRIMARYLANGID(ae->hKeybLayout) == LANG_KOREAN)
       {
         if (wParam == IMN_OPENCANDIDATE)
         {
@@ -2423,7 +2423,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_KEYDOWN)
     {
-      if (PRIMARYLANGID(ae->dwInputLanguage) == LANG_KOREAN)
+      if (PRIMARYLANGID(ae->hKeybLayout) == LANG_KOREAN)
       {
         if (wParam == VK_HANJA)
         {
@@ -2436,7 +2436,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             AE_GetIndex(ae, AEGI_PREVCHAR, &crSel.ciMax, &crSel.ciMin, FALSE);
             ae->dwImeChar=*(crSel.ciMin.lpLine->wpLine + crSel.ciMin.nCharInLine);
 
-            if (ImmEscapeW((HKL)ae->dwInputLanguage, hIMC, IME_ESC_HANJA_MODE, &ae->dwImeChar))
+            if (ImmEscapeW(ae->hKeybLayout, hIMC, IME_ESC_HANJA_MODE, &ae->dwImeChar))
             {
               AE_SetSelectionPos(ae, &crSel.ciMax, &crSel.ciMin, FALSE, 0);
               AE_UpdateCandidatePos(ae);
