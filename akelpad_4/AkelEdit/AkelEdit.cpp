@@ -9535,6 +9535,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
   DWORD dwTextCount=0;
   DWORD dwRichTextCount=0;
 
+  AE_StackPointSetModify(ae, FALSE);
+
   if (ciInsertFrom.lpLine)
   {
     if (dwTextLen == (DWORD)-1) dwTextLen=lstrlenW(wpText);
