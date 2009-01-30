@@ -2995,12 +2995,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_PAINT)
     {
       HDC hDC=ae->hDC;
+      HFONT hFontOld=NULL;
 
       //Get DC
       if (!ae->hDC)
       {
         if (ae->hDC=GetDC(ae->hWndEdit))
-          if (ae->hFont) SelectObject(ae->hDC, ae->hFont);
+          if (ae->hFont) hFontOld=(HFONT)SelectObject(ae->hDC, ae->hFont);
       }
       if (ae->hDC)
       {
@@ -3029,6 +3030,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Release DC
         if (!hDC)
         {
+          if (hFontOld) SelectObject(ae->hDC, hFontOld);
           ReleaseDC(ae->hWndEdit, ae->hDC);
           ae->hDC=NULL;
         }
@@ -5107,19 +5109,20 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
   HDC hDC=ae->hDC;
+  HFONT hFontOld=NULL;
 
   if (hDC || (hDC=GetDC(ae->hWndEdit)))
   {
     if (hFont)
     {
-      SelectObject(hDC, hFont);
+      hFontOld=(HFONT)SelectObject(hDC, hFont);
       GetObjectA(hFont, sizeof(LOGFONTA), &ae->lfEditA);
       if (!GetTextMetricsA(hDC, &tmEdit))
         hFont=NULL;
     }
     if (!hFont)
     {
-      SelectObject(hDC, hFontSystem);
+      hFontOld=(HFONT)SelectObject(hDC, hFontSystem);
       GetObjectA((HGDIOBJ)hFontSystem, sizeof(LOGFONTA), &ae->lfEditA);
       if (!GetTextMetricsA(hDC, &tmEdit))
         return;
@@ -5147,7 +5150,11 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 
-    if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
+    if (!ae->hDC)
+    {
+      if (hFontOld) SelectObject(hDC, hFontOld);
+      ReleaseDC(ae->hWndEdit, hDC);
+    }
   }
 }
 
@@ -5157,19 +5164,20 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
   HDC hDC=ae->hDC;
+  HFONT hFontOld=NULL;
 
   if (hDC || (hDC=GetDC(ae->hWndEdit)))
   {
     if (hFont)
     {
-      SelectObject(hDC, hFont);
+      hFontOld=(HFONT)SelectObject(hDC, hFont);
       GetObjectW(hFont, sizeof(LOGFONTW), &ae->lfEditW);
       if (!GetTextMetricsW(hDC, &tmEdit))
         hFont=NULL;
     }
     if (!hFont)
     {
-      SelectObject(hDC, hFontSystem);
+      hFontOld=(HFONT)SelectObject(hDC, hFontSystem);
       GetObjectW((HGDIOBJ)hFontSystem, sizeof(LOGFONTW), &ae->lfEditW);
       if (!GetTextMetricsW(hDC, &tmEdit))
         return;
@@ -5197,7 +5205,11 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, bRedraw);
 
-    if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
+    if (!ae->hDC)
+    {
+      if (hFontOld) SelectObject(hDC, hFontOld);
+      ReleaseDC(ae->hWndEdit, hDC);
+    }
   }
 }
 
@@ -6695,7 +6707,9 @@ void AE_Paint(AKELEDIT *ae)
       RECT rcSpace;
       DWORD dwColorBG;
       DWORD dwColorText;
+      HFONT hFontOld=NULL;
       HRGN hDrawRgn;
+      HRGN hDrawRgnOld=NULL;
       HBRUSH hbrBG;
       wchar_t *wpStartDraw;
       int nLineSelection;
@@ -6709,12 +6723,10 @@ void AE_Paint(AKELEDIT *ae)
       int nLastDrawLine=0;
       int nFirstPaintChar;
 
-      //Set region
+      //Set region and font
       hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
-      if (hDrawRgn) SelectObject(ps.hdc, hDrawRgn);
-
-      //Set font
-      if (ae->hFont) SelectObject(ps.hdc, ae->hFont);
+      if (hDrawRgn) hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
+      if (ae->hFont) hFontOld=(HFONT)SelectObject(ps.hdc, ae->hFont);
 
       rcDraw=ps.rcPaint;
       if (rcDraw.top + ae->nCharHeight <= ae->rcDraw.top)
@@ -7066,6 +7078,8 @@ void AE_Paint(AKELEDIT *ae)
         ciDrawLine.lpLine=ciDrawLine.lpLine->next;
         ciDrawLine.nCharInLine=0;
       }
+      if (hFontOld) SelectObject(ps.hdc, hFontOld);
+      if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
       if (hDrawRgn) DeleteObject(hDrawRgn);
       EndPaint(ae->hWndEdit, &ps);
     }
@@ -7267,6 +7281,7 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringL
   int nStringWidth=0;
   int i;
   BOOL bResult=TRUE;
+  HFONT hFontOld=NULL;
 
   for (i=0; i < nStringLen; ++i)
   {
@@ -7279,7 +7294,7 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringL
       if (!hDC)
       {
         if (hDC=GetDC(ae->hWndEdit))
-          if (ae->hFont) SelectObject(hDC, ae->hFont);
+          if (ae->hFont) hFontOld=(HFONT)SelectObject(hDC, ae->hFont);
       }
       if (hDC)
       {
@@ -7294,7 +7309,11 @@ BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringL
       else return FALSE;
     }
   }
-  if (!ae->hDC && hDC) ReleaseDC(ae->hWndEdit, hDC);
+  if (!ae->hDC && hDC)
+  {
+    if (hFontOld) SelectObject(hDC, hFontOld);
+    ReleaseDC(ae->hWndEdit, hDC);
+  }
 
   if (bResult)
   {
@@ -8629,6 +8648,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   wchar_t *wpLineEnd=(wchar_t *)wpText;
   HANDLE hHeap=ae->hHeap;
   HDC hDC=ae->hDC;
+  HFONT hFontOld=NULL;
   DWORD dwTextCount=0;
   DWORD dwStartTime=GetTickCount();
   DWORD dwProgressTime=0;
@@ -8691,7 +8711,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   if (!ae->hDC)
   {
     if (ae->hDC=GetDC(ae->hWndEdit))
-      if (ae->hFont) SelectObject(ae->hDC, ae->hFont);
+      if (ae->hFont) hFontOld=(HFONT)SelectObject(ae->hDC, ae->hFont);
   }
   if (ae->hDC)
   {
@@ -8845,6 +8865,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     //Release DC
     if (!hDC)
     {
+      if (hFontOld) SelectObject(ae->hDC, hFontOld);
       ReleaseDC(ae->hWndEdit, ae->hDC);
       ae->hDC=NULL;
     }
