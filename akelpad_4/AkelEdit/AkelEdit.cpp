@@ -6108,7 +6108,6 @@ HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic,
 
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData)
 {
-  HDC hDC=ae->hDC;
   BITMAPFILEHEADER *lpBmpFileHeader=(BITMAPFILEHEADER *)lpBmpFileData;
   BITMAPINFOHEADER *lpBmpInfoHeader=(BITMAPINFOHEADER *)(lpBmpFileData + sizeof(BITMAPFILEHEADER));
   BYTE *lpBitmapBits=(BYTE *)(lpBmpFileData + lpBmpFileHeader->bfOffBits);
@@ -6118,26 +6117,22 @@ HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData)
   DWORD a;
   int b;
 
-  if (hDC || (hDC=GetDC(ae->hWndEdit)))
-  {
-    bi.bmiHeader=*lpBmpInfoHeader;
+  bi.bmiHeader=*lpBmpInfoHeader;
 
-    if (hBitmap=CreateDIBSection(hDC, &bi, DIB_RGB_COLORS, (void **)&lpSectionBits, NULL, 0))
+  if (hBitmap=CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, (void **)&lpSectionBits, NULL, 0))
+  {
+    for (a=0; a < bi.bmiHeader.biSizeImage;)
     {
-      for (a=0; a < bi.bmiHeader.biSizeImage;)
+      for (b=0; b < bi.bmiHeader.biWidth * 3; b+=3)
       {
-        for (b=0; b < bi.bmiHeader.biWidth * 3; b+=3)
-        {
-          //Copy bits
-          lpSectionBits[a + 0]=lpBitmapBits[a + 0];
-          lpSectionBits[a + 1]=lpBitmapBits[a + 1];
-          lpSectionBits[a + 2]=lpBitmapBits[a + 2];
-          a+=3;
-        }
-        while (a % 4) lpSectionBits[a++]=0x00;
+        //Copy bits
+        lpSectionBits[a + 0]=lpBitmapBits[a + 0];
+        lpSectionBits[a + 1]=lpBitmapBits[a + 1];
+        lpSectionBits[a + 2]=lpBitmapBits[a + 2];
+        a+=3;
       }
+      while (a % 4) lpSectionBits[a++]=0x00;
     }
-    if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
   }
   return hBitmap;
 }
