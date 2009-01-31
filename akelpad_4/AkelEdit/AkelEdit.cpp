@@ -7117,13 +7117,15 @@ void AE_MButtonDraw(AKELEDIT *ae)
     {
       HDC hdcSkin;
       HDC hDC=ae->hDC;
+      HBITMAP hBitmapOld=NULL;
 
       if (hDC || (hDC=GetDC(ae->hWndEdit)))
       {
         if (hdcSkin=CreateCompatibleDC(hDC))
         {
-          SelectObject(hdcSkin, ae->hMButtonBitmap);
+          hBitmapOld=(HBITMAP)SelectObject(hdcSkin, ae->hMButtonBitmap);
           BitBlt(hDC, ae->ptMButtonDown.x - 11, ae->ptMButtonDown.y - 11, 22, 22, hdcSkin, 0, 0, NOTSRCINVERT);
+          if (hBitmapOld) SelectObject(hdcSkin, hBitmapOld);
           DeleteDC(hdcSkin);
         }
         if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
