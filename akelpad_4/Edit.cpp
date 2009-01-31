@@ -1308,6 +1308,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
           tr.wpBuffer=wszRange + nStringLenAll;
           tr.dwBufferMax=(DWORD)-1;
           tr.nNewLine=AELB_ASIS;
+          tr.bFillSpaces=TRUE;
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
           b=nStringLenAll;
 
@@ -1360,6 +1361,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
           tr.wpBuffer=wszRange;
           tr.dwBufferMax=(DWORD)-1;
           tr.nNewLine=AELB_ASIS;
+          tr.bFillSpaces=TRUE;
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
 
           if (nAction & STRSEL_TAB)
