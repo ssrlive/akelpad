@@ -167,8 +167,21 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance)
 
 BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 {
-  if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
-  if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
+  if (hAkelEditBitmapMCenterAll)
+  {
+    DeleteObject(hAkelEditBitmapMCenterAll);
+    hAkelEditBitmapMCenterAll=NULL;
+  }
+  if (hAkelEditBitmapMCenterLeftRight)
+  {
+    DeleteObject(hAkelEditBitmapMCenterLeftRight);
+    hAkelEditBitmapMCenterLeftRight=NULL;
+  }
+  if (hAkelEditBitmapMCenterTopBottom)
+  {
+    DeleteObject(hAkelEditBitmapMCenterTopBottom);
+    hAkelEditBitmapMCenterTopBottom=NULL;
+  }
   AE_StackFontCharsFree(&hAkelEditFontCharsStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
@@ -183,8 +196,21 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
 
 BOOL AE_UnregisterClassW(HINSTANCE hInstance)
 {
-  if (hAkelEditCursorMargin) DestroyCursor(hAkelEditCursorMargin);
-  if (hAkelEditCursorHand) DestroyCursor(hAkelEditCursorHand);
+  if (hAkelEditBitmapMCenterAll)
+  {
+    DeleteObject(hAkelEditBitmapMCenterAll);
+    hAkelEditBitmapMCenterAll=NULL;
+  }
+  if (hAkelEditBitmapMCenterLeftRight)
+  {
+    DeleteObject(hAkelEditBitmapMCenterLeftRight);
+    hAkelEditBitmapMCenterLeftRight=NULL;
+  }
+  if (hAkelEditBitmapMCenterTopBottom)
+  {
+    DeleteObject(hAkelEditBitmapMCenterTopBottom);
+    hAkelEditBitmapMCenterTopBottom=NULL;
+  }
   AE_StackFontCharsFree(&hAkelEditFontCharsStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
@@ -8648,7 +8674,6 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   AELINEDATA *lpElement=NULL;
   wchar_t *wpLineStart=(wchar_t *)wpText;
   wchar_t *wpLineEnd=(wchar_t *)wpText;
-  HANDLE hHeap=ae->hHeap;
   HDC hDC=ae->hDC;
   HFONT hFontOld=NULL;
   DWORD dwTextCount=0;
@@ -8656,6 +8681,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   DWORD dwProgressTime=0;
   DWORD dwCurrentTime=0;
   int nLinesInPage;
+  BOOL bFirstHeap=TRUE;
   BOOL bUpdated=FALSE;
 
   //Free memory
@@ -8663,6 +8689,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   {
     if (HeapDestroy(ae->hHeap))
       ae->hHeap=NULL;
+    bFirstHeap=FALSE;
 
     ae->hUndoStack.first=0;
     ae->hUndoStack.last=0;
@@ -8837,7 +8864,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     ae->ciSelStartIndex=ciCaretChar;
     ae->ciSelEndIndex=ciCaretChar;
 
-    if (hHeap)
+    if (!bFirstHeap)
     {
       if (ae->nWordWrap)
       {
