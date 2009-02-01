@@ -338,7 +338,7 @@ typedef struct _HINISECTION {
   wchar_t *wszSection;
   int nSectionAnsiBytes;
   int nSectionUnicodeBytes;
-  HSTACK hSectionStack;
+  HSTACK hKeysStack;
 } HINISECTION;
 
 typedef struct _HINIKEY {
@@ -906,10 +906,10 @@ BOOL SaveIniW(HSTACK *hIniStack, wchar_t *wpFile);
 BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile);
 HINISECTION* StackGetIniSectionA(HSTACK *hIniStack, char *pSection, int nSectionLen);
 HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSectionLen);
-HINIKEY* StackGetIniKeyA(HSTACK *hSectionStack, char *pKey, int nKeyLen);
-HINIKEY* StackGetIniKeyW(HSTACK *hSectionStack, wchar_t *wpKey, int nKeyLen);
+HINIKEY* StackGetIniKeyA(HSTACK *hKeysStack, char *pKey, int nKeyLen);
+HINIKEY* StackGetIniKeyW(HSTACK *hKeysStack, wchar_t *wpKey, int nKeyLen);
 void StackFreeIni(HSTACK *hIniStack);
-void StackFreeIniSection(HSTACK *hSectionStack);
+void StackFreeIniSection(HSTACK *hKeysStack);
 int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);

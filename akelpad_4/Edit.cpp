@@ -2448,9 +2448,10 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
                   lpIniSection->nSectionAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, NULL, 0, NULL, NULL);
                   if (lpIniSection->szSection=(char *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionAnsiBytes))
                     WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, lpIniSection->szSection, lpIniSection->nSectionAnsiBytes, NULL, NULL);
-                  lpIniSection->hSectionStack.first=0;
-                  lpIniSection->hSectionStack.last=0;
+                  lpIniSection->hKeysStack.first=0;
+                  lpIniSection->hKeysStack.last=0;
                 }
+                else goto Error;
               }
               else goto Error;
             }
@@ -2474,7 +2475,7 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
                 nStringLen=wpText - wpString;
                 if (*wpText) *wpText++='\0';
 
-                if (!StackInsert((stack **)&lpIniSection->hSectionStack.first, (stack **)&lpIniSection->hSectionStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
+                if (!StackInsert((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
                 {
                   lpIniKey->nKeyUnicodeBytes=nKeyLen * sizeof(wchar_t) + 2;
                   if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
@@ -2490,6 +2491,7 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
                   if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
                     WideCharToMultiByte(CP_ACP, 0, wpString, nStringLen + 1, lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
                 }
+                else goto Error;
               }
               else goto Error;
             }
@@ -2562,11 +2564,11 @@ BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile)
     if (!API_WriteFile(hFile, L"]\r\n", 6, &dwBytesWritten, NULL))
       return FALSE;
 
-    lpIniKey=(HINIKEY *)lpIniSection->hSectionStack.last;
+    //Keys and strings
+    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
 
     while (lpIniKey)
     {
-      //Keys and strings
       if (!API_WriteFile(hFile, lpIniKey->wszKey, lpIniKey->nKeyUnicodeBytes - 2, &dwBytesWritten, NULL))
         return FALSE;
       if (!API_WriteFile(hFile, L"=", 2, &dwBytesWritten, NULL))
@@ -2623,9 +2625,9 @@ HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSec
   return NULL;
 }
 
-HINIKEY* StackGetIniKeyA(HSTACK *hSectionStack, char *pKey, int nKeyLen)
+HINIKEY* StackGetIniKeyA(HSTACK *hKeysStack, char *pKey, int nKeyLen)
 {
-  HINIKEY *lpIniKey=(HINIKEY *)hSectionStack->last;
+  HINIKEY *lpIniKey=(HINIKEY *)hKeysStack->last;
 
   nKeyLen=nKeyLen + 1;
 
@@ -2641,9 +2643,9 @@ HINIKEY* StackGetIniKeyA(HSTACK *hSectionStack, char *pKey, int nKeyLen)
   return NULL;
 }
 
-HINIKEY* StackGetIniKeyW(HSTACK *hSectionStack, wchar_t *wpKey, int nKeyLen)
+HINIKEY* StackGetIniKeyW(HSTACK *hKeysStack, wchar_t *wpKey, int nKeyLen)
 {
-  HINIKEY *lpIniKey=(HINIKEY *)hSectionStack->last;
+  HINIKEY *lpIniKey=(HINIKEY *)hKeysStack->last;
 
   nKeyLen=nKeyLen * sizeof(wchar_t) + 2;
 
@@ -2667,15 +2669,15 @@ void StackFreeIni(HSTACK *hIniStack)
   {
     if (lpIniSection->wszSection) API_HeapFree(hHeap, 0, (LPVOID)lpIniSection->wszSection);
     if (lpIniSection->szSection) API_HeapFree(hHeap, 0, (LPVOID)lpIniSection->szSection);
-    StackFreeIniSection(&lpIniSection->hSectionStack);
+    StackFreeIniSection(&lpIniSection->hKeysStack);
     lpIniSection=lpIniSection->prev;
   }
   StackClear((stack **)&hIniStack->first, (stack **)&hIniStack->last);
 }
 
-void StackFreeIniSection(HSTACK *hSectionStack)
+void StackFreeIniSection(HSTACK *hKeysStack)
 {
-  HINIKEY *lpIniKey=(HINIKEY *)hSectionStack->last;
+  HINIKEY *lpIniKey=(HINIKEY *)hKeysStack->last;
 
   while (lpIniKey)
   {
@@ -2685,7 +2687,7 @@ void StackFreeIniSection(HSTACK *hSectionStack)
     if (lpIniKey->szString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->szString);
     lpIniKey=lpIniKey->prev;
   }
-  StackClear((stack **)&hSectionStack->first, (stack **)&hSectionStack->last);
+  StackClear((stack **)&hKeysStack->first, (stack **)&hKeysStack->last);
 }
 
 int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
@@ -2698,7 +2700,7 @@ int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsig
 
   if (lpIniSection=StackGetIniSectionA(hIniStack, pSection, nSectionLen))
   {
-    if (lpIniKey=StackGetIniKeyA(&lpIniSection->hSectionStack, pKey, nKeyLen))
+    if (lpIniKey=StackGetIniKeyA(&lpIniSection->hKeysStack, pKey, nKeyLen))
     {
       if (nType == INI_DWORD)
       {
@@ -2752,7 +2754,7 @@ int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTyp
 
   if (lpIniSection=StackGetIniSectionW(hIniStack, wpSection, nSectionLen))
   {
-    if (lpIniKey=StackGetIniKeyW(&lpIniSection->hSectionStack, wpKey, nKeyLen))
+    if (lpIniKey=StackGetIniKeyW(&lpIniSection->hKeysStack, wpKey, nKeyLen))
     {
       if (nType == INI_DWORD)
       {
@@ -2819,14 +2821,14 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
       lpIniSection->nSectionAnsiBytes=nSectionLen + 1;
       if (lpIniSection->szSection=(char *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionAnsiBytes))
         memcpy(lpIniSection->szSection, pSection, lpIniSection->nSectionAnsiBytes);
-      lpIniSection->hSectionStack.first=0;
-      lpIniSection->hSectionStack.last=0;
+      lpIniSection->hKeysStack.first=0;
+      lpIniSection->hKeysStack.last=0;
     }
     else return FALSE;
   }
-  if (!(lpIniKey=StackGetIniKeyA(&lpIniSection->hSectionStack, pKey, nKeyLen)))
+  if (!(lpIniKey=StackGetIniKeyA(&lpIniSection->hKeysStack, pKey, nKeyLen)))
   {
-    if (!StackInsert((stack **)&lpIniSection->hSectionStack.first, (stack **)&lpIniSection->hSectionStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
+    if (!StackInsert((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
     {
       lpIniKey->nKeyUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pKey, nKeyLen + 1, NULL, 0) * sizeof(wchar_t);
       if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
@@ -2922,14 +2924,14 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
       lpIniSection->nSectionAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, NULL, 0, NULL, NULL);
       if (lpIniSection->szSection=(char *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionAnsiBytes))
         WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, lpIniSection->szSection, lpIniSection->nSectionAnsiBytes, NULL, NULL);
-      lpIniSection->hSectionStack.first=0;
-      lpIniSection->hSectionStack.last=0;
+      lpIniSection->hKeysStack.first=0;
+      lpIniSection->hKeysStack.last=0;
     }
     else return FALSE;
   }
-  if (!(lpIniKey=StackGetIniKeyW(&lpIniSection->hSectionStack, wpKey, nKeyLen)))
+  if (!(lpIniKey=StackGetIniKeyW(&lpIniSection->hKeysStack, wpKey, nKeyLen)))
   {
-    if (!StackInsert((stack **)&lpIniSection->hSectionStack.first, (stack **)&lpIniSection->hSectionStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
+    if (!StackInsert((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
     {
       lpIniKey->nKeyUnicodeBytes=nKeyLen * sizeof(wchar_t) + 2;
       if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
@@ -3730,7 +3732,7 @@ void IniRegisterPluginsHotkeysA()
 
   if (lpIniSection=StackGetIniSectionA(&hIniStack, "Plugs", lstrlenA("Plugs")))
   {
-    lpIniKey=(HINIKEY *)lpIniSection->hSectionStack.last;
+    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
 
     while (lpIniKey)
     {
@@ -3751,7 +3753,7 @@ void IniRegisterPluginsHotkeysW()
 
   if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Plugs", lstrlenW(L"Plugs")))
   {
-    lpIniKey=(HINIKEY *)lpIniSection->hSectionStack.last;
+    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
 
     while (lpIniKey)
     {
@@ -4543,7 +4545,7 @@ void ReadThemesA()
 
     if (lpIniSection=StackGetIniSectionA(&hIniStack, "Themes", lstrlenA("Themes")))
     {
-      lpIniKey=(HINIKEY *)lpIniSection->hSectionStack.last;
+      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
 
       while (lpIniKey)
       {
@@ -4618,7 +4620,7 @@ void ReadThemesW()
 
     if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Themes", lstrlenW(L"Themes")))
     {
-      lpIniKey=(HINIKEY *)lpIniSection->hSectionStack.last;
+      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
 
       while (lpIniKey)
       {
@@ -4670,7 +4672,7 @@ BOOL SaveThemesA(BOOL bCleanOld)
     if (bCleanOld)
     {
       if (lpIniSection=StackGetIniSectionA(&hIniStack, "Themes", lstrlenA("Themes")))
-        StackFreeIniSection(&lpIniSection->hSectionStack);
+        StackFreeIniSection(&lpIniSection->hKeysStack);
     }
   }
 
@@ -4728,7 +4730,7 @@ BOOL SaveThemesW(BOOL bCleanOld)
     if (bCleanOld)
     {
       if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Themes", lstrlenW(L"Themes")))
-        StackFreeIniSection(&lpIniSection->hSectionStack);
+        StackFreeIniSection(&lpIniSection->hKeysStack);
     }
   }
 
@@ -14407,7 +14409,7 @@ BOOL StackPluginSaveA(HSTACK *hStack, BOOL bCleanOld)
     if (bCleanOld)
     {
       if (lpIniSection=StackGetIniSectionA(&hIniStack, "Plugs", lstrlenA("Plugs")))
-        StackFreeIniSection(&lpIniSection->hSectionStack);
+        StackFreeIniSection(&lpIniSection->hKeysStack);
     }
   }
 
@@ -14471,7 +14473,7 @@ BOOL StackPluginSaveW(HSTACK *hStack, BOOL bCleanOld)
     if (bCleanOld)
     {
       if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Plugs", lstrlenW(L"Plugs")))
-        StackFreeIniSection(&lpIniSection->hSectionStack);
+        StackFreeIniSection(&lpIniSection->hKeysStack);
     }
   }
 

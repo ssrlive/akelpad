@@ -1824,7 +1824,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 HINISECTION *lpIniSection;
 
                 if (lpIniSection=StackGetIniSectionA(&ih->hStack, "Options", lstrlenA("Options")))
-                  StackFreeIniSection(&lpIniSection->hSectionStack);
+                  StackFreeIniSection(&lpIniSection->hKeysStack);
               }
             }
           }
@@ -3539,7 +3539,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 HINISECTION *lpIniSection;
 
                 if (lpIniSection=StackGetIniSectionW(&ih->hStack, L"Options", lstrlenW(L"Options")))
-                  StackFreeIniSection(&lpIniSection->hSectionStack);
+                  StackFreeIniSection(&lpIniSection->hKeysStack);
               }
             }
           }
