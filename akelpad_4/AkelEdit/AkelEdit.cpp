@@ -1867,7 +1867,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bAlt=FALSE;
       BOOL bShift=FALSE;
       BOOL bControl=FALSE;
-      BOOL bRedrawAllSelection=FALSE;
       BOOL bSetHorizCaretPos=TRUE;
 
       if (ae->dwRichEventMask & ENM_KEYEVENTS)
@@ -2061,8 +2060,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
            ae->rcDraw.bottom - ae->rcDraw.top > 0 &&
            ae->rcDraw.right - ae->rcDraw.left > 0)
       {
-        if (ae->bColumnSel != bAlt)
-          bRedrawAllSelection=TRUE;
         if (bAlt || (ae->dwOptions & AECO_CARETOUTEDGE))
           nHorizCaretPos=ae->ptCaret.x;
 
@@ -2265,12 +2262,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!bSetHorizCaretPos)
         {
           ae->nHorizCaretPos=nHorizCaretPos;
-        }
-
-        //Redraw lines
-        if (bRedrawAllSelection)
-        {
-          AE_RedrawLineRange(ae, ae->ciSelStartIndex.nLine, ae->ciSelEndIndex.nLine, FALSE);
         }
         return 0;
       }
@@ -2548,7 +2539,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         BOOL bAlt=FALSE;
         BOOL bShift=FALSE;
         BOOL bControl=FALSE;
-        BOOL bRedrawAllSelection=FALSE;
 
         ptPos.x=LOWORD(lParam);
         ptPos.y=HIWORD(lParam);
@@ -2621,16 +2611,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
               SetCapture(ae->hWndEdit);
             }
-            if (ae->bColumnSel != bAlt)
-              bRedrawAllSelection=TRUE;
-
             AE_SetMouseSelection(ae, &ptPos, bAlt, bShift);
-
-            //Redraw lines
-            if (bRedrawAllSelection)
-            {
-              AE_RedrawLineRange(ae, ae->ciSelStartIndex.nLine, ae->ciSelEndIndex.nLine, FALSE);
-            }
           }
         }
         //Two clicks
@@ -5251,18 +5232,20 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
   AELINEINDEX liLine;
   POINT ptSelStart;
   POINT ptSelEnd;
+  BOOL bColumnSelOld;
 
   AE_StackUndoGroupStop(ae);
 
   if (ciSelStart->lpLine && ciSelEnd->lpLine)
   {
-    ae->bColumnSel=bColumnSel;
     ciSelStartOld=ae->ciSelStartIndex;
     ciSelEndOld=ae->ciSelEndIndex;
     ciCaretOld=ae->ciCaretIndex;
     ciSelStartNew=*ciSelStart;
     ciSelEndNew=*ciSelEnd;
     ciCaretNew=*ciSelStart;
+    bColumnSelOld=ae->bColumnSel;
+    ae->bColumnSel=bColumnSel;
 
     //Exchange indexes
     if (AE_IndexCompare(&ciSelStartNew, &ciSelEndNew) > 0)
@@ -5366,20 +5349,9 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
       }
       else
       {
-        if (bColumnSel)
+        if (bColumnSel || bColumnSelOld)
         {
-          if (ciSelStartOld.nCharInLine != ciSelStartNew.nCharInLine ||
-              ciSelEndOld.nCharInLine != ciSelEndNew.nCharInLine)
-          {
-            AE_RedrawLineRange(ae, min(ciSelStartOld.nLine, ciSelStartNew.nLine), max(ciSelEndOld.nLine, ciSelEndNew.nLine), FALSE);
-          }
-          else
-          {
-            if (AE_IndexCompare(&ciSelStartOld, &ciSelStartNew))
-              AE_RedrawLineRange(ae, min(ciSelStartOld.nLine, ciSelStartNew.nLine), max(ciSelStartOld.nLine, ciSelStartNew.nLine), FALSE);
-            if (AE_IndexCompare(&ciSelEndOld, &ciSelEndNew))
-              AE_RedrawLineRange(ae, min(ciSelEndOld.nLine, ciSelEndNew.nLine), max(ciSelEndOld.nLine, ciSelEndNew.nLine), FALSE);
-          }
+          AE_RedrawLineRange(ae, min(ciSelStartOld.nLine, ciSelStartNew.nLine), max(ciSelEndOld.nLine, ciSelEndNew.nLine), FALSE);
         }
         else
         {
