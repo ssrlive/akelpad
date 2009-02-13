@@ -254,6 +254,7 @@ int nCurrentNewLine=NEWLINE_WIN;
 int nDefaultNewLine=NEWLINE_WIN;
 BOOL bWordWrap=FALSE;
 int nWrapType=AEWW_WORD;
+DWORD dwWrapLimit=0;
 BOOL bOnTop=FALSE;
 BOOL bStatusBar=TRUE;
 DWORD dwShowModify=SM_STATUSBAR;
@@ -5502,6 +5503,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->nUndoLimit=nUndoLimit;
       lpWndFrameA->bDetailedUndo=bDetailedUndo;
       lpWndFrameA->nWrapType=nWrapType;
+      lpWndFrameA->dwWrapLimit=dwWrapLimit;
       lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameA->bCaretVertLine=bCaretVertLine;
       lpWndFrameA->nCaretWidth=nCaretWidth;
@@ -5637,6 +5639,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->nUndoLimit=nUndoLimit;
             lpWndFrameA->bDetailedUndo=bDetailedUndo;
             lpWndFrameA->nWrapType=nWrapType;
+            lpWndFrameA->dwWrapLimit=dwWrapLimit;
             lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameA->bCaretVertLine=bCaretVertLine;
             lpWndFrameA->nCaretWidth=nCaretWidth;
@@ -5674,6 +5677,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           nUndoLimit=lpWndFrameA->nUndoLimit;
           bDetailedUndo=lpWndFrameA->bDetailedUndo;
           nWrapType=lpWndFrameA->nWrapType;
+          dwWrapLimit=lpWndFrameA->dwWrapLimit;
           bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
           bCaretVertLine=lpWndFrameA->bCaretVertLine;
           nCaretWidth=lpWndFrameA->nCaretWidth;
@@ -5750,6 +5754,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->nUndoLimit=nUndoLimit;
       lpWndFrameW->bDetailedUndo=bDetailedUndo;
       lpWndFrameW->nWrapType=nWrapType;
+      lpWndFrameW->dwWrapLimit=dwWrapLimit;
       lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameW->bCaretVertLine=bCaretVertLine;
       lpWndFrameW->nCaretWidth=nCaretWidth;
@@ -5885,6 +5890,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->nUndoLimit=nUndoLimit;
             lpWndFrameW->bDetailedUndo=bDetailedUndo;
             lpWndFrameW->nWrapType=nWrapType;
+            lpWndFrameW->dwWrapLimit=dwWrapLimit;
             lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameW->bCaretVertLine=bCaretVertLine;
             lpWndFrameW->nCaretWidth=nCaretWidth;
@@ -5922,6 +5928,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           nUndoLimit=lpWndFrameW->nUndoLimit;
           bDetailedUndo=lpWndFrameW->bDetailedUndo;
           nWrapType=lpWndFrameW->nWrapType;
+          dwWrapLimit=lpWndFrameW->dwWrapLimit;
           bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
           bCaretVertLine=lpWndFrameW->bCaretVertLine;
           nCaretWidth=lpWndFrameW->nCaretWidth;
