@@ -232,6 +232,7 @@ extern int nCurrentNewLine;
 extern int nDefaultNewLine;
 extern BOOL bWordWrap;
 extern int nWrapType;
+extern DWORD dwWrapLimit;
 extern BOOL bOnTop;
 extern BOOL bStatusBar;
 extern DWORD dwShowModify;
@@ -2021,7 +2022,7 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
   if (bWordWrap)
   {
     SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
-    SendMessage(hWnd, AEM_SETWORDWRAP, nWrapType, 0);
+    SendMessage(hWnd, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
   }
   else
   {
@@ -3104,6 +3105,9 @@ void RegReadOptionsA()
   RegQueryValueExA(hKey, "WrapType", NULL, &dwType, (LPBYTE)&nWrapType, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExA(hKey, "WrapLimit", NULL, &dwType, (LPBYTE)&dwWrapLimit, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "CaretOutEdge", NULL, &dwType, (LPBYTE)&bCaretOutEdge, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3323,6 +3327,9 @@ void RegReadOptionsW()
   RegQueryValueExW(hKey, L"WrapType", NULL, &dwType, (LPBYTE)&nWrapType, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExW(hKey, L"WrapLimit", NULL, &dwType, (LPBYTE)&dwWrapLimit, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"CaretOutEdge", NULL, &dwType, (LPBYTE)&bCaretOutEdge, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3514,6 +3521,7 @@ void IniReadOptionsA()
   IniGetValueA(&hIniStack, "Options", "UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD));
+  IniGetValueA(&hIniStack, "Options", "WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD));
@@ -3600,6 +3608,7 @@ void IniReadOptionsW()
   IniGetValueW(&hIniStack, L"Options", L"UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD));
+  IniGetValueW(&hIniStack, L"Options", L"WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD));
@@ -3860,6 +3869,8 @@ BOOL RegSaveOptionsA()
     goto Error;
   if (RegSetValueExA(hKey, "WrapType", 0, REG_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExA(hKey, "WrapLimit", 0, REG_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExA(hKey, "CaretOutEdge", 0, REG_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExA(hKey, "CaretVertLine", 0, REG_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -4028,6 +4039,8 @@ BOOL RegSaveOptionsW()
     goto Error;
   if (RegSetValueExW(hKey, L"WrapType", 0, REG_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExW(hKey, L"WrapLimit", 0, REG_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExW(hKey, L"CaretOutEdge", 0, REG_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExW(hKey, L"CaretVertLine", 0, REG_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -4194,6 +4207,8 @@ BOOL IniSaveOptionsA()
   if (!IniSetValueA(&hIniStack, "Options", "DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD)))
+    goto Error;
+  if (!IniSetValueA(&hIniStack, "Options", "WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)))
     goto Error;
@@ -4363,6 +4378,8 @@ BOOL IniSaveOptionsW()
   if (!IniSetValueW(&hIniStack, L"Options", L"DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD)))
+    goto Error;
+  if (!IniSetValueW(&hIniStack, L"Options", L"WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)))
     goto Error;
@@ -16151,6 +16168,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndDetailedUndo;
   static HWND hWndWrapByWords;
   static HWND hWndWrapBySymbols;
+  static HWND hWndWrapLimit;
+  static HWND hWndWrapLimitSpin;
   static HWND hWndCaretOutEdge;
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
@@ -16173,6 +16192,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_DETAILED);
     hWndWrapByWords=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_BY_WORDS);
     hWndWrapBySymbols=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_BY_SYMBOLS);
+    hWndWrapLimit=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_LIMIT);
+    hWndWrapLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_LIMIT_SPIN);
     hWndCaretOutEdge=GetDlgItem(hDlg, IDC_OPTIONS_CARETOUTEDGE);
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
@@ -16188,6 +16209,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
     SendMessage(hWndUndoLimitSpin, UDM_SETBUDDY, (WPARAM)hWndUndoLimit, 0);
     SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndWrapLimitSpin, UDM_SETBUDDY, (WPARAM)hWndWrapLimit, 0);
+    SendMessage(hWndWrapLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
     SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
@@ -16196,6 +16219,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
 
     if (bTabStopAsSpaces)
@@ -16274,10 +16298,13 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         a=AEWW_WORD;
       else
         a=AEWW_SYMBOL;
-      if (nWrapType != a)
+      b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, FALSE);
+
+      if (nWrapType != a || dwWrapLimit != b)
       {
         nWrapType=a;
-        if (bWordWrap) SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, 0);
+        dwWrapLimit=b;
+        if (bWordWrap) SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
       }
 
       //Allow caret moving out of the line edge
@@ -16339,6 +16366,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndDetailedUndo;
   static HWND hWndWrapByWords;
   static HWND hWndWrapBySymbols;
+  static HWND hWndWrapLimit;
+  static HWND hWndWrapLimitSpin;
   static HWND hWndCaretOutEdge;
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
@@ -16361,6 +16390,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndDetailedUndo=GetDlgItem(hDlg, IDC_OPTIONS_UNDO_DETAILED);
     hWndWrapByWords=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_BY_WORDS);
     hWndWrapBySymbols=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_BY_SYMBOLS);
+    hWndWrapLimit=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_LIMIT);
+    hWndWrapLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_LIMIT_SPIN);
     hWndCaretOutEdge=GetDlgItem(hDlg, IDC_OPTIONS_CARETOUTEDGE);
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
@@ -16376,6 +16407,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
     SendMessage(hWndUndoLimitSpin, UDM_SETBUDDY, (WPARAM)hWndUndoLimit, 0);
     SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndWrapLimitSpin, UDM_SETBUDDY, (WPARAM)hWndWrapLimit, 0);
+    SendMessage(hWndWrapLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
     SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
@@ -16384,6 +16417,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
 
     if (bTabStopAsSpaces)
@@ -16460,10 +16494,13 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         a=AEWW_WORD;
       else
         a=AEWW_SYMBOL;
-      if (nWrapType != a)
+      b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, FALSE);
+
+      if (nWrapType != a || dwWrapLimit != b)
       {
         nWrapType=a;
-        if (bWordWrap) SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, 0);
+        dwWrapLimit=b;
+        if (bWordWrap) SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
       }
 
       //Allow caret moving out of the line edge
