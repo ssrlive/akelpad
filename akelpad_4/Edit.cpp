@@ -16304,8 +16304,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         if (bWordWrap)
         {
-          //Wrap off
-          SendMessage(hWndEdit, AEM_SETWORDWRAP, AEWW_NONE, 0);
           if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
         }
         nWrapType=a;
@@ -16313,7 +16311,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
         if (bWordWrap)
         {
-          //Wrap on
           if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
           SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
         }
@@ -16512,8 +16509,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         if (bWordWrap)
         {
-          //Wrap off
-          SendMessage(hWndEdit, AEM_SETWORDWRAP, AEWW_NONE, 0);
           if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
         }
         nWrapType=a;
@@ -16521,7 +16516,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
         if (bWordWrap)
         {
-          //Wrap on
           if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
           SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
         }
