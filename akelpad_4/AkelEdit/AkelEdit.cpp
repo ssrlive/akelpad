@@ -985,6 +985,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->dwWordBreak=wParam;
         return dwWordBreak;
       }
+      if (uMsg == AEM_GETCHARAVERAGE)
+      {
+        return MAKELONG(ae->nCharHeight, ae->nAveCharWidth);
+      }
+      if (uMsg == AEM_GETCHARWIDTH)
+      {
+        return AE_GetCharWidth(ae, wParam);
+      }
 
       if (uMsg == AEM_ISDELIMITER)
       {
