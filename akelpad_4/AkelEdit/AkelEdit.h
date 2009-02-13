@@ -578,6 +578,8 @@ typedef struct {
 #define AEM_SETURLMAXLENGTH   (WM_USER + 2228)
 #define AEM_GETWORDBREAK      (WM_USER + 2229)
 #define AEM_SETWORDBREAK      (WM_USER + 2230)
+#define AEM_GETCHARAVERAGE    (WM_USER + 2230)
+#define AEM_GETCHARWIDTH      (WM_USER + 2231)
 
 #define AEM_ISDELIMITER       (WM_USER + 2251)
 #define AEM_SHOWSCROLLBAR     (WM_USER + 2252)
@@ -2531,6 +2533,37 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, 0);
+
+
+AEM_GETCHARAVERAGE
+__________________
+
+Retrieve current font character height and average width.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ The low-order word contains the current font character height.
+ The high-order word contains the current font character average width.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETCHARAVERAGE, 0, 0);
+
+
+AEM_GETCHARWIDTH
+________________
+
+Retrieve character width.
+
+(wchar_t)wParam == character.
+lParam          == not used.
+
+Return Value
+ Character width.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETCHARWIDTH, L'A', 0);
 
 
 AEM_ISDELIMITER

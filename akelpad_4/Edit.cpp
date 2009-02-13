@@ -2021,13 +2021,13 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
 
   if (bWordWrap)
   {
-    SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
+    if (!dwWrapLimit) SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
     SendMessage(hWnd, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
   }
   else
   {
     SendMessage(hWnd, AEM_SETWORDWRAP, AEWW_NONE, 0);
-    SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
+    if (!dwWrapLimit) SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
   }
 }
 
@@ -16302,9 +16302,21 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       if (nWrapType != a || dwWrapLimit != b)
       {
+        if (bWordWrap)
+        {
+          //Wrap off
+          SendMessage(hWndEdit, AEM_SETWORDWRAP, AEWW_NONE, 0);
+          if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
+        }
         nWrapType=a;
         dwWrapLimit=b;
-        if (bWordWrap) SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
+
+        if (bWordWrap)
+        {
+          //Wrap on
+          if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
+          SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
+        }
       }
 
       //Allow caret moving out of the line edge
@@ -16498,9 +16510,21 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       if (nWrapType != a || dwWrapLimit != b)
       {
+        if (bWordWrap)
+        {
+          //Wrap off
+          SendMessage(hWndEdit, AEM_SETWORDWRAP, AEWW_NONE, 0);
+          if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
+        }
         nWrapType=a;
         dwWrapLimit=b;
-        if (bWordWrap) SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
+
+        if (bWordWrap)
+        {
+          //Wrap on
+          if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
+          SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
+        }
       }
 
       //Allow caret moving out of the line edge
