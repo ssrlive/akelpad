@@ -411,6 +411,7 @@ typedef struct _WNDFRAMEA {
   int nUndoLimit;
   BOOL bDetailedUndo;
   int nWrapType;
+  DWORD dwWrapLimit;
   BOOL bCaretOutEdge;
   BOOL bCaretVertLine;
   int nCaretWidth;
@@ -436,6 +437,7 @@ typedef struct _WNDFRAMEW {
   int nUndoLimit;
   BOOL bDetailedUndo;
   int nWrapType;
+  DWORD dwWrapLimit;
   BOOL bCaretOutEdge;
   BOOL bCaretVertLine;
   int nCaretWidth;

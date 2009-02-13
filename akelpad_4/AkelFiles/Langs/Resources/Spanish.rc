@@ -625,12 +625,12 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Margen del texto",IDC_STATIC,9,6,200,34
     RTEXT           "Izquierdo:",IDC_STATIC,12,23,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,51,20,18,13,ES_NUMBER
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,51,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_LEFT_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,69,20,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,72,20,
                     11,13
     RTEXT           "Derecho:",IDC_STATIC,117,23,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_EDITMARGIN_RIGHT,156,20,18,13,ES_NUMBER
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_RIGHT,156,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS |
                     UDS_NOTHOUSANDS,174,20,11,13
@@ -650,9 +650,14 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
     GROUPBOX        "Ajustar",IDC_STATIC,123,46,85,76
     CONTROL         "Por palabras",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
-                    BS_AUTORADIOBUTTON,135,69,70,10
+                    BS_AUTORADIOBUTTON,135,63,70,10
     CONTROL         "Por símbolos",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
-                    BS_AUTORADIOBUTTON,135,94,70,10
+                    BS_AUTORADIOBUTTON,135,79,70,10
+    RTEXT           "Limit:",IDC_STATIC,125,104,27,8
+    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,156,102,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
+                    102,11,13
     GROUPBOX        "Caret",IDC_STATIC,9,130,200,60
     CONTROL         "Permitir que el caret se mueva fuera del borde de línea",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX |
@@ -660,9 +665,9 @@ BEGIN
     CONTROL         "Mostrar columna activa",IDC_OPTIONS_CARETVERTLINE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
     RTEXT           "Anchura:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,18,13,ES_NUMBER
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,174,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     169,11,13
     CONTROL         "Delimitadores de palabras:",
                     IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",

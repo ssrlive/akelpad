@@ -268,6 +268,7 @@ typedef struct _AKELEDIT {
   BOOL bDetectUrl;
   BOOL bHideSelection;
   int nWordWrap;
+  DWORD dwWrapLimit;
   DWORD dwUrlMaxLength;
   DWORD dwWordBreak;
   wchar_t wszWordDelimiters[128];
