@@ -16300,7 +16300,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         a=AEWW_SYMBOL;
       b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, FALSE);
 
-      if (nWrapType != a || dwWrapLimit != b)
+      if (nWrapType != a || (int)dwWrapLimit != b)
       {
         if (bWordWrap)
         {
@@ -16505,7 +16505,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         a=AEWW_SYMBOL;
       b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, FALSE);
 
-      if (nWrapType != a || dwWrapLimit != b)
+      if (nWrapType != a || (int)dwWrapLimit != b)
       {
         if (bWordWrap)
         {
