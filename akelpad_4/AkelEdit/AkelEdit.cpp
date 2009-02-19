@@ -3581,7 +3581,9 @@ WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfEdit)
 
   while (lpElement)
   {
-    if (lpElement->lfEdit.lfHeight == lfEdit->lfHeight)
+    if (lpElement->lfEdit.lfHeight == lfEdit->lfHeight &&
+        lpElement->lfEdit.lfWeight == lfEdit->lfWeight &&
+        lpElement->lfEdit.lfItalic == lfEdit->lfItalic)
     {
       if (!lstrcmpiA(lpElement->lfEdit.lfFaceName, lfEdit->lfFaceName))
         return lpElement->lpCharWidths;
@@ -3597,7 +3599,9 @@ WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfEdit)
 
   while (lpElement)
   {
-    if (lpElement->lfEdit.lfHeight == lfEdit->lfHeight)
+    if (lpElement->lfEdit.lfHeight == lfEdit->lfHeight &&
+        lpElement->lfEdit.lfWeight == lfEdit->lfWeight &&
+        lpElement->lfEdit.lfItalic == lfEdit->lfItalic)
     {
       if (!lstrcmpiW(lpElement->lfEdit.lfFaceName, lfEdit->lfFaceName))
         return lpElement->lpCharWidths;
@@ -12897,6 +12901,30 @@ void* AE_memcpy(void *dest, const void *src, unsigned int count)
     while (count--) *byte_dest++=*byte_src++;
 
   return dest;
+}
+
+int AE_memcmp(void *buf1, void *buf2, unsigned int count)
+{
+  unsigned char *byte_buf1=(unsigned char *)buf1;
+  unsigned char *byte_buf2=(unsigned char *)buf2;
+
+  if (byte_buf1 != byte_buf2)
+  {
+    while (count--)
+    {
+      if (*byte_buf1 == *byte_buf2)
+      {
+        ++byte_buf1;
+        ++byte_buf2;
+        continue;
+      }
+      else if (*byte_buf1 < *byte_buf2)
+        return -1;
+      else
+        return 1;
+    }
+  }
+  return 0;
 }
 
 void* AE_memset(void *dest, int c, unsigned int count)
