@@ -3,6 +3,8 @@ AkelPad 4.1.6 ()
 ----------------------------
 Added: opportunity to wrap a line on achievement of the certain limit in symbols.
 
+Fixed: font width changing (4.1.5 error).
+
 
 AkelPad 4.1.5 (Jan 26, 2009)
 ----------------------------
