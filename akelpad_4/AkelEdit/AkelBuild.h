@@ -326,8 +326,8 @@ typedef struct _AKELEDIT {
   int nMoveBeforeDragging;
 
   //Clone
+  struct _AKELEDIT *lpMaster;
   int nCloneCount;
-  HWND hWndMaster;
   AEPOINT *lpSelStartPoint;
   AEPOINT *lpSelEndPoint;
   AEPOINT *lpCaretPoint;
