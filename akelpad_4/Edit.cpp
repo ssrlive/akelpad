@@ -93,7 +93,6 @@ extern DWORD dwMainStyle;
 extern DWORD dwLastMainSize;
 extern int nStatusHeight;
 extern int nProgressWidth;
-extern BOOL bStatusSelUpdate;
 extern HACCEL hGlobalAccel;
 extern HACCEL hMainAccel;
 extern HICON hMainIcon;
@@ -16914,30 +16913,27 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     GetSel(hWnd, &crSel, NULL, &ciCaret);
   }
 
-  if (bStatusSelUpdate)
+  if (dwStatusPosType & SPT_LINECOLUMN)
   {
-    if (dwStatusPosType & SPT_LINECOLUMN)
+    nScanLimit=min(ciCaret.nCharInLine, ciCaret.lpLine->nLineLen);
+
+    for (i=0; i < nScanLimit; ++i)
     {
-      nScanLimit=min(ciCaret.nCharInLine, ciCaret.lpLine->nLineLen);
-
-      for (i=0; i < nScanLimit; ++i)
-      {
-        if (ciCaret.lpLine->wpLine[i] == '\t')
-          nTabColumn+=nTabStopSize - nTabColumn % nTabStopSize;
-        else
-          ++nTabColumn;
-      }
-      nTabColumn+=ciCaret.nCharInLine - nScanLimit + 1;
+      if (ciCaret.lpLine->wpLine[i] == '\t')
+        nTabColumn+=nTabStopSize - nTabColumn % nTabStopSize;
+      else
+        ++nTabColumn;
     }
-    else nTabColumn=ciCaret.nCharInLine + 1;
-
-    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-      wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, nTabColumn);
-    else
-      wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, nTabColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
-
-    SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
+    nTabColumn+=ciCaret.nCharInLine - nScanLimit + 1;
   }
+  else nTabColumn=ciCaret.nCharInLine + 1;
+
+  if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+    wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, nTabColumn);
+  else
+    wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, nTabColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+
+  SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
 }
 
 void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
@@ -16957,30 +16953,27 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     GetSel(hWnd, &crSel, NULL, &ciCaret);
   }
 
-  if (bStatusSelUpdate)
+  if (dwStatusPosType & SPT_LINECOLUMN)
   {
-    if (dwStatusPosType & SPT_LINECOLUMN)
+    nScanLimit=min(ciCaret.nCharInLine, ciCaret.lpLine->nLineLen);
+
+    for (i=0; i < nScanLimit; ++i)
     {
-      nScanLimit=min(ciCaret.nCharInLine, ciCaret.lpLine->nLineLen);
-
-      for (i=0; i < nScanLimit; ++i)
-      {
-        if (ciCaret.lpLine->wpLine[i] == '\t')
-          nTabColumn+=nTabStopSize - nTabColumn % nTabStopSize;
-        else
-          ++nTabColumn;
-      }
-      nTabColumn+=ciCaret.nCharInLine - nScanLimit + 1;
+      if (ciCaret.lpLine->wpLine[i] == '\t')
+        nTabColumn+=nTabStopSize - nTabColumn % nTabStopSize;
+      else
+        ++nTabColumn;
     }
-    else nTabColumn=ciCaret.nCharInLine + 1;
-
-    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-      wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, nTabColumn);
-    else
-      wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, nTabColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
-
-    SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
+    nTabColumn+=ciCaret.nCharInLine - nScanLimit + 1;
   }
+  else nTabColumn=ciCaret.nCharInLine + 1;
+
+  if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+    wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, nTabColumn);
+  else
+    wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, nTabColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+
+  SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
 }
 
 void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
