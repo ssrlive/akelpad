@@ -394,12 +394,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (ae->hWndEdit != lpAkelEditPrev->hWndEdit)
       {
         //Save previous window info
-        if (lpAkelEditPrev->nCloneCount > 0 || lpAkelEditPrev->hWndMaster)
+        if (lpAkelEditPrev->nCloneCount > 0 || lpAkelEditPrev->lpMaster)
         {
           AKELEDIT *aeSource;
 
-          if (lpAkelEditPrev->hWndMaster)
-            aeSource=AE_StackWindowGet(&hAkelEditWindowsStack, lpAkelEditPrev->hWndMaster);
+          if (lpAkelEditPrev->lpMaster)
+            aeSource=lpAkelEditPrev->lpMaster;
           else
             aeSource=lpAkelEditPrev;
 
@@ -436,7 +436,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
 
         //Set current window info
-        if (ae->nCloneCount > 0 || ae->hWndMaster)
+        if (ae->nCloneCount > 0 || ae->lpMaster)
         {
           if (ae->lpSelStartPoint && ae->lpSelEndPoint && ae->lpCaretPoint)
           {
@@ -1112,22 +1112,20 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_ADDCLONE)
       {
-        AKELEDIT *aeMaster;
         AKELEDIT *aeClone;
 
         if (aeClone=AE_StackWindowGet(&hAkelEditWindowsStack, (HWND)wParam))
         {
-          if (!aeClone->hWndMaster)
+          if (!aeClone->lpMaster)
           {
-            aeClone->hWndMaster=ae->hWndEdit;
-            aeMaster=ae;
-            ++aeMaster->nCloneCount;
+            aeClone->lpMaster=ae;
+            ++ae->nCloneCount;
 
             //Associate AKELTEXT pointer
-            aeClone->ptxt=aeMaster->ptxt;
+            aeClone->ptxt=ae->ptxt;
 
             //Copy selection info
-            AE_memcpy(&aeClone->liFirstDrawLine, &aeMaster->liFirstDrawLine, (BYTE *)&aeMaster->bUnicodeWindow - (BYTE *)&aeMaster->liFirstDrawLine);
+            AE_memcpy(&aeClone->liFirstDrawLine, &ae->liFirstDrawLine, (BYTE *)&ae->bUnicodeWindow - (BYTE *)&ae->liFirstDrawLine);
 
             AE_UpdateScrollBars(aeClone, SB_BOTH);
           }
@@ -1136,30 +1134,28 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_DELCLONE)
       {
-        AKELEDIT *aeMaster;
         AKELEDIT *aeClone;
 
         if (aeClone=AE_StackWindowGet(&hAkelEditWindowsStack, (HWND)wParam))
         {
-          if (aeClone->hWndMaster)
+          if (aeClone->lpMaster)
           {
-            aeClone->hWndMaster=NULL;
-            aeMaster=ae;
-            --aeMaster->nCloneCount;
+            aeClone->lpMaster=NULL;
+            --ae->nCloneCount;
 
             if (aeClone->lpSelStartPoint)
             {
-              AE_StackPointDelete(aeMaster, aeClone->lpSelStartPoint);
+              AE_StackPointDelete(ae, aeClone->lpSelStartPoint);
               aeClone->lpSelStartPoint=NULL;
             }
             if (aeClone->lpSelEndPoint)
             {
-              AE_StackPointDelete(aeMaster, aeClone->lpSelEndPoint);
+              AE_StackPointDelete(ae, aeClone->lpSelEndPoint);
               aeClone->lpSelEndPoint=NULL;
             }
             if (aeClone->lpCaretPoint)
             {
-              AE_StackPointDelete(aeMaster, aeClone->lpCaretPoint);
+              AE_StackPointDelete(ae, aeClone->lpCaretPoint);
               aeClone->lpCaretPoint=NULL;
             }
 
@@ -3256,7 +3252,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->hCaretOvertype=NULL;
       }
 
-      if (!ae->hWndMaster)
+      if (!ae->lpMaster)
       {
         if (ae->ptxt->hFontUrl)
         {
@@ -4792,6 +4788,7 @@ int AE_UpdateWrap(AKELEDIT *ae, int nWrap)
 
 int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, int nWrap)
 {
+  AKELEDIT *lpSource=ae;
   AELINEINDEX liFirst;
   AELINEINDEX liCount;
   DWORD dwMaxWidth;
@@ -4806,10 +4803,13 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
 
   if (nWrap)
   {
-    if (ae->ptxt->dwWrapLimit)
-      dwMaxWidth=ae->ptxt->dwWrapLimit * ae->ptxt->nAveCharWidth;
+    if (ae->lpMaster)
+      lpSource=ae->lpMaster;
+
+    if (lpSource->ptxt->dwWrapLimit)
+      dwMaxWidth=lpSource->ptxt->dwWrapLimit * lpSource->ptxt->nAveCharWidth;
     else
-      dwMaxWidth=(ae->rcDraw.right - ae->rcDraw.left) - ae->ptxt->nAveCharWidth;
+      dwMaxWidth=(lpSource->rcDraw.right - lpSource->rcDraw.left) - lpSource->ptxt->nAveCharWidth;
   }
   else dwMaxWidth=(DWORD)-1;
 
