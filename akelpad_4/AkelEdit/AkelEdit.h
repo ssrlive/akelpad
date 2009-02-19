@@ -585,6 +585,8 @@ typedef struct {
 #define AEM_SHOWSCROLLBAR     (WM_USER + 2252)
 #define AEM_UPDATESCROLLBAR   (WM_USER + 2253)
 #define AEM_HIDESELECTION     (WM_USER + 2254)
+#define AEM_ADDCLONE          (WM_USER + 2255)
+#define AEM_DELCLONE          (WM_USER + 2256)
 
 
 /*
@@ -2633,6 +2635,38 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
+
+
+AEM_ADDCLONE
+____________
+
+Adds clone to the master window. Message sended to a master window which will be cloned.
+
+(HWND)wParam == edit control handle which become a clone. Text of the master and clone windows will be the same.
+                Application should update master and clones windows after text change (see AEN_TEXTCHANGED).
+lParam       == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_ADDCLONE, (HWND)hWndEdit2, 0);
+
+
+AEM_DELCLONE
+____________
+
+Removes clone from the master window. Message sended to a master window.
+
+(HWND)wParam == edit control handle that will lose clone status. Text of the clone window will be restored.
+lParam       == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_DELCLONE, (HWND)hWndEdit2, 0);
+
 */
 
 
