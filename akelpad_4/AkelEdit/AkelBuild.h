@@ -172,23 +172,83 @@ typedef struct _AEFONTCHARSW {
 
 //// AKELEDIT
 
-typedef struct _AKELEDIT {
-  struct _AKELEDIT *next;
-  struct _AKELEDIT *prev;
-  BOOL bUnicodeWindow;
+typedef struct {
   HANDLE hHeap;
-  HWND hWndEdit;
-  HWND hWndParent;
-  int nEditCtrlID;
-  DWORD dwEventMask;
-  DWORD dwOptions;
-  RECT rcEdit;
-  RECT rcDraw;
-  RECT rcErase;
+  HSTACK hLinesStack;
+  HSTACK hPointsStack;
+  HFONT hFont;
+  HFONT hFontUrl;
   LOGFONTA lfEditA;
   LOGFONTW lfEditW;
   LOGFONTA lfEditUrlA;
   LOGFONTW lfEditUrlW;
+  int nCharHeight;
+  int nAveCharWidth;
+  int nSpaceCharWidth;
+  int nTabWidth;
+  int nTabStop;
+  WORD *lpCharWidths;
+  HSTACK hUndoStack;
+  AEUNDOITEM *lpCurrentUndo;
+  AEUNDOITEM *lpSavePoint;
+  BOOL bSavePointExist;
+  BOOL bModified;
+  BOOL bLockGroupStopInt;
+  BOOL bLockGroupStopExt;
+  BOOL bLockCollectUndo;
+  DWORD dwUndoLimit;
+  DWORD dwUndoCount;
+  AELINEINDEX liMaxWidthLine;
+  int nLastCharOffset;
+  int nLineCount;
+  int nHScrollMax;
+  int nVScrollMax;
+  int nWordWrap;
+  DWORD dwWrapLimit;
+  wchar_t wszWrapDelimiters[128];
+} AKELTEXT;
+
+typedef struct _AKELEDIT {
+  struct _AKELEDIT *next;
+  struct _AKELEDIT *prev;
+
+  //Ident
+  HWND hWndEdit;
+  HWND hWndParent;
+  int nEditCtrlID;
+
+  //Text
+  AKELTEXT txt;
+  AKELTEXT *ptxt;
+
+  //Current selection
+  AELINEINDEX liFirstDrawLine;
+  AECHARINDEX ciSelStartIndex;
+  AECHARINDEX ciSelEndIndex;
+  AECHARINDEX ciCaretIndex;
+  AECHARINDEX ciLastCallIndex;
+  int nFirstDrawLineOffset;
+  int nSelStartCharOffset;
+  int nSelEndCharOffset;
+  int nLastCallOffset;
+  int nHScrollPos;
+  int nVScrollPos;
+  int nLastHScrollPos;
+  int nLastVScrollPos;
+  POINT ptCaret;
+  int nHorizCaretPos;
+  BOOL bColumnSel;
+
+  //Options
+  BOOL bUnicodeWindow;
+  BOOL bRichEditClass;
+  DWORD dwEventMask;
+  DWORD dwRichEventMask;
+  DWORD dwNotify;
+  DWORD dwOptions;
+  RECT rcEdit;
+  RECT rcDraw;
+  RECT rcErase;
   COLORREF crBasicText;
   COLORREF crBasicBk;
   COLORREF crSelText;
@@ -201,52 +261,14 @@ typedef struct _AKELEDIT {
   COLORREF crEnableActiveLineBk;
   BOOL bDefaultColors;
   HDC hDC;
-  HFONT hFont;
-  HFONT hFontUrl;
   HBRUSH hBasicBk;
   HBRUSH hSelBk;
   HBRUSH hActiveLineBk;
-  int nCharHeight;
-  int nAveCharWidth;
-  int nSpaceCharWidth;
-  int nTabWidth;
-  int nTabStop;
-  WORD *lpCharWidths;
   BOOL bOverType;
   DWORD dwInputLocale;
   DWORD dwImeChar;
-  HSTACK hUndoStack;
-  AEUNDOITEM *lpCurrentUndo;
-  AEUNDOITEM *lpSavePoint;
-  BOOL bSavePointExist;
-  BOOL bModified;
-  BOOL bLockGroupStopInt;
-  BOOL bLockGroupStopExt;
-  BOOL bLockCollectUndo;
-  DWORD dwUndoLimit;
-  DWORD dwUndoCount;
-  HSTACK hLinesStack;
-  HSTACK hPointsStack;
-  AELINEINDEX liFirstDrawLine;
-  AELINEINDEX liMaxWidthLine;
-  AECHARINDEX ciSelStartIndex;
-  AECHARINDEX ciSelEndIndex;
-  AECHARINDEX ciCaretIndex;
-  AECHARINDEX ciLastCallIndex;
-  int nLastCharOffset;
-  int nFirstDrawLineOffset;
-  int nSelStartCharOffset;
-  int nSelEndCharOffset;
-  int nLastCallOffset;
-  int nLineCount;
   int nInputNewLine;
   int nOutputNewLine;
-  int nHScrollPos;
-  int nVScrollPos;
-  int nLastHScrollPos;
-  int nLastVScrollPos;
-  int nHScrollMax;
-  int nVScrollMax;
   BOOL bVScrollShow;
   BOOL bHScrollShow;
   BOOL bVScrollLock;
@@ -257,25 +279,21 @@ typedef struct _AKELEDIT {
   COLORREF crActiveColumn;
   int nCaretInsertWidth;
   int nCaretOvertypeHeight;
-  POINT ptCaret;
-  int nHorizCaretPos;
   HBRUSH hActiveColumn;
   POINT ptActiveColumnDraw;
   BOOL bActiveColumnDraw;
   BOOL bFocus;
   BOOL bCaretVisible;
-  BOOL bColumnSel;
   BOOL bDetectUrl;
   BOOL bHideSelection;
-  int nWordWrap;
-  DWORD dwWrapLimit;
   DWORD dwUrlMaxLength;
   DWORD dwWordBreak;
   wchar_t wszWordDelimiters[128];
-  wchar_t wszWrapDelimiters[128];
   wchar_t wszUrlDelimiters[128];
   wchar_t wszUrlPrefixes[128];
   wchar_t *lpUrlPrefixes[32];
+
+  //Cursor
   AECHARRANGE crMouseOnLink;
   AECHARINDEX ciLButtonClick;
   AECHARINDEX ciLButtonStart;
@@ -295,10 +313,6 @@ typedef struct _AKELEDIT {
   BOOL bMButtonUp;
   int nMButtonMove;
 
-  //RichEdit emulation
-  BOOL bRichEditClass;
-  DWORD dwRichEventMask;
-
   //OLE Drag'n'Drop
   AEIDropTargetCallbackVtbl idtVtbl;
   AEIDropSourceCallbackVtbl idsVtbl;
@@ -310,6 +324,13 @@ typedef struct _AKELEDIT {
   BOOL bDragging;
   BOOL bDeleteSelection;
   int nMoveBeforeDragging;
+
+  //Clone
+  int nCloneCount;
+  HWND hWndMaster;
+  AEPOINT *lpSelStartPoint;
+  AEPOINT *lpSelEndPoint;
+  AEPOINT *lpCaretPoint;
 } AKELEDIT;
 
 
@@ -329,7 +350,6 @@ int AE_HeapStackDelete(AKELEDIT *ae, stack **first, stack **last, stack *element
 void AE_HeapStackClear(AKELEDIT *ae, stack **first, stack **last);
 AKELEDIT* AE_StackWindowInsert(HSTACK *hStack);
 AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit);
-void AE_StackWindowDelete(HSTACK *hStack, HWND hWndEdit);
 void AE_StackWindowFree(HSTACK *hStack);
 WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfEdit);
 WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfEdit);
@@ -470,6 +490,8 @@ void AE_NotifySelChanging(AKELEDIT *ae);
 void AE_NotifySelChanged(AKELEDIT *ae);
 void AE_NotifyTextChanging(AKELEDIT *ae);
 void AE_NotifyTextChanged(AKELEDIT *ae);
+void AE_NotifyChanging(AKELEDIT *ae);
+void AE_NotifyChanged(AKELEDIT *ae);
 void AE_NotifyHScroll(AKELEDIT *ae);
 void AE_NotifyVScroll(AKELEDIT *ae);
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam);
