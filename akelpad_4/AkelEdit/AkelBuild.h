@@ -208,6 +208,49 @@ typedef struct {
   wchar_t wszWrapDelimiters[128];
 } AKELTEXT;
 
+typedef struct {
+  DWORD dwEventMask;
+  DWORD dwRichEventMask;
+  DWORD dwOptions;
+  int nInputNewLine;
+  int nOutputNewLine;
+  BOOL bVScrollShow;
+  BOOL bHScrollShow;
+  BOOL bVScrollLock;
+  BOOL bHScrollLock;
+  BOOL bHideSelection;
+  COLORREF crCaret;
+  COLORREF crBasicText;
+  COLORREF crBasicBk;
+  COLORREF crSelText;
+  COLORREF crSelBk;
+  COLORREF crActiveLineText;
+  COLORREF crActiveLineBk;
+  COLORREF crActiveColumn;
+  COLORREF crUrlText;
+  COLORREF crEnableBasicBk;
+  COLORREF crEnableSelBk;
+  COLORREF crEnableActiveLineBk;
+  BOOL bDefaultColors;
+  HBRUSH hBasicBk;
+  HBRUSH hSelBk;
+  HBRUSH hActiveLineBk;
+  HBITMAP hCaretInsert;
+  HBITMAP hCaretOvertype;
+  int nCaretInsertWidth;
+  int nCaretOvertypeHeight;
+  BOOL bOverType;
+  HBRUSH hActiveColumn;
+  BOOL bActiveColumnDraw;
+  wchar_t wszWordDelimiters[128];
+  DWORD dwWordBreak;
+  wchar_t wszUrlDelimiters[128];
+  wchar_t wszUrlPrefixes[128];
+  wchar_t *lpUrlPrefixes[32];
+  DWORD dwUrlMaxLength;
+  BOOL bDetectUrl;
+} AKELOPTIONS;
+
 typedef struct _AKELEDIT {
   struct _AKELEDIT *next;
   struct _AKELEDIT *prev;
@@ -216,10 +259,16 @@ typedef struct _AKELEDIT {
   HWND hWndEdit;
   HWND hWndParent;
   int nEditCtrlID;
+  BOOL bUnicodeWindow;
+  BOOL bRichEditClass;
 
   //Text
   AKELTEXT txt;
   AKELTEXT *ptxt;
+
+  //Options
+  AKELOPTIONS opt;
+  AKELOPTIONS *popt;
 
   //Current selection
   AELINEINDEX liFirstDrawLine;
@@ -239,59 +288,17 @@ typedef struct _AKELEDIT {
   int nHorizCaretPos;
   BOOL bColumnSel;
 
-  //Options
-  BOOL bUnicodeWindow;
-  BOOL bRichEditClass;
-  DWORD dwEventMask;
-  DWORD dwRichEventMask;
-  DWORD dwNotify;
-  DWORD dwOptions;
+  //Dinamic
+  HDC hDC;
   RECT rcEdit;
   RECT rcDraw;
   RECT rcErase;
-  COLORREF crBasicText;
-  COLORREF crBasicBk;
-  COLORREF crSelText;
-  COLORREF crSelBk;
-  COLORREF crActiveLineText;
-  COLORREF crActiveLineBk;
-  COLORREF crUrlText;
-  COLORREF crEnableBasicBk;
-  COLORREF crEnableSelBk;
-  COLORREF crEnableActiveLineBk;
-  BOOL bDefaultColors;
-  HDC hDC;
-  HBRUSH hBasicBk;
-  HBRUSH hSelBk;
-  HBRUSH hActiveLineBk;
-  BOOL bOverType;
+  POINT ptActiveColumnDraw;
+  DWORD dwNotify;
   DWORD dwInputLocale;
   DWORD dwImeChar;
-  int nInputNewLine;
-  int nOutputNewLine;
-  BOOL bVScrollShow;
-  BOOL bHScrollShow;
-  BOOL bVScrollLock;
-  BOOL bHScrollLock;
-  HBITMAP hCaretInsert;
-  HBITMAP hCaretOvertype;
-  COLORREF crCaret;
-  COLORREF crActiveColumn;
-  int nCaretInsertWidth;
-  int nCaretOvertypeHeight;
-  HBRUSH hActiveColumn;
-  POINT ptActiveColumnDraw;
-  BOOL bActiveColumnDraw;
-  BOOL bFocus;
   BOOL bCaretVisible;
-  BOOL bDetectUrl;
-  BOOL bHideSelection;
-  DWORD dwUrlMaxLength;
-  DWORD dwWordBreak;
-  wchar_t wszWordDelimiters[128];
-  wchar_t wszUrlDelimiters[128];
-  wchar_t wszUrlPrefixes[128];
-  wchar_t *lpUrlPrefixes[32];
+  BOOL bFocus;
 
   //Cursor
   AECHARRANGE crMouseOnLink;
@@ -326,12 +333,22 @@ typedef struct _AKELEDIT {
   int nMoveBeforeDragging;
 
   //Clone
-  struct _AKELEDIT *lpMaster;
+  HSTACK hClonesStack;
   int nCloneCount;
+  struct _AKELEDIT *lpMaster;
   AEPOINT *lpSelStartPoint;
   AEPOINT *lpSelEndPoint;
   AEPOINT *lpCaretPoint;
 } AKELEDIT;
+
+
+//// Clone
+
+typedef struct _AECLONE {
+  struct _AECLONE *next;
+  struct _AECLONE *prev;
+  AKELEDIT *aeClone;
+} AECLONE;
 
 
 //// Functions prototypes
@@ -351,6 +368,12 @@ void AE_HeapStackClear(AKELEDIT *ae, stack **first, stack **last);
 AKELEDIT* AE_StackWindowInsert(HSTACK *hStack);
 AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit);
 void AE_StackWindowFree(HSTACK *hStack);
+AECLONE* AE_StackCloneGet(AKELEDIT *ae, HWND hWnd);
+AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone);
+void AE_StackCloneDelete(AECLONE *aec);
+void AE_StackCloneDeleteAll(AKELEDIT *ae);
+void AE_StackCloneFree(AKELEDIT *ae);
+void AE_StackUpdateClones(AKELEDIT *ae);
 WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfEdit);
 WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfEdit);
 WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfEdit);
@@ -358,6 +381,7 @@ WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfEdit);
 void AE_StackFontCharsFree(HSTACK *hStack);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointSetModify(AKELEDIT *ae, BOOL bModify);
+void AE_StackPointReset(AKELEDIT *ae);
 void AE_StackPointDelete(AKELEDIT *ae, AEPOINT *lpElement);
 void AE_StackPointFree(AKELEDIT *ae);
 AEUNDOITEM* AE_StackUndoItemInsert(AKELEDIT *ae);

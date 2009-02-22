@@ -112,6 +112,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Regelterugloop\tCtrl+U",     IDM_VIEW_WORDWRAP
         MENUITEM "&Altijd bovenaan\tCtrl+T",    IDM_VIEW_ONTOP
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
         MENUITEM "&Status balk",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Talen"

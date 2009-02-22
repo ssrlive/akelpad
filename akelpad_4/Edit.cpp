@@ -88,6 +88,10 @@ extern HWND hDummyWindow;
 extern HWND hStatus;
 extern HWND hProgress;
 extern HWND hDlgModeless;
+extern HWND hWndMaster;
+extern HWND hWndClone1;
+extern HWND hWndClone2;
+extern HWND hWndClone3;
 extern RECT rcMainWindowRestored;
 extern DWORD dwMainStyle;
 extern DWORD dwLastMainSize;
@@ -233,6 +237,7 @@ extern BOOL bWordWrap;
 extern int nWrapType;
 extern DWORD dwWrapLimit;
 extern BOOL bOnTop;
+extern BOOL bSplitWindow;
 extern BOOL bStatusBar;
 extern DWORD dwShowModify;
 extern DWORD dwStatusPosType;
@@ -2040,6 +2045,46 @@ void DoViewOnTop(BOOL bState, BOOL bFirst)
     SetWindowPos(hMainWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
   else
     SetWindowPos(hMainWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
+}
+
+void DoViewSplitWindow(BOOL bState)
+{
+  CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW, bState?MF_CHECKED:MF_UNCHECKED);
+  bSplitWindow=bState;
+
+  if (bSplitWindow)
+  {
+    RECT rcMaster;
+
+    //Create
+    hWndMaster=hWndEdit;
+    if (hWndClone1=CreateEditWindowW(GetParent(hWndMaster)))
+      SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone1, 0);
+
+    //Update size
+    GetWindowPos(hWndMaster, NULL, &rcMaster);
+    ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, rcMaster.right, rcMaster.bottom);
+  }
+  else
+  {
+    RECT rcEdit;
+
+    //Destroy
+    DestroyEdit(NULL, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
+    hWndEdit=hWndMaster;
+    hWndMaster=NULL;
+
+    //Update size
+    if (!bMDI)
+    {
+      UpdateSize();
+    }
+    else
+    {
+      GetClientRect(GetParent(hWndEdit), &rcEdit);
+      ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEdit.left, rcEdit.top, rcEdit.right, rcEdit.bottom);
+    } 
+  }
 }
 
 void DoViewShowStatusBar(BOOL bState, BOOL bFirst)
@@ -18776,10 +18821,56 @@ HWND NextDialog(BOOL bPrevious)
   return hWndNext;
 }
 
-void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight)
+void DestroyEdit(HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3)
 {
+  if (hWndClone1 && *hWndClone1)
+  {
+    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone1, 0);
+    SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone1, 0);
+    DestroyWindow(*hWndClone1);
+    *hWndClone1=NULL;
+  }
+  if (hWndClone2 && *hWndClone2)
+  {
+    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone2, 0);
+    SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone2, 0);
+    DestroyWindow(*hWndClone2);
+    *hWndClone2=NULL;
+  }
+  if (hWndClone3 && *hWndClone3)
+  {
+    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone3, 0);
+    SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone3, 0);
+    DestroyWindow(*hWndClone3);
+    *hWndClone3=NULL;
+  }
+  if (hWndMaster && *hWndMaster && hWndEdit && *hWndEdit && *hWndMaster == *hWndEdit)
+  {
+    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndMaster, 0);
+    DestroyWindow(*hWndMaster);
+    *hWndMaster=NULL;
+    *hWndEdit=NULL;
+  }
+  if (hWndEdit && *hWndEdit)
+  {
+    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndEdit, 0);
+    DestroyWindow(*hWndEdit);
+    *hWndEdit=NULL;
+  }
+}
+
+void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight)
+{
+  HWND x=hWndFrameDestroyed;
+
   UpdateWindow(hStatus);
-  MoveWindow(hWnd, X, Y, nWidth, nHeight, TRUE);
+
+  if (hWndMaster)
+  {
+    MoveWindow(hWndMaster, X, Y, nWidth / 2, nHeight, TRUE);
+    MoveWindow(hWndClone1, X + nWidth / 2, Y, nWidth - nWidth / 2, nHeight, TRUE);
+  }
+  else MoveWindow(hWndEdit, X, Y, nWidth, nHeight, TRUE);
 }
 
 void UpdateSize()
@@ -18803,7 +18894,7 @@ void UpdateSize()
 
     if (!bMDI)
     {
-      ResizeEdit(hWndEdit, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, nsSize.rcCurrent.bottom);
+      ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, nsSize.rcCurrent.bottom);
     }
     else
     {

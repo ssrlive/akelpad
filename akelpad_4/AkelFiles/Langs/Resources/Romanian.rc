@@ -111,6 +111,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Î&ncadreazã Textul\tCtrl+U",  IDM_VIEW_WORDWRAP
         MENUITEM "&Mereu Deasupra\tCtrl+T",     IDM_VIEW_ONTOP
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
         MENUITEM "Bara de &Stare",              IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Limba Interfeþei"

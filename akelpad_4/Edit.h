@@ -93,7 +93,7 @@
 #define MENU_MDI_POSITION               4
 #define MENU_ABOUT_POSITION             5
 #define MENU_FILE_RECENTFILES_POSITION  11
-#define MENU_VIEW_LANGUAGE_POSITION     7
+#define MENU_VIEW_LANGUAGE_POSITION     8
 
 //Open file dialog
 #define IDC_OFN_EDIT                   1152
@@ -422,6 +422,11 @@ typedef struct _WNDFRAMEA {
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];
   BOOL bUrlDelimitersEnable;
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];
+  BOOL bSplitWindow;
+  HWND hWndMaster;
+  HWND hWndClone1;
+  HWND hWndClone2;
+  HWND hWndClone3;
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -448,6 +453,11 @@ typedef struct _WNDFRAMEW {
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];
   BOOL bUrlDelimitersEnable;
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];
+  BOOL bSplitWindow;
+  HWND hWndMaster;
+  HWND hWndClone1;
+  HWND hWndClone2;
+  HWND hWndClone3;
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
@@ -878,6 +888,7 @@ void DoViewColorsW();
 void DoViewFontSizeA(HWND hWnd, int nAction);
 void DoViewFontSizeW(HWND hWnd, int nAction);
 void DoViewOnTop(BOOL bState, BOOL bFirst);
+void DoViewSplitWindow(BOOL bState);
 void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst);
 void DoViewShowStatusBar(BOOL bState, BOOL bFirst);
 BOOL DoSettingsExecA();
@@ -1226,7 +1237,8 @@ int TranslateFileStringA(char *pCommand, char *szBuffer, int nBufferSize);
 int TranslateFileStringW(wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
-void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight);
+void DestroyEdit(HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3);
+void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight);
 void UpdateSize();
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
 void DrawMovingRect(RECT *rcScreen);

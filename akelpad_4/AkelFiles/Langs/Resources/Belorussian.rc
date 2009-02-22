@@ -107,6 +107,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "П&еранос па словах\tCtrl+U",  IDM_VIEW_WORDWRAP
         MENUITEM "&Па-над усімі вокнамі\tCtrl+T", IDM_VIEW_ONTOP
+        MENUITEM "&Разделить окно",             IDM_VIEW_SPLIT_WINDOW
         MENUITEM "&Радок стану",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Мова"

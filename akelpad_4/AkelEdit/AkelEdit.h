@@ -91,9 +91,10 @@
 #define AEDLM_URL     2  //URL delimiter
 
 //AEM_UPDATESEL flags
-#define AESELT_LOCKNOTIFY  0x00000001  //Disable AEN_SELCHANGING and AEN_SELCHANGED notifications.
-#define AESELT_LOCKSCROLL  0x00000002  //Lock edit window scroll.
-#define AESELT_LOCKUPDATE  0x00000004  //Lock edit window update.
+#define AESELT_LOCKNOTIFY        0x00000001  //Disable AEN_SELCHANGING and AEN_SELCHANGED notifications.
+#define AESELT_LOCKSCROLL        0x00000002  //Lock edit window scroll.
+#define AESELT_LOCKUPDATE        0x00000004  //Lock edit window update.
+#define AESELT_LOCKUNDOGROUPING  0x00000008  //Don't use it. For internal code only.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error
