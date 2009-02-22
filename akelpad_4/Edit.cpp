@@ -18861,8 +18861,6 @@ void DestroyEdit(HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndC
 
 void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight)
 {
-  HWND x=hWndFrameDestroyed;
-
   UpdateWindow(hStatus);
 
   if (hWndMaster)
