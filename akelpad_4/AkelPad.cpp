@@ -110,6 +110,10 @@ HWND hDummyWindow;
 HWND hStatus;
 HWND hProgress;
 HWND hDlgModeless=NULL;
+HWND hWndMaster=NULL;
+HWND hWndClone1=NULL;
+HWND hWndClone2=NULL;
+HWND hWndClone3=NULL;
 RECT rcMainWindowRestored={CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT};
 DWORD dwMainStyle=0;
 DWORD dwLastMainSize=0;
@@ -255,6 +259,7 @@ BOOL bWordWrap=FALSE;
 int nWrapType=AEWW_WORD;
 DWORD dwWrapLimit=0;
 BOOL bOnTop=FALSE;
+BOOL bSplitWindow=FALSE;
 BOOL bStatusBar=TRUE;
 DWORD dwShowModify=SM_STATUSBAR;
 DWORD dwStatusPosType=SPT_LINESYMBOL;
@@ -1316,9 +1321,7 @@ LRESULT CALLBACK CommonMainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     //Destroy windows
     if (!bMDI)
     {
-      SendMessage(hWnd, AKDN_EDIT_ONFINISH, (WPARAM)hWndEdit, 0);
-      DestroyWindow(hWndEdit);
-      hWndEdit=NULL;
+      DestroyEdit(&hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
     }
     else
     {
@@ -1443,9 +1446,7 @@ LRESULT CALLBACK CommonMainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     //Destroy windows
     if (!bMDI)
     {
-      SendMessage(hWnd, AKDN_EDIT_ONFINISH, (WPARAM)hWndEdit, 0);
-      DestroyWindow(hWndEdit);
-      hWndEdit=NULL;
+      DestroyEdit(&hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
     }
     else
     {
@@ -2050,8 +2051,14 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETFONT)
     {
-      if (!wParam || (HWND)wParam == hWndEdit)
+      if (!wParam || (HWND)wParam == hWndEdit ||
+          (hWndMaster && ((HWND)wParam == hWndMaster ||
+                          (HWND)wParam == hWndClone1 ||
+                          (HWND)wParam == hWndClone2 ||
+                          (HWND)wParam == hWndClone3)))
+      {
         return (LRESULT)&lfEditFontA;
+      }
 
       if (bMDI)
       {
@@ -2324,6 +2331,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_MAC, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
+      CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW, bSplitWindow?MF_CHECKED:MF_UNCHECKED);
     }
     bMenuLanguage=TRUE;
     if (lParam) return TRUE;
@@ -2747,6 +2755,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_VIEW_ONTOP)
     {
       DoViewOnTop(!bOnTop, FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW)
+    {
+      DoViewSplitWindow(!bSplitWindow);
     }
     else if (LOWORD(wParam) == IDM_VIEW_SHOW_STATUSBAR)
     {
@@ -3759,8 +3771,14 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETFONT)
     {
-      if (!wParam || (HWND)wParam == hWndEdit)
+      if (!wParam || (HWND)wParam == hWndEdit ||
+          (hWndMaster && ((HWND)wParam == hWndMaster ||
+                          (HWND)wParam == hWndClone1 ||
+                          (HWND)wParam == hWndClone2 ||
+                          (HWND)wParam == hWndClone3)))
+      {
         return (LRESULT)&lfEditFontW;
+      }
 
       if (bMDI)
       {
@@ -4033,6 +4051,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_MAC, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
+      CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW, bSplitWindow?MF_CHECKED:MF_UNCHECKED);
     }
     bMenuLanguage=TRUE;
     if (lParam) return TRUE;
@@ -4456,6 +4475,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_VIEW_ONTOP)
     {
       DoViewOnTop(!bOnTop, FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW)
+    {
+      DoViewSplitWindow(!bSplitWindow);
     }
     else if (LOWORD(wParam) == IDM_VIEW_SHOW_STATUSBAR)
     {
@@ -4922,13 +4945,16 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
-    if (bMDI)
+    if (bMDI || hWndMaster)
     {
       if ((HWND)wParam != hWndEdit)
       {
         if (GetWindowLongA((HWND)wParam, GWL_ID) == ID_EDIT)
         {
-          SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
+          if (!bMDI)
+            SetFocus((HWND)wParam);
+          else
+            SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
         }
       }
     }
@@ -5185,13 +5211,16 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
-    if (bMDI)
+    if (bMDI || hWndMaster)
     {
       if ((HWND)wParam != hWndEdit)
       {
         if (GetWindowLongW((HWND)wParam, GWL_ID) == ID_EDIT)
         {
-          SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
+          if (!bMDI)
+            SetFocus((HWND)wParam);
+          else
+            SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
         }
       }
     }
@@ -5498,6 +5527,11 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bShowURL=bShowURL;
       lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
+      lpWndFrameA->bSplitWindow=FALSE;
+      lpWndFrameA->hWndMaster=NULL;
+      lpWndFrameA->hWndClone1=NULL;
+      lpWndFrameA->hWndClone2=NULL;
+      lpWndFrameA->hWndClone3=NULL;
       SetWindowLongA(hWnd, GWL_USERDATA, (LONG)lpWndFrameA);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5516,10 +5550,17 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (wParam != SIZE_MINIMIZED)
     {
-      HWND hWndTmp;
+      WNDFRAMEA *wf;
 
-      if (hWndTmp=GetDlgItem(hWnd, ID_EDIT))
-        ResizeEdit(hWndTmp, 0, 0, LOWORD(lParam), HIWORD(lParam));
+      if (hWndFrameActive == hWnd)
+      {
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam));
+      }
+      else
+      {
+        if (wf=(WNDFRAMEA *)GetWindowLongA(hWnd, GWL_USERDATA))
+          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam));
+      }
     }
   }
   else if (uMsg == WM_MDIACTIVATE)
@@ -5634,6 +5675,11 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bShowURL=bShowURL;
             lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
+            lpWndFrameA->bSplitWindow=bSplitWindow;
+            lpWndFrameA->hWndMaster=hWndMaster;
+            lpWndFrameA->hWndClone1=hWndClone1;
+            lpWndFrameA->hWndClone2=hWndClone2;
+            lpWndFrameA->hWndClone3=hWndClone3;
           }
         }
         //Handles
@@ -5672,6 +5718,11 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bShowURL=lpWndFrameA->bShowURL;
           bUrlPrefixesEnable=lpWndFrameA->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameA->bUrlDelimitersEnable;
+          bSplitWindow=lpWndFrameA->bSplitWindow;
+          hWndMaster=lpWndFrameA->hWndMaster;
+          hWndClone1=lpWndFrameA->hWndClone1;
+          hWndClone2=lpWndFrameA->hWndClone2;
+          hWndClone3=lpWndFrameA->hWndClone3;
         }
 
         //Update selection
@@ -5749,6 +5800,11 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bShowURL=bShowURL;
       lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
+      lpWndFrameW->bSplitWindow=FALSE;
+      lpWndFrameW->hWndMaster=NULL;
+      lpWndFrameW->hWndClone1=NULL;
+      lpWndFrameW->hWndClone2=NULL;
+      lpWndFrameW->hWndClone3=NULL;
       SetWindowLongW(hWnd, GWL_USERDATA, (LONG)lpWndFrameW);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5767,10 +5823,17 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (wParam != SIZE_MINIMIZED)
     {
-      HWND hWndTmp;
+      WNDFRAMEW *wf;
 
-      if (hWndTmp=GetDlgItem(hWnd, ID_EDIT))
-        ResizeEdit(hWndTmp, 0, 0, LOWORD(lParam), HIWORD(lParam));
+      if (hWndFrameActive == hWnd)
+      {
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam));
+      }
+      else
+      {
+        if (wf=(WNDFRAMEW *)GetWindowLongW(hWnd, GWL_USERDATA))
+          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam));
+      }
     }
   }
   else if (uMsg == WM_MDIACTIVATE)
@@ -5885,6 +5948,11 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bShowURL=bShowURL;
             lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
+            lpWndFrameW->bSplitWindow=bSplitWindow;
+            lpWndFrameW->hWndMaster=hWndMaster;
+            lpWndFrameW->hWndClone1=hWndClone1;
+            lpWndFrameW->hWndClone2=hWndClone2;
+            lpWndFrameW->hWndClone3=hWndClone3;
           }
         }
         //Handles
@@ -5923,6 +5991,11 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bShowURL=lpWndFrameW->bShowURL;
           bUrlPrefixesEnable=lpWndFrameW->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameW->bUrlDelimitersEnable;
+          bSplitWindow=lpWndFrameW->bSplitWindow;
+          hWndMaster=lpWndFrameW->hWndMaster;
+          hWndClone1=lpWndFrameW->hWndClone1;
+          hWndClone2=lpWndFrameW->hWndClone2;
+          hWndClone3=lpWndFrameW->hWndClone3;
         }
 
         //Update selection
@@ -6003,6 +6076,8 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (bMDI && hWnd != hWndEdit)
       SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent(hWnd), 0);
+    if (hWndMaster)
+      hWndEdit=hWnd;
   }
   else if (uMsg == WM_KEYDOWN)
   {
@@ -6051,6 +6126,8 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (bMDI && hWnd != hWndEdit)
       SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent(hWnd), 0);
+    if (hWndMaster)
+      hWndEdit=hWnd;
   }
   else if (uMsg == WM_KEYDOWN)
   {
@@ -6167,7 +6244,6 @@ LRESULT CALLBACK NewMdiClientProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
   else if (uMsg == WM_MDIDESTROY)
   {
     WNDFRAMEA *wf;
-    HWND hWndEditDestroyed;
     int nItem;
 
     if ((HWND)wParam)
@@ -6180,18 +6256,27 @@ LRESULT CALLBACK NewMdiClientProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
           SendMessage(hMdiClient, WM_SETREDRAW, FALSE, 0);
       }
       hWndFrameDestroyed=(HWND)wParam;
-      hWndEditDestroyed=GetDlgItem((HWND)wParam, ID_EDIT);
       SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)hWndEditDestroyed, 0);
-      DestroyWindow(hWndEditDestroyed);
-      if (hWndEditDestroyed == hWndEdit) hWndEdit=NULL;
+
+      if (hWndFrameActive == (HWND)wParam)
+      {
+        DestroyEdit(&hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
+      }
+      else
+      {
+        if (wf=(WNDFRAMEA *)GetWindowLongA((HWND)wParam, GWL_USERDATA))
+          DestroyEdit(&wf->ei.hWndEdit, &wf->hWndMaster, &wf->hWndClone1, &wf->hWndClone2, &wf->hWndClone3);
+      }
 
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
       DeleteTabItem(hTab, nItem);
 
       if (wf=(WNDFRAMEA *)GetWindowLongA((HWND)wParam, GWL_USERDATA))
+      {
         if (wf->hIcon != hIconEmpty) DestroyIcon(wf->hIcon);
-      API_HeapFree(hHeap, 0, (LPVOID)wf);
+        SetWindowLongA((HWND)wParam, GWL_USERDATA, (LONG)0);
+        API_HeapFree(hHeap, 0, (LPVOID)wf);
+      }
     }
   }
 
@@ -6272,7 +6357,6 @@ LRESULT CALLBACK NewMdiClientProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
   else if (uMsg == WM_MDIDESTROY)
   {
     WNDFRAMEW *wf;
-    HWND hWndEditDestroyed;
     int nItem;
 
     if ((HWND)wParam)
@@ -6285,18 +6369,27 @@ LRESULT CALLBACK NewMdiClientProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
           SendMessage(hMdiClient, WM_SETREDRAW, FALSE, 0);
       }
       hWndFrameDestroyed=(HWND)wParam;
-      hWndEditDestroyed=GetDlgItem((HWND)wParam, ID_EDIT);
       SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)hWndEditDestroyed, 0);
-      DestroyWindow(hWndEditDestroyed);
-      if (hWndEditDestroyed == hWndEdit) hWndEdit=NULL;
+
+      if (hWndFrameActive == (HWND)wParam)
+      {
+        DestroyEdit(&hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
+      }
+      else
+      {
+        if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)wParam, GWL_USERDATA))
+          DestroyEdit(&wf->ei.hWndEdit, &wf->hWndMaster, &wf->hWndClone1, &wf->hWndClone2, &wf->hWndClone3);
+      }
 
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
       DeleteTabItem(hTab, nItem);
 
       if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)wParam, GWL_USERDATA))
+      {
         if (wf->hIcon != hIconEmpty) DestroyIcon(wf->hIcon);
-      API_HeapFree(hHeap, 0, (LPVOID)wf);
+        SetWindowLongW((HWND)wParam, GWL_USERDATA, (LONG)0);
+        API_HeapFree(hHeap, 0, (LPVOID)wf);
+      }
     }
   }
 

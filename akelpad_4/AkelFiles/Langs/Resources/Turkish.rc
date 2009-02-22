@@ -106,6 +106,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Sözcük kaydýr\tCtrl+U",      IDM_VIEW_WORDWRAP
         MENUITEM "&Daima üstte\tCtrl+T",        IDM_VIEW_ONTOP
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
         MENUITEM "&Durum çubuðu",               IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Dil"

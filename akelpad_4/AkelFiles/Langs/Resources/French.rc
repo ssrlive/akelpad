@@ -110,6 +110,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Renvoyer les mots à la ligne\tCtrl+U", IDM_VIEW_WORDWRAP
         MENUITEM "&Toujours au dessus\tCtrl+T", IDM_VIEW_ONTOP
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
         MENUITEM "&Barre d'état",               IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Langue"
