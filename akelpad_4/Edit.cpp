@@ -18844,7 +18844,7 @@ void DestroyEdit(HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndC
     DestroyWindow(*hWndClone3);
     *hWndClone3=NULL;
   }
-  if (hWndMaster && *hWndMaster && hWndEdit && *hWndEdit && *hWndMaster == *hWndEdit)
+  if (hWndMaster && *hWndMaster && hWndEdit && *hWndEdit)
   {
     SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndMaster, 0);
     DestroyWindow(*hWndMaster);
