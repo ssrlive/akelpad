@@ -17295,18 +17295,18 @@ BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei)
 int IsEditActive(HWND hWnd)
 {
   if (hWnd == hWndEdit)
-    return 0;
+    return 1;
 
   if (hWndMaster)
   {
     if (hWnd == hWndMaster)
-      return 1;
-    if (hWndClone1 && hWnd == hWndClone1)
       return 2;
-    if (hWndClone2 && hWnd == hWndClone2)
+    if (hWndClone1 && hWnd == hWndClone1)
       return 3;
-    if (hWndClone3 && hWnd == hWndClone3)
+    if (hWndClone2 && hWnd == hWndClone2)
       return 4;
+    if (hWndClone3 && hWnd == hWndClone3)
+      return 5;
   }
   return 0;
 }
