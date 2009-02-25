@@ -2083,7 +2083,7 @@ void DoViewSplitWindow(BOOL bState)
     {
       GetClientRect(GetParent(hWndEdit), &rcEdit);
       ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEdit.left, rcEdit.top, rcEdit.right, rcEdit.bottom);
-    } 
+    }
   }
 }
 
@@ -4879,7 +4879,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   }
   else
   {
-    if (hWnd == hWndEdit)
+    if (IsEditActive(hWnd))
     {
       //File exists
       if (!bMDI && !bDocumentReopen && bSingleOpenFile && lstrcmpiA(szFile, szCurrentFile))
@@ -4978,7 +4978,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
   }
 
-  if (hWnd == hWndEdit)
+  if (IsEditActive(hWnd))
   {
     //Save position of the previous file before load new document
     if (nRecentFiles && szCurrentFile[0])
@@ -5012,7 +5012,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   FileStreamIn(&fsd);
   CloseHandle(hFile);
 
-  if (hWnd == hWndEdit)
+  if (IsEditActive(hWnd))
   {
     ShowCaret(NULL);
 
@@ -5140,7 +5140,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   }
   else
   {
-    if (hWnd == hWndEdit)
+    if (IsEditActive(hWnd))
     {
       //File exists
       if (!bMDI && !bDocumentReopen && bSingleOpenFile && lstrcmpiW(wszFile, wszCurrentFile))
@@ -5239,7 +5239,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
   }
 
-  if (hWnd == hWndEdit)
+  if (IsEditActive(hWnd))
   {
     //Save position of the previous file before load new document
     if (nRecentFiles && wszCurrentFile[0])
@@ -5273,7 +5273,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   FileStreamIn(&fsd);
   CloseHandle(hFile);
 
-  if (hWnd == hWndEdit)
+  if (IsEditActive(hWnd))
   {
     ShowCaret(NULL);
 
@@ -5585,7 +5585,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
         }
       }
 
-      if (hWnd == hWndEdit)
+      if (IsEditActive(hWnd))
       {
         GetFileWriteTimeA(szFile, &ftFileTime);
         SetModifyStatusA(hWndEdit, FALSE, FALSE);
@@ -5782,7 +5782,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
         }
       }
 
-      if (hWnd == hWndEdit)
+      if (IsEditActive(hWnd))
       {
         GetFileWriteTimeW(wszFile, &ftFileTime);
         SetModifyStatusW(hWndEdit, FALSE, FALSE);
@@ -17025,11 +17025,7 @@ void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 {
   if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bState, 0);
 
-  if (!hWnd || hWnd == hWndEdit ||
-      (hWndMaster && (hWnd == hWndMaster ||
-                      hWnd == hWndClone1 ||
-                      hWnd == hWndClone2 ||
-                      hWnd == hWndClone3)))
+  if (!hWnd || IsEditActive(hWnd))
   {
     if (bFirst != TRUE && bModified == bState) return;
     bModified=bState;
@@ -17057,11 +17053,7 @@ void SetModifyStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
 {
   if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bState, 0);
 
-  if (!hWnd || hWnd == hWndEdit ||
-      (hWndMaster && (hWnd == hWndMaster ||
-                      hWnd == hWndClone1 ||
-                      hWnd == hWndClone2 ||
-                      hWnd == hWndClone3)))
+  if (!hWnd || IsEditActive(hWnd))
   {
     if (bFirst != TRUE && bModified == bState) return;
     bModified=bState;
@@ -17101,11 +17093,7 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
     SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
   }
 
-  if (!hWnd || hWnd == hWndEdit ||
-      (hWndMaster && (hWnd == hWndMaster ||
-                      hWnd == hWndClone1 ||
-                      hWnd == hWndClone2 ||
-                      hWnd == hWndClone3)))
+  if (!hWnd || IsEditActive(hWnd))
   {
     if (bFirst != TRUE && nCurrentNewLine == nState) return;
     nCurrentNewLine=nState;
@@ -17146,11 +17134,7 @@ void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
     SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
   }
 
-  if (!hWnd || hWnd == hWndEdit ||
-      (hWndMaster && (hWnd == hWndMaster ||
-                      hWnd == hWndClone1 ||
-                      hWnd == hWndClone2 ||
-                      hWnd == hWndClone3)))
+  if (!hWnd || IsEditActive(hWnd))
   {
     if (bFirst != TRUE && nCurrentNewLine == nState) return;
     nCurrentNewLine=nState;
@@ -17238,11 +17222,7 @@ void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst)
 
 BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei)
 {
-  if (!hWnd || hWnd == hWndEdit ||
-      (hWndMaster && (hWnd == hWndMaster ||
-                      hWnd == hWndClone1 ||
-                      hWnd == hWndClone2 ||
-                      hWnd == hWndClone3)))
+  if (!hWnd || IsEditActive(hWnd))
   {
     if (hWndEdit)
     {
@@ -17278,11 +17258,7 @@ BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei)
 
 BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei)
 {
-  if (!hWnd || hWnd == hWndEdit ||
-      (hWndMaster && (hWnd == hWndMaster ||
-                      hWnd == hWndClone1 ||
-                      hWnd == hWndClone2 ||
-                      hWnd == hWndClone3)))
+  if (!hWnd || IsEditActive(hWnd))
   {
     if (hWndEdit)
     {
@@ -17314,6 +17290,25 @@ BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei)
     }
   }
   return FALSE;
+}
+
+int IsEditActive(HWND hWnd)
+{
+  if (hWnd == hWndEdit)
+    return 0;
+
+  if (hWndMaster)
+  {
+    if (hWnd == hWndMaster)
+      return 1;
+    if (hWndClone1 && hWnd == hWndClone1)
+      return 2;
+    if (hWndClone2 && hWnd == hWndClone2)
+      return 3;
+    if (hWndClone3 && hWnd == hWndClone3)
+      return 4;
+  }
+  return 0;
 }
 
 void SaveLineScroll(HWND hWnd, int *nBeforeLine)

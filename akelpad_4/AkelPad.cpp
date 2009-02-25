@@ -2051,11 +2051,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETFONT)
     {
-      if (!wParam || (HWND)wParam == hWndEdit ||
-          (hWndMaster && ((HWND)wParam == hWndMaster ||
-                          (HWND)wParam == hWndClone1 ||
-                          (HWND)wParam == hWndClone2 ||
-                          (HWND)wParam == hWndClone3)))
+      if (!wParam || IsEditActive((HWND)wParam))
       {
         return (LRESULT)&lfEditFontA;
       }
@@ -2849,7 +2845,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPEN_MSG)
     {
-      if (hWndEdit == (HWND)lParam)
+      if (IsEditActive((HWND)lParam))
       {
         API_LoadStringA(hLangLib, MSG_FILE_CHANGED, buf, BUFFER_SIZE);
         wsprintfA(buf2, buf, szCurrentFile);
@@ -3771,11 +3767,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETFONT)
     {
-      if (!wParam || (HWND)wParam == hWndEdit ||
-          (hWndMaster && ((HWND)wParam == hWndMaster ||
-                          (HWND)wParam == hWndClone1 ||
-                          (HWND)wParam == hWndClone2 ||
-                          (HWND)wParam == hWndClone3)))
+      if (!wParam || IsEditActive((HWND)wParam))
       {
         return (LRESULT)&lfEditFontW;
       }
@@ -4569,7 +4561,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPEN_MSG)
     {
-      if (hWndEdit == (HWND)lParam)
+      if (IsEditActive((HWND)lParam))
       {
         API_LoadStringW(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
         wsprintfW(wbuf2, wbuf, wszCurrentFile);
