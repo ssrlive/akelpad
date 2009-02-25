@@ -13257,7 +13257,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
                 lpAkelEditPrev=aeSource;
               }
               lpPoint=AE_StackPointInsert(aeSource, &ciCharIndex);
-              AE_DeleteTextRange(ae, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
+              AE_DeleteTextRange(aeSource, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
               ciCharIndex=lpPoint->ciPoint;
               AE_StackPointDelete(aeSource, lpPoint);
               aeSource->bDeleteSelection=FALSE;

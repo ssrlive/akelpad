@@ -17025,7 +17025,11 @@ void SetModifyStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 {
   if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bState, 0);
 
-  if (!hWnd || hWnd == hWndEdit)
+  if (!hWnd || hWnd == hWndEdit ||
+      (hWndMaster && (hWnd == hWndMaster ||
+                      hWnd == hWndClone1 ||
+                      hWnd == hWndClone2 ||
+                      hWnd == hWndClone3)))
   {
     if (bFirst != TRUE && bModified == bState) return;
     bModified=bState;
@@ -17053,7 +17057,11 @@ void SetModifyStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
 {
   if (hWnd) SendMessage(hWnd, AEM_SETMODIFY, bState, 0);
 
-  if (!hWnd || hWnd == hWndEdit)
+  if (!hWnd || hWnd == hWndEdit ||
+      (hWndMaster && (hWnd == hWndMaster ||
+                      hWnd == hWndClone1 ||
+                      hWnd == hWndClone2 ||
+                      hWnd == hWndClone3)))
   {
     if (bFirst != TRUE && bModified == bState) return;
     bModified=bState;
@@ -17093,7 +17101,11 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
     SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
   }
 
-  if (!hWnd || hWnd == hWndEdit)
+  if (!hWnd || hWnd == hWndEdit ||
+      (hWndMaster && (hWnd == hWndMaster ||
+                      hWnd == hWndClone1 ||
+                      hWnd == hWndClone2 ||
+                      hWnd == hWndClone3)))
   {
     if (bFirst != TRUE && nCurrentNewLine == nState) return;
     nCurrentNewLine=nState;
@@ -17134,7 +17146,11 @@ void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
     SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
   }
 
-  if (!hWnd || hWnd == hWndEdit)
+  if (!hWnd || hWnd == hWndEdit ||
+      (hWndMaster && (hWnd == hWndMaster ||
+                      hWnd == hWndClone1 ||
+                      hWnd == hWndClone2 ||
+                      hWnd == hWndClone3)))
   {
     if (bFirst != TRUE && nCurrentNewLine == nState) return;
     nCurrentNewLine=nState;
@@ -17222,7 +17238,11 @@ void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst)
 
 BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei)
 {
-  if (!hWnd || hWnd == hWndEdit)
+  if (!hWnd || hWnd == hWndEdit ||
+      (hWndMaster && (hWnd == hWndMaster ||
+                      hWnd == hWndClone1 ||
+                      hWnd == hWndClone2 ||
+                      hWnd == hWndClone3)))
   {
     if (hWndEdit)
     {
@@ -17258,7 +17278,11 @@ BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei)
 
 BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei)
 {
-  if (!hWnd || hWnd == hWndEdit)
+  if (!hWnd || hWnd == hWndEdit ||
+      (hWndMaster && (hWnd == hWndMaster ||
+                      hWnd == hWndClone1 ||
+                      hWnd == hWndClone2 ||
+                      hWnd == hWndClone3)))
   {
     if (hWndEdit)
     {
