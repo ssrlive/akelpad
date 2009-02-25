@@ -390,7 +390,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     //// Clone window processing
 
-    AE_CloneMessage(lpAkelEditPrev, ae);
+    AE_ActivateClone(lpAkelEditPrev, ae);
     lpAkelEditPrev=ae;
 
 
@@ -2789,7 +2789,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               AE_DataObjectCopySelection(ae);
 
               dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
-              AE_CloneMessage(lpAkelEditPrev, ae);
+              AE_ActivateClone(lpAkelEditPrev, ae);
               lpAkelEditPrev=ae;
 
               if (!AE_NotifyDropSource(ae, AEDS_SOURCEEND, &dwEffectOut, dwResult))
@@ -3571,7 +3571,26 @@ void AE_StackUpdateClones(AKELEDIT *ae)
   }
 }
 
-void AE_CloneMessage(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
+AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae)
+{
+  AECLONE *lpElement;
+
+  if (ae->bDragging) return ae;
+  if (ae->lpMaster) ae=ae->lpMaster;
+  if (ae->bDragging) return ae;
+  lpElement=(AECLONE *)ae->hClonesStack.last;
+
+  while (lpElement)
+  {
+    if (lpElement->aeClone->bDragging)
+      return lpElement->aeClone;
+
+    lpElement=lpElement->prev;
+  }
+  return NULL;
+}
+
+void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
 {
   if (lpAkelEditPrev)
   {
@@ -13220,7 +13239,6 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
         {
           AECHARINDEX ciStart={0};
           AECHARINDEX ciEnd={0};
-          BOOL bSetSel=TRUE;
 
           AE_NotifyChanging(ae);
           AE_StackUndoGroupStop(ae);
@@ -13228,23 +13246,33 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
           //Delete
           if (*pdwEffect & DROPEFFECT_MOVE)
           {
-            if (ae->bDragging)
+            AKELEDIT *aeSource;
+            AEPOINT *lpPoint;
+
+            if (aeSource=AE_StackDraggingGet(ae))
             {
-              AEPOINT *lpPoint;
-
-              lpPoint=AE_StackPointInsert(ae, &ciCharIndex);
-              AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
+              if (aeSource != ae)
+              {
+                AE_ActivateClone(lpAkelEditPrev, aeSource);
+                lpAkelEditPrev=aeSource;
+              }
+              lpPoint=AE_StackPointInsert(aeSource, &ciCharIndex);
+              AE_DeleteTextRange(ae, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
               ciCharIndex=lpPoint->ciPoint;
-              AE_StackPointDelete(ae, lpPoint);
+              AE_StackPointDelete(aeSource, lpPoint);
+              aeSource->bDeleteSelection=FALSE;
 
-              ae->bDeleteSelection=FALSE;
-              bSetSel=FALSE;
+              if (aeSource != ae)
+              {
+                AE_ActivateClone(lpAkelEditPrev, ae);
+                lpAkelEditPrev=ae;
+              }
             }
           }
 
           //Insert
           {
-            if (bSetSel) AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY);
+            AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKUNDOGROUPING);
             AE_InsertText(ae, &ciCharIndex, (wchar_t *)pData, (DWORD)-1, ae->popt->nInputNewLine, pDropTarget->bColumnSel, 0, &ciStart, &ciEnd);
 
             if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
@@ -13274,7 +13302,6 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
           {
             AECHARINDEX ciStart={0};
             AECHARINDEX ciEnd={0};
-            BOOL bSetSel=TRUE;
 
             AE_NotifyChanging(ae);
             AE_StackUndoGroupStop(ae);
@@ -13282,17 +13309,27 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
             //Delete
             if (*pdwEffect & DROPEFFECT_MOVE)
             {
-              if (ae->bDragging)
+              AKELEDIT *aeSource;
+              AEPOINT *lpPoint;
+
+              if (aeSource=AE_StackDraggingGet(ae))
               {
-                AEPOINT *lpPoint;
-
-                lpPoint=AE_StackPointInsert(ae, &ciCharIndex);
-                AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
+                if (aeSource != ae)
+                {
+                  AE_ActivateClone(lpAkelEditPrev, aeSource);
+                  lpAkelEditPrev=aeSource;
+                }
+                lpPoint=AE_StackPointInsert(aeSource, &ciCharIndex);
+                AE_DeleteTextRange(aeSource, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
                 ciCharIndex=lpPoint->ciPoint;
-                AE_StackPointDelete(ae, lpPoint);
+                AE_StackPointDelete(aeSource, lpPoint);
+                aeSource->bDeleteSelection=FALSE;
 
-                ae->bDeleteSelection=FALSE;
-                bSetSel=FALSE;
+                if (aeSource != ae)
+                {
+                  AE_ActivateClone(lpAkelEditPrev, ae);
+                  lpAkelEditPrev=ae;
+                }
               }
             }
 
@@ -13306,7 +13343,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
               {
                 MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, wszText, dwUnicodeBytes / sizeof(wchar_t));
-                if (bSetSel) AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY);
+                AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKUNDOGROUPING);
                 AE_InsertText(ae, &ciCharIndex, wszText, dwUnicodeBytes / sizeof(wchar_t) - 1, ae->popt->nInputNewLine, pDropTarget->bColumnSel, 0, &ciStart, &ciEnd);
 
                 if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
