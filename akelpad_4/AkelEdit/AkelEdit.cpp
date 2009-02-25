@@ -13255,6 +13255,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               {
                 AE_ActivateClone(lpAkelEditPrev, aeSource);
                 lpAkelEditPrev=aeSource;
+                AE_NotifyChanging(aeSource);
               }
               lpPoint=AE_StackPointInsert(aeSource, &ciCharIndex);
               AE_DeleteTextRange(aeSource, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
@@ -13266,6 +13267,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               {
                 AE_ActivateClone(lpAkelEditPrev, ae);
                 lpAkelEditPrev=ae;
+                AE_NotifyChanged(aeSource);
               }
             }
           }
@@ -13318,6 +13320,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
                 {
                   AE_ActivateClone(lpAkelEditPrev, aeSource);
                   lpAkelEditPrev=aeSource;
+                  AE_NotifyChanging(aeSource);
                 }
                 lpPoint=AE_StackPointInsert(aeSource, &ciCharIndex);
                 AE_DeleteTextRange(aeSource, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
@@ -13329,6 +13332,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
                 {
                   AE_ActivateClone(lpAkelEditPrev, ae);
                   lpAkelEditPrev=ae;
+                  AE_NotifyChanged(aeSource);
                 }
               }
             }
