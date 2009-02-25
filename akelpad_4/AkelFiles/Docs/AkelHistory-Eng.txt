@@ -1,7 +1,7 @@
 
 AkelPad 4.1.6 ()
 ----------------------------
-Added: opportunity to split edit window.
+Added: opportunity to split edit window to work with different areas of one file.
 Added: opportunity to wrap a line on achievement of the certain limit in symbols.
 
 Fixed: font width changing in 4.1.5.
