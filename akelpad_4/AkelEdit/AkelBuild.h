@@ -374,6 +374,7 @@ void AE_StackCloneDelete(AECLONE *aec);
 void AE_StackCloneDeleteAll(AKELEDIT *ae);
 void AE_StackCloneFree(AKELEDIT *ae);
 void AE_StackUpdateClones(AKELEDIT *ae);
+void AE_CloneMessage(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae);
 WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfEdit);
 WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfEdit);
 WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfEdit);
