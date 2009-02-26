@@ -1321,7 +1321,7 @@ LRESULT CALLBACK CommonMainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     //Destroy windows
     if (!bMDI)
     {
-      DestroyEdit(&hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
+      DestroyEdit(CN_ALL, &hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
     }
     else
     {
@@ -1446,7 +1446,7 @@ LRESULT CALLBACK CommonMainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     //Destroy windows
     if (!bMDI)
     {
-      DestroyEdit(&hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
+      DestroyEdit(CN_ALL, &hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
     }
     else
     {
@@ -6252,12 +6252,12 @@ LRESULT CALLBACK NewMdiClientProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
       if (hWndFrameActive == (HWND)wParam)
       {
-        DestroyEdit(&hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
+        DestroyEdit(CN_ALL, &hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
       }
       else
       {
         if (wf=(WNDFRAMEA *)GetWindowLongA((HWND)wParam, GWL_USERDATA))
-          DestroyEdit(&wf->ei.hWndEdit, &wf->hWndMaster, &wf->hWndClone1, &wf->hWndClone2, &wf->hWndClone3);
+          DestroyEdit(CN_ALL, &wf->ei.hWndEdit, &wf->hWndMaster, &wf->hWndClone1, &wf->hWndClone2, &wf->hWndClone3);
       }
 
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
@@ -6365,12 +6365,12 @@ LRESULT CALLBACK NewMdiClientProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
       if (hWndFrameActive == (HWND)wParam)
       {
-        DestroyEdit(&hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
+        DestroyEdit(CN_ALL, &hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
       }
       else
       {
         if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)wParam, GWL_USERDATA))
-          DestroyEdit(&wf->ei.hWndEdit, &wf->hWndMaster, &wf->hWndClone1, &wf->hWndClone2, &wf->hWndClone3);
+          DestroyEdit(CN_ALL, &wf->ei.hWndEdit, &wf->hWndMaster, &wf->hWndClone1, &wf->hWndClone2, &wf->hWndClone3);
       }
 
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);

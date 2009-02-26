@@ -184,6 +184,18 @@
 #define DK_HIDE        0x00000100
 #define DK_SHOW        0x00000200
 
+//Clone window
+#define CN_EDIT    0x00000001
+#define CN_MASTER  0x00000002
+#define CN_CLONE1  0x00000004
+#define CN_CLONE2  0x00000008
+#define CN_CLONE3  0x00000010
+#define CN_ALL     (CN_EDIT   |\
+                    CN_MASTER |\
+                    CN_CLONE1 |\
+                    CN_CLONE2 |\
+                    CN_CLONE3)
+
 //STARTUPINFO flags
 #define STARTF_NOMUTEX  0x00001000
 
@@ -1184,7 +1196,7 @@ void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst);
 
 BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei);
 BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei);
-int IsEditActive(HWND hWnd);
+DWORD IsEditActive(HWND hWnd);
 void SaveLineScroll(HWND hWnd, int *nBeforeLine);
 void RestoreLineScroll(HWND hWnd, int *nBeforeLine);
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor);
@@ -1238,7 +1250,7 @@ int TranslateFileStringA(char *pCommand, char *szBuffer, int nBufferSize);
 int TranslateFileStringW(wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
-void DestroyEdit(HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3);
+void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3);
 void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight);
 void UpdateSize();
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
