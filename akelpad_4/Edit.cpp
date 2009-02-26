@@ -2070,8 +2070,8 @@ void DoViewSplitWindow(BOOL bState)
     RECT rcEdit;
 
     //Destroy
-    DestroyEdit(NULL, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
     hWndEdit=hWndMaster;
+    DestroyEdit(CN_CLONE1|CN_CLONE2|CN_CLONE3, NULL, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
     hWndMaster=NULL;
 
     //Update size
@@ -17292,21 +17292,21 @@ BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei)
   return FALSE;
 }
 
-int IsEditActive(HWND hWnd)
+DWORD IsEditActive(HWND hWnd)
 {
   if (hWnd == hWndEdit)
-    return 1;
+    return CN_EDIT;
 
   if (hWndMaster)
   {
     if (hWnd == hWndMaster)
-      return 2;
+      return CN_MASTER;
     if (hWndClone1 && hWnd == hWndClone1)
-      return 3;
+      return CN_CLONE1;
     if (hWndClone2 && hWnd == hWndClone2)
-      return 4;
+      return CN_CLONE2;
     if (hWndClone3 && hWnd == hWndClone3)
-      return 5;
+      return CN_CLONE3;
   }
   return 0;
 }
@@ -18840,41 +18840,68 @@ HWND NextDialog(BOOL bPrevious)
   return hWndNext;
 }
 
-void DestroyEdit(HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3)
+void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3)
 {
-  if (hWndClone1 && *hWndClone1)
+  if (dwFlags & CN_CLONE1)
   {
-    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone1, 0);
-    SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone1, 0);
-    DestroyWindow(*hWndClone1);
-    *hWndClone1=NULL;
+    if (hWndClone1 && *hWndClone1)
+    {
+      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone1, 0);
+      SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone1, 0);
+      DestroyWindow(*hWndClone1);
+
+      if (hWndEdit && *hWndEdit && *hWndClone1 == *hWndEdit)
+        *hWndEdit=NULL;
+      *hWndClone1=NULL;
+    }
   }
-  if (hWndClone2 && *hWndClone2)
+  if (dwFlags & CN_CLONE2)
   {
-    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone2, 0);
-    SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone2, 0);
-    DestroyWindow(*hWndClone2);
-    *hWndClone2=NULL;
+    if (hWndClone2 && *hWndClone2)
+    {
+      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone2, 0);
+      SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone2, 0);
+      DestroyWindow(*hWndClone2);
+
+      if (hWndEdit && *hWndEdit && *hWndClone2 == *hWndEdit)
+        *hWndEdit=NULL;
+      *hWndClone2=NULL;
+    }
   }
-  if (hWndClone3 && *hWndClone3)
+  if (dwFlags & CN_CLONE3)
   {
-    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone3, 0);
-    SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone3, 0);
-    DestroyWindow(*hWndClone3);
-    *hWndClone3=NULL;
+    if (hWndClone3 && *hWndClone3)
+    {
+      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone3, 0);
+      SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone3, 0);
+      DestroyWindow(*hWndClone3);
+
+      if (hWndEdit && *hWndEdit && *hWndClone3 == *hWndEdit)
+        *hWndEdit=NULL;
+      *hWndClone3=NULL;
+    }
   }
-  if (hWndMaster && *hWndMaster && hWndEdit && *hWndEdit)
+  if (dwFlags & CN_MASTER)
   {
-    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndMaster, 0);
-    DestroyWindow(*hWndMaster);
-    *hWndMaster=NULL;
-    *hWndEdit=NULL;
+    if (hWndMaster && *hWndMaster)
+    {
+      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndMaster, 0);
+      DestroyWindow(*hWndMaster);
+
+      if (hWndEdit && *hWndEdit && *hWndMaster == *hWndEdit)
+        *hWndEdit=NULL;
+      *hWndMaster=NULL;
+    }
   }
-  if (hWndEdit && *hWndEdit)
+  if (dwFlags & CN_EDIT)
   {
-    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndEdit, 0);
-    DestroyWindow(*hWndEdit);
-    *hWndEdit=NULL;
+    if (hWndEdit && *hWndEdit)
+    {
+      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndEdit, 0);
+      DestroyWindow(*hWndEdit);
+
+      *hWndEdit=NULL;
+    }
   }
 }
 
