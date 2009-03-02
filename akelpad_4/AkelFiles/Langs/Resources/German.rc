@@ -106,8 +106,8 @@ BEGIN
         MENUITEM "Far&ben...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Zeilenumbruch\tCtrl+U",      IDM_VIEW_WORDWRAP
-        MENUITEM "Immer im &Vordergrund\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "Immer im &Vordergrund\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "Status&leiste",               IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "S&prache"

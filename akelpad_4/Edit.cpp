@@ -2033,26 +2033,14 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
 
   if (bWordWrap)
   {
-    if (!dwWrapLimit) SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
+    if (!dwWrapLimit && !bSplitWindow) SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
     SendMessage(hWnd, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
   }
   else
   {
     SendMessage(hWnd, AEM_SETWORDWRAP, AEWW_NONE, 0);
-    if (!dwWrapLimit) SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
+    if (!dwWrapLimit && !bSplitWindow) SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
   }
-}
-
-void DoViewOnTop(BOOL bState, BOOL bFirst)
-{
-  CheckMenuItem(hMainMenu, IDM_VIEW_ONTOP, bState?MF_CHECKED:MF_UNCHECKED);
-  if (bFirst != TRUE && bState == bOnTop) return;
-  bOnTop=bState;
-
-  if (bOnTop)
-    SetWindowPos(hMainWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
-  else
-    SetWindowPos(hMainWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
 }
 
 void DoViewSplitWindow(BOOL bState)
@@ -2062,6 +2050,11 @@ void DoViewSplitWindow(BOOL bState)
 
   if (bSplitWindow)
   {
+    if (bWordWrap)
+    {
+      SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
+    }
+
     //Create
     hWndMaster=hWndEdit;
     if (hWndClone1=CreateEditWindowW(GetParent(hWndMaster)))
@@ -2082,8 +2075,25 @@ void DoViewSplitWindow(BOOL bState)
     hWndEdit=hWndMaster;
     DestroyEdit(CN_CLONE1|CN_CLONE2|CN_CLONE3, &hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
     hWndMaster=NULL;
+
+    if (bWordWrap)
+    {
+      if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
+    }
   }
   ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow);
+}
+
+void DoViewOnTop(BOOL bState, BOOL bFirst)
+{
+  CheckMenuItem(hMainMenu, IDM_VIEW_ONTOP, bState?MF_CHECKED:MF_UNCHECKED);
+  if (bFirst != TRUE && bState == bOnTop) return;
+  bOnTop=bState;
+
+  if (bOnTop)
+    SetWindowPos(hMainWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
+  else
+    SetWindowPos(hMainWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE|SWP_NOACTIVATE);
 }
 
 void DoViewShowStatusBar(BOOL bState, BOOL bFirst)
@@ -16347,14 +16357,14 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         if (bWordWrap)
         {
-          if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
+          if (!dwWrapLimit && !bSplitWindow) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
         }
         nWrapType=a;
         dwWrapLimit=b;
 
         if (bWordWrap)
         {
-          if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
+          if (!dwWrapLimit && !bSplitWindow) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
           SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
         }
       }
@@ -16552,14 +16562,14 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         if (bWordWrap)
         {
-          if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
+          if (!dwWrapLimit && !bSplitWindow) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, TRUE);
         }
         nWrapType=a;
         dwWrapLimit=b;
 
         if (bWordWrap)
         {
-          if (!dwWrapLimit) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
+          if (!dwWrapLimit && !bSplitWindow) SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, FALSE);
           SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
         }
       }
