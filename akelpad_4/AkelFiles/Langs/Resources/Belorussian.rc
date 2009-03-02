@@ -28,7 +28,7 @@ LANGUAGE 0x23, 0x1
 // Menu
 //
 
-IDM_MENU_MAIN MENU DISCARDABLE
+IDM_MENU_MAIN MENU DISCARDABLE 
 BEGIN
     POPUP "&Файл"
     BEGIN
@@ -75,13 +75,13 @@ BEGIN
             MENUITEM "&Прыбраць Tab\tShift+Tab",    IDM_EDIT_DELETE_TAB_MENU
             MENUITEM "Д&адаць прабел\tSpace",       IDM_EDIT_INSERT_SPACE_MENU
 
-            MENUITEM "Пры&браць прабел\tShift+Space",
+            MENUITEM "Пры&браць прабел\tShift+Space", 
                                                     IDM_EDIT_DELETE_SPACE_MENU
 
-            MENUITEM "Пры&браць першы знак\tShift+Backspace",
+            MENUITEM "Пры&браць першы знак\tShift+Backspace", 
                                                     IDM_EDIT_DELETE_FIRST_CHAR_MENU
 
-            MENUITEM "Пры&браць Tab'ы і прабелы ў канцы\tAlt+Backspace",
+            MENUITEM "Пры&браць Tab'ы і прабелы ў канцы\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
             MENUITEM SEPARATOR
@@ -125,7 +125,7 @@ BEGIN
         MENUITEM "Сачыць за &зменай файла",     IDM_OPTIONS_WATCHFILE
         MENUITEM "&Захоўваць час файла",        IDM_OPTIONS_SAVETIME
         MENUITEM "Не адчыняць ф&айл двойчы",    IDM_OPTIONS_SINGLEOPEN_FILE
-        MENUITEM "Не адчыняць пра&граму двойчы",
+        MENUITEM "Не адчыняць пра&граму двойчы", 
                                                 IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
         MENUITEM SEPARATOR
@@ -169,7 +169,7 @@ BEGIN
     END
 END
 
-IDM_MENU_POPUP MENU DISCARDABLE
+IDM_MENU_POPUP MENU DISCARDABLE 
 BEGIN
     POPUP "EditPopup"
     BEGIN
@@ -205,7 +205,7 @@ BEGIN
     END
     POPUP "HeadlinePopup"
     BEGIN
-        MENUITEM "Нумар старонкі[першая старонка]\t%n[1]",
+        MENUITEM "Нумар старонкі[першая старонка]\t%n[1]", 
                                                 IDM_POPUP_HEADLINE_PAGE_NUMBER
 
         MENUITEM "Імя файла\t%f",               IDM_POPUP_HEADLINE_FILE_NAME
@@ -213,10 +213,10 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Выраўнiванне па цэнтры\t%c",  IDM_POPUP_HEADLINE_ALIGN_CENTER
 
-        MENUITEM "Выраўнiванне па левым боку\t%l",
+        MENUITEM "Выраўнiванне па левым боку\t%l", 
                                                 IDM_POPUP_HEADLINE_ALIGN_LEFT
 
-        MENUITEM "Выраўнiванне па правым боку\t%r",
+        MENUITEM "Выраўнiванне па правым боку\t%r", 
                                                 IDM_POPUP_HEADLINE_ALIGN_RIGHT
 
     END
@@ -252,13 +252,13 @@ IDB_BITMAP_DOWNARROW    BITMAP  DISCARDABLE     "DownArrow.bmp"
 // Accelerator
 //
 
-IDA_ACCEL_GLOBAL ACCELERATORS MOVEABLE PURE
+IDA_ACCEL_GLOBAL ACCELERATORS MOVEABLE PURE 
 BEGIN
     VK_F6,          IDM_NONMENU_DLGNEXT,    VIRTKEY, NOINVERT
     VK_F6,          IDM_NONMENU_DLGPREV,    VIRTKEY, SHIFT, NOINVERT
 END
 
-IDA_ACCEL_MAIN ACCELERATORS MOVEABLE PURE
+IDA_ACCEL_MAIN ACCELERATORS MOVEABLE PURE 
 BEGIN
     "0",            IDM_EDIT_INVERTCASE,    VIRTKEY, CONTROL, NOINVERT
     "6",            IDM_EDIT_UPPERCASE,     VIRTKEY, CONTROL, NOINVERT
@@ -267,10 +267,10 @@ BEGIN
     "9",            IDM_EDIT_TITLECASE,     VIRTKEY, CONTROL, NOINVERT
     "A",            IDM_EDIT_SELECTALL,     VIRTKEY, CONTROL, NOINVERT
     "B",            IDM_NONMENU_REOPENAS_UTF16BE, VIRTKEY, ALT, NOINVERT
-    "B",            IDM_NONMENU_SAVEAS_UTF16BE, VIRTKEY, SHIFT, ALT,
+    "B",            IDM_NONMENU_SAVEAS_UTF16BE, VIRTKEY, SHIFT, ALT, 
                                                     NOINVERT
     "C",            IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
-    "C",            IDM_EDIT_COPY,          VIRTKEY, SHIFT, CONTROL,
+    "C",            IDM_EDIT_COPY,          VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     "D",            IDM_EDIT_INSERTDATE,    VIRTKEY, CONTROL, NOINVERT
     "D",            IDM_NONMENU_REOPENAS_OEM, VIRTKEY, ALT, NOINVERT
@@ -285,30 +285,30 @@ BEGIN
     "K",            IDM_NONMENU_SAVEAS_KOIR, VIRTKEY, SHIFT, ALT, NOINVERT
     "L",            IDM_OPTIONS_KEEPSPACE,  VIRTKEY, CONTROL, NOINVERT
     "L",            IDM_NONMENU_REOPENAS_UTF16LE, VIRTKEY, ALT, NOINVERT
-    "L",            IDM_NONMENU_SAVEAS_UTF16LE, VIRTKEY, SHIFT, ALT,
+    "L",            IDM_NONMENU_SAVEAS_UTF16LE, VIRTKEY, SHIFT, ALT, 
                                                     NOINVERT
     "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
-    "N",            IDM_FILE_CREATENEW,     VIRTKEY, SHIFT, CONTROL,
+    "N",            IDM_FILE_CREATENEW,     VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
-    "O",            IDM_FILE_REOPEN,        VIRTKEY, SHIFT, CONTROL,
+    "O",            IDM_FILE_REOPEN,        VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     "P",            IDM_FILE_PRINT,         VIRTKEY, CONTROL, NOINVERT
     "P",            IDM_OPTIONS_PLUGINS,    VIRTKEY, ALT, NOINVERT
     "R",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "R",            IDM_EDIT_RECODE,        VIRTKEY, ALT, NOINVERT
     "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
-    "S",            IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, CONTROL,
+    "S",            IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     "T",            IDM_VIEW_ONTOP,         VIRTKEY, CONTROL, NOINVERT
     "U",            IDM_VIEW_WORDWRAP,      VIRTKEY, CONTROL, NOINVERT
     "U",            IDM_NONMENU_REOPENAS_UTF8, VIRTKEY, ALT, NOINVERT
     "U",            IDM_NONMENU_SAVEAS_UTF8, VIRTKEY, SHIFT, ALT, NOINVERT
     "V",            IDM_EDIT_PASTE,         VIRTKEY, CONTROL, NOINVERT
-    "V",            IDM_NONMENU_PASTEANSI,  VIRTKEY, SHIFT, CONTROL,
+    "V",            IDM_NONMENU_PASTEANSI,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     VK_ADD,         IDM_VIEW_INCREASE_FONT, VIRTKEY, CONTROL, NOINVERT
-    VK_BACK,        IDM_EDIT_DELETE_TRAILING_WHITESPACES, VIRTKEY, ALT,
+    VK_BACK,        IDM_EDIT_DELETE_TRAILING_WHITESPACES, VIRTKEY, ALT, 
                                                     NOINVERT
     VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
     VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
@@ -326,13 +326,13 @@ BEGIN
     VK_F5,          IDM_OPTIONS_EXEC,       VIRTKEY, CONTROL, NOINVERT
     VK_F5,          IDM_NONMENU_REDETECT,   VIRTKEY, ALT, NOINVERT
     VK_F6,          IDM_NONMENU_MDINEXT,    VIRTKEY, CONTROL, NOINVERT
-    VK_F6,          IDM_NONMENU_MDIPREV,    VIRTKEY, SHIFT, CONTROL,
+    VK_F6,          IDM_NONMENU_MDIPREV,    VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     VK_F8,          IDM_NONMENU_DELLINE,    VIRTKEY, NOINVERT
     VK_INSERT,      IDM_NONMENU_INSERTMODE, VIRTKEY, NOINVERT
     VK_INSERT,      IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
     VK_INSERT,      IDM_EDIT_PASTE,         VIRTKEY, SHIFT, NOINVERT
-    VK_INSERT,      IDM_NONMENU_PASTEANSI,  VIRTKEY, SHIFT, CONTROL,
+    VK_INSERT,      IDM_NONMENU_PASTEANSI,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     VK_RETURN,      IDM_NONMENU_AUTOINDENT, VIRTKEY, CONTROL, NOINVERT
     VK_RETURN,      IDM_NONMENU_CHANGESIZE, VIRTKEY, ALT, NOINVERT
@@ -342,7 +342,7 @@ BEGIN
     VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
     VK_TAB,         IDM_NONMENU_MDINEXT,    VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
-    VK_TAB,         IDM_NONMENU_MDIPREV,    VIRTKEY, SHIFT, CONTROL,
+    VK_TAB,         IDM_NONMENU_MDIPREV,    VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     "W",            IDM_NONMENU_MDICLOSE,   VIRTKEY, CONTROL, NOINVERT
     "W",            IDM_NONMENU_REOPENAS_ANSI, VIRTKEY, ALT, NOINVERT
@@ -350,7 +350,7 @@ BEGIN
     "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
     "Y",            IDM_NONMENU_DELLINE,    VIRTKEY, CONTROL, NOINVERT
     "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
-    "Z",            IDM_EDIT_REDO,          VIRTKEY, SHIFT, CONTROL,
+    "Z",            IDM_EDIT_REDO,          VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
 END
 
@@ -365,22 +365,22 @@ STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     LTEXT           "Кадыроўка:",IDC_OFN_CODEPAGE_LABEL,5,4,40,8
-    COMBOBOX        IDC_OFN_CODEPAGE,53,2,155,130,CBS_DROPDOWNLIST |
+    COMBOBOX        IDC_OFN_CODEPAGE,53,2,155,130,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_OFN_AUTODETECT,"Button",BS_AUTOCHECKBOX |
+    CONTROL         "",IDC_OFN_AUTODETECT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,221,4,54,8
-    CONTROL         "",IDC_OFN_PREVIEW,"AkelEditA",WS_VSCROLL | WS_HSCROLL |
+    CONTROL         "",IDC_OFN_PREVIEW,"AkelEditA",WS_VSCROLL | WS_HSCROLL | 
                     WS_TABSTOP | 0x2900,5,23,264,76,WS_EX_CLIENTEDGE
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
-STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Пошук"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN |
+    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Улічваць рэгістр",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
@@ -407,15 +407,15 @@ BEGIN
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 257, 122
-STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Замена"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN |
+    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_SEARCH_REPLACE,27,23,160,100,CBS_DROPDOWN |
+    COMBOBOX        IDC_SEARCH_REPLACE,27,23,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Улічваць рэгістр",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
@@ -447,7 +447,7 @@ BEGIN
 END
 
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82
-STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Перайсцi да радка..."
 FONT 8, "MS Shell Dlg"
@@ -456,21 +456,21 @@ BEGIN
     EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
     CONTROL         "Радок",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
                     40,52,10
-    CONTROL         "Зрушэнне",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
-                    72,40,52,10
+    CONTROL         "Зрушэнне",IDC_GOTOLINE_OFFSET,"Button",
+                    BS_AUTORADIOBUTTON,72,40,52,10
     PUSHBUTTON      "OK",IDOK,18,60,50,14,BS_CENTER
     PUSHBUTTON      "Адмена",IDCANCEL,72,60,50,14,BS_CENTER
 END
 
 IDD_RECODE DIALOG DISCARDABLE  70, 70, 174, 94
-STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Перакадаваць..."
 FONT 8, "MS Shell Dlg"
 BEGIN
-    COMBOBOX        IDC_RECODE_CODEPAGE_FROM,9,17,155,130,CBS_DROPDOWNLIST |
+    COMBOBOX        IDC_RECODE_CODEPAGE_FROM,9,17,155,130,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_RECODE_CODEPAGE_TO,9,48,155,130,CBS_DROPDOWNLIST |
+    COMBOBOX        IDC_RECODE_CODEPAGE_TO,9,48,155,130,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "OK",IDOK,36,73,50,14,BS_CENTER
     PUSHBUTTON      "Адмена",IDCANCEL,90,73,50,14,BS_CENTER
@@ -479,36 +479,36 @@ BEGIN
 END
 
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 146
-STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Колеры..."
 FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Каляровая тэма:",IDC_STATIC,11,6,103,8
-    COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN |
+    COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Захаваць",IDC_COLORS_THEME_SAVE,123,16,50,14
     PUSHBUTTON      "Выдаліць",IDC_COLORS_THEME_DELETE,175,16,50,14
-    CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT |
-                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT |
+    CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
                     WS_BORDER | WS_TABSTOP,9,40,217,73
     PUSHBUTTON      "OK",IDOK,123,125,50,14,BS_CENTER
     PUSHBUTTON      "Адмена",IDCANCEL,176,125,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
-STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Плагіны..."
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "List1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT |
-                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING |
+    CONTROL         "List1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
                     LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
     LTEXT           "Пастаўце галачку для аўтазагрузкі плагіна.",IDC_STATIC,
                     11,192,264,8
     LTEXT           "Гарачая клавіша:",IDC_STATIC,278,13,61,8
-    CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER |
+    CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER | 
                     WS_TABSTOP,282,24,50,14
     PUSHBUTTON      "Прызначыць",IDC_PLUGINS_ASSIGN,282,42,50,14
     DEFPUSHBUTTON   "Вызваць",IDC_PLUGINS_CALL,9,209,50,14
@@ -517,7 +517,7 @@ BEGIN
 END
 
 IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 220, 230
-STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Агульныя"
 FONT 8, "MS Shell Dlg"
@@ -551,7 +551,7 @@ BEGIN
 END
 
 IDD_OPTIONS_GENERAL_FILTER DIALOG DISCARDABLE  0, 0, 364, 255
-STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Фільтр..."
 FONT 8, "MS Shell Dlg"
@@ -574,7 +574,7 @@ BEGIN
 END
 
 IDD_OPTIONS_REGISTRY DIALOG DISCARDABLE  0, 0, 220, 230
-STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Рэестр"
 FONT 8, "MS Shell Dlg"
@@ -592,14 +592,14 @@ BEGIN
     LTEXT           "Колькасць файлаў:",IDC_STATIC,19,88,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,86,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS |
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,86,11,13
     PUSHBUTTON      "Ачысціць",IDC_OPTIONS_RECENTFILES_CLEAR,141,85,54,14
     GROUPBOX        "Гісторыя пошуку",IDC_STATIC,9,113,200,33
     LTEXT           "Колькасць радкоў:",IDC_STATIC,19,128,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS |
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,126,11,13
     PUSHBUTTON      "Ачысціць",IDC_OPTIONS_SEARCHSTRINGS_CLEAR,141,125,54,14
     GROUPBOX        "Тыпы файлаў",IDC_STATIC,9,153,200,70
@@ -615,7 +615,7 @@ BEGIN
 END
 
 IDD_OPTIONS_EDITOR DIALOG DISCARDABLE  0, 0, 220, 230
-STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Рэдактар"
 FONT 8, "MS Shell Dlg"
@@ -629,7 +629,7 @@ BEGIN
     RTEXT           "Справа:",IDC_STATIC,117,23,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_RIGHT,156,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
-                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS |
+                    "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,174,20,11,13
     GROUPBOX        "Памер Tab",IDC_STATIC,9,46,105,34
     EDITTEXT        IDC_OPTIONS_TABSIZE,18,60,21,13,ES_NUMBER
@@ -650,22 +650,21 @@ BEGIN
                     BS_AUTORADIOBUTTON,135,63,70,10
     CONTROL         "Па знаках",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,135,79,70,10
-    RTEXT           "Ліміт:",IDC_STATIC,125,104,27,8
-    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,156,102,21,13,ES_NUMBER
+    RTEXT           "Ліміт:",IDC_STATIC,135,104,27,8
+    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,166,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
                     102,11,13
     GROUPBOX        "Карэтка",IDC_STATIC,9,130,200,60
     CONTROL         "Дазволіць выхад карэткі за краі радкоў",
-                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX |
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Паказваць актыўны слупок",
-                    IDC_OPTIONS_CARETVERTLINE,"Button",BS_AUTOCHECKBOX |
-                    WS_TABSTOP,17,155,185,10
-    RTEXT           "Шырыня:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,21,13,ES_NUMBER
+    CONTROL         "Паказваць актыўны слупок",IDC_OPTIONS_CARETVERTLINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
+    RTEXT           "Шырыня:",IDC_STATIC,126,172,35,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,166,169,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
                     169,11,13
     CONTROL         "Падзельнікі слоў:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
@@ -675,7 +674,7 @@ BEGIN
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
-STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
+STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Дадаткова"
 FONT 8, "MS Shell Dlg"
@@ -694,24 +693,24 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,23,91,172,10
     EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,103,172,13,ES_AUTOHSCROLL
     CONTROL         "Замяніць усё - зачыняе дыялог",
-                    IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX |
+                    IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,137,200,10
     CONTROL         "Папярэджанне аб захаванні ў read-only файлы",
-                    IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX |
+                    IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,149,200,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
-STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
+STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Аб праграме"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "OK",IDOK,148,183,50,14,BS_CENTER
     PUSHBUTTON      "",IDC_ABOUT_HOMEPAGE,105,40,92,14,0,WS_EX_STATICEDGE
-    EDITTEXT        IDC_ABOUT_EMAIL_SHENGALTS,74,96,107,12,ES_READONLY | NOT
+    EDITTEXT        IDC_ABOUT_EMAIL_SHENGALTS,74,96,107,12,ES_READONLY | NOT 
                     WS_BORDER,WS_EX_STATICEDGE
-    EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY |
+    EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
                     NOT WS_BORDER,WS_EX_STATICEDGE
     LTEXT           "Шэнгальц Аляксандр, 2006-2009",IDC_STATIC,73,82,120,12,
                     NOT WS_GROUP
@@ -781,12 +780,12 @@ END
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE
+1 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE
+2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""winresrc.h""\r\n"
     "#include ""staticedit.h""\r\n"
@@ -794,7 +793,7 @@ BEGIN
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE
+3 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "\r\n"
     "\0"
@@ -809,7 +808,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE
+GUIDELINES DESIGNINFO DISCARDABLE 
 BEGIN
     IDD_OFN, DIALOG
     BEGIN
@@ -829,11 +828,11 @@ END
 // String Table
 //
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Памылка ў чарзе паведамленняў."
     MSG_ERROR_LIMIT_REACHED "Аперацыя не можа быць здзейсненая ў сувязі з дасягненнем ліміту тэксту.\nЛіміт будзе павялічаны."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT
+    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Памылка вылучэння памяці для акна рэдагавання."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Бракуе памяці."
     MSG_ERROR_BINARY        """%s"" бінарны файл. Працягнуць?"
@@ -842,7 +841,7 @@ BEGIN
     MSG_ERROR_SYNTAX        "Сінтаксічная памылка."
     MSG_ERROR_PRINT         "Памылка пры друку дакумента"
     MSG_ERROR_RUN           "Немагчыма запусціць праграму."
-    MSG_ERROR_FUNCTION_NOT_FOUND
+    MSG_ERROR_FUNCTION_NOT_FOUND 
                             "Не атрымліваецца знайсці функцыю ""%s::%s"" в ""%s""."
     MSG_ERROR_LOAD_DLL      "Не атрымліваецца загрузіць ""%s""."
     MSG_ERROR_UNLOAD_DLL    "Не атрымліваецца выгрузіць ""%s""."
@@ -850,7 +849,7 @@ BEGIN
     MSG_LONG_FILELIST       "Вылучана занадта шмат файлаў."
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_DOCUMENT_CHANGED    "Дакумент быў зменены. Захаваць?"
     MSG_FILE_DOES_NOT_EXIST "Стварыць новы файл ""%s""?"
@@ -858,7 +857,7 @@ BEGIN
     MSG_SEARCH_ENDED        "Пошук завершаны."
     MSG_REPLACE_COUNT       "Колькасць замен: %d"
     MSG_REPLACE_COUNT_ALLFILES "Змененых файлаў: %d\nКолькасць замен: %d"
-    MSG_FILE_WILL_BE_REOPENED
+    MSG_FILE_WILL_BE_REOPENED 
                             "Файл будзе адчынены зноўку, усё змены будуць страчаны."
     MSG_FILE_CHANGED        """%s"" быў зменены звонку.\n\nПераадкрыць яго?"
     MSG_CP_UNIMPLEMENTED    """%d"" кодавая старонка не падтрымліваецца."
@@ -869,7 +868,7 @@ BEGIN
     MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" не падтрымлівае аўтазагрузку."
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     STR_DOCNAME             "AkelPad дакумент"
     STR_MODIFIED            "Зменены"
@@ -884,7 +883,7 @@ BEGIN
     STR_HOTKEY              "Гарачая клавіша"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Кірыліца (ANSI, OEM, KOI8-R, UTF-8)"
     STR_AUTODETECT_ENGLISH  "Лацінка (OEM)"
@@ -894,7 +893,7 @@ BEGIN
     STR_AUTODETECT_KOREAN   "Карэйскі (UTF-8)"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
     STR_STATUS              "Статус"
     STR_RUNNING             "Працуе"
@@ -912,11 +911,11 @@ BEGIN
     STR_SELECTION           "Вылучэнне"
     STR_ACTIVELINE          "Актыўны радок"
     STR_ACTIVECOLUMN        "Актыўны слупок"
-    STR_CARET               "Карэтка"
 END
 
-STRINGTABLE DISCARDABLE
+STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_CARET               "Карэтка"
     STR_URL                 "Спасылка"
     STR_DEFAULT_SAVE_EXT    "txt"
 END

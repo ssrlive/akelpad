@@ -457,8 +457,8 @@ BEGIN
     EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
     CONTROL         "Zeile",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
                     40,52,10
-    CONTROL         "Zeichen",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
-                    72,40,52,10
+    CONTROL         "Zeichen",IDC_GOTOLINE_OFFSET,"Button",
+                    BS_AUTORADIOBUTTON,72,40,52,10
     PUSHBUTTON      "OK",IDOK,18,60,50,14,BS_CENTER
     PUSHBUTTON      "Abbrechen",IDCANCEL,72,60,50,14,BS_CENTER
 END
@@ -652,22 +652,21 @@ BEGIN
                     BS_AUTORADIOBUTTON,135,63,70,10
     CONTROL         "Zeichenweise",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,135,79,70,10
-    RTEXT           "Limit:",IDC_STATIC,125,104,27,8
-    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,156,102,21,13,ES_NUMBER
+    RTEXT           "Limit:",IDC_STATIC,135,104,27,8
+    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,166,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
                     102,11,13
     GROUPBOX        "Kursor",IDC_STATIC,9,130,200,60
     CONTROL         "Den Kursor über den Zeilenrand hinausgehen lassen",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Aktive Spalte zeigen",
-                    IDC_OPTIONS_CARETVERTLINE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,155,185,10
-    RTEXT           "Breite:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,21,13,ES_NUMBER
+    CONTROL         "Aktive Spalte zeigen",IDC_OPTIONS_CARETVERTLINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
+    RTEXT           "Breite:",IDC_STATIC,126,172,35,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,166,169,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
                     169,11,13
     CONTROL         "Worttrenner:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
@@ -894,11 +893,11 @@ BEGIN
     STR_SELECTION           "Auswahl"
     STR_ACTIVELINE          "Aktive Zeile"
     STR_ACTIVECOLUMN        "Aktive Spalte"
-    STR_CARET               "Kursor"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_CARET               "Kursor"
     STR_URL                 "Link"
     STR_DEFAULT_SAVE_EXT    "txt"
 END

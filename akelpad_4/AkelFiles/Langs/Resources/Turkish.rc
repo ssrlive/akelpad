@@ -518,12 +518,12 @@ CAPTION "Genel"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Ýþlem",IDC_STATIC,9,6,200,90
-    LTEXT           "Komut (%f dosya, %a akelpad dizini):",IDC_STATIC,
-                    21,24,160,8,NOT WS_GROUP
+    LTEXT           "Komut (%f dosya, %a akelpad dizini):",IDC_STATIC,21,24,
+                    160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
-    LTEXT           "Çalýþma dizini (%d dosya dizini):",IDC_STATIC,21,
-                    59,160,8,NOT WS_GROUP
+    LTEXT           "Çalýþma dizini (%d dosya dizini):",IDC_STATIC,21,59,160,
+                    8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
     LTEXT           "Kodsayfasý tanýma:",IDC_STATIC,12,110,150,8
@@ -645,22 +645,21 @@ BEGIN
                     BS_AUTORADIOBUTTON,135,63,70,10
     CONTROL         "By symbols",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,135,79,70,10
-    RTEXT           "Limiti:",IDC_STATIC,125,104,27,8
-    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,156,102,21,13,ES_NUMBER
+    RTEXT           "Limiti:",IDC_STATIC,135,104,27,8
+    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,166,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
                     102,11,13
     GROUPBOX        "Caret",IDC_STATIC,9,130,200,60
     CONTROL         "Allow caret moving out of the line edge",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,144,185,10
-    CONTROL         "Show active column",
-                    IDC_OPTIONS_CARETVERTLINE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,155,185,10
-    RTEXT           "Width:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,21,13,ES_NUMBER
+    CONTROL         "Show active column",IDC_OPTIONS_CARETVERTLINE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
+    RTEXT           "Width:",IDC_STATIC,126,172,35,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,166,169,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
                     169,11,13
     CONTROL         "Kelime sýnýrlayýcý:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
@@ -676,8 +675,8 @@ CAPTION "Geliþmiþ"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Köprüler",IDC_STATIC,9,6,200,120
-    CONTROL         "Göster",IDC_OPTIONS_URL_SHOW,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,19,178,10
+    CONTROL         "Göster",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,19,178,10
     CONTROL         "Tek-týk",IDC_OPTIONS_URL_SINGLECLICK,"Button",
                     BS_AUTORADIOBUTTON,23,33,172,10
     CONTROL         "Ýki-týk",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
@@ -887,11 +886,11 @@ BEGIN
     STR_SELECTION           "Selection"
     STR_ACTIVELINE          "Active line"
     STR_ACTIVECOLUMN        "Active column"
-    STR_CARET               "Caret"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_CARET               "Caret"
     STR_URL                 "Hyperlink"
     STR_DEFAULT_SAVE_EXT    "txt"
 END
