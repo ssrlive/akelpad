@@ -134,6 +134,7 @@ BOOL bMenuLanguage=FALSE;
 BOOL bMainOnStartFinish=FALSE;
 
 //Clones
+BOOL bSplitWindow=FALSE;
 HWND hWndMaster=NULL;
 HWND hWndClone1=NULL;
 HWND hWndClone2=NULL;
@@ -267,7 +268,6 @@ BOOL bWordWrap=FALSE;
 int nWrapType=AEWW_WORD;
 DWORD dwWrapLimit=0;
 BOOL bOnTop=FALSE;
-BOOL bSplitWindow=FALSE;
 BOOL bStatusBar=TRUE;
 DWORD dwShowModify=SM_STATUSBAR;
 DWORD dwStatusPosType=SPT_LINESYMBOL;
@@ -5562,12 +5562,12 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (hWndFrameActive == hWnd)
       {
-        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam));
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &rcMasterWindow, &rcEditWindow);
       }
       else
       {
         if (wf=(WNDFRAMEA *)GetWindowLongA(hWnd, GWL_USERDATA))
-          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam));
+          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &wf->rcMasterWindow, &wf->rcEditWindow);
       }
     }
   }
@@ -5667,6 +5667,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
             memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
+            lpWndFrameA->rcEditWindow=rcEditWindow;
             lpWndFrameA->aec=aecColors;
             lpWndFrameA->ft=ftFileTime;
             lpWndFrameA->dwEditMargins=dwEditMargins;
@@ -5688,6 +5689,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->hWndClone1=hWndClone1;
             lpWndFrameA->hWndClone2=hWndClone2;
             lpWndFrameA->hWndClone3=hWndClone3;
+            lpWndFrameA->rcMasterWindow=rcMasterWindow;
           }
         }
         //Handles
@@ -5710,6 +5712,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           memcpy(wszUrlPrefixes, &lpWndFrameA->wszUrlPrefixes, sizeof(wszUrlPrefixes));
           memcpy(wszUrlDelimiters, &lpWndFrameA->wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
+          rcEditWindow=lpWndFrameA->rcEditWindow;
           aecColors=lpWndFrameA->aec;
           ftFileTime=lpWndFrameA->ft;
           nTabStopSize=lpWndFrameA->nTabStopSize;
@@ -5731,6 +5734,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           hWndClone1=lpWndFrameA->hWndClone1;
           hWndClone2=lpWndFrameA->hWndClone2;
           hWndClone3=lpWndFrameA->hWndClone3;
+          rcMasterWindow=lpWndFrameA->rcMasterWindow;
         }
 
         //Update selection
@@ -5836,12 +5840,12 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (hWndFrameActive == hWnd)
       {
-        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam));
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &rcMasterWindow, &rcEditWindow);
       }
       else
       {
         if (wf=(WNDFRAMEW *)GetWindowLongW(hWnd, GWL_USERDATA))
-          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam));
+          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &wf->rcMasterWindow, &wf->rcEditWindow);
       }
     }
   }
@@ -5941,6 +5945,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
             memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
+            lpWndFrameW->rcEditWindow=rcEditWindow;
             lpWndFrameW->aec=aecColors;
             lpWndFrameW->ft=ftFileTime;
             lpWndFrameW->dwEditMargins=dwEditMargins;
@@ -5962,6 +5967,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->hWndClone1=hWndClone1;
             lpWndFrameW->hWndClone2=hWndClone2;
             lpWndFrameW->hWndClone3=hWndClone3;
+            lpWndFrameW->rcMasterWindow=rcMasterWindow;
           }
         }
         //Handles
@@ -5984,6 +5990,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           memcpy(wszUrlPrefixes, &lpWndFrameW->wszUrlPrefixes, sizeof(wszUrlPrefixes));
           memcpy(wszUrlDelimiters, &lpWndFrameW->wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
+          rcEditWindow=lpWndFrameW->rcEditWindow;
           aecColors=lpWndFrameW->aec;
           ftFileTime=lpWndFrameW->ft;
           dwEditMargins=lpWndFrameW->dwEditMargins;
@@ -6005,6 +6012,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           hWndClone1=lpWndFrameW->hWndClone1;
           hWndClone2=lpWndFrameW->hWndClone2;
           hWndClone3=lpWndFrameW->hWndClone3;
+          rcMasterWindow=lpWndFrameW->rcMasterWindow;
         }
 
         //Update selection
@@ -6263,7 +6271,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       else
       {
         SetFocus(hWndEdit);
-        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom);
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow);
       }
       return TRUE;
     }
@@ -6294,7 +6302,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
         rcMasterWindow.right+=(ptPos.x - ptMouseDown.x);
       if (hCursorClone == hCursorSizeNS || hCursorClone == hCursorSizeALL)
         rcMasterWindow.bottom+=(ptPos.y - ptMouseDown.y);
-      ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom);
+      ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow);
 
       ptMouseDown.x+=(rcMasterWindow.right - rcMasterInitial.right);
       ptMouseDown.y+=(rcMasterWindow.bottom - rcMasterInitial.bottom);

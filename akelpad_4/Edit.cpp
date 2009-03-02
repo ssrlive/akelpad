@@ -112,6 +112,7 @@ extern BOOL bMenuLanguage;
 extern BOOL bMainOnStartFinish;
 
 //Clones
+extern BOOL bSplitWindow;
 extern HWND hWndMaster;
 extern HWND hWndClone1;
 extern HWND hWndClone2;
@@ -245,7 +246,6 @@ extern BOOL bWordWrap;
 extern int nWrapType;
 extern DWORD dwWrapLimit;
 extern BOOL bOnTop;
-extern BOOL bSplitWindow;
 extern BOOL bStatusBar;
 extern DWORD dwShowModify;
 extern DWORD dwStatusPosType;
@@ -2071,12 +2071,10 @@ void DoViewSplitWindow(BOOL bState)
     if (hWndClone3=CreateEditWindowW(GetParent(hWndMaster)))
       SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone3, 0);
 
-    //Update size
     rcMasterWindow.left=0;
     rcMasterWindow.top=0;
     rcMasterWindow.right=rcEditWindow.right / 2;
     rcMasterWindow.bottom=rcEditWindow.bottom / 2;
-    ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom);
   }
   else
   {
@@ -2084,10 +2082,8 @@ void DoViewSplitWindow(BOOL bState)
     hWndEdit=hWndMaster;
     DestroyEdit(CN_CLONE1|CN_CLONE2|CN_CLONE3, &hWndEdit, &hWndMaster, &hWndClone1, &hWndClone2, &hWndClone3);
     hWndMaster=NULL;
-
-    //Update size
-    ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom);
   }
+  ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow);
 }
 
 void DoViewShowStatusBar(BOOL bState, BOOL bFirst)
@@ -18854,7 +18850,7 @@ void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClon
         SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone1, 0);
         SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone1, 0);
         DestroyWindow(*hWndClone1);
-  
+
         if (hWndEdit && *hWndEdit && *hWndClone1 == *hWndEdit)
           *hWndEdit=*hWndMaster;
         *hWndClone1=NULL;
@@ -18867,7 +18863,7 @@ void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClon
         SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone2, 0);
         SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone2, 0);
         DestroyWindow(*hWndClone2);
-  
+
         if (hWndEdit && *hWndEdit && *hWndClone2 == *hWndEdit)
           *hWndEdit=*hWndMaster;
         *hWndClone2=NULL;
@@ -18880,7 +18876,7 @@ void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClon
         SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndClone3, 0);
         SendMessage(*hWndMaster, AEM_DELCLONE, (WPARAM)*hWndClone3, 0);
         DestroyWindow(*hWndClone3);
-  
+
         if (hWndEdit && *hWndEdit && *hWndClone3 == *hWndEdit)
           *hWndEdit=*hWndMaster;
         *hWndClone3=NULL;
@@ -18892,7 +18888,7 @@ void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClon
       {
         SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndMaster, 0);
         DestroyWindow(*hWndMaster);
-  
+
         if (hWndEdit && *hWndEdit && *hWndMaster == *hWndEdit)
           *hWndEdit=NULL;
         *hWndMaster=NULL;
@@ -18911,7 +18907,7 @@ void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClon
   }
 }
 
-void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight)
+void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight, RECT *rcMasterWindow, RECT *rcEditWindow)
 {
   UpdateWindow(hStatus);
 
@@ -18919,35 +18915,35 @@ void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2
   {
     if (hWndClone1)
     {
-      rcMasterWindow.right=max(rcMasterWindow.right, 40);
-      rcMasterWindow.right=min(rcMasterWindow.right, nWidth - 40);
-      rcMasterWindow.right=max(rcMasterWindow.right, 0);
+      rcMasterWindow->right=max(rcMasterWindow->right, 40);
+      rcMasterWindow->right=min(rcMasterWindow->right, nWidth - 40);
+      rcMasterWindow->right=max(rcMasterWindow->right, 0);
     }
-    else rcMasterWindow.right=nWidth;
+    else rcMasterWindow->right=nWidth;
 
     if (hWndClone2)
     {
-      rcMasterWindow.bottom=max(rcMasterWindow.bottom, 40);
-      rcMasterWindow.bottom=min(rcMasterWindow.bottom, nHeight - 40);
-      rcMasterWindow.bottom=max(rcMasterWindow.bottom, 0);
+      rcMasterWindow->bottom=max(rcMasterWindow->bottom, 40);
+      rcMasterWindow->bottom=min(rcMasterWindow->bottom, nHeight - 40);
+      rcMasterWindow->bottom=max(rcMasterWindow->bottom, 0);
     }
-    else rcMasterWindow.bottom=nHeight;
+    else rcMasterWindow->bottom=nHeight;
 
     if (hWndMaster)
-      MoveWindow(hWndMaster, rcMasterWindow.left, rcMasterWindow.top, rcMasterWindow.right, rcMasterWindow.bottom, TRUE);
+      MoveWindow(hWndMaster, rcMasterWindow->left, rcMasterWindow->top, rcMasterWindow->right, rcMasterWindow->bottom, TRUE);
     if (hWndClone1)
-      MoveWindow(hWndClone1, rcMasterWindow.right, rcMasterWindow.top, nWidth - rcMasterWindow.right, rcMasterWindow.bottom, TRUE);
+      MoveWindow(hWndClone1, rcMasterWindow->right, rcMasterWindow->top, nWidth - rcMasterWindow->right, rcMasterWindow->bottom, TRUE);
     if (hWndClone2)
-      MoveWindow(hWndClone2, rcMasterWindow.left, rcMasterWindow.bottom, rcMasterWindow.right, nHeight - rcMasterWindow.bottom, TRUE);
+      MoveWindow(hWndClone2, rcMasterWindow->left, rcMasterWindow->bottom, rcMasterWindow->right, nHeight - rcMasterWindow->bottom, TRUE);
     if (hWndClone3)
-      MoveWindow(hWndClone3, rcMasterWindow.right, rcMasterWindow.bottom, nWidth - rcMasterWindow.right, nHeight - rcMasterWindow.bottom, TRUE);
+      MoveWindow(hWndClone3, rcMasterWindow->right, rcMasterWindow->bottom, nWidth - rcMasterWindow->right, nHeight - rcMasterWindow->bottom, TRUE);
   }
   else MoveWindow(hWndEdit, X, Y, nWidth, nHeight, TRUE);
 
-  rcEditWindow.left=X;
-  rcEditWindow.top=Y;
-  rcEditWindow.right=nWidth;
-  rcEditWindow.bottom=nHeight;
+  rcEditWindow->left=X;
+  rcEditWindow->top=Y;
+  rcEditWindow->right=nWidth;
+  rcEditWindow->bottom=nHeight;
 }
 
 void UpdateSize()
@@ -18971,7 +18967,7 @@ void UpdateSize()
 
     if (!bMDI)
     {
-      ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, nsSize.rcCurrent.bottom);
+      ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, nsSize.rcCurrent.bottom, &rcMasterWindow, &rcEditWindow);
     }
     else
     {

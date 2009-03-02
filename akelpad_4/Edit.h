@@ -420,6 +420,7 @@ typedef struct _WNDFRAMEA {
   HICON hIcon;
   char szFile[MAX_PATH];
   EDITINFO ei;
+  RECT rcEditWindow;
   LOGFONTA lf;
   AECOLORS aec;
   FILETIME ft;
@@ -445,12 +446,14 @@ typedef struct _WNDFRAMEA {
   HWND hWndClone1;
   HWND hWndClone2;
   HWND hWndClone3;
+  RECT rcMasterWindow;
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
   HICON hIcon;
   wchar_t wszFile[MAX_PATH];
   EDITINFO ei;
+  RECT rcEditWindow;
   LOGFONTW lf;
   AECOLORS aec;
   FILETIME ft;
@@ -476,6 +479,7 @@ typedef struct _WNDFRAMEW {
   HWND hWndClone1;
   HWND hWndClone2;
   HWND hWndClone3;
+  RECT rcMasterWindow;
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
@@ -1257,7 +1261,7 @@ int TranslateFileStringW(wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
 void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3);
-void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight);
+void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight, RECT *rcMasterWindow, RECT *rcEditWindow);
 void UpdateSize();
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
 void DrawMovingRect(RECT *rcScreen);
