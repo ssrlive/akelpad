@@ -109,8 +109,8 @@ BEGIN
         MENUITEM "색상(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "자동 줄바꿈(&W)\tCtrl+U",     IDM_VIEW_WORDWRAP
-        MENUITEM "항상 맨 위(&A)\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "항상 맨 위(&A)\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "상태표시줄(&S)",              IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "언어(&L)"

@@ -108,8 +108,8 @@ BEGIN
         MENUITEM "&Colores...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "A&juste de texto\tCtrl+U",    IDM_VIEW_WORDWRAP
-        MENUITEM "Siempre &visible\tCtrl+T",    IDM_VIEW_ONTOP
         MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "Siempre &visible\tCtrl+T",    IDM_VIEW_ONTOP
         MENUITEM "Barra de e&stado",            IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Idioma"

@@ -109,8 +109,8 @@ BEGIN
         MENUITEM "色(&C)...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "文章を折り返す(&W)\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "常に手前に表示(&A)\tCtrl+T",  IDM_VIEW_ONTOP
         MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "常に手前に表示(&A)\tCtrl+T",  IDM_VIEW_ONTOP
         MENUITEM "ステータス バー(&S)",         IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "言語(&L)"

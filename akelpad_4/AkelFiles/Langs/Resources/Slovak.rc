@@ -109,8 +109,8 @@ BEGIN
         MENUITEM "&Farby...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Zalomiù text\tCtrl+U",       IDM_VIEW_WORDWRAP
-        MENUITEM "&Vûdy na vrchu\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "&Vûdy na vrchu\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "&Stavov˝ riadok",             IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Jazyk"

@@ -106,8 +106,8 @@ BEGIN
         MENUITEM "&Кольори...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "П&еренесення по словам\tCtrl+U", IDM_VIEW_WORDWRAP
-        MENUITEM "&Поверх всіх вікон\tCtrl+T",  IDM_VIEW_ONTOP
         MENUITEM "&Разделить окно",             IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "&Поверх всіх вікон\tCtrl+T",  IDM_VIEW_ONTOP
         MENUITEM "Рядок &стану",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Мова"

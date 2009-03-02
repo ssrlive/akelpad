@@ -106,8 +106,8 @@ BEGIN
         MENUITEM "&Colors...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Wrap words\tCtrl+U",         IDM_VIEW_WORDWRAP
-        MENUITEM "&Always on top\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "&Always on top\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "&Status bar",                 IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Language"
