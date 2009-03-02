@@ -156,6 +156,12 @@
 #define AUTOANSWER_YES  1
 #define AUTOANSWER_NO   2
 
+//Sides
+#define SIDE_LEFT    0x00000001
+#define SIDE_RIGHT   0x00000002
+#define SIDE_TOP     0x00000004
+#define SIDE_BOTTOM  0x00000008
+
 //Dock side
 #define DKS_LEFT    1
 #define DKS_RIGHT   2
