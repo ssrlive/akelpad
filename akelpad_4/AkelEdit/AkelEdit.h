@@ -2644,7 +2644,6 @@ ____________
 Adds clone to the master window. Message sended to a master window which will be cloned.
 
 (HWND)wParam == edit control handle which become a clone. Text of the master and clone windows will be the same.
-                Application should update master and clones windows after text change (see AEN_TEXTCHANGED).
 lParam       == not used.
 
 Return Value

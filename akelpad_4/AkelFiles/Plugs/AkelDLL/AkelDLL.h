@@ -213,6 +213,7 @@ typedef struct _WNDFRAMEA {
   LOGFONTA lf;                                      //Edit font
   AECOLORS aec;                                     //Edit colors
   FILETIME ft;                                      //File time
+  RECT rcEditWindow;                                //Edit RECT
   DWORD dwEditMargins;                              //Edit margins
   int nTabStopSize;                                 //Tab stop size
   BOOL bTabStopAsSpaces;                            //Insert tab stop as spaces
@@ -230,6 +231,12 @@ typedef struct _WNDFRAMEA {
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
+  BOOL bSplitWindow;                                //Edit window is splited
+  HWND hWndMaster;                                  //Master window
+  HWND hWndClone1;                                  //Clone window one
+  HWND hWndClone2;                                  //Clone window two
+  HWND hWndClone3;                                  //Clone window three
+  RECT rcMasterWindow;                              //Master window RECT
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -239,6 +246,7 @@ typedef struct _WNDFRAMEW {
   LOGFONTW lf;                                      //Edit font
   AECOLORS aec;                                     //Edit colors
   FILETIME ft;                                      //File time
+  RECT rcEditWindow;                                //Edit RECT
   DWORD dwEditMargins;                              //Edit margins
   int nTabStopSize;                                 //Tab stop size
   BOOL bTabStopAsSpaces;                            //Insert tab stop as spaces
@@ -256,6 +264,12 @@ typedef struct _WNDFRAMEW {
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
+  BOOL bSplitWindow;                                //Edit window is splited
+  HWND hWndMaster;                                  //Master window
+  HWND hWndClone1;                                  //Clone window one
+  HWND hWndClone2;                                  //Clone window two
+  HWND hWndClone3;                                  //Clone window three
+  RECT rcMasterWindow;                              //Master window RECT
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {

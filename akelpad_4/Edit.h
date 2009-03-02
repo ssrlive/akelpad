@@ -420,10 +420,10 @@ typedef struct _WNDFRAMEA {
   HICON hIcon;
   char szFile[MAX_PATH];
   EDITINFO ei;
-  RECT rcEditWindow;
   LOGFONTA lf;
   AECOLORS aec;
   FILETIME ft;
+  RECT rcEditWindow;
   DWORD dwEditMargins;
   int nTabStopSize;
   BOOL bTabStopAsSpaces;
@@ -453,10 +453,10 @@ typedef struct _WNDFRAMEW {
   HICON hIcon;
   wchar_t wszFile[MAX_PATH];
   EDITINFO ei;
-  RECT rcEditWindow;
   LOGFONTW lf;
   AECOLORS aec;
   FILETIME ft;
+  RECT rcEditWindow;
   DWORD dwEditMargins;
   int nTabStopSize;
   BOOL bTabStopAsSpaces;

@@ -257,7 +257,6 @@ BOOL bGlobalPrint=FALSE;
 BOOL bPrintFontChanged=FALSE;
 
 //Edit state
-RECT rcEditWindow={0};
 AECHARRANGE crSel={0};
 AECHARINDEX ciCaret={0};
 BOOL bModified=FALSE;
@@ -278,6 +277,7 @@ BOOL bSingleOpenFile=FALSE;
 BOOL bSingleOpenProgram=TRUE;
 BOOL bKeepSpace=FALSE;
 int nLoopCase=0;
+RECT rcEditWindow={0};
 DWORD dwEditMargins=EDIT_MARGINS;
 int nTabStopSize=EDIT_TABSTOPS;
 BOOL bTabStopAsSpaces=FALSE;
@@ -5667,9 +5667,9 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
             memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
-            lpWndFrameA->rcEditWindow=rcEditWindow;
             lpWndFrameA->aec=aecColors;
             lpWndFrameA->ft=ftFileTime;
+            lpWndFrameA->rcEditWindow=rcEditWindow;
             lpWndFrameA->dwEditMargins=dwEditMargins;
             lpWndFrameA->nTabStopSize=nTabStopSize;
             lpWndFrameA->bTabStopAsSpaces=bTabStopAsSpaces;
@@ -5712,11 +5712,11 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           memcpy(wszUrlPrefixes, &lpWndFrameA->wszUrlPrefixes, sizeof(wszUrlPrefixes));
           memcpy(wszUrlDelimiters, &lpWndFrameA->wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
-          rcEditWindow=lpWndFrameA->rcEditWindow;
           aecColors=lpWndFrameA->aec;
           ftFileTime=lpWndFrameA->ft;
-          nTabStopSize=lpWndFrameA->nTabStopSize;
+          rcEditWindow=lpWndFrameA->rcEditWindow;
           dwEditMargins=lpWndFrameA->dwEditMargins;
+          nTabStopSize=lpWndFrameA->nTabStopSize;
           bTabStopAsSpaces=lpWndFrameA->bTabStopAsSpaces;
           nUndoLimit=lpWndFrameA->nUndoLimit;
           bDetailedUndo=lpWndFrameA->bDetailedUndo;
@@ -5945,9 +5945,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
             memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
-            lpWndFrameW->rcEditWindow=rcEditWindow;
             lpWndFrameW->aec=aecColors;
             lpWndFrameW->ft=ftFileTime;
+            lpWndFrameW->rcEditWindow=rcEditWindow;
             lpWndFrameW->dwEditMargins=dwEditMargins;
             lpWndFrameW->nTabStopSize=nTabStopSize;
             lpWndFrameW->bTabStopAsSpaces=bTabStopAsSpaces;
@@ -5990,9 +5990,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           memcpy(wszUrlPrefixes, &lpWndFrameW->wszUrlPrefixes, sizeof(wszUrlPrefixes));
           memcpy(wszUrlDelimiters, &lpWndFrameW->wszUrlDelimiters, sizeof(wszUrlDelimiters));
 
-          rcEditWindow=lpWndFrameW->rcEditWindow;
           aecColors=lpWndFrameW->aec;
           ftFileTime=lpWndFrameW->ft;
+          rcEditWindow=lpWndFrameW->rcEditWindow;
           dwEditMargins=lpWndFrameW->dwEditMargins;
           nTabStopSize=lpWndFrameW->nTabStopSize;
           bTabStopAsSpaces=lpWndFrameW->bTabStopAsSpaces;
