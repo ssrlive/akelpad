@@ -2953,6 +2953,43 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ReplaceSelW(hWndEdit, L"\n", -1, FALSE, NULL, NULL);
       return bResult;
     }
+    else if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT ||
+             LOWORD(wParam) == IDM_NONMENU_CLONEPREV)
+    {
+      HWND lpClones[]={hWndMaster, hWndClone1, hWndClone2, hWndClone3};
+      int nCloneCount=sizeof(lpClones) / sizeof(HWND);
+      int i;
+
+      if (hWndMaster && hWndEdit)
+      {
+        for (i=0; i < nCloneCount; ++i)
+        {
+          if (hWndEdit == lpClones[i])
+            break;
+        }
+
+        while (i < nCloneCount)
+        {
+          if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT)
+          {
+            if (++i >= nCloneCount)
+              i=0;
+          }
+          else
+          {
+            if (--i < 0)
+              i=nCloneCount - 1;
+          }
+
+          if (lpClones[i])
+          {
+            SetFocus(lpClones[i]);
+            return (LRESULT)lpClones[i];
+          }
+        }
+      }
+      return NULL;
+    }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
       RECT rc;
@@ -4671,6 +4708,43 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!(bResult=AutoIndent(hWndEdit, &crSel)))
         ReplaceSelW(hWndEdit, L"\n", -1, FALSE, NULL, NULL);
       return bResult;
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT ||
+             LOWORD(wParam) == IDM_NONMENU_CLONEPREV)
+    {
+      HWND lpClones[]={hWndMaster, hWndClone1, hWndClone2, hWndClone3};
+      int nCloneCount=sizeof(lpClones) / sizeof(HWND);
+      int i;
+
+      if (hWndMaster && hWndEdit)
+      {
+        for (i=0; i < nCloneCount; ++i)
+        {
+          if (hWndEdit == lpClones[i])
+            break;
+        }
+
+        while (i < nCloneCount)
+        {
+          if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT)
+          {
+            if (++i >= nCloneCount)
+              i=0;
+          }
+          else
+          {
+            if (--i < 0)
+              i=nCloneCount - 1;
+          }
+
+          if (lpClones[i])
+          {
+            SetFocus(lpClones[i]);
+            return (LRESULT)lpClones[i];
+          }
+        }
+      }
+      return NULL;
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
