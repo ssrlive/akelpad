@@ -734,6 +734,15 @@ typedef struct _NSIZE {
 #define IDM_VIEW_SHOW_STATUSBAR         4211  //Show statusbar (on\off)
                                               //Return Value: zero
                                               //
+#define IDM_VIEW_SPLIT_WINDOW_ALL       4212  //Split window into four panes
+                                              //Return Value: zero
+                                              //
+#define IDM_VIEW_SPLIT_WINDOW_WE        4213  //Split window into two vertical panes
+                                              //Return Value: zero
+                                              //
+#define IDM_VIEW_SPLIT_WINDOW_NS        4214  //Split window into two horizontal panes
+                                              //Return Value: zero
+                                              //
 #define IDM_OPTIONS_EXEC                4251  //Execute command
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
@@ -874,6 +883,12 @@ typedef struct _NSIZE {
                                               //
 #define IDM_NONMENU_SAVEAS_UTF8_NOBOM   4426  //Save file as UTF8 without BOM
                                               //Return Value: see ESD_* defines
+                                              //
+#define IDM_NONMENU_CLONENEXT           4427  //Activate next pane (split window)
+                                              //Return Value: activated pane handle
+                                              //
+#define IDM_NONMENU_CLONEPREV           4428  //Activate previous pane (split window)
+                                              //Return Value: activated pane handle
                                               //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files
                                               //5001 + n  open recent file n
