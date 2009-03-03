@@ -111,7 +111,7 @@ BEGIN
         MENUITEM "&Kleuren...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Regelterugloop\tCtrl+U",     IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Altijd bovenaan\tCtrl+T",    IDM_VIEW_ONTOP
         MENUITEM "&Status balk",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

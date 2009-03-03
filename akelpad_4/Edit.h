@@ -910,7 +910,7 @@ void DoViewColorsW();
 void DoViewFontSizeA(HWND hWnd, int nAction);
 void DoViewFontSizeW(HWND hWnd, int nAction);
 void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst);
-void DoViewSplitWindow(BOOL bState);
+void DoViewSplitWindow(BOOL bState, WPARAM wParam);
 void DoViewOnTop(BOOL bState, BOOL bFirst);
 void DoViewShowStatusBar(BOOL bState, BOOL bFirst);
 BOOL DoSettingsExecA();

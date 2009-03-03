@@ -109,7 +109,7 @@ BEGIN
         MENUITEM "&Couleurs...",                IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Renvoyer les mots à la ligne\tCtrl+U", IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Toujours au dessus\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "&Barre d'état",               IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

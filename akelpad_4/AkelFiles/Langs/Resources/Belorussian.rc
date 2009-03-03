@@ -106,7 +106,7 @@ BEGIN
         MENUITEM "&Колеры...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "П&еранос па словах\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "&Разделить окно",             IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "&Разделить окно",             IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Па-над усімі вокнамі\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "&Радок стану",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

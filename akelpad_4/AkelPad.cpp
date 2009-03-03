@@ -2341,7 +2341,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_MAC, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
-      CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW, bSplitWindow?MF_CHECKED:MF_UNCHECKED);
+      CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW_ALL, bSplitWindow?MF_CHECKED:MF_UNCHECKED);
     }
     bMenuLanguage=TRUE;
     if (lParam) return TRUE;
@@ -2762,13 +2762,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoViewWordWrap(hWndEdit, !bWordWrap, FALSE);
     }
+    else if (LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_ALL ||
+             LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_WE ||
+             LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_NS)
+    {
+      DoViewSplitWindow(!bSplitWindow, LOWORD(wParam));
+    }
     else if (LOWORD(wParam) == IDM_VIEW_ONTOP)
     {
       DoViewOnTop(!bOnTop, FALSE);
-    }
-    else if (LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW)
-    {
-      DoViewSplitWindow(!bSplitWindow);
     }
     else if (LOWORD(wParam) == IDM_VIEW_SHOW_STATUSBAR)
     {
@@ -4058,7 +4060,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_MAC, IDM_EDIT_NEWLINE_MAC, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
-      CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW, bSplitWindow?MF_CHECKED:MF_UNCHECKED);
+      CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW_ALL, bSplitWindow?MF_CHECKED:MF_UNCHECKED);
     }
     bMenuLanguage=TRUE;
     if (lParam) return TRUE;
@@ -4479,13 +4481,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoViewWordWrap(hWndEdit, !bWordWrap, FALSE);
     }
+    else if (LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_ALL ||
+             LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_WE ||
+             LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_NS)
+    {
+      DoViewSplitWindow(!bSplitWindow, LOWORD(wParam));
+    }
     else if (LOWORD(wParam) == IDM_VIEW_ONTOP)
     {
       DoViewOnTop(!bOnTop, FALSE);
-    }
-    else if (LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW)
-    {
-      DoViewSplitWindow(!bSplitWindow);
     }
     else if (LOWORD(wParam) == IDM_VIEW_SHOW_STATUSBAR)
     {
@@ -6266,7 +6270,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
       if (!hWndClone1 && !hWndClone2 && !hWndClone3)
       {
-        DoViewSplitWindow(FALSE);
+        DoViewSplitWindow(FALSE, 0);
       }
       else
       {

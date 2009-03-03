@@ -109,7 +109,7 @@ BEGIN
         MENUITEM "&Colori...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "A capo automatico\tCtrl+U",   IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "Sempre in Primo Piano\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "&Barra di Stato",             IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
