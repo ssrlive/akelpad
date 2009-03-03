@@ -1,5 +1,5 @@
 
-AkelPad 4.1.6 ()
+AkelPad 4.1.6 (Mar 03, 2009)
 ----------------------------
 Added: opportunity to split edit window to work with different areas of one file.
 Added: commands 4211, 4212, 4213, 4427, 4428 to work with panes of split window.
