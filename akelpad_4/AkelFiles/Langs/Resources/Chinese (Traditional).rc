@@ -107,7 +107,7 @@ BEGIN
         MENUITEM "顏色(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "自動換行(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "保持在上層(&A)\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "狀態列(&S)",                  IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

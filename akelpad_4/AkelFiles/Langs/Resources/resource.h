@@ -243,8 +243,10 @@
 #define IDM_VIEW_DECREASE_FONT          4205
 #define IDM_VIEW_WORDWRAP               4209
 #define IDM_VIEW_ONTOP                  4210
-#define IDM_VIEW_SPLIT_WINDOW           4211
-#define IDM_VIEW_SHOW_STATUSBAR         4212
+#define IDM_VIEW_SHOW_STATUSBAR         4211
+#define IDM_VIEW_SPLIT_WINDOW_ALL       4212
+#define IDM_VIEW_SPLIT_WINDOW_WE        4213
+#define IDM_VIEW_SPLIT_WINDOW_NS        4214
 #define IDM_OPTIONS_EXEC                4251
 #define IDM_OPTIONS_SAVETIME            4252
 #define IDM_OPTIONS_WATCHFILE           4253

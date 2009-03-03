@@ -2043,9 +2043,9 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
   }
 }
 
-void DoViewSplitWindow(BOOL bState)
+void DoViewSplitWindow(BOOL bState, WPARAM wParam)
 {
-  CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW, bState?MF_CHECKED:MF_UNCHECKED);
+  CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW_ALL, bState?MF_CHECKED:MF_UNCHECKED);
   bSplitWindow=bState;
 
   if (bSplitWindow)
@@ -2057,13 +2057,24 @@ void DoViewSplitWindow(BOOL bState)
 
     //Create
     hWndMaster=hWndEdit;
-    if (hWndClone1=CreateEditWindowW(GetParent(hWndMaster)))
-      SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone1, 0);
-    if (hWndClone2=CreateEditWindowW(GetParent(hWndMaster)))
-      SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone2, 0);
-    if (hWndClone3=CreateEditWindowW(GetParent(hWndMaster)))
-      SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone3, 0);
 
+    if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL ||
+        wParam == IDM_VIEW_SPLIT_WINDOW_WE)
+    {
+      if (hWndClone1=CreateEditWindowW(GetParent(hWndMaster)))
+        SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone1, 0);
+    }
+    if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL ||
+        wParam == IDM_VIEW_SPLIT_WINDOW_NS)
+    {
+      if (hWndClone2=CreateEditWindowW(GetParent(hWndMaster)))
+        SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone2, 0);
+    }
+    if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL)
+    {
+      if (hWndClone3=CreateEditWindowW(GetParent(hWndMaster)))
+        SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone3, 0);
+    }
     rcMasterWindow.left=0;
     rcMasterWindow.top=0;
     rcMasterWindow.right=rcEditWindow.right / 2;

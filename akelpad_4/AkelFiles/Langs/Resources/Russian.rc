@@ -105,7 +105,7 @@ BEGIN
         MENUITEM "&Цвета...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "П&еренос по словам\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "&Разделить окно",             IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "&Разделить окно",             IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Поверх всех окон\tCtrl+T",   IDM_VIEW_ONTOP
         MENUITEM "&Строка состояния",           IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

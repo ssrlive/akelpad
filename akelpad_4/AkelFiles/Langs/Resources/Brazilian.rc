@@ -109,7 +109,7 @@ BEGIN
         MENUITEM "&Cores...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Quebrar linhas grandes\tCtrl+U", IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Sempre visível\tCtrl+T",     IDM_VIEW_ONTOP
         MENUITEM "&Barra de status",            IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR

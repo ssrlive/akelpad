@@ -108,7 +108,7 @@ BEGIN
         MENUITEM "&Colors...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "Za&wijanie wierszy\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW
+        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "Zawsze n&a wierzchu\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "&Pasek stanu",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
