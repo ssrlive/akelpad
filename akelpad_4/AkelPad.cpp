@@ -2988,7 +2988,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
       }
-      return NULL;
+      return (LRESULT)NULL;
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
@@ -4744,7 +4744,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
       }
-      return NULL;
+      return (LRESULT)NULL;
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
