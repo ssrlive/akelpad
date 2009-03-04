@@ -1878,7 +1878,8 @@ ___________
 
 Set the formatting rectangle of an edit control. The formatting rectangle is the limiting rectangle into which the control draws the text.
 
-wParam         == not used.
+(BOOL)wParam   == TRUE   redraw edit window.
+                  FALSE  don't redraw edit window.
 (RECT *)lParam == pointer to a RECT structure that specifies the new dimensions of the rectangle. If this parameter is NULL, the formatting rectangle is set to its default values.
 
 Return Value
@@ -1891,7 +1892,7 @@ Example:
  rc.top=10;
  rc.right=200;
  rc.bottom=200;
- SendMessage(hWndEdit, AEM_SETRECT, 0, (LPARAM)&rc);
+ SendMessage(hWndEdit, AEM_SETRECT, TRUE, (LPARAM)&rc);
 
 
 AEM_GETSCROLLPOS

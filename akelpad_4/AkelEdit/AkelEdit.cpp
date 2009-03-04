@@ -688,7 +688,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         RECT *rcDraw=(RECT *)lParam;
 
-        AE_SetDrawRect(ae, rcDraw, TRUE);
+        AE_SetDrawRect(ae, rcDraw, wParam);
         if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, ae->ptxt->nWordWrap);
         AE_UpdateScrollBars(ae, SB_BOTH);
         return 0;
