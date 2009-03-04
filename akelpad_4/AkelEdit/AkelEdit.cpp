@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.1.6                               *
+ *                      AkelEdit text control v1.1.7                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -3553,7 +3553,7 @@ void AE_StackUpdateClones(AKELEDIT *ae)
   if (hWndSender != ae->hWndEdit)
   {
     AE_UpdateScrollBars(ae, SB_BOTH);
-    InvalidateRect(ae->hWndEdit, NULL, TRUE);
+    InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
   }
 
   //Clones
@@ -3564,7 +3564,7 @@ void AE_StackUpdateClones(AKELEDIT *ae)
     if (hWndSender != lpElement->aeClone->hWndEdit)
     {
       AE_UpdateScrollBars(lpElement->aeClone, SB_BOTH);
-      InvalidateRect(lpElement->aeClone->hWndEdit, NULL, TRUE);
+      InvalidateRect(lpElement->aeClone->hWndEdit, &lpElement->aeClone->rcDraw, TRUE);
     }
 
     lpElement=lpElement->prev;
