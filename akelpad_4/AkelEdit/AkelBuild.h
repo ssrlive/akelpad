@@ -509,7 +509,7 @@ void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax);
 void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec);
-void AE_NotifyErrSpace(AKELEDIT *ae);
+void AE_NotifyErrSpace(AKELEDIT *ae, DWORD dwBytes);
 void AE_NotifySetFocus(AKELEDIT *ae);
 void AE_NotifyKillFocus(AKELEDIT *ae);
 void AE_NotifySelChanging(AKELEDIT *ae);

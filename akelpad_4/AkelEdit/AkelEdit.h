@@ -65,30 +65,30 @@
 #define AECOOP_XOR              4  //Logically exclusive OR the current options with those specified by lParam.
 
 //AEM_GETINDEX flags
-#define AEGI_FIRSTCHAR          1   //First character
-#define AEGI_LASTCHAR           2   //Last character
-#define AEGI_FIRSTSELCHAR       3   //First character of the selection
-#define AEGI_LASTSELCHAR        4   //Last character of the selection
-#define AEGI_CARETCHAR          5   //Caret character
-#define AEGI_FIRSTVISIBLELINE   6   //First character of the first visible line
-#define AEGI_LASTVISIBLELINE    7   //Last character of the last visible line
-#define AEGI_NEXTLINE           8   //First character of the next line
-#define AEGI_PREVLINE           9   //First character of the previous line
-#define AEGI_NEXTCHAR           10  //Next character
-#define AEGI_PREVCHAR           11  //Previous character
-#define AEGI_NEXTBREAK          12  //Next break index, see AEM_SETWORDDELIMITERS
-#define AEGI_PREVBREAK          13  //Previous break index, see AEM_SETWORDDELIMITERS
-#define AEGI_NEXTWORDSTART      14  //Next word start index, see AEM_SETWORDDELIMITERS
-#define AEGI_NEXTWORDEND        15  //Next word end index, see AEM_SETWORDDELIMITERS
-#define AEGI_PREVWORDSTART      16  //Previous word start index, see AEM_SETWORDDELIMITERS
-#define AEGI_PREVWORDEND        17  //Previous word end index, see AEM_SETWORDDELIMITERS
-#define AEGI_WRAPLINEBEGIN      18  //First character of the unwrapped line
-#define AEGI_WRAPLINEEND        19  //Last character of the unwrapped line
+#define AEGI_FIRSTCHAR          1   //First character.
+#define AEGI_LASTCHAR           2   //Last character.
+#define AEGI_FIRSTSELCHAR       3   //First character of the selection.
+#define AEGI_LASTSELCHAR        4   //Last character of the selection.
+#define AEGI_CARETCHAR          5   //Caret character.
+#define AEGI_FIRSTVISIBLELINE   6   //First character of the first visible line.
+#define AEGI_LASTVISIBLELINE    7   //Last character of the last visible line.
+#define AEGI_NEXTLINE           8   //First character of the next line.
+#define AEGI_PREVLINE           9   //First character of the previous line.
+#define AEGI_NEXTCHAR           10  //Next character.
+#define AEGI_PREVCHAR           11  //Previous character.
+#define AEGI_NEXTBREAK          12  //Next break index, see AEM_SETWORDDELIMITERS.
+#define AEGI_PREVBREAK          13  //Previous break index, see AEM_SETWORDDELIMITERS.
+#define AEGI_NEXTWORDSTART      14  //Next word start index, see AEM_SETWORDDELIMITERS.
+#define AEGI_NEXTWORDEND        15  //Next word end index, see AEM_SETWORDDELIMITERS.
+#define AEGI_PREVWORDSTART      16  //Previous word start index, see AEM_SETWORDDELIMITERS.
+#define AEGI_PREVWORDEND        17  //Previous word end index, see AEM_SETWORDDELIMITERS.
+#define AEGI_WRAPLINEBEGIN      18  //First character of the unwrapped line.
+#define AEGI_WRAPLINEEND        19  //Last character of the unwrapped line.
 
 //AEM_ISDELIMITER parameter
-#define AEDLM_WORD    0  //Word delimiter
-#define AEDLM_WRAP    1  //Wrap delimiter
-#define AEDLM_URL     2  //URL delimiter
+#define AEDLM_WORD    0  //Word delimiter.
+#define AEDLM_WRAP    1  //Wrap delimiter.
+#define AEDLM_URL     2  //URL delimiter.
 
 //AEM_UPDATESEL flags
 #define AESELT_LOCKNOTIFY        0x00000001  //Disable AEN_SELCHANGING and AEN_SELCHANGED notifications.
@@ -97,25 +97,25 @@
 #define AESELT_LOCKUNDOGROUPING  0x00000008  //Don't use it. For internal code only.
 
 //AEM_CHARFROMPOS return value
-#define AEPC_ERROR    0  //Error
-#define AEPC_EQUAL    1  //Char exactly in specified position
-#define AEPC_BEFORE   2  //Char before the specified position
-#define AEPC_AFTER    3  //Char after the specified position
+#define AEPC_ERROR    0  //Error.
+#define AEPC_EQUAL    1  //Char exactly in specified position.
+#define AEPC_BEFORE   2  //Char before the specified position.
+#define AEPC_AFTER    3  //Char after the specified position.
 
 //New line value
-#define AELB_ASIS     1  //Use new line of the source
-#define AELB_ASINPUT  2  //Use input new line, see AEM_SETNEWLINE with AENL_INPUT
-#define AELB_ASOUTPUT 3  //Use output new line, see AEM_SETNEWLINE with AENL_OUTPUT
-#define AELB_EOF      4  //End-of-file new line
-#define AELB_R        5  //"\r" new line
-#define AELB_N        6  //"\n" new line
-#define AELB_RN       7  //"\r\n" new line
-#define AELB_RRN      8  //"\r\r\n" new line
-#define AELB_WRAP     9  //No new line, this line is wrapped
+#define AELB_ASIS     1  //Use new line of the source.
+#define AELB_ASINPUT  2  //Use input new line, see AEM_SETNEWLINE with AENL_INPUT.
+#define AELB_ASOUTPUT 3  //Use output new line, see AEM_SETNEWLINE with AENL_OUTPUT.
+#define AELB_EOF      4  //End-of-file new line.
+#define AELB_R        5  //"\r" new line.
+#define AELB_N        6  //"\n" new line.
+#define AELB_RN       7  //"\r\n" new line.
+#define AELB_RRN      8  //"\r\r\n" new line.
+#define AELB_WRAP     9  //No new line, this line is wrapped.
 
 //AEM_SETNEWLINE flags
-#define AENL_INPUT           0x00000001  //Sets default new line for the input operations, for example AEM_PASTE
-#define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY
+#define AENL_INPUT           0x00000001  //Sets default new line for the input operations, for example AEM_PASTE.
+#define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
 
 //AEM_SETCOLORS flags
 #define AECLR_DEFAULT        0x00000001  //Use default system colors for the specified flags, all members of the AECOLORS structure are ignored.
@@ -140,20 +140,20 @@
                               AECLR_ACTIVECOLUMN)
 
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
-#define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number
-#define AESC_UNITPIXELY      0x00000002  //High word of the lParam specifies pixels number
-#define AESC_UNITCHARX       0x00000004  //Low word of the lParam specifies characters number
-#define AESC_UNITCHARY       0x00000008  //High word of the lParam specifies characters number
-#define AESC_UNITRECTDIVX    0x00000010  //Low word of the lParam specifies divisor of the edit rect width
-#define AESC_UNITRECTDIVY    0x00000020  //High word of the lParam specifies divisor of the edit rect width
-#define AESC_FORCELEFT       0x00000040  //Scrolls to the left even if caret visible
-#define AESC_FORCETOP        0x00000080  //Scrolls to the top even if caret visible
-#define AESC_FORCERIGHT      0x00000100  //Scrolls to the right even if caret visible
-#define AESC_FORCEBOTTOM     0x00000200  //Scrolls to the bottom even if caret visible
+#define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number.
+#define AESC_UNITPIXELY      0x00000002  //High word of the lParam specifies pixels number.
+#define AESC_UNITCHARX       0x00000004  //Low word of the lParam specifies characters number.
+#define AESC_UNITCHARY       0x00000008  //High word of the lParam specifies characters number.
+#define AESC_UNITRECTDIVX    0x00000010  //Low word of the lParam specifies divisor of the edit rect width.
+#define AESC_UNITRECTDIVY    0x00000020  //High word of the lParam specifies divisor of the edit rect width.
+#define AESC_FORCELEFT       0x00000040  //Scrolls to the left even if caret visible.
+#define AESC_FORCETOP        0x00000080  //Scrolls to the top even if caret visible.
+#define AESC_FORCERIGHT      0x00000100  //Scrolls to the right even if caret visible.
+#define AESC_FORCEBOTTOM     0x00000200  //Scrolls to the bottom even if caret visible.
 
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST return flags
-#define AECSE_SCROLLEDX      0x00000001  //Edit control was horizontally scrolled
-#define AECSE_SCROLLEDY      0x00000002  //Edit control was vertically scrolled
+#define AECSE_SCROLLEDX      0x00000001  //Edit control was horizontally scrolled.
+#define AECSE_SCROLLEDY      0x00000002  //Edit control was vertically scrolled.
 
 //AEM_FINDTEXTA, AEM_FINDTEXTW flags
 #define AEFR_DOWN            0x00000001  //If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
@@ -269,87 +269,87 @@ typedef struct _stack {
 #endif
 
 typedef struct _AELINEDATA {
-  struct _AELINEDATA *next;   //Pointer to the next AELINEDATA structure
-  struct _AELINEDATA *prev;   //Pointer to the previous AELINEDATA structure
-  wchar_t *wpLine;            //Text of the line, terminated with NULL character
-  int nLineLen;               //Length of the wpLine, not including the terminating NULL character
-  int nLineBreak;             //New line: AELB_EOF, AELB_R, AELB_N, AELB_RN, AELB_RRN or AELB_WRAP
-  int nLineWidth;             //Width of the line in pixels
-  int nSelStart;              //Selection start character position in line
-  int nSelEnd;                //Selection end character position in line
+  struct _AELINEDATA *next;   //Pointer to the next AELINEDATA structure.
+  struct _AELINEDATA *prev;   //Pointer to the previous AELINEDATA structure.
+  wchar_t *wpLine;            //Text of the line, terminated with NULL character.
+  int nLineLen;               //Length of the wpLine, not including the terminating NULL character.
+  int nLineBreak;             //New line: AELB_EOF, AELB_R, AELB_N, AELB_RN, AELB_RRN or AELB_WRAP.
+  int nLineWidth;             //Width of the line in pixels.
+  int nSelStart;              //Selection start character position in line.
+  int nSelEnd;                //Selection end character position in line.
 } AELINEDATA;
 
 typedef struct _AELINEINDEX {
-  int nLine;                  //Line number in document
-  AELINEDATA *lpLine;         //Pointer to the AELINEDATA structure
+  int nLine;                  //Line number in document.
+  AELINEDATA *lpLine;         //Pointer to the AELINEDATA structure.
 } AELINEINDEX;
 
 typedef struct _AECHARINDEX {
-  int nLine;                  //Line number in document
-  AELINEDATA *lpLine;         //Pointer to the AELINEDATA structure
-  int nCharInLine;            //Character position in line
+  int nLine;                  //Line number in document.
+  AELINEDATA *lpLine;         //Pointer to the AELINEDATA structure.
+  int nCharInLine;            //Character position in line.
 } AECHARINDEX;
 
 typedef struct {
-  AECHARINDEX ciMin;  //First character index in range
-  AECHARINDEX ciMax;  //Last character index in range
+  AECHARINDEX ciMin;  //First character index in range.
+  AECHARINDEX ciMax;  //Last character index in range.
 } AECHARRANGE;
 
 typedef struct {
-  AECHARRANGE crSel;  //Characters range
-  BOOL bColumnSel;    //Column selection
+  AECHARRANGE crSel;  //Characters range.
+  BOOL bColumnSel;    //Column selection.
 } AESELECTION;
 
 typedef struct _AEPOINT {
-  struct _AEPOINT *next;   //Pointer to the next AEPOINT structure
-  struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure
-  AECHARINDEX ciPoint;     //Character index
-  BOOL bModify;            //Is ciPoint index modified
+  struct _AEPOINT *next;   //Pointer to the next AEPOINT structure.
+  struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure.
+  AECHARINDEX ciPoint;     //Character index.
+  BOOL bModify;            //Is ciPoint index modified.
 } AEPOINT;
 
 typedef struct {
-  char *pText;        //Text to append
+  char *pText;        //Text to append.
   DWORD dwTextLen;    //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //Column selection
+  BOOL bColumnSel;    //Column selection.
 } AEAPPENDTEXTA;
 
 typedef struct {
-  wchar_t *wpText;    //Text to append
+  wchar_t *wpText;    //Text to append.
   DWORD dwTextLen;    //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //Column selection
+  BOOL bColumnSel;    //Column selection.
 } AEAPPENDTEXTW;
 
 typedef struct {
-  char *pText;                 //Text to replace with
+  char *pText;                 //Text to replace with.
   DWORD dwTextLen;             //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;             //Column selection
-  AECHARINDEX *ciInsertStart;  //Insert "from" character index after replacement
-  AECHARINDEX *ciInsertEnd;    //Insert "to" character index after replacement
+  BOOL bColumnSel;             //Column selection.
+  AECHARINDEX *ciInsertStart;  //Insert "from" character index after replacement.
+  AECHARINDEX *ciInsertEnd;    //Insert "to" character index after replacement.
 } AEREPLACESELA;
 
 typedef struct {
-  wchar_t *wpText;             //Text to replace with
+  wchar_t *wpText;             //Text to replace with.
   DWORD dwTextLen;             //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;             //Column selection
-  AECHARINDEX *ciInsertStart;  //Insert "from" character index after replacement
-  AECHARINDEX *ciInsertEnd;    //Insert "to" character index after replacement
+  BOOL bColumnSel;             //Column selection.
+  AECHARINDEX *ciInsertStart;  //Insert "from" character index after replacement.
+  AECHARINDEX *ciInsertEnd;    //Insert "to" character index after replacement.
 } AEREPLACESELW;
 
 typedef struct {
-  AECHARRANGE cr;     //Characters range to retrieve
-  BOOL bColumnSel;    //Column selection
+  AECHARRANGE cr;     //Characters range to retrieve.
+  BOOL bColumnSel;    //Column selection.
   char *pBuffer;      //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
   DWORD dwBufferMax;  //Specifies the maximum number of characters to copy to the buffer, including the NULL character.
-  int nNewLine;       //see AELB_* defines
+  int nNewLine;       //See AELB_* defines.
   BOOL bFillSpaces;   //If bColumnSel is TRUE, fill empties with spaces.
 } AETEXTRANGEA;
 
 typedef struct {
-  AECHARRANGE cr;     //Characters range to retrieve
-  BOOL bColumnSel;    //Column selection
+  AECHARRANGE cr;     //Characters range to retrieve.
+  BOOL bColumnSel;    //Column selection.
   wchar_t *wpBuffer;  //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
   DWORD dwBufferMax;  //Specifies the maximum number of characters to copy to the buffer, including the NULL character.
-  int nNewLine;       //see AELB_* defines
+  int nNewLine;       //See AELB_* defines.
   BOOL bFillSpaces;   //If bColumnSel is TRUE, fill empties with spaces.
 } AETEXTRANGEW;
 
@@ -357,72 +357,75 @@ typedef struct {
   DWORD dwCookie;               //Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
   DWORD dwError;                //Indicates the results of the stream-in (read) or stream-out (write) operation.
   AEStreamCallback lpCallback;  //Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
-  BOOL bColumnSel;              //Column selection
-  int nNewLine;                 //see AELB_* defines
+  BOOL bColumnSel;              //Column selection.
+  int nNewLine;                 //See AELB_* defines.
 } AESTREAM;
 
 typedef struct {
-  DWORD dwFlags;           //See AEFR_* defines
-  char *pText;             //Text to find
+  DWORD dwFlags;           //See AEFR_* defines.
+  char *pText;             //Text to find.
   DWORD dwTextLen;         //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  int nNewLine;            //See AELB_* defines
-  AECHARRANGE crSearch;    //Range of characters to search
-  AECHARRANGE crFound;     //Range of characters in which text is found
+  int nNewLine;            //See AELB_* defines.
+  AECHARRANGE crSearch;    //Range of characters to search.
+  AECHARRANGE crFound;     //Range of characters in which text is found.
 } AEFINDTEXTA;
 
 typedef struct {
-  DWORD dwFlags;           //See AEFR_* defines
-  wchar_t *wpText;         //Text to find
+  DWORD dwFlags;           //See AEFR_* defines.
+  wchar_t *wpText;         //Text to find.
   DWORD dwTextLen;         //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  int nNewLine;            //See AELB_* defines
-  AECHARRANGE crSearch;    //Range of characters to search
-  AECHARRANGE crFound;     //Range of characters in which text is found
+  int nNewLine;            //See AELB_* defines.
+  AECHARRANGE crSearch;    //Range of characters to search.
+  AECHARRANGE crFound;     //Range of characters in which text is found.
 } AEFINDTEXTW;
 
 typedef struct {
-  DWORD dwFlags;             //See AECLR_* defines
-  COLORREF crCaret;          //Caret color
-  COLORREF crBasicText;      //Basic text color
-  COLORREF crBasicBk;        //Basic background color
-  COLORREF crSelText;        //Text color in selection
-  COLORREF crSelBk;          //Background color in selection
-  COLORREF crActiveLineText; //Text color in active line
-  COLORREF crActiveLineBk;   //Background color in active line
-  COLORREF crUrlText;        //Hiperlink text color
-  COLORREF crActiveColumn;   //Active column color
+  DWORD dwFlags;             //See AECLR_* defines.
+  COLORREF crCaret;          //Caret color.
+  COLORREF crBasicText;      //Basic text color.
+  COLORREF crBasicBk;        //Basic background color.
+  COLORREF crSelText;        //Text color in selection.
+  COLORREF crSelBk;          //Background color in selection.
+  COLORREF crActiveLineText; //Text color in active line.
+  COLORREF crActiveLineBk;   //Background color in active line.
+  COLORREF crUrlText;        //Hiperlink text color.
+  COLORREF crActiveColumn;   //Active column color.
 } AECOLORS;
 
 typedef struct {
-  AECHARINDEX *ciCharIn;   //Input character index
-  AECHARINDEX *ciCharOut;  //Output character index (result)
-  int nOffset;             //Offset can be positive or negative. For example, +1 will return next character, -1 will return previous character
-  int nNewLine;            //See AELB_* defines
+  AECHARINDEX *ciCharIn;   //Input character index.
+  AECHARINDEX *ciCharOut;  //Output character index (result).
+  int nOffset;             //Offset can be positive or negative. For example, +1 will return next character, -1 will return previous character.
+  int nNewLine;            //See AELB_* defines.
 } AEINDEXOFFSET;
 
 typedef struct {
-  AECHARINDEX *ciChar1;   //First character index
-  AECHARINDEX *ciChar2;   //Second character index
-  BOOL bColumnSel;        //Column selection
-  int nNewLine;           //See AELB_* defines
+  AECHARINDEX *ciChar1;   //First character index.
+  AECHARINDEX *ciChar2;   //Second character index.
+  BOOL bColumnSel;        //Column selection.
+  int nNewLine;           //See AELB_* defines.
 } AEINDEXSUBTRACT;
 
 typedef struct {
   NMHDR hdr;
+  DWORD dwBytes;        //Number of bytes that cannot be allocated.
 } AENERRSPACE;
 
 typedef struct {
   NMHDR hdr;
-  AESELECTION aes;      //Current selection
-  AECHARINDEX ciCaret;  //Caret character index position
+  AESELECTION aes;      //Current selection.
+  AECHARINDEX ciCaret;  //Caret character index position.
 } AENSELCHANGE;
 
 typedef struct {
   NMHDR hdr;
+  AESELECTION aes;      //Current selection.
+  AECHARINDEX ciCaret;  //Caret character index position.
 } AENTEXTCHANGE;
 
 typedef struct {
   NMHDR hdr;
-  BOOL bModified;      //TRUE document state is set to modified, FALSE document state is set to unmodified
+  BOOL bModified;      //TRUE document state is set to modified, FALSE document state is set to unmodified.
 } AENMODIFY;
 
 typedef struct {
@@ -454,10 +457,10 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
-  UINT uMsg;           //Mouse message: WM_LBUTTONDBLCLK, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE, WM_RBUTTONDBLCLK, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_SETCURSOR
-  WPARAM wParam;       //First parameter of a message
-  LPARAM lParam;       //Second parameter of a message
-  AECHARRANGE crLink;  //Range of characters which contain URL text
+  UINT uMsg;           //Mouse message: WM_LBUTTONDBLCLK, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE, WM_RBUTTONDBLCLK, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_SETCURSOR.
+  WPARAM wParam;       //First parameter of a message.
+  LPARAM lParam;       //Second parameter of a message.
+  AECHARRANGE crLink;  //Range of characters which contain URL text.
 } AENLINK;
 
 typedef struct {
@@ -1898,18 +1901,19 @@ Example:
 AEM_GETSCROLLPOS
 ________________
 
-Obtain the current scroll position of the edit control.
+Obtain the current and/or maxinum scroll position of the edit control.
 
-wParam          == not used.
-(POINT *)lParam == pointer to a POINT structure that receives the upper-left corner position in the virtual text space of the document, expressed in pixels.
+(POINT *)wParam == pointer to a POINT structure that receives the maximum scroll position in the virtual text space of the document, expressed in pixels. Can be NULL.
+(POINT *)lParam == pointer to a POINT structure that receives the upper-left corner position in the virtual text space of the document, expressed in pixels. Can be NULL.
 
 Return Value
  zero
 
 Example:
- POINT pt;
+ POINT ptMax;
+ POINT ptPos;
 
- SendMessage(hWndEdit, AEM_GETSCROLLPOS, 0, (LPARAM)&pt);
+ SendMessage(hWndEdit, AEM_GETSCROLLPOS, (WPARAM)&ptMax, (LPARAM)&ptPos);
 
 
 AEM_SETSCROLLPOS

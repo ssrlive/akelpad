@@ -695,10 +695,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETSCROLLPOS)
       {
-        POINT *pt=(POINT *)lParam;
+        POINT *ptMax=(POINT *)wParam;
+        POINT *ptPos=(POINT *)lParam;
 
-        pt->x=ae->nHScrollPos;
-        pt->y=ae->nVScrollPos;
+        if (ptMax)
+        {
+          ptMax->x=ae->ptxt->nHScrollMax;
+          ptMax->y=ae->ptxt->nVScrollMax;
+        }
+        if (ptPos)
+        {
+          ptPos->x=ae->nHScrollPos;
+          ptPos->y=ae->nVScrollPos;
+        }
         return 0;
       }
       if (uMsg == AEM_SETSCROLLPOS)
@@ -3199,7 +3208,7 @@ LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes)
 
   if (!(lpResult=HeapAlloc(hHeap, dwFlags, dwBytes)))
   {
-    if (ae) AE_NotifyErrSpace(ae);
+    if (ae) AE_NotifyErrSpace(ae, dwBytes);
   }
   return lpResult;
 }
@@ -12141,7 +12150,7 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
   AE_StackUpdateClones(ae);
 }
 
-void AE_NotifyErrSpace(AKELEDIT *ae)
+void AE_NotifyErrSpace(AKELEDIT *ae, DWORD dwBytes)
 {
   //Send AEN_ERRSPACE
   {
@@ -12150,6 +12159,7 @@ void AE_NotifyErrSpace(AKELEDIT *ae)
     es.hdr.hwndFrom=ae->hWndEdit;
     es.hdr.idFrom=ae->nEditCtrlID;
     es.hdr.code=AEN_ERRSPACE;
+    es.dwBytes=dwBytes;
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&es);
   }
 
@@ -12243,6 +12253,7 @@ void AE_NotifyTextChanging(AKELEDIT *ae)
     tc.hdr.hwndFrom=ae->hWndEdit;
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGING;
+    AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
 }
@@ -12259,6 +12270,7 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
     tc.hdr.hwndFrom=ae->hWndEdit;
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGED;
+    AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
 
