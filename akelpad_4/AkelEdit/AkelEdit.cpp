@@ -3592,81 +3592,81 @@ AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae)
 
 void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
 {
-  if (lpAkelEditPrev)
+  if (lpAkelEditPrev && ae->hWndEdit != lpAkelEditPrev->hWndEdit)
   {
-    if (ae->hWndEdit != lpAkelEditPrev->hWndEdit)
+    //Save previous window info
+    if (lpAkelEditPrev->nCloneCount > 0 || lpAkelEditPrev->lpMaster)
     {
-      //Save previous window info
-      if (lpAkelEditPrev->nCloneCount > 0 || lpAkelEditPrev->lpMaster)
+      AKELEDIT *aeSource;
+
+      if (lpAkelEditPrev->lpMaster)
+        aeSource=lpAkelEditPrev->lpMaster;
+      else
+        aeSource=lpAkelEditPrev;
+
+      if (aeSource)
       {
-        AKELEDIT *aeSource;
-
-        if (lpAkelEditPrev->lpMaster)
-          aeSource=lpAkelEditPrev->lpMaster;
+        if (!lpAkelEditPrev->lpSelStartPoint)
+          lpAkelEditPrev->lpSelStartPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelStartIndex);
         else
-          aeSource=lpAkelEditPrev;
+          lpAkelEditPrev->lpSelStartPoint->ciPoint=lpAkelEditPrev->ciSelStartIndex;
+        if (!lpAkelEditPrev->lpSelEndPoint)
+          lpAkelEditPrev->lpSelEndPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelEndIndex);
+        else
+          lpAkelEditPrev->lpSelEndPoint->ciPoint=lpAkelEditPrev->ciSelEndIndex;
+        if (!lpAkelEditPrev->lpCaretPoint)
+          lpAkelEditPrev->lpCaretPoint=AE_StackPointInsert(aeSource, &aeSource->ciCaretIndex);
+        else
+          lpAkelEditPrev->lpCaretPoint->ciPoint=lpAkelEditPrev->ciCaretIndex;
 
-        if (aeSource)
+        //Clear lines selection
+        if (AE_IndexCompare(&lpAkelEditPrev->ciSelStartIndex, &lpAkelEditPrev->ciSelEndIndex))
         {
-          if (!lpAkelEditPrev->lpSelStartPoint)
-            lpAkelEditPrev->lpSelStartPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelStartIndex);
-          else
-            lpAkelEditPrev->lpSelStartPoint->ciPoint=lpAkelEditPrev->ciSelStartIndex;
-          if (!lpAkelEditPrev->lpSelEndPoint)
-            lpAkelEditPrev->lpSelEndPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelEndIndex);
-          else
-            lpAkelEditPrev->lpSelEndPoint->ciPoint=lpAkelEditPrev->ciSelEndIndex;
-          if (!lpAkelEditPrev->lpCaretPoint)
-            lpAkelEditPrev->lpCaretPoint=AE_StackPointInsert(aeSource, &aeSource->ciCaretIndex);
-          else
-            lpAkelEditPrev->lpCaretPoint->ciPoint=lpAkelEditPrev->ciCaretIndex;
+          AELINEDATA *lpLine=lpAkelEditPrev->ciSelStartIndex.lpLine;
 
-          //Clear lines selection
-          if (AE_IndexCompare(&lpAkelEditPrev->ciSelStartIndex, &lpAkelEditPrev->ciSelEndIndex))
+          while (lpLine)
           {
-            AELINEDATA *lpLine=lpAkelEditPrev->ciSelStartIndex.lpLine;
+            lpLine->nSelStart=0;
+            lpLine->nSelEnd=0;
+            if (lpLine == lpAkelEditPrev->ciSelEndIndex.lpLine) break;
 
-            while (lpLine)
-            {
-              lpLine->nSelStart=0;
-              lpLine->nSelEnd=0;
-              if (lpLine == lpAkelEditPrev->ciSelEndIndex.lpLine) break;
-
-              lpLine=lpLine->next;
-            }
+            lpLine=lpLine->next;
           }
         }
       }
+    }
+  }
 
-      //Set current window info
-      if (ae->nCloneCount > 0 || ae->lpMaster)
+  if (!lpAkelEditPrev || ae->hWndEdit != lpAkelEditPrev->hWndEdit)
+  {
+    //Set current window info
+    if (ae->nCloneCount > 0 || ae->lpMaster)
+    {
+      if (ae->lpSelStartPoint && ae->lpSelEndPoint && ae->lpCaretPoint)
       {
-        if (ae->lpSelStartPoint && ae->lpSelEndPoint && ae->lpCaretPoint)
-        {
-          ae->liFirstDrawLine.nLine=0;
-          ae->liFirstDrawLine.lpLine=NULL;
-          ae->nFirstDrawLineOffset=0;
-          ae->ciSelStartIndex.lpLine=NULL;
-          ae->nSelStartCharOffset=0;
-          ae->ciSelEndIndex.lpLine=NULL;
-          ae->nSelEndCharOffset=0;
-          ae->ciCaretIndex.lpLine=NULL;
-          ae->ciLastCallIndex.lpLine=NULL;
-          ae->nLastCallOffset=0;
-          ae->ptCaret.x=0;
-          ae->ptCaret.y=0;
+        ae->liFirstDrawLine.nLine=0;
+        ae->liFirstDrawLine.lpLine=NULL;
+        ae->nFirstDrawLineOffset=0;
+        ae->ciSelStartIndex.lpLine=NULL;
+        ae->nSelStartCharOffset=0;
+        ae->ciSelEndIndex.lpLine=NULL;
+        ae->nSelEndCharOffset=0;
+        ae->ciCaretIndex.lpLine=NULL;
+        ae->ciLastCallIndex.lpLine=NULL;
+        ae->nLastCallOffset=0;
+        ae->ptCaret.x=0;
+        ae->ptCaret.y=0;
 
-          ae->nSelStartCharOffset=AE_AkelIndexToRichOffset(ae, &ae->lpSelStartPoint->ciPoint);
-          ae->ciSelStartIndex=ae->lpSelStartPoint->ciPoint;
+        ae->nSelStartCharOffset=AE_AkelIndexToRichOffset(ae, &ae->lpSelStartPoint->ciPoint);
+        ae->ciSelStartIndex=ae->lpSelStartPoint->ciPoint;
 
-          ae->nSelEndCharOffset=AE_AkelIndexToRichOffset(ae, &ae->lpSelEndPoint->ciPoint);
-          ae->ciSelEndIndex=ae->lpSelEndPoint->ciPoint;
+        ae->nSelEndCharOffset=AE_AkelIndexToRichOffset(ae, &ae->lpSelEndPoint->ciPoint);
+        ae->ciSelEndIndex=ae->lpSelEndPoint->ciPoint;
 
-          ae->ciCaretIndex=ae->lpCaretPoint->ciPoint;
-          AE_GetPosFromCharEx(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL);
+        ae->ciCaretIndex=ae->lpCaretPoint->ciPoint;
+        AE_GetPosFromCharEx(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL);
 
-          AE_UpdateSelection(ae, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKUNDOGROUPING);
-        }
+        AE_UpdateSelection(ae, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKUNDOGROUPING);
       }
     }
   }
