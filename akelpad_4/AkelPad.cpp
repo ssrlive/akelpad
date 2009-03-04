@@ -6280,11 +6280,11 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
       GetCursorPos(&pt);
       GetWindowRect(hWnd, &rc);
-      if (pt.x >= rc.left && pt.x <= rc.left + 2)
+      if (pt.x >= rc.left && pt.x <= rc.left + 1)
         dwSide|=SIDE_LEFT;
       if (pt.x >= rc.right - 2 && pt.x <= rc.right)
         dwSide|=SIDE_RIGHT;
-      if (pt.y >= rc.top && pt.y <= rc.top + 2)
+      if (pt.y >= rc.top && pt.y <= rc.top + 1)
         dwSide|=SIDE_TOP;
       if (pt.y >= rc.bottom - 2 && pt.y <= rc.bottom)
         dwSide|=SIDE_BOTTOM;
