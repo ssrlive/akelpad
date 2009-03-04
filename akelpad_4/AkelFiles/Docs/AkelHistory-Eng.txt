@@ -1,7 +1,10 @@
 
 AkelPad 4.1.7 ()
 ----------------------------
+Changed: reduced flashing on setting focus.
+
 Fixed: split window and ToolBar plugin.
+Fixed: selection updating after cancelling split window.
 
 
 AkelPad 4.1.6 (Mar 03, 2009)
