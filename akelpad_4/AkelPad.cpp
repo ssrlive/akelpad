@@ -2292,7 +2292,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       OPENDOCUMENTA *od=(OPENDOCUMENTA *)cds->lpData;
 
-      if ((od->hWnd && od->hWnd != hWndEdit) || bMDI || SaveChangedA())
+      if ((od->hWnd && !IsEditActive(od->hWnd)) || bMDI || SaveChangedA())
       {
         if (*od->szWorkDir) SetCurrentDirectoryA(od->szWorkDir);
         nResult=OpenDocumentA(od->hWnd, od->szFile, od->dwFlags, od->nCodePage, od->bBOM);
@@ -4048,7 +4048,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       OPENDOCUMENTW *od=(OPENDOCUMENTW *)cds->lpData;
 
-      if ((od->hWnd && od->hWnd != hWndEdit) || bMDI || SaveChangedW())
+      if ((od->hWnd && !IsEditActive(od->hWnd)) || bMDI || SaveChangedW())
       {
         if (*od->wszWorkDir) SetCurrentDirectoryW(od->wszWorkDir);
         nResult=OpenDocumentW(od->hWnd, od->wszFile, od->dwFlags, od->nCodePage, od->bBOM);
@@ -5031,17 +5031,11 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
-    if (bMDI || hWndMaster)
+    if ((HWND)wParam != hWndEdit)
     {
-      if ((HWND)wParam != hWndEdit)
+      if (GetWindowLongA((HWND)wParam, GWL_ID) == ID_EDIT)
       {
-        if (GetWindowLongA((HWND)wParam, GWL_ID) == ID_EDIT)
-        {
-          if (!bMDI)
-            SetFocus((HWND)wParam);
-          else
-            SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
-        }
+        SetFocus((HWND)wParam);
       }
     }
 
@@ -5297,17 +5291,11 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
-    if (bMDI || hWndMaster)
+    if ((HWND)wParam != hWndEdit)
     {
-      if ((HWND)wParam != hWndEdit)
+      if (GetWindowLongW((HWND)wParam, GWL_ID) == ID_EDIT)
       {
-        if (GetWindowLongW((HWND)wParam, GWL_ID) == ID_EDIT)
-        {
-          if (!bMDI)
-            SetFocus((HWND)wParam);
-          else
-            SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
-        }
+        SetFocus((HWND)wParam);
       }
     }
 
@@ -6172,7 +6160,7 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_SETFOCUS)
   {
-    if (bMDI && hWnd != hWndEdit)
+    if (bMDI && !IsEditActive(hWnd))
       SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent(hWnd), 0);
     if (hWndMaster)
       hWndEdit=hWnd;
@@ -6227,7 +6215,7 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_SETFOCUS)
   {
-    if (bMDI && hWnd != hWndEdit)
+    if (bMDI && !IsEditActive(hWnd))
       SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent(hWnd), 0);
     if (hWndMaster)
       hWndEdit=hWnd;
