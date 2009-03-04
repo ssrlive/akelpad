@@ -18934,6 +18934,9 @@ void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2
 
   if (hWndMaster)
   {
+    rcMasterWindow->left=X;
+    rcMasterWindow->top=Y;
+
     if (hWndClone1)
     {
       rcMasterWindow->right=max(rcMasterWindow->right, 40);
@@ -18953,11 +18956,11 @@ void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2
     if (hWndMaster)
       MoveWindow(hWndMaster, rcMasterWindow->left, rcMasterWindow->top, rcMasterWindow->right, rcMasterWindow->bottom, TRUE);
     if (hWndClone1)
-      MoveWindow(hWndClone1, rcMasterWindow->right, rcMasterWindow->top, nWidth - rcMasterWindow->right, rcMasterWindow->bottom, TRUE);
+      MoveWindow(hWndClone1, rcMasterWindow->left + rcMasterWindow->right, rcMasterWindow->top, nWidth - rcMasterWindow->right, rcMasterWindow->bottom, TRUE);
     if (hWndClone2)
-      MoveWindow(hWndClone2, rcMasterWindow->left, rcMasterWindow->bottom, rcMasterWindow->right, nHeight - rcMasterWindow->bottom, TRUE);
+      MoveWindow(hWndClone2, rcMasterWindow->left, rcMasterWindow->top + rcMasterWindow->bottom, rcMasterWindow->right, nHeight - rcMasterWindow->bottom, TRUE);
     if (hWndClone3)
-      MoveWindow(hWndClone3, rcMasterWindow->right, rcMasterWindow->bottom, nWidth - rcMasterWindow->right, nHeight - rcMasterWindow->bottom, TRUE);
+      MoveWindow(hWndClone3, rcMasterWindow->left + rcMasterWindow->right, rcMasterWindow->top + rcMasterWindow->bottom, nWidth - rcMasterWindow->right, nHeight - rcMasterWindow->bottom, TRUE);
   }
   else MoveWindow(hWndEdit, X, Y, nWidth, nHeight, TRUE);
 
