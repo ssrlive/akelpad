@@ -18849,7 +18849,7 @@ HWND NextDialog(BOOL bPrevious)
 
     if (hWndFocus)
     {
-      if (hWndFocus != hWndEdit && hWndFocus != hMdiClient)
+      if (!IsEditActive(hWndFocus) && hWndFocus != hMdiClient)
         dkElement=StackDockFindWindow(&hDocksStack, hWndFocus, TRUE);
 
       hWndNext=StackDockNextWindow(&hDocksStack, dkElement, bPrevious);
