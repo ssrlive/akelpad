@@ -6308,10 +6308,10 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
         return TRUE;
       }
       else if (hWndMaster && hWndClone1 && hWndClone2 && hWndClone3 &&
-               ((hWnd == hWndMaster && (dwSide & (SIDE_RIGHT|SIDE_BOTTOM))) ||
-                (hWnd == hWndClone1 && (dwSide & (SIDE_LEFT|SIDE_BOTTOM))) ||
-                (hWnd == hWndClone2 && (dwSide & (SIDE_RIGHT|SIDE_TOP))) ||
-                (hWnd == hWndClone3 && (dwSide & (SIDE_LEFT|SIDE_TOP)))))
+               ((hWnd == hWndMaster && (dwSide & SIDE_RIGHT) && (dwSide & SIDE_BOTTOM)) ||
+                (hWnd == hWndClone1 && (dwSide & SIDE_LEFT) && (dwSide & SIDE_BOTTOM)) ||
+                (hWnd == hWndClone2 && (dwSide & SIDE_RIGHT) && (dwSide & SIDE_TOP)) ||
+                (hWnd == hWndClone3 && (dwSide & SIDE_LEFT) && (dwSide & SIDE_TOP))))
       {
         SetCursor(hCursorSizeALL);
         hCursorClone=hCursorSizeALL;
