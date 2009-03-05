@@ -2061,19 +2061,28 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
     if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL ||
         wParam == IDM_VIEW_SPLIT_WINDOW_WE)
     {
-      if (hWndClone1=CreateEditWindowW(GetParent(hWndMaster)))
-        SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone1, 0);
+      if (bOldWindows)
+        hWndClone1=CreateEditWindowA(GetParent(hWndMaster));
+      else
+        hWndClone1=CreateEditWindowW(GetParent(hWndMaster));
+      if (hWndClone1) SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone1, 0);
     }
     if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL ||
         wParam == IDM_VIEW_SPLIT_WINDOW_NS)
     {
-      if (hWndClone2=CreateEditWindowW(GetParent(hWndMaster)))
-        SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone2, 0);
+      if (bOldWindows)
+        hWndClone2=CreateEditWindowA(GetParent(hWndMaster));
+      else
+        hWndClone2=CreateEditWindowW(GetParent(hWndMaster));
+      if (hWndClone2) SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone2, 0);
     }
     if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL)
     {
-      if (hWndClone3=CreateEditWindowW(GetParent(hWndMaster)))
-        SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone3, 0);
+      if (bOldWindows)
+        hWndClone3=CreateEditWindowA(GetParent(hWndMaster));
+      else
+        hWndClone3=CreateEditWindowW(GetParent(hWndMaster));
+      if (hWndClone3) SendMessage(hWndMaster, AEM_ADDCLONE, (WPARAM)hWndClone3, 0);
     }
     rcMasterWindow.left=0;
     rcMasterWindow.top=0;
@@ -17123,7 +17132,7 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
     else if (nCurrentNewLine == NEWLINE_UNIX)
       SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Unix");
     else if (nCurrentNewLine == NEWLINE_MAC)
-      SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)"Mac");
+      SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Mac");
   }
   else
   {
