@@ -591,6 +591,8 @@ typedef struct {
 #define AEM_HIDESELECTION     (WM_USER + 2254)
 #define AEM_ADDCLONE          (WM_USER + 2255)
 #define AEM_DELCLONE          (WM_USER + 2256)
+#define AEM_GETMASTER         (WM_USER + 2257)
+#define AEM_GETCLONE          (WM_USER + 2258)
 
 
 /*
@@ -2671,6 +2673,45 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_DELCLONE, (HWND)hWndEdit2, 0);
+
+
+AEM_GETMASTER
+_____________
+
+Retrieve master window handle. Message sended to a master or slave window.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Master window handle.
+
+Example:
+ HWND hWndMaster;
+
+ if (hWndMaster=(HWND)SendMessage(hWndEdit, AEM_GETMASTER, 0, 0))
+ {
+   if (hWndMaster == hWndEdit)
+     MessageBox(NULL, "hWndEdit is master", NULL, 0);
+   else
+     MessageBox(NULL, "hWndEdit is slave", NULL, 0);
+ }
+ else MessageBox(NULL, "hWndEdit nor master, nor slave", NULL, 0);
+
+
+AEM_GETCLONE
+____________
+
+Retrieve clone window handle. Message sended to a master window.
+
+(DWORD)wParam == zero based clone index.
+lParam        == not used.
+
+Return Value
+ Clone window handle.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETCLONE, 2, 0);
 
 */
 
