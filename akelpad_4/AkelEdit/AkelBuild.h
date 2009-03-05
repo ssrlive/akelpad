@@ -368,6 +368,7 @@ void AE_HeapStackClear(AKELEDIT *ae, stack **first, stack **last);
 AKELEDIT* AE_StackWindowInsert(HSTACK *hStack);
 AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit);
 void AE_StackWindowFree(HSTACK *hStack);
+AECLONE* AE_StackCloneIndex(AKELEDIT *ae, DWORD dwIndex);
 AECLONE* AE_StackCloneGet(AKELEDIT *ae, HWND hWnd);
 AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone);
 void AE_StackCloneDelete(AECLONE *aec);

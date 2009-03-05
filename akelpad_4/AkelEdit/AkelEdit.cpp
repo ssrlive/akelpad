@@ -1070,6 +1070,24 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         return 0;
       }
+      if (uMsg == AEM_GETMASTER)
+      {
+        if (ae->lpMaster)
+          return (LRESULT)ae->lpMaster->hWndEdit;
+        if (ae->nCloneCount > 0)
+          return (LRESULT)ae->hWndEdit;
+
+        return (LRESULT)NULL;
+      }
+      if (uMsg == AEM_GETCLONE)
+      {
+        AECLONE *aec;
+
+        if (aec=AE_StackCloneIndex(ae, wParam))
+          return (LRESULT)aec->aeClone->hWndEdit;
+
+        return (LRESULT)NULL;
+      }
     }
 
 
@@ -3449,6 +3467,20 @@ AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit)
 void AE_StackWindowFree(HSTACK *hStack)
 {
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+AECLONE* AE_StackCloneIndex(AKELEDIT *ae, DWORD dwIndex)
+{
+  AECLONE *lpElement=(AECLONE *)ae->hClonesStack.first;
+
+  while (lpElement)
+  {
+    if (dwIndex-- == 0)
+      break;
+
+    lpElement=lpElement->next;
+  }
+  return lpElement;
 }
 
 AECLONE* AE_StackCloneGet(AKELEDIT *ae, HWND hWnd)
