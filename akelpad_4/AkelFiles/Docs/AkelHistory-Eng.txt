@@ -7,6 +7,7 @@ Added: hotkeys:
         - F9 activate next pane (split window);
         - Shift+F9 activate previous pane (split window).
 
+Fixed: split window on Win95/98/Me.
 Fixed: split window and ToolBar plugin.
 Fixed: split window and Drag'n'Drop from other frame (MDI).
 Fixed: selection updating after cancelling split window.
