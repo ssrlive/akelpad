@@ -8,6 +8,7 @@ Added: hotkeys:
         - Shift+F9 activate previous pane (split window).
 
 Fixed: split window and ToolBar plugin.
+Fixed: split window and Drag'n'Drop from other frame (MDI).
 Fixed: selection updating after cancelling split window.
 
 

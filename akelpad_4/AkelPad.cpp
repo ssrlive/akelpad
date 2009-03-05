@@ -6161,9 +6161,18 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   if (uMsg == WM_SETFOCUS)
   {
     if (bMDI && !IsEditActive(hWnd))
-      SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent(hWnd), 0);
-    if (hWndMaster)
-      hWndEdit=hWnd;
+    {
+      HWND hWndFrame;
+      WNDFRAMEA *wf;
+
+      if (hWndFrame=GetParent(hWnd))
+      {
+        if (wf=(WNDFRAMEA *)GetWindowLongA(hWndFrame, GWL_USERDATA))
+          wf->ei.hWndEdit=hWnd;
+      }
+      SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)hWndFrame, 0);
+    }
+    else hWndEdit=hWnd;
   }
   else if (uMsg == WM_KEYDOWN)
   {
@@ -6216,9 +6225,18 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   if (uMsg == WM_SETFOCUS)
   {
     if (bMDI && !IsEditActive(hWnd))
-      SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent(hWnd), 0);
-    if (hWndMaster)
-      hWndEdit=hWnd;
+    {
+      HWND hWndFrame;
+      WNDFRAMEW *wf;
+
+      if (hWndFrame=GetParent(hWnd))
+      {
+        if (wf=(WNDFRAMEW *)GetWindowLongW(hWndFrame, GWL_USERDATA))
+          wf->ei.hWndEdit=hWnd;
+      }
+      SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)hWndFrame, 0);
+    }
+    else hWndEdit=hWnd;
   }
   else if (uMsg == WM_KEYDOWN)
   {
