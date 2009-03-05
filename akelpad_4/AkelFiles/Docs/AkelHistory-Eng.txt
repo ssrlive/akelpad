@@ -1,7 +1,11 @@
 
-AkelPad 4.1.7 ()
+AkelPad 4.1.7 (Mar 05, 2009)
 ----------------------------
 Changed: reduced flashing on setting focus.
+
+Added: hotkeys:
+        - F9 activate next pane (split window);
+        - Shift+F9 activate previous pane (split window).
 
 Fixed: split window and ToolBar plugin.
 Fixed: selection updating after cancelling split window.
