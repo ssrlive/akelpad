@@ -16973,9 +16973,7 @@ BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
   char szStatus[MAX_PATH];
-  int nTabColumn=0;
-  int nScanLimit;
-  int i;
+  int nColumn;
 
   if (cr && ci)
   {
@@ -16988,24 +16986,14 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   }
 
   if (dwStatusPosType & SPT_LINECOLUMN)
-  {
-    nScanLimit=min(ciCaret.nCharInLine, ciCaret.lpLine->nLineLen);
-
-    for (i=0; i < nScanLimit; ++i)
-    {
-      if (ciCaret.lpLine->wpLine[i] == '\t')
-        nTabColumn+=nTabStopSize - nTabColumn % nTabStopSize;
-      else
-        ++nTabColumn;
-    }
-    nTabColumn+=ciCaret.nCharInLine - nScanLimit + 1;
-  }
-  else nTabColumn=ciCaret.nCharInLine + 1;
+    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, 0, (LPARAM)&ciCaret);
+  else
+    nColumn=ciCaret.nCharInLine + 1;
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-    wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, nTabColumn);
+    wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, nColumn);
   else
-    wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, nTabColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+    wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, nColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
   SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
 }
@@ -17013,9 +17001,7 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
   wchar_t wszStatus[MAX_PATH];
-  int nTabColumn=0;
-  int nScanLimit;
-  int i;
+  int nColumn;
 
   if (cr && ci)
   {
@@ -17028,24 +17014,14 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   }
 
   if (dwStatusPosType & SPT_LINECOLUMN)
-  {
-    nScanLimit=min(ciCaret.nCharInLine, ciCaret.lpLine->nLineLen);
-
-    for (i=0; i < nScanLimit; ++i)
-    {
-      if (ciCaret.lpLine->wpLine[i] == '\t')
-        nTabColumn+=nTabStopSize - nTabColumn % nTabStopSize;
-      else
-        ++nTabColumn;
-    }
-    nTabColumn+=ciCaret.nCharInLine - nScanLimit + 1;
-  }
-  else nTabColumn=ciCaret.nCharInLine + 1;
+    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, 0, (LPARAM)&ciCaret);
+  else
+    nColumn=ciCaret.nCharInLine + 1;
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-    wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, nTabColumn);
+    wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, nColumn);
   else
-    wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, nTabColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+    wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, nColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
   SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
 }
