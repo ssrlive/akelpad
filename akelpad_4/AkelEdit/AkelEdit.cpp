@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.1.7                               *
+ *                      AkelEdit text control v1.1.8                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -659,6 +659,26 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         AE_StackPointDelete(ae, lpPoint);
         return 0;
+      }
+      if (uMsg == AEM_GETINDEXCOLUMN)
+      {
+        AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+        int nScanLimit;
+        int nColumn=0;
+        int i;
+
+        nScanLimit=min(ciCharIndex->nCharInLine, ciCharIndex->lpLine->nLineLen);
+    
+        for (i=0; i < nScanLimit; ++i)
+        {
+          if (ciCharIndex->lpLine->wpLine[i] == '\t')
+            nColumn+=ae->ptxt->nTabStop - nColumn % ae->ptxt->nTabStop;
+          else
+            ++nColumn;
+        }
+        nColumn+=ciCharIndex->nCharInLine - nScanLimit + 1;
+
+        return nColumn;
       }
 
       //Screen coordinates

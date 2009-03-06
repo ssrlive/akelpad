@@ -539,6 +539,7 @@ typedef struct {
 #define AEM_RICHOFFSETTOINDEX (WM_USER + 2113)
 #define AEM_ADDPOINT          (WM_USER + 2114)
 #define AEM_DELPOINT          (WM_USER + 2115)
+#define AEM_GETINDEXCOLUMN    (WM_USER + 2116)
 
 #define AEM_CHARFROMPOS       (WM_USER + 2151)
 #define AEM_POSFROMCHAR       (WM_USER + 2152)
@@ -1821,6 +1822,24 @@ Return Value
 
 Example:
  See AEM_ADDPOINT example.
+
+
+AEM_GETINDEXCOLUMN
+__________________
+
+Retrieve the character index column taking into account tab stop size.
+
+wParam                == not used.
+(AECHARINDEX *)lParam == AkelEdit character index.
+
+Return Value
+ Character index column.
+
+Example:
+ AECHARINDEX ciCaret;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_GETINDEXCOLUMN, 0, (LPARAM)&ciCaret);
 
 
 AEM_CHARFROMPOS
