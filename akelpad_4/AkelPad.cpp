@@ -269,7 +269,7 @@ DWORD dwWrapLimit=0;
 BOOL bOnTop=FALSE;
 BOOL bStatusBar=TRUE;
 DWORD dwShowModify=SM_STATUSBAR;
-DWORD dwStatusPosType=SPT_LINESYMBOL;
+DWORD dwStatusPosType=0;
 BOOL bReadOnly=FALSE;
 BOOL bSaveTime=FALSE;
 BOOL bWatchFile=FALSE;
@@ -2281,6 +2281,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return GetCharColor((HWND)wParam, cc);
     }
+    if (uMsg == AKD_GETSTATUSPOSTYPE)
+    {
+      return dwStatusPosType;
+    }
   }
 
   if (uMsg == WM_COPYDATA)
@@ -4036,6 +4040,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       CHARCOLOR *cc=(CHARCOLOR *)lParam;
 
       return GetCharColor((HWND)wParam, cc);
+    }
+    if (uMsg == AKD_GETSTATUSPOSTYPE)
+    {
+      return dwStatusPosType;
     }
   }
 
