@@ -67,6 +67,10 @@
 #define NEWLINE_UNIX  2  //Unix new line format (\n)
 #define NEWLINE_MAC   3  //MacOS new line format (\r)
 
+//Status bar position type
+#define SPT_LINECOLUMN  0x00000001  //"Line:Column"
+#define SPT_LINEUNWRAP  0x00000002  //Òon-wrap line numbers
+
 //Options flags
 #define POB_READ     0x1  //Begins read options
 #define POB_SAVE     0x2  //Begins save options
@@ -1002,6 +1006,7 @@ typedef struct _NSIZE {
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
 #define AKD_EXGETTEXTRANGEA        (WM_USER + 402)
 #define AKD_EXGETTEXTRANGEW        (WM_USER + 403)
+#define AKD_GETSTATUSPOSTYPE       (WM_USER + 404)
 
 
 /*
@@ -2565,6 +2570,22 @@ Example:
    MessageBoxW(pd->hMainWnd, (wchar_t *)tr.pText, L"Test", MB_OK);
    SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)tr.pText);
  }
+
+
+AKD_GETSTATUSPOSTYPE
+____________________
+
+Get status position type parameter.
+
+wParam == not used
+lParam == not used
+
+Return Value
+ see SPT_* defines
+
+Example:
+ DWORD dwStatusPosType=SendMessage(pd->hMainWnd, AKD_GETSTATUSPOSTYPE, 0, 0);
+
 */
 
 

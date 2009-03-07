@@ -10737,7 +10737,11 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
-          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, ciCaret.nLine + 1, FALSE);
+          if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+            a=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
+          else
+            a=ciCaret.nLine;
+          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, a + 1, FALSE);
           SendMessage(hWndNumber, EM_SETSEL, 0, -1);
         }
       }
@@ -10772,6 +10776,8 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       if (nGotoType == NT_LINE)
       {
         nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
+        if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+          nLineCount=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
 
         if (!nNumber)
         {
@@ -10785,7 +10791,11 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
           if (nNumber <= 0) nNumber=1;
         }
         nNumber=min(nNumber, nLineCount);
-        SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
+
+        if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+          SendMessage(hWndEdit, AEM_GETWRAPLINE, nNumber - 1, (LPARAM)&cr.ciMin);
+        else
+          SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
       }
       else if (nGotoType == NT_OFFSET)
       {
@@ -10872,7 +10882,11 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
-          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, ciCaret.nLine + 1, FALSE);
+          if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+            a=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
+          else
+            a=ciCaret.nLine;
+          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, a + 1, FALSE);
           SendMessage(hWndNumber, EM_SETSEL, 0, -1);
         }
       }
@@ -10907,6 +10921,8 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       if (nGotoType == NT_LINE)
       {
         nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
+        if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+          nLineCount=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
 
         if (!nNumber)
         {
@@ -10920,7 +10936,11 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
           if (nNumber <= 0) nNumber=1;
         }
         nNumber=min(nNumber, nLineCount);
-        SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
+
+        if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+          SendMessage(hWndEdit, AEM_GETWRAPLINE, nNumber - 1, (LPARAM)&cr.ciMin);
+        else
+          SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
       }
       else if (nGotoType == NT_OFFSET)
       {
@@ -16973,6 +16993,7 @@ BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
   char szStatus[MAX_PATH];
+  int nLine;
   int nColumn;
 
   if (cr && ci)
@@ -16985,15 +17006,20 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     GetSel(hWnd, &crSel, NULL, &ciCaret);
   }
 
+  if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+    nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
+  else
+    nLine=ciCaret.nLine;
+
   if (dwStatusPosType & SPT_LINECOLUMN)
     nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, 0, (LPARAM)&ciCaret);
   else
     nColumn=ciCaret.nCharInLine + 1;
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-    wsprintfA(szStatus, "%u:%u", ciCaret.nLine + 1, nColumn);
+    wsprintfA(szStatus, "%u:%u", nLine + 1, nColumn);
   else
-    wsprintfA(szStatus, "%u:%u, %u", ciCaret.nLine + 1, nColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+    wsprintfA(szStatus, "%u:%u, %u", nLine + 1, nColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
   SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
 }
@@ -17001,6 +17027,7 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
   wchar_t wszStatus[MAX_PATH];
+  int nLine;
   int nColumn;
 
   if (cr && ci)
@@ -17013,15 +17040,20 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     GetSel(hWnd, &crSel, NULL, &ciCaret);
   }
 
+  if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+    nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
+  else
+    nLine=ciCaret.nLine;
+
   if (dwStatusPosType & SPT_LINECOLUMN)
     nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, 0, (LPARAM)&ciCaret);
   else
     nColumn=ciCaret.nCharInLine + 1;
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-    wsprintfW(wszStatus, L"%u:%u", ciCaret.nLine + 1, nColumn);
+    wsprintfW(wszStatus, L"%u:%u", nLine + 1, nColumn);
   else
-    wsprintfW(wszStatus, L"%u:%u, %u", ciCaret.nLine + 1, nColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
+    wsprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
 
   SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
 }

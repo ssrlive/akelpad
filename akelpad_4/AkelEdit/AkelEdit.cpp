@@ -680,6 +680,33 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         return nColumn;
       }
+      if (uMsg == AEM_GETWRAPLINE)
+      {
+        AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+        AELINEDATA *lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+        DWORD dwWrappedLine=0;
+        DWORD dwUnwrappedLine=0;
+
+        while (lpLine)
+        {
+          if (dwUnwrappedLine == wParam)
+          {
+            if (ciCharIndex)
+            {
+              ciCharIndex->nLine=dwWrappedLine;
+              ciCharIndex->lpLine=lpLine;
+              ciCharIndex->nCharInLine=0;
+            }
+            return dwWrappedLine;
+          }
+          if (lpLine->nLineBreak != AELB_WRAP)
+            ++dwUnwrappedLine;
+
+          ++dwWrappedLine;
+          lpLine=lpLine->next;
+        }
+        return (LRESULT)-1;
+      }
       if (uMsg == AEM_GETUNWRAPLINE)
       {
         AELINEDATA *lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;

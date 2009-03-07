@@ -90,6 +90,7 @@
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
 #define AKD_EXGETTEXTRANGEA        (WM_USER + 402)
 #define AKD_EXGETTEXTRANGEW        (WM_USER + 403)
+#define AKD_GETSTATUSPOSTYPE       (WM_USER + 404)
 
 #define TAB_HEIGHT           24
 #define TAB_WIDTH            90
