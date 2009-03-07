@@ -1,4 +1,10 @@
 
+AkelPad 4.1.8 ()
+----------------------------
+Added: "StatusPosType" parameter is complemented. When word wrap in on, it is now possible
+       to display wrapped lines numbers as non-wrap.
+
+
 AkelPad 4.1.7 (Mar 05, 2009)
 ----------------------------
 Changed: reduced flashing on setting focus.
