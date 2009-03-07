@@ -540,6 +540,7 @@ typedef struct {
 #define AEM_ADDPOINT          (WM_USER + 2114)
 #define AEM_DELPOINT          (WM_USER + 2115)
 #define AEM_GETINDEXCOLUMN    (WM_USER + 2116)
+#define AEM_GETUNWRAPLINE     (WM_USER + 2117)
 
 #define AEM_CHARFROMPOS       (WM_USER + 2151)
 #define AEM_POSFROMCHAR       (WM_USER + 2152)
@@ -1841,6 +1842,28 @@ Example:
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  SendMessage(hWndEdit, AEM_GETINDEXCOLUMN, 0, (LPARAM)&ciCaret);
 
+
+AEM_GETUNWRAPLINE
+_________________
+
+Convert wrapped line number to unwrapped line number.
+
+(int)wParam == wrapped line.
+lParam      == not used.
+
+Return Value
+ Unwrapped line.
+
+Example:
+ AECHARINDEX ciCaret;
+ int nUnwrappedLine;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+
+ if (SendMessage(hWndEdit, AEM_GETWORDWRAP, 0, 0))
+   nUnwrappedLine=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
+ else
+   nUnwrappedLine=ciCaret.nLine;
 
 AEM_CHARFROMPOS
 _______________
