@@ -668,7 +668,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         int i;
 
         nScanLimit=min(ciCharIndex->nCharInLine, ciCharIndex->lpLine->nLineLen);
-    
+
         for (i=0; i < nScanLimit; ++i)
         {
           if (ciCharIndex->lpLine->wpLine[i] == '\t')
@@ -679,6 +679,24 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nColumn+=ciCharIndex->nCharInLine - nScanLimit + 1;
 
         return nColumn;
+      }
+      if (uMsg == AEM_GETUNWRAPLINE)
+      {
+        AELINEDATA *lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+        DWORD dwWrappedLine=0;
+        DWORD dwUnwrappedLine=0;
+
+        while (lpLine)
+        {
+          if (dwWrappedLine == wParam)
+            return dwUnwrappedLine;
+          if (lpLine->nLineBreak != AELB_WRAP)
+            ++dwUnwrappedLine;
+
+          ++dwWrappedLine;
+          lpLine=lpLine->next;
+        }
+        return (LRESULT)-1;
       }
 
       //Screen coordinates
