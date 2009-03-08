@@ -154,6 +154,8 @@ WNDPROC OldDockProc=NULL;
 RECT rcRecodeDlg={0};
 int *lpCodepageList=NULL;
 int nCodepageListLen=0;
+int *lpCodepageTable;
+int nCodepageTableCount;
 BOOL bDefaultBOM;
 BOOL bCurrentBOM;
 int nCurrentCodePage;
@@ -5357,7 +5359,6 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         TrackPopupMenu(hTrackMenu, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt.x, pt.y, 0, hMainWnd, NULL);
       }
     }
-    else SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)GetParent((HWND)wParam), 0);
   }
   else if (uMsg == WM_NOTIFY)
   {
