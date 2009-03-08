@@ -683,47 +683,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (uMsg == AEM_GETWRAPLINE)
       {
         AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
-        AELINEDATA *lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
-        DWORD dwWrappedLine=0;
-        DWORD dwUnwrappedLine=0;
 
-        while (lpLine)
-        {
-          if (dwUnwrappedLine == wParam)
-          {
-            if (ciCharIndex)
-            {
-              ciCharIndex->nLine=dwWrappedLine;
-              ciCharIndex->lpLine=lpLine;
-              ciCharIndex->nCharInLine=0;
-            }
-            return dwWrappedLine;
-          }
-          if (lpLine->nLineBreak != AELB_WRAP)
-            ++dwUnwrappedLine;
-
-          ++dwWrappedLine;
-          lpLine=lpLine->next;
-        }
-        return (LRESULT)-1;
+        return AE_GetWrapLine(ae, wParam, ciCharIndex);
       }
       if (uMsg == AEM_GETUNWRAPLINE)
       {
-        AELINEDATA *lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
-        DWORD dwWrappedLine=0;
-        DWORD dwUnwrappedLine=0;
-
-        while (lpLine)
-        {
-          if (dwWrappedLine == wParam)
-            return dwUnwrappedLine;
-          if (lpLine->nLineBreak != AELB_WRAP)
-            ++dwUnwrappedLine;
-
-          ++dwWrappedLine;
-          lpLine=lpLine->next;
-        }
-        return (LRESULT)-1;
+        return AE_GetUnwrapLine(ae, wParam);
       }
 
       //Screen coordinates
@@ -4154,6 +4119,12 @@ void AE_StackLineDelete(AKELEDIT *ae, AELINEDATA *lpElement)
     ae->ptxt->liMaxWidthLine.nLine=0;
     ae->ptxt->liMaxWidthLine.lpLine=NULL;
   }
+  if (lpElement == ae->ptxt->liLineUnwrapLastCall.lpLine)
+  {
+    ae->ptxt->liLineUnwrapLastCall.nLine=0;
+    ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
+    ae->ptxt->nLineUnwrapLastCall=0;
+  }
   if (lpElement == ae->ciCaretIndex.lpLine)
   {
     ae->ptCaret.x=0;
@@ -4268,6 +4239,168 @@ AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
     }
   }
   return lpElementData;
+}
+
+int AE_GetWrapLine(AKELEDIT *ae, int nLine, AECHARINDEX *ciCharOut)
+{
+  AELINEINDEX liLine;
+  DWORD dwFirst=(DWORD)-1;
+  DWORD dwSecond=(DWORD)-1;
+  DWORD dwThird=(DWORD)-1;
+  int nElementLine=0;
+
+  if (nLine < 0) nLine=ae->ptxt->nLineUnwrapCount + nLine + 1;
+  if (nLine < 0 || nLine > ae->ptxt->nLineUnwrapCount) return -1;
+
+  //Find nearest element in stack
+  dwFirst=mod(nLine - 0);
+  dwSecond=mod(nLine - ae->ptxt->nLineUnwrapCount);
+  if (ae->ptxt->liLineUnwrapLastCall.lpLine)
+    dwThird=mod(nLine - ae->ptxt->nLineUnwrapLastCall);
+
+  if (dwFirst <= dwSecond && dwFirst <= dwThird)
+  {
+    nElementLine=nLine - 0;
+    liLine.nLine=0;
+    liLine.lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+  }
+  else if (dwSecond <= dwFirst && dwSecond <= dwThird)
+  {
+    nElementLine=nLine - ae->ptxt->nLineUnwrapCount;
+    liLine.nLine=ae->ptxt->nLineCount;
+    liLine.lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.last;
+  }
+  else if (dwThird <= dwFirst && dwThird <= dwSecond)
+  {
+    nElementLine=nLine - ae->ptxt->nLineUnwrapLastCall;
+    liLine.nLine=ae->ptxt->liLineUnwrapLastCall.nLine;
+    liLine.lpLine=ae->ptxt->liLineUnwrapLastCall.lpLine;
+  }
+
+  if (nElementLine > 0)
+  {
+    while (liLine.lpLine)
+    {
+      if (liLine.lpLine->nLineBreak != AELB_WRAP)
+      {
+        if (--nElementLine == 0)
+        {
+          ++liLine.nLine;
+          liLine.lpLine=liLine.lpLine->next;
+          break;
+        }
+      }
+      ++liLine.nLine;
+      liLine.lpLine=liLine.lpLine->next;
+    }
+  }
+  else if (nElementLine <= 0)
+  {
+    if (liLine.lpLine)
+    {
+      while (liLine.lpLine->prev)
+      {
+        if (liLine.lpLine->prev->nLineBreak != AELB_WRAP)
+        {
+          if (nElementLine++ == 0)
+            break;
+        }
+        --liLine.nLine;
+        liLine.lpLine=liLine.lpLine->prev;
+      }
+    }
+  }
+
+  if (liLine.lpLine)
+  {
+    if (ciCharOut)
+    {
+      ciCharOut->nLine=liLine.nLine;
+      ciCharOut->lpLine=liLine.lpLine;
+      ciCharOut->nCharInLine=0;
+    }
+    return liLine.nLine;
+  }
+  else return -1;
+}
+
+int AE_GetUnwrapLine(AKELEDIT *ae, int nLine)
+{
+  AELINEINDEX liLine;
+  DWORD dwFirst=(DWORD)-1;
+  DWORD dwSecond=(DWORD)-1;
+  DWORD dwThird=(DWORD)-1;
+  int nUnwrappedLine=0;
+  int nElementLine=0;
+
+  if (nLine < 0) nLine=ae->ptxt->nLineCount + nLine + 1;
+  if (nLine < 0 || nLine > ae->ptxt->nLineCount) return -1;
+
+  //Find nearest element in stack
+  dwFirst=mod(nLine - 0);
+  dwSecond=mod(nLine - ae->ptxt->nLineCount);
+  if (ae->ptxt->liLineUnwrapLastCall.lpLine)
+    dwThird=mod(nLine - ae->ptxt->liLineUnwrapLastCall.nLine);
+
+  if (dwFirst <= dwSecond && dwFirst <= dwThird)
+  {
+    nUnwrappedLine=0;
+    nElementLine=nLine - 0;
+    liLine.nLine=0;
+    liLine.lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+  }
+  else if (dwSecond <= dwFirst && dwSecond <= dwThird)
+  {
+    nUnwrappedLine=ae->ptxt->nLineUnwrapCount;
+    nElementLine=nLine - ae->ptxt->nLineCount;
+    liLine.nLine=ae->ptxt->nLineCount;
+    liLine.lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.last;
+  }
+  else if (dwThird <= dwFirst && dwThird <= dwSecond)
+  {
+    nUnwrappedLine=ae->ptxt->nLineUnwrapLastCall;
+    nElementLine=nLine - ae->ptxt->liLineUnwrapLastCall.nLine;
+    liLine.nLine=ae->ptxt->liLineUnwrapLastCall.nLine;
+    liLine.lpLine=ae->ptxt->liLineUnwrapLastCall.lpLine;
+  }
+
+  if (nElementLine > 0)
+  {
+    while (liLine.lpLine)
+    {
+      if (nElementLine-- == 0)
+        break;
+      if (liLine.lpLine->nLineBreak != AELB_WRAP)
+        ++nUnwrappedLine;
+
+      ++liLine.nLine;
+      liLine.lpLine=liLine.lpLine->next;
+    }
+  }
+  else if (nElementLine < 0)
+  {
+    if (liLine.lpLine)
+    {
+      while (liLine.lpLine->prev)
+      {
+        if (nElementLine++ == 0)
+          break;
+        if (liLine.lpLine->prev->nLineBreak != AELB_WRAP)
+          --nUnwrappedLine;
+
+        --liLine.nLine;
+        liLine.lpLine=liLine.lpLine->prev;
+      }
+    }
+  }
+
+  if (liLine.lpLine)
+  {
+    ae->ptxt->liLineUnwrapLastCall=liLine;
+    ae->ptxt->nLineUnwrapLastCall=nUnwrappedLine;
+    return nUnwrappedLine;
+  }
+  else return -1;
 }
 
 void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharIndex)
@@ -5008,13 +5141,13 @@ int AE_UpdateWrap(AKELEDIT *ae, int nWrap)
   AEPOINT *lpPointOne;
   AEPOINT *lpPointTwo;
   AEPOINT *lpPointThree;
-  int nResult;
+  int nWrapCount;
 
   AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisibleLineAfterWrap, FALSE);
   lpPointOne=AE_StackPointInsert(ae, &ciSelStart);
   lpPointTwo=AE_StackPointInsert(ae, &ciSelEnd);
   lpPointThree=AE_StackPointInsert(ae, &ciFirstVisibleLineAfterWrap);
-  nResult=AE_WrapLines(ae, NULL, NULL, nWrap);
+  nWrapCount=AE_WrapLines(ae, NULL, NULL, nWrap);
   ciSelStart=lpPointOne->ciPoint;
   ciSelEnd=lpPointTwo->ciPoint;
   ciFirstVisibleLineAfterWrap=lpPointThree->ciPoint;
@@ -5034,15 +5167,15 @@ int AE_UpdateWrap(AKELEDIT *ae, int nWrap)
   //Update scroll bars
   AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
 
-  if (nResult)
+  if (nWrapCount)
   {
-    ae->ptxt->nLineCount+=nResult;
+    ae->ptxt->nLineCount+=nWrapCount;
     ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
     AE_UpdateScrollBars(ae, SB_VERT);
   }
   AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
   AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae));
-  return nResult;
+  return nWrapCount;
 }
 
 int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, int nWrap)
@@ -5196,6 +5329,19 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
     {
       ae->ptxt->liMaxWidthLine.nLine=0;
       ae->ptxt->liMaxWidthLine.lpLine=NULL;
+    }
+  }
+  if (ae->ptxt->liLineUnwrapLastCall.lpLine)
+  {
+    if (ae->ptxt->liLineUnwrapLastCall.nLine > nStopLine)
+    {
+      ae->ptxt->liLineUnwrapLastCall.nLine+=nLineCount;
+    }
+    else if (ae->ptxt->liLineUnwrapLastCall.nLine >= liFirst.nLine)
+    {
+      ae->ptxt->liLineUnwrapLastCall.nLine=0;
+      ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
+      ae->ptxt->nLineUnwrapLastCall=0;
     }
   }
   if (ae->ciLastCallIndex.lpLine)
@@ -9092,8 +9238,12 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     ae->ptxt->dwUndoCount=0;
     ae->ptxt->liMaxWidthLine.nLine=0;
     ae->ptxt->liMaxWidthLine.lpLine=NULL;
+    ae->ptxt->liLineUnwrapLastCall.nLine=0;
+    ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
     ae->ptxt->nLastCharOffset=0;
     ae->ptxt->nLineCount=0;
+    ae->ptxt->nLineUnwrapCount=0;
+    ae->ptxt->nLineUnwrapLastCall=0;
     ae->ptxt->nHScrollMax=0;
     ae->ptxt->nVScrollMax=0;
     ae->liFirstDrawLine.nLine=0;
@@ -9222,6 +9372,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       }
       wpLineStart=wpLineEnd;
       ++ae->ptxt->nLineCount;
+      ++ae->ptxt->nLineUnwrapCount;
     }
 
     //End progress
@@ -9241,11 +9392,16 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
           lpElement->wpLine[0]=L'\0';
 
           ++ae->ptxt->nLineCount;
+          ++ae->ptxt->nLineUnwrapCount;
         }
         lpElement->nLineBreak=AELB_EOF;
       }
     }
-    if (ae->ptxt->nLineCount) --ae->ptxt->nLineCount;
+    if (ae->ptxt->nLineCount)
+    {
+      --ae->ptxt->nLineCount;
+      --ae->ptxt->nLineUnwrapCount;
+    }
 
     ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
@@ -9406,6 +9562,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
   int nRichTextCount=0;
   int nLastLineSelStart=0;
   int nLineCount=0;
+  int nLineUnwrapCount=0;
   int nWrapCount=0;
   int nHScrollPos;
   int nVScrollPos;
@@ -9810,6 +9967,8 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
           AE_StackLineDelete(ae, lpElement);
           break;
         }
+        if (lpElement->nLineBreak != AELB_WRAP)
+          --nLineUnwrapCount;
         --nLineCount;
         lpNextElement=lpElement->next;
         AE_StackLineDelete(ae, lpElement);
@@ -9829,6 +9988,11 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       {
         ae->ptxt->liMaxWidthLine.nLine+=nLineCount;
       }
+      if (ae->ptxt->liLineUnwrapLastCall.lpLine && ae->ptxt->liLineUnwrapLastCall.nLine > ciFirstChar.nLine)
+      {
+        ae->ptxt->liLineUnwrapLastCall.nLine+=nLineCount;
+        ae->ptxt->nLineUnwrapLastCall+=nLineUnwrapCount;
+      }
       if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciFirstChar.nLine)
       {
         ae->ciLastCallIndex.nLine+=nLineCount;
@@ -9840,6 +10004,7 @@ void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AEC
       nHScrollPos=ae->nHScrollPos;
       nVScrollPos=ae->nVScrollPos;
       ae->ptxt->nLineCount+=nLineCount;
+      ae->ptxt->nLineUnwrapCount+=nLineUnwrapCount;
       ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
       AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
       ae->ciCaretIndex=ciFirstChar;
@@ -10274,6 +10439,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           nHScrollPos=ae->nHScrollPos;
           nVScrollPos=ae->nVScrollPos;
           ae->ptxt->nLineCount+=nLineCount;
+          ae->ptxt->nLineUnwrapCount+=nLineCount;
           ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
           AE_GetPosFromCharEx(ae, &ciFirstChar, &ae->ptCaret, NULL);
           ae->ciCaretIndex=ciFirstChar;
@@ -10600,6 +10766,11 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           {
             ae->ptxt->liMaxWidthLine.nLine+=nLineCount;
           }
+          if (ae->ptxt->liLineUnwrapLastCall.lpLine && ae->ptxt->liLineUnwrapLastCall.nLine > ciInsertFrom.nLine)
+          {
+            ae->ptxt->liLineUnwrapLastCall.nLine+=nLineCount;
+            ae->ptxt->nLineUnwrapLastCall+=nLineCount;
+          }
           if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciInsertFrom.nLine)
           {
             ae->ciLastCallIndex.nLine+=nLineCount;
@@ -10611,6 +10782,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           nHScrollPos=ae->nHScrollPos;
           nVScrollPos=ae->nVScrollPos;
           ae->ptxt->nLineCount+=nLineCount;
+          ae->ptxt->nLineUnwrapCount+=nLineCount;
           ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
           ciLastChar.nLine=ciInsertFrom.nLine + nLineCount;
           ciLastChar.lpLine=lpNewElement;
