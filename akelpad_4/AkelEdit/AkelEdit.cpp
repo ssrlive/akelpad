@@ -829,6 +829,20 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->popt->bVScrollLock=lParam;
         return 0;
       }
+      if (uMsg == AEM_GETERASERECT)
+      {
+        RECT *rcErase=(RECT *)lParam;
+
+        *rcErase=ae->rcErase;
+        return 0;
+      }
+      if (uMsg == AEM_SETERASERECT)
+      {
+        RECT *rcErase=(RECT *)lParam;
+
+        ae->rcErase=*rcErase;
+        return 0;
+      }
 
       //Options
       if (uMsg == AEM_GETEVENTMASK)
@@ -1083,6 +1097,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return AE_GetCharWidth(ae, wParam);
       }
 
+      //Other
       if (uMsg == AEM_ISDELIMITER)
       {
         AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
@@ -6896,80 +6911,86 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
   {
     if (!ae->popt->bHScrollLock)
     {
-      if (ae->popt->bHScrollShow)
+      if (ae->ptxt->nHScrollMax > ae->rcDraw.right - ae->rcDraw.left)
       {
-        si.cbSize=sizeof(SCROLLINFO);
-        si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
-        si.nPos=nPos;
-        SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
-
-        si.fMask=SIF_POS;
-        GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
-        nPos=si.nPos;
-      }
-      else
-      {
-        nPos=min(nPos, ae->ptxt->nHScrollMax - (ae->rcDraw.right - ae->rcDraw.left));
-        nPos=max(nPos, 0);
-      }
-      nScrollPos=ae->nHScrollPos;
-
-      if (nPos != ae->nHScrollPos)
-      {
-        AE_MButtonErase(ae);
-        AE_ActiveColumnErase(ae);
-
-        ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
-        ae->nHScrollPos=nPos;
-        UpdateWindow(ae->hWndEdit);
-
-        if (ae->nHScrollPos != ae->nLastHScrollPos)
+        if (ae->popt->bHScrollShow)
         {
-          AE_NotifyHScroll(ae);
-          ae->nLastHScrollPos=ae->nHScrollPos;
+          si.cbSize=sizeof(SCROLLINFO);
+          si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
+          si.nPos=nPos;
+          SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
+
+          si.fMask=SIF_POS;
+          GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
+          nPos=si.nPos;
         }
+        else
+        {
+          nPos=min(nPos, ae->ptxt->nHScrollMax - (ae->rcDraw.right - ae->rcDraw.left));
+          nPos=max(nPos, 0);
+        }
+        nScrollPos=ae->nHScrollPos;
+
+        if (nPos != ae->nHScrollPos)
+        {
+          AE_MButtonErase(ae);
+          AE_ActiveColumnErase(ae);
+
+          ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
+          ae->nHScrollPos=nPos;
+          UpdateWindow(ae->hWndEdit);
+
+          if (ae->nHScrollPos != ae->nLastHScrollPos)
+          {
+            AE_NotifyHScroll(ae);
+            ae->nLastHScrollPos=ae->nHScrollPos;
+          }
+        }
+        nScrollPos=ae->nHScrollPos - nScrollPos;
       }
-      nScrollPos=ae->nHScrollPos - nScrollPos;
     }
   }
   else if (nBar == SB_VERT)
   {
     if (!ae->popt->bVScrollLock)
     {
-      if (ae->popt->bVScrollShow)
+      if (ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
       {
-        si.cbSize=sizeof(SCROLLINFO);
-        si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
-        si.nPos=nPos;
-        SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
-
-        si.fMask=SIF_POS;
-        GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
-        nPos=si.nPos;
-      }
-      else
-      {
-        nPos=min(nPos, ae->ptxt->nVScrollMax - (ae->rcDraw.bottom - ae->rcDraw.top));
-        nPos=max(nPos, 0);
-      }
-      nScrollPos=ae->nVScrollPos;
-
-      if (nPos != ae->nVScrollPos)
-      {
-        AE_MButtonErase(ae);
-        AE_ActiveColumnErase(ae);
-
-        ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
-        ae->nVScrollPos=nPos;
-        UpdateWindow(ae->hWndEdit);
-
-        if (ae->nVScrollPos != ae->nLastVScrollPos)
+        if (ae->popt->bVScrollShow)
         {
-          AE_NotifyVScroll(ae);
-          ae->nLastVScrollPos=ae->nVScrollPos;
+          si.cbSize=sizeof(SCROLLINFO);
+          si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
+          si.nPos=nPos;
+          SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
+
+          si.fMask=SIF_POS;
+          GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+          nPos=si.nPos;
         }
+        else
+        {
+          nPos=min(nPos, ae->ptxt->nVScrollMax - (ae->rcDraw.bottom - ae->rcDraw.top));
+          nPos=max(nPos, 0);
+        }
+        nScrollPos=ae->nVScrollPos;
+
+        if (nPos != ae->nVScrollPos)
+        {
+          AE_MButtonErase(ae);
+          AE_ActiveColumnErase(ae);
+
+          ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
+          ae->nVScrollPos=nPos;
+          UpdateWindow(ae->hWndEdit);
+
+          if (ae->nVScrollPos != ae->nLastVScrollPos)
+          {
+            AE_NotifyVScroll(ae);
+            ae->nLastVScrollPos=ae->nVScrollPos;
+          }
+        }
+        nScrollPos=ae->nVScrollPos - nScrollPos;
       }
-      nScrollPos=ae->nVScrollPos - nScrollPos;
     }
   }
 

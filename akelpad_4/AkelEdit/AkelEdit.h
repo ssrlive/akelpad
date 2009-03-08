@@ -474,6 +474,7 @@ typedef struct {
 
 //// AkelEdit messages
 
+//Notifications
 #define AEN_ERRSPACE          (WM_USER + 1001)
 #define AEN_SETFOCUS          (WM_USER + 1002)
 #define AEN_KILLFOCUS         (WM_USER + 1003)
@@ -490,6 +491,7 @@ typedef struct {
 #define AEN_LINK              (WM_USER + 1014)
 #define AEN_PROGRESS          (WM_USER + 1015)
 
+//Text retrieval and modification
 #define AEM_SETTEXTA          (WM_USER + 2001)
 #define AEM_SETTEXTW          (WM_USER + 2002)
 #define AEM_APPENDTEXTA       (WM_USER + 2003)
@@ -510,6 +512,7 @@ typedef struct {
 #define AEM_ISMATCHA          (WM_USER + 2018)
 #define AEM_ISMATCHW          (WM_USER + 2019)
 
+//Undo and Redo
 #define AEM_CANUNDO           (WM_USER + 2051)
 #define AEM_CANREDO           (WM_USER + 2052)
 #define AEM_UNDO              (WM_USER + 2053)
@@ -524,6 +527,7 @@ typedef struct {
 #define AEM_GETMODIFY         (WM_USER + 2062)
 #define AEM_SETMODIFY         (WM_USER + 2063)
 
+//Text coordinates
 #define AEM_GETSEL            (WM_USER + 2101)
 #define AEM_SETSEL            (WM_USER + 2102)
 #define AEM_GETCOLUMNSEL      (WM_USER + 2103)
@@ -543,6 +547,7 @@ typedef struct {
 #define AEM_GETWRAPLINE       (WM_USER + 2117)
 #define AEM_GETUNWRAPLINE     (WM_USER + 2118)
 
+//Screen coordinates
 #define AEM_CHARFROMPOS       (WM_USER + 2151)
 #define AEM_POSFROMCHAR       (WM_USER + 2152)
 #define AEM_GETRECT           (WM_USER + 2153)
@@ -554,7 +559,10 @@ typedef struct {
 #define AEM_SCROLLCARET       (WM_USER + 2159)
 #define AEM_SCROLLCARETTEST   (WM_USER + 2160)
 #define AEM_LOCKSCROLL        (WM_USER + 2161)
+#define AEM_GETERASERECT      (WM_USER + 2162)
+#define AEM_SETERASERECT      (WM_USER + 2163)
 
+//Options
 #define AEM_GETEVENTMASK      (WM_USER + 2201)
 #define AEM_SETEVENTMASK      (WM_USER + 2202)
 #define AEM_GETOPTIONS        (WM_USER + 2203)
@@ -588,6 +596,7 @@ typedef struct {
 #define AEM_GETCHARAVERAGE    (WM_USER + 2230)
 #define AEM_GETCHARWIDTH      (WM_USER + 2231)
 
+//Other
 #define AEM_ISDELIMITER       (WM_USER + 2251)
 #define AEM_SHOWSCROLLBAR     (WM_USER + 2252)
 #define AEM_UPDATESCROLLBAR   (WM_USER + 2253)
@@ -2096,6 +2105,46 @@ Example:
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
  SendMessage(hWndEdit, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
+
+
+AEM_GETERASERECT
+________________
+
+Retrieve the erasing rectangle of an edit control. Make sense in WM_ERASEBKGND respond.
+
+wParam         == not used.
+(RECT *)lParam == pointer to a RECT structure that receives the erasing rectangle.
+
+Return Value
+ zero
+
+Example:
+ if (uMsg == WM_ERASEBKGND)
+ {
+   RECT rcErase;
+
+   SendMessage(hWndEdit, AEM_GETERASERECT, 0, (LPARAM)&rcErase);
+   if (rcErase.left < 10)
+   {
+     //Don't erase left 10 pixels, to avoid flashing.
+     rcErase.left=10;
+     SendMessage(hWndEdit, AEM_SETERASERECT, 0, (LPARAM)&rcErase);
+   }
+ }
+
+AEM_SETERASERECT
+________________
+
+Set the erasing rectangle of an edit control. Make sense in WM_ERASEBKGND respond.
+
+wParam         == not used.
+(RECT *)lParam == pointer to a RECT structure that specifies the new dimensions of the rectangle.
+
+Return Value
+ zero
+
+Example:
+ See AEM_GETERASERECT example.
 
 
 AEM_GETEVENTMASK
