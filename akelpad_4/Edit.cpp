@@ -132,6 +132,8 @@ extern WNDPROC OldDockProc;
 extern RECT rcRecodeDlg;
 extern int *lpCodepageList;
 extern int nCodepageListLen;
+extern int *lpCodepageTable;
+extern int nCodepageTableCount;
 extern BOOL bDefaultBOM;
 extern BOOL bCurrentBOM;
 extern int nCurrentCodePage;
@@ -7732,62 +7734,101 @@ void GetListboxCodepageListW(HWND hWnd, int **lpCodepageList)
   }
 }
 
-DWORD EnumCodepageList(int **lpCodepageList)
+int EnumCodepageList(int **lpCodepageList)
 {
-  int *lpCodepageTable;
   int *lpCodepageListCount;
+  int i;
+
+  lpCodepageTable=NULL;
+  nCodepageTableCount=0;
+
+  if (lpCodepageTable=(int *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(int) * 65536))
+  {
+    if (bOldWindows)
+      RegEnumSystemCodePagesA();
+    else
+      EnumSystemCodePagesW(EnumCodePagesProc, CP_INSTALLED);
+
+    //CP_ACP, CP_OEMCP, CP_UNICODE_UCS2_LE, CP_UNICODE_UCS2_BE, CP_UNICODE_UTF8, CP_UNICODE_UTF7, 0
+    nCodepageTableCount+=7;
+
+    if (*lpCodepageList=lpCodepageListCount=(int *)API_HeapAlloc(hHeap, 0, sizeof(int) * nCodepageTableCount))
+    {
+      *lpCodepageListCount++=nAnsiCodePage;
+      *lpCodepageListCount++=nOemCodePage;
+      *lpCodepageListCount++=CP_UNICODE_UCS2_LE;
+      *lpCodepageListCount++=CP_UNICODE_UCS2_BE;
+      *lpCodepageListCount++=CP_UNICODE_UTF8;
+      *lpCodepageListCount++=CP_UNICODE_UTF7;
+
+      for (i=0; i <= 65535; ++i)
+      {
+        if (lpCodepageTable[i])
+          *lpCodepageListCount++=i;
+      }
+      *lpCodepageListCount=0;
+    }
+    API_HeapFree(hHeap, 0, (LPVOID)lpCodepageTable);
+    lpCodepageTable=NULL;
+  }
+  return nCodepageTableCount;
+}
+
+void RegEnumSystemCodePagesA()
+{
   HKEY hKey;
   DWORD dwSizeValue;
   DWORD dwSizeString;
   DWORD dwType;
   DWORD dwIndex=0;
-  DWORD dwCount=0;
   int i;
 
   if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
   {
-    if (lpCodepageTable=(int *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(int) * 65536))
+    while(1)
     {
-      while(1)
+      dwSizeValue=BUFFER_SIZE;
+      dwSizeString=BUFFER_SIZE;
+      buf2[0]='\0';
+
+      if (RegEnumValueA(hKey, dwIndex++, buf, &dwSizeValue, NULL, &dwType, (LPBYTE)buf2, &dwSizeString) != ERROR_SUCCESS)
+        break;
+
+      if (*buf2)
       {
-        dwSizeValue=BUFFER_SIZE;
-        dwSizeString=BUFFER_SIZE;
-        buf2[0]='\0';
-
-        if (RegEnumValueA(hKey, dwIndex++, buf, &dwSizeValue, NULL, &dwType, (LPBYTE)buf2, &dwSizeString) != ERROR_SUCCESS)
-          break;
-
-        if (*buf2 != '\0' && (i=xatoiA(buf)) != 0 && i != nAnsiCodePage && i != nOemCodePage && i < 65536)
+        if ((i=xatoiA(buf)) > 0 && i < 65536 &&
+            i != nAnsiCodePage &&
+            i != nOemCodePage &&
+            i != CP_UNICODE_UCS2_LE &&
+            i != CP_UNICODE_UCS2_BE &&
+            i != CP_UNICODE_UTF8 &&
+            i != CP_UNICODE_UTF7)
         {
           lpCodepageTable[i]=TRUE;
-          ++dwCount;
+          ++nCodepageTableCount;
         }
       }
-      RegCloseKey(hKey);
-
-      //CP_ACP, CP_OEMCP, CP_UNICODE_UCS2_LE, CP_UNICODE_UCS2_BE, CP_UNICODE_UTF8, CP_UNICODE_UTF7, 0
-      dwCount+=7;
-
-      if (*lpCodepageList=lpCodepageListCount=(int *)API_HeapAlloc(hHeap, 0, sizeof(int) * dwCount))
-      {
-        *lpCodepageListCount++=nAnsiCodePage;
-        *lpCodepageListCount++=nOemCodePage;
-        *lpCodepageListCount++=CP_UNICODE_UCS2_LE;
-        *lpCodepageListCount++=CP_UNICODE_UCS2_BE;
-        *lpCodepageListCount++=CP_UNICODE_UTF8;
-        *lpCodepageListCount++=CP_UNICODE_UTF7;
-
-        for (i=0; i <= 65535; ++i)
-        {
-          if (lpCodepageTable[i])
-            *lpCodepageListCount++=i;
-        }
-        *lpCodepageListCount=0;
-      }
-      API_HeapFree(hHeap, 0, (LPVOID)lpCodepageTable);
     }
+    RegCloseKey(hKey);
   }
-  return dwCount;
+}
+
+BOOL CALLBACK EnumCodePagesProc(wchar_t *wpCodePage)
+{
+  int i;
+
+  if ((i=xatoiW(wpCodePage)) > 0 && i < 65536 &&
+      i != nAnsiCodePage &&
+      i != nOemCodePage &&
+      i != CP_UNICODE_UCS2_LE &&
+      i != CP_UNICODE_UCS2_BE &&
+      i != CP_UNICODE_UTF8 &&
+      i != CP_UNICODE_UTF7)
+  {
+    lpCodepageTable[i]=TRUE;
+    ++nCodepageTableCount;
+  }
+  return TRUE;
 }
 
 int CodepageListLen(int *lpCodepageList)
