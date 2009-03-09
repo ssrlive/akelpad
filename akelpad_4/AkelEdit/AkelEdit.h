@@ -472,6 +472,30 @@ typedef struct {
 } AENPROGRESS;
 
 
+//// AkelEdit functions
+
+#ifdef AEC_INDEXCOMPARE
+#define AEC_INDEXCOMPARE_INCLUDED
+  int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
+  {
+    if (ciChar1->nLine == ciChar2->nLine &&
+        ciChar1->nCharInLine == ciChar2->nCharInLine)
+    {
+      return 0;
+    }
+    if ((ciChar1->nLine < ciChar2->nLine) ||
+        (ciChar1->nLine == ciChar2->nLine &&
+         ciChar1->nCharInLine < ciChar2->nCharInLine))
+    {
+      return -1;
+    }
+    return 1;
+  }
+#else
+  int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
+#endif
+
+
 //// AkelEdit messages
 
 //Notifications
@@ -1692,22 +1716,11 @@ Example:
  SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&aes);
  SendMessage(hWndEdit, AEM_INDEXCOMPARE, (WPARAM)&aes.crSel.ciMin, (LPARAM)&aes.crSel.ciMax);
 
-For better performance instead of AEM_INDEXCOMPARE message:
- int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
- {
-   if (ciChar1->nLine == ciChar2->nLine &&
-       ciChar1->nCharInLine == ciChar2->nCharInLine)
-   {
-     return 0;
-   }
-   if ((ciChar1->nLine < ciChar2->nLine) ||
-       (ciChar1->nLine == ciChar2->nLine &&
-        ciChar1->nCharInLine < ciChar2->nCharInLine))
-   {
-     return -1;
-   }
-   return 1;
- }
+For better performance instead of AEM_INDEXCOMPARE message add:
+ #define AEC_INDEXCOMPARE
+ #include "AkelEdit.h"
+And use AEC_IndexCompare call:
+ AEC_IndexCompare(&aes.crSel.ciMin, &aes.crSel.ciMax);
 
 
 AEM_INDEXSUBTRACT

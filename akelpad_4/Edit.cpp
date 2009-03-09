@@ -19637,25 +19637,6 @@ void FreeMemoryRecentFilesW()
 }
 
 
-//// AkelEdit control functions
-
-int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
-{
-  if (ciChar1->nLine == ciChar2->nLine &&
-      ciChar1->nCharInLine == ciChar2->nCharInLine)
-  {
-    return 0;
-  }
-  if ((ciChar1->nLine < ciChar2->nLine) ||
-      (ciChar1->nLine == ciChar2->nLine &&
-       ciChar1->nCharInLine < ciChar2->nCharInLine))
-  {
-    return -1;
-  }
-  return 1;
-}
-
-
 //// API functions replacement
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName)
