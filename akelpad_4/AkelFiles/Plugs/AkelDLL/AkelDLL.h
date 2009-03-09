@@ -69,7 +69,7 @@
 
 //Status bar position type
 #define SPT_LINECOLUMN  0x00000001  //"Line:Column"
-#define SPT_LINEUNWRAP  0x00000002  //Òon-wrap line numbers
+#define SPT_LINEWRAP    0x00000002  //Wrap line numbers
 
 //Options flags
 #define POB_READ     0x1  //Begins read options

@@ -1,8 +1,10 @@
 
 AkelPad 4.1.8 ()
 ----------------------------
-Added: "StatusPosType" parameter is complemented. When word wrap in on, it is now possible
-       to display wrapped lines numbers as non-wrap.
+Changed: more accurate split window resizing.
+
+Added: When word wrap is on, now wrapped lines numbers displayed as non-wrapped.
+       "StatusPosType" parameter is complemented. 
 
 
 AkelPad 4.1.7 (Mar 05, 2009)
