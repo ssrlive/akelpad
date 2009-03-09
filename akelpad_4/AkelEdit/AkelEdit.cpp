@@ -3125,7 +3125,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       //Erase only a space after the last line
       rcErase=ae->rcErase;
-      rcErase.top=max(rcErase.top, ae->rcDraw.top + (ae->ptxt->nLineCount * ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->ptxt->nCharHeight);
+      rcErase.top=max(rcErase.top, ae->rcDraw.top + (ae->ptxt->nVScrollMax - ae->nVScrollPos));
 
       if (rcErase.top < rcErase.bottom)
       {
@@ -6398,12 +6398,15 @@ DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink)
 
       if (PtInRect(&ae->rcDraw, *ptPos))
       {
-        if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, FALSE))
+        if (ptPos->y <= ae->ptxt->nVScrollMax)
         {
-          if (nResult == AEPC_AFTER)
-            ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
+          if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, FALSE))
+          {
+            if (nResult == AEPC_AFTER)
+              ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
 
-          return AE_CharInUrl(ae, &ciCharIndex, AECU_FINDFIRSTCHAR|AECU_FINDLASTCHAR, ae->ptxt->nLineCount, crLink);
+            return AE_CharInUrl(ae, &ciCharIndex, AECU_FINDFIRSTCHAR|AECU_FINDLASTCHAR, ae->ptxt->nLineCount, crLink);
+          }
         }
       }
     }
