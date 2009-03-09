@@ -5637,12 +5637,12 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (hWndFrameActive == hWnd)
       {
-        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &rcMasterWindow, &rcEditWindow);
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &rcMasterWindow, &rcEditWindow, FALSE);
       }
       else
       {
         if (wf=(WNDFRAMEA *)GetWindowLongA(hWnd, GWL_USERDATA))
-          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &wf->rcMasterWindow, &wf->rcEditWindow);
+          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &wf->rcMasterWindow, &wf->rcEditWindow, FALSE);
       }
     }
   }
@@ -5915,12 +5915,12 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (hWndFrameActive == hWnd)
       {
-        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &rcMasterWindow, &rcEditWindow);
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &rcMasterWindow, &rcEditWindow, FALSE);
       }
       else
       {
         if (wf=(WNDFRAMEW *)GetWindowLongW(hWnd, GWL_USERDATA))
-          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &wf->rcMasterWindow, &wf->rcEditWindow);
+          ResizeEdit(wf->ei.hWndEdit, wf->hWndMaster, wf->hWndClone1, wf->hWndClone2, wf->hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &wf->rcMasterWindow, &wf->rcEditWindow, FALSE);
       }
     }
   }
@@ -6294,6 +6294,7 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static POINT ptMouseDown;
+  static int nMouseMove;
   static BOOL bMouseDown=FALSE;
   LRESULT lResult=0;
 
@@ -6365,7 +6366,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         UpdateShowHScroll();
         SetFocus(hWndEdit);
-        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow);
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow, FALSE);
       }
       return TRUE;
     }
@@ -6379,6 +6380,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         GetCursorPos(&ptMouseDown);
         bMouseDown=TRUE;
+        nMouseMove=1;
         SetCapture(hWnd);
         return TRUE;
       }
@@ -6391,15 +6393,26 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       RECT rcMasterInitial=rcMasterWindow;
       POINT ptPos;
 
-      GetCursorPos(&ptPos);
-      if (hCursorClone == hCursorSizeWE || hCursorClone == hCursorSizeALL)
-        rcMasterWindow.right+=(ptPos.x - ptMouseDown.x);
-      if (hCursorClone == hCursorSizeNS || hCursorClone == hCursorSizeALL)
-        rcMasterWindow.bottom+=(ptPos.y - ptMouseDown.y);
-      ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow);
+      if (nMouseMove > 0)
+      {
+        if (--nMouseMove == 0)
+        {
+          ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow, TRUE);;
+        }
+      }
+      else
+      {
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow, TRUE);
+        GetCursorPos(&ptPos);
+        if (hCursorClone == hCursorSizeWE || hCursorClone == hCursorSizeALL)
+          rcMasterWindow.right+=(ptPos.x - ptMouseDown.x);
+        if (hCursorClone == hCursorSizeNS || hCursorClone == hCursorSizeALL)
+          rcMasterWindow.bottom+=(ptPos.y - ptMouseDown.y);
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow, TRUE);
 
-      ptMouseDown.x+=(rcMasterWindow.right - rcMasterInitial.right);
-      ptMouseDown.y+=(rcMasterWindow.bottom - rcMasterInitial.bottom);
+        ptMouseDown.x+=(rcMasterWindow.right - rcMasterInitial.right);
+        ptMouseDown.y+=(rcMasterWindow.bottom - rcMasterInitial.bottom);
+      }
       return TRUE;
     }
   }
@@ -6409,7 +6422,13 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
     {
       bMouseDown=FALSE;
       ReleaseCapture();
-      return TRUE;
+
+      if (nMouseMove == 0)
+      {
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow, TRUE);
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow, FALSE);
+        return TRUE;
+      }
     }
   }
   else if (uMsg == WM_CAPTURECHANGED)
@@ -6418,6 +6437,11 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
     {
       bMouseDown=FALSE;
       ReleaseCapture();
+
+      if (nMouseMove == 0)
+      {
+        ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow, TRUE);
+      }
     }
   }
   return lResult;

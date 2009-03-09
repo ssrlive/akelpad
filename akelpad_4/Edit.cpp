@@ -2104,7 +2104,7 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
       UpdateShowHScroll();
     }
   }
-  ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow);
+  ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow, FALSE);
 }
 
 void DoViewOnTop(BOOL bState, BOOL bFirst)
@@ -19007,12 +19007,15 @@ void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClon
   }
 }
 
-void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight, RECT *rcMasterWindow, RECT *rcEditWindow)
+void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight, RECT *rcMasterWindow, RECT *rcEditWindow, BOOL bTest)
 {
   UpdateWindow(hStatus);
 
   if (hWndMaster)
   {
+    HWND hWndParent=GetParent(hWndMaster);
+    RECT rc;
+
     rcMasterWindow->left=X;
     rcMasterWindow->top=Y;
 
@@ -19033,15 +19036,81 @@ void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2
     else rcMasterWindow->bottom=nHeight;
 
     if (hWndMaster)
-      MoveWindow(hWndMaster, rcMasterWindow->left, rcMasterWindow->top, rcMasterWindow->right, rcMasterWindow->bottom, TRUE);
+    {
+      rc.left=rcMasterWindow->left;
+      rc.top=rcMasterWindow->top;
+      rc.right=rcMasterWindow->right;
+      rc.bottom=rcMasterWindow->bottom;
+
+      if (!bTest)
+      {
+        MoveWindow(hWndMaster, rc.left, rc.top, rc.right, rc.bottom, TRUE);
+      }
+      else
+      {
+        ClientToScreenRect(hWndParent, &rc);
+        DrawMovingRect(&rc);
+      }
+    }
     if (hWndClone1)
-      MoveWindow(hWndClone1, rcMasterWindow->left + rcMasterWindow->right, rcMasterWindow->top, nWidth - rcMasterWindow->right, rcMasterWindow->bottom, TRUE);
+    {
+      rc.left=rcMasterWindow->left + rcMasterWindow->right;
+      rc.top=rcMasterWindow->top;
+      rc.right=nWidth - rcMasterWindow->right;
+      rc.bottom=rcMasterWindow->bottom;
+
+      if (!bTest)
+      {
+        MoveWindow(hWndClone1, rc.left, rc.top, rc.right, rc.bottom, TRUE);
+      }
+      else
+      {
+        ClientToScreenRect(hWndParent, &rc);
+        DrawMovingRect(&rc);
+      }
+    }
     if (hWndClone2)
-      MoveWindow(hWndClone2, rcMasterWindow->left, rcMasterWindow->top + rcMasterWindow->bottom, rcMasterWindow->right, nHeight - rcMasterWindow->bottom, TRUE);
+    {
+      rc.left=rcMasterWindow->left;
+      rc.top=rcMasterWindow->top + rcMasterWindow->bottom;
+      rc.right=rcMasterWindow->right;
+      rc.bottom=nHeight - rcMasterWindow->bottom;
+
+      if (!bTest)
+      {
+        MoveWindow(hWndClone2, rc.left, rc.top, rc.right, rc.bottom, TRUE);
+      }
+      else
+      {
+        ClientToScreenRect(hWndParent, &rc);
+        DrawMovingRect(&rc);
+      }
+    }
     if (hWndClone3)
-      MoveWindow(hWndClone3, rcMasterWindow->left + rcMasterWindow->right, rcMasterWindow->top + rcMasterWindow->bottom, nWidth - rcMasterWindow->right, nHeight - rcMasterWindow->bottom, TRUE);
+    {
+      rc.left=rcMasterWindow->left + rcMasterWindow->right;
+      rc.top=rcMasterWindow->top + rcMasterWindow->bottom;
+      rc.right=nWidth - rcMasterWindow->right;
+      rc.bottom=nHeight - rcMasterWindow->bottom;
+
+      if (!bTest)
+      {
+        MoveWindow(hWndClone3, rc.left, rc.top, rc.right, rc.bottom, TRUE);
+      }
+      else
+      {
+        ClientToScreenRect(hWndParent, &rc);
+        DrawMovingRect(&rc);
+      }
+    }
   }
-  else MoveWindow(hWndEdit, X, Y, nWidth, nHeight, TRUE);
+  else
+  {
+    if (!bTest)
+    {
+      MoveWindow(hWndEdit, X, Y, nWidth, nHeight, TRUE);
+    }
+  }
 
   rcEditWindow->left=X;
   rcEditWindow->top=Y;
@@ -19070,7 +19139,7 @@ void UpdateSize()
 
     if (!bMDI)
     {
-      ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, nsSize.rcCurrent.bottom, &rcMasterWindow, &rcEditWindow);
+      ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, nsSize.rcCurrent.bottom, &rcMasterWindow, &rcEditWindow, FALSE);
     }
     else
     {
