@@ -10779,7 +10779,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
-          if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+          if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
             a=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
           else
             a=ciCaret.nLine;
@@ -10818,7 +10818,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       if (nGotoType == NT_LINE)
       {
         nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
-        if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+        if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
           nLineCount=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
 
         if (!nNumber)
@@ -10834,7 +10834,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         }
         nNumber=min(nNumber, nLineCount);
 
-        if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+        if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
           SendMessage(hWndEdit, AEM_GETWRAPLINE, nNumber - 1, (LPARAM)&cr.ciMin);
         else
           SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
@@ -10924,7 +10924,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
-          if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+          if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
             a=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
           else
             a=ciCaret.nLine;
@@ -10963,7 +10963,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       if (nGotoType == NT_LINE)
       {
         nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
-        if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+        if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
           nLineCount=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
 
         if (!nNumber)
@@ -10979,7 +10979,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         }
         nNumber=min(nNumber, nLineCount);
 
-        if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+        if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
           SendMessage(hWndEdit, AEM_GETWRAPLINE, nNumber - 1, (LPARAM)&cr.ciMin);
         else
           SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
@@ -17048,7 +17048,7 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     GetSel(hWnd, &crSel, NULL, &ciCaret);
   }
 
-  if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+  if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
     nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
   else
     nLine=ciCaret.nLine;
@@ -17082,7 +17082,7 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     GetSel(hWnd, &crSel, NULL, &ciCaret);
   }
 
-  if ((dwStatusPosType & SPT_LINEUNWRAP) && bWordWrap)
+  if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
     nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
   else
     nLine=ciCaret.nLine;
