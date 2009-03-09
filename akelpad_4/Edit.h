@@ -1286,8 +1286,6 @@ void FreeMemorySearchW();
 void FreeMemoryRecentFilesA();
 void FreeMemoryRecentFilesW();
 
-int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
-
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
 HMENU API_LoadMenuW(HINSTANCE hLoadInstance, wchar_t *lpMenuName);
 HACCEL API_LoadAcceleratorsA(HINSTANCE hLoadInstance, char *lpTableName);
