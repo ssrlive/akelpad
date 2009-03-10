@@ -562,6 +562,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_SetModify(ae, wParam, TRUE);
         return 0;
       }
+      if (uMsg == AEM_UNDOBUFFERSIZE)
+      {
+        return AE_StackUndoSize(ae);
+      }
 
       //Text coordinates
       if (uMsg == AEM_GETSEL)
@@ -3913,6 +3917,20 @@ void AE_StackRedoDeleteAll(AKELEDIT *ae, AEUNDOITEM *lpItem)
     AE_StackUndoItemDelete(ae, lpElement);
     lpElement=lpTmp;
   }
+}
+
+DWORD AE_StackUndoSize(AKELEDIT *ae)
+{
+  AEUNDOITEM *lpElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
+  DWORD dwSize=0;
+
+  while (lpElement)
+  {
+    dwSize+=lpElement->dwTextLen;
+
+    lpElement=lpElement->next;
+  }
+  return dwSize;
 }
 
 void AE_StackUndoGroupStop(AKELEDIT *ae)

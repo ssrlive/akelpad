@@ -567,6 +567,7 @@ typedef struct {
 #define AEM_SETUNDOLIMIT      (WM_USER + 2061)
 #define AEM_GETMODIFY         (WM_USER + 2062)
 #define AEM_SETMODIFY         (WM_USER + 2063)
+#define AEM_UNDOBUFFERSIZE    (WM_USER + 2064)
 
 //Text coordinates
 #define AEM_GETSEL            (WM_USER + 2101)
@@ -1571,6 +1572,21 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_SETMODIFY, FALSE, 0);
+
+
+AEM_UNDOBUFFERSIZE
+__________________
+
+Get the number of bytes stored in the undo queue.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Number of bytes.
+
+Example:
+ SendMessage(hWndEdit, AEM_UNDOBUFFERSIZE, 0, 0);
 
 
 AEM_GETSEL

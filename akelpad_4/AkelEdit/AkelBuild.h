@@ -393,6 +393,7 @@ void AE_StackPointFree(AKELEDIT *ae);
 AEUNDOITEM* AE_StackUndoItemInsert(AKELEDIT *ae);
 void AE_StackUndoItemDelete(AKELEDIT *ae, AEUNDOITEM *lpItem);
 void AE_StackRedoDeleteAll(AKELEDIT *ae, AEUNDOITEM *lpItem);
+DWORD AE_StackUndoSize(AKELEDIT *ae);
 void AE_StackUndoGroupStop(AKELEDIT *ae);
 AELINEDATA* AE_StackLineAdd(AKELEDIT *ae);
 AELINEDATA* AE_StackLineInsertBefore(AKELEDIT *ae, AELINEDATA *lpLine);
