@@ -2,6 +2,8 @@
 // Microsoft Developer Studio generated include file.
 // Used by AkelEdit.rc
 //
+#define AEVERSION_ID 1,1,8,0
+
 #define IDC_AEMARGIN                    900
 #define IDC_AEHAND                      901
 #define IDC_AEMCENTERALL                902

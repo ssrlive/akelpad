@@ -1065,6 +1065,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AE_GetCharWidth(ae, wParam);
       }
+      if (uMsg == AEM_CONTROLCLASS)
+      {
+        if (ae->bRichEditClass)
+          return AECLASS_RICHEDIT;
+        else
+          return AECLASS_AKELEDIT;
+      }
+      if (uMsg == AEM_CONTROLVERSION)
+      {
+        DWORD ver[4]={AEVERSION_ID};
+
+        return MAKELONG(MAKEWORD(ver[0], ver[1]), MAKEWORD(ver[2], ver[3]));
+      }
 
       //Other
       if (uMsg == AEM_ISDELIMITER)
