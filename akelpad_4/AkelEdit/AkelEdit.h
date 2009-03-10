@@ -30,6 +30,22 @@
 #define AENM_LINK               0x00000040  //Sends AEN_LINK notifications.
 #define AENM_PROGRESS           0x00000080  //Sends AEN_PROGRESS notifications.
 
+//AEN_TEXTCHANGING and AEN_TEXTCHANGED flags
+#define AETCT_REPLACESEL        0x00000001  //Replace selection.
+#define AETCT_APPENDTEXT        0x00000002  //Append text.
+#define AETCT_SETTEXT           0x00000004  //Set text.
+#define AETCT_STREAMIN          0x00000008  //Stream in.
+#define AETCT_STREAMOUT         0x00000010  //Stream out.
+#define AETCT_UNDO              0x00000020  //Undo.
+#define AETCT_REDO              0x00000040  //Redo.
+#define AETCT_CUT               0x00000080  //Cut.
+#define AETCT_CHAR              0x00000100  //Insert char.
+#define AETCT_RETURN            0x00000200  //Press VK_RETURN.
+#define AETCT_BACKSPACE         0x00000400  //Press VK_BACK.
+#define AETCT_DELETE            0x00000800  //Press VK_DELETE.
+#define AETCT_DRAGDELETE        0x00001000  //Dragging text delete.
+#define AETCT_DROPINSERT        0x00002000  //Dropping text insert.
+
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
 #define AEDT_TARGETOVER         2  //Moving over the target window.
@@ -421,6 +437,7 @@ typedef struct {
   NMHDR hdr;
   AESELECTION aes;      //Current selection.
   AECHARINDEX ciCaret;  //Caret character index position.
+  DWORD dwType;         //See AETCT_* defines.
 } AENTEXTCHANGE;
 
 typedef struct {
