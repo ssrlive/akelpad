@@ -68,8 +68,8 @@
 #define NEWLINE_MAC   3  //MacOS new line format (\r)
 
 //Status bar position type
-#define SPT_COLUMN      0x00000001  //"Line:Column"
-#define SPT_LINEWRAP    0x00000002  //Wrap line numbers
+#define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
+#define SPT_LINEWRAP    0x00000002  //Wrap line numbers. By default: Non-wrap line numbers.
 
 //Options flags
 #define POB_READ     0x1  //Begins read options
