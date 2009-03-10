@@ -17053,10 +17053,10 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   else
     nLine=ciCaret.nLine;
 
-  if (dwStatusPosType & SPT_LINECOLUMN)
-    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, 0, (LPARAM)&ciCaret);
+  if (dwStatusPosType & SPT_COLUMN)
+    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
   else
-    nColumn=ciCaret.nCharInLine + 1;
+    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
     wsprintfA(szStatus, "%u:%u", nLine + 1, nColumn);
@@ -17087,10 +17087,10 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   else
     nLine=ciCaret.nLine;
 
-  if (dwStatusPosType & SPT_LINECOLUMN)
-    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, 0, (LPARAM)&ciCaret);
+  if (dwStatusPosType & SPT_COLUMN)
+    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
   else
-    nColumn=ciCaret.nCharInLine + 1;
+    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
     wsprintfW(wszStatus, L"%u:%u", nLine + 1, nColumn);

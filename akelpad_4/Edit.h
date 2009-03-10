@@ -278,7 +278,7 @@
 #define SM_TABTITLE_MDI   0x00000008
 
 //Status bar position type
-#define SPT_LINECOLUMN  0x00000001
+#define SPT_COLUMN      0x00000001
 #define SPT_LINEWRAP    0x00000002
 
 //Go to line
