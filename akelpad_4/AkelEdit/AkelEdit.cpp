@@ -2872,11 +2872,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   {
                     if (ae->bDeleteSelection)
                     {
-                      AE_NotifyChanging(ae);
+                      AE_NotifyChanging(ae, AETCT_DRAGDELETE);
                       AE_StackUndoGroupStop(ae);
                       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
                       AE_StackUndoGroupStop(ae);
-                      AE_NotifyChanged(ae);
+                      AE_NotifyChanged(ae, AETCT_DRAGDELETE);
                     }
                   }
                 }
@@ -9221,7 +9221,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   BOOL bUpdated=FALSE;
 
   AE_NotifySelChanging(ae);
-  AE_NotifyTextChanging(ae);
+  AE_NotifyTextChanging(ae, AETCT_SETTEXT);
 
   //Free memory
   if (ae->ptxt->hHeap)
@@ -9444,7 +9444,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
 
     AE_StackPointReset(ae);
     AE_NotifySelChanged(ae);
-    AE_NotifyTextChanged(ae);
+    AE_NotifyTextChanged(ae, AETCT_SETTEXT);
   }
   return dwTextLen;
 }
@@ -9475,7 +9475,7 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bC
   int nSelStartCharOffset;
   int nSelEndCharOffset;
 
-  AE_NotifyChanging(ae);
+  AE_NotifyChanging(ae, AETCT_APPENDTEXT);
   AE_StackUndoGroupStop(ae);
   AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
 
@@ -9502,7 +9502,7 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bC
   AE_UpdateScrollBars(ae, SB_VERT);
   InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
   AE_StackUndoGroupStop(ae);
-  AE_NotifyChanged(ae);
+  AE_NotifyChanged(ae, AETCT_APPENDTEXT);
 }
 
 void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
@@ -9527,7 +9527,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bC
   AECHARINDEX ciStart={0};
   AECHARINDEX ciEnd={0};
 
-  AE_NotifyChanging(ae);
+  AE_NotifyChanging(ae, AETCT_REPLACESEL);
   AE_StackUndoGroupStop(ae);
   AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
   if (!AE_InsertText(ae, &ae->ciCaretIndex, wpText, dwTextLen, ae->popt->nInputNewLine, bColumnSel, 0, &ciStart, &ciEnd))
@@ -9544,7 +9544,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bC
   }
   if (ciInsertStart) *ciInsertStart=ciStart;
   if (ciInsertEnd) *ciInsertEnd=ciEnd;
-  AE_NotifyChanged(ae);
+  AE_NotifyChanged(ae, AETCT_REPLACESEL);
 }
 
 void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, BOOL bColumnSel, DWORD dwDeleteFlags)
@@ -11097,7 +11097,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 
   if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
   {
-    AE_NotifyChanging(ae);
+    AE_NotifyChanging(ae, AETCT_STREAMIN);
 
     if (dwFlags & AESF_SELECTION)
     {
@@ -11125,7 +11125,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
     ae->nHorizCaretPos=ae->ptCaret.x;
     if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-    AE_NotifyChanged(ae);
+    AE_NotifyChanged(ae, AETCT_STREAMIN);
 
     AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
@@ -11164,7 +11164,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 
   if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
   {
-    AE_NotifyChanging(ae);
+    AE_NotifyChanging(ae, AETCT_STREAMOUT);
 
     while (ciCount.lpLine)
     {
@@ -11238,7 +11238,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
     AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult);
 
     End:
-    AE_NotifyChanged(ae);
+    AE_NotifyChanged(ae, AETCT_STREAMOUT);
 
     AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
@@ -11703,7 +11703,7 @@ void AE_EditUndo(AKELEDIT *ae)
   AECHARINDEX ciInsertEnd;
   BOOL bColumnSel;
 
-  AE_NotifyChanging(ae);
+  AE_NotifyChanging(ae, AETCT_UNDO);
   AE_StackUndoGroupStop(ae);
   lpCurElement=ae->ptxt->lpCurrentUndo;
 
@@ -11789,7 +11789,7 @@ void AE_EditUndo(AKELEDIT *ae)
   if (ae->ptxt->bModified != AE_GetModify(ae))
     AE_SetModify(ae, !ae->ptxt->bModified, FALSE);
 
-  AE_NotifyChanged(ae);
+  AE_NotifyChanged(ae, AETCT_UNDO);
 }
 
 void AE_EditRedo(AKELEDIT *ae)
@@ -11802,7 +11802,7 @@ void AE_EditRedo(AKELEDIT *ae)
   AECHARINDEX ciInsertEnd;
   BOOL bColumnSel;
 
-  AE_NotifyChanging(ae);
+  AE_NotifyChanging(ae, AETCT_REDO);
 
   if (!lpCurElement)
     lpCurElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
@@ -11880,18 +11880,18 @@ void AE_EditRedo(AKELEDIT *ae)
   if (ae->ptxt->bModified != AE_GetModify(ae))
     AE_SetModify(ae, !ae->ptxt->bModified, FALSE);
 
-  AE_NotifyChanged(ae);
+  AE_NotifyChanged(ae, AETCT_REDO);
 }
 
 void AE_EditCut(AKELEDIT *ae)
 {
   AE_EditCopyToClipboard(ae);
 
-  AE_NotifyChanging(ae);
+  AE_NotifyChanging(ae, AETCT_CUT);
   AE_StackUndoGroupStop(ae);
   AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
   AE_StackUndoGroupStop(ae);
-  AE_NotifyChanged(ae);
+  AE_NotifyChanged(ae, AETCT_CUT);
 }
 
 void AE_EditCopyToClipboard(AKELEDIT *ae)
@@ -11972,7 +11972,7 @@ void AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
 
 void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
 {
-  AE_NotifyChanging(ae);
+  AE_NotifyChanging(ae, AETCT_CHAR);
 
   if (!ae->bUnicodeWindow)
   {
@@ -12040,7 +12040,7 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
       }
     }
   }
-  AE_NotifyChanged(ae);
+  AE_NotifyChanged(ae, AETCT_CHAR);
 }
 
 void AE_EditKeyReturn(AKELEDIT *ae)
@@ -12049,7 +12049,7 @@ void AE_EditKeyReturn(AKELEDIT *ae)
   wchar_t *wpNewLine;
   int nNewLine;
 
-  AE_NotifyChanging(ae);
+  AE_NotifyChanging(ae, AETCT_RETURN);
 
   nNewLine=AE_GetNewLineString(ae, ae->popt->nOutputNewLine, &wpNewLine);
   AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL);
@@ -12067,14 +12067,14 @@ void AE_EditKeyReturn(AKELEDIT *ae)
         ae->ptxt->lpCurrentUndo->dwFlags|=AEUN_SINGLECHAR;
     }
   }
-  AE_NotifyChanged(ae);
+  AE_NotifyChanged(ae, AETCT_RETURN);
 }
 
 void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
 {
   AECHARINDEX ciCharIndex=ae->ciCaretIndex;
 
-  AE_NotifyChanging(ae);
+  AE_NotifyChanging(ae, AETCT_BACKSPACE);
 
   if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
@@ -12111,7 +12111,7 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
     AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
     AE_StackUndoGroupStop(ae);
   }
-  AE_NotifyChanged(ae);
+  AE_NotifyChanged(ae, AETCT_BACKSPACE);
 }
 
 void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
@@ -12119,7 +12119,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
   AECHARINDEX ciCharIndex=ae->ciCaretIndex;
   int nSpaces=0;
 
-  AE_NotifyChanging(ae);
+  AE_NotifyChanging(ae, AETCT_DELETE);
 
   if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
@@ -12170,7 +12170,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
     AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
     AE_StackUndoGroupStop(ae);
   }
-  AE_NotifyChanged(ae);
+  AE_NotifyChanged(ae, AETCT_DELETE);
 }
 
 void AE_EditSelectAll(AKELEDIT *ae)
@@ -12536,7 +12536,7 @@ void AE_NotifySelChanged(AKELEDIT *ae)
   }
 }
 
-void AE_NotifyTextChanging(AKELEDIT *ae)
+void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
 {
   //Send AEN_TEXTCHANGING
   if (ae->popt->dwEventMask & AENM_TEXTCHANGE)
@@ -12546,12 +12546,13 @@ void AE_NotifyTextChanging(AKELEDIT *ae)
     tc.hdr.hwndFrom=ae->hWndEdit;
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGING;
+    tc.dwType=dwType;
     AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
 }
 
-void AE_NotifyTextChanged(AKELEDIT *ae)
+void AE_NotifyTextChanged(AKELEDIT *ae, DWORD dwType)
 {
   AE_StackUpdateClones(ae);
 
@@ -12563,6 +12564,7 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
     tc.hdr.hwndFrom=ae->hWndEdit;
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGED;
+    tc.dwType=dwType;
     AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
@@ -12574,13 +12576,13 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
   }
 }
 
-void AE_NotifyChanging(AKELEDIT *ae)
+void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType)
 {
   AE_NotifySelChanging(ae);
-  AE_NotifyTextChanging(ae);
+  AE_NotifyTextChanging(ae, dwType);
 }
 
-void AE_NotifyChanged(AKELEDIT *ae)
+void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
 {
   if (ae->dwNotify)
   {
@@ -12592,7 +12594,7 @@ void AE_NotifyChanged(AKELEDIT *ae)
     if (ae->dwNotify & AENM_TEXTCHANGE)
     {
       ae->dwNotify&=~AENM_TEXTCHANGE;
-      AE_NotifyTextChanged(ae);
+      AE_NotifyTextChanged(ae, dwType);
     }
   }
 }
@@ -13545,7 +13547,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
           AECHARINDEX ciStart={0};
           AECHARINDEX ciEnd={0};
 
-          AE_NotifyChanging(ae);
+          AE_NotifyChanging(ae, AETCT_DROPINSERT);
           AE_StackUndoGroupStop(ae);
 
           //Delete
@@ -13560,7 +13562,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               {
                 AE_ActivateClone(lpAkelEditPrev, aeSource);
                 lpAkelEditPrev=aeSource;
-                AE_NotifyChanging(aeSource);
+                AE_NotifyChanging(aeSource, AETCT_DRAGDELETE);
               }
               lpPoint=AE_StackPointInsert(aeSource, &ciCharIndex);
               AE_DeleteTextRange(aeSource, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
@@ -13572,7 +13574,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               {
                 AE_ActivateClone(lpAkelEditPrev, ae);
                 lpAkelEditPrev=ae;
-                AE_NotifyChanged(aeSource);
+                AE_NotifyChanged(aeSource, AETCT_DRAGDELETE);
               }
             }
           }
@@ -13590,7 +13592,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
           }
           AE_StackUndoGroupStop(ae);
           AE_SetSelectionPos(ae, &ciEnd, &ciStart, pDropTarget->bColumnSel, AESELT_LOCKNOTIFY);
-          AE_NotifyChanged(ae);
+          AE_NotifyChanged(ae, AETCT_DROPINSERT);
 
           GlobalUnlock(stgmed.hGlobal);
         }
@@ -13610,7 +13612,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
             AECHARINDEX ciStart={0};
             AECHARINDEX ciEnd={0};
 
-            AE_NotifyChanging(ae);
+            AE_NotifyChanging(ae, AETCT_DROPINSERT);
             AE_StackUndoGroupStop(ae);
 
             //Delete
@@ -13625,7 +13627,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
                 {
                   AE_ActivateClone(lpAkelEditPrev, aeSource);
                   lpAkelEditPrev=aeSource;
-                  AE_NotifyChanging(aeSource);
+                  AE_NotifyChanging(aeSource, AETCT_DRAGDELETE);
                 }
                 lpPoint=AE_StackPointInsert(aeSource, &ciCharIndex);
                 AE_DeleteTextRange(aeSource, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
@@ -13637,7 +13639,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
                 {
                   AE_ActivateClone(lpAkelEditPrev, ae);
                   lpAkelEditPrev=ae;
-                  AE_NotifyChanged(aeSource);
+                  AE_NotifyChanged(aeSource, AETCT_DRAGDELETE);
                 }
               }
             }
@@ -13665,7 +13667,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
             }
             AE_StackUndoGroupStop(ae);
             AE_SetSelectionPos(ae, &ciEnd, &ciStart, pDropTarget->bColumnSel, AESELT_LOCKNOTIFY);
-            AE_NotifyChanged(ae);
+            AE_NotifyChanged(ae, AETCT_DROPINSERT);
 
             GlobalUnlock(stgmed.hGlobal);
           }
