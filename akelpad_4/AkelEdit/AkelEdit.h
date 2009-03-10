@@ -15,6 +15,10 @@
 #define AES_RICHEDITCLASSA     "RichEdit20A"
 #define AES_RICHEDITCLASSW    L"RichEdit20W"
 
+//AEM_CONTROLCLASS
+#define AECLASS_AKELEDIT      1
+#define AECLASS_RICHEDIT      2
+
 #define AES_WORDDELIMITERSW   L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
 #define AES_WRAPDELIMITERSW   L" \t\n"
 #define AES_URLDELIMITERSW    L" \t\n()<>'`\""
@@ -637,6 +641,8 @@ typedef struct {
 #define AEM_SETWORDBREAK      (WM_USER + 2230)
 #define AEM_GETCHARAVERAGE    (WM_USER + 2230)
 #define AEM_GETCHARWIDTH      (WM_USER + 2231)
+#define AEM_CONTROLCLASS      (WM_USER + 2232)
+#define AEM_CONTROLVERSION    (WM_USER + 2233)
 
 //Other
 #define AEM_ISDELIMITER       (WM_USER + 2251)
@@ -2730,6 +2736,46 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_GETCHARWIDTH, L'A', 0);
+
+
+AEM_CONTROLCLASS
+________________
+
+Retrieve control class AkelEdit or RichEdit.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ See AECLASS_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_CONTROLCLASS, 0, 0);
+
+
+AEM_CONTROLVERSION
+__________________
+
+Retrieve control version.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Version number. Created as: MAKELONG(MAKEWORD(dwMajor, dwMinor), MAKEWORD(dwRelease, dwBuild)).
+
+Example:
+ DWORD dwVersion;
+ DWORD dwMajor;
+ DWORD dwMinor;
+ DWORD dwRelease;
+ DWORD dwBuild;
+
+ dwVersion=SendMessage(hWndEdit, AEM_CONTROLVERSION, 0, 0);
+ dwMajor=LOBYTE(dwVersion);
+ dwMinor=HIBYTE(dwVersion);
+ dwRelease=LOBYTE(HIWORD(dwVersion));
+ dwBuild=HIBYTE(HIWORD(dwVersion));
 
 
 AEM_ISDELIMITER
