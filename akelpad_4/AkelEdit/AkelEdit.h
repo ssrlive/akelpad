@@ -35,20 +35,20 @@
 #define AENM_PROGRESS           0x00000080  //Sends AEN_PROGRESS notifications.
 
 //AEN_TEXTCHANGING and AEN_TEXTCHANGED flags
-#define AETCT_REPLACESEL        0x00000001  //Replace selection.
-#define AETCT_APPENDTEXT        0x00000002  //Append text.
-#define AETCT_SETTEXT           0x00000004  //Set text.
-#define AETCT_STREAMIN          0x00000008  //Stream in.
-#define AETCT_STREAMOUT         0x00000010  //Stream out.
-#define AETCT_UNDO              0x00000020  //Undo.
-#define AETCT_REDO              0x00000040  //Redo.
-#define AETCT_CUT               0x00000080  //Cut.
-#define AETCT_CHAR              0x00000100  //Insert char.
-#define AETCT_RETURN            0x00000200  //Press VK_RETURN.
-#define AETCT_BACKSPACE         0x00000400  //Press VK_BACK.
-#define AETCT_DELETE            0x00000800  //Press VK_DELETE.
-#define AETCT_DRAGDELETE        0x00001000  //Dragging text delete.
-#define AETCT_DROPINSERT        0x00002000  //Dropping text insert.
+#define AETCT_REPLACESEL        1  //Replace selection.
+#define AETCT_APPENDTEXT        2  //Append text.
+#define AETCT_SETTEXT           3  //Set text.
+#define AETCT_STREAMIN          4  //Stream in.
+#define AETCT_STREAMOUT         5  //Stream out.
+#define AETCT_UNDO              6  //Undo.
+#define AETCT_REDO              7  //Redo.
+#define AETCT_CUT               8  //Cut.
+#define AETCT_CHAR              9  //Insert char.
+#define AETCT_RETURN           10  //Pressed VK_RETURN.
+#define AETCT_BACKSPACE        11  //Pressed VK_BACK.
+#define AETCT_DELETE           12  //Pressed VK_DELETE.
+#define AETCT_DRAGDELETE       13  //Dragging text delete.
+#define AETCT_DROPINSERT       14  //Dropping text insert.
 
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
@@ -85,15 +85,15 @@
 #define AECOOP_XOR              4  //Logically exclusive OR the current options with those specified by lParam.
 
 //AEM_GETINDEX flags
-#define AEGI_FIRSTCHAR          1   //First character.
-#define AEGI_LASTCHAR           2   //Last character.
-#define AEGI_FIRSTSELCHAR       3   //First character of the selection.
-#define AEGI_LASTSELCHAR        4   //Last character of the selection.
-#define AEGI_CARETCHAR          5   //Caret character.
-#define AEGI_FIRSTVISIBLELINE   6   //First character of the first visible line.
-#define AEGI_LASTVISIBLELINE    7   //Last character of the last visible line.
-#define AEGI_NEXTLINE           8   //First character of the next line.
-#define AEGI_PREVLINE           9   //First character of the previous line.
+#define AEGI_FIRSTCHAR           1  //First character.
+#define AEGI_LASTCHAR            2  //Last character.
+#define AEGI_FIRSTSELCHAR        3  //First character of the selection.
+#define AEGI_LASTSELCHAR         4  //Last character of the selection.
+#define AEGI_CARETCHAR           5  //Caret character.
+#define AEGI_FIRSTVISIBLELINE    6  //First character of the first visible line.
+#define AEGI_LASTVISIBLELINE     7  //Last character of the last visible line.
+#define AEGI_NEXTLINE            8  //First character of the next line.
+#define AEGI_PREVLINE            9  //First character of the previous line.
 #define AEGI_NEXTCHAR           10  //Next character.
 #define AEGI_PREVCHAR           11  //Previous character.
 #define AEGI_NEXTBREAK          12  //Next break index, see AEM_SETWORDDELIMITERS.
@@ -1892,7 +1892,11 @@ __________________
 
 Retrieve the character index column taking into account tab stop size.
 
-wParam                == not used.
+(DWORD)wParam         == low-order word:
+                          tab stop size.
+                         high-order word:
+                          TRUE   scan all wrapped lines.
+                          FALSE  scan to first char in line.
 (AECHARINDEX *)lParam == AkelEdit character index.
 
 Return Value
@@ -1900,9 +1904,11 @@ Return Value
 
 Example:
  AECHARINDEX ciCaret;
+ int nTabStop;
 
+ nTabStop=SendMessage(hWndEdit, AEM_GETTABSTOP, 0, 0);
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
- SendMessage(hWndEdit, AEM_GETINDEXCOLUMN, 0, (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_GETINDEXCOLUMN, MAKELONG(nTabStop, TRUE), (LPARAM)&ciCaret);
 
 
 AEM_GETWRAPLINE

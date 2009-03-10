@@ -666,23 +666,45 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETINDEXCOLUMN)
       {
-        AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+        AECHARINDEX ciChar=*(AECHARINDEX *)lParam;
+        int nTabSize=LOWORD(wParam);
+        BOOL bWrappedScan=HIWORD(wParam);
         int nScanLimit;
         int nColumn=0;
+        int nResult;
         int i;
 
-        nScanLimit=min(ciCharIndex->nCharInLine, ciCharIndex->lpLine->nLineLen);
+        nScanLimit=min(ciChar.nCharInLine, ciChar.lpLine->nLineLen);
+        nResult=ciChar.nCharInLine - nScanLimit;
 
-        for (i=0; i < nScanLimit; ++i)
+        while (ciChar.lpLine)
         {
-          if (ciCharIndex->lpLine->wpLine[i] == '\t')
-            nColumn+=ae->ptxt->nTabStop - nColumn % ae->ptxt->nTabStop;
+          if (nTabSize == 1)
+          {
+            nColumn+=nScanLimit;
+          }
           else
-            ++nColumn;
-        }
-        nColumn+=ciCharIndex->nCharInLine - nScanLimit + 1;
+          {
+            for (i=0; i < nScanLimit; ++i)
+            {
+              if (ciChar.lpLine->wpLine[i] == '\t')
+                nColumn+=nTabSize - nColumn % nTabSize;
+              else
+                ++nColumn;
+            }
+          }
+          nResult+=nColumn;
 
-        return nColumn;
+          if (bWrappedScan && ciChar.lpLine->prev && ciChar.lpLine->prev->nLineBreak == AELB_WRAP)
+          {
+            --ciChar.nLine;
+            ciChar.lpLine=ciChar.lpLine->prev;
+            nScanLimit=ciChar.lpLine->nLineLen;
+            nColumn=0;
+          }
+          else break;
+        }
+        return nResult + 1;
       }
       if (uMsg == AEM_GETWRAPLINE)
       {
