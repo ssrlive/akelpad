@@ -1,5 +1,5 @@
 
-AkelPad 4.1.8 ()
+AkelPad 4.1.8 (Mar 10, 2009)
 ----------------------------
 Changed: more accurate split window resizing.
 
