@@ -5068,7 +5068,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
 
       //Update titles
       SetNewLineStatusA(hWndEdit, fsd.nNewLine, AENL_INPUT, TRUE);
-      SetModifyStatusA(NULL, FALSE, FALSE);
+      SetModifyStatusA(hWndEdit, FALSE, FALSE);
       SetCodePageStatusA(nCodePage, bBOM, FALSE);
 
       if (nFileCmp)
@@ -5329,7 +5329,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
 
       //Update titles
       SetNewLineStatusW(hWndEdit, fsd.nNewLine, AENL_INPUT, TRUE);
-      SetModifyStatusW(NULL, FALSE, FALSE);
+      SetModifyStatusW(hWndEdit, FALSE, FALSE);
       SetCodePageStatusW(nCodePage, bBOM, FALSE);
 
       if (nFileCmp)
@@ -19213,21 +19213,27 @@ void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen)
 void DrawMovingRect(RECT *rcScreen)
 {
   const WORD DotPattern[]={0x00aa, 0x0055, 0x00aa, 0x0055, 0x00aa, 0x0055, 0x00aa, 0x0055};
+  RECT rcClient=*rcScreen;
   HDC hDC;
   HBITMAP hBitmap;
   HBRUSH hBrush;
   HBRUSH hBrushOld;
 
-  if (hDC=GetDC(NULL))
+  if (!ScreenToClient(hMainWnd, (POINT *)&rcClient.left))
+    return;
+  if (!ScreenToClient(hMainWnd, (POINT *)&rcClient.right))
+    return;
+
+  if (hDC=GetDC(hMainWnd))
   {
     hBitmap=CreateBitmap(8, 8, 1, 1, DotPattern);
     hBrush=CreatePatternBrush(hBitmap);
     hBrushOld=(HBRUSH)SelectObject(hDC, hBrush);
 
-    PatBlt(hDC, rcScreen->left, rcScreen->top, DOCK_BORDER_1X, rcScreen->bottom - rcScreen->top - DOCK_BORDER_1X, PATINVERT);
-    PatBlt(hDC, rcScreen->left + DOCK_BORDER_1X, rcScreen->top, rcScreen->right - rcScreen->left - DOCK_BORDER_1X, DOCK_BORDER_1X, PATINVERT);
-    PatBlt(hDC, rcScreen->right - DOCK_BORDER_1X, rcScreen->top + DOCK_BORDER_1X, DOCK_BORDER_1X, rcScreen->bottom - rcScreen->top - DOCK_BORDER_1X, PATINVERT);
-    PatBlt(hDC, rcScreen->left, rcScreen->bottom - DOCK_BORDER_1X, rcScreen->right - rcScreen->left - DOCK_BORDER_1X,  DOCK_BORDER_1X, PATINVERT);
+    PatBlt(hDC, rcClient.left, rcClient.top, DOCK_BORDER_1X, rcClient.bottom - rcClient.top - DOCK_BORDER_1X, PATINVERT);
+    PatBlt(hDC, rcClient.left + DOCK_BORDER_1X, rcClient.top, rcClient.right - rcClient.left - DOCK_BORDER_1X, DOCK_BORDER_1X, PATINVERT);
+    PatBlt(hDC, rcClient.right - DOCK_BORDER_1X, rcClient.top + DOCK_BORDER_1X, DOCK_BORDER_1X, rcClient.bottom - rcClient.top - DOCK_BORDER_1X, PATINVERT);
+    PatBlt(hDC, rcClient.left, rcClient.bottom - DOCK_BORDER_1X, rcClient.right - rcClient.left - DOCK_BORDER_1X,  DOCK_BORDER_1X, PATINVERT);
 
     SelectObject(hDC, hBrushOld);
     DeleteObject(hBrush);

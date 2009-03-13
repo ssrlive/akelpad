@@ -1,4 +1,10 @@
 
+AkelPad 4.1.9 ()
+----------------------------
+Fixed: resizing of split window and also dockable windows.
+Fixed: displaying asterisk * in titles isn't updated after document reopening (MDI).
+
+
 AkelPad 4.1.8 (Mar 10, 2009)
 ----------------------------
 Changed: more accurate split window resizing.

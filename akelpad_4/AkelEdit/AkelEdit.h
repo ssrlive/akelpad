@@ -35,20 +35,24 @@
 #define AENM_PROGRESS           0x00000080  //Sends AEN_PROGRESS notifications.
 
 //AEN_TEXTCHANGING and AEN_TEXTCHANGED flags
-#define AETCT_REPLACESEL        1  //Replace selection.
-#define AETCT_APPENDTEXT        2  //Append text.
-#define AETCT_SETTEXT           3  //Set text.
-#define AETCT_STREAMIN          4  //Stream in.
-#define AETCT_STREAMOUT         5  //Stream out.
-#define AETCT_UNDO              6  //Undo.
-#define AETCT_REDO              7  //Redo.
-#define AETCT_CUT               8  //Cut.
-#define AETCT_CHAR              9  //Insert char.
-#define AETCT_RETURN           10  //Pressed VK_RETURN.
-#define AETCT_BACKSPACE        11  //Pressed VK_BACK.
-#define AETCT_DELETE           12  //Pressed VK_DELETE.
-#define AETCT_DRAGDELETE       13  //Dragging text delete.
-#define AETCT_DROPINSERT       14  //Dropping text insert.
+#define AETCT_REPLACESEL        0x00000001  //Replace selection.
+#define AETCT_APPENDTEXT        0x00000002  //Append text.
+#define AETCT_SETTEXT           0x00000004  //Set text.
+#define AETCT_STREAMIN          0x00000008  //Stream in.
+#define AETCT_STREAMOUT         0x00000010  //Stream out.
+#define AETCT_UNDO              0x00000020  //Undo.
+#define AETCT_REDO              0x00000040  //Redo.
+#define AETCT_CUT               0x00000080  //Cut.
+#define AETCT_CHAR              0x00000100  //Insert char.
+#define AETCT_KEYRETURN         0x00000200  //Pressed VK_RETURN.
+#define AETCT_KEYBACKSPACE      0x00000400  //Pressed VK_BACK.
+#define AETCT_KEYDELETE         0x00000800  //Pressed VK_DELETE.
+#define AETCT_DRAGDELETE        0x00001000  //Dragging text delete.
+#define AETCT_DROPINSERT        0x00002000  //Dropping text insert.
+                                            //
+#define AETCT_DELETEALL         0x00100000  //Used in AEN_TEXTCHANGED notification.
+                                            //Combined with other AETCT_* flags.
+                                            //Indicate that due to AETCT_* action all text has been modified.
 
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
@@ -520,21 +524,21 @@ typedef struct {
 //// AkelEdit messages
 
 //Notifications
-#define AEN_ERRSPACE          (WM_USER + 1001)
-#define AEN_SETFOCUS          (WM_USER + 1002)
-#define AEN_KILLFOCUS         (WM_USER + 1003)
-#define AEN_SELCHANGING       (WM_USER + 1004)
-#define AEN_SELCHANGED        (WM_USER + 1005)
-#define AEN_TEXTCHANGING      (WM_USER + 1006)
-#define AEN_TEXTCHANGED       (WM_USER + 1007)
-#define AEN_MODIFY            (WM_USER + 1008)
-#define AEN_HSCROLL           (WM_USER + 1009)
-#define AEN_VSCROLL           (WM_USER + 1010)
-#define AEN_DROPFILES         (WM_USER + 1011)
-#define AEN_DROPSOURCE        (WM_USER + 1012)
-#define AEN_DROPTARGET        (WM_USER + 1013)
-#define AEN_LINK              (WM_USER + 1014)
-#define AEN_PROGRESS          (WM_USER + 1015)
+#define AEN_ERRSPACE          (WM_USER + 1001)  //0x7E9
+#define AEN_SETFOCUS          (WM_USER + 1002)  //0x7EA
+#define AEN_KILLFOCUS         (WM_USER + 1003)  //0x7EB
+#define AEN_SELCHANGING       (WM_USER + 1004)  //0x7EC
+#define AEN_SELCHANGED        (WM_USER + 1005)  //0x7ED
+#define AEN_TEXTCHANGING      (WM_USER + 1006)  //0x7EE
+#define AEN_TEXTCHANGED       (WM_USER + 1007)  //0x7EF
+#define AEN_MODIFY            (WM_USER + 1008)  //0x7F0
+#define AEN_HSCROLL           (WM_USER + 1009)  //0x7F1
+#define AEN_VSCROLL           (WM_USER + 1010)  //0x7F2
+#define AEN_DROPFILES         (WM_USER + 1011)  //0x7F3
+#define AEN_DROPSOURCE        (WM_USER + 1012)  //0x7F4
+#define AEN_DROPTARGET        (WM_USER + 1013)  //0x7F5
+#define AEN_LINK              (WM_USER + 1014)  //0x7F6
+#define AEN_PROGRESS          (WM_USER + 1015)  //0x7F7
 
 //Text retrieval and modification
 #define AEM_SETTEXTA          (WM_USER + 2001)
@@ -740,6 +744,7 @@ Return Value
  zero
 
 Remarks
+ Not always text after this message is really changed.
  To receive AEN_TEXTCHANGING notifications, specify AENM_TEXTCHANGING in the mask sent with the AEM_SETEVENTMASK message.
 
 
@@ -2073,19 +2078,19 @@ Scroll the text horizontally or vertically in an edit control. This message is e
 (int)wParam == SB_HORZ  horizontal scroll.
                SB_VERT  vertical scroll.
 (int)lParam == action that can be specified with SB_HORZ:
-                SB_LEFT      scrolls to the upper left.
-                SB_RIGHT     scrolls to the lower right.
                 SB_LINELEFT  scrolls left by one character.
                 SB_LINERIGHT scrolls right by one character.
                 SB_PAGELEFT  scrolls left by the width of the window.
                 SB_PAGERIGHT scrolls right by the width of the window.
+                SB_LEFT      scrolls to the most left.
+                SB_RIGHT     scrolls to the most right.
                action that can be specified with SB_VERT:
-                SB_TOP       scrolls to the upper left.
-                SB_BOTTOM    scrolls to the lower right.
                 SB_LINEUP    scrolls one line up.
                 SB_LINEDOWN  scrolls one line down.
                 SB_PAGEUP    scrolls one page up.
                 SB_PAGEDOWN  scrolls one page down.
+                SB_TOP       scrolls to the most up.
+                SB_BOTTOM    scrolls to the most down.
 
 Return Value
  If SB_HORZ specified, number of characters scrolled returns.
