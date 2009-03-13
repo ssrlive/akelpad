@@ -376,7 +376,6 @@ AECLONE* AE_StackCloneGet(AKELEDIT *ae, HWND hWnd);
 AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone);
 void AE_StackCloneDelete(AECLONE *aec);
 void AE_StackCloneDeleteAll(AKELEDIT *ae);
-void AE_StackCloneFree(AKELEDIT *ae);
 void AE_StackUpdateClones(AKELEDIT *ae);
 AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae);
 void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae);
@@ -481,7 +480,7 @@ void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwT
 void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel);
 void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
-void AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, BOOL bColumnSel, DWORD dwDeleteFlags);
+DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, BOOL bColumnSel, DWORD dwDeleteFlags);
 DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, DWORD dwInsertFlags, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int *nLineLen, int *nLineBreak);
 int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine);
