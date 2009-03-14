@@ -1098,7 +1098,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         DWORD ver[4]={AEVERSION_ID};
 
-        return MAKELONG(MAKEWORD(ver[0], ver[1]), MAKEWORD(ver[2], ver[3]));
+        return MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
       }
 
       //Other

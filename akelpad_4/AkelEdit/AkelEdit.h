@@ -255,6 +255,9 @@
 #ifndef EM_SETSCROLLPOS
   #define EM_SETSCROLLPOS (WM_USER + 222)
 #endif
+#ifndef MAKE_IDENTIFIER
+  #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
+#endif
 #ifndef mod
   #define mod(a)  ((((int)(a)) < 0) ? (0 - ((int)(a))) : (a))
 #endif
@@ -2773,7 +2776,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- Version number. Created as: MAKELONG(MAKEWORD(dwMajor, dwMinor), MAKEWORD(dwRelease, dwBuild)).
+ Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
 
 Example:
  DWORD dwVersion;
@@ -2783,8 +2786,8 @@ Example:
  DWORD dwBuild;
 
  dwVersion=SendMessage(hWndEdit, AEM_CONTROLVERSION, 0, 0);
- dwMajor=LOBYTE(dwVersion);
- dwMinor=HIBYTE(dwVersion);
+ dwMajor=LOBYTE(LOWORD(dwVersion));
+ dwMinor=HIBYTE(LOWORD(dwVersion));
  dwRelease=LOBYTE(HIWORD(dwVersion));
  dwBuild=HIBYTE(HIWORD(dwVersion));
 
