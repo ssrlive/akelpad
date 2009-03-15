@@ -457,6 +457,7 @@ int AE_GetFirstVisibleLine(AKELEDIT *ae);
 int AE_GetLastVisibleLine(AKELEDIT *ae);
 BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE *lpSize);
 int AE_GetCharWidth(AKELEDIT *ae, wchar_t wchChar);
+int GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirstCharOffset);
 BOOL AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine);
 BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);
 BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);

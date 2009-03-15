@@ -1,6 +1,7 @@
 
 AkelPad 4.1.9 ()
 ----------------------------
+Fixed: tabulation wrapping.
 Fixed: resizing of split window and also dockable windows.
 Fixed: displaying asterisk * in titles isn't updated after document reopening (MDI).
 
