@@ -5556,8 +5556,11 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
     {
       if (ae->ptxt->nWordWrap == AEWW_SYMBOL)
       {
-        if ((DWORD)liLine->lpLine->nLineWidth + AE_GetCharWidth(ae, liLine->lpLine->next->wpLine[0]) > dwMaxWidth)
-          return nLineCount;
+        if (liLine->lpLine->next->nLineLen)
+        {
+          if ((DWORD)liLine->lpLine->nLineWidth + AE_GetCharWidth(ae, liLine->lpLine->next->wpLine[0]) > dwMaxWidth)
+            return nLineCount;
+        }
       }
 
       //Calculate unwrapped line size
