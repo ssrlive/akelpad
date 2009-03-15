@@ -12725,10 +12725,10 @@ void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
       dwType|=AETCT_DELETEALL;
     }
     if (ae->dwNotify & AENM_TEXTCHANGE)
-    {
       ae->dwNotify&=~AENM_TEXTCHANGE;
-      AE_NotifyTextChanged(ae, dwType);
-    }
+    else
+      dwType|=AETCT_NONE;
+    AE_NotifyTextChanged(ae, dwType);
   }
 }
 
