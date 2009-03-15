@@ -49,10 +49,10 @@
 #define AETCT_KEYDELETE         0x00000800  //Pressed VK_DELETE.
 #define AETCT_DRAGDELETE        0x00001000  //Dragging text delete.
 #define AETCT_DROPINSERT        0x00002000  //Dropping text insert.
-                                            //
-#define AETCT_DELETEALL         0x00100000  //Used in AEN_TEXTCHANGED notification.
-                                            //Combined with other AETCT_* flags.
-                                            //Indicate that due to AETCT_* action all text has been modified.
+
+//AEN_TEXTCHANGED flags
+#define AETCT_NONE              0x00100000  //No text is changed.
+#define AETCT_DELETEALL         0x00200000  //Indicate that due to AETCT_* action all text has been modified.
 
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
@@ -747,7 +747,6 @@ Return Value
  zero
 
 Remarks
- Not always text after this message is really changed.
  To receive AEN_TEXTCHANGING notifications, specify AENM_TEXTCHANGING in the mask sent with the AEM_SETEVENTMASK message.
 
 
