@@ -17600,31 +17600,35 @@ BOOL IndentTabStopW(HWND hWnd, int nAction)
 
 BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr)
 {
+  AECHARINDEX ciChar=cr->ciMin;
   wchar_t *wpText;
-  int i;
 
-  if (cr->ciMin.nCharInLine)
+  if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
+    SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&ciChar);
+
+  //Calculate spaces
+  for (ciChar.nCharInLine=0; AEC_IndexCompare(&ciChar, &cr->ciMin) < 0 &&
+                             (ciChar.lpLine->wpLine[ciChar.nCharInLine] == ' ' ||
+                              ciChar.lpLine->wpLine[ciChar.nCharInLine] == '\t'); ++ciChar.nCharInLine);
+
+  if (ciChar.nCharInLine)
   {
-    //Calculate spaces
-    for (i=0; cr->ciMin.lpLine->wpLine[i] == ' ' || cr->ciMin.lpLine->wpLine[i] == '\t'; ++i);
-
-    if (i)
+    //Insert spaces
+    if (wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, (ciChar.nCharInLine + 2) * sizeof(wchar_t)))
     {
-      //Insert spaces
-      if (wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, (i + 2) * sizeof(wchar_t)))
+      wpText[0]='\n';
+
+      for (ciChar.nCharInLine=0; AEC_IndexCompare(&ciChar, &cr->ciMin) < 0 &&
+                                 (ciChar.lpLine->wpLine[ciChar.nCharInLine] == ' ' ||
+                                  ciChar.lpLine->wpLine[ciChar.nCharInLine] == '\t'); ++ciChar.nCharInLine)
       {
-        wpText[0]='\n';
-
-        for (i=0; cr->ciMin.lpLine->wpLine[i] == ' ' || cr->ciMin.lpLine->wpLine[i] == '\t'; ++i)
-        {
-          wpText[i + 1]=cr->ciMin.lpLine->wpLine[i];
-        }
-        wpText[i + 1]='\0';
-
-        ReplaceSelW(hWnd, wpText, -1, FALSE, NULL, NULL);
-        API_HeapFree(hHeap, 0, (LPVOID)wpText);
-        return TRUE;
+        wpText[ciChar.nCharInLine + 1]=ciChar.lpLine->wpLine[ciChar.nCharInLine];
       }
+      wpText[ciChar.nCharInLine + 1]='\0';
+
+      ReplaceSelW(hWnd, wpText, -1, FALSE, NULL, NULL);
+      API_HeapFree(hHeap, 0, (LPVOID)wpText);
+      return TRUE;
     }
   }
   return FALSE;
