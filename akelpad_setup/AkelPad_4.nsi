@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.1.8"
+!define PRODUCT_VERSION "4.1.9"
 
 ;_____________________________________________________________________________________________
 ;
@@ -79,6 +79,7 @@ Var TCDIR
 Var TCINI
 Var SYSLANGUAGE
 Var UNSETTINGS
+Var UNFILES
 Var UNRESULT
 
 ############  Pages  ############
@@ -147,8 +148,10 @@ LangString ConfirmInfoTitle ${LANG_ENGLISH} 'Uninstall $(^Name)'
 LangString ConfirmInfoTitle ${LANG_RUSSIAN} 'Удаление $(^Name)'
 LangString ConfirmInfoText ${LANG_ENGLISH} 'Remove $(^Name) from your computer.'
 LangString ConfirmInfoText ${LANG_RUSSIAN} 'Удаление $(^Name) из компьютера.'
-LangString ConfirmDeleteSettings ${LANG_ENGLISH} 'Delete program settings'
-LangString ConfirmDeleteSettings ${LANG_RUSSIAN} 'Удалить настройки программы'
+LangString ConfirmDeleteSettings ${LANG_ENGLISH} 'Delete settings'
+LangString ConfirmDeleteSettings ${LANG_RUSSIAN} 'Удалить настройки'
+LangString ConfirmDeleteFiles ${LANG_ENGLISH} 'Delete files'
+LangString ConfirmDeleteFiles ${LANG_RUSSIAN} 'Удалить файлы'
 LangString InstallAlreadyRun ${LANG_ENGLISH} '${PRODUCT_NAME} running.$\n$\nAfter closing ${PRODUCT_NAME}, select Retry.$\n$\nIf you want abort installation, select Cancel.'
 LangString InstallAlreadyRun ${LANG_RUSSIAN} '${PRODUCT_NAME} запущен.$\n$\nПосле того, как Вы закроете ${PRODUCT_NAME}, выберите Повтор.$\n$\nЕсли Вы хотите прервать установку, выберите Отмена.'
 LangString UninstallAlreadyRun ${LANG_ENGLISH} '${PRODUCT_NAME} running.$\n$\nAfter closing ${PRODUCT_NAME}, select Retry.$\n$\nIf you want abort uninstallation, select Cancel.'
@@ -378,15 +381,17 @@ Function DirectoryLeave
 	Call SetInstallDirectory
 
 	GetDlgItem $0 $R0 1051
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
+	SendMessage $0 ${BM_GETCHECK} 0 0 $1
 	StrCmp $1 1 0 +2
 	IntOp $SHORTCUT $SHORTCUT | ${SHORTCUT_QUICKLAUNCH}
+
 	GetDlgItem $0 $R0 1052
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
+	SendMessage $0 ${BM_GETCHECK} 0 0 $1
 	StrCmp $1 1 0 +2
 	IntOp $SHORTCUT $SHORTCUT | ${SHORTCUT_DESKTOP}
+
 	GetDlgItem $0 $R0 1053
-	SendMessage $0 ${BM_GETSTATE} 0 0 $1
+	SendMessage $0 ${BM_GETCHECK} 0 0 $1
 	StrCmp $1 1 0 +2
 	IntOp $SHORTCUT $SHORTCUT | ${SHORTCUT_STARTMENU}
 
@@ -631,16 +636,40 @@ Function un.uninstConfirmShow
 	GetDlgItem $0 $R0 1051
 	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(ConfirmDeleteSettings)'
 	SendMessage $0 ${BM_SETCHECK} 1 0
+
+	GetDlgItem $0 $R0 1052
+	SendMessage $0 ${WM_SETTEXT} 1 'STR:$(ConfirmDeleteFiles)'
+	SendMessage $0 ${BM_SETCHECK} 1 0
 FunctionEnd
 
 Function un.uninstConfirmLeave
 	GetDlgItem $0 $R0 1051
-	SendMessage $0 ${BM_GETSTATE} 0 0 $UNSETTINGS
+	SendMessage $0 ${BM_GETCHECK} 0 0 $UNSETTINGS
+
+	GetDlgItem $0 $R0 1052
+	SendMessage $0 ${BM_GETCHECK} 0 0 $UNFILES
 FunctionEnd
 
 Section un.install
 	${un.GetParent} "$INSTDIR" $SETUPDIR
 
+	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
+	Delete "$SETUPDIR\AkelFiles\Uninstall.exe"
+
+	SetOutPath "$TEMP"
+	Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
+	Delete "$QUICKLAUNCH\${PRODUCT_NAME}.lnk"
+	Delete "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk"
+	Delete "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk"
+	Delete "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk"
+	RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
+
+	StrCmp $UNSETTINGS 0 +4
+	DeleteRegKey HKCU "SOFTWARE\Akelsoft\${PRODUCT_NAME}"
+	IfFileExists "$SETUPDIR\AkelPad.ini" 0 +2
+	Delete "$SETUPDIR\AkelPad.ini"
+
+	StrCmp $UNFILES 0 End
 	IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
 	UnRegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
 
@@ -672,46 +701,30 @@ Section un.install
 	StrCpy $TCINI "$TCDIR\Wincmd.ini"
 	IfFileExists "$TCINI" +3
 	SearchPath $TCINI "Wincmd.ini"
-	StrCmp $TCINI '' DeleteSettings
+	StrCmp $TCINI '' DeleteFiles
 	ReadINIStr $1 "$TCINI" "Configuration" "Editor"
 	StrCmp $1 '' RestoreAkelUndo
 	${un.GetFileName} "$1" $2
-	StrCmp $2 "Akelpad.exe" 0 DeleteSettings
+	StrCmp $2 "Akelpad.exe" 0 DeleteFiles
 	DeleteINIStr "$TCINI" "Configuration" "Editor"
 	RestoreAkelUndo:
 	ReadINIStr $1 "$TCINI" "Configuration" "Editor_AkelUndo"
-	StrCmp $1 '' DeleteSettings
+	StrCmp $1 '' DeleteFiles
 	WriteINIStr "$TCINI" "Configuration" "Editor" "$1"
 	DeleteINIStr "$TCINI" "Configuration" "Editor_AkelUndo"
-	goto DeleteSettings
+	goto DeleteFiles
 
 	_standard:
 	ExecWait '"$SETUPDIR\AkelPad.exe" /deassoc /quit'
 
-	DeleteSettings:
-	StrCmp $UNSETTINGS 0 DeleteUninstallKey
-	DeleteRegKey HKCU "SOFTWARE\Akelsoft\${PRODUCT_NAME}"
-	IfFileExists "$SETUPDIR\AkelPad.ini" 0 +2
-	Delete "$SETUPDIR\AkelPad.ini"
-
-	DeleteUninstallKey:
-	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
-
-	SetOutPath "$TEMP"
-	Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
-	Delete "$QUICKLAUNCH\${PRODUCT_NAME}.lnk"
-	Delete "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk"
-	Delete "$SMPROGRAMS\${PRODUCT_NAME}\$(Help).lnk"
-	Delete "$SMPROGRAMS\${PRODUCT_NAME}\$(Delete).lnk"
-	RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
-
-	Delete "$SETUPDIR\AkelFiles\Uninstall.exe"
+	DeleteFiles:
 	;Generate list and include it in script at compile-time
 	!execute 'unList\unList.exe /DATE=0 /INSTDIR="Files" /LOG=unList.txt /UNDIR_VAR=$SETUPDIR /MB=0'
 	!include 'unList\unList.txt'
 	!delfile 'unList\unList.txt'
 	RMDir "$SETUPDIR"
 
+        End:
 	StrCpy $UNRESULT SuccessUninstall
 	quit
 SectionEnd

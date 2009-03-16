@@ -5,6 +5,8 @@ Added: Chinese recognition (UTF-8).
 Added: Japanese recognition (UTF-8).
 Added: Korean recognition (UTF-8).
 Added: Turkish recognition (OEM, UTF-8).
+Added: from uninstaller now possible to remove installer traces (shortcuts, key in registry,
+       Uninstall.exe file) without program files removal.
 
 
 AkelPad 3.6.4 (Dec 18, 2008)
