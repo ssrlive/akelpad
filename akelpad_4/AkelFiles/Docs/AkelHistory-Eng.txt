@@ -1,4 +1,9 @@
 
+AkelPad 4.2.0 ()
+----------------------------
+Fixed: ampersand in tab button name (MDI).
+
+
 AkelPad 4.1.9 (Mar 16, 2009)
 ----------------------------
 Changed: keeping left spaces in word wrap mode.
