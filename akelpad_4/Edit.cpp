@@ -19362,6 +19362,19 @@ void UpdateTitleA(HWND hWndEditParent, char *szFile)
 
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)hWndEditParent)) != -1)
     {
+      char szTabName[MAX_PATH];
+      int a;
+      int b;
+
+      //Replace "&" with "&&"
+      for (a=0, b=0; pFileName[a]; ++a, ++b)
+      {
+        szTabName[b]=pFileName[a];
+        if (pFileName[a] == '&')
+          szTabName[++b]='&';
+      }
+      szTabName[b]='\0';
+
       //Set tab icon
       tcItemA.mask=TCIF_IMAGE;
       SendMessage(hTab, TCM_GETITEMA, nItem, (LPARAM)&tcItemA);
@@ -19369,7 +19382,7 @@ void UpdateTitleA(HWND hWndEditParent, char *szFile)
 
       //Set tab text
       tcItemA.mask=TCIF_TEXT;
-      tcItemA.pszText=pFileName;
+      tcItemA.pszText=szTabName;
       SendMessage(hTab, TCM_SETITEMA, nItem, (LPARAM)&tcItemA);
     }
 
@@ -19421,6 +19434,19 @@ void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
 
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)hWndEditParent)) != -1)
     {
+      wchar_t wszTabName[MAX_PATH];
+      int a;
+      int b;
+
+      //Replace "&" with "&&"
+      for (a=0, b=0; wpFileName[a]; ++a, ++b)
+      {
+        wszTabName[b]=wpFileName[a];
+        if (wpFileName[a] == '&')
+          wszTabName[++b]='&';
+      }
+      wszTabName[b]='\0';
+
       //Set tab icon
       tcItemW.mask=TCIF_IMAGE;
       SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW);
@@ -19428,7 +19454,7 @@ void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
 
       //Set tab text
       tcItemW.mask=TCIF_TEXT;
-      tcItemW.pszText=wpFileName;
+      tcItemW.pszText=wszTabName;
       SendMessage(hTab, TCM_SETITEMW, nItem, (LPARAM)&tcItemW);
     }
 
