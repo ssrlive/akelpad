@@ -5489,6 +5489,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   int nResult=ESD_SUCCESS;
   int nWrite=0;
   int nFileCmp;
+  int nCodePageCmp;
   int nLine;
 
   //Notification message
@@ -5604,10 +5605,11 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
     //Update file info
     if (dwFlags & SD_UPDATE)
     {
-      //Compare paths
+      //Compare
       nFileCmp=lstrcmpiA(szCurrentFile, szFile);
+      nCodePageCmp=nCurrentCodePage - nCodePage;
 
-      if (nFileCmp || nCurrentCodePage != nCodePage)
+      if (nFileCmp || nCodePageCmp)
       {
         //Save position of the document
         if (nRecentFiles)
@@ -5655,6 +5657,12 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
           }
         }
       }
+      if ((dwFlags & SD_SELECTION) || nCodePageCmp)
+      {
+        bDocumentReopen=TRUE;
+        OpenDocumentA(hWnd, szCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
+        bDocumentReopen=FALSE;
+      }
     }
     goto End;
   }
@@ -5687,6 +5695,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
   int nResult=ESD_SUCCESS;
   int nWrite=0;
   int nFileCmp;
+  int nCodePageCmp;
   int nLine;
 
   //Notification message
@@ -5802,10 +5811,11 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
     //Update file info
     if (dwFlags & SD_UPDATE)
     {
-      //Compare paths
+      //Compare
       nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
+      nCodePageCmp=nCurrentCodePage - nCodePage;
 
-      if (nFileCmp || nCurrentCodePage != nCodePage)
+      if (nFileCmp || nCodePageCmp)
       {
         //Save position of the document
         if (nRecentFiles)
@@ -5852,6 +5862,12 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
             }
           }
         }
+      }
+      if ((dwFlags & SD_SELECTION) || nCodePageCmp)
+      {
+        bDocumentReopen=TRUE;
+        OpenDocumentW(hWnd, wszCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
+        bDocumentReopen=FALSE;
       }
     }
     goto End;

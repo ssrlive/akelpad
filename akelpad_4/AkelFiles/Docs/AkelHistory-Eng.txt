@@ -1,6 +1,7 @@
 
 AkelPad 4.2.0 ()
 ----------------------------
+Changed: file reopening if user saves a file in different encoding.
 Changed: double and triple mouse click selection.
 
 Added: "WordBreak" parameter is complemented. 
