@@ -762,14 +762,14 @@ BOOL DoFileSaveA()
 {
   if (!bModified && szCurrentFile[0] && FileExistsA(szCurrentFile)) return TRUE;
   if (!szCurrentFile[0]) return DoFileSaveAsA();
-  return !SaveDocumentA(hWndEdit, szCurrentFile, nCurrentCodePage, bCurrentBOM, TRUE);
+  return !SaveDocumentA(hWndEdit, szCurrentFile, nCurrentCodePage, bCurrentBOM, SD_UPDATE);
 }
 
 BOOL DoFileSaveW()
 {
   if (!bModified && wszCurrentFile[0] && FileExistsW(wszCurrentFile)) return TRUE;
   if (!wszCurrentFile[0]) return DoFileSaveAsW();
-  return !SaveDocumentW(hWndEdit, wszCurrentFile, nCurrentCodePage, bCurrentBOM, TRUE);
+  return !SaveDocumentW(hWndEdit, wszCurrentFile, nCurrentCodePage, bCurrentBOM, SD_UPDATE);
 }
 
 BOOL DoFileSaveAsA()
@@ -789,7 +789,7 @@ BOOL DoFileSaveAsA()
     GetCurrentDirectoryA(MAX_PATH, szHomeDir);
     SetCurrentDirectoryA(szExeDir);
 
-    if (!SaveDocumentA(hWndEdit, szFileBuffer, nOfnCodePage, bOfnBOM, TRUE))
+    if (!SaveDocumentA(hWndEdit, szFileBuffer, nOfnCodePage, bOfnBOM, SD_UPDATE))
       return TRUE;
   }
   return FALSE;
@@ -812,7 +812,7 @@ BOOL DoFileSaveAsW()
     GetCurrentDirectoryW(MAX_PATH, wszHomeDir);
     SetCurrentDirectoryW(wszExeDir);
 
-    if (!SaveDocumentW(hWndEdit, wszFileBuffer, nOfnCodePage, bOfnBOM, TRUE))
+    if (!SaveDocumentW(hWndEdit, wszFileBuffer, nOfnCodePage, bOfnBOM, SD_UPDATE))
       return TRUE;
   }
   return FALSE;
@@ -5038,6 +5038,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.dwFlags=dwFlags;
   fsd.nNewLine=nDefaultNewLine;
   fsd.nBytesMax=-1;
   fsd.bResult=TRUE;
@@ -5299,6 +5300,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.dwFlags=dwFlags;
   fsd.nNewLine=nDefaultNewLine;
   fsd.nBytesMax=-1;
   fsd.bResult=TRUE;
@@ -5476,7 +5478,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
   else lpData->bResult=FALSE;
 }
 
-int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdate)
+int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
   NSAVEDOCUMENTA nsd;
   WIN32_FIND_DATAA wfdA;
@@ -5577,6 +5579,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.dwFlags=dwFlags;
   fsd.bResult=TRUE;
   FileStreamOut(&fsd);
   CloseHandle(hFile);
@@ -5599,7 +5602,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
     }
 
     //Update file info
-    if (bUpdate)
+    if (dwFlags & SD_UPDATE)
     {
       //Compare paths
       nFileCmp=lstrcmpiA(szCurrentFile, szFile);
@@ -5673,7 +5676,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
   return nResult;
 }
 
-int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bUpdate)
+int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
   NSAVEDOCUMENTW nsdW;
   WIN32_FIND_DATAW wfdW;
@@ -5774,6 +5777,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.dwFlags=dwFlags;
   fsd.bResult=TRUE;
   FileStreamOut(&fsd);
   CloseHandle(hFile);
@@ -5796,7 +5800,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
     }
 
     //Update file info
-    if (bUpdate)
+    if (dwFlags & SD_UPDATE)
     {
       //Compare paths
       nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
@@ -5876,9 +5880,12 @@ void FileStreamOut(FILESTREAMDATA *lpData)
 
   aes.dwCookie=(DWORD)lpData;
   aes.lpCallback=OutputStreamCallback;
-  aes.bColumnSel=FALSE;
+  if (lpData->dwFlags & SD_SELECTION)
+    aes.bColumnSel=SendMessage(lpData->hWnd, AEM_GETCOLUMNSEL, 0, 0);
+  else
+    aes.bColumnSel=FALSE;
   aes.nNewLine=AELB_ASOUTPUT;
-  SendMessage(lpData->hWnd, AEM_STREAMOUT, 0, (LPARAM)&aes);
+  SendMessage(lpData->hWnd, AEM_STREAMOUT, (lpData->dwFlags & SD_SELECTION)?(AESF_SELECTION|AESF_FILLSPACES):0, (LPARAM)&aes);
   lpData->bResult=!aes.dwError;
 }
 
