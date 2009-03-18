@@ -217,27 +217,31 @@
 #define EDT_READ          -3
 #define EDT_BINARY        -4
 
-//OpenDocument flags
+//Open document flags
 #define OD_ADT_BINARY_ERROR      0x00000001
 #define OD_ADT_REG_CODEPAGE      0x00000002
 #define OD_ADT_DETECT_CODEPAGE   0x00000004
 #define OD_ADT_DETECT_BOM        0x00000008
 
-//OpenDocument errors
-#define EOD_SUCCESS         0
-#define EOD_ADT_OPEN        -1
-#define EOD_ADT_ALLOC       -2
-#define EOD_ADT_READ        -3
-#define EOD_ADT_BINARY      -4
-#define EOD_OPEN            -5
-#define EOD_CANCEL          -6
-#define EOD_WINDOW_EXIST    -7
-#define EOD_CODEPAGE_ERROR  -8
-#define EOD_STOP            -9
-#define EOD_STREAMIN        -10
+//Open document errors
+#define EOD_SUCCESS              0
+#define EOD_ADT_OPEN            -1
+#define EOD_ADT_ALLOC           -2
+#define EOD_ADT_READ            -3
+#define EOD_ADT_BINARY          -4
+#define EOD_OPEN                -5
+#define EOD_CANCEL              -6
+#define EOD_WINDOW_EXIST        -7
+#define EOD_CODEPAGE_ERROR      -8
+#define EOD_STOP                -9
+#define EOD_STREAMIN           -10
 
-//SaveDocument errors
-#define ESD_SUCCESS         0
+//Save document flags
+#define SD_UPDATE            0x00000001
+#define SD_SELECTION         0x00000002
+
+//Save document errors
+#define ESD_SUCCESS          0
 #define ESD_OPEN            -1
 #define ESD_WRITE           -2
 #define ESD_READONLY        -3
@@ -394,14 +398,14 @@ typedef struct _SAVEDOCUMENTA {
   char szFile[MAX_PATH];
   int nCodePage;
   BOOL bBOM;
-  BOOL bUpdate;
+  DWORD dwFlags;
 } SAVEDOCUMENTA;
 
 typedef struct _SAVEDOCUMENTW {
   wchar_t wszFile[MAX_PATH];
   int nCodePage;
   BOOL bBOM;
-  BOOL bUpdate;
+  DWORD dwFlags;
 } SAVEDOCUMENTW;
 
 typedef struct _EDITINFO {
@@ -502,6 +506,7 @@ typedef struct _FILESTREAMDATA {
   HWND hWnd;
   HANDLE hFile;
   int nCodePage;
+  DWORD dwFlags;
   int nNewLine;
   int nBytesMax;
   BOOL bResult;
@@ -974,8 +979,8 @@ BOOL SaveThemesW(BOOL bCleanOld);
 int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
-int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdate);
-int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bUpdate);
+int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
+int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);
 DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
 BOOL OpenDirectoryA(char *pPath, BOOL bSubDir);

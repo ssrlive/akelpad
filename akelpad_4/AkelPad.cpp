@@ -1939,7 +1939,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       SAVEDOCUMENTA *sd=(SAVEDOCUMENTA *)lParam;
 
-      return SaveDocumentA((HWND)wParam, sd->szFile, sd->nCodePage, sd->bBOM, sd->bUpdate);
+      return SaveDocumentA((HWND)wParam, sd->szFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
     }
     if (uMsg == AKD_GETTEXTLENGTH)
     {
@@ -2467,7 +2467,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       nCodePageSel=LOWORD(wParam) - IDM_POPUP_SAVEAS - 1;
       if (nCodePageSel < 0) nCodePageSel=nCodepageListLen - 2;
-      return SaveDocumentA(hWndEdit, szCurrentFile, lpCodepageList[nCodePageSel], TRUE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, lpCodepageList[nCodePageSel], TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_FILE_NEW)
     {
@@ -2911,31 +2911,31 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_ANSI)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, nAnsiCodePage, FALSE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, nAnsiCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_OEM)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, nOemCodePage, FALSE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, nOemCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16LE)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UCS2_LE, TRUE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UCS2_LE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16BE)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UCS2_BE, TRUE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UCS2_BE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UTF8, TRUE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UTF8, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8_NOBOM)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UTF8, FALSE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_KOIR)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, CP_KOI8_R, FALSE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_KOI8_R, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
@@ -3699,7 +3699,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       SAVEDOCUMENTW *sd=(SAVEDOCUMENTW *)lParam;
 
-      return SaveDocumentW((HWND)wParam, sd->wszFile, sd->nCodePage, sd->bBOM, sd->bUpdate);
+      return SaveDocumentW((HWND)wParam, sd->wszFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
     }
     if (uMsg == AKD_GETTEXTLENGTH)
     {
@@ -4227,7 +4227,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       nCodePageSel=LOWORD(wParam) - IDM_POPUP_SAVEAS - 1;
       if (nCodePageSel < 0) nCodePageSel=nCodepageListLen - 2;
-      return SaveDocumentW(hWndEdit, wszCurrentFile, lpCodepageList[nCodePageSel], TRUE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, lpCodepageList[nCodePageSel], TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_FILE_NEW)
     {
@@ -4671,31 +4671,31 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_ANSI)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, nAnsiCodePage, FALSE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, nAnsiCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_OEM)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, nOemCodePage, FALSE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, nOemCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16LE)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UCS2_LE, TRUE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UCS2_LE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16BE)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UCS2_BE, TRUE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UCS2_BE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UTF8, TRUE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UTF8, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8_NOBOM)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UTF8, FALSE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_KOIR)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_KOI8_R, FALSE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_KOI8_R, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {

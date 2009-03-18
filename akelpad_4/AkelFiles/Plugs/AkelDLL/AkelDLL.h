@@ -36,21 +36,25 @@
 #define OD_ADT_DETECT_CODEPAGE   0x00000004  //Detect code page
 #define OD_ADT_DETECT_BOM        0x00000008  //Detect BOM mark
 
-//Open document error
-#define EOD_SUCCESS         0   //Success
-#define EOD_ADT_OPEN        -1  //Autodetect codepage, can't open file
-#define EOD_ADT_ALLOC       -2  //Autodetect codepage, can't allocate buffer
-#define EOD_ADT_READ        -3  //Autodetect codepage, read file error
-#define EOD_ADT_BINARY      -4  //Autodetect codepage, file is binary
-#define EOD_OPEN            -5  //Can't open file
-#define EOD_CANCEL          -6  //User press cancel
-#define EOD_WINDOW_EXIST    -7  //File already opened
-#define EOD_CODEPAGE_ERROR  -8  //Code page isn't implemented
-#define EOD_STOP            -9  //Stopped from AKDN_OPENDOCUMENT_START
-#define EOD_STREAMIN        -10 //Error in EM_STREAMIN
+//Open document errors
+#define EOD_SUCCESS              0  //Success
+#define EOD_ADT_OPEN            -1  //Autodetect codepage, can't open file
+#define EOD_ADT_ALLOC           -2  //Autodetect codepage, can't allocate buffer
+#define EOD_ADT_READ            -3  //Autodetect codepage, read file error
+#define EOD_ADT_BINARY          -4  //Autodetect codepage, file is binary
+#define EOD_OPEN                -5  //Can't open file
+#define EOD_CANCEL              -6  //User press cancel
+#define EOD_WINDOW_EXIST        -7  //File already opened
+#define EOD_CODEPAGE_ERROR      -8  //Code page isn't implemented
+#define EOD_STOP                -9  //Stopped from AKDN_OPENDOCUMENT_START
+#define EOD_STREAMIN           -10  //Error in EM_STREAMIN
 
-//Save document error
-#define ESD_SUCCESS         0   //Success
+//Save document flags
+#define SD_UPDATE            0x00000001  //Update file info
+#define SD_SELECTION         0x00000002  //Save only selection
+
+//Save document errors
+#define ESD_SUCCESS          0   //Success
 #define ESD_OPEN            -1  //Can't open file
 #define ESD_WRITE           -2  //Can't write to file
 #define ESD_READONLY        -3  //File has read-only attribute
@@ -172,14 +176,14 @@ typedef struct _SAVEDOCUMENTA {
   char szFile[MAX_PATH];      //File to save
   int nCodePage;              //File code page
   BOOL bBOM;                  //File BOM
-  BOOL bUpdate;               //Update file info
+  DWORD dwFlags;              //See SD_* defines
 } SAVEDOCUMENTA;
 
 typedef struct _SAVEDOCUMENTW {
   wchar_t wszFile[MAX_PATH];  //File to save
   int nCodePage;              //File code page
   BOOL bBOM;                  //File BOM
-  BOOL bUpdate;               //Update file info
+  DWORD dwFlags;              //See SD_* defines
 } SAVEDOCUMENTW;
 
 #ifndef __AKELEDIT_H__
@@ -1736,7 +1740,7 @@ Example (bOldWindows == TRUE):
  lstrcpynA(sd.szFile, "C:\\MyFile.txt", MAX_PATH);
  sd.nCodePage=65001;
  sd.bBOM=TRUE;
- sd.bUpdate=TRUE;
+ sd.dwFlags=SD_UPDATE;
  SendMessage(pd->hMainWnd, AKD_SAVEDOCUMENT, (WPARAM)pd->hWndEdit, (LPARAM)&sd);
 
 Example (bOldWindows == FALSE):
@@ -1745,7 +1749,7 @@ Example (bOldWindows == FALSE):
  lstrcpynW(sd.wszFile, L"C:\\MyFile.txt", MAX_PATH);
  sd.nCodePage=65001;
  sd.bBOM=TRUE;
- sd.bUpdate=TRUE;
+ sd.dwFlags=SD_UPDATE;
  SendMessage(pd->hMainWnd, AKD_SAVEDOCUMENT, (WPARAM)pd->hWndEdit, (LPARAM)&sd);
 
 
