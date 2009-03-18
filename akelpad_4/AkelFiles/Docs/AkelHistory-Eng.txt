@@ -1,6 +1,8 @@
 
 AkelPad 4.2.0 ()
 ----------------------------
+Changed: double and triple mouse click selection.
+
 Added: "WordBreak" parameter is complemented. 
 
 Fixed: ampersand in tab button name (MDI) and in recent files menu.

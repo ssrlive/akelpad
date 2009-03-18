@@ -2823,6 +2823,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           else
           {
             AECHARRANGE cr;
+            AECHARINDEX ciCharIndex;
 
             if (!ae->dwMouseMoveTimer)
             {
@@ -2831,13 +2832,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               SetCapture(ae->hWndEdit);
             }
 
-            cr.ciMin=ae->ciCaretIndex;
-            cr.ciMax=ae->ciCaretIndex;
+            AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
+            cr.ciMin=ciCharIndex;
+            cr.ciMax=ciCharIndex;
             cr.ciMin.nCharInLine=0;
             if (!AE_GetIndex(ae, AEGI_NEXTLINE, &cr.ciMax, &cr.ciMax, FALSE))
               cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
 
-            ae->ciLButtonClick=ae->ciCaretIndex;
+            ae->ciLButtonClick=ciCharIndex;
             ae->ciLButtonStart=cr.ciMin;
             ae->ciLButtonEnd=cr.ciMax;
             AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, 0);
