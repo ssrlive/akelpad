@@ -119,6 +119,8 @@
 #define AESELT_LOCKSCROLL        0x00000002  //Lock edit window scroll.
 #define AESELT_LOCKUPDATE        0x00000004  //Lock edit window update.
 #define AESELT_LOCKUNDOGROUPING  0x00000008  //Don't use it. For internal code only.
+#define AESELT_COLUMNON          0x00000010  //Make column selection ON.
+#define AESELT_COLUMNOFF         0x00000020  //Make column selection OFF.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
