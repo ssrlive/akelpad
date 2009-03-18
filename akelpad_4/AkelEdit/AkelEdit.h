@@ -198,6 +198,7 @@
 #define AEWB_STOPSPACEEND    0x00000020  //Movement is stopped, when spacing end is found. Cannot be combined with AEWB_SKIPSPACEEND.
 #define AEWB_SKIPSPACESTART  0x00000040  //Movement is continued, when spacing start is found. Cannot be combined with AEWB_STOPSPACESTART.
 #define AEWB_SKIPSPACEEND    0x00000080  //Movement is continued, when spacing end is found. Cannot be combined with AEWB_STOPSPACEEND.
+#define AEWB_STOPNEWLINE     0x00000100  //Movement is stopped, when new line is found.
 
 //AEM_STREAMIN, AEM_STREAMOUT flags
 #define AESF_SELECTION       0x00000001  //Stream-in (read) or stream-out (write) the current selection. If not specified, stream-in (read) or stream-out (write) the entire contents of the control.
