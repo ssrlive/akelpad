@@ -11351,7 +11351,8 @@ void RecentFilesMenuA()
 
     for (i=0; i < nRecentFiles && *lpszRecentNames[i]; ++i)
     {
-      TrimPathA(buf, lpszRecentNames[i], RECENTFILES_RECORD_LENGTH);
+      TrimPathA(buf2, lpszRecentNames[i], RECENTFILES_RECORD_LENGTH);
+      FixAmpA(buf2, buf, BUFFER_SIZE);
       InsertMenuA(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_STRING, IDM_RECENT_FILES + i + 1, buf);
     }
     InsertMenuA(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_SEPARATOR, IDM_RECENT_FILES + i + 1, NULL);
@@ -11376,7 +11377,8 @@ void RecentFilesMenuW()
 
     for (i=0; i < nRecentFiles && *lpwszRecentNames[i]; ++i)
     {
-      TrimPathW(wbuf, lpwszRecentNames[i], RECENTFILES_RECORD_LENGTH);
+      TrimPathW(wbuf2, lpwszRecentNames[i], RECENTFILES_RECORD_LENGTH);
+      FixAmpW(wbuf2, wbuf, BUFFER_SIZE);
       InsertMenuW(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_STRING, IDM_RECENT_FILES + i + 1, wbuf);
     }
     InsertMenuW(hMainMenu, IDM_RECENT_FILES, MF_BYCOMMAND|MF_SEPARATOR, IDM_RECENT_FILES + i + 1, NULL);
@@ -11450,6 +11452,50 @@ int TrimPathW(wchar_t *wszResult, wchar_t *wpPath, int nMax)
   lstrcpyW(wszResult, L"...");
   lstrcatW(wszResult, wpEnd - nMax + 3);
   return nMax;
+}
+
+int FixAmpA(const char *pInput, char *szOutput, int nOutputMax)
+{
+  int a;
+  int b;
+
+  //Replace "&" with "&&"
+  nOutputMax-=2;
+
+  if (nOutputMax >= 0)
+  {
+    for (a=0, b=0; pInput[a] && b < nOutputMax; ++a, ++b)
+    {
+      szOutput[b]=pInput[a];
+      if (pInput[a] == '&')
+        szOutput[++b]='&';
+    }
+    szOutput[b]='\0';
+    return b;
+  }
+  return -1;
+}
+
+int FixAmpW(const wchar_t *wpInput, wchar_t *wszOutput, int nOutputMax)
+{
+  int a;
+  int b;
+
+  //Replace "&" with "&&"
+  nOutputMax-=2;
+
+  if (nOutputMax >= 0)
+  {
+    for (a=0, b=0; wpInput[a] && b < nOutputMax; ++a, ++b)
+    {
+      wszOutput[b]=wpInput[a];
+      if (wpInput[a] == '&')
+        wszOutput[++b]='&';
+    }
+    wszOutput[b]='\0';
+    return b;
+  }
+  return -1;
 }
 
 
@@ -19363,17 +19409,9 @@ void UpdateTitleA(HWND hWndEditParent, char *szFile)
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)hWndEditParent)) != -1)
     {
       char szTabName[MAX_PATH];
-      int a;
-      int b;
 
       //Replace "&" with "&&"
-      for (a=0, b=0; pFileName[a]; ++a, ++b)
-      {
-        szTabName[b]=pFileName[a];
-        if (pFileName[a] == '&')
-          szTabName[++b]='&';
-      }
-      szTabName[b]='\0';
+      FixAmpA(pFileName, szTabName, MAX_PATH);
 
       //Set tab icon
       tcItemA.mask=TCIF_IMAGE;
@@ -19435,17 +19473,9 @@ void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)hWndEditParent)) != -1)
     {
       wchar_t wszTabName[MAX_PATH];
-      int a;
-      int b;
 
       //Replace "&" with "&&"
-      for (a=0, b=0; wpFileName[a]; ++a, ++b)
-      {
-        wszTabName[b]=wpFileName[a];
-        if (wpFileName[a] == '&')
-          wszTabName[++b]='&';
-      }
-      wszTabName[b]='\0';
+      FixAmpW(wpFileName, wszTabName, MAX_PATH);
 
       //Set tab icon
       tcItemW.mask=TCIF_IMAGE;

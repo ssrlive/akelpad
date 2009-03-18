@@ -1087,6 +1087,8 @@ void RecentFilesMenuA();
 void RecentFilesMenuW();
 int TrimPathA(char *szResult, char *pPath, int nMax);
 int TrimPathW(wchar_t *wszResult, wchar_t *wpPath, int nMax);
+int FixAmpA(const char *pInput, char *szOutput, int nOutputMax);
+int FixAmpW(const wchar_t *wpInput, wchar_t *wszOutput, int nOutputMax);
 
 void LanguageMenuA();
 void LanguageMenuW();
