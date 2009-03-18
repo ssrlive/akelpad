@@ -1,7 +1,9 @@
 
 AkelPad 4.2.0 ()
 ----------------------------
-Fixed: ampersand in tab button name (MDI).
+Added: "WordBreak" parameter is complemented. 
+
+Fixed: ampersand in tab button name (MDI) and in recent files menu.
 
 
 AkelPad 4.1.9 (Mar 16, 2009)
