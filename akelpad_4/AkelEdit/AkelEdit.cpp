@@ -6025,10 +6025,17 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
 
 void AE_UpdateSelection(AKELEDIT *ae, DWORD dwSelFlags)
 {
+  BOOL bColumnSel=ae->bColumnSel;
+
+  if (dwSelFlags & AESELT_COLUMNON)
+    bColumnSel=TRUE;
+  if (dwSelFlags & AESELT_COLUMNOFF)
+    bColumnSel=FALSE;
+
   if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex) <= 0)
-    AE_SetSelectionPos(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, dwSelFlags);
+    AE_SetSelectionPos(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, bColumnSel, dwSelFlags);
   else
-    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelStartIndex, ae->bColumnSel, dwSelFlags);
+    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelStartIndex, bColumnSel, dwSelFlags);
 }
 
 void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOOL bShift)
