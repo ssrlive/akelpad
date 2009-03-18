@@ -2802,9 +2802,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               SetCapture(ae->hWndEdit);
             }
 
-            if (!AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel, (bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND))
+            if (!AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel, (bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|AEWB_STOPNEWLINE))
               ciPrevWord=ae->ciCaretIndex;
-            if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, (bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND))
+            if (!AE_GetNextBreak(ae, &ciPrevWord, &ciNextWord, ae->bColumnSel, (bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|AEWB_STOPNEWLINE))
               ciNextWord=ae->ciCaretIndex;
 
             ae->ciLButtonClick=ae->ciCaretIndex;
@@ -8621,6 +8621,8 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
     {
       if (bInList)
       {
+        if (dwFlags & AEWB_STOPNEWLINE)
+          goto End;
         if (dwFlags & AEWB_STOPSPACESTART)
         {
           if (!bIsSpacePrevious)
@@ -8751,6 +8753,8 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
     {
       if (bInList)
       {
+        if (dwFlags & AEWB_STOPNEWLINE)
+          goto End;
         if (dwFlags & AEWB_STOPSPACEEND)
         {
           if (!bIsSpacePrevious)
