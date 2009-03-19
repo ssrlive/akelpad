@@ -573,8 +573,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AECHARINDEX *lpciCaret=(AECHARINDEX *)wParam;
         AESELECTION *aes=(AESELECTION *)lParam;
 
-        AE_AkelEditGetSel(ae, aes, lpciCaret);
-        return 0;
+        return AE_AkelEditGetSel(ae, aes, lpciCaret);
       }
       if (uMsg == AEM_SETSEL)
       {
@@ -1443,8 +1442,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_GETSEL)
     {
-      AE_RichEditGetSel(ae, (LONG *)wParam, (LONG *)lParam);
-      return 0;
+      CHARRANGE crRE;
+
+      AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
+      if (wParam) *(LONG *)wParam=crRE.cpMin;
+      if (lParam) *(LONG *)lParam=crRE.cpMax;
+
+      if (crRE.cpMin > 0xFFFF0000)
+        return -1;
+      if (crRE.cpMax > 0xFFFF0000)
+        return -1;
+      return MAKELONG(crRE.cpMin, crRE.cpMax);
     }
     if (uMsg == EM_EXGETSEL)
     {
@@ -12321,7 +12329,7 @@ void AE_EditSelectAll(AKELEDIT *ae)
   AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE, 0);
 }
 
-void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
+int AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
 {
   if (aes)
   {
@@ -12333,6 +12341,7 @@ void AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
   {
     *lpciCaret=ae->ciCaretIndex;
   }
+  return AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex);
 }
 
 void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *lpciCaret)
@@ -12353,10 +12362,11 @@ void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *
   }
 }
 
-void AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
+int AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
 {
   *nMin=AE_AkelIndexToRichOffset(ae, &ae->ciSelStartIndex);
   *nMax=AE_AkelIndexToRichOffset(ae, &ae->ciSelEndIndex);
+  return *nMax - *nMin;
 }
 
 void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel)
