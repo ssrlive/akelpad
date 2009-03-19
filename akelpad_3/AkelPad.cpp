@@ -313,7 +313,7 @@ HWND hWndFrameActive=0;
 HWND hWndFrameDestroyed=0;
 BOOL bMdiMaximize;
 BOOL bMdiNoWindows=FALSE;
-BOOL bMdiReopen=FALSE;
+BOOL bDocumentReopen=FALSE;
 BOOL bMdiClientRedraw=TRUE;
 HWND hTab=NULL;
 int nTabView=TAB_VIEW_TOP;
@@ -1896,7 +1896,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       SAVEDOCUMENTA *sd=(SAVEDOCUMENTA *)lParam;
 
-      return SaveDocumentA((HWND)wParam, sd->szFile, sd->nCodePage, sd->bBOM, sd->bUpdate);
+      return SaveDocumentA((HWND)wParam, sd->szFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
     }
     if (uMsg == AKD_GETTEXTLENGTH)
     {
@@ -2165,6 +2165,14 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return (LRESULT)CreateWindowA(cw->szClassName, cw->szWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
     }
+    if (uMsg == AKD_STRLENA)
+    {
+      return lstrlenA((char *)wParam);
+    }
+    if (uMsg == AKD_STRLENW)
+    {
+      return lstrlenW((wchar_t *)wParam);
+    }
     if (uMsg == AKD_GETMODELESS)
     {
       return (LRESULT)hDlgModeless;
@@ -2421,7 +2429,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       nCodePageSel=LOWORD(wParam) - IDM_POPUP_SAVEAS - 1;
       if (nCodePageSel < 0) nCodePageSel=nCodepageListLen - 2;
-      return SaveDocumentA(hWndEdit, szCurrentFile, lpCodepageList[nCodePageSel], TRUE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, lpCodepageList[nCodePageSel], TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_FILE_NEW)
     {
@@ -2843,9 +2851,9 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wsprintfA(buf2, buf, szCurrentFile);
         if (MessageBoxA(hWnd, buf2, APP_MAIN_TITLEA, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
         {
-          bMdiReopen=TRUE;
+          bDocumentReopen=TRUE;
           OpenDocumentA(hWndEdit, szCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
-          bMdiReopen=FALSE;
+          bDocumentReopen=FALSE;
         }
       }
     }
@@ -2879,27 +2887,31 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_ANSI)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, nAnsiCodePage, FALSE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, nAnsiCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_OEM)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, nOemCodePage, FALSE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, nOemCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16LE)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UCS2_LE, TRUE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UCS2_LE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16BE)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UCS2_BE, TRUE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UCS2_BE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UTF8, TRUE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UTF8, TRUE, SD_UPDATE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8_NOBOM)
+    {
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_KOIR)
     {
-      return SaveDocumentA(hWndEdit, szCurrentFile, CP_KOI8_R, FALSE, TRUE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, CP_KOI8_R, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
@@ -2916,6 +2928,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_NONMENU_DLGPREV)
     {
       return (LRESULT)NextDialog(TRUE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_AUTOINDENT)
+    {
+      if (!bReadOnly)
+      {
+        return AutoIndentA(hWndEdit, &chrg);
+      }
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
@@ -3568,7 +3587,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       SAVEDOCUMENTW *sd=(SAVEDOCUMENTW *)lParam;
 
-      return SaveDocumentW((HWND)wParam, sd->wszFile, sd->nCodePage, sd->bBOM, sd->bUpdate);
+      return SaveDocumentW((HWND)wParam, sd->wszFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
     }
     if (uMsg == AKD_GETTEXTLENGTH)
     {
@@ -3837,6 +3856,14 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return (LRESULT)CreateWindowW(cw->wszClassName, cw->wszWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
     }
+    if (uMsg == AKD_STRLENA)
+    {
+      return lstrlenA((char *)wParam);
+    }
+    if (uMsg == AKD_STRLENW)
+    {
+      return lstrlenW((wchar_t *)wParam);
+    }
     if (uMsg == AKD_GETMODELESS)
     {
       return (LRESULT)hDlgModeless;
@@ -4093,7 +4120,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       nCodePageSel=LOWORD(wParam) - IDM_POPUP_SAVEAS - 1;
       if (nCodePageSel < 0) nCodePageSel=nCodepageListLen - 2;
-      return SaveDocumentW(hWndEdit, wszCurrentFile, lpCodepageList[nCodePageSel], TRUE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, lpCodepageList[nCodePageSel], TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_FILE_NEW)
     {
@@ -4515,9 +4542,9 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wsprintfW(wbuf2, wbuf, wszCurrentFile);
         if (MessageBoxW(hWnd, wbuf2, APP_MAIN_TITLEW, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
         {
-          bMdiReopen=TRUE;
+          bDocumentReopen=TRUE;
           OpenDocumentW(hWndEdit, wszCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
-          bMdiReopen=FALSE;
+          bDocumentReopen=FALSE;
         }
       }
     }
@@ -4551,27 +4578,31 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_ANSI)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, nAnsiCodePage, FALSE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, nAnsiCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_OEM)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, nOemCodePage, FALSE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, nOemCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16LE)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UCS2_LE, TRUE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UCS2_LE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16BE)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UCS2_BE, TRUE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UCS2_BE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UTF8, TRUE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UTF8, TRUE, SD_UPDATE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8_NOBOM)
+    {
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_KOIR)
     {
-      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_KOI8_R, FALSE, TRUE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, CP_KOI8_R, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
@@ -4588,6 +4619,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_NONMENU_DLGPREV)
     {
       return (LRESULT)NextDialog(TRUE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_AUTOINDENT)
+    {
+      if (!bReadOnly)
+      {
+        return AutoIndentW(hWndEdit, &chrg);
+      }
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
