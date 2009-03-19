@@ -1,6 +1,8 @@
 
 AkelPad 3.6.5 ()
 ----------------------------
+Added: Ctrl+Enter combination - new line with keeping left spaces.
+Added: command 4426 for file saving in UTF-8 without BOM.
 Added: Chinese recognition (UTF-8).
 Added: Japanese recognition (UTF-8).
 Added: Korean recognition (UTF-8).

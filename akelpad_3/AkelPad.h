@@ -87,6 +87,8 @@
 #define AKD_DOCK                   (WM_USER + 158)
 #define AKD_POSTMESSAGE            (WM_USER + 159)
 #define AKD_GETCHARCOLOR           (WM_USER + 160)
+#define AKD_STRLENA                (WM_USER + 161)
+#define AKD_STRLENW                (WM_USER + 162)
 
 #define TAB_HEIGHT           24
 #define TAB_WIDTH            90

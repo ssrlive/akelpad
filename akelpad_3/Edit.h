@@ -249,7 +249,7 @@ const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00,
 #define OD_ADT_DETECT_BOM        0x00000008
 
 //OpenDocument errors
-#define EOD_SUCCESS         0
+#define EOD_SUCCESS          0
 #define EOD_ADT_OPEN        -1
 #define EOD_ADT_ALLOC       -2
 #define EOD_ADT_READ        -3
@@ -259,10 +259,14 @@ const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00,
 #define EOD_WINDOW_EXIST    -7
 #define EOD_CODEPAGE_ERROR  -8
 #define EOD_STOP            -9
-#define EOD_STREAMIN        -10
+#define EOD_STREAMIN       -10
+
+//SaveDocument flags
+#define SD_UPDATE            0x00000001
+#define SD_SELECTION         0x00000002
 
 //SaveDocument errors
-#define ESD_SUCCESS         0
+#define ESD_SUCCESS          0
 #define ESD_OPEN            -1
 #define ESD_WRITE           -2
 #define ESD_READONLY        -3
@@ -391,14 +395,14 @@ typedef struct _SAVEDOCUMENTA {
   char szFile[MAX_PATH];
   int nCodePage;
   BOOL bBOM;
-  BOOL bUpdate;
+  DWORD dwFlags;
 } SAVEDOCUMENTA;
 
 typedef struct _SAVEDOCUMENTW {
   wchar_t wszFile[MAX_PATH];
   int nCodePage;
   BOOL bBOM;
-  BOOL bUpdate;
+  DWORD dwFlags;
 } SAVEDOCUMENTW;
 
 #ifndef __AKELEDIT_H__
@@ -508,6 +512,7 @@ typedef struct _FILESTREAMDATA {
   HWND hWnd;
   HANDLE hFile;
   int nCodePage;
+  DWORD dwFlags;
   int nBytesMax;
   BOOL bResult;
 } FILESTREAMDATA;
@@ -955,8 +960,8 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
 int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
 DWORD CALLBACK InputStreamCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
-int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdate);
-int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bUpdate);
+int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
+int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);
 DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
 BOOL OpenDirectoryA(char *pPath, BOOL bSubDir);
@@ -1187,8 +1192,8 @@ int GetCharWidthTwipsW(HWND hWnd);
 BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc);
 BOOL InsertTabStopW(HWND hWnd);
 BOOL IndentTabStopW(HWND hWnd, int nAction);
-void AutoIndentA(HWND hWnd, CHARRANGE *cr);
-void AutoIndentW(HWND hWnd, CHARRANGE *cr);
+BOOL AutoIndentA(HWND hWnd, CHARRANGE *cr);
+BOOL AutoIndentW(HWND hWnd, CHARRANGE *cr);
 int PixelsToTwips(HWND hWnd, int nPixels);
 char* GetCommandLineParamsA();
 wchar_t* GetCommandLineParamsW();

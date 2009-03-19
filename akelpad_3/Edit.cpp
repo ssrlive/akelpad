@@ -279,7 +279,7 @@ extern HWND hWndFrameActive;
 extern HWND hWndFrameDestroyed;
 extern BOOL bMdiMaximize;
 extern BOOL bMdiNoWindows;
-extern BOOL bMdiReopen;
+extern BOOL bDocumentReopen;
 extern BOOL bMdiClientRedraw;
 extern HWND hTab;
 extern int nTabView;
@@ -679,9 +679,9 @@ void DoFileReopenAsA(DWORD dwFlags, int nCodePage, BOOL bBOM)
   }
   if (!bModified || nAnswer == IDOK)
   {
-    bMdiReopen=TRUE;
+    bDocumentReopen=TRUE;
     OpenDocumentA(hWndEdit, szCurrentFile, dwFlags, nCodePage, bBOM);
-    bMdiReopen=FALSE;
+    bDocumentReopen=FALSE;
   }
 }
 
@@ -698,9 +698,9 @@ void DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM)
   }
   if (!bModified || nAnswer == IDOK)
   {
-    bMdiReopen=TRUE;
+    bDocumentReopen=TRUE;
     OpenDocumentW(hWndEdit, wszCurrentFile, dwFlags, nCodePage, bBOM);
-    bMdiReopen=FALSE;
+    bDocumentReopen=FALSE;
   }
 }
 
@@ -708,14 +708,14 @@ BOOL DoFileSaveA()
 {
   if (!bModified && szCurrentFile[0] && FileExistsA(szCurrentFile)) return TRUE;
   if (!szCurrentFile[0]) return DoFileSaveAsA();
-  return !SaveDocumentA(hWndEdit, szCurrentFile, nCurrentCodePage, bCurrentBOM, TRUE);
+  return !SaveDocumentA(hWndEdit, szCurrentFile, nCurrentCodePage, bCurrentBOM, SD_UPDATE);
 }
 
 BOOL DoFileSaveW()
 {
   if (!bModified && wszCurrentFile[0] && FileExistsW(wszCurrentFile)) return TRUE;
   if (!wszCurrentFile[0]) return DoFileSaveAsW();
-  return !SaveDocumentW(hWndEdit, wszCurrentFile, nCurrentCodePage, bCurrentBOM, TRUE);
+  return !SaveDocumentW(hWndEdit, wszCurrentFile, nCurrentCodePage, bCurrentBOM, SD_UPDATE);
 }
 
 BOOL DoFileSaveAsA()
@@ -735,7 +735,7 @@ BOOL DoFileSaveAsA()
     GetCurrentDirectoryA(MAX_PATH, szHomeDir);
     SetCurrentDirectoryA(szExeDir);
 
-    if (!SaveDocumentA(hWndEdit, szFileBuffer, nOfnCodePage, bOfnBOM, TRUE))
+    if (!SaveDocumentA(hWndEdit, szFileBuffer, nOfnCodePage, bOfnBOM, SD_UPDATE))
       return TRUE;
   }
   return FALSE;
@@ -758,7 +758,7 @@ BOOL DoFileSaveAsW()
     GetCurrentDirectoryW(MAX_PATH, wszHomeDir);
     SetCurrentDirectoryW(wszExeDir);
 
-    if (!SaveDocumentW(hWndEdit, wszFileBuffer, nOfnCodePage, bOfnBOM, TRUE))
+    if (!SaveDocumentW(hWndEdit, wszFileBuffer, nOfnCodePage, bOfnBOM, SD_UPDATE))
       return TRUE;
   }
   return FALSE;
@@ -4451,7 +4451,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     if (hWnd == hWndEdit)
     {
       //File exists
-      if (!bMDI && !bMdiReopen && bSingleOpenFile && lstrcmpiA(szFile, szCurrentFile))
+      if (!bMDI && !bDocumentReopen && bSingleOpenFile && lstrcmpiA(szFile, szCurrentFile))
       {
         if ((hWndFriend=FindWindowA(APP_SDI_CLASSA, szFile)) &&
             (hWndFriend=GetParent(hWndFriend)))
@@ -4462,7 +4462,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
           goto End;
         }
       }
-      if (bMDI && !bMdiReopen && bSingleOpenFile)
+      if (bMDI && !bDocumentReopen && bSingleOpenFile)
       {
         if (!lstrcmpiA(szFile, szCurrentFile) || (hWndFriend=FindWindowExA(hMdiClient, NULL, APP_MDI_CLASSA, szFile)))
         {
@@ -4473,9 +4473,9 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
           }
           if (SaveChangedA())
           {
-            bMdiReopen=TRUE;
+            bDocumentReopen=TRUE;
             OpenDocumentA(hWnd, szFile, dwFlags, nCodePage, bBOM);
-            bMdiReopen=FALSE;
+            bDocumentReopen=FALSE;
           }
           nResult=EOD_WINDOW_EXIST;
           goto End;
@@ -4486,7 +4486,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     //Autodetect code page
     if ((nDetect=AutodetectCodePageA(szFile, dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
     {
-      if (!bMdiReopen)
+      if (!bDocumentReopen)
       {
         if (nDetect == EDT_BINARY)
         {
@@ -4553,7 +4553,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       RecentFilesSaveA();
     }
 
-    if (bMDI && !bMdiReopen && (!hWndFrameActive || bModified || szCurrentFile[0]))
+    if (bMDI && !bDocumentReopen && (!hWndFrameActive || bModified || szCurrentFile[0]))
     {
       if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
       CreateMDIWindowA(APP_MDI_CLASSA, "", (bMdiMaximize == TRUE)?WS_MAXIMIZE:0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hMdiClient, hInstance, 0);
@@ -4571,6 +4571,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.dwFlags=dwFlags;
   fsd.nBytesMax=-1;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
@@ -4693,7 +4694,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     if (hWnd == hWndEdit)
     {
       //File exists
-      if (!bMDI && !bMdiReopen && bSingleOpenFile && lstrcmpiW(wszFile, wszCurrentFile))
+      if (!bMDI && !bDocumentReopen && bSingleOpenFile && lstrcmpiW(wszFile, wszCurrentFile))
       {
         if ((hWndFriend=FindWindowW(APP_SDI_CLASSW, wszFile)) &&
             (hWndFriend=GetParent(hWndFriend)))
@@ -4704,7 +4705,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
           goto End;
         }
       }
-      if (bMDI && !bMdiReopen && bSingleOpenFile)
+      if (bMDI && !bDocumentReopen && bSingleOpenFile)
       {
         if (!lstrcmpiW(wszFile, wszCurrentFile) || (hWndFriend=FindWindowExW(hMdiClient, NULL, APP_MDI_CLASSW, wszFile)))
         {
@@ -4715,9 +4716,9 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
           }
           if (SaveChangedW())
           {
-            bMdiReopen=TRUE;
+            bDocumentReopen=TRUE;
             OpenDocumentW(hWnd, wszFile, dwFlags, nCodePage, bBOM);
-            bMdiReopen=FALSE;
+            bDocumentReopen=FALSE;
           }
           nResult=EOD_WINDOW_EXIST;
           goto End;
@@ -4728,7 +4729,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     //Autodetect code page
     if ((nDetect=AutodetectCodePageW(wszFile, dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
     {
-      if (!bMdiReopen)
+      if (!bDocumentReopen)
       {
         if (nDetect == EDT_BINARY)
         {
@@ -4795,7 +4796,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       RecentFilesSaveW();
     }
 
-    if (bMDI && !bMdiReopen && (!hWndFrameActive || bModified || wszCurrentFile[0]))
+    if (bMDI && !bDocumentReopen && (!hWndFrameActive || bModified || wszCurrentFile[0]))
     {
       if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
       CreateMDIWindowW(APP_MDI_CLASSW, L"", (bMdiMaximize == TRUE)?WS_MAXIMIZE:0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hMdiClient, hInstance, 0);
@@ -4813,6 +4814,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.dwFlags=dwFlags;
   fsd.nBytesMax=-1;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
@@ -5008,7 +5010,7 @@ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG 
   return 0;
 }
 
-int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdate)
+int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
   NSAVEDOCUMENTA nsd;
   WIN32_FIND_DATAA wfdA;
@@ -5019,6 +5021,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
   int nResult=ESD_SUCCESS;
   int nWrite=0;
   int nFileCmp;
+  int nCodePageCmp;
 
   //Notification message
   nsd.szFile=szFile;
@@ -5095,6 +5098,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.dwFlags=dwFlags;
   fsd.bResult=TRUE;
   FileStreamOut(&fsd);
   CloseHandle(hFile);
@@ -5117,12 +5121,13 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
     }
 
     //Update file info
-    if (bUpdate)
+    if (dwFlags & SD_UPDATE)
     {
-      //Compare paths
+      //Compare
       nFileCmp=lstrcmpiA(szCurrentFile, szFile);
+      nCodePageCmp=nCurrentCodePage - nCodePage;
 
-      if (nFileCmp || nCurrentCodePage != nCodePage)
+      if (nFileCmp || nCodePageCmp)
       {
         //Save position of the document
         if (nRecentFiles)
@@ -5171,6 +5176,12 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
           }
         }
       }
+      if ((dwFlags & SD_SELECTION) || nCodePageCmp)
+      {
+        bDocumentReopen=TRUE;
+        OpenDocumentA(hWnd, szCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
+        bDocumentReopen=FALSE;
+      }
     }
     goto End;
   }
@@ -5192,7 +5203,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, BOOL bUpdat
   return nResult;
 }
 
-int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bUpdate)
+int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
   NSAVEDOCUMENTW nsdW;
   WIN32_FIND_DATAW wfdW;
@@ -5203,6 +5214,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
   int nResult=ESD_SUCCESS;
   int nWrite=0;
   int nFileCmp;
+  int nCodePageCmp;
 
   //Notification message
   nsdW.wszFile=wszFile;
@@ -5279,6 +5291,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=nCodePage;
+  fsd.dwFlags=dwFlags;
   fsd.bResult=TRUE;
   FileStreamOut(&fsd);
   CloseHandle(hFile);
@@ -5301,12 +5314,13 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
     }
 
     //Update file info
-    if (bUpdate)
+    if (dwFlags & SD_UPDATE)
     {
-      //Compare paths
+      //Compare
       nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
+      nCodePageCmp=nCurrentCodePage - nCodePage;
 
-      if (nFileCmp || nCurrentCodePage != nCodePage)
+      if (nFileCmp || nCodePageCmp)
       {
         //Save position of the document
         if (nRecentFiles)
@@ -5355,6 +5369,12 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, BOOL bU
           }
         }
       }
+      if ((dwFlags & SD_SELECTION) || nCodePageCmp)
+      {
+        bDocumentReopen=TRUE;
+        OpenDocumentW(hWnd, wszCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
+        bDocumentReopen=FALSE;
+      }
     }
     goto End;
   }
@@ -5382,7 +5402,7 @@ void FileStreamOut(FILESTREAMDATA *lpData)
 
   es.dwCookie=(DWORD)lpData;
   es.pfnCallback=OutputStreamCallback;
-  SendMessage(lpData->hWnd, EM_STREAMOUT, SF_TEXT|SF_UNICODE, (LPARAM)&es);
+  SendMessage(lpData->hWnd, EM_STREAMOUT, SF_TEXT|SF_UNICODE|(lpData->dwFlags & SD_SELECTION?SFF_SELECTION:0), (LPARAM)&es);
 
   if (es.dwError) lpData->bResult=FALSE;
 }
@@ -15593,7 +15613,7 @@ BOOL IndentTabStopW(HWND hWnd, int nAction)
   return TRUE;
 }
 
-void AutoIndentA(HWND hWnd, CHARRANGE *cr)
+BOOL AutoIndentA(HWND hWnd, CHARRANGE *cr)
 {
   TEXTRANGEA txtrngA;
   char *pText;
@@ -15622,13 +15642,14 @@ void AutoIndentA(HWND hWnd, CHARRANGE *cr)
 
       SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)pText);
       API_HeapFree(hHeap, 0, (LPVOID)pText);
-      return;
+      return TRUE;
     }
   }
   SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"\n");
+  return FALSE;
 }
 
-void AutoIndentW(HWND hWnd, CHARRANGE *cr)
+BOOL AutoIndentW(HWND hWnd, CHARRANGE *cr)
 {
   TEXTRANGEW txtrngW;
   wchar_t *wpText;
@@ -15657,10 +15678,11 @@ void AutoIndentW(HWND hWnd, CHARRANGE *cr)
 
       SendMessageW(hWnd, EM_REPLACESEL, TRUE, (LPARAM)wpText);
       API_HeapFree(hHeap, 0, (LPVOID)wpText);
-      return;
+      return TRUE;
     }
   }
   SendMessageW(hWnd, EM_REPLACESEL, TRUE, (LPARAM)L"\n");
+  return FALSE;
 }
 
 int PixelsToTwips(HWND hWnd, int nPixels)
