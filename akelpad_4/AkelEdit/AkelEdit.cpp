@@ -12329,7 +12329,7 @@ void AE_EditSelectAll(AKELEDIT *ae)
   AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE, 0);
 }
 
-int AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
+BOOL AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
 {
   if (aes)
   {
@@ -12341,7 +12341,9 @@ int AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
   {
     *lpciCaret=ae->ciCaretIndex;
   }
-  return AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex);
+  if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+    return FALSE;
+  return TRUE;
 }
 
 void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *lpciCaret)
@@ -12362,11 +12364,13 @@ void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *
   }
 }
 
-int AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
+BOOL AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
 {
   *nMin=AE_AkelIndexToRichOffset(ae, &ae->ciSelStartIndex);
   *nMax=AE_AkelIndexToRichOffset(ae, &ae->ciSelEndIndex);
-  return *nMax - *nMin;
+  if (*nMin == *nMax)
+    return FALSE;
+  return TRUE;
 }
 
 void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel)
