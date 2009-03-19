@@ -1614,9 +1614,9 @@ Retrieve the current selection information of an edit control.
 (AESELECTION *)lParam == pointer to a AESELECTION structure, NULL if not needed.
 
 Return Value
- -1  selection start index is less than selection end index
-  0  selection start index is equal to selection end index
-  1  selection start index is greater than selection end index
+ -1  caret index is less than selection end index
+  0  caret index is equal to selection end index
+  1  caret index is greater than selection end index
 
 Example:
  AESELECTION aes;

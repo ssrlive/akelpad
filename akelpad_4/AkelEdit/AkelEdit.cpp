@@ -12341,7 +12341,7 @@ int AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
   {
     *lpciCaret=ae->ciCaretIndex;
   }
-  return AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex);
+  return AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex);
 }
 
 void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *lpciCaret)
