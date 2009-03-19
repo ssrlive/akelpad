@@ -1005,6 +1005,8 @@ typedef struct _NSIZE {
 #define AKD_DOCK                   (WM_USER + 158)
 #define AKD_POSTMESSAGE            (WM_USER + 159)
 #define AKD_GETCHARCOLOR           (WM_USER + 160)
+#define AKD_STRLENA                (WM_USER + 161)
+#define AKD_STRLENW                (WM_USER + 162)
 
 //AkelPad 4.x messages
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
@@ -2418,6 +2420,36 @@ Example (bOldWindows == FALSE):
  cw.lpParam=NULL;
 
  hWndMemEdit=(HWND)SendMessage(pd->hMainWnd, AKD_CREATEWINDOW, 0, (LPARAM)&cw);
+
+
+AKD_STRLENA
+___________
+
+Returns the length in bytes of the specified string (not including the terminating null character).
+
+(char *)wParam == ANSI string
+lParam         == not used
+
+Return Value
+ string length
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_STRLENA, (WPARAM)"123", 0);
+
+
+AKD_STRLENW
+___________
+
+Returns the length in WCHAR's of the specified string (not including the terminating null character).
+
+(wchar_t *)wParam == Unicode string
+lParam            == not used
+
+Return Value
+ string length
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_STRLENW, (WPARAM)L"123", 0);
 
 
 AKD_GETMODELESS

@@ -2202,6 +2202,14 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return (LRESULT)CreateWindowA(cw->szClassName, cw->szWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
     }
+    if (uMsg == AKD_STRLENW)
+    {
+      return lstrlenA((char *)wParam);
+    }
+    if (uMsg == AKD_STRLENW)
+    {
+      return lstrlenW((wchar_t *)wParam);
+    }
     if (uMsg == AKD_GETMODELESS)
     {
       return (LRESULT)hDlgModeless;
@@ -3961,6 +3969,14 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       CREATEWINDOWW *cw=(CREATEWINDOWW *)lParam;
 
       return (LRESULT)CreateWindowW(cw->wszClassName, cw->wszWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
+    }
+    if (uMsg == AKD_STRLENW)
+    {
+      return lstrlenA((char *)wParam);
+    }
+    if (uMsg == AKD_STRLENW)
+    {
+      return lstrlenW((wchar_t *)wParam);
     }
     if (uMsg == AKD_GETMODELESS)
     {
