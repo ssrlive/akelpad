@@ -13627,11 +13627,12 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
       {
         pv.cb=sizeof(PLUGINVERSION);
         pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
-        pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
         pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+        pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
         (*PluginIDPtr)(&pv);
 
-        if (pv.dwAkelDllVersion == AKELDLL)
+        if (LOBYTE(pv.dwAkelDllVersion) == LOBYTE(AKELDLL) &&
+            HIBYTE(pv.dwAkelDllVersion) == HIBYTE(AKELDLL))
         {
           if (pv.dwExeMinVersion4x != MAKE_IDENTIFIER(-1, -1, -1, -1))
           {
@@ -13692,8 +13693,8 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
             else
             {
               API_LoadStringA(hLangLib, MSG_ERROR_UPDATE_PROGRAM, buf, BUFFER_SIZE);
-              wsprintfA(buf2, buf, LOBYTE(LOWORD(pv.dwExeMinVersion4x)), HIBYTE(LOWORD(pv.dwExeMinVersion4x)), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
-                                     LOBYTE(LOWORD(dwExeVersion)), HIBYTE(LOWORD(dwExeVersion)), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
+              wsprintfA(buf2, buf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
+                                   LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
               MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
             }
           }
@@ -13713,8 +13714,8 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
           else
             lstrcpyA(szStr, "AkelPad");
           API_LoadStringA(hLangLib, MSG_ERROR_UPDATE_PLUGIN, buf, BUFFER_SIZE);
-          wsprintfA(buf2, buf, szStr, LOBYTE(LOWORD(AKELDLL)), HIBYTE(LOWORD(AKELDLL)), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
-                                 LOBYTE(LOWORD(pv.dwAkelDllVersion)), HIBYTE(LOWORD(pv.dwAkelDllVersion)), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
+          wsprintfA(buf2, buf, szStr, LOBYTE(AKELDLL), HIBYTE(AKELDLL), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
+                                      LOBYTE(pv.dwAkelDllVersion), HIBYTE(pv.dwAkelDllVersion), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
           MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
         }
       }
@@ -13777,11 +13778,12 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
       {
         pv.cb=sizeof(PLUGINVERSION);
         pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
-        pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
         pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+        pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
         (*PluginIDPtr)(&pv);
 
-        if (pv.dwAkelDllVersion == AKELDLL)
+        if (LOBYTE(pv.dwAkelDllVersion) == LOBYTE(AKELDLL) &&
+            HIBYTE(pv.dwAkelDllVersion) == HIBYTE(AKELDLL))
         {
           if (pv.dwExeMinVersion4x != MAKE_IDENTIFIER(-1, -1, -1, -1))
           {
@@ -13842,8 +13844,8 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
             else
             {
               API_LoadStringW(hLangLib, MSG_ERROR_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
-              wsprintfW(wbuf2, wbuf, LOBYTE(LOWORD(pv.dwExeMinVersion4x)), HIBYTE(LOWORD(pv.dwExeMinVersion4x)), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
-                                     LOBYTE(LOWORD(dwExeVersion)), HIBYTE(LOWORD(dwExeVersion)), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
+              wsprintfW(wbuf2, wbuf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
+                                     LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
               MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
             }
           }
@@ -13863,8 +13865,8 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
           else
             lstrcpyW(wszStr, L"AkelPad");
           API_LoadStringW(hLangLib, MSG_ERROR_UPDATE_PLUGIN, wbuf, BUFFER_SIZE);
-          wsprintfW(wbuf2, wbuf, wszStr, LOBYTE(LOWORD(AKELDLL)), HIBYTE(LOWORD(AKELDLL)), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
-                                 LOBYTE(LOWORD(pv.dwAkelDllVersion)), HIBYTE(LOWORD(pv.dwAkelDllVersion)), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
+          wsprintfW(wbuf2, wbuf, wszStr, LOBYTE(AKELDLL), HIBYTE(AKELDLL), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
+                                 LOBYTE(pv.dwAkelDllVersion), HIBYTE(pv.dwAkelDllVersion), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
           MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
         }
       }
