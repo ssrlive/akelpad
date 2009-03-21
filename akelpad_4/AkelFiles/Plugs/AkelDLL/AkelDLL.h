@@ -1024,8 +1024,9 @@ typedef struct _NSIZE {
 #define AKD_DOCK                   (WM_USER + 158)
 #define AKD_POSTMESSAGE            (WM_USER + 159)
 #define AKD_GETCHARCOLOR           (WM_USER + 160)
-#define AKD_STRLENA                (WM_USER + 161)
-#define AKD_STRLENW                (WM_USER + 162)
+#define AKD_PROGRAMVERSION         (WM_USER + 161)
+#define AKD_STRLENA                (WM_USER + 162)
+#define AKD_STRLENW                (WM_USER + 163)
 
 //AkelPad 4.x messages
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
@@ -2560,6 +2561,31 @@ Example:
 
  cc.nCharPos=10;
  SendMessage(pd->hMainWnd, AKD_GETCHARCOLOR, (WPARAM)pd->hWndEdit, (LPARAM)&cc);
+
+
+AKD_PROGRAMVERSION
+__________________
+
+Get program version.
+
+wParam == not used
+lParam == not used
+
+Return Value
+ Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+
+Example:
+ DWORD dwVersion;
+ DWORD dwMajor;
+ DWORD dwMinor;
+ DWORD dwRelease;
+ DWORD dwBuild;
+
+ dwVersion=SendMessage(pd->hMainWnd, AKD_PROGRAMVERSION, 0, 0);
+ dwMajor=LOBYTE(LOWORD(dwVersion));
+ dwMinor=HIBYTE(LOWORD(dwVersion));
+ dwRelease=LOBYTE(HIWORD(dwVersion));
+ dwBuild=HIBYTE(HIWORD(dwVersion));
 
 
 AKD_EXGETTEXTLENGTH

@@ -12,6 +12,7 @@
 
 #define AEC_INDEXCOMPARE
 #include "AkelEdit\AkelBuild.h"
+#include "AkelFiles\Langs\Resources\resource.h"
 #include "AkelFiles\Plugs\AkelDLL\AkelDLL.h"
 #include "AkelPad.h"
 #include "Edit.h"
@@ -1980,22 +1981,6 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return GetRangeTextA((HWND)wParam, gtr->cpMin, gtr->cpMax, (char **)&gtr->pText);
     }
-    if (uMsg == AKD_EXGETTEXTLENGTH)
-    {
-      return IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
-    }
-    if (uMsg == AKD_EXGETTEXTRANGEA)
-    {
-      EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
-
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
-    }
-    if (uMsg == AKD_EXGETTEXTRANGEW)
-    {
-      EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
-
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
-    }
     if (uMsg == AKD_FREETEXT)
     {
       return FreeText((LPVOID)lParam);
@@ -2307,6 +2292,28 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       CHARCOLOR *cc=(CHARCOLOR *)lParam;
 
       return GetCharColor((HWND)wParam, cc);
+    }
+    if (uMsg == AKD_PROGRAMVERSION)
+    {
+      return dwExeVersion;
+    }
+
+    //AkelPad 4.x only messages
+    if (uMsg == AKD_EXGETTEXTLENGTH)
+    {
+      return IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
+    }
+    if (uMsg == AKD_EXGETTEXTRANGEA)
+    {
+      EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
+
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
+    }
+    if (uMsg == AKD_EXGETTEXTRANGEW)
+    {
+      EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
+
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
     }
     if (uMsg == AKD_GETSTATUSPOSTYPE)
     {
@@ -3747,22 +3754,6 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return GetRangeTextW((HWND)wParam, gtr->cpMin, gtr->cpMax, (wchar_t **)&gtr->pText);
     }
-    if (uMsg == AKD_EXGETTEXTLENGTH)
-    {
-      return IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
-    }
-    if (uMsg == AKD_EXGETTEXTRANGEA)
-    {
-      EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
-
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
-    }
-    if (uMsg == AKD_EXGETTEXTRANGEW)
-    {
-      EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
-
-      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
-    }
     if (uMsg == AKD_FREETEXT)
     {
       return FreeText((LPVOID)lParam);
@@ -4074,6 +4065,28 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       CHARCOLOR *cc=(CHARCOLOR *)lParam;
 
       return GetCharColor((HWND)wParam, cc);
+    }
+    if (uMsg == AKD_PROGRAMVERSION)
+    {
+      return dwExeVersion;
+    }
+
+    //AkelPad 4.x only messages
+    if (uMsg == AKD_EXGETTEXTLENGTH)
+    {
+      return IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
+    }
+    if (uMsg == AKD_EXGETTEXTRANGEA)
+    {
+      EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
+
+      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
+    }
+    if (uMsg == AKD_EXGETTEXTRANGEW)
+    {
+      EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
+
+      return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
     }
     if (uMsg == AKD_GETSTATUSPOSTYPE)
     {
