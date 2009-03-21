@@ -2297,6 +2297,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return dwExeVersion;
     }
+    if (uMsg == AKD_PROGRAMARCHITECTURE)
+    {
+      return AKELDLL;
+    }
 
     //AkelPad 4.x only messages
     if (uMsg == AKD_EXGETTEXTLENGTH)
@@ -4069,6 +4073,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_PROGRAMVERSION)
     {
       return dwExeVersion;
+    }
+    if (uMsg == AKD_PROGRAMARCHITECTURE)
+    {
+      return AKELDLL;
     }
 
     //AkelPad 4.x only messages
