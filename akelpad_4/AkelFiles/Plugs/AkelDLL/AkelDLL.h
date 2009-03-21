@@ -17,6 +17,7 @@
 #define ID_EDIT           10001
 #define ID_STATUS         10002
 #define ID_TAB            10003
+#define ID_PROGRESS       10004
 #define ID_FIRSTMDI       10010
 
 //Sizes
@@ -165,7 +166,7 @@ typedef void (CALLBACK *WNDPROCRET)(CWPRETSTRUCT *);
 
 typedef struct _PLUGINVERSION {
   DWORD cb;                   //Size of the structure
-  DWORD dwAkelDllVersion;     //Current AkelDll version used. Set it to AKELDLL.
+  DWORD dwAkelDllVersion;     //Current AkelDLL version. Set it to AKELDLL.
   DWORD dwExeMinVersion4x;    //Required minimum AkelPad 4.x version.
                               //Set as MAKE_IDENTIFIER(x, x, x, x) or
                               //if not supported MAKE_IDENTIFIER(-1, -1, -1, -1).
