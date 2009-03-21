@@ -13626,6 +13626,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
       if (PluginIDPtr=(void (*)(PLUGINVERSION *))GetProcAddress(hModule, "DllAkelPadID"))
       {
         pv.cb=sizeof(PLUGINVERSION);
+        pv.hMainWnd=hMainWnd;
         pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
         pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
         pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
@@ -13777,6 +13778,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
       if (PluginIDPtr=(void (*)(PLUGINVERSION *))GetProcAddress(hModule, "DllAkelPadID"))
       {
         pv.cb=sizeof(PLUGINVERSION);
+        pv.hMainWnd=hMainWnd;
         pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
         pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
         pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
