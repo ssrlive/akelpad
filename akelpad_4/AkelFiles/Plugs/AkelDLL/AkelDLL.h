@@ -167,10 +167,10 @@ typedef void (CALLBACK *WNDPROCRET)(CWPRETSTRUCT *);
 typedef struct _PLUGINVERSION {
   DWORD cb;                   //Size of the structure
   DWORD dwAkelDllVersion;     //Current AkelDLL version. Set it to AKELDLL.
-  DWORD dwExeMinVersion4x;    //Required minimum AkelPad 4.x version.
+  DWORD dwExeMinVersion3x;    //Required minimum AkelPad 3.x version.
                               //Set as MAKE_IDENTIFIER(x, x, x, x) or
                               //if not supported MAKE_IDENTIFIER(-1, -1, -1, -1).
-  DWORD dwExeMinVersion3x;    //Required minimum AkelPad 3.x version.
+  DWORD dwExeMinVersion4x;    //Required minimum AkelPad 4.x version.
                               //Set as MAKE_IDENTIFIER(x, x, x, x) or
                               //if not supported MAKE_IDENTIFIER(-1, -1, -1, -1).
 } PLUGINVERSION;
