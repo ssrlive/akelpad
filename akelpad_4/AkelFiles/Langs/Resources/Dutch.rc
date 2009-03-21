@@ -852,6 +852,10 @@ BEGIN
     MSG_SAVEIN_READONLY     """%s"" is een alleen-lezen-bestand. Doorgaan?"
     MSG_HOTKEY_EXISTS       "De sneltoets is al toegewezen aan ""%s""."
     MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" ondersteunt geen autostart."
+    MSG_ERROR_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED "AkelPad 4.x.x doesn't supported."
+    MSG_ERROR_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 
