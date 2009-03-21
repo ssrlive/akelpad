@@ -12,6 +12,7 @@
 
 #define AEC_INDEXCOMPARE
 #include "AkelEdit\AkelBuild.h"
+#include "AkelFiles\Plugs\AkelDLL\AkelDLL.h"
 #include "AkelPad.h"
 #include "Edit.h"
 
@@ -52,6 +53,7 @@ STARTUPINFOW lpStartupInfoW;
 BOOL bNotepadCommandLine=TRUE;
 
 //Versions
+DWORD dwExeVersion=0;
 BOOL bOldWindows;
 BOOL bOldRichEdit=FALSE;
 BOOL bOldComctl32;
@@ -438,6 +440,13 @@ extern "C" void _WinMain()
 
     //Get program directory
     GetExeDirA(hInstance, szExeDir, MAX_PATH);
+
+    //Get program version
+    {
+      DWORD ver[4]={AKELPAD_ID};
+
+      dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
+    }
 
     //Read options
     wsprintfA(szIniFile, "%s\\AkelPad.ini", szExeDir);
@@ -853,6 +862,13 @@ extern "C" void _WinMain()
 
     //Get program directory
     GetExeDirW(hInstance, wszExeDir, MAX_PATH);
+
+    //Get program version
+    {
+      DWORD ver[4]={AKELPAD_ID};
+
+      dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
+    }
 
     //Read options
     wsprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
@@ -2049,7 +2065,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
-      pd->lpReserved=NULL;
+      pd->hGlobalAccel=hGlobalAccel;
+      pd->hMainAccel=hMainAccel;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
@@ -2058,8 +2075,6 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->nSaveSettings=nSaveSettings;
       pd->pLangModule=(unsigned char *)szLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
-      pd->hGlobalAccel=hGlobalAccel;
-      pd->hMainAccel=hMainAccel;
 
       return 0;
     }
@@ -3817,7 +3832,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
-      pd->lpReserved=NULL;
+      pd->hGlobalAccel=hGlobalAccel;
+      pd->hMainAccel=hMainAccel;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
@@ -3826,8 +3842,6 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->nSaveSettings=nSaveSettings;
       pd->pLangModule=(unsigned char *)wszLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
-      pd->hGlobalAccel=hGlobalAccel;
-      pd->hMainAccel=hMainAccel;
 
       return 0;
     }

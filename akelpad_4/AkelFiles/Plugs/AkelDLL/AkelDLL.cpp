@@ -4,6 +4,14 @@
 #include "AkelDLL.h"
 
 
+//Identification
+extern "C" void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
+{
+  pv->dwAkelDllVersion=AKELDLL;
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 2, 0, 0);
+  pv->dwExeMinVersion3x=MAKE_IDENTIFIER(3, 7, 0, 0);
+}
+
 //Plugin extern function
 extern "C" void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
 {

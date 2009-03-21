@@ -2,6 +2,8 @@
 // Microsoft Developer Studio generated include file.
 // Used by English.rc
 //
+#define AKELPAD_ID 4,2,0,0
+
 #define MSG_ERROR_IN_MESSAGE_QUEUE      1
 #define MSG_ERROR_LIMIT_REACHED         2
 #define MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 3
@@ -31,6 +33,10 @@
 #define MSG_SAVEIN_READONLY             27
 #define MSG_HOTKEY_EXISTS               28
 #define MSG_AUTOLOAD_DOES_NOT_SUPPORTED 29
+#define MSG_ERROR_UPDATE_PROGRAM        30
+#define MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED 31
+#define MSG_ERROR_UPDATE_PLUGIN         32
+#define MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED 33
 #define STR_DOCNAME                     101
 #define STR_MODIFIED                    102
 #define STR_AUTODETECT                  103
@@ -312,7 +318,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001

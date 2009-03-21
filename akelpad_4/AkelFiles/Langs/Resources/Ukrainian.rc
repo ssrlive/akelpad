@@ -869,6 +869,10 @@ BEGIN
     MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
     MSG_HOTKEY_EXISTS       "Гаряча клавіша вже призначена для ""%s""."
     MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" не підтримує автозавантаження."
+    MSG_ERROR_UPDATE_PROGRAM "Обновите AkelPad.\n\nТребуется AkelPad версии не ниже: %d.%d.%d.%d\nНастоящая AkelPad версия: %d.%d.%d.%d"
+    MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED "AkelPad 4.x.x не поддерживается."
+    MSG_ERROR_UPDATE_PLUGIN "Обновите %s.\n\nВерсия архитектуры AkelPad'а: %d.%d.%d.%d\nВерсия архитектуры плагина: %d.%d.%d.%d"
+    MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED """%s"" не распознан как плагин AkelPad'а."
 END
 
 STRINGTABLE DISCARDABLE 

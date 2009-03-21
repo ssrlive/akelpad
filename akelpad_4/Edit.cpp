@@ -10,6 +10,7 @@
 #include "StackFunc.h"
 #include "StrFunc.h"
 #include "AkelEdit\AkelBuild.h"
+#include "AkelFiles\Plugs\AkelDLL\AkelDLL.h"
 #include "AkelPad.h"
 #include "Edit.h"
 
@@ -28,6 +29,7 @@ extern STARTUPINFOW lpStartupInfoW;
 extern BOOL bNotepadCommandLine;
 
 //Versions
+extern DWORD dwExeVersion;
 extern BOOL bOldWindows;
 extern BOOL bOldRichEdit;
 extern BOOL bOldComctl32;
@@ -13325,9 +13327,12 @@ void FillPluginListA(HWND hWnd)
 
       if (hInstance=LoadLibraryA(buf))
       {
-        GetBaseNameA(wfdA.cFileName, szBaseName, MAX_PATH);
-        pld.pBaseName=(unsigned char *)szBaseName;
-        GetExportNames(hInstance, FillPluginListProcA, (LPARAM)&pld);
+        if (GetProcAddress(hInstance, "DllAkelPadID"))
+        {
+          GetBaseNameA(wfdA.cFileName, szBaseName, MAX_PATH);
+          pld.pBaseName=(unsigned char *)szBaseName;
+          GetExportNames(hInstance, FillPluginListProcA, (LPARAM)&pld);
+        }
         FreeLibrary(hInstance);
       }
     }
@@ -13356,9 +13361,12 @@ void FillPluginListW(HWND hWnd)
 
       if (hInstance=LoadLibraryW(wbuf))
       {
-        GetBaseNameW(wfdW.cFileName, wszBaseName, MAX_PATH);
-        pld.pBaseName=(unsigned char *)wszBaseName;
-        GetExportNames(hInstance, FillPluginListProcW, (LPARAM)&pld);
+        if (GetProcAddress(hInstance, "DllAkelPadID"))
+        {
+          GetBaseNameW(wfdW.cFileName, wszBaseName, MAX_PATH);
+          pld.pBaseName=(unsigned char *)wszBaseName;
+          GetExportNames(hInstance, FillPluginListProcW, (LPARAM)&pld);
+        }
         FreeLibrary(hInstance);
       }
     }
@@ -13589,9 +13597,11 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
   char szFunction[MAX_PATH];
   char szDLL[MAX_PATH];
   HMODULE hModule;
+  PLUGINVERSION pv;
   PLUGINDATA pd;
   BOOL bActive=TRUE;
   BOOL bCalled=FALSE;
+  void (*PluginIDPtr)(PLUGINVERSION *);
   void (*PluginFunctionPtr)(PLUGINDATA *);
 
   if (lpbAutoLoad) *lpbAutoLoad=TRUE;
@@ -13611,57 +13621,106 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
 
     if (hModule)
     {
-      if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
+      if (PluginIDPtr=(void (*)(PLUGINVERSION *))GetProcAddress(hModule, "DllAkelPadID"))
       {
-        pd.cb=sizeof(PLUGINDATA);
-        pd.pFunction=(unsigned char *)pFullName;
-        pd.hInstanceDLL=hModule;
-        pd.lpPluginFunction=lpPluginFunction;
-        pd.lpbAutoLoad=lpbAutoLoad;
-        pd.nUnload=UD_UNLOAD;
-        pd.bActive=bActive;
-        pd.bOnStart=bOnStart;
-        pd.lParam=lParam;
-        pd.pAkelDir=(unsigned char *)szExeDir;
-        pd.hInstanceEXE=hInstance;
-        pd.hPluginsStack=&hPluginsStack;
-        pd.hMainWnd=hMainWnd;
-        pd.hWndEdit=hWndEdit;
-        pd.hStatus=hStatus;
-        pd.hMdiClient=hMdiClient;
-        pd.hTab=hTab;
-        pd.hMainMenu=hMainMenu;
-        pd.hMenuRecentFiles=hMenuRecentFiles;
-        pd.hMenuLanguage=hMenuLanguage;
-        pd.hPopupMenu=hPopupMenu;
-        pd.hMainIcon=hMainIcon;
-        pd.lpReserved=NULL;
-        pd.bOldWindows=bOldWindows;
-        pd.bOldRichEdit=bOldRichEdit;
-        pd.bOldComctl32=bOldComctl32;
-        pd.bAkelEdit=TRUE;
-        pd.bMDI=bMDI;
-        pd.nSaveSettings=nSaveSettings;
-        pd.pLangModule=(unsigned char *)szLangModule;
-        pd.wLangSystem=(WORD)dwLangSystem;
-        pd.hGlobalAccel=hGlobalAccel;
-        pd.hMainAccel=hMainAccel;
+        pv.cb=sizeof(PLUGINVERSION);
+        pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
+        pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+        pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+        (*PluginIDPtr)(&pv);
 
-        (*PluginFunctionPtr)(&pd);
-        SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
+        if (pv.dwAkelDllVersion == AKELDLL)
+        {
+          if (pv.dwExeMinVersion4x != MAKE_IDENTIFIER(-1, -1, -1, -1))
+          {
+            if (pv.dwExeMinVersion4x <= dwExeVersion)
+            {
+              if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
+              {
+                pd.cb=sizeof(PLUGINDATA);
+                pd.pFunction=(unsigned char *)pFullName;
+                pd.hInstanceDLL=hModule;
+                pd.lpPluginFunction=lpPluginFunction;
+                pd.lpbAutoLoad=lpbAutoLoad;
+                pd.nUnload=UD_UNLOAD;
+                pd.bActive=bActive;
+                pd.bOnStart=bOnStart;
+                pd.lParam=lParam;
+                pd.pAkelDir=(unsigned char *)szExeDir;
+                pd.hInstanceEXE=hInstance;
+                pd.hPluginsStack=&hPluginsStack;
+                pd.hMainWnd=hMainWnd;
+                pd.hWndEdit=hWndEdit;
+                pd.hStatus=hStatus;
+                pd.hMdiClient=hMdiClient;
+                pd.hTab=hTab;
+                pd.hMainMenu=hMainMenu;
+                pd.hMenuRecentFiles=hMenuRecentFiles;
+                pd.hMenuLanguage=hMenuLanguage;
+                pd.hPopupMenu=hPopupMenu;
+                pd.hMainIcon=hMainIcon;
+                pd.hGlobalAccel=hGlobalAccel;
+                pd.hMainAccel=hMainAccel;
+                pd.bOldWindows=bOldWindows;
+                pd.bOldRichEdit=bOldRichEdit;
+                pd.bOldComctl32=bOldComctl32;
+                pd.bAkelEdit=TRUE;
+                pd.bMDI=bMDI;
+                pd.nSaveSettings=nSaveSettings;
+                pd.pLangModule=(unsigned char *)szLangModule;
+                pd.wLangSystem=(WORD)dwLangSystem;
 
-        if (lpbAutoLoad && bActive) return EDL_NONUNLOADED;
-        if (pd.nUnload == UD_NONUNLOAD) return EDL_NONUNLOADED;
-        if (pd.nUnload == UD_NONUNLOAD_ACTIVE) return EDL_NONUNLOADED_ACTIVE;
-        if (pd.nUnload == UD_NONUNLOAD_NONACTIVE) return EDL_NONUNLOADED_NONACTIVE;
-        bCalled=TRUE;
+                (*PluginFunctionPtr)(&pd);
+                SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
+
+                if (lpbAutoLoad && bActive) return EDL_NONUNLOADED;
+                if (pd.nUnload == UD_NONUNLOAD) return EDL_NONUNLOADED;
+                if (pd.nUnload == UD_NONUNLOAD_ACTIVE) return EDL_NONUNLOADED_ACTIVE;
+                if (pd.nUnload == UD_NONUNLOAD_NONACTIVE) return EDL_NONUNLOADED_NONACTIVE;
+                bCalled=TRUE;
+              }
+              else
+              {
+                API_LoadStringA(hLangLib, MSG_ERROR_FUNCTION_NOT_FOUND, buf, BUFFER_SIZE);
+                wsprintfA(buf2, buf, szPlugin, szFunction, szDLL);
+                MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+                if (bActive) return EDL_FAILED;
+              }
+            }
+            else
+            {
+              API_LoadStringA(hLangLib, MSG_ERROR_UPDATE_PROGRAM, buf, BUFFER_SIZE);
+              wsprintfA(buf2, buf, LOBYTE(LOWORD(pv.dwExeMinVersion4x)), HIBYTE(LOWORD(pv.dwExeMinVersion4x)), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
+                                     LOBYTE(LOWORD(dwExeVersion)), HIBYTE(LOWORD(dwExeVersion)), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
+              MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+            }
+          }
+          else
+          {
+            API_LoadStringA(hLangLib, MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED, buf, BUFFER_SIZE);
+            wsprintfA(buf2, buf, szDLL);
+            MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+          }
+        }
+        else
+        {
+          char szStr[MAX_PATH];
+
+          if (pv.dwAkelDllVersion < AKELDLL)
+            wsprintfA(szStr, "\"%s\" plugin", szPlugin);
+          else
+            lstrcpyA(szStr, "AkelPad");
+          API_LoadStringA(hLangLib, MSG_ERROR_UPDATE_PLUGIN, buf, BUFFER_SIZE);
+          wsprintfA(buf2, buf, szStr, LOBYTE(LOWORD(AKELDLL)), HIBYTE(LOWORD(AKELDLL)), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
+                                 LOBYTE(LOWORD(pv.dwAkelDllVersion)), HIBYTE(LOWORD(pv.dwAkelDllVersion)), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
+          MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+        }
       }
       else
       {
-        API_LoadStringA(hLangLib, MSG_ERROR_FUNCTION_NOT_FOUND, buf, BUFFER_SIZE);
-        wsprintfA(buf2, buf, szPlugin, szFunction, szDLL);
+        API_LoadStringA(hLangLib, MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED, buf, BUFFER_SIZE);
+        wsprintfA(buf2, buf, szDLL);
         MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
-        if (bActive) return EDL_FAILED;
       }
 
       if (FreeLibrary(hModule))
@@ -13687,9 +13746,11 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
   wchar_t wszDLL[MAX_PATH];
   char szFunction[MAX_PATH];
   HMODULE hModule;
+  PLUGINVERSION pv;
   PLUGINDATA pd;
   BOOL bActive=TRUE;
   BOOL bCalled=FALSE;
+  void (*PluginIDPtr)(PLUGINVERSION *);
   void (*PluginFunctionPtr)(PLUGINDATA *);
 
   if (lpbAutoLoad) *lpbAutoLoad=TRUE;
@@ -13710,57 +13771,106 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
 
     if (hModule)
     {
-      if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
+      if (PluginIDPtr=(void (*)(PLUGINVERSION *))GetProcAddress(hModule, "DllAkelPadID"))
       {
-        pd.cb=sizeof(PLUGINDATA);
-        pd.pFunction=(unsigned char *)wpFullName;
-        pd.hInstanceDLL=hModule;
-        pd.lpPluginFunction=lpPluginFunction;
-        pd.lpbAutoLoad=lpbAutoLoad;
-        pd.nUnload=UD_UNLOAD;
-        pd.bActive=bActive;
-        pd.bOnStart=bOnStart;
-        pd.lParam=lParam;
-        pd.pAkelDir=(unsigned char *)wszExeDir;
-        pd.hInstanceEXE=hInstance;
-        pd.hPluginsStack=&hPluginsStack;
-        pd.hMainWnd=hMainWnd;
-        pd.hWndEdit=hWndEdit;
-        pd.hStatus=hStatus;
-        pd.hMdiClient=hMdiClient;
-        pd.hTab=hTab;
-        pd.hMainMenu=hMainMenu;
-        pd.hMenuRecentFiles=hMenuRecentFiles;
-        pd.hMenuLanguage=hMenuLanguage;
-        pd.hPopupMenu=hPopupMenu;
-        pd.hMainIcon=hMainIcon;
-        pd.lpReserved=NULL;
-        pd.bOldWindows=bOldWindows;
-        pd.bOldRichEdit=bOldRichEdit;
-        pd.bOldComctl32=bOldComctl32;
-        pd.bAkelEdit=TRUE;
-        pd.bMDI=bMDI;
-        pd.nSaveSettings=nSaveSettings;
-        pd.pLangModule=(unsigned char *)wszLangModule;
-        pd.wLangSystem=(WORD)dwLangSystem;
-        pd.hGlobalAccel=hGlobalAccel;
-        pd.hMainAccel=hMainAccel;
+        pv.cb=sizeof(PLUGINVERSION);
+        pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
+        pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+        pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+        (*PluginIDPtr)(&pv);
 
-        (*PluginFunctionPtr)(&pd);
-        SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
+        if (pv.dwAkelDllVersion == AKELDLL)
+        {
+          if (pv.dwExeMinVersion4x != MAKE_IDENTIFIER(-1, -1, -1, -1))
+          {
+            if (pv.dwExeMinVersion4x <= dwExeVersion)
+            {
+              if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
+              {
+                pd.cb=sizeof(PLUGINDATA);
+                pd.pFunction=(unsigned char *)wpFullName;
+                pd.hInstanceDLL=hModule;
+                pd.lpPluginFunction=lpPluginFunction;
+                pd.lpbAutoLoad=lpbAutoLoad;
+                pd.nUnload=UD_UNLOAD;
+                pd.bActive=bActive;
+                pd.bOnStart=bOnStart;
+                pd.lParam=lParam;
+                pd.pAkelDir=(unsigned char *)wszExeDir;
+                pd.hInstanceEXE=hInstance;
+                pd.hPluginsStack=&hPluginsStack;
+                pd.hMainWnd=hMainWnd;
+                pd.hWndEdit=hWndEdit;
+                pd.hStatus=hStatus;
+                pd.hMdiClient=hMdiClient;
+                pd.hTab=hTab;
+                pd.hMainMenu=hMainMenu;
+                pd.hMenuRecentFiles=hMenuRecentFiles;
+                pd.hMenuLanguage=hMenuLanguage;
+                pd.hPopupMenu=hPopupMenu;
+                pd.hMainIcon=hMainIcon;
+                pd.hGlobalAccel=hGlobalAccel;
+                pd.hMainAccel=hMainAccel;
+                pd.bOldWindows=bOldWindows;
+                pd.bOldRichEdit=bOldRichEdit;
+                pd.bOldComctl32=bOldComctl32;
+                pd.bAkelEdit=TRUE;
+                pd.bMDI=bMDI;
+                pd.nSaveSettings=nSaveSettings;
+                pd.pLangModule=(unsigned char *)wszLangModule;
+                pd.wLangSystem=(WORD)dwLangSystem;
 
-        if (lpbAutoLoad && bActive) return EDL_NONUNLOADED;
-        if (pd.nUnload == UD_NONUNLOAD) return EDL_NONUNLOADED;
-        if (pd.nUnload == UD_NONUNLOAD_ACTIVE) return EDL_NONUNLOADED_ACTIVE;
-        if (pd.nUnload == UD_NONUNLOAD_NONACTIVE) return EDL_NONUNLOADED_NONACTIVE;
-        bCalled=TRUE;
+                (*PluginFunctionPtr)(&pd);
+                SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
+
+                if (lpbAutoLoad && bActive) return EDL_NONUNLOADED;
+                if (pd.nUnload == UD_NONUNLOAD) return EDL_NONUNLOADED;
+                if (pd.nUnload == UD_NONUNLOAD_ACTIVE) return EDL_NONUNLOADED_ACTIVE;
+                if (pd.nUnload == UD_NONUNLOAD_NONACTIVE) return EDL_NONUNLOADED_NONACTIVE;
+                bCalled=TRUE;
+              }
+              else
+              {
+                API_LoadStringW(hLangLib, MSG_ERROR_FUNCTION_NOT_FOUND, wbuf, BUFFER_SIZE);
+                wsprintfW(wbuf2, wbuf, wszPlugin, wszFunction, wszDLL);
+                MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+                if (bActive) return EDL_FAILED;
+              }
+            }
+            else
+            {
+              API_LoadStringW(hLangLib, MSG_ERROR_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
+              wsprintfW(wbuf2, wbuf, LOBYTE(LOWORD(pv.dwExeMinVersion4x)), HIBYTE(LOWORD(pv.dwExeMinVersion4x)), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
+                                     LOBYTE(LOWORD(dwExeVersion)), HIBYTE(LOWORD(dwExeVersion)), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
+              MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+            }
+          }
+          else
+          {
+            API_LoadStringW(hLangLib, MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
+            wsprintfW(wbuf2, wbuf, wszDLL);
+            MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+          }
+        }
+        else
+        {
+          wchar_t wszStr[MAX_PATH];
+
+          if (pv.dwAkelDllVersion < AKELDLL)
+            wsprintfW(wszStr, L"\"%s\" plugin", wszPlugin);
+          else
+            lstrcpyW(wszStr, L"AkelPad");
+          API_LoadStringW(hLangLib, MSG_ERROR_UPDATE_PLUGIN, wbuf, BUFFER_SIZE);
+          wsprintfW(wbuf2, wbuf, wszStr, LOBYTE(LOWORD(AKELDLL)), HIBYTE(LOWORD(AKELDLL)), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
+                                 LOBYTE(LOWORD(pv.dwAkelDllVersion)), HIBYTE(LOWORD(pv.dwAkelDllVersion)), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
+          MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        }
       }
       else
       {
-        API_LoadStringW(hLangLib, MSG_ERROR_FUNCTION_NOT_FOUND, wbuf, BUFFER_SIZE);
-        wsprintfW(wbuf2, wbuf, wszPlugin, wszFunction, wszDLL);
+        API_LoadStringW(hLangLib, MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
+        wsprintfW(wbuf2, wbuf, wszDLL);
         MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-        if (bActive) return EDL_FAILED;
       }
 
       if (FreeLibrary(hModule))

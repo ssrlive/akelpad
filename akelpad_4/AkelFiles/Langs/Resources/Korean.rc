@@ -844,6 +844,10 @@ BEGIN
     MSG_SAVEIN_READONLY     """%s"" 파일은 읽기 전용입니다. 계속 진행하겠습니까?"
     MSG_HOTKEY_EXISTS       "이미 ""%s""에 할당된 단축키입니다."
     MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" 은 자동로드를 지원하지 않습니다."
+    MSG_ERROR_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED "AkelPad 4.x.x doesn't supported."
+    MSG_ERROR_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 

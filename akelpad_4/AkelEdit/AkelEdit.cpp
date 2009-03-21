@@ -1095,7 +1095,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_CONTROLVERSION)
       {
-        DWORD ver[4]={AEVERSION_ID};
+        DWORD ver[4]={AKELEDIT_ID};
 
         return MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
       }
@@ -1448,9 +1448,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (wParam) *(LONG *)wParam=crRE.cpMin;
       if (lParam) *(LONG *)lParam=crRE.cpMax;
 
-      if (crRE.cpMin > 0xFFFF0000)
+      if ((DWORD)crRE.cpMin > 0xFFFF0000)
         return -1;
-      if (crRE.cpMax > 0xFFFF0000)
+      if ((DWORD)crRE.cpMax > 0xFFFF0000)
         return -1;
       return MAKELONG(crRE.cpMin, crRE.cpMax);
     }

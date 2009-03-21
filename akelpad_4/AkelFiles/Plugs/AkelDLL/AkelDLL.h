@@ -2,6 +2,15 @@
 #define __AKELDLL_H__
 
 
+//// Version
+
+#ifndef MAKE_IDENTIFIER
+  #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
+#endif
+
+#define AKELDLL MAKE_IDENTIFIER(1, 0, 0, 0)
+
+
 //// Defines
 
 //Control IDs
@@ -154,6 +163,60 @@ typedef struct {
 typedef void (CALLBACK *PLUGINPROC)(void *);
 typedef void (CALLBACK *WNDPROCRET)(CWPRETSTRUCT *);
 
+typedef struct _PLUGINVERSION {
+  DWORD cb;                   //Size of the structure
+  DWORD dwAkelDllVersion;     //Current AkelDll version used. Set it to AKELDLL.
+  DWORD dwExeMinVersion4x;    //Required minimum AkelPad 4.x version.
+                              //Set as MAKE_IDENTIFIER(x, x, x, x) or
+                              //if not supported MAKE_IDENTIFIER(-1, -1, -1, -1).
+  DWORD dwExeMinVersion3x;    //Required minimum AkelPad 3.x version.
+                              //Set as MAKE_IDENTIFIER(x, x, x, x) or
+                              //if not supported MAKE_IDENTIFIER(-1, -1, -1, -1).
+} PLUGINVERSION;
+
+typedef struct _PLUGINDATA {
+  DWORD cb;                   //Size of the structure
+  unsigned char *pFunction;   //Called function name, format "Plugin::Function"
+                              //char *pFunction     if bOldWindows == TRUE
+                              //wchar_t *pFunction  if bOldWindows == FALSE
+  HINSTANCE hInstanceDLL;     //DLL instance
+  void *lpPluginFunction;     //Pointer to a PLUGINFUNCTION structure
+  BOOL *lpbAutoLoad;          //TRUE  if function supports autoload
+                              //FALSE if function doesn't support autoload
+  int nUnload;                //See UD_* defines
+  BOOL bActive;               //Plugin already loaded
+  BOOL bOnStart;              //TRUE  if plugin called on start-up
+                              //FALSE if plugin called manually
+  LPARAM lParam;              //Input data
+  unsigned char *pAkelDir;    //AkelPad directory
+                              //char *pAkelDir      if bOldWindows == TRUE
+                              //wchar_t *pAkelDir   if bOldWindows == FALSE
+  HINSTANCE hInstanceEXE;     //EXE instance
+  HSTACK *hPluginsStack;      //Pointer to a plugins stack
+  HWND hMainWnd;              //Main window
+  HWND hWndEdit;              //Edit window
+  HWND hStatus;               //StatusBar window
+  HWND hMdiClient;            //MDI client window (if bMDI == TRUE)
+  HWND hTab;                  //Tab window        (if bMDI == TRUE)
+  HMENU hMainMenu;            //Main menu
+  HMENU hMenuRecentFiles;     //Recent files menu
+  HMENU hMenuLanguage;        //Language menu
+  HMENU hPopupMenu;           //Right click menu
+  HICON hMainIcon;            //Main window icon handle
+  HACCEL hGlobalAccel;        //Global accelerator table (highest priority)
+  HACCEL hMainAccel;          //Main accelerator table (lowest priority)
+  BOOL bOldWindows;           //Non-Unicode Windows
+  BOOL bOldRichEdit;          //riched20.dll lower then 5.30 (v3.0)
+  BOOL bOldComctl32;          //comctl32.dll lower then 4.71
+  BOOL bAkelEdit;             //AkelEdit control is used
+  BOOL bMDI;                  //MDI mode
+  int nSaveSettings;          //See SS_* defines
+  unsigned char *pLangModule; //Language module
+                              //char *pLangModule      if bOldWindows == TRUE
+                              //wchar_t *pLangModule   if bOldWindows == FALSE
+  LANGID wLangSystem;         //System language ID
+} PLUGINDATA;
+
 typedef struct _OPENDOCUMENTA {
   HWND hWnd;                   //Window to fill in, NULL for current edit window
   char szFile[MAX_PATH];       //File to open
@@ -295,50 +358,6 @@ typedef struct _WNDPROCRETDATA {
   WNDPROCRET NextProc;
   WNDPROCRET PrevProc;
 } WNDPROCRETDATA;
-
-typedef struct _PLUGINDATA {
-  DWORD cb;                   //Size of the structure
-  unsigned char *pFunction;   //Called function name, format "Plugin::Function"
-                              //char *pFunction     if bOldWindows == TRUE
-                              //wchar_t *pFunction  if bOldWindows == FALSE
-  HINSTANCE hInstanceDLL;     //DLL instance
-  void *lpPluginFunction;     //Pointer to a PLUGINFUNCTION structure
-  BOOL *lpbAutoLoad;          //TRUE  if function supports autoload
-                              //FALSE if function doesn't support autoload
-  int nUnload;                //See UD_* defines
-  BOOL bActive;               //Plugin already loaded
-  BOOL bOnStart;              //TRUE  if plugin called on start-up
-                              //FALSE if plugin called manually
-  LPARAM lParam;              //Input data
-  unsigned char *pAkelDir;    //AkelPad directory
-                              //char *pAkelDir      if bOldWindows == TRUE
-                              //wchar_t *pAkelDir   if bOldWindows == FALSE
-  HINSTANCE hInstanceEXE;     //EXE instance
-  HSTACK *hPluginsStack;      //Pointer to a plugins stack
-  HWND hMainWnd;              //Main window
-  HWND hWndEdit;              //Edit window
-  HWND hStatus;               //StatusBar window
-  HWND hMdiClient;            //MDI client window (if bMDI == TRUE)
-  HWND hTab;                  //Tab window        (if bMDI == TRUE)
-  HMENU hMainMenu;            //Main menu
-  HMENU hMenuRecentFiles;     //Recent files menu
-  HMENU hMenuLanguage;        //Language menu
-  HMENU hPopupMenu;           //Right click menu
-  HICON hMainIcon;            //Main window icon handle
-  void *lpReserved;           //Reserved
-  BOOL bOldWindows;           //Non-Unicode Windows
-  BOOL bOldRichEdit;          //riched20.dll lower then 5.30 (v3.0)
-  BOOL bOldComctl32;          //comctl32.dll lower then 4.71
-  BOOL bAkelEdit;             //AkelEdit control is used
-  BOOL bMDI;                  //MDI mode
-  int nSaveSettings;          //See SS_* defines
-  unsigned char *pLangModule; //Language module
-                              //char *pLangModule      if bOldWindows == TRUE
-                              //wchar_t *pLangModule   if bOldWindows == FALSE
-  LANGID wLangSystem;         //System language ID
-  HACCEL hGlobalAccel;        //Global accelerator table (highest priority)
-  HACCEL hMainAccel;          //Main accelerator table (lowest priority)
-} PLUGINDATA;
 
 typedef struct _PLUGINFUNCTIONA {
   struct _PLUGINFUNCTIONA *next;
