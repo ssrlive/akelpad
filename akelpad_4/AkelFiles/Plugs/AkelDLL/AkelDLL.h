@@ -295,6 +295,7 @@ typedef struct _WNDFRAMEA {
   BOOL bDetailedUndo;                               //Detailed undo
   int nWrapType;                                    //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
   DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge
+  DWORD dwMarker;                                   //Vertical marker, zero if no marker set
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
@@ -328,6 +329,7 @@ typedef struct _WNDFRAMEW {
   BOOL bDetailedUndo;                               //Detailed undo
   int nWrapType;                                    //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
   DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge
+  DWORD dwMarker;                                   //Vertical marker, zero if no marker set
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)

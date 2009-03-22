@@ -13,6 +13,7 @@
 #define AEC_INDEXCOMPARE
 #include "AkelEdit\AkelBuild.h"
 #include "AkelFiles\Langs\Resources\resource.h"
+#include "AkelFiles\Langs\Resources\version.h"
 #include "AkelFiles\Plugs\AkelDLL\AkelDLL.h"
 #include "AkelPad.h"
 #include "Edit.h"
@@ -273,6 +274,7 @@ int nDefaultNewLine=NEWLINE_WIN;
 BOOL bWordWrap=FALSE;
 int nWrapType=AEWW_WORD;
 DWORD dwWrapLimit=0;
+DWORD dwMarker=0;
 BOOL bOnTop=FALSE;
 BOOL bStatusBar=TRUE;
 DWORD dwShowModify=SM_STATUSBAR;
@@ -5656,6 +5658,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bDetailedUndo=bDetailedUndo;
       lpWndFrameA->nWrapType=nWrapType;
       lpWndFrameA->dwWrapLimit=dwWrapLimit;
+      lpWndFrameA->dwMarker=dwMarker;
       lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameA->bCaretVertLine=bCaretVertLine;
       lpWndFrameA->nCaretWidth=nCaretWidth;
@@ -5805,6 +5808,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bDetailedUndo=bDetailedUndo;
             lpWndFrameA->nWrapType=nWrapType;
             lpWndFrameA->dwWrapLimit=dwWrapLimit;
+            lpWndFrameA->dwMarker=dwMarker;
             lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameA->bCaretVertLine=bCaretVertLine;
             lpWndFrameA->nCaretWidth=nCaretWidth;
@@ -5850,6 +5854,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bDetailedUndo=lpWndFrameA->bDetailedUndo;
           nWrapType=lpWndFrameA->nWrapType;
           dwWrapLimit=lpWndFrameA->dwWrapLimit;
+          dwMarker=lpWndFrameA->dwMarker;
           bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
           bCaretVertLine=lpWndFrameA->bCaretVertLine;
           nCaretWidth=lpWndFrameA->nCaretWidth;
@@ -5934,6 +5939,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bDetailedUndo=bDetailedUndo;
       lpWndFrameW->nWrapType=nWrapType;
       lpWndFrameW->dwWrapLimit=dwWrapLimit;
+      lpWndFrameW->dwMarker=dwMarker;
       lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameW->bCaretVertLine=bCaretVertLine;
       lpWndFrameW->nCaretWidth=nCaretWidth;
@@ -6083,6 +6089,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bDetailedUndo=bDetailedUndo;
             lpWndFrameW->nWrapType=nWrapType;
             lpWndFrameW->dwWrapLimit=dwWrapLimit;
+            lpWndFrameW->dwMarker=dwMarker;
             lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameW->bCaretVertLine=bCaretVertLine;
             lpWndFrameW->nCaretWidth=nCaretWidth;
@@ -6128,6 +6135,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bDetailedUndo=lpWndFrameW->bDetailedUndo;
           nWrapType=lpWndFrameW->nWrapType;
           dwWrapLimit=lpWndFrameW->dwWrapLimit;
+          dwMarker=lpWndFrameW->dwMarker;
           bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
           bCaretVertLine=lpWndFrameW->bCaretVertLine;
           nCaretWidth=lpWndFrameW->nCaretWidth;
