@@ -11287,6 +11287,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
   DWORD dwInsertFlags;
   DWORD dwResult=0;
 
+  AE_NotifyChanging(ae, AETCT_STREAMIN);
   aes->dwError=0;
 
   //Set new line
@@ -11303,8 +11304,6 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 
   if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
   {
-    AE_NotifyChanging(ae, AETCT_STREAMIN);
-
     if (dwFlags & AESF_SELECTION)
     {
       AE_StackUndoGroupStop(ae);
@@ -11331,10 +11330,11 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
     ae->nHorizCaretPos=ae->ptCaret.x;
     if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
     InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-    AE_NotifyChanged(ae, AETCT_STREAMIN);
 
     AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
+  AE_NotifyChanged(ae, AETCT_STREAMIN);
+
   return dwResult;
 }
 
@@ -11349,6 +11349,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
   DWORD dwBufCount=0;
   DWORD dwResult=0;
 
+  AE_NotifyChanging(ae, AETCT_STREAMOUT);
   aes->dwError=0;
 
   //Set new line
@@ -11370,8 +11371,6 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
 
   if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
   {
-    AE_NotifyChanging(ae, AETCT_STREAMOUT);
-
     while (ciCount.lpLine)
     {
       if (aes->bColumnSel)
@@ -11447,10 +11446,10 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
     AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult);
 
     End:
-    AE_NotifyChanged(ae, AETCT_STREAMOUT);
-
     AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
+  AE_NotifyChanged(ae, AETCT_STREAMOUT);
+
   return dwResult;
 }
 
