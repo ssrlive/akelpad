@@ -5,10 +5,12 @@ Changed: file reopening if user saved a file in different encoding.
 Changed: double and triple mouse click selection.
 
 Added: check for plugins and program compatibility. Update plugins.
-Added: "WordBreak" parameter is complemented. 
+Added: "WordBreak" parameter is complemented.
 
-Fixed: serious error in 4.1.9 in word wrap mode. Assignment incorrect
-       pointer led to loss part of a file at saving.
+Fixed: serious error in 4.1.9 in word wrap mode. Assignment incorrect pointer led to loss
+       part of a file at saving.
+Fixed: after new line format change a file was saved with a new line symbol insertion in
+       wrap places.
 Fixed: ampersand in tab button name (MDI) and in recent files menu.
 
 
@@ -29,7 +31,7 @@ AkelPad 4.1.8 (Mar 10, 2009)
 Changed: more accurate split window resizing.
 
 Added: When word wrap is on, now wrapped lines numbers displayed as non-wrapped.
-       "StatusPosType" parameter is complemented. 
+       "StatusPosType" parameter is complemented.
 
 
 AkelPad 4.1.7 (Mar 05, 2009)
