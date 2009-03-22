@@ -9493,7 +9493,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
 
             //Restore variables
             ++ae->ptxt->nLastCharOffset;
-            lpElement->nLineBreak=nLineBreak;
+            ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
             ae->liFirstDrawLine.nLine=0;
             ae->liFirstDrawLine.lpLine=NULL;
             ae->nFirstDrawLineOffset=0;
@@ -11344,34 +11344,37 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
       else
         nLineBreak=nNewLine;
 
-      if (nLineBreak == AELB_R)
+      if (ciCount.lpLine->nLineBreak != AELB_WRAP)
       {
-        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-        wszBuf[dwBufCount++]=L'\r';
-      }
-      else if (nLineBreak == AELB_N)
-      {
-        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-        wszBuf[dwBufCount++]=L'\n';
-      }
-      else if (nLineBreak == AELB_RN)
-      {
-        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-        wszBuf[dwBufCount++]=L'\r';
+        if (nLineBreak == AELB_R)
+        {
+          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\r';
+        }
+        else if (nLineBreak == AELB_N)
+        {
+          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\n';
+        }
+        else if (nLineBreak == AELB_RN)
+        {
+          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\r';
 
-        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-        wszBuf[dwBufCount++]=L'\n';
-      }
-      else if (nLineBreak == AELB_RRN)
-      {
-        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-        wszBuf[dwBufCount++]=L'\r';
+          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\n';
+        }
+        else if (nLineBreak == AELB_RRN)
+        {
+          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\r';
 
-        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-        wszBuf[dwBufCount++]=L'\r';
+          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\r';
 
-        if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-        wszBuf[dwBufCount++]=L'\n';
+          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\n';
+        }
       }
       ++ciCount.nLine;
       ciCount.lpLine=ciCount.lpLine->next;

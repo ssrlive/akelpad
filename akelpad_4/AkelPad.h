@@ -4,12 +4,6 @@
 
 //// Defines
 
-#define ID_EDIT           10001
-#define ID_STATUS         10002
-#define ID_TAB            10003
-#define ID_PROGRESS       10004
-#define ID_FIRSTMDI       10010
-
 #define TAB_HEIGHT           24
 #define TAB_WIDTH            90
 

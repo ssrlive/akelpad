@@ -822,11 +822,11 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Niet genoeg geheugen."
     MSG_ERROR_BINARY        """%s"" is een binair bestand. Doorgaan?"
     MSG_ERROR_IO            "Invoer/uitvoer fout."
-    MSG_ERROR_CANNOT_OPEN_FILE "Kan bestand  ""%s"" niet openen."
+    MSG_CANNOT_OPEN_FILE "Kan bestand  ""%s"" niet openen."
     MSG_ERROR_SYNTAX        "Syntaxis fout."
     MSG_ERROR_PRINT         "Kan document niet printen."
     MSG_ERROR_RUN           "Kan programma niet starten."
-    MSG_ERROR_FUNCTION_NOT_FOUND 
+    MSG_FUNCTION_NOT_FOUND 
                             "Kan funktie  ""%s::%s"" niet vinden in ""%s""."
     MSG_ERROR_LOAD_DLL      "Kan ""%s"" niet laden."
     MSG_ERROR_UNLOAD_DLL    "Kan ""%s"" niet uit het geheugen verwijderen."
@@ -851,11 +851,11 @@ BEGIN
     MSG_RESTART_PROGRAM     " bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks. Doorgaan?"
     MSG_SAVEIN_READONLY     """%s"" is een alleen-lezen-bestand. Doorgaan?"
     MSG_HOTKEY_EXISTS       "De sneltoets is al toegewezen aan ""%s""."
-    MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" ondersteunt geen autostart."
-    MSG_ERROR_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_ERROR_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" ondersteunt geen autostart."
+    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
+    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 

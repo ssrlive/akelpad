@@ -2202,7 +2202,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return (LRESULT)CreateWindowA(cw->szClassName, cw->szWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
     }
-    if (uMsg == AKD_STRLENW)
+    if (uMsg == AKD_STRLENA)
     {
       return lstrlenA((char *)wParam);
     }
@@ -3979,7 +3979,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       return (LRESULT)CreateWindowW(cw->wszClassName, cw->wszWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
     }
-    if (uMsg == AKD_STRLENW)
+    if (uMsg == AKD_STRLENA)
     {
       return lstrlenA((char *)wParam);
     }
@@ -5074,7 +5074,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         memset(&ftFileTime, 0, sizeof(FILETIME));
 
-        API_LoadStringA(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
+        API_LoadStringA(hLangLib, MSG_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
         wsprintfA(buf2, buf, szCurrentFile);
         MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
       }
@@ -5334,7 +5334,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         memset(&ftFileTime, 0, sizeof(FILETIME));
 
-        API_LoadStringW(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+        API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
         wsprintfW(wbuf2, wbuf, wszCurrentFile);
         MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }

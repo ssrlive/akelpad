@@ -827,11 +827,11 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Nedostatok pam‰te."
     MSG_ERROR_BINARY        """%s"" je bin·rny s˙bor. PokraËovaù?"
     MSG_ERROR_IO            "Vstupno-v˝stupn· chyba."
-    MSG_ERROR_CANNOT_OPEN_FILE "Nepodarilo sa otvoriù s˙bor ""%s""."
+    MSG_CANNOT_OPEN_FILE "Nepodarilo sa otvoriù s˙bor ""%s""."
     MSG_ERROR_SYNTAX        "Syntaktick· chyba."
     MSG_ERROR_PRINT         "Nepodarilo sa spustiù tlaË dokumentu."
     MSG_ERROR_RUN           "Nepodarilo sa spustiù program."
-    MSG_ERROR_FUNCTION_NOT_FOUND 
+    MSG_FUNCTION_NOT_FOUND 
                             "funkciu ""%s::%s"" nebolo moûnÈ n·jsù v ""%s""."
     MSG_ERROR_LOAD_DLL      "Nepodarilo sa naËÌtaù ""%s""."
     MSG_ERROR_UNLOAD_DLL    "Nepodarilo sa uvoæniù ""%s""."
@@ -855,12 +855,12 @@ BEGIN
     MSG_RESTART_PROGRAM     "Zmeny sa uplatnia po reötarte programu."
     MSG_SAVEIN_READONLY     "S˙bor ""%s"" je v reûime len na ËÌtanie. PokraËovaù?"
     MSG_HOTKEY_EXISTS       "T·to kl·vesov· skratka je uû priraden· ""%s""."
-    MSG_AUTOLOAD_DOES_NOT_SUPPORTED 
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED 
                             """%s"" nepodporuje automatickÈ sp˙öùanie."
-    MSG_ERROR_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_ERROR_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
+    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 
