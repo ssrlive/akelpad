@@ -813,22 +813,32 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "内存不足。"
     MSG_ERROR_BINARY        """%s"" 是一个二进制文件。继续？"
     MSG_ERROR_IO            "输入/输出出错。"
-    MSG_CANNOT_OPEN_FILE "无法打开文件 ""%s""。"
     MSG_ERROR_SYNTAX        "语法错误。"
     MSG_ERROR_PRINT         "无法打印文档。"
     MSG_ERROR_RUN           "无法运行程序。"
-    MSG_FUNCTION_NOT_FOUND "在文件中找不到函数 ""%s::%s""：""%s""。"
     MSG_ERROR_LOAD_DLL      "无法载入 ""%s""。"
     MSG_ERROR_UNLOAD_DLL    "无法卸载 ""%s""。"
-    MSG_WRONG_STRING        "无效的行号。"
-    MSG_LONG_FILELIST       "选择太多文件。"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 不支持自动载入。"
+    MSG_FUNCTION_NOT_FOUND  "在文件中找不到函数 ""%s::%s""：""%s""。"
+    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_HOTKEY_EXISTS       "热键已经指定给 ""%s""。"
+    MSG_CANNOT_OPEN_FILE    "无法打开文件 ""%s""。"
+    MSG_WRONG_STRING        "无效的行号。"
+    MSG_LONG_FILELIST       "选择太多文件。"
     MSG_DOCUMENT_CHANGED    "文档已经被修改。是否保存？"
     MSG_FILE_DOES_NOT_EXIST "创建新文件 ""%s""？"
     MSG_RECENTFILES_DELETED "删除记录：%d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "搜索完成。"
     MSG_REPLACE_COUNT       "更改的数量：%d"
     MSG_REPLACE_COUNT_ALLFILES "更改的文件数：%d\n更改的数量：%d"
@@ -838,12 +848,6 @@ BEGIN
     MSG_CP_MISMATCH         "行号为""%d""中包含有以本编码保存时将会丢失的符号。继续？"
     MSG_RESTART_PROGRAM     "更改将在重新启动程序后生效。"
     MSG_SAVEIN_READONLY     """%s"" 是一个只读文件。继续？"
-    MSG_HOTKEY_EXISTS       "热键已经指定给 ""%s""。"
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 不支持自动载入。"
-    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -856,9 +860,29 @@ BEGIN
     STR_OPTIONS             "设置..."
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "无"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN_FUNCTION     "插件::函数"
     STR_HOTKEY              "热键"
+    STR_STATUS              "状态"
+    STR_RUNNING             "正在运行"
+    STR_FONT                "字体"
+    STR_HEADLINE            "标题行"
+    STR_TOP                 "上："
+    STR_BOTTOM              "下："
+    STR_ELEMENT             "元素"
+    STR_STANDARDTHEME       "标准"
+    STR_TEXT                "文本"
+    STR_BACKGROUND          "背景"
+    STR_SAMPLE              "示例"
+    STR_BASIC               "基本颜色"
+    STR_SELECTION           "选定范围"
+    STR_ACTIVELINE          "当前行"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -873,30 +897,10 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_STATUS              "状态"
-    STR_RUNNING             "正在运行"
-    STR_EXECUTABLE_FILTER   "可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*"
-    STR_FONT                "字体"
-    STR_HEADLINE            "标题行"
-    STR_TOP                 "上："
-    STR_BOTTOM              "下："
-    STR_ELEMENT             "元素"
-    STR_STANDARDTHEME       "标准"
-    STR_TEXT                "文本"
-    STR_BACKGROUND          "背景"
-    STR_SAMPLE              "示例"
-    STR_BASIC               "基本颜色"
-    STR_SELECTION           "选定范围"
-    STR_ACTIVELINE          "当前行"
     STR_ACTIVECOLUMN        "当前列"
     STR_COLUMNMARKER        "Column marker"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     STR_CARET               "插入点"
     STR_URL                 "超链接"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Chinese (P.R.C.) resources

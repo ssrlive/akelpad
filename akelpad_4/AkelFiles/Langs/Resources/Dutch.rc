@@ -827,23 +827,32 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Niet genoeg geheugen."
     MSG_ERROR_BINARY        """%s"" is een binair bestand. Doorgaan?"
     MSG_ERROR_IO            "Invoer/uitvoer fout."
-    MSG_CANNOT_OPEN_FILE "Kan bestand  ""%s"" niet openen."
     MSG_ERROR_SYNTAX        "Syntaxis fout."
     MSG_ERROR_PRINT         "Kan document niet printen."
     MSG_ERROR_RUN           "Kan programma niet starten."
-    MSG_FUNCTION_NOT_FOUND 
-                            "Kan funktie  ""%s::%s"" niet vinden in ""%s""."
     MSG_ERROR_LOAD_DLL      "Kan ""%s"" niet laden."
     MSG_ERROR_UNLOAD_DLL    "Kan ""%s"" niet uit het geheugen verwijderen."
-    MSG_WRONG_STRING        "Ongeldige regel nummer."
-    MSG_LONG_FILELIST       "Te veel bestanden gekozen."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" ondersteunt geen autostart."
+    MSG_FUNCTION_NOT_FOUND  "Kan funktie  ""%s::%s"" niet vinden in ""%s""."
+    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_HOTKEY_EXISTS       "De sneltoets is al toegewezen aan ""%s""."
+    MSG_CANNOT_OPEN_FILE    "Kan bestand  ""%s"" niet openen."
+    MSG_WRONG_STRING        "Ongeldige regel nummer."
+    MSG_LONG_FILELIST       "Te veel bestanden gekozen."
     MSG_DOCUMENT_CHANGED    "Document werd gewijzigd. Wilt u het wilt opslaan?"
     MSG_FILE_DOES_NOT_EXIST "Nieuw bestand ""%s"" maken?"
     MSG_RECENTFILES_DELETED "Verwijderde records: %d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "Zoeken klaar."
     MSG_REPLACE_COUNT       "Aantal wijzigingen: %d"
     MSG_REPLACE_COUNT_ALLFILES 
@@ -855,12 +864,6 @@ BEGIN
     MSG_CP_MISMATCH         "Regel ""%d"" bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks.  \nDoorgaan?"
     MSG_RESTART_PROGRAM     " bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks. Doorgaan?"
     MSG_SAVEIN_READONLY     """%s"" is een alleen-lezen-bestand. Doorgaan?"
-    MSG_HOTKEY_EXISTS       "De sneltoets is al toegewezen aan ""%s""."
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" ondersteunt geen autostart."
-    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -873,9 +876,29 @@ BEGIN
     STR_OPTIONS             "Instellingen..."
     STR_LANGUAGE_NONE       "Intern"
     STR_FILE_FILTER         "Tekst bestanden (*.txt)|*.txt|All files (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "Uitvoerbare bestanden (*.exe)|*.exe|All files (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "Geen"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN_FUNCTION     "Plugin::Functie"
     STR_HOTKEY              "Sneltoets"
+    STR_STATUS              "Status"
+    STR_RUNNING             "Werkt"
+    STR_FONT                "Lettertype"
+    STR_HEADLINE            "Opschriften"
+    STR_TOP                 "Boven:"
+    STR_BOTTOM              "Onder:"
+    STR_ELEMENT             "Element"
+    STR_STANDARDTHEME       "Standaard"
+    STR_TEXT                "Tekst"
+    STR_BACKGROUND          "Achtergrond"
+    STR_SAMPLE              "Voorbeeld"
+    STR_BASIC               "Basis kleur"
+    STR_SELECTION           "Selectie"
+    STR_ACTIVELINE          "Actieve regel"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -890,30 +913,10 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_STATUS              "Status"
-    STR_RUNNING             "Werkt"
-    STR_EXECUTABLE_FILTER   "Uitvoerbare bestanden (*.exe)|*.exe|All files (*.*)|*.*"
-    STR_FONT                "Lettertype"
-    STR_HEADLINE            "Opschriften"
-    STR_TOP                 "Boven:"
-    STR_BOTTOM              "Onder:"
-    STR_ELEMENT             "Element"
-    STR_STANDARDTHEME       "Standaard"
-    STR_TEXT                "Tekst"
-    STR_BACKGROUND          "Achtergrond"
-    STR_SAMPLE              "Voorbeeld"
-    STR_BASIC               "Basis kleur"
-    STR_SELECTION           "Selectie"
-    STR_ACTIVELINE          "Actieve regel"
     STR_ACTIVECOLUMN        "Actieve kolom"
     STR_COLUMNMARKER        "Column marker"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     STR_CARET               "Cursor"
     STR_URL                 "Link"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Dutch (Netherlands) resources

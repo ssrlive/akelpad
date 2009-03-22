@@ -832,23 +832,32 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Nedostatok pam‰te."
     MSG_ERROR_BINARY        """%s"" je bin·rny s˙bor. PokraËovaù?"
     MSG_ERROR_IO            "Vstupno-v˝stupn· chyba."
-    MSG_CANNOT_OPEN_FILE "Nepodarilo sa otvoriù s˙bor ""%s""."
     MSG_ERROR_SYNTAX        "Syntaktick· chyba."
     MSG_ERROR_PRINT         "Nepodarilo sa spustiù tlaË dokumentu."
     MSG_ERROR_RUN           "Nepodarilo sa spustiù program."
-    MSG_FUNCTION_NOT_FOUND 
-                            "funkciu ""%s::%s"" nebolo moûnÈ n·jsù v ""%s""."
     MSG_ERROR_LOAD_DLL      "Nepodarilo sa naËÌtaù ""%s""."
     MSG_ERROR_UNLOAD_DLL    "Nepodarilo sa uvoæniù ""%s""."
-    MSG_WRONG_STRING        "Nespr·vne ËÌslo riadku."
-    MSG_LONG_FILELIST       "Vybrali ste priveæa s˙borov."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" nepodporuje automatickÈ sp˙öùanie."
+    MSG_FUNCTION_NOT_FOUND  "funkciu ""%s::%s"" nebolo moûnÈ n·jsù v ""%s""."
+    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_HOTKEY_EXISTS       "T·to kl·vesov· skratka je uû priraden· ""%s""."
+    MSG_CANNOT_OPEN_FILE    "Nepodarilo sa otvoriù s˙bor ""%s""."
+    MSG_WRONG_STRING        "Nespr·vne ËÌslo riadku."
+    MSG_LONG_FILELIST       "Vybrali ste priveæa s˙borov."
     MSG_DOCUMENT_CHANGED    "Dokument sa zmenil. Chcete ho uloûiù?"
     MSG_FILE_DOES_NOT_EXIST "Vytvoriù nov˝ s˙bor ""%s""?"
     MSG_RECENTFILES_DELETED "PoËet vymazan˝ch z·znamov: %d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "Vyhæad·vanie dokonËenÈ."
     MSG_REPLACE_COUNT       "PoËet zmien: %d"
     MSG_REPLACE_COUNT_ALLFILES "ZmenenÈ s˙bory: %d\nPoËet zmien: %d"
@@ -859,13 +868,6 @@ BEGIN
     MSG_CP_MISMATCH         "Na riadku ""%d"" s˙ znaky, ktorÈ nie je moûnÈ uloûiù v tomto kÛdovanÌ. PokraËovaù?"
     MSG_RESTART_PROGRAM     "Zmeny sa uplatnia po reötarte programu."
     MSG_SAVEIN_READONLY     "S˙bor ""%s"" je v reûime len na ËÌtanie. PokraËovaù?"
-    MSG_HOTKEY_EXISTS       "T·to kl·vesov· skratka je uû priraden· ""%s""."
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED 
-                            """%s"" nepodporuje automatickÈ sp˙öùanie."
-    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -878,9 +880,29 @@ BEGIN
     STR_OPTIONS             "Nastavenia..."
     STR_LANGUAGE_NONE       "Intern˝"
     STR_FILE_FILTER         "TextovÈ s˙bory (*.txt)|*.txt|Vöetky s˙bory (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "SpustiteænÈ s˙bory (*.exe)|*.exe|Vöetky s˙bory (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "NiË"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN_FUNCTION     "Plugin::Funkcia"
     STR_HOTKEY              "Kl·vesov· skratka"
+    STR_STATUS              "Stav"
+    STR_RUNNING             "Spusten˝"
+    STR_FONT                "PÌsmo"
+    STR_HEADLINE            "Headlines"
+    STR_TOP                 "Vrch:"
+    STR_BOTTOM              "Spodok:"
+    STR_ELEMENT             "Prvok"
+    STR_STANDARDTHEME       "ätandardn·"
+    STR_TEXT                "Text"
+    STR_BACKGROUND          "Pozadie"
+    STR_SAMPLE              "Uk·ûka"
+    STR_BASIC               "Z·kladn· farba"
+    STR_SELECTION           "V˝ber"
+    STR_ACTIVELINE          "AktÌvny riadok"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -895,30 +917,10 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_STATUS              "Stav"
-    STR_RUNNING             "Spusten˝"
-    STR_EXECUTABLE_FILTER   "SpustiteænÈ s˙bory (*.exe)|*.exe|Vöetky s˙bory (*.*)|*.*"
-    STR_FONT                "PÌsmo"
-    STR_HEADLINE            "Headlines"
-    STR_TOP                 "Vrch:"
-    STR_BOTTOM              "Spodok:"
-    STR_ELEMENT             "Prvok"
-    STR_STANDARDTHEME       "ätandardn·"
-    STR_TEXT                "Text"
-    STR_BACKGROUND          "Pozadie"
-    STR_SAMPLE              "Uk·ûka"
-    STR_BASIC               "Z·kladn· farba"
-    STR_SELECTION           "V˝ber"
-    STR_ACTIVELINE          "AktÌvny riadok"
     STR_ACTIVECOLUMN        "AktÌvny stÂpec"
     STR_COLUMNMARKER        "Column marker"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     STR_CARET               "Kurzor"
     STR_URL                 "Odkaz"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Slovak resources
