@@ -765,23 +765,32 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "十分でないメモリです。"
     MSG_ERROR_BINARY        """%s"" はバイナリ ファイルです。続行しますか?"
     MSG_ERROR_IO            "入力/出力エラーです。"
-    MSG_CANNOT_OPEN_FILE "ファイル ""%s"" を開けません。"
     MSG_ERROR_SYNTAX        "構文エラーです。"
     MSG_ERROR_PRINT         "ドキュメントを印刷できません。"
     MSG_ERROR_RUN           "プログラムを起動できません。"
-    MSG_FUNCTION_NOT_FOUND 
-                            "関数 ""%s::%s"" が ""%s"" から見つかりません。"
     MSG_ERROR_LOAD_DLL      """%s"" を読み込めません。"
     MSG_ERROR_UNLOAD_DLL    """%s"" を読み込み解除できません。."
-    MSG_WRONG_STRING        "不正な行番号です。"
-    MSG_LONG_FILELIST       "多すぎるファイルが選択されています。"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" が自動読み込みをサポートしません。"
+    MSG_FUNCTION_NOT_FOUND  "関数 ""%s::%s"" が ""%s"" から見つかりません。"
+    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_HOTKEY_EXISTS       "ホットキーはすでに ""%s"" へ割り当てられています。"
+    MSG_CANNOT_OPEN_FILE    "ファイル ""%s"" を開けません。"
+    MSG_WRONG_STRING        "不正な行番号です。"
+    MSG_LONG_FILELIST       "多すぎるファイルが選択されています。"
     MSG_DOCUMENT_CHANGED    "ドキュメントは変更されました。保存しますか?"
     MSG_FILE_DOES_NOT_EXIST "新しいファイル ""%s"" を作成しますか?"
     MSG_RECENTFILES_DELETED "削除された記録: %d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "検索が完了しました。"
     MSG_REPLACE_COUNT       "変更の数: %d"
     MSG_REPLACE_COUNT_ALLFILES "変更されたファイル: %d\n変更の数: %d"
@@ -791,13 +800,6 @@ BEGIN
     MSG_CP_UNIMPLEMENTED    """%d"" コード ページは実装されていません。"
     MSG_RESTART_PROGRAM     "変更はプログラムの再起動時に反映されます。"
     MSG_SAVEIN_READONLY     """%s"" は読み取り専用ファイルです。続行しますか?"
-    MSG_HOTKEY_EXISTS       "ホットキーはすでに ""%s"" へ割り当てられています。"
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED 
-                            """%s"" が自動読み込みをサポートしません。"
-    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
-    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 

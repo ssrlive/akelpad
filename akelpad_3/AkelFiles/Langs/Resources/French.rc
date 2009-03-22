@@ -770,23 +770,32 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Mémoire insuffisante."
     MSG_ERROR_BINARY        """%s"" est un fichier binaire. Continuer?"
     MSG_ERROR_IO            "Erreur d'entrée/sortie."
-    MSG_CANNOT_OPEN_FILE "Impossible d'ouvrir le fichier ""%s""."
     MSG_ERROR_SYNTAX        "Erreur de syntaxe."
     MSG_ERROR_PRINT         "Impossible d'imprimer le document."
     MSG_ERROR_RUN           "Impossible d'exécuter le programme."
-    MSG_FUNCTION_NOT_FOUND 
-                            "Impossible de trouver la fonction ""%s::%s"" dans ""%s""."
     MSG_ERROR_LOAD_DLL      "Impossible de charger ""%s""."
     MSG_ERROR_UNLOAD_DLL    "Impossible de décharger ""%s""."
-    MSG_WRONG_STRING        "Numéro de ligne invalide."
-    MSG_LONG_FILELIST       "Trop de fichiers choisis."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" ne supporte pas l'auto-chargement."
+    MSG_FUNCTION_NOT_FOUND  "Impossible de trouver la fonction ""%s::%s"" dans ""%s""."
+    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_HOTKEY_EXISTS       "Touche déjà affectée à ""%s""."
+    MSG_CANNOT_OPEN_FILE    "Impossible d'ouvrir le fichier ""%s""."
+    MSG_WRONG_STRING        "Numéro de ligne invalide."
+    MSG_LONG_FILELIST       "Trop de fichiers choisis."
     MSG_DOCUMENT_CHANGED    "Le document a été modifié. Voulez-vous l'enregistrer?"
     MSG_FILE_DOES_NOT_EXIST "Créer le nouveau fichier ""%s""?"
     MSG_RECENTFILES_DELETED "Enregistrements effacés: %d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "Recherche terminée."
     MSG_REPLACE_COUNT       "Nombre de changements: %d"
     MSG_REPLACE_COUNT_ALLFILES 
@@ -797,13 +806,6 @@ BEGIN
     MSG_CP_UNIMPLEMENTED    "La page de code ""%d"" n'est pas implémentée."
     MSG_RESTART_PROGRAM     "Les changements seront visibles aprés redémarrage du programme."
     MSG_SAVEIN_READONLY     """%s"" en lecture seule. Continuer?"
-    MSG_HOTKEY_EXISTS       "Touche déjà affectée à ""%s""."
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED 
-                            """%s"" ne supporte pas l'auto-chargement."
-    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
-    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 
