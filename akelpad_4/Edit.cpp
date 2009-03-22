@@ -4694,7 +4694,7 @@ void ReadThemesA()
     aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
     aec.crUrlText=RGB(0x00, 0x00, 0xFF);
     aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
-    aec.crColumnMarker=RGB(0x00, 0x00, 0xFF);
+    aec.crColumnMarker=RGB(0xC0, 0xC0, 0xC0);
     StackThemeAddA(&hThemesStack, "Notepad++", &aec);
   }
 }
@@ -4771,7 +4771,7 @@ void ReadThemesW()
     aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
     aec.crUrlText=RGB(0x00, 0x00, 0xFF);
     aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
-    aec.crColumnMarker=RGB(0x00, 0x00, 0xFF);
+    aec.crColumnMarker=RGB(0xC0, 0xC0, 0xC0);
     StackThemeAddW(&hThemesStack, L"Notepad++", &aec);
   }
 }

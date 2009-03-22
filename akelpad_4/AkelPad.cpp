@@ -5199,19 +5199,21 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
           {
             char szTabName[MAX_PATH];
             TCITEMA tcItemA;
-            int nCurSel;
+            int nItem;
 
-            nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
-            tcItemA.mask=TCIF_TEXT;
-            tcItemA.pszText=szTabName;
-            tcItemA.cchTextMax=MAX_PATH;
-            SendMessage(hTab, TCM_GETITEMA, nCurSel, (LPARAM)&tcItemA);
+            if ((nItem=GetTabItemFromParam(hTab, (LPARAM)GetParent(aenm->hdr.hwndFrom))) != -1)
+            {
+              tcItemA.mask=TCIF_TEXT;
+              tcItemA.pszText=szTabName;
+              tcItemA.cchTextMax=MAX_PATH;
+              SendMessage(hTab, TCM_GETITEMA, nItem, (LPARAM)&tcItemA);
 
-            if (aenm->bModified)
-              lstrcatA(szTabName, " *");
-            else
-              TrimModifyStateA(szTabName);
-            SendMessage(hTab, TCM_SETITEMA, nCurSel, (LPARAM)&tcItemA);
+              if (aenm->bModified)
+                lstrcatA(szTabName, " *");
+              else
+                TrimModifyStateA(szTabName);
+              SendMessage(hTab, TCM_SETITEMA, nItem, (LPARAM)&tcItemA);
+            }
           }
           if (dwShowModify & SM_FRAMETITLE_MDI)
           {
@@ -5459,19 +5461,21 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
           {
             wchar_t wszTabName[MAX_PATH];
             TCITEMW tcItemW;
-            int nCurSel;
+            int nItem;
 
-            nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
-            tcItemW.mask=TCIF_TEXT;
-            tcItemW.pszText=wszTabName;
-            tcItemW.cchTextMax=MAX_PATH;
-            SendMessage(hTab, TCM_GETITEMW, nCurSel, (LPARAM)&tcItemW);
+            if ((nItem=GetTabItemFromParam(hTab, (LPARAM)GetParent(aenm->hdr.hwndFrom))) != -1)
+            {
+              tcItemW.mask=TCIF_TEXT;
+              tcItemW.pszText=wszTabName;
+              tcItemW.cchTextMax=MAX_PATH;
+              SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW);
 
-            if (aenm->bModified)
-              lstrcatW(wszTabName, L" *");
-            else
-              TrimModifyStateW(wszTabName);
-            SendMessage(hTab, TCM_SETITEMW, nCurSel, (LPARAM)&tcItemW);
+              if (aenm->bModified)
+                lstrcatW(wszTabName, L" *");
+              else
+                TrimModifyStateW(wszTabName);
+              SendMessage(hTab, TCM_SETITEMW, nItem, (LPARAM)&tcItemW);
+            }
           }
           if (dwShowModify & SM_FRAMETITLE_MDI)
           {

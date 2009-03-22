@@ -827,23 +827,33 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Memória insuficiente."
     MSG_ERROR_BINARY        """%s"" é um arquivo binário. Continuar ?"
     MSG_ERROR_IO            "Erro de entrada e saída."
-    MSG_CANNOT_OPEN_FILE "Não foi possível abrir o arquivo ""%s""."
     MSG_ERROR_SYNTAX        "Erro de sintaxe."
     MSG_ERROR_PRINT         "Não foi possível imprimir o documento."
     MSG_ERROR_RUN           "Não foi possível executar o programa."
-    MSG_FUNCTION_NOT_FOUND 
-                            "Não foi possível achar a função ""%s::%s"" em ""%s""."
     MSG_ERROR_LOAD_DLL      "Não é possível carregar ""%s""."
     MSG_ERROR_UNLOAD_DLL    "Não é possível descarregar ""%s""."
-    MSG_WRONG_STRING        "Número de linha inválido."
-    MSG_LONG_FILELIST       "Escolhidos arquivos demais."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED 
+                            """%s"" não suporta carregamento automático."
+    MSG_FUNCTION_NOT_FOUND  "Não foi possível achar a função ""%s::%s"" em ""%s""."
+    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_HOTKEY_EXISTS       "Tecla de atalho já associada ao ""%s""."
+    MSG_CANNOT_OPEN_FILE    "Não foi possível abrir o arquivo ""%s""."
+    MSG_WRONG_STRING        "Número de linha inválido."
+    MSG_LONG_FILELIST       "Escolhidos arquivos demais."
     MSG_DOCUMENT_CHANGED    "O documento foi alterado. Quer salvá-lo ?"
     MSG_FILE_DOES_NOT_EXIST "Criar o arquivo ""%s""?"
     MSG_RECENTFILES_DELETED "Entradas excluídas: %d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "Busca acabou."
     MSG_REPLACE_COUNT       "Número de alterações: %d"
     MSG_REPLACE_COUNT_ALLFILES 
@@ -855,13 +865,6 @@ BEGIN
     MSG_CP_MISMATCH         "A linha ""%d"" contém caracteres que serão perdidos se salvar nesta codificação. Continuar ?"
     MSG_RESTART_PROGRAM     "As mudanças terão efeito a reiniciar o programa."
     MSG_SAVEIN_READONLY     """%s"" é um arquivo somente leitura. Continuar ?"
-    MSG_HOTKEY_EXISTS       "Tecla de atalho já associada ao ""%s""."
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED 
-                            """%s"" não suporta carregamento automático."
-    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -874,9 +877,29 @@ BEGIN
     STR_OPTIONS             "Configurações..."
     STR_LANGUAGE_NONE       "Interno"
     STR_FILE_FILTER         "Arquivos de texto (*.txt)|*.txt|Todos os arquivos (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "Arquivos executáveis (*.exe)|*.exe|Todos os arquivos (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "Nenhum"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN_FUNCTION     "Plug-in::Função"
     STR_HOTKEY              "Tecla de atalho"
+    STR_STATUS              "Status"
+    STR_RUNNING             "Executando"
+    STR_FONT                "Fonte"
+    STR_HEADLINE            "Cabeçalhos"
+    STR_TOP                 "Topo:"
+    STR_BOTTOM              "Fundo:"
+    STR_ELEMENT             "Element"
+    STR_STANDARDTHEME       "Padrão"
+    STR_TEXT                "Texto"
+    STR_BACKGROUND          "Fundo"
+    STR_SAMPLE              "Amostra"
+    STR_BASIC               "Cor básica"
+    STR_SELECTION           "Seleção"
+    STR_ACTIVELINE          "Linha atual"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -891,30 +914,10 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_STATUS              "Status"
-    STR_RUNNING             "Executando"
-    STR_EXECUTABLE_FILTER   "Arquivos executáveis (*.exe)|*.exe|Todos os arquivos (*.*)|*.*"
-    STR_FONT                "Fonte"
-    STR_HEADLINE            "Cabeçalhos"
-    STR_TOP                 "Topo:"
-    STR_BOTTOM              "Fundo:"
-    STR_ELEMENT             "Element"
-    STR_STANDARDTHEME       "Padrão"
-    STR_TEXT                "Texto"
-    STR_BACKGROUND          "Fundo"
-    STR_SAMPLE              "Amostra"
-    STR_BASIC               "Cor básica"
-    STR_SELECTION           "Seleção"
-    STR_ACTIVELINE          "Linha atual"
     STR_ACTIVECOLUMN        "Coluna ativa"
     STR_COLUMNMARKER        "Column marker"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     STR_CARET               "Cursor"
     STR_URL                 "Mostrar"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Portuguese (Brazil) resources

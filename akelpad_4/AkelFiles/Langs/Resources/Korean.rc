@@ -821,22 +821,32 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "메모리가 부족합니다."
     MSG_ERROR_BINARY        """%s"" 파일은 바이너리 파일입니다. 계속할까요?"
     MSG_ERROR_IO            "입출력 오류."
-    MSG_CANNOT_OPEN_FILE """%s"" 파일을 열 수 없습니다."
     MSG_ERROR_SYNTAX        "구문 오류."
     MSG_ERROR_PRINT         "문서를 인쇄할 수 없습니다."
     MSG_ERROR_RUN           "프로그램을 실행할 수 없습니다."
-    MSG_FUNCTION_NOT_FOUND """%s""에서 ""%s::%s""을 찾을 수 없습니다."
     MSG_ERROR_LOAD_DLL      """%s""를 읽을 수 없습니다."
     MSG_ERROR_UNLOAD_DLL    """%s""를 해제할 수 없습니다."
-    MSG_WRONG_STRING        "줄번호가 올바르지 않습니다."
-    MSG_LONG_FILELIST       "선택한 파일이 너무 많습니다."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 은 자동로드를 지원하지 않습니다."
+    MSG_FUNCTION_NOT_FOUND  """%s""에서 ""%s::%s""을 찾을 수 없습니다."
+    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_HOTKEY_EXISTS       "이미 ""%s""에 할당된 단축키입니다."
+    MSG_CANNOT_OPEN_FILE    """%s"" 파일을 열 수 없습니다."
+    MSG_WRONG_STRING        "줄번호가 올바르지 않습니다."
+    MSG_LONG_FILELIST       "선택한 파일이 너무 많습니다."
     MSG_DOCUMENT_CHANGED    "문서를 수정하셨습니다. 저장하시겠습니까?"
     MSG_FILE_DOES_NOT_EXIST "새 파일 생성 : ""%s""?"
     MSG_RECENTFILES_DELETED "삭제된 기록: %d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "검색을 마쳤습니다."
     MSG_REPLACE_COUNT       "바뀐 갯수: %d"
     MSG_REPLACE_COUNT_ALLFILES "바뀐 파일 수: %d\n바뀐 갯수: %d"
@@ -847,12 +857,6 @@ BEGIN
     MSG_CP_MISMATCH         """%d""번째 줄에 이 인코딩에서 손실되는 문자가 포함되어 있습니다. 계속 진행하시겠습니까?"
     MSG_RESTART_PROGRAM     "프로그램을 재시작하면 변경사항이 적용됩니다."
     MSG_SAVEIN_READONLY     """%s"" 파일은 읽기 전용입니다. 계속 진행하겠습니까?"
-    MSG_HOTKEY_EXISTS       "이미 ""%s""에 할당된 단축키입니다."
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 은 자동로드를 지원하지 않습니다."
-    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -865,9 +869,29 @@ BEGIN
     STR_OPTIONS             "설정..."
     STR_LANGUAGE_NONE       "내장언어"
     STR_FILE_FILTER         "텍스트 파일 (*.txt)|*.txt|모든 파일 (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "실행파일 (*.exe)|*.exe|모든 파일 (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "없음"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN_FUNCTION     "Plugin::Function"
     STR_HOTKEY              "단축키"
+    STR_STATUS              "상태"
+    STR_RUNNING             "실행중"
+    STR_FONT                "글꼴"
+    STR_HEADLINE            "헤드라인"
+    STR_TOP                 "위:"
+    STR_BOTTOM              "아래:"
+    STR_ELEMENT             "엘리먼트"
+    STR_STANDARDTHEME       "표준"
+    STR_TEXT                "텍스트"
+    STR_BACKGROUND          "배경색"
+    STR_SAMPLE              "샘플"
+    STR_BASIC               "기본 색상"
+    STR_SELECTION           "선택영역"
+    STR_ACTIVELINE          "현재 줄"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -882,30 +906,10 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_STATUS              "상태"
-    STR_RUNNING             "실행중"
-    STR_EXECUTABLE_FILTER   "실행파일 (*.exe)|*.exe|모든 파일 (*.*)|*.*"
-    STR_FONT                "글꼴"
-    STR_HEADLINE            "헤드라인"
-    STR_TOP                 "위:"
-    STR_BOTTOM              "아래:"
-    STR_ELEMENT             "엘리먼트"
-    STR_STANDARDTHEME       "표준"
-    STR_TEXT                "텍스트"
-    STR_BACKGROUND          "배경색"
-    STR_SAMPLE              "샘플"
-    STR_BASIC               "기본 색상"
-    STR_SELECTION           "선택영역"
-    STR_ACTIVELINE          "현재 줄"
     STR_ACTIVECOLUMN        "Active column"
     STR_COLUMNMARKER        "Column marker"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     STR_CARET               "캐럿"
     STR_URL                 "하이퍼링크"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Korean resources

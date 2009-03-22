@@ -845,23 +845,32 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Недостатньо пам'яті."
     MSG_ERROR_BINARY        """%s"" бінарний файл. Продовжити?"
     MSG_ERROR_IO            "Помилка введення/виведення."
-    MSG_CANNOT_OPEN_FILE "Неможливо відкрити файл ""%s""."
     MSG_ERROR_SYNTAX        "Синтаксична помилка."
     MSG_ERROR_PRINT         "Помилка при спробі друку документа"
     MSG_ERROR_RUN           "Неможливо запустити програму."
-    MSG_FUNCTION_NOT_FOUND 
-                            "Не вдається знайти функцію ""%s::%s"" в ""%s""."
     MSG_ERROR_LOAD_DLL      "Не вдається завантажити ""%s""."
     MSG_ERROR_UNLOAD_DLL    "Не вдається вивантажити ""%s""."
-    MSG_WRONG_STRING        "Неправильний номер рядка."
-    MSG_LONG_FILELIST       "Обрано занадто багато файлів."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" не підтримує автозавантаження."
+    MSG_FUNCTION_NOT_FOUND  "Не вдається знайти функцію ""%s::%s"" в ""%s""."
+    MSG_UPDATE_PROGRAM      "Обновите AkelPad.\n\nТребуется AkelPad версии не ниже: %d.%d.%d.%d\nНастоящая AkelPad версия: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x не поддерживается."
+    MSG_UPDATE_PLUGIN       "Обновите %s.\n\nВерсия архитектуры AkelPad'а: %d.%d.%d.%d\nВерсия архитектуры плагина: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" не распознан как плагин AkelPad'а."
+    MSG_HOTKEY_EXISTS       "Гаряча клавіша вже призначена для ""%s""."
+    MSG_CANNOT_OPEN_FILE    "Неможливо відкрити файл ""%s""."
+    MSG_WRONG_STRING        "Неправильний номер рядка."
+    MSG_LONG_FILELIST       "Обрано занадто багато файлів."
     MSG_DOCUMENT_CHANGED    "Документ було змінено. Зберегти?"
     MSG_FILE_DOES_NOT_EXIST "Створити новий файл ""%s""?"
     MSG_RECENTFILES_DELETED "Видалено записів: %d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "Пошук завершено."
     MSG_REPLACE_COUNT       "Кількість замін: %d"
     MSG_REPLACE_COUNT_ALLFILES "Змінених файлів: %d\nКількість замін: %d"
@@ -872,12 +881,6 @@ BEGIN
     MSG_CP_MISMATCH         "Рядок ""%d"" містить символи, які буде втрачено при збереженні в цій кодировці. Продовжити?"
     MSG_RESTART_PROGRAM     "Зміни набудуть чинності після перезавантаження програми."
     MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
-    MSG_HOTKEY_EXISTS       "Гаряча клавіша вже призначена для ""%s""."
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" не підтримує автозавантаження."
-    MSG_UPDATE_PROGRAM "Обновите AkelPad.\n\nТребуется AkelPad версии не ниже: %d.%d.%d.%d\nНастоящая AkelPad версия: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x не поддерживается."
-    MSG_UPDATE_PLUGIN "Обновите %s.\n\nВерсия архитектуры AkelPad'а: %d.%d.%d.%d\nВерсия архитектуры плагина: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" не распознан как плагин AkelPad'а."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -890,9 +893,29 @@ BEGIN
     STR_OPTIONS             "Параметри..."
     STR_LANGUAGE_NONE       "Внутрішня"
     STR_FILE_FILTER         "Текстові файли (*.txt)|*.txt|Всі файли (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "Ні"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN_FUNCTION     "Плагін::Функція"
     STR_HOTKEY              "Гаряча клавіша"
+    STR_STATUS              "Статус"
+    STR_RUNNING             "Працює"
+    STR_FONT                "Шрифт"
+    STR_HEADLINE            "Колонтитули"
+    STR_TOP                 "Верхній:"
+    STR_BOTTOM              "Нижній:"
+    STR_ELEMENT             "Елемент"
+    STR_STANDARDTHEME       "Стандартна"
+    STR_TEXT                "Текст"
+    STR_BACKGROUND          "Фон"
+    STR_SAMPLE              "Зразок"
+    STR_BASIC               "Основний колір"
+    STR_SELECTION           "Виділення"
+    STR_ACTIVELINE          "Активний рядок"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -907,30 +930,10 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_STATUS              "Статус"
-    STR_RUNNING             "Працює"
-    STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
-    STR_FONT                "Шрифт"
-    STR_HEADLINE            "Колонтитули"
-    STR_TOP                 "Верхній:"
-    STR_BOTTOM              "Нижній:"
-    STR_ELEMENT             "Елемент"
-    STR_STANDARDTHEME       "Стандартна"
-    STR_TEXT                "Текст"
-    STR_BACKGROUND          "Фон"
-    STR_SAMPLE              "Зразок"
-    STR_BASIC               "Основний колір"
-    STR_SELECTION           "Виділення"
-    STR_ACTIVELINE          "Активний рядок"
     STR_ACTIVECOLUMN        "Активний стовпчик"
     STR_COLUMNMARKER        "Маркер"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
     STR_CARET               "Каретка"
     STR_URL                 "Посилання"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Unknown language: 0x22, 0x1 resources
