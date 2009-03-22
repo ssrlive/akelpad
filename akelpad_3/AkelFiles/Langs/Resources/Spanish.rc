@@ -8,6 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "winresrc.h"
+#include "version.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -739,6 +740,7 @@ END
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""winresrc.h""\r\n"
+    "#include ""version.h""\r\n"
     "\0"
 END
 
@@ -760,16 +762,16 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Error en la cola de mensajes."
     MSG_ERROR_LIMIT_REACHED "La acción no podría llevarse acabo debido al límite del texto.\nEl límite será incrementado."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_RICHEDIT 
+    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Error asignando memoria para control de editor."
     MSG_ERROR_NOT_ENOUGH_MEMORY "No hay suficiente memoria."
     MSG_ERROR_BINARY        """%s"" es un archivo binario. ¿Continuar?"
     MSG_ERROR_IO            "Error de entrada/salida."
-    MSG_ERROR_CANNOT_OPEN_FILE "No se puede abrir el archivo ""%s""."
+    MSG_CANNOT_OPEN_FILE "No se puede abrir el archivo ""%s""."
     MSG_ERROR_SYNTAX        "Error de sintaxis."
     MSG_ERROR_PRINT         "No se puede imprimir el documento."
     MSG_ERROR_RUN           "No se puede ejecutar el programa."
-    MSG_ERROR_FUNCTION_NOT_FOUND 
+    MSG_FUNCTION_NOT_FOUND 
                             "No se puede encontrar la función ""%s::%s"" en ""%s""."
     MSG_ERROR_LOAD_DLL      "No se puede cargar ""%s""."
     MSG_ERROR_UNLOAD_DLL    "No se puede descargar ""%s""."
@@ -792,7 +794,11 @@ BEGIN
     MSG_RESTART_PROGRAM     "Los cambios se reflejaran al reiniciar el programa."
     MSG_SAVEIN_READONLY     """%s"" archivo de sólo lectura. ¿Continuar?"
     MSG_HOTKEY_EXISTS       "Tecla directa ya asignada a ""%s""."
-    MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" doesn't support autoload."
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" doesn't support autoload."
+    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
+    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 

@@ -8,6 +8,7 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #include "winresrc.h"
+#include "version.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -735,6 +736,7 @@ END
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""winresrc.h""\r\n"
+    "#include ""version.h""\r\n"
     "\0"
 END
 
@@ -777,16 +779,16 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Помилка в черзі повідомлень."
     MSG_ERROR_LIMIT_REACHED "Операція не може бути виконана в зв'язку з досягненням ліміта тексту.\nЛіміт буде збільшено."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_RICHEDIT 
+    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Помилка виділення пам'яті для вікна редагування."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Недостатньо пам'яті."
     MSG_ERROR_BINARY        """%s"" бінарний файл. Продовжити?"
     MSG_ERROR_IO            "Помилка введення/виведення."
-    MSG_ERROR_CANNOT_OPEN_FILE "Неможливо відкрити файл ""%s""."
+    MSG_CANNOT_OPEN_FILE "Неможливо відкрити файл ""%s""."
     MSG_ERROR_SYNTAX        "Синтаксична помилка."
     MSG_ERROR_PRINT         "Помилка при спробі друку документа"
     MSG_ERROR_RUN           "Неможливо запустити програму."
-    MSG_ERROR_FUNCTION_NOT_FOUND 
+    MSG_FUNCTION_NOT_FOUND 
                             "Не вдається знайти функцію ""%s::%s"" в ""%s""."
     MSG_ERROR_LOAD_DLL      "Не вдається завантажити ""%s""."
     MSG_ERROR_UNLOAD_DLL    "Не вдається вивантажити ""%s""."
@@ -809,7 +811,11 @@ BEGIN
     MSG_RESTART_PROGRAM     "Зміни набудуть чинності після перезавантаження програми."
     MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
     MSG_HOTKEY_EXISTS       "Гаряча клавіша вже призначена для ""%s""."
-    MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" не підтримує автозавантаження."
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" не підтримує автозавантаження."
+    MSG_UPDATE_PROGRAM "Обновите AkelPad.\n\nТребуется AkelPad версии не ниже: %d.%d.%d.%d\nНастоящая AkelPad версия: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x не поддерживается."
+    MSG_UPDATE_PLUGIN "Обновите %s.\n\nВерсия архитектуры AkelPad'а: %d.%d.%d.%d\nВерсия архитектуры плагина: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" не распознан как плагин AkelPad'а."
 END
 
 STRINGTABLE DISCARDABLE 

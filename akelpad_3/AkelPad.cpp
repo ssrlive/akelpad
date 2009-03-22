@@ -8,6 +8,8 @@
 #include "ConvFunc.h"
 #include "StackFunc.h"
 #include "StrFunc.h"
+#include "AkelFiles\Langs\Resources\resource.h"
+#include "AkelFiles\Plugs\AkelDLL\AkelDLL.h"
 #include "AkelPad.h"
 #include "Edit.h"
 
@@ -48,6 +50,7 @@ STARTUPINFOW lpStartupInfoW;
 BOOL bNotepadCommandLine=TRUE;
 
 //Versions
+DWORD dwExeVersion=0;
 BOOL bOldWindows;
 BOOL bOldRichEdit;
 BOOL bOldComctl32;
@@ -416,6 +419,13 @@ extern "C" void _WinMain()
     //Get program directory
     GetExeDirA(hInstance, szExeDir, MAX_PATH);
 
+    //Get program version
+    {
+      DWORD ver[4]={AKELPAD_ID};
+
+      dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
+    }
+
     //Read options
     wsprintfA(szIniFile, "%s\\AkelPad.ini", szExeDir);
     if (OpenIniA(&hIniStack, szIniFile))
@@ -432,7 +442,7 @@ extern "C" void _WinMain()
     }
     StackFreeIni(&hIniStack);
 
-    aecColors.dwFlags=AECLR_ALL;
+    aecColors.dwFlags=0x1FE; //AECLR_CARET|AECLR_BASICTEXT|AECLR_BASICBK|AECLR_SELTEXT|AECLR_SELBK|AECLR_ACTIVELINETEXT|AECLR_ACTIVELINEBK|AECLR_URLTEXT
     aecColors.crCaret=RGB(0x00, 0x00, 0x00);
     aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
     aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
@@ -828,6 +838,13 @@ extern "C" void _WinMain()
     //Get program directory
     GetExeDirW(hInstance, wszExeDir, MAX_PATH);
 
+    //Get program version
+    {
+      DWORD ver[4]={AKELPAD_ID};
+
+      dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
+    }
+
     //Read options
     wsprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
     if (OpenIniW(&hIniStack, wszIniFile))
@@ -844,7 +861,7 @@ extern "C" void _WinMain()
     }
     StackFreeIni(&hIniStack);
 
-    aecColors.dwFlags=AECLR_ALL;
+    aecColors.dwFlags=0x1FE; //AECLR_CARET|AECLR_BASICTEXT|AECLR_BASICBK|AECLR_SELTEXT|AECLR_SELBK|AECLR_ACTIVELINETEXT|AECLR_ACTIVELINEBK|AECLR_URLTEXT
     aecColors.crCaret=RGB(0x00, 0x00, 0x00);
     aecColors.crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
     aecColors.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
@@ -1981,7 +1998,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
-      pd->lpReserved=NULL;
+      pd->hGlobalAccel=hGlobalAccel;
+      pd->hMainAccel=hMainAccel;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
@@ -1990,8 +2008,6 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->nSaveSettings=nSaveSettings;
       pd->pLangModule=(unsigned char *)szLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
-      pd->hGlobalAccel=hGlobalAccel;
-      pd->hMainAccel=hMainAccel;
 
       return 0;
     }
@@ -2255,6 +2271,14 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       CHARCOLOR *cc=(CHARCOLOR *)lParam;
 
       return GetCharColor((HWND)wParam, cc);
+    }
+    if (uMsg == AKD_PROGRAMVERSION)
+    {
+      return dwExeVersion;
+    }
+    if (uMsg == AKD_PROGRAMARCHITECTURE)
+    {
+      return AKELDLL;
     }
   }
 
@@ -2706,7 +2730,6 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (DoViewColorA(hMainWnd, &aecColors.crBasicText))
       {
-        aecColors.dwFlags=AECLR_ALL;
         aecColors.crActiveLineText=aecColors.crBasicText;
         SetChosenFontColorA(hWndEdit, aecColors.crBasicText);
         bColorsChanged=TRUE;
@@ -2718,7 +2741,6 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (DoViewColorA(hMainWnd, &aecColors.crBasicBk))
       {
-        aecColors.dwFlags=AECLR_ALL;
         aecColors.crActiveLineBk=aecColors.crBasicBk;
         SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
         bColorsChanged=TRUE;
@@ -3672,7 +3694,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hMenuLanguage=hMenuLanguage;
       pd->hPopupMenu=hPopupMenu;
       pd->hMainIcon=hMainIcon;
-      pd->lpReserved=NULL;
+      pd->hGlobalAccel=hGlobalAccel;
+      pd->hMainAccel=hMainAccel;
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
@@ -3681,8 +3704,6 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->nSaveSettings=nSaveSettings;
       pd->pLangModule=(unsigned char *)wszLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
-      pd->hGlobalAccel=hGlobalAccel;
-      pd->hMainAccel=hMainAccel;
 
       return 0;
     }
@@ -3946,6 +3967,14 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       CHARCOLOR *cc=(CHARCOLOR *)lParam;
 
       return GetCharColor((HWND)wParam, cc);
+    }
+    if (uMsg == AKD_PROGRAMVERSION)
+    {
+      return dwExeVersion;
+    }
+    if (uMsg == AKD_PROGRAMARCHITECTURE)
+    {
+      return AKELDLL;
     }
   }
 
@@ -4397,7 +4426,6 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (DoViewColorW(hMainWnd, &aecColors.crBasicText))
       {
-        aecColors.dwFlags=AECLR_ALL;
         aecColors.crActiveLineText=aecColors.crBasicText;
         SetChosenFontColorW(hWndEdit, aecColors.crBasicText);
         bColorsChanged=TRUE;
@@ -4409,7 +4437,6 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (DoViewColorW(hMainWnd, &aecColors.crBasicBk))
       {
-        aecColors.dwFlags=AECLR_ALL;
         aecColors.crActiveLineBk=aecColors.crBasicBk;
         SendMessage(hWndEdit, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
         bColorsChanged=TRUE;
@@ -4861,7 +4888,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         memset(&ftFileTime, 0, sizeof(FILETIME));
 
-        API_LoadStringA(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
+        API_LoadStringA(hLangLib, MSG_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
         wsprintfA(buf2, buf, szCurrentFile);
         MessageBoxA(NULL, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
       }
@@ -4964,7 +4991,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       }
       else if (HIWORD(wParam) == EN_ERRSPACE)
       {
-        API_LoadStringA(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_RICHEDIT, buf, BUFFER_SIZE);
+        API_LoadStringA(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, buf, BUFFER_SIZE);
         MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
         ExitProcess(1);
       }
@@ -5023,7 +5050,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         memset(&ftFileTime, 0, sizeof(FILETIME));
 
-        API_LoadStringW(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+        API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
         wsprintfW(wbuf2, wbuf, wszCurrentFile);
         MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
@@ -5126,7 +5153,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       }
       else if (HIWORD(wParam) == EN_ERRSPACE)
       {
-        API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_RICHEDIT, wbuf, BUFFER_SIZE);
+        API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, wbuf, BUFFER_SIZE);
         MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
         ExitProcess(1);
       }
