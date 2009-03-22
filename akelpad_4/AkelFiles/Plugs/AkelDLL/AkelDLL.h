@@ -277,6 +277,7 @@ typedef struct _EDITINFO {
     COLORREF crActiveLineBk;
     COLORREF crUrlText;
     COLORREF crActiveColumn;
+    COLORREF crColumnMarker;
   } AECOLORS;
 #endif
 
