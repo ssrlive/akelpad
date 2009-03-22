@@ -6076,8 +6076,11 @@ LRESULT CALLBACK NewMdiClientProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
       DeleteTabItem(hTab, nItem);
 
       if (wf=(WNDFRAMEA *)GetWindowLongA((HWND)wParam, GWL_USERDATA))
+      {
         if (wf->hIcon != hIconEmpty) DestroyIcon(wf->hIcon);
-      API_HeapFree(hHeap, 0, (LPVOID)wf);
+        SetWindowLongA((HWND)wParam, GWL_USERDATA, (LONG)0);
+        API_HeapFree(hHeap, 0, (LPVOID)wf);
+      }
     }
   }
 
@@ -6181,8 +6184,11 @@ LRESULT CALLBACK NewMdiClientProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
       DeleteTabItem(hTab, nItem);
 
       if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)wParam, GWL_USERDATA))
+      {
         if (wf->hIcon != hIconEmpty) DestroyIcon(wf->hIcon);
-      API_HeapFree(hHeap, 0, (LPVOID)wf);
+        SetWindowLongW((HWND)wParam, GWL_USERDATA, (LONG)0);
+        API_HeapFree(hHeap, 0, (LPVOID)wf);
+      }
     }
   }
 

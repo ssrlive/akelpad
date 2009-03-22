@@ -757,22 +757,32 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "記憶體不足."
     MSG_ERROR_BINARY        """%s"" 是個2進位檔案. 要繼續嗎?"
     MSG_ERROR_IO            "輸入/輸出 錯誤."
-    MSG_CANNOT_OPEN_FILE "無法開啟檔案 ""%s""."
     MSG_ERROR_SYNTAX        "語法錯誤."
     MSG_ERROR_PRINT         "無法列印文件."
     MSG_ERROR_RUN           "無法執行程式."
-    MSG_FUNCTION_NOT_FOUND "無法找到函式 ""%s::%s"" in ""%s""."
     MSG_ERROR_LOAD_DLL      "無法載入 ""%s""."
     MSG_ERROR_UNLOAD_DLL    "無法卸載 ""%s""."
-    MSG_WRONG_STRING        "無效的列數."
-    MSG_LONG_FILELIST       "選取太多檔案."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 不支援自動載入."
+    MSG_FUNCTION_NOT_FOUND  "無法找到函式 ""%s::%s"" in ""%s""."
+    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_HOTKEY_EXISTS       "快捷鍵已配置為 ""%s""."
+    MSG_CANNOT_OPEN_FILE    "無法開啟檔案 ""%s""."
+    MSG_WRONG_STRING        "無效的列數."
+    MSG_LONG_FILELIST       "選取太多檔案."
     MSG_DOCUMENT_CHANGED    "文件已被修改. 是否要儲存?"
     MSG_FILE_DOES_NOT_EXIST "建立新的檔案 ""%s""?"
     MSG_RECENTFILES_DELETED "已刪除轉碼: %d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "搜尋完畢."
     MSG_REPLACE_COUNT       "變更次數: %d"
     MSG_REPLACE_COUNT_ALLFILES "已變更的檔案: %d\n變更次數: %d"
@@ -781,12 +791,6 @@ BEGIN
     MSG_CP_UNIMPLEMENTED    """%d"" 字碼頁未建置."
     MSG_RESTART_PROGRAM     "變更將會在重新啟動程式後生效."
     MSG_SAVEIN_READONLY     """%s"" 是一個唯讀檔案. 要繼續嗎?"
-    MSG_HOTKEY_EXISTS       "快捷鍵已配置為 ""%s""."
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 不支援自動載入."
-    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
-    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 

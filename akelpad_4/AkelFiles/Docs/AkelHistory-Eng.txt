@@ -5,6 +5,7 @@ Changed: file reopening if user saved a file in different encoding.
 Changed: double and triple mouse click selection.
 
 Added: check for plugins and program compatibility. Update plugins.
+Added: possibility to set vertical marker.
 Added: "WordBreak" parameter is complemented.
 
 Fixed: serious error in 4.1.9 in word wrap mode. Assignment incorrect pointer led to loss
