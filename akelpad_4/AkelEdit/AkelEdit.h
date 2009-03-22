@@ -663,6 +663,8 @@ typedef struct {
 #define AEM_DELCLONE          (WM_USER + 2256)
 #define AEM_GETMASTER         (WM_USER + 2257)
 #define AEM_GETCLONE          (WM_USER + 2258)
+#define AEM_GETMARKER         (WM_USER + 2259)
+#define AEM_SETMARKER         (WM_USER + 2260)
 
 
 /*
@@ -2931,6 +2933,36 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_GETCLONE, 2, 0);
+
+
+AEM_GETMARKER
+_____________
+
+Retrieve marker column.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Column number, zero if no marker set.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETMARKER, 0, 0);
+
+
+AEM_SETMARKER
+_____________
+
+Set marker at specified column.
+
+(int)wParam == column number, zero to clear marker.
+lParam      == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETMARKER, 80, 0);
 
 */
 

@@ -1171,6 +1171,20 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         return (LRESULT)NULL;
       }
+      if (uMsg == AEM_GETMARKER)
+      {
+        return (LRESULT)ae->popt->nColumnMarker;
+      }
+      if (uMsg == AEM_SETMARKER)
+      {
+        if (ae->popt->nColumnMarker != wParam)
+        {
+          AE_ColumnMarkerErase(ae);
+          ae->popt->nColumnMarker=wParam;
+          AE_ColumnMarkerDraw(ae);
+        }
+        return 0;
+      }
     }
 
 
@@ -3197,6 +3211,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AE_ActiveColumnErase(ae);
         AE_Paint(ae);
+        AE_ColumnMarkerDraw(ae);
 
         if (ae->bMButtonDown)
         {
@@ -7859,6 +7874,51 @@ void AE_ActiveColumnErase(AKELEDIT *ae)
     {
       AE_ActiveColumnDraw(ae);
       ae->popt->bActiveColumnDraw=FALSE;
+    }
+  }
+}
+
+void AE_ColumnMarkerDraw(AKELEDIT *ae)
+{
+  if (ae->popt->nColumnMarker)
+  {
+    int nMarkerPos=ae->popt->nColumnMarker * ae->ptxt->nAveCharWidth;
+    HDC hDC=ae->hDC;
+    HPEN hPen;
+    HPEN hPenOld;
+
+    if (ae->nHScrollPos < nMarkerPos && nMarkerPos < ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left))
+    {
+      if (hDC || (hDC=GetDC(ae->hWndEdit)))
+      {
+        if (hPen=CreatePen(PS_SOLID, 0, RGB(0x00, 0x00, 0xFF)))
+        {
+          hPenOld=(HPEN)SelectObject(hDC, hPen);
+          MoveToEx(hDC, ae->rcDraw.left + (nMarkerPos - ae->nHScrollPos), ae->rcDraw.top, NULL);
+          LineTo(hDC, ae->rcDraw.left + (nMarkerPos - ae->nHScrollPos), ae->rcDraw.bottom);
+          if (hPenOld) SelectObject(hDC, hPenOld);
+          DeleteObject(hPen);
+        }
+        if (!ae->hDC) ReleaseDC(ae->hWndEdit, hDC);
+      }
+    }
+  }
+}
+
+void AE_ColumnMarkerErase(AKELEDIT *ae)
+{
+  if (ae->popt->nColumnMarker)
+  {
+    RECT rcMarker;
+    int nMarkerPos=ae->popt->nColumnMarker * ae->ptxt->nAveCharWidth;
+
+    if (ae->nHScrollPos < nMarkerPos && nMarkerPos < ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left))
+    {
+      rcMarker.left=ae->rcDraw.left + (nMarkerPos - ae->nHScrollPos);
+      rcMarker.top=ae->rcDraw.top;
+      rcMarker.right=rcMarker.left + 1;
+      rcMarker.bottom=ae->rcDraw.bottom;
+      InvalidateRect(ae->hWndEdit, &rcMarker, TRUE);
     }
   }
 }

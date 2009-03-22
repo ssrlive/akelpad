@@ -245,6 +245,7 @@ typedef struct {
   BOOL bOverType;
   HBRUSH hActiveColumn;
   BOOL bActiveColumnDraw;
+  int nColumnMarker;
   wchar_t wszWordDelimiters[128];
   DWORD dwWordBreak;
   wchar_t wszUrlDelimiters[128];
@@ -451,6 +452,8 @@ BOOL AE_ActiveColumnCreate(AKELEDIT *ae);
 void AE_ActiveColumnDraw(AKELEDIT *ae);
 void AE_ActiveColumnErase(AKELEDIT *ae);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
+void AE_ColumnMarkerDraw(AKELEDIT *ae);
+void AE_ColumnMarkerErase(AKELEDIT *ae);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide);
 int AE_GetFirstVisibleLine(AKELEDIT *ae);
