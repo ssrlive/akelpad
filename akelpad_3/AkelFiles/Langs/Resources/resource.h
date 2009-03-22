@@ -2,8 +2,6 @@
 // Microsoft Developer Studio generated include file.
 // Used by English.rc
 //
-#define AKELPAD_ID 3,7,0,0
-
 #define MSG_ERROR_IN_MESSAGE_QUEUE      1
 #define MSG_ERROR_LIMIT_REACHED         2
 #define MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 3

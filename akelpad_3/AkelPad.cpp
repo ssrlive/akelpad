@@ -9,6 +9,7 @@
 #include "StackFunc.h"
 #include "StrFunc.h"
 #include "AkelFiles\Langs\Resources\resource.h"
+#include "AkelFiles\Langs\Resources\version.h"
 #include "AkelFiles\Plugs\AkelDLL\AkelDLL.h"
 #include "AkelPad.h"
 #include "Edit.h"
