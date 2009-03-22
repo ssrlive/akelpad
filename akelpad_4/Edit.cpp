@@ -5471,7 +5471,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 
         //Send to AkelEdit
         SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
-        SendMessage(lpData->hWnd, AEM_SETTEXTW, (LPARAM)dwCharsConverted, (WPARAM)wpBuffer);
+        SendMessage(lpData->hWnd, AEM_SETTEXTW, (WPARAM)dwCharsConverted, (LPARAM)wpBuffer);
       }
       else lpData->bResult=FALSE;
 
@@ -8912,11 +8912,10 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         }
       }
 
+      hWndFocus=GetFocus();
       if (bReplaceAll)
-      {
-        hWndFocus=GetFocus();
         bReplaceAllButtonState=EnableWindow(hWndReplaceAllButton, FALSE);
-      }
+
       if (ftflags & AEFR_ALLFILES)
       {
         HWND hWndTmp=hWndFrameActive;
@@ -9043,10 +9042,9 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         }
       }
       if (bReplaceAll)
-      {
         EnableWindow(hWndReplaceAllButton, !bReplaceAllButtonState);
-        SetFocus(hWndFocus);
-      }
+      SetFocus(hWndFocus);
+
       return TRUE;
     }
   }
@@ -9316,11 +9314,10 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         }
       }
 
+      hWndFocus=GetFocus();
       if (bReplaceAll)
-      {
-        hWndFocus=GetFocus();
         bReplaceAllButtonState=EnableWindow(hWndReplaceAllButton, FALSE);
-      }
+
       if (ftflags & AEFR_ALLFILES)
       {
         HWND hWndTmp=hWndFrameActive;
@@ -9447,10 +9444,9 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         }
       }
       if (bReplaceAll)
-      {
         EnableWindow(hWndReplaceAllButton, !bReplaceAllButtonState);
-        SetFocus(hWndFocus);
-      }
+      SetFocus(hWndFocus);
+
       return TRUE;
     }
   }
@@ -12994,7 +12990,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
                   if (pliElement->nAutoLoad == 0)
                   {
                     pliElement->pf->bOnStart=FALSE;
-                    API_LoadStringA(hLangLib, MSG_AUTOLOAD_DOES_NOT_SUPPORTED, buf, BUFFER_SIZE);
+                    API_LoadStringA(hLangLib, MSG_AUTOLOAD_IS_NOT_SUPPORTED, buf, BUFFER_SIZE);
                     wsprintfA(buf2, buf, pliElement->pf->szFunction);
                     MessageBoxA(hDlg, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
                     SetWindowLongA(hDlg, DWL_MSGRESULT, TRUE);
@@ -13218,7 +13214,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
                   if (pliElement->nAutoLoad == 0)
                   {
                     pliElement->pf->bOnStart=FALSE;
-                    API_LoadStringW(hLangLib, MSG_AUTOLOAD_DOES_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
+                    API_LoadStringW(hLangLib, MSG_AUTOLOAD_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
                     wsprintfW(wbuf2, wbuf, pliElement->pf->wszFunction);
                     MessageBoxW(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
                     SetWindowLongW(hDlg, DWL_MSGRESULT, TRUE);
@@ -13685,7 +13681,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
               }
               else
               {
-                API_LoadStringA(hLangLib, MSG_ERROR_FUNCTION_NOT_FOUND, buf, BUFFER_SIZE);
+                API_LoadStringA(hLangLib, MSG_FUNCTION_NOT_FOUND, buf, BUFFER_SIZE);
                 wsprintfA(buf2, buf, szPlugin, szFunction, szDLL);
                 MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
                 if (bActive) return EDL_FAILED;
@@ -13693,7 +13689,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
             }
             else
             {
-              API_LoadStringA(hLangLib, MSG_ERROR_UPDATE_PROGRAM, buf, BUFFER_SIZE);
+              API_LoadStringA(hLangLib, MSG_UPDATE_PROGRAM, buf, BUFFER_SIZE);
               wsprintfA(buf2, buf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
                                    LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
               MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
@@ -13701,7 +13697,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
           }
           else
           {
-            API_LoadStringA(hLangLib, MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED, buf, BUFFER_SIZE);
+            API_LoadStringA(hLangLib, MSG_PROGRAM_IS_NOT_SUPPORTED, buf, BUFFER_SIZE);
             wsprintfA(buf2, buf, szDLL);
             MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
           }
@@ -13714,7 +13710,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
             wsprintfA(szStr, "\"%s\" plugin", szPlugin);
           else
             lstrcpyA(szStr, "AkelPad");
-          API_LoadStringA(hLangLib, MSG_ERROR_UPDATE_PLUGIN, buf, BUFFER_SIZE);
+          API_LoadStringA(hLangLib, MSG_UPDATE_PLUGIN, buf, BUFFER_SIZE);
           wsprintfA(buf2, buf, szStr, LOBYTE(AKELDLL), HIBYTE(AKELDLL), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
                                       LOBYTE(pv.dwAkelDllVersion), HIBYTE(pv.dwAkelDllVersion), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
           MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
@@ -13722,7 +13718,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
       }
       else
       {
-        API_LoadStringA(hLangLib, MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED, buf, BUFFER_SIZE);
+        API_LoadStringA(hLangLib, MSG_PLUGIN_IS_NOT_SUPPORTED, buf, BUFFER_SIZE);
         wsprintfA(buf2, buf, szDLL);
         MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
       }
@@ -13735,7 +13731,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
     }
     else
     {
-      API_LoadStringA(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
+      API_LoadStringA(hLangLib, MSG_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
       wsprintfA(buf2, buf, szDLL);
       MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
     }
@@ -13837,7 +13833,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
               }
               else
               {
-                API_LoadStringW(hLangLib, MSG_ERROR_FUNCTION_NOT_FOUND, wbuf, BUFFER_SIZE);
+                API_LoadStringW(hLangLib, MSG_FUNCTION_NOT_FOUND, wbuf, BUFFER_SIZE);
                 wsprintfW(wbuf2, wbuf, wszPlugin, wszFunction, wszDLL);
                 MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
                 if (bActive) return EDL_FAILED;
@@ -13845,7 +13841,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
             }
             else
             {
-              API_LoadStringW(hLangLib, MSG_ERROR_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
+              API_LoadStringW(hLangLib, MSG_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
               wsprintfW(wbuf2, wbuf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
                                      LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
               MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
@@ -13853,7 +13849,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
           }
           else
           {
-            API_LoadStringW(hLangLib, MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
+            API_LoadStringW(hLangLib, MSG_PROGRAM_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
             wsprintfW(wbuf2, wbuf, wszDLL);
             MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
           }
@@ -13866,7 +13862,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
             wsprintfW(wszStr, L"\"%s\" plugin", wszPlugin);
           else
             lstrcpyW(wszStr, L"AkelPad");
-          API_LoadStringW(hLangLib, MSG_ERROR_UPDATE_PLUGIN, wbuf, BUFFER_SIZE);
+          API_LoadStringW(hLangLib, MSG_UPDATE_PLUGIN, wbuf, BUFFER_SIZE);
           wsprintfW(wbuf2, wbuf, wszStr, LOBYTE(AKELDLL), HIBYTE(AKELDLL), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
                                          LOBYTE(pv.dwAkelDllVersion), HIBYTE(pv.dwAkelDllVersion), LOBYTE(HIWORD(pv.dwAkelDllVersion)), HIBYTE(HIWORD(pv.dwAkelDllVersion)));
           MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
@@ -13874,7 +13870,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
       }
       else
       {
-        API_LoadStringW(hLangLib, MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
+        API_LoadStringW(hLangLib, MSG_PLUGIN_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
         wsprintfW(wbuf2, wbuf, wszDLL);
         MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
@@ -13887,7 +13883,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
     }
     else
     {
-      API_LoadStringW(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+      API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
       wsprintfW(wbuf2, wbuf, wszDLL);
       MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
     }
@@ -20028,7 +20024,7 @@ HANDLE API_CreateFileA(char *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMod
 
   if ((hResult=CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile)) == INVALID_HANDLE_VALUE)
   {
-    API_LoadStringA(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
+    API_LoadStringA(hLangLib, MSG_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
     wsprintfA(buf2, buf, lpFileName);
     MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
   }
@@ -20042,7 +20038,7 @@ HANDLE API_CreateFileW(wchar_t *lpFileName, DWORD dwDesiredAccess, DWORD dwShare
 
   if ((hResult=CreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile)) == INVALID_HANDLE_VALUE)
   {
-    API_LoadStringW(hLangLib, MSG_ERROR_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+    API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
     wsprintfW(wbuf2, wbuf, lpFileName);
     MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }

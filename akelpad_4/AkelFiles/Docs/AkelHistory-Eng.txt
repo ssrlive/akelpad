@@ -7,6 +7,8 @@ Changed: double and triple mouse click selection.
 Added: check for plugins and program compatibility. Update plugins.
 Added: "WordBreak" parameter is complemented. 
 
+Fixed: serious error in 4.1.9 in word wrap mode. Assignment incorrect
+       pointer led to loss part of a file at saving.
 Fixed: ampersand in tab button name (MDI) and in recent files menu.
 
 

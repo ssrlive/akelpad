@@ -813,11 +813,11 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Bellek yetersiz."
     MSG_ERROR_BINARY        """%s"" ikili dosyadýr. Devam?"
     MSG_ERROR_IO            "Giriþ/çýkýþ hatasý."
-    MSG_ERROR_CANNOT_OPEN_FILE "Cannot open file ""%s""."
+    MSG_CANNOT_OPEN_FILE "Cannot open file ""%s""."
     MSG_ERROR_SYNTAX        "Sözdizimi hatasý."
     MSG_ERROR_PRINT         "Belge yazdýrýlamadý."
     MSG_ERROR_RUN           "Program baþlatýlamadý."
-    MSG_ERROR_FUNCTION_NOT_FOUND 
+    MSG_FUNCTION_NOT_FOUND 
                             " ""%s::%s"" fonksiyonu ""%s"" içerisinde bulunamadý."
     MSG_ERROR_LOAD_DLL      """%s"" yüklenemedi."
     MSG_ERROR_UNLOAD_DLL    """%s"" boþaltýlamadý."
@@ -842,11 +842,11 @@ BEGIN
     MSG_RESTART_PROGRAM     "Deðiþiklikler program yeniden baþlatýldýðýnda etkili olacak."
     MSG_SAVEIN_READONLY     """%s"" salt-okunur bir dosya. Devam?"
     MSG_HOTKEY_EXISTS       "Kýsayol zaten ""%s"" ayarlý."
-    MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" otomatik yüklemeyi desteklemiyor."
-    MSG_ERROR_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_ERROR_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" otomatik yüklemeyi desteklemiyor."
+    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
+    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 

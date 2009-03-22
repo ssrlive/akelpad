@@ -839,11 +839,11 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Бракуе памяці."
     MSG_ERROR_BINARY        """%s"" бінарны файл. Працягнуць?"
     MSG_ERROR_IO            "Памылка ўвода/вывада."
-    MSG_ERROR_CANNOT_OPEN_FILE "Немагчыма адкрыць файл ""%s""."
+    MSG_CANNOT_OPEN_FILE "Немагчыма адкрыць файл ""%s""."
     MSG_ERROR_SYNTAX        "Сінтаксічная памылка."
     MSG_ERROR_PRINT         "Памылка пры друку дакумента"
     MSG_ERROR_RUN           "Немагчыма запусціць праграму."
-    MSG_ERROR_FUNCTION_NOT_FOUND 
+    MSG_FUNCTION_NOT_FOUND 
                             "Не атрымліваецца знайсці функцыю ""%s::%s"" в ""%s""."
     MSG_ERROR_LOAD_DLL      "Не атрымліваецца загрузіць ""%s""."
     MSG_ERROR_UNLOAD_DLL    "Не атрымліваецца выгрузіць ""%s""."
@@ -867,11 +867,11 @@ BEGIN
     MSG_RESTART_PROGRAM     "Змены ўступяць у сілу пасля перазапуску праграмы."
     MSG_SAVEIN_READONLY     """%s"" файл мае атрыбут ""Толькі чытанне"". Працягнуць?"
     MSG_HOTKEY_EXISTS       "Гарачая клавіша ўжо прызначаная для ""%s""."
-    MSG_AUTOLOAD_DOES_NOT_SUPPORTED """%s"" не падтрымлівае аўтазагрузку."
-    MSG_ERROR_UPDATE_PROGRAM "Обновите AkelPad.\n\nТребуется AkelPad версии не ниже: %d.%d.%d.%d\nНастоящая AkelPad версия: %d.%d.%d.%d"
-    MSG_ERROR_PROGRAM_DOES_NOT_SUPPORTED "AkelPad 4.x.x не поддерживается."
-    MSG_ERROR_UPDATE_PLUGIN "Обновите %s.\n\nВерсия архитектуры AkelPad'а: %d.%d.%d.%d\nВерсия архитектуры плагина: %d.%d.%d.%d"
-    MSG_ERROR_PLUGIN_DOES_NOT_SUPPORTED """%s"" не распознан как плагин AkelPad'а."
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" не падтрымлівае аўтазагрузку."
+    MSG_UPDATE_PROGRAM "Обновите AkelPad.\n\nТребуется AkelPad версии не ниже: %d.%d.%d.%d\nНастоящая AkelPad версия: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x не поддерживается."
+    MSG_UPDATE_PLUGIN "Обновите %s.\n\nВерсия архитектуры AkelPad'а: %d.%d.%d.%d\nВерсия архитектуры плагина: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" не распознан как плагин AkelPad'а."
 END
 
 STRINGTABLE DISCARDABLE 

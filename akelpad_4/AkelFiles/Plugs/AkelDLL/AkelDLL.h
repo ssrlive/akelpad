@@ -251,20 +251,6 @@ typedef struct _SAVEDOCUMENTW {
   DWORD dwFlags;              //See SD_* defines
 } SAVEDOCUMENTW;
 
-#ifndef __AKELEDIT_H__
-  typedef struct {
-    DWORD dwFlags;              //Reserved
-    COLORREF crCaret;           //Caret color
-    COLORREF crBasicText;       //Basic text color
-    COLORREF crBasicBk;         //Basic background color
-    COLORREF crSelText;         //Text color in selection
-    COLORREF crSelBk;           //Background color in selection
-    COLORREF crActiveLineText;  //Text color in active line
-    COLORREF crActiveLineBk;    //Background color in active line
-    COLORREF crUrlText;         //Hiperlink text color
-  } AECOLORS;
-#endif
-
 typedef struct _EDITINFO {
   HWND hWndEdit;              //Edit window
   unsigned char *pFile;       //Current editing file
@@ -278,6 +264,21 @@ typedef struct _EDITINFO {
   BOOL bWordWrap;             //Word wrap
   BOOL bInsertState;          //Insert mode
 } EDITINFO;
+
+#ifndef __AKELEDIT_H__
+  typedef struct {
+    DWORD dwFlags;
+    COLORREF crCaret;
+    COLORREF crBasicText;
+    COLORREF crBasicBk;
+    COLORREF crSelText;
+    COLORREF crSelBk;
+    COLORREF crActiveLineText;
+    COLORREF crActiveLineBk;
+    COLORREF crUrlText;
+    COLORREF crActiveColumn;
+  } AECOLORS;
+#endif
 
 typedef struct _WNDFRAMEA {
   HICON hIcon;                                      //Frame icon
