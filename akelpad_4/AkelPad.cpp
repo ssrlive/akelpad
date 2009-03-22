@@ -412,6 +412,8 @@ extern "C" void _WinMain()
     aecColors.crActiveLineText=aecColors.crBasicText;
     aecColors.crActiveLineBk=aecColors.crBasicBk;
     aecColors.crUrlText=RGB(0x00, 0x00, 0xFF);
+    aecColors.crActiveColumn=RGB(0x00, 0x00, 0x00);
+    aecColors.crColumnMarker=RGB(0x00, 0x00, 0xFF);
     nAnsiCodePage=GetACP();
     nOemCodePage=GetOEMCP();
     nDefaultCodePage=nAnsiCodePage;
@@ -834,6 +836,8 @@ extern "C" void _WinMain()
     aecColors.crActiveLineText=aecColors.crBasicText;
     aecColors.crActiveLineBk=aecColors.crBasicBk;
     aecColors.crUrlText=RGB(0x00, 0x00, 0xFF);
+    aecColors.crActiveColumn=RGB(0x00, 0x00, 0x00);
+    aecColors.crColumnMarker=RGB(0x00, 0x00, 0xFF);
     nAnsiCodePage=GetACP();
     nOemCodePage=GetOEMCP();
     nDefaultCodePage=nAnsiCodePage;
