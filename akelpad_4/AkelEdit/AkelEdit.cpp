@@ -254,6 +254,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->popt->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
       ae->popt->crActiveLineBk=GetSysColor(COLOR_WINDOW);
       ae->popt->crActiveColumn=RGB(0x00, 0x00, 0x00);
+      ae->popt->crColumnMarker=RGB(0x00, 0x00, 0xFF);
       ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
       ae->popt->bDefaultColors=TRUE;
       ae->popt->hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
@@ -871,10 +872,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!(dwOptionsOld & AECO_ACTIVECOLUMN) && (dwOptionsNew & AECO_ACTIVECOLUMN))
         {
           AE_ActiveColumnCreate(ae);
+          AE_StackUpdateClones(ae);
         }
         else if ((dwOptionsOld & AECO_ACTIVECOLUMN) && !(dwOptionsNew & AECO_ACTIVECOLUMN))
         {
           AE_ActiveColumnErase(ae);
+          AE_StackUpdateClones(ae);
         }
 
         ae->popt->dwOptions=dwOptionsNew;
@@ -1177,11 +1180,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_SETMARKER)
       {
-        if (ae->popt->nColumnMarker != wParam)
+        if (ae->popt->nColumnMarker != (int)wParam)
         {
           AE_ColumnMarkerErase(ae);
           ae->popt->nColumnMarker=wParam;
           AE_ColumnMarkerDraw(ae);
+          AE_StackUpdateClones(ae);
         }
         return 0;
       }
@@ -7891,7 +7895,7 @@ void AE_ColumnMarkerDraw(AKELEDIT *ae)
     {
       if (hDC || (hDC=GetDC(ae->hWndEdit)))
       {
-        if (hPen=CreatePen(PS_SOLID, 0, RGB(0x00, 0x00, 0xFF)))
+        if (hPen=CreatePen(PS_SOLID, 0, ae->popt->crColumnMarker))
         {
           hPenOld=(HPEN)SelectObject(hDC, hPen);
           MoveToEx(hDC, ae->rcDraw.left + (nMarkerPos - ae->nHScrollPos), ae->rcDraw.top, NULL);
@@ -12500,6 +12504,13 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
     else
       aec->crActiveColumn=ae->popt->crActiveColumn;
   }
+  if (aec->dwFlags & AECLR_COLUMNMARKER)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+      aec->crColumnMarker=RGB(0x00, 0x00, 0xFF);
+    else
+      aec->crColumnMarker=ae->popt->crColumnMarker;
+  }
   if (aec->dwFlags & AECLR_CARET)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
@@ -12623,6 +12634,19 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
     }
     if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
       AE_ActiveColumnCreate(ae);
+  }
+  if (aec->dwFlags & AECLR_COLUMNMARKER)
+  {
+    if (aec->dwFlags & AECLR_DEFAULT)
+    {
+      ae->popt->crColumnMarker=RGB(0x00, 0x00, 0xFF);
+    }
+    else
+    {
+      ae->popt->crColumnMarker=aec->crColumnMarker;
+      ae->popt->bDefaultColors=FALSE;
+    }
+    AE_ColumnMarkerErase(ae);
   }
   if (aec->dwFlags & AECLR_CARET)
   {

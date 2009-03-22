@@ -154,6 +154,7 @@
 #define AECLR_ACTIVELINEBK   0x00000080  //Sets active line background color. crActiveLineBk member is valid.
 #define AECLR_URLTEXT        0x00000100  //Sets hiperlink text color. crUrlText member is valid.
 #define AECLR_ACTIVECOLUMN   0x00000200  //Sets active column color. crActiveColumn member is valid.
+#define AECLR_COLUMNMARKER   0x00000400  //Sets column marker color. crColumnMarker member is valid.
 
 #define AECLR_ALL            (AECLR_CARET         |\
                               AECLR_BASICTEXT     |\
@@ -163,7 +164,8 @@
                               AECLR_ACTIVELINETEXT|\
                               AECLR_ACTIVELINEBK  |\
                               AECLR_URLTEXT       |\
-                              AECLR_ACTIVECOLUMN)
+                              AECLR_ACTIVECOLUMN  |\
+                              AECLR_COLUMNMARKER)
 
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
 #define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number.
@@ -420,6 +422,7 @@ typedef struct {
   COLORREF crActiveLineBk;   //Background color in active line.
   COLORREF crUrlText;        //Hiperlink text color.
   COLORREF crActiveColumn;   //Active column color.
+  COLORREF crColumnMarker;   //Column marker color.
 } AECOLORS;
 
 typedef struct {

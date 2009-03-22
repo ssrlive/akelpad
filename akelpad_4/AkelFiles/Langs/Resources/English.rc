@@ -477,7 +477,7 @@ BEGIN
     LTEXT           "To:",IDC_STATIC,12,37,150,8
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 146
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 154
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Colors..."
@@ -490,9 +490,9 @@ BEGIN
     PUSHBUTTON      "Delete",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,73
-    PUSHBUTTON      "OK",IDOK,123,125,50,14,BS_CENTER
-    PUSHBUTTON      "Cancel",IDCANCEL,176,125,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,217,82
+    PUSHBUTTON      "OK",IDOK,123,134,50,14,BS_CENTER
+    PUSHBUTTON      "Cancel",IDCANCEL,176,134,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -644,15 +644,20 @@ BEGIN
                     11,13
     CONTROL         "Detailed",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
-    GROUPBOX        "Wrap",IDC_STATIC,123,46,85,76
+    GROUPBOX        "Wrap",IDC_STATIC,121,46,87,76
     CONTROL         "By words",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
-                    BS_AUTORADIOBUTTON,135,63,70,10
+                    BS_AUTORADIOBUTTON,133,60,72,10
     CONTROL         "By symbols",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
-                    BS_AUTORADIOBUTTON,135,79,70,10
-    RTEXT           "Limit:",IDC_STATIC,135,104,27,8
-    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,166,102,21,13,ES_NUMBER
+                    BS_AUTORADIOBUTTON,133,73,72,10
+    LTEXT           "Limit:",IDC_STATIC,129,91,37,8
+    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,129,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,150,
+                    102,11,13
+    LTEXT           "Marker:",IDC_STATIC,168,91,37,8
+    EDITTEXT        IDC_OPTIONS_MARKER,168,102,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
                     102,11,13
     GROUPBOX        "Caret",IDC_STATIC,9,130,200,60
     CONTROL         "Allow caret moving out of the line edge",
@@ -660,10 +665,10 @@ BEGIN
                     WS_TABSTOP,17,144,185,10
     CONTROL         "Show active column",IDC_OPTIONS_CARETVERTLINE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
-    RTEXT           "Width:",IDC_STATIC,126,172,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_CARETWIDTH,166,169,21,13,ES_NUMBER
+    RTEXT           "Width:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     169,11,13
     CONTROL         "Words delimiters:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
@@ -815,22 +820,32 @@ BEGIN
     MSG_ERROR_NOT_ENOUGH_MEMORY "Not enough memory."
     MSG_ERROR_BINARY        """%s"" is a binary file. Continue?"
     MSG_ERROR_IO            "Input/output error."
-    MSG_CANNOT_OPEN_FILE "Cannot open file ""%s""."
     MSG_ERROR_SYNTAX        "Syntax error."
     MSG_ERROR_PRINT         "Cannot print document."
     MSG_ERROR_RUN           "Cannot run program."
-    MSG_FUNCTION_NOT_FOUND "Cannot found function ""%s::%s"" in ""%s""."
     MSG_ERROR_LOAD_DLL      "Cannot load ""%s""."
     MSG_ERROR_UNLOAD_DLL    "Cannot unload ""%s""."
-    MSG_WRONG_STRING        "Invalid line number."
-    MSG_LONG_FILELIST       "Too many files chosen."
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" doesn't support autoload."
+    MSG_FUNCTION_NOT_FOUND  "Cannot found function ""%s::%s"" in ""%s""."
+    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_HOTKEY_EXISTS       "Hotkey already assigned to ""%s""."
+    MSG_CANNOT_OPEN_FILE    "Cannot open file ""%s""."
+    MSG_WRONG_STRING        "Invalid line number."
+    MSG_LONG_FILELIST       "Too many files chosen."
     MSG_DOCUMENT_CHANGED    "Document was modified. Do you want to save it?"
     MSG_FILE_DOES_NOT_EXIST "Create new file ""%s""?"
     MSG_RECENTFILES_DELETED "Deleted records: %d"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     MSG_SEARCH_ENDED        "Search finished."
     MSG_REPLACE_COUNT       "Count of changes: %d"
     MSG_REPLACE_COUNT_ALLFILES "Changed files: %d\nCount of changes: %d"
@@ -841,12 +856,6 @@ BEGIN
     MSG_CP_MISMATCH         "Line ""%d"" contains symbols which will be lost at saving in this encoding. Continue?"
     MSG_RESTART_PROGRAM     "Changes will be reflected upon restarting the program."
     MSG_SAVEIN_READONLY     """%s"" is a read-only file. Continue?"
-    MSG_HOTKEY_EXISTS       "Hotkey already assigned to ""%s""."
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" doesn't support autoload."
-    MSG_UPDATE_PROGRAM "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN "Update %s.\n\nAkelPad architecture version: %d.%d.%d.%d\nPlugin architecture version: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
 END
 
 STRINGTABLE DISCARDABLE 
@@ -859,9 +868,29 @@ BEGIN
     STR_OPTIONS             "Settings..."
     STR_LANGUAGE_NONE       "Internal"
     STR_FILE_FILTER         "Text files (*.txt)|*.txt|All files (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "None"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN_FUNCTION     "Plugin::Function"
     STR_HOTKEY              "Hotkey"
+    STR_STATUS              "Status"
+    STR_RUNNING             "Running"
+    STR_FONT                "Font"
+    STR_HEADLINE            "Headlines"
+    STR_TOP                 "Top:"
+    STR_BOTTOM              "Bottom:"
+    STR_ELEMENT             "Element"
+    STR_STANDARDTHEME       "Standard"
+    STR_TEXT                "Text"
+    STR_BACKGROUND          "Background"
+    STR_SAMPLE              "Sample"
+    STR_BASIC               "Basic color"
+    STR_SELECTION           "Selection"
+    STR_ACTIVELINE          "Active line"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -876,29 +905,10 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_STATUS              "Status"
-    STR_RUNNING             "Running"
-    STR_EXECUTABLE_FILTER   "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
-    STR_FONT                "Font"
-    STR_HEADLINE            "Headlines"
-    STR_TOP                 "Top:"
-    STR_BOTTOM              "Bottom:"
-    STR_ELEMENT             "Element"
-    STR_STANDARDTHEME       "Standard"
-    STR_TEXT                "Text"
-    STR_BACKGROUND          "Background"
-    STR_SAMPLE              "Sample"
-    STR_BASIC               "Basic color"
-    STR_SELECTION           "Selection"
-    STR_ACTIVELINE          "Active line"
     STR_ACTIVECOLUMN        "Active column"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
+    STR_COLUMNMARKER        "Column marker"
     STR_CARET               "Caret"
     STR_URL                 "Hyperlink"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // English (U.S.) resources

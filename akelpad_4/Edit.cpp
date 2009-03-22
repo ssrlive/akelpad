@@ -12,6 +12,7 @@
 
 #include "AkelEdit\AkelBuild.h"
 #include "AkelFiles\Langs\Resources\resource.h"
+#include "AkelFiles\Langs\Resources\version.h"
 #include "AkelFiles\Plugs\AkelDLL\AkelDLL.h"
 #include "AkelPad.h"
 #include "Edit.h"
@@ -251,6 +252,7 @@ extern int nDefaultNewLine;
 extern BOOL bWordWrap;
 extern int nWrapType;
 extern DWORD dwWrapLimit;
+extern DWORD dwMarker;
 extern BOOL bOnTop;
 extern BOOL bStatusBar;
 extern DWORD dwShowModify;
@@ -369,6 +371,10 @@ HWND CreateEditWindowA(HWND hWndParent)
   SetChosenFontA(hWndEditNew, &lfEditFontA, TRUE);
   SetNewLineStatusA(hWndEditNew, nDefaultNewLine, AENL_INPUT, TRUE);
 
+  if (dwMarker)
+  {
+    SendMessage(hWndEditNew, AEM_SETMARKER, dwMarker, 0);
+  }
   if (nCaretWidth != 1)
   {
     POINT pt;
@@ -434,6 +440,10 @@ HWND CreateEditWindowW(HWND hWndParent)
   SetChosenFontW(hWndEditNew, &lfEditFontW, TRUE);
   SetNewLineStatusW(hWndEditNew, nDefaultNewLine, AENL_INPUT, TRUE);
 
+  if (dwMarker)
+  {
+    SendMessage(hWndEditNew, AEM_SETMARKER, dwMarker, 0);
+  }
   if (nCaretWidth != 1)
   {
     POINT pt;
@@ -3188,6 +3198,9 @@ void RegReadOptionsA()
   RegQueryValueExA(hKey, "WrapLimit", NULL, &dwType, (LPBYTE)&dwWrapLimit, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExA(hKey, "Marker", NULL, &dwType, (LPBYTE)&dwMarker, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExA(hKey, "CaretOutEdge", NULL, &dwType, (LPBYTE)&bCaretOutEdge, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3410,6 +3423,9 @@ void RegReadOptionsW()
   RegQueryValueExW(hKey, L"WrapLimit", NULL, &dwType, (LPBYTE)&dwWrapLimit, &dwSize);
 
   dwSize=sizeof(DWORD);
+  RegQueryValueExW(hKey, L"Marker", NULL, &dwType, (LPBYTE)&dwMarker, &dwSize);
+
+  dwSize=sizeof(DWORD);
   RegQueryValueExW(hKey, L"CaretOutEdge", NULL, &dwType, (LPBYTE)&bCaretOutEdge, &dwSize);
 
   dwSize=sizeof(DWORD);
@@ -3602,6 +3618,7 @@ void IniReadOptionsA()
   IniGetValueA(&hIniStack, "Options", "DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD));
+  IniGetValueA(&hIniStack, "Options", "Marker", INI_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD));
   IniGetValueA(&hIniStack, "Options", "CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD));
@@ -3689,6 +3706,7 @@ void IniReadOptionsW()
   IniGetValueW(&hIniStack, L"Options", L"DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD));
+  IniGetValueW(&hIniStack, L"Options", L"Marker", INI_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD));
   IniGetValueW(&hIniStack, L"Options", L"CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD));
@@ -3951,6 +3969,8 @@ BOOL RegSaveOptionsA()
     goto Error;
   if (RegSetValueExA(hKey, "WrapLimit", 0, REG_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExA(hKey, "Marker", 0, REG_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExA(hKey, "CaretOutEdge", 0, REG_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExA(hKey, "CaretVertLine", 0, REG_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -4121,6 +4141,8 @@ BOOL RegSaveOptionsW()
     goto Error;
   if (RegSetValueExW(hKey, L"WrapLimit", 0, REG_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
+  if (RegSetValueExW(hKey, L"Marker", 0, REG_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD)) != ERROR_SUCCESS)
+    goto Error;
   if (RegSetValueExW(hKey, L"CaretOutEdge", 0, REG_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)) != ERROR_SUCCESS)
     goto Error;
   if (RegSetValueExW(hKey, L"CaretVertLine", 0, REG_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)) != ERROR_SUCCESS)
@@ -4289,6 +4311,8 @@ BOOL IniSaveOptionsA()
   if (!IniSetValueA(&hIniStack, "Options", "WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)))
+    goto Error;
+  if (!IniSetValueA(&hIniStack, "Options", "Marker", INI_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueA(&hIniStack, "Options", "CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)))
     goto Error;
@@ -4461,6 +4485,8 @@ BOOL IniSaveOptionsW()
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)))
     goto Error;
+  if (!IniSetValueW(&hIniStack, L"Options", L"Marker", INI_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD)))
+    goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)))
     goto Error;
   if (!IniSetValueW(&hIniStack, L"Options", L"CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)))
@@ -4616,6 +4642,7 @@ void ReadThemesA()
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
   aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
+  aec.crColumnMarker=RGB(0x00, 0x00, 0xFF);
   StackThemeAddA(&hThemesStack, buf, &aec);
 
   if (nSaveSettings == SS_REGISTRY)
@@ -4667,6 +4694,7 @@ void ReadThemesA()
     aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
     aec.crUrlText=RGB(0x00, 0x00, 0xFF);
     aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
+    aec.crColumnMarker=RGB(0x00, 0x00, 0xFF);
     StackThemeAddA(&hThemesStack, "Notepad++", &aec);
   }
 }
@@ -4691,6 +4719,7 @@ void ReadThemesW()
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
   aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
+  aec.crColumnMarker=RGB(0x00, 0x00, 0xFF);
   StackThemeAddW(&hThemesStack, wbuf, &aec);
 
   if (nSaveSettings == SS_REGISTRY)
@@ -4742,6 +4771,7 @@ void ReadThemesW()
     aec.crActiveLineBk=RGB(0xE8, 0xE8, 0xFF);
     aec.crUrlText=RGB(0x00, 0x00, 0xFF);
     aec.crActiveColumn=RGB(0xE8, 0xE8, 0xFF);
+    aec.crColumnMarker=RGB(0x00, 0x00, 0xFF);
     StackThemeAddW(&hThemesStack, L"Notepad++", &aec);
   }
 }
@@ -12003,6 +12033,13 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lviA.iSubItem=LVSI_COLOR_ELEMENT;
       SendMessage(hWndList, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
 
+      API_LoadStringA(hLangLib, STR_COLUMNMARKER, buf, BUFFER_SIZE);
+      lviA.mask=LVIF_TEXT;
+      lviA.pszText=buf;
+      lviA.iItem=LVI_COLOR_COLUMNMARKER;
+      lviA.iSubItem=LVSI_COLOR_ELEMENT;
+      SendMessage(hWndList, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
+
       API_LoadStringA(hLangLib, STR_CARET, buf, BUFFER_SIZE);
       lviA.mask=LVIF_TEXT;
       lviA.pszText=buf;
@@ -12142,6 +12179,21 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               lplvcd->clrTextBk=aecColorsDlg.crActiveColumn;
             }
           }
+          else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_COLUMNMARKER)
+          {
+            if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crColumnMarker;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_BACKGROUND)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crColumnMarker;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_SAMPLE)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crColumnMarker;
+            }
+          }
           else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_CARET)
           {
             if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
@@ -12200,6 +12252,8 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crActiveLineText);
             else if (lvhti.iItem == LVI_COLOR_ACTIVECOLUMN)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crActiveColumn);
+            else if (lvhti.iItem == LVI_COLOR_COLUMNMARKER)
+              bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crColumnMarker);
             else if (lvhti.iItem == LVI_COLOR_CARET)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crCaret);
             else if (lvhti.iItem == LVI_COLOR_URL)
@@ -12215,6 +12269,8 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crActiveLineBk);
             else if (lvhti.iItem == LVI_COLOR_ACTIVECOLUMN)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crActiveColumn);
+            else if (lvhti.iItem == LVI_COLOR_COLUMNMARKER)
+              bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crColumnMarker);
             else if (lvhti.iItem == LVI_COLOR_CARET)
               bResult=SelectColorDialogA(hDlg, &aecColorsDlg.crCaret);
             else if (lvhti.iItem == LVI_COLOR_URL)
@@ -12439,6 +12495,13 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lviW.iSubItem=LVSI_COLOR_ELEMENT;
       SendMessage(hWndList, LVM_INSERTITEMW, 0, (LPARAM)&lviW);
 
+      API_LoadStringW(hLangLib, STR_COLUMNMARKER, wbuf, BUFFER_SIZE);
+      lviW.mask=LVIF_TEXT;
+      lviW.pszText=wbuf;
+      lviW.iItem=LVI_COLOR_COLUMNMARKER;
+      lviW.iSubItem=LVSI_COLOR_ELEMENT;
+      SendMessage(hWndList, LVM_INSERTITEMW, 0, (LPARAM)&lviW);
+
       API_LoadStringW(hLangLib, STR_CARET, wbuf, BUFFER_SIZE);
       lviW.mask=LVIF_TEXT;
       lviW.pszText=wbuf;
@@ -12578,6 +12641,21 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               lplvcd->clrTextBk=aecColorsDlg.crActiveColumn;
             }
           }
+          else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_COLUMNMARKER)
+          {
+            if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crColumnMarker;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_BACKGROUND)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crColumnMarker;
+            }
+            else if (lplvcd->iSubItem == LVSI_COLOR_SAMPLE)
+            {
+              lplvcd->clrTextBk=aecColorsDlg.crColumnMarker;
+            }
+          }
           else if (lplvcd->nmcd.dwItemSpec == LVI_COLOR_CARET)
           {
             if (lplvcd->iSubItem == LVSI_COLOR_TEXT)
@@ -12636,6 +12714,8 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crActiveLineText);
             else if (lvhti.iItem == LVI_COLOR_ACTIVECOLUMN)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crActiveColumn);
+            else if (lvhti.iItem == LVI_COLOR_COLUMNMARKER)
+              bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crColumnMarker);
             else if (lvhti.iItem == LVI_COLOR_CARET)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crCaret);
             else if (lvhti.iItem == LVI_COLOR_URL)
@@ -12651,6 +12731,8 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crActiveLineBk);
             else if (lvhti.iItem == LVI_COLOR_ACTIVECOLUMN)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crActiveColumn);
+            else if (lvhti.iItem == LVI_COLOR_COLUMNMARKER)
+              bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crColumnMarker);
             else if (lvhti.iItem == LVI_COLOR_CARET)
               bResult=SelectColorDialogW(hDlg, &aecColorsDlg.crCaret);
             else if (lvhti.iItem == LVI_COLOR_URL)
@@ -16486,6 +16568,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndWrapBySymbols;
   static HWND hWndWrapLimit;
   static HWND hWndWrapLimitSpin;
+  static HWND hWndMarker;
+  static HWND hWndMarkerSpin;
   static HWND hWndCaretOutEdge;
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
@@ -16510,6 +16594,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndWrapBySymbols=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_BY_SYMBOLS);
     hWndWrapLimit=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_LIMIT);
     hWndWrapLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_LIMIT_SPIN);
+    hWndMarker=GetDlgItem(hDlg, IDC_OPTIONS_MARKER);
+    hWndMarkerSpin=GetDlgItem(hDlg, IDC_OPTIONS_MARKER_SPIN);
     hWndCaretOutEdge=GetDlgItem(hDlg, IDC_OPTIONS_CARETOUTEDGE);
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
@@ -16527,6 +16613,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndWrapLimitSpin, UDM_SETBUDDY, (WPARAM)hWndWrapLimit, 0);
     SendMessage(hWndWrapLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndMarkerSpin, UDM_SETBUDDY, (WPARAM)hWndMarker, 0);
+    SendMessage(hWndMarkerSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
     SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
@@ -16536,6 +16624,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, dwMarker, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
 
     if (bTabStopAsSpaces)
@@ -16632,6 +16721,14 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         }
       }
 
+      //Marker
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, NULL, FALSE);
+      if ((int)dwMarker != a)
+      {
+        dwMarker=a;
+        SendMessage(hWndEdit, AEM_SETMARKER, dwMarker, 0);
+      }
+
       //Allow caret moving out of the line edge
       bCaretOutEdge=SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0);
       SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
@@ -16693,6 +16790,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndWrapBySymbols;
   static HWND hWndWrapLimit;
   static HWND hWndWrapLimitSpin;
+  static HWND hWndMarker;
+  static HWND hWndMarkerSpin;
   static HWND hWndCaretOutEdge;
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
@@ -16717,6 +16816,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndWrapBySymbols=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_BY_SYMBOLS);
     hWndWrapLimit=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_LIMIT);
     hWndWrapLimitSpin=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_LIMIT_SPIN);
+    hWndMarker=GetDlgItem(hDlg, IDC_OPTIONS_MARKER);
+    hWndMarkerSpin=GetDlgItem(hDlg, IDC_OPTIONS_MARKER_SPIN);
     hWndCaretOutEdge=GetDlgItem(hDlg, IDC_OPTIONS_CARETOUTEDGE);
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
@@ -16734,6 +16835,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndWrapLimitSpin, UDM_SETBUDDY, (WPARAM)hWndWrapLimit, 0);
     SendMessage(hWndWrapLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndMarkerSpin, UDM_SETBUDDY, (WPARAM)hWndMarker, 0);
+    SendMessage(hWndMarkerSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
     SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
@@ -16743,6 +16846,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, dwMarker, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
 
     if (bTabStopAsSpaces)
@@ -16835,6 +16939,14 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           UpdateShowHScroll();
           SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
         }
+      }
+
+      //Marker
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, NULL, FALSE);
+      if ((int)dwMarker != a)
+      {
+        dwMarker=a;
+        SendMessage(hWndEdit, AEM_SETMARKER, dwMarker, 0);
       }
 
       //Allow caret moving out of the line edge

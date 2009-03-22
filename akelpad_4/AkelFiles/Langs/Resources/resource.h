@@ -2,8 +2,6 @@
 // Microsoft Developer Studio generated include file.
 // Used by English.rc
 //
-#define AKELPAD_ID 4,2,0,0
-
 #define MSG_ERROR_IN_MESSAGE_QUEUE      1
 #define MSG_ERROR_LIMIT_REACHED         2
 #define MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 3
@@ -45,28 +43,29 @@
 #define STR_OPTIONS                     106
 #define STR_LANGUAGE_NONE               107
 #define STR_FILE_FILTER                 108
-#define STR_NONE                        109
-#define STR_PLUGIN_FUNCTION             110
-#define STR_HOTKEY                      111
-#define STR_STATUS                      112
-#define STR_RUNNING                     113
-#define STR_EXECUTABLE_FILTER           114
-#define STR_FONT                        115
-#define STR_HEADLINE                    116
-#define STR_TOP                         117
-#define STR_BOTTOM                      118
-#define STR_ELEMENT                     119
-#define STR_STANDARDTHEME               120
-#define STR_TEXT                        121
-#define STR_BACKGROUND                  122
-#define STR_SAMPLE                      123
-#define STR_BASIC                       124
-#define STR_SELECTION                   125
-#define STR_ACTIVELINE                  126
-#define STR_ACTIVECOLUMN                127
-#define STR_CARET                       128
-#define STR_URL                         129
-#define STR_DEFAULT_SAVE_EXT            130
+#define STR_EXECUTABLE_FILTER           109
+#define STR_DEFAULT_SAVE_EXT            110
+#define STR_NONE                        111
+#define STR_PLUGIN_FUNCTION             112
+#define STR_HOTKEY                      113
+#define STR_STATUS                      114
+#define STR_RUNNING                     115
+#define STR_FONT                        116
+#define STR_HEADLINE                    117
+#define STR_TOP                         118
+#define STR_BOTTOM                      119
+#define STR_ELEMENT                     120
+#define STR_STANDARDTHEME               121
+#define STR_TEXT                        122
+#define STR_BACKGROUND                  123
+#define STR_SAMPLE                      124
+#define STR_BASIC                       125
+#define STR_SELECTION                   126
+#define STR_ACTIVELINE                  127
+#define STR_ACTIVECOLUMN                128
+#define STR_COLUMNMARKER                129
+#define STR_CARET                       130
+#define STR_URL                         131
 #define STR_AUTODETECT_RUSSIAN          501
 #define STR_AUTODETECT_ENGLISH          502
 #define STR_AUTODETECT_TURKISH          503
@@ -180,6 +179,8 @@
 #define IDC_OPTIONS_WORD_DELIMITERS_ENABLE 3619
 #define IDC_OPTIONS_WORD_DELIMITERS     3620
 #define IDC_OPTIONS_WORD_DELIMITERS_RESET 3621
+#define IDC_OPTIONS_MARKER              3622
+#define IDC_OPTIONS_MARKER_SPIN         3623
 #define IDC_OPTIONS_URL_SHOW            3651
 #define IDC_OPTIONS_URL_SINGLECLICK     3652
 #define IDC_OPTIONS_URL_DOUBLECLICK     3653
@@ -318,7 +319,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001

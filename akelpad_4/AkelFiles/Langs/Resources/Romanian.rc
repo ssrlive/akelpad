@@ -484,7 +484,7 @@ BEGIN
     LTEXT           "În:",IDC_STATIC,12,37,150,8
 END
 
-IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 146
+IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 154
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "Culori..."
@@ -497,9 +497,9 @@ BEGIN
     PUSHBUTTON      "ªterge",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
-                    WS_BORDER | WS_TABSTOP,9,40,217,73
-    PUSHBUTTON      "OK",IDOK,123,125,50,14,BS_CENTER
-    PUSHBUTTON      "Anuleazã",IDCANCEL,176,125,50,14,BS_CENTER
+                    WS_BORDER | WS_TABSTOP,9,40,217,82
+    PUSHBUTTON      "OK",IDOK,123,134,50,14,BS_CENTER
+    PUSHBUTTON      "Anuleazã",IDCANCEL,176,134,50,14,BS_CENTER
 END
 
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 231
@@ -653,15 +653,20 @@ BEGIN
                     11,13
     CONTROL         "Detalii",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
-    GROUPBOX        "Încadrarea Textului",IDC_STATIC,123,46,85,76
+    GROUPBOX        "Încadrarea Textului",IDC_STATIC,121,46,87,76
     CONTROL         "Dupã cuvinte",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
-                    BS_AUTORADIOBUTTON,135,63,70,10
+                    BS_AUTORADIOBUTTON,133,60,72,10
     CONTROL         "Dupã caractere",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
-                    BS_AUTORADIOBUTTON,135,79,70,10
-    RTEXT           "Limita:",IDC_STATIC,135,104,27,8
-    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,166,102,21,13,ES_NUMBER
+                    BS_AUTORADIOBUTTON,133,73,72,10
+    LTEXT           "Limita:",IDC_STATIC,129,91,37,8
+    EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,129,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,150,
+                    102,11,13
+    LTEXT           "Marker:",IDC_STATIC,168,91,37,8
+    EDITTEXT        IDC_OPTIONS_MARKER,168,102,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
                     102,11,13
     GROUPBOX        "Cursor",IDC_STATIC,9,130,200,60
     CONTROL         "Permite plasarea cursorului dincolo de limita textului",
@@ -669,10 +674,10 @@ BEGIN
                     WS_TABSTOP,17,144,185,10
     CONTROL         "Aratã coloana activã",IDC_OPTIONS_CARETVERTLINE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
-    RTEXT           "Lãþime:",IDC_STATIC,126,172,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_CARETWIDTH,166,169,21,13,ES_NUMBER
+    RTEXT           "Lãþime:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,187,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     169,11,13
     CONTROL         "Delimitatoare de Cuvinte:",
                     IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
@@ -903,6 +908,7 @@ BEGIN
     STR_SELECTION           "Selecþie"
     STR_ACTIVELINE          "Linie Activã"
     STR_ACTIVECOLUMN        "Coloanã Activã"
+    STR_COLUMNMARKER        "Column marker"
 END
 
 STRINGTABLE DISCARDABLE 
