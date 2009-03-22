@@ -1,6 +1,7 @@
 #ifndef __EDIT_H__
 #define __EDIT_H__
 
+
 //// Defines
 
 #define APP_MAIN_CLASSA              "AkelPad3"
@@ -15,8 +16,8 @@
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_ABOUT_VERSIONA           "AkelPad 3.6.5"
-#define APP_ABOUT_VERSIONW          L"AkelPad 3.6.5"
+#define APP_ABOUT_VERSIONA           "AkelPad 3.7.0"
+#define APP_ABOUT_VERSIONW          L"AkelPad 3.7.0"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -373,135 +374,6 @@ typedef struct _HINIKEY {
   int nStringUnicodeBytes;
 } HINIKEY;
 
-typedef struct _OPENDOCUMENTA {
-  HWND hWnd;
-  char szFile[MAX_PATH];
-  char szWorkDir[MAX_PATH];
-  DWORD dwFlags;
-  int nCodePage;
-  BOOL bBOM;
-} OPENDOCUMENTA;
-
-typedef struct _OPENDOCUMENTW {
-  HWND hWnd;
-  wchar_t wszFile[MAX_PATH];
-  wchar_t wszWorkDir[MAX_PATH];
-  DWORD dwFlags;
-  int nCodePage;
-  BOOL bBOM;
-} OPENDOCUMENTW;
-
-typedef struct _SAVEDOCUMENTA {
-  char szFile[MAX_PATH];
-  int nCodePage;
-  BOOL bBOM;
-  DWORD dwFlags;
-} SAVEDOCUMENTA;
-
-typedef struct _SAVEDOCUMENTW {
-  wchar_t wszFile[MAX_PATH];
-  int nCodePage;
-  BOOL bBOM;
-  DWORD dwFlags;
-} SAVEDOCUMENTW;
-
-#ifndef __AKELEDIT_H__
-  #define AECLR_DEFAULT        0x00000001
-  #define AECLR_CARET          0x00000002
-  #define AECLR_BASICTEXT      0x00000004
-  #define AECLR_BASICBK        0x00000008
-  #define AECLR_SELTEXT        0x00000010
-  #define AECLR_SELBK          0x00000020
-  #define AECLR_ACTIVELINETEXT 0x00000040
-  #define AECLR_ACTIVELINEBK   0x00000080
-  #define AECLR_URLTEXT        0x00000100
-  
-  #define AECLR_ALL            (AECLR_CARET         |\
-                                AECLR_BASICTEXT     |\
-                                AECLR_BASICBK       |\
-                                AECLR_SELTEXT       |\
-                                AECLR_SELBK         |\
-                                AECLR_ACTIVELINETEXT|\
-                                AECLR_ACTIVELINEBK  |\
-                                AECLR_URLTEXT)
-
-  typedef struct {
-    DWORD dwFlags;
-    COLORREF crCaret;
-    COLORREF crBasicText;
-    COLORREF crBasicBk;
-    COLORREF crSelText;
-    COLORREF crSelBk;
-    COLORREF crActiveLineText;
-    COLORREF crActiveLineBk;
-    COLORREF crUrlText;
-  } AECOLORS;
-#endif
-
-typedef struct _EDITINFO {
-  HWND hWndEdit;
-  unsigned char *pFile;
-  int nCodePage;
-  BOOL bBOM;
-  int nNewLine;
-  BOOL bModified;
-  BOOL bReadOnly;
-  BOOL bWordWrap;
-  BOOL bInsertState;
-} EDITINFO;
-
-typedef struct _WNDFRAMEA {
-  HICON hIcon;
-  char szFile[MAX_PATH];
-  EDITINFO ei;
-  LOGFONTA lf;
-  AECOLORS aec;
-  FILETIME ft;
-  int nTabStopSize;
-  BOOL bTabStopAsSpaces;
-  int nUndoLimit;
-  BOOL bDetailedUndo;
-  DWORD dwEditMargins;
-  BOOL bWordDelimitersEnable;
-  BOOL bShowURL;
-  BOOL bUrlPrefixesEnable;
-  BOOL bUrlDelimitersEnable;
-} WNDFRAMEA;
-
-typedef struct _WNDFRAMEW {
-  HICON hIcon;
-  wchar_t wszFile[MAX_PATH];
-  EDITINFO ei;
-  LOGFONTW lf;
-  AECOLORS aec;
-  FILETIME ft;
-  int nTabStopSize;
-  BOOL bTabStopAsSpaces;
-  int nUndoLimit;
-  BOOL bDetailedUndo;
-  DWORD dwEditMargins;
-  BOOL bWordDelimitersEnable;
-  BOOL bShowURL;
-  BOOL bUrlPrefixesEnable;
-  BOOL bUrlDelimitersEnable;
-} WNDFRAMEW;
-
-typedef struct _WNDPROCDATA {
-  struct _WNDPROCDATA *next;
-  struct _WNDPROCDATA *prev;
-  WNDPROC CurProc;
-  WNDPROC NextProc;
-  WNDPROC PrevProc;
-} WNDPROCDATA;
-
-typedef struct _WNDPROCRETDATA {
-  struct _WNDPROCRETDATA *next;
-  struct _WNDPROCRETDATA *prev;
-  WNDPROCRET CurProc;
-  WNDPROCRET NextProc;
-  WNDPROCRET PrevProc;
-} WNDPROCRETDATA;
-
 typedef struct _BUFFERSTREAMDATA {
   wchar_t *wpData;
   int nDataLen;
@@ -516,66 +388,6 @@ typedef struct _FILESTREAMDATA {
   int nBytesMax;
   BOOL bResult;
 } FILESTREAMDATA;
-
-typedef struct _PLUGINDATA {
-  DWORD cb;
-  unsigned char *pFunction;
-  HINSTANCE hInstanceDLL;
-  void *lpPluginFunction;
-  BOOL *lpbAutoLoad;
-  int nUnload;
-  BOOL bActive;
-  BOOL bOnStart;
-  LPARAM lParam;
-  unsigned char *pAkelDir;
-  HINSTANCE hInstanceEXE;
-  HSTACK *hPluginsStack;
-  HWND hMainWnd;
-  HWND hWndEdit;
-  HWND hStatus;
-  HWND hMdiClient;
-  HWND hTab;
-  HMENU hMainMenu;
-  HMENU hMenuRecentFiles;
-  HMENU hMenuLanguage;
-  HMENU hPopupMenu;
-  HICON hMainIcon;
-  void *lpReserved;
-  BOOL bOldWindows;
-  BOOL bOldRichEdit;
-  BOOL bOldComctl32;
-  BOOL bAkelEdit;
-  BOOL bMDI;
-  int nSaveSettings;
-  unsigned char *pLangModule;
-  LANGID wLangSystem;
-  HACCEL hGlobalAccel;
-  HACCEL hMainAccel;
-} PLUGINDATA;
-
-typedef struct _PLUGINFUNCTIONA {
-  struct _PLUGINFUNCTIONA *next;
-  struct _PLUGINFUNCTIONA *prev;
-  char szFunction[MAX_PATH];
-  int nFunctionLen;
-  WORD wHotkey;
-  BOOL bOnStart;
-  BOOL bRunning;
-  PLUGINPROC PluginProc;
-  void *lpParameter;
-} PLUGINFUNCTIONA;
-
-typedef struct _PLUGINFUNCTIONW {
-  struct _PLUGINFUNCTIONW *next;
-  struct _PLUGINFUNCTIONW *prev;
-  wchar_t wszFunction[MAX_PATH];
-  int nFunctionLen;
-  WORD wHotkey;
-  BOOL bOnStart;
-  BOOL bRunning;
-  PLUGINPROC PluginProc;
-  void *lpParameter;
-} PLUGINFUNCTIONW;
 
 typedef struct _PLUGINHANDLE {
   struct _PLUGINHANDLE *next;
@@ -607,38 +419,6 @@ typedef struct _PLUGINLISTITEMW {
   int nAutoLoad;
 } PLUGINLISTITEMW;
 
-typedef struct _PLUGINCALLSENDA {
-  char *pFunction;
-  BOOL bOnStart;
-  LPARAM lParam;
-  BOOL *lpbAutoLoad;
-} PLUGINCALLSENDA;
-
-typedef struct _PLUGINCALLSENDW {
-  wchar_t *wpFunction;
-  BOOL bOnStart;
-  LPARAM lParam;
-  BOOL *lpbAutoLoad;
-} PLUGINCALLSENDW;
-
-typedef struct _PLUGINCALLPOSTA {
-  char szFunction[MAX_PATH];
-  BOOL bOnStart;
-  LPARAM lParam;
-} PLUGINCALLPOSTA;
-
-typedef struct _PLUGINCALLPOSTW {
-  wchar_t wszFunction[MAX_PATH];
-  BOOL bOnStart;
-  LPARAM lParam;
-} PLUGINCALLPOSTW;
-
-typedef struct PLUGINUNLOADPOSTW {
-  wchar_t wszFunction[MAX_PATH];
-  HMODULE hInstanceDLL;
-  HANDLE hThread;
-} PLUGINUNLOADPOSTW;
-
 typedef struct _REGHANDLEA {
   DWORD dwType;
   HKEY hKey;
@@ -663,175 +443,11 @@ typedef struct _INIHANDLEW {
   wchar_t wszIniFile[MAX_PATH];
 } INIHANDLEW;
 
-typedef struct _PLUGINOPTIONA {
-  char *szOptionName;
-  DWORD dwType;
-  BYTE *lpData;
-  DWORD dwData;
-} PLUGINOPTIONA;
-
-typedef struct _PLUGINOPTIONW {
-  wchar_t *wszOptionName;
-  DWORD dwType;
-  BYTE *lpData;
-  DWORD dwData;
-} PLUGINOPTIONW;
-
-typedef struct _GETTEXTRANGE {
-  int cpMin;
-  int cpMax;
-  unsigned char *pText;
-} GETTEXTRANGE;
-
-typedef struct _RECENTFILESA {
-  char (*lpszRecentNames)[MAX_PATH];
-  DWORD *lpdwRecentPositions;
-  DWORD *lpdwRecentCodepages;
-  int nRecentFiles;
-} RECENTFILESA;
-
-typedef struct _RECENTFILESW {
-  wchar_t (*lpwszRecentNames)[MAX_PATH];
-  DWORD *lpdwRecentPositions;
-  DWORD *lpdwRecentCodepages;
-  int nRecentFiles;
-} RECENTFILESW;
-
-typedef struct _TEXTFINDA {
-  DWORD dwFlags;
-  char *pFindIt;
-} TEXTFINDA;
-
-typedef struct _TEXTFINDW {
-  DWORD dwFlags;
-  wchar_t *wpFindIt;
-} TEXTFINDW;
-
-typedef struct _TEXTREPLACEA {
-  DWORD dwFlags;
-  char *pFindIt;
-  char *pReplaceWith;
-  BOOL bAll;
-  int nChanges;
-} TEXTREPLACEA;
-
-typedef struct _TEXTREPLACEW {
-  DWORD dwFlags;
-  wchar_t *wpFindIt;
-  wchar_t *wpReplaceWith;
-  BOOL bAll;
-  int nChanges;
-} TEXTREPLACEW;
-
-typedef struct _TEXTRECODE {
-  int nCodePageFrom;
-  int nCodePageTo;
-} TEXTRECODE;
-
-typedef struct _CREATEWINDOWA {
-  char szClassName[MAX_PATH];
-  char szWindowName[MAX_PATH];
-  DWORD dwStyle;
-  int x;
-  int y;
-  int nWidth;
-  int nHeight;
-  HWND hWndParent;
-  HMENU hMenu;
-  HINSTANCE hInstance;
-  LPVOID lpParam;
-} CREATEWINDOWA;
-
-typedef struct _CREATEWINDOWW {
-  wchar_t wszClassName[MAX_PATH];
-  wchar_t wszWindowName[MAX_PATH];
-  DWORD dwStyle;
-  int x;
-  int y;
-  int nWidth;
-  int nHeight;
-  HWND hWndParent;
-  HMENU hMenu;
-  HINSTANCE hInstance;
-  LPVOID lpParam;
-} CREATEWINDOWW;
-
-typedef struct _DOCK {
-  struct _DOCK *next;
-  struct _DOCK *prev;
-  DWORD dwFlags;
-  HWND hWnd;
-  int nSide;
-  RECT rcSize;
-  RECT rcDragDrop;
-} DOCK;
-
 typedef struct _HDOCK {
   HSTACK hStack;
   BOOL bSizing;
   int nSizingSide;
 } HDOCK;
-
-typedef struct _POSTMESSAGE {
-  HWND hWnd;
-  UINT uMsg;
-  WPARAM wParam;
-  LPARAM lParam;
-} POSTMESSAGE;
-
-typedef struct _CHARCOLOR {
-  int nCharPos;
-  COLORREF crText;
-  COLORREF crBk;
-} CHARCOLOR;
-
-typedef struct _NOPENDOCUMENTA {
-  char *szFile;
-  int *nCodePage;
-  BOOL *bBOM;
-  DWORD *dwFlags;
-  BOOL bProcess;
-} NOPENDOCUMENTA;
-
-typedef struct _NOPENDOCUMENTW {
-  wchar_t *wszFile;
-  int *nCodePage;
-  BOOL *bBOM;
-  DWORD *dwFlags;
-  BOOL bProcess;
-} NOPENDOCUMENTW;
-
-typedef struct _NSAVEDOCUMENTA {
-  char *szFile;
-  int *nCodePage;
-  BOOL *bBOM;
-  BOOL bProcess;
-} NSAVEDOCUMENTA;
-
-typedef struct _NSAVEDOCUMENTW {
-  wchar_t *wszFile;
-  int *nCodePage;
-  BOOL *bBOM;
-  BOOL bProcess;
-} NSAVEDOCUMENTW;
-
-typedef struct _NMAINSHOW {
-  DWORD *dwStyle;
-  DWORD *dwShow;
-  BOOL bProcess;
-} NMAINSHOW;
-
-typedef struct _NCONTEXTMENU {
-  HWND hWnd;
-  UINT uType;
-  POINT pt;
-  BOOL bProcess;
-} NCONTEXTMENU;
-
-typedef struct _NSIZE {
-  RECT rcInitial;
-  RECT rcCurrent;
-} NSIZE;
 
 
 //// Functions prototype
