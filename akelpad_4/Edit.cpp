@@ -5551,6 +5551,8 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   {
     if (nLine=SendMessage(hWnd, AEM_CHECKCODEPAGE, (WPARAM)nCodePage, 0))
     {
+      if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
+        nLine=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLine, 0);
       API_LoadStringA(hLangLib, MSG_CP_MISMATCH, buf, BUFFER_SIZE);
       wsprintfA(buf2, buf, nLine);
       if (MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
@@ -5757,6 +5759,8 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
   {
     if (nLine=SendMessage(hWnd, AEM_CHECKCODEPAGE, (WPARAM)nCodePage, 0))
     {
+      if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
+        nLine=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLine, 0);
       API_LoadStringW(hLangLib, MSG_CP_MISMATCH, wbuf, BUFFER_SIZE);
       wsprintfW(wbuf2, wbuf, nLine);
       if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
