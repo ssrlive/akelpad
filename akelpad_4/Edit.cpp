@@ -4642,7 +4642,7 @@ void ReadThemesA()
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
   aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
-  aec.crColumnMarker=RGB(0x00, 0x00, 0xFF);
+  aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
   StackThemeAddA(&hThemesStack, buf, &aec);
 
   if (nSaveSettings == SS_REGISTRY)
@@ -4719,7 +4719,7 @@ void ReadThemesW()
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
   aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
-  aec.crColumnMarker=RGB(0x00, 0x00, 0xFF);
+  aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
   StackThemeAddW(&hThemesStack, wbuf, &aec);
 
   if (nSaveSettings == SS_REGISTRY)

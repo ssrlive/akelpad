@@ -229,9 +229,9 @@ typedef struct {
   COLORREF crSelBk;
   COLORREF crActiveLineText;
   COLORREF crActiveLineBk;
+  COLORREF crUrlText;
   COLORREF crActiveColumn;
   COLORREF crColumnMarker;
-  COLORREF crUrlText;
   COLORREF crEnableBasicBk;
   COLORREF crEnableSelBk;
   COLORREF crEnableActiveLineBk;
