@@ -1,5 +1,5 @@
 
-AkelPad 4.2.0 ()
+AkelPad 4.2.0 (Mar 23, 2009)
 ----------------------------
 Changed: file reopening if user saved a file in different encoding.
 Changed: double and triple mouse click selection.
