@@ -1,6 +1,7 @@
 
-AkelPad 3.7.0 ()
+AkelPad 3.7.0 (Mar 23, 2009)
 ----------------------------
+Added: check for plugins and program compatibility. Update plugins.
 Added: Ctrl+Enter combination - new line with keeping left spaces.
 Added: command 4426 for file saving in UTF-8 without BOM.
 Added: Chinese recognition (UTF-8).
