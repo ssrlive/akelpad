@@ -110,6 +110,17 @@ extern "C" void __declspec(dllexport) List(HWND hwndParent, int string_size, cha
   }
 }
 
+extern "C" void __declspec(dllexport) Collapse(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
+{
+  EXDLL_INIT();
+  {
+    HWND hWnd;
+
+    hWnd=(HWND)popinteger();
+    MoveWindow(hWnd, 0, 0, 0, 0, TRUE);
+  }
+}
+
 BOOL WINAPI DllMain(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 {
   hInstanceDLL=(HINSTANCE)hInst;

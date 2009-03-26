@@ -1,29 +1,9 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "1.0"
+!define PRODUCT_VERSION "1.1"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
 SetCompressor /SOLID lzma
-
-icon "Source\Resources\AkelUpdater.ico"
-Caption "${PRODUCT_NAME}"
-SubCaption 4 " "
-BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-ShowInstDetails show
-XPStyle on
-
-VIAddVersionKey FileDescription "AkelPad text editor updater"
-VIAddVersionKey LegalCopyright "© 2009 Shengalts Aleksander aka Instructor"
-VIAddVersionKey ProductName "${PRODUCT_NAME}"
-VIAddVersionKey FileVersion "${PRODUCT_VERSION}"
-VIAddVersionKey Comments ""
-VIAddVersionKey LegalTrademarks ""
-VIProductVersion ${PRODUCT_VERSION}.0.0
-
-!include "WordFunc.nsh"
-!include "TextFunc.nsh"
-!include "FileFunc.nsh"
-!addplugindir "."
 
 !define LANG_ENGLISH  1033
 !define LANG_RUSSIAN  1049
@@ -56,6 +36,36 @@ LangString open_file_error ${LANG_ENGLISH} 'File open error.'
 LangString open_file_error ${LANG_RUSSIAN} 'Ошибка открытия файла.'
 LangString nothing_selected ${LANG_ENGLISH} 'Nothing is selected.'
 LangString nothing_selected ${LANG_RUSSIAN} 'Ничего не выбрано.'
+LangString done ${LANG_ENGLISH} 'Done'
+LangString done ${LANG_RUSSIAN} 'Готово'
+LangString error ${LANG_ENGLISH} 'Error'
+LangString error ${LANG_RUSSIAN} 'Ошибка'
+LangString close ${LANG_ENGLISH} '&Close'
+LangString close ${LANG_RUSSIAN} '&Закрыть'
+LangString completed ${LANG_ENGLISH} 'Completed'
+LangString completed ${LANG_RUSSIAN} 'Завершено'
+
+icon "Source\Resources\AkelUpdater.ico"
+Caption "${PRODUCT_NAME}"
+SubCaption 4 " "
+BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+MiscButtonText " " "" "" "$(close)"
+CompletedText "$(completed)"
+ShowInstDetails show
+XPStyle on
+
+VIAddVersionKey FileDescription "AkelPad text editor updater"
+VIAddVersionKey LegalCopyright "© 2009 Shengalts Aleksander aka Instructor"
+VIAddVersionKey ProductName "${PRODUCT_NAME}"
+VIAddVersionKey FileVersion "${PRODUCT_VERSION}"
+VIAddVersionKey Comments ""
+VIAddVersionKey LegalTrademarks ""
+VIProductVersion ${PRODUCT_VERSION}.0.0
+
+!include "WordFunc.nsh"
+!include "TextFunc.nsh"
+!include "FileFunc.nsh"
+!addplugindir "."
 
 Var AKELPADDIR
 Var AKELFILESDIR
@@ -208,14 +218,21 @@ Function FillStack
 FunctionEnd
 
 Section
+	;Hide buttons
+	GetDlgItem $0 $HWNDPARENT 2
+	ShowWindow $0 0
+
+	GetDlgItem $0 $HWNDPARENT 3
+	AkelUpdater::Collapse $0
+
 	;Extract "AkelPad-x.x.x-bin-lng.zip"
 	StrCmp $EXEVERSION 0 NextPlugin
 	nsExec::Exec '"$PLUGINSDIR\7z.exe" x -y -o"$AKELPADDIR" "$PLUGINSDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"'
 	Pop $0
 	StrCmp $0 0 +3
-	DetailPrint "Error: AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
+	DetailPrint "$(error): AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
 	goto NextPlugin
-	DetailPrint "Done: AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
+	DetailPrint "$(done): AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
 	StrCmp $NOTEPAD 1 0 NextPlugin
 	SetDetailsPrint listonly
 	CopyFiles /SILENT "$AKELPADDIR\AkelPad.exe" "$AKELPADDIR\notepad.exe"
@@ -230,9 +247,9 @@ Section
 	nsExec::Exec '"$PLUGINSDIR\7z.exe" x -y -o"$AKELFILESDIR" "$PLUGINSDIR\PlugsPack.zip" "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*"'
 	Pop $0
 	StrCmp $0 0 +3
-	DetailPrint "Error: $AKELPLUGIN"
+	DetailPrint "$(error): $AKELPLUGIN"
 	goto End
-	DetailPrint "Done: $AKELPLUGIN"
+	DetailPrint "$(done): $AKELPLUGIN"
 	goto NextPlugin
 
 	End:
