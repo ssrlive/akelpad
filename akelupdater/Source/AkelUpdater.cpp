@@ -187,7 +187,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Columns EXE
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvcA.pszText=GetLangStringA(wLangSystem, STRID_PROGRAM);
-    lvcA.cx=205;
+    lvcA.cx=188;
     lvcA.iSubItem=LVSI_NAME;
     SendMessage(hWndListExe, LVM_INSERTCOLUMNA, LVSI_NAME, (LPARAM)&lvcA);
 
@@ -218,7 +218,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvcA.pszText=GetLangStringA(wLangSystem, STRID_CURRENT);
-    lvcA.cx=63;
+    lvcA.cx=62;
     lvcA.iSubItem=LVSI_CURRENT;
     SendMessage(hWndListDll, LVM_INSERTCOLUMNA, LVSI_CURRENT, (LPARAM)&lvcA);
 

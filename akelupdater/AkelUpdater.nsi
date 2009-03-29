@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "1.1"
+!define PRODUCT_VERSION "1.2"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -78,24 +78,12 @@ Var ZIPLANGUAGE
 Var NOTEPAD
 
 Function .onInit
-	#Is AkelPad running?
-	CheckWindow:
-	FindWindow $0 "AkelPad4"
-	IsWindow $0 +5
-	FindWindow $0 "AkelPad3"
-	IsWindow $0 +3
-	FindWindow $0 "AkelPad2"
-	IsWindow $0 0 +3
-	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(InstallAlreadyRun)" IDRETRY CheckWindow
-	quit
-
 	StrCpy $AKELFILESDIR $EXEDIR
 	StrCpy $AKELPLUGSDIR "$AKELFILESDIR\Plugs"
 	${GetParent} $EXEDIR $AKELPADDIR
 	IfFileExists "$AKELPLUGSDIR\*.*" 0 NotAkelFiles
 
 	InitPluginsDir
-	File "/oname=$PLUGINSDIR\7z.exe" "7z.exe"
 
 	;Download "versions.lst"
 ;	File "/oname=$PLUGINSDIR\versions.lst" "versions.lst"
@@ -118,6 +106,17 @@ Function .onInit
 	IfErrors Exit
 	${WordFind} "$0" "|" "E+1}" $DLLCOUNT
 	IfErrors Exit
+
+	;Is AkelPad running?
+	CheckWindow:
+	FindWindow $0 "AkelPad4"
+	IsWindow $0 +5
+	FindWindow $0 "AkelPad3"
+	IsWindow $0 +3
+	FindWindow $0 "AkelPad2"
+	IsWindow $0 0 +3
+	MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION "$(InstallAlreadyRun)" IDRETRY CheckWindow
+	quit
 
 	;Download "AkelPad-x.x.x-bin-lng.zip"
 	StrCmp $EXEVERSION 0 PlugsPack
@@ -227,10 +226,10 @@ Section
 
 	;Extract "AkelPad-x.x.x-bin-lng.zip"
 	StrCmp $EXEVERSION 0 NextPlugin
-	nsExec::Exec '"$PLUGINSDIR\7z.exe" x -y -o"$AKELPADDIR" "$PLUGINSDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"'
+	nsUnzip::Extract "$PLUGINSDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" "/d=$AKELPADDIR" /END
 	Pop $0
 	StrCmp $0 0 +3
-	DetailPrint "$(error): AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
+	DetailPrint "$(error) ($0): AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
 	goto NextPlugin
 	DetailPrint "$(done): AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
 	StrCmp $NOTEPAD 1 0 NextPlugin
@@ -244,10 +243,10 @@ Section
 	Pop $AKELPLUGIN
 	IfErrors End
 
-	nsExec::Exec '"$PLUGINSDIR\7z.exe" x -y -o"$AKELFILESDIR" "$PLUGINSDIR\PlugsPack.zip" "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*"'
+	nsUnzip::Extract "$PLUGINSDIR\PlugsPack.zip" "/d=$AKELFILESDIR" /C "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*" /END
 	Pop $0
 	StrCmp $0 0 +3
-	DetailPrint "$(error): $AKELPLUGIN"
+	DetailPrint "$(error) ($0): $AKELPLUGIN"
 	goto End
 	DetailPrint "$(done): $AKELPLUGIN"
 	goto NextPlugin
