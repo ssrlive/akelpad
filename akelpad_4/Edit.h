@@ -827,7 +827,7 @@ void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst);
 BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei);
 BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei);
 DWORD IsEditActive(HWND hWnd);
-void UpdateShowHScroll();
+void UpdateShowHScroll(HWND hWnd);
 void SaveLineScroll(HWND hWnd, int *nBeforeLine);
 void RestoreLineScroll(HWND hWnd, int *nBeforeLine);
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor);

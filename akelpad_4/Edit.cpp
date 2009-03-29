@@ -1844,7 +1844,10 @@ void DoEditFindA()
   if (!hDlgModeless)
   {
     bReplaceDlg=FALSE;
-    if (!bMDI && (ftflags & AEFR_ALLFILES)) ftflags&=~AEFR_ALLFILES;
+    if ((ftflags & AEFR_ALLFILES) && !bMDI)
+      ftflags&=~AEFR_ALLFILES;
+    if ((ftflags & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+      ftflags&=~AEFR_SELECTION;
 
     if (hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_FIND), hMainWnd, (DLGPROC)FindAndReplaceDlgProcA))
     {
@@ -1858,7 +1861,10 @@ void DoEditFindW()
   if (!hDlgModeless)
   {
     bReplaceDlg=FALSE;
-    if (!bMDI && (ftflags & AEFR_ALLFILES)) ftflags&=~AEFR_ALLFILES;
+    if ((ftflags & AEFR_ALLFILES) && !bMDI)
+      ftflags&=~AEFR_ALLFILES;
+    if ((ftflags & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+      ftflags&=~AEFR_SELECTION;
 
     if (hDlgModeless=API_CreateDialogW(hLangLib, MAKEINTRESOURCEW(IDD_FIND), hMainWnd, (DLGPROC)FindAndReplaceDlgProcW))
     {
@@ -1912,7 +1918,10 @@ void DoEditReplaceA()
   if (!hDlgModeless)
   {
     bReplaceDlg=TRUE;
-    if (!bMDI && (ftflags & AEFR_ALLFILES)) ftflags&=~AEFR_ALLFILES;
+    if ((ftflags & AEFR_ALLFILES) && !bMDI)
+      ftflags&=~AEFR_ALLFILES;
+    if ((ftflags & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+      ftflags&=~AEFR_SELECTION;
 
     if (hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_REPLACE), hMainWnd, (DLGPROC)FindAndReplaceDlgProcA))
     {
@@ -1926,7 +1935,10 @@ void DoEditReplaceW()
   if (!hDlgModeless)
   {
     bReplaceDlg=TRUE;
-    if (!bMDI && (ftflags & AEFR_ALLFILES)) ftflags&=~AEFR_ALLFILES;
+    if ((ftflags & AEFR_ALLFILES) && !bMDI)
+      ftflags&=~AEFR_ALLFILES;
+    if ((ftflags & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+      ftflags&=~AEFR_SELECTION;
 
     if (hDlgModeless=API_CreateDialogW(hLangLib, MAKEINTRESOURCEW(IDD_REPLACE), hMainWnd, (DLGPROC)FindAndReplaceDlgProcW))
     {
@@ -2049,13 +2061,13 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
 
   if (bWordWrap)
   {
-    UpdateShowHScroll();
+    UpdateShowHScroll(hWnd);
     SendMessage(hWnd, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
   }
   else
   {
     SendMessage(hWnd, AEM_SETWORDWRAP, AEWW_NONE, 0);
-    UpdateShowHScroll();
+    UpdateShowHScroll(hWnd);
   }
 }
 
@@ -2098,7 +2110,7 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
 
     if (bWordWrap)
     {
-      UpdateShowHScroll();
+      UpdateShowHScroll(hWndEdit);
     }
 
     rcMasterWindow.left=0;
@@ -2115,7 +2127,7 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
 
     if (bWordWrap)
     {
-      UpdateShowHScroll();
+      UpdateShowHScroll(hWndEdit);
     }
   }
   ResizeEdit(hWndEdit, hWndMaster, hWndClone1, hWndClone2, hWndClone3, rcEditWindow.left, rcEditWindow.top, rcEditWindow.right, rcEditWindow.bottom, &rcMasterWindow, &rcEditWindow, FALSE);
@@ -12937,7 +12949,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     lvcA.pszText=buf;
 
     API_LoadStringA(hLangLib, STR_PLUGIN_FUNCTION, buf, BUFFER_SIZE);
-    lvcA.cx=210;
+    lvcA.cx=209;
     lvcA.iSubItem=LVSI_FUNCTION_NAME;
     SendMessage(hWndList, LVM_INSERTCOLUMNA, LVSI_FUNCTION_NAME, (LPARAM)&lvcA);
 
@@ -13161,7 +13173,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     lvcW.pszText=wbuf;
 
     API_LoadStringW(hLangLib, STR_PLUGIN_FUNCTION, wbuf, BUFFER_SIZE);
-    lvcW.cx=210;
+    lvcW.cx=209;
     lvcW.iSubItem=LVSI_FUNCTION_NAME;
     SendMessage(hWndList, LVM_INSERTCOLUMNW, LVSI_FUNCTION_NAME, (LPARAM)&lvcW);
 
@@ -16723,14 +16735,14 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         if (bWordWrap)
         {
-          UpdateShowHScroll();
+          UpdateShowHScroll(hWndEdit);
         }
         nWrapType=a;
         dwWrapLimit=b;
 
         if (bWordWrap)
         {
-          UpdateShowHScroll();
+          UpdateShowHScroll(hWndEdit);
           SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
         }
       }
@@ -16943,14 +16955,14 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         if (bWordWrap)
         {
-          UpdateShowHScroll();
+          UpdateShowHScroll(hWndEdit);
         }
         nWrapType=a;
         dwWrapLimit=b;
 
         if (bWordWrap)
         {
-          UpdateShowHScroll();
+          UpdateShowHScroll(hWndEdit);
           SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
         }
       }
@@ -17697,7 +17709,7 @@ DWORD IsEditActive(HWND hWnd)
   return 0;
 }
 
-void UpdateShowHScroll()
+void UpdateShowHScroll(HWND hWnd)
 {
   BOOL bShowScroll=TRUE;
 
@@ -17706,7 +17718,7 @@ void UpdateShowHScroll()
 
   if (!bSplitWindow)
   {
-    SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+    SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
   }
   else
   {
