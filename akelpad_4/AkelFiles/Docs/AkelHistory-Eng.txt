@@ -1,4 +1,9 @@
 
+AkelPad 4.2.1 ()
+----------------------------
+Fixed: occurrence of a vertical scrollbar at new file creation in word wrap mode (MDI).
+
+
 AkelPad 4.2.0 (Mar 23, 2009)
 ----------------------------
 Changed: file reopening if user saved a file in different encoding.
