@@ -1822,7 +1822,10 @@ void DoEditFindA()
   if (!hDlgModeless)
   {
     bReplaceDlg=FALSE;
-    if (!bMDI && (ftflags & FR_ALLFILES)) ftflags&=~FR_ALLFILES;
+    if ((ftflags & FR_ALLFILES) && !bMDI)
+      ftflags&=~FR_ALLFILES;
+    if ((ftflags & FR_SELECTION) && chrg.cpMin == chrg.cpMax)
+      ftflags&=~FR_SELECTION;
 
     if (hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_FIND), hMainWnd, (DLGPROC)FindAndReplaceDlgProcA))
     {
@@ -1836,7 +1839,10 @@ void DoEditFindW()
   if (!hDlgModeless)
   {
     bReplaceDlg=FALSE;
-    if (!bMDI && (ftflags & FR_ALLFILES)) ftflags&=~FR_ALLFILES;
+    if ((ftflags & FR_ALLFILES) && !bMDI)
+      ftflags&=~FR_ALLFILES;
+    if ((ftflags & FR_SELECTION) && chrg.cpMin == chrg.cpMax)
+      ftflags&=~FR_SELECTION;
 
     if (hDlgModeless=API_CreateDialogW(hLangLib, MAKEINTRESOURCEW(IDD_FIND), hMainWnd, (DLGPROC)FindAndReplaceDlgProcW))
     {
@@ -1890,7 +1896,10 @@ void DoEditReplaceA()
   if (!hDlgModeless)
   {
     bReplaceDlg=TRUE;
-    if (!bMDI && (ftflags & FR_ALLFILES)) ftflags&=~FR_ALLFILES;
+    if ((ftflags & FR_ALLFILES) && !bMDI)
+      ftflags&=~FR_ALLFILES;
+    if ((ftflags & FR_SELECTION) && chrg.cpMin == chrg.cpMax)
+      ftflags&=~FR_SELECTION;
 
     if (hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_REPLACE), hMainWnd, (DLGPROC)FindAndReplaceDlgProcA))
     {
@@ -1904,7 +1913,10 @@ void DoEditReplaceW()
   if (!hDlgModeless)
   {
     bReplaceDlg=TRUE;
-    if (!bMDI && (ftflags & FR_ALLFILES)) ftflags&=~FR_ALLFILES;
+    if ((ftflags & FR_ALLFILES) && !bMDI)
+      ftflags&=~FR_ALLFILES;
+    if ((ftflags & FR_SELECTION) && chrg.cpMin == chrg.cpMax)
+      ftflags&=~FR_SELECTION;
 
     if (hDlgModeless=API_CreateDialogW(hLangLib, MAKEINTRESOURCEW(IDD_REPLACE), hMainWnd, (DLGPROC)FindAndReplaceDlgProcW))
     {
