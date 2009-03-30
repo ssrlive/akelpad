@@ -64,6 +64,7 @@ VIAddVersionKey Comments ""
 VIAddVersionKey LegalTrademarks ""
 VIProductVersion ${PRODUCT_VERSION}.0.0
 
+!addplugindir "."
 !include "WordFunc.nsh"
 !insertmacro WordFind
 !insertmacro WordFind2X
@@ -75,7 +76,6 @@ VIProductVersion ${PRODUCT_VERSION}.0.0
 !insertmacro GetParent
 !insertmacro GetFileVersion
 !insertmacro VersionCompare
-!addplugindir "."
 
 Var PARAMETERS
 Var PROXYPARAM
