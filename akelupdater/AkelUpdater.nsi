@@ -113,7 +113,7 @@ Function .onInit
 	 |     Save downloads to directory.$\n\
 	 $\n\
 	 Example:$\n\
-	 AkelUpdater.exe /PROXY=192.168.0.1:3128 /SAVEDIR="%a\Updates"`
+	 AkelUpdater.exe /PROXY=192.168.0.1:3128 /SAVEDIR="%a\AkelFiles\Updates"`
 	quit
 
 	CheckLocation:
