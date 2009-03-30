@@ -28,6 +28,8 @@ LangString remaining_time ${LANG_ENGLISH} 'Remaining Time'
 LangString remaining_time ${LANG_RUSSIAN} 'Осталось'
 LangString total_time ${LANG_ENGLISH} 'Total Time'
 LangString total_time ${LANG_RUSSIAN} 'Прошло'
+LangString dir_not_exist ${LANG_ENGLISH} 'Directory does not exist'
+LangString dir_not_exist ${LANG_RUSSIAN} 'Директория не существует'
 LangString not_in_folder ${LANG_ENGLISH} 'AkelUpdater should be in AkelFiles folder.'
 LangString not_in_folder ${LANG_RUSSIAN} 'AkelUpdater должен находиться в папке AkelFiles.'
 LangString download_error ${LANG_ENGLISH} 'Download error'
@@ -63,10 +65,26 @@ VIAddVersionKey LegalTrademarks ""
 VIProductVersion ${PRODUCT_VERSION}.0.0
 
 !include "WordFunc.nsh"
+!insertmacro WordFind
+!insertmacro WordFind2X
+!insertmacro WordReplace
 !include "TextFunc.nsh"
 !include "FileFunc.nsh"
+!insertmacro GetParameters
+!insertmacro GetOptions
+!insertmacro GetParent
+!insertmacro GetFileVersion
+!insertmacro VersionCompare
 !addplugindir "."
 
+Var PARAMETERS
+Var PROXYPARAM
+Var PROXYVALUE
+Var LOGINPARAM
+Var LOGINVALUE
+Var PASSWORDPARAM
+Var PASSWORDVALUE
+Var SAVEDIR
 Var AKELPADDIR
 Var AKELFILESDIR
 Var AKELPLUGSDIR
@@ -78,16 +96,67 @@ Var ZIPLANGUAGE
 Var NOTEPAD
 
 Function .onInit
+	#Help message
+	${GetParameters} $PARAMETERS
+	ExpandEnvStrings $PARAMETERS $PARAMETERS
+	StrCmp $PARAMETERS '/?' 0 CheckLocation
+	MessageBox MB_OK \
+	`|   Command line options:$\n\
+	 |   $\n\
+	 |   /PROXY=IP:PORT$\n\
+	 |     Current proxy settings. IE settings will be used by default.$\n\
+	 |$\n\
+	 |   /AUTH=LOGIN:PASSWORD$\n\
+	 |     Proxy login and password (http only).$\n\
+	 |$\n\
+	 |   /SAVEDIR=[path]$\n\
+	 |     Save downloads to directory.$\n\
+	 $\n\
+	 Example:$\n\
+	 AkelUpdater.exe /PROXY=192.168.0.1:3128 /SAVEDIR="%a\Updates"`
+	quit
+
+	CheckLocation:
 	StrCpy $AKELFILESDIR $EXEDIR
 	StrCpy $AKELPLUGSDIR "$AKELFILESDIR\Plugs"
 	${GetParent} $EXEDIR $AKELPADDIR
 	IfFileExists "$AKELPLUGSDIR\*.*" 0 NotAkelFiles
 
 	InitPluginsDir
+	StrCpy $SAVEDIR $PLUGINSDIR
+        StrCpy $PROXYPARAM /NUL
+        StrCpy $PROXYVALUE /NUL
+        StrCpy $LOGINPARAM /NUL
+        StrCpy $LOGINVALUE /NUL
+        StrCpy $PASSWORDPARAM /NUL
+        StrCpy $PASSWORDVALUE /NUL
+
+	${GetOptions} $PARAMETERS "/PROXY=" $0
+	IfErrors auth
+        StrCpy $PROXYPARAM /PROXY
+	StrCpy $PROXYVALUE $0
+	auth:
+	${GetOptions} $PARAMETERS "/AUTH=" $0
+	IfErrors savedir
+	${WordFind} "$0" ":" "E+1{" $1
+	IfErrors savedir
+	${WordFind} "$0" ":" "E+1}" $2
+	IfErrors savedir
+        StrCpy $LOGINPARAM /USERNAME
+	StrCpy $LOGINVALUE $1
+        StrCpy $PASSWORDPARAM /PASSWORD
+	StrCpy $PASSWORDVALUE $2
+	savedir:
+	${GetOptions} $PARAMETERS "/SAVEDIR=" $0
+	IfErrors DownloadVersions
+	${WordReplace} "$0" "%a" "$AKELPADDIR" "+" $0
+	StrCpy $SAVEDIR $0
 
 	;Download "versions.lst"
+	DownloadVersions:
 ;	File "/oname=$PLUGINSDIR\versions.lst" "versions.lst"
-	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP ""\
+        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE"\
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
 	"http://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" /END
 	Pop $0
@@ -119,24 +188,31 @@ Function .onInit
 	quit
 
 	;Download "AkelPad-x.x.x-bin-lng.zip"
+	CreateDirectory $SAVEDIR
+	IfFileExists "$SAVEDIR\*.*" 0 DirNotExist
 	StrCmp $EXEVERSION 0 PlugsPack
-;	File "/oname=$PLUGINSDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" "AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
+;	File "/oname=$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" "AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE"\
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-	"http://$ZIPMIRROR.dl.sourceforge.net/sourceforge/akelpad/AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" "$PLUGINSDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" /end
+	"http://$ZIPMIRROR.dl.sourceforge.net/sourceforge/akelpad/AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" "$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" /end
 	Pop $0
 	StrCmp $0 "OK" 0 DownloadError
 
 	;Download "PlugsPack.zip"
 	PlugsPack:
 	StrCmp $DLLCOUNT 0 End
-;	File "/oname=$PLUGINSDIR\PlugsPack.zip" "PlugsPack.zip"
+;	File "/oname=$SAVEDIR\PlugsPack.zip" "PlugsPack.zip"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-	"http://akelpad.sourceforge.net/files/plugs/PlugsPack.zip" "$PLUGINSDIR\PlugsPack.zip" /end
+	"http://akelpad.sourceforge.net/files/plugs/PlugsPack.zip" "$SAVEDIR\PlugsPack.zip" /end
 	Pop $0
 	StrCmp $0 "OK" 0 DownloadError
 	goto End
+
+	DirNotExist:
+	MessageBox MB_OK|MB_ICONEXCLAMATION '$(dir_not_exist): "$SAVEDIR"'
+	goto Exit
 
 	NotAkelFiles:
 	MessageBox MB_OK|MB_ICONEXCLAMATION '$(not_in_folder)'
@@ -226,7 +302,7 @@ Section
 
 	;Extract "AkelPad-x.x.x-bin-lng.zip"
 	StrCmp $EXEVERSION 0 NextPlugin
-	nsUnzip::Extract "$PLUGINSDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" "/d=$AKELPADDIR" /END
+	nsUnzip::Extract "$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" "/d=$AKELPADDIR" /END
 	Pop $0
 	StrCmp $0 0 +3
 	DetailPrint "$(error) ($0): AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
@@ -243,7 +319,7 @@ Section
 	Pop $AKELPLUGIN
 	IfErrors End
 
-	nsUnzip::Extract "$PLUGINSDIR\PlugsPack.zip" "/d=$AKELFILESDIR" /C "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*" /END
+	nsUnzip::Extract "$SAVEDIR\PlugsPack.zip" "/d=$AKELFILESDIR" /C "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*" /END
 	Pop $0
 	StrCmp $0 0 +3
 	DetailPrint "$(error) ($0): $AKELPLUGIN"
