@@ -11949,7 +11949,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
                   pd.bOldWindows=bOldWindows;
                   pd.bOldRichEdit=bOldRichEdit;
                   pd.bOldComctl32=bOldComctl32;
-                  pd.bAkelEdit=TRUE;
+                  pd.bAkelEdit=FALSE;
                   pd.bMDI=bMDI;
                   pd.nSaveSettings=nSaveSettings;
                   pd.pLangModule=(unsigned char *)szLangModule;
@@ -12106,7 +12106,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
                   pd.bOldWindows=bOldWindows;
                   pd.bOldRichEdit=bOldRichEdit;
                   pd.bOldComctl32=bOldComctl32;
-                  pd.bAkelEdit=TRUE;
+                  pd.bAkelEdit=FALSE;
                   pd.bMDI=bMDI;
                   pd.nSaveSettings=nSaveSettings;
                   pd.pLangModule=(unsigned char *)wszLangModule;
