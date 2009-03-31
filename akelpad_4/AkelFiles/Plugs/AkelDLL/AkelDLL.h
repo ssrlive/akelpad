@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 0, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 0, 1, 0)
 
 
 //// Defines
@@ -2293,11 +2293,16 @@ ________________
 
 Wait for release all virtual keys.
 
-wParam == not used
-lParam == not used
+(BOOL)wParam == TRUE  test is any key pressed
+                FALSE wait for keys release
+lParam       == not used
 
 Return Value
-  zero
+ if wParam == FALSE the return value:
+   zero
+ if wParam == TRUE the return value:
+   TRUE  keyboard is free
+   FALSE keyboard is busy
 
 Example:
  SendMessage(pd->hMainWnd, AKD_WAITKEYBOARD, 0, 0);

@@ -843,7 +843,7 @@ BEGIN
     MSG_FUNCTION_NOT_FOUND  "Nu pot gãsi funcþia ""%s::%s"" în ""%s""."
     MSG_UPDATE_PROGRAM      "Actualizeazã AkelPad.\n\nVersiunea Minimã Necesarã de AkelPad: %d.%d.%d.%d\nVersiunea Curentã de AkelPad: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x nu este suportat."
-    MSG_UPDATE_PLUGIN       "Actualizeazã %s.\n\nArhitectura AkelPad: %d.%d.%d.%d\nArhitectura Extensiei ""%s"" : %d.%d.%d.%d"
+    MSG_UPDATE_PLUGIN       "Actualizeazã %s.\n\nArhitectura AkelPad: %d.%d.%d.%d\nArhitectura Extensiei %s : %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" nu e recunoscutã ca extensie AkelPad."
     MSG_HOTKEY_EXISTS       "Tasta rapidã a fost deja alocatã pentru ""%s""."
     MSG_CANNOT_OPEN_FILE    "Nu pot deschide fiºierul ""%s""."
