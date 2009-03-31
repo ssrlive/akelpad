@@ -876,7 +876,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN_FUNCTION     "Plug-in::Funkcja"
+    STR_PLUGIN              "Plug-in"
+    STR_FUNCTION            "Funkcja"
     STR_HOTKEY              "Klawisz skrótu"
     STR_STATUS              "Status"
     STR_RUNNING             "Uruchomione"

@@ -807,7 +807,8 @@ BEGIN
     STR_LANGUAGE_NONE       "Internal"
     STR_FILE_FILTER         "Text files (*.txt)|*.txt|All files (*.*)|*.*"
     STR_NONE                "None"
-    STR_PLUGIN_FUNCTION     "Plugin::Function"
+    STR_PLUGIN              "Plugin"
+    STR_FUNCTION            "Function"
     STR_HOTKEY              "Hotkey"
 END
 

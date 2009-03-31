@@ -830,7 +830,8 @@ BEGIN
     STR_LANGUAGE_NONE       "Внутренний"
     STR_FILE_FILTER         "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*"
     STR_NONE                "Нет"
-    STR_PLUGIN_FUNCTION     "Плагин::Функция"
+    STR_PLUGIN              "Плагин"
+    STR_FUNCTION            "Функция"
     STR_HOTKEY              "Горячая клавиша"
 END
 

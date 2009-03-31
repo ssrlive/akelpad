@@ -799,7 +799,8 @@ BEGIN
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*"
     STR_NONE                "无"
-    STR_PLUGIN_FUNCTION     "插件::函数"
+    STR_PLUGIN              "插件"
+    STR_FUNCTION            "函数"
     STR_HOTKEY              "热键"
 END
 

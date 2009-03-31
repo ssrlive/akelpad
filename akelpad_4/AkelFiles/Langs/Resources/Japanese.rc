@@ -879,7 +879,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN_FUNCTION     "プラグイン::関数"
+    STR_PLUGIN              "プラグイン"
+    STR_FUNCTION            "関数"
     STR_HOTKEY              "ホットキー"
     STR_STATUS              "状態"
     STR_RUNNING             "実行中"

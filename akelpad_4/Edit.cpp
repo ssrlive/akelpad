@@ -12933,6 +12933,8 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   if (uMsg == WM_INITDIALOG)
   {
     LVCOLUMNA lvcA;
+    char szPlugin[MAX_PATH];
+    char szFunction[MAX_PATH];
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_PLUGINS_LIST);
@@ -12948,7 +12950,9 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvcA.pszText=buf;
 
-    API_LoadStringA(hLangLib, STR_PLUGIN_FUNCTION, buf, BUFFER_SIZE);
+    API_LoadStringA(hLangLib, STR_PLUGIN, szPlugin, BUFFER_SIZE);
+    API_LoadStringA(hLangLib, STR_FUNCTION, szFunction, BUFFER_SIZE);
+    wsprintfA(buf, "%s::%s", szPlugin, szFunction);
     lvcA.cx=209;
     lvcA.iSubItem=LVSI_FUNCTION_NAME;
     SendMessage(hWndList, LVM_INSERTCOLUMNA, LVSI_FUNCTION_NAME, (LPARAM)&lvcA);
@@ -13157,6 +13161,8 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   if (uMsg == WM_INITDIALOG)
   {
     LVCOLUMNW lvcW;
+    wchar_t wszPlugin[MAX_PATH];
+    wchar_t wszFunction[MAX_PATH];
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_PLUGINS_LIST);
@@ -13172,7 +13178,9 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     lvcW.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
     lvcW.pszText=wbuf;
 
-    API_LoadStringW(hLangLib, STR_PLUGIN_FUNCTION, wbuf, BUFFER_SIZE);
+    API_LoadStringW(hLangLib, STR_PLUGIN, wszPlugin, BUFFER_SIZE);
+    API_LoadStringW(hLangLib, STR_FUNCTION, wszFunction, BUFFER_SIZE);
+    wsprintfW(wbuf, L"%s::%s", wszPlugin, wszFunction);
     lvcW.cx=209;
     lvcW.iSubItem=LVSI_FUNCTION_NAME;
     SendMessage(hWndList, LVM_INSERTCOLUMNW, LVSI_FUNCTION_NAME, (LPARAM)&lvcW);
@@ -13692,11 +13700,13 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
   char szPlugin[MAX_PATH];
   char szFunction[MAX_PATH];
   char szDLL[MAX_PATH];
+  char szPluginWord[MAX_PATH];
   HMODULE hModule;
   PLUGINVERSION pv;
   PLUGINDATA pd;
   BOOL bActive=TRUE;
   BOOL bCalled=FALSE;
+  int nWordLen;
   void (*PluginIDPtr)(PLUGINVERSION *);
   void (*PluginFunctionPtr)(PLUGINDATA *);
 
@@ -13707,6 +13717,9 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
     if (ParsePluginNameA(pFullName, szPlugin, szFunction))
     {
       wsprintfA(szDLL, "%s\\AkelFiles\\Plugs\\%s.dll", szExeDir, szPlugin);
+      nWordLen=API_LoadStringA(hLangLib, STR_PLUGIN, buf, BUFFER_SIZE);
+      CharLowerBuffA(buf, nWordLen);
+      wsprintfA(szPluginWord, "%s %s", szPlugin, buf);
 
       if (!(hModule=GetModuleHandleA(szDLL)))
       {
@@ -13792,14 +13805,14 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
                 API_LoadStringA(hLangLib, MSG_UPDATE_PROGRAM, buf, BUFFER_SIZE);
                 wsprintfA(buf2, buf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
                                      LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
-                MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+                MessageBoxA(hMainWnd, buf2, szPluginWord, MB_OK|MB_ICONEXCLAMATION);
               }
             }
             else
             {
               API_LoadStringA(hLangLib, MSG_PROGRAM_IS_NOT_SUPPORTED, buf, BUFFER_SIZE);
               wsprintfA(buf2, buf, szDLL);
-              MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+              MessageBoxA(hMainWnd, buf2, szPluginWord, MB_OK|MB_ICONEXCLAMATION);
             }
           }
           else
@@ -13807,9 +13820,9 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
             char szStr[MAX_PATH];
 
             if (pv.dwAkelDllVersion < AKELDLL)
-              wsprintfA(szStr, "\"%s\" plugin", szPlugin);
+              lstrcpynA(szStr, szPluginWord, MAX_PATH);
             else
-              lstrcpyA(szStr, "AkelPad");
+              lstrcpynA(szStr, "AkelPad", MAX_PATH);
             API_LoadStringA(hLangLib, MSG_UPDATE_PLUGIN, buf, BUFFER_SIZE);
             wsprintfA(buf2, buf, szStr,
                                  LOBYTE(AKELDLL), HIBYTE(AKELDLL), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),
@@ -13847,12 +13860,14 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
   wchar_t wszPlugin[MAX_PATH];
   wchar_t wszFunction[MAX_PATH];
   wchar_t wszDLL[MAX_PATH];
+  wchar_t wszPluginWord[MAX_PATH];
   char szFunction[MAX_PATH];
   HMODULE hModule;
   PLUGINVERSION pv;
   PLUGINDATA pd;
   BOOL bActive=TRUE;
   BOOL bCalled=FALSE;
+  int nWordLen;
   void (*PluginIDPtr)(PLUGINVERSION *);
   void (*PluginFunctionPtr)(PLUGINDATA *);
 
@@ -13864,6 +13879,9 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
     {
       WideCharToMultiByte(CP_ACP, 0, wszFunction, -1, szFunction, MAX_PATH, NULL, NULL);
       wsprintfW(wszDLL, L"%s\\AkelFiles\\Plugs\\%s.dll", wszExeDir, wszPlugin);
+      nWordLen=API_LoadStringW(hLangLib, STR_PLUGIN, wbuf, BUFFER_SIZE);
+      CharLowerBuffW(wbuf, nWordLen);
+      wsprintfW(wszPluginWord, L"%s %s", wszPlugin, wbuf);
 
       if (!(hModule=GetModuleHandleW(wszDLL)))
       {
@@ -13949,14 +13967,14 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
                 API_LoadStringW(hLangLib, MSG_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
                 wsprintfW(wbuf2, wbuf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
                                        LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
-                MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+                MessageBoxW(hMainWnd, wbuf2, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
               }
             }
             else
             {
               API_LoadStringW(hLangLib, MSG_PROGRAM_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
               wsprintfW(wbuf2, wbuf, wszDLL);
-              MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+              MessageBoxW(hMainWnd, wbuf2, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
             }
           }
           else
@@ -13964,9 +13982,9 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
             wchar_t wszStr[MAX_PATH];
 
             if (pv.dwAkelDllVersion < AKELDLL)
-              wsprintfW(wszStr, L"\"%s\" plugin", wszPlugin);
+              lstrcpynW(wszStr, wszPluginWord, MAX_PATH);
             else
-              lstrcpyW(wszStr, L"AkelPad");
+              lstrcpynW(wszStr, L"AkelPad", MAX_PATH);
             API_LoadStringW(hLangLib, MSG_UPDATE_PLUGIN, wbuf, BUFFER_SIZE);
             wsprintfW(wbuf2, wbuf, wszStr,
                                    LOBYTE(AKELDLL), HIBYTE(AKELDLL), LOBYTE(HIWORD(AKELDLL)), HIBYTE(HIWORD(AKELDLL)),

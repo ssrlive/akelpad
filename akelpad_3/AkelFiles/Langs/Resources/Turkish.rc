@@ -806,7 +806,8 @@ BEGIN
     STR_LANGUAGE_NONE       "Dahili"
     STR_FILE_FILTER         "Metin dosyalarý (*.txt)|*.txt|Tüm dosyalar (*.*)|*.*"
     STR_NONE                "Hiçbiri"
-    STR_PLUGIN_FUNCTION     "Eklenti::Ýþlev"
+    STR_PLUGIN              "Eklenti"
+    STR_FUNCTION            "Ýþlev"
     STR_HOTKEY              "Kýsayol"
 END
 

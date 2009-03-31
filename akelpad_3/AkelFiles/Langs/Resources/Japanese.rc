@@ -813,7 +813,8 @@ BEGIN
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "テキスト ファイル (*.txt)|*.txt|すべてのファイル (*.*)|*.*"
     STR_NONE                "なし"
-    STR_PLUGIN_FUNCTION     "プラグイン::関数"
+    STR_PLUGIN              "プラグイン"
+    STR_FUNCTION            "関数"
     STR_HOTKEY              "ホットキー"
 END
 

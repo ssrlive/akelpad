@@ -874,7 +874,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN_FUNCTION     "Eklenti::Ýþlev"
+    STR_PLUGIN              "Eklenti"
+    STR_FUNCTION            "Ýþlev"
     STR_HOTKEY              "Kýsayol"
     STR_STATUS              "Durum"
     STR_RUNNING             "Çalýþýyor"

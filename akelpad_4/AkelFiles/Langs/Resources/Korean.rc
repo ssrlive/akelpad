@@ -876,7 +876,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN_FUNCTION     "Plugin::Function"
+    STR_PLUGIN              "Plugin"
+    STR_FUNCTION            "Function"
     STR_HOTKEY              "단축키"
     STR_STATUS              "상태"
     STR_RUNNING             "실행중"
