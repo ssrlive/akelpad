@@ -2167,6 +2167,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (lpKeyState[i] & 0x80)
           {
+            if (wParam) return 1;
+
             while (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE))
             {
               TranslateMessage(&msg);
@@ -3944,6 +3946,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (lpKeyState[i] & 0x80)
           {
+            if (wParam) return 1;
+
             while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
             {
               TranslateMessage(&msg);

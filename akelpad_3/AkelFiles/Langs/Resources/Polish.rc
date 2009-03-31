@@ -774,7 +774,7 @@ BEGIN
     MSG_FUNCTION_NOT_FOUND  "Nie mo¿na znaleŸæ funkcji ""%s::%s"" w ""%s""."
     MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
-        MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n""%s"" plugin architecture: %d.%d.%d.%d"
+        MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
     MSG_HOTKEY_EXISTS       "Klawisz skrótu jest ju¿ przypisany do ""%s""."
     MSG_CANNOT_OPEN_FILE    "Nie mo¿na otworzyæ pliku ""%s""."

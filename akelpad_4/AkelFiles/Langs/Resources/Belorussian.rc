@@ -857,7 +857,7 @@ BEGIN
     MSG_FUNCTION_NOT_FOUND  "Не атрымліваецца знайсці функцыю ""%s::%s"" в ""%s""."
     MSG_UPDATE_PROGRAM      "Обновите AkelPad.\n\nТребуется AkelPad версии не ниже: %d.%d.%d.%d\nНастоящая AkelPad версия: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x не поддерживается."
-    MSG_UPDATE_PLUGIN       "Обновите %s.\n\nАрхитектура AkelPad'а: %d.%d.%d.%d\nАрхитектура ""%s"" плагина: %d.%d.%d.%d"
+    MSG_UPDATE_PLUGIN       "Обновите %s.\n\nАрхитектура AkelPad'а: %d.%d.%d.%d\nАрхитектура %s плагина: %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" не распознан как плагин AkelPad'а."
     MSG_HOTKEY_EXISTS       "Гарачая клавіша ўжо прызначаная для ""%s""."
     MSG_CANNOT_OPEN_FILE    "Немагчыма адкрыць файл ""%s""."
