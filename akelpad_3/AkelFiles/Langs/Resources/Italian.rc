@@ -821,7 +821,8 @@ BEGIN
     STR_LANGUAGE_NONE       "Interna"
     STR_FILE_FILTER         "Files di testo (*.txt)|*.txt|Tutti i files (*.*)|*.*"
     STR_NONE                "Nessuno"
-    STR_PLUGIN_FUNCTION     "Plugin::Funzione"
+    STR_PLUGIN              "Plugin"
+    STR_FUNCTION            "Funzione"
     STR_HOTKEY              "Scorciatoia"
 END
 

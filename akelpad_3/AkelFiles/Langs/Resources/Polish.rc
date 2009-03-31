@@ -809,7 +809,8 @@ BEGIN
     STR_LANGUAGE_NONE       "Wbudowany"
     STR_FILE_FILTER         "Dokumenty tekstowe (*.txt)|*.txt|Wszystkie pliki (*.*)|*.*"
     STR_NONE                "Brak"
-    STR_PLUGIN_FUNCTION     "Plug-in::Funkcja"
+    STR_PLUGIN              "Plug-in"
+    STR_FUNCTION            "Funkcja"
     STR_HOTKEY              "Klawisz skrótu"
 END
 

@@ -883,7 +883,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN_FUNCTION     "Plugin::Functie"
+    STR_PLUGIN              "Plugin"
+    STR_FUNCTION            "Functie"
     STR_HOTKEY              "Sneltoets"
     STR_STATUS              "Status"
     STR_RUNNING             "Werkt"

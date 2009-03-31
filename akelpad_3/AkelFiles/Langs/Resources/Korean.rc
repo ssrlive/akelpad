@@ -809,7 +809,8 @@ BEGIN
     STR_LANGUAGE_NONE       "내장언어"
     STR_FILE_FILTER         "텍스트 파일 (*.txt)|*.txt|모든 파일 (*.*)|*.*"
     STR_NONE                "없음"
-    STR_PLUGIN_FUNCTION     "Plugin::Function"
+    STR_PLUGIN              "Plugin"
+    STR_FUNCTION            "Function"
     STR_HOTKEY              "단축키"
 END
 

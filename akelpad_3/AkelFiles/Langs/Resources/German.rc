@@ -813,7 +813,8 @@ BEGIN
     STR_LANGUAGE_NONE       "System"
     STR_FILE_FILTER         "Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*"
     STR_NONE                "None"
-    STR_PLUGIN_FUNCTION     "Plugin::Funktion"
+    STR_PLUGIN              "Plugin"
+    STR_FUNCTION            "Funktion"
     STR_HOTKEY              "Hotkey"
 END
 

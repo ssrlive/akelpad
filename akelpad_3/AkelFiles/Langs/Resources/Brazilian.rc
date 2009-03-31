@@ -816,7 +816,8 @@ BEGIN
     STR_LANGUAGE_NONE       "Interno"
     STR_FILE_FILTER         "Arquivos de texto (*.txt)|*.txt|Todos os arquivos (*.*)|*.*"
     STR_NONE                "Nenhum"
-    STR_PLUGIN_FUNCTION     "Plug-in::Função"
+    STR_PLUGIN              "Plug-in"
+    STR_FUNCTION            "Função"
     STR_HOTKEY              "Tecla de atalho"
 END
 

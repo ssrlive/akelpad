@@ -804,7 +804,8 @@ BEGIN
     STR_LANGUAGE_NONE       "系統內定"
     STR_FILE_FILTER         "純文字檔 (*.txt)|*.txt|所有格式 (*.*)|*.*"
     STR_NONE                "無"
-    STR_PLUGIN_FUNCTION     "外掛元件::函式"
+    STR_PLUGIN              "外掛元件"
+    STR_FUNCTION            "函式"
     STR_HOTKEY              "快捷鍵"
 END
 

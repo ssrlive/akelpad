@@ -886,7 +886,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN_FUNCTION     "Extensie::Funcþie"
+    STR_PLUGIN              "Extensie"
+    STR_FUNCTION            "Funcþie"
     STR_HOTKEY              "Tastã Rapidã"
     STR_STATUS              "Stare"
     STR_RUNNING             "Ruleazã"

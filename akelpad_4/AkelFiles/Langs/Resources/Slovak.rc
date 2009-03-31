@@ -887,7 +887,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN_FUNCTION     "Plugin::Funkcia"
+    STR_PLUGIN              "Plugin"
+    STR_FUNCTION            "Funkcia"
     STR_HOTKEY              "Klávesová skratka"
     STR_STATUS              "Stav"
     STR_RUNNING             "Spustený"

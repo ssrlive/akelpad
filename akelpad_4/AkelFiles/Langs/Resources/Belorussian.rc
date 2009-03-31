@@ -899,7 +899,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN_FUNCTION     "Плагін::Функцыя"
+    STR_PLUGIN              "Плагін"
+    STR_FUNCTION            "Функцыя"
     STR_HOTKEY              "Гарачая клавіша"
     STR_STATUS              "Статус"
     STR_RUNNING             "Працуе"

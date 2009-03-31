@@ -872,7 +872,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN_FUNCTION     "外掛元件::函式"
+    STR_PLUGIN              "外掛元件"
+    STR_FUNCTION            "函式"
     STR_HOTKEY              "快捷鍵"
     STR_STATUS              "狀態"
     STR_RUNNING             "執行中"
