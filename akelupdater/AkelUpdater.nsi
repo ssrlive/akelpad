@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "1.3"
+!define PRODUCT_VERSION "1.4"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -155,8 +155,8 @@ Function .onInit
 	;Download "versions.lst"
 	DownloadVersions:
 ;	File "/oname=$PLUGINSDIR\versions.lst" "versions.lst"
-	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP ""\
-        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE"\
+	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
 	"http://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" /END
 	Pop $0
@@ -193,7 +193,7 @@ Function .onInit
 	StrCmp $EXEVERSION 0 PlugsPack
 ;	File "/oname=$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" "AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE"\
+        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
 	"http://$ZIPMIRROR.dl.sourceforge.net/sourceforge/akelpad/AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" "$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANGUAGE.zip" /end
 	Pop $0
@@ -204,6 +204,7 @@ Function .onInit
 	StrCmp $DLLCOUNT 0 End
 ;	File "/oname=$SAVEDIR\PlugsPack.zip" "PlugsPack.zip"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
 	"http://akelpad.sourceforge.net/files/plugs/PlugsPack.zip" "$SAVEDIR\PlugsPack.zip" /end
 	Pop $0
