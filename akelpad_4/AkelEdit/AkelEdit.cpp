@@ -9436,7 +9436,6 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   {
     if (HeapDestroy(ae->ptxt->hHeap))
       ae->ptxt->hHeap=NULL;
-
     ae->ptxt->hLinesStack.first=0;
     ae->ptxt->hLinesStack.last=0;
     ae->ptxt->hUndoStack.first=0;
@@ -9682,7 +9681,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   DWORD dwStartTime=GetTickCount();
   DWORD dwProgressTime=0;
   DWORD dwCurrentTime=0;
-  DWORD dwBufLen=2048;
+  DWORD dwBufLen=4;
   DWORD dwBufDone;
   DWORD dwResult=0;
   int nNewLine=aesi->nNewLine;
@@ -10059,6 +10058,7 @@ int AE_RemoveNoneNewLine(AKELEDIT *ae)
               liLineEnd.lpLine=liLineEnd.lpLine->prev;
               liLineEnd.lpLine->nLineBreak=AELB_RRN;
               nLineCount-=2;
+              ae->ptxt->nLastCharOffset-=2;
               AE_StackLineDelete(ae, liLineEnd.lpLine->next->next);
               AE_StackLineDelete(ae, liLineEnd.lpLine->next);
             }
@@ -10083,6 +10083,7 @@ int AE_RemoveNoneNewLine(AKELEDIT *ae)
                 //  \r\n
                 liLineEnd.lpLine->nLineBreak=AELB_RRN;
                 nLineCount-=1;
+                ae->ptxt->nLastCharOffset-=1;
                 AE_StackLineDelete(ae, liLineEnd.lpLine->next);
               }
               else if (liLineEnd.lpLine->next->nLineBreak == AELB_N)
@@ -10091,6 +10092,7 @@ int AE_RemoveNoneNewLine(AKELEDIT *ae)
                 //  \n
                 liLineEnd.lpLine->nLineBreak=AELB_RN;
                 nLineCount-=1;
+                ae->ptxt->nLastCharOffset-=1;
                 AE_StackLineDelete(ae, liLineEnd.lpLine->next);
               }
             }

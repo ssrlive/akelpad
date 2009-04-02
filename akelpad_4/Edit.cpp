@@ -5456,6 +5456,100 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   return nResult;
 }
 
+/*
+void FileStreamIn(FILESTREAMDATA *lpData)
+{
+  unsigned char *pBuffer;
+  wchar_t *wpBuffer;
+  int nBufferLen;
+  DWORD dwFileSize;
+  DWORD dwBytesRead;
+  DWORD dwCharsConverted;
+  DWORD i;
+
+  if ((dwFileSize=GetFileSize(lpData->hFile, NULL)) != INVALID_FILE_SIZE)
+  {
+    if (lpData->nBytesMax == -1)
+      lpData->nBytesMax=dwFileSize;
+
+    if (lpData->nCodePage == CP_UNICODE_UCS2_LE || lpData->nCodePage == CP_UNICODE_UCS2_BE)
+      nBufferLen=lpData->nBytesMax;
+    else
+      nBufferLen=lpData->nBytesMax * sizeof(wchar_t);
+
+    if (wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferLen + 2))
+    {
+      if (lpData->nCodePage == CP_UNICODE_UCS2_LE || lpData->nCodePage == CP_UNICODE_UCS2_BE)
+        pBuffer=(unsigned char *)wpBuffer;
+      else
+        pBuffer=(unsigned char *)wpBuffer + lpData->nBytesMax;
+
+      //Read data from file
+      if (API_ReadFile(lpData->hFile, pBuffer, lpData->nBytesMax, &dwBytesRead, NULL))
+      {
+        //Translate data to UNICODE
+        if (lpData->nCodePage == CP_UNICODE_UCS2_LE)
+        {
+          dwCharsConverted=dwBytesRead / sizeof(wchar_t);
+        }
+        else if (lpData->nCodePage == CP_UNICODE_UCS2_BE)
+        {
+          ChangeByteOrder(pBuffer, dwBytesRead);
+          dwCharsConverted=dwBytesRead / sizeof(wchar_t);
+        }
+        else
+        {
+          if (lpData->nCodePage == CP_UNICODE_UTF8)
+            dwCharsConverted=UTF8toUTF16(pBuffer, dwBytesRead, NULL, wpBuffer, dwBytesRead);
+          else
+            dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pBuffer, dwBytesRead, wpBuffer, dwBytesRead);
+        }
+        wpBuffer[dwCharsConverted]='\0';
+
+        //Detect new line
+        for (i=0; i < dwCharsConverted; ++i)
+        {
+          if (wpBuffer[i] == '\r')
+          {
+            if (wpBuffer[i + 1] == '\r' && wpBuffer[i + 2] == '\n')
+            {
+              //Windows format \r\r\n
+              lpData->nNewLine=NEWLINE_WIN;
+              break;
+            }
+            else if (wpBuffer[i + 1] == '\n')
+            {
+              //Windows format \r\n
+              lpData->nNewLine=NEWLINE_WIN;
+              break;
+            }
+
+            //MacOS format \r
+            lpData->nNewLine=NEWLINE_MAC;
+            break;
+          }
+          else if (wpBuffer[i] == '\n')
+          {
+            //Unix format \n
+            lpData->nNewLine=NEWLINE_UNIX;
+            break;
+          }
+        }
+
+        //Send to AkelEdit
+        SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
+        SendMessage(lpData->hWnd, AEM_SETTEXTW, (WPARAM)dwCharsConverted, (LPARAM)wpBuffer);
+      }
+      else lpData->bResult=FALSE;
+
+      API_HeapFree(hHeap, 0, (LPVOID)wpBuffer);
+    }
+    else lpData->bResult=FALSE;
+  }
+  else lpData->bResult=FALSE;
+}
+*/
+
 void FileStreamIn(FILESTREAMDATA *lpData)
 {
   AESTREAMIN aesi;
