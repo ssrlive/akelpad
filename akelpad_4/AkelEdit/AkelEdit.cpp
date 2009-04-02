@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.2.0                               *
+ *                      AkelEdit text control v1.2.1                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -14,6 +14,7 @@
 #include <imm.h>
 #include "AkelBuild.h"
 #include "Resources\resource.h"
+#include "Resources\version.h"
 
 
 //// Global variables
@@ -450,15 +451,15 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_STREAMIN)
       {
-        AESTREAM *aes=(AESTREAM *)lParam;
+        AESTREAMIN *aesi=(AESTREAMIN *)lParam;
 
-        return AE_StreamIn(ae, wParam, aes);
+        return AE_StreamIn(ae, wParam, aesi);
       }
       if (uMsg == AEM_STREAMOUT)
       {
-        AESTREAM *aes=(AESTREAM *)lParam;
+        AESTREAMOUT *aeso=(AESTREAMOUT *)lParam;
 
-        return AE_StreamOut(ae, wParam, aes);
+        return AE_StreamOut(ae, wParam, aeso);
       }
       if (uMsg == AEM_CANPASTE)
       {
@@ -1194,33 +1195,46 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //// EM_* rich edit messages
 
-    if (uMsg == EM_STREAMIN ||
-        uMsg == EM_STREAMOUT)
+    if (uMsg == EM_STREAMIN)
     {
       EDITSTREAM *es=(EDITSTREAM *)lParam;
-      AESTREAM aes;
+      AESTREAMIN aesi;
       DWORD dwFlags=0;
       DWORD dwResult=0;
 
       if ((wParam & SF_TEXT) && (wParam & SF_UNICODE))
       {
-        aes.dwCookie=es->dwCookie;
-        aes.lpCallback=(AEStreamCallback)es->pfnCallback;
-        if (uMsg == EM_STREAMIN)
-          aes.nNewLine=AELB_ASINPUT;
-        else
-          aes.nNewLine=AELB_ASOUTPUT;
-        aes.bColumnSel=FALSE;
-
+        aesi.dwCookie=es->dwCookie;
+        aesi.lpCallback=(AEStreamCallback)es->pfnCallback;
+        aesi.nNewLine=AELB_ASINPUT;
         if (wParam & SFF_SELECTION)
           dwFlags|=AESF_SELECTION;
 
-        if (uMsg == EM_STREAMIN)
-          dwResult=AE_StreamIn(ae, dwFlags, &aes);
-        else
-          dwResult=AE_StreamOut(ae, dwFlags, &aes);
+        dwResult=AE_StreamIn(ae, dwFlags, &aesi);
 
-        es->dwError=aes.dwError;
+        es->dwError=aesi.dwError;
+      }
+      return dwResult;
+    }
+    if (uMsg == EM_STREAMOUT)
+    {
+      EDITSTREAM *es=(EDITSTREAM *)lParam;
+      AESTREAMOUT aeso;
+      DWORD dwFlags=0;
+      DWORD dwResult=0;
+
+      if ((wParam & SF_TEXT) && (wParam & SF_UNICODE))
+      {
+        aeso.dwCookie=es->dwCookie;
+        aeso.lpCallback=(AEStreamCallback)es->pfnCallback;
+        aeso.nNewLine=AELB_ASOUTPUT;
+        aeso.bColumnSel=FALSE;
+        if (wParam & SFF_SELECTION)
+          dwFlags|=AESF_SELECTION;
+
+        dwResult=AE_StreamOut(ae, dwFlags, &aeso);
+
+        es->dwError=aeso.dwError;
       }
       return dwResult;
     }
@@ -5325,7 +5339,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   {
     if (!liWrapStart && !liWrapEnd)
     {
-      if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, GetTickCount() - dwStartTime, liCount.nLine, nStopLine))
+      if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, GetTickCount() - dwStartTime, 0, nStopLine))
         return 0;
     }
   }
@@ -5615,8 +5629,6 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
       }
 
       //Unwrap line
-      lpCurElement=liLine->lpLine;
-
       if (lpNewElement=AE_StackLineInsertBefore(ae, liLine->lpLine))
       {
         lpNewElement->nLineWidth=dwUnwrapLineWidth;
@@ -5625,6 +5637,8 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
 
         if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
         {
+          lpCurElement=liLine->lpLine;
+
           while (lpCurElement)
           {
             AE_memcpy(lpNewElement->wpLine + dwCountLen, lpCurElement->wpLine, lpCurElement->nLineLen * sizeof(wchar_t));
@@ -9397,7 +9411,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   DWORD dwCurrentTime=0;
   int nLinesInPage;
   int nLineBreak;
-  BOOL bFirstHeap;
+  BOOL bFirstHeap=FALSE;
   BOOL bUpdated=FALSE;
 
   if (ae->ptxt->hHeap)
@@ -9410,6 +9424,12 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     AE_NotifySelChanging(ae);
     AE_NotifyTextChanging(ae, AETCT_SETTEXT);
   }
+
+  //Set new line
+  if (nNewLine == AELB_ASINPUT)
+    nNewLine=ae->popt->nInputNewLine;
+  else if (nNewLine == AELB_ASOUTPUT)
+    nNewLine=ae->popt->nOutputNewLine;
 
   //Free memory
   if (ae->ptxt->hHeap)
@@ -9472,12 +9492,6 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   }
   if (ae->hDC)
   {
-    //Set new line
-    if (nNewLine == AELB_ASINPUT)
-      nNewLine=ae->popt->nInputNewLine;
-    else if (nNewLine == AELB_ASOUTPUT)
-      nNewLine=ae->popt->nOutputNewLine;
-
     //Get lines in page
     nLinesInPage=(ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight;
 
@@ -9486,6 +9500,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
 
     while (dwTextCount < dwTextLen)
     {
+      //Progressing
       if (ae->popt->dwEventMask & AENM_PROGRESS)
       {
         dwCurrentTime=GetTickCount();
@@ -9576,12 +9591,6 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       ++ae->ptxt->nLineUnwrapCount;
     }
 
-    //End progress
-    if (ae->popt->dwEventMask & AENM_PROGRESS)
-    {
-      AE_NotifyProgress(ae, AEPGS_SETTEXT, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
-    }
-
     //Last line
     if (!lpElement || lpElement->nLineBreak != AELB_EOF)
     {
@@ -9604,6 +9613,11 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       --ae->ptxt->nLineUnwrapCount;
     }
 
+    //End progress
+    if (ae->popt->dwEventMask & AENM_PROGRESS)
+    {
+      AE_NotifyProgress(ae, AEPGS_SETTEXT, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
+    }
     ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
     ae->ciCaretIndex=ciCaretChar;
@@ -9642,11 +9656,642 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     {
       AE_StackPointReset(ae);
       AE_SetModify(ae, FALSE, TRUE);
-      AE_NotifySelChanged(ae);
-      AE_NotifyTextChanged(ae, AETCT_SETTEXT|AETCT_DELETEALL);
     }
   }
+  if (!bFirstHeap)
+  {
+    AE_NotifySelChanged(ae);
+    AE_NotifyTextChanged(ae, AETCT_SETTEXT|AETCT_DELETEALL);
+  }
   return dwTextLen;
+}
+
+DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
+{
+  AECHARINDEX ciCaretChar;
+  AELINEDATA *lpElement=NULL;
+  wchar_t *wszBuf;
+  wchar_t *wpLineStart;
+  wchar_t *wpLineEnd;
+  HDC hDC=ae->hDC;
+  HFONT hFontOld=NULL;
+  DWORD dwTextLen=0;
+  DWORD dwTextCount=0;
+  DWORD dwBlockLen=0;
+  DWORD dwBlockCount=0;
+  DWORD dwStartTime=GetTickCount();
+  DWORD dwProgressTime=0;
+  DWORD dwCurrentTime=0;
+  DWORD dwBufLen=2048;
+  DWORD dwBufDone;
+  DWORD dwResult=0;
+  int nNewLine=aesi->nNewLine;
+  int nLinesInPage;
+  int nApproxLinesCount=0;
+  int nLineBreak;
+  BOOL bFirstHeap=FALSE;
+  BOOL bUpdated=FALSE;
+
+  if (ae->ptxt->hHeap)
+    bFirstHeap=FALSE;
+  else
+    bFirstHeap=TRUE;
+
+  if (!bFirstHeap)
+  {
+    AE_NotifySelChanging(ae);
+    AE_NotifyTextChanging(ae, AETCT_STREAMIN);
+  }
+  aesi->dwError=0;
+
+  //Set new line
+  if (nNewLine == AELB_ASINPUT)
+    nNewLine=ae->popt->nInputNewLine;
+  else if (nNewLine == AELB_ASOUTPUT)
+    nNewLine=ae->popt->nOutputNewLine;
+
+  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
+  {
+    if (dwFlags & AESF_SELECTION)
+    {
+      if (dwFlags & AESF_SELECTION)
+      {
+        AE_StackUndoGroupStop(ae);
+        AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
+      }
+
+      while (1)
+      {
+        dwBufDone=0;
+
+        if ((aesi->dwError=aesi->lpCallback(aesi->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) || !dwBufDone)
+        {
+          //Stop callbacking
+          break;
+        }
+        dwResult+=dwBufDone;
+        AE_InsertText(ae, &ae->ciCaretIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, FALSE, AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, NULL, NULL);
+      }
+
+      AE_StackUndoGroupStop(ae);
+      AE_UpdateScrollBars(ae, SB_VERT);
+      AE_ScrollToCaret(ae, &ae->ptCaret);
+      ae->nHorizCaretPos=ae->ptCaret.x;
+      if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+      InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+    }
+    else
+    {
+      //Free memory
+      if (ae->ptxt->hHeap)
+      {
+        if (HeapDestroy(ae->ptxt->hHeap))
+          ae->ptxt->hHeap=NULL;
+        ae->ptxt->hLinesStack.first=0;
+        ae->ptxt->hLinesStack.last=0;
+        ae->ptxt->hUndoStack.first=0;
+        ae->ptxt->hUndoStack.last=0;
+        ae->ptxt->lpCurrentUndo=NULL;
+        ae->ptxt->lpSavePoint=NULL;
+        ae->ptxt->bSavePointExist=TRUE;
+        ae->ptxt->dwUndoCount=0;
+        ae->ptxt->liMaxWidthLine.nLine=0;
+        ae->ptxt->liMaxWidthLine.lpLine=NULL;
+        ae->ptxt->liLineUnwrapLastCall.nLine=0;
+        ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
+        ae->ptxt->nLastCharOffset=0;
+        ae->ptxt->nLineCount=0;
+        ae->ptxt->nLineUnwrapCount=0;
+        ae->ptxt->nLineUnwrapLastCall=0;
+        ae->ptxt->nHScrollMax=0;
+        ae->ptxt->nVScrollMax=0;
+        ae->liFirstDrawLine.nLine=0;
+        ae->liFirstDrawLine.lpLine=NULL;
+        ae->ciSelStartIndex.nLine=0;
+        ae->ciSelStartIndex.nCharInLine=0;
+        ae->ciSelStartIndex.lpLine=NULL;
+        ae->ciSelEndIndex.nLine=0;
+        ae->ciSelEndIndex.nCharInLine=0;
+        ae->ciSelEndIndex.lpLine=NULL;
+        ae->ciCaretIndex.nLine=0;
+        ae->ciCaretIndex.nCharInLine=0;
+        ae->ciCaretIndex.lpLine=NULL;
+        ae->ciLastCallIndex.nLine=0;
+        ae->ciLastCallIndex.nCharInLine=0;
+        ae->ciLastCallIndex.lpLine=NULL;
+        ae->nFirstDrawLineOffset=0;
+        ae->nSelStartCharOffset=0;
+        ae->nSelEndCharOffset=0;
+        ae->nLastCallOffset=0;
+        ae->nHScrollPos=0;
+        ae->nVScrollPos=0;
+        ae->nLastHScrollPos=0;
+        ae->nLastVScrollPos=0;
+        ae->ptCaret.x=0;
+        ae->ptCaret.y=0;
+        ae->nHorizCaretPos=0;
+        ae->bColumnSel=FALSE;
+      }
+      ae->ptxt->hHeap=HeapCreate(0, 0, 0);
+
+      //Get DC for faster AE_GetTextExtentPoint32
+      if (!ae->hDC)
+      {
+        if (ae->hDC=GetDC(ae->hWndEdit))
+          if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(ae->hDC, ae->ptxt->hFont);
+      }
+      if (ae->hDC)
+      {
+        //Get lines in page
+        nLinesInPage=(ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight;
+        dwTextLen=aesi->dwTextLen;
+
+        while (1)
+        {
+          //Progressing
+          if (ae->popt->dwEventMask & AENM_PROGRESS)
+          {
+            dwCurrentTime=GetTickCount();
+
+            if (dwCurrentTime - dwProgressTime > AETIME_PROGRESS)
+            {
+              if (AE_NotifyProgress(ae, AEPGS_STREAMIN, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
+                break;
+              dwProgressTime=GetTickCount();
+            }
+          }
+
+          //Receiving text
+          dwBufDone=0;
+
+          if ((aesi->dwError=aesi->lpCallback(aesi->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) || !dwBufDone)
+          {
+            //Stop callbacking
+            if (lpElement) lpElement->nLineBreak=LOBYTE(lpElement->nLineBreak);
+            break;
+          }
+          dwResult+=dwBufDone;
+          dwBlockCount=0;
+          dwBlockLen=dwBufDone / sizeof(wchar_t);
+          wpLineStart=wszBuf;
+          wpLineEnd=wszBuf;
+          lpElement=NULL;
+
+          //Parse text
+          while (dwBlockCount < dwBlockLen)
+          {
+            if (lpElement=AE_StackLineAdd(ae))
+            {
+              wpLineEnd=AE_GetNextLine(ae, wpLineStart, dwBlockLen - dwBlockCount, &lpElement->nLineLen, &lpElement->nLineBreak);
+              dwBlockCount+=wpLineEnd - wpLineStart;
+              ae->ptxt->nLastCharOffset+=lpElement->nLineLen + 1;
+
+              if (lpElement->nLineBreak != AELB_EOF)
+              {
+                if (nNewLine != AELB_ASIS)
+                  lpElement->nLineBreak=nNewLine;
+                ++nApproxLinesCount;
+              }
+              else --ae->ptxt->nLastCharOffset;
+
+              if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpElement->nLineLen * sizeof(wchar_t) + 2))
+              {
+                AE_memcpy(lpElement->wpLine, wpLineStart, lpElement->nLineLen * sizeof(wchar_t));
+                lpElement->wpLine[lpElement->nLineLen]=L'\0';
+                lpElement->nLineWidth=-1;
+                AE_GetLineWidth(ae, lpElement);
+              }
+              else break;
+            }
+            else break;
+
+            wpLineStart=wpLineEnd;
+            ++ae->ptxt->nLineCount;
+            ++ae->ptxt->nLineUnwrapCount;
+          }
+
+          if (!bUpdated)
+          {
+            if (nApproxLinesCount > nLinesInPage)
+            {
+              if (lpElement->nLineBreak != AELB_EOF)
+              {
+                bUpdated=TRUE;
+
+                nLineBreak=((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak;
+                ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=AELB_EOF;
+                --ae->ptxt->nLastCharOffset;
+                AE_RemoveNoneNewLine(ae);
+
+                ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
+                AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+                ae->ciCaretIndex=ciCaretChar;
+                ae->ciSelStartIndex=ciCaretChar;
+                ae->ciSelEndIndex=ciCaretChar;
+
+                if (!(ae->popt->dwOptions & AECO_DISABLENOSCROLL))
+                  AE_UpdateScrollBars(ae, SB_VERT);
+
+                if (ae->ptxt->nWordWrap)
+                {
+                  ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->nWordWrap);
+
+                  ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
+                  AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+                  ae->ciCaretIndex=ciCaretChar;
+                  ae->ciSelStartIndex=ciCaretChar;
+                  ae->ciSelEndIndex=ciCaretChar;
+                }
+                InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+                UpdateWindow(ae->hWndEdit);
+
+                //Restore variables
+                ++ae->ptxt->nLastCharOffset;
+                ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
+                ae->liFirstDrawLine.nLine=0;
+                ae->liFirstDrawLine.lpLine=NULL;
+                ae->nFirstDrawLineOffset=0;
+                ae->ciLastCallIndex.nLine=0;
+                ae->ciLastCallIndex.nCharInLine=0;
+                ae->ciLastCallIndex.lpLine=NULL;
+                ae->nLastCallOffset=0;
+                ae->ptxt->liLineUnwrapLastCall.nLine=0;
+                ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
+                ae->ptxt->nLineUnwrapLastCall=0;
+              }
+            }
+          }
+          lpElement=(AELINEDATA *)ae->ptxt->hLinesStack.last;
+          if (lpElement) lpElement->nLineBreak=MAKEWORD(lpElement->nLineBreak, AELB_SPLIT);
+          dwTextCount+=dwBlockLen;
+        }
+
+        //Last line
+        if (!lpElement || lpElement->nLineBreak != AELB_EOF)
+        {
+          if (lpElement=AE_StackLineAdd(ae))
+          {
+            if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, sizeof(wchar_t)))
+            {
+              lpElement->nLineWidth=0;
+              lpElement->wpLine[0]=L'\0';
+
+              ++ae->ptxt->nLineCount;
+              ++ae->ptxt->nLineUnwrapCount;
+            }
+            lpElement->nLineBreak=AELB_EOF;
+          }
+        }
+        if (ae->ptxt->nLineCount)
+        {
+          --ae->ptxt->nLineCount;
+          --ae->ptxt->nLineUnwrapCount;
+        }
+        AE_RemoveNoneNewLine(ae);
+
+        //End progress
+        if (ae->popt->dwEventMask & AENM_PROGRESS)
+        {
+          AE_NotifyProgress(ae, AEPGS_STREAMIN, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
+        }
+
+        ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
+        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+        ae->ciCaretIndex=ciCaretChar;
+        ae->ciSelStartIndex=ciCaretChar;
+        ae->ciSelEndIndex=ciCaretChar;
+
+        if (!bFirstHeap)
+        {
+          if (ae->ptxt->nWordWrap)
+          {
+            ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->nWordWrap);
+
+            ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
+            AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+            ae->ciCaretIndex=ciCaretChar;
+            ae->ciSelStartIndex=ciCaretChar;
+            ae->ciSelEndIndex=ciCaretChar;
+          }
+          AE_UpdateScrollBars(ae, SB_VERT);
+          AE_CalcLinesWidth(ae, NULL, NULL, FALSE);
+          if (!bUpdated) InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+        }
+
+        //Set caret position
+        if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
+
+        //Release DC
+        if (!hDC)
+        {
+          if (hFontOld) SelectObject(ae->hDC, hFontOld);
+          ReleaseDC(ae->hWndEdit, ae->hDC);
+          ae->hDC=NULL;
+        }
+
+        if (!bFirstHeap)
+        {
+          AE_StackPointReset(ae);
+          AE_SetModify(ae, FALSE, TRUE);
+        }
+      }
+    }
+    AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
+  }
+  if (!bFirstHeap)
+  {
+    AE_NotifySelChanged(ae);
+    AE_NotifyTextChanged(ae, AETCT_STREAMIN|AETCT_DELETEALL);
+  }
+  return dwResult;
+}
+
+int AE_RemoveNoneNewLine(AKELEDIT *ae)
+{
+  AELINEDATA *lpNewElement;
+  AELINEDATA *lpCurElement;
+  AELINEDATA *lpNextElement;
+  AELINEINDEX liLineStart;
+  AELINEINDEX liLineEnd;
+  DWORD dwCountLen=0;
+  int nLineCount=0;
+  int nSplitFound=0;
+
+  liLineStart.nLine=0;
+  liLineStart.lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+  liLineEnd.nLine=0;
+  liLineEnd.lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+
+  while (liLineEnd.lpLine)
+  {
+    dwCountLen+=liLineEnd.lpLine->nLineLen;
+
+    if (HIBYTE(liLineEnd.lpLine->nLineBreak) == AELB_SPLIT)
+      ++nSplitFound;
+
+    if (liLineEnd.lpLine->nLineBreak != MAKEWORD(AELB_EOF, AELB_SPLIT))
+    {
+      if (!nSplitFound)
+      {
+        liLineStart.nLine=liLineEnd.nLine + 1;
+        liLineStart.lpLine=liLineEnd.lpLine->next;
+        liLineEnd=liLineStart;
+        dwCountLen=0;
+        continue;
+      }
+      else
+      {
+        //Join split new line
+        if (HIBYTE(liLineEnd.lpLine->nLineBreak) == AELB_SPLIT)
+        {
+          liLineEnd.lpLine->nLineBreak=LOBYTE(liLineEnd.lpLine->nLineBreak);
+
+          if (!liLineEnd.lpLine->nLineLen)
+          {
+            if (liLineEnd.lpLine->nLineBreak == AELB_R &&
+                liLineEnd.lpLine->prev && liLineEnd.lpLine->prev->nLineBreak == AELB_R &&
+                liLineEnd.lpLine->next && !liLineEnd.lpLine->next->nLineLen && liLineEnd.lpLine->next->nLineBreak == AELB_N)
+            {
+              //  text\r
+              //  \r|
+              //  \n
+              liLineEnd.nLine-=2;
+              liLineEnd.lpLine=liLineEnd.lpLine->prev;
+              liLineEnd.lpLine->nLineBreak=AELB_RRN;
+              nLineCount-=2;
+              AE_StackLineDelete(ae, liLineEnd.lpLine->next->next);
+              AE_StackLineDelete(ae, liLineEnd.lpLine->next);
+            }
+            else if (liLineEnd.lpLine->prev && liLineEnd.lpLine->prev->nLineBreak == MAKEWORD(AELB_EOF, AELB_SPLIT))
+            {
+              //  text\0|
+              //  \r or \n or \r\n or \r\r\n
+              liLineEnd.nLine-=1;
+              liLineEnd.lpLine=liLineEnd.lpLine->prev;
+              liLineEnd.lpLine->nLineBreak=liLineEnd.lpLine->next->nLineBreak;
+              nLineCount-=1;
+              AE_StackLineDelete(ae, liLineEnd.lpLine->next);
+            }
+          }
+          if (liLineEnd.lpLine->nLineBreak == AELB_R)
+          {
+            if (liLineEnd.lpLine->next && !liLineEnd.lpLine->next->nLineLen)
+            {
+              if (liLineEnd.lpLine->next->nLineBreak == AELB_RN)
+              {
+                //  text\r|
+                //  \r\n
+                liLineEnd.lpLine->nLineBreak=AELB_RRN;
+                nLineCount-=1;
+                AE_StackLineDelete(ae, liLineEnd.lpLine->next);
+              }
+              else if (liLineEnd.lpLine->next->nLineBreak == AELB_N)
+              {
+                //  text\r|
+                //  \n
+                liLineEnd.lpLine->nLineBreak=AELB_RN;
+                nLineCount-=1;
+                AE_StackLineDelete(ae, liLineEnd.lpLine->next);
+              }
+            }
+          }
+          if (nSplitFound == 1)
+          {
+            liLineEnd.nLine+=1;
+            liLineEnd.lpLine=liLineEnd.lpLine->next;
+            liLineStart=liLineEnd;
+            dwCountLen=0;
+            continue;
+          }
+        }
+
+        //Join split parts
+        if (lpNewElement=AE_StackLineInsertBefore(ae, liLineStart.lpLine))
+        {
+          lpNewElement->nLineWidth=-1;
+          lpNewElement->nLineBreak=liLineEnd.lpLine->nLineBreak;
+          lpNewElement->nLineLen=dwCountLen;
+
+          if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+          {
+            lpCurElement=liLineStart.lpLine;
+            dwCountLen=0;
+
+            while (lpCurElement)
+            {
+              AE_memcpy(lpNewElement->wpLine + dwCountLen, lpCurElement->wpLine, lpCurElement->nLineLen * sizeof(wchar_t));
+              dwCountLen+=lpCurElement->nLineLen;
+
+              if (HIBYTE(lpCurElement->nLineBreak) != AELB_SPLIT)
+              {
+                AE_StackLineDelete(ae, lpCurElement);
+                break;
+              }
+              lpNextElement=lpCurElement->next;
+              AE_StackLineDelete(ae, lpCurElement);
+              lpCurElement=lpNextElement;
+            }
+            lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
+            AE_GetLineWidth(ae, lpNewElement);
+          }
+        }
+        nLineCount+=liLineStart.nLine - liLineEnd.nLine;
+        nSplitFound=0;
+      }
+      liLineStart.nLine+=1;
+      liLineStart.lpLine=lpNewElement->next;
+      liLineEnd=liLineStart;
+      dwCountLen=0;
+      continue;
+    }
+    ++liLineEnd.nLine;
+    liLineEnd.lpLine=liLineEnd.lpLine->next;
+  }
+  ae->ptxt->nLineCount+=nLineCount;
+  ae->ptxt->nLineUnwrapCount+=nLineCount;
+
+  return nLineCount;
+}
+
+DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
+{
+  AECHARINDEX ciCount;
+  AECHARINDEX ciEnd;
+  wchar_t *wszBuf;
+  int nNewLine=aeso->nNewLine;
+  int nLineBreak;
+  DWORD dwBufLen=2048;
+  DWORD dwBufCount=0;
+  DWORD dwResult=0;
+
+  AE_NotifyChanging(ae, AETCT_STREAMOUT);
+  aeso->dwError=0;
+
+  //Set new line
+  if (nNewLine == AELB_ASINPUT)
+    nNewLine=ae->popt->nInputNewLine;
+  else if (nNewLine == AELB_ASOUTPUT)
+    nNewLine=ae->popt->nOutputNewLine;
+
+  if (dwFlags & AESF_SELECTION)
+  {
+    AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciCount, FALSE);
+    AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciEnd, FALSE);
+  }
+  else
+  {
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCount, FALSE);
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciEnd, FALSE);
+  }
+
+  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
+  {
+    while (ciCount.lpLine)
+    {
+      if (aeso->bColumnSel)
+      {
+        ciCount.nCharInLine=ciCount.lpLine->nSelStart;
+
+        while (ciCount.nCharInLine < ciCount.lpLine->nLineLen && ciCount.nCharInLine < ciCount.lpLine->nSelEnd)
+        {
+          if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=ciCount.lpLine->wpLine[ciCount.nCharInLine++];
+        }
+        if (dwFlags & AESF_FILLSPACES)
+        {
+          while (ciCount.nCharInLine < ciCount.lpLine->nSelEnd)
+          {
+            if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+            wszBuf[dwBufCount++]=L' ';
+            ++ciCount.nCharInLine;
+          }
+        }
+      }
+      else
+      {
+        while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+        {
+          if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=ciCount.lpLine->wpLine[ciCount.nCharInLine++];
+        }
+      }
+      if (ciCount.lpLine->nLineBreak == AELB_EOF) break;
+
+      if (nNewLine == AELB_ASIS)
+        nLineBreak=ciCount.lpLine->nLineBreak;
+      else
+        nLineBreak=nNewLine;
+
+      if (ciCount.lpLine->nLineBreak != AELB_WRAP)
+      {
+        if (nLineBreak == AELB_R)
+        {
+          if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\r';
+        }
+        else if (nLineBreak == AELB_N)
+        {
+          if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\n';
+        }
+        else if (nLineBreak == AELB_RN)
+        {
+          if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\r';
+
+          if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\n';
+        }
+        else if (nLineBreak == AELB_RRN)
+        {
+          if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\r';
+
+          if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\r';
+
+          if (!AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
+          wszBuf[dwBufCount++]=L'\n';
+        }
+      }
+      ++ciCount.nLine;
+      ciCount.lpLine=ciCount.lpLine->next;
+      ciCount.nCharInLine=0;
+    }
+    AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult);
+
+    End:
+    AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
+  }
+  AE_NotifyChanged(ae, AETCT_STREAMOUT);
+
+  return dwResult;
+}
+
+BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, const AECHARINDEX *ciCount, const AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, DWORD *dwResult)
+{
+  DWORD dwBufDone=0;
+
+  if (AE_IndexCompare(ciCount, ciEnd) >= 0)
+  {
+    if (*dwBufCount > 0)
+    {
+      wszBuf[*dwBufCount]=L'\0';
+      if (aeso->dwError=aeso->lpCallback(aeso->dwCookie, wszBuf, *dwBufCount * sizeof(wchar_t), &dwBufDone)) return FALSE;
+      *dwResult+=dwBufDone;
+      *dwBufCount=0;
+    }
+    return FALSE;
+  }
+  if (*dwBufCount >= dwBufLen)
+  {
+    wszBuf[dwBufLen]=L'\0';
+    *dwBufCount=0;
+    if (aeso->dwError=aeso->lpCallback(aeso->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) return FALSE;
+    if (!dwBufDone) return FALSE;
+    *dwResult+=dwBufDone;
+  }
+  return TRUE;
 }
 
 void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, BOOL bColumnSel)
@@ -11276,207 +11921,6 @@ int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine)
   }
   if (wpNewLine) *wpNewLine=L"\r\n";
   return 2;
-}
-
-DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
-{
-  wchar_t *wszBuf;
-  int nNewLine=aes->nNewLine;
-  DWORD dwBufLen=2048;
-  DWORD dwBufDone;
-  DWORD dwInsertFlags;
-  DWORD dwResult=0;
-
-  AE_NotifyChanging(ae, AETCT_STREAMIN);
-  aes->dwError=0;
-
-  //Set new line
-  if (nNewLine == AELB_ASINPUT)
-    nNewLine=ae->popt->nInputNewLine;
-  else if (nNewLine == AELB_ASOUTPUT)
-    nNewLine=ae->popt->nOutputNewLine;
-
-  //Set insert flags
-  if (dwFlags & AESF_SELECTION)
-    dwInsertFlags=AEINST_LOCKSCROLL|AEINST_LOCKUPDATE;
-  else
-    dwInsertFlags=AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATE;
-
-  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
-  {
-    if (dwFlags & AESF_SELECTION)
-    {
-      AE_StackUndoGroupStop(ae);
-      AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
-    }
-    else AE_SetText(ae, L"", 0, nNewLine);
-
-    while (1)
-    {
-      dwBufDone=0;
-
-      if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) break;
-      if (!dwBufDone) break;
-      dwResult+=dwBufDone;
-      AE_InsertText(ae, &ae->ciCaretIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, aes->bColumnSel, dwInsertFlags, NULL, NULL);
-    }
-
-    if (dwFlags & AESF_SELECTION)
-    {
-      AE_StackUndoGroupStop(ae);
-    }
-    AE_UpdateScrollBars(ae, SB_VERT);
-    AE_ScrollToCaret(ae, &ae->ptCaret);
-    ae->nHorizCaretPos=ae->ptCaret.x;
-    if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
-    InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-
-    AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
-  }
-  AE_NotifyChanged(ae, AETCT_STREAMIN);
-
-  return dwResult;
-}
-
-DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAM *aes)
-{
-  AECHARINDEX ciCount;
-  AECHARINDEX ciEnd;
-  wchar_t *wszBuf;
-  int nNewLine=aes->nNewLine;
-  int nLineBreak;
-  DWORD dwBufLen=2048;
-  DWORD dwBufCount=0;
-  DWORD dwResult=0;
-
-  AE_NotifyChanging(ae, AETCT_STREAMOUT);
-  aes->dwError=0;
-
-  //Set new line
-  if (nNewLine == AELB_ASINPUT)
-    nNewLine=ae->popt->nInputNewLine;
-  else if (nNewLine == AELB_ASOUTPUT)
-    nNewLine=ae->popt->nOutputNewLine;
-
-  if (dwFlags & AESF_SELECTION)
-  {
-    AE_GetIndex(ae, AEGI_FIRSTSELCHAR, NULL, &ciCount, FALSE);
-    AE_GetIndex(ae, AEGI_LASTSELCHAR, NULL, &ciEnd, FALSE);
-  }
-  else
-  {
-    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCount, FALSE);
-    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciEnd, FALSE);
-  }
-
-  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
-  {
-    while (ciCount.lpLine)
-    {
-      if (aes->bColumnSel)
-      {
-        ciCount.nCharInLine=ciCount.lpLine->nSelStart;
-
-        while (ciCount.nCharInLine < ciCount.lpLine->nLineLen && ciCount.nCharInLine < ciCount.lpLine->nSelEnd)
-        {
-          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-          wszBuf[dwBufCount++]=ciCount.lpLine->wpLine[ciCount.nCharInLine++];
-        }
-        if (dwFlags & AESF_FILLSPACES)
-        {
-          while (ciCount.nCharInLine < ciCount.lpLine->nSelEnd)
-          {
-            if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-            wszBuf[dwBufCount++]=L' ';
-            ++ciCount.nCharInLine;
-          }
-        }
-      }
-      else
-      {
-        while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
-        {
-          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-          wszBuf[dwBufCount++]=ciCount.lpLine->wpLine[ciCount.nCharInLine++];
-        }
-      }
-      if (ciCount.lpLine->nLineBreak == AELB_EOF) break;
-
-      if (nNewLine == AELB_ASIS)
-        nLineBreak=ciCount.lpLine->nLineBreak;
-      else
-        nLineBreak=nNewLine;
-
-      if (ciCount.lpLine->nLineBreak != AELB_WRAP)
-      {
-        if (nLineBreak == AELB_R)
-        {
-          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-          wszBuf[dwBufCount++]=L'\r';
-        }
-        else if (nLineBreak == AELB_N)
-        {
-          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-          wszBuf[dwBufCount++]=L'\n';
-        }
-        else if (nLineBreak == AELB_RN)
-        {
-          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-          wszBuf[dwBufCount++]=L'\r';
-
-          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-          wszBuf[dwBufCount++]=L'\n';
-        }
-        else if (nLineBreak == AELB_RRN)
-        {
-          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-          wszBuf[dwBufCount++]=L'\r';
-
-          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-          wszBuf[dwBufCount++]=L'\r';
-
-          if (!AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult)) goto End;
-          wszBuf[dwBufCount++]=L'\n';
-        }
-      }
-      ++ciCount.nLine;
-      ciCount.lpLine=ciCount.lpLine->next;
-      ciCount.nCharInLine=0;
-    }
-    AE_StreamOutHelper(aes, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult);
-
-    End:
-    AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
-  }
-  AE_NotifyChanged(ae, AETCT_STREAMOUT);
-
-  return dwResult;
-}
-
-BOOL AE_StreamOutHelper(AESTREAM *aes, const AECHARINDEX *ciCount, const AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, DWORD *dwResult)
-{
-  DWORD dwBufDone=0;
-
-  if (AE_IndexCompare(ciCount, ciEnd) >= 0)
-  {
-    if (*dwBufCount > 0)
-    {
-      wszBuf[*dwBufCount]=L'\0';
-      if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, *dwBufCount * sizeof(wchar_t), &dwBufDone)) return FALSE;
-      *dwResult+=dwBufDone;
-      *dwBufCount=0;
-    }
-    return FALSE;
-  }
-  if (*dwBufCount >= dwBufLen)
-  {
-    wszBuf[dwBufLen]=L'\0';
-    *dwBufCount=0;
-    if (aes->dwError=aes->lpCallback(aes->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) return FALSE;
-    if (!dwBufDone) return FALSE;
-    *dwResult+=dwBufDone;
-  }
-  return TRUE;
 }
 
 BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA)

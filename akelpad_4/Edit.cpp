@@ -5046,14 +5046,26 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     goto End;
   }
 
+  //Offset BOM
+  fsd.nBytesCurrent=0;
+
   if (bBOM)
   {
     if (nCodePage == CP_UNICODE_UCS2_LE)
+    {
       SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=2;
+    }
     else if (nCodePage == CP_UNICODE_UCS2_BE)
+    {
       SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=2;
+    }
     else if (nCodePage == CP_UNICODE_UTF8)
+    {
       SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=3;
+    }
   }
 
   if (IsEditActive(hWnd))
@@ -5308,14 +5320,26 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     goto End;
   }
 
+  //Offset BOM
+  fsd.nBytesCurrent=0;
+
   if (bBOM)
   {
     if (nCodePage == CP_UNICODE_UCS2_LE)
+    {
       SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=2;
+    }
     else if (nCodePage == CP_UNICODE_UCS2_BE)
+    {
       SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=2;
+    }
     else if (nCodePage == CP_UNICODE_UTF8)
+    {
       SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=3;
+    }
   }
 
   if (IsEditActive(hWnd))
@@ -5434,94 +5458,80 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
 
 void FileStreamIn(FILESTREAMDATA *lpData)
 {
-  unsigned char *pBuffer;
-  wchar_t *wpBuffer;
-  int nBufferLen;
-  DWORD dwFileSize;
+  AESTREAMIN aesi;
+
+  if (lpData->nBytesMax == -1)
+    lpData->nBytesMax=GetFileSize(lpData->hFile, NULL);
+
+  aesi.dwCookie=(DWORD)lpData;
+  aesi.lpCallback=InputStreamCallback;
+  aesi.nNewLine=AELB_ASIS;
+  aesi.dwTextLen=lpData->nBytesMax;
+  SendMessage(lpData->hWnd, AEM_STREAMIN, 0, (LPARAM)&aesi);
+  lpData->bResult=!aesi.dwError;
+}
+
+DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
+{
+  FILESTREAMDATA *lpData=(FILESTREAMDATA *)dwCookie;
   DWORD dwBytesRead;
-  DWORD dwCharsConverted;
-  DWORD i;
+  DWORD dwCharsConverted=0;
+  DWORD dwBytesConverted=0;
 
-  if ((dwFileSize=GetFileSize(lpData->hFile, NULL)) != INVALID_FILE_SIZE)
+  if (lpData->nBytesCurrent <= lpData->nBytesMax)
   {
-    if (lpData->nBytesMax == -1)
-      lpData->nBytesMax=dwFileSize;
-
-    if (lpData->nCodePage == CP_UNICODE_UCS2_LE || lpData->nCodePage == CP_UNICODE_UCS2_BE)
-      nBufferLen=lpData->nBytesMax;
-    else
-      nBufferLen=lpData->nBytesMax * sizeof(wchar_t);
-
-    if (wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferLen + 2))
+    if (API_ReadFile(lpData->hFile, pcTranslateBuffer, dwBufLen / sizeof(wchar_t), &dwBytesRead, NULL))
     {
-      if (lpData->nCodePage == CP_UNICODE_UCS2_LE || lpData->nCodePage == CP_UNICODE_UCS2_BE)
-        pBuffer=(unsigned char *)wpBuffer;
-      else
-        pBuffer=(unsigned char *)wpBuffer + lpData->nBytesMax;
+      lpData->nBytesCurrent+=dwBytesRead;
 
-      //Read data from file
-      if (API_ReadFile(lpData->hFile, pBuffer, lpData->nBytesMax, &dwBytesRead, NULL))
+      //Translate data to UNICODE
+      if (lpData->nCodePage == CP_UNICODE_UCS2_LE)
       {
-        //Translate data to UNICODE
-        if (lpData->nCodePage == CP_UNICODE_UCS2_LE)
+        memcpy(wszBuf, pcTranslateBuffer, dwBytesRead);
+        dwCharsConverted=dwBytesRead / sizeof(wchar_t);
+      }
+      else if (lpData->nCodePage == CP_UNICODE_UCS2_BE)
+      {
+        ChangeByteOrder(pcTranslateBuffer, dwBytesRead);
+        memcpy(wszBuf, pcTranslateBuffer, dwBytesRead);
+        dwCharsConverted=dwBytesRead / sizeof(wchar_t);
+      }
+      else
+      {
+        if (lpData->nCodePage == CP_UNICODE_UTF8)
         {
-          dwCharsConverted=dwBytesRead / sizeof(wchar_t);
-        }
-        else if (lpData->nCodePage == CP_UNICODE_UCS2_BE)
-        {
-          ChangeByteOrder(pBuffer, dwBytesRead);
-          dwCharsConverted=dwBytesRead / sizeof(wchar_t);
+          dwCharsConverted=UTF8toUTF16(pcTranslateBuffer, dwBytesRead, (unsigned int *)&dwBytesConverted, wszBuf, dwBufLen / sizeof(wchar_t));
+
+          if (dwBytesRead != dwBytesConverted)
+          {
+            //UTF-8 char was split
+            lpData->nBytesCurrent+=dwBytesConverted - dwBytesRead;
+            SetFilePointer(lpData->hFile, lpData->nBytesCurrent, NULL, FILE_BEGIN);
+          }
         }
         else
         {
-          if (lpData->nCodePage == CP_UNICODE_UTF8)
-            dwCharsConverted=UTF8toUTF16((char *)pBuffer, dwBytesRead, NULL, wpBuffer, dwBytesRead);
-          else
-            dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pBuffer, dwBytesRead, wpBuffer, dwBytesRead);
-        }
-        wpBuffer[dwCharsConverted]='\0';
+          dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pcTranslateBuffer, dwBytesRead, wszBuf, dwBufLen / sizeof(wchar_t));
 
-        //Detect new line
-        for (i=0; i < dwCharsConverted; ++i)
-        {
-          if (wpBuffer[i] == '\r')
+          if (dwCharsConverted > 0)
           {
-            if (wpBuffer[i + 1] == '\r' && wpBuffer[i + 2] == '\n')
+            if (pcTranslateBuffer[dwBytesRead - 1] != '\0' &&
+                wszBuf[dwCharsConverted - 1] == '\0')
             {
-              //Windows format \r\r\n
-              lpData->nNewLine=NEWLINE_WIN;
-              break;
+              //Double-byte char was split
+              --lpData->nBytesCurrent;
+              SetFilePointer(lpData->hFile, lpData->nBytesCurrent, NULL, FILE_BEGIN);
+              --dwCharsConverted;
             }
-            else if (wpBuffer[i + 1] == '\n')
-            {
-              //Windows format \r\n
-              lpData->nNewLine=NEWLINE_WIN;
-              break;
-            }
-
-            //MacOS format \r
-            lpData->nNewLine=NEWLINE_MAC;
-            break;
-          }
-          else if (wpBuffer[i] == '\n')
-          {
-            //Unix format \n
-            lpData->nNewLine=NEWLINE_UNIX;
-            break;
           }
         }
-
-        //Send to AkelEdit
-        SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
-        SendMessage(lpData->hWnd, AEM_SETTEXTW, (WPARAM)dwCharsConverted, (LPARAM)wpBuffer);
       }
-      else lpData->bResult=FALSE;
-
-      API_HeapFree(hHeap, 0, (LPVOID)wpBuffer);
+      wszBuf[dwCharsConverted]='\0';
     }
-    else lpData->bResult=FALSE;
   }
-  else lpData->bResult=FALSE;
+  *dwBufDone=dwCharsConverted * sizeof(wchar_t);
+
+  return 0;
 }
 
 int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
@@ -5942,17 +5952,17 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
 
 void FileStreamOut(FILESTREAMDATA *lpData)
 {
-  AESTREAM aes;
+  AESTREAMOUT aeso;
 
-  aes.dwCookie=(DWORD)lpData;
-  aes.lpCallback=OutputStreamCallback;
+  aeso.dwCookie=(DWORD)lpData;
+  aeso.lpCallback=OutputStreamCallback;
+  aeso.nNewLine=AELB_ASOUTPUT;
   if (lpData->dwFlags & SD_SELECTION)
-    aes.bColumnSel=SendMessage(lpData->hWnd, AEM_GETCOLUMNSEL, 0, 0);
+    aeso.bColumnSel=SendMessage(lpData->hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
-    aes.bColumnSel=FALSE;
-  aes.nNewLine=AELB_ASOUTPUT;
-  SendMessage(lpData->hWnd, AEM_STREAMOUT, (lpData->dwFlags & SD_SELECTION)?(AESF_SELECTION|AESF_FILLSPACES):0, (LPARAM)&aes);
-  lpData->bResult=!aes.dwError;
+    aeso.bColumnSel=FALSE;
+  SendMessage(lpData->hWnd, AEM_STREAMOUT, (lpData->dwFlags & SD_SELECTION)?(AESF_SELECTION|AESF_FILLSPACES):0, (LPARAM)&aeso);
+  lpData->bResult=!aeso.dwError;
 }
 
 DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
@@ -8021,14 +8031,26 @@ int FilePreviewA(HWND hWnd, char *pFile, int nPreviewBytes, DWORD dwFlags, int *
   if ((hFile=API_CreateFileA(pFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
     return EOD_OPEN;
 
+  //Offset BOM
+  fsd.nBytesCurrent=0;
+
   if (*bBOM)
   {
     if (*nCodePage == CP_UNICODE_UCS2_LE)
+    {
       SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=2;
+    }
     else if (*nCodePage == CP_UNICODE_UCS2_BE)
+    {
       SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=2;
+    }
     else if (*nCodePage == CP_UNICODE_UTF8)
+    {
       SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=3;
+    }
   }
 
   fsd.hWnd=hWnd;
@@ -8059,14 +8081,26 @@ int FilePreviewW(HWND hWnd, wchar_t *wpFile, int nPreviewBytes, DWORD dwFlags, i
   if ((hFile=API_CreateFileW(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
     return EOD_OPEN;
 
+  //Offset BOM
+  fsd.nBytesCurrent=0;
+
   if (*bBOM)
   {
     if (*nCodePage == CP_UNICODE_UCS2_LE)
+    {
       SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=2;
+    }
     else if (*nCodePage == CP_UNICODE_UCS2_BE)
+    {
       SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=2;
+    }
     else if (*nCodePage == CP_UNICODE_UTF8)
+    {
       SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
+      fsd.nBytesCurrent=3;
+    }
   }
 
   fsd.hWnd=hWnd;
@@ -8592,73 +8626,90 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   return FALSE;
 }
 
-unsigned int UTF8toUTF16(const char *pMultiString, unsigned int nMultiString, unsigned int *nMultiStringRemain,  wchar_t *wszWideString, unsigned int nWideString)
+unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax)
 {
-  const unsigned char *lpMultiString=(const unsigned char *)pMultiString;
   unsigned int i=0;
   unsigned int ti=0;
+  int nRemain=0;
 
-  while (i < nMultiString && ti < nWideString)
+  while (i < nMultiStringLen && ti < nWideStringMax)
   {
-    if (lpMultiString[i] < 0x80)
+    if (pMultiString[i] < 0x80)
     {
-      wszWideString[ti]=lpMultiString[i++];
+      wszWideString[ti]=pMultiString[i++];
     }
-    else if (lpMultiString[i] < 0xE0)
+    else if (pMultiString[i] < 0xE0)
     {
-      wszWideString[ti]=(lpMultiString[i++] & 0x1F) << 6;
-      if (i >= nMultiString || !lpMultiString[i]) {nMultiString=i - 1; return ti;}
-      wszWideString[ti]=wszWideString[ti] + (lpMultiString[i++] & 0x7F);
+      wszWideString[ti]=(pMultiString[i++] & 0x1F) << 6;
+      if (i >= nMultiStringLen)
+      {
+        nRemain=-1;
+        break;
+      }
+      wszWideString[ti]=wszWideString[ti] + (pMultiString[i++] & 0x7F);
     }
-    else if (lpMultiString[i] < 0xF0)
+    else if (pMultiString[i] < 0xF0)
     {
-      wszWideString[ti]=(lpMultiString[i++] & 0xF) << 12;
-      if (i >= nMultiString || !lpMultiString[i]) {nMultiString=i - 1; return ti;}
-      wszWideString[ti]=wszWideString[ti] + ((lpMultiString[i++] & 0x7F) << 6);
-      if (i >= nMultiString || !lpMultiString[i]) {nMultiString=i - 2; return ti;}
-      wszWideString[ti]=wszWideString[ti] + (lpMultiString[i++] & 0x7F);
+      wszWideString[ti]=(pMultiString[i++] & 0xF) << 12;
+      if (i >= nMultiStringLen)
+      {
+        nRemain=-1;
+        break;
+      }
+      wszWideString[ti]=wszWideString[ti] + ((pMultiString[i++] & 0x7F) << 6);
+      if (i >= nMultiStringLen)
+      {
+        nRemain=-2;
+        break;
+      }
+      wszWideString[ti]=wszWideString[ti] + (pMultiString[i++] & 0x7F);
     }
-    else {++i; continue;}
-
+    else
+    {
+      ++i;
+      continue;
+    }
     ++ti;
   }
-  if (i < nMultiString && ti < nWideString)
+  if (i < nMultiStringLen && ti < nWideStringMax)
     wszWideString[ti++]='\0';
-  if (nMultiStringRemain) *nMultiStringRemain=nMultiString - i;
+  if (nRemain < 0)
+    wszWideString[ti]='\0';
+  if (nMultiStringDone)
+    *nMultiStringDone=i + nRemain;
   return ti;
 }
 
-unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideString, char *szMultiString, unsigned int nMultiString)
+unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, char *szMultiString, unsigned int nMultiStringMax)
 {
-  unsigned char *lpMultiString=(unsigned char *)szMultiString;
   unsigned int i=0;
   unsigned int ti=0;
 
-  while (ti < nWideString)
+  while (ti < nWideStringLen)
   {
     if (wpWideString[ti] < 0x80)
     {
-      if (i + 1 > nMultiString) return i;
-      lpMultiString[i++]=(unsigned char)wpWideString[ti];
+      if (i + 1 > nMultiStringMax) return i;
+      szMultiString[i++]=(unsigned char)wpWideString[ti];
     }
     else if (wpWideString[ti] < 0x800)
     {
-      if (i + 2 > nMultiString) return i;
-      lpMultiString[i++]=0xC0|((wpWideString[ti] >> 6) & 0x1F);
-      lpMultiString[i++]=0x80|(wpWideString[ti] & 0x3F);
+      if (i + 2 > nMultiStringMax) return i;
+      szMultiString[i++]=0xC0|((wpWideString[ti] >> 6) & 0x1F);
+      szMultiString[i++]=0x80|(wpWideString[ti] & 0x3F);
     }
     else
     {
       //wpWideString[ti] < 0x10000
-      if (i + 3 > nMultiString) return i;
-      lpMultiString[i++]=0xE0|((wpWideString[ti] >> 12) & 0xF);
-      lpMultiString[i++]=0x80|((wpWideString[ti] >> 6) & 0x3F);
-      lpMultiString[i++]=0x80|(wpWideString[ti] & 0x3F);
+      if (i + 3 > nMultiStringMax) return i;
+      szMultiString[i++]=0xE0|((wpWideString[ti] >> 12) & 0xF);
+      szMultiString[i++]=0x80|((wpWideString[ti] >> 6) & 0x3F);
+      szMultiString[i++]=0x80|(wpWideString[ti] & 0x3F);
     }
     ++ti;
   }
-  if (ti < nWideString)
-    lpMultiString[i++]='\0';
+  if (ti < nWideStringLen)
+    szMultiString[i++]='\0';
   return i;
 }
 
@@ -8702,15 +8753,15 @@ int IsCodePageMismatch(HWND hWnd, int nCodePage)
   return FALSE;
 }
 
-unsigned int TranslateNewLinesToUnixW(wchar_t *wpWideString, unsigned int nWideString)
+unsigned int TranslateNewLinesToUnixW(wchar_t *wszWideString, unsigned int nWideStringLen)
 {
   unsigned int a;
   unsigned int b;
 
-  for (a=0, b=0; a < nWideString && wpWideString[a]; ++a, ++b)
+  for (a=0, b=0; a < nWideStringLen && wszWideString[a]; ++a, ++b)
   {
-    if (wpWideString[a] == '\r' && wpWideString[a + 1] == '\n') ++a;
-    wpWideString[b]=wpWideString[a];
+    if (wszWideString[a] == '\r' && wszWideString[a + 1] == '\n') ++a;
+    wszWideString[b]=wszWideString[a];
   }
   return b;
 }
