@@ -9681,7 +9681,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   DWORD dwStartTime=GetTickCount();
   DWORD dwProgressTime=0;
   DWORD dwCurrentTime=0;
-  DWORD dwBufLen=4;
+  DWORD dwBufLen=2048;
   DWORD dwBufDone;
   DWORD dwResult=0;
   int nNewLine=aesi->nNewLine;
@@ -9873,51 +9873,48 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           {
             if (nApproxLinesCount > nLinesInPage)
             {
-              if (lpElement->nLineBreak != AELB_EOF)
-              {
-                bUpdated=TRUE;
+              bUpdated=TRUE;
 
-                nLineBreak=((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak;
-                ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=AELB_EOF;
-                --ae->ptxt->nLastCharOffset;
-                AE_RemoveNoneNewLine(ae);
+              nLineBreak=((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak;
+              ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=AELB_EOF;
+              --ae->ptxt->nLastCharOffset;
+              AE_RemoveNoneNewLine(ae);
+
+              ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
+              AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+              ae->ciCaretIndex=ciCaretChar;
+              ae->ciSelStartIndex=ciCaretChar;
+              ae->ciSelEndIndex=ciCaretChar;
+
+              if (!(ae->popt->dwOptions & AECO_DISABLENOSCROLL))
+                AE_UpdateScrollBars(ae, SB_VERT);
+
+              if (ae->ptxt->nWordWrap)
+              {
+                ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->nWordWrap);
 
                 ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
                 AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
                 ae->ciCaretIndex=ciCaretChar;
                 ae->ciSelStartIndex=ciCaretChar;
                 ae->ciSelEndIndex=ciCaretChar;
-
-                if (!(ae->popt->dwOptions & AECO_DISABLENOSCROLL))
-                  AE_UpdateScrollBars(ae, SB_VERT);
-
-                if (ae->ptxt->nWordWrap)
-                {
-                  ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->nWordWrap);
-
-                  ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
-                  AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
-                  ae->ciCaretIndex=ciCaretChar;
-                  ae->ciSelStartIndex=ciCaretChar;
-                  ae->ciSelEndIndex=ciCaretChar;
-                }
-                InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-                UpdateWindow(ae->hWndEdit);
-
-                //Restore variables
-                ++ae->ptxt->nLastCharOffset;
-                ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
-                ae->liFirstDrawLine.nLine=0;
-                ae->liFirstDrawLine.lpLine=NULL;
-                ae->nFirstDrawLineOffset=0;
-                ae->ciLastCallIndex.nLine=0;
-                ae->ciLastCallIndex.nCharInLine=0;
-                ae->ciLastCallIndex.lpLine=NULL;
-                ae->nLastCallOffset=0;
-                ae->ptxt->liLineUnwrapLastCall.nLine=0;
-                ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
-                ae->ptxt->nLineUnwrapLastCall=0;
               }
+              InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+              UpdateWindow(ae->hWndEdit);
+
+              //Restore variables
+              ++ae->ptxt->nLastCharOffset;
+              ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
+              ae->liFirstDrawLine.nLine=0;
+              ae->liFirstDrawLine.lpLine=NULL;
+              ae->nFirstDrawLineOffset=0;
+              ae->ciLastCallIndex.nLine=0;
+              ae->ciLastCallIndex.nCharInLine=0;
+              ae->ciLastCallIndex.lpLine=NULL;
+              ae->nLastCallOffset=0;
+              ae->ptxt->liLineUnwrapLastCall.nLine=0;
+              ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
+              ae->ptxt->nLineUnwrapLastCall=0;
             }
           }
           lpElement=(AELINEDATA *)ae->ptxt->hLinesStack.last;
