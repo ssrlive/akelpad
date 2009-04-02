@@ -10056,6 +10056,9 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
           //Replace operation
           if (nChanges=StrReplaceA(szRangeText, nRangeTextLen, pFindIt, nFindItLen, pReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, szResultText, NULL, &nMin, &nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
           {
+            FreeText(szRangeText);
+            szRangeText=NULL;
+
             //Stop redraw
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
@@ -10100,7 +10103,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
           API_HeapFree(hHeap, 0, (LPVOID)szResultText);
         }
       }
-      FreeText(szRangeText);
+      if (szRangeText) FreeText(szRangeText);
     }
   }
   else
@@ -10211,6 +10214,9 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
           //Replace operation
           if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, wszResultText, NULL, &nMin, &nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
           {
+            FreeText(wszRangeText);
+            wszRangeText=NULL;
+
             //Stop redraw
             SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
@@ -10255,7 +10261,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
           API_HeapFree(hHeap, 0, (LPVOID)wszResultText);
         }
       }
-      FreeText(wszRangeText);
+      if (wszRangeText) FreeText(wszRangeText);
     }
   }
   else
@@ -11882,6 +11888,8 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
       if (wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nUnicodeLen * sizeof(wchar_t)))
       {
         MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
+        API_HeapFree(hHeap, 0, (LPVOID)szText);
+        szText=NULL;
 
         ReplaceSelW(hWnd, wszText, nUnicodeLen - 1, -1, &crRange.ciMin, &crRange.ciMax);
 
@@ -11900,7 +11908,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
 
         API_HeapFree(hHeap, 0, (LPVOID)wszText);
       }
-      API_HeapFree(hHeap, 0, (LPVOID)szText);
+      if (szText) API_HeapFree(hHeap, 0, (LPVOID)szText);
     }
     FreeText(wszSelText);
   }
