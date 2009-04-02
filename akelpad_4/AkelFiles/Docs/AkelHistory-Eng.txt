@@ -1,6 +1,8 @@
 
 AkelPad 4.2.1 ()
 ----------------------------
+Changed: streaming file opening.
+
 Fixed: occurrence of a vertical scrollbar at new file creation in word wrap mode (MDI).
 
 

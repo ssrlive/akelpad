@@ -67,8 +67,7 @@
 //AEN_PROGRESS type
 #define AEPGS_SETTEXT           0x00000001  //Setting text.
 #define AEPGS_WRAPTEXT          0x00000002  //Wrapping text.
-#define AEPGS_INSERTTEXT        0x00000004  //Inserting text (not implemented).
-#define AEPGS_DELETETEXT        0x00000008  //Deleting text (not implemented).
+#define AEPGS_STREAMIN          0x00000004  //Receiving stream text.
 
 //AEM_SETOPTIONS flags
 #define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
@@ -206,7 +205,7 @@
 
 //AEM_STREAMIN, AEM_STREAMOUT flags
 #define AESF_SELECTION       0x00000001  //Stream-in (read) or stream-out (write) the current selection. If not specified, stream-in (read) or stream-out (write) the entire contents of the control.
-#define AESF_FILLSPACES      0x00000002  //Stream-out (write) the current column selection with the filling empty spaces. Valid if bColumnSel member of a AESTREAM structure is TRUE.
+#define AESF_FILLSPACES      0x00000002  //Stream-out (write) the current column selection with the filling empty spaces. Valid if bColumnSel member of a AESTREAMOUT structure is TRUE.
 
 #ifndef FR_DOWN
   #define FR_DOWN 0x00000001
@@ -268,7 +267,7 @@
 #endif
 
 typedef DWORD (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
-//dwCookie    Value of the dwCookie member of the AESTREAM structure. The application specifies this value when it sends the EM_STREAMIN or EM_STREAMOUT message.
+//dwCookie    Value of the dwCookie member of the AESTREAMIN or AESTREAMOUT structure. The application specifies this value when it sends the AEM_STREAMIN or AEM_STREAMOUT message.
 //wszBuf      Pointer to a buffer to read from or write to. For a stream-in (read) operation, the callback function fills this buffer with data to transfer into the edit control. For a stream-out (write) operation, the buffer contains data from the control that the callback function writes to some storage.
 //dwBufLen    Number of bytes to read or write.
 //dwBufDone   Pointer to a variable that the callback function sets to the number of bytes actually read or written.
@@ -387,11 +386,19 @@ typedef struct {
 
 typedef struct {
   DWORD dwCookie;               //Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
-  DWORD dwError;                //Indicates the results of the stream-in (read) or stream-out (write) operation.
+  DWORD dwError;                //Indicates the results of the stream-in (read) operation.
   AEStreamCallback lpCallback;  //Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
-  BOOL bColumnSel;              //Column selection.
   int nNewLine;                 //See AELB_* defines.
-} AESTREAM;
+  DWORD dwTextLen;              //Text length. Need if using AEN_PROGRESS notification.
+} AESTREAMIN;
+
+typedef struct {
+  DWORD dwCookie;               //Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
+  DWORD dwError;                //Indicates the results of the stream-out (write) operation.
+  AEStreamCallback lpCallback;  //Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
+  int nNewLine;                 //See AELB_* defines.
+  BOOL bColumnSel;              //Column selection.
+} AESTREAMOUT;
 
 typedef struct {
   DWORD dwFlags;           //See AEFR_* defines.
@@ -1093,8 +1100,8 @@ ____________
 
 Replace the contents of an edit control with a stream of data provided by an application defined callback function.
 
-(DWORD)wParam      == see AESF_* defines.
-(AESTREAM *)lParam == pointer to a AESTREAM structure.
+(DWORD)wParam        == see AESF_* defines.
+(AESTREAMIN *)lParam == pointer to a AESTREAMIN structure.
 
 Return Value
  Number of characters read.
@@ -1106,18 +1113,18 @@ Example:
    int nCount;
  } STREAMINDATA;
 
- AESTREAM aes;
+ AESTREAMIN aesi;
  STREAMINDATA sid;
 
  sid.wpData=L"SomeText";
  sid.nDataLen=lstrlenW(sid.wpData);
  sid.nCount=0;
 
- aes.dwCookie=(DWORD)&sid;
- aes.lpCallback=InputStreamCallback;
- aes.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
- aes.nNewLine=AELB_ASINPUT;
- SendMessage(hWndEdit, AEM_STREAMIN, AESF_SELECTION, (LPARAM)&aes);
+ aesi.dwCookie=(DWORD)&sid;
+ aesi.lpCallback=InputStreamCallback;
+ aesi.nNewLine=AELB_ASINPUT;
+ aesi.dwTextLen=sid.nDataLen;
+ SendMessage(hWndEdit, AEM_STREAMIN, AESF_SELECTION, (LPARAM)&aesi);
 
  DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
  {
@@ -1145,8 +1152,8 @@ _____________
 Cause an edit control to pass its contents to an application defined callback function.
 The callback function can then write the stream of data to a file or any other location that it chooses.
 
-(DWORD)wParam      == see AESF_* defines.
-(AESTREAM *)lParam == pointer to a AESTREAM structure.
+(DWORD)wParam         == see AESF_* defines.
+(AESTREAMOUT *)lParam == pointer to a AESTREAMOUT structure.
 
 Return Value
  Number of characters written to the data stream.
@@ -1156,18 +1163,18 @@ Example:
    HANDLE hFile;
  } STREAMOUTDATA;
 
- AESTREAM aes;
+ AESTREAMOUT aeso;
  STREAMOUTDATA sod;
 
  sod.hFile=CreateFileA("C:\\Test.tmp", GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
  if (sod.hFile != INVALID_HANDLE_VALUE)
  {
-   aes.dwCookie=(DWORD)&sod;
-   aes.lpCallback=OutputStreamCallback;
-   aes.bColumnSel=FALSE;
-   aes.nNewLine=AELB_ASOUTPUT;
-   SendMessage(hWndEdit, AEM_STREAMOUT, 0, (LPARAM)&aes);
+   aeso.dwCookie=(DWORD)&sod;
+   aeso.lpCallback=OutputStreamCallback;
+   aeso.nNewLine=AELB_ASOUTPUT;
+   aeso.bColumnSel=FALSE;
+   SendMessage(hWndEdit, AEM_STREAMOUT, 0, (LPARAM)&aeso);
 
    CloseHandle(sod.hFile);
  }
