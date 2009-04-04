@@ -1,7 +1,7 @@
 
 AkelPad 4.2.1 ()
 ----------------------------
-Changed: streaming file opening.
+Changed: file now isn't read out entirely in memory before opening (stream opening).
 
 Fixed: occurrence of a vertical scrollbar at new file creation in word wrap mode (MDI).
 
