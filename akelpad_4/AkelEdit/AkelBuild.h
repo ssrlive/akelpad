@@ -49,6 +49,10 @@
 //StreamIn HIBYTE new line
 #define AELB_SPLIT    1
 
+//AE_CalcLinesWidth flags
+#define AECLW_FRESH            0x00000001
+#define AECLW_LOCKUPDATE       0x00000002
+
 //AE_InsertText flags
 #define AEINST_LOCKUNDO        0x00000001
 #define AEINST_LOCKSCROLL      0x00000002
@@ -418,7 +422,7 @@ int AE_UpdateWrap(AKELEDIT *ae, int nWrap);
 int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, int nWrap);
 int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwMaxWidth, int nWrap);
 int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth);
-void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELINEINDEX *liEndLine, BOOL bFresh);
+void AE_CalcLinesWidth(AKELEDIT *ae, const AELINEINDEX *liStartLine, const AELINEINDEX *liEndLine, DWORD dwFlags);
 int AE_CheckCodepage(AKELEDIT *ae, int nCodePage);
 void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw);
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
