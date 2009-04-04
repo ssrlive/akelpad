@@ -3348,6 +3348,65 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
 }
 
+HANDLE AE_HeapCreate(AKELEDIT *ae)
+{
+  //Free memory
+  if (ae->ptxt->hHeap)
+  {
+    if (HeapDestroy(ae->ptxt->hHeap))
+      ae->ptxt->hHeap=NULL;
+    ae->ptxt->hLinesStack.first=0;
+    ae->ptxt->hLinesStack.last=0;
+    ae->ptxt->hUndoStack.first=0;
+    ae->ptxt->hUndoStack.last=0;
+    ae->ptxt->lpCurrentUndo=NULL;
+    ae->ptxt->lpSavePoint=NULL;
+    ae->ptxt->bSavePointExist=TRUE;
+    ae->ptxt->dwUndoCount=0;
+    ae->ptxt->liMaxWidthLine.nLine=0;
+    ae->ptxt->liMaxWidthLine.lpLine=NULL;
+    ae->ptxt->liLineUnwrapLastCall.nLine=0;
+    ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
+    ae->ptxt->nLastCharOffset=0;
+    ae->ptxt->nLineCount=0;
+    ae->ptxt->nLineUnwrapCount=0;
+    ae->ptxt->nLineUnwrapLastCall=0;
+    ae->ptxt->nHScrollMax=0;
+    ae->ptxt->nVScrollMax=0;
+    ae->liFirstDrawLine.nLine=0;
+    ae->liFirstDrawLine.lpLine=NULL;
+    ae->ciSelStartIndex.nLine=0;
+    ae->ciSelStartIndex.nCharInLine=0;
+    ae->ciSelStartIndex.lpLine=NULL;
+    ae->ciSelEndIndex.nLine=0;
+    ae->ciSelEndIndex.nCharInLine=0;
+    ae->ciSelEndIndex.lpLine=NULL;
+    ae->ciCaretIndex.nLine=0;
+    ae->ciCaretIndex.nCharInLine=0;
+    ae->ciCaretIndex.lpLine=NULL;
+    ae->ciLastCallIndex.nLine=0;
+    ae->ciLastCallIndex.nCharInLine=0;
+    ae->ciLastCallIndex.lpLine=NULL;
+    ae->nFirstDrawLineOffset=0;
+    ae->nSelStartCharOffset=0;
+    ae->nSelEndCharOffset=0;
+    ae->nLastCallOffset=0;
+    ae->nHScrollPos=0;
+    ae->nVScrollPos=0;
+    ae->nLastHScrollPos=0;
+    ae->nLastVScrollPos=0;
+    ae->ptCaret.x=0;
+    ae->ptCaret.y=0;
+    ae->nHorizCaretPos=0;
+    ae->bColumnSel=FALSE;
+  }
+
+  //Create heap
+  ae->ptxt->hHeap=HeapCreate(0, 0, 0);
+
+  return ae->ptxt->hHeap;
+}
+
 LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes)
 {
   LPVOID lpResult;
@@ -9433,57 +9492,8 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   else if (nNewLine == AELB_ASOUTPUT)
     nNewLine=ae->popt->nOutputNewLine;
 
-  //Free memory
-  if (ae->ptxt->hHeap)
-  {
-    if (HeapDestroy(ae->ptxt->hHeap))
-      ae->ptxt->hHeap=NULL;
-    ae->ptxt->hLinesStack.first=0;
-    ae->ptxt->hLinesStack.last=0;
-    ae->ptxt->hUndoStack.first=0;
-    ae->ptxt->hUndoStack.last=0;
-    ae->ptxt->lpCurrentUndo=NULL;
-    ae->ptxt->lpSavePoint=NULL;
-    ae->ptxt->bSavePointExist=TRUE;
-    ae->ptxt->dwUndoCount=0;
-    ae->ptxt->liMaxWidthLine.nLine=0;
-    ae->ptxt->liMaxWidthLine.lpLine=NULL;
-    ae->ptxt->liLineUnwrapLastCall.nLine=0;
-    ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
-    ae->ptxt->nLastCharOffset=0;
-    ae->ptxt->nLineCount=0;
-    ae->ptxt->nLineUnwrapCount=0;
-    ae->ptxt->nLineUnwrapLastCall=0;
-    ae->ptxt->nHScrollMax=0;
-    ae->ptxt->nVScrollMax=0;
-    ae->liFirstDrawLine.nLine=0;
-    ae->liFirstDrawLine.lpLine=NULL;
-    ae->ciSelStartIndex.nLine=0;
-    ae->ciSelStartIndex.nCharInLine=0;
-    ae->ciSelStartIndex.lpLine=NULL;
-    ae->ciSelEndIndex.nLine=0;
-    ae->ciSelEndIndex.nCharInLine=0;
-    ae->ciSelEndIndex.lpLine=NULL;
-    ae->ciCaretIndex.nLine=0;
-    ae->ciCaretIndex.nCharInLine=0;
-    ae->ciCaretIndex.lpLine=NULL;
-    ae->ciLastCallIndex.nLine=0;
-    ae->ciLastCallIndex.nCharInLine=0;
-    ae->ciLastCallIndex.lpLine=NULL;
-    ae->nFirstDrawLineOffset=0;
-    ae->nSelStartCharOffset=0;
-    ae->nSelEndCharOffset=0;
-    ae->nLastCallOffset=0;
-    ae->nHScrollPos=0;
-    ae->nVScrollPos=0;
-    ae->nLastHScrollPos=0;
-    ae->nLastVScrollPos=0;
-    ae->ptCaret.x=0;
-    ae->ptCaret.y=0;
-    ae->nHorizCaretPos=0;
-    ae->bColumnSel=FALSE;
-  }
-  ae->ptxt->hHeap=HeapCreate(0, 0, 0);
+  //Free old and create new heap
+  AE_HeapCreate(ae);
 
   //Get DC for faster AE_GetTextExtentPoint32
   if (!ae->hDC)
@@ -9741,57 +9751,8 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
     }
     else
     {
-      //Free memory
-      if (ae->ptxt->hHeap)
-      {
-        if (HeapDestroy(ae->ptxt->hHeap))
-          ae->ptxt->hHeap=NULL;
-        ae->ptxt->hLinesStack.first=0;
-        ae->ptxt->hLinesStack.last=0;
-        ae->ptxt->hUndoStack.first=0;
-        ae->ptxt->hUndoStack.last=0;
-        ae->ptxt->lpCurrentUndo=NULL;
-        ae->ptxt->lpSavePoint=NULL;
-        ae->ptxt->bSavePointExist=TRUE;
-        ae->ptxt->dwUndoCount=0;
-        ae->ptxt->liMaxWidthLine.nLine=0;
-        ae->ptxt->liMaxWidthLine.lpLine=NULL;
-        ae->ptxt->liLineUnwrapLastCall.nLine=0;
-        ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
-        ae->ptxt->nLastCharOffset=0;
-        ae->ptxt->nLineCount=0;
-        ae->ptxt->nLineUnwrapCount=0;
-        ae->ptxt->nLineUnwrapLastCall=0;
-        ae->ptxt->nHScrollMax=0;
-        ae->ptxt->nVScrollMax=0;
-        ae->liFirstDrawLine.nLine=0;
-        ae->liFirstDrawLine.lpLine=NULL;
-        ae->ciSelStartIndex.nLine=0;
-        ae->ciSelStartIndex.nCharInLine=0;
-        ae->ciSelStartIndex.lpLine=NULL;
-        ae->ciSelEndIndex.nLine=0;
-        ae->ciSelEndIndex.nCharInLine=0;
-        ae->ciSelEndIndex.lpLine=NULL;
-        ae->ciCaretIndex.nLine=0;
-        ae->ciCaretIndex.nCharInLine=0;
-        ae->ciCaretIndex.lpLine=NULL;
-        ae->ciLastCallIndex.nLine=0;
-        ae->ciLastCallIndex.nCharInLine=0;
-        ae->ciLastCallIndex.lpLine=NULL;
-        ae->nFirstDrawLineOffset=0;
-        ae->nSelStartCharOffset=0;
-        ae->nSelEndCharOffset=0;
-        ae->nLastCallOffset=0;
-        ae->nHScrollPos=0;
-        ae->nVScrollPos=0;
-        ae->nLastHScrollPos=0;
-        ae->nLastVScrollPos=0;
-        ae->ptCaret.x=0;
-        ae->ptCaret.y=0;
-        ae->nHorizCaretPos=0;
-        ae->bColumnSel=FALSE;
-      }
-      ae->ptxt->hHeap=HeapCreate(0, 0, 0);
+      //Free old and create new heap
+      AE_HeapCreate(ae);
 
       //Get DC for faster AE_GetTextExtentPoint32
       if (!ae->hDC)

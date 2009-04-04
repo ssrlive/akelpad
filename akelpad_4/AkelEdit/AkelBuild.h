@@ -370,6 +370,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance);
 BOOL AE_UnregisterClassA(HINSTANCE hInstance);
 BOOL AE_UnregisterClassW(HINSTANCE hInstance);
 LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+HANDLE AE_HeapCreate(AKELEDIT *ae);
 LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes);
 BOOL AE_HeapFree(AKELEDIT *ae, DWORD dwFlags, LPVOID lpMem);
 int AE_HeapStackInsert(AKELEDIT *ae, stack **first, stack **last, stack **element, int nIndex, int nBytes);
