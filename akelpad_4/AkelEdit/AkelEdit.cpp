@@ -9715,7 +9715,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   {
     if (dwFlags & AESF_SELECTION)
     {
-      //AESF_SELECTION flag is slow for very long lines, when word wrap is off
+      //When word wrap is off, AESF_SELECTION flag is slow for very long lines
       AE_StackUndoGroupStop(ae);
       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
 
