@@ -5443,7 +5443,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
       {
         dwCurrentTime=GetTickCount();
 
-        if (dwCurrentTime - dwProgressTime > AETIME_PROGRESS)
+        if (dwCurrentTime - dwProgressTime > AETIME_BEFOREPROGRESS)
         {
           if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, dwCurrentTime - dwStartTime, liCount.nLine - nLineCount, nStopLine))
             break;
@@ -9519,7 +9519,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       {
         dwCurrentTime=GetTickCount();
 
-        if (dwCurrentTime - dwProgressTime > AETIME_PROGRESS)
+        if (dwCurrentTime - dwProgressTime > AETIME_BEFOREPROGRESS)
         {
           if (AE_NotifyProgress(ae, AEPGS_SETTEXT, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
             break;
@@ -9557,46 +9557,51 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
         {
           if (lpElement->nLineBreak != AELB_EOF)
           {
-            bUpdated=TRUE;
-            nLineBreak=lpElement->nLineBreak;
-            lpElement->nLineBreak=AELB_EOF;
-            --ae->ptxt->nLastCharOffset;
+            dwCurrentTime=GetTickCount();
 
-            ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
-            AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
-            ae->ciCaretIndex=ciCaretChar;
-            ae->ciSelStartIndex=ciCaretChar;
-            ae->ciSelEndIndex=ciCaretChar;
-
-            if (!(ae->popt->dwOptions & AECO_DISABLENOSCROLL))
-              AE_UpdateScrollBars(ae, SB_VERT);
-
-            if (ae->ptxt->nWordWrap)
+            if (dwCurrentTime - dwStartTime > AETIME_BEFOREUPDATE)
             {
-              ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->nWordWrap);
+              bUpdated=TRUE;
+              nLineBreak=lpElement->nLineBreak;
+              lpElement->nLineBreak=AELB_EOF;
+              --ae->ptxt->nLastCharOffset;
 
               ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
               AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
               ae->ciCaretIndex=ciCaretChar;
               ae->ciSelStartIndex=ciCaretChar;
               ae->ciSelEndIndex=ciCaretChar;
-            }
-            InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-            UpdateWindow(ae->hWndEdit);
 
-            //Restore variables
-            ++ae->ptxt->nLastCharOffset;
-            ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
-            ae->liFirstDrawLine.nLine=0;
-            ae->liFirstDrawLine.lpLine=NULL;
-            ae->nFirstDrawLineOffset=0;
-            ae->ciLastCallIndex.nLine=0;
-            ae->ciLastCallIndex.nCharInLine=0;
-            ae->ciLastCallIndex.lpLine=NULL;
-            ae->nLastCallOffset=0;
-            ae->ptxt->liLineUnwrapLastCall.nLine=0;
-            ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
-            ae->ptxt->nLineUnwrapLastCall=0;
+              if (!(ae->popt->dwOptions & AECO_DISABLENOSCROLL))
+                AE_UpdateScrollBars(ae, SB_VERT);
+
+              if (ae->ptxt->nWordWrap)
+              {
+                ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->nWordWrap);
+
+                ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
+                AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+                ae->ciCaretIndex=ciCaretChar;
+                ae->ciSelStartIndex=ciCaretChar;
+                ae->ciSelEndIndex=ciCaretChar;
+              }
+              InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+              UpdateWindow(ae->hWndEdit);
+
+              //Restore variables
+              ++ae->ptxt->nLastCharOffset;
+              ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
+              ae->liFirstDrawLine.nLine=0;
+              ae->liFirstDrawLine.lpLine=NULL;
+              ae->nFirstDrawLineOffset=0;
+              ae->ciLastCallIndex.nLine=0;
+              ae->ciLastCallIndex.nCharInLine=0;
+              ae->ciLastCallIndex.lpLine=NULL;
+              ae->nLastCallOffset=0;
+              ae->ptxt->liLineUnwrapLastCall.nLine=0;
+              ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
+              ae->ptxt->nLineUnwrapLastCall=0;
+            }
           }
         }
       }
@@ -9801,10 +9806,13 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           {
             dwCurrentTime=GetTickCount();
 
-            if (dwCurrentTime - dwProgressTime > AETIME_PROGRESS)
+            if (dwCurrentTime - dwProgressTime > AETIME_BEFOREPROGRESS)
             {
               if (AE_NotifyProgress(ae, AEPGS_STREAMIN, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
+              {
+                if (lpElement) lpElement->nLineBreak=LOBYTE(lpElement->nLineBreak);
                 break;
+              }
               dwProgressTime=GetTickCount();
             }
           }
@@ -9862,48 +9870,53 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           {
             if (nApproxLinesCount > nLinesInPage)
             {
-              bUpdated=TRUE;
+              dwCurrentTime=GetTickCount();
 
-              nLineBreak=((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak;
-              ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=AELB_EOF;
-              --ae->ptxt->nLastCharOffset;
-              AE_RemoveNoneNewLine(ae);
-
-              ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
-              AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
-              ae->ciCaretIndex=ciCaretChar;
-              ae->ciSelStartIndex=ciCaretChar;
-              ae->ciSelEndIndex=ciCaretChar;
-
-              if (!(ae->popt->dwOptions & AECO_DISABLENOSCROLL))
-                AE_UpdateScrollBars(ae, SB_VERT);
-
-              if (ae->ptxt->nWordWrap)
+              if (dwCurrentTime - dwStartTime > AETIME_BEFOREUPDATE)
               {
-                ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->nWordWrap);
+                bUpdated=TRUE;
+
+                nLineBreak=((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak;
+                ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=AELB_EOF;
+                --ae->ptxt->nLastCharOffset;
+                AE_RemoveNoneNewLine(ae);
 
                 ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
                 AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
                 ae->ciCaretIndex=ciCaretChar;
                 ae->ciSelStartIndex=ciCaretChar;
                 ae->ciSelEndIndex=ciCaretChar;
-              }
-              InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-              UpdateWindow(ae->hWndEdit);
 
-              //Restore variables
-              ++ae->ptxt->nLastCharOffset;
-              ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
-              ae->liFirstDrawLine.nLine=0;
-              ae->liFirstDrawLine.lpLine=NULL;
-              ae->nFirstDrawLineOffset=0;
-              ae->ciLastCallIndex.nLine=0;
-              ae->ciLastCallIndex.nCharInLine=0;
-              ae->ciLastCallIndex.lpLine=NULL;
-              ae->nLastCallOffset=0;
-              ae->ptxt->liLineUnwrapLastCall.nLine=0;
-              ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
-              ae->ptxt->nLineUnwrapLastCall=0;
+                if (!(ae->popt->dwOptions & AECO_DISABLENOSCROLL))
+                  AE_UpdateScrollBars(ae, SB_VERT);
+
+                if (ae->ptxt->nWordWrap)
+                {
+                  ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->nWordWrap);
+
+                  ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
+                  AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
+                  ae->ciCaretIndex=ciCaretChar;
+                  ae->ciSelStartIndex=ciCaretChar;
+                  ae->ciSelEndIndex=ciCaretChar;
+                }
+                InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+                UpdateWindow(ae->hWndEdit);
+
+                //Restore variables
+                ++ae->ptxt->nLastCharOffset;
+                ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=nLineBreak;
+                ae->liFirstDrawLine.nLine=0;
+                ae->liFirstDrawLine.lpLine=NULL;
+                ae->nFirstDrawLineOffset=0;
+                ae->ciLastCallIndex.nLine=0;
+                ae->ciLastCallIndex.nCharInLine=0;
+                ae->ciLastCallIndex.lpLine=NULL;
+                ae->nLastCallOffset=0;
+                ae->ptxt->liLineUnwrapLastCall.nLine=0;
+                ae->ptxt->liLineUnwrapLastCall.lpLine=NULL;
+                ae->ptxt->nLineUnwrapLastCall=0;
+              }
             }
           }
           lpElement=(AELINEDATA *)ae->ptxt->hLinesStack.last;
