@@ -9640,7 +9640,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     //End progress
     if (ae->popt->dwEventMask & AENM_PROGRESS)
     {
-      if (!bStopProgress)
+      if (!bFirstHeap && !bStopProgress)
       {
         AE_NotifyProgress(ae, AEPGS_SETTEXT, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
       }
@@ -9888,7 +9888,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                 nLineBreak=((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak;
                 ((AELINEDATA *)ae->ptxt->hLinesStack.last)->nLineBreak=AELB_EOF;
                 --ae->ptxt->nLastCharOffset;
-                AE_RemoveNoneNewLine(ae);
+                AE_JoinNewLines(ae);
 
                 ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
                 AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
@@ -9954,12 +9954,12 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           --ae->ptxt->nLineCount;
           --ae->ptxt->nLineUnwrapCount;
         }
-        AE_RemoveNoneNewLine(ae);
+        AE_JoinNewLines(ae);
 
         //End progress
         if (ae->popt->dwEventMask & AENM_PROGRESS)
         {
-          if (!bStopProgress)
+          if (!bFirstHeap && !bStopProgress)
           {
             AE_NotifyProgress(ae, AEPGS_STREAMIN, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
           }
@@ -10016,7 +10016,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   return dwResult;
 }
 
-int AE_RemoveNoneNewLine(AKELEDIT *ae)
+int AE_JoinNewLines(AKELEDIT *ae)
 {
   AELINEDATA *lpNewElement;
   AELINEDATA *lpCurElement;
