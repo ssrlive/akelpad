@@ -5271,6 +5271,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENPROGRESS *aenp=(AENPROGRESS *)lParam;
         MSG msg;
+        BOOL bStop=FALSE;
         static DWORD dwProgressType=0;
         static int nIncrement;
         static int nBarrier;
@@ -5304,25 +5305,39 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               nBarrier+=nIncrement;
             }
 
-            //Check for update window every second
-            if (aenp->dwTimeElapsed / 1000 > dwSeconds)
+            if (aenp->dwTimeElapsed / 500 > dwSeconds)
             {
-              dwSeconds=aenp->dwTimeElapsed / 1000;
+              dwSeconds=aenp->dwTimeElapsed / 500;
 
+              //Check for progress update
               while (PeekMessageA(&msg, hProgress, 0, 0, PM_REMOVE))
               {
                 TranslateMessage(&msg);
                 DispatchMessageA(&msg);
               }
+
+              //Check for stop processing
+              while (PeekMessageA(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
+              {
+                if (msg.wParam == VK_ESCAPE)
+                {
+                  bStop=TRUE;
+                }
+              }
             }
 
             //End progress
-            if (aenp->nCurrent == aenp->nMaximum)
+            if (aenp->nCurrent == aenp->nMaximum || bStop)
             {
               ShowWindow(hProgress, FALSE);
               UpdateWindow(hStatus);
-
               dwProgressType=0;
+
+              if (bStop)
+              {
+                PostMessage(hMainWnd, WM_COMMAND, MAKELONG(IDM_FILE_EXIT, 0), 0);
+                return 1;
+              }
             }
           }
         }
@@ -5533,6 +5548,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         AENPROGRESS *aenp=(AENPROGRESS *)lParam;
         MSG msg;
+        BOOL bStop=FALSE;
         static DWORD dwProgressType=0;
         static int nIncrement;
         static int nBarrier;
@@ -5566,25 +5582,39 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               nBarrier+=nIncrement;
             }
 
-            //Check for update window every second
-            if (aenp->dwTimeElapsed / 1000 > dwSeconds)
+            if (aenp->dwTimeElapsed / 500 > dwSeconds)
             {
-              dwSeconds=aenp->dwTimeElapsed / 1000;
+              dwSeconds=aenp->dwTimeElapsed / 500;
 
+              //Check for progress update
               while (PeekMessageW(&msg, hProgress, 0, 0, PM_REMOVE))
               {
                 TranslateMessage(&msg);
                 DispatchMessageW(&msg);
               }
+
+              //Check for stop processing
+              while (PeekMessageW(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
+              {
+                if (msg.wParam == VK_ESCAPE)
+                {
+                  bStop=TRUE;
+                }
+              }
             }
 
             //End progress
-            if (aenp->nCurrent == aenp->nMaximum)
+            if (aenp->nCurrent == aenp->nMaximum || bStop)
             {
               ShowWindow(hProgress, FALSE);
               UpdateWindow(hStatus);
-
               dwProgressType=0;
+
+              if (bStop)
+              {
+                PostMessage(hMainWnd, WM_COMMAND, MAKELONG(IDM_FILE_EXIT, 0), 0);
+                return 1;
+              }
             }
           }
         }
