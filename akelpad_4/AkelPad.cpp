@@ -5317,11 +5317,14 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               }
 
               //Check for stop processing
-              while (PeekMessageA(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
+              //if (dwProgressType == AEPGS_SETTEXT || dwProgressType == AEPGS_STREAMIN)
               {
-                if (msg.wParam == VK_ESCAPE)
+                while (PeekMessageA(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
                 {
-                  bStop=TRUE;
+                  if (msg.wParam == VK_ESCAPE)
+                  {
+                    bStop=TRUE;
+                  }
                 }
               }
             }
@@ -5335,7 +5338,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
               if (bStop)
               {
-                PostMessage(hMainWnd, WM_COMMAND, MAKELONG(IDM_FILE_EXIT, 0), 0);
+                PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
                 return 1;
               }
             }
@@ -5594,11 +5597,14 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               }
 
               //Check for stop processing
-              while (PeekMessageW(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
+              //if (dwProgressType == AEPGS_SETTEXT || dwProgressType == AEPGS_STREAMIN)
               {
-                if (msg.wParam == VK_ESCAPE)
+                while (PeekMessageW(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
                 {
-                  bStop=TRUE;
+                  if (msg.wParam == VK_ESCAPE)
+                  {
+                    bStop=TRUE;
+                  }
                 }
               }
             }
@@ -5612,7 +5618,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
               if (bStop)
               {
-                PostMessage(hMainWnd, WM_COMMAND, MAKELONG(IDM_FILE_EXIT, 0), 0);
+                PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
                 return 1;
               }
             }

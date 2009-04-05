@@ -5352,6 +5352,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   int nUnwrapped=0;
   int nStopLine;
   BOOL bPrevLine=FALSE;
+  BOOL bStopProgress=FALSE;
 
   if (nWrap)
   {
@@ -5401,7 +5402,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   {
     if (!liWrapStart && !liWrapEnd)
     {
-      if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, GetTickCount() - dwStartTime, 0, nStopLine))
+      if (bStopProgress=AE_NotifyProgress(ae, AEPGS_WRAPTEXT, GetTickCount() - dwStartTime, 0, nStopLine))
         return 0;
     }
   }
@@ -5445,7 +5446,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
 
         if (dwCurrentTime - dwProgressTime > AETIME_BEFOREPROGRESS)
         {
-          if (AE_NotifyProgress(ae, AEPGS_WRAPTEXT, dwCurrentTime - dwStartTime, liCount.nLine - nLineCount, nStopLine))
+          if (bStopProgress=AE_NotifyProgress(ae, AEPGS_WRAPTEXT, dwCurrentTime - dwStartTime, liCount.nLine - nLineCount, nStopLine))
             break;
           dwProgressTime=GetTickCount();
         }
@@ -5458,7 +5459,10 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   {
     if (!liWrapStart && !liWrapEnd)
     {
-      AE_NotifyProgress(ae, AEPGS_WRAPTEXT, GetTickCount() - dwStartTime, nStopLine, nStopLine);
+      if (!bStopProgress)
+      {
+        AE_NotifyProgress(ae, AEPGS_WRAPTEXT, GetTickCount() - dwStartTime, nStopLine, nStopLine);
+      }
     }
   }
 
@@ -9477,6 +9481,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   int nLineBreak;
   BOOL bFirstHeap=FALSE;
   BOOL bUpdated=FALSE;
+  BOOL bStopProgress=FALSE;
 
   if (ae->ptxt->hHeap)
     bFirstHeap=FALSE;
@@ -9521,7 +9526,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
 
         if (dwCurrentTime - dwProgressTime > AETIME_BEFOREPROGRESS)
         {
-          if (AE_NotifyProgress(ae, AEPGS_SETTEXT, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
+          if (bStopProgress=AE_NotifyProgress(ae, AEPGS_SETTEXT, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
             break;
           dwProgressTime=GetTickCount();
         }
@@ -9635,7 +9640,10 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     //End progress
     if (ae->popt->dwEventMask & AENM_PROGRESS)
     {
-      AE_NotifyProgress(ae, AEPGS_SETTEXT, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
+      if (!bStopProgress)
+      {
+        AE_NotifyProgress(ae, AEPGS_SETTEXT, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
+      }
     }
     ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
@@ -9710,6 +9718,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   int nLineBreak;
   BOOL bFirstHeap=FALSE;
   BOOL bUpdated=FALSE;
+  BOOL bStopProgress=FALSE;
 
   if (ae->ptxt->hHeap)
     bFirstHeap=FALSE;
@@ -9808,7 +9817,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
 
             if (dwCurrentTime - dwProgressTime > AETIME_BEFOREPROGRESS)
             {
-              if (AE_NotifyProgress(ae, AEPGS_STREAMIN, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
+              if (bStopProgress=AE_NotifyProgress(ae, AEPGS_STREAMIN, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
               {
                 if (lpElement) lpElement->nLineBreak=LOBYTE(lpElement->nLineBreak);
                 break;
@@ -9950,7 +9959,10 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         //End progress
         if (ae->popt->dwEventMask & AENM_PROGRESS)
         {
-          AE_NotifyProgress(ae, AEPGS_STREAMIN, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
+          if (!bStopProgress)
+          {
+            AE_NotifyProgress(ae, AEPGS_STREAMIN, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
+          }
         }
 
         ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
