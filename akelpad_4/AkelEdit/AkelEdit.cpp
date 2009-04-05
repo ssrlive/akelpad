@@ -9742,7 +9742,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
       if (nWordWrap == AEWW_NONE)
       {
         ae->ptxt->nWordWrap=AEWW_SYMBOL;
-        ae->ptxt->dwWrapLimit=80;
+        ae->ptxt->dwWrapLimit=dwBufLen;
         ciWrapStart=ae->ciCaretIndex;
       }
 
