@@ -55,6 +55,7 @@ DWORD dwExeVersion=0;
 BOOL bOldWindows;
 BOOL bOldRichEdit;
 BOOL bOldComctl32;
+BOOL bAkelEdit=FALSE;
 
 //Buffers
 char buf[BUFFER_SIZE];
@@ -2004,7 +2005,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
-      pd->bAkelEdit=FALSE;
+      pd->bAkelEdit=bAkelEdit;
       pd->bMDI=bMDI;
       pd->nSaveSettings=nSaveSettings;
       pd->pLangModule=(unsigned char *)szLangModule;
@@ -3702,7 +3703,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->bOldWindows=bOldWindows;
       pd->bOldRichEdit=bOldRichEdit;
       pd->bOldComctl32=bOldComctl32;
-      pd->bAkelEdit=FALSE;
+      pd->bAkelEdit=bAkelEdit;
       pd->bMDI=bMDI;
       pd->nSaveSettings=nSaveSettings;
       pd->pLangModule=(unsigned char *)wszLangModule;

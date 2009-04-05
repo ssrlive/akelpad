@@ -35,6 +35,7 @@ extern DWORD dwExeVersion;
 extern BOOL bOldWindows;
 extern BOOL bOldRichEdit;
 extern BOOL bOldComctl32;
+extern BOOL bAkelEdit;
 
 //Buffers
 extern char buf[BUFFER_SIZE];
@@ -11962,7 +11963,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
                   pd.bOldWindows=bOldWindows;
                   pd.bOldRichEdit=bOldRichEdit;
                   pd.bOldComctl32=bOldComctl32;
-                  pd.bAkelEdit=FALSE;
+                  pd.bAkelEdit=bAkelEdit;
                   pd.bMDI=bMDI;
                   pd.nSaveSettings=nSaveSettings;
                   pd.pLangModule=(unsigned char *)szLangModule;
@@ -12124,7 +12125,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
                   pd.bOldWindows=bOldWindows;
                   pd.bOldRichEdit=bOldRichEdit;
                   pd.bOldComctl32=bOldComctl32;
-                  pd.bAkelEdit=FALSE;
+                  pd.bAkelEdit=bAkelEdit;
                   pd.bMDI=bMDI;
                   pd.nSaveSettings=nSaveSettings;
                   pd.pLangModule=(unsigned char *)wszLangModule;
