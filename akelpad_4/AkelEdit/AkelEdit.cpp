@@ -746,7 +746,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RECT *rcDraw=(RECT *)lParam;
 
         AE_SetDrawRect(ae, rcDraw, wParam);
-        if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, ae->ptxt->nWordWrap);
+        if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
         AE_UpdateScrollBars(ae, SB_BOTH);
         return 0;
       }
@@ -964,7 +964,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
           AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
-          if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, ae->ptxt->nWordWrap);
+          if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
           AE_StackUpdateClones(ae);
         }
@@ -981,7 +981,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ae->ptxt->nWordWrap != (int)wParam)
         {
           if (wParam && ae->ptxt->nWordWrap)
-            AE_UpdateWrap(ae, AEWW_NONE);
+            AE_UpdateWrap(ae, NULL, NULL, AEWW_NONE);
 
           ae->ptxt->nWordWrap=wParam;
           bUpdateWrap=TRUE;
@@ -994,7 +994,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (bUpdateWrap)
         {
-          AE_UpdateWrap(ae, ae->ptxt->nWordWrap);
+          AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
           AE_StackUpdateClones(ae);
         }
@@ -1024,7 +1024,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_memcpy(ae->ptxt->wszWrapDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
         else
           AE_memcpy(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
-        if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, ae->ptxt->nWordWrap);
+        if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         AE_StackUpdateClones(ae);
         return 0;
@@ -1881,7 +1881,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
       AE_SetDrawRect(ae, lprcDraw, (uMsg == EM_SETRECT)?TRUE:FALSE);
-      if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, ae->ptxt->nWordWrap);
+      if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
       AE_UpdateScrollBars(ae, SB_BOTH);
       return 0;
     }
@@ -1976,7 +1976,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae));
       AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
-      if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, ae->ptxt->nWordWrap);
+      if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, !lParam);
       AE_StackUpdateClones(ae);
       return 0;
@@ -2042,7 +2042,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (lParam)
       {
         AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
-        if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, ae->ptxt->nWordWrap);
+        if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
         AE_UpdateScrollBars(ae, SB_BOTH);
         AE_UpdateEditWindow(ae->hWndEdit, TRUE);
       }
@@ -5290,7 +5290,7 @@ BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar)
   return FALSE;
 }
 
-int AE_UpdateWrap(AKELEDIT *ae, int nWrap)
+int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, int nWrap)
 {
   AECHARINDEX ciSelStart=ae->ciSelStartIndex;
   AECHARINDEX ciSelEnd=ae->ciSelEndIndex;
@@ -5304,7 +5304,7 @@ int AE_UpdateWrap(AKELEDIT *ae, int nWrap)
   lpPointOne=AE_StackPointInsert(ae, &ciSelStart);
   lpPointTwo=AE_StackPointInsert(ae, &ciSelEnd);
   lpPointThree=AE_StackPointInsert(ae, &ciFirstVisibleLineAfterWrap);
-  nWrapCount=AE_WrapLines(ae, NULL, NULL, nWrap);
+  nWrapCount=AE_WrapLines(ae, liWrapStart, liWrapEnd, nWrap);
   ciSelStart=lpPointOne->ciPoint;
   ciSelEnd=lpPointTwo->ciPoint;
   ciFirstVisibleLineAfterWrap=lpPointThree->ciPoint;
@@ -5322,7 +5322,10 @@ int AE_UpdateWrap(AKELEDIT *ae, int nWrap)
   ae->ciSelEndIndex=ciSelEnd;
 
   //Update scroll bars
-  AE_CalcLinesWidth(ae, NULL, NULL, 0);
+  if (!ae->ptxt->liMaxWidthLine.lpLine)
+    AE_CalcLinesWidth(ae, NULL, NULL, 0);
+  else
+    AE_CalcLinesWidth(ae, liWrapStart, liWrapEnd, 0);
 
   if (nWrapCount)
   {
@@ -9725,9 +9728,23 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   {
     if (dwFlags & AESF_SELECTION)
     {
-      //When word wrap is off, AESF_SELECTION flag is slow for very long lines
+      AECHARINDEX ciInsertStart;
+      AECHARINDEX ciInsertEnd;
+      AECHARINDEX ciWrapStart;
+      AECHARINDEX ciWrapEnd;
+      int nWordWrap=ae->ptxt->nWordWrap;
+      DWORD dwWrapLimit=ae->ptxt->dwWrapLimit;
+
       AE_StackUndoGroupStop(ae);
       AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
+
+      //When word wrap is off, AESF_SELECTION flag is slow for very long lines
+      if (nWordWrap == AEWW_NONE)
+      {
+        ae->ptxt->nWordWrap=AEWW_SYMBOL;
+        ae->ptxt->dwWrapLimit=80;
+        ciWrapStart=ae->ciCaretIndex;
+      }
 
       while (1)
       {
@@ -9736,12 +9753,23 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         if ((aesi->dwError=aesi->lpCallback(aesi->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) || !dwBufDone)
         {
           //Stop callbacking
+          if (dwResult) ciWrapEnd=ciInsertEnd;
           break;
         }
         dwResult+=dwBufDone;
-        AE_InsertText(ae, &ae->ciCaretIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, FALSE, AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, NULL, NULL);
+        AE_InsertText(ae, &ae->ciCaretIndex, wszBuf, dwBufDone / sizeof(wchar_t), nNewLine, FALSE, AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd);
       }
 
+      if (nWordWrap == AEWW_NONE)
+      {
+        ae->ptxt->nWordWrap=nWordWrap;
+        ae->ptxt->dwWrapLimit=dwWrapLimit;
+        if (dwResult)
+        {
+          AE_UpdateIndex(ae, &ciWrapStart);
+          AE_UpdateWrap(ae, (AELINEINDEX *)&ciWrapStart, (AELINEINDEX *)&ciWrapEnd, ae->ptxt->nWordWrap);
+        }
+      }
       AE_StackUndoGroupStop(ae);
       AE_UpdateScrollBars(ae, SB_BOTH);
       AE_ScrollToCaret(ae, &ae->ptCaret);
