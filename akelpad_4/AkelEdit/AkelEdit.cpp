@@ -9970,6 +9970,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         ae->ciCaretIndex=ciCaretChar;
         ae->ciSelStartIndex=ciCaretChar;
         ae->ciSelEndIndex=ciCaretChar;
+        aesi->nFirstNewLine=ciCaretChar.lpLine->nLineBreak;
 
         if (!bFirstHeap)
         {

@@ -339,111 +339,112 @@ typedef struct _AEPOINT {
 } AEPOINT;
 
 typedef struct {
-  char *pText;        //Text to append.
-  DWORD dwTextLen;    //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //Column selection.
+  char *pText;        //[in] Text to append.
+  DWORD dwTextLen;    //[in] Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;    //[in] Column selection.
 } AEAPPENDTEXTA;
 
 typedef struct {
-  wchar_t *wpText;    //Text to append.
-  DWORD dwTextLen;    //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //Column selection.
+  wchar_t *wpText;    //[in] Text to append.
+  DWORD dwTextLen;    //[in] Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;    //[in] Column selection.
 } AEAPPENDTEXTW;
 
 typedef struct {
-  char *pText;                 //Text to replace with.
-  DWORD dwTextLen;             //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;             //Column selection.
-  AECHARINDEX *ciInsertStart;  //Insert "from" character index after replacement.
-  AECHARINDEX *ciInsertEnd;    //Insert "to" character index after replacement.
+  char *pText;                 //[in]  Text to replace with.
+  DWORD dwTextLen;             //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;             //[in]  Column selection.
+  AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
+  AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
 } AEREPLACESELA;
 
 typedef struct {
-  wchar_t *wpText;             //Text to replace with.
-  DWORD dwTextLen;             //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;             //Column selection.
-  AECHARINDEX *ciInsertStart;  //Insert "from" character index after replacement.
-  AECHARINDEX *ciInsertEnd;    //Insert "to" character index after replacement.
+  wchar_t *wpText;             //[in]  Text to replace with.
+  DWORD dwTextLen;             //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;             //[in]  Column selection.
+  AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
+  AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
 } AEREPLACESELW;
 
 typedef struct {
-  AECHARRANGE cr;     //Characters range to retrieve.
-  BOOL bColumnSel;    //Column selection.
-  char *pBuffer;      //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
-  DWORD dwBufferMax;  //Specifies the maximum number of characters to copy to the buffer, including the NULL character.
-  int nNewLine;       //See AELB_* defines.
-  BOOL bFillSpaces;   //If bColumnSel is TRUE, fill empties with spaces.
+  AECHARRANGE cr;     //[in]  Characters range to retrieve.
+  BOOL bColumnSel;    //[in]  Column selection.
+  char *pBuffer;      //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
+  DWORD dwBufferMax;  //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
+  int nNewLine;       //[in]  See AELB_* defines.
+  BOOL bFillSpaces;   //[in]  If bColumnSel is TRUE, fill empties with spaces.
 } AETEXTRANGEA;
 
 typedef struct {
-  AECHARRANGE cr;     //Characters range to retrieve.
-  BOOL bColumnSel;    //Column selection.
-  wchar_t *wpBuffer;  //Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
-  DWORD dwBufferMax;  //Specifies the maximum number of characters to copy to the buffer, including the NULL character.
-  int nNewLine;       //See AELB_* defines.
-  BOOL bFillSpaces;   //If bColumnSel is TRUE, fill empties with spaces.
+  AECHARRANGE cr;     //[in]  Characters range to retrieve.
+  BOOL bColumnSel;    //[in]  Column selection.
+  wchar_t *wpBuffer;  //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
+  DWORD dwBufferMax;  //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
+  int nNewLine;       //[in]  See AELB_* defines.
+  BOOL bFillSpaces;   //[in]  If bColumnSel is TRUE, fill empties with spaces.
 } AETEXTRANGEW;
 
 typedef struct {
-  DWORD dwCookie;               //Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
-  DWORD dwError;                //Indicates the results of the stream-in (read) operation.
-  AEStreamCallback lpCallback;  //Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
-  int nNewLine;                 //See AELB_* defines.
-  DWORD dwTextLen;              //Text length. Need if using AEN_PROGRESS notification.
+  DWORD dwCookie;               //[in]  Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
+  DWORD dwError;                //[out] Indicates the results of the stream-in (read) operation.
+  AEStreamCallback lpCallback;  //[in]  Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
+  int nNewLine;                 //[in]  See AELB_* defines.
+  DWORD dwTextLen;              //[in]  Text length. Need if using AEN_PROGRESS notification.
+  int nFirstNewLine;            //[out] Indicates first new line. See AELB_* defines.
 } AESTREAMIN;
 
 typedef struct {
-  DWORD dwCookie;               //Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
-  DWORD dwError;                //Indicates the results of the stream-out (write) operation.
-  AEStreamCallback lpCallback;  //Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
-  int nNewLine;                 //See AELB_* defines.
-  BOOL bColumnSel;              //Column selection.
+  DWORD dwCookie;               //[in]  Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
+  DWORD dwError;                //[out] Indicates the results of the stream-out (write) operation.
+  AEStreamCallback lpCallback;  //[in]  Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
+  int nNewLine;                 //[in]  See AELB_* defines.
+  BOOL bColumnSel;              //[in]  Column selection.
 } AESTREAMOUT;
 
 typedef struct {
-  DWORD dwFlags;           //See AEFR_* defines.
-  char *pText;             //Text to find.
-  DWORD dwTextLen;         //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  int nNewLine;            //See AELB_* defines.
-  AECHARRANGE crSearch;    //Range of characters to search.
-  AECHARRANGE crFound;     //Range of characters in which text is found.
+  DWORD dwFlags;           //[in]  See AEFR_* defines.
+  char *pText;             //[in]  Text to find.
+  DWORD dwTextLen;         //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;            //[in]  See AELB_* defines.
+  AECHARRANGE crSearch;    //[in]  Range of characters to search.
+  AECHARRANGE crFound;     //[out] Range of characters in which text is found.
 } AEFINDTEXTA;
 
 typedef struct {
-  DWORD dwFlags;           //See AEFR_* defines.
-  wchar_t *wpText;         //Text to find.
-  DWORD dwTextLen;         //Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  int nNewLine;            //See AELB_* defines.
-  AECHARRANGE crSearch;    //Range of characters to search.
-  AECHARRANGE crFound;     //Range of characters in which text is found.
+  DWORD dwFlags;           //[in]  See AEFR_* defines.
+  wchar_t *wpText;         //[in]  Text to find.
+  DWORD dwTextLen;         //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;            //[in]  See AELB_* defines.
+  AECHARRANGE crSearch;    //[in]  Range of characters to search.
+  AECHARRANGE crFound;     //[out] Range of characters in which text is found.
 } AEFINDTEXTW;
 
 typedef struct {
-  DWORD dwFlags;             //See AECLR_* defines.
-  COLORREF crCaret;          //Caret color.
-  COLORREF crBasicText;      //Basic text color.
-  COLORREF crBasicBk;        //Basic background color.
-  COLORREF crSelText;        //Text color in selection.
-  COLORREF crSelBk;          //Background color in selection.
-  COLORREF crActiveLineText; //Text color in active line.
-  COLORREF crActiveLineBk;   //Background color in active line.
-  COLORREF crUrlText;        //Hiperlink text color.
-  COLORREF crActiveColumn;   //Active column color.
-  COLORREF crColumnMarker;   //Column marker color.
+  DWORD dwFlags;             //[in] See AECLR_* defines.
+  COLORREF crCaret;          //[in] Caret color.
+  COLORREF crBasicText;      //[in] Basic text color.
+  COLORREF crBasicBk;        //[in] Basic background color.
+  COLORREF crSelText;        //[in] Text color in selection.
+  COLORREF crSelBk;          //[in] Background color in selection.
+  COLORREF crActiveLineText; //[in] Text color in active line.
+  COLORREF crActiveLineBk;   //[in] Background color in active line.
+  COLORREF crUrlText;        //[in] Hiperlink text color.
+  COLORREF crActiveColumn;   //[in] Active column color.
+  COLORREF crColumnMarker;   //[in] Column marker color.
 } AECOLORS;
 
 typedef struct {
-  AECHARINDEX *ciCharIn;   //Input character index.
-  AECHARINDEX *ciCharOut;  //Output character index (result).
-  int nOffset;             //Offset can be positive or negative. For example, +1 will return next character, -1 will return previous character.
-  int nNewLine;            //See AELB_* defines.
+  AECHARINDEX *ciCharIn;   //[in]  Input character index.
+  AECHARINDEX *ciCharOut;  //[out] Output character index (result).
+  int nOffset;             //[in]  Offset can be positive or negative. For example, +1 will return next character, -1 will return previous character.
+  int nNewLine;            //[in]  See AELB_* defines.
 } AEINDEXOFFSET;
 
 typedef struct {
-  AECHARINDEX *ciChar1;   //First character index.
-  AECHARINDEX *ciChar2;   //Second character index.
-  BOOL bColumnSel;        //Column selection.
-  int nNewLine;           //See AELB_* defines.
+  AECHARINDEX *ciChar1;   //[in] First character index.
+  AECHARINDEX *ciChar2;   //[in] Second character index.
+  BOOL bColumnSel;        //[in] Column selection.
+  int nNewLine;           //[in] See AELB_* defines.
 } AEINDEXSUBTRACT;
 
 typedef struct {

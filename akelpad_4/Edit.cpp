@@ -36,6 +36,7 @@ extern DWORD dwExeVersion;
 extern BOOL bOldWindows;
 extern BOOL bOldRichEdit;
 extern BOOL bOldComctl32;
+extern BOOL bAkelEdit;
 
 //Buffers
 extern char buf[BUFFER_SIZE];
@@ -5457,6 +5458,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
 }
 
 /*
+//Read entire file (AEM_SETTEXTW).
 void FileStreamIn(FILESTREAMDATA *lpData)
 {
   unsigned char *pBuffer;
@@ -5550,12 +5552,14 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 }
 */
 
+//Stream file reading (AEM_STREAMIN).
 void FileStreamIn(FILESTREAMDATA *lpData)
 {
   AESTREAMIN aesi;
 
   if (lpData->nBytesMax == -1)
     lpData->nBytesMax=GetFileSize(lpData->hFile, NULL);
+  SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
 
   aesi.dwCookie=(DWORD)lpData;
   aesi.lpCallback=InputStreamCallback;
@@ -5563,6 +5567,19 @@ void FileStreamIn(FILESTREAMDATA *lpData)
   aesi.dwTextLen=lpData->nBytesMax;
   SendMessage(lpData->hWnd, AEM_STREAMIN, 0, (LPARAM)&aesi);
   lpData->bResult=!aesi.dwError;
+
+  //Detect new line
+  if (lpData->bResult)
+  {
+    if (aesi.nFirstNewLine == AELB_RRN)
+      lpData->nNewLine=NEWLINE_WIN;
+    else if (aesi.nFirstNewLine == AELB_RN)
+      lpData->nNewLine=NEWLINE_WIN;
+    else if (aesi.nFirstNewLine == AELB_R)
+      lpData->nNewLine=NEWLINE_MAC;
+    else if (aesi.nFirstNewLine == AELB_N)
+      lpData->nNewLine=NEWLINE_UNIX;
+  }
 }
 
 DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
@@ -13930,7 +13947,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
                   pd.bOldWindows=bOldWindows;
                   pd.bOldRichEdit=bOldRichEdit;
                   pd.bOldComctl32=bOldComctl32;
-                  pd.bAkelEdit=TRUE;
+                  pd.bAkelEdit=bAkelEdit;
                   pd.bMDI=bMDI;
                   pd.nSaveSettings=nSaveSettings;
                   pd.pLangModule=(unsigned char *)szLangModule;
@@ -14092,7 +14109,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
                   pd.bOldWindows=bOldWindows;
                   pd.bOldRichEdit=bOldRichEdit;
                   pd.bOldComctl32=bOldComctl32;
-                  pd.bAkelEdit=TRUE;
+                  pd.bAkelEdit=bAkelEdit;
                   pd.bMDI=bMDI;
                   pd.nSaveSettings=nSaveSettings;
                   pd.pLangModule=(unsigned char *)wszLangModule;

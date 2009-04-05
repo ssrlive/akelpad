@@ -1,5 +1,5 @@
 
-AkelPad 4.2.1 ()
+AkelPad 4.2.1 (Apr 06, 2009)
 ----------------------------
 Changed: file now isn't read out entirely in memory before opening (stream opening).
 
