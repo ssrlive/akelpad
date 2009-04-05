@@ -1,4 +1,9 @@
 
+AkelPad 3.7.1 (Apr 06, 2009)
+----------------------------
+Fixed: version 3.7.0 identified itself with AkelEdit instead of RichEdit.
+
+
 AkelPad 3.7.0 (Mar 23, 2009)
 ----------------------------
 Added: check for plugins and program compatibility. Update plugins.
