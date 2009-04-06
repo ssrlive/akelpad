@@ -4,14 +4,15 @@
 //
 #define IDD_SETUP                       1001
 #define IDI_ICON                        1051
-#define IDC_LIST_EXE                    1101
-#define IDC_LIST_DLL                    1102
-#define IDC_LIST_INFO                   1103
-#define IDC_SELECTED                    1104
-#define IDC_MIRROR                      1105
-#define IDC_LANGUAGE                    1106
-#define IDC_MIRROR_LABEL                1107
-#define IDC_LANGUAGE_LABEL              1108
+#define IDC_GROUP_EXE                   1101
+#define IDC_LIST_EXE                    1102
+#define IDC_LIST_DLL                    1103
+#define IDC_LIST_INFO                   1104
+#define IDC_SELECTED                    1105
+#define IDC_MIRROR                      1106
+#define IDC_LANGUAGE                    1107
+#define IDC_MIRROR_LABEL                1108
+#define IDC_LANGUAGE_LABEL              1109
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

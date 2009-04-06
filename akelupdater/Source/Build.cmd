@@ -2,9 +2,10 @@
 Set MSSDK=D:\Program Files\Microsoft Platform SDK
 Set VCDIR=D:\Program Files\Microsoft Visual C++ Toolkit 2003
 
-Set PATH=%VCDIR%\bin;%PATH%
-Set INCLUDE=%MSSDK%\include;%VCDIR%\include;%INCLUDE%
-Set LIB=%MSSDK%\lib;%VCDIR%\lib;%LIB%
+::###################################::
+Set PATH=%VCDIR%\bin;%MSSDK%\bin;%PATH%
+Set INCLUDE=%VCDIR%\include;%MSSDK%\include;%INCLUDE%
+Set LIB=%VCDIR%\lib;%MSSDK%\lib;%LIB%
 
 rc /r /Fo"AkelUpdater.res" "Resources\AkelUpdater.rc"
 cl /O1 AkelUpdater.cpp AkelUpdater.res  /LD /link kernel32.lib user32.lib libc.lib /OPT:NOWIN98 /NODEFAULTLIB /ENTRY:DllMain
