@@ -204,7 +204,6 @@ Function .onInit
 	PlugsPack:
 	StrCmp $DLLCOUNT 0 End
 ;	File "/oname=$SAVEDIR\PlugsPack.zip" "PlugsPack.zip"
-
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
         $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
