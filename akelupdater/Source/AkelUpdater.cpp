@@ -88,9 +88,12 @@ __INST_LAST
 char szBuf[NSIS_MAX_STRLEN];
 HINSTANCE hInstanceDLL=NULL;
 WORD wLangSystem;
+RECT rcInitDialog={0};
+RECT rcMainDialog={0};
 
 /* Funtions prototypes and macros */
 BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 char* GetLangStringA(LANGID wLangID, int nStringID);
 char* getuservariable(const int varnum);
 void setuservariable(const int varnum, const char *var);
@@ -129,12 +132,16 @@ BOOL WINAPI DllMain(HANDLE hInst, ULONG ul_reason_for_call, LPVOID lpReserved)
 
 BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndGroupExe;
   static HWND hWndListExe;
   static HWND hWndMirror;
+  static HWND hWndLanguageLabel;
   static HWND hWndLanguage;
   static HWND hWndListDll;
+  static HWND hWndListInfo;
   static HWND hWndSeleted;
   static HWND hWndUpdate;
+  static HWND hWndCancel;
   static BOOL bSelectAllExe=TRUE;
   static BOOL bSelectAllDll=TRUE;
   static int nAllItemsCount=0;
@@ -149,15 +156,20 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     char szCheck[MAX_PATH];
     HWND hWndList;
     LVCOLUMNA lvcA;
+    RECT rcTemplate;
     int nIndex;
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON)));
+    hWndGroupExe=GetDlgItem(hDlg, IDC_GROUP_EXE);
     hWndListExe=GetDlgItem(hDlg, IDC_LIST_EXE);
     hWndMirror=GetDlgItem(hDlg, IDC_MIRROR);
+    hWndLanguageLabel=GetDlgItem(hDlg, IDC_LANGUAGE_LABEL);
     hWndLanguage=GetDlgItem(hDlg, IDC_LANGUAGE);
     hWndListDll=GetDlgItem(hDlg, IDC_LIST_DLL);
+    hWndListInfo=GetDlgItem(hDlg, IDC_LIST_INFO);
     hWndSeleted=GetDlgItem(hDlg, IDC_SELECTED);
     hWndUpdate=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
     SendMessage(hWndListExe, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
     SendMessage(hWndListDll, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
 
@@ -270,6 +282,76 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     wsprintfA(szBuf, "%d / %d", nSelItemsCount, nAllItemsCount);
     SetWindowTextA(hWndSeleted, szBuf);
+
+    GetWindowPos(hDlg, NULL, &rcInitDialog);
+    rcTemplate=rcMainDialog;
+    rcMainDialog=rcInitDialog;
+    if (rcTemplate.right && rcTemplate.bottom)
+    {
+      rcTemplate.left=rcInitDialog.left + (rcInitDialog.right - rcTemplate.right) / 2;
+      rcTemplate.top=rcInitDialog.top + (rcInitDialog.bottom - rcTemplate.bottom) / 2;
+      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
+    }
+  }
+  else if (uMsg == WM_GETMINMAXINFO)
+  {
+    MINMAXINFO *mmi=(MINMAXINFO *)lParam;
+
+    mmi->ptMinTrackSize.x=rcInitDialog.right;
+    mmi->ptMinTrackSize.y=rcInitDialog.bottom;
+    return 0;
+  }
+  else if (uMsg == WM_SIZE)
+  {
+    if (lParam)
+    {
+      RECT rcTemplate;
+      RECT rcControl;
+      int x;
+      int y;
+
+      GetWindowPos(hDlg, NULL, &rcTemplate);
+      x=rcTemplate.right - rcMainDialog.right;
+      y=rcTemplate.bottom - rcMainDialog.bottom;
+      rcMainDialog=rcTemplate;
+
+      GetWindowPos(hWndGroupExe, hDlg, &rcControl);
+      SetWindowPos(hWndGroupExe, 0, 0, 0, rcControl.right + x, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER);
+      GetWindowPos(hWndListExe, hDlg, &rcControl);
+      SetWindowPos(hWndListExe, 0, 0, 0, rcControl.right + x, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER);
+      GetWindowPos(hWndLanguageLabel, hDlg, &rcControl);
+      SetWindowPos(hWndLanguageLabel, 0, rcControl.left + x, rcControl.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+      GetWindowPos(hWndLanguage, hDlg, &rcControl);
+      SetWindowPos(hWndLanguage, 0, rcControl.left + x, rcControl.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+      GetWindowPos(hWndListDll, hDlg, &rcControl);
+      SetWindowPos(hWndListDll, 0, 0, 0, rcControl.right + x, rcControl.bottom + y, SWP_NOMOVE|SWP_NOZORDER);
+      GetWindowPos(hWndListInfo, hDlg, &rcControl);
+      SetWindowPos(hWndListInfo, 0, rcControl.left, rcControl.top + y, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+      GetWindowPos(hWndUpdate, hDlg, &rcControl);
+      SetWindowPos(hWndUpdate, 0, rcControl.left, rcControl.top + y, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+      GetWindowPos(hWndSeleted, hDlg, &rcControl);
+      SetWindowPos(hWndSeleted, 0, rcControl.left + x, rcControl.top + y, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+      GetWindowPos(hWndCancel, hDlg, &rcControl);
+      SetWindowPos(hWndCancel, 0, rcControl.left + x, rcControl.top + y, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+      InvalidateRect(hDlg, NULL, TRUE);
+      return 0;
+    }
+  }
+  else if (uMsg == WM_PAINT)
+  {
+    PAINTSTRUCT ps;
+    RECT rcGrip;
+    HDC hDC;
+
+    if (hDC=BeginPaint(hDlg, &ps))
+    {
+      GetClientRect(hDlg, &rcGrip);
+      rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
+      rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
+      DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
+      EndPaint(hDlg, &ps);
+      return 0;
+    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -445,6 +527,23 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       EndDialog(hDlg, 0);
       return TRUE;
     }
+  }
+  return FALSE;
+}
+
+BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
+{
+  if (GetWindowRect(hWnd, rc))
+  {
+    rc->right-=rc->left;
+    rc->bottom-=rc->top;
+
+    if (hWndOwner)
+    {
+      if (!ScreenToClient(hWndOwner, (POINT *)&rc->left))
+        return FALSE;
+    }
+    return TRUE;
   }
   return FALSE;
 }
