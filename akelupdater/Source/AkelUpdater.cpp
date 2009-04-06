@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v1.0                  *
+ *                 AkelUpdater NSIS plugin v1.6                  *
  *                                                               *
  * 2009 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -134,9 +134,9 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndGroupExe;
   static HWND hWndListExe;
-  static HWND hWndMirror;
-  static HWND hWndLanguageLabel;
   static HWND hWndLanguage;
+  static HWND hWndMirrorLabel;
+  static HWND hWndMirror;
   static HWND hWndListDll;
   static HWND hWndListInfo;
   static HWND hWndSeleted;
@@ -162,9 +162,9 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON)));
     hWndGroupExe=GetDlgItem(hDlg, IDC_GROUP_EXE);
     hWndListExe=GetDlgItem(hDlg, IDC_LIST_EXE);
-    hWndMirror=GetDlgItem(hDlg, IDC_MIRROR);
-    hWndLanguageLabel=GetDlgItem(hDlg, IDC_LANGUAGE_LABEL);
     hWndLanguage=GetDlgItem(hDlg, IDC_LANGUAGE);
+    hWndMirrorLabel=GetDlgItem(hDlg, IDC_MIRROR_LABEL);
+    hWndMirror=GetDlgItem(hDlg, IDC_MIRROR);
     hWndListDll=GetDlgItem(hDlg, IDC_LIST_DLL);
     hWndListInfo=GetDlgItem(hDlg, IDC_LIST_INFO);
     hWndSeleted=GetDlgItem(hDlg, IDC_SELECTED);
@@ -193,7 +193,6 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hWndLanguage, CB_SETCURSEL, (WPARAM)0, 0);
 
     EnableWindow(hWndMirror, FALSE);
-    EnableWindow(hWndLanguage, FALSE);
     EnableWindow(hWndUpdate, FALSE);
 
     //Columns EXE
@@ -319,10 +318,10 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SetWindowPos(hWndGroupExe, 0, 0, 0, rcControl.right + x, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER);
       GetWindowPos(hWndListExe, hDlg, &rcControl);
       SetWindowPos(hWndListExe, 0, 0, 0, rcControl.right + x, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER);
-      GetWindowPos(hWndLanguageLabel, hDlg, &rcControl);
-      SetWindowPos(hWndLanguageLabel, 0, rcControl.left + x, rcControl.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-      GetWindowPos(hWndLanguage, hDlg, &rcControl);
-      SetWindowPos(hWndLanguage, 0, rcControl.left + x, rcControl.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+      GetWindowPos(hWndMirrorLabel, hDlg, &rcControl);
+      SetWindowPos(hWndMirrorLabel, 0, rcControl.left + x, rcControl.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+      GetWindowPos(hWndMirror, hDlg, &rcControl);
+      SetWindowPos(hWndMirror, 0, rcControl.left + x, rcControl.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
       GetWindowPos(hWndListDll, hDlg, &rcControl);
       SetWindowPos(hWndListDll, 0, 0, 0, rcControl.right + x, rcControl.bottom + y, SWP_NOMOVE|SWP_NOZORDER);
       GetWindowPos(hWndListInfo, hDlg, &rcControl);
@@ -384,7 +383,6 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (bNewState >=0 && bOldState >=0 && bNewState != bOldState)
           {
             EnableWindow(hWndMirror, bNewState);
-            EnableWindow(hWndLanguage, bNewState);
 
             if (bNewState)
             {
