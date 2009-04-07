@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "1.6"
+!define PRODUCT_VERSION "1.7"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -94,6 +94,7 @@ Var DLLCOUNT
 Var ZIPMIRROR
 Var ZIPLANG
 Var ZIPXLANG
+Var UNZIP
 Var NOTEPAD
 
 Function .onInit
@@ -112,6 +113,10 @@ Function .onInit
 	 |$\n\
 	 |   /SAVEDIR=[path]$\n\
 	 |     Save downloads to directory.$\n\
+	 |   /LANG=[eng|rus]$\n\
+	 |     Select language.$\n\
+	 |   /UNZIP=[options]$\n\
+	 |     nsUnzip options.$\n\
 	 $\n\
 	 Example:$\n\
 	 AkelUpdater.exe /PROXY=192.168.0.1:3128 /SAVEDIR="%a\AkelFiles\Updates"`
@@ -125,6 +130,7 @@ Function .onInit
 
 	InitPluginsDir
 	StrCpy $SAVEDIR $PLUGINSDIR
+	StrCpy $ZIPLANG $(lng)
         StrCpy $PROXYPARAM /NUL
         StrCpy $PROXYVALUE /NUL
         StrCpy $LOGINPARAM /NUL
@@ -149,9 +155,20 @@ Function .onInit
 	StrCpy $PASSWORDVALUE $2
 	savedir:
 	${GetOptions} $PARAMETERS "/SAVEDIR=" $0
-	IfErrors DownloadVersions
+	IfErrors langopt
 	${WordReplace} "$0" "%a" "$AKELPADDIR" "+" $0
 	StrCpy $SAVEDIR $0
+	langopt:
+	${GetOptions} $PARAMETERS "/LANG=" $0
+	IfErrors unzipopt
+	StrCmp $0 eng 0 +2
+	StrCpy $ZIPLANG eng
+	StrCmp $0 rus 0 +2
+	StrCpy $ZIPLANG rus
+	unzipopt:
+	${GetOptions} $PARAMETERS "/UNZIP=" $0
+	IfErrors DownloadVersions
+	StrCpy $UNZIP $0
 
 	;Download "versions.lst"
 	DownloadVersions:
@@ -168,7 +185,7 @@ Function .onInit
 	IfErrors FileOpenError
 
 	;Show dialog (Result: $0="ExeVersion|DllCount", $1="Download mirror", $2="Language")
-	AkelUpdater::List $(lng)
+	AkelUpdater::List $ZIPLANG
 	StrCpy $ZIPMIRROR $1
 	StrCpy $ZIPLANG $2
 	StrCmp $0 "0|0" NothingSelected
@@ -327,7 +344,9 @@ Section
 	Pop $AKELPLUGIN
 	IfErrors End
 
-	nsUnzip::Extract "$SAVEDIR\PlugsPack.zip" "/d=$AKELFILESDIR" "/x=Docs\$AKELPLUGIN-$ZIPXLANG.txt" /C "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*" /END
+	Push /END
+	AkelUpdater::ParseAndPush "$UNZIP"
+	nsUnzip::Extract "$SAVEDIR\PlugsPack.zip" "/d=$AKELFILESDIR" "/x=Docs\$AKELPLUGIN-$ZIPXLANG.txt" /C "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*"
 	Pop $0
 	StrCmp $0 0 +3
 	DetailPrint "$(error) ($0): $AKELPLUGIN"

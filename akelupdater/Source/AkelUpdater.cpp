@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v1.6                  *
+ *                 AkelUpdater NSIS plugin v1.7                  *
  *                                                               *
  * 2009 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -86,6 +86,7 @@ __INST_LAST
 
 /* Global variables */
 char szBuf[NSIS_MAX_STRLEN];
+char szBuf2[NSIS_MAX_STRLEN];
 HINSTANCE hInstanceDLL=NULL;
 WORD wLangSystem;
 RECT rcInitDialog={0};
@@ -93,6 +94,7 @@ RECT rcMainDialog={0};
 
 /* Funtions prototypes and macros */
 BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+int GetCommandLineArgA(char *pCmdLine, char **pArgStart, char **pArgEnd, char **pNextArg);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 char* GetLangStringA(LANGID wLangID, int nStringID);
 char* getuservariable(const int varnum);
@@ -121,6 +123,28 @@ extern "C" void __declspec(dllexport) Collapse(HWND hwndParent, int string_size,
 
     hWnd=(HWND)popinteger();
     MoveWindow(hWnd, 0, 0, 0, 0, TRUE);
+  }
+}
+
+extern "C" void __declspec(dllexport) ParseAndPush(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
+{
+  EXDLL_INIT();
+  {
+    char *pCmdLine;
+    char *pArgStart;
+    char *pArgEnd;
+    char *pNextArg;
+    int nArgLen;
+
+    popstring(szBuf, MAX_PATH);
+    pCmdLine=szBuf;
+
+    while (nArgLen=GetCommandLineArgA(pCmdLine, &pArgStart, &pArgEnd, &pNextArg))
+    {
+      lstrcpynA(szBuf2, pArgStart, nArgLen + 1);
+      pushstring(szBuf2, MAX_PATH);
+      pCmdLine=pNextArg;
+    }
   }
 }
 
@@ -527,6 +551,39 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
   }
   return FALSE;
+}
+
+int GetCommandLineArgA(char *pCmdLine, char **pArgStart, char **pArgEnd, char **pNextArg)
+{
+  char *pCount;
+  char chStopChar;
+
+  while (*pCmdLine == ' ') ++pCmdLine;
+  pCount=pCmdLine;
+
+  while (1)
+  {
+    if (*pCount != '\"' && *pCount != '\'' && *pCount != '`')
+    {
+      while (*pCount != '\0' && *pCount != ' ' && *pCount != '\"' && *pCount != '\'' && *pCount != '`')
+        ++pCount;
+      if (*pCount == '\0' || *pCount == ' ')
+        break;
+    }
+    chStopChar=*pCount;
+    while (*++pCount != '\0' && *pCount != chStopChar);
+    if (*pCount == '\0')
+      break;
+    ++pCount;
+  }
+  if (pArgStart) *pArgStart=pCmdLine;
+  if (pArgEnd) *pArgEnd=pCount;
+  if (pNextArg)
+  {
+    *pNextArg=pCount;
+    while (**pNextArg == ' ') ++*pNextArg;
+  }
+  return pCount - pCmdLine;
 }
 
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
