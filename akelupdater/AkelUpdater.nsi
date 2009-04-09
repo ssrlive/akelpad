@@ -113,8 +113,10 @@ Function .onInit
 	 |$\n\
 	 |   /SAVEDIR=[path]$\n\
 	 |     Save downloads to directory.$\n\
+	 |$\n\
 	 |   /LANG=[eng|rus]$\n\
 	 |     Select language.$\n\
+	 |$\n\
 	 |   /UNZIP=[options]$\n\
 	 |     nsUnzip options.$\n\
 	 $\n\
