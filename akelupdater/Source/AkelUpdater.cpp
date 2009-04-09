@@ -559,30 +559,51 @@ int GetCommandLineArgA(char *pCmdLine, char **pArgStart, char **pArgEnd, char **
   char chStopChar;
 
   while (*pCmdLine == ' ') ++pCmdLine;
-  pCount=pCmdLine;
 
-  while (1)
+  if (*pCmdLine == '\"' || *pCmdLine == '\'' || *pCmdLine == '`')
   {
-    if (*pCount != '\"' && *pCount != '\'' && *pCount != '`')
+    //Parse: "param" or 'param' or `param`
+    chStopChar=*pCmdLine;
+    pCount=++pCmdLine;
+    while (*pCount != '\0' && *pCount != chStopChar)
+      ++pCount;
+
+    if (pNextArg)
     {
-      while (*pCount != '\0' && *pCount != ' ' && *pCount != '\"' && *pCount != '\'' && *pCount != '`')
-        ++pCount;
-      if (*pCount == '\0' || *pCount == ' ')
-        break;
+      *pNextArg=pCount;
+      if (*pCount == chStopChar)
+        ++*pNextArg;
+      while (**pNextArg == ' ') ++*pNextArg;
     }
-    chStopChar=*pCount;
-    while (*++pCount != '\0' && *pCount != chStopChar);
-    if (*pCount == '\0')
-      break;
-    ++pCount;
+  }
+  else
+  {
+    pCount=pCmdLine;
+
+    //Parse: /O or /O="param" or /O='param' or /O=`param`
+    while (1)
+    {
+      if (*pCount != '\"' && *pCount != '\'' && *pCount != '`')
+      {
+        while (*pCount != '\0' && *pCount != ' ' && *pCount != '\"' && *pCount != '\'' && *pCount != '`')
+          ++pCount;
+        if (*pCount == '\0' || *pCount == ' ')
+          break;
+      }
+      chStopChar=*pCount;
+      while (*++pCount != '\0' && *pCount != chStopChar);
+      if (*pCount == '\0')
+        break;
+      ++pCount;
+    }
+    if (pNextArg)
+    {
+      *pNextArg=pCount;
+      while (**pNextArg == ' ') ++*pNextArg;
+    }
   }
   if (pArgStart) *pArgStart=pCmdLine;
   if (pArgEnd) *pArgEnd=pCount;
-  if (pNextArg)
-  {
-    *pNextArg=pCount;
-    while (**pNextArg == ' ') ++*pNextArg;
-  }
   return pCount - pCmdLine;
 }
 
