@@ -177,10 +177,11 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     char szName[MAX_PATH];
     char szLatestVer[MAX_PATH];
     char szCurrentVer[MAX_PATH];
-    char szCheck[MAX_PATH];
+    char szCompareResult[MAX_PATH];
     HWND hWndList;
     LVCOLUMNA lvcA;
     RECT rcTemplate;
+    int nCompareResult;
     int nIndex;
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON)));
@@ -261,13 +262,14 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     while (!popstring(szName, MAX_PATH) &&
            !popstring(szLatestVer, MAX_PATH) &&
            !popstring(szCurrentVer, MAX_PATH) &&
-           !popstring(szCheck, MAX_PATH))
+           !popstring(szCompareResult, MAX_PATH))
     {
       if (!lstrcmpA(szName, "AkelPad"))
         hWndList=hWndListExe;
       else
         hWndList=hWndListDll;
       ++nAllItemsCount;
+      nCompareResult=xatoiA(szCompareResult);
 
       lviA.mask=LVIF_TEXT;
       lviA.pszText=szName;
@@ -275,14 +277,15 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lviA.iSubItem=LVSI_NAME;
       nIndex=SendMessage(hWndList, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
 
-      lviA.mask=LVIF_STATE;
+      lviA.mask=LVIF_STATE|LVIF_PARAM;
       lviA.iItem=nIndex;
       lviA.iSubItem=LVSI_NAME;
-      lviA.state=((xatoiA(szCheck) + 1) << 12);
+      lviA.state=(((nCompareResult == 1) + 1) << 12);
       lviA.stateMask=LVIS_STATEIMAGEMASK;
+      lviA.lParam=nCompareResult;
       SendMessage(hWndList, LVM_SETITEMA, 0, (LPARAM)&lviA);
 
-      if (szCheck[0] == '1')
+      if (nCompareResult == 1)
       {
         if (hWndList == hWndListExe)
           bSelectAllExe=FALSE;
@@ -476,6 +479,64 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             SetWindowTextA(hWndSeleted, szBuf);
           }
         }
+      }
+    }
+
+    if (wParam == IDC_LIST_EXE ||
+        wParam == IDC_LIST_DLL)
+    {
+      if ((int)((NMHDR *)lParam)->code == NM_CUSTOMDRAW)
+      {
+        LPNMLVCUSTOMDRAW lplvcd=(LPNMLVCUSTOMDRAW)lParam;
+        LRESULT lResult;
+
+        if (lplvcd->nmcd.dwDrawStage == CDDS_PREPAINT)
+        {
+          lResult=CDRF_NOTIFYITEMDRAW;
+        }
+        else if (lplvcd->nmcd.dwDrawStage == CDDS_ITEMPREPAINT)
+        {
+          lResult=CDRF_NOTIFYSUBITEMDRAW;
+        }
+        else if (lplvcd->nmcd.dwDrawStage == (CDDS_SUBITEM|CDDS_ITEMPREPAINT))
+        {
+          lviA.mask=LVIF_PARAM;
+          lviA.iItem=lplvcd->nmcd.dwItemSpec;
+          lviA.iSubItem=LVSI_NAME;
+
+          if (SendMessage(((NMLISTVIEW *)lParam)->hdr.hwndFrom, LVM_GETITEMA, 0, (LPARAM)&lviA))
+          {
+            if (lplvcd->iSubItem == LVSI_NAME ||
+               lplvcd->iSubItem == LVSI_LATEST)
+            {
+              if (lviA.lParam == 3) //Not installed
+              {
+                lplvcd->clrText=RGB(0xC0, 0xC0, 0xC0);
+                lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
+              }
+              else if (lviA.lParam == 2) //Installed version is higher than on site
+              {
+                lplvcd->clrText=RGB(0xFF, 0x00, 0x00);
+                lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
+              }
+              else if (lviA.lParam == 1) //New version available on site
+              {
+                lplvcd->clrText=RGB(0x00, 0x00, 0xFF);
+                lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
+              }
+            }
+            else
+            {
+              lplvcd->clrText=RGB(0x00, 0x00, 0x00);
+              lplvcd->clrTextBk=RGB(0xFF, 0xFF, 0xFF);
+            }
+          }
+          lResult=CDRF_DODEFAULT;
+        }
+        else lResult=CDRF_DODEFAULT;
+
+        SetWindowLongA(hDlg, DWL_MSGRESULT, (LONG)lResult);
+        return TRUE;
       }
     }
   }

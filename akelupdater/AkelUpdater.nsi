@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "1.7"
+!define PRODUCT_VERSION "1.8"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -294,13 +294,11 @@ Function FillStack
 
 	Compare:
 	${VersionCompare} "$R1" "$R2" $R3
-	StrCmp $R3 2 0 +2
-	StrCpy $R3 0
 	goto PushString
 
 	Empty:
 	StrCpy $R2 ""
-	StrCpy $R3 0
+	StrCpy $R3 3
 
 	PushString:
 	Push $R3
