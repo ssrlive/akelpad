@@ -5794,6 +5794,7 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DoViewFontSizeA(hWndEdit, DECREASE_FONT);
       else
         DoViewFontSizeA(hWndEdit, INCREASE_FONT);
+      bEditFontChanged=TRUE;
     }
     else
     {
@@ -5913,6 +5914,7 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DoViewFontSizeW(hWndEdit, DECREASE_FONT);
       else
         DoViewFontSizeW(hWndEdit, INCREASE_FONT);
+      bEditFontChanged=TRUE;
     }
     else
     {
