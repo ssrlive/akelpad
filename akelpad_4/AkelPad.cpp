@@ -29,9 +29,13 @@
 #include "ConvFunc.h"
 
 //Include stack functions
-#define StackElement
-#define StackInsert
-#define StackMove
+#define StackGetElement
+#define StackInsertAfter
+#define StackInsertBefore
+#define StackInsertIndex
+#define StackMoveAfter
+#define StackMoveBefore
+#define StackMoveIndex
 #define StackDelete
 #define StackClear
 #include "StackFunc.h"
@@ -6320,6 +6324,7 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DoViewFontSizeA(hWnd, DECREASE_FONT);
       else
         DoViewFontSizeA(hWnd, INCREASE_FONT);
+      bEditFontChanged=TRUE;
       return TRUE;
     }
   }
@@ -6384,6 +6389,7 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DoViewFontSizeW(hWnd, DECREASE_FONT);
       else
         DoViewFontSizeW(hWnd, INCREASE_FONT);
+      bEditFontChanged=TRUE;
       return TRUE;
     }
   }

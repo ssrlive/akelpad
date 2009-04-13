@@ -2544,7 +2544,7 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
                 nSectionLen=wpText - wpSection;
                 *wpText++='\0';
 
-                if (!StackInsert((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
+                if (!StackInsertIndex((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
                 {
                   lpIniSection->nSectionUnicodeBytes=nSectionLen * sizeof(wchar_t) + 2;
                   if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionUnicodeBytes))
@@ -2579,7 +2579,7 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
                 nStringLen=wpText - wpString;
                 if (*wpText) *wpText++='\0';
 
-                if (!StackInsert((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
+                if (!StackInsertIndex((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
                 {
                   lpIniKey->nKeyUnicodeBytes=nKeyLen * sizeof(wchar_t) + 2;
                   if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
@@ -2651,7 +2651,7 @@ BOOL SaveIniW(HSTACK *hIniStack, wchar_t *wpFile)
 
 BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile)
 {
-  HINISECTION *lpIniSection=(HINISECTION *)hIniStack->last;
+  HINISECTION *lpIniSection=(HINISECTION *)hIniStack->first;
   HINIKEY *lpIniKey=NULL;
   DWORD dwBytesWritten;
 
@@ -2669,7 +2669,7 @@ BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile)
       return FALSE;
 
     //Keys and strings
-    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
+    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
 
     while (lpIniKey)
     {
@@ -2681,21 +2681,21 @@ BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile)
         return FALSE;
       if (!API_WriteFile(hFile, L"\r\n", 4, &dwBytesWritten, NULL))
         return FALSE;
-      lpIniKey=lpIniKey->prev;
+      lpIniKey=lpIniKey->next;
     }
-    if (lpIniSection->prev)
+    if (lpIniSection->next)
     {
       if (!API_WriteFile(hFile, L"\r\n", 4, &dwBytesWritten, NULL))
         return FALSE;
     }
-    lpIniSection=lpIniSection->prev;
+    lpIniSection=lpIniSection->next;
   }
   return TRUE;
 }
 
 HINISECTION* StackGetIniSectionA(HSTACK *hIniStack, char *pSection, int nSectionLen)
 {
-  HINISECTION *lpIniSection=(HINISECTION *)hIniStack->last;
+  HINISECTION *lpIniSection=(HINISECTION *)hIniStack->first;
 
   nSectionLen=nSectionLen + 1;
 
@@ -2706,14 +2706,14 @@ HINISECTION* StackGetIniSectionA(HSTACK *hIniStack, char *pSection, int nSection
       if (!lstrcmpiA(lpIniSection->szSection, pSection))
         return lpIniSection;
     }
-    lpIniSection=lpIniSection->prev;
+    lpIniSection=lpIniSection->next;
   }
   return NULL;
 }
 
 HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSectionLen)
 {
-  HINISECTION *lpIniSection=(HINISECTION *)hIniStack->last;
+  HINISECTION *lpIniSection=(HINISECTION *)hIniStack->first;
 
   nSectionLen=nSectionLen * sizeof(wchar_t) + 2;
 
@@ -2724,14 +2724,14 @@ HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSec
       if (!lstrcmpiW(lpIniSection->wszSection, wpSection))
         return lpIniSection;
     }
-    lpIniSection=lpIniSection->prev;
+    lpIniSection=lpIniSection->next;
   }
   return NULL;
 }
 
 HINIKEY* StackGetIniKeyA(HSTACK *hKeysStack, char *pKey, int nKeyLen)
 {
-  HINIKEY *lpIniKey=(HINIKEY *)hKeysStack->last;
+  HINIKEY *lpIniKey=(HINIKEY *)hKeysStack->first;
 
   nKeyLen=nKeyLen + 1;
 
@@ -2742,14 +2742,14 @@ HINIKEY* StackGetIniKeyA(HSTACK *hKeysStack, char *pKey, int nKeyLen)
       if (!lstrcmpiA(lpIniKey->szKey, pKey))
         return lpIniKey;
     }
-    lpIniKey=lpIniKey->prev;
+    lpIniKey=lpIniKey->next;
   }
   return NULL;
 }
 
 HINIKEY* StackGetIniKeyW(HSTACK *hKeysStack, wchar_t *wpKey, int nKeyLen)
 {
-  HINIKEY *lpIniKey=(HINIKEY *)hKeysStack->last;
+  HINIKEY *lpIniKey=(HINIKEY *)hKeysStack->first;
 
   nKeyLen=nKeyLen * sizeof(wchar_t) + 2;
 
@@ -2760,28 +2760,28 @@ HINIKEY* StackGetIniKeyW(HSTACK *hKeysStack, wchar_t *wpKey, int nKeyLen)
       if (!lstrcmpiW(lpIniKey->wszKey, wpKey))
         return lpIniKey;
     }
-    lpIniKey=lpIniKey->prev;
+    lpIniKey=lpIniKey->next;
   }
   return NULL;
 }
 
 void StackFreeIni(HSTACK *hIniStack)
 {
-  HINISECTION *lpIniSection=(HINISECTION *)hIniStack->last;
+  HINISECTION *lpIniSection=(HINISECTION *)hIniStack->first;
 
   while (lpIniSection)
   {
     if (lpIniSection->wszSection) API_HeapFree(hHeap, 0, (LPVOID)lpIniSection->wszSection);
     if (lpIniSection->szSection) API_HeapFree(hHeap, 0, (LPVOID)lpIniSection->szSection);
     StackFreeIniSection(&lpIniSection->hKeysStack);
-    lpIniSection=lpIniSection->prev;
+    lpIniSection=lpIniSection->next;
   }
   StackClear((stack **)&hIniStack->first, (stack **)&hIniStack->last);
 }
 
 void StackFreeIniSection(HSTACK *hKeysStack)
 {
-  HINIKEY *lpIniKey=(HINIKEY *)hKeysStack->last;
+  HINIKEY *lpIniKey=(HINIKEY *)hKeysStack->first;
 
   while (lpIniKey)
   {
@@ -2789,7 +2789,7 @@ void StackFreeIniSection(HSTACK *hKeysStack)
     if (lpIniKey->szKey) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->szKey);
     if (lpIniKey->wszString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->wszString);
     if (lpIniKey->szString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->szString);
-    lpIniKey=lpIniKey->prev;
+    lpIniKey=lpIniKey->next;
   }
   StackClear((stack **)&hKeysStack->first, (stack **)&hKeysStack->last);
 }
@@ -2917,7 +2917,7 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
 
   if (!(lpIniSection=StackGetIniSectionA(hIniStack, pSection, nSectionLen)))
   {
-    if (!StackInsert((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
+    if (!StackInsertIndex((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
     {
       lpIniSection->nSectionUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pSection, nSectionLen + 1, NULL, 0) * sizeof(wchar_t);
       if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionUnicodeBytes))
@@ -2932,7 +2932,7 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
   }
   if (!(lpIniKey=StackGetIniKeyA(&lpIniSection->hKeysStack, pKey, nKeyLen)))
   {
-    if (!StackInsert((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
+    if (!StackInsertIndex((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
     {
       lpIniKey->nKeyUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pKey, nKeyLen + 1, NULL, 0) * sizeof(wchar_t);
       if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
@@ -3020,7 +3020,7 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
 
   if (!(lpIniSection=StackGetIniSectionW(hIniStack, wpSection, nSectionLen)))
   {
-    if (!StackInsert((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
+    if (!StackInsertIndex((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
     {
       lpIniSection->nSectionUnicodeBytes=nSectionLen * sizeof(wchar_t) + 2;
       if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionUnicodeBytes))
@@ -3035,7 +3035,7 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
   }
   if (!(lpIniKey=StackGetIniKeyW(&lpIniSection->hKeysStack, wpKey, nKeyLen)))
   {
-    if (!StackInsert((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
+    if (!StackInsertIndex((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
     {
       lpIniKey->nKeyUnicodeBytes=nKeyLen * sizeof(wchar_t) + 2;
       if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
@@ -3852,7 +3852,7 @@ void IniRegisterPluginsHotkeysA()
 
   if (lpIniSection=StackGetIniSectionA(&hIniStack, "Plugs", lstrlenA("Plugs")))
   {
-    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
+    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
 
     while (lpIniKey)
     {
@@ -3860,7 +3860,7 @@ void IniRegisterPluginsHotkeysA()
       {
         StackPluginAddA(&hPluginsStack, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
       }
-      lpIniKey=lpIniKey->prev;
+      lpIniKey=lpIniKey->next;
     }
   }
 }
@@ -3873,7 +3873,7 @@ void IniRegisterPluginsHotkeysW()
 
   if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Plugs", lstrlenW(L"Plugs")))
   {
-    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
+    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
 
     while (lpIniKey)
     {
@@ -3881,7 +3881,7 @@ void IniRegisterPluginsHotkeysW()
       {
         StackPluginAddW(&hPluginsStack, lpIniKey->wszKey, (lpIniKey->nKeyUnicodeBytes - 1) / sizeof(wchar_t), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
       }
-      lpIniKey=lpIniKey->prev;
+      lpIniKey=lpIniKey->next;
     }
   }
 }
@@ -4682,7 +4682,7 @@ void ReadThemesA()
 
     if (lpIniSection=StackGetIniSectionA(&hIniStack, "Themes", lstrlenA("Themes")))
     {
-      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
+      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
 
       while (lpIniKey)
       {
@@ -4690,7 +4690,7 @@ void ReadThemesA()
         StackThemeAddA(&hThemesStack, lpIniKey->szKey, &aec);
         ++dwIndex;
 
-        lpIniKey=lpIniKey->prev;
+        lpIniKey=lpIniKey->next;
       }
     }
   }
@@ -4759,7 +4759,7 @@ void ReadThemesW()
 
     if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Themes", lstrlenW(L"Themes")))
     {
-      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.last;
+      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
 
       while (lpIniKey)
       {
@@ -4767,7 +4767,7 @@ void ReadThemesW()
         StackThemeAddW(&hThemesStack, lpIniKey->wszKey, &aec);
         ++dwIndex;
 
-        lpIniKey=lpIniKey->prev;
+        lpIniKey=lpIniKey->next;
       }
     }
   }
@@ -4791,7 +4791,7 @@ void ReadThemesW()
 
 BOOL SaveThemesA(BOOL bCleanOld)
 {
-  COLORTHEMEA *ctElement=(COLORTHEMEA *)hThemesStack.last;
+  COLORTHEMEA *ctElement=(COLORTHEMEA *)hThemesStack.first;
   HKEY hKey;
   HINISECTION *lpIniSection;
   BOOL bResult=FALSE;
@@ -4817,7 +4817,7 @@ BOOL SaveThemesA(BOOL bCleanOld)
   }
 
   //Skip "Standard" theme
-  if (ctElement) ctElement=ctElement->prev;
+  if (ctElement) ctElement=ctElement->next;
 
   while (ctElement)
   {
@@ -4831,7 +4831,7 @@ BOOL SaveThemesA(BOOL bCleanOld)
       if (!IniSetValueA(&hIniStack, "Themes", ctElement->szName, INI_BINARY, (LPBYTE)&ctElement->aec, sizeof(AECOLORS)))
         break;
     }
-    ctElement=ctElement->prev;
+    ctElement=ctElement->next;
   }
 
   if (nSaveSettings == SS_REGISTRY)
@@ -4849,7 +4849,7 @@ BOOL SaveThemesA(BOOL bCleanOld)
 
 BOOL SaveThemesW(BOOL bCleanOld)
 {
-  COLORTHEMEW *ctElement=(COLORTHEMEW *)hThemesStack.last;
+  COLORTHEMEW *ctElement=(COLORTHEMEW *)hThemesStack.first;
   HKEY hKey;
   HINISECTION *lpIniSection;
   BOOL bResult=FALSE;
@@ -4875,7 +4875,7 @@ BOOL SaveThemesW(BOOL bCleanOld)
   }
 
   //Skip "Standard" theme
-  if (ctElement) ctElement=ctElement->prev;
+  if (ctElement) ctElement=ctElement->next;
 
   while (ctElement)
   {
@@ -4889,7 +4889,7 @@ BOOL SaveThemesW(BOOL bCleanOld)
       if (!IniSetValueW(&hIniStack, L"Themes", ctElement->wszName, INI_BINARY, (LPBYTE)&ctElement->aec, sizeof(AECOLORS)))
         break;
     }
-    ctElement=ctElement->prev;
+    ctElement=ctElement->next;
   }
 
   if (nSaveSettings == SS_REGISTRY)
@@ -13067,25 +13067,25 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void FillComboboxThemesA(HWND hWnd)
 {
-  COLORTHEMEA *ctElement=(COLORTHEMEA *)hThemesStack.last;
+  COLORTHEMEA *ctElement=(COLORTHEMEA *)hThemesStack.first;
 
   while (ctElement)
   {
     SendMessageA(hWnd, CB_ADDSTRING, 0, (LPARAM)ctElement->szName);
 
-    ctElement=ctElement->prev;
+    ctElement=ctElement->next;
   }
 }
 
 void FillComboboxThemesW(HWND hWnd)
 {
-  COLORTHEMEW *ctElement=(COLORTHEMEW *)hThemesStack.last;
+  COLORTHEMEW *ctElement=(COLORTHEMEW *)hThemesStack.first;
 
   while (ctElement)
   {
     SendMessageW(hWnd, CB_ADDSTRING, 0, (LPARAM)ctElement->wszName);
 
-    ctElement=ctElement->prev;
+    ctElement=ctElement->next;
   }
 }
 
@@ -13214,14 +13214,14 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
-      PLUGINLISTITEMA *pliElement=(PLUGINLISTITEMA *)hPluginListStack.last;
+      PLUGINLISTITEMA *pliElement=(PLUGINLISTITEMA *)hPluginListStack.first;
 
       while (pliElement)
       {
         pliElement->pf->wHotkey=pliElement->wInitialHotkey;
         pliElement->pf->bOnStart=pliElement->bInitialOnStart;
 
-        pliElement=pliElement->prev;
+        pliElement=pliElement->next;
       }
       FreePluginList(&hPluginListStack);
       StackPluginCleanUpA(&hPluginsStack, FALSE);
@@ -13442,14 +13442,14 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
-      PLUGINLISTITEMW *pliElement=(PLUGINLISTITEMW *)hPluginListStack.last;
+      PLUGINLISTITEMW *pliElement=(PLUGINLISTITEMW *)hPluginListStack.first;
 
       while (pliElement)
       {
         pliElement->pf->wHotkey=pliElement->wInitialHotkey;
         pliElement->pf->bOnStart=pliElement->bInitialOnStart;
 
-        pliElement=pliElement->prev;
+        pliElement=pliElement->next;
       }
       FreePluginList(&hPluginListStack);
       StackPluginCleanUpW(&hPluginsStack, FALSE);
@@ -13667,7 +13667,7 @@ BOOL CALLBACK FillPluginListProcA(char *pExportName, LPARAM lParam)
     lviA.iSubItem=LVSI_FUNCTION_NAME;
     nIndex=SendMessage(pld->hWndList, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
 
-    if (!StackInsert((stack **)&hPluginListStack.first, (stack **)&hPluginListStack.last, (stack **)&pliElement, nIndex + 1, sizeof(PLUGINLISTITEMA)))
+    if (!StackInsertIndex((stack **)&hPluginListStack.first, (stack **)&hPluginListStack.last, (stack **)&pliElement, nIndex + 1, sizeof(PLUGINLISTITEMA)))
     {
       if (pfElement=StackPluginFindA(&hPluginsStack, buf))
       {
@@ -13729,7 +13729,7 @@ BOOL CALLBACK FillPluginListProcW(char *pExportName, LPARAM lParam)
     lviW.iSubItem=LVSI_FUNCTION_NAME;
     nIndex=SendMessage(pld->hWndList, LVM_INSERTITEMW, 0, (LPARAM)&lviW);
 
-    if (!StackInsert((stack **)&hPluginListStack.first, (stack **)&hPluginListStack.last, (stack **)&pliElement, nIndex + 1, sizeof(PLUGINLISTITEMW)))
+    if (!StackInsertIndex((stack **)&hPluginListStack.first, (stack **)&hPluginListStack.last, (stack **)&pliElement, nIndex + 1, sizeof(PLUGINLISTITEMW)))
     {
       if (pfElement=StackPluginFindW(&hPluginsStack, wbuf))
       {
@@ -13776,7 +13776,7 @@ PLUGINLISTITEMA* GetPluginListItemA(HSTACK *hStack, int nIndex)
 {
   PLUGINLISTITEMA *pliElement;
 
-  if (!StackElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&pliElement, nIndex))
+  if (!StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&pliElement, nIndex))
     return pliElement;
   return NULL;
 }
@@ -13785,7 +13785,7 @@ PLUGINLISTITEMW* GetPluginListItemW(HSTACK *hStack, int nIndex)
 {
   PLUGINLISTITEMW *pliElement;
 
-  if (!StackElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&pliElement, nIndex))
+  if (!StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&pliElement, nIndex))
     return pliElement;
   return NULL;
 }
@@ -14189,7 +14189,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
 
 void CallPluginsOnStartA(HSTACK *hStack)
 {
-  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->last;
+  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->first;
   PLUGINFUNCTIONA *pfTmp;
   PLUGINCALLSENDA pcs;
 
@@ -14204,19 +14204,19 @@ void CallPluginsOnStartA(HSTACK *hStack)
 
       if (CallPluginReceiveSendA(&pcs) == EDL_FAILED)
       {
-        pfTmp=pfElement->prev;
+        pfTmp=pfElement->next;
         StackPluginDelete(hStack, pfElement);
         pfElement=pfTmp;
         continue;
       }
     }
-    pfElement=pfElement->prev;
+    pfElement=pfElement->next;
   }
 }
 
 void CallPluginsOnStartW(HSTACK *hStack)
 {
-  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->last;
+  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->first;
   PLUGINFUNCTIONW *pfTmp;
   PLUGINCALLSENDW pcs;
 
@@ -14231,13 +14231,13 @@ void CallPluginsOnStartW(HSTACK *hStack)
 
       if (CallPluginReceiveSendW(&pcs) == EDL_FAILED)
       {
-        pfTmp=pfElement->prev;
+        pfTmp=pfElement->next;
         StackPluginDelete(hStack, pfElement);
         pfElement=pfTmp;
         continue;
       }
     }
-    pfElement=pfElement->prev;
+    pfElement=pfElement->next;
   }
 }
 
@@ -14433,7 +14433,7 @@ BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM
 
 int StackProcGet(HSTACK *hStack, int nIndex, WNDPROCDATA **ProcData)
 {
-  return StackElement((stack *)hStack->first, (stack *)hStack->last, (stack **)ProcData, nIndex);
+  return StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)ProcData, nIndex);
 }
 
 int StackProcSet(HSTACK *hStack, WNDPROC NewProc, WNDPROCDATA **NewProcData, WNDPROC *FirstProc)
@@ -14442,13 +14442,13 @@ int StackProcSet(HSTACK *hStack, WNDPROC NewProc, WNDPROCDATA **NewProcData, WND
   {
     WNDPROCDATA *lpElement;
 
-    if (!StackInsert((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, 1, sizeof(WNDPROCDATA)))
+    if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, 1, sizeof(WNDPROCDATA)))
     {
       lpElement->CurProc=NewProc;
-      if (lpElement->prev)
+      if (lpElement->next)
       {
-        lpElement->prev->PrevProc=NewProc;
-        lpElement->NextProc=lpElement->prev->CurProc;
+        lpElement->next->PrevProc=NewProc;
+        lpElement->NextProc=lpElement->next->CurProc;
       }
       if (NewProcData) *NewProcData=lpElement;
     }
@@ -14457,22 +14457,22 @@ int StackProcSet(HSTACK *hStack, WNDPROC NewProc, WNDPROCDATA **NewProcData, WND
   {
     if (!NewProc)
     {
-      if ((*NewProcData)->next) (*NewProcData)->next->NextProc=(*NewProcData)->NextProc;
-      if ((*NewProcData)->prev) (*NewProcData)->prev->PrevProc=(*NewProcData)->PrevProc;
+      if ((*NewProcData)->prev) (*NewProcData)->prev->NextProc=(*NewProcData)->NextProc;
+      if ((*NewProcData)->next) (*NewProcData)->next->PrevProc=(*NewProcData)->PrevProc;
       StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)*NewProcData);
       *NewProcData=NULL;
     }
     else
     {
       (*NewProcData)->CurProc=NewProc;
-      if ((*NewProcData)->next) (*NewProcData)->next->NextProc=NewProc;
-      if ((*NewProcData)->prev) (*NewProcData)->prev->PrevProc=NewProc;
+      if ((*NewProcData)->prev) (*NewProcData)->prev->NextProc=NewProc;
+      if ((*NewProcData)->next) (*NewProcData)->next->PrevProc=NewProc;
     }
   }
   if (FirstProc)
   {
-    if (hStack->last)
-      *FirstProc=((WNDPROCDATA *)(hStack->last))->CurProc;
+    if (hStack->first)
+      *FirstProc=((WNDPROCDATA *)(hStack->first))->CurProc;
     else
       *FirstProc=NULL;
   }
@@ -14488,7 +14488,7 @@ COLORTHEMEA* StackThemeAddA(HSTACK *hStack, char *pName, AECOLORS *aec)
 {
   COLORTHEMEA *ctElement;
 
-  if (!StackInsert((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&ctElement, -1, sizeof(COLORTHEMEA)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&ctElement, -1, sizeof(COLORTHEMEA)))
   {
     lstrcpynA(ctElement->szName, pName, MAX_PATH);
     ctElement->nNameLen=lstrlenA(ctElement->szName);
@@ -14501,7 +14501,7 @@ COLORTHEMEW* StackThemeAddW(HSTACK *hStack, wchar_t *wpName, AECOLORS *aec)
 {
   COLORTHEMEW *ctElement;
 
-  if (!StackInsert((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&ctElement, -1, sizeof(COLORTHEMEW)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&ctElement, -1, sizeof(COLORTHEMEW)))
   {
     lstrcpynW(ctElement->wszName, wpName, MAX_PATH);
     ctElement->nNameLen=lstrlenW(ctElement->wszName);
@@ -14512,7 +14512,7 @@ COLORTHEMEW* StackThemeAddW(HSTACK *hStack, wchar_t *wpName, AECOLORS *aec)
 
 COLORTHEMEA* StackThemeGetByNameA(HSTACK *hStack, char *pName)
 {
-  COLORTHEMEA *ctElement=(COLORTHEMEA *)hStack->last;
+  COLORTHEMEA *ctElement=(COLORTHEMEA *)hStack->first;
   int nNameLen=lstrlenA(pName);
 
   while (ctElement)
@@ -14521,14 +14521,14 @@ COLORTHEMEA* StackThemeGetByNameA(HSTACK *hStack, char *pName)
       if (!lstrcmpiA(ctElement->szName, pName))
         return ctElement;
 
-    ctElement=ctElement->prev;
+    ctElement=ctElement->next;
   }
   return NULL;
 }
 
 COLORTHEMEW* StackThemeGetByNameW(HSTACK *hStack, wchar_t *wpName)
 {
-  COLORTHEMEW *ctElement=(COLORTHEMEW *)hStack->last;
+  COLORTHEMEW *ctElement=(COLORTHEMEW *)hStack->first;
   int nNameLen=lstrlenW(wpName);
 
   while (ctElement)
@@ -14537,35 +14537,35 @@ COLORTHEMEW* StackThemeGetByNameW(HSTACK *hStack, wchar_t *wpName)
       if (!lstrcmpiW(ctElement->wszName, wpName))
         return ctElement;
 
-    ctElement=ctElement->prev;
+    ctElement=ctElement->next;
   }
   return NULL;
 }
 
 COLORTHEMEA* StackThemeGetByColorsA(HSTACK *hStack, AECOLORS *aec)
 {
-  COLORTHEMEA *ctElement=(COLORTHEMEA *)hStack->last;
+  COLORTHEMEA *ctElement=(COLORTHEMEA *)hStack->first;
 
   while (ctElement)
   {
     if (!memcmp(&ctElement->aec.crCaret, &aec->crCaret, sizeof(AECOLORS) - sizeof(DWORD)))
       return ctElement;
 
-    ctElement=ctElement->prev;
+    ctElement=ctElement->next;
   }
   return NULL;
 }
 
 COLORTHEMEW* StackThemeGetByColorsW(HSTACK *hStack, AECOLORS *aec)
 {
-  COLORTHEMEW *ctElement=(COLORTHEMEW *)hStack->last;
+  COLORTHEMEW *ctElement=(COLORTHEMEW *)hStack->first;
 
   while (ctElement)
   {
     if (!memcmp(&ctElement->aec.crCaret, &aec->crCaret, sizeof(AECOLORS) - sizeof(DWORD)))
       return ctElement;
 
-    ctElement=ctElement->prev;
+    ctElement=ctElement->next;
   }
   return NULL;
 }
@@ -14587,7 +14587,7 @@ void StackThemeFree(HSTACK *hStack)
 
 PLUGINHANDLE* StackHandleIncrease(HSTACK *hStack, HMODULE hModule)
 {
-  PLUGINHANDLE *phElement=(PLUGINHANDLE *)hStack->last;
+  PLUGINHANDLE *phElement=(PLUGINHANDLE *)hStack->first;
 
   while (phElement)
   {
@@ -14596,10 +14596,10 @@ PLUGINHANDLE* StackHandleIncrease(HSTACK *hStack, HMODULE hModule)
       phElement->nCount+=1;
       return phElement;
     }
-    phElement=phElement->prev;
+    phElement=phElement->next;
   }
 
-  if (!StackInsert((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&phElement, 1, sizeof(PLUGINHANDLE)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&phElement, -1, sizeof(PLUGINHANDLE)))
   {
     phElement->hModule=hModule;
     phElement->nCount=1;
@@ -14609,7 +14609,7 @@ PLUGINHANDLE* StackHandleIncrease(HSTACK *hStack, HMODULE hModule)
 
 PLUGINHANDLE* StackHandleDecrease(HSTACK *hStack, HMODULE hModule)
 {
-  PLUGINHANDLE *phElement=(PLUGINHANDLE *)hStack->last;
+  PLUGINHANDLE *phElement=(PLUGINHANDLE *)hStack->first;
 
   while (phElement)
   {
@@ -14623,14 +14623,14 @@ PLUGINHANDLE* StackHandleDecrease(HSTACK *hStack, HMODULE hModule)
       }
       return phElement;
     }
-    phElement=phElement->prev;
+    phElement=phElement->next;
   }
   return NULL;
 }
 
 void StackHandleFree(HSTACK *hStack)
 {
-  PLUGINHANDLE *phElement=(PLUGINHANDLE *)hStack->last;
+  PLUGINHANDLE *phElement=(PLUGINHANDLE *)hStack->first;
 
   while (phElement)
   {
@@ -14638,14 +14638,14 @@ void StackHandleFree(HSTACK *hStack)
     {
       phElement->nCount-=1;
     }
-    phElement=phElement->prev;
+    phElement=phElement->next;
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
 DOCK* StackDockAdd(HDOCK *hDocks, DOCK *dkData)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.last;
+  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
   int nIndex=1;
 
   while (dkElement)
@@ -14678,10 +14678,10 @@ DOCK* StackDockAdd(HDOCK *hDocks, DOCK *dkData)
 
     ++nIndex;
 
-    dkElement=dkElement->prev;
+    dkElement=dkElement->next;
   }
 
-  if (!StackInsert((stack **)&hDocks->hStack.first, (stack **)&hDocks->hStack.last, (stack **)&dkElement, nIndex, sizeof(DOCK)))
+  if (!StackInsertIndex((stack **)&hDocks->hStack.first, (stack **)&hDocks->hStack.last, (stack **)&dkElement, nIndex, sizeof(DOCK)))
   {
     dkElement->dwFlags=dkData->dwFlags;
     dkElement->hWnd=dkData->hWnd;
@@ -14694,7 +14694,7 @@ DOCK* StackDockAdd(HDOCK *hDocks, DOCK *dkData)
 
 int DockSetSide(HDOCK *hDocks, DOCK *dkData, int nSide)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.last;
+  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
   int nIndex=1;
 
   while (dkElement)
@@ -14734,16 +14734,16 @@ int DockSetSide(HDOCK *hDocks, DOCK *dkData, int nSide)
     }
     ++nIndex;
 
-    dkElement=dkElement->prev;
+    dkElement=dkElement->next;
   }
   dkData->nSide=nSide;
 
-  return StackMove((stack **)&hDocks->hStack.first, (stack **)&hDocks->hStack.last, (stack *)dkData, nIndex);
+  return StackMoveIndex((stack **)&hDocks->hStack.first, (stack **)&hDocks->hStack.last, (stack *)dkData, nIndex);
 }
 
 DOCK* StackDockFindWindow(HDOCK *hDocks, HWND hWnd, BOOL bChild)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.last;
+  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
 
   if (hWnd)
   {
@@ -14754,7 +14754,7 @@ DOCK* StackDockFindWindow(HDOCK *hDocks, HWND hWnd, BOOL bChild)
         if (dkElement->hWnd == hWnd || (bChild && IsChild(dkElement->hWnd, hWnd)))
           return dkElement;
       }
-      dkElement=dkElement->prev;
+      dkElement=dkElement->next;
     }
   }
   return NULL;
@@ -14762,7 +14762,7 @@ DOCK* StackDockFindWindow(HDOCK *hDocks, HWND hWnd, BOOL bChild)
 
 HWND StackDockNextWindow(HDOCK *hDocks, DOCK *dkData, BOOL bPrevious)
 {
-  if (!bPrevious)
+  if (bPrevious)
   {
     if (!dkData)
       dkData=(DOCK *)hDocks->hStack.last;
@@ -14797,7 +14797,7 @@ HWND StackDockNextWindow(HDOCK *hDocks, DOCK *dkData, BOOL bPrevious)
 
 DOCK* StackDockFromPoint(HDOCK *hDocks, POINT *pt)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.last;
+  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
   RECT rc;
 
   while (dkElement)
@@ -14810,14 +14810,14 @@ DOCK* StackDockFromPoint(HDOCK *hDocks, POINT *pt)
           return dkElement;
       }
     }
-    dkElement=dkElement->prev;
+    dkElement=dkElement->next;
   }
   return NULL;
 }
 
 void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns)
 {
-  DOCK *dkElement=(DOCK *)hDocks->hStack.last;
+  DOCK *dkElement=(DOCK *)hDocks->hStack.first;
   RECT rcDock;
 
   while (dkElement)
@@ -14895,7 +14895,7 @@ void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns)
       }
     }
 
-    dkElement=dkElement->prev;
+    dkElement=dkElement->next;
   }
 }
 
@@ -14911,7 +14911,7 @@ void StackDockFree(HDOCK *hDocks)
 
 PLUGINFUNCTIONA* StackPluginFindA(HSTACK *hStack, char *pString)
 {
-  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->last;
+  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->first;
   int nStringLen;
 
   if (!pString || !(nStringLen=lstrlenA(pString)))
@@ -14924,14 +14924,14 @@ PLUGINFUNCTIONA* StackPluginFindA(HSTACK *hStack, char *pString)
       if (!lstrcmpiA(pfElement->szFunction, pString))
         break;
     }
-    pfElement=pfElement->prev;
+    pfElement=pfElement->next;
   }
   return pfElement;
 }
 
 PLUGINFUNCTIONW* StackPluginFindW(HSTACK *hStack, wchar_t *wpString)
 {
-  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->last;
+  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->first;
   int nStringLen;
 
   if (!wpString || !(nStringLen=lstrlenW(wpString)))
@@ -14944,33 +14944,33 @@ PLUGINFUNCTIONW* StackPluginFindW(HSTACK *hStack, wchar_t *wpString)
       if (!lstrcmpiW(pfElement->wszFunction, wpString))
         break;
     }
-    pfElement=pfElement->prev;
+    pfElement=pfElement->next;
   }
   return pfElement;
 }
 
 PLUGINFUNCTIONA* StackHotkeyFindA(HSTACK *hStack, WORD wHotkey)
 {
-  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->last;
+  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->first;
 
   while (pfElement)
   {
     if (pfElement->wHotkey == wHotkey)
         break;
-    pfElement=pfElement->prev;
+    pfElement=pfElement->next;
   }
   return pfElement;
 }
 
 PLUGINFUNCTIONW* StackHotkeyFindW(HSTACK *hStack, WORD wHotkey)
 {
-  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->last;
+  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->first;
 
   while (pfElement)
   {
     if (pfElement->wHotkey == wHotkey)
         break;
-    pfElement=pfElement->prev;
+    pfElement=pfElement->next;
   }
   return pfElement;
 }
@@ -14979,7 +14979,7 @@ PLUGINFUNCTIONA* StackPluginAddA(HSTACK *hStack, char *pString, int nStringLen, 
 {
   PLUGINFUNCTIONA *pfElement;
 
-  if (!StackInsert((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&pfElement, -1, sizeof(PLUGINFUNCTIONA)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&pfElement, -1, sizeof(PLUGINFUNCTIONA)))
   {
     lstrcpynA(pfElement->szFunction, pString, MAX_PATH);
     pfElement->nFunctionLen=nStringLen;
@@ -14996,7 +14996,7 @@ PLUGINFUNCTIONW* StackPluginAddW(HSTACK *hStack, wchar_t *wpString, int nStringL
 {
   PLUGINFUNCTIONW *pfElement;
 
-  if (!StackInsert((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&pfElement, -1, sizeof(PLUGINFUNCTIONW)))
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&pfElement, -1, sizeof(PLUGINFUNCTIONW)))
   {
     lstrcpynW(pfElement->wszFunction, wpString, MAX_PATH);
     pfElement->nFunctionLen=nStringLen;
@@ -15016,7 +15016,7 @@ void StackPluginDelete(HSTACK *hStack, void *lpElement)
 
 BOOL StackPluginSaveA(HSTACK *hStack, BOOL bCleanOld)
 {
-  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->last;
+  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->first;
   HKEY hKey;
   HINISECTION *lpIniSection;
   DWORD dwHotkey;
@@ -15062,7 +15062,7 @@ BOOL StackPluginSaveA(HSTACK *hStack, BOOL bCleanOld)
         }
       }
     }
-    pfElement=pfElement->prev;
+    pfElement=pfElement->next;
   }
 
   if (nSaveSettings == SS_REGISTRY)
@@ -15080,7 +15080,7 @@ BOOL StackPluginSaveA(HSTACK *hStack, BOOL bCleanOld)
 
 BOOL StackPluginSaveW(HSTACK *hStack, BOOL bCleanOld)
 {
-  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->last;
+  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->first;
   HKEY hKey;
   HINISECTION *lpIniSection;
   DWORD dwHotkey;
@@ -15126,7 +15126,7 @@ BOOL StackPluginSaveW(HSTACK *hStack, BOOL bCleanOld)
         }
       }
     }
-    pfElement=pfElement->prev;
+    pfElement=pfElement->next;
   }
 
   if (nSaveSettings == SS_REGISTRY)
@@ -15144,14 +15144,14 @@ BOOL StackPluginSaveW(HSTACK *hStack, BOOL bCleanOld)
 
 void StackPluginCleanUpA(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
 {
-  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->last;
+  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->first;
   PLUGINFUNCTIONA *pfElement2;
   char szDLL[MAX_PATH];
   char szPlugin[MAX_PATH];
 
   while (pfElement)
   {
-    pfElement2=pfElement->prev;
+    pfElement2=pfElement->next;
 
     if (!pfElement->wHotkey && !pfElement->bOnStart && !pfElement->bRunning)
     {
@@ -15177,14 +15177,14 @@ void StackPluginCleanUpA(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
 
 void StackPluginCleanUpW(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
 {
-  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->last;
+  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->first;
   PLUGINFUNCTIONW *pfElement2;
   wchar_t wszDLL[MAX_PATH];
   wchar_t wszPlugin[MAX_PATH];
 
   while (pfElement)
   {
-    pfElement2=pfElement->prev;
+    pfElement2=pfElement->next;
 
     if (!pfElement->wHotkey && !pfElement->bOnStart && !pfElement->bRunning)
     {
@@ -15260,7 +15260,7 @@ BOOL TranslateDialogA(HDOCK *hDocks, LPMSG lpMsg)
   }
   else
   {
-    DOCK *dkElement=(DOCK *)hDocks->hStack.last;
+    DOCK *dkElement=(DOCK *)hDocks->hStack.first;
 
     while (dkElement)
     {
@@ -15275,7 +15275,7 @@ BOOL TranslateDialogA(HDOCK *hDocks, LPMSG lpMsg)
           return TRUE;
         }
       }
-      dkElement=dkElement->prev;
+      dkElement=dkElement->next;
     }
   }
   return FALSE;
@@ -15293,7 +15293,7 @@ BOOL TranslateDialogW(HDOCK *hDocks, LPMSG lpMsg)
   }
   else
   {
-    DOCK *dkElement=(DOCK *)hDocks->hStack.last;
+    DOCK *dkElement=(DOCK *)hDocks->hStack.first;
 
     while (dkElement)
     {
@@ -15308,7 +15308,7 @@ BOOL TranslateDialogW(HDOCK *hDocks, LPMSG lpMsg)
           return TRUE;
         }
       }
-      dkElement=dkElement->prev;
+      dkElement=dkElement->next;
     }
   }
   return FALSE;
@@ -15367,7 +15367,7 @@ BOOL TranslatePluginA(LPMSG lpMsg)
 
           //Clean-up plugins stack
           {
-            PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hPluginsStack.last;
+            PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hPluginsStack.first;
             PLUGINFUNCTIONA *pfElement2;
 
             while (pfElement)
@@ -15378,13 +15378,13 @@ BOOL TranslatePluginA(LPMSG lpMsg)
                   pfElement->bRunning=FALSE;
                 else
                 {
-                  pfElement2=pfElement->prev;
+                  pfElement2=pfElement->next;
                   StackPluginDelete(&hPluginsStack, pfElement);
                   pfElement=pfElement2;
                   continue;
                 }
               }
-              pfElement=pfElement->prev;
+              pfElement=pfElement->next;
             }
           }
           SendMessage(hMainWnd, AKDN_DLLUNLOAD, 0, (WPARAM)szPluginName);
@@ -15449,7 +15449,7 @@ BOOL TranslatePluginW(LPMSG lpMsg)
 
           //Clean-up plugins stack
           {
-            PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hPluginsStack.last;
+            PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hPluginsStack.first;
             PLUGINFUNCTIONW *pfElement2;
 
             while (pfElement)
@@ -15460,13 +15460,13 @@ BOOL TranslatePluginW(LPMSG lpMsg)
                   pfElement->bRunning=FALSE;
                 else
                 {
-                  pfElement2=pfElement->prev;
+                  pfElement2=pfElement->next;
                   StackPluginDelete(&hPluginsStack, pfElement);
                   pfElement=pfElement2;
                   continue;
                 }
               }
-              pfElement=pfElement->prev;
+              pfElement=pfElement->next;
             }
           }
           SendMessage(hMainWnd, AKDN_DLLUNLOAD, 0, (WPARAM)wszPluginName);
@@ -15480,7 +15480,7 @@ BOOL TranslatePluginW(LPMSG lpMsg)
 
 BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
 {
-  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->last;
+  PLUGINFUNCTIONA *pfElement=(PLUGINFUNCTIONA *)hStack->first;
   BYTE nMod=0;
   WORD wHotkey;
   BOOL bResult;
@@ -15515,7 +15515,7 @@ BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
         }
         return TRUE;
       }
-      pfElement=pfElement->prev;
+      pfElement=pfElement->next;
     }
     bResult=FALSE;
     SendMessage(hMainWnd, AKDN_HOTKEY, (WPARAM)wHotkey, (LPARAM)&bResult);
@@ -15526,7 +15526,7 @@ BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
 
 BOOL TranslateHotkeyW(HSTACK *hStack, LPMSG lpMsg)
 {
-  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->last;
+  PLUGINFUNCTIONW *pfElement=(PLUGINFUNCTIONW *)hStack->first;
   BYTE nMod=0;
   WORD wHotkey;
   BOOL bResult;
@@ -15561,7 +15561,7 @@ BOOL TranslateHotkeyW(HSTACK *hStack, LPMSG lpMsg)
         }
         return TRUE;
       }
-      pfElement=pfElement->prev;
+      pfElement=pfElement->next;
     }
     bResult=FALSE;
     SendMessage(hMainWnd, AKDN_HOTKEY, (WPARAM)wHotkey, (LPARAM)&bResult);
