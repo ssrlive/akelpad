@@ -7516,6 +7516,7 @@ void AE_Paint(AKELEDIT *ae)
         wpStartDraw=ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine;
         nFirstPaintChar=ciDrawLine.nCharInLine;
 
+        //Set initial colors
         if (ae->popt->bHideSelection)
         {
           nLineSelection=AELS_EMPTY;
@@ -7575,6 +7576,7 @@ void AE_Paint(AKELEDIT *ae)
           }
         }
 
+        //Scan line
         for (; ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nLineLen; ++ciDrawLine.nCharInLine)
         {
           if (ciDrawLine.nCharInLine < ciDrawLine.lpLine->nLineLen)
@@ -7651,6 +7653,7 @@ void AE_Paint(AKELEDIT *ae)
           {
             if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
             {
+              //Draw text up to selection start
               SetTextColor(ps.hdc, dwColorText);
               SetBkColor(ps.hdc, dwColorBG);
               AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
@@ -7662,6 +7665,7 @@ void AE_Paint(AKELEDIT *ae)
             }
             else if (ciDrawLine.lpLine->nSelEnd == ciDrawLine.nCharInLine)
             {
+              //Draw text up to selection end
               SetTextColor(ps.hdc, dwColorText);
               SetBkColor(ps.hdc, dwColorBG);
               AE_PaintTextOut(ae, ps.hdc, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
@@ -7682,6 +7686,7 @@ void AE_Paint(AKELEDIT *ae)
             }
           }
 
+          //Draw text up to tab character
           if (ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine] == L'\t')
           {
             SetTextColor(ps.hdc, dwColorText);
@@ -7752,6 +7757,7 @@ void AE_Paint(AKELEDIT *ae)
         {
           if (ae->bColumnSel)
           {
+            //Draw column selection after line end
             if (nLineSelection == AELS_PARTLY)
             {
               nLineLen=ciDrawLine.lpLine->nLineLen;
@@ -7808,6 +7814,7 @@ void AE_Paint(AKELEDIT *ae)
             }
           }
 
+          //Fill space after line end
           if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
             hbrBG=ae->popt->hActiveLineBk;
           else
@@ -7819,6 +7826,8 @@ void AE_Paint(AKELEDIT *ae)
           if (rcSpace.left < rcSpace.right)
             FillRect(ps.hdc, &rcSpace, hbrBG);
         }
+
+        //Next line
         ptDraw.y+=ae->ptxt->nCharHeight;
         if (ptDraw.y >= rcDraw.bottom)
           break;
