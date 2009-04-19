@@ -447,6 +447,38 @@ typedef struct {
   int nNewLine;           //[in] See AELB_* defines.
 } AEINDEXSUBTRACT;
 
+typedef struct _AEDELIMITEM {
+  struct _AEDELIMITEM *next;
+  struct _AEDELIMITEM *prev;
+  wchar_t *wpDelimiter;
+  int nDelimiterLen;
+  BOOL bSensitive;
+  COLORREF crText;
+  COLORREF crBk;
+} AEDELIMITEM;
+
+typedef struct _AEWORDITEM {
+  struct _AEWORDITEM *next;
+  struct _AEWORDITEM *prev;
+  wchar_t *wpWord;
+  int nWordLen;
+  BOOL bSensitive;
+  COLORREF crText;
+  COLORREF crBk;
+} AEWORDITEM;
+
+typedef struct _AEQUOTEITEM {
+  struct _AEQUOTEITEM *next;
+  struct _AEQUOTEITEM *prev;
+  wchar_t *wpQuoteStart;
+  int nQuoteStartLen;
+  wchar_t *wpQuoteEnd;
+  int nQuoteEndLen;
+  BOOL bSensitive;
+  COLORREF crText;
+  COLORREF crBk;
+} AEQUOTEITEM;
+
 typedef struct {
   NMHDR hdr;
   DWORD dwBytes;        //Number of bytes that cannot be allocated.
@@ -676,6 +708,15 @@ typedef struct {
 #define AEM_GETCLONE          (WM_USER + 2258)
 #define AEM_GETMARKER         (WM_USER + 2259)
 #define AEM_SETMARKER         (WM_USER + 2260)
+
+//Highlight
+#define AEM_HLCREATETHEME     (WM_USER + 2501)
+#define AEM_HLGETTHEME        (WM_USER + 2502)
+#define AEM_HLSETTHEME        (WM_USER + 2503)
+#define AEM_HLDELETETHEME     (WM_USER + 2504)
+#define AEM_HLADDDELIMITER    (WM_USER + 2505)
+#define AEM_HLADDWORD         (WM_USER + 2506)
+#define AEM_HLADDQUOTE        (WM_USER + 2507)
 
 
 /*
@@ -1340,8 +1381,7 @@ Is ansi text matched with text at specified position.
 (AEFINDTEXTA *)lParam == pointer to a AEFINDTEXTA structure.
 
 Return Value
- TRUE   matched.
- FALSE  not matched.
+ Length of the matched text or zero if not found.
 
 Example:
  AEFINDTEXTA ft;
@@ -1371,8 +1411,7 @@ Is unicode text matched with text at specified position.
 (AEFINDTEXTW *)lParam == pointer to a AEFINDTEXTW structure.
 
 Return Value
- TRUE   matched.
- FALSE  not matched.
+ Length of the matched text or zero if not found.
 
 Example:
  AEFINDTEXTW ft;
