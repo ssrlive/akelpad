@@ -1499,7 +1499,6 @@ int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pStrin
 {
   stackS *tmp=*first;
   int i;
-  int nResult;
 
   if (nUpDown != 1 && nUpDown != -1) return 1;
 
@@ -1514,11 +1513,7 @@ int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pStrin
     tmp=tmp->next;
   }
 
-  if (tmp)
-    nResult=StackInsertBefore((stack **)first, (stack **)last, (stack *)tmp, (stack **)element, nBytes);
-  else
-    nResult=StackInsertAfter((stack **)first, (stack **)last, (stack *)*last, (stack **)element, nBytes);
-  return nResult;
+  return StackInsertBefore((stack **)first, (stack **)last, (stack *)tmp, (stack **)element, nBytes);
 }
 #endif
 
