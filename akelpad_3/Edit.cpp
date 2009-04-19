@@ -7315,7 +7315,8 @@ DWORD EnumCodepageList(int **lpCodepageList)
       if (*lpCodepageList=lpCodepageListCount=(int *)API_HeapAlloc(hHeap, 0, sizeof(int) * dwCount))
       {
         *lpCodepageListCount++=nAnsiCodePage;
-        *lpCodepageListCount++=nOemCodePage;
+        if (nAnsiCodePage != nOemCodePage)
+          *lpCodepageListCount++=nOemCodePage;
         *lpCodepageListCount++=CP_UNICODE_UCS2_LE;
         *lpCodepageListCount++=CP_UNICODE_UCS2_BE;
         *lpCodepageListCount++=CP_UNICODE_UTF8;
