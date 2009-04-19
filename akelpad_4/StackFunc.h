@@ -1490,7 +1490,7 @@ int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, in
  *         1 on wrong index
  *         2 on memory allocating error
  *Note:
- *  StackPushSortA uses StackInsertBefore, StackInsertAfter
+ *  StackPushSortA uses StackInsertBefore
  ********************************************************************/
 #if defined StackPushSortA || defined ALLSTACKFUNCS
 #define StackPushSortA_INCLUDED
