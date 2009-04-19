@@ -1,7 +1,9 @@
 
 AkelPad 4.2.2 ()
 ----------------------------
+Fixed: coordinates error when moving with PageUp/PageDown.
 Fixed: change font size using Ctrl+WheelMouse didn't remembered.
+Fixed: duplicating codepage in list when Ansi and Oem codepages are the same.
 
 
 AkelPad 4.2.1 (Apr 06, 2009)
