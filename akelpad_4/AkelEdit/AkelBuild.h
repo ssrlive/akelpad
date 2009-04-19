@@ -37,10 +37,9 @@
 #define AECC_MBOTTOM        11
 #define AECC_MLEFTBOTTOM    12
 
-//AE_CharInUrl search types
-#define AECU_FINDFIRSTCHAR   0x00000001
-#define AECU_FINDLASTCHAR    0x00000002
-#define AECU_ISFIRSTCHAR     0x00000004
+//Highlight search types
+#define AEHF_ISFIRSTCHAR    0x00000001
+#define AEHF_FINDFIRSTCHAR  0x00000002
 
 //Line selection
 #define AELS_EMPTY    1
@@ -161,6 +160,51 @@ typedef struct _AEIDataObject {
 } AEIDataObject;
 
 
+//// Hightlight
+
+typedef struct _AEHDELIMSTACK {
+  int first;
+  int last;
+  int lpDelimiterLens[MAX_PATH];
+} AEHDELIMSTACK;
+
+typedef struct _AEHWORDSTACK {
+  int first;
+  int last;
+  int lpWordLens[MAX_PATH];
+} AEHWORDSTACK;
+
+typedef struct _AEHQUOTESTACK {
+  int first;
+  int last;
+  int lpQuoteLens[MAX_PATH];
+} AEHQUOTESTACK;
+
+typedef struct _AETHEMEITEM {
+  struct _AETHEMEITEM *next;
+  struct _AETHEMEITEM *prev;
+  wchar_t wszThemeName[MAX_PATH];
+  AEHDELIMSTACK hDelimiterStack;
+  AEHWORDSTACK hWordStack;
+  AEHQUOTESTACK hQuoteStack;
+} AETHEMEITEM;
+
+typedef struct _AEQUOTEMATCH {
+  AEQUOTEITEM *lpQuote;
+  AECHARRANGE crQuoteStart;
+  AECHARRANGE crQuoteEnd;
+} AEQUOTEMATCH;
+
+typedef struct _AEWORDMATCH {
+  AEDELIMITEM *lpDelim1;
+  AECHARRANGE crDelim1;
+  AEWORDITEM *lpWord;
+  AECHARRANGE crWord;
+  AEDELIMITEM *lpDelim2;
+  AECHARRANGE crDelim2;
+} AEWORDMATCH;
+
+
 //// Font widths
 
 typedef struct _AEFONTCHARSA {
@@ -262,6 +306,8 @@ typedef struct {
   wchar_t *lpUrlPrefixes[32];
   DWORD dwUrlMaxLength;
   BOOL bDetectUrl;
+  HSTACK hThemesStack;
+  AETHEMEITEM *lpActiveTheme;
 } AKELOPTIONS;
 
 typedef struct _AKELEDIT {
@@ -374,9 +420,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 HANDLE AE_HeapCreate(AKELEDIT *ae);
 LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes);
 BOOL AE_HeapFree(AKELEDIT *ae, DWORD dwFlags, LPVOID lpMem);
-int AE_HeapStackInsert(AKELEDIT *ae, stack **first, stack **last, stack **element, int nIndex, int nBytes);
-int AE_HeapStackInsertBefore(AKELEDIT *ae, stack **first, stack **last, stack **element, stack *index, int nBytes);
-int AE_HeapStackInsertAfter(AKELEDIT *ae, stack **first, stack **last, stack **element, stack *index, int nBytes);
+int AE_HeapStackInsertIndex(AKELEDIT *ae, stack **first, stack **last, stack **element, int nIndex, int nBytes);
+int AE_HeapStackInsertBefore(AKELEDIT *ae, stack **first, stack **last, stack *index, stack **element, int nBytes);
+int AE_HeapStackInsertAfter(AKELEDIT *ae, stack **first, stack **last, stack *index, stack **element, int nBytes);
 int AE_HeapStackDelete(AKELEDIT *ae, stack **first, stack **last, stack *element);
 void AE_HeapStackClear(AKELEDIT *ae, stack **first, stack **last);
 AKELEDIT* AE_StackWindowInsert(HSTACK *hStack);
@@ -439,7 +485,16 @@ int AE_SetCursor(AKELEDIT *ae);
 BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, const POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, const POINT *ptPos);
 DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink);
-DWORD AE_CharInUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
+DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
+int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AEQUOTEMATCH *wm);
+int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AEWORDMATCH *wm);
+AEWORDITEM* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWordLen);
+AETHEMEITEM* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName);
+AETHEMEITEM* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName);
+void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEM *lpElement);
+AEDELIMITEM* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, int nDelimiterLen);
+AEWORDITEM* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEM *aeti, int nWordLen);
+AEQUOTEITEM* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEM *aeti, int nQuoteStartLen);
 void AE_MouseMove(AKELEDIT *ae);
 HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra);
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData);
@@ -455,7 +510,7 @@ int AE_VScroll(AKELEDIT *ae, int nAction);
 int AE_HScrollLine(AKELEDIT *ae, int nChar);
 int AE_VScrollLine(AKELEDIT *ae, int nLine);
 void AE_Paint(AKELEDIT *ae);
-void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
+void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, DWORD dwColorText, DWORD dwColorBG, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
 BOOL AE_ActiveColumnCreate(AKELEDIT *ae);
@@ -504,8 +559,8 @@ wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, in
 int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine);
 BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA);
 BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft);
-BOOL AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHARINDEX *ciChar);
-BOOL AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
+DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHARINDEX *ciChar);
+DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
 void AE_UpdateCandidatePos(AKELEDIT *ae);
 BOOL AE_GetModify(AKELEDIT *ae);
 void AE_SetModify(AKELEDIT *ae, BOOL bState, BOOL bMessage);
