@@ -313,7 +313,6 @@ typedef struct {
   wchar_t *lpUrlPrefixes[32];
   DWORD dwUrlMaxLength;
   BOOL bDetectUrl;
-  HSTACK hThemesStack;
   AETHEMEITEM *lpActiveTheme;
 } AKELOPTIONS;
 
@@ -500,8 +499,14 @@ AETHEMEITEM* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName);
 AETHEMEITEM* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName);
 void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEM *lpElement);
 AEDELIMITEM* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, int nDelimiterLen);
+AEDELIMITEM* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpDelimiter, int nDelimiterLen);
+void AE_HighlightDeleteDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, AEDELIMITEM *aedi);
 AEWORDITEM* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEM *aeti, int nWordLen);
+AEWORDITEM* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpWord, int nWordLen);
+void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEM *aeti, AEWORDITEM *aewi);
 AEQUOTEITEM* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEM *aeti, int nQuoteStartLen);
+AEQUOTEITEM* AE_HighlightGetQuote(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpQuoteStart, int nQuoteStartLen);
+void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEM *aeti, AEQUOTEITEM *aeqi);
 void AE_MouseMove(AKELEDIT *ae);
 HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra);
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData);
@@ -618,7 +623,7 @@ int AE_WideStrCmpLenI(const wchar_t *wpString, const wchar_t *wpString2, DWORD d
 void AE_ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
 wchar_t* AE_wcschr(const wchar_t *s, wchar_t c);
 void* AE_memcpy(void *dest, const void *src, unsigned int count);
-int AE_memcmp(void *buf1, void *buf2, unsigned int count);
+int AE_memcmp(const void *buf1, const void *buf2, unsigned int count);
 void* AE_memset(void *dest, int c, unsigned int count);
 
 HRESULT WINAPI AEIDropTarget_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj);

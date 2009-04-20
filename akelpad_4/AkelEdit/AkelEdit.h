@@ -450,33 +450,33 @@ typedef struct {
 typedef struct _AEDELIMITEM {
   struct _AEDELIMITEM *next;
   struct _AEDELIMITEM *prev;
-  wchar_t *wpDelimiter;
-  int nDelimiterLen;
-  BOOL bSensitive;
-  COLORREF crText;
-  COLORREF crBk;
+  wchar_t *wpDelimiter;      //Delimiter string.
+  int nDelimiterLen;         //Delimiter string length.
+  BOOL bSensitive;           //If TRUE, delimiter string is case-sensitive.
+  COLORREF crText;           //Delimiter text color. If -1, then don't set.
+  COLORREF crBk;             //Delimiter background color. If -1, then don't set.
 } AEDELIMITEM;
 
 typedef struct _AEWORDITEM {
   struct _AEWORDITEM *next;
   struct _AEWORDITEM *prev;
-  wchar_t *wpWord;
-  int nWordLen;
-  BOOL bSensitive;
-  COLORREF crText;
-  COLORREF crBk;
+  wchar_t *wpWord;           //Word string.
+  int nWordLen;              //Word string length.
+  BOOL bSensitive;           //If TRUE, word string is case-sensitive.
+  COLORREF crText;           //Word text color. If -1, then don't set.
+  COLORREF crBk;             //Word background color. If -1, then don't set.
 } AEWORDITEM;
 
 typedef struct _AEQUOTEITEM {
   struct _AEQUOTEITEM *next;
   struct _AEQUOTEITEM *prev;
-  wchar_t *wpQuoteStart;
-  int nQuoteStartLen;
-  wchar_t *wpQuoteEnd;
-  int nQuoteEndLen;
-  BOOL bSensitive;
-  COLORREF crText;
-  COLORREF crBk;
+  wchar_t *wpQuoteStart;     //Quote start string.
+  int nQuoteStartLen;        //Quote start string length.
+  wchar_t *wpQuoteEnd;       //Quote end string.
+  int nQuoteEndLen;          //Quote end string length.
+  BOOL bSensitive;           //If TRUE, quote strings is case-sensitive.
+  COLORREF crText;           //Quote text color. If -1, then don't set.
+  COLORREF crBk;             //Quote background color. If -1, then don't set.
 } AEQUOTEITEM;
 
 typedef struct {
@@ -715,8 +715,14 @@ typedef struct {
 #define AEM_HLSETTHEME        (WM_USER + 2503)
 #define AEM_HLDELETETHEME     (WM_USER + 2504)
 #define AEM_HLADDDELIMITER    (WM_USER + 2505)
-#define AEM_HLADDWORD         (WM_USER + 2506)
-#define AEM_HLADDQUOTE        (WM_USER + 2507)
+#define AEM_HLGETDELIMITER    (WM_USER + 2506)
+#define AEM_HLDELETEDELIMITER (WM_USER + 2507)
+#define AEM_HLADDWORD         (WM_USER + 2508)
+#define AEM_HLGETWORD         (WM_USER + 2509)
+#define AEM_HLDELETEWORD      (WM_USER + 2510)
+#define AEM_HLADDQUOTE        (WM_USER + 2511)
+#define AEM_HLGETQUOTE        (WM_USER + 2512)
+#define AEM_HLDELETEQUOTE     (WM_USER + 2513)
 
 
 /*
@@ -3013,6 +3019,253 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_SETMARKER, 80, 0);
+
+
+AEM_HLCREATETHEME
+_________________
+
+Create empty highlight theme.
+
+wParam            == not used.
+(wchar_t *)lParam == theme name.
+
+Return Value
+ Theme handle.
+
+Example:
+ HANDLE hTheme;
+ AEDELIMITEM di;
+ AEWORDITEM wi;
+ AEQUOTEITEM qi;
+
+ if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEME, 0, (LPARAM)L"MyTheme"))
+ {
+   di.wpDelimiter=L" ";
+   di.nDelimiterLen=lstrlenW(di.wpDelimiter);
+   di.bSensitive=TRUE;
+   di.crText=(DWORD)-1;
+   di.crBk=(DWORD)-1;
+   SendMessage(hWndEdit, AEM_HLADDDELIMITER, (WPARAM)hTheme, (LPARAM)&di);
+
+   wi.wpWord=L"for";
+   wi.nWordLen=lstrlenW(wi.wpWord);
+   wi.bSensitive=TRUE;
+   wi.crText=RGB(0x00, 0xFF, 0x00);
+   wi.crBk=(DWORD)-1;
+   SendMessage(hWndEdit, AEM_HLADDWORD, (WPARAM)hTheme, (LPARAM)&wi);
+
+   qi.wpQuoteStart=L"\"";
+   qi.nQuoteStartLen=lstrlenW(qi.wpQuoteStart);
+   qi.wpQuoteEnd=L"\"";
+   qi.nQuoteEndLen=lstrlenW(qi.wpQuoteEnd);
+   qi.bSensitive=TRUE;
+   qi.crText=RGB(0x00, 0x00, 0xFF);
+   qi.crBk=(DWORD)-1;
+   SendMessage(hWndEdit, AEM_HLADDQUOTE, (WPARAM)hTheme, (LPARAM)&qi);
+
+   SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, 0);
+ }
+
+
+AEM_HLGETTHEME
+______________
+
+Retrieve highlight theme handle.
+
+wParam            == not used.
+(wchar_t *)lParam == theme name to retrieve. If NULL, active theme handle will be returned.
+
+Return Value
+ Theme handle.
+
+Example:
+ HANDLE hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEME, 0, (LPARAM)L"MyTheme");
+
+
+AEM_HLSETTHEME
+______________
+
+Activate highlight theme.
+
+(HANDLE)wParam == theme handle.
+lParam         == not used.
+
+Return Value
+ zero
+
+Example:
+ See AEM_HLCREATETHEME example.
+
+
+AEM_HLDELETETHEME
+_________________
+
+Delete highlight theme.
+
+(HANDLE)wParam == theme handle.
+lParam         == not used.
+
+Return Value
+ zero
+
+Example:
+ HANDLE hTheme;
+
+ hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEME, 0, (LPARAM)L"MyTheme");
+ SendMessage(hWndEdit, AEM_HLDELETETHEME, (WPARAM)hTheme, 0);
+
+
+AEM_HLADDDELIMITER
+__________________
+
+Add delimiter to highlight theme.
+
+(HANDLE)wParam        == theme handle.
+(AEDELIMITEM *)lParam == pointer to a AEDELIMITEM structure.
+
+Return Value
+ Delimiter handle.
+
+Example:
+ See AEM_HLCREATETHEME example.
+
+
+AEM_HLGETDELIMITER
+__________________
+
+Retrieve delimiter info of highlight theme.
+
+(HANDLE)wParam        == theme handle.
+(AEDELIMITEM *)lParam == pointer to a AEDELIMITEM structure. Members wpDelimiter and nDelimiterLen must be filled in.
+
+Return Value
+ Delimiter handle.
+
+Example:
+ HANDLE hTheme;
+ AEDELIMITEM di;
+
+ di.wpDelimiter=L" ";
+ di.nDelimiterLen=lstrlenW(di.wpDelimiter);
+ hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEME, 0, (LPARAM)NULL);
+ SendMessage(hWndEdit, AEM_HLGETDELIMITER, (WPARAM)hTheme, (LPARAM)&di);
+
+
+AEM_HLDELETEDELIMITER
+_____________________
+
+Delete delimiter from highlight theme.
+
+(HANDLE)wParam == theme handle.
+(HANDLE)lParam == delimiter handle.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_HLDELETEDELIMITER, (WPARAM)hTheme, (LPARAM)hDelimiter);
+
+
+AEM_HLADDWORD
+_____________
+
+Add word to highlight theme.
+
+(HANDLE)wParam       == theme handle.
+(AEWORDITEM *)lParam == pointer to a AEWORDITEM structure.
+
+Return Value
+ Word handle.
+
+Example:
+ See AEM_HLCREATETHEME example.
+
+
+AEM_HLGETWORD
+_____________
+
+Retrieve word info of highlight theme.
+
+(HANDLE)wParam       == theme handle.
+(AEWORDITEM *)lParam == pointer to a AEWORDITEM structure. Members wpWord and nWordLen must be filled in.
+
+Return Value
+ Word handle.
+
+Example:
+ HANDLE hTheme;
+ AEWORDITEM wi;
+
+ wi.wpWord=L"for";
+ wi.nWordLen=lstrlenW(wi.wpWord);
+ hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEME, 0, (LPARAM)NULL);
+ SendMessage(hWndEdit, AEM_HLGETWORD, (WPARAM)hTheme, (LPARAM)&wi);
+
+
+AEM_HLDELETEWORD
+________________
+
+Delete word from highlight theme.
+
+(HANDLE)wParam == theme handle.
+(HANDLE)lParam == word handle.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_HLDELETEWORD, (WPARAM)hTheme, (LPARAM)hWord);
+
+
+AEM_HLADDQUOTE
+______________
+
+Add quote to highlight theme.
+
+(HANDLE)wParam        == theme handle.
+(AEQUOTEITEM *)lParam == pointer to a AEQUOTEITEM structure.
+
+Return Value
+ Quote handle.
+
+Example:
+ See AEM_HLCREATETHEME example.
+
+
+AEM_HLGETQUOTE
+_____________
+
+Retrieve quote info of highlight theme.
+
+(HANDLE)wParam        == theme handle.
+(AEQUOTEITEM *)lParam == pointer to a AEQUOTEITEM structure. Members wpQuoteStart and nQuoteStartLen must be filled in.
+
+Return Value
+ Quote handle.
+
+Example:
+ HANDLE hTheme;
+ AEQUOTEITEM qi;
+
+ qi.wpQuoteStart=L"\"";
+ qi.nQuoteStartLen=lstrlenW(qi.wpQuoteStart);
+ hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEME, 0, (LPARAM)NULL);
+ SendMessage(hWndEdit, AEM_HLGETQUOTE, (WPARAM)hTheme, (LPARAM)&qi);
+
+
+AEM_HLDELETEQUOTE
+_________________
+
+Delete quote from highlight theme.
+
+(HANDLE)wParam == theme handle.
+(HANDLE)lParam == quote handle.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_HLDELETEQUOTE, (WPARAM)hTheme, (LPARAM)hQuote);
 
 */
 
