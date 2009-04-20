@@ -41,6 +41,13 @@
 #define AEHF_ISFIRSTCHAR    0x00000001
 #define AEHF_FINDFIRSTCHAR  0x00000002
 
+#define AEPT_SELECTION      0x00000001
+#define AEPT_DELIM1         0x00000002
+#define AEPT_WORD           0x00000004
+#define AEPT_DELIM2         0x00000008
+#define AEPT_QUOTE          0x00000010
+#define AEPT_LINK           0x00000020
+
 //Line selection
 #define AELS_EMPTY    1
 #define AELS_FULL     2
@@ -510,7 +517,7 @@ int AE_VScroll(AKELEDIT *ae, int nAction);
 int AE_HScrollLine(AKELEDIT *ae, int nChar);
 int AE_VScrollLine(AKELEDIT *ae, int nLine);
 void AE_Paint(AKELEDIT *ae);
-void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, DWORD dwColorText, DWORD dwColorBG, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
+void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, DWORD dwColorText, DWORD dwColorBG, DWORD dwPaintType, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
 BOOL AE_ActiveColumnCreate(AKELEDIT *ae);
