@@ -6612,7 +6612,7 @@ DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink)
           {
             if (nResult == AEPC_AFTER)
               ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine - 1, 0);
-
+            AE_memset(crLink, 0, sizeof(AECHARRANGE));
             return AE_HighlightFindUrl(ae, &ciCharIndex, AEHF_FINDFIRSTCHAR, ae->ptxt->nLineCount, crLink);
           }
         }
