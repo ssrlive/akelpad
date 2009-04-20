@@ -22,6 +22,7 @@
 HANDLE hAkelEditProcessHeap=0;
 HSTACK hAkelEditWindowsStack={0};
 HSTACK hAkelEditFontCharsStack={0};
+HSTACK hAkelEditThemesStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
 UINT cfAkelEditColumnSel=0;
@@ -1235,6 +1236,29 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           lpDelimDst->crText=lpDelimSrc->crText;
           lpDelimDst->crBk=lpDelimSrc->crBk;
         }
+        return (LRESULT)lpDelimDst;
+      }
+      if (uMsg == AEM_HLGETDELIMITER)
+      {
+        AETHEMEITEM *lpTheme=(AETHEMEITEM *)wParam;
+        AEDELIMITEM *lpDelimDst=(AEDELIMITEM *)lParam;
+        AEDELIMITEM *lpDelimSrc;
+
+        if (lpDelimSrc=AE_HighlightGetDelimiter(ae, lpTheme, lpDelimDst->wpDelimiter, lpDelimDst->nDelimiterLen))
+        {
+          lpDelimDst->bSensitive=lpDelimSrc->bSensitive;
+          lpDelimDst->crText=lpDelimSrc->crText;
+          lpDelimDst->crBk=lpDelimSrc->crBk;
+        }
+        return (LRESULT)lpDelimSrc;
+      }
+      if (uMsg == AEM_HLDELETEDELIMITER)
+      {
+        AETHEMEITEM *lpTheme=(AETHEMEITEM *)wParam;
+        AEDELIMITEM *lpDelim=(AEDELIMITEM *)lParam;
+
+        AE_HighlightDeleteDelimiter(ae, lpTheme, lpDelim);
+        return 0;
       }
       if (uMsg == AEM_HLADDWORD)
       {
@@ -1252,6 +1276,29 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           lpWordDst->crText=lpWordSrc->crText;
           lpWordDst->crBk=lpWordSrc->crBk;
         }
+        return (LRESULT)lpWordDst;
+      }
+      if (uMsg == AEM_HLGETWORD)
+      {
+        AETHEMEITEM *lpTheme=(AETHEMEITEM *)wParam;
+        AEWORDITEM *lpWordDst=(AEWORDITEM *)lParam;
+        AEWORDITEM *lpWordSrc;
+
+        if (lpWordSrc=AE_HighlightGetWord(ae, lpTheme, lpWordDst->wpWord, lpWordDst->nWordLen))
+        {
+          lpWordDst->bSensitive=lpWordSrc->bSensitive;
+          lpWordDst->crText=lpWordSrc->crText;
+          lpWordDst->crBk=lpWordSrc->crBk;
+        }
+        return (LRESULT)lpWordSrc;
+      }
+      if (uMsg == AEM_HLDELETEWORD)
+      {
+        AETHEMEITEM *lpTheme=(AETHEMEITEM *)wParam;
+        AEWORDITEM *lpWord=(AEWORDITEM *)lParam;
+
+        AE_HighlightDeleteWord(ae, lpTheme, lpWord);
+        return 0;
       }
       if (uMsg == AEM_HLADDQUOTE)
       {
@@ -1273,6 +1320,31 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           lpQuoteDst->crText=lpQuoteSrc->crText;
           lpQuoteDst->crBk=lpQuoteSrc->crBk;
         }
+        return (LRESULT)lpQuoteDst;
+      }
+      if (uMsg == AEM_HLGETQUOTE)
+      {
+        AETHEMEITEM *lpTheme=(AETHEMEITEM *)wParam;
+        AEQUOTEITEM *lpQuoteDst=(AEQUOTEITEM *)lParam;
+        AEQUOTEITEM *lpQuoteSrc;
+
+        if (lpQuoteSrc=AE_HighlightGetQuote(ae, lpTheme, lpQuoteDst->wpQuoteStart, lpQuoteDst->nQuoteStartLen))
+        {
+          lpQuoteDst->wpQuoteEnd=lpQuoteSrc->wpQuoteEnd;
+          lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
+          lpQuoteDst->bSensitive=lpQuoteSrc->bSensitive;
+          lpQuoteDst->crText=lpQuoteSrc->crText;
+          lpQuoteDst->crBk=lpQuoteSrc->crBk;
+        }
+        return (LRESULT)lpQuoteSrc;
+      }
+      if (uMsg == AEM_HLDELETEQUOTE)
+      {
+        AETHEMEITEM *lpTheme=(AETHEMEITEM *)wParam;
+        AEQUOTEITEM *lpQuote=(AEQUOTEITEM *)lParam;
+
+        AE_HighlightDeleteQuote(ae, lpTheme, lpQuote);
+        return 0;
       }
     }
 
@@ -6988,7 +7060,7 @@ AETHEMEITEM* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName)
 {
   AETHEMEITEM *lpElement=NULL;
 
-  if (!AE_HeapStackInsertIndex(NULL, (stack **)&ae->popt->hThemesStack.first, (stack **)&ae->popt->hThemesStack.last, (stack **)&lpElement, -1, sizeof(AETHEMEITEM)))
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last, (stack **)&lpElement, -1, sizeof(AETHEMEITEM)))
   {
     lstrcpynW(lpElement->wszThemeName, wpThemeName, MAX_PATH);
   }
@@ -6997,7 +7069,7 @@ AETHEMEITEM* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName)
 
 AETHEMEITEM* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName)
 {
-  AETHEMEITEM *lpElement=(AETHEMEITEM *)ae->popt->hThemesStack.first;
+  AETHEMEITEM *lpElement=(AETHEMEITEM *)hAkelEditThemesStack.first;
 
   while (lpElement)
   {
@@ -7011,7 +7083,7 @@ AETHEMEITEM* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName)
 
 void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEM *lpElement)
 {
-  AE_HeapStackDelete(NULL, (stack **)&ae->popt->hThemesStack.first, (stack **)&ae->popt->hThemesStack.last, (stack *)lpElement);
+  AE_HeapStackDelete(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last, (stack *)lpElement);
 }
 
 AEDELIMITEM* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, int nDelimiterLen)
@@ -7042,6 +7114,34 @@ AEDELIMITEM* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, int nD
   return lpElement;
 }
 
+AEDELIMITEM* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpDelimiter, int nDelimiterLen)
+{
+  AEDELIMITEM *lpElement=NULL;
+
+  if (aeti->hDelimiterStack.lpDelimiterLens[nDelimiterLen])
+  {
+    lpElement=(AEDELIMITEM *)aeti->hDelimiterStack.lpDelimiterLens[nDelimiterLen];
+
+    while (lpElement)
+    {
+      if (lpElement->nDelimiterLen == nDelimiterLen)
+      {
+        if (!AE_memcmp(lpElement->wpDelimiter, wpDelimiter, nDelimiterLen * sizeof(wchar_t)))
+          return lpElement;
+      }
+      else break;
+
+      lpElement=lpElement->next;
+    }
+  }
+  return NULL;
+}
+
+void AE_HighlightDeleteDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, AEDELIMITEM *aedi)
+{
+  AE_HeapStackDelete(NULL, (stack **)&aeti->hDelimiterStack.first, (stack **)&aeti->hDelimiterStack.last, (stack *)aedi);
+}
+
 AEWORDITEM* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEM *aeti, int nWordLen)
 {
   AEWORDITEM *lpTmp;
@@ -7070,6 +7170,34 @@ AEWORDITEM* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEM *aeti, int nWordLen
   return lpElement;
 }
 
+AEWORDITEM* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpWord, int nWordLen)
+{
+  AEWORDITEM *lpElement=NULL;
+
+  if (aeti->hWordStack.lpWordLens[nWordLen])
+  {
+    lpElement=(AEWORDITEM *)aeti->hWordStack.lpWordLens[nWordLen];
+
+    while (lpElement)
+    {
+      if (lpElement->nWordLen == nWordLen)
+      {
+        if (!AE_memcmp(lpElement->wpWord, wpWord, nWordLen * sizeof(wchar_t)))
+          return lpElement;
+      }
+      else break;
+
+      lpElement=lpElement->next;
+    }
+  }
+  return NULL;
+}
+
+void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEM *aeti, AEWORDITEM *aewi)
+{
+  AE_HeapStackDelete(NULL, (stack **)&aeti->hWordStack.first, (stack **)&aeti->hWordStack.last, (stack *)aewi);
+}
+
 AEQUOTEITEM* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEM *aeti, int nQuoteStartLen)
 {
   AEQUOTEITEM *lpTmp;
@@ -7096,6 +7224,34 @@ AEQUOTEITEM* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEM *aeti, int nQuote
   if (lpElement)
     aeti->hQuoteStack.lpQuoteLens[nQuoteStartLen]=(int)lpElement;
   return lpElement;
+}
+
+AEQUOTEITEM* AE_HighlightGetQuote(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpQuoteStart, int nQuoteStartLen)
+{
+  AEQUOTEITEM *lpElement=NULL;
+
+  if (aeti->hQuoteStack.lpQuoteLens[nQuoteStartLen])
+  {
+    lpElement=(AEQUOTEITEM *)aeti->hQuoteStack.lpQuoteLens[nQuoteStartLen];
+
+    while (lpElement)
+    {
+      if (lpElement->nQuoteStartLen == nQuoteStartLen)
+      {
+        if (!AE_memcmp(lpElement->wpQuoteStart, wpQuoteStart, nQuoteStartLen * sizeof(wchar_t)))
+          return lpElement;
+      }
+      else break;
+
+      lpElement=lpElement->next;
+    }
+  }
+  return NULL;
+}
+
+void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEM *aeti, AEQUOTEITEM *aeqi)
+{
+  AE_HeapStackDelete(NULL, (stack **)&aeti->hQuoteStack.first, (stack **)&aeti->hQuoteStack.last, (stack *)aeqi);
 }
 
 void AE_MouseMove(AKELEDIT *ae)
@@ -7962,7 +8118,7 @@ void AE_Paint(AKELEDIT *ae)
               nCharWidth=AE_GetCharWidth(ae, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine]);
           }
 
-          ////Selection
+          //Selection
           if (nLineSelection == AELS_FULL || nLineSelection == AELS_PARTLY)
           {
             if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine ||
@@ -14696,7 +14852,7 @@ void* AE_memcpy(void *dest, const void *src, unsigned int count)
   return dest;
 }
 
-int AE_memcmp(void *buf1, void *buf2, unsigned int count)
+int AE_memcmp(const void *buf1, const void *buf2, unsigned int count)
 {
   unsigned char *byte_buf1=(unsigned char *)buf1;
   unsigned char *byte_buf2=(unsigned char *)buf2;
