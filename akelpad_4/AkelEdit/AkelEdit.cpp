@@ -6632,6 +6632,7 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
   crRange->ciMin.lpLine=NULL;
   crRange->ciMax.lpLine=NULL;
+  if (ciChar->nCharInLine == ciChar->lpLine->nLineLen) return 0;
 
   ft.dwFlags=0;
   ft.wpText=NULL;
@@ -6645,6 +6646,8 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   {
     while (ciCount.nCharInLine >= 0)
     {
+      if (AE_IndexCompare(&ciCount, &crRange->ciMax) < 0)
+        return 0;
       if (++dwLinkLen > ae->popt->dwUrlMaxLength)
         return 0;
       if (AE_IsInDelimiterList(ae->popt->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine]))
@@ -6746,6 +6749,9 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     {
       if (!wm->lpQuote)
       {
+        if (AE_IndexCompare(&ciCount, &wm->crQuoteEnd.ciMax) < 0)
+          return 0;
+
         //Quote start
         lpQuoteElement=(AEQUOTEITEM *)ae->popt->lpActiveTheme->hQuoteStack.first;
 
@@ -6840,6 +6846,11 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
   {
     while (ciCount.nCharInLine >= 0)
     {
+      if (AE_IndexCompare(&ciCount, &wm->crDelim2.ciMax) < 0)
+      {
+        ciCount=wm->crDelim2.ciMax;
+        goto SetEmptyFirstDelim;
+      }
       ++nWordLen;
 
       //Is delimiter
@@ -6876,9 +6887,9 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
 
   //Empty delimiter
   SetEmptyFirstDelim:
-  wm->crDelim1.ciMin.nLine=ciChar->nLine;
-  wm->crDelim1.ciMin.lpLine=ciChar->lpLine;
-  wm->crDelim1.ciMin.nCharInLine=max(ciChar->nCharInLine, 0);
+  wm->crDelim1.ciMin.nLine=ciCount.nLine;
+  wm->crDelim1.ciMin.lpLine=ciCount.lpLine;
+  wm->crDelim1.ciMin.nCharInLine=max(ciCount.nCharInLine, 0);
   wm->crDelim1.ciMax=wm->crDelim1.ciMin;
 
   //Find word ending (forward)
@@ -6929,9 +6940,9 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
   }
 
   //Empty delimiter
-  wm->crDelim2.ciMin.nLine=ciChar->nLine;
-  wm->crDelim2.ciMin.lpLine=ciChar->lpLine;
-  wm->crDelim2.ciMin.nCharInLine=ciChar->lpLine->nLineLen;
+  wm->crDelim2.ciMin.nLine=ciCount.nLine;
+  wm->crDelim2.ciMin.lpLine=ciCount.lpLine;
+  wm->crDelim2.ciMin.nCharInLine=ciCount.lpLine->nLineLen;
   wm->crDelim2.ciMax=wm->crDelim2.ciMin;
 
   SetWord:
@@ -7843,12 +7854,16 @@ void AE_Paint(AKELEDIT *ae)
       RECT rcDraw;
       POINT ptDraw;
       RECT rcSpace;
-      DWORD dwColorBG;
-      DWORD dwColorText;
+      DWORD dwDefaultBG;
+      DWORD dwDefaultText;
+      DWORD dwActiveBG;
+      DWORD dwActiveText;
+      DWORD dwPaintType=0;
       HFONT hFontOld=NULL;
       HRGN hDrawRgn;
       HRGN hDrawRgnOld=NULL;
-      HBRUSH hbrBG;
+      HBRUSH hbrDefaultBG;
+      HBRUSH hbrActiveBG;
       wchar_t *wpStartDraw;
       int nLineSelection;
       int nLineLen;
@@ -7906,63 +7921,34 @@ void AE_Paint(AKELEDIT *ae)
         nFirstPaintChar=ciDrawLine.nCharInLine;
 
         //Set initial colors
-        if (ae->popt->bHideSelection)
+        if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
         {
-          nLineSelection=AELS_EMPTY;
-          dwColorText=ae->popt->crBasicText;
-          dwColorBG=ae->popt->crBasicBk;
-          hbrBG=ae->popt->hBasicBk;
+          dwDefaultText=ae->popt->crActiveLineText;
+          dwDefaultBG=ae->popt->crActiveLineBk;
+          hbrDefaultBG=ae->popt->hActiveLineBk;
         }
         else
         {
-          if (ciDrawLine.lpLine->nSelStart == 0 && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen)
-          {
-            nLineSelection=AELS_FULL;
-            dwColorText=ae->popt->crSelText;
-            dwColorBG=ae->popt->crSelBk;
-            hbrBG=ae->popt->hSelBk;
-          }
-          else if (ciDrawLine.lpLine->nSelStart == ciDrawLine.lpLine->nSelEnd)
-          {
+          dwDefaultText=ae->popt->crBasicText;
+          dwDefaultBG=ae->popt->crBasicBk;
+          hbrDefaultBG=ae->popt->hBasicBk;
+        }
+        dwActiveText=dwDefaultText;
+        dwActiveBG=dwDefaultBG;
+        hbrActiveBG=hbrDefaultBG;
+
+        if (ae->popt->bHideSelection)
+        {
+          nLineSelection=AELS_EMPTY;
+        }
+        else
+        {
+          if (ciDrawLine.lpLine->nSelStart == ciDrawLine.lpLine->nSelEnd)
             nLineSelection=AELS_EMPTY;
-
-            if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-            {
-              dwColorText=ae->popt->crActiveLineText;
-              dwColorBG=ae->popt->crActiveLineBk;
-              hbrBG=ae->popt->hActiveLineBk;
-            }
-            else
-            {
-              dwColorText=ae->popt->crBasicText;
-              dwColorBG=ae->popt->crBasicBk;
-              hbrBG=ae->popt->hBasicBk;
-            }
-          }
+          else if (ciDrawLine.lpLine->nSelStart == 0 && ciDrawLine.lpLine->nSelEnd == ciDrawLine.lpLine->nLineLen)
+            nLineSelection=AELS_FULL;
           else
-          {
             nLineSelection=AELS_PARTLY;
-
-            if (ciDrawLine.lpLine->nSelStart <= ciDrawLine.nCharInLine &&
-                ciDrawLine.lpLine->nSelEnd > ciDrawLine.nCharInLine)
-            {
-              dwColorText=ae->popt->crSelText;
-              dwColorBG=ae->popt->crSelBk;
-              hbrBG=ae->popt->hSelBk;
-            }
-            else if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-            {
-              dwColorText=ae->popt->crActiveLineText;
-              dwColorBG=ae->popt->crActiveLineBk;
-              hbrBG=ae->popt->hActiveLineBk;
-            }
-            else
-            {
-              dwColorText=ae->popt->crBasicText;
-              dwColorBG=ae->popt->crBasicBk;
-              hbrBG=ae->popt->hBasicBk;
-            }
-          }
         }
 
         //Scan line
@@ -7976,263 +7962,321 @@ void AE_Paint(AKELEDIT *ae)
               nCharWidth=AE_GetCharWidth(ae, ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine]);
           }
 
-          if (ae->popt->lpActiveTheme)
+          ////Selection
+          if (nLineSelection == AELS_FULL || nLineSelection == AELS_PARTLY)
           {
-            //Only if char not in URL
-            if (!crLink.ciMin.lpLine && !crLink.ciMax.lpLine)
+            if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine ||
+                (nFirstPaintChar == ciDrawLine.nCharInLine && ciDrawLine.lpLine->nSelStart < ciDrawLine.nCharInLine && ciDrawLine.nCharInLine < ciDrawLine.lpLine->nSelEnd))
             {
-              ////Word and delimiters
+              //Draw text up to selection start
+              AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+              nMaxDrawCharsCount=0;
 
-              //Only if char not in quote
-              if (!qm.lpQuote)
-              {
-                //Find word start
-                if (nFirstPaintChar == ciDrawLine.nCharInLine)
-                {
-                  if (AE_IndexCompare(&wm.crDelim2.ciMax, &ciDrawLine) <= 0)
-                    AE_HighlightFindWord(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &wm);
-                }
+              dwActiveText=ae->popt->crSelText;
+              dwActiveBG=ae->popt->crSelBk;
+              hbrActiveBG=ae->popt->hSelBk;
+              dwPaintType|=AEPT_SELECTION;
+            }
+            else if (ciDrawLine.lpLine->nSelEnd == ciDrawLine.nCharInLine)
+            {
+              //Draw text up to selection end
+              AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+              nMaxDrawCharsCount=0;
 
-                //First delimiter
-                if (wm.lpDelim1)
-                {
-                  if (AE_IndexCompare(&wm.crDelim1.ciMin, &ciDrawLine) == 0)
-                  {
-                    //Draw text before range for highlight
-                    AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
-                  }
-                  if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
-                  {
-                    if (AE_IndexCompare(&wm.crDelim1.ciMin, &ciDrawLine) < 0)
-                    {
-                      //Draw highlighted text before selection start
-                      AE_PaintTextOut(ae, ps.hdc, (wm.lpDelim1->crText == (DWORD)-1?dwColorText:wm.lpDelim1->crText), (wm.lpDelim1->crBk == (DWORD)-1?dwColorBG:wm.lpDelim1->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                      nMaxDrawCharsCount=0;
-                    }
-                  }
-                  if (AE_IndexCompare(&wm.crDelim1.ciMax, &ciDrawLine) <= 0)
-                  {
-                    if (wm.crDelim1.ciMax.nCharInLine <= ciDrawLine.lpLine->nSelStart || wm.crDelim1.ciMax.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-                    {
-                      //Draw full highlighted text or last part of it
-                      AE_PaintTextOut(ae, ps.hdc, (wm.lpDelim1->crText == (DWORD)-1?dwColorText:wm.lpDelim1->crText), (wm.lpDelim1->crBk == (DWORD)-1?dwColorBG:wm.lpDelim1->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                      nMaxDrawCharsCount=0;
-                    }
-                    wm.lpDelim1=NULL;
-                  }
-                }
-
-                //Word
-                if (wm.lpWord)
-                {
-                  if (AE_IndexCompare(&wm.crWord.ciMin, &ciDrawLine) == 0)
-                  {
-                    //Draw text before range for highlight
-                    AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
-                  }
-                  if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
-                  {
-                    if (AE_IndexCompare(&wm.crWord.ciMin, &ciDrawLine) < 0)
-                    {
-                      //Draw highlighted text before selection start
-                      AE_PaintTextOut(ae, ps.hdc, (wm.lpWord->crText == (DWORD)-1?dwColorText:wm.lpWord->crText), (wm.lpWord->crBk == (DWORD)-1?dwColorBG:wm.lpWord->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                      nMaxDrawCharsCount=0;
-                    }
-                  }
-                  if (AE_IndexCompare(&wm.crWord.ciMax, &ciDrawLine) <= 0)
-                  {
-                    if (wm.crWord.ciMax.nCharInLine <= ciDrawLine.lpLine->nSelStart || wm.crWord.ciMax.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-                    {
-                      //Draw full highlighted text or last part of it
-                      AE_PaintTextOut(ae, ps.hdc, (wm.lpWord->crText == (DWORD)-1?dwColorText:wm.lpWord->crText), (wm.lpWord->crBk == (DWORD)-1?dwColorBG:wm.lpWord->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                      nMaxDrawCharsCount=0;
-                    }
-                    wm.lpWord=NULL;
-                  }
-                }
-
-                //Second delimiter
-                if (wm.lpDelim2)
-                {
-                  if (AE_IndexCompare(&wm.crDelim2.ciMin, &ciDrawLine) == 0)
-                  {
-                    //Draw text before range for highlight
-                    AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
-                  }
-                  if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
-                  {
-                    if (AE_IndexCompare(&wm.crDelim2.ciMin, &ciDrawLine) < 0)
-                    {
-                      //Draw highlighted text before selection start
-                      AE_PaintTextOut(ae, ps.hdc, (wm.lpDelim2->crText == (DWORD)-1?dwColorText:wm.lpDelim2->crText), (wm.lpDelim2->crBk == (DWORD)-1?dwColorBG:wm.lpDelim2->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                      nMaxDrawCharsCount=0;
-                    }
-                  }
-                  if (AE_IndexCompare(&wm.crDelim2.ciMax, &ciDrawLine) <= 0)
-                  {
-                    if (wm.crDelim2.ciMax.nCharInLine <= ciDrawLine.lpLine->nSelStart || wm.crDelim2.ciMax.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-                    {
-                      //Draw full highlighted text or last part of it
-                      AE_PaintTextOut(ae, ps.hdc, (wm.lpDelim2->crText == (DWORD)-1?dwColorText:wm.lpDelim2->crText), (wm.lpDelim2->crBk == (DWORD)-1?dwColorBG:wm.lpDelim2->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                      nMaxDrawCharsCount=0;
-                    }
-                    wm.lpDelim2=NULL;
-                  }
-                }
-
-                //Next word
-                if (AE_IndexCompare(&wm.crDelim2.ciMax, &ciDrawLine) <= 0)
-                  AE_HighlightFindWord(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &wm);
-              }
-
-              ////Quote
-
-              //Find word start
-              if (nFirstPaintChar == ciDrawLine.nCharInLine)
-              {
-                if (AE_IndexCompare(&qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0)
-                  AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &qm);
-              }
-
-              //First delimiter
-              if (qm.lpQuote)
-              {
-                if (AE_IndexCompare(&qm.crQuoteStart.ciMin, &ciDrawLine) == 0)
-                {
-                  //Draw text before range for highlight
-                  AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                  nMaxDrawCharsCount=0;
-                }
-                if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
-                {
-                  if (AE_IndexCompare(&qm.crQuoteStart.ciMin, &ciDrawLine) < 0)
-                  {
-                    //Draw highlighted text before selection start
-                    AE_PaintTextOut(ae, ps.hdc, (qm.lpQuote->crText == (DWORD)-1?dwColorText:qm.lpQuote->crText), (qm.lpQuote->crBk == (DWORD)-1?dwColorBG:qm.lpQuote->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
-                  }
-                }
-                if (AE_IndexCompare(&qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0)
-                {
-                  if (qm.crQuoteEnd.ciMax.nCharInLine <= ciDrawLine.lpLine->nSelStart || qm.crQuoteEnd.ciMax.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-                  {
-                    //Draw full highlighted text or last part of it
-                    AE_PaintTextOut(ae, ps.hdc, (qm.lpQuote->crText == (DWORD)-1?dwColorText:qm.lpQuote->crText), (qm.lpQuote->crBk == (DWORD)-1?dwColorBG:qm.lpQuote->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
-                  }
-                  qm.lpQuote=NULL;
-                }
-              }
-
-              //Next word
-              if (AE_IndexCompare(&qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0)
-                AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &qm);
+              dwActiveText=dwDefaultText;
+              dwActiveBG=dwDefaultBG;
+              hbrActiveBG=hbrDefaultBG;
+              dwPaintType&=~AEPT_SELECTION;
             }
           }
 
-          ////Link
-          if (ae->popt->bDetectUrl)
+          //Check highlight end
+          if (ae->popt->lpActiveTheme)
           {
-            //Detect URL
-            if (!crLink.ciMin.lpLine || !crLink.ciMax.lpLine)
+            if (wm.lpDelim1)
             {
-              //Is first draw char located in URL
-              if (nFirstPaintChar == ciDrawLine.nCharInLine)
+              if (AE_IndexCompare(&wm.crDelim1.ciMax, &ciDrawLine) <= 0)
               {
-                if (AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &crLink))
-                  crLink.ciMin=ciDrawLine;
-              }
-              else
-              {
-                if (AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &crLink))
-                  crLink.ciMin=ciDrawLine;
+                if (!(dwPaintType & AEPT_SELECTION))
+                {
+                  if (AE_IndexCompare(&wm.crDelim1.ciMax, &ciDrawLine) == 0)
+                  {
+                    //Draw full highlighted text or last part of it
+                    AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                    nMaxDrawCharsCount=0;
+                  }
+                }
+                dwPaintType&=~AEPT_DELIM1;
+                wm.lpDelim1=NULL;
               }
             }
-
-            //Highlight URL
+            if (wm.lpWord)
+            {
+              if (AE_IndexCompare(&wm.crWord.ciMax, &ciDrawLine) <= 0)
+              {
+                if (!(dwPaintType & AEPT_SELECTION))
+                {
+                  if (AE_IndexCompare(&wm.crWord.ciMax, &ciDrawLine) == 0)
+                  {
+                    //Draw full highlighted text or last part of it
+                    AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                    nMaxDrawCharsCount=0;
+                  }
+                }
+                dwPaintType&=~AEPT_WORD;
+                wm.lpWord=NULL;
+              }
+            }
+            if (wm.lpDelim2)
+            {
+              if (AE_IndexCompare(&wm.crDelim2.ciMax, &ciDrawLine) <= 0)
+              {
+                if (!(dwPaintType & AEPT_SELECTION))
+                {
+                  if (AE_IndexCompare(&wm.crDelim2.ciMax, &ciDrawLine) == 0)
+                  {
+                    //Draw full highlighted text or last part of it
+                    AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                    nMaxDrawCharsCount=0;
+                  }
+                }
+                dwPaintType&=~AEPT_DELIM2;
+                wm.lpDelim2=NULL;
+              }
+            }
+            if (qm.lpQuote)
+            {
+              if (AE_IndexCompare(&qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0)
+              {
+                if (!(dwPaintType & AEPT_SELECTION))
+                {
+                  if (AE_IndexCompare(&qm.crQuoteEnd.ciMax, &ciDrawLine) == 0)
+                  {
+                    //Draw full highlighted text or last part of it
+                    AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                    nMaxDrawCharsCount=0;
+                  }
+                }
+                dwPaintType&=~AEPT_QUOTE;
+                qm.lpQuote=NULL;
+              }
+            }
+          }
+          if (ae->popt->bDetectUrl)
+          {
             if (crLink.ciMin.lpLine && crLink.ciMax.lpLine)
             {
-              if (AE_IndexCompare(&crLink.ciMin, &ciDrawLine) == 0)
-              {
-                //Draw text before URL
-                AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                nMaxDrawCharsCount=0;
-              }
-              if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
-              {
-                if (AE_IndexCompare(&crLink.ciMin, &ciDrawLine) < 0)
-                {
-                  //Draw URL before selection start
-                  if (ae->ptxt->hFontUrl) SelectObject(ps.hdc, ae->ptxt->hFontUrl);
-                  AE_PaintTextOut(ae, ps.hdc, ae->popt->crUrlText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                  nMaxDrawCharsCount=0;
-                  if (ae->ptxt->hFont) SelectObject(ps.hdc, ae->ptxt->hFont);
-                }
-              }
               if (AE_IndexCompare(&crLink.ciMax, &ciDrawLine) <= 0)
               {
-                if (crLink.ciMax.nCharInLine <= ciDrawLine.lpLine->nSelStart || crLink.ciMax.nCharInLine > ciDrawLine.lpLine->nSelEnd)
+                if (!(dwPaintType & AEPT_SELECTION))
                 {
-                  //Draw full URL or last part of it
-                  if (ae->ptxt->hFontUrl) SelectObject(ps.hdc, ae->ptxt->hFontUrl);
-                  AE_PaintTextOut(ae, ps.hdc, ae->popt->crUrlText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                  nMaxDrawCharsCount=0;
-                  if (ae->ptxt->hFont) SelectObject(ps.hdc, ae->ptxt->hFont);
+                  if (AE_IndexCompare(&crLink.ciMax, &ciDrawLine) == 0)
+                  {
+                    //Draw full highlighted text or last part of it
+                    AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                    nMaxDrawCharsCount=0;
+                  }
                 }
+                dwPaintType&=~AEPT_LINK;
                 crLink.ciMin.lpLine=NULL;
                 crLink.ciMax.lpLine=NULL;
               }
             }
           }
-          if (ciDrawLine.nCharInLine == ciDrawLine.lpLine->nLineLen) break;
 
-          if (nLineSelection == AELS_PARTLY)
+          //Check highlight start
+          if (ae->popt->lpActiveTheme)
           {
-            if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine)
+            //Only if char not in URL
+            if (!(dwPaintType & AEPT_LINK))
             {
-              //Draw text up to selection start
-              AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-              nMaxDrawCharsCount=0;
-
-              dwColorText=ae->popt->crSelText;
-              dwColorBG=ae->popt->crSelBk;
-              hbrBG=ae->popt->hSelBk;
-            }
-            else if (ciDrawLine.lpLine->nSelEnd == ciDrawLine.nCharInLine)
-            {
-              //Draw text up to selection end
-              AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-              nMaxDrawCharsCount=0;
-
-              if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
+              //Only if char not in quote
+              if (!qm.lpQuote || AE_IndexCompare(&ciDrawLine, &qm.crQuoteStart.ciMin) < 0)
               {
-                dwColorText=ae->popt->crActiveLineText;
-                dwColorBG=ae->popt->crActiveLineBk;
-                hbrBG=ae->popt->hActiveLineBk;
+                //Word find
+                if (AE_IndexCompare(&wm.crDelim2.ciMax, &ciDrawLine) <= 0)
+                {
+                  if (nFirstPaintChar == ciDrawLine.nCharInLine)
+                    AE_HighlightFindWord(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &wm);
+                  else
+                    AE_HighlightFindWord(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &wm);
+                }
+
+                //Check delimiters and word start
+                if (wm.lpDelim1)
+                {
+                  if (!(dwPaintType & AEPT_DELIM1))
+                  {
+                    if (AE_IndexCompare(&wm.crDelim1.ciMin, &ciDrawLine) <= 0 && AE_IndexCompare(&ciDrawLine, &wm.crDelim1.ciMax) < 0)
+                    {
+                      if (!(dwPaintType & AEPT_SELECTION))
+                      {
+                        //Draw text before range for highlight
+                        AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                        nMaxDrawCharsCount=0;
+                      }
+                      dwPaintType|=AEPT_DELIM1;
+                    }
+                  }
+                  if (!(dwPaintType & AEPT_SELECTION) && (dwPaintType & AEPT_DELIM1))
+                  {
+                    if (wm.lpDelim1->crText != (DWORD)-1)
+                      dwActiveText=wm.lpDelim1->crText;
+                    else
+                      dwActiveText=dwDefaultText;
+                    if (wm.lpDelim1->crBk != (DWORD)-1)
+                      dwActiveBG=wm.lpDelim1->crBk;
+                    else
+                      dwActiveBG=dwDefaultBG;
+                  }
+                }
+                if (wm.lpWord)
+                {
+                  if (!(dwPaintType & AEPT_WORD))
+                  {
+                    if (AE_IndexCompare(&wm.crWord.ciMin, &ciDrawLine) <= 0 && AE_IndexCompare(&ciDrawLine, &wm.crWord.ciMax) < 0)
+                    {
+                      if (!(dwPaintType & AEPT_SELECTION))
+                      {
+                        //Draw text before range for highlight
+                        AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                        nMaxDrawCharsCount=0;
+                      }
+                      dwPaintType|=AEPT_WORD;
+                    }
+                  }
+                  if (!(dwPaintType & AEPT_SELECTION) && (dwPaintType & AEPT_WORD))
+                  {
+                    if (wm.lpWord->crText != (DWORD)-1)
+                      dwActiveText=wm.lpWord->crText;
+                    else
+                      dwActiveText=dwDefaultText;
+                    if (wm.lpWord->crBk != (DWORD)-1)
+                      dwActiveBG=wm.lpWord->crBk;
+                    else
+                      dwActiveBG=dwDefaultBG;
+                  }
+                }
+                if (wm.lpDelim2)
+                {
+                  if (!(dwPaintType & AEPT_DELIM2))
+                  {
+                    if (AE_IndexCompare(&wm.crDelim2.ciMin, &ciDrawLine) <= 0 && AE_IndexCompare(&ciDrawLine, &wm.crDelim2.ciMax) < 0)
+                    {
+                      if (!(dwPaintType & AEPT_SELECTION))
+                      {
+                        //Draw text before range for highlight
+                        AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                        nMaxDrawCharsCount=0;
+                      }
+                      dwPaintType|=AEPT_DELIM2;
+                    }
+                  }
+                  if (!(dwPaintType & AEPT_SELECTION) && (dwPaintType & AEPT_DELIM2))
+                  {
+                    if (wm.lpDelim2->crText != (DWORD)-1)
+                      dwActiveText=wm.lpDelim2->crText;
+                    else
+                      dwActiveText=dwDefaultText;
+                    if (wm.lpDelim2->crBk != (DWORD)-1)
+                      dwActiveBG=wm.lpDelim2->crBk;
+                    else
+                      dwActiveBG=dwDefaultBG;
+                  }
+                }
               }
-              else
+
+              //Quote find
+              if (AE_IndexCompare(&qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0)
               {
-                dwColorText=ae->popt->crBasicText;
-                dwColorBG=ae->popt->crBasicBk;
-                hbrBG=ae->popt->hBasicBk;
+                if (nFirstPaintChar == ciDrawLine.nCharInLine)
+                  AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &qm);
+                else
+                  AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &qm);
+              }
+
+              //Check quote start
+              if (qm.lpQuote)
+              {
+                if (!(dwPaintType & AEPT_QUOTE))
+                {
+                  if (AE_IndexCompare(&qm.crQuoteStart.ciMin, &ciDrawLine) <= 0 && AE_IndexCompare(&ciDrawLine, &qm.crQuoteEnd.ciMax) < 0)
+                  {
+                    if (!(dwPaintType & AEPT_SELECTION))
+                    {
+                      //Draw text before range for highlight
+                      AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                      nMaxDrawCharsCount=0;
+                    }
+                    dwPaintType|=AEPT_QUOTE;
+                  }
+                }
+                if (!(dwPaintType & AEPT_SELECTION) && (dwPaintType & AEPT_QUOTE))
+                {
+                  if (qm.lpQuote->crText != (DWORD)-1)
+                    dwActiveText=qm.lpQuote->crText;
+                  else
+                    dwActiveText=dwDefaultText;
+                  if (qm.lpQuote->crBk != (DWORD)-1)
+                    dwActiveBG=qm.lpQuote->crBk;
+                  else
+                    dwActiveBG=dwDefaultBG;
+                }
               }
             }
           }
+          if (ae->popt->bDetectUrl)
+          {
+            //Url find
+            if (AE_IndexCompare(&crLink.ciMax, &ciDrawLine) <= 0)
+            {
+              if (nFirstPaintChar == ciDrawLine.nCharInLine)
+                AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &crLink);
+              else
+                AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &crLink);
+            }
+
+            //Check url start
+            if (crLink.ciMin.lpLine && crLink.ciMax.lpLine)
+            {
+              if (!(dwPaintType & AEPT_LINK))
+              {
+                if (AE_IndexCompare(&crLink.ciMin, &ciDrawLine) <= 0 && AE_IndexCompare(&ciDrawLine, &crLink.ciMax) < 0)
+                {
+                  if (!(dwPaintType & AEPT_SELECTION))
+                  {
+                    //Draw text before range for highlight
+                    AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                    nMaxDrawCharsCount=0;
+                  }
+                  dwPaintType|=AEPT_LINK;
+                }
+              }
+              if (!(dwPaintType & AEPT_SELECTION) && (dwPaintType & AEPT_LINK))
+              {
+                dwActiveText=ae->popt->crUrlText;
+                dwActiveBG=dwDefaultBG;
+              }
+            }
+          }
+          if (!dwPaintType)
+          {
+            dwActiveText=dwDefaultText;
+            dwActiveBG=dwDefaultBG;
+          }
+          if (ciDrawLine.nCharInLine == ciDrawLine.lpLine->nLineLen) break;
 
           //Draw text up to tab character
           if (ciDrawLine.lpLine->wpLine[ciDrawLine.nCharInLine] == L'\t')
           {
-            AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+            AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
             nMaxDrawCharsCount=0;
 
             rcSpace.left=ptDraw.x + nStartDrawWidth;
             rcSpace.top=ptDraw.y;
             rcSpace.right=rcSpace.left + nCharWidth;
             rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-            FillRect(ps.hdc, &rcSpace, hbrBG);
+            FillRect(ps.hdc, &rcSpace, hbrActiveBG);
             nStartDrawWidth+=nCharWidth;
             wpStartDraw+=1;
           }
@@ -8240,7 +8284,7 @@ void AE_Paint(AKELEDIT *ae)
           //Draw only 2048 characters at once
           if (nMaxDrawCharsCount >= 2048)
           {
-            AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+            AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
             nMaxDrawCharsCount=0;
           }
           else ++nMaxDrawCharsCount;
@@ -8254,96 +8298,59 @@ void AE_Paint(AKELEDIT *ae)
         }
 
         //Draw text line
+        AE_PaintTextOut(ae, ps.hdc, dwActiveText, dwActiveBG, dwPaintType, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+
         ciLastCharInLine.nLine=ciDrawLine.nLine;
         ciLastCharInLine.lpLine=ciDrawLine.lpLine;
         ciLastCharInLine.nCharInLine=ciDrawLine.lpLine->nLineLen;
 
         if (ae->popt->lpActiveTheme)
         {
-          //Word
           if (wm.lpDelim1)
           {
-            if (AE_IndexCompare(&wm.crDelim1.ciMin, &ciDrawLine) < 0)
-            {
-              if (ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nSelStart || ciDrawLine.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-              {
-                AE_PaintTextOut(ae, ps.hdc, (wm.lpDelim1->crText == (DWORD)-1?dwColorText:wm.lpDelim1->crText), (wm.lpDelim1->crBk == (DWORD)-1?dwColorBG:wm.lpDelim1->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                nMaxDrawCharsCount=0;
-              }
-            }
             if (AE_IndexCompare(&wm.crDelim1.ciMax, &ciLastCharInLine) <= 0)
             {
+              dwPaintType&=~AEPT_DELIM1;
               wm.lpDelim1=NULL;
             }
           }
           if (wm.lpWord)
           {
-            if (AE_IndexCompare(&wm.crWord.ciMin, &ciDrawLine) < 0)
-            {
-              if (ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nSelStart || ciDrawLine.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-              {
-                AE_PaintTextOut(ae, ps.hdc, (wm.lpWord->crText == (DWORD)-1?dwColorText:wm.lpWord->crText), (wm.lpWord->crBk == (DWORD)-1?dwColorBG:wm.lpWord->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                nMaxDrawCharsCount=0;
-              }
-            }
             if (AE_IndexCompare(&wm.crWord.ciMax, &ciLastCharInLine) <= 0)
             {
+              dwPaintType&=~AEPT_WORD;
               wm.lpWord=NULL;
             }
           }
           if (wm.lpDelim2)
           {
-            if (AE_IndexCompare(&wm.crDelim2.ciMin, &ciDrawLine) < 0)
-            {
-              if (ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nSelStart || ciDrawLine.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-              {
-                AE_PaintTextOut(ae, ps.hdc, (wm.lpDelim2->crText == (DWORD)-1?dwColorText:wm.lpDelim2->crText), (wm.lpDelim2->crBk == (DWORD)-1?dwColorBG:wm.lpDelim2->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                nMaxDrawCharsCount=0;
-              }
-            }
             if (AE_IndexCompare(&wm.crDelim2.ciMax, &ciLastCharInLine) <= 0)
             {
+              dwPaintType&=~AEPT_DELIM2;
               wm.lpDelim2=NULL;
             }
           }
-
-          //Quote
           if (qm.lpQuote)
           {
-            if (AE_IndexCompare(&qm.crQuoteStart.ciMin, &ciDrawLine) < 0)
-            {
-              if (ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nSelStart || ciDrawLine.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-              {
-                AE_PaintTextOut(ae, ps.hdc, (qm.lpQuote->crText == (DWORD)-1?dwColorText:qm.lpQuote->crText), (qm.lpQuote->crBk == (DWORD)-1?dwColorBG:qm.lpQuote->crBk), &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                nMaxDrawCharsCount=0;
-              }
-            }
             if (AE_IndexCompare(&qm.crQuoteEnd.ciMax, &ciLastCharInLine) <= 0)
             {
+              dwPaintType&=~AEPT_QUOTE;
               qm.lpQuote=NULL;
             }
           }
         }
         if (ae->popt->bDetectUrl)
         {
-          //Link
           if (crLink.ciMin.lpLine && crLink.ciMax.lpLine)
           {
-            if (ciDrawLine.nCharInLine <= ciDrawLine.lpLine->nSelStart || ciDrawLine.nCharInLine > ciDrawLine.lpLine->nSelEnd)
-            {
-              if (ae->ptxt->hFontUrl) SelectObject(ps.hdc, ae->ptxt->hFontUrl);
-              AE_PaintTextOut(ae, ps.hdc, ae->popt->crUrlText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-              nMaxDrawCharsCount=0;
-              if (ae->ptxt->hFont) SelectObject(ps.hdc, ae->ptxt->hFont);
-            }
             if (AE_IndexCompare(&crLink.ciMax, &ciLastCharInLine) <= 0)
             {
+              dwPaintType&=~AEPT_LINK;
               crLink.ciMin.lpLine=NULL;
               crLink.ciMax.lpLine=NULL;
             }
           }
         }
-        AE_PaintTextOut(ae, ps.hdc, dwColorText, dwColorBG, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
 
         //After text
         if (nLineWidth <= nMaxPaintWidth)
@@ -8358,27 +8365,27 @@ void AE_Paint(AKELEDIT *ae)
               if (ciDrawLine.lpLine->nSelStart >= ciDrawLine.lpLine->nLineLen)
               {
                 if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-                  hbrBG=ae->popt->hActiveLineBk;
+                  hbrActiveBG=ae->popt->hActiveLineBk;
                 else
-                  hbrBG=ae->popt->hBasicBk;
+                  hbrActiveBG=ae->popt->hBasicBk;
 
                 rcSpace.left=ptDraw.x + nStartDrawWidth;
                 rcSpace.top=ptDraw.y;
                 rcSpace.right=rcSpace.left + (ciDrawLine.lpLine->nSelStart - nLineLen) * ae->ptxt->nSpaceCharWidth;
                 rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                FillRect(ps.hdc, &rcSpace, hbrBG);
+                FillRect(ps.hdc, &rcSpace, hbrActiveBG);
                 nStartDrawWidth+=(rcSpace.right - rcSpace.left);
                 nLineLen+=(ciDrawLine.lpLine->nSelStart - nLineLen);
               }
               if (ciDrawLine.lpLine->nSelEnd > ciDrawLine.lpLine->nLineLen)
               {
-                hbrBG=ae->popt->hSelBk;
+                hbrActiveBG=ae->popt->hSelBk;
 
                 rcSpace.left=ptDraw.x + nStartDrawWidth;
                 rcSpace.top=ptDraw.y;
                 rcSpace.right=rcSpace.left + (ciDrawLine.lpLine->nSelEnd - nLineLen) * ae->ptxt->nSpaceCharWidth;
                 rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                FillRect(ps.hdc, &rcSpace, hbrBG);
+                FillRect(ps.hdc, &rcSpace, hbrActiveBG);
                 nStartDrawWidth+=(rcSpace.right - rcSpace.left);
                 nLineLen+=(ciDrawLine.lpLine->nSelEnd - nLineLen);
               }
@@ -8394,13 +8401,13 @@ void AE_Paint(AKELEDIT *ae)
               {
                 if (!ae->popt->bHideSelection)
                 {
-                  hbrBG=ae->popt->hSelBk;
+                  hbrActiveBG=ae->popt->hSelBk;
 
                   rcSpace.left=ptDraw.x + nStartDrawWidth;
                   rcSpace.top=ptDraw.y;
                   rcSpace.right=rcSpace.left + ae->ptxt->nAveCharWidth;
                   rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                  FillRect(ps.hdc, &rcSpace, hbrBG);
+                  FillRect(ps.hdc, &rcSpace, hbrActiveBG);
                   nStartDrawWidth+=ae->ptxt->nAveCharWidth;
                 }
               }
@@ -8409,15 +8416,15 @@ void AE_Paint(AKELEDIT *ae)
 
           //Fill space after line end
           if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
-            hbrBG=ae->popt->hActiveLineBk;
+            hbrActiveBG=ae->popt->hActiveLineBk;
           else
-            hbrBG=ae->popt->hBasicBk;
+            hbrActiveBG=ae->popt->hBasicBk;
           rcSpace.left=ptDraw.x + nStartDrawWidth;
           rcSpace.top=ptDraw.y;
           rcSpace.right=ae->rcDraw.right;
           rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
           if (rcSpace.left < rcSpace.right)
-            FillRect(ps.hdc, &rcSpace, hbrBG);
+            FillRect(ps.hdc, &rcSpace, hbrActiveBG);
         }
 
         //Next line
@@ -8437,7 +8444,7 @@ void AE_Paint(AKELEDIT *ae)
   }
 }
 
-void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, DWORD dwColorText, DWORD dwColorBG, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth)
+void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, DWORD dwColorText, DWORD dwColorBG, DWORD dwPaintType, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth)
 {
   RECT rcTextOut;
   int nTextLen=nLineLen - (*wpTextInLine - wpLine);
@@ -8456,7 +8463,17 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, DWORD dwColorText, DWORD dwColorBG, 
     if (rcTextOut.left + nTextWidth > ae->rcDraw.left &&
         rcTextOut.left < ae->rcDraw.right)
     {
+      if (!(dwPaintType & AEPT_SELECTION) && (dwPaintType & AEPT_LINK))
+      {
+        if (ae->ptxt->hFontUrl) SelectObject(hDC, ae->ptxt->hFontUrl);
+      }
+
       ExtTextOutW(hDC, rcTextOut.left, rcTextOut.top, ETO_OPAQUE, &rcTextOut, *wpTextInLine, nTextLen, NULL);
+
+      if (!(dwPaintType & AEPT_SELECTION) && (dwPaintType & AEPT_LINK))
+      {
+        if (ae->ptxt->hFont) SelectObject(hDC, ae->ptxt->hFont);
+      }
     }
     *nTextInLineWidth+=nTextWidth;
     *wpTextInLine+=nTextLen;
