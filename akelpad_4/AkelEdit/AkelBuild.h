@@ -211,6 +211,17 @@ typedef struct _AEWORDMATCH {
   AECHARRANGE crDelim2;
 } AEWORDMATCH;
 
+typedef struct _AEHLPAINT {
+  DWORD dwActiveBG;
+  DWORD dwActiveText;
+  DWORD dwPaintType;
+  DWORD dwFontStyle;
+  HBRUSH hbrActiveBG;
+  AEWORDMATCH wm;
+  AEQUOTEMATCH qm;
+  AECHARRANGE crLink;
+} AEHLPAINT;
+
 
 //// Font widths
 
@@ -236,11 +247,13 @@ typedef struct {
   HSTACK hLinesStack;
   HSTACK hPointsStack;
   HFONT hFont;
+  HFONT hFontNormal;
+  HFONT hFontBold;
+  HFONT hFontItalic;
+  HFONT hFontBoldItalic;
   HFONT hFontUrl;
   LOGFONTA lfEditA;
   LOGFONTW lfEditW;
-  LOGFONTA lfEditUrlA;
-  LOGFONTW lfEditUrlW;
   int nCharHeight;
   int nAveCharWidth;
   int nSpaceCharWidth;
@@ -526,7 +539,7 @@ int AE_VScroll(AKELEDIT *ae, int nAction);
 int AE_HScrollLine(AKELEDIT *ae, int nChar);
 int AE_VScrollLine(AKELEDIT *ae, int nLine);
 void AE_Paint(AKELEDIT *ae);
-void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, DWORD dwColorText, DWORD dwColorBG, DWORD dwPaintType, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
+void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
 BOOL AE_ActiveColumnCreate(AKELEDIT *ae);

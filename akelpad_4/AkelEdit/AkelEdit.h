@@ -166,6 +166,13 @@
                               AECLR_ACTIVECOLUMN  |\
                               AECLR_COLUMNMARKER)
 
+//Highlight font style
+#define AEHLF_NONE           0
+#define AEHLF_FONTNORMAL     1
+#define AEHLF_FONTBOLD       2
+#define AEHLF_FONTITALIC     3
+#define AEHLF_FONTBOLDITALIC 4
+
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
 #define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number.
 #define AESC_UNITPIXELY      0x00000002  //High word of the lParam specifies pixels number.
@@ -455,6 +462,7 @@ typedef struct _AEDELIMITEM {
   BOOL bSensitive;           //If TRUE, delimiter string is case-sensitive.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
   COLORREF crBk;             //Delimiter background color. If -1, then don't set.
+  DWORD dwFontStyle;         //See AEHLF_* defines.
 } AEDELIMITEM;
 
 typedef struct _AEWORDITEM {
@@ -465,6 +473,7 @@ typedef struct _AEWORDITEM {
   BOOL bSensitive;           //If TRUE, word string is case-sensitive.
   COLORREF crText;           //Word text color. If -1, then don't set.
   COLORREF crBk;             //Word background color. If -1, then don't set.
+  DWORD dwFontStyle;         //See AEHLF_* defines.
 } AEWORDITEM;
 
 typedef struct _AEQUOTEITEM {
@@ -477,6 +486,7 @@ typedef struct _AEQUOTEITEM {
   BOOL bSensitive;           //If TRUE, quote strings is case-sensitive.
   COLORREF crText;           //Quote text color. If -1, then don't set.
   COLORREF crBk;             //Quote background color. If -1, then don't set.
+  DWORD dwFontStyle;         //See AEHLF_* defines.
 } AEQUOTEITEM;
 
 typedef struct {
