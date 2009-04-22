@@ -3087,8 +3087,9 @@ ______________
 
 Activate highlight theme.
 
-(HANDLE)wParam == theme handle.
-lParam         == not used.
+(HANDLE)wParam == theme handle. If NULL, active theme will be deactivated.
+(BOOL)lParam   == TRUE   redraw the edit window.
+                  FALSE  don't redraw the edit window.
 
 Return Value
  zero
@@ -3102,7 +3103,7 @@ _________________
 
 Delete highlight theme.
 
-(HANDLE)wParam == theme handle.
+(HANDLE)wParam == theme handle. If NULL, delete all themes.
 lParam         == not used.
 
 Return Value
@@ -3157,7 +3158,7 @@ _____________________
 Delete delimiter from highlight theme.
 
 (HANDLE)wParam == theme handle.
-(HANDLE)lParam == delimiter handle.
+(HANDLE)lParam == delimiter handle. If NULL, delete all delimiters.
 
 Return Value
  zero
@@ -3208,7 +3209,7 @@ ________________
 Delete word from highlight theme.
 
 (HANDLE)wParam == theme handle.
-(HANDLE)lParam == word handle.
+(HANDLE)lParam == word handle. If NULL, delete all words.
 
 Return Value
  zero
@@ -3259,7 +3260,7 @@ _________________
 Delete quote from highlight theme.
 
 (HANDLE)wParam == theme handle.
-(HANDLE)lParam == quote handle.
+(HANDLE)lParam == quote handle. If NULL, delete all quotes.
 
 Return Value
  zero
