@@ -105,8 +105,8 @@
 #define AEGI_NEXTWORDEND        15  //Next word end index, see AEM_SETWORDDELIMITERS.
 #define AEGI_PREVWORDSTART      16  //Previous word start index, see AEM_SETWORDDELIMITERS.
 #define AEGI_PREVWORDEND        17  //Previous word end index, see AEM_SETWORDDELIMITERS.
-#define AEGI_WRAPLINEBEGIN      18  //First character of the unwrapped line.
-#define AEGI_WRAPLINEEND        19  //Last character of the unwrapped line.
+#define AEGI_WRAPLINEBEGIN      18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
+#define AEGI_WRAPLINEEND        19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_NEXTCHARINLINE     20  //Next character in line.
 #define AEGI_PREVCHARINLINE     21  //Previous character in line.
 
@@ -168,12 +168,16 @@
                               AECLR_ACTIVECOLUMN  |\
                               AECLR_COLUMNMARKER)
 
+//Highlight flags
+#define AEHLF_MATCHCASE            0x1  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
+#define AEHLF_QUOTEENDISDELIMITER  0x2  //If set, AEQUOTEITEMA.pQuoteEnd or AEQUOTEITEMW.pQuoteEnd member is ignored and first meet delimiter used as quote end.
+
 //Highlight font style
-#define AEHLF_NONE           0
-#define AEHLF_FONTNORMAL     1
-#define AEHLF_FONTBOLD       2
-#define AEHLF_FONTITALIC     3
-#define AEHLF_FONTBOLDITALIC 4
+#define AEHLS_NONE                 0  //Current style.
+#define AEHLS_FONTNORMAL           1  //Normal style.
+#define AEHLS_FONTBOLD             2  //Bold style.
+#define AEHLS_FONTITALIC           3  //Italic style.
+#define AEHLS_FONTBOLDITALIC       4  //Bold italic style.
 
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
 #define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number.
@@ -461,10 +465,10 @@ typedef struct _AEDELIMITEMA {
   struct _AEDELIMITEMA *prev;
   char *pDelimiter;          //Delimiter string.
   int nDelimiterLen;         //Delimiter string length.
-  BOOL bSensitive;           //If TRUE, delimiter string is case-sensitive.
+  DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
   COLORREF crBk;             //Delimiter background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEDELIMITEMA;
 
 typedef struct _AEDELIMITEMW {
@@ -472,10 +476,10 @@ typedef struct _AEDELIMITEMW {
   struct _AEDELIMITEMW *prev;
   wchar_t *wpDelimiter;      //Delimiter string.
   int nDelimiterLen;         //Delimiter string length.
-  BOOL bSensitive;           //If TRUE, delimiter string is case-sensitive.
+  DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
   COLORREF crBk;             //Delimiter background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEDELIMITEMW;
 
 typedef struct _AEWORDITEMA {
@@ -483,10 +487,10 @@ typedef struct _AEWORDITEMA {
   struct _AEWORDITEMA *prev;
   char *pWord;               //Word string.
   int nWordLen;              //Word string length.
-  BOOL bSensitive;           //If TRUE, word string is case-sensitive.
+  DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Word text color. If -1, then don't set.
   COLORREF crBk;             //Word background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEWORDITEMA;
 
 typedef struct _AEWORDITEMW {
@@ -494,10 +498,10 @@ typedef struct _AEWORDITEMW {
   struct _AEWORDITEMW *prev;
   wchar_t *wpWord;           //Word string.
   int nWordLen;              //Word string length.
-  BOOL bSensitive;           //If TRUE, word string is case-sensitive.
+  DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Word text color. If -1, then don't set.
   COLORREF crBk;             //Word background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEWORDITEMW;
 
 typedef struct _AEQUOTEITEMA {
@@ -505,13 +509,13 @@ typedef struct _AEQUOTEITEMA {
   struct _AEQUOTEITEMA *prev;
   char *pQuoteStart;         //Quote start string.
   int nQuoteStartLen;        //Quote start string length.
-  char *pQuoteEnd;           //Quote end string.
+  char *pQuoteEnd;           //Quote end string. If NULL, line end used as quote end.
   int nQuoteEndLen;          //Quote end string length.
   char chEscape;             //Escape character. If it precedes quote string then quote ignored.
-  BOOL bSensitive;           //If TRUE, quote strings is case-sensitive.
+  DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Quote text color. If -1, then don't set.
   COLORREF crBk;             //Quote background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEQUOTEITEMA;
 
 typedef struct _AEQUOTEITEMW {
@@ -519,13 +523,13 @@ typedef struct _AEQUOTEITEMW {
   struct _AEQUOTEITEMW *prev;
   wchar_t *wpQuoteStart;     //Quote start string.
   int nQuoteStartLen;        //Quote start string length.
-  wchar_t *wpQuoteEnd;       //Quote end string.
-  wchar_t wchEscape;         //Escape character. If it precedes quote string then quote ignored.
+  wchar_t *wpQuoteEnd;       //Quote end string. If NULL, line end used as quote end.
   int nQuoteEndLen;          //Quote end string length.
-  BOOL bSensitive;           //If TRUE, quote strings is case-sensitive.
+  wchar_t wchEscape;         //Escape character. If it precedes quote string then quote ignored.
+  DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Quote text color. If -1, then don't set.
   COLORREF crBk;             //Quote background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEQUOTEITEMW;
 
 typedef struct {
@@ -1814,8 +1818,7 @@ Retrieve the specified character index.
 (AECHARINDEX *)lParam == character index.
 
 Return Value
- TRUE   success.
- FALSE  failed.
+ Zero if failed, non-zero if success.
 
 Example:
  AECHARINDEX ciChar;
@@ -3099,14 +3102,14 @@ Example:
  {
    di.pDelimiter=" ";
    di.nDelimiterLen=lstrlenA(di.wpDelimiter);
-   di.bSensitive=TRUE;
+   di.dwFlags=AEHLF_MATCHCASE;
    di.crText=(DWORD)-1;
    di.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDDELIMITERA, (WPARAM)hTheme, (LPARAM)&di);
 
    wi.pWord="for";
    wi.nWordLen=lstrlenA(wi.pWord);
-   wi.bSensitive=TRUE;
+   wi.dwFlags=AEHLF_MATCHCASE;
    wi.crText=RGB(0x00, 0xFF, 0x00);
    wi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDWORDA, (WPARAM)hTheme, (LPARAM)&wi);
@@ -3116,7 +3119,7 @@ Example:
    qi.pQuoteEnd="\"";
    qi.nQuoteEndLen=lstrlenA(qi.pQuoteEnd);
    qi.chEscape='\\';
-   qi.bSensitive=TRUE;
+   qi.dwFlags=AEHLF_MATCHCASE;
    qi.crText=RGB(0x00, 0x00, 0xFF);
    qi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDQUOTEA, (WPARAM)hTheme, (LPARAM)&qi);
@@ -3146,14 +3149,14 @@ Example:
  {
    di.wpDelimiter=L" ";
    di.nDelimiterLen=lstrlenW(di.wpDelimiter);
-   di.bSensitive=TRUE;
+   di.dwFlags=AEHLF_MATCHCASE;
    di.crText=(DWORD)-1;
    di.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDDELIMITERW, (WPARAM)hTheme, (LPARAM)&di);
 
    wi.wpWord=L"for";
    wi.nWordLen=lstrlenW(wi.wpWord);
-   wi.bSensitive=TRUE;
+   wi.dwFlags=AEHLF_MATCHCASE;
    wi.crText=RGB(0x00, 0xFF, 0x00);
    wi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDWORDW, (WPARAM)hTheme, (LPARAM)&wi);
@@ -3163,7 +3166,7 @@ Example:
    qi.wpQuoteEnd=L"\"";
    qi.nQuoteEndLen=lstrlenW(qi.wpQuoteEnd);
    qi.wchEscape=L'\\';
-   qi.bSensitive=TRUE;
+   qi.dwFlags=AEHLF_MATCHCASE;
    qi.crText=RGB(0x00, 0x00, 0xFF);
    qi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
@@ -3272,7 +3275,7 @@ ___________________
 Retrieve ansi delimiter info of highlight theme.
 
 (HANDLE)wParam         == theme handle.
-(AEDELIMITEMA *)lParam == pointer to a AEDELIMITEMA structure. Members pDelimiter, nDelimiterLen and bSensitive must be filled in.
+(AEDELIMITEMA *)lParam == pointer to a AEDELIMITEMA structure. Members pDelimiter, nDelimiterLen and dwFlags must be filled in.
 
 Return Value
  Delimiter handle.
@@ -3283,7 +3286,7 @@ Example:
 
  di.pDelimiter=" ";
  di.nDelimiterLen=lstrlenA(di.pDelimiter);
- di.bSensitive=TRUE;
+ di.dwFlags=AEHLF_MATCHCASE;
  hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)NULL);
  SendMessage(hWndEdit, AEM_HLGETDELIMITERA, (WPARAM)hTheme, (LPARAM)&di);
 
@@ -3294,7 +3297,7 @@ ___________________
 Retrieve unicode delimiter info of highlight theme.
 
 (HANDLE)wParam         == theme handle.
-(AEDELIMITEMW *)lParam == pointer to a AEDELIMITEMW structure. Members wpDelimiter, nDelimiterLen and bSensitive must be filled in.
+(AEDELIMITEMW *)lParam == pointer to a AEDELIMITEMW structure. Members wpDelimiter, nDelimiterLen and dwFlags must be filled in.
 
 Return Value
  Delimiter handle.
@@ -3305,7 +3308,7 @@ Example:
 
  di.wpDelimiter=L" ";
  di.nDelimiterLen=lstrlenW(di.wpDelimiter);
- di.bSensitive=TRUE;
+ di.dwFlags=AEHLF_MATCHCASE;
  hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
  SendMessage(hWndEdit, AEM_HLGETDELIMITERW, (WPARAM)hTheme, (LPARAM)&di);
 
@@ -3361,7 +3364,7 @@ _____________
 Retrieve ansi word info of highlight theme.
 
 (HANDLE)wParam        == theme handle.
-(AEWORDITEMA *)lParam == pointer to a AEWORDITEMA structure. Members pWord, nWordLen and bSensitive must be filled in.
+(AEWORDITEMA *)lParam == pointer to a AEWORDITEMA structure. Members pWord, nWordLen and dwFlags must be filled in.
 
 Return Value
  Word handle.
@@ -3372,7 +3375,7 @@ Example:
 
  wi.pWord="for";
  wi.nWordLen=lstrlenA(wi.pWord);
- wi.bSensitive=TRUE;
+ wi.dwFlags=AEHLF_MATCHCASE;
  hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)NULL);
  SendMessage(hWndEdit, AEM_HLGETWORDA, (WPARAM)hTheme, (LPARAM)&wi);
 
@@ -3383,7 +3386,7 @@ ______________
 Retrieve unicode word info of highlight theme.
 
 (HANDLE)wParam        == theme handle.
-(AEWORDITEMW *)lParam == pointer to a AEWORDITEMW structure. Members wpWord, nWordLen and bSensitive must be filled in.
+(AEWORDITEMW *)lParam == pointer to a AEWORDITEMW structure. Members wpWord, nWordLen and dwFlags must be filled in.
 
 Return Value
  Word handle.
@@ -3394,7 +3397,7 @@ Example:
 
  wi.wpWord=L"for";
  wi.nWordLen=lstrlenW(wi.wpWord);
- wi.bSensitive=TRUE;
+ wi.dwFlags=AEHLF_MATCHCASE;
  hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
  SendMessage(hWndEdit, AEM_HLGETWORDW, (WPARAM)hTheme, (LPARAM)&wi);
 
@@ -3450,7 +3453,7 @@ ______________
 Retrieve ansi quote info of highlight theme.
 
 (HANDLE)wParam         == theme handle.
-(AEQUOTEITEMA *)lParam == pointer to a AEQUOTEITEMA structure. Members pQuoteStart, nQuoteStartLen and bSensitive must be filled in.
+(AEQUOTEITEMA *)lParam == pointer to a AEQUOTEITEMA structure. Members pQuoteStart, nQuoteStartLen and dwFlags must be filled in.
 
 Return Value
  Quote handle.
@@ -3461,7 +3464,7 @@ Example:
 
  qi.pQuoteStart="\"";
  qi.nQuoteStartLen=lstrlenA(qi.pQuoteStart);
- qi.bSensitive=TRUE;
+ qi.dwFlags=AEHLF_MATCHCASE;
  hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)NULL);
  SendMessage(hWndEdit, AEM_HLGETQUOTEA, (WPARAM)hTheme, (LPARAM)&qi);
 
@@ -3472,7 +3475,7 @@ ______________
 Retrieve unicode quote info of highlight theme.
 
 (HANDLE)wParam         == theme handle.
-(AEQUOTEITEMW *)lParam == pointer to a AEQUOTEITEMW structure. Members wpQuoteStart, nQuoteStartLen and bSensitive must be filled in.
+(AEQUOTEITEMW *)lParam == pointer to a AEQUOTEITEMW structure. Members wpQuoteStart, nQuoteStartLen and dwFlags must be filled in.
 
 Return Value
  Quote handle.
@@ -3483,7 +3486,7 @@ Example:
 
  qi.wpQuoteStart=L"\"";
  qi.nQuoteStartLen=lstrlenW(qi.wpQuoteStart);
- qi.bSensitive=TRUE;
+ qi.dwFlags=AEHLF_MATCHCASE;
  hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
  SendMessage(hWndEdit, AEM_HLGETQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
 
