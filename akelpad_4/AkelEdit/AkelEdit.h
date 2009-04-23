@@ -3115,6 +3115,7 @@ Example:
    qi.nQuoteStartLen=lstrlenA(qi.pQuoteStart);
    qi.pQuoteEnd="\"";
    qi.nQuoteEndLen=lstrlenA(qi.pQuoteEnd);
+   qi.chEscape='\\';
    qi.bSensitive=TRUE;
    qi.crText=RGB(0x00, 0x00, 0xFF);
    qi.crBk=(DWORD)-1;
@@ -3161,6 +3162,7 @@ Example:
    qi.nQuoteStartLen=lstrlenW(qi.wpQuoteStart);
    qi.wpQuoteEnd=L"\"";
    qi.nQuoteEndLen=lstrlenW(qi.wpQuoteEnd);
+   qi.wchEscape=L'\\';
    qi.bSensitive=TRUE;
    qi.crText=RGB(0x00, 0x00, 0xFF);
    qi.crBk=(DWORD)-1;
