@@ -107,6 +107,8 @@
 #define AEGI_PREVWORDEND        17  //Previous word end index, see AEM_SETWORDDELIMITERS.
 #define AEGI_WRAPLINEBEGIN      18  //First character of the unwrapped line.
 #define AEGI_WRAPLINEEND        19  //Last character of the unwrapped line.
+#define AEGI_NEXTCHARINLINE     20  //Next character in line.
+#define AEGI_PREVCHARINLINE     21  //Previous character in line.
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_WORD    0  //Word delimiter.
@@ -505,6 +507,7 @@ typedef struct _AEQUOTEITEMA {
   int nQuoteStartLen;        //Quote start string length.
   char *pQuoteEnd;           //Quote end string.
   int nQuoteEndLen;          //Quote end string length.
+  char chEscape;             //Escape character. If it precedes quote string then quote ignored.
   BOOL bSensitive;           //If TRUE, quote strings is case-sensitive.
   COLORREF crText;           //Quote text color. If -1, then don't set.
   COLORREF crBk;             //Quote background color. If -1, then don't set.
@@ -517,6 +520,7 @@ typedef struct _AEQUOTEITEMW {
   wchar_t *wpQuoteStart;     //Quote start string.
   int nQuoteStartLen;        //Quote start string length.
   wchar_t *wpQuoteEnd;       //Quote end string.
+  wchar_t wchEscape;         //Escape character. If it precedes quote string then quote ignored.
   int nQuoteEndLen;          //Quote end string length.
   BOOL bSensitive;           //If TRUE, quote strings is case-sensitive.
   COLORREF crText;           //Quote text color. If -1, then don't set.
