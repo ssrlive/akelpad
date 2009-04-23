@@ -1427,6 +1427,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1, lpQuoteDst->wpQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1);
           lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
 
+          MultiByteToWideChar(CP_ACP, 0, &lpQuoteSrc->chEscape, 1, &lpQuoteDst->wchEscape, 1);
+
           lpQuoteDst->bSensitive=lpQuoteSrc->bSensitive;
           lpQuoteDst->crText=lpQuoteSrc->crText;
           lpQuoteDst->crBk=lpQuoteSrc->crBk;
@@ -1450,6 +1452,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             AE_memcpy(lpQuoteDst->wpQuoteEnd, lpQuoteSrc->wpQuoteEnd, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2);
           lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
 
+          lpQuoteDst->wchEscape=lpQuoteSrc->wchEscape;
           lpQuoteDst->bSensitive=lpQuoteSrc->bSensitive;
           lpQuoteDst->crText=lpQuoteSrc->crText;
           lpQuoteDst->crBk=lpQuoteSrc->crBk;
@@ -5246,6 +5249,54 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
     ciCharOut->nCharInLine=ciCharTmp.lpLine->nLineLen;
     return TRUE;
   }
+  else if (nType == AEGI_NEXTCHARINLINE)
+  {
+    AECHARINDEX ciCharTmp=*ciCharIn;
+
+    if (ciCharTmp.nCharInLine >= ciCharTmp.lpLine->nLineLen)
+    {
+      if (ciCharTmp.lpLine->nLineBreak == AELB_WRAP)
+      {
+        ciCharOut->nLine=ciCharTmp.nLine + 1;
+        ciCharOut->lpLine=ciCharTmp.lpLine->next;
+        ciCharOut->nCharInLine=0;
+        return TRUE;
+      }
+      else
+      {
+        *ciCharOut=ciCharTmp;
+        return FALSE;
+      }
+    }
+    ciCharOut->nLine=ciCharTmp.nLine;
+    ciCharOut->lpLine=ciCharTmp.lpLine;
+    ciCharOut->nCharInLine=ciCharTmp.nCharInLine + 1;
+    return TRUE;
+  }
+  else if (nType == AEGI_PREVCHARINLINE)
+  {
+    AECHARINDEX ciCharTmp=*ciCharIn;
+
+    if (ciCharTmp.nCharInLine == 0)
+    {
+      if (ciCharTmp.lpLine->prev && ciCharTmp.lpLine->prev->nLineBreak == AELB_WRAP)
+      {
+        ciCharOut->nLine=ciCharTmp.nLine - 1;
+        ciCharOut->lpLine=ciCharTmp.lpLine->prev;
+        ciCharOut->nCharInLine=ciCharTmp.lpLine->prev->nLineLen - 1;
+        return TRUE;
+      }
+      else
+      {
+        *ciCharOut=ciCharTmp;
+        return FALSE;
+      }
+    }
+    ciCharOut->nLine=ciCharTmp.nLine;
+    ciCharOut->lpLine=ciCharTmp.lpLine;
+    ciCharOut->nCharInLine=ciCharTmp.nCharInLine - 1;
+    return TRUE;
+  }
   return FALSE;
 }
 
@@ -7029,6 +7080,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
+  AECHARINDEX ciEscape;
   AEQUOTEITEMW *lpQuoteElement=NULL;
   int nQuoteLen=0;
 
@@ -7066,12 +7118,20 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
           if (AE_IsMatch(ae, &ft, &ciCount))
           {
+            if (lpQuoteElement->wchEscape)
+            {
+              if (AE_GetIndex(ae, AEGI_PREVCHARINLINE, &ft.crFound.ciMin, &ciEscape, FALSE) &&
+                  *(ciEscape.lpLine->wpLine + ciEscape.nCharInLine) == lpQuoteElement->wchEscape)
+                goto QuoteStartNext;
+            }
             wm->lpQuote=lpQuoteElement;
             wm->crQuoteStart=ft.crFound;
             ciCount=ft.crFound.ciMax;
             nQuoteLen=lpQuoteElement->nQuoteStartLen;
             goto Begin;
           }
+
+          QuoteStartNext:
           lpQuoteElement=lpQuoteElement->next;
         }
         if (dwSearchType & AEHF_ISFIRSTCHAR)
@@ -7086,10 +7146,18 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
         if (AE_IsMatch(ae, &ft, &ciCount))
         {
+          if (wm->lpQuote->wchEscape)
+          {
+            if (AE_GetIndex(ae, AEGI_PREVCHARINLINE, &ft.crFound.ciMin, &ciEscape, FALSE) &&
+                *(ciEscape.lpLine->wpLine + ciEscape.nCharInLine) == wm->lpQuote->wchEscape)
+              goto QuoteEndNext;
+          }
           wm->crQuoteEnd=ft.crFound;
           nQuoteLen+=lpQuoteElement->nQuoteEndLen;
           goto SetQuote;
         }
+
+        QuoteEndNext:
         ++nQuoteLen;
       }
       ++ciCount.nCharInLine;
