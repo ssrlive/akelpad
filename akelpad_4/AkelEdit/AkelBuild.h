@@ -639,6 +639,8 @@ int AE_WideStrCmpI(const wchar_t *wpString, const wchar_t *wpString2);
 int AE_WideStrCmpLen(const wchar_t *wpString, const wchar_t *wpString2, DWORD dwMaxLength);
 int AE_WideStrCmpLenI(const wchar_t *wpString, const wchar_t *wpString2, DWORD dwMaxLength);
 void AE_ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
+int AE_strncpy(char *dest, const char *src, unsigned int count);
+int AE_wcsncpy(wchar_t *dest, const wchar_t *src, unsigned int count);
 wchar_t* AE_wcschr(const wchar_t *s, wchar_t c);
 void* AE_memcpy(void *dest, const void *src, unsigned int count);
 int AE_memcmp(const void *buf1, const void *buf2, unsigned int count);
