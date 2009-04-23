@@ -1255,7 +1255,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             MultiByteToWideChar(CP_ACP, 0, lpDelimSrc->pDelimiter, lpDelimSrc->nDelimiterLen + 1, lpDelimDst->wpDelimiter, lpDelimSrc->nDelimiterLen + 1);
           lpDelimDst->nDelimiterLen=lpDelimSrc->nDelimiterLen;
 
-          lpDelimDst->bSensitive=lpDelimSrc->bSensitive;
+          lpDelimDst->dwFlags=lpDelimSrc->dwFlags;
           lpDelimDst->crText=lpDelimSrc->crText;
           lpDelimDst->crBk=lpDelimSrc->crBk;
           lpDelimDst->dwFontStyle=lpDelimSrc->dwFontStyle;
@@ -1274,7 +1274,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             AE_memcpy(lpDelimDst->wpDelimiter, lpDelimSrc->wpDelimiter, lpDelimSrc->nDelimiterLen * sizeof(wchar_t) + 2);
           lpDelimDst->nDelimiterLen=lpDelimSrc->nDelimiterLen;
 
-          lpDelimDst->bSensitive=lpDelimSrc->bSensitive;
+          lpDelimDst->dwFlags=lpDelimSrc->dwFlags;
           lpDelimDst->crText=lpDelimSrc->crText;
           lpDelimDst->crBk=lpDelimSrc->crBk;
           lpDelimDst->dwFontStyle=lpDelimSrc->dwFontStyle;
@@ -1292,7 +1292,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           MultiByteToWideChar(CP_ACP, 0, lpDelimDst->pDelimiter, lpDelimDst->nDelimiterLen + 1, wpDelimiter, lpDelimDst->nDelimiterLen + 1);
 
-          if (lpDelimSrc=AE_HighlightGetDelimiter(ae, lpTheme, wpDelimiter, lpDelimDst->nDelimiterLen, lpDelimDst->bSensitive))
+          if (lpDelimSrc=AE_HighlightGetDelimiter(ae, lpTheme, wpDelimiter, lpDelimDst->nDelimiterLen, lpDelimDst->dwFlags))
           {
             lpDelimDst->crText=lpDelimSrc->crText;
             lpDelimDst->crBk=lpDelimSrc->crBk;
@@ -1308,7 +1308,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AEDELIMITEMW *lpDelimDst=(AEDELIMITEMW *)lParam;
         AEDELIMITEMW *lpDelimSrc=NULL;
 
-        if (lpDelimSrc=AE_HighlightGetDelimiter(ae, lpTheme, lpDelimDst->wpDelimiter, lpDelimDst->nDelimiterLen, lpDelimDst->bSensitive))
+        if (lpDelimSrc=AE_HighlightGetDelimiter(ae, lpTheme, lpDelimDst->wpDelimiter, lpDelimDst->nDelimiterLen, lpDelimDst->dwFlags))
         {
           lpDelimDst->crText=lpDelimSrc->crText;
           lpDelimDst->crBk=lpDelimSrc->crBk;
@@ -1339,7 +1339,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             MultiByteToWideChar(CP_ACP, 0, lpWordSrc->pWord, lpWordSrc->nWordLen + 1, lpWordDst->wpWord, lpWordSrc->nWordLen + 1);
           lpWordDst->nWordLen=lpWordSrc->nWordLen;
 
-          lpWordDst->bSensitive=lpWordSrc->bSensitive;
+          lpWordDst->dwFlags=lpWordSrc->dwFlags;
           lpWordDst->crText=lpWordSrc->crText;
           lpWordDst->crBk=lpWordSrc->crBk;
           lpWordDst->dwFontStyle=lpWordSrc->dwFontStyle;
@@ -1358,7 +1358,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             AE_memcpy(lpWordDst->wpWord, lpWordSrc->wpWord, lpWordSrc->nWordLen * sizeof(wchar_t) + 2);
           lpWordDst->nWordLen=lpWordSrc->nWordLen;
 
-          lpWordDst->bSensitive=lpWordSrc->bSensitive;
+          lpWordDst->dwFlags=lpWordSrc->dwFlags;
           lpWordDst->crText=lpWordSrc->crText;
           lpWordDst->crBk=lpWordSrc->crBk;
           lpWordDst->dwFontStyle=lpWordSrc->dwFontStyle;
@@ -1376,7 +1376,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           MultiByteToWideChar(CP_ACP, 0, lpWordDst->pWord, lpWordDst->nWordLen + 1, wpWord, lpWordDst->nWordLen + 1);
 
-          if (lpWordSrc=AE_HighlightGetWord(ae, lpTheme, wpWord, lpWordDst->nWordLen, lpWordDst->bSensitive))
+          if (lpWordSrc=AE_HighlightGetWord(ae, lpTheme, wpWord, lpWordDst->nWordLen, lpWordDst->dwFlags))
           {
             lpWordDst->crText=lpWordSrc->crText;
             lpWordDst->crBk=lpWordSrc->crBk;
@@ -1392,7 +1392,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AEWORDITEMW *lpWordDst=(AEWORDITEMW *)lParam;
         AEWORDITEMW *lpWordSrc=NULL;
 
-        if (lpWordSrc=AE_HighlightGetWord(ae, lpTheme, lpWordDst->wpWord, lpWordDst->nWordLen, lpWordDst->bSensitive))
+        if (lpWordSrc=AE_HighlightGetWord(ae, lpTheme, lpWordDst->wpWord, lpWordDst->nWordLen, lpWordDst->dwFlags))
         {
           lpWordDst->crText=lpWordSrc->crText;
           lpWordDst->crBk=lpWordSrc->crBk;
@@ -1423,13 +1423,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1, lpQuoteDst->wpQuoteStart, lpQuoteSrc->nQuoteStartLen + 1);
           lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
 
-          if (lpQuoteDst->wpQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2))
-            MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1, lpQuoteDst->wpQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1);
-          lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
+          if (lpQuoteSrc->pQuoteEnd)
+          {
+            if (lpQuoteDst->wpQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2))
+              MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1, lpQuoteDst->wpQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1);
+            lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
+          }
+          else lpQuoteDst->wpQuoteEnd=NULL;
 
           MultiByteToWideChar(CP_ACP, 0, &lpQuoteSrc->chEscape, 1, &lpQuoteDst->wchEscape, 1);
 
-          lpQuoteDst->bSensitive=lpQuoteSrc->bSensitive;
+          lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
           lpQuoteDst->crText=lpQuoteSrc->crText;
           lpQuoteDst->crBk=lpQuoteSrc->crBk;
           lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
@@ -1448,12 +1452,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             AE_memcpy(lpQuoteDst->wpQuoteStart, lpQuoteSrc->wpQuoteStart, lpQuoteSrc->nQuoteStartLen * sizeof(wchar_t) + 2);
           lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
 
-          if (lpQuoteDst->wpQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2))
-            AE_memcpy(lpQuoteDst->wpQuoteEnd, lpQuoteSrc->wpQuoteEnd, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2);
-          lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
+          if (lpQuoteSrc->wpQuoteEnd)
+          {
+            if (lpQuoteDst->wpQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2))
+              AE_memcpy(lpQuoteDst->wpQuoteEnd, lpQuoteSrc->wpQuoteEnd, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2);
+            lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
+          }
+          else lpQuoteDst->wpQuoteEnd=NULL;
 
           lpQuoteDst->wchEscape=lpQuoteSrc->wchEscape;
-          lpQuoteDst->bSensitive=lpQuoteSrc->bSensitive;
+          lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
           lpQuoteDst->crText=lpQuoteSrc->crText;
           lpQuoteDst->crBk=lpQuoteSrc->crBk;
           lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
@@ -1471,7 +1479,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           MultiByteToWideChar(CP_ACP, 0, lpQuoteDst->pQuoteStart, lpQuoteDst->nQuoteStartLen + 1, wpQuoteStart, lpQuoteDst->nQuoteStartLen + 1);
 
-          if (lpQuoteSrc=AE_HighlightGetQuote(ae, lpTheme, wpQuoteStart, lpQuoteDst->nQuoteStartLen, lpQuoteDst->bSensitive))
+          if (lpQuoteSrc=AE_HighlightGetQuote(ae, lpTheme, wpQuoteStart, lpQuoteDst->nQuoteStartLen, lpQuoteDst->dwFlags))
           {
             lpQuoteDst->crText=lpQuoteSrc->crText;
             lpQuoteDst->crBk=lpQuoteSrc->crBk;
@@ -1487,7 +1495,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AEQUOTEITEMW *lpQuoteDst=(AEQUOTEITEMW *)lParam;
         AEQUOTEITEMW *lpQuoteSrc=NULL;
 
-        if (lpQuoteSrc=AE_HighlightGetQuote(ae, lpTheme, lpQuoteDst->wpQuoteStart, lpQuoteDst->nQuoteStartLen, lpQuoteDst->bSensitive))
+        if (lpQuoteSrc=AE_HighlightGetQuote(ae, lpTheme, lpQuoteDst->wpQuoteStart, lpQuoteDst->nQuoteStartLen, lpQuoteDst->dwFlags))
         {
           lpQuoteDst->crText=lpQuoteSrc->crText;
           lpQuoteDst->crBk=lpQuoteSrc->crBk;
@@ -5002,21 +5010,21 @@ int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
   return nResult;
 }
 
-BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel)
+int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel)
 {
   if (nType == AEGI_FIRSTCHAR)
   {
     ciCharOut->nLine=0;
     ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
     ciCharOut->nCharInLine=0;
-    return ciCharOut->lpLine?TRUE:FALSE;
+    return ciCharOut->lpLine?1:0;
   }
   else if (nType == AEGI_LASTCHAR)
   {
     ciCharOut->nLine=ae->ptxt->nLineCount;
     ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.last;
     ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
-    return ciCharOut->lpLine?TRUE:FALSE;
+    return ciCharOut->lpLine?1:0;
   }
   else if (nType == AEGI_FIRSTSELCHAR)
   {
@@ -5028,7 +5036,7 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
     }
     else *ciCharOut=ae->ciSelStartIndex;
 
-    return TRUE;
+    return 1;
   }
   else if (nType == AEGI_LASTSELCHAR)
   {
@@ -5040,26 +5048,26 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
     }
     else *ciCharOut=ae->ciSelEndIndex;
 
-    return TRUE;
+    return 1;
   }
   else if (nType == AEGI_CARETCHAR)
   {
     *ciCharOut=ae->ciCaretIndex;
-    return TRUE;
+    return 1;
   }
   else if (nType == AEGI_FIRSTVISIBLELINE)
   {
     ciCharOut->nLine=AE_GetFirstVisibleLine(ae);
     ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
     ciCharOut->nCharInLine=0;
-    return ciCharOut->lpLine?TRUE:FALSE;
+    return ciCharOut->lpLine?1:0;
   }
   else if (nType == AEGI_LASTVISIBLELINE)
   {
     ciCharOut->nLine=AE_GetLastVisibleLine(ae);
     ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
     ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
-    return ciCharOut->lpLine?TRUE:FALSE;
+    return ciCharOut->lpLine?1:0;
   }
   else if (nType == AEGI_NEXTLINE)
   {
@@ -5071,13 +5079,13 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
     {
       ciCharOut->lpLine=ciCharTmp.lpLine->next;
       ciCharOut->nCharInLine=0;
-      return TRUE;
+      return 1;
     }
     else
     {
       ciCharOut->lpLine=ciCharTmp.lpLine;
       ciCharOut->nCharInLine=ciCharTmp.nCharInLine;
-      return FALSE;
+      return 0;
     }
   }
   else if (nType == AEGI_PREVLINE)
@@ -5090,13 +5098,13 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
     {
       ciCharOut->lpLine=ciCharTmp.lpLine->prev;
       ciCharOut->nCharInLine=0;
-      return TRUE;
+      return 1;
     }
     else
     {
       ciCharOut->lpLine=ciCharTmp.lpLine;
       ciCharOut->nCharInLine=ciCharTmp.nCharInLine;
-      return FALSE;
+      return 0;
     }
   }
   else if (nType == AEGI_NEXTCHAR)
@@ -5108,7 +5116,7 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
       ciCharOut->nLine=ciCharTmp.nLine;
       ciCharOut->lpLine=ciCharTmp.lpLine;
       ciCharOut->nCharInLine=ciCharTmp.nCharInLine + 1;
-      return TRUE;
+      return 1;
     }
     else
     {
@@ -5117,7 +5125,7 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
         ciCharOut->nLine=ciCharTmp.nLine;
         ciCharOut->lpLine=ciCharTmp.lpLine;
         ciCharOut->nCharInLine=ciCharTmp.nCharInLine + 1;
-        return TRUE;
+        return 1;
       }
       else
       {
@@ -5129,12 +5137,12 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
           ciCharOut->nCharInLine=0;
           if (ciCharTmp.lpLine->nLineBreak == AELB_WRAP)
             ciCharOut->nCharInLine=min(ciCharOut->nCharInLine + 1, ciCharOut->lpLine->nLineLen);
-          return TRUE;
+          return 1;
         }
         else
         {
           *ciCharOut=ciCharTmp;
-          return FALSE;
+          return 0;
         }
       }
     }
@@ -5148,7 +5156,7 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
       ciCharOut->nLine=ciCharTmp.nLine;
       ciCharOut->lpLine=ciCharTmp.lpLine;
       ciCharOut->nCharInLine=max(ciCharTmp.nCharInLine - 1, 0);
-      return TRUE;
+      return 1;
     }
     else
     {
@@ -5166,7 +5174,7 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
           ciCharOut->lpLine=ciCharTmp.lpLine;
           ciCharOut->nCharInLine=ciCharTmp.nCharInLine - 1;
         }
-        return TRUE;
+        return 1;
       }
       else
       {
@@ -5178,12 +5186,12 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
           ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
           if (ciCharOut->lpLine->nLineBreak == AELB_WRAP)
             ciCharOut->nCharInLine=max(ciCharOut->nCharInLine - 1, 0);
-          return TRUE;
+          return 1;
         }
         else
         {
           *ciCharOut=ciCharTmp;
-          return FALSE;
+          return 0;
         }
       }
     }
@@ -5198,23 +5206,24 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
   }
   else if (nType == AEGI_NEXTWORDSTART)
   {
-    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDSTART, FALSE);
+    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDSTART, 0);
   }
   else if (nType == AEGI_NEXTWORDEND)
   {
-    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDEND, FALSE);
+    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDEND, 0);
   }
   else if (nType == AEGI_PREVWORDSTART)
   {
-    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDSTART, FALSE);
+    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDSTART, 0);
   }
   else if (nType == AEGI_PREVWORDEND)
   {
-    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDEND, FALSE);
+    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDEND, 0);
   }
   else if (nType == AEGI_WRAPLINEBEGIN)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
+    int nCount=ciCharTmp.nCharInLine;
 
     if (ciCharTmp.lpLine)
     {
@@ -5225,16 +5234,18 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
 
         --ciCharTmp.nLine;
         ciCharTmp.lpLine=ciCharTmp.lpLine->prev;
+        nCount+=ciCharTmp.lpLine->nLineLen;
       }
     }
     ciCharOut->nLine=ciCharTmp.nLine;
     ciCharOut->lpLine=ciCharTmp.lpLine;
     ciCharOut->nCharInLine=0;
-    return TRUE;
+    return nCount;
   }
   else if (nType == AEGI_WRAPLINEEND)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
+    int nCount=ciCharTmp.lpLine->nLineLen - ciCharTmp.nCharInLine;
 
     while (ciCharTmp.lpLine)
     {
@@ -5243,11 +5254,12 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
 
       ++ciCharTmp.nLine;
       ciCharTmp.lpLine=ciCharTmp.lpLine->next;
+      nCount+=ciCharTmp.lpLine->nLineLen;
     }
     ciCharOut->nLine=ciCharTmp.nLine;
     ciCharOut->lpLine=ciCharTmp.lpLine;
     ciCharOut->nCharInLine=ciCharTmp.lpLine->nLineLen;
-    return TRUE;
+    return nCount;
   }
   else if (nType == AEGI_NEXTCHARINLINE)
   {
@@ -5260,18 +5272,18 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
         ciCharOut->nLine=ciCharTmp.nLine + 1;
         ciCharOut->lpLine=ciCharTmp.lpLine->next;
         ciCharOut->nCharInLine=0;
-        return TRUE;
+        return 1;
       }
       else
       {
         *ciCharOut=ciCharTmp;
-        return FALSE;
+        return 0;
       }
     }
     ciCharOut->nLine=ciCharTmp.nLine;
     ciCharOut->lpLine=ciCharTmp.lpLine;
     ciCharOut->nCharInLine=ciCharTmp.nCharInLine + 1;
-    return TRUE;
+    return 1;
   }
   else if (nType == AEGI_PREVCHARINLINE)
   {
@@ -5284,20 +5296,20 @@ BOOL AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARIND
         ciCharOut->nLine=ciCharTmp.nLine - 1;
         ciCharOut->lpLine=ciCharTmp.lpLine->prev;
         ciCharOut->nCharInLine=ciCharTmp.lpLine->prev->nLineLen - 1;
-        return TRUE;
+        return 1;
       }
       else
       {
         *ciCharOut=ciCharTmp;
-        return FALSE;
+        return 0;
       }
     }
     ciCharOut->nLine=ciCharTmp.nLine;
     ciCharOut->lpLine=ciCharTmp.lpLine;
     ciCharOut->nCharInLine=ciCharTmp.nCharInLine - 1;
-    return TRUE;
+    return 1;
   }
-  return FALSE;
+  return 0;
 }
 
 int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
@@ -7082,6 +7094,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   AECHARINDEX ciCount;
   AECHARINDEX ciEscape;
   AEQUOTEITEMW *lpQuoteElement=NULL;
+  AEDELIMITEMW *lpDelimiterElement=NULL;
   int nQuoteLen=0;
 
   wm->lpQuote=NULL;
@@ -7114,7 +7127,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         {
           ft.wpText=lpQuoteElement->wpQuoteStart;
           ft.dwTextLen=lpQuoteElement->nQuoteStartLen;
-          ft.dwFlags=lpQuoteElement->bSensitive?AEFR_MATCHCASE:0;
+          ft.dwFlags=(lpQuoteElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
 
           if (AE_IsMatch(ae, &ft, &ciCount))
           {
@@ -7128,6 +7141,15 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             wm->crQuoteStart=ft.crFound;
             ciCount=ft.crFound.ciMax;
             nQuoteLen=lpQuoteElement->nQuoteStartLen;
+
+            if (!(wm->lpQuote->dwFlags & AEHLF_QUOTEENDISDELIMITER) &&
+                (!wm->lpQuote->wpQuoteEnd || !*wm->lpQuote->wpQuoteEnd))
+            {
+              nQuoteLen+=AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCount, &ciCount, FALSE);
+              wm->crQuoteEnd.ciMin=ciCount;
+              wm->crQuoteEnd.ciMax=ciCount;
+              goto SetQuote;
+            }
             goto Begin;
           }
 
@@ -7139,22 +7161,45 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       }
       else
       {
-        //Quote end
-        ft.wpText=wm->lpQuote->wpQuoteEnd;
-        ft.dwTextLen=wm->lpQuote->nQuoteEndLen;
-        ft.dwFlags=wm->lpQuote->bSensitive?AEFR_MATCHCASE:0;
-
-        if (AE_IsMatch(ae, &ft, &ciCount))
+        if (wm->lpQuote->dwFlags & AEHLF_QUOTEENDISDELIMITER)
         {
-          if (wm->lpQuote->wchEscape)
+          //Is delimiter
+          lpDelimiterElement=(AEDELIMITEMW *)ae->popt->lpActiveTheme->hDelimiterStack.first;
+  
+          while (lpDelimiterElement)
           {
-            if (AE_GetIndex(ae, AEGI_PREVCHARINLINE, &ft.crFound.ciMin, &ciEscape, FALSE) &&
-                *(ciEscape.lpLine->wpLine + ciEscape.nCharInLine) == wm->lpQuote->wchEscape)
-              goto QuoteEndNext;
+            ft.wpText=lpDelimiterElement->wpDelimiter;
+            ft.dwTextLen=lpDelimiterElement->nDelimiterLen;
+            ft.dwFlags=(lpDelimiterElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
+  
+            if (AE_IsMatch(ae, &ft, &ciCount))
+            {
+              wm->crQuoteEnd.ciMin=ft.crFound.ciMin;
+              wm->crQuoteEnd.ciMax=ft.crFound.ciMin;
+              goto SetQuote;
+            }
+            lpDelimiterElement=lpDelimiterElement->next;
           }
-          wm->crQuoteEnd=ft.crFound;
-          nQuoteLen+=lpQuoteElement->nQuoteEndLen;
-          goto SetQuote;
+        }
+        else
+        {
+          //Quote end
+          ft.wpText=wm->lpQuote->wpQuoteEnd;
+          ft.dwTextLen=wm->lpQuote->nQuoteEndLen;
+          ft.dwFlags=(wm->lpQuote->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
+  
+          if (AE_IsMatch(ae, &ft, &ciCount))
+          {
+            if (wm->lpQuote->wchEscape)
+            {
+              if (AE_GetIndex(ae, AEGI_PREVCHARINLINE, &ft.crFound.ciMin, &ciEscape, FALSE) &&
+                  *(ciEscape.lpLine->wpLine + ciEscape.nCharInLine) == wm->lpQuote->wchEscape)
+                goto QuoteEndNext;
+            }
+            wm->crQuoteEnd=ft.crFound;
+            nQuoteLen+=lpQuoteElement->nQuoteEndLen;
+            goto SetQuote;
+          }
         }
 
         QuoteEndNext:
@@ -7231,7 +7276,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
       {
         ft.wpText=lpDelimiterElement->wpDelimiter;
         ft.dwTextLen=lpDelimiterElement->nDelimiterLen;
-        ft.dwFlags=lpDelimiterElement->bSensitive?AEFR_MATCHCASE:0;
+        ft.dwFlags=(lpDelimiterElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
 
         if (AE_IsMatch(ae, &ft, &ciCount))
         {
@@ -7287,7 +7332,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
       {
         ft.wpText=lpDelimiterElement->wpDelimiter;
         ft.dwTextLen=lpDelimiterElement->nDelimiterLen;
-        ft.dwFlags=lpDelimiterElement->bSensitive?AEFR_MATCHCASE:0;
+        ft.dwFlags=(lpDelimiterElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
 
         if (AE_IsMatch(ae, &ft, &ciCount))
         {
@@ -7339,7 +7384,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWo
       {
         ft.wpText=lpWordElement->wpWord;
         ft.dwTextLen=lpWordElement->nWordLen;
-        ft.dwFlags=lpWordElement->bSensitive?AEFR_MATCHCASE:0;
+        ft.dwFlags=(lpWordElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
         ft.nNewLine=AELB_ASIS;
 
         if (AE_IsMatch(ae, &ft, ciChar))
@@ -7452,7 +7497,7 @@ AEDELIMITEMW* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, int 
   return lpElement;
 }
 
-AEDELIMITEMW* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpDelimiter, int nDelimiterLen, BOOL bSensitive)
+AEDELIMITEMW* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpDelimiter, int nDelimiterLen, DWORD dwFlags)
 {
   AEDELIMITEMW *lpElement=NULL;
 
@@ -7464,7 +7509,7 @@ AEDELIMITEMW* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, const w
     {
       if (lpElement->nDelimiterLen == nDelimiterLen)
       {
-        if (bSensitive)
+        if (dwFlags & AEHLF_MATCHCASE)
         {
           if (!AE_WideStrCmp(lpElement->wpDelimiter, wpDelimiter))
             return lpElement;
@@ -7530,7 +7575,7 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
   return lpElement;
 }
 
-AEWORDITEMW* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpWord, int nWordLen, BOOL bSensitive)
+AEWORDITEMW* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpWord, int nWordLen, DWORD dwFlags)
 {
   AEWORDITEMW *lpElement=NULL;
 
@@ -7542,7 +7587,7 @@ AEWORDITEMW* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t
     {
       if (lpElement->nWordLen == nWordLen)
       {
-        if (bSensitive)
+        if (dwFlags & AEHLF_MATCHCASE)
         {
           if (!AE_WideStrCmp(lpElement->wpWord, wpWord))
             return lpElement;
@@ -7608,7 +7653,7 @@ AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nQuo
   return lpElement;
 }
 
-AEQUOTEITEMW* AE_HighlightGetQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpQuoteStart, int nQuoteStartLen, BOOL bSensitive)
+AEQUOTEITEMW* AE_HighlightGetQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpQuoteStart, int nQuoteStartLen, DWORD dwFlags)
 {
   AEQUOTEITEMW *lpElement=NULL;
 
@@ -7620,7 +7665,7 @@ AEQUOTEITEMW* AE_HighlightGetQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar
     {
       if (lpElement->nQuoteStartLen == nQuoteStartLen)
       {
-        if (bSensitive)
+        if (dwFlags & AEHLF_MATCHCASE)
         {
           if (!AE_WideStrCmp(lpElement->wpQuoteStart, wpQuoteStart))
             return lpElement;
@@ -8500,7 +8545,7 @@ void AE_Paint(AKELEDIT *ae)
         hlp.dwActiveBG=dwDefaultBG;
         hlp.hbrActiveBG=hbrDefaultBG;
         hlp.dwPaintType=0;
-        hlp.dwFontStyle=AEHLF_NONE;
+        hlp.dwFontStyle=AEHLS_NONE;
 
         if (ae->popt->bHideSelection)
         {
@@ -8541,7 +8586,7 @@ void AE_Paint(AKELEDIT *ae)
               hlp.dwActiveBG=ae->popt->crSelBk;
               hlp.hbrActiveBG=ae->popt->hSelBk;
               hlp.dwPaintType|=AEPT_SELECTION;
-              hlp.dwFontStyle=AEHLF_NONE;
+              hlp.dwFontStyle=AEHLS_NONE;
             }
             else if (ciDrawLine.lpLine->nSelEnd == ciDrawLine.nCharInLine)
             {
@@ -8553,7 +8598,7 @@ void AE_Paint(AKELEDIT *ae)
               hlp.dwActiveBG=dwDefaultBG;
               hlp.hbrActiveBG=hbrDefaultBG;
               hlp.dwPaintType&=~AEPT_SELECTION;
-              hlp.dwFontStyle=AEHLF_NONE;
+              hlp.dwFontStyle=AEHLS_NONE;
             }
           }
 
@@ -8827,7 +8872,7 @@ void AE_Paint(AKELEDIT *ae)
               {
                 hlp.dwActiveText=ae->popt->crUrlText;
                 hlp.dwActiveBG=dwDefaultBG;
-                hlp.dwFontStyle=AEHLF_NONE;
+                hlp.dwFontStyle=AEHLS_NONE;
               }
             }
           }
@@ -8835,7 +8880,7 @@ void AE_Paint(AKELEDIT *ae)
           {
             hlp.dwActiveText=dwDefaultText;
             hlp.dwActiveBG=dwDefaultBG;
-            hlp.dwFontStyle=AEHLF_NONE;
+            hlp.dwFontStyle=AEHLS_NONE;
           }
           if (ciDrawLine.nCharInLine == ciDrawLine.lpLine->nLineLen) break;
 
@@ -9044,19 +9089,19 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
         }
         if (hlp->dwFontStyle)
         {
-          if (hlp->dwFontStyle == AEHLF_FONTNORMAL)
+          if (hlp->dwFontStyle == AEHLS_FONTNORMAL)
           {
             if (ae->ptxt->hFontNormal) SelectObject(hDC, ae->ptxt->hFontNormal);
           }
-          else if (hlp->dwFontStyle == AEHLF_FONTBOLD)
+          else if (hlp->dwFontStyle == AEHLS_FONTBOLD)
           {
             if (ae->ptxt->hFontBold) SelectObject(hDC, ae->ptxt->hFontBold);
           }
-          else if (hlp->dwFontStyle == AEHLF_FONTITALIC)
+          else if (hlp->dwFontStyle == AEHLS_FONTITALIC)
           {
             if (ae->ptxt->hFontItalic) SelectObject(hDC, ae->ptxt->hFontItalic);
           }
-          else if (hlp->dwFontStyle == AEHLF_FONTBOLDITALIC)
+          else if (hlp->dwFontStyle == AEHLS_FONTBOLDITALIC)
           {
             if (ae->ptxt->hFontBoldItalic) SelectObject(hDC, ae->ptxt->hFontBoldItalic);
           }
