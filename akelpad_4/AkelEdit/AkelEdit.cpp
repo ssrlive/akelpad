@@ -7165,13 +7165,13 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         {
           //Is delimiter
           lpDelimiterElement=(AEDELIMITEMW *)ae->popt->lpActiveTheme->hDelimiterStack.first;
-  
+
           while (lpDelimiterElement)
           {
             ft.wpText=lpDelimiterElement->wpDelimiter;
             ft.dwTextLen=lpDelimiterElement->nDelimiterLen;
             ft.dwFlags=(lpDelimiterElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
-  
+
             if (AE_IsMatch(ae, &ft, &ciCount))
             {
               wm->crQuoteEnd.ciMin=ft.crFound.ciMin;
@@ -7187,7 +7187,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           ft.wpText=wm->lpQuote->wpQuoteEnd;
           ft.dwTextLen=wm->lpQuote->nQuoteEndLen;
           ft.dwFlags=(wm->lpQuote->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
-  
+
           if (AE_IsMatch(ae, &ft, &ciCount))
           {
             if (wm->lpQuote->wchEscape)
@@ -7218,8 +7218,17 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   }
   if (wm->lpQuote)
   {
-    wm->crQuoteEnd.ciMin=ciCount;
-    wm->crQuoteEnd.ciMax=ciCount;
+    if (wm->lpQuote->dwFlags & AEHLF_QUOTEENDREQUIRED)
+    {
+      wm->crQuoteStart.ciMin=wm->crQuoteStart.ciMax;
+      wm->crQuoteEnd=wm->crQuoteStart;
+      nQuoteLen=0;
+    }
+    else
+    {
+      wm->crQuoteEnd.ciMin=ciCount;
+      wm->crQuoteEnd.ciMax=ciCount;
+    }
   }
 
   SetQuote:
@@ -7374,27 +7383,30 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWo
   AEWORDITEMW *lpWordElement;
 
   //Is delimiter
-  if (ae->popt->lpActiveTheme->hWordStack.lpWordLens[nWordLen])
+  if (nWordLen < sizeof(ae->popt->lpActiveTheme->hWordStack.lpWordLens) / sizeof(int))
   {
-    lpWordElement=(AEWORDITEMW *)ae->popt->lpActiveTheme->hWordStack.lpWordLens[nWordLen];
-
-    while (lpWordElement)
+    if (ae->popt->lpActiveTheme->hWordStack.lpWordLens[nWordLen])
     {
-      if (lpWordElement->nWordLen == nWordLen)
+      lpWordElement=(AEWORDITEMW *)ae->popt->lpActiveTheme->hWordStack.lpWordLens[nWordLen];
+  
+      while (lpWordElement)
       {
-        ft.wpText=lpWordElement->wpWord;
-        ft.dwTextLen=lpWordElement->nWordLen;
-        ft.dwFlags=(lpWordElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
-        ft.nNewLine=AELB_ASIS;
-
-        if (AE_IsMatch(ae, &ft, ciChar))
+        if (lpWordElement->nWordLen == nWordLen)
         {
-          return lpWordElement;
+          ft.wpText=lpWordElement->wpWord;
+          ft.dwTextLen=lpWordElement->nWordLen;
+          ft.dwFlags=(lpWordElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
+          ft.nNewLine=AELB_ASIS;
+  
+          if (AE_IsMatch(ae, &ft, ciChar))
+          {
+            return lpWordElement;
+          }
         }
+        else break;
+  
+        lpWordElement=lpWordElement->next;
       }
-      else break;
-
-      lpWordElement=lpWordElement->next;
     }
   }
   return NULL;
@@ -7471,59 +7483,32 @@ void AE_HighlightDeleteThemeAll(AKELEDIT *ae)
 
 AEDELIMITEMW* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, int nDelimiterLen)
 {
-  AEDELIMITEMW *lpTmp;
   AEDELIMITEMW *lpElement=NULL;
 
-  if (aeti->hDelimiterStack.lpDelimiterLens[nDelimiterLen])
-  {
-    lpTmp=(AEDELIMITEMW *)aeti->hDelimiterStack.lpDelimiterLens[nDelimiterLen];
-  }
-  else
-  {
-    lpTmp=(AEDELIMITEMW *)aeti->hDelimiterStack.first;
-
-    while (lpTmp)
-    {
-      if (lpTmp->nDelimiterLen >= nDelimiterLen)
-        break;
-
-      lpTmp=lpTmp->next;
-    }
-  }
-  AE_HeapStackInsertBefore(NULL, (stack **)&aeti->hDelimiterStack.first, (stack **)&aeti->hDelimiterStack.last, (stack *)lpTmp, (stack **)&lpElement, sizeof(AEDELIMITEMW));
-
-  if (lpElement)
-    aeti->hDelimiterStack.lpDelimiterLens[nDelimiterLen]=(int)lpElement;
+  AE_HeapStackInsertIndex(NULL, (stack **)&aeti->hDelimiterStack.first, (stack **)&aeti->hDelimiterStack.last, (stack **)&lpElement, -1, sizeof(AEDELIMITEMW));
   return lpElement;
 }
 
 AEDELIMITEMW* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpDelimiter, int nDelimiterLen, DWORD dwFlags)
 {
-  AEDELIMITEMW *lpElement=NULL;
+  AEDELIMITEMW *lpElement=(AEDELIMITEMW *)aeti->hDelimiterStack.first;
 
-  if (aeti->hDelimiterStack.lpDelimiterLens[nDelimiterLen])
+  while (lpElement)
   {
-    lpElement=(AEDELIMITEMW *)aeti->hDelimiterStack.lpDelimiterLens[nDelimiterLen];
-
-    while (lpElement)
+    if (lpElement->nDelimiterLen == nDelimiterLen)
     {
-      if (lpElement->nDelimiterLen == nDelimiterLen)
+      if (dwFlags & AEHLF_MATCHCASE)
       {
-        if (dwFlags & AEHLF_MATCHCASE)
-        {
-          if (!AE_WideStrCmp(lpElement->wpDelimiter, wpDelimiter))
-            return lpElement;
-        }
-        else
-        {
-          if (!AE_WideStrCmpI(lpElement->wpDelimiter, wpDelimiter))
-            return lpElement;
-        }
+        if (!AE_WideStrCmp(lpElement->wpDelimiter, wpDelimiter))
+          return lpElement;
       }
-      else break;
-
-      lpElement=lpElement->next;
+      else
+      {
+        if (!AE_WideStrCmpI(lpElement->wpDelimiter, wpDelimiter))
+          return lpElement;
+      }
     }
+    lpElement=lpElement->next;
   }
   return NULL;
 }
@@ -7552,26 +7537,29 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
   AEWORDITEMW *lpTmp;
   AEWORDITEMW *lpElement=NULL;
 
-  if (aeti->hWordStack.lpWordLens[nWordLen])
+  if (nWordLen < sizeof(aeti->hWordStack.lpWordLens) / sizeof(int))
   {
-    lpTmp=(AEWORDITEMW *)aeti->hWordStack.lpWordLens[nWordLen];
-  }
-  else
-  {
-    lpTmp=(AEWORDITEMW *)aeti->hWordStack.first;
-
-    while (lpTmp)
+    if (aeti->hWordStack.lpWordLens[nWordLen])
     {
-      if (lpTmp->nWordLen >= nWordLen)
-        break;
-
-      lpTmp=lpTmp->next;
+      lpTmp=(AEWORDITEMW *)aeti->hWordStack.lpWordLens[nWordLen];
     }
+    else
+    {
+      lpTmp=(AEWORDITEMW *)aeti->hWordStack.first;
+  
+      while (lpTmp)
+      {
+        if (lpTmp->nWordLen >= nWordLen)
+          break;
+  
+        lpTmp=lpTmp->next;
+      }
+    }
+    AE_HeapStackInsertBefore(NULL, (stack **)&aeti->hWordStack.first, (stack **)&aeti->hWordStack.last, (stack *)lpTmp, (stack **)&lpElement, sizeof(AEWORDITEMW));
+  
+    if (lpElement)
+      aeti->hWordStack.lpWordLens[nWordLen]=(int)lpElement;
   }
-  AE_HeapStackInsertBefore(NULL, (stack **)&aeti->hWordStack.first, (stack **)&aeti->hWordStack.last, (stack *)lpTmp, (stack **)&lpElement, sizeof(AEWORDITEMW));
-
-  if (lpElement)
-    aeti->hWordStack.lpWordLens[nWordLen]=(int)lpElement;
   return lpElement;
 }
 
@@ -7579,28 +7567,31 @@ AEWORDITEMW* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t
 {
   AEWORDITEMW *lpElement=NULL;
 
-  if (aeti->hWordStack.lpWordLens[nWordLen])
+  if (nWordLen < sizeof(aeti->hWordStack.lpWordLens) / sizeof(int))
   {
-    lpElement=(AEWORDITEMW *)aeti->hWordStack.lpWordLens[nWordLen];
-
-    while (lpElement)
+    if (aeti->hWordStack.lpWordLens[nWordLen])
     {
-      if (lpElement->nWordLen == nWordLen)
+      lpElement=(AEWORDITEMW *)aeti->hWordStack.lpWordLens[nWordLen];
+  
+      while (lpElement)
       {
-        if (dwFlags & AEHLF_MATCHCASE)
+        if (lpElement->nWordLen == nWordLen)
         {
-          if (!AE_WideStrCmp(lpElement->wpWord, wpWord))
-            return lpElement;
+          if (dwFlags & AEHLF_MATCHCASE)
+          {
+            if (!AE_WideStrCmp(lpElement->wpWord, wpWord))
+              return lpElement;
+          }
+          else
+          {
+            if (!AE_WideStrCmpI(lpElement->wpWord, wpWord))
+              return lpElement;
+          }
         }
-        else
-        {
-          if (!AE_WideStrCmpI(lpElement->wpWord, wpWord))
-            return lpElement;
-        }
+        else break;
+  
+        lpElement=lpElement->next;
       }
-      else break;
-
-      lpElement=lpElement->next;
     }
   }
   return NULL;
@@ -7627,59 +7618,32 @@ void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
 
 AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nQuoteStartLen)
 {
-  AEQUOTEITEMW *lpTmp;
   AEQUOTEITEMW *lpElement=NULL;
 
-  if (aeti->hQuoteStack.lpQuoteLens[nQuoteStartLen])
-  {
-    lpTmp=(AEQUOTEITEMW *)aeti->hQuoteStack.lpQuoteLens[nQuoteStartLen];
-  }
-  else
-  {
-    lpTmp=(AEQUOTEITEMW *)aeti->hQuoteStack.first;
-
-    while (lpTmp)
-    {
-      if (lpTmp->nQuoteStartLen >= nQuoteStartLen)
-        break;
-
-      lpTmp=lpTmp->next;
-    }
-  }
-  AE_HeapStackInsertBefore(NULL, (stack **)&aeti->hQuoteStack.first, (stack **)&aeti->hQuoteStack.last, (stack *)lpTmp, (stack **)&lpElement, sizeof(AEQUOTEITEMW));
-
-  if (lpElement)
-    aeti->hQuoteStack.lpQuoteLens[nQuoteStartLen]=(int)lpElement;
+  AE_HeapStackInsertIndex(NULL, (stack **)&aeti->hQuoteStack.first, (stack **)&aeti->hQuoteStack.last, (stack **)&lpElement, -1, sizeof(AEQUOTEITEMW));
   return lpElement;
 }
 
 AEQUOTEITEMW* AE_HighlightGetQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpQuoteStart, int nQuoteStartLen, DWORD dwFlags)
 {
-  AEQUOTEITEMW *lpElement=NULL;
+  AEQUOTEITEMW *lpElement=(AEQUOTEITEMW *)aeti->hQuoteStack.first;
 
-  if (aeti->hQuoteStack.lpQuoteLens[nQuoteStartLen])
+  while (lpElement)
   {
-    lpElement=(AEQUOTEITEMW *)aeti->hQuoteStack.lpQuoteLens[nQuoteStartLen];
-
-    while (lpElement)
+    if (lpElement->nQuoteStartLen == nQuoteStartLen)
     {
-      if (lpElement->nQuoteStartLen == nQuoteStartLen)
+      if (dwFlags & AEHLF_MATCHCASE)
       {
-        if (dwFlags & AEHLF_MATCHCASE)
-        {
-          if (!AE_WideStrCmp(lpElement->wpQuoteStart, wpQuoteStart))
-            return lpElement;
-        }
-        else
-        {
-          if (!AE_WideStrCmpI(lpElement->wpQuoteStart, wpQuoteStart))
-            return lpElement;
-        }
+        if (!AE_WideStrCmp(lpElement->wpQuoteStart, wpQuoteStart))
+          return lpElement;
       }
-      else break;
-
-      lpElement=lpElement->next;
+      else
+      {
+        if (!AE_WideStrCmpI(lpElement->wpQuoteStart, wpQuoteStart))
+          return lpElement;
+      }
     }
+    lpElement=lpElement->next;
   }
   return NULL;
 }

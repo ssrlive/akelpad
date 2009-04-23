@@ -171,6 +171,7 @@
 //Highlight flags
 #define AEHLF_MATCHCASE            0x1  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
 #define AEHLF_QUOTEENDISDELIMITER  0x2  //If set, AEQUOTEITEMA.pQuoteEnd or AEQUOTEITEMW.pQuoteEnd member is ignored and first meet delimiter used as quote end.
+#define AEHLF_QUOTEENDREQUIRED     0x4  //If set and if quote end isn't found text after quote start will not be highlighted.
 
 //Highlight font style
 #define AEHLS_NONE                 0  //Current style.
