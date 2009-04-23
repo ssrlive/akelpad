@@ -1,6 +1,12 @@
 
 AkelPad 4.2.2 ()
 ----------------------------
+Added: messages for syntax highlighting in AkelEdit:
+       - Opportunity to highlight delimiters, words, the text between words
+         (for example: line comments, quoted text, etc.);
+       - Opportunity to specify text color and background color.
+       - Opportunity to specify font style (normal, bold, italic, bold italic).
+
 Fixed: coordinates error when moving with PageUp/PageDown.
 Fixed: change font size using Ctrl+WheelMouse didn't remembered.
 Fixed: duplicating codepage in list when Ansi and Oem codepages are the same.
