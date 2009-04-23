@@ -187,27 +187,27 @@ typedef struct _AEHQUOTESTACK {
   int lpQuoteLens[MAX_PATH];
 } AEHQUOTESTACK;
 
-typedef struct _AETHEMEITEM {
-  struct _AETHEMEITEM *next;
-  struct _AETHEMEITEM *prev;
+typedef struct _AETHEMEITEMW {
+  struct _AETHEMEITEMW *next;
+  struct _AETHEMEITEMW *prev;
   wchar_t wszThemeName[MAX_PATH];
   AEHDELIMSTACK hDelimiterStack;
   AEHWORDSTACK hWordStack;
   AEHQUOTESTACK hQuoteStack;
-} AETHEMEITEM;
+} AETHEMEITEMW;
 
 typedef struct _AEQUOTEMATCH {
-  AEQUOTEITEM *lpQuote;
+  AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
 } AEQUOTEMATCH;
 
 typedef struct _AEWORDMATCH {
-  AEDELIMITEM *lpDelim1;
+  AEDELIMITEMW *lpDelim1;
   AECHARRANGE crDelim1;
-  AEWORDITEM *lpWord;
+  AEWORDITEMW *lpWord;
   AECHARRANGE crWord;
-  AEDELIMITEM *lpDelim2;
+  AEDELIMITEMW *lpDelim2;
   AECHARRANGE crDelim2;
 } AEWORDMATCH;
 
@@ -326,7 +326,7 @@ typedef struct {
   wchar_t *lpUrlPrefixes[32];
   DWORD dwUrlMaxLength;
   BOOL bDetectUrl;
-  AETHEMEITEM *lpActiveTheme;
+  AETHEMEITEMW *lpActiveTheme;
 } AKELOPTIONS;
 
 typedef struct _AKELEDIT {
@@ -507,24 +507,24 @@ DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink);
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AEQUOTEMATCH *wm);
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AEWORDMATCH *wm);
-AEWORDITEM* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWordLen);
-AETHEMEITEM* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName);
-AETHEMEITEM* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName);
-BOOL AE_HighlightIsThemeExists(AKELEDIT *ae, AETHEMEITEM *aeti);
-void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEM *aeti);
+AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWordLen);
+AETHEMEITEMW* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName);
+AETHEMEITEMW* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName);
+BOOL AE_HighlightIsThemeExists(AKELEDIT *ae, AETHEMEITEMW *aeti);
+void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEMW *aeti);
 void AE_HighlightDeleteThemeAll(AKELEDIT *ae);
-AEDELIMITEM* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, int nDelimiterLen);
-AEDELIMITEM* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpDelimiter, int nDelimiterLen);
-void AE_HighlightDeleteDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, AEDELIMITEM *aedi);
-void AE_HighlightDeleteDelimiterAll(AKELEDIT *ae, AETHEMEITEM *aeti);
-AEWORDITEM* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEM *aeti, int nWordLen);
-AEWORDITEM* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpWord, int nWordLen);
-void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEM *aeti, AEWORDITEM *aewi);
-void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEM *aeti);
-AEQUOTEITEM* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEM *aeti, int nQuoteStartLen);
-AEQUOTEITEM* AE_HighlightGetQuote(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpQuoteStart, int nQuoteStartLen);
-void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEM *aeti, AEQUOTEITEM *aeqi);
-void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEM *aeti);
+AEDELIMITEMW* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, int nDelimiterLen);
+AEDELIMITEMW* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpDelimiter, int nDelimiterLen, BOOL bSensitive);
+void AE_HighlightDeleteDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, AEDELIMITEMW *aedi);
+void AE_HighlightDeleteDelimiterAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
+AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordLen);
+AEWORDITEMW* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpWord, int nWordLen, BOOL bSensitive);
+void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi);
+void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
+AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nQuoteStartLen);
+AEQUOTEITEMW* AE_HighlightGetQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpQuoteStart, int nQuoteStartLen, BOOL bSensitive);
+void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *aeqi);
+void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
 void AE_MouseMove(AKELEDIT *ae);
 HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra);
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData);
