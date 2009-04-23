@@ -7175,14 +7175,28 @@ AETHEMEITEM* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName)
   return NULL;
 }
 
-void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEM *lpElement)
+BOOL AE_HighlightIsThemeExists(AKELEDIT *ae, AETHEMEITEM *aeti)
 {
-  if (lpElement == ae->popt->lpActiveTheme) ae->popt->lpActiveTheme=NULL;
+  AETHEMEITEM *lpElement=(AETHEMEITEM *)hAkelEditThemesStack.first;
 
-  AE_HighlightDeleteDelimiterAll(ae, lpElement);
-  AE_HighlightDeleteWordAll(ae, lpElement);
-  AE_HighlightDeleteQuoteAll(ae, lpElement);
-  AE_HeapStackDelete(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last, (stack *)lpElement);
+  while (lpElement)
+  {
+    if (lpElement == aeti)
+      return TRUE;
+
+    lpElement=lpElement->next;
+  }
+  return FALSE;
+}
+
+void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEM *aeti)
+{
+  if (aeti == ae->popt->lpActiveTheme) ae->popt->lpActiveTheme=NULL;
+
+  AE_HighlightDeleteDelimiterAll(ae, aeti);
+  AE_HighlightDeleteWordAll(ae, aeti);
+  AE_HighlightDeleteQuoteAll(ae, aeti);
+  AE_HeapStackDelete(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last, (stack *)aeti);
 }
 
 void AE_HighlightDeleteThemeAll(AKELEDIT *ae)
@@ -8220,6 +8234,13 @@ void AE_Paint(AKELEDIT *ae)
         }
       }
       else ciDrawLine.lpLine=NULL;
+
+      //Check that active highlight theme exists
+      if (ae->popt->lpActiveTheme)
+      {
+        if (!AE_HighlightIsThemeExists(ae, ae->popt->lpActiveTheme))
+          ae->popt->lpActiveTheme=NULL;
+      }
 
       while (ciDrawLine.lpLine)
       {

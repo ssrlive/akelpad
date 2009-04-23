@@ -510,7 +510,8 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
 AEWORDITEM* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWordLen);
 AETHEMEITEM* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName);
 AETHEMEITEM* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName);
-void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEM *lpElement);
+BOOL AE_HighlightIsThemeExists(AKELEDIT *ae, AETHEMEITEM *aeti);
+void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEM *aeti);
 void AE_HighlightDeleteThemeAll(AKELEDIT *ae);
 AEDELIMITEM* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, int nDelimiterLen);
 AEDELIMITEM* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEM *aeti, const wchar_t *wpDelimiter, int nDelimiterLen);
