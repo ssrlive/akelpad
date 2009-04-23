@@ -7383,7 +7383,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWo
   AEWORDITEMW *lpWordElement;
 
   //Is delimiter
-  if (nWordLen < sizeof(ae->popt->lpActiveTheme->hWordStack.lpWordLens) / sizeof(int))
+  if ((DWORD)nWordLen < sizeof(ae->popt->lpActiveTheme->hWordStack.lpWordLens) / sizeof(int))
   {
     if (ae->popt->lpActiveTheme->hWordStack.lpWordLens[nWordLen])
     {
@@ -7537,7 +7537,7 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
   AEWORDITEMW *lpTmp;
   AEWORDITEMW *lpElement=NULL;
 
-  if (nWordLen < sizeof(aeti->hWordStack.lpWordLens) / sizeof(int))
+  if ((DWORD)nWordLen < sizeof(aeti->hWordStack.lpWordLens) / sizeof(int))
   {
     if (aeti->hWordStack.lpWordLens[nWordLen])
     {
@@ -7567,7 +7567,7 @@ AEWORDITEMW* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t
 {
   AEWORDITEMW *lpElement=NULL;
 
-  if (nWordLen < sizeof(aeti->hWordStack.lpWordLens) / sizeof(int))
+  if ((DWORD)nWordLen < sizeof(aeti->hWordStack.lpWordLens) / sizeof(int))
   {
     if (aeti->hWordStack.lpWordLens[nWordLen])
     {
