@@ -172,7 +172,6 @@ typedef struct _AEIDataObject {
 typedef struct _AEHDELIMSTACK {
   int first;
   int last;
-  int lpDelimiterLens[MAX_PATH];
 } AEHDELIMSTACK;
 
 typedef struct _AEHWORDSTACK {
@@ -184,7 +183,6 @@ typedef struct _AEHWORDSTACK {
 typedef struct _AEHQUOTESTACK {
   int first;
   int last;
-  int lpQuoteLens[MAX_PATH];
 } AEHQUOTESTACK;
 
 typedef struct _AETHEMEITEMW {
