@@ -1225,6 +1225,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return (LRESULT)ae->popt->lpActiveTheme;
         return (LRESULT)AE_HighlightGetTheme(ae, wpThemeName);
       }
+      if (uMsg == AEM_HLTHEMEEXISTS)
+      {
+        AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
+
+        return AE_HighlightIsThemeExists(ae, lpTheme);
+      }
       if (uMsg == AEM_HLSETTHEME)
       {
         AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;

@@ -768,23 +768,24 @@ typedef struct {
 #define AEM_HLCREATETHEMEW    (WM_USER + 2502)
 #define AEM_HLGETTHEMEA       (WM_USER + 2503)
 #define AEM_HLGETTHEMEW       (WM_USER + 2504)
-#define AEM_HLSETTHEME        (WM_USER + 2505)
-#define AEM_HLDELETETHEME     (WM_USER + 2506)
-#define AEM_HLADDDELIMITERA   (WM_USER + 2507)
-#define AEM_HLADDDELIMITERW   (WM_USER + 2508)
-#define AEM_HLGETDELIMITERA   (WM_USER + 2509)
-#define AEM_HLGETDELIMITERW   (WM_USER + 2510)
-#define AEM_HLDELETEDELIMITER (WM_USER + 2511)
-#define AEM_HLADDWORDA        (WM_USER + 2512)
-#define AEM_HLADDWORDW        (WM_USER + 2513)
-#define AEM_HLGETWORDA        (WM_USER + 2514)
-#define AEM_HLGETWORDW        (WM_USER + 2515)
-#define AEM_HLDELETEWORD      (WM_USER + 2516)
-#define AEM_HLADDQUOTEA       (WM_USER + 2517)
-#define AEM_HLADDQUOTEW       (WM_USER + 2518)
-#define AEM_HLGETQUOTEA       (WM_USER + 2519)
-#define AEM_HLGETQUOTEW       (WM_USER + 2520)
-#define AEM_HLDELETEQUOTE     (WM_USER + 2521)
+#define AEM_HLTHEMEEXISTS     (WM_USER + 2505)
+#define AEM_HLSETTHEME        (WM_USER + 2506)
+#define AEM_HLDELETETHEME     (WM_USER + 2507)
+#define AEM_HLADDDELIMITERA   (WM_USER + 2508)
+#define AEM_HLADDDELIMITERW   (WM_USER + 2509)
+#define AEM_HLGETDELIMITERA   (WM_USER + 2510)
+#define AEM_HLGETDELIMITERW   (WM_USER + 2511)
+#define AEM_HLDELETEDELIMITER (WM_USER + 2512)
+#define AEM_HLADDWORDA        (WM_USER + 2513)
+#define AEM_HLADDWORDW        (WM_USER + 2514)
+#define AEM_HLGETWORDA        (WM_USER + 2515)
+#define AEM_HLGETWORDW        (WM_USER + 2516)
+#define AEM_HLDELETEWORD      (WM_USER + 2517)
+#define AEM_HLADDQUOTEA       (WM_USER + 2518)
+#define AEM_HLADDQUOTEW       (WM_USER + 2519)
+#define AEM_HLGETQUOTEA       (WM_USER + 2520)
+#define AEM_HLGETQUOTEW       (WM_USER + 2521)
+#define AEM_HLDELETEQUOTE     (WM_USER + 2522)
 
 
 /*
@@ -3204,6 +3205,22 @@ Return Value
 
 Example:
  HANDLE hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)L"MyTheme");
+
+
+AEM_HLTHEMEEXISTS
+_________________
+
+Retrieve highlight theme existence.
+
+(HANDLE)wParam == theme handle.
+lParam         == not used.
+
+Return Value
+ TRUE   theme exists.
+ FALSE  theme doesn't exist.
+
+Example:
+ SendMessage(hWndEdit, AEM_HLTHEMEEXISTS, (WPARAM)hTheme, 0);
 
 
 AEM_HLSETTHEME
