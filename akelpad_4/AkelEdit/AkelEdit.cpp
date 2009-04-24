@@ -7239,14 +7239,14 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       wm->crQuoteEnd.ciMax=ciCount;
     }
   }
+  return nQuoteLen;
 
   SetQuote:
   if (dwSearchType & AEHF_FINDFIRSTCHAR)
   {
     if (wm->lpQuote)
     {
-      if (AE_IndexCompare(&wm->crQuoteEnd.ciMax, ciChar) <= 0 &&
-          AE_IndexCompare(&wm->crQuoteEnd.ciMax, &wm->crQuoteEnd.ciMin) != 0)
+      if (AE_IndexCompare(&wm->crQuoteEnd.ciMax, ciChar) <= 0)
       {
         wm->lpQuote=NULL;
         goto Begin;
