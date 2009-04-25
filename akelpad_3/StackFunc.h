@@ -1,20 +1,23 @@
 /*****************************************************************
- *              Stack functions header v2.7                      *
+ *              Stack functions header v3.0                      *
  *                                                               *
- * 2008 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2009 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Linear functions (ALLSTACKFUNCL):                              *
- * StackElementL, StackPushFrontL, StackPopFrontL,               *
- * StackPushBackL, StackSizeL, StackClearL                       *
+ * StackGetIndexL, StackGetElementL, StackPushFrontL,            *
+ * StackPopFrontL, StackPushBackL, StackSizeL, StackClearL       *
  *                                                               *
  *Bilinear functions (ALLSTACKFUNC):                             *
- * StackElement, StackInsert, StackDelete, StackMove,            *
- * StackExchange, StackDeleteRange, StackMoveRange, StackJoin,   *
- * StackSplit, StackSize, StackClear                             *
+ * StackGetIndex, StackGetElement, StackInsertBefore,            *
+ * StackInsertAfter, StackDelete, StackMoveBefore,               *
+ * StackMoveAfter, StackExchange, StackJoin, StackSplit,         *
+ * StackSize, StackClear                                         *
  *                                                               *
  *Special functions (ALLSTACKFUNCS):                             *
- * StackReverse, StackCopy, StackPushSortA                       *
+ * StackInsertIndex, StackMoveIndex, StackDeleteRange,           *
+ * StackMoveRange, StackReverseRange, StackCopy,                 *
+ * StackPushSortA, StackSortA                                    *
  *                                                               *
  *****************************************************************/
 
@@ -29,7 +32,7 @@ typedef struct {
 #ifndef _STACKL_STRUCT_
 #define _STACKL_STRUCT_
 typedef struct _stackL {
-  struct _stackL *prev;
+  struct _stackL *next;
 } stackL;
 #endif
 
@@ -53,28 +56,35 @@ typedef struct _stackS {
 #ifndef _STACKFUNC_H_
 #define _STACKFUNC_H_
 
-int StackElementL(stackL *first, stackL *last, stackL **element, int nIndex);
-void StackPushFrontL(stackL **first, stackL **last, stackL **element, int nBytes);
+int StackGetIndexL(stackL *first, stackL *last, stackL *element);
+int StackGetElementL(stackL *first, stackL *last, stackL **element, int nIndex);
+int StackPushFrontL(stackL **first, stackL **last, stackL **element, int nBytes);
 int StackPopFrontL(stackL **first, stackL **last);
-void StackPushBackL(stackL **first, stackL **last, stackL **element, int nBytes);
+int StackPushBackL(stackL **first, stackL **last, stackL **element, int nBytes);
 int StackSizeL(stackL *first, stackL *last);
 void StackClearL(stackL **first, stackL **last);
 
-int StackElement(stack *first, stack *last, stack **element, int nIndex);
-int StackInsert(stack **first, stack **last, stack **element, int nIndex, int nBytes);
+int StackGetIndex(stack *first, stack *last, stack *element, BOOL bPositive);
+int StackGetElement(stack *first, stack *last, stack **element, int nIndex);
+int StackInsertBefore(stack **first, stack **last, stack *index, stack **element, int nBytes);
+int StackInsertAfter(stack **first, stack **last, stack *index, stack **element, int nBytes);
 int StackDelete(stack **first, stack **last, stack *element);
-int StackMove(stack **first, stack **last, stack *element, int nIndex);
+int StackMoveBefore(stack **first, stack **last, stack *src, stack *dst);
+int StackMoveAfter(stack **first, stack **last, stack *src, stack *dst);
 int StackExchange(stack **first, stack **last, stack *element1, stack *element2);
-int StackDeleteRange(stack **first, stack **last, int nIndex, int nIndex2);
-int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIndex3);
 void StackJoin(stack **first, stack **last, stack *joinfirst, stack *joinlast, BOOL bTop);
-int StackSplit(stack **first, stack **last, stack **splitfirst, stack **splitlast, int nIndex);
+void StackSplit(stack **first, stack **last, stack **splitfirst, stack **splitlast, stack *element);
 int StackSize(stack *first, stack *last);
 void StackClear(stack **first, stack **last);
 
-void StackReverse(stack **first, stack **last);
+int StackInsertIndex(stack **first, stack **last, stack **element, int nIndex, int nBytes);
+int StackMoveIndex(stack **first, stack **last, stack *element, int nIndex);
+int StackDeleteRange(stack **first, stack **last, int nIndex, int nIndex2);
+int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIndex3);
+void StackReverseRange(stack **first, stack **last, stack *rangemin, stack *rangemax);
 int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, int nBytes);
 int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pString, int nUpDown, int nBytes);
+int StackSortA(stackS **first, stackS **last, int nUpDown);
 
 #endif
 
@@ -90,39 +100,71 @@ int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pStrin
 
 /********************************************************************
  *
- *  StackElementL
+ *  StackGetIndexL
+ *
+ *Finds the element index.
+ *
+ * [in] stackL *first    -Pointer to a pointer that specifies
+ *                        the first element in the stack
+ * [in] stackL *last     -Pointer to a pointer that specifies
+ *                        the last element in the stack
+ * [in] stackL *element  -Pointer to the element
+ *
+ *Returns: element index, zero if not found
+ ********************************************************************/
+#if defined StackGetIndexL || defined ALLSTACKFUNCL
+#define StackGetIndexL_INCLUDED
+#undef StackGetIndexL
+int StackGetIndexL(stackL *first, stackL *last, stackL *element)
+{
+  stackL *tmp=first;
+  int nCount;
+
+  for (nCount=1; tmp; ++nCount)
+  {
+    if (tmp == element)
+      return nCount;
+
+    tmp=tmp->next;
+  }
+  return 0;
+}
+#endif
+
+/********************************************************************
+ *
+ *  StackGetElementL
  *
  *Finds the element by index and returns pointer on it.
  *
  * [in] stackL *first    -Pointer to a pointer that specifies
  *                        the first element in the stack
  * [in] stackL *last     -Pointer to a pointer that specifies
- *                        the top element in the stack
+ *                        the last element in the stack
  *[out] stackL **element -Pointer to a pointer to the element
- * [in] int nIndex       -Number of the element if positive search
- *                        from top if negative from beginning
+ * [in] int nIndex       -Index of the element
  *
  *Returns: 0 on success
  *         1 on empty stack
  ********************************************************************/
-#if defined StackElementL || defined ALLSTACKFUNCL
-#define StackElementL_INCLUDED
-#undef StackElementL
-int StackElementL(stackL *first, stackL *last, stackL **element, int nIndex)
+#if defined StackGetElementL || defined ALLSTACKFUNCL
+#define StackGetElementL_INCLUDED
+#undef StackGetElementL
+int StackGetElementL(stackL *first, stackL *last, stackL **element, int nIndex)
 {
-  stackL *tmp=last;
+  stackL *tmp=first;
   int nCount;
 
   *element=NULL;
 
-  for (nCount=1; (tmp); ++nCount)
+  for (nCount=1; tmp; ++nCount)
   {
     if (nCount == nIndex)
     {
       *element=tmp;
       return 0;
     }
-    tmp=tmp->prev;
+    tmp=tmp->next;
   }
   return 1;
 }
@@ -137,23 +179,29 @@ int StackElementL(stackL *first, stackL *last, stackL **element, int nIndex)
  *[in,out] stackL **first   -Pointer to a pointer that specifies
  *                           the first element in the stack
  *[in,out] stackL **last    -Pointer to a pointer that specifies
- *                           the top element in the stack
+ *                           the last element in the stack
  *   [out] stackL **element -Pointer to a pointer to the element
  *    [in] int nBytes       -Size of the structure
+ *
+ *Returns: 0 on success
+ *         2 on memory allocating error
  ********************************************************************/
 #if defined StackPushFrontL || defined ALLSTACKFUNCL
 #define StackPushFrontL_INCLUDED
 #undef StackPushFrontL
-void StackPushFrontL(stackL **first, stackL **last, stackL **element, int nBytes)
+int StackPushFrontL(stackL **first, stackL **last, stackL **element, int nBytes)
 {
   if (*element=(stackL *)GlobalAlloc(GPTR, nBytes))
   {
-    if (*last)
-      (*element)->prev=*last;
+    if (*first)
+      (*element)->next=*first;
     else
-      *first=*element;
-    *last=*element;
+      *last=*element;
+    *first=*element;
   }
+  else return 2;
+
+  return 0;
 }
 #endif
 
@@ -166,7 +214,7 @@ void StackPushFrontL(stackL **first, stackL **last, stackL **element, int nBytes
  *[in,out] stackL **first   -Pointer to a pointer that specifies
  *                           the first element in the stack
  *[in,out] stackL **last    -Pointer to a pointer that specifies
- *                           the top element in the stack
+ *                           the last element in the stack
  *
  *Returns: 0 on success
  *         1 on empty stack
@@ -176,11 +224,11 @@ void StackPushFrontL(stackL **first, stackL **last, stackL **element, int nBytes
 #undef StackPopFrontL
 int StackPopFrontL(stackL **first, stackL **last)
 {
-  stackL *tmp=*last;
+  stackL *tmp=*first;
 
-  if (!*last) return 1;
-  *last=tmp->prev;
-  if (!*last) *first=NULL;
+  if (!*first) return 1;
+  *first=tmp->next;
+  if (!*first) *last=NULL;
   GlobalFree((HGLOBAL)tmp);
   return 0;
 }
@@ -190,28 +238,34 @@ int StackPopFrontL(stackL **first, stackL **last)
  *
  *  StackPushBackL
  *
- *Adds an element to the beginning of the stack.
+ *Adds an element to the end of the stack.
  *
  *[in,out] stackL **first   -Pointer to a pointer that specifies
  *                           the first element in the stack
  *[in,out] stackL **last    -Pointer to a pointer that specifies
- *                           the top element in the stack
+ *                           the last element in the stack
  *   [out] stackL **element -Pointer to a pointer to the element
  *    [in] int nBytes       -Size of the structure
+ *
+ *Returns: 0 on success
+ *         2 on memory allocating error
  ********************************************************************/
 #if defined StackPushBackL || defined ALLSTACKFUNCL
 #define StackPushBackL_INCLUDED
 #undef StackPushBackL
-void StackPushBackL(stackL **first, stackL **last, stackL **element, int nBytes)
+int StackPushBackL(stackL **first, stackL **last, stackL **element, int nBytes)
 {
   if (*element=(stackL *)GlobalAlloc(GPTR, nBytes))
   {
-    if (*first)
-      (*first)->prev=*element;
+    if (*last)
+      (*last)->next=*element;
     else
-      *last=*element;
-    *first=*element;
+      *first=*element;
+    *last=*element;
   }
+  else return 2;
+
+  return 0;
 }
 #endif
 
@@ -223,7 +277,7 @@ void StackPushBackL(stackL **first, stackL **last, stackL **element, int nBytes)
  *
  *[in] stackL *first   -Pointer that specifies the first
  *                      element in the stack
- *[in] stackL *last    -Pointer that specifies the top
+ *[in] stackL *last    -Pointer that specifies the last
  *                      element in the stack
  *
  *Returns: the number of elements
@@ -233,11 +287,11 @@ void StackPushBackL(stackL **first, stackL **last, stackL **element, int nBytes)
 #undef StackSizeL
 int StackSizeL(stackL *first, stackL *last)
 {
-  stackL *tmp=last;
+  stackL *tmp=first;
   int nCount;
 
-  for (nCount=0; (tmp); ++nCount)
-    tmp=tmp->prev;
+  for (nCount=0; tmp; ++nCount)
+    tmp=tmp->next;
   return nCount;
 }
 #endif
@@ -251,19 +305,19 @@ int StackSizeL(stackL *first, stackL *last)
  *[in,out] stackL **first   -Pointer to a pointer that specifies
  *                           the first element in the stack
  *[in,out] stackL **last    -Pointer to a pointer that specifies
- *                           the top element in the stack
+ *                           the last element in the stack
  ********************************************************************/
 #if defined StackClearL || defined ALLSTACKFUNCL
 #define StackClearL_INCLUDED
 #undef StackClearL
 void StackClearL(stackL **first, stackL **last)
 {
-  stackL *tmp=*last;
+  stackL *tmp=*first;
   stackL *tmp2;
 
   while (tmp)
   {
-    tmp2=tmp->prev;
+    tmp2=tmp->next;
     GlobalFree((HGLOBAL)tmp);
     tmp=tmp2;
   }
@@ -284,25 +338,77 @@ void StackClearL(stackL **first, stackL **last)
 
 /********************************************************************
  *
- *  StackElement
+ *  StackGetIndex
+ *
+ *Finds the element index.
+ *
+ * [in] stack *first    -Pointer to a pointer that specifies
+ *                       the first element in the stack
+ * [in] stack *last     -Pointer to a pointer that specifies
+ *                       the last element in the stack
+ * [in] stack *element  -Pointer to the element
+ * [in] BOOL bPositive  -TRUE  positive index will be returned
+ *                       FALSE negative index will be returned
+ *
+ *Returns: element index, zero if not found
+ ********************************************************************/
+#if defined StackGetIndex || defined ALLSTACKFUNC
+#define StackGetIndex_INCLUDED
+#undef StackGetIndex
+int StackGetIndex(stack *first, stack *last, stack *element, BOOL bPositive)
+{
+  stack *tmp;
+  int nCount;
+
+  if (bPositive)
+  {
+    tmp=first;
+
+    for (nCount=1; tmp; ++nCount)
+    {
+      if (tmp == element)
+        return nCount;
+  
+      tmp=tmp->next;
+    }
+  }
+  else
+  {
+    tmp=last;
+
+    for (nCount=-1; tmp; --nCount)
+    {
+      if (tmp == element)
+        return nCount;
+  
+      tmp=tmp->prev;
+    }
+  }
+  return 0;
+}
+#endif
+
+/********************************************************************
+ *
+ *  StackGetElement
  *
  *Finds the element by index and returns pointer on it.
  *
  * [in] stack *first    -Pointer that specifies the first
  *                       element in the stack
- * [in] stack *last     -Pointer that specifies the top
+ * [in] stack *last     -Pointer that specifies the last
  *                       element in the stack
  *[out] stack **element -Pointer to a pointer to the element
  * [in] int nIndex      -Number of the element if positive search
- *                       from top if negative from beginning
+ *                       from first element if negative from last element
  *
  *Returns: 0 on success
  *         1 on wrong index
  ********************************************************************/
-#if defined StackElement || defined ALLSTACKFUNC
-#define StackElement_INCLUDED
-#undef StackElement
-int StackElement(stack *first, stack *last, stack **element, int nIndex)
+#if defined StackGetElement || defined ALLSTACKFUNC
+#define StackGetElement_INCLUDED
+#undef StackGetElement
+int StackGetElement(stack *first, stack *last, stack **element, int nIndex)
 {
   stack *tmp;
   int nCount;
@@ -311,12 +417,12 @@ int StackElement(stack *first, stack *last, stack **element, int nIndex)
 
   if (nIndex > 0)
   {
-    tmp=last;
+    tmp=first;
     nCount=1;
   }
   else if (nIndex < 0)
   {
-    tmp=first;
+    tmp=last;
     nCount=-1;
   }
   else return 1;
@@ -330,12 +436,12 @@ int StackElement(stack *first, stack *last, stack **element, int nIndex)
     }
     if (nIndex > 0)
     {
-      tmp=tmp->prev;
+      tmp=tmp->next;
       ++nCount;
     }
     else
     {
-      tmp=tmp->next;
+      tmp=tmp->prev;
       --nCount;
     }
   }
@@ -345,115 +451,111 @@ int StackElement(stack *first, stack *last, stack **element, int nIndex)
 
 /********************************************************************
  *
- *  StackInsert
+ *  StackInsertBefore
  *
- *Finds the element by index and inserts new element in it index.
+ *Inserts new element before specified element.
  *
  *[in,out] stack **first   -Pointer to a pointer that specifies
  *                          the first element in the stack
  *[in,out] stack **last    -Pointer to a pointer that specifies
- *                          the top element in the stack
+ *                          the last element in the stack
+ *    [in] stack *element  -Insert before this element
  *   [out] stack **element -Pointer to a pointer to the element
- *    [in] int nIndex      -Number of the element if positive search
- *                          from top if negative from beginning
  *    [in] int nBytes      -Size of the structure
  *
  *Returns: 0 on success
- *         1 on wrong index
  *         2 on memory allocating error
  ********************************************************************/
-#if defined StackInsert || defined ALLSTACKFUNC
-#define StackInsert_INCLUDED
-#undef StackInsert
-int StackInsert(stack **first, stack **last, stack **element, int nIndex, int nBytes)
+#if defined StackInsertBefore || defined ALLSTACKFUNC
+#define StackInsertBefore_INCLUDED
+#undef StackInsertBefore
+int StackInsertBefore(stack **first, stack **last, stack *index, stack **element, int nBytes)
 {
-  stack *tmp;
-  int nCount;
-
   *element=NULL;
 
-  if (nIndex > 0)
+  if (*element=(stack *)GlobalAlloc(GPTR, nBytes))
   {
-    tmp=*last;
-    nCount=1;
-  }
-  else if (nIndex < 0)
-  {
-    tmp=*first;
-    nCount=-1;
-  }
-  else return 1;
-
-  while ((tmp) || (nCount == nIndex))
-  {
-    if (nCount == nIndex)
+    if (!index)
     {
-      if (*element=(stack *)GlobalAlloc(GPTR, nBytes))
+      if (*last)
       {
-        if (!tmp)
-        {
-          if (nIndex > 0)
-          {
-            if (*first)
-            {
-              (*first)->prev=*element;
-              (*element)->next=*first;
-            }
-            else
-            {
-              *last=*element;
-            }
-            *first=*element;
-          }
-          else
-          {
-            if (*last)
-            {
-              (*last)->next=*element;
-              (*element)->prev=*last;
-            }
-            else
-            {
-              *first=*element;
-            }
-            *last=*element;
-          }
-        }
-        else if (nIndex > 0)
-        {
-          if (tmp == *last) *last=*element;
-          else tmp->next->prev=*element;
-
-          (*element)->prev=tmp;
-          (*element)->next=tmp->next;
-          tmp->next=*element;
-        }
-        else
-        {
-          if (tmp == *first) *first=*element;
-          else tmp->prev->next=*element;
-
-          (*element)->next=tmp;
-          (*element)->prev=tmp->prev;
-          tmp->prev=*element;
-        }
+        (*last)->next=*element;
+        (*element)->prev=*last;
       }
-      else return 2;
-
-      return 0;
-    }
-    if (nIndex > 0)
-    {
-      tmp=tmp->prev;
-      ++nCount;
+      else
+      {
+        *first=*element;
+      }
+      *last=*element;
     }
     else
     {
-      tmp=tmp->next;
-      --nCount;
+      if (index == *first) *first=*element;
+      else index->prev->next=*element;
+
+      (*element)->next=index;
+      (*element)->prev=index->prev;
+      index->prev=*element;
     }
   }
-  return 1;
+  else return 2;
+
+  return 0;
+}
+#endif
+
+/********************************************************************
+ *
+ *  StackInsertAfter
+ *
+ *Inserts new element after specified element.
+ *
+ *[in,out] stack **first   -Pointer to a pointer that specifies
+ *                          the first element in the stack
+ *[in,out] stack **last    -Pointer to a pointer that specifies
+ *                          the last element in the stack
+ *    [in] stack *element  -Insert after this element
+ *   [out] stack **element -Pointer to a pointer to the element
+ *    [in] int nBytes      -Size of the structure
+ *
+ *Returns: 0 on success
+ *         2 on memory allocating error
+ ********************************************************************/
+#if defined StackInsertAfter || defined ALLSTACKFUNC
+#define StackInsertAfter_INCLUDED
+#undef StackInsertAfter
+int StackInsertAfter(stack **first, stack **last, stack *index, stack **element, int nBytes)
+{
+  *element=NULL;
+
+  if (*element=(stack *)GlobalAlloc(GPTR, nBytes))
+  {
+    if (!index)
+    {
+      if (*first)
+      {
+        (*first)->prev=*element;
+        (*element)->next=*first;
+      }
+      else
+      {
+        *last=*element;
+      }
+      *first=*element;
+    }
+    else
+    {
+      if (index == *last) *last=*element;
+      else index->next->prev=*element;
+
+      (*element)->prev=index;
+      (*element)->next=index->next;
+      index->next=*element;
+    }
+  }
+  else return 2;
+
+  return 0;
 }
 #endif
 
@@ -466,7 +568,7 @@ int StackInsert(stack **first, stack **last, stack **element, int nIndex, int nB
  *[in,out] stack **first   -Pointer to a pointer that specifies
  *                          the first element in the stack
  *[in,out] stack **last    -Pointer to a pointer that specifies
- *                          the top element in the stack
+ *                          the last element in the stack
  *    [in] stack *element  -Pointer to the element
  *
  *Returns: 0 on success
@@ -503,131 +605,143 @@ int StackDelete(stack **first, stack **last, stack *element)
 
 /********************************************************************
  *
- *  StackMove
+ *  StackMoveBefore
  *
- *Finds the element by index and move it to the new index.
+ *Move source element to the position before destination element.
  *
  *[in,out] stack **first   -Pointer to a pointer that specifies
  *                          the first element in the stack
  *[in,out] stack **last    -Pointer to a pointer that specifies
- *                          the top element in the stack
- *    [in] stack *element  -Pointer to the element (source)
- *    [in] int nIndex      -Number of the element if positive search
- *                          from top if negative from beginning (destination)
+ *                          the last element in the stack
+ *    [in] stack *src      -Pointer to the element (source)
+ *    [in] stack *dst      -Pointer to the element (destination)
  *
  *Returns: 0 on success
- *         1 on empty stack
- *         2 index pointed to the same element
+ *         2 indexes pointed to the same element
  ********************************************************************/
-#if defined StackMove || defined ALLSTACKFUNC
-#define StackMove_INCLUDED
-#undef StackMove
-int StackMove(stack **first, stack **last, stack *element, int nIndex)
+#if defined StackMoveBefore || defined ALLSTACKFUNC
+#define StackMoveBefore_INCLUDED
+#undef StackMoveBefore
+int StackMoveBefore(stack **first, stack **last, stack *src, stack *dst)
 {
-  stack *tmp;
-  int nCount;
+  if (src == dst) return 2;
 
-  if (nIndex > 0)
+  //Unlink src
+  if (src == *first)
   {
-    tmp=*last;
-    nCount=1;
+    *first=src->next;
+    if (*first) (*first)->prev=NULL;
+    else *last=NULL;
   }
-  else if (nIndex < 0)
+  else if (src == *last)
   {
-    tmp=*first;
-    nCount=-1;
+    *last=src->prev;
+    if (*last) (*last)->next=NULL;
+    else *first=NULL;
   }
-  else return 1;
-
-  while ((tmp) || (nCount == nIndex))
+  else
   {
-    if (nCount == nIndex)
+    src->prev->next=src->next;
+    src->next->prev=src->prev;
+  }
+  src->next=NULL;
+  src->prev=NULL;
+
+  //Insert element
+  if (!dst)
+  {
+    if (*last)
     {
-      if (element == tmp) return 2;
-
-      //Unlink element
-      if (element == *first)
-      {
-        *first=element->next;
-        if (*first) (*first)->prev=NULL;
-        else *last=NULL;
-      }
-      else if (element == *last)
-      {
-        *last=element->prev;
-        if (*last) (*last)->next=NULL;
-        else *first=NULL;
-      }
-      else
-      {
-        element->prev->next=element->next;
-        element->next->prev=element->prev;
-      }
-      element->next=NULL;
-      element->prev=NULL;
-
-      //Insert element
-      if (!tmp)
-      {
-        if (nIndex > 0)
-        {
-          if (*first)
-          {
-            (*first)->prev=element;
-            element->next=*first;
-          }
-          else
-          {
-            *last=element;
-          }
-          *first=element;
-        }
-        else
-        {
-          if (*last)
-          {
-            (*last)->next=element;
-            element->prev=*last;
-          }
-          else
-          {
-            *first=element;
-          }
-          *last=element;
-        }
-      }
-      else if (nIndex > 0)
-      {
-        if (tmp == *last) *last=element;
-        else tmp->next->prev=element;
-
-        element->prev=tmp;
-        element->next=tmp->next;
-        tmp->next=element;
-      }
-      else
-      {
-        if (tmp == *first) *first=element;
-        else tmp->prev->next=element;
-
-        element->next=tmp;
-        element->prev=tmp->prev;
-        tmp->prev=element;
-      }
-      return 0;
-    }
-    if (nIndex > 0)
-    {
-      if (element != tmp) ++nCount;
-      tmp=tmp->prev;
+      (*last)->next=src;
+      src->prev=*last;
     }
     else
     {
-      if (element != tmp) --nCount;
-      tmp=tmp->next;
+      *first=src;
     }
+    *last=src;
   }
-  return 1;
+  else
+  {
+    if (dst == *first) *first=src;
+    else dst->prev->next=src;
+
+    src->next=dst;
+    src->prev=dst->prev;
+    dst->prev=src;
+  }
+  return 0;
+}
+#endif
+
+/********************************************************************
+ *
+ *  StackMoveAfter
+ *
+ *Move source element to the position after destination element.
+ *
+ *[in,out] stack **first   -Pointer to a pointer that specifies
+ *                          the first element in the stack
+ *[in,out] stack **last    -Pointer to a pointer that specifies
+ *                          the last element in the stack
+ *    [in] stack *src      -Pointer to the element (source)
+ *    [in] stack *dst      -Pointer to the element (destination)
+ *
+ *Returns: 0 on success
+ *         2 indexes pointed to the same element
+ ********************************************************************/
+#if defined StackMoveAfter || defined ALLSTACKFUNC
+#define StackMoveAfter_INCLUDED
+#undef StackMoveAfter
+int StackMoveAfter(stack **first, stack **last, stack *src, stack *dst)
+{
+  if (src == dst) return 2;
+
+  //Unlink src
+  if (src == *first)
+  {
+    *first=src->next;
+    if (*first) (*first)->prev=NULL;
+    else *last=NULL;
+  }
+  else if (src == *last)
+  {
+    *last=src->prev;
+    if (*last) (*last)->next=NULL;
+    else *first=NULL;
+  }
+  else
+  {
+    src->prev->next=src->next;
+    src->next->prev=src->prev;
+  }
+  src->next=NULL;
+  src->prev=NULL;
+
+  //Insert element
+  if (!dst)
+  {
+    if (*first)
+    {
+      (*first)->prev=src;
+      src->next=*first;
+    }
+    else
+    {
+      *last=src;
+    }
+    *first=src;
+  }
+  else
+  {
+    if (dst == *last) *last=src;
+    else dst->next->prev=src;
+
+    src->prev=dst;
+    src->next=dst->next;
+    dst->next=src;
+  }
+  return 0;
 }
 #endif
 
@@ -640,7 +754,7 @@ int StackMove(stack **first, stack **last, stack *element, int nIndex)
  *[in,out] stack **first   -Pointer to a pointer that specifies
  *                          the first element in the stack
  *[in,out] stack **last    -Pointer to a pointer that specifies
- *                          the top element in the stack
+ *                          the last element in the stack
  *    [in] stack *element1 -Pointer to the first element
  *    [in] stack *element2 -Pointer to the second element
  *
@@ -733,6 +847,289 @@ int StackExchange(stack **first, stack **last, stack *element1, stack *element2)
 
 /********************************************************************
  *
+ *  StackJoin
+ *
+ *Joins two stacks.
+ *
+ *[in,out] stack **first     -Pointer to a pointer that specifies
+ *                            the first element in the stack
+ *[in,out] stack **last      -Pointer to a pointer that specifies
+ *                            the last element in the stack
+ *    [in] stack *joinfirst  -Pointer to the first element in the stack
+ *    [in] stack *joinlast   -Pointer to the last element in the stack
+ *    [in] BOOL bTop         -If TRUE second stack will be joined
+ *                            to the first element of the first stack.
+ *                            If FALSE second stack will be joined
+ *                            to the last element of the first stack.
+ ********************************************************************/
+#if defined StackJoin || defined ALLSTACKFUNC
+#define StackJoin_INCLUDED
+#undef StackJoin
+void StackJoin(stack **first, stack **last, stack *joinfirst, stack *joinlast, BOOL bTop)
+{
+  if (!*first)
+  {
+    *first=joinfirst;
+    *last=joinlast;
+  }
+  else if (joinfirst)
+  {
+    if (bTop)
+    {
+      (*first)->prev=joinlast;
+      joinlast->next=*first;
+      *first=joinfirst;
+    }
+    else
+    {
+      (*last)->next=joinfirst;
+      joinfirst->prev=*last;
+      *last=joinlast;
+    }
+  }
+}
+#endif
+
+/********************************************************************
+ *
+ *  StackSplit
+ *
+ *Splits stack.
+ *
+ *[in,out] stack **first       -Pointer to a pointer that specifies
+ *                              the first element in the stack
+ *[in,out] stack **last        -Pointer to a pointer that specifies
+ *                              the last element in the stack
+ *   [out] stack **splitfirst  -Pointer to a pointer that specifies
+ *                              the first element in the stack
+ *   [out] stack **splitlast   -Pointer to a pointer that specifies
+ *                              the last element in the stack
+ *    [in] stack *element      -After spliting this element will be
+ *                              the last element of the first stack.
+ ********************************************************************/
+#if defined StackSplit || defined ALLSTACKFUNC
+#define StackSplit_INCLUDED
+#undef StackSplit
+void StackSplit(stack **first, stack **last, stack **splitfirst, stack **splitlast, stack *element)
+{
+  if (element == *last)
+  {
+    *splitfirst=NULL;
+    *splitlast=NULL;
+  }
+  else
+  {
+    *splitfirst=element->next;
+    *splitlast=*last;
+    *last=element;
+    (*splitfirst)->prev=NULL;
+    (*last)->next=NULL;
+  }
+}
+#endif
+
+/********************************************************************
+ *
+ *  StackSize
+ *
+ *Gets the number of elements in the stack.
+ *
+ *[in] stack *first   -Pointer that specifies the first
+ *                     element in the stack
+ *[in] stack *last    -Pointer that specifies the last
+ *                     element in the stack
+ *
+ *Returns: the number of elements
+ ********************************************************************/
+#if defined StackSize || defined ALLSTACKFUNC
+#define StackSize_INCLUDED
+#undef StackSize
+int StackSize(stack *first, stack *last)
+{
+  stack *tmp=last;
+  int nCount;
+
+  for (nCount=0; (tmp); ++nCount)
+    tmp=tmp->prev;
+  return nCount;
+}
+#endif
+
+/********************************************************************
+ *
+ *  StackClear
+ *
+ *Clear all stack.
+ *
+ *[in,out] stack **first   -Pointer to a pointer that specifies
+ *                          the first element in the stack
+ *[in,out] stack **last    -Pointer to a pointer that specifies
+ *                          the last element in the stack
+ ********************************************************************/
+#if defined StackClear || defined ALLSTACKFUNC
+#define StackClear_INCLUDED
+#undef StackClear
+void StackClear(stack **first, stack **last)
+{
+  stack *tmp1=*last;
+  stack *tmp2;
+
+  while (tmp1)
+  {
+    tmp2=tmp1->prev;
+    GlobalFree((HGLOBAL)tmp1);
+    tmp1=tmp2;
+  }
+  *last=NULL;
+  *first=NULL;
+}
+#endif
+
+
+/********************************************************************
+ ********************************************************************
+ *                                                                  *
+ *                   Special bilinear functions                     *
+ *                                                                  *
+ ********************************************************************
+ ********************************************************************/
+
+
+/********************************************************************
+ *
+ *  StackInsertIndex
+ *
+ *Inserts new element at specified index.
+ *
+ *[in,out] stack **first   -Pointer to a pointer that specifies
+ *                          the first element in the stack
+ *[in,out] stack **last    -Pointer to a pointer that specifies
+ *                          the last element in the stack
+ *   [out] stack **element -Pointer to a pointer to the element
+ *    [in] int nIndex      -Number of the element if positive search
+ *                          from top if negative from beginning
+ *    [in] int nBytes      -Size of the structure
+ *
+ *Returns: 0 on success
+ *         1 on wrong index
+ *         2 on memory allocating error
+ *
+ *Note:
+ *  StackInsertIndex uses StackInsertAfter, StackInsertBefore
+ ********************************************************************/
+#if defined StackInsertIndex || defined ALLSTACKFUNCS
+#define StackInsertIndex_INCLUDED
+#undef StackInsertIndex
+int StackInsertIndex(stack **first, stack **last, stack **element, int nIndex, int nBytes)
+{
+  stack *tmp;
+  int nCount;
+
+  *element=NULL;
+
+  if (nIndex > 0)
+  {
+    tmp=*first;
+    nCount=1;
+  }
+  else if (nIndex < 0)
+  {
+    tmp=*last;
+    nCount=-1;
+  }
+  else return 1;
+
+  while (tmp || nCount == nIndex)
+  {
+    if (nCount == nIndex)
+    {
+      if (nIndex > 0)
+        return StackInsertBefore(first, last, tmp, element, nBytes);
+      else
+        return StackInsertAfter(first, last, tmp, element, nBytes);
+    }
+    if (nIndex > 0)
+    {
+      tmp=tmp->next;
+      ++nCount;
+    }
+    else
+    {
+      tmp=tmp->prev;
+      --nCount;
+    }
+  }
+  return 1;
+}
+#endif
+
+/********************************************************************
+ *
+ *  StackMoveIndex
+ *
+ *Move element to the new index.
+ *
+ *[in,out] stack **first   -Pointer to a pointer that specifies
+ *                          the first element in the stack
+ *[in,out] stack **last    -Pointer to a pointer that specifies
+ *                          the last element in the stack
+ *    [in] stack *element  -Pointer to the element (source)
+ *    [in] int nIndex      -Number of the element if positive search
+ *                          from top if negative from beginning (destination)
+ *
+ *Returns: 0 on success
+ *         1 on wrong index
+ *         2 source and destination indexes pointed to the same element
+ *
+ *Note:
+ *  StackMoveIndex uses StackMoveAfter, StackMoveBefore
+ ********************************************************************/
+#if defined StackMoveIndex || defined ALLSTACKFUNCS
+#define StackMoveIndex_INCLUDED
+#undef StackMoveIndex
+int StackMoveIndex(stack **first, stack **last, stack *element, int nIndex)
+{
+  stack *tmp;
+  int nCount;
+
+  if (nIndex > 0)
+  {
+    tmp=*first;
+    nCount=1;
+  }
+  else if (nIndex < 0)
+  {
+    tmp=*last;
+    nCount=-1;
+  }
+  else return 1;
+
+  while (tmp || nCount == nIndex)
+  {
+    if (nCount == nIndex)
+    {
+      if (nIndex > 0)
+        return StackMoveBefore(first, last, element, tmp);
+      else
+        return StackMoveAfter(first, last, element, tmp);
+    }
+    if (nIndex > 0)
+    {
+      if (element != tmp) ++nCount;
+      tmp=tmp->next;
+    }
+    else
+    {
+      if (element != tmp) --nCount;
+      tmp=tmp->prev;
+    }
+  }
+  return 1;
+}
+#endif
+
+/********************************************************************
+ *
  *  StackDeleteRange
  *
  *Finds the elements between indexes and removes.
@@ -740,16 +1137,16 @@ int StackExchange(stack **first, stack **last, stack *element1, stack *element2)
  *[in,out] stack **first   -Pointer to a pointer that specifies
  *                          the first element in the stack
  *[in,out] stack **last    -Pointer to a pointer that specifies
- *                          the top element in the stack
+ *                          the last element in the stack
  *    [in] int nIndex      -Number of the element if positive search
- *                          from top if negative from beginning (range limit)
+ *                          from first element if negative from last element (range limit)
  *    [in] int nIndex2     -Number of the element if positive search
- *                          from top if negative from beginning (range limit)
+ *                          from first element if negative from last element (range limit)
  *
  *Returns: 0 on success
  *         1 on empty stack
  ********************************************************************/
-#if defined StackDeleteRange || defined ALLSTACKFUNC
+#if defined StackDeleteRange || defined ALLSTACKFUNCS
 #define StackDeleteRange_INCLUDED
 #undef StackDeleteRange
 int StackDeleteRange(stack **first, stack **last, int nIndex, int nIndex2)
@@ -766,12 +1163,12 @@ int StackDeleteRange(stack **first, stack **last, int nIndex, int nIndex2)
 
   if (nIndex > 0)
   {
-    tmp=*last;
+    tmp=*first;
     nCount=1;
   }
   else if (nIndex < 0)
   {
-    tmp=*first;
+    tmp=*last;
     nCount=-1;
   }
   else return 1;
@@ -788,7 +1185,7 @@ int StackDeleteRange(stack **first, stack **last, int nIndex, int nIndex2)
         nIndex=nIndex2;
         goto loop;
       }
-      if ((bMeet == FALSE && nIndex < 0) || (bMeet == TRUE && nIndex > 0))
+      if ((bMeet == FALSE && nIndex > 0) || (bMeet == TRUE && nIndex < 0))
       {
         tmp3=tmp;
         tmp4=tmp2;
@@ -827,12 +1224,12 @@ int StackDeleteRange(stack **first, stack **last, int nIndex, int nIndex2)
     }
     if (nIndex > 0)
     {
-      tmp=tmp->prev;
+      tmp=tmp->next;
       ++nCount;
     }
     else
     {
-      tmp=tmp->next;
+      tmp=tmp->prev;
       --nCount;
     }
   }
@@ -849,19 +1246,19 @@ int StackDeleteRange(stack **first, stack **last, int nIndex, int nIndex2)
  *[in,out] stack **first   -Pointer to a pointer that specifies
  *                          the first element in the stack
  *[in,out] stack **last    -Pointer to a pointer that specifies
- *                          the top element in the stack
+ *                          the last element in the stack
  *    [in] int nIndex      -Number of the element if positive search
- *                          from top if negative from beginning (range limit)
+ *                          from first element if negative from last element (range limit)
  *    [in] int nIndex2     -Number of the element if positive search
- *                          from top if negative from beginning (range limit)
+ *                          from first element if negative from last element (range limit)
  *    [in] int nIndex3     -Number of the element if positive search
- *                          from top if negative from beginning (destination)
+ *                          from first element if negative from last element (destination)
  *
  *Returns: 0 on success
  *         1 on empty stack
  *         2 destination index pointed to the element in the range
  ********************************************************************/
-#if defined StackMoveRange || defined ALLSTACKFUNC
+#if defined StackMoveRange || defined ALLSTACKFUNCS
 #define StackMoveRange_INCLUDED
 #undef StackMoveRange
 int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIndex3)
@@ -879,12 +1276,12 @@ int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIn
 
   if (nIndex > 0)
   {
-    tmp=*last;
+    tmp=*first;
     nCount=1;
   }
   else if (nIndex < 0)
   {
-    tmp=*first;
+    tmp=*last;
     nCount=-1;
   }
   else return 1;
@@ -916,7 +1313,7 @@ int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIn
 
       if (nMeet == 1 || nMeet == 2) return 2;
 
-      if ((bMeet == FALSE && nIndex2 < 0) || (bMeet == TRUE && nIndex2 > 0))
+      if ((bMeet == FALSE && nIndex2 > 0) || (bMeet == TRUE && nIndex2 < 0))
       {
         tmp4=tmp2;
         tmp5=tmp3;
@@ -942,7 +1339,7 @@ int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIn
         tmp2->prev->next=tmp3->next;
       }
 
-      if ((nMeet == 0 && nIndex < 0) || (nMeet == 3 && nIndex > 0))
+      if ((nMeet == 0 && nIndex > 0) || (nMeet == 3 && nIndex < 0))
       {
         if (tmp == *first) *first=tmp2;
         else tmp->prev->next=tmp2;
@@ -964,12 +1361,12 @@ int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIn
     }
     if (nIndex > 0)
     {
-      tmp=tmp->prev;
+      tmp=tmp->next;
       ++nCount;
     }
     else
     {
-      tmp=tmp->next;
+      tmp=tmp->prev;
       --nCount;
     }
   }
@@ -979,213 +1376,27 @@ int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIn
 
 /********************************************************************
  *
- *  StackJoin
+ *  StackReverseRange
  *
- *Joins two stacks.
+ *Reverse stack.
  *
  *[in,out] stack **first     -Pointer to a pointer that specifies
  *                            the first element in the stack
  *[in,out] stack **last      -Pointer to a pointer that specifies
- *                            the top element in the stack
- *    [in] stack *joinfirst  -Pointer to the first element in the stack
- *    [in] stack *joinlast   -Pointer to the top element in the stack
- *    [in] BOOL bTop         -If TRUE second stack will be joined
- *                            to the top of the first stack.
- *                            If FALSE second stack will be joined
- *                            to the beginning of the first stack.
- ********************************************************************/
-#if defined StackJoin || defined ALLSTACKFUNC
-#define StackJoin_INCLUDED
-#undef StackJoin
-void StackJoin(stack **first, stack **last, stack *joinfirst, stack *joinlast, BOOL bTop)
-{
-  if (!*first)
-  {
-    *first=joinfirst;
-    *last=joinlast;
-  }
-  else if (joinfirst)
-  {
-    if (bTop)
-    {
-      (*last)->next=joinfirst;
-      joinfirst->prev=*last;
-      *last=joinlast;
-    }
-    else
-    {
-      (*first)->prev=joinlast;
-      joinlast->next=*first;
-      *first=joinfirst;
-    }
-  }
-}
-#endif
-
-/********************************************************************
- *
- *  StackSplit
- *
- *Splits stack.
- *
- *[in,out] stack **first       -Pointer to a pointer that specifies
- *                              the first element in the stack
- *[in,out] stack **last        -Pointer to a pointer that specifies
- *                              the top element in the stack
- *   [out] stack **splitfirst  -Pointer to a pointer that specifies
- *                              the first element in the stack
- *   [out] stack **splitlast   -Pointer to a pointer that specifies
- *                              the top element in the stack
- *    [in] int nIndex          -Number of the element if positive search
- *                              from top if negative from beginning.
- *                              After spliting this element will be
- *                              the last element of the first stack.
- *
- *Returns: 0 on success
- *         1 on empty stack
- ********************************************************************/
-#if defined StackSplit || defined ALLSTACKFUNC
-#define StackSplit_INCLUDED
-#undef StackSplit
-int StackSplit(stack **first, stack **last, stack **splitfirst, stack **splitlast, int nIndex)
-{
-  stack *tmp;
-  int nCount;
-
-  if (nIndex > 0)
-  {
-    tmp=*last;
-    nCount=1;
-  }
-  else if (nIndex < 0)
-  {
-    tmp=*first;
-    nCount=-1;
-  }
-  else return 1;
-
-  while (tmp)
-  {
-    if (nCount == nIndex)
-    {
-      if (tmp == *last)
-      {
-        *splitfirst=NULL;
-        *splitlast=NULL;
-      }
-      else
-      {
-        *splitfirst=tmp->next;
-        *splitlast=*last;
-        *last=tmp;
-        (*splitfirst)->prev=NULL;
-        (*last)->next=NULL;
-      }
-      return 0;
-    }
-    if (nIndex > 0)
-    {
-      tmp=tmp->prev;
-      ++nCount;
-    }
-    else
-    {
-      tmp=tmp->next;
-      --nCount;
-    }
-  }
-  return 1;
-}
-#endif
-
-/********************************************************************
- *
- *  StackSize
- *
- *Gets the number of elements in the stack.
- *
- *[in] stack *first   -Pointer that specifies the first
- *                     element in the stack
- *[in] stack *last    -Pointer that specifies the top
- *                     element in the stack
- *
- *Returns: the number of elements
- ********************************************************************/
-#if defined StackSize || defined ALLSTACKFUNC
-#define StackSize_INCLUDED
-#undef StackSize
-int StackSize(stack *first, stack *last)
-{
-  stack *tmp=last;
-  int nCount;
-
-  for (nCount=0; (tmp); ++nCount)
-    tmp=tmp->prev;
-  return nCount;
-}
-#endif
-
-/********************************************************************
- *
- *  StackClear
- *
- *Clear all stack.
- *
- *[in,out] stack **first   -Pointer to a pointer that specifies
- *                          the first element in the stack
- *[in,out] stack **last    -Pointer to a pointer that specifies
- *                          the top element in the stack
- ********************************************************************/
-#if defined StackClear || defined ALLSTACKFUNC
-#define StackClear_INCLUDED
-#undef StackClear
-void StackClear(stack **first, stack **last)
-{
-  stack *tmp1=*last;
-  stack *tmp2;
-
-  while (tmp1)
-  {
-    tmp2=tmp1->prev;
-    GlobalFree((HGLOBAL)tmp1);
-    tmp1=tmp2;
-  }
-  *last=NULL;
-  *first=NULL;
-}
-#endif
-
-
-/********************************************************************
- ********************************************************************
- *                                                                  *
- *                   Special bilinear functions                     *
- *                                                                  *
- ********************************************************************
- ********************************************************************/
-
-
-/********************************************************************
- *
- *  StackReverse
- *
- *Reverse stack.
- *
- *[in,out] stack **first   -Pointer to a pointer that specifies
- *                          the first element in the stack
- *[in,out] stack **last    -Pointer to a pointer that specifies
- *                          the top element in the stack
+ *                            the last element in the stack
+ *    [in] stack *rangemin   -Pointer to a first element in range
+ *    [in] stack *rangemax   -Pointer to a last element in range
  *
  *Note:
- *  StackReverse uses StackExchange
+ *  StackReverseRange uses StackExchange
  ********************************************************************/
-#if defined StackReverse || defined ALLSTACKFUNCS
-#define StackReverse_INCLUDED
-#undef StackReverse
-void StackReverse(stack **first, stack **last)
+#if defined StackReverseRange || defined ALLSTACKFUNCS
+#define StackReverseRange_INCLUDED
+#undef StackReverseRange
+void StackReverseRange(stack **first, stack **last, stack *rangemin, stack *rangemax)
 {
-  stack *tmp1=*first;
-  stack *tmp2=*last;
+  stack *tmp1=rangemin;
+  stack *tmp2=rangemax;
   stack *tmpNext;
   stack *tmpPrev;
   BOOL bBreak=FALSE;
@@ -1213,19 +1424,19 @@ void StackReverse(stack **first, stack **last)
  *
  *    [in] stack *first      -Pointer that specifies the first
  *                            element in the stack
- *    [in] stack *last       -Pointer that specifies the top
+ *    [in] stack *last       -Pointer that specifies the last
  *                            element in the stack
  *[in,out] stack **copyfirst -Pointer to a pointer that specifies
  *                            the first element in the stack
  *[in,out] stack **copylast  -Pointer to a pointer that specifies
- *                            the top element in the stack
+ *                            the last element in the stack
  *    [in] int nBytes        -Size of the structure
  *
  *Returns: 0 on success
  *         1 on wrong index
  *         2 on memory allocating error
  *Note:
- *  StackCopy uses StackInsert
+ *  StackCopy uses StackInsertAfter
  ********************************************************************/
 #if defined StackCopy || defined ALLSTACKFUNCS
 #define StackCopy_INCLUDED
@@ -1241,7 +1452,7 @@ int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, in
 
   while (tmp1)
   {
-    if (!(nResult=StackInsert(copyfirst, copylast, &tmp2, -1, nBytes)))
+    if (!(nResult=StackInsertAfter(copyfirst, copylast, *copylast, &tmp2, nBytes)))
     {
       lpData1=(unsigned char *)tmp1 + sizeof(stack);
       lpData2=(unsigned char *)tmp2 + sizeof(stack);
@@ -1269,7 +1480,7 @@ int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, in
  *[in,out] stackS **first   -Pointer to a pointer that specifies
  *                           the first element in the stack
  *[in,out] stackS **last    -Pointer to a pointer that specifies
- *                           the top element in the stack
+ *                           the last element in the stack
  *   [out] stackS **element -Pointer to a pointer to the element
  *    [in] char *pString    -String
  *    [in] int nUpDown      -Sorts in "1"-ascending, "-1"-descending
@@ -1279,34 +1490,82 @@ int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, in
  *         1 on wrong index
  *         2 on memory allocating error
  *Note:
- *  StackPushSortA uses StackInsert
+ *  StackPushSortA uses StackInsertBefore
  ********************************************************************/
-
 #if defined StackPushSortA || defined ALLSTACKFUNCS
 #define StackPushSortA_INCLUDED
 #undef StackPushSortA
 int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pString, int nUpDown, int nBytes)
 {
-  stackS *tmp=*last;
-  int nIndex;
+  stackS *tmp=*first;
   int i;
-  int nResult;
 
   if (nUpDown != 1 && nUpDown != -1) return 1;
 
-  for (nIndex=1; (tmp); ++nIndex)
+  while (tmp)
   {
     i=lstrcmpiA(tmp->string, pString);
-    if (i == 0 || i == nUpDown) break;
+    if (i == 0 || i == nUpDown)
+    {
+      break;
+    }
 
-    tmp=tmp->prev;
+    tmp=tmp->next;
   }
 
-  if (!(nResult=StackInsert((stack **)first, (stack **)last, (stack **)element, nIndex, nBytes)))
+  return StackInsertBefore((stack **)first, (stack **)last, (stack *)tmp, (stack **)element, nBytes);
+}
+#endif
+
+/********************************************************************
+ *
+ *  StackSortA
+ *
+ *Pushs element to the stack and sorts alphabetically in ascending or descending.
+ *
+ *[in,out] stackS **first   -Pointer to a pointer that specifies
+ *                           the first element in the stack
+ *[in,out] stackS **last    -Pointer to a pointer that specifies
+ *                           the last element in the stack
+ *    [in] int nUpDown      -Sorts in "1"-ascending, "-1"-descending
+ *
+ *Returns: 0 on success
+ *         1 on wrong index
+ *Note:
+ *  StackSortA uses StackMoveBefore
+ ********************************************************************/
+#if defined StackSortA || defined ALLSTACKFUNCS
+#define StackSortA_INCLUDED
+#undef StackSortA
+int StackSortA(stackS **first, stackS **last, int nUpDown)
+{
+  stackS *tmp1;
+  stackS *tmp2;
+  stackS *tmp3;
+  int a,b,c;
+
+  if (nUpDown != 1 && nUpDown != -1) return 1;
+
+  for (tmp1=*first, a=1; tmp1; ++a)
   {
-    lstrcpynA((*element)->string, pString, MAX_PATH);
+    for (tmp2=*first, b=1; b < a && tmp2; ++b)
+    {
+      c=lstrcmpiA(tmp2->string, tmp1->string);
+      if (c == 0 || c == nUpDown)
+      {
+        tmp3=tmp1;
+        tmp1=tmp1->next;
+        StackMoveBefore((stack **)first, (stack **)last, (stack *)tmp3, (stack *)tmp2);
+        goto next;
+      }
+
+      tmp2=tmp2->next;
+    }
+    tmp1=tmp1->next;
+
+    next:;
   }
-  return nResult;
+  return 0;
 }
 #endif
 
@@ -1323,8 +1582,8 @@ int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pStrin
 #include "StackFunc.h"
 
 //Include stack functions
-#define StackInsert
-#define StackElement
+#define StackInsertAfter
+#define StackGetElement
 #define StackDelete
 #include "StackFunc.h"
 
@@ -1344,12 +1603,12 @@ void main()
   HTEXTSTACK *lpElement;
   int nError;
 
-  if (!StackInsert((stack **)&hTextStack.first, (stack **)&hTextStack.last, (stack **)&lpElement, 1, sizeof(HTEXTSTACK)))
+  if (!StackInsertAfter((stack **)&hTextStack.first, (stack **)&hTextStack.last, (stack *)hTextStack.last, (stack **)&lpElement, sizeof(HTEXTSTACK)))
   {
     lstrcpyA(lpElement->szText, "some string");
     lpElement->dwLength=lstrlenA(lpElement->szText);
   }
-  if (!(nError=StackElement((stack *)hTextStack.first, (stack *)hTextStack.last, (stack **)&lpElement, 1)))
+  if (!(nError=StackGetElement((stack *)hTextStack.first, (stack *)hTextStack.last, (stack **)&lpElement, -1)))
   {
     printf("element={%s}, error={%d}\n", lpElement->szText, nError);
     StackDelete((stack **)&hTextStack.first, (stack **)&hTextStack.last, (stack *)lpElement);

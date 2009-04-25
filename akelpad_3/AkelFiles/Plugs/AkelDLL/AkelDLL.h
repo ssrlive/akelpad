@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 0, 1, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 0, 2, 0)
 
 
 //// Defines
@@ -85,6 +85,12 @@
 #define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
 #define SPT_LINEWRAP    0x00000002  //Wrap line numbers. By default: Non-wrap line numbers.
 
+//INI value types
+#define INI_DWORD           1
+#define INI_BINARY          2
+#define INI_STRINGANSI      3
+#define INI_STRINGUNICODE   4
+
 //Options flags
 #define POB_READ     0x1  //Begins read options
 #define POB_SAVE     0x2  //Begins save options
@@ -149,6 +155,10 @@
 #define DK_SETBOTTOM   0x00000080  //Set DKS_BOTTOM side
 #define DK_HIDE        0x00000100  //Hide dockable window and set DKF_HIDDEN flag
 #define DK_SHOW        0x00000200  //Show dockable window and remove DKF_HIDDEN flag
+
+//WM_INITMENU lParam
+#define IMENU_EDIT     0x00000001
+#define IMENU_CHECKS   0x00000004
 
 
 //// Structures
@@ -295,8 +305,8 @@ typedef struct _WNDFRAMEA {
   int nUndoLimit;                                   //Undo limit
   BOOL bDetailedUndo;                               //Detailed undo
   int nWrapType;                                    //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
-  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge
-  DWORD dwMarker;                                   //Vertical marker, zero if no marker set
+  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge (4.x only)
+  DWORD dwMarker;                                   //Vertical marker, zero if no marker set (4.x only)
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
@@ -307,12 +317,12 @@ typedef struct _WNDFRAMEA {
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
-  BOOL bSplitWindow;                                //Edit window is splited
-  HWND hWndMaster;                                  //Master window
-  HWND hWndClone1;                                  //Clone window one
-  HWND hWndClone2;                                  //Clone window two
-  HWND hWndClone3;                                  //Clone window three
-  RECT rcMasterWindow;                              //Master window RECT
+  BOOL bSplitWindow;                                //Edit window is splited (4.x only)
+  HWND hWndMaster;                                  //Master window (4.x only)
+  HWND hWndClone1;                                  //Clone window one (4.x only)
+  HWND hWndClone2;                                  //Clone window two (4.x only)
+  HWND hWndClone3;                                  //Clone window three (4.x only)
+  RECT rcMasterWindow;                              //Master window RECT (4.x only)
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -329,8 +339,8 @@ typedef struct _WNDFRAMEW {
   int nUndoLimit;                                   //Undo limit
   BOOL bDetailedUndo;                               //Detailed undo
   int nWrapType;                                    //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
-  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge
-  DWORD dwMarker;                                   //Vertical marker, zero if no marker set
+  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge (4.x only)
+  DWORD dwMarker;                                   //Vertical marker, zero if no marker set (4.x only)
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
@@ -341,12 +351,12 @@ typedef struct _WNDFRAMEW {
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
-  BOOL bSplitWindow;                                //Edit window is splited
-  HWND hWndMaster;                                  //Master window
-  HWND hWndClone1;                                  //Clone window one
-  HWND hWndClone2;                                  //Clone window two
-  HWND hWndClone3;                                  //Clone window three
-  RECT rcMasterWindow;                              //Master window RECT
+  BOOL bSplitWindow;                                //Edit window is splited (4.x only)
+  HWND hWndMaster;                                  //Master window (4.x only)
+  HWND hWndClone1;                                  //Clone window one (4.x only)
+  HWND hWndClone2;                                  //Clone window two (4.x only)
+  HWND hWndClone3;                                  //Clone window three (4.x only)
+  RECT rcMasterWindow;                              //Master window RECT (4.x only)
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
@@ -420,18 +430,34 @@ typedef struct _PLUGINCALLPOSTW {
 } PLUGINCALLPOSTW;
 
 typedef struct _PLUGINOPTIONA {
-  char *szOptionName;            //Option name
-  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING
-  BYTE *lpData;                  //Data pointer
-  DWORD dwData;                  //Data size in bytes
+  char *szOptionName;            //Option name.
+  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
+  BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
+  DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONA;
 
 typedef struct _PLUGINOPTIONW {
-  wchar_t *wszOptionName;        //Option name
-  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING
-  BYTE *lpData;                  //Data pointer
-  DWORD dwData;                  //Data size in bytes
+  wchar_t *wszOptionName;        //Option name.
+  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
+  BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
+  DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONW;
+
+typedef struct _INIVALUEA {
+  char *szSection;               //Section name.
+  char *szKey;                   //Key name.
+  DWORD dwType;                  //Data type: see INI_* defines.
+  BYTE *lpData;                  //Data pointer. If NULL, AKD_INIGETVALUE returns required buffer size in bytes.
+  DWORD dwData;                  //Data size in bytes.
+} INIVALUEA;
+
+typedef struct _INIVALUEW {
+  wchar_t *wszSection;           //Section name.
+  wchar_t *wszKey;               //Key name.
+  DWORD dwType;                  //Data type: see INI_* defines.
+  BYTE *lpData;                  //Data pointer. If NULL, AKD_INIGETVALUE returns required buffer size in bytes.
+  DWORD dwData;                  //Data size in bytes.
+} INIVALUEW;
 
 typedef struct _GETTEXTRANGE {
   int cpMin;                      //First character in the range. First char of text: 0.
@@ -1034,6 +1060,15 @@ typedef struct _NSIZE {
 #define AKD_STRLENW                (WM_USER + 162)
 #define AKD_PROGRAMVERSION         (WM_USER + 163)
 #define AKD_PROGRAMARCHITECTURE    (WM_USER + 164)
+#define AKD_INIOPEN                (WM_USER + 201)
+#define AKD_INIGETSECTION          (WM_USER + 202)
+#define AKD_INICLEARSECTION        (WM_USER + 203)
+#define AKD_INIDELETESECTION       (WM_USER + 204)
+#define AKD_INIGETKEY              (WM_USER + 205)
+#define AKD_INIDELETEKEY           (WM_USER + 206)
+#define AKD_INIGETVALUE            (WM_USER + 207)
+#define AKD_INISETVALUE            (WM_USER + 208)
+#define AKD_INICLOSE               (WM_USER + 209)
 
 //AkelPad 4.x messages
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
@@ -1519,7 +1554,7 @@ Read or save plugin option.
                           (PLUGINOPTIONA *)lParam   if bOldWindows == TRUE
                           (PLUGINOPTIONW *)lParam   if bOldWindows == FALSE
 Return Value
- Length of the string copied to the buffer
+ Size of the data copied to the buffer
 
 Example:
  See AKD_BEGINOPTIONS examples
@@ -1539,6 +1574,248 @@ Return Value
 
 Example:
  See AKD_BEGINOPTIONS examples
+
+
+AKD_INIOPEN
+___________
+
+Opens ini file.
+
+(DWORD)wParam           == see POB_* defines
+(unsigned char *)lParam == ini file
+                           (char *)lParam      if bOldWindows == TRUE
+                           (wchar_t *)lParam   if bOldWindows == FALSE
+
+Return Value
+ HANDLE
+
+Example read (bOldWindows == TRUE):
+ INIVALUEA iv;
+ HANDLE hIniFile;
+ char szDir[MAX_PATH];
+
+ if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)"C:\\File.ini"))
+ {
+   iv.szSection="Options";
+   iv.szKey="SaveDir";
+   iv.dwType=INI_STRINGANSI;
+   iv.lpData=(LPBYTE)szDir;
+   iv.dwData=MAX_PATH;
+   SendMessage(pd->hMainWnd, AKD_INIGETVALUE, (WPARAM)hIniFile, (LPARAM)&iv);
+
+   SendMessage(pd->hMainWnd, AKD_INICLOSE, (WPARAM)hIniFile, 0);
+ }
+
+Example read (bOldWindows == FALSE):
+ INIVALUEW iv;
+ HANDLE hIniFile;
+ wchar_t wszDir[MAX_PATH];
+
+ if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)L"C:\\File.ini"))
+ {
+   iv.wszSection=L"Options";
+   iv.wszKey=L"SaveDir";
+   iv.dwType=INI_STRINGUNICODE;
+   iv.lpData=(LPBYTE)wszDir;
+   iv.dwData=MAX_PATH * sizeof(wchar_t);
+   SendMessage(pd->hMainWnd, AKD_INIGETVALUE, (WPARAM)hIniFile, (LPARAM)&iv);
+
+   SendMessage(pd->hMainWnd, AKD_INICLOSE, (WPARAM)hIniFile, 0);
+ }
+
+Example save (bOldWindows == TRUE):
+ INIVALUEA iv;
+ HANDLE hIniFile;
+ char szDir[MAX_PATH]="C:\\Temp";
+
+ if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)"C:\\File.ini"))
+ {
+   iv.szSection="Options";
+   iv.szKey="SaveDir";
+   iv.dwType=INI_STRINGANSI;
+   iv.lpData=(LPBYTE)szDir;
+   iv.dwData=lstrlenA(szDir) + 1;
+   SendMessage(pd->hMainWnd, AKD_INISETVALUE, (WPARAM)hIniFile, (LPARAM)&iv);
+
+   SendMessage(pd->hMainWnd, AKD_INICLOSE, (WPARAM)hIniFile, 0);
+ }
+
+Example save (bOldWindows == FALSE):
+ INIVALUEW iv;
+ HANDLE hIniFile;
+ wchar_t wszDir[MAX_PATH]=L"C:\\Temp";
+
+ if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)L"C:\\File.ini"))
+ {
+   iv.wszSection=L"Options";
+   iv.wszKey=L"SaveDir";
+   iv.dwType=INI_STRINGUNICODE;
+   iv.lpData=(LPBYTE)wszDir;
+   iv.dwData=lstrlenW(wszDir) * sizeof(wchar_t) + 2;
+   SendMessage(pd->hMainWnd, AKD_INISETVALUE, (WPARAM)hIniFile, (LPARAM)&iv);
+
+   SendMessage(pd->hMainWnd, AKD_INICLOSE, (WPARAM)hIniFile, 0);
+ }
+
+
+AKD_INIGETSECTION
+_________________
+
+Retrieve ini section handle.
+
+(HANDLE)wParam          == ini file handle
+(unsigned char *)lParam == section name
+                           (char *)lParam      if bOldWindows == TRUE
+                           (wchar_t *)lParam   if bOldWindows == FALSE
+
+Return Value
+ HANDLE
+
+Example (bOldWindows == TRUE):
+ HANDLE hIniSection;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
+   SendMessage(pd->hMainWnd, AKD_INICLEARSECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
+
+Example (bOldWindows == FALSE):
+ HANDLE hIniSection;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
+   SendMessage(pd->hMainWnd, AKD_INICLEARSECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
+
+
+AKD_INICLEARSECTION
+___________________
+
+Removes all keys in ini section.
+
+(HANDLE)wParam == ini file handle
+(HANDLE)lParam == ini section handle
+
+Return Value
+ zero
+
+Example:
+ See AKD_INIGETSECTION example
+
+
+AKD_INIDELETESECTION
+____________________
+
+Deletes ini section.
+
+(HANDLE)wParam == ini file handle
+(HANDLE)lParam == ini section handle
+
+Return Value
+ zero
+
+Example (bOldWindows == TRUE):
+ HANDLE hIniSection;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
+   SendMessage(pd->hMainWnd, AKD_INIDELETESECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
+
+Example (bOldWindows == FALSE):
+ HANDLE hIniSection;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
+   SendMessage(pd->hMainWnd, AKD_INIDELETESECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
+
+
+AKD_INIGETKEY
+_____________
+
+Retrieve key handle.
+
+(HANDLE)wParam          == ini section handle
+(unsigned char *)lParam == key name
+                           (char *)lParam      if bOldWindows == TRUE
+                           (wchar_t *)lParam   if bOldWindows == FALSE
+Return Value
+ HANDLE
+
+Example (bOldWindows == TRUE):
+ HANDLE hIniSection;
+ HANDLE hIniKey;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
+   if (hIniKey=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETKEY, (WPARAM)hIniSection, (LPARAM)"SaveDir"))
+     SendMessage(pd->hMainWnd, AKD_INIDELETEKEY, (WPARAM)hIniSection, (LPARAM)hIniKey);
+
+Example (bOldWindows == FALSE):
+ HANDLE hIniSection;
+ HANDLE hIniKey;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
+   if (hIniKey=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETKEY, (WPARAM)hIniSection, (LPARAM)L"SaveDir"))
+     SendMessage(pd->hMainWnd, AKD_INIDELETEKEY, (WPARAM)hIniSection, (LPARAM)hIniKey);
+
+
+AKD_INIDELETEKEY
+________________
+
+Deletes ini key.
+
+(HANDLE)wParam == ini section handle
+(HANDLE)lParam == key handle
+
+Return Value
+ zero
+
+Example:
+ See AKD_INIGETKEY examples
+
+
+AKD_INIGETVALUE
+_______________
+
+Retrieve ini value.
+
+(HANDLE)wParam     == ini file handle
+(INIVALUE *)lParam == pointer to a INIVALUE structure
+                      (INIVALUEA *)lParam   if bOldWindows == TRUE
+                      (INIVALUEW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ Size of the data copied to the buffer
+
+Example:
+ See AKD_INIOPEN examples
+
+
+AKD_INISETVALUE
+_______________
+
+Set ini value.
+
+(HANDLE)wParam     == ini file handle
+(INIVALUE *)lParam == pointer to a INIVALUE structure
+                      (INIVALUEA *)lParam   if bOldWindows == TRUE
+                      (INIVALUEW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ See AKD_INIOPEN examples
+
+
+AKD_INICLOSE
+____________
+
+Close ini file handle.
+
+(HANDLE)wParam == ini file handle
+lParam         == not used
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ See AKD_INIOPEN examples
 
 
 AKD_CALLPROC
