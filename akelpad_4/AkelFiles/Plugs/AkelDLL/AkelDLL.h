@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 0, 1, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 0, 2, 0)
 
 
 //// Defines
@@ -1574,6 +1574,233 @@ Return Value
 
 Example:
  See AKD_BEGINOPTIONS examples
+
+
+AKD_INIOPEN
+___________
+
+Opens ini file.
+
+(DWORD)wParam           == see POB_* defines
+(unsigned char *)lParam == ini file
+                           (char *)lParam      if bOldWindows == TRUE
+                           (wchar_t *)lParam   if bOldWindows == FALSE
+
+Return Value
+ HANDLE
+
+Example read (bOldWindows == TRUE):
+ INIVALUEA iv;
+ HANDLE hIniFile;
+ char szDir[MAX_PATH];
+
+ if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)"C:\\File.ini"))
+ {
+   iv.szSection="Options";
+   iv.szKey="SaveDir";
+   iv.dwType=INI_STRINGANSI;
+   iv.lpData=(LPBYTE)szDir;
+   iv.dwData=MAX_PATH;
+   SendMessage(pd->hMainWnd, AKD_INIGETVALUE, (WPARAM)hIniFile, (LPARAM)&iv);
+
+   SendMessage(pd->hMainWnd, AKD_INICLOSE, (WPARAM)hIniFile, 0);
+ }
+
+Example read (bOldWindows == FALSE):
+ INIVALUEW iv;
+ HANDLE hIniFile;
+ wchar_t wszDir[MAX_PATH];
+
+ if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)L"C:\\File.ini"))
+ {
+   iv.wszSection=L"Options";
+   iv.wszKey=L"SaveDir";
+   iv.dwType=INI_STRINGUNICODE;
+   iv.lpData=(LPBYTE)wszDir;
+   iv.dwData=MAX_PATH * sizeof(wchar_t);
+   SendMessage(pd->hMainWnd, AKD_INIGETVALUE, (WPARAM)hIniFile, (LPARAM)&iv);
+
+   SendMessage(pd->hMainWnd, AKD_INICLOSE, (WPARAM)hIniFile, 0);
+ }
+
+Example save (bOldWindows == TRUE):
+ INIVALUEA iv;
+ HANDLE hIniFile;
+ char szDir[MAX_PATH]="C:\\Temp";
+
+ if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)"C:\\File.ini"))
+ {
+   iv.szSection="Options";
+   iv.szKey="SaveDir";
+   iv.dwType=INI_STRINGANSI;
+   iv.lpData=(LPBYTE)szDir;
+   iv.dwData=lstrlenA(szDir) + 1;
+   SendMessage(pd->hMainWnd, AKD_INISETVALUE, (WPARAM)hIniFile, (LPARAM)&iv);
+
+   SendMessage(pd->hMainWnd, AKD_INICLOSE, (WPARAM)hIniFile, 0);
+ }
+
+Example save (bOldWindows == FALSE):
+ INIVALUEW iv;
+ HANDLE hIniFile;
+ wchar_t wszDir[MAX_PATH]=L"C:\\Temp";
+
+ if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)L"C:\\File.ini"))
+ {
+   iv.wszSection=L"Options";
+   iv.wszKey=L"SaveDir";
+   iv.dwType=INI_STRINGUNICODE;
+   iv.lpData=(LPBYTE)wszDir;
+   iv.dwData=lstrlenW(wszDir) * sizeof(wchar_t) + 2;
+   SendMessage(pd->hMainWnd, AKD_INISETVALUE, (WPARAM)hIniFile, (LPARAM)&iv);
+
+   SendMessage(pd->hMainWnd, AKD_INICLOSE, (WPARAM)hIniFile, 0);
+ }
+
+
+AKD_INIGETSECTION
+_________________
+
+Retrieve ini section handle.
+
+(HANDLE)wParam          == ini file handle
+(unsigned char *)lParam == section name
+                           (char *)lParam      if bOldWindows == TRUE
+                           (wchar_t *)lParam   if bOldWindows == FALSE
+
+Return Value
+ HANDLE
+
+Example (bOldWindows == TRUE):
+ HANDLE hIniSection;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
+   SendMessage(pd->hMainWnd, AKD_INICLEARSECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
+
+Example (bOldWindows == FALSE):
+ HANDLE hIniSection;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
+   SendMessage(pd->hMainWnd, AKD_INICLEARSECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
+
+
+AKD_INICLEARSECTION
+___________________
+
+Removes all keys in ini section.
+
+(HANDLE)wParam == ini file handle
+(HANDLE)lParam == ini section handle
+
+Return Value
+ zero
+
+Example:
+ See AKD_INIGETSECTION example
+
+
+AKD_INIDELETESECTION
+____________________
+
+Deletes ini section.
+
+(HANDLE)wParam == ini file handle
+(HANDLE)lParam == ini section handle
+
+Return Value
+ zero
+
+Example (bOldWindows == TRUE):
+ HANDLE hIniSection;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
+   SendMessage(pd->hMainWnd, AKD_INIDELETESECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
+
+Example (bOldWindows == FALSE):
+ HANDLE hIniSection;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
+   SendMessage(pd->hMainWnd, AKD_INIDELETESECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
+
+
+AKD_INIGETKEY
+_____________
+
+Retrieve key handle.
+
+(HANDLE)wParam          == ini section handle
+(unsigned char *)lParam == key name
+                           (char *)lParam      if bOldWindows == TRUE
+                           (wchar_t *)lParam   if bOldWindows == FALSE
+Return Value
+ HANDLE
+
+Example (bOldWindows == TRUE):
+ HANDLE hIniSection;
+ HANDLE hIniKey;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
+   if (hIniKey=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETKEY, (WPARAM)hIniSection, (LPARAM)"SaveDir"))
+     SendMessage(pd->hMainWnd, AKD_INIDELETEKEY, (WPARAM)hIniSection, (LPARAM)hIniKey);
+
+Example (bOldWindows == FALSE):
+ HANDLE hIniSection;
+ HANDLE hIniKey;
+
+ if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
+   if (hIniKey=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETKEY, (WPARAM)hIniSection, (LPARAM)L"SaveDir"))
+     SendMessage(pd->hMainWnd, AKD_INIDELETEKEY, (WPARAM)hIniSection, (LPARAM)hIniKey);
+
+
+AKD_INIGETVALUE
+_______________
+
+Retrieve ini value.
+
+(HANDLE)wParam     == ini file handle
+(INIVALUE *)lParam == pointer to a INIVALUE structure
+                      (INIVALUEA *)lParam   if bOldWindows == TRUE
+                      (INIVALUEW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ Length of the string copied to the buffer
+
+Example:
+ See AKD_INIOPEN examples
+
+
+AKD_INISETVALUE
+_______________
+
+Set ini value.
+
+(HANDLE)wParam     == ini file handle
+(INIVALUE *)lParam == pointer to a INIVALUE structure
+                      (INIVALUEA *)lParam   if bOldWindows == TRUE
+                      (INIVALUEW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ See AKD_INIOPEN examples
+
+
+AKD_INICLOSE
+____________
+
+Close ini file handle.
+
+(HANDLE)wParam == ini file handle
+lParam         == not used
+
+Return Value
+ TRUE   success
+ FALSE  failed
+
+Example:
+ See AKD_INIOPEN examples
 
 
 AKD_CALLPROC
