@@ -9897,7 +9897,7 @@ int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText)
   }
   if (nMin < nMax)
   {
-    nLen=(nMax - nMin) + 1;
+    nLen=(nMax - nMin);
 
     if (*pText=(char *)API_HeapAlloc(hHeap, 0, nLen + 1))
     {
@@ -9926,7 +9926,7 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
   }
   if (nMin < nMax)
   {
-    nLen=(nMax - nMin) + 1;
+    nLen=(nMax - nMin);
 
     if (*wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t) + 2))
     {

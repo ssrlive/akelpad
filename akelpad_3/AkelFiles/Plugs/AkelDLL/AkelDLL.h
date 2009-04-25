@@ -2089,7 +2089,7 @@ Example:
  wchar_t *wpText;
  int nTextLen=0;
 
- wpText=SendMessage(pd->hMainWnd, AKD_GETSELTEXTW, (WPARAM)pd->hWndEdit, (LPARAM)&nTextLen);
+ wpText=(wchar_t *)SendMessage(pd->hMainWnd, AKD_GETSELTEXTW, (WPARAM)pd->hWndEdit, (LPARAM)&nTextLen);
  SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpText);
 
 
