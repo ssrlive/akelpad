@@ -115,13 +115,6 @@
 //Search dialog
 #define IDC_COMBOBOX_EDIT              1001
 
-//WM_INITMENU lParam
-#define IMENU_EDIT     0x00000001
-#define IMENU_CHECKS   0x00000004
-
-//WM_COPYDATA
-#define CD_OPENDOCUMENT   1
-
 //Language identifiers
 #define LANGID_RUSSIAN    0x0419
 #define LANGID_ENGLISH    0x0409
@@ -137,59 +130,11 @@
 #define CP_UNICODE_UTF8     65001
 #define CP_KOI8_R           20866
 
-//INI value types
-#define INI_DWORD           1
-#define INI_BINARY          2
-#define INI_STRINGANSI      3
-#define INI_STRINGUNICODE   4
-
-//Save type
-#define SS_REGISTRY 1
-#define SS_INI      2
-
-//New line formats
-#define NEWLINE_WIN   1
-#define NEWLINE_UNIX  2
-#define NEWLINE_MAC   3
-
-//Autoanswer
-#define AUTOANSWER_ASK  0
-#define AUTOANSWER_YES  1
-#define AUTOANSWER_NO   2
-
 //Sides
 #define SIDE_LEFT    0x00000001
 #define SIDE_RIGHT   0x00000002
 #define SIDE_TOP     0x00000004
 #define SIDE_BOTTOM  0x00000008
-
-//Dock side
-#define DKS_LEFT    1
-#define DKS_RIGHT   2
-#define DKS_TOP     3
-#define DKS_BOTTOM  4
-
-//Dock flags
-#define DKF_OWNTHREAD     0x00000001
-#define DKF_FIXEDSIZE     0x00000002
-#define DKF_DRAGDROP      0x00000004
-#define DKF_HIDDEN        0x00000008
-#define DKF_NODROPLEFT    0x00000010
-#define DKF_NODROPRIGHT   0x00000020
-#define DKF_NODROPTOP     0x00000040
-#define DKF_NODROPBOTTOM  0x00000080
-
-//Dock action
-#define DK_ADD         0x00000001
-#define DK_DELETE      0x00000002
-#define DK_SUBCLASS    0x00000004
-#define DK_UNSUBCLASS  0x00000008
-#define DK_SETLEFT     0x00000010
-#define DK_SETRIGHT    0x00000020
-#define DK_SETTOP      0x00000040
-#define DK_SETBOTTOM   0x00000080
-#define DK_HIDE        0x00000100
-#define DK_SHOW        0x00000200
 
 //Clone window
 #define CN_EDIT    0x00000001
@@ -217,38 +162,6 @@
 #define EDT_ALLOC         -2
 #define EDT_READ          -3
 #define EDT_BINARY        -4
-
-//Open document flags
-#define OD_ADT_BINARY_ERROR      0x00000001
-#define OD_ADT_REG_CODEPAGE      0x00000002
-#define OD_ADT_DETECT_CODEPAGE   0x00000004
-#define OD_ADT_DETECT_BOM        0x00000008
-
-//Open document errors
-#define EOD_SUCCESS              0
-#define EOD_ADT_OPEN            -1
-#define EOD_ADT_ALLOC           -2
-#define EOD_ADT_READ            -3
-#define EOD_ADT_BINARY          -4
-#define EOD_OPEN                -5
-#define EOD_CANCEL              -6
-#define EOD_WINDOW_EXIST        -7
-#define EOD_CODEPAGE_ERROR      -8
-#define EOD_STOP                -9
-#define EOD_STREAMIN           -10
-
-//Save document flags
-#define SD_UPDATE            0x00000001
-#define SD_SELECTION         0x00000002
-
-//Save document errors
-#define ESD_SUCCESS          0
-#define ESD_OPEN            -1
-#define ESD_WRITE           -2
-#define ESD_READONLY        -3
-#define ESD_CODEPAGE_ERROR  -4
-#define ESD_STOP            -5
-#define ESD_STREAMOUT       -6
 
 //Search/Replace options
 #define AEFR_UP          0x00100000
@@ -315,38 +228,6 @@
 #define LVSI_FUNCTION_NAME     0
 #define LVSI_FUNCTION_HOTKEY   1
 #define LVSI_FUNCTION_STATUS   2
-
-//CallPlugin errors
-#define EDL_FAILED                 0
-#define EDL_UNLOADED               1
-#define EDL_NONUNLOADED_ACTIVE     2
-#define EDL_NONUNLOADED_NONACTIVE  3
-#define EDL_NONUNLOADED            4
-
-//PLUGINDATA
-#define UD_UNLOAD               0
-#define UD_NONUNLOAD_ACTIVE     1
-#define UD_NONUNLOAD_NONACTIVE  2
-#define UD_NONUNLOAD            3
-
-//Options flags
-#define POB_READ    0x1
-#define POB_SAVE    0x2
-#define POB_CLEAR   0x4
-
-//Option type
-#define PO_DWORD    1
-#define PO_BINARY   2
-#define PO_STRING   3
-
-//Save plugins stack
-#define DLLS_CLEAR   1
-#define DLLS_ONEXIT  2
-
-//NCONTEXTMENU
-#define NCM_EDIT    1
-#define NCM_TAB     2
-#define NCM_STATUS  3
 
 
 //// Structures
@@ -548,24 +429,23 @@ void DoHelpAboutA();
 void DoHelpAboutW();
 void DoNonMenuDelLine(HWND hWnd);
 
-BOOL OpenIniA(HSTACK *hIniStack, char *pFile);
-BOOL OpenIniW(HSTACK *hIniStack, wchar_t *wpFile);
-BOOL CreateIniA(HSTACK *hIniStack, char *pFile);
-BOOL CreateIniW(HSTACK *hIniStack, wchar_t *wpFile);
-BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile);
+BOOL OpenIniA(HSTACK *hIniStack, char *pFile, BOOL bCreate);
+BOOL OpenIniW(HSTACK *hIniStack, wchar_t *wpFile, BOOL bCreate);
 BOOL SaveIniA(HSTACK *hIniStack, char *pFile);
 BOOL SaveIniW(HSTACK *hIniStack, wchar_t *wpFile);
+BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile);
 BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile);
 HINISECTION* StackGetIniSectionA(HSTACK *hIniStack, char *pSection, int nSectionLen);
 HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSectionLen);
-HINIKEY* StackGetIniKeyA(HSTACK *hKeysStack, char *pKey, int nKeyLen);
-HINIKEY* StackGetIniKeyW(HSTACK *hKeysStack, wchar_t *wpKey, int nKeyLen);
-void StackFreeIni(HSTACK *hIniStack);
-void StackFreeIniSection(HSTACK *hKeysStack);
+HINIKEY* StackGetIniKeyA(HINISECTION *lpIniSection, char *pKey, int nKeyLen);
+HINIKEY* StackGetIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen);
 int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
+void StackDeleteIniKey(HINISECTION *lpIniSection, HINIKEY *lpIniKey);
+void StackDeleteIniSection(HSTACK *hIniStack, HINISECTION *lpIniSection, BOOL bClear);
+void StackFreeIni(HSTACK *hIniStack);
 DWORD HexStrToDataA(char *pHexStr, unsigned char *lpData, DWORD dwDataBytes);
 DWORD HexStrToDataW(wchar_t *wpHexStr, unsigned char *lpData, DWORD dwDataBytes);
 

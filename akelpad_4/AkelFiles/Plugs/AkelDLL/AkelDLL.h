@@ -85,6 +85,12 @@
 #define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
 #define SPT_LINEWRAP    0x00000002  //Wrap line numbers. By default: Non-wrap line numbers.
 
+//INI value types
+#define INI_DWORD           1
+#define INI_BINARY          2
+#define INI_STRINGANSI      3
+#define INI_STRINGUNICODE   4
+
 //Options flags
 #define POB_READ     0x1  //Begins read options
 #define POB_SAVE     0x2  //Begins save options
@@ -149,6 +155,10 @@
 #define DK_SETBOTTOM   0x00000080  //Set DKS_BOTTOM side
 #define DK_HIDE        0x00000100  //Hide dockable window and set DKF_HIDDEN flag
 #define DK_SHOW        0x00000200  //Show dockable window and remove DKF_HIDDEN flag
+
+//WM_INITMENU lParam
+#define IMENU_EDIT     0x00000001
+#define IMENU_CHECKS   0x00000004
 
 
 //// Structures
@@ -432,6 +442,22 @@ typedef struct _PLUGINOPTIONW {
   BYTE *lpData;                  //Data pointer
   DWORD dwData;                  //Data size in bytes
 } PLUGINOPTIONW;
+
+typedef struct _INIVALUEA {
+  char *szSection;               //Section name
+  char *szKey;                   //Key name
+  DWORD dwType;                  //Data type: see INI_* defines
+  BYTE *lpData;                  //Data pointer
+  DWORD dwData;                  //Data size in bytes
+} INIVALUEA;
+
+typedef struct _INIVALUEW {
+  wchar_t *wszSection;           //Section name
+  wchar_t *wszKey;               //Key name
+  DWORD dwType;                  //Data type: see INI_* defines
+  BYTE *lpData;                  //Data pointer
+  DWORD dwData;                  //Data size in bytes
+} INIVALUEW;
 
 typedef struct _GETTEXTRANGE {
   int cpMin;                      //First character in the range. First char of text: 0.
@@ -1034,6 +1060,15 @@ typedef struct _NSIZE {
 #define AKD_STRLENW                (WM_USER + 162)
 #define AKD_PROGRAMVERSION         (WM_USER + 163)
 #define AKD_PROGRAMARCHITECTURE    (WM_USER + 164)
+#define AKD_INIOPEN                (WM_USER + 201)
+#define AKD_INIGETSECTION          (WM_USER + 202)
+#define AKD_INICLEARSECTION        (WM_USER + 203)
+#define AKD_INIDELETESECTION       (WM_USER + 204)
+#define AKD_INIGETKEY              (WM_USER + 205)
+#define AKD_INIDELETEKEY           (WM_USER + 206)
+#define AKD_INIGETVALUE            (WM_USER + 207)
+#define AKD_INISETVALUE            (WM_USER + 208)
+#define AKD_INICLOSE               (WM_USER + 209)
 
 //AkelPad 4.x messages
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)

@@ -7623,6 +7623,7 @@ void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
     lpElement=lpElement->next;
   }
   AE_HeapStackClear(NULL, (stack **)&aeti->hWordStack.first, (stack **)&aeti->hWordStack.last);
+  AE_memset(aeti->hWordStack.lpWordLens, 0, MAX_PATH * sizeof(int));
 }
 
 AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nQuoteStartLen)
