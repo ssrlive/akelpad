@@ -25,9 +25,13 @@
 #include "ConvFunc.h"
 
 //Include stack functions
-#define StackElement
-#define StackInsert
-#define StackMove
+#define StackGetElement
+#define StackInsertAfter
+#define StackInsertBefore
+#define StackInsertIndex
+#define StackMoveAfter
+#define StackMoveBefore
+#define StackMoveIndex
 #define StackDelete
 #define StackClear
 #include "StackFunc.h"
@@ -430,7 +434,7 @@ extern "C" void _WinMain()
 
     //Read options
     wsprintfA(szIniFile, "%s\\AkelPad.ini", szExeDir);
-    if (OpenIniA(&hIniStack, szIniFile))
+    if (OpenIniA(&hIniStack, szIniFile, FALSE))
       IniGetValueA(&hIniStack, "Options", "SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD));
     if (nSaveSettings == SS_REGISTRY)
     {
@@ -849,7 +853,7 @@ extern "C" void _WinMain()
 
     //Read options
     wsprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
-    if (OpenIniW(&hIniStack, wszIniFile))
+    if (OpenIniW(&hIniStack, wszIniFile, FALSE))
       IniGetValueW(&hIniStack, L"Options", L"SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD));
     if (nSaveSettings == SS_REGISTRY)
     {
@@ -1799,7 +1803,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (ih->dwType & POB_READ)
           {
-            if (!OpenIniA(&ih->hStack, ih->szIniFile))
+            if (!OpenIniA(&ih->hStack, ih->szIniFile, FALSE))
             {
               API_HeapFree(hHeap, 0, (LPVOID)ih);
               ih=NULL;
@@ -1807,7 +1811,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else if (ih->dwType & POB_SAVE)
           {
-            if (!CreateIniA(&ih->hStack, ih->szIniFile))
+            if (!OpenIniA(&ih->hStack, ih->szIniFile, TRUE))
             {
               API_HeapFree(hHeap, 0, (LPVOID)ih);
               ih=NULL;
@@ -1819,7 +1823,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 HINISECTION *lpIniSection;
 
                 if (lpIniSection=StackGetIniSectionA(&ih->hStack, "Options", lstrlenA("Options")))
-                  StackFreeIniSection(&lpIniSection->hSectionStack);
+                  StackDeleteIniSection(&ih->hStack, lpIniSection, TRUE);
               }
             }
           }
@@ -1908,6 +1912,89 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           StackFreeIni(&ih->hStack);
           API_HeapFree(hHeap, 0, (LPVOID)ih);
         }
+      }
+      return bResult;
+    }
+    if (uMsg == AKD_INIOPEN)
+    {
+      INIHANDLEA *ih;
+      BOOL bCreate;
+
+      if (ih=(INIHANDLEA *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(INIHANDLEA)))
+      {
+        ih->dwType=wParam;
+        if (ih->dwType & POB_READ)
+          bCreate=FALSE;
+        else if (ih->dwType & POB_SAVE)
+          bCreate=TRUE;
+        lstrcpynA(ih->szIniFile, (char *)lParam, MAX_PATH);
+
+        if (!OpenIniA(&ih->hStack, ih->szIniFile, bCreate))
+        {
+          API_HeapFree(hHeap, 0, (LPVOID)ih);
+          ih=NULL;
+        }
+      }
+      return (LRESULT)ih;
+    }
+    if (uMsg == AKD_INIGETSECTION)
+    {
+      INIHANDLEA *ih=(INIHANDLEA *)wParam;
+      char *pSection=(char *)lParam;
+
+      return (LRESULT)StackGetIniSectionA(&ih->hStack, pSection, lstrlenA(pSection));
+    }
+    if (uMsg == AKD_INICLEARSECTION ||
+        uMsg == AKD_INIDELETESECTION)
+    {
+      INIHANDLEA *ih=(INIHANDLEA *)wParam;
+      HINISECTION *lpIniSection=(HINISECTION *)lParam;
+
+      StackDeleteIniSection(&ih->hStack, lpIniSection, (uMsg == AKD_INICLEARSECTION)?TRUE:FALSE);
+      return 0;
+    }
+    if (uMsg == AKD_INIGETKEY)
+    {
+      HINISECTION *lpIniSection=(HINISECTION *)wParam;
+      char *pKey=(char *)lParam;
+
+      return (LRESULT)StackGetIniKeyA(lpIniSection, pKey, lstrlenA(pKey));
+    }
+    if (uMsg == AKD_INIDELETEKEY)
+    {
+      HINISECTION *lpIniSection=(HINISECTION *)wParam;
+      HINIKEY *lpIniKey=(HINIKEY *)lParam;
+
+      StackDeleteIniKey(lpIniSection, lpIniKey);
+      return 0;
+    }
+    if (uMsg == AKD_INIGETVALUE)
+    {
+      INIHANDLEA *ih=(INIHANDLEA *)wParam;
+      INIVALUEA *iv=(INIVALUEA *)lParam;
+
+      return IniGetValueA(&ih->hStack, iv->szSection, iv->szKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+    }
+    if (uMsg == AKD_INISETVALUE)
+    {
+      INIHANDLEA *ih=(INIHANDLEA *)wParam;
+      INIVALUEA *iv=(INIVALUEA *)lParam;
+
+      return IniSetValueA(&ih->hStack, iv->szSection, iv->szKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+    }
+    if (uMsg == AKD_INICLOSE)
+    {
+      INIHANDLEA *ih=(INIHANDLEA *)wParam;
+      BOOL bResult=FALSE;
+
+      if (ih)
+      {
+        if (ih->dwType & POB_READ)
+          bResult=TRUE;
+        else if (ih->dwType & POB_SAVE)
+          bResult=SaveIniA(&ih->hStack, ih->szIniFile);
+        StackFreeIni(&ih->hStack);
+        API_HeapFree(hHeap, 0, (LPVOID)ih);
       }
       return bResult;
     }
@@ -3497,7 +3584,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (ih->dwType & POB_READ)
           {
-            if (!OpenIniW(&ih->hStack, ih->wszIniFile))
+            if (!OpenIniW(&ih->hStack, ih->wszIniFile, FALSE))
             {
               API_HeapFree(hHeap, 0, (LPVOID)ih);
               ih=NULL;
@@ -3505,7 +3592,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else if (ih->dwType & POB_SAVE)
           {
-            if (!CreateIniW(&ih->hStack, ih->wszIniFile))
+            if (!OpenIniW(&ih->hStack, ih->wszIniFile, TRUE))
             {
               API_HeapFree(hHeap, 0, (LPVOID)ih);
               ih=NULL;
@@ -3517,7 +3604,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 HINISECTION *lpIniSection;
 
                 if (lpIniSection=StackGetIniSectionW(&ih->hStack, L"Options", lstrlenW(L"Options")))
-                  StackFreeIniSection(&lpIniSection->hSectionStack);
+                  StackDeleteIniSection(&ih->hStack, lpIniSection, TRUE);
               }
             }
           }
@@ -3606,6 +3693,89 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           StackFreeIni(&ih->hStack);
           API_HeapFree(hHeap, 0, (LPVOID)ih);
         }
+      }
+      return bResult;
+    }
+    if (uMsg == AKD_INIOPEN)
+    {
+      INIHANDLEW *ih;
+      BOOL bCreate;
+
+      if (ih=(INIHANDLEW *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(INIHANDLEW)))
+      {
+        ih->dwType=wParam;
+        if (ih->dwType & POB_READ)
+          bCreate=FALSE;
+        else if (ih->dwType & POB_SAVE)
+          bCreate=TRUE;
+        lstrcpynW(ih->wszIniFile, (wchar_t *)lParam, MAX_PATH);
+
+        if (!OpenIniW(&ih->hStack, ih->wszIniFile, bCreate))
+        {
+          API_HeapFree(hHeap, 0, (LPVOID)ih);
+          ih=NULL;
+        }
+      }
+      return (LRESULT)ih;
+    }
+    if (uMsg == AKD_INIGETSECTION)
+    {
+      INIHANDLEW *ih=(INIHANDLEW *)wParam;
+      wchar_t *wpSection=(wchar_t *)lParam;
+
+      return (LRESULT)StackGetIniSectionW(&ih->hStack, wpSection, lstrlenW(wpSection));
+    }
+    if (uMsg == AKD_INICLEARSECTION ||
+        uMsg == AKD_INIDELETESECTION)
+    {
+      INIHANDLEW *ih=(INIHANDLEW *)wParam;
+      HINISECTION *lpIniSection=(HINISECTION *)lParam;
+
+      StackDeleteIniSection(&ih->hStack, lpIniSection, (uMsg == AKD_INICLEARSECTION)?TRUE:FALSE);
+      return 0;
+    }
+    if (uMsg == AKD_INIGETKEY)
+    {
+      HINISECTION *lpIniSection=(HINISECTION *)wParam;
+      wchar_t *wpKey=(wchar_t *)lParam;
+
+      return (LRESULT)StackGetIniKeyW(lpIniSection, wpKey, lstrlenW(wpKey));
+    }
+    if (uMsg == AKD_INIDELETEKEY)
+    {
+      HINISECTION *lpIniSection=(HINISECTION *)wParam;
+      HINIKEY *lpIniKey=(HINIKEY *)lParam;
+
+      StackDeleteIniKey(lpIniSection, lpIniKey);
+      return 0;
+    }
+    if (uMsg == AKD_INIGETVALUE)
+    {
+      INIHANDLEW *ih=(INIHANDLEW *)wParam;
+      INIVALUEW *iv=(INIVALUEW *)lParam;
+
+      return IniGetValueW(&ih->hStack, iv->wszSection, iv->wszKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+    }
+    if (uMsg == AKD_INISETVALUE)
+    {
+      INIHANDLEW *ih=(INIHANDLEW *)wParam;
+      INIVALUEW *iv=(INIVALUEW *)lParam;
+
+      return IniSetValueW(&ih->hStack, iv->wszSection, iv->wszKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+    }
+    if (uMsg == AKD_INICLOSE)
+    {
+      INIHANDLEW *ih=(INIHANDLEW *)wParam;
+      BOOL bResult=FALSE;
+
+      if (ih)
+      {
+        if (ih->dwType & POB_READ)
+          bResult=TRUE;
+        else if (ih->dwType & POB_SAVE)
+          bResult=SaveIniW(&ih->hStack, ih->wszIniFile);
+        StackFreeIni(&ih->hStack);
+        API_HeapFree(hHeap, 0, (LPVOID)ih);
       }
       return bResult;
     }
