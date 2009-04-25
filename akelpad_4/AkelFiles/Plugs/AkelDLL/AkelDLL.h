@@ -305,8 +305,8 @@ typedef struct _WNDFRAMEA {
   int nUndoLimit;                                   //Undo limit
   BOOL bDetailedUndo;                               //Detailed undo
   int nWrapType;                                    //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
-  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge
-  DWORD dwMarker;                                   //Vertical marker, zero if no marker set
+  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge (4.x only)
+  DWORD dwMarker;                                   //Vertical marker, zero if no marker set (4.x only)
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
@@ -317,12 +317,12 @@ typedef struct _WNDFRAMEA {
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
-  BOOL bSplitWindow;                                //Edit window is splited
-  HWND hWndMaster;                                  //Master window
-  HWND hWndClone1;                                  //Clone window one
-  HWND hWndClone2;                                  //Clone window two
-  HWND hWndClone3;                                  //Clone window three
-  RECT rcMasterWindow;                              //Master window RECT
+  BOOL bSplitWindow;                                //Edit window is splited (4.x only)
+  HWND hWndMaster;                                  //Master window (4.x only)
+  HWND hWndClone1;                                  //Clone window one (4.x only)
+  HWND hWndClone2;                                  //Clone window two (4.x only)
+  HWND hWndClone3;                                  //Clone window three (4.x only)
+  RECT rcMasterWindow;                              //Master window RECT (4.x only)
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
@@ -339,8 +339,8 @@ typedef struct _WNDFRAMEW {
   int nUndoLimit;                                   //Undo limit
   BOOL bDetailedUndo;                               //Detailed undo
   int nWrapType;                                    //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
-  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge
-  DWORD dwMarker;                                   //Vertical marker, zero if no marker set
+  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge (4.x only)
+  DWORD dwMarker;                                   //Vertical marker, zero if no marker set (4.x only)
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
@@ -351,12 +351,12 @@ typedef struct _WNDFRAMEW {
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
-  BOOL bSplitWindow;                                //Edit window is splited
-  HWND hWndMaster;                                  //Master window
-  HWND hWndClone1;                                  //Clone window one
-  HWND hWndClone2;                                  //Clone window two
-  HWND hWndClone3;                                  //Clone window three
-  RECT rcMasterWindow;                              //Master window RECT
+  BOOL bSplitWindow;                                //Edit window is splited (4.x only)
+  HWND hWndMaster;                                  //Master window (4.x only)
+  HWND hWndClone1;                                  //Clone window one (4.x only)
+  HWND hWndClone2;                                  //Clone window two (4.x only)
+  HWND hWndClone3;                                  //Clone window three (4.x only)
+  RECT rcMasterWindow;                              //Master window RECT (4.x only)
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {
@@ -430,33 +430,33 @@ typedef struct _PLUGINCALLPOSTW {
 } PLUGINCALLPOSTW;
 
 typedef struct _PLUGINOPTIONA {
-  char *szOptionName;            //Option name
-  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING
-  BYTE *lpData;                  //Data pointer
-  DWORD dwData;                  //Data size in bytes
+  char *szOptionName;            //Option name.
+  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
+  BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
+  DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONA;
 
 typedef struct _PLUGINOPTIONW {
-  wchar_t *wszOptionName;        //Option name
-  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING
-  BYTE *lpData;                  //Data pointer
-  DWORD dwData;                  //Data size in bytes
+  wchar_t *wszOptionName;        //Option name.
+  DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
+  BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
+  DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONW;
 
 typedef struct _INIVALUEA {
-  char *szSection;               //Section name
-  char *szKey;                   //Key name
-  DWORD dwType;                  //Data type: see INI_* defines
-  BYTE *lpData;                  //Data pointer
-  DWORD dwData;                  //Data size in bytes
+  char *szSection;               //Section name.
+  char *szKey;                   //Key name.
+  DWORD dwType;                  //Data type: see INI_* defines.
+  BYTE *lpData;                  //Data pointer. If NULL, AKD_INIGETVALUE returns required buffer size in bytes.
+  DWORD dwData;                  //Data size in bytes.
 } INIVALUEA;
 
 typedef struct _INIVALUEW {
-  wchar_t *wszSection;           //Section name
-  wchar_t *wszKey;               //Key name
-  DWORD dwType;                  //Data type: see INI_* defines
-  BYTE *lpData;                  //Data pointer
-  DWORD dwData;                  //Data size in bytes
+  wchar_t *wszSection;           //Section name.
+  wchar_t *wszKey;               //Key name.
+  DWORD dwType;                  //Data type: see INI_* defines.
+  BYTE *lpData;                  //Data pointer. If NULL, AKD_INIGETVALUE returns required buffer size in bytes.
+  DWORD dwData;                  //Data size in bytes.
 } INIVALUEW;
 
 typedef struct _GETTEXTRANGE {
@@ -1554,7 +1554,7 @@ Read or save plugin option.
                           (PLUGINOPTIONA *)lParam   if bOldWindows == TRUE
                           (PLUGINOPTIONW *)lParam   if bOldWindows == FALSE
 Return Value
- Length of the string copied to the buffer
+ Size of the data copied to the buffer
 
 Example:
  See AKD_BEGINOPTIONS examples
@@ -1752,6 +1752,21 @@ Example (bOldWindows == FALSE):
      SendMessage(pd->hMainWnd, AKD_INIDELETEKEY, (WPARAM)hIniSection, (LPARAM)hIniKey);
 
 
+AKD_INIDELETEKEY
+________________
+
+Deletes ini key.
+
+(HANDLE)wParam == ini section handle
+(HANDLE)lParam == key handle
+
+Return Value
+ zero
+
+Example:
+ See AKD_INIGETKEY examples
+
+
 AKD_INIGETVALUE
 _______________
 
@@ -1763,7 +1778,7 @@ Retrieve ini value.
                       (INIVALUEW *)lParam   if bOldWindows == FALSE
 
 Return Value
- Length of the string copied to the buffer
+ Size of the data copied to the buffer
 
 Example:
  See AKD_INIOPEN examples
