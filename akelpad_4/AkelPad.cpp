@@ -3120,6 +3120,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return (LRESULT)NULL;
     }
+    else if (LOWORD(wParam) == IDM_NONMENU_COLUMNPASTE)
+    {
+      return ColumnPaste(hWndEdit);
+    }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
       RECT rc;
@@ -4973,6 +4977,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
       return (LRESULT)NULL;
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_COLUMNPASTE)
+    {
+      return ColumnPaste(hWndEdit);
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
