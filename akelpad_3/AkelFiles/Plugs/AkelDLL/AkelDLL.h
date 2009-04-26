@@ -949,6 +949,9 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_CLONEPREV           4428  //Activate previous pane (split window)
                                               //Return Value: activated pane handle
                                               //
+#define IDM_NONMENU_COLUMNPASTE         4429  //Paste to column selection
+                                              //Return Value:  TRUE - success, FALSE - failed
+                                              //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files
                                               //5001 + n  open recent file n
                                               //Return Value: zero
