@@ -113,6 +113,7 @@ HSTACK hIniStack={0};
 char szIniFile[MAX_PATH];
 wchar_t wszIniFile[MAX_PATH];
 int nSaveSettings=SS_REGISTRY;
+int nRegSaveSettings=SS_REGISTRY;
 
 //Main Window
 HWND hMainWnd;
@@ -461,17 +462,12 @@ extern "C" void _WinMain()
     //Read options
     wsprintfA(szIniFile, "%s\\AkelPad.ini", szExeDir);
     if (OpenIniA(&hIniStack, szIniFile, FALSE))
+    {
       IniGetValueA(&hIniStack, "Options", "SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD));
-    if (nSaveSettings == SS_REGISTRY)
-    {
-      RegReadOptionsA();
-      RegRegisterPluginsHotkeysA();
+      nRegSaveSettings=nSaveSettings;
     }
-    else
-    {
-      IniReadOptionsA();
-      IniRegisterPluginsHotkeysA();
-    }
+    ReadOptionsA();
+    RegisterPluginsHotkeysA();
     ReadThemesA();
     StackFreeIni(&hIniStack);
 
@@ -885,17 +881,12 @@ extern "C" void _WinMain()
     //Read options
     wsprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
     if (OpenIniW(&hIniStack, wszIniFile, FALSE))
+    {
       IniGetValueW(&hIniStack, L"Options", L"SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD));
-    if (nSaveSettings == SS_REGISTRY)
-    {
-      RegReadOptionsW();
-      RegRegisterPluginsHotkeysW();
+      nRegSaveSettings=nSaveSettings;
     }
-    else
-    {
-      IniReadOptionsW();
-      IniRegisterPluginsHotkeysW();
-    }
+    ReadOptionsW();
+    RegisterPluginsHotkeysW();
     ReadThemesW();
     StackFreeIni(&hIniStack);
 
@@ -2599,10 +2590,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!bMDI || !bSingleOpenProgram)
       {
-        if (nSaveSettings == SS_REGISTRY)
-          RegSaveOptionsA();
-        else
-          IniSaveOptionsA();
+        SaveOptionsA();
       }
       return (int)DoFileNewWindowA(0);
     }
@@ -2930,18 +2918,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_FILE)
     {
       DoSettingsSingleOpenFile(!bSingleOpenFile);
-      if (nSaveSettings == SS_REGISTRY)
-        RegSaveOptionsA();
-      else
-        IniSaveOptionsA();
+      SaveOptionsA();
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_PROGRAM)
     {
       DoSettingsSingleOpenProgram(!bSingleOpenProgram);
-      if (nSaveSettings == SS_REGISTRY)
-        RegSaveOptionsA();
-      else
-        IniSaveOptionsA();
+      SaveOptionsA();
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SDI)
     {
@@ -3322,10 +3304,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_DESTROY)
   {
     //Save options
-    if (nSaveSettings == SS_REGISTRY)
-      RegSaveOptionsA();
-    else
-      IniSaveOptionsA();
+    SaveOptionsA();
 
     //Save plugin stack
     if (bSavePluginsStackOnExit)
@@ -4457,10 +4436,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!bMDI || !bSingleOpenProgram)
       {
-        if (nSaveSettings == SS_REGISTRY)
-          RegSaveOptionsW();
-        else
-          IniSaveOptionsW();
+        SaveOptionsW();
       }
       return (int)DoFileNewWindowW(0);
     }
@@ -4788,18 +4764,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_FILE)
     {
       DoSettingsSingleOpenFile(!bSingleOpenFile);
-      if (nSaveSettings == SS_REGISTRY)
-        RegSaveOptionsW();
-      else
-        IniSaveOptionsW();
+      SaveOptionsW();
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_PROGRAM)
     {
       DoSettingsSingleOpenProgram(!bSingleOpenProgram);
-      if (nSaveSettings == SS_REGISTRY)
-        RegSaveOptionsW();
-      else
-        IniSaveOptionsW();
+      SaveOptionsW();
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SDI)
     {
@@ -5180,10 +5150,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_DESTROY)
   {
     //Save options
-    if (nSaveSettings == SS_REGISTRY)
-      RegSaveOptionsW();
-    else
-      IniSaveOptionsW();
+    SaveOptionsW();
 
     //Save plugin stack
     if (bSavePluginsStackOnExit)

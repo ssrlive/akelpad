@@ -86,6 +86,7 @@ extern HSTACK hIniStack;
 extern char szIniFile[MAX_PATH];
 extern wchar_t wszIniFile[MAX_PATH];
 extern int nSaveSettings;
+extern int nRegSaveSettings;
 
 //Main Window
 extern HWND hMainWnd;
@@ -2299,13 +2300,23 @@ void DoSettingsOptionsA()
 
   if (bOptionsSave)
   {
+    int nTmp;
+
     bEditFontChanged=TRUE;
     bColorsChanged=TRUE;
     bPrintFontChanged=TRUE;
-    IniSaveOptionsA();
-    RegSaveOptionsA();
+
+    nTmp=nSaveSettings;
+    nSaveSettings=SS_REGISTRY;
+    SaveOptionsA();
     SaveThemesA(TRUE);
     StackPluginSaveA(&hPluginsStack, TRUE);
+
+    nSaveSettings=SS_INI;
+    SaveOptionsA();
+    SaveThemesA(TRUE);
+    StackPluginSaveA(&hPluginsStack, TRUE);
+    nSaveSettings=nTmp;
   }
   if (bOptionsRestart)
   {
@@ -2326,13 +2337,23 @@ void DoSettingsOptionsW()
 
   if (bOptionsSave)
   {
+    int nTmp;
+
     bEditFontChanged=TRUE;
     bColorsChanged=TRUE;
     bPrintFontChanged=TRUE;
-    IniSaveOptionsW();
-    RegSaveOptionsW();
+
+    nTmp=nSaveSettings;
+    nSaveSettings=SS_REGISTRY;
+    SaveOptionsW();
     SaveThemesW(TRUE);
     StackPluginSaveW(&hPluginsStack, TRUE);
+
+    nSaveSettings=SS_INI;
+    SaveOptionsW();
+    SaveThemesW(TRUE);
+    StackPluginSaveW(&hPluginsStack, TRUE);
+    nSaveSettings=nTmp;
   }
   if (bOptionsRestart)
   {
@@ -3162,723 +3183,390 @@ DWORD HexStrToDataW(wchar_t *wpHexStr, unsigned char *lpData, DWORD dwDataBytes)
 
 //// Read/Save options
 
-void RegReadOptionsA()
+DWORD ReadOptionA(HANDLE lpHandle, char *pParam, DWORD dwType, void *lpData, DWORD dwSize)
 {
-  HKEY hKey;
-  DWORD dwType;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (dwType == PO_DWORD) dwType=REG_DWORD;
+    else if (dwType == PO_BINARY) dwType=REG_BINARY;
+    else if (dwType == PO_STRING) dwType=REG_SZ;
+
+    if (RegQueryValueExA((HKEY)lpHandle, pParam, NULL, &dwType, (LPBYTE)lpData, &dwSize) == ERROR_SUCCESS)
+      return dwSize;
+    else
+      return 0;
+  }
+  else
+  {
+    if (dwType == PO_DWORD) dwType=INI_DWORD;
+    else if (dwType == PO_BINARY) dwType=INI_BINARY;
+    else if (dwType == PO_STRING) dwType=INI_STRINGANSI;
+
+    return IniGetValueA((HSTACK *)lpHandle, "Options", pParam, dwType, (LPBYTE)lpData, dwSize);
+  }
+}
+
+DWORD ReadOptionW(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
+{
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (dwType == PO_DWORD) dwType=REG_DWORD;
+    else if (dwType == PO_BINARY) dwType=REG_BINARY;
+    else if (dwType == PO_STRING) dwType=REG_SZ;
+
+    if (RegQueryValueExW((HKEY)lpHandle, wpParam, NULL, &dwType, (LPBYTE)lpData, &dwSize) == ERROR_SUCCESS)
+      return dwSize;
+    else
+      return 0;
+  }
+  else
+  {
+    if (dwType == PO_DWORD) dwType=INI_DWORD;
+    else if (dwType == PO_BINARY) dwType=INI_BINARY;
+    else if (dwType == PO_STRING) dwType=INI_STRINGUNICODE;
+
+    return IniGetValueW((HSTACK *)lpHandle, L"Options", wpParam, dwType, (LPBYTE)lpData, dwSize);
+  }
+}
+
+DWORD SaveOptionA(HANDLE lpHandle, char *pParam, DWORD dwType, void *lpData, DWORD dwSize)
+{
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (dwType == PO_DWORD) dwType=REG_DWORD;
+    else if (dwType == PO_BINARY) dwType=REG_BINARY;
+    else if (dwType == PO_STRING) dwType=REG_SZ;
+
+    return !RegSetValueExA((HKEY)lpHandle, pParam, 0, dwType, (LPBYTE)lpData, dwSize);
+  }
+  else
+  {
+    if (dwType == PO_DWORD) dwType=INI_DWORD;
+    else if (dwType == PO_BINARY) dwType=INI_BINARY;
+    else if (dwType == PO_STRING) dwType=INI_STRINGANSI;
+
+    return IniSetValueA((HSTACK *)lpHandle, "Options", pParam, dwType, (LPBYTE)lpData, dwSize);
+  }
+}
+
+DWORD SaveOptionW(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
+{
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (dwType == PO_DWORD) dwType=REG_DWORD;
+    else if (dwType == PO_BINARY) dwType=REG_BINARY;
+    else if (dwType == PO_STRING) dwType=REG_SZ;
+
+    return !RegSetValueExW((HKEY)lpHandle, wpParam, 0, dwType, (LPBYTE)lpData, dwSize);
+  }
+  else
+  {
+    if (dwType == PO_DWORD) dwType=INI_DWORD;
+    else if (dwType == PO_BINARY) dwType=INI_BINARY;
+    else if (dwType == PO_STRING) dwType=INI_STRINGUNICODE;
+
+    return IniSetValueW((HSTACK *)lpHandle, L"Options", wpParam, dwType, (LPBYTE)lpData, dwSize);
+  }
+}
+
+void ReadOptionsA()
+{
+  HANDLE hHandle;
   DWORD dwSize;
 
-  if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Options", 0, KEY_READ, &hKey) != ERROR_SUCCESS)
-    return;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Options", 0, KEY_READ, (HKEY *)&hHandle) != ERROR_SUCCESS)
+      return;
+  }
+  else
+  {
+    hHandle=(HANDLE)&hIniStack;
+  }
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WordWrap", NULL, &dwType, (LPBYTE)&bWordWrap, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "OnTop", NULL, &dwType, (LPBYTE)&bOnTop, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "StatusBar", NULL, &dwType, (LPBYTE)&bStatusBar, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "ShowModify", NULL, &dwType, (LPBYTE)&dwShowModify, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "StatusPosType", NULL, &dwType, (LPBYTE)&dwStatusPosType, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "ReadOnly", NULL, &dwType, (LPBYTE)&bReadOnly, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SaveTime", NULL, &dwType, (LPBYTE)&bSaveTime, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "KeepSpace", NULL, &dwType, (LPBYTE)&bKeepSpace, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "UndoLimit", NULL, &dwType, (LPBYTE)&nUndoLimit, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "DetailedUndo", NULL, &dwType, (LPBYTE)&bDetailedUndo, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WrapType", NULL, &dwType, (LPBYTE)&nWrapType, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WrapLimit", NULL, &dwType, (LPBYTE)&dwWrapLimit, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "Marker", NULL, &dwType, (LPBYTE)&dwMarker, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "CaretOutEdge", NULL, &dwType, (LPBYTE)&bCaretOutEdge, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "CaretVertLine", NULL, &dwType, (LPBYTE)&bCaretVertLine, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "CaretWidth", NULL, &dwType, (LPBYTE)&nCaretWidth, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "ReplaceAllAndClose", NULL, &dwType, (LPBYTE)&bReplaceAllAndClose, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SaveInReadOnlyMsg", NULL, &dwType, (LPBYTE)&bSaveInReadOnlyMsg, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WatchFile", NULL, &dwType, (LPBYTE)&bWatchFile, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SingleOpenFile", NULL, &dwType, (LPBYTE)&bSingleOpenFile, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SingleOpenProgram", NULL, &dwType, (LPBYTE)&bSingleOpenProgram, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "MDI", NULL, &dwType, (LPBYTE)&bRegMDI, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SavePositions", NULL, &dwType, (LPBYTE)&bSavePositions, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SaveCodepages", NULL, &dwType, (LPBYTE)&bSaveCodepages, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "DefaultCodepage", NULL, &dwType, (LPBYTE)&nDefaultCodePage, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "DefaultNewLine", NULL, &dwType, (LPBYTE)&nDefaultNewLine, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "CodepageRecognition", NULL, &dwType, (LPBYTE)&dwLangCodepageRecognition, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "CodepageRecognitionBuffer", NULL, &dwType, (LPBYTE)&dwCodepageRecognitionBuffer, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "RecentFiles", NULL, &dwType, (LPBYTE)&nRecentFiles, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SearchStrings", NULL, &dwType, (LPBYTE)&nSearchStrings, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SearchOptions", NULL, &dwType, (LPBYTE)&ftflags, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "TabStopSize", NULL, &dwType, (LPBYTE)&nTabStopSize, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "TabStopAsSpaces", NULL, &dwType, (LPBYTE)&bTabStopAsSpaces, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "MarginsEdit", NULL, &dwType, (LPBYTE)&dwEditMargins, &dwSize);
-
-  dwSize=sizeof(RECT);
-  RegQueryValueExA(hKey, "MarginsPrint", NULL, &dwType, (LPBYTE)&psdPageA.rtMargin, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WindowStyle", NULL, &dwType, (LPBYTE)&dwMainStyle, &dwSize);
-
-  dwSize=sizeof(RECT);
-  RegQueryValueExA(hKey, "WindowPosition", NULL, &dwType, (LPBYTE)&rcMainWindowRestored, &dwSize);
+  ReadOptionA(hHandle, "WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD));
+  ReadOptionA(hHandle, "OnTop", PO_DWORD, &bOnTop, sizeof(DWORD));
+  ReadOptionA(hHandle, "StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD));
+  ReadOptionA(hHandle, "ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD));
+  ReadOptionA(hHandle, "StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD));
+  ReadOptionA(hHandle, "ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD));
+  ReadOptionA(hHandle, "SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD));
+  ReadOptionA(hHandle, "KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD));
+  ReadOptionA(hHandle, "UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD));
+  ReadOptionA(hHandle, "DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD));
+  ReadOptionA(hHandle, "WrapType", PO_DWORD, &nWrapType, sizeof(DWORD));
+  ReadOptionA(hHandle, "WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
+  ReadOptionA(hHandle, "Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
+  ReadOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
+  ReadOptionA(hHandle, "CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
+  ReadOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
+  ReadOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
+  ReadOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
+  ReadOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
+  ReadOptionA(hHandle, "SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD));
+  ReadOptionA(hHandle, "SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD));
+  ReadOptionA(hHandle, "MDI", PO_DWORD, &bRegMDI, sizeof(DWORD));
+  ReadOptionA(hHandle, "SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD));
+  ReadOptionA(hHandle, "SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD));
+  ReadOptionA(hHandle, "DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD));
+  ReadOptionA(hHandle, "DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD));
+  ReadOptionA(hHandle, "CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD));
+  ReadOptionA(hHandle, "CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD));
+  ReadOptionA(hHandle, "RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD));
+  ReadOptionA(hHandle, "SearchStrings", PO_DWORD, &nSearchStrings, sizeof(DWORD));
+  ReadOptionA(hHandle, "SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD));
+  ReadOptionA(hHandle, "TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD));
+  ReadOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
+  ReadOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
+  ReadOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT));
+  ReadOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
+  ReadOptionA(hHandle, "WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
 
   if (bRegMDI)
   {
-    dwSize=sizeof(DWORD);
-    RegQueryValueExA(hKey, "TabViewMDI", NULL, &dwType, (LPBYTE)&nTabView, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExA(hKey, "TabTypeMDI", NULL, &dwType, (LPBYTE)&nTabType, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExA(hKey, "TabSwitchMDI", NULL, &dwType, (LPBYTE)&nTabSwitch, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExA(hKey, "WindowStyleMDI", NULL, &dwType, (LPBYTE)&dwMdiStyle, &dwSize);
+    ReadOptionA(hHandle, "TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
+    ReadOptionA(hHandle, "TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
+    ReadOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
+    ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bWordDelimitersEnable, &dwSize);
+  ReadOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
+  ReadOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
+  ReadOptionA(hHandle, "ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD));
+  ReadOptionA(hHandle, "ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD));
+  ReadOptionA(hHandle, "UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "UrlPrefixes", PO_BINARY, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+  ReadOptionA(hHandle, "UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "UrlDelimiters", PO_BINARY, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+  ReadOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
+  ReadOptionA(hHandle, "FontFace", PO_STRING, &lfEditFontA.lfFaceName, LF_FACESIZE);
+  ReadOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintFont", PO_BINARY, &lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE);
+  ReadOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, LF_FACESIZE);
+  ReadOptionA(hHandle, "Colors", PO_BINARY, &aecColors, sizeof(AECOLORS));
+  ReadOptionA(hHandle, "LanguageModule", PO_STRING, szLangModule, MAX_PATH);
+  ReadOptionA(hHandle, "ExecuteCommand", PO_STRING, szCommand, BUFFER_SIZE);
+  ReadOptionA(hHandle, "ExecuteDirectory", PO_STRING, szWorkDir, MAX_PATH);
+  ReadOptionA(hHandle, "FileTypesOpen", PO_STRING, szFileTypesOpen, MAX_PATH);
+  ReadOptionA(hHandle, "FileTypesEdit", PO_STRING, szFileTypesEdit, MAX_PATH);
+  ReadOptionA(hHandle, "FileTypesPrint", PO_STRING, szFileTypesPrint, MAX_PATH);
+  ReadOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintHeader", PO_STRING, szPrintHeader, MAX_PATH);
+  ReadOptionA(hHandle, "PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintFooter", PO_STRING, szPrintFooter, MAX_PATH);
 
-  dwSize=sizeof(wszWordDelimiters);
-  RegQueryValueExA(hKey, "WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WordBreak", NULL, &dwType, (LPBYTE)&dwCustomWordBreak, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "ShowURL", NULL, &dwType, (LPBYTE)&bShowURL, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "ClickURL", NULL, &dwType, (LPBYTE)&nClickURL, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "UrlPrefixesEnable", NULL, &dwType, (LPBYTE)&bUrlPrefixesEnable, &dwSize);
-
-  dwSize=sizeof(wszUrlPrefixes);
-  RegQueryValueExA(hKey, "UrlPrefixes", NULL, &dwType, (LPBYTE)wszUrlPrefixes, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "UrlDelimitersEnable", NULL, &dwType, (LPBYTE)&bUrlDelimitersEnable, &dwSize);
-
-  dwSize=sizeof(wszUrlDelimiters);
-  RegQueryValueExA(hKey, "UrlDelimiters", NULL, &dwType, (LPBYTE)wszUrlDelimiters, &dwSize);
-
-  dwSize=sizeof(LOGFONTA) - LF_FACESIZE;
-  RegQueryValueExA(hKey, "Font", NULL, &dwType, (LPBYTE)&lfEditFontA, &dwSize);
-
-  dwSize=LF_FACESIZE;
-  RegQueryValueExA(hKey, "FontFace", NULL, &dwType, (LPBYTE)&lfEditFontA.lfFaceName, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "PrintFontEnable", NULL, &dwType, (LPBYTE)&bPrintFontEnable, &dwSize);
-
-  dwSize=sizeof(LOGFONTA) - LF_FACESIZE;
-  RegQueryValueExA(hKey, "PrintFont", NULL, &dwType, (LPBYTE)&lfPrintFontA, &dwSize);
-
-  dwSize=LF_FACESIZE;
-  RegQueryValueExA(hKey, "PrintFontFace", NULL, &dwType, (LPBYTE)&lfPrintFontA.lfFaceName, &dwSize);
-
-  dwSize=sizeof(AECOLORS);
-  RegQueryValueExA(hKey, "Colors", NULL, &dwType, (LPBYTE)&aecColors, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "LanguageModule", NULL, &dwType, (LPBYTE)szLangModule, &dwSize);
-
-  dwSize=BUFFER_SIZE;
-  RegQueryValueExA(hKey, "ExecuteCommand", NULL, &dwType, (LPBYTE)szCommand, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "ExecuteDirectory", NULL, &dwType, (LPBYTE)szWorkDir, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "FileTypesOpen", NULL, &dwType, (LPBYTE)szFileTypesOpen, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "FileTypesEdit", NULL, &dwType, (LPBYTE)szFileTypesEdit, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "FileTypesPrint", NULL, &dwType, (LPBYTE)szFileTypesPrint, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "FileTypesAssociated", NULL, &dwType, (LPBYTE)&dwFileTypesAssociated, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "PrintHeaderEnable", NULL, &dwType, (LPBYTE)&bPrintHeaderEnable, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "PrintHeader", NULL, &dwType, (LPBYTE)szPrintHeader, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "PrintFooterEnable", NULL, &dwType, (LPBYTE)&bPrintFooterEnable, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "PrintFooter", NULL, &dwType, (LPBYTE)szPrintFooter, &dwSize);
-
-  if (RegQueryValueExA(hKey, "CodepageList", NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
+  if (dwSize=ReadOptionA(hHandle, "CodepageList", INI_BINARY, NULL, 0))
   {
     if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
     {
-      RegQueryValueExA(hKey, "CodepageList", NULL, &dwType, (LPBYTE)lpCodepageList, &dwSize);
+      ReadOptionA(hHandle, "CodepageList", PO_BINARY, lpCodepageList, dwSize);
       nCodepageListLen=CodepageListLen(lpCodepageList);
     }
   }
 
-  RegCloseKey(hKey);
+  if (nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)hHandle);
 }
 
-void RegReadOptionsW()
+void ReadOptionsW()
 {
-  HKEY hKey;
-  DWORD dwType;
+  HANDLE hHandle;
   DWORD dwSize;
 
-  if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Options", 0, KEY_READ, &hKey) != ERROR_SUCCESS)
-    return;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Options", 0, KEY_READ, (HKEY *)&hHandle) != ERROR_SUCCESS)
+      return;
+  }
+  else
+  {
+    hHandle=(HANDLE)&hIniStack;
+  }
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WordWrap", NULL, &dwType, (LPBYTE)&bWordWrap, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"OnTop", NULL, &dwType, (LPBYTE)&bOnTop, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"StatusBar", NULL, &dwType, (LPBYTE)&bStatusBar, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"ShowModify", NULL, &dwType, (LPBYTE)&dwShowModify, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"StatusPosType", NULL, &dwType, (LPBYTE)&dwStatusPosType, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"ReadOnly", NULL, &dwType, (LPBYTE)&bReadOnly, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SaveTime", NULL, &dwType, (LPBYTE)&bSaveTime, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"KeepSpace", NULL, &dwType, (LPBYTE)&bKeepSpace, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"UndoLimit", NULL, &dwType, (LPBYTE)&nUndoLimit, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"DetailedUndo", NULL, &dwType, (LPBYTE)&bDetailedUndo, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WrapType", NULL, &dwType, (LPBYTE)&nWrapType, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WrapLimit", NULL, &dwType, (LPBYTE)&dwWrapLimit, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"Marker", NULL, &dwType, (LPBYTE)&dwMarker, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"CaretOutEdge", NULL, &dwType, (LPBYTE)&bCaretOutEdge, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"CaretVertLine", NULL, &dwType, (LPBYTE)&bCaretVertLine, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"CaretWidth", NULL, &dwType, (LPBYTE)&nCaretWidth, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"ReplaceAllAndClose", NULL, &dwType, (LPBYTE)&bReplaceAllAndClose, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SaveInReadOnlyMsg", NULL, &dwType, (LPBYTE)&bSaveInReadOnlyMsg, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WatchFile", NULL, &dwType, (LPBYTE)&bWatchFile, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SingleOpenFile", NULL, &dwType, (LPBYTE)&bSingleOpenFile, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SingleOpenProgram", NULL, &dwType, (LPBYTE)&bSingleOpenProgram, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"MDI", NULL, &dwType, (LPBYTE)&bRegMDI, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SavePositions", NULL, &dwType, (LPBYTE)&bSavePositions, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SaveCodepages", NULL, &dwType, (LPBYTE)&bSaveCodepages, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"DefaultCodepage", NULL, &dwType, (LPBYTE)&nDefaultCodePage, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"DefaultNewLine", NULL, &dwType, (LPBYTE)&nDefaultNewLine, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"CodepageRecognition", NULL, &dwType, (LPBYTE)&dwLangCodepageRecognition, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"CodepageRecognitionBuffer", NULL, &dwType, (LPBYTE)&dwCodepageRecognitionBuffer, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"RecentFiles", NULL, &dwType, (LPBYTE)&nRecentFiles, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SearchStrings", NULL, &dwType, (LPBYTE)&nSearchStrings, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SearchOptions", NULL, &dwType, (LPBYTE)&ftflags, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"TabStopSize", NULL, &dwType, (LPBYTE)&nTabStopSize, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"TabStopAsSpaces", NULL, &dwType, (LPBYTE)&bTabStopAsSpaces, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"MarginsEdit", NULL, &dwType, (LPBYTE)&dwEditMargins, &dwSize);
-
-  dwSize=sizeof(RECT);
-  RegQueryValueExW(hKey, L"MarginsPrint", NULL, &dwType, (LPBYTE)&psdPageW.rtMargin, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WindowStyle", NULL, &dwType, (LPBYTE)&dwMainStyle, &dwSize);
-
-  dwSize=sizeof(RECT);
-  RegQueryValueExW(hKey, L"WindowPosition", NULL, &dwType, (LPBYTE)&rcMainWindowRestored, &dwSize);
+  ReadOptionW(hHandle, L"WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD));
+  ReadOptionW(hHandle, L"OnTop", PO_DWORD, &bOnTop, sizeof(DWORD));
+  ReadOptionW(hHandle, L"StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD));
+  ReadOptionW(hHandle, L"ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD));
+  ReadOptionW(hHandle, L"StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD));
+  ReadOptionW(hHandle, L"ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD));
+  ReadOptionW(hHandle, L"KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD));
+  ReadOptionW(hHandle, L"UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD));
+  ReadOptionW(hHandle, L"DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WrapType", PO_DWORD, &nWrapType, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
+  ReadOptionW(hHandle, L"Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
+  ReadOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
+  ReadOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
+  ReadOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
+  ReadOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD));
+  ReadOptionW(hHandle, L"MDI", PO_DWORD, &bRegMDI, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD));
+  ReadOptionW(hHandle, L"DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD));
+  ReadOptionW(hHandle, L"DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD));
+  ReadOptionW(hHandle, L"CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD));
+  ReadOptionW(hHandle, L"CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD));
+  ReadOptionW(hHandle, L"RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SearchStrings", PO_DWORD, &nSearchStrings, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD));
+  ReadOptionW(hHandle, L"TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD));
+  ReadOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
+  ReadOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
+  ReadOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT));
+  ReadOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
 
   if (bRegMDI)
   {
-    dwSize=sizeof(DWORD);
-    RegQueryValueExW(hKey, L"TabViewMDI", NULL, &dwType, (LPBYTE)&nTabView, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExW(hKey, L"TabTypeMDI", NULL, &dwType, (LPBYTE)&nTabType, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExW(hKey, L"TabSwitchMDI", NULL, &dwType, (LPBYTE)&nTabSwitch, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExW(hKey, L"WindowStyleMDI", NULL, &dwType, (LPBYTE)&dwMdiStyle, &dwSize);
+    ReadOptionW(hHandle, L"TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
+    ReadOptionW(hHandle, L"TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
+    ReadOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
+    ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bWordDelimitersEnable, &dwSize);
+  ReadOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
+  ReadOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
+  ReadOptionW(hHandle, L"ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD));
+  ReadOptionW(hHandle, L"ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD));
+  ReadOptionW(hHandle, L"UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"UrlPrefixes", PO_BINARY, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+  ReadOptionW(hHandle, L"UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"UrlDelimiters", PO_BINARY, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+  ReadOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FontFace", PO_STRING, &lfEditFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintFont", PO_BINARY, &lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS));
+  ReadOptionW(hHandle, L"LanguageModule", PO_STRING, wszLangModule, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"ExecuteCommand", PO_STRING, wszCommand, BUFFER_SIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"ExecuteDirectory", PO_STRING, wszWorkDir, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FileTypesOpen", PO_STRING, wszFileTypesOpen, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FileTypesEdit", PO_STRING, wszFileTypesEdit, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintHeader", PO_STRING, wszPrintHeader, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintFooter", PO_STRING, wszPrintFooter, MAX_PATH * sizeof(wchar_t));
 
-  dwSize=sizeof(wszWordDelimiters);
-  RegQueryValueExW(hKey, L"WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WordBreak", NULL, &dwType, (LPBYTE)&dwCustomWordBreak, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"ShowURL", NULL, &dwType, (LPBYTE)&bShowURL, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"ClickURL", NULL, &dwType, (LPBYTE)&nClickURL, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"UrlPrefixesEnable", NULL, &dwType, (LPBYTE)&bUrlPrefixesEnable, &dwSize);
-
-  dwSize=sizeof(wszUrlPrefixes);
-  RegQueryValueExW(hKey, L"UrlPrefixes", NULL, &dwType, (LPBYTE)wszUrlPrefixes, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"UrlDelimitersEnable", NULL, &dwType, (LPBYTE)&bUrlDelimitersEnable, &dwSize);
-
-  dwSize=sizeof(wszUrlDelimiters);
-  RegQueryValueExW(hKey, L"UrlDelimiters", NULL, &dwType, (LPBYTE)wszUrlDelimiters, &dwSize);
-
-  dwSize=sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"Font", NULL, &dwType, (LPBYTE)&lfEditFontW, &dwSize);
-
-  dwSize=LF_FACESIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"FontFace", NULL, &dwType, (LPBYTE)&lfEditFontW.lfFaceName, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"PrintFontEnable", NULL, &dwType, (LPBYTE)&bPrintFontEnable, &dwSize);
-
-  dwSize=sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"PrintFont", NULL, &dwType, (LPBYTE)&lfPrintFontW, &dwSize);
-
-  dwSize=LF_FACESIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"PrintFontFace", NULL, &dwType, (LPBYTE)&lfPrintFontW.lfFaceName, &dwSize);
-
-  dwSize=sizeof(AECOLORS);
-  RegQueryValueExW(hKey, L"Colors", NULL, &dwType, (LPBYTE)&aecColors, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"LanguageModule", NULL, &dwType, (LPBYTE)wszLangModule, &dwSize);
-
-  dwSize=BUFFER_SIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"ExecuteCommand", NULL, &dwType, (LPBYTE)wszCommand, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"ExecuteDirectory", NULL, &dwType, (LPBYTE)wszWorkDir, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"FileTypesOpen", NULL, &dwType, (LPBYTE)wszFileTypesOpen, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"FileTypesEdit", NULL, &dwType, (LPBYTE)wszFileTypesEdit, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"FileTypesPrint", NULL, &dwType, (LPBYTE)wszFileTypesPrint, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"FileTypesAssociated", NULL, &dwType, (LPBYTE)&dwFileTypesAssociated, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"PrintHeaderEnable", NULL, &dwType, (LPBYTE)&bPrintHeaderEnable, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"PrintHeader", NULL, &dwType, (LPBYTE)wszPrintHeader, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"PrintFooterEnable", NULL, &dwType, (LPBYTE)&bPrintFooterEnable, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"PrintFooter", NULL, &dwType, (LPBYTE)wszPrintFooter, &dwSize);
-
-  if (RegQueryValueExW(hKey, L"CodepageList", NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
+  if (dwSize=ReadOptionW(hHandle, L"CodepageList", INI_BINARY, NULL, 0))
   {
     if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
     {
-      RegQueryValueExW(hKey, L"CodepageList", NULL, &dwType, (LPBYTE)lpCodepageList, &dwSize);
+      ReadOptionW(hHandle, L"CodepageList", PO_BINARY, lpCodepageList, dwSize);
       nCodepageListLen=CodepageListLen(lpCodepageList);
     }
   }
 
-  RegCloseKey(hKey);
+  if (nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)hHandle);
 }
 
-void IniReadOptionsA()
+void RegisterPluginsHotkeysA()
 {
-  DWORD dwSize;
-
-  IniGetValueA(&hIniStack, "Options", "WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "ShowModify", INI_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "Marker", INI_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SingleOpenFile", INI_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SingleOpenProgram", INI_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "MDI", INI_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "DefaultNewLine", INI_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SearchStrings", INI_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SearchOptions", INI_DWORD, (LPBYTE)&ftflags, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "TabStopSize", INI_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "TabStopAsSpaces", INI_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "MarginsEdit", INI_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "MarginsPrint", INI_BINARY, (LPBYTE)&psdPageA.rtMargin, sizeof(RECT));
-  IniGetValueA(&hIniStack, "Options", "WindowStyle", INI_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WindowPosition", INI_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT));
-
-  if (bRegMDI)
+  if (nSaveSettings == SS_REGISTRY)
   {
-    IniGetValueA(&hIniStack, "Options", "TabViewMDI", INI_DWORD, (LPBYTE)&nTabView, sizeof(DWORD));
-    IniGetValueA(&hIniStack, "Options", "TabTypeMDI", INI_DWORD, (LPBYTE)&nTabType, sizeof(DWORD));
-    IniGetValueA(&hIniStack, "Options", "TabSwitchMDI", INI_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD));
-    IniGetValueA(&hIniStack, "Options", "WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD));
-  }
+    HKEY hKey;
+    DWORD dwType;
+    DWORD dwSizeValue;
+    DWORD dwSizeString;
+    DWORD dwIndex=0;
+    DWORD dwHotkey=0;
 
-
-  IniGetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, sizeof(wszWordDelimiters));
-  IniGetValueA(&hIniStack, "Options", "WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, sizeof(wszUrlPrefixes));
-  IniGetValueA(&hIniStack, "Options", "UrlDelimitersEnable", INI_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, sizeof(wszUrlDelimiters));
-  IniGetValueA(&hIniStack, "Options", "Font", INI_BINARY, (LPBYTE)&lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
-  IniGetValueA(&hIniStack, "Options", "FontFace", INI_STRINGANSI, (LPBYTE)&lfEditFontA.lfFaceName, LF_FACESIZE);
-  IniGetValueA(&hIniStack, "Options", "PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE);
-  IniGetValueA(&hIniStack, "Options", "PrintFontFace", INI_STRINGANSI, (LPBYTE)&lfPrintFontA.lfFaceName, LF_FACESIZE);
-  IniGetValueA(&hIniStack, "Options", "Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS));
-  IniGetValueA(&hIniStack, "Options", "LanguageModule", INI_STRINGANSI, (LPBYTE)szLangModule, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "ExecuteCommand", INI_STRINGANSI, (LPBYTE)szCommand, BUFFER_SIZE);
-  IniGetValueA(&hIniStack, "Options", "ExecuteDirectory", INI_STRINGANSI, (LPBYTE)szWorkDir, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "FileTypesOpen", INI_STRINGANSI, (LPBYTE)szFileTypesOpen, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "FileTypesEdit", INI_STRINGANSI, (LPBYTE)szFileTypesEdit, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "FileTypesPrint", INI_STRINGANSI, (LPBYTE)szFileTypesPrint, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "FileTypesAssociated", INI_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "PrintHeaderEnable", INI_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "PrintHeader", INI_STRINGANSI, (LPBYTE)szPrintHeader, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "PrintFooterEnable", INI_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "PrintFooter", INI_STRINGANSI, (LPBYTE)szPrintFooter, MAX_PATH);
-
-  if (dwSize=IniGetValueA(&hIniStack, "Options", "CodepageList", INI_BINARY, NULL, 0))
-  {
-    if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Plugs", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
-      IniGetValueA(&hIniStack, "Options", "CodepageList", INI_BINARY, (LPBYTE)lpCodepageList, dwSize);
-      nCodepageListLen=CodepageListLen(lpCodepageList);
-    }
-  }
-}
-
-void IniReadOptionsW()
-{
-  DWORD dwSize;
-
-  IniGetValueW(&hIniStack, L"Options", L"WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"ShowModify", INI_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"Marker", INI_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SingleOpenFile", INI_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SingleOpenProgram", INI_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"MDI", INI_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"DefaultNewLine", INI_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SearchStrings", INI_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SearchOptions", INI_DWORD, (LPBYTE)&ftflags, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"TabStopSize", INI_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"TabStopAsSpaces", INI_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"MarginsEdit", INI_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"MarginsPrint", INI_BINARY, (LPBYTE)&psdPageW.rtMargin, sizeof(RECT));
-  IniGetValueW(&hIniStack, L"Options", L"WindowStyle", INI_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WindowPosition", INI_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT));
-
-  if (bRegMDI)
-  {
-    IniGetValueW(&hIniStack, L"Options", L"TabViewMDI", INI_DWORD, (LPBYTE)&nTabView, sizeof(DWORD));
-    IniGetValueW(&hIniStack, L"Options", L"TabTypeMDI", INI_DWORD, (LPBYTE)&nTabType, sizeof(DWORD));
-    IniGetValueW(&hIniStack, L"Options", L"TabSwitchMDI", INI_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD));
-    IniGetValueW(&hIniStack, L"Options", L"WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD));
-  }
-
-  IniGetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, sizeof(wszWordDelimiters));
-  IniGetValueW(&hIniStack, L"Options", L"WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, sizeof(wszUrlPrefixes));
-  IniGetValueW(&hIniStack, L"Options", L"UrlDelimitersEnable", INI_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, sizeof(wszUrlDelimiters));
-  IniGetValueW(&hIniStack, L"Options", L"Font", INI_BINARY, (LPBYTE)&lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FontFace", INI_STRINGUNICODE, (LPBYTE)&lfEditFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFontFace", INI_STRINGUNICODE, (LPBYTE)&lfPrintFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS));
-  IniGetValueW(&hIniStack, L"Options", L"LanguageModule", INI_STRINGUNICODE, (LPBYTE)wszLangModule, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"ExecuteCommand", INI_STRINGUNICODE, (LPBYTE)wszCommand, BUFFER_SIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"ExecuteDirectory", INI_STRINGUNICODE, (LPBYTE)wszWorkDir, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FileTypesOpen", INI_STRINGUNICODE, (LPBYTE)wszFileTypesOpen, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FileTypesEdit", INI_STRINGUNICODE, (LPBYTE)wszFileTypesEdit, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FileTypesPrint", INI_STRINGUNICODE, (LPBYTE)wszFileTypesPrint, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FileTypesAssociated", INI_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"PrintHeaderEnable", INI_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"PrintHeader", INI_STRINGUNICODE, (LPBYTE)wszPrintHeader, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFooterEnable", INI_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFooter", INI_STRINGUNICODE, (LPBYTE)wszPrintFooter, MAX_PATH * sizeof(wchar_t));
-
-  if (dwSize=IniGetValueW(&hIniStack, L"Options", L"CodepageList", INI_BINARY, NULL, 0))
-  {
-    if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
-    {
-      IniGetValueW(&hIniStack, L"Options", L"CodepageList", INI_BINARY, (LPBYTE)lpCodepageList, dwSize);
-      nCodepageListLen=CodepageListLen(lpCodepageList);
-    }
-  }
-}
-
-void RegRegisterPluginsHotkeysA()
-{
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSizeValue;
-  DWORD dwSizeString;
-  DWORD dwIndex=0;
-  DWORD dwHotkey=0;
-
-  if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Plugs", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-  {
-    while (1)
-    {
-      dwSizeValue=BUFFER_SIZE;
-      dwSizeString=sizeof(DWORD);
-      if (RegEnumValueA(hKey, dwIndex++, buf, &dwSizeValue, NULL, &dwType, (LPBYTE)&dwHotkey, &dwSizeString) != ERROR_SUCCESS)
-        break;
-
-      if (dwHotkey)
+      while (1)
       {
-        StackPluginAddA(&hPluginsStack, buf, lstrlenA(buf), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        dwSizeValue=BUFFER_SIZE;
+        dwSizeString=sizeof(DWORD);
+        if (RegEnumValueA(hKey, dwIndex++, buf, &dwSizeValue, NULL, &dwType, (LPBYTE)&dwHotkey, &dwSizeString) != ERROR_SUCCESS)
+          break;
+
+        if (dwHotkey)
+        {
+          StackPluginAddA(&hPluginsStack, buf, lstrlenA(buf), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        }
+      }
+      RegCloseKey(hKey);
+    }
+  }
+  else
+  {
+    HINISECTION *lpIniSection;
+    HINIKEY *lpIniKey;
+    DWORD dwHotkey=0;
+
+    if (lpIniSection=StackGetIniSectionA(&hIniStack, "Plugs", lstrlenA("Plugs")))
+    {
+      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
+
+      while (lpIniKey)
+      {
+        if (dwHotkey=(DWORD)xatoiA(lpIniKey->szString))
+        {
+          StackPluginAddA(&hPluginsStack, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        }
+        lpIniKey=lpIniKey->next;
       }
     }
-    RegCloseKey(hKey);
   }
 }
 
-void RegRegisterPluginsHotkeysW()
+void RegisterPluginsHotkeysW()
 {
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSizeValue;
-  DWORD dwSizeString;
-  DWORD dwIndex=0;
-  DWORD dwHotkey=0;
-
-  if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Plugs", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+  if (nSaveSettings == SS_REGISTRY)
   {
-    while (1)
+    HKEY hKey;
+    DWORD dwType;
+    DWORD dwSizeValue;
+    DWORD dwSizeString;
+    DWORD dwIndex=0;
+    DWORD dwHotkey=0;
+
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Plugs", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
-      dwSizeValue=BUFFER_SIZE;
-      dwSizeString=sizeof(DWORD);
-      if (RegEnumValueW(hKey, dwIndex++, wbuf, &dwSizeValue, NULL, &dwType, (LPBYTE)&dwHotkey, &dwSizeString) != ERROR_SUCCESS)
-        break;
-
-      if (dwHotkey)
+      while (1)
       {
-        StackPluginAddW(&hPluginsStack, wbuf, lstrlenW(wbuf), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        dwSizeValue=BUFFER_SIZE;
+        dwSizeString=sizeof(DWORD);
+        if (RegEnumValueW(hKey, dwIndex++, wbuf, &dwSizeValue, NULL, &dwType, (LPBYTE)&dwHotkey, &dwSizeString) != ERROR_SUCCESS)
+          break;
+
+        if (dwHotkey)
+        {
+          StackPluginAddW(&hPluginsStack, wbuf, lstrlenW(wbuf), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        }
       }
-    }
-    RegCloseKey(hKey);
-  }
-}
-
-void IniRegisterPluginsHotkeysA()
-{
-  HINISECTION *lpIniSection;
-  HINIKEY *lpIniKey;
-  DWORD dwHotkey=0;
-
-  if (lpIniSection=StackGetIniSectionA(&hIniStack, "Plugs", lstrlenA("Plugs")))
-  {
-    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
-
-    while (lpIniKey)
-    {
-      if (dwHotkey=(DWORD)xatoiA(lpIniKey->szString))
-      {
-        StackPluginAddA(&hPluginsStack, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
-      }
-      lpIniKey=lpIniKey->next;
+      RegCloseKey(hKey);
     }
   }
-}
-
-void IniRegisterPluginsHotkeysW()
-{
-  HINISECTION *lpIniSection;
-  HINIKEY *lpIniKey;
-  DWORD dwHotkey=0;
-
-  if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Plugs", lstrlenW(L"Plugs")))
+  else
   {
-    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
+    HINISECTION *lpIniSection;
+    HINIKEY *lpIniKey;
+    DWORD dwHotkey=0;
 
-    while (lpIniKey)
+    if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Plugs", lstrlenW(L"Plugs")))
     {
-      if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString))
+      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
+
+      while (lpIniKey)
       {
-        StackPluginAddW(&hPluginsStack, lpIniKey->wszKey, (lpIniKey->nKeyUnicodeBytes - 1) / sizeof(wchar_t), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString))
+        {
+          StackPluginAddW(&hPluginsStack, lpIniKey->wszKey, (lpIniKey->nKeyUnicodeBytes - 1) / sizeof(wchar_t), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        }
+        lpIniKey=lpIniKey->next;
       }
-      lpIniKey=lpIniKey->next;
     }
   }
 }
@@ -3898,7 +3586,7 @@ void RegReadSearchA()
     {
       if (RegQueryValueExA(hKey, "find0", NULL, &dwType, (LPBYTE)szFindText_orig, &dwSize) == ERROR_SUCCESS)
       {
-        nFindTextLen=dwSize / sizeof(wchar_t) - 1;
+        nFindTextLen=dwSize - 1;
 
         if (ftflags & AEFR_ESCAPESEQ)
         {
@@ -3943,693 +3631,383 @@ void RegReadSearchW()
   RegCloseKey(hKey);
 }
 
-BOOL RegSaveOptionsA()
+BOOL SaveOptionsA()
 {
-  HKEY hKey;
+  HANDLE hHandle;
+  BOOL bResult=FALSE;
 
   dwMainStyle=GetWindowLongA(hMainWnd, GWL_STYLE);
   dwMainStyle=((dwMainStyle & WS_MAXIMIZE) || ((dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
   if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
   dwMdiStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
 
-  if (RegCreateKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Options", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
-    return FALSE;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (RegCreateKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Options", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, (HKEY *)&hHandle, NULL) != ERROR_SUCCESS)
+      return FALSE;
+  }
+  else
+  {
+    if (!OpenIniA(&hIniStack, szIniFile, TRUE))
+      return FALSE;
+    hHandle=(HANDLE)&hIniStack;
 
-  if (RegSetValueExA(hKey, "WordWrap", 0, REG_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "SaveSettings", PO_DWORD, &nRegSaveSettings, sizeof(DWORD)))
+      goto Error;
+  }
+
+  if (!SaveOptionA(hHandle, "WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "OnTop", 0, REG_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "OnTop", PO_DWORD, &bOnTop, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "StatusBar", 0, REG_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "ShowModify", 0, REG_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "StatusPosType", 0, REG_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "ReadOnly", 0, REG_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SaveTime", 0, REG_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "KeepSpace", 0, REG_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "UndoLimit", 0, REG_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "DetailedUndo", 0, REG_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "WrapType", 0, REG_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WrapType", PO_DWORD, &nWrapType, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "WrapLimit", 0, REG_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "Marker", 0, REG_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "Marker", PO_DWORD, &dwMarker, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "CaretOutEdge", 0, REG_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "CaretVertLine", 0, REG_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "CaretWidth", 0, REG_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "ReplaceAllAndClose", 0, REG_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SaveInReadOnlyMsg", 0, REG_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "WatchFile", 0, REG_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SingleOpenFile", 0, REG_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SingleOpenProgram", 0, REG_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "MDI", 0, REG_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "MDI", PO_DWORD, &bRegMDI, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SavePositions", 0, REG_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SaveCodepages", 0, REG_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "DefaultCodepage", 0, REG_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "DefaultNewLine", 0, REG_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "CodepageRecognition", 0, REG_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "CodepageRecognitionBuffer", 0, REG_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "RecentFiles", 0, REG_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SearchStrings", 0, REG_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SearchStrings", PO_DWORD, &nSearchStrings, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SearchOptions", 0, REG_DWORD, (LPBYTE)&ftflags, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "TabStopSize", 0, REG_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "TabStopAsSpaces", 0, REG_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "MarginsEdit", 0, REG_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "MarginsPrint", 0, REG_BINARY, (LPBYTE)&psdPageA.rtMargin, sizeof(RECT)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT)))
     goto Error;
-  if (RegSetValueExA(hKey, "WindowStyle", 0, REG_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "WindowPosition", 0, REG_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT)))
     goto Error;
 
   if (bMDI)
   {
-    if (RegSetValueExA(hKey, "TabViewMDI", 0, REG_DWORD, (LPBYTE)&nTabView, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExA(hKey, "TabTypeMDI", 0, REG_DWORD, (LPBYTE)&nTabType, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExA(hKey, "TabSwitchMDI", 0, REG_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExA(hKey, "WindowStyleMDI", 0, REG_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
       goto Error;
   }
 
-  if (RegSetValueExA(hKey, "WordDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "WordDelimiters", 0, REG_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExA(hKey, "WordBreak", 0, REG_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "ShowURL", 0, REG_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "ClickURL", 0, REG_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "UrlPrefixesEnable", 0, REG_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "UrlPrefixes", 0, REG_BINARY, (LPBYTE)wszUrlPrefixes, wcslen(wszUrlPrefixes) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "UrlPrefixes", PO_BINARY, wszUrlPrefixes, wcslen(wszUrlPrefixes) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExA(hKey, "UrlDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "UrlDelimiters", 0, REG_BINARY, (LPBYTE)wszUrlDelimiters, wcslen(wszUrlDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "UrlDelimiters", PO_BINARY, wszUrlDelimiters, wcslen(wszUrlDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
 
   if (bEditFontChanged)
   {
-    if (RegSetValueExA(hKey, "Font", 0, REG_BINARY, (LPBYTE)&lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE))
       goto Error;
-    if (RegSetValueExA(hKey, "FontFace", 0, REG_SZ, (LPBYTE)&lfEditFontA.lfFaceName, lstrlenA(lfEditFontA.lfFaceName) + 1) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "FontFace", PO_STRING, &lfEditFontA.lfFaceName, lstrlenA(lfEditFontA.lfFaceName) + 1))
       goto Error;
   }
-  if (RegSetValueExA(hKey, "PrintFontEnable", 0, REG_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD)))
     goto Error;
   if (bPrintFontChanged)
   {
-    if (RegSetValueExA(hKey, "PrintFont", 0, REG_BINARY, (LPBYTE)&lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "PrintFont", PO_BINARY, &lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE))
       goto Error;
-    if (RegSetValueExA(hKey, "PrintFontFace", 0, REG_SZ, (LPBYTE)&lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1))
       goto Error;
   }
   if (bColorsChanged)
   {
-    if (RegSetValueExA(hKey, "Colors", 0, REG_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
       goto Error;
   }
-  if (RegSetValueExA(hKey, "LanguageModule", 0, REG_SZ, (LPBYTE)szLangModule, lstrlenA(szLangModule) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "LanguageModule", PO_STRING, szLangModule, lstrlenA(szLangModule) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "ExecuteCommand", 0, REG_SZ, (LPBYTE)szCommand, lstrlenA(szCommand) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ExecuteCommand", PO_STRING, szCommand, lstrlenA(szCommand) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "ExecuteDirectory", 0, REG_SZ, (LPBYTE)szWorkDir, lstrlenA(szCommand) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ExecuteDirectory", PO_STRING, szWorkDir, lstrlenA(szCommand) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "FileTypesOpen", 0, REG_SZ, (LPBYTE)szFileTypesOpen, lstrlenA(szFileTypesOpen) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "FileTypesOpen", PO_STRING, szFileTypesOpen, lstrlenA(szFileTypesOpen) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "FileTypesEdit", 0, REG_SZ, (LPBYTE)szFileTypesEdit, lstrlenA(szFileTypesEdit) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "FileTypesEdit", PO_STRING, szFileTypesEdit, lstrlenA(szFileTypesEdit) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "FileTypesPrint", 0, REG_SZ, (LPBYTE)szFileTypesPrint, lstrlenA(szFileTypesPrint) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "FileTypesPrint", PO_STRING, szFileTypesPrint, lstrlenA(szFileTypesPrint) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "FileTypesAssociated", 0, REG_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "PrintHeaderEnable", 0, REG_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "PrintHeader", 0, REG_SZ, (LPBYTE)szPrintHeader, lstrlenA(szPrintHeader) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintHeader", PO_STRING, szPrintHeader, lstrlenA(szPrintHeader) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "PrintFooterEnable", 0, REG_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "PrintFooter", 0, REG_SZ, (LPBYTE)szPrintFooter, lstrlenA(szPrintFooter) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintFooter", PO_STRING, szPrintFooter, lstrlenA(szPrintFooter) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "CodepageList", 0, REG_BINARY, (LPBYTE)lpCodepageList, nCodepageListLen * sizeof(int)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
     goto Error;
 
-  RegCloseKey(hKey);
-  return TRUE;
+  if (nSaveSettings == SS_REGISTRY)
+    bResult=TRUE;
+  else
+    bResult=SaveIniA((HSTACK *)hHandle, szIniFile);
 
   Error:
-  RegCloseKey(hKey);
-  return FALSE;
+  if (nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)hHandle);
+  else
+    StackFreeIni((HSTACK *)hHandle);
+  return bResult;
 }
 
-BOOL RegSaveOptionsW()
+BOOL SaveOptionsW()
 {
-  HKEY hKey;
+  HANDLE hHandle;
+  BOOL bResult=FALSE;
 
   dwMainStyle=GetWindowLongW(hMainWnd, GWL_STYLE);
   dwMainStyle=((dwMainStyle & WS_MAXIMIZE) || ((dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
   if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
   dwMdiStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
 
-  if (RegCreateKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Options", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
-    return FALSE;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (RegCreateKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Options", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, (HKEY *)&hHandle, NULL) != ERROR_SUCCESS)
+      return FALSE;
+  }
+  else
+  {
+    if (!OpenIniW(&hIniStack, wszIniFile, TRUE))
+      return FALSE;
+    hHandle=(HANDLE)&hIniStack;
 
-  if (RegSetValueExW(hKey, L"WordWrap", 0, REG_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"SaveSettings", PO_DWORD, &nRegSaveSettings, sizeof(DWORD)))
+      goto Error;
+  }
+
+  if (!SaveOptionW(hHandle, L"WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"OnTop", 0, REG_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"OnTop", PO_DWORD, &bOnTop, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"StatusBar", 0, REG_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"ShowModify", 0, REG_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"StatusPosType", 0, REG_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"ReadOnly", 0, REG_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SaveTime", 0, REG_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"KeepSpace", 0, REG_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"UndoLimit", 0, REG_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"DetailedUndo", 0, REG_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"WrapType", 0, REG_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WrapType", PO_DWORD, &nWrapType, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"WrapLimit", 0, REG_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"Marker", 0, REG_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"Marker", PO_DWORD, &dwMarker, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"CaretOutEdge", 0, REG_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"CaretVertLine", 0, REG_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"CaretWidth", 0, REG_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"ReplaceAllAndClose", 0, REG_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SaveInReadOnlyMsg", 0, REG_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"WatchFile", 0, REG_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SingleOpenFile", 0, REG_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SingleOpenProgram", 0, REG_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"MDI", 0, REG_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"MDI", PO_DWORD, &bRegMDI, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SavePositions", 0, REG_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SaveCodepages", 0, REG_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"DefaultCodepage", 0, REG_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"DefaultNewLine", 0, REG_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"CodepageRecognition", 0, REG_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"CodepageRecognitionBuffer", 0, REG_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"RecentFiles", 0, REG_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SearchStrings", 0, REG_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SearchStrings", PO_DWORD, &nSearchStrings, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SearchOptions", 0, REG_DWORD, (LPBYTE)&ftflags, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"TabStopSize", 0, REG_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"TabStopAsSpaces", 0, REG_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"MarginsEdit", 0, REG_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"MarginsPrint", 0, REG_BINARY, (LPBYTE)&psdPageW.rtMargin, sizeof(RECT)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT)))
     goto Error;
-  if (RegSetValueExW(hKey, L"WindowStyle", 0, REG_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"WindowPosition", 0, REG_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT)))
     goto Error;
 
   if (bMDI)
   {
-    if (RegSetValueExW(hKey, L"TabViewMDI", 0, REG_DWORD, (LPBYTE)&nTabView, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExW(hKey, L"TabTypeMDI", 0, REG_DWORD, (LPBYTE)&nTabType, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExW(hKey, L"TabSwitchMDI", 0, REG_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExW(hKey, L"WindowStyleMDI", 0, REG_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
       goto Error;
   }
 
-  if (RegSetValueExW(hKey, L"WordDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"WordDelimiters", 0, REG_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"WordBreak", 0, REG_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"ShowURL", 0, REG_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"ClickURL", 0, REG_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"UrlPrefixesEnable", 0, REG_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"UrlPrefixes", 0, REG_BINARY, (LPBYTE)wszUrlPrefixes, lstrlenW(wszUrlPrefixes) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"UrlPrefixes", PO_BINARY, wszUrlPrefixes, lstrlenW(wszUrlPrefixes) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"UrlDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"UrlDelimiters", 0, REG_BINARY, (LPBYTE)wszUrlDelimiters, lstrlenW(wszUrlDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"UrlDelimiters", PO_BINARY, wszUrlDelimiters, lstrlenW(wszUrlDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (bEditFontChanged)
   {
-    if (RegSetValueExW(hKey, L"Font", 0, REG_BINARY, (LPBYTE)&lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
       goto Error;
-    if (RegSetValueExW(hKey, L"FontFace", 0, REG_SZ, (LPBYTE)&lfEditFontW.lfFaceName, lstrlenW(lfEditFontW.lfFaceName) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"FontFace", PO_STRING, &lfEditFontW.lfFaceName, lstrlenW(lfEditFontW.lfFaceName) * sizeof(wchar_t) + 2))
       goto Error;
   }
-  if (RegSetValueExW(hKey, L"PrintFontEnable", 0, REG_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD)))
     goto Error;
   if (bPrintFontChanged)
   {
-    if (RegSetValueExW(hKey, L"PrintFont", 0, REG_BINARY, (LPBYTE)&lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"PrintFont", PO_BINARY, &lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
       goto Error;
-    if (RegSetValueExW(hKey, L"PrintFontFace", 0, REG_SZ, (LPBYTE)&lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2))
       goto Error;
   }
   if (bColorsChanged)
   {
-    if (RegSetValueExW(hKey, L"Colors", 0, REG_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
       goto Error;
   }
-  if (RegSetValueExW(hKey, L"LanguageModule", 0, REG_SZ, (LPBYTE)wszLangModule, lstrlenW(wszLangModule) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"LanguageModule", PO_STRING, wszLangModule, lstrlenW(wszLangModule) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"ExecuteCommand", 0, REG_SZ, (LPBYTE)wszCommand, lstrlenW(wszCommand) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ExecuteCommand", PO_STRING, wszCommand, lstrlenW(wszCommand) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"ExecuteDirectory", 0, REG_SZ, (LPBYTE)wszWorkDir, lstrlenW(wszWorkDir) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ExecuteDirectory", PO_STRING, wszWorkDir, lstrlenW(wszWorkDir) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"FileTypesOpen", 0, REG_SZ, (LPBYTE)wszFileTypesOpen, lstrlenW(wszFileTypesOpen) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"FileTypesOpen", PO_STRING, wszFileTypesOpen, lstrlenW(wszFileTypesOpen) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"FileTypesEdit", 0, REG_SZ, (LPBYTE)wszFileTypesEdit, lstrlenW(wszFileTypesEdit) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"FileTypesEdit", PO_STRING, wszFileTypesEdit, lstrlenW(wszFileTypesEdit) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"FileTypesPrint", 0, REG_SZ, (LPBYTE)wszFileTypesPrint, lstrlenW(wszFileTypesPrint) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, lstrlenW(wszFileTypesPrint) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"FileTypesAssociated", 0, REG_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"PrintHeaderEnable", 0, REG_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"PrintHeader", 0, REG_SZ, (LPBYTE)wszPrintHeader, lstrlenW(wszPrintHeader) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintHeader", PO_STRING, wszPrintHeader, lstrlenW(wszPrintHeader) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"PrintFooterEnable", 0, REG_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"PrintFooter", 0, REG_SZ, (LPBYTE)wszPrintFooter, lstrlenW(wszPrintFooter) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintFooter", PO_STRING, wszPrintFooter, lstrlenW(wszPrintFooter) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"CodepageList", 0, REG_BINARY, (LPBYTE)lpCodepageList, nCodepageListLen * sizeof(int)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
     goto Error;
 
-  RegCloseKey(hKey);
-  return TRUE;
+  if (nSaveSettings == SS_REGISTRY)
+    bResult=TRUE;
+  else
+    bResult=SaveIniW((HSTACK *)hHandle, wszIniFile);
 
   Error:
-  RegCloseKey(hKey);
-  return FALSE;
-}
-
-BOOL IniSaveOptionsA()
-{
-  dwMainStyle=GetWindowLongA(hMainWnd, GWL_STYLE);
-  dwMainStyle=((dwMainStyle & WS_MAXIMIZE) || ((dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
-  if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-  dwMdiStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
-
-  if (!OpenIniA(&hIniStack, szIniFile, TRUE))
-    return FALSE;
-
-  if (!IniSetValueA(&hIniStack, "Options", "SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ShowModify", INI_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "Marker", INI_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SingleOpenFile", INI_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SingleOpenProgram", INI_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "MDI", INI_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "DefaultNewLine", INI_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SearchStrings", INI_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SearchOptions", INI_DWORD, (LPBYTE)&ftflags, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "TabStopSize", INI_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "TabStopAsSpaces", INI_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "MarginsEdit", INI_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "MarginsPrint", INI_BINARY, (LPBYTE)&psdPageA.rtMargin, sizeof(RECT)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WindowStyle", INI_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WindowPosition", INI_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT)))
-    goto Error;
-
-  if (bMDI)
-  {
-    if (!IniSetValueA(&hIniStack, "Options", "TabViewMDI", INI_DWORD, (LPBYTE)&nTabView, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "TabTypeMDI", INI_DWORD, (LPBYTE)&nTabType, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "TabSwitchMDI", INI_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD)))
-      goto Error;
-  }
-
-  if (!IniSetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, wcslen(wszUrlPrefixes) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "UrlDelimitersEnable", INI_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, wcslen(wszUrlDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (bEditFontChanged)
-  {
-    if (!IniSetValueA(&hIniStack, "Options", "Font", INI_BINARY, (LPBYTE)&lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "FontFace", INI_STRINGANSI, (LPBYTE)&lfEditFontA.lfFaceName, lstrlenA(lfEditFontA.lfFaceName) + 1))
-      goto Error;
-  }
-  if (!IniSetValueA(&hIniStack, "Options", "PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD)))
-    goto Error;
-  if (bPrintFontChanged)
-  {
-    if (!IniSetValueA(&hIniStack, "Options", "PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "PrintFontFace", INI_STRINGANSI, (LPBYTE)&lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1))
-      goto Error;
-  }
-  if (bColorsChanged)
-  {
-    if (!IniSetValueA(&hIniStack, "Options", "Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)))
-      goto Error;
-  }
-  if (!IniSetValueA(&hIniStack, "Options", "LanguageModule", INI_STRINGANSI, (LPBYTE)szLangModule, lstrlenA(szLangModule) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ExecuteCommand", INI_STRINGANSI, (LPBYTE)szCommand, lstrlenA(szCommand) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ExecuteDirectory", INI_STRINGANSI, (LPBYTE)szWorkDir, lstrlenA(szWorkDir) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "FileTypesOpen", INI_STRINGANSI, (LPBYTE)szFileTypesOpen, lstrlenA(szFileTypesOpen) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "FileTypesEdit", INI_STRINGANSI, (LPBYTE)szFileTypesEdit, lstrlenA(szFileTypesEdit) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "FileTypesPrint", INI_STRINGANSI, (LPBYTE)szFileTypesPrint, lstrlenA(szFileTypesPrint) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "FileTypesAssociated", INI_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "PrintHeaderEnable", INI_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "PrintHeader", INI_STRINGANSI, (LPBYTE)szPrintHeader, lstrlenA(szPrintHeader) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "PrintFooterEnable", INI_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "PrintFooter", INI_STRINGANSI, (LPBYTE)szPrintFooter, lstrlenA(szPrintFooter) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "CodepageList", INI_BINARY, (LPBYTE)lpCodepageList, nCodepageListLen * sizeof(int)))
-    goto Error;
-
-  if (SaveIniA(&hIniStack, szIniFile))
-  {
-    StackFreeIni(&hIniStack);
-    return TRUE;
-  }
-  Error:
-  StackFreeIni(&hIniStack);
-  return FALSE;
-}
-
-BOOL IniSaveOptionsW()
-{
-  dwMainStyle=GetWindowLongW(hMainWnd, GWL_STYLE);
-  dwMainStyle=((dwMainStyle & WS_MAXIMIZE) || ((dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
-  if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-  dwMdiStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
-
-  if (!OpenIniW(&hIniStack, wszIniFile, TRUE))
-    return FALSE;
-
-  if (!IniSetValueW(&hIniStack, L"Options", L"SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ShowModify", INI_DWORD, (LPBYTE)&dwShowModify, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"StatusPosType", INI_DWORD, (LPBYTE)&dwStatusPosType, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WrapType", INI_DWORD, (LPBYTE)&nWrapType, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WrapLimit", INI_DWORD, (LPBYTE)&dwWrapLimit, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"Marker", INI_DWORD, (LPBYTE)&dwMarker, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"CaretOutEdge", INI_DWORD, (LPBYTE)&bCaretOutEdge, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"CaretVertLine", INI_DWORD, (LPBYTE)&bCaretVertLine, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"CaretWidth", INI_DWORD, (LPBYTE)&nCaretWidth, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SingleOpenFile", INI_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SingleOpenProgram", INI_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"MDI", INI_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"DefaultNewLine", INI_DWORD, (LPBYTE)&nDefaultNewLine, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SearchStrings", INI_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SearchOptions", INI_DWORD, (LPBYTE)&ftflags, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"TabStopSize", INI_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"TabStopAsSpaces", INI_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"MarginsEdit", INI_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"MarginsPrint", INI_BINARY, (LPBYTE)&psdPageW.rtMargin, sizeof(RECT)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WindowStyle", INI_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WindowPosition", INI_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT)))
-    goto Error;
-
-  if (bMDI)
-  {
-    if (!IniSetValueW(&hIniStack, L"Options", L"TabViewMDI", INI_DWORD, (LPBYTE)&nTabView, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"TabTypeMDI", INI_DWORD, (LPBYTE)&nTabType, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"TabSwitchMDI", INI_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD)))
-      goto Error;
-  }
-
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordBreak", INI_DWORD, (LPBYTE)&dwCustomWordBreak, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"UrlPrefixesEnable", INI_DWORD, (LPBYTE)&bUrlPrefixesEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"UrlPrefixes", INI_BINARY, (LPBYTE)wszUrlPrefixes, lstrlenW(wszUrlPrefixes) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"UrlDelimitersEnable", INI_DWORD, (LPBYTE)&bUrlDelimitersEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"UrlDelimiters", INI_BINARY, (LPBYTE)wszUrlDelimiters, lstrlenW(wszUrlDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (bEditFontChanged)
-  {
-    if (!IniSetValueW(&hIniStack, L"Options", L"Font", INI_BINARY, (LPBYTE)&lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"FontFace", INI_STRINGUNICODE, (LPBYTE)&lfEditFontW.lfFaceName, lstrlenW(lfEditFontW.lfFaceName) * sizeof(wchar_t) + 2))
-      goto Error;
-  }
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD)))
-    goto Error;
-  if (bPrintFontChanged)
-  {
-    if (!IniSetValueW(&hIniStack, L"Options", L"PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"PrintFontFace", INI_STRINGUNICODE, (LPBYTE)&lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2))
-      goto Error;
-  }
-  if (bColorsChanged)
-  {
-    if (!IniSetValueW(&hIniStack, L"Options", L"Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)))
-      goto Error;
-  }
-  if (!IniSetValueW(&hIniStack, L"Options", L"LanguageModule", INI_STRINGUNICODE, (LPBYTE)wszLangModule, lstrlenW(wszLangModule) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ExecuteCommand", INI_STRINGUNICODE, (LPBYTE)wszCommand, lstrlenW(wszCommand) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ExecuteDirectory", INI_STRINGUNICODE, (LPBYTE)wszWorkDir, lstrlenW(wszWorkDir) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"FileTypesOpen", INI_STRINGUNICODE, (LPBYTE)wszFileTypesOpen, lstrlenW(wszFileTypesOpen) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"FileTypesEdit", INI_STRINGUNICODE, (LPBYTE)wszFileTypesEdit, lstrlenW(wszFileTypesEdit) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"FileTypesPrint", INI_STRINGUNICODE, (LPBYTE)wszFileTypesPrint, lstrlenW(wszFileTypesPrint) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"FileTypesAssociated", INI_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintHeaderEnable", INI_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintHeader", INI_STRINGUNICODE, (LPBYTE)wszPrintHeader, lstrlenW(wszPrintHeader) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintFooterEnable", INI_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintFooter", INI_STRINGUNICODE, (LPBYTE)wszPrintFooter, lstrlenW(wszPrintFooter) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"CodepageList", INI_BINARY, (LPBYTE)lpCodepageList, nCodepageListLen * sizeof(int)))
-    goto Error;
-
-  if (SaveIniW(&hIniStack, wszIniFile))
-  {
-    StackFreeIni(&hIniStack);
-    return TRUE;
-  }
-  Error:
-  StackFreeIni(&hIniStack);
-  return FALSE;
+  if (nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)hHandle);
+  else
+    StackFreeIni((HSTACK *)hHandle);
+  return bResult;
 }
 
 void ReadThemesA()
@@ -16457,6 +15835,7 @@ BOOL CALLBACK OptionsRegistryDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       if (nSaveSettings != a)
       {
         nSaveSettings=a;
+        nRegSaveSettings=a;
         bOptionsSave=TRUE;
       }
 
@@ -16717,6 +16096,7 @@ BOOL CALLBACK OptionsRegistryDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       if (nSaveSettings != a)
       {
         nSaveSettings=a;
+        nRegSaveSettings=a;
         bOptionsSave=TRUE;
       }
 
