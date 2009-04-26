@@ -11,6 +11,7 @@ Added: 4429 command - paste to column selection (Alt+V).
 
 Fixed: coordinates error when moving with PageUp/PageDown.
 Fixed: change font size using Ctrl+WheelMouse didn't remembered.
+Fixed: search string trimming (Win95/98/Me).
 Fixed: duplicating codepage in list when Ansi and Oem codepages are the same.
 
 
