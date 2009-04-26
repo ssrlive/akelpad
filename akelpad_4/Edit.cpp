@@ -4516,20 +4516,25 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       if (nRecentFiles && bSavePositions)
       {
         CHARRANGE cr;
+        DWORD dwScrollFlags=0;
+        DWORD dwScrollResult;
 
-        if (bDocumentReopen)
-        {
-          SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
-        }
-
+        SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.cpMin=lpdwRecentPositions[0];
         cr.cpMax=lpdwRecentPositions[0];
         SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
+        SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
         if (bDocumentReopen)
-        {
-          SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
           SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+        else
+        {
+          dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
+          if (dwScrollResult & AECSE_SCROLLEDX)
+            dwScrollFlags|=AESC_UNITRECTDIVX;
+          if (dwScrollResult & AECSE_SCROLLEDY)
+            dwScrollFlags|=AESC_UNITRECTDIVY;
+          SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
         }
       }
 
@@ -4790,20 +4795,25 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       if (nRecentFiles && bSavePositions)
       {
         CHARRANGE cr;
+        DWORD dwScrollFlags=0;
+        DWORD dwScrollResult;
 
-        if (bDocumentReopen)
-        {
-          SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
-        }
-
+        SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.cpMin=lpdwRecentPositions[0];
         cr.cpMax=lpdwRecentPositions[0];
         SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
+        SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
         if (bDocumentReopen)
-        {
-          SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, FALSE);
           SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
+        else
+        {
+          dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
+          if (dwScrollResult & AECSE_SCROLLEDX)
+            dwScrollFlags|=AESC_UNITRECTDIVX;
+          if (dwScrollResult & AECSE_SCROLLEDY)
+            dwScrollFlags|=AESC_UNITRECTDIVY;
+          SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
         }
       }
 
