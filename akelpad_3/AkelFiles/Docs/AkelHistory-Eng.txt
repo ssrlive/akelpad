@@ -1,5 +1,5 @@
 
-AkelPad 3.7.2 ()
+AkelPad 3.7.2 (Apr 26, 2009)
 ----------------------------
 Added: AKD_INI* messages for work with ini file in UTF-16LE codepage.
 

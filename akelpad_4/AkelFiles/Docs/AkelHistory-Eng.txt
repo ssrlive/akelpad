@@ -1,5 +1,5 @@
 
-AkelPad 4.2.2 ()
+AkelPad 4.2.2 (Apr 26, 2009)
 ----------------------------
 Added: messages for syntax highlighting in AkelEdit:
        - Opportunity to highlight delimiters, words, the text between words
@@ -10,7 +10,7 @@ Added: AKD_INI* messages for work with ini file in UTF-16LE codepage.
 Added: 4429 command - paste to column selection (Alt+V).
 
 Fixed: coordinates error when moving with PageUp/PageDown.
-Fixed: change font size using Ctrl+WheelMouse didn't remembered.
+Fixed: change font size using Ctrl+WheelMouse wasn't remembered.
 Fixed: search string trimming (Win95/98/Me).
 Fixed: duplicating codepage in list when Ansi and Oem codepages are the same.
 
