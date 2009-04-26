@@ -529,7 +529,7 @@ HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh);
 BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret);
 void SetCaretVis(AKELEDIT *ae, const POINT *ptCaret);
-void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret);
+void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect);
 DWORD AE_ScrollToCaretEx(AKELEDIT *ae, const POINT *ptCaret, DWORD dwFlags, WORD wUnitX, WORD wUnitY, BOOL bTest);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
 int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos);

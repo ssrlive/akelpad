@@ -1958,7 +1958,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_INIOPEN)
     {
       INIHANDLEA *ih;
-      BOOL bCreate;
+      BOOL bCreate=FALSE;
 
       if (ih=(INIHANDLEA *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(INIHANDLEA)))
       {
@@ -3812,7 +3812,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_INIOPEN)
     {
       INIHANDLEW *ih;
-      BOOL bCreate;
+      BOOL bCreate=FALSE;
 
       if (ih=(INIHANDLEW *)API_HeapAlloc(hHeap, HEAP_ZERO_MEMORY, sizeof(INIHANDLEW)))
       {
