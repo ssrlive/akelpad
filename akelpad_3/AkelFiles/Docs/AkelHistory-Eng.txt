@@ -1,6 +1,8 @@
 
 AkelPad 3.7.2 ()
 ----------------------------
+Added: AKD_INI* messages for work with ini file in UTF-16LE codepage.
+
 Fixed: change font size using Ctrl+WheelMouse didn't remembered.
 Fixed: duplicating codepage in list when Ansi and Oem codepages are the same.
 

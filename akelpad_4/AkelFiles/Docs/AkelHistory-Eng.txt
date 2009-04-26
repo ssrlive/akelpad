@@ -6,6 +6,7 @@ Added: messages for syntax highlighting in AkelEdit:
          (for example: line comments, quoted text, etc.);
        - Opportunity to specify text color and background color.
        - Opportunity to specify font style (normal, bold, italic, bold italic).
+Added: AKD_INI* messages for work with ini file in UTF-16LE codepage.
 
 Fixed: coordinates error when moving with PageUp/PageDown.
 Fixed: change font size using Ctrl+WheelMouse didn't remembered.
