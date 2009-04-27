@@ -7117,13 +7117,13 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCount, &ciCount, FALSE);
 
   Begin:
-  while (ciCount.nLine <= nLastLine)
+  while (ciCount.lpLine)
   {
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
       if (!wm->lpQuote)
       {
-        if (AE_IndexCompare(&ciCount, &wm->crQuoteEnd.ciMax) < 0)
+        if (AE_IndexCompare(&ciCount, ciChar) > 0)
           return 0;
 
         //Quote start
@@ -7338,7 +7338,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
     ++ciCount.nCharInLine;
   }
 
-  while (ciCount.nLine <= nLastLine)
+  while (ciCount.lpLine)
   {
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
@@ -7396,7 +7396,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWo
     if (ae->popt->lpActiveTheme->hWordStack.lpWordLens[nWordLen])
     {
       lpWordElement=(AEWORDITEMW *)ae->popt->lpActiveTheme->hWordStack.lpWordLens[nWordLen];
-  
+
       while (lpWordElement)
       {
         if (lpWordElement->nWordLen == nWordLen)
@@ -7405,14 +7405,14 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWo
           ft.dwTextLen=lpWordElement->nWordLen;
           ft.dwFlags=(lpWordElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
           ft.nNewLine=AELB_ASIS;
-  
+
           if (AE_IsMatch(ae, &ft, ciChar))
           {
             return lpWordElement;
           }
         }
         else break;
-  
+
         lpWordElement=lpWordElement->next;
       }
     }
@@ -7554,17 +7554,17 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
     else
     {
       lpTmp=(AEWORDITEMW *)aeti->hWordStack.first;
-  
+
       while (lpTmp)
       {
         if (lpTmp->nWordLen >= nWordLen)
           break;
-  
+
         lpTmp=lpTmp->next;
       }
     }
     AE_HeapStackInsertBefore(NULL, (stack **)&aeti->hWordStack.first, (stack **)&aeti->hWordStack.last, (stack *)lpTmp, (stack **)&lpElement, sizeof(AEWORDITEMW));
-  
+
     if (lpElement)
       aeti->hWordStack.lpWordLens[nWordLen]=(int)lpElement;
   }
@@ -7580,7 +7580,7 @@ AEWORDITEMW* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t
     if (aeti->hWordStack.lpWordLens[nWordLen])
     {
       lpElement=(AEWORDITEMW *)aeti->hWordStack.lpWordLens[nWordLen];
-  
+
       while (lpElement)
       {
         if (lpElement->nWordLen == nWordLen)
@@ -7597,7 +7597,7 @@ AEWORDITEMW* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t
           }
         }
         else break;
-  
+
         lpElement=lpElement->next;
       }
     }
