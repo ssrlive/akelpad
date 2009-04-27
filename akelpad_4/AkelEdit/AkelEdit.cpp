@@ -7094,7 +7094,7 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   return dwLinkLen;
 }
 
-int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AEQUOTEMATCH *wm)
+int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *wm)
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
@@ -7255,7 +7255,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   return nQuoteLen;
 }
 
-int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AEWORDMATCH *wm)
+int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm)
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
@@ -8682,9 +8682,9 @@ void AE_Paint(AKELEDIT *ae)
                 if (AE_IndexCompare(&hlp.wm.crDelim2.ciMax, &ciDrawLine) <= 0)
                 {
                   if (nFirstPaintChar == ciDrawLine.nCharInLine)
-                    AE_HighlightFindWord(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &hlp.wm);
+                    AE_HighlightFindWord(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp.wm);
                   else
-                    AE_HighlightFindWord(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &hlp.wm);
+                    AE_HighlightFindWord(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, &hlp.wm);
                 }
 
                 //Check delimiters and word start
@@ -8778,9 +8778,9 @@ void AE_Paint(AKELEDIT *ae)
               if (AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0)
               {
                 if (nFirstPaintChar == ciDrawLine.nCharInLine)
-                  AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &hlp.qm);
+                  AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp.qm);
                 else
-                  AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &hlp.qm);
+                  AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, &hlp.qm);
               }
 
               //Check quote start
