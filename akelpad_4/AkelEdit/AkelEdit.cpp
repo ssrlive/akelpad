@@ -8587,8 +8587,11 @@ void AE_Paint(AKELEDIT *ae)
                   if (AE_IndexCompare(&hlp.wm.crDelim1.ciMax, &ciDrawLine) == 0)
                   {
                     //Draw full highlighted text or last part of it
-                    AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
+                    if (!hlp.qm.lpQuote)
+                    {
+                      AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                      nMaxDrawCharsCount=0;
+                    }
                   }
                 }
                 hlp.dwPaintType&=~AEPT_DELIM1;
@@ -8604,8 +8607,11 @@ void AE_Paint(AKELEDIT *ae)
                   if (AE_IndexCompare(&hlp.wm.crWord.ciMax, &ciDrawLine) == 0)
                   {
                     //Draw full highlighted text or last part of it
-                    AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
+                    if (!hlp.qm.lpQuote)
+                    {
+                      AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                      nMaxDrawCharsCount=0;
+                    }
                   }
                 }
                 hlp.dwPaintType&=~AEPT_WORD;
@@ -8621,8 +8627,11 @@ void AE_Paint(AKELEDIT *ae)
                   if (AE_IndexCompare(&hlp.wm.crDelim2.ciMax, &ciDrawLine) == 0)
                   {
                     //Draw full highlighted text or last part of it
-                    AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
+                    if (!hlp.qm.lpQuote)
+                    {
+                      AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                      nMaxDrawCharsCount=0;
+                    }
                   }
                 }
                 hlp.dwPaintType&=~AEPT_DELIM2;
@@ -8697,8 +8706,12 @@ void AE_Paint(AKELEDIT *ae)
                       if (!(hlp.dwPaintType & AEPT_SELECTION))
                       {
                         //Draw text before range for highlight
-                        AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                        nMaxDrawCharsCount=0;
+                        if ((hlp.wm.lpDelim1->crText != (DWORD)-1 && hlp.wm.lpDelim1->crText != hlp.dwActiveText) ||
+                            (hlp.wm.lpDelim1->crBk != (DWORD)-1 && hlp.wm.lpDelim1->crBk != hlp.dwActiveBG))
+                        {
+                          AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                          nMaxDrawCharsCount=0;
+                        }
                       }
                       hlp.dwPaintType|=AEPT_DELIM1;
                     }
@@ -8725,8 +8738,12 @@ void AE_Paint(AKELEDIT *ae)
                       if (!(hlp.dwPaintType & AEPT_SELECTION))
                       {
                         //Draw text before range for highlight
-                        AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                        nMaxDrawCharsCount=0;
+                        if ((hlp.wm.lpWord->crText != (DWORD)-1 && hlp.wm.lpWord->crText != hlp.dwActiveText) ||
+                            (hlp.wm.lpWord->crBk != (DWORD)-1 && hlp.wm.lpWord->crBk != hlp.dwActiveBG))
+                        {
+                          AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                          nMaxDrawCharsCount=0;
+                        }
                       }
                       hlp.dwPaintType|=AEPT_WORD;
                     }
@@ -8753,8 +8770,12 @@ void AE_Paint(AKELEDIT *ae)
                       if (!(hlp.dwPaintType & AEPT_SELECTION))
                       {
                         //Draw text before range for highlight
-                        AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                        nMaxDrawCharsCount=0;
+                        if ((hlp.wm.lpDelim2->crText != (DWORD)-1 && hlp.wm.lpDelim2->crText != hlp.dwActiveText) ||
+                            (hlp.wm.lpDelim2->crBk != (DWORD)-1 && hlp.wm.lpDelim2->crBk != hlp.dwActiveBG))
+                        {
+                          AE_PaintTextOut(ae, ps.hdc, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                          nMaxDrawCharsCount=0;
+                        }
                       }
                       hlp.dwPaintType|=AEPT_DELIM2;
                     }
