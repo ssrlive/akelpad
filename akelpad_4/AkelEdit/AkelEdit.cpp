@@ -7205,7 +7205,10 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             if (wm->lpQuote->wchEscape)
             {
               if (nEscape % 2)
+              {
+                nEscape=0;
                 goto QuoteEndNext;
+              }
             }
             ciCount=ft.crFound.ciMax;
             nQuoteLen+=lpQuoteElement->nQuoteEndLen;
