@@ -7102,6 +7102,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   AEQUOTEITEMW *lpQuoteElement=NULL;
   AEDELIMITEMW *lpDelimiterElement=NULL;
   int nQuoteLen=0;
+  int nEscape=0;
 
   wm->lpQuote=NULL;
   if (ciChar->nCharInLine == ciChar->lpLine->nLineLen) return 0;
@@ -7148,6 +7149,10 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             wm->lpQuote=lpQuoteElement;
             wm->crQuoteStart=ft.crFound;
 
+            if (wm->lpQuote->dwFlags & AEHLF_QUOTESTART_NOHIGHLIGHT)
+            {
+              wm->crQuoteStart.ciMin=wm->crQuoteStart.ciMax;
+            }
             if (!(wm->lpQuote->dwFlags & AEHLF_QUOTEENDISDELIMITER) &&
                 (!wm->lpQuote->wpQuoteEnd || !*wm->lpQuote->wpQuoteEnd))
             {
@@ -7199,14 +7204,20 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           {
             if (wm->lpQuote->wchEscape)
             {
-              if (AE_GetIndex(ae, AEGI_PREVCHARINLINE, &ft.crFound.ciMin, &ciEscape, FALSE) &&
-                  *(ciEscape.lpLine->wpLine + ciEscape.nCharInLine) == wm->lpQuote->wchEscape)
+              if (nEscape % 2)
                 goto QuoteEndNext;
             }
             ciCount=ft.crFound.ciMax;
             nQuoteLen+=lpQuoteElement->nQuoteEndLen;
             wm->crQuoteEnd=ft.crFound;
             goto SetQuote;
+          }
+          if (wm->lpQuote->wchEscape)
+          {
+            if (*(ciCount.lpLine->wpLine + ciCount.nCharInLine) == wm->lpQuote->wchEscape)
+              ++nEscape;
+            else
+              nEscape=0;
           }
         }
 
@@ -8722,11 +8733,13 @@ void AE_Paint(AKELEDIT *ae)
             }
             if (hlp.qm.lpQuote)
             {
-              if (AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0)
+              if ((!(hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0) ||
+                  ((hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMin, &ciDrawLine) <= 0))
               {
                 if (!(hlp.dwPaintType & AEPT_SELECTION))
                 {
-                  if (AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) == 0)
+                  if ((!(hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) == 0) ||
+                      ((hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMin, &ciDrawLine) == 0))
                   {
                     //Draw full highlighted text or last part of it
                     AE_PaintTextOut(ae, hBufferDC, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);

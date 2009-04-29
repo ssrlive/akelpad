@@ -170,16 +170,18 @@
                               AECLR_COLUMNMARKER)
 
 //Highlight flags
-#define AEHLF_MATCHCASE            0x1  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
-#define AEHLF_QUOTEENDISDELIMITER  0x2  //If set, AEQUOTEITEMA.pQuoteEnd or AEQUOTEITEMW.pQuoteEnd member is ignored and first meet delimiter used as quote end.
-#define AEHLF_QUOTEENDREQUIRED     0x4  //If set and if quote end isn't found text after quote start will not be highlighted.
+#define AEHLF_MATCHCASE              0x01  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
+#define AEHLF_QUOTEENDISDELIMITER    0x02  //If set, AEQUOTEITEMA.pQuoteEnd or AEQUOTEITEMW.pQuoteEnd member is ignored and first meet delimiter used as quote end.
+#define AEHLF_QUOTEENDREQUIRED       0x04  //If set and if quote end isn't found, text after quote start will not be highlighted.
+#define AEHLF_QUOTESTART_NOHIGHLIGHT 0x08  //Don't highlight quote start string
+#define AEHLF_QUOTEEND_NOHIGHLIGHT   0x10  //Don't highlight quote end string
 
 //Highlight font style
-#define AEHLS_NONE                 0  //Current style.
-#define AEHLS_FONTNORMAL           1  //Normal style.
-#define AEHLS_FONTBOLD             2  //Bold style.
-#define AEHLS_FONTITALIC           3  //Italic style.
-#define AEHLS_FONTBOLDITALIC       4  //Bold italic style.
+#define AEHLS_NONE                  0  //Current style.
+#define AEHLS_FONTNORMAL            1  //Normal style.
+#define AEHLS_FONTBOLD              2  //Bold style.
+#define AEHLS_FONTITALIC            3  //Italic style.
+#define AEHLS_FONTBOLDITALIC        4  //Bold italic style.
 
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
 #define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number.
