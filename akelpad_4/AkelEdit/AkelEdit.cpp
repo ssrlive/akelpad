@@ -7098,7 +7098,6 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
-  AECHARINDEX ciEscape;
   AEQUOTEITEMW *lpQuoteElement=NULL;
   AEDELIMITEMW *lpDelimiterElement=NULL;
   int nQuoteLen=0;
@@ -7138,12 +7137,6 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
           if (AE_IsMatch(ae, &ft, &ciCount))
           {
-            if (lpQuoteElement->wchEscape)
-            {
-              if (AE_GetIndex(ae, AEGI_PREVCHARINLINE, &ft.crFound.ciMin, &ciEscape, FALSE) &&
-                  *(ciEscape.lpLine->wpLine + ciEscape.nCharInLine) == lpQuoteElement->wchEscape)
-                goto QuoteStartNext;
-            }
             ciCount=ft.crFound.ciMax;
             nQuoteLen=lpQuoteElement->nQuoteStartLen;
             wm->lpQuote=lpQuoteElement;
