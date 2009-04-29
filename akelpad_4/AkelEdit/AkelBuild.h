@@ -212,6 +212,9 @@ typedef struct _AEWORDMATCH {
 typedef struct _AEHLPAINT {
   DWORD dwActiveBG;
   DWORD dwActiveText;
+  DWORD dwDefaultText;
+  DWORD dwDefaultBG;
+  HBRUSH hbrDefaultBG;
   DWORD dwPaintType;
   DWORD dwFontStyle;
   HBRUSH hbrActiveBG;
