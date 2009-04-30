@@ -192,6 +192,7 @@ typedef struct _AETHEMEITEMW {
   AEHDELIMSTACK hDelimiterStack;
   AEHWORDSTACK hWordStack;
   AEHQUOTESTACK hQuoteStack;
+  int nQuoteStartIsDelimiter;
 } AETHEMEITEMW;
 
 typedef struct _AEQUOTEMATCH {
@@ -508,7 +509,8 @@ DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink);
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *wm);
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm);
-AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, const AECHARINDEX *ciChar, int nWordLen);
+AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
+AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, int nWordLen);
 AETHEMEITEMW* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName);
 AETHEMEITEMW* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName);
 BOOL AE_HighlightIsThemeExists(AKELEDIT *ae, AETHEMEITEMW *aeti);
@@ -568,6 +570,8 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
 BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel, DWORD dwFlags);
 BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch);
 BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch);
+BOOL AE_IsFirstCharInLine(AKELEDIT *ae, const AECHARINDEX *ciChar);
+BOOL AE_IsLastCharInLine(AKELEDIT *ae, const AECHARINDEX *ciChar);
 BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c);
 BOOL AE_IsSpace(wchar_t c);
 int AE_GetUrlPrefixes(AKELEDIT *ae);
