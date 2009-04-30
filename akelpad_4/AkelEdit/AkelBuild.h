@@ -570,8 +570,9 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
 BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel, DWORD dwFlags);
 BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch);
 BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch);
-BOOL AE_IsFirstCharInLine(AKELEDIT *ae, const AECHARINDEX *ciChar);
-BOOL AE_IsLastCharInLine(AKELEDIT *ae, const AECHARINDEX *ciChar);
+BOOL AE_IsFirstCharInLine(const AECHARINDEX *ciChar);
+BOOL AE_IsLastCharInLine(const AECHARINDEX *ciChar);
+BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar);
 BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c);
 BOOL AE_IsSpace(wchar_t c);
 int AE_GetUrlPrefixes(AKELEDIT *ae);

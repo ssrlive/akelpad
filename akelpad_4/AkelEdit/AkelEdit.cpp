@@ -7137,7 +7137,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
         while (lpQuoteElement)
         {
-          if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART) || AE_IsFirstCharInLine(ae, &ciCount))
+          if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART) || AE_IsFirstCharInLine(&ciCount))
           {
             ft.wpText=lpQuoteElement->wpQuoteStart;
             ft.dwTextLen=lpQuoteElement->nQuoteStartLen;
@@ -7171,7 +7171,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           AECHARINDEX ciTmpCount=ciCount;
           int nTmpQuoteLen;
 
-          if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciTmpCount)) || AE_IsFirstCharInLine(ae, &ciTmpCount))
+          if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciTmpCount)) || AE_IsFirstCharInLine(&ciTmpCount))
           {
             if (lpDelimiterElement)
             {
@@ -7200,7 +7200,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                     if (lpQuoteElement->dwFlags & AEHLF_QUOTEEND_ISDELIMITER)
                     {
                       //AEHLF_QUOTESTART_ISDELIMITER|AEHLF_QUOTEEND_ISDELIMITER
-                      if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciTmpCount)) || AE_IsLastCharInLine(ae, &ciTmpCount))
+                      if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciTmpCount)) || AE_IsLastCharInLine(&ciTmpCount))
                       {
                         if (lpDelimiterElement)
                         {
@@ -7218,7 +7218,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                         goto SetQuote;
                       }
                     }
-                    else if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART) || AE_IsFirstCharInLine(ae, &crTmpQuoteStart.ciMax))
+                    else if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART) || AE_IsFirstCharInLine(&crTmpQuoteStart.ciMax))
                     {
                       ft.wpText=lpQuoteElement->wpQuoteEnd;
                       ft.dwTextLen=lpQuoteElement->nQuoteEndLen;
@@ -7335,7 +7335,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   {
     if (wm->lpQuote)
     {
-      if ((wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(ae, &wm->crQuoteEnd.ciMin))
+      if ((wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(&wm->crQuoteEnd.ciMin))
       {
         wm->crQuoteEnd.ciMin=wm->crQuoteStart.ciMax;
         wm->crQuoteEnd.ciMax=wm->crQuoteStart.ciMax;
@@ -8561,6 +8561,7 @@ void AE_Paint(AKELEDIT *ae)
       HRGN hDrawRgn;
       HRGN hDrawRgnOld=NULL;
       wchar_t *wpStartDraw;
+      DWORD dwFindFirst;
       int nLineSelection;
       int nStartDrawWidth;
       int nMinPaintWidth=0;
@@ -8569,7 +8570,6 @@ void AE_Paint(AKELEDIT *ae)
       int nCharWidth=0;
       int nLineWidth;
       int nLastDrawLine=0;
-      int nFirstPaintChar;
       BOOL bUseBufferDC=TRUE;
 
       //Set DCs
@@ -8631,7 +8631,7 @@ void AE_Paint(AKELEDIT *ae)
         nStartDrawWidth=nLineWidth;
         nMaxDrawCharsCount=0;
         wpStartDraw=ciDrawLine.lpLine->wpLine + ciDrawLine.nCharInLine;
-        nFirstPaintChar=ciDrawLine.nCharInLine;
+        dwFindFirst=AEPT_SELECTION|AEPT_LINK|AEPT_QUOTE|AEPT_DELIM1;
 
         //Set initial colors
         if (ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
@@ -8753,8 +8753,10 @@ void AE_Paint(AKELEDIT *ae)
           if (nLineSelection == AELS_FULL || nLineSelection == AELS_PARTLY)
           {
             if (ciDrawLine.lpLine->nSelStart == ciDrawLine.nCharInLine ||
-                (nFirstPaintChar == ciDrawLine.nCharInLine && ciDrawLine.lpLine->nSelStart < ciDrawLine.nCharInLine && ciDrawLine.nCharInLine < ciDrawLine.lpLine->nSelEnd))
+                ((dwFindFirst & AEPT_SELECTION) && AE_IsCharInSelection(&ciDrawLine)))
             {
+              dwFindFirst&=~AEPT_SELECTION;
+
               //Draw text up to selection start
               AE_PaintTextOut(ae, hBufferDC, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
               nMaxDrawCharsCount=0;
@@ -8780,8 +8782,48 @@ void AE_Paint(AKELEDIT *ae)
           }
 
           //Check highlight end
+          if (ae->popt->bDetectUrl)
+          {
+            if (hlp.crLink.ciMin.lpLine && hlp.crLink.ciMax.lpLine)
+            {
+              if (AE_IndexCompare(&hlp.crLink.ciMax, &ciDrawLine) <= 0)
+              {
+                if (!(hlp.dwPaintType & AEPT_SELECTION))
+                {
+                  if (AE_IndexCompare(&hlp.crLink.ciMax, &ciDrawLine) == 0)
+                  {
+                    //Draw full highlighted text or last part of it
+                    AE_PaintTextOut(ae, hBufferDC, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                    nMaxDrawCharsCount=0;
+                  }
+                }
+                hlp.dwPaintType&=~AEPT_LINK;
+                hlp.crLink.ciMin.lpLine=NULL;
+                hlp.crLink.ciMax.lpLine=NULL;
+              }
+            }
+          }
           if (ae->popt->lpActiveTheme)
           {
+            if (hlp.qm.lpQuote)
+            {
+              if (((hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMin, &ciDrawLine) <= 0) ||
+                  (!(hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0))
+              {
+                if (!(hlp.dwPaintType & AEPT_SELECTION))
+                {
+                  if (((hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMin, &ciDrawLine) == 0) ||
+                      (!(hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) == 0))
+                  {
+                    //Draw full highlighted text or last part of it
+                    AE_PaintTextOut(ae, hBufferDC, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
+                    nMaxDrawCharsCount=0;
+                  }
+                }
+                hlp.dwPaintType&=~AEPT_QUOTE;
+                hlp.qm.lpQuote=NULL;
+              }
+            }
             if (hlp.wm.lpDelim1)
             {
               if (AE_IndexCompare(&hlp.wm.crDelim1.ciMax, &ciDrawLine) <= 0)
@@ -8842,46 +8884,6 @@ void AE_Paint(AKELEDIT *ae)
                 hlp.wm.lpDelim2=NULL;
               }
             }
-            if (hlp.qm.lpQuote)
-            {
-              if (((hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMin, &ciDrawLine) <= 0) ||
-                  (!(hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0))
-              {
-                if (!(hlp.dwPaintType & AEPT_SELECTION))
-                {
-                  if (((hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMin, &ciDrawLine) == 0) ||
-                      (!(hlp.qm.lpQuote->dwFlags & AEHLF_QUOTEEND_NOHIGHLIGHT) && AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) == 0))
-                  {
-                    //Draw full highlighted text or last part of it
-                    AE_PaintTextOut(ae, hBufferDC, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
-                  }
-                }
-                hlp.dwPaintType&=~AEPT_QUOTE;
-                hlp.qm.lpQuote=NULL;
-              }
-            }
-          }
-          if (ae->popt->bDetectUrl)
-          {
-            if (hlp.crLink.ciMin.lpLine && hlp.crLink.ciMax.lpLine)
-            {
-              if (AE_IndexCompare(&hlp.crLink.ciMax, &ciDrawLine) <= 0)
-              {
-                if (!(hlp.dwPaintType & AEPT_SELECTION))
-                {
-                  if (AE_IndexCompare(&hlp.crLink.ciMax, &ciDrawLine) == 0)
-                  {
-                    //Draw full highlighted text or last part of it
-                    AE_PaintTextOut(ae, hBufferDC, &hlp, &ptDraw, ciDrawLine.lpLine->wpLine, ciDrawLine.nCharInLine, nLineWidth, &wpStartDraw, &nStartDrawWidth);
-                    nMaxDrawCharsCount=0;
-                  }
-                }
-                hlp.dwPaintType&=~AEPT_LINK;
-                hlp.crLink.ciMin.lpLine=NULL;
-                hlp.crLink.ciMax.lpLine=NULL;
-              }
-            }
           }
 
           //Check highlight start
@@ -8890,10 +8892,12 @@ void AE_Paint(AKELEDIT *ae)
             //Url find
             if (AE_IndexCompare(&hlp.crLink.ciMax, &ciDrawLine) <= 0)
             {
-              if (nFirstPaintChar == ciDrawLine.nCharInLine)
+              if (dwFindFirst & AEPT_LINK)
+              {
+                dwFindFirst&=~AEPT_LINK;
                 AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &hlp.crLink);
-              else
-                AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &hlp.crLink);
+              }
+              else AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &hlp.crLink);
             }
 
             //Check url start
@@ -8931,10 +8935,12 @@ void AE_Paint(AKELEDIT *ae)
               //Quote find
               if (AE_IndexCompare(&hlp.qm.crQuoteEnd.ciMax, &ciDrawLine) <= 0)
               {
-                if (nFirstPaintChar == ciDrawLine.nCharInLine)
+                if (dwFindFirst & AEPT_QUOTE)
+                {
+                  dwFindFirst&=~AEPT_QUOTE;
                   AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp.qm);
-                else
-                  AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, &hlp.qm);
+                }
+                else AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, &hlp.qm);
               }
 
               //Check quote start
@@ -8977,10 +8983,12 @@ void AE_Paint(AKELEDIT *ae)
                 //Word find
                 if (AE_IndexCompare(&hlp.wm.crDelim2.ciMax, &ciDrawLine) <= 0)
                 {
-                  if (nFirstPaintChar == ciDrawLine.nCharInLine)
+                  if (dwFindFirst & AEPT_DELIM1)
+                  {
+                    dwFindFirst&=~AEPT_DELIM1;
                     AE_HighlightFindWord(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp.wm);
-                  else
-                    AE_HighlightFindWord(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, &hlp.wm);
+                  }
+                  else AE_HighlightFindWord(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, &hlp.wm);
                 }
 
                 //Check delimiters and word start
@@ -10536,16 +10544,23 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
   return FALSE;
 }
 
-BOOL AE_IsFirstCharInLine(AKELEDIT *ae, const AECHARINDEX *ciChar)
+BOOL AE_IsFirstCharInLine(const AECHARINDEX *ciChar)
 {
   if (ciChar->nCharInLine == 0 && (!ciChar->lpLine->prev || ciChar->lpLine->prev->nLineBreak != AELB_WRAP))
     return TRUE;
   return FALSE;
 }
 
-BOOL AE_IsLastCharInLine(AKELEDIT *ae, const AECHARINDEX *ciChar)
+BOOL AE_IsLastCharInLine(const AECHARINDEX *ciChar)
 {
   if (ciChar->nCharInLine == ciChar->lpLine->nLineLen && ciChar->lpLine->nLineBreak != AELB_WRAP)
+    return TRUE;
+  return FALSE;
+}
+
+BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar)
+{
+  if (ciChar->lpLine->nSelStart <= ciChar->nCharInLine && ciChar->nCharInLine < ciChar->lpLine->nSelEnd)
     return TRUE;
   return FALSE;
 }
