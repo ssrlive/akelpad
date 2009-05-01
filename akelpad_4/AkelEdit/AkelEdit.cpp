@@ -3201,11 +3201,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
 
             AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
-            cr.ciMin=ciCharIndex;
-            cr.ciMax=ciCharIndex;
-            cr.ciMin.nCharInLine=0;
-            if (!AE_GetIndex(ae, AEGI_NEXTLINE, &cr.ciMax, &cr.ciMax, FALSE))
-              cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
+            AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCharIndex, &cr.ciMin, FALSE);
+            AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCharIndex, &cr.ciMax, FALSE);
+            AE_GetIndex(ae, AEGI_NEXTLINE, &cr.ciMax, &cr.ciMax, FALSE);
 
             ae->ciLButtonClick=ciCharIndex;
             ae->ciLButtonStart=cr.ciMin;
