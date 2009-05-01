@@ -7108,6 +7108,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   AEDELIMITEMW *lpDelimiterElement=NULL;
   int nQuoteLen=0;
   int nEscape=0;
+  BOOL bWithDelimiters=FALSE;
 
   wm->lpQuote=NULL;
   if (ciChar->nCharInLine == ciChar->lpLine->nLineLen) return 0;
@@ -7291,6 +7292,14 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             wm->crQuoteEnd=ft.crFound;
             goto SetQuote;
           }
+          if (wm->lpQuote->dwFlags & AEHLF_QUOTEWITHOUTDELIMITERS)
+          {
+            if (AE_HighlightIsDelimiter(ae, &ft, &ciCount))
+            {
+              bWithDelimiters=TRUE;
+              goto SetQuote;
+            }
+          }
           if (wm->lpQuote->wchEscape)
           {
             if (*(ciCount.lpLine->wpLine + ciCount.nCharInLine) == wm->lpQuote->wchEscape)
@@ -7331,24 +7340,24 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   goto End;
 
   SetQuote:
-  if (dwSearchType & AEHF_FINDFIRSTCHAR)
+  if (wm->lpQuote)
   {
-    if (wm->lpQuote)
+    if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_NOMATCH)
+      ciCount=wm->crQuoteEnd.ciMin;
+    else
+      ciCount=wm->crQuoteEnd.ciMax;
+    if (((wm->lpQuote->dwFlags & AEHLF_QUOTEWITHOUTDELIMITERS) && bWithDelimiters) ||
+        ((wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(&ciCount)))
     {
-      if ((wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(&wm->crQuoteEnd.ciMin))
-      {
-        wm->crQuoteEnd.ciMin=wm->crQuoteStart.ciMax;
-        wm->crQuoteEnd.ciMax=wm->crQuoteStart.ciMax;
-        ciCount=wm->crQuoteStart.ciMax;
-        wm->lpQuote=NULL;
-      }
-      else
-      {
-        if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_NOMATCH)
-          ciCount=wm->crQuoteEnd.ciMin;
-        else
-          ciCount=wm->crQuoteEnd.ciMax;
-      }
+      wm->crQuoteEnd.ciMin=wm->crQuoteStart.ciMax;
+      wm->crQuoteEnd.ciMax=wm->crQuoteStart.ciMax;
+      ciCount=wm->crQuoteStart.ciMax;
+      wm->lpQuote=NULL;
+      bWithDelimiters=FALSE;
+    }
+
+    if (dwSearchType & AEHF_FINDFIRSTCHAR)
+    {
       if (AE_IndexCompare(&ciCount, ciChar) <= 0)
       {
         wm->lpQuote=NULL;

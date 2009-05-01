@@ -171,15 +171,16 @@
 
 //Highlight flags
 #define AEHLF_MATCHCASE              0x001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
-#define AEHLF_QUOTEEND_REQUIRED      0x002  //If set and if quote end isn't found, text after quote start will not be highlighted.
-#define AEHLF_QUOTESTART_ISDELIMITER 0x004  //If set, AEQUOTEITEMA.pQuoteStart or AEQUOTEITEMW.pQuoteStart member is ignored and last meet delimiter used as quote start.
-#define AEHLF_QUOTEEND_ISDELIMITER   0x008  //If set, AEQUOTEITEMA.pQuoteEnd or AEQUOTEITEMW.pQuoteEnd member is ignored and first meet delimiter used as quote end.
-#define AEHLF_QUOTESTART_NOHIGHLIGHT 0x010  //Don't highlight quote start string.
-#define AEHLF_QUOTEEND_NOHIGHLIGHT   0x020  //Don't highlight quote end string.
-#define AEHLF_QUOTESTART_NOMATCH     0x040  //Don't match and don't highlight quote start string.
-#define AEHLF_QUOTEEND_NOMATCH       0x080  //Don't match and don't highlight quote end string.
-#define AEHLF_QUOTESTART_ATLINESTART 0x100  //Quote start located at line start.
-#define AEHLF_QUOTEEND_ATLINEEND     0x200  //Quote end located at line end.
+#define AEHLF_QUOTEWITHOUTDELIMITERS 0x002  //Quote doesn't contain delimiters.
+#define AEHLF_QUOTEEND_REQUIRED      0x004  //If quote end isn't found, text after quote start will not be highlighted.
+#define AEHLF_QUOTESTART_ISDELIMITER 0x008  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
+#define AEHLF_QUOTEEND_ISDELIMITER   0x010  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
+#define AEHLF_QUOTESTART_NOHIGHLIGHT 0x020  //Don't highlight quote start string.
+#define AEHLF_QUOTEEND_NOHIGHLIGHT   0x040  //Don't highlight quote end string.
+#define AEHLF_QUOTESTART_NOMATCH     0x080  //Don't match and don't highlight quote start string.
+#define AEHLF_QUOTEEND_NOMATCH       0x100  //Don't match and don't highlight quote end string.
+#define AEHLF_QUOTESTART_ATLINESTART 0x200  //Quote start located at line start.
+#define AEHLF_QUOTEEND_ATLINEEND     0x400  //Quote end located at line end.
 
 //Highlight font style
 #define AEHLS_NONE                  0  //Current style.
