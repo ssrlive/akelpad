@@ -1,5 +1,5 @@
 
-AkelPad 4.2.3 ()
+AkelPad 4.2.3 (May 01, 2009)
 ----------------------------
 Changed: syntax highlighting improved.
 Changed: triple mouse click selects all wrapped line.
