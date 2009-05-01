@@ -109,7 +109,7 @@ BEGIN
         MENUITEM "色(&C)...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "文章を折り返す(&W)\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "ウィンドウの分割(&P)",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "常に手前に表示(&A)\tCtrl+T",  IDM_VIEW_ONTOP
         MENUITEM "ステータス バー(&S)",         IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -654,12 +654,12 @@ BEGIN
                     BS_AUTORADIOBUTTON,133,60,72,10
     CONTROL         "記号ごと",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,133,73,72,10
-    LTEXT           "Limit:",IDC_STATIC,129,91,37,8
+    LTEXT           "制限:",IDC_STATIC,129,91,37,8
     EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,129,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,150,
                     102,11,13
-    LTEXT           "Marker:",IDC_STATIC,168,91,37,8
+    LTEXT           "マーカー:",IDC_STATIC,168,91,37,8
     EDITTEXT        IDC_OPTIONS_MARKER,168,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
@@ -836,10 +836,10 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" が自動読み込みをサポートしません。"
     MSG_FUNCTION_NOT_FOUND  "関数 ""%s::%s"" が ""%s"" から見つかりません。"
-    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_UPDATE_PROGRAM      "AkelPad を更新します。\n\n必要最低限の AkelPad のバージョン: %d.%d.%d.%d\n現在の AkelPad のバージョン: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x はサポートされていません。"
+    MSG_UPDATE_PLUGIN       "%s を更新します。\n\nAkelPad のアーキテクチャー: %d.%d.%d.%d\n%s プラグインのアーキテクチャー: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" は AkelPad として認識されていません。"
     MSG_HOTKEY_EXISTS       "ホットキーはすでに ""%s"" へ割り当てられています。"
     MSG_CANNOT_OPEN_FILE    "ファイル ""%s"" を開けません。"
     MSG_WRONG_STRING        "不正な行番号です。"
@@ -912,7 +912,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_ACTIVECOLUMN        "アクティブな列"
-    STR_COLUMNMARKER        "Column marker"
+    STR_COLUMNMARKER        "列マーカー"
     STR_CARET               "キャレット"
     STR_URL                 "ハイパーリンク"
 END
