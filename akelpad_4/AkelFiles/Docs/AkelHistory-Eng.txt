@@ -1,4 +1,10 @@
 
+AkelPad 4.2.3 ()
+----------------------------
+Changed: syntax highlighting improved.
+Changed: triple mouse click selects all wrapped line.
+
+
 AkelPad 4.2.2 (Apr 26, 2009)
 ----------------------------
 Added: messages for syntax highlighting in AkelEdit:
