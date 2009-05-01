@@ -106,7 +106,7 @@ BEGIN
         MENUITEM "Far&ben...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Zeilenumbruch\tCtrl+U",      IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "Fenster &aufteilen",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "Immer im &Vordergrund\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "Status&leiste",               IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -660,7 +660,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,150,
                     102,11,13
-    LTEXT           "Marker:",IDC_STATIC,168,91,37,8
+    LTEXT           "Filzstift:",IDC_STATIC,168,91,37,8
     EDITTEXT        IDC_OPTIONS_MARKER,168,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
@@ -837,10 +837,10 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" unterstützt keinen Autostart."
     MSG_FUNCTION_NOT_FOUND  "Die Funktion ""%s::%s"" kann in ""%s"" nicht gefunden werden."
-    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_UPDATE_PROGRAM      "AkelPad aktualisieren.\n\nAkelPad nicht unter der Version %d.%d.%d.%d benötigt.\nDerzeitige Version von Akelpad: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x wird nicht unterstützt."
+    MSG_UPDATE_PLUGIN       "Aktualisieren Sie %s.\n\nArchitektur von AkelPad: %d.%d.%d.%d\nArchitektur des %s Plugins: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" ist nicht als ein Plugin für AkelPad erkannt worden."
     MSG_HOTKEY_EXISTS       "Ein Hotkey wurde bereits ""%s"" zugewiesen."
     MSG_CANNOT_OPEN_FILE    "Die Datei ""%s"" kann nicht geöffnet werden."
     MSG_WRONG_STRING        "Ungültige Zeilennummer."
@@ -914,7 +914,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_ACTIVECOLUMN        "Aktive Spalte"
-    STR_COLUMNMARKER        "Column marker"
+    STR_COLUMNMARKER        "Filzstift"
     STR_CARET               "Kursor"
     STR_URL                 "Link"
 END
