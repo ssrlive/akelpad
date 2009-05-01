@@ -109,7 +109,7 @@ BEGIN
         MENUITEM "&Farby...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Zalomiù text\tCtrl+U",       IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "&Rozdeliù okno",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Vûdy na vrchu\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "&Stavov˝ riadok",             IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -844,10 +844,10 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" nepodporuje automatickÈ sp˙öùanie."
     MSG_FUNCTION_NOT_FOUND  "funkciu ""%s::%s"" nebolo moûnÈ n·jsù v ""%s""."
-    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_UPDATE_PROGRAM      "Aktualiz·cia AkelPad.\n\nMinim·lna poûadovan· verzia AkelPad: %d.%d.%d.%d\nAktu·lna verzia AkelPad: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x nie je podporovan˝."
+    MSG_UPDATE_PLUGIN       "Aktualizovaù %s.\n\nArchitekt˙ra AkelPad: %d.%d.%d.%d\nArchitekt˙ra pluginu %s: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" nebol rozpoznan˝ ako AkelPad plugin."
     MSG_HOTKEY_EXISTS       "T·to kl·vesov· skratka je uû priraden· ""%s""."
     MSG_CANNOT_OPEN_FILE    "Nepodarilo sa otvoriù s˙bor ""%s""."
     MSG_WRONG_STRING        "Nespr·vne ËÌslo riadku."
@@ -894,7 +894,7 @@ BEGIN
     STR_STATUS              "Stav"
     STR_RUNNING             "Spusten˝"
     STR_FONT                "PÌsmo"
-    STR_HEADLINE            "Headlines"
+    STR_HEADLINE            "HlaviËka a p‰ta"
     STR_TOP                 "Vrch:"
     STR_BOTTOM              "Spodok:"
     STR_ELEMENT             "Prvok"
