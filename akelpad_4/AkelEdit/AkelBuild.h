@@ -573,7 +573,8 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 BOOL AE_IsFirstCharInLine(const AECHARINDEX *ciChar);
 BOOL AE_IsLastCharInLine(const AECHARINDEX *ciChar);
 BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar);
-BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c);
+BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape);
+BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c);
 BOOL AE_IsSpace(wchar_t c);
 int AE_GetUrlPrefixes(AKELEDIT *ae);
 int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, POINT *ptSelStart, POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel);
