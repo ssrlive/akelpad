@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.2.3                               *
+ *                      AkelEdit text control v1.2.4                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -7105,7 +7105,6 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   AEQUOTEITEMW *lpQuoteElement=NULL;
   AEDELIMITEMW *lpDelimiterElement=NULL;
   int nQuoteLen=0;
-  int nEscape=0;
   BOOL bWithDelimiters=FALSE;
 
   wm->lpQuote=NULL;
@@ -7132,9 +7131,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           return 0;
 
         //Quote start
-        lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first;
-
-        while (lpQuoteElement)
+        for (lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first; lpQuoteElement; lpQuoteElement=lpQuoteElement->next)
         {
           if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART) || AE_IsFirstCharInLine(&ciCount))
           {
@@ -7144,23 +7141,25 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
             if (AE_IsMatch(ae, &ft, &ciCount))
             {
-              ciCount=ft.crFound.ciMax;
-              nQuoteLen=lpQuoteElement->nQuoteStartLen;
-              wm->crQuoteStart=ft.crFound;
-              wm->lpQuote=lpQuoteElement;
-
-              if (!(wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ISDELIMITER) &&
-                  (!wm->lpQuote->wpQuoteEnd || !*wm->lpQuote->wpQuoteEnd))
+              if (!AE_IsEscaped(&ciCount, lpQuoteElement->wchEscape))
               {
-                nQuoteLen+=AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCount, &ciCount, FALSE);
-                wm->crQuoteEnd.ciMin=ciCount;
-                wm->crQuoteEnd.ciMax=ciCount;
-                goto SetQuote;
+                ciCount=ft.crFound.ciMax;
+                nQuoteLen=lpQuoteElement->nQuoteStartLen;
+                wm->crQuoteStart=ft.crFound;
+                wm->lpQuote=lpQuoteElement;
+
+                if (!(wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ISDELIMITER) &&
+                    (!wm->lpQuote->wpQuoteEnd || !*wm->lpQuote->wpQuoteEnd))
+                {
+                  nQuoteLen+=AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCount, &ciCount, FALSE);
+                  wm->crQuoteEnd.ciMin=ciCount;
+                  wm->crQuoteEnd.ciMax=ciCount;
+                  goto SetQuote;
+                }
+                goto Begin;
               }
-              goto Begin;
             }
           }
-          lpQuoteElement=lpQuoteElement->next;
         }
 
         //AEHLF_QUOTESTART_ISDELIMITER
@@ -7190,9 +7189,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
               while (ciTmpCount.nCharInLine <= ciTmpCount.lpLine->nLineLen)
               {
                 //Quote end
-                lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first;
-
-                while (lpQuoteElement)
+                for (lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first; lpQuoteElement; lpQuoteElement=lpQuoteElement->next)
                 {
                   if (lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
                   {
@@ -7233,7 +7230,6 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                       }
                     }
                   }
-                  lpQuoteElement=lpQuoteElement->next;
                 }
                 if (AE_HighlightIsDelimiter(ae, &ft, &ciTmpCount))
                   goto QuoteStartNext;
@@ -7278,17 +7274,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
           if (AE_IsMatch(ae, &ft, &ciCount))
           {
-            if (wm->lpQuote->wchEscape)
+            if (!AE_IsEscaped(&ciCount, wm->lpQuote->wchEscape))
             {
-              if (nEscape % 2)
-              {
-                nEscape=0;
-                goto QuoteEndNext;
-              }
+              nQuoteLen+=lpQuoteElement->nQuoteEndLen;
+              wm->crQuoteEnd=ft.crFound;
+              goto SetQuote;
             }
-            nQuoteLen+=lpQuoteElement->nQuoteEndLen;
-            wm->crQuoteEnd=ft.crFound;
-            goto SetQuote;
           }
           if (wm->lpQuote->dwFlags & AEHLF_QUOTEWITHOUTDELIMITERS)
           {
@@ -7298,15 +7289,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
               goto SetQuote;
             }
           }
-          if (wm->lpQuote->wchEscape)
-          {
-            if (*(ciCount.lpLine->wpLine + ciCount.nCharInLine) == wm->lpQuote->wchEscape)
-              ++nEscape;
-            else
-              nEscape=0;
-          }
         }
-        QuoteEndNext:
         ++nQuoteLen;
       }
       ++ciCount.nCharInLine;
@@ -10572,7 +10555,24 @@ BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar)
   return FALSE;
 }
 
-BOOL AE_IsInDelimiterList(wchar_t *wpList, wchar_t c)
+BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape)
+{
+  AECHARINDEX ciCount=*ciChar;
+  int nEscapeCount=0;
+
+  while (AE_GetIndex(NULL, AEGI_PREVCHARINLINE, &ciCount, &ciCount, FALSE))
+  {
+    if (*(ciCount.lpLine->wpLine + ciCount.nCharInLine) == wchEscape)
+      ++nEscapeCount;
+    else
+      break;
+  }
+  if (nEscapeCount % 2)
+    return TRUE;
+  return FALSE;
+}
+
+BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c)
 {
   if (AE_wcschr(wpList, c) != NULL)
     return TRUE;
