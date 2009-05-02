@@ -8320,7 +8320,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       FillComboboxSearchA(hWndFind, hWndReplace);
     }
 
-    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax) || (ftflags & AEFR_SELECTION))
+    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax) || (ftflags & AEFR_SELECTION) || SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
     {
       SendMessage(hWndFind, CB_SETCURSEL, 0, 0);
     }
@@ -8722,7 +8722,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       FillComboboxSearchW(hWndFind, hWndReplace);
     }
 
-    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax) || (ftflags & AEFR_SELECTION))
+    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax) || (ftflags & AEFR_SELECTION) || SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
     {
       SendMessage(hWndFind, CB_SETCURSEL, 0, 0);
     }
