@@ -1336,7 +1336,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         {
           tr.cr=crRange;
           tr.bColumnSel=FALSE;
-          tr.wpBuffer=wszRange + nStringLenAll;
+          tr.pBuffer=wszRange + nStringLenAll;
           tr.dwBufferMax=(DWORD)-1;
           tr.nNewLine=AELB_ASIS;
           tr.bFillSpaces=TRUE;
@@ -1389,7 +1389,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         {
           tr.cr=crRange;
           tr.bColumnSel=FALSE;
-          tr.wpBuffer=wszRange;
+          tr.pBuffer=wszRange;
           tr.dwBufferMax=(DWORD)-1;
           tr.nNewLine=AELB_ASIS;
           tr.bFillSpaces=TRUE;
@@ -9443,7 +9443,7 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen)
   else return FALSE;
 
   ft.dwFlags=dwFlags;
-  ft.wpText=wpFindIt;
+  ft.pText=wpFindIt;
   ft.dwTextLen=nFindItLen;
   ft.nNewLine=AELB_R;
 
@@ -9766,7 +9766,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
     AEFINDTEXTW ft;
 
     ft.dwFlags=dwFlags;
-    ft.wpText=wpFindIt;
+    ft.pText=wpFindIt;
     ft.dwTextLen=nFindItLen;
     ft.nNewLine=AELB_R;
 
@@ -10082,7 +10082,7 @@ void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECH
 {
   AEREPLACESELW rs;
 
-  rs.wpText=wpData;
+  rs.pText=wpData;
   rs.dwTextLen=(DWORD)nDataLen;
   if (bColumnSel == -1)
     rs.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
@@ -10230,19 +10230,19 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
     tr.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
     tr.bColumnSel=bColumnSel;
-  tr.wpBuffer=NULL;
+  tr.pBuffer=NULL;
   tr.dwBufferMax=(DWORD)-1;
   tr.nNewLine=nNewLine;
   tr.bFillSpaces=bFillSpaces;
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
   {
-    if (tr.wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t)))
+    if (tr.pBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t)))
     {
       nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
     }
   }
-  *wpText=tr.wpBuffer;
+  *wpText=tr.pBuffer;
   return nLen;
 }
 

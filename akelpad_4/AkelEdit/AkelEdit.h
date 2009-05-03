@@ -368,7 +368,7 @@ typedef struct {
 } AEAPPENDTEXTA;
 
 typedef struct {
-  wchar_t *wpText;    //[in] Text to append.
+  wchar_t *pText;     //[in] Text to append.
   DWORD dwTextLen;    //[in] Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
   BOOL bColumnSel;    //[in] Column selection.
 } AEAPPENDTEXTW;
@@ -382,7 +382,7 @@ typedef struct {
 } AEREPLACESELA;
 
 typedef struct {
-  wchar_t *wpText;             //[in]  Text to replace with.
+  wchar_t *pText;              //[in]  Text to replace with.
   DWORD dwTextLen;             //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
   BOOL bColumnSel;             //[in]  Column selection.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
@@ -401,7 +401,7 @@ typedef struct {
 typedef struct {
   AECHARRANGE cr;     //[in]  Characters range to retrieve.
   BOOL bColumnSel;    //[in]  Column selection.
-  wchar_t *wpBuffer;  //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
+  wchar_t *pBuffer;   //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
   DWORD dwBufferMax;  //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
   int nNewLine;       //[in]  See AELB_* defines.
   BOOL bFillSpaces;   //[in]  If bColumnSel is TRUE, fill empties with spaces.
@@ -435,7 +435,7 @@ typedef struct {
 
 typedef struct {
   DWORD dwFlags;           //[in]  See AEFR_* defines.
-  wchar_t *wpText;         //[in]  Text to find.
+  wchar_t *pText;          //[in]  Text to find.
   DWORD dwTextLen;         //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;            //[in]  See AELB_* defines.
   AECHARRANGE crSearch;    //[in]  Range of characters to search.
@@ -484,7 +484,7 @@ typedef struct _AEDELIMITEMA {
 typedef struct _AEDELIMITEMW {
   struct _AEDELIMITEMW *next;
   struct _AEDELIMITEMW *prev;
-  wchar_t *wpDelimiter;      //Delimiter string.
+  wchar_t *pDelimiter;       //Delimiter string.
   int nDelimiterLen;         //Delimiter string length.
   DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
@@ -506,7 +506,7 @@ typedef struct _AEWORDITEMA {
 typedef struct _AEWORDITEMW {
   struct _AEWORDITEMW *next;
   struct _AEWORDITEMW *prev;
-  wchar_t *wpWord;           //Word string.
+  wchar_t *pWord;            //Word string.
   int nWordLen;              //Word string length.
   DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Word text color. If -1, then don't set.
@@ -531,9 +531,9 @@ typedef struct _AEQUOTEITEMA {
 typedef struct _AEQUOTEITEMW {
   struct _AEQUOTEITEMW *next;
   struct _AEQUOTEITEMW *prev;
-  wchar_t *wpQuoteStart;     //Quote start string.
+  wchar_t *pQuoteStart;      //Quote start string.
   int nQuoteStartLen;        //Quote start string length.
-  wchar_t *wpQuoteEnd;       //Quote end string. If NULL, line end used as quote end.
+  wchar_t *pQuoteEnd;        //Quote end string. If NULL, line end used as quote end.
   int nQuoteEndLen;          //Quote end string length.
   wchar_t wchEscape;         //Escape character. If it precedes quote string then quote ignored.
   DWORD dwFlags;             //See AEHLF_* defines.
@@ -796,6 +796,85 @@ typedef struct {
 #define AEM_HLGETQUOTEW       (WM_USER + 2521)
 #define AEM_HLDELETEQUOTE     (WM_USER + 2522)
 
+
+//// RichEdit messages
+
+/*
+AkelEdit can emulate RichEdit 3.0 and support the following messages:
+
+EN_CHANGE
+EN_DRAGDROPDONE
+EN_DROPFILES
+EN_ERRSPACE
+EN_HSCROLL
+EN_KILLFOCUS
+EN_LINK
+EN_MSGFILTER
+EN_SELCHANGE
+EN_SETFOCUS
+EN_VSCROLL
+
+EM_AUTOURLDETECT
+EM_CANPASTE
+EM_CANREDO
+EM_CANUNDO
+EM_CHARFROMPOS
+EM_EMPTYUNDOBUFFER
+EM_EXGETSEL
+EM_EXLINEFROMCHAR
+EM_EXSETSEL
+EM_FINDTEXT
+EM_FINDTEXTEX
+EM_FINDTEXTEXW
+EM_FINDTEXTW
+EM_FINDWORDBREAK
+EM_GETAUTOURLDETECT
+EM_GETEVENTMASK
+EM_GETFIRSTVISIBLELINE
+EM_GETLINE
+EM_GETLINECOUNT
+EM_GETMARGINS
+EM_GETMODIFY
+EM_GETOPTIONS
+EM_GETRECT
+EM_GETSCROLLPOS
+EM_GETSEL
+EM_GETSELTEXT
+EM_GETTEXTEX
+EM_GETTEXTLENGTHEX
+EM_GETTEXTRANGE
+EM_GETTHUMB
+EM_HIDESELECTION
+EM_LINEFROMCHAR
+EM_LINEINDEX
+EM_LINELENGTH
+EM_LINESCROLL
+EM_POSFROMCHAR
+EM_REDO
+EM_REPLACESEL
+EM_SCROLL
+EM_SCROLLCARET
+EM_SETBKGNDCOLOR
+EM_SETEVENTMASK
+EM_SETMARGINS
+EM_SETMODIFY
+EM_SETOPTIONS
+EM_SETREADONLY
+EM_SETRECT
+EM_SETRECTNP
+EM_SETSCROLLPOS
+EM_SETSEL
+EM_SETTEXTEX
+EM_SETUNDOLIMIT
+EM_SHOWSCROLLBAR
+EM_STOPGROUPTYPING
+EM_STREAMIN
+EM_STREAMOUT
+EM_UNDO
+*/
+
+
+//// AkelEdit messages description
 
 /*
 AEN_ERRSPACE
@@ -3535,80 +3614,60 @@ Example:
 */
 
 
-//// RichEdit messages
+//// UNICODE define
 
-/*
-AkelEdit can emulate RichEdit 3.0 and support the following messages:
+#ifndef UNICODE
+  #define AES_AKELEDITCLASS AES_AKELEDITCLASSA
+  #define AES_RICHEDITCLASS AES_RICHEDITCLASSA
 
-EN_CHANGE
-EN_DRAGDROPDONE
-EN_DROPFILES
-EN_ERRSPACE
-EN_HSCROLL
-EN_KILLFOCUS
-EN_LINK
-EN_MSGFILTER
-EN_SELCHANGE
-EN_SETFOCUS
-EN_VSCROLL
+  #define AEAPPENDTEXT AEAPPENDTEXTA
+  #define AEREPLACESEL AEREPLACESELA
+  #define AETEXTRANGE AETEXTRANGEA
+  #define AEFINDTEXT AEFINDTEXTA
+  #define AEDELIMITEM AEDELIMITEMA
+  #define AEWORDITEM AEWORDITEMA
+  #define AEQUOTEITEM AEQUOTEITEMA
 
-EM_AUTOURLDETECT
-EM_CANPASTE
-EM_CANREDO
-EM_CANUNDO
-EM_CHARFROMPOS
-EM_EMPTYUNDOBUFFER
-EM_EXGETSEL
-EM_EXLINEFROMCHAR
-EM_EXSETSEL
-EM_FINDTEXT
-EM_FINDTEXTEX
-EM_FINDTEXTEXW
-EM_FINDTEXTW
-EM_FINDWORDBREAK
-EM_GETAUTOURLDETECT
-EM_GETEVENTMASK
-EM_GETFIRSTVISIBLELINE
-EM_GETLINE
-EM_GETLINECOUNT
-EM_GETMARGINS
-EM_GETMODIFY
-EM_GETOPTIONS
-EM_GETRECT
-EM_GETSCROLLPOS
-EM_GETSEL
-EM_GETSELTEXT
-EM_GETTEXTEX
-EM_GETTEXTLENGTHEX
-EM_GETTEXTRANGE
-EM_GETTHUMB
-EM_HIDESELECTION
-EM_LINEFROMCHAR
-EM_LINEINDEX
-EM_LINELENGTH
-EM_LINESCROLL
-EM_POSFROMCHAR
-EM_REDO
-EM_REPLACESEL
-EM_SCROLL
-EM_SCROLLCARET
-EM_SETBKGNDCOLOR
-EM_SETEVENTMASK
-EM_SETMARGINS
-EM_SETMODIFY
-EM_SETOPTIONS
-EM_SETREADONLY
-EM_SETRECT
-EM_SETRECTNP
-EM_SETSCROLLPOS
-EM_SETSEL
-EM_SETTEXTEX
-EM_SETUNDOLIMIT
-EM_SHOWSCROLLBAR
-EM_STOPGROUPTYPING
-EM_STREAMIN
-EM_STREAMOUT
-EM_UNDO
-*/
+  #define AEM_SETTEXT AEM_SETTEXTA
+  #define AEM_APPENDTEXT AEM_APPENDTEXTA
+  #define AEM_REPLACESEL AEM_REPLACESELA
+  #define AEM_GETTEXTRANGE AEM_GETTEXTRANGEA
+  #define AEM_FINDTEXT AEM_FINDTEXTA
+  #define AEM_ISMATCH AEM_ISMATCHA
+  #define AEM_HLCREATETHEME AEM_HLCREATETHEMEA
+  #define AEM_HLGETTHEME AEM_HLGETTHEMEA
+  #define AEM_HLADDDELIMITER AEM_HLADDDELIMITERA
+  #define AEM_HLGETDELIMITER AEM_HLGETDELIMITERA
+  #define AEM_HLADDWORD AEM_HLADDWORDA
+  #define AEM_HLGETWORD AEM_HLGETWORDA
+  #define AEM_HLADDQUOTE AEM_HLADDQUOTEA
+  #define AEM_HLGETQUOTE AEM_HLGETQUOTEA
+#else
+  #define AES_AKELEDITCLASS AES_AKELEDITCLASSW
+  #define AES_RICHEDITCLASS AES_RICHEDITCLASSW
+
+  #define AEAPPENDTEXT AEAPPENDTEXTW
+  #define AEREPLACESEL AEREPLACESELW
+  #define AETEXTRANGE AETEXTRANGEW
+  #define AEFINDTEXT AEFINDTEXTW
+  #define AEDELIMITEM AEDELIMITEMW
+  #define AEWORDITEM AEWORDITEMW
+  #define AEQUOTEITEM AEQUOTEITEMW
+
+  #define AEM_SETTEXT AEM_SETTEXTW
+  #define AEM_APPENDTEXT AEM_APPENDTEXTW
+  #define AEM_REPLACESEL AEM_REPLACESELW
+  #define AEM_GETTEXTRANGE AEM_GETTEXTRANGEW
+  #define AEM_FINDTEXT AEM_FINDTEXTW
+  #define AEM_ISMATCH AEM_ISMATCHW
+  #define AEM_HLCREATETHEME AEM_HLCREATETHEMEW
+  #define AEM_HLGETTHEME AEM_HLGETTHEMEW
+  #define AEM_HLADDDELIMITER AEM_HLADDDELIMITERW
+  #define AEM_HLGETDELIMITER AEM_HLGETDELIMITERW
+  #define AEM_HLADDWORD AEM_HLADDWORDW
+  #define AEM_HLGETWORD AEM_HLGETWORDW
+  #define AEM_HLADDQUOTE AEM_HLADDQUOTEW
+  #define AEM_HLGETQUOTE AEM_HLGETQUOTEW
+#endif
 
 #endif
