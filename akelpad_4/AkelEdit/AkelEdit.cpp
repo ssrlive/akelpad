@@ -9124,10 +9124,9 @@ void AE_Paint(AKELEDIT *ae)
         if (bUseBufferDC)
         {
           rcSpace.left=max(rcDraw.left, ae->rcDraw.left);
-          rcSpace.top=max(ptDraw.y, ae->rcDraw.top);
+          rcSpace.top=ptDraw.y;
           rcSpace.right=min(rcDraw.right - rcSpace.left, ae->rcDraw.right - rcSpace.left);
-          rcSpace.bottom=min(rcDraw.bottom - rcSpace.top, ae->rcDraw.bottom - rcSpace.top);
-          rcSpace.bottom=min(rcSpace.bottom, ae->ptxt->nCharHeight);
+          rcSpace.bottom=ae->ptxt->nCharHeight;
           BitBlt(ps.hdc, rcSpace.left, rcSpace.top, rcSpace.right, rcSpace.bottom, hBufferDC, rcSpace.left, rcSpace.top, SRCCOPY);
         }
 
