@@ -7998,7 +7998,7 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   }
   else if (dwLangID == LANG_CHINESE)
   {
-    lstrcpyA(szANSIwatermark, "\xA1\xA2\xA3\xA4\xA5\xA6");
+    lstrcpyA(szANSIwatermark, "\xA1\xA2\xA3\xA4\xA5\xA6\xC0\xC1\xC2\xC3\xC4\xC5");
     lstrcpyA(szUTF8watermark, "\xE3\xE4\xE5\xE6\xE7\xE8");
   }
   else if (dwLangID == LANG_JAPANESE)
