@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "1.8"
+!define PRODUCT_VERSION "1.9"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -38,6 +38,8 @@ LangString open_file_error ${LANG_ENGLISH} 'File open error.'
 LangString open_file_error ${LANG_RUSSIAN} 'Ошибка открытия файла.'
 LangString nothing_selected ${LANG_ENGLISH} 'Nothing is selected.'
 LangString nothing_selected ${LANG_RUSSIAN} 'Ничего не выбрано.'
+LangString download_finished ${LANG_ENGLISH} 'Updates downloading finished.'
+LangString download_finished ${LANG_RUSSIAN} 'Скачивание обновлений закончено.'
 LangString done ${LANG_ENGLISH} 'Done'
 LangString done ${LANG_RUSSIAN} 'Готово'
 LangString error ${LANG_ENGLISH} 'Error'
@@ -93,6 +95,7 @@ Var EXEVERSION
 Var DLLCOUNT
 Var ZIPMIRROR
 Var ZIPLANG
+Var DLONLY
 Var ZIPXLANG
 Var UNZIP
 Var NOTEPAD
@@ -111,11 +114,14 @@ Function .onInit
 	 |   /AUTH=LOGIN:PASSWORD$\n\
 	 |     Proxy login and password (http only).$\n\
 	 |$\n\
+	 |   /LANG=[eng|rus]$\n\
+	 |     Select language.$\n\
+	 |$\n\
 	 |   /SAVEDIR=[path]$\n\
 	 |     Save downloads to directory.$\n\
 	 |$\n\
-	 |   /LANG=[eng|rus]$\n\
-	 |     Select language.$\n\
+	 |   /DLONLY$\n\
+	 |     Don't update, download only.$\n\
 	 |$\n\
 	 |   /UNZIP=[options]$\n\
 	 |     nsUnzip options.$\n\
@@ -133,40 +139,45 @@ Function .onInit
 	InitPluginsDir
 	StrCpy $SAVEDIR $PLUGINSDIR
 	StrCpy $ZIPLANG $(lng)
-        StrCpy $PROXYPARAM /NUL
-        StrCpy $PROXYVALUE /NUL
-        StrCpy $LOGINPARAM /NUL
-        StrCpy $LOGINVALUE /NUL
-        StrCpy $PASSWORDPARAM /NUL
-        StrCpy $PASSWORDVALUE /NUL
+	StrCpy $DLONLY 0
+	StrCpy $PROXYPARAM /NUL
+	StrCpy $PROXYVALUE /NUL
+	StrCpy $LOGINPARAM /NUL
+	StrCpy $LOGINVALUE /NUL
+	StrCpy $PASSWORDPARAM /NUL
+	StrCpy $PASSWORDVALUE /NUL
 
 	${GetOptions} $PARAMETERS "/PROXY=" $0
 	IfErrors auth
-        StrCpy $PROXYPARAM /PROXY
+	StrCpy $PROXYPARAM /PROXY
 	StrCpy $PROXYVALUE $0
 	auth:
 	${GetOptions} $PARAMETERS "/AUTH=" $0
-	IfErrors savedir
-	${WordFind} "$0" ":" "E+1{" $1
-	IfErrors savedir
-	${WordFind} "$0" ":" "E+1}" $2
-	IfErrors savedir
-        StrCpy $LOGINPARAM /USERNAME
-	StrCpy $LOGINVALUE $1
-        StrCpy $PASSWORDPARAM /PASSWORD
-	StrCpy $PASSWORDVALUE $2
-	savedir:
-	${GetOptions} $PARAMETERS "/SAVEDIR=" $0
 	IfErrors langopt
-	${WordReplace} "$0" "%a" "$AKELPADDIR" "+" $0
-	StrCpy $SAVEDIR $0
+	${WordFind} "$0" ":" "E+1{" $1
+	IfErrors langopt
+	${WordFind} "$0" ":" "E+1}" $2
+	IfErrors langopt
+	StrCpy $LOGINPARAM /USERNAME
+	StrCpy $LOGINVALUE $1
+	StrCpy $PASSWORDPARAM /PASSWORD
+	StrCpy $PASSWORDVALUE $2
 	langopt:
 	${GetOptions} $PARAMETERS "/LANG=" $0
-	IfErrors unzipopt
+	IfErrors savedir
 	StrCmp $0 eng 0 +2
 	StrCpy $ZIPLANG eng
 	StrCmp $0 rus 0 +2
 	StrCpy $ZIPLANG rus
+	savedir:
+	${GetOptions} $PARAMETERS "/SAVEDIR=" $0
+	IfErrors dlonly
+	${WordReplace} "$0" "%a" "$AKELPADDIR" "+" $0
+	StrCpy $SAVEDIR $0
+	dlonly:
+	${GetOptions} $PARAMETERS "/DLONLY" $0
+	IfErrors unzipopt
+	StrCpy $DLONLY 1
 	unzipopt:
 	${GetOptions} $PARAMETERS "/UNZIP=" $0
 	IfErrors DownloadVersions
@@ -176,7 +187,7 @@ Function .onInit
 	DownloadVersions:
 ;	File "/oname=$PLUGINSDIR\versions.lst" "versions.lst"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+	$PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
 	"http://akelpad.sourceforge.net/img/versions.lst" "$PLUGINSDIR\versions.lst" /END
 	Pop $0
@@ -198,6 +209,7 @@ Function .onInit
 
 	;Is AkelPad running?
 	CheckWindow:
+	StrCmp $DLONLY 1 DownloadProgram
 	FindWindow $0 "AkelPad4"
 	IsWindow $0 +5
 	FindWindow $0 "AkelPad3"
@@ -208,28 +220,34 @@ Function .onInit
 	quit
 
 	;Download "AkelPad-x.x.x-bin-lng.zip"
+	DownloadProgram:
 	CreateDirectory $SAVEDIR
 	IfFileExists "$SAVEDIR\*.*" 0 DirNotExist
-	StrCmp $EXEVERSION 0 PlugsPack
+	StrCmp $EXEVERSION 0 DownloadPlugsPack
 ;	File "/oname=$SAVEDIR\AkelPad-4.2.1-bin-eng.zip" "AkelPad-4.2.1-bin-eng.zip"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+	$PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
 	"http://$ZIPMIRROR.dl.sourceforge.net/sourceforge/akelpad/AkelPad-$EXEVERSION-bin-$ZIPLANG.zip" "$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANG.zip" /end
 	Pop $0
 	StrCmp $0 "OK" 0 DownloadError
 
 	;Download "PlugsPack.zip"
-	PlugsPack:
-	StrCmp $DLLCOUNT 0 End
+	DownloadPlugsPack:
+	StrCmp $DLLCOUNT 0 DowloadOnlyCheck
 ;	File "/oname=$SAVEDIR\PlugsPack.zip" "PlugsPack.zip"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
-        $PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+	$PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
 	"http://akelpad.sourceforge.net/files/plugs/PlugsPack.zip" "$SAVEDIR\PlugsPack.zip" /end
 	Pop $0
 	StrCmp $0 "OK" 0 DownloadError
-	goto End
+
+	;Exit if update not required
+	DowloadOnlyCheck:
+	StrCmp $DLONLY 1 0 End
+	MessageBox MB_OK|MB_ICONINFORMATION '$(download_finished)$\n"$SAVEDIR"'
+	goto Exit
 
 	DirNotExist:
 	MessageBox MB_OK|MB_ICONEXCLAMATION '$(dir_not_exist): "$SAVEDIR"'
@@ -321,7 +339,9 @@ Section
 
 	;Extract "AkelPad-x.x.x-bin-lng.zip"
 	StrCmp $EXEVERSION 0 GetExcludeLanguage
-	nsUnzip::Extract "$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANG.zip" "/d=$AKELPADDIR" /END
+	Push /END
+	AkelUpdater::ParseAndPush "$UNZIP"
+	nsUnzip::Extract "$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANG.zip" "/d=$AKELPADDIR"
 	Pop $0
 	StrCmp $0 0 +3
 	DetailPrint "$(error) ($0): AkelPad-$EXEVERSION-bin-$ZIPLANG.zip"
