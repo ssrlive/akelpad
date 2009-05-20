@@ -2034,7 +2034,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_PASTE)
     {
-      DoEditPaste((HWND)wParam, lParam);
+      if (lParam == PASTE_SINGLELINE)
+        PasteInEditAsRichEdit((HWND)wParam);
+      else
+        DoEditPaste((HWND)wParam, lParam);
       return 0;
     }
     if (uMsg == AKD_COPY)
@@ -3815,7 +3818,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_PASTE)
     {
-      DoEditPaste((HWND)wParam, lParam);
+      if (lParam == PASTE_SINGLELINE)
+        PasteInEditAsRichEdit((HWND)wParam);
+      else
+        DoEditPaste((HWND)wParam, lParam);
       return 0;
     }
     if (uMsg == AKD_COPY)
