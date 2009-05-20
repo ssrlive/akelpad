@@ -123,6 +123,11 @@
 #define FR_ESCAPESEQ   0x00800000  //Search with escape sequences
 #define FR_ALLFILES    0x01000000  //Search in all openned MDI documents (usage: FR_DOWN|FR_BEGINNING|FR_ALLFILES)
 
+//AKD_PASTE
+#define PASTE_UNICODE     0 //paste as Unicode text, if no Unicode text available ANSI text will be used (default).
+#define PASTE_ANSI        1 //paste as ANSI text.
+#define PASTE_SINGLELINE  2 //paste multiline text to single line edit control. All new lines replaced with '\r'.
+
 //Autoanswer
 #define AUTOANSWER_ASK  0
 #define AUTOANSWER_YES  1
@@ -2181,14 +2186,13 @@ _________
 Paste text from clipboard to the edit control.
 
 (HWND)wParam == edit window
-(BOOL)lParam == FALSE paste as Unicode text (default)
-                TRUE  paste as ANSI text
+(int)lParam  == see PASTE_* defines.
 
 Return Value
  zero
 
 Example:
- SendMessage(pd->hMainWnd, AKD_PASTE, (WPARAM)pd->hWndEdit, FALSE);
+ SendMessage(pd->hMainWnd, AKD_PASTE, (WPARAM)pd->hWndEdit, PASTE_UNICODE);
 
 
 AKD_COPY
