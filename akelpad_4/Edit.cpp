@@ -18414,6 +18414,7 @@ BOOL SaveChangedW()
 
 BOOL FileExistsA(char *pFile)
 {
+/*
   WIN32_FIND_DATAA wfdA;
   HANDLE hFind;
 
@@ -18421,11 +18422,16 @@ BOOL FileExistsA(char *pFile)
     return FALSE;
 
   FindClose(hFind);
+  return TRUE;
+*/
+  if (GetFileAttributesA(pFile) == INVALID_FILE_ATTRIBUTES)
+    return FALSE;
   return TRUE;
 }
 
 BOOL FileExistsW(wchar_t *wpFile)
 {
+/*
   WIN32_FIND_DATAW wfdW;
   HANDLE hFind;
 
@@ -18434,37 +18440,33 @@ BOOL FileExistsW(wchar_t *wpFile)
 
   FindClose(hFind);
   return TRUE;
+*/
+  if (GetFileAttributesW(wpFile) == INVALID_FILE_ATTRIBUTES)
+    return FALSE;
+  return TRUE;
 }
 
 int IsFileA(char *pFile)
 {
-  WIN32_FIND_DATAA wfdA;
-  HANDLE hFind;
+  DWORD dwAttr;
 
-  if ((hFind=FindFirstFileA(pFile, &wfdA)) == INVALID_HANDLE_VALUE)
+  dwAttr=GetFileAttributesA(pFile);
+  if (dwAttr == INVALID_FILE_ATTRIBUTES)
     return ERROR_INVALID_HANDLE;
-
-  FindClose(hFind);
-
-  if (wfdA.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+  if (dwAttr & FILE_ATTRIBUTE_DIRECTORY)
     return ERROR_FILE_NOT_FOUND;
-
   return ERROR_SUCCESS;
 }
 
 int IsFileW(wchar_t *wpFile)
 {
-  WIN32_FIND_DATAW wfdW;
-  HANDLE hFind;
+  DWORD dwAttr;
 
-  if ((hFind=FindFirstFileW(wpFile, &wfdW)) == INVALID_HANDLE_VALUE)
+  dwAttr=GetFileAttributesW(wpFile);
+  if (dwAttr == INVALID_FILE_ATTRIBUTES)
     return ERROR_INVALID_HANDLE;
-
-  FindClose(hFind);
-
-  if (wfdW.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+  if (dwAttr & FILE_ATTRIBUTE_DIRECTORY)
     return ERROR_FILE_NOT_FOUND;
-
   return ERROR_SUCCESS;
 }
 
@@ -18546,7 +18548,7 @@ BOOL GetFullNameA(char *szFile, int nFileLen)
 
   if (GetFullPathNameA(szFile, BUFFER_SIZE, buf, &pFileName))
   {
-    if (FileExistsA(szFile))
+    if (FileExistsA(buf))
     {
       if (GetLongPathNameAPtr)
         (*GetLongPathNameAPtr)(buf, szFile, nFileLen);
@@ -18565,7 +18567,7 @@ BOOL GetFullNameW(wchar_t *wszFile, int nFileLen)
 
   if (GetFullPathNameW(wszFile, BUFFER_SIZE, wbuf, &wpFileName))
   {
-    if (FileExistsW(wszFile))
+    if (FileExistsW(wbuf))
     {
       if (GetLongPathNameWPtr)
         (*GetLongPathNameWPtr)(wbuf, wszFile, nFileLen);
