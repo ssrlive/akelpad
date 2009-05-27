@@ -1,4 +1,9 @@
 
+AkelPad 4.2.3 ()
+----------------------------
+Added: Finnish language module (Jani Kinnunen).
+
+
 AkelPad 4.2.3 (May 01, 2009)
 ----------------------------
 Changed: syntax highlighting improved.
