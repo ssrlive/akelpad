@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.2.0"
+!define PRODUCT_VERSION "4.2.4"
 
 ;_____________________________________________________________________________________________
 ;
@@ -57,6 +57,7 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define LANG_SLOVAK               1051
 !define LANG_ROMANIAN             1048
 !define LANG_DUTCH                1043
+!define LANG_FINNINSH             1035
 
 !define INSTTYPE_STANDARD  1
 !define INSTTYPE_TOTALCMD  2
@@ -602,6 +603,8 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Romanian.dll"
 	StrCmp $SYSLANGUAGE ${LANG_DUTCH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Dutch.dll"
+	StrCmp $SYSLANGUAGE ${LANG_FINNINSH} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Finninsh.dll"
 
 	end:
 SectionEnd
