@@ -777,24 +777,26 @@ typedef struct {
 #define AEM_HLCREATETHEMEW    (WM_USER + 2502)
 #define AEM_HLGETTHEMEA       (WM_USER + 2503)
 #define AEM_HLGETTHEMEW       (WM_USER + 2504)
-#define AEM_HLTHEMEEXISTS     (WM_USER + 2505)
-#define AEM_HLSETTHEME        (WM_USER + 2506)
-#define AEM_HLDELETETHEME     (WM_USER + 2507)
-#define AEM_HLADDDELIMITERA   (WM_USER + 2508)
-#define AEM_HLADDDELIMITERW   (WM_USER + 2509)
-#define AEM_HLGETDELIMITERA   (WM_USER + 2510)
-#define AEM_HLGETDELIMITERW   (WM_USER + 2511)
-#define AEM_HLDELETEDELIMITER (WM_USER + 2512)
-#define AEM_HLADDWORDA        (WM_USER + 2513)
-#define AEM_HLADDWORDW        (WM_USER + 2514)
-#define AEM_HLGETWORDA        (WM_USER + 2515)
-#define AEM_HLGETWORDW        (WM_USER + 2516)
-#define AEM_HLDELETEWORD      (WM_USER + 2517)
-#define AEM_HLADDQUOTEA       (WM_USER + 2518)
-#define AEM_HLADDQUOTEW       (WM_USER + 2519)
-#define AEM_HLGETQUOTEA       (WM_USER + 2520)
-#define AEM_HLGETQUOTEW       (WM_USER + 2521)
-#define AEM_HLDELETEQUOTE     (WM_USER + 2522)
+#define AEM_HLGETTHEMENAMEA   (WM_USER + 2505)
+#define AEM_HLGETTHEMENAMEW   (WM_USER + 2506)
+#define AEM_HLTHEMEEXISTS     (WM_USER + 2507)
+#define AEM_HLSETTHEME        (WM_USER + 2508)
+#define AEM_HLDELETETHEME     (WM_USER + 2509)
+#define AEM_HLADDDELIMITERA   (WM_USER + 2510)
+#define AEM_HLADDDELIMITERW   (WM_USER + 2511)
+#define AEM_HLGETDELIMITERA   (WM_USER + 2512)
+#define AEM_HLGETDELIMITERW   (WM_USER + 2513)
+#define AEM_HLDELETEDELIMITER (WM_USER + 2514)
+#define AEM_HLADDWORDA        (WM_USER + 2515)
+#define AEM_HLADDWORDW        (WM_USER + 2516)
+#define AEM_HLGETWORDA        (WM_USER + 2517)
+#define AEM_HLGETWORDW        (WM_USER + 2518)
+#define AEM_HLDELETEWORD      (WM_USER + 2519)
+#define AEM_HLADDQUOTEA       (WM_USER + 2520)
+#define AEM_HLADDQUOTEW       (WM_USER + 2521)
+#define AEM_HLGETQUOTEA       (WM_USER + 2522)
+#define AEM_HLGETQUOTEW       (WM_USER + 2523)
+#define AEM_HLDELETEQUOTE     (WM_USER + 2524)
 
 
 //// RichEdit messages
@@ -3191,7 +3193,7 @@ Example:
  if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEA, 0, (LPARAM)"MyTheme"))
  {
    di.pDelimiter=" ";
-   di.nDelimiterLen=lstrlenA(di.wpDelimiter);
+   di.nDelimiterLen=lstrlenA(di.pDelimiter);
    di.dwFlags=AEHLF_MATCHCASE;
    di.crText=(DWORD)-1;
    di.crBk=(DWORD)-1;
@@ -3237,24 +3239,24 @@ Example:
 
  if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme"))
  {
-   di.wpDelimiter=L" ";
-   di.nDelimiterLen=lstrlenW(di.wpDelimiter);
+   di.pDelimiter=L" ";
+   di.nDelimiterLen=lstrlenW(di.pDelimiter);
    di.dwFlags=AEHLF_MATCHCASE;
    di.crText=(DWORD)-1;
    di.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDDELIMITERW, (WPARAM)hTheme, (LPARAM)&di);
 
-   wi.wpWord=L"for";
-   wi.nWordLen=lstrlenW(wi.wpWord);
+   wi.pWord=L"for";
+   wi.nWordLen=lstrlenW(wi.pWord);
    wi.dwFlags=AEHLF_MATCHCASE;
    wi.crText=RGB(0x00, 0xFF, 0x00);
    wi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDWORDW, (WPARAM)hTheme, (LPARAM)&wi);
 
-   qi.wpQuoteStart=L"\"";
-   qi.nQuoteStartLen=lstrlenW(qi.wpQuoteStart);
-   qi.wpQuoteEnd=L"\"";
-   qi.nQuoteEndLen=lstrlenW(qi.wpQuoteEnd);
+   qi.pQuoteStart=L"\"";
+   qi.nQuoteStartLen=lstrlenW(qi.pQuoteStart);
+   qi.pQuoteEnd=L"\"";
+   qi.nQuoteEndLen=lstrlenW(qi.pQuoteEnd);
    qi.wchEscape=L'\\';
    qi.dwFlags=AEHLF_MATCHCASE;
    qi.crText=RGB(0x00, 0x00, 0xFF);
@@ -3293,6 +3295,40 @@ Return Value
 
 Example:
  HANDLE hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)L"MyTheme");
+
+
+AEM_HLGETTHEMENAMEA
+___________________
+
+Retrieve ansi highlight theme name.
+
+(HANDLE)wParam == theme handle.
+(char *)lParam == pointer to a buffer that receives ansi highlight theme name. If NULL, return value is the required buffer size.
+
+Return Value
+ Length of the string copied to the buffer, in TCHARs, not including the terminating null character.
+
+Example:
+ char szThemeName[MAX_PATH];
+
+ SendMessage(hWndEdit, AEM_HLGETTHEMENAMEA, (WPARAM)hTheme, (LPARAM)szThemeName);
+
+
+AEM_HLGETTHEMENAMEW
+___________________
+
+Retrieve unicode highlight theme name.
+
+(HANDLE)wParam    == theme handle.
+(wchar_t *)lParam == pointer to a buffer that receives unicode highlight theme name. If NULL, return value is the required buffer size.
+
+Return Value
+ Length of the string copied to the buffer, in TCHARs, not including the terminating null character.
+
+Example:
+ wchar_t wszThemeName[MAX_PATH];
+
+ SendMessage(hWndEdit, AEM_HLGETTHEMENAMEW, (WPARAM)hTheme, (LPARAM)wszThemeName);
 
 
 AEM_HLTHEMEEXISTS
@@ -3403,7 +3439,7 @@ ___________________
 Retrieve unicode delimiter info of highlight theme.
 
 (HANDLE)wParam         == theme handle.
-(AEDELIMITEMW *)lParam == pointer to a AEDELIMITEMW structure. Members wpDelimiter, nDelimiterLen and dwFlags must be filled in.
+(AEDELIMITEMW *)lParam == pointer to a AEDELIMITEMW structure. Members pDelimiter, nDelimiterLen and dwFlags must be filled in.
 
 Return Value
  Delimiter handle.
@@ -3412,8 +3448,8 @@ Example:
  HANDLE hTheme;
  AEDELIMITEMW di;
 
- di.wpDelimiter=L" ";
- di.nDelimiterLen=lstrlenW(di.wpDelimiter);
+ di.pDelimiter=L" ";
+ di.nDelimiterLen=lstrlenW(di.pDelimiter);
  di.dwFlags=AEHLF_MATCHCASE;
  hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
  SendMessage(hWndEdit, AEM_HLGETDELIMITERW, (WPARAM)hTheme, (LPARAM)&di);
@@ -3492,7 +3528,7 @@ ______________
 Retrieve unicode word info of highlight theme.
 
 (HANDLE)wParam        == theme handle.
-(AEWORDITEMW *)lParam == pointer to a AEWORDITEMW structure. Members wpWord, nWordLen and dwFlags must be filled in.
+(AEWORDITEMW *)lParam == pointer to a AEWORDITEMW structure. Members pWord, nWordLen and dwFlags must be filled in.
 
 Return Value
  Word handle.
@@ -3501,8 +3537,8 @@ Example:
  HANDLE hTheme;
  AEWORDITEMW wi;
 
- wi.wpWord=L"for";
- wi.nWordLen=lstrlenW(wi.wpWord);
+ wi.pWord=L"for";
+ wi.nWordLen=lstrlenW(wi.pWord);
  wi.dwFlags=AEHLF_MATCHCASE;
  hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
  SendMessage(hWndEdit, AEM_HLGETWORDW, (WPARAM)hTheme, (LPARAM)&wi);
@@ -3581,7 +3617,7 @@ ______________
 Retrieve unicode quote info of highlight theme.
 
 (HANDLE)wParam         == theme handle.
-(AEQUOTEITEMW *)lParam == pointer to a AEQUOTEITEMW structure. Members wpQuoteStart, nQuoteStartLen and dwFlags must be filled in.
+(AEQUOTEITEMW *)lParam == pointer to a AEQUOTEITEMW structure. Members pQuoteStart, nQuoteStartLen and dwFlags must be filled in.
 
 Return Value
  Quote handle.
@@ -3590,8 +3626,8 @@ Example:
  HANDLE hTheme;
  AEQUOTEITEMW qi;
 
- qi.wpQuoteStart=L"\"";
- qi.nQuoteStartLen=lstrlenW(qi.wpQuoteStart);
+ qi.pQuoteStart=L"\"";
+ qi.nQuoteStartLen=lstrlenW(qi.pQuoteStart);
  qi.dwFlags=AEHLF_MATCHCASE;
  hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
  SendMessage(hWndEdit, AEM_HLGETQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
@@ -3636,6 +3672,7 @@ Example:
   #define AEM_ISMATCH AEM_ISMATCHA
   #define AEM_HLCREATETHEME AEM_HLCREATETHEMEA
   #define AEM_HLGETTHEME AEM_HLGETTHEMEA
+  #define AEM_HLGETTHEMENAME AEM_HLGETTHEMENAMEA
   #define AEM_HLADDDELIMITER AEM_HLADDDELIMITERA
   #define AEM_HLGETDELIMITER AEM_HLGETDELIMITERA
   #define AEM_HLADDWORD AEM_HLADDWORDA
@@ -3662,6 +3699,7 @@ Example:
   #define AEM_ISMATCH AEM_ISMATCHW
   #define AEM_HLCREATETHEME AEM_HLCREATETHEMEW
   #define AEM_HLGETTHEME AEM_HLGETTHEMEW
+  #define AEM_HLGETTHEMENAME AEM_HLGETTHEMENAMEW
   #define AEM_HLADDDELIMITER AEM_HLADDDELIMITERW
   #define AEM_HLGETDELIMITER AEM_HLGETDELIMITERW
   #define AEM_HLADDWORD AEM_HLADDWORDW

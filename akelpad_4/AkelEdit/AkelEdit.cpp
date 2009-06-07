@@ -1225,6 +1225,22 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return (LRESULT)ae->popt->lpActiveTheme;
         return (LRESULT)AE_HighlightGetTheme(ae, wpThemeName);
       }
+      if (uMsg == AEM_HLGETTHEMENAMEA)
+      {
+        AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
+
+        if (!lParam)
+          return lstrlenW(lpTheme->wszThemeName) + 1;
+        return WideCharToMultiByte(CP_ACP, 0, lpTheme->wszThemeName, -1, (char *)lParam, MAX_PATH, NULL, NULL) - 1;
+      }
+      if (uMsg == AEM_HLGETTHEMENAMEW)
+      {
+        AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
+
+        if (!lParam)
+          return lstrlenW(lpTheme->wszThemeName) + 1;
+        return AE_wcsncpy((wchar_t *)lParam, lpTheme->wszThemeName, MAX_PATH);
+      }
       if (uMsg == AEM_HLTHEMEEXISTS)
       {
         AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
