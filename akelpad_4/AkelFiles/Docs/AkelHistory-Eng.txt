@@ -1,7 +1,11 @@
 
-AkelPad 4.2.3 ()
+AkelPad 4.2.4 ()
 ----------------------------
+Changed: syntax highlighting improved.
+
 Added: Finnish language module (Jani Kinnunen).
+
+Fixed: "Replace all" caused new line format unification in binary files.
 
 
 AkelPad 4.2.3 (May 01, 2009)
