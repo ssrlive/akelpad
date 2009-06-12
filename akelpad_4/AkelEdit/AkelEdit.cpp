@@ -1091,10 +1091,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETSTRWIDTH)
       {
-        SIZE sizeChar;
-      
-        if (AE_GetTextExtentPoint32(ae, (wchar_t *)wParam, lParam, &sizeChar))
-          return sizeChar.cx;
+        SIZE sizeString;
+
+        if (AE_GetTextExtentPoint32(ae, (wchar_t *)wParam, lParam, &sizeString))
+          return sizeString.cx;
         else
           return -1;
       }
