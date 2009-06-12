@@ -755,8 +755,8 @@ typedef struct {
 #define AEM_SETURLMAXLENGTH   (WM_USER + 2228)
 #define AEM_GETWORDBREAK      (WM_USER + 2229)
 #define AEM_SETWORDBREAK      (WM_USER + 2230)
-#define AEM_GETCHARAVERAGE    (WM_USER + 2231)
-#define AEM_GETCHARWIDTH      (WM_USER + 2232)
+#define AEM_GETCHARSIZE       (WM_USER + 2231)
+#define AEM_GETSTRWIDTH       (WM_USER + 2232)
 #define AEM_CONTROLCLASS      (WM_USER + 2233)
 #define AEM_CONTROLVERSION    (WM_USER + 2234)
 
@@ -2934,7 +2934,7 @@ Example:
  SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, 0);
 
 
-AEM_GETCHARAVERAGE
+AEM_GETCHARSIZE
 __________________
 
 Retrieve current font character height and average width.
@@ -2947,22 +2947,22 @@ Return Value
  The high-order word contains the current font character average width.
 
 Example:
- SendMessage(hWndEdit, AEM_GETCHARAVERAGE, 0, 0);
+ SendMessage(hWndEdit, AEM_GETCHARSIZE, 0, 0);
 
 
-AEM_GETCHARWIDTH
-________________
+AEM_GETSTRWIDTH
+_______________
 
-Retrieve character width.
+Retrieve string width. Uses the currently selected font.
 
-(wchar_t)wParam == character.
-lParam          == not used.
+(wchar_t *)wParam == unicode string.
+(int)lParam       == string length.
 
 Return Value
- Character width.
+ String width.
 
 Example:
- SendMessage(hWndEdit, AEM_GETCHARWIDTH, L'A', 0);
+ SendMessage(hWndEdit, AEM_GETSTRWIDTH, (WPARAM)L"ABC", 3);
 
 
 AEM_CONTROLCLASS
