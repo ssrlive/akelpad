@@ -1085,13 +1085,18 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->popt->dwWordBreak=wParam;
         return dwWordBreak;
       }
-      if (uMsg == AEM_GETCHARAVERAGE)
+      if (uMsg == AEM_GETCHARSIZE)
       {
         return MAKELONG(ae->ptxt->nCharHeight, ae->ptxt->nAveCharWidth);
       }
-      if (uMsg == AEM_GETCHARWIDTH)
+      if (uMsg == AEM_GETSTRWIDTH)
       {
-        return AE_GetCharWidth(ae, wParam);
+        SIZE sizeChar;
+      
+        if (AE_GetTextExtentPoint32(ae, (wchar_t *)wParam, lParam, &sizeChar))
+          return sizeChar.cx;
+        else
+          return -1;
       }
       if (uMsg == AEM_CONTROLCLASS)
       {
