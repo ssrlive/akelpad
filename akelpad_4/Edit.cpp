@@ -2508,7 +2508,7 @@ BOOL SaveIniA(HSTACK *hIniStack, char *pFile)
 
   dwAttr=GetFileAttributesA(pFile);
 
-  if (dwAttr == 0xFFFFFFFF || !(dwAttr & FILE_ATTRIBUTE_READONLY))
+  if (dwAttr == INVALID_FILE_ATTRIBUTES || !(dwAttr & FILE_ATTRIBUTE_READONLY))
   {
     if ((hFile=API_CreateFileA(pFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
     {
@@ -2527,7 +2527,7 @@ BOOL SaveIniW(HSTACK *hIniStack, wchar_t *wpFile)
 
   dwAttr=GetFileAttributesW(wpFile);
 
-  if (dwAttr == 0xFFFFFFFF || !(dwAttr & FILE_ATTRIBUTE_READONLY))
+  if (dwAttr == INVALID_FILE_ATTRIBUTES || !(dwAttr & FILE_ATTRIBUTE_READONLY))
   {
     if ((hFile=API_CreateFileW(wpFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL)) != INVALID_HANDLE_VALUE)
     {
@@ -5082,7 +5082,8 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   }
 
   dwAttr=GetFileAttributesA(szFile);
-  if (dwAttr != 0xFFFFFFFF)
+
+  if (dwAttr != INVALID_FILE_ATTRIBUTES)
   {
     if (bSaveInReadOnlyMsg && (dwAttr & FILE_ATTRIBUTE_READONLY))
     {
@@ -5103,7 +5104,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
     }
   }
 
-  hFile=API_CreateFileA(szFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != 0xFFFFFFFF)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+  hFile=API_CreateFileA(szFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (hFile == INVALID_HANDLE_VALUE)
   {
@@ -5142,7 +5143,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   if (fsd.bResult)
   {
     //Change back file attributes
-    if (dwAttr != 0xFFFFFFFF)
+    if (dwAttr != INVALID_FILE_ATTRIBUTES)
     {
       if (!(dwAttr & FILE_ATTRIBUTE_ARCHIVE) || (dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
         SetFileAttributesA(szFile, dwAttr|FILE_ATTRIBUTE_ARCHIVE);
@@ -5227,7 +5228,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   }
 
   BackAttr:
-  if (dwAttr != 0xFFFFFFFF)
+  if (dwAttr != INVALID_FILE_ATTRIBUTES)
   {
     if ((dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
       SetFileAttributesA(szFile, dwAttr);
@@ -5290,7 +5291,8 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
   }
 
   dwAttr=GetFileAttributesW(wszFile);
-  if (dwAttr != 0xFFFFFFFF)
+
+  if (dwAttr != INVALID_FILE_ATTRIBUTES)
   {
     if (bSaveInReadOnlyMsg && (dwAttr & FILE_ATTRIBUTE_READONLY))
     {
@@ -5311,7 +5313,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
     }
   }
 
-  hFile=API_CreateFileW(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != 0xFFFFFFFF)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+  hFile=API_CreateFileW(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (hFile == INVALID_HANDLE_VALUE)
   {
@@ -5350,7 +5352,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
   if (fsd.bResult)
   {
     //Change back file attributes
-    if (dwAttr != 0xFFFFFFFF)
+    if (dwAttr != INVALID_FILE_ATTRIBUTES)
     {
       if (!(dwAttr & FILE_ATTRIBUTE_ARCHIVE) || (dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
         SetFileAttributesW(wszFile, dwAttr|FILE_ATTRIBUTE_ARCHIVE);
@@ -5435,7 +5437,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
   }
 
   BackAttr:
-  if (dwAttr != 0xFFFFFFFF)
+  if (dwAttr != INVALID_FILE_ATTRIBUTES)
   {
     if ((dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
       SetFileAttributesW(wszFile, dwAttr);
