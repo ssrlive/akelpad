@@ -1184,7 +1184,7 @@ Return Value
 Example:
  AEAPPENDTEXTW at;
 
- at.wpText=L"SomeText";
+ at.pText=L"SomeText";
  at.dwTextLen=(DWORD)-1;
  at.bColumnSel=FALSE;
  SendMessage(hWndEdit, AEM_APPENDTEXTW, 0, (LPARAM)&at);
@@ -1226,7 +1226,7 @@ Return Value
 Example:
  AEREPLACESELW rs;
 
- rs.wpText=L"SomeText";
+ rs.pText=L"SomeText";
  rs.dwTextLen=(DWORD)-1;
  rs.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
  rs.ciInsertStart=NULL;
@@ -1282,18 +1282,18 @@ Example:
  int nLen;
 
  SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr);
- tr.wpText=NULL;
+ tr.pText=NULL;
  tr.nNewLine=AELB_ASOUTPUT;
  tr.bFillSpaces=FALSE;
 
  if (nLen=SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
  {
-   if (tr.wpText=(wchar_t *)GlobalAlloc(GPTR, nLen * sizeof(wchar_t) + 2))
+   if (tr.pText=(wchar_t *)GlobalAlloc(GPTR, nLen * sizeof(wchar_t) + 2))
    {
      SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
-     MessageBoxW(NULL, tr.wpText, NULL, 0);
+     MessageBoxW(NULL, tr.pText, NULL, 0);
 
-     GlobalFree((HGLOBAL)tr.wpText);
+     GlobalFree((HGLOBAL)tr.pText);
    }
  }
 
@@ -1519,7 +1519,7 @@ Example:
  AESELECTION aes;
 
  ft.dwFlags=AEFR_DOWN;
- ft.wpText=L"SomeText";
+ ft.pText=L"SomeText";
  ft.dwTextLen=(DWORD)-1;
  ft.nNewLine=AELB_ASIS;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
@@ -1580,7 +1580,7 @@ Example:
  AESELECTION aes;
 
  ft.dwFlags=AEFR_MATCHCASE;
- ft.wpText=L"SomeText";
+ ft.pText=L"SomeText";
  ft.dwTextLen=(DWORD)-1;
  ft.nNewLine=AELB_ASIS;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&ciChar);
