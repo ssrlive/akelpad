@@ -234,6 +234,10 @@ typedef struct _PLUGINDATA {
   LANGID wLangSystem;         //System language ID
 } PLUGINDATA;
 
+typedef struct _DLLEC {
+  int nAction;                //Plugin external call action
+} DLLEC;
+
 typedef struct _OPENDOCUMENTA {
   HWND hWnd;                   //Window to fill in, NULL for current edit window
   char szFile[MAX_PATH];       //File to open
