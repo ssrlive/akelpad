@@ -13537,7 +13537,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   {
     if (ft->dwFlags & AEFR_DOWN)
     {
-      if (AE_IndexOffset(ae, &ciCountEnd, &ciCountEnd, -(int)ft->dwTextLen, ft->nNewLine))
+      if (AE_IndexOffset(ae, &ciCountEnd, &ciCountEnd, -(int)ft->dwTextLen, ft->nNewLine) == ft->dwTextLen)
       {
         while (1)
         {
@@ -13564,7 +13564,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
     }
     else
     {
-      if (AE_IndexOffset(ae, &ciCount, &ciCount, -(int)ft->dwTextLen, ft->nNewLine))
+      if (AE_IndexOffset(ae, &ciCount, &ciCount, -(int)ft->dwTextLen, ft->nNewLine) == ft->dwTextLen)
       {
         while (1)
         {
