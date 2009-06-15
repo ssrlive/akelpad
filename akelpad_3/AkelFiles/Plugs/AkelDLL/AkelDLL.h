@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 0, 2, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 0, 3, 0)
 
 
 //// Defines
@@ -233,6 +233,10 @@ typedef struct _PLUGINDATA {
                               //wchar_t *pLangModule   if bOldWindows == FALSE
   LANGID wLangSystem;         //System language ID
 } PLUGINDATA;
+
+typedef struct _DLLEC {
+  int nAction;                //Plugin external call action
+} DLLEC;
 
 typedef struct _OPENDOCUMENTA {
   HWND hWnd;                   //Window to fill in, NULL for current edit window
