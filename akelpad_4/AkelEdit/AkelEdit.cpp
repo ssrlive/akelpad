@@ -7138,11 +7138,13 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   Begin:
   while (ciCount.lpLine)
   {
-    while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+    while (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
     {
       if (!wm->lpQuote)
       {
         if (AE_IndexCompare(&ciCount, ciChar) > 0)
+          return 0;
+        if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
           return 0;
 
         for (lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first; lpQuoteElement; lpQuoteElement=lpQuoteElement->next)
@@ -7293,10 +7295,18 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         //Quote end
         if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ISDELIMITER)
         {
-          if (lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE))
+          if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE)) || AE_IsLastCharInLine(&ciCount))
           {
-            nQuoteLen+=lpDelimiterElement->nDelimiterLen;
-            wm->crQuoteEnd=ft.crFound;
+            if (lpDelimiterElement)
+            {
+              nQuoteLen+=lpDelimiterElement->nDelimiterLen;
+              wm->crQuoteEnd=ft.crFound;
+            }
+            else
+            {
+              wm->crQuoteEnd.ciMin=ciCount;
+              wm->crQuoteEnd.ciMax=ciCount;
+            }
             goto SetQuote;
           }
         }
