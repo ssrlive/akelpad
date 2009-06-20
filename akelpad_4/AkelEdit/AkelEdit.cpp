@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.2.4                               *
+ *                      AkelEdit text control v1.2.5                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -7154,6 +7154,19 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         //Quote start
         for (lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first; lpQuoteElement; lpQuoteElement=lpQuoteElement->next)
         {
+          if ((!lpQuoteElement->pQuoteStart || !*lpQuoteElement->pQuoteStart) &&
+              !(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ISDELIMITER))
+          {
+            if (AE_IsFirstCharInLine(&ciCount))
+            {
+              //Quote start is empty == ""
+              nQuoteLen=0;
+              wm->crQuoteStart.ciMin=ciCount;
+              wm->crQuoteStart.ciMax=ciCount;
+              wm->lpQuote=lpQuoteElement;
+              goto Begin;
+            }
+          }
           if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART) || AE_IsFirstCharInLine(&ciCount))
           {
             ft.pText=lpQuoteElement->pQuoteStart;
@@ -7172,9 +7185,9 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                   nQuoteLen=lpQuoteElement->nQuoteStartLen;
                   wm->crQuoteStart=ft.crFound;
                   wm->lpQuote=lpQuoteElement;
-  
-                  if (!(wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ISDELIMITER) &&
-                      (!wm->lpQuote->pQuoteEnd || !*wm->lpQuote->pQuoteEnd))
+
+                  if ((!wm->lpQuote->pQuoteEnd || !*wm->lpQuote->pQuoteEnd) &&
+                      !(wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ISDELIMITER))
                   {
                     nQuoteLen+=AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCount, &ciCount, FALSE);
                     wm->crQuoteEnd.ciMin=ciCount;
@@ -7281,6 +7294,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       }
       else
       {
+        //Quote end
         if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ISDELIMITER)
         {
           //Is delimiter
@@ -7293,7 +7307,6 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         }
         else
         {
-          //Quote end
           ft.pText=wm->lpQuote->pQuoteEnd;
           ft.dwTextLen=wm->lpQuote->nQuoteEndLen;
           ft.dwFlags=(wm->lpQuote->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
@@ -7306,7 +7319,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                   ((AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMax, FALSE) || AE_IsLastCharInLine(&ft.crFound.ciMax)) &&
                    (AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMin, TRUE) || AE_IsFirstCharInLine(&ft.crFound.ciMin))))
               {
-                nQuoteLen+=lpQuoteElement->nQuoteEndLen;
+                nQuoteLen+=wm->lpQuote->nQuoteEndLen;
                 wm->crQuoteEnd=ft.crFound;
                 goto SetQuote;
               }
@@ -7384,12 +7397,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     if (wm->lpQuote->dwFlags & AEHLF_QUOTESTART_NOMATCH)
     {
       wm->crQuoteStart.ciMin=wm->crQuoteStart.ciMax;
-      nQuoteLen-=lpQuoteElement->nQuoteStartLen;
+      nQuoteLen-=wm->lpQuote->nQuoteStartLen;
     }
     if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_NOMATCH)
     {
       wm->crQuoteEnd.ciMax=wm->crQuoteEnd.ciMin;
-      nQuoteLen-=lpQuoteElement->nQuoteEndLen;
+      nQuoteLen-=wm->lpQuote->nQuoteEndLen;
     }
   }
   return nQuoteLen;
