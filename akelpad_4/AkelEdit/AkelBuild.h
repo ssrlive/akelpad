@@ -192,7 +192,6 @@ typedef struct _AETHEMEITEMW {
   AEHDELIMSTACK hDelimiterStack;
   AEHWORDSTACK hWordStack;
   AEHQUOTESTACK hQuoteStack;
-  int nQuoteStartIsDelimiter;
 } AETHEMEITEMW;
 
 typedef struct _AEQUOTEMATCH {
