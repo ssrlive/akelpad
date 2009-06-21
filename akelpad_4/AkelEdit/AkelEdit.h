@@ -725,8 +725,12 @@ typedef struct {
 #define AEM_LOCKSCROLL        (WM_USER + 2161)
 #define AEM_GETERASERECT      (WM_USER + 2162)
 #define AEM_SETERASERECT      (WM_USER + 2163)
+#define AEM_GETCHARSIZE       (WM_USER + 2164)
+#define AEM_GETSTRWIDTH       (WM_USER + 2165)
 
 //Options
+#define AEM_CONTROLCLASS      (WM_USER + 2199)
+#define AEM_CONTROLVERSION    (WM_USER + 2200)
 #define AEM_GETEVENTMASK      (WM_USER + 2201)
 #define AEM_SETEVENTMASK      (WM_USER + 2202)
 #define AEM_GETOPTIONS        (WM_USER + 2203)
@@ -757,10 +761,8 @@ typedef struct {
 #define AEM_SETURLMAXLENGTH   (WM_USER + 2228)
 #define AEM_GETWORDBREAK      (WM_USER + 2229)
 #define AEM_SETWORDBREAK      (WM_USER + 2230)
-#define AEM_GETCHARSIZE       (WM_USER + 2231)
-#define AEM_GETSTRWIDTH       (WM_USER + 2232)
-#define AEM_CONTROLCLASS      (WM_USER + 2233)
-#define AEM_CONTROLVERSION    (WM_USER + 2234)
+#define AEM_GETMARKER         (WM_USER + 2231)
+#define AEM_SETMARKER         (WM_USER + 2232)
 
 //Other
 #define AEM_ISDELIMITER       (WM_USER + 2251)
@@ -771,8 +773,6 @@ typedef struct {
 #define AEM_DELCLONE          (WM_USER + 2256)
 #define AEM_GETMASTER         (WM_USER + 2257)
 #define AEM_GETCLONE          (WM_USER + 2258)
-#define AEM_GETMARKER         (WM_USER + 2259)
-#define AEM_SETMARKER         (WM_USER + 2260)
 
 //Highlight
 #define AEM_HLCREATETHEMEA    (WM_USER + 2501)
@@ -2428,6 +2428,77 @@ Example:
  See AEM_GETERASERECT example.
 
 
+AEM_GETCHARSIZE
+__________________
+
+Retrieve current font character height and average width.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ The low-order word contains the current font character height.
+ The high-order word contains the current font character average width.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETCHARSIZE, 0, 0);
+
+
+AEM_GETSTRWIDTH
+_______________
+
+Retrieve string width. Uses the currently selected font.
+
+(wchar_t *)wParam == unicode string.
+(int)lParam       == string length.
+
+Return Value
+ String width.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETSTRWIDTH, (WPARAM)L"ABC", 3);
+
+
+AEM_CONTROLCLASS
+________________
+
+Retrieve control class AkelEdit or RichEdit.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ See AECLASS_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_CONTROLCLASS, 0, 0);
+
+
+AEM_CONTROLVERSION
+__________________
+
+Retrieve control version.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+
+Example:
+ DWORD dwVersion;
+ DWORD dwMajor;
+ DWORD dwMinor;
+ DWORD dwRelease;
+ DWORD dwBuild;
+
+ dwVersion=SendMessage(hWndEdit, AEM_CONTROLVERSION, 0, 0);
+ dwMajor=LOBYTE(LOWORD(dwVersion));
+ dwMinor=HIBYTE(LOWORD(dwVersion));
+ dwRelease=LOBYTE(HIWORD(dwVersion));
+ dwBuild=HIBYTE(HIWORD(dwVersion));
+
+
 AEM_GETEVENTMASK
 ________________
 
@@ -2936,75 +3007,34 @@ Example:
  SendMessage(hWndEdit, AEM_SETWORDBREAK, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDSTART, 0);
 
 
-AEM_GETCHARSIZE
-__________________
+AEM_GETMARKER
+_____________
 
-Retrieve current font character height and average width.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- The low-order word contains the current font character height.
- The high-order word contains the current font character average width.
-
-Example:
- SendMessage(hWndEdit, AEM_GETCHARSIZE, 0, 0);
-
-
-AEM_GETSTRWIDTH
-_______________
-
-Retrieve string width. Uses the currently selected font.
-
-(wchar_t *)wParam == unicode string.
-(int)lParam       == string length.
-
-Return Value
- String width.
-
-Example:
- SendMessage(hWndEdit, AEM_GETSTRWIDTH, (WPARAM)L"ABC", 3);
-
-
-AEM_CONTROLCLASS
-________________
-
-Retrieve control class AkelEdit or RichEdit.
+Retrieve marker column.
 
 wParam == not used.
 lParam == not used.
 
 Return Value
- See AECLASS_* defines.
+ Column number, zero if no marker set.
 
 Example:
- SendMessage(hWndEdit, AEM_CONTROLCLASS, 0, 0);
+ SendMessage(hWndEdit, AEM_GETMARKER, 0, 0);
 
 
-AEM_CONTROLVERSION
-__________________
+AEM_SETMARKER
+_____________
 
-Retrieve control version.
+Set marker at specified column.
 
-wParam == not used.
-lParam == not used.
+(int)wParam == column number, zero to clear marker.
+lParam      == not used.
 
 Return Value
- Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+ zero
 
 Example:
- DWORD dwVersion;
- DWORD dwMajor;
- DWORD dwMinor;
- DWORD dwRelease;
- DWORD dwBuild;
-
- dwVersion=SendMessage(hWndEdit, AEM_CONTROLVERSION, 0, 0);
- dwMajor=LOBYTE(LOWORD(dwVersion));
- dwMinor=HIBYTE(LOWORD(dwVersion));
- dwRelease=LOBYTE(HIWORD(dwVersion));
- dwBuild=HIBYTE(HIWORD(dwVersion));
+ SendMessage(hWndEdit, AEM_SETMARKER, 80, 0);
 
 
 AEM_ISDELIMITER
@@ -3143,36 +3173,6 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_GETCLONE, 2, 0);
-
-
-AEM_GETMARKER
-_____________
-
-Retrieve marker column.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- Column number, zero if no marker set.
-
-Example:
- SendMessage(hWndEdit, AEM_GETMARKER, 0, 0);
-
-
-AEM_SETMARKER
-_____________
-
-Set marker at specified column.
-
-(int)wParam == column number, zero to clear marker.
-lParam      == not used.
-
-Return Value
- zero
-
-Example:
- SendMessage(hWndEdit, AEM_SETMARKER, 80, 0);
 
 
 AEM_HLCREATETHEMEA

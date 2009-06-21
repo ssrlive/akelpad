@@ -838,8 +838,34 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->rcErase=*rcErase;
         return 0;
       }
+      if (uMsg == AEM_GETCHARSIZE)
+      {
+        return MAKELONG(ae->ptxt->nCharHeight, ae->ptxt->nAveCharWidth);
+      }
+      if (uMsg == AEM_GETSTRWIDTH)
+      {
+        SIZE sizeString;
+
+        if (AE_GetTextExtentPoint32(ae, (wchar_t *)wParam, lParam, &sizeString))
+          return sizeString.cx;
+        else
+          return -1;
+      }
 
       //Options
+      if (uMsg == AEM_CONTROLCLASS)
+      {
+        if (ae->bRichEditClass)
+          return AECLASS_RICHEDIT;
+        else
+          return AECLASS_AKELEDIT;
+      }
+      if (uMsg == AEM_CONTROLVERSION)
+      {
+        DWORD ver[4]={AKELEDIT_ID};
+
+        return MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
+      }
       if (uMsg == AEM_GETEVENTMASK)
       {
         return ae->popt->dwEventMask;
@@ -1085,31 +1111,20 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->popt->dwWordBreak=wParam;
         return dwWordBreak;
       }
-      if (uMsg == AEM_GETCHARSIZE)
+      if (uMsg == AEM_GETMARKER)
       {
-        return MAKELONG(ae->ptxt->nCharHeight, ae->ptxt->nAveCharWidth);
+        return (LRESULT)ae->popt->nColumnMarker;
       }
-      if (uMsg == AEM_GETSTRWIDTH)
+      if (uMsg == AEM_SETMARKER)
       {
-        SIZE sizeString;
-
-        if (AE_GetTextExtentPoint32(ae, (wchar_t *)wParam, lParam, &sizeString))
-          return sizeString.cx;
-        else
-          return -1;
-      }
-      if (uMsg == AEM_CONTROLCLASS)
-      {
-        if (ae->bRichEditClass)
-          return AECLASS_RICHEDIT;
-        else
-          return AECLASS_AKELEDIT;
-      }
-      if (uMsg == AEM_CONTROLVERSION)
-      {
-        DWORD ver[4]={AKELEDIT_ID};
-
-        return MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
+        if (ae->popt->nColumnMarker != (int)wParam)
+        {
+          AE_ColumnMarkerErase(ae);
+          ae->popt->nColumnMarker=wParam;
+          AE_ColumnMarkerDraw(ae);
+          AE_StackUpdateClones(ae);
+        }
+        return 0;
       }
 
       //Other
@@ -1182,21 +1197,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return (LRESULT)aec->aeClone->hWndEdit;
 
         return (LRESULT)NULL;
-      }
-      if (uMsg == AEM_GETMARKER)
-      {
-        return (LRESULT)ae->popt->nColumnMarker;
-      }
-      if (uMsg == AEM_SETMARKER)
-      {
-        if (ae->popt->nColumnMarker != (int)wParam)
-        {
-          AE_ColumnMarkerErase(ae);
-          ae->popt->nColumnMarker=wParam;
-          AE_ColumnMarkerDraw(ae);
-          AE_StackUpdateClones(ae);
-        }
-        return 0;
       }
       if (uMsg == AEM_HLCREATETHEMEA)
       {
