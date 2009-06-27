@@ -368,7 +368,7 @@ int StackGetIndex(stack *first, stack *last, stack *element, BOOL bPositive)
     {
       if (tmp == element)
         return nCount;
-  
+
       tmp=tmp->next;
     }
   }
@@ -380,7 +380,7 @@ int StackGetIndex(stack *first, stack *last, stack *element, BOOL bPositive)
     {
       if (tmp == element)
         return nCount;
-  
+
       tmp=tmp->prev;
     }
   }
@@ -1505,14 +1505,13 @@ int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pStrin
   while (tmp)
   {
     i=lstrcmpiA(tmp->string, pString);
+
     if (i == 0 || i == nUpDown)
     {
       break;
     }
-
     tmp=tmp->next;
   }
-
   return StackInsertBefore((stack **)first, (stack **)last, (stack *)tmp, (stack **)element, nBytes);
 }
 #endif
@@ -1521,7 +1520,7 @@ int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pStrin
  *
  *  StackSortA
  *
- *Pushs element to the stack and sorts alphabetically in ascending or descending.
+ *Sorts stack alphabetically in ascending or descending.
  *
  *[in,out] stackS **first   -Pointer to a pointer that specifies
  *                           the first element in the stack
@@ -1551,6 +1550,7 @@ int StackSortA(stackS **first, stackS **last, int nUpDown)
     for (tmp2=*first, b=1; b < a && tmp2; ++b)
     {
       c=lstrcmpiA(tmp2->string, tmp1->string);
+
       if (c == 0 || c == nUpDown)
       {
         tmp3=tmp1;
@@ -1558,7 +1558,6 @@ int StackSortA(stackS **first, stackS **last, int nUpDown)
         StackMoveBefore((stack **)first, (stack **)last, (stack *)tmp3, (stack *)tmp2);
         goto next;
       }
-
       tmp2=tmp2->next;
     }
     tmp1=tmp1->next;
