@@ -15028,6 +15028,7 @@ BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect
 
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const AECHARRANGE *crLink)
 {
+  AECHARRANGE crText=*crLink;
   LRESULT lResult1=0;
   LRESULT lResult2=0;
 
@@ -15042,7 +15043,7 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
     aenl.uMsg=uMsg;
     aenl.wParam=wParam;
     aenl.lParam=lParam;
-    aenl.crLink=*crLink;
+    aenl.crLink=crText;
     lResult1=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenl);
   }
 
@@ -15057,8 +15058,8 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
     enl.msg=uMsg;
     enl.wParam=wParam;
     enl.lParam=lParam;
-    enl.chrg.cpMin=AE_AkelIndexToRichOffset(ae, &crLink->ciMin);
-    enl.chrg.cpMax=AE_AkelIndexToRichOffset(ae, &crLink->ciMax);
+    enl.chrg.cpMin=AE_AkelIndexToRichOffset(ae, &crText.ciMin);
+    enl.chrg.cpMax=AE_AkelIndexToRichOffset(ae, &crText.ciMax);
     lResult2=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&enl);
   }
 
