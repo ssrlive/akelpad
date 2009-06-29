@@ -2674,6 +2674,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return DoFilePrintA(FALSE);
     }
+    else if (LOWORD(wParam) == IDM_FILE_SILENTPRINT)
+    {
+      return DoFilePrintA(TRUE);
+    }
     else if (LOWORD(wParam) == IDM_FILE_EXIT)
     {
       PostMessage(hWnd, WM_CLOSE, 0, 0);
@@ -4522,6 +4526,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_FILE_PRINT)
     {
       return DoFilePrintW(FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_FILE_SILENTPRINT)
+    {
+      return DoFilePrintW(TRUE);
     }
     else if (LOWORD(wParam) == IDM_FILE_EXIT)
     {
