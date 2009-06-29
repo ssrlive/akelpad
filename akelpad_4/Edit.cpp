@@ -868,6 +868,15 @@ BOOL DoFilePrintA(BOOL bSilent)
   BOOL bPrintError=FALSE;
   BOOL bPrintStop=FALSE;
 
+  //Set print dialog settings
+  if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+    pdA.Flags|=PD_NOSELECTION;
+  else
+    pdA.Flags&=~PD_NOSELECTION;
+  pdA.Flags&=~PD_SELECTION;
+  pdA.Flags&=~PD_PAGENUMS;
+  pdA.Flags&=~PD_PRINTTOFILE;
+
   //Choose printer
   if (bSilent)
   {
@@ -877,11 +886,6 @@ BOOL DoFilePrintA(BOOL bSilent)
   }
   else
   {
-    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-      pdA.Flags|=PD_NOSELECTION;
-    else
-      pdA.Flags&=~PD_NOSELECTION;
-
     if (!PrintDlgA(&pdA)) return FALSE;
     psdPageA.hDevMode=pdA.hDevMode;
     psdPageA.hDevNames=pdA.hDevNames;
@@ -1006,6 +1010,15 @@ BOOL DoFilePrintW(BOOL bSilent)
   BOOL bPrintError=FALSE;
   BOOL bPrintStop=FALSE;
 
+  //Set print dialog settings
+  if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+    pdW.Flags|=PD_NOSELECTION;
+  else
+    pdW.Flags&=~PD_NOSELECTION;
+  pdW.Flags&=~PD_SELECTION;
+  pdW.Flags&=~PD_PAGENUMS;
+  pdW.Flags&=~PD_PRINTTOFILE;
+
   //Choose printer
   if (bSilent)
   {
@@ -1015,11 +1028,6 @@ BOOL DoFilePrintW(BOOL bSilent)
   }
   else
   {
-    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
-      pdW.Flags|=PD_NOSELECTION;
-    else
-      pdW.Flags&=~PD_NOSELECTION;
-
     if (!PrintDlgW(&pdW)) return FALSE;
     psdPageW.hDevMode=pdW.hDevMode;
     psdPageW.hDevNames=pdW.hDevNames;
