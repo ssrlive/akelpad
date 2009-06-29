@@ -37,10 +37,14 @@
 #define AECC_MBOTTOM        11
 #define AECC_MLEFTBOTTOM    12
 
+//Print
+#define AEPRNL_PRINTLINESIZE 65536
+
 //Highlight search types
 #define AEHF_ISFIRSTCHAR    0x00000001
 #define AEHF_FINDFIRSTCHAR  0x00000002
 
+//Highlight paint type
 #define AEPT_SELECTION      0x00000001
 #define AEPT_DELIM1         0x00000002
 #define AEPT_WORD           0x00000004
@@ -229,14 +233,14 @@ typedef struct _AEHLPAINT {
 typedef struct _AEFONTCHARSA {
   struct _AEFONTCHARSA *next;
   struct _AEFONTCHARSA *prev;
-  LOGFONTA lfEdit;
+  LOGFONTA lfFont;
   WORD lpCharWidths[65536];
 } AEFONTCHARSA;
 
 typedef struct _AEFONTCHARSW {
   struct _AEFONTCHARSW *next;
   struct _AEFONTCHARSW *prev;
-  LOGFONTW lfEdit;
+  LOGFONTW lfFont;
   WORD lpCharWidths[65536];
 } AEFONTCHARSW;
 
@@ -253,8 +257,8 @@ typedef struct {
   HFONT hFontItalic;
   HFONT hFontBoldItalic;
   HFONT hFontUrl;
-  LOGFONTA lfEditA;
-  LOGFONTW lfEditW;
+  LOGFONTA lfFontA;
+  LOGFONTW lfFontW;
   int nCharHeight;
   int nAveCharWidth;
   int nSpaceCharWidth;
@@ -430,6 +434,14 @@ typedef struct _AECLONE {
 } AECLONE;
 
 
+//// Print
+
+typedef struct {
+  AKELEDIT aePrint;
+  wchar_t wszPrintLine[AEPRNL_PRINTLINESIZE];
+} AEPRINTHANDLE;
+
+
 //// Functions prototypes
 
 BOOL AE_RegisterClassA(HINSTANCE hInstance);
@@ -456,10 +468,10 @@ void AE_StackCloneDeleteAll(AKELEDIT *ae);
 void AE_StackUpdateClones(AKELEDIT *ae);
 AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae);
 void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae);
-WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfEdit);
-WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfEdit);
-WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfEdit);
-WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfEdit);
+WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont);
+WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfFont);
+WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont);
+WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont);
 void AE_StackFontCharsFree(HSTACK *hStack);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointSetModify(AKELEDIT *ae, BOOL bModify);
@@ -541,6 +553,11 @@ int AE_HScroll(AKELEDIT *ae, int nAction);
 int AE_VScroll(AKELEDIT *ae, int nAction);
 int AE_HScrollLine(AKELEDIT *ae, int nChar);
 int AE_VScrollLine(AKELEDIT *ae, int nLine);
+AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn);
+AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn);
+void AE_GetPrintPage(AEPRINT *prn);
+BOOL AE_PrintPage(AEPRINTHANDLE *ph, AEPRINT *prn);
+void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn);
 void AE_Paint(AKELEDIT *ae);
 void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
 void AE_MButtonDraw(AKELEDIT *ae);
@@ -557,7 +574,7 @@ int AE_GetFirstVisibleLine(AKELEDIT *ae);
 int AE_GetLastVisibleLine(AKELEDIT *ae);
 BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE *lpSize);
 int AE_GetCharWidth(AKELEDIT *ae, wchar_t wchChar);
-int GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirstCharOffset);
+int AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirstCharExtent);
 BOOL AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine);
 BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);
 BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);

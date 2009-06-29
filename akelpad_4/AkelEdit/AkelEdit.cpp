@@ -691,7 +691,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             for (i=0; i < nScanLimit; ++i)
             {
-              if (ciChar.lpLine->wpLine[i] == '\t')
+              if (ciChar.lpLine->wpLine[i] == L'\t')
                 nColumn+=nTabSize - nColumn % nTabSize;
               else
                 ++nColumn;
@@ -844,12 +844,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETSTRWIDTH)
       {
-        SIZE sizeString;
-
-        if (AE_GetTextExtentPoint32(ae, (wchar_t *)wParam, lParam, &sizeString))
-          return sizeString.cx;
-        else
-          return -1;
+        return AE_GetStringWidth(ae, (wchar_t *)wParam, lParam, 0);
       }
 
       //Options
@@ -1198,6 +1193,34 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         return (LRESULT)NULL;
       }
+
+      //Print
+      if (uMsg == AEM_STARTPRINTDOC)
+      {
+        AEPRINT *prn=(AEPRINT *)lParam;
+
+        if (!ae->bUnicodeWindow)
+          return (LRESULT)AE_StartPrintDocA(ae, prn);
+        else
+          return (LRESULT)AE_StartPrintDocW(ae, prn);
+      }
+      if (uMsg == AEM_PRINTPAGE)
+      {
+        AEPRINTHANDLE *ph=(AEPRINTHANDLE *)wParam;
+        AEPRINT *prn=(AEPRINT *)lParam;
+
+        return (LRESULT)AE_PrintPage(ph, prn);
+      }
+      if (uMsg == AEM_ENDPRINTDOC)
+      {
+        AEPRINTHANDLE *ph=(AEPRINTHANDLE *)wParam;
+        AEPRINT *prn=(AEPRINT *)lParam;
+
+        AE_EndPrintDoc(ae, ph, prn);
+        return 0;
+      }
+
+      //HighLight
       if (uMsg == AEM_HLCREATETHEMEA)
       {
         char *pThemeName=(char *)lParam;
@@ -4213,41 +4236,41 @@ void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
   }
 }
 
-WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfEdit)
+WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont)
 {
   AEFONTCHARSA *lpElement=NULL;
 
   if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTCHARSA)))
   {
-    AE_memcpy(&lpElement->lfEdit, lfEdit, sizeof(LOGFONTA));
+    AE_memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTA));
     return lpElement->lpCharWidths;
   }
   return NULL;
 }
 
-WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfEdit)
+WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfFont)
 {
   AEFONTCHARSW *lpElement=NULL;
 
   if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTCHARSW)))
   {
-    AE_memcpy(&lpElement->lfEdit, lfEdit, sizeof(LOGFONTW));
+    AE_memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTW));
     return lpElement->lpCharWidths;
   }
   return NULL;
 }
 
-WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfEdit)
+WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont)
 {
   AEFONTCHARSA *lpElement=(AEFONTCHARSA *)hStack->first;
 
   while (lpElement)
   {
-    if (lpElement->lfEdit.lfHeight == lfEdit->lfHeight &&
-        lpElement->lfEdit.lfWeight == lfEdit->lfWeight &&
-        lpElement->lfEdit.lfItalic == lfEdit->lfItalic)
+    if (lpElement->lfFont.lfHeight == lfFont->lfHeight &&
+        lpElement->lfFont.lfWeight == lfFont->lfWeight &&
+        lpElement->lfFont.lfItalic == lfFont->lfItalic)
     {
-      if (!lstrcmpiA(lpElement->lfEdit.lfFaceName, lfEdit->lfFaceName))
+      if (!lstrcmpiA(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
         return lpElement->lpCharWidths;
     }
     lpElement=lpElement->next;
@@ -4255,17 +4278,17 @@ WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfEdit)
   return NULL;
 }
 
-WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfEdit)
+WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont)
 {
   AEFONTCHARSW *lpElement=(AEFONTCHARSW *)hStack->first;
 
   while (lpElement)
   {
-    if (lpElement->lfEdit.lfHeight == lfEdit->lfHeight &&
-        lpElement->lfEdit.lfWeight == lfEdit->lfWeight &&
-        lpElement->lfEdit.lfItalic == lfEdit->lfItalic)
+    if (lpElement->lfFont.lfHeight == lfFont->lfHeight &&
+        lpElement->lfFont.lfWeight == lfFont->lfWeight &&
+        lpElement->lfFont.lfItalic == lfFont->lfItalic)
     {
-      if (!lstrcmpiW(lpElement->lfEdit.lfFaceName, lfEdit->lfFaceName))
+      if (!lstrcmpiW(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
         return lpElement->lpCharWidths;
     }
     lpElement=lpElement->next;
@@ -5100,7 +5123,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
     ciCharOut->nLine=min(ciCharTmp.nLine + 1, ae->ptxt->nLineCount);
 
-    if (ciCharTmp.nLine != ciCharOut->nLine)
+    if (ciCharTmp.nLine < ciCharOut->nLine)
     {
       ciCharOut->lpLine=ciCharTmp.lpLine->next;
       ciCharOut->nCharInLine=0;
@@ -5119,7 +5142,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
     ciCharOut->nLine=max(ciCharTmp.nLine - 1, 0);
 
-    if (ciCharTmp.nLine != ciCharOut->nLine)
+    if (ciCharTmp.nLine > ciCharOut->nLine)
     {
       ciCharOut->lpLine=ciCharTmp.lpLine->prev;
       ciCharOut->nCharInLine=0;
@@ -6046,7 +6069,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
       while (lpCurElement)
       {
         //Set new line width (necessary for tabs)
-        lpCurElement->nLineWidth=GetStringWidth(ae, lpCurElement->wpLine, lpCurElement->nLineLen, dwUnwrapLineWidth);
+        lpCurElement->nLineWidth=AE_GetStringWidth(ae, lpCurElement->wpLine, lpCurElement->nLineLen, dwUnwrapLineWidth);
         dwUnwrapLineWidth+=lpCurElement->nLineWidth;
         dwUnwrapLineLen+=lpCurElement->nLineLen;
 
@@ -6227,7 +6250,7 @@ void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw)
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
   TEXTMETRICA tmEdit;
-  LOGFONTA lfEdit;
+  LOGFONTA lfFont;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
   HDC hDC=ae->hDC;
@@ -6238,56 +6261,56 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     if (hFont)
     {
       hFontOld=(HFONT)SelectObject(hDC, hFont);
-      GetObjectA(hFont, sizeof(LOGFONTA), &ae->ptxt->lfEditA);
+      GetObjectA(hFont, sizeof(LOGFONTA), &ae->ptxt->lfFontA);
       if (!GetTextMetricsA(hDC, &tmEdit))
         hFont=NULL;
     }
     if (!hFont)
     {
       hFontOld=(HFONT)SelectObject(hDC, hFontSystem);
-      GetObjectA((HGDIOBJ)hFontSystem, sizeof(LOGFONTA), &ae->ptxt->lfEditA);
+      GetObjectA((HGDIOBJ)hFontSystem, sizeof(LOGFONTA), &ae->ptxt->lfFontA);
       if (!GetTextMetricsA(hDC, &tmEdit))
         return;
       hFont=hFontSystem;
     }
 
     ae->ptxt->hFont=hFont;
-    ae->ptxt->lfEditA.lfHeight=-mod(ae->ptxt->lfEditA.lfHeight);
-    ae->ptxt->lfEditA.lfWidth=0;
-    if (!(ae->ptxt->lpCharWidths=AE_StackFontCharsGetA(&hAkelEditFontCharsStack, &ae->ptxt->lfEditA)))
-      ae->ptxt->lpCharWidths=AE_StackFontCharsInsertA(&hAkelEditFontCharsStack, &ae->ptxt->lfEditA);
-    AE_memcpy(&lfEdit, &ae->ptxt->lfEditA, sizeof(LOGFONTA));
+    ae->ptxt->lfFontA.lfHeight=-mod(ae->ptxt->lfFontA.lfHeight);
+    ae->ptxt->lfFontA.lfWidth=0;
+    if (!(ae->ptxt->lpCharWidths=AE_StackFontCharsGetA(&hAkelEditFontCharsStack, &ae->ptxt->lfFontA)))
+      ae->ptxt->lpCharWidths=AE_StackFontCharsInsertA(&hAkelEditFontCharsStack, &ae->ptxt->lfFontA);
+    AE_memcpy(&lfFont, &ae->ptxt->lfFontA, sizeof(LOGFONTA));
 
     //Create normal font
     if (ae->ptxt->hFontNormal) DeleteObject(ae->ptxt->hFontNormal);
-    lfEdit.lfWeight=FW_NORMAL;
-    lfEdit.lfItalic=FALSE;
-    ae->ptxt->hFontNormal=(HFONT)CreateFontIndirectA(&lfEdit);
+    lfFont.lfWeight=FW_NORMAL;
+    lfFont.lfItalic=FALSE;
+    ae->ptxt->hFontNormal=(HFONT)CreateFontIndirectA(&lfFont);
 
     //Create bold font
     if (ae->ptxt->hFontBold) DeleteObject(ae->ptxt->hFontBold);
-    lfEdit.lfWeight=FW_BOLD;
-    lfEdit.lfItalic=FALSE;
-    ae->ptxt->hFontBold=(HFONT)CreateFontIndirectA(&lfEdit);
+    lfFont.lfWeight=FW_BOLD;
+    lfFont.lfItalic=FALSE;
+    ae->ptxt->hFontBold=(HFONT)CreateFontIndirectA(&lfFont);
 
     //Create italic font
     if (ae->ptxt->hFontItalic) DeleteObject(ae->ptxt->hFontItalic);
-    lfEdit.lfWeight=FW_NORMAL;
-    lfEdit.lfItalic=TRUE;
-    ae->ptxt->hFontItalic=(HFONT)CreateFontIndirectA(&lfEdit);
+    lfFont.lfWeight=FW_NORMAL;
+    lfFont.lfItalic=TRUE;
+    ae->ptxt->hFontItalic=(HFONT)CreateFontIndirectA(&lfFont);
 
     //Create bold italic font
     if (ae->ptxt->hFontBoldItalic) DeleteObject(ae->ptxt->hFontBoldItalic);
-    lfEdit.lfWeight=FW_BOLD;
-    lfEdit.lfItalic=TRUE;
-    ae->ptxt->hFontBoldItalic=(HFONT)CreateFontIndirectA(&lfEdit);
+    lfFont.lfWeight=FW_BOLD;
+    lfFont.lfItalic=TRUE;
+    ae->ptxt->hFontBoldItalic=(HFONT)CreateFontIndirectA(&lfFont);
 
     //Create URL font
     if (ae->ptxt->hFontUrl) DeleteObject(ae->ptxt->hFontUrl);
-    lfEdit.lfWeight=ae->ptxt->lfEditA.lfWeight;
-    lfEdit.lfItalic=ae->ptxt->lfEditA.lfItalic;
-    lfEdit.lfUnderline=TRUE;
-    ae->ptxt->hFontUrl=(HFONT)CreateFontIndirectA(&lfEdit);
+    lfFont.lfWeight=ae->ptxt->lfFontA.lfWeight;
+    lfFont.lfItalic=ae->ptxt->lfFontA.lfItalic;
+    lfFont.lfUnderline=TRUE;
+    ae->ptxt->hFontUrl=(HFONT)CreateFontIndirectA(&lfFont);
 
     ae->ptxt->nCharHeight=tmEdit.tmHeight;
     GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
@@ -6309,7 +6332,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
   TEXTMETRICW tmEdit;
-  LOGFONTW lfEdit;
+  LOGFONTW lfFont;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
   HDC hDC=ae->hDC;
@@ -6320,56 +6343,56 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     if (hFont)
     {
       hFontOld=(HFONT)SelectObject(hDC, hFont);
-      GetObjectW(hFont, sizeof(LOGFONTW), &ae->ptxt->lfEditW);
+      GetObjectW(hFont, sizeof(LOGFONTW), &ae->ptxt->lfFontW);
       if (!GetTextMetricsW(hDC, &tmEdit))
         hFont=NULL;
     }
     if (!hFont)
     {
       hFontOld=(HFONT)SelectObject(hDC, hFontSystem);
-      GetObjectW((HGDIOBJ)hFontSystem, sizeof(LOGFONTW), &ae->ptxt->lfEditW);
+      GetObjectW((HGDIOBJ)hFontSystem, sizeof(LOGFONTW), &ae->ptxt->lfFontW);
       if (!GetTextMetricsW(hDC, &tmEdit))
         return;
       hFont=hFontSystem;
     }
 
     ae->ptxt->hFont=hFont;
-    ae->ptxt->lfEditW.lfHeight=-mod(ae->ptxt->lfEditW.lfHeight);
-    ae->ptxt->lfEditW.lfWidth=0;
-    if (!(ae->ptxt->lpCharWidths=AE_StackFontCharsGetW(&hAkelEditFontCharsStack, &ae->ptxt->lfEditW)))
-      ae->ptxt->lpCharWidths=AE_StackFontCharsInsertW(&hAkelEditFontCharsStack, &ae->ptxt->lfEditW);
-    AE_memcpy(&lfEdit, &ae->ptxt->lfEditW, sizeof(LOGFONTW));
+    ae->ptxt->lfFontW.lfHeight=-mod(ae->ptxt->lfFontW.lfHeight);
+    ae->ptxt->lfFontW.lfWidth=0;
+    if (!(ae->ptxt->lpCharWidths=AE_StackFontCharsGetW(&hAkelEditFontCharsStack, &ae->ptxt->lfFontW)))
+      ae->ptxt->lpCharWidths=AE_StackFontCharsInsertW(&hAkelEditFontCharsStack, &ae->ptxt->lfFontW);
+    AE_memcpy(&lfFont, &ae->ptxt->lfFontW, sizeof(LOGFONTW));
 
     //Create normal font
     if (ae->ptxt->hFontNormal) DeleteObject(ae->ptxt->hFontNormal);
-    lfEdit.lfWeight=FW_NORMAL;
-    lfEdit.lfItalic=FALSE;
-    ae->ptxt->hFontNormal=(HFONT)CreateFontIndirectW(&lfEdit);
+    lfFont.lfWeight=FW_NORMAL;
+    lfFont.lfItalic=FALSE;
+    ae->ptxt->hFontNormal=(HFONT)CreateFontIndirectW(&lfFont);
 
     //Create bold font
     if (ae->ptxt->hFontBold) DeleteObject(ae->ptxt->hFontBold);
-    lfEdit.lfWeight=FW_BOLD;
-    lfEdit.lfItalic=FALSE;
-    ae->ptxt->hFontBold=(HFONT)CreateFontIndirectW(&lfEdit);
+    lfFont.lfWeight=FW_BOLD;
+    lfFont.lfItalic=FALSE;
+    ae->ptxt->hFontBold=(HFONT)CreateFontIndirectW(&lfFont);
 
     //Create italic font
     if (ae->ptxt->hFontItalic) DeleteObject(ae->ptxt->hFontItalic);
-    lfEdit.lfWeight=FW_NORMAL;
-    lfEdit.lfItalic=TRUE;
-    ae->ptxt->hFontItalic=(HFONT)CreateFontIndirectW(&lfEdit);
+    lfFont.lfWeight=FW_NORMAL;
+    lfFont.lfItalic=TRUE;
+    ae->ptxt->hFontItalic=(HFONT)CreateFontIndirectW(&lfFont);
 
     //Create bold italic font
     if (ae->ptxt->hFontBoldItalic) DeleteObject(ae->ptxt->hFontBoldItalic);
-    lfEdit.lfWeight=FW_BOLD;
-    lfEdit.lfItalic=TRUE;
-    ae->ptxt->hFontBoldItalic=(HFONT)CreateFontIndirectW(&lfEdit);
+    lfFont.lfWeight=FW_BOLD;
+    lfFont.lfItalic=TRUE;
+    ae->ptxt->hFontBoldItalic=(HFONT)CreateFontIndirectW(&lfFont);
 
     //Create URL font
     if (ae->ptxt->hFontUrl) DeleteObject(ae->ptxt->hFontUrl);
-    lfEdit.lfWeight=ae->ptxt->lfEditW.lfWeight;
-    lfEdit.lfItalic=ae->ptxt->lfEditW.lfItalic;
-    lfEdit.lfUnderline=TRUE;
-    ae->ptxt->hFontUrl=(HFONT)CreateFontIndirectW(&lfEdit);
+    lfFont.lfWeight=ae->ptxt->lfFontW.lfWeight;
+    lfFont.lfItalic=ae->ptxt->lfFontW.lfItalic;
+    lfFont.lfUnderline=TRUE;
+    ae->ptxt->hFontUrl=(HFONT)CreateFontIndirectW(&lfFont);
 
     ae->ptxt->nCharHeight=tmEdit.tmHeight;
     GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
@@ -8596,6 +8619,301 @@ int AE_VScrollLine(AKELEDIT *ae, int nLine)
   return AE_ScrollEditWindow(ae, SB_VERT, nPos);
 }
 
+AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
+{
+  AEPRINTHANDLE *ph;
+  TEXTMETRICA tmPrintA;
+  SIZE sizeWidth;
+  HDC hEditDC;
+  HFONT hPrintFontOld;
+  int nPointSize=0;
+
+  if (ph=(AEPRINTHANDLE *)AE_HeapAlloc(ae, 0, sizeof(AEPRINTHANDLE)))
+  {
+    //Clone AKELEDIT data for printing
+    AE_memcpy(&ph->aePrint, ae, sizeof(AKELEDIT));
+    ph->aePrint.ptxt=&ph->aePrint.txt;
+    ph->aePrint.popt=&ph->aePrint.opt;
+    ph->aePrint.hDC=prn->hPrinterDC;
+
+    //Calculate print font
+    GetObjectA(prn->hEditFont, sizeof(LOGFONTA), &ph->aePrint.ptxt->lfFontA);
+    if (hEditDC=GetDC(ae->hWndEdit))
+    {
+      nPointSize=MulDiv(ph->aePrint.ptxt->lfFontA.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
+      ReleaseDC(ae->hWndEdit, hEditDC);
+    }
+    ph->aePrint.ptxt->lfFontA.lfHeight=MulDiv(nPointSize, GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY), 72);
+
+    //Create print font
+    prn->hPrintFont=CreateFontIndirectA(&ph->aePrint.ptxt->lfFontA);
+    hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
+
+    //Set print font
+    ph->aePrint.ptxt->hFont=prn->hPrintFont;
+    if (!(ph->aePrint.ptxt->lpCharWidths=AE_StackFontCharsGetA(&hAkelEditFontCharsStack, &ph->aePrint.ptxt->lfFontA)))
+      ph->aePrint.ptxt->lpCharWidths=AE_StackFontCharsInsertA(&hAkelEditFontCharsStack, &ph->aePrint.ptxt->lfFontA);
+
+    //Get print font sizes
+    GetTextMetricsA(prn->hPrinterDC, &tmPrintA);
+    ph->aePrint.ptxt->nCharHeight=tmPrintA.tmHeight;
+    prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
+    GetTextExtentPoint32W(prn->hPrinterDC, L" ", 1, &sizeWidth);
+    ph->aePrint.ptxt->nSpaceCharWidth=sizeWidth.cx;
+    prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
+    ph->aePrint.ptxt->nTabWidth=ph->aePrint.ptxt->nSpaceCharWidth * ph->aePrint.ptxt->nTabStop;
+    prn->nTabWidth=ph->aePrint.ptxt->nTabWidth;
+
+    //Return font
+    if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+
+    //Get print page size
+    AE_GetPrintPage(prn);
+  }
+  return ph;
+}
+
+AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
+{
+  AEPRINTHANDLE *ph;
+  TEXTMETRICW tmPrintW;
+  SIZE sizeWidth;
+  HDC hEditDC;
+  HFONT hPrintFontOld;
+  int nPointSize=0;
+
+  if (!prn->hPrinterDC || !prn->hEditFont || !prn->crText.ciMin.lpLine || !prn->crText.ciMax.lpLine)
+    return NULL;
+
+  if (ph=(AEPRINTHANDLE *)AE_HeapAlloc(ae, 0, sizeof(AEPRINTHANDLE)))
+  {
+    //Clone AKELEDIT data for printing
+    AE_memcpy(&ph->aePrint, ae, sizeof(AKELEDIT));
+    ph->aePrint.ptxt=&ph->aePrint.txt;
+    ph->aePrint.popt=&ph->aePrint.opt;
+    ph->aePrint.hDC=prn->hPrinterDC;
+
+    //Calculate print font
+    GetObjectW(prn->hEditFont, sizeof(LOGFONTW), &ph->aePrint.ptxt->lfFontW);
+    if (hEditDC=GetDC(ae->hWndEdit))
+    {
+      nPointSize=MulDiv(ph->aePrint.ptxt->lfFontW.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
+      ReleaseDC(ae->hWndEdit, hEditDC);
+    }
+    ph->aePrint.ptxt->lfFontW.lfHeight=MulDiv(nPointSize, GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY), 72);
+
+    //Create print font
+    prn->hPrintFont=CreateFontIndirectW(&ph->aePrint.ptxt->lfFontW);
+    hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
+
+    //Set print font
+    ph->aePrint.ptxt->hFont=prn->hPrintFont;
+    if (!(ph->aePrint.ptxt->lpCharWidths=AE_StackFontCharsGetW(&hAkelEditFontCharsStack, &ph->aePrint.ptxt->lfFontW)))
+      ph->aePrint.ptxt->lpCharWidths=AE_StackFontCharsInsertW(&hAkelEditFontCharsStack, &ph->aePrint.ptxt->lfFontW);
+
+    //Get print font sizes
+    GetTextMetricsW(prn->hPrinterDC, &tmPrintW);
+    ph->aePrint.ptxt->nCharHeight=tmPrintW.tmHeight;
+    prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
+    GetTextExtentPoint32W(prn->hPrinterDC, L" ", 1, &sizeWidth);
+    ph->aePrint.ptxt->nSpaceCharWidth=sizeWidth.cx;
+    prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
+    ph->aePrint.ptxt->nTabWidth=ph->aePrint.ptxt->nSpaceCharWidth * ph->aePrint.ptxt->nTabStop;
+    prn->nTabWidth=ph->aePrint.ptxt->nTabWidth;
+
+    //Return font
+    if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+
+    //Get print page size
+    AE_GetPrintPage(prn);
+  }
+  return ph;
+}
+
+void AE_GetPrintPage(AEPRINT *prn)
+{
+  RECT rcPhys;
+  RECT rcUser;
+  RECT rcAdjUser;
+  POINT ptDpi;
+  POINT ptPage;
+  int nExtent;
+
+  nExtent=(prn->dwFlags & AEPRN_INHUNDREDTHSOFMILLIMETERS)?2540:1000;
+
+  ptDpi.x=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSX);
+  ptDpi.y=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY);
+
+  ptPage.x=GetDeviceCaps(prn->hPrinterDC, PHYSICALWIDTH);
+  ptPage.y=GetDeviceCaps(prn->hPrinterDC, PHYSICALHEIGHT);
+
+  rcPhys.left=GetDeviceCaps(prn->hPrinterDC, PHYSICALOFFSETX);
+  rcPhys.top=GetDeviceCaps(prn->hPrinterDC, PHYSICALOFFSETY);
+  rcPhys.right=ptPage.x - GetDeviceCaps(prn->hPrinterDC, HORZRES) - rcPhys.left;
+  rcPhys.bottom=ptPage.y - GetDeviceCaps(prn->hPrinterDC, VERTRES) - rcPhys.top;
+
+  rcUser.left=MulDiv(prn->rcMargins.left, ptDpi.x, nExtent);
+  rcUser.top=MulDiv(prn->rcMargins.top, ptDpi.y, nExtent);
+  rcUser.right=MulDiv(prn->rcMargins.right, ptDpi.x, nExtent);
+  rcUser.bottom=MulDiv(prn->rcMargins.bottom, ptDpi.y, nExtent);
+
+  rcAdjUser.left=max(rcPhys.left, rcUser.left);
+  rcAdjUser.top=max(rcPhys.top, rcUser.top);
+  rcAdjUser.right=max(rcPhys.right, rcUser.right);
+  rcAdjUser.bottom=max(rcPhys.bottom, rcUser.bottom);
+
+  prn->rcPageIn.left=rcAdjUser.left - rcPhys.left;
+  prn->rcPageIn.top=rcAdjUser.top - rcPhys.top;
+  prn->rcPageIn.right=ptPage.x - rcAdjUser.right - rcPhys.left;
+  prn->rcPageIn.bottom=ptPage.y - rcAdjUser.bottom - rcPhys.top;
+}
+
+BOOL AE_PrintPage(AEPRINTHANDLE *ph, AEPRINT *prn)
+{
+  AECHARINDEX ciCount;
+  POINT ptText={prn->rcPageIn.left, prn->rcPageIn.top};
+  HFONT hPrintFontOld;
+  int nLineWidth;
+  int nMaxLineWidth=0;
+  int nCharWidth;
+  int nLineLen;
+  int nPrintedChars;
+  int nLineCount=0;
+  int i;
+  BOOL bFormFeed=FALSE;
+  BOOL bContinuePrint=TRUE;
+
+  //Select print font
+  hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
+
+  NextLine:
+  ciCount=prn->crText.ciMin;
+  ptText.x=prn->rcPageIn.left;
+  nLineWidth=0;
+  nLineLen=0;
+  nPrintedChars=0;
+
+  //Calculate line
+  while (ciCount.lpLine)
+  {
+    while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+    {
+      ph->wszPrintLine[nLineLen]=*(ciCount.lpLine->wpLine + ciCount.nCharInLine);
+      nCharWidth=AE_GetStringWidth(&ph->aePrint, ph->wszPrintLine + nLineLen, 1, nLineWidth);
+      nLineWidth+=nCharWidth;
+
+      if (nLineWidth > prn->rcPageIn.right - prn->rcPageIn.left ||
+          nLineLen >= AEPRNL_PRINTLINESIZE ||
+          AE_IndexCompare(&ciCount, &prn->crText.ciMax) >= 0 ||
+          (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ph->wszPrintLine[nLineLen] == L'\f'))
+      {
+        if (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ph->wszPrintLine[nLineLen] == L'\f')
+          bFormFeed=TRUE;
+
+        if (prn->dwFlags & AEPRN_WRAPNONE)
+        {
+          if (bFormFeed)
+            bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTCHARINLINE, &ciCount, &prn->crText.ciMin, FALSE);
+          else
+            bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE);
+        }
+        else if (prn->dwFlags & AEPRN_WRAPSYMBOL)
+        {
+          if (bFormFeed)
+            bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTCHARINLINE, &ciCount, &prn->crText.ciMin, FALSE);
+          else
+            prn->crText.ciMin=ciCount;
+        }
+        else
+        {
+          if (nLineWidth > prn->rcPageIn.right - prn->rcPageIn.left)
+          {
+            //Find end of word
+            for (i=nLineLen - 1; i >= 0; --i)
+            {
+              if (AE_IsInDelimiterList(ph->aePrint.ptxt->wszWrapDelimiters, ph->wszPrintLine[i]))
+                break;
+            }
+            if (i >= 0)
+            {
+              ++i;
+              AE_IndexOffset(&ph->aePrint, &ciCount, &prn->crText.ciMin, i - nLineLen, AELB_ASIS);
+              nLineLen=i;
+              bFormFeed=FALSE;
+              goto CheckTextEnd;
+            }
+          }
+          if (bFormFeed)
+            bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTCHARINLINE, &ciCount, &prn->crText.ciMin, FALSE);
+          else
+            prn->crText.ciMin=ciCount;
+        }
+
+        CheckTextEnd:
+        if (AE_IndexCompare(&prn->crText.ciMin, &prn->crText.ciMax) >= 0)
+          bContinuePrint=FALSE;
+        nLineWidth-=nCharWidth;
+        goto PrintLine;
+      }
+      ++nLineLen;
+      ++ciCount.nCharInLine;
+    }
+
+    if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
+    {
+      ciCount.nLine+=1;
+      ciCount.lpLine=ciCount.lpLine->next;
+      ciCount.nCharInLine=0;
+    }
+    else break;
+  }
+  bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE);
+
+  //Print line
+  PrintLine:
+  nLineWidth=0;
+
+  for (i=0; i < nLineLen; ++i)
+  {
+    nLineWidth+=AE_GetStringWidth(&ph->aePrint, ph->wszPrintLine + i, 1, nLineWidth);
+
+    if (ph->wszPrintLine[i] == L'\t')
+    {
+      if (!(prn->dwFlags & AEPRN_CALCRECT))
+        ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, NULL);
+      ptText.x+=nLineWidth;
+      nPrintedChars+=i + 1;
+    }
+  }
+  if (!(prn->dwFlags & AEPRN_CALCRECT))
+    ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, nLineLen - nPrintedChars, NULL);
+  ptText.y+=ph->aePrint.ptxt->nCharHeight;
+  nMaxLineWidth=max(nLineWidth, nMaxLineWidth);
+  ++nLineCount;
+
+  if (bContinuePrint && !bFormFeed && ptText.y + ph->aePrint.ptxt->nCharHeight <= prn->rcPageIn.bottom)
+    goto NextLine;
+
+  //Fill rcPageOut structure
+  prn->rcPageOut.left=prn->rcPageIn.left;
+  prn->rcPageOut.top=prn->rcPageIn.top;
+  prn->rcPageOut.right=prn->rcPageIn.left + nMaxLineWidth;
+  prn->rcPageOut.bottom=ptText.y;
+
+  //Return font
+  if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+
+  return bContinuePrint;
+}
+
+void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
+{
+  DeleteObject(prn->hPrintFont);
+  prn->hPrintFont=NULL;
+
+  AE_HeapFree(ae, 0, (LPVOID)ph);
+}
+
 void AE_Paint(AKELEDIT *ae)
 {
   PAINTSTRUCT ps;
@@ -9611,10 +9929,10 @@ int AE_GetCharWidth(AKELEDIT *ae, wchar_t wchChar)
   return 0;
 }
 
-int GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirstCharOffset)
+int AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirstCharExtent)
 {
   SIZE sizeChar;
-  int nStringWidth=nFirstCharOffset;
+  int nStringWidth=nFirstCharExtent;
   int nTabWidth;
   int i;
 
@@ -9633,7 +9951,7 @@ int GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirstCh
       }
     }
   }
-  return nStringWidth - nFirstCharOffset;
+  return nStringWidth - nFirstCharExtent;
 }
 
 BOOL AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine)
@@ -14930,24 +15248,27 @@ BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
   }
 
   //Send EN_DROPFILES
-  if (ae->popt->dwRichEventMask & ENM_DROPFILES)
+  if (bResult1)
   {
-    ENDROPFILES df;
-    AECHARINDEX ciCharIndex;
-    POINT pt;
+    if (ae->popt->dwRichEventMask & ENM_DROPFILES)
+    {
+      ENDROPFILES df;
+      AECHARINDEX ciCharIndex;
+      POINT pt;
 
-    GetCursorPos(&pt);
-    ScreenToClient(ae->hWndEdit, &pt);
-    AE_GetCharFromPos(ae, &pt, &ciCharIndex, NULL, FALSE);
+      GetCursorPos(&pt);
+      ScreenToClient(ae->hWndEdit, &pt);
+      AE_GetCharFromPos(ae, &pt, &ciCharIndex, NULL, FALSE);
 
-    df.nmhdr.hwndFrom=ae->hWndEdit;
-    df.nmhdr.idFrom=ae->nEditCtrlID;
-    df.nmhdr.code=EN_DROPFILES;
-    df.hDrop=hDrop;
-    df.cp=AE_AkelIndexToRichOffset(ae, &ciCharIndex);
-    df.fProtected=FALSE;
+      df.nmhdr.hwndFrom=ae->hWndEdit;
+      df.nmhdr.idFrom=ae->nEditCtrlID;
+      df.nmhdr.code=EN_DROPFILES;
+      df.hDrop=hDrop;
+      df.cp=AE_AkelIndexToRichOffset(ae, &ciCharIndex);
+      df.fProtected=FALSE;
 
-    bResult2=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&df);
+      bResult2=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&df);
+    }
   }
 
   if (!bResult1 || !bResult2)
@@ -15048,19 +15369,22 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
   }
 
   //Send EN_LINK
-  if (ae->popt->dwRichEventMask & ENM_LINK)
+  if (!lResult1)
   {
-    ENLINK enl;
+    if (ae->popt->dwRichEventMask & ENM_LINK)
+    {
+      ENLINK enl;
 
-    enl.nmhdr.hwndFrom=ae->hWndEdit;
-    enl.nmhdr.idFrom=ae->nEditCtrlID;
-    enl.nmhdr.code=EN_LINK;
-    enl.msg=uMsg;
-    enl.wParam=wParam;
-    enl.lParam=lParam;
-    enl.chrg.cpMin=AE_AkelIndexToRichOffset(ae, &crText.ciMin);
-    enl.chrg.cpMax=AE_AkelIndexToRichOffset(ae, &crText.ciMax);
-    lResult2=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&enl);
+      enl.nmhdr.hwndFrom=ae->hWndEdit;
+      enl.nmhdr.idFrom=ae->nEditCtrlID;
+      enl.nmhdr.code=EN_LINK;
+      enl.msg=uMsg;
+      enl.wParam=wParam;
+      enl.lParam=lParam;
+      enl.chrg.cpMin=AE_AkelIndexToRichOffset(ae, &crText.ciMin);
+      enl.chrg.cpMax=AE_AkelIndexToRichOffset(ae, &crText.ciMax);
+      lResult2=SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&enl);
+    }
   }
 
   if (lResult1 || lResult2)
@@ -15596,7 +15920,7 @@ int AE_wcsncpy(wchar_t *dest, const wchar_t *src, unsigned int count)
     while (count)
     {
       *char_dest=*char_src;
-      if (*char_src == '\0') break;
+      if (*char_src == L'\0') break;
       ++char_dest;
       ++char_src;
       --count;

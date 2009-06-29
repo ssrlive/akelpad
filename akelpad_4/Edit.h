@@ -482,11 +482,8 @@ BOOL OpenDirectoryW(wchar_t *wpPath, BOOL bSubDir);
 
 unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void GetPrintPage(HDC hDC, RECT *rcMargin, BOOL bIsMarginInMillimeters, RECT *rcPage);
 void GetPrinterDCA(PRINTDLGA *pdA);
 void GetPrinterDCW(PRINTDLGW *pdW);
-BOOL PrintTextA(HDC hDC, RECT *rc, TEXTMETRICA *tmA, DRAWTEXTPARAMS *dtp, char *pText, char **pNextText);
-BOOL PrintTextW(HDC hDC, RECT *rc, TEXTMETRICW *tmW, DRAWTEXTPARAMS *dtp, wchar_t *wpText, wchar_t **wpNextText);
 BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber);
 BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber);
 

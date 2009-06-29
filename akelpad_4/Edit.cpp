@@ -858,24 +858,17 @@ BOOL DoFilePageSetupW()
 
 BOOL DoFilePrintA(BOOL bSilent)
 {
+  AEPRINT prn;
   DOCINFOA diA={0};
-  HDC hEditDC;
-  TEXTMETRICA tmA;
-  DRAWTEXTPARAMS dtp;
-  AECHARRANGE cr;
-  RECT rcPage;
-  RECT rcDraw;
+  HANDLE hPrintDoc;
+  HFONT hPrintFontOld;
   RECT rcHeader;
   RECT rcFooter;
-  LOGFONTA lfA;
-  HFONT hFont=NULL;
-  HFONT hFontOld=NULL;
-  char *szBuffer;
-  char *pText;
-  int nPointSize;
   int nPageNumber=0;
-  BOOL bError=FALSE;
+  BOOL bPrintError=FALSE;
+  BOOL bPrintStop=FALSE;
 
+  //Choose printer
   if (bSilent)
   {
     GetPrinterDCA(&pdA);
@@ -894,8 +887,28 @@ BOOL DoFilePrintA(BOOL bSilent)
     psdPageA.hDevNames=pdA.hDevNames;
   }
 
-  GetPrintPage(pdA.hDC, &psdPageA.rtMargin, (psdPageA.Flags & PSD_INHUNDREDTHSOFMILLIMETERS), &rcPage);
+  //Set print settings
+  if (psdPageA.Flags & PSD_INHUNDREDTHSOFMILLIMETERS)
+    prn.dwFlags=AEPRN_INHUNDREDTHSOFMILLIMETERS|AEPRN_WRAPWORD;
+  else
+    prn.dwFlags=AEPRN_INTHOUSANDTHSOFINCHES|AEPRN_WRAPWORD;
+  prn.hPrinterDC=pdA.hDC;
+  if (bPrintFontEnable)
+    prn.hEditFont=CreateFontIndirectA(&lfPrintFontA);
+  else
+    prn.hEditFont=CreateFontIndirectA(&lfEditFontA);
+  prn.rcMargins=psdPageA.rtMargin;
+  if (pdA.Flags & PD_SELECTION)
+  {
+    prn.crText=crSel;
+  }
+  else
+  {
+    SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn.crText.ciMin);
+    SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn.crText.ciMax);
+  }
 
+  //Document properties
   API_LoadStringA(hLangLib, STR_DOCNAME, buf, BUFFER_SIZE);
   diA.cbSize=sizeof(DOCINFOA);
   diA.lpszDocName=(szCurrentFile[0])?szCurrentFile:buf;
@@ -903,126 +916,83 @@ BOOL DoFilePrintA(BOOL bSilent)
 
   if (StartDocA(pdA.hDC, &diA) > 0)
   {
-    if (pdA.Flags & PD_SELECTION)
+    if (hPrintDoc=(HANDLE)SendMessage(hWndEdit, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
     {
-      cr=crSel;
-    }
-    else
-    {
-      SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
-      SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMax);
-    }
-
-    if (ExGetRangeTextA(hWndEdit, &cr.ciMin, &cr.ciMax, -1, &szBuffer, AELB_RN, TRUE))
-    {
-      pText=szBuffer;
-
-      if (bPrintFontEnable)
-      {
-        hEditDC=GetDC(hWndEdit);
-        nPointSize=-MulDiv(lfPrintFontA.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
-        ReleaseDC(hWndEdit, hEditDC);
-        memcpy(&lfA, &lfPrintFontA, sizeof(LOGFONTA));
-      }
-      else
-      {
-        hEditDC=GetDC(hWndEdit);
-        nPointSize=-MulDiv(lfEditFontA.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
-        ReleaseDC(hWndEdit, hEditDC);
-        memcpy(&lfA, &lfEditFontA, sizeof(LOGFONTA));
-      }
-      lfA.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(pdA.hDC, LOGPIXELSY), 72);
-      hFont=CreateFontIndirectA(&lfA);
-      hFontOld=(HFONT)SelectObject(pdA.hDC, hFont);
-      GetTextMetricsA(pdA.hDC, &tmA);
-
-      dtp.cbSize=sizeof(DRAWTEXTPARAMS);
-      dtp.iTabLength=nTabStopSize;
-      dtp.iLeftMargin=0;
-      dtp.iRightMargin=0;
-      dtp.uiLengthDrawn=0;
-
-      rcDraw=rcPage;
       if (bPrintHeaderEnable)
       {
-        rcDraw.top+=tmA.tmHeight;
-        rcHeader=rcPage;
-        rcHeader.bottom=rcHeader.top + tmA.tmHeight;
+        rcHeader=prn.rcPageIn;
+        rcHeader.bottom=rcHeader.top + prn.nCharHeight;
+        prn.rcPageIn.top+=prn.nCharHeight;
       }
       if (bPrintFooterEnable)
       {
-        rcDraw.bottom-=tmA.tmHeight;
-        rcFooter=rcPage;
-        rcFooter.top=rcFooter.bottom - tmA.tmHeight;
+        rcFooter=prn.rcPageIn;
+        rcFooter.top=rcFooter.bottom - prn.nCharHeight;
+        prn.rcPageIn.bottom-=prn.nCharHeight;
       }
 
-      while (*pText)
+      while (!bPrintStop && !bPrintError)
       {
         if (StartPage(pdA.hDC) > 0)
         {
           ++nPageNumber;
-          SelectObject(pdA.hDC, hFont);
 
           if (bPrintHeaderEnable)
           {
+            hPrintFontOld=(HFONT)SelectObject(pdA.hDC, prn.hPrintFont);
             if (!PrintHeadlineA(pdA.hDC, &rcHeader, szPrintHeader, nPageNumber))
-              bError=TRUE;
+              bPrintStop=TRUE;
+            if (hPrintFontOld) SelectObject(pdA.hDC, hPrintFontOld);
           }
-          if (!PrintTextA(pdA.hDC, &rcDraw, &tmA, &dtp, pText, &pText))
-          {
-            bError=TRUE;
-          }
+
+          //Print page
+          if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
+            bPrintStop=TRUE;
+
           if (bPrintFooterEnable)
           {
+            hPrintFontOld=(HFONT)SelectObject(pdA.hDC, prn.hPrintFont);
             if (!PrintHeadlineA(pdA.hDC, &rcFooter, szPrintFooter, nPageNumber))
-              bError=TRUE;
+              bPrintStop=TRUE;
+            if (hPrintFontOld) SelectObject(pdA.hDC, hPrintFontOld);
           }
 
           if (EndPage(pdA.hDC) <= 0)
-            bError=TRUE;
+            bPrintError=TRUE;
         }
-        else bError=TRUE;
-
-        if (bError) break;
+        else bPrintError=TRUE;
       }
-      if (hFontOld) SelectObject(pdA.hDC, hFontOld);
-      DeleteObject(hFont);
-      FreeText(szBuffer);
+      SendMessage(hWndEdit, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
     }
     EndDoc(pdA.hDC);
   }
-  else bError=TRUE;
+  else bPrintError=TRUE;
 
-  if (bError)
+  if (bPrintError)
   {
     API_LoadStringA(hLangLib, MSG_ERROR_PRINT, buf, BUFFER_SIZE);
     MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
   }
+  DeleteObject(prn.hEditFont);
   DeleteDC(pdA.hDC);
+  pdA.hDC=NULL;
 
-  return !bError;
+  return !bPrintError;
 }
 
 BOOL DoFilePrintW(BOOL bSilent)
 {
+  AEPRINT prn;
   DOCINFOW diW={0};
-  HDC hEditDC;
-  TEXTMETRICW tmW;
-  DRAWTEXTPARAMS dtp;
-  AECHARRANGE cr;
-  RECT rcPage;
-  RECT rcDraw;
+  HANDLE hPrintDoc;
+  HFONT hPrintFontOld;
   RECT rcHeader;
   RECT rcFooter;
-  LOGFONTW lfW;
-  HFONT hFont=NULL;
-  HFONT hFontOld=NULL;
-  wchar_t *wszBuffer;
-  wchar_t *wpText;
-  int nPointSize;
   int nPageNumber=0;
-  BOOL bError=FALSE;
+  BOOL bPrintError=FALSE;
+  BOOL bPrintStop=FALSE;
 
+  //Choose printer
   if (bSilent)
   {
     GetPrinterDCW(&pdW);
@@ -1041,8 +1011,28 @@ BOOL DoFilePrintW(BOOL bSilent)
     psdPageW.hDevNames=pdW.hDevNames;
   }
 
-  GetPrintPage(pdW.hDC, &psdPageW.rtMargin, (psdPageW.Flags & PSD_INHUNDREDTHSOFMILLIMETERS), &rcPage);
+  //Set print settings
+  if (psdPageW.Flags & PSD_INHUNDREDTHSOFMILLIMETERS)
+    prn.dwFlags=AEPRN_INHUNDREDTHSOFMILLIMETERS|AEPRN_WRAPWORD;
+  else
+    prn.dwFlags=AEPRN_INTHOUSANDTHSOFINCHES|AEPRN_WRAPWORD;
+  prn.hPrinterDC=pdW.hDC;
+  if (bPrintFontEnable)
+    prn.hEditFont=CreateFontIndirectW(&lfPrintFontW);
+  else
+    prn.hEditFont=CreateFontIndirectW(&lfEditFontW);
+  prn.rcMargins=psdPageW.rtMargin;
+  if (pdW.Flags & PD_SELECTION)
+  {
+    prn.crText=crSel;
+  }
+  else
+  {
+    SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn.crText.ciMin);
+    SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn.crText.ciMax);
+  }
 
+  //Document properties
   API_LoadStringW(hLangLib, STR_DOCNAME, wbuf, BUFFER_SIZE);
   diW.cbSize=sizeof(DOCINFOW);
   diW.lpszDocName=(wszCurrentFile[0])?wszCurrentFile:wbuf;
@@ -1050,104 +1040,68 @@ BOOL DoFilePrintW(BOOL bSilent)
 
   if (StartDocW(pdW.hDC, &diW) > 0)
   {
-    if (pdW.Flags & PD_SELECTION)
+    if (hPrintDoc=(HANDLE)SendMessage(hWndEdit, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
     {
-      cr=crSel;
-    }
-    else
-    {
-      SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
-      SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMax);
-    }
-
-    if (ExGetRangeTextW(hWndEdit, &cr.ciMin, &cr.ciMax, -1, &wszBuffer, AELB_RN, TRUE))
-    {
-      wpText=wszBuffer;
-
-      if (bPrintFontEnable)
-      {
-        hEditDC=GetDC(hWndEdit);
-        nPointSize=-MulDiv(lfPrintFontW.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
-        ReleaseDC(hWndEdit, hEditDC);
-        memcpy(&lfW, &lfPrintFontW, sizeof(LOGFONTW));
-      }
-      else
-      {
-        hEditDC=GetDC(hWndEdit);
-        nPointSize=-MulDiv(lfEditFontW.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
-        ReleaseDC(hWndEdit, hEditDC);
-        memcpy(&lfW, &lfEditFontW, sizeof(LOGFONTW));
-      }
-      lfW.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(pdW.hDC, LOGPIXELSY), 72);
-      hFont=CreateFontIndirectW(&lfW);
-      hFontOld=(HFONT)SelectObject(pdW.hDC, hFont);
-      GetTextMetricsW(pdW.hDC, &tmW);
-
-      dtp.cbSize=sizeof(DRAWTEXTPARAMS);
-      dtp.iTabLength=nTabStopSize;
-      dtp.iLeftMargin=0;
-      dtp.iRightMargin=0;
-      dtp.uiLengthDrawn=0;
-
-      rcDraw=rcPage;
       if (bPrintHeaderEnable)
       {
-        rcDraw.top+=tmW.tmHeight;
-        rcHeader=rcPage;
-        rcHeader.bottom=rcHeader.top + tmW.tmHeight;
+        rcHeader=prn.rcPageIn;
+        rcHeader.bottom=rcHeader.top + prn.nCharHeight;
+        prn.rcPageIn.top+=prn.nCharHeight;
       }
       if (bPrintFooterEnable)
       {
-        rcDraw.bottom-=tmW.tmHeight;
-        rcFooter=rcPage;
-        rcFooter.top=rcFooter.bottom - tmW.tmHeight;
+        rcFooter=prn.rcPageIn;
+        rcFooter.top=rcFooter.bottom - prn.nCharHeight;
+        prn.rcPageIn.bottom-=prn.nCharHeight;
       }
 
-      while (*wpText)
+      while (!bPrintStop && !bPrintError)
       {
         if (StartPage(pdW.hDC) > 0)
         {
           ++nPageNumber;
-          SelectObject(pdW.hDC, hFont);
 
           if (bPrintHeaderEnable)
           {
+            hPrintFontOld=(HFONT)SelectObject(pdW.hDC, prn.hPrintFont);
             if (!PrintHeadlineW(pdW.hDC, &rcHeader, wszPrintHeader, nPageNumber))
-              bError=TRUE;
+              bPrintStop=TRUE;
+            if (hPrintFontOld) SelectObject(pdW.hDC, hPrintFontOld);
           }
-          if (!PrintTextW(pdW.hDC, &rcDraw, &tmW, &dtp, wpText, &wpText))
-          {
-            bError=TRUE;
-          }
+
+          //Print page
+          if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
+            bPrintStop=TRUE;
+
           if (bPrintFooterEnable)
           {
+            hPrintFontOld=(HFONT)SelectObject(pdW.hDC, prn.hPrintFont);
             if (!PrintHeadlineW(pdW.hDC, &rcFooter, wszPrintFooter, nPageNumber))
-              bError=TRUE;
+              bPrintStop=TRUE;
+            if (hPrintFontOld) SelectObject(pdW.hDC, hPrintFontOld);
           }
 
           if (EndPage(pdW.hDC) <= 0)
-            bError=TRUE;
+            bPrintError=TRUE;
         }
-        else bError=TRUE;
-
-        if (bError) break;
+        else bPrintError=TRUE;
       }
-      if (hFontOld) SelectObject(pdW.hDC, hFontOld);
-      DeleteObject(hFont);
-      FreeText(wszBuffer);
+      SendMessage(hWndEdit, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
     }
     EndDoc(pdW.hDC);
   }
-  else bError=TRUE;
+  else bPrintError=TRUE;
 
-  if (bError)
+  if (bPrintError)
   {
     API_LoadStringW(hLangLib, MSG_ERROR_PRINT, wbuf, BUFFER_SIZE);
     MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
+  DeleteObject(prn.hEditFont);
   DeleteDC(pdW.hDC);
+  pdW.hDC=NULL;
 
-  return !bError;
+  return !bPrintError;
 }
 
 BOOL DoFileExitA()
@@ -6135,54 +6089,6 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
   return FALSE;
 }
 
-void GetPrintPage(HDC hDC, RECT *rcMargin, BOOL bIsMarginInMillimeters, RECT *rcPage)
-{
-  RECT rcPhys;
-  RECT rcUser;
-  RECT rcAdjUser;
-  POINT ptDpi;
-  POINT ptPage;
-  int nExtent;
-
-  nExtent=bIsMarginInMillimeters?2540:1000;
-
-  ptDpi.x=GetDeviceCaps(hDC, LOGPIXELSX);
-  ptDpi.y=GetDeviceCaps(hDC, LOGPIXELSY);
-
-  ptPage.x=GetDeviceCaps(hDC, PHYSICALWIDTH);
-  ptPage.y=GetDeviceCaps(hDC, PHYSICALHEIGHT);
-
-  rcPhys.left=GetDeviceCaps(hDC, PHYSICALOFFSETX);
-  rcPhys.top=GetDeviceCaps(hDC, PHYSICALOFFSETY);
-  rcPhys.right=ptPage.x - GetDeviceCaps(hDC, HORZRES) - rcPhys.left;
-  rcPhys.bottom=ptPage.y - GetDeviceCaps(hDC, VERTRES) - rcPhys.top;
-
-  if (!rcMargin)
-  {
-    rcUser.left=0;
-    rcUser.top=0;
-    rcUser.right=0;
-    rcUser.bottom=0;
-  }
-  else
-  {
-    rcUser.left=MulDiv(rcMargin->left, ptDpi.x, nExtent);
-    rcUser.top=MulDiv(rcMargin->top, ptDpi.y, nExtent);
-    rcUser.right=MulDiv(rcMargin->right, ptDpi.x, nExtent);
-    rcUser.bottom=MulDiv(rcMargin->bottom, ptDpi.y, nExtent);
-  }
-
-  rcAdjUser.left=max(rcPhys.left, rcUser.left);
-  rcAdjUser.top=max(rcPhys.top, rcUser.top);
-  rcAdjUser.right=max(rcPhys.right, rcUser.right);
-  rcAdjUser.bottom=max(rcPhys.bottom, rcUser.bottom);
-
-  rcPage->left=rcAdjUser.left - rcPhys.left;
-  rcPage->top=rcAdjUser.top - rcPhys.top;
-  rcPage->right=ptPage.x - rcAdjUser.right - rcPhys.left;
-  rcPage->bottom=ptPage.y - rcAdjUser.bottom - rcPhys.top;
-}
-
 void GetPrinterDCA(PRINTDLGA *pdA)
 {
   PRINTDLGA pdTmpA;
@@ -6245,136 +6151,6 @@ void GetPrinterDCW(PRINTDLGW *pdW)
      pdW->hDevNames=pdTmpW.hDevNames;
     }
   }
-}
-
-BOOL PrintTextA(HDC hDC, RECT *rc, TEXTMETRICA *tmA, DRAWTEXTPARAMS *dtp, char *pText, char **pNextText)
-{
-  RECT rcDraw=*rc;
-  RECT rcCalc;
-  BOOL bEndDraw=FALSE;
-  BOOL bMultiPart=FALSE;
-  BOOL bResult=TRUE;
-  DWORD i;
-
-  if (*pText)
-  {
-    while (1)
-    {
-      for (i=0; pText[i] && pText[i] != '\f' && i < 8192; ++i);
-
-      if (pText[0] == '\0') break;
-      if (pText[i] == '\f')
-      {
-        if (i == 0) break;
-        bEndDraw=TRUE;
-      }
-
-      rcCalc=rcDraw;
-      if (!DrawTextExA(hDC, pText, i, &rcCalc, DT_CALCRECT|DT_NOPREFIX|DT_EXPANDTABS|DT_TABSTOP|DT_EDITCONTROL|DT_WORDBREAK, dtp))
-      {
-        bResult=FALSE;
-        break;
-      }
-      if (rcCalc.bottom <= rc->bottom && i == dtp->uiLengthDrawn && i == 8192)
-      {
-        rcDraw.bottom=rcCalc.bottom - tmA->tmHeight;
-        bMultiPart=TRUE;
-      }
-      if (!DrawTextExA(hDC, pText, i, &rcDraw, DT_NOPREFIX|DT_EXPANDTABS|DT_TABSTOP|DT_EDITCONTROL|DT_WORDBREAK, dtp))
-      {
-        bResult=FALSE;
-        break;
-      }
-
-      pText+=dtp->uiLengthDrawn;
-      if (!*pText) break;
-      if (bEndDraw)
-      {
-        pText+=2;
-        break;
-      }
-      if (i != dtp->uiLengthDrawn)
-      {
-        if (bMultiPart)
-        {
-          rcDraw.top=rcDraw.bottom;
-          rcDraw.bottom=rc->bottom;
-          bMultiPart=FALSE;
-          continue;
-        }
-        break;
-      }
-    }
-  }
-  else bResult=FALSE;
-
-  *pNextText=pText;
-  return bResult;
-}
-
-BOOL PrintTextW(HDC hDC, RECT *rc, TEXTMETRICW *tmW, DRAWTEXTPARAMS *dtp, wchar_t *wpText, wchar_t **wpNextText)
-{
-  RECT rcDraw=*rc;
-  RECT rcCalc;
-  BOOL bEndDraw=FALSE;
-  BOOL bMultiPart=FALSE;
-  BOOL bResult=TRUE;
-  DWORD i;
-
-  if (*wpText)
-  {
-    while (1)
-    {
-      for (i=0; wpText[i] && wpText[i] != '\f' && i < 8192; ++i);
-
-      if (wpText[0] == '\0') break;
-      if (wpText[i] == '\f')
-      {
-        if (i == 0) break;
-        bEndDraw=TRUE;
-      }
-
-      rcCalc=rcDraw;
-      if (!DrawTextExW(hDC, wpText, i, &rcCalc, DT_CALCRECT|DT_NOPREFIX|DT_EXPANDTABS|DT_TABSTOP|DT_EDITCONTROL|DT_WORDBREAK, dtp))
-      {
-        bResult=FALSE;
-        break;
-      }
-      if (rcCalc.bottom <= rc->bottom && i == dtp->uiLengthDrawn && i == 8192)
-      {
-        rcDraw.bottom=rcCalc.bottom - tmW->tmHeight;
-        bMultiPart=TRUE;
-      }
-      if (!DrawTextExW(hDC, wpText, i, &rcDraw, DT_NOPREFIX|DT_EXPANDTABS|DT_TABSTOP|DT_EDITCONTROL|DT_WORDBREAK, dtp))
-      {
-        bResult=FALSE;
-        break;
-      }
-
-      wpText+=dtp->uiLengthDrawn;
-      if (!*wpText) break;
-      if (bEndDraw)
-      {
-        wpText+=2;
-        break;
-      }
-      if (i != dtp->uiLengthDrawn)
-      {
-        if (bMultiPart)
-        {
-          rcDraw.top=rcDraw.bottom;
-          rcDraw.bottom=rc->bottom;
-          bMultiPart=FALSE;
-          continue;
-        }
-        break;
-      }
-    }
-  }
-  else bResult=FALSE;
-
-  *wpNextText=wpText;
-  return bResult;
 }
 
 BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber)
