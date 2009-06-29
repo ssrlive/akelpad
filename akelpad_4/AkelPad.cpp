@@ -1648,8 +1648,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       pdA.lStructSize =sizeof(PRINTDLGA);
       pdA.hwndOwner   =hWnd;
-      pdA.Flags       =PD_ALLPAGES|PD_NOPAGENUMS|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
+      pdA.Flags       =PD_ALLPAGES|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
       pdA.nCopies     =1;
+      pdA.nFromPage   =1;
+      pdA.nToPage     =1;
+      pdA.nMinPage    =1;
+      pdA.nMaxPage    =9999;
 
       ofnA.hwndOwner      =hWnd;
       ofnA.hInstance      =hLangLib;
@@ -3501,8 +3505,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       pdW.lStructSize =sizeof(PRINTDLGW);
       pdW.hwndOwner   =hWnd;
-      pdW.Flags       =PD_ALLPAGES|PD_NOPAGENUMS|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
+      pdW.Flags       =PD_ALLPAGES|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
       pdW.nCopies     =1;
+      pdW.nFromPage   =1;
+      pdW.nToPage     =1;
+      pdW.nMinPage    =1;
+      pdW.nMaxPage    =9999;
 
       ofnW.hwndOwner      =hWnd;
       ofnW.hInstance      =hLangLib;
