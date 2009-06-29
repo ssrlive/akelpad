@@ -676,6 +676,9 @@ typedef struct _NSIZE {
 #define IDM_FILE_CLOSEALL_BUTACTIVE     4112  //Close all documents, but active
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
+#define IDM_FILE_SILENTPRINT            4113  //Print without dialog
+                                              //Return Value: TRUE - success, FALSE - failed
+                                              //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation
                                               //Return Value: zero
                                               //
