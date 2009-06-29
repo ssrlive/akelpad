@@ -19101,7 +19101,7 @@ void DrawMovingRect(RECT *rcScreen)
     SelectObject(hDC, hBrushOld);
     DeleteObject(hBrush);
     DeleteObject(hBitmap);
-    ReleaseDC(NULL, hDC);
+    ReleaseDC(hMainWnd, hDC);
   }
 }
 
