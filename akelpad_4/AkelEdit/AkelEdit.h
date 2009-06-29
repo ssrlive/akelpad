@@ -169,6 +169,15 @@
                               AECLR_ACTIVECOLUMN  |\
                               AECLR_COLUMNMARKER)
 
+//Print
+#define AEPRN_CALCRECT                  0x01  //Only calculate rect without painting.
+#define AEPRN_INHUNDREDTHSOFMILLIMETERS 0x02  //Indicates that hundredths of millimeters are the unit of measurement for margins.
+#define AEPRN_INTHOUSANDTHSOFINCHES     0x04  //Indicates that thousandths of inches are the unit of measurement for margins.
+#define AEPRN_WRAPNONE                  0x08  //Print without wrapping.
+#define AEPRN_WRAPWORD                  0x10  //Print with word wrapping (default).
+#define AEPRN_WRAPSYMBOL                0x20  //Print with symbols wrapping.
+#define AEPRN_IGNOREFORMFEED            0x40  //Ignore form-feed character '\f'.
+
 //Highlight flags
 #define AEHLF_MATCHCASE              0x0001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
 #define AEHLF_QUOTEWITHOUTDELIMITERS 0x0002  //Quote doesn't contain delimiters.
@@ -196,8 +205,8 @@
 #define AESC_UNITPIXELY      0x00000002  //High word of the lParam specifies pixels number.
 #define AESC_UNITCHARX       0x00000004  //Low word of the lParam specifies characters number.
 #define AESC_UNITCHARY       0x00000008  //High word of the lParam specifies characters number.
-#define AESC_UNITRECTDIVX    0x00000010  //Low word of the lParam specifies divisor of the edit rect width.
-#define AESC_UNITRECTDIVY    0x00000020  //High word of the lParam specifies divisor of the edit rect width.
+#define AESC_UNITRECTDIVX    0x00000010  //Low word of the lParam specifies divisor of the edit rectangle width.
+#define AESC_UNITRECTDIVY    0x00000020  //High word of the lParam specifies divisor of the edit rectangle width.
 #define AESC_FORCELEFT       0x00000040  //Scrolls to the left even if caret visible.
 #define AESC_FORCETOP        0x00000080  //Scrolls to the top even if caret visible.
 #define AESC_FORCERIGHT      0x00000100  //Scrolls to the right even if caret visible.
@@ -471,6 +480,20 @@ typedef struct {
   BOOL bColumnSel;        //[in] Column selection.
   int nNewLine;           //[in] See AELB_* defines.
 } AEINDEXSUBTRACT;
+
+typedef struct {
+  DWORD dwFlags;          //[in]     See AEPRN_* defines.
+  HDC hPrinterDC;         //[in]     Printer device context.
+  HFONT hEditFont;        //[in]     Edit font.
+  HFONT hPrintFont;       //[out]    Print font (mapped edit font).
+  int nCharHeight;        //[out]    Print font character height.
+  int nSpaceCharWidth;    //[out]    Print font space width.
+  int nTabWidth;          //[out]    Print font tabulation width.
+  RECT rcMargins;         //[in]     Specifies the widths of the left, top, right, and bottom margins. The AEPRN_INHUNDREDTHSOFMILLIMETERS or AEPRN_INTHOUSANDTHSOFINCHES flag indicates the units of measurement.
+  RECT rcPageIn;          //[in,out] Available page rectangle. Filled with AEM_STARTPRINTDOC message and can be modified by user before AEM_PRINTPAGE call.
+  RECT rcPageOut;         //[out]    Filled page rectangle. Filled with AEM_PRINTPAGE message.
+  AECHARRANGE crText;     //[in,out] Text range to print. Filled by user and changed after AEM_PRINTPAGE message.
+} AEPRINT;
 
 typedef struct _AEDELIMITEMA {
   struct _AEDELIMITEMA *next;
@@ -773,6 +796,11 @@ typedef struct {
 #define AEM_DELCLONE          (WM_USER + 2256)
 #define AEM_GETMASTER         (WM_USER + 2257)
 #define AEM_GETCLONE          (WM_USER + 2258)
+
+//Print
+#define AEM_STARTPRINTDOC     (WM_USER + 2451)
+#define AEM_PRINTPAGE         (WM_USER + 2452)
+#define AEM_ENDPRINTDOC       (WM_USER + 2453)
 
 //Highlight
 #define AEM_HLCREATETHEMEA    (WM_USER + 2501)
@@ -3173,6 +3201,113 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_GETCLONE, 2, 0);
+
+
+AEM_STARTPRINTDOC
+_________________
+
+Prepare document printing.
+
+wParam            == not used.
+(AEPRINT *)lParam == pointer to a AEPRINT structure.
+
+Return Value
+ Document handle.
+
+Example:
+ PRINTDLGA pdlg={0};
+ DOCINFOA di={0};
+ AEPRINT prn;
+ HANDLE hPrintDoc;
+ BOOL bPrintStop=FALSE;
+
+ //Choose printer
+ pdlg.lStructSize=sizeof(PRINTDLGA);
+ pdlg.hwndOwner=hWndEdit;
+ pdlg.Flags=PD_ALLPAGES|PD_NOPAGENUMS|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
+ pdlg.nCopies=1;
+ if (!PrintDlgA(&pdlg)) return;
+
+ //Set print settings
+ prn.dwFlags=AEPRN_INHUNDREDTHSOFMILLIMETERS|AEPRN_WRAPWORD;
+ prn.hPrinterDC=pdlg.hDC;
+ prn.hEditFont=(HFONT)SendMessage(hWndEdit, WM_GETFONT, 0, 0);
+ prn.rcMargins.left=1000;
+ prn.rcMargins.top=1000;
+ prn.rcMargins.right=1000;
+ prn.rcMargins.bottom=1000;
+ if (pdlg.Flags & PD_SELECTION)
+ {
+   SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&prn.crText.ciMin);
+   SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTSELCHAR, (LPARAM)&prn.crText.ciMax);
+ }
+ else
+ {
+   SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn.crText.ciMin);
+   SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn.crText.ciMax);
+ }
+
+ //Document properties
+ di.cbSize=sizeof(DOCINFOA);
+ di.lpszDocName="AkelEdit document";
+ if (pdlg.Flags & PD_PRINTTOFILE)
+   di.lpszOutput="FILE:";
+
+ //Start document
+ if (StartDocA(pdlg.hDC, &di) > 0)
+ {
+   if (hPrintDoc=(HANDLE)SendMessage(hWndEdit, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
+   {
+     while (!bPrintStop)
+     {
+       if (StartPage(prn.hPrinterDC) > 0)
+       {
+         //Print page
+         if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
+           bPrintStop=TRUE;
+
+         if (EndPage(prn.hPrinterDC) <= 0)
+           bPrintStop=TRUE;
+       }
+       else bPrintStop=TRUE;
+     }
+     SendMessage(hWndEdit, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
+   }
+   EndDoc(pdlg.hDC);
+ }
+ DeleteDC(pdlg.hDC);
+ pdlg.hDC=NULL;
+
+
+AEM_PRINTPAGE
+_____________
+
+Print page.
+
+(HANDLE)wParam    == document handle returned by AEM_STARTPRINTDOC.
+(AEPRINT *)lParam == pointer to a AEPRINT structure.
+
+Return Value
+ TRUE   page is printed and there is more text for printing.
+ FALSE  page is printed and there is no more text for printing.
+
+Example:
+ See AEM_STARTPRINTDOC example.
+
+
+AEM_ENDPRINTDOC
+_______________
+
+Close print document handle.
+
+(HANDLE)wParam    == document handle returned by AEM_STARTPRINTDOC.
+(AEPRINT *)lParam == pointer to a AEPRINT structure.
+
+Return Value
+ zero
+
+Example:
+ See AEM_STARTPRINTDOC example.
 
 
 AEM_HLCREATETHEMEA
