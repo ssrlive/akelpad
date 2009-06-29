@@ -933,34 +933,48 @@ BOOL DoFilePrintA(BOOL bSilent)
 
       while (!bPrintStop && !bPrintError)
       {
-        if (StartPage(pdA.hDC) > 0)
+        ++nPageNumber;
+
+        if ((pdA.Flags & PD_PAGENUMS) && nPageNumber > pdA.nToPage)
         {
-          ++nPageNumber;
-
-          if (bPrintHeaderEnable)
-          {
-            hPrintFontOld=(HFONT)SelectObject(pdA.hDC, prn.hPrintFont);
-            if (!PrintHeadlineA(pdA.hDC, &rcHeader, szPrintHeader, nPageNumber))
-              bPrintStop=TRUE;
-            if (hPrintFontOld) SelectObject(pdA.hDC, hPrintFontOld);
-          }
-
-          //Print page
+          bPrintStop=TRUE;
+        }
+        else if ((pdA.Flags & PD_PAGENUMS) && nPageNumber < pdA.nFromPage)
+        {
+          prn.dwFlags|=AEPRN_TEST;
           if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
             bPrintStop=TRUE;
-
-          if (bPrintFooterEnable)
-          {
-            hPrintFontOld=(HFONT)SelectObject(pdA.hDC, prn.hPrintFont);
-            if (!PrintHeadlineA(pdA.hDC, &rcFooter, szPrintFooter, nPageNumber))
-              bPrintStop=TRUE;
-            if (hPrintFontOld) SelectObject(pdA.hDC, hPrintFontOld);
-          }
-
-          if (EndPage(pdA.hDC) <= 0)
-            bPrintError=TRUE;
+          prn.dwFlags&=~AEPRN_TEST;
         }
-        else bPrintError=TRUE;
+        else
+        {
+          //Print page
+          if (StartPage(pdA.hDC) > 0)
+          {
+            if (bPrintHeaderEnable)
+            {
+              hPrintFontOld=(HFONT)SelectObject(pdA.hDC, prn.hPrintFont);
+              if (!PrintHeadlineA(pdA.hDC, &rcHeader, szPrintHeader, nPageNumber))
+                bPrintStop=TRUE;
+              if (hPrintFontOld) SelectObject(pdA.hDC, hPrintFontOld);
+            }
+
+            if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
+              bPrintStop=TRUE;
+
+            if (bPrintFooterEnable)
+            {
+              hPrintFontOld=(HFONT)SelectObject(pdA.hDC, prn.hPrintFont);
+              if (!PrintHeadlineA(pdA.hDC, &rcFooter, szPrintFooter, nPageNumber))
+                bPrintStop=TRUE;
+              if (hPrintFontOld) SelectObject(pdA.hDC, hPrintFontOld);
+            }
+
+            if (EndPage(pdA.hDC) <= 0)
+              bPrintError=TRUE;
+          }
+          else bPrintError=TRUE;
+        }
       }
       SendMessage(hWndEdit, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
     }
@@ -1057,34 +1071,48 @@ BOOL DoFilePrintW(BOOL bSilent)
 
       while (!bPrintStop && !bPrintError)
       {
-        if (StartPage(pdW.hDC) > 0)
+        ++nPageNumber;
+
+        if ((pdW.Flags & PD_PAGENUMS) && nPageNumber > pdW.nToPage)
         {
-          ++nPageNumber;
-
-          if (bPrintHeaderEnable)
-          {
-            hPrintFontOld=(HFONT)SelectObject(pdW.hDC, prn.hPrintFont);
-            if (!PrintHeadlineW(pdW.hDC, &rcHeader, wszPrintHeader, nPageNumber))
-              bPrintStop=TRUE;
-            if (hPrintFontOld) SelectObject(pdW.hDC, hPrintFontOld);
-          }
-
-          //Print page
+          bPrintStop=TRUE;
+        }
+        else if ((pdW.Flags & PD_PAGENUMS) && nPageNumber < pdW.nFromPage)
+        {
+          prn.dwFlags|=AEPRN_TEST;
           if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
             bPrintStop=TRUE;
-
-          if (bPrintFooterEnable)
-          {
-            hPrintFontOld=(HFONT)SelectObject(pdW.hDC, prn.hPrintFont);
-            if (!PrintHeadlineW(pdW.hDC, &rcFooter, wszPrintFooter, nPageNumber))
-              bPrintStop=TRUE;
-            if (hPrintFontOld) SelectObject(pdW.hDC, hPrintFontOld);
-          }
-
-          if (EndPage(pdW.hDC) <= 0)
-            bPrintError=TRUE;
+          prn.dwFlags&=~AEPRN_TEST;
         }
-        else bPrintError=TRUE;
+        else
+        {
+          //Print page
+          if (StartPage(pdW.hDC) > 0)
+          {
+            if (bPrintHeaderEnable)
+            {
+              hPrintFontOld=(HFONT)SelectObject(pdW.hDC, prn.hPrintFont);
+              if (!PrintHeadlineW(pdW.hDC, &rcHeader, wszPrintHeader, nPageNumber))
+                bPrintStop=TRUE;
+              if (hPrintFontOld) SelectObject(pdW.hDC, hPrintFontOld);
+            }
+
+            if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
+              bPrintStop=TRUE;
+
+            if (bPrintFooterEnable)
+            {
+              hPrintFontOld=(HFONT)SelectObject(pdW.hDC, prn.hPrintFont);
+              if (!PrintHeadlineW(pdW.hDC, &rcFooter, wszPrintFooter, nPageNumber))
+                bPrintStop=TRUE;
+              if (hPrintFontOld) SelectObject(pdW.hDC, hPrintFontOld);
+            }
+
+            if (EndPage(pdW.hDC) <= 0)
+              bPrintError=TRUE;
+          }
+          else bPrintError=TRUE;
+        }
       }
       SendMessage(hWndEdit, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
     }

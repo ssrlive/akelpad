@@ -8879,13 +8879,13 @@ BOOL AE_PrintPage(AEPRINTHANDLE *ph, AEPRINT *prn)
 
     if (ph->wszPrintLine[i] == L'\t')
     {
-      if (!(prn->dwFlags & AEPRN_CALCRECT))
+      if (!(prn->dwFlags & AEPRN_TEST))
         ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, NULL);
       ptText.x+=nLineWidth;
       nPrintedChars+=i + 1;
     }
   }
-  if (!(prn->dwFlags & AEPRN_CALCRECT))
+  if (!(prn->dwFlags & AEPRN_TEST))
     ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, nLineLen - nPrintedChars, NULL);
   ptText.y+=ph->aePrint.ptxt->nCharHeight;
   nMaxLineWidth=max(nLineWidth, nMaxLineWidth);

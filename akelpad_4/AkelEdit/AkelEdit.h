@@ -170,7 +170,7 @@
                               AECLR_COLUMNMARKER)
 
 //Print
-#define AEPRN_CALCRECT                  0x01  //Only calculate rect without painting.
+#define AEPRN_TEST                      0x01  //Calculate data without painting.
 #define AEPRN_INHUNDREDTHSOFMILLIMETERS 0x02  //Indicates that hundredths of millimeters are the unit of measurement for margins.
 #define AEPRN_INTHOUSANDTHSOFINCHES     0x04  //Indicates that thousandths of inches are the unit of measurement for margins.
 #define AEPRN_WRAPNONE                  0x08  //Print without wrapping.
