@@ -490,8 +490,9 @@ typedef struct {
   int nSpaceCharWidth;    //[out]    Print font space width.
   int nTabWidth;          //[out]    Print font tabulation width.
   RECT rcMargins;         //[in]     Specifies the widths of the left, top, right, and bottom margins. The AEPRN_INHUNDREDTHSOFMILLIMETERS or AEPRN_INTHOUSANDTHSOFINCHES flag indicates the units of measurement.
-  RECT rcPageIn;          //[in,out] Available page rectangle. Filled with AEM_STARTPRINTDOC message and can be modified by user before AEM_PRINTPAGE call.
-  RECT rcPageOut;         //[out]    Filled page rectangle. Filled with AEM_PRINTPAGE message.
+  RECT rcPageFull;        //[out]    Complete page rectangle. Filled by AEM_STARTPRINTDOC message.
+  RECT rcPageIn;          //[in,out] Available page rectangle (minus margins). Filled by AEM_STARTPRINTDOC message and can be modified by user before AEM_PRINTPAGE call.
+  RECT rcPageOut;         //[out]    Filled page rectangle. Filled by AEM_PRINTPAGE message.
   AECHARRANGE crText;     //[in,out] Text range to print. Filled by user and changed after AEM_PRINTPAGE message.
 } AEPRINT;
 
