@@ -486,9 +486,9 @@ typedef struct {
   HDC hPrinterDC;         //[in]     Printer device context.
   HFONT hEditFont;        //[in]     Edit font.
   HFONT hPrintFont;       //[out]    Print font (mapped edit font).
-  int nCharHeight;        //[out]    Print font character height.
-  int nSpaceCharWidth;    //[out]    Print font space width.
-  int nTabWidth;          //[out]    Print font tabulation width.
+  int nCharHeight;        //[out]    Print character height.
+  int nSpaceCharWidth;    //[out]    Print space width.
+  int nTabWidth;          //[out]    Print tabulation width.
   RECT rcMargins;         //[in]     Specifies the widths of the left, top, right, and bottom margins. The AEPRN_INHUNDREDTHSOFMILLIMETERS or AEPRN_INTHOUSANDTHSOFINCHES flag indicates the units of measurement.
   RECT rcPageFull;        //[out]    Complete page rectangle. Filled by AEM_STARTPRINTDOC message.
   RECT rcPageIn;          //[in,out] Available page rectangle (minus margins). Filled by AEM_STARTPRINTDOC message and can be modified by user before AEM_PRINTPAGE call.
