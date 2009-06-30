@@ -555,7 +555,7 @@ int AE_HScrollLine(AKELEDIT *ae, int nChar);
 int AE_VScrollLine(AKELEDIT *ae, int nLine);
 AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn);
 AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn);
-void AE_GetPrintPage(AEPRINT *prn);
+void AE_GetPrintPage(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage);
 BOOL AE_PrintPage(AEPRINTHANDLE *ph, AEPRINT *prn);
 void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn);
 void AE_Paint(AKELEDIT *ae);

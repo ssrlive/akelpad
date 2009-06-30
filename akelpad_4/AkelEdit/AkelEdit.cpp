@@ -8668,7 +8668,8 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
     if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
 
     //Get print page size
-    AE_GetPrintPage(prn);
+    AE_GetPrintPage(prn, NULL, &prn->rcPageFull);
+    AE_GetPrintPage(prn, &prn->rcMargins, &prn->rcPageIn);
   }
   return ph;
 }
@@ -8725,12 +8726,13 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
     if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
 
     //Get print page size
-    AE_GetPrintPage(prn);
+    AE_GetPrintPage(prn, NULL, &prn->rcPageFull);
+    AE_GetPrintPage(prn, &prn->rcMargins, &prn->rcPageIn);
   }
   return ph;
 }
 
-void AE_GetPrintPage(AEPRINT *prn)
+void AE_GetPrintPage(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage)
 {
   RECT rcPhys;
   RECT rcUser;
@@ -8752,20 +8754,30 @@ void AE_GetPrintPage(AEPRINT *prn)
   rcPhys.right=ptPage.x - GetDeviceCaps(prn->hPrinterDC, HORZRES) - rcPhys.left;
   rcPhys.bottom=ptPage.y - GetDeviceCaps(prn->hPrinterDC, VERTRES) - rcPhys.top;
 
-  rcUser.left=MulDiv(prn->rcMargins.left, ptDpi.x, nExtent);
-  rcUser.top=MulDiv(prn->rcMargins.top, ptDpi.y, nExtent);
-  rcUser.right=MulDiv(prn->rcMargins.right, ptDpi.x, nExtent);
-  rcUser.bottom=MulDiv(prn->rcMargins.bottom, ptDpi.y, nExtent);
+  if (!rcMargins)
+  {
+    rcUser.left=0;
+    rcUser.top=0;
+    rcUser.right=0;
+    rcUser.bottom=0;
+  }
+  else
+  {
+    rcUser.left=MulDiv(rcMargins->left, ptDpi.x, nExtent);
+    rcUser.top=MulDiv(rcMargins->top, ptDpi.y, nExtent);
+    rcUser.right=MulDiv(rcMargins->right, ptDpi.x, nExtent);
+    rcUser.bottom=MulDiv(rcMargins->bottom, ptDpi.y, nExtent);
+  }
 
   rcAdjUser.left=max(rcPhys.left, rcUser.left);
   rcAdjUser.top=max(rcPhys.top, rcUser.top);
   rcAdjUser.right=max(rcPhys.right, rcUser.right);
   rcAdjUser.bottom=max(rcPhys.bottom, rcUser.bottom);
 
-  prn->rcPageIn.left=rcAdjUser.left - rcPhys.left;
-  prn->rcPageIn.top=rcAdjUser.top - rcPhys.top;
-  prn->rcPageIn.right=ptPage.x - rcAdjUser.right - rcPhys.left;
-  prn->rcPageIn.bottom=ptPage.y - rcAdjUser.bottom - rcPhys.top;
+  rcPage->left=rcAdjUser.left - rcPhys.left;
+  rcPage->top=rcAdjUser.top - rcPhys.top;
+  rcPage->right=ptPage.x - rcAdjUser.right - rcPhys.left;
+  rcPage->bottom=ptPage.y - rcAdjUser.bottom - rcPhys.top;
 }
 
 BOOL AE_PrintPage(AEPRINTHANDLE *ph, AEPRINT *prn)
