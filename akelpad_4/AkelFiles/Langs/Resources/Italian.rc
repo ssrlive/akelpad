@@ -109,8 +109,8 @@ BEGIN
         MENUITEM "&Carattere...",               IDM_VIEW_FONT
         MENUITEM "C&olori...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
-        MENUITEM "A ca&po automatico\tCtrl+U",   IDM_VIEW_WORDWRAP
-        MENUITEM "&Dividi finestra",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "A ca&po automatico\tCtrl+U",  IDM_VIEW_WORDWRAP
+        MENUITEM "&Dividi finestra",            IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Sempre in Primo Piano\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "&Barra di Stato",             IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -927,7 +927,17 @@ BEGIN
     STR_SAMPLE              "Campione"
     STR_BASIC               "Colore di base"
     STR_SELECTION           "Selezione"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_ACTIVELINE          "Riga attiva"
+    STR_ACTIVECOLUMN        "Attiva colonna"
+    STR_COLUMNMARKER        "Evidenziatore Colonna"
+    STR_CARET               "Segno d'omissione"
+    STR_URL                 "Hyperlink"
+    STR_PAGEFIT             "Fit page"
+    STR_PAGEWIDTH           "Page width"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -938,16 +948,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Cinese (UTF-8)"
     STR_AUTODETECT_JAPANESE "Giapponese (UTF-8)"
     STR_AUTODETECT_KOREAN   "Coreano (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_ACTIVECOLUMN        "Attiva colonna"
-    STR_COLUMNMARKER        "Evidenziatore Colonna"
-    STR_CARET               "Segno d'omissione"
-    STR_URL                 "Hyperlink"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
 END
 
 #endif    // Italian (Italy) resources

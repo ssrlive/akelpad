@@ -110,7 +110,7 @@ BEGIN
         MENUITEM "色(&C)...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "文章を折り返す(&W)\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "ウィンドウの分割(&P)",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "ウィンドウの分割(&P)",        IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "常に手前に表示(&A)\tCtrl+T",  IDM_VIEW_ONTOP
         MENUITEM "ステータス バー(&S)",         IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -917,7 +917,17 @@ BEGIN
     STR_SAMPLE              "サンプル"
     STR_BASIC               "基本色"
     STR_SELECTION           "選択範囲"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_ACTIVELINE          "アクティブな行"
+    STR_ACTIVECOLUMN        "アクティブな列"
+    STR_COLUMNMARKER        "列マーカー"
+    STR_CARET               "キャレット"
+    STR_URL                 "ハイパーリンク"
+    STR_PAGEFIT             "Fit page"
+    STR_PAGEWIDTH           "Page width"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -928,16 +938,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "中国語 (UTF-8)"
     STR_AUTODETECT_JAPANESE "日本語 (UTF-8)"
     STR_AUTODETECT_KOREAN   "韓国語 (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_ACTIVECOLUMN        "アクティブな列"
-    STR_COLUMNMARKER        "列マーカー"
-    STR_CARET               "キャレット"
-    STR_URL                 "ハイパーリンク"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
 END
 
 #endif    // Japanese resources

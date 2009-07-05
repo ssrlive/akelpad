@@ -111,7 +111,7 @@ BEGIN
         MENUITEM "&Culori...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "Î&ncadreazã Textul\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "S&cindeazã Fereastra",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "S&cindeazã Fereastra",        IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Mereu Deasupra\tCtrl+T",     IDM_VIEW_ONTOP
         MENUITEM "Bara de &Stare",              IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -924,7 +924,17 @@ BEGIN
     STR_SAMPLE              "Exemplu"
     STR_BASIC               "Culoare de Bazã"
     STR_SELECTION           "Selecþie"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_ACTIVELINE          "Linie Activã"
+    STR_ACTIVECOLUMN        "Coloanã Activã"
+    STR_COLUMNMARKER        "Marcajul Coloanei"
+    STR_CARET               "Cursor"
+    STR_URL                 "Legãturã"
+    STR_PAGEFIT             "Fit page"
+    STR_PAGEWIDTH           "Page width"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -935,16 +945,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Chinez (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japonez (UTF-8)"
     STR_AUTODETECT_KOREAN   "Coreean (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_ACTIVECOLUMN        "Coloanã Activã"
-    STR_COLUMNMARKER        "Marcajul Coloanei"
-    STR_CARET               "Cursor"
-    STR_URL                 "Legãturã"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
 END
 
 #endif    // Romanian resources

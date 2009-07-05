@@ -914,7 +914,17 @@ BEGIN
     STR_SAMPLE              "Sample"
     STR_BASIC               "Basic color"
     STR_SELECTION           "Selection"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_ACTIVELINE          "Active line"
+    STR_ACTIVECOLUMN        "Active column"
+    STR_COLUMNMARKER        "Column marker"
+    STR_CARET               "Caret"
+    STR_URL                 "Hyperlink"
+    STR_PAGEFIT             "Fit page"
+    STR_PAGEWIDTH           "Page width"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -925,16 +935,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Chinese (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japanese (UTF-8)"
     STR_AUTODETECT_KOREAN   "Korean (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_ACTIVECOLUMN        "Active column"
-    STR_COLUMNMARKER        "Column marker"
-    STR_CARET               "Caret"
-    STR_URL                 "Hyperlink"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
 END
 
 #endif    // Polish resources
