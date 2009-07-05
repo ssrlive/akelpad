@@ -207,7 +207,7 @@ int nMsgBinary=AUTOANSWER_ASK;
 POINT ptDocumentPos;
 BOOL bDocumentReopen=FALSE;
 BOOL bSaveInReadOnlyMsg=FALSE;
-WNDPROC OldPreviewProc;
+WNDPROC OldFilePreviewProc;
 
 //Find/Replace dialog
 RECT rcFindAndReplaceDlg={0};
@@ -254,6 +254,25 @@ BOOL bEditFontChanged=FALSE;
 BOOL bColorsChanged=FALSE;
 
 //Print
+HWND hWndPreviewEdit=NULL;
+HWND hWndPreviewDlg=NULL;
+HWND hWndZoomEdit;
+HSTACK hPreviewAllPagesStack={0};
+HSTACK hPreviewSelPagesStack={0};
+RECT rcPreviewWindow={10, 50, 0, 0};
+RECT rcPreviewPaper={0};
+RECT rcPreviewZoomed={0};
+POINT ptPreviewScroll;
+int lpZoom[]={25, 50, 75, 100, 150, 200, 300, 400, 500, PREVIEW_ZOOMFIT, PREVIEW_ZOOMWIDTH};
+int nPreviewZoomMaxIndex=8;
+int nPreviewZoomPercent;
+int nPreviewCharHeight;
+int nPreviewAveCharWidth;
+int nPreviewPageCur;
+int nPreviewAllPageSum;
+int nPreviewSelPageSum;
+BOOL bPreviewSelection;
+AEPRINT prn;
 LOGFONTA lfPrintFontA;
 LOGFONTW lfPrintFontW;
 PAGESETUPDLGA psdPageA={0};
@@ -2672,15 +2691,20 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_PAGESETUP)
     {
-      return DoFilePageSetupA();
+      return DoFilePageSetupA(hMainWnd);
     }
     else if (LOWORD(wParam) == IDM_FILE_PRINT)
     {
-      return DoFilePrintA(FALSE);
+      return DoFilePrintA((lParam?(HWND)lParam:hWndEdit), FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_FILE_PRINTPREVIEW)
+    {
+      DoFilePreviewA();
+      return 0;
     }
     else if (LOWORD(wParam) == IDM_FILE_SILENTPRINT)
     {
-      return DoFilePrintA(TRUE);
+      return DoFilePrintA(hWndEdit, TRUE);
     }
     else if (LOWORD(wParam) == IDM_FILE_EXIT)
     {
@@ -4529,15 +4553,20 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_PAGESETUP)
     {
-      return DoFilePageSetupW();
+      return DoFilePageSetupW(hMainWnd);
     }
     else if (LOWORD(wParam) == IDM_FILE_PRINT)
     {
-      return DoFilePrintW(FALSE);
+      return DoFilePrintW((lParam?(HWND)lParam:hWndEdit), FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_FILE_PRINTPREVIEW)
+    {
+      DoFilePreviewW();
+      return 0;
     }
     else if (LOWORD(wParam) == IDM_FILE_SILENTPRINT)
     {
-      return DoFilePrintW(TRUE);
+      return DoFilePrintW(hWndEdit, TRUE);
     }
     else if (LOWORD(wParam) == IDM_FILE_EXIT)
     {

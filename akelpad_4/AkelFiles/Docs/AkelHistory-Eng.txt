@@ -1,4 +1,13 @@
 
+AkelPad 4.2.5 ()
+----------------------------
+Added: print preview.
+Added: messages for printing in AkelEdit.
+Added: possibility to print only specified page or range of pages.
+
+Fixed: URL clicking could cause program error.
+
+
 AkelPad 4.2.4 (Jun 15, 2009)
 ----------------------------
 Changed: syntax highlighting improved.

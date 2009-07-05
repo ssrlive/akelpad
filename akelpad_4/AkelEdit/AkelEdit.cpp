@@ -1209,7 +1209,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AEPRINTHANDLE *ph=(AEPRINTHANDLE *)wParam;
         AEPRINT *prn=(AEPRINT *)lParam;
 
-        return (LRESULT)AE_PrintPage(ph, prn);
+        return (LRESULT)AE_PrintPage(ae, ph, prn);
       }
       if (uMsg == AEM_ENDPRINTDOC)
       {
@@ -8658,6 +8658,9 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
     GetTextMetricsA(prn->hPrinterDC, &tmPrintA);
     ph->aePrint.ptxt->nCharHeight=tmPrintA.tmHeight;
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
+    GetTextExtentPoint32W(prn->hPrinterDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
+    ph->aePrint.ptxt->nAveCharWidth=sizeWidth.cx / 52;
+    prn->nAveCharWidth=ph->aePrint.ptxt->nAveCharWidth;
     GetTextExtentPoint32W(prn->hPrinterDC, L" ", 1, &sizeWidth);
     ph->aePrint.ptxt->nSpaceCharWidth=sizeWidth.cx;
     prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
@@ -8716,6 +8719,9 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
     GetTextMetricsW(prn->hPrinterDC, &tmPrintW);
     ph->aePrint.ptxt->nCharHeight=tmPrintW.tmHeight;
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
+    GetTextExtentPoint32W(prn->hPrinterDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
+    ph->aePrint.ptxt->nAveCharWidth=sizeWidth.cx / 52;
+    prn->nAveCharWidth=ph->aePrint.ptxt->nAveCharWidth;
     GetTextExtentPoint32W(prn->hPrinterDC, L" ", 1, &sizeWidth);
     ph->aePrint.ptxt->nSpaceCharWidth=sizeWidth.cx;
     prn->nSpaceCharWidth=ph->aePrint.ptxt->nSpaceCharWidth;
@@ -8734,7 +8740,7 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
 
 void AE_GetPrintPage(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage)
 {
-  RECT rcPhys;
+  RECT rcPhys={0};
   RECT rcUser;
   RECT rcAdjUser;
   POINT ptDpi;
@@ -8749,10 +8755,19 @@ void AE_GetPrintPage(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage)
   ptPage.x=GetDeviceCaps(prn->hPrinterDC, PHYSICALWIDTH);
   ptPage.y=GetDeviceCaps(prn->hPrinterDC, PHYSICALHEIGHT);
 
-  rcPhys.left=GetDeviceCaps(prn->hPrinterDC, PHYSICALOFFSETX);
-  rcPhys.top=GetDeviceCaps(prn->hPrinterDC, PHYSICALOFFSETY);
-  rcPhys.right=ptPage.x - GetDeviceCaps(prn->hPrinterDC, HORZRES) - rcPhys.left;
-  rcPhys.bottom=ptPage.y - GetDeviceCaps(prn->hPrinterDC, VERTRES) - rcPhys.top;
+  if (ptPage.x && ptPage.y)
+  {
+    rcPhys.left=GetDeviceCaps(prn->hPrinterDC, PHYSICALOFFSETX);
+    rcPhys.top=GetDeviceCaps(prn->hPrinterDC, PHYSICALOFFSETY);
+    rcPhys.right=ptPage.x - GetDeviceCaps(prn->hPrinterDC, HORZRES) - rcPhys.left;
+    rcPhys.bottom=ptPage.y - GetDeviceCaps(prn->hPrinterDC, VERTRES) - rcPhys.top;
+  }
+  else
+  {
+    //hPrinterDC is not printer handle
+    ptPage.x=GetDeviceCaps(prn->hPrinterDC, HORZRES);
+    ptPage.y=GetDeviceCaps(prn->hPrinterDC, VERTRES);
+  }
 
   if (!rcMargins)
   {
@@ -8780,7 +8795,7 @@ void AE_GetPrintPage(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage)
   rcPage->bottom=ptPage.y - rcAdjUser.bottom - rcPhys.top;
 }
 
-BOOL AE_PrintPage(AEPRINTHANDLE *ph, AEPRINT *prn)
+BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 {
   AECHARINDEX ciCount;
   POINT ptText={prn->rcPageIn.left, prn->rcPageIn.top};
@@ -8879,7 +8894,10 @@ BOOL AE_PrintPage(AEPRINTHANDLE *ph, AEPRINT *prn)
     }
     else break;
   }
-  bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE);
+  if (ciCount.lpLine)
+    bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE);
+  else
+    bContinuePrint=FALSE;
 
   //Print line
   PrintLine:
@@ -8892,13 +8910,29 @@ BOOL AE_PrintPage(AEPRINTHANDLE *ph, AEPRINT *prn)
     if (ph->wszPrintLine[i] == L'\t')
     {
       if (!(prn->dwFlags & AEPRN_TEST))
-        ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, NULL);
-      ptText.x+=nLineWidth;
-      nPrintedChars+=i + 1;
+      {
+        if (prn->dwFlags & AEPRN_ANSI)
+        {
+          //CreateEnhMetaFileA and ExtTextOutW can be incompatible on Win9x
+          nPrintedChars=WideCharToMultiByte(CP_ACP, 0, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, ph->szPrintLine, AEPRNL_PRINTLINESIZE, NULL, NULL);
+          ExtTextOutA(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->szPrintLine, nPrintedChars, NULL);
+        }
+        else ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, NULL);
+      }
+      ptText.x=prn->rcPageIn.left + nLineWidth;
+      nPrintedChars=i + 1;
     }
   }
   if (!(prn->dwFlags & AEPRN_TEST))
-    ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, nLineLen - nPrintedChars, NULL);
+  {
+    if (prn->dwFlags & AEPRN_ANSI)
+    {
+      //CreateEnhMetaFileA and ExtTextOutW can be incompatible on Win9x
+      nPrintedChars=WideCharToMultiByte(CP_ACP, 0, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, ph->szPrintLine, AEPRNL_PRINTLINESIZE, NULL, NULL);
+      ExtTextOutA(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->szPrintLine, nPrintedChars, NULL);
+    }
+    else ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, NULL);
+  }
   ptText.y+=ph->aePrint.ptxt->nCharHeight;
   nMaxLineWidth=max(nLineWidth, nMaxLineWidth);
   ++nLineCount;

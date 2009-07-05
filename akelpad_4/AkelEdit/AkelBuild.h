@@ -38,7 +38,7 @@
 #define AECC_MLEFTBOTTOM    12
 
 //Print
-#define AEPRNL_PRINTLINESIZE 65536
+#define AEPRNL_PRINTLINESIZE 32768
 
 //Highlight search types
 #define AEHF_ISFIRSTCHAR    0x00000001
@@ -438,6 +438,7 @@ typedef struct _AECLONE {
 
 typedef struct {
   AKELEDIT aePrint;
+  char szPrintLine[AEPRNL_PRINTLINESIZE];
   wchar_t wszPrintLine[AEPRNL_PRINTLINESIZE];
 } AEPRINTHANDLE;
 
@@ -556,7 +557,7 @@ int AE_VScrollLine(AKELEDIT *ae, int nLine);
 AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn);
 AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn);
 void AE_GetPrintPage(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage);
-BOOL AE_PrintPage(AEPRINTHANDLE *ph, AEPRINT *prn);
+BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn);
 void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn);
 void AE_Paint(AKELEDIT *ae);
 void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);

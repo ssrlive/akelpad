@@ -177,6 +177,7 @@
 #define AEPRN_WRAPWORD                  0x10  //Print with word wrapping (default).
 #define AEPRN_WRAPSYMBOL                0x20  //Print with symbols wrapping.
 #define AEPRN_IGNOREFORMFEED            0x40  //Ignore form-feed character '\f'.
+#define AEPRN_ANSI                      0x80  //Ansi text output. Can solve draw problems on Win95/98/Me.
 
 //Highlight flags
 #define AEHLF_MATCHCASE              0x0001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
@@ -487,6 +488,7 @@ typedef struct {
   HFONT hEditFont;        //[in]     Edit font.
   HFONT hPrintFont;       //[out]    Print font (mapped edit font).
   int nCharHeight;        //[out]    Print character height.
+  int nAveCharWidth;      //[out]    Print character average width.
   int nSpaceCharWidth;    //[out]    Print space width.
   int nTabWidth;          //[out]    Print tabulation width.
   RECT rcMargins;         //[in]     Specifies the widths of the left, top, right, and bottom margins. The AEPRN_INHUNDREDTHSOFMILLIMETERS or AEPRN_INTHOUSANDTHSOFINCHES flag indicates the units of measurement.

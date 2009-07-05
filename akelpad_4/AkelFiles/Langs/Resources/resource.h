@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by English.rc
+// Used by Russian.rc
 //
 #define MSG_ERROR_IN_MESSAGE_QUEUE      1
 #define MSG_ERROR_LIMIT_REACHED         2
@@ -67,6 +67,8 @@
 #define STR_COLUMNMARKER                130
 #define STR_CARET                       131
 #define STR_URL                         132
+#define STR_PAGEFIT                     133
+#define STR_PAGEWIDTH                   134
 #define STR_AUTODETECT_RUSSIAN          501
 #define STR_AUTODETECT_ENGLISH          502
 #define STR_AUTODETECT_TURKISH          503
@@ -81,22 +83,35 @@
 #define IDA_ACCEL_GLOBAL                1301
 #define IDA_ACCEL_MAIN                  1302
 #define IDD_OFN                         2001
-#define IDD_FIND                        2002
-#define IDD_REPLACE                     2003
-#define IDD_GOTOLINE                    2004
-#define IDD_RECODE                      2005
-#define IDD_COLORS                      2006
-#define IDD_PLUGINS                     2007
-#define IDD_OPTIONS_GENERAL             2008
-#define IDD_OPTIONS_GENERAL_FILTER      2009
-#define IDD_OPTIONS_REGISTRY            2010
-#define IDD_OPTIONS_EDITOR              2011
-#define IDD_OPTIONS_ADVANCED            2012
+#define IDD_PRINTPREVIEW                2002
+#define IDD_FIND                        2003
+#define IDD_REPLACE                     2004
+#define IDD_GOTOLINE                    2005
+#define IDD_RECODE                      2006
+#define IDD_COLORS                      2007
+#define IDD_PLUGINS                     2008
+#define IDD_OPTIONS_GENERAL             2009
+#define IDD_OPTIONS_GENERAL_FILTER      2010
+#define IDD_OPTIONS_REGISTRY            2011
+#define IDD_OPTIONS_EDITOR              2012
+#define IDD_OPTIONS_ADVANCED            2013
 #define IDD_ABOUT                       2051
 #define IDC_OFN_AUTODETECT              3001
 #define IDC_OFN_CODEPAGE                3002
 #define IDC_OFN_PREVIEW                 3003
 #define IDC_OFN_CODEPAGE_LABEL          3004
+#define IDC_PREVIEW_BOX                 3021
+#define IDC_PREVIEW_PRINT               3022
+#define IDC_PREVIEW_PAGESETUP           3023
+#define IDC_PREVIEW_FIRSTPAGE           3024
+#define IDC_PREVIEW_LASTPAGE            3025
+#define IDC_PREVIEW_PREVPAGE            3026
+#define IDC_PREVIEW_NEXTPAGE            3027
+#define IDC_PREVIEW_PAGECOUNT           3028
+#define IDC_PREVIEW_ZOOM                3029
+#define IDC_PREVIEW_ZOOMIN              3030
+#define IDC_PREVIEW_ZOOMOUT             3031
+#define IDC_PREVIEW_SELECTION           3032
 #define IDC_SEARCH_ALL_BUTTON           3051
 #define IDC_SEARCH_BACKWARD             3052
 #define IDC_SEARCH_BEGINNING            3053
@@ -210,6 +225,8 @@
 #define IDM_FILE_SAVEALL                4110
 #define IDM_FILE_CLOSEALL               4111
 #define IDM_FILE_CLOSEALL_BUTACTIVE     4112
+#define IDM_FILE_SILENTPRINT            4113
+#define IDM_FILE_PRINTPREVIEW           4114
 #define IDM_EDIT_UNDO                   4151
 #define IDM_EDIT_REDO                   4152
 #define IDM_EDIT_CUT                    4153
