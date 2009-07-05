@@ -32,52 +32,51 @@ IDM_MENU_MAIN MENU DISCARDABLE
 BEGIN
     POPUP "文件(&F)"
     BEGIN
-        MENUITEM "新建(&N)\tCtrl+N",                IDM_FILE_NEW
-        MENUITEM "新建窗口(&W)\tCtrl+Shift+N",   IDM_FILE_CREATENEW
-        MENUITEM "打开(&O)...\tCtrl+O",            IDM_FILE_OPEN
-        MENUITEM "重新打开(&R)\tF5",                 IDM_FILE_REOPEN
-        MENUITEM "保存(&S)\tCtrl+S",               IDM_FILE_SAVE
-        MENUITEM "另存为(&A)...\tCtrl+Shift+S",   IDM_FILE_SAVEAS
-        MENUITEM "全部保存(&L)\tCtrl+Alt+F2",      IDM_FILE_SAVEALL
+        MENUITEM "新建(&N)\tCtrl+N",            IDM_FILE_NEW
+        MENUITEM "新建窗口(&W)\tCtrl+Shift+N",  IDM_FILE_CREATENEW
+        MENUITEM "打开(&O)...\tCtrl+O",         IDM_FILE_OPEN
+        MENUITEM "重新打开(&R)\tF5",            IDM_FILE_REOPEN
+        MENUITEM "保存(&S)\tCtrl+S",            IDM_FILE_SAVE
+        MENUITEM "另存为(&A)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
+        MENUITEM "全部保存(&L)\tCtrl+Alt+F2",   IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
-        MENUITEM "页面设置(&G)...",              IDM_FILE_PAGESETUP
+        MENUITEM "页面设置(&G)...",             IDM_FILE_PAGESETUP
         MENUITEM "Print pre&view...",           IDM_FILE_PRINTPREVIEW
-        MENUITEM "打印(&P)...\tCtrl+P",           IDM_FILE_PRINT
+        MENUITEM "打印(&P)...\tCtrl+P",         IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "最近文件(&F)"
         BEGIN
             MENUITEM "_",                           IDM_RECENT_FILES
         END
         MENUITEM SEPARATOR
-        MENUITEM "退出(&X)\tEsc",                  IDM_FILE_EXIT
+        MENUITEM "退出(&X)\tEsc",               IDM_FILE_EXIT
     END
     POPUP "编辑(&E)"
     BEGIN
-        MENUITEM "撤消(&N)\tCtrl+Z",               IDM_EDIT_UNDO
-        MENUITEM "恢复(&E)\tCtrl+Shift+Z",         IDM_EDIT_REDO
+        MENUITEM "撤消(&N)\tCtrl+Z",            IDM_EDIT_UNDO
+        MENUITEM "恢复(&E)\tCtrl+Shift+Z",      IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "剪切(&C)\tCtrl+X",                IDM_EDIT_CUT
-        MENUITEM "复制(&O)\tCtrl+C",               IDM_EDIT_COPY
-        MENUITEM "粘贴(&P)\tCtrl+V",              IDM_EDIT_PASTE
-        MENUITEM "删除(&D)\tDel",                IDM_EDIT_CLEAR
-        MENUITEM "全选(&A)\tCtrl+A",         IDM_EDIT_SELECTALL
+        MENUITEM "剪切(&C)\tCtrl+X",            IDM_EDIT_CUT
+        MENUITEM "复制(&O)\tCtrl+C",            IDM_EDIT_COPY
+        MENUITEM "粘贴(&P)\tCtrl+V",            IDM_EDIT_PASTE
+        MENUITEM "删除(&D)\tDel",               IDM_EDIT_CLEAR
+        MENUITEM "全选(&A)\tCtrl+A",            IDM_EDIT_SELECTALL
         MENUITEM SEPARATOR
-        MENUITEM "查找(&F)...\tCtrl+F",            IDM_EDIT_FIND
-        MENUITEM "向下查找下一个(&W)\tF3",         IDM_EDIT_FINDNEXTDOWN
-        MENUITEM "向上查找下一个(&U)\tShift+F3",     IDM_EDIT_FINDNEXTUP
+        MENUITEM "查找(&F)...\tCtrl+F",         IDM_EDIT_FIND
+        MENUITEM "向下查找下一个(&W)\tF3",      IDM_EDIT_FINDNEXTDOWN
+        MENUITEM "向上查找下一个(&U)\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "替换(&R)...\tCtrl+R",         IDM_EDIT_REPLACE
-        MENUITEM "转到(&G)...\tCtrl+G",      IDM_EDIT_GOTOLINE
+        MENUITEM "转到(&G)...\tCtrl+G",         IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
-        MENUITEM "插入符号(&H)\tCtrl+I",   IDM_EDIT_INSERTCHAR
+        MENUITEM "插入符号(&H)\tCtrl+I",        IDM_EDIT_INSERTCHAR
         MENUITEM "插入日期(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
         POPUP "选择(&S)"
         BEGIN
-            MENUITEM "制表符缩进(&B)\tTab",            IDM_EDIT_INSERT_TAB_MENU
-            MENUITEM "制表符反缩进(&T)\tShift+Tab",    IDM_EDIT_DELETE_TAB_MENU
-            MENUITEM "空格缩进(&C)\tSpace",        IDM_EDIT_INSERT_SPACE_MENU
+            MENUITEM "制表符缩进(&B)\tTab",         IDM_EDIT_INSERT_TAB_MENU
+            MENUITEM "制表符反缩进(&T)\tShift+Tab", IDM_EDIT_DELETE_TAB_MENU
+            MENUITEM "空格缩进(&C)\tSpace",         IDM_EDIT_INSERT_SPACE_MENU
 
-            MENUITEM "空格反缩进(&A)\tShift+Space", 
-                                                    IDM_EDIT_DELETE_SPACE_MENU
+            MENUITEM "空格反缩进(&A)\tShift+Space", IDM_EDIT_DELETE_SPACE_MENU
 
             MENUITEM "删除第一个字符(&F)\tShift+Backspace", 
                                                     IDM_EDIT_DELETE_FIRST_CHAR_MENU
@@ -86,11 +85,11 @@ BEGIN
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
             MENUITEM SEPARATOR
-            MENUITEM "大写(&U)\tCtrl+6",          IDM_EDIT_UPPERCASE
-            MENUITEM "小写(&L)\tCtrl+7",          IDM_EDIT_LOWERCASE
-            MENUITEM "句子大小写(&N)\tCtrl+8",     IDM_EDIT_SENTENCECASE
-            MENUITEM "标题大小写(&C)\tCtrl+9",         IDM_EDIT_TITLECASE
-            MENUITEM "反转大小写(&V)\tCtrl+0",        IDM_EDIT_INVERTCASE
+            MENUITEM "大写(&U)\tCtrl+6",            IDM_EDIT_UPPERCASE
+            MENUITEM "小写(&L)\tCtrl+7",            IDM_EDIT_LOWERCASE
+            MENUITEM "句子大小写(&N)\tCtrl+8",      IDM_EDIT_SENTENCECASE
+            MENUITEM "标题大小写(&C)\tCtrl+9",      IDM_EDIT_TITLECASE
+            MENUITEM "反转大小写(&V)\tCtrl+0",      IDM_EDIT_INVERTCASE
             MENUITEM SEPARATOR
             MENUITEM "重编码...\tAlt+R",            IDM_EDIT_RECODE
         END
@@ -103,13 +102,13 @@ BEGIN
     END
     POPUP "查看(&V)"
     BEGIN
-        MENUITEM "字体(&F)...",                    IDM_VIEW_FONT
-        MENUITEM "颜色(&C)...",                  IDM_VIEW_COLORS
+        MENUITEM "字体(&F)...",                 IDM_VIEW_FONT
+        MENUITEM "颜色(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
-        MENUITEM "自动换行(&W)\tCtrl+U",         IDM_VIEW_WORDWRAP
-        MENUITEM "拆分窗口(&P)",               IDM_VIEW_SPLIT_WINDOW_ALL
-        MENUITEM "总在最前(&A)\tCtrl+T",      IDM_VIEW_ONTOP
-        MENUITEM "状态栏(&S)",                 IDM_VIEW_SHOW_STATUSBAR
+        MENUITEM "自动换行(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
+        MENUITEM "拆分窗口(&P)",                IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "总在最前(&A)\tCtrl+T",        IDM_VIEW_ONTOP
+        MENUITEM "状态栏(&S)",                  IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "语言 / &Language"
         BEGIN
@@ -118,54 +117,54 @@ BEGIN
     END
     POPUP "选项(&O)"
     BEGIN
-        MENUITEM "插件(&N)...\tAlt+P",         IDM_OPTIONS_PLUGINS
+        MENUITEM "插件(&N)...\tAlt+P",          IDM_OPTIONS_PLUGINS
         MENUITEM "执行(&E)\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "只读(&R)\tCtrl+E",          IDM_OPTIONS_READONLY
-        MENUITEM "保留左边空格(&K)\tCtrl+L",   IDM_OPTIONS_KEEPSPACE
-        MENUITEM "监视文件更改(&C)",          IDM_OPTIONS_WATCHFILE
-        MENUITEM "保存文件时间(&T)",             IDM_OPTIONS_SAVETIME
-        MENUITEM "同一文件只打开一次(&F)",    IDM_OPTIONS_SINGLEOPEN_FILE
-        MENUITEM "同一程序只打开一次(&P)", IDM_OPTIONS_SINGLEOPEN_PROGRAM
+        MENUITEM "只读(&R)\tCtrl+E",            IDM_OPTIONS_READONLY
+        MENUITEM "保留左边空格(&K)\tCtrl+L",    IDM_OPTIONS_KEEPSPACE
+        MENUITEM "监视文件更改(&C)",            IDM_OPTIONS_WATCHFILE
+        MENUITEM "保存文件时间(&T)",            IDM_OPTIONS_SAVETIME
+        MENUITEM "同一文件只打开一次(&F)",      IDM_OPTIONS_SINGLEOPEN_FILE
+        MENUITEM "同一程序只打开一次(&P)",      IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
         MENUITEM SEPARATOR
         POPUP "窗口模式(&W)"
         BEGIN
-            MENUITEM "单窗口 (&SDI)",        IDM_OPTIONS_SDI
-            MENUITEM "多窗口 (&MDI)",         IDM_OPTIONS_MDI
+            MENUITEM "单窗口 (&SDI)",               IDM_OPTIONS_SDI
+            MENUITEM "多窗口 (&MDI)",               IDM_OPTIONS_MDI
         END
         MENUITEM SEPARATOR
-        MENUITEM "设置(&S)...",                IDM_OPTIONS
+        MENUITEM "设置(&S)...",                 IDM_OPTIONS
     END
     POPUP "窗口(&W)"
     BEGIN
         POPUP "标签(&T)"
         BEGIN
-            MENUITEM "顶部(&T)",                        IDM_WINDOW_TABVIEW_TOP
-            MENUITEM "底部(&B)",                     IDM_WINDOW_TABVIEW_BOTTOM
+            MENUITEM "顶部(&T)",                    IDM_WINDOW_TABVIEW_TOP
+            MENUITEM "底部(&B)",                    IDM_WINDOW_TABVIEW_BOTTOM
 
-            MENUITEM "隐藏(&H)",                       IDM_WINDOW_TABVIEW_NONE
+            MENUITEM "隐藏(&H)",                    IDM_WINDOW_TABVIEW_NONE
             MENUITEM SEPARATOR
-            MENUITEM "标准(&S)",                   IDM_WINDOW_TABTYPE_STANDARD
+            MENUITEM "标准(&S)",                    IDM_WINDOW_TABTYPE_STANDARD
 
             MENUITEM "按钮(&U)",                    IDM_WINDOW_TABTYPE_BUTTONS
 
-            MENUITEM "平面按钮(&F)",               IDM_WINDOW_TABTYPE_FLATBUTTONS
+            MENUITEM "平面按钮(&F)",                IDM_WINDOW_TABTYPE_FLATBUTTONS
 
             MENUITEM SEPARATOR
-            MENUITEM "下个-上个(&N)",              IDM_WINDOW_TABSWITCH_NEXTPREV
+            MENUITEM "下个-上个(&N)",               IDM_WINDOW_TABSWITCH_NEXTPREV
 
-            MENUITEM "右-左(&R)",                 IDM_WINDOW_TABSWITCH_RIGHTLEFT
+            MENUITEM "右-左(&R)",                   IDM_WINDOW_TABSWITCH_RIGHTLEFT
 
         END
         MENUITEM SEPARATOR
-        MENUITEM "水平平铺(&H)",            IDM_WINDOW_TILEHORIZONTAL
-        MENUITEM "垂直平铺(&V)",              IDM_WINDOW_TILEVERTICAL
+        MENUITEM "水平平铺(&H)",                IDM_WINDOW_TILEHORIZONTAL
+        MENUITEM "垂直平铺(&V)",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "层叠(&C)",                    IDM_WINDOW_CASCADE
     END
     POPUP "帮助(&H)"
     BEGIN
-        MENUITEM "关于(&A)",                      IDM_ABOUT
+        MENUITEM "关于(&A)",                    IDM_ABOUT
     END
 END
 
@@ -173,21 +172,21 @@ IDM_MENU_POPUP MENU DISCARDABLE
 BEGIN
     POPUP "EditPopup"
     BEGIN
-        MENUITEM "撤消(&U)",                       IDM_EDIT_UNDO
-        MENUITEM "恢复(&R)",                       IDM_EDIT_REDO
+        MENUITEM "撤消(&U)",                    IDM_EDIT_UNDO
+        MENUITEM "恢复(&R)",                    IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "剪切(&C)",                        IDM_EDIT_CUT
-        MENUITEM "复制(&O)",                       IDM_EDIT_COPY
-        MENUITEM "粘贴(&P)",                      IDM_EDIT_PASTE
-        MENUITEM "删除(&D)",                     IDM_EDIT_CLEAR
+        MENUITEM "剪切(&C)",                    IDM_EDIT_CUT
+        MENUITEM "复制(&O)",                    IDM_EDIT_COPY
+        MENUITEM "粘贴(&P)",                    IDM_EDIT_PASTE
+        MENUITEM "删除(&D)",                    IDM_EDIT_CLEAR
         MENUITEM SEPARATOR
-        MENUITEM "全选(&A)",                 IDM_EDIT_SELECTALL
+        MENUITEM "全选(&A)",                    IDM_EDIT_SELECTALL
     END
     POPUP "ViewPopup"
     BEGIN
-        MENUITEM "复制(&O)",                       IDM_EDIT_COPY
+        MENUITEM "复制(&O)",                    IDM_EDIT_COPY
         MENUITEM SEPARATOR
-        MENUITEM "全选(&A)",                 IDM_EDIT_SELECTALL
+        MENUITEM "全选(&A)",                    IDM_EDIT_SELECTALL
     END
     POPUP "CodepagePopup"
     BEGIN
@@ -205,17 +204,16 @@ BEGIN
     END
     POPUP "HeadlinePopup"
     BEGIN
-        MENUITEM "页码[第一页]\t%n[1]", 
-                                                IDM_POPUP_HEADLINE_PAGE_NUMBER
+        MENUITEM "页码[第一页]\t%n[1]",         IDM_POPUP_HEADLINE_PAGE_NUMBER
 
-        MENUITEM "文件名称\t%f",               IDM_POPUP_HEADLINE_FILE_NAME
-        MENUITEM "符号 %\t%%",                IDM_POPUP_HEADLINE_SYMBOL
+        MENUITEM "文件名称\t%f",                IDM_POPUP_HEADLINE_FILE_NAME
+        MENUITEM "符号 %\t%%",                  IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
-        MENUITEM "居中\t%c",            IDM_POPUP_HEADLINE_ALIGN_CENTER
+        MENUITEM "居中\t%c",                    IDM_POPUP_HEADLINE_ALIGN_CENTER
 
-        MENUITEM "左对齐\t%l",              IDM_POPUP_HEADLINE_ALIGN_LEFT
+        MENUITEM "左对齐\t%l",                  IDM_POPUP_HEADLINE_ALIGN_LEFT
 
-        MENUITEM "右对齐\t%r",             IDM_POPUP_HEADLINE_ALIGN_RIGHT
+        MENUITEM "右对齐\t%r",                  IDM_POPUP_HEADLINE_ALIGN_RIGHT
 
     END
 END
@@ -252,105 +250,105 @@ IDB_BITMAP_DOWNARROW    BITMAP  DISCARDABLE     "DownArrow.bmp"
 
 IDA_ACCEL_GLOBAL ACCELERATORS MOVEABLE PURE 
 BEGIN
-    VK_F6,          IDM_NONMENU_DLGNEXT, VIRTKEY, NOINVERT     
-    VK_F6,          IDM_NONMENU_DLGPREV, VIRTKEY, SHIFT, NOINVERT      
+    VK_F6,          IDM_NONMENU_DLGNEXT,    VIRTKEY, NOINVERT
+    VK_F6,          IDM_NONMENU_DLGPREV,    VIRTKEY, SHIFT, NOINVERT
 END
 
 IDA_ACCEL_MAIN ACCELERATORS MOVEABLE PURE 
 BEGIN
-    "0",            IDM_EDIT_INVERTCASE, VIRTKEY, CONTROL, NOINVERT      
-    "6",            IDM_EDIT_UPPERCASE, VIRTKEY, CONTROL, NOINVERT       
-    "7",            IDM_EDIT_LOWERCASE, VIRTKEY, CONTROL, NOINVERT       
-    "8",            IDM_EDIT_SENTENCECASE, VIRTKEY, CONTROL, NOINVERT    
-    "9",            IDM_EDIT_TITLECASE, VIRTKEY, CONTROL, NOINVERT       
-    "A",            IDM_EDIT_SELECTALL, VIRTKEY, CONTROL, NOINVERT       
+    "0",            IDM_EDIT_INVERTCASE,    VIRTKEY, CONTROL, NOINVERT
+    "6",            IDM_EDIT_UPPERCASE,     VIRTKEY, CONTROL, NOINVERT
+    "7",            IDM_EDIT_LOWERCASE,     VIRTKEY, CONTROL, NOINVERT
+    "8",            IDM_EDIT_SENTENCECASE,  VIRTKEY, CONTROL, NOINVERT
+    "9",            IDM_EDIT_TITLECASE,     VIRTKEY, CONTROL, NOINVERT
+    "A",            IDM_EDIT_SELECTALL,     VIRTKEY, CONTROL, NOINVERT
     "B",            IDM_NONMENU_REOPENAS_UTF16BE, VIRTKEY, ALT, NOINVERT
     "B",            IDM_NONMENU_SAVEAS_UTF16BE, VIRTKEY, SHIFT, ALT, 
                                                     NOINVERT
-    "C",            IDM_EDIT_COPY, VIRTKEY, CONTROL, NOINVERT            
+    "C",            IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
     "C",            IDM_EDIT_COPY,          VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "D",            IDM_EDIT_INSERTDATE, VIRTKEY, CONTROL, NOINVERT      
+    "D",            IDM_EDIT_INSERTDATE,    VIRTKEY, CONTROL, NOINVERT
     "D",            IDM_NONMENU_REOPENAS_OEM, VIRTKEY, ALT, NOINVERT
-    "D",            IDM_NONMENU_SAVEAS_OEM, VIRTKEY, SHIFT, ALT, NOINVERT    
-    "E",            IDM_OPTIONS_READONLY, VIRTKEY, CONTROL, NOINVERT     
-    "F",            IDM_EDIT_FIND, VIRTKEY, CONTROL, NOINVERT            
-    "G",            IDM_EDIT_GOTOLINE, VIRTKEY, CONTROL, NOINVERT        
-    "H",            IDM_EDIT_REPLACE, VIRTKEY, CONTROL, NOINVERT         
-    "I",            IDM_EDIT_INSERTCHAR, VIRTKEY, CONTROL, NOINVERT      
-    "J",            RESERVED, VIRTKEY, CONTROL, NOINVERT                 
+    "D",            IDM_NONMENU_SAVEAS_OEM, VIRTKEY, SHIFT, ALT, NOINVERT
+    "E",            IDM_OPTIONS_READONLY,   VIRTKEY, CONTROL, NOINVERT
+    "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
+    "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
+    "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
+    "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT
     "K",            IDM_NONMENU_REOPENAS_KOIR, VIRTKEY, ALT, NOINVERT
-    "K",            IDM_NONMENU_SAVEAS_KOIR, VIRTKEY, SHIFT, ALT, NOINVERT    
-    "L",            IDM_OPTIONS_KEEPSPACE, VIRTKEY, CONTROL, NOINVERT    
+    "K",            IDM_NONMENU_SAVEAS_KOIR, VIRTKEY, SHIFT, ALT, NOINVERT
+    "L",            IDM_OPTIONS_KEEPSPACE,  VIRTKEY, CONTROL, NOINVERT
     "L",            IDM_NONMENU_REOPENAS_UTF16LE, VIRTKEY, ALT, NOINVERT
     "L",            IDM_NONMENU_SAVEAS_UTF16LE, VIRTKEY, SHIFT, ALT, 
                                                     NOINVERT
-    "N",            IDM_FILE_NEW, VIRTKEY, CONTROL, NOINVERT             
+    "N",            IDM_FILE_NEW,           VIRTKEY, CONTROL, NOINVERT
     "N",            IDM_FILE_CREATENEW,     VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "O",            IDM_FILE_OPEN, VIRTKEY, CONTROL, NOINVERT            
+    "O",            IDM_FILE_OPEN,          VIRTKEY, CONTROL, NOINVERT
     "O",            IDM_FILE_REOPEN,        VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "P",            IDM_FILE_PRINT, VIRTKEY, CONTROL, NOINVERT           
+    "P",            IDM_FILE_PRINT,         VIRTKEY, CONTROL, NOINVERT
     "P",            IDM_OPTIONS_PLUGINS,    VIRTKEY, ALT, NOINVERT
-    "R",            IDM_EDIT_REPLACE, VIRTKEY, CONTROL, NOINVERT         
+    "R",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "R",            IDM_EDIT_RECODE,        VIRTKEY, ALT, NOINVERT
-    "S",            IDM_FILE_SAVE, VIRTKEY, CONTROL, NOINVERT            
+    "S",            IDM_FILE_SAVE,          VIRTKEY, CONTROL, NOINVERT
     "S",            IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "T",            IDM_VIEW_ONTOP, VIRTKEY, CONTROL, NOINVERT           
-    "U",            IDM_VIEW_WORDWRAP, VIRTKEY, CONTROL, NOINVERT        
+    "T",            IDM_VIEW_ONTOP,         VIRTKEY, CONTROL, NOINVERT
+    "U",            IDM_VIEW_WORDWRAP,      VIRTKEY, CONTROL, NOINVERT
     "U",            IDM_NONMENU_REOPENAS_UTF8, VIRTKEY, ALT, NOINVERT
-    "U",            IDM_NONMENU_SAVEAS_UTF8, VIRTKEY, SHIFT, ALT, NOINVERT    
-    "V",            IDM_EDIT_PASTE, VIRTKEY, CONTROL, NOINVERT           
+    "U",            IDM_NONMENU_SAVEAS_UTF8, VIRTKEY, SHIFT, ALT, NOINVERT
+    "V",            IDM_EDIT_PASTE,         VIRTKEY, CONTROL, NOINVERT
     "V",            IDM_NONMENU_COLUMNPASTE, VIRTKEY, ALT, NOINVERT
     "V",            IDM_NONMENU_PASTEANSI,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    VK_ADD,         IDM_VIEW_INCREASE_FONT, VIRTKEY, CONTROL, NOINVERT   
+    VK_ADD,         IDM_VIEW_INCREASE_FONT, VIRTKEY, CONTROL, NOINVERT
     VK_BACK,        IDM_EDIT_DELETE_TRAILING_WHITESPACES, VIRTKEY, ALT, 
                                                     NOINVERT
-    VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT   
-    VK_DELETE,      IDM_EDIT_CUT, VIRTKEY, SHIFT, NOINVERT             
-    VK_ESCAPE,      IDM_FILE_EXIT, VIRTKEY, NOINVERT           
-    VK_F12,         IDM_POPUP_CODEPAGEMENU, VIRTKEY, NOINVERT  
-    VK_F2,          IDM_FILE_SAVE, VIRTKEY, NOINVERT           
-    VK_F2,          IDM_FILE_SAVEALL, VIRTKEY, CONTROL, ALT, NOINVERT          
-    VK_F2,          IDM_FILE_SAVEAS, VIRTKEY, SHIFT, NOINVERT          
-    VK_F3,          IDM_EDIT_FINDNEXTDOWN, VIRTKEY, NOINVERT   
-    VK_F3,          IDM_EDIT_FINDNEXTUP, VIRTKEY, SHIFT, NOINVERT      
-    VK_F4,          IDM_NONMENU_CHANGESIZE, VIRTKEY, NOINVERT  
-    VK_F4,          IDM_NONMENU_MDICLOSE, VIRTKEY, CONTROL, NOINVERT     
-    VK_F4,          IDM_FILE_CLOSEALL, VIRTKEY, CONTROL, ALT, NOINVERT         
-    VK_F5,          IDM_FILE_REOPEN, VIRTKEY, NOINVERT         
-    VK_F5,          IDM_OPTIONS_EXEC, VIRTKEY, CONTROL, NOINVERT         
-    VK_F5,          IDM_NONMENU_REDETECT, VIRTKEY, ALT, NOINVERT     
-    VK_F6,          IDM_NONMENU_MDINEXT, VIRTKEY, CONTROL, NOINVERT      
+    VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
+    VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
+    VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
+    VK_F12,         IDM_POPUP_CODEPAGEMENU, VIRTKEY, NOINVERT
+    VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
+    VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_F2,          IDM_FILE_SAVEAS,        VIRTKEY, SHIFT, NOINVERT
+    VK_F3,          IDM_EDIT_FINDNEXTDOWN,  VIRTKEY, NOINVERT
+    VK_F3,          IDM_EDIT_FINDNEXTUP,    VIRTKEY, SHIFT, NOINVERT
+    VK_F4,          IDM_NONMENU_CHANGESIZE, VIRTKEY, NOINVERT
+    VK_F4,          IDM_NONMENU_MDICLOSE,   VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          IDM_FILE_CLOSEALL,      VIRTKEY, CONTROL, ALT, NOINVERT
+    VK_F5,          IDM_FILE_REOPEN,        VIRTKEY, NOINVERT
+    VK_F5,          IDM_OPTIONS_EXEC,       VIRTKEY, CONTROL, NOINVERT
+    VK_F5,          IDM_NONMENU_REDETECT,   VIRTKEY, ALT, NOINVERT
+    VK_F6,          IDM_NONMENU_MDINEXT,    VIRTKEY, CONTROL, NOINVERT
     VK_F6,          IDM_NONMENU_MDIPREV,    VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    VK_F8,          IDM_NONMENU_DELLINE, VIRTKEY, NOINVERT     
-    VK_F9,          IDM_NONMENU_CLONENEXT, VIRTKEY, NOINVERT   
-    VK_F9,          IDM_NONMENU_CLONEPREV, VIRTKEY, SHIFT, NOINVERT    
-    VK_INSERT,      IDM_NONMENU_INSERTMODE, VIRTKEY, NOINVERT  
-    VK_INSERT,      IDM_EDIT_COPY, VIRTKEY, CONTROL, NOINVERT            
-    VK_INSERT,      IDM_EDIT_PASTE, VIRTKEY, SHIFT, NOINVERT           
+    VK_F8,          IDM_NONMENU_DELLINE,    VIRTKEY, NOINVERT
+    VK_F9,          IDM_NONMENU_CLONENEXT,  VIRTKEY, NOINVERT
+    VK_F9,          IDM_NONMENU_CLONEPREV,  VIRTKEY, SHIFT, NOINVERT
+    VK_INSERT,      IDM_NONMENU_INSERTMODE, VIRTKEY, NOINVERT
+    VK_INSERT,      IDM_EDIT_COPY,          VIRTKEY, CONTROL, NOINVERT
+    VK_INSERT,      IDM_EDIT_PASTE,         VIRTKEY, SHIFT, NOINVERT
     VK_INSERT,      IDM_NONMENU_PASTEANSI,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    VK_RETURN,      IDM_NONMENU_AUTOINDENT, VIRTKEY, CONTROL, NOINVERT   
-    VK_RETURN,      IDM_NONMENU_CHANGESIZE, VIRTKEY, ALT, NOINVERT   
-    VK_SPACE,       IDM_EDIT_INSERT_SPACE, VIRTKEY, NOINVERT   
-    VK_SPACE,       IDM_EDIT_DELETE_SPACE, VIRTKEY, SHIFT, NOINVERT    
-    VK_SUBTRACT,    IDM_VIEW_DECREASE_FONT, VIRTKEY, CONTROL, NOINVERT   
-    VK_TAB,         IDM_EDIT_INSERT_TAB, VIRTKEY, NOINVERT     
-    VK_TAB,         IDM_NONMENU_MDINEXT, VIRTKEY, CONTROL, NOINVERT      
-    VK_TAB,         IDM_EDIT_DELETE_TAB, VIRTKEY, SHIFT, NOINVERT      
+    VK_RETURN,      IDM_NONMENU_AUTOINDENT, VIRTKEY, CONTROL, NOINVERT
+    VK_RETURN,      IDM_NONMENU_CHANGESIZE, VIRTKEY, ALT, NOINVERT
+    VK_SPACE,       IDM_EDIT_INSERT_SPACE,  VIRTKEY, NOINVERT
+    VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
+    VK_SUBTRACT,    IDM_VIEW_DECREASE_FONT, VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
+    VK_TAB,         IDM_NONMENU_MDINEXT,    VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
     VK_TAB,         IDM_NONMENU_MDIPREV,    VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "W",            IDM_NONMENU_MDICLOSE, VIRTKEY, CONTROL, NOINVERT     
+    "W",            IDM_NONMENU_MDICLOSE,   VIRTKEY, CONTROL, NOINVERT
     "W",            IDM_NONMENU_REOPENAS_ANSI, VIRTKEY, ALT, NOINVERT
-    "W",            IDM_NONMENU_SAVEAS_ANSI, VIRTKEY, SHIFT, ALT, NOINVERT    
-    "X",            IDM_EDIT_CUT, VIRTKEY, CONTROL, NOINVERT             
-    "Y",            IDM_NONMENU_DELLINE, VIRTKEY, CONTROL, NOINVERT      
-    "Z",            IDM_EDIT_UNDO, VIRTKEY, CONTROL, NOINVERT            
+    "W",            IDM_NONMENU_SAVEAS_ANSI, VIRTKEY, SHIFT, ALT, NOINVERT
+    "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
+    "Y",            IDM_NONMENU_DELLINE,    VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDM_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
     "Z",            IDM_EDIT_REDO,          VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
 END
@@ -410,12 +408,12 @@ BEGIN
     GROUPBOX        "方向",IDC_STATIC,135,27,66,58
     CONTROL         "向下",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     141,37,50,10
-    CONTROL         "向上",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,141,
-                    48,50,10
-    CONTROL         "开始",IDC_SEARCH_BEGINNING,"Button",
-                    BS_AUTORADIOBUTTON,141,59,50,10
-    CONTROL         "选定范围",IDC_SEARCH_INSEL,"Button",
-                    BS_AUTORADIOBUTTON,141,70,50,10
+    CONTROL         "向上",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+                    141,48,50,10
+    CONTROL         "开始",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
+                    141,59,50,10
+    CONTROL         "选定范围",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+                    141,70,50,10
     CONTROL         "所有文件",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,141,87,50,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,135,80,66,19
@@ -445,12 +443,12 @@ BEGIN
     GROUPBOX        "方向",IDC_STATIC,135,41,66,58
     CONTROL         "向下",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     141,51,50,10
-    CONTROL         "向上",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,141,
-                    62,50,10
-    CONTROL         "开始",IDC_SEARCH_BEGINNING,"Button",
-                    BS_AUTORADIOBUTTON,141,73,50,10
-    CONTROL         "选定范围",IDC_SEARCH_INSEL,"Button",
-                    BS_AUTORADIOBUTTON,141,84,50,10
+    CONTROL         "向上",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+                    141,62,50,10
+    CONTROL         "开始",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
+                    141,73,50,10
+    CONTROL         "选定范围",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+                    141,84,50,10
     CONTROL         "所有文件",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,141,101,50,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,135,94,66,19
@@ -475,8 +473,8 @@ FONT 9, "宋体"
 BEGIN
     LTEXT           "跳转到:",IDC_STATIC,16,7,29,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTOLINE_NUMBER,16,20,60,13
-    CONTROL         "行",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,86,
-                    20,50,10
+    CONTROL         "行",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,86,20,
+                    50,10
     CONTROL         "偏移量",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
                     86,35,50,10
     PUSHBUTTON      "确定",IDOK,18,51,50,14,BS_CENTER
@@ -526,8 +524,7 @@ BEGIN
     CONTROL         "List1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
                     LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
-    LTEXT           "勾选的插件可自动加载。",IDC_STATIC,11,192,
-                    264,8
+    LTEXT           "勾选的插件可自动加载。",IDC_STATIC,11,192,264,8
     LTEXT           "热键:",IDC_STATIC,284,13,37,8
     CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER | 
                     WS_TABSTOP,282,24,50,14
@@ -544,12 +541,12 @@ CAPTION "常规"
 FONT 9, "宋体"
 BEGIN
     GROUPBOX        "执行",IDC_STATIC,9,6,200,90
-    LTEXT           "命令 (%f 文件，%a akelpad 目录):",IDC_STATIC,21,
-                    24,160,8,NOT WS_GROUP
+    LTEXT           "命令 (%f 文件，%a akelpad 目录):",IDC_STATIC,21,24,160,
+                    8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
-    LTEXT           "工作目录 (%d 文件所在目录):",IDC_STATIC,21,
-                    59,160,8,NOT WS_GROUP
+    LTEXT           "工作目录 (%d 文件所在目录):",IDC_STATIC,21,59,160,8,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
     LTEXT           "代码页识别:",IDC_STATIC,12,110,150,8
@@ -606,8 +603,8 @@ BEGIN
     CONTROL         "INI 文件",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
                     BS_AUTORADIOBUTTON,133,19,70,10
     GROUPBOX        "最近文件",IDC_STATIC,9,42,200,64
-    CONTROL         "记住插入点位置",IDC_OPTIONS_SAVEPOSITIONS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,55,185,10
+    CONTROL         "记住插入点位置",IDC_OPTIONS_SAVEPOSITIONS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,55,185,10
     CONTROL         "记住代码页",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,66,185,10
     LTEXT           "文件个数:",IDC_STATIC,19,88,73,11,NOT WS_GROUP
@@ -692,8 +689,8 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     169,11,13
-    CONTROL         "单词分隔符:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
+    CONTROL         "单词分隔符:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,199,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,211,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "重置",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,211,50,13,
                     BS_CENTER
@@ -718,12 +715,10 @@ BEGIN
     CONTROL         "分隔符:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,91,172,10
     EDITTEXT        IDC_OPTIONS_URL_DELIMITERS,23,103,172,13,ES_AUTOHSCROLL
-    CONTROL         "全部替换 - 关闭对话框",
-                    IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,137,200,10
-    CONTROL         "保存到只读文件时警告",
-                    IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,149,200,10
+    CONTROL         "全部替换 - 关闭对话框",IDC_OPTIONS_REPLACEALL_CLOSE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,137,200,10
+    CONTROL         "保存到只读文件时警告",IDC_OPTIONS_SAVEIN_READONLY_MSG,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,149,200,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
@@ -738,12 +733,11 @@ BEGIN
                     WS_BORDER,WS_EX_STATICEDGE
     EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
                     NOT WS_BORDER,WS_EX_STATICEDGE
-    LTEXT           "Shengalts Aleksander, 2006-2009",IDC_STATIC,72,82,125,
-                    8,NOT WS_GROUP
+    LTEXT           "Shengalts Aleksander, 2006-2009",IDC_STATIC,72,82,125,8,
+                    NOT WS_GROUP
     LTEXT           "Alexey Kuznetsov, 2003-2006",IDC_STATIC,72,125,109,8,
                     NOT WS_GROUP
-    LTEXT           "E-Mail:",IDC_STATIC,43,98,29,8,NOT WS_GROUP,
-                    WS_EX_RIGHT
+    LTEXT           "E-Mail:",IDC_STATIC,43,98,29,8,NOT WS_GROUP,WS_EX_RIGHT
     LTEXT           "E-Mail:",IDC_STATIC,42,142,29,8,NOT WS_GROUP,
                     WS_EX_RIGHT
     CONTROL         "",IDC_ABOUT_VERSION,"Static",SS_LEFTNOWORDWRAP,44,16,
@@ -793,7 +787,7 @@ BEGIN
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x0804, 0
+        VALUE "Translation", 0x804, 0
     END
 END
 
@@ -837,8 +831,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "消息队列的错误。"
     MSG_ERROR_LIMIT_REACHED "由于文本的限制而无法进行的操作。\n该限制将会被增加。"
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
-                            "分配内存给编辑控件时出错。"
+    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT "分配内存给编辑控件时出错。"
     MSG_ERROR_NOT_ENOUGH_MEMORY "内存不足。"
     MSG_ERROR_BINARY        """%s"" 是一个二进制文件。继续?"
     MSG_ERROR_IO            "输入/输出错误。"
@@ -871,8 +864,7 @@ BEGIN
     MSG_SEARCH_ENDED        "搜索完成。"
     MSG_REPLACE_COUNT       "更改的数量: %d"
     MSG_REPLACE_COUNT_ALLFILES "更改的文件数: %d\n更改的数量: %d"
-    MSG_FILE_WILL_BE_REOPENED 
-                            "文件将被重新打开，所有更改将会丢失。"
+    MSG_FILE_WILL_BE_REOPENED "文件将被重新打开，所有更改将会丢失。"
     MSG_FILE_CHANGED        """%s"" 已经被外部修改。\n\n是否要重新打开?"
     MSG_CP_UNIMPLEMENTED    "无法使用代码页 ""%d""。"
     MSG_CP_MISMATCH         "以本编码保存时将会丢失符号，行号为“%d”。继续?"
@@ -913,7 +905,17 @@ BEGIN
     STR_SAMPLE              "示例"
     STR_BASIC               "基本颜色"
     STR_SELECTION           "选择部分"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_ACTIVELINE          "当前行"
+    STR_ACTIVECOLUMN        "当前列"
+    STR_COLUMNMARKER        "列标尺线"
+    STR_CARET               "插入点"
+    STR_URL                 "超链接"
+    STR_PAGEFIT             "Fit page"
+    STR_PAGEWIDTH           "Page width"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -924,16 +926,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "中文 (UTF-8)"
     STR_AUTODETECT_JAPANESE "日文 (UTF-8)"
     STR_AUTODETECT_KOREAN   "韩文 (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_ACTIVECOLUMN        "当前列"
-    STR_COLUMNMARKER        "列标尺线"
-    STR_CARET               "插入点"
-    STR_URL                 "超链接"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
 END
 
 #endif    // Chinese (P.R.C.) resources

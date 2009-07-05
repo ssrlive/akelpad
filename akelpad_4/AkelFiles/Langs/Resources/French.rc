@@ -110,7 +110,7 @@ BEGIN
         MENUITEM "&Couleurs...",                IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Renvoyer les mots à la ligne\tCtrl+U", IDM_VIEW_WORDWRAP
-        MENUITEM "Partager la fenêtre",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "Partager la fenêtre",         IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Toujours au dessus\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "&Barre d'état",               IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -868,7 +868,8 @@ BEGIN
     MSG_UPDATE_PROGRAM      "Mettez à jour AkelPad.\n\nVersion minimale AkelPad requise: %d.%d.%d.%d\nVersion AkelPad courante: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x n'est pas supporté."
     MSG_UPDATE_PLUGIN       "Mise à jour %s.\n\nArchitecture AkelPad: %d.%d.%d.%d\nArchitecture du plugin %s: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" n'est pas reconnu comme plugin AkelPad."
+    MSG_PLUGIN_IS_NOT_SUPPORTED 
+                            """%s"" n'est pas reconnu comme plugin AkelPad."
     MSG_HOTKEY_EXISTS       "Touche déjà affectée à ""%s""."
     MSG_CANNOT_OPEN_FILE    "Impossible d'ouvrir le fichier ""%s""."
     MSG_WRONG_STRING        "Numéro de ligne invalide."
@@ -926,7 +927,17 @@ BEGIN
     STR_SAMPLE              "Echantillon"
     STR_BASIC               "Couleur de base"
     STR_SELECTION           "Sélection"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_ACTIVELINE          "Ligne active"
+    STR_ACTIVECOLUMN        "Colonne active"
+    STR_COLUMNMARKER        "Marqueur de colonne"
+    STR_CARET               "Curseur"
+    STR_URL                 "Hyperlien"
+    STR_PAGEFIT             "Fit page"
+    STR_PAGEWIDTH           "Page width"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -937,16 +948,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Chinois (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japonais (UTF-8)"
     STR_AUTODETECT_KOREAN   "Coréen (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_ACTIVECOLUMN        "Colonne active"
-    STR_COLUMNMARKER        "Marqueur de colonne"
-    STR_CARET               "Curseur"
-    STR_URL                 "Hyperlien"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
 END
 
 #endif    // French (France) resources

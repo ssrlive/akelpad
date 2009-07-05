@@ -110,7 +110,7 @@ BEGIN
         MENUITEM "&Farby...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Zalomiù text\tCtrl+U",       IDM_VIEW_WORDWRAP
-        MENUITEM "&Rozdeliù okno",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "&Rozdeliù okno",              IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Vûdy na vrchu\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "&Stavov˝ riadok",             IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -925,7 +925,17 @@ BEGIN
     STR_SAMPLE              "Uk·ûka"
     STR_BASIC               "Z·kladn· farba"
     STR_SELECTION           "V˝ber"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_ACTIVELINE          "AktÌvny riadok"
+    STR_ACTIVECOLUMN        "AktÌvny stÂpec"
+    STR_COLUMNMARKER        "Column marker"
+    STR_CARET               "Kurzor"
+    STR_URL                 "Odkaz"
+    STR_PAGEFIT             "Fit page"
+    STR_PAGEWIDTH           "Page width"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -936,16 +946,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "»Ìnötina (UTF-8)"
     STR_AUTODETECT_JAPANESE "JaponËina (UTF-8)"
     STR_AUTODETECT_KOREAN   "KÛrejËina (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_ACTIVECOLUMN        "AktÌvny stÂpec"
-    STR_COLUMNMARKER        "Column marker"
-    STR_CARET               "Kurzor"
-    STR_URL                 "Odkaz"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
 END
 
 #endif    // Slovak resources

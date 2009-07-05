@@ -107,7 +107,7 @@ BEGIN
         MENUITEM "&Кольори...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "П&еренесення по словам\tCtrl+U", IDM_VIEW_WORDWRAP
-        MENUITEM "&Розділити вікно",             IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "&Розділити вікно",            IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Поверх всіх вікон\tCtrl+T",  IDM_VIEW_ONTOP
         MENUITEM "Рядок &стану",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -938,7 +938,17 @@ BEGIN
     STR_SAMPLE              "Зразок"
     STR_BASIC               "Основний колір"
     STR_SELECTION           "Виділення"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_ACTIVELINE          "Активний рядок"
+    STR_ACTIVECOLUMN        "Активний стовпчик"
+    STR_COLUMNMARKER        "Маркер"
+    STR_CARET               "Каретка"
+    STR_URL                 "Посилання"
+    STR_PAGEFIT             "Целиком"
+    STR_PAGEWIDTH           "По ширине"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -949,16 +959,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Китайська (UTF-8)"
     STR_AUTODETECT_JAPANESE "Японська (UTF-8)"
     STR_AUTODETECT_KOREAN   "Корейська (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_ACTIVECOLUMN        "Активний стовпчик"
-    STR_COLUMNMARKER        "Маркер"
-    STR_CARET               "Каретка"
-    STR_URL                 "Посилання"
-    STR_PAGEFIT             "Целиком"
-    STR_PAGEWIDTH           "По ширине"
 END
 
 #endif    // Unknown language: 0x22, 0x1 resources
