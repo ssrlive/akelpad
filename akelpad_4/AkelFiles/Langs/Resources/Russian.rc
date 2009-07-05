@@ -41,6 +41,7 @@ BEGIN
         MENUITEM "Сохранить &все\tCtrl+Alt+F2", IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "Пара&метры страницы...",      IDM_FILE_PAGESETUP
+        MENUITEM "Предпро&смотр...",            IDM_FILE_PRINTPREVIEW
         MENUITEM "&Печать...\tCtrl+P",          IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Последние &файлы"
@@ -373,6 +374,26 @@ BEGIN
                     WS_TABSTOP,221,4,54,8
     CONTROL         "",IDC_OFN_PREVIEW,"AkelEditA",WS_VSCROLL | WS_HSCROLL | 
                     WS_TABSTOP | 0x2900,5,23,264,76,WS_EX_CLIENTEDGE
+END
+
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
+    WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+EXSTYLE WS_EX_CLIENTEDGE
+CAPTION "Предпросмотр..."
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Печать...",IDC_PREVIEW_PRINT,9,9,50,14
+    PUSHBUTTON      "&Страница...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    GROUPBOX        "",IDC_STATIC,131,2,121,24
+    PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
+    EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
+                    ES_AUTOHSCROLL
+    PUSHBUTTON      ">",IDC_PREVIEW_NEXTPAGE,223,10,20,12
+    COMBOBOX        IDC_PREVIEW_ZOOM,267,10,48,200,CBS_DROPDOWN | WS_VSCROLL | 
+                    WS_TABSTOP
+    CONTROL         "&Выделение",IDC_PREVIEW_SELECTION,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -915,7 +936,17 @@ BEGIN
     STR_SAMPLE              "Образец"
     STR_BASIC               "Основной цвет"
     STR_SELECTION           "Выделение"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_ACTIVELINE          "Активная строка"
+    STR_ACTIVECOLUMN        "Активный столбец"
+    STR_COLUMNMARKER        "Маркер"
+    STR_CARET               "Каретка"
+    STR_URL                 "Ссылка"
+    STR_PAGEFIT             "Целиком"
+    STR_PAGEWIDTH           "По ширине"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -926,14 +957,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Китайский (UTF-8)"
     STR_AUTODETECT_JAPANESE "Японский (UTF-8)"
     STR_AUTODETECT_KOREAN   "Корейский (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_ACTIVECOLUMN        "Активный столбец"
-    STR_COLUMNMARKER        "Маркер"
-    STR_CARET               "Каретка"
-    STR_URL                 "Ссылка"
 END
 
 #endif    // Russian resources

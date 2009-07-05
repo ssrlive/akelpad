@@ -679,6 +679,9 @@ typedef struct _NSIZE {
 #define IDM_FILE_SILENTPRINT            4113  //Print without dialog
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
+#define IDM_FILE_PRINTPREVIEW           4114  //Print preview dialog
+                                              //Return Value: zero
+                                              //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation
                                               //Return Value: zero
                                               //

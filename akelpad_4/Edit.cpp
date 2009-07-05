@@ -180,7 +180,7 @@ extern int nMsgBinary;
 extern POINT ptDocumentPos;
 extern BOOL bDocumentReopen;
 extern BOOL bSaveInReadOnlyMsg;
-extern WNDPROC OldPreviewProc;
+extern WNDPROC OldFilePreviewProc;
 
 //Find/Replace dialog
 extern RECT rcFindAndReplaceDlg;
@@ -227,6 +227,25 @@ extern BOOL bEditFontChanged;
 extern BOOL bColorsChanged;
 
 //Print
+extern HWND hWndPreviewEdit;
+extern HWND hWndPreviewDlg;
+extern HWND hWndZoomEdit;
+extern HSTACK hPreviewAllPagesStack;
+extern HSTACK hPreviewSelPagesStack;
+extern RECT rcPreviewWindow;
+extern RECT rcPreviewPaper;
+extern RECT rcPreviewZoomed;
+extern POINT ptPreviewScroll;
+extern int lpZoom[];
+extern int nPreviewZoomMaxIndex;
+extern int nPreviewZoomPercent;
+extern int nPreviewCharHeight;
+extern int nPreviewAveCharWidth;
+extern int nPreviewPageCur;
+extern int nPreviewAllPageSum;
+extern int nPreviewSelPageSum;
+extern BOOL bPreviewSelection;
+extern AEPRINT prn;
 extern LOGFONTA lfPrintFontA;
 extern LOGFONTW lfPrintFontW;
 extern PAGESETUPDLGA psdPageA;
@@ -834,10 +853,11 @@ BOOL DoFileSaveAsW()
   return FALSE;
 }
 
-BOOL DoFilePageSetupA()
+BOOL DoFilePageSetupA(HWND hWndOwner)
 {
   BOOL bResult;
 
+  psdPageA.hwndOwner=hWndOwner;
   bResult=PageSetupDlgA(&psdPageA);
   pdA.hDevMode=psdPageA.hDevMode;
   pdA.hDevNames=psdPageA.hDevNames;
@@ -845,10 +865,11 @@ BOOL DoFilePageSetupA()
   return bResult;
 }
 
-BOOL DoFilePageSetupW()
+BOOL DoFilePageSetupW(HWND hWndOwner)
 {
   BOOL bResult;
 
+  psdPageW.hwndOwner=hWndOwner;
   bResult=PageSetupDlgW(&psdPageW);
   pdW.hDevMode=psdPageW.hDevMode;
   pdW.hDevNames=psdPageW.hDevNames;
@@ -856,26 +877,15 @@ BOOL DoFilePageSetupW()
   return bResult;
 }
 
-BOOL DoFilePrintA(BOOL bSilent)
+int DoFilePrintA(HWND hWnd, BOOL bSilent)
 {
-  AEPRINT prn;
-  DOCINFOA diA={0};
-  HANDLE hPrintDoc;
-  HFONT hPrintFontOld;
-  RECT rcHeader;
-  RECT rcFooter;
-  int nPageNumber=0;
-  BOOL bPrintError=FALSE;
-  BOOL bPrintStop=FALSE;
+  int nResult;
 
   //Set print dialog settings
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
     pdA.Flags|=PD_NOSELECTION;
   else
     pdA.Flags&=~PD_NOSELECTION;
-  pdA.Flags&=~PD_SELECTION;
-  pdA.Flags&=~PD_PAGENUMS;
-  pdA.Flags&=~PD_PRINTTOFILE;
 
   //Choose printer
   if (bSilent)
@@ -891,133 +901,29 @@ BOOL DoFilePrintA(BOOL bSilent)
     psdPageA.hDevNames=pdA.hDevNames;
   }
 
-  //Set print settings
-  if (psdPageA.Flags & PSD_INHUNDREDTHSOFMILLIMETERS)
-    prn.dwFlags=AEPRN_INHUNDREDTHSOFMILLIMETERS|AEPRN_WRAPWORD;
-  else
-    prn.dwFlags=AEPRN_INTHOUSANDTHSOFINCHES|AEPRN_WRAPWORD;
-  prn.hPrinterDC=pdA.hDC;
-  if (bPrintFontEnable)
-    prn.hEditFont=CreateFontIndirectA(&lfPrintFontA);
-  else
-    prn.hEditFont=CreateFontIndirectA(&lfEditFontA);
-  prn.rcMargins=psdPageA.rtMargin;
-  if (pdA.Flags & PD_SELECTION)
+  if (pdA.hDC)
   {
-    prn.crText=crSel;
+    prn.hPrinterDC=pdA.hDC;
+    nResult=PrintDocumentA(hWnd, &prn, PRN_REALPRINT|(pdA.Flags & PD_SELECTION?PRN_SELECTION:PRN_ALLTEXT), 0);
+
+    pdA.Flags&=~PD_SELECTION;
+    pdA.Flags&=~PD_PAGENUMS;
+    pdA.Flags&=~PD_PRINTTOFILE;
+    DeleteDC(pdA.hDC);
+    pdA.hDC=NULL;
   }
-  else
-  {
-    SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn.crText.ciMin);
-    SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn.crText.ciMax);
-  }
-
-  //Document properties
-  API_LoadStringA(hLangLib, STR_DOCNAME, buf, BUFFER_SIZE);
-  diA.cbSize=sizeof(DOCINFOA);
-  diA.lpszDocName=(szCurrentFile[0])?szCurrentFile:buf;
-  if (pdA.Flags & PD_PRINTTOFILE) diA.lpszOutput="FILE:";
-
-  if (StartDocA(pdA.hDC, &diA) > 0)
-  {
-    if (hPrintDoc=(HANDLE)SendMessage(hWndEdit, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
-    {
-      if (bPrintHeaderEnable)
-      {
-        rcHeader=prn.rcPageIn;
-        rcHeader.bottom=rcHeader.top + prn.nCharHeight;
-        prn.rcPageIn.top+=prn.nCharHeight;
-      }
-      if (bPrintFooterEnable)
-      {
-        rcFooter=prn.rcPageIn;
-        rcFooter.top=rcFooter.bottom - prn.nCharHeight;
-        prn.rcPageIn.bottom-=prn.nCharHeight;
-      }
-
-      while (!bPrintStop && !bPrintError)
-      {
-        ++nPageNumber;
-
-        if ((pdA.Flags & PD_PAGENUMS) && nPageNumber > pdA.nToPage)
-        {
-          bPrintStop=TRUE;
-        }
-        else if ((pdA.Flags & PD_PAGENUMS) && nPageNumber < pdA.nFromPage)
-        {
-          prn.dwFlags|=AEPRN_TEST;
-          if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
-            bPrintStop=TRUE;
-          prn.dwFlags&=~AEPRN_TEST;
-        }
-        else
-        {
-          //Print page
-          if (StartPage(pdA.hDC) > 0)
-          {
-            if (bPrintHeaderEnable)
-            {
-              hPrintFontOld=(HFONT)SelectObject(pdA.hDC, prn.hPrintFont);
-              if (!PrintHeadlineA(pdA.hDC, &rcHeader, szPrintHeader, nPageNumber))
-                bPrintStop=TRUE;
-              if (hPrintFontOld) SelectObject(pdA.hDC, hPrintFontOld);
-            }
-
-            if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
-              bPrintStop=TRUE;
-
-            if (bPrintFooterEnable)
-            {
-              hPrintFontOld=(HFONT)SelectObject(pdA.hDC, prn.hPrintFont);
-              if (!PrintHeadlineA(pdA.hDC, &rcFooter, szPrintFooter, nPageNumber))
-                bPrintStop=TRUE;
-              if (hPrintFontOld) SelectObject(pdA.hDC, hPrintFontOld);
-            }
-
-            if (EndPage(pdA.hDC) <= 0)
-              bPrintError=TRUE;
-          }
-          else bPrintError=TRUE;
-        }
-      }
-      SendMessage(hWndEdit, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
-    }
-    EndDoc(pdA.hDC);
-  }
-  else bPrintError=TRUE;
-
-  if (bPrintError)
-  {
-    API_LoadStringA(hLangLib, MSG_ERROR_PRINT, buf, BUFFER_SIZE);
-    MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
-  }
-  DeleteObject(prn.hEditFont);
-  DeleteDC(pdA.hDC);
-  pdA.hDC=NULL;
-
-  return !bPrintError;
+  return nResult;
 }
 
-BOOL DoFilePrintW(BOOL bSilent)
+int DoFilePrintW(HWND hWnd, BOOL bSilent)
 {
-  AEPRINT prn;
-  DOCINFOW diW={0};
-  HANDLE hPrintDoc;
-  HFONT hPrintFontOld;
-  RECT rcHeader;
-  RECT rcFooter;
-  int nPageNumber=0;
-  BOOL bPrintError=FALSE;
-  BOOL bPrintStop=FALSE;
+  int nResult;
 
   //Set print dialog settings
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
     pdW.Flags|=PD_NOSELECTION;
   else
     pdW.Flags&=~PD_NOSELECTION;
-  pdW.Flags&=~PD_SELECTION;
-  pdW.Flags&=~PD_PAGENUMS;
-  pdW.Flags&=~PD_PRINTTOFILE;
 
   //Choose printer
   if (bSilent)
@@ -1033,111 +939,32 @@ BOOL DoFilePrintW(BOOL bSilent)
     psdPageW.hDevNames=pdW.hDevNames;
   }
 
-  //Set print settings
-  if (psdPageW.Flags & PSD_INHUNDREDTHSOFMILLIMETERS)
-    prn.dwFlags=AEPRN_INHUNDREDTHSOFMILLIMETERS|AEPRN_WRAPWORD;
-  else
-    prn.dwFlags=AEPRN_INTHOUSANDTHSOFINCHES|AEPRN_WRAPWORD;
-  prn.hPrinterDC=pdW.hDC;
-  if (bPrintFontEnable)
-    prn.hEditFont=CreateFontIndirectW(&lfPrintFontW);
-  else
-    prn.hEditFont=CreateFontIndirectW(&lfEditFontW);
-  prn.rcMargins=psdPageW.rtMargin;
-  if (pdW.Flags & PD_SELECTION)
+  if (pdW.hDC)
   {
-    prn.crText=crSel;
+    prn.hPrinterDC=pdW.hDC;
+    nResult=PrintDocumentW(hWnd, &prn, PRN_REALPRINT|(pdW.Flags & PD_SELECTION?PRN_SELECTION:PRN_ALLTEXT), 0);
+
+    pdW.Flags&=~PD_SELECTION;
+    pdW.Flags&=~PD_PAGENUMS;
+    pdW.Flags&=~PD_PRINTTOFILE;
+    DeleteDC(pdW.hDC);
+    pdW.hDC=NULL;
   }
-  else
-  {
-    SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn.crText.ciMin);
-    SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn.crText.ciMax);
-  }
+  return nResult;
+}
 
-  //Document properties
-  API_LoadStringW(hLangLib, STR_DOCNAME, wbuf, BUFFER_SIZE);
-  diW.cbSize=sizeof(DOCINFOW);
-  diW.lpszDocName=(wszCurrentFile[0])?wszCurrentFile:wbuf;
-  if (pdW.Flags & PD_PRINTTOFILE) diW.lpszOutput=L"FILE:";
+void DoFilePreviewA()
+{
+  hWndPreviewEdit=hWndEdit;
+  API_DialogBoxA(hLangLib, MAKEINTRESOURCEA(IDD_PRINTPREVIEW), hMainWnd, (DLGPROC)PreviewDlgProcA);
+  hWndPreviewEdit=NULL;
+}
 
-  if (StartDocW(pdW.hDC, &diW) > 0)
-  {
-    if (hPrintDoc=(HANDLE)SendMessage(hWndEdit, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
-    {
-      if (bPrintHeaderEnable)
-      {
-        rcHeader=prn.rcPageIn;
-        rcHeader.bottom=rcHeader.top + prn.nCharHeight;
-        prn.rcPageIn.top+=prn.nCharHeight;
-      }
-      if (bPrintFooterEnable)
-      {
-        rcFooter=prn.rcPageIn;
-        rcFooter.top=rcFooter.bottom - prn.nCharHeight;
-        prn.rcPageIn.bottom-=prn.nCharHeight;
-      }
-
-      while (!bPrintStop && !bPrintError)
-      {
-        ++nPageNumber;
-
-        if ((pdW.Flags & PD_PAGENUMS) && nPageNumber > pdW.nToPage)
-        {
-          bPrintStop=TRUE;
-        }
-        else if ((pdW.Flags & PD_PAGENUMS) && nPageNumber < pdW.nFromPage)
-        {
-          prn.dwFlags|=AEPRN_TEST;
-          if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
-            bPrintStop=TRUE;
-          prn.dwFlags&=~AEPRN_TEST;
-        }
-        else
-        {
-          //Print page
-          if (StartPage(pdW.hDC) > 0)
-          {
-            if (bPrintHeaderEnable)
-            {
-              hPrintFontOld=(HFONT)SelectObject(pdW.hDC, prn.hPrintFont);
-              if (!PrintHeadlineW(pdW.hDC, &rcHeader, wszPrintHeader, nPageNumber))
-                bPrintStop=TRUE;
-              if (hPrintFontOld) SelectObject(pdW.hDC, hPrintFontOld);
-            }
-
-            if (!SendMessage(hWndEdit, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)&prn))
-              bPrintStop=TRUE;
-
-            if (bPrintFooterEnable)
-            {
-              hPrintFontOld=(HFONT)SelectObject(pdW.hDC, prn.hPrintFont);
-              if (!PrintHeadlineW(pdW.hDC, &rcFooter, wszPrintFooter, nPageNumber))
-                bPrintStop=TRUE;
-              if (hPrintFontOld) SelectObject(pdW.hDC, hPrintFontOld);
-            }
-
-            if (EndPage(pdW.hDC) <= 0)
-              bPrintError=TRUE;
-          }
-          else bPrintError=TRUE;
-        }
-      }
-      SendMessage(hWndEdit, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
-    }
-    EndDoc(pdW.hDC);
-  }
-  else bPrintError=TRUE;
-
-  if (bPrintError)
-  {
-    API_LoadStringW(hLangLib, MSG_ERROR_PRINT, wbuf, BUFFER_SIZE);
-    MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-  }
-  DeleteObject(prn.hEditFont);
-  DeleteDC(pdW.hDC);
-  pdW.hDC=NULL;
-
-  return !bPrintError;
+void DoFilePreviewW()
+{
+  hWndPreviewEdit=hWndEdit;
+  API_DialogBoxW(hLangLib, MAKEINTRESOURCEW(IDD_PRINTPREVIEW), hMainWnd, (DLGPROC)PreviewDlgProcW);
+  hWndPreviewEdit=NULL;
 }
 
 BOOL DoFileExitA()
@@ -4531,7 +4358,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       //Print if "/p" option used in command line
       if (bGlobalPrint)
       {
-        DoFilePrintA(TRUE);
+        DoFilePrintA(hWnd, TRUE);
         bGlobalPrint=FALSE;
 
         if (!bMDI)
@@ -4810,7 +4637,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       //Print if "/p" option used in command line
       if (bGlobalPrint)
       {
-        DoFilePrintW(TRUE);
+        DoFilePrintW(hWnd, TRUE);
         bGlobalPrint=FALSE;
 
         if (!bMDI)
@@ -6189,6 +6016,348 @@ void GetPrinterDCW(PRINTDLGW *pdW)
   }
 }
 
+int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
+{
+  DOCINFOA diA={0};
+  POINT ptScreenDpi;
+  POINT ptPrintDpi;
+  PRINTPAGE *lpElement;
+  HANDLE hPrintDoc;
+  HFONT hPrintFontOld;
+  HDC hScreenDC;
+  RECT rcHeader;
+  RECT rcFooter;
+  int nPageNumber=nInitPage;
+  BOOL bPrintError=FALSE;
+  BOOL bPrintStop=FALSE;
+
+  //Set print settings
+  prn->dwFlags=AEPRN_WRAPWORD|
+               (psdPageA.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES)|
+               (dwFlags & PRN_PREVIEW?AEPRN_TEST:0)|
+               (dwFlags & PRN_ANSI?AEPRN_ANSI:0);
+  if (!(dwFlags & PRN_RANGE))
+  {
+    if (dwFlags & PRN_SELECTION)
+    {
+      if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+        return 0;
+      prn->crText=crSel;
+    }
+    else if (dwFlags & PRN_ALLTEXT)
+    {
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn->crText.ciMin);
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn->crText.ciMax);
+    }
+  }
+  if (bPrintFontEnable)
+    prn->hEditFont=CreateFontIndirectA(&lfPrintFontA);
+  else
+    prn->hEditFont=CreateFontIndirectA(&lfEditFontA);
+  prn->rcMargins=psdPageA.rtMargin;
+
+  //Document properties
+  if (dwFlags & PRN_REALPRINT)
+  {
+    API_LoadStringA(hLangLib, STR_DOCNAME, buf, BUFFER_SIZE);
+    diA.cbSize=sizeof(DOCINFOA);
+    diA.lpszDocName=(szCurrentFile[0])?szCurrentFile:buf;
+    if (pdA.Flags & PD_PRINTTOFILE) diA.lpszOutput="FILE:";
+  }
+
+  if (!(dwFlags & PRN_REALPRINT) || StartDocA(prn->hPrinterDC, &diA) > 0)
+  {
+    if (hPrintDoc=(HANDLE)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)prn))
+    {
+      if (dwFlags & PRN_PREVIEW)
+      {
+        //Get DPI for converting coordinates
+        if (hScreenDC=GetDC(hWndPreviewDlg))
+        {
+          ptScreenDpi.x=GetDeviceCaps(hScreenDC, LOGPIXELSX);
+          ptScreenDpi.y=GetDeviceCaps(hScreenDC, LOGPIXELSY);
+          ReleaseDC(hWndPreviewDlg, hScreenDC);
+        }
+        ptPrintDpi.x=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSX);
+        ptPrintDpi.y=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY);
+
+        //Paper in screen coordinates
+        rcPreviewPaper.left=1;
+        rcPreviewPaper.top=1;
+        rcPreviewPaper.right=rcPreviewPaper.left + MulDiv(ptScreenDpi.x, RectW(&prn->rcPageFull), ptPrintDpi.x);
+        rcPreviewPaper.bottom=rcPreviewPaper.top + MulDiv(ptScreenDpi.y, RectH(&prn->rcPageFull), ptPrintDpi.y);
+      }
+
+      if (bPrintHeaderEnable)
+      {
+        rcHeader=prn->rcPageIn;
+        rcHeader.bottom=rcHeader.top + prn->nCharHeight;
+        prn->rcPageIn.top+=prn->nCharHeight;
+      }
+      if (bPrintFooterEnable)
+      {
+        rcFooter=prn->rcPageIn;
+        rcFooter.top=rcFooter.bottom - prn->nCharHeight;
+        prn->rcPageIn.bottom-=prn->nCharHeight;
+      }
+
+      while (!bPrintStop && !bPrintError)
+      {
+        ++nPageNumber;
+
+        if (dwFlags & PRN_REALPRINT)
+        {
+          if ((pdA.Flags & PD_PAGENUMS) && nPageNumber > pdA.nToPage)
+          {
+            bPrintStop=TRUE;
+            continue;
+          }
+          else if ((pdA.Flags & PD_PAGENUMS) && nPageNumber < pdA.nFromPage)
+          {
+            prn->dwFlags|=AEPRN_TEST;
+            if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)prn))
+              bPrintStop=TRUE;
+            prn->dwFlags&=~AEPRN_TEST;
+            continue;
+          }
+        }
+
+        //Print page
+        if (!(dwFlags & PRN_REALPRINT) || StartPage(prn->hPrinterDC) > 0)
+        {
+          if (dwFlags & PRN_PREVIEW)
+          {
+            if (dwFlags & PRN_SELECTION)
+            {
+              if (!StackInsertIndex((stack **)&hPreviewSelPagesStack.first, (stack **)&hPreviewSelPagesStack.last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
+                lpElement->crText=prn->crText;
+            }
+            else
+            {
+              if (!StackInsertIndex((stack **)&hPreviewAllPagesStack.first, (stack **)&hPreviewAllPagesStack.last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
+                lpElement->crText=prn->crText;
+            }
+          }
+
+          if (bPrintHeaderEnable)
+          {
+            hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
+            if (!PrintHeadlineA(prn->hPrinterDC, &rcHeader, szPrintHeader, nPageNumber))
+              bPrintStop=TRUE;
+            if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+          }
+
+          if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)prn))
+            bPrintStop=TRUE;
+
+          if (bPrintFooterEnable)
+          {
+            hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
+            if (!PrintHeadlineA(prn->hPrinterDC, &rcFooter, szPrintFooter, nPageNumber))
+              bPrintStop=TRUE;
+            if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+          }
+
+          if (dwFlags & PRN_REALPRINT)
+          {
+            if (EndPage(prn->hPrinterDC) <= 0)
+              bPrintError=TRUE;
+          }
+          if (dwFlags & PRN_ONEPAGE)
+            break;
+        }
+        else bPrintError=TRUE;
+      }
+      SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)prn);
+    }
+    if (dwFlags & PRN_REALPRINT) EndDoc(prn->hPrinterDC);
+  }
+  else bPrintError=TRUE;
+
+  if (bPrintError)
+  {
+    API_LoadStringA(hLangLib, MSG_ERROR_PRINT, buf, BUFFER_SIZE);
+    MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
+  }
+  if (prn->hEditFont)
+  {
+    DeleteObject(prn->hEditFont);
+    prn->hEditFont=NULL;
+  }
+  return nPageNumber;
+}
+
+int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
+{
+  DOCINFOW diW={0};
+  POINT ptScreenDpi;
+  POINT ptPrintDpi;
+  PRINTPAGE *lpElement;
+  HANDLE hPrintDoc;
+  HFONT hPrintFontOld;
+  HDC hScreenDC;
+  RECT rcHeader;
+  RECT rcFooter;
+  int nPageNumber=nInitPage;
+  BOOL bPrintError=FALSE;
+  BOOL bPrintStop=FALSE;
+
+  //Set print settings
+  prn->dwFlags=AEPRN_WRAPWORD|
+               (psdPageW.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES)|
+               (dwFlags & PRN_PREVIEW?AEPRN_TEST:0)|
+               (dwFlags & PRN_ANSI?AEPRN_ANSI:0);
+  if (!(dwFlags & PRN_RANGE))
+  {
+    if (dwFlags & PRN_SELECTION)
+    {
+      if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+        return 0;
+      prn->crText=crSel;
+    }
+    else if (dwFlags & PRN_ALLTEXT)
+    {
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn->crText.ciMin);
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn->crText.ciMax);
+    }
+  }
+  if (bPrintFontEnable)
+    prn->hEditFont=CreateFontIndirectW(&lfPrintFontW);
+  else
+    prn->hEditFont=CreateFontIndirectW(&lfEditFontW);
+  prn->rcMargins=psdPageW.rtMargin;
+
+  //Document properties
+  if (dwFlags & PRN_REALPRINT)
+  {
+    API_LoadStringW(hLangLib, STR_DOCNAME, wbuf, BUFFER_SIZE);
+    diW.cbSize=sizeof(DOCINFOW);
+    diW.lpszDocName=(wszCurrentFile[0])?wszCurrentFile:wbuf;
+    if (pdW.Flags & PD_PRINTTOFILE) diW.lpszOutput=L"FILE:";
+  }
+
+  if (!(dwFlags & PRN_REALPRINT) || StartDocW(prn->hPrinterDC, &diW) > 0)
+  {
+    if (hPrintDoc=(HANDLE)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)prn))
+    {
+      if (dwFlags & PRN_PREVIEW)
+      {
+        //Get DPI for converting coordinates
+        if (hScreenDC=GetDC(hWndPreviewDlg))
+        {
+          ptScreenDpi.x=GetDeviceCaps(hScreenDC, LOGPIXELSX);
+          ptScreenDpi.y=GetDeviceCaps(hScreenDC, LOGPIXELSY);
+          ReleaseDC(hWndPreviewDlg, hScreenDC);
+        }
+        ptPrintDpi.x=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSX);
+        ptPrintDpi.y=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY);
+
+        //Paper in screen coordinates
+        rcPreviewPaper.left=1;
+        rcPreviewPaper.top=1;
+        rcPreviewPaper.right=rcPreviewPaper.left + MulDiv(ptScreenDpi.x, RectW(&prn->rcPageFull), ptPrintDpi.x);
+        rcPreviewPaper.bottom=rcPreviewPaper.top + MulDiv(ptScreenDpi.y, RectH(&prn->rcPageFull), ptPrintDpi.y);
+      }
+
+      if (bPrintHeaderEnable)
+      {
+        rcHeader=prn->rcPageIn;
+        rcHeader.bottom=rcHeader.top + prn->nCharHeight;
+        prn->rcPageIn.top+=prn->nCharHeight;
+      }
+      if (bPrintFooterEnable)
+      {
+        rcFooter=prn->rcPageIn;
+        rcFooter.top=rcFooter.bottom - prn->nCharHeight;
+        prn->rcPageIn.bottom-=prn->nCharHeight;
+      }
+
+      while (!bPrintStop && !bPrintError)
+      {
+        ++nPageNumber;
+
+        if (dwFlags & PRN_REALPRINT)
+        {
+          if ((pdW.Flags & PD_PAGENUMS) && nPageNumber > pdW.nToPage)
+          {
+            bPrintStop=TRUE;
+            continue;
+          }
+          else if ((pdW.Flags & PD_PAGENUMS) && nPageNumber < pdW.nFromPage)
+          {
+            prn->dwFlags|=AEPRN_TEST;
+            if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)prn))
+              bPrintStop=TRUE;
+            prn->dwFlags&=~AEPRN_TEST;
+            continue;
+          }
+        }
+
+        //Print page
+        if (!(dwFlags & PRN_REALPRINT) || StartPage(prn->hPrinterDC) > 0)
+        {
+          if (dwFlags & PRN_PREVIEW)
+          {
+            if (dwFlags & PRN_SELECTION)
+            {
+              if (!StackInsertIndex((stack **)&hPreviewSelPagesStack.first, (stack **)&hPreviewSelPagesStack.last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
+                lpElement->crText=prn->crText;
+            }
+            else
+            {
+              if (!StackInsertIndex((stack **)&hPreviewAllPagesStack.first, (stack **)&hPreviewAllPagesStack.last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
+                lpElement->crText=prn->crText;
+            }
+          }
+
+          if (bPrintHeaderEnable)
+          {
+            hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
+            if (!PrintHeadlineW(prn->hPrinterDC, &rcHeader, wszPrintHeader, nPageNumber))
+              bPrintStop=TRUE;
+            if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+          }
+
+          if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)prn))
+            bPrintStop=TRUE;
+
+          if (bPrintFooterEnable)
+          {
+            hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
+            if (!PrintHeadlineW(prn->hPrinterDC, &rcFooter, wszPrintFooter, nPageNumber))
+              bPrintStop=TRUE;
+            if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+          }
+
+          if (dwFlags & PRN_REALPRINT)
+          {
+            if (EndPage(prn->hPrinterDC) <= 0)
+              bPrintError=TRUE;
+          }
+          if (dwFlags & PRN_ONEPAGE)
+            break;
+        }
+        else bPrintError=TRUE;
+      }
+      SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)prn);
+    }
+    if (dwFlags & PRN_REALPRINT) EndDoc(prn->hPrinterDC);
+  }
+  else bPrintError=TRUE;
+
+  if (bPrintError)
+  {
+    API_LoadStringW(hLangLib, MSG_ERROR_PRINT, wbuf, BUFFER_SIZE);
+    MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+  }
+  if (prn->hEditFont)
+  {
+    DeleteObject(prn->hEditFont);
+    prn->hEditFont=NULL;
+  }
+  return nPageNumber;
+}
+
 BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber)
 {
   //%% == %, %n[1] == nPageNumber[nPageStart], %f == szCurrentFile, %c == DT_CENTER, %l == DT_LEFT, %r == DT_RIGHT
@@ -6423,19 +6592,1123 @@ BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   return bResult;
 }
 
+BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndPreview;
+  static HWND hWndPrevPage;
+  static HWND hWndPageCount;
+  static HWND hWndNextPage;
+  static HWND hWndZoom;
+  static HWND hWndSelection;
+  static HHOOK hHookKeys;
+  int i;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
+    hWndPrevPage=GetDlgItem(hDlg, IDC_PREVIEW_PREVPAGE);
+    hWndPageCount=GetDlgItem(hDlg, IDC_PREVIEW_PAGECOUNT);
+    hWndNextPage=GetDlgItem(hDlg, IDC_PREVIEW_NEXTPAGE);
+    hWndZoom=GetDlgItem(hDlg, IDC_PREVIEW_ZOOM);
+    hWndZoomEdit=GetDlgItem(hWndZoom, IDC_COMBOBOXEDIT);
+    hWndSelection=GetDlgItem(hDlg, IDC_PREVIEW_SELECTION);
+    hWndPreviewDlg=hDlg;
+
+    //Create preview window
+    {
+      WNDCLASSA wndclass={0};
+
+      wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+      wndclass.lpfnWndProc  =PreviewProcA;
+      wndclass.cbClsExtra   =0;
+      wndclass.cbWndExtra   =DLGWINDOWEXTRA;
+      wndclass.hInstance    =hInstance;
+      wndclass.hIcon        =NULL;
+      wndclass.hCursor      =LoadCursor(NULL, IDC_ARROW);
+      wndclass.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
+      wndclass.lpszMenuName =NULL;
+      wndclass.lpszClassName=APP_PRINTPREVIEW_CLASSA;
+      RegisterClassA(&wndclass);
+
+      hWndPreview=CreateWindowA(APP_PRINTPREVIEW_CLASSA,
+                                NULL,
+                                WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
+                                0, 0, 0, 0,
+                                hDlg,
+                                (HMENU)IDC_PREVIEW_BOX,
+                                hInstance,
+                                NULL);
+    }
+
+    //Initialize
+    ptPreviewScroll.x=0;
+    ptPreviewScroll.y=0;
+    nPreviewZoomPercent=PREVIEW_ZOOMFIT;
+    nPreviewPageCur=1;
+    nPreviewAllPageSum=0;
+    bPreviewSelection=FALSE;
+
+    if (PreviewInitA(hWndSelection))
+    {
+      //Fill zooms
+      for (i=0; i <= nPreviewZoomMaxIndex; ++i)
+      {
+        wsprintfA(buf, "%d%%", lpZoom[i]);
+        SendMessageA(hWndZoom, CB_ADDSTRING, 0, (LPARAM)buf);
+      }
+      API_LoadStringA(hLangLib, STR_PAGEFIT, buf, BUFFER_SIZE);
+      SendMessageA(hWndZoom, CB_ADDSTRING, 0, (LPARAM)buf);
+      API_LoadStringA(hLangLib, STR_PAGEWIDTH, buf, BUFFER_SIZE);
+      SendMessageA(hWndZoom, CB_ADDSTRING, 0, (LPARAM)buf);
+      ShowWindow(hDlg, SW_MAXIMIZE);
+
+      hHookKeys=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
+    }
+  }
+  else if (uMsg == WM_SIZE)
+  {
+    if (lParam)
+    {
+      rcPreviewWindow.right=LOWORD(lParam);
+      rcPreviewWindow.bottom=HIWORD(lParam);
+      MoveWindow(hWndPreview, rcPreviewWindow.left, rcPreviewWindow.top, RectW(&rcPreviewWindow), RectH(&rcPreviewWindow), TRUE);
+    }
+    return 0;
+  }
+  else if (uMsg == AKDLG_PREVIEWKEYDOWN)
+  {
+    if (wParam == VK_HOME && (GetKeyState(VK_CONTROL) & 0x80))
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_FIRSTPAGE, 0);
+    }
+    else if (wParam == VK_END && (GetKeyState(VK_CONTROL) & 0x80))
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_LASTPAGE, 0);
+    }
+    else if (wParam == VK_PRIOR)
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_PREVPAGE, 0);
+    }
+    else if (wParam == VK_NEXT)
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_NEXTPAGE, 0);
+    }
+    else if (wParam == VK_ADD && (GetKeyState(VK_CONTROL) & 0x80))
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_ZOOMIN, 0);
+    }
+    else if (wParam == VK_SUBTRACT && (GetKeyState(VK_CONTROL) & 0x80))
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_ZOOMOUT, 0);
+    }
+    else if (wParam == VK_RETURN)
+    {
+      if ((HWND)lParam == hWndZoomEdit)
+      {
+        GetWindowTextA(hWndZoomEdit, buf, BUFFER_SIZE);
+        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiA(buf), 0);
+      }
+      else if ((HWND)lParam == hWndPageCount)
+      {
+        GetWindowTextA(hWndPageCount, buf, BUFFER_SIZE);
+        PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, xatoiA(buf), 0);
+      }
+      else return FALSE;
+    }
+    else return FALSE;
+
+    SetWindowLongA(hDlg, DWL_MSGRESULT, 1);
+    return TRUE;
+  }
+  else if (uMsg == AKDLG_PREVIEWMOUSEWHEEL)
+  {
+    if ((short)HIWORD(wParam) < 0)
+    {
+      if (GetKeyState(VK_CONTROL) & 0x80)
+        PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_ZOOMOUT, 0);
+      else
+        PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_NEXTPAGE, 0);
+    }
+    else
+    {
+      if (GetKeyState(VK_CONTROL) & 0x80)
+        PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_ZOOMIN, 0);
+      else
+        PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_PREVPAGE, 0);
+    }
+    SetWindowLongA(hDlg, DWL_MSGRESULT, 1);
+    return TRUE;
+  }
+  else if (uMsg == AKDLG_PREVIEWSETZOOM)
+  {
+    int nZoom=wParam;
+
+    if (nZoom == PREVIEW_ZOOMFIT ||
+        nZoom == PREVIEW_ZOOMWIDTH)
+    {
+    }
+    else if (nZoom < lpZoom[0])
+    {
+      nZoom=lpZoom[0];
+    }
+    else if (nZoom > lpZoom[nPreviewZoomMaxIndex])
+    {
+      nZoom=lpZoom[nPreviewZoomMaxIndex];
+    }
+
+    if (nZoom != nPreviewZoomPercent)
+    {
+      nPreviewZoomPercent=nZoom;
+      InvalidateRect(hWndPreview, NULL, TRUE);
+    }
+    wsprintfA(buf, "%d%%", nPreviewZoomPercent);
+    SetWindowTextA(hWndZoomEdit, buf);
+  }
+  else if (uMsg == AKDLG_PREVIEWSETPAGE)
+  {
+    int nPageSum=bPreviewSelection?nPreviewSelPageSum:nPreviewAllPageSum;
+    int nPageCur=wParam;
+
+    nPageCur=max(nPageCur, 1);
+    nPageCur=min(nPageCur, nPageSum);
+
+    if (nPageCur != nPreviewPageCur)
+    {
+      nPreviewPageCur=nPageCur;
+      InvalidateRect(hWndPreview, NULL, TRUE);
+    }
+    if (nPreviewPageCur <= 1)
+    {
+      if (GetFocus() == hWndPrevPage)
+        SetFocus(hWndPageCount);
+      EnableWindow(hWndPrevPage, FALSE);
+    }
+    else EnableWindow(hWndPrevPage, TRUE);
+
+    if (nPreviewPageCur >= nPageSum)
+    {
+      if (GetFocus() == hWndNextPage)
+        SetFocus(hWndPageCount);
+      EnableWindow(hWndNextPage, FALSE);
+    }
+    else EnableWindow(hWndNextPage, TRUE);
+
+    wsprintfA(buf, "%d / %d", nPreviewPageCur, nPageSum);
+    SetWindowTextA(hWndPageCount, buf);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_PREVIEW_PRINT)
+    {
+      if (bPreviewSelection)
+        pdA.Flags|=PD_SELECTION;
+      SendMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+      PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_PRINT, (LPARAM)hWndPreviewEdit);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_PAGESETUP)
+    {
+      //Stop message hooking
+      hWndPreviewDlg=NULL;
+
+      if (DoFilePageSetupA(hDlg))
+      {
+        hWndPreviewDlg=hDlg;
+        PreviewUninitA();
+        if (PreviewInitA(hWndSelection))
+          InvalidateRect(hWndPreview, NULL, TRUE);
+      }
+      hWndPreviewDlg=hDlg;
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_SELECTION)
+    {
+      nPreviewPageCur=1;
+      bPreviewSelection=SendMessage(hWndSelection, BM_GETCHECK, 0, 0);
+      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
+      InvalidateRect(hWndPreview, NULL, TRUE);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_FIRSTPAGE)
+    {
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, 1, 0);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_LASTPAGE)
+    {
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, bPreviewSelection?nPreviewSelPageSum:nPreviewAllPageSum, 0);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_PREVPAGE)
+    {
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur - 1, 0);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_NEXTPAGE)
+    {
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur + 1, 0);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_ZOOM)
+    {
+      int nCurSel;
+
+      if (HIWORD(wParam) == CBN_SELCHANGE)
+      {
+        if ((nCurSel=SendMessage(hWndZoom, CB_GETCURSEL, 0, 0)) != CB_ERR)
+        {
+          PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[nCurSel], 0);
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_ZOOMIN)
+    {
+      for (i=nPreviewZoomMaxIndex; i >= 0; --i)
+      {
+        if (lpZoom[i] <= nPreviewZoomPercent)
+        {
+          if (i < nPreviewZoomMaxIndex)
+          {
+            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i + 1], 0);
+          }
+          break;
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_ZOOMOUT)
+    {
+      for (i=0; i <= nPreviewZoomMaxIndex; ++i)
+      {
+        if (lpZoom[i] >= nPreviewZoomPercent)
+        {
+          if (i > 0)
+          {
+            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i - 1], 0);
+          }
+          break;
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      hWndPreviewDlg=NULL;
+      PreviewUninitA();
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  else if (uMsg == WM_DESTROY)
+  {
+    if (hHookKeys)
+    {
+      if (UnhookWindowsHookEx(hHookKeys))
+        hHookKeys=NULL;
+    }
+  }
+  return FALSE;
+}
+
+BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndPreview;
+  static HWND hWndPrevPage;
+  static HWND hWndPageCount;
+  static HWND hWndNextPage;
+  static HWND hWndZoom;
+  static HWND hWndSelection;
+  static HHOOK hHookKeys;
+  int i;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
+    hWndPrevPage=GetDlgItem(hDlg, IDC_PREVIEW_PREVPAGE);
+    hWndPageCount=GetDlgItem(hDlg, IDC_PREVIEW_PAGECOUNT);
+    hWndNextPage=GetDlgItem(hDlg, IDC_PREVIEW_NEXTPAGE);
+    hWndZoom=GetDlgItem(hDlg, IDC_PREVIEW_ZOOM);
+    hWndZoomEdit=GetDlgItem(hWndZoom, IDC_COMBOBOXEDIT);
+    hWndSelection=GetDlgItem(hDlg, IDC_PREVIEW_SELECTION);
+    hWndPreviewDlg=hDlg;
+
+    //Create preview window
+    {
+      WNDCLASSW wndclass={0};
+
+      wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+      wndclass.lpfnWndProc  =PreviewProcW;
+      wndclass.cbClsExtra   =0;
+      wndclass.cbWndExtra   =DLGWINDOWEXTRA;
+      wndclass.hInstance    =hInstance;
+      wndclass.hIcon        =NULL;
+      wndclass.hCursor      =LoadCursor(NULL, IDC_ARROW);
+      wndclass.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
+      wndclass.lpszMenuName =NULL;
+      wndclass.lpszClassName=APP_PRINTPREVIEW_CLASSW;
+      RegisterClassW(&wndclass);
+
+      hWndPreview=CreateWindowW(APP_PRINTPREVIEW_CLASSW,
+                                NULL,
+                                WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
+                                0, 0, 0, 0,
+                                hDlg,
+                                (HMENU)IDC_PREVIEW_BOX,
+                                hInstance,
+                                NULL);
+    }
+
+    //Initialize
+    ptPreviewScroll.x=0;
+    ptPreviewScroll.y=0;
+    nPreviewZoomPercent=PREVIEW_ZOOMFIT;
+    nPreviewPageCur=1;
+    nPreviewAllPageSum=0;
+    bPreviewSelection=FALSE;
+
+    if (PreviewInitW(hWndSelection))
+    {
+      //Fill zooms
+      for (i=0; i <= nPreviewZoomMaxIndex; ++i)
+      {
+        wsprintfW(wbuf, L"%d%%", lpZoom[i]);
+        SendMessageW(hWndZoom, CB_ADDSTRING, 0, (LPARAM)wbuf);
+      }
+      API_LoadStringW(hLangLib, STR_PAGEFIT, wbuf, BUFFER_SIZE);
+      SendMessageW(hWndZoom, CB_ADDSTRING, 0, (LPARAM)wbuf);
+      API_LoadStringW(hLangLib, STR_PAGEWIDTH, wbuf, BUFFER_SIZE);
+      SendMessageW(hWndZoom, CB_ADDSTRING, 0, (LPARAM)wbuf);
+      ShowWindow(hDlg, SW_MAXIMIZE);
+
+      hHookKeys=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
+    }
+  }
+  else if (uMsg == WM_SIZE)
+  {
+    if (lParam)
+    {
+      rcPreviewWindow.right=LOWORD(lParam);
+      rcPreviewWindow.bottom=HIWORD(lParam);
+      MoveWindow(hWndPreview, rcPreviewWindow.left, rcPreviewWindow.top, RectW(&rcPreviewWindow), RectH(&rcPreviewWindow), TRUE);
+    }
+    return 0;
+  }
+  else if (uMsg == AKDLG_PREVIEWKEYDOWN)
+  {
+    if (wParam == VK_HOME && (GetKeyState(VK_CONTROL) & 0x80))
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_FIRSTPAGE, 0);
+    }
+    else if (wParam == VK_END && (GetKeyState(VK_CONTROL) & 0x80))
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_LASTPAGE, 0);
+    }
+    else if (wParam == VK_PRIOR)
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_PREVPAGE, 0);
+    }
+    else if (wParam == VK_NEXT)
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_NEXTPAGE, 0);
+    }
+    else if (wParam == VK_ADD && (GetKeyState(VK_CONTROL) & 0x80))
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_ZOOMIN, 0);
+    }
+    else if (wParam == VK_SUBTRACT && (GetKeyState(VK_CONTROL) & 0x80))
+    {
+      PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_ZOOMOUT, 0);
+    }
+    else if (wParam == VK_RETURN)
+    {
+      if ((HWND)lParam == hWndZoomEdit)
+      {
+        GetWindowTextW(hWndZoomEdit, wbuf, BUFFER_SIZE);
+        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiW(wbuf), 0);
+      }
+      else if ((HWND)lParam == hWndPageCount)
+      {
+        GetWindowTextW(hWndPageCount, wbuf, BUFFER_SIZE);
+        PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, xatoiW(wbuf), 0);
+      }
+      else return FALSE;
+    }
+    else return FALSE;
+
+    SetWindowLongW(hDlg, DWL_MSGRESULT, 1);
+    return TRUE;
+  }
+  else if (uMsg == AKDLG_PREVIEWMOUSEWHEEL)
+  {
+    if ((short)HIWORD(wParam) < 0)
+    {
+      if (GetKeyState(VK_CONTROL) & 0x80)
+        PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_ZOOMOUT, 0);
+      else
+        PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_NEXTPAGE, 0);
+    }
+    else
+    {
+      if (GetKeyState(VK_CONTROL) & 0x80)
+        PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_ZOOMIN, 0);
+      else
+        PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_PREVPAGE, 0);
+    }
+    SetWindowLongW(hDlg, DWL_MSGRESULT, 1);
+    return TRUE;
+  }
+  else if (uMsg == AKDLG_PREVIEWSETZOOM)
+  {
+    int nZoom=wParam;
+
+    if (nZoom == PREVIEW_ZOOMFIT ||
+        nZoom == PREVIEW_ZOOMWIDTH)
+    {
+    }
+    else if (nZoom < lpZoom[0])
+    {
+      nZoom=lpZoom[0];
+    }
+    else if (nZoom > lpZoom[nPreviewZoomMaxIndex])
+    {
+      nZoom=lpZoom[nPreviewZoomMaxIndex];
+    }
+
+    if (nZoom != nPreviewZoomPercent)
+    {
+      nPreviewZoomPercent=nZoom;
+      InvalidateRect(hWndPreview, NULL, TRUE);
+    }
+    wsprintfW(wbuf, L"%d%%", nPreviewZoomPercent);
+    SetWindowTextW(hWndZoomEdit, wbuf);
+  }
+  else if (uMsg == AKDLG_PREVIEWSETPAGE)
+  {
+    int nPageSum=bPreviewSelection?nPreviewSelPageSum:nPreviewAllPageSum;
+    int nPageCur=wParam;
+
+    nPageCur=max(nPageCur, 1);
+    nPageCur=min(nPageCur, nPageSum);
+
+    if (nPageCur != nPreviewPageCur)
+    {
+      nPreviewPageCur=nPageCur;
+      InvalidateRect(hWndPreview, NULL, TRUE);
+    }
+    if (nPreviewPageCur <= 1)
+    {
+      if (GetFocus() == hWndPrevPage)
+        SetFocus(hWndPageCount);
+      EnableWindow(hWndPrevPage, FALSE);
+    }
+    else EnableWindow(hWndPrevPage, TRUE);
+
+    if (nPreviewPageCur >= nPageSum)
+    {
+      if (GetFocus() == hWndNextPage)
+        SetFocus(hWndPageCount);
+      EnableWindow(hWndNextPage, FALSE);
+    }
+    else EnableWindow(hWndNextPage, TRUE);
+
+    wsprintfW(wbuf, L"%d / %d", nPreviewPageCur, nPageSum);
+    SetWindowTextW(hWndPageCount, wbuf);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_PREVIEW_PRINT)
+    {
+      if (bPreviewSelection)
+        pdW.Flags|=PD_SELECTION;
+      SendMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+      PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_PRINT, (LPARAM)hWndPreviewEdit);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_PAGESETUP)
+    {
+      //Stop message hooking
+      hWndPreviewDlg=NULL;
+
+      if (DoFilePageSetupW(hDlg))
+      {
+        hWndPreviewDlg=hDlg;
+        PreviewUninitW();
+        if (PreviewInitW(hWndSelection))
+          InvalidateRect(hWndPreview, NULL, TRUE);
+      }
+      hWndPreviewDlg=hDlg;
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_SELECTION)
+    {
+      nPreviewPageCur=1;
+      bPreviewSelection=SendMessage(hWndSelection, BM_GETCHECK, 0, 0);
+      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
+      InvalidateRect(hWndPreview, NULL, TRUE);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_FIRSTPAGE)
+    {
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, 1, 0);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_LASTPAGE)
+    {
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, bPreviewSelection?nPreviewSelPageSum:nPreviewAllPageSum, 0);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_PREVPAGE)
+    {
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur - 1, 0);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_NEXTPAGE)
+    {
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur + 1, 0);
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_ZOOM)
+    {
+      int nCurSel;
+
+      if (HIWORD(wParam) == CBN_SELCHANGE)
+      {
+        if ((nCurSel=SendMessage(hWndZoom, CB_GETCURSEL, 0, 0)) != CB_ERR)
+        {
+          PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[nCurSel], 0);
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_ZOOMIN)
+    {
+      for (i=nPreviewZoomMaxIndex; i >= 0; --i)
+      {
+        if (lpZoom[i] <= nPreviewZoomPercent)
+        {
+          if (i < nPreviewZoomMaxIndex)
+          {
+            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i + 1], 0);
+          }
+          break;
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDC_PREVIEW_ZOOMOUT)
+    {
+      for (i=0; i <= nPreviewZoomMaxIndex; ++i)
+      {
+        if (lpZoom[i] >= nPreviewZoomPercent)
+        {
+          if (i > 0)
+          {
+            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i - 1], 0);
+          }
+          break;
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      hWndPreviewDlg=NULL;
+      PreviewUninitW();
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  else if (uMsg == WM_DESTROY)
+  {
+    if (hHookKeys)
+    {
+      if (UnhookWindowsHookEx(hHookKeys))
+        hHookKeys=NULL;
+    }
+  }
+  return FALSE;
+}
+
+BOOL PreviewInitA(HWND hWndSelection)
+{
+  BOOL bResult=FALSE;
+
+  //Get printer DC
+  if (!pdA.hDC)
+  {
+    GetPrinterDCA(&pdA);
+    psdPageA.hDevMode=pdA.hDevMode;
+    psdPageA.hDevNames=pdA.hDevNames;
+  }
+
+  if (pdA.hDC)
+  {
+    //Initialize variables
+    memset(&rcPreviewZoomed, 0, sizeof(RECT));
+    prn.hPrinterDC=pdA.hDC;
+    nPreviewAllPageSum=PrintDocumentA(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_ALLTEXT, 0);
+    nPreviewSelPageSum=PrintDocumentA(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_SELECTION, 0);
+    bResult=TRUE;
+  }
+  if (!nPreviewSelPageSum)
+    EnableWindow(hWndSelection, FALSE);
+  PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
+  return bResult;
+}
+
+BOOL PreviewInitW(HWND hWndSelection)
+{
+  BOOL bResult=FALSE;
+
+  //Get printer DC
+  if (!pdW.hDC)
+  {
+    GetPrinterDCW(&pdW);
+    psdPageW.hDevMode=pdW.hDevMode;
+    psdPageW.hDevNames=pdW.hDevNames;
+  }
+
+  if (pdW.hDC)
+  {
+    //Initialize variables
+    memset(&rcPreviewZoomed, 0, sizeof(RECT));
+    prn.hPrinterDC=pdW.hDC;
+    nPreviewAllPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_ALLTEXT, 0);
+    nPreviewSelPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_SELECTION, 0);
+    bResult=TRUE;
+  }
+  if (!nPreviewSelPageSum)
+    EnableWindow(hWndSelection, FALSE);
+  PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
+  return bResult;
+}
+
+void PreviewUninitA()
+{
+  StackClear((stack **)&hPreviewAllPagesStack.first, (stack **)&hPreviewAllPagesStack.last);
+  StackClear((stack **)&hPreviewSelPagesStack.first, (stack **)&hPreviewSelPagesStack.last);
+
+  if (pdA.hDC)
+  {
+    DeleteDC(pdA.hDC);
+    pdA.hDC=NULL;
+  }
+}
+
+void PreviewUninitW()
+{
+  StackClear((stack **)&hPreviewAllPagesStack.first, (stack **)&hPreviewAllPagesStack.last);
+  StackClear((stack **)&hPreviewSelPagesStack.first, (stack **)&hPreviewSelPagesStack.last);
+
+  if (pdW.hDC)
+  {
+    DeleteDC(pdW.hDC);
+    pdW.hDC=NULL;
+  }
+}
+
+LRESULT CALLBACK PreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_PAINT)
+  {
+    PAINTSTRUCT ps;
+
+    if (BeginPaint(hWnd, &ps))
+    {
+      if (ps.rcPaint.right - ps.rcPaint.left > 0 &&
+          ps.rcPaint.bottom - ps.rcPaint.top > 0)
+      {
+        PRINTPAGE *lpElement;
+        HENHMETAFILE hMetaFile;
+        HDC hMetaDC;
+        RECT rcMeta;
+
+        if ((bPreviewSelection == FALSE && !StackGetElement((stack *)hPreviewAllPagesStack.first, (stack *)hPreviewAllPagesStack.last, (stack **)&lpElement, nPreviewPageCur)) ||
+            (bPreviewSelection == TRUE && !StackGetElement((stack *)hPreviewSelPagesStack.first, (stack *)hPreviewSelPagesStack.last, (stack **)&lpElement, nPreviewPageCur)))
+        {
+          //Create the EMF in memory
+          rcMeta.left=0;
+          rcMeta.top=0;
+          rcMeta.right=GetDeviceCaps(pdA.hDC, HORZSIZE) * 100;
+          rcMeta.bottom=GetDeviceCaps(pdA.hDC, VERTSIZE) * 100;
+          hMetaDC=CreateEnhMetaFileA(pdA.hDC, NULL, &rcMeta, NULL);
+
+          //Print page on metafile device
+          prn.hPrinterDC=hMetaDC;
+          prn.crText=lpElement->crText;
+          PrintDocumentA(hWndPreviewEdit, &prn, PRN_ANSI|PRN_RANGE|PRN_ONEPAGE, nPreviewPageCur - 1);
+          hMetaFile=CloseEnhMetaFile(hMetaDC);
+
+          //Draw page on window
+          PreviewPaint(hWnd, ps.hdc, hMetaFile);
+          DeleteEnhMetaFile(hMetaFile);
+
+          //Set zoom text
+          wsprintfA(buf, "%d%%", nPreviewZoomPercent);
+          SetWindowTextA(hWndZoomEdit, buf);
+        }
+      }
+      EndPaint(hWnd, &ps);
+    }
+  }
+  else if (uMsg == WM_SIZE)
+  {
+    if (lParam)
+    {
+      PreviewScrollUpdate(hWnd);
+    }
+  }
+  else if (uMsg == WM_HSCROLL)
+  {
+    return PreviewHScroll(hWnd, LOWORD(wParam));
+  }
+  else if (uMsg == WM_VSCROLL)
+  {
+    return PreviewVScroll(hWnd, LOWORD(wParam));
+  }
+  else if (uMsg == WM_LBUTTONDBLCLK)
+  {
+    if (nPreviewZoomPercent == 100)
+      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, (WPARAM)PREVIEW_ZOOMFIT, 0);
+    else
+      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, 100, 0);
+  }
+  return DefWindowProcA(hWnd, uMsg, wParam, lParam);
+}
+
+LRESULT CALLBACK PreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_PAINT)
+  {
+    PAINTSTRUCT ps;
+
+    if (BeginPaint(hWnd, &ps))
+    {
+      if (ps.rcPaint.right - ps.rcPaint.left > 0 &&
+          ps.rcPaint.bottom - ps.rcPaint.top > 0)
+      {
+        PRINTPAGE *lpElement;
+        HENHMETAFILE hMetaFile;
+        HDC hMetaDC;
+        RECT rcMeta;
+
+        if ((bPreviewSelection == FALSE && !StackGetElement((stack *)hPreviewAllPagesStack.first, (stack *)hPreviewAllPagesStack.last, (stack **)&lpElement, nPreviewPageCur)) ||
+            (bPreviewSelection == TRUE && !StackGetElement((stack *)hPreviewSelPagesStack.first, (stack *)hPreviewSelPagesStack.last, (stack **)&lpElement, nPreviewPageCur)))
+        {
+          //Create the EMF in memory
+          rcMeta.left=0;
+          rcMeta.top=0;
+          rcMeta.right=GetDeviceCaps(pdW.hDC, HORZSIZE) * 100;
+          rcMeta.bottom=GetDeviceCaps(pdW.hDC, VERTSIZE) * 100;
+          hMetaDC=CreateEnhMetaFileW(pdW.hDC, NULL, &rcMeta, NULL);
+
+          //Print page on metafile device
+          prn.hPrinterDC=hMetaDC;
+          prn.crText=lpElement->crText;
+          PrintDocumentW(hWndPreviewEdit, &prn, PRN_RANGE|PRN_ONEPAGE, nPreviewPageCur - 1);
+          hMetaFile=CloseEnhMetaFile(hMetaDC);
+
+          //Draw page on window
+          PreviewPaint(hWnd, ps.hdc, hMetaFile);
+          DeleteEnhMetaFile(hMetaFile);
+
+          //Set zoom text
+          wsprintfW(wbuf, L"%d%%", nPreviewZoomPercent);
+          SetWindowTextW(hWndZoomEdit, wbuf);
+        }
+      }
+      EndPaint(hWnd, &ps);
+    }
+  }
+  else if (uMsg == WM_SIZE)
+  {
+    if (lParam)
+    {
+      PreviewScrollUpdate(hWnd);
+    }
+  }
+  else if (uMsg == WM_HSCROLL)
+  {
+    return PreviewHScroll(hWnd, LOWORD(wParam));
+  }
+  else if (uMsg == WM_VSCROLL)
+  {
+    return PreviewVScroll(hWnd, LOWORD(wParam));
+  }
+  else if (uMsg == WM_LBUTTONDBLCLK)
+  {
+    if (nPreviewZoomPercent == 100)
+      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, (WPARAM)PREVIEW_ZOOMFIT, 0);
+    else
+      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, 100, 0);
+  }
+  return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+}
+
+void PreviewPaint(HWND hWnd, HDC hPaintDC, HENHMETAFILE hMetaFile)
+{
+  HDC hBufferDC;
+  HBITMAP hBitmap;
+  HBITMAP hBitmapOld=NULL;
+  HBRUSH hBrush;
+  RECT rcPreviewIn;
+  RECT rcPreviewClient;
+  RECT rcPaperFrame;
+  SIZE sizePreview;
+
+  //Paper rect
+  rcPreviewZoomed=rcPreviewPaper;
+
+  //Zooming
+  if (nPreviewZoomPercent == PREVIEW_ZOOMFIT)
+  {
+    FitInside(RectW(&rcPreviewZoomed), RectH(&rcPreviewZoomed), RectW(&rcPreviewWindow) - rcPreviewPaper.left * 2, RectH(&rcPreviewWindow) - rcPreviewPaper.top * 2, &sizePreview);
+    nPreviewZoomPercent=sizePreview.cx * 100 / RectW(&rcPreviewPaper);
+  }
+  else if (nPreviewZoomPercent == PREVIEW_ZOOMWIDTH)
+  {
+    nPreviewZoomPercent=(RectW(&rcPreviewWindow) - rcPreviewPaper.left * 2 - GetSystemMetrics(SM_CXVSCROLL)) * 100 / RectW(&rcPreviewPaper);
+  }
+  rcPreviewZoomed.right=rcPreviewZoomed.left + MulDiv(RectW(&rcPreviewZoomed), nPreviewZoomPercent, 100);
+  rcPreviewZoomed.bottom=rcPreviewZoomed.top + MulDiv(RectH(&rcPreviewZoomed), nPreviewZoomPercent, 100);
+
+  //Update scroll
+  PreviewScrollUpdate(hWnd);
+  PreviewScrollUpdate(hWnd); //Client rect can be changed.
+  rcPreviewZoomed.left-=ptPreviewScroll.x;
+  rcPreviewZoomed.top-=ptPreviewScroll.y;
+  rcPreviewZoomed.right-=ptPreviewScroll.x;
+  rcPreviewZoomed.bottom-=ptPreviewScroll.y;
+
+  //Create compatible DC to avoid flicking
+  hBufferDC=CreateCompatibleDC(hPaintDC);
+  hBitmap=CreateCompatibleBitmap(hPaintDC, RectW(&rcPreviewWindow), RectH(&rcPreviewWindow));
+  hBitmapOld=(HBITMAP)SelectObject(hBufferDC, hBitmap);
+
+  //Erase preview window contents
+  GetClientRect(hWnd, &rcPreviewClient);
+  FillRect(hBufferDC, &rcPreviewClient, (HBRUSH)(COLOR_BTNFACE + 1));
+
+  //Set margins color
+  if (hBrush=CreateSolidBrush(RGB(0xE0, 0xE0, 0xE0)))
+  {
+    FillRect(hBufferDC, &rcPreviewZoomed, hBrush);
+    DeleteObject(hBrush);
+  }
+
+  //Paper frame
+  rcPaperFrame.left=rcPreviewZoomed.left - 1;
+  rcPaperFrame.top=rcPreviewZoomed.top - 1;
+  rcPaperFrame.right=rcPreviewZoomed.right + 1;
+  rcPaperFrame.bottom=rcPreviewZoomed.bottom + 1;
+  FrameRect(hBufferDC, &rcPaperFrame, (HBRUSH)GetStockObject(BLACK_BRUSH));
+
+  //Draw area
+  if (bPrintHeaderEnable)
+    prn.rcPageIn.top-=prn.nCharHeight;
+  if (bPrintFooterEnable)
+    prn.rcPageIn.bottom+=prn.nCharHeight;
+  rcPreviewIn.left=rcPreviewZoomed.left + MulDiv(RectW(&rcPreviewZoomed), prn.rcPageIn.left - prn.rcPageFull.left, RectW(&prn.rcPageFull));
+  rcPreviewIn.top=rcPreviewZoomed.top + MulDiv(RectH(&rcPreviewZoomed), prn.rcPageIn.top - prn.rcPageFull.top, RectH(&prn.rcPageFull));
+  rcPreviewIn.right=rcPreviewIn.left + MulDiv(RectW(&rcPreviewZoomed), RectW(&prn.rcPageIn), RectW(&prn.rcPageFull));
+  rcPreviewIn.bottom=rcPreviewIn.top + MulDiv(RectH(&rcPreviewZoomed), RectH(&prn.rcPageIn), RectH(&prn.rcPageFull));
+
+  //Get character size
+  nPreviewAveCharWidth=MulDiv(RectW(&rcPreviewZoomed), prn.nAveCharWidth, RectW(&prn.rcPageFull));
+  nPreviewCharHeight=MulDiv(RectW(&rcPreviewZoomed), prn.nCharHeight, RectW(&prn.rcPageFull));
+
+  //Set draw area color
+  if (hBrush=CreateSolidBrush(RGB(0xFF, 0xFF, 0xFF)))
+  {
+    FillRect(hBufferDC, &rcPreviewIn, hBrush);
+    DeleteObject(hBrush);
+  }
+
+  //Draw text
+  PlayEnhMetaFile(hBufferDC, hMetaFile, &rcPreviewZoomed);
+
+  //Transfer image
+  BitBlt(hPaintDC, 0, 0, RectW(&rcPreviewWindow), RectH(&rcPreviewWindow), hBufferDC, 0, 0, SRCCOPY);
+
+  //Clean up
+  if (hBitmapOld) SelectObject(hBufferDC, hBitmapOld);
+  DeleteObject(hBitmap);
+  DeleteDC(hBufferDC);
+}
+
+int PreviewHScroll(HWND hWnd, int nAction)
+{
+  SCROLLINFO si;
+
+  si.cbSize=sizeof(SCROLLINFO);
+  si.fMask=SIF_ALL;
+  GetScrollInfo(hWnd, SB_HORZ, &si);
+
+  if (nAction == SB_LEFT)
+  {
+    si.nPos=si.nMin;
+  }
+  else if (nAction == SB_RIGHT)
+  {
+    si.nPos=si.nMax;
+  }
+  else if (nAction == SB_LINELEFT)
+  {
+    si.nPos-=nPreviewAveCharWidth;
+  }
+  else if (nAction == SB_LINERIGHT)
+  {
+    si.nPos+=nPreviewAveCharWidth;
+  }
+  else if (nAction == SB_PAGELEFT)
+  {
+    si.nPos-=si.nPage;
+  }
+  else if (nAction == SB_PAGERIGHT)
+  {
+    si.nPos+=si.nPage;
+  }
+  else if (nAction == SB_THUMBTRACK)
+  {
+    si.nPos=si.nTrackPos;
+  }
+  else if (nAction == SB_THUMBPOSITION)
+  {
+  }
+  si.fMask=SIF_POS;
+  SetScrollInfo(hWnd, SB_HORZ, &si, TRUE);
+  si.fMask=SIF_POS;
+  GetScrollInfo(hWnd, SB_HORZ, &si);
+
+  ptPreviewScroll.x=si.nPos;
+  InvalidateRect(hWnd, NULL, FALSE);
+  return 0;
+}
+
+int PreviewVScroll(HWND hWnd, int nAction)
+{
+  SCROLLINFO si;
+
+  si.cbSize=sizeof(SCROLLINFO);
+  si.fMask=SIF_ALL;
+  GetScrollInfo(hWnd, SB_VERT, &si);
+
+  if (nAction == SB_TOP)
+  {
+    si.nPos=si.nMin;
+  }
+  else if (nAction == SB_BOTTOM)
+  {
+    si.nPos=si.nMax;
+  }
+  else if (nAction == SB_LINEUP)
+  {
+    si.nPos-=nPreviewCharHeight;
+  }
+  else if (nAction == SB_LINEDOWN)
+  {
+    si.nPos+=nPreviewCharHeight;
+  }
+  else if (nAction == SB_PAGEUP)
+  {
+    si.nPos-=si.nPage;
+  }
+  else if (nAction == SB_PAGEDOWN)
+  {
+    si.nPos+=si.nPage;
+  }
+  else if (nAction == SB_THUMBTRACK)
+  {
+    si.nPos=si.nTrackPos;
+  }
+  else if (nAction == SB_THUMBPOSITION)
+  {
+  }
+  si.fMask=SIF_POS;
+  SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
+  si.fMask=SIF_POS;
+  GetScrollInfo(hWnd, SB_VERT, &si);
+
+  ptPreviewScroll.y=si.nPos;
+  InvalidateRect(hWnd, NULL, FALSE);
+  return 0;
+}
+
+void PreviewScrollUpdate(HWND hWnd)
+{
+  SCROLLINFO si;
+  RECT rcPreviewClient;
+  int nHorzMax;
+  int nVertMax;
+
+  if (rcPreviewZoomed.right && rcPreviewZoomed.bottom)
+  {
+    nHorzMax=RectW(&rcPreviewZoomed) + rcPreviewPaper.left * 2;
+    nVertMax=RectH(&rcPreviewZoomed) + rcPreviewPaper.top * 2;
+    GetClientRect(hWnd, &rcPreviewClient);
+
+    si.cbSize=sizeof(SCROLLINFO);
+    si.fMask=SIF_ALL;
+    GetScrollInfo(hWnd, SB_HORZ, &si);
+
+    if (si.nMax != nHorzMax ||
+        si.nPage != (DWORD)rcPreviewClient.right)
+    {
+      si.fMask=SIF_RANGE|SIF_PAGE;
+      si.nMin=0;
+      si.nMax=nHorzMax;
+      si.nPage=rcPreviewClient.right;
+      SetScrollInfo(hWnd, SB_HORZ, &si, TRUE);
+
+      si.fMask=SIF_POS;
+      GetScrollInfo(hWnd, SB_HORZ, &si);
+
+      ptPreviewScroll.x=si.nPos;
+    }
+
+    si.cbSize=sizeof(SCROLLINFO);
+    si.fMask=SIF_ALL;
+    GetScrollInfo(hWnd, SB_VERT, &si);
+
+    if (si.nMax != nVertMax ||
+        si.nPage != (DWORD)rcPreviewClient.bottom)
+    {
+      si.cbSize=sizeof(SCROLLINFO);
+      si.fMask=SIF_RANGE|SIF_PAGE;
+      si.nMin=0;
+      si.nMax=nVertMax;
+      si.nPage=rcPreviewClient.bottom;
+      SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
+
+      si.fMask=SIF_POS;
+      GetScrollInfo(hWnd, SB_VERT, &si);
+
+      ptPreviewScroll.y=si.nPos;
+    }
+  }
+}
+
+BOOL FitInside(int nWidth, int nHeight, int nMaxWidth, int nMaxHeight, SIZE *s)
+{
+  s->cx=nMaxHeight * nWidth / nHeight;
+  s->cy=nMaxWidth * nHeight / nWidth;
+
+  if (s->cx <= nMaxWidth)
+  {
+    s->cy=s->cx * nHeight / nWidth; //portrait
+    return TRUE;
+  }
+  else
+  {
+    s->cx=s->cy * nWidth / nHeight; //portrait
+    return FALSE;
+  }
+}
+
+int RectW(const RECT *rc)
+{
+  return rc->right - rc->left;
+}
+
+int RectH(const RECT *rc)
+{
+  return rc->bottom - rc->top;
+}
+
 
 //// Code pages
 
 unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCP;
-  static HWND hWndPreview;
+  static HWND hWndFilePreview;
   static HWND hWndAutodetect;
   static HWND hDlgEdit;
   static RECT rcDlg;
   static RECT rcCodePage;
   static RECT rcAutodetect;
-  static RECT rcPreview;
+  static RECT rcFilePreview;
   static char szFile[MAX_PATH];
   static int nCodePage;
   static BOOL bBOM;
@@ -6445,7 +7718,7 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
   {
     if (bMDI) hDlgEdit=GetDlgItem(GetParent(hDlg), IDC_OFN_EDIT);
     hWndCP=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
-    hWndPreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
+    hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
     nCodePage=nCurrentCodePage;
@@ -6455,11 +7728,11 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     GetWindowPos(hDlg, NULL, &rcDlg);
     GetWindowPos(hWndCP, hDlg, &rcCodePage);
     GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
-    GetWindowPos(hWndPreview, hDlg, &rcPreview);
+    GetWindowPos(hWndFilePreview, hDlg, &rcFilePreview);
 
     if (bSaveDlg)
     {
-      SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcPreview.top, SWP_NOMOVE|SWP_NOZORDER);
+      SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcFilePreview.top, SWP_NOMOVE|SWP_NOZORDER);
       SetWindowTextA(hWndAutodetect, "&BOM");
 
       if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE || nCodePage == CP_UNICODE_UTF8)
@@ -6480,12 +7753,12 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bAutodetect, 0);
       EnableWindow(hWndCP, !bAutodetect);
     }
-    SendMessage(hWndPreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-    SetTabStops(hWndPreview, nTabStopSize, FALSE);
-    SetChosenFontA(hWndPreview, &lfEditFontA, FALSE);
+    SendMessage(hWndFilePreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
+    SetTabStops(hWndFilePreview, nTabStopSize, FALSE);
+    SetChosenFontA(hWndFilePreview, &lfEditFontA, FALSE);
 
-    OldPreviewProc=(WNDPROC)GetWindowLongA(hWndPreview, GWL_WNDPROC);
-    SetWindowLongA(hWndPreview, GWL_WNDPROC, (LONG)NewPreviewProcA);
+    OldFilePreviewProc=(WNDPROC)GetWindowLongA(hWndFilePreview, GWL_WNDPROC);
+    SetWindowLongA(hWndFilePreview, GWL_WNDPROC, (LONG)NewFilePreviewProcA);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -6501,16 +7774,16 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
     rcCodePage.right+=x;
     rcAutodetect.left+=x;
-    rcPreview.right+=x;
+    rcFilePreview.right+=x;
 
     SetWindowPos(hWndCP, 0, 0, 0, rcCodePage.right, rcCodePage.bottom, SWP_NOMOVE|SWP_NOZORDER);
     SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-    SetWindowPos(hWndPreview, 0, 0, 0, rcPreview.right, rcPreview.bottom, SWP_NOMOVE|SWP_NOZORDER);
+    SetWindowPos(hWndFilePreview, 0, 0, 0, rcFilePreview.right, rcFilePreview.bottom, SWP_NOMOVE|SWP_NOZORDER);
     return 0;
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
-    if ((HWND)wParam == hWndPreview)
+    if ((HWND)wParam == hWndFilePreview)
     {
       RECT rcRect;
       POINT pt;
@@ -6577,14 +7850,14 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
         SendMessageA(((OFNOTIFY*)lParam)->hdr.hwndFrom, CDM_GETFILEPATH, (LPARAM)MAX_PATH, (WPARAM)szFile);
 
-        if (FilePreviewA(hWndPreview, szFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewA(hWndFilePreview, szFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
+          EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepageA(hWndCP, nDefaultCodePage);
-          SetWindowTextA(hWndPreview, "");
+          SetWindowTextA(hWndFilePreview, "");
           return TRUE;
         }
-        EnableWindow(hWndPreview, TRUE);
+        EnableWindow(hWndFilePreview, TRUE);
         if (bAutodetect) SelectComboboxCodepageA(hWndCP, nCodePage);
       }
     }
@@ -6610,12 +7883,12 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       }
       else
       {
-        if (FilePreviewA(hWndPreview, szFile, PREVIEW_SIZE, OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewA(hWndFilePreview, szFile, PREVIEW_SIZE, OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
-          SetWindowTextA(hWndPreview, "");
+          EnableWindow(hWndFilePreview, FALSE);
+          SetWindowTextA(hWndFilePreview, "");
         }
-        else EnableWindow(hWndPreview, TRUE);
+        else EnableWindow(hWndFilePreview, TRUE);
       }
       return TRUE;
     }
@@ -6627,14 +7900,14 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
         EnableWindow(hWndCP, !bAutodetect);
         nCodePage=GetComboboxCodepageA(hWndCP);
 
-        if (FilePreviewA(hWndPreview, szFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewA(hWndFilePreview, szFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
+          EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepageA(hWndCP, nDefaultCodePage);
-          SetWindowTextA(hWndPreview, "");
+          SetWindowTextA(hWndFilePreview, "");
           return TRUE;
         }
-        EnableWindow(hWndPreview, TRUE);
+        EnableWindow(hWndFilePreview, TRUE);
         if (bAutodetect) SelectComboboxCodepageA(hWndCP, nCodePage);
       }
       return TRUE;
@@ -6644,23 +7917,22 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
   {
     HFONT hFont;
 
-    if (hFont=(HFONT)SendMessage(hWndPreview, WM_GETFONT, 0, 0))
+    if (hFont=(HFONT)SendMessage(hWndFilePreview, WM_GETFONT, 0, 0))
       DeleteObject(hFont);
   }
-
   return FALSE;
 }
 
 unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCP;
-  static HWND hWndPreview;
+  static HWND hWndFilePreview;
   static HWND hWndAutodetect;
   static HWND hDlgEdit;
   static RECT rcDlg;
   static RECT rcCodePage;
   static RECT rcAutodetect;
-  static RECT rcPreview;
+  static RECT rcFilePreview;
   static wchar_t wszFile[MAX_PATH];
   static int nCodePage;
   static BOOL bBOM;
@@ -6670,7 +7942,7 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
   {
     if (bMDI) hDlgEdit=GetDlgItem(GetParent(hDlg), IDC_OFN_EDIT);
     hWndCP=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
-    hWndPreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
+    hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
     nCodePage=nCurrentCodePage;
@@ -6680,11 +7952,11 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     GetWindowPos(hDlg, NULL, &rcDlg);
     GetWindowPos(hWndCP, hDlg, &rcCodePage);
     GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
-    GetWindowPos(hWndPreview, hDlg, &rcPreview);
+    GetWindowPos(hWndFilePreview, hDlg, &rcFilePreview);
 
     if (bSaveDlg)
     {
-      SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcPreview.top, SWP_NOMOVE|SWP_NOZORDER);
+      SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcFilePreview.top, SWP_NOMOVE|SWP_NOZORDER);
       SetWindowTextW(hWndAutodetect, L"&BOM");
 
       if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE || nCodePage == CP_UNICODE_UTF8)
@@ -6705,12 +7977,12 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bAutodetect, 0);
       EnableWindow(hWndCP, !bAutodetect);
     }
-    SendMessage(hWndPreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-    SetTabStops(hWndPreview, nTabStopSize, FALSE);
-    SetChosenFontW(hWndPreview, &lfEditFontW, FALSE);
+    SendMessage(hWndFilePreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
+    SetTabStops(hWndFilePreview, nTabStopSize, FALSE);
+    SetChosenFontW(hWndFilePreview, &lfEditFontW, FALSE);
 
-    OldPreviewProc=(WNDPROC)GetWindowLongW(hWndPreview, GWL_WNDPROC);
-    SetWindowLongW(hWndPreview, GWL_WNDPROC, (LONG)NewPreviewProcW);
+    OldFilePreviewProc=(WNDPROC)GetWindowLongW(hWndFilePreview, GWL_WNDPROC);
+    SetWindowLongW(hWndFilePreview, GWL_WNDPROC, (LONG)NewFilePreviewProcW);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -6726,16 +7998,16 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
     rcCodePage.right+=x;
     rcAutodetect.left+=x;
-    rcPreview.right+=x;
+    rcFilePreview.right+=x;
 
     SetWindowPos(hWndCP, 0, 0, 0, rcCodePage.right, rcCodePage.bottom, SWP_NOMOVE|SWP_NOZORDER);
     SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-    SetWindowPos(hWndPreview, 0, 0, 0, rcPreview.right, rcPreview.bottom, SWP_NOMOVE|SWP_NOZORDER);
+    SetWindowPos(hWndFilePreview, 0, 0, 0, rcFilePreview.right, rcFilePreview.bottom, SWP_NOMOVE|SWP_NOZORDER);
     return 0;
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
-    if ((HWND)wParam == hWndPreview)
+    if ((HWND)wParam == hWndFilePreview)
     {
       RECT rcRect;
       POINT pt;
@@ -6802,14 +8074,14 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
         SendMessageW(((OFNOTIFY*)lParam)->hdr.hwndFrom, CDM_GETFILEPATH, (LPARAM)MAX_PATH, (WPARAM)wszFile);
 
-        if (FilePreviewW(hWndPreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewW(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
+          EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepageW(hWndCP, nDefaultCodePage);
-          SetWindowTextW(hWndPreview, L"");
+          SetWindowTextW(hWndFilePreview, L"");
           return TRUE;
         }
-        EnableWindow(hWndPreview, TRUE);
+        EnableWindow(hWndFilePreview, TRUE);
         if (bAutodetect) SelectComboboxCodepageW(hWndCP, nCodePage);
       }
     }
@@ -6835,12 +8107,12 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       }
       else
       {
-        if (FilePreviewW(hWndPreview, wszFile, PREVIEW_SIZE, OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewW(hWndFilePreview, wszFile, PREVIEW_SIZE, OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
-          SetWindowTextW(hWndPreview, L"");
+          EnableWindow(hWndFilePreview, FALSE);
+          SetWindowTextW(hWndFilePreview, L"");
         }
-        else EnableWindow(hWndPreview, TRUE);
+        else EnableWindow(hWndFilePreview, TRUE);
       }
       return TRUE;
     }
@@ -6852,14 +8124,14 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
         EnableWindow(hWndCP, !bAutodetect);
         nCodePage=GetComboboxCodepageW(hWndCP);
 
-        if (FilePreviewW(hWndPreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewW(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
+          EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepageW(hWndCP, nDefaultCodePage);
-          SetWindowTextW(hWndPreview, L"");
+          SetWindowTextW(hWndFilePreview, L"");
           return TRUE;
         }
-        EnableWindow(hWndPreview, TRUE);
+        EnableWindow(hWndFilePreview, TRUE);
         if (bAutodetect) SelectComboboxCodepageW(hWndCP, nCodePage);
       }
       return TRUE;
@@ -6869,14 +8141,13 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
   {
     HFONT hFont;
 
-    if (hFont=(HFONT)SendMessage(hWndPreview, WM_GETFONT, 0, 0))
+    if (hFont=(HFONT)SendMessage(hWndFilePreview, WM_GETFONT, 0, 0))
       DeleteObject(hFont);
   }
-
   return FALSE;
 }
 
-LRESULT CALLBACK NewPreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK NewFilePreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_KEYDOWN)
   {
@@ -6886,10 +8157,10 @@ LRESULT CALLBACK NewPreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       return TRUE;
     }
   }
-  return CallWindowProcA(OldPreviewProc, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcA(OldFilePreviewProc, hWnd, uMsg, wParam, lParam);
 }
 
-LRESULT CALLBACK NewPreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK NewFilePreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_KEYDOWN)
   {
@@ -6899,7 +8170,7 @@ LRESULT CALLBACK NewPreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       return TRUE;
     }
   }
-  return CallWindowProcW(OldPreviewProc, hWnd, uMsg, wParam, lParam);
+  return CallWindowProcW(OldFilePreviewProc, hWnd, uMsg, wParam, lParam);
 }
 
 void FillComboboxCodepageA(HWND hWnd, int *lpCodepageList)
@@ -12902,9 +14173,9 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
   {
     MSG *msg=(MSG *)lParam;
 
-    if (hWndHotkey && hWndHotkey == msg->hwnd)
+    if (msg->message >= WM_KEYFIRST && msg->message <= WM_KEYLAST)
     {
-      if (msg->message >= WM_KEYFIRST && msg->message <= WM_KEYLAST)
+      if (hWndHotkey && hWndHotkey == msg->hwnd)
       {
         if (msg->wParam == VK_SPACE ||
             msg->wParam == VK_RETURN ||
@@ -12924,6 +14195,19 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
           }
           msg->message=WM_NULL;
         }
+      }
+    }
+    if (hWndPreviewDlg)
+    {
+      if (msg->message == WM_KEYDOWN)
+      {
+        if (SendMessage(hWndPreviewDlg, AKDLG_PREVIEWKEYDOWN, msg->wParam, (LPARAM)msg->hwnd))
+          msg->message=WM_NULL;
+      }
+      else if (msg->message == WM_MOUSEWHEEL)
+      {
+        if (SendMessage(hWndPreviewDlg, AKDLG_PREVIEWMOUSEWHEEL, msg->wParam, (LPARAM)msg->hwnd))
+          msg->message=WM_NULL;
       }
     }
   }

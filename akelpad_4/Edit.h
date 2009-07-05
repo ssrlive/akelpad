@@ -8,12 +8,14 @@
 #define APP_MAIN_CLASSW             L"AkelPad4"
 #define APP_MAIN_TITLEA              "AkelPad"
 #define APP_MAIN_TITLEW             L"AkelPad"
-#define APP_SDI_CLASSA               "AkelPad SDI Class"
-#define APP_SDI_CLASSW              L"AkelPad SDI Class"
 #define APP_SDI_TITLEA               ""
 #define APP_SDI_TITLEW              L""
+#define APP_SDI_CLASSA               "AkelPad SDI Class"
+#define APP_SDI_CLASSW              L"AkelPad SDI Class"
 #define APP_MDI_CLASSA               "AkelPad MDI Class"
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
+#define APP_PRINTPREVIEW_CLASSA      "AkelPad Print Preview"
+#define APP_PRINTPREVIEW_CLASSW     L"AkelPad Print Preview"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
 #define APP_ABOUT_VERSIONA           "AkelPad 4.2.5"
@@ -96,11 +98,33 @@
 #define MENU_OPTIONS_POSITION           3
 #define MENU_MDI_POSITION               4
 #define MENU_ABOUT_POSITION             5
-#define MENU_FILE_RECENTFILES_POSITION  11
+#define MENU_FILE_RECENTFILES_POSITION  12
 #define MENU_VIEW_LANGUAGE_POSITION     8
 
 //Open file dialog
-#define IDC_OFN_EDIT                   1152
+#define IDC_OFN_EDIT           1152
+
+//Combobox edit ID
+#define IDC_COMBOBOXEDIT       1001
+
+//Print preview dialog notifications
+#define AKDLG_PREVIEWKEYDOWN           (WM_USER + 100) //lParam - WM_KEYDOWN's lParam, wParam - control handle.
+#define AKDLG_PREVIEWMOUSEWHEEL        (WM_USER + 151) //lParam - WM_MOUSEWHEEL's lParam, wParam - control handle.
+#define AKDLG_PREVIEWSETZOOM           (WM_USER + 152) //
+#define AKDLG_PREVIEWSETPAGE           (WM_USER + 153) //
+
+//PrintDocument flags
+#define PRN_REALPRINT          0x01  //Real printing
+#define PRN_PREVIEW            0x02  //Get preview information
+#define PRN_ONEPAGE            0x04  //Print only one page
+#define PRN_ALLTEXT            0x08  //Process all text, prn->crText member input ignored
+#define PRN_SELECTION          0x10  //Process selection, prn->crText member input ignored
+#define PRN_RANGE              0x20  //Process text range pointed with prn->crText member
+#define PRN_ANSI               0x40  //Ansi output
+
+//Print preview zoom
+#define PREVIEW_ZOOMFIT        -1
+#define PREVIEW_ZOOMWIDTH      -2
 
 //Print page setup dialog
 #define IDC_PSD_PRINTER_BUTTON         1026
@@ -273,6 +297,12 @@ typedef struct _FILESTREAMDATA {
   BOOL bResult;
 } FILESTREAMDATA;
 
+typedef struct _PRINTPAGE {
+  struct _PRINTPAGE *next;
+  struct _PRINTPAGE *prev;
+  AECHARRANGE crText;
+} PRINTPAGE;
+
 typedef struct _COLORTHEMEA {
   struct _COLORTHEMEA *next;
   struct _COLORTHEMEA *prev;
@@ -371,10 +401,12 @@ BOOL DoFileSaveA();
 BOOL DoFileSaveW();
 BOOL DoFileSaveAsA();
 BOOL DoFileSaveAsW();
-BOOL DoFilePageSetupA();
-BOOL DoFilePageSetupW();
-BOOL DoFilePrintA(BOOL bSilent);
-BOOL DoFilePrintW(BOOL bSilent);
+BOOL DoFilePageSetupA(HWND hWndOwner);
+BOOL DoFilePageSetupW(HWND hWndOwner);
+int DoFilePrintA(HWND hWnd, BOOL bSilent);
+int DoFilePrintW(HWND hWnd, BOOL bSilent);
+void DoFilePreviewA();
+void DoFilePreviewW();
 BOOL DoFileExitA();
 BOOL DoFileExitW();
 void DoEditUndo(HWND hWnd);
@@ -484,13 +516,30 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
 unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetPrinterDCA(PRINTDLGA *pdA);
 void GetPrinterDCW(PRINTDLGW *pdW);
+int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage);
+int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage);
 BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber);
 BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber);
+BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL PreviewInitA(HWND hWndSelection);
+BOOL PreviewInitW(HWND hWndSelection);
+void PreviewUninitA();
+void PreviewUninitW();
+LRESULT CALLBACK PreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK PreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void PreviewPaint(HWND hWnd, HDC hPaintDC, HENHMETAFILE hMetaFile);
+int PreviewHScroll(HWND hWnd, int nAction);
+int PreviewVScroll(HWND hWnd, int nAction);
+void PreviewScrollUpdate(HWND hWnd);
+BOOL FitInside(int nWidth, int nHeight, int nMaxWidth, int nMaxHeight, SIZE *s);
+int RectW(const RECT *rc);
+int RectH(const RECT *rc);
 
 unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK NewPreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK NewPreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK NewFilePreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK NewFilePreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxCodepageA(HWND hWnd, int *lpCodepageList);
 void FillComboboxCodepageW(HWND hWnd, int *lpCodepageList);
 void FillListboxCodepageA(HWND hWnd, int *lpCodepageList);
