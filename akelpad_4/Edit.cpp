@@ -879,7 +879,7 @@ BOOL DoFilePageSetupW(HWND hWndOwner)
 
 int DoFilePrintA(HWND hWnd, BOOL bSilent)
 {
-  int nResult;
+  int nResult=0;
 
   //Set print dialog settings
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -917,7 +917,7 @@ int DoFilePrintA(HWND hWnd, BOOL bSilent)
 
 int DoFilePrintW(HWND hWnd, BOOL bSilent)
 {
-  int nResult;
+  int nResult=0;
 
   //Set print dialog settings
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -953,16 +953,16 @@ int DoFilePrintW(HWND hWnd, BOOL bSilent)
   return nResult;
 }
 
-void DoFilePreviewA()
+void DoFilePreviewA(HWND hWnd)
 {
-  hWndPreviewEdit=hWndEdit;
+  hWndPreviewEdit=hWnd;
   API_DialogBoxA(hLangLib, MAKEINTRESOURCEA(IDD_PRINTPREVIEW), hMainWnd, (DLGPROC)PreviewDlgProcA);
   hWndPreviewEdit=NULL;
 }
 
-void DoFilePreviewW()
+void DoFilePreviewW(HWND hWnd)
 {
-  hWndPreviewEdit=hWndEdit;
+  hWndPreviewEdit=hWnd;
   API_DialogBoxW(hLangLib, MAKEINTRESOURCEW(IDD_PRINTPREVIEW), hMainWnd, (DLGPROC)PreviewDlgProcW);
   hWndPreviewEdit=NULL;
 }
