@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 0, 3, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 0, 4, 0)
 
 
 //// Defines
@@ -661,8 +661,8 @@ typedef struct _NSIZE {
 #define IDM_FILE_PAGESETUP              4107  //Print setup dialog
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_FILE_PRINT                  4108  //Print dialog
-                                              //Return Value: TRUE - success, FALSE - failed
+#define IDM_FILE_PRINT                  4108  //Print dialog. lParam can be used to pass edit window handle.
+                                              //Return Value: number of printed pages
                                               //
 #define IDM_FILE_EXIT                   4109  //Exit program
                                               //Return Value: zero
@@ -676,10 +676,10 @@ typedef struct _NSIZE {
 #define IDM_FILE_CLOSEALL_BUTACTIVE     4112  //Close all documents, but active
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_FILE_SILENTPRINT            4113  //Print without dialog
-                                              //Return Value: TRUE - success, FALSE - failed
+#define IDM_FILE_SILENTPRINT            4113  //Print without dialog. lParam can be used to pass edit window handle.
+                                              //Return Value: number of printed pages
                                               //
-#define IDM_FILE_PRINTPREVIEW           4114  //Print preview dialog
+#define IDM_FILE_PRINTPREVIEW           4114  //Print preview dialog. lParam can be used to pass edit window handle.
                                               //Return Value: zero
                                               //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation
