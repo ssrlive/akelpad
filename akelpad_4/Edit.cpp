@@ -6612,44 +6612,44 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndZoom=GetDlgItem(hDlg, IDC_PREVIEW_ZOOM);
     hWndZoomEdit=GetDlgItem(hWndZoom, IDC_COMBOBOXEDIT);
     hWndSelection=GetDlgItem(hDlg, IDC_PREVIEW_SELECTION);
-    hWndPreviewDlg=hDlg;
-
-    //Create preview window
-    {
-      WNDCLASSA wndclass={0};
-
-      wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
-      wndclass.lpfnWndProc  =PreviewProcA;
-      wndclass.cbClsExtra   =0;
-      wndclass.cbWndExtra   =DLGWINDOWEXTRA;
-      wndclass.hInstance    =hInstance;
-      wndclass.hIcon        =NULL;
-      wndclass.hCursor      =LoadCursor(NULL, IDC_ARROW);
-      wndclass.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
-      wndclass.lpszMenuName =NULL;
-      wndclass.lpszClassName=APP_PRINTPREVIEW_CLASSA;
-      RegisterClassA(&wndclass);
-
-      hWndPreview=CreateWindowA(APP_PRINTPREVIEW_CLASSA,
-                                NULL,
-                                WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
-                                0, 0, 0, 0,
-                                hDlg,
-                                (HMENU)IDC_PREVIEW_BOX,
-                                hInstance,
-                                NULL);
-    }
 
     //Initialize
+    hWndPreviewDlg=hDlg;
+    hWndPreview=NULL;
     ptPreviewScroll.x=0;
     ptPreviewScroll.y=0;
     nPreviewZoomPercent=PREVIEW_ZOOMFIT;
     nPreviewPageCur=1;
-    nPreviewAllPageSum=0;
     bPreviewSelection=FALSE;
 
     if (PreviewInitA(hWndSelection))
     {
+      //Create preview window
+      {
+        WNDCLASSA wndclass={0};
+
+        wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+        wndclass.lpfnWndProc  =PreviewProcA;
+        wndclass.cbClsExtra   =0;
+        wndclass.cbWndExtra   =DLGWINDOWEXTRA;
+        wndclass.hInstance    =hInstance;
+        wndclass.hIcon        =NULL;
+        wndclass.hCursor      =LoadCursor(NULL, IDC_ARROW);
+        wndclass.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
+        wndclass.lpszMenuName =NULL;
+        wndclass.lpszClassName=APP_PRINTPREVIEW_CLASSA;
+        RegisterClassA(&wndclass);
+
+        hWndPreview=CreateWindowA(APP_PRINTPREVIEW_CLASSA,
+                                  NULL,
+                                  WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
+                                  0, 0, 0, 0,
+                                  hDlg,
+                                  (HMENU)IDC_PREVIEW_BOX,
+                                  hInstance,
+                                  NULL);
+      }
+
       //Fill zooms
       for (i=0; i <= nPreviewZoomMaxIndex; ++i)
       {
@@ -6660,18 +6660,21 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       SendMessageA(hWndZoom, CB_ADDSTRING, 0, (LPARAM)buf);
       API_LoadStringA(hLangLib, STR_PAGEWIDTH, buf, BUFFER_SIZE);
       SendMessageA(hWndZoom, CB_ADDSTRING, 0, (LPARAM)buf);
-      ShowWindow(hDlg, SW_MAXIMIZE);
 
       hHookKeys=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
     }
+    ShowWindow(hDlg, SW_MAXIMIZE);
   }
   else if (uMsg == WM_SIZE)
   {
     if (lParam)
     {
-      rcPreviewWindow.right=LOWORD(lParam);
-      rcPreviewWindow.bottom=HIWORD(lParam);
-      MoveWindow(hWndPreview, rcPreviewWindow.left, rcPreviewWindow.top, RectW(&rcPreviewWindow), RectH(&rcPreviewWindow), TRUE);
+      if (hWndPreview)
+      {
+        rcPreviewWindow.right=LOWORD(lParam);
+        rcPreviewWindow.bottom=HIWORD(lParam);
+        MoveWindow(hWndPreview, rcPreviewWindow.left, rcPreviewWindow.top, RectW(&rcPreviewWindow), RectH(&rcPreviewWindow), TRUE);
+      }
     }
     return 0;
   }
@@ -6921,44 +6924,44 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndZoom=GetDlgItem(hDlg, IDC_PREVIEW_ZOOM);
     hWndZoomEdit=GetDlgItem(hWndZoom, IDC_COMBOBOXEDIT);
     hWndSelection=GetDlgItem(hDlg, IDC_PREVIEW_SELECTION);
-    hWndPreviewDlg=hDlg;
-
-    //Create preview window
-    {
-      WNDCLASSW wndclass={0};
-
-      wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
-      wndclass.lpfnWndProc  =PreviewProcW;
-      wndclass.cbClsExtra   =0;
-      wndclass.cbWndExtra   =DLGWINDOWEXTRA;
-      wndclass.hInstance    =hInstance;
-      wndclass.hIcon        =NULL;
-      wndclass.hCursor      =LoadCursor(NULL, IDC_ARROW);
-      wndclass.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
-      wndclass.lpszMenuName =NULL;
-      wndclass.lpszClassName=APP_PRINTPREVIEW_CLASSW;
-      RegisterClassW(&wndclass);
-
-      hWndPreview=CreateWindowW(APP_PRINTPREVIEW_CLASSW,
-                                NULL,
-                                WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
-                                0, 0, 0, 0,
-                                hDlg,
-                                (HMENU)IDC_PREVIEW_BOX,
-                                hInstance,
-                                NULL);
-    }
 
     //Initialize
+    hWndPreviewDlg=hDlg;
+    hWndPreview=NULL;
     ptPreviewScroll.x=0;
     ptPreviewScroll.y=0;
     nPreviewZoomPercent=PREVIEW_ZOOMFIT;
     nPreviewPageCur=1;
-    nPreviewAllPageSum=0;
     bPreviewSelection=FALSE;
 
     if (PreviewInitW(hWndSelection))
     {
+      //Create preview window
+      {
+        WNDCLASSW wndclass={0};
+
+        wndclass.style        =CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+        wndclass.lpfnWndProc  =PreviewProcW;
+        wndclass.cbClsExtra   =0;
+        wndclass.cbWndExtra   =DLGWINDOWEXTRA;
+        wndclass.hInstance    =hInstance;
+        wndclass.hIcon        =NULL;
+        wndclass.hCursor      =LoadCursor(NULL, IDC_ARROW);
+        wndclass.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
+        wndclass.lpszMenuName =NULL;
+        wndclass.lpszClassName=APP_PRINTPREVIEW_CLASSW;
+        RegisterClassW(&wndclass);
+
+        hWndPreview=CreateWindowW(APP_PRINTPREVIEW_CLASSW,
+                                  NULL,
+                                  WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
+                                  0, 0, 0, 0,
+                                  hDlg,
+                                  (HMENU)IDC_PREVIEW_BOX,
+                                  hInstance,
+                                  NULL);
+      }
+
       //Fill zooms
       for (i=0; i <= nPreviewZoomMaxIndex; ++i)
       {
@@ -6969,18 +6972,21 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       SendMessageW(hWndZoom, CB_ADDSTRING, 0, (LPARAM)wbuf);
       API_LoadStringW(hLangLib, STR_PAGEWIDTH, wbuf, BUFFER_SIZE);
       SendMessageW(hWndZoom, CB_ADDSTRING, 0, (LPARAM)wbuf);
-      ShowWindow(hDlg, SW_MAXIMIZE);
 
       hHookKeys=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
     }
+    ShowWindow(hDlg, SW_MAXIMIZE);
   }
   else if (uMsg == WM_SIZE)
   {
     if (lParam)
     {
-      rcPreviewWindow.right=LOWORD(lParam);
-      rcPreviewWindow.bottom=HIWORD(lParam);
-      MoveWindow(hWndPreview, rcPreviewWindow.left, rcPreviewWindow.top, RectW(&rcPreviewWindow), RectH(&rcPreviewWindow), TRUE);
+      if (hWndPreview)
+      {
+        rcPreviewWindow.right=LOWORD(lParam);
+        rcPreviewWindow.bottom=HIWORD(lParam);
+        MoveWindow(hWndPreview, rcPreviewWindow.left, rcPreviewWindow.top, RectW(&rcPreviewWindow), RectH(&rcPreviewWindow), TRUE);
+      }
     }
     return 0;
   }
@@ -7214,6 +7220,10 @@ BOOL PreviewInitA(HWND hWndSelection)
 {
   BOOL bResult=FALSE;
 
+  memset(&rcPreviewZoomed, 0, sizeof(RECT));
+  nPreviewAllPageSum=0;
+  nPreviewSelPageSum=0;
+
   //Get printer DC
   if (!pdA.hDC)
   {
@@ -7225,7 +7235,6 @@ BOOL PreviewInitA(HWND hWndSelection)
   if (pdA.hDC)
   {
     //Initialize variables
-    memset(&rcPreviewZoomed, 0, sizeof(RECT));
     prn.hPrinterDC=pdA.hDC;
     nPreviewAllPageSum=PrintDocumentA(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_ALLTEXT, 0);
     nPreviewSelPageSum=PrintDocumentA(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_SELECTION, 0);
@@ -7241,6 +7250,10 @@ BOOL PreviewInitW(HWND hWndSelection)
 {
   BOOL bResult=FALSE;
 
+  memset(&rcPreviewZoomed, 0, sizeof(RECT));
+  nPreviewAllPageSum=0;
+  nPreviewSelPageSum=0;
+
   //Get printer DC
   if (!pdW.hDC)
   {
@@ -7252,7 +7265,6 @@ BOOL PreviewInitW(HWND hWndSelection)
   if (pdW.hDC)
   {
     //Initialize variables
-    memset(&rcPreviewZoomed, 0, sizeof(RECT));
     prn.hPrinterDC=pdW.hDC;
     nPreviewAllPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_ALLTEXT, 0);
     nPreviewSelPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_SELECTION, 0);
