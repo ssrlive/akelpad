@@ -6082,8 +6082,8 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
         ptPrintDpi.y=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY);
 
         //Paper in screen coordinates
-        rcPreviewPaper.left=1;
-        rcPreviewPaper.top=1;
+        rcPreviewPaper.left=2;
+        rcPreviewPaper.top=2;
         rcPreviewPaper.right=rcPreviewPaper.left + MulDiv(ptScreenDpi.x, RectW(&prn->rcPageFull), ptPrintDpi.x);
         rcPreviewPaper.bottom=rcPreviewPaper.top + MulDiv(ptScreenDpi.y, RectH(&prn->rcPageFull), ptPrintDpi.y);
       }
@@ -6253,8 +6253,8 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
         ptPrintDpi.y=GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY);
 
         //Paper in screen coordinates
-        rcPreviewPaper.left=1;
-        rcPreviewPaper.top=1;
+        rcPreviewPaper.left=2;
+        rcPreviewPaper.top=2;
         rcPreviewPaper.right=rcPreviewPaper.left + MulDiv(ptScreenDpi.x, RectW(&prn->rcPageFull), ptPrintDpi.x);
         rcPreviewPaper.bottom=rcPreviewPaper.top + MulDiv(ptScreenDpi.y, RectH(&prn->rcPageFull), ptPrintDpi.y);
       }
@@ -7449,21 +7449,20 @@ void PreviewPaint(HWND hWnd, HDC hPaintDC, HENHMETAFILE hMetaFile)
   RECT rcPaperFrame;
   SIZE sizePreview;
 
-  //Paper rect
-  rcPreviewZoomed=rcPreviewPaper;
-
   //Zooming
   if (nPreviewZoomPercent == PREVIEW_ZOOMFIT)
   {
-    FitInside(RectW(&rcPreviewZoomed), RectH(&rcPreviewZoomed), RectW(&rcPreviewWindow) - rcPreviewPaper.left * 2, RectH(&rcPreviewWindow) - rcPreviewPaper.top * 2, &sizePreview);
+    FitInside(RectW(&rcPreviewPaper), RectH(&rcPreviewPaper), RectW(&rcPreviewWindow) - rcPreviewPaper.left * 2, RectH(&rcPreviewWindow) - rcPreviewPaper.top * 2, &sizePreview);
     nPreviewZoomPercent=sizePreview.cx * 100 / RectW(&rcPreviewPaper);
   }
   else if (nPreviewZoomPercent == PREVIEW_ZOOMWIDTH)
   {
     nPreviewZoomPercent=(RectW(&rcPreviewWindow) - rcPreviewPaper.left * 2 - GetSystemMetrics(SM_CXVSCROLL)) * 100 / RectW(&rcPreviewPaper);
   }
-  rcPreviewZoomed.right=rcPreviewZoomed.left + MulDiv(RectW(&rcPreviewZoomed), nPreviewZoomPercent, 100);
-  rcPreviewZoomed.bottom=rcPreviewZoomed.top + MulDiv(RectH(&rcPreviewZoomed), nPreviewZoomPercent, 100);
+  rcPreviewZoomed.left=rcPreviewPaper.left;
+  rcPreviewZoomed.top=rcPreviewPaper.top;
+  rcPreviewZoomed.right=rcPreviewZoomed.left + MulDiv(RectW(&rcPreviewPaper), nPreviewZoomPercent, 100);
+  rcPreviewZoomed.bottom=rcPreviewZoomed.top + MulDiv(RectH(&rcPreviewPaper), nPreviewZoomPercent, 100);
 
   //Update scroll
   PreviewScrollUpdate(hWnd);
@@ -7636,8 +7635,8 @@ void PreviewScrollUpdate(HWND hWnd)
 
   if (rcPreviewZoomed.right && rcPreviewZoomed.bottom)
   {
-    nHorzMax=RectW(&rcPreviewZoomed) + rcPreviewPaper.left * 2;
-    nVertMax=RectH(&rcPreviewZoomed) + rcPreviewPaper.top * 2;
+    nHorzMax=RectW(&rcPreviewZoomed) + rcPreviewPaper.left * 2 - 1;
+    nVertMax=RectH(&rcPreviewZoomed) + rcPreviewPaper.top * 2 - 1;
     GetClientRect(hWnd, &rcPreviewClient);
 
     si.cbSize=sizeof(SCROLLINFO);
