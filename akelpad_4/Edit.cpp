@@ -274,7 +274,6 @@ extern BOOL bWordWrap;
 extern int nWrapType;
 extern DWORD dwWrapLimit;
 extern DWORD dwMarker;
-extern DWORD dwLineGap;
 extern BOOL bOnTop;
 extern BOOL bStatusBar;
 extern DWORD dwShowModify;
@@ -294,6 +293,7 @@ extern BOOL bDetailedUndo;
 extern BOOL bCaretOutEdge;
 extern BOOL bCaretVertLine;
 extern int nCaretWidth;
+extern DWORD dwLineGap;
 extern BOOL bShowURL;
 extern int nClickURL;
 extern BOOL bUrlPrefixesEnable;
@@ -3133,10 +3133,10 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "WrapType", PO_DWORD, &nWrapType, sizeof(DWORD));
   ReadOptionA(hHandle, "WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
   ReadOptionA(hHandle, "Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
-  ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
+  ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
   ReadOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
@@ -3236,11 +3236,11 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD));
   ReadOptionW(hHandle, L"WrapType", PO_DWORD, &nWrapType, sizeof(DWORD));
   ReadOptionW(hHandle, L"WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
-  ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionW(hHandle, L"Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
+  ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
   ReadOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
@@ -3522,8 +3522,6 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
-    goto Error;
   if (!SaveOptionA(hHandle, "Marker", PO_DWORD, &dwMarker, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD)))
@@ -3531,6 +3529,8 @@ BOOL SaveOptionsA()
   if (!SaveOptionA(hHandle, "CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
@@ -3718,8 +3718,6 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
-    goto Error;
   if (!SaveOptionW(hHandle, L"Marker", PO_DWORD, &dwMarker, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD)))
@@ -3727,6 +3725,8 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
@@ -17471,6 +17471,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
+  static HWND hWndLineGap;
+  static HWND hWndLineGapSpin;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
@@ -17495,6 +17497,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
+    hWndLineGap=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP);
+    hWndLineGapSpin=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP_SPIN);
 
     SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
     SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
@@ -17510,6 +17514,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndMarkerSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndLineGapSpin, UDM_SETBUDDY, (WPARAM)hWndLineGap, 0);
+    SendMessage(hWndLineGapSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 0));
 
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
@@ -17518,6 +17524,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, dwMarker, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
     if (bTabStopAsSpaces)
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
@@ -17621,6 +17628,15 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           pt.x=nCaretWidth;
           SendMessage(hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
         }
+      }
+
+      //Line gap
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
+      if (dwLineGap != a)
+      {
+        dwLineGap=a;
+
+        SendMessage(hWndEdit, AEM_SETLINEGAP, dwLineGap, 0);
       }
     }
   }
@@ -17649,6 +17665,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
+  static HWND hWndLineGap;
+  static HWND hWndLineGapSpin;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
@@ -17673,6 +17691,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
+    hWndLineGap=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP);
+    hWndLineGapSpin=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP_SPIN);
 
     SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
     SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
@@ -17688,6 +17708,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndMarkerSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndLineGapSpin, UDM_SETBUDDY, (WPARAM)hWndLineGap, 0);
+    SendMessage(hWndLineGapSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 0));
 
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
@@ -17696,6 +17718,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, dwMarker, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
     if (bTabStopAsSpaces)
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
@@ -17799,6 +17822,15 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           pt.x=nCaretWidth;
           SendMessage(hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
         }
+      }
+
+      //Line gap
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
+      if (dwLineGap != a)
+      {
+        dwLineGap=a;
+
+        SendMessage(hWndEdit, AEM_SETLINEGAP, dwLineGap, 0);
       }
     }
   }

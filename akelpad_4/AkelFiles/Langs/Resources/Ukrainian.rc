@@ -685,17 +685,22 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
                     102,11,13
-    GROUPBOX        "Каретка",IDC_STATIC,9,130,200,60
+    GROUPBOX        "Каретка",IDC_STATIC,9,128,200,56
     CONTROL         "Дозволити вихід каретки за межі рядків",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,144,185,10
+                    WS_TABSTOP,17,142,185,10
     CONTROL         "Показувати активний стовпчик",IDC_OPTIONS_CARETVERTLINE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,155,185,10
-    RTEXT           "Ширина:",IDC_STATIC,116,172,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,169,21,13,ES_NUMBER
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,153,185,10
+    RTEXT           "Ширина:",IDC_STATIC,116,168,35,8,NOT WS_GROUP
+    EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,165,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
-                    169,11,13
+                    165,11,13
+    GROUPBOX        "Зазор между строк",IDC_STATIC,121,190,87,34
+    EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
+    CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,178,
+                    204,11,13
 END
 
 IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
