@@ -3,6 +3,7 @@ AkelPad 4.2.5 ()
 ----------------------------
 Added: print preview.
 Added: "LineGap" parameter for set line-to-line spacing.
+Added: possibility for set word wrap delimiters.
 Added: messages for printing in AkelEdit.
 Added: possibility to print only specified page or range of pages.
 Added: 4113 command - silent printing.

@@ -294,16 +294,18 @@ extern BOOL bDetailedUndo;
 extern BOOL bCaretOutEdge;
 extern BOOL bCaretVertLine;
 extern int nCaretWidth;
-extern wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
-extern BOOL bWordDelimitersEnable;
-extern DWORD dwCustomWordBreak;
-extern DWORD dwDefaultWordBreak;
 extern BOOL bShowURL;
 extern int nClickURL;
-extern wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];
 extern BOOL bUrlPrefixesEnable;
-extern wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];
+extern wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];
 extern BOOL bUrlDelimitersEnable;
+extern wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];
+extern BOOL bWordDelimitersEnable;
+extern wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
+extern DWORD dwCustomWordBreak;
+extern DWORD dwDefaultWordBreak;
+extern BOOL bWrapDelimitersEnable;
+extern wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];
 extern FILETIME ftFileTime;
 extern WNDPROC OldEditProc;
 
@@ -426,6 +428,10 @@ HWND CreateEditWindowA(HWND hWndParent)
     SendMessage(hWndEditNew, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
     SendMessage(hWndEditNew, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
   }
+  if (bWrapDelimitersEnable)
+  {
+    SendMessage(hWndEditNew, AEM_SETWRAPDELIMITERS, 0, (LPARAM)wszWrapDelimiters);
+  }
 
   OldEditProc=(WNDPROC)GetWindowLongA(hWndEditNew, GWL_WNDPROC);
   SetWindowLongA(hWndEditNew, GWL_WNDPROC, (LONG)CommonEditProcA);
@@ -498,6 +504,10 @@ HWND CreateEditWindowW(HWND hWndParent)
   {
     SendMessage(hWndEditNew, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
     SendMessage(hWndEditNew, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
+  }
+  if (bWrapDelimitersEnable)
+  {
+    SendMessage(hWndEditNew, AEM_SETWRAPDELIMITERS, 0, (LPARAM)wszWrapDelimiters);
   }
 
   OldEditProc=(WNDPROC)GetWindowLongW(hWndEditNew, GWL_WNDPROC);
@@ -3157,15 +3167,17 @@ void ReadOptionsA()
     ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
-  ReadOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
-  ReadOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
-  ReadOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
   ReadOptionA(hHandle, "ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD));
   ReadOptionA(hHandle, "ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD));
   ReadOptionA(hHandle, "UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "UrlPrefixes", PO_BINARY, wszUrlPrefixes, sizeof(wszUrlPrefixes));
   ReadOptionA(hHandle, "UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "UrlDelimiters", PO_BINARY, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+  ReadOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
+  ReadOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
+  ReadOptionA(hHandle, "WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "WrapDelimiters", PO_BINARY, wszWrapDelimiters, sizeof(wszWrapDelimiters));
   ReadOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
   ReadOptionA(hHandle, "FontFace", PO_STRING, &lfEditFontA.lfFaceName, LF_FACESIZE);
   ReadOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
@@ -3259,15 +3271,17 @@ void ReadOptionsW()
     ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
-  ReadOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
-  ReadOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
-  ReadOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
   ReadOptionW(hHandle, L"ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD));
   ReadOptionW(hHandle, L"ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD));
   ReadOptionW(hHandle, L"UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"UrlPrefixes", PO_BINARY, wszUrlPrefixes, sizeof(wszUrlPrefixes));
   ReadOptionW(hHandle, L"UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"UrlDelimiters", PO_BINARY, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+  ReadOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
+  ReadOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WrapDelimiters", PO_BINARY, wszWrapDelimiters, sizeof(wszWrapDelimiters));
   ReadOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
   ReadOptionW(hHandle, L"FontFace", PO_STRING, &lfEditFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
   ReadOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
@@ -3573,12 +3587,6 @@ BOOL SaveOptionsA()
       goto Error;
   }
 
-  if (!SaveOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!SaveOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
-    goto Error;
   if (!SaveOptionA(hHandle, "ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD)))
@@ -3590,6 +3598,16 @@ BOOL SaveOptionsA()
   if (!SaveOptionA(hHandle, "UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "UrlDelimiters", PO_BINARY, wszUrlDelimiters, wcslen(wszUrlDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+  if (!SaveOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+  if (!SaveOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "WrapDelimiters", PO_BINARY, wszWrapDelimiters, wcslen(wszWrapDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
 
   if (bEditFontChanged)
@@ -3765,12 +3783,6 @@ BOOL SaveOptionsW()
       goto Error;
   }
 
-  if (!SaveOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!SaveOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
-    goto Error;
   if (!SaveOptionW(hHandle, L"ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD)))
@@ -3783,6 +3795,17 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"UrlDelimiters", PO_BINARY, wszUrlDelimiters, lstrlenW(wszUrlDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
+  if (!SaveOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"WrapDelimiters", PO_BINARY, wszWrapDelimiters, lstrlenW(wszWrapDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+
   if (bEditFontChanged)
   {
     if (!SaveOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
@@ -17448,8 +17471,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
-  static HWND hWndWordDelimitersEnable;
-  static HWND hWndWordDelimiters;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
@@ -17474,8 +17495,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
-    hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
-    hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
 
     SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
     SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
@@ -17491,7 +17510,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndMarkerSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
-    SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
 
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
@@ -17513,28 +17531,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
     if (bCaretVertLine)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
-    if (bWordDelimitersEnable)
-      SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndWordDelimiters, bWordDelimitersEnable);
-    EscapeDataToEscapeStringW(wszWordDelimiters, (wchar_t *)buf);
-    WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
-    SetWindowTextA(hWndWordDelimiters, buf2);
-  }
-  else if (uMsg == WM_COMMAND)
-  {
-    if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
-    {
-      bState=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndWordDelimiters, bState);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
-    {
-      EscapeDataToEscapeStringW(WORD_DELIMITERSW, (wchar_t *)buf);
-      WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
-      SetDlgItemTextA(hDlg, IDC_OPTIONS_WORD_DELIMITERS, buf2);
-      return TRUE;
-    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -17625,23 +17621,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           pt.x=nCaretWidth;
           SendMessage(hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
         }
-      }
-
-      //Word delimiters
-      a=GetWindowTextA(hWndWordDelimiters, buf, BUFFER_SIZE);
-      MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
-      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWordDelimiters);
-
-      bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
-      if (bWordDelimitersEnable)
-      {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
-      }
-      else
-      {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwDefaultWordBreak, 0);
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
       }
     }
   }
@@ -17670,8 +17649,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
-  static HWND hWndWordDelimitersEnable;
-  static HWND hWndWordDelimiters;
   BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
@@ -17696,8 +17673,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
-    hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
-    hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
 
     SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
     SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
@@ -17713,7 +17688,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SendMessage(hWndMarkerSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
     SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
-    SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
 
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
@@ -17735,26 +17709,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
     if (bCaretVertLine)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
-    if (bWordDelimitersEnable)
-      SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndWordDelimiters, bWordDelimitersEnable);
-    EscapeDataToEscapeStringW(wszWordDelimiters, wbuf);
-    SetWindowTextW(hWndWordDelimiters, wbuf);
-  }
-  else if (uMsg == WM_COMMAND)
-  {
-    if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
-    {
-      bState=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndWordDelimiters, bState);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
-    {
-      EscapeDataToEscapeStringW(WORD_DELIMITERSW, wbuf);
-      SetDlgItemTextW(hDlg, IDC_OPTIONS_WORD_DELIMITERS, wbuf);
-      return TRUE;
-    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -17846,22 +17800,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           SendMessage(hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
         }
       }
-
-      //Word delimiters
-      GetWindowTextW(hWndWordDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, wszWordDelimiters);
-
-      bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
-      if (bWordDelimitersEnable)
-      {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
-      }
-      else
-      {
-        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwDefaultWordBreak, 0);
-        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
-      }
     }
   }
   return FALSE;
@@ -17876,6 +17814,10 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
   static HWND hWndUrlPrefixes;
   static HWND hWndUrlDelimitersEnable;
   static HWND hWndUrlDelimiters;
+  static HWND hWndWordDelimitersEnable;
+  static HWND hWndWordDelimiters;
+  static HWND hWndWrapDelimitersEnable;
+  static HWND hWndWrapDelimiters;
   static HWND hWndReplaceAllAndClose;
   static HWND hWndSaveInReadOnlyMsg;
   BOOL bState;
@@ -17889,6 +17831,10 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     hWndUrlPrefixes=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES);
     hWndUrlDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS_ENABLE);
     hWndUrlDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS);
+    hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
+    hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
+    hWndWrapDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_DELIMITERS_ENABLE);
+    hWndWrapDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_DELIMITERS);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
@@ -17913,6 +17859,22 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
     SetWindowTextA(hWndUrlDelimiters, buf2);
     SendMessage(hWndUrlDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
+
+    if (bWordDelimitersEnable)
+      SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndWordDelimiters, bWordDelimitersEnable);
+    EscapeDataToEscapeStringW(wszWordDelimiters, (wchar_t *)buf);
+    WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
+    SetWindowTextA(hWndWordDelimiters, buf2);
+    SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
+
+    if (bWrapDelimitersEnable)
+      SendMessage(hWndWrapDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndWrapDelimiters, bWrapDelimitersEnable);
+    EscapeDataToEscapeStringW(wszWrapDelimiters, (wchar_t *)buf);
+    WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
+    SetWindowTextA(hWndWrapDelimiters, buf2);
+    SendMessage(hWndWrapDelimiters, EM_LIMITTEXT, (WPARAM)WRAP_DELIMITERS_SIZE, 0);
 
     if (bReplaceAllAndClose)
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
@@ -17954,6 +17916,32 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     {
       bState=SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
       EnableWindow(hWndUrlDelimiters, bState);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
+    {
+      bState=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndWordDelimiters, bState);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
+    {
+      EscapeDataToEscapeStringW(WORD_DELIMITERSW, (wchar_t *)buf);
+      WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
+      SetWindowTextA(hWndWordDelimiters, buf2);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WRAP_DELIMITERS_ENABLE)
+    {
+      bState=SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndWrapDelimiters, bState);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WRAP_DELIMITERS_RESET)
+    {
+      EscapeDataToEscapeStringW(WRAP_DELIMITERSW, (wchar_t *)buf);
+      WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
+      SetWindowTextA(hWndWrapDelimiters, buf2);
       return TRUE;
     }
   }
@@ -17996,6 +17984,34 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       else
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)NULL);
 
+      //Word delimiters
+      a=GetWindowTextA(hWndWordDelimiters, buf, BUFFER_SIZE);
+      MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWordDelimiters);
+
+      bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
+      if (bWordDelimitersEnable)
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
+      }
+      else
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwDefaultWordBreak, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+      }
+
+      //Wrap delimiters
+      a=GetWindowTextA(hWndWrapDelimiters, buf, BUFFER_SIZE);
+      MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWrapDelimiters);
+
+      bWrapDelimitersEnable=SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
+      if (bWrapDelimitersEnable)
+        SendMessage(hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)wszWrapDelimiters);
+      else
+        SendMessage(hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)NULL);
+
       //ReplaceAll and close dialog
       bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
 
@@ -18015,6 +18031,10 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
   static HWND hWndUrlPrefixes;
   static HWND hWndUrlDelimitersEnable;
   static HWND hWndUrlDelimiters;
+  static HWND hWndWordDelimitersEnable;
+  static HWND hWndWordDelimiters;
+  static HWND hWndWrapDelimitersEnable;
+  static HWND hWndWrapDelimiters;
   static HWND hWndReplaceAllAndClose;
   static HWND hWndSaveInReadOnlyMsg;
   BOOL bState;
@@ -18028,6 +18048,10 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     hWndUrlPrefixes=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES);
     hWndUrlDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS_ENABLE);
     hWndUrlDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS);
+    hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
+    hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
+    hWndWrapDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_DELIMITERS_ENABLE);
+    hWndWrapDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_DELIMITERS);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
@@ -18050,6 +18074,20 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     EscapeDataToEscapeStringW(wszUrlDelimiters, wbuf);
     SetWindowTextW(hWndUrlDelimiters, wbuf);
     SendMessage(hWndUrlDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
+
+    if (bWordDelimitersEnable)
+      SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndWordDelimiters, bWordDelimitersEnable);
+    EscapeDataToEscapeStringW(wszWordDelimiters, wbuf);
+    SetWindowTextW(hWndWordDelimiters, wbuf);
+    SendMessage(hWndWordDelimiters, EM_LIMITTEXT, (WPARAM)WORD_DELIMITERS_SIZE, 0);
+
+    if (bWrapDelimitersEnable)
+      SendMessage(hWndWrapDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndWrapDelimiters, bWrapDelimitersEnable);
+    EscapeDataToEscapeStringW(wszWrapDelimiters, wbuf);
+    SetWindowTextW(hWndWrapDelimiters, wbuf);
+    SendMessage(hWndWrapDelimiters, EM_LIMITTEXT, (WPARAM)WRAP_DELIMITERS_SIZE, 0);
 
     if (bReplaceAllAndClose)
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
@@ -18093,6 +18131,30 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       EnableWindow(hWndUrlDelimiters, bState);
       return TRUE;
     }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
+    {
+      bState=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndWordDelimiters, bState);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
+    {
+      EscapeDataToEscapeStringW(WORD_DELIMITERSW, wbuf);
+      SetWindowTextW(hWndWordDelimiters, wbuf);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WRAP_DELIMITERS_ENABLE)
+    {
+      bState=SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
+      EnableWindow(hWndWrapDelimiters, bState);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_OPTIONS_WRAP_DELIMITERS_RESET)
+    {
+      EscapeDataToEscapeStringW(WRAP_DELIMITERSW, wbuf);
+      SetWindowTextW(hWndWrapDelimiters, wbuf);
+      return TRUE;
+    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -18130,6 +18192,32 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
       else
         SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)NULL);
+
+      //Word delimiters
+      GetWindowTextW(hWndWordDelimiters, wbuf, BUFFER_SIZE);
+      EscapeStringToEscapeDataW(wbuf, wszWordDelimiters);
+
+      bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
+      if (bWordDelimitersEnable)
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)wszWordDelimiters);
+      }
+      else
+      {
+        SendMessage(hWndEdit, AEM_SETWORDBREAK, dwDefaultWordBreak, 0);
+        SendMessage(hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)NULL);
+      }
+
+      //Wrap delimiters
+      GetWindowTextW(hWndWrapDelimiters, wbuf, BUFFER_SIZE);
+      EscapeStringToEscapeDataW(wbuf, wszWrapDelimiters);
+
+      bWrapDelimitersEnable=SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
+      if (bWrapDelimitersEnable)
+        SendMessage(hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)wszWrapDelimiters);
+      else
+        SendMessage(hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)NULL);
 
       //ReplaceAll and close dialog
       bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);

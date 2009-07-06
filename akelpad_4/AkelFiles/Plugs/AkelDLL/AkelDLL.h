@@ -22,6 +22,7 @@
 
 //Sizes
 #define WORD_DELIMITERS_SIZE    128
+#define WRAP_DELIMITERS_SIZE    128
 #define URL_PREFIXES_SIZE       128
 #define URL_DELIMITERS_SIZE     128
 
@@ -319,13 +320,15 @@ typedef struct _WNDFRAMEA {
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
-  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
-  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
   BOOL bShowURL;                                    //Show URL
   BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
+  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
+  BOOL bWrapDelimitersEnable;                       //Wrap delimiters enabled
+  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];  //Wrap delimiters
   BOOL bSplitWindow;                                //Edit window is splited (4.x only)
   HWND hWndMaster;                                  //Master window (4.x only)
   HWND hWndClone1;                                  //Clone window one (4.x only)
@@ -353,13 +356,15 @@ typedef struct _WNDFRAMEW {
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
-  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
-  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
   BOOL bShowURL;                                    //Show URL
   BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
+  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
+  BOOL bWrapDelimitersEnable;                       //Wrap delimiters enabled
+  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];  //Wrap delimiters
   BOOL bSplitWindow;                                //Edit window is splited (4.x only)
   HWND hWndMaster;                                  //Master window (4.x only)
   HWND hWndClone1;                                  //Clone window one (4.x only)

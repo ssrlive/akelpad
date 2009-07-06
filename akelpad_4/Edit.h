@@ -62,9 +62,6 @@
 #define FILELIST_BUFFER_SIZE       8192
 #define TRANSLATE_BUFFER_SIZE      8192
 #define PREVIEW_SIZE               8188  //4094*2; -1 preview all file
-#define WORD_DELIMITERS_SIZE       128
-#define URL_PREFIXES_SIZE          128
-#define URL_DELIMITERS_SIZE        128
 #define DETECT_CODEPAGE_SIZE       1024
 #define RECENTFILES_AMOUNT         10
 #define RECENTFILES_RECORD_LENGTH  90
@@ -78,9 +75,9 @@
 #define ASSOCIATE_EDITW           L"bat;cmd;reg;htm;html"
 #define ASSOCIATE_PRINTA           "txt;log;ini;inf"
 #define ASSOCIATE_PRINTW          L"txt;log;ini;inf"
-#define WORD_DELIMITERSW          L" \t\r\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
-#define WORD_WHITESPACESW         L" \t\r"
-#define URL_DELIMITERSW           L" \t\n()<>'`\""
+#define WORD_DELIMITERSW          L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
+#define WRAP_DELIMITERSW          L" \t"
+#define URL_DELIMITERSW           L" \t()<>'`\""
 #define URL_PREFIXESW             L"http: https: www. ftp: file: mailto:"
 #define SENTENCE_DELIMITERSA       ".?!"
 #define SENTENCE_DELIMITERSW      L".?!"

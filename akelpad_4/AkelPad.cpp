@@ -321,16 +321,18 @@ BOOL bDetailedUndo=FALSE;
 BOOL bCaretOutEdge=FALSE;
 BOOL bCaretVertLine=FALSE;
 int nCaretWidth=1;
-wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE]=WORD_DELIMITERSW;
-BOOL bWordDelimitersEnable=TRUE;
-DWORD dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
-DWORD dwDefaultWordBreak=0;
 BOOL bShowURL=FALSE;
 int nClickURL=2;
-wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE]=URL_PREFIXESW;
 BOOL bUrlPrefixesEnable=FALSE;
-wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE]=URL_DELIMITERSW;
+wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE]=URL_PREFIXESW;
 BOOL bUrlDelimitersEnable=FALSE;
+wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE]=URL_DELIMITERSW;
+BOOL bWordDelimitersEnable=TRUE;
+wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE]=WORD_DELIMITERSW;
+DWORD dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
+DWORD dwDefaultWordBreak=0;
+BOOL bWrapDelimitersEnable=FALSE;
+wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE]=WRAP_DELIMITERSW;
 FILETIME ftFileTime={0};
 WNDPROC OldEditProc;
 
@@ -5874,9 +5876,10 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->ei.bWordWrap=bWordWrap;
       lpWndFrameA->ei.bInsertState=FALSE;
       memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-      memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
       memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
       memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+      memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+      memcpy(&lpWndFrameA->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
       lpWndFrameA->aec=aecColors;
       lpWndFrameA->ft.dwLowDateTime=0;
@@ -5892,10 +5895,11 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameA->bCaretVertLine=bCaretVertLine;
       lpWndFrameA->nCaretWidth=nCaretWidth;
-      lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
       lpWndFrameA->bShowURL=bShowURL;
       lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
+      lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
+      lpWndFrameA->bWrapDelimitersEnable=bWrapDelimitersEnable;
       lpWndFrameA->bSplitWindow=FALSE;
       lpWndFrameA->hWndMaster=NULL;
       lpWndFrameA->hWndClone1=NULL;
@@ -6024,9 +6028,10 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->ei.bWordWrap=bWordWrap;
             lpWndFrameA->ei.bInsertState=bInsertState;
             memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-            memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
             memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
             memcpy(&lpWndFrameA->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+            memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+            memcpy(&lpWndFrameA->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
             lpWndFrameA->aec=aecColors;
             lpWndFrameA->ft=ftFileTime;
@@ -6042,10 +6047,11 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameA->bCaretVertLine=bCaretVertLine;
             lpWndFrameA->nCaretWidth=nCaretWidth;
-            lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
             lpWndFrameA->bShowURL=bShowURL;
             lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
+            lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
+            lpWndFrameA->bWrapDelimitersEnable=bWrapDelimitersEnable;
             lpWndFrameA->bSplitWindow=bSplitWindow;
             lpWndFrameA->hWndMaster=hWndMaster;
             lpWndFrameA->hWndClone1=hWndClone1;
@@ -6070,9 +6076,10 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bWordWrap=lpWndFrameA->ei.bWordWrap;
           SetInsertStateStatusA(NULL, lpWndFrameA->ei.bInsertState, FALSE);
           memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
-          memcpy(wszWordDelimiters, &lpWndFrameA->wszWordDelimiters, sizeof(wszWordDelimiters));
           memcpy(wszUrlPrefixes, &lpWndFrameA->wszUrlPrefixes, sizeof(wszUrlPrefixes));
           memcpy(wszUrlDelimiters, &lpWndFrameA->wszUrlDelimiters, sizeof(wszUrlDelimiters));
+          memcpy(wszWordDelimiters, &lpWndFrameA->wszWordDelimiters, sizeof(wszWordDelimiters));
+          memcpy(wszWrapDelimiters, &lpWndFrameA->wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
           aecColors=lpWndFrameA->aec;
           ftFileTime=lpWndFrameA->ft;
@@ -6088,10 +6095,11 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
           bCaretVertLine=lpWndFrameA->bCaretVertLine;
           nCaretWidth=lpWndFrameA->nCaretWidth;
-          bWordDelimitersEnable=lpWndFrameA->bWordDelimitersEnable;
           bShowURL=lpWndFrameA->bShowURL;
           bUrlPrefixesEnable=lpWndFrameA->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameA->bUrlDelimitersEnable;
+          bWordDelimitersEnable=lpWndFrameA->bWordDelimitersEnable;
+          bWrapDelimitersEnable=lpWndFrameA->bWrapDelimitersEnable;
           bSplitWindow=lpWndFrameA->bSplitWindow;
           hWndMaster=lpWndFrameA->hWndMaster;
           hWndClone1=lpWndFrameA->hWndClone1;
@@ -6155,9 +6163,10 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->ei.bWordWrap=bWordWrap;
       lpWndFrameW->ei.bInsertState=FALSE;
       memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-      memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
       memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
       memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+      memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+      memcpy(&lpWndFrameW->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
       lpWndFrameW->aec=aecColors;
       lpWndFrameW->ft.dwLowDateTime=0;
@@ -6173,10 +6182,11 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameW->bCaretVertLine=bCaretVertLine;
       lpWndFrameW->nCaretWidth=nCaretWidth;
-      lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
       lpWndFrameW->bShowURL=bShowURL;
       lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
+      lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
+      lpWndFrameW->bWrapDelimitersEnable=bWrapDelimitersEnable;
       lpWndFrameW->bSplitWindow=FALSE;
       lpWndFrameW->hWndMaster=NULL;
       lpWndFrameW->hWndClone1=NULL;
@@ -6305,9 +6315,10 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->ei.bWordWrap=bWordWrap;
             lpWndFrameW->ei.bInsertState=bInsertState;
             memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-            memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
             memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
             memcpy(&lpWndFrameW->wszUrlDelimiters, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+            memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+            memcpy(&lpWndFrameW->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
             lpWndFrameW->aec=aecColors;
             lpWndFrameW->ft=ftFileTime;
@@ -6323,10 +6334,11 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameW->bCaretVertLine=bCaretVertLine;
             lpWndFrameW->nCaretWidth=nCaretWidth;
-            lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
             lpWndFrameW->bShowURL=bShowURL;
             lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
+            lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
+            lpWndFrameW->bWrapDelimitersEnable=bWrapDelimitersEnable;
             lpWndFrameW->bSplitWindow=bSplitWindow;
             lpWndFrameW->hWndMaster=hWndMaster;
             lpWndFrameW->hWndClone1=hWndClone1;
@@ -6351,9 +6363,10 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bWordWrap=lpWndFrameW->ei.bWordWrap;
           SetInsertStateStatusW(NULL, lpWndFrameW->ei.bInsertState, FALSE);
           memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
-          memcpy(wszWordDelimiters, &lpWndFrameW->wszWordDelimiters, sizeof(wszWordDelimiters));
           memcpy(wszUrlPrefixes, &lpWndFrameW->wszUrlPrefixes, sizeof(wszUrlPrefixes));
           memcpy(wszUrlDelimiters, &lpWndFrameW->wszUrlDelimiters, sizeof(wszUrlDelimiters));
+          memcpy(wszWordDelimiters, &lpWndFrameW->wszWordDelimiters, sizeof(wszWordDelimiters));
+          memcpy(wszWrapDelimiters, &lpWndFrameW->wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
           aecColors=lpWndFrameW->aec;
           ftFileTime=lpWndFrameW->ft;
@@ -6369,10 +6382,11 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
           bCaretVertLine=lpWndFrameW->bCaretVertLine;
           nCaretWidth=lpWndFrameW->nCaretWidth;
-          bWordDelimitersEnable=lpWndFrameW->bWordDelimitersEnable;
           bShowURL=lpWndFrameW->bShowURL;
           bUrlPrefixesEnable=lpWndFrameW->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameW->bUrlDelimitersEnable;
+          bWordDelimitersEnable=lpWndFrameW->bWordDelimitersEnable;
+          bWrapDelimitersEnable=lpWndFrameW->bWrapDelimitersEnable;
           bSplitWindow=lpWndFrameW->bSplitWindow;
           hWndMaster=lpWndFrameW->hWndMaster;
           hWndClone1=lpWndFrameW->hWndClone1;
