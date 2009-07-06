@@ -724,7 +724,7 @@ BEGIN
     CONTROL         "Разделители переносов:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Сбросить",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
+    PUSHBUTTON      "Скінуць",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
                     BS_CENTER
     CONTROL         "Замяніць усё - зачыняе дыялог",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
