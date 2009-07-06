@@ -300,6 +300,7 @@ BOOL bWordWrap=FALSE;
 int nWrapType=AEWW_WORD;
 DWORD dwWrapLimit=0;
 DWORD dwMarker=0;
+DWORD dwLineGap=0;
 BOOL bOnTop=FALSE;
 BOOL bStatusBar=TRUE;
 DWORD dwShowModify=SM_STATUSBAR;

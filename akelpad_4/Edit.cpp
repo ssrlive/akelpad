@@ -274,6 +274,7 @@ extern BOOL bWordWrap;
 extern int nWrapType;
 extern DWORD dwWrapLimit;
 extern DWORD dwMarker;
+extern DWORD dwLineGap;
 extern BOOL bOnTop;
 extern BOOL bStatusBar;
 extern DWORD dwShowModify;
@@ -396,6 +397,10 @@ HWND CreateEditWindowA(HWND hWndParent)
   {
     SendMessage(hWndEditNew, AEM_SETMARKER, dwMarker, 0);
   }
+  if (dwLineGap)
+  {
+    SendMessage(hWndEditNew, AEM_SETLINEGAP, dwLineGap, 0);
+  }
   if (nCaretWidth != 1)
   {
     POINT pt;
@@ -464,6 +469,10 @@ HWND CreateEditWindowW(HWND hWndParent)
   if (dwMarker)
   {
     SendMessage(hWndEditNew, AEM_SETMARKER, dwMarker, 0);
+  }
+  if (dwLineGap)
+  {
+    SendMessage(hWndEditNew, AEM_SETLINEGAP, dwLineGap, 0);
   }
   if (nCaretWidth != 1)
   {
@@ -3114,6 +3123,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "WrapType", PO_DWORD, &nWrapType, sizeof(DWORD));
   ReadOptionA(hHandle, "WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
   ReadOptionA(hHandle, "Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
+  ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
@@ -3214,6 +3224,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD));
   ReadOptionW(hHandle, L"WrapType", PO_DWORD, &nWrapType, sizeof(DWORD));
   ReadOptionW(hHandle, L"WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
+  ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionW(hHandle, L"Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
@@ -3497,6 +3508,8 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD)))
     goto Error;
+  if (!SaveOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionA(hHandle, "Marker", PO_DWORD, &dwMarker, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD)))
@@ -3686,6 +3699,8 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"WrapType", PO_DWORD, &nWrapType, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"Marker", PO_DWORD, &dwMarker, sizeof(DWORD)))
     goto Error;
