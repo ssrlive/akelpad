@@ -35,16 +35,16 @@ BEGIN
         MENUITEM "&Uusi\tCtrl+N",               IDM_FILE_NEW
         MENUITEM "Uusi &ikkuna\tCtrl+Shift+N",  IDM_FILE_CREATENEW
         MENUITEM "&Avaa...\tCtrl+O",            IDM_FILE_OPEN
-        MENUITEM "&Avaa uudelleen\tF5",         IDM_FILE_REOPEN
+        MENUITEM "Avaa uu&delleen\tF5",         IDM_FILE_REOPEN
         MENUITEM "&Tallenna\tCtrl+S",           IDM_FILE_SAVE
         MENUITEM "Tallenna &nimellä...\tCtrl+Shift+S", IDM_FILE_SAVEAS
-        MENUITEM "Tallenna k&aikki\tCtrl+Alt+F2", IDM_FILE_SAVEALL
+        MENUITEM "Tallenna &kaikki\tCtrl+Alt+F2", IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "Si&vun asetukset...",         IDM_FILE_PAGESETUP
-        MENUITEM "Pre&view...",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "&Esikatselu...",           IDM_FILE_PRINTPREVIEW
         MENUITEM "T&ulosta...\tCtrl+P",         IDM_FILE_PRINT
         MENUITEM SEPARATOR
-        POPUP "Viimeisimmät &tiedostot"
+        POPUP "Viimeisimmät tied&ostot"
         BEGIN
             MENUITEM "_",                           IDM_RECENT_FILES
         END
@@ -384,7 +384,7 @@ IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
-CAPTION "Preview"
+CAPTION "Esikatselu"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "T&ulosta...",IDC_PREVIEW_PRINT,9,9,50,14
@@ -411,7 +411,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Sama kirjainkoko",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "Escape-koodit",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Es&cape-koodit",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,105,12
     GROUPBOX        "Suunta",IDC_STATIC,121,27,67,58
     CONTROL         "&Alas",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -425,7 +425,7 @@ BEGIN
     CONTROL         "&Kaikki tiedostot",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,87,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,67,19
-    DEFPUSHBUTTON   "&Etsi seuraava",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+    DEFPUSHBUTTON   "Etsi se&uraava",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
                     BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,196,23,54,14,BS_CENTER
     LTEXT           "&Etsi:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
@@ -460,7 +460,7 @@ BEGIN
     CONTROL         "&Kaikki tiedostot",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,101,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,67,19
-    DEFPUSHBUTTON   "&Etsi seuraava",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+    DEFPUSHBUTTON   "Etsi se&uraava",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
                     BS_CENTER
     PUSHBUTTON      "Ko&rvaa",IDC_SEARCH_REPLACE_BUTTON,196,23,54,14,
                     BS_CENTER
@@ -501,8 +501,8 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "&OK",IDOK,36,73,50,14,BS_CENTER
     PUSHBUTTON      "Peruuta",IDCANCEL,90,73,50,14,BS_CENTER
-    LTEXT           "Mistä:",IDC_STATIC,12,6,150,8
-    LTEXT           "Mihin:",IDC_STATIC,12,37,150,8
+    LTEXT           "&Mistä:",IDC_STATIC,12,6,150,8
+    LTEXT           "M&ihin:",IDC_STATIC,12,37,150,8
 END
 
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 154
@@ -933,8 +933,8 @@ BEGIN
     STR_COLUMNMARKER        "Sarakemerkki"
     STR_CARET               "Kohdistin"
     STR_URL                 "Hyperlinkki"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
+    STR_PAGEFIT             "Sovita sivu"
+    STR_PAGEWIDTH           "Sivun leveys"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -961,4 +961,5 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
+
 
