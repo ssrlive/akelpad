@@ -20,8 +20,8 @@
 #define AECLASS_RICHEDIT      2
 
 #define AES_WORDDELIMITERSW   L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
-#define AES_WRAPDELIMITERSW   L" \t\n"
-#define AES_URLDELIMITERSW    L" \t\n()<>'`\""
+#define AES_WRAPDELIMITERSW   L" \t"
+#define AES_URLDELIMITERSW    L" \t()<>'`\""
 #define AES_URLPREFIXESW      L"http:\0https:\0www.\0ftp:\0file:\0mailto:\0\0"
 
 //AEM_SETEVENTMASK flags
