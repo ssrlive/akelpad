@@ -1121,6 +1121,32 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
       }
+      if (uMsg == AEM_GETLINEGAP)
+      {
+        return (LRESULT)ae->ptxt->nLineGap;
+      }
+      if (uMsg == AEM_SETLINEGAP)
+      {
+        if (ae->ptxt->nLineGap != (int)wParam)
+        {
+          int nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+
+          ae->ptxt->nCharHeight=(ae->ptxt->nCharHeight - ae->ptxt->nLineGap) + wParam;
+          ae->ptxt->nLineGap=wParam;
+
+          ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
+          AE_UpdateScrollBars(ae, SB_VERT);
+          ae->ptCaret.x=0;
+          ae->ptCaret.y=0;
+          AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
+          AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae));
+          AE_UpdateCaret(ae, ae->bFocus, TRUE);
+
+          InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+          AE_StackUpdateClones(ae);
+        }
+        return 0;
+      }
 
       //Other
       if (uMsg == AEM_ISDELIMITER)
@@ -6312,7 +6338,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     lfFont.lfUnderline=TRUE;
     ae->ptxt->hFontUrl=(HFONT)CreateFontIndirectA(&lfFont);
 
-    ae->ptxt->nCharHeight=tmEdit.tmHeight;
+    ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
     GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
     ae->ptxt->nAveCharWidth=sizeWidth.cx / 52;
     GetTextExtentPoint32W(hDC, L" ", 1, &sizeWidth);
@@ -6394,7 +6420,7 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     lfFont.lfUnderline=TRUE;
     ae->ptxt->hFontUrl=(HFONT)CreateFontIndirectW(&lfFont);
 
-    ae->ptxt->nCharHeight=tmEdit.tmHeight;
+    ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
     GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
     ae->ptxt->nAveCharWidth=sizeWidth.cx / 52;
     GetTextExtentPoint32W(hDC, L" ", 1, &sizeWidth);
@@ -9643,6 +9669,7 @@ void AE_Paint(AKELEDIT *ae)
 void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth)
 {
   RECT rcTextOut;
+  DWORD dwTextOutFlags=0;
   int nTextLen=nLineLen - (*wpTextInLine - wpLine);
   int nTextWidth=nLineWidth - *nTextInLineWidth;
 
@@ -9687,8 +9714,14 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
         if (hlp->dwActiveBG == hlp->dwDefaultBG)
           SetBkMode(hDC, TRANSPARENT);
       }
+      else
+      {
+        //Fill space of the external leading
+        rcTextOut.right=rcTextOut.left + nTextWidth;
+        dwTextOutFlags=ETO_OPAQUE;
+      }
 
-      ExtTextOutW(hDC, rcTextOut.left, rcTextOut.top, 0/*ETO_OPAQUE*/, &rcTextOut, *wpTextInLine, nTextLen, NULL);
+      ExtTextOutW(hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, *wpTextInLine, nTextLen, NULL);
 
       if (!(hlp->dwPaintType & AEPT_SELECTION))
       {
