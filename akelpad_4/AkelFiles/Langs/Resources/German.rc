@@ -930,7 +930,7 @@ BEGIN
     STR_CARET               "Kursor"
     STR_URL                 "Link"
     STR_PAGEFIT             "Einpassen"
-    STR_PAGEWIDTH           "Auf Seitenbreite einpassen"
+    STR_PAGEWIDTH           "Breite einpassen"
 END
 
 STRINGTABLE DISCARDABLE 
