@@ -676,7 +676,7 @@ BEGIN
                     11,13
     CONTROL         "&Yksityiskohtainen",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
-    GROUPBOX        "Rivitys",IDC_STATIC,121,46,87,76
+    GROUPBOX        "Rivitys",IDC_STATIC,121,46,88,76
     CONTROL         "&Sanojen mukaan",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,133,60,72,10
     CONTROL         "Sym&bolien mukaan",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
@@ -702,7 +702,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    GROUPBOX        "Line gap",IDC_STATIC,121,190,87,34
+    GROUPBOX        "Line gap",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,178,
