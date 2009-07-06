@@ -388,7 +388,7 @@ CAPTION "Esikatselu"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "T&ulosta...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "Pa&ge...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    PUSHBUTTON      "S&ivu...",IDC_PREVIEW_PAGESETUP,62,9,50,14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -872,7 +872,7 @@ BEGIN
     MSG_CANNOT_OPEN_FILE    "Ei voi avata tiedostoa ""%s""."
     MSG_WRONG_STRING        "Rivinumero ei kelpaa."
     MSG_LONG_FILELIST       "Liian monta tiedostoa valittu."
-    MSG_DOCUMENT_CHANGED    "Asiakirjaa on muutettu. Haluatko tallentaa sen?"
+    MSG_DOCUMENT_CHANGED    "Asiakirjaa on muokattu. Haluatko tallentaa sen?"
     MSG_FILE_DOES_NOT_EXIST "Luodaanko uusi tiedosto ""%s""?"
     MSG_RECENTFILES_DELETED "Poistettuja tietueita: %d"
 END
@@ -884,7 +884,7 @@ BEGIN
     MSG_REPLACE_COUNT_ALLFILES "Muutettuja tiedostoja: %d\nMuutoksia: %d"
     MSG_FILE_WILL_BE_REOPENED 
                             "Tiedosto avataan uudelleen, kaikki muutokset menetetään."
-    MSG_FILE_CHANGED        "Tiedostoa ""%s"" on muutettu jossain toisessa ohjelmassa.\n\nHaluatko avata sen uudelleen?"
+    MSG_FILE_CHANGED        "Tiedostoa ""%s"" on muokattu jossain toisessa ohjelmassa.\n\nHaluatko avata sen uudelleen?"
     MSG_CP_UNIMPLEMENTED    "Koodisivua ""%d"" ei ole toteutettu."
     MSG_CP_MISMATCH         "Rivi ""%d"" sisältää symboleita, jotka menetetään tällä koodauksella tallennettaessa. Jatketaanko?"
     MSG_RESTART_PROGRAM     "Muutokset tulevat voimaan ohjelman uudelleenkäynnistyksen jälkeen."
