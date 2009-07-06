@@ -194,6 +194,8 @@
 #define IDC_OPTIONS_CARETWIDTH_SPIN     3618
 #define IDC_OPTIONS_MARKER              3619
 #define IDC_OPTIONS_MARKER_SPIN         3620
+#define IDC_OPTIONS_LINEGAP             3621
+#define IDC_OPTIONS_LINEGAP_SPIN        3622
 #define IDC_OPTIONS_URL_SHOW            3651
 #define IDC_OPTIONS_URL_SINGLECLICK     3652
 #define IDC_OPTIONS_URL_DOUBLECLICK     3653
@@ -341,7 +343,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001

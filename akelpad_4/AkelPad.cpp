@@ -300,7 +300,6 @@ BOOL bWordWrap=FALSE;
 int nWrapType=AEWW_WORD;
 DWORD dwWrapLimit=0;
 DWORD dwMarker=0;
-DWORD dwLineGap=0;
 BOOL bOnTop=FALSE;
 BOOL bStatusBar=TRUE;
 DWORD dwShowModify=SM_STATUSBAR;
@@ -321,6 +320,7 @@ BOOL bDetailedUndo=FALSE;
 BOOL bCaretOutEdge=FALSE;
 BOOL bCaretVertLine=FALSE;
 int nCaretWidth=1;
+DWORD dwLineGap=0;
 BOOL bShowURL=FALSE;
 int nClickURL=2;
 BOOL bUrlPrefixesEnable=FALSE;
@@ -5895,6 +5895,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameA->bCaretVertLine=bCaretVertLine;
       lpWndFrameA->nCaretWidth=nCaretWidth;
+      lpWndFrameA->dwLineGap=dwLineGap;
       lpWndFrameA->bShowURL=bShowURL;
       lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
@@ -6047,6 +6048,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameA->bCaretVertLine=bCaretVertLine;
             lpWndFrameA->nCaretWidth=nCaretWidth;
+            lpWndFrameA->dwLineGap=dwLineGap;
             lpWndFrameA->bShowURL=bShowURL;
             lpWndFrameA->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
@@ -6095,6 +6097,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
           bCaretVertLine=lpWndFrameA->bCaretVertLine;
           nCaretWidth=lpWndFrameA->nCaretWidth;
+          dwLineGap=lpWndFrameA->dwLineGap;
           bShowURL=lpWndFrameA->bShowURL;
           bUrlPrefixesEnable=lpWndFrameA->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameA->bUrlDelimitersEnable;
@@ -6182,6 +6185,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameW->bCaretVertLine=bCaretVertLine;
       lpWndFrameW->nCaretWidth=nCaretWidth;
+      lpWndFrameW->dwLineGap=dwLineGap;
       lpWndFrameW->bShowURL=bShowURL;
       lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
       lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
@@ -6334,6 +6338,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameW->bCaretVertLine=bCaretVertLine;
             lpWndFrameW->nCaretWidth=nCaretWidth;
+            lpWndFrameW->dwLineGap=dwLineGap;
             lpWndFrameW->bShowURL=bShowURL;
             lpWndFrameW->bUrlPrefixesEnable=bUrlPrefixesEnable;
             lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
@@ -6382,6 +6387,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
           bCaretVertLine=lpWndFrameW->bCaretVertLine;
           nCaretWidth=lpWndFrameW->nCaretWidth;
+          dwLineGap=lpWndFrameW->dwLineGap;
           bShowURL=lpWndFrameW->bShowURL;
           bUrlPrefixesEnable=lpWndFrameW->bUrlPrefixesEnable;
           bUrlDelimitersEnable=lpWndFrameW->bUrlDelimitersEnable;

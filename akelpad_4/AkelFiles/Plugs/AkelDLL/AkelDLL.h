@@ -320,6 +320,7 @@ typedef struct _WNDFRAMEA {
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
+  DWORD dwLineGap;                                  //Line gap (4.x only)
   BOOL bShowURL;                                    //Show URL
   BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
@@ -356,6 +357,7 @@ typedef struct _WNDFRAMEW {
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
+  DWORD dwLineGap;                                  //Line gap (4.x only)
   BOOL bShowURL;                                    //Show URL
   BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
