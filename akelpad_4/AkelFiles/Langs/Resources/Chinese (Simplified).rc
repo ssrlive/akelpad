@@ -663,7 +663,7 @@ BEGIN
                     11,13
     CONTROL         "逐步撤消",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,56,104,52,10
-    GROUPBOX        "换行方式",IDC_STATIC,121,46,87,76
+    GROUPBOX        "换行方式",IDC_STATIC,121,46,88,76
     CONTROL         "按 单词",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,133,60,72,10
     CONTROL         "按 符号",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
@@ -689,7 +689,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    GROUPBOX        "Line gap",IDC_STATIC,121,190,87,34
+    GROUPBOX        "Line gap",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,178,
