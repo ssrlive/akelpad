@@ -789,6 +789,8 @@ typedef struct {
 #define AEM_SETWORDBREAK      (WM_USER + 2230)
 #define AEM_GETMARKER         (WM_USER + 2231)
 #define AEM_SETMARKER         (WM_USER + 2232)
+#define AEM_GETLINEGAP        (WM_USER + 2233)
+#define AEM_SETLINEGAP        (WM_USER + 2234)
 
 //Other
 #define AEM_ISDELIMITER       (WM_USER + 2251)
@@ -3066,6 +3068,36 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_SETMARKER, 80, 0);
+
+
+AEM_GETLINEGAP
+______________
+
+Retrieve character external leading.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Line gap (external leading).
+
+Example:
+ SendMessage(hWndEdit, AEM_GETLINEGAP, 0, 0);
+
+
+AEM_SETLINEGAP
+______________
+
+Set character external leading.
+
+(int)wParam == line gap (external leading), default is zero.
+lParam      == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETLINEGAP, 3, 0);
 
 
 AEM_ISDELIMITER

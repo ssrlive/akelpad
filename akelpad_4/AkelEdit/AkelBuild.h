@@ -260,6 +260,7 @@ typedef struct {
   LOGFONTA lfFontA;
   LOGFONTW lfFontW;
   int nCharHeight;
+  int nLineGap;
   int nAveCharWidth;
   int nSpaceCharWidth;
   int nTabWidth;
