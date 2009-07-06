@@ -8648,9 +8648,11 @@ int AE_VScrollLine(AKELEDIT *ae, int nLine)
 AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 {
   AEPRINTHANDLE *ph;
+  TEXTMETRICA tmEditA;
   TEXTMETRICA tmPrintA;
   SIZE sizeWidth;
   HDC hEditDC;
+  HFONT hEditFontOld;
   HFONT hPrintFontOld;
   int nPointSize=0;
 
@@ -8666,6 +8668,9 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
     GetObjectA(prn->hEditFont, sizeof(LOGFONTA), &ph->aePrint.ptxt->lfFontA);
     if (hEditDC=GetDC(ae->hWndEdit))
     {
+      hEditFontOld=(HFONT)SelectObject(hEditDC, prn->hEditFont);
+      GetTextMetricsA(hEditDC, &tmEditA);
+      if (hEditFontOld) SelectObject(hEditDC, hEditFontOld);
       nPointSize=MulDiv(ph->aePrint.ptxt->lfFontA.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
       ReleaseDC(ae->hWndEdit, hEditDC);
     }
@@ -8682,7 +8687,8 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 
     //Get print font sizes
     GetTextMetricsA(prn->hPrinterDC, &tmPrintA);
-    ph->aePrint.ptxt->nCharHeight=tmPrintA.tmHeight;
+    ph->aePrint.ptxt->nLineGap=MulDiv(tmPrintA.tmHeight, ph->aePrint.ptxt->nLineGap, tmEditA.tmHeight);
+    ph->aePrint.ptxt->nCharHeight=tmPrintA.tmHeight + ph->aePrint.ptxt->nLineGap;
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
     GetTextExtentPoint32W(prn->hPrinterDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
     ph->aePrint.ptxt->nAveCharWidth=sizeWidth.cx / 52;
@@ -8706,9 +8712,11 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
 {
   AEPRINTHANDLE *ph;
+  TEXTMETRICW tmEditW;
   TEXTMETRICW tmPrintW;
   SIZE sizeWidth;
   HDC hEditDC;
+  HFONT hEditFontOld;
   HFONT hPrintFontOld;
   int nPointSize=0;
 
@@ -8727,6 +8735,9 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
     GetObjectW(prn->hEditFont, sizeof(LOGFONTW), &ph->aePrint.ptxt->lfFontW);
     if (hEditDC=GetDC(ae->hWndEdit))
     {
+      hEditFontOld=(HFONT)SelectObject(hEditDC, prn->hEditFont);
+      GetTextMetricsW(hEditDC, &tmEditW);
+      if (hEditFontOld) SelectObject(hEditDC, hEditFontOld);
       nPointSize=MulDiv(ph->aePrint.ptxt->lfFontW.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
       ReleaseDC(ae->hWndEdit, hEditDC);
     }
@@ -8743,7 +8754,8 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
 
     //Get print font sizes
     GetTextMetricsW(prn->hPrinterDC, &tmPrintW);
-    ph->aePrint.ptxt->nCharHeight=tmPrintW.tmHeight;
+    ph->aePrint.ptxt->nLineGap=MulDiv(tmPrintW.tmHeight, ph->aePrint.ptxt->nLineGap, tmEditW.tmHeight);
+    ph->aePrint.ptxt->nCharHeight=tmPrintW.tmHeight + ph->aePrint.ptxt->nLineGap;
     prn->nCharHeight=ph->aePrint.ptxt->nCharHeight;
     GetTextExtentPoint32W(prn->hPrinterDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
     ph->aePrint.ptxt->nAveCharWidth=sizeWidth.cx / 52;
