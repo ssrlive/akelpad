@@ -371,6 +371,7 @@ typedef struct _AEPOINT {
   struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure.
   AECHARINDEX ciPoint;     //Character index.
   BOOL bModify;            //Is ciPoint index modified.
+  DWORD dwUserData;        //User data.
 } AEPOINT;
 
 typedef struct {
