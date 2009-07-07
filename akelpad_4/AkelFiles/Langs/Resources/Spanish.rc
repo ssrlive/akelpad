@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "Guardar &todo\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "Configurar pá&gina...",       IDM_FILE_PAGESETUP
-        MENUITEM "Pre&view...",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "V&ista previa...",           IDM_FILE_PRINTPREVIEW
         MENUITEM "Im&primir...\tCtrl+P",        IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Archivos r&ecientes"
@@ -383,11 +383,11 @@ IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
-CAPTION "Preview"
+CAPTION "Vista previa"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "Im&primir...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "Pa&ge...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    PUSHBUTTON      "Pá&gina...",IDC_PREVIEW_PAGESETUP,62,9,50,14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -941,8 +941,8 @@ BEGIN
     STR_COLUMNMARKER        "Marcador"
     STR_CARET               "Caret"
     STR_URL                 "Hipervínculo"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
+    STR_PAGEFIT             "Ajustar a la página"
+    STR_PAGEWIDTH           "Ancho de página"
 END
 
 STRINGTABLE DISCARDABLE 
