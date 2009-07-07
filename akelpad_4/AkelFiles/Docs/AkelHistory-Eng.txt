@@ -1,6 +1,8 @@
 
 AkelPad 4.2.5 ()
 ----------------------------
+Changed: syntax highlighting improved.
+
 Added: print preview.
 Added: possibility to set line-to-line spacing.
 Added: possibility to set word wrap delimiters.
