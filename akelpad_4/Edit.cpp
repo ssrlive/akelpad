@@ -17473,7 +17473,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretWidthSpin;
   static HWND hWndLineGap;
   static HWND hWndLineGapSpin;
-  BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -17632,7 +17631,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       //Line gap
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
-      if (dwLineGap != a)
+      if ((int)dwLineGap != a)
       {
         dwLineGap=a;
 
@@ -17667,7 +17666,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretWidthSpin;
   static HWND hWndLineGap;
   static HWND hWndLineGapSpin;
-  BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -17826,7 +17824,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       //Line gap
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
-      if (dwLineGap != a)
+      if ((int)dwLineGap != a)
       {
         dwLineGap=a;
 
