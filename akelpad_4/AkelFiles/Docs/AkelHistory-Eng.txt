@@ -1,5 +1,5 @@
 
-AkelPad 4.2.5 ()
+AkelPad 4.2.5 (Jul 08, 2009)
 ----------------------------
 Changed: syntax highlighting improved.
 
