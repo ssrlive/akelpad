@@ -6070,7 +6070,7 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   BOOL bPrintStop=FALSE;
 
   //Set print settings
-  prn->dwFlags=AEPRN_WRAPWORD|
+  prn->dwFlags=(nWrapType == AEWW_SYMBOL?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
                (psdPageA.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES)|
                (dwFlags & PRN_PREVIEW?AEPRN_TEST:0)|
                (dwFlags & PRN_ANSI?AEPRN_ANSI:0);
@@ -6241,7 +6241,7 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   BOOL bPrintStop=FALSE;
 
   //Set print settings
-  prn->dwFlags=AEPRN_WRAPWORD|
+  prn->dwFlags=(nWrapType == AEWW_SYMBOL?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
                (psdPageW.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES)|
                (dwFlags & PRN_PREVIEW?AEPRN_TEST:0)|
                (dwFlags & PRN_ANSI?AEPRN_ANSI:0);
