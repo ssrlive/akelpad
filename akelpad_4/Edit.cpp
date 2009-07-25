@@ -9370,7 +9370,7 @@ unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLe
       //Low surrogate
       if (wpWideString[ti] >= 0xDC00 && wpWideString[ti] <= 0xDFFF)
       {
-        nChar=0x10000 + ((nChar - 0xD800) << 10) + (wpWideString[ti] - 0xDFFF);
+        nChar=0x10000 + ((nChar - 0xD800) << 10) + (wpWideString[ti] - 0xDC00);
       }
       else
       {
