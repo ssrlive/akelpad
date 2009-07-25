@@ -9261,7 +9261,9 @@ unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiS
 {
   unsigned int i=0;
   unsigned int ti=0;
+  int nDone=0;
   int nRemain=0;
+  int nSurrogate;
 
   while (i < nMultiStringLen && ti < nWideStringMax)
   {
@@ -9272,42 +9274,40 @@ unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiS
     else if (pMultiString[i] < 0xE0)
     {
       wszWideString[ti]=(pMultiString[i++] & 0x1F) << 6;
-      if (i >= nMultiStringLen)
-      {
-        nRemain=-1;
-        break;
-      }
+      if (i >= nMultiStringLen) break;
       wszWideString[ti]=wszWideString[ti] + (pMultiString[i++] & 0x7F);
     }
     else if (pMultiString[i] < 0xF0)
     {
       wszWideString[ti]=(pMultiString[i++] & 0xF) << 12;
-      if (i >= nMultiStringLen)
-      {
-        nRemain=-1;
-        break;
-      }
+      if (i >= nMultiStringLen) break;
       wszWideString[ti]=wszWideString[ti] + ((pMultiString[i++] & 0x7F) << 6);
-      if (i >= nMultiStringLen)
-      {
-        nRemain=-2;
-        break;
-      }
+      if (i >= nMultiStringLen) break;
       wszWideString[ti]=wszWideString[ti] + (pMultiString[i++] & 0x7F);
     }
     else
     {
-      ++i;
-      continue;
+      //Surrogate pair
+      nSurrogate=(pMultiString[i++] & 0x7) << 18;
+      if (i >= nMultiStringLen) break;
+      nSurrogate+=(pMultiString[i++] & 0x3F) << 12;
+      if (i >= nMultiStringLen) break;
+      nSurrogate+=(pMultiString[i++] & 0x3F) << 6;
+      if (i >= nMultiStringLen) break;
+      nSurrogate+=(pMultiString[i++] & 0x3F);
+      if (i >= nMultiStringLen) break;
+
+      wszWideString[ti]=((nSurrogate - 0x10000) >> 10) + 0xD800;
+      if (ti + 1 >= nWideStringMax) break;
+      wszWideString[++ti]=(nSurrogate & 0x3ff) + 0xDC00;
     }
+    nDone=i;
     ++ti;
   }
-  if (i < nMultiStringLen && ti < nWideStringMax)
-    wszWideString[ti++]='\0';
-  if (nRemain < 0)
+  if (i > nDone)
     wszWideString[ti]='\0';
   if (nMultiStringDone)
-    *nMultiStringDone=i + nRemain;
+    *nMultiStringDone=nDone;
   return ti;
 }
 
