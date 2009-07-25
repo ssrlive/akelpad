@@ -567,7 +567,7 @@ int AutodetectCodePageA(char *pFile, DWORD dwBytesToCheck, DWORD dwFlags, int *n
 int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage);
 unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax);
-unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, char *szMultiString, unsigned int nMultiStringMax);
+unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, unsigned int *nWideStringDone, char *szMultiString, unsigned int nMultiStringMax);
 void ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
 BOOL IsCodePageValid(int nCodePage);
 unsigned int TranslateNewLinesToUnixW(wchar_t *wszWideString, unsigned int nWideStringLen);
