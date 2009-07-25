@@ -5336,7 +5336,7 @@ DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBuf
   else
   {
     if (lpData->nCodePage == CP_UNICODE_UTF8)
-      dwBytesToWrite=UTF16toUTF8(wszBuf, dwBufLen, (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
+      dwBytesToWrite=UTF16toUTF8(wszBuf, dwBufLen, NULL, (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
     else
       dwBytesToWrite=WideCharToMultiByte(lpData->nCodePage, 0, wszBuf, dwBufLen, (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE, NULL, NULL);
 
@@ -9259,88 +9259,176 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
 
 unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax)
 {
+  unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
   unsigned int i=0;
   unsigned int ti=0;
-  int nDone=0;
-  int nRemain=0;
-  int nSurrogate;
+  unsigned int nChar;
+  unsigned int nRead=0;
+  unsigned int nTrailing;
 
   while (i < nMultiStringLen && ti < nWideStringMax)
   {
     if (pMultiString[i] < 0x80)
     {
-      wszWideString[ti]=pMultiString[i++];
+      nTrailing=0;
+    }
+    else if (pMultiString[i] < 0xC0)
+    {
+      //Trailing byte in leading position
+      nRead=++i;
+      continue;
     }
     else if (pMultiString[i] < 0xE0)
     {
-      wszWideString[ti]=(pMultiString[i++] & 0x1F) << 6;
-      if (i >= nMultiStringLen) break;
-      wszWideString[ti]=wszWideString[ti] + (pMultiString[i++] & 0x7F);
+      if (i + 1 >= nMultiStringLen) break;
+      nTrailing=1;
     }
     else if (pMultiString[i] < 0xF0)
     {
-      wszWideString[ti]=(pMultiString[i++] & 0xF) << 12;
-      if (i >= nMultiStringLen) break;
-      wszWideString[ti]=wszWideString[ti] + ((pMultiString[i++] & 0x7F) << 6);
-      if (i >= nMultiStringLen) break;
-      wszWideString[ti]=wszWideString[ti] + (pMultiString[i++] & 0x7F);
+      if (i + 2 >= nMultiStringLen) break;
+      nTrailing=2;
+    }
+    else if (pMultiString[i] < 0xF8)
+    {
+      if (i + 3 >= nMultiStringLen) break;
+      nTrailing=3;
+    }
+    else
+    {
+      //No chance for this in UTF-16
+      nRead=++i;
+      continue;
+    }
+
+    //Get unicode char
+    nChar=0;
+
+    switch (nTrailing)
+    {
+      case 3:
+      {
+        nChar+=pMultiString[i++];
+        nChar=nChar << 6;
+      }
+      case 2:
+      {
+        nChar+=pMultiString[i++];
+        nChar=nChar << 6;
+      }
+      case 1:
+      {
+        nChar+=pMultiString[i++];
+        nChar=nChar << 6;
+      }
+      case 0:
+      {
+        nChar+=pMultiString[i++];
+      }
+    }
+    nChar-=lpOffsetsFromUTF8[nTrailing];
+
+    //Write unicode char
+    if (nChar <= 0xFFFF)
+    {
+      wszWideString[ti]=nChar;
     }
     else
     {
       //Surrogate pair
-      nSurrogate=(pMultiString[i++] & 0x7) << 18;
-      if (i >= nMultiStringLen) break;
-      nSurrogate+=(pMultiString[i++] & 0x3F) << 12;
-      if (i >= nMultiStringLen) break;
-      nSurrogate+=(pMultiString[i++] & 0x3F) << 6;
-      if (i >= nMultiStringLen) break;
-      nSurrogate+=(pMultiString[i++] & 0x3F);
-      if (i >= nMultiStringLen) break;
-
-      wszWideString[ti]=((nSurrogate - 0x10000) >> 10) + 0xD800;
       if (ti + 1 >= nWideStringMax) break;
-      wszWideString[++ti]=(nSurrogate & 0x3ff) + 0xDC00;
+      nChar-=0x10000;
+      wszWideString[ti++]=(nChar >> 10) + 0xD800;
+      wszWideString[ti]=(nChar & 0x3ff) + 0xDC00;
     }
-    nDone=i;
+    nRead=i;
     ++ti;
   }
-  if (i > nDone)
-    wszWideString[ti]='\0';
   if (nMultiStringDone)
-    *nMultiStringDone=nDone;
+    *nMultiStringDone=nRead;
   return ti;
 }
 
-unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, char *szMultiString, unsigned int nMultiStringMax)
+unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, unsigned int *nWideStringDone, char *szMultiString, unsigned int nMultiStringMax)
 {
+  unsigned int lpFirstByteMark[7]={0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
   unsigned int i=0;
   unsigned int ti=0;
+  unsigned int nChar;
+  unsigned int nRead=0;
+  unsigned int nBitesInChar;
 
-  while (ti < nWideStringLen)
+  while (ti < nWideStringLen && i < nMultiStringMax)
   {
-    if (wpWideString[ti] < 0x80)
+    nChar=wpWideString[ti];
+
+    //Surrogate pair. High surrogate.
+    if (nChar >= 0xD800 && nChar <= 0xDBFF)
     {
-      if (i + 1 > nMultiStringMax) return i;
-      szMultiString[i++]=(unsigned char)wpWideString[ti];
+      if (ti + 1 >= nWideStringLen) break;
+      ++ti;
+
+      //Low surrogate
+      if (wpWideString[ti] >= 0xDC00 && wpWideString[ti] <= 0xDFFF)
+      {
+        nChar=0x10000 + ((nChar - 0xD800) << 10) + (wpWideString[ti] - 0xDFFF);
+      }
+      else
+      {
+        nRead=ti;
+        continue;
+      }
     }
-    else if (wpWideString[ti] < 0x800)
+
+    if (nChar < 0x110000)
     {
-      if (i + 2 > nMultiStringMax) return i;
-      szMultiString[i++]=0xC0|((wpWideString[ti] >> 6) & 0x1F);
-      szMultiString[i++]=0x80|(wpWideString[ti] & 0x3F);
+      if (nChar >= 0x10000)
+      {
+        if (i + 3 >= nMultiStringMax) break;
+        nBitesInChar=4;
+      }
+      else if (nChar >= 0x800)
+      {
+        if (i + 2 >= nMultiStringMax) break;
+        nBitesInChar=3;
+      }
+      else if (nChar >= 0x80)
+      {
+        if (i + 1 >= nMultiStringMax) break;
+        nBitesInChar=2;
+      }
+      else if (nChar >= 0)
+      {
+        nBitesInChar=1;
+      }
+
+      switch (nBitesInChar)
+      {
+        case 4:
+        {
+          szMultiString[i + 3]=(nChar | 0x80) & 0xBF;
+          nChar=nChar >> 6;
+        }
+        case 3:
+        {
+          szMultiString[i + 2]=(nChar | 0x80) & 0xBF;
+          nChar=nChar >> 6;
+        }
+        case 2:
+        {
+          szMultiString[i + 1]=(nChar | 0x80) & 0xBF;
+          nChar=nChar >> 6;
+        }
+        case 1:
+        {
+          szMultiString[i]=nChar | lpFirstByteMark[nBitesInChar];
+        }
+      }
+      i+=nBitesInChar;
     }
-    else
-    {
-      //wpWideString[ti] < 0x10000
-      if (i + 3 > nMultiStringMax) return i;
-      szMultiString[i++]=0xE0|((wpWideString[ti] >> 12) & 0xF);
-      szMultiString[i++]=0x80|((wpWideString[ti] >> 6) & 0x3F);
-      szMultiString[i++]=0x80|(wpWideString[ti] & 0x3F);
-    }
-    ++ti;
+    nRead=++ti;
   }
-  if (ti < nWideStringLen)
-    szMultiString[i++]='\0';
+  if (nWideStringDone)
+    *nWideStringDone=nRead;
   return i;
 }
 
