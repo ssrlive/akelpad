@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 0, 3, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 0, 4, 0)
 
 
 //// Defines
@@ -22,6 +22,7 @@
 
 //Sizes
 #define WORD_DELIMITERS_SIZE    128
+#define WRAP_DELIMITERS_SIZE    128
 #define URL_PREFIXES_SIZE       128
 #define URL_DELIMITERS_SIZE     128
 
@@ -319,13 +320,16 @@ typedef struct _WNDFRAMEA {
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
-  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
-  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
+  DWORD dwLineGap;                                  //Line gap (4.x only)
   BOOL bShowURL;                                    //Show URL
   BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
+  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
+  BOOL bWrapDelimitersEnable;                       //Wrap delimiters enabled
+  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];  //Wrap delimiters
   BOOL bSplitWindow;                                //Edit window is splited (4.x only)
   HWND hWndMaster;                                  //Master window (4.x only)
   HWND hWndClone1;                                  //Clone window one (4.x only)
@@ -353,13 +357,16 @@ typedef struct _WNDFRAMEW {
   BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
   int nCaretWidth;                                  //Caret width (4.x only)
-  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
-  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
+  DWORD dwLineGap;                                  //Line gap (4.x only)
   BOOL bShowURL;                                    //Show URL
   BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
   wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
   BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
   wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
+  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
+  BOOL bWrapDelimitersEnable;                       //Wrap delimiters enabled
+  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];  //Wrap delimiters
   BOOL bSplitWindow;                                //Edit window is splited (4.x only)
   HWND hWndMaster;                                  //Master window (4.x only)
   HWND hWndClone1;                                  //Clone window one (4.x only)
@@ -661,8 +668,8 @@ typedef struct _NSIZE {
 #define IDM_FILE_PAGESETUP              4107  //Print setup dialog
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_FILE_PRINT                  4108  //Print dialog
-                                              //Return Value: TRUE - success, FALSE - failed
+#define IDM_FILE_PRINT                  4108  //Print dialog. lParam can be used to pass edit window handle.
+                                              //Return Value: number of printed pages
                                               //
 #define IDM_FILE_EXIT                   4109  //Exit program
                                               //Return Value: zero
@@ -675,6 +682,12 @@ typedef struct _NSIZE {
                                               //
 #define IDM_FILE_CLOSEALL_BUTACTIVE     4112  //Close all documents, but active
                                               //Return Value: TRUE - success, FALSE - failed
+                                              //
+#define IDM_FILE_SILENTPRINT            4113  //Print without dialog. lParam can be used to pass edit window handle.
+                                              //Return Value: number of printed pages
+                                              //
+#define IDM_FILE_PRINTPREVIEW           4114  //Print preview dialog. lParam can be used to pass edit window handle.
+                                              //Return Value: zero
                                               //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation
                                               //Return Value: zero
