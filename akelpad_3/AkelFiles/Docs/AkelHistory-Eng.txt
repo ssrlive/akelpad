@@ -1,4 +1,11 @@
 
+AkelPad 3.7.3 ()
+----------------------------
+Added: 4113 command - silent printing.
+
+Fixed: correct open/save UTF-8 text containing surrogate pairs.
+
+
 AkelPad 3.7.2 (Apr 26, 2009)
 ----------------------------
 Added: AKD_INI* messages for work with ini file in UTF-16LE codepage.

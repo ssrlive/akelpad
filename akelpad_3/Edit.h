@@ -16,8 +16,8 @@
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_ABOUT_VERSIONA           "AkelPad 3.7.2"
-#define APP_ABOUT_VERSIONW          L"AkelPad 3.7.2"
+#define APP_ABOUT_VERSIONA           "AkelPad 3.7.3"
+#define APP_ABOUT_VERSIONW          L"AkelPad 3.7.3"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -361,8 +361,8 @@ BOOL DoFileSaveAsA();
 BOOL DoFileSaveAsW();
 BOOL DoFilePageSetupA();
 BOOL DoFilePageSetupW();
-BOOL DoFilePrintA(BOOL bSilent);
-BOOL DoFilePrintW(BOOL bSilent);
+BOOL DoFilePrintA(HWND hWnd, BOOL bSilent);
+BOOL DoFilePrintW(HWND hWnd, BOOL bSilent);
 BOOL DoFileExitA();
 BOOL DoFileExitW();
 void DoEditUndo(HWND hWnd);
@@ -511,8 +511,8 @@ int FilePreviewW(HWND hWnd, wchar_t *wpFile, int nPreviewBytes, DWORD dwFlags, i
 int AutodetectCodePageA(char *pFile, DWORD dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage);
-unsigned int UTF8toUTF16(const char *pMultiString, unsigned int nMultiString, unsigned int *nMultiStringRemain,  wchar_t *wszWideString, unsigned int nWideString);
-unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideString, char *szMultiString, unsigned int nMultiString);
+unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax);
+unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, unsigned int *nWideStringDone, char *szMultiString, unsigned int nMultiStringMax);
 void ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
 BOOL CheckCodePage(int nCodePage);
 unsigned int TranslateNewLinesToUnixW(wchar_t *wpWideString, unsigned int nWideString);

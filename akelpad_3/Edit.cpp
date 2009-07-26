@@ -791,7 +791,7 @@ BOOL DoFilePageSetupW()
   return bResult;
 }
 
-BOOL DoFilePrintA(BOOL bSilent)
+BOOL DoFilePrintA(HWND hWnd, BOOL bSilent)
 {
   DOCINFOA diA={0};
   HDC hEditDC;
@@ -849,22 +849,22 @@ BOOL DoFilePrintA(BOOL bSilent)
       cr.cpMax=-1;
     }
 
-    if (GetRangeTextA(hWndEdit, cr.cpMin, cr.cpMax, &szBuffer))
+    if (GetRangeTextA(hWnd, cr.cpMin, cr.cpMax, &szBuffer))
     {
       pText=szBuffer;
 
       if (bPrintFontEnable)
       {
-        hEditDC=GetDC(hWndEdit);
+        hEditDC=GetDC(hWnd);
         nPointSize=-MulDiv(lfPrintFontA.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
-        ReleaseDC(hWndEdit, hEditDC);
+        ReleaseDC(hWnd, hEditDC);
         memcpy(&lfA, &lfPrintFontA, sizeof(LOGFONTA));
       }
       else
       {
-        hEditDC=GetDC(hWndEdit);
+        hEditDC=GetDC(hWnd);
         nPointSize=-MulDiv(lfEditFontA.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
-        ReleaseDC(hWndEdit, hEditDC);
+        ReleaseDC(hWnd, hEditDC);
         memcpy(&lfA, &lfEditFontA, sizeof(LOGFONTA));
       }
       lfA.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(pdA.hDC, LOGPIXELSY), 72);
@@ -939,7 +939,7 @@ BOOL DoFilePrintA(BOOL bSilent)
   return !bError;
 }
 
-BOOL DoFilePrintW(BOOL bSilent)
+BOOL DoFilePrintW(HWND hWnd, BOOL bSilent)
 {
   DOCINFOW diW={0};
   HDC hEditDC;
@@ -997,22 +997,22 @@ BOOL DoFilePrintW(BOOL bSilent)
       cr.cpMax=-1;
     }
 
-    if (GetRangeTextW(hWndEdit, cr.cpMin, cr.cpMax, &wszBuffer))
+    if (GetRangeTextW(hWnd, cr.cpMin, cr.cpMax, &wszBuffer))
     {
       wpText=wszBuffer;
 
       if (bPrintFontEnable)
       {
-        hEditDC=GetDC(hWndEdit);
+        hEditDC=GetDC(hWnd);
         nPointSize=-MulDiv(lfPrintFontW.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
-        ReleaseDC(hWndEdit, hEditDC);
+        ReleaseDC(hWnd, hEditDC);
         memcpy(&lfW, &lfPrintFontW, sizeof(LOGFONTW));
       }
       else
       {
-        hEditDC=GetDC(hWndEdit);
+        hEditDC=GetDC(hWnd);
         nPointSize=-MulDiv(lfEditFontW.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
-        ReleaseDC(hWndEdit, hEditDC);
+        ReleaseDC(hWnd, hEditDC);
         memcpy(&lfW, &lfEditFontW, sizeof(LOGFONTW));
       }
       lfW.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(pdW.hDC, LOGPIXELSY), 72);
@@ -4636,7 +4636,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       //Print if "/p" option used in command line
       if (bGlobalPrint)
       {
-        DoFilePrintA(TRUE);
+        DoFilePrintA(hWnd, TRUE);
         bGlobalPrint=FALSE;
 
         if (!bMDI)
@@ -4879,7 +4879,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       //Print if "/p" option used in command line
       if (bGlobalPrint)
       {
-        DoFilePrintW(TRUE);
+        DoFilePrintW(hWnd, TRUE);
         bGlobalPrint=FALSE;
 
         if (!bMDI)
@@ -4946,7 +4946,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
         else
         {
           if (lpData->nCodePage == CP_UNICODE_UTF8)
-            dwCharsConverted=UTF8toUTF16((char *)pBuffer, dwBytesRead, NULL, wpBuffer, dwBytesRead);
+            dwCharsConverted=UTF8toUTF16(pBuffer, dwBytesRead, NULL, wpBuffer, dwBytesRead);
           else
             dwCharsConverted=MultiByteToWideChar(lpData->nCodePage, 0, (char *)pBuffer, dwBytesRead, wpBuffer, dwBytesRead);
         }
@@ -5447,7 +5447,7 @@ DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG
   else
   {
     if (lpData->nCodePage == CP_UNICODE_UTF8)
-      dwCharsConverted=UTF16toUTF8((wchar_t *)pbBuff, dwBytesToWrite / sizeof(wchar_t), (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
+      dwCharsConverted=UTF16toUTF8((wchar_t *)pbBuff, dwBytesToWrite / sizeof(wchar_t), NULL, (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
     else
       dwCharsConverted=WideCharToMultiByte(lpData->nCodePage, 0, (wchar_t *)pbBuff, dwBytesToWrite / sizeof(wchar_t), (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE, NULL, NULL);
 
@@ -8021,73 +8021,178 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   return FALSE;
 }
 
-unsigned int UTF8toUTF16(const char *pMultiString, unsigned int nMultiString, unsigned int *nMultiStringRemain,  wchar_t *wszWideString, unsigned int nWideString)
+unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax)
 {
-  const unsigned char *lpMultiString=(const unsigned char *)pMultiString;
+  unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
   unsigned int i=0;
   unsigned int ti=0;
+  unsigned int nChar;
+  unsigned int nRead=0;
+  unsigned int nTrailing;
 
-  while (i < nMultiString && ti < nWideString)
+  while (i < nMultiStringLen && ti < nWideStringMax)
   {
-    if (lpMultiString[i] < 0x80)
+    if (pMultiString[i] < 0x80)
     {
-      wszWideString[ti]=lpMultiString[i++];
+      nTrailing=0;
     }
-    else if (lpMultiString[i] < 0xE0)
+    else if (pMultiString[i] < 0xC0)
     {
-      wszWideString[ti]=(lpMultiString[i++] & 0x1F) << 6;
-      if (i >= nMultiString || !lpMultiString[i]) {nMultiString=i - 1; return ti;}
-      wszWideString[ti]=wszWideString[ti] + (lpMultiString[i++] & 0x7F);
+      //Trailing byte in leading position
+      nRead=++i;
+      continue;
     }
-    else if (lpMultiString[i] < 0xF0)
+    else if (pMultiString[i] < 0xE0)
     {
-      wszWideString[ti]=(lpMultiString[i++] & 0xF) << 12;
-      if (i >= nMultiString || !lpMultiString[i]) {nMultiString=i - 1; return ti;}
-      wszWideString[ti]=wszWideString[ti] + ((lpMultiString[i++] & 0x7F) << 6);
-      if (i >= nMultiString || !lpMultiString[i]) {nMultiString=i - 2; return ti;}
-      wszWideString[ti]=wszWideString[ti] + (lpMultiString[i++] & 0x7F);
+      if (i + 1 >= nMultiStringLen) break;
+      nTrailing=1;
     }
-    else {++i; continue;}
-
-    ++ti;
-  }
-  if (i < nMultiString && ti < nWideString)
-    wszWideString[ti++]='\0';
-  if (nMultiStringRemain) *nMultiStringRemain=nMultiString - i;
-  return ti;
-}
-
-unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideString, char *szMultiString, unsigned int nMultiString)
-{
-  unsigned char *lpMultiString=(unsigned char *)szMultiString;
-  unsigned int i=0;
-  unsigned int ti=0;
-
-  while (ti < nWideString)
-  {
-    if (wpWideString[ti] < 0x80)
+    else if (pMultiString[i] < 0xF0)
     {
-      if (i + 1 > nMultiString) return i;
-      lpMultiString[i++]=(unsigned char)wpWideString[ti];
+      if (i + 2 >= nMultiStringLen) break;
+      nTrailing=2;
     }
-    else if (wpWideString[ti] < 0x800)
+    else if (pMultiString[i] < 0xF8)
     {
-      if (i + 2 > nMultiString) return i;
-      lpMultiString[i++]=0xC0|((wpWideString[ti] >> 6) & 0x1F);
-      lpMultiString[i++]=0x80|(wpWideString[ti] & 0x3F);
+      if (i + 3 >= nMultiStringLen) break;
+      nTrailing=3;
     }
     else
     {
-      //wpWideString[ti] < 0x10000
-      if (i + 3 > nMultiString) return i;
-      lpMultiString[i++]=0xE0|((wpWideString[ti] >> 12) & 0xF);
-      lpMultiString[i++]=0x80|((wpWideString[ti] >> 6) & 0x3F);
-      lpMultiString[i++]=0x80|(wpWideString[ti] & 0x3F);
+      //No chance for this in UTF-16
+      nRead=++i;
+      continue;
     }
+
+    //Get unicode char
+    nChar=0;
+
+    switch (nTrailing)
+    {
+      case 3:
+      {
+        nChar+=pMultiString[i++];
+        nChar=nChar << 6;
+      }
+      case 2:
+      {
+        nChar+=pMultiString[i++];
+        nChar=nChar << 6;
+      }
+      case 1:
+      {
+        nChar+=pMultiString[i++];
+        nChar=nChar << 6;
+      }
+      case 0:
+      {
+        nChar+=pMultiString[i++];
+      }
+    }
+    nChar-=lpOffsetsFromUTF8[nTrailing];
+
+    //Write unicode char
+    if (nChar <= 0xFFFF)
+    {
+      wszWideString[ti]=nChar;
+    }
+    else
+    {
+      //Surrogate pair
+      if (ti + 1 >= nWideStringMax) break;
+      nChar-=0x10000;
+      wszWideString[ti++]=(nChar >> 10) + 0xD800;
+      wszWideString[ti]=(nChar & 0x3ff) + 0xDC00;
+    }
+    nRead=i;
     ++ti;
   }
-  if (ti < nWideString)
-    lpMultiString[i++]='\0';
+  if (nMultiStringDone)
+    *nMultiStringDone=nRead;
+  return ti;
+}
+
+unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, unsigned int *nWideStringDone, char *szMultiString, unsigned int nMultiStringMax)
+{
+  unsigned int lpFirstByteMark[7]={0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
+  unsigned int i=0;
+  unsigned int ti=0;
+  unsigned int nChar;
+  unsigned int nRead=0;
+  unsigned int nBitesInChar;
+
+  while (ti < nWideStringLen && i < nMultiStringMax)
+  {
+    nChar=wpWideString[ti];
+
+    //Surrogate pair. High surrogate.
+    if (nChar >= 0xD800 && nChar <= 0xDBFF)
+    {
+      if (ti + 1 >= nWideStringLen) break;
+      ++ti;
+
+      //Low surrogate
+      if (wpWideString[ti] >= 0xDC00 && wpWideString[ti] <= 0xDFFF)
+      {
+        nChar=0x10000 + ((nChar - 0xD800) << 10) + (wpWideString[ti] - 0xDC00);
+      }
+      else
+      {
+        nRead=ti;
+        continue;
+      }
+    }
+
+    if (nChar < 0x110000)
+    {
+      if (nChar >= 0x10000)
+      {
+        if (i + 3 >= nMultiStringMax) break;
+        nBitesInChar=4;
+      }
+      else if (nChar >= 0x800)
+      {
+        if (i + 2 >= nMultiStringMax) break;
+        nBitesInChar=3;
+      }
+      else if (nChar >= 0x80)
+      {
+        if (i + 1 >= nMultiStringMax) break;
+        nBitesInChar=2;
+      }
+      else if (nChar >= 0)
+      {
+        nBitesInChar=1;
+      }
+
+      switch (nBitesInChar)
+      {
+        case 4:
+        {
+          szMultiString[i + 3]=(nChar | 0x80) & 0xBF;
+          nChar=nChar >> 6;
+        }
+        case 3:
+        {
+          szMultiString[i + 2]=(nChar | 0x80) & 0xBF;
+          nChar=nChar >> 6;
+        }
+        case 2:
+        {
+          szMultiString[i + 1]=(nChar | 0x80) & 0xBF;
+          nChar=nChar >> 6;
+        }
+        case 1:
+        {
+          szMultiString[i]=nChar | lpFirstByteMark[nBitesInChar];
+        }
+      }
+      i+=nBitesInChar;
+    }
+    nRead=++ti;
+  }
+  if (nWideStringDone)
+    *nWideStringDone=nRead;
   return i;
 }
 

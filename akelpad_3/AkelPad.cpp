@@ -2639,7 +2639,11 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_PRINT)
     {
-      return DoFilePrintA(FALSE);
+      return DoFilePrintA((lParam?(HWND)lParam:hWndEdit), FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_FILE_SILENTPRINT)
+    {
+      return DoFilePrintA((lParam?(HWND)lParam:hWndEdit), TRUE);
     }
     else if (LOWORD(wParam) == IDM_FILE_EXIT)
     {
@@ -4423,7 +4427,11 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_PRINT)
     {
-      return DoFilePrintW(FALSE);
+      return DoFilePrintW((lParam?(HWND)lParam:hWndEdit), FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_FILE_SILENTPRINT)
+    {
+      return DoFilePrintW((lParam?(HWND)lParam:hWndEdit), TRUE);
     }
     else if (LOWORD(wParam) == IDM_FILE_EXIT)
     {
