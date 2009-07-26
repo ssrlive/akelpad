@@ -395,7 +395,6 @@ typedef struct _AKELEDIT {
   DWORD dwMouseMoveTimer;
   DWORD dwMouseScrollTimer;
   int nCurrentCursor;
-  BOOL bMarginSelect;
   POINT ptMButtonDown;
   POINT ptMButtonScroll;
   HBITMAP hMButtonBitmap;

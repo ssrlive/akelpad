@@ -3171,7 +3171,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             SetFocus(ae->hWndEdit);
 
           //Start margin selection capture
-          if (!ae->bMarginSelect && !bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
+          if (!bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
           {
             AECHARRANGE cr;
             AECHARINDEX ciCharIndex;
@@ -3182,7 +3182,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
               SetCapture(ae->hWndEdit);
             }
-            ae->bMarginSelect=TRUE;
 
             AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
             cr.ciMin=ciCharIndex;
@@ -3213,14 +3212,24 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               SetCapture(ae->hWndEdit);
             }
             AE_SetMouseSelection(ae, &ptPos, bAlt, bShift);
+
+            if (!bShift)
+            {
+              ae->ciLButtonClick=ae->ciCaretIndex;
+              ae->ciLButtonStart=ae->ciCaretIndex;
+              ae->ciLButtonEnd=ae->ciCaretIndex;
+            }
           }
         }
         //Two clicks
         else if (ae->nLButtonDownCount == 1)
         {
-          if (!ae->bMarginSelect && !bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
+          if (ae->nCurrentCursor == AECC_MARGIN)
           {
-            //Two clicks in left margin are ignored
+            if (!bAlt && !bShift)
+            {
+              //Two clicks in left margin are ignored
+            }
           }
           else
           {
@@ -3248,9 +3257,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Three clicks
         else if (ae->nLButtonDownCount == 2)
         {
-          if (!ae->bMarginSelect && !bAlt && !bShift && ae->nCurrentCursor == AECC_MARGIN)
+          if (ae->nCurrentCursor == AECC_MARGIN)
           {
-            AE_EditSelectAll(ae);
+            if (!bAlt && !bShift)
+            {
+              AE_EditSelectAll(ae);
+            }
           }
           else
           {
@@ -3388,6 +3400,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             GetCursorPos(&ptPos);
             ScreenToClient(ae->hWndEdit, &ptPos);
             AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
+
+            if (!(wParam & MK_SHIFT))
+            {
+              ae->ciLButtonClick=ae->ciCaretIndex;
+              ae->ciLButtonStart=ae->ciCaretIndex;
+              ae->ciLButtonEnd=ae->ciCaretIndex;
+            }
           }
         }
         if (ae->dwMouseMoveTimer)
@@ -3396,7 +3415,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->dwMouseMoveTimer=0;
           ReleaseCapture();
         }
-        ae->bMarginSelect=FALSE;
       }
       else if (uMsg == WM_MBUTTONUP)
       {
@@ -3428,7 +3446,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->dwMouseMoveTimer=0;
           ReleaseCapture();
         }
-        ae->bMarginSelect=FALSE;
       }
 
       //Notify
@@ -6626,10 +6643,10 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
     //One click (capture)
     if (ae->nLButtonDownCount == 0)
     {
-      if (ae->bMarginSelect == TRUE)
+      if (bShift)
       {
         //Margin selection, same as three clicks (capture)
-        if (bShift)
+        if (ae->nCurrentCursor == AECC_MARGIN)
         {
           if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonClick) < 0)
           {
@@ -6658,11 +6675,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
             AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
           }
         }
-      }
-      else
-      {
         //Characters selection
-        if (bShift)
+        else
         {
           if (!AE_IndexCompare(&ae->ciCaretIndex, &ciCharIndex))
           {
@@ -6684,8 +6698,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
             AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
           }
         }
-        else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, bColumnSel, 0);
       }
+      else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, bColumnSel, 0);
     }
     //Two clicks (capture)
     else if (ae->nLButtonDownCount == 1)
@@ -6960,7 +6974,7 @@ int AE_SetCursor(AKELEDIT *ae)
       }
     }
   }
-  else if (!bAlt && !bShift && AE_IsCursorOnLeftMargin(ae, &ptPos))
+  else if (!bAlt && AE_IsCursorOnLeftMargin(ae, &ptPos))
   {
     SetCursor(hAkelEditCursorMargin);
     nResult=AECC_MARGIN;
