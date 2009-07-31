@@ -87,6 +87,11 @@
 #define AECOOP_AND              3  //Retains only those current options that are also specified by lParam.
 #define AECOOP_XOR              4  //Logically exclusive OR the current options with those specified by lParam.
 
+//Modifier flags
+#define AEMOD_ALT               0x01  //ALT key
+#define AEMOD_SHIFT             0x02  //SHIFT key
+#define AEMOD_CONTROL           0x04  //CTRL key
+
 //AEM_GETINDEX flags
 #define AEGI_FIRSTCHAR           1  //First character.
 #define AEGI_LASTCHAR            2  //Last character.
@@ -701,6 +706,7 @@ typedef struct {
 #define AEM_FINDTEXTW         (WM_USER + 2017)
 #define AEM_ISMATCHA          (WM_USER + 2018)
 #define AEM_ISMATCHW          (WM_USER + 2019)
+#define AEM_KEYDOWN           (WM_USER + 2020)
 
 //Undo and Redo
 #define AEM_CANUNDO           (WM_USER + 2051)
@@ -1625,6 +1631,21 @@ Example:
    aes.bColumnSel=FALSE;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
+
+
+AEM_KEYDOWN
+___________
+
+Emulate key down pressing.
+
+(int)wParam   == virtual-key code.
+(DWORD)lParam == see AEMOD_* defines.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_KEYDOWN, VK_RIGHT, AEMOD_SHIFT|AEMOD_CONTROL);
 
 
 AEM_CANUNDO
