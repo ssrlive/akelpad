@@ -620,6 +620,7 @@ BOOL AE_GetModify(AKELEDIT *ae);
 void AE_SetModify(AKELEDIT *ae, BOOL bState, BOOL bMessage);
 void AE_EmptyUndoBuffer(AKELEDIT *ae);
 BOOL AE_IsReadOnly(AKELEDIT *ae);
+BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl);
 BOOL AE_EditCanPaste(AKELEDIT *ae);
 BOOL AE_EditCanRedo(AKELEDIT *ae);
 BOOL AE_EditCanUndo(AKELEDIT *ae);

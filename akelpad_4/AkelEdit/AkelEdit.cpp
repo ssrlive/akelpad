@@ -503,6 +503,15 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AE_IsMatch(ae, (AEFINDTEXTW *)lParam, (AECHARINDEX *)wParam);
       }
+      if (uMsg == AEM_KEYDOWN)
+      {
+        if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
+          if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
+            return 0;
+
+        AE_KeyDown(ae, wParam, (lParam & AEMOD_ALT), (lParam & AEMOD_SHIFT), (lParam & AEMOD_CONTROL));
+        return 0;
+      }
 
       //Undo and Redo
       if (uMsg == AEM_CANUNDO)
@@ -2470,13 +2479,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_KEYDOWN ||
              uMsg == WM_SYSKEYDOWN)
     {
-      AECHARINDEX ciCharIn=ae->ciCaretIndex;
-      AECHARINDEX ciCharOut=ae->ciCaretIndex;
-      int nHorizCaretPos=ae->nHorizCaretPos;
       BOOL bAlt=FALSE;
       BOOL bShift=FALSE;
       BOOL bControl=FALSE;
-      BOOL bSetHorizCaretPos=TRUE;
 
       if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
         if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
@@ -2489,383 +2494,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (GetKeyState(VK_CONTROL) < 0)
         bControl=TRUE;
 
-      if (wParam == VK_TAB)
-      {
-        if (!bAlt && bControl)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditChar(ae, VK_TAB);
-          }
-          return 0;
-        }
-      }
-      if (wParam == VK_RETURN)
-      {
-        if (!bAlt)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditKeyReturn(ae);
-          }
-        }
+      if (AE_KeyDown(ae, wParam, bAlt, bShift, bControl))
         return 0;
-      }
-      if (wParam == VK_BACK)
-      {
-        if (!bAlt)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditKeyBackspace(ae, bControl);
-          }
-        }
-        else if (!bControl && !bShift)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditUndo(ae);
-          }
-        }
-        return 0;
-      }
-      if (wParam == VK_DELETE)
-      {
-        if (!bAlt)
-        {
-          if (!bShift)
-          {
-            if (!AE_IsReadOnly(ae))
-            {
-              AE_EditKeyDelete(ae, bControl);
-            }
-          }
-          else if (!bControl)
-          {
-            if (!AE_IsReadOnly(ae))
-            {
-              AE_EditCut(ae);
-            }
-          }
-        }
-        return 0;
-      }
-      if (wParam == VK_INSERT)
-      {
-        if (!bAlt)
-        {
-          if (!bControl && !bShift)
-          {
-            ae->popt->bOverType=!ae->popt->bOverType;
-            AE_UpdateCaret(ae, ae->bFocus, FALSE);
-          }
-          else
-          {
-            if (bControl && !bShift)
-            {
-              AE_EditCopyToClipboard(ae);
-            }
-            else if (!bControl && bShift)
-            {
-              if (!AE_IsReadOnly(ae))
-              {
-                AE_EditPasteFromClipboard(ae, FALSE);
-              }
-            }
-            else if (bControl && bShift)
-            {
-              if (!AE_IsReadOnly(ae))
-              {
-                AE_EditPasteFromClipboard(ae, TRUE);
-              }
-            }
-          }
-        }
-        return 0;
-      }
-      if (wParam == 'X')
-      {
-        if (bControl && !bShift && !bAlt)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditCut(ae);
-          }
-        }
-        return 0;
-      }
-      if (wParam == 'C')
-      {
-        if (bControl && !bShift && !bAlt)
-        {
-          AE_EditCopyToClipboard(ae);
-        }
-        return 0;
-      }
-      if (wParam == 'V')
-      {
-        if (bControl && !bShift && !bAlt)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditPasteFromClipboard(ae, FALSE);
-          }
-        }
-        else if (bControl && bShift && !bAlt)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditPasteFromClipboard(ae, TRUE);
-          }
-        }
-        return 0;
-      }
-      if (wParam == 'Z')
-      {
-        if (bControl && !bShift && !bAlt)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditUndo(ae);
-          }
-        }
-        else if (bControl && bShift && !bAlt)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditRedo(ae);
-          }
-        }
-        return 0;
-      }
-      if (wParam == 'Y')
-      {
-        if (bControl && !bShift && !bAlt)
-        {
-          if (!AE_IsReadOnly(ae))
-          {
-            AE_EditRedo(ae);
-          }
-        }
-        return 0;
-      }
-      if (wParam == 'A')
-      {
-        if (bControl && !bShift && !bAlt)
-        {
-          AE_EditSelectAll(ae);
-        }
-        return 0;
-      }
-
-      if ((wParam == VK_HOME ||
-           wParam == VK_END ||
-           wParam == VK_LEFT ||
-           wParam == VK_RIGHT ||
-           wParam == VK_UP ||
-           wParam == VK_DOWN ||
-           wParam == VK_PRIOR ||
-           wParam == VK_NEXT) &&
-           ae->rcDraw.bottom - ae->rcDraw.top > 0 &&
-           ae->rcDraw.right - ae->rcDraw.left > 0)
-      {
-        if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
-          nHorizCaretPos=ae->ptCaret.x;
-
-        if (wParam == VK_HOME)
-        {
-          if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-            ciCharIn=ae->ciSelStartIndex;
-
-          if (bControl)
-          {
-            AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCharOut, FALSE);
-          }
-          else
-          {
-            ciCharOut.nLine=ciCharIn.nLine;
-            ciCharOut.lpLine=ciCharIn.lpLine;
-            ciCharOut.nCharInLine=0;
-          }
-        }
-        else if (wParam == VK_END)
-        {
-          if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-            ciCharIn=ae->ciSelEndIndex;
-
-          if (bControl)
-          {
-            AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciCharOut, FALSE);
-          }
-          else
-          {
-            ciCharOut.nLine=ciCharIn.nLine;
-            ciCharOut.lpLine=ciCharIn.lpLine;
-            ciCharOut.nCharInLine=ciCharIn.lpLine->nLineLen;
-          }
-        }
-        else if (wParam == VK_LEFT)
-        {
-          if (bControl)
-          {
-            if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-              ciCharIn=ae->ciSelStartIndex;
-            if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
-              ciCharIn.nCharInLine=min(ciCharIn.nCharInLine, ciCharIn.lpLine->nLineLen);
-
-            AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, bAlt, ae->popt->dwWordBreak, FALSE);
-          }
-          else
-          {
-            if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-            {
-              ciCharIn=ae->ciSelStartIndex;
-              ciCharOut=ae->ciSelStartIndex;
-            }
-            else AE_GetIndex(ae, AEGI_PREVCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
-          }
-        }
-        else if (wParam == VK_RIGHT)
-        {
-          if (bControl)
-          {
-            if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-              ciCharIn=ae->ciSelEndIndex;
-            if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
-              ciCharIn.nCharInLine=min(ciCharIn.nCharInLine, ciCharIn.lpLine->nLineLen);
-
-            AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, bAlt, ae->popt->dwWordBreak, FALSE);
-          }
-          else
-          {
-            if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-            {
-              ciCharIn=ae->ciSelEndIndex;
-              ciCharOut=ae->ciSelEndIndex;
-            }
-            else AE_GetIndex(ae, AEGI_NEXTCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
-          }
-        }
-        else if (wParam == VK_UP)
-        {
-          if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-            ciCharIn=ae->ciSelStartIndex;
-
-          if (AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, FALSE))
-          {
-            if (!bControl)
-            {
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
-              bSetHorizCaretPos=FALSE;
-            }
-          }
-        }
-        else if (wParam == VK_DOWN)
-        {
-          if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-            ciCharIn=ae->ciSelEndIndex;
-
-          if (AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIn, &ciCharOut, FALSE))
-          {
-            if (!bControl)
-            {
-              AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
-              bSetHorizCaretPos=FALSE;
-            }
-          }
-        }
-        else if (wParam == VK_PRIOR)
-        {
-          if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-            ciCharIn=ae->ciSelStartIndex;
-
-          if (bControl)
-          {
-            //First fully visible line
-            ciCharOut.nLine=AE_GetFirstVisibleLine(ae);
-            if (ciCharOut.nLine * ae->ptxt->nCharHeight < ae->nVScrollPos)
-               ciCharOut.nLine=min(ciCharOut.nLine + 1, ae->ptxt->nLineCount);
-            ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
-            if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
-              ciCharOut.nCharInLine=ciCharIn.nCharInLine;
-            else
-              ciCharOut.nCharInLine=0;
-          }
-          else
-          {
-            ciCharOut.nLine=max(ciCharIn.nLine - (ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight, 0);
-            AE_UpdateIndex(ae, &ciCharOut);
-            AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
-
-            if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
-              AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->ptxt->nCharHeight - (ciCharIn.nLine * ae->ptxt->nCharHeight - ae->nVScrollPos));
-            bSetHorizCaretPos=FALSE;
-          }
-        }
-        else if (wParam == VK_NEXT)
-        {
-          if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-            ciCharIn=ae->ciSelEndIndex;
-
-          if (bControl)
-          {
-            //Last fully visible line
-            ciCharOut.nLine=AE_GetLastVisibleLine(ae);
-            if (ciCharOut.nLine * ae->ptxt->nCharHeight + ae->ptxt->nCharHeight > ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top))
-               ciCharOut.nLine=max(ciCharOut.nLine - 1, 0);
-            ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
-            if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
-              ciCharOut.nCharInLine=ciCharIn.nCharInLine;
-            else
-              ciCharOut.nCharInLine=ciCharOut.lpLine->nLineLen;
-          }
-          else
-          {
-            ciCharOut.nLine=min(ciCharIn.nLine + (ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight, ae->ptxt->nLineCount);
-            AE_UpdateIndex(ae, &ciCharOut);
-            AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
-
-            if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
-              AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->ptxt->nCharHeight - (ciCharIn.nLine * ae->ptxt->nCharHeight - ae->nVScrollPos));
-            bSetHorizCaretPos=FALSE;
-          }
-        }
-
-        //Make beep
-        if (!(ae->popt->dwOptions & AECO_DISABLEBEEP))
-        {
-          if ((bShift || !AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex)) &&
-              !AE_IndexCompare(&ciCharIn, &ciCharOut))
-          {
-            MessageBeep(MB_OK);
-          }
-        }
-
-        //Set selection
-        {
-          AECHARINDEX ciSelEnd={0};
-
-          if (bShift)
-          {
-            if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-              ciSelEnd=ae->ciCaretIndex;
-            else if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
-              ciSelEnd=ae->ciSelStartIndex;
-            else
-              ciSelEnd=ae->ciSelEndIndex;
-
-            AE_SetSelectionPos(ae, &ciCharOut, &ciSelEnd, bAlt, AESELT_NOVERTSCROLLCORRECT);
-          }
-          else AE_SetSelectionPos(ae, &ciCharOut, &ciCharOut, bAlt, AESELT_NOVERTSCROLLCORRECT);
-        }
-
-        //Set horizontal caret
-        if (!bSetHorizCaretPos)
-        {
-          ae->nHorizCaretPos=nHorizCaretPos;
-        }
-        return 0;
-      }
     }
     else if (uMsg == WM_CHAR)
     {
@@ -14265,6 +13895,393 @@ BOOL AE_IsReadOnly(AKELEDIT *ae)
   {
     if (!(ae->popt->dwOptions & AECO_DISABLEBEEP))
       MessageBeep(MB_OK);
+    return TRUE;
+  }
+  return FALSE;
+}
+
+BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
+{
+  AECHARINDEX ciCharIn=ae->ciCaretIndex;
+  AECHARINDEX ciCharOut=ae->ciCaretIndex;
+  int nHorizCaretPos=ae->nHorizCaretPos;
+  BOOL bSetHorizCaretPos=TRUE;
+
+  if (nVk == VK_TAB)
+  {
+    if (!bAlt && bControl)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditChar(ae, VK_TAB);
+      }
+      return TRUE;
+    }
+  }
+  if (nVk == VK_RETURN)
+  {
+    if (!bAlt)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditKeyReturn(ae);
+      }
+    }
+    return TRUE;
+  }
+  if (nVk == VK_BACK)
+  {
+    if (!bAlt)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditKeyBackspace(ae, bControl);
+      }
+    }
+    else if (!bControl && !bShift)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditUndo(ae);
+      }
+    }
+    return TRUE;
+  }
+  if (nVk == VK_DELETE)
+  {
+    if (!bAlt)
+    {
+      if (!bShift)
+      {
+        if (!AE_IsReadOnly(ae))
+        {
+          AE_EditKeyDelete(ae, bControl);
+        }
+      }
+      else if (!bControl)
+      {
+        if (!AE_IsReadOnly(ae))
+        {
+          AE_EditCut(ae);
+        }
+      }
+    }
+    return TRUE;
+  }
+  if (nVk == VK_INSERT)
+  {
+    if (!bAlt)
+    {
+      if (!bControl && !bShift)
+      {
+        ae->popt->bOverType=!ae->popt->bOverType;
+        AE_UpdateCaret(ae, ae->bFocus, FALSE);
+      }
+      else
+      {
+        if (bControl && !bShift)
+        {
+          AE_EditCopyToClipboard(ae);
+        }
+        else if (!bControl && bShift)
+        {
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditPasteFromClipboard(ae, FALSE);
+          }
+        }
+        else if (bControl && bShift)
+        {
+          if (!AE_IsReadOnly(ae))
+          {
+            AE_EditPasteFromClipboard(ae, TRUE);
+          }
+        }
+      }
+    }
+    return TRUE;
+  }
+  if (nVk == 'X')
+  {
+    if (bControl && !bShift && !bAlt)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditCut(ae);
+      }
+    }
+    return TRUE;
+  }
+  if (nVk == 'C')
+  {
+    if (bControl && !bShift && !bAlt)
+    {
+      AE_EditCopyToClipboard(ae);
+    }
+    return TRUE;
+  }
+  if (nVk == 'V')
+  {
+    if (bControl && !bShift && !bAlt)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditPasteFromClipboard(ae, FALSE);
+      }
+    }
+    else if (bControl && bShift && !bAlt)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditPasteFromClipboard(ae, TRUE);
+      }
+    }
+    return TRUE;
+  }
+  if (nVk == 'Z')
+  {
+    if (bControl && !bShift && !bAlt)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditUndo(ae);
+      }
+    }
+    else if (bControl && bShift && !bAlt)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditRedo(ae);
+      }
+    }
+    return TRUE;
+  }
+  if (nVk == 'Y')
+  {
+    if (bControl && !bShift && !bAlt)
+    {
+      if (!AE_IsReadOnly(ae))
+      {
+        AE_EditRedo(ae);
+      }
+    }
+    return TRUE;
+  }
+  if (nVk == 'A')
+  {
+    if (bControl && !bShift && !bAlt)
+    {
+      AE_EditSelectAll(ae);
+    }
+    return TRUE;
+  }
+
+  if ((nVk == VK_HOME ||
+       nVk == VK_END ||
+       nVk == VK_LEFT ||
+       nVk == VK_RIGHT ||
+       nVk == VK_UP ||
+       nVk == VK_DOWN ||
+       nVk == VK_PRIOR ||
+       nVk == VK_NEXT) &&
+       ae->rcDraw.bottom - ae->rcDraw.top > 0 &&
+       ae->rcDraw.right - ae->rcDraw.left > 0)
+  {
+    if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
+      nHorizCaretPos=ae->ptCaret.x;
+
+    if (nVk == VK_HOME)
+    {
+      if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+        ciCharIn=ae->ciSelStartIndex;
+
+      if (bControl)
+      {
+        AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCharOut, FALSE);
+      }
+      else
+      {
+        ciCharOut.nLine=ciCharIn.nLine;
+        ciCharOut.lpLine=ciCharIn.lpLine;
+        ciCharOut.nCharInLine=0;
+      }
+    }
+    else if (nVk == VK_END)
+    {
+      if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+        ciCharIn=ae->ciSelEndIndex;
+
+      if (bControl)
+      {
+        AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciCharOut, FALSE);
+      }
+      else
+      {
+        ciCharOut.nLine=ciCharIn.nLine;
+        ciCharOut.lpLine=ciCharIn.lpLine;
+        ciCharOut.nCharInLine=ciCharIn.lpLine->nLineLen;
+      }
+    }
+    else if (nVk == VK_LEFT)
+    {
+      if (bControl)
+      {
+        if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+          ciCharIn=ae->ciSelStartIndex;
+        if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
+          ciCharIn.nCharInLine=min(ciCharIn.nCharInLine, ciCharIn.lpLine->nLineLen);
+
+        AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, bAlt, ae->popt->dwWordBreak, FALSE);
+      }
+      else
+      {
+        if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+        {
+          ciCharIn=ae->ciSelStartIndex;
+          ciCharOut=ae->ciSelStartIndex;
+        }
+        else AE_GetIndex(ae, AEGI_PREVCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+      }
+    }
+    else if (nVk == VK_RIGHT)
+    {
+      if (bControl)
+      {
+        if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+          ciCharIn=ae->ciSelEndIndex;
+        if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
+          ciCharIn.nCharInLine=min(ciCharIn.nCharInLine, ciCharIn.lpLine->nLineLen);
+
+        AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, bAlt, ae->popt->dwWordBreak, FALSE);
+      }
+      else
+      {
+        if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+        {
+          ciCharIn=ae->ciSelEndIndex;
+          ciCharOut=ae->ciSelEndIndex;
+        }
+        else AE_GetIndex(ae, AEGI_NEXTCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+      }
+    }
+    else if (nVk == VK_UP)
+    {
+      if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+        ciCharIn=ae->ciSelStartIndex;
+
+      if (AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, FALSE))
+      {
+        if (!bControl)
+        {
+          AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+          bSetHorizCaretPos=FALSE;
+        }
+      }
+    }
+    else if (nVk == VK_DOWN)
+    {
+      if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+        ciCharIn=ae->ciSelEndIndex;
+
+      if (AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIn, &ciCharOut, FALSE))
+      {
+        if (!bControl)
+        {
+          AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+          bSetHorizCaretPos=FALSE;
+        }
+      }
+    }
+    else if (nVk == VK_PRIOR)
+    {
+      if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+        ciCharIn=ae->ciSelStartIndex;
+
+      if (bControl)
+      {
+        //First fully visible line
+        ciCharOut.nLine=AE_GetFirstVisibleLine(ae);
+        if (ciCharOut.nLine * ae->ptxt->nCharHeight < ae->nVScrollPos)
+           ciCharOut.nLine=min(ciCharOut.nLine + 1, ae->ptxt->nLineCount);
+        ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
+        if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
+          ciCharOut.nCharInLine=ciCharIn.nCharInLine;
+        else
+          ciCharOut.nCharInLine=0;
+      }
+      else
+      {
+        ciCharOut.nLine=max(ciCharIn.nLine - (ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight, 0);
+        AE_UpdateIndex(ae, &ciCharOut);
+        AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+
+        if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
+          AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->ptxt->nCharHeight - (ciCharIn.nLine * ae->ptxt->nCharHeight - ae->nVScrollPos));
+        bSetHorizCaretPos=FALSE;
+      }
+    }
+    else if (nVk == VK_NEXT)
+    {
+      if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+        ciCharIn=ae->ciSelEndIndex;
+
+      if (bControl)
+      {
+        //Last fully visible line
+        ciCharOut.nLine=AE_GetLastVisibleLine(ae);
+        if (ciCharOut.nLine * ae->ptxt->nCharHeight + ae->ptxt->nCharHeight > ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top))
+           ciCharOut.nLine=max(ciCharOut.nLine - 1, 0);
+        ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
+        if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
+          ciCharOut.nCharInLine=ciCharIn.nCharInLine;
+        else
+          ciCharOut.nCharInLine=ciCharOut.lpLine->nLineLen;
+      }
+      else
+      {
+        ciCharOut.nLine=min(ciCharIn.nLine + (ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight, ae->ptxt->nLineCount);
+        AE_UpdateIndex(ae, &ciCharOut);
+        AE_GetCharInLineEx(ae, ciCharOut.lpLine, nHorizCaretPos, TRUE, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+
+        if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
+          AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->ptxt->nCharHeight - (ciCharIn.nLine * ae->ptxt->nCharHeight - ae->nVScrollPos));
+        bSetHorizCaretPos=FALSE;
+      }
+    }
+
+    //Make beep
+    if (!(ae->popt->dwOptions & AECO_DISABLEBEEP))
+    {
+      if ((bShift || !AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex)) &&
+          !AE_IndexCompare(&ciCharIn, &ciCharOut))
+      {
+        MessageBeep(MB_OK);
+      }
+    }
+
+    //Set selection
+    {
+      AECHARINDEX ciSelEnd={0};
+
+      if (bShift)
+      {
+        if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+          ciSelEnd=ae->ciCaretIndex;
+        else if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
+          ciSelEnd=ae->ciSelStartIndex;
+        else
+          ciSelEnd=ae->ciSelEndIndex;
+
+        AE_SetSelectionPos(ae, &ciCharOut, &ciSelEnd, bAlt, AESELT_NOVERTSCROLLCORRECT);
+      }
+      else AE_SetSelectionPos(ae, &ciCharOut, &ciCharOut, bAlt, AESELT_NOVERTSCROLLCORRECT);
+    }
+
+    //Set horizontal caret
+    if (!bSetHorizCaretPos)
+    {
+      ae->nHorizCaretPos=nHorizCaretPos;
+    }
     return TRUE;
   }
   return FALSE;

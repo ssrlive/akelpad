@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.2.4"
+!define PRODUCT_VERSION "4.2.5"
 
 ;_____________________________________________________________________________________________
 ;
@@ -50,14 +50,13 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define LANG_KOREAN               1042
 !define LANG_CHINESE_TRADITIONAL  1028
 !define LANG_CHINESE_SIMPLIFIED   2052
-!define LANG_KYRGYZ               1088
 !define LANG_POLISH               1045
 !define LANG_TURKISH              1055
 !define LANG_TATAR                1092
 !define LANG_SLOVAK               1051
 !define LANG_ROMANIAN             1048
 !define LANG_DUTCH                1043
-!define LANG_FINNISH             1035
+!define LANG_FINNISH              1035
 
 !define INSTTYPE_STANDARD  1
 !define INSTTYPE_TOTALCMD  2
@@ -589,8 +588,6 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Chinese (Traditional).dll"
 	StrCmp $SYSLANGUAGE ${LANG_CHINESE_SIMPLIFIED} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Chinese (Simplified).dll"
-	StrCmp $SYSLANGUAGE ${LANG_KYRGYZ} 0 +2
-	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Kyrgyz.dll"
 	StrCmp $SYSLANGUAGE ${LANG_POLISH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Polish.dll"
 	StrCmp $SYSLANGUAGE ${LANG_TURKISH} 0 +2
