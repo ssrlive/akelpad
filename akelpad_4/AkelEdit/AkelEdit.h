@@ -1453,14 +1453,15 @@ _________
 
 Paste text from clipboard.
 
-wParam == not used.
-lParam == not used.
+wParam       == not used.
+(BOOL)lParam == TRUE   paste as ANSI text.
+                FALSE  paste as Unicode text, if no Unicode text available ANSI text will be used (default).
 
 Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_PASTE, 0, 0);
+ SendMessage(hWndEdit, AEM_PASTE, 0, FALSE);
 
 
 AEM_CUT
@@ -1713,7 +1714,7 @@ Example:
 AEM_EMPTYUNDOBUFFER
 ___________________
 
-Erase undo or redo history.
+Erase undo and redo history.
 
 wParam == not used.
 lParam == not used.
@@ -2309,7 +2310,7 @@ Example:
 AEM_GETSCROLLPOS
 ________________
 
-Obtain the current and/or maxinum scroll position of the edit control.
+Obtain the current and/or maximum scroll position of the edit control.
 
 (POINT *)wParam == pointer to a POINT structure that receives the maximum scroll position in the virtual text space of the document, expressed in pixels. Can be NULL.
 (POINT *)lParam == pointer to a POINT structure that receives the upper-left corner position in the virtual text space of the document, expressed in pixels. Can be NULL.
@@ -2593,7 +2594,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- Combination of the current option flag values described in the AEM_SETOPTIONS message.
+ Combination of the current option flag values. See AECO_* defines.
 
 Example:
  SendMessage(hWndEdit, AEM_GETOPTIONS, 0, 0);
@@ -2845,7 +2846,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- see AEWW_* defines.
+ See AEWW_* defines.
 
 Example:
  SendMessage(hWndEdit, AEM_GETWORDWRAP, 0, 0);
@@ -2872,7 +2873,7 @@ _____________________
 Retrieve word break delimiters.
 
 (int)wParam       == size of the buffer in TCHARs.
-(wchar_t *)lParam == pointer to a buffer that receives delimiter characters. Can be NULL.
+(wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
  zero
@@ -2997,7 +2998,7 @@ Return Value
  Number of prefixes strings.
 
 Example:
- wchar_t wszPrefixes[128]=L"http:\0https:\0ftp:\0file:\0mailto:\0\0"
+ wchar_t wszPrefixes[128]=L"http:\0https:\0www.\0ftp:\0file:\0mailto:\0\0"
 
  SendMessage(hWndEdit, AEM_SETURLPREFIXES, 0, (LPARAM)wszPrefixes);
 
@@ -3022,7 +3023,7 @@ ___________________
 
 Set URL maximum length.
 
-(DWORD)wParam == URL maximum length.
+(DWORD)wParam == URL maximum length (default is 512).
 lParam        == not used.
 
 Return Value
