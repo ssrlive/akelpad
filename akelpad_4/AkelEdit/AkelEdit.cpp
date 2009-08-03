@@ -758,7 +758,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RECT *rcDraw=(RECT *)lParam;
 
         AE_SetDrawRect(ae, rcDraw, wParam);
-        if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
+        if (ae->ptxt->nWordWrap)
+        {
+          AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
+          AE_StackUpdateClones(ae);
+        }
         AE_UpdateScrollBars(ae, SB_BOTH);
         return 0;
       }
@@ -1057,9 +1061,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_memcpy(ae->ptxt->wszWrapDelimiters, (wchar_t *)lParam, (lstrlenW((wchar_t *)lParam) + 1) * sizeof(wchar_t));
         else
           AE_memcpy(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
-        if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
-        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-        AE_StackUpdateClones(ae);
+
+        if (ae->ptxt->nWordWrap == AEWW_WORD)
+        {
+          AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
+          InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+          AE_StackUpdateClones(ae);
+        }
         return 0;
       }
       if (uMsg == AEM_GETURLDELIMITERS)
@@ -2290,7 +2298,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
       AE_SetDrawRect(ae, lprcDraw, (uMsg == EM_SETRECT)?TRUE:FALSE);
-      if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
+      if (ae->ptxt->nWordWrap)
+      {
+        AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
+        AE_StackUpdateClones(ae);
+      }
       AE_UpdateScrollBars(ae, SB_BOTH);
       return 0;
     }
@@ -2308,7 +2320,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         rcDraw.right=ae->rcEdit.right - HIWORD(lParam);
 
       AE_SetDrawRect(ae, &rcDraw, TRUE);
-      if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
+      if (ae->ptxt->nWordWrap)
+      {
+        AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
+        AE_StackUpdateClones(ae);
+      }
       AE_UpdateScrollBars(ae, SB_BOTH);
       return 0;
     }
@@ -2452,7 +2468,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (lParam)
       {
         AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
-        if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
+        if (ae->ptxt->nWordWrap)
+        {
+          AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
+          AE_StackUpdateClones(ae);
+        }
         AE_UpdateScrollBars(ae, SB_BOTH);
         AE_UpdateEditWindow(ae->hWndEdit, TRUE);
       }
@@ -3671,6 +3691,88 @@ void AE_StackWindowFree(HSTACK *hStack)
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
 
+void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
+{
+  if (lpAkelEditPrev && ae->hWndEdit != lpAkelEditPrev->hWndEdit)
+  {
+    //Save previous window info
+    if (lpAkelEditPrev->nCloneCount > 0 || lpAkelEditPrev->lpMaster)
+    {
+      AKELEDIT *aeSource;
+
+      if (lpAkelEditPrev->lpMaster)
+        aeSource=lpAkelEditPrev->lpMaster;
+      else
+        aeSource=lpAkelEditPrev;
+
+      if (aeSource)
+      {
+        if (!lpAkelEditPrev->lpSelStartPoint)
+          lpAkelEditPrev->lpSelStartPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelStartIndex);
+        else
+          lpAkelEditPrev->lpSelStartPoint->ciPoint=lpAkelEditPrev->ciSelStartIndex;
+        if (!lpAkelEditPrev->lpSelEndPoint)
+          lpAkelEditPrev->lpSelEndPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelEndIndex);
+        else
+          lpAkelEditPrev->lpSelEndPoint->ciPoint=lpAkelEditPrev->ciSelEndIndex;
+        if (!lpAkelEditPrev->lpCaretPoint)
+          lpAkelEditPrev->lpCaretPoint=AE_StackPointInsert(aeSource, &aeSource->ciCaretIndex);
+        else
+          lpAkelEditPrev->lpCaretPoint->ciPoint=lpAkelEditPrev->ciCaretIndex;
+
+        //Clear lines selection
+        if (AE_IndexCompare(&lpAkelEditPrev->ciSelStartIndex, &lpAkelEditPrev->ciSelEndIndex))
+        {
+          AELINEDATA *lpLine=lpAkelEditPrev->ciSelStartIndex.lpLine;
+
+          while (lpLine)
+          {
+            lpLine->nSelStart=0;
+            lpLine->nSelEnd=0;
+            if (lpLine == lpAkelEditPrev->ciSelEndIndex.lpLine) break;
+
+            lpLine=lpLine->next;
+          }
+        }
+      }
+    }
+  }
+
+  if (!lpAkelEditPrev || ae->hWndEdit != lpAkelEditPrev->hWndEdit)
+  {
+    //Set current window info
+    if (ae->nCloneCount > 0 || ae->lpMaster)
+    {
+      if (ae->lpSelStartPoint && ae->lpSelEndPoint && ae->lpCaretPoint)
+      {
+        ae->liFirstDrawLine.nLine=0;
+        ae->liFirstDrawLine.lpLine=NULL;
+        ae->nFirstDrawLineOffset=0;
+        ae->ciSelStartIndex.lpLine=NULL;
+        ae->nSelStartCharOffset=0;
+        ae->ciSelEndIndex.lpLine=NULL;
+        ae->nSelEndCharOffset=0;
+        ae->ciCaretIndex.lpLine=NULL;
+        ae->ciLastCallIndex.lpLine=NULL;
+        ae->nLastCallOffset=0;
+        ae->ptCaret.x=0;
+        ae->ptCaret.y=0;
+
+        ae->nSelStartCharOffset=AE_AkelIndexToRichOffset(ae, &ae->lpSelStartPoint->ciPoint);
+        ae->ciSelStartIndex=ae->lpSelStartPoint->ciPoint;
+
+        ae->nSelEndCharOffset=AE_AkelIndexToRichOffset(ae, &ae->lpSelEndPoint->ciPoint);
+        ae->ciSelEndIndex=ae->lpSelEndPoint->ciPoint;
+
+        ae->ciCaretIndex=ae->lpCaretPoint->ciPoint;
+        AE_GetPosFromCharEx(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL);
+
+        AE_UpdateSelection(ae, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKUNDOGROUPING);
+      }
+    }
+  }
+}
+
 AECLONE* AE_StackCloneIndex(AKELEDIT *ae, DWORD dwIndex)
 {
   AECLONE *lpElement=(AECLONE *)ae->hClonesStack.first;
@@ -3826,88 +3928,6 @@ AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae)
     lpElement=lpElement->next;
   }
   return NULL;
-}
-
-void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
-{
-  if (lpAkelEditPrev && ae->hWndEdit != lpAkelEditPrev->hWndEdit)
-  {
-    //Save previous window info
-    if (lpAkelEditPrev->nCloneCount > 0 || lpAkelEditPrev->lpMaster)
-    {
-      AKELEDIT *aeSource;
-
-      if (lpAkelEditPrev->lpMaster)
-        aeSource=lpAkelEditPrev->lpMaster;
-      else
-        aeSource=lpAkelEditPrev;
-
-      if (aeSource)
-      {
-        if (!lpAkelEditPrev->lpSelStartPoint)
-          lpAkelEditPrev->lpSelStartPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelStartIndex);
-        else
-          lpAkelEditPrev->lpSelStartPoint->ciPoint=lpAkelEditPrev->ciSelStartIndex;
-        if (!lpAkelEditPrev->lpSelEndPoint)
-          lpAkelEditPrev->lpSelEndPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelEndIndex);
-        else
-          lpAkelEditPrev->lpSelEndPoint->ciPoint=lpAkelEditPrev->ciSelEndIndex;
-        if (!lpAkelEditPrev->lpCaretPoint)
-          lpAkelEditPrev->lpCaretPoint=AE_StackPointInsert(aeSource, &aeSource->ciCaretIndex);
-        else
-          lpAkelEditPrev->lpCaretPoint->ciPoint=lpAkelEditPrev->ciCaretIndex;
-
-        //Clear lines selection
-        if (AE_IndexCompare(&lpAkelEditPrev->ciSelStartIndex, &lpAkelEditPrev->ciSelEndIndex))
-        {
-          AELINEDATA *lpLine=lpAkelEditPrev->ciSelStartIndex.lpLine;
-
-          while (lpLine)
-          {
-            lpLine->nSelStart=0;
-            lpLine->nSelEnd=0;
-            if (lpLine == lpAkelEditPrev->ciSelEndIndex.lpLine) break;
-
-            lpLine=lpLine->next;
-          }
-        }
-      }
-    }
-  }
-
-  if (!lpAkelEditPrev || ae->hWndEdit != lpAkelEditPrev->hWndEdit)
-  {
-    //Set current window info
-    if (ae->nCloneCount > 0 || ae->lpMaster)
-    {
-      if (ae->lpSelStartPoint && ae->lpSelEndPoint && ae->lpCaretPoint)
-      {
-        ae->liFirstDrawLine.nLine=0;
-        ae->liFirstDrawLine.lpLine=NULL;
-        ae->nFirstDrawLineOffset=0;
-        ae->ciSelStartIndex.lpLine=NULL;
-        ae->nSelStartCharOffset=0;
-        ae->ciSelEndIndex.lpLine=NULL;
-        ae->nSelEndCharOffset=0;
-        ae->ciCaretIndex.lpLine=NULL;
-        ae->ciLastCallIndex.lpLine=NULL;
-        ae->nLastCallOffset=0;
-        ae->ptCaret.x=0;
-        ae->ptCaret.y=0;
-
-        ae->nSelStartCharOffset=AE_AkelIndexToRichOffset(ae, &ae->lpSelStartPoint->ciPoint);
-        ae->ciSelStartIndex=ae->lpSelStartPoint->ciPoint;
-
-        ae->nSelEndCharOffset=AE_AkelIndexToRichOffset(ae, &ae->lpSelEndPoint->ciPoint);
-        ae->ciSelEndIndex=ae->lpSelEndPoint->ciPoint;
-
-        ae->ciCaretIndex=ae->lpCaretPoint->ciPoint;
-        AE_GetPosFromCharEx(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL);
-
-        AE_UpdateSelection(ae, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKUNDOGROUPING);
-      }
-    }
-  }
 }
 
 WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont)
