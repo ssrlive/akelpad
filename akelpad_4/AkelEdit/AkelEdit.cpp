@@ -2308,6 +2308,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         rcDraw.right=ae->rcEdit.right - HIWORD(lParam);
 
       AE_SetDrawRect(ae, &rcDraw, TRUE);
+      if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
       AE_UpdateScrollBars(ae, SB_BOTH);
       return 0;
     }
