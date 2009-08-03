@@ -2,6 +2,8 @@
 AkelPad 4.2.6 ()
 ----------------------------
 Fixed: correct open/save UTF-8 text containing surrogate pairs.
+Fixed: word wrap updating after text margings change.
+Fixed: split window updating after word wrap change.
 
 
 AkelPad 4.2.5 (Jul 08, 2009)
