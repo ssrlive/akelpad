@@ -1,7 +1,11 @@
 
 AkelPad 4.2.6 ()
 ----------------------------
+Changed: selection by pressing on left mouse button in left margin.
+Changed: if wrap by symbols is used, then document print also will be with wrap by symbols.
+
 Fixed: correct open/save UTF-8 text containing surrogate pairs.
+Fixed: hyperlink, located at line start, didn't highlighted in 4.2.5.
 Fixed: word wrap updating after text margings change.
 Fixed: split window updating after word wrap change.
 
