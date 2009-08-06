@@ -724,7 +724,7 @@ Section un.install
 	!delfile 'unList\unList.txt'
 	RMDir "$SETUPDIR"
 
-        End:
+	End:
 	StrCpy $UNRESULT SuccessUninstall
 	quit
 SectionEnd
