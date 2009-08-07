@@ -370,7 +370,7 @@ void DoEditRedo(HWND hWnd);
 void DoEditCutA(HWND hWnd);
 void DoEditCutW(HWND hWnd);
 void DoEditCopy(HWND hWnd);
-void DoEditPaste(HWND hWnd, BOOL bAnsi);
+BOOL DoEditPaste(HWND hWnd, BOOL bAnsi);
 void DoEditClearA(HWND hWnd);
 void DoEditClearW(HWND hWnd);
 void DoEditSelectAll(HWND hWnd);
@@ -546,7 +546,8 @@ int GetTextLength(HWND hWnd);
 int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText);
 int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText);
 BOOL FreeText(LPVOID pText);
-void PasteInEditAsRichEdit(HWND hWnd);
+BOOL PasteInEditAsRichEdit(HWND hWnd);
+BOOL PasteAfter(HWND hWnd, BOOL bAnsi);
 
 BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

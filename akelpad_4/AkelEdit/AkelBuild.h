@@ -628,7 +628,7 @@ void AE_EditUndo(AKELEDIT *ae);
 void AE_EditRedo(AKELEDIT *ae);
 void AE_EditCut(AKELEDIT *ae);
 void AE_EditCopyToClipboard(AKELEDIT *ae);
-void AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi);
+BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi);
 void AE_EditChar(AKELEDIT *ae, WPARAM wParam);
 void AE_EditKeyReturn(AKELEDIT *ae);
 void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl);

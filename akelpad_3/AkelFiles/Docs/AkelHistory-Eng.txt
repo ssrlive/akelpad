@@ -2,6 +2,7 @@
 AkelPad 3.7.3 ()
 ----------------------------
 Added: 4113 command - silent printing.
+Added: 4430 command - paste text after caret.
 
 Fixed: correct open/save UTF-8 text containing surrogate pairs.
 

@@ -2101,10 +2101,9 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_PASTE)
     {
       if (lParam == PASTE_SINGLELINE)
-        PasteInEditAsRichEdit((HWND)wParam);
+        return PasteInEditAsRichEdit((HWND)wParam);
       else
-        DoEditPaste((HWND)wParam, lParam);
-      return 0;
+        return DoEditPaste((HWND)wParam, lParam);
     }
     if (uMsg == AKD_COPY)
     {
@@ -2731,7 +2730,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_PASTE)
     {
-      DoEditPaste(hWndEdit, FALSE);
+      return DoEditPaste(hWndEdit, FALSE);
     }
     else if (LOWORD(wParam) == IDM_EDIT_CLEAR)
     {
@@ -2774,10 +2773,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!DoEditInsertStringInSelectionW(hWndEdit, STRSEL_CHECK, NULL))
       {
-        if (!IsReadOnly()) SendMessage(hWndEdit, WM_CHAR, (WPARAM)' ', 0);
+        if (!IsReadOnly())
+          SendMessage(hWndEdit, WM_CHAR, (WPARAM)' ', 0);
       }
-      else
-        DoEditInsertStringInSelectionW(hWndEdit, STRSEL_INSERT, L" ");
+      else DoEditInsertStringInSelectionW(hWndEdit, STRSEL_INSERT, L" ");
     }
     else if (LOWORD(wParam) == IDM_EDIT_DELETE_SPACE_MENU ||
              LOWORD(wParam) == IDM_EDIT_DELETE_SPACE)
@@ -3007,7 +3006,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_PASTEANSI)
     {
-      DoEditPaste(hWndEdit, TRUE);
+      return DoEditPaste(hWndEdit, TRUE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPEN_MSG)
     {
@@ -3103,46 +3102,21 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ReplaceSelW(hWndEdit, L"\n", -1, FALSE, NULL, NULL);
       return bResult;
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT ||
-             LOWORD(wParam) == IDM_NONMENU_CLONEPREV)
+    else if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT)
     {
-      HWND lpClones[]={hWndMaster, hWndClone1, hWndClone2, hWndClone3};
-      int nCloneCount=sizeof(lpClones) / sizeof(HWND);
-      int i;
-
-      if (hWndMaster && hWndEdit)
-      {
-        for (i=0; i < nCloneCount; ++i)
-        {
-          if (hWndEdit == lpClones[i])
-            break;
-        }
-
-        while (i < nCloneCount)
-        {
-          if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT)
-          {
-            if (++i >= nCloneCount)
-              i=0;
-          }
-          else
-          {
-            if (--i < 0)
-              i=nCloneCount - 1;
-          }
-
-          if (lpClones[i])
-          {
-            SetFocus(lpClones[i]);
-            return (LRESULT)lpClones[i];
-          }
-        }
-      }
-      return (LRESULT)NULL;
+      return (LRESULT)NextClone(FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_CLONEPREV)
+    {
+      return (LRESULT)NextClone(TRUE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_COLUMNPASTE)
     {
       return ColumnPaste(hWndEdit);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_PASTEAFTER)
+    {
+      return PasteAfter(hWndEdit, FALSE);
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
@@ -3963,10 +3937,9 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_PASTE)
     {
       if (lParam == PASTE_SINGLELINE)
-        PasteInEditAsRichEdit((HWND)wParam);
+        return PasteInEditAsRichEdit((HWND)wParam);
       else
-        DoEditPaste((HWND)wParam, lParam);
-      return 0;
+        return DoEditPaste((HWND)wParam, lParam);
     }
     if (uMsg == AKD_COPY)
     {
@@ -4593,7 +4566,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_PASTE)
     {
-      DoEditPaste(hWndEdit, FALSE);
+      return DoEditPaste(hWndEdit, FALSE);
     }
     else if (LOWORD(wParam) == IDM_EDIT_CLEAR)
     {
@@ -4636,10 +4609,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!DoEditInsertStringInSelectionW(hWndEdit, STRSEL_CHECK, NULL))
       {
-        if (!IsReadOnly()) SendMessage(hWndEdit, WM_CHAR, (WPARAM)' ', 0);
+        if (!IsReadOnly())
+          SendMessage(hWndEdit, WM_CHAR, (WPARAM)' ', 0);
       }
-      else
-        DoEditInsertStringInSelectionW(hWndEdit, STRSEL_INSERT, L" ");
+      else DoEditInsertStringInSelectionW(hWndEdit, STRSEL_INSERT, L" ");
     }
     else if (LOWORD(wParam) == IDM_EDIT_DELETE_SPACE_MENU ||
              LOWORD(wParam) == IDM_EDIT_DELETE_SPACE)
@@ -4869,7 +4842,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_PASTEANSI)
     {
-      DoEditPaste(hWndEdit, TRUE);
+      return DoEditPaste(hWndEdit, TRUE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPEN_MSG)
     {
@@ -4965,46 +4938,21 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ReplaceSelW(hWndEdit, L"\n", -1, FALSE, NULL, NULL);
       return bResult;
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT ||
-             LOWORD(wParam) == IDM_NONMENU_CLONEPREV)
+    else if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT)
     {
-      HWND lpClones[]={hWndMaster, hWndClone1, hWndClone2, hWndClone3};
-      int nCloneCount=sizeof(lpClones) / sizeof(HWND);
-      int i;
-
-      if (hWndMaster && hWndEdit)
-      {
-        for (i=0; i < nCloneCount; ++i)
-        {
-          if (hWndEdit == lpClones[i])
-            break;
-        }
-
-        while (i < nCloneCount)
-        {
-          if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT)
-          {
-            if (++i >= nCloneCount)
-              i=0;
-          }
-          else
-          {
-            if (--i < 0)
-              i=nCloneCount - 1;
-          }
-
-          if (lpClones[i])
-          {
-            SetFocus(lpClones[i]);
-            return (LRESULT)lpClones[i];
-          }
-        }
-      }
-      return (LRESULT)NULL;
+      return (LRESULT)NextClone(FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_CLONEPREV)
+    {
+      return (LRESULT)NextClone(TRUE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_COLUMNPASTE)
     {
       return ColumnPaste(hWndEdit);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_PASTEAFTER)
+    {
+      return PasteAfter(hWndEdit, FALSE);
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {

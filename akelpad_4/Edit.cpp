@@ -1036,11 +1036,11 @@ void DoEditCopy(HWND hWnd)
   SendMessage(hWnd, AEM_COPY, 0, 0);
 }
 
-void DoEditPaste(HWND hWnd, BOOL bAnsi)
+BOOL DoEditPaste(HWND hWnd, BOOL bAnsi)
 {
-  if (IsReadOnly()) return;
+  if (IsReadOnly()) return FALSE;
 
-  SendMessage(hWnd, AEM_PASTE, 0, bAnsi);
+  return SendMessage(hWnd, AEM_PASTE, 0, bAnsi);
 }
 
 void DoEditClear(HWND hWnd)
@@ -11538,10 +11538,11 @@ BOOL FreeText(LPVOID pText)
   return FALSE;
 }
 
-void PasteInEditAsRichEdit(HWND hWnd)
+BOOL PasteInEditAsRichEdit(HWND hWnd)
 {
   HGLOBAL hData;
   LPVOID pData;
+  BOOL bResult=FALSE;
 
   if (OpenClipboard(hWnd))
   {
@@ -11585,6 +11586,7 @@ void PasteInEditAsRichEdit(HWND hWnd)
           *wpTargetCount='\0';
 
           SendMessageW(hWnd, EM_REPLACESEL, TRUE, (LPARAM)wpTarget);
+          bResult=TRUE;
           API_HeapFree(hHeap, 0, (LPVOID)wpTarget);
         }
         GlobalUnlock(hData);
@@ -11630,6 +11632,7 @@ void PasteInEditAsRichEdit(HWND hWnd)
           *pTargetCount='\0';
 
           SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)pTarget);
+          bResult=TRUE;
           API_HeapFree(hHeap, 0, (LPVOID)pTarget);
         }
         GlobalUnlock(hData);
@@ -11637,6 +11640,7 @@ void PasteInEditAsRichEdit(HWND hWnd)
     }
     CloseClipboard();
   }
+  return bResult;
 }
 
 BOOL ColumnPaste(HWND hWnd)
@@ -11723,6 +11727,19 @@ BOOL ColumnPaste(HWND hWnd)
     }
   }
   return bResult;
+}
+
+BOOL PasteAfter(HWND hWnd, BOOL bAnsi)
+{
+  CHARRANGE cr;
+  
+  SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
+  if (DoEditPaste(hWnd, bAnsi))
+  {
+    SendMessage(hWnd, EM_SETSEL, cr.cpMin, cr.cpMin);
+    return TRUE;
+  }
+  return FALSE;
 }
 
 
@@ -20316,6 +20333,43 @@ HWND NextDialog(BOOL bPrevious)
     SetFocus(hWndNext);
   }
   return hWndNext;
+}
+
+HWND NextClone(BOOL bPrevious)
+{
+  HWND lpClones[]={hWndMaster, hWndClone1, hWndClone2, hWndClone3};
+  int nCloneCount=sizeof(lpClones) / sizeof(HWND);
+  int i;
+
+  if (hWndMaster && hWndEdit)
+  {
+    for (i=0; i < nCloneCount; ++i)
+    {
+      if (hWndEdit == lpClones[i])
+        break;
+    }
+
+    while (i < nCloneCount)
+    {
+      if (bPrevious)
+      {
+        if (--i < 0)
+          i=nCloneCount - 1;
+      }
+      else
+      {
+        if (++i >= nCloneCount)
+          i=0;
+      }
+
+      if (lpClones[i])
+      {
+        SetFocus(lpClones[i]);
+        return lpClones[i];
+      }
+    }
+  }
+  return NULL;
 }
 
 void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3)

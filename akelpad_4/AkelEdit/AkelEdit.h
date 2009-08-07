@@ -1458,7 +1458,8 @@ wParam       == not used.
                 FALSE  paste as Unicode text, if no Unicode text available ANSI text will be used (default).
 
 Return Value
- zero
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  SendMessage(hWndEdit, AEM_PASTE, 0, FALSE);
