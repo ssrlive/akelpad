@@ -470,8 +470,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_PASTE)
       {
-        AE_EditPasteFromClipboard(ae, lParam);
-        return 0;
+        return AE_EditPasteFromClipboard(ae, lParam);
       }
       if (uMsg == AEM_CUT)
       {
@@ -14602,11 +14601,12 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
   }
 }
 
-void AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
+BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
 {
   HGLOBAL hData;
   LPVOID pData;
   BOOL bColumnSel;
+  BOOL bResult=FALSE;
 
   bColumnSel=IsClipboardFormatAvailable(cfAkelEditColumnSel);
 
@@ -14617,6 +14617,7 @@ void AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
       if (pData=GlobalLock(hData))
       {
         AE_ReplaceSel(ae, (wchar_t *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
+        bResult=TRUE;
         GlobalUnlock(hData);
       }
     }
@@ -14625,11 +14626,13 @@ void AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
       if (pData=GlobalLock(hData))
       {
         AE_ReplaceSelAnsi(ae, CP_ACP, (char *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
+        bResult=TRUE;
         GlobalUnlock(hData);
       }
     }
     CloseClipboard();
   }
+  return bResult;
 }
 
 void AE_EditChar(AKELEDIT *ae, WPARAM wParam)

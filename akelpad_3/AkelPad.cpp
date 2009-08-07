@@ -2035,10 +2035,9 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_PASTE)
     {
       if (lParam == PASTE_SINGLELINE)
-        PasteInEditAsRichEdit((HWND)wParam);
+        return PasteInEditAsRichEdit((HWND)wParam);
       else
-        DoEditPaste((HWND)wParam, lParam);
-      return 0;
+        return DoEditPaste((HWND)wParam, lParam);
     }
     if (uMsg == AKD_COPY)
     {
@@ -2667,7 +2666,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_PASTE)
     {
-      DoEditPaste(hWndEdit, FALSE);
+      return DoEditPaste(hWndEdit, FALSE);
     }
     else if (LOWORD(wParam) == IDM_EDIT_CLEAR)
     {
@@ -2961,7 +2960,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_PASTEANSI)
     {
-      DoEditPaste(hWndEdit, TRUE);
+      return DoEditPaste(hWndEdit, TRUE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPEN_MSG)
     {
@@ -3055,6 +3054,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AutoIndentA(hWndEdit, &chrg);
       }
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_PASTEAFTER)
+    {
+      return PasteAfter(hWndEdit, FALSE);
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
@@ -3823,10 +3826,9 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_PASTE)
     {
       if (lParam == PASTE_SINGLELINE)
-        PasteInEditAsRichEdit((HWND)wParam);
+        return PasteInEditAsRichEdit((HWND)wParam);
       else
-        DoEditPaste((HWND)wParam, lParam);
-      return 0;
+        return DoEditPaste((HWND)wParam, lParam);
     }
     if (uMsg == AKD_COPY)
     {
@@ -4455,7 +4457,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_PASTE)
     {
-      DoEditPaste(hWndEdit, FALSE);
+      return DoEditPaste(hWndEdit, FALSE);
     }
     else if (LOWORD(wParam) == IDM_EDIT_CLEAR)
     {
@@ -4749,7 +4751,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_PASTEANSI)
     {
-      DoEditPaste(hWndEdit, TRUE);
+      return DoEditPaste(hWndEdit, TRUE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPEN_MSG)
     {
@@ -4843,6 +4845,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AutoIndentW(hWndEdit, &chrg);
       }
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_PASTEAFTER)
+    {
+      return PasteAfter(hWndEdit, FALSE);
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {

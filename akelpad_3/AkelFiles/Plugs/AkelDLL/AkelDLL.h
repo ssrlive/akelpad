@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 0, 4, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 0, 5, 0)
 
 
 //// Defines
@@ -702,7 +702,7 @@ typedef struct _NSIZE {
                                               //Return Value: zero
                                               //
 #define IDM_EDIT_PASTE                  4155  //Paste
-                                              //Return Value: zero
+                                              //Return Value: TRUE - success, FALSE - failed
                                               //
 #define IDM_EDIT_CLEAR                  4156  //Delete
                                               //Return Value: zero
@@ -894,7 +894,7 @@ typedef struct _NSIZE {
                                               //Return Value: zero
                                               //
 #define IDM_NONMENU_PASTEANSI           4403  //Paste as ANSI text
-                                              //Return Value: zero
+                                              //Return Value: TRUE - success, FALSE - failed
                                               //
 #define IDM_NONMENU_MDINEXT             4404  //Activate next MDI window
                                               //Return Value: zero
@@ -972,7 +972,10 @@ typedef struct _NSIZE {
                                               //Return Value: activated pane handle
                                               //
 #define IDM_NONMENU_COLUMNPASTE         4429  //Paste to column selection
-                                              //Return Value:  TRUE - success, FALSE - failed
+                                              //Return Value: TRUE - success, FALSE - failed
+                                              //
+#define IDM_NONMENU_PASTEAFTER          4430  //Paste text after caret
+                                              //Return Value: TRUE - success, FALSE - failed
                                               //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files
                                               //5001 + n  open recent file n
@@ -2206,7 +2209,8 @@ Paste text from clipboard to the edit control.
 (int)lParam  == see PASTE_* defines.
 
 Return Value
- zero
+ TRUE   success
+ FALSE  failed
 
 Example:
  SendMessage(pd->hMainWnd, AKD_PASTE, (WPARAM)pd->hWndEdit, PASTE_UNICODE);

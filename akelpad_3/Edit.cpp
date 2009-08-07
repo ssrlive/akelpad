@@ -1221,12 +1221,13 @@ void DoEditCopy(HWND hWnd)
   }
 }
 
-void DoEditPaste(HWND hWnd, BOOL bAnsi)
+BOOL DoEditPaste(HWND hWnd, BOOL bAnsi)
 {
   HGLOBAL hData;
   LPVOID pData;
+  BOOL bResult=FALSE;
 
-  if (IsReadOnly()) return;
+  if (IsReadOnly()) return FALSE;
 
   if (OpenClipboard(hWnd))
   {
@@ -1235,6 +1236,7 @@ void DoEditPaste(HWND hWnd, BOOL bAnsi)
       if (pData=GlobalLock(hData))
       {
         ReplaceSelW(hWnd, (wchar_t *)pData, -1);
+        bResult=TRUE;
         GlobalUnlock(hData);
       }
     }
@@ -1243,11 +1245,13 @@ void DoEditPaste(HWND hWnd, BOOL bAnsi)
       if (pData=GlobalLock(hData))
       {
         ReplaceSelA(hWnd, (char *)pData, -1);
+        bResult=TRUE;
         GlobalUnlock(hData);
       }
     }
     CloseClipboard();
   }
+  return bResult;
 }
 
 void DoEditClearA(HWND hWnd)
@@ -10053,10 +10057,11 @@ BOOL FreeText(LPVOID pText)
   return FALSE;
 }
 
-void PasteInEditAsRichEdit(HWND hWnd)
+BOOL PasteInEditAsRichEdit(HWND hWnd)
 {
   HGLOBAL hData;
   LPVOID pData;
+  BOOL bResult=FALSE;
 
   if (OpenClipboard(hWnd))
   {
@@ -10100,6 +10105,7 @@ void PasteInEditAsRichEdit(HWND hWnd)
           *wpTargetCount='\0';
 
           SendMessageW(hWnd, EM_REPLACESEL, TRUE, (LPARAM)wpTarget);
+          bResult=TRUE;
           API_HeapFree(hHeap, 0, (LPVOID)wpTarget);
         }
         GlobalUnlock(hData);
@@ -10145,6 +10151,7 @@ void PasteInEditAsRichEdit(HWND hWnd)
           *pTargetCount='\0';
 
           SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)pTarget);
+          bResult=TRUE;
           API_HeapFree(hHeap, 0, (LPVOID)pTarget);
         }
         GlobalUnlock(hData);
@@ -10152,6 +10159,20 @@ void PasteInEditAsRichEdit(HWND hWnd)
     }
     CloseClipboard();
   }
+  return bResult;
+}
+
+BOOL PasteAfter(HWND hWnd, BOOL bAnsi)
+{
+  CHARRANGE cr;
+  
+  SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
+  if (DoEditPaste(hWnd, bAnsi))
+  {
+    SendMessage(hWnd, EM_SETSEL, cr.cpMin, cr.cpMin);
+    return TRUE;
+  }
+  return FALSE;
 }
 
 
