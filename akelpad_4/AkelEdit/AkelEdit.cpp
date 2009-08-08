@@ -2996,8 +2996,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (!AE_NotifyDropSource(ae, AEDS_SOURCEBEGIN, &dwEffectIn, 0))
             {
-              ae->bDeleteSelection=TRUE;
-              AE_DataObjectCopySelection(ae);
+              ae->bDragSelectionDelete=TRUE;
+              ae->dwDragSelectionLength=AE_DataObjectCopySelection(ae);
 
               dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
               AE_ActivateClone(lpAkelEditPrev, ae);
@@ -3009,7 +3009,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 {
                   if (dwEffectOut & DROPEFFECT_MOVE)
                   {
-                    if (ae->bDeleteSelection)
+                    if (ae->bDragSelectionDelete)
                     {
                       AE_NotifyChanging(ae, AETCT_DRAGDELETE);
                       AE_StackUndoGroupStop(ae);
@@ -3023,7 +3023,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               AE_DataObjectFreeSelection(ae);
               ((IDataObject *)&ae->ido)->Release();
               ((IDropSource *)&ae->ids)->Release();
-              ae->bDeleteSelection=FALSE;
+              ae->bDragSelectionDelete=FALSE;
+              ae->dwDragSelectionLength=0;
             }
             ae->bDragging=FALSE;
             ReleaseCapture();
@@ -16295,6 +16296,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
     ScreenToClient(ae->hWndEdit, (POINT *)&pt);
     AE_GetCharFromPos(ae, (POINT *)&pt, &ciCharIndex, NULL, pDropTarget->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
+    //Get unicode text
     fmtetc.cfFormat=CF_UNICODETEXT;
     fmtetc.ptd=0;
     fmtetc.dwAspect=DVASPECT_CONTENT;
@@ -16331,7 +16333,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               AE_DeleteTextRange(aeSource, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
               ciCharIndex=lpPoint->ciPoint;
               AE_StackPointDelete(aeSource, lpPoint);
-              aeSource->bDeleteSelection=FALSE;
+              aeSource->bDragSelectionDelete=FALSE;
 
               if (aeSource != ae)
               {
@@ -16345,7 +16347,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
           //Insert
           {
             AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKUNDOGROUPING);
-            AE_InsertText(ae, &ciCharIndex, (wchar_t *)pData, (DWORD)-1, ae->popt->nInputNewLine, pDropTarget->bColumnSel, 0, &ciStart, &ciEnd);
+            AE_InsertText(ae, &ciCharIndex, (wchar_t *)pData, ae->dwDragSelectionLength?ae->dwDragSelectionLength:(DWORD)-1, ae->popt->nInputNewLine, pDropTarget->bColumnSel, 0, &ciStart, &ciEnd);
 
             if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
             {
@@ -16364,6 +16366,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
     }
     else
     {
+      //Get ansi text
       fmtetc.cfFormat=CF_TEXT;
 
       if (pDataObject->QueryGetData(&fmtetc) == S_OK)
@@ -16396,7 +16399,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
                 AE_DeleteTextRange(aeSource, &aeSource->ciSelStartIndex, &aeSource->ciSelEndIndex, aeSource->bColumnSel, AEDELT_LOCKSCROLL);
                 ciCharIndex=lpPoint->ciPoint;
                 AE_StackPointDelete(aeSource, lpPoint);
-                aeSource->bDeleteSelection=FALSE;
+                aeSource->bDragSelectionDelete=FALSE;
 
                 if (aeSource != ae)
                 {
@@ -16684,14 +16687,14 @@ int AE_DataObjectLookupFormatEtc(AEIDataObject *pDataObj, FORMATETC *pFormatEtc)
   return -1;
 }
 
-void AE_DataObjectCopySelection(AKELEDIT *ae)
+DWORD AE_DataObjectCopySelection(AKELEDIT *ae)
 {
   HGLOBAL hDataTargetA=NULL;
   HGLOBAL hDataTargetW=NULL;
   LPVOID pDataTargetA;
   LPVOID pDataTargetW;
   DWORD dwAnsiBytes;
-  DWORD dwUnicodeLen;
+  DWORD dwUnicodeLen=0;
 
   if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
@@ -16726,6 +16729,11 @@ void AE_DataObjectCopySelection(AKELEDIT *ae)
     ae->ido.fmtetc[2].cfFormat=cfAkelEditColumnSel;
   else
     ae->ido.fmtetc[2].cfFormat=0;
+
+  if (hDataTargetW && hDataTargetA)
+    return dwUnicodeLen;
+  else
+    return 0;
 }
 
 void AE_DataObjectFreeSelection(AKELEDIT *ae)
