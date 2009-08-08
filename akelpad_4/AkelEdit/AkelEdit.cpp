@@ -917,7 +917,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
         }
-        if (!(dwOptionsOld & AECO_PAINTSINGLECHAR) != !(dwOptionsNew & AECO_PAINTSINGLECHAR))
+        if (!(dwOptionsOld & AECO_PAINTGROUP) != !(dwOptionsNew & AECO_PAINTGROUP))
         {
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
           AE_StackUpdateClones(ae);
@@ -9352,6 +9352,7 @@ void AE_Paint(AKELEDIT *ae)
 void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth)
 {
   RECT rcTextOut;
+  HBRUSH hBrush;
   DWORD dwTextOutFlags=0;
   int nTextLen=nLineLen - (*wpTextInLine - wpLine);
   int nTextWidth=nLineWidth - *nTextInLineWidth;
@@ -9395,21 +9396,36 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
             if (ae->ptxt->hFontBoldItalic) SelectObject(hDC, ae->ptxt->hFontBoldItalic);
           }
         }
-        if (hlp->dwActiveBG == hlp->dwDefaultBG)
-          SetBkMode(hDC, TRANSPARENT);
+        if (hlp->dwActiveBG != hlp->dwDefaultBG)
+        {
+          //Fill space of the external leading
+          dwTextOutFlags=ETO_OPAQUE;
+          rcTextOut.right=rcTextOut.left + nTextWidth;
+        }
+        else SetBkMode(hDC, TRANSPARENT);
       }
       else
       {
         //Fill space of the external leading
-        rcTextOut.right=rcTextOut.left + nTextWidth;
         dwTextOutFlags=ETO_OPAQUE;
+        rcTextOut.right=rcTextOut.left + nTextWidth;
       }
 
-      if (ae->popt->dwOptions & AECO_PAINTSINGLECHAR)
+      if (!(ae->popt->dwOptions & AECO_PAINTGROUP))
       {
+        if (dwTextOutFlags & ETO_OPAQUE)
+        {
+          if (hBrush=CreateSolidBrush(hlp->dwActiveBG))
+          {
+            FillRect(hDC, &rcTextOut, hBrush);
+            DeleteObject(hBrush);
+          }
+          SetBkMode(hDC, TRANSPARENT);
+        }
+
         for (i=0; i < nTextLen; ++i)
         {
-          ExtTextOutW(hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, *wpTextInLine + i, 1, NULL);
+          TextOutW(hDC, rcTextOut.left, rcTextOut.top, *wpTextInLine + i, 1);
           rcTextOut.left+=AE_GetCharWidth(ae, *(*wpTextInLine + i));
         }
       }
@@ -9417,13 +9433,13 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
 
       if (!(hlp->dwPaintType & AEPT_SELECTION))
       {
-        if (hlp->dwActiveBG == hlp->dwDefaultBG)
-          SetBkMode(hDC, OPAQUE);
         if ((hlp->dwPaintType & AEPT_LINK) || hlp->dwFontStyle)
         {
           if (ae->ptxt->hFont) SelectObject(hDC, ae->ptxt->hFont);
         }
       }
+      if (GetBkMode(hDC) == TRANSPARENT)
+        SetBkMode(hDC, OPAQUE);
     }
     *nTextInLineWidth+=nTextWidth;
     *wpTextInLine+=nTextLen;
