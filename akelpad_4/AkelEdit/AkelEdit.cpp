@@ -9348,6 +9348,8 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
   DWORD dwTextOutFlags=0;
   int nTextLen=nLineLen - (*wpTextInLine - wpLine);
   int nTextWidth=nLineWidth - *nTextInLineWidth;
+  int i;
+  BOOL bDrawSingleChars=FALSE;
 
   if (nTextLen)
   {
@@ -9397,7 +9399,15 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
         dwTextOutFlags=ETO_OPAQUE;
       }
 
-      ExtTextOutW(hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, *wpTextInLine, nTextLen, NULL);
+      if (bDrawSingleChars)
+      {
+        for (i=0; i < nTextLen; ++i)
+        {
+          ExtTextOutW(hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, *wpTextInLine + i, 1, NULL);
+          rcTextOut.left+=AE_GetCharWidth(ae, *(*wpTextInLine + i));
+        }
+      }
+      else ExtTextOutW(hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, *wpTextInLine, nTextLen, NULL);
 
       if (!(hlp->dwPaintType & AEPT_SELECTION))
       {
