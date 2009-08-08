@@ -412,7 +412,8 @@ typedef struct _AKELEDIT {
   AEIDataObject ido;
   BOOL bDropping;
   BOOL bDragging;
-  BOOL bDeleteSelection;
+  BOOL bDragSelectionDelete;
+  DWORD dwDragSelectionLength;
   int nMoveBeforeDragging;
 
   //Clone
@@ -698,7 +699,7 @@ HRESULT WINAPI AEIDataObject_DAdvise(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, D
 HRESULT WINAPI AEIDataObject_DUnadvise(LPUNKNOWN lpTable, DWORD dwConnection);
 HRESULT WINAPI AEIDataObject_EnumDAdvise(LPUNKNOWN lpTable, IEnumSTATDATA **ppEnumAdvise);
 int AE_DataObjectLookupFormatEtc(AEIDataObject *pDataObj, FORMATETC *pFormatEtc);
-void AE_DataObjectCopySelection(AKELEDIT *ae);
+DWORD AE_DataObjectCopySelection(AKELEDIT *ae);
 void AE_DataObjectFreeSelection(AKELEDIT *ae);
 
 #endif
