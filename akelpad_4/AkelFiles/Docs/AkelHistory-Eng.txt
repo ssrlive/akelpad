@@ -1,6 +1,7 @@
 
 AkelPad 4.2.6 ()
 ----------------------------
+Changed: character by character painting.
 Changed: selection by pressing on left mouse button in left margin.
 Changed: if wrap by symbols is used, then document print also will be with wrap by symbols.
 
