@@ -902,18 +902,24 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (wParam == AECOOP_XOR)
           dwOptionsNew&=~lParam;
 
-        if ((dwOptionsOld & AECO_CARETOUTEDGE) && !(dwOptionsNew & AECO_CARETOUTEDGE))
-        {
-          AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
-        }
         if (!(dwOptionsOld & AECO_ACTIVECOLUMN) && (dwOptionsNew & AECO_ACTIVECOLUMN))
         {
           AE_ActiveColumnCreate(ae);
+          InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
           AE_StackUpdateClones(ae);
         }
         else if ((dwOptionsOld & AECO_ACTIVECOLUMN) && !(dwOptionsNew & AECO_ACTIVECOLUMN))
         {
           AE_ActiveColumnErase(ae);
+          AE_StackUpdateClones(ae);
+        }
+        if ((dwOptionsOld & AECO_CARETOUTEDGE) && !(dwOptionsNew & AECO_CARETOUTEDGE))
+        {
+          AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
+        }
+        if (!(dwOptionsOld & AECO_PAINTSINGLECHAR) != !(dwOptionsNew & AECO_PAINTSINGLECHAR))
+        {
+          InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
           AE_StackUpdateClones(ae);
         }
 
@@ -9349,7 +9355,6 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
   int nTextLen=nLineLen - (*wpTextInLine - wpLine);
   int nTextWidth=nLineWidth - *nTextInLineWidth;
   int i;
-  BOOL bDrawSingleChars=FALSE;
 
   if (nTextLen)
   {
@@ -9399,7 +9404,7 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
         dwTextOutFlags=ETO_OPAQUE;
       }
 
-      if (bDrawSingleChars)
+      if (ae->popt->dwOptions & AECO_PAINTSINGLECHAR)
       {
         for (i=0; i < nTextLen; ++i)
         {
@@ -15094,6 +15099,8 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
       ae->popt->crActiveColumn=aec->crActiveColumn;
       ae->popt->bDefaultColors=FALSE;
     }
+    bUpdateDrawRect=TRUE;
+
     if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
       AE_ActiveColumnCreate(ae);
   }

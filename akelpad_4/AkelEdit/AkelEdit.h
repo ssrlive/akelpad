@@ -81,6 +81,7 @@
 #define AECO_DISABLEDROP        0x00000100  //Disables OLE text dropping.
 #define AECO_CARETOUTEDGE       0x00000200  //Allow caret moving out of the line edge.
 #define AECO_ACTIVECOLUMN       0x00000400  //Draw caret vertical line.
+#define AECO_PAINTSINGLECHAR    0x00000800  //Paint text by single characters. Can be useful for work with binary files.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
