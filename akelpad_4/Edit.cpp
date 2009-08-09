@@ -1432,7 +1432,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
     //Update selection
     if (!bSelection)
     {
-      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
       crRange.ciMin=crInitialSel.ciMin;
       crRange.ciMax=crInitialSel.ciMin;
     }
@@ -1539,14 +1539,14 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     //Update selection
     if (!bSelection)
     {
-      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
       crRange.ciMin=crInitialSel.ciMin;
       crRange.ciMax=crInitialSel.ciMin;
     }
     else
     {
-      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crRange.ciMin);
-      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crRange.ciMax);
+      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crRange.ciMin);
+      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crRange.ciMax);
     }
 
     if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
@@ -1651,14 +1651,14 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     //Update selection
     if (!bSelection)
     {
-      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
       crRange.ciMin=crInitialSel.ciMin;
       crRange.ciMax=crInitialSel.ciMin;
     }
     else
     {
-      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crRange.ciMin);
-      SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crRange.ciMax);
+      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crRange.ciMin);
+      SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crRange.ciMax);
     }
 
     if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
@@ -10826,7 +10826,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
             }
             else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
             {
-              SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+              SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
               IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
             }
@@ -10845,7 +10845,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
             if (nFirstVisible != -0x7FFFFFFF)
             {
               ciFirstVisibleBefore=crRange.ciMin;
-              SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&ciFirstVisibleBefore);
+              SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciFirstVisibleBefore);
               IndexOffset(hWnd, &ciFirstVisibleBefore, nFirstVisible, nNewLine);
               SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
@@ -11016,7 +11016,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
             }
             else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
             {
-              SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+              SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
               crInitialSel.ciMax=crInitialSel.ciMin;
               IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
             }
@@ -11035,7 +11035,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
             if (nFirstVisible != -0x7FFFFFFF)
             {
               ciFirstVisibleBefore=crRange.ciMin;
-              SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&ciFirstVisibleBefore);
+              SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciFirstVisibleBefore);
               IndexOffset(hWnd, &ciFirstVisibleBefore, nFirstVisible, nNewLine);
               SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
@@ -12780,7 +12780,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
         //Update selection
         if (!bSelection)
         {
-          SendMessage(hWnd, AEM_UPDATEINDEX, 0, (LPARAM)&crInitialSel.ciMin);
+          SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
           crRange.ciMin=crInitialSel.ciMin;
           crRange.ciMax=crInitialSel.ciMin;
         }

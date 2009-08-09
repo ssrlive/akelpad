@@ -379,7 +379,7 @@ typedef struct _AKELEDIT {
   int nLastHScrollPos;
   int nLastVScrollPos;
   POINT ptCaret;
-  int nHorizCaretPos;
+  int nCaretHorzIndent;
   BOOL bColumnSel;
 
   //Dinamic
