@@ -731,6 +731,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return ae->nCaretHorzIndent;
       }
+      if (uMsg == AEM_SETCARETHORZINDENT)
+      {
+        ae->nCaretHorzIndent=wParam;
+        return 0;
+      }
 
       //Screen coordinates
       if (uMsg == AEM_CHARFROMPOS)
