@@ -5409,6 +5409,7 @@ BOOL AE_IndexUpdate(AKELEDIT *ae, AECHARINDEX *ciChar)
 {
   AECHARINDEX ciLastChar;
 
+  ciChar->nLine=max(ciChar->nLine, 0);
   AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
 
   if (AE_IndexCompare(ciChar, &ciLastChar) > 0)
