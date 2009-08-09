@@ -630,7 +630,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return FALSE;
       }
-      if (uMsg == AEM_UPDATEINDEX)
+      if (uMsg == AEM_INDEXUPDATE)
       {
         return AE_IndexUpdate(ae, (AECHARINDEX *)lParam);
       }
@@ -726,6 +726,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (uMsg == AEM_GETUNWRAPLINE)
       {
         return AE_GetUnwrapLine(ae, wParam);
+      }
+      if (uMsg == AEM_GETCARETHORZINDENT)
+      {
+        return ae->nCaretHorzIndent;
       }
 
       //Screen coordinates
@@ -3478,7 +3482,7 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
     ae->nLastVScrollPos=0;
     ae->ptCaret.x=0;
     ae->ptCaret.y=0;
-    ae->nHorizCaretPos=0;
+    ae->nCaretHorzIndent=0;
     ae->bColumnSel=FALSE;
   }
 
@@ -6281,7 +6285,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     if (!(dwSelFlags & AESELT_LOCKUPDATE))
     {
       //Set caret position
-      ae->nHorizCaretPos=ae->ptCaret.x;
+      ae->nCaretHorzIndent=ae->ptCaret.x;
       if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
 
       //Redraw lines
@@ -10032,13 +10036,13 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, DWO
         }
       }
 
-      if (bColumnSel)
+      if (nStringWidth < nMaxExtent)
       {
-        if (ciChar.nCharInLine >= ciChar.lpLine->nLineLen && nStringWidth < nMaxExtent)
+        if (bColumnSel)
         {
           nCharWidth=ae->ptxt->nSpaceCharWidth;
-          nStringWidth+=(nMaxExtent - nStringWidth) / nCharWidth * nCharWidth;
           ciChar.nCharInLine+=(nMaxExtent - nStringWidth) / nCharWidth;
+          nStringWidth+=(nMaxExtent - nStringWidth) / nCharWidth * nCharWidth;
         }
       }
 
@@ -11325,7 +11329,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
       AE_StackUndoGroupStop(ae);
       AE_UpdateScrollBars(ae, SB_BOTH);
       AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
-      ae->nHorizCaretPos=ae->ptCaret.x;
+      ae->nCaretHorzIndent=ae->ptCaret.x;
       if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
     }
@@ -12501,7 +12505,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
     if (!(dwDeleteFlags & AEDELT_LOCKUPDATE))
     {
       //Set caret position
-      ae->nHorizCaretPos=ae->ptCaret.x;
+      ae->nCaretHorzIndent=ae->ptCaret.x;
       if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
 
       //Redraw lines
@@ -13365,7 +13369,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
         if (!(dwInsertFlags & AEINST_LOCKUPDATE))
         {
           //Set caret position
-          ae->nHorizCaretPos=ae->ptCaret.x;
+          ae->nCaretHorzIndent=ae->ptCaret.x;
           if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
 
           //Redraw lines
@@ -13868,8 +13872,8 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
 {
   AECHARINDEX ciCharIn=ae->ciCaretIndex;
   AECHARINDEX ciCharOut=ae->ciCaretIndex;
-  int nHorizCaretPos=ae->nHorizCaretPos;
-  BOOL bSetHorizCaretPos=TRUE;
+  int nCaretHorzIndent=ae->nCaretHorzIndent;
+  BOOL bSetCaretHorzIndent=TRUE;
 
   if (nVk == VK_TAB)
   {
@@ -14052,7 +14056,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
        ae->rcDraw.right - ae->rcDraw.left > 0)
   {
     if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
-      nHorizCaretPos=ae->ptCaret.x;
+      nCaretHorzIndent=ae->ptCaret.x;
 
     if (nVk == VK_HOME)
     {
@@ -14137,8 +14141,8 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       {
         if (!bControl)
         {
-          AE_GetCharInLine(ae, ciCharOut.lpLine, nHorizCaretPos, AECIL_HALFFIT|AECLR_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
-          bSetHorizCaretPos=FALSE;
+          AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECLR_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+          bSetCaretHorzIndent=FALSE;
         }
       }
     }
@@ -14151,8 +14155,8 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       {
         if (!bControl)
         {
-          AE_GetCharInLine(ae, ciCharOut.lpLine, nHorizCaretPos, AECIL_HALFFIT|AECLR_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
-          bSetHorizCaretPos=FALSE;
+          AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECLR_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+          bSetCaretHorzIndent=FALSE;
         }
       }
     }
@@ -14177,11 +14181,11 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       {
         ciCharOut.nLine=max(ciCharIn.nLine - (ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight, 0);
         AE_IndexUpdate(ae, &ciCharOut);
-        AE_GetCharInLine(ae, ciCharOut.lpLine, nHorizCaretPos, AECIL_HALFFIT|AECLR_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+        AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECLR_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
         if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
           AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->ptxt->nCharHeight - (ciCharIn.nLine * ae->ptxt->nCharHeight - ae->nVScrollPos));
-        bSetHorizCaretPos=FALSE;
+        bSetCaretHorzIndent=FALSE;
       }
     }
     else if (nVk == VK_NEXT)
@@ -14205,11 +14209,11 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       {
         ciCharOut.nLine=min(ciCharIn.nLine + (ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight, ae->ptxt->nLineCount);
         AE_IndexUpdate(ae, &ciCharOut);
-        AE_GetCharInLine(ae, ciCharOut.lpLine, nHorizCaretPos, AECIL_HALFFIT|AECLR_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+        AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECLR_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
         if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
           AE_ScrollEditWindow(ae, SB_VERT, ciCharOut.nLine * ae->ptxt->nCharHeight - (ciCharIn.nLine * ae->ptxt->nCharHeight - ae->nVScrollPos));
-        bSetHorizCaretPos=FALSE;
+        bSetCaretHorzIndent=FALSE;
       }
     }
 
@@ -14242,9 +14246,9 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     }
 
     //Set horizontal caret
-    if (!bSetHorizCaretPos)
+    if (!bSetCaretHorzIndent)
     {
-      ae->nHorizCaretPos=nHorizCaretPos;
+      ae->nCaretHorzIndent=nCaretHorzIndent;
     }
     return TRUE;
   }
@@ -14373,7 +14377,7 @@ void AE_EditUndo(AKELEDIT *ae)
       {
         AE_UpdateScrollBars(ae, SB_BOTH);
         AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
-        ae->nHorizCaretPos=ae->ptCaret.x;
+        ae->nCaretHorzIndent=ae->ptCaret.x;
         if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
       }
@@ -14468,7 +14472,7 @@ void AE_EditRedo(AKELEDIT *ae)
       {
         AE_UpdateScrollBars(ae, SB_BOTH);
         AE_ScrollToCaret(ae, &ae->ptCaret, TRUE);
-        ae->nHorizCaretPos=ae->ptCaret.x;
+        ae->nCaretHorzIndent=ae->ptCaret.x;
         if (ae->bFocus) AE_SetCaretPos(ae, &ae->ptCaret);
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
       }
