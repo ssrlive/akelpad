@@ -745,6 +745,7 @@ typedef struct {
 #define AEM_GETWRAPLINE        (WM_USER + 2117)
 #define AEM_GETUNWRAPLINE      (WM_USER + 2118)
 #define AEM_GETCARETHORZINDENT (WM_USER + 2119)
+#define AEM_SETCARETHORZINDENT (WM_USER + 2120)
 
 //Screen coordinates
 #define AEM_CHARFROMPOS        (WM_USER + 2151)
@@ -2236,7 +2237,7 @@ Example:
 AEM_GETCARETHORZINDENT
 ______________________
 
-Get caret horizontal indent. It's unchanged after VK_UP, VK_DOWN, VK_PRIOR, VK_NEXT key pressed.
+Retrieve caret horizontal indent. It's unchanged after VK_UP, VK_DOWN, VK_PRIOR, VK_NEXT key pressed.
 
 wParam == not used.
 lParam == not used.
@@ -2246,6 +2247,21 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_GETCARETHORZINDENT, 0, 0);
+
+
+AEM_SETCARETHORZINDENT
+______________________
+
+Set caret horizontal indent.
+
+(DWORD)wParam == caret horizontal indent.
+lParam        == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETCARETHORZINDENT, 10, 0);
 
 
 AEM_CHARFROMPOS
