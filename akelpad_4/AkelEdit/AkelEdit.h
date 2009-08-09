@@ -103,8 +103,8 @@
 #define AEGI_LASTVISIBLELINE     7  //Last character of the last visible line.
 #define AEGI_NEXTLINE            8  //First character of the next line.
 #define AEGI_PREVLINE            9  //First character of the previous line.
-#define AEGI_NEXTCHAR           10  //Next character.
-#define AEGI_PREVCHAR           11  //Previous character.
+#define AEGI_NEXTCHAR           10  //Next wide character.
+#define AEGI_PREVCHAR           11  //Previous wide character.
 #define AEGI_NEXTBREAK          12  //Next break index, see AEM_SETWORDDELIMITERS.
 #define AEGI_PREVBREAK          13  //Previous break index, see AEM_SETWORDDELIMITERS.
 #define AEGI_NEXTWORDSTART      14  //Next word start index, see AEM_SETWORDDELIMITERS.
@@ -2235,7 +2235,7 @@ Example:
 AEM_CHARFROMPOS
 _______________
 
-Retrieve the closest character to a specified point in the client area of an edit control.
+Retrieve the closest wide character to a specified point in the client area of an edit control.
 
 (POINT *)wParam       == coordinates of a point in the control's client area.
 (AECHARINDEX *)lParam == character index.

@@ -57,12 +57,22 @@
 #define AELS_FULL     2
 #define AELS_PARTLY   3
 
-//StreamIn HIBYTE new line
-#define AELB_SPLIT    1
-
 //AE_CalcLinesWidth flags
 #define AECLW_FRESH            0x00000001
 #define AECLW_LOCKUPDATE       0x00000002
+
+//AE_GetCharInLine flags
+#define AECIL_HALFFIT          0x00000001
+#define AECIL_USELINEBEGINPOS  0x00000002
+#define AECIL_USELINEENDPOS    0x00000004
+#define AECIL_USECARETPOS      0x00000008
+
+#define AECLR_ALLPOS          (AECIL_USELINEBEGINPOS |\
+                               AECIL_USELINEENDPOS   |\
+                               AECIL_USECARETPOS)
+
+//StreamIn HIBYTE new line
+#define AELB_SPLIT    1
 
 //AE_InsertText flags
 #define AEINST_LOCKUNDO        0x00000001
@@ -497,9 +507,12 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharI
 int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex);
 int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel);
 int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
+int AE_IndexInc(AECHARINDEX *ciChar);
+int AE_IndexDec(AECHARINDEX *ciChar);
 DWORD AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
 DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, int nOffset, int nNewLine);
-BOOL AE_UpdateIndex(AKELEDIT *ae, AECHARINDEX *ciChar);
+BOOL AE_IndexNormalize(AECHARINDEX *ciChar);
+BOOL AE_IndexUpdate(AKELEDIT *ae, AECHARINDEX *ciChar);
 int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, int nWrap);
 int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, int nWrap);
 int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwMaxWidth, int nWrap);
@@ -574,14 +587,15 @@ void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide);
 int AE_GetFirstVisibleLine(AKELEDIT *ae);
 int AE_GetLastVisibleLine(AKELEDIT *ae);
-BOOL AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE *lpSize);
-int AE_GetCharWidth(AKELEDIT *ae, wchar_t wchChar);
+int IsSurrogate(wchar_t wchChar);
+int IsHighSurrogate(wchar_t wchChar);
+int IsLowSurrogate(wchar_t wchChar);
+int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE *lpSize);
+int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, int *nDone);
 int AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirstCharExtent);
-BOOL AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine);
+void AE_GetLineWidth(AKELEDIT *ae, AELINEDATA *lpLine);
 BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);
-BOOL AE_GetPosFromCharEx(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, POINT *ptClientPos);
-int AE_GetCharInLine(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
-int AE_GetCharInLineEx(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, BOOL bHalfFit, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
+int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, DWORD dwFlags, int *nCharIndex, int *nCharPos, BOOL bColumnSel);
 BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, int nMinExtent, int nMaxExtent, int *nMinCharIndex, int *nMinCharPos, int *nMaxCharIndex, int *nMaxCharPos, BOOL bColumnSel);
 int AE_GetCharFromPos(AKELEDIT *ae, const POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel);
 BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel, DWORD dwFlags);

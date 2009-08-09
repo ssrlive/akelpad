@@ -5,6 +5,7 @@ Changed: AkelEdit now uses character by character painting.
 Changed: selection by pressing on left mouse button in left margin.
 Changed: if wrap by symbols is used, then document print also will be with wrap by symbols.
 
+Added: support for UTF-16 surrogate pairs.
 Added: 4430 command - paste text after caret.
 Added: support for text Drag'n'Drop containing NULL symbol (between AkelEdit windows).
 
