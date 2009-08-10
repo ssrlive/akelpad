@@ -866,6 +866,21 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AE_GetStringWidth(ae, (wchar_t *)wParam, lParam, 0);
       }
+      if (uMsg == AEM_GETCARETPOS)
+      {
+        POINT *ptGlobal=(POINT *)wParam;
+        POINT *ptClient=(POINT *)lParam;
+
+        if (ptGlobal)
+        {
+          *ptGlobal=ae->ptCaret;
+        }
+        if (ptClient)
+        {
+          AE_GlobalToClient(ae, &ae->ptCaret, ptClient);
+        }
+        return ae->bCaretVisible;
+      }
 
       //Options
       if (uMsg == AEM_CONTROLCLASS)
