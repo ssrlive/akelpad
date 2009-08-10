@@ -223,9 +223,13 @@
 #define AECSE_SCROLLEDX      0x00000001  //Edit control was horizontally scrolled.
 #define AECSE_SCROLLEDY      0x00000002  //Edit control was vertically scrolled.
 
+//AEM_GETCHARSIZE flags
+#define AECS_HEIGHT          0  //Current font character height.
+#define AECS_AVEWIDTH        1  //Current font character average width.
+
 //AEM_CONVERTPOINT flags
-#define AECPT_GLOBALTOCLIENT 0x00000001  //Convert position in the virtual text space of the document, to client area coordinates.
-#define AECPT_CLIENTTOGLOBAL 0x00000002  //Convert position in the client area coordinates, to virtual text space of the document.
+#define AECPT_GLOBALTOCLIENT 0  //Convert position in the virtual text space of the document, to client area coordinates.
+#define AECPT_CLIENTTOGLOBAL 1  //Convert position in the client area coordinates, to virtual text space of the document.
 
 //AEM_FINDTEXTA, AEM_FINDTEXTW flags
 #define AEFR_DOWN            0x00000001  //If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
@@ -2495,19 +2499,18 @@ Example:
 
 
 AEM_GETCHARSIZE
-__________________
+_______________
 
 Retrieve current font character height and average width.
 
-wParam == not used.
-lParam == not used.
+(DWORD)wParam == see AECS_* defines.
+lParam        == not used.
 
 Return Value
- The low-order word contains the current font character height.
- The high-order word contains the current font character average width.
+ Integer that depend on AECS_* value.
 
 Example:
- SendMessage(hWndEdit, AEM_GETCHARSIZE, 0, 0);
+ SendMessage(hWndEdit, AEM_GETCHARSIZE, AECS_HEIGHT, 0);
 
 
 AEM_GETSTRWIDTH
@@ -2562,7 +2565,7 @@ Example:
 AEM_SETCARETHORZINDENT
 ______________________
 
-Set caret horizontal indent.
+Set caret horizontal indent. It's unchanged after VK_UP, VK_DOWN, VK_PRIOR, VK_NEXT key pressed.
 
 (DWORD)wParam == caret horizontal indent in the virtual text space of the document.
 lParam        == not used.
