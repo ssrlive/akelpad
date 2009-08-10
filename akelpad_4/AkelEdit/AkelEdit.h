@@ -223,6 +223,10 @@
 #define AECSE_SCROLLEDX      0x00000001  //Edit control was horizontally scrolled.
 #define AECSE_SCROLLEDY      0x00000002  //Edit control was vertically scrolled.
 
+//AEM_CONVERTPOINT flags
+#define AECPT_GLOBALTOCLIENT 0x00000001  //Convert position in the virtual text space of the document, to client area coordinates.
+#define AECPT_CLIENTTOGLOBAL 0x00000002  //Convert position in the client area coordinates, to virtual text space of the document.
+
 //AEM_FINDTEXTA, AEM_FINDTEXTW flags
 #define AEFR_DOWN            0x00000001  //If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
 #define AEFR_WHOLEWORD       0x00000002  //If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
@@ -744,8 +748,6 @@ typedef struct {
 #define AEM_GETINDEXCOLUMN     (WM_USER + 2116)
 #define AEM_GETWRAPLINE        (WM_USER + 2117)
 #define AEM_GETUNWRAPLINE      (WM_USER + 2118)
-#define AEM_GETCARETHORZINDENT (WM_USER + 2119)
-#define AEM_SETCARETHORZINDENT (WM_USER + 2120)
 
 //Screen coordinates
 #define AEM_CHARFROMPOS        (WM_USER + 2151)
@@ -764,6 +766,9 @@ typedef struct {
 #define AEM_GETCHARSIZE        (WM_USER + 2164)
 #define AEM_GETSTRWIDTH        (WM_USER + 2165)
 #define AEM_GETCARETPOS        (WM_USER + 2166)
+#define AEM_GETCARETHORZINDENT (WM_USER + 2167)
+#define AEM_SETCARETHORZINDENT (WM_USER + 2168)
+#define AEM_CONVERTPOINT       (WM_USER + 2169)
 
 //Options
 #define AEM_CONTROLCLASS       (WM_USER + 2199)
@@ -2235,36 +2240,6 @@ Example:
    nUnwrappedLine=ciCaret.nLine;
 
 
-AEM_GETCARETHORZINDENT
-______________________
-
-Retrieve caret horizontal indent. It's unchanged after VK_UP, VK_DOWN, VK_PRIOR, VK_NEXT key pressed.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- Caret horizontal indent.
-
-Example:
- SendMessage(hWndEdit, AEM_GETCARETHORZINDENT, 0, 0);
-
-
-AEM_SETCARETHORZINDENT
-______________________
-
-Set caret horizontal indent.
-
-(DWORD)wParam == caret horizontal indent.
-lParam        == not used.
-
-Return Value
- zero
-
-Example:
- SendMessage(hWndEdit, AEM_SETCARETHORZINDENT, 10, 0);
-
-
 AEM_CHARFROMPOS
 _______________
 
@@ -2555,18 +2530,67 @@ _______________
 
 Obtain the current caret position.
 
-(POINT *)wParam == pointer to a POINT structure that receives the caret position in the virtual text space of the document, expressed in pixels. Can be NULL.
-(POINT *)lParam == pointer to a POINT structure that receives the caret position in the client area coordinates, expressed in pixels. Can be NULL.
+(POINT *)wParam == pointer to a POINT structure that receives the caret position in the client area coordinates, expressed in pixels. Can be NULL.
+(POINT *)lParam == pointer to a POINT structure that receives the caret position in the virtual text space of the document, expressed in pixels. Can be NULL.
 
 Return Value
  TRUE   caret is visible.
  FALSE  caret isn't visible.
 
 Example:
- POINT ptGlobal;
  POINT ptClient;
+ POINT ptGlobal;
 
- SendMessage(hWndEdit, AEM_GETCARETPOS, (WPARAM)&ptGlobal, (LPARAM)&ptClient);
+ SendMessage(hWndEdit, AEM_GETCARETPOS, (LPARAM)&ptClient, (WPARAM)&ptGlobal);
+
+
+AEM_GETCARETHORZINDENT
+______________________
+
+Retrieve caret horizontal indent. It's unchanged after VK_UP, VK_DOWN, VK_PRIOR, VK_NEXT key pressed.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Caret horizontal indent in the virtual text space of the document.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETCARETHORZINDENT, 0, 0);
+
+
+AEM_SETCARETHORZINDENT
+______________________
+
+Set caret horizontal indent.
+
+(DWORD)wParam == caret horizontal indent in the virtual text space of the document.
+lParam        == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETCARETHORZINDENT, 10, 0);
+
+
+AEM_CONVERTPOINT
+________________
+
+Convert position coordinates.
+
+(DWORD)wParam   == see AECPT_* defines.
+(POINT *)lParam == pointer to a POINT structure.
+
+Return Value
+ zero
+
+Example:
+ POINT pt;
+
+ pt.x=SendMessage(hWndEdit, AEM_GETCARETHORZINDENT, 0, 0);
+ pt.y=0;
+ SendMessage(hWndEdit, AEM_CONVERTPOINT, AECPT_GLOBALTOCLIENT, (LPARAM)&pt);
 
 
 AEM_CONTROLCLASS

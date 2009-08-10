@@ -727,15 +727,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return AE_GetUnwrapLine(ae, wParam);
       }
-      if (uMsg == AEM_GETCARETHORZINDENT)
-      {
-        return ae->nCaretHorzIndent;
-      }
-      if (uMsg == AEM_SETCARETHORZINDENT)
-      {
-        ae->nCaretHorzIndent=wParam;
-        return 0;
-      }
 
       //Screen coordinates
       if (uMsg == AEM_CHARFROMPOS)
@@ -743,7 +734,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         POINT *pt=(POINT *)wParam;
         AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
-        return AE_GetCharFromPos(ae, pt, ciCharIndex, NULL, FALSE);
+        return AE_GetCharFromPos(ae, pt, ciCharIndex, NULL, ae->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
       }
       if (uMsg == AEM_POSFROMCHAR)
       {
@@ -868,18 +859,42 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETCARETPOS)
       {
-        POINT *ptGlobal=(POINT *)wParam;
-        POINT *ptClient=(POINT *)lParam;
+        POINT *ptClient=(POINT *)wParam;
+        POINT *ptGlobal=(POINT *)lParam;
 
-        if (ptGlobal)
-        {
-          *ptGlobal=ae->ptCaret;
-        }
         if (ptClient)
         {
           AE_GlobalToClient(ae, &ae->ptCaret, ptClient);
         }
+        if (ptGlobal)
+        {
+          *ptGlobal=ae->ptCaret;
+        }
         return ae->bCaretVisible;
+      }
+      if (uMsg == AEM_GETCARETHORZINDENT)
+      {
+        return ae->nCaretHorzIndent;
+      }
+      if (uMsg == AEM_SETCARETHORZINDENT)
+      {
+        ae->nCaretHorzIndent=wParam;
+        return 0;
+      }
+      if (uMsg == AEM_CONVERTPOINT)
+      {
+        POINT *ptGlobal=(POINT *)wParam;
+        POINT *pt=(POINT *)lParam;
+
+        if (wParam == AECPT_GLOBALTOCLIENT)
+        {
+          AE_GlobalToClient(ae, pt, pt);
+        }
+        if (wParam == AECPT_CLIENTTOGLOBAL)
+        {
+          AE_ClientToGlobal(ae, pt, pt);
+        }
+        return 0;
       }
 
       //Options
@@ -10042,28 +10057,38 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, DWO
     Begin:
     if (nOffset > 0)
     {
-      for (ciChar.nCharInLine=nStartChar; ciChar.nCharInLine < ciChar.lpLine->nLineLen && nStringWidth < nMaxExtent; AE_IndexInc(&ciChar))
+      for (ciChar.nCharInLine=nStartChar; nStringWidth < nMaxExtent; AE_IndexInc(&ciChar))
       {
-        if (ciChar.lpLine->wpLine[ciChar.nCharInLine] == L'\t')
+        if (ciChar.nCharInLine < ciChar.lpLine->nLineLen)
         {
-          nTabWidth=ae->ptxt->nTabWidth - nStringWidth % ae->ptxt->nTabWidth;
-          nCharWidth=nTabWidth;
-          nStringWidth+=nCharWidth;
+          if (ciChar.lpLine->wpLine[ciChar.nCharInLine] == L'\t')
+          {
+            nTabWidth=ae->ptxt->nTabWidth - nStringWidth % ae->ptxt->nTabWidth;
+            nCharWidth=nTabWidth;
+            nStringWidth+=nCharWidth;
+          }
+          else
+          {
+            if (nCharWidth=AE_GetCharWidth(ae, ciChar.lpLine->wpLine + ciChar.nCharInLine, NULL))
+              nStringWidth+=nCharWidth;
+          }
         }
         else
         {
-          if (nCharWidth=AE_GetCharWidth(ae, ciChar.lpLine->wpLine + ciChar.nCharInLine, NULL))
+          if (bColumnSel)
+          {
+            nCharWidth=ae->ptxt->nSpaceCharWidth;
             nStringWidth+=nCharWidth;
-        }
-      }
-
-      if (nStringWidth < nMaxExtent)
-      {
-        if (bColumnSel)
-        {
-          nCharWidth=ae->ptxt->nSpaceCharWidth;
-          ciChar.nCharInLine+=(nMaxExtent - nStringWidth) / nCharWidth;
-          nStringWidth+=(nMaxExtent - nStringWidth) / nCharWidth * nCharWidth;
+          }
+          else
+          {
+            if (lpLine->nLineWidth != -1)
+            {
+              nStringWidth=lpLine->nLineWidth;
+              ciChar.nCharInLine=lpLine->nLineLen;
+            }
+            goto End;
+          }
         }
       }
 
