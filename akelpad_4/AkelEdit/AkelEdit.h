@@ -763,6 +763,7 @@ typedef struct {
 #define AEM_SETERASERECT       (WM_USER + 2163)
 #define AEM_GETCHARSIZE        (WM_USER + 2164)
 #define AEM_GETSTRWIDTH        (WM_USER + 2165)
+#define AEM_GETCARETPOS        (WM_USER + 2166)
 
 //Options
 #define AEM_CONTROLCLASS       (WM_USER + 2199)
@@ -2547,6 +2548,25 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_GETSTRWIDTH, (WPARAM)L"ABC", 3);
+
+
+AEM_GETCARETPOS
+_______________
+
+Obtain the current caret position.
+
+(POINT *)wParam == pointer to a POINT structure that receives the caret position in the virtual text space of the document, expressed in pixels. Can be NULL.
+(POINT *)lParam == pointer to a POINT structure that receives the caret position in the client area coordinates, expressed in pixels. Can be NULL.
+
+Return Value
+ TRUE   caret is visible.
+ FALSE  caret isn't visible.
+
+Example:
+ POINT ptGlobal;
+ POINT ptClient;
+
+ SendMessage(hWndEdit, AEM_GETCARETPOS, (WPARAM)&ptGlobal, (LPARAM)&ptClient);
 
 
 AEM_CONTROLCLASS
