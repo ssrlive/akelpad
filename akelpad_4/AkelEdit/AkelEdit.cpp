@@ -851,7 +851,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETCHARSIZE)
       {
-        return MAKELONG(ae->ptxt->nCharHeight, ae->ptxt->nAveCharWidth);
+        if (wParam == AECS_HEIGHT)
+          return ae->ptxt->nCharHeight;
+        if (wParam == AECS_AVEWIDTH)
+          return ae->ptxt->nAveCharWidth;
+        return 0;
       }
       if (uMsg == AEM_GETSTRWIDTH)
       {
