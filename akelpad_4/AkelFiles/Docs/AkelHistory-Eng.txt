@@ -1,5 +1,5 @@
 
-AkelPad 4.2.6 ()
+AkelPad 4.2.6 (Aug 10, 2009)
 ----------------------------
 Changed: AkelEdit now uses character by character painting.
 Changed: selection by pressing on left mouse button in left margin.
