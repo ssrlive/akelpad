@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v1.7                  *
+ *                 AkelUpdater NSIS plugin v1.8                  *
  *                                                               *
  * 2009 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -264,7 +264,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
            !popstring(szCurrentVer, MAX_PATH) &&
            !popstring(szCompareResult, MAX_PATH))
     {
-      if (!lstrcmpA(szName, "AkelPad"))
+      if (!memcmp(szName, "AkelPad", lstrlenA("AkelPad")))
         hWndList=hWndListExe;
       else
         hWndList=hWndListDll;
@@ -546,31 +546,34 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       char szExeVersion[MAX_PATH]="0";
       char szName[MAX_PATH];
-      int nIndex=0;
+      int nIndex;
       int nCountDLL=0;
       int nSelection;
 
       // EXE
-      lviA.mask=LVIF_STATE;
-      lviA.iItem=0;
-      lviA.iSubItem=LVSI_NAME;
-      lviA.stateMask=LVIS_STATEIMAGEMASK;
-      if (SendMessage(hWndListExe, LVM_GETITEMA, 0, (LPARAM)&lviA))
+      for (nIndex=0; 1; ++nIndex)
       {
+        lviA.mask=LVIF_STATE;
+        lviA.iItem=nIndex;
+        lviA.iSubItem=LVSI_NAME;
+        lviA.stateMask=LVIS_STATEIMAGEMASK;
+        if (!SendMessage(hWndListExe, LVM_GETITEMA, 0, (LPARAM)&lviA)) break;
+
         if (((lviA.state & LVIS_STATEIMAGEMASK) >> 12) - 1)
         {
           lviA.mask=LVIF_TEXT;
           lviA.pszText=szExeVersion;
           lviA.cchTextMax=MAX_PATH;
-          lviA.iItem=0;
+          lviA.iItem=nIndex;
           lviA.iSubItem=LVSI_LATEST;
           lviA.stateMask=LVIS_STATEIMAGEMASK;
           SendMessage(hWndListExe, LVM_GETITEMA, 0, (LPARAM)&lviA);
+          break;
         }
       }
 
       // DLL
-      while (1)
+      for (nIndex=0; 1; ++nIndex)
       {
         lviA.mask=LVIF_TEXT|LVIF_STATE;
         lviA.pszText=szName;
@@ -585,7 +588,6 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           pushstring(szName, MAX_PATH);
           ++nCountDLL;
         }
-        ++nIndex;
       }
       wsprintfA(szBuf, "%s|%d", szExeVersion, nCountDLL);
       setuservariable(INST_0, szBuf);
