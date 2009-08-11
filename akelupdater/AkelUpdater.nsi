@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "1.9"
+!define PRODUCT_VERSION "2.0"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -91,7 +91,8 @@ Var AKELPADDIR
 Var AKELFILESDIR
 Var AKELPLUGSDIR
 Var AKELPLUGIN
-Var EXEVERSION
+Var EXEVERSIONFULL
+Var EXEVERSIONMAJOR
 Var DLLCOUNT
 Var ZIPMIRROR
 Var ZIPLANG
@@ -202,10 +203,11 @@ Function .onInit
 	StrCpy $ZIPMIRROR $1
 	StrCpy $ZIPLANG $2
 	StrCmp $0 "0|0" NothingSelected
-	${WordFind} "$0" "|" "E+1{" $EXEVERSION
+	${WordFind} "$0" "|" "E+1{" $EXEVERSIONFULL
 	IfErrors Exit
 	${WordFind} "$0" "|" "E+1}" $DLLCOUNT
 	IfErrors Exit
+	StrCpy $EXEVERSIONMAJOR $EXEVERSIONFULL 1
 
 	;Is AkelPad running?
 	CheckWindow:
@@ -223,12 +225,12 @@ Function .onInit
 	DownloadProgram:
 	CreateDirectory $SAVEDIR
 	IfFileExists "$SAVEDIR\*.*" 0 DirNotExist
-	StrCmp $EXEVERSION 0 DownloadPlugsPack
+	StrCmp $EXEVERSIONFULL 0 DownloadPlugsPack
 ;	File "/oname=$SAVEDIR\AkelPad-4.2.1-bin-eng.zip" "AkelPad-4.2.1-bin-eng.zip"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
 	$PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
-	"http://$ZIPMIRROR.dl.sourceforge.net/sourceforge/akelpad/AkelPad-$EXEVERSION-bin-$ZIPLANG.zip" "$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANG.zip" /end
+	"http://$ZIPMIRROR.dl.sourceforge.net/project/akelpad/AkelPad%20$EXEVERSIONMAJOR/$EXEVERSIONFULL/AkelPad-$EXEVERSIONFULL-bin-$ZIPLANG.zip" "$SAVEDIR\AkelPad-$EXEVERSIONFULL-bin-$ZIPLANG.zip" /end
 	Pop $0
 	StrCmp $0 "OK" 0 DownloadError
 
@@ -294,9 +296,9 @@ Function FillStack
 	StrCpy $NOTEPAD 0
 	${GetFileVersion} "$AKELPADDIR\AkelPad.exe" $R2
 	IfErrors 0 IsActual
-	StrCpy $NOTEPAD 1
 	${GetFileVersion} "$AKELPADDIR\notepad.exe" $R2
 	IfErrors Empty
+	StrCpy $NOTEPAD 1
 	IsActual:
 	StrCpy $2 $R0 '' -1
 	StrCpy $3 $R2 1
@@ -338,15 +340,15 @@ Section
 	AkelUpdater::Collapse $0
 
 	;Extract "AkelPad-x.x.x-bin-lng.zip"
-	StrCmp $EXEVERSION 0 GetExcludeLanguage
+	StrCmp $EXEVERSIONFULL 0 GetExcludeLanguage
 	Push /END
 	AkelUpdater::ParseAndPush "$UNZIP"
-	nsUnzip::Extract "$SAVEDIR\AkelPad-$EXEVERSION-bin-$ZIPLANG.zip" "/d=$AKELPADDIR"
+	nsUnzip::Extract "$SAVEDIR\AkelPad-$EXEVERSIONFULL-bin-$ZIPLANG.zip" "/d=$AKELPADDIR"
 	Pop $0
 	StrCmp $0 0 +3
-	DetailPrint "$(error) ($0): AkelPad-$EXEVERSION-bin-$ZIPLANG.zip"
+	DetailPrint "$(error) ($0): AkelPad-$EXEVERSIONFULL-bin-$ZIPLANG.zip"
 	goto GetExcludeLanguage
-	DetailPrint "$(done): AkelPad-$EXEVERSION-bin-$ZIPLANG.zip"
+	DetailPrint "$(done): AkelPad-$EXEVERSIONFULL-bin-$ZIPLANG.zip"
 	StrCmp $NOTEPAD 1 0 GetExcludeLanguage
 	SetDetailsPrint listonly
 	CopyFiles /SILENT "$AKELPADDIR\AkelPad.exe" "$AKELPADDIR\notepad.exe"
