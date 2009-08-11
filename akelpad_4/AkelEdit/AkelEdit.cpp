@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.2.6                               *
+ *                      AkelEdit text control v1.2.7                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -887,7 +887,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_CONVERTPOINT)
       {
-        POINT *ptGlobal=(POINT *)wParam;
         POINT *pt=(POINT *)lParam;
 
         if (wParam == AECPT_GLOBALTOCLIENT)
@@ -9448,6 +9447,7 @@ void AE_Paint(AKELEDIT *ae)
       }
       EndPaint(ae->hWndEdit, &ps);
     }
+    ae->rcErase=ae->rcEdit;
   }
 }
 
