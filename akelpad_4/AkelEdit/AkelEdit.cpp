@@ -3136,6 +3136,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (uMsg == WM_CAPTURECHANGED)
       {
+        if (ae->bDragging)
+        {
+          ae->bDragging=FALSE;
+          ReleaseCapture();
+        }
         if (ae->dwMouseMoveTimer)
         {
           KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
