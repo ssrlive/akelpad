@@ -360,12 +360,12 @@ typedef struct _AELINEDATA {
 } AELINEDATA;
 
 typedef struct _AELINEINDEX {
-  int nLine;                  //Line number in document.
+  int nLine;                  //Zero based line number in document.
   AELINEDATA *lpLine;         //Pointer to the AELINEDATA structure.
 } AELINEINDEX;
 
 typedef struct _AECHARINDEX {
-  int nLine;                  //Line number in document.
+  int nLine;                  //Zero based line number in document.
   AELINEDATA *lpLine;         //Pointer to the AELINEDATA structure.
   int nCharInLine;            //Character position in line.
 } AECHARINDEX;
@@ -2209,7 +2209,7 @@ _______________
 
 Convert unwrapped line number to wrapped line number.
 
-(int)wParam           == unwrapped line.
+(int)wParam           == zero based unwrapped line.
 (AECHARINDEX *)lParam == returned first character in wrapped line. Can be NULL.
 
 Return Value
@@ -2226,7 +2226,7 @@ _________________
 
 Convert wrapped line number to unwrapped line number.
 
-(int)wParam == wrapped line.
+(int)wParam == zero based wrapped line.
 lParam      == not used.
 
 Return Value
