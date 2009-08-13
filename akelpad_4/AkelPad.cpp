@@ -5216,7 +5216,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         memset(&ftFileTime, 0, sizeof(FILETIME));
 
-        ReleaseCapture();
+        SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
         API_LoadStringA(hLangLib, MSG_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
         wsprintfA(buf2, buf, szCurrentFile);
         MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
@@ -5227,7 +5227,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           ftFileTime=ftTmp;
 
-          ReleaseCapture();
+          SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
           PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_REOPEN_MSG, (LPARAM)hWndEdit);
         }
       }
@@ -5499,7 +5499,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         memset(&ftFileTime, 0, sizeof(FILETIME));
 
-        ReleaseCapture();
+        SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
         API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
         wsprintfW(wbuf2, wbuf, wszCurrentFile);
         MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
@@ -5510,7 +5510,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           ftFileTime=ftTmp;
 
-          ReleaseCapture();
+          SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
           PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_REOPEN_MSG, (LPARAM)hWndEdit);
         }
       }

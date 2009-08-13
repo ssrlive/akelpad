@@ -1,4 +1,12 @@
 
+AkelPad 4.2.7 ()
+----------------------------
+Fixed: out of the text area didn't redraw after computer unlocking.
+Fixed: management didn't come back to the user, after message appearance at text
+       dragging in next tab window (MDI).
+Fixed: if unsaved character appears on the last line, incorrect line number reported.
+
+
 AkelPad 4.2.6 (Aug 10, 2009)
 ----------------------------
 Changed: AkelEdit now uses character by character painting.

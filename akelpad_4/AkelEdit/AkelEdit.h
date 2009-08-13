@@ -236,6 +236,10 @@
 #define AEFR_WHOLEWORD       0x00000002  //If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
 #define AEFR_MATCHCASE       0x00000004  //If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
 
+//AEM_DRAGDROP flags
+#define AEDD_GETDRAGWINDOW   1  //Return dragging window handle.
+#define AEDD_STOPDRAG        2  //Set stop dragging operation flag.
+
 //AEM_SETWORDWRAP flags
 #define AEWW_NONE            0  //Wrap is off.
 #define AEWW_WORD            1  //Wrap by words.
@@ -716,6 +720,7 @@ typedef struct {
 #define AEM_ISMATCHA           (WM_USER + 2018)
 #define AEM_ISMATCHW           (WM_USER + 2019)
 #define AEM_KEYDOWN            (WM_USER + 2020)
+#define AEM_DRAGDROP           (WM_USER + 2021)
 
 //Undo and Redo
 #define AEM_CANUNDO            (WM_USER + 2051)
@@ -1661,6 +1666,23 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_KEYDOWN, VK_RIGHT, AEMOD_SHIFT|AEMOD_CONTROL);
+
+
+AEM_DRAGDROP
+____________
+
+Operations with current drag'n'drop.
+
+(DWORD)wParam == see AEDD_* defines.
+lParam        == not used.
+
+Return Value
+ Value depended on the AEDD_* define.
+
+Example:
+ HWND hWndDragSource;
+
+ hWndDragSource=(HWND)SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_GETDRAGWINDOW, 0);
 
 
 AEM_CANUNDO
