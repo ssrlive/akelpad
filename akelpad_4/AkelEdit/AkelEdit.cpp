@@ -25,7 +25,6 @@ HSTACK hAkelEditFontCharsStack={0};
 HSTACK hAkelEditThemesStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
-UINT cfAkelEditColumnSel=0;
 HCURSOR hAkelEditCursorArrow=NULL;
 HCURSOR hAkelEditCursorMargin=NULL;
 HCURSOR hAkelEditCursorHand=NULL;
@@ -44,6 +43,8 @@ HBITMAP hAkelEditBitmapMCenterAll=NULL;
 HBITMAP hAkelEditBitmapMCenterLeftRight=NULL;
 HBITMAP hAkelEditBitmapMCenterTopBottom=NULL;
 AKELEDIT *lpAkelEditPrev=NULL;
+AKELEDIT *lpAkelEditDrag=NULL;
+UINT cfAkelEditColumnSel=0;
 
 
 //// Entry point
@@ -509,6 +510,21 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             return 0;
 
         AE_KeyDown(ae, wParam, (lParam & AEMOD_ALT), (lParam & AEMOD_SHIFT), (lParam & AEMOD_CONTROL));
+        return 0;
+      }
+      if (uMsg == AEM_DRAGDROP)
+      {
+        if (wParam == AEDD_GETDRAGWINDOW)
+        {
+          if (lpAkelEditDrag)
+            return (LRESULT)lpAkelEditDrag->hWndEdit;
+          return (LRESULT)NULL;
+        }
+        if (wParam == AEDD_STOPDRAG)
+        {
+          lpAkelEditDrag=NULL;
+          return 0;
+        }
         return 0;
       }
 
@@ -3035,6 +3051,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (!AE_NotifyDropSource(ae, AEDS_SOURCEBEGIN, &dwEffectIn, 0))
             {
+              lpAkelEditDrag=ae;
               ae->bDragSelectionDelete=TRUE;
               ae->dwDragSelectionLength=AE_DataObjectCopySelection(ae);
 
@@ -3062,6 +3079,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               AE_DataObjectFreeSelection(ae);
               ((IDataObject *)&ae->ido)->Release();
               ((IDropSource *)&ae->ids)->Release();
+              lpAkelEditDrag=NULL;
               ae->bDragSelectionDelete=FALSE;
               ae->dwDragSelectionLength=0;
             }
@@ -16523,9 +16541,10 @@ ULONG WINAPI AEIDropSource_Release(LPUNKNOWN lpTable)
 
 HRESULT WINAPI AEIDropSource_QueryContinueDrag(LPUNKNOWN lpTable, BOOL fEscapePressed, DWORD grfKeyState)
 {
+  if (!lpAkelEditDrag)
+    return DRAGDROP_S_CANCEL;
   if (fEscapePressed == TRUE)
     return DRAGDROP_S_CANCEL;
-
   if (!(grfKeyState & MK_LBUTTON))
     return DRAGDROP_S_DROP;
 
@@ -16568,9 +16587,7 @@ HRESULT WINAPI AEIDataObject_GetData(LPUNKNOWN lpTable, FORMATETC *pFormatEtc, S
   int nIndex;
 
   if ((nIndex=AE_DataObjectLookupFormatEtc(pDataObj, pFormatEtc)) == -1)
-  {
     return DV_E_FORMATETC;
-  }
 
   pMedium->tymed=pDataObj->fmtetc[nIndex].tymed;
   pMedium->hGlobal=NULL;
@@ -16616,8 +16633,8 @@ HRESULT WINAPI AEIDataObject_QueryGetData(LPUNKNOWN lpTable, FORMATETC *pFormatE
 
   if (AE_DataObjectLookupFormatEtc(pDataObj, pFormatEtc) == -1)
     return DV_E_FORMATETC;
-  else
-    return S_OK;
+
+  return S_OK;
 }
 
 HRESULT WINAPI AEIDataObject_GetCanonicalFormatEtc(LPUNKNOWN lpTable, FORMATETC *pFormatEct, FORMATETC *pFormatEtcOut)
