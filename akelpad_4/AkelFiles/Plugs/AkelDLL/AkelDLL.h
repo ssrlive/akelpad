@@ -977,6 +977,9 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_PASTEAFTER          4430  //Paste text after caret
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
+#define IDM_NONMENU_CANTOPEN_MSG        4431  //Internal command
+                                              //Return Value: zero
+                                              //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files
                                               //5001 + n  open recent file n
                                               //Return Value: zero
