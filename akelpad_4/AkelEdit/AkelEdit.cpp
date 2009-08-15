@@ -400,6 +400,15 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     lpAkelEditPrev=ae;
 
 
+    //// Character input: Alt + NumPad
+
+    if (uMsg != WM_CHAR)
+    {
+      if (ae->nAltChar == -2)
+        ae->nAltChar=0;
+    }
+
+
     //// AEM_* AkelEdit control messages
 
     if (uMsg >= WM_USER)
@@ -2577,6 +2586,26 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (GetKeyState(VK_CONTROL) < 0)
         bControl=TRUE;
 
+      //Character input: Alt + NumPad
+      if (wParam != VK_MENU)
+      {
+        if (bAlt && !bShift && !bControl)
+        {
+          if (wParam >= VK_NUMPAD0 && wParam <= VK_NUMPAD9)
+          {
+            if (ae->nAltChar <= 0)
+              ae->nAltChar=wParam - VK_NUMPAD0;
+            else
+              ae->nAltChar=ae->nAltChar * 10 + (wParam - VK_NUMPAD0);
+
+            if (ae->nAltChar > 65536)
+              ae->nAltChar=-1;
+          }
+          else ae->nAltChar=-1;
+        }
+      }
+
+      //Process virtual key
       if (AE_KeyDown(ae, wParam, bAlt, bShift, bControl))
         return 0;
     }
@@ -2585,6 +2614,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
         if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
           return 0;
+
+      if (ae->nAltChar)
+      {
+        if (ae->nAltChar > 0)
+        {
+          if (GetKeyState(VK_NUMLOCK))
+          {
+            AE_EditChar(ae, ae->nAltChar);
+          }
+        }
+        ae->nAltChar=0;
+        return 0;
+      }
 
       if (wParam == VK_TAB || (wParam >= 0x20 && wParam != 0x7F))
       {
@@ -2604,6 +2646,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
         if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
           return 0;
+
+      if (ae->nAltChar == -1)
+        ae->nAltChar=-2;
     }
     else if (uMsg == WM_INPUTLANGCHANGE)
     {

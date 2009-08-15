@@ -393,6 +393,7 @@ typedef struct _AKELEDIT {
   DWORD dwImeChar;
   BOOL bCaretVisible;
   BOOL bFocus;
+  int nAltChar;
 
   //Cursor
   AECHARRANGE crMouseOnLink;
