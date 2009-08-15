@@ -6313,6 +6313,10 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     }
 
     //Normalize indexes
+    AE_IndexNormalize(&ciSelStartNew);
+    AE_IndexNormalize(&ciSelEndNew);
+    AE_IndexNormalize(&ciCaretNew);
+
     if (bColumnSel)
     {
       AE_GetPosFromChar(ae, &ciSelStartNew, &ptSelStart, NULL);
@@ -6329,8 +6333,6 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     {
       ciSelStartNew.nCharInLine=min(ciSelStartNew.nCharInLine, ciSelStartNew.lpLine->nLineLen);
       ciSelEndNew.nCharInLine=min(ciSelEndNew.nCharInLine, ciSelEndNew.lpLine->nLineLen);
-      AE_IndexNormalize(&ciSelStartNew);
-      AE_IndexNormalize(&ciSelEndNew);
 
       if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
       {
