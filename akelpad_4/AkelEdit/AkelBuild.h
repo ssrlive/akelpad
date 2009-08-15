@@ -71,6 +71,12 @@
                                AECIL_USELINEENDPOS   |\
                                AECIL_USECARETPOS)
 
+//Alt+NumPad input
+#define AEAC_NONE       0
+#define AEAC_KEYDOWN   -1
+#define AEAC_KEYUP     -2
+#define AEAC_DODEFAULT -3
+
 //StreamIn HIBYTE new line
 #define AELB_SPLIT    1
 
@@ -645,7 +651,7 @@ void AE_EditRedo(AKELEDIT *ae);
 void AE_EditCut(AKELEDIT *ae);
 void AE_EditCopyToClipboard(AKELEDIT *ae);
 BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi);
-void AE_EditChar(AKELEDIT *ae, WPARAM wParam);
+void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode);
 void AE_EditKeyReturn(AKELEDIT *ae);
 void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl);
 void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl);

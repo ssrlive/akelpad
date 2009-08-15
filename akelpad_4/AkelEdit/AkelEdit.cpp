@@ -404,8 +404,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (uMsg != WM_CHAR)
     {
-      if (ae->nAltChar == -2)
-        ae->nAltChar=0;
+      if (ae->nAltChar == AEAC_KEYUP)
+        ae->nAltChar=AEAC_NONE;
     }
 
 
@@ -2587,21 +2587,25 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         bControl=TRUE;
 
       //Character input: Alt + NumPad
-      if (wParam != VK_MENU)
+      if (bAlt && !bShift && !bControl)
       {
-        if (bAlt && !bShift && !bControl)
+        if (ae->nAltChar != AEAC_DODEFAULT)
         {
           if (wParam >= VK_NUMPAD0 && wParam <= VK_NUMPAD9)
           {
-            if (ae->nAltChar <= 0)
-              ae->nAltChar=wParam - VK_NUMPAD0;
-            else
-              ae->nAltChar=ae->nAltChar * 10 + (wParam - VK_NUMPAD0);
-
+            if (ae->nAltChar <= AEAC_NONE)
+            {
+              if (wParam == VK_NUMPAD0)
+                ae->nAltChar=AEAC_DODEFAULT;
+              else
+                ae->nAltChar=wParam - VK_NUMPAD0;
+            }
+            else ae->nAltChar=ae->nAltChar * 10 + (wParam - VK_NUMPAD0);
+  
             if (ae->nAltChar > 65536)
-              ae->nAltChar=-1;
+              ae->nAltChar=AEAC_KEYDOWN;
           }
-          else ae->nAltChar=-1;
+          else ae->nAltChar=AEAC_KEYDOWN;
         }
       }
 
@@ -2617,14 +2621,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (ae->nAltChar)
       {
-        if (ae->nAltChar > 0)
+        if (ae->nAltChar > AEAC_NONE)
         {
           if (GetKeyState(VK_NUMLOCK))
           {
-            AE_EditChar(ae, ae->nAltChar);
+            AE_EditChar(ae, ae->nAltChar, TRUE);
           }
         }
-        ae->nAltChar=0;
+        ae->nAltChar=AEAC_NONE;
         return 0;
       }
 
@@ -2632,7 +2636,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (!AE_IsReadOnly(ae))
         {
-          AE_EditChar(ae, wParam);
+          AE_EditChar(ae, wParam, ae->bUnicodeWindow);
         }
         return 0;
       }
@@ -2647,8 +2651,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
           return 0;
 
-      if (ae->nAltChar == -1)
-        ae->nAltChar=-2;
+      if (wParam == VK_MENU)
+      {
+        if (ae->nAltChar == AEAC_DODEFAULT)
+          ae->nAltChar=AEAC_NONE;
+        else if (ae->nAltChar == AEAC_KEYDOWN)
+          ae->nAltChar=AEAC_KEYUP;
+      }
     }
     else if (uMsg == WM_INPUTLANGCHANGE)
     {
@@ -2718,7 +2727,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 if ((DWORD)nStrLen > sizeof(wchar_t) || wszCompStr[0] != ae->dwImeChar)
                 {
                   if (nStrLen == sizeof(wchar_t))
-                    AE_EditChar(ae, wszCompStr[0]);
+                    AE_EditChar(ae, wszCompStr[0], TRUE);
                   else
                     AE_ReplaceSel(ae, wszCompStr, nStrLen / sizeof(wchar_t), FALSE, NULL, NULL);
 
@@ -2738,7 +2747,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
               if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_COMPSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
               {
-                AE_EditChar(ae, wszCompStr[0]);
+                AE_EditChar(ae, wszCompStr[0], TRUE);
                 ae->dwImeChar=wszCompStr[0];
 
                 ciSelStart=ae->ciSelStartIndex;
@@ -2757,7 +2766,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 {
                   if (ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, NULL, 0) <= 0)
                   {
-                    AE_EditChar(ae, wParam);
+                    AE_EditChar(ae, wParam, TRUE);
                     ae->dwImeChar=wParam;
 
                     ciSelStart=ae->ciSelStartIndex;
@@ -13994,7 +14003,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
     {
       if (!AE_IsReadOnly(ae))
       {
-        AE_EditChar(ae, VK_TAB);
+        AE_EditChar(ae, VK_TAB, TRUE);
       }
       return TRUE;
     }
@@ -14696,11 +14705,11 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
   return bResult;
 }
 
-void AE_EditChar(AKELEDIT *ae, WPARAM wParam)
+void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode)
 {
   AE_NotifyChanging(ae, AETCT_CHAR);
 
-  if (!ae->bUnicodeWindow)
+  if (!bUnicode)
   {
     char chChar=(char)(WORD)wParam;
     wchar_t wchChar;
