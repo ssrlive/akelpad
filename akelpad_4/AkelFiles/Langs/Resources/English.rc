@@ -682,7 +682,7 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
                     102,11,13
     GROUPBOX        "Caret",IDC_STATIC,9,128,200,56
-    CONTROL         "Allow caret moving out of the line edge",
+    CONTROL         "Allow caret after end of line",
                     IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,142,185,10
     CONTROL         "Show active column",IDC_OPTIONS_CARETVERTLINE,"Button",
@@ -862,7 +862,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" doesn't support autoload."
-    MSG_FUNCTION_NOT_FOUND  "Cannot found function ""%s::%s"" in ""%s""."
+    MSG_FUNCTION_NOT_FOUND  "Cannot find function ""%s::%s"" in ""%s""."
     MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
     MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
