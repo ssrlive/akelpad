@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "2.0"
+!define PRODUCT_VERSION "2.1"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -368,7 +368,9 @@ Section
 
 	Push /END
 	AkelUpdater::ParseAndPush "$UNZIP"
-	nsUnzip::Extract "$SAVEDIR\PlugsPack.zip" "/d=$AKELFILESDIR" "/x=Docs\$AKELPLUGIN-$ZIPXLANG.txt" /C "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*"
+	IfFileExists "$AKELFILESDIR\Docs\$AKELPLUGIN-$ZIPXLANG.txt" +2
+	Push "/x=Docs\$AKELPLUGIN-$ZIPXLANG.txt"
+	nsUnzip::Extract "$SAVEDIR\PlugsPack.zip" "/d=$AKELFILESDIR" /C "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*"
 	Pop $0
 	StrCmp $0 0 +3
 	DetailPrint "$(error) ($0): $AKELPLUGIN"

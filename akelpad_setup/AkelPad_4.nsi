@@ -13,6 +13,7 @@ SetCompressor /SOLID lzma
 SubCaption 3 ' '
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 
+
 ############  Functions  ############
 !include "FileFunc.nsh"
 !insertmacro GetParameters
