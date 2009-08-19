@@ -589,6 +589,28 @@ typedef struct _AEQUOTEITEMW {
   DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEQUOTEITEMW;
 
+typedef struct _AEMARKITEMA {
+  struct _AEMARKITEMA *next;
+  struct _AEMARKITEMA *prev;
+  char *pMark;               //Mark string.
+  int nMarkLen;              //Mark string length.
+  DWORD dwFlags;             //See AEHLF_* defines.
+  COLORREF crText;           //Mark text color. If -1, then don't set.
+  COLORREF crBk;             //Mark background color. If -1, then don't set.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
+} AEMARKITEMA;
+
+typedef struct _AEMARKITEMW {
+  struct _AEMARKITEMW *next;
+  struct _AEMARKITEMW *prev;
+  wchar_t *pMark;            //Mark string.
+  int nMarkLen;              //Mark string length.
+  DWORD dwFlags;             //See AEHLF_* defines.
+  COLORREF crText;           //Mark text color. If -1, then don't set.
+  COLORREF crBk;             //Mark background color. If -1, then don't set.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
+} AEMARKITEMW;
+
 typedef struct {
   NMHDR hdr;
   DWORD dwBytes;        //Number of bytes that cannot be allocated.
@@ -857,6 +879,11 @@ typedef struct {
 #define AEM_HLGETQUOTEA        (WM_USER + 2522)
 #define AEM_HLGETQUOTEW        (WM_USER + 2523)
 #define AEM_HLDELETEQUOTE      (WM_USER + 2524)
+#define AEM_HLADDMARKA         (WM_USER + 2525)
+#define AEM_HLADDMARKW         (WM_USER + 2526)
+#define AEM_HLGETMARKA         (WM_USER + 2527)
+#define AEM_HLGETMARKW         (WM_USER + 2528)
+#define AEM_HLDELETEMARK       (WM_USER + 2529)
 
 
 //// RichEdit messages
@@ -3487,6 +3514,7 @@ Example:
  AEDELIMITEMA di;
  AEWORDITEMA wi;
  AEQUOTEITEMA qi;
+ AEMARKITEMA mi;
 
  if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEA, 0, (LPARAM)"MyTheme"))
  {
@@ -3514,6 +3542,13 @@ Example:
    qi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDQUOTEA, (WPARAM)hTheme, (LPARAM)&qi);
 
+   mi.pMark="or";
+   mi.nMarkLen=lstrlenA(mi.pMark);
+   mi.dwFlags=AEHLF_MATCHCASE;
+   mi.crText=(DWORD)-1;
+   mi.crBk=RGB(0xFF, 0x00, 0x00);
+   SendMessage(hWndEdit, AEM_HLADDMARKA, (WPARAM)hTheme, (LPARAM)&mi);
+
    SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, TRUE);
  }
 
@@ -3534,6 +3569,7 @@ Example:
  AEDELIMITEMW di;
  AEWORDITEMW wi;
  AEQUOTEITEMW qi;
+ AEMARKITEMW mi;
 
  if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme"))
  {
@@ -3560,6 +3596,13 @@ Example:
    qi.crText=RGB(0x00, 0x00, 0xFF);
    qi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
+
+   mi.pMark=L"or";
+   mi.nMarkLen=lstrlenW(mi.pMark);
+   mi.dwFlags=AEHLF_MATCHCASE;
+   mi.crText=(DWORD)-1;
+   mi.crBk=RGB(0xFF, 0x00, 0x00);
+   SendMessage(hWndEdit, AEM_HLADDMARKW, (WPARAM)hTheme, (LPARAM)&mi);
 
    SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, TRUE);
  }
@@ -3888,7 +3931,7 @@ Example:
 
 
 AEM_HLGETQUOTEA
-______________
+_______________
 
 Retrieve ansi quote info of highlight theme.
 
@@ -3910,7 +3953,7 @@ Example:
 
 
 AEM_HLGETQUOTEW
-______________
+_______________
 
 Retrieve unicode quote info of highlight theme.
 
@@ -3945,6 +3988,95 @@ Return Value
 Example:
  SendMessage(hWndEdit, AEM_HLDELETEQUOTE, (WPARAM)hTheme, (LPARAM)hQuote);
 
+
+AEM_HLADDMARKA
+______________
+
+Add ansi mark to highlight theme.
+
+(HANDLE)wParam        == theme handle.
+(AEMARKITEMA *)lParam == pointer to a AEMARKITEMA structure.
+
+Return Value
+ Mark handle.
+
+Example:
+ See AEM_HLCREATETHEMEA example.
+
+
+AEM_HLADDMARKW
+______________
+
+Add unicode mark to highlight theme.
+
+(HANDLE)wParam        == theme handle.
+(AEMARKITEMW *)lParam == pointer to a AEMARKITEMW structure.
+
+Return Value
+ Mark handle.
+
+Example:
+ See AEM_HLCREATETHEMEW example.
+
+
+AEM_HLGETMARKA
+______________
+
+Retrieve ansi mark info of highlight theme.
+
+(HANDLE)wParam        == theme handle.
+(AEMARKITEMA *)lParam == pointer to a AEMARKITEMA structure. Members pMark, nMarkLen and dwFlags must be filled in.
+
+Return Value
+ Mark handle.
+
+Example:
+ HANDLE hTheme;
+ AEMARKITEMA mi;
+
+ mi.pMark="123";
+ mi.nMarkLen=lstrlenA(mi.pMark);
+ mi.dwFlags=AEHLF_MATCHCASE;
+ hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)NULL);
+ SendMessage(hWndEdit, AEM_HLGETMARKA, (WPARAM)hTheme, (LPARAM)&mi);
+
+
+AEM_HLGETMARKW
+______________
+
+Retrieve unicode mark info of highlight theme.
+
+(HANDLE)wParam        == theme handle.
+(AEMARKITEMW *)lParam == pointer to a AEMARKITEMW structure. Members pMark, nMarkLen and dwFlags must be filled in.
+
+Return Value
+ Mark handle.
+
+Example:
+ HANDLE hTheme;
+ AEMARKITEMW mi;
+
+ mi.pMark=L"123";
+ mi.nMarkLen=lstrlenW(mi.pMark);
+ mi.dwFlags=AEHLF_MATCHCASE;
+ hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
+ SendMessage(hWndEdit, AEM_HLGETMARKW, (WPARAM)hTheme, (LPARAM)&mi);
+
+
+AEM_HLDELETEMARK
+________________
+
+Delete mark from highlight theme.
+
+(HANDLE)wParam == theme handle.
+(HANDLE)lParam == mark handle. If NULL, delete all marks.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_HLDELETEMARK, (WPARAM)hTheme, (LPARAM)hMark);
+
 */
 
 
@@ -3961,6 +4093,7 @@ Example:
   #define AEDELIMITEM AEDELIMITEMA
   #define AEWORDITEM AEWORDITEMA
   #define AEQUOTEITEM AEQUOTEITEMA
+  #define AEMARKITEM AEMARKITEMA
 
   #define AEM_SETTEXT AEM_SETTEXTA
   #define AEM_APPENDTEXT AEM_APPENDTEXTA
@@ -3977,6 +4110,8 @@ Example:
   #define AEM_HLGETWORD AEM_HLGETWORDA
   #define AEM_HLADDQUOTE AEM_HLADDQUOTEA
   #define AEM_HLGETQUOTE AEM_HLGETQUOTEA
+  #define AEM_HLADDMARK AEM_HLADDMARKA
+  #define AEM_HLGETMARK AEM_HLGETMARKA
 #else
   #define AES_AKELEDITCLASS AES_AKELEDITCLASSW
   #define AES_RICHEDITCLASS AES_RICHEDITCLASSW
@@ -3988,6 +4123,7 @@ Example:
   #define AEDELIMITEM AEDELIMITEMW
   #define AEWORDITEM AEWORDITEMW
   #define AEQUOTEITEM AEQUOTEITEMW
+  #define AEMARKITEM AEMARKITEMW
 
   #define AEM_SETTEXT AEM_SETTEXTW
   #define AEM_APPENDTEXT AEM_APPENDTEXTW
@@ -4004,6 +4140,8 @@ Example:
   #define AEM_HLGETWORD AEM_HLGETWORDW
   #define AEM_HLADDQUOTE AEM_HLADDQUOTEW
   #define AEM_HLGETQUOTE AEM_HLGETQUOTEW
+  #define AEM_HLADDMARK AEM_HLADDMARKW
+  #define AEM_HLGETMARK AEM_HLGETMARKW
 #endif
 
 #endif
