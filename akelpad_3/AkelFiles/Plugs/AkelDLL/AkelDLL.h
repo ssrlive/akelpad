@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 0, 5, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 0)
 
 
 //// Defines
@@ -234,10 +234,6 @@ typedef struct _PLUGINDATA {
                               //wchar_t *pLangModule   if bOldWindows == FALSE
   LANGID wLangSystem;         //System language ID
 } PLUGINDATA;
-
-typedef struct _DLLEC {
-  int nAction;                //Plugin external call action
-} DLLEC;
 
 typedef struct _OPENDOCUMENTA {
   HWND hWnd;                   //Window to fill in, NULL for current edit window
@@ -976,6 +972,9 @@ typedef struct _NSIZE {
                                               //
 #define IDM_NONMENU_PASTEAFTER          4430  //Paste text after caret
                                               //Return Value: TRUE - success, FALSE - failed
+                                              //
+#define IDM_NONMENU_CANTOPEN_MSG        4431  //Internal command
+                                              //Return Value: zero
                                               //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files
                                               //5001 + n  open recent file n
