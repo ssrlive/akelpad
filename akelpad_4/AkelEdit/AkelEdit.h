@@ -589,27 +589,37 @@ typedef struct _AEQUOTEITEMW {
   DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEQUOTEITEMW;
 
-typedef struct _AEMARKITEMA {
-  struct _AEMARKITEMA *next;
-  struct _AEMARKITEMA *prev;
-  char *pMark;               //Mark string.
-  int nMarkLen;              //Mark string length.
+typedef struct _AEMARKTEXTITEMA {
+  struct _AEMARKTEXTITEMA *next;
+  struct _AEMARKTEXTITEMA *prev;
+  char *pMarkText;           //Mark text.
+  int nMarkTextLen;          //Mark text length.
   DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Mark text color. If -1, then don't set.
   COLORREF crBk;             //Mark background color. If -1, then don't set.
   DWORD dwFontStyle;         //See AEHLS_* defines.
-} AEMARKITEMA;
+} AEMARKTEXTITEMA;
 
-typedef struct _AEMARKITEMW {
-  struct _AEMARKITEMW *next;
-  struct _AEMARKITEMW *prev;
-  wchar_t *pMark;            //Mark string.
-  int nMarkLen;              //Mark string length.
+typedef struct _AEMARKTEXTITEMW {
+  struct _AEMARKTEXTITEMW *next;
+  struct _AEMARKTEXTITEMW *prev;
+  wchar_t *pMarkText;        //Mark text.
+  int nMarkTextLen;          //Mark text length.
   DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Mark text color. If -1, then don't set.
   COLORREF crBk;             //Mark background color. If -1, then don't set.
   DWORD dwFontStyle;         //See AEHLS_* defines.
-} AEMARKITEMW;
+} AEMARKTEXTITEMW;
+
+typedef struct _AEMARKRANGEITEM {
+  struct _AEMARKRANGEITEM *next;
+  struct _AEMARKRANGEITEM *prev;
+  CHARRANGE crMarkRange;     //cpMin member is the first character in the range (RichEdit offset), cpMax member is the last character in the range (RichEdit offset).
+  DWORD dwFlags;             //Reserved.
+  COLORREF crText;           //Mark text color. If -1, then don't set.
+  COLORREF crBk;             //Mark background color. If -1, then don't set.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
+} AEMARKRANGEITEM;
 
 typedef struct {
   NMHDR hdr;
@@ -864,26 +874,20 @@ typedef struct {
 #define AEM_HLTHEMEEXISTS      (WM_USER + 2507)
 #define AEM_HLSETTHEME         (WM_USER + 2508)
 #define AEM_HLDELETETHEME      (WM_USER + 2509)
-#define AEM_HLADDDELIMITERA    (WM_USER + 2510)
-#define AEM_HLADDDELIMITERW    (WM_USER + 2511)
-#define AEM_HLGETDELIMITERA    (WM_USER + 2512)
-#define AEM_HLGETDELIMITERW    (WM_USER + 2513)
-#define AEM_HLDELETEDELIMITER  (WM_USER + 2514)
-#define AEM_HLADDWORDA         (WM_USER + 2515)
-#define AEM_HLADDWORDW         (WM_USER + 2516)
-#define AEM_HLGETWORDA         (WM_USER + 2517)
-#define AEM_HLGETWORDW         (WM_USER + 2518)
-#define AEM_HLDELETEWORD       (WM_USER + 2519)
-#define AEM_HLADDQUOTEA        (WM_USER + 2520)
-#define AEM_HLADDQUOTEW        (WM_USER + 2521)
-#define AEM_HLGETQUOTEA        (WM_USER + 2522)
-#define AEM_HLGETQUOTEW        (WM_USER + 2523)
-#define AEM_HLDELETEQUOTE      (WM_USER + 2524)
-#define AEM_HLADDMARKA         (WM_USER + 2525)
-#define AEM_HLADDMARKW         (WM_USER + 2526)
-#define AEM_HLGETMARKA         (WM_USER + 2527)
-#define AEM_HLGETMARKW         (WM_USER + 2528)
-#define AEM_HLDELETEMARK       (WM_USER + 2529)
+#define AEM_HLADDDELIMITERA    (WM_USER + 2521)
+#define AEM_HLADDDELIMITERW    (WM_USER + 2522)
+#define AEM_HLDELETEDELIMITER  (WM_USER + 2523)
+#define AEM_HLADDWORDA         (WM_USER + 2531)
+#define AEM_HLADDWORDW         (WM_USER + 2532)
+#define AEM_HLDELETEWORD       (WM_USER + 2533)
+#define AEM_HLADDQUOTEA        (WM_USER + 2541)
+#define AEM_HLADDQUOTEW        (WM_USER + 2542)
+#define AEM_HLDELETEQUOTE      (WM_USER + 2543)
+#define AEM_HLADDMARKTEXTA     (WM_USER + 2551)
+#define AEM_HLADDMARKTEXTW     (WM_USER + 2552)
+#define AEM_HLDELETEMARKTEXT   (WM_USER + 2553)
+#define AEM_HLADDMARKRANGE     (WM_USER + 2561)
+#define AEM_HLDELETEMARKRANGE  (WM_USER + 2562)
 
 
 //// RichEdit messages
@@ -3514,7 +3518,8 @@ Example:
  AEDELIMITEMA di;
  AEWORDITEMA wi;
  AEQUOTEITEMA qi;
- AEMARKITEMA mi;
+ AEMARKRANGEITEM mri;
+ AEMARKTEXTITEMA mti;
 
  if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEA, 0, (LPARAM)"MyTheme"))
  {
@@ -3542,12 +3547,19 @@ Example:
    qi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDQUOTEA, (WPARAM)hTheme, (LPARAM)&qi);
 
-   mi.pMark="or";
-   mi.nMarkLen=lstrlenA(mi.pMark);
-   mi.dwFlags=AEHLF_MATCHCASE;
-   mi.crText=(DWORD)-1;
-   mi.crBk=RGB(0xFF, 0x00, 0x00);
-   SendMessage(hWndEdit, AEM_HLADDMARKA, (WPARAM)hTheme, (LPARAM)&mi);
+   mri.crMarkRange.cpMin=10;
+   mri.crMarkRange.cpMax=20;
+   mri.dwFlags=0;
+   mri.crText=RGB(0xFF, 0x00, 0x00);
+   mri.crBk=(DWORD)-1;
+   SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
+
+   mti.pMarkText="or";
+   mti.nMarkTextLen=lstrlenA(mti.pMarkText);
+   mti.dwFlags=AEHLF_MATCHCASE;
+   mti.crText=(DWORD)-1;
+   mti.crBk=RGB(0xFF, 0x00, 0x00);
+   SendMessage(hWndEdit, AEM_HLADDMARKTEXTA, (WPARAM)hTheme, (LPARAM)&mti);
 
    SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, TRUE);
  }
@@ -3569,7 +3581,8 @@ Example:
  AEDELIMITEMW di;
  AEWORDITEMW wi;
  AEQUOTEITEMW qi;
- AEMARKITEMW mi;
+ AEMARKRANGEITEM mri;
+ AEMARKTEXTITEMW mti;
 
  if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme"))
  {
@@ -3597,12 +3610,19 @@ Example:
    qi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
 
-   mi.pMark=L"or";
-   mi.nMarkLen=lstrlenW(mi.pMark);
-   mi.dwFlags=AEHLF_MATCHCASE;
-   mi.crText=(DWORD)-1;
-   mi.crBk=RGB(0xFF, 0x00, 0x00);
-   SendMessage(hWndEdit, AEM_HLADDMARKW, (WPARAM)hTheme, (LPARAM)&mi);
+   mri.crMarkRange.cpMin=10;
+   mri.crMarkRange.cpMax=20;
+   mri.dwFlags=0;
+   mri.crText=RGB(0xFF, 0x00, 0x00);
+   mri.crBk=(DWORD)-1;
+   SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
+
+   mti.pMarkText=L"or";
+   mti.nMarkTextLen=lstrlenW(mti.pMarkText);
+   mti.dwFlags=AEHLF_MATCHCASE;
+   mti.crText=(DWORD)-1;
+   mti.crBk=RGB(0xFF, 0x00, 0x00);
+   SendMessage(hWndEdit, AEM_HLADDMARKTEXTW, (WPARAM)hTheme, (LPARAM)&mti);
 
    SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, TRUE);
  }
@@ -3752,50 +3772,6 @@ Example:
  See AEM_HLCREATETHEMEW example.
 
 
-AEM_HLGETDELIMITERA
-___________________
-
-Retrieve ansi delimiter info of highlight theme.
-
-(HANDLE)wParam         == theme handle.
-(AEDELIMITEMA *)lParam == pointer to a AEDELIMITEMA structure. Members pDelimiter, nDelimiterLen and dwFlags must be filled in.
-
-Return Value
- Delimiter handle.
-
-Example:
- HANDLE hTheme;
- AEDELIMITEMA di;
-
- di.pDelimiter=" ";
- di.nDelimiterLen=lstrlenA(di.pDelimiter);
- di.dwFlags=AEHLF_MATCHCASE;
- hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)NULL);
- SendMessage(hWndEdit, AEM_HLGETDELIMITERA, (WPARAM)hTheme, (LPARAM)&di);
-
-
-AEM_HLGETDELIMITERW
-___________________
-
-Retrieve unicode delimiter info of highlight theme.
-
-(HANDLE)wParam         == theme handle.
-(AEDELIMITEMW *)lParam == pointer to a AEDELIMITEMW structure. Members pDelimiter, nDelimiterLen and dwFlags must be filled in.
-
-Return Value
- Delimiter handle.
-
-Example:
- HANDLE hTheme;
- AEDELIMITEMW di;
-
- di.pDelimiter=L" ";
- di.nDelimiterLen=lstrlenW(di.pDelimiter);
- di.dwFlags=AEHLF_MATCHCASE;
- hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
- SendMessage(hWndEdit, AEM_HLGETDELIMITERW, (WPARAM)hTheme, (LPARAM)&di);
-
-
 AEM_HLDELETEDELIMITER
 _____________________
 
@@ -3839,50 +3815,6 @@ Return Value
 
 Example:
  See AEM_HLCREATETHEMEW example.
-
-
-AEM_HLGETWORDA
-_____________
-
-Retrieve ansi word info of highlight theme.
-
-(HANDLE)wParam        == theme handle.
-(AEWORDITEMA *)lParam == pointer to a AEWORDITEMA structure. Members pWord, nWordLen and dwFlags must be filled in.
-
-Return Value
- Word handle.
-
-Example:
- HANDLE hTheme;
- AEWORDITEMA wi;
-
- wi.pWord="for";
- wi.nWordLen=lstrlenA(wi.pWord);
- wi.dwFlags=AEHLF_MATCHCASE;
- hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)NULL);
- SendMessage(hWndEdit, AEM_HLGETWORDA, (WPARAM)hTheme, (LPARAM)&wi);
-
-
-AEM_HLGETWORDW
-______________
-
-Retrieve unicode word info of highlight theme.
-
-(HANDLE)wParam        == theme handle.
-(AEWORDITEMW *)lParam == pointer to a AEWORDITEMW structure. Members pWord, nWordLen and dwFlags must be filled in.
-
-Return Value
- Word handle.
-
-Example:
- HANDLE hTheme;
- AEWORDITEMW wi;
-
- wi.pWord=L"for";
- wi.nWordLen=lstrlenW(wi.pWord);
- wi.dwFlags=AEHLF_MATCHCASE;
- hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
- SendMessage(hWndEdit, AEM_HLGETWORDW, (WPARAM)hTheme, (LPARAM)&wi);
 
 
 AEM_HLDELETEWORD
@@ -3930,50 +3862,6 @@ Example:
  See AEM_HLCREATETHEMEW example.
 
 
-AEM_HLGETQUOTEA
-_______________
-
-Retrieve ansi quote info of highlight theme.
-
-(HANDLE)wParam         == theme handle.
-(AEQUOTEITEMA *)lParam == pointer to a AEQUOTEITEMA structure. Members pQuoteStart, nQuoteStartLen and dwFlags must be filled in.
-
-Return Value
- Quote handle.
-
-Example:
- HANDLE hTheme;
- AEQUOTEITEMA qi;
-
- qi.pQuoteStart="\"";
- qi.nQuoteStartLen=lstrlenA(qi.pQuoteStart);
- qi.dwFlags=AEHLF_MATCHCASE;
- hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)NULL);
- SendMessage(hWndEdit, AEM_HLGETQUOTEA, (WPARAM)hTheme, (LPARAM)&qi);
-
-
-AEM_HLGETQUOTEW
-_______________
-
-Retrieve unicode quote info of highlight theme.
-
-(HANDLE)wParam         == theme handle.
-(AEQUOTEITEMW *)lParam == pointer to a AEQUOTEITEMW structure. Members pQuoteStart, nQuoteStartLen and dwFlags must be filled in.
-
-Return Value
- Quote handle.
-
-Example:
- HANDLE hTheme;
- AEQUOTEITEMW qi;
-
- qi.pQuoteStart=L"\"";
- qi.nQuoteStartLen=lstrlenW(qi.pQuoteStart);
- qi.dwFlags=AEHLF_MATCHCASE;
- hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
- SendMessage(hWndEdit, AEM_HLGETQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
-
-
 AEM_HLDELETEQUOTE
 _________________
 
@@ -3989,93 +3877,79 @@ Example:
  SendMessage(hWndEdit, AEM_HLDELETEQUOTE, (WPARAM)hTheme, (LPARAM)hQuote);
 
 
-AEM_HLADDMARKA
-______________
+AEM_HLADDMARKTEXTA
+__________________
 
-Add ansi mark to highlight theme.
+Add ansi text mark to highlight theme.
 
-(HANDLE)wParam        == theme handle.
-(AEMARKITEMA *)lParam == pointer to a AEMARKITEMA structure.
+(HANDLE)wParam            == theme handle.
+(AEMARKTEXTITEMA *)lParam == pointer to a AEMARKTEXTITEMA structure.
 
 Return Value
- Mark handle.
+ Text mark handle.
 
 Example:
  See AEM_HLCREATETHEMEA example.
 
 
-AEM_HLADDMARKW
-______________
+AEM_HLADDMARKTEXTW
+__________________
 
-Add unicode mark to highlight theme.
+Add unicode text mark to highlight theme.
 
-(HANDLE)wParam        == theme handle.
-(AEMARKITEMW *)lParam == pointer to a AEMARKITEMW structure.
+(HANDLE)wParam            == theme handle.
+(AEMARKTEXTITEMW *)lParam == pointer to a AEMARKTEXTITEMW structure.
 
 Return Value
- Mark handle.
+ Text mark handle.
 
 Example:
  See AEM_HLCREATETHEMEW example.
 
 
-AEM_HLGETMARKA
-______________
+AEM_HLDELETEMARKTEXT
+____________________
 
-Retrieve ansi mark info of highlight theme.
-
-(HANDLE)wParam        == theme handle.
-(AEMARKITEMA *)lParam == pointer to a AEMARKITEMA structure. Members pMark, nMarkLen and dwFlags must be filled in.
-
-Return Value
- Mark handle.
-
-Example:
- HANDLE hTheme;
- AEMARKITEMA mi;
-
- mi.pMark="123";
- mi.nMarkLen=lstrlenA(mi.pMark);
- mi.dwFlags=AEHLF_MATCHCASE;
- hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)NULL);
- SendMessage(hWndEdit, AEM_HLGETMARKA, (WPARAM)hTheme, (LPARAM)&mi);
-
-
-AEM_HLGETMARKW
-______________
-
-Retrieve unicode mark info of highlight theme.
-
-(HANDLE)wParam        == theme handle.
-(AEMARKITEMW *)lParam == pointer to a AEMARKITEMW structure. Members pMark, nMarkLen and dwFlags must be filled in.
-
-Return Value
- Mark handle.
-
-Example:
- HANDLE hTheme;
- AEMARKITEMW mi;
-
- mi.pMark=L"123";
- mi.nMarkLen=lstrlenW(mi.pMark);
- mi.dwFlags=AEHLF_MATCHCASE;
- hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL);
- SendMessage(hWndEdit, AEM_HLGETMARKW, (WPARAM)hTheme, (LPARAM)&mi);
-
-
-AEM_HLDELETEMARK
-________________
-
-Delete mark from highlight theme.
+Delete text mark from highlight theme.
 
 (HANDLE)wParam == theme handle.
-(HANDLE)lParam == mark handle. If NULL, delete all marks.
+(HANDLE)lParam == text mark handle. If NULL, delete all marks.
 
 Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_HLDELETEMARK, (WPARAM)hTheme, (LPARAM)hMark);
+ SendMessage(hWndEdit, AEM_HLDELETEMARKTEXT, (WPARAM)hTheme, (LPARAM)hMark);
+
+
+AEM_HLADDMARKRANGE
+__________________
+
+Add unicode range mark to highlight theme.
+
+(HANDLE)wParam            == theme handle.
+(AEMARKRANGEITEM *)lParam == pointer to a AEMARKRANGEITEM structure.
+
+Return Value
+ Range mark handle.
+
+Example:
+ See AEM_HLCREATETHEMEW example.
+
+
+AEM_HLDELETEMARKRANGE
+_____________________
+
+Delete range mark from highlight theme.
+
+(HANDLE)wParam == theme handle.
+(HANDLE)lParam == range mark handle. If NULL, delete all marks.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)hTheme, (LPARAM)hMark);
 
 */
 
@@ -4093,7 +3967,7 @@ Example:
   #define AEDELIMITEM AEDELIMITEMA
   #define AEWORDITEM AEWORDITEMA
   #define AEQUOTEITEM AEQUOTEITEMA
-  #define AEMARKITEM AEMARKITEMA
+  #define AEMARKTEXTITEM AEMARKTEXTITEMA
 
   #define AEM_SETTEXT AEM_SETTEXTA
   #define AEM_APPENDTEXT AEM_APPENDTEXTA
@@ -4105,13 +3979,9 @@ Example:
   #define AEM_HLGETTHEME AEM_HLGETTHEMEA
   #define AEM_HLGETTHEMENAME AEM_HLGETTHEMENAMEA
   #define AEM_HLADDDELIMITER AEM_HLADDDELIMITERA
-  #define AEM_HLGETDELIMITER AEM_HLGETDELIMITERA
   #define AEM_HLADDWORD AEM_HLADDWORDA
-  #define AEM_HLGETWORD AEM_HLGETWORDA
   #define AEM_HLADDQUOTE AEM_HLADDQUOTEA
-  #define AEM_HLGETQUOTE AEM_HLGETQUOTEA
-  #define AEM_HLADDMARK AEM_HLADDMARKA
-  #define AEM_HLGETMARK AEM_HLGETMARKA
+  #define AEM_HLADDMARKTEXT AEM_HLADDMARKTEXTA
 #else
   #define AES_AKELEDITCLASS AES_AKELEDITCLASSW
   #define AES_RICHEDITCLASS AES_RICHEDITCLASSW
@@ -4123,7 +3993,7 @@ Example:
   #define AEDELIMITEM AEDELIMITEMW
   #define AEWORDITEM AEWORDITEMW
   #define AEQUOTEITEM AEQUOTEITEMW
-  #define AEMARKITEM AEMARKITEMW
+  #define AEMARKTEXTITEM AEMARKTEXTITEMW
 
   #define AEM_SETTEXT AEM_SETTEXTW
   #define AEM_APPENDTEXT AEM_APPENDTEXTW
@@ -4135,13 +4005,9 @@ Example:
   #define AEM_HLGETTHEME AEM_HLGETTHEMEW
   #define AEM_HLGETTHEMENAME AEM_HLGETTHEMENAMEW
   #define AEM_HLADDDELIMITER AEM_HLADDDELIMITERW
-  #define AEM_HLGETDELIMITER AEM_HLGETDELIMITERW
   #define AEM_HLADDWORD AEM_HLADDWORDW
-  #define AEM_HLGETWORD AEM_HLGETWORDW
   #define AEM_HLADDQUOTE AEM_HLADDQUOTEW
-  #define AEM_HLGETQUOTE AEM_HLGETQUOTEW
-  #define AEM_HLADDMARK AEM_HLADDMARKW
-  #define AEM_HLGETMARK AEM_HLGETMARKW
+  #define AEM_HLADDMARKTEXT AEM_HLADDMARKTEXTW
 #endif
 
 #endif

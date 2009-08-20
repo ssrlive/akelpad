@@ -1,6 +1,8 @@
 
 AkelPad 4.2.7 ()
 ----------------------------
+Changed: syntax highlighting improved.
+
 Added: internal Alt+NumPad processing.
 
 Fixed: "Replace all".
