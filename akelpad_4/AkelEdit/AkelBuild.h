@@ -50,8 +50,9 @@
 #define AEPT_WORD           0x00000004
 #define AEPT_DELIM2         0x00000008
 #define AEPT_QUOTE          0x00000010
-#define AEPT_MARK           0x00000020
-#define AEPT_LINK           0x00000040
+#define AEPT_MARKTEXT       0x00000020
+#define AEPT_MARKRANGE      0x00000040
+#define AEPT_LINK           0x00000080
 
 //Line selection
 #define AELS_EMPTY    1
@@ -206,10 +207,15 @@ typedef struct _AEHQUOTESTACK {
   int last;
 } AEHQUOTESTACK;
 
-typedef struct _AEHMARKSTACK {
+typedef struct _AEHMARKTEXTSTACK {
   int first;
   int last;
-} AEHMARKSTACK;
+} AEHMARKTEXTSTACK;
+
+typedef struct _AEHMARKRANGESTACK {
+  int first;
+  int last;
+} AEHMARKRANGESTACK;
 
 typedef struct _AETHEMEITEMW {
   struct _AETHEMEITEMW *next;
@@ -218,13 +224,19 @@ typedef struct _AETHEMEITEMW {
   AEHDELIMSTACK hDelimiterStack;
   AEHWORDSTACK hWordStack;
   AEHQUOTESTACK hQuoteStack;
-  AEHMARKSTACK hMarkStack;
+  AEHMARKRANGESTACK hMarkRangeStack;
+  AEHMARKTEXTSTACK hMarkTextStack;
 } AETHEMEITEMW;
 
-typedef struct _AEMARKMATCH {
-  AEMARKITEMW *lpMark;
-  AECHARRANGE crMark;
-} AEMARKMATCH;
+typedef struct _AEMARKTEXTMATCH {
+  AEMARKTEXTITEMW *lpMarkText;
+  AECHARRANGE crMarkText;
+} AEMARKTEXTMATCH;
+
+typedef struct _AEMARKRANGEMATCH {
+  AEMARKRANGEITEM *lpMarkRange;
+  CHARRANGE crMarkRange;
+} AEMARKRANGEMATCH;
 
 typedef struct _AEQUOTEMATCH {
   AEQUOTEITEMW *lpQuote;
@@ -252,7 +264,8 @@ typedef struct _AEHLPAINT {
   HBRUSH hbrActiveBG;
   AEWORDMATCH wm;
   AEQUOTEMATCH qm;
-  AEMARKMATCH mm;
+  AEMARKRANGEMATCH mrm;
+  AEMARKTEXTMATCH mtm;
   AECHARRANGE crLink;
 } AEHLPAINT;
 
@@ -553,8 +566,9 @@ BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, const POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, const POINT *ptPos);
 DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink);
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
-int AE_HighlightFindMark(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEMARKMATCH *mm);
-AEMARKITEMW* AE_HighlightIsMark(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
+int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEMARKTEXTMATCH *mtm);
+AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
+int AE_HighlightFindMarkRange(AKELEDIT *ae, int nCharOffset, AEMARKRANGEMATCH *mrm);
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *wm);
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm);
 AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, BOOL bBack);
@@ -565,21 +579,20 @@ BOOL AE_HighlightIsThemeExists(AKELEDIT *ae, AETHEMEITEMW *aeti);
 void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEMW *aeti);
 void AE_HighlightDeleteThemeAll(AKELEDIT *ae);
 AEDELIMITEMW* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, int nDelimiterLen);
-AEDELIMITEMW* AE_HighlightGetDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpDelimiter, int nDelimiterLen, DWORD dwFlags);
 void AE_HighlightDeleteDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, AEDELIMITEMW *aedi);
 void AE_HighlightDeleteDelimiterAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
 AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordLen);
-AEWORDITEMW* AE_HighlightGetWord(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpWord, int nWordLen, DWORD dwFlags);
 void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi);
 void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
-AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nQuoteStartLen);
-AEQUOTEITEMW* AE_HighlightGetQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpQuoteStart, int nQuoteStartLen, DWORD dwFlags);
+AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti);
 void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *aeqi);
 void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
-AEMARKITEMW* AE_HighlightInsertMark(AKELEDIT *ae, AETHEMEITEMW *aeti, int nMarkLen);
-AEMARKITEMW* AE_HighlightGetMark(AKELEDIT *ae, AETHEMEITEMW *aeti, const wchar_t *wpMark, int nMarkLen, DWORD dwFlags);
-void AE_HighlightDeleteMark(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKITEMW *aeqi);
-void AE_HighlightDeleteMarkAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
+AEMARKTEXTITEMW* AE_HighlightInsertMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti);
+void AE_HighlightDeleteMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKTEXTITEMW *aemti);
+void AE_HighlightDeleteMarkTextAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
+AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti);
+void AE_HighlightDeleteMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKRANGEITEM *aemri);
+void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
 void AE_MouseMove(AKELEDIT *ae);
 HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra);
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData);
