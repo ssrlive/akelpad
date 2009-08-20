@@ -11128,6 +11128,7 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
         nTextCount=nMatchCount + 1;
         nItCount=0;
         ++nChanges;
+        if (nTextCount >= nTextLen) goto End;
       }
       if (++nMatchCount >= nTextLen) break;
     }
@@ -11201,6 +11202,7 @@ int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_
         nTextCount=nMatchCount + 1;
         nItCount=0;
         ++nChanges;
+        if (nTextCount >= nTextLen) goto End;
       }
       if (++nMatchCount >= nTextLen) break;
     }
