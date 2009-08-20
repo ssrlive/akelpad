@@ -3,6 +3,7 @@ AkelPad 4.2.7 ()
 ----------------------------
 Added: internal Alt+NumPad processing.
 
+Fixed: "Replace all".
 Fixed: out of the text area didn't redraw after computer unlocking.
 Fixed: management didn't come back to the user, after message appearance at text
        dragging in next tab window (MDI).
