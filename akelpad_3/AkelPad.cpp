@@ -2976,6 +2976,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     }
+    else if (LOWORD(wParam) == IDM_NONMENU_CANTOPEN_MSG)
+    {
+      if (hWndEdit == (HWND)lParam)
+      {
+        API_LoadStringA(hLangLib, MSG_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
+        wsprintfA(buf2, buf, szCurrentFile);
+        MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+      }
+    }
     else if (LOWORD(wParam) == IDM_NONMENU_REDETECT)
     {
       DoFileReopenAsA(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
@@ -4767,6 +4776,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     }
+    else if (LOWORD(wParam) == IDM_NONMENU_CANTOPEN_MSG)
+    {
+      if (hWndEdit == (HWND)lParam)
+      {
+        API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+        wsprintfW(wbuf2, wbuf, wszCurrentFile);
+        MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+      }
+    }
     else if (LOWORD(wParam) == IDM_NONMENU_REDETECT)
     {
       DoFileReopenAsW(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
@@ -5083,10 +5101,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       if (!FileExistsA(szCurrentFile))
       {
         memset(&ftFileTime, 0, sizeof(FILETIME));
-
-        API_LoadStringA(hLangLib, MSG_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
-        wsprintfA(buf2, buf, szCurrentFile);
-        MessageBoxA(NULL, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+        PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_CANTOPEN_MSG, (LPARAM)hWndEdit);
       }
       else if (GetFileWriteTimeA(szCurrentFile, &ftTmp))
       {
@@ -5245,10 +5260,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       if (!FileExistsW(wszCurrentFile))
       {
         memset(&ftFileTime, 0, sizeof(FILETIME));
-
-        API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
-        wsprintfW(wbuf2, wbuf, wszCurrentFile);
-        MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_CANTOPEN_MSG, (LPARAM)hWndEdit);
       }
       else if (GetFileWriteTimeW(wszCurrentFile, &ftTmp))
       {
