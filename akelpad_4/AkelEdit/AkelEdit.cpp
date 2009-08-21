@@ -7087,12 +7087,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     ft.pText=NULL;
     ft.dwTextLen=(DWORD)-1;
     ft.nNewLine=AELB_ASIS;
-  
+
     //Find quote beginning (backward)
     ciCount=*ciChar;
     if (dwSearchType & AEHF_FINDFIRSTCHAR)
       AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCount, &ciCount, FALSE);
-  
+
     Begin:
     while (ciCount.lpLine)
     {
@@ -7104,7 +7104,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             return 0;
           if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
             return 0;
-  
+
           for (lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first; lpQuoteElement; lpQuoteElement=lpQuoteElement->next)
           {
             if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART) || AE_IsFirstCharInLine(&ciCount))
@@ -7115,7 +7115,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                 AECHARRANGE crTmpQuoteStart;
                 AECHARINDEX ciTmpCount;
                 int nTmpQuoteLen;
-  
+
                 if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE)) || AE_IsFirstCharInLine(&ciCount))
                 {
                   if (lpDelimiterElement)
@@ -7131,7 +7131,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                     crTmpQuoteStart.ciMin=ciTmpCount;
                     crTmpQuoteStart.ciMax=ciTmpCount;
                   }
-  
+
                   while (ciTmpCount.lpLine)
                   {
                     while (ciTmpCount.nCharInLine <= ciTmpCount.lpLine->nLineLen)
@@ -7175,7 +7175,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                           ft.pText=lpQuoteElement->pQuoteEnd;
                           ft.dwTextLen=lpQuoteElement->nQuoteEndLen;
                           ft.dwFlags=(lpQuoteElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
-  
+
                           if (AE_IsMatch(ae, &ft, &ciTmpCount))
                           {
                             nQuoteLen=nTmpQuoteLen + lpQuoteElement->nQuoteEndLen;
@@ -7188,12 +7188,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                       }
                       if (AE_HighlightIsDelimiter(ae, NULL, &ciTmpCount, FALSE))
                         goto QuoteStartNext;
-  
+
                       if (ciTmpCount.nCharInLine < ciTmpCount.lpLine->nLineLen)
                         ++nTmpQuoteLen;
                       ++ciTmpCount.nCharInLine;
                     }
-  
+
                     if (ciTmpCount.lpLine->nLineBreak == AELB_WRAP && ciTmpCount.lpLine->next)
                     {
                       ciTmpCount.nLine+=1;
@@ -7223,7 +7223,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                   ft.pText=lpQuoteElement->pQuoteStart;
                   ft.dwTextLen=lpQuoteElement->nQuoteStartLen;
                   ft.dwFlags=(lpQuoteElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
-  
+
                   if (AE_IsMatch(ae, &ft, &ciCount))
                   {
                     if (!AE_IsEscaped(&ciCount, lpQuoteElement->wchEscape))
@@ -7282,7 +7282,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
               ft.pText=wm->lpQuote->pQuoteEnd;
               ft.dwTextLen=wm->lpQuote->nQuoteEndLen;
               ft.dwFlags=(wm->lpQuote->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
-  
+
               if (AE_IsMatch(ae, &ft, &ciCount))
               {
                 if (!AE_IsEscaped(&ciCount, wm->lpQuote->wchEscape))
@@ -7311,7 +7311,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         }
         ++ciCount.nCharInLine;
       }
-  
+
       if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
       {
         ciCount.nLine+=1;
@@ -7336,7 +7336,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       }
     }
     goto End;
-  
+
     SetQuote:
     if (wm->lpQuote)
     {
@@ -7353,7 +7353,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         wm->lpQuote=NULL;
         bWithDelimiters=FALSE;
       }
-  
+
       if (dwSearchType & AEHF_FINDFIRSTCHAR)
       {
         if (AE_IndexCompare(&ciCount, ciChar) <= 0)
@@ -7363,7 +7363,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         }
       }
     }
-  
+
     End:
     if (wm->lpQuote)
     {
@@ -7401,10 +7401,10 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
     ft.pText=NULL;
     ft.dwTextLen=(DWORD)-1;
     ft.nNewLine=AELB_ASIS;
-  
+
     //Find word beginning (backward)
     ciCount=*ciChar;
-  
+
     while (ciCount.lpLine)
     {
       while (ciCount.nCharInLine >= 0)
@@ -7415,7 +7415,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           goto SetEmptyFirstDelim;
         }
         ++nWordLen;
-  
+
         //Is delimiter
         if (lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE))
         {
@@ -7428,7 +7428,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           goto SetEmptyFirstDelim;
         --ciCount.nCharInLine;
       }
-  
+
       if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
       {
         ciCount.nLine-=1;
@@ -7437,14 +7437,14 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
       }
       else break;
     }
-  
+
     //Empty delimiter
     SetEmptyFirstDelim:
     wm->crDelim1.ciMin.nLine=ciCount.nLine;
     wm->crDelim1.ciMin.lpLine=ciCount.lpLine;
     wm->crDelim1.ciMin.nCharInLine=max(ciCount.nCharInLine, 0);
     wm->crDelim1.ciMax=wm->crDelim1.ciMin;
-  
+
     //Find word ending (forward)
     FindWordEnding:
     if (AE_IndexCompare(&wm->crDelim1.ciMax, ciChar) > 0)
@@ -7457,7 +7457,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
       ciCount=*ciChar;
       ++ciCount.nCharInLine;
     }
-  
+
     while (ciCount.lpLine)
     {
       while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
@@ -7472,7 +7472,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
         ++nWordLen;
         ++ciCount.nCharInLine;
       }
-  
+
       if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
       {
         ciCount.nLine+=1;
@@ -7481,13 +7481,13 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
       }
       else break;
     }
-  
+
     //Empty delimiter
     wm->crDelim2.ciMin.nLine=ciCount.nLine;
     wm->crDelim2.ciMin.lpLine=ciCount.lpLine;
     wm->crDelim2.ciMin.nCharInLine=ciCount.lpLine->nLineLen;
     wm->crDelim2.ciMax=wm->crDelim2.ciMin;
-  
+
     SetWord:
     wm->crWord.ciMin=wm->crDelim1.ciMax;
     wm->crWord.ciMax=wm->crDelim2.ciMin;
@@ -15233,156 +15233,159 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
   BOOL bUpdateDrawRect=FALSE;
   BOOL bUpdateEditRect=FALSE;
 
-  if (aec->dwFlags & AECLR_BASICTEXT)
+  if (aec->dwFlags)
   {
-    if (aec->dwFlags & AECLR_DEFAULT)
+    if (aec->dwFlags & AECLR_BASICTEXT)
     {
-      ae->popt->crBasicText=GetSysColor(COLOR_WINDOWTEXT);
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crBasicText=GetSysColor(COLOR_WINDOWTEXT);
+      }
+      else
+      {
+        ae->popt->crBasicText=aec->crBasicText;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      bUpdateDrawRect=TRUE;
     }
-    else
+    if (aec->dwFlags & AECLR_BASICBK)
     {
-      ae->popt->crBasicText=aec->crBasicText;
-      ae->popt->bDefaultColors=FALSE;
-    }
-    bUpdateDrawRect=TRUE;
-  }
-  if (aec->dwFlags & AECLR_BASICBK)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
-    {
-      ae->popt->crBasicBk=GetSysColor(COLOR_WINDOW);
-    }
-    else
-    {
-      ae->popt->crBasicBk=aec->crBasicBk;
-      ae->popt->bDefaultColors=FALSE;
-    }
-    if (ae->popt->hBasicBk) DeleteObject(ae->popt->hBasicBk);
-    ae->popt->hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
-    bUpdateEditRect=TRUE;
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crBasicBk=GetSysColor(COLOR_WINDOW);
+      }
+      else
+      {
+        ae->popt->crBasicBk=aec->crBasicBk;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      if (ae->popt->hBasicBk) DeleteObject(ae->popt->hBasicBk);
+      ae->popt->hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
+      bUpdateEditRect=TRUE;
 
-    if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-      AE_ActiveColumnCreate(ae);
-  }
-  if (aec->dwFlags & AECLR_SELTEXT)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
-    {
-      ae->popt->crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+      if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
+        AE_ActiveColumnCreate(ae);
     }
-    else
+    if (aec->dwFlags & AECLR_SELTEXT)
     {
-      ae->popt->crSelText=aec->crSelText;
-      ae->popt->bDefaultColors=FALSE;
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+      }
+      else
+      {
+        ae->popt->crSelText=aec->crSelText;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      bUpdateDrawRect=TRUE;
     }
-    bUpdateDrawRect=TRUE;
-  }
-  if (aec->dwFlags & AECLR_SELBK)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
+    if (aec->dwFlags & AECLR_SELBK)
     {
-      ae->popt->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+      }
+      else
+      {
+        ae->popt->crSelBk=aec->crSelBk;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      if (ae->popt->hSelBk) DeleteObject(ae->popt->hSelBk);
+      ae->popt->hSelBk=CreateSolidBrush(ae->popt->crSelBk);
+      bUpdateDrawRect=TRUE;
     }
-    else
+    if (aec->dwFlags & AECLR_ACTIVELINETEXT)
     {
-      ae->popt->crSelBk=aec->crSelBk;
-      ae->popt->bDefaultColors=FALSE;
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
+      }
+      else
+      {
+        ae->popt->crActiveLineText=aec->crActiveLineText;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      bUpdateDrawRect=TRUE;
     }
-    if (ae->popt->hSelBk) DeleteObject(ae->popt->hSelBk);
-    ae->popt->hSelBk=CreateSolidBrush(ae->popt->crSelBk);
-    bUpdateDrawRect=TRUE;
-  }
-  if (aec->dwFlags & AECLR_ACTIVELINETEXT)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
+    if (aec->dwFlags & AECLR_ACTIVELINEBK)
     {
-      ae->popt->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
-    }
-    else
-    {
-      ae->popt->crActiveLineText=aec->crActiveLineText;
-      ae->popt->bDefaultColors=FALSE;
-    }
-    bUpdateDrawRect=TRUE;
-  }
-  if (aec->dwFlags & AECLR_ACTIVELINEBK)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
-    {
-      ae->popt->crActiveLineBk=GetSysColor(COLOR_WINDOW);
-    }
-    else
-    {
-      ae->popt->crActiveLineBk=aec->crActiveLineBk;
-      ae->popt->bDefaultColors=FALSE;
-    }
-    if (ae->popt->hActiveLineBk) DeleteObject(ae->popt->hActiveLineBk);
-    ae->popt->hActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
-    bUpdateDrawRect=TRUE;
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crActiveLineBk=GetSysColor(COLOR_WINDOW);
+      }
+      else
+      {
+        ae->popt->crActiveLineBk=aec->crActiveLineBk;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      if (ae->popt->hActiveLineBk) DeleteObject(ae->popt->hActiveLineBk);
+      ae->popt->hActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
+      bUpdateDrawRect=TRUE;
 
-    AE_UpdateCaret(ae, ae->bFocus, TRUE);
-  }
-  if (aec->dwFlags & AECLR_ACTIVECOLUMN)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
-    {
-      ae->popt->crActiveColumn=RGB(0x00, 0x00, 0x00);
+      AE_UpdateCaret(ae, ae->bFocus, TRUE);
     }
-    else
+    if (aec->dwFlags & AECLR_ACTIVECOLUMN)
     {
-      ae->popt->crActiveColumn=aec->crActiveColumn;
-      ae->popt->bDefaultColors=FALSE;
-    }
-    bUpdateDrawRect=TRUE;
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crActiveColumn=RGB(0x00, 0x00, 0x00);
+      }
+      else
+      {
+        ae->popt->crActiveColumn=aec->crActiveColumn;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      bUpdateDrawRect=TRUE;
 
-    if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-      AE_ActiveColumnCreate(ae);
-  }
-  if (aec->dwFlags & AECLR_COLUMNMARKER)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
-    {
-      ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
+      if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
+        AE_ActiveColumnCreate(ae);
     }
-    else
+    if (aec->dwFlags & AECLR_COLUMNMARKER)
     {
-      ae->popt->crColumnMarker=aec->crColumnMarker;
-      ae->popt->bDefaultColors=FALSE;
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
+      }
+      else
+      {
+        ae->popt->crColumnMarker=aec->crColumnMarker;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      AE_ColumnMarkerErase(ae);
     }
-    AE_ColumnMarkerErase(ae);
-  }
-  if (aec->dwFlags & AECLR_CARET)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
+    if (aec->dwFlags & AECLR_CARET)
     {
-      ae->popt->crCaret=RGB(0x00, 0x00, 0x00);
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crCaret=RGB(0x00, 0x00, 0x00);
+      }
+      else
+      {
+        ae->popt->crCaret=aec->crCaret;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      AE_UpdateCaret(ae, ae->bFocus, TRUE);
     }
-    else
+    if (aec->dwFlags & AECLR_URLTEXT)
     {
-      ae->popt->crCaret=aec->crCaret;
-      ae->popt->bDefaultColors=FALSE;
+      if (aec->dwFlags & AECLR_DEFAULT)
+      {
+        ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
+      }
+      else
+      {
+        ae->popt->crUrlText=aec->crUrlText;
+        ae->popt->bDefaultColors=FALSE;
+      }
+      bUpdateDrawRect=TRUE;
     }
-    AE_UpdateCaret(ae, ae->bFocus, TRUE);
-  }
-  if (aec->dwFlags & AECLR_URLTEXT)
-  {
-    if (aec->dwFlags & AECLR_DEFAULT)
-    {
-      ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
-    }
-    else
-    {
-      ae->popt->crUrlText=aec->crUrlText;
-      ae->popt->bDefaultColors=FALSE;
-    }
-    bUpdateDrawRect=TRUE;
-  }
 
-  if (bUpdateEditRect)
-    InvalidateRect(ae->hWndEdit, &ae->rcEdit, TRUE);
-  else if (bUpdateDrawRect)
-    InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-  AE_StackUpdateClones(ae);
+    if (bUpdateEditRect)
+      InvalidateRect(ae->hWndEdit, &ae->rcEdit, TRUE);
+    else if (bUpdateDrawRect)
+      InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+    AE_StackUpdateClones(ae);
+  }
 }
 
 void AE_NotifyErrSpace(AKELEDIT *ae, DWORD dwBytes)
