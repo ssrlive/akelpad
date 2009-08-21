@@ -7610,6 +7610,8 @@ void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEMW *aeti)
   AE_HighlightDeleteDelimiterAll(ae, aeti);
   AE_HighlightDeleteWordAll(ae, aeti);
   AE_HighlightDeleteQuoteAll(ae, aeti);
+  AE_HighlightDeleteMarkTextAll(ae, aeti);
+  AE_HighlightDeleteMarkRangeAll(ae, aeti);
   AE_HeapStackDelete(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last, (stack *)aeti);
 }
 
@@ -7624,6 +7626,8 @@ void AE_HighlightDeleteThemeAll(AKELEDIT *ae)
     AE_HighlightDeleteDelimiterAll(ae, lpElement);
     AE_HighlightDeleteWordAll(ae, lpElement);
     AE_HighlightDeleteQuoteAll(ae, lpElement);
+    AE_HighlightDeleteMarkTextAll(ae, lpElement);
+    AE_HighlightDeleteMarkRangeAll(ae, lpElement);
 
     lpElement=lpElement->next;
   }
