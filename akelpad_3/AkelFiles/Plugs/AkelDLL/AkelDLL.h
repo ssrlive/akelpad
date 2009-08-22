@@ -77,6 +77,14 @@
 #define SS_REGISTRY   1  //Registry
 #define SS_INI        2  //INI file
 
+//AKD_RECENTFILES flags
+#define RF_GET    1  //Retrive recent files info
+#define RF_CLEAR  2  //Clear recent files
+
+//AKD_SEARCHHISTORY flags
+#define SH_GET    1  //Retrive searh strings count
+#define SH_CLEAR  2  //Clear searh history
+
 //New line format
 #define NEWLINE_WIN   1  //Windows/DOS new line format (\r\n)
 #define NEWLINE_UNIX  2  //Unix new line format (\n)
@@ -494,14 +502,12 @@ typedef struct _RECENTFILESA {
   char (*lpszRecentNames)[MAX_PATH];      //Recent files names
   DWORD *lpdwRecentPositions;             //Recent files positions
   DWORD *lpdwRecentCodepages;             //Recent files codepages
-  int nRecentFiles;                       //Number of recent files
 } RECENTFILESA;
 
 typedef struct _RECENTFILESW {
   wchar_t (*lpwszRecentNames)[MAX_PATH];  //Recent files names
   DWORD *lpdwRecentPositions;             //Recent files positions
   DWORD *lpdwRecentCodepages;             //Recent files codepages
-  int nRecentFiles;                       //Number of recent files
 } RECENTFILESW;
 
 typedef struct _TEXTFINDA {
@@ -998,31 +1004,32 @@ typedef struct _NSIZE {
 //// AkelPad main window WM_USER messages
 
 //Notification messages
-#define AKDN_MAIN_ONSTART          (WM_USER + 1)
-#define AKDN_MAIN_ONSTART_PRESHOW  (WM_USER + 2)
-#define AKDN_MAIN_ONSTART_SHOW     (WM_USER + 3)
-#define AKDN_MAIN_ONSTART_FINISH   (WM_USER + 4)
-#define AKDN_MAIN_ONFINISH         (WM_USER + 5)
-#define AKDN_EDIT_ONSTART          (WM_USER + 6)
-#define AKDN_EDIT_ONFINISH         (WM_USER + 7)
-#define AKDN_CONTEXTMENU           (WM_USER + 8)
-#define AKDN_FRAME_NOWINDOWS       (WM_USER + 9)
-#define AKDN_OPENDOCUMENT_START    (WM_USER + 10)
-#define AKDN_OPENDOCUMENT_FINISH   (WM_USER + 11)
-#define AKDN_SAVEDOCUMENT_START    (WM_USER + 12)
-#define AKDN_SAVEDOCUMENT_FINISH   (WM_USER + 13)
-#define AKDN_SIZE                  (WM_USER + 14)
-#define AKDN_SEARCH_ENDED          (WM_USER + 15)
-#define AKDN_ACTIVATE              (WM_USER + 16)
-#define AKDN_RECENTFILESDELETE     (WM_USER + 17)
-#define AKDN_MAIN_ONSTART_IDLE     (WM_USER + 18)
-#define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 19)
-#define AKDN_DLLCALL               (WM_USER + 20)
-#define AKDN_DLLUNLOAD             (WM_USER + 21)
-#define AKDN_FRAME_ACTIVATE        (WM_USER + 22)
-#define AKDN_HOTKEY                (WM_USER + 23)
+#define AKDN_MAIN_ONSTART          (WM_USER + 1)   //0x401
+#define AKDN_MAIN_ONSTART_PRESHOW  (WM_USER + 2)   //0x402
+#define AKDN_MAIN_ONSTART_SHOW     (WM_USER + 3)   //0x403
+#define AKDN_MAIN_ONSTART_FINISH   (WM_USER + 4)   //0x404
+#define AKDN_MAIN_ONSTART_IDLE     (WM_USER + 5)   //0x405
+#define AKDN_MAIN_ONFINISH         (WM_USER + 6)   //0x406
+#define AKDN_EDIT_ONSTART          (WM_USER + 7)   //0x407
+#define AKDN_EDIT_ONFINISH         (WM_USER + 8)   //0x408
+#define AKDN_FRAME_NOWINDOWS       (WM_USER + 9)   //0x409
+#define AKDN_FRAME_ACTIVATE        (WM_USER + 10)  //0x40A
+#define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 11)  //0x40B
 
-//AkelPad 3.x and AkelPad 4.x messages
+#define AKDN_ACTIVATE              (WM_USER + 21)  //0x415
+#define AKDN_SIZE                  (WM_USER + 22)  //0x416
+#define AKDN_OPENDOCUMENT_START    (WM_USER + 23)  //0x417
+#define AKDN_OPENDOCUMENT_FINISH   (WM_USER + 24)  //0x418
+#define AKDN_SAVEDOCUMENT_START    (WM_USER + 25)  //0x419
+#define AKDN_SAVEDOCUMENT_FINISH   (WM_USER + 26)  //0x41A
+#define AKDN_DLLCALL               (WM_USER + 27)  //0x41B
+#define AKDN_DLLUNLOAD             (WM_USER + 28)  //0x41C
+#define AKDN_HOTKEY                (WM_USER + 29)  //0x41D
+#define AKDN_CONTEXTMENU           (WM_USER + 30)  //0x41E
+#define AKDN_RECENTFILESDELETE     (WM_USER + 31)  //0x41F
+#define AKDN_SEARCH_ENDED          (WM_USER + 32)  //0x420
+
+//SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
 #define AKD_SETMAINPROC            (WM_USER + 102)
 #define AKD_GETMAINPROCRET         (WM_USER + 103)
@@ -1035,67 +1042,85 @@ typedef struct _NSIZE {
 #define AKD_SETFRAMEPROC           (WM_USER + 110)
 #define AKD_GETFRAMEPROCRET        (WM_USER + 111)
 #define AKD_SETFRAMEPROCRET        (WM_USER + 112)
-#define AKD_BEGINOPTIONS           (WM_USER + 113)
-#define AKD_OPTION                 (WM_USER + 114)
-#define AKD_ENDOPTIONS             (WM_USER + 115)
-#define AKD_DLLCALL                (WM_USER + 116)
-#define AKD_DLLUNLOAD              (WM_USER + 117)
-#define AKD_DLLFIND                (WM_USER + 118)
-#define AKD_DLLADD                 (WM_USER + 119)
-#define AKD_DLLDELETE              (WM_USER + 120)
-#define AKD_SAVEDOCUMENT           (WM_USER + 121)
-#define AKD_GETTEXTLENGTH          (WM_USER + 122)
-#define AKD_GETTEXTRANGE           (WM_USER + 123)
-#define AKD_FREETEXT               (WM_USER + 124)
-#define AKD_REPLACESELA            (WM_USER + 125)
-#define AKD_REPLACESELW            (WM_USER + 126)
-#define AKD_PASTE                  (WM_USER + 127)
-#define AKD_COPY                   (WM_USER + 128)
-#define AKD_TEXTFIND               (WM_USER + 129)
-#define AKD_TEXTREPLACE            (WM_USER + 130)
-#define AKD_GETEDITINFO            (WM_USER + 131)
-#define AKD_GETFONT                (WM_USER + 132)
-#define AKD_SETFONT                (WM_USER + 133)
-#define AKD_SETMODIFY              (WM_USER + 134)
-#define AKD_SETFILEPRINT           (WM_USER + 135)
-#define AKD_SETMSGCREATE           (WM_USER + 136)
-#define AKD_SETMSGBINARY           (WM_USER + 137)
-#define AKD_GETQUEUE               (WM_USER + 138)
-#define AKD_GETPRINTDLG            (WM_USER + 139)
-#define AKD_GETPAGEDLG             (WM_USER + 140)
-#define AKD_GETSELTEXTW            (WM_USER + 141)
-#define AKD_GLOBALALLOC            (WM_USER + 142)
-#define AKD_GLOBALLOCK             (WM_USER + 143)
-#define AKD_GLOBALUNLOCK           (WM_USER + 144)
-#define AKD_GLOBALFREE             (WM_USER + 145)
-#define AKD_GETMODELESS            (WM_USER + 146)
-#define AKD_SETMODELESS            (WM_USER + 147)
-#define AKD_GETCODEPAGELIST        (WM_USER + 148)
-#define AKD_RECODESEL              (WM_USER + 149)
-#define AKD_SETNEWLINE             (WM_USER + 150)
-#define AKD_GETRECENTFILES         (WM_USER + 151)
-#define AKD_CREATEWINDOW           (WM_USER + 152)
-#define AKD_GETMAININFO            (WM_USER + 153)
-#define AKD_WAITKEYBOARD           (WM_USER + 154)
-#define AKD_CALLPROC               (WM_USER + 155)
-#define AKD_DLLSAVE                (WM_USER + 156)
-#define AKD_RESIZE                 (WM_USER + 157)
-#define AKD_DOCK                   (WM_USER + 158)
-#define AKD_POSTMESSAGE            (WM_USER + 159)
-#define AKD_GETCHARCOLOR           (WM_USER + 160)
-#define AKD_STRLENA                (WM_USER + 161)
-#define AKD_STRLENW                (WM_USER + 162)
-#define AKD_PROGRAMVERSION         (WM_USER + 163)
-#define AKD_PROGRAMARCHITECTURE    (WM_USER + 164)
-#define AKD_INIOPEN                (WM_USER + 201)
-#define AKD_INIGETSECTION          (WM_USER + 202)
-#define AKD_INICLEARSECTION        (WM_USER + 203)
-#define AKD_INIDELETESECTION       (WM_USER + 204)
-#define AKD_INIGETKEY              (WM_USER + 205)
-#define AKD_INIDELETEKEY           (WM_USER + 206)
-#define AKD_INIGETVALUE            (WM_USER + 207)
-#define AKD_INISETVALUE            (WM_USER + 208)
-#define AKD_INICLOSE               (WM_USER + 209)
+
+//Plugin load
+#define AKD_DLLCALL                (WM_USER + 121)
+#define AKD_DLLUNLOAD              (WM_USER + 122)
+#define AKD_DLLFIND                (WM_USER + 123)
+#define AKD_DLLADD                 (WM_USER + 124)
+#define AKD_DLLDELETE              (WM_USER + 125)
+#define AKD_DLLSAVE                (WM_USER + 126)
+#define AKD_CALLPROC               (WM_USER + 127)
+
+//Plugin options
+#define AKD_BEGINOPTIONS           (WM_USER + 131)
+#define AKD_OPTION                 (WM_USER + 132)
+#define AKD_ENDOPTIONS             (WM_USER + 133)
+#define AKD_INIOPEN                (WM_USER + 134)
+#define AKD_INIGETSECTION          (WM_USER + 135)
+#define AKD_INICLEARSECTION        (WM_USER + 136)
+#define AKD_INIDELETESECTION       (WM_USER + 137)
+#define AKD_INIGETKEY              (WM_USER + 138)
+#define AKD_INIDELETEKEY           (WM_USER + 139)
+#define AKD_INIGETVALUE            (WM_USER + 140)
+#define AKD_INISETVALUE            (WM_USER + 141)
+#define AKD_INICLOSE               (WM_USER + 142)
+
+//Text retrieval and modification
+#define AKD_SAVEDOCUMENT           (WM_USER + 151)
+#define AKD_GETTEXTLENGTH          (WM_USER + 152)
+#define AKD_GETTEXTRANGE           (WM_USER + 153)
+#define AKD_GETSELTEXTW            (WM_USER + 154)
+#define AKD_FREETEXT               (WM_USER + 155)
+#define AKD_REPLACESELA            (WM_USER + 156)
+#define AKD_REPLACESELW            (WM_USER + 157)
+#define AKD_PASTE                  (WM_USER + 158)
+#define AKD_COPY                   (WM_USER + 159)
+#define AKD_TEXTFIND               (WM_USER + 160)
+#define AKD_TEXTREPLACE            (WM_USER + 161)
+#define AKD_RECODESEL              (WM_USER + 162)
+#define AKD_GETCHARCOLOR           (WM_USER + 163)
+
+//Print
+#define AKD_GETFILEPRINT           (WM_USER + 191)
+#define AKD_SETFILEPRINT           (WM_USER + 192)
+#define AKD_GETPRINTDLG            (WM_USER + 193)
+#define AKD_GETPAGEDLG             (WM_USER + 194)
+
+//Options
+#define AKD_PROGRAMVERSION         (WM_USER + 201)
+#define AKD_PROGRAMARCHITECTURE    (WM_USER + 202)
+#define AKD_GETMAININFO            (WM_USER + 203)
+#define AKD_GETEDITINFO            (WM_USER + 204)
+#define AKD_SETMODIFY              (WM_USER + 205)
+#define AKD_SETNEWLINE             (WM_USER + 206)
+#define AKD_GETFONT                (WM_USER + 207)
+#define AKD_SETFONT                (WM_USER + 208)
+#define AKD_GETMSGCREATE           (WM_USER + 209)
+#define AKD_SETMSGCREATE           (WM_USER + 210)
+#define AKD_GETMSGBINARY           (WM_USER + 211)
+#define AKD_SETMSGBINARY           (WM_USER + 212)
+#define AKD_GETCODEPAGELIST        (WM_USER + 213)
+#define AKD_RECENTFILES            (WM_USER + 214)
+#define AKD_SEARCHHISTORY          (WM_USER + 215)
+
+//Windows
+#define AKD_GETMODELESS            (WM_USER + 251)
+#define AKD_SETMODELESS            (WM_USER + 252)
+#define AKD_RESIZE                 (WM_USER + 253)
+#define AKD_DOCK                   (WM_USER + 254)
+
+//Thread
+#define AKD_GLOBALALLOC            (WM_USER + 281)
+#define AKD_GLOBALLOCK             (WM_USER + 282)
+#define AKD_GLOBALUNLOCK           (WM_USER + 283)
+#define AKD_GLOBALFREE             (WM_USER + 284)
+#define AKD_STRLENA                (WM_USER + 285)
+#define AKD_STRLENW                (WM_USER + 286)
+#define AKD_CREATEWINDOW           (WM_USER + 287)
+#define AKD_WAITKEYBOARD           (WM_USER + 288)
+#define AKD_GETQUEUE               (WM_USER + 289)
+#define AKD_POSTMESSAGE            (WM_USER + 290)
 
 //AkelPad 4.x messages
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
@@ -1199,18 +1224,6 @@ Return Value
  zero
 
 
-AKDN_CONTEXTMENU
-________________
-
-Notification message, sends to the main procedure before displaying context menu.
-
-wParam                 == not used
-(NCONTEXTMENU *)lParam == pointer to a NCONTEXTMENU structure
-
-Return Value
- zero
-
-
 AKDN_FRAME_NOWINDOWS
 ____________________
 
@@ -1247,40 +1260,25 @@ Return Value
  zero
 
 
-AKDN_DLLCALL
-____________
+AKDN_ACTIVATE
+_____________
 
-Notification message, sends to the main procedure after plugin call.
+Notification message, sends to the main procedure after another instance of the program activates main window.
 
-wParam               == not used
-(PLUGINDATA *)lParam == pointer to a PLUGINDATA structure
-
-Return Value
- zero
-
-
-AKDN_DLLUNLOAD
-______________
-
-Notification message, sends to the main procedure after plugin unload.
-
-wParam                  == not used
-(unsigned char *)lParam == unloaded function name, format "Plugin::Function"
-                           (char *)lParam     if bOldWindows == TRUE
-                           (wchar_t *)lParam  if bOldWindows == FALSE
+wParam == not used
+lParam == not used
 
 Return Value
  zero
 
 
-AKDN_HOTKEY
-___________
+AKDN_SIZE
+_________
 
-Notification message, sends to the main procedure when keyboard key is pressed.
+Notification message, sends to the main procedure before the main window client RECT changed.
 
-(WORD)wParam   == hotkey returned by HKM_GETHOTKEY
-(BOOL *)lParam == TRUE   stop message processing
-                  FALSE  continue message processing (default)
+wParam           == not used
+(NSIZE *)lParam  == pointer to a NSIZE structure
 
 Return Value
  zero
@@ -1338,37 +1336,52 @@ Return Value
  zero
 
 
-AKDN_SIZE
-_________
+AKDN_DLLCALL
+____________
 
-Notification message, sends to the main procedure before the main window client RECT changed.
+Notification message, sends to the main procedure after plugin call.
 
-wParam           == not used
-(NSIZE *)lParam  == pointer to a NSIZE structure
-
-Return Value
- zero
-
-
-AKDN_SEARCH_ENDED
-_________________
-
-Notification message, sends to the main procedure after find/replace dialog found nothing.
-
-(HWND)wParam == find/replace dialog
-lParam       == not used
+wParam               == not used
+(PLUGINDATA *)lParam == pointer to a PLUGINDATA structure
 
 Return Value
  zero
 
 
-AKDN_ACTIVATE
-_____________
+AKDN_DLLUNLOAD
+______________
 
-Notification message, sends to the main procedure after another instance of the program activates main window.
+Notification message, sends to the main procedure after plugin unload.
 
-wParam == not used
-lParam == not used
+wParam                  == not used
+(unsigned char *)lParam == unloaded function name, format "Plugin::Function"
+                           (char *)lParam     if bOldWindows == TRUE
+                           (wchar_t *)lParam  if bOldWindows == FALSE
+
+Return Value
+ zero
+
+
+AKDN_HOTKEY
+___________
+
+Notification message, sends to the main procedure when keyboard key is pressed.
+
+(WORD)wParam   == hotkey returned by HKM_GETHOTKEY
+(BOOL *)lParam == TRUE   stop message processing
+                  FALSE  continue message processing (default)
+
+Return Value
+ zero
+
+
+AKDN_CONTEXTMENU
+________________
+
+Notification message, sends to the main procedure before displaying context menu.
+
+wParam                 == not used
+(NCONTEXTMENU *)lParam == pointer to a NCONTEXTMENU structure
 
 Return Value
  zero
@@ -1382,6 +1395,18 @@ Notification message, sends to the main procedure before displaying message abou
 (int)wParam    == records deleted
 (BOOL *)lParam == TRUE   show message (default)
                   FALSE  don't show message
+
+Return Value
+ zero
+
+
+AKDN_SEARCH_ENDED
+_________________
+
+Notification message, sends to the main procedure after find/replace dialog found nothing.
+
+(HWND)wParam == find/replace dialog
+lParam       == not used
 
 Return Value
  zero
@@ -1490,6 +1515,215 @@ Example:
  }
  wprd=NULL;
  SendMessage(pd->hMainWnd, AKD_SETMAINPROCRET, (WPARAM)NewMainProcRet, (LPARAM)&wprd);
+
+
+AKD_DLLCALL
+___________
+
+Call dll.
+
+wParam                   == not used
+(PLUGINCALLSEND *)lParam == pointer to a PLUGINCALLSEND structure if SendMessage used
+                            (PLUGINCALLSENDA *)lParam   if bOldWindows == TRUE
+                            (PLUGINCALLSENDW *)lParam   if bOldWindows == FALSE
+                            or pointer to a PLUGINCALLPOST, allocated with GlobalAlloc, if PostMessage used
+                            (PLUGINCALLPOSTA *)lParam   if bOldWindows == TRUE
+                            (PLUGINCALLPOSTW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ see EDL_* defines
+
+Example SendMessage (bOldWindows == TRUE):
+ PLUGINCALLSENDA pcs;
+ pcs.pFunction="Plugin::Function";
+ pcs.bOnStart=FALSE;
+ pcs.lParam=0;
+ pcs.lpbAutoLoad=NULL;
+ SendMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)&pcs);
+
+Example SendMessage (bOldWindows == FALSE):
+ PLUGINCALLSENDW pcs;
+ pcs.wpFunction=L"Plugin::Function";
+ pcs.bOnStart=FALSE;
+ pcs.lParam=0;
+ pcs.lpbAutoLoad=NULL;
+ SendMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)&pcs);
+
+Example PostMessage (bOldWindows == TRUE):
+ PLUGINCALLPOSTA *pcp;
+ if (pcp=(PLUGINCALLPOSTA *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTA)))
+ {
+   lstrcpynA(pcp->szFunction, "Plugin::Function", MAX_PATH);
+   pcp->bOnStart=FALSE;
+   pcp->lParam=0;
+   PostMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)pcp);
+ }
+
+Example PostMessage (bOldWindows == FALSE):
+ PLUGINCALLPOSTW *pcp;
+ if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW)))
+ {
+   lstrcpynW(pcp->wszFunction, L"Plugin::Function", MAX_PATH);
+   pcp->bOnStart=FALSE;
+   pcp->lParam=0;
+   PostMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)pcp);
+ }
+
+
+AKD_DLLUNLOAD
+_____________
+
+Exit from thread and unload dll.
+
+(HMODULE)wParam == handle to the module
+(HANDLE)lParam  == handle to the thread, NULL if plugin not exiting from thread
+
+Return Value
+ zero
+
+Example:
+ PostMessage(pd->hMainWnd, AKD_DLLUNLOAD, (WPARAM)pd->hInstanceDLL, (LPARAM)NULL);
+
+
+AKD_DLLFIND
+___________
+
+Get dll stack function structure pointer.
+
+(unsigned char *)wParam == function name, format "Plugin::Function"
+                           (char *)wParam      if bOldWindows == TRUE
+                           (wchar_t *)wParam   if bOldWindows == FALSE
+(WORD)lParam            == hotkey returned by HKM_GETHOTKEY,
+                           to search by hotkey set wParam to NULL
+
+Return Value
+ pointer to a PLUGINFUNCTION structure
+
+Example find by name (bOldWindows == TRUE):
+ PLUGINFUNCTIONA *pf;
+ if (pf=(PLUGINFUNCTIONA *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)"SomePlugin::SomeFunction", 0))
+   if (pf->bRunning) MessageBoxA(NULL, "Plugin is running", NULL, 0);
+
+Example find by name (bOldWindows == FALSE):
+ PLUGINFUNCTIONW *pf;
+ if (pf=(PLUGINFUNCTIONW *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)L"SomePlugin::SomeFunction", 0))
+   if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
+
+Example find by hotkey (bOldWindows == TRUE):
+ PLUGINFUNCTIONA *pf;
+ if (pf=(PLUGINFUNCTIONA *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)NULL, 3112))
+   if (pf->bRunning) MessageBoxA(NULL, "Plugin is running", NULL, 0);
+
+Example find by hotkey (bOldWindows == FALSE):
+ PLUGINFUNCTIONW *pf;
+ if (pf=(PLUGINFUNCTIONW *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)NULL, 3112))
+   if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
+
+
+AKD_DLLADD
+__________
+
+Add dll stack function structure.
+
+wParam                   == not used
+(PLUGINFUNCTION *)lParam == function structure pointer
+                            (PLUGINFUNCTIONA *)lParam   if bOldWindows == TRUE
+                            (PLUGINFUNCTIONW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ pointer to a PLUGINFUNCTION structure in stack
+
+Example add plugin hotkey (bOldWindows == TRUE):
+ void CALLBACK PluginProc(void *lpParameter)
+ {
+ }
+ PLUGINFUNCTIONA pf;
+ pf.szFunction[0]='\0';
+ pf.nFunctionLen=0;
+ pf.wHotkey=589;       //Ctrl+M
+ pf.bOnStart=FALSE;
+ pf.bRunning=FALSE;
+ pf.PluginProc=(PLUGINPROC)PluginProc;
+ pf.lpParameter=NULL;
+ SendMessage(pd->hMainWnd, AKD_DLLADD, 0, (LPARAM)&pf);
+
+Example add plugin hotkey (bOldWindows == FALSE):
+ void CALLBACK PluginProc(void *lpParameter)
+ {
+ }
+ PLUGINFUNCTIONW pf;
+ pf.wszFunction[0]='\0';
+ pf.nFunctionLen=0;
+ pf.wHotkey=589;       //Ctrl+M
+ pf.bOnStart=FALSE;
+ pf.bRunning=FALSE;
+ pf.PluginProc=(PLUGINPROC)PluginProc;
+ pf.lpParameter=NULL;
+ SendMessage(pd->hMainWnd, AKD_DLLADD, 0, (LPARAM)&pf);
+
+
+AKD_DLLDELETE
+_____________
+
+Delete dll stack function structure.
+
+wParam                   == not used
+(PLUGINFUNCTION *)lParam == pointer to a PLUGINFUNCTION structure
+                            (PLUGINFUNCTIONA *)lParam   if bOldWindows == TRUE
+                            (PLUGINFUNCTIONW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ zero
+
+Example (bOldWindows == TRUE):
+ PLUGINFUNCTIONA *pf;
+ if (pf=(PLUGINFUNCTIONA *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)"SomePlugin::SomeFunction", 0))
+ {
+   SendMessage(pd->hMainWnd, AKD_DLLDELETE, 0, (LPARAM)pf);
+   pf=NULL;
+ }
+
+Example (bOldWindows == FALSE):
+ PLUGINFUNCTIONW *pf;
+ if (pf=(PLUGINFUNCTIONW *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)L"SomePlugin::SomeFunction", 0))
+ {
+   SendMessage(pd->hMainWnd, AKD_DLLDELETE, 0, (LPARAM)pf);
+   pf=NULL;
+ }
+
+
+AKD_DLLSAVE
+___________
+
+Save dll stack.
+
+wParam      == not used
+(int)lParam == see DLLS_* defines
+
+Return Value
+ TRUE  success
+ FALSE error
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_DLLSAVE, 0, DLLS_CLEAR);
+
+
+AKD_CALLPROC
+____________
+
+Call procedure.
+
+(PLUGINPROC)wParam == procedure address
+(void *)lParam     == pointer to a variable to be passed to the procedure
+
+Return Value
+ void
+
+Example:
+ void CALLBACK MyProcedure(void *lpParameter)
+ {
+ }
+ PostMessage(pd->hMainWnd, AKD_CALLPROC, (WPARAM)MyProcedure, (LPARAM)NULL);
 
 
 AKD_BEGINOPTIONS
@@ -1845,215 +2079,6 @@ Example:
  See AKD_INIOPEN examples
 
 
-AKD_CALLPROC
-____________
-
-Call procedure.
-
-(PLUGINPROC)wParam == procedure address
-(void *)lParam     == pointer to a variable to be passed to the procedure
-
-Return Value
- void
-
-Example:
- void CALLBACK MyProcedure(void *lpParameter)
- {
- }
- PostMessage(pd->hMainWnd, AKD_CALLPROC, (WPARAM)MyProcedure, (LPARAM)NULL);
-
-
-AKD_DLLCALL
-___________
-
-Call dll.
-
-wParam                   == not used
-(PLUGINCALLSEND *)lParam == pointer to a PLUGINCALLSEND structure if SendMessage used
-                            (PLUGINCALLSENDA *)lParam   if bOldWindows == TRUE
-                            (PLUGINCALLSENDW *)lParam   if bOldWindows == FALSE
-                            or pointer to a PLUGINCALLPOST, allocated with GlobalAlloc, if PostMessage used
-                            (PLUGINCALLPOSTA *)lParam   if bOldWindows == TRUE
-                            (PLUGINCALLPOSTW *)lParam   if bOldWindows == FALSE
-
-Return Value
- see EDL_* defines
-
-Example SendMessage (bOldWindows == TRUE):
- PLUGINCALLSENDA pcs;
- pcs.pFunction="Plugin::Function";
- pcs.bOnStart=FALSE;
- pcs.lParam=0;
- pcs.lpbAutoLoad=NULL;
- SendMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)&pcs);
-
-Example SendMessage (bOldWindows == FALSE):
- PLUGINCALLSENDW pcs;
- pcs.wpFunction=L"Plugin::Function";
- pcs.bOnStart=FALSE;
- pcs.lParam=0;
- pcs.lpbAutoLoad=NULL;
- SendMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)&pcs);
-
-Example PostMessage (bOldWindows == TRUE):
- PLUGINCALLPOSTA *pcp;
- if (pcp=(PLUGINCALLPOSTA *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTA)))
- {
-   lstrcpynA(pcp->szFunction, "Plugin::Function", MAX_PATH);
-   pcp->bOnStart=FALSE;
-   pcp->lParam=0;
-   PostMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)pcp);
- }
-
-Example PostMessage (bOldWindows == FALSE):
- PLUGINCALLPOSTW *pcp;
- if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW)))
- {
-   lstrcpynW(pcp->wszFunction, L"Plugin::Function", MAX_PATH);
-   pcp->bOnStart=FALSE;
-   pcp->lParam=0;
-   PostMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)pcp);
- }
-
-
-AKD_DLLUNLOAD
-_____________
-
-Exit from thread and unload dll.
-
-(HMODULE)wParam == handle to the module
-(HANDLE)lParam  == handle to the thread, NULL if plugin not exiting from thread
-
-Return Value
- zero
-
-Example:
- PostMessage(pd->hMainWnd, AKD_DLLUNLOAD, (WPARAM)pd->hInstanceDLL, (LPARAM)NULL);
-
-
-AKD_DLLFIND
-___________
-
-Get dll stack function structure pointer.
-
-(unsigned char *)wParam == function name, format "Plugin::Function"
-                           (char *)wParam      if bOldWindows == TRUE
-                           (wchar_t *)wParam   if bOldWindows == FALSE
-(WORD)lParam            == hotkey returned by HKM_GETHOTKEY,
-                           to search by hotkey set wParam to NULL
-
-Return Value
- pointer to a PLUGINFUNCTION structure
-
-Example find by name (bOldWindows == TRUE):
- PLUGINFUNCTIONA *pf;
- if (pf=(PLUGINFUNCTIONA *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)"SomePlugin::SomeFunction", 0))
-   if (pf->bRunning) MessageBoxA(NULL, "Plugin is running", NULL, 0);
-
-Example find by name (bOldWindows == FALSE):
- PLUGINFUNCTIONW *pf;
- if (pf=(PLUGINFUNCTIONW *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)L"SomePlugin::SomeFunction", 0))
-   if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
-
-Example find by hotkey (bOldWindows == TRUE):
- PLUGINFUNCTIONA *pf;
- if (pf=(PLUGINFUNCTIONA *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)NULL, 3112))
-   if (pf->bRunning) MessageBoxA(NULL, "Plugin is running", NULL, 0);
-
-Example find by hotkey (bOldWindows == FALSE):
- PLUGINFUNCTIONW *pf;
- if (pf=(PLUGINFUNCTIONW *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)NULL, 3112))
-   if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
-
-
-AKD_DLLADD
-__________
-
-Add dll stack function structure.
-
-wParam                   == not used
-(PLUGINFUNCTION *)lParam == function structure pointer
-                            (PLUGINFUNCTIONA *)lParam   if bOldWindows == TRUE
-                            (PLUGINFUNCTIONW *)lParam   if bOldWindows == FALSE
-
-Return Value
- pointer to a PLUGINFUNCTION structure in stack
-
-Example add plugin hotkey (bOldWindows == TRUE):
- void CALLBACK PluginProc(void *lpParameter)
- {
- }
- PLUGINFUNCTIONA pf;
- pf.szFunction[0]='\0';
- pf.nFunctionLen=0;
- pf.wHotkey=589;       //Ctrl+M
- pf.bOnStart=FALSE;
- pf.bRunning=FALSE;
- pf.PluginProc=(PLUGINPROC)PluginProc;
- pf.lpParameter=NULL;
- SendMessage(pd->hMainWnd, AKD_DLLADD, 0, (LPARAM)&pf);
-
-Example add plugin hotkey (bOldWindows == FALSE):
- void CALLBACK PluginProc(void *lpParameter)
- {
- }
- PLUGINFUNCTIONW pf;
- pf.wszFunction[0]='\0';
- pf.nFunctionLen=0;
- pf.wHotkey=589;       //Ctrl+M
- pf.bOnStart=FALSE;
- pf.bRunning=FALSE;
- pf.PluginProc=(PLUGINPROC)PluginProc;
- pf.lpParameter=NULL;
- SendMessage(pd->hMainWnd, AKD_DLLADD, 0, (LPARAM)&pf);
-
-
-AKD_DLLDELETE
-_____________
-
-Delete dll stack function structure.
-
-wParam                   == not used
-(PLUGINFUNCTION *)lParam == pointer to a PLUGINFUNCTION structure
-                            (PLUGINFUNCTIONA *)lParam   if bOldWindows == TRUE
-                            (PLUGINFUNCTIONW *)lParam   if bOldWindows == FALSE
-
-Return Value
- zero
-
-Example (bOldWindows == TRUE):
- PLUGINFUNCTIONA *pf;
- if (pf=(PLUGINFUNCTIONA *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)"SomePlugin::SomeFunction", 0))
- {
-   SendMessage(pd->hMainWnd, AKD_DLLDELETE, 0, (LPARAM)pf);
-   pf=NULL;
- }
-
-Example (bOldWindows == FALSE):
- PLUGINFUNCTIONW *pf;
- if (pf=(PLUGINFUNCTIONW *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)L"SomePlugin::SomeFunction", 0))
- {
-   SendMessage(pd->hMainWnd, AKD_DLLDELETE, 0, (LPARAM)pf);
-   pf=NULL;
- }
-
-
-AKD_DLLSAVE
-___________
-
-Save dll stack.
-
-wParam      == not used
-(int)lParam == see DLLS_* defines
-
-Return Value
- TRUE  success
- FALSE error
-
-Example:
- SendMessage(pd->hMainWnd, AKD_DLLSAVE, 0, DLLS_CLEAR);
-
-
 AKD_SAVEDOCUMENT
 ________________
 
@@ -2101,25 +2126,6 @@ Example:
  int nLength=SendMessage(pd->hMainWnd, AKD_GETTEXTLENGTH, (WPARAM)pd->hWndEdit, 0);
 
 
-AKD_GETSELTEXTW
-_______________
-
-Retrieves the currently selected text in a edit control.
-
-(HWND)wParam  == edit window
-(int *)lParam == pointer to a variable that receive text length, can be NULL
-
-Return Value
- text pointer
-
-Example:
- wchar_t *wpText;
- int nTextLen=0;
-
- wpText=(wchar_t *)SendMessage(pd->hMainWnd, AKD_GETSELTEXTW, (WPARAM)pd->hWndEdit, (LPARAM)&nTextLen);
- SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpText);
-
-
 AKD_GETTEXTRANGE
 ________________
 
@@ -2152,6 +2158,25 @@ Example (bOldWindows == FALSE):
    MessageBoxW(pd->hMainWnd, (wchar_t *)gtr.pText, L"Test", MB_OK);
    SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)gtr.pText);
  }
+
+
+AKD_GETSELTEXTW
+_______________
+
+Retrieves the currently selected text in a edit control.
+
+(HWND)wParam  == edit window
+(int *)lParam == pointer to a variable that receive text length, can be NULL
+
+Return Value
+ text pointer
+
+Example:
+ wchar_t *wpText;
+ int nTextLen=0;
+
+ wpText=(wchar_t *)SendMessage(pd->hMainWnd, AKD_GETSELTEXTW, (WPARAM)pd->hWndEdit, (LPARAM)&nTextLen);
+ SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpText);
 
 
 AKD_FREETEXT
@@ -2307,6 +2332,143 @@ Example:
  SendMessage(pd->hMainWnd, AKD_RECODESEL, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 
 
+AKD_GETCHARCOLOR
+________________
+
+Get colors of the specified char.
+
+(HWND)wParam        == edit window
+(CHARCOLOR *)lParam == pointer to a CHARCOLOR structure
+
+Return Value
+ TRUE   specified char in selection
+ FALSE  specified char not in selection
+
+Example:
+ CHARCOLOR cc;
+
+ cc.nCharPos=10;
+ SendMessage(pd->hMainWnd, AKD_GETCHARCOLOR, (WPARAM)pd->hWndEdit, (LPARAM)&cc);
+
+
+AKD_GETFILEPRINT
+________________
+
+Retrieve global print state.
+
+wParam == not used
+lParam == not used
+
+Return Value
+ TRUE  next opened file will be printed
+ FALSE next opened file will not be printed
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_GETFILEPRINT, 0, 0);
+
+
+AKD_SETFILEPRINT
+________________
+
+Next opened file will be printed.
+
+(BOOL)wParam == TRUE  will be printed
+                FALSE will not be printed
+lParam       == not used
+
+Return Value
+ zero
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETFILEPRINT, TRUE, 0);
+
+
+AKD_GETPRINTDLG
+_______________
+
+Get print dialog settings.
+
+wParam == not used
+lParam == not used
+
+Return Value
+ pointer to a PRINTDLG structure
+
+Example (bOldWindows == TRUE):
+ PRINTDLGA *pdg=(PRINTDLGA *)SendMessage(pd->hMainWnd, AKD_GETPRINTDLG, 0, 0);
+
+Example (bOldWindows == FALSE):
+ PRINTDLGW *pdg=(PRINTDLGW *)SendMessage(pd->hMainWnd, AKD_GETPRINTDLG, 0, 0);
+
+
+AKD_GETPAGEDLG
+______________
+
+Get page dialog settings.
+
+wParam == not used
+lParam == not used
+
+Return Value
+ pointer to a PAGESETUPDLG structure
+
+Example (bOldWindows == TRUE):
+ PAGESETUPDLGA *psdg=(PAGESETUPDLGA *)SendMessage(pd->hMainWnd, AKD_GETPAGEDLG, 0, 0);
+
+Example (bOldWindows == FALSE):
+ PAGESETUPDLGW *psdg=(PAGESETUPDLGW *)SendMessage(pd->hMainWnd, AKD_GETPAGEDLG, 0, 0);
+
+
+AKD_PROGRAMVERSION
+__________________
+
+Get program version.
+
+wParam == not used
+lParam == not used
+
+Return Value
+ Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+
+Example:
+ DWORD dwVersion;
+ DWORD dwMajor;
+ DWORD dwMinor;
+ DWORD dwRelease;
+ DWORD dwBuild;
+
+ dwVersion=SendMessage(pd->hMainWnd, AKD_PROGRAMVERSION, 0, 0);
+ dwMajor=LOBYTE(LOWORD(dwVersion));
+ dwMinor=HIBYTE(LOWORD(dwVersion));
+ dwRelease=LOBYTE(HIWORD(dwVersion));
+ dwBuild=HIBYTE(HIWORD(dwVersion));
+
+
+AKD_PROGRAMARCHITECTURE
+_______________________
+
+Get program architecture (AkelDLL) version.
+
+wParam == not used
+lParam == not used
+
+Return Value
+ Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+
+Example:
+ DWORD dwVersion;
+ DWORD dwMajor;
+ DWORD dwMinor;
+ DWORD dwRelease;
+ DWORD dwBuild;
+
+ dwVersion=SendMessage(pd->hMainWnd, AKD_PROGRAMARCHITECTURE, 0, 0);
+ dwMajor=LOBYTE(LOWORD(dwVersion));
+ dwMinor=HIBYTE(LOWORD(dwVersion));
+ dwRelease=LOBYTE(HIWORD(dwVersion));
+ dwBuild=HIBYTE(HIWORD(dwVersion));
+
+
 AKD_GETMAININFO
 _______________
 
@@ -2341,6 +2503,39 @@ Example:
  EDITINFO ei;
 
  SendMessage(pd->hMainWnd, AKD_GETEDITINFO, (WPARAM)NULL, (LPARAM)&ei);
+
+
+AKD_SETMODIFY
+_____________
+
+Set edit window modification flag.
+
+(HWND)wParam == edit window,
+                NULL for current edit window
+(BOOL)lParam == TRUE  contents of edit control have been modified
+                FALSE contents of edit control haven't been modified
+
+Return Value
+ zero
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETMODIFY, (WPARAM)pd->hWndEdit, TRUE);
+
+
+AKD_SETNEWLINE
+______________
+
+Set edit window new line format.
+
+(HWND)wParam == edit window,
+                NULL for current edit window
+(int)lParam  == see NEWLINE_* defines
+
+Return Value
+ zero
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETNEWLINE, (WPARAM)pd->hWndEdit, NEWLINE_UNIX);
 
 
 AKD_GETFONT
@@ -2391,53 +2586,21 @@ Example (bOldWindows == FALSE):
  SendMessage(pd->hMainWnd, AKD_SETFONT, (WPARAM)pd->hWndEdit, (LPARAM)lf);
 
 
-AKD_SETMODIFY
-_____________
-
-Set edit window modification flag.
-
-(HWND)wParam == edit window,
-                NULL for current edit window
-(BOOL)lParam == TRUE  contents of edit control have been modified
-                FALSE contents of edit control haven't been modified
-
-Return Value
- zero
-
-Example:
- SendMessage(pd->hMainWnd, AKD_SETMODIFY, (WPARAM)pd->hWndEdit, TRUE);
-
-
-AKD_SETNEWLINE
-______________
-
-Set edit window new line format.
-
-(HWND)wParam == edit window,
-                NULL for current edit window
-(int)lParam  == see NEWLINE_* defines
-
-Return Value
- zero
-
-Example:
- SendMessage(pd->hMainWnd, AKD_SETNEWLINE, (WPARAM)pd->hWndEdit, NEWLINE_UNIX);
-
-
-AKD_SETFILEPRINT
+AKD_GETMSGCREATE
 ________________
 
-Next opened file will be printed.
+Retrieve unexisted file autoanswer.
 
-(BOOL)wParam == TRUE  will be printed
-                FALSE will not be printed
-lParam       == not used
+wParam == not used
+lParam == not used
 
 Return Value
- zero
+ AUTOANSWER_ASK   Show message (default)
+ AUTOANSWER_YES   Create unexisted file
+ AUTOANSWER_NO    Don't create unexisted file
 
 Example:
- SendMessage(pd->hMainWnd, AKD_SETFILEPRINT, TRUE, 0);
+ SendMessage(pd->hMainWnd, AKD_GETMSGCREATE, 0, 0);
 
 
 AKD_SETMSGCREATE
@@ -2455,6 +2618,23 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SETMSGCREATE, AUTOANSWER_YES, 0);
+
+
+AKD_GETMSGBINARY
+________________
+
+Retrive binary file autoanswer.
+
+wParam == not used
+lParam == not used
+
+Return Value
+ AUTOANSWER_ASK  Show message (default)
+ AUTOANSWER_YES  Open binary file
+ AUTOANSWER_NO   Don't open binary file
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_GETMSGBINARY, 0, 0);
 
 
 AKD_SETMSGBINARY
@@ -2493,299 +2673,43 @@ Example:
  lpCodepageList=(int *)SendMessage(pd->hMainWnd, AKD_GETCODEPAGELIST, (WPARAM)&nDefaultCodepage, 0);
 
 
-AKD_GETRECENTFILES
-__________________
+AKD_RECENTFILES
+_______________
 
-Get recent files info.
+Recent files operations.
 
-wParam                == not used
-(RECENTFILES *)lParam == pointer to a RECENTFILES structure
+(int)wParam           == see RF_* defines
+(RECENTFILES *)lParam == pointer to a RECENTFILES structure, can be NULL
                          (RECENTFILESA *)lParam   if bOldWindows == TRUE
                          (RECENTFILESW *)lParam   if bOldWindows == FALSE
 
 Return Value
- zero
+ Number of recent files.
 
 Example (bOldWindows == TRUE):
  RECENTFILESA rf;
 
- SendMessage(pd->hMainWnd, AKD_GETRECENTFILES, 0, (LPARAM)&rf);
+ SendMessage(pd->hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&rf);
 
 Example (bOldWindows == FALSE):
  RECENTFILESW rf;
 
- SendMessage(pd->hMainWnd, AKD_GETRECENTFILES, 0, (LPARAM)&rf);
+ SendMessage(pd->hMainWnd, AKD_RECENTFILES, RF_GET, (LPARAM)&rf);
 
 
-AKD_POSTMESSAGE
-_______________
+AKD_SEARCHHISTORY
+_________________
 
-Post message.
+Search history operations.
 
-wParam                == not used
-(POSTMESSAGE *)lParam == pointer to a POSTMESSAGE, allocated with GlobalAlloc
-
-Return Value
-  zero
-
-
-Example (bOldWindows == TRUE):
- typedef struct _PMSAVEDOCUMENTA {
-   POSTMESSAGE pm;
-   SAVEDOCUMENTA sd;
- } PMSAVEDOCUMENTA;
-
- PMSAVEDOCUMENTA *pmsd;
-
- if (pmsd=(PMSAVEDOCUMENTA *)GlobalAlloc(GPTR, sizeof(PMSAVEDOCUMENTA)))
- {
-   lstrcpynA(pmsd->sd.szFile, "C:\\MyFile.txt", MAX_PATH);
-   pmsd->sd.nCodePage=65001;
-   pmsd->sd.bBOM=TRUE;
-   pmsd->sd.bUpdate=TRUE;
-
-   //Post message
-   pmsd->pm.hWnd=pd->hMainWnd;
-   pmsd->pm.uMsg=AKD_SAVEDOCUMENT;
-   pmsd->pm.wParam=(WPARAM)pd->hWndEdit;
-   pmsd->pm.lParam=(LPARAM)&pmsd->sd;
-   PostMessage(pd->hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmsd);
- }
-
-Example (bOldWindows == FALSE):
- typedef struct _PMSAVEDOCUMENTW {
-   POSTMESSAGE pm;
-   SAVEDOCUMENTW sd;
- } PMSAVEDOCUMENTW;
-
- PMSAVEDOCUMENTW *pmsd;
-
- if (pmsd=(PMSAVEDOCUMENTW *)GlobalAlloc(GPTR, sizeof(PMSAVEDOCUMENTW)))
- {
-   lstrcpynW(pmsd->sd.wszFile, L"C:\\MyFile.txt", MAX_PATH);
-   pmsd->sd.nCodePage=65001;
-   pmsd->sd.bBOM=TRUE;
-   pmsd->sd.bUpdate=TRUE;
-
-   //Post message
-   pmsd->pm.hWnd=pd->hMainWnd;
-   pmsd->pm.uMsg=AKD_SAVEDOCUMENT;
-   pmsd->pm.wParam=(WPARAM)pd->hWndEdit;
-   pmsd->pm.lParam=(LPARAM)&pmsd->sd;
-   PostMessage(pd->hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmsd);
- }
-
-
-AKD_GETQUEUE
-____________
-
-Indicates the type of messages found in the main thread's message queue
-(see description for GetQueueStatus in MSDN).
-
-wParam == specifies the types of messages for which to check
-lParam == not used
-
-Return Value
-  number of messages
-
-Example:
- DWORD dwStatus=SendMessage(pd->hMainWnd, AKD_GETQUEUE, QS_ALLEVENTS, 0);
-
-
-AKD_WAITKEYBOARD
-________________
-
-Wait for release all virtual keys.
-
-(BOOL)wParam == TRUE  test is any key pressed
-                FALSE wait for keys release
+(int)wParam  == see SH_* defines
 lParam       == not used
 
 Return Value
- if wParam == FALSE the return value:
-   zero
- if wParam == TRUE the return value:
-   TRUE  keyboard is free
-   FALSE keyboard is busy
+ Number of search strings.
 
 Example:
- SendMessage(pd->hMainWnd, AKD_WAITKEYBOARD, 0, 0);
-
-
-AKD_GETPRINTDLG
-_______________
-
-Get print dialog settings.
-
-wParam == not used
-lParam == not used
-
-Return Value
- pointer to a PRINTDLG structure
-
-Example (bOldWindows == TRUE):
- PRINTDLGA *pdg=(PRINTDLGA *)SendMessage(pd->hMainWnd, AKD_GETPRINTDLG, 0, 0);
-
-Example (bOldWindows == FALSE):
- PRINTDLGW *pdg=(PRINTDLGW *)SendMessage(pd->hMainWnd, AKD_GETPRINTDLG, 0, 0);
-
-
-AKD_GETPAGEDLG
-______________
-
-Get page dialog settings.
-
-wParam == not used
-lParam == not used
-
-Return Value
- pointer to a PAGESETUPDLG structure
-
-Example (bOldWindows == TRUE):
- PAGESETUPDLGA *psdg=(PAGESETUPDLGA *)SendMessage(pd->hMainWnd, AKD_GETPAGEDLG, 0, 0);
-
-Example (bOldWindows == FALSE):
- PAGESETUPDLGW *psdg=(PAGESETUPDLGW *)SendMessage(pd->hMainWnd, AKD_GETPAGEDLG, 0, 0);
-
-
-AKD_GLOBALALLOC
-_______________
-
-Allocates the specified number of bytes from the heap (see description for GlobalAlloc in MSDN).
-
-wParam == memory allocation attributes
-lParam == number of bytes to allocate
-
-Return Value
-  handle to the newly allocated memory object
-
-Example:
- HGLOBAL hMem=(HGLOBAL)SendMessage(pd->hMainWnd, AKD_GLOBALALLOC, GPTR, 128);
-
-
-AKD_GLOBALLOCK
-______________
-
-Locks a global memory object (see description for GlobalLock in MSDN).
-
-wParam == handle to the global memory object
-lParam == not used
-
-Return Value
-  pointer to the first byte of the memory block
-
-Example:
- void *pMem=(void *)SendMessage(pd->hMainWnd, AKD_GLOBALLOCK, (WPARAM)hMem, 0);
-
-
-AKD_GLOBALUNLOCK
-________________
-
-Decrements the lock count associated with a memory object (see description for GlobalUnlock in MSDN).
-
-wParam == handle to the global memory object
-lParam == not used
-
-Return Value
- unlock result
-
-Example:
- BOOL bUnlock=SendMessage(pd->hMainWnd, AKD_GLOBALUNLOCK, (WPARAM)hMem, 0);
-
-
-AKD_GLOBALFREE
-______________
-
-Frees the specified global memory object (see description for GlobalFree in MSDN).
-
-wParam == handle to the global memory object
-lParam == not used
-
-Return Value
- free result
-
-Example:
- HGLOBAL hMem=SendMessage(pd->hMainWnd, AKD_GLOBALFREE, (WPARAM)hMem, 0);
-
-
-AKD_CREATEWINDOW
-________________
-
-Create window.
-
-wParam                 == not used
-(CREATEWINDOW *)lParam == pointer to a CREATEWINDOW structure
-                          (CREATEWINDOWA *)lParam   if bOldWindows == TRUE
-                          (CREATEWINDOWW *)lParam   if bOldWindows == FALSE
-
-Return Value
- window handle
-
-Example (bOldWindows == TRUE):
- CREATEWINDOWA cw;
- HWND hWndMemEdit;
-
- lstrcpynA(cw.szClassName, "RichEdit20A", MAX_PATH);
- cw.szWindowName[0]='\0';
- cw.dwStyle=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|ES_SUNKEN|ES_NOHIDESEL;
- cw.x=0;
- cw.y=0;
- cw.nWidth=100;
- cw.nHeight=100;
- cw.hWndParent=pd->hMainWnd;
- cw.hMenu=(HMENU)0;
- cw.hInstance=pd->hInstanceEXE;
- cw.lpParam=NULL;
-
- hWndMemEdit=(HWND)SendMessage(pd->hMainWnd, AKD_CREATEWINDOW, 0, (LPARAM)&cw);
-
-Example (bOldWindows == FALSE):
- CREATEWINDOWW cw;
- HWND hWndMemEdit;
-
- lstrcpynW(cw.wszClassName, L"RichEdit20W", MAX_PATH);
- cw.wszWindowName[0]='\0';
- cw.dwStyle=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|ES_SUNKEN|ES_NOHIDESEL;
- cw.x=0;
- cw.y=0;
- cw.nWidth=100;
- cw.nHeight=100;
- cw.hWndParent=pd->hMainWnd;
- cw.hMenu=(HMENU)0;
- cw.hInstance=pd->hInstanceEXE;
- cw.lpParam=NULL;
-
- hWndMemEdit=(HWND)SendMessage(pd->hMainWnd, AKD_CREATEWINDOW, 0, (LPARAM)&cw);
-
-
-AKD_STRLENA
-___________
-
-Returns the length in bytes of the specified string (not including the terminating null character).
-
-(char *)wParam == ANSI string
-lParam         == not used
-
-Return Value
- string length
-
-Example:
- SendMessage(pd->hMainWnd, AKD_STRLENA, (WPARAM)"123", 0);
-
-
-AKD_STRLENW
-___________
-
-Returns the length in WCHAR's of the specified string (not including the terminating null character).
-
-(wchar_t *)wParam == Unicode string
-lParam            == not used
-
-Return Value
- string length
-
-Example:
- SendMessage(pd->hMainWnd, AKD_STRLENW, (WPARAM)L"123", 0);
+ SendMessage(pd->hMainWnd, AKD_SEARCHHISTORY, SH_GET, 0);
 
 
 AKD_GETMODELESS
@@ -2860,73 +2784,239 @@ Example:
  SendMessage(pd->hMainWnd, AKD_DOCK, DK_DELETE, (LPARAM)dkNew);
 
 
-AKD_GETCHARCOLOR
+AKD_GLOBALALLOC
+_______________
+
+Allocates the specified number of bytes from the heap (see description for GlobalAlloc in MSDN).
+
+wParam == memory allocation attributes
+lParam == number of bytes to allocate
+
+Return Value
+  handle to the newly allocated memory object
+
+Example:
+ HGLOBAL hMem=(HGLOBAL)SendMessage(pd->hMainWnd, AKD_GLOBALALLOC, GPTR, 128);
+
+
+AKD_GLOBALLOCK
+______________
+
+Locks a global memory object (see description for GlobalLock in MSDN).
+
+wParam == handle to the global memory object
+lParam == not used
+
+Return Value
+  pointer to the first byte of the memory block
+
+Example:
+ void *pMem=(void *)SendMessage(pd->hMainWnd, AKD_GLOBALLOCK, (WPARAM)hMem, 0);
+
+
+AKD_GLOBALUNLOCK
 ________________
 
-Get colors of the specified char.
+Decrements the lock count associated with a memory object (see description for GlobalUnlock in MSDN).
 
-(HWND)wParam        == edit window
-(CHARCOLOR *)lParam == pointer to a CHARCOLOR structure
-
-Return Value
- TRUE   specified char in selection
- FALSE  specified char not in selection
-
-Example:
- CHARCOLOR cc;
-
- cc.nCharPos=10;
- SendMessage(pd->hMainWnd, AKD_GETCHARCOLOR, (WPARAM)pd->hWndEdit, (LPARAM)&cc);
-
-
-AKD_PROGRAMVERSION
-__________________
-
-Get program version.
-
-wParam == not used
+wParam == handle to the global memory object
 lParam == not used
 
 Return Value
- Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+ unlock result
 
 Example:
- DWORD dwVersion;
- DWORD dwMajor;
- DWORD dwMinor;
- DWORD dwRelease;
- DWORD dwBuild;
-
- dwVersion=SendMessage(pd->hMainWnd, AKD_PROGRAMVERSION, 0, 0);
- dwMajor=LOBYTE(LOWORD(dwVersion));
- dwMinor=HIBYTE(LOWORD(dwVersion));
- dwRelease=LOBYTE(HIWORD(dwVersion));
- dwBuild=HIBYTE(HIWORD(dwVersion));
+ BOOL bUnlock=SendMessage(pd->hMainWnd, AKD_GLOBALUNLOCK, (WPARAM)hMem, 0);
 
 
-AKD_PROGRAMARCHITECTURE
-_______________________
+AKD_GLOBALFREE
+______________
 
-Get program architecture (AkelDLL) version.
+Frees the specified global memory object (see description for GlobalFree in MSDN).
 
-wParam == not used
+wParam == handle to the global memory object
 lParam == not used
 
 Return Value
- Version number. Created as: MAKE_IDENTIFIER(dwMajor, dwMinor, dwRelease, dwBuild).
+ free result
 
 Example:
- DWORD dwVersion;
- DWORD dwMajor;
- DWORD dwMinor;
- DWORD dwRelease;
- DWORD dwBuild;
+ HGLOBAL hMem=SendMessage(pd->hMainWnd, AKD_GLOBALFREE, (WPARAM)hMem, 0);
 
- dwVersion=SendMessage(pd->hMainWnd, AKD_PROGRAMARCHITECTURE, 0, 0);
- dwMajor=LOBYTE(LOWORD(dwVersion));
- dwMinor=HIBYTE(LOWORD(dwVersion));
- dwRelease=LOBYTE(HIWORD(dwVersion));
- dwBuild=HIBYTE(HIWORD(dwVersion));
+
+AKD_STRLENA
+___________
+
+Returns the length in bytes of the specified string (not including the terminating null character).
+
+(char *)wParam == ANSI string
+lParam         == not used
+
+Return Value
+ string length
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_STRLENA, (WPARAM)"123", 0);
+
+
+AKD_STRLENW
+___________
+
+Returns the length in WCHAR's of the specified string (not including the terminating null character).
+
+(wchar_t *)wParam == Unicode string
+lParam            == not used
+
+Return Value
+ string length
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_STRLENW, (WPARAM)L"123", 0);
+
+
+AKD_CREATEWINDOW
+________________
+
+Create window.
+
+wParam                 == not used
+(CREATEWINDOW *)lParam == pointer to a CREATEWINDOW structure
+                          (CREATEWINDOWA *)lParam   if bOldWindows == TRUE
+                          (CREATEWINDOWW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ window handle
+
+Example (bOldWindows == TRUE):
+ CREATEWINDOWA cw;
+ HWND hWndMemEdit;
+
+ lstrcpynA(cw.szClassName, "RichEdit20A", MAX_PATH);
+ cw.szWindowName[0]='\0';
+ cw.dwStyle=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|ES_SUNKEN|ES_NOHIDESEL;
+ cw.x=0;
+ cw.y=0;
+ cw.nWidth=100;
+ cw.nHeight=100;
+ cw.hWndParent=pd->hMainWnd;
+ cw.hMenu=(HMENU)0;
+ cw.hInstance=pd->hInstanceEXE;
+ cw.lpParam=NULL;
+
+ hWndMemEdit=(HWND)SendMessage(pd->hMainWnd, AKD_CREATEWINDOW, 0, (LPARAM)&cw);
+
+Example (bOldWindows == FALSE):
+ CREATEWINDOWW cw;
+ HWND hWndMemEdit;
+
+ lstrcpynW(cw.wszClassName, L"RichEdit20W", MAX_PATH);
+ cw.wszWindowName[0]='\0';
+ cw.dwStyle=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|ES_SUNKEN|ES_NOHIDESEL;
+ cw.x=0;
+ cw.y=0;
+ cw.nWidth=100;
+ cw.nHeight=100;
+ cw.hWndParent=pd->hMainWnd;
+ cw.hMenu=(HMENU)0;
+ cw.hInstance=pd->hInstanceEXE;
+ cw.lpParam=NULL;
+
+ hWndMemEdit=(HWND)SendMessage(pd->hMainWnd, AKD_CREATEWINDOW, 0, (LPARAM)&cw);
+
+
+AKD_WAITKEYBOARD
+________________
+
+Wait for release all virtual keys.
+
+(BOOL)wParam == TRUE  test is any key pressed
+                FALSE wait for keys release
+lParam       == not used
+
+Return Value
+ if wParam == FALSE the return value:
+   zero
+ if wParam == TRUE the return value:
+   TRUE  keyboard is free
+   FALSE keyboard is busy
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_WAITKEYBOARD, 0, 0);
+
+
+AKD_GETQUEUE
+____________
+
+Indicates the type of messages found in the main thread's message queue
+(see description for GetQueueStatus in MSDN).
+
+wParam == specifies the types of messages for which to check
+lParam == not used
+
+Return Value
+  number of messages
+
+Example:
+ DWORD dwStatus=SendMessage(pd->hMainWnd, AKD_GETQUEUE, QS_ALLEVENTS, 0);
+
+
+AKD_POSTMESSAGE
+_______________
+
+Post message.
+
+wParam                == not used
+(POSTMESSAGE *)lParam == pointer to a POSTMESSAGE, allocated with GlobalAlloc
+
+Return Value
+  zero
+
+
+Example (bOldWindows == TRUE):
+ typedef struct _PMSAVEDOCUMENTA {
+   POSTMESSAGE pm;
+   SAVEDOCUMENTA sd;
+ } PMSAVEDOCUMENTA;
+
+ PMSAVEDOCUMENTA *pmsd;
+
+ if (pmsd=(PMSAVEDOCUMENTA *)GlobalAlloc(GPTR, sizeof(PMSAVEDOCUMENTA)))
+ {
+   lstrcpynA(pmsd->sd.szFile, "C:\\MyFile.txt", MAX_PATH);
+   pmsd->sd.nCodePage=65001;
+   pmsd->sd.bBOM=TRUE;
+   pmsd->sd.bUpdate=TRUE;
+
+   //Post message
+   pmsd->pm.hWnd=pd->hMainWnd;
+   pmsd->pm.uMsg=AKD_SAVEDOCUMENT;
+   pmsd->pm.wParam=(WPARAM)pd->hWndEdit;
+   pmsd->pm.lParam=(LPARAM)&pmsd->sd;
+   PostMessage(pd->hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmsd);
+ }
+
+Example (bOldWindows == FALSE):
+ typedef struct _PMSAVEDOCUMENTW {
+   POSTMESSAGE pm;
+   SAVEDOCUMENTW sd;
+ } PMSAVEDOCUMENTW;
+
+ PMSAVEDOCUMENTW *pmsd;
+
+ if (pmsd=(PMSAVEDOCUMENTW *)GlobalAlloc(GPTR, sizeof(PMSAVEDOCUMENTW)))
+ {
+   lstrcpynW(pmsd->sd.wszFile, L"C:\\MyFile.txt", MAX_PATH);
+   pmsd->sd.nCodePage=65001;
+   pmsd->sd.bBOM=TRUE;
+   pmsd->sd.bUpdate=TRUE;
+
+   //Post message
+   pmsd->pm.hWnd=pd->hMainWnd;
+   pmsd->pm.uMsg=AKD_SAVEDOCUMENT;
+   pmsd->pm.wParam=(WPARAM)pd->hWndEdit;
+   pmsd->pm.lParam=(LPARAM)&pmsd->sd;
+   PostMessage(pd->hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmsd);
+ }
 
 
 AKD_EXGETTEXTLENGTH

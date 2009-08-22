@@ -1750,6 +1750,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       bMainOnStartFinish=TRUE;
       return 0;
     }
+
+    //Plugin options
     if (uMsg == AKD_BEGINOPTIONS)
     {
       if (nSaveSettings == SS_REGISTRY)
@@ -1998,6 +2000,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return bResult;
     }
+
+    //Text retrieval and modification
     if (uMsg == AKD_SAVEDOCUMENT)
     {
       SAVEDOCUMENTA *sd=(SAVEDOCUMENTA *)lParam;
@@ -2008,15 +2012,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return GetTextLength((HWND)wParam);
     }
-    if (uMsg == AKD_GETSELTEXTW)
-    {
-      return (LRESULT)GetSelTextW((HWND)wParam, (int *)lParam);
-    }
     if (uMsg == AKD_GETTEXTRANGE)
     {
       GETTEXTRANGE *gtr=(GETTEXTRANGE *)lParam;
 
       return GetRangeTextA((HWND)wParam, gtr->cpMin, gtr->cpMax, (char **)&gtr->pText);
+    }
+    if (uMsg == AKD_GETSELTEXTW)
+    {
+      return (LRESULT)GetSelTextW((HWND)wParam, (int *)lParam);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -2062,6 +2066,41 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       RecodeTextW((HWND)wParam, tr->nCodePageFrom, tr->nCodePageTo);
       return 0;
+    }
+    if (uMsg == AKD_GETCHARCOLOR)
+    {
+      CHARCOLOR *cc=(CHARCOLOR *)lParam;
+
+      return GetCharColor((HWND)wParam, cc);
+    }
+
+    //Print
+    if (uMsg == AKD_GETFILEPRINT)
+    {
+      return bGlobalPrint;
+    }
+    if (uMsg == AKD_SETFILEPRINT)
+    {
+      bGlobalPrint=(BOOL)wParam;
+      return 0;
+    }
+    if (uMsg == AKD_GETPRINTDLG)
+    {
+      return (LRESULT)&pdA;
+    }
+    if (uMsg == AKD_GETPAGEDLG)
+    {
+      return (LRESULT)&psdPageA;
+    }
+
+    //Options
+    if (uMsg == AKD_PROGRAMVERSION)
+    {
+      return dwExeVersion;
+    }
+    if (uMsg == AKD_PROGRAMARCHITECTURE)
+    {
+      return AKELDLL;
     }
     if (uMsg == AKD_GETMAININFO)
     {
@@ -2139,6 +2178,16 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return FALSE;
     }
+    if (uMsg == AKD_SETMODIFY)
+    {
+      SetModifyStatusA((HWND)wParam, lParam, FALSE);
+      return 0;
+    }
+    if (uMsg == AKD_SETNEWLINE)
+    {
+      SetNewLineStatusA((HWND)wParam, lParam, FALSE);
+      return 0;
+    }
     if (uMsg == AKD_GETFONT)
     {
       if (!wParam || (HWND)wParam == hWndEdit)
@@ -2166,25 +2215,6 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return TRUE;
       }
       return FALSE;
-    }
-    if (uMsg == AKD_SETMODIFY)
-    {
-      SetModifyStatusA((HWND)wParam, lParam, FALSE);
-      return 0;
-    }
-    if (uMsg == AKD_SETNEWLINE)
-    {
-      SetNewLineStatusA((HWND)wParam, lParam, FALSE);
-      return 0;
-    }
-    if (uMsg == AKD_GETFILEPRINT)
-    {
-      return bGlobalPrint;
-    }
-    if (uMsg == AKD_SETFILEPRINT)
-    {
-      bGlobalPrint=(BOOL)wParam;
-      return 0;
     }
     if (uMsg == AKD_GETMSGCREATE)
     {
@@ -2214,86 +2244,40 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return (LRESULT)lpCodepageList;
     }
-    if (uMsg == AKD_GETRECENTFILES)
+    if (uMsg == AKD_RECENTFILES)
     {
-      RECENTFILESA *rf=(RECENTFILESA *)lParam;
-
-      rf->lpszRecentNames=lpszRecentNames;
-      rf->lpdwRecentPositions=lpdwRecentPositions;
-      rf->lpdwRecentCodepages=lpdwRecentCodepages;
-      rf->nRecentFiles=nRecentFiles;
-      return 0;
-    }
-    if (uMsg == AKD_GETQUEUE)
-    {
-      return GetQueueStatus(wParam);
-    }
-    if (uMsg == AKD_WAITKEYBOARD)
-    {
-      BYTE lpKeyState[256];
-      MSG msg;
-      int i;
-
-      Loop:
-      Sleep(0);
-
-      if (GetKeyboardState(lpKeyState))
+      if (wParam == RF_GET)
       {
-        for (i=0; i < 256; ++i)
-        {
-          if (lpKeyState[i] & 0x80)
-          {
-            if (wParam) return 1;
+        RECENTFILESA *rf=(RECENTFILESA *)lParam;
 
-            while (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE))
-            {
-              TranslateMessage(&msg);
-              DispatchMessageA(&msg);
-            }
-            goto Loop;
-          }
+        if (rf)
+        {
+          rf->lpszRecentNames=lpszRecentNames;
+          rf->lpdwRecentPositions=lpdwRecentPositions;
+          rf->lpdwRecentCodepages=lpdwRecentCodepages;
         }
       }
-      return 0;
+      else if (wParam == RF_CLEAR)
+      {
+        RecentFilesZeroA();
+        RecentFilesSaveA();
+        bMenuRecentFiles=TRUE;
+      }
+      return nRecentFiles;
     }
-    if (uMsg == AKD_GETPRINTDLG)
+    if (uMsg == AKD_SEARCHHISTORY)
     {
-      return (LRESULT)&pdA;
+      if (wParam == SH_GET)
+      {
+      }
+      else if (wParam == SH_CLEAR)
+      {
+        RegClearKeyA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Search");
+      }
+      return nSearchStrings;
     }
-    if (uMsg == AKD_GETPAGEDLG)
-    {
-      return (LRESULT)&psdPageA;
-    }
-    if (uMsg == AKD_GLOBALALLOC)
-    {
-      return (LRESULT)GlobalAlloc(wParam, lParam);
-    }
-    if (uMsg == AKD_GLOBALLOCK)
-    {
-      return (LRESULT)GlobalLock((HGLOBAL)wParam);
-    }
-    if (uMsg == AKD_GLOBALUNLOCK)
-    {
-      return (LRESULT)GlobalUnlock((HGLOBAL)wParam);
-    }
-    if (uMsg == AKD_GLOBALFREE)
-    {
-      return (LRESULT)GlobalFree((HGLOBAL)wParam);
-    }
-    if (uMsg == AKD_CREATEWINDOW)
-    {
-      CREATEWINDOWA *cw=(CREATEWINDOWA *)lParam;
 
-      return (LRESULT)CreateWindowA(cw->szClassName, cw->szWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
-    }
-    if (uMsg == AKD_STRLENA)
-    {
-      return lstrlenA((char *)wParam);
-    }
-    if (uMsg == AKD_STRLENW)
-    {
-      return lstrlenW((wchar_t *)wParam);
-    }
+    //Windows
     if (uMsg == AKD_GETMODELESS)
     {
       return (LRESULT)hDlgModeless;
@@ -2371,19 +2355,69 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return (LRESULT)lpResult;
     }
-    if (uMsg == AKD_GETCHARCOLOR)
-    {
-      CHARCOLOR *cc=(CHARCOLOR *)lParam;
 
-      return GetCharColor((HWND)wParam, cc);
-    }
-    if (uMsg == AKD_PROGRAMVERSION)
+    //Thread
+    if (uMsg == AKD_GLOBALALLOC)
     {
-      return dwExeVersion;
+      return (LRESULT)GlobalAlloc(wParam, lParam);
     }
-    if (uMsg == AKD_PROGRAMARCHITECTURE)
+    if (uMsg == AKD_GLOBALLOCK)
     {
-      return AKELDLL;
+      return (LRESULT)GlobalLock((HGLOBAL)wParam);
+    }
+    if (uMsg == AKD_GLOBALUNLOCK)
+    {
+      return (LRESULT)GlobalUnlock((HGLOBAL)wParam);
+    }
+    if (uMsg == AKD_GLOBALFREE)
+    {
+      return (LRESULT)GlobalFree((HGLOBAL)wParam);
+    }
+    if (uMsg == AKD_STRLENA)
+    {
+      return lstrlenA((char *)wParam);
+    }
+    if (uMsg == AKD_STRLENW)
+    {
+      return lstrlenW((wchar_t *)wParam);
+    }
+    if (uMsg == AKD_CREATEWINDOW)
+    {
+      CREATEWINDOWA *cw=(CREATEWINDOWA *)lParam;
+
+      return (LRESULT)CreateWindowA(cw->szClassName, cw->szWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
+    }
+    if (uMsg == AKD_WAITKEYBOARD)
+    {
+      BYTE lpKeyState[256];
+      MSG msg;
+      int i;
+
+      Loop:
+      Sleep(0);
+
+      if (GetKeyboardState(lpKeyState))
+      {
+        for (i=0; i < 256; ++i)
+        {
+          if (lpKeyState[i] & 0x80)
+          {
+            if (wParam) return 1;
+
+            while (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE))
+            {
+              TranslateMessage(&msg);
+              DispatchMessageA(&msg);
+            }
+            goto Loop;
+          }
+        }
+      }
+      return 0;
+    }
+    if (uMsg == AKD_GETQUEUE)
+    {
+      return GetQueueStatus(wParam);
     }
   }
 
@@ -3562,6 +3596,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       bMainOnStartFinish=TRUE;
       return 0;
     }
+
+    //Plugin options
     if (uMsg == AKD_BEGINOPTIONS)
     {
       if (nSaveSettings == SS_REGISTRY)
@@ -3810,6 +3846,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return bResult;
     }
+
+    //Text retrieval and modification
     if (uMsg == AKD_SAVEDOCUMENT)
     {
       SAVEDOCUMENTW *sd=(SAVEDOCUMENTW *)lParam;
@@ -3820,15 +3858,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return GetTextLength((HWND)wParam);
     }
-    if (uMsg == AKD_GETSELTEXTW)
-    {
-      return (LRESULT)GetSelTextW((HWND)wParam, (int *)lParam);
-    }
     if (uMsg == AKD_GETTEXTRANGE)
     {
       GETTEXTRANGE *gtr=(GETTEXTRANGE *)lParam;
 
       return GetRangeTextW((HWND)wParam, gtr->cpMin, gtr->cpMax, (wchar_t **)&gtr->pText);
+    }
+    if (uMsg == AKD_GETSELTEXTW)
+    {
+      return (LRESULT)GetSelTextW((HWND)wParam, (int *)lParam);
     }
     if (uMsg == AKD_FREETEXT)
     {
@@ -3874,6 +3912,41 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       RecodeTextW((HWND)wParam, tr->nCodePageFrom, tr->nCodePageTo);
       return 0;
+    }
+    if (uMsg == AKD_GETCHARCOLOR)
+    {
+      CHARCOLOR *cc=(CHARCOLOR *)lParam;
+
+      return GetCharColor((HWND)wParam, cc);
+    }
+
+    //Print
+    if (uMsg == AKD_GETFILEPRINT)
+    {
+      return bGlobalPrint;
+    }
+    if (uMsg == AKD_SETFILEPRINT)
+    {
+      bGlobalPrint=(BOOL)wParam;
+      return 0;
+    }
+    if (uMsg == AKD_GETPRINTDLG)
+    {
+      return (LRESULT)&pdW;
+    }
+    if (uMsg == AKD_GETPAGEDLG)
+    {
+      return (LRESULT)&psdPageW;
+    }
+
+    //Options
+    if (uMsg == AKD_PROGRAMVERSION)
+    {
+      return dwExeVersion;
+    }
+    if (uMsg == AKD_PROGRAMARCHITECTURE)
+    {
+      return AKELDLL;
     }
     if (uMsg == AKD_GETMAININFO)
     {
@@ -3951,6 +4024,16 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return FALSE;
     }
+    if (uMsg == AKD_SETMODIFY)
+    {
+      SetModifyStatusW((HWND)wParam, lParam, FALSE);
+      return 0;
+    }
+    if (uMsg == AKD_SETNEWLINE)
+    {
+      SetNewLineStatusW((HWND)wParam, lParam, FALSE);
+      return 0;
+    }
     if (uMsg == AKD_GETFONT)
     {
       if (!wParam || (HWND)wParam == hWndEdit)
@@ -3978,25 +4061,6 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return TRUE;
       }
       return FALSE;
-    }
-    if (uMsg == AKD_SETMODIFY)
-    {
-      SetModifyStatusW((HWND)wParam, lParam, FALSE);
-      return 0;
-    }
-    if (uMsg == AKD_SETNEWLINE)
-    {
-      SetNewLineStatusW((HWND)wParam, lParam, FALSE);
-      return 0;
-    }
-    if (uMsg == AKD_GETFILEPRINT)
-    {
-      return bGlobalPrint;
-    }
-    if (uMsg == AKD_SETFILEPRINT)
-    {
-      bGlobalPrint=(BOOL)wParam;
-      return 0;
     }
     if (uMsg == AKD_GETMSGCREATE)
     {
@@ -4026,86 +4090,40 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return (LRESULT)lpCodepageList;
     }
-    if (uMsg == AKD_GETRECENTFILES)
+    if (uMsg == AKD_RECENTFILES)
     {
-      RECENTFILESW *rf=(RECENTFILESW *)lParam;
-
-      rf->lpwszRecentNames=lpwszRecentNames;
-      rf->lpdwRecentPositions=lpdwRecentPositions;
-      rf->lpdwRecentCodepages=lpdwRecentCodepages;
-      rf->nRecentFiles=nRecentFiles;
-      return 0;
-    }
-    if (uMsg == AKD_GETQUEUE)
-    {
-      return GetQueueStatus(wParam);
-    }
-    if (uMsg == AKD_WAITKEYBOARD)
-    {
-      BYTE lpKeyState[256];
-      MSG msg;
-      int i;
-
-      Loop:
-      Sleep(0);
-
-      if (GetKeyboardState(lpKeyState))
+      if (wParam == RF_GET)
       {
-        for (i=0; i < 256; ++i)
-        {
-          if (lpKeyState[i] & 0x80)
-          {
-            if (wParam) return 1;
+        RECENTFILESW *rf=(RECENTFILESW *)lParam;
 
-            while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
-            {
-              TranslateMessage(&msg);
-              DispatchMessageW(&msg);
-            }
-            goto Loop;
-          }
+        if (rf)
+        {
+          rf->lpwszRecentNames=lpwszRecentNames;
+          rf->lpdwRecentPositions=lpdwRecentPositions;
+          rf->lpdwRecentCodepages=lpdwRecentCodepages;
         }
       }
-      return 0;
+      else if (wParam == RF_CLEAR)
+      {
+        RecentFilesZeroW();
+        RecentFilesSaveW();
+        bMenuRecentFiles=TRUE;
+      }
+      return nRecentFiles;
     }
-    if (uMsg == AKD_GETPRINTDLG)
+    if (uMsg == AKD_SEARCHHISTORY)
     {
-      return (LRESULT)&pdW;
+      if (wParam == SH_GET)
+      {
+      }
+      else if (wParam == SH_CLEAR)
+      {
+        RegClearKeyW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Search");
+      }
+      return nSearchStrings;
     }
-    if (uMsg == AKD_GETPAGEDLG)
-    {
-      return (LRESULT)&psdPageW;
-    }
-    if (uMsg == AKD_GLOBALALLOC)
-    {
-      return (LRESULT)GlobalAlloc(wParam, lParam);
-    }
-    if (uMsg == AKD_GLOBALLOCK)
-    {
-      return (LRESULT)GlobalLock((HGLOBAL)wParam);
-    }
-    if (uMsg == AKD_GLOBALUNLOCK)
-    {
-      return (LRESULT)GlobalUnlock((HGLOBAL)wParam);
-    }
-    if (uMsg == AKD_GLOBALFREE)
-    {
-      return (LRESULT)GlobalFree((HGLOBAL)wParam);
-    }
-    if (uMsg == AKD_CREATEWINDOW)
-    {
-      CREATEWINDOWW *cw=(CREATEWINDOWW *)lParam;
 
-      return (LRESULT)CreateWindowW(cw->wszClassName, cw->wszWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
-    }
-    if (uMsg == AKD_STRLENA)
-    {
-      return lstrlenA((char *)wParam);
-    }
-    if (uMsg == AKD_STRLENW)
-    {
-      return lstrlenW((wchar_t *)wParam);
-    }
+    //Windows
     if (uMsg == AKD_GETMODELESS)
     {
       return (LRESULT)hDlgModeless;
@@ -4183,19 +4201,69 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return (LRESULT)lpResult;
     }
-    if (uMsg == AKD_GETCHARCOLOR)
-    {
-      CHARCOLOR *cc=(CHARCOLOR *)lParam;
 
-      return GetCharColor((HWND)wParam, cc);
-    }
-    if (uMsg == AKD_PROGRAMVERSION)
+    //Thread
+    if (uMsg == AKD_GLOBALALLOC)
     {
-      return dwExeVersion;
+      return (LRESULT)GlobalAlloc(wParam, lParam);
     }
-    if (uMsg == AKD_PROGRAMARCHITECTURE)
+    if (uMsg == AKD_GLOBALLOCK)
     {
-      return AKELDLL;
+      return (LRESULT)GlobalLock((HGLOBAL)wParam);
+    }
+    if (uMsg == AKD_GLOBALUNLOCK)
+    {
+      return (LRESULT)GlobalUnlock((HGLOBAL)wParam);
+    }
+    if (uMsg == AKD_GLOBALFREE)
+    {
+      return (LRESULT)GlobalFree((HGLOBAL)wParam);
+    }
+    if (uMsg == AKD_STRLENA)
+    {
+      return lstrlenA((char *)wParam);
+    }
+    if (uMsg == AKD_STRLENW)
+    {
+      return lstrlenW((wchar_t *)wParam);
+    }
+    if (uMsg == AKD_CREATEWINDOW)
+    {
+      CREATEWINDOWW *cw=(CREATEWINDOWW *)lParam;
+
+      return (LRESULT)CreateWindowW(cw->wszClassName, cw->wszWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
+    }
+    if (uMsg == AKD_WAITKEYBOARD)
+    {
+      BYTE lpKeyState[256];
+      MSG msg;
+      int i;
+
+      Loop:
+      Sleep(0);
+
+      if (GetKeyboardState(lpKeyState))
+      {
+        for (i=0; i < 256; ++i)
+        {
+          if (lpKeyState[i] & 0x80)
+          {
+            if (wParam) return 1;
+
+            while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
+            {
+              TranslateMessage(&msg);
+              DispatchMessageW(&msg);
+            }
+            goto Loop;
+          }
+        }
+      }
+      return 0;
+    }
+    if (uMsg == AKD_GETQUEUE)
+    {
+      return GetQueueStatus(wParam);
     }
   }
 
