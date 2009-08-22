@@ -129,6 +129,7 @@
 #define AESELT_COLUMNON            0x00000010  //Make column selection ON.
 #define AESELT_COLUMNOFF           0x00000020  //Make column selection OFF.
 #define AESELT_NOVERTSCROLLCORRECT 0x00000040  //On some conditions scroll can be increased to a height of one line.
+#define AESELT_MOUSE               0x00000080  //Don't use it. For internal code only.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.

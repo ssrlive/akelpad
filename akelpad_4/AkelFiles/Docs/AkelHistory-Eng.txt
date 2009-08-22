@@ -6,6 +6,7 @@ Changed: syntax highlighting improved.
 Added: internal Alt+NumPad processing.
 
 Fixed: "Replace all".
+Fixed: selection by pressing on left mouse button in left margin.
 Fixed: out of the text area didn't redraw after computer unlocking.
 Fixed: management didn't come back to the user, after message appearance at text
        dragging in next tab window (MDI).
