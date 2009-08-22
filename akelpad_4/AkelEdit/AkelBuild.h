@@ -429,6 +429,7 @@ typedef struct _AKELEDIT {
 
   //Cursor
   AECHARRANGE crMouseOnLink;
+  BOOL bLButtonClick;
   AECHARINDEX ciLButtonClick;
   AECHARINDEX ciLButtonStart;
   AECHARINDEX ciLButtonEnd;

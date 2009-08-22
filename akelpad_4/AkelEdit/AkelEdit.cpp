@@ -2900,6 +2900,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->ptLButtonDownPrevPos=ptPos;
         ae->nLButtonDownPrevTime=nLButtonDownCurTime;
 
+        if (!ae->bLButtonClick)
+        {
+          ae->ciLButtonClick=ae->ciCaretIndex;
+          ae->ciLButtonStart=ae->ciCaretIndex;
+          ae->ciLButtonEnd=ae->ciCaretIndex;
+        }
+
         //One click
         if (ae->nLButtonDownCount == 0)
         {
@@ -2929,7 +2936,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ae->ciLButtonClick=ciCharIndex;
             ae->ciLButtonStart=cr.ciMin;
             ae->ciLButtonEnd=cr.ciMax;
-            AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, 0);
+            AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE);
           }
           //Start drag source capture
           else if (!ae->bDragging && !bAlt && !bShift && ae->nCurrentCursor == AECC_SELECTION)
@@ -2987,7 +2994,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ae->ciLButtonClick=ae->ciCaretIndex;
             ae->ciLButtonStart=ciPrevWord;
             ae->ciLButtonEnd=ciNextWord;
-            AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, 0);
+            AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE);
           }
         }
         //Three clicks
@@ -3020,7 +3027,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ae->ciLButtonClick=ciCharIndex;
             ae->ciLButtonStart=cr.ciMin;
             ae->ciLButtonEnd=cr.ciMax;
-            AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, 0);
+            AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE);
           }
         }
         return 0;
@@ -6263,6 +6270,10 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
   {
     AE_StackUndoGroupStop(ae);
   }
+  if (!(dwSelFlags & AESELT_MOUSE))
+    ae->bLButtonClick=FALSE;
+  else
+    ae->bLButtonClick=TRUE;
 
   if (ciSelStart->lpLine && ciSelEnd->lpLine)
   {
@@ -6467,7 +6478,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
           {
             AE_IndexUpdate(ae, &ciCharIndex);
             AE_IndexUpdate(ae, &ciSelEnd);
-            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
+            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE);
           }
         }
         //Characters selection
@@ -6495,11 +6506,11 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
             else
               ciSelEnd=ae->ciSelEndIndex;
 
-            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
+            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE);
           }
         }
       }
-      else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, bColumnSel, 0);
+      else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, bColumnSel, AESELT_MOUSE);
     }
     //Two clicks (capture)
     else if (ae->nLButtonDownCount == 1)
@@ -6527,7 +6538,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           AE_IndexUpdate(ae, &ciCharIndex);
           AE_IndexUpdate(ae, &ciSelEnd);
-          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
+          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE);
         }
       }
     }
@@ -6560,7 +6571,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           AE_IndexUpdate(ae, &ciCharIndex);
           AE_IndexUpdate(ae, &ciSelEnd);
-          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, 0);
+          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE);
         }
       }
     }
