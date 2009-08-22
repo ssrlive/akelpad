@@ -2177,15 +2177,27 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SetNewLineStatusA((HWND)wParam, lParam, FALSE);
       return 0;
     }
+    if (uMsg == AKD_GETFILEPRINT)
+    {
+      return bGlobalPrint;
+    }
     if (uMsg == AKD_SETFILEPRINT)
     {
       bGlobalPrint=(BOOL)wParam;
       return 0;
     }
+    if (uMsg == AKD_GETMSGCREATE)
+    {
+      return nMsgCreate;
+    }
     if (uMsg == AKD_SETMSGCREATE)
     {
       nMsgCreate=(int)wParam;
       return 0;
+    }
+    if (uMsg == AKD_GETMSGBINARY)
+    {
+      return nMsgBinary;
     }
     if (uMsg == AKD_SETMSGBINARY)
     {
@@ -3977,15 +3989,27 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SetNewLineStatusW((HWND)wParam, lParam, FALSE);
       return 0;
     }
+    if (uMsg == AKD_GETFILEPRINT)
+    {
+      return bGlobalPrint;
+    }
     if (uMsg == AKD_SETFILEPRINT)
     {
       bGlobalPrint=(BOOL)wParam;
       return 0;
     }
+    if (uMsg == AKD_GETMSGCREATE)
+    {
+      return nMsgCreate;
+    }
     if (uMsg == AKD_SETMSGCREATE)
     {
       nMsgCreate=(int)wParam;
       return 0;
+    }
+    if (uMsg == AKD_GETMSGBINARY)
+    {
+      return nMsgBinary;
     }
     if (uMsg == AKD_SETMSGBINARY)
     {
