@@ -14704,7 +14704,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
           {
             if (pv.dwExeMinVersion4x != MAKE_IDENTIFIER(-1, -1, -1, -1))
             {
-              if (pv.dwExeMinVersion4x <= dwExeVersion)
+              if (VersionCompare(pv.dwExeMinVersion4x, dwExeVersion) <= 0)
               {
                 if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
                 {
@@ -14777,7 +14777,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
           {
             char szStr[MAX_PATH];
 
-            if (pv.dwAkelDllVersion < AKELDLL)
+            if (VersionCompare(pv.dwAkelDllVersion, AKELDLL) < 0)
               lstrcpynA(szStr, szPluginWord, MAX_PATH);
             else
               lstrcpynA(szStr, "AkelPad", MAX_PATH);
@@ -14866,7 +14866,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
           {
             if (pv.dwExeMinVersion4x != MAKE_IDENTIFIER(-1, -1, -1, -1))
             {
-              if (pv.dwExeMinVersion4x <= dwExeVersion)
+              if (VersionCompare(pv.dwExeMinVersion4x, dwExeVersion) <= 0)
               {
                 if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
                 {
@@ -14939,7 +14939,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
           {
             wchar_t wszStr[MAX_PATH];
 
-            if (pv.dwAkelDllVersion < AKELDLL)
+            if (VersionCompare(pv.dwAkelDllVersion, AKELDLL) < 0)
               lstrcpynW(wszStr, wszPluginWord, MAX_PATH);
             else
               lstrcpynW(wszStr, L"AkelPad", MAX_PATH);
@@ -20173,6 +20173,19 @@ BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, i
     }
   }
   return bResult;
+}
+
+int VersionCompare(DWORD dwVersion1, DWORD dwVersion2)
+{
+  if (LOBYTE(dwVersion1) != LOBYTE(dwVersion2))
+    return LOBYTE(dwVersion1) - LOBYTE(dwVersion2);
+  if (HIBYTE(dwVersion1) != HIBYTE(dwVersion2))
+    return HIBYTE(dwVersion1) - HIBYTE(dwVersion2);
+  if (LOBYTE(HIWORD(dwVersion1)) != LOBYTE(HIWORD(dwVersion2)))
+    return LOBYTE(HIWORD(dwVersion1)) - LOBYTE(HIWORD(dwVersion2));
+  if (HIBYTE(HIWORD(dwVersion1)) != HIBYTE(HIWORD(dwVersion2)))
+    return HIBYTE(HIWORD(dwVersion1)) - HIBYTE(HIWORD(dwVersion2));
+  return 0;
 }
 
 int TranslateFileStringA(char *pString, char *szBuffer, int nBufferSize)
