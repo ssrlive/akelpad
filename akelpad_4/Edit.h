@@ -18,8 +18,8 @@
 #define APP_PRINTPREVIEW_CLASSW     L"AkelPad Print Preview"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_ABOUT_VERSIONA           "AkelPad 4.2.7"
-#define APP_ABOUT_VERSIONW          L"AkelPad 4.2.7"
+#define APP_ABOUT_VERSIONA           "AkelPad 4.3.0"
+#define APP_ABOUT_VERSIONW          L"AkelPad 4.3.0"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -805,6 +805,7 @@ void TrimModifyStateA(char *szFile);
 void TrimModifyStateW(wchar_t *wszFile);
 BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);
 BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);
+int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
 int TranslateFileStringA(char *pCommand, char *szBuffer, int nBufferSize);
 int TranslateFileStringW(wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
 void ActivateWindow(HWND hWnd);
