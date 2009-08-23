@@ -737,6 +737,7 @@ char* GetFileExtA(char *pFile);
 wchar_t* GetFileExtW(wchar_t *wpFile);
 BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);
 BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);
+int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
 int TranslateFileStringA(char *pCommand, char *szBuffer, int nBufferSize);
 int TranslateFileStringW(wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
 void ActivateWindow(HWND hWnd);
