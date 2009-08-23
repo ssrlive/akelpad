@@ -1,6 +1,7 @@
 
-AkelPad 4.2.7 ()
+AkelPad 4.3.0 ()
 ----------------------------
+Changed: plugin architecture. Update plugins.
 Changed: syntax highlighting improved.
 
 Added: internal Alt+NumPad processing.
