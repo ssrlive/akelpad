@@ -6551,7 +6551,7 @@ LRESULT CALLBACK NewTabProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (nItem != -1)
     {
       SelectTabItem(hWnd, nItem);
-      PostMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
+      SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
       return TRUE;
     }
   }
@@ -6688,7 +6688,7 @@ LRESULT CALLBACK NewTabProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (nItem != -1)
     {
       SelectTabItem(hWnd, nItem);
-      PostMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
+      SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
       return TRUE;
     }
   }

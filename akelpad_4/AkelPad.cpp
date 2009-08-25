@@ -6918,7 +6918,7 @@ LRESULT CALLBACK NewMdiClientProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
           DestroyEdit(CN_ALL, &wf->ei.hWndEdit, &wf->hWndMaster, &wf->hWndClone1, &wf->hWndClone2, &wf->hWndClone3);
       }
 
-      nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+      nItem=GetTabItemFromParam(hTab, (LPARAM)wParam);
       DeleteTabItem(hTab, nItem);
 
       if (wf=(WNDFRAMEA *)GetWindowLongA((HWND)wParam, GWL_USERDATA))
@@ -7031,7 +7031,7 @@ LRESULT CALLBACK NewMdiClientProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
           DestroyEdit(CN_ALL, &wf->ei.hWndEdit, &wf->hWndMaster, &wf->hWndClone1, &wf->hWndClone2, &wf->hWndClone3);
       }
 
-      nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+      nItem=GetTabItemFromParam(hTab, (LPARAM)wParam);
       DeleteTabItem(hTab, nItem);
 
       if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)wParam, GWL_USERDATA))
@@ -7101,7 +7101,7 @@ LRESULT CALLBACK NewTabProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (nItem != -1)
     {
       SelectTabItem(hWnd, nItem);
-      PostMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
+      SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
       return TRUE;
     }
   }
@@ -7241,7 +7241,7 @@ LRESULT CALLBACK NewTabProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (nItem != -1)
     {
       SelectTabItem(hWnd, nItem);
-      PostMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
+      SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
       return TRUE;
     }
   }

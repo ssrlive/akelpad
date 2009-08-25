@@ -17650,15 +17650,23 @@ void UpdateTabs(HWND hWnd)
 int GetTabItemFromParam(HWND hWnd, LPARAM lParam)
 {
   TCITEMA tcItemA;
-  int i=-1;
+  int nCurSel;
+  int i;
 
   tcItemA.mask=TCIF_PARAM;
+  nCurSel=SendMessage(hWnd, TCM_GETCURSEL, 0, 0);
+  SendMessage(hWnd, TCM_GETITEMA, nCurSel, (LPARAM)&tcItemA);
+  if (tcItemA.lParam == lParam) return nCurSel;
 
   for (i=0; SendMessage(hWnd, TCM_GETITEMA, i, (LPARAM)&tcItemA); ++i)
   {
-    if (tcItemA.lParam == lParam) break;
+    if (i != nCurSel)
+    {
+      if (tcItemA.lParam == lParam)
+        return i;
+    }
   }
-  return i;
+  return -1;
 }
 
 int GetTabItemFromPoint(HWND hWnd, POINT *pt)
