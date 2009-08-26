@@ -2551,7 +2551,7 @@ Return Value
  pointer to a LOGFONT structure
 
 Example (bOldWindows == TRUE):
- LOGFONT *lf=(LOGFONT *)SendMessage(pd->hMainWnd, AKD_GETFONT, (WPARAM)NULL, 0);
+ LOGFONTA *lf=(LOGFONTA *)SendMessage(pd->hMainWnd, AKD_GETFONT, (WPARAM)NULL, 0);
 
 Example (bOldWindows == FALSE):
  LOGFONTW *lf=(LOGFONTW *)SendMessage(pd->hMainWnd, AKD_GETFONT, (WPARAM)NULL, 0);
