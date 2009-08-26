@@ -692,7 +692,7 @@ void AE_EditSelectAll(AKELEDIT *ae);
 BOOL AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret);
 void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *lpciCaret);
 BOOL AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax);
-void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel);
+void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec);
 void AE_NotifyErrSpace(AKELEDIT *ae, DWORD dwBytes);
