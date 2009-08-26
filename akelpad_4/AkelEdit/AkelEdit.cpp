@@ -1954,15 +1954,15 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_SETSEL)
     {
-      AE_RichEditSetSel(ae, wParam, lParam, FALSE);
+      AE_RichEditSetSel(ae, wParam, lParam);
       return 0;
     }
     if (uMsg == EM_EXSETSEL)
     {
       CHARRANGE *crRE=(CHARRANGE *)lParam;
 
-      AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax, FALSE);
-      return 0;
+      AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
+      return ae->nSelEndCharOffset;
     }
     if (uMsg == EM_GETLINECOUNT)
     {
@@ -15156,17 +15156,13 @@ BOOL AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
   return TRUE;
 }
 
-void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax, BOOL bColumnSel)
+void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax)
 {
   AECHARRANGE cr;
 
   AE_RichOffsetToAkelIndex(ae, nMin, &cr.ciMin);
   AE_RichOffsetToAkelIndex(ae, nMax, &cr.ciMax);
-
-  if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
-    AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, bColumnSel, 0);
-  else
-    AE_SetSelectionPos(ae, &cr.ciMin, &cr.ciMax, bColumnSel, 0);
+  AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, 0);
 }
 
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
