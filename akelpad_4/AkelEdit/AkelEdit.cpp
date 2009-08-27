@@ -1463,7 +1463,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AEWORDITEMW *lpWordDst;
         int nWordLen;
 
-        if (!(lpWordSrc->dwFlags & AEHLF_COMPOSITION))
+        if (!(lpWordSrc->dwFlags & AEHLF_WORDCOMPOSITION))
           nWordLen=lpWordSrc->nWordLen;
         else
           nWordLen=0;
@@ -1488,7 +1488,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AEWORDITEMW *lpWordDst;
         int nWordLen;
 
-        if (!(lpWordSrc->dwFlags & AEHLF_COMPOSITION))
+        if (!(lpWordSrc->dwFlags & AEHLF_WORDCOMPOSITION))
           nWordLen=lpWordSrc->nWordLen;
         else
           nWordLen=0;
@@ -1539,6 +1539,22 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           MultiByteToWideChar(CP_ACP, 0, &lpQuoteSrc->chEscape, 1, &lpQuoteDst->wchEscape, 1);
 
+          if (lpQuoteSrc->pQuoteInclude)
+          {
+            if (lpQuoteDst->pQuoteInclude=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteIncludeLen * sizeof(wchar_t) + 2))
+              MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen + 1, lpQuoteDst->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen + 1);
+            lpQuoteDst->nQuoteIncludeLen=lpQuoteSrc->nQuoteIncludeLen;
+          }
+          else lpQuoteDst->pQuoteInclude=NULL;
+
+          if (lpQuoteSrc->pQuoteExclude)
+          {
+            if (lpQuoteDst->pQuoteExclude=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteExcludeLen * sizeof(wchar_t) + 2))
+              MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen + 1, lpQuoteDst->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen + 1);
+            lpQuoteDst->nQuoteExcludeLen=lpQuoteSrc->nQuoteExcludeLen;
+          }
+          else lpQuoteDst->pQuoteExclude=NULL;
+
           lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
           lpQuoteDst->crText=lpQuoteSrc->crText;
           lpQuoteDst->crBk=lpQuoteSrc->crBk;
@@ -1567,6 +1583,23 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           else lpQuoteDst->pQuoteEnd=NULL;
 
           lpQuoteDst->wchEscape=lpQuoteSrc->wchEscape;
+
+          if (lpQuoteSrc->pQuoteInclude)
+          {
+            if (lpQuoteDst->pQuoteInclude=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteIncludeLen * sizeof(wchar_t) + 2))
+              AE_memcpy(lpQuoteDst->pQuoteInclude, lpQuoteSrc->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen * sizeof(wchar_t) + 2);
+            lpQuoteDst->nQuoteIncludeLen=lpQuoteSrc->nQuoteIncludeLen;
+          }
+          else lpQuoteDst->pQuoteInclude=NULL;
+
+          if (lpQuoteSrc->pQuoteExclude)
+          {
+            if (lpQuoteDst->pQuoteExclude=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteExcludeLen * sizeof(wchar_t) + 2))
+              AE_memcpy(lpQuoteDst->pQuoteExclude, lpQuoteSrc->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen * sizeof(wchar_t) + 2);
+            lpQuoteDst->nQuoteExcludeLen=lpQuoteSrc->nQuoteExcludeLen;
+          }
+          else lpQuoteDst->pQuoteExclude=NULL;
+
           lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
           lpQuoteDst->crText=lpQuoteSrc->crText;
           lpQuoteDst->crBk=lpQuoteSrc->crBk;
@@ -7099,7 +7132,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   AEQUOTEITEMW *lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first;
   AEDELIMITEMW *lpDelimiterElement=NULL;
   int nQuoteLen=0;
-  BOOL bWithDelimiters=FALSE;
+  BOOL bMisMatch=FALSE;
 
   wm->lpQuote=NULL;
   if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen) return 0;
@@ -7207,6 +7240,22 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                             wm->lpQuote=lpQuoteElement;
                             goto SetQuote;
                           }
+                        }
+                      }
+                      if (lpQuoteElement->dwFlags & AEHLF_QUOTEINCLUDE)
+                      {
+                        if (lpQuoteElement->pQuoteInclude && *lpQuoteElement->pQuoteInclude)
+                        {
+                          if (!AE_IsInDelimiterList(lpQuoteElement->pQuoteInclude, ciTmpCount.lpLine->wpLine[ciTmpCount.nCharInLine], (lpQuoteElement->dwFlags & AEHLF_MATCHCASE)))
+                            goto QuoteStartNext;
+                        }
+                      }
+                      if (lpQuoteElement->dwFlags & AEHLF_QUOTEEXCLUDE)
+                      {
+                        if (lpQuoteElement->pQuoteExclude && *lpQuoteElement->pQuoteExclude)
+                        {
+                          if (AE_IsInDelimiterList(lpQuoteElement->pQuoteExclude, ciTmpCount.lpLine->wpLine[ciTmpCount.nCharInLine], (lpQuoteElement->dwFlags & AEHLF_MATCHCASE)))
+                            goto QuoteStartNext;
                         }
                       }
                       if (AE_HighlightIsDelimiter(ae, NULL, &ciTmpCount, FALSE))
@@ -7324,12 +7373,35 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
               {
                 if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, FALSE))
                 {
-                  bWithDelimiters=TRUE;
+                  bMisMatch=TRUE;
                   goto SetQuote;
                 }
               }
             }
           }
+          if (wm->lpQuote->dwFlags & AEHLF_QUOTEINCLUDE)
+          {
+            if (wm->lpQuote->pQuoteInclude && *wm->lpQuote->pQuoteInclude)
+            {
+              if (!AE_IsInDelimiterList(wm->lpQuote->pQuoteInclude, ciCount.lpLine->wpLine[ciCount.nCharInLine], (wm->lpQuote->dwFlags & AEHLF_MATCHCASE)))
+              {
+                bMisMatch=TRUE;
+                goto SetQuote;
+              }
+            }
+          }
+          if (wm->lpQuote->dwFlags & AEHLF_QUOTEEXCLUDE)
+          {
+            if (wm->lpQuote->pQuoteExclude && *wm->lpQuote->pQuoteExclude)
+            {
+              if (AE_IsInDelimiterList(wm->lpQuote->pQuoteExclude, ciCount.lpLine->wpLine[ciCount.nCharInLine], (wm->lpQuote->dwFlags & AEHLF_MATCHCASE)))
+              {
+                bMisMatch=TRUE;
+                goto SetQuote;
+              }
+            }
+          }
+
           ++nQuoteLen;
         }
         ++ciCount.nCharInLine;
@@ -7367,14 +7439,19 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         ciCount=wm->crQuoteEnd.ciMin;
       else
         ciCount=wm->crQuoteEnd.ciMax;
-      if (((wm->lpQuote->dwFlags & AEHLF_QUOTEWITHOUTDELIMITERS) && bWithDelimiters) ||
-          ((wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(&ciCount)))
+
+      if (!bMisMatch)
+      {
+        if ((wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(&ciCount))
+          bMisMatch=TRUE;
+      }
+      if (bMisMatch)
       {
         wm->crQuoteEnd.ciMin=wm->crQuoteStart.ciMax;
         wm->crQuoteEnd.ciMax=wm->crQuoteStart.ciMax;
         ciCount=wm->crQuoteStart.ciMax;
         wm->lpQuote=NULL;
-        bWithDelimiters=FALSE;
+        bMisMatch=FALSE;
       }
 
       if (dwSearchType & AEHF_FINDFIRSTCHAR)
@@ -7565,7 +7642,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
     {
       if (lpWordElement->nWordLen == 0)
       {
-        if (lpWordElement->dwFlags & AEHLF_COMPOSITION)
+        if (lpWordElement->dwFlags & AEHLF_WORDCOMPOSITION)
         {
           ciCount=crWord->ciMin;
 
@@ -7785,6 +7862,8 @@ void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *aeq
 {
   if (aeqi->pQuoteStart) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteStart);
   if (aeqi->pQuoteEnd) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteEnd);
+  if (aeqi->pQuoteInclude) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteInclude);
+  if (aeqi->pQuoteExclude) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteExclude);
   AE_HeapStackDelete(NULL, (stack **)&aeti->hQuoteStack.first, (stack **)&aeti->hQuoteStack.last, (stack *)aeqi);
 }
 
@@ -7796,6 +7875,8 @@ void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   {
     if (lpElement->pQuoteStart) AE_HeapFree(NULL, 0, (LPVOID)lpElement->pQuoteStart);
     if (lpElement->pQuoteEnd) AE_HeapFree(NULL, 0, (LPVOID)lpElement->pQuoteEnd);
+    if (lpElement->pQuoteInclude) AE_HeapFree(NULL, 0, (LPVOID)lpElement->pQuoteInclude);
+    if (lpElement->pQuoteExclude) AE_HeapFree(NULL, 0, (LPVOID)lpElement->pQuoteExclude);
 
     lpElement=lpElement->next;
   }
