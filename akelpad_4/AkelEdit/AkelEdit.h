@@ -188,7 +188,7 @@
 
 //Highlight flags
 #define AEHLF_MATCHCASE              0x0001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
-#define AEHLF_QUOTEWITHOUTDELIMITERS 0x0002  //Quote doesn't contain delimiters.
+#define AEHLF_WORDCOMPOSITION        0x0002  //Word is a composition of characters. For example, "1234567890" with this flag, means highlight words that contain only digits.
 #define AEHLF_QUOTEEND_REQUIRED      0x0004  //If quote end isn't found, text after quote start will not be highlighted.
 #define AEHLF_QUOTESTART_ISDELIMITER 0x0008  //Last meet delimiter used as quote start (AEQUOTEITEM.pQuoteStart member is ignored).
 #define AEHLF_QUOTEEND_ISDELIMITER   0x0010  //First meet delimiter used as quote end (AEQUOTEITEM.pQuoteEnd member is ignored).
@@ -200,7 +200,9 @@
 #define AEHLF_QUOTEEND_ATLINEEND     0x0400  //Quote end located at line end.
 #define AEHLF_QUOTESTART_ISWORD      0x0800  //Quote start is surrounded with delimiters.
 #define AEHLF_QUOTEEND_ISWORD        0x1000  //Quote end is surrounded with delimiters.
-#define AEHLF_COMPOSITION            0x2000  //String is a composition of characters.
+#define AEHLF_QUOTEWITHOUTDELIMITERS 0x2000  //Quote doesn't contain delimiters.
+#define AEHLF_QUOTEINCLUDE           0x4000  //Quote include string is valid.
+#define AEHLF_QUOTEEXCLUDE           0x8000  //Quote exclude string is valid.
 
 //Highlight font style
 #define AEHLS_NONE                  0  //Current style.
@@ -571,6 +573,10 @@ typedef struct _AEQUOTEITEMA {
   char *pQuoteEnd;           //Quote end string. If NULL, line end used as quote end.
   int nQuoteEndLen;          //Quote end string length.
   char chEscape;             //Escape character. If it precedes quote string then quote ignored.
+  char *pQuoteInclude;       //Quote include string.
+  int nQuoteIncludeLen;      //Quote include string length.
+  char *pQuoteExclude;       //Quote exclude string.
+  int nQuoteExcludeLen;      //Quote exclude string length.
   DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Quote text color. If -1, then don't set.
   COLORREF crBk;             //Quote background color. If -1, then don't set.
@@ -585,6 +591,10 @@ typedef struct _AEQUOTEITEMW {
   wchar_t *pQuoteEnd;        //Quote end string. If NULL, line end used as quote end.
   int nQuoteEndLen;          //Quote end string length.
   wchar_t wchEscape;         //Escape character. If it precedes quote string then quote ignored.
+  wchar_t *pQuoteInclude;    //Quote include string.
+  int nQuoteIncludeLen;      //Quote include string length.
+  wchar_t *pQuoteExclude;    //Quote exclude string.
+  int nQuoteExcludeLen;      //Quote exclude string length.
   DWORD dwFlags;             //See AEHLF_* defines.
   COLORREF crText;           //Quote text color. If -1, then don't set.
   COLORREF crBk;             //Quote background color. If -1, then don't set.
