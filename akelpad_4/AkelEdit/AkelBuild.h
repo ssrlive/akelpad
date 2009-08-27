@@ -573,7 +573,7 @@ int AE_HighlightFindMarkRange(AKELEDIT *ae, int nCharOffset, AEMARKRANGEMATCH *m
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *wm);
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm);
 AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, BOOL bBack);
-AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, int nWordLen);
+AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE *crWord, int nWordLen);
 AETHEMEITEMW* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName);
 AETHEMEITEMW* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName);
 BOOL AE_HighlightIsThemeExists(AKELEDIT *ae, AETHEMEITEMW *aeti);
@@ -646,7 +646,7 @@ BOOL AE_IsFirstCharInLine(const AECHARINDEX *ciChar);
 BOOL AE_IsLastCharInLine(const AECHARINDEX *ciChar);
 BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar);
 BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape);
-BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c);
+BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c, BOOL bMatchCase);
 BOOL AE_IsSpace(wchar_t c);
 int AE_GetUrlPrefixes(AKELEDIT *ae);
 int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, POINT *ptSelStart, POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel);
@@ -721,7 +721,7 @@ int AE_WideStrCmpLenI(const wchar_t *wpString, const wchar_t *wpString2, DWORD d
 void AE_ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
 int AE_strncpy(char *dest, const char *src, unsigned int count);
 int AE_wcsncpy(wchar_t *dest, const wchar_t *src, unsigned int count);
-wchar_t* AE_wcschr(const wchar_t *s, wchar_t c);
+wchar_t* AE_wcschr(const wchar_t *s, wchar_t c, BOOL bMatchCase);
 void* AE_memcpy(void *dest, const void *src, unsigned int count);
 int AE_memcmp(const void *buf1, const void *buf2, unsigned int count);
 void* AE_memset(void *dest, int c, unsigned int count);

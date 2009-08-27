@@ -200,6 +200,7 @@
 #define AEHLF_QUOTEEND_ATLINEEND     0x0400  //Quote end located at line end.
 #define AEHLF_QUOTESTART_ISWORD      0x0800  //Quote start is surrounded with delimiters.
 #define AEHLF_QUOTEEND_ISWORD        0x1000  //Quote end is surrounded with delimiters.
+#define AEHLF_COMPOSITION            0x2000  //String is a composition of characters.
 
 //Highlight font style
 #define AEHLS_NONE                  0  //Current style.
