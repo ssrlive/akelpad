@@ -3062,9 +3062,14 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wsprintfA(buf2, buf, szCurrentFile);
         if (MessageBoxA(hWnd, buf2, APP_MAIN_TITLEA, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
         {
-          bDocumentReopen=TRUE;
-          OpenDocumentA(hWndEdit, szCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
-          bDocumentReopen=FALSE;
+          EDITINFO ei;
+
+          if (GetEditInfoA((HWND)lParam, &ei))
+          {
+            bDocumentReopen=TRUE;
+            OpenDocumentA(ei.hWndEdit, (char *)ei.pFile, 0, ei.nCodePage, ei.bBOM);
+            bDocumentReopen=FALSE;
+          }
         }
       }
     }
@@ -4953,9 +4958,14 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wsprintfW(wbuf2, wbuf, wszCurrentFile);
         if (MessageBoxW(hWnd, wbuf2, APP_MAIN_TITLEW, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
         {
-          bDocumentReopen=TRUE;
-          OpenDocumentW(hWndEdit, wszCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
-          bDocumentReopen=FALSE;
+          EDITINFO ei;
+
+          if (GetEditInfoW((HWND)lParam, &ei))
+          {
+            bDocumentReopen=TRUE;
+            OpenDocumentW(ei.hWndEdit, (wchar_t *)ei.pFile, 0, ei.nCodePage, ei.bBOM);
+            bDocumentReopen=FALSE;
+          }
         }
       }
     }
