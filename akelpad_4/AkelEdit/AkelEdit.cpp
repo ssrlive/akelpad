@@ -5214,11 +5214,14 @@ int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
 
 int AE_IndexInc(AECHARINDEX *ciChar)
 {
-  if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+  if (ciChar->nCharInLine >= 0)
   {
-    if (IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
-      if (IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
-        ++ciChar->nCharInLine;
+    if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+    {
+      if (IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+        if (IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
+          ++ciChar->nCharInLine;
+    }
   }
   return ++ciChar->nCharInLine;
 }
