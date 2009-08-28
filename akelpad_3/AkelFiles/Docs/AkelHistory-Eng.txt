@@ -1,5 +1,5 @@
 
-AkelPad 3.7.3 ()
+AkelPad 3.7.3 (Aug 28, 2009)
 ----------------------------
 Added: 4113 command - silent printing.
 Added: 4430 command - paste text after caret.

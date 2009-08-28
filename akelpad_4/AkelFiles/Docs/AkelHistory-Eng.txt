@@ -1,5 +1,5 @@
 
-AkelPad 4.3.0 ()
+AkelPad 4.3.0 (Aug 28, 2009)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: syntax highlighting improved.
