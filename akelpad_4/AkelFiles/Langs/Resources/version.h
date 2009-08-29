@@ -1,6 +1,6 @@
 // Add version information to EXE
 
-#define AKELPAD_ID 4,3,0,0
+#define AKELPAD_ID 4,3,1,0
 
 #ifdef EXE_VERSION
   #ifndef EXE_VERSION_INCLUDED
