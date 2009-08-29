@@ -7438,11 +7438,6 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     SetQuote:
     if (wm->lpQuote)
     {
-      if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_NOMATCH)
-        ciCount=wm->crQuoteEnd.ciMin;
-      else
-        ciCount=wm->crQuoteEnd.ciMax;
-
       if (!bMisMatch)
       {
         if ((wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(&ciCount))
@@ -7456,13 +7451,24 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         wm->lpQuote=NULL;
         bMisMatch=FALSE;
       }
+      else
+      {
+        if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_NOMATCH)
+          ciCount=wm->crQuoteEnd.ciMin;
+        else
+          ciCount=wm->crQuoteEnd.ciMax;
+      }
 
       if (dwSearchType & AEHF_FINDFIRSTCHAR)
       {
         if (AE_IndexCompare(&ciCount, ciChar) <= 0)
         {
           wm->lpQuote=NULL;
-          goto Begin;
+
+          if (AE_IndexCompare(&ciCount, &wm->crQuoteStart.ciMin) > 0)
+            goto Begin;
+          else
+            goto QuoteStartNext;
         }
       }
     }
