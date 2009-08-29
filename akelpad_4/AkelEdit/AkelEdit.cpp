@@ -7135,7 +7135,6 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   AEQUOTEITEMW *lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first;
   AEDELIMITEMW *lpDelimiterElement=NULL;
   int nQuoteLen=0;
-  BOOL bMisMatch=FALSE;
 
   wm->lpQuote=NULL;
   if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen) return 0;
@@ -7229,7 +7228,14 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                 }
               }
             }
-            QuoteStartNext:;
+            continue;
+
+            QuoteStartNext:
+            wm->crQuoteStart.ciMax=wm->crQuoteStart.ciMin;
+            wm->crQuoteEnd=wm->crQuoteStart;
+            ciCount=wm->crQuoteStart.ciMin;
+            nQuoteLen=0;
+            wm->lpQuote=NULL;
           }
           if (dwSearchType & AEHF_ISFIRSTCHAR)
             return 0;
@@ -7245,6 +7251,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
               {
                 nQuoteLen+=lpDelimiterElement->nDelimiterLen;
                 wm->crQuoteEnd=ft.crFound;
+                ciCount=wm->crQuoteEnd.ciMax;
               }
               else
               {
@@ -7279,6 +7286,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                   {
                     nQuoteLen+=wm->lpQuote->nQuoteEndLen;
                     wm->crQuoteEnd=ft.crFound;
+                    ciCount=wm->crQuoteEnd.ciMax;
                     goto SetQuote;
                   }
                 }
@@ -7286,22 +7294,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
               if (wm->lpQuote->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
               {
                 if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, FALSE))
-                {
-                  wm->crQuoteStart.ciMax=wm->crQuoteStart.ciMin;
-                  wm->crQuoteEnd=wm->crQuoteStart;
-                  ciCount=wm->crQuoteStart.ciMin;
-                  nQuoteLen=0;
-                  wm->lpQuote=NULL;
                   goto QuoteStartNext;
-                }
               }
               if (wm->lpQuote->dwFlags & AEHLF_QUOTEWITHOUTDELIMITERS)
               {
                 if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, FALSE))
-                {
-                  bMisMatch=TRUE;
-                  goto SetQuote;
-                }
+                  goto QuoteStartNext;
               }
             }
           }
@@ -7310,10 +7308,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             if (wm->lpQuote->pQuoteInclude && *wm->lpQuote->pQuoteInclude)
             {
               if (!AE_IsInDelimiterList(wm->lpQuote->pQuoteInclude, ciCount.lpLine->wpLine[ciCount.nCharInLine], (wm->lpQuote->dwFlags & AEHLF_MATCHCASE)))
-              {
-                bMisMatch=TRUE;
-                goto SetQuote;
-              }
+                goto QuoteStartNext;
             }
           }
           if (wm->lpQuote->dwFlags & AEHLF_QUOTEEXCLUDE)
@@ -7321,10 +7316,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             if (wm->lpQuote->pQuoteExclude && *wm->lpQuote->pQuoteExclude)
             {
               if (AE_IsInDelimiterList(wm->lpQuote->pQuoteExclude, ciCount.lpLine->wpLine[ciCount.nCharInLine], (wm->lpQuote->dwFlags & AEHLF_MATCHCASE)))
-              {
-                bMisMatch=TRUE;
-                goto SetQuote;
-              }
+                goto QuoteStartNext;
             }
           }
 
@@ -7346,12 +7338,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     {
       if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_REQUIRED)
       {
-        wm->crQuoteStart.ciMax=wm->crQuoteStart.ciMin;
-        wm->crQuoteEnd=wm->crQuoteStart;
-        ciCount=wm->crQuoteStart.ciMin;
-        nQuoteLen=0;
-        wm->lpQuote=NULL;
-        if (lpQuoteElement) goto QuoteStartNext;
+        goto QuoteStartNext;
       }
       else
       {
@@ -7364,29 +7351,14 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     SetQuote:
     if (wm->lpQuote)
     {
-      if (!bMisMatch)
-      {
-        if ((wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(&ciCount))
-          bMisMatch=TRUE;
-      }
-      if (bMisMatch)
-      {
-        wm->crQuoteEnd.ciMin=wm->crQuoteStart.ciMax;
-        wm->crQuoteEnd.ciMax=wm->crQuoteStart.ciMax;
-        ciCount=wm->crQuoteStart.ciMax;
-        wm->lpQuote=NULL;
-        bMisMatch=FALSE;
-      }
-      else
-      {
-        if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_NOMATCH)
-          ciCount=wm->crQuoteEnd.ciMin;
-        else
-          ciCount=wm->crQuoteEnd.ciMax;
-      }
+      if ((wm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(&ciCount))
+        goto QuoteStartNext;
 
       if (dwSearchType & AEHF_FINDFIRSTCHAR)
       {
+        if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_NOMATCH)
+          ciCount=wm->crQuoteEnd.ciMin;
+
         if (AE_IndexCompare(&ciCount, ciChar) <= 0)
         {
           wm->lpQuote=NULL;
