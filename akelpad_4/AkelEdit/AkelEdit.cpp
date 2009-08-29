@@ -7171,112 +7171,23 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
               //Quote start
               if (lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
               {
-                AECHARRANGE crTmpQuoteStart;
-                AECHARINDEX ciTmpCount;
-                int nTmpQuoteLen;
-
                 if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE)) || AE_IsFirstCharInLine(&ciCount))
                 {
                   if (lpDelimiterElement)
                   {
-                    ciTmpCount=ft.crFound.ciMax;
-                    nTmpQuoteLen=lpDelimiterElement->nDelimiterLen;
-                    crTmpQuoteStart=ft.crFound;
+                    ciCount=ft.crFound.ciMax;
+                    nQuoteLen=lpDelimiterElement->nDelimiterLen;
+                    wm->crQuoteStart=ft.crFound;
                   }
                   else
                   {
-                    ciTmpCount=ciCount;
-                    nTmpQuoteLen=0;
-                    crTmpQuoteStart.ciMin=ciTmpCount;
-                    crTmpQuoteStart.ciMax=ciTmpCount;
+                    ciCount=ciCount;
+                    nQuoteLen=0;
+                    wm->crQuoteStart.ciMin=ciCount;
+                    wm->crQuoteStart.ciMax=ciCount;
                   }
-
-                  while (ciTmpCount.lpLine)
-                  {
-                    while (ciTmpCount.nCharInLine <= ciTmpCount.lpLine->nLineLen)
-                    {
-                      //Quote end
-                      if (lpQuoteElement->dwFlags & AEHLF_QUOTEEND_ISDELIMITER)
-                      {
-                        //AEHLF_QUOTESTART_ISDELIMITER|AEHLF_QUOTEEND_ISDELIMITER
-                        if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciTmpCount, FALSE)) || AE_IsLastCharInLine(&ciTmpCount))
-                        {
-                          if (lpDelimiterElement)
-                          {
-                            nQuoteLen=nTmpQuoteLen + lpDelimiterElement->nDelimiterLen;
-                            wm->crQuoteEnd=ft.crFound;
-                          }
-                          else
-                          {
-                            nQuoteLen=nTmpQuoteLen;
-                            wm->crQuoteEnd.ciMin=ciTmpCount;
-                            wm->crQuoteEnd.ciMax=ciTmpCount;
-                          }
-                          wm->crQuoteStart=crTmpQuoteStart;
-                          wm->lpQuote=lpQuoteElement;
-                          goto SetQuote;
-                        }
-                      }
-                      else
-                      {
-                        if (!lpQuoteElement->pQuoteEnd || !*lpQuoteElement->pQuoteEnd)
-                        {
-                          nTmpQuoteLen+=AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciTmpCount, &ciTmpCount, FALSE);
-                          nQuoteLen=nTmpQuoteLen;
-                          wm->crQuoteStart=crTmpQuoteStart;
-                          wm->crQuoteEnd.ciMin=ciTmpCount;
-                          wm->crQuoteEnd.ciMax=ciTmpCount;
-                          wm->lpQuote=lpQuoteElement;
-                          goto SetQuote;
-                        }
-                        else
-                        {
-                          ft.pText=lpQuoteElement->pQuoteEnd;
-                          ft.dwTextLen=lpQuoteElement->nQuoteEndLen;
-                          ft.dwFlags=(lpQuoteElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
-
-                          if (AE_IsMatch(ae, &ft, &ciTmpCount))
-                          {
-                            nQuoteLen=nTmpQuoteLen + lpQuoteElement->nQuoteEndLen;
-                            wm->crQuoteStart=crTmpQuoteStart;
-                            wm->crQuoteEnd=ft.crFound;
-                            wm->lpQuote=lpQuoteElement;
-                            goto SetQuote;
-                          }
-                        }
-                      }
-                      if (lpQuoteElement->dwFlags & AEHLF_QUOTEINCLUDE)
-                      {
-                        if (lpQuoteElement->pQuoteInclude && *lpQuoteElement->pQuoteInclude)
-                        {
-                          if (!AE_IsInDelimiterList(lpQuoteElement->pQuoteInclude, ciTmpCount.lpLine->wpLine[ciTmpCount.nCharInLine], (lpQuoteElement->dwFlags & AEHLF_MATCHCASE)))
-                            goto QuoteStartNext;
-                        }
-                      }
-                      if (lpQuoteElement->dwFlags & AEHLF_QUOTEEXCLUDE)
-                      {
-                        if (lpQuoteElement->pQuoteExclude && *lpQuoteElement->pQuoteExclude)
-                        {
-                          if (AE_IsInDelimiterList(lpQuoteElement->pQuoteExclude, ciTmpCount.lpLine->wpLine[ciTmpCount.nCharInLine], (lpQuoteElement->dwFlags & AEHLF_MATCHCASE)))
-                            goto QuoteStartNext;
-                        }
-                      }
-                      if (AE_HighlightIsDelimiter(ae, NULL, &ciTmpCount, FALSE))
-                        goto QuoteStartNext;
-
-                      if (ciTmpCount.nCharInLine < ciTmpCount.lpLine->nLineLen)
-                        ++nTmpQuoteLen;
-                      ++ciTmpCount.nCharInLine;
-                    }
-
-                    if (ciTmpCount.lpLine->nLineBreak == AELB_WRAP && ciTmpCount.lpLine->next)
-                    {
-                      ciTmpCount.nLine+=1;
-                      ciTmpCount.lpLine=ciTmpCount.lpLine->next;
-                      ciTmpCount.nCharInLine=0;
-                    }
-                    else break;
-                  }
+                  wm->lpQuote=lpQuoteElement;
+                  goto Begin;
                 }
               }
               else
@@ -7372,6 +7283,18 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                   }
                 }
               }
+              if (wm->lpQuote->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
+              {
+                if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, FALSE))
+                {
+                  wm->crQuoteStart.ciMax=wm->crQuoteStart.ciMin;
+                  wm->crQuoteEnd=wm->crQuoteStart;
+                  ciCount=wm->crQuoteStart.ciMin;
+                  nQuoteLen=0;
+                  wm->lpQuote=NULL;
+                  goto QuoteStartNext;
+                }
+              }
               if (wm->lpQuote->dwFlags & AEHLF_QUOTEWITHOUTDELIMITERS)
               {
                 if (AE_HighlightIsDelimiter(ae, NULL, &ciCount, FALSE))
@@ -7405,7 +7328,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             }
           }
 
-          ++nQuoteLen;
+          if (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+            ++nQuoteLen;
         }
         ++ciCount.nCharInLine;
       }
@@ -7422,10 +7346,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     {
       if (wm->lpQuote->dwFlags & AEHLF_QUOTEEND_REQUIRED)
       {
-        wm->crQuoteStart.ciMin=wm->crQuoteStart.ciMax;
+        wm->crQuoteStart.ciMax=wm->crQuoteStart.ciMin;
         wm->crQuoteEnd=wm->crQuoteStart;
+        ciCount=wm->crQuoteStart.ciMin;
         nQuoteLen=0;
         wm->lpQuote=NULL;
+        if (lpQuoteElement) goto QuoteStartNext;
       }
       else
       {
@@ -7465,10 +7391,10 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         {
           wm->lpQuote=NULL;
 
-          if (AE_IndexCompare(&ciCount, &wm->crQuoteStart.ciMin) > 0)
-            goto Begin;
-          else
+          if (AE_IndexCompare(&ciCount, &wm->crQuoteStart.ciMin) <= 0)
             goto QuoteStartNext;
+          else
+            goto Begin;
         }
       }
     }
