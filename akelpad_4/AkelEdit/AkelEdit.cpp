@@ -2609,17 +2609,21 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (wParam >= VK_NUMPAD0 && wParam <= VK_NUMPAD9)
           {
-            if (ae->nAltChar <= AEAC_NONE)
+            if (!(ae->popt->dwOptions & AECO_ALTDEFAULT))
             {
-              if (wParam == VK_NUMPAD0)
-                ae->nAltChar=AEAC_DODEFAULT;
-              else
-                ae->nAltChar=wParam - VK_NUMPAD0;
-            }
-            else ae->nAltChar=ae->nAltChar * 10 + (wParam - VK_NUMPAD0);
+              if (ae->nAltChar <= AEAC_NONE)
+              {
+                if (wParam == VK_NUMPAD0)
+                  ae->nAltChar=AEAC_DODEFAULT;
+                else
+                  ae->nAltChar=wParam - VK_NUMPAD0;
+              }
+              else ae->nAltChar=ae->nAltChar * 10 + (wParam - VK_NUMPAD0);
 
-            if (ae->nAltChar > 65536)
-              ae->nAltChar=AEAC_KEYDOWN;
+              if (ae->nAltChar > 65536)
+                ae->nAltChar=AEAC_KEYDOWN;
+            }
+            else ae->nAltChar=AEAC_DODEFAULT;
           }
           else ae->nAltChar=AEAC_KEYDOWN;
         }

@@ -82,6 +82,7 @@
 #define AECO_CARETOUTEDGE       0x00000200  //Allow caret moving out of the line edge.
 #define AECO_ACTIVECOLUMN       0x00000400  //Draw caret vertical line.
 #define AECO_PAINTGROUP         0x00000800  //Paint text by group of characters (default is character by character). With this style combined and surrogate unicode symbols can be drawn correctly but editing of whose characters isn't comfortable.
+#define AECO_ALTDEFAULT         0x00001000  //Do default Alt+NumPad with NumLock on.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
