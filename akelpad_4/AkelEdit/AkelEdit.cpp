@@ -2609,13 +2609,28 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (wParam >= VK_NUMPAD0 && wParam <= VK_NUMPAD9)
           {
-            if (!(ae->popt->dwOptions & AECO_ALTDEFAULT))
+            if (ae->nAltChar != AEAC_DECINPUT && ae->nAltChar <= AEAC_NONE)
             {
-              if (ae->nAltChar <= AEAC_NONE)
+              if (wParam == VK_NUMPAD0)
               {
-                if (wParam == VK_NUMPAD0)
-                  ae->nAltChar=AEAC_DODEFAULT;
+                if (ae->nAltChar == AEAC_NUMPAD0)
+                  ae->nAltChar=AEAC_DECINPUT;
                 else
+                  ae->nAltChar=AEAC_NUMPAD0;
+              }
+              else
+              {
+                if ((ae->popt->dwOptions & AECO_ALTDECINPUT) && ae->nAltChar != AEAC_NUMPAD0)
+                  ae->nAltChar=wParam - VK_NUMPAD0;
+                else
+                  ae->nAltChar=AEAC_DODEFAULT;
+              }
+            }
+            else
+            {
+              if (ae->nAltChar == AEAC_DECINPUT)
+              {
+                if (wParam != VK_NUMPAD0)
                   ae->nAltChar=wParam - VK_NUMPAD0;
               }
               else ae->nAltChar=ae->nAltChar * 10 + (wParam - VK_NUMPAD0);
@@ -2623,7 +2638,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               if (ae->nAltChar > 65536)
                 ae->nAltChar=AEAC_KEYDOWN;
             }
-            else ae->nAltChar=AEAC_DODEFAULT;
           }
           else ae->nAltChar=AEAC_KEYDOWN;
         }
