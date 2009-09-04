@@ -77,7 +77,9 @@
 #define AEAC_NONE       0
 #define AEAC_KEYDOWN   -1
 #define AEAC_KEYUP     -2
-#define AEAC_DODEFAULT -3
+#define AEAC_NUMPAD0   -3
+#define AEAC_DECINPUT  -4
+#define AEAC_DODEFAULT -5
 
 //StreamIn HIBYTE new line
 #define AELB_SPLIT    1
