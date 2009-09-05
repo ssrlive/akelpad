@@ -81,8 +81,6 @@
 #define URL_PREFIXESW             L"http: https: www. ftp: file: mailto:"
 #define SENTENCE_DELIMITERSA       ".?!"
 #define SENTENCE_DELIMITERSW      L".?!"
-#define TITLE_DELIMITERSA          " \t\r\n"
-#define TITLE_DELIMITERSW         L" \t\r\n"
 #define PRINT_HEADERA              "%l***%c<%f>%r***"
 #define PRINT_HEADERW             L"%l***%c<%f>%r***"
 #define PRINT_FOOTERA              "- %n[1] -"
@@ -833,6 +831,8 @@ void FreeMemorySearchA();
 void FreeMemorySearchW();
 void FreeMemoryRecentFilesA();
 void FreeMemoryRecentFilesW();
+char* AKD_strchr(const char *s, char c);
+wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c);
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
 HMENU API_LoadMenuW(HINSTANCE hLoadInstance, wchar_t *lpMenuName);

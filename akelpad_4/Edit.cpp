@@ -1458,6 +1458,7 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
   AECHARRANGE crInitialSel=crSel;
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCaret;
+  char szWordDelimiters[WORD_DELIMITERS_SIZE];
   char *szRange;
   char *pStart;
   char *pEnd;
@@ -1499,27 +1500,31 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     }
     else if (nCase == SENTENCECASE)
     {
+      WideCharToMultiByte(CP_ACP, 0, wszWordDelimiters, -1, szWordDelimiters, WORD_DELIMITERS_SIZE, NULL, NULL);
+
       while (pStart < pEnd)
       {
-        while (pStart < pEnd && (*pStart == ' ' || *pStart == '\t' || *pStart == '\r' || strchr(SENTENCE_DELIMITERSA, *pStart)))
+        while (pStart < pEnd && (AKD_strchr(szWordDelimiters, *pStart) || AKD_strchr(SENTENCE_DELIMITERSA, *pStart)))
           ++pStart;
 
         if (pStart < pEnd) *pStart++=(char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pStart);
 
-        while (pStart < pEnd && !strchr(SENTENCE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && !AKD_strchr(SENTENCE_DELIMITERSA, *pStart))
           *pStart++=(char)(WORD)(DWORD)CharLowerA((char *)(DWORD)(WORD)*pStart);
       }
     }
     else if (nCase == TITLECASE)
     {
+      WideCharToMultiByte(CP_ACP, 0, wszWordDelimiters, -1, szWordDelimiters, WORD_DELIMITERS_SIZE, NULL, NULL);
+
       while (pStart < pEnd)
       {
-        while (pStart < pEnd && strchr(TITLE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && AKD_strchr(szWordDelimiters, *pStart))
           ++pStart;
 
         if (pStart < pEnd) *pStart++=(char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pStart);
 
-        while (pStart < pEnd && !strchr(TITLE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && !AKD_strchr(szWordDelimiters, *pStart))
           *pStart++=(char)(WORD)(DWORD)CharLowerA((char *)(DWORD)(WORD)*pStart);
       }
     }
@@ -1613,12 +1618,12 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     {
       while (wpStart < wpEnd)
       {
-        while (wpStart < wpEnd && (*wpStart == ' ' || *wpStart == '\t' || *wpStart == '\r' || wcschr(SENTENCE_DELIMITERSW, *wpStart)))
+        while (wpStart < wpEnd && (AKD_wcschr(wszWordDelimiters, *wpStart) || AKD_wcschr(SENTENCE_DELIMITERSW, *wpStart)))
           ++wpStart;
 
         if (wpStart < wpEnd) *wpStart++=(wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStart);
 
-        while (wpStart < wpEnd && !wcschr(SENTENCE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && !AKD_wcschr(SENTENCE_DELIMITERSW, *wpStart))
           *wpStart++=(wchar_t)(WORD)(DWORD)CharLowerW((wchar_t *)(DWORD)(WORD)*wpStart);
       }
     }
@@ -1626,12 +1631,12 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     {
       while (wpStart < wpEnd)
       {
-        while (wpStart < wpEnd && wcschr(TITLE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && AKD_wcschr(wszWordDelimiters, *wpStart))
           ++wpStart;
 
         if (wpStart < wpEnd) *wpStart++=(wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStart);
 
-        while (wpStart < wpEnd && !wcschr(TITLE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && !AKD_wcschr(wszWordDelimiters, *wpStart))
           *wpStart++=(wchar_t)(WORD)(DWORD)CharLowerW((wchar_t *)(DWORD)(WORD)*wpStart);
       }
     }
@@ -9177,10 +9182,10 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
       }
       if (!dwCounter[dwMaxIndex]) break;
 
-      if (strchr(szANSIwatermark, dwMaxIndex + 0x80)) nANSIrate+=dwCounter[dwMaxIndex];
-      if (strchr(szOEMwatermark, dwMaxIndex + 0x80)) nOEMrate+=dwCounter[dwMaxIndex];
-      if (strchr(szKOIwatermark, dwMaxIndex + 0x80)) nKOIrate+=dwCounter[dwMaxIndex];
-      if (strchr(szUTF8watermark, dwMaxIndex + 0x80)) nUTF8rate+=dwCounter[dwMaxIndex];
+      if (AKD_strchr(szANSIwatermark, dwMaxIndex + 0x80)) nANSIrate+=dwCounter[dwMaxIndex];
+      if (AKD_strchr(szOEMwatermark, dwMaxIndex + 0x80)) nOEMrate+=dwCounter[dwMaxIndex];
+      if (AKD_strchr(szKOIwatermark, dwMaxIndex + 0x80)) nKOIrate+=dwCounter[dwMaxIndex];
+      if (AKD_strchr(szUTF8watermark, dwMaxIndex + 0x80)) nUTF8rate+=dwCounter[dwMaxIndex];
       dwCounter[dwMaxIndex]=0;
     }
 
@@ -14631,7 +14636,7 @@ BOOL ParsePluginNameA(char *pFullName, char *szPlugin, char *szFunction)
 {
   char *pFunction;
 
-  if ((pFunction=strchr(pFullName, ':')) && *(pFunction + 1) == ':')
+  if ((pFunction=AKD_strchr(pFullName, ':')) && *(pFunction + 1) == ':')
   {
     if (szPlugin) lstrcpynA(szPlugin, pFullName, min(pFunction - pFullName + 1, MAX_PATH));
     if (szFunction) lstrcpynA(szFunction, pFunction + 2, MAX_PATH);
@@ -14644,7 +14649,7 @@ BOOL ParsePluginNameW(wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunct
 {
   wchar_t *wpFunction;
 
-  if ((wpFunction=wcschr(wpFullName, ':')) && *(wpFunction + 1) == ':')
+  if ((wpFunction=AKD_wcschr(wpFullName, ':')) && *(wpFunction + 1) == ':')
   {
     if (wszPlugin) lstrcpynW(wszPlugin, wpFullName, min(wpFunction - wpFullName + 1, MAX_PATH));
     if (wszFunction) lstrcpynW(wszFunction, wpFunction + 2, MAX_PATH);
@@ -19426,7 +19431,7 @@ void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags)
 
   while (1)
   {
-    if (pExtEnd=strchr(pExtStart, ';'))
+    if (pExtEnd=AKD_strchr(pExtStart, ';'))
       lstrcpynA(buf, pExtStart, pExtEnd - pExtStart + 1);
     else
       lstrcpynA(buf, pExtStart, MAX_PATH);
@@ -19584,7 +19589,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlag
 
   while (1)
   {
-    if (wpExtEnd=wcschr(wpExtStart, ';'))
+    if (wpExtEnd=AKD_wcschr(wpExtStart, ';'))
       lstrcpynW(wbuf, wpExtStart, wpExtEnd - wpExtStart + 1);
     else
       lstrcpynW(wbuf, wpExtStart, MAX_PATH);
@@ -21105,6 +21110,46 @@ void FreeMemoryRecentFilesW()
   {
     API_HeapFree(hHeap, 0, (LPVOID)lpdwRecentCodepages);
     lpdwRecentCodepages=NULL;
+  }
+}
+
+char* AKD_strchr(const char *s, char c)
+{
+  if (c == '\r' || c == '\n')
+  {
+    while (*s != '\0' && *s != '\r' && *s != '\n')
+      ++s;
+    if (*s != '\0')
+      return ((char *)s);
+    return NULL;
+  }
+  else
+  {
+    while (*s != '\0' && *s != c)
+      ++s;
+    if (*s != '\0')
+      return ((char *)s);
+    return NULL;
+  }
+}
+
+wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c)
+{
+  if (c == L'\r' || c == L'\n')
+  {
+    while (*s != L'\0' && *s != L'\r' && *s != L'\n')
+      ++s;
+    if (*s != L'\0')
+      return ((wchar_t *)s);
+    return NULL;
+  }
+  else
+  {
+    while (*s != L'\0' && *s != c)
+      ++s;
+    if (*s != L'\0')
+      return ((wchar_t *)s);
+    return NULL;
   }
 }
 
