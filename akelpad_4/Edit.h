@@ -831,7 +831,7 @@ void FreeMemorySearchA();
 void FreeMemorySearchW();
 void FreeMemoryRecentFilesA();
 void FreeMemoryRecentFilesW();
-char* AKD_strchr(const char *s, char c);
+char* AKD_strchr(const char *s, int c);
 wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c);
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
