@@ -21113,7 +21113,7 @@ void FreeMemoryRecentFilesW()
   }
 }
 
-char* AKD_strchr(const char *s, char c)
+char* AKD_strchr(const char *s, int c)
 {
   if (c == '\r' || c == '\n')
   {
