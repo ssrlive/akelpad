@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "Salva tutto\tCtrl+Alt+F2",    IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "Imposta Pagina...",           IDM_FILE_PAGESETUP
-        MENUITEM "Pre&view...",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "Pre&view...",                 IDM_FILE_PRINTPREVIEW
         MENUITEM "Stampa...\tCtrl+P",           IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Files recenti"

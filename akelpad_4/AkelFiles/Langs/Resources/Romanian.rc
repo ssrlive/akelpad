@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "Salveazã &Tot\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "Aranjeazã Pa&gina...",        IDM_FILE_PAGESETUP
-        MENUITEM "&Previzioneazã",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "&Previzioneazã",              IDM_FILE_PRINTPREVIEW
         MENUITEM "&Tipãreºte...\tCtrl+P",       IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Fiºiere R&ecente"
@@ -733,11 +733,12 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Reseteazã",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,
                     13,BS_CENTER
-    CONTROL         "Delimitatoare de Încadrare a Textului:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
+    CONTROL         "Delimitatoare de Încadrare a Textului:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Reseteazã",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Reseteazã",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,
+                    13,BS_CENTER
     CONTROL         "Înlocuieºte Tot : duce la închiderea dialogului de înlocuire",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,200,200,10

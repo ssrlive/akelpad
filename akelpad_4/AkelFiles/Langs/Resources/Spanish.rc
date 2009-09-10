@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "Guardar &todo\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "Configurar pá&gina...",       IDM_FILE_PAGESETUP
-        MENUITEM "V&ista previa...",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "V&ista previa...",            IDM_FILE_PRINTPREVIEW
         MENUITEM "Im&primir...\tCtrl+P",        IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Archivos r&ecientes"
@@ -731,11 +731,12 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Restablecer",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,
                     50,13,BS_CENTER
-    CONTROL         "Delimitadores de ajuste:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
+    CONTROL         "Delimitadores de ajuste:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Restablecer",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Restablecer",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,
+                    50,13,BS_CENTER
     CONTROL         "Reemplazar todo - cerrar diálogo",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,200,200,10

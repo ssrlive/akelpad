@@ -40,8 +40,8 @@ BEGIN
         MENUITEM "Farklý &kaydet...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Tümünü &kaydet\tCtrl+Alt+F2", IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
-        MENUITEM "Sa&yfa ayarý",             IDM_FILE_PAGESETUP
-        MENUITEM "Pre&view...",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "Sa&yfa ayarý",                IDM_FILE_PAGESETUP
+        MENUITEM "Pre&view...",                 IDM_FILE_PRINTPREVIEW
         MENUITEM "&Yazdýr...\tCtrl+P",          IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Son &açýlanlar"
@@ -389,8 +389,8 @@ BEGIN
     PUSHBUTTON      ">",IDC_PREVIEW_NEXTPAGE,223,10,20,12
     COMBOBOX        IDC_PREVIEW_ZOOM,267,10,48,200,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
-    CONTROL         "&Seçim",IDC_PREVIEW_SELECTION,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    CONTROL         "&Seçim",IDC_PREVIEW_SELECTION,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,325,12,61,10
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -724,8 +724,8 @@ BEGIN
     CONTROL         "Wrap delimiters:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Sýfýrla",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Sýfýrla",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,
+                    13,BS_CENTER
     CONTROL         "Kapanan tüm diyaloglarý yerine koy",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,200,200,10

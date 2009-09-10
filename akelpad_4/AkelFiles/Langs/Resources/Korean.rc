@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "모두 저장(&L)\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "페이지 설정(&G)...",          IDM_FILE_PAGESETUP
-        MENUITEM "Pre&view...",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "Pre&view...",                 IDM_FILE_PRINTPREVIEW
         MENUITEM "인쇄하기(&P)...\tCtrl+P",     IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "최근 작업파일(&F)"
