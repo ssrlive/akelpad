@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "Zapisz &wszystko\tCtrl+Alt+F2", IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "&Ustawienia strony...",       IDM_FILE_PAGESETUP
-        MENUITEM "Pre&view...",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "Pre&view...",                 IDM_FILE_PRINTPREVIEW
         MENUITEM "&Drukuj...\tCtrl+P",          IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "N&iedawno u¿ywane pliki"
@@ -727,8 +727,8 @@ BEGIN
     CONTROL         "Wrap delimiters:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,
+                    13,BS_CENTER
     CONTROL         "Zamieñ wszystko – zamyka okno",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,200,200,10

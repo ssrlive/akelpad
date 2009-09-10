@@ -682,9 +682,8 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
                     102,11,13
     GROUPBOX        "Caret",IDC_STATIC,9,128,200,56
-    CONTROL         "Allow caret after end of line",
-                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,142,185,10
+    CONTROL         "Allow caret after end of line",IDC_OPTIONS_CARETOUTEDGE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,142,185,10
     CONTROL         "Show active column",IDC_OPTIONS_CARETVERTLINE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,153,185,10
     RTEXT           "Width:",IDC_STATIC,116,168,35,8,NOT WS_GROUP

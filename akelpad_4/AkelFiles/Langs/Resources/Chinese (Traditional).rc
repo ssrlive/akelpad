@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "全部儲存(&L)\tCtrl+Alt+F2",   IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "版面設定(&G)...",             IDM_FILE_PAGESETUP
-        MENUITEM "預覽(&V)...",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "預覽(&V)...",                 IDM_FILE_PRINTPREVIEW
         MENUITEM "列印(&P)...\tCtrl+P",         IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "最近開啟的檔案(&F)"

@@ -33,7 +33,7 @@ BEGIN
     POPUP "&S˙bor"
     BEGIN
         MENUITEM "&Nov˝\tCtrl+N",               IDM_FILE_NEW
-        MENUITEM "NovÈ okno\tCtrl+Shift+N",    IDM_FILE_CREATENEW
+        MENUITEM "NovÈ okno\tCtrl+Shift+N",     IDM_FILE_CREATENEW
         MENUITEM "&Otvoriù...\tCtrl+O",         IDM_FILE_OPEN
         MENUITEM "&Znova otvoriù\tF5",          IDM_FILE_REOPEN
         MENUITEM "&Uloûiù\tCtrl+S",             IDM_FILE_SAVE
@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "U&loûiù vöetko\tCtrl+Alt+F2", IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "Nasta&venie strany......",    IDM_FILE_PAGESETUP
-        MENUITEM "N·&hæad tlaËe...",           IDM_FILE_PRINTPREVIEW
+        MENUITEM "N·&hæad tlaËe...",            IDM_FILE_PRINTPREVIEW
         MENUITEM "&TlaËiù...\tCtrl+P",          IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Na&posledy otvorenÈ"
@@ -388,7 +388,8 @@ CAPTION "N·hæad"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&TlaËiù...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "Na&stavenie str·nky...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    PUSHBUTTON      "Na&stavenie str·nky...",IDC_PREVIEW_PAGESETUP,62,9,50,
+                    14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -396,8 +397,8 @@ BEGIN
     PUSHBUTTON      ">",IDC_PREVIEW_NEXTPAGE,223,10,20,12
     COMBOBOX        IDC_PREVIEW_ZOOM,267,10,48,200,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
-    CONTROL         "V˝&ber",IDC_PREVIEW_SELECTION,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    CONTROL         "V˝&ber",IDC_PREVIEW_SELECTION,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,325,12,61,10
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -735,11 +736,12 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Ob&noviù",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,
                     13,BS_CENTER
-    CONTROL         "OddeæovaËe pre zalomenie:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
+    CONTROL         "OddeæovaËe pre zalomenie:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Ob&noviù",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Ob&noviù",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,
+                    13,BS_CENTER
     CONTROL         "TlaËidlo &Nahradiù vöetko zatvorÌ dialÛg",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,200,200,10
