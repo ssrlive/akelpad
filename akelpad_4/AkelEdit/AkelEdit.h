@@ -1067,7 +1067,7 @@ Return Value
  zero
 
 Remarks
- To receive AEN_TEXTCHANGING notifications, specify AENM_TEXTCHANGING in the mask sent with the AEM_SETEVENTMASK message.
+ To receive AEN_TEXTCHANGING notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_TEXTCHANGED
