@@ -646,6 +646,7 @@ BOOL CALLBACK RecodeDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK ColorsDlgSize(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxThemesA(HWND hWnd);
 void FillComboboxThemesW(HWND hWnd);
 
