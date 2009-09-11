@@ -252,10 +252,10 @@
 #define LVSI_FUNCTION_STATUS   2
 
 //DIALOGRESIZE
-#define DRS_SIZE 0x1 //Resize control
-#define DRS_MOVE 0x2 //Move control
-#define DRS_X    0x4 //X value
-#define DRS_Y    0x8 //Y value
+#define DRS_SIZE  0x1 //Resize control
+#define DRS_MOVE  0x2 //Move control
+#define DRS_X     0x4 //X value
+#define DRS_Y     0x8 //Y value
 
 
 //// Structures

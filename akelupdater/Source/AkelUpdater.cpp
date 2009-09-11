@@ -36,6 +36,17 @@
 #define STRID_UPDATE   7
 #define STRID_CANCEL   8
 
+//DIALOGRESIZE
+#define DRS_SIZE  0x1 //Resize control
+#define DRS_MOVE  0x2 //Move control
+#define DRS_X     0x4 //X value
+#define DRS_Y     0x8 //Y value
+
+typedef struct {
+  HWND *lpWnd;   //Control window
+  DWORD dwType;  //See DRS_* defines
+} DIALOGRESIZE;
+
 /* ExDll */
 typedef struct _stack_t {
   struct _stack_t *next;
@@ -96,6 +107,7 @@ RECT rcMainDialog={0};
 BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int GetCommandLineArgA(char *pCmdLine, char **pArgStart, char **pArgEnd, char **pNextArg);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 char* GetLangStringA(LANGID wLangID, int nStringID);
 char* getuservariable(const int varnum);
 void setuservariable(const int varnum, const char *var);
@@ -170,7 +182,17 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static BOOL bSelectAllDll=TRUE;
   static int nAllItemsCount=0;
   static int nSelItemsCount=0;
-  LVITEMA lviA;
+  static LVITEMA lviA;
+  static DIALOGRESIZE drs[]={&hWndGroupExe,    DRS_SIZE|DRS_X,
+                             &hWndListExe,     DRS_SIZE|DRS_X,
+                             &hWndMirrorLabel, DRS_MOVE|DRS_X,
+                             &hWndMirror,      DRS_MOVE|DRS_X,
+                             &hWndListDll,     DRS_SIZE|DRS_X|DRS_Y,
+                             &hWndListInfo,    DRS_MOVE|DRS_Y,
+                             &hWndSeleted,     DRS_MOVE|DRS_X|DRS_Y,
+                             &hWndUpdate,      DRS_MOVE|DRS_Y,
+                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
+                             0, 0};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -180,7 +202,6 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     char szCompareResult[MAX_PATH];
     HWND hWndList;
     LVCOLUMNA lvcA;
-    RECT rcTemplate;
     int nCompareResult;
     int nIndex;
 
@@ -308,76 +329,6 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     wsprintfA(szBuf, "%d / %d", nSelItemsCount, nAllItemsCount);
     SetWindowTextA(hWndSeleted, szBuf);
-
-    GetWindowPos(hDlg, NULL, &rcInitDialog);
-    rcTemplate=rcMainDialog;
-    rcMainDialog=rcInitDialog;
-    if (rcTemplate.right && rcTemplate.bottom)
-    {
-      rcTemplate.left=rcInitDialog.left + (rcInitDialog.right - rcTemplate.right) / 2;
-      rcTemplate.top=rcInitDialog.top + (rcInitDialog.bottom - rcTemplate.bottom) / 2;
-      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
-    }
-  }
-  else if (uMsg == WM_GETMINMAXINFO)
-  {
-    MINMAXINFO *mmi=(MINMAXINFO *)lParam;
-
-    mmi->ptMinTrackSize.x=rcInitDialog.right;
-    mmi->ptMinTrackSize.y=rcInitDialog.bottom;
-    return 0;
-  }
-  else if (uMsg == WM_SIZE)
-  {
-    if (lParam)
-    {
-      RECT rcTemplate;
-      RECT rcControl;
-      int x;
-      int y;
-
-      GetWindowPos(hDlg, NULL, &rcTemplate);
-      x=rcTemplate.right - rcMainDialog.right;
-      y=rcTemplate.bottom - rcMainDialog.bottom;
-      rcMainDialog=rcTemplate;
-
-      GetWindowPos(hWndGroupExe, hDlg, &rcControl);
-      SetWindowPos(hWndGroupExe, 0, 0, 0, rcControl.right + x, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER);
-      GetWindowPos(hWndListExe, hDlg, &rcControl);
-      SetWindowPos(hWndListExe, 0, 0, 0, rcControl.right + x, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER);
-      GetWindowPos(hWndMirrorLabel, hDlg, &rcControl);
-      SetWindowPos(hWndMirrorLabel, 0, rcControl.left + x, rcControl.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-      GetWindowPos(hWndMirror, hDlg, &rcControl);
-      SetWindowPos(hWndMirror, 0, rcControl.left + x, rcControl.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-      GetWindowPos(hWndListDll, hDlg, &rcControl);
-      SetWindowPos(hWndListDll, 0, 0, 0, rcControl.right + x, rcControl.bottom + y, SWP_NOMOVE|SWP_NOZORDER);
-      GetWindowPos(hWndListInfo, hDlg, &rcControl);
-      SetWindowPos(hWndListInfo, 0, rcControl.left, rcControl.top + y, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-      GetWindowPos(hWndUpdate, hDlg, &rcControl);
-      SetWindowPos(hWndUpdate, 0, rcControl.left, rcControl.top + y, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-      GetWindowPos(hWndSeleted, hDlg, &rcControl);
-      SetWindowPos(hWndSeleted, 0, rcControl.left + x, rcControl.top + y, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-      GetWindowPos(hWndCancel, hDlg, &rcControl);
-      SetWindowPos(hWndCancel, 0, rcControl.left + x, rcControl.top + y, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-      InvalidateRect(hDlg, NULL, TRUE);
-      return 0;
-    }
-  }
-  else if (uMsg == WM_PAINT)
-  {
-    PAINTSTRUCT ps;
-    RECT rcGrip;
-    HDC hDC;
-
-    if (hDC=BeginPaint(hDlg, &ps))
-    {
-      GetClientRect(hDlg, &rcGrip);
-      rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
-      rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
-      DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
-      EndPaint(hDlg, &ps);
-      return 0;
-    }
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -613,6 +564,9 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
   }
+
+  DialogResizeMessages(&drs[0], &rcMainDialog, hDlg, uMsg, wParam, lParam);
+
   return FALSE;
 }
 
@@ -685,6 +639,87 @@ BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
     return TRUE;
   }
   return FALSE;
+}
+
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static RECT rcInitDialog;
+  static RECT rcTempDialog;
+  static BOOL bRectChanged;
+
+  if (!rcDialog) rcDialog=&rcTempDialog;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    RECT rcTemplate;
+
+    GetWindowPos(hDlg, NULL, &rcInitDialog);
+    rcTemplate=*rcDialog;
+    *rcDialog=rcInitDialog;
+
+    if (rcTemplate.right && rcTemplate.bottom)
+    {
+      rcTemplate.left=rcInitDialog.left + (rcInitDialog.right - rcTemplate.right) / 2;
+      rcTemplate.top=rcInitDialog.top + (rcInitDialog.bottom - rcTemplate.bottom) / 2;
+      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
+    }
+    bRectChanged=FALSE;
+  }
+  else if (uMsg == WM_GETMINMAXINFO)
+  {
+    MINMAXINFO *mmi=(MINMAXINFO *)lParam;
+
+    mmi->ptMinTrackSize.x=rcInitDialog.right;
+    mmi->ptMinTrackSize.y=rcInitDialog.bottom;
+  }
+  else if (uMsg == WM_SIZE)
+  {
+    if (lParam)
+    {
+      RECT rcTemplate;
+      RECT rcControl;
+      DWORD dwFlags;
+      POINT pt;
+      int i;
+
+      GetWindowPos(hDlg, NULL, &rcTemplate);
+      pt.x=rcTemplate.right - rcDialog->right;
+      pt.y=rcTemplate.bottom - rcDialog->bottom;
+      *rcDialog=rcTemplate;
+
+      for (i=0; drs[i].lpWnd; ++i)
+      {
+        if (*drs[i].lpWnd)
+        {
+          dwFlags=0;
+          if (drs[i].dwType & DRS_SIZE)
+            dwFlags|=SWP_NOMOVE;
+          else if (drs[i].dwType & DRS_MOVE)
+            dwFlags|=SWP_NOSIZE;
+          GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
+          SetWindowPos(*drs[i].lpWnd, 0, rcControl.left + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.top + ((drs[i].dwType & DRS_Y)?pt.y:0), rcControl.right + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.bottom + ((drs[i].dwType & DRS_Y)?pt.y:0), dwFlags|SWP_NOZORDER);
+        }
+      }
+      InvalidateRect(hDlg, NULL, TRUE);
+      bRectChanged=TRUE;
+    }
+  }
+  else if (uMsg == WM_PAINT)
+  {
+    PAINTSTRUCT ps;
+    RECT rcGrip;
+    HDC hDC;
+
+    if (hDC=BeginPaint(hDlg, &ps))
+    {
+      GetClientRect(hDlg, &rcGrip);
+      rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
+      rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
+      DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
+      EndPaint(hDlg, &ps);
+    }
+  }
+  return bRectChanged;
 }
 
 char* GetLangStringA(LANGID wLangID, int nStringID)
