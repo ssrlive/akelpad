@@ -252,6 +252,8 @@ AECOLORS aecColors={0};
 COLORREF crCustColors[16]={0};
 BOOL bEditFontChanged=FALSE;
 BOOL bColorsChanged=FALSE;
+RECT rcColorsDialog;
+BOOL bColorsDialogRectSave;
 
 //Print
 HWND hWndPreviewEdit=NULL;
