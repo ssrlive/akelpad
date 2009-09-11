@@ -3163,6 +3163,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT));
+  ReadOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT));
   ReadOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
   ReadOptionA(hHandle, "WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
 
@@ -3190,6 +3191,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "PrintFont", PO_BINARY, &lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE);
   ReadOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, LF_FACESIZE);
+  ReadOptionA(hHandle, "ColorsDialog", PO_BINARY, &rcColorsDialog, sizeof(RECT));
   ReadOptionA(hHandle, "Colors", PO_BINARY, &aecColors, sizeof(AECOLORS));
   ReadOptionA(hHandle, "LanguageModule", PO_STRING, szLangModule, MAX_PATH);
   ReadOptionA(hHandle, "ExecuteCommand", PO_STRING, szCommand, BUFFER_SIZE);
@@ -3267,6 +3269,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT));
+  ReadOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT));
   ReadOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
   ReadOptionW(hHandle, L"WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
 
@@ -3294,6 +3297,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"PrintFont", PO_BINARY, &lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
   ReadOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"ColorsDialog", PO_BINARY, &rcColorsDialog, sizeof(RECT));
   ReadOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS));
   ReadOptionW(hHandle, L"LanguageModule", PO_STRING, wszLangModule, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"ExecuteCommand", PO_STRING, wszCommand, BUFFER_SIZE * sizeof(wchar_t));
@@ -3577,6 +3581,8 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT)))
     goto Error;
+  if (!SaveOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT)))
+    goto Error;
   if (!SaveOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT)))
@@ -3633,6 +3639,8 @@ BOOL SaveOptionsA()
     if (!SaveOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1))
       goto Error;
   }
+  if (!SaveOptionA(hHandle, "ColorsDialog", PO_BINARY, &rcColorsDialog, sizeof(RECT)))
+    goto Error;
   if (bColorsChanged)
   {
     if (!SaveOptionA(hHandle, "Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
@@ -3773,6 +3781,8 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT)))
     goto Error;
+  if (!SaveOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT)))
+    goto Error;
   if (!SaveOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT)))
@@ -3829,6 +3839,8 @@ BOOL SaveOptionsW()
     if (!SaveOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2))
       goto Error;
   }
+  if (!SaveOptionW(hHandle, L"ColorsDialog", PO_BINARY, &rcColorsDialog, sizeof(RECT)))
+    goto Error;
   if (bColorsChanged)
   {
     if (!SaveOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
