@@ -79,6 +79,7 @@ extern HSTACK hPluginListStack;
 extern HSTACK hHandlesStack;
 extern HHOOK hHookPlugins;
 extern HWND hWndHotkey;
+extern RECT rcPluginsDialog;
 extern BOOL bSavePluginsStackOnExit;
 
 //INI
@@ -226,7 +227,6 @@ extern COLORREF crCustColors[16];
 extern BOOL bEditFontChanged;
 extern BOOL bColorsChanged;
 extern RECT rcColorsDialog;
-extern BOOL bColorsDialogRectSave;
 
 //Print
 extern HWND hWndPreviewEdit;
@@ -12932,6 +12932,13 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndOK;
   static HWND hWndCancel;
   static AECOLORS aecColorsDlg;
+  static DIALOGRESIZE drs[]={&hWndThemeName,   DRS_SIZE|DRS_X,
+                             &hWndThemeSave,   DRS_MOVE|DRS_X,
+                             &hWndThemeDelete, DRS_MOVE|DRS_X,
+                             &hWndList,        DRS_SIZE|DRS_X|DRS_Y,
+                             &hWndOK,          DRS_MOVE|DRS_X|DRS_Y,
+                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
+                             0, 0};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -13386,6 +13393,8 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
   }
+  DialogResizeMessages(&drs[0], &rcColorsDialog, hDlg, uMsg, wParam, lParam);
+
   return FALSE;
 }
 
@@ -13398,6 +13407,13 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndOK;
   static HWND hWndCancel;
   static AECOLORS aecColorsDlg;
+  static DIALOGRESIZE drs[]={&hWndThemeName,   DRS_SIZE|DRS_X,
+                             &hWndThemeSave,   DRS_MOVE|DRS_X,
+                             &hWndThemeDelete, DRS_MOVE|DRS_X,
+                             &hWndList,        DRS_SIZE|DRS_X|DRS_Y,
+                             &hWndOK,          DRS_MOVE|DRS_X|DRS_Y,
+                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
+                             0, 0};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -13852,99 +13868,9 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
   }
-  ColorsDlgSize(hWnd, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcColorsDialog, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
-}
-
-LRESULT CALLBACK ColorsDlgSize(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-  static RECT rcInitDialog;
-  RECT rcTemplate;
-
-  if (uMsg == WM_INITDIALOG)
-  {
-    GetWindowPos(hDlg, NULL, &rcInitDialog);
-    rcTemplate=rcColorsDialog;
-    rcColorsDialog=rcInitDialog;
-    if (rcTemplate.right && rcTemplate.bottom)
-    {
-      rcTemplate.left=rcInitDialog.left + (rcInitDialog.right - rcTemplate.right) / 2;
-      rcTemplate.top=rcInitDialog.top + (rcInitDialog.bottom - rcTemplate.bottom) / 2;
-      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
-      bColorsDialogRectSave=FALSE;
-    }
-  }
-  else if (uMsg == WM_GETMINMAXINFO)
-  {
-    MINMAXINFO *mmi=(MINMAXINFO *)lParam;
-
-    mmi->ptMinTrackSize.x=rcInitDialog.right;
-    mmi->ptMinTrackSize.y=rcInitDialog.bottom;
-    return 0;
-  }
-  else if (uMsg == WM_SIZE)
-  {
-    if (lParam)
-    {
-      RECT rcTemplate;
-      RECT rcControl;
-      int x;
-      int y;
-      int i;
-      HWND wndMoveX[]={hWndThemeSave,
-                       hWndThemeDelete,
-                       hWndOK,
-                       hWndCancel,
-                       0};
-      HWND wndMoveY[]={hWndOK,
-                       hWndCancel,
-                       0};
-
-      bColorsDialogRectSave=TRUE;
-      GetWindowPos(hDlg, NULL, &rcTemplate);
-      x=rcTemplate.right - rcColorsDialog.right;
-      y=rcTemplate.bottom - rcColorsDialog.bottom;
-      rcColorsDialog=rcTemplate;
-
-      //Resize
-      GetWindowPos(hWndThemeName, hDlg, &rcControl);
-      SetWindowPos(hWndThemeName, 0, 0, 0, rcControl.right + x, rcControl.bottom, SWP_NOMOVE|SWP_NOZORDER);
-      GetWindowPos(hWndList, hDlg, &rcControl);
-      SetWindowPos(hWndList, 0, 0, 0, rcControl.right + x, rcControl.bottom + y, SWP_NOMOVE|SWP_NOZORDER);
-
-      //Move
-      for (i=0; wndMoveX[i]; ++i)
-      {
-        GetWindowPos(wndMoveX[i], hDlg, &rcControl);
-        SetWindowPos(wndMoveX[i], 0, rcControl.left + x, rcControl.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-      }
-      for (i=0; wndMoveY[i]; ++i)
-      {
-        GetWindowPos(wndMoveY[i], hDlg, &rcControl);
-        SetWindowPos(wndMoveY[i], 0, rcControl.left, rcControl.top + y, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-      }
-      InvalidateRect(hDlg, NULL, TRUE);
-      return 0;
-    }
-  }
-  else if (uMsg == WM_PAINT)
-  {
-    PAINTSTRUCT ps;
-    RECT rcGrip;
-    HDC hDC;
-
-    if (hDC=BeginPaint(hDlg, &ps))
-    {
-      GetClientRect(hDlg, &rcGrip);
-      rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
-      rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
-      DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
-      EndPaint(hDlg, &ps);
-      return 0;
-    }
-  }
-  return 0;
 }
 
 void FillComboboxThemesA(HWND hWnd)
@@ -13977,10 +13903,23 @@ void FillComboboxThemesW(HWND hWnd)
 BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndList;
+  static HWND hWndListInfo;
+  static HWND hWndHotkeyLabel;
   static HWND hWndAssign;
   static HWND hWndCall;
+  static HWND hWndOK;
+  static HWND hWndCancel;
   static int nSelItem;
   static BOOL bListChanged;
+  static DIALOGRESIZE drs[]={&hWndList,        DRS_SIZE|DRS_X|DRS_Y,
+                             &hWndListInfo,    DRS_MOVE|DRS_Y,
+                             &hWndHotkeyLabel, DRS_MOVE|DRS_X,
+                             &hWndHotkey,      DRS_MOVE|DRS_X,
+                             &hWndAssign,      DRS_MOVE|DRS_X,
+                             &hWndCall,        DRS_MOVE|DRS_Y,
+                             &hWndOK,          DRS_MOVE|DRS_X|DRS_Y,
+                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
+                             0, 0};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -13990,9 +13929,13 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_PLUGINS_LIST);
+    hWndListInfo=GetDlgItem(hDlg, IDC_PLUGINS_LIST_INFO);
+    hWndHotkeyLabel=GetDlgItem(hDlg, IDC_PLUGINS_HOTKEY_LABEL);
     hWndHotkey=GetDlgItem(hDlg, IDC_PLUGINS_HOTKEY);
     hWndAssign=GetDlgItem(hDlg, IDC_PLUGINS_ASSIGN);
     hWndCall=GetDlgItem(hDlg, IDC_PLUGINS_CALL);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
     SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
     EnableWindow(hWndHotkey, FALSE);
     EnableWindow(hWndAssign, FALSE);
@@ -14199,16 +14142,31 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     hWndHotkey=NULL;
   }
+  DialogResizeMessages(&drs[0], &rcPluginsDialog, hDlg, uMsg, wParam, lParam);
+
   return FALSE;
 }
 
 BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndList;
+  static HWND hWndListInfo;
+  static HWND hWndHotkeyLabel;
   static HWND hWndAssign;
   static HWND hWndCall;
+  static HWND hWndOK;
+  static HWND hWndCancel;
   static int nSelItem;
   static BOOL bListChanged;
+  static DIALOGRESIZE drs[]={&hWndList,        DRS_SIZE|DRS_X|DRS_Y,
+                             &hWndListInfo,    DRS_MOVE|DRS_Y,
+                             &hWndHotkeyLabel, DRS_MOVE|DRS_X,
+                             &hWndHotkey,      DRS_MOVE|DRS_X,
+                             &hWndAssign,      DRS_MOVE|DRS_X,
+                             &hWndCall,        DRS_MOVE|DRS_Y,
+                             &hWndOK,          DRS_MOVE|DRS_X|DRS_Y,
+                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
+                             0, 0};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -14218,9 +14176,13 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_PLUGINS_LIST);
+    hWndListInfo=GetDlgItem(hDlg, IDC_PLUGINS_LIST_INFO);
+    hWndHotkeyLabel=GetDlgItem(hDlg, IDC_PLUGINS_HOTKEY_LABEL);
     hWndHotkey=GetDlgItem(hDlg, IDC_PLUGINS_HOTKEY);
     hWndAssign=GetDlgItem(hDlg, IDC_PLUGINS_ASSIGN);
     hWndCall=GetDlgItem(hDlg, IDC_PLUGINS_CALL);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
     SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
     EnableWindow(hWndHotkey, FALSE);
     EnableWindow(hWndAssign, FALSE);
@@ -14427,6 +14389,8 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     hWndHotkey=NULL;
   }
+  DialogResizeMessages(&drs[0], &rcPluginsDialog, hDlg, uMsg, wParam, lParam);
+
   return FALSE;
 }
 
@@ -20715,6 +20679,87 @@ void UpdateSize()
 
     hDocksStack.bSizing=FALSE;
   }
+}
+
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static RECT rcInitDialog;
+  static RECT rcTempDialog;
+  static BOOL bRectChanged;
+
+  if (!rcDialog) rcDialog=&rcTempDialog;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    RECT rcTemplate;
+
+    GetWindowPos(hDlg, NULL, &rcInitDialog);
+    rcTemplate=*rcDialog;
+    *rcDialog=rcInitDialog;
+
+    if (rcTemplate.right && rcTemplate.bottom)
+    {
+      rcTemplate.left=rcInitDialog.left + (rcInitDialog.right - rcTemplate.right) / 2;
+      rcTemplate.top=rcInitDialog.top + (rcInitDialog.bottom - rcTemplate.bottom) / 2;
+      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
+    }
+    bRectChanged=FALSE;
+  }
+  else if (uMsg == WM_GETMINMAXINFO)
+  {
+    MINMAXINFO *mmi=(MINMAXINFO *)lParam;
+
+    mmi->ptMinTrackSize.x=rcInitDialog.right;
+    mmi->ptMinTrackSize.y=rcInitDialog.bottom;
+  }
+  else if (uMsg == WM_SIZE)
+  {
+    if (lParam)
+    {
+      RECT rcTemplate;
+      RECT rcControl;
+      DWORD dwFlags;
+      POINT pt;
+      int i;
+
+      GetWindowPos(hDlg, NULL, &rcTemplate);
+      pt.x=rcTemplate.right - rcDialog->right;
+      pt.y=rcTemplate.bottom - rcDialog->bottom;
+      *rcDialog=rcTemplate;
+
+      for (i=0; drs[i].lpWnd; ++i)
+      {
+        if (*drs[i].lpWnd)
+        {
+          dwFlags=0;
+          if (drs[i].dwType & DRS_SIZE)
+            dwFlags|=SWP_NOMOVE;
+          else if (drs[i].dwType & DRS_MOVE)
+            dwFlags|=SWP_NOSIZE;
+          GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
+          SetWindowPos(*drs[i].lpWnd, 0, rcControl.left + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.top + ((drs[i].dwType & DRS_Y)?pt.y:0), rcControl.right + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.bottom + ((drs[i].dwType & DRS_Y)?pt.y:0), dwFlags|SWP_NOZORDER);
+        }
+      }
+      InvalidateRect(hDlg, NULL, TRUE);
+      bRectChanged=TRUE;
+    }
+  }
+  else if (uMsg == WM_PAINT)
+  {
+    PAINTSTRUCT ps;
+    RECT rcGrip;
+    HDC hDC;
+
+    if (hDC=BeginPaint(hDlg, &ps))
+    {
+      GetClientRect(hDlg, &rcGrip);
+      rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
+      rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
+      DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
+      EndPaint(hDlg, &ps);
+    }
+  }
+  return bRectChanged;
 }
 
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen)

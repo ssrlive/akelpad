@@ -106,6 +106,7 @@ HSTACK hPluginListStack={0};
 HSTACK hHandlesStack={0};
 HHOOK hHookPlugins;
 HWND hWndHotkey;
+RECT rcPluginsDialog={0};
 BOOL bSavePluginsStackOnExit=FALSE;
 
 //INI
@@ -252,8 +253,7 @@ AECOLORS aecColors={0};
 COLORREF crCustColors[16]={0};
 BOOL bEditFontChanged=FALSE;
 BOOL bColorsChanged=FALSE;
-RECT rcColorsDialog;
-BOOL bColorsDialogRectSave;
+RECT rcColorsDialog={0};
 
 //Print
 HWND hWndPreviewEdit=NULL;

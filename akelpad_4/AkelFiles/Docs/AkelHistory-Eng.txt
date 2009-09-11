@@ -4,6 +4,11 @@ AkelPad 4.3.1 ()
 Changed: syntax highlighting improved.
 Changed: internal Alt+NumPad processing, now started after two Num 0.
 
+Added: manifest in program resources.
+Added: "Colors..." and "Plugins..." dialogs now resizable.
+
+Fixed: hiding horizontal scrollbar (Win7).
+
 
 AkelPad 4.3.0 (Aug 28, 2009)
 ----------------------------

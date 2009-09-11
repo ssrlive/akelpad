@@ -251,6 +251,12 @@
 #define LVSI_FUNCTION_HOTKEY   1
 #define LVSI_FUNCTION_STATUS   2
 
+//DIALOGRESIZE
+#define DRS_SIZE 0x1 //Resize control
+#define DRS_MOVE 0x2 //Move control
+#define DRS_X    0x4 //X value
+#define DRS_Y    0x8 //Y value
+
 
 //// Structures
 
@@ -373,6 +379,11 @@ typedef struct _HDOCK {
   BOOL bSizing;
   int nSizingSide;
 } HDOCK;
+
+typedef struct {
+  HWND *lpWnd;   //Control window
+  DWORD dwType;  //See DRS_* defines
+} DIALOGRESIZE;
 
 
 //// Functions prototype
@@ -646,7 +657,6 @@ BOOL CALLBACK RecodeDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK ColorsDlgSize(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxThemesA(HWND hWnd);
 void FillComboboxThemesW(HWND hWnd);
 
@@ -813,6 +823,7 @@ HWND NextClone(BOOL bPrevious);
 void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3);
 void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight, RECT *rcMasterWindow, RECT *rcEditWindow, BOOL bTest);
 void UpdateSize();
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
 void DrawMovingRect(RECT *rcScreen);
 int GetMouseEdge(HWND hWnd, POINT *pt);
