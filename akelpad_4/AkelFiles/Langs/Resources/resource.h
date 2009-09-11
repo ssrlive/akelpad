@@ -139,6 +139,8 @@
 #define IDC_PLUGINS_HOTKEY              3252
 #define IDC_PLUGINS_ASSIGN              3253
 #define IDC_PLUGINS_CALL                3254
+#define IDC_PLUGINS_HOTKEY_LABEL        3255
+#define IDC_PLUGINS_LIST_INFO           3256
 #define IDC_OPTIONS_EXECCOM             3501
 #define IDC_OPTIONS_EXECCOM_BROWSE      3502
 #define IDC_OPTIONS_EXECDIR             3503
