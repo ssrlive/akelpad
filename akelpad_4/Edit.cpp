@@ -12944,13 +12944,13 @@ BOOL CALLBACK ColorsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndOK;
   static HWND hWndCancel;
   static AECOLORS aecColorsDlg;
-  static DIALOGRESIZE drs[]={&hWndThemeName,   DRS_SIZE|DRS_X,
-                             &hWndThemeSave,   DRS_MOVE|DRS_X,
-                             &hWndThemeDelete, DRS_MOVE|DRS_X,
-                             &hWndList,        DRS_SIZE|DRS_X|DRS_Y,
-                             &hWndOK,          DRS_MOVE|DRS_X|DRS_Y,
-                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
-                             0, 0};
+  static DIALOGRESIZE drs[]={{&hWndThemeName,   DRS_SIZE|DRS_X},
+                             {&hWndThemeSave,   DRS_MOVE|DRS_X},
+                             {&hWndThemeDelete, DRS_MOVE|DRS_X},
+                             {&hWndList,        DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndOK,          DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -13419,13 +13419,13 @@ BOOL CALLBACK ColorsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndOK;
   static HWND hWndCancel;
   static AECOLORS aecColorsDlg;
-  static DIALOGRESIZE drs[]={&hWndThemeName,   DRS_SIZE|DRS_X,
-                             &hWndThemeSave,   DRS_MOVE|DRS_X,
-                             &hWndThemeDelete, DRS_MOVE|DRS_X,
-                             &hWndList,        DRS_SIZE|DRS_X|DRS_Y,
-                             &hWndOK,          DRS_MOVE|DRS_X|DRS_Y,
-                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
-                             0, 0};
+  static DIALOGRESIZE drs[]={{&hWndThemeName,   DRS_SIZE|DRS_X},
+                             {&hWndThemeSave,   DRS_MOVE|DRS_X},
+                             {&hWndThemeDelete, DRS_MOVE|DRS_X},
+                             {&hWndList,        DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndOK,          DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -13923,15 +13923,15 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndCancel;
   static int nSelItem;
   static BOOL bListChanged;
-  static DIALOGRESIZE drs[]={&hWndList,        DRS_SIZE|DRS_X|DRS_Y,
-                             &hWndListInfo,    DRS_MOVE|DRS_Y,
-                             &hWndHotkeyLabel, DRS_MOVE|DRS_X,
-                             &hWndHotkey,      DRS_MOVE|DRS_X,
-                             &hWndAssign,      DRS_MOVE|DRS_X,
-                             &hWndCall,        DRS_MOVE|DRS_Y,
-                             &hWndOK,          DRS_MOVE|DRS_X|DRS_Y,
-                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
-                             0, 0};
+  static DIALOGRESIZE drs[]={{&hWndList,        DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndListInfo,    DRS_MOVE|DRS_Y},
+                             {&hWndHotkeyLabel, DRS_MOVE|DRS_X},
+                             {&hWndHotkey,      DRS_MOVE|DRS_X},
+                             {&hWndAssign,      DRS_MOVE|DRS_X},
+                             {&hWndCall,        DRS_MOVE|DRS_Y},
+                             {&hWndOK,          DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -14170,15 +14170,15 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndCancel;
   static int nSelItem;
   static BOOL bListChanged;
-  static DIALOGRESIZE drs[]={&hWndList,        DRS_SIZE|DRS_X|DRS_Y,
-                             &hWndListInfo,    DRS_MOVE|DRS_Y,
-                             &hWndHotkeyLabel, DRS_MOVE|DRS_X,
-                             &hWndHotkey,      DRS_MOVE|DRS_X,
-                             &hWndAssign,      DRS_MOVE|DRS_X,
-                             &hWndCall,        DRS_MOVE|DRS_Y,
-                             &hWndOK,          DRS_MOVE|DRS_X|DRS_Y,
-                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
-                             0, 0};
+  static DIALOGRESIZE drs[]={{&hWndList,        DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndListInfo,    DRS_MOVE|DRS_Y},
+                             {&hWndHotkeyLabel, DRS_MOVE|DRS_X},
+                             {&hWndHotkey,      DRS_MOVE|DRS_X},
+                             {&hWndAssign,      DRS_MOVE|DRS_X},
+                             {&hWndCall,        DRS_MOVE|DRS_Y},
+                             {&hWndOK,          DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
