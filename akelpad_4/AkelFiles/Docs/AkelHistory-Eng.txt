@@ -5,6 +5,7 @@ Changed: syntax highlighting improved.
 Changed: internal Alt+NumPad processing, now started after two Num 0.
 
 Added: manifest in program resources.
+Added: installation with notepad replacement under WinVista and Win7.
 Added: "Colors..." and "Plugins..." dialogs now resizable.
 
 Fixed: hiding horizontal scrollbar (Win7).
