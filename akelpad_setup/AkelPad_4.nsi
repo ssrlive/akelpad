@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.3.0"
+!define PRODUCT_VERSION "4.3.1"
 
 ;_____________________________________________________________________________________________
 ;
@@ -12,6 +12,7 @@ OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}-setup.exe"
 SetCompressor /SOLID lzma
 SubCaption 3 ' '
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+RequestExecutionLevel admin
 
 
 ############  Functions  ############
@@ -517,6 +518,20 @@ Section
 
 	_notepad:
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
+	SearchPath $0 takeown.exe
+	StrCmp $0 "" backup
+	SearchPath $0 cacls.exe
+	StrCmp $0 "" backup
+	nsExec::Exec 'takeown.exe /F $WINDIR\notepad.exe'
+	Pop $0
+	nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
+	Pop $0
+	nsExec::Exec '%comspec% /c "echo y|cacls.exe $WINDIR\notepad.exe /G %USERNAME%:F"'
+	Pop $0
+	nsExec::Exec '%comspec% /c "echo y|cacls.exe $SYSDIR\notepad.exe /G %USERNAME%:F"'
+	Pop $0
+
+	backup:
 	IfFileExists "$WINDIR\notepad_AkelUndo.exe" +2
 	CopyFiles /SILENT "$WINDIR\notepad.exe" "$WINDIR\notepad_AkelUndo.exe"
 	IfFileExists "$SYSDIR\notepad_AkelUndo.exe" +2
@@ -675,6 +690,20 @@ Section un.install
 	UnRegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
 
 #	_notepad:
+	SearchPath $0 takeown.exe
+	StrCmp $0 "" deassoc
+	SearchPath $0 cacls.exe
+	StrCmp $0 "" deassoc
+	nsExec::Exec 'takeown.exe /F $WINDIR\notepad.exe'
+	Pop $0
+	nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
+	Pop $0
+	nsExec::Exec '%comspec% /c "echo y|cacls.exe $WINDIR\notepad.exe /G %USERNAME%:F"'
+	Pop $0
+	nsExec::Exec '%comspec% /c "echo y|cacls.exe $SYSDIR\notepad.exe /G %USERNAME%:F"'
+	Pop $0
+
+	deassoc:
 	IfFileExists "$WINDIR\notepad_AkelUndo.exe" 0 +3
 	ExecWait '"$WINDIR\notepad.exe" /deassoc /quit'
 	goto +3
@@ -691,6 +720,7 @@ Section un.install
 	IfFileExists "$SYSDIR\DLLCACHE\notepad.exe" 0 +3
 	Delete "$SYSDIR\DLLCACHE\notepad.exe"
 	CopyFiles /SILENT "$SYSDIR\notepad.exe" "$SYSDIR\DLLCACHE\notepad.exe"
+
 	DeleteRegValue HKLM "Software\Akelsoft\AkelPad" "Path"
 
 	_totalcmd:
