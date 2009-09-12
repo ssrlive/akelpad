@@ -404,7 +404,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (uMsg != WM_CHAR)
     {
-      if (ae->nAltChar == AEAC_KEYUP)
+      if (uMsg == WM_KILLFOCUS)
+        ae->nAltChar=AEAC_NONE;
+      else if (ae->nAltChar == AEAC_KEYUP)
         ae->nAltChar=AEAC_NONE;
     }
 
