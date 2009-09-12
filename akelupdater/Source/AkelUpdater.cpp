@@ -183,16 +183,16 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static int nAllItemsCount=0;
   static int nSelItemsCount=0;
   static LVITEMA lviA;
-  static DIALOGRESIZE drs[]={&hWndGroupExe,    DRS_SIZE|DRS_X,
-                             &hWndListExe,     DRS_SIZE|DRS_X,
-                             &hWndMirrorLabel, DRS_MOVE|DRS_X,
-                             &hWndMirror,      DRS_MOVE|DRS_X,
-                             &hWndListDll,     DRS_SIZE|DRS_X|DRS_Y,
-                             &hWndListInfo,    DRS_MOVE|DRS_Y,
-                             &hWndSeleted,     DRS_MOVE|DRS_X|DRS_Y,
-                             &hWndUpdate,      DRS_MOVE|DRS_Y,
-                             &hWndCancel,      DRS_MOVE|DRS_X|DRS_Y,
-                             0, 0};
+  static DIALOGRESIZE drs[]={{&hWndGroupExe,    DRS_SIZE|DRS_X},
+                             {&hWndListExe,     DRS_SIZE|DRS_X},
+                             {&hWndMirrorLabel, DRS_MOVE|DRS_X},
+                             {&hWndMirror,      DRS_MOVE|DRS_X},
+                             {&hWndListDll,     DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndListInfo,    DRS_MOVE|DRS_Y},
+                             {&hWndSeleted,     DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndUpdate,      DRS_MOVE|DRS_Y},
+                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
