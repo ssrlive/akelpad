@@ -1,6 +1,6 @@
 !define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "3.7.3"
+!define PRODUCT_VERSION "3.7.4"
 
 ;_____________________________________________________________________________________________
 ;
@@ -12,6 +12,7 @@ OutFile "${PRODUCT_NAME}-${PRODUCT_VERSION}-setup.exe"
 SetCompressor /SOLID lzma
 SubCaption 3 ' '
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+RequestExecutionLevel admin
 
 
 ############  Functions  ############
@@ -51,9 +52,9 @@ BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 !define LANG_KOREAN               1042
 !define LANG_CHINESE_TRADITIONAL  1028
 !define LANG_CHINESE_SIMPLIFIED   2052
-!define LANG_KYRGYZ               1088
 !define LANG_POLISH               1045
 !define LANG_TURKISH              1055
+!define LANG_KYRGYZ               1088
 
 !define INSTTYPE_STANDARD  1
 !define INSTTYPE_TOTALCMD  2
@@ -513,6 +514,20 @@ Section
 
 	_notepad:
 	StrCmp $INSTTYPE ${INSTTYPE_NOTEPAD} 0 RegInfo
+	SearchPath $0 takeown.exe
+	StrCmp $0 "" backup
+	SearchPath $0 cacls.exe
+	StrCmp $0 "" backup
+	nsExec::Exec 'takeown.exe /F $WINDIR\notepad.exe'
+	Pop $0
+	nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
+	Pop $0
+	nsExec::Exec '%comspec% /c "echo y|cacls.exe $WINDIR\notepad.exe /G %USERNAME%:F"'
+	Pop $0
+	nsExec::Exec '%comspec% /c "echo y|cacls.exe $SYSDIR\notepad.exe /G %USERNAME%:F"'
+	Pop $0
+
+	backup:
 	IfFileExists "$WINDIR\notepad_AkelUndo.exe" +2
 	CopyFiles /SILENT "$WINDIR\notepad.exe" "$WINDIR\notepad_AkelUndo.exe"
 	IfFileExists "$SYSDIR\notepad_AkelUndo.exe" +2
@@ -585,12 +600,12 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Chinese (Traditional).dll"
 	StrCmp $SYSLANGUAGE ${LANG_CHINESE_SIMPLIFIED} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Chinese (Simplified).dll"
-	StrCmp $SYSLANGUAGE ${LANG_KYRGYZ} 0 +2
-	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Kyrgyz.dll"
 	StrCmp $SYSLANGUAGE ${LANG_POLISH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Polish.dll"
 	StrCmp $SYSLANGUAGE ${LANG_TURKISH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Turkish.dll"
+	StrCmp $SYSLANGUAGE ${LANG_KYRGYZ} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Kyrgyz.dll"
 
 	end:
 SectionEnd
@@ -663,6 +678,20 @@ Section un.install
 	UnRegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
 
 #	_notepad:
+	SearchPath $0 takeown.exe
+	StrCmp $0 "" deassoc
+	SearchPath $0 cacls.exe
+	StrCmp $0 "" deassoc
+	nsExec::Exec 'takeown.exe /F $WINDIR\notepad.exe'
+	Pop $0
+	nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
+	Pop $0
+	nsExec::Exec '%comspec% /c "echo y|cacls.exe $WINDIR\notepad.exe /G %USERNAME%:F"'
+	Pop $0
+	nsExec::Exec '%comspec% /c "echo y|cacls.exe $SYSDIR\notepad.exe /G %USERNAME%:F"'
+	Pop $0
+
+	deassoc:
 	IfFileExists "$WINDIR\notepad_AkelUndo.exe" 0 +3
 	ExecWait '"$WINDIR\notepad.exe" /deassoc /quit'
 	goto +3
@@ -679,6 +708,7 @@ Section un.install
 	IfFileExists "$SYSDIR\DLLCACHE\notepad.exe" 0 +3
 	Delete "$SYSDIR\DLLCACHE\notepad.exe"
 	CopyFiles /SILENT "$SYSDIR\notepad.exe" "$SYSDIR\DLLCACHE\notepad.exe"
+
 	DeleteRegValue HKLM "Software\Akelsoft\AkelPad" "Path"
 
 	_totalcmd:
