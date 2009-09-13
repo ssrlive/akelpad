@@ -95,27 +95,29 @@
 #define AEMOD_CONTROL           0x04  //CTRL key
 
 //AEM_GETINDEX flags
-#define AEGI_FIRSTCHAR           1  //First character.
-#define AEGI_LASTCHAR            2  //Last character.
-#define AEGI_FIRSTSELCHAR        3  //First character of the selection.
-#define AEGI_LASTSELCHAR         4  //Last character of the selection.
-#define AEGI_CARETCHAR           5  //Caret character.
-#define AEGI_FIRSTVISIBLELINE    6  //First character of the first visible line.
-#define AEGI_LASTVISIBLELINE     7  //Last character of the last visible line.
-#define AEGI_NEXTLINE            8  //First character of the next line.
-#define AEGI_PREVLINE            9  //First character of the previous line.
-#define AEGI_NEXTCHAR           10  //Next wide character.
-#define AEGI_PREVCHAR           11  //Previous wide character.
-#define AEGI_NEXTBREAK          12  //Next break index, see AEM_SETWORDDELIMITERS.
-#define AEGI_PREVBREAK          13  //Previous break index, see AEM_SETWORDDELIMITERS.
-#define AEGI_NEXTWORDSTART      14  //Next word start index, see AEM_SETWORDDELIMITERS.
-#define AEGI_NEXTWORDEND        15  //Next word end index, see AEM_SETWORDDELIMITERS.
-#define AEGI_PREVWORDSTART      16  //Previous word start index, see AEM_SETWORDDELIMITERS.
-#define AEGI_PREVWORDEND        17  //Previous word end index, see AEM_SETWORDDELIMITERS.
-#define AEGI_WRAPLINEBEGIN      18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
-#define AEGI_WRAPLINEEND        19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
-#define AEGI_NEXTCHARINLINE     20  //Next character in line.
-#define AEGI_PREVCHARINLINE     21  //Previous character in line.
+#define AEGI_FIRSTCHAR              1  //First character.
+#define AEGI_LASTCHAR               2  //Last character.
+#define AEGI_FIRSTSELCHAR           3  //First character of the selection.
+#define AEGI_LASTSELCHAR            4  //Last character of the selection.
+#define AEGI_CARETCHAR              5  //Caret character.
+#define AEGI_FIRSTVISIBLELINE       6  //First character of the first visible line.
+#define AEGI_LASTVISIBLELINE        7  //Last character of the last visible line.
+#define AEGI_NEXTLINE               8  //First character of the next line.
+#define AEGI_PREVLINE               9  //First character of the previous line.
+#define AEGI_NEXTCHAR              10  //Next wide character.
+#define AEGI_PREVCHAR              11  //Previous wide character.
+#define AEGI_NEXTBREAK             12  //Next break index, see AEM_SETWORDDELIMITERS.
+#define AEGI_PREVBREAK             13  //Previous break index, see AEM_SETWORDDELIMITERS.
+#define AEGI_NEXTWORDSTART         14  //Next word start index, see AEM_SETWORDDELIMITERS.
+#define AEGI_NEXTWORDEND           15  //Next word end index, see AEM_SETWORDDELIMITERS.
+#define AEGI_PREVWORDSTART         16  //Previous word start index, see AEM_SETWORDDELIMITERS.
+#define AEGI_PREVWORDEND           17  //Previous word end index, see AEM_SETWORDDELIMITERS.
+#define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
+#define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
+#define AEGI_NEXTCHARINLINE        20  //Next character in line.
+#define AEGI_PREVCHARINLINE        21  //Previous character in line.
+#define AEGI_FIRSTFULLVISIBLELINE  22  //First character of the first fully visible line.
+#define AEGI_LASTFULLVISIBLELINE   23  //Last character of the last fully visible line.
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_WORD    0  //Word delimiter.
@@ -227,6 +229,10 @@
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST return flags
 #define AECSE_SCROLLEDX      0x00000001  //Edit control was horizontally scrolled.
 #define AECSE_SCROLLEDY      0x00000002  //Edit control was vertically scrolled.
+#define AECSE_SCROLLEDLEFT   0x00000004  //Edit control was scrolled left horizontally.
+#define AECSE_SCROLLEDRIGHT  0x00000008  //Edit control was scrolled right horizontally.
+#define AECSE_SCROLLEDUP     0x00000010  //Edit control was scrolled up vertically.
+#define AECSE_SCROLLEDDOWN   0x00000020  //Edit control was scrolled down vertically.
 
 //AEM_GETCHARSIZE flags
 #define AECS_HEIGHT          0  //Current font character height.

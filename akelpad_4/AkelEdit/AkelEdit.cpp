@@ -4988,6 +4988,24 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
     return ciCharOut->lpLine?1:0;
   }
+  else if (nType == AEGI_FIRSTFULLVISIBLELINE)
+  {
+    ciCharOut->nLine=AE_GetFirstVisibleLine(ae);
+    if (ciCharOut->nLine * ae->ptxt->nCharHeight < ae->nVScrollPos)
+       ciCharOut->nLine=min(ciCharOut->nLine + 1, ae->ptxt->nLineCount);
+    ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
+    ciCharOut->nCharInLine=0;
+    return ciCharOut->lpLine?1:0;
+  }
+  else if (nType == AEGI_LASTFULLVISIBLELINE)
+  {
+    ciCharOut->nLine=AE_GetLastVisibleLine(ae);
+    if (ciCharOut->nLine * ae->ptxt->nCharHeight + ae->ptxt->nCharHeight > ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top))
+       ciCharOut->nLine=max(ciCharOut->nLine - 1, 0);
+    ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
+    ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
+    return ciCharOut->lpLine?1:0;
+  }
   else if (nType == AEGI_NEXTLINE)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
@@ -8262,24 +8280,24 @@ DWORD AE_ScrollToCaretEx(AKELEDIT *ae, const POINT *ptCaret, DWORD dwFlags, WORD
     if (dwFlags & AESC_FORCELEFT)
     {
       if (!bTest) AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - x, 0));
-      dwResult|=AECSE_SCROLLEDX;
+      dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDLEFT;
     }
     else if (dwFlags & AESC_FORCERIGHT)
     {
       if (!bTest) AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + x + 1, 0));
-      dwResult|=AECSE_SCROLLEDX;
+      dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDRIGHT;
     }
     else
     {
       if (ptCaret->x >= ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left) - x)
       {
         if (!bTest) AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - (ae->rcDraw.right - ae->rcDraw.left) + x + 1, 0));
-        dwResult|=AECSE_SCROLLEDX;
+        dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDRIGHT;
       }
       else if (ptCaret->x < ae->nHScrollPos + x)
       {
         if (!bTest) AE_ScrollEditWindow(ae, SB_HORZ, max(ptCaret->x - x, 0));
-        dwResult|=AECSE_SCROLLEDX;
+        dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDLEFT;
       }
     }
   }
@@ -8289,24 +8307,24 @@ DWORD AE_ScrollToCaretEx(AKELEDIT *ae, const POINT *ptCaret, DWORD dwFlags, WORD
     if (dwFlags & AESC_FORCETOP)
     {
       if (!bTest) AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - y, 0));
-      dwResult|=AECSE_SCROLLEDY;
+      dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDUP;
     }
     else if (dwFlags & AESC_FORCEBOTTOM)
     {
       if (!bTest) AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + y + 1, 0));
-      dwResult|=AECSE_SCROLLEDY;
+      dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDDOWN;
     }
     else
     {
       if (ptCaret->y >= ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top) - y)
       {
         if (!bTest) AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + y + 1, 0));
-        dwResult|=AECSE_SCROLLEDY;
+        dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDDOWN;
       }
       else if (ptCaret->y < ae->nVScrollPos + y)
       {
         if (!bTest) AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - y, 0));
-        dwResult|=AECSE_SCROLLEDY;
+        dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDUP;
       }
     }
   }
@@ -14550,11 +14568,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
 
       if (bControl)
       {
-        //First fully visible line
-        ciCharOut.nLine=AE_GetFirstVisibleLine(ae);
-        if (ciCharOut.nLine * ae->ptxt->nCharHeight < ae->nVScrollPos)
-           ciCharOut.nLine=min(ciCharOut.nLine + 1, ae->ptxt->nLineCount);
-        ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
+        AE_GetIndex(ae, AEGI_FIRSTFULLVISIBLELINE, NULL, &ciCharOut, FALSE);
         if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
           ciCharOut.nCharInLine=ciCharIn.nCharInLine;
         else
@@ -14578,11 +14592,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
 
       if (bControl)
       {
-        //Last fully visible line
-        ciCharOut.nLine=AE_GetLastVisibleLine(ae);
-        if (ciCharOut.nLine * ae->ptxt->nCharHeight + ae->ptxt->nCharHeight > ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top))
-           ciCharOut.nLine=max(ciCharOut.nLine - 1, 0);
-        ciCharOut.lpLine=AE_GetLineData(ae, ciCharOut.nLine);
+        AE_GetIndex(ae, AEGI_LASTFULLVISIBLELINE, NULL, &ciCharOut, FALSE);
         if (bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE))
           ciCharOut.nCharInLine=ciCharIn.nCharInLine;
         else
