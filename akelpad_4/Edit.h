@@ -602,7 +602,7 @@ int EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput);
 void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput);
 
 void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
-void SetSel(HWND hWnd, AECHARRANGE *crSel, BOOL bColumnSel, AECHARINDEX *ciCaret);
+void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret);
 void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel);

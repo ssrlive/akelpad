@@ -608,6 +608,23 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       //Text coordinates
+      if (uMsg == AEM_EXGETSEL)
+      {
+        AECHARINDEX *ciMin=(AECHARINDEX *)wParam;
+        AECHARINDEX *ciMax=(AECHARINDEX *)lParam;
+
+        if (ciMin) *ciMin=ae->ciSelStartIndex;
+        if (ciMax) *ciMax=ae->ciSelEndIndex;
+
+        if (!AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+          return FALSE;
+        return TRUE;
+      }
+      if (uMsg == AEM_EXSETSEL)
+      {
+        AE_SetSelectionPos(ae, (AECHARINDEX *)lParam, (AECHARINDEX *)wParam, FALSE, 0);
+        return 0;
+      }
       if (uMsg == AEM_GETSEL)
       {
         AECHARINDEX *lpciCaret=(AECHARINDEX *)wParam;
@@ -6352,6 +6369,11 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     ciSelEndNew=*ciSelEnd;
     ciCaretNew=*ciSelStart;
     bColumnSelOld=ae->bColumnSel;
+
+    if (dwSelFlags & AESELT_COLUMNON)
+      bColumnSel=TRUE;
+    else if (dwSelFlags & AESELT_COLUMNASIS)
+      bColumnSel=ae->bColumnSel;
     ae->bColumnSel=bColumnSel;
 
     //Exchange indexes
@@ -6492,17 +6514,10 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
 
 void AE_UpdateSelection(AKELEDIT *ae, DWORD dwSelFlags)
 {
-  BOOL bColumnSel=ae->bColumnSel;
-
-  if (dwSelFlags & AESELT_COLUMNON)
-    bColumnSel=TRUE;
-  if (dwSelFlags & AESELT_COLUMNOFF)
-    bColumnSel=FALSE;
-
   if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex) <= 0)
-    AE_SetSelectionPos(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, bColumnSel, dwSelFlags);
+    AE_SetSelectionPos(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, FALSE, dwSelFlags);
   else
-    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelStartIndex, bColumnSel, dwSelFlags);
+    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelStartIndex, FALSE, dwSelFlags);
 }
 
 void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOOL bShift)
@@ -15168,7 +15183,7 @@ BOOL AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
   {
     aes->crSel.ciMin=ae->ciSelStartIndex;
     aes->crSel.ciMax=ae->ciSelEndIndex;
-    aes->bColumnSel=ae->bColumnSel;
+    aes->dwFlags=ae->bColumnSel;
   }
   if (lpciCaret)
   {
@@ -15184,16 +15199,16 @@ void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *
   if (!lpciCaret)
   {
     if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
-      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, aes->bColumnSel, 0);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags);
     else
-      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, aes->bColumnSel, 0);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags);
   }
   else
   {
     if (AE_IndexCompare(lpciCaret, &aes->crSel.ciMax) >= 0)
-      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, aes->bColumnSel, 0);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags);
     else
-      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, aes->bColumnSel, 0);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags);
   }
 }
 
