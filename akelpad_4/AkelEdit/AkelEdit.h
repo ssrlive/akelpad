@@ -81,7 +81,7 @@
 #define AECO_DISABLEDROP        0x00000100  //Disables OLE text dropping.
 #define AECO_CARETOUTEDGE       0x00000200  //Allow caret moving out of the line edge.
 #define AECO_ACTIVECOLUMN       0x00000400  //Draw caret vertical line.
-#define AECO_PAINTGROUP         0x00000800  //Paint text by group of characters (default is character by character). With this style combined and surrogate unicode symbols can be drawn correctly but editing of whose characters isn't comfortable.
+#define AECO_PAINTGROUP         0x00000800  //Paint text by group of characters (default is character by character). With this style combined unicode symbols can be drawn correctly but editing of whose characters isn't comfortable.
 #define AECO_ALTDECINPUT        0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
@@ -122,13 +122,13 @@
 #define AEDLM_WRAP    1  //Wrap delimiter.
 #define AEDLM_URL     2  //URL delimiter.
 
-//AEM_UPDATESEL flags
-#define AESELT_LOCKNOTIFY          0x00000001  //Disable AEN_SELCHANGING and AEN_SELCHANGED notifications.
-#define AESELT_LOCKSCROLL          0x00000002  //Lock edit window scroll.
-#define AESELT_LOCKUPDATE          0x00000004  //Lock edit window update.
-#define AESELT_LOCKUNDOGROUPING    0x00000008  //Don't use it. For internal code only.
-#define AESELT_COLUMNON            0x00000010  //Make column selection ON.
-#define AESELT_COLUMNOFF           0x00000020  //Make column selection OFF.
+//AEM_SETSEL and AEM_UPDATESEL flags
+#define AESELT_COLUMNON            0x00000001  //Make column selection ON.
+#define AESELT_COLUMNASIS          0x00000002  //Leave column selection as is.
+#define AESELT_LOCKNOTIFY          0x00000004  //Disable AEN_SELCHANGING and AEN_SELCHANGED notifications.
+#define AESELT_LOCKSCROLL          0x00000008  //Lock edit window scroll.
+#define AESELT_LOCKUPDATE          0x00000010  //Lock edit window update.
+#define AESELT_LOCKUNDOGROUPING    0x00000020  //Don't use it. For internal code only.
 #define AESELT_NOVERTSCROLLCORRECT 0x00000040  //On some conditions scroll can be increased to a height of one line.
 #define AESELT_MOUSE               0x00000080  //Don't use it. For internal code only.
 
@@ -386,7 +386,7 @@ typedef struct {
 
 typedef struct {
   AECHARRANGE crSel;  //Characters range.
-  BOOL bColumnSel;    //Column selection.
+  DWORD dwFlags;      //See AESELT_* defines.
 } AESELECTION;
 
 typedef struct _AEPOINT {
@@ -784,6 +784,8 @@ typedef struct {
 #define AEM_UNDOBUFFERSIZE     (WM_USER + 2064)
 
 //Text coordinates
+#define AEM_EXGETSEL           (WM_USER + 2099)
+#define AEM_EXSETSEL           (WM_USER + 2100)
 #define AEM_GETSEL             (WM_USER + 2101)
 #define AEM_SETSEL             (WM_USER + 2102)
 #define AEM_GETCOLUMNSEL       (WM_USER + 2103)
@@ -1601,7 +1603,7 @@ Example:
  if (SendMessage(hWndEdit, AEM_FINDTEXTA, 0, (LPARAM)&ft))
  {
    aes.crSel=ft.crFound;
-   aes.bColumnSel=FALSE;
+   aes.dwFlags=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -1632,7 +1634,7 @@ Example:
  if (SendMessage(hWndEdit, AEM_FINDTEXTW, 0, (LPARAM)&ft))
  {
    aes.crSel=ft.crFound;
-   aes.bColumnSel=FALSE;
+   aes.dwFlags=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -1662,7 +1664,7 @@ Example:
  if (SendMessage(hWndEdit, AEM_ISMATCHA, (WPARAM)&ciChar, (LPARAM)&ft))
  {
    aes.crSel=ft.crFound;
-   aes.bColumnSel=FALSE;
+   aes.dwFlags=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -1692,7 +1694,7 @@ Example:
  if (SendMessage(hWndEdit, AEM_ISMATCHW, (WPARAM)&ciChar, (LPARAM)&ft))
  {
    aes.crSel=ft.crFound;
-   aes.bColumnSel=FALSE;
+   aes.dwFlags=0;
    SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)NULL, (LPARAM)&aes);
  }
 
@@ -1954,6 +1956,48 @@ Example:
  SendMessage(hWndEdit, AEM_UNDOBUFFERSIZE, 0, 0);
 
 
+AEM_EXGETSEL
+____________
+
+Retrieve the current selection information of an edit control. Simple form of AEM_GETSEL.
+
+(AECHARINDEX *)wParam == selection start index. Can be NULL.
+(AECHARINDEX *)lParam == selection end index. Can be NULL.
+
+Return Value
+ TRUE   selection is not empty.
+ FALSE  selection is empty.
+
+Example:
+ AECHARRANGE aecr;
+
+ SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&aecr.ciMin, (LPARAM)&aecr.ciMax);
+
+
+AEM_EXSETSEL
+____________
+
+Set the current selection of an edit control. Simple form of AEM_SETSEL.
+
+(AECHARINDEX *)wParam == selection start index.
+(AECHARINDEX *)lParam == selection end index.
+
+Return Value
+ zero
+
+Example:
+ AECHARRANGE aecr;
+ BOOL bCaretAtEnd=TRUE;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&aecr.ciMin);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&aecr.ciMax);
+
+ if (bCaretAtEnd)
+   SendMessage(hWndEdit, AEM_EXSETSEL, (WPARAM)&aecr.ciMin, (LPARAM)&aecr.ciMax);
+ else
+   SendMessage(hWndEdit, AEM_EXSETSEL, (WPARAM)&aecr.ciMax, (LPARAM)&aecr.ciMin);
+
+
 AEM_GETSEL
 __________
 
@@ -1989,7 +2033,7 @@ Example:
 
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&aes.crSel.ciMin);
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&aes.crSel.ciMax);
- aes.bColumnSel=FALSE;
+ aes.dwFlags=0;
  SendMessage(hWndEdit, AEM_SETSEL, (WPARAM)&aes.crSel.ciMax, (LPARAM)&aes);
 
 
