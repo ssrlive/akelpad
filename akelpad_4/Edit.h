@@ -767,6 +767,7 @@ DWORD IsEditActive(HWND hWnd);
 void UpdateShowHScroll(HWND hWnd);
 void SaveLineScroll(HWND hWnd, int *nBeforeLine);
 void RestoreLineScroll(HWND hWnd, int *nBeforeLine);
+DWORD ScrollCaret(HWND hWnd);
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor);
 BOOL SelectColorDialogW(HWND hWndOwner, COLORREF *crColor);
 BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc);
