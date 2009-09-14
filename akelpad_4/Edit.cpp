@@ -11839,7 +11839,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
       if (nGotoType == NT_LINE)
       {
-        nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
+        nLineCount=SendMessage(hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
         if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
           nLineCount=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
 
@@ -11981,7 +11981,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
       if (nGotoType == NT_LINE)
       {
-        nLineCount=SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
+        nLineCount=SendMessage(hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
         if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
           nLineCount=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
 

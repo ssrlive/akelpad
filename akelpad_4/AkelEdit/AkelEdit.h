@@ -94,6 +94,16 @@
 #define AEMOD_SHIFT             0x02  //SHIFT key
 #define AEMOD_CONTROL           0x04  //CTRL key
 
+//AEM_GETLINENUMBER flags
+#define AEGL_LINECOUNT              0  //Total number of text lines. If the control has no text, the return value is 1.
+#define AEGL_FIRSTSELLINE           1  //First line of the selection.
+#define AEGL_LASTSELLINE            2  //Last line of the selection.
+#define AEGL_CARETLINE              3  //Caret line.
+#define AEGL_FIRSTVISIBLELINE       4  //First visible line.
+#define AEGL_LASTVISIBLELINE        5  //Last visible line.
+#define AEGL_FIRSTFULLVISIBLELINE   6  //First fully visible line.
+#define AEGL_LASTFULLVISIBLELINE    7  //Last fully visible line.
+
 //AEM_GETINDEX flags
 #define AEGI_FIRSTCHAR              1  //First character.
 #define AEGI_LASTCHAR               2  //Last character.
@@ -102,20 +112,20 @@
 #define AEGI_CARETCHAR              5  //Caret character.
 #define AEGI_FIRSTVISIBLELINE       6  //First character of the first visible line.
 #define AEGI_LASTVISIBLELINE        7  //Last character of the last visible line.
-#define AEGI_NEXTLINE               8  //First character of the next line.
-#define AEGI_PREVLINE               9  //First character of the previous line.
-#define AEGI_NEXTCHAR              10  //Next wide character.
-#define AEGI_PREVCHAR              11  //Previous wide character.
-#define AEGI_NEXTBREAK             12  //Next break index, see AEM_SETWORDDELIMITERS.
-#define AEGI_PREVBREAK             13  //Previous break index, see AEM_SETWORDDELIMITERS.
-#define AEGI_NEXTWORDSTART         14  //Next word start index, see AEM_SETWORDDELIMITERS.
-#define AEGI_NEXTWORDEND           15  //Next word end index, see AEM_SETWORDDELIMITERS.
-#define AEGI_PREVWORDSTART         16  //Previous word start index, see AEM_SETWORDDELIMITERS.
-#define AEGI_PREVWORDEND           17  //Previous word end index, see AEM_SETWORDDELIMITERS.
-#define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
-#define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result.
-#define AEGI_NEXTCHARINLINE        20  //Next character in line.
-#define AEGI_PREVCHARINLINE        21  //Previous character in line.
+#define AEGI_NEXTLINE               8  //First character of the next line. lParam must point to an input index.
+#define AEGI_PREVLINE               9  //First character of the previous line. lParam must point to an input index.
+#define AEGI_NEXTCHAR              10  //Next wide character. lParam must point to an input index.
+#define AEGI_PREVCHAR              11  //Previous wide character. lParam must point to an input index.
+#define AEGI_NEXTBREAK             12  //Next break index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
+#define AEGI_PREVBREAK             13  //Previous break index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
+#define AEGI_NEXTWORDSTART         14  //Next word start index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
+#define AEGI_NEXTWORDEND           15  //Next word end index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
+#define AEGI_PREVWORDSTART         16  //Previous word start index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
+#define AEGI_PREVWORDEND           17  //Previous word end index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
+#define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result. lParam must point to an input index.
+#define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result. lParam must point to an input index.
+#define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.
+#define AEGI_PREVCHARINLINE        21  //Previous character in line. lParam must point to an input index.
 #define AEGI_FIRSTFULLVISIBLELINE  22  //First character of the first fully visible line.
 #define AEGI_LASTFULLVISIBLELINE   23  //Last character of the last fully visible line.
 
@@ -130,9 +140,11 @@
 #define AESELT_LOCKNOTIFY          0x00000004  //Disable AEN_SELCHANGING and AEN_SELCHANGED notifications.
 #define AESELT_LOCKSCROLL          0x00000008  //Lock edit window scroll.
 #define AESELT_LOCKUPDATE          0x00000010  //Lock edit window update.
-#define AESELT_LOCKUNDOGROUPING    0x00000020  //Don't use it. For internal code only.
-#define AESELT_NOVERTSCROLLCORRECT 0x00000040  //On some conditions scroll can be increased to a height of one line.
-#define AESELT_MOUSE               0x00000080  //Don't use it. For internal code only.
+#define AESELT_LOCKCARET           0x00000020  //Lock caret reposition.
+#define AESELT_LOCKUNDOGROUPING    0x00000040  //Don't use it. For internal code only.
+#define AESELT_NOCARETHORZINDENT   0x00000080  //Caret horizontal indent isn't changed.
+#define AESELT_NOVERTSCROLLCORRECT 0x00000100  //On some conditions scroll can be increased to a height of one line.
+#define AESELT_MOUSE               0x00000200  //Don't use it. For internal code only.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
@@ -796,7 +808,7 @@ typedef struct {
 #define AEM_SETSEL             (WM_USER + 2102)
 #define AEM_GETCOLUMNSEL       (WM_USER + 2103)
 #define AEM_UPDATESEL          (WM_USER + 2104)
-#define AEM_GETLINECOUNT       (WM_USER + 2105)
+#define AEM_GETLINENUMBER      (WM_USER + 2105)
 #define AEM_GETINDEX           (WM_USER + 2106)
 #define AEM_GETLINEINDEX       (WM_USER + 2107)
 #define AEM_INDEXUPDATE        (WM_USER + 2108)
@@ -2074,19 +2086,19 @@ Example:
  SendMessage(hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
 
 
-AEM_GETLINECOUNT
-________________
+AEM_GETLINENUMBER
+_________________
 
-Retrieve the number of lines in an edit control.
+Retrieve the specified line number.
 
-wParam == not used.
-lParam == not used.
+(int)wParam == see AEGL_* defines.
+lParam      == not used.
 
 Return Value
- The return value is an integer specifying the total number of text lines. If the control has no text, the return value is 1.
+ Zero based line number.
 
 Example:
- SendMessage(hWndEdit, AEM_GETLINECOUNT, 0, 0);
+ SendMessage(hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
 
 
 AEM_GETINDEX

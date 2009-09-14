@@ -629,6 +629,8 @@ void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide);
 int AE_GetFirstVisibleLine(AKELEDIT *ae);
 int AE_GetLastVisibleLine(AKELEDIT *ae);
+int AE_GetFirstFullVisibleLine(AKELEDIT *ae);
+int AE_GetLastFullVisibleLine(AKELEDIT *ae);
 int IsSurrogate(wchar_t wchChar);
 int IsHighSurrogate(wchar_t wchChar);
 int IsLowSurrogate(wchar_t wchChar);
