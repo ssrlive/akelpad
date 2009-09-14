@@ -855,13 +855,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         int nResult=0;
 
-        if (wParam == SB_HORZ)
+        if (wParam & AESB_HORZ)
         {
-          nResult=AE_HScroll(ae, lParam) / ae->ptxt->nAveCharWidth;
+          nResult=AE_HScroll(ae, lParam, wParam);
+
+          if (!(wParam & AESB_RETURNPIXELS))
+            nResult=nResult / ae->ptxt->nAveCharWidth;
         }
-        else if (wParam == SB_VERT)
+        else if (wParam & AESB_VERT)
         {
-          nResult=AE_VScroll(ae, lParam) / ae->ptxt->nCharHeight;
+          nResult=AE_VScroll(ae, lParam, wParam);
+
+          if (!(wParam & AESB_RETURNPIXELS))
+            nResult=nResult / ae->ptxt->nCharHeight;
         }
         return nResult;
       }
@@ -869,13 +875,19 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         int nResult=0;
 
-        if (wParam == SB_HORZ)
+        if (wParam & AESB_HORZ)
         {
-          nResult=AE_HScrollLine(ae, lParam) / ae->ptxt->nAveCharWidth;
+          nResult=AE_HScrollLine(ae, lParam, wParam);
+
+          if (!(wParam & AESB_RETURNPIXELS))
+            nResult=nResult / ae->ptxt->nAveCharWidth;
         }
-        else if (wParam == SB_VERT)
+        else if (wParam & AESB_VERT)
         {
-          nResult=AE_VScrollLine(ae, lParam) / ae->ptxt->nCharHeight;
+          nResult=AE_VScrollLine(ae, lParam, wParam);
+
+          if (!(wParam & AESB_RETURNPIXELS))
+            nResult=nResult / ae->ptxt->nCharHeight;
         }
         return nResult;
       }
@@ -1262,7 +1274,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->ptCaret.x=0;
           ae->ptCaret.y=0;
           AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
-          AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae));
+          AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
           AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
@@ -2166,14 +2178,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           wParam == SB_PAGEUP ||
           wParam == SB_PAGEDOWN)
       {
-        nScrolled=AE_VScroll(ae, wParam);
+        nScrolled=AE_VScroll(ae, wParam, 0);
         bResult=TRUE;
       }
       return MAKELONG(mod(nScrolled) / ae->ptxt->nCharHeight, bResult);
     }
     if (uMsg == EM_LINESCROLL)
     {
-      AE_VScrollLine(ae, lParam);
+      AE_VScrollLine(ae, lParam, AESB_ALIGNTOP);
       return 0;
     }
     if (uMsg == EM_SCROLLCARET)
@@ -2521,7 +2533,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->ptCaret.x=0;
       ae->ptCaret.y=0;
       AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
-      AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae));
+      AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
       AE_UpdateCaret(ae, ae->bFocus, TRUE);
 
       if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
@@ -2907,7 +2919,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
           return 0;
 
-      AE_HScroll(ae, LOWORD(wParam));
+      AE_HScroll(ae, LOWORD(wParam), 0);
       return 0;
     }
     else if (uMsg == WM_VSCROLL)
@@ -2916,7 +2928,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
           return 0;
 
-      AE_VScroll(ae, LOWORD(wParam));
+      AE_VScroll(ae, LOWORD(wParam), 0);
       return 0;
     }
     else if (uMsg == WM_LBUTTONDOWN ||
@@ -3318,16 +3330,16 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if ((short)HIWORD(wParam) < 0)
       {
         if (dwLines == (DWORD)-1)
-          AE_VScroll(ae, SB_PAGEDOWN);
+          AE_VScroll(ae, SB_PAGEDOWN, 0);
         else
-          AE_VScrollLine(ae, dwLines);
+          AE_VScrollLine(ae, dwLines, AESB_ALIGNTOP);
       }
       else
       {
         if (dwLines == (DWORD)-1)
-          AE_VScroll(ae, SB_PAGEUP);
+          AE_VScroll(ae, SB_PAGEUP, 0);
         else
-          AE_VScrollLine(ae, -(int)dwLines);
+          AE_VScrollLine(ae, -(int)dwLines, AESB_ALIGNTOP);
       }
       return 0;
     }
@@ -5672,7 +5684,7 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
     AE_UpdateScrollBars(ae, SB_VERT);
   }
   AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
-  AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae));
+  AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
   return nWrapCount;
 }
 
@@ -8333,7 +8345,7 @@ DWORD AE_ScrollToCaretEx(AKELEDIT *ae, const POINT *ptCaret, DWORD dwFlags, WORD
     {
       if (ptCaret->y >= ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top) - ae->ptxt->nCharHeight - y)
       {
-        if (!bTest) AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + y + 1, 0));
+        if (!bTest) AE_ScrollEditWindow(ae, SB_VERT, max(ptCaret->y - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight + y + 1, 0));
         dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDDOWN;
       }
       else if (ptCaret->y < ae->nVScrollPos + y)
@@ -8529,7 +8541,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
   return nScrollPos;
 }
 
-int AE_HScroll(AKELEDIT *ae, int nAction)
+int AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign)
 {
   SCROLLINFO si;
 
@@ -8568,10 +8580,12 @@ int AE_HScroll(AKELEDIT *ae, int nAction)
   else if (nAction == SB_THUMBPOSITION)
   {
   }
+  si.nPos=AE_AlignPos(ae, si.nPos, dwAlign);
+
   return AE_ScrollEditWindow(ae, SB_HORZ, si.nPos);
 }
 
-int AE_VScroll(AKELEDIT *ae, int nAction)
+int AE_VScroll(AKELEDIT *ae, int nAction, DWORD dwAlign)
 {
   SCROLLINFO si;
 
@@ -8610,29 +8624,54 @@ int AE_VScroll(AKELEDIT *ae, int nAction)
   else if (nAction == SB_THUMBPOSITION)
   {
   }
+  si.nPos=AE_AlignPos(ae, si.nPos, dwAlign);
+
   return AE_ScrollEditWindow(ae, SB_VERT, si.nPos);
 }
 
-int AE_HScrollLine(AKELEDIT *ae, int nChar)
+int AE_HScrollLine(AKELEDIT *ae, int nChar, DWORD dwAlign)
 {
   int nPos;
 
   nPos=ae->nHScrollPos;
   nPos+=ae->ptxt->nAveCharWidth * nChar;
-  nPos=(nPos / ae->ptxt->nAveCharWidth) * ae->ptxt->nAveCharWidth;
-
+  nPos=AE_AlignPos(ae, nPos, dwAlign);
   return AE_ScrollEditWindow(ae, SB_HORZ, nPos);
 }
 
-int AE_VScrollLine(AKELEDIT *ae, int nLine)
+int AE_VScrollLine(AKELEDIT *ae, int nLine, DWORD dwAlign)
 {
   int nPos;
 
   nPos=ae->nVScrollPos;
   nPos+=ae->ptxt->nCharHeight * nLine;
-  nPos=(nPos / ae->ptxt->nCharHeight) * ae->ptxt->nCharHeight;
-
+  nPos=AE_AlignPos(ae, nPos, dwAlign);
   return AE_ScrollEditWindow(ae, SB_VERT, nPos);
+}
+
+int AE_AlignPos(AKELEDIT *ae, int nPos, DWORD dwAlign)
+{
+  if (dwAlign & AESB_ALIGNLEFT)
+  {
+    nPos=(nPos / ae->ptxt->nAveCharWidth) * ae->ptxt->nAveCharWidth;
+  }
+  else if (dwAlign & AESB_ALIGNRIGHT)
+  {
+    nPos+=(ae->rcDraw.right - ae->rcDraw.left) - 1;
+    nPos=(nPos / ae->ptxt->nAveCharWidth) * ae->ptxt->nAveCharWidth;
+    nPos-=(ae->rcDraw.right - ae->rcDraw.left) - 1;
+  }
+  else if (dwAlign & AESB_ALIGNTOP)
+  {
+    nPos=(nPos / ae->ptxt->nCharHeight) * ae->ptxt->nCharHeight;
+  }
+  else if (dwAlign & AESB_ALIGNBOTTOM)
+  {
+    nPos+=(ae->rcDraw.bottom - ae->rcDraw.top) - 1;
+    nPos=(nPos / ae->ptxt->nCharHeight) * ae->ptxt->nCharHeight;
+    nPos-=(ae->rcDraw.bottom - ae->rcDraw.top) - 1;
+  }
+  return nPos;
 }
 
 AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)

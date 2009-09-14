@@ -226,6 +226,15 @@
 #define AEHLS_FONTITALIC            3  //Italic style.
 #define AEHLS_FONTBOLDITALIC        4  //Bold italic style.
 
+//AEM_SCROLL, AEM_LINESCROLL flags
+#define AESB_HORZ            0x00000001  //Horizontal scroll. Cannot be used with AESB_VERT.
+#define AESB_VERT            0x00000002  //Vertical scroll. Cannot be used with AESB_HORZ.
+#define AESB_RETURNPIXELS    0x00000004  //Return result in pixels.
+#define AESB_ALIGNLEFT       0x00000008  //Align first visible char.
+#define AESB_ALIGNRIGHT      0x00000010  //Align last visible char.
+#define AESB_ALIGNTOP        0x00000020  //Align first visible line.
+#define AESB_ALIGNBOTTOM     0x00000040  //Align last visible line.
+
 //AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
 #define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number.
 #define AESC_UNITPIXELY      0x00000002  //High word of the lParam specifies pixels number.
@@ -2491,29 +2500,28 @@ __________
 
 Scroll the text horizontally or vertically in an edit control. This message is equivalent of WM_HSCROLL and WM_VSCROLL.
 
-(int)wParam == SB_HORZ  horizontal scroll.
-               SB_VERT  vertical scroll.
-(int)lParam == action that can be specified with SB_HORZ:
-                SB_LINELEFT  scrolls left by one character.
-                SB_LINERIGHT scrolls right by one character.
-                SB_PAGELEFT  scrolls left by the width of the window.
-                SB_PAGERIGHT scrolls right by the width of the window.
-                SB_LEFT      scrolls to the most left.
-                SB_RIGHT     scrolls to the most right.
-               action that can be specified with SB_VERT:
-                SB_LINEUP    scrolls one line up.
-                SB_LINEDOWN  scrolls one line down.
-                SB_PAGEUP    scrolls one page up.
-                SB_PAGEDOWN  scrolls one page down.
-                SB_TOP       scrolls to the most up.
-                SB_BOTTOM    scrolls to the most down.
+(DWORD)wParam == see AESB_* defines.
+(int)lParam   == action that can be specified with AESB_HORZ:
+                  SB_LINELEFT  scrolls left by one character.
+                  SB_LINERIGHT scrolls right by one character.
+                  SB_PAGELEFT  scrolls left by the width of the window.
+                  SB_PAGERIGHT scrolls right by the width of the window.
+                  SB_LEFT      scrolls to the most left.
+                  SB_RIGHT     scrolls to the most right.
+                 action that can be specified with AESB_VERT:
+                  SB_LINEUP    scrolls one line up.
+                  SB_LINEDOWN  scrolls one line down.
+                  SB_PAGEUP    scrolls one page up.
+                  SB_PAGEDOWN  scrolls one page down.
+                  SB_TOP       scrolls to the most up.
+                  SB_BOTTOM    scrolls to the most down.
 
 Return Value
- If SB_HORZ specified, number of characters scrolled returns.
- If SB_VERT specified, number of lines scrolled returns.
+ If AESB_HORZ specified, number of characters scrolled returns.
+ If AESB_VERT specified, number of lines scrolled returns.
 
 Example:
- SendMessage(hWndEdit, AEM_SCROLL, SB_VERT, SB_LINEDOWN);
+ SendMessage(hWndEdit, AEM_SCROLL, AESB_VERT, SB_LINEDOWN);
 
 
 AEM_LINESCROLL
@@ -2521,17 +2529,16 @@ ______________
 
 Scroll the text horizontally or vertically on the specified number of characters or lines.
 
-(int)wParam == SB_HORZ  horizontal scroll.
-               SB_VERT  vertical scroll.
-(int)lParam == If SB_HORZ specified, the number of characters to scroll horizontally.
-               If SB_VERT specified, the number of lines to scroll vertically.
+(DWORD)wParam == see AESB_* defines.
+(int)lParam   == If AESB_HORZ specified, the number of characters to scroll horizontally.
+                 If AESB_VERT specified, the number of lines to scroll vertically.
 
 Return Value
- If SB_HORZ specified, number of characters scrolled returns.
- If SB_VERT specified, number of lines scrolled returns.
+ If AESB_HORZ specified, number of characters scrolled returns.
+ If AESB_VERT specified, number of lines scrolled returns.
 
 Example:
- SendMessage(hWndEdit, AEM_LINESCROLL, SB_VERT, -10);
+ SendMessage(hWndEdit, AEM_LINESCROLL, AESB_VERT, -10);
 
 
 AEM_SCROLLCARET
