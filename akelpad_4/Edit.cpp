@@ -4388,8 +4388,6 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       if (nRecentFiles && bSavePositions)
       {
         CHARRANGE cr;
-        DWORD dwScrollFlags=0;
-        DWORD dwScrollResult;
 
         SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.cpMin=lpdwRecentPositions[0];
@@ -4400,14 +4398,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
         if (bDocumentReopen)
           SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
         else
-        {
-          dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
-          if (dwScrollResult & AECSE_SCROLLEDX)
-            dwScrollFlags|=AESC_UNITRECTDIVX;
-          if (dwScrollResult & AECSE_SCROLLEDY)
-            dwScrollFlags|=AESC_UNITRECTDIVY;
-          SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
-        }
+          ScrollCaret(hWnd);
       }
 
       //Print if "/p" option used in command line
@@ -4667,8 +4658,6 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       if (nRecentFiles && bSavePositions)
       {
         CHARRANGE cr;
-        DWORD dwScrollFlags=0;
-        DWORD dwScrollResult;
 
         SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.cpMin=lpdwRecentPositions[0];
@@ -4679,14 +4668,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
         if (bDocumentReopen)
           SendMessage(hWnd, AEM_SETSCROLLPOS, 0, (LPARAM)&ptDocumentPos);
         else
-        {
-          dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
-          if (dwScrollResult & AECSE_SCROLLEDX)
-            dwScrollFlags|=AESC_UNITRECTDIVX;
-          if (dwScrollResult & AECSE_SCROLLEDY)
-            dwScrollFlags|=AESC_UNITRECTDIVY;
-          SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
-        }
+          ScrollCaret(hWnd);
       }
 
       //Print if "/p" option used in command line
@@ -10636,17 +10618,8 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen)
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTA, 0, (LPARAM)&ft))
   {
-    DWORD dwScrollFlags=0;
-    DWORD dwScrollResult;
-
     SetSel(hWnd, &ft.crFound, AESELT_LOCKSCROLL, NULL);
-
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
-    if (dwScrollResult & AECSE_SCROLLEDX)
-      dwScrollFlags|=AESC_UNITRECTDIVX;
-    if (dwScrollResult & AECSE_SCROLLEDY)
-      dwScrollFlags|=AESC_UNITRECTDIVY;
-    SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
+    ScrollCaret(hWnd);
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
@@ -10686,17 +10659,8 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen)
 
   if (bResult=SendMessage(hWnd, AEM_FINDTEXTW, 0, (LPARAM)&ft))
   {
-    DWORD dwScrollFlags=0;
-    DWORD dwScrollResult;
-
     SetSel(hWnd, &ft.crFound, AESELT_LOCKSCROLL, NULL);
-
-    dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
-    if (dwScrollResult & AECSE_SCROLLEDX)
-      dwScrollFlags|=AESC_UNITRECTDIVX;
-    if (dwScrollResult & AECSE_SCROLLEDY)
-      dwScrollFlags|=AESC_UNITRECTDIVY;
-    SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
+    ScrollCaret(hWnd);
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
@@ -11871,20 +11835,9 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       }
 
       //Set selection
-      {
-        DWORD dwScrollFlags=0;
-        DWORD dwScrollResult;
-
-        cr.ciMax=cr.ciMin;
-        SetSel(hWndEdit, &cr, AESELT_LOCKSCROLL, NULL);
-
-        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
-        if (dwScrollResult & AECSE_SCROLLEDX)
-          dwScrollFlags|=AESC_UNITRECTDIVX;
-        if (dwScrollResult & AECSE_SCROLLEDY)
-          dwScrollFlags|=AESC_UNITRECTDIVY;
-        SendMessage(hWndEdit, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
-      }
+      cr.ciMax=cr.ciMin;
+      SetSel(hWndEdit, &cr, AESELT_LOCKSCROLL, NULL);
+      ScrollCaret(hWndEdit);
     }
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
@@ -12013,20 +11966,9 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       }
 
       //Set selection
-      {
-        DWORD dwScrollFlags=0;
-        DWORD dwScrollResult;
-
-        cr.ciMax=cr.ciMin;
-        SetSel(hWndEdit, &cr, AESELT_LOCKSCROLL, NULL);
-
-        dwScrollResult=SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
-        if (dwScrollResult & AECSE_SCROLLEDX)
-          dwScrollFlags|=AESC_UNITRECTDIVX;
-        if (dwScrollResult & AECSE_SCROLLEDY)
-          dwScrollFlags|=AESC_UNITRECTDIVY;
-        SendMessage(hWndEdit, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
-      }
+      cr.ciMax=cr.ciMin;
+      SetSel(hWndEdit, &cr, AESELT_LOCKSCROLL, NULL);
+      ScrollCaret(hWndEdit);
     }
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
@@ -18889,6 +18831,19 @@ void RestoreLineScroll(HWND hWnd, int *nBeforeLine)
   {
     SendMessage(hWnd, AEM_LINESCROLL, SB_VERT, *nBeforeLine - ciCharIndex.nLine);
   }
+}
+
+DWORD ScrollCaret(HWND hWnd)
+{
+  DWORD dwScrollFlags=0;
+  DWORD dwScrollResult;
+
+  dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 0));
+  if (dwScrollResult & AECSE_SCROLLEDX)
+    dwScrollFlags|=AESC_UNITRECTDIVX;
+  if (dwScrollResult & AECSE_SCROLLEDY)
+    dwScrollFlags|=AESC_UNITRECTDIVY;
+  return SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
 }
 
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor)
