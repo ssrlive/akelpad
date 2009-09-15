@@ -859,14 +859,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           nResult=AE_HScroll(ae, lParam, wParam);
 
-          if (!(wParam & AESB_RETURNPIXELS))
+          if (wParam & AESB_RETURNUNITS)
             nResult=nResult / ae->ptxt->nAveCharWidth;
         }
         else if (wParam & AESB_VERT)
         {
           nResult=AE_VScroll(ae, lParam, wParam);
 
-          if (!(wParam & AESB_RETURNPIXELS))
+          if (wParam & AESB_RETURNUNITS)
             nResult=nResult / ae->ptxt->nCharHeight;
         }
         return nResult;
@@ -879,14 +879,14 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           nResult=AE_HScrollLine(ae, lParam, wParam);
 
-          if (!(wParam & AESB_RETURNPIXELS))
+          if (wParam & AESB_RETURNUNITS)
             nResult=nResult / ae->ptxt->nAveCharWidth;
         }
         else if (wParam & AESB_VERT)
         {
           nResult=AE_VScrollLine(ae, lParam, wParam);
 
-          if (!(wParam & AESB_RETURNPIXELS))
+          if (wParam & AESB_RETURNUNITS)
             nResult=nResult / ae->ptxt->nCharHeight;
         }
         return nResult;
