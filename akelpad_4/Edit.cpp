@@ -10824,9 +10824,9 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
               ciFirstVisibleBefore=crRange.ciMin;
               SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciFirstVisibleBefore);
               IndexOffset(hWnd, &ciFirstVisibleBefore, nFirstVisible, nNewLine);
-              SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+              SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
-            else SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+            else SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
           }
           API_HeapFree(hHeap, 0, (LPVOID)szResultText);
         }
@@ -11014,9 +11014,9 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
               ciFirstVisibleBefore=crRange.ciMin;
               SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciFirstVisibleBefore);
               IndexOffset(hWnd, &ciFirstVisibleBefore, nFirstVisible, nNewLine);
-              SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+              SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
-            else SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+            else SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
           }
           API_HeapFree(hHeap, 0, (LPVOID)wszResultText);
         }
@@ -18829,7 +18829,7 @@ void RestoreLineScroll(HWND hWnd, int *nBeforeLine)
 
   if (*nBeforeLine != ciCharIndex.nLine)
   {
-    SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT, *nBeforeLine - ciCharIndex.nLine);
+    SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, *nBeforeLine - ciCharIndex.nLine);
   }
 }
 
