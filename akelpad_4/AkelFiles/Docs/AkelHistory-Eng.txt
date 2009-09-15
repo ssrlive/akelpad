@@ -1,5 +1,5 @@
 
-AkelPad 4.3.1 ()
+AkelPad 4.3.1 (Sep 15, 2009)
 ----------------------------
 Changed: syntax highlighting improved.
 Changed: internal Alt+NumPad processing, now started after two Num 0.
