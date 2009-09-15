@@ -229,7 +229,7 @@
 //AEM_SCROLL, AEM_LINESCROLL flags
 #define AESB_HORZ            0x00000001  //Horizontal scroll. Cannot be used with AESB_VERT.
 #define AESB_VERT            0x00000002  //Vertical scroll. Cannot be used with AESB_HORZ.
-#define AESB_RETURNPIXELS    0x00000004  //Return result in pixels.
+#define AESB_RETURNUNITS     0x00000004  //If AESB_HORZ specified, number of characters scrolled returns. If AESB_VERT specified, number of lines scrolled returns.
 #define AESB_ALIGNLEFT       0x00000008  //Align first visible char.
 #define AESB_ALIGNRIGHT      0x00000010  //Align last visible char.
 #define AESB_ALIGNTOP        0x00000020  //Align first visible line.
@@ -2517,8 +2517,7 @@ Scroll the text horizontally or vertically in an edit control. This message is e
                   SB_BOTTOM    scrolls to the most down.
 
 Return Value
- If AESB_HORZ specified, number of characters scrolled returns.
- If AESB_VERT specified, number of lines scrolled returns.
+ Pixels scrolled.
 
 Example:
  SendMessage(hWndEdit, AEM_SCROLL, AESB_VERT, SB_LINEDOWN);
@@ -2534,8 +2533,7 @@ Scroll the text horizontally or vertically on the specified number of characters
                  If AESB_VERT specified, the number of lines to scroll vertically.
 
 Return Value
- If AESB_HORZ specified, number of characters scrolled returns.
- If AESB_VERT specified, number of lines scrolled returns.
+ Pixels scrolled.
 
 Example:
  SendMessage(hWndEdit, AEM_LINESCROLL, AESB_VERT, -10);

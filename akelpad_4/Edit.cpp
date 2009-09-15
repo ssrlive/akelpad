@@ -1162,7 +1162,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
       nStringLen=wcslen(wpString);
       nStringBytes=nStringLen * sizeof(wchar_t);
 
-      SaveLineScroll(hWnd, &nFirstLine);
+      nFirstLine=SaveLineScroll(hWnd);
       SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
       SetSel(hWnd, &crRange, 0, NULL);
       if (nAction & STRSEL_INSERT)
@@ -1316,7 +1316,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
       }
       SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
       InvalidateRect(hWnd, NULL, TRUE);
-      RestoreLineScroll(hWnd, &nFirstLine);
+      RestoreLineScroll(hWnd, nFirstLine);
 
       API_HeapFree(hHeap, 0, (LPVOID)wszRange);
       return bResult;
@@ -1362,7 +1362,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
     }
     wszRange[a]='\0';
 
-    SaveLineScroll(hWnd, &nFirstLine);
+    nFirstLine=SaveLineScroll(hWnd);
     SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
     ReplaceSelW(hWnd, wszRange, a, -1, &crRange.ciMin, &crRange.ciMax);
 
@@ -1374,7 +1374,7 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
 
     SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
     InvalidateRect(hWnd, NULL, TRUE);
-    RestoreLineScroll(hWnd, &nFirstLine);
+    RestoreLineScroll(hWnd, nFirstLine);
 
     FreeText(wszRange);
     return TRUE;
@@ -1399,7 +1399,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
 
   if (IsReadOnly()) return FALSE;
 
-  SaveLineScroll(hWnd, &nFirstLine);
+  nFirstLine=SaveLineScroll(hWnd);
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -1450,7 +1450,7 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
 
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, TRUE);
-  RestoreLineScroll(hWnd, &nFirstLine);
+  RestoreLineScroll(hWnd, nFirstLine);
 
   return bResult;
 }
@@ -1471,7 +1471,7 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
 
   if (IsReadOnly()) return FALSE;
 
-  SaveLineScroll(hWnd, &nFirstLine);
+  nFirstLine=SaveLineScroll(hWnd);
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -1567,7 +1567,7 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
 
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, TRUE);
-  RestoreLineScroll(hWnd, &nFirstLine);
+  RestoreLineScroll(hWnd, nFirstLine);
 
   return bResult;
 }
@@ -1587,7 +1587,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
 
   if (IsReadOnly()) return FALSE;
 
-  SaveLineScroll(hWnd, &nFirstLine);
+  nFirstLine=SaveLineScroll(hWnd);
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -1679,7 +1679,7 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
 
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, TRUE);
-  RestoreLineScroll(hWnd, &nFirstLine);
+  RestoreLineScroll(hWnd, nFirstLine);
 
   return bResult;
 }
@@ -12693,7 +12693,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
   int nAnsiLen;
   BOOL bSelection;
 
-  SaveLineScroll(hWnd, &nFirstLine);
+  nFirstLine=SaveLineScroll(hWnd);
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -12747,7 +12747,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
   }
   SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
   InvalidateRect(hWnd, NULL, TRUE);
-  RestoreLineScroll(hWnd, &nFirstLine);
+  RestoreLineScroll(hWnd, nFirstLine);
 }
 
 BOOL CALLBACK RecodeDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -18813,24 +18813,18 @@ void UpdateShowHScroll(HWND hWnd)
   }
 }
 
-void SaveLineScroll(HWND hWnd, int *nBeforeLine)
+int SaveLineScroll(HWND hWnd)
 {
-  AECHARINDEX ciCharIndex;
-
-  SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciCharIndex);
-  *nBeforeLine=ciCharIndex.nLine;
+  return SendMessage(hWnd, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0);
 }
 
-void RestoreLineScroll(HWND hWnd, int *nBeforeLine)
+void RestoreLineScroll(HWND hWnd, int nBeforeLine)
 {
-  AECHARINDEX ciCharIndex;
+  int nAfterLine;
 
-  SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciCharIndex);
-
-  if (*nBeforeLine != ciCharIndex.nLine)
-  {
-    SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, *nBeforeLine - ciCharIndex.nLine);
-  }
+  nAfterLine=SendMessage(hWnd, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0);
+  if (nBeforeLine != nAfterLine)
+    SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, nBeforeLine - nAfterLine);
 }
 
 DWORD ScrollCaret(HWND hWnd)
