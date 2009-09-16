@@ -15722,27 +15722,24 @@ void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType)
 
 void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
 {
-  if (ae->dwNotify)
+  //SelChanged
+  if (ae->dwNotify & AENM_SELCHANGE)
   {
-    //SelChanged
-    if (ae->dwNotify & AENM_SELCHANGE)
-    {
-      ae->dwNotify&=~AENM_SELCHANGE;
-      AE_NotifySelChanged(ae);
-    }
-
-    //TextChanged
-    if (ae->dwNotify & AETCT_DELETEALL)
-    {
-      ae->dwNotify&=~AETCT_DELETEALL;
-      dwType|=AETCT_DELETEALL;
-    }
-    if (ae->dwNotify & AENM_TEXTCHANGE)
-      ae->dwNotify&=~AENM_TEXTCHANGE;
-    else
-      dwType|=AETCT_NONE;
-    AE_NotifyTextChanged(ae, dwType);
+    ae->dwNotify&=~AENM_SELCHANGE;
+    AE_NotifySelChanged(ae);
   }
+
+  //TextChanged
+  if (ae->dwNotify & AETCT_DELETEALL)
+  {
+    ae->dwNotify&=~AETCT_DELETEALL;
+    dwType|=AETCT_DELETEALL;
+  }
+  if (ae->dwNotify & AENM_TEXTCHANGE)
+    ae->dwNotify&=~AENM_TEXTCHANGE;
+  else
+    dwType|=AETCT_NONE;
+  AE_NotifyTextChanged(ae, dwType);
 }
 
 void AE_NotifyHScroll(AKELEDIT *ae)
