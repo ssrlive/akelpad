@@ -69,7 +69,7 @@
 #define AECIL_USELINEENDPOS    0x00000004
 #define AECIL_USECARETPOS      0x00000008
 
-#define AECLR_ALLPOS          (AECIL_USELINEBEGINPOS |\
+#define AECIL_ALLPOS          (AECIL_USELINEBEGINPOS |\
                                AECIL_USELINEENDPOS   |\
                                AECIL_USECARETPOS)
 
@@ -85,14 +85,14 @@
 #define AELB_SPLIT    1
 
 //AE_InsertText flags
-#define AEINST_LOCKUNDO        0x00000001
-#define AEINST_LOCKSCROLL      0x00000002
-#define AEINST_LOCKUPDATE      0x00000004
+#define AEINST_LOCKUNDO      0x00000001
+#define AEINST_LOCKSCROLL    0x00000002
+#define AEINST_LOCKUPDATE    0x00000004
 
 //AE_DeleteText flags
-#define AEDELT_LOCKUNDO        0x00000001
-#define AEDELT_LOCKSCROLL      0x00000002
-#define AEDELT_LOCKUPDATE      0x00000004
+#define AEDELT_LOCKUNDO      0x00000001
+#define AEDELT_LOCKSCROLL    0x00000002
+#define AEDELT_LOCKUPDATE    0x00000004
 
 //Undo/Redo flags
 #define AEUN_INSERT          0x00000001
