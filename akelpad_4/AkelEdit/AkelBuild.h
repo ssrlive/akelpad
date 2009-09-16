@@ -574,7 +574,6 @@ void AE_SetMouseCapture(AKELEDIT *ae, DWORD dwType);
 void AE_ReleaseMouseCapture(AKELEDIT *ae, DWORD dwType);
 void AE_GlobalToClient(AKELEDIT *ae, const POINT *ptGlobal, POINT *ptClient);
 void AE_ClientToGlobal(AKELEDIT *ae, const POINT *ptClient, POINT *ptGlobal);
-void AE_UpdateCursor();
 int AE_SetCursor(AKELEDIT *ae);
 BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, const POINT *ptPos);
 BOOL AE_IsCursorOnSelection(AKELEDIT *ae, const POINT *ptPos);

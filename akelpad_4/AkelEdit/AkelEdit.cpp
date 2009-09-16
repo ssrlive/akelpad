@@ -2978,9 +2978,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           AE_MButtonErase(ae);
           ae->bMButtonDown=FALSE;
-
-          if (ae->dwMouseMoveTimer)
-            ae->nCurrentCursor=AE_SetCursor(ae);
+          ae->nCurrentCursor=AE_SetCursor(ae);
           return 0;
         }
       }
@@ -3298,8 +3296,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               }
               AE_MButtonErase(ae);
               ae->bMButtonDown=FALSE;
-
-              AE_UpdateCursor();
+              ae->nCurrentCursor=AE_SetCursor(ae);
             }
             else ae->bMButtonUp=TRUE;
           }
@@ -6804,14 +6801,6 @@ void AE_ClientToGlobal(AKELEDIT *ae, const POINT *ptClient, POINT *ptGlobal)
 {
   ptGlobal->x=ae->nHScrollPos + (ptClient->x - ae->rcDraw.left);
   ptGlobal->y=ae->nVScrollPos + (ptClient->y - ae->rcDraw.top);
-}
-
-void AE_UpdateCursor()
-{
-  POINT ptPos;
-
-  if (GetCursorPos(&ptPos))
-    SetCursorPos(ptPos.x, ptPos.y);
 }
 
 int AE_SetCursor(AKELEDIT *ae)
