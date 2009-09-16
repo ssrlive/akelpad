@@ -25,6 +25,7 @@ HSTACK hAkelEditFontCharsStack={0};
 HSTACK hAkelEditThemesStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
+HCURSOR hAkelEditCursorIBeam=NULL;
 HCURSOR hAkelEditCursorArrow=NULL;
 HCURSOR hAkelEditCursorMargin=NULL;
 HCURSOR hAkelEditCursorHand=NULL;
@@ -102,6 +103,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance)
 
     if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatA("MSDEVColumnSelect");
+    if (!hAkelEditCursorIBeam) hAkelEditCursorIBeam=LoadCursorA(NULL, (char *)IDC_IBEAM);
     if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorA(NULL, (char *)IDC_ARROW);
     if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorA(hInstance, (char *)IDC_AEMARGIN);
     if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorA(hInstance, (char *)IDC_AEHAND);
@@ -148,6 +150,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance)
 
     if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatW(L"MSDEVColumnSelect");
+    if (!hAkelEditCursorIBeam) hAkelEditCursorIBeam=LoadCursorW(NULL, (wchar_t *)IDC_IBEAM);
     if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorW(NULL, (wchar_t *)IDC_ARROW);
     if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorW(hInstance, (wchar_t *)IDC_AEMARGIN);
     if (!hAkelEditCursorHand) hAkelEditCursorHand=LoadCursorW(hInstance, (wchar_t *)IDC_AEHAND);
@@ -2967,18 +2970,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (ae->bMButtonDown)
         {
-          AE_MButtonErase(ae);
-          ae->bMButtonDown=FALSE;
-
           if (ae->dwMouseScrollTimer)
           {
             KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
             ae->dwMouseScrollTimer=0;
-            if (!ae->dwMouseMoveTimer)
-              ReleaseCapture();
-            else
-              ae->nCurrentCursor=AE_SetCursor(ae);
+            AE_ReleaseMouseCapture(ae, AEMC_MOUSESCROLL);
           }
+          AE_MButtonErase(ae);
+          ae->bMButtonDown=FALSE;
+
+          if (ae->dwMouseMoveTimer)
+            ae->nCurrentCursor=AE_SetCursor(ae);
           return 0;
         }
       }
@@ -3038,7 +3040,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               //Timer
               ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-              SetCapture(ae->hWndEdit);
+              AE_SetMouseCapture(ae, AEMC_MOUSEMOVE);
             }
 
             AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
@@ -3056,7 +3058,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           //Start drag source capture
           else if (!ae->bDragging && !bAlt && !bShift && ae->nCurrentCursor == AECC_SELECTION)
           {
-            SetCapture(ae->hWndEdit);
+            AE_SetMouseCapture(ae, AEMC_MOUSEDRAG);
             ae->bDragging=TRUE;
             ae->nMoveBeforeDragging=5;
           }
@@ -3067,7 +3069,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               //Timer
               ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-              SetCapture(ae->hWndEdit);
+              AE_SetMouseCapture(ae, AEMC_MOUSEMOVE);
             }
             AE_SetMouseSelection(ae, &ptPos, bAlt, bShift);
 
@@ -3098,7 +3100,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               //Timer
               ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-              SetCapture(ae->hWndEdit);
+              AE_SetMouseCapture(ae, AEMC_MOUSEMOVE);
             }
 
             if (!AE_GetPrevBreak(ae, &ae->ciCaretIndex, &ciPrevWord, ae->bColumnSel, (bControl?AEWB_SKIPSPACESTART:AEWB_STOPSPACESTART)|AEWB_STOPSPACEEND|(!ae->ciCaretIndex.lpLine->nLineLen?0:AEWB_STOPNEWLINE)))
@@ -3131,7 +3133,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               //Timer
               ae->dwMouseMoveTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSEMOVE, 100, NULL);
-              SetCapture(ae->hWndEdit);
+              AE_SetMouseCapture(ae, AEMC_MOUSEMOVE);
             }
 
             AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
@@ -3174,7 +3176,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               //Timer
               ae->dwMouseScrollTimer=SetTimer(ae->hWndEdit, AETIMERID_MOUSESCROLL, 32, NULL);
-              if (!ae->dwMouseMoveTimer) SetCapture(ae->hWndEdit);
+              AE_SetMouseCapture(ae, AEMC_MOUSESCROLL);
             }
           }
         }
@@ -3232,7 +3234,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ae->dwDragSelectionLength=0;
             }
             ae->bDragging=FALSE;
-            ReleaseCapture();
+            AE_ReleaseMouseCapture(ae, AEMC_MOUSEDRAG);
             AE_NotifyDragDropDone(ae);
           }
         }
@@ -3255,7 +3257,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ae->bDragging)
         {
           ae->bDragging=FALSE;
-          ReleaseCapture();
+          AE_ReleaseMouseCapture(ae, AEMC_MOUSEDRAG);
 
           //Set selection if nMoveBeforeDragging not reached
           {
@@ -3277,7 +3279,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
           ae->dwMouseMoveTimer=0;
-          ReleaseCapture();
+          AE_ReleaseMouseCapture(ae, AEMC_MOUSEMOVE);
         }
       }
       else if (uMsg == WM_MBUTTONUP)
@@ -3292,7 +3294,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
                 ae->dwMouseScrollTimer=0;
-                ReleaseCapture();
+                AE_ReleaseMouseCapture(ae, AEMC_MOUSESCROLL);
               }
               AE_MButtonErase(ae);
               ae->bMButtonDown=FALSE;
@@ -3305,11 +3307,17 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (uMsg == WM_CAPTURECHANGED)
       {
+        if (ae->dwMouseScrollTimer)
+        {
+          KillTimer(ae->hWndEdit, ae->dwMouseScrollTimer);
+          ae->dwMouseScrollTimer=0;
+          AE_ReleaseMouseCapture(ae, AEMC_MOUSESCROLL);
+        }
         if (ae->dwMouseMoveTimer)
         {
           KillTimer(ae->hWndEdit, ae->dwMouseMoveTimer);
           ae->dwMouseMoveTimer=0;
-          ReleaseCapture();
+          AE_ReleaseMouseCapture(ae, AEMC_MOUSEMOVE);
         }
       }
 
@@ -6715,6 +6723,77 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
   }
 }
 
+void AE_MouseMove(AKELEDIT *ae)
+{
+  POINT ptPos;
+
+  if (ae->dwMouseScrollTimer)
+  {
+    GetCursorPos(&ptPos);
+    ScreenToClient(ae->hWndEdit, &ptPos);
+
+    if (ae->nCurrentCursor == AECC_MCENTER)
+    {
+    }
+    else if (ae->nCurrentCursor == AECC_MLEFT)
+    {
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
+    }
+    else if (ae->nCurrentCursor == AECC_MLEFTTOP)
+    {
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
+    }
+    else if (ae->nCurrentCursor == AECC_MTOP)
+    {
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
+    }
+    else if (ae->nCurrentCursor == AECC_MRIGHTTOP)
+    {
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
+    }
+    else if (ae->nCurrentCursor == AECC_MRIGHT)
+    {
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
+    }
+    else if (ae->nCurrentCursor == AECC_MRIGHTBOTTOM)
+    {
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
+    }
+    else if (ae->nCurrentCursor == AECC_MBOTTOM)
+    {
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
+    }
+    else if (ae->nCurrentCursor == AECC_MLEFTBOTTOM)
+    {
+      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
+      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
+    }
+  }
+  if (ae->dwMouseMoveTimer)
+  {
+    GetCursorPos(&ptPos);
+    ScreenToClient(ae->hWndEdit, &ptPos);
+    AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, TRUE);
+  }
+}
+
+void AE_SetMouseCapture(AKELEDIT *ae, DWORD dwType)
+{
+  if (!ae->dwMouseCapture)
+    SetCapture(ae->hWndEdit);
+  ae->dwMouseCapture|=dwType;
+}
+
+void AE_ReleaseMouseCapture(AKELEDIT *ae, DWORD dwType)
+{
+  ae->dwMouseCapture&=~dwType;
+  if (!ae->dwMouseCapture)
+    ReleaseCapture();
+}
+
 void AE_GlobalToClient(AKELEDIT *ae, const POINT *ptGlobal, POINT *ptClient)
 {
   ptClient->x=ae->rcDraw.left + (ptGlobal->x - ae->nHScrollPos);
@@ -6750,7 +6829,7 @@ int AE_SetCursor(AKELEDIT *ae)
   GetCursorPos(&ptPos);
   ScreenToClient(ae->hWndEdit, &ptPos);
 
-  if (ae->bMButtonDown)
+  if (ae->dwMouseScrollTimer)
   {
     if (ptPos.x >= ae->ptMButtonDown.x - 5 &&
         ptPos.x <= ae->ptMButtonDown.x + 5 &&
@@ -6922,22 +7001,30 @@ int AE_SetCursor(AKELEDIT *ae)
       }
     }
   }
-  else if (!bAlt && AE_IsCursorOnLeftMargin(ae, &ptPos))
+  else if (ae->dwMouseMoveTimer)
   {
-    SetCursor(hAkelEditCursorMargin);
-    nResult=AECC_MARGIN;
+    SetCursor(hAkelEditCursorIBeam);
+    nResult=AECC_IBEAM;
   }
-  else if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
+  else
   {
-    SetCursor(hAkelEditCursorArrow);
-    nResult=AECC_SELECTION;
+    if (!bAlt && AE_IsCursorOnLeftMargin(ae, &ptPos))
+    {
+      SetCursor(hAkelEditCursorMargin);
+      nResult=AECC_MARGIN;
+    }
+    else if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
+    {
+      SetCursor(hAkelEditCursorArrow);
+      nResult=AECC_SELECTION;
+    }
+    else if (!bAlt && !bShift && AE_IsCursorOnUrl(ae, &ptPos, &ae->crMouseOnLink))
+    {
+      SetCursor(hAkelEditCursorHand);
+      nResult=AECC_URL;
+    }
+    else nResult=AECC_IBEAM;
   }
-  else if (!bAlt && !bShift && AE_IsCursorOnUrl(ae, &ptPos, &ae->crMouseOnLink))
-  {
-    SetCursor(hAkelEditCursorHand);
-    nResult=AECC_URL;
-  }
-  else nResult=AECC_IBEAM;
 
   return nResult;
 }
@@ -7922,63 +8009,6 @@ void AE_HighlightDeleteMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKRANGEIT
 void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
 {
   AE_HeapStackClear(NULL, (stack **)&aeti->hMarkRangeStack.first, (stack **)&aeti->hMarkRangeStack.last);
-}
-
-void AE_MouseMove(AKELEDIT *ae)
-{
-  POINT ptPos;
-
-  if (ae->dwMouseScrollTimer)
-  {
-    GetCursorPos(&ptPos);
-    ScreenToClient(ae->hWndEdit, &ptPos);
-
-    if (ae->nCurrentCursor == AECC_MCENTER)
-    {
-    }
-    else if (ae->nCurrentCursor == AECC_MLEFT)
-    {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
-    }
-    else if (ae->nCurrentCursor == AECC_MLEFTTOP)
-    {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
-    }
-    else if (ae->nCurrentCursor == AECC_MTOP)
-    {
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
-    }
-    else if (ae->nCurrentCursor == AECC_MRIGHTTOP)
-    {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos - (ae->ptMButtonDown.y - ptPos.y - 5));
-    }
-    else if (ae->nCurrentCursor == AECC_MRIGHT)
-    {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
-    }
-    else if (ae->nCurrentCursor == AECC_MRIGHTBOTTOM)
-    {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos + (ptPos.x - ae->ptMButtonDown.x - 5));
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
-    }
-    else if (ae->nCurrentCursor == AECC_MBOTTOM)
-    {
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
-    }
-    else if (ae->nCurrentCursor == AECC_MLEFTBOTTOM)
-    {
-      AE_ScrollEditWindow(ae, SB_HORZ, ae->nHScrollPos - (ae->ptMButtonDown.x - ptPos.x - 5));
-      AE_ScrollEditWindow(ae, SB_VERT, ae->nVScrollPos + (ptPos.y - ae->ptMButtonDown.y - 5));
-    }
-  }
-  if (ae->dwMouseMoveTimer)
-  {
-    GetCursorPos(&ptPos);
-    ScreenToClient(ae->hWndEdit, &ptPos);
-    AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, TRUE);
-  }
 }
 
 HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra)
