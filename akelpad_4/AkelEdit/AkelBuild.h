@@ -10,13 +10,20 @@
 
 //// Defines
 
-#define AETIMERID_MOUSEMOVE    1
-#define AETIMERID_MOUSESCROLL  2
+#define AEURL_MAX_LENGTH       512
 
+//Times
 #define AETIME_BEFOREPROGRESS  0
 #define AETIME_BEFOREUPDATE    100
 
-#define AEURL_MAX_LENGTH       512
+//Timer IDs
+#define AETIMERID_MOUSEMOVE    1
+#define AETIMERID_MOUSESCROLL  2
+
+//Mouse capture
+#define AEMC_MOUSEMOVE         0x00000001
+#define AEMC_MOUSESCROLL       0x00000002
+#define AEMC_MOUSEDRAG         0x00000004
 
 #ifndef NOTSRCINVERT
   #define NOTSRCINVERT         (DWORD)0x00990066 /* dest = (NOT source) XOR dest */
@@ -430,6 +437,7 @@ typedef struct _AKELEDIT {
   int nAltChar;
 
   //Cursor
+  DWORD dwMouseCapture;
   AECHARRANGE crMouseOnLink;
   BOOL bLButtonClick;
   AECHARINDEX ciLButtonClick;
@@ -561,6 +569,9 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw);
 void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, DWORD dwSelFlags);
 void AE_UpdateSelection(AKELEDIT *ae, DWORD dwSelFlags);
 void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOOL bShift);
+void AE_MouseMove(AKELEDIT *ae);
+void AE_SetMouseCapture(AKELEDIT *ae, DWORD dwType);
+void AE_ReleaseMouseCapture(AKELEDIT *ae, DWORD dwType);
 void AE_GlobalToClient(AKELEDIT *ae, const POINT *ptGlobal, POINT *ptClient);
 void AE_ClientToGlobal(AKELEDIT *ae, const POINT *ptClient, POINT *ptGlobal);
 void AE_UpdateCursor();
@@ -596,7 +607,6 @@ void AE_HighlightDeleteMarkTextAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
 AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti);
 void AE_HighlightDeleteMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKRANGEITEM *aemri);
 void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
-void AE_MouseMove(AKELEDIT *ae);
 HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra);
 HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh);
