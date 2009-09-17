@@ -21219,7 +21219,7 @@ char* AKD_strchr(const char *s, int c)
   }
   else
   {
-    while (*s != '\0' && *s != c)
+    while (*s != '\0' && *s != (char)c)
       ++s;
     if (*s != '\0')
       return ((char *)s);
