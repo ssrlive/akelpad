@@ -2301,7 +2301,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (wParam == WB_MOVEWORDLEFT || wParam == WB_MOVEWORDPREV)
           dwFlags=ae->popt->dwWordBreak;
 
-        if (AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, FALSE, dwFlags, FALSE))
+        if (AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, FALSE, dwFlags))
           return AE_AkelIndexToRichOffset(ae, &ciCharOut);
         else
           return lParam;
@@ -2320,7 +2320,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (wParam == WB_MOVEWORDRIGHT || wParam == WB_MOVEWORDNEXT)
           dwFlags=ae->popt->dwWordBreak;
 
-        if (AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, FALSE, dwFlags, FALSE))
+        if (AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, FALSE, dwFlags))
           return AE_AkelIndexToRichOffset(ae, &ciCharOut);
         else
           return lParam;
@@ -5110,8 +5110,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
           ciCharOut->nCharInLine=0;
           if (ciCharTmp.lpLine->nLineBreak == AELB_WRAP)
           {
-            AE_IndexInc(ciCharOut);
-            ciCharOut->nCharInLine=min(ciCharOut->nCharInLine, ciCharOut->lpLine->nLineLen);
+            ciCharOut->nCharInLine=min(AE_IndexInc(ciCharOut), ciCharOut->lpLine->nLineLen);
           }
           return 1;
         }
@@ -5161,8 +5160,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
           ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
           if (ciCharOut->lpLine->nLineBreak == AELB_WRAP)
           {
-            AE_IndexDec(ciCharOut);
-            ciCharOut->nCharInLine=max(ciCharOut->nCharInLine, 0);
+            ciCharOut->nCharInLine=max(AE_IndexDec(ciCharOut), 0);
           }
           return 1;
         }
@@ -5184,19 +5182,19 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
   }
   else if (nType == AEGI_NEXTWORDSTART)
   {
-    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDSTART, 0);
+    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDSTART);
   }
   else if (nType == AEGI_NEXTWORDEND)
   {
-    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDEND, 0);
+    return AE_GetNextWord(ae, ciCharIn, NULL, ciCharOut, bColumnSel, AEWB_RIGHTWORDEND);
   }
   else if (nType == AEGI_PREVWORDSTART)
   {
-    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDSTART, 0);
+    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDSTART);
   }
   else if (nType == AEGI_PREVWORDEND)
   {
-    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDEND, 0);
+    return AE_GetPrevWord(ae, ciCharIn, ciCharOut, NULL, bColumnSel, AEWB_LEFTWORDEND);
   }
   else if (nType == AEGI_WRAPLINEBEGIN)
   {
@@ -5303,6 +5301,28 @@ int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
     return -1;
   }
   return 1;
+}
+
+AELINEDATA* AE_NextLine(AECHARINDEX *ciChar)
+{
+  if (ciChar->lpLine)
+  {
+    ciChar->nLine+=1;
+    ciChar->lpLine=ciChar->lpLine->next;
+    ciChar->nCharInLine=0;
+  }
+  return ciChar->lpLine;
+}
+
+AELINEDATA* AE_PrevLine(AECHARINDEX *ciChar)
+{
+  if (ciChar->lpLine)
+  {
+    ciChar->nLine-=1;
+    ciChar->lpLine=ciChar->lpLine->prev;
+    ciChar->nCharInLine=ciChar->lpLine->nLineLen;
+  }
+  return ciChar->lpLine;
 }
 
 int AE_IndexInc(AECHARINDEX *ciChar)
@@ -5484,17 +5504,10 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
 
   if (nOffsetCount == 0)
   {
-    if (ciCount.lpLine->nLineBreak == AELB_WRAP)
+    if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
     {
-      if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
-      {
-        if (ciCount.lpLine->next)
-        {
-          ciCount.nLine+=1;
-          ciCount.lpLine=ciCount.lpLine->next;
-          ciCount.nCharInLine=0;
-        }
-      }
+      if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
+        AE_NextLine(&ciCount);
     }
     *ciCharOut=ciCount;
     return TRUE;
@@ -5528,12 +5541,9 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
       }
 
       if (ciCount.lpLine->next)
-      {
-        ciCount.nLine+=1;
-        ciCount.lpLine=ciCount.lpLine->next;
-        ciCount.nCharInLine=0;
-      }
-      else goto PlusOffEnd;
+        AE_NextLine(&ciCount);
+      else
+        goto PlusOffEnd;
 
       if (nLineBreak == AELB_R)
       {
@@ -5573,12 +5583,9 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
       --nOffsetCount;
 
       if (ciCount.lpLine->prev)
-      {
-        ciCount.nLine-=1;
-        ciCount.lpLine=ciCount.lpLine->prev;
-        ciCount.nCharInLine=ciCount.lpLine->nLineLen;
-      }
-      else goto MinusOffEnd;
+        AE_PrevLine(&ciCount);
+      else
+        goto MinusOffEnd;
 
       if (ciCount.lpLine->nLineBreak == AELB_WRAP)
       {
@@ -6630,8 +6637,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
           {
             if (ptPos->x < ae->rcDraw.left)
             {
-              AE_IndexDec(&ciCharIndex);
-              ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine, 0);
+              ciCharIndex.nCharInLine=max(AE_IndexDec(&ciCharIndex), 0);
             }
             else if (ptPos->x > ae->rcDraw.right)
             {
@@ -6662,7 +6668,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonClick) < 0)
         {
           if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonStart) < 0)
-            AE_GetPrevWord(ae, &ciCharIndex, &ciCharIndex, NULL, bColumnSel, ae->popt->dwWordBreak, FALSE);
+            AE_GetPrevWord(ae, &ciCharIndex, &ciCharIndex, NULL, bColumnSel, ae->popt->dwWordBreak);
           else
             ciCharIndex=ae->ciLButtonStart;
           ciSelEnd=ae->ciLButtonEnd;
@@ -6670,7 +6676,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         else
         {
           if (AE_IndexCompare(&ciCharIndex, &ae->ciLButtonEnd) > 0)
-            AE_GetNextWord(ae, &ciCharIndex, NULL, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak, FALSE);
+            AE_GetNextWord(ae, &ciCharIndex, NULL, &ciCharIndex, bColumnSel, ae->popt->dwWordBreak);
           else
             ciCharIndex=ae->ciLButtonEnd;
           ciSelEnd=ae->ciLButtonStart;
@@ -7090,8 +7096,7 @@ DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink)
           {
             if (nResult == AEPC_AFTER)
             {
-              AE_IndexDec(&ciCharIndex);
-              ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine, 0);
+              ciCharIndex.nCharInLine=max(AE_IndexDec(&ciCharIndex), 0);
             }
             AE_memset(crLink, 0, sizeof(AECHARRANGE));
             return AE_HighlightFindUrl(ae, &ciCharIndex, AEHF_FINDFIRSTCHAR, ae->ptxt->nLineCount, crLink);
@@ -7159,14 +7164,13 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       }
       if (dwSearchType & AEHF_ISFIRSTCHAR)
         return 0;
-      --ciCount.nCharInLine;
+      AE_IndexDec(&ciCount);
     }
 
     if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
     {
-      ciCount.nLine-=1;
-      ciCount.lpLine=ciCount.lpLine->prev;
-      ciCount.nCharInLine=max(ciCount.lpLine->nLineLen - 1, 0);
+      AE_PrevLine(&ciCount);
+      ciCount.nCharInLine=max(AE_IndexDec(&ciCount), 0);
     }
     else return 0;
   }
@@ -7175,7 +7179,7 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   //Find URL ending (forward)
   FindUrlEnding:
   ciCount=*ciChar;
-  ++ciCount.nCharInLine;
+  AE_IndexInc(&ciCount);
 
   while (ciCount.nLine <= nLastLine)
   {
@@ -7186,16 +7190,13 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       if (++dwLinkLen > ae->popt->dwUrlMaxLength)
         goto End;
 
-      ++ciCount.nCharInLine;
+      AE_IndexInc(&ciCount);
     }
 
     if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
-    {
-      ciCount.nLine+=1;
-      ciCount.lpLine=ciCount.lpLine->next;
-      ciCount.nCharInLine=0;
-    }
-    else goto End;
+      AE_NextLine(&ciCount);
+    else
+      goto End;
   }
 
   End:
@@ -7233,14 +7234,13 @@ int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
         }
         if (dwSearchType & AEHF_ISFIRSTCHAR)
           return 0;
-        --ciCount.nCharInLine;
+        AE_IndexDec(&ciCount);
       }
 
       if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
       {
-        ciCount.nLine-=1;
-        ciCount.lpLine=ciCount.lpLine->prev;
-        ciCount.nCharInLine=max(ciCount.lpLine->nLineLen - 1, 0);
+        AE_PrevLine(&ciCount);
+        ciCount.nCharInLine=max(AE_IndexDec(&ciCount), 0);
       }
       else break;
     }
@@ -7488,16 +7488,13 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           if (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
             ++nQuoteLen;
         }
-        ++ciCount.nCharInLine;
+        AE_IndexInc(&ciCount);
       }
 
       if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
-      {
-        ciCount.nLine+=1;
-        ciCount.lpLine=ciCount.lpLine->next;
-        ciCount.nCharInLine=0;
-      }
-      else break;
+        AE_NextLine(&ciCount);
+      else
+        break;
     }
     if (wm->lpQuote)
     {
@@ -7598,14 +7595,13 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
         }
         if (dwSearchType & AEHF_ISFIRSTCHAR)
           goto SetEmptyFirstDelim;
-        --ciCount.nCharInLine;
+        AE_IndexDec(&ciCount);
       }
 
       if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
       {
-        ciCount.nLine-=1;
-        ciCount.lpLine=ciCount.lpLine->prev;
-        ciCount.nCharInLine=max(ciCount.lpLine->nLineLen - 1, 0);
+        AE_PrevLine(&ciCount);
+        ciCount.nCharInLine=max(AE_IndexDec(&ciCount), 0);
       }
       else break;
     }
@@ -7627,7 +7623,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
     else
     {
       ciCount=*ciChar;
-      ++ciCount.nCharInLine;
+      AE_IndexInc(&ciCount);
     }
 
     while (ciCount.lpLine)
@@ -7642,16 +7638,13 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           goto SetWord;
         }
         ++nWordLen;
-        ++ciCount.nCharInLine;
+        AE_IndexInc(&ciCount);
       }
 
       if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
-      {
-        ciCount.nLine+=1;
-        ciCount.lpLine=ciCount.lpLine->next;
-        ciCount.nCharInLine=0;
-      }
-      else break;
+        AE_NextLine(&ciCount);
+      else
+        break;
     }
 
     //Empty delimiter
@@ -7729,12 +7722,9 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
             else
             {
               if (ciCount.lpLine->nLineBreak == AELB_WRAP)
-              {
-                ciCount.nLine=ciCount.nLine + 1;
-                ciCount.lpLine=ciCount.lpLine->next;
-                ciCount.nCharInLine=0;
-              }
-              else break;
+                AE_NextLine(&ciCount);
+              else
+                break;
             }
           }
           if (!AE_IndexCompare(&ciCount, &crWord->ciMax))
@@ -8970,16 +8960,13 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
         goto PrintLine;
       }
       ++nLineLen;
-      ++ciCount.nCharInLine;
+      AE_IndexInc(&ciCount);
     }
 
     if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
-    {
-      ciCount.nLine+=1;
-      ciCount.lpLine=ciCount.lpLine->next;
-      ciCount.nCharInLine=0;
-    }
-    else break;
+      AE_NextLine(&ciCount);
+    else
+      break;
   }
   if (ciCount.lpLine)
     bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE);
@@ -9853,9 +9840,7 @@ void AE_Paint(AKELEDIT *ae)
 
         if (ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
           ++nDrawCharOffset;
-        ++ciDrawLine.nLine;
-        ciDrawLine.lpLine=ciDrawLine.lpLine->next;
-        ciDrawLine.nCharInLine=0;
+        AE_NextLine(&ciDrawLine);
       }
       if (hFontOld) SelectObject(hBufferDC, hFontOld);
 
@@ -10702,6 +10687,7 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
 {
   AECHARINDEX ciCount=*ciChar;
   AELINEDATA *lpNextLine=NULL;
+  int nLen=0;
   BOOL bInList;
   BOOL bIsSpacePrevious=FALSE;
   BOOL bIsSpaceCurrent;
@@ -10714,11 +10700,7 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
     if (ciCount.lpLine->next)
     {
       if (ciCount.lpLine->nLineBreak == AELB_WRAP)
-      {
-        ciCount.nLine+=1;
-        ciCount.lpLine=ciCount.lpLine->next;
-        ciCount.nCharInLine=0;
-      }
+        AE_NextLine(&ciCount);
     }
     else goto End;
   }
@@ -10728,16 +10710,16 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
     if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
       bIsSpacePrevious=TRUE;
 
-    ciCount.nLine+=1;
-    ciCount.lpLine=ciCount.lpLine->next;
-    ciCount.nCharInLine=0;
+    AE_NextLine(&ciCount);
+    ++nLen;
   }
   else
   {
     if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
       bIsSpacePrevious=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
 
-    ++ciCount.nCharInLine;
+    AE_IndexInc(&ciCount);
+    ++nLen;
   }
 
   while (1)
@@ -10778,7 +10760,7 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
       }
       bIsSpacePrevious=bIsSpaceCurrent;
 
-      ++ciCount.nCharInLine;
+      AE_IndexInc(&ciCount);
     }
     if (bColumnSel) goto End;
     if (ciCount.lpLine->nLineBreak != AELB_WRAP)
@@ -10835,29 +10817,28 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
     {
       if (ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
       {
-        ciCount.nLine-=1;
-        ciCount.lpLine=ciCount.lpLine->prev;
-        ciCount.nCharInLine=ciCount.lpLine->nLineLen - 1;
+        AE_PrevLine(&ciCount);
+        AE_IndexDec(&ciCount);
       }
     }
     else goto End;
   }
+  AE_IndexDec(&ciCount);
 
-  if (--ciCount.nCharInLine < 0)
+  if (ciCount.nCharInLine < 0)
   {
     if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
       bIsSpacePrevious=TRUE;
 
-    ciCount.nLine-=1;
-    ciCount.lpLine=ciCount.lpLine->prev;
-    ciCount.nCharInLine=ciCount.lpLine->nLineLen - 1;
+    AE_PrevLine(&ciCount);
+    AE_IndexDec(&ciCount);
   }
   else
   {
     if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
       bIsSpacePrevious=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
 
-    --ciCount.nCharInLine;
+    AE_IndexDec(&ciCount);
   }
 
   while (1)
@@ -10874,7 +10855,7 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
         {
           if (!bIsSpacePrevious && bIsSpaceCurrent)
           {
-            ++ciCount.nCharInLine;
+            AE_IndexInc(&ciCount);
             goto End;
           }
         }
@@ -10882,7 +10863,7 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
         {
           if (bIsSpacePrevious && !bIsSpaceCurrent)
           {
-            ++ciCount.nCharInLine;
+            AE_IndexInc(&ciCount);
             goto End;
           }
         }
@@ -10893,7 +10874,7 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
         {
           if (!((dwFlags & AEWB_SKIPSPACESTART) && bIsSpacePrevious))
           {
-            ++ciCount.nCharInLine;
+            AE_IndexInc(&ciCount);
             goto End;
           }
           bInList=FALSE;
@@ -10902,7 +10883,7 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
         {
           if (!((dwFlags & AEWB_SKIPSPACEEND) && bIsSpaceCurrent))
           {
-            ++ciCount.nCharInLine;
+            AE_IndexInc(&ciCount);
             goto End;
           }
           bInList=TRUE;
@@ -10910,7 +10891,7 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
       }
       bIsSpacePrevious=bIsSpaceCurrent;
 
-      --ciCount.nCharInLine;
+      AE_IndexDec(&ciCount);
     }
     if (bColumnSel) goto End;
     if (lpPrevLine && lpPrevLine->nLineBreak != AELB_WRAP)
@@ -10950,95 +10931,60 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
   return FALSE;
 }
 
-BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch)
+BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags)
 {
   AECHARINDEX ciStart=*ciChar;
   AECHARINDEX ciEnd=*ciChar;
-  BOOL bInList;
+  wchar_t wchChar;
+
+  if (ciChar->nCharInLine > ciChar->lpLine->nLineLen)
+    return FALSE;
 
   if (ciEnd.nCharInLine == ciEnd.lpLine->nLineLen)
   {
     if (ciEnd.lpLine->next)
     {
       if (ciEnd.lpLine->nLineBreak == AELB_WRAP)
-      {
-        ciEnd.nLine+=1;
-        ciEnd.lpLine=ciEnd.lpLine->next;
-        ciEnd.nCharInLine=0;
-      }
+        AE_NextLine(&ciEnd);
     }
     else return FALSE;
   }
 
   if (ciEnd.nCharInLine == ciEnd.lpLine->nLineLen)
-  {
-    if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
-    {
-      if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel, dwFlags))
-      {
-        if (!bSearch && (dwFlags & AEWB_RIGHTWORDSTART))
-        {
-          if (ciWordStart) *ciWordStart=ciStart;
-          if (ciWordEnd) *ciWordEnd=ciEnd;
-          return TRUE;
-        }
-      }
-      else return FALSE;
-    }
-  }
+    wchChar=L'\n';
   else
+    wchChar=ciEnd.lpLine->wpLine[ciEnd.nCharInLine];
+
+  if (AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
   {
-    if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciEnd.lpLine->wpLine[ciEnd.nCharInLine], TRUE))
+    if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel, dwFlags))
     {
-      if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel, dwFlags))
-      {
-        if (!bSearch && (dwFlags & AEWB_RIGHTWORDSTART))
-        {
-          if (ciWordStart) *ciWordStart=ciStart;
-          if (ciWordEnd) *ciWordEnd=ciEnd;
-          return TRUE;
-        }
-      }
-      else return FALSE;
-    }
-    else
-    {
-      if (!bSearch)
-      {
-        if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel, dwFlags))
-        {
-          if (dwFlags & AEWB_RIGHTWORDEND)
-          {
-            if (ciWordStart) *ciWordStart=ciStart;
-            if (ciWordEnd) *ciWordEnd=ciEnd;
-            return TRUE;
-          }
-        }
-        else return FALSE;
-      }
+      if (dwFlags & AEWB_RIGHTWORDSTART)
+        goto End;
+      ciStart=ciEnd;
     }
   }
-
-  ciStart=ciEnd;
-
   if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel, dwFlags))
   {
-    if (bSearch || (bInList && (dwFlags & AEWB_RIGHTWORDEND)) ||
-                   (!bInList && (dwFlags & AEWB_RIGHTWORDSTART)))
-    {
-      if (ciWordStart) *ciWordStart=ciStart;
-      if (ciWordEnd) *ciWordEnd=ciEnd;
-      return TRUE;
-    }
+    if (dwFlags & AEWB_RIGHTWORDEND)
+      goto End;
   }
   return FALSE;
+
+  End:
+  if (ciWordStart) *ciWordStart=ciStart;
+  if (ciWordEnd) *ciWordEnd=ciEnd;
+  return TRUE;
 }
 
-BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags, BOOL bSearch)
+BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags)
 {
   AECHARINDEX ciStart=*ciChar;
   AECHARINDEX ciEnd=*ciChar;
-  BOOL bInList;
+  wchar_t wchChar;
+
+  if (ciChar->nCharInLine > ciChar->lpLine->nLineLen)
+    return FALSE;
 
   if (ciStart.nCharInLine - 1 < 0)
   {
@@ -11046,76 +10992,38 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
     {
       if (ciStart.lpLine->prev->nLineBreak == AELB_WRAP)
       {
-        ciStart.nLine-=1;
-        ciStart.lpLine=ciStart.lpLine->prev;
-        ciStart.nCharInLine=ciStart.lpLine->nLineLen - 1;
+        AE_PrevLine(&ciStart);
+        AE_IndexDec(&ciStart);
       }
     }
     else return FALSE;
   }
 
   if (ciStart.nCharInLine - 1 < 0)
-  {
-    if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
-    {
-      if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel, dwFlags))
-      {
-        if (!bSearch && (dwFlags & AEWB_LEFTWORDEND))
-        {
-          if (ciWordStart) *ciWordStart=ciStart;
-          if (ciWordEnd) *ciWordEnd=ciEnd;
-          return TRUE;
-        }
-      }
-      else return FALSE;
-    }
-  }
+    wchChar=L'\n';
   else
+    wchChar=ciStart.lpLine->wpLine[ciStart.nCharInLine - 1];
+
+  if (AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
   {
-    if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciStart.lpLine->wpLine[ciStart.nCharInLine - 1], TRUE))
+    if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel, dwFlags))
     {
-      if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel, dwFlags))
-      {
-        if (!bSearch && (dwFlags & AEWB_LEFTWORDEND))
-        {
-          if (ciWordStart) *ciWordStart=ciStart;
-          if (ciWordEnd) *ciWordEnd=ciEnd;
-          return TRUE;
-        }
-      }
-      else return FALSE;
-    }
-    else
-    {
-      if (!bSearch)
-      {
-        if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel, dwFlags))
-        {
-          if (dwFlags & AEWB_LEFTWORDSTART)
-          {
-            if (ciWordStart) *ciWordStart=ciStart;
-            if (ciWordEnd) *ciWordEnd=ciEnd;
-            return TRUE;
-          }
-        }
-        else return FALSE;
-      }
+      if (dwFlags & AEWB_LEFTWORDEND)
+        goto End;
+      ciEnd=ciStart;
     }
   }
-
-  ciEnd=ciStart;
-
   if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel, dwFlags))
   {
-    if (bSearch || (bInList && (dwFlags & AEWB_LEFTWORDSTART)) ||
-                   (!bInList && (dwFlags & AEWB_LEFTWORDEND)))
-    {
-      if (ciWordStart) *ciWordStart=ciStart;
-      if (ciWordEnd) *ciWordEnd=ciEnd;
-      return TRUE;
-    }
+    if (dwFlags & AEWB_LEFTWORDSTART)
+      goto End;
   }
   return FALSE;
+
+  End:
+  if (ciWordStart) *ciWordStart=ciStart;
+  if (ciWordEnd) *ciWordEnd=ciEnd;
+  return TRUE;
 }
 
 BOOL AE_IsFirstCharInLine(const AECHARINDEX *ciChar)
@@ -12307,9 +12215,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
           wszBuf[dwBufCount++]=L'\n';
         }
       }
-      ++ciCount.nLine;
-      ciCount.lpLine=ciCount.lpLine->next;
-      ciCount.nCharInLine=0;
+      AE_NextLine(&ciCount);
     }
     AE_StreamOutHelper(aeso, &ciCount, &ciEnd, wszBuf, dwBufLen, &dwBufCount, &dwResult);
 
@@ -14022,6 +13928,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   AECHARINDEX ciCount;
   AECHARINDEX ciCountEnd;
   AECHARRANGE cr;
+  wchar_t wchChar;
 
   if (ft->dwTextLen == (DWORD)-1)
     ft->dwTextLen=lstrlenW(ft->pText);
@@ -14054,14 +13961,27 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
       ciCountEnd=ft->crSearch.ciMax;
     }
   }
+  ciCount.nCharInLine=min(ciCount.nCharInLine, ciCount.lpLine->nLineLen);
+  ciCountEnd.nCharInLine=min(ciCountEnd.nCharInLine, ciCountEnd.lpLine->nLineLen);
 
   if (ft->dwFlags & AEFR_WHOLEWORD)
   {
     if (ft->dwFlags & AEFR_DOWN)
     {
+      if (AE_GetIndex(ae, AEGI_PREVCHAR, &ciCount, &cr.ciMin, FALSE))
+      {
+        if (cr.ciMin.nCharInLine == cr.ciMin.lpLine->nLineLen)
+          wchChar=L'\n';
+        else
+          wchChar=cr.ciMin.lpLine->wpLine[cr.ciMin.nCharInLine];
+
+        if (!AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
+          AE_GetNextBreak(ae, &cr.ciMin, &ciCount, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND);
+      }
+
       while (1)
       {
-        if (AE_GetNextWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, TRUE))
+        if (AE_GetNextWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND))
         {
           if (AE_IndexCompare(&cr.ciMax, &ciCountEnd) >= 0)
             return FALSE;
@@ -14078,9 +13998,17 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
     }
     else
     {
+      if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
+        wchChar=L'\n';
+      else
+        wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
+
+      if (!AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
+        AE_GetPrevBreak(ae, &ciCount, &ciCount, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND);
+
       while (1)
       {
-        if (AE_GetPrevWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND, TRUE))
+        if (AE_GetPrevWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND))
         {
           if (AE_IndexCompare(&cr.ciMin, &ciCountEnd) < 0)
             return FALSE;
@@ -14112,16 +14040,13 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
             if (AE_IsMatch(ae, ft, &ciCount))
               return TRUE;
 
-            ++ciCount.nCharInLine;
+            AE_IndexInc(&ciCount);
           }
 
           if (ciCount.lpLine->next)
-          {
-            ciCount.nLine+=1;
-            ciCount.lpLine=ciCount.lpLine->next;
-            ciCount.nCharInLine=0;
-          }
-          else return FALSE;
+            AE_NextLine(&ciCount);
+          else
+            return FALSE;
         }
       }
     }
@@ -14139,16 +14064,13 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
             if (AE_IsMatch(ae, ft, &ciCount))
               return TRUE;
 
-            --ciCount.nCharInLine;
+            AE_IndexDec(&ciCount);
           }
 
           if (ciCount.lpLine->prev)
-          {
-            ciCount.nLine-=1;
-            ciCount.lpLine=ciCount.lpLine->prev;
-            ciCount.nCharInLine=ciCount.lpLine->nLineLen;
-          }
-          else return FALSE;
+            AE_PrevLine(&ciCount);
+          else
+            return FALSE;
         }
       }
     }
@@ -14238,12 +14160,9 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
     }
 
     if (ciCount.lpLine->next)
-    {
-      ciCount.nLine+=1;
-      ciCount.lpLine=ciCount.lpLine->next;
-      ciCount.nCharInLine=0;
-    }
-    else return 0;
+      AE_NextLine(&ciCount);
+    else
+      return 0;
 
     if (nLineBreak == AELB_R)
     {
@@ -14596,7 +14515,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
           ciCharIn.nCharInLine=min(ciCharIn.nCharInLine, ciCharIn.lpLine->nLineLen);
 
-        AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, bAlt, ae->popt->dwWordBreak, FALSE);
+        AE_GetPrevWord(ae, &ciCharIn, &ciCharOut, NULL, bAlt, ae->popt->dwWordBreak);
       }
       else
       {
@@ -14617,7 +14536,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
           ciCharIn.nCharInLine=min(ciCharIn.nCharInLine, ciCharIn.lpLine->nLineLen);
 
-        AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, bAlt, ae->popt->dwWordBreak, FALSE);
+        AE_GetNextWord(ae, &ciCharIn, NULL, &ciCharOut, bAlt, ae->popt->dwWordBreak);
       }
       else
       {
@@ -15188,7 +15107,7 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
       }
     }
 
-    if ((bControl && AE_GetPrevWord(ae, &ae->ciSelStartIndex, &ciCharIndex, NULL, FALSE, ae->popt->dwWordBreak, FALSE)) ||
+    if ((bControl && AE_GetPrevWord(ae, &ae->ciSelStartIndex, &ciCharIndex, NULL, FALSE, ae->popt->dwWordBreak)) ||
         (!bControl && AE_GetIndex(ae, AEGI_PREVCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
     {
       AE_StackUndoGroupStop(ae);
@@ -15247,7 +15166,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
       }
     }
 
-    if ((bControl && AE_GetNextWord(ae, &ae->ciSelStartIndex, NULL, &ciCharIndex, FALSE, ae->popt->dwWordBreak, FALSE)) ||
+    if ((bControl && AE_GetNextWord(ae, &ae->ciSelStartIndex, NULL, &ciCharIndex, FALSE, ae->popt->dwWordBreak)) ||
         (!bControl && AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &ciCharIndex, FALSE)))
     {
       if (!nSpaces) AE_StackUndoGroupStop(ae);
