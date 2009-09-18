@@ -10683,17 +10683,16 @@ int AE_GetCharFromPos(AKELEDIT *ae, const POINT *ptClientPos, AECHARINDEX *ciCha
   return AEPC_ERROR;
 }
 
-BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel, DWORD dwFlags)
+int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel, DWORD dwFlags)
 {
   AECHARINDEX ciCount=*ciChar;
-  AELINEDATA *lpNextLine=NULL;
   int nLen=0;
   BOOL bInList;
   BOOL bIsSpacePrevious=FALSE;
   BOOL bIsSpaceCurrent;
 
   if (ciCount.nCharInLine > ciCount.lpLine->nLineLen)
-    return FALSE;
+    return 0;
 
   if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
   {
@@ -10724,8 +10723,6 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
 
   while (1)
   {
-    lpNextLine=ciCount.lpLine->next;
-
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
       bIsSpaceCurrent=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
@@ -10761,6 +10758,7 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
       bIsSpacePrevious=bIsSpaceCurrent;
 
       AE_IndexInc(&ciCount);
+      ++nLen;
     }
     if (bColumnSel) goto End;
     if (ciCount.lpLine->nLineBreak != AELB_WRAP)
@@ -10778,15 +10776,13 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
       }
       if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
         goto End;
+      ++nLen;
     }
 
-    if (lpNextLine)
-    {
-      ciCount.nLine+=1;
-      ciCount.lpLine=lpNextLine;
-      ciCount.nCharInLine=0;
-    }
-    else goto End;
+    if (ciCount.lpLine->next)
+      AE_NextLine(&ciCount);
+    else
+      goto End;
   }
 
   End:
@@ -10795,21 +10791,21 @@ BOOL AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNex
   if (AE_IndexCompare(ciChar, &ciCount))
   {
     *ciNextBreak=ciCount;
-    return TRUE;
+    return nLen;
   }
-  return FALSE;
+  return 0;
 }
 
-BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel, DWORD dwFlags)
+int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel, DWORD dwFlags)
 {
   AECHARINDEX ciCount=*ciChar;
-  AELINEDATA *lpPrevLine=NULL;
+  int nLen=0;
   BOOL bInList;
   BOOL bIsSpacePrevious=FALSE;
   BOOL bIsSpaceCurrent;
 
   if (ciCount.nCharInLine > ciCount.lpLine->nLineLen)
-    return FALSE;
+    return 0;
 
   if (ciCount.nCharInLine - 1 < 0)
   {
@@ -10832,6 +10828,7 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
 
     AE_PrevLine(&ciCount);
     AE_IndexDec(&ciCount);
+    ++nLen;
   }
   else
   {
@@ -10839,12 +10836,11 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
       bIsSpacePrevious=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
 
     AE_IndexDec(&ciCount);
+    ++nLen;
   }
 
   while (1)
   {
-    lpPrevLine=ciCount.lpLine->prev;
-
     while (ciCount.nCharInLine >= 0)
     {
       bIsSpaceCurrent=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
@@ -10892,9 +10888,10 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
       bIsSpacePrevious=bIsSpaceCurrent;
 
       AE_IndexDec(&ciCount);
+      ++nLen;
     }
     if (bColumnSel) goto End;
-    if (lpPrevLine && lpPrevLine->nLineBreak != AELB_WRAP)
+    if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak != AELB_WRAP)
     {
       if (bInList)
       {
@@ -10909,13 +10906,13 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
       }
       if (bInList != AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
         goto End;
+      ++nLen;
     }
 
-    if (lpPrevLine)
+    if (ciCount.lpLine->prev)
     {
-      ciCount.nLine-=1;
-      ciCount.lpLine=lpPrevLine;
-      ciCount.nCharInLine=ciCount.lpLine->nLineLen - 1;
+      AE_PrevLine(&ciCount);
+      AE_IndexDec(&ciCount);
     }
     else goto End;
   }
@@ -10926,19 +10923,20 @@ BOOL AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPre
   if (AE_IndexCompare(ciChar, &ciCount))
   {
     *ciPrevBreak=ciCount;
-    return TRUE;
+    return nLen;
   }
-  return FALSE;
+  return 0;
 }
 
-BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags)
+int AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags)
 {
   AECHARINDEX ciStart=*ciChar;
   AECHARINDEX ciEnd=*ciChar;
   wchar_t wchChar;
+  int nLen=0;
 
   if (ciChar->nCharInLine > ciChar->lpLine->nLineLen)
-    return FALSE;
+    return 0;
 
   if (ciEnd.nCharInLine == ciEnd.lpLine->nLineLen)
   {
@@ -10947,7 +10945,7 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
       if (ciEnd.lpLine->nLineBreak == AELB_WRAP)
         AE_NextLine(&ciEnd);
     }
-    else return FALSE;
+    else return 0;
   }
 
   if (ciEnd.nCharInLine == ciEnd.lpLine->nLineLen)
@@ -10957,34 +10955,35 @@ BOOL AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 
   if (AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
   {
-    if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel, dwFlags))
+    if (nLen=AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel, dwFlags))
     {
       if (dwFlags & AEWB_RIGHTWORDSTART)
         goto End;
       ciStart=ciEnd;
     }
   }
-  if (AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel, dwFlags))
+  if (nLen=AE_GetNextBreak(ae, &ciEnd, &ciEnd, bColumnSel, dwFlags))
   {
     if (dwFlags & AEWB_RIGHTWORDEND)
       goto End;
   }
-  return FALSE;
+  return 0;
 
   End:
   if (ciWordStart) *ciWordStart=ciStart;
   if (ciWordEnd) *ciWordEnd=ciEnd;
-  return TRUE;
+  return nLen;
 }
 
-BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags)
+int AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordStart, AECHARINDEX *ciWordEnd, BOOL bColumnSel, DWORD dwFlags)
 {
   AECHARINDEX ciStart=*ciChar;
   AECHARINDEX ciEnd=*ciChar;
   wchar_t wchChar;
+  int nLen=0;
 
   if (ciChar->nCharInLine > ciChar->lpLine->nLineLen)
-    return FALSE;
+    return 0;
 
   if (ciStart.nCharInLine - 1 < 0)
   {
@@ -10996,7 +10995,7 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
         AE_IndexDec(&ciStart);
       }
     }
-    else return FALSE;
+    else return 0;
   }
 
   if (ciStart.nCharInLine - 1 < 0)
@@ -11006,24 +11005,24 @@ BOOL AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWord
 
   if (AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
   {
-    if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel, dwFlags))
+    if (nLen=AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel, dwFlags))
     {
       if (dwFlags & AEWB_LEFTWORDEND)
         goto End;
       ciEnd=ciStart;
     }
   }
-  if (AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel, dwFlags))
+  if (nLen=AE_GetPrevBreak(ae, &ciStart, &ciStart, bColumnSel, dwFlags))
   {
     if (dwFlags & AEWB_LEFTWORDSTART)
       goto End;
   }
-  return FALSE;
+  return 0;
 
   End:
   if (ciWordStart) *ciWordStart=ciStart;
   if (ciWordEnd) *ciWordEnd=ciEnd;
-  return TRUE;
+  return nLen;
 }
 
 BOOL AE_IsFirstCharInLine(const AECHARINDEX *ciChar)
@@ -13929,6 +13928,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   AECHARINDEX ciCountEnd;
   AECHARRANGE cr;
   wchar_t wchChar;
+  DWORD dwWordLen;
 
   if (ft->dwTextLen == (DWORD)-1)
     ft->dwTextLen=lstrlenW(ft->pText);
@@ -13981,12 +13981,12 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 
       while (1)
       {
-        if (AE_GetNextWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND))
+        if (dwWordLen=AE_GetNextWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND))
         {
           if (AE_IndexCompare(&cr.ciMax, &ciCountEnd) >= 0)
             return FALSE;
 
-          if (AE_IndexSubtract(ae, &cr.ciMin, &cr.ciMax, ft->nNewLine, FALSE, FALSE) == ft->dwTextLen)
+          if (dwWordLen == ft->dwTextLen)
           {
             if (AE_IsMatch(ae, ft, &cr.ciMin))
               return TRUE;
@@ -14008,12 +14008,12 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 
       while (1)
       {
-        if (AE_GetPrevWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND))
+        if (dwWordLen=AE_GetPrevWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND))
         {
           if (AE_IndexCompare(&cr.ciMin, &ciCountEnd) < 0)
             return FALSE;
 
-          if (AE_IndexSubtract(ae, &cr.ciMin, &cr.ciMax, ft->nNewLine, FALSE, FALSE) == ft->dwTextLen)
+          if (dwWordLen == ft->dwTextLen)
           {
             if (AE_IsMatch(ae, ft, &cr.ciMin))
               return TRUE;
