@@ -378,7 +378,8 @@ typedef struct {
   int nColumnMarker;
   wchar_t wszWordDelimiters[128];
   DWORD dwWordBreak;
-  wchar_t wszUrlDelimiters[128];
+  wchar_t wszUrlLeftDelimiters[128];
+  wchar_t wszUrlRightDelimiters[128];
   wchar_t wszUrlPrefixes[128];
   wchar_t *lpUrlPrefixes[32];
   DWORD dwUrlMaxLength;
