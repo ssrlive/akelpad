@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 1)
 
 
 //// Defines
@@ -306,77 +306,79 @@ typedef struct _EDITINFO {
 #endif
 
 typedef struct _WNDFRAMEA {
-  HICON hIcon;                                      //Frame icon
-  char szFile[MAX_PATH];                            //Frame file
-  EDITINFO ei;                                      //Edit info
-  LOGFONTA lf;                                      //Edit font
-  AECOLORS aec;                                     //Edit colors
-  FILETIME ft;                                      //File time
-  RECT rcEditWindow;                                //Edit RECT
-  DWORD dwEditMargins;                              //Edit margins
-  int nTabStopSize;                                 //Tab stop size
-  BOOL bTabStopAsSpaces;                            //Insert tab stop as spaces
-  int nUndoLimit;                                   //Undo limit
-  BOOL bDetailedUndo;                               //Detailed undo
-  int nWrapType;                                    //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
-  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge (4.x only)
-  DWORD dwMarker;                                   //Vertical marker, zero if no marker set (4.x only)
-  BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
-  BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
-  int nCaretWidth;                                  //Caret width (4.x only)
-  DWORD dwLineGap;                                  //Line gap (4.x only)
-  BOOL bShowURL;                                    //Show URL
-  BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
-  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
-  BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
-  wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
-  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
-  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
-  BOOL bWrapDelimitersEnable;                       //Wrap delimiters enabled
-  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];  //Wrap delimiters
-  BOOL bSplitWindow;                                //Edit window is splited (4.x only)
-  HWND hWndMaster;                                  //Master window (4.x only)
-  HWND hWndClone1;                                  //Clone window one (4.x only)
-  HWND hWndClone2;                                  //Clone window two (4.x only)
-  HWND hWndClone3;                                  //Clone window three (4.x only)
-  RECT rcMasterWindow;                              //Master window RECT (4.x only)
+  HICON hIcon;                                        //Frame icon
+  char szFile[MAX_PATH];                              //Frame file
+  EDITINFO ei;                                        //Edit info
+  LOGFONTA lf;                                        //Edit font
+  AECOLORS aec;                                       //Edit colors
+  FILETIME ft;                                        //File time
+  RECT rcEditWindow;                                  //Edit RECT
+  DWORD dwEditMargins;                                //Edit margins
+  int nTabStopSize;                                   //Tab stop size
+  BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces
+  int nUndoLimit;                                     //Undo limit
+  BOOL bDetailedUndo;                                 //Detailed undo
+  int nWrapType;                                      //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
+  DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
+  DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
+  BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)
+  BOOL bCaretVertLine;                                //Draw caret vertical line (4.x only)
+  int nCaretWidth;                                    //Caret width (4.x only)
+  DWORD dwLineGap;                                    //Line gap (4.x only)
+  BOOL bShowURL;                                      //Show URL
+  BOOL bUrlPrefixesEnable;                            //URL prefixes enable (4.x only)
+  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];          //URL prefixes (4.x only)
+  BOOL bUrlDelimitersEnable;                          //URL delimiters enable (4.x only)
+  wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];  //URL left delimiters (4.x only)
+  wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters (4.x only)
+  BOOL bWordDelimitersEnable;                         //Word delimiters enabled
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters
+  BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled
+  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters
+  BOOL bSplitWindow;                                  //Edit window is splited (4.x only)
+  HWND hWndMaster;                                    //Master window (4.x only)
+  HWND hWndClone1;                                    //Clone window one (4.x only)
+  HWND hWndClone2;                                    //Clone window two (4.x only)
+  HWND hWndClone3;                                    //Clone window three (4.x only)
+  RECT rcMasterWindow;                                //Master window RECT (4.x only)
 } WNDFRAMEA;
 
 typedef struct _WNDFRAMEW {
-  HICON hIcon;                                      //Frame icon
-  wchar_t wszFile[MAX_PATH];                        //Frame file
-  EDITINFO ei;                                      //Edit info
-  LOGFONTW lf;                                      //Edit font
-  AECOLORS aec;                                     //Edit colors
-  FILETIME ft;                                      //File time
-  RECT rcEditWindow;                                //Edit RECT
-  DWORD dwEditMargins;                              //Edit margins
-  int nTabStopSize;                                 //Tab stop size
-  BOOL bTabStopAsSpaces;                            //Insert tab stop as spaces
-  int nUndoLimit;                                   //Undo limit
-  BOOL bDetailedUndo;                               //Detailed undo
-  int nWrapType;                                    //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
-  DWORD dwWrapLimit;                                //Wrap characters limit, zero if wrap by window edge (4.x only)
-  DWORD dwMarker;                                   //Vertical marker, zero if no marker set (4.x only)
-  BOOL bCaretOutEdge;                               //Allow caret moving out of the line edge (4.x only)
-  BOOL bCaretVertLine;                              //Draw caret vertical line (4.x only)
-  int nCaretWidth;                                  //Caret width (4.x only)
-  DWORD dwLineGap;                                  //Line gap (4.x only)
-  BOOL bShowURL;                                    //Show URL
-  BOOL bUrlPrefixesEnable;                          //URL prefixes enable (4.x only)
-  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];        //URL prefixes (4.x only)
-  BOOL bUrlDelimitersEnable;                        //URL delimiters enable (4.x only)
-  wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];    //URL delimiters (4.x only)
-  BOOL bWordDelimitersEnable;                       //Word delimiters enabled
-  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];  //Word delimiters
-  BOOL bWrapDelimitersEnable;                       //Wrap delimiters enabled
-  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];  //Wrap delimiters
-  BOOL bSplitWindow;                                //Edit window is splited (4.x only)
-  HWND hWndMaster;                                  //Master window (4.x only)
-  HWND hWndClone1;                                  //Clone window one (4.x only)
-  HWND hWndClone2;                                  //Clone window two (4.x only)
-  HWND hWndClone3;                                  //Clone window three (4.x only)
-  RECT rcMasterWindow;                              //Master window RECT (4.x only)
+  HICON hIcon;                                        //Frame icon
+  wchar_t wszFile[MAX_PATH];                          //Frame file
+  EDITINFO ei;                                        //Edit info
+  LOGFONTW lf;                                        //Edit font
+  AECOLORS aec;                                       //Edit colors
+  FILETIME ft;                                        //File time
+  RECT rcEditWindow;                                  //Edit RECT
+  DWORD dwEditMargins;                                //Edit margins
+  int nTabStopSize;                                   //Tab stop size
+  BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces
+  int nUndoLimit;                                     //Undo limit
+  BOOL bDetailedUndo;                                 //Detailed undo
+  int nWrapType;                                      //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
+  DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
+  DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
+  BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)
+  BOOL bCaretVertLine;                                //Draw caret vertical line (4.x only)
+  int nCaretWidth;                                    //Caret width (4.x only)
+  DWORD dwLineGap;                                    //Line gap (4.x only)
+  BOOL bShowURL;                                      //Show URL
+  BOOL bUrlPrefixesEnable;                            //URL prefixes enable (4.x only)
+  wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];          //URL prefixes (4.x only)
+  BOOL bUrlDelimitersEnable;                          //URL delimiters enable (4.x only)
+  wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];  //URL left delimiters (4.x only)
+  wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters (4.x only)
+  BOOL bWordDelimitersEnable;                         //Word delimiters enabled
+  wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters
+  BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled
+  wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters
+  BOOL bSplitWindow;                                  //Edit window is splited (4.x only)
+  HWND hWndMaster;                                    //Master window (4.x only)
+  HWND hWndClone1;                                    //Clone window one (4.x only)
+  HWND hWndClone2;                                    //Clone window two (4.x only)
+  HWND hWndClone3;                                    //Clone window three (4.x only)
+  RECT rcMasterWindow;                                //Master window RECT (4.x only)
 } WNDFRAMEW;
 
 typedef struct _WNDPROCDATA {

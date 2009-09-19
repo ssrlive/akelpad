@@ -301,7 +301,8 @@ extern int nClickURL;
 extern BOOL bUrlPrefixesEnable;
 extern wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];
 extern BOOL bUrlDelimitersEnable;
-extern wchar_t wszUrlDelimiters[URL_DELIMITERS_SIZE];
+extern wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];
+extern wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE];
 extern BOOL bWordDelimitersEnable;
 extern wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
 extern DWORD dwCustomWordBreak;
@@ -420,7 +421,10 @@ HWND CreateEditWindowA(HWND hWndParent)
     if (bUrlPrefixesEnable)
       SetUrlPrefixes(hWndEditNew, wszUrlPrefixes);
     if (bUrlDelimitersEnable)
-      SendMessage(hWndEditNew, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
+    {
+      SendMessage(hWndEditNew, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)wszUrlLeftDelimiters);
+      SendMessage(hWndEditNew, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)wszUrlRightDelimiters);
+    }
   }
 
   dwDefaultWordBreak=SendMessage(hWndEditNew, AEM_GETWORDBREAK, 0, 0);
@@ -497,7 +501,10 @@ HWND CreateEditWindowW(HWND hWndParent)
     if (bUrlPrefixesEnable)
       SetUrlPrefixes(hWndEditNew, wszUrlPrefixes);
     if (bUrlDelimitersEnable)
-      SendMessage(hWndEditNew, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
+    {
+      SendMessage(hWndEditNew, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)wszUrlLeftDelimiters);
+      SendMessage(hWndEditNew, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)wszUrlRightDelimiters);
+    }
   }
 
   dwDefaultWordBreak=SendMessage(hWndEditNew, AEM_GETWORDBREAK, 0, 0);
@@ -3178,7 +3185,8 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "UrlPrefixes", PO_BINARY, wszUrlPrefixes, sizeof(wszUrlPrefixes));
   ReadOptionA(hHandle, "UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD));
-  ReadOptionA(hHandle, "UrlDelimiters", PO_BINARY, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+  ReadOptionA(hHandle, "UrlLeftDelimiters", PO_BINARY, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
+  ReadOptionA(hHandle, "UrlRightDelimiters", PO_BINARY, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
   ReadOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
   ReadOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
@@ -3284,7 +3292,8 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"UrlPrefixes", PO_BINARY, wszUrlPrefixes, sizeof(wszUrlPrefixes));
   ReadOptionW(hHandle, L"UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD));
-  ReadOptionW(hHandle, L"UrlDelimiters", PO_BINARY, wszUrlDelimiters, sizeof(wszUrlDelimiters));
+  ReadOptionW(hHandle, L"UrlLeftDelimiters", PO_BINARY, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
+  ReadOptionW(hHandle, L"UrlRightDelimiters", PO_BINARY, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
   ReadOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
   ReadOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
@@ -3608,7 +3617,9 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "UrlDelimiters", PO_BINARY, wszUrlDelimiters, wcslen(wszUrlDelimiters) * sizeof(wchar_t) + 2))
+  if (!SaveOptionA(hHandle, "UrlLeftDelimiters", PO_BINARY, wszUrlLeftDelimiters, wcslen(wszUrlLeftDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+  if (!SaveOptionA(hHandle, "UrlRightDelimiters", PO_BINARY, wszUrlRightDelimiters, wcslen(wszUrlRightDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
@@ -3808,7 +3819,9 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionW(hHandle, L"UrlDelimiters", PO_BINARY, wszUrlDelimiters, lstrlenW(wszUrlDelimiters) * sizeof(wchar_t) + 2))
+  if (!SaveOptionW(hHandle, L"UrlLeftDelimiters", PO_BINARY, wszUrlLeftDelimiters, lstrlenW(wszUrlLeftDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"UrlRightDelimiters", PO_BINARY, wszUrlRightDelimiters, lstrlenW(wszUrlRightDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
@@ -17961,7 +17974,8 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
   static HWND hWndUrlPrefixesEnable;
   static HWND hWndUrlPrefixes;
   static HWND hWndUrlDelimitersEnable;
-  static HWND hWndUrlDelimiters;
+  static HWND hWndUrlLeftDelimiters;
+  static HWND hWndUrlRightDelimiters;
   static HWND hWndWordDelimitersEnable;
   static HWND hWndWordDelimiters;
   static HWND hWndWrapDelimitersEnable;
@@ -17978,7 +17992,8 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     hWndUrlPrefixesEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES_ENABLE);
     hWndUrlPrefixes=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES);
     hWndUrlDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS_ENABLE);
-    hWndUrlDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS);
+    hWndUrlLeftDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_LEFTDELIMITERS);
+    hWndUrlRightDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_RIGHTDELIMITERS);
     hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
     hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
     hWndWrapDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_DELIMITERS_ENABLE);
@@ -18002,11 +18017,17 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
     if (bUrlDelimitersEnable)
       SendMessage(hWndUrlDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndUrlDelimiters, bUrlDelimitersEnable);
-    EscapeDataToEscapeStringW(wszUrlDelimiters, (wchar_t *)buf);
+    EnableWindow(hWndUrlLeftDelimiters, bUrlDelimitersEnable);
+    EscapeDataToEscapeStringW(wszUrlLeftDelimiters, (wchar_t *)buf);
     WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
-    SetWindowTextA(hWndUrlDelimiters, buf2);
-    SendMessage(hWndUrlDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
+    SetWindowTextA(hWndUrlLeftDelimiters, buf2);
+    SendMessage(hWndUrlLeftDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
+
+    EnableWindow(hWndUrlRightDelimiters, bUrlDelimitersEnable);
+    EscapeDataToEscapeStringW(wszUrlRightDelimiters, (wchar_t *)buf);
+    WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
+    SetWindowTextA(hWndUrlRightDelimiters, buf2);
+    SendMessage(hWndUrlRightDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
 
     if (bWordDelimitersEnable)
       SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
@@ -18043,14 +18064,16 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       if (!bState)
       {
         EnableWindow(hWndUrlPrefixes, FALSE);
-        EnableWindow(hWndUrlDelimiters, FALSE);
+        EnableWindow(hWndUrlLeftDelimiters, FALSE);
+        EnableWindow(hWndUrlRightDelimiters, FALSE);
       }
       else
       {
         bState=SendMessage(hWndUrlPrefixesEnable, BM_GETCHECK, 0, 0);
         EnableWindow(hWndUrlPrefixes, bState);
         bState=SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
-        EnableWindow(hWndUrlDelimiters, bState);
+        EnableWindow(hWndUrlLeftDelimiters, bState);
+        EnableWindow(hWndUrlRightDelimiters, bState);
       }
       return TRUE;
     }
@@ -18063,7 +18086,8 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     else if (LOWORD(wParam) == IDC_OPTIONS_URL_DELIMITERS_ENABLE)
     {
       bState=SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndUrlDelimiters, bState);
+      EnableWindow(hWndUrlLeftDelimiters, bState);
+      EnableWindow(hWndUrlRightDelimiters, bState);
       return TRUE;
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
@@ -18122,15 +18146,25 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
         SetUrlPrefixes(hWndEdit, NULL);
 
       //Url delimiters
-      a=GetWindowTextA(hWndUrlDelimiters, buf, BUFFER_SIZE);
+      a=GetWindowTextA(hWndUrlLeftDelimiters, buf, BUFFER_SIZE);
       MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
-      EscapeStringToEscapeDataW((wchar_t *)buf2, wszUrlDelimiters);
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszUrlLeftDelimiters);
+
+      a=GetWindowTextA(hWndUrlRightDelimiters, buf, BUFFER_SIZE);
+      MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszUrlRightDelimiters);
 
       bUrlDelimitersEnable=SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bUrlDelimitersEnable)
-        SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
+      {
+        SendMessage(hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)wszUrlLeftDelimiters);
+        SendMessage(hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)wszUrlRightDelimiters);
+      }
       else
-        SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)NULL);
+      {
+        SendMessage(hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)NULL);
+        SendMessage(hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)NULL);
+      }
 
       //Word delimiters
       a=GetWindowTextA(hWndWordDelimiters, buf, BUFFER_SIZE);
@@ -18178,7 +18212,8 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
   static HWND hWndUrlPrefixesEnable;
   static HWND hWndUrlPrefixes;
   static HWND hWndUrlDelimitersEnable;
-  static HWND hWndUrlDelimiters;
+  static HWND hWndUrlLeftDelimiters;
+  static HWND hWndUrlRightDelimiters;
   static HWND hWndWordDelimitersEnable;
   static HWND hWndWordDelimiters;
   static HWND hWndWrapDelimitersEnable;
@@ -18195,7 +18230,8 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     hWndUrlPrefixesEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES_ENABLE);
     hWndUrlPrefixes=GetDlgItem(hDlg, IDC_OPTIONS_URL_PREFIXES);
     hWndUrlDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS_ENABLE);
-    hWndUrlDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_DELIMITERS);
+    hWndUrlLeftDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_LEFTDELIMITERS);
+    hWndUrlRightDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_URL_RIGHTDELIMITERS);
     hWndWordDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS_ENABLE);
     hWndWordDelimiters=GetDlgItem(hDlg, IDC_OPTIONS_WORD_DELIMITERS);
     hWndWrapDelimitersEnable=GetDlgItem(hDlg, IDC_OPTIONS_WRAP_DELIMITERS_ENABLE);
@@ -18218,10 +18254,15 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
     if (bUrlDelimitersEnable)
       SendMessage(hWndUrlDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
-    EnableWindow(hWndUrlDelimiters, bUrlDelimitersEnable);
-    EscapeDataToEscapeStringW(wszUrlDelimiters, wbuf);
-    SetWindowTextW(hWndUrlDelimiters, wbuf);
-    SendMessage(hWndUrlDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
+    EnableWindow(hWndUrlLeftDelimiters, bUrlDelimitersEnable);
+    EscapeDataToEscapeStringW(wszUrlLeftDelimiters, wbuf);
+    SetWindowTextW(hWndUrlLeftDelimiters, wbuf);
+    SendMessage(hWndUrlLeftDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
+
+    EnableWindow(hWndUrlRightDelimiters, bUrlDelimitersEnable);
+    EscapeDataToEscapeStringW(wszUrlRightDelimiters, wbuf);
+    SetWindowTextW(hWndUrlRightDelimiters, wbuf);
+    SendMessage(hWndUrlRightDelimiters, EM_LIMITTEXT, (WPARAM)URL_DELIMITERS_SIZE, 0);
 
     if (bWordDelimitersEnable)
       SendMessage(hWndWordDelimitersEnable, BM_SETCHECK, BST_CHECKED, 0);
@@ -18256,14 +18297,16 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       if (!bState)
       {
         EnableWindow(hWndUrlPrefixes, FALSE);
-        EnableWindow(hWndUrlDelimiters, FALSE);
+        EnableWindow(hWndUrlLeftDelimiters, FALSE);
+        EnableWindow(hWndUrlRightDelimiters, FALSE);
       }
       else
       {
         bState=SendMessage(hWndUrlPrefixesEnable, BM_GETCHECK, 0, 0);
         EnableWindow(hWndUrlPrefixes, bState);
         bState=SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
-        EnableWindow(hWndUrlDelimiters, bState);
+        EnableWindow(hWndUrlLeftDelimiters, bState);
+        EnableWindow(hWndUrlRightDelimiters, bState);
       }
       return TRUE;
     }
@@ -18276,7 +18319,8 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     else if (LOWORD(wParam) == IDC_OPTIONS_URL_DELIMITERS_ENABLE)
     {
       bState=SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
-      EnableWindow(hWndUrlDelimiters, bState);
+      EnableWindow(hWndUrlLeftDelimiters, bState);
+      EnableWindow(hWndUrlRightDelimiters, bState);
       return TRUE;
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_ENABLE)
@@ -18332,14 +18376,23 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
         SetUrlPrefixes(hWndEdit, NULL);
 
       //Url delimiters
-      GetWindowTextW(hWndUrlDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, wszUrlDelimiters);
+      GetWindowTextW(hWndUrlLeftDelimiters, wbuf, BUFFER_SIZE);
+      EscapeStringToEscapeDataW(wbuf, wszUrlLeftDelimiters);
+
+      GetWindowTextW(hWndUrlRightDelimiters, wbuf, BUFFER_SIZE);
+      EscapeStringToEscapeDataW(wbuf, wszUrlRightDelimiters);
 
       bUrlDelimitersEnable=SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bUrlDelimitersEnable)
-        SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszUrlDelimiters);
+      {
+        SendMessage(hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)wszUrlLeftDelimiters);
+        SendMessage(hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)wszUrlRightDelimiters);
+      }
       else
-        SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)NULL);
+      {
+        SendMessage(hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)NULL);
+        SendMessage(hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)NULL);
+      }
 
       //Word delimiters
       GetWindowTextW(hWndWordDelimiters, wbuf, BUFFER_SIZE);

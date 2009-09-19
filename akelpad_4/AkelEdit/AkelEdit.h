@@ -10,19 +10,20 @@
 
 //// Defines
 
-#define AES_AKELEDITCLASSA     "AkelEditA"
-#define AES_AKELEDITCLASSW    L"AkelEditW"
-#define AES_RICHEDITCLASSA     "RichEdit20A"
-#define AES_RICHEDITCLASSW    L"RichEdit20W"
+#define AES_AKELEDITCLASSA       "AkelEditA"
+#define AES_AKELEDITCLASSW      L"AkelEditW"
+#define AES_RICHEDITCLASSA       "RichEdit20A"
+#define AES_RICHEDITCLASSW      L"RichEdit20W"
 
 //AEM_CONTROLCLASS
-#define AECLASS_AKELEDIT      1
-#define AECLASS_RICHEDIT      2
+#define AECLASS_AKELEDIT        1
+#define AECLASS_RICHEDIT        2
 
-#define AES_WORDDELIMITERSW   L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
-#define AES_WRAPDELIMITERSW   L" \t"
-#define AES_URLDELIMITERSW    L" \t\n()<>'`\""
-#define AES_URLPREFIXESW      L"http:\0https:\0www.\0ftp:\0file:\0mailto:\0\0"
+#define AES_WORDDELIMITERSW     L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
+#define AES_WRAPDELIMITERSW     L" \t"
+#define AES_URLLEFTDELIMITERSW  L" \t\n(<{[='`\""
+#define AES_URLRIGHTDELIMITERSW L" \t\n)>}]'`\""
+#define AES_URLPREFIXESW        L"http:\0https:\0www.\0ftp:\0file:\0mailto:\0\0"
 
 //AEM_SETEVENTMASK flags
 #define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGING and AEN_SELCHANGED notifications.
@@ -130,9 +131,10 @@
 #define AEGI_LASTFULLVISIBLELINE   23  //Last character of the last fully visible line.
 
 //AEM_ISDELIMITER parameter
-#define AEDLM_WORD    0  //Word delimiter.
-#define AEDLM_WRAP    1  //Wrap delimiter.
-#define AEDLM_URL     2  //URL delimiter.
+#define AEDLM_WORD     0  //Word delimiter.
+#define AEDLM_WRAP     1  //Wrap delimiter.
+#define AEDLM_URLLEFT  2  //URL left delimiter.
+#define AEDLM_URLRIGHT 3  //URL right delimiter.
 
 //AEM_SETSEL and AEM_UPDATESEL flags
 #define AESELT_COLUMNON            0x00000001  //Make column selection ON.
@@ -755,181 +757,183 @@ typedef struct {
 //// AkelEdit messages
 
 //Notifications
-#define AEN_ERRSPACE           (WM_USER + 1001)  //0x7E9
-#define AEN_SETFOCUS           (WM_USER + 1002)  //0x7EA
-#define AEN_KILLFOCUS          (WM_USER + 1003)  //0x7EB
-#define AEN_SELCHANGING        (WM_USER + 1004)  //0x7EC
-#define AEN_SELCHANGED         (WM_USER + 1005)  //0x7ED
-#define AEN_TEXTCHANGING       (WM_USER + 1006)  //0x7EE
-#define AEN_TEXTCHANGED        (WM_USER + 1007)  //0x7EF
-#define AEN_MODIFY             (WM_USER + 1008)  //0x7F0
-#define AEN_HSCROLL            (WM_USER + 1009)  //0x7F1
-#define AEN_VSCROLL            (WM_USER + 1010)  //0x7F2
-#define AEN_DROPFILES          (WM_USER + 1011)  //0x7F3
-#define AEN_DROPSOURCE         (WM_USER + 1012)  //0x7F4
-#define AEN_DROPTARGET         (WM_USER + 1013)  //0x7F5
-#define AEN_LINK               (WM_USER + 1014)  //0x7F6
-#define AEN_PROGRESS           (WM_USER + 1015)  //0x7F7
+#define AEN_ERRSPACE              (WM_USER + 1001)  //0x7E9
+#define AEN_SETFOCUS              (WM_USER + 1002)  //0x7EA
+#define AEN_KILLFOCUS             (WM_USER + 1003)  //0x7EB
+#define AEN_SELCHANGING           (WM_USER + 1004)  //0x7EC
+#define AEN_SELCHANGED            (WM_USER + 1005)  //0x7ED
+#define AEN_TEXTCHANGING          (WM_USER + 1006)  //0x7EE
+#define AEN_TEXTCHANGED           (WM_USER + 1007)  //0x7EF
+#define AEN_MODIFY                (WM_USER + 1008)  //0x7F0
+#define AEN_HSCROLL               (WM_USER + 1009)  //0x7F1
+#define AEN_VSCROLL               (WM_USER + 1010)  //0x7F2
+#define AEN_DROPFILES             (WM_USER + 1011)  //0x7F3
+#define AEN_DROPSOURCE            (WM_USER + 1012)  //0x7F4
+#define AEN_DROPTARGET            (WM_USER + 1013)  //0x7F5
+#define AEN_LINK                  (WM_USER + 1014)  //0x7F6
+#define AEN_PROGRESS              (WM_USER + 1015)  //0x7F7
 
 //Text retrieval and modification
-#define AEM_SETTEXTA           (WM_USER + 2001)
-#define AEM_SETTEXTW           (WM_USER + 2002)
-#define AEM_APPENDTEXTA        (WM_USER + 2003)
-#define AEM_APPENDTEXTW        (WM_USER + 2004)
-#define AEM_REPLACESELA        (WM_USER + 2005)
-#define AEM_REPLACESELW        (WM_USER + 2006)
-#define AEM_GETTEXTRANGEA      (WM_USER + 2007)
-#define AEM_GETTEXTRANGEW      (WM_USER + 2008)
-#define AEM_STREAMIN           (WM_USER + 2009)
-#define AEM_STREAMOUT          (WM_USER + 2010)
-#define AEM_CANPASTE           (WM_USER + 2011)
-#define AEM_PASTE              (WM_USER + 2012)
-#define AEM_CUT                (WM_USER + 2013)
-#define AEM_COPY               (WM_USER + 2014)
-#define AEM_CHECKCODEPAGE      (WM_USER + 2015)
-#define AEM_FINDTEXTA          (WM_USER + 2016)
-#define AEM_FINDTEXTW          (WM_USER + 2017)
-#define AEM_ISMATCHA           (WM_USER + 2018)
-#define AEM_ISMATCHW           (WM_USER + 2019)
-#define AEM_KEYDOWN            (WM_USER + 2020)
-#define AEM_DRAGDROP           (WM_USER + 2021)
+#define AEM_SETTEXTA              (WM_USER + 2001)
+#define AEM_SETTEXTW              (WM_USER + 2002)
+#define AEM_APPENDTEXTA           (WM_USER + 2003)
+#define AEM_APPENDTEXTW           (WM_USER + 2004)
+#define AEM_REPLACESELA           (WM_USER + 2005)
+#define AEM_REPLACESELW           (WM_USER + 2006)
+#define AEM_GETTEXTRANGEA         (WM_USER + 2007)
+#define AEM_GETTEXTRANGEW         (WM_USER + 2008)
+#define AEM_STREAMIN              (WM_USER + 2009)
+#define AEM_STREAMOUT             (WM_USER + 2010)
+#define AEM_CANPASTE              (WM_USER + 2011)
+#define AEM_PASTE                 (WM_USER + 2012)
+#define AEM_CUT                   (WM_USER + 2013)
+#define AEM_COPY                  (WM_USER + 2014)
+#define AEM_CHECKCODEPAGE         (WM_USER + 2015)
+#define AEM_FINDTEXTA             (WM_USER + 2016)
+#define AEM_FINDTEXTW             (WM_USER + 2017)
+#define AEM_ISMATCHA              (WM_USER + 2018)
+#define AEM_ISMATCHW              (WM_USER + 2019)
+#define AEM_KEYDOWN               (WM_USER + 2020)
+#define AEM_DRAGDROP              (WM_USER + 2021)
 
 //Undo and Redo
-#define AEM_CANUNDO            (WM_USER + 2051)
-#define AEM_CANREDO            (WM_USER + 2052)
-#define AEM_UNDO               (WM_USER + 2053)
-#define AEM_REDO               (WM_USER + 2054)
-#define AEM_EMPTYUNDOBUFFER    (WM_USER + 2055)
-#define AEM_STOPGROUPTYPING    (WM_USER + 2056)
-#define AEM_BEGINUNDOACTION    (WM_USER + 2057)
-#define AEM_ENDUNDOACTION      (WM_USER + 2058)
-#define AEM_LOCKCOLLECTUNDO    (WM_USER + 2059)
-#define AEM_GETUNDOLIMIT       (WM_USER + 2060)
-#define AEM_SETUNDOLIMIT       (WM_USER + 2061)
-#define AEM_GETMODIFY          (WM_USER + 2062)
-#define AEM_SETMODIFY          (WM_USER + 2063)
-#define AEM_UNDOBUFFERSIZE     (WM_USER + 2064)
+#define AEM_CANUNDO               (WM_USER + 2051)
+#define AEM_CANREDO               (WM_USER + 2052)
+#define AEM_UNDO                  (WM_USER + 2053)
+#define AEM_REDO                  (WM_USER + 2054)
+#define AEM_EMPTYUNDOBUFFER       (WM_USER + 2055)
+#define AEM_STOPGROUPTYPING       (WM_USER + 2056)
+#define AEM_BEGINUNDOACTION       (WM_USER + 2057)
+#define AEM_ENDUNDOACTION         (WM_USER + 2058)
+#define AEM_LOCKCOLLECTUNDO       (WM_USER + 2059)
+#define AEM_GETUNDOLIMIT          (WM_USER + 2060)
+#define AEM_SETUNDOLIMIT          (WM_USER + 2061)
+#define AEM_GETMODIFY             (WM_USER + 2062)
+#define AEM_SETMODIFY             (WM_USER + 2063)
+#define AEM_UNDOBUFFERSIZE        (WM_USER + 2064)
 
 //Text coordinates
-#define AEM_EXGETSEL           (WM_USER + 2099)
-#define AEM_EXSETSEL           (WM_USER + 2100)
-#define AEM_GETSEL             (WM_USER + 2101)
-#define AEM_SETSEL             (WM_USER + 2102)
-#define AEM_GETCOLUMNSEL       (WM_USER + 2103)
-#define AEM_UPDATESEL          (WM_USER + 2104)
-#define AEM_GETLINENUMBER      (WM_USER + 2105)
-#define AEM_GETINDEX           (WM_USER + 2106)
-#define AEM_GETLINEINDEX       (WM_USER + 2107)
-#define AEM_INDEXUPDATE        (WM_USER + 2108)
-#define AEM_INDEXCOMPARE       (WM_USER + 2109)
-#define AEM_INDEXSUBTRACT      (WM_USER + 2110)
-#define AEM_INDEXOFFSET        (WM_USER + 2111)
-#define AEM_INDEXTORICHOFFSET  (WM_USER + 2112)
-#define AEM_RICHOFFSETTOINDEX  (WM_USER + 2113)
-#define AEM_ADDPOINT           (WM_USER + 2114)
-#define AEM_DELPOINT           (WM_USER + 2115)
-#define AEM_GETINDEXCOLUMN     (WM_USER + 2116)
-#define AEM_GETWRAPLINE        (WM_USER + 2117)
-#define AEM_GETUNWRAPLINE      (WM_USER + 2118)
+#define AEM_EXGETSEL              (WM_USER + 2099)
+#define AEM_EXSETSEL              (WM_USER + 2100)
+#define AEM_GETSEL                (WM_USER + 2101)
+#define AEM_SETSEL                (WM_USER + 2102)
+#define AEM_GETCOLUMNSEL          (WM_USER + 2103)
+#define AEM_UPDATESEL             (WM_USER + 2104)
+#define AEM_GETLINENUMBER         (WM_USER + 2105)
+#define AEM_GETINDEX              (WM_USER + 2106)
+#define AEM_GETLINEINDEX          (WM_USER + 2107)
+#define AEM_INDEXUPDATE           (WM_USER + 2108)
+#define AEM_INDEXCOMPARE          (WM_USER + 2109)
+#define AEM_INDEXSUBTRACT         (WM_USER + 2110)
+#define AEM_INDEXOFFSET           (WM_USER + 2111)
+#define AEM_INDEXTORICHOFFSET     (WM_USER + 2112)
+#define AEM_RICHOFFSETTOINDEX     (WM_USER + 2113)
+#define AEM_ADDPOINT              (WM_USER + 2114)
+#define AEM_DELPOINT              (WM_USER + 2115)
+#define AEM_GETINDEXCOLUMN        (WM_USER + 2116)
+#define AEM_GETWRAPLINE           (WM_USER + 2117)
+#define AEM_GETUNWRAPLINE         (WM_USER + 2118)
 
 //Screen coordinates
-#define AEM_CHARFROMPOS        (WM_USER + 2151)
-#define AEM_POSFROMCHAR        (WM_USER + 2152)
-#define AEM_GETRECT            (WM_USER + 2153)
-#define AEM_SETRECT            (WM_USER + 2154)
-#define AEM_GETSCROLLPOS       (WM_USER + 2155)
-#define AEM_SETSCROLLPOS       (WM_USER + 2156)
-#define AEM_SCROLL             (WM_USER + 2157)
-#define AEM_LINESCROLL         (WM_USER + 2158)
-#define AEM_SCROLLCARET        (WM_USER + 2159)
-#define AEM_SCROLLCARETTEST    (WM_USER + 2160)
-#define AEM_LOCKSCROLL         (WM_USER + 2161)
-#define AEM_GETERASERECT       (WM_USER + 2162)
-#define AEM_SETERASERECT       (WM_USER + 2163)
-#define AEM_GETCHARSIZE        (WM_USER + 2164)
-#define AEM_GETSTRWIDTH        (WM_USER + 2165)
-#define AEM_GETCARETPOS        (WM_USER + 2166)
-#define AEM_GETCARETHORZINDENT (WM_USER + 2167)
-#define AEM_SETCARETHORZINDENT (WM_USER + 2168)
-#define AEM_CONVERTPOINT       (WM_USER + 2169)
+#define AEM_CHARFROMPOS           (WM_USER + 2151)
+#define AEM_POSFROMCHAR           (WM_USER + 2152)
+#define AEM_GETRECT               (WM_USER + 2153)
+#define AEM_SETRECT               (WM_USER + 2154)
+#define AEM_GETSCROLLPOS          (WM_USER + 2155)
+#define AEM_SETSCROLLPOS          (WM_USER + 2156)
+#define AEM_SCROLL                (WM_USER + 2157)
+#define AEM_LINESCROLL            (WM_USER + 2158)
+#define AEM_SCROLLCARET           (WM_USER + 2159)
+#define AEM_SCROLLCARETTEST       (WM_USER + 2160)
+#define AEM_LOCKSCROLL            (WM_USER + 2161)
+#define AEM_GETERASERECT          (WM_USER + 2162)
+#define AEM_SETERASERECT          (WM_USER + 2163)
+#define AEM_GETCHARSIZE           (WM_USER + 2164)
+#define AEM_GETSTRWIDTH           (WM_USER + 2165)
+#define AEM_GETCARETPOS           (WM_USER + 2166)
+#define AEM_GETCARETHORZINDENT    (WM_USER + 2167)
+#define AEM_SETCARETHORZINDENT    (WM_USER + 2168)
+#define AEM_CONVERTPOINT          (WM_USER + 2169)
 
 //Options
-#define AEM_CONTROLCLASS       (WM_USER + 2199)
-#define AEM_CONTROLVERSION     (WM_USER + 2200)
-#define AEM_GETEVENTMASK       (WM_USER + 2201)
-#define AEM_SETEVENTMASK       (WM_USER + 2202)
-#define AEM_GETOPTIONS         (WM_USER + 2203)
-#define AEM_SETOPTIONS         (WM_USER + 2204)
-#define AEM_GETNEWLINE         (WM_USER + 2205)
-#define AEM_SETNEWLINE         (WM_USER + 2206)
-#define AEM_GETCOLORS          (WM_USER + 2207)
-#define AEM_SETCOLORS          (WM_USER + 2208)
-#define AEM_GETDETECTURL       (WM_USER + 2209)
-#define AEM_SETDETECTURL       (WM_USER + 2210)
-#define AEM_GETOVERTYPE        (WM_USER + 2211)
-#define AEM_SETOVERTYPE        (WM_USER + 2212)
-#define AEM_GETCARETWIDTH      (WM_USER + 2213)
-#define AEM_SETCARETWIDTH      (WM_USER + 2214)
-#define AEM_GETTABSTOP         (WM_USER + 2215)
-#define AEM_SETTABSTOP         (WM_USER + 2216)
-#define AEM_GETWORDWRAP        (WM_USER + 2217)
-#define AEM_SETWORDWRAP        (WM_USER + 2218)
-#define AEM_GETWORDDELIMITERS  (WM_USER + 2219)
-#define AEM_SETWORDDELIMITERS  (WM_USER + 2220)
-#define AEM_GETWRAPDELIMITERS  (WM_USER + 2221)
-#define AEM_SETWRAPDELIMITERS  (WM_USER + 2222)
-#define AEM_GETURLDELIMITERS   (WM_USER + 2223)
-#define AEM_SETURLDELIMITERS   (WM_USER + 2224)
-#define AEM_GETURLPREFIXES     (WM_USER + 2225)
-#define AEM_SETURLPREFIXES     (WM_USER + 2226)
-#define AEM_GETURLMAXLENGTH    (WM_USER + 2227)
-#define AEM_SETURLMAXLENGTH    (WM_USER + 2228)
-#define AEM_GETWORDBREAK       (WM_USER + 2229)
-#define AEM_SETWORDBREAK       (WM_USER + 2230)
-#define AEM_GETMARKER          (WM_USER + 2231)
-#define AEM_SETMARKER          (WM_USER + 2232)
-#define AEM_GETLINEGAP         (WM_USER + 2233)
-#define AEM_SETLINEGAP         (WM_USER + 2234)
+#define AEM_CONTROLCLASS          (WM_USER + 2199)
+#define AEM_CONTROLVERSION        (WM_USER + 2200)
+#define AEM_GETEVENTMASK          (WM_USER + 2201)
+#define AEM_SETEVENTMASK          (WM_USER + 2202)
+#define AEM_GETOPTIONS            (WM_USER + 2203)
+#define AEM_SETOPTIONS            (WM_USER + 2204)
+#define AEM_GETNEWLINE            (WM_USER + 2205)
+#define AEM_SETNEWLINE            (WM_USER + 2206)
+#define AEM_GETCOLORS             (WM_USER + 2207)
+#define AEM_SETCOLORS             (WM_USER + 2208)
+#define AEM_GETDETECTURL          (WM_USER + 2209)
+#define AEM_SETDETECTURL          (WM_USER + 2210)
+#define AEM_GETOVERTYPE           (WM_USER + 2211)
+#define AEM_SETOVERTYPE           (WM_USER + 2212)
+#define AEM_GETCARETWIDTH         (WM_USER + 2213)
+#define AEM_SETCARETWIDTH         (WM_USER + 2214)
+#define AEM_GETTABSTOP            (WM_USER + 2215)
+#define AEM_SETTABSTOP            (WM_USER + 2216)
+#define AEM_GETWORDWRAP           (WM_USER + 2217)
+#define AEM_SETWORDWRAP           (WM_USER + 2218)
+#define AEM_GETWORDDELIMITERS     (WM_USER + 2219)
+#define AEM_SETWORDDELIMITERS     (WM_USER + 2220)
+#define AEM_GETWRAPDELIMITERS     (WM_USER + 2221)
+#define AEM_SETWRAPDELIMITERS     (WM_USER + 2222)
+#define AEM_GETURLLEFTDELIMITERS  (WM_USER + 2223)
+#define AEM_SETURLLEFTDELIMITERS  (WM_USER + 2224)
+#define AEM_GETURLRIGHTDELIMITERS (WM_USER + 2225)
+#define AEM_SETURLRIGHTDELIMITERS (WM_USER + 2226)
+#define AEM_GETURLPREFIXES        (WM_USER + 2227)
+#define AEM_SETURLPREFIXES        (WM_USER + 2228)
+#define AEM_GETURLMAXLENGTH       (WM_USER + 2229)
+#define AEM_SETURLMAXLENGTH       (WM_USER + 2230)
+#define AEM_GETWORDBREAK          (WM_USER + 2231)
+#define AEM_SETWORDBREAK          (WM_USER + 2232)
+#define AEM_GETMARKER             (WM_USER + 2233)
+#define AEM_SETMARKER             (WM_USER + 2234)
+#define AEM_GETLINEGAP            (WM_USER + 2235)
+#define AEM_SETLINEGAP            (WM_USER + 2236)
 
 //Other
-#define AEM_ISDELIMITER        (WM_USER + 2251)
-#define AEM_SHOWSCROLLBAR      (WM_USER + 2252)
-#define AEM_UPDATESCROLLBAR    (WM_USER + 2253)
-#define AEM_HIDESELECTION      (WM_USER + 2254)
-#define AEM_ADDCLONE           (WM_USER + 2255)
-#define AEM_DELCLONE           (WM_USER + 2256)
-#define AEM_GETMASTER          (WM_USER + 2257)
-#define AEM_GETCLONE           (WM_USER + 2258)
+#define AEM_ISDELIMITER           (WM_USER + 2251)
+#define AEM_SHOWSCROLLBAR         (WM_USER + 2252)
+#define AEM_UPDATESCROLLBAR       (WM_USER + 2253)
+#define AEM_HIDESELECTION         (WM_USER + 2254)
+#define AEM_ADDCLONE              (WM_USER + 2255)
+#define AEM_DELCLONE              (WM_USER + 2256)
+#define AEM_GETMASTER             (WM_USER + 2257)
+#define AEM_GETCLONE              (WM_USER + 2258)
 
 //Print
-#define AEM_STARTPRINTDOC      (WM_USER + 2451)
-#define AEM_PRINTPAGE          (WM_USER + 2452)
-#define AEM_ENDPRINTDOC        (WM_USER + 2453)
+#define AEM_STARTPRINTDOC         (WM_USER + 2451)
+#define AEM_PRINTPAGE             (WM_USER + 2452)
+#define AEM_ENDPRINTDOC           (WM_USER + 2453)
 
 //Highlight
-#define AEM_HLCREATETHEMEA     (WM_USER + 2501)
-#define AEM_HLCREATETHEMEW     (WM_USER + 2502)
-#define AEM_HLGETTHEMEA        (WM_USER + 2503)
-#define AEM_HLGETTHEMEW        (WM_USER + 2504)
-#define AEM_HLGETTHEMENAMEA    (WM_USER + 2505)
-#define AEM_HLGETTHEMENAMEW    (WM_USER + 2506)
-#define AEM_HLTHEMEEXISTS      (WM_USER + 2507)
-#define AEM_HLSETTHEME         (WM_USER + 2508)
-#define AEM_HLDELETETHEME      (WM_USER + 2509)
-#define AEM_HLADDDELIMITERA    (WM_USER + 2521)
-#define AEM_HLADDDELIMITERW    (WM_USER + 2522)
-#define AEM_HLDELETEDELIMITER  (WM_USER + 2523)
-#define AEM_HLADDWORDA         (WM_USER + 2531)
-#define AEM_HLADDWORDW         (WM_USER + 2532)
-#define AEM_HLDELETEWORD       (WM_USER + 2533)
-#define AEM_HLADDQUOTEA        (WM_USER + 2541)
-#define AEM_HLADDQUOTEW        (WM_USER + 2542)
-#define AEM_HLDELETEQUOTE      (WM_USER + 2543)
-#define AEM_HLADDMARKTEXTA     (WM_USER + 2551)
-#define AEM_HLADDMARKTEXTW     (WM_USER + 2552)
-#define AEM_HLDELETEMARKTEXT   (WM_USER + 2553)
-#define AEM_HLADDMARKRANGE     (WM_USER + 2561)
-#define AEM_HLDELETEMARKRANGE  (WM_USER + 2562)
+#define AEM_HLCREATETHEMEA        (WM_USER + 2501)
+#define AEM_HLCREATETHEMEW        (WM_USER + 2502)
+#define AEM_HLGETTHEMEA           (WM_USER + 2503)
+#define AEM_HLGETTHEMEW           (WM_USER + 2504)
+#define AEM_HLGETTHEMENAMEA       (WM_USER + 2505)
+#define AEM_HLGETTHEMENAMEW       (WM_USER + 2506)
+#define AEM_HLTHEMEEXISTS         (WM_USER + 2507)
+#define AEM_HLSETTHEME            (WM_USER + 2508)
+#define AEM_HLDELETETHEME         (WM_USER + 2509)
+#define AEM_HLADDDELIMITERA       (WM_USER + 2521)
+#define AEM_HLADDDELIMITERW       (WM_USER + 2522)
+#define AEM_HLDELETEDELIMITER     (WM_USER + 2523)
+#define AEM_HLADDWORDA            (WM_USER + 2531)
+#define AEM_HLADDWORDW            (WM_USER + 2532)
+#define AEM_HLDELETEWORD          (WM_USER + 2533)
+#define AEM_HLADDQUOTEA           (WM_USER + 2541)
+#define AEM_HLADDQUOTEW           (WM_USER + 2542)
+#define AEM_HLDELETEQUOTE         (WM_USER + 2543)
+#define AEM_HLADDMARKTEXTA        (WM_USER + 2551)
+#define AEM_HLADDMARKTEXTW        (WM_USER + 2552)
+#define AEM_HLDELETEMARKTEXT      (WM_USER + 2553)
+#define AEM_HLADDMARKRANGE        (WM_USER + 2561)
+#define AEM_HLDELETEMARKRANGE     (WM_USER + 2562)
 
 
 //// RichEdit messages
@@ -3149,10 +3153,10 @@ Example:
  SendMessage(hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)wszDelimiters);
 
 
-AEM_GETURLDELIMITERS
-____________________
+AEM_GETURLLEFTDELIMITERS
+________________________
 
-Retrieve URL delimiters.
+Retrieve URL left delimiters.
 
 (int)wParam       == size of the buffer in TCHARs.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
@@ -3163,13 +3167,13 @@ Return Value
 Example:
  wchar_t wszDelimiters[128];
 
- SendMessage(hWndEdit, AEM_GETURLDELIMITERS, 128, (LPARAM)wszDelimiters);
+ SendMessage(hWndEdit, AEM_GETURLLEFTDELIMITERS, 128, (LPARAM)wszDelimiters);
 
 
-AEM_SETURLDELIMITERS
-____________________
+AEM_SETURLLEFTDELIMITERS
+________________________
 
-Set delimiters for URL detection.
+Set left delimiters for URL detection.
 
 wParam            == not used.
 (wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
@@ -3178,9 +3182,43 @@ Return Value
  zero
 
 Example:
- wchar_t wszDelimiters[128]=L" \t\n[](){}<>";
+ wchar_t wszDelimiters[128]=L" \t\n(<{[='`\"";
 
- SendMessage(hWndEdit, AEM_SETURLDELIMITERS, 0, (LPARAM)wszDelimiters);
+ SendMessage(hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)wszDelimiters);
+
+
+AEM_GETURLRIGHTDELIMITERS
+________________________
+
+Retrieve URL right delimiters.
+
+(int)wParam       == size of the buffer in TCHARs.
+(wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
+
+Return Value
+ zero
+
+Example:
+ wchar_t wszDelimiters[128];
+
+ SendMessage(hWndEdit, AEM_GETURLRIGHTDELIMITERS, 128, (LPARAM)wszDelimiters);
+
+
+AEM_SETURLRIGHTDELIMITERS
+________________________
+
+Set right delimiters for URL detection.
+
+wParam            == not used.
+(wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
+
+Return Value
+ zero
+
+Example:
+ wchar_t wszDelimiters[128]=L" \t\n)>}]'`\"";
+
+ SendMessage(hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)wszDelimiters);
 
 
 AEM_GETURLPREFIXES
