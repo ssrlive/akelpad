@@ -7178,23 +7178,23 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       if (AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
         return 0;
 
-      for (nPrefix=0; ae->popt->lpUrlPrefixes[nPrefix]; ++nPrefix)
+      if (ciCount.nCharInLine == 0)
       {
-        ft.pText=ae->popt->lpUrlPrefixes[nPrefix];
-
-        if (AE_IsMatch(ae, &ft, &ciCount))
+        if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP && ciCount.lpLine->prev->nLineLen)
         {
-          if (ciCount.nCharInLine == 0)
-          {
-            if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP && ciCount.lpLine->prev->nLineLen)
-            {
-              wchChar=ciCount.lpLine->prev->wpLine[ciCount.lpLine->prev->nLineLen - 1];
-            }
-            else wchChar=L'\n';
-          }
-          else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine - 1];
+          wchChar=ciCount.lpLine->prev->wpLine[ciCount.lpLine->prev->nLineLen - 1];
+        }
+        else wchChar=L'\n';
+      }
+      else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine - 1];
 
-          if (AE_IsInDelimiterList(ae->popt->wszUrlLeftDelimiters, wchChar, TRUE))
+      if (AE_IsInDelimiterList(ae->popt->wszUrlLeftDelimiters, wchChar, TRUE))
+      {
+        for (nPrefix=0; ae->popt->lpUrlPrefixes[nPrefix]; ++nPrefix)
+        {
+          ft.pText=ae->popt->lpUrlPrefixes[nPrefix];
+  
+          if (AE_IsMatch(ae, &ft, &ciCount))
           {
             crRange->ciMin=ciCount;
             goto FindUrlEnding;
