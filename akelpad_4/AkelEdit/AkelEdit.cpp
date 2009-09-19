@@ -7148,7 +7148,8 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     {
       if (AE_IndexCompare(&ciCount, &crRange->ciMax) < 0)
         return 0;
-      if (++dwLinkLen > ae->popt->dwUrlMaxLength)
+      dwLinkLen+=AE_IndexLen(&ciCount);
+      if (dwLinkLen > ae->popt->dwUrlMaxLength)
         return 0;
       if (AE_IsInDelimiterList(ae->popt->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
         return 0;
@@ -7597,7 +7598,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           ciCount=wm->crDelim2.ciMax;
           goto SetEmptyFirstDelim;
         }
-        ++nWordLen;
+        nWordLen+=AE_IndexLen(&ciCount);
 
         //Is delimiter
         if (lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE))
@@ -8999,8 +9000,6 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   {
     if (ph->wszPrintLine[i] == L'\t')
     {
-      nLineWidth+=prn->nTabWidth - nLineWidth % prn->nTabWidth;
-
       if (!(prn->dwFlags & AEPRN_TEST))
       {
         if (prn->dwFlags & AEPRN_ANSI)
@@ -9011,6 +9010,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
         }
         else ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, NULL);
       }
+      nLineWidth+=prn->nTabWidth - nLineWidth % prn->nTabWidth;
       ptText.x=prn->rcPageIn.left + nLineWidth;
       nPrintedChars=i + 1;
     }
@@ -9025,10 +9025,10 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
     if (prn->dwFlags & AEPRN_ANSI)
     {
       //CreateEnhMetaFileA and ExtTextOutW can be incompatible on Win9x
-      nPrintedChars=WideCharToMultiByte(CP_ACP, 0, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, ph->szPrintLine, AEPRNL_PRINTLINESIZE, NULL, NULL);
+      nPrintedChars=WideCharToMultiByte(CP_ACP, 0, ph->wszPrintLine + nPrintedChars, nLineLen - nPrintedChars, ph->szPrintLine, AEPRNL_PRINTLINESIZE, NULL, NULL);
       ExtTextOutA(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->szPrintLine, nPrintedChars, NULL);
     }
-    else ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, NULL);
+    else ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, nLineLen - nPrintedChars, NULL);
   }
   ptText.y+=ph->aePrint.ptxt->nCharHeight;
   nMaxLineWidth=max(nLineWidth, nMaxLineWidth);
@@ -10852,7 +10852,6 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
       if (ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
       {
         AE_PrevLine(&ciCount);
-        AE_IndexDec(&ciCount);
       }
     }
     else goto End;
@@ -11030,7 +11029,6 @@ int AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordS
       if (ciStart.lpLine->prev->nLineBreak == AELB_WRAP)
       {
         AE_PrevLine(&ciStart);
-        AE_IndexDec(&ciStart);
       }
     }
     else return 0;
