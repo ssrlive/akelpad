@@ -5110,7 +5110,8 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
           ciCharOut->nCharInLine=0;
           if (ciCharTmp.lpLine->nLineBreak == AELB_WRAP)
           {
-            ciCharOut->nCharInLine=min(AE_IndexInc(ciCharOut), ciCharOut->lpLine->nLineLen);
+            AE_IndexInc(ciCharOut);
+            ciCharOut->nCharInLine=min(ciCharOut->nCharInLine, ciCharOut->lpLine->nLineLen);
           }
           return 1;
         }
@@ -5160,7 +5161,8 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
           ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
           if (ciCharOut->lpLine->nLineBreak == AELB_WRAP)
           {
-            ciCharOut->nCharInLine=max(AE_IndexDec(ciCharOut), 0);
+            AE_IndexDec(ciCharOut);
+            ciCharOut->nCharInLine=max(ciCharOut->nCharInLine, 0);
           }
           return 1;
         }
@@ -6651,7 +6653,8 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
           {
             if (ptPos->x < ae->rcDraw.left)
             {
-              ciCharIndex.nCharInLine=max(AE_IndexDec(&ciCharIndex), 0);
+              AE_IndexDec(&ciCharIndex);
+              ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine, 0);
             }
             else if (ptPos->x > ae->rcDraw.right)
             {
@@ -7110,7 +7113,8 @@ DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink)
           {
             if (nResult == AEPC_AFTER)
             {
-              ciCharIndex.nCharInLine=max(AE_IndexDec(&ciCharIndex), 0);
+              AE_IndexDec(&ciCharIndex);
+              ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine, 0);
             }
             AE_memset(crLink, 0, sizeof(AECHARRANGE));
             return AE_HighlightFindUrl(ae, &ciCharIndex, AEHF_FINDFIRSTCHAR, ae->ptxt->nLineCount, crLink);
@@ -7185,7 +7189,8 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
     {
       AE_PrevLine(&ciCount);
-      ciCount.nCharInLine=max(AE_IndexDec(&ciCount), 0);
+      AE_IndexDec(&ciCount);
+      ciCount.nCharInLine=max(ciCount.nCharInLine, 0);
     }
     else return 0;
   }
@@ -7255,7 +7260,8 @@ int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
       if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
       {
         AE_PrevLine(&ciCount);
-        ciCount.nCharInLine=max(AE_IndexDec(&ciCount), 0);
+        AE_IndexDec(&ciCount);
+        ciCount.nCharInLine=max(ciCount.nCharInLine, 0);
       }
       else break;
     }
@@ -7616,7 +7622,8 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
       if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
       {
         AE_PrevLine(&ciCount);
-        ciCount.nCharInLine=max(AE_IndexDec(&ciCount), 0);
+        AE_IndexDec(&ciCount);
+        ciCount.nCharInLine=max(ciCount.nCharInLine, 0);
       }
       else break;
     }
