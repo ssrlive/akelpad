@@ -5331,8 +5331,8 @@ int AE_IndexInc(AECHARINDEX *ciChar)
   {
     if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
     {
-      if (IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
-        if (IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
+      if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+        if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
           ++ciChar->nCharInLine;
     }
   }
@@ -5345,12 +5345,26 @@ int AE_IndexDec(AECHARINDEX *ciChar)
   {
     if (ciChar->nCharInLine - 1 < ciChar->lpLine->nLineLen)
     {
-      if (IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
-        if (IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 2]))
+      if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
+        if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 2]))
           --ciChar->nCharInLine;
     }
   }
   return --ciChar->nCharInLine;
+}
+
+int AE_IndexLen(AECHARINDEX *ciChar)
+{
+  if (ciChar->nCharInLine >= 0)
+  {
+    if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+    {
+      if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+        if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
+          return 2;
+    }
+  }
+  return 1;
 }
 
 DWORD AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces)
@@ -5629,9 +5643,9 @@ BOOL AE_IndexNormalize(AECHARINDEX *ciChar)
 {
   if (ciChar->nCharInLine > 0 && ciChar->nCharInLine < ciChar->lpLine->nLineLen)
   {
-    if (IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+    if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
     {
-      if (IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
+      if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
       {
         --ciChar->nCharInLine;
         return TRUE;
@@ -7187,9 +7201,9 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     {
       if (AE_IsInDelimiterList(ae->popt->wszUrlDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
         goto End;
-      if (++dwLinkLen > ae->popt->dwUrlMaxLength)
+      dwLinkLen+=AE_IndexLen(&ciCount);
+      if (dwLinkLen > ae->popt->dwUrlMaxLength)
         goto End;
-
       AE_IndexInc(&ciCount);
     }
 
@@ -7486,7 +7500,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           }
 
           if (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
-            ++nQuoteLen;
+            nQuoteLen+=AE_IndexLen(&ciCount);
         }
         AE_IndexInc(&ciCount);
       }
@@ -7637,7 +7651,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           wm->crDelim2=ft.crFound;
           goto SetWord;
         }
-        ++nWordLen;
+        nWordLen+=AE_IndexLen(&ciCount);
         AE_IndexInc(&ciCount);
       }
 
@@ -8181,11 +8195,11 @@ BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret)
   else
     bResult=SetCaretPos(ptClient.x, ptClient.y);
 
-  SetCaretVis(ae, ptCaret);
+  AE_SetCaretVis(ae, ptCaret);
   return bResult;
 }
 
-void SetCaretVis(AKELEDIT *ae, const POINT *ptCaret)
+void AE_SetCaretVis(AKELEDIT *ae, const POINT *ptCaret)
 {
   POINT ptClient;
 
@@ -8547,7 +8561,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
     }
   }
 
-  SetCaretVis(ae, &ae->ptCaret);
+  AE_SetCaretVis(ae, &ae->ptCaret);
   return nScrollPos;
 }
 
@@ -8880,6 +8894,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   int nLineWidth;
   int nMaxLineWidth=0;
   int nCharWidth;
+  int nCharLen;
   int nLineLen;
   int nPrintedChars;
   int nLineCount=0;
@@ -8902,8 +8917,11 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   {
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
-      ph->wszPrintLine[nLineLen]=*(ciCount.lpLine->wpLine + ciCount.nCharInLine);
-      nCharWidth=AE_GetStringWidth(&ph->aePrint, ph->wszPrintLine + nLineLen, 1, nLineWidth);
+      AE_CopyChar(ph->wszPrintLine + nLineLen, AEPRNL_PRINTLINESIZE - nLineLen, ciCount.lpLine->wpLine + ciCount.nCharInLine);
+      if (ph->wszPrintLine[nLineLen] == L'\t')
+        nCharWidth=prn->nTabWidth - nLineWidth % prn->nTabWidth;
+      else
+        nCharWidth=AE_GetCharWidth(&ph->aePrint, ph->wszPrintLine + nLineLen, NULL);
       nLineWidth+=nCharWidth;
 
       if (nLineWidth > prn->rcPageIn.right - prn->rcPageIn.left ||
@@ -8959,7 +8977,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
         nLineWidth-=nCharWidth;
         goto PrintLine;
       }
-      ++nLineLen;
+      nLineLen+=AE_IndexLen(&ciCount);
       AE_IndexInc(&ciCount);
     }
 
@@ -8979,10 +8997,10 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
   for (i=0; i < nLineLen; ++i)
   {
-    nLineWidth+=AE_GetStringWidth(&ph->aePrint, ph->wszPrintLine + i, 1, nLineWidth);
-
     if (ph->wszPrintLine[i] == L'\t')
     {
+      nLineWidth+=prn->nTabWidth - nLineWidth % prn->nTabWidth;
+
       if (!(prn->dwFlags & AEPRN_TEST))
       {
         if (prn->dwFlags & AEPRN_ANSI)
@@ -8995,6 +9013,11 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
       }
       ptText.x=prn->rcPageIn.left + nLineWidth;
       nPrintedChars=i + 1;
+    }
+    else
+    {
+      nLineWidth+=AE_GetCharWidth(&ph->aePrint, ph->wszPrintLine + i, &nCharLen);
+      if (nCharLen) i+=nCharLen - 1;
     }
   }
   if (!(prn->dwFlags & AEPRN_TEST))
@@ -9744,9 +9767,8 @@ void AE_Paint(AKELEDIT *ae)
           nLineWidth+=nCharWidth;
 
           //Increment char count
-          nDrawCharOffset-=ciDrawLine.nCharInLine;
+          nDrawCharOffset+=AE_IndexLen(&ciDrawLine);
           AE_IndexInc(&ciDrawLine);
-          nDrawCharOffset+=ciDrawLine.nCharInLine;
         }
         if (ciDrawLine.nCharInLine < ciDrawLine.lpLine->nLineLen)
           nDrawCharOffset+=ciDrawLine.lpLine->nLineLen - ciDrawLine.nCharInLine;
@@ -9869,6 +9891,7 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
   wchar_t *wpText=*wpTextInLine;
   int nTextLen=nLineLen - (*wpTextInLine - wpLine);
   int nTextWidth=nLineWidth - *nTextInLineWidth;
+  int nCharLen;
   int i;
 
   if (nTextLen)
@@ -9938,23 +9961,11 @@ void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw,
 
         for (i=0; i < nTextLen; ++i)
         {
-          //Surrogate character
-          if (IsSurrogate(wpText[i]))
+          if (nCharLen=AE_CopyChar(NULL, nTextLen - i, wpText + i))
           {
-            if (i + 1 < nTextLen)
-            {
-              if (IsHighSurrogate(wpText[i]) && IsLowSurrogate(wpText[i + 1]))
-              {
-                TextOutW(hDC, rcTextOut.left, rcTextOut.top, wpText + i, 2);
-                rcTextOut.left+=AE_GetCharWidth(ae, wpText + i, NULL);
-                ++i;
-              }
-            }
-          }
-          else
-          {
-            TextOutW(hDC, rcTextOut.left, rcTextOut.top, wpText + i, 1);
+            TextOutW(hDC, rcTextOut.left, rcTextOut.top, wpText + i, nCharLen);
             rcTextOut.left+=AE_GetCharWidth(ae, wpText + i, NULL);
+            i+=nCharLen - 1;
           }
         }
       }
@@ -10209,25 +10220,52 @@ int AE_GetLastFullVisibleLine(AKELEDIT *ae)
   return nLastLine;
 }
 
-int IsSurrogate(wchar_t wchChar)
+int AE_IsSurrogate(wchar_t wchChar)
 {
   if (wchChar >= 0xD800 && wchChar <= 0xDFFF)
     return TRUE;
   return FALSE;
 }
 
-int IsHighSurrogate(wchar_t wchChar)
+int AE_IsHighSurrogate(wchar_t wchChar)
 {
   if (wchChar >= 0xD800 && wchChar <= 0xDBFF)
     return TRUE;
   return FALSE;
 }
 
-int IsLowSurrogate(wchar_t wchChar)
+int AE_IsLowSurrogate(wchar_t wchChar)
 {
   if (wchChar >= 0xDC00 && wchChar <= 0xDFFF)
     return TRUE;
   return FALSE;
+}
+
+int AE_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
+{
+  int nResult=0;
+
+  if (AE_IsSurrogate(*wpSource))
+  {
+    if (dwTargetSize >= 2)
+    {
+      if (AE_IsHighSurrogate(*wpSource) && AE_IsLowSurrogate(*(wpSource + 1)))
+      {
+        if (wszTarget)
+        {
+          *wszTarget=*wpSource;
+          *(wszTarget + 1)=*(wpSource + 1);
+        }
+        nResult=2;
+      }
+    }
+  }
+  else
+  {
+    if (wszTarget) *wszTarget=*wpSource;
+    nResult=1;
+  }
+  return nResult;
 }
 
 int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE *lpSize)
@@ -10258,11 +10296,11 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
         if (wpString[i] != '\t')
         {
           //Surrogate character
-          if (IsSurrogate(wpString[i]))
+          if (AE_IsSurrogate(wpString[i]))
           {
             if (i + 1 < nStringLen)
             {
-              if (IsHighSurrogate(wpString[i]) && IsLowSurrogate(wpString[i + 1]))
+              if (AE_IsHighSurrogate(wpString[i]) && AE_IsLowSurrogate(wpString[i + 1]))
               {
                 GetTextExtentPoint32W(hDC, wpString + i, 2, &sizeChar);
                 ++i;
@@ -10299,22 +10337,22 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
 int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, int *nDone)
 {
   SIZE sizeChar;
-  int nCharCount;
+  int nCharLen;
 
-  if (IsHighSurrogate(*wpChar))
+  if (AE_IsHighSurrogate(*wpChar))
   {
-    if (IsLowSurrogate(*(wpChar + 1)))
-      nCharCount=2;
+    if (AE_IsLowSurrogate(*(wpChar + 1)))
+      nCharLen=2;
     else
-      nCharCount=0;
+      nCharLen=0;
   }
-  else nCharCount=1;
+  else nCharLen=1;
 
-  if (nCharCount)
-    AE_GetTextExtentPoint32(ae, wpChar, nCharCount, &sizeChar);
+  if (nCharLen)
+    AE_GetTextExtentPoint32(ae, wpChar, nCharLen, &sizeChar);
   else
     sizeChar.cx=0;
-  if (nDone) *nDone=nCharCount;
+  if (nDone) *nDone=nCharLen;
   return sizeChar.cx;
 }
 
@@ -10717,8 +10755,8 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
     if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
       bIsSpacePrevious=AE_IsSpace(ciCount.lpLine->wpLine[ciCount.nCharInLine]);
 
+    nLen+=AE_IndexLen(&ciCount);
     AE_IndexInc(&ciCount);
-    ++nLen;
   }
 
   while (1)
@@ -10757,8 +10795,8 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
       }
       bIsSpacePrevious=bIsSpaceCurrent;
 
+      nLen+=AE_IndexLen(&ciCount);
       AE_IndexInc(&ciCount);
-      ++nLen;
     }
     if (bColumnSel) goto End;
     if (ciCount.lpLine->nLineBreak != AELB_WRAP)
