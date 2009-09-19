@@ -4181,7 +4181,8 @@ WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont)
   {
     if (lpElement->lfFont.lfHeight == lfFont->lfHeight &&
         lpElement->lfFont.lfWeight == lfFont->lfWeight &&
-        lpElement->lfFont.lfItalic == lfFont->lfItalic)
+        lpElement->lfFont.lfItalic == lfFont->lfItalic &&
+        lpElement->lfFont.lfCharSet == lfFont->lfCharSet)
     {
       if (!lstrcmpiA(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
         return lpElement->lpCharWidths;
@@ -4199,7 +4200,8 @@ WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont)
   {
     if (lpElement->lfFont.lfHeight == lfFont->lfHeight &&
         lpElement->lfFont.lfWeight == lfFont->lfWeight &&
-        lpElement->lfFont.lfItalic == lfFont->lfItalic)
+        lpElement->lfFont.lfItalic == lfFont->lfItalic &&
+        lpElement->lfFont.lfCharSet == lfFont->lfCharSet)
     {
       if (!lstrcmpiW(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
         return lpElement->lpCharWidths;
