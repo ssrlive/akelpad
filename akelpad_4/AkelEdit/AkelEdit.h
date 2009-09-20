@@ -117,18 +117,20 @@
 #define AEGI_PREVLINE               9  //First character of the previous line. lParam must point to an input index.
 #define AEGI_NEXTCHAR              10  //Next wide character. lParam must point to an input index.
 #define AEGI_PREVCHAR              11  //Previous wide character. lParam must point to an input index.
-#define AEGI_NEXTBREAK             12  //Next break index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
-#define AEGI_PREVBREAK             13  //Previous break index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
-#define AEGI_NEXTWORDSTART         14  //Next word start index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
-#define AEGI_NEXTWORDEND           15  //Next word end index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
-#define AEGI_PREVWORDSTART         16  //Previous word start index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
-#define AEGI_PREVWORDEND           17  //Previous word end index, see AEM_SETWORDDELIMITERS. lParam must point to an input index.
-#define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. Returns number of characters as AEM_GETINDEX result. lParam must point to an input index.
-#define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. Returns number of characters as AEM_GETINDEX result. lParam must point to an input index.
+#define AEGI_NEXTBREAK             12  //Next break index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
+#define AEGI_PREVBREAK             13  //Previous break index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
+#define AEGI_NEXTWORDSTART         14  //Next word start index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters in word as AEM_GETINDEX result.
+#define AEGI_NEXTWORDEND           15  //Next word end index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters in word as AEM_GETINDEX result.
+#define AEGI_PREVWORDSTART         16  //Previous word start index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters in word as AEM_GETINDEX result.
+#define AEGI_PREVWORDEND           17  //Previous word end index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters in word as AEM_GETINDEX result.
+#define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
+#define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.
 #define AEGI_PREVCHARINLINE        21  //Previous character in line. lParam must point to an input index.
 #define AEGI_FIRSTFULLVISIBLELINE  22  //First character of the first fully visible line.
 #define AEGI_LASTFULLVISIBLELINE   23  //Last character of the last fully visible line.
+#define AEGI_INCREMENT             24  //lParam must point to an input index.
+#define AEGI_DECREMENT             25  //lParam must point to an input index.
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_WORD     0  //Word delimiter.
