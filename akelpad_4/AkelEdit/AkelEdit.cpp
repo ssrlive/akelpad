@@ -13954,9 +13954,6 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 {
   AECHARINDEX ciCount;
   AECHARINDEX ciCountEnd;
-  AECHARRANGE cr;
-  wchar_t wchChar;
-  DWORD dwWordLen;
 
   if (ft->dwTextLen == (DWORD)-1)
     ft->dwTextLen=lstrlenW(ft->pText);
