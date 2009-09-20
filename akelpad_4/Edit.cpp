@@ -10711,24 +10711,53 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
     {
       crRange=crSel;
       bColumnSel=bInitialColumnSel;
+
+      if (dwFlags & AEFR_WHOLEWORD)
+      {
+        if (AKD_strchr(szWordDelimiters, GetPrevChar(hWnd, &crRange.ciMin)))
+          dwFlags|=AEFR_WHOLEWORDGOODSTART;
+        if (AKD_strchr(szWordDelimiters, GetCurChar(hWnd, &crRange.ciMax)))
+          dwFlags|=AEFR_WHOLEWORDGOODEND;
+      }
     }
     else if (dwFlags & AEFR_BEGINNING)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
       bColumnSel=FALSE;
+
+      if (dwFlags & AEFR_WHOLEWORD)
+      {
+        dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
+      }
     }
     else if (dwFlags & AEFR_DOWN)
     {
       crRange.ciMin=crSel.ciMin;
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
       bColumnSel=FALSE;
+
+      if (dwFlags & AEFR_WHOLEWORD)
+      {
+        if (AKD_strchr(szWordDelimiters, GetPrevChar(hWnd, &crRange.ciMin)))
+          dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
+        else
+          dwFlags|=AEFR_WHOLEWORDGOODEND;
+      }
     }
     else if (dwFlags & AEFR_UP)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
       crRange.ciMax=crSel.ciMax;
       bColumnSel=FALSE;
+
+      if (dwFlags & AEFR_WHOLEWORD)
+      {
+        if (AKD_strchr(szWordDelimiters, GetCurChar(hWnd, &crRange.ciMax)))
+          dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
+        else
+          dwFlags|=AEFR_WHOLEWORDGOODSTART;
+      }
     }
     else return FALSE;
 
@@ -10901,24 +10930,53 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
     {
       crRange=crSel;
       bColumnSel=bInitialColumnSel;
+
+      if (dwFlags & AEFR_WHOLEWORD)
+      {
+        if (AKD_wcschr(wszWordDelimiters, GetPrevChar(hWnd, &crRange.ciMin)))
+          dwFlags|=AEFR_WHOLEWORDGOODSTART;
+        if (AKD_wcschr(wszWordDelimiters, GetCurChar(hWnd, &crRange.ciMax)))
+          dwFlags|=AEFR_WHOLEWORDGOODEND;
+      }
     }
     else if (dwFlags & AEFR_BEGINNING)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
       bColumnSel=FALSE;
+
+      if (dwFlags & AEFR_WHOLEWORD)
+      {
+        dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
+      }
     }
     else if (dwFlags & AEFR_DOWN)
     {
       crRange.ciMin=crSel.ciMin;
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&crRange.ciMax);
       bColumnSel=FALSE;
+
+      if (dwFlags & AEFR_WHOLEWORD)
+      {
+        if (AKD_wcschr(wszWordDelimiters, GetPrevChar(hWnd, &crRange.ciMin)))
+          dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
+        else
+          dwFlags|=AEFR_WHOLEWORDGOODEND;
+      }
     }
     else if (dwFlags & AEFR_UP)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crRange.ciMin);
       crRange.ciMax=crSel.ciMax;
       bColumnSel=FALSE;
+
+      if (dwFlags & AEFR_WHOLEWORD)
+      {
+        if (AKD_wcschr(wszWordDelimiters, GetCurChar(hWnd, &crRange.ciMax)))
+          dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
+        else
+          dwFlags|=AEFR_WHOLEWORDGOODSTART;
+      }
     }
     else return FALSE;
 
@@ -11090,7 +11148,7 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
       }
       else if (AKD_strchr(szWordDelimiters, pText[nTextCount - 1]))
         goto Find;
-      continue;
+      goto Next;
     }
 
     Find:
@@ -11109,7 +11167,9 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
             if (dwFlags & AEFR_WHOLEWORDGOODEND)
               goto Replace;
           }
-          goto End;
+          else if (AKD_strchr(szWordDelimiters, pText[nMatchCount + 1]))
+            goto Replace;
+          goto Next;
         }
 
         Replace:
@@ -11142,6 +11202,8 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
       }
       if (++nMatchCount >= nTextLen) break;
     }
+
+    Next:
     if (szResult) szResult[nResultCount]=pText[nTextCount];
     ++nResultCount;
   }
@@ -11188,7 +11250,7 @@ int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_
       }
       else if (AKD_wcschr(wszWordDelimiters, wpText[nTextCount - 1]))
         goto Find;
-      continue;
+      goto Next;
     }
 
     Find:
@@ -11207,7 +11269,9 @@ int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_
             if (dwFlags & AEFR_WHOLEWORDGOODEND)
               goto Replace;
           }
-          goto End;
+          else if (AKD_wcschr(wszWordDelimiters, wpText[nMatchCount + 1]))
+            goto Replace;
+          goto Next;
         }
 
         Replace:
@@ -11240,6 +11304,8 @@ int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_
       }
       if (++nMatchCount >= nTextLen) break;
     }
+
+    Next:
     if (wszResult) wszResult[nResultCount]=wpText[nTextCount];
     ++nResultCount;
   }
@@ -11444,6 +11510,28 @@ int AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar)
 void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar)
 {
   SendMessage(hWnd, AEM_RICHOFFSETTOINDEX, nOffset, (LPARAM)ciChar);
+}
+
+wchar_t GetCurChar(HWND hWnd, AECHARINDEX *ciChar)
+{
+  if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+    return L'\n';
+  else
+    return ciChar->lpLine->wpLine[ciChar->nCharInLine];
+}
+
+wchar_t GetPrevChar(HWND hWnd, AECHARINDEX *ciChar)
+{
+  AECHARINDEX ciPrevChar=*ciChar;
+
+  if (SendMessage(hWnd, AEM_GETINDEX, AEGI_PREVCHAR, (LPARAM)&ciPrevChar))
+  {
+    if (ciPrevChar.nCharInLine >= ciPrevChar.lpLine->nLineLen)
+      return L'\n';
+    else
+      return ciPrevChar.lpLine->wpLine[ciPrevChar.nCharInLine];
+  }
+  return L'\n';
 }
 
 int GetTextLength(HWND hWnd)

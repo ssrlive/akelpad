@@ -10769,7 +10769,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
     else goto End;
   }
 
-  if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
+  if (ciCount.nCharInLine >= ciCount.lpLine->nLineLen)
   {
     if (bInList=AE_IsInDelimiterList(ae->popt->wszWordDelimiters, L'\n', TRUE))
       bIsSpacePrevious=TRUE;
@@ -11012,7 +11012,7 @@ int AE_GetNextWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordS
     else return 0;
   }
 
-  if (ciEnd.nCharInLine == ciEnd.lpLine->nLineLen)
+  if (ciEnd.nCharInLine >= ciEnd.lpLine->nLineLen)
     wchChar=L'\n';
   else
     wchChar=ciEnd.lpLine->wpLine[ciEnd.nCharInLine];
@@ -14033,7 +14033,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
     {
       if (AE_GetIndex(ae, AEGI_PREVCHAR, &ciCount, &cr.ciMin, FALSE))
       {
-        if (cr.ciMin.nCharInLine == cr.ciMin.lpLine->nLineLen)
+        if (cr.ciMin.nCharInLine >= cr.ciMin.lpLine->nLineLen)
           wchChar=L'\n';
         else
           wchChar=cr.ciMin.lpLine->wpLine[cr.ciMin.nCharInLine];
@@ -14061,7 +14061,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
     }
     else
     {
-      if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
+      if (ciCount.nCharInLine >= ciCount.lpLine->nLineLen)
         wchChar=L'\n';
       else
         wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
