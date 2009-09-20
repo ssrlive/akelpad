@@ -411,7 +411,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Hoofdlettergevoelig",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "Hele woord",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
     CONTROL         "Esc-gevolgen",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
