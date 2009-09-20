@@ -402,14 +402,16 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Пошук"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Враховувати регістр",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
+    CONTROL         "Слово целиком",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
     CONTROL         "Esc-послідовності",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     GROUPBOX        "Напрямок",IDC_STATIC,121,27,66,58
     CONTROL         "Вниз",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,60,10
@@ -427,7 +429,7 @@ BEGIN
     PUSHBUTTON      "Скасувати",IDCANCEL,196,23,54,14,BS_CENTER
     LTEXT           "Що:",IDC_STATIC,5,11,22,12,NOT WS_GROUP
     LTEXT           "(\\[...] - hex-рядок,\n \\\\ - зворотній слеш,\n \\n - символ кінця рядка,\n \\t - символ табуляції)",
-                    IDC_STATIC,21,53,93,33,NOT WS_GROUP
+                    IDC_STATIC,21,66,93,33,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 257, 122
@@ -435,7 +437,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Заміна"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -443,8 +445,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Враховувати регістр",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
+    CONTROL         "Слово целиком",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
     CONTROL         "Esc-послідовності",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     GROUPBOX        "Напрямок",IDC_STATIC,121,41,66,58
     CONTROL         "Вниз",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,60,10
@@ -467,7 +471,7 @@ BEGIN
     LTEXT           "Що:",IDC_STATIC,5,11,22,12,NOT WS_GROUP
     LTEXT           "Чим:",IDC_STATIC,5,25,22,12,NOT WS_GROUP
     LTEXT           "(\\[...] - hex-рядок,\n \\\\ - зворотній слеш,\n \\n - символ кінця рядка,\n \\t - символ табуляції)",
-                    IDC_STATIC,21,67,94,33,NOT WS_GROUP
+                    IDC_STATIC,21,80,94,33,NOT WS_GROUP
 END
 
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82

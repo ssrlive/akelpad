@@ -410,8 +410,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Diferenciar maiúsculas",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
+    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
     CONTROL         "Seqüências de escape",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     GROUPBOX        "Direção",IDC_STATIC,121,27,66,58
     CONTROL         "Para baixo",IDC_SEARCH_FORWARD,"Button",
                     BS_AUTORADIOBUTTON,126,37,60,10
@@ -429,7 +431,7 @@ BEGIN
     PUSHBUTTON      "Cancelar",IDCANCEL,196,23,54,14,BS_CENTER
     LTEXT           "Texto:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
     LTEXT           "(\\[...] - cadeia hexadecimal ,\n \\\\ - barra invertida,\n \\n - nova linha,\n \\t - tabulação)",
-                    IDC_STATIC,21,53,97,33,NOT WS_GROUP
+                    IDC_STATIC,21,66,97,33,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 257, 122
@@ -445,8 +447,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Diferenciar maiúsculas",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
+    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
     CONTROL         "Seqüências de escape",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     GROUPBOX        "Direção",IDC_STATIC,121,41,66,58
     CONTROL         "Para baixo",IDC_SEARCH_FORWARD,"Button",
                     BS_AUTORADIOBUTTON,126,51,60,10
@@ -469,7 +473,7 @@ BEGIN
     LTEXT           "Texto:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
     LTEXT           "Por:",IDC_STATIC,4,25,22,12,NOT WS_GROUP
     LTEXT           "(\\[...] - cadeia hexadecimal,\n \\\\ - barra invertida,\n \\n - nova linha,\n \\t - tabulação)",
-                    IDC_STATIC,21,67,97,33,NOT WS_GROUP
+                    IDC_STATIC,21,80,97,33,NOT WS_GROUP
 END
 
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82

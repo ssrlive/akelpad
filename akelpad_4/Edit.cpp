@@ -9501,6 +9501,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndFind;
   static HWND hWndReplace;
   static HWND hWndMatchCase;
+  static HWND hWndWholeWord;
   static HWND hWndEscapeSeq;
   static HWND hWndForward;
   static HWND hWndBackward;
@@ -9531,6 +9532,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndFindNextButton=GetDlgItem(hDlg, IDC_SEARCH_FIND_BUTTON);
     hWndCancelButton=GetDlgItem(hDlg, IDCANCEL);
     hWndMatchCase=GetDlgItem(hDlg, IDC_SEARCH_MATCHCASE);
+    hWndWholeWord=GetDlgItem(hDlg, IDC_SEARCH_WHOLEWORD);
     hWndEscapeSeq=GetDlgItem(hDlg, IDC_SEARCH_ESCAPESEQ);
     hWndForward=GetDlgItem(hDlg, IDC_SEARCH_FORWARD);
     hWndBackward=GetDlgItem(hDlg, IDC_SEARCH_BACKWARD);
@@ -9584,6 +9586,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndBackward, BM_SETCHECK, BST_CHECKED, 0);
 
     if (ftflags & AEFR_MATCHCASE) SendMessage(hWndMatchCase, BM_SETCHECK, BST_CHECKED, 0);
+    if (ftflags & AEFR_WHOLEWORD) SendMessage(hWndWholeWord, BM_SETCHECK, BST_CHECKED, 0);
     if (ftflags & AEFR_ESCAPESEQ) SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_CHECKED, 0);
 
     if (hWndComboboxEdit=GetDlgItem(hWndFind, IDC_COMBOBOX_EDIT))
@@ -9614,6 +9617,12 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       if (SendMessage(hWndMatchCase, BM_GETCHECK, 0, 0)) ftflags|=AEFR_MATCHCASE;
       else ftflags&=~AEFR_MATCHCASE;
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_SEARCH_WHOLEWORD)
+    {
+      if (SendMessage(hWndWholeWord, BM_GETCHECK, 0, 0)) ftflags|=AEFR_WHOLEWORD;
+      else ftflags&=~AEFR_WHOLEWORD;
       return TRUE;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_ESCAPESEQ)
@@ -9903,6 +9912,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndFind;
   static HWND hWndReplace;
   static HWND hWndMatchCase;
+  static HWND hWndWholeWord;
   static HWND hWndEscapeSeq;
   static HWND hWndForward;
   static HWND hWndBackward;
@@ -9933,6 +9943,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndFindNextButton=GetDlgItem(hDlg, IDC_SEARCH_FIND_BUTTON);
     hWndCancelButton=GetDlgItem(hDlg, IDCANCEL);
     hWndMatchCase=GetDlgItem(hDlg, IDC_SEARCH_MATCHCASE);
+    hWndWholeWord=GetDlgItem(hDlg, IDC_SEARCH_WHOLEWORD);
     hWndEscapeSeq=GetDlgItem(hDlg, IDC_SEARCH_ESCAPESEQ);
     hWndForward=GetDlgItem(hDlg, IDC_SEARCH_FORWARD);
     hWndBackward=GetDlgItem(hDlg, IDC_SEARCH_BACKWARD);
@@ -9986,6 +9997,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       SendMessage(hWndBackward, BM_SETCHECK, BST_CHECKED, 0);
 
     if (ftflags & AEFR_MATCHCASE) SendMessage(hWndMatchCase, BM_SETCHECK, BST_CHECKED, 0);
+    if (ftflags & AEFR_WHOLEWORD) SendMessage(hWndWholeWord, BM_SETCHECK, BST_CHECKED, 0);
     if (ftflags & AEFR_ESCAPESEQ) SendMessage(hWndEscapeSeq, BM_SETCHECK, BST_CHECKED, 0);
 
     if (hWndComboboxEdit=GetDlgItem(hWndFind, IDC_COMBOBOX_EDIT))
@@ -10016,6 +10028,12 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       if (SendMessage(hWndMatchCase, BM_GETCHECK, 0, 0)) ftflags|=AEFR_MATCHCASE;
       else ftflags&=~AEFR_MATCHCASE;
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_SEARCH_WHOLEWORD)
+    {
+      if (SendMessage(hWndWholeWord, BM_GETCHECK, 0, 0)) ftflags|=AEFR_WHOLEWORD;
+      else ftflags&=~AEFR_WHOLEWORD;
       return TRUE;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_ESCAPESEQ)

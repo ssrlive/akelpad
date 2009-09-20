@@ -412,8 +412,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Maiuscole/minuscole",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,88,12
+    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
     CONTROL         "Sequenza Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,88,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,88,12
     GROUPBOX        "Direzione",IDC_STATIC,115,27,71,58
     CONTROL         "Giù",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,120,
                     37,33,10
@@ -431,7 +433,7 @@ BEGIN
     PUSHBUTTON      "Annulla",IDCANCEL,196,23,54,14,BS_CENTER
     LTEXT           "Cerca:",IDC_STATIC,4,11,22,8,NOT WS_GROUP
     LTEXT           "(\\[...] - riga hex,\n \\\\ - backslash,\n \\n - linea feed,\n \\t - tabulazione)",
-                    IDC_STATIC,21,53,88,33,NOT WS_GROUP
+                    IDC_STATIC,21,66,88,33,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 257, 122
@@ -447,8 +449,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Maiuscole/minuscole",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,88,12
+    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
     CONTROL         "Sequenza Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,88,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,88,12
     GROUPBOX        "Direzione",IDC_STATIC,115,41,71,58
     CONTROL         "Giù",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,120,
                     51,33,10
@@ -471,7 +475,7 @@ BEGIN
     LTEXT           "Cosa:",IDC_STATIC,4,11,22,8,NOT WS_GROUP
     LTEXT           "Con:",IDC_STATIC,4,25,22,8,NOT WS_GROUP
     LTEXT           "(\\[...] - riga hex,\n \\\\ - backslash,\n \\n - linea feed,\n \\t - tabulazione)",
-                    IDC_STATIC,21,67,88,33,NOT WS_GROUP
+                    IDC_STATIC,21,80,88,33,NOT WS_GROUP
 END
 
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82
