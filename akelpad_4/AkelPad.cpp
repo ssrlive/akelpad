@@ -331,6 +331,7 @@ BOOL bUrlDelimitersEnable=FALSE;
 wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE]=URL_LEFTDELIMITERSW;
 wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]=URL_RIGHTDELIMITERSW;
 BOOL bWordDelimitersEnable=TRUE;
+char szWordDelimiters[WORD_DELIMITERS_SIZE];
 wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE]=WORD_DELIMITERSW;
 DWORD dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
 DWORD dwDefaultWordBreak=0;
@@ -502,6 +503,9 @@ extern "C" void _WinMain()
     nCurrentCodePage=nDefaultCodePage;
     bMDI=bRegMDI;
     if (!lpCodepageList) nCodepageListLen=EnumCodepageList(&lpCodepageList);
+
+    //Set ANSI word delimiters
+    WideCharToMultiByte(CP_ACP, 0, wszWordDelimiters, -1, szWordDelimiters, WORD_DELIMITERS_SIZE, NULL, NULL);
 
     //Normalize search flags
     ftflags=(ftflags & AEFR_DOWN) |

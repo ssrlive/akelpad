@@ -35,5 +35,5 @@ Resource.o:
 clean:
 	$(DEL) AkelPad.o
 	$(DEL) Edit.o
-	$(DEL) AkelEdit.o 
+	$(DEL) AkelEdit.o
 	$(DEL) Resource.o

@@ -175,10 +175,10 @@
 #define STARTF_NOMUTEX  0x00001000
 
 //Autodetect flags
-#define ADT_BINARY_ERROR         0x00000001
-#define ADT_REG_CODEPAGE         0x00000002
-#define ADT_DETECT_CODEPAGE      0x00000004
-#define ADT_DETECT_BOM           0x00000008
+#define ADT_BINARY_ERROR        0x00000001
+#define ADT_REG_CODEPAGE        0x00000002
+#define ADT_DETECT_CODEPAGE     0x00000004
+#define ADT_DETECT_BOM          0x00000008
 
 //Autodetect errors
 #define EDT_OPEN          -1
@@ -187,11 +187,15 @@
 #define EDT_BINARY        -4
 
 //Search/Replace options
-#define AEFR_UP          0x00100000
-#define AEFR_BEGINNING   0x00200000
-#define AEFR_SELECTION   0x00400000
-#define AEFR_ESCAPESEQ   0x00800000
-#define AEFR_ALLFILES    0x01000000
+#define AEFR_UP                 0x00100000
+#define AEFR_BEGINNING          0x00200000
+#define AEFR_SELECTION          0x00400000
+#define AEFR_ESCAPESEQ          0x00800000
+#define AEFR_ALLFILES           0x01000000
+
+//StrReplace options
+#define AEFR_WHOLEWORDGOODSTART 0x02000000
+#define AEFR_WHOLEWORDGOODEND   0x04000000
 
 //Insert/Delete char in selection
 #define STRSEL_CHECK   0x00000001
@@ -596,8 +600,8 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen);
 int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen);
 int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *pReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount);
 int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount);
-int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, int nWithLen, BOOL bSensitive, char *szResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible);
-int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_t *wpWith, int nWithLen, BOOL bSensitive, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible);
+int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, int nWithLen, DWORD dwFlags, char *szResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible);
+int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible);
 int EscapeStringToEscapeDataA(char *pInput, char *szOutput);
 int EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput);
 void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput);
