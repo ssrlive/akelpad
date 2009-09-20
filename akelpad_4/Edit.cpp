@@ -11533,9 +11533,14 @@ void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar)
 wchar_t GetCurChar(HWND hWnd, AECHARINDEX *ciChar)
 {
   if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
-    return L'\n';
-  else
-    return ciChar->lpLine->wpLine[ciChar->nCharInLine];
+  {
+    if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+    {
+      return ciChar->lpLine->next->wpLine[0];
+    }
+    else return L'\n';
+  }
+  else return ciChar->lpLine->wpLine[ciChar->nCharInLine];
 }
 
 wchar_t GetPrevChar(HWND hWnd, AECHARINDEX *ciChar)
@@ -11543,12 +11548,7 @@ wchar_t GetPrevChar(HWND hWnd, AECHARINDEX *ciChar)
   AECHARINDEX ciPrevChar=*ciChar;
 
   if (SendMessage(hWnd, AEM_GETINDEX, AEGI_PREVCHAR, (LPARAM)&ciPrevChar))
-  {
-    if (ciPrevChar.nCharInLine >= ciPrevChar.lpLine->nLineLen)
-      return L'\n';
-    else
-      return ciPrevChar.lpLine->wpLine[ciPrevChar.nCharInLine];
-  }
+    return GetCurChar(hWnd, &ciPrevChar);
   return L'\n';
 }
 

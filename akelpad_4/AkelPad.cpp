@@ -509,6 +509,7 @@ extern "C" void _WinMain()
 
     //Normalize search flags
     ftflags=(ftflags & AEFR_DOWN) |
+            (ftflags & AEFR_WHOLEWORD) |
             (ftflags & AEFR_MATCHCASE) |
             (ftflags & AEFR_UP) |
             (ftflags & AEFR_BEGINNING) |
@@ -928,6 +929,7 @@ extern "C" void _WinMain()
 
     //Normalize search flags
     ftflags=(ftflags & AEFR_DOWN) |
+            (ftflags & AEFR_WHOLEWORD) |
             (ftflags & AEFR_MATCHCASE) |
             (ftflags & AEFR_UP) |
             (ftflags & AEFR_BEGINNING) |

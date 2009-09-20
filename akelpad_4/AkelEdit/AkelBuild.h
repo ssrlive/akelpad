@@ -554,6 +554,8 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
 AELINEDATA* AE_NextLine(AECHARINDEX *ciChar);
 AELINEDATA* AE_PrevLine(AECHARINDEX *ciChar);
+AELINEDATA* AE_NextIndex(AECHARINDEX *ciChar);
+AELINEDATA* AE_PrevIndex(AECHARINDEX *ciChar);
 int AE_IndexInc(AECHARINDEX *ciChar);
 int AE_IndexDec(AECHARINDEX *ciChar);
 int AE_IndexLen(AECHARINDEX *ciChar);
