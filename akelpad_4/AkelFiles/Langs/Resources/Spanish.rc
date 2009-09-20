@@ -404,14 +404,16 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Buscar"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,176,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Coincidir MAY/min",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,74,10
+    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,105,12
     CONTROL         "Secuencias-Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,67,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,67,10
     GROUPBOX        "Dirección",IDC_STATIC,121,27,81,58
     CONTROL         "Abajo",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,75,10
@@ -429,7 +431,7 @@ BEGIN
     PUSHBUTTON      "Cancelar",IDCANCEL,212,23,68,14,BS_CENTER
     LTEXT           "Qué:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
     LTEXT           "(\\[...] - cadena hexadecimal,\n \\\\ - barra inversa,\n \\n - salto de línea,\n \\t - tabulación)",
-                    IDC_STATIC,21,53,91,33,NOT WS_GROUP
+                    IDC_STATIC,21,66,91,33,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 288, 122
@@ -437,7 +439,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Reemplazar"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,176,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -445,8 +447,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Coincidir MAY/min",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,74,10
+    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,105,12
     CONTROL         "Secuencias-Esc",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,67,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,67,10
     GROUPBOX        "Dirección",IDC_STATIC,121,41,81,58
     CONTROL         "Abajo",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,75,10
@@ -469,7 +473,7 @@ BEGIN
     LTEXT           "Qué:",IDC_STATIC,4,11,16,8,NOT WS_GROUP
     LTEXT           "Con:",IDC_STATIC,4,25,16,8,NOT WS_GROUP
     LTEXT           "(\\[...] - cadena hexadecimal,\n \\\\ - barra inversa,\n \\n - salto de línea,\n \\t - tabulación)",
-                    IDC_STATIC,21,67,97,33,NOT WS_GROUP
+                    IDC_STATIC,21,80,97,33,NOT WS_GROUP
 END
 
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82

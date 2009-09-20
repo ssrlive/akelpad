@@ -413,8 +413,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Rozliöovaù malÈ a†VEºK… pÌsmen·",IDC_SEARCH_MATCHCASE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
+    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
     CONTROL         "äpeci·lne znaky",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,41,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     GROUPBOX        "Smer",IDC_STATIC,121,27,66,58
     CONTROL         "&Dolu",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,60,10
@@ -431,7 +433,7 @@ BEGIN
                     BS_CENTER
     PUSHBUTTON      "&Zruöiù",IDCANCEL,196,23,54,14,BS_CENTER
     LTEXT           "(\\[...] - hexadecim·lny reùazec,\n \\\\ - opaËnÈ lomeno,\n \\n - nov˝ riadok,\n \\t - znak tab)",
-                    IDC_STATIC,21,53,97,33,NOT WS_GROUP
+                    IDC_STATIC,21,66,97,33,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 257, 122
@@ -449,8 +451,10 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Rozliöovaù malÈ a†VEºK… pÌsmen·",IDC_SEARCH_MATCHCASE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
+    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
     CONTROL         "äpeci·lne znaky",IDC_SEARCH_ESCAPESEQ,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,55,105,12
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     GROUPBOX        "Smer",IDC_STATIC,121,41,66,58
     CONTROL         "&Dolu",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,60,10
@@ -472,7 +476,7 @@ BEGIN
     PUSHBUTTON      "&Zruöiù",IDCANCEL,196,55,54,14,BS_CENTER
     LTEXT           "With:",IDC_STATIC,4,25,22,12,NOT WS_GROUP
     LTEXT           "(\\[...] - hexadecim·lny reùazec,\n \\\\ - opaËnÈ lomeno,\n \\n - nov˝ riadok,\n \\t - znak tab)",
-                    IDC_STATIC,21,67,97,33,NOT WS_GROUP
+                    IDC_STATIC,21,80,97,33,NOT WS_GROUP
 END
 
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82
