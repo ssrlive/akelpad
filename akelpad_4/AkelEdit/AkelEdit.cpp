@@ -5068,18 +5068,14 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
 
-    ciCharOut->nLine=min(ciCharTmp.nLine + 1, ae->ptxt->nLineCount);
-
-    if (ciCharTmp.nLine < ciCharOut->nLine)
+    if (AE_NextLine(&ciCharTmp))
     {
-      ciCharOut->lpLine=ciCharTmp.lpLine->next;
-      ciCharOut->nCharInLine=0;
+      *ciCharOut=ciCharTmp;
       return 1;
     }
     else
     {
-      ciCharOut->lpLine=ciCharTmp.lpLine;
-      ciCharOut->nCharInLine=ciCharTmp.nCharInLine;
+      *ciCharOut=*ciCharIn;
       return 0;
     }
   }
@@ -5087,18 +5083,14 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
 
-    ciCharOut->nLine=max(ciCharTmp.nLine - 1, 0);
-
-    if (ciCharTmp.nLine > ciCharOut->nLine)
+    if (AE_PrevLine(&ciCharTmp))
     {
-      ciCharOut->lpLine=ciCharTmp.lpLine->prev;
-      ciCharOut->nCharInLine=0;
+      *ciCharOut=ciCharTmp;
       return 1;
     }
     else
     {
-      ciCharOut->lpLine=ciCharTmp.lpLine;
-      ciCharOut->nCharInLine=ciCharTmp.nCharInLine;
+      *ciCharOut=*ciCharIn;
       return 0;
     }
   }
@@ -5114,32 +5106,15 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     }
     else
     {
-      if (ciCharTmp.nCharInLine + 1 <= ciCharTmp.lpLine->nLineLen)
+      if (AE_NextIndex(&ciCharTmp))
       {
-        AE_IndexInc(&ciCharTmp);
         *ciCharOut=ciCharTmp;
         return 1;
       }
       else
       {
-        ciCharOut->nLine=min(ciCharTmp.nLine + 1, ae->ptxt->nLineCount);
-
-        if (ciCharTmp.nLine != ciCharOut->nLine)
-        {
-          ciCharOut->lpLine=ciCharTmp.lpLine->next;
-          ciCharOut->nCharInLine=0;
-          if (ciCharTmp.lpLine->nLineBreak == AELB_WRAP)
-          {
-            AE_IndexInc(ciCharOut);
-            ciCharOut->nCharInLine=min(ciCharOut->nCharInLine, ciCharOut->lpLine->nLineLen);
-          }
-          return 1;
-        }
-        else
-        {
-          *ciCharOut=ciCharTmp;
-          return 0;
-        }
+        *ciCharOut=*ciCharIn;
+        return 0;
       }
     }
   }
@@ -5156,41 +5131,15 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     }
     else
     {
-      if (ciCharTmp.nCharInLine - 1 >= 0)
+      if (AE_PrevIndex(&ciCharTmp))
       {
-        if (ciCharTmp.nCharInLine - 1 > ciCharTmp.lpLine->nLineLen)
-        {
-          ciCharOut->nLine=ciCharTmp.nLine;
-          ciCharOut->lpLine=ciCharTmp.lpLine;
-          ciCharOut->nCharInLine=ciCharTmp.lpLine->nLineLen;
-        }
-        else
-        {
-          AE_IndexDec(&ciCharTmp);
-          *ciCharOut=ciCharTmp;
-        }
+        *ciCharOut=ciCharTmp;
         return 1;
       }
       else
       {
-        ciCharOut->nLine=max(ciCharTmp.nLine - 1, 0);
-
-        if (ciCharTmp.nLine != ciCharOut->nLine)
-        {
-          ciCharOut->lpLine=ciCharTmp.lpLine->prev;
-          ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
-          if (ciCharOut->lpLine->nLineBreak == AELB_WRAP)
-          {
-            AE_IndexDec(ciCharOut);
-            ciCharOut->nCharInLine=max(ciCharOut->nCharInLine, 0);
-          }
-          return 1;
-        }
-        else
-        {
-          *ciCharOut=ciCharTmp;
-          return 0;
-        }
+        *ciCharOut=*ciCharIn;
+        return 0;
       }
     }
   }
@@ -5265,20 +5214,13 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
     if (ciCharTmp.nCharInLine >= ciCharTmp.lpLine->nLineLen)
     {
-      if (ciCharTmp.lpLine->nLineBreak == AELB_WRAP)
+      if (ciCharTmp.lpLine->nLineBreak != AELB_WRAP)
       {
-        ciCharOut->nLine=ciCharTmp.nLine + 1;
-        ciCharOut->lpLine=ciCharTmp.lpLine->next;
-        ciCharOut->nCharInLine=0;
-        return 1;
-      }
-      else
-      {
-        *ciCharOut=ciCharTmp;
+        *ciCharOut=*ciCharIn;
         return 0;
       }
     }
-    AE_IndexInc(&ciCharTmp);
+    AE_NextIndex(&ciCharTmp);
     *ciCharOut=ciCharTmp;
     return 1;
   }
@@ -5288,21 +5230,13 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
     if (ciCharTmp.nCharInLine == 0)
     {
-      if (ciCharTmp.lpLine->prev && ciCharTmp.lpLine->prev->nLineBreak == AELB_WRAP)
+      if (!ciCharTmp.lpLine->prev || ciCharTmp.lpLine->prev->nLineBreak != AELB_WRAP)
       {
-        ciCharOut->nLine=ciCharTmp.nLine - 1;
-        ciCharOut->lpLine=ciCharTmp.lpLine->prev;
-        ciCharOut->nCharInLine=ciCharTmp.lpLine->prev->nLineLen;
-        AE_IndexDec(ciCharOut);
-        return 1;
-      }
-      else
-      {
-        *ciCharOut=ciCharTmp;
+        *ciCharOut=*ciCharIn;
         return 0;
       }
     }
-    AE_IndexDec(&ciCharTmp);
+    AE_PrevIndex(&ciCharTmp);
     *ciCharOut=ciCharTmp;
     return 1;
   }
@@ -5342,7 +5276,44 @@ AELINEDATA* AE_PrevLine(AECHARINDEX *ciChar)
   {
     ciChar->nLine-=1;
     ciChar->lpLine=ciChar->lpLine->prev;
-    ciChar->nCharInLine=ciChar->lpLine->nLineLen;
+    if (ciChar->lpLine)
+      ciChar->nCharInLine=ciChar->lpLine->nLineLen;
+    else
+      ciChar->nCharInLine=0;
+  }
+  return ciChar->lpLine;
+}
+
+AELINEDATA* AE_NextIndex(AECHARINDEX *ciChar)
+{
+  AE_IndexInc(ciChar);
+
+  if (ciChar->nCharInLine > ciChar->lpLine->nLineLen)
+  {
+    AE_NextLine(ciChar);
+
+    if (ciChar->lpLine)
+    {
+      if (ciChar->lpLine->prev->nLineBreak == AELB_WRAP)
+        AE_IndexInc(ciChar);
+    }
+  }
+  return ciChar->lpLine;
+}
+
+AELINEDATA* AE_PrevIndex(AECHARINDEX *ciChar)
+{
+  AE_IndexDec(ciChar);
+
+  if (ciChar->nCharInLine < 0)
+  {
+    AE_PrevLine(ciChar);
+
+    if (ciChar->lpLine)
+    {
+      if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+        AE_IndexDec(ciChar);
+    }
   }
   return ciChar->lpLine;
 }
@@ -5542,7 +5513,7 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
   {
     if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
     {
-      if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
+      if (ciCount.lpLine->nLineBreak == AELB_WRAP)
         AE_NextLine(&ciCount);
     }
     *ciCharOut=ciCount;
@@ -7178,9 +7149,10 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       if (AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
         return 0;
 
+      //Get previous char
       if (ciCount.nCharInLine == 0)
       {
-        if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP && ciCount.lpLine->prev->nLineLen)
+        if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
         {
           wchChar=ciCount.lpLine->prev->wpLine[ciCount.lpLine->prev->nLineLen - 1];
         }
@@ -7193,7 +7165,7 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         for (nPrefix=0; ae->popt->lpUrlPrefixes[nPrefix]; ++nPrefix)
         {
           ft.pText=ae->popt->lpUrlPrefixes[nPrefix];
-  
+
           if (AE_IsMatch(ae, &ft, &ciCount))
           {
             crRange->ciMin=ciCount;
@@ -7210,7 +7182,6 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     {
       AE_PrevLine(&ciCount);
       AE_IndexDec(&ciCount);
-      ciCount.nCharInLine=max(ciCount.nCharInLine, 0);
     }
     else return 0;
   }
@@ -7233,7 +7204,7 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       AE_IndexInc(&ciCount);
     }
 
-    if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
+    if (ciCount.lpLine->nLineBreak == AELB_WRAP)
       AE_NextLine(&ciCount);
     else
       goto End;
@@ -7281,7 +7252,6 @@ int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
       {
         AE_PrevLine(&ciCount);
         AE_IndexDec(&ciCount);
-        ciCount.nCharInLine=max(ciCount.nCharInLine, 0);
       }
       else break;
     }
@@ -7532,7 +7502,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
         AE_IndexInc(&ciCount);
       }
 
-      if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
+      if (ciCount.lpLine->nLineBreak == AELB_WRAP)
         AE_NextLine(&ciCount);
       else
         break;
@@ -7643,7 +7613,6 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
       {
         AE_PrevLine(&ciCount);
         AE_IndexDec(&ciCount);
-        ciCount.nCharInLine=max(ciCount.nCharInLine, 0);
       }
       else break;
     }
@@ -7683,7 +7652,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
         AE_IndexInc(&ciCount);
       }
 
-      if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
+      if (ciCount.lpLine->nLineBreak == AELB_WRAP)
         AE_NextLine(&ciCount);
       else
         break;
@@ -9009,7 +8978,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
       AE_IndexInc(&ciCount);
     }
 
-    if (ciCount.lpLine->nLineBreak == AELB_WRAP && ciCount.lpLine->next)
+    if (ciCount.lpLine->nLineBreak == AELB_WRAP)
       AE_NextLine(&ciCount);
     else
       break;
@@ -10877,9 +10846,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
     if (ciCount.lpLine->prev)
     {
       if (ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
-      {
         AE_PrevLine(&ciCount);
-      }
     }
     else goto End;
   }
@@ -11054,9 +11021,7 @@ int AE_GetPrevWord(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciWordS
     if (ciStart.lpLine->prev)
     {
       if (ciStart.lpLine->prev->nLineBreak == AELB_WRAP)
-      {
         AE_PrevLine(&ciStart);
-      }
     }
     else return 0;
   }
@@ -14027,114 +13992,51 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   ciCount.nCharInLine=min(ciCount.nCharInLine, ciCount.lpLine->nLineLen);
   ciCountEnd.nCharInLine=min(ciCountEnd.nCharInLine, ciCountEnd.lpLine->nLineLen);
 
-  if (ft->dwFlags & AEFR_WHOLEWORD)
+  if (ft->dwFlags & AEFR_DOWN)
   {
-    if (ft->dwFlags & AEFR_DOWN)
+    if (AE_IndexOffset(ae, &ciCountEnd, &ciCountEnd, -(int)ft->dwTextLen, ft->nNewLine) == ft->dwTextLen)
     {
-      if (AE_GetIndex(ae, AEGI_PREVCHAR, &ciCount, &cr.ciMin, FALSE))
+      while (1)
       {
-        if (cr.ciMin.nCharInLine >= cr.ciMin.lpLine->nLineLen)
-          wchChar=L'\n';
+        while (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
+        {
+          if (AE_IndexCompare(&ciCount, &ciCountEnd) > 0)
+            return FALSE;
+
+          if (AE_IsMatch(ae, ft, &ciCount))
+            return TRUE;
+
+          AE_IndexInc(&ciCount);
+        }
+
+        if (ciCount.lpLine->next)
+          AE_NextLine(&ciCount);
         else
-          wchChar=cr.ciMin.lpLine->wpLine[cr.ciMin.nCharInLine];
-
-        if (!AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
-          AE_GetNextBreak(ae, &cr.ciMin, &ciCount, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND);
-      }
-
-      while (1)
-      {
-        if (dwWordLen=AE_GetNextWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND))
-        {
-          if (AE_IndexCompare(&cr.ciMax, &ciCountEnd) >= 0)
-            return FALSE;
-
-          if (dwWordLen == ft->dwTextLen)
-          {
-            if (AE_IsMatch(ae, ft, &cr.ciMin))
-              return TRUE;
-          }
-          ciCount=cr.ciMax;
-        }
-        else return FALSE;
-      }
-    }
-    else
-    {
-      if (ciCount.nCharInLine >= ciCount.lpLine->nLineLen)
-        wchChar=L'\n';
-      else
-        wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
-
-      if (!AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
-        AE_GetPrevBreak(ae, &ciCount, &ciCount, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND);
-
-      while (1)
-      {
-        if (dwWordLen=AE_GetPrevWord(ae, &ciCount, &cr.ciMin, &cr.ciMax, ae->bColumnSel, AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND))
-        {
-          if (AE_IndexCompare(&cr.ciMin, &ciCountEnd) < 0)
-            return FALSE;
-
-          if (dwWordLen == ft->dwTextLen)
-          {
-            if (AE_IsMatch(ae, ft, &cr.ciMin))
-              return TRUE;
-          }
-          ciCount=cr.ciMin;
-        }
-        else return FALSE;
+          return FALSE;
       }
     }
   }
   else
   {
-    if (ft->dwFlags & AEFR_DOWN)
+    if (AE_IndexOffset(ae, &ciCount, &ciCount, -(int)ft->dwTextLen, ft->nNewLine) == ft->dwTextLen)
     {
-      if (AE_IndexOffset(ae, &ciCountEnd, &ciCountEnd, -(int)ft->dwTextLen, ft->nNewLine) == ft->dwTextLen)
+      while (1)
       {
-        while (1)
+        while (ciCount.nCharInLine >= 0)
         {
-          while (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
-          {
-            if (AE_IndexCompare(&ciCount, &ciCountEnd) > 0)
-              return FALSE;
-
-            if (AE_IsMatch(ae, ft, &ciCount))
-              return TRUE;
-
-            AE_IndexInc(&ciCount);
-          }
-
-          if (ciCount.lpLine->next)
-            AE_NextLine(&ciCount);
-          else
+          if (AE_IndexCompare(&ciCount, &ciCountEnd) < 0)
             return FALSE;
+
+          if (AE_IsMatch(ae, ft, &ciCount))
+            return TRUE;
+
+          AE_IndexDec(&ciCount);
         }
-      }
-    }
-    else
-    {
-      if (AE_IndexOffset(ae, &ciCount, &ciCount, -(int)ft->dwTextLen, ft->nNewLine) == ft->dwTextLen)
-      {
-        while (1)
-        {
-          while (ciCount.nCharInLine >= 0)
-          {
-            if (AE_IndexCompare(&ciCount, &ciCountEnd) < 0)
-              return FALSE;
 
-            if (AE_IsMatch(ae, ft, &ciCount))
-              return TRUE;
-
-            AE_IndexDec(&ciCount);
-          }
-
-          if (ciCount.lpLine->prev)
-            AE_PrevLine(&ciCount);
-          else
-            return FALSE;
-        }
+        if (ciCount.lpLine->prev)
+          AE_PrevLine(&ciCount);
+        else
+          return FALSE;
       }
     }
   }
@@ -14175,6 +14077,7 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
 DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   AECHARINDEX ciCount=*ciChar;
+  wchar_t wchChar;
   int nLineBreak;
   int nNewLine=ft->nNewLine;
   DWORD dwCount=0;
@@ -14187,6 +14090,23 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 
   while (1)
   {
+    if (ft->dwFlags & AEFR_WHOLEWORD)
+    {
+      //Get previous char
+      if (ciCount.nCharInLine == 0)
+      {
+        if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
+        {
+          wchChar=ciCount.lpLine->prev->wpLine[ciCount.lpLine->prev->nLineLen - 1];
+        }
+        else wchChar=L'\n';
+      }
+      else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine - 1];
+  
+      if (!AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
+        return 0;
+    }
+
     for (; ciCount.nCharInLine < ciCount.lpLine->nLineLen; ++ciCount.nCharInLine)
     {
       if (((ft->dwFlags & AEFR_MATCHCASE) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == ft->pText[dwCount]) ||
@@ -14259,10 +14179,24 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   }
 
   Founded:
+  if (ft->dwFlags & AEFR_WHOLEWORD)
+  {
+    //Get current char
+    if (ciCount.nCharInLine >= ciCount.lpLine->nLineLen)
+    {
+      if (ciCount.lpLine->nLineBreak == AELB_WRAP)
+      {
+        wchChar=ciCount.lpLine->next->wpLine[0];
+      }
+      else wchChar=L'\n';
+    }
+    else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
+
+    if (!AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
+      return 0;
+  }
   ft->crFound.ciMin=*ciChar;
-  ft->crFound.ciMax.nLine=ciCount.nLine;
-  ft->crFound.ciMax.lpLine=ciCount.lpLine;
-  ft->crFound.ciMax.nCharInLine=ciCount.nCharInLine;
+  ft->crFound.ciMax=ciCount;
   return dwCount;
 }
 
