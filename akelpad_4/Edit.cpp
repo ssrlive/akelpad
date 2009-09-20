@@ -304,6 +304,7 @@ extern BOOL bUrlDelimitersEnable;
 extern wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];
 extern wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE];
 extern BOOL bWordDelimitersEnable;
+extern char szWordDelimiters[WORD_DELIMITERS_SIZE];
 extern wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
 extern DWORD dwCustomWordBreak;
 extern DWORD dwDefaultWordBreak;
@@ -1467,7 +1468,6 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
   AECHARRANGE crInitialSel=crSel;
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCaret;
-  char szWordDelimiters[WORD_DELIMITERS_SIZE];
   char *szRange;
   char *pStart;
   char *pEnd;
@@ -1509,8 +1509,6 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     }
     else if (nCase == SENTENCECASE)
     {
-      WideCharToMultiByte(CP_ACP, 0, wszWordDelimiters, -1, szWordDelimiters, WORD_DELIMITERS_SIZE, NULL, NULL);
-
       while (pStart < pEnd)
       {
         while (pStart < pEnd && (AKD_strchr(szWordDelimiters, *pStart) || AKD_strchr(SENTENCE_DELIMITERSA, *pStart)))
@@ -1524,8 +1522,6 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     }
     else if (nCase == TITLECASE)
     {
-      WideCharToMultiByte(CP_ACP, 0, wszWordDelimiters, -1, szWordDelimiters, WORD_DELIMITERS_SIZE, NULL, NULL);
-
       while (pStart < pEnd)
       {
         while (pStart < pEnd && AKD_strchr(szWordDelimiters, *pStart))
@@ -10747,7 +10743,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
 
     if (nRangeTextLen=ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szRangeText, nNewLine, TRUE))
     {
-      if (StrReplaceA(szRangeText, nRangeTextLen, pFindIt, nFindItLen, pReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nResultTextLen, NULL, NULL, NULL))
+      if (StrReplaceA(szRangeText, nRangeTextLen, pFindIt, nFindItLen, pReplaceWith, nReplaceWithLen, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
       {
         if (szResultText=(char *)API_HeapAlloc(hHeap, 0, nResultTextLen + 1))
         {
@@ -10779,7 +10775,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
             nFirstVisible=-0x7FFFFFFF;
 
           //Replace operation
-          if (nChanges=StrReplaceA(szRangeText, nRangeTextLen, pFindIt, nFindItLen, pReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, szResultText, NULL, &nMin, &nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
+          if (nChanges=StrReplaceA(szRangeText, nRangeTextLen, pFindIt, nFindItLen, pReplaceWith, nReplaceWithLen, dwFlags, szResultText, NULL, &nMin, &nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
           {
             FreeText(szRangeText);
             szRangeText=NULL;
@@ -10937,7 +10933,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
 
     if (nRangeTextLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszRangeText, nNewLine, TRUE))
     {
-      if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, NULL, &nResultTextLen, NULL, NULL, NULL))
+      if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
       {
         if (wszResultText=(wchar_t *)API_HeapAlloc(hHeap, 0, nResultTextLen * sizeof(wchar_t) + 2))
         {
@@ -10969,7 +10965,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
             nFirstVisible=-0x7FFFFFFF;
 
           //Replace operation
-          if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, (dwFlags & AEFR_MATCHCASE)?TRUE:FALSE, wszResultText, NULL, &nMin, &nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
+          if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, NULL, &nMin, &nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
           {
             FreeText(wszRangeText);
             wszRangeText=NULL;
@@ -11060,7 +11056,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
   return nResult;
 }
 
-int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, int nWithLen, BOOL bSensitive, char *szResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible)
+int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, int nWithLen, DWORD dwFlags, char *szResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible)
 {
   int nMinOffset=0;
   int nMaxOffset=0;
@@ -11085,14 +11081,38 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
 
   for (nTextCount=0; nTextCount < nTextLen; ++nTextCount)
   {
+    if (dwFlags & AEFR_WHOLEWORD)
+    {
+      if (nTextCount == 0)
+      {
+        if (dwFlags & AEFR_WHOLEWORDGOODSTART)
+          goto Find;
+      }
+      else if (AKD_strchr(szWordDelimiters, pText[nTextCount - 1]))
+        goto Find;
+      continue;
+    }
+
+    Find:
     nMatchCount=nTextCount;
     nItCount=0;
 
-    while ((bSensitive == TRUE && pText[nMatchCount] == pIt[nItCount]) ||
-           (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pText[nMatchCount]) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pIt[nItCount])))
+    while (((dwFlags & AEFR_MATCHCASE) && pText[nMatchCount] == pIt[nItCount]) ||
+           (!(dwFlags & AEFR_MATCHCASE) && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pText[nMatchCount]) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)pIt[nItCount])))
     {
       if (++nItCount >= nItLen)
       {
+        if (dwFlags & AEFR_WHOLEWORD)
+        {
+          if (nMatchCount + 1 >= nTextLen)
+          {
+            if (dwFlags & AEFR_WHOLEWORDGOODEND)
+              goto Replace;
+          }
+          goto End;
+        }
+
+        Replace:
         if (szResult)
         {
           if (nMin)
@@ -11134,7 +11154,7 @@ int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, i
   return nChanges;
 }
 
-int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_t *wpWith, int nWithLen, BOOL bSensitive, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible)
+int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible)
 {
   int nMinOffset=0;
   int nMaxOffset=0;
@@ -11159,14 +11179,38 @@ int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_
 
   for (nTextCount=0; nTextCount < nTextLen; ++nTextCount)
   {
+    if (dwFlags & AEFR_WHOLEWORD)
+    {
+      if (nTextCount == 0)
+      {
+        if (dwFlags & AEFR_WHOLEWORDGOODSTART)
+          goto Find;
+      }
+      else if (AKD_wcschr(wszWordDelimiters, wpText[nTextCount - 1]))
+        goto Find;
+      continue;
+    }
+
+    Find:
     nMatchCount=nTextCount;
     nItCount=0;
 
-    while ((bSensitive == TRUE && wpText[nMatchCount] == wpIt[nItCount]) ||
-           (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpText[nMatchCount]) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpIt[nItCount])))
+    while (((dwFlags & AEFR_MATCHCASE) && wpText[nMatchCount] == wpIt[nItCount]) ||
+           (!(dwFlags & AEFR_MATCHCASE) && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpText[nMatchCount]) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)wpIt[nItCount])))
     {
       if (++nItCount >= nItLen)
       {
+        if (dwFlags & AEFR_WHOLEWORD)
+        {
+          if (nMatchCount + 1 >= nTextLen)
+          {
+            if (dwFlags & AEFR_WHOLEWORDGOODEND)
+              goto Replace;
+          }
+          goto End;
+        }
+
+        Replace:
         if (wszResult)
         {
           if (nMin)
@@ -18170,6 +18214,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       a=GetWindowTextA(hWndWordDelimiters, buf, BUFFER_SIZE);
       MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
       EscapeStringToEscapeDataW((wchar_t *)buf2, wszWordDelimiters);
+      WideCharToMultiByte(CP_ACP, 0, wszWordDelimiters, -1, szWordDelimiters, WORD_DELIMITERS_SIZE, NULL, NULL);
 
       bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bWordDelimitersEnable)
