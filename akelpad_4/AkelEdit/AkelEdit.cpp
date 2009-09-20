@@ -4993,7 +4993,17 @@ int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
 
 int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel)
 {
-  if (nType == AEGI_FIRSTCHAR)
+  if (nType == AEGI_INCREMENT)
+  {
+    *ciCharOut=*ciCharIn;
+    return AE_IndexInc(ciCharOut);
+  }
+  else if (nType == AEGI_DECREMENT)
+  {
+    *ciCharOut=*ciCharIn;
+    return AE_IndexDec(ciCharOut);
+  }
+  else if (nType == AEGI_FIRSTCHAR)
   {
     ciCharOut->nLine=0;
     ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
@@ -14099,7 +14109,7 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
         else wchChar=L'\n';
       }
       else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine - 1];
-  
+
       if (!AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
         return 0;
     }
