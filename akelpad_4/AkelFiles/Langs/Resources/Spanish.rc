@@ -410,7 +410,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Coincidir MAY/min",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,74,10
-    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "Sólo frase entera",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,41,105,12
     CONTROL         "Secuencias-Esc",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,67,10
