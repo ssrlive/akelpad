@@ -12180,7 +12180,6 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
   DWORD dwBufCount=0;
   DWORD dwResult=0;
 
-  AE_NotifyChanging(ae, AETCT_STREAMOUT);
   aeso->dwError=0;
 
   //Set new line
@@ -12277,7 +12276,6 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
     End:
     AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
-  AE_NotifyChanged(ae, AETCT_STREAMOUT);
 
   return dwResult;
 }
