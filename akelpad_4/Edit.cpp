@@ -7472,11 +7472,13 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
   if (uMsg == WM_LBUTTONDOWN ||
       uMsg == WM_LBUTTONDBLCLK)
   {
-    SetCapture(hWnd);
-    bPreviewCapture=TRUE;
-    GetCursorPos(&ptMouseMove);
-    SetCursor(hCursorHandClose);
-
+    if (!bPreviewCapture)
+    {
+      SetCapture(hWnd);
+      bPreviewCapture=TRUE;
+      GetCursorPos(&ptMouseMove);
+      SetCursor(hCursorHandClose);
+    }
     if (uMsg == WM_LBUTTONDBLCLK)
     {
       if (nPreviewZoomPercent == 100)
@@ -7516,11 +7518,13 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
   }
   else if (uMsg == WM_HSCROLL)
   {
-    return PreviewHScroll(hWnd, LOWORD(wParam), 0);
+    PreviewHScroll(hWnd, LOWORD(wParam), 0);
+    return 1;
   }
   else if (uMsg == WM_VSCROLL)
   {
-    return PreviewVScroll(hWnd, LOWORD(wParam), 0);
+    PreviewVScroll(hWnd, LOWORD(wParam), 0);
+    return 1;
   }
   return 0;
 }
