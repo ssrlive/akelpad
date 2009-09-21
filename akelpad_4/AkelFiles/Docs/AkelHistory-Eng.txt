@@ -3,6 +3,7 @@ AkelPad 4.3.2 ()
 ----------------------------
 Added: "Whole word" in find/replace dialog.
 Added: possibility to set left and right URL delimiters.
+Added: left mouse button scrolling in print preview dialog.
 Added: possibility to use text selection together with middle mouse button scrolling.
 
 Fixed: codepage recognition in 4.3.1.

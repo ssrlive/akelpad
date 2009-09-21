@@ -237,6 +237,8 @@ IDI_ICON_EMPTY          ICON    DISCARDABLE     "Empty.ico"
 //
 
 IDC_CURSOR_DRAGMOVE     CURSOR  DISCARDABLE     "DragMove.cur"
+IDC_CURSOR_HANDOPEN     CURSOR  DISCARDABLE     "HandOpen.cur"
+IDC_CURSOR_HANDCLOSE    CURSOR  DISCARDABLE     "HandClose.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //

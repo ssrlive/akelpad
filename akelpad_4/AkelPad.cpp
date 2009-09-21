@@ -133,6 +133,8 @@ HACCEL hMainAccel;
 HICON hMainIcon;
 HICON hIconEmpty;
 HCURSOR hCursorDragMove;
+HCURSOR hCursorHandOpen;
+HCURSOR hCursorHandClose;
 HMENU hMainMenu;
 HMENU hPopupMenu;
 HMENU hPopupEdit;
@@ -742,6 +744,8 @@ extern "C" void _WinMain()
     hCursorSizeWE=LoadCursor(NULL, IDC_SIZEWE);
     hCursorSizeNS=LoadCursor(NULL, IDC_SIZENS);
     hCursorSizeALL=LoadCursor(NULL, IDC_SIZEALL);
+    hCursorHandOpen=(HCURSOR)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDC_CURSOR_HANDOPEN), IMAGE_CURSOR, 0, 0, 0);
+    hCursorHandClose=(HCURSOR)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDC_CURSOR_HANDCLOSE), IMAGE_CURSOR, 0, 0, 0);
     if (bMDI)
     {
       hIconEmpty=(HICON)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
@@ -1162,6 +1166,8 @@ extern "C" void _WinMain()
     hCursorSizeWE=LoadCursor(NULL, IDC_SIZEWE);
     hCursorSizeNS=LoadCursor(NULL, IDC_SIZENS);
     hCursorSizeALL=LoadCursor(NULL, IDC_SIZEALL);
+    hCursorHandOpen=(HCURSOR)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDC_CURSOR_HANDOPEN), IMAGE_CURSOR, 0, 0, 0);
+    hCursorHandClose=(HCURSOR)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDC_CURSOR_HANDCLOSE), IMAGE_CURSOR, 0, 0, 0);
     if (bMDI)
     {
       hIconEmpty=(HICON)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
