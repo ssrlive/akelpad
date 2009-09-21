@@ -237,6 +237,8 @@ IDI_ICON_EMPTY          ICON    DISCARDABLE     "Empty.ico"
 //
 
 IDC_CURSOR_DRAGMOVE     CURSOR  DISCARDABLE     "DragMove.cur"
+IDC_CURSOR_HANDOPEN     CURSOR  DISCARDABLE     "HandOpen.cur"
+IDC_CURSOR_HANDCLOSE    CURSOR  DISCARDABLE     "HandClose.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -379,7 +381,7 @@ STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP |
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
 CAPTION "Preview"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&Print...",IDC_PREVIEW_PRINT,9,9,50,14
     PUSHBUTTON      "Pa&ge...",IDC_PREVIEW_PAGESETUP,62,9,50,14

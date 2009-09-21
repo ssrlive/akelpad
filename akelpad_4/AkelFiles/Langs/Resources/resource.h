@@ -79,6 +79,8 @@
 #define IDI_ICON_MAIN                   1001
 #define IDI_ICON_EMPTY                  1002
 #define IDC_CURSOR_DRAGMOVE             1101
+#define IDC_CURSOR_HANDOPEN             1102
+#define IDC_CURSOR_HANDCLOSE            1103
 #define IDB_BITMAP_DOWNARROW            1201
 #define IDA_ACCEL_GLOBAL                1301
 #define IDA_ACCEL_MAIN                  1302

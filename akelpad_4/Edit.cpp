@@ -106,6 +106,8 @@ extern HACCEL hMainAccel;
 extern HICON hMainIcon;
 extern HICON hIconEmpty;
 extern HCURSOR hCursorDragMove;
+extern HCURSOR hCursorHandOpen;
+extern HCURSOR hCursorHandClose;
 extern HMENU hMainMenu;
 extern HMENU hPopupMenu;
 extern HMENU hPopupEdit;
@@ -6685,7 +6687,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         wndclass.cbWndExtra   =DLGWINDOWEXTRA;
         wndclass.hInstance    =hInstance;
         wndclass.hIcon        =NULL;
-        wndclass.hCursor      =LoadCursor(NULL, IDC_ARROW);
+        wndclass.hCursor      =hCursorHandOpen;
         wndclass.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
         wndclass.lpszMenuName =NULL;
         wndclass.lpszClassName=APP_PRINTPREVIEW_CLASSA;
@@ -7002,7 +7004,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         wndclass.cbWndExtra   =DLGWINDOWEXTRA;
         wndclass.hInstance    =hInstance;
         wndclass.hIcon        =NULL;
-        wndclass.hCursor      =LoadCursor(NULL, IDC_ARROW);
+        wndclass.hCursor      =hCursorHandOpen;
         wndclass.hbrBackground=(HBRUSH)GetStockObject(HOLLOW_BRUSH);
         wndclass.lpszMenuName =NULL;
         wndclass.lpszClassName=APP_PRINTPREVIEW_CLASSW;
@@ -7358,6 +7360,8 @@ void PreviewUninitW()
 
 LRESULT CALLBACK PreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  LRESULT lResult;
+
   if (uMsg == WM_PAINT)
   {
     PAINTSTRUCT ps;
@@ -7400,33 +7404,17 @@ LRESULT CALLBACK PreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       EndPaint(hWnd, &ps);
     }
   }
-  else if (uMsg == WM_SIZE)
-  {
-    if (lParam)
-    {
-      PreviewScrollUpdate(hWnd);
-    }
-  }
-  else if (uMsg == WM_HSCROLL)
-  {
-    return PreviewHScroll(hWnd, LOWORD(wParam));
-  }
-  else if (uMsg == WM_VSCROLL)
-  {
-    return PreviewVScroll(hWnd, LOWORD(wParam));
-  }
-  else if (uMsg == WM_LBUTTONDBLCLK)
-  {
-    if (nPreviewZoomPercent == 100)
-      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, (WPARAM)PREVIEW_ZOOMFIT, 0);
-    else
-      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, 100, 0);
-  }
+
+  if (lResult=PreviewMessages(hWnd, uMsg, wParam, lParam))
+    return lResult;
+
   return DefWindowProcA(hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK PreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  LRESULT lResult;
+
   if (uMsg == WM_PAINT)
   {
     PAINTSTRUCT ps;
@@ -7469,6 +7457,56 @@ LRESULT CALLBACK PreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       EndPaint(hWnd, &ps);
     }
   }
+
+  if (lResult=PreviewMessages(hWnd, uMsg, wParam, lParam))
+    return lResult;
+
+  return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+}
+
+LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static POINT ptMouseMove;
+  static BOOL bPreviewCapture=FALSE;
+
+  if (uMsg == WM_LBUTTONDOWN ||
+      uMsg == WM_LBUTTONDBLCLK)
+  {
+    SetCapture(hWnd);
+    bPreviewCapture=TRUE;
+    GetCursorPos(&ptMouseMove);
+    SetCursor(hCursorHandClose);
+
+    if (uMsg == WM_LBUTTONDBLCLK)
+    {
+      if (nPreviewZoomPercent == 100)
+        PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, (WPARAM)PREVIEW_ZOOMFIT, 0);
+      else
+        PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, 100, 0);
+    }
+  }
+  else if (uMsg == WM_MOUSEMOVE)
+  {
+    if (bPreviewCapture)
+    {
+      POINT pt;
+
+      GetCursorPos(&pt);
+      PreviewHScroll(hWnd, -1, ptMouseMove.x - pt.x);
+      PreviewVScroll(hWnd, -1, ptMouseMove.y - pt.y);
+      ptMouseMove=pt;
+    }
+  }
+  else if (uMsg == WM_LBUTTONUP ||
+           uMsg == WM_CAPTURECHANGED)
+  {
+    if (bPreviewCapture)
+    {
+      ReleaseCapture();
+      bPreviewCapture=FALSE;
+      SetCursor(hCursorHandOpen);
+    }
+  }
   else if (uMsg == WM_SIZE)
   {
     if (lParam)
@@ -7478,20 +7516,13 @@ LRESULT CALLBACK PreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
   }
   else if (uMsg == WM_HSCROLL)
   {
-    return PreviewHScroll(hWnd, LOWORD(wParam));
+    return PreviewHScroll(hWnd, LOWORD(wParam), 0);
   }
   else if (uMsg == WM_VSCROLL)
   {
-    return PreviewVScroll(hWnd, LOWORD(wParam));
+    return PreviewVScroll(hWnd, LOWORD(wParam), 0);
   }
-  else if (uMsg == WM_LBUTTONDBLCLK)
-  {
-    if (nPreviewZoomPercent == 100)
-      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, (WPARAM)PREVIEW_ZOOMFIT, 0);
-    else
-      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, 100, 0);
-  }
-  return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+  return 0;
 }
 
 void PreviewPaint(HWND hWnd, HDC hPaintDC, HENHMETAFILE hMetaFile)
@@ -7584,7 +7615,7 @@ void PreviewPaint(HWND hWnd, HDC hPaintDC, HENHMETAFILE hMetaFile)
   DeleteDC(hBufferDC);
 }
 
-int PreviewHScroll(HWND hWnd, int nAction)
+int PreviewHScroll(HWND hWnd, int nAction, int nPos)
 {
   SCROLLINFO si;
 
@@ -7592,7 +7623,11 @@ int PreviewHScroll(HWND hWnd, int nAction)
   si.fMask=SIF_ALL;
   GetScrollInfo(hWnd, SB_HORZ, &si);
 
-  if (nAction == SB_LEFT)
+  if (nAction == -1)
+  {
+    si.nPos+=nPos;
+  }
+  else if (nAction == SB_LEFT)
   {
     si.nPos=si.nMin;
   }
@@ -7633,7 +7668,7 @@ int PreviewHScroll(HWND hWnd, int nAction)
   return 0;
 }
 
-int PreviewVScroll(HWND hWnd, int nAction)
+int PreviewVScroll(HWND hWnd, int nAction, int nPos)
 {
   SCROLLINFO si;
 
@@ -7641,7 +7676,11 @@ int PreviewVScroll(HWND hWnd, int nAction)
   si.fMask=SIF_ALL;
   GetScrollInfo(hWnd, SB_VERT, &si);
 
-  if (nAction == SB_TOP)
+  if (nAction == -1)
+  {
+    si.nPos+=nPos;
+  }
+  else if (nAction == SB_TOP)
   {
     si.nPos=si.nMin;
   }
