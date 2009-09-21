@@ -10732,9 +10732,9 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
 
       if (dwFlags & AEFR_WHOLEWORD)
       {
-        if (AKD_strchr(szWordDelimiters, GetPrevChar(hWnd, &crRange.ciMin)))
+        if (SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crRange.ciMin))
           dwFlags|=AEFR_WHOLEWORDGOODSTART;
-        if (AKD_strchr(szWordDelimiters, GetCurChar(hWnd, &crRange.ciMax)))
+        if (SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crRange.ciMax))
           dwFlags|=AEFR_WHOLEWORDGOODEND;
       }
     }
@@ -10757,7 +10757,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
 
       if (dwFlags & AEFR_WHOLEWORD)
       {
-        if (AKD_strchr(szWordDelimiters, GetPrevChar(hWnd, &crRange.ciMin)))
+        if (SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crRange.ciMin))
           dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
         else
           dwFlags|=AEFR_WHOLEWORDGOODEND;
@@ -10771,7 +10771,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
 
       if (dwFlags & AEFR_WHOLEWORD)
       {
-        if (AKD_strchr(szWordDelimiters, GetCurChar(hWnd, &crRange.ciMax)))
+        if (SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crRange.ciMax))
           dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
         else
           dwFlags|=AEFR_WHOLEWORDGOODSTART;
@@ -10951,9 +10951,9 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
 
       if (dwFlags & AEFR_WHOLEWORD)
       {
-        if (AKD_wcschr(wszWordDelimiters, GetPrevChar(hWnd, &crRange.ciMin)))
+        if (SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crRange.ciMin))
           dwFlags|=AEFR_WHOLEWORDGOODSTART;
-        if (AKD_wcschr(wszWordDelimiters, GetCurChar(hWnd, &crRange.ciMax)))
+        if (SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crRange.ciMax))
           dwFlags|=AEFR_WHOLEWORDGOODEND;
       }
     }
@@ -10976,7 +10976,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
 
       if (dwFlags & AEFR_WHOLEWORD)
       {
-        if (AKD_wcschr(wszWordDelimiters, GetPrevChar(hWnd, &crRange.ciMin)))
+        if (SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD|AEDLM_PREVCHAR, (LPARAM)&crRange.ciMin))
           dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
         else
           dwFlags|=AEFR_WHOLEWORDGOODEND;
@@ -10990,7 +10990,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
 
       if (dwFlags & AEFR_WHOLEWORD)
       {
-        if (AKD_wcschr(wszWordDelimiters, GetCurChar(hWnd, &crRange.ciMax)))
+        if (SendMessage(hWnd, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&crRange.ciMax))
           dwFlags|=AEFR_WHOLEWORDGOODSTART|AEFR_WHOLEWORDGOODEND;
         else
           dwFlags|=AEFR_WHOLEWORDGOODSTART;
@@ -11528,28 +11528,6 @@ int AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar)
 void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar)
 {
   SendMessage(hWnd, AEM_RICHOFFSETTOINDEX, nOffset, (LPARAM)ciChar);
-}
-
-wchar_t GetCurChar(HWND hWnd, AECHARINDEX *ciChar)
-{
-  if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
-  {
-    if (ciChar->lpLine->nLineBreak == AELB_WRAP)
-    {
-      return ciChar->lpLine->next->wpLine[0];
-    }
-    else return L'\n';
-  }
-  else return ciChar->lpLine->wpLine[ciChar->nCharInLine];
-}
-
-wchar_t GetPrevChar(HWND hWnd, AECHARINDEX *ciChar)
-{
-  AECHARINDEX ciPrevChar=*ciChar;
-
-  if (SendMessage(hWnd, AEM_GETINDEX, AEGI_PREVCHAR, (LPARAM)&ciPrevChar))
-    return GetCurChar(hWnd, &ciPrevChar);
-  return L'\n';
 }
 
 int GetTextLength(HWND hWnd)

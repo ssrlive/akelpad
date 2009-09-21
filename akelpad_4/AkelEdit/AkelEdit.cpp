@@ -1305,17 +1305,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Other
       if (uMsg == AEM_ISDELIMITER)
       {
-        AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
-
-        if (wParam == AEDLM_WORD)
-          return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, ciCharIndex->lpLine->wpLine[ciCharIndex->nCharInLine], TRUE);
-        if (wParam == AEDLM_WRAP)
-          return AE_IsInDelimiterList(ae->ptxt->wszWrapDelimiters, ciCharIndex->lpLine->wpLine[ciCharIndex->nCharInLine], TRUE);
-        if (wParam == AEDLM_URLLEFT)
-          return AE_IsInDelimiterList(ae->popt->wszUrlLeftDelimiters, ciCharIndex->lpLine->wpLine[ciCharIndex->nCharInLine], TRUE);
-        if (wParam == AEDLM_URLRIGHT)
-          return AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ciCharIndex->lpLine->wpLine[ciCharIndex->nCharInLine], TRUE);
-        return -1;
+        return AE_IsDelimiter(ae, (AECHARINDEX *)lParam, wParam);
       }
       if (uMsg == AEM_SHOWSCROLLBAR)
       {
@@ -7159,18 +7149,7 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       if (AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
         return 0;
 
-      //Get previous char
-      if (ciCount.nCharInLine == 0)
-      {
-        if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
-        {
-          wchChar=ciCount.lpLine->prev->wpLine[ciCount.lpLine->prev->nLineLen - 1];
-        }
-        else wchChar=L'\n';
-      }
-      else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine - 1];
-
-      if (AE_IsInDelimiterList(ae->popt->wszUrlLeftDelimiters, wchChar, TRUE))
+      if (AE_IsDelimiter(ae, &ciCount, AEDLM_URLLEFT|AEDLM_PREVCHAR))
       {
         for (nPrefix=0; ae->popt->lpUrlPrefixes[nPrefix]; ++nPrefix)
         {
@@ -11101,6 +11080,46 @@ BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape)
   return FALSE;
 }
 
+BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType)
+{
+  wchar_t wchChar;
+
+  if (dwType & AEDLM_PREVCHAR)
+  {
+    if (ciChar->nCharInLine == 0)
+    {
+      if (ciChar->lpLine->prev && ciChar->lpLine->prev->nLineBreak == AELB_WRAP)
+      {
+        wchChar=ciChar->lpLine->prev->wpLine[ciChar->lpLine->prev->nLineLen - 1];
+      }
+      else wchChar=L'\n';
+    }
+    else wchChar=ciChar->lpLine->wpLine[ciChar->nCharInLine - 1];
+  }
+  else
+  {
+    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+    {
+      if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+      {
+        wchChar=ciChar->lpLine->next->wpLine[0];
+      }
+      else wchChar=L'\n';
+    }
+    else wchChar=ciChar->lpLine->wpLine[ciChar->nCharInLine];
+  }
+
+  if (dwType & AEDLM_WORD)
+    return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE);
+  if (dwType & AEDLM_WRAP)
+    return AE_IsInDelimiterList(ae->ptxt->wszWrapDelimiters, wchChar, TRUE);
+  if (dwType & AEDLM_URLLEFT)
+    return AE_IsInDelimiterList(ae->popt->wszUrlLeftDelimiters, wchChar, TRUE);
+  if (dwType & AEDLM_URLRIGHT)
+    return AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, wchChar, TRUE);
+  return FALSE;
+}
+
 BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c, BOOL bMatchCase)
 {
   if (AE_wcschr(wpList, c, bMatchCase) != NULL)
@@ -14099,18 +14118,7 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   {
     if (ft->dwFlags & AEFR_WHOLEWORD)
     {
-      //Get previous char
-      if (ciCount.nCharInLine == 0)
-      {
-        if (ciCount.lpLine->prev && ciCount.lpLine->prev->nLineBreak == AELB_WRAP)
-        {
-          wchChar=ciCount.lpLine->prev->wpLine[ciCount.lpLine->prev->nLineLen - 1];
-        }
-        else wchChar=L'\n';
-      }
-      else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine - 1];
-
-      if (!AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
+      if (!AE_IsDelimiter(ae, &ciCount, AEDLM_WORD|AEDLM_PREVCHAR))
         return 0;
     }
 
@@ -14188,18 +14196,7 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   Founded:
   if (ft->dwFlags & AEFR_WHOLEWORD)
   {
-    //Get current char
-    if (ciCount.nCharInLine >= ciCount.lpLine->nLineLen)
-    {
-      if (ciCount.lpLine->nLineBreak == AELB_WRAP)
-      {
-        wchChar=ciCount.lpLine->next->wpLine[0];
-      }
-      else wchChar=L'\n';
-    }
-    else wchChar=ciCount.lpLine->wpLine[ciCount.nCharInLine];
-
-    if (!AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE))
+    if (!AE_IsDelimiter(ae, &ciCount, AEDLM_WORD))
       return 0;
   }
   ft->crFound.ciMin=*ciChar;
