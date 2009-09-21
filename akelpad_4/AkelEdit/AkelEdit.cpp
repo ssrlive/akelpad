@@ -7121,7 +7121,6 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
-  wchar_t wchChar='\0';
   int nPrefix;
   DWORD dwLinkLen=0;
 
@@ -14103,7 +14102,6 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
 DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
   AECHARINDEX ciCount=*ciChar;
-  wchar_t wchChar;
   int nLineBreak;
   int nNewLine=ft->nNewLine;
   DWORD dwCount=0;
