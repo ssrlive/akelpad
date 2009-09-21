@@ -75,7 +75,7 @@
 #define ASSOCIATE_EDITW           L"bat;cmd;reg;htm;html"
 #define ASSOCIATE_PRINTA           "txt;log;ini;inf"
 #define ASSOCIATE_PRINTW          L"txt;log;ini;inf"
-#define WORD_DELIMITERSW          L" \t\n\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
+#define WORD_DELIMITERSW          L" \t\n'`\"\\|[](){}<>,.;:+-=~!@#$%^&*/?"
 #define WRAP_DELIMITERSW          L" \t"
 #define URL_LEFTDELIMITERSW       L" \t\n'`\"(<{[="
 #define URL_RIGHTDELIMITERSW      L" \t\n'`\")>}]"
