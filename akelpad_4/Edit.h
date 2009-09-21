@@ -614,8 +614,6 @@ int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNe
 int IndexOffset(HWND hWnd, AECHARINDEX *ciChar, int nOffset, int nNewLine);
 int AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar);
 void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar);
-wchar_t GetCurChar(HWND hWnd, AECHARINDEX *ciChar);
-wchar_t GetPrevChar(HWND hWnd, AECHARINDEX *ciChar);
 int GetTextLength(HWND hWnd);
 int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText);
 int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText);

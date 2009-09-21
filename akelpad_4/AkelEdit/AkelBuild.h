@@ -667,6 +667,7 @@ BOOL AE_IsFirstCharInLine(const AECHARINDEX *ciChar);
 BOOL AE_IsLastCharInLine(const AECHARINDEX *ciChar);
 BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar);
 BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape);
+BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType);
 BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c, BOOL bMatchCase);
 BOOL AE_IsSpace(wchar_t c);
 int AE_GetUrlPrefixes(AKELEDIT *ae);

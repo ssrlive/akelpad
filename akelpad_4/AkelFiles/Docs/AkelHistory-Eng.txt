@@ -3,7 +3,7 @@ AkelPad 4.3.2 ()
 ----------------------------
 Added: "Whole word" in find/replace dialog.
 Added: possibility to set left and right URL delimiters.
-Added: possibility to use scrolling with middle mouse button together with text selection.
+Added: possibility to use text selection together with middle mouse button scrolling.
 
 Fixed: codepage recognition in 4.3.1.
 Fixed: text search with flag AEFR_WHOLEWORD.

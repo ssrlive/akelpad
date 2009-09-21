@@ -133,10 +133,11 @@
 #define AEGI_DECREMENT             25  //lParam must point to an input index.
 
 //AEM_ISDELIMITER parameter
-#define AEDLM_WORD     0  //Word delimiter.
-#define AEDLM_WRAP     1  //Wrap delimiter.
-#define AEDLM_URLLEFT  2  //URL left delimiter.
-#define AEDLM_URLRIGHT 3  //URL right delimiter.
+#define AEDLM_PREVCHAR  0x00000001  //Check previous char.
+#define AEDLM_WORD      0x00000010  //Word delimiter.
+#define AEDLM_WRAP      0x00000020  //Wrap delimiter.
+#define AEDLM_URLLEFT   0x00000040  //URL left delimiter.
+#define AEDLM_URLRIGHT  0x00000080  //URL right delimiter.
 
 //AEM_SETSEL and AEM_UPDATESEL flags
 #define AESELT_COLUMNON            0x00000001  //Make column selection ON.
@@ -3382,7 +3383,7 @@ _______________
 
 Retrieve character index delimiter or not.
 
-(int)wParam           == see AEDLM_* defines.
+(DWORD)wParam         == see AEDLM_* defines.
 (AECHARINDEX *)lParam == character index.
 
 Return Value
