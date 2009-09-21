@@ -6651,6 +6651,8 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
   if (uMsg == WM_INITDIALOG)
   {
+    DWORD dwStyle;
+
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndPrevPage=GetDlgItem(hDlg, IDC_PREVIEW_PREVPAGE);
     hWndPageCount=GetDlgItem(hDlg, IDC_PREVIEW_PAGECOUNT);
@@ -6658,6 +6660,9 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndZoom=GetDlgItem(hDlg, IDC_PREVIEW_ZOOM);
     hWndZoomEdit=GetDlgItem(hWndZoom, IDC_COMBOBOXEDIT);
     hWndSelection=GetDlgItem(hDlg, IDC_PREVIEW_SELECTION);
+
+    dwStyle=GetWindowLongA(hWndZoomEdit, GWL_STYLE);
+    SetWindowLongA(hWndZoomEdit, GWL_STYLE, dwStyle|ES_NUMBER);
 
     //Initialize
     hWndPreviewDlg=hDlg;
@@ -6963,6 +6968,8 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
   if (uMsg == WM_INITDIALOG)
   {
+    DWORD dwStyle;
+
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndPrevPage=GetDlgItem(hDlg, IDC_PREVIEW_PREVPAGE);
     hWndPageCount=GetDlgItem(hDlg, IDC_PREVIEW_PAGECOUNT);
@@ -6970,6 +6977,9 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndZoom=GetDlgItem(hDlg, IDC_PREVIEW_ZOOM);
     hWndZoomEdit=GetDlgItem(hWndZoom, IDC_COMBOBOXEDIT);
     hWndSelection=GetDlgItem(hDlg, IDC_PREVIEW_SELECTION);
+
+    dwStyle=GetWindowLongW(hWndZoomEdit, GWL_STYLE);
+    SetWindowLongW(hWndZoomEdit, GWL_STYLE, dwStyle|ES_NUMBER);
 
     //Initialize
     hWndPreviewDlg=hDlg;
