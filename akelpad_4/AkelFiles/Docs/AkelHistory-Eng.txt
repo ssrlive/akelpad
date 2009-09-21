@@ -1,5 +1,5 @@
 
-AkelPad 4.3.2 ()
+AkelPad 4.3.2 (Sep 22, 2009)
 ----------------------------
 Added: "Whole word" in find/replace dialog.
 Added: possibility to set left and right URL delimiters.
