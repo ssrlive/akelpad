@@ -405,7 +405,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "区分大小写",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "整个单词",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
     CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
@@ -442,7 +442,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "区分大小写",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
-    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "整个单词",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
     CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
