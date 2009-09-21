@@ -7476,8 +7476,8 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     {
       SetCapture(hWnd);
       bPreviewCapture=TRUE;
-      GetCursorPos(&ptMouseMove);
       SetCursor(hCursorHandClose);
+      GetCursorPos(&ptMouseMove);
     }
     if (uMsg == WM_LBUTTONDBLCLK)
     {
