@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "Salva tutto\tCtrl+Alt+F2",    IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "Imposta Pagina...",           IDM_FILE_PAGESETUP
-        MENUITEM "Pre&view...",                 IDM_FILE_PRINTPREVIEW
+        MENUITEM "&Anteprima...",                 IDM_FILE_PRINTPREVIEW
         MENUITEM "Stampa...\tCtrl+P",           IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Files recenti"
@@ -391,7 +391,7 @@ CAPTION "Preview"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "Stampa...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "Pa&ge...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    PUSHBUTTON      "&Pagina...",IDC_PREVIEW_PAGESETUP,62,9,50,14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -414,7 +414,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Maiuscole/minuscole",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,88,12
-    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "Parola intera",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
     CONTROL         "Sequenza Esc",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,88,12
@@ -451,7 +451,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Maiuscole/minuscole",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,88,12
-    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "Parola intera",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
     CONTROL         "Sequenza Esc",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,88,12
@@ -693,7 +693,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,151,
                     102,11,13
-    LTEXT           "Marker:",IDC_STATIC,168,91,37,8
+    LTEXT           "Segno:",IDC_STATIC,168,91,37,8
     EDITTEXT        IDC_OPTIONS_MARKER,168,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
@@ -709,7 +709,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    GROUPBOX        "Line gap",IDC_STATIC,122,190,87,33
+    GROUPBOX        "Scarto riga",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,178,
@@ -744,7 +744,7 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Reset",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,13,
                     BS_CENTER
-    CONTROL         "Wrap delimiters:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
+    CONTROL         "Delimitatori a capo:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Reset",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
@@ -955,8 +955,8 @@ BEGIN
     STR_COLUMNMARKER        "Evidenziatore Colonna"
     STR_CARET               "Segno d'omissione"
     STR_URL                 "Hyperlink"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
+    STR_PAGEFIT             "Adatta alla pagina"
+    STR_PAGEWIDTH           "Larghezza pagina"
 END
 
 STRINGTABLE DISCARDABLE 
