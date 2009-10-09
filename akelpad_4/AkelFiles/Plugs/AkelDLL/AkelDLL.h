@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 2)
 
 
 //// Defines
@@ -826,6 +826,9 @@ typedef struct _NSIZE {
                                               //Return Value: zero
                                               //
 #define IDM_VIEW_SPLIT_WINDOW_NS        4214  //Split window into two horizontal panes
+                                              //Return Value: zero
+                                              //
+#define IDM_VIEW_SPLIT_WINDOW_OFF       4215  //Reserved.
                                               //Return Value: zero
                                               //
 #define IDM_OPTIONS_EXEC                4251  //Execute command
