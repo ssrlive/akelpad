@@ -1,4 +1,3 @@
-!define MUI_UI "Pages\Modern.exe"
 !define PRODUCT_NAME "AkelPad"
 !define PRODUCT_VERSION "4.3.3"
 
@@ -29,6 +28,8 @@ RequestExecutionLevel admin
 
 ############  MUI  ############
 !include "MUI.nsh"
+!define MUI_UI "Pages\Modern.exe"
+!define MUI_UI_HEADERIMAGE_RIGHT "Pages\Modern_headerbmpr.exe"
 !define MUI_ICON "Graphics\IconInstall.ico"
 !define MUI_UNICON "Graphics\IconUninstall.ico"
 !define MUI_HEADERIMAGE
@@ -102,8 +103,6 @@ PageExEnd
 
 !insertmacro MUI_LANGUAGE "English"
 !insertmacro MUI_LANGUAGE "Russian"
-
-ChangeUI IDD_INST "${MUI_UI}"
 
 ############  Strings  ############
 LangString Help ${LANG_ENGLISH} 'Help'
