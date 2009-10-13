@@ -6407,6 +6407,108 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
   }
 }
 
+int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, const POINT *ptSelStart, const POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel)
+{
+  if (ciSelStart->nLine > liLine->nLine || ciSelEnd->nLine < liLine->nLine)
+    goto Empty;
+  if (ciSelStart->nLine == ciSelEnd->nLine && ciSelStart->nCharInLine == ciSelEnd->nCharInLine)
+    goto Empty;
+
+  if (bColumnSel)
+  {
+    int nStartX=min(ptSelStart->x, ptSelEnd->x);
+    int nEndX=max(ptSelStart->x, ptSelEnd->x);
+    int nSelStart;
+    int nSelEnd;
+    int i;
+
+    AE_GetCharRangeInLine(ae, liLine->lpLine, nStartX, nEndX, &nSelStart, NULL, &nSelEnd, NULL, bColumnSel);
+
+    if (nSelStart > nSelEnd)
+    {
+      i=nSelStart;
+      nSelStart=nSelEnd;
+      nSelEnd=i;
+    }
+
+    if (nSelStart == nSelEnd)
+      goto Empty;
+    if (nSelStart == 0 && nSelEnd == liLine->lpLine->nLineLen)
+      goto Full;
+
+    *nSelStartIndexInLine=nSelStart;
+    *nSelEndIndexInLine=nSelEnd;
+    return AELS_PARTLY;
+  }
+  else
+  {
+    if (ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == 0)
+      goto Empty;
+    if (ciSelStart->nLine < liLine->nLine && ciSelEnd->nLine > liLine->nLine)
+      goto Full;
+    if (ciSelStart->nLine == liLine->nLine && ciSelStart->nCharInLine == 0 &&
+        ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == ciSelEnd->lpLine->nLineLen)
+      goto Full;
+    if (ciSelStart->nLine == liLine->nLine && ciSelStart->nCharInLine == 0 &&
+        (ciSelEnd->nLine > liLine->nLine))
+      goto Full;
+    if (ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == ciSelEnd->lpLine->nLineLen &&
+        ciSelStart->nLine < liLine->nLine)
+      goto Full;
+
+    if (ciSelStart->nLine == liLine->nLine)
+      *nSelStartIndexInLine=ciSelStart->nCharInLine;
+    else
+      *nSelStartIndexInLine=0;
+    if (ciSelEnd->nLine == liLine->nLine)
+      *nSelEndIndexInLine=ciSelEnd->nCharInLine;
+    else
+      *nSelEndIndexInLine=liLine->lpLine->nLineLen;
+    return AELS_PARTLY;
+  }
+
+  Full:
+  *nSelStartIndexInLine=0;
+  *nSelEndIndexInLine=liLine->lpLine->nLineLen;
+  return AELS_FULL;
+
+  Empty:
+  *nSelStartIndexInLine=0;
+  *nSelEndIndexInLine=0;
+  return AELS_EMPTY;
+}
+
+void AE_GetSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX *ciMax, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, const POINT *ptSelStart, const POINT *ptSelEnd, BOOL bColumnSel)
+{
+  AELINEINDEX liLine;
+
+  liLine.lpLine=ciMin->lpLine;
+  liLine.nLine=ciMin->nLine;
+
+  while (liLine.lpLine)
+  {
+    AE_GetLineSelection(ae, &liLine, ciSelStart, ciSelEnd, ptSelStart, ptSelEnd, &liLine.lpLine->nSelStart, &liLine.lpLine->nSelEnd, bColumnSel);
+    if (liLine.lpLine == ciMax->lpLine) break;
+    ++liLine.nLine;
+
+    liLine.lpLine=liLine.lpLine->next;
+  }
+}
+
+void AE_ClearSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX *ciMax)
+{
+  AELINEDATA *lpElement=ciMin->lpLine;
+
+  while (lpElement)
+  {
+    lpElement->nSelStart=0;
+    lpElement->nSelEnd=0;
+    if (lpElement == ciMax->lpLine) break;
+
+    lpElement=lpElement->next;
+  }
+}
+
 void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, DWORD dwSelFlags)
 {
   AECHARINDEX ciSelStartOld;
@@ -6416,7 +6518,6 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
   AECHARINDEX ciSelStartNew;
   AECHARINDEX ciSelEndNew;
   AECHARINDEX ciTmp;
-  AELINEINDEX liLine;
   POINT ptSelStart;
   POINT ptSelEnd;
   BOOL bColumnSelOld;
@@ -6494,34 +6595,33 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
       AE_NotifySelChanging(ae);
     }
 
-    //Clear old lines selection
-    if (AE_IndexCompare(&ciSelStartOld, &ciSelEndOld))
+    //Clear old lines selection and set new lines selection
+    if (bColumnSel || bColumnSelOld ||
+        ciSelStartOld.nLine > ciSelEndNew.nLine ||
+        ciSelEndOld.nLine < ciSelStartNew.nLine)
     {
-      liLine.lpLine=ciSelStartOld.lpLine;
-
-      while (liLine.lpLine)
-      {
-        liLine.lpLine->nSelStart=0;
-        liLine.lpLine->nSelEnd=0;
-        if (liLine.lpLine == ciSelEndOld.lpLine) break;
-
-        liLine.lpLine=liLine.lpLine->next;
-      }
+      AE_ClearSelLines(ae, &ciSelStartOld, &ciSelEndOld);
+      AE_GetSelLines(ae, &ciSelStartNew, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
     }
-
-    //Set new lines selection
-    if (AE_IndexCompare(&ciSelStartNew, &ciSelEndNew))
+    else
     {
-      liLine.nLine=ciSelStartNew.nLine;
-      liLine.lpLine=ciSelStartNew.lpLine;
-
-      while (liLine.lpLine)
+      if (AE_IndexCompare(&ciSelStartOld, &ciSelStartNew))
       {
-        AE_GetLineSelection(ae, &liLine, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, &liLine.lpLine->nSelStart, &liLine.lpLine->nSelEnd, bColumnSel);
-        if (liLine.lpLine == ciSelEndNew.lpLine) break;
-        ++liLine.nLine;
-
-        liLine.lpLine=liLine.lpLine->next;
+        if (ciSelStartOld.nLine < ciSelStartNew.nLine)
+        {
+          AE_ClearSelLines(ae, &ciSelStartOld, &ciSelStartNew);
+          AE_GetSelLines(ae, &ciSelStartNew, &ciSelStartNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
+        }
+        else AE_GetSelLines(ae, &ciSelStartNew, &ciSelStartOld, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
+      }
+      if (AE_IndexCompare(&ciSelEndNew, &ciSelEndOld))
+      {
+        if (ciSelEndNew.nLine < ciSelEndOld.nLine)
+        {
+          AE_ClearSelLines(ae, &ciSelEndNew, &ciSelEndOld);
+          AE_GetSelLines(ae, &ciSelEndNew, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
+        }
+        else AE_GetSelLines(ae, &ciSelEndOld, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
       }
     }
 
@@ -11153,77 +11253,6 @@ int AE_GetUrlPrefixes(AKELEDIT *ae)
     ++nEnd;
   }
   return nPrefix;
-}
-
-int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, POINT *ptSelStart, POINT *ptSelEnd, int *nSelStartIndexInLine, int *nSelEndIndexInLine, BOOL bColumnSel)
-{
-  if (ciSelStart->nLine > liLine->nLine || ciSelEnd->nLine < liLine->nLine)
-    goto Empty;
-  if (ciSelStart->nLine == ciSelEnd->nLine && ciSelStart->nCharInLine == ciSelEnd->nCharInLine)
-    goto Empty;
-
-  if (bColumnSel)
-  {
-    int nStartX=min(ptSelStart->x, ptSelEnd->x);
-    int nEndX=max(ptSelStart->x, ptSelEnd->x);
-    int nSelStart;
-    int nSelEnd;
-    int i;
-
-    AE_GetCharRangeInLine(ae, liLine->lpLine, nStartX, nEndX, &nSelStart, NULL, &nSelEnd, NULL, bColumnSel);
-
-    if (nSelStart > nSelEnd)
-    {
-      i=nSelStart;
-      nSelStart=nSelEnd;
-      nSelEnd=i;
-    }
-
-    if (nSelStart == nSelEnd)
-      goto Empty;
-    if (nSelStart == 0 && nSelEnd == liLine->lpLine->nLineLen)
-      goto Full;
-
-    *nSelStartIndexInLine=nSelStart;
-    *nSelEndIndexInLine=nSelEnd;
-    return AELS_PARTLY;
-  }
-  else
-  {
-    if (ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == 0)
-      goto Empty;
-    if (ciSelStart->nLine < liLine->nLine && ciSelEnd->nLine > liLine->nLine)
-      goto Full;
-    if (ciSelStart->nLine == liLine->nLine && ciSelStart->nCharInLine == 0 &&
-        ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == ciSelEnd->lpLine->nLineLen)
-      goto Full;
-    if (ciSelStart->nLine == liLine->nLine && ciSelStart->nCharInLine == 0 &&
-        (ciSelEnd->nLine > liLine->nLine))
-      goto Full;
-    if (ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == ciSelEnd->lpLine->nLineLen &&
-        ciSelStart->nLine < liLine->nLine)
-      goto Full;
-
-    if (ciSelStart->nLine == liLine->nLine)
-      *nSelStartIndexInLine=ciSelStart->nCharInLine;
-    else
-      *nSelStartIndexInLine=0;
-    if (ciSelEnd->nLine == liLine->nLine)
-      *nSelEndIndexInLine=ciSelEnd->nCharInLine;
-    else
-      *nSelEndIndexInLine=liLine->lpLine->nLineLen;
-    return AELS_PARTLY;
-  }
-
-  Full:
-  *nSelStartIndexInLine=0;
-  *nSelEndIndexInLine=liLine->lpLine->nLineLen;
-  return AELS_FULL;
-
-  Empty:
-  *nSelStartIndexInLine=0;
-  *nSelEndIndexInLine=0;
-  return AELS_EMPTY;
 }
 
 DWORD AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefaultChar, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, DWORD dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces)
