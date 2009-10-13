@@ -6413,6 +6413,8 @@ int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARIND
     goto Empty;
   if (ciSelStart->nLine == ciSelEnd->nLine && ciSelStart->nCharInLine == ciSelEnd->nCharInLine)
     goto Empty;
+  if (ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == 0)
+    goto Empty;
 
   if (bColumnSel)
   {
@@ -6442,18 +6444,8 @@ int AE_GetLineSelection(AKELEDIT *ae, const AELINEINDEX *liLine, const AECHARIND
   }
   else
   {
-    if (ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == 0)
-      goto Empty;
-    if (ciSelStart->nLine < liLine->nLine && ciSelEnd->nLine > liLine->nLine)
-      goto Full;
-    if (ciSelStart->nLine == liLine->nLine && ciSelStart->nCharInLine == 0 &&
-        ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == ciSelEnd->lpLine->nLineLen)
-      goto Full;
-    if (ciSelStart->nLine == liLine->nLine && ciSelStart->nCharInLine == 0 &&
-        (ciSelEnd->nLine > liLine->nLine))
-      goto Full;
-    if (ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == ciSelEnd->lpLine->nLineLen &&
-        ciSelStart->nLine < liLine->nLine)
+    if ((ciSelStart->nLine < liLine->nLine || (ciSelStart->nLine == liLine->nLine && ciSelStart->nCharInLine == 0)) &&
+        (ciSelEnd->nLine > liLine->nLine || (ciSelEnd->nLine == liLine->nLine && ciSelEnd->nCharInLine == ciSelEnd->lpLine->nLineLen)))
       goto Full;
 
     if (ciSelStart->nLine == liLine->nLine)
