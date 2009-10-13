@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.3.2                               *
+ *                      AkelEdit text control v1.3.3                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -9075,17 +9075,15 @@ void AE_Paint(AKELEDIT *ae)
       BOOL bUseBufferDC=TRUE;
 
       //Set DCs
+      hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
+      hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
+      hBufferDC=ps.hdc;
+
       if (bUseBufferDC)
       {
         hBufferDC=CreateCompatibleDC(ps.hdc);
         hBitmap=CreateCompatibleBitmap(ps.hdc, ae->rcEdit.right, ae->rcEdit.bottom);
         hBitmapOld=(HBITMAP)SelectObject(hBufferDC, hBitmap);
-      }
-      else
-      {
-        hBufferDC=ps.hdc;
-        hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
-        hDrawRgnOld=(HRGN)SelectObject(hBufferDC, hDrawRgn);
       }
       if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(hBufferDC, ae->ptxt->hFont);
 
@@ -9856,11 +9854,9 @@ void AE_Paint(AKELEDIT *ae)
         DeleteDC(hBufferDC);
         DeleteObject(hBitmap);
       }
-      else
-      {
-        if (hDrawRgnOld) SelectObject(hBufferDC, hDrawRgnOld);
-        DeleteObject(hDrawRgn);
-      }
+      if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
+      DeleteObject(hDrawRgn);
+
       EndPaint(ae->hWndEdit, &ps);
     }
     ae->rcErase=ae->rcEdit;
