@@ -149,6 +149,7 @@
 #define AESELT_NOCARETHORZINDENT   0x00000080  //Caret horizontal indent isn't changed.
 #define AESELT_NOVERTSCROLLCORRECT 0x00000100  //On some conditions scroll can be increased to a height of one line.
 #define AESELT_MOUSE               0x00000200  //Don't use it. For internal code only.
+#define AESELT_RESETSELECTION      0x00000400  //Don't use it. For internal code only.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.

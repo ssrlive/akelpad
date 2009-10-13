@@ -5711,7 +5711,7 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
     ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
     AE_UpdateScrollBars(ae, SB_VERT);
   }
-  AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
+  AE_UpdateSelection(ae, AESELT_LOCKSCROLL|AESELT_RESETSELECTION);
   AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
   return nWrapCount;
 }
@@ -6588,7 +6588,8 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     }
 
     //Clear old lines selection and set new lines selection
-    if (bColumnSel || bColumnSelOld ||
+    if ((dwSelFlags & AESELT_RESETSELECTION) ||
+        bColumnSel || bColumnSelOld ||
         ciSelStartOld.nLine > ciSelEndNew.nLine ||
         ciSelEndOld.nLine < ciSelStartNew.nLine)
     {
