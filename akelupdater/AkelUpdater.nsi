@@ -374,7 +374,7 @@ Section
 	Pop $0
 	StrCmp $0 0 +3
 	DetailPrint "$(error) ($0): $AKELPLUGIN"
-	goto End
+	goto NextPlugin
 	DetailPrint "$(done): $AKELPLUGIN"
 	goto NextPlugin
 
