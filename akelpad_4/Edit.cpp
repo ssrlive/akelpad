@@ -11611,7 +11611,7 @@ int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText)
       txtrngA.chrg.cpMin=nMin;
       txtrngA.chrg.cpMax=nMax;
       txtrngA.lpstrText=*pText;
-      SendMessageA(hWnd, EM_GETTEXTRANGE, 0, (LPARAM)&txtrngA);
+      nLen=SendMessageA(hWnd, EM_GETTEXTRANGE, 0, (LPARAM)&txtrngA);
 
       return nLen;
     }
@@ -11638,7 +11638,7 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
       txtrngW.chrg.cpMin=nMin;
       txtrngW.chrg.cpMax=nMax;
       txtrngW.lpstrText=*wpText;
-      SendMessageW(hWnd, EM_GETTEXTRANGE, 0, (LPARAM)&txtrngW);
+      nLen=SendMessageW(hWnd, EM_GETTEXTRANGE, 0, (LPARAM)&txtrngW);
 
       return nLen;
     }
