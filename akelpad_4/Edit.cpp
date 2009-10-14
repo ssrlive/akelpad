@@ -11551,6 +11551,7 @@ void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECH
 int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel)
 {
   AEINDEXSUBTRACT aeis;
+  int nSubtract;
 
   aeis.ciChar1=ciChar1;
   aeis.ciChar2=ciChar2;
@@ -11559,7 +11560,8 @@ int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNe
     aeis.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
     aeis.bColumnSel=bColumnSel;
-  return SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&aeis);
+  nSubtract=SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&aeis);
+  return mod(nSubtract);
 }
 
 int IndexOffset(HWND hWnd, AECHARINDEX *ciChar, int nOffset, int nNewLine)

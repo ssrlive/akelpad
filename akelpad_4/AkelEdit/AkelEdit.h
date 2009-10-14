@@ -151,6 +151,10 @@
 #define AESELT_MOUSE               0x00000200  //Don't use it. For internal code only.
 #define AESELT_RESETSELECTION      0x00000400  //Don't use it. For internal code only.
 
+//AEM_ADDPOINT flags
+#define AEPT_GLOBALMODIFY          0x00000001  //If set, AEPOINT.ciPoint index has been modified.
+#define AEPT_LOCALMODIFY           0x00000002  //Don't use it. For internal code only.
+
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
 #define AEPC_EQUAL    1  //Char exactly in specified position.
@@ -425,7 +429,7 @@ typedef struct _AEPOINT {
   struct _AEPOINT *next;   //Pointer to the next AEPOINT structure.
   struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure.
   AECHARINDEX ciPoint;     //Character index.
-  BOOL bModify;            //Is ciPoint index modified.
+  DWORD dwFlags;           //See AEPT_* defines.
   DWORD dwUserData;        //User data.
 } AEPOINT;
 
@@ -2208,7 +2212,7 @@ wParam                    == not used.
 (AEINDEXSUBTRACT *)lParam == pointer to a AEINDEXSUBTRACT structure.
 
 Return Value
- Number of characters.
+ Number of characters. Negative if AEINDEXSUBTRACT.ciChar1 < AEINDEXSUBTRACT.ciChar2.
 
 Example:
  AEINDEXSUBTRACT is;
