@@ -52,14 +52,14 @@
 #define AEHF_FINDFIRSTCHAR  0x00000002
 
 //Highlight paint type
-#define AEPT_SELECTION      0x00000001
-#define AEPT_DELIM1         0x00000002
-#define AEPT_WORD           0x00000004
-#define AEPT_DELIM2         0x00000008
-#define AEPT_QUOTE          0x00000010
-#define AEPT_MARKTEXT       0x00000020
-#define AEPT_MARKRANGE      0x00000040
-#define AEPT_LINK           0x00000080
+#define AEHPT_SELECTION     0x00000001
+#define AEHPT_DELIM1        0x00000002
+#define AEHPT_WORD          0x00000004
+#define AEHPT_DELIM2        0x00000008
+#define AEHPT_QUOTE         0x00000010
+#define AEHPT_MARKTEXT      0x00000020
+#define AEHPT_MARKRANGE     0x00000040
+#define AEHPT_LINK          0x00000080
 
 //Line selection
 #define AELS_EMPTY    1
@@ -531,7 +531,7 @@ WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont);
 WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont);
 void AE_StackFontCharsFree(HSTACK *hStack);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
-void AE_StackPointSetModify(AKELEDIT *ae, BOOL bModify);
+void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags);
 void AE_StackPointReset(AKELEDIT *ae);
 void AE_StackPointDelete(AKELEDIT *ae, AEPOINT *lpElement);
 void AE_StackPointFree(AKELEDIT *ae);
@@ -559,7 +559,7 @@ AELINEDATA* AE_PrevIndex(AECHARINDEX *ciChar);
 int AE_IndexInc(AECHARINDEX *ciChar);
 int AE_IndexDec(AECHARINDEX *ciChar);
 int AE_IndexLen(AECHARINDEX *ciChar);
-DWORD AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
+int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
 DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, int nOffset, int nNewLine);
 BOOL AE_IndexNormalize(AECHARINDEX *ciChar);
 BOOL AE_IndexUpdate(AKELEDIT *ae, AECHARINDEX *ciChar);
