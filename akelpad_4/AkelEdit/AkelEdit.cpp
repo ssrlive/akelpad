@@ -2579,7 +2579,15 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_GETTEXTLENGTH)
     {
-      return -AE_IndexSubtract(ae, NULL, NULL, ae->popt->nOutputNewLine, FALSE, FALSE);
+      if (ae->popt->nOutputNewLine == AELB_ASIS)
+        return -AE_IndexSubtract(ae, NULL, NULL, ae->popt->nOutputNewLine, FALSE, FALSE);
+      if (ae->popt->nOutputNewLine == AELB_R || ae->popt->nOutputNewLine == AELB_N)
+        return ae->ptxt->nLastCharOffset;
+      if (ae->popt->nOutputNewLine == AELB_RN)
+        return ae->ptxt->nLastCharOffset + ae->ptxt->nLineCount;
+      if (ae->popt->nOutputNewLine == AELB_RRN)
+        return ae->ptxt->nLastCharOffset + ae->ptxt->nLineCount * 2;
+      return 0;
     }
     else if (uMsg == WM_GETTEXT)
     {
