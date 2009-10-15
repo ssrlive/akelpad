@@ -165,7 +165,7 @@
 #define AELB_ASIS     1  //Use new line of the source.
 #define AELB_ASINPUT  2  //Use input new line, see AEM_SETNEWLINE with AENL_INPUT.
 #define AELB_ASOUTPUT 3  //Use output new line, see AEM_SETNEWLINE with AENL_OUTPUT.
-#define AELB_EOF      4  //End-of-file new line.
+#define AELB_EOF      4  //End-of-file, last line in document.
 #define AELB_R        5  //"\r" new line.
 #define AELB_N        6  //"\n" new line.
 #define AELB_RN       7  //"\r\n" new line.
