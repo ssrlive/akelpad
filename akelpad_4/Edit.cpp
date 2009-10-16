@@ -14536,27 +14536,30 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
   {
     MSG *msg=(MSG *)lParam;
 
-    if (msg->message >= WM_KEYFIRST && msg->message <= WM_KEYLAST)
+    if (hWndHotkey && hWndHotkey == msg->hwnd)
     {
-      if (hWndHotkey && hWndHotkey == msg->hwnd)
+      if (msg->message >= WM_KEYFIRST && msg->message <= WM_KEYLAST)
       {
-        if (msg->wParam == VK_SPACE ||
-            msg->wParam == VK_RETURN ||
-            msg->wParam == VK_BACK ||
-            msg->wParam == VK_ESCAPE)
+        if (msg->message == WM_KEYDOWN ||
+            msg->message == WM_SYSKEYDOWN)
         {
-          if (msg->message == WM_KEYDOWN ||
-              msg->message == WM_SYSKEYDOWN)
-          {
-            BYTE nMod=0;
+          BYTE nMod=0;
 
-            if ((msg->lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
-            if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
-            if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
-            if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
+          if ((msg->lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
+          if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
+          if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
+          if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
+
+          if (msg->wParam == VK_SPACE ||
+              msg->wParam == VK_RETURN ||
+              msg->wParam == VK_ESCAPE ||
+              (msg->wParam == VK_BACK && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
+              (msg->wParam == VK_DELETE && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
+              (msg->wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)))
+          {
             SendMessage(hWndHotkey, HKM_SETHOTKEY, MAKEWORD(msg->wParam, nMod), 0);
+            msg->message=WM_NULL;
           }
-          msg->message=WM_NULL;
         }
       }
     }
