@@ -5,6 +5,9 @@ Changed: redesigned program icon. Added 16x16, 48x48 dimensions.
 Changed: speed of large text block selection is increased.
 Changed: navigation through the Ctrl+Down/Ctrl+Up is now identical to RichEdit.
 
+Added: now possible to assign hotkeys in plugins dialog:
+       (Ctrl|Alt|Shift)+Delete, (Ctrl|Alt|Shift)+Backspace, Ctrl+Tab, Ctrl+Shift+Tab.
+
 
 AkelPad 4.3.2 (Sep 22, 2009)
 ----------------------------
