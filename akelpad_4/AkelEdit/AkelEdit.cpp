@@ -14588,6 +14588,14 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
           AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECIL_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
           bSetCaretHorzIndent=FALSE;
         }
+        else
+        {
+          if (!AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCharIn, &ciCharOut, FALSE))
+          {
+            AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, FALSE);
+            AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCharOut, &ciCharOut, FALSE);
+          }
+        }
       }
     }
     else if (nVk == VK_DOWN)
@@ -14601,6 +14609,11 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         {
           AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECIL_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
           bSetCaretHorzIndent=FALSE;
+        }
+        else
+        {
+          AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCharIn, &ciCharOut, FALSE);
+          AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharOut, &ciCharOut, FALSE);
         }
       }
     }
