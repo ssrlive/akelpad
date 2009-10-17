@@ -2715,6 +2715,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_CHAR)
     {
+      LRESULT lResult=0;
+
       if (ae->popt->dwRichEventMask & ENM_KEYEVENTS)
         if (AE_NotifyMsgFilter(ae, uMsg, &wParam, &lParam))
           return 0;
@@ -2726,10 +2728,11 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (GetKeyState(VK_NUMLOCK))
           {
             AE_EditChar(ae, ae->nAltChar, TRUE);
+            lResult=1;
           }
         }
         ae->nAltChar=AEAC_NONE;
-        return 0;
+        return lResult;
       }
 
       if (wParam == VK_TAB || (wParam >= 0x20 && wParam != 0x7F))
@@ -2737,8 +2740,9 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!AE_IsReadOnly(ae))
         {
           AE_EditChar(ae, wParam, ae->bUnicodeWindow);
+          lResult=1;
         }
-        return 0;
+        return lResult;
       }
     }
     else if (uMsg == WM_DEADCHAR ||
