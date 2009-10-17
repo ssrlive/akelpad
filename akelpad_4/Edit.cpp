@@ -11526,10 +11526,7 @@ void ReplaceSelA(HWND hWnd, char *pData, int nDataLen, BOOL bColumnSel, AECHARIN
 
   rs.pText=pData;
   rs.dwTextLen=(DWORD)nDataLen;
-  if (bColumnSel == -1)
-    rs.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
-  else
-    rs.bColumnSel=bColumnSel;
+  rs.bColumnSel=bColumnSel;
   rs.ciInsertStart=ciInsertStart;
   rs.ciInsertEnd=ciInsertEnd;
   SendMessage(hWnd, AEM_REPLACESELA, 0, (LPARAM)&rs);
@@ -11541,10 +11538,7 @@ void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECH
 
   rs.pText=wpData;
   rs.dwTextLen=(DWORD)nDataLen;
-  if (bColumnSel == -1)
-    rs.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
-  else
-    rs.bColumnSel=bColumnSel;
+  rs.bColumnSel=bColumnSel;
   rs.ciInsertStart=ciInsertStart;
   rs.ciInsertEnd=ciInsertEnd;
   SendMessage(hWnd, AEM_REPLACESELW, 0, (LPARAM)&rs);
@@ -11557,10 +11551,7 @@ int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNe
   aeis.ciChar1=ciChar1;
   aeis.ciChar2=ciChar2;
   aeis.nNewLine=nNewLine;
-  if (bColumnSel == -1)
-    aeis.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
-  else
-    aeis.bColumnSel=bColumnSel;
+  aeis.bColumnSel=bColumnSel;
   return SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&aeis);
 }
 
@@ -11656,13 +11647,13 @@ int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
 
   tr.cr.ciMin=*ciMin;
   tr.cr.ciMax=*ciMax;
-  if (bColumnSel == -1)
-    tr.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
-  else
-    tr.bColumnSel=bColumnSel;
+  tr.bColumnSel=bColumnSel;
   tr.pBuffer=NULL;
   tr.dwBufferMax=(DWORD)-1;
   tr.nNewLine=nNewLine;
+  tr.nCodePage=CP_ACP;
+  tr.lpDefaultChar=NULL;
+  tr.lpUsedDefChar=NULL;
   tr.bFillSpaces=bFillSpaces;
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
@@ -11683,10 +11674,7 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
 
   tr.cr.ciMin=*ciMin;
   tr.cr.ciMax=*ciMax;
-  if (bColumnSel == -1)
-    tr.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
-  else
-    tr.bColumnSel=bColumnSel;
+  tr.bColumnSel=bColumnSel;
   tr.pBuffer=NULL;
   tr.dwBufferMax=(DWORD)-1;
   tr.nNewLine=nNewLine;
