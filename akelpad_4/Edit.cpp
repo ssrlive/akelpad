@@ -18680,16 +18680,15 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   char szStatus[MAX_PATH];
   int nLine;
   int nColumn;
+  BOOL bColumnSel;
 
   if (cr && ci)
   {
     crSel=*cr;
     ciCaret=*ci;
+    bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   }
-  else
-  {
-    GetSel(hWnd, &crSel, NULL, &ciCaret);
-  }
+  else GetSel(hWnd, &crSel, &bColumnSel, &ciCaret);
 
   if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
     nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
@@ -18704,12 +18703,12 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
   {
     wsprintfA(szStatus, "%u:%u", nLine + 1, nColumn);
-    nSelSubtract=0;
     crPrevSel=crSel;
+    nSelSubtract=0;
   }
   else
   {
-    if (!nSelSubtract || mod(crPrevSel.ciMin.nLine - crSel.ciMin.nLine) + mod(crPrevSel.ciMax.nLine - crSel.ciMax.nLine) >= crSel.ciMax.nLine - crSel.ciMin.nLine)
+    if (bColumnSel || !nSelSubtract || mod(crPrevSel.ciMin.nLine - crSel.ciMin.nLine) + mod(crPrevSel.ciMax.nLine - crSel.ciMax.nLine) >= crSel.ciMax.nLine - crSel.ciMin.nLine)
     {
       nSelSubtract=IndexSubtract(hWnd, &crSel.ciMax, &crSel.ciMin, AELB_ASOUTPUT, -1);
     }
@@ -18720,6 +18719,7 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     }
     wsprintfA(szStatus, "%u:%u, %u", nLine + 1, nColumn, nSelSubtract);
     crPrevSel=crSel;
+    if (bColumnSel) nSelSubtract=0;
   }
   SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
 }
@@ -18729,16 +18729,15 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   wchar_t wszStatus[MAX_PATH];
   int nLine;
   int nColumn;
+  BOOL bColumnSel;
 
   if (cr && ci)
   {
     crSel=*cr;
     ciCaret=*ci;
+    bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   }
-  else
-  {
-    GetSel(hWnd, &crSel, NULL, &ciCaret);
-  }
+  else GetSel(hWnd, &crSel, &bColumnSel, &ciCaret);
 
   if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
     nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
@@ -18753,12 +18752,12 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
   {
     wsprintfW(wszStatus, L"%u:%u", nLine + 1, nColumn);
-    nSelSubtract=0;
     crPrevSel=crSel;
+    nSelSubtract=0;
   }
   else
   {
-    if (!nSelSubtract || mod(crPrevSel.ciMin.nLine - crSel.ciMin.nLine) + mod(crPrevSel.ciMax.nLine - crSel.ciMax.nLine) >= crSel.ciMax.nLine - crSel.ciMin.nLine)
+    if (bColumnSel || !nSelSubtract || mod(crPrevSel.ciMin.nLine - crSel.ciMin.nLine) + mod(crPrevSel.ciMax.nLine - crSel.ciMax.nLine) >= crSel.ciMax.nLine - crSel.ciMin.nLine)
     {
       nSelSubtract=IndexSubtract(hWnd, &crSel.ciMax, &crSel.ciMin, AELB_ASOUTPUT, -1);
     }
@@ -18769,6 +18768,7 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     }
     wsprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn, nSelSubtract);
     crPrevSel=crSel;
+    if (bColumnSel) nSelSubtract=0;
   }
   SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
 }
