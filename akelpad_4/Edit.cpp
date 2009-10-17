@@ -269,6 +269,7 @@ extern BOOL bPrintFontChanged;
 //Edit state
 extern RECT rcEditWindow;
 extern AECHARRANGE crSel;
+extern AECHARRANGE crPrevSel;
 extern AECHARINDEX ciCaret;
 extern BOOL bModified;
 extern BOOL bInsertState;
@@ -288,6 +289,7 @@ extern BOOL bWatchFile;
 extern BOOL bSingleOpenFile;
 extern BOOL bSingleOpenProgram;
 extern BOOL bKeepSpace;
+extern int nSelSubtract;
 extern int nLoopCase;
 extern DWORD dwEditMargins;
 extern int nTabStopSize;
@@ -1167,7 +1169,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
     else
       ciInitialCaret=crInitialSel.ciMax;
 
-    if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMin, &crRange.ciMax, AELB_ASIS, FALSE))
+    if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMax, &crRange.ciMin, AELB_ASIS, FALSE))
     {
       nStringLen=wcslen(wpString);
       nStringBytes=nStringLen * sizeof(wchar_t);
@@ -10850,8 +10852,8 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
           //Remember selection
           if (nNewLine == AELB_ASIS)
           {
-            crInitialRE.cpMin=IndexSubtract(hWnd, NULL, &crSel.ciMin, nNewLine, FALSE);
-            crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, nNewLine, FALSE);
+            crInitialRE.cpMin=-IndexSubtract(hWnd, NULL, &crSel.ciMin, nNewLine, FALSE);
+            crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(hWnd, &crSel.ciMax, &crSel.ciMin, nNewLine, FALSE);
           }
           else SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
@@ -10870,7 +10872,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
           SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-            nFirstVisible=IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, nNewLine, FALSE);
+            nFirstVisible=IndexSubtract(hWnd, &crRange.ciMin, &ciFirstVisibleBefore, nNewLine, FALSE);
           else
             nFirstVisible=-0x7FFFFFFF;
 
@@ -11069,8 +11071,8 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
           //Remember selection
           if (nNewLine == AELB_ASIS)
           {
-            crInitialRE.cpMin=IndexSubtract(hWnd, NULL, &crSel.ciMin, nNewLine, FALSE);
-            crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, nNewLine, FALSE);
+            crInitialRE.cpMin=-IndexSubtract(hWnd, NULL, &crSel.ciMin, nNewLine, FALSE);
+            crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(hWnd, &crSel.ciMax, &crSel.ciMin, nNewLine, FALSE);
           }
           else SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
@@ -11089,7 +11091,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
           SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-            nFirstVisible=IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, nNewLine, FALSE);
+            nFirstVisible=IndexSubtract(hWnd, &crRange.ciMin, &ciFirstVisibleBefore, nNewLine, FALSE);
           else
             nFirstVisible=-0x7FFFFFFF;
 
@@ -11551,7 +11553,6 @@ void ReplaceSelW(HWND hWnd, wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECH
 int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel)
 {
   AEINDEXSUBTRACT aeis;
-  int nSubtract;
 
   aeis.ciChar1=ciChar1;
   aeis.ciChar2=ciChar2;
@@ -11560,8 +11561,7 @@ int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNe
     aeis.bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   else
     aeis.bColumnSel=bColumnSel;
-  nSubtract=SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&aeis);
-  return mod(nSubtract);
+  return SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&aeis);
 }
 
 int IndexOffset(HWND hWnd, AECHARINDEX *ciChar, int nOffset, int nNewLine)
@@ -11974,7 +11974,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
-          a=IndexSubtract(hWndEdit, NULL, &ciCaret, AELB_ASIS, FALSE);
+          a=-IndexSubtract(hWndEdit, NULL, &ciCaret, AELB_ASIS, FALSE);
           SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, a, FALSE);
           SendMessage(hWndNumber, EM_SETSEL, 0, -1);
         }
@@ -12105,7 +12105,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
-          a=IndexSubtract(hWndEdit, NULL, &ciCaret, AELB_ASIS, FALSE);
+          a=-IndexSubtract(hWndEdit, NULL, &ciCaret, AELB_ASIS, FALSE);
           SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, a, FALSE);
           SendMessage(hWndNumber, EM_SETSEL, 0, -1);
         }
@@ -18702,10 +18702,25 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+  {
     wsprintfA(szStatus, "%u:%u", nLine + 1, nColumn);
+    nSelSubtract=0;
+    crPrevSel=crSel;
+  }
   else
-    wsprintfA(szStatus, "%u:%u, %u", nLine + 1, nColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
-
+  {
+    if (!nSelSubtract || mod(crPrevSel.ciMin.nLine - crSel.ciMin.nLine) + mod(crPrevSel.ciMax.nLine - crSel.ciMax.nLine) >= crSel.ciMax.nLine - crSel.ciMin.nLine)
+    {
+      nSelSubtract=IndexSubtract(hWnd, &crSel.ciMax, &crSel.ciMin, AELB_ASOUTPUT, -1);
+    }
+    else
+    {
+      nSelSubtract+=IndexSubtract(hWnd, &crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
+      nSelSubtract+=IndexSubtract(hWnd, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
+    }
+    wsprintfA(szStatus, "%u:%u, %u", nLine + 1, nColumn, nSelSubtract);
+    crPrevSel=crSel;
+  }
   SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
 }
 
@@ -18736,10 +18751,25 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+  {
     wsprintfW(wszStatus, L"%u:%u", nLine + 1, nColumn);
+    nSelSubtract=0;
+    crPrevSel=crSel;
+  }
   else
-    wsprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn, IndexSubtract(hWnd, &crSel.ciMin, &crSel.ciMax, AELB_ASOUTPUT, -1));
-
+  {
+    if (!nSelSubtract || mod(crPrevSel.ciMin.nLine - crSel.ciMin.nLine) + mod(crPrevSel.ciMax.nLine - crSel.ciMax.nLine) >= crSel.ciMax.nLine - crSel.ciMin.nLine)
+    {
+      nSelSubtract=IndexSubtract(hWnd, &crSel.ciMax, &crSel.ciMin, AELB_ASOUTPUT, -1);
+    }
+    else
+    {
+      nSelSubtract+=IndexSubtract(hWnd, &crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
+      nSelSubtract+=IndexSubtract(hWnd, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
+    }
+    wsprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn, nSelSubtract);
+    crPrevSel=crSel;
+  }
   SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
 }
 

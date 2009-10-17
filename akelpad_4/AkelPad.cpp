@@ -295,6 +295,7 @@ BOOL bPrintFontChanged=FALSE;
 
 //Edit state
 AECHARRANGE crSel={0};
+AECHARRANGE crPrevSel={0};
 AECHARINDEX ciCaret={0};
 BOOL bModified=FALSE;
 BOOL bInsertState=FALSE;
@@ -314,6 +315,7 @@ BOOL bWatchFile=FALSE;
 BOOL bSingleOpenFile=FALSE;
 BOOL bSingleOpenProgram=TRUE;
 BOOL bKeepSpace=FALSE;
+int nSelSubtract=0;
 int nLoopCase=0;
 RECT rcEditWindow={0};
 DWORD dwEditMargins=EDIT_MARGINS;
@@ -2473,7 +2475,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //AkelPad 4.x only messages
     if (uMsg == AKD_EXGETTEXTLENGTH)
     {
-      return IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
+      return -IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
     }
     if (uMsg == AKD_EXGETTEXTRANGEA)
     {
@@ -4369,7 +4371,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //AkelPad 4.x only messages
     if (uMsg == AKD_EXGETTEXTLENGTH)
     {
-      return IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
+      return -IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
     }
     if (uMsg == AKD_EXGETTEXTRANGEA)
     {
