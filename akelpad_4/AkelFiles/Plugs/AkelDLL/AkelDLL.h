@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 3)
 
 
 //// Defines
@@ -497,6 +497,9 @@ typedef struct _EXGETTEXTRANGE {
                                   //char *pText      if bOldWindows == TRUE
                                   //wchar_t *pText   if bOldWindows == FALSE
   int nNewLine;                   //see AELB_* defines
+  int nCodePage;                  //Valid if bOldWindows == TRUE. Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
+  char *lpDefaultChar;            //Valid if bOldWindows == TRUE. Points to the character used if a wide character cannot be represented in the specified code page. If this member is NULL, a system default value is used.
+  BOOL *lpUsedDefChar;            //Valid if bOldWindows == TRUE. Points to a flag that indicates whether a default character was used. The flag is set to TRUE if one or more wide characters in the source string cannot be represented in the specified code page. Otherwise, the flag is set to FALSE. This member may be NULL.
 } EXGETTEXTRANGE;
 #endif
 
@@ -3056,6 +3059,9 @@ Example:
  SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
  tr.pText=NULL;
  tr.nNewLine=AELB_ASIS;
+ tr.nCodePage=CP_ACP;
+ tr.lpDefaultChar=NULL;
+ tr.lpUsedDefChar=NULL;
 
  if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEA, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
  {
