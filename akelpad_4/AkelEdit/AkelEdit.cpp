@@ -460,7 +460,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         AETEXTRANGEA *tr=(AETEXTRANGEA *)lParam;
 
-        return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &tr->cr.ciMin, &tr->cr.ciMax, tr->pBuffer, tr->dwBufferMax, tr->nNewLine, tr->bColumnSel, tr->bFillSpaces);
+        return AE_GetTextRangeAnsi(ae, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->pBuffer, tr->dwBufferMax, tr->nNewLine, tr->bColumnSel, tr->bFillSpaces);
       }
       if (uMsg == AEM_GETTEXTRANGEW)
       {
@@ -5370,6 +5370,8 @@ int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX
   int nCount=0;
   int nCompare;
   int nLineBreak;
+
+  if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
 
   //Set new line
   if (nNewLine == AELB_ASINPUT)
@@ -11298,6 +11300,8 @@ DWORD AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHA
 
   if (ciStart.lpLine && ciEnd.lpLine)
   {
+    if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
+
     //Exchange indexes
     if (AE_IndexCompare(&ciStart, &ciEnd) > 0)
     {
@@ -12208,10 +12212,12 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
   wchar_t *wszBuf;
   int nNewLine=aeso->nNewLine;
   int nLineBreak;
+  BOOL bColumnSel=aeso->bColumnSel;
   DWORD dwBufLen=2048;
   DWORD dwBufCount=0;
   DWORD dwResult=0;
 
+  if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
   aeso->dwError=0;
 
   //Set new line
@@ -12235,7 +12241,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
   {
     while (ciCount.lpLine)
     {
-      if (aeso->bColumnSel)
+      if (bColumnSel)
       {
         ciCount.nCharInLine=ciCount.lpLine->nSelStart;
 
@@ -12364,6 +12370,8 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bC
   int nSelStartCharOffset;
   int nSelEndCharOffset;
 
+  if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
+
   AE_NotifyChanging(ae, AETCT_APPENDTEXT);
   AE_StackUndoGroupStop(ae);
   AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
@@ -12415,6 +12423,8 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bC
 {
   AECHARINDEX ciStart={0};
   AECHARINDEX ciEnd={0};
+
+  if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
 
   AE_NotifyChanging(ae, AETCT_REPLACESEL);
   AE_StackUndoGroupStop(ae);

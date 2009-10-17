@@ -436,19 +436,19 @@ typedef struct _AEPOINT {
 typedef struct {
   char *pText;        //[in] Text to append.
   DWORD dwTextLen;    //[in] Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //[in] Column selection.
+  BOOL bColumnSel;    //[in] Column selection. If this value is –1, use current selection type.
 } AEAPPENDTEXTA;
 
 typedef struct {
   wchar_t *pText;     //[in] Text to append.
   DWORD dwTextLen;    //[in] Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //[in] Column selection.
+  BOOL bColumnSel;    //[in] Column selection. If this value is –1, use current selection type.
 } AEAPPENDTEXTW;
 
 typedef struct {
   char *pText;                 //[in]  Text to replace with.
   DWORD dwTextLen;             //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;             //[in]  Column selection.
+  BOOL bColumnSel;             //[in]  Column selection. If this value is –1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
   AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
 } AEREPLACESELA;
@@ -456,27 +456,33 @@ typedef struct {
 typedef struct {
   wchar_t *pText;              //[in]  Text to replace with.
   DWORD dwTextLen;             //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;             //[in]  Column selection.
+  BOOL bColumnSel;             //[in]  Column selection. If this value is –1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
   AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
 } AEREPLACESELW;
 
 typedef struct {
-  AECHARRANGE cr;     //[in]  Characters range to retrieve.
-  BOOL bColumnSel;    //[in]  Column selection.
-  char *pBuffer;      //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
-  DWORD dwBufferMax;  //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
-  int nNewLine;       //[in]  See AELB_* defines.
-  BOOL bFillSpaces;   //[in]  If bColumnSel is TRUE, fill empties with spaces.
+  AECHARRANGE cr;      //[in]  Characters range to retrieve.
+  BOOL bColumnSel;     //[in]  Column selection. If this value is –1, use current selection type.
+  char *pBuffer;       //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
+  DWORD dwBufferMax;   //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
+  int nNewLine;        //[in]  See AELB_* defines.
+  int nCodePage;       //[in]  Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
+  char *lpDefaultChar; //[in]  Points to the character used if a wide character cannot be represented in the specified code page. If this member is NULL, a system default value is used.
+  BOOL *lpUsedDefChar; //[in]  Points to a flag that indicates whether a default character was used. The flag is set to TRUE if one or more wide characters in the source string cannot be represented in the specified code page. Otherwise, the flag is set to FALSE. This member may be NULL.
+  BOOL bFillSpaces;    //[in]  If bColumnSel is TRUE, fill empties with spaces.
 } AETEXTRANGEA;
 
 typedef struct {
-  AECHARRANGE cr;     //[in]  Characters range to retrieve.
-  BOOL bColumnSel;    //[in]  Column selection.
-  wchar_t *pBuffer;   //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
-  DWORD dwBufferMax;  //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
-  int nNewLine;       //[in]  See AELB_* defines.
-  BOOL bFillSpaces;   //[in]  If bColumnSel is TRUE, fill empties with spaces.
+  AECHARRANGE cr;      //[in]  Characters range to retrieve.
+  BOOL bColumnSel;     //[in]  Column selection. If this value is –1, use current selection type.
+  wchar_t *pBuffer;    //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
+  DWORD dwBufferMax;   //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
+  int nNewLine;        //[in]  See AELB_* defines.
+  int nCodePage;       //[in]  Ignored. Code page is always 1200 (UTF-16 LE).
+  char *lpDefaultChar; //[in]  Ignored.
+  BOOL *lpUsedDefChar; //[in]  Ignored.
+  BOOL bFillSpaces;    //[in]  If bColumnSel is TRUE, fill empties with spaces.
 } AETEXTRANGEW;
 
 typedef struct {
@@ -493,7 +499,7 @@ typedef struct {
   DWORD dwError;                //[out] Indicates the results of the stream-out (write) operation.
   AEStreamCallback lpCallback;  //[in]  Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
   int nNewLine;                 //[in]  See AELB_* defines.
-  BOOL bColumnSel;              //[in]  Column selection.
+  BOOL bColumnSel;              //[in]  Column selection. If this value is –1, use current selection type.
 } AESTREAMOUT;
 
 typedef struct {
@@ -538,7 +544,7 @@ typedef struct {
 typedef struct {
   AECHARINDEX *ciChar1;   //[in] First character index.
   AECHARINDEX *ciChar2;   //[in] Second character index.
-  BOOL bColumnSel;        //[in] Column selection.
+  BOOL bColumnSel;        //[in] Column selection. If this value is –1, use current selection type.
   int nNewLine;           //[in] See AELB_* defines.
 } AEINDEXSUBTRACT;
 
@@ -1394,6 +1400,9 @@ Example:
  SendMessage(hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr);
  tr.pText=NULL;
  tr.nNewLine=AELB_ASOUTPUT;
+ tr.nCodePage=CP_ACP;
+ tr.lpDefaultChar=NULL;
+ tr.lpUsedDefChar=NULL;
  tr.bFillSpaces=FALSE;
 
  if (nLen=SendMessage(hWndEdit, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
