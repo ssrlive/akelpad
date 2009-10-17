@@ -4,11 +4,15 @@
 #include "Resources\resource.h"
 
 
+//// Defines
+
+#define APP_NAMEA    "AkelPad redirector"
+#define APP_NAMEW   L"AkelPad redirector"
+
 //// Functions prototypes
 
 char* GetCommandLineParamsA();
 wchar_t* GetCommandLineParamsW();
-
 
 //// Global variables
 
@@ -80,7 +84,7 @@ extern "C" void _WinMain()
         }
         if (dwResult != ERROR_SUCCESS)
         {
-          MessageBox(NULL, "Can't write: \"HKEY_LOCAL_MACHINE\\Software\\Akelsoft\\AkelPad\"", "AkelPad redirector", MB_ICONERROR);
+          MessageBox(NULL, "Can't write: \"HKEY_LOCAL_MACHINE\\Software\\Akelsoft\\AkelPad\"", APP_NAMEA, MB_ICONERROR);
           goto Quit;
         }
       }
@@ -148,7 +152,7 @@ extern "C" void _WinMain()
         }
         if (dwResult != ERROR_SUCCESS)
         {
-          MessageBox(NULL, "Can't write: \"HKEY_LOCAL_MACHINE\\Software\\Akelsoft\\AkelPad\"", "AkelPad redirector", MB_ICONERROR);
+          MessageBoxW(NULL, L"Can't write: \"HKEY_LOCAL_MACHINE\\Software\\Akelsoft\\AkelPad\"", APP_NAMEW, MB_ICONERROR);
           goto Quit;
         }
       }
