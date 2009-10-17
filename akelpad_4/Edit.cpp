@@ -1498,7 +1498,7 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     bSelection=TRUE;
   }
 
-  if (nRangeLen=ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, -1, &szRange, AELB_ASIS, TRUE))
+  if (nRangeLen=ExGetRangeTextA(hWnd, CP_ACP, NULL, NULL, &crRange.ciMin, &crRange.ciMax, -1, &szRange, AELB_ASIS, TRUE))
   {
     pStart=szRange;
     pEnd=pStart + nRangeLen;
@@ -9613,7 +9613,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else
     {
-      if (ExGetRangeTextA(hWndEdit, &crSel.ciMin, &crSel.ciMax, FALSE, &szData, AELB_R, FALSE))
+      if (ExGetRangeTextA(hWndEdit, CP_ACP, NULL, NULL, &crSel.ciMin, &crSel.ciMax, FALSE, &szData, AELB_R, FALSE))
       {
         SetWindowTextA(hWndFind, szData);
         FreeText((LPVOID)szData);
@@ -10843,7 +10843,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
       }
     }
 
-    if (nRangeTextLen=ExGetRangeTextA(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szRangeText, nNewLine, TRUE))
+    if (nRangeTextLen=ExGetRangeTextA(hWnd, CP_ACP, NULL, NULL, &crRange.ciMin, &crRange.ciMax, bColumnSel, &szRangeText, nNewLine, TRUE))
     {
       if (StrReplaceA(szRangeText, nRangeTextLen, pFindIt, nFindItLen, pReplaceWith, nReplaceWithLen, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
       {
@@ -11640,7 +11640,7 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
   return 0;
 }
 
-int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces)
+int ExGetRangeTextA(HWND hWnd, int nCodePage, char *lpDefaultChar, BOOL *lpUsedDefChar, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces)
 {
   AETEXTRANGEA tr;
   int nLen;
@@ -11651,9 +11651,9 @@ int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
   tr.pBuffer=NULL;
   tr.dwBufferMax=(DWORD)-1;
   tr.nNewLine=nNewLine;
-  tr.nCodePage=CP_ACP;
-  tr.lpDefaultChar=NULL;
-  tr.lpUsedDefChar=NULL;
+  tr.nCodePage=nCodePage;
+  tr.lpDefaultChar=lpDefaultChar;
+  tr.lpUsedDefChar=lpUsedDefChar;
   tr.bFillSpaces=bFillSpaces;
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))

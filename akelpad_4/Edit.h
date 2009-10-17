@@ -618,7 +618,7 @@ void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar);
 int GetTextLength(HWND hWnd);
 int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText);
 int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText);
-int ExGetRangeTextA(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces);
+int ExGetRangeTextA(HWND hWnd, int nCodePage, char *lpDefaultChar, BOOL *lpUsedDefChar, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces);
 int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine, BOOL bFillSpaces);
 BOOL FreeText(LPVOID pText);
 BOOL PasteInEditAsRichEdit(HWND hWnd);

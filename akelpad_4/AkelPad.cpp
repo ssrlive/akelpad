@@ -2481,7 +2481,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
+      return ExGetRangeTextA((HWND)wParam, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
@@ -4377,7 +4377,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
 
-      return ExGetRangeTextA((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
+      return ExGetRangeTextA((HWND)wParam, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
     }
     if (uMsg == AKD_EXGETTEXTRANGEW)
     {
@@ -5527,7 +5527,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
             if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
             {
-              if (ExGetRangeTextA(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &szURL, AELB_ASIS, FALSE))
+              if (ExGetRangeTextA(hWndEdit, CP_ACP, NULL, NULL, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &szURL, AELB_ASIS, FALSE))
               {
                 ShellExecuteA(hWndEdit, "open", szURL, NULL, NULL, SW_SHOWNORMAL);
                 FreeText(szURL);
