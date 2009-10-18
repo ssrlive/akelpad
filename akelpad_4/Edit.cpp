@@ -11816,6 +11816,8 @@ BOOL ColumnPaste(HWND hWnd)
   int i;
   BOOL bResult=FALSE;
 
+  if (IsReadOnly()) return FALSE;
+
   if (SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0) && nLineRange > 0)
   {
      if (OpenClipboard(hWnd))
