@@ -10872,7 +10872,7 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
           SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-            nFirstVisible=IndexSubtract(hWnd, &crRange.ciMin, &ciFirstVisibleBefore, nNewLine, FALSE);
+            nFirstVisible=IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, nNewLine, FALSE);
           else
             nFirstVisible=-0x7FFFFFFF;
 
@@ -11091,7 +11091,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wc
           SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
 
           if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-            nFirstVisible=IndexSubtract(hWnd, &crRange.ciMin, &ciFirstVisibleBefore, nNewLine, FALSE);
+            nFirstVisible=IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, nNewLine, FALSE);
           else
             nFirstVisible=-0x7FFFFFFF;
 
