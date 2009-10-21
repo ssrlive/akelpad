@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v1.8                  *
+ *                 AkelUpdater NSIS plugin v2.0                  *
  *                                                               *
  * 2009 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -99,6 +99,7 @@ __INST_LAST
 char szBuf[NSIS_MAX_STRLEN];
 char szBuf2[NSIS_MAX_STRLEN];
 HINSTANCE hInstanceDLL=NULL;
+HINSTANCE hInstanceEXE=NULL;
 WORD wLangSystem;
 RECT rcInitDialog={0};
 RECT rcMainDialog={0};
@@ -122,6 +123,7 @@ extern "C" void __declspec(dllexport) List(HWND hwndParent, int string_size, cha
   EXDLL_INIT();
   {
     popstring(szBuf, MAX_PATH);
+    hInstanceEXE=GetModuleHandleA(NULL);
     wLangSystem=PRIMARYLANGID(GetUserDefaultLangID());
     DialogBoxA(hInstanceDLL, MAKEINTRESOURCEA(IDD_SETUP), hwndParent, (DLGPROC)SetupDlgProcA);
   }
@@ -205,7 +207,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     int nCompareResult;
     int nIndex;
 
-    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIconA(hInstanceDLL, MAKEINTRESOURCEA(IDI_ICON)));
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIconA(hInstanceEXE, MAKEINTRESOURCEA(IDI_ICON)));
     hWndGroupExe=GetDlgItem(hDlg, IDC_GROUP_EXE);
     hWndListExe=GetDlgItem(hDlg, IDC_LIST_EXE);
     hWndLanguage=GetDlgItem(hDlg, IDC_LANGUAGE);

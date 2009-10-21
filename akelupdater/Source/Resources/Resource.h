@@ -2,8 +2,8 @@
 // Microsoft Developer Studio generated include file.
 // Used by AkelUpdater.rc
 //
+#define IDI_ICON                        103
 #define IDD_SETUP                       1001
-#define IDI_ICON                        1051
 #define IDC_GROUP_EXE                   1101
 #define IDC_LIST_EXE                    1102
 #define IDC_LIST_DLL                    1103
