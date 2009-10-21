@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "2.3"
+!define PRODUCT_VERSION "2.4"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -50,7 +50,7 @@ LangString close ${LANG_RUSSIAN} '&Закрыть'
 LangString completed ${LANG_ENGLISH} 'Completed'
 LangString completed ${LANG_RUSSIAN} 'Завершено'
 
-icon "Source\Resources\AkelUpdater.ico"
+icon "AkelUpdater.ico"
 Caption "${PRODUCT_NAME}"
 SubCaption 4 " "
 BrandingText "${PRODUCT_NAME} ${PRODUCT_VERSION}"
