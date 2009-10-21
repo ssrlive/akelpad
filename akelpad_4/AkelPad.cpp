@@ -5517,23 +5517,32 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       else if (((NMHDR *)lParam)->code == AEN_LINK)
       {
         AENLINK *aenl=(AENLINK *)lParam;
+        static BOOL bDownURL=FALSE;
 
         if (aenl->hdr.hwndFrom == hWndEdit)
         {
-          if ((nClickURL == 1 && aenl->uMsg == WM_LBUTTONUP) ||
-              (nClickURL == 2 && aenl->uMsg == WM_LBUTTONDBLCLK))
+          if (nClickURL == 1 && aenl->uMsg == WM_LBUTTONDOWN)
           {
-            char *szURL;
-
-            if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+            bDownURL=TRUE;
+          }
+          else
+          {
+            if ((nClickURL == 1 && aenl->uMsg == WM_LBUTTONUP && bDownURL) ||
+                (nClickURL == 2 && aenl->uMsg == WM_LBUTTONDBLCLK))
             {
-              if (ExGetRangeTextA(hWndEdit, CP_ACP, NULL, NULL, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &szURL, AELB_ASIS, FALSE))
+              char *szURL;
+
+              if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
               {
-                ShellExecuteA(hWndEdit, "open", szURL, NULL, NULL, SW_SHOWNORMAL);
-                FreeText(szURL);
+                if (ExGetRangeTextA(hWndEdit, CP_ACP, NULL, NULL, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &szURL, AELB_ASIS, FALSE))
+                {
+                  ShellExecuteA(hWndEdit, "open", szURL, NULL, NULL, SW_SHOWNORMAL);
+                  FreeText(szURL);
+                }
+                return TRUE;
               }
-              return TRUE;
             }
+            bDownURL=FALSE;
           }
         }
       }
@@ -5798,23 +5807,32 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       else if (((NMHDR *)lParam)->code == AEN_LINK)
       {
         AENLINK *aenl=(AENLINK *)lParam;
+        static BOOL bDownURL=FALSE;
 
         if (aenl->hdr.hwndFrom == hWndEdit)
         {
-          if ((nClickURL == 1 && aenl->uMsg == WM_LBUTTONUP) ||
-              (nClickURL == 2 && aenl->uMsg == WM_LBUTTONDBLCLK))
+          if (nClickURL == 1 && aenl->uMsg == WM_LBUTTONDOWN)
           {
-            wchar_t *wszURL;
-
-            if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+            bDownURL=TRUE;
+          }
+          else
+          {
+            if ((nClickURL == 1 && aenl->uMsg == WM_LBUTTONUP && bDownURL) ||
+                (nClickURL == 2 && aenl->uMsg == WM_LBUTTONDBLCLK))
             {
-              if (ExGetRangeTextW(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &wszURL, AELB_ASIS, FALSE))
+              wchar_t *wszURL;
+
+              if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
               {
-                ShellExecuteW(hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
-                FreeText(wszURL);
+                if (ExGetRangeTextW(hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &wszURL, AELB_ASIS, FALSE))
+                {
+                  ShellExecuteW(hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
+                  FreeText(wszURL);
+                }
+                return TRUE;
               }
-              return TRUE;
             }
+            bDownURL=FALSE;
           }
         }
       }
