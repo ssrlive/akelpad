@@ -116,12 +116,6 @@
 #define AEGI_PREVLINE               9  //First character of the previous line. lParam must point to an input index.
 #define AEGI_NEXTCHAR              10  //Next wide character. lParam must point to an input index.
 #define AEGI_PREVCHAR              11  //Previous wide character. lParam must point to an input index.
-#define AEGI_NEXTBREAK             12  //Next break index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
-#define AEGI_PREVBREAK             13  //Previous break index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
-#define AEGI_NEXTWORDSTART         14  //Next word start index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters in word as AEM_GETINDEX result.
-#define AEGI_NEXTWORDEND           15  //Next word end index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters in word as AEM_GETINDEX result.
-#define AEGI_PREVWORDSTART         16  //Previous word start index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters in word as AEM_GETINDEX result.
-#define AEGI_PREVWORDEND           17  //Previous word end index, see AEM_SETWORDDELIMITERS. lParam must point to an input index. Returns number of characters in word as AEM_GETINDEX result.
 #define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.
@@ -846,6 +840,8 @@ typedef struct {
 #define AEM_GETINDEXCOLUMN        (WM_USER + 2116)
 #define AEM_GETWRAPLINE           (WM_USER + 2117)
 #define AEM_GETUNWRAPLINE         (WM_USER + 2118)
+#define AEM_GETNEXTBREAK          (WM_USER + 2119)
+#define AEM_GETPREVBREAK          (WM_USER + 2120)
 
 //Screen coordinates
 #define AEM_CHARFROMPOS           (WM_USER + 2151)
@@ -2399,6 +2395,42 @@ Example:
    nUnwrappedLine=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
  else
    nUnwrappedLine=ciCaret.nLine;
+
+
+AEM_GETNEXTBREAK
+________________
+
+Retrieve next word break index.
+
+(DWORD)wParam         == see AEWB_* defines. If zero, use current word break settings, see AEM_SETWORDBREAK message.
+(AECHARINDEX *)lParam == character index (input/output).
+
+Return Value
+ Number of characters to break.
+
+Example:
+ AECHARINDEX ciCaret;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_GETNEXTBREAK, AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND, (LPARAM)&ciCaret);
+
+
+AEM_GETPREVBREAK
+________________
+
+Retrieve previous word break index.
+
+(DWORD)wParam         == see AEWB_* defines. If zero, use current word break settings, see AEM_SETWORDBREAK message.
+(AECHARINDEX *)lParam == character index (input/output).
+
+Return Value
+ Number of characters to break.
+
+Example:
+ AECHARINDEX ciCaret;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_GETPREVBREAK, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND, (LPARAM)&ciCaret);
 
 
 AEM_CHARFROMPOS
