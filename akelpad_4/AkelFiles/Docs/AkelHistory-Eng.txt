@@ -2,6 +2,9 @@
 AkelPad 4.3.4 ()
 ----------------------------
 Fixed: after all text replacing in 4.3.3, scrolling position did not recover.
+Fixed: WordBreak parameter.
+Fixed: opening link that contain another link.
+Fixed: single URL click.
 
 
 AkelPad 4.3.3 (Oct 17, 2009)
