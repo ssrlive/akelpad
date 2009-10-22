@@ -7215,6 +7215,7 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   AECHARINDEX ciCount;
   int nPrefix;
   DWORD dwLinkLen=0;
+  DWORD dwBackwardMatch=0;
 
   crRange->ciMin.lpLine=NULL;
   crRange->ciMax.lpLine=NULL;
@@ -7233,12 +7234,12 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     while (ciCount.nCharInLine >= 0)
     {
       if (AE_IndexCompare(&ciCount, &crRange->ciMax) < 0)
-        return 0;
+        goto FindUrlEnding;
       dwLinkLen+=AE_IndexLen(&ciCount);
       if (dwLinkLen > ae->popt->dwUrlMaxLength)
-        return 0;
+        goto FindUrlEnding;
       if (AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, ciCount.lpLine->wpLine[ciCount.nCharInLine], TRUE))
-        return 0;
+        goto FindUrlEnding;
 
       if (AE_IsDelimiter(ae, &ciCount, AEDLM_URLLEFT|AEDLM_PREVCHAR))
       {
@@ -7249,12 +7250,13 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           if (AE_IsMatch(ae, &ft, &ciCount))
           {
             crRange->ciMin=ciCount;
-            goto FindUrlEnding;
+            dwBackwardMatch=dwLinkLen;
+            break;
           }
         }
       }
       if (dwSearchType & AEHF_ISFIRSTCHAR)
-        return 0;
+        goto FindUrlEnding;
       AE_IndexDec(&ciCount);
     }
 
@@ -7263,12 +7265,13 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
       AE_PrevLine(&ciCount);
       AE_IndexDec(&ciCount);
     }
-    else return 0;
+    else goto FindUrlEnding;
   }
-  return 0;
 
   //Find URL ending (forward)
   FindUrlEnding:
+  if (!dwBackwardMatch) return 0;
+  dwLinkLen=dwBackwardMatch;
   ciCount=*ciChar;
   AE_IndexInc(&ciCount);
 
