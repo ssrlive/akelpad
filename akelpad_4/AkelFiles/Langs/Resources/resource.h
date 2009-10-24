@@ -105,6 +105,7 @@
 #define IDC_OFN_CODEPAGE_LABEL          2551
 #define IDC_MDILIST_LIST                2552
 #define IDC_MDILIST_SEARCH              2553
+#define IDC_MDILIST_ONLYMODIFIED        2554
 #define IDC_PREVIEW_BOX                 3001
 #define IDC_PREVIEW_PRINT               3002
 #define IDC_PREVIEW_PAGESETUP           3003
