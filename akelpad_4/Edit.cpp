@@ -18631,37 +18631,34 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 {
   static HWND hWndList;
   static HWND hWndSearch;
+  static HWND hWndOnlyModified;
   static HWND hWndOK;
   static HWND hWndCancel;
-  static DIALOGRESIZE drs[]={{&hWndList,   DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndSearch, DRS_SIZE|DRS_X},
-                             {&hWndSearch, DRS_MOVE|DRS_Y},
-                             {&hWndOK,     DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndCancel, DRS_MOVE|DRS_X|DRS_Y},
+  static BOOL bOnlyModified;
+  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndSearch,       DRS_SIZE|DRS_X},
+                             {&hWndSearch,       DRS_MOVE|DRS_Y},
+                             {&hWndOnlyModified, DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndOK,           DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
                              {0, 0}};
   int nItem;
 
   if (uMsg == WM_INITDIALOG)
   {
     TCITEMA tcItemA;
+    WNDFRAMEA *wf;
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
     hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
+    hWndOnlyModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
 
-    for (nItem=0; 1; ++nItem)
-    {
-      tcItemA.mask=TCIF_PARAM;
-      if (!SendMessage(hTab, TCM_GETITEMA, nItem, (LPARAM)&tcItemA))
-        break;
-
-      GetWindowTextA((HWND)tcItemA.lParam, buf, MAX_PATH);
-      SendMessageA(hWndList, LB_INSERTSTRING, nItem, (LPARAM)buf);
-    }
+    FillMdiListListboxA(hWndList, FALSE);
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
       SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
   }
@@ -18688,6 +18685,11 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
           }
         }
       }
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
+    {
+      bOnlyModified=SendMessage(hWndOnlyModified, BM_GETCHECK, 0, 0);
+      FillMdiListListboxA(hWndList, bOnlyModified);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_LIST)
     {
@@ -18718,37 +18720,34 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 {
   static HWND hWndList;
   static HWND hWndSearch;
+  static HWND hWndOnlyModified;
   static HWND hWndOK;
   static HWND hWndCancel;
-  static DIALOGRESIZE drs[]={{&hWndList,   DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndSearch, DRS_SIZE|DRS_X},
-                             {&hWndSearch, DRS_MOVE|DRS_Y},
-                             {&hWndOK,     DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndCancel, DRS_MOVE|DRS_X|DRS_Y},
+  static BOOL bOnlyModified;
+  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndSearch,       DRS_SIZE|DRS_X},
+                             {&hWndSearch,       DRS_MOVE|DRS_Y},
+                             {&hWndOnlyModified, DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndOK,           DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
                              {0, 0}};
   int nItem;
 
   if (uMsg == WM_INITDIALOG)
   {
     TCITEMW tcItemW;
+    WNDFRAMEW *wf;
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
     hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
+    hWndOnlyModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
 
-    for (nItem=0; 1; ++nItem)
-    {
-      tcItemW.mask=TCIF_PARAM;
-      if (!SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW))
-        break;
-
-      GetWindowTextW((HWND)tcItemW.lParam, wbuf, MAX_PATH);
-      SendMessageW(hWndList, LB_INSERTSTRING, nItem, (LPARAM)wbuf);
-    }
+    FillMdiListListboxW(hWndList, FALSE);
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
       SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
   }
@@ -18776,6 +18775,11 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         }
       }
     }
+    else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
+    {
+      bOnlyModified=SendMessage(hWndOnlyModified, BM_GETCHECK, 0, 0);
+      FillMdiListListboxW(hWndList, bOnlyModified);
+    }
     else if (LOWORD(wParam) == IDC_MDILIST_LIST)
     {
       if (HIWORD(wParam) == LBN_DBLCLK)
@@ -18785,8 +18789,14 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     else if (LOWORD(wParam) == IDOK)
     {
-      if ((nItem=SendMessage(hWndList, LB_GETCURSEL, 0, 0)) != LB_ERR)
-        SelectTabItem(hTab, nItem);
+      if (!bOnlyModified)
+      {
+        if ((nItem=SendMessage(hWndList, LB_GETCURSEL, 0, 0)) != LB_ERR)
+          SelectTabItem(hTab, nItem);
+      }
+      else
+      {
+      }
       EndDialog(hDlg, 0);
       return TRUE;
     }
@@ -18799,6 +18809,91 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   DialogResizeMessages(&drs[0], &rcMdiListDialog, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
+}
+
+void FillMdiListListboxA(HWND hWnd, BOOL bOnlyModified)
+{
+  TCITEMA tcItemA;
+  WNDFRAMEA *wf;
+  int nItem;
+  BOOL bFileModified;
+
+  SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
+
+  for (nItem=0; 1; ++nItem)
+  {
+    tcItemA.mask=TCIF_PARAM;
+    if (!SendMessage(hTab, TCM_GETITEMA, nItem, (LPARAM)&tcItemA))
+      break;
+
+    GetWindowTextA((HWND)tcItemA.lParam, buf, MAX_PATH);
+
+    if (hWndFrameActive == (HWND)tcItemA.lParam)
+      bFileModified=bModified;
+    else if (wf=(WNDFRAMEA *)GetWindowLongA((HWND)tcItemA.lParam, GWL_USERDATA))
+      bFileModified=wf->ei.bModified;
+    else
+      bFileModified=FALSE;
+    if (bFileModified) lstrcatA(buf, " *");
+
+    if (!bOnlyModified || bFileModified)
+      SendMessageA(hWnd, LB_ADDSTRING, 0, (LPARAM)buf);
+  }
+}
+
+void FillMdiListListboxW(HWND hWnd, BOOL bOnlyModified)
+{
+  TCITEMW tcItemW;
+  WNDFRAMEW *wf;
+  int nItem;
+  BOOL bFileModified;
+
+  SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
+
+  for (nItem=0; 1; ++nItem)
+  {
+    tcItemW.mask=TCIF_PARAM;
+    if (!SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW))
+      break;
+
+    GetWindowTextW((HWND)tcItemW.lParam, wbuf, MAX_PATH);
+
+    if (hWndFrameActive == (HWND)tcItemW.lParam)
+      bFileModified=bModified;
+    else if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)tcItemW.lParam, GWL_USERDATA))
+      bFileModified=wf->ei.bModified;
+    else
+      bFileModified=FALSE;
+    if (bFileModified) lstrcatW(wbuf, L" *");
+
+    if (!bOnlyModified || bFileModified)
+      SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wbuf);
+  }
+}
+
+void OpenMdiListListbox(HWND hWnd, BOOL bOnlyModified)
+{
+  TCITEMW tcItemW;
+  WNDFRAMEW *wf;
+  int nItem;
+  BOOL bFileModified;
+
+  for (nItem=0; 1; ++nItem)
+  {
+    tcItemW.mask=TCIF_PARAM;
+    if (!SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW))
+      break;
+
+    if (hWndFrameActive == (HWND)tcItemW.lParam)
+      bFileModified=bModified;
+    else if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)tcItemW.lParam, GWL_USERDATA))
+      bFileModified=wf->ei.bModified;
+    else
+      bFileModified=FALSE;
+
+    if (bFileModified)
+      SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wbuf);
+  }
 }
 
 
