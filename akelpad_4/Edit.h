@@ -757,8 +757,13 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
 BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void FillMdiListListboxA(HWND hWnd, BOOL bOnlyModified);
-void FillMdiListListboxW(HWND hWnd, BOOL bOnlyModified);
+void FillMdiListListboxA(HWND hWnd, BOOL bSort, BOOL bOnlyModified);
+void FillMdiListListboxW(HWND hWnd, BOOL bSort, BOOL bOnlyModified);
+int MoveListboxItemA(HWND hWnd, int nOldIndex, int nNewIndex);
+int MoveListboxItemW(HWND hWnd, int nOldIndex, int nNewIndex);
+BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown);
+int GetListboxSelItems(HWND hWnd, int **lpSelItems);
+void FreeListboxSelItems(int **lpSelItems);
 
 BOOL CALLBACK AboutDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -852,6 +857,8 @@ void UpdateTabs(HWND hWnd);
 int GetTabItemFromParam(HWND hWnd, LPARAM lParam);
 int GetTabItemFromPoint(HWND hWnd, POINT *pt);
 int SelectTabItem(HWND hWnd, int nIndex);
+int MoveTabItemA(HWND hWnd, int nIndexOld, int nIndexNew);
+int MoveTabItemW(HWND hWnd, int nIndexOld, int nIndexNew);
 BOOL DeleteTabItem(HWND hWnd, int nIndex);
 void FreeMemorySearchA();
 void FreeMemorySearchW();
