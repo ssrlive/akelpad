@@ -18701,7 +18701,10 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     else if (LOWORD(wParam) == IDOK)
     {
       if ((nItem=SendMessage(hWndList, LB_GETCURSEL, 0, 0)) != LB_ERR)
+      {
+        nItem=SendMessageW(hWndList, LB_GETITEMDATA, nItem, 0);
         SelectTabItem(hTab, nItem);
+      }
       EndDialog(hDlg, 0);
       return TRUE;
     }
@@ -18789,13 +18792,10 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     else if (LOWORD(wParam) == IDOK)
     {
-      if (!bOnlyModified)
+      if ((nItem=SendMessage(hWndList, LB_GETCURSEL, 0, 0)) != LB_ERR)
       {
-        if ((nItem=SendMessage(hWndList, LB_GETCURSEL, 0, 0)) != LB_ERR)
-          SelectTabItem(hTab, nItem);
-      }
-      else
-      {
+        nItem=SendMessageW(hWndList, LB_GETITEMDATA, nItem, 0);
+        SelectTabItem(hTab, nItem);
       }
       EndDialog(hDlg, 0);
       return TRUE;
@@ -18816,6 +18816,7 @@ void FillMdiListListboxA(HWND hWnd, BOOL bOnlyModified)
   TCITEMA tcItemA;
   WNDFRAMEA *wf;
   int nItem;
+  int nAdded;
   BOOL bFileModified;
 
   SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
@@ -18837,7 +18838,10 @@ void FillMdiListListboxA(HWND hWnd, BOOL bOnlyModified)
     if (bFileModified) lstrcatA(buf, " *");
 
     if (!bOnlyModified || bFileModified)
-      SendMessageA(hWnd, LB_ADDSTRING, 0, (LPARAM)buf);
+    {
+      nAdded=SendMessageA(hWnd, LB_ADDSTRING, 0, (LPARAM)buf);
+      SendMessageA(hWnd, LB_SETITEMDATA, nAdded, nItem);
+    }
   }
 }
 
@@ -18846,6 +18850,7 @@ void FillMdiListListboxW(HWND hWnd, BOOL bOnlyModified)
   TCITEMW tcItemW;
   WNDFRAMEW *wf;
   int nItem;
+  int nAdded;
   BOOL bFileModified;
 
   SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
@@ -18867,32 +18872,10 @@ void FillMdiListListboxW(HWND hWnd, BOOL bOnlyModified)
     if (bFileModified) lstrcatW(wbuf, L" *");
 
     if (!bOnlyModified || bFileModified)
-      SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wbuf);
-  }
-}
-
-void OpenMdiListListbox(HWND hWnd, BOOL bOnlyModified)
-{
-  TCITEMW tcItemW;
-  WNDFRAMEW *wf;
-  int nItem;
-  BOOL bFileModified;
-
-  for (nItem=0; 1; ++nItem)
-  {
-    tcItemW.mask=TCIF_PARAM;
-    if (!SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW))
-      break;
-
-    if (hWndFrameActive == (HWND)tcItemW.lParam)
-      bFileModified=bModified;
-    else if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)tcItemW.lParam, GWL_USERDATA))
-      bFileModified=wf->ei.bModified;
-    else
-      bFileModified=FALSE;
-
-    if (bFileModified)
-      SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wbuf);
+    {
+      nAdded=SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wbuf);
+      SendMessageW(hWnd, LB_SETITEMDATA, nAdded, nItem);
+    }
   }
 }
 
