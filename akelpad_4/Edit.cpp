@@ -18631,36 +18631,55 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 {
   static HWND hWndList;
   static HWND hWndSearch;
-  static HWND hWndOnlyModified;
   static HWND hWndOK;
+  static HWND hWndTabsGroup;
+  static HWND hWndUp;
+  static HWND hWndDown;
+  static HWND hWndSort;
+  static HWND hWndModified;
+  static HWND hWndFilesGroup;
+  static HWND hWndSave;
+  static HWND hWndClose;
   static HWND hWndCancel;
+  static BOOL bListChanged;
   static BOOL bOnlyModified;
-  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndSearch,       DRS_SIZE|DRS_X},
-                             {&hWndSearch,       DRS_MOVE|DRS_Y},
-                             {&hWndOnlyModified, DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndOK,           DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
+  static DIALOGRESIZE drs[]={{&hWndList,       DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndSearch,     DRS_SIZE|DRS_X},
+                             {&hWndSearch,     DRS_MOVE|DRS_Y},
+                             {&hWndOK,         DRS_MOVE|DRS_X},
+                             {&hWndTabsGroup,  DRS_MOVE|DRS_X},
+                             {&hWndUp,         DRS_MOVE|DRS_X},
+                             {&hWndDown,       DRS_MOVE|DRS_X},
+                             {&hWndSort,       DRS_MOVE|DRS_X},
+                             {&hWndModified,   DRS_MOVE|DRS_X},
+                             {&hWndFilesGroup, DRS_MOVE|DRS_X},
+                             {&hWndSave,       DRS_MOVE|DRS_X},
+                             {&hWndClose,      DRS_MOVE|DRS_X},
+                             {&hWndCancel,     DRS_MOVE|DRS_X|DRS_Y},
                              {0, 0}};
   int nItem;
 
   if (uMsg == WM_INITDIALOG)
   {
-    TCITEMA tcItemA;
-    WNDFRAMEA *wf;
-
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
     hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
-    hWndOnlyModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
     hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndTabsGroup=GetDlgItem(hDlg, IDC_MDILIST_TABS_GROUP);
+    hWndUp=GetDlgItem(hDlg, IDC_MDILIST_UP);
+    hWndDown=GetDlgItem(hDlg, IDC_MDILIST_DOWN);
+    hWndSort=GetDlgItem(hDlg, IDC_MDILIST_SORT);
+    hWndModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
+    hWndFilesGroup=GetDlgItem(hDlg, IDC_MDILIST_FILES_GROUP);
+    hWndSave=GetDlgItem(hDlg, IDC_MDILIST_SAVE);
+    hWndClose=GetDlgItem(hDlg, IDC_MDILIST_CLOSE);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
 
-    FillMdiListListboxA(hWndList, FALSE);
+    FillMdiListListboxA(hWndList, FALSE, FALSE);
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
-      SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
+      SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -18676,34 +18695,84 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
           {
             if (SendMessageA(hWndList, LB_GETTEXT, nItem, (LPARAM)buf) == LB_ERR)
               break;
-
             if (xstrstrA(buf, szSearch, FALSE, NULL, NULL))
             {
-              SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
+              SendMessage(hWndList, LB_SETSEL, FALSE, -1);
+              SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
               break;
             }
           }
         }
       }
     }
+    else if (LOWORD(wParam) == IDC_MDILIST_UP)
+    {
+      if (ShiftListboxSelItems(hWndList, FALSE))
+        bListChanged=TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_DOWN)
+    {
+      if (ShiftListboxSelItems(hWndList, TRUE))
+        bListChanged=TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_SORT)
+    {
+      FillMdiListListboxA(hWndList, TRUE, bOnlyModified);
+      bListChanged=TRUE;
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
     else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
     {
-      bOnlyModified=SendMessage(hWndOnlyModified, BM_GETCHECK, 0, 0);
-      FillMdiListListboxA(hWndList, bOnlyModified);
+      bOnlyModified=SendMessage(hWndModified, BM_GETCHECK, 0, 0);
+      FillMdiListListboxA(hWndList, FALSE, bOnlyModified);
+      bListChanged=FALSE;
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_LIST)
     {
-      if (HIWORD(wParam) == LBN_DBLCLK)
+      if (HIWORD(wParam) == LBN_SELCHANGE)
+      {
+        BOOL bEnable=FALSE;
+
+        if (SendMessage(hWndList, LB_GETSELCOUNT, 0, 0) > 0)
+          bEnable=TRUE;
+        EnableWindow(hWndUp, bEnable && !bOnlyModified);
+        EnableWindow(hWndDown, bEnable && !bOnlyModified);
+        EnableWindow(hWndSort, !bOnlyModified);
+        EnableWindow(hWndSave, bEnable);
+        EnableWindow(hWndClose, bEnable);
+      }
+      else if (HIWORD(wParam) == LBN_DBLCLK)
       {
         PostMessage(hDlg, WM_COMMAND, IDOK, 0);
       }
     }
     else if (LOWORD(wParam) == IDOK)
     {
-      if ((nItem=SendMessage(hWndList, LB_GETCURSEL, 0, 0)) != LB_ERR)
+      int *lpSelItems;
+      int nItemNew;
+      int nItemOld;
+      int nData;
+
+      if (!bOnlyModified && bListChanged)
       {
-        nItem=SendMessageW(hWndList, LB_GETITEMDATA, nItem, 0);
-        SelectTabItem(hTab, nItem);
+        for (nItemNew=0; 1; ++nItemNew)
+        {
+          if ((nData=SendMessage(hWndList, LB_GETITEMDATA, nItemNew, 0)) == LB_ERR)
+            break;
+          if ((nItemOld=GetTabItemFromParam(hTab, nData)) != -1)
+            MoveTabItemA(hTab, nItemOld, nItemNew);
+        }
+        bListChanged=FALSE;
+      }
+      if (GetListboxSelItems(hWndList, &lpSelItems))
+      {
+        if ((nData=SendMessage(hWndList, LB_GETITEMDATA, lpSelItems[0], 0)) != LB_ERR)
+          if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+            SelectTabItem(hTab, nItem);
+        FreeListboxSelItems(&lpSelItems);
       }
       EndDialog(hDlg, 0);
       return TRUE;
@@ -18723,36 +18792,55 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 {
   static HWND hWndList;
   static HWND hWndSearch;
-  static HWND hWndOnlyModified;
   static HWND hWndOK;
+  static HWND hWndTabsGroup;
+  static HWND hWndUp;
+  static HWND hWndDown;
+  static HWND hWndSort;
+  static HWND hWndModified;
+  static HWND hWndFilesGroup;
+  static HWND hWndSave;
+  static HWND hWndClose;
   static HWND hWndCancel;
+  static BOOL bListChanged;
   static BOOL bOnlyModified;
-  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndSearch,       DRS_SIZE|DRS_X},
-                             {&hWndSearch,       DRS_MOVE|DRS_Y},
-                             {&hWndOnlyModified, DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndOK,           DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
+  static DIALOGRESIZE drs[]={{&hWndList,       DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndSearch,     DRS_SIZE|DRS_X},
+                             {&hWndSearch,     DRS_MOVE|DRS_Y},
+                             {&hWndOK,         DRS_MOVE|DRS_X},
+                             {&hWndTabsGroup,  DRS_MOVE|DRS_X},
+                             {&hWndUp,         DRS_MOVE|DRS_X},
+                             {&hWndDown,       DRS_MOVE|DRS_X},
+                             {&hWndSort,       DRS_MOVE|DRS_X},
+                             {&hWndModified,   DRS_MOVE|DRS_X},
+                             {&hWndFilesGroup, DRS_MOVE|DRS_X},
+                             {&hWndSave,       DRS_MOVE|DRS_X},
+                             {&hWndClose,      DRS_MOVE|DRS_X},
+                             {&hWndCancel,     DRS_MOVE|DRS_X|DRS_Y},
                              {0, 0}};
   int nItem;
 
   if (uMsg == WM_INITDIALOG)
   {
-    TCITEMW tcItemW;
-    WNDFRAMEW *wf;
-
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
     hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
-    hWndOnlyModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
     hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndTabsGroup=GetDlgItem(hDlg, IDC_MDILIST_TABS_GROUP);
+    hWndUp=GetDlgItem(hDlg, IDC_MDILIST_UP);
+    hWndDown=GetDlgItem(hDlg, IDC_MDILIST_DOWN);
+    hWndSort=GetDlgItem(hDlg, IDC_MDILIST_SORT);
+    hWndModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
+    hWndFilesGroup=GetDlgItem(hDlg, IDC_MDILIST_FILES_GROUP);
+    hWndSave=GetDlgItem(hDlg, IDC_MDILIST_SAVE);
+    hWndClose=GetDlgItem(hDlg, IDC_MDILIST_CLOSE);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
 
-    FillMdiListListboxW(hWndList, FALSE);
+    FillMdiListListboxW(hWndList, FALSE, FALSE);
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
-      SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
+      SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -18768,34 +18856,84 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
           {
             if (SendMessageW(hWndList, LB_GETTEXT, nItem, (LPARAM)wbuf) == LB_ERR)
               break;
-
             if (xstrstrW(wbuf, wszSearch, FALSE, NULL, NULL))
             {
-              SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
+              SendMessage(hWndList, LB_SETSEL, FALSE, -1);
+              SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
               break;
             }
           }
         }
       }
     }
+    else if (LOWORD(wParam) == IDC_MDILIST_UP)
+    {
+      if (ShiftListboxSelItems(hWndList, FALSE))
+        bListChanged=TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_DOWN)
+    {
+      if (ShiftListboxSelItems(hWndList, TRUE))
+        bListChanged=TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_SORT)
+    {
+      FillMdiListListboxW(hWndList, TRUE, bOnlyModified);
+      bListChanged=TRUE;
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
     else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
     {
-      bOnlyModified=SendMessage(hWndOnlyModified, BM_GETCHECK, 0, 0);
-      FillMdiListListboxW(hWndList, bOnlyModified);
+      bOnlyModified=SendMessage(hWndModified, BM_GETCHECK, 0, 0);
+      FillMdiListListboxW(hWndList, FALSE, bOnlyModified);
+      bListChanged=FALSE;
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_LIST)
     {
-      if (HIWORD(wParam) == LBN_DBLCLK)
+      if (HIWORD(wParam) == LBN_SELCHANGE)
+      {
+        BOOL bEnable=FALSE;
+
+        if (SendMessage(hWndList, LB_GETSELCOUNT, 0, 0) > 0)
+          bEnable=TRUE;
+        EnableWindow(hWndUp, bEnable && !bOnlyModified);
+        EnableWindow(hWndDown, bEnable && !bOnlyModified);
+        EnableWindow(hWndSort, !bOnlyModified);
+        EnableWindow(hWndSave, bEnable);
+        EnableWindow(hWndClose, bEnable);
+      }
+      else if (HIWORD(wParam) == LBN_DBLCLK)
       {
         PostMessage(hDlg, WM_COMMAND, IDOK, 0);
       }
     }
     else if (LOWORD(wParam) == IDOK)
     {
-      if ((nItem=SendMessage(hWndList, LB_GETCURSEL, 0, 0)) != LB_ERR)
+      int *lpSelItems;
+      int nItemNew;
+      int nItemOld;
+      int nData;
+
+      if (!bOnlyModified && bListChanged)
       {
-        nItem=SendMessageW(hWndList, LB_GETITEMDATA, nItem, 0);
-        SelectTabItem(hTab, nItem);
+        for (nItemNew=0; 1; ++nItemNew)
+        {
+          if ((nData=SendMessage(hWndList, LB_GETITEMDATA, nItemNew, 0)) == LB_ERR)
+            break;
+          if ((nItemOld=GetTabItemFromParam(hTab, nData)) != -1)
+            MoveTabItemW(hTab, nItemOld, nItemNew);
+        }
+        bListChanged=FALSE;
+      }
+      if (GetListboxSelItems(hWndList, &lpSelItems))
+      {
+        if ((nData=SendMessage(hWndList, LB_GETITEMDATA, lpSelItems[0], 0)) != LB_ERR)
+          if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+            SelectTabItem(hTab, nItem);
+        FreeListboxSelItems(&lpSelItems);
       }
       EndDialog(hDlg, 0);
       return TRUE;
@@ -18811,20 +18949,21 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   return FALSE;
 }
 
-void FillMdiListListboxA(HWND hWnd, BOOL bOnlyModified)
+void FillMdiListListboxA(HWND hWnd, BOOL bSort, BOOL bOnlyModified)
 {
   TCITEMA tcItemA;
   WNDFRAMEA *wf;
-  int nItem;
-  int nAdded;
+  int nNew;
+  int nTabItem;
+  int nListboxItem=0;
   BOOL bFileModified;
 
   SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
 
-  for (nItem=0; 1; ++nItem)
+  for (nTabItem=0; 1; ++nTabItem)
   {
     tcItemA.mask=TCIF_PARAM;
-    if (!SendMessage(hTab, TCM_GETITEMA, nItem, (LPARAM)&tcItemA))
+    if (!SendMessage(hTab, TCM_GETITEMA, nTabItem, (LPARAM)&tcItemA))
       break;
 
     GetWindowTextA((HWND)tcItemA.lParam, buf, MAX_PATH);
@@ -18839,26 +18978,30 @@ void FillMdiListListboxA(HWND hWnd, BOOL bOnlyModified)
 
     if (!bOnlyModified || bFileModified)
     {
-      nAdded=SendMessageA(hWnd, LB_ADDSTRING, 0, (LPARAM)buf);
-      SendMessageA(hWnd, LB_SETITEMDATA, nAdded, nItem);
+      if (bSort)
+        nNew=SendMessageA(hWnd, LB_ADDSTRING, 0, (LPARAM)buf);
+      else
+        nNew=SendMessageA(hWnd, LB_INSERTSTRING, nListboxItem++, (LPARAM)buf);
+      SendMessage(hWnd, LB_SETITEMDATA, nNew, tcItemA.lParam);
     }
   }
 }
 
-void FillMdiListListboxW(HWND hWnd, BOOL bOnlyModified)
+void FillMdiListListboxW(HWND hWnd, BOOL bSort, BOOL bOnlyModified)
 {
   TCITEMW tcItemW;
   WNDFRAMEW *wf;
-  int nItem;
-  int nAdded;
+  int nNew;
+  int nTabItem;
+  int nListboxItem=0;
   BOOL bFileModified;
 
   SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
 
-  for (nItem=0; 1; ++nItem)
+  for (nTabItem=0; 1; ++nTabItem)
   {
     tcItemW.mask=TCIF_PARAM;
-    if (!SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW))
+    if (!SendMessage(hTab, TCM_GETITEMW, nTabItem, (LPARAM)&tcItemW))
       break;
 
     GetWindowTextW((HWND)tcItemW.lParam, wbuf, MAX_PATH);
@@ -18873,9 +19016,150 @@ void FillMdiListListboxW(HWND hWnd, BOOL bOnlyModified)
 
     if (!bOnlyModified || bFileModified)
     {
-      nAdded=SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wbuf);
-      SendMessageW(hWnd, LB_SETITEMDATA, nAdded, nItem);
+      if (bSort)
+        nNew=SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wbuf);
+      else
+        nNew=SendMessageW(hWnd, LB_INSERTSTRING, nListboxItem++, (LPARAM)wbuf);
+      SendMessage(hWnd, LB_SETITEMDATA, nNew, tcItemW.lParam);
     }
+  }
+}
+
+int MoveListboxItemA(HWND hWnd, int nOldIndex, int nNewIndex)
+{
+  char *pText;
+  int nIndex=LB_ERR;
+  int nData;
+  int nTextLen;
+
+  if ((nTextLen=SendMessage(hWnd, LB_GETTEXTLEN, nOldIndex, 0)) != LB_ERR)
+  {
+    if (pText=(char *)API_HeapAlloc(hHeap, 0, nTextLen + 1))
+    {
+      SendMessageA(hWnd, LB_GETTEXT, nOldIndex, (LPARAM)pText);
+      nData=SendMessage(hWnd, LB_GETITEMDATA, nOldIndex, 0);
+
+      SendMessage(hWnd, LB_DELETESTRING, nOldIndex, 0);
+      nIndex=SendMessageA(hWnd, LB_INSERTSTRING, nNewIndex, (LPARAM)pText);
+      SendMessage(hWnd, LB_SETITEMDATA, nIndex, nData);
+      API_HeapFree(hHeap, 0, (LPVOID)pText);
+    }
+  }
+  return nIndex;
+}
+
+int MoveListboxItemW(HWND hWnd, int nOldIndex, int nNewIndex)
+{
+  wchar_t *wpText;
+  int nIndex=LB_ERR;
+  int nData;
+  int nTextLen;
+
+  if ((nTextLen=SendMessage(hWnd, LB_GETTEXTLEN, nOldIndex, 0)) != LB_ERR)
+  {
+    if (wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTextLen + 1) * sizeof(wchar_t)))
+    {
+      SendMessageW(hWnd, LB_GETTEXT, nOldIndex, (LPARAM)wpText);
+      nData=SendMessage(hWnd, LB_GETITEMDATA, nOldIndex, 0);
+
+      SendMessage(hWnd, LB_DELETESTRING, nOldIndex, 0);
+      nIndex=SendMessageW(hWnd, LB_INSERTSTRING, nNewIndex, (LPARAM)wpText);
+      SendMessage(hWnd, LB_SETITEMDATA, nIndex, nData);
+      API_HeapFree(hHeap, 0, (LPVOID)wpText);
+    }
+  }
+  return nIndex;
+}
+
+BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown)
+{
+  int *lpSelItems;
+  int nSelCount;
+  int nMinIndex;
+  int nMaxIndex;
+  int nOldIndex=-1;
+  int nNewIndex=-1;
+  int i;
+  BOOL bResult=FALSE;
+
+  nMinIndex=0;
+  nMaxIndex=SendMessage(hWnd, LB_GETCOUNT, 0, 0) - 1;
+
+  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  {
+    if (!bMoveDown)
+    {
+      for (i=0; i < nSelCount; ++i)
+      {
+        if (lpSelItems[i] > nMinIndex)
+        {
+          if (nNewIndex == -1 && i > 0)
+          {
+            if (lpSelItems[i] - 1 <= lpSelItems[i - 1])
+              continue;
+          }
+          nOldIndex=lpSelItems[i];
+          nNewIndex=lpSelItems[i] - 1;
+
+          if (bOldWindows)
+            MoveListboxItemA(hWnd, nOldIndex, nNewIndex);
+          else
+            MoveListboxItemW(hWnd, nOldIndex, nNewIndex);
+          SendMessage(hWnd, LB_SETSEL, TRUE, nNewIndex);
+          bResult=TRUE;
+        }
+      }
+    }
+    else
+    {
+      for (i=--nSelCount; i >= 0; --i)
+      {
+        if (lpSelItems[i] < nMaxIndex)
+        {
+          if (nNewIndex == -1 && i < nSelCount)
+          {
+            if (lpSelItems[i] + 1 >= lpSelItems[i + 1])
+              continue;
+          }
+          nOldIndex=lpSelItems[i];
+          nNewIndex=lpSelItems[i] + 1;
+
+          if (bOldWindows)
+            MoveListboxItemA(hWnd, nOldIndex, nNewIndex);
+          else
+            MoveListboxItemW(hWnd, nOldIndex, nNewIndex);
+          SendMessage(hWnd, LB_SETSEL, TRUE, nNewIndex);
+          bResult=TRUE;
+        }
+      }
+    }
+    FreeListboxSelItems(&lpSelItems);
+  }
+  return bResult;
+}
+
+int GetListboxSelItems(HWND hWnd, int **lpSelItems)
+{
+  int nSelCount;
+
+  if (lpSelItems)
+  {
+    nSelCount=SendMessage(hWnd, LB_GETSELCOUNT, 0, 0);
+
+    if (*lpSelItems=(int *)API_HeapAlloc(hHeap, 0, nSelCount * sizeof(int)))
+    {
+      return SendMessage(hWnd, LB_GETSELITEMS, nSelCount, (LPARAM)*lpSelItems);
+    }
+  }
+  return 0;
+}
+
+void FreeListboxSelItems(int **lpSelItems)
+{
+  if (lpSelItems && *lpSelItems)
+  {
+    API_HeapFree(hHeap, 0, (LPVOID)*lpSelItems);
+    *lpSelItems=NULL;
   }
 }
 
@@ -21627,6 +21911,42 @@ int SelectTabItem(HWND hWnd, int nIndex)
     else return -1;
   }
   return nCurSel;
+}
+
+int MoveTabItemA(HWND hWnd, int nIndexOld, int nIndexNew)
+{
+  TCITEMA tcItemA;
+  char szItemText[MAX_PATH];
+
+  tcItemA.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
+  tcItemA.pszText=szItemText;
+  tcItemA.cchTextMax=MAX_PATH;
+
+  if (SendMessage(hWnd, TCM_GETITEMA, nIndexOld, (LPARAM)&tcItemA))
+  {
+    if (nIndexOld == nIndexNew) return nIndexNew;
+    SendMessage(hWnd, TCM_DELETEITEM, nIndexOld, 0);
+    return SendMessage(hWnd, TCM_INSERTITEMA, nIndexNew, (LPARAM)&tcItemA);
+  }
+  return -1;
+}
+
+int MoveTabItemW(HWND hWnd, int nIndexOld, int nIndexNew)
+{
+  TCITEMW tcItemW;
+  wchar_t wszItemText[MAX_PATH];
+
+  tcItemW.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
+  tcItemW.pszText=wszItemText;
+  tcItemW.cchTextMax=MAX_PATH;
+
+  if (SendMessage(hWnd, TCM_GETITEMW, nIndexOld, (LPARAM)&tcItemW))
+  {
+    if (nIndexOld == nIndexNew) return nIndexNew;
+    SendMessage(hWnd, TCM_DELETEITEM, nIndexOld, 0);
+    return SendMessage(hWnd, TCM_INSERTITEMW, nIndexNew, (LPARAM)&tcItemW);
+  }
+  return -1;
 }
 
 BOOL DeleteTabItem(HWND hWnd, int nIndex)

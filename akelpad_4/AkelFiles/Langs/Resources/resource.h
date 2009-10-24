@@ -105,7 +105,14 @@
 #define IDC_OFN_CODEPAGE_LABEL          2551
 #define IDC_MDILIST_LIST                2552
 #define IDC_MDILIST_SEARCH              2553
-#define IDC_MDILIST_ONLYMODIFIED        2554
+#define IDC_MDILIST_TABS_GROUP          2554
+#define IDC_MDILIST_UP                  2555
+#define IDC_MDILIST_DOWN                2556
+#define IDC_MDILIST_SORT                2557
+#define IDC_MDILIST_ONLYMODIFIED        2558
+#define IDC_MDILIST_FILES_GROUP         2559
+#define IDC_MDILIST_SAVE                2560
+#define IDC_MDILIST_CLOSE               2561
 #define IDC_PREVIEW_BOX                 3001
 #define IDC_PREVIEW_PRINT               3002
 #define IDC_PREVIEW_PAGESETUP           3003
@@ -355,7 +362,7 @@
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001

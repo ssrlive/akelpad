@@ -7218,7 +7218,6 @@ LRESULT CALLBACK NewTabProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (bMouseDown)
     {
-      TCITEMA tcItemA;
       POINT pt;
 
       bMouseDown=FALSE;
@@ -7231,12 +7230,7 @@ LRESULT CALLBACK NewTabProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (nDropItem != -1 && nDropItem != nDragItem)
         {
-          tcItemA.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
-          tcItemA.pszText=buf;
-          tcItemA.cchTextMax=BUFFER_SIZE;
-          SendMessage(hWnd, TCM_GETITEMA, nDragItem, (LPARAM)&tcItemA);
-          SendMessage(hWnd, TCM_DELETEITEM, nDragItem, 0);
-          SendMessage(hWnd, TCM_INSERTITEMA, nDropItem, (LPARAM)&tcItemA);
+          MoveTabItemA(hWnd, nDragItem, nDropItem);
         }
       }
       return TRUE;
@@ -7358,7 +7352,6 @@ LRESULT CALLBACK NewTabProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (bMouseDown)
     {
-      TCITEMW tcItemW;
       POINT pt;
 
       bMouseDown=FALSE;
@@ -7371,12 +7364,7 @@ LRESULT CALLBACK NewTabProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (nDropItem != -1 && nDropItem != nDragItem)
         {
-          tcItemW.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
-          tcItemW.pszText=wbuf;
-          tcItemW.cchTextMax=BUFFER_SIZE;
-          SendMessage(hWnd, TCM_GETITEMW, nDragItem, (LPARAM)&tcItemW);
-          SendMessage(hWnd, TCM_DELETEITEM, nDragItem, 0);
-          SendMessage(hWnd, TCM_INSERTITEMW, nDropItem, (LPARAM)&tcItemW);
+          MoveTabItemW(hWnd, nDragItem, nDropItem);
         }
       }
       return TRUE;
