@@ -26,6 +26,8 @@
 #define xuitoaW
 #define hex2decA
 #define hex2decW
+#define xstrstrA
+#define xstrstrW
 #include "ConvFunc.h"
 
 //Include stack functions
@@ -377,6 +379,7 @@ int nTabSwitch=TAB_SWITCH_NEXTPREV;
 HIMAGELIST hImageList;
 BOOL bTabPressed=FALSE;
 BOOL bFileExitError;
+RECT rcMdiListDialog={0};
 DWORD dwMdiStyle=WS_MAXIMIZE;
 WNDPROC OldMdiClientProc;
 WNDPROC OldTabProc;
@@ -3207,7 +3210,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //WM_COMMAND (MDI)
     if (bMDI)
     {
-      if (LOWORD(wParam) == IDM_WINDOW_TABVIEW_TOP)
+      if (LOWORD(wParam) == ID_SELECTMDI)
+      {
+        DoWindowSelectWindowA();
+        return 0;
+      }
+      else if (LOWORD(wParam) == IDM_WINDOW_TABVIEW_TOP)
       {
         DoWindowTabView(TAB_VIEW_TOP, FALSE);
       }
@@ -5103,7 +5111,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //WM_COMMAND (MDI)
     if (bMDI)
     {
-      if (LOWORD(wParam) == IDM_WINDOW_TABVIEW_TOP)
+      if (LOWORD(wParam) == ID_SELECTMDI)
+      {
+        DoWindowSelectWindowW();
+        return 0;
+      }
+      else if (LOWORD(wParam) == IDM_WINDOW_TABVIEW_TOP)
       {
         DoWindowTabView(TAB_VIEW_TOP, FALSE);
       }
