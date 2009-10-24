@@ -350,6 +350,7 @@ extern int nTabSwitch;
 extern HIMAGELIST hImageList;
 extern BOOL bTabPressed;
 extern BOOL bFileExitError;
+extern RECT rcMdiListDialog;
 extern DWORD dwMdiStyle;
 extern WNDPROC OldMdiClientProc;
 extern WNDPROC OldTabProc;
@@ -2281,6 +2282,16 @@ void DoWindowTabType(int nType, BOOL bFirst)
   }
 }
 
+void DoWindowSelectWindowA()
+{
+  API_DialogBoxA(hLangLib, MAKEINTRESOURCEA(IDD_MDILIST), hMainWnd, (DLGPROC)MdiListDlgProcA);
+}
+
+void DoWindowSelectWindowW()
+{
+  API_DialogBoxW(hLangLib, MAKEINTRESOURCEW(IDD_MDILIST), hMainWnd, (DLGPROC)MdiListDlgProcW);
+}
+
 void DoHelpAboutA()
 {
   API_DialogBoxA(hLangLib, MAKEINTRESOURCEA(IDD_ABOUT), hMainWnd, (DLGPROC)AboutDlgProcA);
@@ -3177,6 +3188,7 @@ void ReadOptionsA()
     ReadOptionA(hHandle, "TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
     ReadOptionA(hHandle, "TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
     ReadOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
+    ReadOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT));
     ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
@@ -3284,6 +3296,7 @@ void ReadOptionsW()
     ReadOptionW(hHandle, L"TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
     ReadOptionW(hHandle, L"TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
     ReadOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
+    ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT));
     ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
@@ -3603,6 +3616,8 @@ BOOL SaveOptionsA()
       goto Error;
     if (!SaveOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
       goto Error;
+    if (!SaveOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT)))
+      goto Error;
     if (!SaveOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
       goto Error;
   }
@@ -3804,6 +3819,8 @@ BOOL SaveOptionsW()
     if (!SaveOptionW(hHandle, L"TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD)))
       goto Error;
     if (!SaveOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT)))
       goto Error;
     if (!SaveOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
       goto Error;
@@ -18604,6 +18621,183 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
     }
   }
+  return FALSE;
+}
+
+
+//// MDI list
+
+BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndList;
+  static HWND hWndSearch;
+  static HWND hWndOK;
+  static HWND hWndCancel;
+  static DIALOGRESIZE drs[]={{&hWndList,   DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndSearch, DRS_SIZE|DRS_X},
+                             {&hWndSearch, DRS_MOVE|DRS_Y},
+                             {&hWndOK,     DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel, DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
+  int nItem;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    TCITEMA tcItemA;
+
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
+    hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
+    hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
+
+    SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
+
+    for (nItem=0; 1; ++nItem)
+    {
+      tcItemA.mask=TCIF_PARAM;
+      if (!SendMessage(hTab, TCM_GETITEMA, nItem, (LPARAM)&tcItemA))
+        break;
+
+      GetWindowTextA((HWND)tcItemA.lParam, buf, MAX_PATH);
+      SendMessageA(hWndList, LB_INSERTSTRING, nItem, (LPARAM)buf);
+    }
+    if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
+      SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_MDILIST_SEARCH)
+    {
+      if (HIWORD(wParam) == EN_CHANGE)
+      {
+        char szSearch[MAX_PATH];
+
+        if (GetWindowTextA(hWndSearch, szSearch, MAX_PATH))
+        {
+          for (nItem=0; 1; ++nItem)
+          {
+            if (SendMessageA(hWndList, LB_GETTEXT, nItem, (LPARAM)buf) == LB_ERR)
+              break;
+
+            if (xstrstrA(buf, szSearch, FALSE, NULL, NULL))
+            {
+              SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
+              break;
+            }
+          }
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_LIST)
+    {
+      if (HIWORD(wParam) == LBN_DBLCLK)
+      {
+        PostMessage(hDlg, WM_COMMAND, IDOK, 0);
+      }
+    }
+    else if (LOWORD(wParam) == IDOK)
+    {
+      if ((nItem=SendMessage(hWndList, LB_GETCURSEL, 0, 0)) != LB_ERR)
+        SelectTabItem(hTab, nItem);
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  DialogResizeMessages(&drs[0], &rcMdiListDialog, hDlg, uMsg, wParam, lParam);
+
+  return FALSE;
+}
+
+BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndList;
+  static HWND hWndSearch;
+  static HWND hWndOK;
+  static HWND hWndCancel;
+  static DIALOGRESIZE drs[]={{&hWndList,   DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndSearch, DRS_SIZE|DRS_X},
+                             {&hWndSearch, DRS_MOVE|DRS_Y},
+                             {&hWndOK,     DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel, DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
+  int nItem;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    TCITEMW tcItemW;
+
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
+    hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
+    hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
+
+    SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
+
+    for (nItem=0; 1; ++nItem)
+    {
+      tcItemW.mask=TCIF_PARAM;
+      if (!SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW))
+        break;
+
+      GetWindowTextW((HWND)tcItemW.lParam, wbuf, MAX_PATH);
+      SendMessageW(hWndList, LB_INSERTSTRING, nItem, (LPARAM)wbuf);
+    }
+    if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
+      SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_MDILIST_SEARCH)
+    {
+      if (HIWORD(wParam) == EN_CHANGE)
+      {
+        wchar_t wszSearch[MAX_PATH];
+
+        if (GetWindowTextW(hWndSearch, wszSearch, MAX_PATH))
+        {
+          for (nItem=0; 1; ++nItem)
+          {
+            if (SendMessageW(hWndList, LB_GETTEXT, nItem, (LPARAM)wbuf) == LB_ERR)
+              break;
+
+            if (xstrstrW(wbuf, wszSearch, FALSE, NULL, NULL))
+            {
+              SendMessage(hWndList, LB_SETCURSEL, (WPARAM)nItem, 0);
+              break;
+            }
+          }
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_LIST)
+    {
+      if (HIWORD(wParam) == LBN_DBLCLK)
+      {
+        PostMessage(hDlg, WM_COMMAND, IDOK, 0);
+      }
+    }
+    else if (LOWORD(wParam) == IDOK)
+    {
+      if ((nItem=SendMessage(hWndList, LB_GETCURSEL, 0, 0)) != LB_ERR)
+        SelectTabItem(hTab, nItem);
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  DialogResizeMessages(&drs[0], &rcMdiListDialog, hDlg, uMsg, wParam, lParam);
+
   return FALSE;
 }
 

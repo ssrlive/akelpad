@@ -471,6 +471,8 @@ void DoSettingsOptionsA();
 void DoSettingsOptionsW();
 void DoWindowTabView(int nView, BOOL bFirst);
 void DoWindowTabType(int nType, BOOL bFirst);
+void DoWindowSelectWindowA();
+void DoWindowSelectWindowW();
 void DoHelpAboutA();
 void DoHelpAboutW();
 void DoNonMenuDelLine(HWND hWnd);
@@ -752,6 +754,9 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK AboutDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

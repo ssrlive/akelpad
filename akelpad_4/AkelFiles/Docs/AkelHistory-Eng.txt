@@ -1,6 +1,8 @@
 
 AkelPad 4.3.4 ()
 ----------------------------
+Added: search in "Select Window" dialog and also remember dialog size (MDI).
+
 Fixed: after all text replacing in 4.3.3, scrolling position did not recover.
 Fixed: WordBreak parameter.
 Fixed: opening link that contain another link.

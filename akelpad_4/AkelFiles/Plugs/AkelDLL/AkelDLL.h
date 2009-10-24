@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 4)
 
 
 //// Defines
@@ -19,6 +19,7 @@
 #define ID_TAB            10003
 #define ID_PROGRESS       10004
 #define ID_FIRSTMDI       10010
+#define ID_SELECTMDI      10019
 
 //Sizes
 #define WORD_DELIMITERS_SIZE    128
