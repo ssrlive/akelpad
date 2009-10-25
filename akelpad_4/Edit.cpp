@@ -18630,6 +18630,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndList;
+  static HWND hWndStats;
   static HWND hWndSearch;
   static HWND hWndOK;
   static HWND hWndTabsGroup;
@@ -18644,6 +18645,7 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static BOOL bListChanged;
   static BOOL bOnlyModified;
   static DIALOGRESIZE drs[]={{&hWndList,       DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndStats,      DRS_MOVE|DRS_X|DRS_Y},
                              {&hWndSearch,     DRS_SIZE|DRS_X},
                              {&hWndSearch,     DRS_MOVE|DRS_Y},
                              {&hWndOK,         DRS_MOVE|DRS_X},
@@ -18663,6 +18665,7 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
+    hWndStats=GetDlgItem(hDlg, IDC_MDILIST_STATS);
     hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndTabsGroup=GetDlgItem(hDlg, IDC_MDILIST_TABS_GROUP);
@@ -18680,6 +18683,8 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     FillMdiListListboxA(hWndList, FALSE, FALSE);
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
       SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
+
+    PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -18745,15 +18750,21 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       if (HIWORD(wParam) == LBN_SELCHANGE)
       {
+        int nCount;
+        int nSelCount;
         BOOL bEnable=FALSE;
 
-        if (SendMessage(hWndList, LB_GETSELCOUNT, 0, 0) > 0)
+        nCount=SendMessage(hWndList, LB_GETCOUNT, 0, 0);
+        if ((nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0)) > 0)
           bEnable=TRUE;
         EnableWindow(hWndUp, bEnable && !bOnlyModified);
         EnableWindow(hWndDown, bEnable && !bOnlyModified);
         EnableWindow(hWndSort, !bOnlyModified);
         EnableWindow(hWndSave, bEnable);
         EnableWindow(hWndClose, bEnable);
+
+        wsprintfA(buf, "%d / %d", nSelCount, nCount);
+        SetWindowTextA(hWndStats, buf);
       }
       else if (HIWORD(wParam) == LBN_DBLCLK)
       {
@@ -18802,6 +18813,7 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndList;
+  static HWND hWndStats;
   static HWND hWndSearch;
   static HWND hWndOK;
   static HWND hWndTabsGroup;
@@ -18816,6 +18828,7 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static BOOL bListChanged;
   static BOOL bOnlyModified;
   static DIALOGRESIZE drs[]={{&hWndList,       DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndStats,      DRS_MOVE|DRS_X|DRS_Y},
                              {&hWndSearch,     DRS_SIZE|DRS_X},
                              {&hWndSearch,     DRS_MOVE|DRS_Y},
                              {&hWndOK,         DRS_MOVE|DRS_X},
@@ -18835,6 +18848,7 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
+    hWndStats=GetDlgItem(hDlg, IDC_MDILIST_STATS);
     hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndTabsGroup=GetDlgItem(hDlg, IDC_MDILIST_TABS_GROUP);
@@ -18852,6 +18866,8 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     FillMdiListListboxW(hWndList, FALSE, FALSE);
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
       SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
+
+    PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -18917,15 +18933,21 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       if (HIWORD(wParam) == LBN_SELCHANGE)
       {
+        int nCount;
+        int nSelCount;
         BOOL bEnable=FALSE;
 
-        if (SendMessage(hWndList, LB_GETSELCOUNT, 0, 0) > 0)
+        nCount=SendMessage(hWndList, LB_GETCOUNT, 0, 0);
+        if ((nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0)) > 0)
           bEnable=TRUE;
         EnableWindow(hWndUp, bEnable && !bOnlyModified);
         EnableWindow(hWndDown, bEnable && !bOnlyModified);
         EnableWindow(hWndSort, !bOnlyModified);
         EnableWindow(hWndSave, bEnable);
         EnableWindow(hWndClose, bEnable);
+
+        wsprintfW(wbuf, L"%d / %d", nSelCount, nCount);
+        SetWindowTextW(hWndStats, wbuf);
       }
       else if (HIWORD(wParam) == LBN_DBLCLK)
       {
