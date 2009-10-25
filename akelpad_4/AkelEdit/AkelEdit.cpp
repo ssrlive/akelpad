@@ -15563,7 +15563,17 @@ void AE_NotifySelChanged(AKELEDIT *ae)
     sc.nmhdr.code=EN_SELCHANGE;
     sc.chrg.cpMin=ae->nSelStartCharOffset;
     sc.chrg.cpMax=ae->nSelEndCharOffset;
-    sc.seltyp=0;
+
+    if (sc.chrg.cpMin == sc.chrg.cpMax)
+    {
+      sc.seltyp=SEL_EMPTY;
+    }
+    else
+    {
+      sc.seltyp=SEL_TEXT;
+      if (sc.chrg.cpMax - sc.chrg.cpMin > 1)
+        sc.seltyp|=SEL_MULTICHAR;
+    }
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
 }
