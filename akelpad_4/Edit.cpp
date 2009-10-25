@@ -18730,6 +18730,17 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
+    else if (LOWORD(wParam) == IDC_MDILIST_SAVE)
+    {
+      SaveListboxSelItems(hWndList);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_CLOSE)
+    {
+      if (CloseListboxSelItems(hWndList))
+        SetFocus(hWndList);
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
     else if (LOWORD(wParam) == IDC_MDILIST_LIST)
     {
       if (HIWORD(wParam) == LBN_SELCHANGE)
@@ -18888,6 +18899,17 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       bOnlyModified=SendMessage(hWndModified, BM_GETCHECK, 0, 0);
       FillMdiListListboxW(hWndList, FALSE, bOnlyModified);
       bListChanged=FALSE;
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_SAVE)
+    {
+      SaveListboxSelItems(hWndList);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_CLOSE)
+    {
+      if (CloseListboxSelItems(hWndList))
+        SetFocus(hWndList);
 
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
@@ -19130,6 +19152,91 @@ BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown)
             MoveListboxItemW(hWnd, nOldIndex, nNewIndex);
           SendMessage(hWnd, LB_SETSEL, TRUE, nNewIndex);
           bResult=TRUE;
+        }
+      }
+    }
+    FreeListboxSelItems(&lpSelItems);
+  }
+  return bResult;
+}
+
+BOOL SaveListboxSelItems(HWND hWnd)
+{
+  int *lpSelItems;
+  int nData;
+  int nSelCount;
+  int nItem;
+  int i;
+  BOOL bResult=TRUE;
+
+  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  {
+    for (i=nSelCount - 1; i >= 0; --i)
+    {
+      if ((nData=SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
+      {
+        if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+        {
+          SelectTabItem(hTab, nItem);
+
+          if (bOldWindows)
+          {
+            if (!DoFileSaveA())
+            {
+              bResult=FALSE;
+              break;
+            }
+            GetWindowTextA((HWND)nData, buf, MAX_PATH);
+            SendMessage(hWnd, LB_DELETESTRING, lpSelItems[i], 0);
+            SendMessageA(hWnd, LB_INSERTSTRING, lpSelItems[i], (LPARAM)buf);
+          }
+          else
+          {
+            if (!DoFileSaveW())
+            {
+              bResult=FALSE;
+              break;
+            }
+            GetWindowTextW((HWND)nData, wbuf, MAX_PATH);
+            SendMessage(hWnd, LB_DELETESTRING, lpSelItems[i], 0);
+            SendMessageW(hWnd, LB_INSERTSTRING, lpSelItems[i], (LPARAM)wbuf);
+          }
+          SendMessage(hWnd, LB_SETITEMDATA, lpSelItems[i], nData);
+          SendMessage(hWnd, LB_SETSEL, TRUE, lpSelItems[i]);
+        }
+      }
+    }
+    FreeListboxSelItems(&lpSelItems);
+  }
+  return bResult;
+}
+
+BOOL CloseListboxSelItems(HWND hWnd)
+{
+  int *lpSelItems;
+  int nData;
+  int nSelCount;
+  int nItem;
+  int i;
+  BOOL bResult=TRUE;
+
+  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  {
+    for (i=nSelCount - 1; i >= 0; --i)
+    {
+      if ((nData=SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
+      {
+        if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+        {
+          SelectTabItem(hTab, nItem);
+
+          SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
+          if (!bFileExitError)
+          {
+            bResult=FALSE;
+            break;
+          }
+          SendMessage(hWnd, LB_DELETESTRING, lpSelItems[i], 0);
         }
       }
     }

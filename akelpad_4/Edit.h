@@ -762,6 +762,8 @@ void FillMdiListListboxW(HWND hWnd, BOOL bSort, BOOL bOnlyModified);
 int MoveListboxItemA(HWND hWnd, int nOldIndex, int nNewIndex);
 int MoveListboxItemW(HWND hWnd, int nOldIndex, int nNewIndex);
 BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown);
+BOOL SaveListboxSelItems(HWND hWnd);
+BOOL CloseListboxSelItems(HWND hWnd);
 int GetListboxSelItems(HWND hWnd, int **lpSelItems);
 void FreeListboxSelItems(int **lpSelItems);
 
