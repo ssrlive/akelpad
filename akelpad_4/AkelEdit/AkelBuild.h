@@ -375,9 +375,6 @@ typedef struct {
   COLORREF crEnableSelBk;
   COLORREF crEnableActiveLineBk;
   BOOL bDefaultColors;
-  HBRUSH hBasicBk;
-  HBRUSH hSelBk;
-  HBRUSH hActiveLineBk;
   HBITMAP hCaretInsert;
   HBITMAP hCaretOvertype;
   int nCaretInsertWidth;
