@@ -102,8 +102,9 @@
 #define IDC_OFN_AUTODETECT              2501
 #define IDC_OFN_CODEPAGE                2502
 #define IDC_OFN_PREVIEW                 2503
-#define IDC_OFN_CODEPAGE_LABEL          2551
-#define IDC_MDILIST_LIST                2552
+#define IDC_OFN_CODEPAGE_LABEL          2504
+#define IDC_MDILIST_LIST                2551
+#define IDC_MDILIST_STATS               2552
 #define IDC_MDILIST_SEARCH              2553
 #define IDC_MDILIST_TABS_GROUP          2554
 #define IDC_MDILIST_UP                  2555
@@ -359,10 +360,11 @@
 #define IDM_LANGUAGE                    6001
 #define IDM_POPUP_OPENAS                7001
 #define IDM_POPUP_SAVEAS                8001
+#define IDM_SELECTWINDOW                10019
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        11001
