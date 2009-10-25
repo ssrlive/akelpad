@@ -266,9 +266,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->popt->crActiveColumn=RGB(0x00, 0x00, 0x00);
       ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
       ae->popt->bDefaultColors=TRUE;
-      ae->popt->hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
-      ae->popt->hSelBk=CreateSolidBrush(ae->popt->crSelBk);
-      ae->popt->hActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
       ae->popt->nCaretInsertWidth=1;
       ae->popt->nCaretOvertypeHeight=2;
       ae->popt->dwUrlMaxLength=AEURL_MAX_LENGTH;
@@ -3484,33 +3481,36 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_ERASEBKGND)
     {
       RECT rcErase;
+      HBRUSH hBasicBk;
+
+      hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
 
       if (ae->rcErase.left < ae->rcDraw.left)
       {
         rcErase=ae->rcErase;
         rcErase.right=min(rcErase.right, ae->rcDraw.left);
-        FillRect((HDC)wParam, &rcErase, ae->popt->hBasicBk);
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
         ae->rcErase.left=rcErase.right;
       }
       if (ae->rcErase.top < ae->rcDraw.top)
       {
         rcErase=ae->rcErase;
         rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
-        FillRect((HDC)wParam, &rcErase, ae->popt->hBasicBk);
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
         ae->rcErase.top=rcErase.bottom;
       }
       if (ae->rcErase.right > ae->rcDraw.right)
       {
         rcErase=ae->rcErase;
         rcErase.left=max(rcErase.left, ae->rcDraw.right);
-        FillRect((HDC)wParam, &rcErase, ae->popt->hBasicBk);
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
         ae->rcErase.right=rcErase.left;
       }
       if (ae->rcErase.bottom > ae->rcDraw.bottom)
       {
         rcErase=ae->rcErase;
         rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
-        FillRect((HDC)wParam, &rcErase, ae->popt->hBasicBk);
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
         ae->rcErase.bottom=rcErase.top;
       }
 
@@ -3520,8 +3520,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (rcErase.top < rcErase.bottom)
       {
-        FillRect((HDC)wParam, &rcErase, ae->popt->hBasicBk);
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
       }
+      DeleteObject(hBasicBk);
+
       return 1;
     }
     else if (uMsg == WM_PAINT)
@@ -3591,21 +3593,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_StackCloneDelete(aec);
       }
 
-      if (ae->popt->hBasicBk)
-      {
-        DeleteObject(ae->popt->hBasicBk);
-        ae->popt->hBasicBk=NULL;
-      }
-      if (ae->popt->hSelBk)
-      {
-        DeleteObject(ae->popt->hSelBk);
-        ae->popt->hSelBk=NULL;
-      }
-      if (ae->popt->hActiveLineBk)
-      {
-        DeleteObject(ae->popt->hActiveLineBk);
-        ae->popt->hActiveLineBk=NULL;
-      }
       if (ae->popt->hActiveColumn)
       {
         DeleteObject(ae->popt->hActiveColumn);
@@ -9166,6 +9153,9 @@ void AE_Paint(AKELEDIT *ae)
       POINT ptDraw;
       RECT rcSpace;
       HDC hBufferDC;
+      HBRUSH hBasicBk;
+      HBRUSH hSelBk;
+      HBRUSH hActiveLineBk;
       HBITMAP hBitmap;
       HBITMAP hBitmapOld=NULL;
       HFONT hFontOld=NULL;
@@ -9184,9 +9174,14 @@ void AE_Paint(AKELEDIT *ae)
       int nDrawCharOffset=0;
       BOOL bUseBufferDC=TRUE;
 
-      //Set DCs
+      //Create GDI objects
       hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
       hDrawRgnOld=(HRGN)SelectObject(ps.hdc, hDrawRgn);
+      hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
+      hSelBk=CreateSolidBrush(ae->popt->crSelBk);
+      hActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
+
+      //Set DCs
       hBufferDC=ps.hdc;
 
       if (bUseBufferDC)
@@ -9250,13 +9245,13 @@ void AE_Paint(AKELEDIT *ae)
         {
           hlp.dwDefaultText=ae->popt->crActiveLineText;
           hlp.dwDefaultBG=ae->popt->crActiveLineBk;
-          hlp.hbrDefaultBG=ae->popt->hActiveLineBk;
+          hlp.hbrDefaultBG=hActiveLineBk;
         }
         else
         {
           hlp.dwDefaultText=ae->popt->crBasicText;
           hlp.dwDefaultBG=ae->popt->crBasicBk;
-          hlp.hbrDefaultBG=ae->popt->hBasicBk;
+          hlp.hbrDefaultBG=hBasicBk;
         }
         hlp.dwActiveText=hlp.dwDefaultText;
         hlp.dwActiveBG=hlp.dwDefaultBG;
@@ -9311,7 +9306,7 @@ void AE_Paint(AKELEDIT *ae)
                   rcSpace.top=ptDraw.y;
                   rcSpace.right=rcSpace.left + (ciDrawLine.lpLine->nSelEnd - max(ciDrawLine.lpLine->nSelStart, ciDrawLine.lpLine->nLineLen)) * ae->ptxt->nSpaceCharWidth;
                   rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                  FillRect(hBufferDC, &rcSpace, ae->popt->hSelBk);
+                  FillRect(hBufferDC, &rcSpace, hSelBk);
                 }
               }
             }
@@ -9332,7 +9327,7 @@ void AE_Paint(AKELEDIT *ae)
                     rcSpace.top=ptDraw.y;
                     rcSpace.right=rcSpace.left + ae->ptxt->nAveCharWidth;
                     rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-                    FillRect(hBufferDC, &rcSpace, ae->popt->hSelBk);
+                    FillRect(hBufferDC, &rcSpace, hSelBk);
                   }
                 }
               }
@@ -9375,7 +9370,7 @@ void AE_Paint(AKELEDIT *ae)
 
               hlp.dwActiveText=ae->popt->crSelText;
               hlp.dwActiveBG=ae->popt->crSelBk;
-              hlp.hbrActiveBG=ae->popt->hSelBk;
+              hlp.hbrActiveBG=hSelBk;
               hlp.dwPaintType|=AEHPT_SELECTION;
               hlp.dwFontStyle=AEHLS_NONE;
             }
@@ -9966,6 +9961,9 @@ void AE_Paint(AKELEDIT *ae)
       }
       if (hDrawRgnOld) SelectObject(ps.hdc, hDrawRgnOld);
       DeleteObject(hDrawRgn);
+      DeleteObject(hBasicBk);
+      DeleteObject(hSelBk);
+      DeleteObject(hActiveLineBk);
 
       EndPaint(ae->hWndEdit, &ps);
     }
@@ -15361,8 +15359,6 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
         ae->popt->crBasicBk=aec->crBasicBk;
         ae->popt->bDefaultColors=FALSE;
       }
-      if (ae->popt->hBasicBk) DeleteObject(ae->popt->hBasicBk);
-      ae->popt->hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
       bUpdateEditRect=TRUE;
 
       if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
@@ -15392,8 +15388,6 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
         ae->popt->crSelBk=aec->crSelBk;
         ae->popt->bDefaultColors=FALSE;
       }
-      if (ae->popt->hSelBk) DeleteObject(ae->popt->hSelBk);
-      ae->popt->hSelBk=CreateSolidBrush(ae->popt->crSelBk);
       bUpdateDrawRect=TRUE;
     }
     if (aec->dwFlags & AECLR_ACTIVELINETEXT)
@@ -15420,8 +15414,6 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
         ae->popt->crActiveLineBk=aec->crActiveLineBk;
         ae->popt->bDefaultColors=FALSE;
       }
-      if (ae->popt->hActiveLineBk) DeleteObject(ae->popt->hActiveLineBk);
-      ae->popt->hActiveLineBk=CreateSolidBrush(ae->popt->crActiveLineBk);
       bUpdateDrawRect=TRUE;
 
       AE_UpdateCaret(ae, ae->bFocus, TRUE);
