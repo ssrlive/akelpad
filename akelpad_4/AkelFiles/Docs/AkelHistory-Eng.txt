@@ -1,6 +1,8 @@
 
 AkelPad 4.3.4 ()
 ----------------------------
+Changed: reduced resource consumption when opening large number of files.
+
 Added: in the "Select Window" dialog (MDI):
        - tab search;
        - sorting, reordering tabs;
