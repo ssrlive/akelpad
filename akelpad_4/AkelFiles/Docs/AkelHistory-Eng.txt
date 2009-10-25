@@ -1,7 +1,12 @@
 
 AkelPad 4.3.4 ()
 ----------------------------
-Added: search in "Select Window" dialog and also remember dialog size (MDI).
+Added: in the "Select Window" dialog (MDI):
+       - tab search;
+       - sorting, reordering tabs;
+       - save, closing selected tabs;
+       - opportunity to show only modified files;
+       - dialog size is remembered.
 
 Fixed: after all text replacing in 4.3.3, scrolling position did not recover.
 Fixed: WordBreak parameter.
