@@ -285,6 +285,11 @@ typedef struct _AEFONTCHARSA {
   struct _AEFONTCHARSA *next;
   struct _AEFONTCHARSA *prev;
   LOGFONTA lfFont;
+  HFONT hFontNormal;
+  HFONT hFontBold;
+  HFONT hFontItalic;
+  HFONT hFontBoldItalic;
+  HFONT hFontUrl;
   WORD lpCharWidths[65536];
 } AEFONTCHARSA;
 
@@ -292,6 +297,11 @@ typedef struct _AEFONTCHARSW {
   struct _AEFONTCHARSW *next;
   struct _AEFONTCHARSW *prev;
   LOGFONTW lfFont;
+  HFONT hFontNormal;
+  HFONT hFontBold;
+  HFONT hFontItalic;
+  HFONT hFontBoldItalic;
+  HFONT hFontUrl;
   WORD lpCharWidths[65536];
 } AEFONTCHARSW;
 
@@ -525,11 +535,12 @@ void AE_StackCloneDelete(AECLONE *aec);
 void AE_StackCloneDeleteAll(AKELEDIT *ae);
 void AE_StackUpdateClones(AKELEDIT *ae);
 AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae);
-WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont);
-WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfFont);
-WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont);
-WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont);
-void AE_StackFontCharsFree(HSTACK *hStack);
+AEFONTCHARSA* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont);
+AEFONTCHARSW* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfFont);
+AEFONTCHARSA* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont);
+AEFONTCHARSW* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont);
+void AE_StackFontCharsFreeA(HSTACK *hStack);
+void AE_StackFontCharsFreeW(HSTACK *hStack);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags);
 void AE_StackPointReset(AKELEDIT *ae);

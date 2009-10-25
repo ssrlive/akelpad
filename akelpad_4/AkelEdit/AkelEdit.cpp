@@ -21,7 +21,8 @@
 
 HANDLE hAkelEditProcessHeap=0;
 HSTACK hAkelEditWindowsStack={0};
-HSTACK hAkelEditFontCharsStack={0};
+HSTACK hAkelEditFontCharsStackA={0};
+HSTACK hAkelEditFontCharsStackW={0};
 HSTACK hAkelEditThemesStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
@@ -190,7 +191,7 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
     hAkelEditBitmapMCenterTopBottom=NULL;
   }
   AE_HighlightDeleteThemeAll(NULL);
-  AE_StackFontCharsFree(&hAkelEditFontCharsStack);
+  AE_StackFontCharsFreeA(&hAkelEditFontCharsStackA);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
   if (bAkelEditClassRegisteredA)
@@ -220,7 +221,7 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
     hAkelEditBitmapMCenterTopBottom=NULL;
   }
   AE_HighlightDeleteThemeAll(NULL);
-  AE_StackFontCharsFree(&hAkelEditFontCharsStack);
+  AE_StackFontCharsFreeW(&hAkelEditFontCharsStackW);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
   if (bAkelEditClassRegisteredW)
@@ -3620,31 +3621,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DeleteObject(ae->popt->hCaretOvertype);
         ae->popt->hCaretOvertype=NULL;
       }
-      if (ae->ptxt->hFontNormal)
-      {
-        DeleteObject(ae->ptxt->hFontNormal);
-        ae->ptxt->hFontNormal=NULL;
-      }
-      if (ae->ptxt->hFontBold)
-      {
-        DeleteObject(ae->ptxt->hFontBold);
-        ae->ptxt->hFontBold=NULL;
-      }
-      if (ae->ptxt->hFontItalic)
-      {
-        DeleteObject(ae->ptxt->hFontItalic);
-        ae->ptxt->hFontItalic=NULL;
-      }
-      if (ae->ptxt->hFontBoldItalic)
-      {
-        DeleteObject(ae->ptxt->hFontBoldItalic);
-        ae->ptxt->hFontBoldItalic=NULL;
-      }
-      if (ae->ptxt->hFontUrl)
-      {
-        DeleteObject(ae->ptxt->hFontUrl);
-        ae->ptxt->hFontUrl=NULL;
-      }
       if (ae->ptxt->hHeap)
       {
         if (HeapDestroy(ae->ptxt->hHeap))
@@ -4181,31 +4157,89 @@ AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae)
   return NULL;
 }
 
-WORD* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont)
+AEFONTCHARSA* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont)
 {
   AEFONTCHARSA *lpElement=NULL;
+  LOGFONTA lfTmp;
 
   if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTCHARSA)))
   {
     AE_memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTA));
-    return lpElement->lpCharWidths;
+    AE_memcpy(&lfTmp, lfFont, sizeof(LOGFONTA));
+
+    //Create normal font
+    lfTmp.lfWeight=FW_NORMAL;
+    lfTmp.lfItalic=FALSE;
+    lpElement->hFontNormal=(HFONT)CreateFontIndirectA(&lfTmp);
+
+    //Create bold font
+    lfTmp.lfWeight=FW_BOLD;
+    lfTmp.lfItalic=FALSE;
+    lpElement->hFontBold=(HFONT)CreateFontIndirectA(&lfTmp);
+
+    //Create italic font
+    lfTmp.lfWeight=FW_NORMAL;
+    lfTmp.lfItalic=TRUE;
+    lpElement->hFontItalic=(HFONT)CreateFontIndirectA(&lfTmp);
+
+    //Create bold italic font
+    lfTmp.lfWeight=FW_BOLD;
+    lfTmp.lfItalic=TRUE;
+    lpElement->hFontBoldItalic=(HFONT)CreateFontIndirectA(&lfTmp);
+
+    //Create URL font
+    lfTmp.lfWeight=lfFont->lfWeight;
+    lfTmp.lfItalic=lfFont->lfItalic;
+    lfTmp.lfUnderline=TRUE;
+    lpElement->hFontUrl=(HFONT)CreateFontIndirectA(&lfTmp);
+
+    return lpElement;
   }
   return NULL;
 }
 
-WORD* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfFont)
+AEFONTCHARSW* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfFont)
 {
   AEFONTCHARSW *lpElement=NULL;
+  LOGFONTW lfTmp;
 
   if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTCHARSW)))
   {
     AE_memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTW));
-    return lpElement->lpCharWidths;
+    AE_memcpy(&lfTmp, lfFont, sizeof(LOGFONTW));
+
+    //Create normal font
+    lfTmp.lfWeight=FW_NORMAL;
+    lfTmp.lfItalic=FALSE;
+    lpElement->hFontNormal=(HFONT)CreateFontIndirectW(&lfTmp);
+
+    //Create bold font
+    lfTmp.lfWeight=FW_BOLD;
+    lfTmp.lfItalic=FALSE;
+    lpElement->hFontBold=(HFONT)CreateFontIndirectW(&lfTmp);
+
+    //Create italic font
+    lfTmp.lfWeight=FW_NORMAL;
+    lfTmp.lfItalic=TRUE;
+    lpElement->hFontItalic=(HFONT)CreateFontIndirectW(&lfTmp);
+
+    //Create bold italic font
+    lfTmp.lfWeight=FW_BOLD;
+    lfTmp.lfItalic=TRUE;
+    lpElement->hFontBoldItalic=(HFONT)CreateFontIndirectW(&lfTmp);
+
+    //Create URL font
+    lfTmp.lfWeight=lfFont->lfWeight;
+    lfTmp.lfItalic=lfFont->lfItalic;
+    lfTmp.lfUnderline=TRUE;
+    lpElement->hFontUrl=(HFONT)CreateFontIndirectW(&lfTmp);
+
+    return lpElement;
   }
   return NULL;
 }
 
-WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont)
+AEFONTCHARSA* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont)
 {
   AEFONTCHARSA *lpElement=(AEFONTCHARSA *)hStack->first;
 
@@ -4217,14 +4251,14 @@ WORD* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont)
         lpElement->lfFont.lfCharSet == lfFont->lfCharSet)
     {
       if (!lstrcmpiA(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
-        return lpElement->lpCharWidths;
+        return lpElement;
     }
     lpElement=lpElement->next;
   }
   return NULL;
 }
 
-WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont)
+AEFONTCHARSW* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont)
 {
   AEFONTCHARSW *lpElement=(AEFONTCHARSW *)hStack->first;
 
@@ -4236,15 +4270,44 @@ WORD* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont)
         lpElement->lfFont.lfCharSet == lfFont->lfCharSet)
     {
       if (!lstrcmpiW(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
-        return lpElement->lpCharWidths;
+        return lpElement;
     }
     lpElement=lpElement->next;
   }
   return NULL;
 }
 
-void AE_StackFontCharsFree(HSTACK *hStack)
+void AE_StackFontCharsFreeA(HSTACK *hStack)
 {
+  AEFONTCHARSA *lpElement=(AEFONTCHARSA *)hStack->first;
+
+  while (lpElement)
+  {
+    if (lpElement->hFontNormal) DeleteObject(lpElement->hFontNormal);
+    if (lpElement->hFontBold) DeleteObject(lpElement->hFontBold);
+    if (lpElement->hFontItalic) DeleteObject(lpElement->hFontItalic);
+    if (lpElement->hFontBoldItalic) DeleteObject(lpElement->hFontBoldItalic);
+    if (lpElement->hFontUrl) DeleteObject(lpElement->hFontUrl);
+
+    lpElement=lpElement->next;
+  }
+  AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+void AE_StackFontCharsFreeW(HSTACK *hStack)
+{
+  AEFONTCHARSW *lpElement=(AEFONTCHARSW *)hStack->first;
+
+  while (lpElement)
+  {
+    if (lpElement->hFontNormal) DeleteObject(lpElement->hFontNormal);
+    if (lpElement->hFontBold) DeleteObject(lpElement->hFontBold);
+    if (lpElement->hFontItalic) DeleteObject(lpElement->hFontItalic);
+    if (lpElement->hFontBoldItalic) DeleteObject(lpElement->hFontBoldItalic);
+    if (lpElement->hFontUrl) DeleteObject(lpElement->hFontUrl);
+
+    lpElement=lpElement->next;
+  }
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
 
@@ -6244,8 +6307,8 @@ void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw)
 
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
+  AEFONTCHARSA *fc;
   TEXTMETRICA tmEdit;
-  LOGFONTA lfFont;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
   HDC hDC=ae->hDC;
@@ -6272,40 +6335,14 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     ae->ptxt->hFont=hFont;
     ae->ptxt->lfFontA.lfHeight=-mod(ae->ptxt->lfFontA.lfHeight);
     ae->ptxt->lfFontA.lfWidth=0;
-    if (!(ae->ptxt->lpCharWidths=AE_StackFontCharsGetA(&hAkelEditFontCharsStack, &ae->ptxt->lfFontA)))
-      ae->ptxt->lpCharWidths=AE_StackFontCharsInsertA(&hAkelEditFontCharsStack, &ae->ptxt->lfFontA);
-    AE_memcpy(&lfFont, &ae->ptxt->lfFontA, sizeof(LOGFONTA));
-
-    //Create normal font
-    if (ae->ptxt->hFontNormal) DeleteObject(ae->ptxt->hFontNormal);
-    lfFont.lfWeight=FW_NORMAL;
-    lfFont.lfItalic=FALSE;
-    ae->ptxt->hFontNormal=(HFONT)CreateFontIndirectA(&lfFont);
-
-    //Create bold font
-    if (ae->ptxt->hFontBold) DeleteObject(ae->ptxt->hFontBold);
-    lfFont.lfWeight=FW_BOLD;
-    lfFont.lfItalic=FALSE;
-    ae->ptxt->hFontBold=(HFONT)CreateFontIndirectA(&lfFont);
-
-    //Create italic font
-    if (ae->ptxt->hFontItalic) DeleteObject(ae->ptxt->hFontItalic);
-    lfFont.lfWeight=FW_NORMAL;
-    lfFont.lfItalic=TRUE;
-    ae->ptxt->hFontItalic=(HFONT)CreateFontIndirectA(&lfFont);
-
-    //Create bold italic font
-    if (ae->ptxt->hFontBoldItalic) DeleteObject(ae->ptxt->hFontBoldItalic);
-    lfFont.lfWeight=FW_BOLD;
-    lfFont.lfItalic=TRUE;
-    ae->ptxt->hFontBoldItalic=(HFONT)CreateFontIndirectA(&lfFont);
-
-    //Create URL font
-    if (ae->ptxt->hFontUrl) DeleteObject(ae->ptxt->hFontUrl);
-    lfFont.lfWeight=ae->ptxt->lfFontA.lfWeight;
-    lfFont.lfItalic=ae->ptxt->lfFontA.lfItalic;
-    lfFont.lfUnderline=TRUE;
-    ae->ptxt->hFontUrl=(HFONT)CreateFontIndirectA(&lfFont);
+    if (!(fc=AE_StackFontCharsGetA(&hAkelEditFontCharsStackA, &ae->ptxt->lfFontA)))
+      fc=AE_StackFontCharsInsertA(&hAkelEditFontCharsStackA, &ae->ptxt->lfFontA);
+    ae->ptxt->lpCharWidths=fc->lpCharWidths;
+    ae->ptxt->hFontNormal=fc->hFontNormal;
+    ae->ptxt->hFontBold=fc->hFontBold;
+    ae->ptxt->hFontItalic=fc->hFontItalic;
+    ae->ptxt->hFontBoldItalic=fc->hFontBoldItalic;
+    ae->ptxt->hFontUrl=fc->hFontUrl;
 
     ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
     GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
@@ -6326,8 +6363,8 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
+  AEFONTCHARSW *fc;
   TEXTMETRICW tmEdit;
-  LOGFONTW lfFont;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
   HDC hDC=ae->hDC;
@@ -6354,40 +6391,14 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     ae->ptxt->hFont=hFont;
     ae->ptxt->lfFontW.lfHeight=-mod(ae->ptxt->lfFontW.lfHeight);
     ae->ptxt->lfFontW.lfWidth=0;
-    if (!(ae->ptxt->lpCharWidths=AE_StackFontCharsGetW(&hAkelEditFontCharsStack, &ae->ptxt->lfFontW)))
-      ae->ptxt->lpCharWidths=AE_StackFontCharsInsertW(&hAkelEditFontCharsStack, &ae->ptxt->lfFontW);
-    AE_memcpy(&lfFont, &ae->ptxt->lfFontW, sizeof(LOGFONTW));
-
-    //Create normal font
-    if (ae->ptxt->hFontNormal) DeleteObject(ae->ptxt->hFontNormal);
-    lfFont.lfWeight=FW_NORMAL;
-    lfFont.lfItalic=FALSE;
-    ae->ptxt->hFontNormal=(HFONT)CreateFontIndirectW(&lfFont);
-
-    //Create bold font
-    if (ae->ptxt->hFontBold) DeleteObject(ae->ptxt->hFontBold);
-    lfFont.lfWeight=FW_BOLD;
-    lfFont.lfItalic=FALSE;
-    ae->ptxt->hFontBold=(HFONT)CreateFontIndirectW(&lfFont);
-
-    //Create italic font
-    if (ae->ptxt->hFontItalic) DeleteObject(ae->ptxt->hFontItalic);
-    lfFont.lfWeight=FW_NORMAL;
-    lfFont.lfItalic=TRUE;
-    ae->ptxt->hFontItalic=(HFONT)CreateFontIndirectW(&lfFont);
-
-    //Create bold italic font
-    if (ae->ptxt->hFontBoldItalic) DeleteObject(ae->ptxt->hFontBoldItalic);
-    lfFont.lfWeight=FW_BOLD;
-    lfFont.lfItalic=TRUE;
-    ae->ptxt->hFontBoldItalic=(HFONT)CreateFontIndirectW(&lfFont);
-
-    //Create URL font
-    if (ae->ptxt->hFontUrl) DeleteObject(ae->ptxt->hFontUrl);
-    lfFont.lfWeight=ae->ptxt->lfFontW.lfWeight;
-    lfFont.lfItalic=ae->ptxt->lfFontW.lfItalic;
-    lfFont.lfUnderline=TRUE;
-    ae->ptxt->hFontUrl=(HFONT)CreateFontIndirectW(&lfFont);
+    if (!(fc=AE_StackFontCharsGetW(&hAkelEditFontCharsStackW, &ae->ptxt->lfFontW)))
+      fc=AE_StackFontCharsInsertW(&hAkelEditFontCharsStackW, &ae->ptxt->lfFontW);
+    ae->ptxt->lpCharWidths=fc->lpCharWidths;
+    ae->ptxt->hFontNormal=fc->hFontNormal;
+    ae->ptxt->hFontBold=fc->hFontBold;
+    ae->ptxt->hFontItalic=fc->hFontItalic;
+    ae->ptxt->hFontBoldItalic=fc->hFontBoldItalic;
+    ae->ptxt->hFontUrl=fc->hFontUrl;
 
     ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
     GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
@@ -8781,6 +8792,7 @@ int AE_AlignPos(AKELEDIT *ae, int nPos, DWORD dwAlign)
 AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 {
   AEPRINTHANDLE *ph;
+  AEFONTCHARSA *fc;
   TEXTMETRICA tmEditA;
   TEXTMETRICA tmPrintA;
   SIZE sizeWidth;
@@ -8815,8 +8827,9 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 
     //Set print font
     ph->aePrint.ptxt->hFont=prn->hPrintFont;
-    if (!(ph->aePrint.ptxt->lpCharWidths=AE_StackFontCharsGetA(&hAkelEditFontCharsStack, &ph->aePrint.ptxt->lfFontA)))
-      ph->aePrint.ptxt->lpCharWidths=AE_StackFontCharsInsertA(&hAkelEditFontCharsStack, &ph->aePrint.ptxt->lfFontA);
+    if (!(fc=AE_StackFontCharsGetA(&hAkelEditFontCharsStackA, &ph->aePrint.ptxt->lfFontA)))
+      fc=AE_StackFontCharsInsertA(&hAkelEditFontCharsStackA, &ph->aePrint.ptxt->lfFontA);
+    ph->aePrint.ptxt->lpCharWidths=fc->lpCharWidths;
 
     //Get print font sizes
     GetTextMetricsA(prn->hPrinterDC, &tmPrintA);
@@ -8845,6 +8858,7 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
 {
   AEPRINTHANDLE *ph;
+  AEFONTCHARSW *fc;
   TEXTMETRICW tmEditW;
   TEXTMETRICW tmPrintW;
   SIZE sizeWidth;
@@ -8882,8 +8896,9 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
 
     //Set print font
     ph->aePrint.ptxt->hFont=prn->hPrintFont;
-    if (!(ph->aePrint.ptxt->lpCharWidths=AE_StackFontCharsGetW(&hAkelEditFontCharsStack, &ph->aePrint.ptxt->lfFontW)))
-      ph->aePrint.ptxt->lpCharWidths=AE_StackFontCharsInsertW(&hAkelEditFontCharsStack, &ph->aePrint.ptxt->lfFontW);
+    if (!(fc=AE_StackFontCharsGetW(&hAkelEditFontCharsStackW, &ph->aePrint.ptxt->lfFontW)))
+      fc=AE_StackFontCharsInsertW(&hAkelEditFontCharsStackW, &ph->aePrint.ptxt->lfFontW);
+    ph->aePrint.ptxt->lpCharWidths=fc->lpCharWidths;
 
     //Get print font sizes
     GetTextMetricsW(prn->hPrinterDC, &tmPrintW);
