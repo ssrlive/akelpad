@@ -133,7 +133,6 @@ int nProgressWidth=0;
 HACCEL hGlobalAccel;
 HACCEL hMainAccel;
 HICON hMainIcon;
-HICON hIconEmpty;
 HCURSOR hCursorDragMove;
 HCURSOR hCursorHandOpen;
 HCURSOR hCursorHandClose;
@@ -376,7 +375,9 @@ HWND hTab=NULL;
 int nTabView=TAB_VIEW_TOP;
 int nTabType=TAB_TYPE_STANDARD;
 int nTabSwitch=TAB_SWITCH_NEXTPREV;
+HSTACK hIconsStack={0};
 HIMAGELIST hImageList;
+HICON hIconEmpty;
 BOOL bTabPressed=FALSE;
 BOOL bFileExitError;
 RECT rcMdiListDialog={0};
@@ -3413,9 +3414,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ImageList_Destroy(hImageList);
       DestroyCursor(hCursorDragMove);
       DestroyIcon(hIconEmpty);
+      StackIconsFreeA(&hIconsStack);
     }
     DestroyAcceleratorTable(hMainAccel);
     DestroyAcceleratorTable(hGlobalAccel);
+    DestroyCursor(hCursorHandOpen);
+    DestroyCursor(hCursorHandClose);
     DestroyIcon(hMainIcon);
     DestroyMenu(hMainMenu);
     DestroyMenu(hPopupMenu);
@@ -5314,9 +5318,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ImageList_Destroy(hImageList);
       DestroyCursor(hCursorDragMove);
       DestroyIcon(hIconEmpty);
+      StackIconsFreeW(&hIconsStack);
     }
     DestroyAcceleratorTable(hMainAccel);
     DestroyAcceleratorTable(hGlobalAccel);
+    DestroyCursor(hCursorHandOpen);
+    DestroyCursor(hCursorHandClose);
     DestroyIcon(hMainIcon);
     DestroyMenu(hMainMenu);
     DestroyMenu(hPopupMenu);
@@ -6991,7 +6998,6 @@ LRESULT CALLBACK NewMdiClientProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
       if (wf=(WNDFRAMEA *)GetWindowLongA((HWND)wParam, GWL_USERDATA))
       {
-        if (wf->hIcon != hIconEmpty) DestroyIcon(wf->hIcon);
         SetWindowLongA((HWND)wParam, GWL_USERDATA, (LONG)0);
         API_HeapFree(hHeap, 0, (LPVOID)wf);
       }
@@ -7104,7 +7110,6 @@ LRESULT CALLBACK NewMdiClientProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
 
       if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)wParam, GWL_USERDATA))
       {
-        if (wf->hIcon != hIconEmpty) DestroyIcon(wf->hIcon);
         SetWindowLongW((HWND)wParam, GWL_USERDATA, (LONG)0);
         API_HeapFree(hHeap, 0, (LPVOID)wf);
       }
