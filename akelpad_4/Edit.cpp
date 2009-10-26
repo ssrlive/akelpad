@@ -104,7 +104,6 @@ extern int nProgressWidth;
 extern HACCEL hGlobalAccel;
 extern HACCEL hMainAccel;
 extern HICON hMainIcon;
-extern HICON hIconEmpty;
 extern HCURSOR hCursorDragMove;
 extern HCURSOR hCursorHandOpen;
 extern HCURSOR hCursorHandClose;
@@ -347,7 +346,9 @@ extern HWND hTab;
 extern int nTabView;
 extern int nTabType;
 extern int nTabSwitch;
+extern HSTACK hIconsStack;
 extern HIMAGELIST hImageList;
+extern HICON hIconEmpty;
 extern BOOL bTabPressed;
 extern BOOL bFileExitError;
 extern RECT rcMdiListDialog;
@@ -19645,6 +19646,522 @@ void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst)
 }
 
 
+//// Associations
+
+void GetAssociatedIconA(char *pExt, char *szFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
+{
+  char *pFileName;
+  HKEY hKey;
+  DWORD dwType;
+  DWORD dwSize;
+  int nIndex=0;
+  int i;
+  int j;
+
+  if (RegOpenKeyExA(HKEY_CLASSES_ROOT, pExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+  {
+    dwSize=BUFFER_SIZE;
+    RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf, &dwSize);
+    RegCloseKey(hKey);
+
+    wsprintfA(buf2, "%s\\DefaultIcon", buf);
+
+    if (RegOpenKeyExA(HKEY_CLASSES_ROOT, buf2, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    {
+      dwSize=BUFFER_SIZE;
+      RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf2, &dwSize);
+      RegCloseKey(hKey);
+
+      for (i=0, j=0; buf2[i]; ++i)
+        if (buf2[i] != '\"') buf[j++]=buf2[i];
+      buf[j]='\0';
+
+      for (i=lstrlenA(buf) - 1; i > 0; --i)
+      {
+        if (buf[i] == ',')
+        {
+          buf[i]='\0';
+          nIndex=xatoiA(buf + i + 1);
+          if (nIndex == -1) nIndex=0;
+          break;
+        }
+        else if (buf[i] == '-' || (buf[i] >= '0' && buf[i] <= '9'))
+          continue;
+        break;
+      }
+      ExpandEnvironmentStringsA(buf, buf2, BUFFER_SIZE);
+      if (SearchPathA(NULL, buf2, NULL, BUFFER_SIZE, buf, &pFileName))
+      {
+        (*ExtractIconExAPtr)(buf, nIndex, phiconLarge, phiconSmall, 1);
+        if (szFile) lstrcpynA(szFile, buf, MAX_PATH);
+        if (nIconIndex) *nIconIndex=nIndex;
+        return;
+      }
+    }
+  }
+  if (szFile) szFile[0]='\0';
+  if (nIconIndex) *nIconIndex=0;
+  if (phiconLarge) *phiconLarge=0;
+  if (phiconSmall) *phiconSmall=0;
+}
+
+
+void GetAssociatedIconW(wchar_t *wpExt, wchar_t *wszFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
+{
+  wchar_t *wpFileName;
+  HKEY hKey;
+  DWORD dwType;
+  DWORD dwSize;
+  int nIndex=0;
+  int i;
+  int j;
+
+  if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wpExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+  {
+    dwSize=BUFFER_SIZE * sizeof(wchar_t);
+    RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf, &dwSize);
+    RegCloseKey(hKey);
+
+    wsprintfW(wbuf2, L"%s\\DefaultIcon", wbuf);
+
+    if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    {
+      dwSize=BUFFER_SIZE * sizeof(wchar_t);
+      RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize);
+      RegCloseKey(hKey);
+
+      for (i=0, j=0; wbuf2[i]; ++i)
+        if (wbuf2[i] != '\"') wbuf[j++]=wbuf2[i];
+      wbuf[j]='\0';
+
+      for (i=lstrlenW(wbuf) - 1; i > 0; --i)
+      {
+        if (wbuf[i] == ',')
+        {
+          wbuf[i]='\0';
+          nIndex=xatoiW(wbuf + i + 1);
+          if (nIndex == -1) nIndex=0;
+          break;
+        }
+        else if (wbuf[i] == '-' || (wbuf[i] >= '0' && wbuf[i] <= '9'))
+          continue;
+        break;
+      }
+      ExpandEnvironmentStringsW(wbuf, wbuf2, BUFFER_SIZE);
+      if (SearchPathW(NULL, wbuf2, NULL, BUFFER_SIZE, wbuf, &wpFileName))
+      {
+        (*ExtractIconExWPtr)(wbuf, nIndex, phiconLarge, phiconSmall, 1);
+        if (wszFile) lstrcpynW(wszFile, wbuf, MAX_PATH);
+        if (nIconIndex) *nIconIndex=nIndex;
+        return;
+      }
+    }
+  }
+  if (wszFile) wszFile[0]='\0';
+  if (nIconIndex) *nIconIndex=0;
+  if (phiconLarge) *phiconLarge=0;
+  if (phiconSmall) *phiconSmall=0;
+}
+
+void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags)
+{
+  char szModule[MAX_PATH];
+  char szAssocKey[MAX_PATH];
+  char szTypeKey[16];
+  char szExt[16];
+  char *pExtStart=pFileTypes;
+  char *pExtEnd=pFileTypes;
+  HKEY hKey;
+  DWORD dwType;
+  DWORD dwSize;
+
+  GetModuleFileNameA(hInstance, szModule, MAX_PATH);
+
+  if (dwFlags & AE_OPEN) lstrcpyA(szTypeKey, "Open");
+  else if (dwFlags & AE_EDIT) lstrcpyA(szTypeKey, "Edit");
+  else if (dwFlags & AE_PRINT) lstrcpyA(szTypeKey, "Print");
+
+  while (1)
+  {
+    if (pExtEnd=AKD_strchr(pExtStart, ';'))
+      lstrcpynA(buf, pExtStart, pExtEnd - pExtStart + 1);
+    else
+      lstrcpynA(buf, pExtStart, MAX_PATH);
+    if (!*buf) goto NextExt;
+    wsprintfA(szExt, ".%s", buf);
+
+    if (RegCreateKeyExA(HKEY_CLASSES_ROOT, szExt, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
+    {
+      dwSize=MAX_PATH;
+      if (RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)szAssocKey, &dwSize) != ERROR_SUCCESS || !*szAssocKey)
+      {
+        if (dwFlags & AE_ASSOCIATE)
+        {
+          wsprintfA(szAssocKey, "%sfile", szExt + 1);
+          RegSetValueExA(hKey, "", 0, REG_SZ, (LPBYTE)szAssocKey, lstrlenA(szAssocKey) + 1);
+        }
+        else if (dwFlags & AE_DEASSOCIATE)
+        {
+          RegCloseKey(hKey);
+          return;
+        }
+      }
+      RegCloseKey(hKey);
+
+      //Associate icon
+      if (dwFlags & AE_OPEN)
+      {
+        wsprintfA(buf2, "%s\\DefaultIcon", szAssocKey);
+
+        if (RegCreateKeyExA(HKEY_CLASSES_ROOT, buf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
+        {
+          dwSize=BUFFER_SIZE;
+          if (RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf2, &dwSize) != ERROR_SUCCESS || !*buf2)
+          {
+            if (dwFlags & AE_ASSOCIATE) RegSetValueExA(hKey, "", 0, REG_SZ, (LPBYTE)szModule, lstrlenA(szModule) + 1);
+          }
+          else if (dwFlags & AE_DEASSOCIATE)
+          {
+            if (!lstrcmpiA(buf2, szModule)) RegDeleteValueA(hKey, "");
+          }
+          RegCloseKey(hKey);
+        }
+      }
+
+      //Associate command
+      wsprintfA(buf2, "%s\\Shell\\%s\\Command", szAssocKey, szTypeKey);
+      wsprintfA(buf, "\"%s\"%s \"%%1\"", szModule, (dwFlags & AE_PRINT)?" /p":"");
+
+      if (RegCreateKeyExA(HKEY_CLASSES_ROOT, buf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
+      {
+        if (dwFlags & AE_ASSOCIATE)
+        {
+          dwSize=BUFFER_SIZE;
+          if (RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf2, &dwSize) == ERROR_SUCCESS)
+          {
+            if (*buf2 && lstrcmpiA(buf, buf2))
+            {
+              if (RegQueryValueExA(hKey, "AkelUndo", NULL, NULL, NULL, NULL) != ERROR_SUCCESS)
+                RegSetValueExA(hKey, "AkelUndo", 0, dwType, (LPBYTE)buf2, dwSize);
+            }
+          }
+          RegSetValueExA(hKey, "", 0, REG_SZ, (LPBYTE)buf, lstrlenA(buf) + 1);
+        }
+        else if (dwFlags & AE_DEASSOCIATE)
+        {
+          dwSize=BUFFER_SIZE;
+          if (RegQueryValueExA(hKey, "AkelUndo", NULL, &dwType, (LPBYTE)buf2, &dwSize) == ERROR_SUCCESS)
+          {
+            if (*buf2) RegSetValueExA(hKey, "", 0, dwType, (LPBYTE)buf2, dwSize);
+            RegDeleteValueA(hKey, "AkelUndo");
+          }
+          dwSize=BUFFER_SIZE;
+          if (RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf2, &dwSize) == ERROR_SUCCESS)
+          {
+            if (!*buf2 || !lstrcmpiA(buf, buf2))
+            {
+              RegCloseKey(hKey);
+              wsprintfA(buf2, "%s\\Shell\\%s", szAssocKey, szTypeKey);
+              if (RegOpenKeyExA(HKEY_CLASSES_ROOT, buf2, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
+              {
+                RegDeleteKeyA(hKey, "Command");
+                RegCloseKey(hKey);
+                wsprintfA(buf2, "%s\\Shell", szAssocKey);
+                if (RegOpenKeyExA(HKEY_CLASSES_ROOT, buf2, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
+                {
+                  RegDeleteKeyA(hKey, szTypeKey);
+                  dwSize=BUFFER_SIZE;
+                  if (RegEnumKeyExA(hKey, 0, buf2, &dwSize, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)
+                  {
+                    RegCloseKey(hKey);
+                    if (RegOpenKeyExA(HKEY_CLASSES_ROOT, szAssocKey, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
+                      RegDeleteKeyA(hKey, "Shell");
+                  }
+                }
+              }
+            }
+          }
+        }
+        RegCloseKey(hKey);
+      }
+    }
+
+    //Check off "Always open with this program"
+    if (dwFlags & AE_OPEN)
+    {
+      wsprintfA(buf, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\%s", szExt);
+
+      if (RegOpenKeyExA(HKEY_CURRENT_USER, buf, 0, KEY_QUERY_VALUE|KEY_SET_VALUE, &hKey) == ERROR_SUCCESS)
+      {
+        if (dwFlags & AE_ASSOCIATE)
+        {
+          dwSize=BUFFER_SIZE;
+          if (RegQueryValueExA(hKey, "Application", NULL, &dwType, (LPBYTE)buf, &dwSize) == ERROR_SUCCESS)
+          {
+            if (*buf) RegSetValueExA(hKey, "AkelUndo", 0, dwType, (LPBYTE)buf, dwSize);
+            RegDeleteValueA(hKey, "Application");
+          }
+        }
+        else if (dwFlags & AE_DEASSOCIATE)
+        {
+          dwSize=BUFFER_SIZE;
+          if (RegQueryValueExA(hKey, "AkelUndo", NULL, &dwType, (LPBYTE)buf, &dwSize) == ERROR_SUCCESS)
+          {
+            if (*buf) RegSetValueExA(hKey, "Application", 0, dwType, (LPBYTE)buf, dwSize);
+            RegDeleteValueA(hKey, "AkelUndo");
+          }
+        }
+        RegCloseKey(hKey);
+      }
+    }
+    NextExt:
+    pExtStart=pExtEnd + 1;
+    if (!pExtEnd) break;
+    if (!*pExtStart) break;
+  }
+}
+
+void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlags)
+{
+  wchar_t wszModule[MAX_PATH];
+  wchar_t wszAssocKey[MAX_PATH];
+  wchar_t wszTypeKey[16];
+  wchar_t wszExt[16];
+  wchar_t *wpExtStart=wpFileTypes;
+  wchar_t *wpExtEnd=wpFileTypes;
+  HKEY hKey;
+  DWORD dwType;
+  DWORD dwSize;
+
+  GetModuleFileNameW(hInstance, wszModule, MAX_PATH);
+
+  if (dwFlags & AE_OPEN) lstrcpyW(wszTypeKey, L"Open");
+  else if (dwFlags & AE_EDIT) lstrcpyW(wszTypeKey, L"Edit");
+  else if (dwFlags & AE_PRINT) lstrcpyW(wszTypeKey, L"Print");
+
+  while (1)
+  {
+    if (wpExtEnd=AKD_wcschr(wpExtStart, ';'))
+      lstrcpynW(wbuf, wpExtStart, wpExtEnd - wpExtStart + 1);
+    else
+      lstrcpynW(wbuf, wpExtStart, MAX_PATH);
+    if (!*wbuf) goto NextExt;
+    wsprintfW(wszExt, L".%s", wbuf);
+
+    if (RegCreateKeyExW(HKEY_CLASSES_ROOT, wszExt, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
+    {
+      dwSize=MAX_PATH * sizeof(wchar_t);
+      if (RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wszAssocKey, &dwSize) != ERROR_SUCCESS || !*wszAssocKey)
+      {
+        if (dwFlags & AE_ASSOCIATE)
+        {
+          wsprintfW(wszAssocKey, L"%sfile", wszExt + 1);
+          RegSetValueExW(hKey, L"", 0, REG_SZ, (LPBYTE)wszAssocKey, lstrlenW(wszAssocKey) * sizeof(wchar_t) + 2);
+        }
+        else if (dwFlags & AE_DEASSOCIATE)
+        {
+          RegCloseKey(hKey);
+          return;
+        }
+      }
+      RegCloseKey(hKey);
+
+      //Associate icon
+      if (dwFlags & AE_OPEN)
+      {
+        wsprintfW(wbuf2, L"%s\\DefaultIcon", wszAssocKey);
+
+        if (RegCreateKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
+        {
+          dwSize=BUFFER_SIZE * sizeof(wchar_t);
+          if (RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) != ERROR_SUCCESS || !*wbuf2)
+          {
+            if (dwFlags & AE_ASSOCIATE) RegSetValueExW(hKey, L"", 0, REG_SZ, (LPBYTE)wszModule, lstrlenW(wszModule) * sizeof(wchar_t) + 2);
+          }
+          else if (dwFlags & AE_DEASSOCIATE)
+          {
+            if (!lstrcmpiW(wbuf2, wszModule)) RegDeleteValueW(hKey, L"");
+          }
+          RegCloseKey(hKey);
+        }
+      }
+
+      //Associate command
+      wsprintfW(wbuf2, L"%s\\Shell\\%s\\Command", wszAssocKey, wszTypeKey);
+      wsprintfW(wbuf, L"\"%s\"%s \"%%1\"", wszModule, (dwFlags & AE_PRINT)?L" /p":L"");
+
+      if (RegCreateKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
+      {
+        if (dwFlags & AE_ASSOCIATE)
+        {
+          dwSize=BUFFER_SIZE * sizeof(wchar_t);
+          if (RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) == ERROR_SUCCESS)
+          {
+            if (*wbuf2 && lstrcmpiW(wbuf, wbuf2))
+            {
+              if (RegQueryValueExW(hKey, L"AkelUndo", NULL, NULL, NULL, NULL) != ERROR_SUCCESS)
+                RegSetValueExW(hKey, L"AkelUndo", 0, dwType, (LPBYTE)wbuf2, dwSize);
+            }
+          }
+          RegSetValueExW(hKey, L"", 0, REG_SZ, (LPBYTE)wbuf, lstrlenW(wbuf) * sizeof(wchar_t) + 2);
+        }
+        else if (dwFlags & AE_DEASSOCIATE)
+        {
+          dwSize=BUFFER_SIZE * sizeof(wchar_t);
+          if (RegQueryValueExW(hKey, L"AkelUndo", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) == ERROR_SUCCESS)
+          {
+            if (*wbuf2) RegSetValueExW(hKey, L"", 0, dwType, (LPBYTE)wbuf2, dwSize);
+            RegDeleteValueW(hKey, L"AkelUndo");
+          }
+          dwSize=BUFFER_SIZE * sizeof(wchar_t);
+          if (RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) == ERROR_SUCCESS)
+          {
+            if (!*wbuf2 || !lstrcmpiW(wbuf, wbuf2))
+            {
+              RegCloseKey(hKey);
+              wsprintfW(wbuf2, L"%s\\Shell\\%s", wszAssocKey, wszTypeKey);
+              if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
+              {
+                RegDeleteKeyW(hKey, L"Command");
+                RegCloseKey(hKey);
+                wsprintfW(wbuf2, L"%s\\Shell", wszAssocKey);
+                if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
+                {
+                  RegDeleteKeyW(hKey, wszTypeKey);
+                  dwSize=BUFFER_SIZE * sizeof(wchar_t);
+                  if (RegEnumKeyExW(hKey, 0, wbuf2, &dwSize, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)
+                  {
+                    RegCloseKey(hKey);
+                    if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wszAssocKey, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
+                      RegDeleteKeyW(hKey, L"Shell");
+                  }
+                }
+              }
+            }
+          }
+        }
+        RegCloseKey(hKey);
+      }
+    }
+
+    //Check off "Always open with this program"
+    if (dwFlags & AE_OPEN)
+    {
+      wsprintfW(wbuf, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\%s", wszExt);
+
+      if (RegOpenKeyExW(HKEY_CURRENT_USER, wbuf, 0, KEY_QUERY_VALUE|KEY_SET_VALUE, &hKey) == ERROR_SUCCESS)
+      {
+        if (dwFlags & AE_ASSOCIATE)
+        {
+          dwSize=BUFFER_SIZE * sizeof(wchar_t);
+          if (RegQueryValueExW(hKey, L"Application", NULL, &dwType, (LPBYTE)wbuf, &dwSize) == ERROR_SUCCESS)
+          {
+            if (*wbuf) RegSetValueExW(hKey, L"AkelUndo", 0, dwType, (LPBYTE)wbuf, dwSize);
+            RegDeleteValueW(hKey, L"Application");
+          }
+        }
+        else if (dwFlags & AE_DEASSOCIATE)
+        {
+          dwSize=BUFFER_SIZE * sizeof(wchar_t);
+          if (RegQueryValueExW(hKey, L"AkelUndo", NULL, &dwType, (LPBYTE)wbuf, &dwSize) == ERROR_SUCCESS)
+          {
+            if (*wbuf) RegSetValueExW(hKey, L"Application", 0, dwType, (LPBYTE)wbuf, dwSize);
+            RegDeleteValueW(hKey, L"AkelUndo");
+          }
+        }
+        RegCloseKey(hKey);
+      }
+    }
+    NextExt:
+    wpExtStart=wpExtEnd + 1;
+    if (!wpExtEnd) break;
+    if (!*wpExtStart) break;
+  }
+}
+
+ASSOCICONA* StackIconInsertA(HSTACK *hStack, char *pExt)
+{
+  ASSOCICONA *lpElement=NULL;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ASSOCICONA)))
+  {
+    lstrcpynA(lpElement->szExt, pExt, MAX_PATH);
+    GetAssociatedIconA(pExt, NULL, NULL, NULL, &lpElement->hIcon);
+
+    return lpElement;
+  }
+  return NULL;
+}
+
+ASSOCICONW* StackIconInsertW(HSTACK *hStack, wchar_t *wpExt)
+{
+  ASSOCICONW *lpElement=NULL;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ASSOCICONW)))
+  {
+    lstrcpynW(lpElement->wszExt, wpExt, MAX_PATH);
+    GetAssociatedIconW(wpExt, NULL, NULL, NULL, &lpElement->hIcon);
+
+    return lpElement;
+  }
+  return NULL;
+}
+
+ASSOCICONA* StackIconGetA(HSTACK *hStack, char *pExt)
+{
+  ASSOCICONA *lpElement=(ASSOCICONA *)hStack->first;
+
+  while (lpElement)
+  {
+    if (!lstrcmpiA(lpElement->szExt, pExt))
+      return lpElement;
+
+    lpElement=lpElement->next;
+  }
+  return NULL;
+}
+
+ASSOCICONW* StackIconGetW(HSTACK *hStack, wchar_t *wpExt)
+{
+  ASSOCICONW *lpElement=(ASSOCICONW *)hStack->first;
+
+  while (lpElement)
+  {
+    if (!lstrcmpiW(lpElement->wszExt, wpExt))
+      return lpElement;
+
+    lpElement=lpElement->next;
+  }
+  return NULL;
+}
+
+void StackIconsFreeA(HSTACK *hStack)
+{
+  ASSOCICONA *lpElement=(ASSOCICONA *)hStack->first;
+
+  while (lpElement)
+  {
+    if (lpElement->hIcon) DestroyIcon(lpElement->hIcon);
+
+    lpElement=lpElement->next;
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+void StackIconsFreeW(HSTACK *hStack)
+{
+  ASSOCICONW *lpElement=(ASSOCICONW *)hStack->first;
+
+  while (lpElement)
+  {
+    if (lpElement->hIcon) DestroyIcon(lpElement->hIcon);
+
+    lpElement=lpElement->next;
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+
 //// Other functions
 
 BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei)
@@ -20246,442 +20763,6 @@ void RegClearKeyW(HKEY hKey, wchar_t *wpSubKey)
         break;
     }
     RegCloseKey(hOpenKey);
-  }
-}
-
-void GetAssociatedIconA(char *pExt, char *szFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
-{
-  char *pFileName;
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSize;
-  int nIndex=0;
-  int i;
-  int j;
-
-  if (pExt=GetFileExtA(pExt))
-  {
-    if (RegOpenKeyExA(HKEY_CLASSES_ROOT, pExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-    {
-      dwSize=BUFFER_SIZE;
-      RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf, &dwSize);
-      RegCloseKey(hKey);
-
-      wsprintfA(buf2, "%s\\DefaultIcon", buf);
-
-      if (RegOpenKeyExA(HKEY_CLASSES_ROOT, buf2, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-      {
-        dwSize=BUFFER_SIZE;
-        RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf2, &dwSize);
-        RegCloseKey(hKey);
-
-        for (i=0, j=0; buf2[i]; ++i)
-          if (buf2[i] != '\"') buf[j++]=buf2[i];
-        buf[j]='\0';
-
-        for (i=lstrlenA(buf) - 1; i > 0; --i)
-        {
-          if (buf[i] == ',')
-          {
-            buf[i]='\0';
-            nIndex=xatoiA(buf + i + 1);
-            if (nIndex == -1) nIndex=0;
-            break;
-          }
-          else if (buf[i] == '-' || (buf[i] >= '0' && buf[i] <= '9'))
-            continue;
-          break;
-        }
-        ExpandEnvironmentStringsA(buf, buf2, BUFFER_SIZE);
-        if (SearchPathA(NULL, buf2, NULL, BUFFER_SIZE, buf, &pFileName))
-        {
-          (*ExtractIconExAPtr)(buf, nIndex, phiconLarge, phiconSmall, 1);
-          if (szFile) lstrcpynA(szFile, buf, MAX_PATH);
-          if (nIconIndex) *nIconIndex=nIndex;
-          return;
-        }
-      }
-    }
-  }
-  if (szFile) szFile[0]='\0';
-  if (nIconIndex) *nIconIndex=0;
-  if (phiconLarge) *phiconLarge=0;
-  if (phiconSmall) *phiconSmall=0;
-}
-
-void GetAssociatedIconW(wchar_t *wpExt, wchar_t *wszFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
-{
-  wchar_t *wpFileName;
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSize;
-  int nIndex=0;
-  int i;
-  int j;
-
-  if (wpExt=GetFileExtW(wpExt))
-  {
-    if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wpExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-    {
-      dwSize=BUFFER_SIZE * sizeof(wchar_t);
-      RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf, &dwSize);
-      RegCloseKey(hKey);
-
-      wsprintfW(wbuf2, L"%s\\DefaultIcon", wbuf);
-
-      if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-      {
-        dwSize=BUFFER_SIZE * sizeof(wchar_t);
-        RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize);
-        RegCloseKey(hKey);
-
-        for (i=0, j=0; wbuf2[i]; ++i)
-          if (wbuf2[i] != '\"') wbuf[j++]=wbuf2[i];
-        wbuf[j]='\0';
-
-        for (i=lstrlenW(wbuf) - 1; i > 0; --i)
-        {
-          if (wbuf[i] == ',')
-          {
-            wbuf[i]='\0';
-            nIndex=xatoiW(wbuf + i + 1);
-            if (nIndex == -1) nIndex=0;
-            break;
-          }
-          else if (wbuf[i] == '-' || (wbuf[i] >= '0' && wbuf[i] <= '9'))
-            continue;
-          break;
-        }
-        ExpandEnvironmentStringsW(wbuf, wbuf2, BUFFER_SIZE);
-        if (SearchPathW(NULL, wbuf2, NULL, BUFFER_SIZE, wbuf, &wpFileName))
-        {
-          (*ExtractIconExWPtr)(wbuf, nIndex, phiconLarge, phiconSmall, 1);
-          if (wszFile) lstrcpynW(wszFile, wbuf, MAX_PATH);
-          if (nIconIndex) *nIconIndex=nIndex;
-          return;
-        }
-      }
-    }
-  }
-  if (wszFile) wszFile[0]='\0';
-  if (nIconIndex) *nIconIndex=0;
-  if (phiconLarge) *phiconLarge=0;
-  if (phiconSmall) *phiconSmall=0;
-}
-
-void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags)
-{
-  char szModule[MAX_PATH];
-  char szAssocKey[MAX_PATH];
-  char szTypeKey[16];
-  char szExt[16];
-  char *pExtStart=pFileTypes;
-  char *pExtEnd=pFileTypes;
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSize;
-
-  GetModuleFileNameA(hInstance, szModule, MAX_PATH);
-
-  if (dwFlags & AE_OPEN) lstrcpyA(szTypeKey, "Open");
-  else if (dwFlags & AE_EDIT) lstrcpyA(szTypeKey, "Edit");
-  else if (dwFlags & AE_PRINT) lstrcpyA(szTypeKey, "Print");
-
-  while (1)
-  {
-    if (pExtEnd=AKD_strchr(pExtStart, ';'))
-      lstrcpynA(buf, pExtStart, pExtEnd - pExtStart + 1);
-    else
-      lstrcpynA(buf, pExtStart, MAX_PATH);
-    if (!*buf) goto NextExt;
-    wsprintfA(szExt, ".%s", buf);
-
-    if (RegCreateKeyExA(HKEY_CLASSES_ROOT, szExt, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
-    {
-      dwSize=MAX_PATH;
-      if (RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)szAssocKey, &dwSize) != ERROR_SUCCESS || !*szAssocKey)
-      {
-        if (dwFlags & AE_ASSOCIATE)
-        {
-          wsprintfA(szAssocKey, "%sfile", szExt + 1);
-          RegSetValueExA(hKey, "", 0, REG_SZ, (LPBYTE)szAssocKey, lstrlenA(szAssocKey) + 1);
-        }
-        else if (dwFlags & AE_DEASSOCIATE)
-        {
-          RegCloseKey(hKey);
-          return;
-        }
-      }
-      RegCloseKey(hKey);
-
-      //Associate icon
-      if (dwFlags & AE_OPEN)
-      {
-        wsprintfA(buf2, "%s\\DefaultIcon", szAssocKey);
-
-        if (RegCreateKeyExA(HKEY_CLASSES_ROOT, buf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
-        {
-          dwSize=BUFFER_SIZE;
-          if (RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf2, &dwSize) != ERROR_SUCCESS || !*buf2)
-          {
-            if (dwFlags & AE_ASSOCIATE) RegSetValueExA(hKey, "", 0, REG_SZ, (LPBYTE)szModule, lstrlenA(szModule) + 1);
-          }
-          else if (dwFlags & AE_DEASSOCIATE)
-          {
-            if (!lstrcmpiA(buf2, szModule)) RegDeleteValueA(hKey, "");
-          }
-          RegCloseKey(hKey);
-        }
-      }
-
-      //Associate command
-      wsprintfA(buf2, "%s\\Shell\\%s\\Command", szAssocKey, szTypeKey);
-      wsprintfA(buf, "\"%s\"%s \"%%1\"", szModule, (dwFlags & AE_PRINT)?" /p":"");
-
-      if (RegCreateKeyExA(HKEY_CLASSES_ROOT, buf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
-      {
-        if (dwFlags & AE_ASSOCIATE)
-        {
-          dwSize=BUFFER_SIZE;
-          if (RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf2, &dwSize) == ERROR_SUCCESS)
-          {
-            if (*buf2 && lstrcmpiA(buf, buf2))
-            {
-              if (RegQueryValueExA(hKey, "AkelUndo", NULL, NULL, NULL, NULL) != ERROR_SUCCESS)
-                RegSetValueExA(hKey, "AkelUndo", 0, dwType, (LPBYTE)buf2, dwSize);
-            }
-          }
-          RegSetValueExA(hKey, "", 0, REG_SZ, (LPBYTE)buf, lstrlenA(buf) + 1);
-        }
-        else if (dwFlags & AE_DEASSOCIATE)
-        {
-          dwSize=BUFFER_SIZE;
-          if (RegQueryValueExA(hKey, "AkelUndo", NULL, &dwType, (LPBYTE)buf2, &dwSize) == ERROR_SUCCESS)
-          {
-            if (*buf2) RegSetValueExA(hKey, "", 0, dwType, (LPBYTE)buf2, dwSize);
-            RegDeleteValueA(hKey, "AkelUndo");
-          }
-          dwSize=BUFFER_SIZE;
-          if (RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf2, &dwSize) == ERROR_SUCCESS)
-          {
-            if (!*buf2 || !lstrcmpiA(buf, buf2))
-            {
-              RegCloseKey(hKey);
-              wsprintfA(buf2, "%s\\Shell\\%s", szAssocKey, szTypeKey);
-              if (RegOpenKeyExA(HKEY_CLASSES_ROOT, buf2, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
-              {
-                RegDeleteKeyA(hKey, "Command");
-                RegCloseKey(hKey);
-                wsprintfA(buf2, "%s\\Shell", szAssocKey);
-                if (RegOpenKeyExA(HKEY_CLASSES_ROOT, buf2, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
-                {
-                  RegDeleteKeyA(hKey, szTypeKey);
-                  dwSize=BUFFER_SIZE;
-                  if (RegEnumKeyExA(hKey, 0, buf2, &dwSize, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)
-                  {
-                    RegCloseKey(hKey);
-                    if (RegOpenKeyExA(HKEY_CLASSES_ROOT, szAssocKey, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
-                      RegDeleteKeyA(hKey, "Shell");
-                  }
-                }
-              }
-            }
-          }
-        }
-        RegCloseKey(hKey);
-      }
-    }
-
-    //Check off "Always open with this program"
-    if (dwFlags & AE_OPEN)
-    {
-      wsprintfA(buf, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\%s", szExt);
-
-      if (RegOpenKeyExA(HKEY_CURRENT_USER, buf, 0, KEY_QUERY_VALUE|KEY_SET_VALUE, &hKey) == ERROR_SUCCESS)
-      {
-        if (dwFlags & AE_ASSOCIATE)
-        {
-          dwSize=BUFFER_SIZE;
-          if (RegQueryValueExA(hKey, "Application", NULL, &dwType, (LPBYTE)buf, &dwSize) == ERROR_SUCCESS)
-          {
-            if (*buf) RegSetValueExA(hKey, "AkelUndo", 0, dwType, (LPBYTE)buf, dwSize);
-            RegDeleteValueA(hKey, "Application");
-          }
-        }
-        else if (dwFlags & AE_DEASSOCIATE)
-        {
-          dwSize=BUFFER_SIZE;
-          if (RegQueryValueExA(hKey, "AkelUndo", NULL, &dwType, (LPBYTE)buf, &dwSize) == ERROR_SUCCESS)
-          {
-            if (*buf) RegSetValueExA(hKey, "Application", 0, dwType, (LPBYTE)buf, dwSize);
-            RegDeleteValueA(hKey, "AkelUndo");
-          }
-        }
-        RegCloseKey(hKey);
-      }
-    }
-    NextExt:
-    pExtStart=pExtEnd + 1;
-    if (!pExtEnd) break;
-    if (!*pExtStart) break;
-  }
-}
-
-void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlags)
-{
-  wchar_t wszModule[MAX_PATH];
-  wchar_t wszAssocKey[MAX_PATH];
-  wchar_t wszTypeKey[16];
-  wchar_t wszExt[16];
-  wchar_t *wpExtStart=wpFileTypes;
-  wchar_t *wpExtEnd=wpFileTypes;
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSize;
-
-  GetModuleFileNameW(hInstance, wszModule, MAX_PATH);
-
-  if (dwFlags & AE_OPEN) lstrcpyW(wszTypeKey, L"Open");
-  else if (dwFlags & AE_EDIT) lstrcpyW(wszTypeKey, L"Edit");
-  else if (dwFlags & AE_PRINT) lstrcpyW(wszTypeKey, L"Print");
-
-  while (1)
-  {
-    if (wpExtEnd=AKD_wcschr(wpExtStart, ';'))
-      lstrcpynW(wbuf, wpExtStart, wpExtEnd - wpExtStart + 1);
-    else
-      lstrcpynW(wbuf, wpExtStart, MAX_PATH);
-    if (!*wbuf) goto NextExt;
-    wsprintfW(wszExt, L".%s", wbuf);
-
-    if (RegCreateKeyExW(HKEY_CLASSES_ROOT, wszExt, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
-    {
-      dwSize=MAX_PATH * sizeof(wchar_t);
-      if (RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wszAssocKey, &dwSize) != ERROR_SUCCESS || !*wszAssocKey)
-      {
-        if (dwFlags & AE_ASSOCIATE)
-        {
-          wsprintfW(wszAssocKey, L"%sfile", wszExt + 1);
-          RegSetValueExW(hKey, L"", 0, REG_SZ, (LPBYTE)wszAssocKey, lstrlenW(wszAssocKey) * sizeof(wchar_t) + 2);
-        }
-        else if (dwFlags & AE_DEASSOCIATE)
-        {
-          RegCloseKey(hKey);
-          return;
-        }
-      }
-      RegCloseKey(hKey);
-
-      //Associate icon
-      if (dwFlags & AE_OPEN)
-      {
-        wsprintfW(wbuf2, L"%s\\DefaultIcon", wszAssocKey);
-
-        if (RegCreateKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
-        {
-          dwSize=BUFFER_SIZE * sizeof(wchar_t);
-          if (RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) != ERROR_SUCCESS || !*wbuf2)
-          {
-            if (dwFlags & AE_ASSOCIATE) RegSetValueExW(hKey, L"", 0, REG_SZ, (LPBYTE)wszModule, lstrlenW(wszModule) * sizeof(wchar_t) + 2);
-          }
-          else if (dwFlags & AE_DEASSOCIATE)
-          {
-            if (!lstrcmpiW(wbuf2, wszModule)) RegDeleteValueW(hKey, L"");
-          }
-          RegCloseKey(hKey);
-        }
-      }
-
-      //Associate command
-      wsprintfW(wbuf2, L"%s\\Shell\\%s\\Command", wszAssocKey, wszTypeKey);
-      wsprintfW(wbuf, L"\"%s\"%s \"%%1\"", wszModule, (dwFlags & AE_PRINT)?L" /p":L"");
-
-      if (RegCreateKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) == ERROR_SUCCESS)
-      {
-        if (dwFlags & AE_ASSOCIATE)
-        {
-          dwSize=BUFFER_SIZE * sizeof(wchar_t);
-          if (RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) == ERROR_SUCCESS)
-          {
-            if (*wbuf2 && lstrcmpiW(wbuf, wbuf2))
-            {
-              if (RegQueryValueExW(hKey, L"AkelUndo", NULL, NULL, NULL, NULL) != ERROR_SUCCESS)
-                RegSetValueExW(hKey, L"AkelUndo", 0, dwType, (LPBYTE)wbuf2, dwSize);
-            }
-          }
-          RegSetValueExW(hKey, L"", 0, REG_SZ, (LPBYTE)wbuf, lstrlenW(wbuf) * sizeof(wchar_t) + 2);
-        }
-        else if (dwFlags & AE_DEASSOCIATE)
-        {
-          dwSize=BUFFER_SIZE * sizeof(wchar_t);
-          if (RegQueryValueExW(hKey, L"AkelUndo", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) == ERROR_SUCCESS)
-          {
-            if (*wbuf2) RegSetValueExW(hKey, L"", 0, dwType, (LPBYTE)wbuf2, dwSize);
-            RegDeleteValueW(hKey, L"AkelUndo");
-          }
-          dwSize=BUFFER_SIZE * sizeof(wchar_t);
-          if (RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) == ERROR_SUCCESS)
-          {
-            if (!*wbuf2 || !lstrcmpiW(wbuf, wbuf2))
-            {
-              RegCloseKey(hKey);
-              wsprintfW(wbuf2, L"%s\\Shell\\%s", wszAssocKey, wszTypeKey);
-              if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
-              {
-                RegDeleteKeyW(hKey, L"Command");
-                RegCloseKey(hKey);
-                wsprintfW(wbuf2, L"%s\\Shell", wszAssocKey);
-                if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
-                {
-                  RegDeleteKeyW(hKey, wszTypeKey);
-                  dwSize=BUFFER_SIZE * sizeof(wchar_t);
-                  if (RegEnumKeyExW(hKey, 0, wbuf2, &dwSize, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)
-                  {
-                    RegCloseKey(hKey);
-                    if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wszAssocKey, 0, KEY_ENUMERATE_SUB_KEYS, &hKey) == ERROR_SUCCESS)
-                      RegDeleteKeyW(hKey, L"Shell");
-                  }
-                }
-              }
-            }
-          }
-        }
-        RegCloseKey(hKey);
-      }
-    }
-
-    //Check off "Always open with this program"
-    if (dwFlags & AE_OPEN)
-    {
-      wsprintfW(wbuf, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\%s", wszExt);
-
-      if (RegOpenKeyExW(HKEY_CURRENT_USER, wbuf, 0, KEY_QUERY_VALUE|KEY_SET_VALUE, &hKey) == ERROR_SUCCESS)
-      {
-        if (dwFlags & AE_ASSOCIATE)
-        {
-          dwSize=BUFFER_SIZE * sizeof(wchar_t);
-          if (RegQueryValueExW(hKey, L"Application", NULL, &dwType, (LPBYTE)wbuf, &dwSize) == ERROR_SUCCESS)
-          {
-            if (*wbuf) RegSetValueExW(hKey, L"AkelUndo", 0, dwType, (LPBYTE)wbuf, dwSize);
-            RegDeleteValueW(hKey, L"Application");
-          }
-        }
-        else if (dwFlags & AE_DEASSOCIATE)
-        {
-          dwSize=BUFFER_SIZE * sizeof(wchar_t);
-          if (RegQueryValueExW(hKey, L"AkelUndo", NULL, &dwType, (LPBYTE)wbuf, &dwSize) == ERROR_SUCCESS)
-          {
-            if (*wbuf) RegSetValueExW(hKey, L"Application", 0, dwType, (LPBYTE)wbuf, dwSize);
-            RegDeleteValueW(hKey, L"AkelUndo");
-          }
-        }
-        RegCloseKey(hKey);
-      }
-    }
-    NextExt:
-    wpExtStart=wpExtEnd + 1;
-    if (!wpExtEnd) break;
-    if (!*wpExtStart) break;
   }
 }
 
@@ -21817,6 +21898,7 @@ BOOL ClientToScreenRect(HWND hWnd, RECT *rc)
 void UpdateTitleA(HWND hWndEditParent, char *szFile)
 {
   char *pFileName;
+  char *pExt;
 
   //Get file name without path
   pFileName=GetFileNameA(szFile);
@@ -21836,16 +21918,22 @@ void UpdateTitleA(HWND hWndEditParent, char *szFile)
   }
   else
   {
+    ASSOCICONA *ai;
     WNDFRAMEA *wf;
     TCITEMA tcItemA;
-    HICON hIcon;
+    HICON hIcon=NULL;
     int nItem;
 
     //Set caption of frame window
     SetWindowTextA(hWndEditParent, szFile);
 
     //Find file icon
-    GetAssociatedIconA(pFileName, NULL, NULL, NULL, &hIcon);
+    if (pExt=GetFileExtA(pFileName))
+    {
+      if (!(ai=StackIconGetA(&hIconsStack, pExt)))
+        ai=StackIconInsertA(&hIconsStack, pExt);
+      hIcon=ai->hIcon;
+    }
     if (!hIcon) hIcon=hIconEmpty;
 
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)hWndEditParent)) != -1)
@@ -21870,7 +21958,6 @@ void UpdateTitleA(HWND hWndEditParent, char *szFile)
     if (wf=(WNDFRAMEA *)GetWindowLongA(hWndEditParent, GWL_USERDATA))
     {
       lstrcpynA(wf->szFile, szFile, MAX_PATH);
-      if (wf->hIcon != hIconEmpty) DestroyIcon(wf->hIcon);
       wf->hIcon=hIcon;
     }
     SendMessage(hWndEditParent, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
@@ -21881,6 +21968,7 @@ void UpdateTitleA(HWND hWndEditParent, char *szFile)
 void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
 {
   wchar_t *wpFileName;
+  wchar_t *wpExt;
 
   //Get file name without path
   wpFileName=GetFileNameW(wszFile);
@@ -21900,16 +21988,22 @@ void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
   }
   else
   {
+    ASSOCICONW *ai;
     WNDFRAMEW *wf;
     TCITEMW tcItemW;
-    HICON hIcon;
+    HICON hIcon=NULL;
     int nItem;
 
     //Set caption of frame window
     SetWindowTextW(hWndEditParent, wszFile);
 
     //Find file icon
-    GetAssociatedIconW(wpFileName, NULL, NULL, NULL, &hIcon);
+    if (wpExt=GetFileExtW(wpFileName))
+    {
+      if (!(ai=StackIconGetW(&hIconsStack, wpExt)))
+        ai=StackIconInsertW(&hIconsStack, wpExt);
+      hIcon=ai->hIcon;
+    }
     if (!hIcon) hIcon=hIconEmpty;
 
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)hWndEditParent)) != -1)
@@ -21934,7 +22028,6 @@ void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
     if (wf=(WNDFRAMEW *)GetWindowLongW(hWndEditParent, GWL_USERDATA))
     {
       lstrcpynW(wf->wszFile, wszFile, MAX_PATH);
-      if (wf->hIcon != hIconEmpty) DestroyIcon(wf->hIcon);
       wf->hIcon=hIcon;
     }
     SendMessage(hWndEditParent, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);

@@ -385,6 +385,20 @@ typedef struct _HDOCK {
   int nSizingSide;
 } HDOCK;
 
+typedef struct _ASSOCICONA {
+  struct _ASSOCICONA *next;
+  struct _ASSOCICONA *prev;
+  char szExt[MAX_PATH];
+  HICON hIcon;
+} ASSOCICONA;
+
+typedef struct _ASSOCICONW {
+  struct _ASSOCICONW *next;
+  struct _ASSOCICONW *prev;
+  wchar_t wszExt[MAX_PATH];
+  HICON hIcon;
+} ASSOCICONW;
+
 typedef struct {
   HWND *lpWnd;   //Control window
   DWORD dwType;  //See DRS_* defines
@@ -781,6 +795,17 @@ void SetInsertStateStatusW(HWND hWnd, BOOL bState, BOOL bFirst);
 void SetCodePageStatusA(int nCodePage, BOOL bBOM, BOOL bFirst);
 void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst);
 
+void GetAssociatedIconA(char *pExt, char *szFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
+void GetAssociatedIconW(wchar_t *wpExt, wchar_t *wszFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
+void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags);
+void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlags);
+ASSOCICONA* StackIconInsertA(HSTACK *hStack, char *pExt);
+ASSOCICONW* StackIconInsertW(HSTACK *hStack, wchar_t *wpExt);
+ASSOCICONA* StackIconGetA(HSTACK *hStack, char *pExt);
+ASSOCICONW* StackIconGetW(HSTACK *hStack, wchar_t *wpExt);
+void StackIconsFreeA(HSTACK *hStack);
+void StackIconsFreeW(HSTACK *hStack);
+
 BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei);
 BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei);
 DWORD IsEditActive(HWND hWnd);
@@ -803,10 +828,6 @@ int GetCommandLineArgA(char *pCmdLine, char *szArgName, int nArgNameLen, char **
 int GetCommandLineArgW(wchar_t *wpCmdLine, wchar_t *wszArgName, int nArgNameLen, wchar_t **wpArgOption, int *nArgOptionLen, wchar_t **wpNextArg, BOOL bParseAsNotepad);
 void RegClearKeyA(HKEY hKey, char *pSubKey);
 void RegClearKeyW(HKEY hKey, wchar_t *wpSubKey);
-void GetAssociatedIconA(char *pExt, char *szFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
-void GetAssociatedIconW(wchar_t *wpExt, wchar_t *wszFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
-void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags);
-void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlags);
 int SetUrlPrefixes(HWND hWnd, wchar_t *wpPrefixes);
 BOOL GetFileWriteTimeA(char *pFile, FILETIME *ft);
 BOOL GetFileWriteTimeW(wchar_t *wpFile, FILETIME *ft);
