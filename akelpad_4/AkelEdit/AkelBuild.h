@@ -279,11 +279,11 @@ typedef struct _AEHLPAINT {
 } AEHLPAINT;
 
 
-//// Font widths
+//// Manage fonts
 
-typedef struct _AEFONTCHARSA {
-  struct _AEFONTCHARSA *next;
-  struct _AEFONTCHARSA *prev;
+typedef struct _AEFONTITEMA {
+  struct _AEFONTITEMA *next;
+  struct _AEFONTITEMA *prev;
   LOGFONTA lfFont;
   HFONT hFontNormal;
   HFONT hFontBold;
@@ -291,11 +291,11 @@ typedef struct _AEFONTCHARSA {
   HFONT hFontBoldItalic;
   HFONT hFontUrl;
   WORD lpCharWidths[65536];
-} AEFONTCHARSA;
+} AEFONTITEMA;
 
-typedef struct _AEFONTCHARSW {
-  struct _AEFONTCHARSW *next;
-  struct _AEFONTCHARSW *prev;
+typedef struct _AEFONTITEMW {
+  struct _AEFONTITEMW *next;
+  struct _AEFONTITEMW *prev;
   LOGFONTW lfFont;
   HFONT hFontNormal;
   HFONT hFontBold;
@@ -303,7 +303,26 @@ typedef struct _AEFONTCHARSW {
   HFONT hFontBoldItalic;
   HFONT hFontUrl;
   WORD lpCharWidths[65536];
-} AEFONTCHARSW;
+} AEFONTITEMW;
+
+
+//// Manage bitmaps
+
+typedef struct {
+  int nWidth;
+  int nHeight;
+  COLORREF crBasic;
+  COLORREF crInvert;
+  BOOL bZebra;
+} AEBITMAPDATA;
+
+typedef struct _AEBITMAPITEM {
+  struct _AEBITMAPITEM *next;
+  struct _AEBITMAPITEM *prev;
+  AEBITMAPDATA bd;
+  HBITMAP hBitmap;
+  HBRUSH hPatternBrush;
+} AEBITMAPITEM;
 
 
 //// AKELEDIT
@@ -532,12 +551,15 @@ void AE_StackCloneDelete(AECLONE *aec);
 void AE_StackCloneDeleteAll(AKELEDIT *ae);
 void AE_StackUpdateClones(AKELEDIT *ae);
 AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae);
-AEFONTCHARSA* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont);
-AEFONTCHARSW* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfFont);
-AEFONTCHARSA* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont);
-AEFONTCHARSW* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont);
-void AE_StackFontCharsFreeA(HSTACK *hStack);
-void AE_StackFontCharsFreeW(HSTACK *hStack);
+AEFONTITEMA* AE_StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont);
+AEFONTITEMW* AE_StackFontItemInsertW(HSTACK *hStack, LOGFONTW *lfFont);
+AEFONTITEMA* AE_StackFontItemGetA(HSTACK *hStack, LOGFONTA *lfFont);
+AEFONTITEMW* AE_StackFontItemGetW(HSTACK *hStack, LOGFONTW *lfFont);
+void AE_StackFontItemsFreeA(HSTACK *hStack);
+void AE_StackFontItemsFreeW(HSTACK *hStack);
+AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd);
+AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd);
+void AE_StackBitmapItemsFree(HSTACK *hStack);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags);
 void AE_StackPointReset(AKELEDIT *ae);
@@ -623,9 +645,9 @@ void AE_HighlightDeleteMarkTextAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
 AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti);
 void AE_HighlightDeleteMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKRANGEITEM *aemri);
 void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
-HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra);
-HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData);
-BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh);
+HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra);
+HBITMAP AE_LoadBitmapFromMemory(const BYTE *lpBmpFileData);
+BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus);
 BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret);
 void AE_SetCaretVis(AKELEDIT *ae, const POINT *ptCaret);
 void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect);

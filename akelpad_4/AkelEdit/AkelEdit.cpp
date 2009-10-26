@@ -21,8 +21,9 @@
 
 HANDLE hAkelEditProcessHeap=0;
 HSTACK hAkelEditWindowsStack={0};
-HSTACK hAkelEditFontCharsStackA={0};
-HSTACK hAkelEditFontCharsStackW={0};
+HSTACK hAkelEditFontsStackA={0};
+HSTACK hAkelEditFontsStackW={0};
+HSTACK hAkelEditBitmapsStack={0};
 HSTACK hAkelEditThemesStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
@@ -191,7 +192,8 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
     hAkelEditBitmapMCenterTopBottom=NULL;
   }
   AE_HighlightDeleteThemeAll(NULL);
-  AE_StackFontCharsFreeA(&hAkelEditFontCharsStackA);
+  AE_StackFontItemsFreeA(&hAkelEditFontsStackA);
+  AE_StackBitmapItemsFree(&hAkelEditBitmapsStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
   if (bAkelEditClassRegisteredA)
@@ -221,7 +223,8 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
     hAkelEditBitmapMCenterTopBottom=NULL;
   }
   AE_HighlightDeleteThemeAll(NULL);
-  AE_StackFontCharsFreeW(&hAkelEditFontCharsStackW);
+  AE_StackFontItemsFreeW(&hAkelEditFontsStackW);
+  AE_StackBitmapItemsFree(&hAkelEditBitmapsStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
 
   if (bAkelEditClassRegisteredW)
@@ -1095,7 +1098,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ae->popt->bOverType != (int)wParam)
         {
           ae->popt->bOverType=wParam;
-          AE_UpdateCaret(ae, ae->bFocus, FALSE);
+          AE_UpdateCaret(ae, ae->bFocus);
         }
         return 0;
       }
@@ -1113,7 +1116,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         ae->popt->nCaretInsertWidth=pt->x;
         ae->popt->nCaretOvertypeHeight=pt->y;
-        AE_UpdateCaret(ae, ae->bFocus, TRUE);
+        AE_UpdateCaret(ae, ae->bFocus);
         return 0;
       }
       if (uMsg == AEM_GETTABSTOP)
@@ -1131,7 +1134,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->ptCaret.x=0;
           ae->ptCaret.y=0;
           AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
-          AE_UpdateCaret(ae, ae->bFocus, TRUE);
+          AE_UpdateCaret(ae, ae->bFocus);
 
           if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
@@ -1304,7 +1307,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ae->ptCaret.y=0;
           AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
           AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
-          AE_UpdateCaret(ae, ae->bFocus, TRUE);
+          AE_UpdateCaret(ae, ae->bFocus);
 
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
           AE_StackUpdateClones(ae);
@@ -2555,7 +2558,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ae->ptCaret.y=0;
       AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
       AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
-      AE_UpdateCaret(ae, ae->bFocus, TRUE);
+      AE_UpdateCaret(ae, ae->bFocus);
 
       if (ae->ptxt->nWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->nWordWrap);
       InvalidateRect(ae->hWndEdit, &ae->rcDraw, !lParam);
@@ -3416,7 +3419,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_SETFOCUS)
     {
       ae->bFocus=TRUE;
-      AE_UpdateCaret(ae, ae->bFocus, FALSE);
+      AE_UpdateCaret(ae, ae->bFocus);
 
       if (!(ae->popt->dwOptions & AECO_NOHIDESEL))
       {
@@ -3593,21 +3596,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           AE_StackCloneDelete(aec);
       }
 
-      if (ae->popt->hActiveColumn)
-      {
-        DeleteObject(ae->popt->hActiveColumn);
-        ae->popt->hActiveColumn=NULL;
-      }
-      if (ae->popt->hCaretInsert)
-      {
-        DeleteObject(ae->popt->hCaretInsert);
-        ae->popt->hCaretInsert=NULL;
-      }
-      if (ae->popt->hCaretOvertype)
-      {
-        DeleteObject(ae->popt->hCaretOvertype);
-        ae->popt->hCaretOvertype=NULL;
-      }
       if (ae->ptxt->hHeap)
       {
         if (HeapDestroy(ae->ptxt->hHeap))
@@ -4144,12 +4132,12 @@ AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae)
   return NULL;
 }
 
-AEFONTCHARSA* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont)
+AEFONTITEMA* AE_StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont)
 {
-  AEFONTCHARSA *lpElement=NULL;
+  AEFONTITEMA *lpElement=NULL;
   LOGFONTA lfTmp;
 
-  if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTCHARSA)))
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTITEMA)))
   {
     AE_memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTA));
     AE_memcpy(&lfTmp, lfFont, sizeof(LOGFONTA));
@@ -4185,12 +4173,12 @@ AEFONTCHARSA* AE_StackFontCharsInsertA(HSTACK *hStack, LOGFONTA *lfFont)
   return NULL;
 }
 
-AEFONTCHARSW* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfFont)
+AEFONTITEMW* AE_StackFontItemInsertW(HSTACK *hStack, LOGFONTW *lfFont)
 {
-  AEFONTCHARSW *lpElement=NULL;
+  AEFONTITEMW *lpElement=NULL;
   LOGFONTW lfTmp;
 
-  if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTCHARSW)))
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTITEMW)))
   {
     AE_memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTW));
     AE_memcpy(&lfTmp, lfFont, sizeof(LOGFONTW));
@@ -4226,9 +4214,9 @@ AEFONTCHARSW* AE_StackFontCharsInsertW(HSTACK *hStack, LOGFONTW *lfFont)
   return NULL;
 }
 
-AEFONTCHARSA* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont)
+AEFONTITEMA* AE_StackFontItemGetA(HSTACK *hStack, LOGFONTA *lfFont)
 {
-  AEFONTCHARSA *lpElement=(AEFONTCHARSA *)hStack->first;
+  AEFONTITEMA *lpElement=(AEFONTITEMA *)hStack->first;
 
   while (lpElement)
   {
@@ -4245,9 +4233,9 @@ AEFONTCHARSA* AE_StackFontCharsGetA(HSTACK *hStack, LOGFONTA *lfFont)
   return NULL;
 }
 
-AEFONTCHARSW* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont)
+AEFONTITEMW* AE_StackFontItemGetW(HSTACK *hStack, LOGFONTW *lfFont)
 {
-  AEFONTCHARSW *lpElement=(AEFONTCHARSW *)hStack->first;
+  AEFONTITEMW *lpElement=(AEFONTITEMW *)hStack->first;
 
   while (lpElement)
   {
@@ -4264,9 +4252,9 @@ AEFONTCHARSW* AE_StackFontCharsGetW(HSTACK *hStack, LOGFONTW *lfFont)
   return NULL;
 }
 
-void AE_StackFontCharsFreeA(HSTACK *hStack)
+void AE_StackFontItemsFreeA(HSTACK *hStack)
 {
-  AEFONTCHARSA *lpElement=(AEFONTCHARSA *)hStack->first;
+  AEFONTITEMA *lpElement=(AEFONTITEMA *)hStack->first;
 
   while (lpElement)
   {
@@ -4281,9 +4269,9 @@ void AE_StackFontCharsFreeA(HSTACK *hStack)
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-void AE_StackFontCharsFreeW(HSTACK *hStack)
+void AE_StackFontItemsFreeW(HSTACK *hStack)
 {
-  AEFONTCHARSW *lpElement=(AEFONTCHARSW *)hStack->first;
+  AEFONTITEMW *lpElement=(AEFONTITEMW *)hStack->first;
 
   while (lpElement)
   {
@@ -4292,6 +4280,49 @@ void AE_StackFontCharsFreeW(HSTACK *hStack)
     if (lpElement->hFontItalic) DeleteObject(lpElement->hFontItalic);
     if (lpElement->hFontBoldItalic) DeleteObject(lpElement->hFontBoldItalic);
     if (lpElement->hFontUrl) DeleteObject(lpElement->hFontUrl);
+
+    lpElement=lpElement->next;
+  }
+  AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd)
+{
+  AEBITMAPITEM *lpElement=NULL;
+
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEBITMAPITEM)))
+  {
+    AE_memcpy(&lpElement->bd, bd, sizeof(AEBITMAPDATA));
+
+    lpElement->hBitmap=AE_CreateBitmap(bd->nWidth, bd->nHeight, bd->crBasic, bd->crInvert, bd->bZebra);
+
+    return lpElement;
+  }
+  return NULL;
+}
+
+AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd)
+{
+  AEBITMAPITEM *lpElement=(AEBITMAPITEM *)hStack->first;
+
+  while (lpElement)
+  {
+    if (!AE_memcmp(&lpElement->bd, bd, sizeof(AEBITMAPDATA)))
+      return lpElement;
+
+    lpElement=lpElement->next;
+  }
+  return NULL;
+}
+
+void AE_StackBitmapItemsFree(HSTACK *hStack)
+{
+  AEBITMAPITEM *lpElement=(AEBITMAPITEM *)hStack->first;
+
+  while (lpElement)
+  {
+    if (lpElement->hBitmap) DeleteObject(lpElement->hBitmap);
+    if (lpElement->hPatternBrush) DeleteObject(lpElement->hPatternBrush);
 
     lpElement=lpElement->next;
   }
@@ -6294,7 +6325,7 @@ void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw)
 
 void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
-  AEFONTCHARSA *fc;
+  AEFONTITEMA *fi;
   TEXTMETRICA tmEdit;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
@@ -6322,14 +6353,14 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     ae->ptxt->hFont=hFont;
     ae->ptxt->lfFontA.lfHeight=-mod(ae->ptxt->lfFontA.lfHeight);
     ae->ptxt->lfFontA.lfWidth=0;
-    if (!(fc=AE_StackFontCharsGetA(&hAkelEditFontCharsStackA, &ae->ptxt->lfFontA)))
-      fc=AE_StackFontCharsInsertA(&hAkelEditFontCharsStackA, &ae->ptxt->lfFontA);
-    ae->ptxt->lpCharWidths=fc->lpCharWidths;
-    ae->ptxt->hFontNormal=fc->hFontNormal;
-    ae->ptxt->hFontBold=fc->hFontBold;
-    ae->ptxt->hFontItalic=fc->hFontItalic;
-    ae->ptxt->hFontBoldItalic=fc->hFontBoldItalic;
-    ae->ptxt->hFontUrl=fc->hFontUrl;
+    if (!(fi=AE_StackFontItemGetA(&hAkelEditFontsStackA, &ae->ptxt->lfFontA)))
+      fi=AE_StackFontItemInsertA(&hAkelEditFontsStackA, &ae->ptxt->lfFontA);
+    ae->ptxt->lpCharWidths=fi->lpCharWidths;
+    ae->ptxt->hFontNormal=fi->hFontNormal;
+    ae->ptxt->hFontBold=fi->hFontBold;
+    ae->ptxt->hFontItalic=fi->hFontItalic;
+    ae->ptxt->hFontBoldItalic=fi->hFontBoldItalic;
+    ae->ptxt->hFontUrl=fi->hFontUrl;
 
     ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
     GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
@@ -6350,7 +6381,7 @@ void AE_SetEditFontA(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 
 void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
 {
-  AEFONTCHARSW *fc;
+  AEFONTITEMW *fi;
   TEXTMETRICW tmEdit;
   SIZE sizeWidth;
   HFONT hFontSystem=(HFONT)GetStockObject(SYSTEM_FONT);
@@ -6378,14 +6409,14 @@ void AE_SetEditFontW(AKELEDIT *ae, HFONT hFont, BOOL bRedraw)
     ae->ptxt->hFont=hFont;
     ae->ptxt->lfFontW.lfHeight=-mod(ae->ptxt->lfFontW.lfHeight);
     ae->ptxt->lfFontW.lfWidth=0;
-    if (!(fc=AE_StackFontCharsGetW(&hAkelEditFontCharsStackW, &ae->ptxt->lfFontW)))
-      fc=AE_StackFontCharsInsertW(&hAkelEditFontCharsStackW, &ae->ptxt->lfFontW);
-    ae->ptxt->lpCharWidths=fc->lpCharWidths;
-    ae->ptxt->hFontNormal=fc->hFontNormal;
-    ae->ptxt->hFontBold=fc->hFontBold;
-    ae->ptxt->hFontItalic=fc->hFontItalic;
-    ae->ptxt->hFontBoldItalic=fc->hFontBoldItalic;
-    ae->ptxt->hFontUrl=fc->hFontUrl;
+    if (!(fi=AE_StackFontItemGetW(&hAkelEditFontsStackW, &ae->ptxt->lfFontW)))
+      fi=AE_StackFontItemInsertW(&hAkelEditFontsStackW, &ae->ptxt->lfFontW);
+    ae->ptxt->lpCharWidths=fi->lpCharWidths;
+    ae->ptxt->hFontNormal=fi->hFontNormal;
+    ae->ptxt->hFontBold=fi->hFontBold;
+    ae->ptxt->hFontItalic=fi->hFontItalic;
+    ae->ptxt->hFontBoldItalic=fi->hFontBoldItalic;
+    ae->ptxt->hFontUrl=fi->hFontUrl;
 
     ae->ptxt->nCharHeight=tmEdit.tmHeight + ae->ptxt->nLineGap;
     GetTextExtentPoint32W(hDC, L"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 52, &sizeWidth);
@@ -8082,7 +8113,7 @@ void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   AE_HeapStackClear(NULL, (stack **)&aeti->hMarkRangeStack.first, (stack **)&aeti->hMarkRangeStack.last);
 }
 
-HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra)
+HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra)
 {
   BITMAPFILEHEADER *lpBmpFileHeader;
   BITMAPINFOHEADER *lpBmpInfoHeader;
@@ -8102,7 +8133,7 @@ HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic,
     nBmpFileData+=((nWidth * 3) + (4 - ((nWidth * 3) % 4))) * nHeight;
 
   //Allocate bitmap data
-  if (lpBmpFileData=(BYTE *)AE_HeapAlloc(ae, 0, nBmpFileData))
+  if (lpBmpFileData=(BYTE *)AE_HeapAlloc(NULL, 0, nBmpFileData))
   {
     lpBmpFileHeader=(BITMAPFILEHEADER *)lpBmpFileData;
     lpBmpInfoHeader=(BITMAPINFOHEADER *)(lpBmpFileData + sizeof(BITMAPFILEHEADER));
@@ -8151,14 +8182,14 @@ HBITMAP AE_CreateBitmap(AKELEDIT *ae, int nWidth, int nHeight, COLORREF crBasic,
       }
     }
 
-    hBitmap=AE_LoadBitmapFromMemory(ae, (unsigned char *)lpBmpFileData);
+    hBitmap=AE_LoadBitmapFromMemory((unsigned char *)lpBmpFileData);
 
-    AE_HeapFree(ae, 0, (LPVOID)lpBmpFileData);
+    AE_HeapFree(NULL, 0, (LPVOID)lpBmpFileData);
   }
   return hBitmap;
 }
 
-HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData)
+HBITMAP AE_LoadBitmapFromMemory(const BYTE *lpBmpFileData)
 {
   BITMAPFILEHEADER *lpBmpFileHeader=(BITMAPFILEHEADER *)lpBmpFileData;
   BITMAPINFOHEADER *lpBmpInfoHeader=(BITMAPINFOHEADER *)(lpBmpFileData + sizeof(BITMAPFILEHEADER));
@@ -8189,8 +8220,10 @@ HBITMAP AE_LoadBitmapFromMemory(AKELEDIT *ae, const BYTE *lpBmpFileData)
   return hBitmap;
 }
 
-BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh)
+BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
 {
+  AEBITMAPITEM *bi;
+  AEBITMAPDATA bd;
   HBITMAP hCaretBitmap=NULL;
   int nCaretWidth;
   int nCaretHeight;
@@ -8200,52 +8233,37 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus, BOOL bFresh)
     DestroyCaret();
   }
 
-  if (bFresh)
-  {
-    if (ae->popt->hCaretInsert)
-    {
-      DeleteObject(ae->popt->hCaretInsert);
-      ae->popt->hCaretInsert=NULL;
-    }
-    if (ae->popt->hCaretOvertype)
-    {
-      DeleteObject(ae->popt->hCaretOvertype);
-      ae->popt->hCaretOvertype=NULL;
-    }
-  }
-
   if (!ae->popt->bOverType)
   {
     hCaretBitmap=ae->popt->hCaretInsert;
     nCaretWidth=ae->popt->nCaretInsertWidth;
     nCaretHeight=ae->ptxt->nCharHeight;
-
-    if (!hCaretBitmap)
-    {
-      if (ae->popt->crCaret)
-      {
-        if (hCaretBitmap=AE_CreateBitmap(ae, nCaretWidth, nCaretHeight, ae->popt->crCaret, ae->popt->crActiveLineBk, FALSE))
-        {
-          ae->popt->hCaretInsert=hCaretBitmap;
-        }
-      }
-    }
   }
   else
   {
     hCaretBitmap=ae->popt->hCaretOvertype;
     nCaretWidth=ae->ptxt->nAveCharWidth;
     nCaretHeight=ae->popt->nCaretOvertypeHeight;
+  }
 
-    if (!hCaretBitmap)
+  if (!hCaretBitmap)
+  {
+    if (ae->popt->crCaret != RGB(0x00, 0x00, 0x00))
     {
-      if (ae->popt->crCaret)
-      {
-        if (hCaretBitmap=AE_CreateBitmap(ae, nCaretWidth, nCaretHeight, ae->popt->crCaret, ae->popt->crActiveLineBk, FALSE))
-        {
-          ae->popt->hCaretOvertype=hCaretBitmap;
-        }
-      }
+      bd.nWidth=nCaretWidth;
+      bd.nHeight=nCaretHeight;
+      bd.crBasic=ae->popt->crCaret;
+      bd.crInvert=ae->popt->crActiveLineBk;
+      bd.bZebra=FALSE;
+
+      if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
+        bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
+      hCaretBitmap=bi->hBitmap;
+
+      if (!ae->popt->bOverType)
+        ae->popt->hCaretOvertype=hCaretBitmap;
+      else
+        ae->popt->hCaretInsert=hCaretBitmap;
     }
   }
 
@@ -8779,7 +8797,7 @@ int AE_AlignPos(AKELEDIT *ae, int nPos, DWORD dwAlign)
 AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 {
   AEPRINTHANDLE *ph;
-  AEFONTCHARSA *fc;
+  AEFONTITEMA *fi;
   TEXTMETRICA tmEditA;
   TEXTMETRICA tmPrintA;
   SIZE sizeWidth;
@@ -8814,9 +8832,9 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 
     //Set print font
     ph->aePrint.ptxt->hFont=prn->hPrintFont;
-    if (!(fc=AE_StackFontCharsGetA(&hAkelEditFontCharsStackA, &ph->aePrint.ptxt->lfFontA)))
-      fc=AE_StackFontCharsInsertA(&hAkelEditFontCharsStackA, &ph->aePrint.ptxt->lfFontA);
-    ph->aePrint.ptxt->lpCharWidths=fc->lpCharWidths;
+    if (!(fi=AE_StackFontItemGetA(&hAkelEditFontsStackA, &ph->aePrint.ptxt->lfFontA)))
+      fi=AE_StackFontItemInsertA(&hAkelEditFontsStackA, &ph->aePrint.ptxt->lfFontA);
+    ph->aePrint.ptxt->lpCharWidths=fi->lpCharWidths;
 
     //Get print font sizes
     GetTextMetricsA(prn->hPrinterDC, &tmPrintA);
@@ -8845,7 +8863,7 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
 AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
 {
   AEPRINTHANDLE *ph;
-  AEFONTCHARSW *fc;
+  AEFONTITEMW *fi;
   TEXTMETRICW tmEditW;
   TEXTMETRICW tmPrintW;
   SIZE sizeWidth;
@@ -8883,9 +8901,9 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
 
     //Set print font
     ph->aePrint.ptxt->hFont=prn->hPrintFont;
-    if (!(fc=AE_StackFontCharsGetW(&hAkelEditFontCharsStackW, &ph->aePrint.ptxt->lfFontW)))
-      fc=AE_StackFontCharsInsertW(&hAkelEditFontCharsStackW, &ph->aePrint.ptxt->lfFontW);
-    ph->aePrint.ptxt->lpCharWidths=fc->lpCharWidths;
+    if (!(fi=AE_StackFontItemGetW(&hAkelEditFontsStackW, &ph->aePrint.ptxt->lfFontW)))
+      fi=AE_StackFontItemInsertW(&hAkelEditFontsStackW, &ph->aePrint.ptxt->lfFontW);
+    ph->aePrint.ptxt->lpCharWidths=fi->lpCharWidths;
 
     //Get print font sizes
     GetTextMetricsW(prn->hPrinterDC, &tmPrintW);
@@ -10124,22 +10142,22 @@ void AE_MButtonErase(AKELEDIT *ae)
 
 BOOL AE_ActiveColumnCreate(AKELEDIT *ae)
 {
-  if (ae->popt->hActiveColumn)
-  {
-    DeleteObject(ae->popt->hActiveColumn);
-    ae->popt->hActiveColumn=NULL;
-  }
-
   if (!ae->popt->hActiveColumn)
   {
-    HBITMAP hBitmap;
+    AEBITMAPITEM *bi;
+    AEBITMAPDATA bd;
 
-    if (hBitmap=AE_CreateBitmap(ae, 8, 8, ae->popt->crActiveColumn, ae->popt->crBasicBk, TRUE))
-    {
-      ae->popt->hActiveColumn=CreatePatternBrush(hBitmap);
-      DeleteObject(hBitmap);
-      return TRUE;
-    }
+    bd.nWidth=8;
+    bd.nHeight=8;
+    bd.crBasic=ae->popt->crActiveColumn;
+    bd.crInvert=ae->popt->crBasicBk;
+    bd.bZebra=TRUE;
+
+    if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
+      bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
+    if (!bi->hPatternBrush)
+      bi->hPatternBrush=CreatePatternBrush(bi->hBitmap);
+    ae->popt->hActiveColumn=bi->hPatternBrush;
   }
   return FALSE;
 }
@@ -14345,7 +14363,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       if (!bControl && !bShift)
       {
         ae->popt->bOverType=!ae->popt->bOverType;
-        AE_UpdateCaret(ae, ae->bFocus, FALSE);
+        AE_UpdateCaret(ae, ae->bFocus);
       }
       else
       {
@@ -15416,7 +15434,7 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
       }
       bUpdateDrawRect=TRUE;
 
-      AE_UpdateCaret(ae, ae->bFocus, TRUE);
+      AE_UpdateCaret(ae, ae->bFocus);
     }
     if (aec->dwFlags & AECLR_ACTIVECOLUMN)
     {
@@ -15458,7 +15476,7 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
         ae->popt->crCaret=aec->crCaret;
         ae->popt->bDefaultColors=FALSE;
       }
-      AE_UpdateCaret(ae, ae->bFocus, TRUE);
+      AE_UpdateCaret(ae, ae->bFocus);
     }
     if (aec->dwFlags & AECLR_URLTEXT)
     {
@@ -16575,7 +16593,7 @@ HRESULT WINAPI AEIDropTarget_DragEnter(LPUNKNOWN lpTable, IDataObject *pDataObje
       if (GetFocus())
         SetFocus(ae->hWndEdit);
       else
-        AE_UpdateCaret(ae, TRUE, FALSE);
+        AE_UpdateCaret(ae, TRUE);
     }
     ae->bDropping=TRUE;
     ScreenToClient(ae->hWndEdit, (POINT *)&pt);
