@@ -3628,6 +3628,7 @@ Example:
 
  hHandleNew=(HANDLE)SendMessage(hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
  hHandleOld=(HANDLE)SendMessage(hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hHandleNew, 0);
+ InvalidateRect(hWndEdit, NULL, TRUE);
 
 
 AEM_DELETEWINDOWDATA
