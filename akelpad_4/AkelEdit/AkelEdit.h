@@ -914,6 +914,12 @@ typedef struct {
 #define AEM_GETMASTER             (WM_USER + 2257)
 #define AEM_GETCLONE              (WM_USER + 2258)
 
+//Window data
+#define AEM_GETWINDOWDATA         (WM_USER + 2401)
+#define AEM_SETWINDOWDATA         (WM_USER + 2402)
+#define AEM_CREATEWINDOWDATA      (WM_USER + 2403)
+#define AEM_DELETEWINDOWDATA      (WM_USER + 2404)
+
 //Print
 #define AEM_STARTPRINTDOC         (WM_USER + 2451)
 #define AEM_PRINTPAGE             (WM_USER + 2452)
@@ -3559,6 +3565,84 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_GETCLONE, 2, 0);
+
+
+AEM_GETWINDOWDATA
+_________________
+
+Retrieve window data handle.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Window data handle.
+
+Example:
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+
+
+AEM_SETWINDOWDATA
+_________________
+
+Associate new window data handle.
+
+(HANDLE)wParam == window data handle.
+lParam         == not used.
+
+Return Value
+ Old window data handle.
+
+Example:
+ See AEM_CREATEWINDOWDATA example.
+
+
+AEM_CREATEWINDOWDATA
+____________________
+
+Create new window data handle.
+
+wParam                 == not used.
+(CREATESTRUCT *)lParam == pointer to a CREATESTRUCT structure.
+
+Return Value
+ Created window data handle.
+
+Example:
+ CREATESTRUCTA cs;
+ HANDLE hHandleNew;
+ HANDLE hHandleOld;
+
+ cs.lpCreateParams=NULL;
+ cs.hInstance=GetModuleHandle(NULL);
+ cs.hMenu=(HMENU)100;
+ cs.hwndParent=GetParent(hWndEdit);
+ cs.cy=CW_USEDEFAULT;
+ cs.cx=CW_USEDEFAULT;
+ cs.y=CW_USEDEFAULT;
+ cs.x=CW_USEDEFAULT;
+ cs.style=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL;
+ cs.lpszName=NULL;
+ cs.lpszClass=AES_AKELEDITCLASSA;
+ cs.dwExStyle=WS_EX_CLIENTEDGE;
+
+ hHandleNew=(HANDLE)SendMessage(hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
+ hHandleOld=(HANDLE)SendMessage(hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hHandleNew, 0);
+
+
+AEM_DELETEWINDOWDATA
+____________________
+
+Destroys window data handle.
+
+(HANDLE)wParam == window data handle.
+lParam         == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)hHandle, 0);
 
 
 AEM_STARTPRINTDOC
