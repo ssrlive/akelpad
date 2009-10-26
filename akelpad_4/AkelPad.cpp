@@ -245,6 +245,8 @@ BOOL bOptionsSave;
 BOOL bOptionsRestart;
 
 //Font/Color
+HSTACK hFontsStackA={0};
+HSTACK hFontsStackW={0};
 LOGFONTA lfEditFontA;
 LOGFONTW lfEditFontW;
 CHOOSEFONTA cfA={0};
@@ -2264,7 +2266,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETFONT)
     {
-      if (SetChosenFontA((HWND)wParam, (LOGFONTA *)lParam, TRUE))
+      if (SetChosenFontA((HWND)wParam, (LOGFONTA *)lParam))
       {
         memcpy(&lfEditFontA, (LOGFONTA *)lParam, sizeof(LOGFONTA));
         bEditFontChanged=TRUE;
@@ -2956,7 +2958,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (DoViewFontA(hMainWnd, &lf))
       {
-        if (SetChosenFontA(hWndEdit, &lf, TRUE))
+        if (SetChosenFontA(hWndEdit, &lf))
         {
           memcpy(&lfEditFontA, &lf, sizeof(LOGFONTA));
           bEditFontChanged=TRUE;
@@ -3423,6 +3425,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DestroyIcon(hMainIcon);
     DestroyMenu(hMainMenu);
     DestroyMenu(hPopupMenu);
+    StackFontItemsFreeA(&hFontsStackA);
     StackThemeFree(&hThemesStack);
     CodepageListFree(&lpCodepageList);
     FreeMemoryRecentFilesA();
@@ -4168,7 +4171,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETFONT)
     {
-      if (SetChosenFontW((HWND)wParam, (LOGFONTW *)lParam, TRUE))
+      if (SetChosenFontW((HWND)wParam, (LOGFONTW *)lParam))
       {
         memcpy(&lfEditFontW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
         bEditFontChanged=TRUE;
@@ -4860,7 +4863,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (DoViewFontW(hMainWnd, &lf))
       {
-        if (SetChosenFontW(hWndEdit, &lf, TRUE))
+        if (SetChosenFontW(hWndEdit, &lf))
         {
           memcpy(&lfEditFontW, &lf, sizeof(LOGFONTW));
           bEditFontChanged=TRUE;
@@ -5327,6 +5330,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DestroyIcon(hMainIcon);
     DestroyMenu(hMainMenu);
     DestroyMenu(hPopupMenu);
+    StackFontItemsFreeW(&hFontsStackW);
     StackThemeFree(&hThemesStack);
     CodepageListFree(&lpCodepageList);
     FreeMemoryRecentFilesW();
@@ -6660,13 +6664,6 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return TRUE;
     }
   }
-  else if (uMsg == WM_DESTROY)
-  {
-    HFONT hFont;
-
-    if (hFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
-      DeleteObject(hFont);
-  }
 
   if (lResult=CloneDragAndDropMessages(hWnd, uMsg, wParam, lParam))
     return lResult;
@@ -6724,13 +6721,6 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       bEditFontChanged=TRUE;
       return TRUE;
     }
-  }
-  else if (uMsg == WM_DESTROY)
-  {
-    HFONT hFont;
-
-    if (hFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
-      DeleteObject(hFont);
   }
 
   if (lResult=CloneDragAndDropMessages(hWnd, uMsg, wParam, lParam))

@@ -385,6 +385,20 @@ typedef struct _HDOCK {
   int nSizingSide;
 } HDOCK;
 
+typedef struct _FONTITEMA {
+  struct _FONTITEMA *next;
+  struct _FONTITEMA *prev;
+  LOGFONTA lfFont;
+  HFONT hFont;
+} FONTITEMA;
+
+typedef struct _FONTITEMW {
+  struct _FONTITEMW *next;
+  struct _FONTITEMW *prev;
+  LOGFONTW lfFont;
+  HFONT hFont;
+} FONTITEMW;
+
 typedef struct _ASSOCICONA {
   struct _ASSOCICONA *next;
   struct _ASSOCICONA *prev;
@@ -806,6 +820,15 @@ ASSOCICONW* StackIconGetW(HSTACK *hStack, wchar_t *wpExt);
 void StackIconsFreeA(HSTACK *hStack);
 void StackIconsFreeW(HSTACK *hStack);
 
+HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA);
+HFONT SetChosenFontW(HWND hWnd, LOGFONTW *lfW);
+FONTITEMA* StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont);
+FONTITEMW* StackFontItemInsertW(HSTACK *hStack, LOGFONTW *lfFont);
+FONTITEMA* StackFontItemGetA(HSTACK *hStack, LOGFONTA *lfFont);
+FONTITEMW* StackFontItemGetW(HSTACK *hStack, LOGFONTW *lfFont);
+void StackFontItemsFreeA(HSTACK *hStack);
+void StackFontItemsFreeW(HSTACK *hStack);
+
 BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei);
 BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei);
 DWORD IsEditActive(HWND hWnd);
@@ -816,8 +839,6 @@ DWORD ScrollCaret(HWND hWnd);
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor);
 BOOL SelectColorDialogW(HWND hWndOwner, COLORREF *crColor);
 BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc);
-HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA, BOOL bDeleteOld);
-HFONT SetChosenFontW(HWND hWnd, LOGFONTW *lfW, BOOL bDeleteOld);
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 BOOL InsertTabStopW(HWND hWnd);
 BOOL IndentTabStopW(HWND hWnd, int nAction);
