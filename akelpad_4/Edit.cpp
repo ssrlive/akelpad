@@ -216,6 +216,8 @@ extern BOOL bOptionsSave;
 extern BOOL bOptionsRestart;
 
 //Font/Color
+extern HSTACK hFontsStackA;
+extern HSTACK hFontsStackW;
 extern LOGFONTA lfEditFontA;
 extern LOGFONTW lfEditFontW;
 extern CHOOSEFONTA cfA;
@@ -402,7 +404,7 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
-  SetChosenFontA(hWndEditNew, &lfEditFontA, TRUE);
+  SetChosenFontA(hWndEditNew, &lfEditFontA);
   SetNewLineStatusA(hWndEditNew, nDefaultNewLine, AENL_INPUT, TRUE);
 
   if (dwMarker)
@@ -482,7 +484,7 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
-  SetChosenFontW(hWndEditNew, &lfEditFontW, TRUE);
+  SetChosenFontW(hWndEditNew, &lfEditFontW);
   SetNewLineStatusW(hWndEditNew, nDefaultNewLine, AENL_INPUT, TRUE);
 
   if (dwMarker)
@@ -1874,7 +1876,7 @@ void DoViewFontSizeA(HWND hWnd, int nAction)
     if (lfEditFontA.lfHeight <= -1)
     {
       lfEditFontA.lfHeight-=1;
-      SetChosenFontA(hWnd, &lfEditFontA, TRUE);
+      SetChosenFontA(hWnd, &lfEditFontA);
     }
   }
   else if (nAction == DECREASE_FONT)
@@ -1882,7 +1884,7 @@ void DoViewFontSizeA(HWND hWnd, int nAction)
     if (lfEditFontA.lfHeight < -1)
     {
       lfEditFontA.lfHeight+=1;
-      SetChosenFontA(hWnd, &lfEditFontA, TRUE);
+      SetChosenFontA(hWnd, &lfEditFontA);
     }
   }
 }
@@ -1894,7 +1896,7 @@ void DoViewFontSizeW(HWND hWnd, int nAction)
     if (lfEditFontW.lfHeight <= -1)
     {
       lfEditFontW.lfHeight-=1;
-      SetChosenFontW(hWnd, &lfEditFontW, TRUE);
+      SetChosenFontW(hWnd, &lfEditFontW);
     }
   }
   else if (nAction == DECREASE_FONT)
@@ -1902,7 +1904,7 @@ void DoViewFontSizeW(HWND hWnd, int nAction)
     if (lfEditFontW.lfHeight < -1)
     {
       lfEditFontW.lfHeight+=1;
-      SetChosenFontW(hWnd, &lfEditFontW, TRUE);
+      SetChosenFontW(hWnd, &lfEditFontW);
     }
   }
 }
@@ -7885,7 +7887,7 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     }
     SendMessage(hWndFilePreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
     SetTabStops(hWndFilePreview, nTabStopSize, FALSE);
-    SetChosenFontA(hWndFilePreview, &lfEditFontA, FALSE);
+    SetChosenFontA(hWndFilePreview, &lfEditFontA);
 
     OldFilePreviewProc=(WNDPROC)GetWindowLongA(hWndFilePreview, GWL_WNDPROC);
     SetWindowLongA(hWndFilePreview, GWL_WNDPROC, (LONG)NewFilePreviewProcA);
@@ -8043,13 +8045,6 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       return TRUE;
     }
   }
-  else if (uMsg == WM_DESTROY)
-  {
-    HFONT hFont;
-
-    if (hFont=(HFONT)SendMessage(hWndFilePreview, WM_GETFONT, 0, 0))
-      DeleteObject(hFont);
-  }
   return FALSE;
 }
 
@@ -8109,7 +8104,7 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     }
     SendMessage(hWndFilePreview, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
     SetTabStops(hWndFilePreview, nTabStopSize, FALSE);
-    SetChosenFontW(hWndFilePreview, &lfEditFontW, FALSE);
+    SetChosenFontW(hWndFilePreview, &lfEditFontW);
 
     OldFilePreviewProc=(WNDPROC)GetWindowLongW(hWndFilePreview, GWL_WNDPROC);
     SetWindowLongW(hWndFilePreview, GWL_WNDPROC, (LONG)NewFilePreviewProcW);
@@ -8266,13 +8261,6 @@ unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       }
       return TRUE;
     }
-  }
-  else if (uMsg == WM_DESTROY)
-  {
-    HFONT hFont;
-
-    if (hFont=(HFONT)SendMessage(hWndFilePreview, WM_GETFONT, 0, 0))
-      DeleteObject(hFont);
   }
   return FALSE;
 }
@@ -20162,6 +20150,121 @@ void StackIconsFreeW(HSTACK *hStack)
 }
 
 
+//// Fonts
+
+HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA)
+{
+  FONTITEMA *fi;
+
+  if (!(fi=StackFontItemGetA(&hFontsStackA, lfA)))
+    fi=StackFontItemInsertA(&hFontsStackA, lfA);
+  SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
+  return fi->hFont;
+}
+
+HFONT SetChosenFontW(HWND hWnd, LOGFONTW *lfW)
+{
+  FONTITEMW *fi;
+
+  if (!(fi=StackFontItemGetW(&hFontsStackW, lfW)))
+    fi=StackFontItemInsertW(&hFontsStackW, lfW);
+  SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
+  return fi->hFont;
+}
+
+FONTITEMA* StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont)
+{
+  FONTITEMA *lpElement=NULL;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(FONTITEMA)))
+  {
+    memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTA));
+    lpElement->hFont=(HFONT)CreateFontIndirectA(lfFont);
+
+    return lpElement;
+  }
+  return NULL;
+}
+
+FONTITEMW* StackFontItemInsertW(HSTACK *hStack, LOGFONTW *lfFont)
+{
+  FONTITEMW *lpElement=NULL;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(FONTITEMW)))
+  {
+    memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTW));
+    lpElement->hFont=(HFONT)CreateFontIndirectW(lfFont);
+
+    return lpElement;
+  }
+  return NULL;
+}
+
+FONTITEMA* StackFontItemGetA(HSTACK *hStack, LOGFONTA *lfFont)
+{
+  FONTITEMA *lpElement=(FONTITEMA *)hStack->first;
+
+  while (lpElement)
+  {
+    if (lpElement->lfFont.lfHeight == lfFont->lfHeight &&
+        lpElement->lfFont.lfWeight == lfFont->lfWeight &&
+        lpElement->lfFont.lfItalic == lfFont->lfItalic &&
+        lpElement->lfFont.lfCharSet == lfFont->lfCharSet)
+    {
+      if (!lstrcmpiA(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
+        return lpElement;
+    }
+    lpElement=lpElement->next;
+  }
+  return NULL;
+}
+
+FONTITEMW* StackFontItemGetW(HSTACK *hStack, LOGFONTW *lfFont)
+{
+  FONTITEMW *lpElement=(FONTITEMW *)hStack->first;
+
+  while (lpElement)
+  {
+    if (lpElement->lfFont.lfHeight == lfFont->lfHeight &&
+        lpElement->lfFont.lfWeight == lfFont->lfWeight &&
+        lpElement->lfFont.lfItalic == lfFont->lfItalic &&
+        lpElement->lfFont.lfCharSet == lfFont->lfCharSet)
+    {
+      if (!lstrcmpiW(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
+        return lpElement;
+    }
+    lpElement=lpElement->next;
+  }
+  return NULL;
+}
+
+void StackFontItemsFreeA(HSTACK *hStack)
+{
+  FONTITEMA *lpElement=(FONTITEMA *)hStack->first;
+
+  while (lpElement)
+  {
+    if (lpElement->hFont) DeleteObject(lpElement->hFont);
+
+    lpElement=lpElement->next;
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+void StackFontItemsFreeW(HSTACK *hStack)
+{
+  FONTITEMW *lpElement=(FONTITEMW *)hStack->first;
+
+  while (lpElement)
+  {
+    if (lpElement->hFont) DeleteObject(lpElement->hFont);
+
+    lpElement=lpElement->next;
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+
 //// Other functions
 
 BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei)
@@ -20361,52 +20464,6 @@ BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc)
     cc->crBk=aecColors.crBasicBk;
   }
   return FALSE;
-}
-
-HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA, BOOL bDeleteOld)
-{
-  HFONT hOldFont=NULL;
-  HFONT hNewFont=NULL;
-
-  if (lfA)
-  {
-    if (hNewFont=(HFONT)CreateFontIndirectA(lfA))
-    {
-      if (bDeleteOld)
-      {
-        if (hOldFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
-        {
-          DeleteObject(hOldFont);
-          hOldFont=NULL;
-        }
-      }
-      SendMessage(hWnd, WM_SETFONT, (WPARAM)hNewFont, FALSE);
-    }
-  }
-  return hNewFont;
-}
-
-HFONT SetChosenFontW(HWND hWnd, LOGFONTW *lfW, BOOL bDeleteOld)
-{
-  HFONT hOldFont=NULL;
-  HFONT hNewFont=NULL;
-
-  if (lfW)
-  {
-    if (hNewFont=(HFONT)CreateFontIndirectW(lfW))
-    {
-      if (bDeleteOld)
-      {
-        if (hOldFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0))
-        {
-          DeleteObject(hOldFont);
-          hOldFont=NULL;
-        }
-      }
-      SendMessage(hWnd, WM_SETFONT, (WPARAM)hNewFont, FALSE);
-    }
-  }
-  return hNewFont;
 }
 
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw)
