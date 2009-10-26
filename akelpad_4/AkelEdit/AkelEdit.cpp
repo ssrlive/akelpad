@@ -1246,6 +1246,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           aeNew->bFocus=TRUE;
           AE_UpdateCaret(aeNew, aeNew->bFocus);
         }
+        AE_UpdateScrollBars(aeNew, SB_BOTH);
         return (LRESULT)ae;
       }
       if (uMsg == AEM_CREATEWINDOWDATA)
