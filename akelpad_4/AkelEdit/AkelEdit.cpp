@@ -242,158 +242,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
   if (uMsg == WM_CREATE)
   {
-    CREATESTRUCTA *cs=(CREATESTRUCTA *)lParam;
-
-    if (ae=AE_StackWindowInsert(&hAkelEditWindowsStack))
-    {
-      ae->hWndEdit=hWnd;
-      ae->hWndParent=GetParent(ae->hWndEdit);
-      ae->nEditCtrlID=GetWindowLongA(ae->hWndEdit, GWL_ID);
-      ae->bUnicodeWindow=IsWindowUnicode(hWnd);
-      ae->ptxt=&ae->txt;
-      ae->popt=&ae->opt;
-      ae->ptxt->hHeap=NULL;
-      ae->ptxt->nTabStop=8;
-      ae->ptxt->bSavePointExist=TRUE;
-      ae->ptxt->dwUndoLimit=(DWORD)-1;
-      ae->popt->bHScrollShow=TRUE;
-      ae->popt->bVScrollShow=TRUE;
-      ae->popt->crCaret=RGB(0x00, 0x00, 0x00);
-      ae->popt->crBasicText=GetSysColor(COLOR_WINDOWTEXT);
-      ae->popt->crBasicBk=GetSysColor(COLOR_WINDOW);
-      ae->popt->crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
-      ae->popt->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
-      ae->popt->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
-      ae->popt->crActiveLineBk=GetSysColor(COLOR_WINDOW);
-      ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
-      ae->popt->crActiveColumn=RGB(0x00, 0x00, 0x00);
-      ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
-      ae->popt->bDefaultColors=TRUE;
-      ae->popt->nCaretInsertWidth=1;
-      ae->popt->nCaretOvertypeHeight=2;
-      ae->popt->dwUrlMaxLength=AEURL_MAX_LENGTH;
-      ae->popt->dwWordBreak=AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND;
-      ae->dwInputLocale=(DWORD)GetKeyboardLayout(0);
-      ae->bCaretVisible=TRUE;
-      ae->nCurrentCursor=AECC_IBEAM;
-
-      //OLE Drag'n'Drop
-      ae->idtVtbl.QueryInterface=AEIDropTarget_QueryInterface;
-      ae->idtVtbl.AddRef=AEIDropTarget_AddRef;
-      ae->idtVtbl.Release=AEIDropTarget_Release;
-      ae->idtVtbl.DragEnter=AEIDropTarget_DragEnter;
-      ae->idtVtbl.DragOver=AEIDropTarget_DragOver;
-      ae->idtVtbl.DragLeave=AEIDropTarget_DragLeave;
-      ae->idtVtbl.Drop=AEIDropTarget_Drop;
-
-      ae->idsVtbl.QueryInterface=AEIDropSource_QueryInterface;
-      ae->idsVtbl.AddRef=AEIDropSource_AddRef;
-      ae->idsVtbl.Release=AEIDropSource_Release;
-      ae->idsVtbl.QueryContinueDrag=AEIDropSource_QueryContinueDrag;
-      ae->idsVtbl.GiveFeedback=AEIDropSource_GiveFeedback;
-
-      ae->idoVtbl.QueryInterface=AEIDataObject_QueryInterface;
-      ae->idoVtbl.AddRef=AEIDataObject_AddRef;
-      ae->idoVtbl.Release=AEIDataObject_Release;
-      ae->idoVtbl.GetData=AEIDataObject_GetData;
-      ae->idoVtbl.GetDataHere=AEIDataObject_GetDataHere;
-      ae->idoVtbl.QueryGetData=AEIDataObject_QueryGetData;
-      ae->idoVtbl.GetCanonicalFormatEtc=AEIDataObject_GetCanonicalFormatEtc;
-      ae->idoVtbl.SetData=AEIDataObject_SetData;
-      ae->idoVtbl.EnumFormatEtc=AEIDataObject_EnumFormatEtc;
-      ae->idoVtbl.DAdvise=AEIDataObject_DAdvise;
-      ae->idoVtbl.DUnadvise=AEIDataObject_DUnadvise;
-      ae->idoVtbl.EnumDAdvise=AEIDataObject_EnumDAdvise;
-
-      ae->idt.lpTable=&ae->idtVtbl;
-      ae->idt.uRefCount=0;
-      ae->idt.ae=ae;
-      ae->idt.bAllowDrop=FALSE;
-
-      ae->ids.lpTable=&ae->idsVtbl;
-      ae->ids.uRefCount=0;
-      ae->ids.ae=ae;
-
-      ae->ido.lpTable=&ae->idoVtbl;
-      ae->ido.uRefCount=0;
-      ae->ido.ae=ae;
-      ae->ido.fmtetc[0].cfFormat=CF_UNICODETEXT;
-      ae->ido.fmtetc[0].ptd=0;
-      ae->ido.fmtetc[0].dwAspect=DVASPECT_CONTENT;
-      ae->ido.fmtetc[0].lindex=-1;
-      ae->ido.fmtetc[0].tymed=TYMED_HGLOBAL;
-      ae->ido.stgmed[0].hGlobal=NULL;
-      ae->ido.stgmed[0].pUnkForRelease=0;
-      ae->ido.fmtetc[1].cfFormat=CF_TEXT;
-      ae->ido.fmtetc[1].ptd=0;
-      ae->ido.fmtetc[1].dwAspect=DVASPECT_CONTENT;
-      ae->ido.fmtetc[1].lindex=-1;
-      ae->ido.fmtetc[1].tymed=TYMED_HGLOBAL;
-      ae->ido.stgmed[1].hGlobal=NULL;
-      ae->ido.stgmed[1].pUnkForRelease=0;
-      ae->ido.fmtetc[2].cfFormat=0;
-      ae->ido.fmtetc[2].ptd=0;
-      ae->ido.fmtetc[2].dwAspect=DVASPECT_CONTENT;
-      ae->ido.fmtetc[2].lindex=-1;
-      ae->ido.fmtetc[2].tymed=TYMED_HGLOBAL;
-      ae->ido.stgmed[2].hGlobal=NULL;
-      ae->ido.stgmed[2].pUnkForRelease=0;
-      ae->ido.nNumFormats=3;
-
-      if (!ae->bUnicodeWindow)
-      {
-        if (!lstrcmpiA((char *)cs->lpszClass, AES_RICHEDITCLASSA))
-          ae->bRichEditClass=TRUE;
-      }
-      else
-      {
-        if (!lstrcmpiW((wchar_t *)cs->lpszClass, AES_RICHEDITCLASSW))
-          ae->bRichEditClass=TRUE;
-      }
-
-      if (!ae->bRichEditClass)
-      {
-        ae->popt->nInputNewLine=AELB_ASIS;
-        ae->popt->nOutputNewLine=AELB_ASIS;
-      }
-      else
-      {
-        ae->popt->nInputNewLine=AELB_R;
-        ae->popt->nOutputNewLine=AELB_RN;
-      }
-
-      if (cs->style & ES_READONLY)
-        ae->popt->dwOptions|=AECO_READONLY;
-      if (cs->style & ES_DISABLENOSCROLL)
-        ae->popt->dwOptions|=AECO_DISABLENOSCROLL;
-      if (cs->style & ES_NOHIDESEL)
-        ae->popt->dwOptions|=AECO_NOHIDESEL;
-      if (cs->style & ES_WANTRETURN)
-        ae->popt->dwOptions|=AECO_WANTRETURN;
-      AE_memcpy(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
-      AE_memcpy(ae->popt->wszWordDelimiters, AES_WORDDELIMITERSW, sizeof(AES_WORDDELIMITERSW));
-      AE_memcpy(ae->popt->wszUrlLeftDelimiters, AES_URLLEFTDELIMITERSW, sizeof(AES_URLLEFTDELIMITERSW));
-      AE_memcpy(ae->popt->wszUrlRightDelimiters, AES_URLRIGHTDELIMITERSW, sizeof(AES_URLRIGHTDELIMITERSW));
-      AE_memcpy(ae->popt->wszUrlPrefixes, AES_URLPREFIXESW, sizeof(AES_URLPREFIXESW));
-      AE_GetUrlPrefixes(ae);
-
-      GetClientRect(ae->hWndEdit, &ae->rcEdit);
-      AE_SetDrawRect(ae, NULL, FALSE);
-
-      if (!ae->bUnicodeWindow)
-        AE_SetEditFontA(ae, NULL, FALSE);
-      else
-        AE_SetEditFontW(ae, NULL, FALSE);
-
-      AE_SetText(ae, L"", 0, ae->popt->nInputNewLine);
-
-      //Register drop window
-      CoLockObjectExternal((LPUNKNOWN)&ae->idt, TRUE, FALSE);
-      RegisterDragDrop(ae->hWndEdit, (LPDROPTARGET)&ae->idt);
-
-      //Scrollbars updated in WM_SIZE
+    if (ae=AE_CreateWindowData(hWnd, (CREATESTRUCTA *)lParam))
       return 0;
-    }
     return -1;
   }
 
@@ -1377,6 +1227,35 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return (LRESULT)aec->aeClone->hWndEdit;
 
         return (LRESULT)NULL;
+      }
+
+      //Window data
+      if (uMsg == AEM_GETWINDOWDATA)
+      {
+        return (LRESULT)ae;
+      }
+      if (uMsg == AEM_SETWINDOWDATA)
+      {
+        AKELEDIT *aeNew=(AKELEDIT *)wParam;
+
+        ae->hWndEdit=NULL;
+        aeNew->hWndEdit=hWnd;
+
+        if (GetFocus() == hWnd)
+        {
+          aeNew->bFocus=TRUE;
+          AE_UpdateCaret(aeNew, aeNew->bFocus);
+        }
+        return (LRESULT)ae;
+      }
+      if (uMsg == AEM_CREATEWINDOWDATA)
+      {
+        return (LRESULT)AE_CreateWindowData(hWnd, (CREATESTRUCTA *)lParam);
+      }
+      if (uMsg == AEM_DELETEWINDOWDATA)
+      {
+        AE_DestroyWindowData((AKELEDIT *)lParam);
+        return 0;
       }
 
       //Print
@@ -3577,35 +3456,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_DESTROY)
     {
-      //Unregister drop window
-      RevokeDragDrop(ae->hWndEdit);
-      CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
-      ((IDropTarget *)&ae->idt)->Release();
-
-      if (!ae->lpMaster)
-      {
-        //Uncloning all clones
-        AE_StackCloneDeleteAll(ae);
-      }
-      else
-      {
-        //Uncloning current clone
-        AECLONE *aec;
-
-        if (aec=AE_StackCloneGet(ae->lpMaster, ae->hWndEdit))
-          AE_StackCloneDelete(aec);
-      }
-
-      if (ae->ptxt->hHeap)
-      {
-        if (HeapDestroy(ae->ptxt->hHeap))
-          ae->ptxt->hHeap=NULL;
-
-        AE_StackPointFree(ae);
-        //AE_StackLineFree(ae);
-      }
-
-      AE_HeapStackDelete(NULL, (stack **)&hAkelEditWindowsStack.first, (stack **)&hAkelEditWindowsStack.last, (stack *)ae);
+      AE_DestroyWindowData(ae);
       lpAkelEditPrev=NULL;
       ae=NULL;
       return 0;
@@ -3626,6 +3477,195 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else
       return DefWindowProcW(hWnd, uMsg, wParam, lParam);
   }
+}
+
+AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs)
+{
+  AKELEDIT *ae;
+
+  if (ae=AE_StackWindowInsert(&hAkelEditWindowsStack))
+  {
+    ae->hWndEdit=hWnd;
+    ae->hWndParent=GetParent(ae->hWndEdit);
+    ae->nEditCtrlID=GetWindowLongA(ae->hWndEdit, GWL_ID);
+    ae->bUnicodeWindow=IsWindowUnicode(hWnd);
+    ae->ptxt=&ae->txt;
+    ae->popt=&ae->opt;
+    ae->ptxt->hHeap=NULL;
+    ae->ptxt->nTabStop=8;
+    ae->ptxt->bSavePointExist=TRUE;
+    ae->ptxt->dwUndoLimit=(DWORD)-1;
+    ae->popt->bHScrollShow=TRUE;
+    ae->popt->bVScrollShow=TRUE;
+    ae->popt->crCaret=RGB(0x00, 0x00, 0x00);
+    ae->popt->crBasicText=GetSysColor(COLOR_WINDOWTEXT);
+    ae->popt->crBasicBk=GetSysColor(COLOR_WINDOW);
+    ae->popt->crSelText=GetSysColor(COLOR_HIGHLIGHTTEXT);
+    ae->popt->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
+    ae->popt->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
+    ae->popt->crActiveLineBk=GetSysColor(COLOR_WINDOW);
+    ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
+    ae->popt->crActiveColumn=RGB(0x00, 0x00, 0x00);
+    ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
+    ae->popt->bDefaultColors=TRUE;
+    ae->popt->nCaretInsertWidth=1;
+    ae->popt->nCaretOvertypeHeight=2;
+    ae->popt->dwUrlMaxLength=AEURL_MAX_LENGTH;
+    ae->popt->dwWordBreak=AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND;
+    ae->dwInputLocale=(DWORD)GetKeyboardLayout(0);
+    ae->bCaretVisible=TRUE;
+    ae->nCurrentCursor=AECC_IBEAM;
+
+    //OLE Drag'n'Drop
+    ae->idtVtbl.QueryInterface=AEIDropTarget_QueryInterface;
+    ae->idtVtbl.AddRef=AEIDropTarget_AddRef;
+    ae->idtVtbl.Release=AEIDropTarget_Release;
+    ae->idtVtbl.DragEnter=AEIDropTarget_DragEnter;
+    ae->idtVtbl.DragOver=AEIDropTarget_DragOver;
+    ae->idtVtbl.DragLeave=AEIDropTarget_DragLeave;
+    ae->idtVtbl.Drop=AEIDropTarget_Drop;
+
+    ae->idsVtbl.QueryInterface=AEIDropSource_QueryInterface;
+    ae->idsVtbl.AddRef=AEIDropSource_AddRef;
+    ae->idsVtbl.Release=AEIDropSource_Release;
+    ae->idsVtbl.QueryContinueDrag=AEIDropSource_QueryContinueDrag;
+    ae->idsVtbl.GiveFeedback=AEIDropSource_GiveFeedback;
+
+    ae->idoVtbl.QueryInterface=AEIDataObject_QueryInterface;
+    ae->idoVtbl.AddRef=AEIDataObject_AddRef;
+    ae->idoVtbl.Release=AEIDataObject_Release;
+    ae->idoVtbl.GetData=AEIDataObject_GetData;
+    ae->idoVtbl.GetDataHere=AEIDataObject_GetDataHere;
+    ae->idoVtbl.QueryGetData=AEIDataObject_QueryGetData;
+    ae->idoVtbl.GetCanonicalFormatEtc=AEIDataObject_GetCanonicalFormatEtc;
+    ae->idoVtbl.SetData=AEIDataObject_SetData;
+    ae->idoVtbl.EnumFormatEtc=AEIDataObject_EnumFormatEtc;
+    ae->idoVtbl.DAdvise=AEIDataObject_DAdvise;
+    ae->idoVtbl.DUnadvise=AEIDataObject_DUnadvise;
+    ae->idoVtbl.EnumDAdvise=AEIDataObject_EnumDAdvise;
+
+    ae->idt.lpTable=&ae->idtVtbl;
+    ae->idt.uRefCount=0;
+    ae->idt.ae=ae;
+    ae->idt.bAllowDrop=FALSE;
+
+    ae->ids.lpTable=&ae->idsVtbl;
+    ae->ids.uRefCount=0;
+    ae->ids.ae=ae;
+
+    ae->ido.lpTable=&ae->idoVtbl;
+    ae->ido.uRefCount=0;
+    ae->ido.ae=ae;
+    ae->ido.fmtetc[0].cfFormat=CF_UNICODETEXT;
+    ae->ido.fmtetc[0].ptd=0;
+    ae->ido.fmtetc[0].dwAspect=DVASPECT_CONTENT;
+    ae->ido.fmtetc[0].lindex=-1;
+    ae->ido.fmtetc[0].tymed=TYMED_HGLOBAL;
+    ae->ido.stgmed[0].hGlobal=NULL;
+    ae->ido.stgmed[0].pUnkForRelease=0;
+    ae->ido.fmtetc[1].cfFormat=CF_TEXT;
+    ae->ido.fmtetc[1].ptd=0;
+    ae->ido.fmtetc[1].dwAspect=DVASPECT_CONTENT;
+    ae->ido.fmtetc[1].lindex=-1;
+    ae->ido.fmtetc[1].tymed=TYMED_HGLOBAL;
+    ae->ido.stgmed[1].hGlobal=NULL;
+    ae->ido.stgmed[1].pUnkForRelease=0;
+    ae->ido.fmtetc[2].cfFormat=0;
+    ae->ido.fmtetc[2].ptd=0;
+    ae->ido.fmtetc[2].dwAspect=DVASPECT_CONTENT;
+    ae->ido.fmtetc[2].lindex=-1;
+    ae->ido.fmtetc[2].tymed=TYMED_HGLOBAL;
+    ae->ido.stgmed[2].hGlobal=NULL;
+    ae->ido.stgmed[2].pUnkForRelease=0;
+    ae->ido.nNumFormats=3;
+
+    if (!ae->bUnicodeWindow)
+    {
+      if (!lstrcmpiA((char *)cs->lpszClass, AES_RICHEDITCLASSA))
+        ae->bRichEditClass=TRUE;
+    }
+    else
+    {
+      if (!lstrcmpiW((wchar_t *)cs->lpszClass, AES_RICHEDITCLASSW))
+        ae->bRichEditClass=TRUE;
+    }
+
+    if (!ae->bRichEditClass)
+    {
+      ae->popt->nInputNewLine=AELB_ASIS;
+      ae->popt->nOutputNewLine=AELB_ASIS;
+    }
+    else
+    {
+      ae->popt->nInputNewLine=AELB_R;
+      ae->popt->nOutputNewLine=AELB_RN;
+    }
+
+    if (cs->style & ES_READONLY)
+      ae->popt->dwOptions|=AECO_READONLY;
+    if (cs->style & ES_DISABLENOSCROLL)
+      ae->popt->dwOptions|=AECO_DISABLENOSCROLL;
+    if (cs->style & ES_NOHIDESEL)
+      ae->popt->dwOptions|=AECO_NOHIDESEL;
+    if (cs->style & ES_WANTRETURN)
+      ae->popt->dwOptions|=AECO_WANTRETURN;
+    AE_memcpy(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
+    AE_memcpy(ae->popt->wszWordDelimiters, AES_WORDDELIMITERSW, sizeof(AES_WORDDELIMITERSW));
+    AE_memcpy(ae->popt->wszUrlLeftDelimiters, AES_URLLEFTDELIMITERSW, sizeof(AES_URLLEFTDELIMITERSW));
+    AE_memcpy(ae->popt->wszUrlRightDelimiters, AES_URLRIGHTDELIMITERSW, sizeof(AES_URLRIGHTDELIMITERSW));
+    AE_memcpy(ae->popt->wszUrlPrefixes, AES_URLPREFIXESW, sizeof(AES_URLPREFIXESW));
+    AE_GetUrlPrefixes(ae);
+
+    GetClientRect(ae->hWndEdit, &ae->rcEdit);
+    AE_SetDrawRect(ae, NULL, FALSE);
+
+    if (!ae->bUnicodeWindow)
+      AE_SetEditFontA(ae, NULL, FALSE);
+    else
+      AE_SetEditFontW(ae, NULL, FALSE);
+
+    AE_SetText(ae, L"", 0, ae->popt->nInputNewLine);
+
+    //Register drop window
+    CoLockObjectExternal((LPUNKNOWN)&ae->idt, TRUE, FALSE);
+    RegisterDragDrop(ae->hWndEdit, (LPDROPTARGET)&ae->idt);
+
+    //Scrollbars updated in WM_SIZE
+  }
+  return ae;
+}
+
+void AE_DestroyWindowData(AKELEDIT *ae)
+{
+  //Unregister drop window
+  RevokeDragDrop(ae->hWndEdit);
+  CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
+  ((IDropTarget *)&ae->idt)->Release();
+
+  if (!ae->lpMaster)
+  {
+    //Uncloning all clones
+    AE_StackCloneDeleteAll(ae);
+  }
+  else
+  {
+    //Uncloning current clone
+    AECLONE *aec;
+
+    if (aec=AE_StackCloneGet(ae->lpMaster, ae->hWndEdit))
+      AE_StackCloneDelete(aec);
+  }
+
+  if (ae->ptxt->hHeap)
+  {
+    if (HeapDestroy(ae->ptxt->hHeap))
+      ae->ptxt->hHeap=NULL;
+
+    AE_StackPointFree(ae);
+    //AE_StackLineFree(ae);
+  }
+
+  AE_HeapStackDelete(NULL, (stack **)&hAkelEditWindowsStack.first, (stack **)&hAkelEditWindowsStack.last, (stack *)ae);
 }
 
 HANDLE AE_HeapCreate(AKELEDIT *ae)
