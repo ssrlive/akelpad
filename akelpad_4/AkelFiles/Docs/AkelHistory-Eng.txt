@@ -5,10 +5,12 @@ Changed: reduced resource consumption when opening large number of files.
 
 Added: in the "Select Window" dialog (MDI):
        - tab search;
+       - arrange horizontally/vertically selected tabs;
        - sorting, reordering tabs;
        - save, closing selected tabs;
        - opportunity to show only modified files;
-       - dialog size is remembered.
+       - dialog size is remembered;
+       - F10 hotkey to open dialog.
 
 Fixed: after all text replacing in 4.3.3, scrolling position did not recover.
 Fixed: WordBreak parameter.

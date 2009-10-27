@@ -18622,6 +18622,9 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndStats;
   static HWND hWndSearch;
   static HWND hWndOK;
+  static HWND hWndArrangeGroup;
+  static HWND hWndHorz;
+  static HWND hWndVert;
   static HWND hWndTabsGroup;
   static HWND hWndUp;
   static HWND hWndDown;
@@ -18633,20 +18636,23 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndCancel;
   static BOOL bListChanged;
   static BOOL bOnlyModified;
-  static DIALOGRESIZE drs[]={{&hWndList,       DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndStats,      DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndSearch,     DRS_SIZE|DRS_X},
-                             {&hWndSearch,     DRS_MOVE|DRS_Y},
-                             {&hWndOK,         DRS_MOVE|DRS_X},
-                             {&hWndTabsGroup,  DRS_MOVE|DRS_X},
-                             {&hWndUp,         DRS_MOVE|DRS_X},
-                             {&hWndDown,       DRS_MOVE|DRS_X},
-                             {&hWndSort,       DRS_MOVE|DRS_X},
-                             {&hWndModified,   DRS_MOVE|DRS_X},
-                             {&hWndFilesGroup, DRS_MOVE|DRS_X},
-                             {&hWndSave,       DRS_MOVE|DRS_X},
-                             {&hWndClose,      DRS_MOVE|DRS_X},
-                             {&hWndCancel,     DRS_MOVE|DRS_X|DRS_Y},
+  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndStats,        DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndSearch,       DRS_SIZE|DRS_X},
+                             {&hWndSearch,       DRS_MOVE|DRS_Y},
+                             {&hWndOK,           DRS_MOVE|DRS_X},
+                             {&hWndArrangeGroup, DRS_MOVE|DRS_X},
+                             {&hWndHorz,         DRS_MOVE|DRS_X},
+                             {&hWndVert,         DRS_MOVE|DRS_X},
+                             {&hWndTabsGroup,    DRS_MOVE|DRS_X},
+                             {&hWndUp,           DRS_MOVE|DRS_X},
+                             {&hWndDown,         DRS_MOVE|DRS_X},
+                             {&hWndSort,         DRS_MOVE|DRS_X},
+                             {&hWndModified,     DRS_MOVE|DRS_X},
+                             {&hWndFilesGroup,   DRS_MOVE|DRS_X},
+                             {&hWndSave,         DRS_MOVE|DRS_X},
+                             {&hWndClose,        DRS_MOVE|DRS_X},
+                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
                              {0, 0}};
   int nItem;
 
@@ -18657,6 +18663,9 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndStats=GetDlgItem(hDlg, IDC_MDILIST_STATS);
     hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
     hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndArrangeGroup=GetDlgItem(hDlg, IDC_MDILIST_ARRANGE_GROUP);
+    hWndHorz=GetDlgItem(hDlg, IDC_MDILIST_HORZ);
+    hWndVert=GetDlgItem(hDlg, IDC_MDILIST_VERT);
     hWndTabsGroup=GetDlgItem(hDlg, IDC_MDILIST_TABS_GROUP);
     hWndUp=GetDlgItem(hDlg, IDC_MDILIST_UP);
     hWndDown=GetDlgItem(hDlg, IDC_MDILIST_DOWN);
@@ -18698,6 +18707,14 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
           }
         }
       }
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_HORZ)
+    {
+      ArrangeListboxSelItems(hWndList, SB_HORZ);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_VERT)
+    {
+      ArrangeListboxSelItems(hWndList, SB_VERT);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_UP)
     {
@@ -18741,16 +18758,16 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
         int nCount;
         int nSelCount;
-        BOOL bEnable=FALSE;
 
         nCount=SendMessage(hWndList, LB_GETCOUNT, 0, 0);
-        if ((nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0)) > 0)
-          bEnable=TRUE;
-        EnableWindow(hWndUp, bEnable && !bOnlyModified);
-        EnableWindow(hWndDown, bEnable && !bOnlyModified);
+        nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0);
+        //EnableWindow(hWndHorz, nSelCount > 1);
+        //EnableWindow(hWndVert, nSelCount > 1);
+        EnableWindow(hWndUp, nSelCount > 0 && !bOnlyModified);
+        EnableWindow(hWndDown, nSelCount > 0 && !bOnlyModified);
         EnableWindow(hWndSort, !bOnlyModified);
-        EnableWindow(hWndSave, bEnable);
-        EnableWindow(hWndClose, bEnable);
+        EnableWindow(hWndSave, nSelCount > 0);
+        EnableWindow(hWndClose, nSelCount > 0);
 
         wsprintfA(buf, "%d / %d", nSelCount, nCount);
         SetWindowTextA(hWndStats, buf);
@@ -18805,6 +18822,9 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndStats;
   static HWND hWndSearch;
   static HWND hWndOK;
+  static HWND hWndArrangeGroup;
+  static HWND hWndHorz;
+  static HWND hWndVert;
   static HWND hWndTabsGroup;
   static HWND hWndUp;
   static HWND hWndDown;
@@ -18816,20 +18836,23 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndCancel;
   static BOOL bListChanged;
   static BOOL bOnlyModified;
-  static DIALOGRESIZE drs[]={{&hWndList,       DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndStats,      DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndSearch,     DRS_SIZE|DRS_X},
-                             {&hWndSearch,     DRS_MOVE|DRS_Y},
-                             {&hWndOK,         DRS_MOVE|DRS_X},
-                             {&hWndTabsGroup,  DRS_MOVE|DRS_X},
-                             {&hWndUp,         DRS_MOVE|DRS_X},
-                             {&hWndDown,       DRS_MOVE|DRS_X},
-                             {&hWndSort,       DRS_MOVE|DRS_X},
-                             {&hWndModified,   DRS_MOVE|DRS_X},
-                             {&hWndFilesGroup, DRS_MOVE|DRS_X},
-                             {&hWndSave,       DRS_MOVE|DRS_X},
-                             {&hWndClose,      DRS_MOVE|DRS_X},
-                             {&hWndCancel,     DRS_MOVE|DRS_X|DRS_Y},
+  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndStats,        DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndSearch,       DRS_SIZE|DRS_X},
+                             {&hWndSearch,       DRS_MOVE|DRS_Y},
+                             {&hWndOK,           DRS_MOVE|DRS_X},
+                             {&hWndArrangeGroup, DRS_MOVE|DRS_X},
+                             {&hWndHorz,         DRS_MOVE|DRS_X},
+                             {&hWndVert,         DRS_MOVE|DRS_X},
+                             {&hWndTabsGroup,    DRS_MOVE|DRS_X},
+                             {&hWndUp,           DRS_MOVE|DRS_X},
+                             {&hWndDown,         DRS_MOVE|DRS_X},
+                             {&hWndSort,         DRS_MOVE|DRS_X},
+                             {&hWndModified,     DRS_MOVE|DRS_X},
+                             {&hWndFilesGroup,   DRS_MOVE|DRS_X},
+                             {&hWndSave,         DRS_MOVE|DRS_X},
+                             {&hWndClose,        DRS_MOVE|DRS_X},
+                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
                              {0, 0}};
   int nItem;
 
@@ -18840,6 +18863,9 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndStats=GetDlgItem(hDlg, IDC_MDILIST_STATS);
     hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
     hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndArrangeGroup=GetDlgItem(hDlg, IDC_MDILIST_ARRANGE_GROUP);
+    hWndHorz=GetDlgItem(hDlg, IDC_MDILIST_HORZ);
+    hWndVert=GetDlgItem(hDlg, IDC_MDILIST_VERT);
     hWndTabsGroup=GetDlgItem(hDlg, IDC_MDILIST_TABS_GROUP);
     hWndUp=GetDlgItem(hDlg, IDC_MDILIST_UP);
     hWndDown=GetDlgItem(hDlg, IDC_MDILIST_DOWN);
@@ -18881,6 +18907,14 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
           }
         }
       }
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_HORZ)
+    {
+      ArrangeListboxSelItems(hWndList, SB_HORZ);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_VERT)
+    {
+      ArrangeListboxSelItems(hWndList, SB_VERT);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_UP)
     {
@@ -18924,16 +18958,16 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
         int nCount;
         int nSelCount;
-        BOOL bEnable=FALSE;
 
         nCount=SendMessage(hWndList, LB_GETCOUNT, 0, 0);
-        if ((nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0)) > 0)
-          bEnable=TRUE;
-        EnableWindow(hWndUp, bEnable && !bOnlyModified);
-        EnableWindow(hWndDown, bEnable && !bOnlyModified);
+        nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0);
+        //EnableWindow(hWndHorz, nSelCount > 1);
+        //EnableWindow(hWndVert, nSelCount > 1);
+        EnableWindow(hWndUp, nSelCount > 0 && !bOnlyModified);
+        EnableWindow(hWndDown, nSelCount > 0 && !bOnlyModified);
         EnableWindow(hWndSort, !bOnlyModified);
-        EnableWindow(hWndSave, bEnable);
-        EnableWindow(hWndClose, bEnable);
+        EnableWindow(hWndSave, nSelCount > 0);
+        EnableWindow(hWndClose, nSelCount > 0);
 
         wsprintfW(wbuf, L"%d / %d", nSelCount, nCount);
         SetWindowTextW(hWndStats, wbuf);
@@ -19220,6 +19254,55 @@ BOOL SaveListboxSelItems(HWND hWnd)
     FreeListboxSelItems(&lpSelItems);
   }
   return bResult;
+}
+
+void ArrangeListboxSelItems(HWND hWnd, int nBar)
+{
+  RECT rcClient;
+  int *lpSelItems;
+  int nHeight;
+  int nWidth;
+  int nData;
+  int nSelCount;
+  int nItem;
+  int i;
+
+  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  {
+    GetClientRect(hMdiClient, &rcClient);
+    if (nBar == SB_HORZ)
+      rcClient.top=rcClient.bottom - rcClient.bottom / nSelCount;
+    else if (nBar == SB_VERT)
+      rcClient.left=rcClient.right - rcClient.right / nSelCount;
+
+    for (i=nSelCount - 1; i >= 0; --i)
+    {
+      if ((nData=SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
+      {
+        if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+        {
+          SelectTabItem(hTab, nItem);
+          if (GetWindowLongA((HWND)nData, GWL_STYLE) & WS_MAXIMIZE)
+            SendMessage(hMdiClient, WM_MDIRESTORE, nData, 0);
+          MoveWindow((HWND)nData, rcClient.left, rcClient.top, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top, TRUE);
+
+          if (nBar == SB_HORZ)
+          {
+            nHeight=rcClient.bottom - rcClient.top;
+            rcClient.top-=nHeight;
+            rcClient.bottom-=nHeight;
+          }
+          else if (nBar == SB_VERT)
+          {
+            nWidth=rcClient.right - rcClient.left;
+            rcClient.left-=nWidth;
+            rcClient.right-=nWidth;
+          }
+        }
+      }
+    }
+    FreeListboxSelItems(&lpSelItems);
+  }
 }
 
 BOOL CloseListboxSelItems(HWND hWnd)
