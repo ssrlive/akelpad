@@ -791,6 +791,7 @@ int MoveListboxItemA(HWND hWnd, int nOldIndex, int nNewIndex);
 int MoveListboxItemW(HWND hWnd, int nOldIndex, int nNewIndex);
 BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown);
 BOOL SaveListboxSelItems(HWND hWnd);
+void ArrangeListboxSelItems(HWND hWnd, int nBar);
 BOOL CloseListboxSelItems(HWND hWnd);
 int GetListboxSelItems(HWND hWnd, int **lpSelItems);
 void FreeListboxSelItems(int **lpSelItems);
