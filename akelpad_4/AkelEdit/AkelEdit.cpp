@@ -8305,9 +8305,9 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
       hCaretBitmap=bi->hBitmap;
 
       if (!ae->popt->bOverType)
-        ae->popt->hCaretOvertype=hCaretBitmap;
-      else
         ae->popt->hCaretInsert=hCaretBitmap;
+      else
+        ae->popt->hCaretOvertype=hCaretBitmap;
     }
   }
 
