@@ -654,6 +654,10 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         return AE_GetPrevBreak(ae, ciCharIndex, ciCharIndex, FALSE, wParam?wParam:ae->popt->dwWordBreak);
       }
+      if (uMsg == AEM_ISDELIMITER)
+      {
+        return AE_IsDelimiter(ae, (AECHARINDEX *)lParam, wParam);
+      }
 
       //Screen coordinates
       if (uMsg == AEM_CHARFROMPOS)
@@ -1165,11 +1169,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return 0;
       }
 
-      //Other
-      if (uMsg == AEM_ISDELIMITER)
-      {
-        return AE_IsDelimiter(ae, (AECHARINDEX *)lParam, wParam);
-      }
+      //Draw
       if (uMsg == AEM_SHOWSCROLLBAR)
       {
         if (wParam == SB_BOTH || wParam == SB_HORZ)
@@ -1184,11 +1184,44 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         AE_UpdateScrollBars(ae, wParam);
         return 0;
       }
+      if (uMsg == AEM_UPDATECARET)
+      {
+        return AE_UpdateCaret(ae, ae->bFocus);
+      }
       if (uMsg == AEM_HIDESELECTION)
       {
         AE_HideSelection(ae, wParam);
         return 0;
       }
+
+      //Window data
+      if (uMsg == AEM_GETWINDOWDATA)
+      {
+        return (LRESULT)ae;
+      }
+      if (uMsg == AEM_SETWINDOWDATA)
+      {
+        AKELEDIT *aeNew=(AKELEDIT *)wParam;
+
+        ae->hWndEdit=NULL;
+        aeNew->hWndEdit=hWnd;
+        if (GetFocus() == hWnd)
+          aeNew->bFocus=TRUE;
+        else
+          aeNew->bFocus=FALSE;
+        return (LRESULT)ae;
+      }
+      if (uMsg == AEM_CREATEWINDOWDATA)
+      {
+        return (LRESULT)AE_CreateWindowData(hWnd, (CREATESTRUCTA *)lParam);
+      }
+      if (uMsg == AEM_DELETEWINDOWDATA)
+      {
+        AE_DestroyWindowData((AKELEDIT *)lParam);
+        return 0;
+      }
+
+      //Clones
       if (uMsg == AEM_ADDCLONE)
       {
         AKELEDIT *aeClone;
@@ -1227,36 +1260,6 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           return (LRESULT)aec->aeClone->hWndEdit;
 
         return (LRESULT)NULL;
-      }
-
-      //Window data
-      if (uMsg == AEM_GETWINDOWDATA)
-      {
-        return (LRESULT)ae;
-      }
-      if (uMsg == AEM_SETWINDOWDATA)
-      {
-        AKELEDIT *aeNew=(AKELEDIT *)wParam;
-
-        ae->hWndEdit=NULL;
-        aeNew->hWndEdit=hWnd;
-
-        if (GetFocus() == hWnd)
-        {
-          aeNew->bFocus=TRUE;
-          AE_UpdateCaret(aeNew, aeNew->bFocus);
-        }
-        AE_UpdateScrollBars(aeNew, SB_BOTH);
-        return (LRESULT)ae;
-      }
-      if (uMsg == AEM_CREATEWINDOWDATA)
-      {
-        return (LRESULT)AE_CreateWindowData(hWnd, (CREATESTRUCTA *)lParam);
-      }
-      if (uMsg == AEM_DELETEWINDOWDATA)
-      {
-        AE_DestroyWindowData((AKELEDIT *)lParam);
-        return 0;
       }
 
       //Print

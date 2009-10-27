@@ -842,6 +842,7 @@ typedef struct {
 #define AEM_GETUNWRAPLINE         (WM_USER + 2118)
 #define AEM_GETNEXTBREAK          (WM_USER + 2119)
 #define AEM_GETPREVBREAK          (WM_USER + 2120)
+#define AEM_ISDELIMITER           (WM_USER + 2121)
 
 //Screen coordinates
 #define AEM_CHARFROMPOS           (WM_USER + 2151)
@@ -904,21 +905,23 @@ typedef struct {
 #define AEM_GETLINEGAP            (WM_USER + 2235)
 #define AEM_SETLINEGAP            (WM_USER + 2236)
 
-//Other
-#define AEM_ISDELIMITER           (WM_USER + 2251)
-#define AEM_SHOWSCROLLBAR         (WM_USER + 2252)
-#define AEM_UPDATESCROLLBAR       (WM_USER + 2253)
-#define AEM_HIDESELECTION         (WM_USER + 2254)
-#define AEM_ADDCLONE              (WM_USER + 2255)
-#define AEM_DELCLONE              (WM_USER + 2256)
-#define AEM_GETMASTER             (WM_USER + 2257)
-#define AEM_GETCLONE              (WM_USER + 2258)
+//Draw
+#define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
+#define AEM_UPDATESCROLLBAR       (WM_USER + 2352)
+#define AEM_UPDATECARET           (WM_USER + 2353)
+#define AEM_HIDESELECTION         (WM_USER + 2354)
 
 //Window data
 #define AEM_GETWINDOWDATA         (WM_USER + 2401)
 #define AEM_SETWINDOWDATA         (WM_USER + 2402)
 #define AEM_CREATEWINDOWDATA      (WM_USER + 2403)
 #define AEM_DELETEWINDOWDATA      (WM_USER + 2404)
+
+//Clone
+#define AEM_ADDCLONE              (WM_USER + 2421)
+#define AEM_DELCLONE              (WM_USER + 2422)
+#define AEM_GETMASTER             (WM_USER + 2423)
+#define AEM_GETCLONE              (WM_USER + 2424)
 
 //Print
 #define AEM_STARTPRINTDOC         (WM_USER + 2451)
@@ -2439,6 +2442,24 @@ Example:
  SendMessage(hWndEdit, AEM_GETPREVBREAK, AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND, (LPARAM)&ciCaret);
 
 
+AEM_ISDELIMITER
+_______________
+
+Retrieve character index delimiter or not.
+
+(DWORD)wParam         == see AEDLM_* defines.
+(AECHARINDEX *)lParam == character index.
+
+Return Value
+ TRUE   character index is a delimiter.
+ FALSE  character index isn't a delimiter.
+
+Example:
+ AECHARINDEX ciChar;
+
+ SendMessage(hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&ciChar);
+
+
 AEM_CHARFROMPOS
 _______________
 
@@ -3429,24 +3450,6 @@ Example:
  SendMessage(hWndEdit, AEM_SETLINEGAP, 3, 0);
 
 
-AEM_ISDELIMITER
-_______________
-
-Retrieve character index delimiter or not.
-
-(DWORD)wParam         == see AEDLM_* defines.
-(AECHARINDEX *)lParam == character index.
-
-Return Value
- TRUE   character index is a delimiter.
- FALSE  character index isn't a delimiter.
-
-Example:
- AECHARINDEX ciChar;
-
- SendMessage(hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&ciChar);
-
-
 AEM_SHOWSCROLLBAR
 _________________
 
@@ -3482,6 +3485,22 @@ Example:
  SendMessage(hWndEdit, AEM_UPDATESCROLLBAR, SB_BOTH, 0);
 
 
+AEM_UPDATECARET
+_______________
+
+Update caret in the edit control.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   window has focus.
+ FALSE  window hasn't focus.
+
+Example:
+ SendMessage(hWndEdit, AEM_UPDATECARET, 0, 0);
+
+
 AEM_HIDESELECTION
 _________________
 
@@ -3496,6 +3515,87 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
+
+
+AEM_GETWINDOWDATA
+_________________
+
+Retrieve window data handle.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Window data handle.
+
+Example:
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+
+
+AEM_SETWINDOWDATA
+_________________
+
+Associate new window data handle.
+
+(HANDLE)wParam == window data handle.
+lParam         == not used.
+
+Return Value
+ Old window data handle.
+
+Example:
+ See AEM_CREATEWINDOWDATA example.
+
+
+AEM_CREATEWINDOWDATA
+____________________
+
+Create new window data handle.
+
+wParam                 == not used.
+(CREATESTRUCT *)lParam == pointer to a CREATESTRUCT structure.
+
+Return Value
+ Created window data handle.
+
+Example:
+ CREATESTRUCTA cs;
+ HANDLE hHandleNew;
+ HANDLE hHandleOld;
+
+ cs.lpCreateParams=NULL;
+ cs.hInstance=GetModuleHandle(NULL);
+ cs.hMenu=(HMENU)100;
+ cs.hwndParent=GetParent(hWndEdit);
+ cs.cy=CW_USEDEFAULT;
+ cs.cx=CW_USEDEFAULT;
+ cs.y=CW_USEDEFAULT;
+ cs.x=CW_USEDEFAULT;
+ cs.style=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL;
+ cs.lpszName=NULL;
+ cs.lpszClass=AES_AKELEDITCLASSA;
+ cs.dwExStyle=WS_EX_CLIENTEDGE;
+
+ hHandleNew=(HANDLE)SendMessage(hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
+ hHandleOld=(HANDLE)SendMessage(hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hHandleNew, 0);
+ SendMessage(hWndEdit, AEM_UPDATESCROLLBAR, SB_BOTH, 0);
+ SendMessage(hWndEdit, AEM_UPDATECARET, 0, 0);
+ InvalidateRect(hWndEdit, NULL, TRUE);
+
+
+AEM_DELETEWINDOWDATA
+____________________
+
+Destroys window data handle.
+
+(HANDLE)wParam == window data handle.
+lParam         == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)hHandle, 0);
 
 
 AEM_ADDCLONE
@@ -3565,85 +3665,6 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_GETCLONE, 2, 0);
-
-
-AEM_GETWINDOWDATA
-_________________
-
-Retrieve window data handle.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- Window data handle.
-
-Example:
- HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
-
-
-AEM_SETWINDOWDATA
-_________________
-
-Associate new window data handle.
-
-(HANDLE)wParam == window data handle.
-lParam         == not used.
-
-Return Value
- Old window data handle.
-
-Example:
- See AEM_CREATEWINDOWDATA example.
-
-
-AEM_CREATEWINDOWDATA
-____________________
-
-Create new window data handle.
-
-wParam                 == not used.
-(CREATESTRUCT *)lParam == pointer to a CREATESTRUCT structure.
-
-Return Value
- Created window data handle.
-
-Example:
- CREATESTRUCTA cs;
- HANDLE hHandleNew;
- HANDLE hHandleOld;
-
- cs.lpCreateParams=NULL;
- cs.hInstance=GetModuleHandle(NULL);
- cs.hMenu=(HMENU)100;
- cs.hwndParent=GetParent(hWndEdit);
- cs.cy=CW_USEDEFAULT;
- cs.cx=CW_USEDEFAULT;
- cs.y=CW_USEDEFAULT;
- cs.x=CW_USEDEFAULT;
- cs.style=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL;
- cs.lpszName=NULL;
- cs.lpszClass=AES_AKELEDITCLASSA;
- cs.dwExStyle=WS_EX_CLIENTEDGE;
-
- hHandleNew=(HANDLE)SendMessage(hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
- hHandleOld=(HANDLE)SendMessage(hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hHandleNew, 0);
- InvalidateRect(hWndEdit, NULL, TRUE);
-
-
-AEM_DELETEWINDOWDATA
-____________________
-
-Destroys window data handle.
-
-(HANDLE)wParam == window data handle.
-lParam         == not used.
-
-Return Value
- zero
-
-Example:
- SendMessage(hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)hHandle, 0);
 
 
 AEM_STARTPRINTDOC
