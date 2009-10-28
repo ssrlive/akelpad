@@ -401,8 +401,8 @@ typedef struct {
   BOOL bOverType;
   HBRUSH hActiveColumn;
   BOOL bActiveColumnDraw;
-  int nColumnMarkerType;
-  int nColumnMarkerPos;
+  DWORD dwColumnMarkerType;
+  DWORD dwColumnMarkerPos;
   wchar_t wszWordDelimiters[128];
   DWORD dwWordBreak;
   wchar_t wszUrlLeftDelimiters[128];

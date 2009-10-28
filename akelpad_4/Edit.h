@@ -557,6 +557,8 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
 unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetPrinterDCA(PRINTDLGA *pdA);
 void GetPrinterDCW(PRINTDLGW *pdW);
+DWORD GetMappedPrintWidthA(HWND hWnd);
+DWORD GetMappedPrintWidthW(HWND hWnd);
 int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage);
 int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage);
 BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber);
@@ -840,6 +842,8 @@ DWORD ScrollCaret(HWND hWnd);
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor);
 BOOL SelectColorDialogW(HWND hWndOwner, COLORREF *crColor);
 BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc);
+void SetMarker(HWND hWnd, DWORD dwPos);
+void SetWordWrap(HWND hWnd, DWORD dwType, DWORD dwLimit);
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 BOOL InsertTabStopW(HWND hWnd);
 BOOL IndentTabStopW(HWND hWnd, int nAction);

@@ -261,6 +261,7 @@ extern char szPrintHeader[MAX_PATH];
 extern wchar_t wszPrintHeader[MAX_PATH];
 extern char szPrintFooter[MAX_PATH];
 extern wchar_t wszPrintFooter[MAX_PATH];
+extern DWORD dwMappedPrintWidth;
 extern BOOL bPrintFontEnable;
 extern BOOL bPrintHeaderEnable;
 extern BOOL bPrintFooterEnable;
@@ -393,7 +394,6 @@ HWND CreateEditWindowA(HWND hWndParent)
                               NULL);
 
   if (!hWndEdit) hWndEdit=hWndEditNew;
-  DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_LINK|AENM_PROGRESS|AENM_SCROLL);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
@@ -405,11 +405,12 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontA(hWndEditNew, &lfEditFontA);
+  DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
   SetNewLineStatusA(hWndEditNew, nDefaultNewLine, AENL_INPUT, TRUE);
 
   if (dwMarker)
   {
-    SendMessage(hWndEditNew, AEM_SETMARKER, AEMT_SYMBOL, dwMarker);
+    SetMarker(hWndEditNew, dwMarker);
   }
   if (dwLineGap)
   {
@@ -473,7 +474,6 @@ HWND CreateEditWindowW(HWND hWndParent)
                               NULL);
 
   if (!hWndEdit) hWndEdit=hWndEditNew;
-  DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AENM_LINK|AENM_PROGRESS|AENM_SCROLL);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
@@ -485,11 +485,12 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontW(hWndEditNew, &lfEditFontW);
+  DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
   SetNewLineStatusW(hWndEditNew, nDefaultNewLine, AENL_INPUT, TRUE);
 
   if (dwMarker)
   {
-    SendMessage(hWndEditNew, AEM_SETMARKER, AEMT_SYMBOL, dwMarker);
+    SetMarker(hWndEditNew, dwMarker);
   }
   if (dwLineGap)
   {
@@ -899,6 +900,12 @@ BOOL DoFilePageSetupA(HWND hWndOwner)
   pdA.hDevMode=psdPageA.hDevMode;
   pdA.hDevNames=psdPageA.hDevNames;
 
+  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
+  {
+    dwMappedPrintWidth=GetMappedPrintWidthA(hWndEdit);
+    if (dwMarker == (DWORD)-1) SetMarker(hWndEdit, dwMarker);
+    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWndEdit, dwWrapType, dwWrapLimit);
+  }
   return bResult;
 }
 
@@ -911,6 +918,12 @@ BOOL DoFilePageSetupW(HWND hWndOwner)
   pdW.hDevMode=psdPageW.hDevMode;
   pdW.hDevNames=psdPageW.hDevNames;
 
+  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
+  {
+    dwMappedPrintWidth=GetMappedPrintWidthW(hWndEdit);
+    if (dwMarker == (DWORD)-1) SetMarker(hWndEdit, dwMarker);
+    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWndEdit, dwWrapType, dwWrapLimit);
+  }
   return bResult;
 }
 
@@ -949,6 +962,13 @@ int DoFilePrintA(HWND hWnd, BOOL bSilent)
     DeleteDC(pdA.hDC);
     pdA.hDC=NULL;
   }
+
+  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
+  {
+    dwMappedPrintWidth=GetMappedPrintWidthA(hWnd);
+    if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
+    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
+  }
   return nResult;
 }
 
@@ -986,6 +1006,13 @@ int DoFilePrintW(HWND hWnd, BOOL bSilent)
     pdW.Flags&=~PD_PRINTTOFILE;
     DeleteDC(pdW.hDC);
     pdW.hDC=NULL;
+  }
+
+  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
+  {
+    dwMappedPrintWidth=GetMappedPrintWidthW(hWnd);
+    if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
+    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
   }
   return nResult;
 }
@@ -1918,11 +1945,11 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
   if (bWordWrap)
   {
     UpdateShowHScroll(hWnd);
-    SendMessage(hWnd, AEM_SETWORDWRAP, dwWrapType|AEWW_LIMITSYMBOL, dwWrapLimit);
+    SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
   }
   else
   {
-    SendMessage(hWnd, AEM_SETWORDWRAP, 0, 0);
+    SetWordWrap(hWnd, 0, 0);
     UpdateShowHScroll(hWnd);
   }
 }
@@ -6084,6 +6111,67 @@ void GetPrinterDCW(PRINTDLGW *pdW)
      pdW->hDevNames=pdTmpW.hDevNames;
     }
   }
+}
+
+DWORD GetMappedPrintWidthA(HWND hWnd)
+{
+  AEPRINT prn={0};
+  HANDLE hPrintDoc;
+  HDC hDC;
+  int nAveCharWidth;
+  DWORD dwWidth=0;
+
+  GetPrinterDCA(&pdA);
+  psdPageA.hDevMode=pdA.hDevMode;
+  psdPageA.hDevNames=pdA.hDevNames;
+
+  if (pdW.hDC)
+  {
+    prn.dwFlags=(psdPageA.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES);
+    prn.hPrinterDC=pdA.hDC;
+    prn.rcMargins=psdPageA.rtMargin;
+
+    if (hPrintDoc=(HANDLE)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
+    {
+      nAveCharWidth=SendMessage(hWnd, AEM_GETCHARSIZE, AECS_AVEWIDTH, 0);
+      dwWidth=MulDiv(nAveCharWidth, prn.rcPageIn.right - prn.rcPageIn.left, prn.nAveCharWidth);
+      SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
+    }
+    DeleteDC(pdA.hDC);
+    pdA.hDC=NULL;
+  }
+  return dwWidth;
+}
+
+DWORD GetMappedPrintWidthW(HWND hWnd)
+{
+  AEPRINT prn={0};
+  HANDLE hPrintDoc;
+  HDC hDC;
+  int nAveCharWidth;
+  DWORD dwWidth=0;
+
+  GetPrinterDCW(&pdW);
+  psdPageW.hDevMode=pdW.hDevMode;
+  psdPageW.hDevNames=pdW.hDevNames;
+
+  if (pdW.hDC)
+  {
+    prn.dwFlags=(psdPageW.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES);
+    prn.hPrinterDC=pdW.hDC;
+    prn.hEditFont=(HFONT)SendMessage(hWnd, WM_GETFONT, 0, 0);
+    prn.rcMargins=psdPageW.rtMargin;
+
+    if (hPrintDoc=(HANDLE)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
+    {
+      nAveCharWidth=SendMessage(hWnd, AEM_GETCHARSIZE, AECS_AVEWIDTH, 0);
+      dwWidth=MulDiv(nAveCharWidth, prn.rcPageIn.right - prn.rcPageIn.left, prn.nAveCharWidth);
+      SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)&prn);
+    }
+    DeleteDC(pdW.hDC);
+    pdW.hDC=NULL;
+  }
+  return dwWidth;
 }
 
 int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
@@ -17280,9 +17368,9 @@ BOOL CALLBACK OptionsRegistryDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     hWndAssociatePrint=GetDlgItem(hDlg, IDC_OPTIONS_ASSOCIATE_PRINT);
 
     SendMessage(hWndRecentFilesSpin, UDM_SETBUDDY, (WPARAM)hWndRecentFiles, 0);
-    SendMessage(hWndRecentFilesSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndRecentFilesSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndSearchStringsSpin, UDM_SETBUDDY, (WPARAM)hWndSearchStrings, 0);
-    SendMessage(hWndSearchStringsSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndSearchStringsSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
 
     if (dwFileTypesAssociated & AE_OPEN) SendMessage(hWndAssociateOpen, BM_SETCHECK, BST_CHECKED, 0);
     if (dwFileTypesAssociated & AE_EDIT) SendMessage(hWndAssociateEdit, BM_SETCHECK, BST_CHECKED, 0);
@@ -17541,9 +17629,9 @@ BOOL CALLBACK OptionsRegistryDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     hWndAssociatePrint=GetDlgItem(hDlg, IDC_OPTIONS_ASSOCIATE_PRINT);
 
     SendMessage(hWndRecentFilesSpin, UDM_SETBUDDY, (WPARAM)hWndRecentFiles, 0);
-    SendMessage(hWndRecentFilesSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndRecentFilesSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndSearchStringsSpin, UDM_SETBUDDY, (WPARAM)hWndSearchStrings, 0);
-    SendMessage(hWndSearchStringsSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndSearchStringsSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
 
     if (dwFileTypesAssociated & AE_OPEN) SendMessage(hWndAssociateOpen, BM_SETCHECK, BST_CHECKED, 0);
     if (dwFileTypesAssociated & AE_EDIT) SendMessage(hWndAssociateEdit, BM_SETCHECK, BST_CHECKED, 0);
@@ -17813,28 +17901,28 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndLineGapSpin=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP_SPIN);
 
     SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
-    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndMarginRightSpin, UDM_SETBUDDY, (WPARAM)hWndMarginRight, 0);
-    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndTabSizeSpin, UDM_SETBUDDY, (WPARAM)hWndTabSize, 0);
-    SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, MAKELONG(100, 1));
     SendMessage(hWndUndoLimitSpin, UDM_SETBUDDY, (WPARAM)hWndUndoLimit, 0);
-    SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, MAKELONG(9999, 0));
     SendMessage(hWndWrapLimitSpin, UDM_SETBUDDY, (WPARAM)hWndWrapLimit, 0);
-    SendMessage(hWndWrapLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndWrapLimitSpin, UDM_SETRANGE32, (WPARAM)-1, 9999);
     SendMessage(hWndMarkerSpin, UDM_SETBUDDY, (WPARAM)hWndMarker, 0);
-    SendMessage(hWndMarkerSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndMarkerSpin, UDM_SETRANGE32, (WPARAM)-1, 9999);
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
-    SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, MAKELONG(100, 1));
     SendMessage(hWndLineGapSpin, UDM_SETBUDDY, (WPARAM)hWndLineGap, 0);
-    SendMessage(hWndLineGapSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 0));
+    SendMessage(hWndLineGapSpin, UDM_SETRANGE, 0, MAKELONG(100, 0));
 
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, dwMarker, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, TRUE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, dwMarker, TRUE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
@@ -17892,9 +17980,9 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         a=AEWW_WORD;
       else
         a=AEWW_SYMBOL;
-      b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, FALSE);
+      b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, TRUE);
 
-      if (dwWrapType != a || (int)dwWrapLimit != b)
+      if ((int)dwWrapType != a || (int)dwWrapLimit != b)
       {
         if (bWordWrap)
         {
@@ -17906,16 +17994,16 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         if (bWordWrap)
         {
           UpdateShowHScroll(hWndEdit);
-          SendMessage(hWndEdit, AEM_SETWORDWRAP, dwWrapType|AEWW_LIMITSYMBOL, dwWrapLimit);
+          SetWordWrap(hWndEdit, dwWrapType, dwWrapLimit);
         }
       }
 
       //Marker
-      a=GetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, NULL, FALSE);
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, NULL, TRUE);
       if ((int)dwMarker != a)
       {
         dwMarker=a;
-        SendMessage(hWndEdit, AEM_SETMARKER, AEMT_SYMBOL, dwMarker);
+        SetMarker(hWndEdit, dwMarker);
       }
 
       //Allow caret moving out of the line edge
@@ -18006,28 +18094,28 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndLineGapSpin=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP_SPIN);
 
     SendMessage(hWndMarginLeftSpin, UDM_SETBUDDY, (WPARAM)hWndMarginLeft, 0);
-    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndMarginLeftSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndMarginRightSpin, UDM_SETBUDDY, (WPARAM)hWndMarginRight, 0);
-    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(999, 0));
+    SendMessage(hWndMarginRightSpin, UDM_SETRANGE, 0, MAKELONG(999, 0));
     SendMessage(hWndTabSizeSpin, UDM_SETBUDDY, (WPARAM)hWndTabSize, 0);
-    SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndTabSizeSpin, UDM_SETRANGE, 0, MAKELONG(100, 1));
     SendMessage(hWndUndoLimitSpin, UDM_SETBUDDY, (WPARAM)hWndUndoLimit, 0);
-    SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndUndoLimitSpin, UDM_SETRANGE, 0, MAKELONG(9999, 0));
     SendMessage(hWndWrapLimitSpin, UDM_SETBUDDY, (WPARAM)hWndWrapLimit, 0);
-    SendMessage(hWndWrapLimitSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndWrapLimitSpin, UDM_SETRANGE32, (WPARAM)-1, 9999);
     SendMessage(hWndMarkerSpin, UDM_SETBUDDY, (WPARAM)hWndMarker, 0);
-    SendMessage(hWndMarkerSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(9999, 0));
+    SendMessage(hWndMarkerSpin, UDM_SETRANGE32, (WPARAM)-1, 9999);
     SendMessage(hWndCaretWidthSpin, UDM_SETBUDDY, (WPARAM)hWndCaretWidth, 0);
-    SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 1));
+    SendMessage(hWndCaretWidthSpin, UDM_SETRANGE, 0, MAKELONG(100, 1));
     SendMessage(hWndLineGapSpin, UDM_SETBUDDY, (WPARAM)hWndLineGap, 0);
-    SendMessage(hWndLineGapSpin, UDM_SETRANGE, 0, (LPARAM)MAKELONG(100, 0));
+    SendMessage(hWndLineGapSpin, UDM_SETRANGE, 0, MAKELONG(100, 0));
 
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT, LOWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, HIWORD(dwEditMargins), FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, nTabStopSize, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_UNDO_LIMIT, nUndoLimit, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, FALSE);
-    SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, dwMarker, FALSE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, dwWrapLimit, TRUE);
+    SetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, dwMarker, TRUE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
@@ -18085,9 +18173,9 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         a=AEWW_WORD;
       else
         a=AEWW_SYMBOL;
-      b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, FALSE);
+      b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, TRUE);
 
-      if (dwWrapType != a || (int)dwWrapLimit != b)
+      if ((int)dwWrapType != a || (int)dwWrapLimit != b)
       {
         if (bWordWrap)
         {
@@ -18099,16 +18187,16 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         if (bWordWrap)
         {
           UpdateShowHScroll(hWndEdit);
-          SendMessage(hWndEdit, AEM_SETWORDWRAP, dwWrapType|AEWW_LIMITSYMBOL, dwWrapLimit);
+          SetWordWrap(hWndEdit, dwWrapType, dwWrapLimit);
         }
       }
 
       //Marker
-      a=GetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, NULL, FALSE);
+      a=GetDlgItemInt(hDlg, IDC_OPTIONS_MARKER, NULL, TRUE);
       if ((int)dwMarker != a)
       {
         dwMarker=a;
-        SendMessage(hWndEdit, AEM_SETMARKER, AEMT_SYMBOL, dwMarker);
+        SetMarker(hWndEdit, dwMarker);
       }
 
       //Allow caret moving out of the line edge
@@ -20242,6 +20330,13 @@ HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA)
   if (!(fi=StackFontItemGetA(&hFontsStackA, lfA)))
     fi=StackFontItemInsertA(&hFontsStackA, lfA);
   SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
+
+  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
+  {
+    dwMappedPrintWidth=GetMappedPrintWidthA(hWnd);
+    if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
+    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
+  }
   return fi->hFont;
 }
 
@@ -20252,6 +20347,13 @@ HFONT SetChosenFontW(HWND hWnd, LOGFONTW *lfW)
   if (!(fi=StackFontItemGetW(&hFontsStackW, lfW)))
     fi=StackFontItemInsertW(&hFontsStackW, lfW);
   SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
+
+  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
+  {
+    dwMappedPrintWidth=GetMappedPrintWidthW(hWnd);
+    if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
+    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
+  }
   return fi->hFont;
 }
 
@@ -20547,6 +20649,38 @@ BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc)
     cc->crBk=aecColors.crBasicBk;
   }
   return FALSE;
+}
+
+void SetMarker(HWND hWnd, DWORD dwPos)
+{
+  if (dwPos == (DWORD)-1)
+  {
+    if (!dwMappedPrintWidth)
+    {
+      if (bOldWindows)
+        dwMappedPrintWidth=GetMappedPrintWidthA(hWnd);
+      else
+        dwMappedPrintWidth=GetMappedPrintWidthW(hWnd);
+    }
+    SendMessage(hWnd, AEM_SETMARKER, AEMT_PIXEL, dwMappedPrintWidth);
+  }
+  else SendMessage(hWnd, AEM_SETMARKER, AEMT_SYMBOL, dwPos);
+}
+
+void SetWordWrap(HWND hWnd, DWORD dwType, DWORD dwLimit)
+{
+  if (dwLimit == (DWORD)-1)
+  {
+    if (!dwMappedPrintWidth)
+    {
+      if (bOldWindows)
+        dwMappedPrintWidth=GetMappedPrintWidthA(hWnd);
+      else
+        dwMappedPrintWidth=GetMappedPrintWidthW(hWnd);
+    }
+    SendMessage(hWnd, AEM_SETWORDWRAP, dwType|AEWW_LIMITPIXEL, dwMappedPrintWidth);
+  }
+  else SendMessage(hWnd, AEM_SETWORDWRAP, dwType|AEWW_LIMITSYMBOL, dwWrapLimit);
 }
 
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw)

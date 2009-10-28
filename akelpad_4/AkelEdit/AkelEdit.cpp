@@ -1141,20 +1141,20 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_GETMARKER)
       {
-        int *lpnColumnMarkerType=(int *)wParam;
+        DWORD *lpdwColumnMarkerType=(DWORD *)wParam;
 
-        if (lpnColumnMarkerType) *lpnColumnMarkerType=ae->popt->nColumnMarkerType;
+        if (lpdwColumnMarkerType) *lpdwColumnMarkerType=ae->popt->dwColumnMarkerType;
 
-        return (LRESULT)ae->popt->nColumnMarkerPos;
+        return (LRESULT)ae->popt->dwColumnMarkerPos;
       }
       if (uMsg == AEM_SETMARKER)
       {
-        if (ae->popt->nColumnMarkerType != (int)wParam ||
-            ae->popt->nColumnMarkerPos != (int)lParam)
+        if (ae->popt->dwColumnMarkerType != wParam ||
+            ae->popt->dwColumnMarkerPos != (DWORD)lParam)
         {
           AE_ColumnMarkerErase(ae);
-          ae->popt->nColumnMarkerType=wParam;
-          ae->popt->nColumnMarkerPos=lParam;
+          ae->popt->dwColumnMarkerType=wParam;
+          ae->popt->dwColumnMarkerPos=lParam;
           AE_ColumnMarkerDraw(ae);
           AE_StackUpdateClones(ae);
         }
@@ -5861,7 +5861,7 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   AKELEDIT *lpSource=ae;
   AELINEINDEX liFirst;
   AELINEINDEX liCount;
-  DWORD dwMaxWidth;
+  DWORD dwMaxWidth=0;
   DWORD dwStartTime=GetTickCount();
   DWORD dwProgressTime=0;
   DWORD dwCurrentTime=0;
@@ -8301,36 +8301,31 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
 
   if (!ae->popt->bOverType)
   {
-    hCaretBitmap=ae->popt->hCaretInsert;
     nCaretWidth=ae->popt->nCaretInsertWidth;
     nCaretHeight=ae->ptxt->nCharHeight;
   }
   else
   {
-    hCaretBitmap=ae->popt->hCaretOvertype;
     nCaretWidth=ae->ptxt->nAveCharWidth;
     nCaretHeight=ae->popt->nCaretOvertypeHeight;
   }
 
-  if (!hCaretBitmap)
+  if (ae->popt->crCaret != RGB(0x00, 0x00, 0x00))
   {
-    if (ae->popt->crCaret != RGB(0x00, 0x00, 0x00))
-    {
-      bd.nWidth=nCaretWidth;
-      bd.nHeight=nCaretHeight;
-      bd.crBasic=ae->popt->crCaret;
-      bd.crInvert=ae->popt->crActiveLineBk;
-      bd.bZebra=FALSE;
+    bd.nWidth=nCaretWidth;
+    bd.nHeight=nCaretHeight;
+    bd.crBasic=ae->popt->crCaret;
+    bd.crInvert=ae->popt->crActiveLineBk;
+    bd.bZebra=FALSE;
 
-      if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
-        bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
-      hCaretBitmap=bi->hBitmap;
+    if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
+      bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
+    hCaretBitmap=bi->hBitmap;
 
-      if (!ae->popt->bOverType)
-        ae->popt->hCaretInsert=hCaretBitmap;
-      else
-        ae->popt->hCaretOvertype=hCaretBitmap;
-    }
+    if (!ae->popt->bOverType)
+      ae->popt->hCaretInsert=hCaretBitmap;
+    else
+      ae->popt->hCaretOvertype=hCaretBitmap;
   }
 
   if (bFocus)
@@ -8875,7 +8870,7 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
   if (!prn->hPrinterDC || !prn->hEditFont)
     return NULL;
 
-  if (ph=(AEPRINTHANDLE *)AE_HeapAlloc(ae, 0, sizeof(AEPRINTHANDLE)))
+  if (ph=(AEPRINTHANDLE *)AE_HeapAlloc(ae, HEAP_ZERO_MEMORY, sizeof(AEPRINTHANDLE)))
   {
     //Clone AKELEDIT data for printing
     AE_memcpy(&ph->aePrint, ae, sizeof(AKELEDIT));
@@ -8944,7 +8939,7 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
   if (!prn->hPrinterDC || !prn->hEditFont)
     return NULL;
 
-  if (ph=(AEPRINTHANDLE *)AE_HeapAlloc(ae, 0, sizeof(AEPRINTHANDLE)))
+  if (ph=(AEPRINTHANDLE *)AE_HeapAlloc(ae, HEAP_ZERO_MEMORY, sizeof(AEPRINTHANDLE)))
   {
     //Clone AKELEDIT data for printing
     AE_memcpy(&ph->aePrint, ae, sizeof(AKELEDIT));
@@ -9071,7 +9066,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   BOOL bFormFeed=FALSE;
   BOOL bContinuePrint=TRUE;
 
-  if (!prn->crText.ciMin.lpLine || !prn->crText.ciMax.lpLine)
+  if (!prn->hPrintFont || !prn->crText.ciMin.lpLine || !prn->crText.ciMax.lpLine)
     return FALSE;
 
   //Select print font
@@ -10272,17 +10267,17 @@ void AE_ActiveColumnErase(AKELEDIT *ae)
 
 void AE_ColumnMarkerDraw(AKELEDIT *ae)
 {
-  if (ae->popt->nColumnMarkerPos)
+  if (ae->popt->dwColumnMarkerPos)
   {
     int nMarkerPos=0;
     HDC hDC=ae->hDC;
     HPEN hPen;
     HPEN hPenOld;
 
-    if (ae->popt->nColumnMarkerType == AEMT_SYMBOL)
-      nMarkerPos=ae->popt->nColumnMarkerPos * ae->ptxt->nAveCharWidth;
-    else if (ae->popt->nColumnMarkerType == AEMT_PIXEL)
-      nMarkerPos=ae->popt->nColumnMarkerPos;
+    if (ae->popt->dwColumnMarkerType == AEMT_SYMBOL)
+      nMarkerPos=ae->popt->dwColumnMarkerPos * ae->ptxt->nAveCharWidth;
+    else if (ae->popt->dwColumnMarkerType == AEMT_PIXEL)
+      nMarkerPos=ae->popt->dwColumnMarkerPos;
 
     if (ae->nHScrollPos < nMarkerPos && nMarkerPos < ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left))
     {
@@ -10304,10 +10299,15 @@ void AE_ColumnMarkerDraw(AKELEDIT *ae)
 
 void AE_ColumnMarkerErase(AKELEDIT *ae)
 {
-  if (ae->popt->nColumnMarkerPos)
+  if (ae->popt->dwColumnMarkerPos)
   {
     RECT rcMarker;
-    int nMarkerPos=ae->popt->nColumnMarkerPos * ae->ptxt->nAveCharWidth;
+    int nMarkerPos=0;
+
+    if (ae->popt->dwColumnMarkerType == AEMT_SYMBOL)
+      nMarkerPos=ae->popt->dwColumnMarkerPos * ae->ptxt->nAveCharWidth;
+    else if (ae->popt->dwColumnMarkerType == AEMT_PIXEL)
+      nMarkerPos=ae->popt->dwColumnMarkerPos;
 
     if (ae->nHScrollPos < nMarkerPos && nMarkerPos < ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left))
     {
