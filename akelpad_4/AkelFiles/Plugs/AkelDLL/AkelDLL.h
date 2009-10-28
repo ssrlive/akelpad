@@ -319,7 +319,7 @@ typedef struct _WNDFRAMEA {
   BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces
   int nUndoLimit;                                     //Undo limit
   BOOL bDetailedUndo;                                 //Detailed undo
-  int nWrapType;                                      //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
+  int dwWrapType;                                     //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
   BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)
@@ -357,7 +357,7 @@ typedef struct _WNDFRAMEW {
   BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces
   int nUndoLimit;                                     //Undo limit
   BOOL bDetailedUndo;                                 //Detailed undo
-  int nWrapType;                                      //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
+  int dwWrapType;                                     //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
   BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)

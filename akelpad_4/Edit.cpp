@@ -277,7 +277,7 @@ extern BOOL bInsertState;
 extern int nCurrentNewLine;
 extern int nDefaultNewLine;
 extern BOOL bWordWrap;
-extern int nWrapType;
+extern DWORD dwWrapType;
 extern DWORD dwWrapLimit;
 extern DWORD dwMarker;
 extern BOOL bOnTop;
@@ -409,7 +409,7 @@ HWND CreateEditWindowA(HWND hWndParent)
 
   if (dwMarker)
   {
-    SendMessage(hWndEditNew, AEM_SETMARKER, dwMarker, 0);
+    SendMessage(hWndEditNew, AEM_SETMARKER, AEMT_SYMBOL, dwMarker);
   }
   if (dwLineGap)
   {
@@ -489,7 +489,7 @@ HWND CreateEditWindowW(HWND hWndParent)
 
   if (dwMarker)
   {
-    SendMessage(hWndEditNew, AEM_SETMARKER, dwMarker, 0);
+    SendMessage(hWndEditNew, AEM_SETMARKER, AEMT_SYMBOL, dwMarker);
   }
   if (dwLineGap)
   {
@@ -1918,11 +1918,11 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
   if (bWordWrap)
   {
     UpdateShowHScroll(hWnd);
-    SendMessage(hWnd, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
+    SendMessage(hWnd, AEM_SETWORDWRAP, dwWrapType|AEWW_LIMITSYMBOL, dwWrapLimit);
   }
   else
   {
-    SendMessage(hWnd, AEM_SETWORDWRAP, AEWW_NONE, 0);
+    SendMessage(hWnd, AEM_SETWORDWRAP, 0, 0);
     UpdateShowHScroll(hWnd);
   }
 }
@@ -3156,7 +3156,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD));
   ReadOptionA(hHandle, "UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD));
   ReadOptionA(hHandle, "DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD));
-  ReadOptionA(hHandle, "WrapType", PO_DWORD, &nWrapType, sizeof(DWORD));
+  ReadOptionA(hHandle, "WrapType", PO_DWORD, &dwWrapType, sizeof(DWORD));
   ReadOptionA(hHandle, "WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
   ReadOptionA(hHandle, "Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
@@ -3264,7 +3264,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD));
   ReadOptionW(hHandle, L"UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD));
   ReadOptionW(hHandle, L"DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD));
-  ReadOptionW(hHandle, L"WrapType", PO_DWORD, &nWrapType, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WrapType", PO_DWORD, &dwWrapType, sizeof(DWORD));
   ReadOptionW(hHandle, L"WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
   ReadOptionW(hHandle, L"Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
@@ -3552,7 +3552,7 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "WrapType", PO_DWORD, &nWrapType, sizeof(DWORD)))
+  if (!SaveOptionA(hHandle, "WrapType", PO_DWORD, &dwWrapType, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD)))
     goto Error;
@@ -3756,7 +3756,7 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionW(hHandle, L"WrapType", PO_DWORD, &nWrapType, sizeof(DWORD)))
+  if (!SaveOptionW(hHandle, L"WrapType", PO_DWORD, &dwWrapType, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD)))
     goto Error;
@@ -6102,7 +6102,7 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   BOOL bPrintStop=FALSE;
 
   //Set print settings
-  prn->dwFlags=(nWrapType == AEWW_SYMBOL?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
+  prn->dwFlags=((dwWrapType & AEWW_SYMBOL)?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
                (psdPageA.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES)|
                (dwFlags & PRN_PREVIEW?AEPRN_TEST:0)|
                (dwFlags & PRN_ANSI?AEPRN_ANSI:0);
@@ -6273,7 +6273,7 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   BOOL bPrintStop=FALSE;
 
   //Set print settings
-  prn->dwFlags=(nWrapType == AEWW_SYMBOL?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
+  prn->dwFlags=((dwWrapType & AEWW_SYMBOL)?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
                (psdPageW.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES)|
                (dwFlags & PRN_PREVIEW?AEPRN_TEST:0)|
                (dwFlags & PRN_ANSI?AEPRN_ANSI:0);
@@ -17842,9 +17842,9 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
     if (bDetailedUndo)
       SendMessage(hWndDetailedUndo, BM_SETCHECK, BST_CHECKED, 0);
-    if (nWrapType == AEWW_WORD)
+    if (dwWrapType & AEWW_WORD)
       SendMessage(hWndWrapByWords, BM_SETCHECK, BST_CHECKED, 0);
-    else if (nWrapType == AEWW_SYMBOL)
+    else if (dwWrapType & AEWW_SYMBOL)
       SendMessage(hWndWrapBySymbols, BM_SETCHECK, BST_CHECKED, 0);
     if (bCaretOutEdge)
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
@@ -17894,19 +17894,19 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         a=AEWW_SYMBOL;
       b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, FALSE);
 
-      if (nWrapType != a || (int)dwWrapLimit != b)
+      if (dwWrapType != a || (int)dwWrapLimit != b)
       {
         if (bWordWrap)
         {
           UpdateShowHScroll(hWndEdit);
         }
-        nWrapType=a;
+        dwWrapType=a;
         dwWrapLimit=b;
 
         if (bWordWrap)
         {
           UpdateShowHScroll(hWndEdit);
-          SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
+          SendMessage(hWndEdit, AEM_SETWORDWRAP, dwWrapType|AEWW_LIMITSYMBOL, dwWrapLimit);
         }
       }
 
@@ -17915,7 +17915,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if ((int)dwMarker != a)
       {
         dwMarker=a;
-        SendMessage(hWndEdit, AEM_SETMARKER, dwMarker, 0);
+        SendMessage(hWndEdit, AEM_SETMARKER, AEMT_SYMBOL, dwMarker);
       }
 
       //Allow caret moving out of the line edge
@@ -18035,9 +18035,9 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
     if (bDetailedUndo)
       SendMessage(hWndDetailedUndo, BM_SETCHECK, BST_CHECKED, 0);
-    if (nWrapType == AEWW_WORD)
+    if (dwWrapType & AEWW_WORD)
       SendMessage(hWndWrapByWords, BM_SETCHECK, BST_CHECKED, 0);
-    else if (nWrapType == AEWW_SYMBOL)
+    else if (dwWrapType & AEWW_SYMBOL)
       SendMessage(hWndWrapBySymbols, BM_SETCHECK, BST_CHECKED, 0);
     if (bCaretOutEdge)
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
@@ -18087,19 +18087,19 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         a=AEWW_SYMBOL;
       b=GetDlgItemInt(hDlg, IDC_OPTIONS_WRAP_LIMIT, NULL, FALSE);
 
-      if (nWrapType != a || (int)dwWrapLimit != b)
+      if (dwWrapType != a || (int)dwWrapLimit != b)
       {
         if (bWordWrap)
         {
           UpdateShowHScroll(hWndEdit);
         }
-        nWrapType=a;
+        dwWrapType=a;
         dwWrapLimit=b;
 
         if (bWordWrap)
         {
           UpdateShowHScroll(hWndEdit);
-          SendMessage(hWndEdit, AEM_SETWORDWRAP, nWrapType, dwWrapLimit);
+          SendMessage(hWndEdit, AEM_SETWORDWRAP, dwWrapType|AEWW_LIMITSYMBOL, dwWrapLimit);
         }
       }
 
@@ -18108,7 +18108,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if ((int)dwMarker != a)
       {
         dwMarker=a;
-        SendMessage(hWndEdit, AEM_SETMARKER, dwMarker, 0);
+        SendMessage(hWndEdit, AEM_SETMARKER, AEMT_SYMBOL, dwMarker);
       }
 
       //Allow caret moving out of the line edge
