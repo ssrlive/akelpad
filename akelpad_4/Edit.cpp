@@ -245,6 +245,7 @@ extern POINT ptPreviewScroll;
 extern DWORD dwPreviewShowDialog;
 extern int lpZoom[];
 extern int nPreviewZoomMaxIndex;
+extern int nPreviewZoomValue;
 extern int nPreviewZoomPercent;
 extern int nPreviewCharHeight;
 extern int nPreviewAveCharWidth;
@@ -6787,7 +6788,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndPreview=NULL;
     ptPreviewScroll.x=0;
     ptPreviewScroll.y=0;
-    nPreviewZoomPercent=PREVIEW_ZOOMFIT;
+    nPreviewZoomPercent=nPreviewZoomValue;
     nPreviewPageCur=1;
     bPreviewSelection=FALSE;
 
@@ -6913,24 +6914,24 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   }
   else if (uMsg == AKDLG_PREVIEWSETZOOM)
   {
-    int nZoom=wParam;
+    nPreviewZoomValue=wParam;
 
-    if (nZoom == PREVIEW_ZOOMFIT ||
-        nZoom == PREVIEW_ZOOMWIDTH)
+    if (nPreviewZoomValue == PREVIEW_ZOOMFIT ||
+        nPreviewZoomValue == PREVIEW_ZOOMWIDTH)
     {
     }
-    else if (nZoom < lpZoom[0])
+    else if (nPreviewZoomValue < lpZoom[0])
     {
-      nZoom=lpZoom[0];
+      nPreviewZoomValue=lpZoom[0];
     }
-    else if (nZoom > lpZoom[nPreviewZoomMaxIndex])
+    else if (nPreviewZoomValue > lpZoom[nPreviewZoomMaxIndex])
     {
-      nZoom=lpZoom[nPreviewZoomMaxIndex];
+      nPreviewZoomValue=lpZoom[nPreviewZoomMaxIndex];
     }
 
-    if (nZoom != nPreviewZoomPercent)
+    if (nPreviewZoomValue != nPreviewZoomPercent)
     {
-      nPreviewZoomPercent=nZoom;
+      nPreviewZoomPercent=nPreviewZoomValue;
       InvalidateRect(hWndPreview, NULL, TRUE);
     }
     wsprintfA(buf, "%d%%", nPreviewZoomPercent);
@@ -7117,7 +7118,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     hWndPreview=NULL;
     ptPreviewScroll.x=0;
     ptPreviewScroll.y=0;
-    nPreviewZoomPercent=PREVIEW_ZOOMFIT;
+    nPreviewZoomPercent=nPreviewZoomValue;
     nPreviewPageCur=1;
     bPreviewSelection=FALSE;
 
@@ -7243,24 +7244,24 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   }
   else if (uMsg == AKDLG_PREVIEWSETZOOM)
   {
-    int nZoom=wParam;
+    nPreviewZoomValue=wParam;
 
-    if (nZoom == PREVIEW_ZOOMFIT ||
-        nZoom == PREVIEW_ZOOMWIDTH)
+    if (nPreviewZoomValue == PREVIEW_ZOOMFIT ||
+        nPreviewZoomValue == PREVIEW_ZOOMWIDTH)
     {
     }
-    else if (nZoom < lpZoom[0])
+    else if (nPreviewZoomValue < lpZoom[0])
     {
-      nZoom=lpZoom[0];
+      nPreviewZoomValue=lpZoom[0];
     }
-    else if (nZoom > lpZoom[nPreviewZoomMaxIndex])
+    else if (nPreviewZoomValue > lpZoom[nPreviewZoomMaxIndex])
     {
-      nZoom=lpZoom[nPreviewZoomMaxIndex];
+      nPreviewZoomValue=lpZoom[nPreviewZoomMaxIndex];
     }
 
-    if (nZoom != nPreviewZoomPercent)
+    if (nPreviewZoomValue != nPreviewZoomPercent)
     {
-      nPreviewZoomPercent=nZoom;
+      nPreviewZoomPercent=nPreviewZoomValue;
       InvalidateRect(hWndPreview, NULL, TRUE);
     }
     wsprintfW(wbuf, L"%d%%", nPreviewZoomPercent);
