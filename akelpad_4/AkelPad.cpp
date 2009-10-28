@@ -305,7 +305,7 @@ BOOL bInsertState=FALSE;
 int nCurrentNewLine=NEWLINE_WIN;
 int nDefaultNewLine=NEWLINE_WIN;
 BOOL bWordWrap=FALSE;
-int nWrapType=AEWW_WORD;
+DWORD dwWrapType=AEWW_WORD;
 DWORD dwWrapLimit=0;
 DWORD dwMarker=0;
 BOOL bOnTop=FALSE;
@@ -6019,7 +6019,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bTabStopAsSpaces=bTabStopAsSpaces;
       lpWndFrameA->nUndoLimit=nUndoLimit;
       lpWndFrameA->bDetailedUndo=bDetailedUndo;
-      lpWndFrameA->nWrapType=nWrapType;
+      lpWndFrameA->dwWrapType=dwWrapType;
       lpWndFrameA->dwWrapLimit=dwWrapLimit;
       lpWndFrameA->dwMarker=dwMarker;
       lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
@@ -6175,7 +6175,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bTabStopAsSpaces=bTabStopAsSpaces;
             lpWndFrameA->nUndoLimit=nUndoLimit;
             lpWndFrameA->bDetailedUndo=bDetailedUndo;
-            lpWndFrameA->nWrapType=nWrapType;
+            lpWndFrameA->dwWrapType=dwWrapType;
             lpWndFrameA->dwWrapLimit=dwWrapLimit;
             lpWndFrameA->dwMarker=dwMarker;
             lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
@@ -6225,7 +6225,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bTabStopAsSpaces=lpWndFrameA->bTabStopAsSpaces;
           nUndoLimit=lpWndFrameA->nUndoLimit;
           bDetailedUndo=lpWndFrameA->bDetailedUndo;
-          nWrapType=lpWndFrameA->nWrapType;
+          dwWrapType=lpWndFrameA->dwWrapType;
           dwWrapLimit=lpWndFrameA->dwWrapLimit;
           dwMarker=lpWndFrameA->dwMarker;
           bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
@@ -6314,7 +6314,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bTabStopAsSpaces=bTabStopAsSpaces;
       lpWndFrameW->nUndoLimit=nUndoLimit;
       lpWndFrameW->bDetailedUndo=bDetailedUndo;
-      lpWndFrameW->nWrapType=nWrapType;
+      lpWndFrameW->dwWrapType=dwWrapType;
       lpWndFrameW->dwWrapLimit=dwWrapLimit;
       lpWndFrameW->dwMarker=dwMarker;
       lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
@@ -6470,7 +6470,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bTabStopAsSpaces=bTabStopAsSpaces;
             lpWndFrameW->nUndoLimit=nUndoLimit;
             lpWndFrameW->bDetailedUndo=bDetailedUndo;
-            lpWndFrameW->nWrapType=nWrapType;
+            lpWndFrameW->dwWrapType=dwWrapType;
             lpWndFrameW->dwWrapLimit=dwWrapLimit;
             lpWndFrameW->dwMarker=dwMarker;
             lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
@@ -6520,7 +6520,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bTabStopAsSpaces=lpWndFrameW->bTabStopAsSpaces;
           nUndoLimit=lpWndFrameW->nUndoLimit;
           bDetailedUndo=lpWndFrameW->bDetailedUndo;
-          nWrapType=lpWndFrameW->nWrapType;
+          dwWrapType=lpWndFrameW->dwWrapType;
           dwWrapLimit=lpWndFrameW->dwWrapLimit;
           dwMarker=lpWndFrameW->dwMarker;
           bCaretOutEdge=lpWndFrameW->bCaretOutEdge;

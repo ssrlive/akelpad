@@ -276,9 +276,14 @@
 #define AEDD_STOPDRAG        2  //Set stop dragging operation flag.
 
 //AEM_SETWORDWRAP flags
-#define AEWW_NONE            0  //Wrap is off.
-#define AEWW_WORD            1  //Wrap by words.
-#define AEWW_SYMBOL          2  //Wrap by symbols.
+#define AEWW_WORD            0x00000001  //Wrap by words.
+#define AEWW_SYMBOL          0x00000002  //Wrap by symbols.
+#define AEWW_LIMITPIXEL      0x00000100  //Limit in pixels (default).
+#define AEWW_LIMITSYMBOL     0x00000200  //Limit in symbols.
+
+//AEM_SETMARKER types
+#define AEMT_PIXEL           0  //Pixel integer.
+#define AEMT_SYMBOL          1  //Column number.
 
 //AEM_SETWORDBREAK flags
 #define AEWB_LEFTWORDSTART   0x00000001  //Left movement is stopped, when word start is found.
@@ -3135,23 +3140,25 @@ _______________
 
 Retrieve word wrap mode.
 
-wParam == not used.
-lParam == not used.
+wParam          == not used.
+(DWORD *)lParam == pointer to a variable that receives wrap limit number. Can be NULL.
 
 Return Value
  See AEWW_* defines.
 
 Example:
- SendMessage(hWndEdit, AEM_GETWORDWRAP, 0, 0);
+ DWORD dwWrapLimit;
+
+ SendMessage(hWndEdit, AEM_GETWORDWRAP, 0, (LPARAM)&dwWrapLimit);
 
 
 AEM_SETWORDWRAP
-______________
+_______________
 
 Set word wrap mode.
 
-(int)wParam == see AEWW_* defines.
-lParam      == not used.
+(DWORD)wParam == see AEWW_* defines.
+(int)lParam   == wrap limit, if zero window right edge is used.
 
 Return Value
  zero
@@ -3395,29 +3402,29 @@ _____________
 
 Retrieve marker column.
 
-wParam == not used.
-lParam == not used.
+(int *)wParam == pointer to a variable that receives marker type, see AEMT_* defines. Can be NULL.
+lParam        == not used.
 
 Return Value
  Column number, zero if no marker set.
 
 Example:
- SendMessage(hWndEdit, AEM_GETMARKER, 0, 0);
+ SendMessage(hWndEdit, AEM_GETMARKER, (WPARAM)NULL, 0);
 
 
 AEM_SETMARKER
 _____________
 
-Set marker at specified column.
+Set marker at specified position.
 
-(int)wParam == column number, zero to clear marker.
-lParam      == not used.
+(int)wParam == see AEMT_* defines.
+(int)lParam == integer, zero to clear marker.
 
 Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_SETMARKER, 80, 0);
+ SendMessage(hWndEdit, AEM_SETMARKER, AEMT_SYMBOL, 80);
 
 
 AEM_GETLINEGAP
