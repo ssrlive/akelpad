@@ -237,10 +237,12 @@ extern HWND hWndPreviewDlg;
 extern HWND hWndZoomEdit;
 extern HSTACK hPreviewAllPagesStack;
 extern HSTACK hPreviewSelPagesStack;
+extern RECT rcPreviewDialog;
 extern RECT rcPreviewWindow;
 extern RECT rcPreviewPaper;
 extern RECT rcPreviewZoomed;
 extern POINT ptPreviewScroll;
+extern DWORD dwPreviewShowDialog;
 extern int lpZoom[];
 extern int nPreviewZoomMaxIndex;
 extern int nPreviewZoomPercent;
@@ -6776,6 +6778,10 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     dwStyle=GetWindowLongA(hWndZoomEdit, GWL_STYLE);
     SetWindowLongA(hWndZoomEdit, GWL_STYLE, dwStyle|ES_NUMBER);
 
+    //Positioning dialog
+    if (rcPreviewDialog.right && rcPreviewDialog.bottom)
+      MoveWindow(hDlg, rcPreviewDialog.left, rcPreviewDialog.top, rcPreviewDialog.right, rcPreviewDialog.bottom, FALSE);
+
     //Initialize
     hWndPreviewDlg=hDlg;
     hWndPreview=NULL;
@@ -6806,7 +6812,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         hWndPreview=CreateWindowA(APP_PRINTPREVIEW_CLASSA,
                                   NULL,
                                   WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
-                                  0, 0, 0, 0,
+                                  rcPreviewWindow.left, rcPreviewWindow.top, rcPreviewDialog.right, rcPreviewDialog.bottom,
                                   hDlg,
                                   (HMENU)IDC_PREVIEW_BOX,
                                   hInstance,
@@ -6826,7 +6832,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
       hHookKeys=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
     }
-    ShowWindow(hDlg, SW_MAXIMIZE);
+    ShowWindow(hDlg, dwPreviewShowDialog);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -7050,6 +7056,15 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
+      if (GetWindowLongW(hDlg, GWL_STYLE) & WS_MAXIMIZE)
+      {
+        dwPreviewShowDialog=SW_MAXIMIZE;
+      }
+      else
+      {
+        GetWindowPos(hDlg, NULL, &rcPreviewDialog);
+        dwPreviewShowDialog=SW_SHOW;
+      }
       hWndPreviewDlg=NULL;
       PreviewUninitA();
       EndDialog(hDlg, 0);
@@ -7093,6 +7108,10 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     dwStyle=GetWindowLongW(hWndZoomEdit, GWL_STYLE);
     SetWindowLongW(hWndZoomEdit, GWL_STYLE, dwStyle|ES_NUMBER);
 
+    //Positioning dialog
+    if (rcPreviewDialog.right && rcPreviewDialog.bottom)
+      MoveWindow(hDlg, rcPreviewDialog.left, rcPreviewDialog.top, rcPreviewDialog.right, rcPreviewDialog.bottom, FALSE);
+
     //Initialize
     hWndPreviewDlg=hDlg;
     hWndPreview=NULL;
@@ -7123,7 +7142,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         hWndPreview=CreateWindowW(APP_PRINTPREVIEW_CLASSW,
                                   NULL,
                                   WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL,
-                                  0, 0, 0, 0,
+                                  rcPreviewWindow.left, rcPreviewWindow.top, rcPreviewDialog.right, rcPreviewDialog.bottom,
                                   hDlg,
                                   (HMENU)IDC_PREVIEW_BOX,
                                   hInstance,
@@ -7143,7 +7162,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
       hHookKeys=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
     }
-    ShowWindow(hDlg, SW_MAXIMIZE);
+    ShowWindow(hDlg, dwPreviewShowDialog);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -7367,6 +7386,15 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
+      if (GetWindowLongW(hDlg, GWL_STYLE) & WS_MAXIMIZE)
+      {
+        dwPreviewShowDialog=SW_MAXIMIZE;
+      }
+      else
+      {
+        GetWindowPos(hDlg, NULL, &rcPreviewDialog);
+        dwPreviewShowDialog=SW_SHOW;
+      }
       hWndPreviewDlg=NULL;
       PreviewUninitW();
       EndDialog(hDlg, 0);
