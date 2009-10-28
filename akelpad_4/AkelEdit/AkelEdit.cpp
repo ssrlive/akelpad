@@ -8872,6 +8872,9 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
   HFONT hPrintFontOld;
   int nPointSize=0;
 
+  if (!prn->hPrinterDC || !prn->hEditFont)
+    return NULL;
+
   if (ph=(AEPRINTHANDLE *)AE_HeapAlloc(ae, 0, sizeof(AEPRINTHANDLE)))
   {
     //Clone AKELEDIT data for printing
@@ -8938,7 +8941,7 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
   HFONT hPrintFontOld;
   int nPointSize=0;
 
-  if (!prn->hPrinterDC || !prn->hEditFont || !prn->crText.ciMin.lpLine || !prn->crText.ciMax.lpLine)
+  if (!prn->hPrinterDC || !prn->hEditFont)
     return NULL;
 
   if (ph=(AEPRINTHANDLE *)AE_HeapAlloc(ae, 0, sizeof(AEPRINTHANDLE)))
@@ -9067,6 +9070,9 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   int i;
   BOOL bFormFeed=FALSE;
   BOOL bContinuePrint=TRUE;
+
+  if (!prn->crText.ciMin.lpLine || !prn->crText.ciMax.lpLine)
+    return FALSE;
 
   //Select print font
   hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
