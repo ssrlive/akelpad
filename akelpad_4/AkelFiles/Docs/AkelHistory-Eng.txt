@@ -13,6 +13,7 @@ Added: in the "Select Window" dialog (MDI):
        - F10 hotkey to open dialog.
 Added: if marker and/or wrap limit equal to -1, then distance is equal to printer page width
        (use monospaced fonts).
+Added: local remembering the size of the print preview dialog.
 
 Fixed: after all text replacing in 4.3.3, scrolling position did not recover.
 Fixed: WordBreak parameter.
