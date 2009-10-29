@@ -6098,7 +6098,6 @@ DWORD GetMappedPrintWidthA(HWND hWnd)
 {
   AEPRINT prn={0};
   HANDLE hPrintDoc;
-  HDC hDC;
   int nAveCharWidth;
   DWORD dwWidth=0;
 
@@ -6128,7 +6127,6 @@ DWORD GetMappedPrintWidthW(HWND hWnd)
 {
   AEPRINT prn={0};
   HANDLE hPrintDoc;
-  HDC hDC;
   int nAveCharWidth;
   DWORD dwWidth=0;
 
@@ -6283,12 +6281,12 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
           {
             if (dwFlags & PRN_SELECTION)
             {
-              if (!StackInsertIndex((stack **)&hPreviewSelPagesStack.first, (stack **)&hPreviewSelPagesStack.last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
+              if (lpElement=StackPageInsert(&hPreviewSelPagesStack))
                 lpElement->crText=prn->crText;
             }
             else
             {
-              if (!StackInsertIndex((stack **)&hPreviewAllPagesStack.first, (stack **)&hPreviewAllPagesStack.last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
+              if (lpElement=StackPageInsert(&hPreviewAllPagesStack))
                 lpElement->crText=prn->crText;
             }
           }
@@ -6454,12 +6452,12 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
           {
             if (dwFlags & PRN_SELECTION)
             {
-              if (!StackInsertIndex((stack **)&hPreviewSelPagesStack.first, (stack **)&hPreviewSelPagesStack.last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
+              if (lpElement=StackPageInsert(&hPreviewSelPagesStack))
                 lpElement->crText=prn->crText;
             }
             else
             {
-              if (!StackInsertIndex((stack **)&hPreviewAllPagesStack.first, (stack **)&hPreviewAllPagesStack.last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
+              if (lpElement=StackPageInsert(&hPreviewAllPagesStack))
                 lpElement->crText=prn->crText;
             }
           }
@@ -6813,6 +6811,11 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
                                   NULL);
       }
 
+      //Set caret page
+      if (!(nPreviewPageCur=StackPageFind(&hPreviewAllPagesStack, &ciCaret)))
+        nPreviewPageCur=1;
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
+
       //Fill zooms
       for (i=0; i <= nPreviewZoomMaxIndex; ++i)
       {
@@ -6981,7 +6984,10 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         hWndPreviewDlg=hDlg;
         PreviewUninitA();
         if (PreviewInitA(hWndSelection))
+        {
+          PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
           InvalidateRect(hWndPreview, NULL, TRUE);
+        }
       }
       hWndPreviewDlg=hDlg;
     }
@@ -6989,7 +6995,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       nPreviewPageCur=1;
       bPreviewSelection=SendMessage(hWndSelection, BM_GETCHECK, 0, 0);
-      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
       InvalidateRect(hWndPreview, NULL, TRUE);
     }
     else if (LOWORD(wParam) == IDC_PREVIEW_FIRSTPAGE)
@@ -7142,6 +7148,11 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
                                   hInstance,
                                   NULL);
       }
+
+      //Set caret page
+      if (!(nPreviewPageCur=StackPageFind(&hPreviewAllPagesStack, &ciCaret)))
+        nPreviewPageCur=1;
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
 
       //Fill zooms
       for (i=0; i <= nPreviewZoomMaxIndex; ++i)
@@ -7311,7 +7322,10 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         hWndPreviewDlg=hDlg;
         PreviewUninitW();
         if (PreviewInitW(hWndSelection))
+        {
+          PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
           InvalidateRect(hWndPreview, NULL, TRUE);
+        }
       }
       hWndPreviewDlg=hDlg;
     }
@@ -7319,7 +7333,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       nPreviewPageCur=1;
       bPreviewSelection=SendMessage(hWndSelection, BM_GETCHECK, 0, 0);
-      PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
+      PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
       InvalidateRect(hWndPreview, NULL, TRUE);
     }
     else if (LOWORD(wParam) == IDC_PREVIEW_FIRSTPAGE)
@@ -7432,7 +7446,6 @@ BOOL PreviewInitA(HWND hWndSelection)
   }
   if (!nPreviewSelPageSum)
     EnableWindow(hWndSelection, FALSE);
-  PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
   return bResult;
 }
 
@@ -7462,14 +7475,13 @@ BOOL PreviewInitW(HWND hWndSelection)
   }
   if (!nPreviewSelPageSum)
     EnableWindow(hWndSelection, FALSE);
-  PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETPAGE, nPreviewPageCur, 0);
   return bResult;
 }
 
 void PreviewUninitA()
 {
-  StackClear((stack **)&hPreviewAllPagesStack.first, (stack **)&hPreviewAllPagesStack.last);
-  StackClear((stack **)&hPreviewSelPagesStack.first, (stack **)&hPreviewSelPagesStack.last);
+  StackPageFree(&hPreviewAllPagesStack);
+  StackPageFree(&hPreviewSelPagesStack);
 
   if (pdA.hDC)
   {
@@ -7480,8 +7492,8 @@ void PreviewUninitA()
 
 void PreviewUninitW()
 {
-  StackClear((stack **)&hPreviewAllPagesStack.first, (stack **)&hPreviewAllPagesStack.last);
-  StackClear((stack **)&hPreviewSelPagesStack.first, (stack **)&hPreviewSelPagesStack.last);
+  StackPageFree(&hPreviewAllPagesStack);
+  StackPageFree(&hPreviewSelPagesStack);
 
   if (pdW.hDC)
   {
@@ -7508,8 +7520,8 @@ LRESULT CALLBACK PreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         HDC hMetaDC;
         RECT rcMeta;
 
-        if ((bPreviewSelection == FALSE && !StackGetElement((stack *)hPreviewAllPagesStack.first, (stack *)hPreviewAllPagesStack.last, (stack **)&lpElement, nPreviewPageCur)) ||
-            (bPreviewSelection == TRUE && !StackGetElement((stack *)hPreviewSelPagesStack.first, (stack *)hPreviewSelPagesStack.last, (stack **)&lpElement, nPreviewPageCur)))
+        if ((bPreviewSelection == FALSE && (lpElement=StackPageGet(&hPreviewAllPagesStack, nPreviewPageCur))) ||
+            (bPreviewSelection == TRUE && (lpElement=StackPageGet(&hPreviewSelPagesStack, nPreviewPageCur))))
         {
           //Create the EMF in memory
           rcMeta.left=0;
@@ -7561,8 +7573,8 @@ LRESULT CALLBACK PreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         HDC hMetaDC;
         RECT rcMeta;
 
-        if ((bPreviewSelection == FALSE && !StackGetElement((stack *)hPreviewAllPagesStack.first, (stack *)hPreviewAllPagesStack.last, (stack **)&lpElement, nPreviewPageCur)) ||
-            (bPreviewSelection == TRUE && !StackGetElement((stack *)hPreviewSelPagesStack.first, (stack *)hPreviewSelPagesStack.last, (stack **)&lpElement, nPreviewPageCur)))
+        if ((bPreviewSelection == FALSE && (lpElement=StackPageGet(&hPreviewAllPagesStack, nPreviewPageCur))) ||
+            (bPreviewSelection == TRUE && (lpElement=StackPageGet(&hPreviewSelPagesStack, nPreviewPageCur))))
         {
           //Create the EMF in memory
           rcMeta.left=0;
@@ -7936,6 +7948,45 @@ int RectW(const RECT *rc)
 int RectH(const RECT *rc)
 {
   return rc->bottom - rc->top;
+}
+
+PRINTPAGE* StackPageInsert(HSTACK *hStack)
+{
+  PRINTPAGE *lpElement;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(PRINTPAGE)))
+    return lpElement;
+  return NULL;
+}
+
+PRINTPAGE* StackPageGet(HSTACK *hStack, int nPage)
+{
+  PRINTPAGE *lpElement;
+
+  if (!StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&lpElement, nPage))
+    return lpElement;
+  return NULL;
+}
+
+int StackPageFind(HSTACK *hStack, const AECHARINDEX *ciPos)
+{
+  PRINTPAGE *lpElement=(PRINTPAGE *)hStack->first;
+  int nIndex=0;
+
+  while (lpElement)
+  {
+    if (AEC_IndexCompare(ciPos, &lpElement->crText.ciMin) < 0)
+      return nIndex;
+
+    ++nIndex;
+    lpElement=lpElement->next;
+  }
+  return nIndex;
+}
+
+void StackPageFree(HSTACK *hStack)
+{
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
 }
 
 
