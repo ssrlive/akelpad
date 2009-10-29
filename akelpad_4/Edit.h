@@ -580,6 +580,10 @@ void PreviewScrollUpdate(HWND hWnd);
 BOOL FitInside(int nWidth, int nHeight, int nMaxWidth, int nMaxHeight, SIZE *s);
 int RectW(const RECT *rc);
 int RectH(const RECT *rc);
+PRINTPAGE* StackPageInsert(HSTACK *hStack);
+PRINTPAGE* StackPageGet(HSTACK *hStack, int nPage);
+int StackPageFind(HSTACK *hStack, const AECHARINDEX *ciPos);
+void StackPageFree(HSTACK *hStack);
 
 unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
