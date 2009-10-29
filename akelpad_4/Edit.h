@@ -559,6 +559,7 @@ void GetPrinterDCA(PRINTDLGA *pdA);
 void GetPrinterDCW(PRINTDLGW *pdW);
 DWORD GetMappedPrintWidthA(HWND hWnd);
 DWORD GetMappedPrintWidthW(HWND hWnd);
+BOOL UpdateMappedPrintWidth(HWND hWnd);
 int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage);
 int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage);
 BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber);
