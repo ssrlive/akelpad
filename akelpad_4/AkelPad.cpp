@@ -6026,6 +6026,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->dwWrapType=dwWrapType;
       lpWndFrameA->dwWrapLimit=dwWrapLimit;
       lpWndFrameA->dwMarker=dwMarker;
+      lpWndFrameA->dwMappedPrintWidth=dwMappedPrintWidth;
       lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameA->bCaretVertLine=bCaretVertLine;
       lpWndFrameA->nCaretWidth=nCaretWidth;
@@ -6182,6 +6183,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->dwWrapType=dwWrapType;
             lpWndFrameA->dwWrapLimit=dwWrapLimit;
             lpWndFrameA->dwMarker=dwMarker;
+            lpWndFrameA->dwMappedPrintWidth=dwMappedPrintWidth;
             lpWndFrameA->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameA->bCaretVertLine=bCaretVertLine;
             lpWndFrameA->nCaretWidth=nCaretWidth;
@@ -6232,6 +6234,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           dwWrapType=lpWndFrameA->dwWrapType;
           dwWrapLimit=lpWndFrameA->dwWrapLimit;
           dwMarker=lpWndFrameA->dwMarker;
+          dwMappedPrintWidth=lpWndFrameA->dwMappedPrintWidth;
           bCaretOutEdge=lpWndFrameA->bCaretOutEdge;
           bCaretVertLine=lpWndFrameA->bCaretVertLine;
           nCaretWidth=lpWndFrameA->nCaretWidth;
@@ -6321,6 +6324,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->dwWrapType=dwWrapType;
       lpWndFrameW->dwWrapLimit=dwWrapLimit;
       lpWndFrameW->dwMarker=dwMarker;
+      lpWndFrameW->dwMappedPrintWidth=dwMappedPrintWidth;
       lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
       lpWndFrameW->bCaretVertLine=bCaretVertLine;
       lpWndFrameW->nCaretWidth=nCaretWidth;
@@ -6477,6 +6481,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->dwWrapType=dwWrapType;
             lpWndFrameW->dwWrapLimit=dwWrapLimit;
             lpWndFrameW->dwMarker=dwMarker;
+            lpWndFrameW->dwMappedPrintWidth=dwMappedPrintWidth;
             lpWndFrameW->bCaretOutEdge=bCaretOutEdge;
             lpWndFrameW->bCaretVertLine=bCaretVertLine;
             lpWndFrameW->nCaretWidth=nCaretWidth;
@@ -6527,6 +6532,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           dwWrapType=lpWndFrameW->dwWrapType;
           dwWrapLimit=lpWndFrameW->dwWrapLimit;
           dwMarker=lpWndFrameW->dwMarker;
+          dwMappedPrintWidth=lpWndFrameW->dwMappedPrintWidth;
           bCaretOutEdge=lpWndFrameW->bCaretOutEdge;
           bCaretVertLine=lpWndFrameW->bCaretVertLine;
           nCaretWidth=lpWndFrameW->nCaretWidth;
