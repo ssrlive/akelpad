@@ -903,12 +903,7 @@ BOOL DoFilePageSetupA(HWND hWndOwner)
   pdA.hDevMode=psdPageA.hDevMode;
   pdA.hDevNames=psdPageA.hDevNames;
 
-  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
-  {
-    dwMappedPrintWidth=GetMappedPrintWidthA(hWndEdit);
-    if (dwMarker == (DWORD)-1) SetMarker(hWndEdit, dwMarker);
-    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWndEdit, dwWrapType, dwWrapLimit);
-  }
+  UpdateMappedPrintWidth(hWndEdit);
   return bResult;
 }
 
@@ -921,12 +916,7 @@ BOOL DoFilePageSetupW(HWND hWndOwner)
   pdW.hDevMode=psdPageW.hDevMode;
   pdW.hDevNames=psdPageW.hDevNames;
 
-  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
-  {
-    dwMappedPrintWidth=GetMappedPrintWidthW(hWndEdit);
-    if (dwMarker == (DWORD)-1) SetMarker(hWndEdit, dwMarker);
-    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWndEdit, dwWrapType, dwWrapLimit);
-  }
+  UpdateMappedPrintWidth(hWndEdit);
   return bResult;
 }
 
@@ -965,13 +955,7 @@ int DoFilePrintA(HWND hWnd, BOOL bSilent)
     DeleteDC(pdA.hDC);
     pdA.hDC=NULL;
   }
-
-  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
-  {
-    dwMappedPrintWidth=GetMappedPrintWidthA(hWnd);
-    if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
-    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
-  }
+  UpdateMappedPrintWidth(hWnd);
   return nResult;
 }
 
@@ -1010,13 +994,7 @@ int DoFilePrintW(HWND hWnd, BOOL bSilent)
     DeleteDC(pdW.hDC);
     pdW.hDC=NULL;
   }
-
-  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
-  {
-    dwMappedPrintWidth=GetMappedPrintWidthW(hWnd);
-    if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
-    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
-  }
+  UpdateMappedPrintWidth(hWnd);
   return nResult;
 }
 
@@ -6175,6 +6153,21 @@ DWORD GetMappedPrintWidthW(HWND hWnd)
     pdW.hDC=NULL;
   }
   return dwWidth;
+}
+
+BOOL UpdateMappedPrintWidth(HWND hWnd)
+{
+  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
+  {
+    if (bOldWindows)
+      dwMappedPrintWidth=GetMappedPrintWidthA(hWnd);
+    else
+      dwMappedPrintWidth=GetMappedPrintWidthW(hWnd);
+    if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
+    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
+    return TRUE;
+  }
+  return FALSE;
 }
 
 int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
@@ -20359,13 +20352,7 @@ HFONT SetChosenFontA(HWND hWnd, LOGFONTA *lfA)
   if (!(fi=StackFontItemGetA(&hFontsStackA, lfA)))
     fi=StackFontItemInsertA(&hFontsStackA, lfA);
   SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
-
-  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
-  {
-    dwMappedPrintWidth=GetMappedPrintWidthA(hWnd);
-    if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
-    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
-  }
+  UpdateMappedPrintWidth(hWnd);
   return fi->hFont;
 }
 
@@ -20376,13 +20363,7 @@ HFONT SetChosenFontW(HWND hWnd, LOGFONTW *lfW)
   if (!(fi=StackFontItemGetW(&hFontsStackW, lfW)))
     fi=StackFontItemInsertW(&hFontsStackW, lfW);
   SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
-
-  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
-  {
-    dwMappedPrintWidth=GetMappedPrintWidthW(hWnd);
-    if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
-    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
-  }
+  UpdateMappedPrintWidth(hWnd);
   return fi->hFont;
 }
 
