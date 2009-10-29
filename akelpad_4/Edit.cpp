@@ -6157,14 +6157,14 @@ DWORD GetMappedPrintWidthW(HWND hWnd)
 
 BOOL UpdateMappedPrintWidth(HWND hWnd)
 {
-  if (dwMarker == (DWORD)-1 || dwWrapLimit == (DWORD)-1)
+  if (dwMarker == (DWORD)-1 || (bWordWrap && dwWrapLimit == (DWORD)-1))
   {
     if (bOldWindows)
       dwMappedPrintWidth=GetMappedPrintWidthA(hWnd);
     else
       dwMappedPrintWidth=GetMappedPrintWidthW(hWnd);
     if (dwMarker == (DWORD)-1) SetMarker(hWnd, dwMarker);
-    if (dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
+    if (bWordWrap && dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, dwWrapType, dwWrapLimit);
     return TRUE;
   }
   return FALSE;
