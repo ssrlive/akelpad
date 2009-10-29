@@ -119,8 +119,12 @@
 #define PRN_ANSI               0x40  //Ansi output
 
 //Print preview zoom
-#define PREVIEW_ZOOMFIT        -1
-#define PREVIEW_ZOOMWIDTH      -2
+#define PREVIEWZOOM_FIT        -1
+#define PREVIEWZOOM_WIDTH      -2
+
+//Print preview scroll
+#define PREVIEWSCROLL_OFFSET   -1
+#define PREVIEWSCROLL_ABSOLUTE -2
 
 //Print page setup dialog
 #define IDC_PSD_PRINTER_BUTTON         1026

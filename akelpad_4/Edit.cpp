@@ -6875,7 +6875,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       if ((HWND)lParam == hWndZoomEdit)
       {
         GetWindowTextA(hWndZoomEdit, buf, BUFFER_SIZE);
-        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiA(buf), 0);
+        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiA(buf), FALSE);
       }
       else if ((HWND)lParam == hWndPageCount)
       {
@@ -6912,8 +6912,8 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   {
     nPreviewZoomValue=wParam;
 
-    if (nPreviewZoomValue == PREVIEW_ZOOMFIT ||
-        nPreviewZoomValue == PREVIEW_ZOOMWIDTH)
+    if (nPreviewZoomValue == PREVIEWZOOM_FIT ||
+        nPreviewZoomValue == PREVIEWZOOM_WIDTH)
     {
     }
     else if (nPreviewZoomValue < lpZoom[0])
@@ -6929,6 +6929,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       nPreviewZoomPercent=nPreviewZoomValue;
       InvalidateRect(hWndPreview, NULL, TRUE);
+      if (lParam) UpdateWindow(hWndPreview);
     }
     wsprintfA(buf, "%d%%", nPreviewZoomPercent);
     SetWindowTextA(hWndZoomEdit, buf);
@@ -7022,7 +7023,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
         if ((nCurSel=SendMessage(hWndZoom, CB_GETCURSEL, 0, 0)) != CB_ERR)
         {
-          PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[nCurSel], 0);
+          PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[nCurSel], FALSE);
         }
       }
     }
@@ -7034,7 +7035,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         {
           if (i < nPreviewZoomMaxIndex)
           {
-            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i + 1], 0);
+            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i + 1], FALSE);
           }
           break;
         }
@@ -7048,7 +7049,7 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         {
           if (i > 0)
           {
-            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i - 1], 0);
+            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i - 1], FALSE);
           }
           break;
         }
@@ -7213,7 +7214,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       if ((HWND)lParam == hWndZoomEdit)
       {
         GetWindowTextW(hWndZoomEdit, wbuf, BUFFER_SIZE);
-        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiW(wbuf), 0);
+        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiW(wbuf), FALSE);
       }
       else if ((HWND)lParam == hWndPageCount)
       {
@@ -7250,8 +7251,8 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   {
     nPreviewZoomValue=wParam;
 
-    if (nPreviewZoomValue == PREVIEW_ZOOMFIT ||
-        nPreviewZoomValue == PREVIEW_ZOOMWIDTH)
+    if (nPreviewZoomValue == PREVIEWZOOM_FIT ||
+        nPreviewZoomValue == PREVIEWZOOM_WIDTH)
     {
     }
     else if (nPreviewZoomValue < lpZoom[0])
@@ -7267,6 +7268,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       nPreviewZoomPercent=nPreviewZoomValue;
       InvalidateRect(hWndPreview, NULL, TRUE);
+      if (lParam) UpdateWindow(hWndPreview);
     }
     wsprintfW(wbuf, L"%d%%", nPreviewZoomPercent);
     SetWindowTextW(hWndZoomEdit, wbuf);
@@ -7360,7 +7362,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
         if ((nCurSel=SendMessage(hWndZoom, CB_GETCURSEL, 0, 0)) != CB_ERR)
         {
-          PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[nCurSel], 0);
+          PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[nCurSel], FALSE);
         }
       }
     }
@@ -7372,7 +7374,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         {
           if (i < nPreviewZoomMaxIndex)
           {
-            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i + 1], 0);
+            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i + 1], FALSE);
           }
           break;
         }
@@ -7386,7 +7388,7 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         {
           if (i > 0)
           {
-            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i - 1], 0);
+            PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, lpZoom[i - 1], FALSE);
           }
           break;
         }
@@ -7626,9 +7628,21 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     if (uMsg == WM_LBUTTONDBLCLK)
     {
       if (nPreviewZoomPercent == 100)
-        PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, (WPARAM)PREVIEW_ZOOMFIT, 0);
+      {
+        PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, (WPARAM)PREVIEWZOOM_FIT, FALSE);
+      }
       else
-        PostMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, 100, 0);
+      {
+        POINT pt;
+
+        GetCursorPos(&pt);
+        ScreenToClient(hWnd, &pt);
+        pt.x=MulDiv(100, ptPreviewScroll.x + pt.x, nPreviewZoomPercent) - pt.x;
+        pt.y=MulDiv(100, ptPreviewScroll.y + pt.y, nPreviewZoomPercent) - pt.y;
+        SendMessage(hWndPreviewDlg, AKDLG_PREVIEWSETZOOM, 100, TRUE);
+        PreviewHScroll(hWnd, PREVIEWSCROLL_ABSOLUTE, pt.x);
+        PreviewVScroll(hWnd, PREVIEWSCROLL_ABSOLUTE, pt.y);
+      }
     }
   }
   else if (uMsg == WM_MOUSEMOVE)
@@ -7638,8 +7652,8 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       POINT pt;
 
       GetCursorPos(&pt);
-      PreviewHScroll(hWnd, -1, ptMouseMove.x - pt.x);
-      PreviewVScroll(hWnd, -1, ptMouseMove.y - pt.y);
+      PreviewHScroll(hWnd, PREVIEWSCROLL_OFFSET, ptMouseMove.x - pt.x);
+      PreviewVScroll(hWnd, PREVIEWSCROLL_OFFSET, ptMouseMove.y - pt.y);
       ptMouseMove=pt;
     }
   }
@@ -7685,12 +7699,12 @@ void PreviewPaint(HWND hWnd, HDC hPaintDC, HENHMETAFILE hMetaFile)
   SIZE sizePreview;
 
   //Zooming
-  if (nPreviewZoomPercent == PREVIEW_ZOOMFIT)
+  if (nPreviewZoomPercent == PREVIEWZOOM_FIT)
   {
     FitInside(RectW(&rcPreviewPaper), RectH(&rcPreviewPaper), RectW(&rcPreviewWindow) - rcPreviewPaper.left * 2, RectH(&rcPreviewWindow) - rcPreviewPaper.top * 2, &sizePreview);
     nPreviewZoomPercent=sizePreview.cx * 100 / RectW(&rcPreviewPaper);
   }
-  else if (nPreviewZoomPercent == PREVIEW_ZOOMWIDTH)
+  else if (nPreviewZoomPercent == PREVIEWZOOM_WIDTH)
   {
     nPreviewZoomPercent=(RectW(&rcPreviewWindow) - rcPreviewPaper.left * 2 - GetSystemMetrics(SM_CXVSCROLL)) * 100 / RectW(&rcPreviewPaper);
   }
@@ -7771,9 +7785,13 @@ int PreviewHScroll(HWND hWnd, int nAction, int nPos)
   si.fMask=SIF_ALL;
   GetScrollInfo(hWnd, SB_HORZ, &si);
 
-  if (nAction == -1)
+  if (nAction == PREVIEWSCROLL_OFFSET)
   {
     si.nPos+=nPos;
+  }
+  else if (nAction == PREVIEWSCROLL_ABSOLUTE)
+  {
+    si.nPos=nPos;
   }
   else if (nAction == SB_LEFT)
   {
@@ -7824,9 +7842,13 @@ int PreviewVScroll(HWND hWnd, int nAction, int nPos)
   si.fMask=SIF_ALL;
   GetScrollInfo(hWnd, SB_VERT, &si);
 
-  if (nAction == -1)
+  if (nAction == PREVIEWSCROLL_OFFSET)
   {
     si.nPos+=nPos;
+  }
+  else if (nAction == PREVIEWSCROLL_ABSOLUTE)
+  {
+    si.nPos=nPos;
   }
   else if (nAction == SB_TOP)
   {
