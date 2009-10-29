@@ -14,6 +14,7 @@ Added: in the "Select Window" dialog (MDI):
 Added: if marker and/or wrap limit equal to -1, then distance is equal to printer page width
        (use monospaced fonts).
 Added: local remembering size and zoom of the print preview dialog.
+Added: page that has caret is activated when print preview open.
 
 Fixed: after all text replacing in 4.3.3, scrolling position did not recover.
 Fixed: WordBreak parameter.
