@@ -3476,7 +3476,7 @@ void RegReadSearchA()
         {
           if (szFindText=(char *)API_HeapAlloc(hHeap, 0, dwSize + 1))
           {
-            nFindTextLen=EscapeStringToEscapeDataA(szFindText_orig, szFindText);
+            nFindTextLen=EscapeStringToEscapeDataA(szFindText_orig, szFindText, NEWLINE_MAC);
           }
         }
       }
@@ -3506,7 +3506,7 @@ void RegReadSearchW()
         {
           if (wszFindText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize + 2))
           {
-            nFindTextLen=EscapeStringToEscapeDataW(wszFindText_orig, wszFindText);
+            nFindTextLen=EscapeStringToEscapeDataW(wszFindText_orig, wszFindText, NEWLINE_MAC);
           }
         }
       }
@@ -9975,14 +9975,14 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       FreeMemorySearchA();
 
-      if ((nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText)) <= 0)
+      if ((nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText, NEWLINE_MAC)) <= 0)
       {
         FreeMemorySearchA();
         return TRUE;
       }
       if (bReplaceDlg == TRUE)
       {
-        if ((nReplaceTextLen=GetComboboxSearchTextA(hWndReplace, &szReplaceText_orig, &szReplaceText)) < 0)
+        if ((nReplaceTextLen=GetComboboxSearchTextA(hWndReplace, &szReplaceText_orig, &szReplaceText, nCurrentNewLine)) < 0)
         {
           FreeMemorySearchA();
           return TRUE;
@@ -10133,7 +10133,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       {
         FreeMemorySearchA();
 
-        if ((nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText)) <= 0)
+        if ((nFindTextLen=GetComboboxSearchTextA(hWndFind, &szFindText_orig, &szFindText, NEWLINE_MAC)) <= 0)
         {
           FreeMemorySearchA();
           return TRUE;
@@ -10386,14 +10386,14 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       FreeMemorySearchW();
 
-      if ((nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText)) <= 0)
+      if ((nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText, NEWLINE_MAC)) <= 0)
       {
         FreeMemorySearchW();
         return TRUE;
       }
       if (bReplaceDlg == TRUE)
       {
-        if ((nReplaceTextLen=GetComboboxSearchTextW(hWndReplace, &wszReplaceText_orig, &wszReplaceText)) < 0)
+        if ((nReplaceTextLen=GetComboboxSearchTextW(hWndReplace, &wszReplaceText_orig, &wszReplaceText, nCurrentNewLine)) < 0)
         {
           FreeMemorySearchW();
           return TRUE;
@@ -10544,7 +10544,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       {
         FreeMemorySearchW();
 
-        if ((nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText)) <= 0)
+        if ((nFindTextLen=GetComboboxSearchTextW(hWndFind, &wszFindText_orig, &wszFindText, NEWLINE_MAC)) <= 0)
         {
           FreeMemorySearchW();
           return TRUE;
@@ -10670,7 +10670,7 @@ void FillComboboxSearchW(HWND hWndFind, HWND hWndReplace)
   RegCloseKey(hKey);
 }
 
-int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText)
+int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText, int nNewLine)
 {
   int nTextLen_orig;
   int nTextLen=-1;
@@ -10706,7 +10706,7 @@ int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText)
       {
         if (*szText=(char *)API_HeapAlloc(hHeap, 0, nTextLen_orig + 1))
         {
-          if (!(nTextLen=EscapeStringToEscapeDataA(*szText_orig, *szText)))
+          if (!(nTextLen=EscapeStringToEscapeDataA(*szText_orig, *szText, nNewLine)))
           {
             API_LoadStringA(hLangLib, MSG_ERROR_SYNTAX, buf, BUFFER_SIZE);
             MessageBoxA(GetParent(hWnd), buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
@@ -10720,7 +10720,7 @@ int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText)
   return nTextLen;
 }
 
-int GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText)
+int GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, int nNewLine)
 {
   int nTextLen_orig;
   int nTextLen=-1;
@@ -10756,7 +10756,7 @@ int GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText)
       {
         if (*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nTextLen_orig * sizeof(wchar_t) + 2))
         {
-          if (!(nTextLen=EscapeStringToEscapeDataW(*wszText_orig, *wszText)))
+          if (!(nTextLen=EscapeStringToEscapeDataW(*wszText_orig, *wszText, nNewLine)))
           {
             API_LoadStringW(hLangLib, MSG_ERROR_SYNTAX, wbuf, BUFFER_SIZE);
             MessageBoxW(GetParent(hWnd), wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
@@ -11580,7 +11580,7 @@ int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_
   return nChanges;
 }
 
-int EscapeStringToEscapeDataA(char *pInput, char *szOutput)
+int EscapeStringToEscapeDataA(char *pInput, char *szOutput, int nNewLine)
 {
   char *a=pInput;
   char *b=szOutput;
@@ -11592,7 +11592,16 @@ int EscapeStringToEscapeDataA(char *pInput, char *szOutput)
     if (*a == '\\')
     {
       if (*++a == '\\') *b='\\';
-      else if (*a == 'n') *b='\r';
+      else if (*a == 'n')
+      {
+        if (nNewLine == NEWLINE_MAC) *b='\r';
+        else if (nNewLine == NEWLINE_UNIX) *b='\n';
+        else if (nNewLine == NEWLINE_WIN)
+        {
+          *b='\r';
+          *++b='\n';
+        }
+      }
       else if (*a == 't') *b='\t';
       else if (*a == '[')
       {
@@ -11624,7 +11633,7 @@ int EscapeStringToEscapeDataA(char *pInput, char *szOutput)
   return 0;
 }
 
-int EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput)
+int EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput, int nNewLine)
 {
   wchar_t *a=wpInput;
   wchar_t *b=wszOutput;
@@ -11636,7 +11645,16 @@ int EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput)
     if (*a == '\\')
     {
       if (*++a == '\\') *b='\\';
-      else if (*a == 'n') *b='\r';
+      else if (*a == 'n')
+      {
+        if (nNewLine == NEWLINE_MAC) *b='\r';
+        else if (nNewLine == NEWLINE_UNIX) *b='\n';
+        else if (nNewLine == NEWLINE_WIN)
+        {
+          *b='\r';
+          *++b='\n';
+        }
+      }
       else if (*a == 't') *b='\t';
       else if (*a == '[')
       {
@@ -18513,11 +18531,11 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       //Url delimiters
       a=GetWindowTextA(hWndUrlLeftDelimiters, buf, BUFFER_SIZE);
       MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
-      EscapeStringToEscapeDataW((wchar_t *)buf2, wszUrlLeftDelimiters);
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszUrlLeftDelimiters, NEWLINE_UNIX);
 
       a=GetWindowTextA(hWndUrlRightDelimiters, buf, BUFFER_SIZE);
       MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
-      EscapeStringToEscapeDataW((wchar_t *)buf2, wszUrlRightDelimiters);
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszUrlRightDelimiters, NEWLINE_UNIX);
 
       bUrlDelimitersEnable=SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bUrlDelimitersEnable)
@@ -18534,7 +18552,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       //Word delimiters
       a=GetWindowTextA(hWndWordDelimiters, buf, BUFFER_SIZE);
       MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
-      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWordDelimiters);
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWordDelimiters, NEWLINE_UNIX);
       WideCharToMultiByte(CP_ACP, 0, wszWordDelimiters, -1, szWordDelimiters, WORD_DELIMITERS_SIZE, NULL, NULL);
 
       bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
@@ -18552,7 +18570,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       //Wrap delimiters
       a=GetWindowTextA(hWndWrapDelimiters, buf, BUFFER_SIZE);
       MultiByteToWideChar(CP_ACP, 0, buf, a + 1, (wchar_t *)buf2, BUFFER_SIZE / sizeof(wchar_t));
-      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWrapDelimiters);
+      EscapeStringToEscapeDataW((wchar_t *)buf2, wszWrapDelimiters, NEWLINE_UNIX);
 
       bWrapDelimitersEnable=SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bWrapDelimitersEnable)
@@ -18743,10 +18761,10 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
       //Url delimiters
       GetWindowTextW(hWndUrlLeftDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, wszUrlLeftDelimiters);
+      EscapeStringToEscapeDataW(wbuf, wszUrlLeftDelimiters, NEWLINE_UNIX);
 
       GetWindowTextW(hWndUrlRightDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, wszUrlRightDelimiters);
+      EscapeStringToEscapeDataW(wbuf, wszUrlRightDelimiters, NEWLINE_UNIX);
 
       bUrlDelimitersEnable=SendMessage(hWndUrlDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bUrlDelimitersEnable)
@@ -18762,7 +18780,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
       //Word delimiters
       GetWindowTextW(hWndWordDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, wszWordDelimiters);
+      EscapeStringToEscapeDataW(wbuf, wszWordDelimiters, NEWLINE_UNIX);
 
       bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bWordDelimitersEnable)
@@ -18778,7 +18796,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
       //Wrap delimiters
       GetWindowTextW(hWndWrapDelimiters, wbuf, BUFFER_SIZE);
-      EscapeStringToEscapeDataW(wbuf, wszWrapDelimiters);
+      EscapeStringToEscapeDataW(wbuf, wszWrapDelimiters, NEWLINE_UNIX);
 
       bWrapDelimitersEnable=SendMessage(hWndWrapDelimitersEnable, BM_GETCHECK, 0, 0);
       if (bWrapDelimitersEnable)

@@ -17,6 +17,7 @@ Added: local remembering size and zoom of the print preview dialog.
 Added: page that has caret is activated when print preview open.
 
 Fixed: after all text replacing in 4.3.3, scrolling position did not recover.
+Fixed: replacement on "\n".
 Fixed: WordBreak parameter.
 Fixed: opening link that contain another link.
 Fixed: single URL click.

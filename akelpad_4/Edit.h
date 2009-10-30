@@ -634,8 +634,8 @@ LRESULT CALLBACK NewComboboxEditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 LRESULT CALLBACK NewComboboxEditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxSearchA(HWND hWndFind, HWND hWndReplace);
 void FillComboboxSearchW(HWND hWndFind, HWND hWndReplace);
-int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText);
-int GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText);
+int GetComboboxSearchTextA(HWND hWnd, char **szText_orig, char **szText, int nNewLine);
+int GetComboboxSearchTextW(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, int nNewLine);
 void SaveComboboxSearchA(HWND hWndFind, HWND hWndReplace);
 void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace);
 int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen);
@@ -644,8 +644,8 @@ int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *
 int ReplaceTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen, wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount);
 int StrReplaceA(char *pText, int nTextLen, char *pIt, int nItLen, char *pWith, int nWithLen, DWORD dwFlags, char *szResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible);
 int StrReplaceW(wchar_t *wpText, int nTextLen, wchar_t *wpIt, int nItLen, wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible);
-int EscapeStringToEscapeDataA(char *pInput, char *szOutput);
-int EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput);
+int EscapeStringToEscapeDataA(char *pInput, char *szOutput, int nNewLine);
+int EscapeStringToEscapeDataW(wchar_t *wpInput, wchar_t *wszOutput, int nNewLine);
 void EscapeDataToEscapeStringW(wchar_t *wpInput, wchar_t *wszOutput);
 
 void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
