@@ -5790,14 +5790,11 @@ BOOL AE_IndexNormalize(AECHARINDEX *ciChar)
 
 BOOL AE_IndexUpdate(AKELEDIT *ae, AECHARINDEX *ciChar)
 {
-  AECHARINDEX ciLastChar;
-
   ciChar->nLine=max(ciChar->nLine, 0);
-  AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
 
-  if (AE_IndexCompare(ciChar, &ciLastChar) > 0)
+  if (ciChar->nLine > ae->ptxt->nLineCount)
   {
-    *ciChar=ciLastChar;
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, ciChar, FALSE);
     return TRUE;
   }
   if (ciChar->lpLine=AE_GetLineData(ae, ciChar->nLine))
