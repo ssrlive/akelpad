@@ -1,9 +1,8 @@
 
 AkelPad 4.3.5 ()
 ----------------------------
-Changed: set a single-thread model for allocating chunks of memory, as a consequence amount
-         of required memory a bit reduced and also speed of text replace, delete, insert
-         is increased.
+Changed: set a single-thread model for allocating chunks of memory, as a consequence speed of
+         text replace, delete, insert is increased.
 
 Fixed: possible program error on selection change (appeared in 4.3.3).
 
