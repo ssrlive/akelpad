@@ -4031,7 +4031,7 @@ void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
         ae->ciCaretIndex=ae->lpCaretPoint->ciPoint;
         AE_GetPosFromChar(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL);
 
-        AE_UpdateSelection(ae, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+        AE_UpdateSelection(ae, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING|AESELT_RESETSELECTION);
       }
     }
   }
