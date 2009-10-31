@@ -5470,6 +5470,10 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         API_LoadStringA(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, buf, BUFFER_SIZE);
         MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
       }
+      else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGING)
+      {
+        nSelSubtract=0;
+      }
       else if (((NMHDR *)lParam)->code == AEN_SELCHANGED)
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
@@ -5759,6 +5763,10 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       {
         API_LoadStringW(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, wbuf, BUFFER_SIZE);
         MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+      }
+      else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGING)
+      {
+        nSelSubtract=0;
       }
       else if (((NMHDR *)lParam)->code == AEN_SELCHANGED)
       {

@@ -19639,7 +19639,6 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   else
   {
     GetSel(hWnd, &crSel, &bColumnSel, &ciCaret);
-    crPrevSel=crSel;
     nSelSubtract=0;
   }
 
@@ -19656,7 +19655,6 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
   {
     wsprintfA(szStatus, "%u:%u", nLine + 1, nColumn);
-    crPrevSel=crSel;
     nSelSubtract=0;
   }
   else
@@ -19671,9 +19669,10 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
       nSelSubtract+=IndexSubtract(hWnd, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
     }
     wsprintfA(szStatus, "%u:%u, %u", nLine + 1, nColumn, nSelSubtract);
-    crPrevSel=crSel;
     if (bColumnSel) nSelSubtract=0;
   }
+  crPrevSel=crSel;
+
   SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
 }
 
@@ -19693,7 +19692,6 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   else
   {
     GetSel(hWnd, &crSel, &bColumnSel, &ciCaret);
-    crPrevSel=crSel;
     nSelSubtract=0;
   }
 
@@ -19710,7 +19708,6 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
   {
     wsprintfW(wszStatus, L"%u:%u", nLine + 1, nColumn);
-    crPrevSel=crSel;
     nSelSubtract=0;
   }
   else
@@ -19725,9 +19722,10 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
       nSelSubtract+=IndexSubtract(hWnd, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
     }
     wsprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn, nSelSubtract);
-    crPrevSel=crSel;
     if (bColumnSel) nSelSubtract=0;
   }
+  crPrevSel=crSel;
+
   SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
 }
 
