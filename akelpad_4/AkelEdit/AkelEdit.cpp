@@ -1009,6 +1009,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DWORD dwWordWrap=wParam;
         BOOL bUpdateWrap=FALSE;
 
+        AE_NotifyTextChanging(ae, AETCT_WRAP);
+
         if ((dwWordWrap & AEWW_WORD) || (dwWordWrap & AEWW_SYMBOL))
         {
           if (!(dwWordWrap & AEWW_LIMITSYMBOL))
@@ -1036,6 +1038,8 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
           AE_StackUpdateClones(ae);
         }
+        AE_NotifyTextChanged(ae, AETCT_WRAP);
+
         return 0;
       }
       if (uMsg == AEM_GETWORDDELIMITERS)

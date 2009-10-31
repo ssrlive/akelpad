@@ -57,6 +57,7 @@
 #define AETCT_APPENDTEXT        0x00000002  //Append text.
 #define AETCT_SETTEXT           0x00000004  //Set text.
 #define AETCT_STREAMIN          0x00000008  //Stream in.
+#define AETCT_WRAP              0x00000010  //Send AEM_SETWORDWRAP.
 #define AETCT_UNDO              0x00000020  //Undo.
 #define AETCT_REDO              0x00000040  //Redo.
 #define AETCT_CUT               0x00000080  //Cut.
