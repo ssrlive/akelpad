@@ -19636,7 +19636,12 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     ciCaret=*ci;
     bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   }
-  else GetSel(hWnd, &crSel, &bColumnSel, &ciCaret);
+  else
+  {
+    GetSel(hWnd, &crSel, &bColumnSel, &ciCaret);
+    crPrevSel=crSel;
+    nSelSubtract=0;
+  }
 
   if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
     nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
@@ -19685,7 +19690,12 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     ciCaret=*ci;
     bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
   }
-  else GetSel(hWnd, &crSel, &bColumnSel, &ciCaret);
+  else
+  {
+    GetSel(hWnd, &crSel, &bColumnSel, &ciCaret);
+    crPrevSel=crSel;
+    nSelSubtract=0;
+  }
 
   if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
     nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
