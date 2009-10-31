@@ -19,7 +19,6 @@
 #define ID_TAB            10003
 #define ID_PROGRESS       10004
 #define ID_FIRSTMDI       10010
-#define ID_SELECTMDI      10019
 
 //Sizes
 #define WORD_DELIMITERS_SIZE    128
@@ -319,7 +318,7 @@ typedef struct _WNDFRAMEA {
   BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces
   int nUndoLimit;                                     //Undo limit
   BOOL bDetailedUndo;                                 //Detailed undo
-  int dwWrapType;                                     //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
+  DWORD dwWrapType;                                   //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
   DWORD dwMappedPrintWidth;                           //Mapped prinet page width (4.x only)
@@ -358,7 +357,7 @@ typedef struct _WNDFRAMEW {
   BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces
   int nUndoLimit;                                     //Undo limit
   BOOL bDetailedUndo;                                 //Detailed undo
-  int dwWrapType;                                     //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
+  DWORD dwWrapType;                                   //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
   DWORD dwMappedPrintWidth;                           //Mapped prinet page width (4.x only)
@@ -1011,6 +1010,9 @@ typedef struct _NSIZE {
                                               //
                                               //Example:
                                               //SendMessage(pd->hMainWnd, WM_COMMAND, IDM_FILE_NEW, 0);
+#define IDM_SELECTWINDOW                10019 //Select window dialog (MDI)
+                                              //Return Value: zero
+                                              //
 
 //// AkelPad main window WM_USER messages
 
