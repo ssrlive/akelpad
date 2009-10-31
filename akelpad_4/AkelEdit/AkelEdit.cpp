@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.3.4                               *
+ *                      AkelEdit text control v1.3.5                               *
  *                                                                                 *
  * Copyright 2007-2009 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -3631,6 +3631,8 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs)
       ae->popt->dwOptions|=AECO_NOHIDESEL;
     if (cs->style & ES_WANTRETURN)
       ae->popt->dwOptions|=AECO_WANTRETURN;
+    if (cs->style & ES_HEAP_SERIALIZE)
+      ae->popt->bHeapSerialize=TRUE;
     AE_memcpy(ae->ptxt->wszWrapDelimiters, AES_WRAPDELIMITERSW, sizeof(AES_WRAPDELIMITERSW));
     AE_memcpy(ae->popt->wszWordDelimiters, AES_WORDDELIMITERSW, sizeof(AES_WORDDELIMITERSW));
     AE_memcpy(ae->popt->wszUrlLeftDelimiters, AES_URLLEFTDELIMITERSW, sizeof(AES_URLLEFTDELIMITERSW));
@@ -3744,7 +3746,7 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   }
 
   //Create heap
-  ae->ptxt->hHeap=HeapCreate(0, 0, 0);
+  ae->ptxt->hHeap=HeapCreate(ae->popt->bHeapSerialize?0:HEAP_NO_SERIALIZE, 0, 0);
 
   return ae->ptxt->hHeap;
 }
@@ -3775,7 +3777,7 @@ BOOL AE_HeapFree(AKELEDIT *ae, DWORD dwFlags, LPVOID lpMem)
   else
     hHeap=ae->ptxt->hHeap;
 
-  return HeapFree(hHeap, 0, lpMem);
+  return HeapFree(hHeap, dwFlags, lpMem);
 }
 
 int AE_HeapStackInsertIndex(AKELEDIT *ae, stack **first, stack **last, stack **element, int nIndex, int nBytes)
