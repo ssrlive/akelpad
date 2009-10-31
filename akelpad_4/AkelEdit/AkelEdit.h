@@ -32,9 +32,8 @@
 #ifndef ES_DISABLENOSCROLL
   #define ES_DISABLENOSCROLL  0x00002000  //See AECO_DISABLENOSCROLL.
 #endif
-#ifndef ES_HEAP_SERIALIZE
-  #define ES_HEAP_SERIALIZE   0x10000000  //Mutual exclusion will be used when the heap functions allocate and free memory from window heap. Serialization of heap access allows two or more threads to simultaneously allocate and free memory from the same heap.
-#endif
+#define ES_HEAP_SERIALIZE     0x00008000  //Mutual exclusion will be used when the heap functions allocate and free memory from window heap. Serialization of heap access allows two or more threads to simultaneously allocate and free memory from the same heap.
+                                          //Compatibility: define same as ES_SAVESEL.
 
 //Strings
 #define AES_WORDDELIMITERSW     L" \t\n'`\"\\|[](){}<>,.;:+-=~!@#$%^&*/?"
