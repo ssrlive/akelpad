@@ -20,11 +20,21 @@
 #define AECLASS_RICHEDIT        2
 
 //Window styles
-#define ES_NOHIDESEL        0x00000100  //See AECO_NOHIDESEL.
-#define ES_READONLY         0x00000800  //See AECO_READONLY.
-#define ES_WANTRETURN       0x00001000  //See AECO_WANTRETURN.
-#define ES_DISABLENOSCROLL  0x00002000  //See AECO_DISABLENOSCROLL.
-#define ES_HEAP_SERIALIZE   0x10000000  //Mutual exclusion will be used when the heap functions allocate and free memory from window heap. Serialization of heap access allows two or more threads to simultaneously allocate and free memory from the same heap.
+#ifndef ES_NOHIDESEL
+  #define ES_NOHIDESEL        0x00000100  //See AECO_NOHIDESEL.
+#endif
+#ifndef ES_READONLY
+  #define ES_READONLY         0x00000800  //See AECO_READONLY.
+#endif
+#ifndef ES_WANTRETURN
+  #define ES_WANTRETURN       0x00001000  //See AECO_WANTRETURN.
+#endif
+#ifndef ES_DISABLENOSCROLL
+  #define ES_DISABLENOSCROLL  0x00002000  //See AECO_DISABLENOSCROLL.
+#endif
+#ifndef ES_HEAP_SERIALIZE
+  #define ES_HEAP_SERIALIZE   0x10000000  //Mutual exclusion will be used when the heap functions allocate and free memory from window heap. Serialization of heap access allows two or more threads to simultaneously allocate and free memory from the same heap.
+#endif
 
 //Strings
 #define AES_WORDDELIMITERSW     L" \t\n'`\"\\|[](){}<>,.;:+-=~!@#$%^&*/?"
