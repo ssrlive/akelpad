@@ -3217,7 +3217,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //WM_COMMAND (MDI)
     if (bMDI)
     {
-      if (LOWORD(wParam) == ID_SELECTMDI)
+      if (LOWORD(wParam) == IDM_SELECTWINDOW)
       {
         DoWindowSelectWindowA();
         return 0;
@@ -5122,7 +5122,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //WM_COMMAND (MDI)
     if (bMDI)
     {
-      if (LOWORD(wParam) == ID_SELECTMDI)
+      if (LOWORD(wParam) == IDM_SELECTWINDOW)
       {
         DoWindowSelectWindowW();
         return 0;

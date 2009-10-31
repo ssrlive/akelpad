@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 4)
 
 
 //// Defines
@@ -318,9 +318,10 @@ typedef struct _WNDFRAMEA {
   BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces
   int nUndoLimit;                                     //Undo limit
   BOOL bDetailedUndo;                                 //Detailed undo
-  int nWrapType;                                      //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
+  DWORD dwWrapType;                                   //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
+  DWORD dwMappedPrintWidth;                           //Mapped prinet page width (4.x only)
   BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                                //Draw caret vertical line (4.x only)
   int nCaretWidth;                                    //Caret width (4.x only)
@@ -356,9 +357,10 @@ typedef struct _WNDFRAMEW {
   BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces
   int nUndoLimit;                                     //Undo limit
   BOOL bDetailedUndo;                                 //Detailed undo
-  int nWrapType;                                      //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
+  DWORD dwWrapType;                                   //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
+  DWORD dwMappedPrintWidth;                           //Mapped prinet page width (4.x only)
   BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)
   BOOL bCaretVertLine;                                //Draw caret vertical line (4.x only)
   int nCaretWidth;                                    //Caret width (4.x only)
@@ -1008,6 +1010,9 @@ typedef struct _NSIZE {
                                               //
                                               //Example:
                                               //SendMessage(pd->hMainWnd, WM_COMMAND, IDM_FILE_NEW, 0);
+#define IDM_SELECTWINDOW                10019 //Select window dialog (MDI)
+                                              //Return Value: zero
+                                              //
 
 //// AkelPad main window WM_USER messages
 

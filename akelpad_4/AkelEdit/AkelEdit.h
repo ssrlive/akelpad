@@ -2405,7 +2405,7 @@ Example:
 
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
 
- if (SendMessage(hWndEdit, AEM_GETWORDWRAP, 0, 0))
+ if (SendMessage(hWndEdit, AEM_GETWORDWRAP, 0, (LPARAM)NULL))
    nUnwrappedLine=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
  else
    nUnwrappedLine=ciCaret.nLine;
