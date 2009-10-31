@@ -1,5 +1,5 @@
 
-AkelPad 4.3.5 ()
+AkelPad 4.3.5 (Nov 01, 2009)
 ----------------------------
 Changed: set a single-thread model for allocating chunks of memory, as a consequence speed of
          text replace, delete, insert is increased.
