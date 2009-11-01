@@ -4488,6 +4488,10 @@ void AE_StackUndoItemDelete(AKELEDIT *ae, AEUNDOITEM *lpItem)
     ae->ptxt->lpSavePoint=NULL;
     ae->ptxt->bSavePointExist=FALSE;
   }
+  if (lpItem == ae->ptxt->lpCurrentUndo)
+  {
+    ae->ptxt->lpCurrentUndo=NULL;
+  }
   if (lpItem->wpText) AE_HeapFree(ae, 0, (LPVOID)lpItem->wpText);
   AE_HeapStackDelete(ae, (stack **)&ae->ptxt->hUndoStack.first, (stack **)&ae->ptxt->hUndoStack.last, (stack *)lpItem);
 }
