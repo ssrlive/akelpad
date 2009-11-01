@@ -101,6 +101,7 @@
 #define AECO_ACTIVECOLUMN       0x00000400  //Draw caret vertical line.
 #define AECO_PAINTGROUP         0x00000800  //Paint text by group of characters (default is character by character). With this style combined unicode symbols can be drawn correctly but editing of whose characters isn't comfortable.
 #define AECO_ALTDECINPUT        0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
+#define AECO_NOMARGINSEL        0x00002000  //Disables left margin line selection.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -283,6 +284,12 @@
 //AEM_CONVERTPOINT flags
 #define AECPT_GLOBALTOCLIENT 0  //Convert position in the virtual text space of the document, to client area coordinates.
 #define AECPT_CLIENTTOGLOBAL 1  //Convert position in the client area coordinates, to virtual text space of the document.
+
+//AEM_POINTONMARGIN sides
+#define AESIDE_LEFT          0x00000001
+#define AESIDE_TOP           0x00000002
+#define AESIDE_RIGHT         0x00000004
+#define AESIDE_BOTTOM        0x00000008
 
 //AEM_FINDTEXTA, AEM_FINDTEXTW flags
 #define AEFR_DOWN            0x00000001  //If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
@@ -887,6 +894,9 @@ typedef struct {
 #define AEM_GETCARETHORZINDENT    (WM_USER + 2167)
 #define AEM_SETCARETHORZINDENT    (WM_USER + 2168)
 #define AEM_CONVERTPOINT          (WM_USER + 2169)
+#define AEM_POINTONMARGIN         (WM_USER + 2170)
+#define AEM_POINTONSELECTION      (WM_USER + 2171)
+#define AEM_POINTONURL            (WM_USER + 2172)
 
 //Options
 #define AEM_CONTROLCLASS          (WM_USER + 2199)
@@ -2829,6 +2839,65 @@ Example:
  pt.x=SendMessage(hWndEdit, AEM_GETCARETHORZINDENT, 0, 0);
  pt.y=0;
  SendMessage(hWndEdit, AEM_CONVERTPOINT, AECPT_GLOBALTOCLIENT, (LPARAM)&pt);
+
+
+AEM_POINTONMARGIN
+_________________
+
+Checks is point on margin.
+
+(POINT *)wParam == pointer to a POINT structure.
+lParam          == not used.
+
+Return Value
+ See AESIDE_* defines.
+
+Example:
+ POINT pt;
+
+ pt.x=10;
+ pt.y=10;
+ SendMessage(hWndEdit, AEM_POINTONMARGIN, (WPARAM)&pt, 0);
+
+
+AEM_POINTONSELECTION
+____________________
+
+Checks is point on selection.
+
+(POINT *)wParam == pointer to a POINT structure.
+lParam          == not used.
+
+Return Value
+ TRUE  on selection.
+ FALSE not on selection.
+
+Example:
+ POINT pt;
+
+ pt.x=10;
+ pt.y=10;
+ SendMessage(hWndEdit, AEM_POINTONSELECTION, (WPARAM)&pt, 0);
+
+
+AEM_POINTONURL
+______________
+
+Checks is point on URL.
+
+(POINT *)wParam       == pointer to a POINT structure.
+(AECHARRANGE *)lParam == pointer to a AECHARRANGE structure, that receives URL range, if founded. Can be NULL.
+
+Return Value
+ Detected URL length or zero if not found.
+
+Example:
+ AECHARRANGE cr;
+ POINT pt;
+
+ pt.x=10;
+ pt.y=10;
+ SendMessage(hWndEdit, AEM_POINTONURL, (WPARAM)&pt, (LPARAM)&cr);
 
 
 AEM_CONTROLCLASS
