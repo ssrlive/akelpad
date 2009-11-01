@@ -842,6 +842,29 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
       }
+      if (uMsg == AEM_POINTONMARGIN)
+      {
+        POINT *pt=(POINT *)wParam;
+
+        return AE_IsPointOnMargin(ae, pt);
+      }
+      if (uMsg == AEM_POINTONSELECTION)
+      {
+        POINT *pt=(POINT *)wParam;
+
+        return AE_IsPointOnSelection(ae, pt);
+      }
+      if (uMsg == AEM_POINTONURL)
+      {
+        POINT *pt=(POINT *)wParam;
+        AECHARRANGE *lpcrLink=(AECHARRANGE *)lParam;
+        AECHARRANGE crLink;
+        DWORD dwResult;
+
+        dwResult=AE_IsPointOnUrl(ae, pt, &crLink);
+        if (lpcrLink) *lpcrLink=crLink;
+        return dwResult;
+      }
 
       //Options
       if (uMsg == AEM_CONTROLCLASS)
@@ -7201,74 +7224,91 @@ int AE_SetCursor(AKELEDIT *ae)
   }
   else
   {
-    if (!bAlt && AE_IsCursorOnLeftMargin(ae, &ptPos))
+    nResult=AECC_IBEAM;
+
+    if (!bAlt && AE_IsPointOnMargin(ae, &ptPos) == AESIDE_LEFT)
     {
-      SetCursor(hAkelEditCursorMargin);
-      nResult=AECC_MARGIN;
+      if (!(ae->popt->dwOptions & AECO_NOMARGINSEL))
+      {
+        SetCursor(hAkelEditCursorMargin);
+        nResult=AECC_MARGIN;
+      }
     }
-    else if (!bAlt && !bShift && AE_IsCursorOnSelection(ae, &ptPos))
+    else if (!bAlt && !bShift && AE_IsPointOnSelection(ae, &ptPos))
     {
-      SetCursor(hAkelEditCursorArrow);
-      nResult=AECC_SELECTION;
+      if (!(ae->popt->dwOptions & AECO_DISABLEDRAG))
+      {
+        SetCursor(hAkelEditCursorArrow);
+        nResult=AECC_SELECTION;
+      }
     }
-    else if (!bAlt && !bShift && AE_IsCursorOnUrl(ae, &ptPos, &ae->crMouseOnLink))
+    else if (!bAlt && !bShift && AE_IsPointOnUrl(ae, &ptPos, &ae->crMouseOnLink))
     {
       SetCursor(hAkelEditCursorHand);
       nResult=AECC_URL;
     }
-    else nResult=AECC_IBEAM;
   }
-
   return nResult;
 }
 
-BOOL AE_IsCursorOnLeftMargin(AKELEDIT *ae, const POINT *ptPos)
+DWORD AE_IsPointOnMargin(AKELEDIT *ae, const POINT *ptPos)
 {
-  if (ptPos->x >= 0 && ptPos->x < ae->rcDraw.left && ptPos->y > ae->rcDraw.top && ptPos->y < ae->rcDraw.bottom)
+  DWORD dwSide=0;
+
+  if (ptPos->x >= ae->rcEdit.left && ptPos->x < ae->rcDraw.left && ptPos->y > ae->rcEdit.top && ptPos->y < ae->rcEdit.bottom)
   {
-    return TRUE;
+    dwSide|=AESIDE_LEFT;
   }
-  return FALSE;
+  if (ptPos->y >= ae->rcEdit.top && ptPos->y < ae->rcDraw.top && ptPos->x > ae->rcEdit.left && ptPos->x < ae->rcEdit.right)
+  {
+    dwSide|=AESIDE_TOP;
+  }
+  if (ptPos->x > ae->rcDraw.right && ptPos->x <= ae->rcEdit.right && ptPos->y > ae->rcEdit.top && ptPos->y < ae->rcEdit.bottom)
+  {
+    dwSide|=AESIDE_RIGHT;
+  }
+  if (ptPos->y > ae->rcDraw.bottom && ptPos->y <= ae->rcEdit.bottom && ptPos->x > ae->rcEdit.left && ptPos->x < ae->rcEdit.right)
+  {
+    dwSide|=AESIDE_BOTTOM;
+  }
+  return dwSide;
 }
 
-BOOL AE_IsCursorOnSelection(AKELEDIT *ae, const POINT *ptPos)
+BOOL AE_IsPointOnSelection(AKELEDIT *ae, const POINT *ptPos)
 {
-  if (!(ae->popt->dwOptions & AECO_DISABLEDRAG))
+  AECHARINDEX ciCharIndex;
+  POINT ptChar;
+  int nSelStartY;
+  int nSelEndY;
+  int nResult;
+
+  if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
-    AECHARINDEX ciCharIndex;
-    POINT ptChar;
-    int nSelStartY;
-    int nSelEndY;
-    int nResult;
+    nSelStartY=(ae->ciSelStartIndex.nLine * ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
+    nSelEndY=((ae->ciSelEndIndex.nLine + 1) * ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
 
-    if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+    if (ptPos->y >= nSelStartY && ptPos->y <= nSelEndY)
     {
-      nSelStartY=(ae->ciSelStartIndex.nLine * ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
-      nSelEndY=((ae->ciSelEndIndex.nLine + 1) * ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
-
-      if (ptPos->y >= nSelStartY && ptPos->y <= nSelEndY)
+      if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, &ptChar, ae->bColumnSel))
       {
-        if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, &ptChar, ae->bColumnSel))
+        if (ciCharIndex.lpLine->nSelStart != ciCharIndex.lpLine->nSelEnd &&
+            (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart ||
+             ciCharIndex.nCharInLine == ciCharIndex.lpLine->nSelStart && (nResult == AEPC_BEFORE || nResult == AEPC_EQUAL)) &&
+            (ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelEnd ||
+             ciCharIndex.nCharInLine == ciCharIndex.lpLine->nSelEnd && (nResult == AEPC_AFTER || nResult == AEPC_EQUAL)))
         {
-          if (ciCharIndex.lpLine->nSelStart != ciCharIndex.lpLine->nSelEnd &&
-              (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart ||
-               ciCharIndex.nCharInLine == ciCharIndex.lpLine->nSelStart && (nResult == AEPC_BEFORE || nResult == AEPC_EQUAL)) &&
-              (ciCharIndex.nCharInLine < ciCharIndex.lpLine->nSelEnd ||
-               ciCharIndex.nCharInLine == ciCharIndex.lpLine->nSelEnd && (nResult == AEPC_AFTER || nResult == AEPC_EQUAL)))
-          {
+          return TRUE;
+        }
+
+        //Is on new line
+        if (ciCharIndex.nLine >= ae->ciSelStartIndex.nLine &&
+            ciCharIndex.nLine < ae->ciSelEndIndex.nLine &&
+            ciCharIndex.nCharInLine == ciCharIndex.lpLine->nLineLen)
+        {
+          AE_GlobalToClient(ae, &ptChar, &ptChar);
+
+          if (ptPos->x >= ptChar.x && ptPos->x <= ptChar.x + ae->ptxt->nAveCharWidth)
             return TRUE;
-          }
-
-          //Is on new line
-          if (ciCharIndex.nLine >= ae->ciSelStartIndex.nLine &&
-              ciCharIndex.nLine < ae->ciSelEndIndex.nLine &&
-              ciCharIndex.nCharInLine == ciCharIndex.lpLine->nLineLen)
-          {
-            AE_GlobalToClient(ae, &ptChar, &ptChar);
-
-            if (ptPos->x >= ptChar.x && ptPos->x <= ptChar.x + ae->ptxt->nAveCharWidth)
-              return TRUE;
-          }
         }
       }
     }
@@ -7276,30 +7316,26 @@ BOOL AE_IsCursorOnSelection(AKELEDIT *ae, const POINT *ptPos)
   return FALSE;
 }
 
-DWORD AE_IsCursorOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink)
+DWORD AE_IsPointOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink)
 {
   if (ae->popt->bDetectUrl)
   {
-    if ((ae->popt->dwEventMask & AENM_LINK) ||
-        (ae->popt->dwRichEventMask & ENM_LINK))
-    {
-      AECHARINDEX ciCharIndex;
-      int nResult;
+    AECHARINDEX ciCharIndex;
+    int nResult;
 
-      if (PtInRect(&ae->rcDraw, *ptPos))
+    if (PtInRect(&ae->rcDraw, *ptPos))
+    {
+      if (ptPos->y <= ae->ptxt->nVScrollMax)
       {
-        if (ptPos->y <= ae->ptxt->nVScrollMax)
+        if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, FALSE))
         {
-          if (nResult=AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, FALSE))
+          if (nResult == AEPC_AFTER)
           {
-            if (nResult == AEPC_AFTER)
-            {
-              AE_IndexDec(&ciCharIndex);
-              ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine, 0);
-            }
-            AE_memset(crLink, 0, sizeof(AECHARRANGE));
-            return AE_HighlightFindUrl(ae, &ciCharIndex, AEHF_FINDFIRSTCHAR, ae->ptxt->nLineCount, crLink);
+            AE_IndexDec(&ciCharIndex);
+            ciCharIndex.nCharInLine=max(ciCharIndex.nCharInLine, 0);
           }
+          AE_memset(crLink, 0, sizeof(AECHARRANGE));
+          return AE_HighlightFindUrl(ae, &ciCharIndex, AEHF_FINDFIRSTCHAR, ae->ptxt->nLineCount, crLink);
         }
       }
     }
