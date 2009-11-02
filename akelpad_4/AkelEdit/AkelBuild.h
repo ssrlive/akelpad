@@ -728,7 +728,7 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
 DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
 void AE_UpdateCandidatePos(AKELEDIT *ae);
 BOOL AE_GetModify(AKELEDIT *ae);
-void AE_SetModify(AKELEDIT *ae, BOOL bState, BOOL bMessage);
+void AE_SetModify(AKELEDIT *ae, BOOL bState);
 void AE_EmptyUndoBuffer(AKELEDIT *ae);
 BOOL AE_IsReadOnly(AKELEDIT *ae);
 BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl);
@@ -758,6 +758,7 @@ void AE_NotifySelChanging(AKELEDIT *ae);
 void AE_NotifySelChanged(AKELEDIT *ae);
 void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType);
 void AE_NotifyTextChanged(AKELEDIT *ae, DWORD dwType);
+void AE_NotifyModify(AKELEDIT *ae);
 void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType);
 void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType);
 void AE_NotifyHScroll(AKELEDIT *ae);
