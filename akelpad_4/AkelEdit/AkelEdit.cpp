@@ -4474,10 +4474,10 @@ AEUNDOITEM* AE_StackUndoItemInsert(AKELEDIT *ae)
   AEUNDOITEM *lpElement=NULL;
 
   if (AE_EditCanRedo(ae))
-  {
     AE_StackRedoDeleteAll(ae, ae->ptxt->lpCurrentUndo);
-  }
-  AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hUndoStack.first, (stack **)&ae->ptxt->hUndoStack.last, (stack **)&lpElement, -1, sizeof(AEUNDOITEM));
+
+  if (!AE_HeapStackInsertIndex(ae, (stack **)&ae->ptxt->hUndoStack.first, (stack **)&ae->ptxt->hUndoStack.last, (stack **)&lpElement, -1, sizeof(AEUNDOITEM)))
+    ae->ptxt->lpCurrentUndo=lpElement;
   return lpElement;
 }
 
@@ -4489,9 +4489,8 @@ void AE_StackUndoItemDelete(AKELEDIT *ae, AEUNDOITEM *lpItem)
     ae->ptxt->bSavePointExist=FALSE;
   }
   if (lpItem == ae->ptxt->lpCurrentUndo)
-  {
     ae->ptxt->lpCurrentUndo=NULL;
-  }
+
   if (lpItem->wpText) AE_HeapFree(ae, 0, (LPVOID)lpItem->wpText);
   AE_HeapStackDelete(ae, (stack **)&ae->ptxt->hUndoStack.first, (stack **)&ae->ptxt->hUndoStack.last, (stack *)lpItem);
 }
@@ -4660,7 +4659,6 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
               lpUndoElement->dwTextLen=dwUndoTextLen;
 
               lpStopElement=lpUndoElement;
-              ae->ptxt->lpCurrentUndo=lpStopElement;
             }
           }
         }
@@ -4673,27 +4671,35 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
     }
 
     //Undo limit is reached
-    while (ae->ptxt->dwUndoCount > ae->ptxt->dwUndoLimit)
+    if (ae->ptxt->dwUndoCount > ae->ptxt->dwUndoLimit)
     {
-      AEUNDOITEM *lpElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
-      AEUNDOITEM *lpTmp;
-
-      if (!ae->ptxt->lpSavePoint)
-        ae->ptxt->bSavePointExist=FALSE;
-
-      //Delete first undo group
-      while (lpElement)
+      if (AE_GetModify(ae))
       {
-        if (lpElement->dwFlags & AEUN_STOPGROUP)
-        {
-          AE_StackUndoItemDelete(ae, lpElement);
-          break;
-        }
-        lpTmp=lpElement->next;
-        AE_StackUndoItemDelete(ae, lpElement);
-        lpElement=lpTmp;
+        if (!ae->ptxt->lpSavePoint)
+          ae->ptxt->bSavePointExist=FALSE;
       }
-      --ae->ptxt->dwUndoCount;
+
+      while (ae->ptxt->dwUndoCount > ae->ptxt->dwUndoLimit)
+      {
+        AEUNDOITEM *lpElement=(AEUNDOITEM *)ae->ptxt->hUndoStack.first;
+        AEUNDOITEM *lpTmp;
+
+        //Delete first undo group
+        while (lpElement)
+        {
+          if (lpElement->dwFlags & AEUN_STOPGROUP)
+          {
+            AE_StackUndoItemDelete(ae, lpElement);
+            break;
+          }
+          lpTmp=lpElement->next;
+          AE_StackUndoItemDelete(ae, lpElement);
+          lpElement=lpTmp;
+        }
+        --ae->ptxt->dwUndoCount;
+      }
+      if (!ae->ptxt->lpCurrentUndo)
+        AE_EmptyUndoBuffer(ae);
     }
   }
 }
@@ -12656,11 +12662,8 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                     //Set selection
                     if (!lpSetSelUndo)
                     {
-                      if (lpSetSelUndo=AE_StackUndoItemInsert(ae))
-                      {
-                        ae->ptxt->lpCurrentUndo=lpSetSelUndo;
-                      }
-                      else break;
+                      if (!(lpSetSelUndo=AE_StackUndoItemInsert(ae)))
+                        break;
                     }
 
                     //Add text
@@ -12676,8 +12679,6 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                         lpUndoElement->nActionEndOffset=nLineOffset + min(lpElement->nSelEnd, lpElement->nLineLen);
                         lpUndoElement->wpText=wpUndoText;
                         lpUndoElement->dwTextLen=dwUndoTextLen;
-
-                        ae->ptxt->lpCurrentUndo=lpUndoElement;
                       }
                       else break;
                     }
@@ -12842,8 +12843,6 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                   lpUndoElement->nExtraEndOffset=nExtraStartOffset;
                   lpUndoElement->wpText=NULL;
                   lpUndoElement->dwTextLen=0;
-
-                  ae->ptxt->lpCurrentUndo=lpUndoElement;
                 }
               }
             }
@@ -12877,8 +12876,6 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                   lpUndoElement->nActionEndOffset=nEndOffset;
                   lpUndoElement->wpText=wpUndoText;
                   lpUndoElement->dwTextLen=dwUndoTextLen;
-
-                  ae->ptxt->lpCurrentUndo=lpUndoElement;
                 }
               }
             }
@@ -13262,8 +13259,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                           lpUndoElement->nActionEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
                           lpUndoElement->wpText=wpUndoText;
                           lpUndoElement->dwTextLen=dwUndoTextLen;
-
-                          ae->ptxt->lpCurrentUndo=lpUndoElement;
                         }
                         else break;
                       }
@@ -13307,8 +13302,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                             lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
                             lpUndoElement->wpText=wpUndoText;
                             lpUndoElement->dwTextLen=dwUndoTextLen;
-
-                            ae->ptxt->lpCurrentUndo=lpUndoElement;
                           }
                           else break;
                         }
@@ -13374,8 +13367,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                             lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen;
                           lpUndoElement->wpText=wpUndoText;
                           lpUndoElement->dwTextLen=dwUndoTextLen;
-
-                          ae->ptxt->lpCurrentUndo=lpUndoElement;
                         }
                         else break;
                       }
@@ -13533,8 +13524,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                     lpUndoElement->nActionEndOffset=nEndOffset;
                     lpUndoElement->wpText=NULL;
                     lpUndoElement->dwTextLen=0;
-
-                    ae->ptxt->lpCurrentUndo=lpUndoElement;
                   }
                 }
               }
@@ -13888,8 +13877,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                       lpUndoElement->nActionEndOffset=nStartOffset;
                       lpUndoElement->wpText=wpUndoText;
                       lpUndoElement->dwTextLen=nSpaces;
-
-                      ae->ptxt->lpCurrentUndo=lpUndoElement;
                     }
                   }
                 }
@@ -13906,8 +13893,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                     lpUndoElement->nActionEndOffset=nEndOffset;
                     lpUndoElement->wpText=wpUndoText;
                     lpUndoElement->dwTextLen=dwTextLen;
-
-                    ae->ptxt->lpCurrentUndo=lpUndoElement;
                   }
                 }
               }
@@ -14365,9 +14350,10 @@ void AE_SetModify(AKELEDIT *ae, BOOL bState)
 
 void AE_EmptyUndoBuffer(AKELEDIT *ae)
 {
-  ae->ptxt->lpSavePoint=NULL;
   if (AE_GetModify(ae))
     ae->ptxt->bSavePointExist=FALSE;
+  ae->ptxt->lpSavePoint=NULL;
+
   AE_StackRedoDeleteAll(ae, NULL);
   ae->ptxt->lpCurrentUndo=NULL;
 }
