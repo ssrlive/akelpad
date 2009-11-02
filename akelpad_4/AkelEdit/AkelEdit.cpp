@@ -454,7 +454,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_SETMODIFY)
       {
-        AE_SetModify(ae, wParam, TRUE);
+        AE_SetModify(ae, wParam);
         return 0;
       }
       if (uMsg == AEM_UNDOBUFFERSIZE)
@@ -1940,7 +1940,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!(st->flags & ST_KEEPUNDO))
         ae->ptxt->bLockCollectUndo=bLockCollectUndo;
       if (!(st->flags & ST_SELECTION))
-        AE_SetModify(ae, FALSE, TRUE);
+        AE_SetModify(ae, FALSE);
       return 1;
     }
     if (uMsg == EM_CANPASTE)
@@ -2340,7 +2340,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == EM_SETMODIFY)
     {
-      AE_SetModify(ae, wParam, TRUE);
+      AE_SetModify(ae, wParam);
       return 0;
     }
     if (uMsg == EM_GETRECT)
@@ -2827,7 +2827,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 ae->ptxt->bLockGroupStopInt=FALSE;
                 AE_StackUndoGroupStop(ae);
                 if (ae->ptxt->bModified != AE_GetModify(ae))
-                  AE_SetModify(ae, !ae->ptxt->bModified, FALSE);
+                  AE_SetModify(ae, !ae->ptxt->bModified);
               }
             }
             ImmReleaseContext(ae->hWndEdit, hIMC);
@@ -11614,8 +11614,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
 
   if (!bFirstHeap)
   {
-    AE_NotifySelChanging(ae);
-    AE_NotifyTextChanging(ae, AETCT_SETTEXT);
+    AE_NotifyChanging(ae, AETCT_SETTEXT);
   }
 
   //Set new line
@@ -11806,13 +11805,12 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     if (!bFirstHeap)
     {
       AE_StackPointReset(ae);
-      AE_SetModify(ae, FALSE, TRUE);
+      ae->dwNotify=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AETCT_DELETEALL;
     }
   }
   if (!bFirstHeap)
   {
-    AE_NotifySelChanged(ae);
-    AE_NotifyTextChanged(ae, AETCT_SETTEXT|AETCT_DELETEALL);
+    AE_NotifyChanged(ae, AETCT_SETTEXT);
   }
   return dwTextLen;
 }
@@ -11851,8 +11849,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
 
   if (!bFirstHeap)
   {
-    AE_NotifySelChanging(ae);
-    AE_NotifyTextChanging(ae, AETCT_STREAMIN);
+    AE_NotifyChanging(ae, AETCT_STREAMIN);
   }
   aesi->dwError=0;
 
@@ -12127,7 +12124,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         if (!bFirstHeap)
         {
           AE_StackPointReset(ae);
-          AE_SetModify(ae, FALSE, TRUE);
+          ae->dwNotify=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AETCT_DELETEALL;
         }
       }
     }
@@ -12135,8 +12132,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   }
   if (!bFirstHeap)
   {
-    AE_NotifySelChanged(ae);
-    AE_NotifyTextChanged(ae, AETCT_STREAMIN|AETCT_DELETEALL);
+    AE_NotifyChanged(ae, AETCT_STREAMIN);
   }
   return dwResult;
 }
@@ -12817,8 +12813,6 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       {
         if (!(dwDeleteFlags & AEDELT_LOCKUNDO))
         {
-          AE_SetModify(ae, TRUE, FALSE);
-
           if (!ae->ptxt->bLockCollectUndo)
           {
             if (ae->ptxt->dwUndoLimit)
@@ -12862,8 +12856,6 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       //Add undo
       if (!(dwDeleteFlags & AEDELT_LOCKUNDO))
       {
-        AE_SetModify(ae, TRUE, FALSE);
-
         if (!ae->ptxt->bLockCollectUndo)
         {
           if (ae->ptxt->dwUndoLimit)
@@ -13103,7 +13095,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
     if (nRichTextCount < 0)
     {
-      ae->dwNotify|=AENM_SELCHANGE|AENM_TEXTCHANGE;
+      ae->dwNotify|=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
       if (!ae->ptxt->nLastCharOffset)
         ae->dwNotify|=AETCT_DELETEALL;
     }
@@ -13526,8 +13518,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           //Add undo
           if (!(dwInsertFlags & AEINST_LOCKUNDO))
           {
-            AE_SetModify(ae, TRUE, FALSE);
-
             if (!ae->ptxt->bLockCollectUndo)
             {
               if (ae->ptxt->dwUndoLimit)
@@ -13876,8 +13866,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           //Add undo
           if (!(dwInsertFlags & AEINST_LOCKUNDO))
           {
-            AE_SetModify(ae, TRUE, FALSE);
-
             if (!ae->ptxt->bLockCollectUndo)
             {
               if (ae->ptxt->dwUndoLimit)
@@ -13966,7 +13954,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           }
         }
 
-        ae->dwNotify|=AENM_SELCHANGE|AENM_TEXTCHANGE;
+        ae->dwNotify|=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
       }
     }
   }
@@ -14354,38 +14342,24 @@ BOOL AE_GetModify(AKELEDIT *ae)
   return TRUE;
 }
 
-void AE_SetModify(AKELEDIT *ae, BOOL bState, BOOL bMessage)
+void AE_SetModify(AKELEDIT *ae, BOOL bState)
 {
   if (ae->ptxt->bModified != bState)
   {
     ae->ptxt->bModified=!ae->ptxt->bModified;
 
-    if (bMessage)
+    if (ae->ptxt->bModified)
     {
-      if (ae->ptxt->bModified)
-      {
-        ae->ptxt->lpSavePoint=NULL;
-        ae->ptxt->bSavePointExist=FALSE;
-      }
-      else
-      {
-        AE_StackUndoGroupStop(ae);
-        ae->ptxt->lpSavePoint=ae->ptxt->lpCurrentUndo;
-        ae->ptxt->bSavePointExist=TRUE;
-      }
+      ae->ptxt->lpSavePoint=NULL;
+      ae->ptxt->bSavePointExist=FALSE;
     }
-
-    //Send AEN_MODIFY
-    if (ae->popt->dwEventMask & AENM_MODIFY)
+    else
     {
-      AENMODIFY aenm;
-
-      aenm.hdr.hwndFrom=ae->hWndEdit;
-      aenm.hdr.idFrom=ae->nEditCtrlID;
-      aenm.hdr.code=AEN_MODIFY;
-      aenm.bModified=ae->ptxt->bModified;
-      SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenm);
+      AE_StackUndoGroupStop(ae);
+      ae->ptxt->lpSavePoint=ae->ptxt->lpCurrentUndo;
+      ae->ptxt->bSavePointExist=TRUE;
     }
+    AE_NotifyModify(ae);
   }
 }
 
@@ -14936,9 +14910,6 @@ void AE_EditUndo(AKELEDIT *ae)
         break;
   }
 
-  if (ae->ptxt->bModified != AE_GetModify(ae))
-    AE_SetModify(ae, !ae->ptxt->bModified, FALSE);
-
   AE_NotifyChanged(ae, AETCT_UNDO);
 }
 
@@ -15030,9 +15001,6 @@ void AE_EditRedo(AKELEDIT *ae)
 
     lpCurElement=lpNextElement;
   }
-
-  if (ae->ptxt->bModified != AE_GetModify(ae))
-    AE_SetModify(ae, !ae->ptxt->bModified, FALSE);
 
   AE_NotifyChanged(ae, AETCT_REDO);
 }
@@ -15763,6 +15731,21 @@ void AE_NotifyTextChanged(AKELEDIT *ae, DWORD dwType)
   }
 }
 
+void AE_NotifyModify(AKELEDIT *ae)
+{
+  //Send AEN_MODIFY
+  if (ae->popt->dwEventMask & AENM_MODIFY)
+  {
+    AENMODIFY aenm;
+
+    aenm.hdr.hwndFrom=ae->hWndEdit;
+    aenm.hdr.idFrom=ae->nEditCtrlID;
+    aenm.hdr.code=AEN_MODIFY;
+    aenm.bModified=ae->ptxt->bModified;
+    SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenm);
+  }
+}
+
 void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType)
 {
   AE_NotifySelChanging(ae);
@@ -15789,6 +15772,18 @@ void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
   else
     dwType|=AETCT_NONE;
   AE_NotifyTextChanged(ae, dwType);
+
+  //Modify
+  if (ae->dwNotify & AENM_MODIFY)
+  {
+    ae->dwNotify&=~AENM_MODIFY;
+
+    if (ae->ptxt->bModified != AE_GetModify(ae))
+    {
+      ae->ptxt->bModified=!ae->ptxt->bModified;
+      AE_NotifyModify(ae);
+    }
+  }
 }
 
 void AE_NotifyHScroll(AKELEDIT *ae)
