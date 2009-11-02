@@ -14365,7 +14365,8 @@ void AE_SetModify(AKELEDIT *ae, BOOL bState)
 
 void AE_EmptyUndoBuffer(AKELEDIT *ae)
 {
-  if (!ae->ptxt->lpSavePoint)
+  ae->ptxt->lpSavePoint=NULL;
+  if (AE_GetModify(ae))
     ae->ptxt->bSavePointExist=FALSE;
   AE_StackRedoDeleteAll(ae, NULL);
   ae->ptxt->lpCurrentUndo=NULL;
@@ -15768,9 +15769,17 @@ void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
     dwType|=AETCT_DELETEALL;
   }
   if (ae->dwNotify & AENM_TEXTCHANGE)
+  {
     ae->dwNotify&=~AENM_TEXTCHANGE;
-  else
-    dwType|=AETCT_NONE;
+
+    if (!ae->ptxt->dwUndoLimit)
+    {
+      if (!ae->ptxt->lpSavePoint)
+        ae->ptxt->bSavePointExist=FALSE;
+    }
+  }
+  else dwType|=AETCT_NONE;
+
   AE_NotifyTextChanged(ae, dwType);
 
   //Modify
