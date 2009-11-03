@@ -439,6 +439,13 @@ extern "C" void _WinMain()
   else
     bOldWindows=TRUE;
 
+  //Get program version
+  {
+    DWORD ver[4]={AKELPAD_ID};
+
+    dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
+  }
+
   if (bOldWindows)
   {
     WNDCLASSA wndclassA={0};
@@ -491,13 +498,6 @@ extern "C" void _WinMain()
 
     //Get program directory
     GetExeDirA(hInstance, szExeDir, MAX_PATH);
-
-    //Get program version
-    {
-      DWORD ver[4]={AKELPAD_ID};
-
-      dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
-    }
 
     //Read options
     wsprintfA(szIniFile, "%s\\AkelPad.ini", szExeDir);
@@ -719,11 +719,23 @@ extern "C" void _WinMain()
     {
       wsprintfA(buf, "%s\\AkelFiles\\Langs\\%s", szExeDir, szLangModule);
 
-      if (!(hLangLib=LoadLibraryA(buf)))
+      if (GetFileVersionA(buf, &nMajor, &nMinor, &nRelease, &nBuild) &&
+          MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion)
       {
-        hLangLib=hInstance;
-        API_LoadStringA(hLangLib, MSG_ERROR_LOAD_DLL, buf, BUFFER_SIZE);
-        wsprintfA(buf2, buf, szLangModule);
+        if (!(hLangLib=LoadLibraryA(buf)))
+        {
+          hLangLib=hInstance;
+          API_LoadStringA(hLangLib, MSG_ERROR_LOAD_DLL, buf, BUFFER_SIZE);
+          wsprintfA(buf2, buf, szLangModule);
+          MessageBoxA(NULL, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+        }
+      }
+      else
+      {
+        API_LoadStringA(hLangLib, MSG_UPDATE_LANGMODULE, buf, BUFFER_SIZE);
+        wsprintfA(buf2, buf, szLangModule,
+                             nMajor, nMinor, nRelease, nBuild,
+                             LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
         MessageBoxA(NULL, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
       }
     }
@@ -916,13 +928,6 @@ extern "C" void _WinMain()
 
     //Get program directory
     GetExeDirW(hInstance, wszExeDir, MAX_PATH);
-
-    //Get program version
-    {
-      DWORD ver[4]={AKELPAD_ID};
-
-      dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
-    }
 
     //Read options
     wsprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
@@ -1141,11 +1146,23 @@ extern "C" void _WinMain()
     {
       wsprintfW(wbuf, L"%s\\AkelFiles\\Langs\\%s", wszExeDir, wszLangModule);
 
-      if (!(hLangLib=LoadLibraryW(wbuf)))
+      if (GetFileVersionW(wbuf, &nMajor, &nMinor, &nRelease, &nBuild) &&
+          MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion)
       {
-        hLangLib=hInstance;
-        API_LoadStringW(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
-        wsprintfW(wbuf2, wbuf, wszLangModule);
+        if (!(hLangLib=LoadLibraryW(wbuf)))
+        {
+          hLangLib=hInstance;
+          API_LoadStringW(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
+          wsprintfW(wbuf2, wbuf, wszLangModule);
+          MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        }
+      }
+      else
+      {
+        API_LoadStringW(hLangLib, MSG_UPDATE_LANGMODULE, wbuf, BUFFER_SIZE);
+        wsprintfW(wbuf2, wbuf, wszLangModule,
+                             nMajor, nMinor, nRelease, nBuild,
+                             LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
         MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
     }

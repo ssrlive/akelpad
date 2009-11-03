@@ -812,8 +812,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 4,0,0,0
+ FILEVERSION AKELPAD_ID
+ PRODUCTVERSION 0,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -831,14 +831,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "AkelPad text editor language module\0"
-            VALUE "FileVersion", "1, 0, 0, 0\0"
+            VALUE "FileVersion", "0, 0, 0, 0\0"
             VALUE "InternalName", "AkelPad\0"
             VALUE "LegalCopyright", "(C) 2009 Nardog\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "4, 0, 0, 0\0"
+            VALUE "ProductVersion", "0, 0, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -908,6 +908,7 @@ BEGIN
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x はサポートされていません。"
     MSG_UPDATE_PLUGIN       "%s を更新します。\n\nAkelPad のアーキテクチャー: %d.%d.%d.%d\n%s プラグインのアーキテクチャー: %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" は AkelPad として認識されていません。"
+    MSG_UPDATE_LANGMODULE   "Update %s\n\nCurrent version: %d.%d.%d.%d\nRequired version: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "ホットキーはすでに ""%s"" へ割り当てられています。"
     MSG_CANNOT_OPEN_FILE    "ファイル ""%s"" を開けません。"
     MSG_WRONG_STRING        "不正な行番号です。"
