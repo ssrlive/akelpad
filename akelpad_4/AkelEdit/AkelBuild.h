@@ -10,7 +10,8 @@
 
 //// Defines
 
-#define AEURL_MAX_LENGTH       512
+#define AEMAX_URL_LENGTH       512
+#define AEMAX_WORD_LENGTH      256
 
 //Times
 #define AETIME_BEFOREPROGRESS  0
