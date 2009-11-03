@@ -1,6 +1,8 @@
 
 AkelPad 4.3.5 ()
 ----------------------------
+Changed: syntax highlighting improved.
+
 Added: check for language modules and program compatibility. Now the language module version
        must be equal to version of the program.
 

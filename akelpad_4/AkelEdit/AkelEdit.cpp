@@ -3559,7 +3559,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs)
     ae->popt->bDefaultColors=TRUE;
     ae->popt->nCaretInsertWidth=1;
     ae->popt->nCaretOvertypeHeight=2;
-    ae->popt->dwUrlMaxLength=AEURL_MAX_LENGTH;
+    ae->popt->dwUrlMaxLength=AEMAX_URL_LENGTH;
     ae->popt->dwWordBreak=AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND;
     ae->dwInputLocale=(DWORD)GetKeyboardLayout(0);
     ae->bCaretVisible=TRUE;
@@ -7552,7 +7552,11 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     //Find quote beginning (backward)
     ciCount=*ciChar;
     if (dwSearchType & AEHF_FINDFIRSTCHAR)
+    {
       AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCount, &ciCount, FALSE);
+      if (AE_IndexCompare(&qm->crQuoteEnd.ciMax, &ciCount) > 0)
+        ciCount=qm->crQuoteEnd.ciMax;
+    }
 
     Begin:
     while (ciCount.lpLine)
@@ -7564,7 +7568,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           if (AE_IndexCompare(&ciCount, ciChar) > 0)
             return 0;
           if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
-            return 0;
+            break;
 
           for (lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first; lpQuoteElement; lpQuoteElement=lpQuoteElement->next)
           {
@@ -7822,6 +7826,8 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           goto SetEmptyFirstDelim;
         }
         nWordLen+=AE_IndexLen(&ciCount);
+        if (nWordLen > AEMAX_WORD_LENGTH)
+          return 0;
 
         //Is delimiter
         if (lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE))
@@ -7832,7 +7838,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           goto FindWordEnding;
         }
         if (dwSearchType & AEHF_ISFIRSTCHAR)
-          goto SetEmptyFirstDelim;
+          return 0;
         AE_IndexDec(&ciCount);
       }
 
@@ -7871,11 +7877,22 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
         //Is delimiter
         if (lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE))
         {
-          wm->lpDelim2=lpDelimiterElement;
-          wm->crDelim2=ft.crFound;
+          if (!nWordLen)
+          {
+            wm->crDelim2.ciMin=wm->crDelim1.ciMax;
+            wm->crDelim2.ciMax=wm->crDelim1.ciMax;
+          }
+          else
+          {
+            wm->lpDelim2=lpDelimiterElement;
+            wm->crDelim2=ft.crFound;
+          }
           goto SetWord;
         }
         nWordLen+=AE_IndexLen(&ciCount);
+        if (nWordLen > AEMAX_WORD_LENGTH)
+          return 0;
+
         AE_IndexInc(&ciCount);
       }
 
@@ -7934,6 +7951,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
   AEFINDTEXTW ftMatch;
   AECHARINDEX ciCount;
 
+  if (!nWordLen) return NULL;
   if (!ft) ft=&ftMatch;
 
   if ((DWORD)nWordLen < sizeof(ae->popt->lpActiveTheme->hWordStack.lpWordLens) / sizeof(int))
@@ -9673,7 +9691,12 @@ void AE_Paint(AKELEDIT *ae)
               if (dwFindFirst & AEHPT_LINK)
               {
                 dwFindFirst&=~AEHPT_LINK;
-                AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &hlp.crLink);
+                if (!AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, nLastDrawLine, &hlp.crLink))
+                {
+                  hlp.crLink.ciMin=ciDrawLine;
+                  hlp.crLink.ciMin.lpLine=NULL;
+                  hlp.crLink.ciMax=hlp.crLink.ciMin;
+                }
               }
               else AE_HighlightFindUrl(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, nLastDrawLine, &hlp.crLink);
             }
@@ -9716,7 +9739,11 @@ void AE_Paint(AKELEDIT *ae)
                 if (dwFindFirst & AEHPT_QUOTE)
                 {
                   dwFindFirst&=~AEHPT_QUOTE;
-                  AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp.qm);
+                  if (!AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp.qm))
+                  {
+                    hlp.qm.crQuoteEnd.ciMin=ciDrawLine;
+                    hlp.qm.crQuoteEnd.ciMax=ciDrawLine;
+                  }
                 }
                 else AE_HighlightFindQuote(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, &hlp.qm);
               }
@@ -9911,7 +9938,11 @@ void AE_Paint(AKELEDIT *ae)
               if (dwFindFirst & AEHPT_MARKTEXT)
               {
                 dwFindFirst&=~AEHPT_MARKTEXT;
-                AE_HighlightFindMarkText(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp.mtm);
+                if (!AE_HighlightFindMarkText(ae, &ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp.mtm))
+                {
+                  hlp.mtm.crMarkText.ciMin=ciDrawLine;
+                  hlp.mtm.crMarkText.ciMax=ciDrawLine;
+                }
               }
               else AE_HighlightFindMarkText(ae, &ciDrawLine, AEHF_ISFIRSTCHAR, &hlp.mtm);
             }
