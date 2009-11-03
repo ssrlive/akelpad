@@ -1,4 +1,10 @@
 
+AkelPad 4.3.5 ()
+----------------------------
+Added: check for language modules and program compatibility. Now the language module version
+       must be equal to version of the program.
+
+
 AkelPad 4.3.5 (Nov 01, 2009)
 ----------------------------
 Changed: set a single-thread model for allocating chunks of memory, as a consequence speed of
