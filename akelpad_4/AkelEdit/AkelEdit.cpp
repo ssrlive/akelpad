@@ -7820,11 +7820,6 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
     {
       while (ciCount.nCharInLine >= 0)
       {
-        if (AE_IndexCompare(&ciCount, &wm->crDelim2.ciMax) < 0)
-        {
-          ciCount=wm->crDelim2.ciMax;
-          goto SetEmptyFirstDelim;
-        }
         nWordLen+=AE_IndexLen(&ciCount);
         if (nWordLen > AEMAX_WORD_LENGTH)
           return 0;
@@ -7837,6 +7832,8 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           nWordLen=max(nWordLen - wm->lpDelim1->nDelimiterLen, 0);
           goto FindWordEnding;
         }
+        if (AE_IndexCompare(&ciCount, &wm->crDelim2.ciMax) <= 0)
+          goto SetEmptyFirstDelim;
         if (dwSearchType & AEHF_ISFIRSTCHAR)
           return 0;
         AE_IndexDec(&ciCount);
