@@ -13194,9 +13194,14 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
   {
     if (dwTextLen == (DWORD)-1) dwTextLen=lstrlenW(wpText);
     if (ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset > 0)
-      dwTextLen=min(ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset, dwTextLen);
-    else
-      dwTextLen=0;
+    {
+      if (ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset < dwTextLen)
+      {
+        dwTextLen=ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset;
+        AE_NotifyMaxText(ae);
+      }
+    }
+    else dwTextLen=0;
 
     if (dwTextLen)
     {
@@ -15654,6 +15659,12 @@ void AE_NotifyErrSpace(AKELEDIT *ae, DWORD dwBytes)
 
   //Send EN_ERRSPACE
   SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_ERRSPACE), (LPARAM)ae->hWndEdit);
+}
+
+void AE_NotifyMaxText(AKELEDIT *ae)
+{
+  //Send EN_MAXTEXT
+  SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_MAXTEXT), (LPARAM)ae->hWndEdit);
 }
 
 void AE_NotifySetFocus(AKELEDIT *ae)
