@@ -365,6 +365,7 @@ typedef struct {
   int nLineUnwrapLastCall;
   int nHScrollMax;
   int nVScrollMax;
+  DWORD dwTextLimit;
   DWORD dwWordWrap;
   DWORD dwWrapLimit;
   wchar_t wszWrapDelimiters[128];
