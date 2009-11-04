@@ -2022,7 +2022,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return AE_EditCanPaste(ae);
     }
-    if (uMsg == EM_LIMITTEXT)
+    if (uMsg == EM_GETLIMITTEXT)
+    {
+      return ae->ptxt->dwTextLimit;
+    }
+    if (uMsg == EM_SETLIMITTEXT ||
+        uMsg == EM_LIMITTEXT)
     {
       if (!wParam)
         ae->ptxt->dwTextLimit=65536;
