@@ -11987,7 +11987,8 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
       {
         //Get lines in page
         nLinesInPage=(ae->rcDraw.bottom - ae->rcDraw.top) / ae->ptxt->nCharHeight;
-        dwTextLen=aesi->dwTextLen;
+        if (ae->popt->dwEventMask & AENM_PROGRESS)
+          dwTextLen=aesi->dwTextLen;
 
         while (1)
         {
