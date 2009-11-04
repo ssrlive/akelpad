@@ -13193,12 +13193,12 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
   if (ciInsertFrom.lpLine)
   {
     if (dwTextLen == (DWORD)-1) dwTextLen=lstrlenW(wpText);
-    if (ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset > 0)
+    if (ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset >= 0)
     {
       if (ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset < dwTextLen)
       {
         dwTextLen=ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset;
-        AE_NotifyMaxText(ae);
+        ae->dwNotify|=AENM_MAXTEXT;
       }
     }
     else dwTextLen=0;
@@ -15853,6 +15853,13 @@ void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
       ae->ptxt->bModified=!ae->ptxt->bModified;
       AE_NotifyModify(ae);
     }
+  }
+
+  //MaxText
+  if (ae->dwNotify & AENM_MAXTEXT)
+  {
+    ae->dwNotify&=~AENM_MAXTEXT;
+    AE_NotifyMaxText(ae);
   }
 }
 

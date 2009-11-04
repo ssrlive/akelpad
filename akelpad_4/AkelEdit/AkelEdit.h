@@ -46,11 +46,12 @@
 #define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGING and AEN_SELCHANGED notifications.
 #define AENM_TEXTCHANGE         0x00000002  //Sends AEN_TEXTCHANGING and AEN_TEXTCHANGED notifications.
 #define AENM_MODIFY             0x00000004  //Sends AEN_MODIFY notifications.
-#define AENM_SCROLL             0x00000008  //Sends AEN_HSCROLL and AEN_VSCROLL notifications.
-#define AENM_DROPFILES          0x00000010  //Sends AEN_DROPFILES notifications.
-#define AENM_DRAGDROP           0x00000020  //Sends AEN_DROPSOURCE and AEN_DROPTARGET notifications.
-#define AENM_LINK               0x00000040  //Sends AEN_LINK notifications.
-#define AENM_PROGRESS           0x00000080  //Sends AEN_PROGRESS notifications.
+#define AENM_MAXTEXT            0x00000008  //Don't use it. For internal code only.
+#define AENM_SCROLL             0x00000010  //Sends AEN_HSCROLL and AEN_VSCROLL notifications.
+#define AENM_DROPFILES          0x00000020  //Sends AEN_DROPFILES notifications.
+#define AENM_DRAGDROP           0x00000040  //Sends AEN_DROPSOURCE and AEN_DROPTARGET notifications.
+#define AENM_LINK               0x00000080  //Sends AEN_LINK notifications.
+#define AENM_PROGRESS           0x00000100  //Sends AEN_PROGRESS notifications.
 
 //AEN_TEXTCHANGING and AEN_TEXTCHANGED flags
 #define AETCT_REPLACESEL        0x00000001  //Replace selection.
