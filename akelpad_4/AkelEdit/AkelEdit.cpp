@@ -2123,6 +2123,22 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
       return ae->nSelEndCharOffset;
     }
+    if (uMsg == EM_SELECTIONTYPE)
+    {
+      DWORD dwSelType=0;
+
+      if (ae->nSelStartCharOffset == ae->nSelEndCharOffset)
+      {
+        dwSelType=SEL_EMPTY;
+      }
+      else
+      {
+        dwSelType=SEL_TEXT;
+        if (ae->nSelEndCharOffset - ae->nSelStartCharOffset > 1)
+          dwSelType|=SEL_MULTICHAR;
+      }
+      return dwSelType;
+    }
     if (uMsg == EM_GETLINECOUNT)
     {
       return ae->ptxt->nLineCount + 1;
