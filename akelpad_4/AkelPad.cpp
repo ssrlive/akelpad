@@ -305,7 +305,7 @@ AECHARRANGE crSel={0};
 AECHARRANGE crPrevSel={0};
 AECHARINDEX ciCaret={0};
 BOOL bModified=FALSE;
-BOOL bInsertState=FALSE;
+BOOL bOvertypeMode=FALSE;
 int nCurrentNewLine=NEWLINE_WIN;
 int nDefaultNewLine=NEWLINE_WIN;
 BOOL bWordWrap=FALSE;
@@ -3184,7 +3184,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
-      if (hWndEdit) SetInsertStateStatusA(hWndEdit, !bInsertState, FALSE);
+      if (hWndEdit) SetInsertStateStatusA(hWndEdit, !bOvertypeMode, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_FILECLOSE)
     {
@@ -3319,7 +3319,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 2)
         {
-          SetInsertStateStatusA(hWndEdit, !bInsertState, FALSE);
+          SetInsertStateStatusA(hWndEdit, !bOvertypeMode, FALSE);
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 3)
         {
@@ -5089,7 +5089,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
-      if (hWndEdit) SetInsertStateStatusW(hWndEdit, !bInsertState, FALSE);
+      if (hWndEdit) SetInsertStateStatusW(hWndEdit, !bOvertypeMode, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_FILECLOSE)
     {
@@ -5224,7 +5224,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 2)
         {
-          SetInsertStateStatusW(hWndEdit, !bInsertState, FALSE);
+          SetInsertStateStatusW(hWndEdit, !bOvertypeMode, FALSE);
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 3)
         {
@@ -6032,7 +6032,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->ei.bModified=FALSE;
       lpWndFrameA->ei.bReadOnly=bReadOnly;
       lpWndFrameA->ei.bWordWrap=bWordWrap;
-      lpWndFrameA->ei.bInsertState=FALSE;
+      lpWndFrameA->ei.bOvertypeMode=FALSE;
       memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
       memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
       memcpy(&lpWndFrameA->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
@@ -6189,7 +6189,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->ei.bModified=bModified;
             lpWndFrameA->ei.bReadOnly=bReadOnly;
             lpWndFrameA->ei.bWordWrap=bWordWrap;
-            lpWndFrameA->ei.bInsertState=bInsertState;
+            lpWndFrameA->ei.bOvertypeMode=bOvertypeMode;
             memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
             memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
             memcpy(&lpWndFrameA->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
@@ -6240,7 +6240,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SetModifyStatusA(NULL, lpWndFrameA->ei.bModified, FALSE);
           bReadOnly=lpWndFrameA->ei.bReadOnly;
           bWordWrap=lpWndFrameA->ei.bWordWrap;
-          SetInsertStateStatusA(NULL, lpWndFrameA->ei.bInsertState, FALSE);
+          SetInsertStateStatusA(NULL, lpWndFrameA->ei.bOvertypeMode, FALSE);
           memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
           memcpy(wszUrlPrefixes, &lpWndFrameA->wszUrlPrefixes, sizeof(wszUrlPrefixes));
           memcpy(wszUrlLeftDelimiters, &lpWndFrameA->wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
@@ -6330,7 +6330,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->ei.bModified=FALSE;
       lpWndFrameW->ei.bReadOnly=bReadOnly;
       lpWndFrameW->ei.bWordWrap=bWordWrap;
-      lpWndFrameW->ei.bInsertState=FALSE;
+      lpWndFrameW->ei.bOvertypeMode=FALSE;
       memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
       memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
       memcpy(&lpWndFrameW->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
@@ -6487,7 +6487,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->ei.bModified=bModified;
             lpWndFrameW->ei.bReadOnly=bReadOnly;
             lpWndFrameW->ei.bWordWrap=bWordWrap;
-            lpWndFrameW->ei.bInsertState=bInsertState;
+            lpWndFrameW->ei.bOvertypeMode=bOvertypeMode;
             memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
             memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
             memcpy(&lpWndFrameW->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
@@ -6538,7 +6538,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SetModifyStatusW(NULL, lpWndFrameW->ei.bModified, FALSE);
           bReadOnly=lpWndFrameW->ei.bReadOnly;
           bWordWrap=lpWndFrameW->ei.bWordWrap;
-          SetInsertStateStatusW(NULL, lpWndFrameW->ei.bInsertState, FALSE);
+          SetInsertStateStatusW(NULL, lpWndFrameW->ei.bOvertypeMode, FALSE);
           memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
           memcpy(wszUrlPrefixes, &lpWndFrameW->wszUrlPrefixes, sizeof(wszUrlPrefixes));
           memcpy(wszUrlLeftDelimiters, &lpWndFrameW->wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
