@@ -277,7 +277,7 @@ extern AECHARRANGE crSel;
 extern AECHARRANGE crPrevSel;
 extern AECHARINDEX ciCaret;
 extern BOOL bModified;
-extern BOOL bInsertState;
+extern BOOL bOvertypeMode;
 extern int nCurrentNewLine;
 extern int nDefaultNewLine;
 extern BOOL bWordWrap;
@@ -19869,22 +19869,22 @@ void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
 
 void SetInsertStateStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 {
-  if (bFirst != TRUE && bInsertState == bState) return;
-  bInsertState=bState;
+  if (bFirst != TRUE && bOvertypeMode == bState) return;
+  bOvertypeMode=bState;
 
-  if (hWnd) SendMessage(hWnd, AEM_SETOVERTYPE, bInsertState, 0);
+  if (hWnd) SendMessage(hWnd, AEM_SETOVERTYPE, bOvertypeMode, 0);
 
-  SendMessage(hStatus, SB_SETTEXTA, STATUS_INSERT, (LPARAM)(bInsertState?"Ovr":"Ins"));
+  SendMessage(hStatus, SB_SETTEXTA, STATUS_INSERT, (LPARAM)(bOvertypeMode?"Ovr":"Ins"));
 }
 
 void SetInsertStateStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
 {
-  if (bFirst != TRUE && bInsertState == bState) return;
-  bInsertState=bState;
+  if (bFirst != TRUE && bOvertypeMode == bState) return;
+  bOvertypeMode=bState;
 
-  if (hWnd) SendMessage(hWnd, AEM_SETOVERTYPE, bInsertState, 0);
+  if (hWnd) SendMessage(hWnd, AEM_SETOVERTYPE, bOvertypeMode, 0);
 
-  SendMessage(hStatus, SB_SETTEXTW, STATUS_INSERT, (LPARAM)(bInsertState?L"Ovr":L"Ins"));
+  SendMessage(hStatus, SB_SETTEXTW, STATUS_INSERT, (LPARAM)(bOvertypeMode?L"Ovr":L"Ins"));
 }
 
 void SetCodePageStatusA(int nCodePage, BOOL bBOM, BOOL bFirst)
@@ -20575,7 +20575,7 @@ BOOL GetEditInfoA(HWND hWnd, EDITINFO *ei)
       ei->bModified=bModified;
       ei->bReadOnly=bReadOnly;
       ei->bWordWrap=bWordWrap;
-      ei->bInsertState=bInsertState;
+      ei->bOvertypeMode=bOvertypeMode;
       return TRUE;
     }
     return FALSE;
@@ -20611,7 +20611,7 @@ BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei)
       ei->bModified=bModified;
       ei->bReadOnly=bReadOnly;
       ei->bWordWrap=bWordWrap;
-      ei->bInsertState=bInsertState;
+      ei->bOvertypeMode=bOvertypeMode;
       return TRUE;
     }
     return FALSE;
