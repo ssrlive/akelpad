@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.3.3"
+!define PRODUCT_VERSION "4.3.6"
 
 ;_____________________________________________________________________________________________
 ;
