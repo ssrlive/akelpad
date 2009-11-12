@@ -3746,11 +3746,11 @@ Example:
  if (hWndMaster=(HWND)SendMessage(hWndEdit, AEM_GETMASTER, 0, 0))
  {
    if (hWndMaster == hWndEdit)
-     MessageBox(NULL, "hWndEdit is master", NULL, 0);
+     MessageBoxA(NULL, "hWndEdit is master", NULL, 0);
    else
-     MessageBox(NULL, "hWndEdit is slave", NULL, 0);
+     MessageBoxA(NULL, "hWndEdit is slave", NULL, 0);
  }
- else MessageBox(NULL, "hWndEdit nor master, nor slave", NULL, 0);
+ else MessageBoxA(NULL, "hWndEdit nor master, nor slave", NULL, 0);
 
 
 AEM_GETCLONE
