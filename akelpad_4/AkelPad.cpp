@@ -60,12 +60,13 @@ STARTUPINFOA lpStartupInfo;
 STARTUPINFOW lpStartupInfoW;
 BOOL bNotepadCommandLine=TRUE;
 
-//Versions
+//Identification
 DWORD dwExeVersion=0;
 BOOL bOldWindows;
 BOOL bOldRichEdit=FALSE;
 BOOL bOldComctl32;
 BOOL bAkelEdit=TRUE;
+BOOL bRichEditClass=FALSE;
 
 //Buffers
 char buf[BUFFER_SIZE];

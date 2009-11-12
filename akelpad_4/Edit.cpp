@@ -31,12 +31,13 @@ extern STARTUPINFOA lpStartupInfoA;
 extern STARTUPINFOW lpStartupInfoW;
 extern BOOL bNotepadCommandLine;
 
-//Versions
+//Identification
 extern DWORD dwExeVersion;
 extern BOOL bOldWindows;
 extern BOOL bOldRichEdit;
 extern BOOL bOldComctl32;
 extern BOOL bAkelEdit;
+extern BOOL bRichEditClass;
 
 //Buffers
 extern char buf[BUFFER_SIZE];
@@ -387,7 +388,7 @@ HWND CreateEditWindowA(HWND hWndParent)
   GetClientRect(hWndParent, &rcRect);
 
   hWndEditNew=CreateWindowExA(WS_EX_CLIENTEDGE,
-                              "AkelEditA",
+                              bRichEditClass?AES_RICHEDITCLASSA:AES_AKELEDITCLASSA,
                               NULL,
                               WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL|ES_NOHIDESEL,
                               0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
@@ -467,7 +468,7 @@ HWND CreateEditWindowW(HWND hWndParent)
   GetClientRect(hWndParent, &rcRect);
 
   hWndEditNew=CreateWindowExW(WS_EX_CLIENTEDGE,
-                              L"AkelEditW",
+                              bRichEditClass?AES_RICHEDITCLASSW:AES_AKELEDITCLASSW,
                               NULL,
                               WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL|ES_NOHIDESEL,
                               0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
@@ -3154,6 +3155,7 @@ void ReadOptionsA()
     hHandle=(HANDLE)&hIniStack;
   }
 
+  ReadOptionA(hHandle, "RichEditClass", PO_DWORD, &bRichEditClass, sizeof(DWORD));
   ReadOptionA(hHandle, "WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD));
   ReadOptionA(hHandle, "OnTop", PO_DWORD, &bOnTop, sizeof(DWORD));
   ReadOptionA(hHandle, "StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD));
@@ -3262,6 +3264,7 @@ void ReadOptionsW()
     hHandle=(HANDLE)&hIniStack;
   }
 
+  ReadOptionW(hHandle, L"RichEditClass", PO_DWORD, &bRichEditClass, sizeof(DWORD));
   ReadOptionW(hHandle, L"WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD));
   ReadOptionW(hHandle, L"OnTop", PO_DWORD, &bOnTop, sizeof(DWORD));
   ReadOptionW(hHandle, L"StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD));
@@ -3540,6 +3543,8 @@ BOOL SaveOptionsA()
       goto Error;
   }
 
+  if (!SaveOptionA(hHandle, "RichEditClass", PO_DWORD, &bRichEditClass, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionA(hHandle, "WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "OnTop", PO_DWORD, &bOnTop, sizeof(DWORD)))
@@ -3744,6 +3749,8 @@ BOOL SaveOptionsW()
       goto Error;
   }
 
+  if (!SaveOptionW(hHandle, L"RichEditClass", PO_DWORD, &bRichEditClass, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionW(hHandle, L"WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"OnTop", PO_DWORD, &bOnTop, sizeof(DWORD)))
