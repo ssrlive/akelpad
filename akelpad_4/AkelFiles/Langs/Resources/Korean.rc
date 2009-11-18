@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "모두 저장(&L)\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "페이지 설정(&G)...",          IDM_FILE_PAGESETUP
-        MENUITEM "Pre&view...",                 IDM_FILE_PRINTPREVIEW
+        MENUITEM "미리 보기(&V)...",                 IDM_FILE_PRINTPREVIEW
         MENUITEM "인쇄하기(&P)...\tCtrl+P",     IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "최근 작업파일(&F)"
@@ -110,7 +110,7 @@ BEGIN
         MENUITEM "색상(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "자동 줄바꿈(&W)\tCtrl+U",     IDM_VIEW_WORDWRAP
-        MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "창 나누기(&P)",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "항상 맨 위(&A)\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "상태표시줄(&S)",              IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -391,7 +391,7 @@ BEGIN
                     WS_TABSTOP
     RTEXT           "",IDC_MDILIST_STATS,92,238,89,8
     EDITTEXT        IDC_MDILIST_SEARCH,6,249,178,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
+    DEFPUSHBUTTON   "확인",IDOK,198,10,50,14
     GROUPBOX        "Arrange",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
     PUSHBUTTON      "Horizontal",IDC_MDILIST_HORZ,198,45,50,14
     PUSHBUTTON      "Vertical",IDC_MDILIST_VERT,198,60,50,14
@@ -404,18 +404,18 @@ BEGIN
     PUSHBUTTON      "Close",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Modified *",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,198,249,50,14
+    PUSHBUTTON      "취소",IDCANCEL,198,249,50,14
 END
 
 IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
-CAPTION "Preview"
+CAPTION "미리 보기"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "인쇄하기(&P)...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "Pa&ge...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    PUSHBUTTON      "페이지(&G)...",IDC_PREVIEW_PAGESETUP,62,9,50,14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -438,7 +438,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "대소문자 구분",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "Whole word",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "전체 단어",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
     CONTROL         "특수문자",IDC_SEARCH_ESCAPESEQ,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,54,105,12
@@ -508,11 +508,11 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "줄 번호 이동"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Number:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
+    LTEXT           "번호:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
     EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
-    CONTROL         "Line",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
+    CONTROL         "줄",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
                     40,52,10
-    CONTROL         "Offset",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "위치",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
                     72,40,52,10
     PUSHBUTTON      "확인",IDOK,18,60,50,14,BS_CENTER
     PUSHBUTTON      "취소",IDCANCEL,72,60,50,14,BS_CENTER
@@ -597,7 +597,7 @@ BEGIN
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,161,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "필터",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
-    GROUPBOX        "Default newline",IDC_STATIC,9,190,200,33
+    GROUPBOX        "개행 방식",IDC_STATIC,9,190,200,33
     CONTROL         "Windows",IDC_OPTIONS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,22,205,65,10
     CONTROL         "Unix",IDC_OPTIONS_NEWLINE_UNIX,"Button",
@@ -673,7 +673,7 @@ END
 IDD_OPTIONS_EDITOR DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Editor"
+CAPTION "편집기"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "텍스트 여백",IDC_STATIC,9,6,200,34
@@ -701,32 +701,32 @@ BEGIN
                     11,13
     CONTROL         "자세히",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
-    GROUPBOX        "Wrap",IDC_STATIC,121,46,88,76
-    CONTROL         "By words",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
+    GROUPBOX        "개행",IDC_STATIC,121,46,88,76
+    CONTROL         "단어 단위로",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,133,60,72,10
-    CONTROL         "By symbols",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
+    CONTROL         "기호 단위로",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,133,73,72,10
-    LTEXT           "Limit:",IDC_STATIC,129,91,37,8
+    LTEXT           "한계:",IDC_STATIC,129,91,37,8
     EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,129,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_WRAP_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,151,
                     102,11,13
-    LTEXT           "Marker:",IDC_STATIC,168,91,37,8
+    LTEXT           "표식:",IDC_STATIC,168,91,37,8
     EDITTEXT        IDC_OPTIONS_MARKER,168,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_MARKER_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
                     102,11,13
-    GROUPBOX        "Caret",IDC_STATIC,9,128,200,56
+    GROUPBOX        "캐럿",IDC_STATIC,9,128,200,56
     CONTROL         "커서가 줄 끝을 지나 이동 가능",IDC_OPTIONS_CARETOUTEDGE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,142,185,10
-    CONTROL         "Show active column",IDC_OPTIONS_CARETVERTLINE,"Button",
+    CONTROL         "활성열 보이기",IDC_OPTIONS_CARETVERTLINE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,153,185,10
-    RTEXT           "Width:",IDC_STATIC,116,168,35,8,NOT WS_GROUP
+    RTEXT           "폭:",IDC_STATIC,116,168,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,165,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    GROUPBOX        "Line gap",IDC_STATIC,122,190,87,33
+    GROUPBOX        "줄 간격",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,178,
@@ -760,7 +760,7 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "재설정",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,13,
                     BS_CENTER
-    CONTROL         "Wrap delimiters:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
+    CONTROL         "개행 구분자:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "재설정",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
@@ -900,10 +900,10 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 은 자동로드를 지원하지 않습니다."
     MSG_FUNCTION_NOT_FOUND  """%s""에서 ""%s::%s""을 찾을 수 없습니다."
-    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x isn't supported."
-    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_UPDATE_PROGRAM      "업데이트 AkelPad. \n\n 가능한 최소의 AkelPad 버젼: %d.%d.%d.%d\n현재의 AkelPad 버젼: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x는 지원되지 않습니다."
+    MSG_UPDATE_PLUGIN       "업데이트 %s.\n\nAkelPad 구성: %d.%d.%d.%d\n%s 플러그인 구성: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" 는 AkelPad 플러그인이 아닙니다."
     MSG_UPDATE_LANGMODULE   "Update %s\n\nCurrent version: %d.%d.%d.%d\nRequired version: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "이미 ""%s""에 할당된 단축키입니다."
     MSG_CANNOT_OPEN_FILE    """%s"" 파일을 열 수 없습니다."
@@ -966,22 +966,22 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_ACTIVELINE          "현재 줄"
-    STR_ACTIVECOLUMN        "Active column"
-    STR_COLUMNMARKER        "Column marker"
+    STR_ACTIVECOLUMN        "활성열"
+    STR_COLUMNMARKER        "열 표식"
     STR_CARET               "캐럿"
     STR_URL                 "하이퍼링크"
-    STR_PAGEFIT             "Fit page"
-    STR_PAGEWIDTH           "Page width"
+    STR_PAGEFIT             "페이지 맞추기"
+    STR_PAGEWIDTH           "페이지 폭"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cyrillic (ANSI, OEM, KOI8-R, UTF-8)"
     STR_AUTODETECT_ENGLISH  "Latin (OEM)"
-    STR_AUTODETECT_TURKISH  "Turkish (OEM, UTF-8)"
-    STR_AUTODETECT_CHINESE  "Chinese (UTF-8)"
-    STR_AUTODETECT_JAPANESE "Japanese (UTF-8)"
-    STR_AUTODETECT_KOREAN   "Korean (UTF-8)"
+    STR_AUTODETECT_TURKISH  "터키 (OEM, UTF-8)"
+    STR_AUTODETECT_CHINESE  "중국 (UTF-8)"
+    STR_AUTODETECT_JAPANESE "일본 (UTF-8)"
+    STR_AUTODETECT_KOREAN   "한국 (UTF-8)"
 END
 
 #endif    // Korean resources
