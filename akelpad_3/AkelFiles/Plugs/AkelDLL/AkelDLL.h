@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 4)
+#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 5)
 
 
 //// Defines
@@ -286,7 +286,7 @@ typedef struct _EDITINFO {
   BOOL bModified;             //File has been modified
   BOOL bReadOnly;             //Read only
   BOOL bWordWrap;             //Word wrap
-  BOOL bInsertState;          //Insert mode
+  BOOL bOvertypeMode;         //Overtype mode
 } EDITINFO;
 
 #ifndef __AKELEDIT_H__

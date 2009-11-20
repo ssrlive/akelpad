@@ -227,8 +227,8 @@ extern int nMcstep;
 
 //Edit state
 extern BOOL bModified;
-extern BOOL bInsertState;
-extern BOOL bInsertStateChange;
+extern BOOL bOvertypeMode;
+extern BOOL bOvertypeModeChange;
 extern int nNewLine;
 extern BOOL bWordWrap;
 extern BOOL bOnTop;
@@ -15383,38 +15383,38 @@ void SetNewLineStatusW(HWND hWnd, int nState, BOOL bFirst)
 
 void SetInsertStateStatusA(HWND hWnd, BOOL bState, BOOL bFirst)
 {
-  if (bFirst != TRUE && bInsertState == bState) return;
-  bInsertState=bState;
+  if (bFirst != TRUE && bOvertypeMode == bState) return;
+  bOvertypeMode=bState;
 
   if (hWnd)
   {
     if (GetKeyState(VK_SHIFT) >= 0 && GetKeyState(VK_CONTROL) >= 0 && GetKeyState(VK_MENU) >= 0)
     {
-      bInsertStateChange=TRUE;
+      bOvertypeModeChange=TRUE;
       SendMessage(hWnd, WM_KEYDOWN, VK_INSERT, 0x00520001);
       SendMessage(hWnd, WM_KEYUP, VK_INSERT, 0xC0520001);
     }
     else return;
   }
-  SendMessage(hStatus, SB_SETTEXTA, STATUS_INSERT, (LPARAM)(bInsertState?"Ovr":"Ins"));
+  SendMessage(hStatus, SB_SETTEXTA, STATUS_INSERT, (LPARAM)(bOvertypeMode?"Ovr":"Ins"));
 }
 
 void SetInsertStateStatusW(HWND hWnd, BOOL bState, BOOL bFirst)
 {
-  if (bFirst != TRUE && bInsertState == bState) return;
-  bInsertState=bState;
+  if (bFirst != TRUE && bOvertypeMode == bState) return;
+  bOvertypeMode=bState;
 
   if (hWnd)
   {
     if (GetKeyState(VK_SHIFT) >= 0 && GetKeyState(VK_CONTROL) >= 0 && GetKeyState(VK_MENU) >= 0)
     {
-      bInsertStateChange=TRUE;
+      bOvertypeModeChange=TRUE;
       SendMessage(hWnd, WM_KEYDOWN, VK_INSERT, 0x00520001);
       SendMessage(hWnd, WM_KEYUP, VK_INSERT, 0xC0520001);
     }
     else return;
   }
-  SendMessage(hStatus, SB_SETTEXTW, STATUS_INSERT, (LPARAM)(bInsertState?L"Ovr":L"Ins"));
+  SendMessage(hStatus, SB_SETTEXTW, STATUS_INSERT, (LPARAM)(bOvertypeMode?L"Ovr":L"Ins"));
 }
 
 void SetCodePageStatusA(int nCodePage, BOOL bBOM, BOOL bFirst)
