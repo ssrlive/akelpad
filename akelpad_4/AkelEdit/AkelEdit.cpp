@@ -2866,7 +2866,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               lResult=DefWindowProcA(hWnd, uMsg, wParam, lParam);
             else
               lResult=DefWindowProcW(hWnd, uMsg, wParam, lParam);
-            AE_UpdateCompositionPos(ae, NULL);
+            AE_UpdateCompositionPos(ae, 0);
             return lResult;
           }
         }
@@ -2875,16 +2875,13 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (uMsg == WM_IME_ENDCOMPOSITION)
     {
     }
-    else if (uMsg == WM_IME_REQUEST)
-    {
-    }
     else if (uMsg == WM_IME_NOTIFY)
     {
       if (PRIMARYLANGID(ae->dwInputLocale) == LANG_KOREAN)
       {
         if (wParam == IMN_OPENCANDIDATE)
         {
-          AE_UpdateCandidatePos(ae, NULL);
+          AE_UpdateCandidatePos(ae, 0);
         }
       }
     }
