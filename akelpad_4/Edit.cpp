@@ -298,6 +298,7 @@ extern BOOL bKeepSpace;
 extern int nSelSubtract;
 extern int nLoopCase;
 extern DWORD dwEditMargins;
+extern BOOL bMarginSelection;
 extern int nTabStopSize;
 extern BOOL bTabStopAsSpaces;
 extern int nUndoLimit;
@@ -403,6 +404,7 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SendMessage(hWndEditNew, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
@@ -483,6 +485,7 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SendMessage(hWndEditNew, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
@@ -3190,6 +3193,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD));
   ReadOptionA(hHandle, "TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD));
   ReadOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
+  ReadOptionA(hHandle, "MarginSelection", PO_DWORD, &bMarginSelection, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT));
   ReadOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT));
@@ -3299,6 +3303,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD));
   ReadOptionW(hHandle, L"TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD));
   ReadOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
+  ReadOptionW(hHandle, L"MarginSelection", PO_DWORD, &bMarginSelection, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT));
   ReadOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT));
@@ -3613,6 +3618,8 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD)))
     goto Error;
+  if (!SaveOptionA(hHandle, "MarginSelection", PO_DWORD, &bMarginSelection, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT)))
@@ -3818,6 +3825,8 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"MarginSelection", PO_DWORD, &bMarginSelection, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD)))
     goto Error;
@@ -17974,6 +17983,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 {
   static HWND hWndMarginLeft;
   static HWND hWndMarginLeftSpin;
+  static HWND hWndMarginSelection;
   static HWND hWndMarginRight;
   static HWND hWndMarginRightSpin;
   static HWND hWndTabSize;
@@ -17999,6 +18009,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   {
     hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
     hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
+    hWndMarginSelection=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_SELECTION);
     hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
     hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
     hWndTabSize=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE);
@@ -18046,6 +18057,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
+    if (bMarginSelection)
+      SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
     if (bTabStopAsSpaces)
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
     if (bDetailedUndo)
@@ -18075,6 +18088,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
         InvalidateRect(hWndEdit, NULL, TRUE);
       }
+      bMarginSelection=SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
 
       //Tab stops
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);
@@ -18167,6 +18182,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 {
   static HWND hWndMarginLeft;
   static HWND hWndMarginLeftSpin;
+  static HWND hWndMarginSelection;
   static HWND hWndMarginRight;
   static HWND hWndMarginRightSpin;
   static HWND hWndTabSize;
@@ -18192,6 +18208,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   {
     hWndMarginLeft=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT);
     hWndMarginLeftSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_LEFT_SPIN);
+    hWndMarginSelection=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_SELECTION);
     hWndMarginRight=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT);
     hWndMarginRightSpin=GetDlgItem(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN);
     hWndTabSize=GetDlgItem(hDlg, IDC_OPTIONS_TABSIZE);
@@ -18239,6 +18256,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
+    if (bMarginSelection)
+      SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
     if (bTabStopAsSpaces)
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
     if (bDetailedUndo)
@@ -18268,6 +18287,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
         InvalidateRect(hWndEdit, NULL, TRUE);
       }
+      bMarginSelection=SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
 
       //Tab stops
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);

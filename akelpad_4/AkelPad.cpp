@@ -327,6 +327,7 @@ int nSelSubtract=0;
 int nLoopCase=0;
 RECT rcEditWindow={0};
 DWORD dwEditMargins=EDIT_MARGINS;
+BOOL bMarginSelection=TRUE;
 int nTabStopSize=EDIT_TABSTOPS;
 BOOL bTabStopAsSpaces=FALSE;
 int nUndoLimit=EDIT_UNDOLIMIT;
