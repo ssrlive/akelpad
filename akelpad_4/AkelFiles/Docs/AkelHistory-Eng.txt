@@ -1,5 +1,5 @@
 
-AkelPad 4.3.5 ()
+AkelPad 4.3.6 ()
 ----------------------------
 Changed: syntax highlighting improved.
 
@@ -8,6 +8,8 @@ Added: check for language modules and program compatibility. Now the language mo
 Added: "RichEditClass" parameter - defines edit control class name:
          0  "AkelEdit" (by default)
          1  "RichEdit20"
+
+Fixed: work with Input Method Editors (IME).
 
 
 AkelPad 4.3.5 (Nov 01, 2009)

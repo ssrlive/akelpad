@@ -2756,64 +2756,40 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (uMsg == WM_IME_STARTCOMPOSITION)
     {
+      HIMC hImc;
+
       if (PRIMARYLANGID(ae->dwInputLocale) == LANG_KOREAN)
         return 0;
 
-      if (!ae->bUnicodeWindow)
+      if (hImc=ImmGetContext(ae->hWndEdit))
       {
-        COMPOSITIONFORM cf;
-        LOGFONTA lfA;
-        HIMC hIMC;
+        AE_UpdateCompositionPos(ae, hImc);
+        if (!ae->bUnicodeWindow)
+          ImmSetCompositionFontA(hImc, &ae->ptxt->lfFontA);
+        else
+          ImmSetCompositionFontW(hImc, &ae->ptxt->lfFontW);
 
-        if (hIMC=ImmGetContext(ae->hWndEdit))
-        {
-          cf.dwStyle=CFS_POINT;
-          AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
-          ImmSetCompositionWindow(hIMC, &cf);
-
-          GetObjectA(ae->ptxt->hFont, sizeof(LOGFONTA), &lfA);
-          ImmSetCompositionFontA(hIMC, &lfA);
-
-          ImmReleaseContext(ae->hWndEdit, hIMC);
-        }
-      }
-      else
-      {
-        COMPOSITIONFORM cf;
-        LOGFONTW lfW;
-        HIMC hIMC;
-
-        if (hIMC=ImmGetContext(ae->hWndEdit))
-        {
-          cf.dwStyle=CFS_POINT;
-          AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
-          ImmSetCompositionWindow(hIMC, &cf);
-
-          GetObjectW(ae->ptxt->hFont, sizeof(LOGFONTW), &lfW);
-          ImmSetCompositionFontW(hIMC, &lfW);
-
-          ImmReleaseContext(ae->hWndEdit, hIMC);
-        }
+        ImmReleaseContext(ae->hWndEdit, hImc);
       }
     }
     else if (uMsg == WM_IME_COMPOSITION)
     {
-      if (PRIMARYLANGID(ae->dwInputLocale) == LANG_KOREAN)
+      if (!AE_IsReadOnly(ae))
       {
-        if (!AE_IsReadOnly(ae))
+        if (PRIMARYLANGID(ae->dwInputLocale) == LANG_KOREAN)
         {
           AECHARINDEX ciSelStart;
           wchar_t wszCompStr[2];
-          HIMC hIMC;
+          HIMC hImc;
           int nStrLen;
 
-          if (hIMC=ImmGetContext(ae->hWndEdit))
+          if (hImc=ImmGetContext(ae->hWndEdit))
           {
             if (lParam & GCS_RESULTSTR)
             {
               ae->ptxt->bLockGroupStopInt=TRUE;
 
-              if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
+              if ((nStrLen=ImmGetCompositionStringW(hImc, GCS_RESULTSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
               {
                 if ((DWORD)nStrLen > sizeof(wchar_t) || wszCompStr[0] != ae->dwImeChar)
                 {
@@ -2836,7 +2812,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 }
               }
 
-              if ((nStrLen=ImmGetCompositionStringW(hIMC, GCS_COMPSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
+              if ((nStrLen=ImmGetCompositionStringW(hImc, GCS_COMPSTR, wszCompStr, 2 * sizeof(wchar_t))) > 0)
               {
                 AE_EditChar(ae, wszCompStr[0], TRUE);
                 ae->dwImeChar=wszCompStr[0];
@@ -2855,7 +2831,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 if (wParam != ae->dwImeChar)
                 {
-                  if (ImmGetCompositionStringW(hIMC, GCS_RESULTSTR, NULL, 0) <= 0)
+                  if (ImmGetCompositionStringW(hImc, GCS_RESULTSTR, NULL, 0) <= 0)
                   {
                     AE_EditChar(ae, wParam, TRUE);
                     ae->dwImeChar=wParam;
@@ -2876,13 +2852,30 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                   AE_SetModify(ae, !ae->ptxt->bModified);
               }
             }
-            ImmReleaseContext(ae->hWndEdit, hIMC);
+            ImmReleaseContext(ae->hWndEdit, hImc);
           }
           return 0;
+        }
+        else
+        {
+          if (lParam & GCS_RESULTSTR)
+          {
+            LRESULT lResult;
+
+            if (!ae->bUnicodeWindow)
+              lResult=DefWindowProcA(hWnd, uMsg, wParam, lParam);
+            else
+              lResult=DefWindowProcW(hWnd, uMsg, wParam, lParam);
+            AE_UpdateCompositionPos(ae, NULL);
+            return lResult;
+          }
         }
       }
     }
     else if (uMsg == WM_IME_ENDCOMPOSITION)
+    {
+    }
+    else if (uMsg == WM_IME_REQUEST)
     {
     }
     else if (uMsg == WM_IME_NOTIFY)
@@ -2891,7 +2884,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (wParam == IMN_OPENCANDIDATE)
         {
-          AE_UpdateCandidatePos(ae);
+          AE_UpdateCandidatePos(ae, NULL);
         }
       }
     }
@@ -2902,26 +2895,37 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (wParam == VK_HANJA)
         {
           AECHARRANGE crSel;
-          HIMC hIMC;
+          HIMC hImc;
 
-          if (hIMC=ImmGetContext(ae->hWndEdit))
+          if (hImc=ImmGetContext(ae->hWndEdit))
           {
             AE_GetIndex(ae, AEGI_NEXTCHAR, &ae->ciSelStartIndex, &crSel.ciMax, FALSE);
             AE_GetIndex(ae, AEGI_PREVCHAR, &crSel.ciMax, &crSel.ciMin, FALSE);
             ae->dwImeChar=*(crSel.ciMin.lpLine->wpLine + crSel.ciMin.nCharInLine);
 
-            if (ImmEscapeW((HKL)ae->dwInputLocale, hIMC, IME_ESC_HANJA_MODE, &ae->dwImeChar))
+            if (ImmEscapeW((HKL)ae->dwInputLocale, hImc, IME_ESC_HANJA_MODE, &ae->dwImeChar))
             {
               AE_SetSelectionPos(ae, &crSel.ciMax, &crSel.ciMin, FALSE, 0);
-              AE_UpdateCandidatePos(ae);
+              AE_UpdateCandidatePos(ae, hImc);
             }
-            ImmReleaseContext(ae->hWndEdit, hIMC);
+            ImmReleaseContext(ae->hWndEdit, hImc);
           }
         }
       }
     }
     else if (uMsg == WM_IME_CHAR)
     {
+      if (!AE_IsReadOnly(ae))
+      {
+        if (!ae->bUnicodeWindow)
+        {
+          if (HIBYTE(wParam))
+            AE_EditChar(ae, HIBYTE(wParam), FALSE);
+          AE_EditChar(ae, LOBYTE(wParam), FALSE);
+        }
+        else AE_EditChar(ae, wParam, TRUE);
+      }
+      return 0;
     }
     else if (uMsg == WM_HSCROLL)
     {
@@ -14386,20 +14390,35 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   return dwCount;
 }
 
-void AE_UpdateCandidatePos(AKELEDIT *ae)
+void AE_UpdateCompositionPos(AKELEDIT *ae, HIMC hImc)
+{
+  COMPOSITIONFORM cf;
+  HIMC hImcCur=hImc;
+
+  if (hImcCur || (hImcCur=ImmGetContext(ae->hWndEdit)))
+  {
+    cf.dwStyle=CFS_POINT;
+    AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
+    ImmSetCompositionWindow(hImcCur, &cf);
+
+    if (!hImc) ImmReleaseContext(ae->hWndEdit, hImcCur);
+  }
+}
+
+void AE_UpdateCandidatePos(AKELEDIT *ae, HIMC hImc)
 {
   CANDIDATEFORM cf;
-  HIMC hIMC;
+  HIMC hImcCur=hImc;
 
-  if (hIMC=ImmGetContext(ae->hWndEdit))
+  if (hImcCur || (hImcCur=ImmGetContext(ae->hWndEdit)))
   {
     cf.dwIndex=0;
     cf.dwStyle=CFS_CANDIDATEPOS;
     AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
     cf.ptCurrentPos.y+=ae->ptxt->nCharHeight;
-    ImmSetCandidateWindow(hIMC, &cf);
+    ImmSetCandidateWindow(hImcCur, &cf);
 
-    ImmReleaseContext(ae->hWndEdit, hIMC);
+    if (!hImc) ImmReleaseContext(ae->hWndEdit, hImcCur);
   }
 }
 
