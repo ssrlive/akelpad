@@ -8,6 +8,7 @@ Added: check for language modules and program compatibility. Now the language mo
 Added: "RichEditClass" parameter - defines edit control class name:
          0  "AkelEdit" (by default)
          1  "RichEdit20"
+Added: option to turn off the selection by pressing on left mouse button in left margin.
 
 Fixed: work with Input Method Editors (IME).
 
