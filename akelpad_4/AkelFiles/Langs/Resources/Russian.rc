@@ -677,16 +677,16 @@ CAPTION "Редактор"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Отступ текста",IDC_STATIC,9,6,200,34
-    RTEXT           "Слева:",IDC_STATIC,12,23,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,51,20,21,13,ES_NUMBER
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,18,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_LEFT_SPIN,"msctls_updown32",
-                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,73,20,
+                    UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,20,
                     11,13
-    RTEXT           "Справа:",IDC_STATIC,117,23,35,8,NOT WS_GROUP
-    EDITTEXT        IDC_OPTIONS_EDITMARGIN_RIGHT,156,20,21,13,ES_NUMBER
+    CONTROL         "Выделение",IDC_OPTIONS_EDITMARGIN_SELECTION,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,58,22,100,10
+    EDITTEXT        IDC_OPTIONS_EDITMARGIN_RIGHT,168,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
-                    UDS_NOTHOUSANDS,177,20,11,13
+                    UDS_NOTHOUSANDS,190,20,11,13
     GROUPBOX        "Размер табуляции",IDC_STATIC,9,46,105,34
     EDITTEXT        IDC_OPTIONS_TABSIZE,18,60,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_TABSIZE_SPIN,"msctls_updown32",
@@ -810,7 +810,7 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION AKELPAD_ID
+ FILEVERSION 4,3,6,0
  PRODUCTVERSION 0,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
@@ -934,11 +934,11 @@ BEGIN
     MSG_LONG_FILELIST       "Выбрано слишком много файлов."
     MSG_DOCUMENT_CHANGED    "Документ был изменён. Сохранить?"
     MSG_FILE_DOES_NOT_EXIST "Создать новый файл ""%s""?"
-    MSG_RECENTFILES_DELETED "Удалено записей: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Удалено записей: %d"
     MSG_SEARCH_ENDED        "Поиск завершен."
     MSG_REPLACE_COUNT       "Количество замен: %d"
     MSG_REPLACE_COUNT_ALLFILES "Измененных файлов: %d\nКоличество замен: %d"
