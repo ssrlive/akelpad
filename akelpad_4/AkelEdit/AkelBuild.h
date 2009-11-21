@@ -701,9 +701,11 @@ BOOL AE_GetCharRangeInLine(AKELEDIT *ae, AELINEDATA *lpLine, int nMinExtent, int
 int AE_GetCharFromPos(AKELEDIT *ae, const POINT *ptClientPos, AECHARINDEX *ciCharIndex, POINT *ptGlobalPos, BOOL bColumnSel);
 int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNextBreak, BOOL bColumnSel, DWORD dwFlags);
 int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrevBreak, BOOL bColumnSel, DWORD dwFlags);
+BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar);
 BOOL AE_IsFirstCharInLine(const AECHARINDEX *ciChar);
 BOOL AE_IsLastCharInLine(const AECHARINDEX *ciChar);
-BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar);
+BOOL AE_IsSpacesFromLeft(const AECHARINDEX *ciChar);
+BOOL AE_IsSpacesFromRight(const AECHARINDEX *ciChar);
 BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape);
 BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType);
 BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c, BOOL bMatchCase);

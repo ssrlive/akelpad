@@ -5435,7 +5435,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
 
-    if (ciCharTmp.nCharInLine >= ciCharTmp.lpLine->nLineLen)
+    if (ciCharTmp.nCharInLine >= ciCharTmp.lpLine->nLineLen - 1)
     {
       if (ciCharTmp.lpLine->nLineBreak != AELB_WRAP)
       {
@@ -7583,9 +7583,12 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
+  AECHARINDEX ciTmpCount;
+  AECHARRANGE crTmpQuoteStart;
   AEQUOTEITEMW *lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first;
   AEDELIMITEMW *lpDelimiterElement=NULL;
   int nQuoteLen=0;
+  int nTmpQuoteLen;
 
   qm->lpQuote=NULL;
   if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen) return 0;
@@ -7620,64 +7623,59 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
           for (lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first; lpQuoteElement; lpQuoteElement=lpQuoteElement->next)
           {
-            if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART) || AE_IsFirstCharInLine(&ciCount))
+            //Quote start
+            if (lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
             {
-              //Quote start
-              if (lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
+              if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE)) || AE_IsFirstCharInLine(&ciCount))
               {
-                if ((lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE)) || AE_IsFirstCharInLine(&ciCount))
+                if (lpDelimiterElement)
                 {
-                  if (lpDelimiterElement)
-                  {
-                    ciCount=ft.crFound.ciMax;
-                    nQuoteLen=lpDelimiterElement->nDelimiterLen;
-                    qm->crQuoteStart=ft.crFound;
-                  }
-                  else
-                  {
-                    ciCount=ciCount;
-                    nQuoteLen=0;
-                    qm->crQuoteStart.ciMin=ciCount;
-                    qm->crQuoteStart.ciMax=ciCount;
-                  }
-                  qm->lpQuote=lpQuoteElement;
-                  goto Begin;
+                  ciTmpCount=ft.crFound.ciMax;
+                  nTmpQuoteLen=lpDelimiterElement->nDelimiterLen;
+                  crTmpQuoteStart=ft.crFound;
+                }
+                else
+                {
+                  ciTmpCount=ciCount;
+                  nTmpQuoteLen=0;
+                  crTmpQuoteStart.ciMin=ciCount;
+                  crTmpQuoteStart.ciMax=ciCount;
+                }
+                goto CheckQuoteStart;
+              }
+            }
+            else
+            {
+              if (!lpQuoteElement->pQuoteStart || !*lpQuoteElement->pQuoteStart)
+              {
+                if (AE_IsFirstCharInLine(&ciCount))
+                {
+                  //Quote start is empty == ""
+                  ciTmpCount=ciCount;
+                  nTmpQuoteLen=0;
+                  crTmpQuoteStart.ciMin=ciCount;
+                  crTmpQuoteStart.ciMax=ciCount;
+                  goto CheckQuoteStart;
                 }
               }
               else
               {
-                if (!lpQuoteElement->pQuoteStart || !*lpQuoteElement->pQuoteStart)
-                {
-                  if (AE_IsFirstCharInLine(&ciCount))
-                  {
-                    //Quote start is empty == ""
-                    nQuoteLen=0;
-                    qm->crQuoteStart.ciMin=ciCount;
-                    qm->crQuoteStart.ciMax=ciCount;
-                    qm->lpQuote=lpQuoteElement;
-                    goto Begin;
-                  }
-                }
-                else
-                {
-                  ft.pText=lpQuoteElement->pQuoteStart;
-                  ft.dwTextLen=lpQuoteElement->nQuoteStartLen;
-                  ft.dwFlags=(lpQuoteElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
+                ft.pText=lpQuoteElement->pQuoteStart;
+                ft.dwTextLen=lpQuoteElement->nQuoteStartLen;
+                ft.dwFlags=(lpQuoteElement->dwFlags & AEHLF_MATCHCASE)?AEFR_MATCHCASE:0;
 
-                  if (AE_IsMatch(ae, &ft, &ciCount))
+                if (AE_IsMatch(ae, &ft, &ciCount))
+                {
+                  if (!AE_IsEscaped(&ciCount, lpQuoteElement->wchEscape))
                   {
-                    if (!AE_IsEscaped(&ciCount, lpQuoteElement->wchEscape))
+                    if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ISWORD) ||
+                        ((AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMax, FALSE) || AE_IsLastCharInLine(&ft.crFound.ciMax)) &&
+                         (AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMin, TRUE) || AE_IsFirstCharInLine(&ft.crFound.ciMin))))
                     {
-                      if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ISWORD) ||
-                          ((AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMax, FALSE) || AE_IsLastCharInLine(&ft.crFound.ciMax)) &&
-                           (AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMin, TRUE) || AE_IsFirstCharInLine(&ft.crFound.ciMin))))
-                      {
-                        ciCount=ft.crFound.ciMax;
-                        nQuoteLen=lpQuoteElement->nQuoteStartLen;
-                        qm->crQuoteStart=ft.crFound;
-                        qm->lpQuote=lpQuoteElement;
-                        goto Begin;
-                      }
+                      ciTmpCount=ft.crFound.ciMax;
+                      nTmpQuoteLen=lpQuoteElement->nQuoteStartLen;
+                      crTmpQuoteStart=ft.crFound;
+                      goto CheckQuoteStart;
                     }
                   }
                 }
@@ -7685,11 +7683,23 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             }
             continue;
 
+            CheckQuoteStart:
+            if (lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART)
+            {
+              if (!AE_IsSpacesFromLeft(&crTmpQuoteStart.ciMin))
+                continue;
+            }
+            ciCount=ciTmpCount;
+            nQuoteLen=nTmpQuoteLen;
+            qm->crQuoteStart=crTmpQuoteStart;
+            qm->lpQuote=lpQuoteElement;
+            goto Begin;
+
             QuoteStartNext:
-            qm->crQuoteStart.ciMax=qm->crQuoteStart.ciMin;
-            qm->crQuoteEnd=qm->crQuoteStart;
             ciCount=qm->crQuoteStart.ciMin;
             nQuoteLen=0;
+            qm->crQuoteStart.ciMax=qm->crQuoteStart.ciMin;
+            qm->crQuoteEnd=qm->crQuoteStart;
             qm->lpQuote=NULL;
           }
           if (dwSearchType & AEHF_ISFIRSTCHAR)
@@ -7803,8 +7813,11 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     SetQuote:
     if (qm->lpQuote)
     {
-      if ((qm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND) && !AE_IsLastCharInLine(&ciCount))
-        goto QuoteStartNext;
+      if (qm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND)
+      {
+        if (!AE_IsSpacesFromRight(&qm->crQuoteEnd.ciMax))
+          goto QuoteStartNext;
+      }
 
       if (dwSearchType & AEHF_FINDFIRSTCHAR)
       {
@@ -11305,6 +11318,13 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
   return 0;
 }
 
+BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar)
+{
+  if (ciChar->lpLine->nSelStart <= ciChar->nCharInLine && ciChar->nCharInLine < ciChar->lpLine->nSelEnd)
+    return TRUE;
+  return FALSE;
+}
+
 BOOL AE_IsFirstCharInLine(const AECHARINDEX *ciChar)
 {
   if (ciChar->nCharInLine == 0 && (!ciChar->lpLine->prev || ciChar->lpLine->prev->nLineBreak != AELB_WRAP))
@@ -11319,11 +11339,40 @@ BOOL AE_IsLastCharInLine(const AECHARINDEX *ciChar)
   return FALSE;
 }
 
-BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar)
+BOOL AE_IsSpacesFromLeft(const AECHARINDEX *ciChar)
 {
-  if (ciChar->lpLine->nSelStart <= ciChar->nCharInLine && ciChar->nCharInLine < ciChar->lpLine->nSelEnd)
+  AECHARINDEX ciCount=*ciChar;
+  wchar_t wchChar;
+
+  if (AE_IsFirstCharInLine(&ciCount))
     return TRUE;
-  return FALSE;
+
+  while (AE_GetIndex(NULL, AEGI_PREVCHARINLINE, &ciCount, &ciCount, FALSE))
+  {
+    wchChar=*(ciCount.lpLine->wpLine + ciCount.nCharInLine);
+    if (wchChar != L' ' && wchChar != L'\t')
+      return FALSE;
+  }
+  return TRUE;
+}
+
+BOOL AE_IsSpacesFromRight(const AECHARINDEX *ciChar)
+{
+  AECHARINDEX ciCount=*ciChar;
+  wchar_t wchChar;
+
+  if (AE_IsLastCharInLine(&ciCount))
+    return TRUE;
+
+  do
+  {
+    wchChar=*(ciCount.lpLine->wpLine + ciCount.nCharInLine);
+    if (wchChar != L' ' && wchChar != L'\t')
+      return FALSE;
+  }
+  while (AE_GetIndex(NULL, AEGI_NEXTCHARINLINE, &ciCount, &ciCount, FALSE));
+
+  return TRUE;
 }
 
 BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape)
