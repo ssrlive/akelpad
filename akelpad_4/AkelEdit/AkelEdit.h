@@ -234,8 +234,8 @@
 #define AEHLF_QUOTEEND_NOHIGHLIGHT   0x0040  //Don't highlight quote end string.
 #define AEHLF_QUOTESTART_NOMATCH     0x0080  //Don't match and don't highlight quote start string.
 #define AEHLF_QUOTEEND_NOMATCH       0x0100  //Don't match and don't highlight quote end string.
-#define AEHLF_QUOTESTART_ATLINESTART 0x0200  //Quote start located at line start.
-#define AEHLF_QUOTEEND_ATLINEEND     0x0400  //Quote end located at line end.
+#define AEHLF_ATLINESTART            0x0200  //Quote start, delimiter or word located at line start.
+#define AEHLF_ATLINEEND              0x0400  //Quote end, delimiter or word located at line end.
 #define AEHLF_QUOTESTART_ISWORD      0x0800  //Quote start is surrounded with delimiters.
 #define AEHLF_QUOTEEND_ISWORD        0x1000  //Quote end is surrounded with delimiters.
 #define AEHLF_QUOTEWITHOUTDELIMITERS 0x2000  //Quote doesn't contain delimiters.
