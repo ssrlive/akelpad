@@ -200,25 +200,25 @@ BEGIN
     END
     POPUP "CodepagePopup"
     BEGIN
-        POPUP "Open As"
+        POPUP "다른 코드페이지로 열기"
         BEGIN
             MENUITEM "_",                           IDM_POPUP_OPENAS
         END
         MENUITEM SEPARATOR
-        POPUP "Save As"
+        POPUP "다른 코드페이지로 저장"
         BEGIN
             MENUITEM "_",                           IDM_POPUP_SAVEAS
         END
         MENUITEM SEPARATOR
-        MENUITEM "Redetect",                    IDM_NONMENU_REDETECT
+        MENUITEM "인코딩 다시 검사",            IDM_NONMENU_REDETECT
     END
     POPUP "HeadlinePopup"
     BEGIN
-        MENUITEM "페이지 번호[first page]\t%n[1]", 
+        MENUITEM "페이지 번호[첫 페이지]\t%n[1]", 
                                                 IDM_POPUP_HEADLINE_PAGE_NUMBER
 
         MENUITEM "파일 이름\t%f",               IDM_POPUP_HEADLINE_FILE_NAME
-        MENUITEM "Symbol %\t%%",                IDM_POPUP_HEADLINE_SYMBOL
+        MENUITEM "기호 %\t%%",                  IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
         MENUITEM "중간 정렬\t%c",               IDM_POPUP_HEADLINE_ALIGN_CENTER
 
@@ -388,7 +388,7 @@ END
 
 IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 270
 STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Select Window"
+CAPTION "창 선택"
 FONT 8, "MS Shell Dlg"
 BEGIN
     LISTBOX         IDC_MDILIST_LIST,6,9,178,226,LBS_SORT | 
@@ -397,16 +397,16 @@ BEGIN
     RTEXT           "",IDC_MDILIST_STATS,92,238,89,8
     EDITTEXT        IDC_MDILIST_SEARCH,6,249,178,14,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "확인",IDOK,198,10,50,14
-    GROUPBOX        "Arrange",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
-    PUSHBUTTON      "Horizontal",IDC_MDILIST_HORZ,198,45,50,14
-    PUSHBUTTON      "Vertical",IDC_MDILIST_VERT,198,60,50,14
-    GROUPBOX        "Tabs",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    GROUPBOX        "배열",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    PUSHBUTTON      "수평 배열",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "수직 배열",IDC_MDILIST_VERT,198,60,50,14
+    GROUPBOX        "문서 선택기",IDC_MDILIST_TABS_GROUP,191,86,64,72
     PUSHBUTTON      "위",IDC_MDILIST_UP,198,100,50,14
     PUSHBUTTON      "아래",IDC_MDILIST_DOWN,198,115,50,14
-    PUSHBUTTON      "Sort",IDC_MDILIST_SORT,198,138,50,14
-    GROUPBOX        "Files",IDC_MDILIST_FILES_GROUP,191,163,64,72
+    PUSHBUTTON      "정렬",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "파일들",IDC_MDILIST_FILES_GROUP,191,163,64,72
     PUSHBUTTON      "저장",IDC_MDILIST_SAVE,198,177,50,14
-    PUSHBUTTON      "Close",IDC_MDILIST_CLOSE,198,192,50,14
+    PUSHBUTTON      "닫기",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "수정됨",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
     PUSHBUTTON      "취소",IDCANCEL,198,249,50,14
@@ -868,7 +868,7 @@ BEGIN
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x는 지원되지 않습니다."
     MSG_UPDATE_PLUGIN       "업데이트 %s.\n\nAkelPad 구성: %d.%d.%d.%d\n%s 플러그인 구성: %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" 는 AkelPad 플러그인이 아닙니다."
-    MSG_UPDATE_LANGMODULE   "Update %s\n\nCurrent version: %d.%d.%d.%d\nRequired version: %d.%d.%d.%d"
+    MSG_UPDATE_LANGMODULE   "업데이트 %s\n\n현재 버젼: %d.%d.%d.%d\n필요한 버젼: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "이미 ""%s""에 할당된 단축키입니다."
     MSG_CANNOT_OPEN_FILE    """%s"" 파일을 열 수 없습니다."
     MSG_WRONG_STRING        "줄번호가 올바르지 않습니다."
@@ -909,8 +909,8 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN              "Plugin"
-    STR_FUNCTION            "Function"
+    STR_PLUGIN              "플러그인"
+    STR_FUNCTION            "기능"
     STR_HOTKEY              "단축키"
     STR_STATUS              "상태"
     STR_RUNNING             "실행중"
@@ -941,7 +941,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     STR_AUTODETECT_RUSSIAN  "Cyrillic (ANSI, OEM, KOI8-R, UTF-8)"
-    STR_AUTODETECT_ENGLISH  "Latin (OEM)"
+    STR_AUTODETECT_ENGLISH  "라틴어 (OEM)"
     STR_AUTODETECT_TURKISH  "터키 (OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "중국 (UTF-8)"
     STR_AUTODETECT_JAPANESE "일본 (UTF-8)"
