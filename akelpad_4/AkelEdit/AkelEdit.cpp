@@ -7684,7 +7684,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             continue;
 
             CheckQuoteStart:
-            if (lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ATLINESTART)
+            if (lpQuoteElement->dwFlags & AEHLF_ATLINESTART)
             {
               if (!AE_IsSpacesFromLeft(&crTmpQuoteStart.ciMin))
                 continue;
@@ -7813,7 +7813,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     SetQuote:
     if (qm->lpQuote)
     {
-      if (qm->lpQuote->dwFlags & AEHLF_QUOTEEND_ATLINEEND)
+      if (qm->lpQuote->dwFlags & AEHLF_ATLINEEND)
       {
         if (!AE_IsSpacesFromRight(&qm->crQuoteEnd.ciMax))
           goto QuoteStartNext;
@@ -7888,11 +7888,23 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
         //Is delimiter
         if (lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE))
         {
+          if (lpDelimiterElement->dwFlags & AEHLF_ATLINESTART)
+          {
+            if (!AE_IsSpacesFromLeft(&ft.crFound.ciMin))
+              goto PrevChar;
+          }
+          if (lpDelimiterElement && lpDelimiterElement->dwFlags & AEHLF_ATLINEEND)
+          {
+            if (!AE_IsSpacesFromRight(&ft.crFound.ciMax))
+              goto PrevChar;
+          }
           wm->lpDelim1=lpDelimiterElement;
           wm->crDelim1=ft.crFound;
           nWordLen=max(nWordLen - wm->lpDelim1->nDelimiterLen, 0);
           goto FindWordEnding;
         }
+
+        PrevChar:
         if (AE_IndexCompare(&ciCount, &wm->crDelim2.ciMax) <= 0)
           goto SetEmptyFirstDelim;
         if (dwSearchType & AEHF_ISFIRSTCHAR)
@@ -7935,6 +7947,16 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
         //Is delimiter
         if (lpDelimiterElement=AE_HighlightIsDelimiter(ae, &ft, &ciCount, FALSE))
         {
+          if (lpDelimiterElement->dwFlags & AEHLF_ATLINESTART)
+          {
+            if (!AE_IsSpacesFromLeft(&ft.crFound.ciMin))
+              goto NextChar;
+          }
+          if (lpDelimiterElement->dwFlags & AEHLF_ATLINEEND)
+          {
+            if (!AE_IsSpacesFromRight(&ft.crFound.ciMax))
+              goto NextChar;
+          }
           if (!nWordLen)
           {
             wm->crDelim2.ciMin=wm->crDelim1.ciMax;
@@ -7947,10 +7969,11 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           }
           goto SetWord;
         }
+
+        NextChar:
         nWordLen+=AE_IndexLen(&ciCount);
         if (nWordLen > AEMAX_WORD_LENGTH)
           return 0;
-
         AE_IndexInc(&ciCount);
       }
 
@@ -8042,7 +8065,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
             }
           }
           if (!AE_IndexCompare(&ciCount, &crWord->ciMax))
-            return lpWordElement;
+            goto CheckWord;
         }
       }
       else break;
@@ -8064,7 +8087,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
 
         if (AE_IsMatch(ae, ft, &crWord->ciMin))
         {
-          return lpWordElement;
+          goto CheckWord;
         }
       }
       else break;
@@ -8073,6 +8096,19 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
     }
   }
   return NULL;
+
+  CheckWord:
+  if (lpWordElement->dwFlags & AEHLF_ATLINESTART)
+  {
+    if (!AE_IsSpacesFromLeft(&crWord->ciMin))
+      return NULL;
+  }
+  if (lpWordElement->dwFlags & AEHLF_ATLINEEND)
+  {
+    if (!AE_IsSpacesFromRight(&crWord->ciMax))
+      return NULL;
+  }
+  return lpWordElement;
 }
 
 AETHEMEITEMW* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName)
