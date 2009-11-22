@@ -384,7 +384,7 @@ END
 
 IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 270
 STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Select Window"
+CAPTION "Seleccionar ventana"
 FONT 8, "MS Shell Dlg"
 BEGIN
     LISTBOX         IDC_MDILIST_LIST,6,9,178,226,LBS_SORT | 
@@ -393,16 +393,16 @@ BEGIN
     RTEXT           "",IDC_MDILIST_STATS,92,238,89,8
     EDITTEXT        IDC_MDILIST_SEARCH,6,249,178,14,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "Aceptar",IDOK,198,10,50,14
-    GROUPBOX        "Arrange",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    GROUPBOX        "Organizar",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
     PUSHBUTTON      "Horizontal",IDC_MDILIST_HORZ,198,45,50,14
     PUSHBUTTON      "Vertical",IDC_MDILIST_VERT,198,60,50,14
-    GROUPBOX        "Tabs",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    GROUPBOX        "Pestañas",IDC_MDILIST_TABS_GROUP,191,86,64,72
     PUSHBUTTON      "Arriba",IDC_MDILIST_UP,198,100,50,14
     PUSHBUTTON      "Abajo",IDC_MDILIST_DOWN,198,115,50,14
-    PUSHBUTTON      "Sort",IDC_MDILIST_SORT,198,138,50,14
-    GROUPBOX        "Files",IDC_MDILIST_FILES_GROUP,191,163,64,72
+    PUSHBUTTON      "Ordenar",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "Archivos",IDC_MDILIST_FILES_GROUP,191,163,64,72
     PUSHBUTTON      "Guardar",IDC_MDILIST_SAVE,198,177,50,14
-    PUSHBUTTON      "Close",IDC_MDILIST_CLOSE,198,192,50,14
+    PUSHBUTTON      "Cerrar",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Modificado",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
     PUSHBUTTON      "Cancelar",IDCANCEL,198,249,50,14
@@ -913,7 +913,7 @@ BEGIN
     MSG_UPDATE_PLUGIN       "Actualización %s.\n\nArquitectura de AkelPad: %d.%d.%d.%d\n%s Arquitectura de plugin: %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED 
                             """%s"" no se reconoce como un plugin de AkelPad."
-    MSG_UPDATE_LANGMODULE   "Update %s\n\nCurrent version: %d.%d.%d.%d\nRequired version: %d.%d.%d.%d"
+    MSG_UPDATE_LANGMODULE   "Actualizar %s\n\nVersión actual: %d.%d.%d.%d\nVersión requerida: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Tecla directa ya asignada a ""%s""."
     MSG_CANNOT_OPEN_FILE    "No se puede abrir el archivo ""%s""."
     MSG_WRONG_STRING        "Número de línea inválido."
