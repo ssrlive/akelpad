@@ -432,8 +432,8 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "区分大小写",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "整个单词",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
+    CONTROL         "整个单词",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,42,105,12
     CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     GROUPBOX        "方向",IDC_STATIC,135,27,66,58
@@ -469,8 +469,8 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "区分大小写",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
-    CONTROL         "整个单词",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
+    CONTROL         "整个单词",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,56,105,12
     CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     GROUPBOX        "方向",IDC_STATIC,135,41,66,58
@@ -904,11 +904,11 @@ BEGIN
     MSG_LONG_FILELIST       "选择太多文件。"
     MSG_DOCUMENT_CHANGED    "文档已经被修改。是否保存?"
     MSG_FILE_DOES_NOT_EXIST "创建新文件 ""%s""?"
-    MSG_RECENTFILES_DELETED "已删除记录: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "已删除记录: %d"
     MSG_SEARCH_ENDED        "搜索完成。"
     MSG_REPLACE_COUNT       "更改的数量: %d"
     MSG_REPLACE_COUNT_ALLFILES "更改的文件数: %d\n更改的数量: %d"

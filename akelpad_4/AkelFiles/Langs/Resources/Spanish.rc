@@ -433,7 +433,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Buscar"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,176,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -468,7 +468,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Reemplazar"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,176,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -920,11 +920,11 @@ BEGIN
     MSG_LONG_FILELIST       "Demasiados archivos escogidos."
     MSG_DOCUMENT_CHANGED    "El documento ha sido modificado. ¿Quiere guardarlo?"
     MSG_FILE_DOES_NOT_EXIST "¿Crear nuevo archivo para ""%s""?"
-    MSG_RECENTFILES_DELETED "Registros eliminados: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Registros eliminados: %d"
     MSG_SEARCH_ENDED        "Búsqueda finalizada."
     MSG_REPLACE_COUNT       "Cuenta de cambios: %d"
     MSG_REPLACE_COUNT_ALLFILES "Archivos cambiados: %d\nCuenta de cambios: %d"

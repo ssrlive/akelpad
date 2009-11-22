@@ -920,11 +920,11 @@ BEGIN
     MSG_LONG_FILELIST       "Escolhidos arquivos demais."
     MSG_DOCUMENT_CHANGED    "O documento foi alterado. Quer salvá-lo ?"
     MSG_FILE_DOES_NOT_EXIST "Criar o arquivo ""%s""?"
-    MSG_RECENTFILES_DELETED "Entradas excluídas: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Entradas excluídas: %d"
     MSG_SEARCH_ENDED        "Busca acabou."
     MSG_REPLACE_COUNT       "Número de alterações: %d"
     MSG_REPLACE_COUNT_ALLFILES 

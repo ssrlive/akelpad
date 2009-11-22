@@ -917,11 +917,11 @@ BEGIN
     MSG_LONG_FILELIST       "Zu viele Dateien ausgewählt."
     MSG_DOCUMENT_CHANGED    "Das Dokument wurde modifiziert. Wollen Sie es speichern?"
     MSG_FILE_DOES_NOT_EXIST "Soll die neue Datei ""%s"" erstellt werden?"
-    MSG_RECENTFILES_DELETED "Einträge gelöscht: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Einträge gelöscht: %d"
     MSG_SEARCH_ENDED        "Suche beendet."
     MSG_REPLACE_COUNT       "Anzahl der Veränderungen: %d"
     MSG_REPLACE_COUNT_ALLFILES 

@@ -922,11 +922,11 @@ BEGIN
     MSG_LONG_FILELIST       "Liian monta tiedostoa valittu."
     MSG_DOCUMENT_CHANGED    "Asiakirjaa on muokattu. Haluatko tallentaa sen?"
     MSG_FILE_DOES_NOT_EXIST "Luodaanko uusi tiedosto ""%s""?"
-    MSG_RECENTFILES_DELETED "Poistettuja tietueita: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Poistettuja tietueita: %d"
     MSG_SEARCH_ENDED        "Haku p‰‰ttynyt."
     MSG_REPLACE_COUNT       "Muutoksia: %d"
     MSG_REPLACE_COUNT_ALLFILES "Muutettuja tiedostoja: %d\nMuutoksia: %d"

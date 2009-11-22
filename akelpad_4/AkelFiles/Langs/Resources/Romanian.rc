@@ -921,11 +921,11 @@ BEGIN
     MSG_LONG_FILELIST       "Prea multe fiºiere selectate."
     MSG_DOCUMENT_CHANGED    "Documentul a fost modificat. Doriþi sã-l salvaþi?"
     MSG_FILE_DOES_NOT_EXIST "Creeazã fiºier nou ""%s""?"
-    MSG_RECENTFILES_DELETED "Evidenþe ºterse: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Evidenþe ºterse: %d"
     MSG_SEARCH_ENDED        "Cãutare terminatã."
     MSG_REPLACE_COUNT       "Numãrul modificãrilor: %d"
     MSG_REPLACE_COUNT_ALLFILES 

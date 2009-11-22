@@ -431,7 +431,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Пошук"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -466,7 +466,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Замена"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -935,11 +935,11 @@ BEGIN
     MSG_LONG_FILELIST       "Вылучана занадта шмат файлаў."
     MSG_DOCUMENT_CHANGED    "Дакумент быў зменены. Захаваць?"
     MSG_FILE_DOES_NOT_EXIST "Стварыць новы файл ""%s""?"
-    MSG_RECENTFILES_DELETED "Выдалена запісаў: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Выдалена запісаў: %d"
     MSG_SEARCH_ENDED        "Пошук завершаны."
     MSG_REPLACE_COUNT       "Колькасць замен: %d"
     MSG_REPLACE_COUNT_ALLFILES "Змененых файлаў: %d\nКолькасць замен: %d"

@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "모두 저장(&L)\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "페이지 설정(&G)...",          IDM_FILE_PAGESETUP
-        MENUITEM "미리 보기(&V)...",                 IDM_FILE_PRINTPREVIEW
+        MENUITEM "미리 보기(&V)...",            IDM_FILE_PRINTPREVIEW
         MENUITEM "인쇄하기(&P)...\tCtrl+P",     IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "최근 작업파일(&F)"
@@ -432,7 +432,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "찾기"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,34,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -510,8 +510,8 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "번호:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
     EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
-    CONTROL         "줄",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
-                    40,52,10
+    CONTROL         "줄",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,40,
+                    52,10
     CONTROL         "위치",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
                     72,40,52,10
     PUSHBUTTON      "확인",IDOK,18,60,50,14,BS_CENTER
@@ -760,8 +760,8 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "재설정",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,13,
                     BS_CENTER
-    CONTROL         "개행 구분자:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
+    CONTROL         "개행 구분자:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "재설정",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
                     BS_CENTER
@@ -911,11 +911,11 @@ BEGIN
     MSG_LONG_FILELIST       "선택한 파일이 너무 많습니다."
     MSG_DOCUMENT_CHANGED    "문서를 수정하셨습니다. 저장하시겠습니까?"
     MSG_FILE_DOES_NOT_EXIST "새 파일 생성 : ""%s""?"
-    MSG_RECENTFILES_DELETED "삭제된 기록: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "삭제된 기록: %d"
     MSG_SEARCH_ENDED        "검색을 마쳤습니다."
     MSG_REPLACE_COUNT       "바뀐 갯수: %d"
     MSG_REPLACE_COUNT_ALLFILES "바뀐 파일 수: %d\n바뀐 갯수: %d"
