@@ -919,11 +919,11 @@ BEGIN
     MSG_LONG_FILELIST       "Te veel bestanden gekozen."
     MSG_DOCUMENT_CHANGED    "Document werd gewijzigd. Wilt u het wilt opslaan?"
     MSG_FILE_DOES_NOT_EXIST "Nieuw bestand ""%s"" maken?"
-    MSG_RECENTFILES_DELETED "Verwijderde records: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Verwijderde records: %d"
     MSG_SEARCH_ENDED        "Zoeken klaar."
     MSG_REPLACE_COUNT       "Aantal wijzigingen: %d"
     MSG_REPLACE_COUNT_ALLFILES 

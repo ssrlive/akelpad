@@ -60,7 +60,7 @@ BEGIN
         MENUITEM "&Копіювати\tCtrl+C",          IDM_EDIT_COPY
         MENUITEM "Вст&авити\tCtrl+V",           IDM_EDIT_PASTE
         MENUITEM "Вида&лити\tDel",              IDM_EDIT_CLEAR
-        MENUITEM "Познач&ити все\tCtrl+A",       IDM_EDIT_SELECTALL
+        MENUITEM "Познач&ити все\tCtrl+A",      IDM_EDIT_SELECTALL
         MENUITEM SEPARATOR
         MENUITEM "Знайт&и...\tCtrl+F",          IDM_EDIT_FIND
         MENUITEM "Знайти далі в&низ\tF3",       IDM_EDIT_FINDNEXTDOWN
@@ -182,13 +182,13 @@ BEGIN
         MENUITEM "Вст&авити",                   IDM_EDIT_PASTE
         MENUITEM "Ви&далити",                   IDM_EDIT_CLEAR
         MENUITEM SEPARATOR
-        MENUITEM "Познач&ити все",               IDM_EDIT_SELECTALL
+        MENUITEM "Познач&ити все",              IDM_EDIT_SELECTALL
     END
     POPUP "ViewPopup"
     BEGIN
         MENUITEM "&Копіювати",                  IDM_EDIT_COPY
         MENUITEM SEPARATOR
-        MENUITEM "Познач&ити все",               IDM_EDIT_SELECTALL
+        MENUITEM "Познач&ити все",              IDM_EDIT_SELECTALL
     END
     POPUP "CodepagePopup"
     BEGIN
@@ -431,7 +431,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Пошук"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -466,7 +466,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Заміна"
-FONT 8, "MS Shell Dlg"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
@@ -584,8 +584,8 @@ BEGIN
                     24,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
-    LTEXT           "Робочий каталог (%d каталог файлу):",IDC_STATIC,21,
-                    59,160,8,NOT WS_GROUP
+    LTEXT           "Робочий каталог (%d каталог файлу):",IDC_STATIC,21,59,
+                    160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
     LTEXT           "Розпізнавання кодування:",IDC_STATIC,12,110,150,8
@@ -936,11 +936,11 @@ BEGIN
     MSG_LONG_FILELIST       "Обрано занадто багато файлів."
     MSG_DOCUMENT_CHANGED    "Документ був змінений. Зберегти?"
     MSG_FILE_DOES_NOT_EXIST "Створити новий файл ""%s""?"
-    MSG_RECENTFILES_DELETED "Видалено записів: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Видалено записів: %d"
     MSG_SEARCH_ENDED        "Пошук завершений."
     MSG_REPLACE_COUNT       "Кількість замін: %d"
     MSG_REPLACE_COUNT_ALLFILES "Змінених файлів: %d\nКількість замін: %d"

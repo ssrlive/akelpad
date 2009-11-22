@@ -915,11 +915,11 @@ BEGIN
     MSG_LONG_FILELIST       "多すぎるファイルが選択されています。"
     MSG_DOCUMENT_CHANGED    "ドキュメントは変更されました。保存しますか?"
     MSG_FILE_DOES_NOT_EXIST "新しいファイル ""%s"" を作成しますか?"
-    MSG_RECENTFILES_DELETED "削除された記録: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "削除された記録: %d"
     MSG_SEARCH_ENDED        "検索が完了しました。"
     MSG_REPLACE_COUNT       "変更の数: %d"
     MSG_REPLACE_COUNT_ALLFILES "変更されたファイル: %d\n変更の数: %d"

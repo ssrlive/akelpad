@@ -41,7 +41,7 @@ BEGIN
         MENUITEM "Salva tutto\tCtrl+Alt+F2",    IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "Imposta Pagina...",           IDM_FILE_PAGESETUP
-        MENUITEM "&Anteprima...",                 IDM_FILE_PRINTPREVIEW
+        MENUITEM "&Anteprima...",               IDM_FILE_PRINTPREVIEW
         MENUITEM "Stampa...\tCtrl+P",           IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Files recenti"
@@ -771,8 +771,9 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Reset",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,13,
                     BS_CENTER
-    CONTROL         "Delimitatori a capo:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
+    CONTROL         "Delimitatori a capo:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "Reset",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
                     BS_CENTER
@@ -923,11 +924,11 @@ BEGIN
     MSG_LONG_FILELIST       "Sono stati scelti troppi files."
     MSG_DOCUMENT_CHANGED    "Il documento è stato modificato. Si desidera salvarlo?"
     MSG_FILE_DOES_NOT_EXIST "Creare il nuovo file ""%s""?"
-    MSG_RECENTFILES_DELETED "Cancellazione registrazioni: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Cancellazione registrazioni: %d"
     MSG_SEARCH_ENDED        "Ricerca terminata."
     MSG_REPLACE_COUNT       "Numero di cambiamenti: %d"
     MSG_REPLACE_COUNT_ALLFILES 

@@ -434,8 +434,8 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "符合大小寫",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "整個單詞",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
+    CONTROL         "整個單詞",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,42,105,12
     CONTROL         "Esc-序列",IDC_SEARCH_ESCAPESEQ,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,54,105,12
     GROUPBOX        "方向",IDC_STATIC,121,27,66,58
@@ -471,8 +471,8 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "符合大小寫",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
-    CONTROL         "整個單詞",IDC_SEARCH_WHOLEWORD,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
+    CONTROL         "整個單詞",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,56,105,12
     CONTROL         "Esc-序列",IDC_SEARCH_ESCAPESEQ,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,68,105,12
     GROUPBOX        "方向",IDC_STATIC,121,41,66,58
@@ -908,11 +908,11 @@ BEGIN
     MSG_LONG_FILELIST       "選取太多檔案."
     MSG_DOCUMENT_CHANGED    "文件已被修改. 是否要儲存?"
     MSG_FILE_DOES_NOT_EXIST "建立新的檔案 ""%s""?"
-    MSG_RECENTFILES_DELETED "已刪除轉碼: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "已刪除轉碼: %d"
     MSG_SEARCH_ENDED        "搜尋完畢."
     MSG_REPLACE_COUNT       "變更次數: %d"
     MSG_REPLACE_COUNT_ALLFILES "已變更的檔案: %d\n變更次數: %d"
