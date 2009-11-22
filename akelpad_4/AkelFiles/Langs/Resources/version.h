@@ -1,5 +1,3 @@
-// Add version information to EXE
-
 #define AKELPAD_ID 4,3,6,0
 
 #if defined(EXE_VERSION)
