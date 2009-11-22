@@ -7,6 +7,11 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#ifndef EXE_VERSION
+  #define RC_VERSIONDESCRIPTION "AkelPad language module"
+  #define RC_VERSIONCOPYRIGHT "© 2009 Cleverson Casarin Uliana (clever92000@yahoo.com.br)"
+  #define RC_VERSIONNAME "Brazilian.dll"
+#endif
 #include "winresrc.h"
 #include "staticedit.h"
 #include "version.h"
@@ -821,6 +826,11 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
+    "#ifndef EXE_VERSION\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2009 Cleverson Casarin Uliana (clever92000@yahoo.com.br)""\r\n"
+    "  #define RC_VERSIONNAME ""Brazilian.dll""\r\n"
+    "#endif\r\n"
     "#include ""winresrc.h""\r\n"
     "#include ""staticedit.h""\r\n"
     "#include ""version.h""\r\n"
@@ -834,52 +844,6 @@ BEGIN
 END
 
 #endif    // APSTUDIO_INVOKED
-
-
-#ifndef _MAC
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION AKELPAD_ID
- PRODUCTVERSION 0,0,0,0
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x4L
- FILETYPE 0x2L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "04160000"
-        BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "AkelPad text editor language module\0"
-            VALUE "FileVersion", "0, 0, 0, 0\0"
-            VALUE "InternalName", "AkelPad\0"
-            VALUE "LegalCopyright", "© 2009 Cleverson Casarin Uliana (clever92000@yahoo.com.br) \0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "0, 0, 0, 0\0"
-            VALUE "SpecialBuild", "\0"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x416, 0
-    END
-END
-
-#endif    // !_MAC
 
 
 /////////////////////////////////////////////////////////////////////////////
