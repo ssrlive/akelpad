@@ -388,7 +388,7 @@ END
 
 IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 270
 STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Select Window"
+CAPTION "Selecteazã Fereastra"
 FONT 8, "MS Shell Dlg"
 BEGIN
     LISTBOX         IDC_MDILIST_LIST,6,9,178,226,LBS_SORT | 
@@ -397,16 +397,16 @@ BEGIN
     RTEXT           "",IDC_MDILIST_STATS,92,238,89,8
     EDITTEXT        IDC_MDILIST_SEARCH,6,249,178,14,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
-    GROUPBOX        "Arrange",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
-    PUSHBUTTON      "Horizontal",IDC_MDILIST_HORZ,198,45,50,14
+    GROUPBOX        "Aranjeazã",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    PUSHBUTTON      "Orizontal",IDC_MDILIST_HORZ,198,45,50,14
     PUSHBUTTON      "Vertical",IDC_MDILIST_VERT,198,60,50,14
-    GROUPBOX        "Tabs",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    GROUPBOX        "Taburi",IDC_MDILIST_TABS_GROUP,191,86,64,72
     PUSHBUTTON      "Sus",IDC_MDILIST_UP,198,100,50,14
     PUSHBUTTON      "Jos",IDC_MDILIST_DOWN,198,115,50,14
-    PUSHBUTTON      "Sort",IDC_MDILIST_SORT,198,138,50,14
-    GROUPBOX        "Files",IDC_MDILIST_FILES_GROUP,191,163,64,72
+    PUSHBUTTON      "Sorteazã",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "Fiºiere",IDC_MDILIST_FILES_GROUP,191,163,64,72
     PUSHBUTTON      "Salveazã",IDC_MDILIST_SAVE,198,177,50,14
-    PUSHBUTTON      "Close",IDC_MDILIST_CLOSE,198,192,50,14
+    PUSHBUTTON      "Închide",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Modificat",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
     PUSHBUTTON      "Anuleazã",IDCANCEL,198,249,50,14
@@ -914,7 +914,7 @@ BEGIN
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x nu este suportat."
     MSG_UPDATE_PLUGIN       "Actualizeazã %s.\n\nArhitectura AkelPad: %d.%d.%d.%d\nArhitectura Extensiei %s : %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" nu e recunoscutã ca extensie AkelPad."
-    MSG_UPDATE_LANGMODULE   "Update %s\n\nCurrent version: %d.%d.%d.%d\nRequired version: %d.%d.%d.%d"
+    MSG_UPDATE_LANGMODULE   "Actualizeazã %s\n\nVersiunea curentã: %d.%d.%d.%d\nVersiunea necesarã: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Tasta rapidã a fost deja alocatã pentru ""%s""."
     MSG_CANNOT_OPEN_FILE    "Nu pot deschide fiºierul ""%s""."
     MSG_WRONG_STRING        "Numãr de linie invalid."
