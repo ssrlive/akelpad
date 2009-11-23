@@ -483,7 +483,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (uMsg == AEM_EXSETSEL)
       {
-        AE_SetSelectionPos(ae, (AECHARINDEX *)lParam, (AECHARINDEX *)wParam, FALSE, 0);
+        AE_SetSelectionPos(ae, (AECHARINDEX *)lParam, (AECHARINDEX *)wParam, FALSE, 0, AESCT_SETSELMESSAGE);
         return 0;
       }
       if (uMsg == AEM_GETSEL)
@@ -1936,7 +1936,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ae->ptxt->bLockCollectUndo=TRUE;
       }
       if (!(st->flags & ST_SELECTION))
-        AE_EditSelectAll(ae);
+        AE_EditSelectAll(ae, AESELT_LOCKNOTIFY, 0);
 
       if (st->codepage == 1200)
       {
@@ -2829,7 +2829,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 else
                 {
                   if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
-                    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelEndIndex, FALSE, 0);
+                    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelEndIndex, FALSE, 0, AESCT_IME);
                 }
               }
 
@@ -2840,7 +2840,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                 ciSelStart=ae->ciSelStartIndex;
                 AE_IndexDec(&ciSelStart);
-                AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0);
+                AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0, AESCT_IME);
               }
               else ae->ptxt->bLockGroupStopInt=FALSE;
             }
@@ -2859,7 +2859,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                     ciSelStart=ae->ciSelStartIndex;
                     AE_IndexDec(&ciSelStart);
-                    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0);
+                    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ciSelStart, FALSE, 0, AESCT_IME);
                   }
                 }
               }
@@ -2923,7 +2923,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
             if (ImmEscapeW((HKL)ae->dwInputLocale, hImc, IME_ESC_HANJA_MODE, &ae->dwImeChar))
             {
-              AE_SetSelectionPos(ae, &crSel.ciMax, &crSel.ciMin, FALSE, 0);
+              AE_SetSelectionPos(ae, &crSel.ciMax, &crSel.ciMin, FALSE, 0, AESCT_IME);
               AE_UpdateCandidatePos(ae, hImc);
             }
             ImmReleaseContext(ae->hWndEdit, hImc);
@@ -3080,7 +3080,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ae->ciLButtonClick=ciCharIndex;
             ae->ciLButtonStart=cr.ciMin;
             ae->ciLButtonEnd=cr.ciMax;
-            AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE);
+            AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE, AESCT_MOUSELEFTMARGIN|AESCT_MOUSESINGLECLK);
           }
           //Start drag source capture
           else if (!ae->bDragging && !bAlt && !bShift && ae->nCurrentCursor == AECC_SELECTION)
@@ -3138,7 +3138,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ae->ciLButtonClick=ae->ciCaretIndex;
             ae->ciLButtonStart=ciPrevWord;
             ae->ciLButtonEnd=ciNextWord;
-            AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE);
+            AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
           }
         }
         //Three clicks
@@ -3148,7 +3148,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (!bAlt && !bShift)
             {
-              AE_EditSelectAll(ae);
+              AE_EditSelectAll(ae, 0, AESCT_MOUSELEFTMARGIN|AESCT_MOUSETRIPLECLK);
             }
           }
           else
@@ -3171,7 +3171,7 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             ae->ciLButtonClick=ciCharIndex;
             ae->ciLButtonStart=cr.ciMin;
             ae->ciLButtonEnd=cr.ciMax;
-            AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE);
+            AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE, AESCT_MOUSETRIPLECLK);
           }
         }
         return 0;
@@ -6700,7 +6700,7 @@ void AE_ClearSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX 
   }
 }
 
-void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, DWORD dwSelFlags)
+void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHARINDEX *ciSelEnd, BOOL bColumnSel, DWORD dwSelFlags, DWORD dwSelType)
 {
   AECHARINDEX ciSelStartOld;
   AECHARINDEX ciSelEndOld;
@@ -6783,7 +6783,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     //Notification
     if (!(dwSelFlags & AESELT_LOCKNOTIFY))
     {
-      AE_NotifySelChanging(ae);
+      AE_NotifySelChanging(ae, dwSelType);
     }
 
     //Clear old lines selection and set new lines selection
@@ -6872,7 +6872,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     }
     if (!(dwSelFlags & AESELT_LOCKNOTIFY))
     {
-      AE_NotifySelChanged(ae);
+      AE_NotifySelChanged(ae, dwSelType);
     }
   }
 }
@@ -6880,9 +6880,9 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
 void AE_UpdateSelection(AKELEDIT *ae, DWORD dwSelFlags)
 {
   if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelStartIndex) <= 0)
-    AE_SetSelectionPos(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, FALSE, dwSelFlags);
+    AE_SetSelectionPos(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, FALSE, dwSelFlags, AESCT_UPDATESELECTION);
   else
-    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelStartIndex, FALSE, dwSelFlags);
+    AE_SetSelectionPos(ae, &ae->ciSelEndIndex, &ae->ciSelStartIndex, FALSE, dwSelFlags, AESCT_UPDATESELECTION);
 }
 
 void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOOL bShift)
@@ -6926,7 +6926,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
           {
             AE_IndexUpdate(ae, &ciCharIndex);
             AE_IndexUpdate(ae, &ciSelEnd);
-            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE);
+            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE, AESCT_MOUSELEFTMARGIN|AESCT_MOUSESINGLECLK|AESCT_MOUSECAPTURE);
           }
         }
         //Characters selection
@@ -6954,11 +6954,11 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
             else
               ciSelEnd=ae->ciSelEndIndex;
 
-            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE);
+            AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE, AESCT_MOUSESINGLECLK|AESCT_MOUSECAPTURE);
           }
         }
       }
-      else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, bColumnSel, AESELT_MOUSE);
+      else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, bColumnSel, AESELT_MOUSE, AESCT_MOUSESINGLECLK);
     }
     //Two clicks (capture)
     else if (ae->nLButtonDownCount == 1)
@@ -6986,7 +6986,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           AE_IndexUpdate(ae, &ciCharIndex);
           AE_IndexUpdate(ae, &ciSelEnd);
-          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE);
+          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK|AESCT_MOUSECAPTURE);
         }
       }
     }
@@ -7019,7 +7019,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           AE_IndexUpdate(ae, &ciCharIndex);
           AE_IndexUpdate(ae, &ciSelEnd);
-          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE);
+          AE_SetSelectionPos(ae, &ciCharIndex, &ciSelEnd, bColumnSel, AESELT_MOUSE, AESCT_MOUSETRIPLECLK|AESCT_MOUSECAPTURE);
         }
       }
     }
@@ -12719,7 +12719,7 @@ void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bC
   if (bColumnSel)
   {
     if (ae->popt->dwOptions & AECO_PASTESELECTCOLUMN)
-      AE_SetSelectionPos(ae, &ciStart, &ciEnd, bColumnSel, 0);
+      AE_SetSelectionPos(ae, &ciStart, &ciEnd, bColumnSel, AESELT_LOCKNOTIFY, 0);
   }
   if (ciInsertStart) *ciInsertStart=ciStart;
   if (ciInsertEnd) *ciInsertEnd=ciEnd;
@@ -14756,7 +14756,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
   {
     if (bControl && !bShift && !bAlt)
     {
-      AE_EditSelectAll(ae);
+      AE_EditSelectAll(ae, 0, AESCT_KEYBOARD);
     }
     return TRUE;
   }
@@ -14962,9 +14962,9 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         else
           ciSelEnd=ae->ciSelEndIndex;
 
-        AE_SetSelectionPos(ae, &ciCharOut, &ciSelEnd, bAlt, AESELT_NOVERTSCROLLCORRECT);
+        AE_SetSelectionPos(ae, &ciCharOut, &ciSelEnd, bAlt, AESELT_NOVERTSCROLLCORRECT, AESCT_KEYBOARD);
       }
-      else AE_SetSelectionPos(ae, &ciCharOut, &ciCharOut, bAlt, AESELT_NOVERTSCROLLCORRECT);
+      else AE_SetSelectionPos(ae, &ciCharOut, &ciCharOut, bAlt, AESELT_NOVERTSCROLLCORRECT, AESCT_KEYBOARD);
     }
 
     //Set horizontal caret
@@ -15050,19 +15050,19 @@ void AE_EditUndo(AKELEDIT *ae)
         AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
         if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
           ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
-        AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+        AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, ae->popt->nInputNewLine, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd))
         {
           if (!lpNextElement || (lpNextElement->dwFlags & AEUN_STOPGROUP))
           {
             if (lpCurElement->dwFlags & AEUN_BACKSPACEKEY)
-              AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+              AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
             else if (lpCurElement->dwFlags & AEUN_DELETEKEY)
-              AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+              AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
             else if (lpCurElement->dwFlags & AEUN_OVERTYPECHAR)
-              AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+              AE_SetSelectionPos(ae, &ciInsertStart, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
             else
-              AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+              AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
           }
         }
       }
@@ -15077,9 +15077,9 @@ void AE_EditUndo(AKELEDIT *ae)
         }
 
         if (bColumnSel)
-          AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+          AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         else
-          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
       }
       else if (lpCurElement->dwFlags & AEUN_SETSEL)
@@ -15092,7 +15092,7 @@ void AE_EditUndo(AKELEDIT *ae)
           ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
         }
 
-        AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+        AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
       }
 
       //Update window
@@ -15156,9 +15156,9 @@ void AE_EditRedo(AKELEDIT *ae)
         }
 
         if (bColumnSel)
-          AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+          AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         else
-          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+          AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         AE_DeleteTextRange(ae, &ciActionStart, &ciActionEnd, bColumnSel, AEDELT_LOCKUNDO|AEDELT_LOCKSCROLL|AEDELT_LOCKUPDATE);
       }
       else if (lpCurElement->dwFlags & AEUN_DELETE)
@@ -15166,12 +15166,12 @@ void AE_EditRedo(AKELEDIT *ae)
         AE_RichOffsetToAkelIndex(ae, lpCurElement->nActionStartOffset, &ciActionStart);
         if (lpCurElement->dwFlags & AEUN_EXTRAOFFSET)
           ciActionStart.nCharInLine+=lpCurElement->nExtraStartOffset;
-        AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+        AE_SetSelectionPos(ae, &ciActionStart, &ciActionStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
         if (AE_InsertText(ae, &ciActionStart, lpCurElement->wpText, lpCurElement->dwTextLen, ae->popt->nInputNewLine, bColumnSel, AEINST_LOCKUNDO|AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, &ciInsertStart, &ciInsertEnd))
         {
           //if (!lpNextElement || (lpCurElement->dwFlags & AEUN_STOPGROUP))
           //{
-          //  AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+          //  AE_SetSelectionPos(ae, &ciInsertEnd, &ciInsertStart, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
           //}
         }
       }
@@ -15185,7 +15185,7 @@ void AE_EditRedo(AKELEDIT *ae)
           ciActionEnd.nCharInLine+=lpCurElement->nExtraEndOffset;
         }
 
-        AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING);
+        AE_SetSelectionPos(ae, &ciActionStart, &ciActionEnd, bColumnSel, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING, 0);
       }
 
       //Update window
@@ -15415,8 +15415,8 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
       if (ciCharIndex.nCharInLine > ciCharIndex.lpLine->nLineLen)
       {
         ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
-        AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel, 0);
-        return;
+        AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, ae->bColumnSel, AESELT_LOCKNOTIFY, 0);
+        goto End;
       }
     }
 
@@ -15443,6 +15443,8 @@ void AE_EditKeyBackspace(AKELEDIT *ae, BOOL bControl)
     AE_DeleteTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, ae->bColumnSel, 0);
     AE_StackUndoGroupStop(ae);
   }
+
+  End:
   AE_NotifyChanged(ae, AETCT_KEYBACKSPACE);
 }
 
@@ -15505,14 +15507,14 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
   AE_NotifyChanged(ae, AETCT_KEYDELETE);
 }
 
-void AE_EditSelectAll(AKELEDIT *ae)
+void AE_EditSelectAll(AKELEDIT *ae, DWORD dwSelFlags, DWORD dwSelType)
 {
   AECHARINDEX ciFirstChar;
   AECHARINDEX ciLastChar;
 
   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciFirstChar, FALSE);
   AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciLastChar, FALSE);
-  AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE, 0);
+  AE_SetSelectionPos(ae, &ciLastChar, &ciFirstChar, FALSE, dwSelFlags, dwSelType);
 }
 
 BOOL AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret)
@@ -15537,16 +15539,16 @@ void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *
   if (!lpciCaret)
   {
     if (AE_IndexCompare(&ae->ciCaretIndex, &ae->ciSelEndIndex) >= 0)
-      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags, AESCT_SETSELMESSAGE);
     else
-      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags, AESCT_SETSELMESSAGE);
   }
   else
   {
     if (AE_IndexCompare(lpciCaret, &aes->crSel.ciMax) >= 0)
-      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMax, &aes->crSel.ciMin, FALSE, aes->dwFlags, AESCT_SETSELMESSAGE);
     else
-      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags);
+      AE_SetSelectionPos(ae, &aes->crSel.ciMin, &aes->crSel.ciMax, FALSE, aes->dwFlags, AESCT_SETSELMESSAGE);
   }
 }
 
@@ -15565,7 +15567,7 @@ void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax)
 
   AE_RichOffsetToAkelIndex(ae, nMin, &cr.ciMin);
   AE_RichOffsetToAkelIndex(ae, nMax, &cr.ciMax);
-  AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, 0);
+  AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, 0, AESCT_SETSELMESSAGE);
 }
 
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
@@ -15851,7 +15853,7 @@ void AE_NotifyKillFocus(AKELEDIT *ae)
   SendMessage(ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_KILLFOCUS), (LPARAM)ae->hWndEdit);
 }
 
-void AE_NotifySelChanging(AKELEDIT *ae)
+void AE_NotifySelChanging(AKELEDIT *ae, DWORD dwType)
 {
   //Send AEN_SELCHANGING
   if (ae->popt->dwEventMask & AENM_SELCHANGE)
@@ -15861,12 +15863,13 @@ void AE_NotifySelChanging(AKELEDIT *ae)
     sc.hdr.hwndFrom=ae->hWndEdit;
     sc.hdr.idFrom=ae->nEditCtrlID;
     sc.hdr.code=AEN_SELCHANGING;
+    sc.dwType=dwType;
     AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
 }
 
-void AE_NotifySelChanged(AKELEDIT *ae)
+void AE_NotifySelChanged(AKELEDIT *ae, DWORD dwType)
 {
   //Send AEN_SELCHANGED
   if (ae->popt->dwEventMask & AENM_SELCHANGE)
@@ -15876,6 +15879,7 @@ void AE_NotifySelChanged(AKELEDIT *ae)
     sc.hdr.hwndFrom=ae->hWndEdit;
     sc.hdr.idFrom=ae->nEditCtrlID;
     sc.hdr.code=AEN_SELCHANGED;
+    sc.dwType=dwType;
     AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     SendMessage(ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
@@ -15962,7 +15966,7 @@ void AE_NotifyModify(AKELEDIT *ae)
 
 void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType)
 {
-  AE_NotifySelChanging(ae);
+  AE_NotifySelChanging(ae, LOWORD(dwType));
   AE_NotifyTextChanging(ae, dwType);
 }
 
@@ -15972,7 +15976,7 @@ void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
   if (ae->dwNotify & AENM_SELCHANGE)
   {
     ae->dwNotify&=~AENM_SELCHANGE;
-    AE_NotifySelChanged(ae);
+    AE_NotifySelChanged(ae, LOWORD(dwType));
   }
 
   //TextChanged
@@ -17050,7 +17054,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
 
           //Insert
           {
-            AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKUNDOGROUPING);
+            AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKUNDOGROUPING, 0);
             AE_InsertText(ae, &ciCharIndex, (wchar_t *)pData, ae->dwDragSelectionLength?ae->dwDragSelectionLength:(DWORD)-1, ae->popt->nInputNewLine, pDropTarget->bColumnSel, 0, &ciStart, &ciEnd);
 
             if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
@@ -17060,7 +17064,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
             }
           }
           AE_StackUndoGroupStop(ae);
-          AE_SetSelectionPos(ae, &ciEnd, &ciStart, pDropTarget->bColumnSel, AESELT_LOCKNOTIFY);
+          AE_SetSelectionPos(ae, &ciEnd, &ciStart, pDropTarget->bColumnSel, AESELT_LOCKNOTIFY, 0);
           AE_NotifyChanged(ae, AETCT_DROPINSERT);
 
           GlobalUnlock(stgmed.hGlobal);
@@ -17124,7 +17128,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
               {
                 MultiByteToWideChar(CP_ACP, 0, (char *)pData, -1, wszText, dwUnicodeBytes / sizeof(wchar_t));
-                AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKUNDOGROUPING);
+                AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, FALSE, AESELT_LOCKNOTIFY|AESELT_LOCKUNDOGROUPING, 0);
                 AE_InsertText(ae, &ciCharIndex, wszText, dwUnicodeBytes / sizeof(wchar_t) - 1, ae->popt->nInputNewLine, pDropTarget->bColumnSel, 0, &ciStart, &ciEnd);
 
                 if (ae->popt->dwOptions & AECO_CARETOUTEDGE)
@@ -17136,7 +17140,7 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
               }
             }
             AE_StackUndoGroupStop(ae);
-            AE_SetSelectionPos(ae, &ciEnd, &ciStart, pDropTarget->bColumnSel, AESELT_LOCKNOTIFY);
+            AE_SetSelectionPos(ae, &ciEnd, &ciStart, pDropTarget->bColumnSel, AESELT_LOCKNOTIFY, 0);
             AE_NotifyChanged(ae, AETCT_DROPINSERT);
 
             GlobalUnlock(stgmed.hGlobal);
