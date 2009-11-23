@@ -393,6 +393,12 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return 0;
       }
+      if (uMsg == AEM_CHARAT)
+      {
+        AECHARINDEX *ciPos=(AECHARINDEX *)wParam;
+
+        return AE_CharAtIndex(ciPos);
+      }
 
       //Undo and Redo
       if (uMsg == AEM_CANUNDO)
@@ -1381,6 +1387,21 @@ LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!lParam)
           return lstrlenW(lpTheme->wszThemeName) + 1;
         return AE_wcsncpy((wchar_t *)lParam, lpTheme->wszThemeName, MAX_PATH);
+      }
+      if (uMsg == AEM_HLGETTHEMESTACK)
+      {
+        AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
+
+        if (lParam == AEHLE_DELIMITER)
+          return (LRESULT)&lpTheme->hDelimiterStack;
+        if (lParam == AEHLE_WORD)
+          return (LRESULT)&lpTheme->hWordStack;
+        if (lParam == AEHLE_QUOTE)
+          return (LRESULT)&lpTheme->hQuoteStack;
+        if (lParam == AEHLE_MARKRANGE)
+          return (LRESULT)&lpTheme->hMarkRangeStack;
+        if (lParam == AEHLE_MARKTEXT)
+          return (LRESULT)&lpTheme->hMarkTextStack;
       }
       if (uMsg == AEM_HLTHEMEEXISTS)
       {
@@ -8244,6 +8265,14 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
 
 void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi)
 {
+  if (aeti->hWordStack.lpWordLens[aewi->nWordLen] == (int)aewi)
+  {
+    //Word item is first in length group
+    if (aewi->next && aewi->next->nWordLen == aewi->nWordLen)
+      aeti->hWordStack.lpWordLens[aewi->nWordLen]=(int)aewi->next;
+    else
+      aeti->hWordStack.lpWordLens[aewi->nWordLen]=0;
+  }
   if (aewi->pWord) AE_HeapFree(NULL, 0, (LPVOID)aewi->pWord);
   AE_HeapStackDelete(NULL, (stack **)&aeti->hWordStack.first, (stack **)&aeti->hWordStack.last, (stack *)aewi);
 }
@@ -11354,6 +11383,19 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
   return 0;
 }
 
+int AE_CharAtIndex(const AECHARINDEX *ciChar)
+{
+  if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+  {
+    if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+      return ciChar->lpLine->next->wpLine[0];
+    if (ciChar->lpLine->nLineBreak == AELB_EOF)
+      return -1;
+    return L'\n';
+  }
+  return ciChar->lpLine->wpLine[ciChar->nCharInLine];
+}
+
 BOOL AE_IsCharInSelection(const AECHARINDEX *ciChar)
 {
   if (ciChar->lpLine->nSelStart <= ciChar->nCharInLine && ciChar->nCharInLine < ciChar->lpLine->nSelEnd)
@@ -11430,41 +11472,28 @@ BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape)
 
 BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType)
 {
-  wchar_t wchChar;
+  AECHARINDEX ciTmp=*ciChar;
+  int nChar=-1;
 
   if (dwType & AEDLM_PREVCHAR)
   {
-    if (ciChar->nCharInLine == 0)
-    {
-      if (ciChar->lpLine->prev && ciChar->lpLine->prev->nLineBreak == AELB_WRAP)
-      {
-        wchChar=ciChar->lpLine->prev->wpLine[ciChar->lpLine->prev->nLineLen - 1];
-      }
-      else wchChar=L'\n';
-    }
-    else wchChar=ciChar->lpLine->wpLine[ciChar->nCharInLine - 1];
+    if (AE_PrevIndex(&ciTmp))
+      nChar=AE_CharAtIndex(&ciTmp);
   }
-  else
-  {
-    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
-    {
-      if (ciChar->lpLine->nLineBreak == AELB_WRAP)
-      {
-        wchChar=ciChar->lpLine->next->wpLine[0];
-      }
-      else wchChar=L'\n';
-    }
-    else wchChar=ciChar->lpLine->wpLine[ciChar->nCharInLine];
-  }
+  else nChar=AE_CharAtIndex(&ciTmp);
+
+  //Start of file and end of file
+  if (nChar == -1)
+    return TRUE;
 
   if (dwType & AEDLM_WORD)
-    return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, wchChar, TRUE);
+    return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, nChar, TRUE);
   if (dwType & AEDLM_WRAP)
-    return AE_IsInDelimiterList(ae->ptxt->wszWrapDelimiters, wchChar, TRUE);
+    return AE_IsInDelimiterList(ae->ptxt->wszWrapDelimiters, nChar, TRUE);
   if (dwType & AEDLM_URLLEFT)
-    return AE_IsInDelimiterList(ae->popt->wszUrlLeftDelimiters, wchChar, TRUE);
+    return AE_IsInDelimiterList(ae->popt->wszUrlLeftDelimiters, nChar, TRUE);
   if (dwType & AEDLM_URLRIGHT)
-    return AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, wchChar, TRUE);
+    return AE_IsInDelimiterList(ae->popt->wszUrlRightDelimiters, nChar, TRUE);
   return FALSE;
 }
 
