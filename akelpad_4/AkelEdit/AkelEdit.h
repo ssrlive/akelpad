@@ -249,6 +249,13 @@
 #define AEHLS_FONTITALIC            3  //Italic style.
 #define AEHLS_FONTBOLDITALIC        4  //Bold italic style.
 
+//Highlight elements
+#define AEHLE_DELIMITER             1  //Delimiter. New line, start of file and end of file are delimiters by default.
+#define AEHLE_WORD                  2  //Word - string surrounded with delimiters.
+#define AEHLE_QUOTE                 3  //Quote - text started with quote start string and ended with quote end string.
+#define AEHLE_MARKRANGE             4  //Mark range - mark specified range of characters.
+#define AEHLE_MARKTEXT              5  //Mark text - mark specified text.
+
 //AEM_SCROLL, AEM_LINESCROLL flags
 #define AESB_HORZ            0x00000001  //Horizontal scroll. Cannot be used with AESB_VERT.
 #define AESB_VERT            0x00000002  //Vertical scroll. Cannot be used with AESB_HORZ.
@@ -833,6 +840,7 @@ typedef struct {
 #define AEM_ISMATCHW              (WM_USER + 2019)
 #define AEM_KEYDOWN               (WM_USER + 2020)
 #define AEM_DRAGDROP              (WM_USER + 2021)
+#define AEM_CHARAT                (WM_USER + 2022)
 
 //Undo and Redo
 #define AEM_CANUNDO               (WM_USER + 2051)
@@ -969,9 +977,10 @@ typedef struct {
 #define AEM_HLGETTHEMEW           (WM_USER + 2504)
 #define AEM_HLGETTHEMENAMEA       (WM_USER + 2505)
 #define AEM_HLGETTHEMENAMEW       (WM_USER + 2506)
-#define AEM_HLTHEMEEXISTS         (WM_USER + 2507)
-#define AEM_HLSETTHEME            (WM_USER + 2508)
-#define AEM_HLDELETETHEME         (WM_USER + 2509)
+#define AEM_HLGETTHEMESTACK       (WM_USER + 2507)
+#define AEM_HLTHEMEEXISTS         (WM_USER + 2508)
+#define AEM_HLSETTHEME            (WM_USER + 2509)
+#define AEM_HLDELETETHEME         (WM_USER + 2510)
 #define AEM_HLADDDELIMITERA       (WM_USER + 2521)
 #define AEM_HLADDDELIMITERW       (WM_USER + 2522)
 #define AEM_HLDELETEDELIMITER     (WM_USER + 2523)
@@ -1821,6 +1830,28 @@ Example:
  HWND hWndDragSource;
 
  hWndDragSource=(HWND)SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_GETDRAGWINDOW, 0);
+
+
+AEM_CHARAT
+__________
+
+Retrieve character at index.
+
+(AECHARINDEX *)wParam == character index.
+lParam                == not used.
+
+Return Value
+ Unicode character or -1 if end-of-file position.
+
+Remarks
+  New line returned as L'\n'.
+
+Example:
+ AECHARINDEX ciCaret;
+ int nChar;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ nChar=SendMessage(hWndEdit, AEM_CHARAT, (WPARAM)&ciCaret, 0);
 
 
 AEM_CANUNDO
@@ -3954,8 +3985,8 @@ Example:
  AEDELIMITEMW di;
  AEWORDITEMW wi;
  AEQUOTEITEMW qi;
- AEMARKRANGEITEM mri;
  AEMARKTEXTITEMW mti;
+ AEMARKRANGEITEM mri;
 
  if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme"))
  {
@@ -3964,6 +3995,7 @@ Example:
    di.dwFlags=AEHLF_MATCHCASE;
    di.crText=(DWORD)-1;
    di.crBk=(DWORD)-1;
+   di.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDDELIMITERW, (WPARAM)hTheme, (LPARAM)&di);
 
    wi.pWord=L"for";
@@ -3971,6 +4003,7 @@ Example:
    wi.dwFlags=AEHLF_MATCHCASE;
    wi.crText=RGB(0x00, 0xFF, 0x00);
    wi.crBk=(DWORD)-1;
+   wi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDWORDW, (WPARAM)hTheme, (LPARAM)&wi);
 
    qi.pQuoteStart=L"\"";
@@ -3978,24 +4011,31 @@ Example:
    qi.pQuoteEnd=L"\"";
    qi.nQuoteEndLen=lstrlenW(qi.pQuoteEnd);
    qi.wchEscape=L'\\';
+   qi.pQuoteInclude=NULL;
+   qi.nQuoteIncludeLen=0
+   qi.pQuoteExclude=NULL;
+   qi.nQuoteExcludeLen=0;
    qi.dwFlags=AEHLF_MATCHCASE;
    qi.crText=RGB(0x00, 0x00, 0xFF);
    qi.crBk=(DWORD)-1;
+   qi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
-
-   mri.crMarkRange.cpMin=10;
-   mri.crMarkRange.cpMax=20;
-   mri.dwFlags=0;
-   mri.crText=RGB(0xFF, 0x00, 0x00);
-   mri.crBk=(DWORD)-1;
-   SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
 
    mti.pMarkText=L"or";
    mti.nMarkTextLen=lstrlenW(mti.pMarkText);
    mti.dwFlags=AEHLF_MATCHCASE;
    mti.crText=(DWORD)-1;
    mti.crBk=RGB(0xFF, 0x00, 0x00);
+   mti.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDMARKTEXTW, (WPARAM)hTheme, (LPARAM)&mti);
+
+   mri.crMarkRange.cpMin=10;
+   mri.crMarkRange.cpMax=20;
+   mri.dwFlags=0;
+   mri.crText=RGB(0xFF, 0x00, 0x00);
+   mri.crBk=(DWORD)-1;
+   mri.dwFontStyle=AEHLS_NONE;
+   SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
 
    SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, TRUE);
  }
@@ -4063,6 +4103,33 @@ Example:
  wchar_t wszThemeName[MAX_PATH];
 
  SendMessage(hWndEdit, AEM_HLGETTHEMENAMEW, (WPARAM)hTheme, (LPARAM)wszThemeName);
+
+
+AEM_HLGETTHEMESTACK
+___________________
+
+Retrieve one of the theme's stack.
+
+(HANDLE)wParam == theme handle.
+(int)lParam    == see AEHLE_* defines.
+
+Return Value
+ Pointer to a HSTACK structure.
+
+Example:
+ HSTACK *hDelimStack;
+ AEDELIMITEMW *lpDelimItem; //Original stack item is always unicode.
+
+ hDelimStack=(HSTACK *)SendMessage(hWndEdit, AEM_HLGETTHEMESTACK, (WPARAM)hTheme, AEHLE_DELIMITER);
+
+ for (lpDelimItem=(AEDELIMITEMW *)hDelimStack->first; lpDelimItem; lpDelimItem=lpDelimItem->next)
+ {
+   if (lpDelimItem->nDelimiterLen == 1)
+   {
+     if (lpDelimItem->pDelimiter[0] == L'*')
+       break;
+   }
+ }
 
 
 AEM_HLTHEMEEXISTS
