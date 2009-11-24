@@ -4144,19 +4144,38 @@ Return Value
  Pointer to a HSTACK structure.
 
 Example:
- HSTACK *hDelimStack;
- AEDELIMITEMW *lpDelimItem; //Original stack item is always unicode.
+BOOL IsCharDelimiter(HWND hWnd, const AECHARINDEX *ciChar, BOOL bPrevious)
+{
+  AECHARINDEX ciTmp=*ciChar;
+  HANDLE hTheme;
+  HSTACK *hDelimStack;
+  AEDELIMITEMW *lpDelimItem; //Original stack item is always unicode.
+  int nChar;
 
- hDelimStack=(HSTACK *)SendMessage(hWndEdit, AEM_HLGETTHEMESTACK, (WPARAM)hTheme, AEHLE_DELIMITER);
+  if (bPrevious)
+  {
+    if (!SendMessage(hWnd, AEM_GETINDEX, AEGI_PREVCHAR, (LPARAM)&ciTmp))
+      return TRUE;
+  }
+  nChar=SendMessage(hWnd, AEM_CHARAT, (WPARAM)&ciTmp, 0);
+  if (nChar == '\n' || nChar == -1)
+    return TRUE;
 
- for (lpDelimItem=(AEDELIMITEMW *)hDelimStack->first; lpDelimItem; lpDelimItem=lpDelimItem->next)
- {
-   if (lpDelimItem->nDelimiterLen == 1)
-   {
-     if (lpDelimItem->pDelimiter[0] == L'*')
-       break;
-   }
- }
+  if (hTheme=(HANDLE)SendMessage(hWnd, AEM_HLGETTHEMEW, 0, (LPARAM)NULL))
+  {
+    hDelimStack=(HSTACK *)SendMessage(hWnd, AEM_HLGETTHEMESTACK, (WPARAM)hTheme, AEHLE_DELIMITER);
+
+    for (lpDelimItem=(AEDELIMITEMW *)hDelimStack->first; lpDelimItem; lpDelimItem=lpDelimItem->next)
+    {
+      if (lpDelimItem->nDelimiterLen == 1)
+      {
+        if (lpDelimItem->pDelimiter[0] == nChar)
+          return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
 
 
 AEM_HLTHEMEEXISTS
