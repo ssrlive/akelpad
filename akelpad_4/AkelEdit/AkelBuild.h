@@ -536,7 +536,8 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance);
 BOOL AE_RegisterClassW(HINSTANCE hInstance);
 BOOL AE_UnregisterClassA(HINSTANCE hInstance);
 BOOL AE_UnregisterClassW(HINSTANCE hInstance);
-LRESULT CALLBACK AE_EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs);
 void AE_DestroyWindowData(AKELEDIT *ae);
 HANDLE AE_HeapCreate(AKELEDIT *ae);
@@ -778,6 +779,7 @@ BOOL AE_NotifyDropSource(AKELEDIT *ae, int nAction, DWORD *lpdwEffect, DWORD dwD
 BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect);
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const AECHARRANGE *crLink);
 BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, int nCurrent, int nMaximum);
+LRESULT AE_SendMessage(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 wchar_t AE_WideCharUpper(wchar_t c);
 int AE_WideStrCmp(const wchar_t *wpString, const wchar_t *wpString2);
 int AE_WideStrCmpI(const wchar_t *wpString, const wchar_t *wpString2);
