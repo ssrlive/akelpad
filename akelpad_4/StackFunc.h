@@ -1423,13 +1423,13 @@ void StackReverseRange(stack **first, stack **last, stack *rangemin, stack *rang
  *Copy stack.
  *
  *    [in] stack *first      -Pointer that specifies the first
- *                            element in the stack
+ *                            element in the stack (source)
  *    [in] stack *last       -Pointer that specifies the last
- *                            element in the stack
+ *                            element in the stack (source)
  *[in,out] stack **copyfirst -Pointer to a pointer that specifies
- *                            the first element in the stack
+ *                            the first element in the stack (destination)
  *[in,out] stack **copylast  -Pointer to a pointer that specifies
- *                            the last element in the stack
+ *                            the last element in the stack (destination)
  *    [in] int nBytes        -Size of the structure
  *
  *Returns: 0 on success
