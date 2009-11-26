@@ -3242,8 +3242,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
             ae->dwDragSelectionLength=AE_DataObjectCopySelection(ae);
 
             dwResult=DoDragDrop((IDataObject *)&ae->ido, (IDropSource *)&ae->ids, dwEffectIn, &dwEffectOut);
-            AE_ActivateClone(lpAkelEditPrev, ae);
-            lpAkelEditPrev=ae;
 
             if (!AE_NotifyDropSource(ae, AEDS_SOURCEEND, &dwEffectOut, dwResult))
             {
@@ -17053,9 +17051,9 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
 
               if (aeSource != ae)
               {
+                AE_NotifyChanged(aeSource, AETCT_DRAGDELETE);
                 AE_ActivateClone(lpAkelEditPrev, ae);
                 lpAkelEditPrev=ae;
-                AE_NotifyChanged(aeSource, AETCT_DRAGDELETE);
               }
             }
           }
@@ -17119,9 +17117,9 @@ HRESULT WINAPI AEIDropTarget_Drop(LPUNKNOWN lpTable, IDataObject *pDataObject, D
 
                 if (aeSource != ae)
                 {
+                  AE_NotifyChanged(aeSource, AETCT_DRAGDELETE);
                   AE_ActivateClone(lpAkelEditPrev, ae);
                   lpAkelEditPrev=ae;
-                  AE_NotifyChanged(aeSource, AETCT_DRAGDELETE);
                 }
               }
             }
