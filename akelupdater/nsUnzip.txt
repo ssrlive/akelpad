@@ -1,5 +1,5 @@
 *****************************************************************
-***                 nsUnzip NSIS plugin v1.0                 ***
+***                 nsUnzip NSIS plugin v1.1                 ***
 *****************************************************************
 
 2009 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)
@@ -7,6 +7,15 @@
 
 nsUnzip plugin will test or extract files from a ZIP archive.
 Code of the DLL uses sources of UnZip 5.52 of 28 February 2005, by Info-ZIP.
+
+
+Features:
+- Flexible extract options.
+- Regular expressions (wildcards) may be used to match multiple members.
+- Possibility to exclude specified files from processing.
+- User function for unpacking progress.
+- User function for listing archive.
+- User function for crypted archive.
 
 
 **** Extract ****
@@ -17,6 +26,7 @@ Pop $var
 
 [options]
 	/t	       -test archive files. This option extracts each specified file in memory and compares the CRC of the expanded file with the original file's stored CRC value.
+	/e             -extract only those files that already exist on disk.
 	/f             -extract only those files that already exist on disk and that are newer than the disk copies.
 	/u             -update existing files and create new ones if needed.
 	/n             -never overwrite existing files.

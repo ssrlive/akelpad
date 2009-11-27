@@ -96,7 +96,8 @@ Var AKELPLUGSDIR
 Var AKELPLUGIN
 Var EXEVERSIONFULL
 Var EXEVERSIONMAJOR
-Var DLLCOUNT
+Var PLUGINCOUNT
+Var LANGEXIST
 Var ZIPMIRROR
 Var ZIPLANG
 Var DLONLY
@@ -210,7 +211,7 @@ Function .onInit
 	StrCmp $0 "0|0" NothingSelected
 	${WordFind} "$0" "|" "E+1{" $EXEVERSIONFULL
 	IfErrors Exit
-	${WordFind} "$0" "|" "E+1}" $DLLCOUNT
+	${WordFind} "$0" "|" "E+1}" $PLUGINCOUNT
 	IfErrors Exit
 	StrCpy $EXEVERSIONMAJOR $EXEVERSIONFULL 1
 
@@ -241,6 +242,7 @@ Function .onInit
 
 	;Download "LangsPack.zip"
 	IfFileExists "$AKELLANGSDIR\*.dll" 0 DownloadPlugsPack
+	StrCpy $LANGEXIST "true"
 ;	File "/oname=$SAVEDIR\LangsPack.zip" "LangsPack.zip"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
 	$PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
@@ -251,7 +253,7 @@ Function .onInit
 
 	;Download "PlugsPack.zip"
 	DownloadPlugsPack:
-	StrCmp $DLLCOUNT 0 DowloadOnlyCheck
+	StrCmp $PLUGINCOUNT 0 DowloadOnlyCheck
 ;	File "/oname=$SAVEDIR\PlugsPack.zip" "PlugsPack.zip"
 	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
 	$PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
@@ -377,15 +379,15 @@ Section
 	StrCpy $ZIPXLANG eng
 
 	;Extract "LangsPack.zip"
+	StrCmp $LANGEXIST "true" 0 NextPlugin
 	Push /END
 	AkelUpdater::ParseAndPush "$UNZIP"
-	nsUnzip::Extract "$SAVEDIR\LangsPack.zip" "/d=$AKELFILESDIR" /f "Langs\*"
+	nsUnzip::Extract "$SAVEDIR\LangsPack.zip" "/d=$AKELFILESDIR" /e "Langs\*"
 	Pop $0
 	StrCmp $0 0 +3
 	DetailPrint "$(error) ($0): LangsPack.zip"
 	goto NextPlugin
 	DetailPrint "$(done): LangsPack.zip"
-	goto NextPlugin
 
 	;Get AkelUpdater::List items
 	NextPlugin:
