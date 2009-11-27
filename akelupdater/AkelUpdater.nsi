@@ -43,6 +43,10 @@ LangString download_finished ${LANG_ENGLISH} 'Updates downloading finished.'
 LangString download_finished ${LANG_RUSSIAN} 'Скачивание обновлений закончено.'
 LangString done ${LANG_ENGLISH} 'Done'
 LangString done ${LANG_RUSSIAN} 'Готово'
+LangString language ${LANG_RUSSIAN} 'языковой модуль'
+LangString language ${LANG_ENGLISH} 'language module'
+LangString plugin ${LANG_RUSSIAN} 'плагин'
+LangString plugin ${LANG_ENGLISH} 'plugin'
 LangString error ${LANG_ENGLISH} 'Error'
 LangString error ${LANG_RUSSIAN} 'Ошибка'
 LangString close ${LANG_ENGLISH} '&Close'
@@ -78,6 +82,7 @@ VIProductVersion ${PRODUCT_VERSION}.0.0
 !insertmacro GetOptions
 !insertmacro GetParent
 !insertmacro GetFileName
+!insertmacro GetBaseName
 !insertmacro GetFileVersion
 !insertmacro VersionCompare
 
@@ -380,14 +385,13 @@ Section
 
 	;Extract "LangsPack.zip"
 	StrCmp $LANGEXIST "true" 0 NextPlugin
+	GetFunctionAddress $0 ServiceCallback
 	Push /END
 	AkelUpdater::ParseAndPush "$UNZIP"
-	nsUnzip::Extract "$SAVEDIR\LangsPack.zip" "/d=$AKELFILESDIR" /e "Langs\*"
+	nsUnzip::Extract "$SAVEDIR\LangsPack.zip" "/d=$AKELFILESDIR" /callS=$0 /e "Langs\*"
 	Pop $0
-	StrCmp $0 0 +3
+	StrCmp $0 0 +2
 	DetailPrint "$(error) ($0): LangsPack.zip"
-	goto NextPlugin
-	DetailPrint "$(done): LangsPack.zip"
 
 	;Get AkelUpdater::List items
 	NextPlugin:
@@ -401,10 +405,24 @@ Section
 	nsUnzip::Extract "$SAVEDIR\PlugsPack.zip" "/d=$AKELFILESDIR" /C "Docs\$AKELPLUGIN*" "Plugs\$AKELPLUGIN*"
 	Pop $0
 	StrCmp $0 0 +3
-	DetailPrint "$(error) ($0): $AKELPLUGIN"
+	DetailPrint "$(error) ($0): $AKELPLUGIN $(plugin)"
 	goto NextPlugin
-	DetailPrint "$(done): $AKELPLUGIN"
+	DetailPrint "$(done): $AKELPLUGIN $(plugin)"
 	goto NextPlugin
 
 	End:
 SectionEnd
+
+Function ServiceCallback
+	Pop $0  ;Archive name
+	Pop $1  ;Archive size
+	Pop $2  ;Entry file name
+	Pop $3  ;Entry uncompressed size
+	Pop $4  ;Entry compressed size
+	Pop $5  ;Entry CRC: ff00ff00
+
+	${GetBaseName} "$2" $R0
+	DetailPrint "$(done): $R0 $(language)"
+
+	#Use "SetErrors" for stop extracting
+FunctionEnd
