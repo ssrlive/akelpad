@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "2.4"
+!define PRODUCT_VERSION "2.5"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -77,6 +77,7 @@ VIProductVersion ${PRODUCT_VERSION}.0.0
 !insertmacro GetParameters
 !insertmacro GetOptions
 !insertmacro GetParent
+!insertmacro GetFileName
 !insertmacro GetFileVersion
 !insertmacro VersionCompare
 
@@ -90,6 +91,7 @@ Var PASSWORDVALUE
 Var SAVEDIR
 Var AKELPADDIR
 Var AKELFILESDIR
+Var AKELLANGSDIR
 Var AKELPLUGSDIR
 Var AKELPLUGIN
 Var EXEVERSIONFULL
@@ -134,9 +136,11 @@ Function .onInit
 
 	CheckLocation:
 	StrCpy $AKELFILESDIR $EXEDIR
+	StrCpy $AKELLANGSDIR "$AKELFILESDIR\Langs"
 	StrCpy $AKELPLUGSDIR "$AKELFILESDIR\Plugs"
 	${GetParent} $EXEDIR $AKELPADDIR
-	IfFileExists "$AKELPLUGSDIR\*.*" 0 NotAkelFiles
+	${GetFileName} $EXEDIR $0
+	StrCmp "$0" "AkelFiles" 0 NotAkelFiles
 
 	InitPluginsDir
 	StrCpy $SAVEDIR $PLUGINSDIR
@@ -232,6 +236,16 @@ Function .onInit
 	$PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
 	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
 	"http://$ZIPMIRROR.dl.sourceforge.net/project/akelpad/AkelPad%20$EXEVERSIONMAJOR/$EXEVERSIONFULL/AkelPad-$EXEVERSIONFULL-bin-$ZIPLANG.zip" "$SAVEDIR\AkelPad-$EXEVERSIONFULL-bin-$ZIPLANG.zip" /end
+	Pop $0
+	StrCmp $0 "OK" 0 DownloadError
+
+	;Download "LangsPack.zip"
+	IfFileExists "$AKELLANGSDIR\*.dll" 0 DownloadPlugsPack
+;	File "/oname=$SAVEDIR\LangsPack.zip" "LangsPack.zip"
+	inetc::get /CAPTION "${PRODUCT_NAME}" /POPUP "" \
+	$PROXYPARAM "$PROXYVALUE" $LOGINPARAM "$LOGINVALUE" $PASSWORDPARAM "$PASSWORDVALUE" \
+	/TRANSLATE "$(url)" "$(downloading)" "$(connecting)" "$(file_name)" "$(received)" "$(file_size)" "$(remaining_time)" "$(total_time)" \
+	"http://akelpad.sourceforge.net/files/langs/LangsPack.zip" "$SAVEDIR\LangsPack.zip" /end
 	Pop $0
 	StrCmp $0 "OK" 0 DownloadError
 
@@ -361,6 +375,17 @@ Section
 	StrCpy $ZIPXLANG rus
 	StrCmp $ZIPLANG rus 0 +2
 	StrCpy $ZIPXLANG eng
+
+	;Extract "LangsPack.zip"
+	Push /END
+	AkelUpdater::ParseAndPush "$UNZIP"
+	nsUnzip::Extract "$SAVEDIR\LangsPack.zip" "/d=$AKELFILESDIR" /f "Langs\*"
+	Pop $0
+	StrCmp $0 0 +3
+	DetailPrint "$(error) ($0): LangsPack.zip"
+	goto NextPlugin
+	DetailPrint "$(done): LangsPack.zip"
+	goto NextPlugin
 
 	;Get AkelUpdater::List items
 	NextPlugin:
