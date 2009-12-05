@@ -806,8 +806,98 @@ typedef struct {
 
 //// AkelEdit functions
 
-#ifdef AEC_INDEXCOMPARE
-#define AEC_INDEXCOMPARE_INCLUDED
+#ifdef AEC_FUNCTIONS
+#define AEC_FUNCTIONS_INCLUDED
+  int AEC_IsSurrogate(wchar_t wchChar)
+  {
+    if (wchChar >= 0xD800 && wchChar <= 0xDFFF)
+      return TRUE;
+    return FALSE;
+  }
+
+  int AEC_IsHighSurrogate(wchar_t wchChar)
+  {
+    if (wchChar >= 0xD800 && wchChar <= 0xDBFF)
+      return TRUE;
+    return FALSE;
+  }
+
+  int AEC_IsLowSurrogate(wchar_t wchChar)
+  {
+    if (wchChar >= 0xDC00 && wchChar <= 0xDFFF)
+      return TRUE;
+    return FALSE;
+  }
+
+  int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
+  {
+    int nResult=0;
+
+    if (AEC_IsSurrogate(*wpSource))
+    {
+      if (dwTargetSize >= 2)
+      {
+        if (AEC_IsHighSurrogate(*wpSource) && AEC_IsLowSurrogate(*(wpSource + 1)))
+        {
+          if (wszTarget)
+          {
+            *wszTarget=*wpSource;
+            *(wszTarget + 1)=*(wpSource + 1);
+          }
+          nResult=2;
+        }
+      }
+    }
+    else
+    {
+      if (wszTarget) *wszTarget=*wpSource;
+      nResult=1;
+    }
+    return nResult;
+  }
+
+  int AEC_IndexInc(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine >= 0)
+    {
+      if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+      {
+        if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+          if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
+            ++ciChar->nCharInLine;
+      }
+    }
+    return ++ciChar->nCharInLine;
+  }
+
+  int AEC_IndexDec(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine - 2 >= 0)
+    {
+      if (ciChar->nCharInLine - 1 < ciChar->lpLine->nLineLen)
+      {
+        if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
+          if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 2]))
+            --ciChar->nCharInLine;
+      }
+    }
+    return --ciChar->nCharInLine;
+  }
+
+  int AEC_IndexLen(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine >= 0)
+    {
+      if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+      {
+        if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+          if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
+            return 2;
+      }
+    }
+    return 1;
+  }
+
   int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
   {
     if (ciChar1->nLine == ciChar2->nLine &&
@@ -823,9 +913,79 @@ typedef struct {
     }
     return 1;
   }
+
+  AELINEDATA* AEC_NextLine(AECHARINDEX *ciChar)
+  {
+    if (ciChar->lpLine)
+    {
+      ciChar->nLine+=1;
+      ciChar->lpLine=ciChar->lpLine->next;
+      ciChar->nCharInLine=0;
+    }
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_PrevLine(AECHARINDEX *ciChar)
+  {
+    if (ciChar->lpLine)
+    {
+      ciChar->nLine-=1;
+      ciChar->lpLine=ciChar->lpLine->prev;
+      if (ciChar->lpLine)
+        ciChar->nCharInLine=ciChar->lpLine->nLineLen;
+      else
+        ciChar->nCharInLine=0;
+    }
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_NextIndex(AECHARINDEX *ciChar)
+  {
+    AEC_IndexInc(ciChar);
+
+    if (ciChar->nCharInLine > ciChar->lpLine->nLineLen)
+    {
+      AEC_NextLine(ciChar);
+
+      if (ciChar->lpLine)
+      {
+        if (ciChar->lpLine->prev->nLineBreak == AELB_WRAP)
+          AEC_IndexInc(ciChar);
+      }
+    }
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_PrevIndex(AECHARINDEX *ciChar)
+  {
+    AEC_IndexDec(ciChar);
+
+    if (ciChar->nCharInLine < 0)
+    {
+      AEC_PrevLine(ciChar);
+
+      if (ciChar->lpLine)
+      {
+        if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+          AEC_IndexDec(ciChar);
+      }
+    }
+    return ciChar->lpLine;
+  }
 #else
+  int AEC_IsSurrogate(wchar_t wchChar);
+  int AEC_IsHighSurrogate(wchar_t wchChar);
+  int AEC_IsLowSurrogate(wchar_t wchChar);
+  int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource);
+  int AEC_IndexInc(AECHARINDEX *ciChar);
+  int AEC_IndexDec(AECHARINDEX *ciChar);
+  int AEC_IndexLen(AECHARINDEX *ciChar);
   int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
-#endif
+  AELINEDATA* AEC_NextLine(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_PrevLine(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_NextIndex(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_PrevIndex(AECHARINDEX *ciChar);
+#endif //AEC_FUNCTIONS
 
 
 //// AkelEdit messages
@@ -2311,7 +2471,7 @@ Example:
  SendMessage(hWndEdit, AEM_INDEXCOMPARE, (WPARAM)&aes.crSel.ciMin, (LPARAM)&aes.crSel.ciMax);
 
 For better performance instead of AEM_INDEXCOMPARE message add:
- #define AEC_INDEXCOMPARE
+ #define AEC_FUNCTIONS
  #include "AkelEdit.h"
 And use AEC_IndexCompare call:
  AEC_IndexCompare(&aes.crSel.ciMin, &aes.crSel.ciMax);
