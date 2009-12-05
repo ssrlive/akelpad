@@ -461,12 +461,16 @@ typedef struct _AKELEDIT {
   RECT rcDraw;
   RECT rcErase;
   POINT ptActiveColumnDraw;
-  DWORD dwNotify;
   DWORD dwInputLocale;
   DWORD dwImeChar;
   BOOL bCaretVisible;
   BOOL bFocus;
   int nAltChar;
+
+  //Notification
+  DWORD dwNotifyFlags;
+  int nNotifyInsertLen;
+  int nNotifyDeleteLen;
 
   //Cursor
   DWORD dwMouseCapture;
@@ -540,7 +544,7 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs);
 void AE_DestroyWindowData(AKELEDIT *ae);
-HANDLE AE_HeapCreate(AKELEDIT *ae);
+DWORD AE_HeapCreate(AKELEDIT *ae);
 LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes);
 BOOL AE_HeapFree(AKELEDIT *ae, DWORD dwFlags, LPVOID lpMem);
 int AE_HeapStackInsertIndex(AKELEDIT *ae, stack **first, stack **last, stack **element, int nIndex, int nBytes);

@@ -3784,11 +3784,15 @@ void AE_DestroyWindowData(AKELEDIT *ae)
   AE_HeapStackDelete(NULL, (stack **)&hAkelEditWindowsStack.first, (stack **)&hAkelEditWindowsStack.last, (stack *)ae);
 }
 
-HANDLE AE_HeapCreate(AKELEDIT *ae)
+DWORD AE_HeapCreate(AKELEDIT *ae)
 {
+  DWORD dwResult=0;
+
   //Free memory
   if (ae->ptxt->hHeap)
   {
+    dwResult=ae->nLastCallOffset;
+
     if (HeapDestroy(ae->ptxt->hHeap))
       ae->ptxt->hHeap=NULL;
     ae->ptxt->hLinesStack.first=0;
@@ -3840,7 +3844,7 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   //Create heap
   ae->ptxt->hHeap=HeapCreate(ae->popt->bHeapSerialize?0:HEAP_NO_SERIALIZE, 0, 0);
 
-  return ae->ptxt->hHeap;
+  return dwResult;
 }
 
 LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes)
@@ -11816,7 +11820,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     nNewLine=ae->popt->nOutputNewLine;
 
   //Free old and create new heap
-  AE_HeapCreate(ae);
+  ae->nNotifyDeleteLen=AE_HeapCreate(ae);
 
   //Get DC for faster AE_GetTextExtentPoint32
   if (!ae->hDC)
@@ -11997,7 +12001,8 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     if (!bFirstHeap)
     {
       AE_StackPointReset(ae);
-      ae->dwNotify=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AETCT_DELETEALL;
+      ae->dwNotifyFlags=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AETCT_DELETEALL;
+      ae->nNotifyInsertLen=dwTextLen;
     }
   }
   if (!bFirstHeap)
@@ -12107,7 +12112,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
     else
     {
       //Free old and create new heap
-      AE_HeapCreate(ae);
+      ae->nNotifyDeleteLen=AE_HeapCreate(ae);
 
       //Get DC for faster AE_GetTextExtentPoint32
       if (!ae->hDC)
@@ -12317,7 +12322,8 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         if (!bFirstHeap)
         {
           AE_StackPointReset(ae);
-          ae->dwNotify=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AETCT_DELETEALL;
+          ae->dwNotifyFlags=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY|AETCT_DELETEALL;
+          ae->nNotifyInsertLen=dwResult;
         }
       }
     }
@@ -13280,9 +13286,10 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
     if (nRichTextCount < 0)
     {
-      ae->dwNotify|=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
+      ae->dwNotifyFlags|=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
       if (!ae->ptxt->nLastCharOffset)
-        ae->dwNotify|=AETCT_DELETEALL;
+        ae->dwNotifyFlags|=AETCT_DELETEALL;
+      ae->nNotifyDeleteLen+=mod(nRichTextCount);
     }
   }
   return mod(nRichTextCount);
@@ -13331,7 +13338,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
       if (ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset < dwTextLen)
       {
         dwTextLen=ae->ptxt->dwTextLimit - ae->ptxt->nLastCharOffset;
-        ae->dwNotify|=AENM_MAXTEXT;
+        ae->dwNotifyFlags|=AENM_MAXTEXT;
       }
     }
     else dwTextLen=0;
@@ -14136,7 +14143,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           }
         }
 
-        ae->dwNotify|=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
+        ae->dwNotifyFlags|=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
+        ae->nNotifyInsertLen+=dwTextCount;
       }
     }
   }
@@ -15907,6 +15915,9 @@ void AE_NotifySelChanged(AKELEDIT *ae, DWORD dwType)
 
 void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
 {
+  ae->nNotifyInsertLen=0;
+  ae->nNotifyDeleteLen=0;
+
   //Send AEN_TEXTCHANGING
   if (ae->popt->dwEventMask & AENM_TEXTCHANGE)
   {
@@ -15916,6 +15927,8 @@ void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGING;
     tc.dwType=dwType;
+    tc.nInsertLen=ae->nNotifyInsertLen;
+    tc.nDeleteLen=ae->nNotifyDeleteLen;
     AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
@@ -15934,6 +15947,8 @@ void AE_NotifyTextChanged(AKELEDIT *ae, DWORD dwType)
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGED;
     tc.dwType=dwType;
+    tc.nInsertLen=ae->nNotifyInsertLen;
+    tc.nDeleteLen=ae->nNotifyDeleteLen;
     AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
   }
@@ -15969,21 +15984,21 @@ void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType)
 void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
 {
   //SelChanged
-  if (ae->dwNotify & AENM_SELCHANGE)
+  if (ae->dwNotifyFlags & AENM_SELCHANGE)
   {
-    ae->dwNotify&=~AENM_SELCHANGE;
+    ae->dwNotifyFlags&=~AENM_SELCHANGE;
     AE_NotifySelChanged(ae, LOWORD(dwType));
   }
 
   //TextChanged
-  if (ae->dwNotify & AETCT_DELETEALL)
+  if (ae->dwNotifyFlags & AETCT_DELETEALL)
   {
-    ae->dwNotify&=~AETCT_DELETEALL;
+    ae->dwNotifyFlags&=~AETCT_DELETEALL;
     dwType|=AETCT_DELETEALL;
   }
-  if (ae->dwNotify & AENM_TEXTCHANGE)
+  if (ae->dwNotifyFlags & AENM_TEXTCHANGE)
   {
-    ae->dwNotify&=~AENM_TEXTCHANGE;
+    ae->dwNotifyFlags&=~AENM_TEXTCHANGE;
 
     if (!ae->ptxt->dwUndoLimit)
     {
@@ -15996,9 +16011,9 @@ void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
   AE_NotifyTextChanged(ae, dwType);
 
   //Modify
-  if (ae->dwNotify & AENM_MODIFY)
+  if (ae->dwNotifyFlags & AENM_MODIFY)
   {
-    ae->dwNotify&=~AENM_MODIFY;
+    ae->dwNotifyFlags&=~AENM_MODIFY;
 
     if (ae->ptxt->bModified != AE_GetModify(ae))
     {
@@ -16008,9 +16023,9 @@ void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType)
   }
 
   //MaxText
-  if (ae->dwNotify & AENM_MAXTEXT)
+  if (ae->dwNotifyFlags & AENM_MAXTEXT)
   {
-    ae->dwNotify&=~AENM_MAXTEXT;
+    ae->dwNotifyFlags&=~AENM_MAXTEXT;
     AE_NotifyMaxText(ae);
   }
 }
