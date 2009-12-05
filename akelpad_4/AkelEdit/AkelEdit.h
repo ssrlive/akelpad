@@ -751,6 +751,8 @@ typedef struct {
   AESELECTION aes;      //Current selection.
   AECHARINDEX ciCaret;  //Caret character index position.
   DWORD dwType;         //See AETCT_* defines.
+  int nInsertLen;       //Insert text length.
+  int nDeleteLen;       //Delete text length.
 } AENTEXTCHANGE;
 
 typedef struct {
