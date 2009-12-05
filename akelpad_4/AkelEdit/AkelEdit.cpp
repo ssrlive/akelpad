@@ -5487,6 +5487,96 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
   return 0;
 }
 
+int AE_IsSurrogate(wchar_t wchChar)
+{
+  if (wchChar >= 0xD800 && wchChar <= 0xDFFF)
+    return TRUE;
+  return FALSE;
+}
+
+int AE_IsHighSurrogate(wchar_t wchChar)
+{
+  if (wchChar >= 0xD800 && wchChar <= 0xDBFF)
+    return TRUE;
+  return FALSE;
+}
+
+int AE_IsLowSurrogate(wchar_t wchChar)
+{
+  if (wchChar >= 0xDC00 && wchChar <= 0xDFFF)
+    return TRUE;
+  return FALSE;
+}
+
+int AE_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
+{
+  int nResult=0;
+
+  if (AE_IsSurrogate(*wpSource))
+  {
+    if (dwTargetSize >= 2)
+    {
+      if (AE_IsHighSurrogate(*wpSource) && AE_IsLowSurrogate(*(wpSource + 1)))
+      {
+        if (wszTarget)
+        {
+          *wszTarget=*wpSource;
+          *(wszTarget + 1)=*(wpSource + 1);
+        }
+        nResult=2;
+      }
+    }
+  }
+  else
+  {
+    if (wszTarget) *wszTarget=*wpSource;
+    nResult=1;
+  }
+  return nResult;
+}
+
+int AE_IndexInc(AECHARINDEX *ciChar)
+{
+  if (ciChar->nCharInLine >= 0)
+  {
+    if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+    {
+      if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+        if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
+          ++ciChar->nCharInLine;
+    }
+  }
+  return ++ciChar->nCharInLine;
+}
+
+int AE_IndexDec(AECHARINDEX *ciChar)
+{
+  if (ciChar->nCharInLine - 2 >= 0)
+  {
+    if (ciChar->nCharInLine - 1 < ciChar->lpLine->nLineLen)
+    {
+      if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
+        if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 2]))
+          --ciChar->nCharInLine;
+    }
+  }
+  return --ciChar->nCharInLine;
+}
+
+int AE_IndexLen(AECHARINDEX *ciChar)
+{
+  if (ciChar->nCharInLine >= 0)
+  {
+    if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+    {
+      if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+        if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
+          return 2;
+    }
+  }
+  return 1;
+}
+
 int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
 {
   if (ciChar1->nLine == ciChar2->nLine &&
@@ -5560,48 +5650,6 @@ AELINEDATA* AE_PrevIndex(AECHARINDEX *ciChar)
     }
   }
   return ciChar->lpLine;
-}
-
-int AE_IndexInc(AECHARINDEX *ciChar)
-{
-  if (ciChar->nCharInLine >= 0)
-  {
-    if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
-    {
-      if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
-        if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
-          ++ciChar->nCharInLine;
-    }
-  }
-  return ++ciChar->nCharInLine;
-}
-
-int AE_IndexDec(AECHARINDEX *ciChar)
-{
-  if (ciChar->nCharInLine - 2 >= 0)
-  {
-    if (ciChar->nCharInLine - 1 < ciChar->lpLine->nLineLen)
-    {
-      if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
-        if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 2]))
-          --ciChar->nCharInLine;
-    }
-  }
-  return --ciChar->nCharInLine;
-}
-
-int AE_IndexLen(AECHARINDEX *ciChar)
-{
-  if (ciChar->nCharInLine >= 0)
-  {
-    if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
-    {
-      if (AE_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
-        if (AE_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
-          return 2;
-    }
-  }
-  return 1;
 }
 
 int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces)
@@ -10604,54 +10652,6 @@ int AE_GetLastFullVisibleLine(AKELEDIT *ae)
      nLastLine=max(nLastLine - 1, 0);
 
   return nLastLine;
-}
-
-int AE_IsSurrogate(wchar_t wchChar)
-{
-  if (wchChar >= 0xD800 && wchChar <= 0xDFFF)
-    return TRUE;
-  return FALSE;
-}
-
-int AE_IsHighSurrogate(wchar_t wchChar)
-{
-  if (wchChar >= 0xD800 && wchChar <= 0xDBFF)
-    return TRUE;
-  return FALSE;
-}
-
-int AE_IsLowSurrogate(wchar_t wchChar)
-{
-  if (wchChar >= 0xDC00 && wchChar <= 0xDFFF)
-    return TRUE;
-  return FALSE;
-}
-
-int AE_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
-{
-  int nResult=0;
-
-  if (AE_IsSurrogate(*wpSource))
-  {
-    if (dwTargetSize >= 2)
-    {
-      if (AE_IsHighSurrogate(*wpSource) && AE_IsLowSurrogate(*(wpSource + 1)))
-      {
-        if (wszTarget)
-        {
-          *wszTarget=*wpSource;
-          *(wszTarget + 1)=*(wpSource + 1);
-        }
-        nResult=2;
-      }
-    }
-  }
-  else
-  {
-    if (wszTarget) *wszTarget=*wpSource;
-    nResult=1;
-  }
-  return nResult;
 }
 
 int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLen, SIZE *lpSize)

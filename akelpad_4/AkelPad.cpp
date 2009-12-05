@@ -10,7 +10,7 @@
 #include "StackFunc.h"
 #include "StrFunc.h"
 
-#define AEC_INDEXCOMPARE
+#define AEC_FUNCTIONS
 #include "AkelEdit\AkelBuild.h"
 #include "AkelFiles\Langs\Resources\resource.h"
 #include "AkelFiles\Langs\Resources\version.h"
