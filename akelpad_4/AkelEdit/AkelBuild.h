@@ -93,16 +93,6 @@
 //StreamIn HIBYTE new line
 #define AELB_SPLIT    1
 
-//AE_InsertText flags
-#define AEINST_LOCKUNDO      0x00000001
-#define AEINST_LOCKSCROLL    0x00000002
-#define AEINST_LOCKUPDATE    0x00000004
-
-//AE_DeleteText flags
-#define AEDELT_LOCKUNDO      0x00000001
-#define AEDELT_LOCKSCROLL    0x00000002
-#define AEDELT_LOCKUPDATE    0x00000004
-
 //Undo/Redo flags
 #define AEUN_INSERT          0x00000001
 #define AEUN_DELETE          0x00000002
@@ -469,8 +459,8 @@ typedef struct _AKELEDIT {
 
   //Notification
   DWORD dwNotifyFlags;
-  int nNotifyInsertLen;
-  int nNotifyDeleteLen;
+  DWORD dwNotifyTextChange;
+  DWORD dwNotifySelChange;
 
   //Cursor
   DWORD dwMouseCapture;
@@ -544,7 +534,7 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs);
 void AE_DestroyWindowData(AKELEDIT *ae);
-DWORD AE_HeapCreate(AKELEDIT *ae);
+HANDLE AE_HeapCreate(AKELEDIT *ae);
 LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes);
 BOOL AE_HeapFree(AKELEDIT *ae, DWORD dwFlags, LPVOID lpMem);
 int AE_HeapStackInsertIndex(AKELEDIT *ae, stack **first, stack **last, stack **element, int nIndex, int nBytes);
@@ -768,12 +758,12 @@ void AE_NotifyMaxText(AKELEDIT *ae);
 void AE_NotifySetFocus(AKELEDIT *ae);
 void AE_NotifyKillFocus(AKELEDIT *ae);
 void AE_NotifySelChanging(AKELEDIT *ae, DWORD dwType);
-void AE_NotifySelChanged(AKELEDIT *ae, DWORD dwType);
+void AE_NotifySelChanged(AKELEDIT *ae);
 void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType);
-void AE_NotifyTextChanged(AKELEDIT *ae, DWORD dwType);
+void AE_NotifyTextChanged(AKELEDIT *ae);
 void AE_NotifyModify(AKELEDIT *ae);
 void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType);
-void AE_NotifyChanged(AKELEDIT *ae, DWORD dwType);
+void AE_NotifyChanged(AKELEDIT *ae);
 void AE_NotifyHScroll(AKELEDIT *ae);
 void AE_NotifyVScroll(AKELEDIT *ae);
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam);

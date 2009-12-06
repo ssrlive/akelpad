@@ -79,7 +79,7 @@
 #define AESCT_UPDATESELECTION   0x08000000  //Selection is updated.
 #define AESCT_IME               0x10000000  //Input Method Editors (IME).
 
-//AEN_TEXTCHANGING and AEN_TEXTCHANGED types
+//AEN_TEXTCHANGING, AEN_TEXTINSERTBEGIN, AEN_TEXTINSERTEND, AEN_TEXTDELETEBEGIN, AEN_TEXTDELETEEND and AEN_TEXTCHANGED types
 #define AETCT_REPLACESEL        0x00000001  //Replace selection.
 #define AETCT_APPENDTEXT        0x00000002  //Append text.
 #define AETCT_SETTEXT           0x00000004  //Set text.
@@ -98,6 +98,16 @@
 //AEN_TEXTCHANGED types
 #define AETCT_NONE              0x00100000  //No text is changed.
 #define AETCT_DELETEALL         0x00200000  //Indicate that due to AETCT_* action all text has been modified.
+
+//Insert text flags
+#define AEINST_LOCKUNDO      0x00000001
+#define AEINST_LOCKSCROLL    0x00000002
+#define AEINST_LOCKUPDATE    0x00000004
+
+//Delete text flags
+#define AEDELT_LOCKUNDO      0x00000001
+#define AEDELT_LOCKSCROLL    0x00000002
+#define AEDELT_LOCKUPDATE    0x00000004
 
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
@@ -751,9 +761,32 @@ typedef struct {
   AESELECTION aes;      //Current selection.
   AECHARINDEX ciCaret;  //Caret character index position.
   DWORD dwType;         //See AETCT_* defines.
-  int nInsertLen;       //Insert text length.
-  int nDeleteLen;       //Delete text length.
 } AENTEXTCHANGE;
+
+typedef struct {
+  NMHDR hdr;
+  AESELECTION aes;          //Current selection.
+  AECHARINDEX ciCaret;      //Caret character index position.
+  DWORD dwType;             //See AETCT_* defines.
+  const wchar_t *wpText;    //Text to insert.
+  DWORD dwTextLen;          //Text length.
+  int nNewLine;             //See AELB_* defines.
+  BOOL bColumnSel;          //Column selection.
+  DWORD dwInsertFlags;      //See AEINST_* defines.
+  AECHARRANGE crAkelRange;  //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion.
+  CHARRANGE crRichRange;    //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion (RichEdit offset).
+} AENTEXTINSERT;
+
+typedef struct {
+  NMHDR hdr;
+  AESELECTION aes;          //Current selection.
+  AECHARINDEX ciCaret;      //Caret character index position.
+  DWORD dwType;             //See AETCT_* defines.
+  BOOL bColumnSel;          //Column selection.
+  DWORD dwDeleteFlags;      //See AEINST_* defines.
+  AECHARRANGE crAkelRange;  //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text position after deletion.
+  CHARRANGE crRichRange;    //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text position after deletion (RichEdit offset).
+} AENTEXTDELETE;
 
 typedef struct {
   NMHDR hdr;
@@ -1006,6 +1039,10 @@ typedef struct {
 #define AEN_DROPTARGET            (WM_USER + 1013)  //0x7F5
 #define AEN_LINK                  (WM_USER + 1014)  //0x7F6
 #define AEN_PROGRESS              (WM_USER + 1015)  //0x7F7
+#define AEN_TEXTINSERTBEGIN       (WM_USER + 1016)  //0x7F8
+#define AEN_TEXTINSERTEND         (WM_USER + 1017)  //0x7F9
+#define AEN_TEXTDELETEBEGIN       (WM_USER + 1018)  //0x7FA
+#define AEN_TEXTDELETEEND         (WM_USER + 1019)  //0x7FB
 
 //Text retrieval and modification
 #define AEM_SETTEXTA              (WM_USER + 2001)
@@ -1357,6 +1394,70 @@ Return Value
 
 Remarks
  To receive AEN_TEXTCHANGING notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_TEXTINSERTBEGIN
+___________________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure before text is inserted in the document.
+
+(int)wParam             == specifies the control identifier.
+(AENTEXTINSERT *)lParam == pointer to a AENTEXTINSERT structure.
+
+Return Value
+ zero
+
+Remarks
+ To receive AEN_TEXTINSERTBEGIN notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_TEXTINSERTEND
+_________________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure after text is inserted in the document.
+
+(int)wParam             == specifies the control identifier.
+(AENTEXTINSERT *)lParam == pointer to a AENTEXTINSERT structure.
+
+Return Value
+ zero
+
+Remarks
+ To receive AEN_TEXTINSERTEND notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_TEXTDELETEBEGIN
+___________________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure before text is deleted from the document.
+
+(int)wParam             == specifies the control identifier.
+(AENTEXTDELETE *)lParam == pointer to a AENTEXTDELETE structure.
+
+Return Value
+ zero
+
+Remarks
+ To receive AEN_TEXTDELETEBEGIN notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_TEXTDELETEEND
+_________________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure after text is deleted from the document.
+
+(int)wParam             == specifies the control identifier.
+(AENTEXTDELETE *)lParam == pointer to a AENTEXTDELETE structure.
+
+Return Value
+ zero
+
+Remarks
+ To receive AEN_TEXTDELETEEND notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_TEXTCHANGED
