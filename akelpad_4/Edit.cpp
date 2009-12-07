@@ -12241,10 +12241,15 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       else if (nGotoType == NT_OFFSET)
       {
         if (nNumber >= 0)
+        {
           SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+          IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
+        }
         else
+        {
           SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMin);
-        IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
+          IndexOffset(hWndEdit, &cr.ciMin, nNumber + 1, AELB_ASIS);
+        }
       }
 
       //Set selection
@@ -12372,10 +12377,15 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       else if (nGotoType == NT_OFFSET)
       {
         if (nNumber >= 0)
+        {
           SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+          IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
+        }
         else
+        {
           SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMin);
-        IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
+          IndexOffset(hWndEdit, &cr.ciMin, nNumber + 1, AELB_ASIS);
+        }
       }
 
       //Set selection
