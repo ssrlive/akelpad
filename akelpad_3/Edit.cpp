@@ -12146,7 +12146,7 @@ int CallPluginReceiveSendA(PLUGINCALLSENDA *pcs)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
           if (pfElement)
           {
@@ -12191,7 +12191,7 @@ int CallPluginReceiveSendW(PLUGINCALLSENDW *pcs)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
           if (pfElement)
           {
@@ -12233,7 +12233,7 @@ void CallPluginReceivePostA(PLUGINCALLPOSTA *pcp)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
           if (pfElement)
           {
@@ -12275,7 +12275,7 @@ void CallPluginReceivePostW(PLUGINCALLPOSTW *pcp)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
           if (pfElement)
           {
@@ -13311,7 +13311,7 @@ BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
 
           if (nResult != UD_FAILED)
           {
-            if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+            if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
               pfElement->bRunning=FALSE;
             else if (nResult & UD_NONUNLOAD_ACTIVE)
               pfElement->bRunning=TRUE;
@@ -13364,7 +13364,7 @@ BOOL TranslateHotkeyW(HSTACK *hStack, LPMSG lpMsg)
 
           if (nResult != UD_FAILED)
           {
-            if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+            if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
               pfElement->bRunning=FALSE;
             else if (nResult & UD_NONUNLOAD_ACTIVE)
               pfElement->bRunning=TRUE;
