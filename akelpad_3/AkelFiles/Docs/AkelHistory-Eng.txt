@@ -1,4 +1,10 @@
 
+AkelPad 3.7.4 ()
+----------------------------
+Added: now possible to assign hotkeys in plugins dialog:
+       (Ctrl|Alt|Shift)+Delete, (Ctrl|Alt|Shift)+Backspace, Ctrl+Tab, Ctrl+Shift+Tab.
+
+
 AkelPad 3.7.3 (Aug 28, 2009)
 ----------------------------
 Added: 4113 command - silent printing.
