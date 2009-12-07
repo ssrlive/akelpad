@@ -11788,6 +11788,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
           pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
           pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
           pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+          pv.pPluginName=NULL;
           (*PluginIDPtr)(&pv);
 
           if (LOBYTE(pv.dwAkelDllVersion) == LOBYTE(AKELDLL) &&
@@ -11952,6 +11953,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
           pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
           pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
           pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+          pv.pPluginName=NULL;
           (*PluginIDPtr)(&pv);
 
           if (LOBYTE(pv.dwAkelDllVersion) == LOBYTE(AKELDLL) &&

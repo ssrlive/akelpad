@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 6)
+#define AKELDLL MAKE_IDENTIFIER(1, 2, 0, 0)
 
 
 //// Defines
@@ -193,6 +193,7 @@ typedef struct _PLUGINVERSION {
   DWORD dwExeMinVersion4x;    //Required minimum AkelPad 4.x version.
                               //Set as MAKE_IDENTIFIER(x, x, x, x) or
                               //if not supported MAKE_IDENTIFIER(-1, -1, -1, -1).
+  char *pPluginName;          //Plugin unique name
 } PLUGINVERSION;
 
 typedef struct _PLUGINDATA {
