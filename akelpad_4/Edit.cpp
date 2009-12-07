@@ -15085,7 +15085,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
   HMODULE hModule;
   PLUGINVERSION pv;
   PLUGINDATA pd;
-  BOOL bActive=TRUE;
+  BOOL bInMemory=TRUE;
   BOOL bCalled=FALSE;
   int nWordLen;
   void (*PluginIDPtr)(PLUGINVERSION *);
@@ -15107,7 +15107,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         if (hModule=LoadLibraryA(szDLL))
         {
           StackHandleIncrease(&hHandlesStack, hModule);
-          bActive=FALSE;
+          bInMemory=FALSE;
         }
       }
 
@@ -15137,7 +15137,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
                   pd.lpPluginFunction=lpPluginFunction;
                   pd.lpbAutoLoad=lpbAutoLoad;
                   pd.nUnload=UD_UNLOAD;
-                  pd.bActive=bActive;
+                  pd.bInMemory=bInMemory;
                   pd.bOnStart=bOnStart;
                   pd.lParam=lParam;
                   pd.pAkelDir=(unsigned char *)szExeDir;
@@ -15167,10 +15167,12 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
                   (*PluginFunctionPtr)(&pd);
                   SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
 
-                  if (lpbAutoLoad && bActive) return EDL_NONUNLOADED;
-                  if (pd.nUnload == UD_NONUNLOAD) return EDL_NONUNLOADED;
-                  if (pd.nUnload == UD_NONUNLOAD_ACTIVE) return EDL_NONUNLOADED_ACTIVE;
-                  if (pd.nUnload == UD_NONUNLOAD_NONACTIVE) return EDL_NONUNLOADED_NONACTIVE;
+                  if (lpbAutoLoad && bInMemory)
+                    return UD_NONUNLOAD_UNCHANGE;
+                  if ((pd.nUnload & UD_NONUNLOAD_ACTIVE) ||
+                      (pd.nUnload & UD_NONUNLOAD_NONACTIVE) ||
+                      (pd.nUnload & UD_NONUNLOAD_UNCHANGE))
+                    return pd.nUnload;
                   bCalled=TRUE;
                 }
                 else
@@ -15178,7 +15180,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
                   API_LoadStringA(hLangLib, MSG_FUNCTION_NOT_FOUND, buf, BUFFER_SIZE);
                   wsprintfA(buf2, buf, szPlugin, szFunction, szDLL);
                   MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
-                  if (bActive) return EDL_FAILED;
+                  if (bInMemory) return UD_FAILED;
                 }
               }
               else
@@ -15222,7 +15224,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
         if (FreeLibrary(hModule))
         {
           StackHandleDecrease(&hHandlesStack, hModule);
-          if (bCalled) return EDL_UNLOADED;
+          if (bCalled) return pd.nUnload; //UD_UNLOAD
         }
       }
       else
@@ -15233,7 +15235,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
       }
     }
   }
-  return EDL_FAILED;
+  return UD_FAILED;
 }
 
 int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOnStart, LPARAM lParam, BOOL *lpbAutoLoad)
@@ -15246,7 +15248,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
   HMODULE hModule;
   PLUGINVERSION pv;
   PLUGINDATA pd;
-  BOOL bActive=TRUE;
+  BOOL bInMemory=TRUE;
   BOOL bCalled=FALSE;
   int nWordLen;
   void (*PluginIDPtr)(PLUGINVERSION *);
@@ -15269,7 +15271,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         if (hModule=LoadLibraryW(wszDLL))
         {
           StackHandleIncrease(&hHandlesStack, hModule);
-          bActive=FALSE;
+          bInMemory=FALSE;
         }
       }
 
@@ -15299,7 +15301,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
                   pd.lpPluginFunction=lpPluginFunction;
                   pd.lpbAutoLoad=lpbAutoLoad;
                   pd.nUnload=UD_UNLOAD;
-                  pd.bActive=bActive;
+                  pd.bInMemory=bInMemory;
                   pd.bOnStart=bOnStart;
                   pd.lParam=lParam;
                   pd.pAkelDir=(unsigned char *)wszExeDir;
@@ -15329,10 +15331,12 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
                   (*PluginFunctionPtr)(&pd);
                   SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
 
-                  if (lpbAutoLoad && bActive) return EDL_NONUNLOADED;
-                  if (pd.nUnload == UD_NONUNLOAD) return EDL_NONUNLOADED;
-                  if (pd.nUnload == UD_NONUNLOAD_ACTIVE) return EDL_NONUNLOADED_ACTIVE;
-                  if (pd.nUnload == UD_NONUNLOAD_NONACTIVE) return EDL_NONUNLOADED_NONACTIVE;
+                  if (lpbAutoLoad && bInMemory)
+                    return UD_NONUNLOAD_UNCHANGE;
+                  if ((pd.nUnload & UD_NONUNLOAD_ACTIVE) ||
+                      (pd.nUnload & UD_NONUNLOAD_NONACTIVE) ||
+                      (pd.nUnload & UD_NONUNLOAD_UNCHANGE))
+                    return pd.nUnload;
                   bCalled=TRUE;
                 }
                 else
@@ -15340,7 +15344,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
                   API_LoadStringW(hLangLib, MSG_FUNCTION_NOT_FOUND, wbuf, BUFFER_SIZE);
                   wsprintfW(wbuf2, wbuf, wszPlugin, wszFunction, wszDLL);
                   MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-                  if (bActive) return EDL_FAILED;
+                  if (bInMemory) return UD_FAILED;
                 }
               }
               else
@@ -15384,7 +15388,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
         if (FreeLibrary(hModule))
         {
           StackHandleDecrease(&hHandlesStack, hModule);
-          if (bCalled) return EDL_UNLOADED;
+          if (bCalled) return pd.nUnload; //UD_UNLOAD
         }
       }
       else
@@ -15395,7 +15399,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
       }
     }
   }
-  return EDL_FAILED;
+  return UD_FAILED;
 }
 
 void CallPluginsOnStartA(HSTACK *hStack)
@@ -15413,7 +15417,7 @@ void CallPluginsOnStartA(HSTACK *hStack)
       pcs.lParam=0;
       pcs.lpbAutoLoad=NULL;
 
-      if (CallPluginReceiveSendA(&pcs) == EDL_FAILED)
+      if (CallPluginReceiveSendA(&pcs) == UD_FAILED)
       {
         pfTmp=pfElement->next;
         StackPluginDelete(hStack, pfElement);
@@ -15440,7 +15444,7 @@ void CallPluginsOnStartW(HSTACK *hStack)
       pcs.lParam=0;
       pcs.lpbAutoLoad=NULL;
 
-      if (CallPluginReceiveSendW(&pcs) == EDL_FAILED)
+      if (CallPluginReceiveSendW(&pcs) == UD_FAILED)
       {
         pfTmp=pfElement->next;
         StackPluginDelete(hStack, pfElement);
@@ -15455,7 +15459,7 @@ void CallPluginsOnStartW(HSTACK *hStack)
 int CallPluginReceiveSendA(PLUGINCALLSENDA *pcs)
 {
   PLUGINFUNCTIONA *pfElement;
-  int nResult=EDL_FAILED;
+  int nResult=UD_FAILED;
 
   if (pcs)
   {
@@ -15463,27 +15467,33 @@ int CallPluginReceiveSendA(PLUGINCALLSENDA *pcs)
 
     if (pfElement && pfElement->PluginProc)
     {
-      (pfElement->PluginProc)(pfElement->lpParameter);
+      if ((pfElement->PluginProc)(pfElement->lpParameter))
+        nResult=UD_NONUNLOAD_UNCHANGE;
+      else
+        nResult=UD_NONUNLOAD_UNCHANGE|UD_HOTKEY_DODEFAULT;
     }
     else
     {
       nResult=CallPluginA(pfElement, pcs->pFunction, pcs->bOnStart, pcs->lParam, pcs->lpbAutoLoad);
 
-      if (nResult == EDL_NONUNLOADED_ACTIVE)
+      if (nResult != UD_FAILED)
       {
-        if (pfElement)
-          pfElement->bRunning=TRUE;
-        else
-          StackPluginAddA(&hPluginsStack, pcs->pFunction, lstrlenA(pcs->pFunction), 0, FALSE, TRUE, NULL, NULL);
-      }
-      else if (nResult != EDL_NONUNLOADED)
-      {
-        if (pfElement)
+        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
-          if (pfElement->wHotkey || pfElement->bOnStart)
-            pfElement->bRunning=FALSE;
+          if (pfElement)
+          {
+            if (pfElement->wHotkey || pfElement->bOnStart)
+              pfElement->bRunning=FALSE;
+            else
+              StackPluginDelete(&hPluginsStack, pfElement);
+          }
+        }
+        else if (nResult & UD_NONUNLOAD_ACTIVE)
+        {
+          if (pfElement)
+            pfElement->bRunning=TRUE;
           else
-            StackPluginDelete(&hPluginsStack, pfElement);
+            StackPluginAddA(&hPluginsStack, pcs->pFunction, lstrlenA(pcs->pFunction), 0, FALSE, TRUE, NULL, NULL);
         }
       }
     }
@@ -15494,7 +15504,7 @@ int CallPluginReceiveSendA(PLUGINCALLSENDA *pcs)
 int CallPluginReceiveSendW(PLUGINCALLSENDW *pcs)
 {
   PLUGINFUNCTIONW *pfElement;
-  int nResult=EDL_FAILED;
+  int nResult=UD_FAILED;
 
   if (pcs)
   {
@@ -15502,27 +15512,33 @@ int CallPluginReceiveSendW(PLUGINCALLSENDW *pcs)
 
     if (pfElement && pfElement->PluginProc)
     {
-      (pfElement->PluginProc)(pfElement->lpParameter);
+      if ((pfElement->PluginProc)(pfElement->lpParameter))
+        nResult=UD_NONUNLOAD_UNCHANGE;
+      else
+        nResult=UD_NONUNLOAD_UNCHANGE|UD_HOTKEY_DODEFAULT;
     }
     else
     {
       nResult=CallPluginW(pfElement, pcs->wpFunction, pcs->bOnStart, pcs->lParam, pcs->lpbAutoLoad);
 
-      if (nResult == EDL_NONUNLOADED_ACTIVE)
+      if (nResult != UD_FAILED)
       {
-        if (pfElement)
-          pfElement->bRunning=TRUE;
-        else
-          StackPluginAddW(&hPluginsStack, pcs->wpFunction, lstrlenW(pcs->wpFunction), 0, FALSE, TRUE, NULL, NULL);
-      }
-      else if (nResult != EDL_NONUNLOADED)
-      {
-        if (pfElement)
+        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
-          if (pfElement->wHotkey || pfElement->bOnStart)
-            pfElement->bRunning=FALSE;
+          if (pfElement)
+          {
+            if (pfElement->wHotkey || pfElement->bOnStart)
+              pfElement->bRunning=FALSE;
+            else
+              StackPluginDelete(&hPluginsStack, pfElement);
+          }
+        }
+        else if (nResult & UD_NONUNLOAD_ACTIVE)
+        {
+          if (pfElement)
+            pfElement->bRunning=TRUE;
           else
-            StackPluginDelete(&hPluginsStack, pfElement);
+            StackPluginAddW(&hPluginsStack, pcs->wpFunction, lstrlenW(pcs->wpFunction), 0, FALSE, TRUE, NULL, NULL);
         }
       }
     }
@@ -15533,7 +15549,7 @@ int CallPluginReceiveSendW(PLUGINCALLSENDW *pcs)
 void CallPluginReceivePostA(PLUGINCALLPOSTA *pcp)
 {
   PLUGINFUNCTIONA *pfElement;
-  int nResult=EDL_FAILED;
+  int nResult;
 
   if (pcp)
   {
@@ -15547,21 +15563,24 @@ void CallPluginReceivePostA(PLUGINCALLPOSTA *pcp)
     {
       nResult=CallPluginA(pfElement, pcp->szFunction, pcp->bOnStart, pcp->lParam, NULL);
 
-      if (nResult == EDL_NONUNLOADED_ACTIVE)
+      if (nResult != UD_FAILED)
       {
-        if (pfElement)
-          pfElement->bRunning=TRUE;
-        else
-          StackPluginAddA(&hPluginsStack, pcp->szFunction, lstrlenA(pcp->szFunction), 0, FALSE, TRUE, NULL, NULL);
-      }
-      else if (nResult != EDL_NONUNLOADED)
-      {
-        if (pfElement)
+        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
-          if (pfElement->wHotkey || pfElement->bOnStart)
-            pfElement->bRunning=FALSE;
+          if (pfElement)
+          {
+            if (pfElement->wHotkey || pfElement->bOnStart)
+              pfElement->bRunning=FALSE;
+            else
+              StackPluginDelete(&hPluginsStack, pfElement);
+          }
+        }
+        else if (nResult & UD_NONUNLOAD_ACTIVE)
+        {
+          if (pfElement)
+            pfElement->bRunning=TRUE;
           else
-            StackPluginDelete(&hPluginsStack, pfElement);
+            StackPluginAddA(&hPluginsStack, pcp->szFunction, lstrlenA(pcp->szFunction), 0, FALSE, TRUE, NULL, NULL);
         }
       }
     }
@@ -15572,7 +15591,7 @@ void CallPluginReceivePostA(PLUGINCALLPOSTA *pcp)
 void CallPluginReceivePostW(PLUGINCALLPOSTW *pcp)
 {
   PLUGINFUNCTIONW *pfElement;
-  int nResult=EDL_FAILED;
+  int nResult;
 
   if (pcp)
   {
@@ -15586,21 +15605,24 @@ void CallPluginReceivePostW(PLUGINCALLPOSTW *pcp)
     {
       nResult=CallPluginW(pfElement, pcp->wszFunction, pcp->bOnStart, pcp->lParam, NULL);
 
-      if (nResult == EDL_NONUNLOADED_ACTIVE)
+      if (nResult != UD_FAILED)
       {
-        if (pfElement)
-          pfElement->bRunning=TRUE;
-        else
-          StackPluginAddW(&hPluginsStack, pcp->wszFunction, lstrlenW(pcp->wszFunction), 0, FALSE, TRUE, NULL, NULL);
-      }
-      else if (nResult != EDL_NONUNLOADED)
-      {
-        if (pfElement)
+        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
-          if (pfElement->wHotkey || pfElement->bOnStart)
-            pfElement->bRunning=FALSE;
+          if (pfElement)
+          {
+            if (pfElement->wHotkey || pfElement->bOnStart)
+              pfElement->bRunning=FALSE;
+            else
+              StackPluginDelete(&hPluginsStack, pfElement);
+          }
+        }
+        else if (nResult & UD_NONUNLOAD_ACTIVE)
+        {
+          if (pfElement)
+            pfElement->bRunning=TRUE;
           else
-            StackPluginDelete(&hPluginsStack, pfElement);
+            StackPluginAddW(&hPluginsStack, pcp->wszFunction, lstrlenW(pcp->wszFunction), 0, FALSE, TRUE, NULL, NULL);
         }
       }
     }
@@ -16711,18 +16733,25 @@ BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
       {
         if (pfElement->PluginProc)
         {
-          (pfElement->PluginProc)(pfElement->lpParameter);
+          if (!(pfElement->PluginProc)(pfElement->lpParameter))
+            break;
         }
         else
         {
-          int nResult=EDL_FAILED;
+          int nResult;
 
           nResult=CallPluginA(pfElement, pfElement->szFunction, FALSE, 0, NULL);
 
-          if (nResult == EDL_NONUNLOADED_ACTIVE)
-            pfElement->bRunning=TRUE;
-          else if (nResult != EDL_NONUNLOADED)
-            pfElement->bRunning=FALSE;
+          if (nResult != UD_FAILED)
+          {
+            if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+              pfElement->bRunning=FALSE;
+            else if (nResult & UD_NONUNLOAD_ACTIVE)
+              pfElement->bRunning=TRUE;
+
+            if (nResult & UD_HOTKEY_DODEFAULT)
+              break;
+          }
         }
         return TRUE;
       }
@@ -16757,18 +16786,25 @@ BOOL TranslateHotkeyW(HSTACK *hStack, LPMSG lpMsg)
       {
         if (pfElement->PluginProc)
         {
-          (pfElement->PluginProc)(pfElement->lpParameter);
+          if (!(pfElement->PluginProc)(pfElement->lpParameter))
+            break;
         }
         else
         {
-          int nResult=EDL_FAILED;
+          int nResult;
 
           nResult=CallPluginW(pfElement, pfElement->wszFunction, FALSE, 0, NULL);
 
-          if (nResult == EDL_NONUNLOADED_ACTIVE)
-            pfElement->bRunning=TRUE;
-          else if (nResult != EDL_NONUNLOADED)
-            pfElement->bRunning=FALSE;
+          if (nResult != UD_FAILED)
+          {
+            if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+              pfElement->bRunning=FALSE;
+            else if (nResult & UD_NONUNLOAD_ACTIVE)
+              pfElement->bRunning=TRUE;
+
+            if (nResult & UD_HOTKEY_DODEFAULT)
+              break;
+          }
         }
         return TRUE;
       }

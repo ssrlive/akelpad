@@ -269,8 +269,6 @@
 
 //// Structures
 
-typedef void (CALLBACK *PLUGINPROC)(void *);
-typedef void (CALLBACK *WNDPROCRET)(CWPRETSTRUCT *);
 typedef BOOL (CALLBACK *EXPORTNAMESPROC)(char *, LPARAM);
 
 typedef struct _HINISECTION {
