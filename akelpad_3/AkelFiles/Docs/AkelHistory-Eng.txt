@@ -14,6 +14,7 @@ Added: check for language modules and program compatibility. Now the language mo
 Added: manifest in program resources.
 Added: installation with notepad replacement under WinVista and Win7.
 Added: option for going to specified offset in "Go to line..." dialog.
+Added: "Plugins..." dialog now resizable.
 Added: now possible to assign hotkeys in plugins dialog:
        (Ctrl|Alt|Shift)+Delete, (Ctrl|Alt|Shift)+Backspace, Ctrl+Tab, Ctrl+Shift+Tab.
 
