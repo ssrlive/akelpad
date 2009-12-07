@@ -8,7 +8,7 @@ Set PATH=%VCDIR%\bin;%MSSDK%\bin;%PATH%
 Set INCLUDE=%VCDIR%\include;%MSSDK%\include;%INCLUDE%
 Set LIB=%VCDIR%\lib;%MSSDK%\lib;%LIB%
 
-rc /R /Fo"%LANG%.res" "Resources\%LANG%.rc"
+rc /R /DDLL_VERSION /Fo"%LANG%.res" "Resources\%LANG%.rc"
 cl /O1 Module.cpp /LD /link "%LANG%.res" /OPT:NOWIN98 /MACHINE:I386 /NODEFAULTLIB /ENTRY:DllMain /OUT:"%LANG%.dll"
 
 if exist Module.obj del Module.obj

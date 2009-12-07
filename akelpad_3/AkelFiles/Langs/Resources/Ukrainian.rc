@@ -7,6 +7,11 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#ifndef EXE_VERSION
+  #define RC_VERSIONDESCRIPTION "AkelPad language module"
+  #define RC_VERSIONCOPYRIGHT "© 2009 Fedorow Olexandr (www.olexandr@mail.ru)"
+  #define RC_VERSIONNAME "Ukrainian.dll"
+#endif
 #include "winresrc.h"
 #include "version.h"
 
@@ -101,8 +106,8 @@ BEGIN
     POPUP "&Вигляд"
     BEGIN
         MENUITEM "&Шрифт...",                   IDM_VIEW_FONT
-        MENUITEM "Колір &тексту...",            IDM_VIEW_TEXT_COLOR
-        MENUITEM "Колір ф&ону...",              IDM_VIEW_BG_COLOR
+        MENUITEM "Колір &тексту...",            IDM_VIEW_TEXT_COLOR_3X
+        MENUITEM "Колір ф&ону...",              IDM_VIEW_BG_COLOR_3X
         MENUITEM SEPARATOR
         POPUP "&Розмір шрифта"
         BEGIN
@@ -111,9 +116,9 @@ BEGIN
         END
         POPUP "&Вирівнювання"
         BEGIN
-            MENUITEM "По &лівому краю",             IDM_VIEW_ALIGN_LEFT
-            MENUITEM "По &центру",                  IDM_VIEW_ALIGN_CENTER
-            MENUITEM "По &правому краю",            IDM_VIEW_ALIGN_RIGHT
+            MENUITEM "По &лівому краю",             IDM_VIEW_ALIGN_LEFT_3X
+            MENUITEM "По &центру",                  IDM_VIEW_ALIGN_CENTER_3X
+            MENUITEM "По &правому краю",            IDM_VIEW_ALIGN_RIGHT_3X
         END
         MENUITEM SEPARATOR
         MENUITEM "П&еренесення по словам\tCtrl+U", IDM_VIEW_WORDWRAP
@@ -323,6 +328,7 @@ BEGIN
     VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
     VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
     VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
+    VK_F10,         IDM_SELECTWINDOW,       VIRTKEY, NOINVERT
     VK_F12,         IDM_POPUP_CODEPAGEMENU, VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
@@ -381,6 +387,32 @@ BEGIN
                     WS_TABSTOP,221,4,54,8
     CONTROL         "",IDC_OFN_PREVIEW,"richedit20a",WS_VSCROLL | WS_HSCROLL | 
                     WS_TABSTOP | 0x69c4,5,23,264,67
+END
+
+IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 270
+STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Вибір вікна"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LISTBOX         IDC_MDILIST_LIST,6,9,178,226,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "",IDC_MDILIST_STATS,92,238,89,8
+    EDITTEXT        IDC_MDILIST_SEARCH,6,249,178,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
+    GROUPBOX        "Вирівнювання",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    PUSHBUTTON      "Горизонталь",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "Вертикаль",IDC_MDILIST_VERT,198,60,50,14
+    GROUPBOX        "Вкладки",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    PUSHBUTTON      "Вгору",IDC_MDILIST_UP,198,100,50,14
+    PUSHBUTTON      "Вниз",IDC_MDILIST_DOWN,198,115,50,14
+    PUSHBUTTON      "Сортувати",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "Файли",IDC_MDILIST_FILES_GROUP,191,163,64,72
+    PUSHBUTTON      "Зберегти",IDC_MDILIST_SAVE,198,177,50,14
+    PUSHBUTTON      "Закрити",IDC_MDILIST_CLOSE,198,192,50,14
+    CONTROL         "Змінені",IDC_MDILIST_ONLYMODIFIED,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
+    PUSHBUTTON      "Скасувати",IDCANCEL,198,249,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -456,16 +488,20 @@ BEGIN
                     IDC_STATIC,21,67,94,33,NOT WS_GROUP
 END
 
-IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 62
+IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Перейти до рядка..."
+CAPTION "Перейти до рядка"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    EDITTEXT        IDC_GOTOLINE,18,20,104,13
-    PUSHBUTTON      "Перейти",IDOK,18,41,50,14,BS_CENTER
-    PUSHBUTTON      "Скасувати",IDCANCEL,72,41,50,14,BS_CENTER
-    LTEXT           "Номер рядка:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
+    LTEXT           "Номер:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
+    EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
+    CONTROL         "Рядок",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
+                    40,52,10
+    CONTROL         "Зміщення",IDC_GOTOLINE_OFFSET,"Button",
+                    BS_AUTORADIOBUTTON,72,40,52,10
+    PUSHBUTTON      "Перейти",IDOK,18,60,50,14,BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,72,60,50,14,BS_CENTER
 END
 
 IDD_RECODE DIALOG DISCARDABLE  70, 70, 174, 94
@@ -676,52 +712,6 @@ BEGIN
 END
 
 
-#ifndef _MAC
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 3,0,0,0
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x4L
- FILETYPE 0x2L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "04220000"
-        BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "AkelPad text editor language module\0"
-            VALUE "FileVersion", "1, 0, 0, 0\0"
-            VALUE "InternalName", "AkelPad\0"
-            VALUE "LegalCopyright", "© 2009 Fedorow Olexandr (www.olexandr@mail.ru)\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "3, 0, 0, 0\0"
-            VALUE "SpecialBuild", "\0"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x422, 0
-    END
-END
-
-#endif    // !_MAC
-
-
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -735,6 +725,11 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
+    "#ifndef EXE_VERSION\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2009 Fedorow Olexandr (www.olexandr@mail.ru)""\r\n"
+    "  #define RC_VERSIONNAME ""Ukrainian.dll""\r\n"
+    "#endif\r\n"
     "#include ""winresrc.h""\r\n"
     "#include ""version.h""\r\n"
     "\0"
@@ -795,21 +790,22 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" не підтримує автозавантаження."
     MSG_FUNCTION_NOT_FOUND  "Не вдається знайти функцію ""%s::%s"" в ""%s""."
-    MSG_UPDATE_PROGRAM      "Обновите AkelPad.\n\nТребуется AkelPad версии не ниже: %d.%d.%d.%d\nНастоящая AkelPad версия: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x не поддерживается."
-    MSG_UPDATE_PLUGIN       "Обновите %s.\n\nАрхитектура AkelPad'а: %d.%d.%d.%d\nАрхитектура %s плагина: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" не распознан как плагин AkelPad'а."
+    MSG_UPDATE_PROGRAM      "Оновіть AkelPad.\n\nПотрібен AkelPad версії не нижче: %d.%d.%d.%d\nПоточна версія AkelPad'а: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x не підтримується."
+    MSG_UPDATE_PLUGIN       "Оновіть %s.\n\nАрхітектура AkelPad'а: %d.%d.%d.%d\nАрхітектура %s плаґіну: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" не розпізнаний як плаґін AkelPad'а."
+    MSG_UPDATE_LANGMODULE   "Оновіть %s\n\nПоточна версія: %d.%d.%d.%d\nНеобхідна версія: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Гаряча клавіша вже призначена для ""%s""."
     MSG_CANNOT_OPEN_FILE    "Неможливо відкрити файл ""%s""."
     MSG_WRONG_STRING        "Неправильний номер рядка."
     MSG_LONG_FILELIST       "Обрано занадто багато файлів."
     MSG_DOCUMENT_CHANGED    "Документ було змінено. Зберегти?"
     MSG_FILE_DOES_NOT_EXIST "Створити новий файл ""%s""?"
-    MSG_RECENTFILES_DELETED "Видалено записів: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Видалено записів: %d"
     MSG_SEARCH_ENDED        "Пошук завершено."
     MSG_REPLACE_COUNT       "Кількість замін: %d"
     MSG_REPLACE_COUNT_ALLFILES "Змінених файлів: %d\nКількість замін: %d"
@@ -831,10 +827,22 @@ BEGIN
     STR_OPTIONS             "Параметри..."
     STR_LANGUAGE_NONE       "Внутрішня"
     STR_FILE_FILTER         "Текстові файли (*.txt)|*.txt|Всі файли (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "Ні"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN              "Плагін"
     STR_FUNCTION            "Функція"
     STR_HOTKEY              "Гаряча клавіша"
+    STR_STATUS              "Статус"
+    STR_RUNNING             "Працює"
+    STR_FONT                "Шрифт"
+    STR_HEADLINE            "Колонтитули"
+    STR_TOP                 "Верхній:"
+    STR_BOTTOM              "Нижній:"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -845,18 +853,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Китайська (UTF-8)"
     STR_AUTODETECT_JAPANESE "Японська (UTF-8)"
     STR_AUTODETECT_KOREAN   "Корейська (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_STATUS              "Статус"
-    STR_RUNNING             "Працює"
-    STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
-    STR_FONT                "Шрифт"
-    STR_HEADLINE            "Колонтитули"
-    STR_TOP                 "Верхній:"
-    STR_BOTTOM              "Нижній:"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Unknown language: 0x22, 0x1 resources

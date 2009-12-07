@@ -1,6 +1,19 @@
 
 AkelPad 3.7.4 ()
 ----------------------------
+Added: in the "Select Window" dialog (MDI):
+       - tab search;
+       - arrange horizontally/vertically selected tabs;
+       - sorting, reordering tabs;
+       - save, closing selected tabs;
+       - opportunity to show only modified files;
+       - dialog size is remembered;
+       - F10 hotkey to open dialog.
+Added: check for language modules and program compatibility. Now the language module version
+       must be equal to version of the program.
+Added: manifest in program resources.
+Added: installation with notepad replacement under WinVista and Win7.
+Added: option for going to specified offset in "Go to line..." dialog.
 Added: now possible to assign hotkeys in plugins dialog:
        (Ctrl|Alt|Shift)+Delete, (Ctrl|Alt|Shift)+Backspace, Ctrl+Tab, Ctrl+Shift+Tab.
 
