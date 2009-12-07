@@ -10875,7 +10875,7 @@ void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace)
 int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen)
 {
   AEFINDTEXTA ft;
-  BOOL bResult;
+  CHARRANGE cr;
 
   if (dwFlags & AEFR_SELECTION)
   {
@@ -10896,27 +10896,29 @@ int FindTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen)
     SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
     ft.crSearch.ciMax=crSel.ciMin;
   }
-  else return FALSE;
+  else return -1;
 
   ft.dwFlags=dwFlags;
   ft.pText=pFindIt;
   ft.dwTextLen=nFindItLen;
   ft.nNewLine=AELB_R;
 
-  if (bResult=SendMessage(hWnd, AEM_FINDTEXTA, 0, (LPARAM)&ft))
+  if (SendMessage(hWnd, AEM_FINDTEXTA, 0, (LPARAM)&ft))
   {
     SetSel(hWnd, &ft.crFound, AESELT_LOCKSCROLL, NULL);
     ScrollCaret(hWnd);
+    SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
+    return cr.cpMin;
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
-  return bResult?0:-1;
+  return -1;
 }
 
 int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen)
 {
   AEFINDTEXTW ft;
-  BOOL bResult;
+  CHARRANGE cr;
 
   if (dwFlags & AEFR_SELECTION)
   {
@@ -10937,21 +10939,23 @@ int FindTextW(HWND hWnd, DWORD dwFlags, wchar_t *wpFindIt, int nFindItLen)
     SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
     ft.crSearch.ciMax=crSel.ciMin;
   }
-  else return FALSE;
+  else return -1;
 
   ft.dwFlags=dwFlags;
   ft.pText=wpFindIt;
   ft.dwTextLen=nFindItLen;
   ft.nNewLine=AELB_R;
 
-  if (bResult=SendMessage(hWnd, AEM_FINDTEXTW, 0, (LPARAM)&ft))
+  if (SendMessage(hWnd, AEM_FINDTEXTW, 0, (LPARAM)&ft))
   {
     SetSel(hWnd, &ft.crFound, AESELT_LOCKSCROLL, NULL);
     ScrollCaret(hWnd);
+    SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
+    return cr.cpMin;
   }
   else SendMessage(hMainWnd, AKDN_SEARCH_ENDED, (WPARAM)hDlgModeless, 0);
 
-  return bResult?0:-1;
+  return -1;
 }
 
 int ReplaceTextA(HWND hWnd, DWORD dwFlags, char *pFindIt, int nFindItLen, char *pReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount)
