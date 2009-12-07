@@ -292,8 +292,13 @@
 #define IDM_EDIT_NEWLINE_MAC            4186
 #define IDM_VIEW_FONT                   4201
 #define IDM_VIEW_COLORS                 4202
+#define IDM_VIEW_TEXT_COLOR             4202
+#define IDM_VIEW_BG_COLOR               4203
 #define IDM_VIEW_INCREASE_FONT          4204
 #define IDM_VIEW_DECREASE_FONT          4205
+#define IDM_VIEW_ALIGN_LEFT             4206
+#define IDM_VIEW_ALIGN_CENTER           4207
+#define IDM_VIEW_ALIGN_RIGHT            4208
 #define IDM_VIEW_WORDWRAP               4209
 #define IDM_VIEW_ONTOP                  4210
 #define IDM_VIEW_SHOW_STATUSBAR         4211
