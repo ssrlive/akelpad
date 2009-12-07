@@ -203,7 +203,8 @@ wchar_t *wszReplace=NULL;
 WNDPROC OldComboboxEdit;
 
 //Go to line dialog
-RECT rcGoToLineDlg={0};
+RECT rcGotoLineDlg={0};
+int nGotoType=NT_LINE;
 
 //Options dialog
 PROPSHEETHEADERA pshA={0};
@@ -666,11 +667,23 @@ extern "C" void _WinMain()
     {
       wsprintfA(buf, "%s\\AkelFiles\\Langs\\%s", szExeDir, szLangModule);
 
-      if (!(hLangLib=LoadLibraryA(buf)))
+      if (GetFileVersionA(buf, &nMajor, &nMinor, &nRelease, &nBuild) &&
+          MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion)
       {
-        hLangLib=hInstance;
-        API_LoadStringA(hLangLib, MSG_ERROR_LOAD_DLL, buf, BUFFER_SIZE);
-        wsprintfA(buf2, buf, szLangModule);
+        if (!(hLangLib=LoadLibraryA(buf)))
+        {
+          hLangLib=hInstance;
+          API_LoadStringA(hLangLib, MSG_ERROR_LOAD_DLL, buf, BUFFER_SIZE);
+          wsprintfA(buf2, buf, szLangModule);
+          MessageBoxA(NULL, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+        }
+      }
+      else
+      {
+        API_LoadStringA(hLangLib, MSG_UPDATE_LANGMODULE, buf, BUFFER_SIZE);
+        wsprintfA(buf2, buf, szLangModule,
+                             nMajor, nMinor, nRelease, nBuild,
+                             LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
         MessageBoxA(NULL, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
       }
     }
@@ -1085,11 +1098,23 @@ extern "C" void _WinMain()
     {
       wsprintfW(wbuf, L"%s\\AkelFiles\\Langs\\%s", wszExeDir, wszLangModule);
 
-      if (!(hLangLib=LoadLibraryW(wbuf)))
+      if (GetFileVersionW(wbuf, &nMajor, &nMinor, &nRelease, &nBuild) &&
+          MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion)
       {
-        hLangLib=hInstance;
-        API_LoadStringW(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
-        wsprintfW(wbuf2, wbuf, wszLangModule);
+        if (!(hLangLib=LoadLibraryW(wbuf)))
+        {
+          hLangLib=hInstance;
+          API_LoadStringW(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
+          wsprintfW(wbuf2, wbuf, wszLangModule);
+          MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        }
+      }
+      else
+      {
+        API_LoadStringW(hLangLib, MSG_UPDATE_LANGMODULE, wbuf, BUFFER_SIZE);
+        wsprintfW(wbuf2, wbuf, wszLangModule,
+                             nMajor, nMinor, nRelease, nBuild,
+                             LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
         MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
     }
@@ -1636,12 +1661,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pspA[1].dwSize      =sizeof(PROPSHEETPAGEA);
       pspA[1].dwFlags     =PSP_DEFAULT;
       pspA[1].hInstance   =hLangLib;
-      pspA[1].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_ADVANCED1);
+      pspA[1].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_ADVANCED1_3X);
       pspA[1].pfnDlgProc  =(DLGPROC)OptionsAdvanced1DlgProcA;
       pspA[2].dwSize      =sizeof(PROPSHEETPAGEA);
       pspA[2].dwFlags     =PSP_DEFAULT;
       pspA[2].hInstance   =hLangLib;
-      pspA[2].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_ADVANCED2);
+      pspA[2].pszTemplate =MAKEINTRESOURCEA(IDD_OPTIONS_ADVANCED2_3X);
       pspA[2].pfnDlgProc  =(DLGPROC)OptionsAdvanced2DlgProcA;
 
       pshA.dwSize      =(bOldComctl32)?(PROPSHEETHEADERA_V1_SIZE):(sizeof(PROPSHEETHEADERA));
@@ -2869,7 +2894,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return FALSE;
     }
-    else if (LOWORD(wParam) == IDM_VIEW_TEXT_COLOR)
+    else if (LOWORD(wParam) == IDM_VIEW_TEXT_COLOR_3X)
     {
       if (DoViewColorA(hMainWnd, &aecColors.crBasicText))
       {
@@ -2880,7 +2905,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return FALSE;
     }
-    else if (LOWORD(wParam) == IDM_VIEW_BG_COLOR)
+    else if (LOWORD(wParam) == IDM_VIEW_BG_COLOR_3X)
     {
       if (DoViewColorA(hMainWnd, &aecColors.crBasicBk))
       {
@@ -2901,15 +2926,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DoViewFontSizeA(hWndEdit, DECREASE_FONT);
       bEditFontChanged=TRUE;
     }
-    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_CENTER)
+    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_CENTER_3X)
     {
       DoViewAlignmentA(hWndEdit, PFA_CENTER);
     }
-    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_RIGHT)
+    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_RIGHT_3X)
     {
       DoViewAlignmentA(hWndEdit, PFA_RIGHT);
     }
-    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_LEFT)
+    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_LEFT_3X)
     {
       DoViewAlignmentA(hWndEdit, PFA_LEFT);
     }
@@ -3482,12 +3507,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pspW[1].dwSize      =sizeof(PROPSHEETPAGEW);
       pspW[1].dwFlags     =PSP_DEFAULT;
       pspW[1].hInstance   =hLangLib;
-      pspW[1].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_ADVANCED1);
+      pspW[1].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_ADVANCED1_3X);
       pspW[1].pfnDlgProc  =(DLGPROC)OptionsAdvanced1DlgProcW;
       pspW[2].dwSize      =sizeof(PROPSHEETPAGEW);
       pspW[2].dwFlags     =PSP_DEFAULT;
       pspW[2].hInstance   =hLangLib;
-      pspW[2].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_ADVANCED2);
+      pspW[2].pszTemplate =MAKEINTRESOURCEW(IDD_OPTIONS_ADVANCED2_3X);
       pspW[2].pfnDlgProc  =(DLGPROC)OptionsAdvanced2DlgProcW;
 
       pshW.dwSize      =sizeof(PROPSHEETHEADERW);
@@ -4715,7 +4740,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return FALSE;
     }
-    else if (LOWORD(wParam) == IDM_VIEW_TEXT_COLOR)
+    else if (LOWORD(wParam) == IDM_VIEW_TEXT_COLOR_3X)
     {
       if (DoViewColorW(hMainWnd, &aecColors.crBasicText))
       {
@@ -4726,7 +4751,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return FALSE;
     }
-    else if (LOWORD(wParam) == IDM_VIEW_BG_COLOR)
+    else if (LOWORD(wParam) == IDM_VIEW_BG_COLOR_3X)
     {
       if (DoViewColorW(hMainWnd, &aecColors.crBasicBk))
       {
@@ -4747,15 +4772,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DoViewFontSizeW(hWndEdit, DECREASE_FONT);
       bEditFontChanged=TRUE;
     }
-    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_CENTER)
+    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_CENTER_3X)
     {
       DoViewAlignmentW(hWndEdit, PFA_CENTER);
     }
-    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_RIGHT)
+    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_RIGHT_3X)
     {
       DoViewAlignmentW(hWndEdit, PFA_RIGHT);
     }
-    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_LEFT)
+    else if (LOWORD(wParam) == IDM_VIEW_ALIGN_LEFT_3X)
     {
       DoViewAlignmentW(hWndEdit, PFA_LEFT);
     }
@@ -5633,13 +5658,13 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_EDIT_NEWLINE_UNIX,
                      IDM_EDIT_RECODE,
                      IDM_VIEW_FONT,
-                     IDM_VIEW_TEXT_COLOR,
-                     IDM_VIEW_BG_COLOR,
+                     IDM_VIEW_TEXT_COLOR_3X,
+                     IDM_VIEW_BG_COLOR_3X,
                      IDM_VIEW_INCREASE_FONT,
                      IDM_VIEW_DECREASE_FONT,
-                     IDM_VIEW_ALIGN_LEFT,
-                     IDM_VIEW_ALIGN_CENTER,
-                     IDM_VIEW_ALIGN_RIGHT,
+                     IDM_VIEW_ALIGN_LEFT_3X,
+                     IDM_VIEW_ALIGN_CENTER_3X,
+                     IDM_VIEW_ALIGN_RIGHT_3X,
                      IDM_VIEW_WORDWRAP,
                      IDM_WINDOW_TILEHORIZONTAL,
                      IDM_WINDOW_TILEVERTICAL,
@@ -5864,13 +5889,13 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_EDIT_NEWLINE_UNIX,
                      IDM_EDIT_RECODE,
                      IDM_VIEW_FONT,
-                     IDM_VIEW_TEXT_COLOR,
-                     IDM_VIEW_BG_COLOR,
+                     IDM_VIEW_TEXT_COLOR_3X,
+                     IDM_VIEW_BG_COLOR_3X,
                      IDM_VIEW_INCREASE_FONT,
                      IDM_VIEW_DECREASE_FONT,
-                     IDM_VIEW_ALIGN_LEFT,
-                     IDM_VIEW_ALIGN_CENTER,
-                     IDM_VIEW_ALIGN_RIGHT,
+                     IDM_VIEW_ALIGN_LEFT_3X,
+                     IDM_VIEW_ALIGN_CENTER_3X,
+                     IDM_VIEW_ALIGN_RIGHT_3X,
                      IDM_VIEW_WORDWRAP,
                      IDM_WINDOW_TILEHORIZONTAL,
                      IDM_WINDOW_TILEVERTICAL,
