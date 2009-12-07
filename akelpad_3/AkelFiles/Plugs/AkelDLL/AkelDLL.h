@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 5)
+#define AKELDLL MAKE_IDENTIFIER(1, 1, 0, 6)
 
 
 //// Defines
@@ -26,18 +26,13 @@
 #define URL_PREFIXES_SIZE       128
 #define URL_DELIMITERS_SIZE     128
 
-//Plugin call error
-#define EDL_FAILED                 0  //Operation failed
-#define EDL_UNLOADED               1  //Plugin unloaded
-#define EDL_NONUNLOADED_ACTIVE     2  //Plugin in memory and active
-#define EDL_NONUNLOADED_NONACTIVE  3  //Plugin in memory and non-active
-#define EDL_NONUNLOADED            4  //Plugin in memory
-
 //Unload plugin flag
-#define UD_UNLOAD               0  //Unload plugin (default)
-#define UD_NONUNLOAD_ACTIVE     1  //Don't unload plugin and set active status
-#define UD_NONUNLOAD_NONACTIVE  2  //Don't unload plugin and set non-active status
-#define UD_NONUNLOAD            3  //Don't unload plugin and don't change active status
+#define UD_FAILED                -1  //Operation failed. Don't use it.
+#define UD_UNLOAD               0x0  //Unload plugin (default)
+#define UD_NONUNLOAD_ACTIVE     0x1  //Don't unload plugin and set active status
+#define UD_NONUNLOAD_NONACTIVE  0x2  //Don't unload plugin and set non-active status
+#define UD_NONUNLOAD_UNCHANGE   0x4  //Don't unload plugin and don't change active status
+#define UD_HOTKEY_DODEFAULT     0x8  //Do default hotkey processing
 
 //Open document flags
 #define OD_ADT_BINARY_ERROR      0x00000001  //Check if file is binary
@@ -185,7 +180,7 @@ typedef struct {
 } HSTACK;
 #endif
 
-typedef void (CALLBACK *PLUGINPROC)(void *);
+typedef BOOL (CALLBACK *PLUGINPROC)(void *);
 typedef void (CALLBACK *WNDPROCRET)(CWPRETSTRUCT *);
 
 typedef struct _PLUGINVERSION {
@@ -210,7 +205,7 @@ typedef struct _PLUGINDATA {
   BOOL *lpbAutoLoad;          //TRUE  if function supports autoload
                               //FALSE if function doesn't support autoload
   int nUnload;                //See UD_* defines
-  BOOL bActive;               //Plugin already loaded
+  BOOL bInMemory;             //Plugin already loaded
   BOOL bOnStart;              //TRUE  if plugin called on start-up
                               //FALSE if plugin called manually
   LPARAM lParam;              //Input data
@@ -404,7 +399,7 @@ typedef struct _PLUGINFUNCTIONA {
   struct _PLUGINFUNCTIONA *prev;
   char szFunction[MAX_PATH];      //Function name, format "Plugin::Function"
   int nFunctionLen;               //Function name length
-  WORD wHotkey;                   //Function hotkey
+  WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
   BOOL bOnStart;                  //Function autoload on start-up
   BOOL bRunning;                  //Function is running
   PLUGINPROC PluginProc;          //Function procedure
@@ -416,7 +411,7 @@ typedef struct _PLUGINFUNCTIONW {
   struct _PLUGINFUNCTIONW *prev;
   wchar_t wszFunction[MAX_PATH];  //Function name, format L"Plugin::Function"
   int nFunctionLen;               //Function name length
-  WORD wHotkey;                   //Function hotkey
+  WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
   BOOL bOnStart;                  //Function autoload on start-up
   BOOL bRunning;                  //Function is running
   PLUGINPROC PluginProc;          //Function procedure
@@ -1647,8 +1642,9 @@ Return Value
  pointer to a PLUGINFUNCTION structure in stack
 
 Example add plugin hotkey (bOldWindows == TRUE):
- void CALLBACK PluginProc(void *lpParameter)
+ BOOL CALLBACK PluginProc(void *lpParameter)
  {
+   return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing
  }
  PLUGINFUNCTIONA pf;
  pf.szFunction[0]='\0';
@@ -1661,8 +1657,9 @@ Example add plugin hotkey (bOldWindows == TRUE):
  SendMessage(pd->hMainWnd, AKD_DLLADD, 0, (LPARAM)&pf);
 
 Example add plugin hotkey (bOldWindows == FALSE):
- void CALLBACK PluginProc(void *lpParameter)
+ BOOL CALLBACK PluginProc(void *lpParameter)
  {
+   return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing
  }
  PLUGINFUNCTIONW pf;
  pf.wszFunction[0]='\0';

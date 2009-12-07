@@ -16,8 +16,8 @@
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_ABOUT_VERSIONA           "AkelPad 3.7.3"
-#define APP_ABOUT_VERSIONW          L"AkelPad 3.7.3"
+#define APP_ABOUT_VERSIONA           "AkelPad 3.7.4"
+#define APP_ABOUT_VERSIONW          L"AkelPad 3.7.4"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -235,8 +235,6 @@ const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00,
 
 //// Structures
 
-typedef void (CALLBACK *PLUGINPROC)(void *);
-typedef void (CALLBACK *WNDPROCRET)(CWPRETSTRUCT *);
 typedef BOOL (CALLBACK *EXPORTNAMESPROC)(char *, LPARAM);
 
 typedef struct _HINISECTION {
