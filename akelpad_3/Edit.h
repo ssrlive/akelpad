@@ -232,9 +232,15 @@ const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00,
 #define AE_PRINT         0x00000010
 
 //Plugins list
-#define LVI_FUNCTION_NAME     0
-#define LVI_FUNCTION_HOTKEY   1
-#define LVI_FUNCTION_STATUS   2
+#define LVSI_FUNCTION_NAME     0
+#define LVSI_FUNCTION_HOTKEY   1
+#define LVSI_FUNCTION_STATUS   2
+
+//DIALOGRESIZE
+#define DRS_SIZE  0x1 //Resize control
+#define DRS_MOVE  0x2 //Move control
+#define DRS_X     0x4 //X value
+#define DRS_Y     0x8 //Y value
 
 
 //// Structures
@@ -340,6 +346,12 @@ typedef struct _HDOCK {
 } HDOCK;
 
 
+typedef struct {
+  HWND *lpWnd;   //Control window
+  DWORD dwType;  //See DRS_* defines
+} DIALOGRESIZE;
+
+
 //// Functions prototype
 
 HWND CreateEditWindowA(HWND hWndParent);
@@ -421,6 +433,8 @@ void DoSettingsOptionsA();
 void DoSettingsOptionsW();
 void DoWindowTabView(int nView, BOOL bFirst);
 void DoWindowTabType(int nType, BOOL bFirst);
+void DoWindowSelectWindowA();
+void DoWindowSelectWindowW();
 void DoHelpAboutA();
 void DoHelpAboutW();
 void DoNonMenuDelLineA(HWND hWnd);
@@ -446,20 +460,18 @@ void StackFreeIni(HSTACK *hIniStack);
 DWORD HexStrToDataA(char *pHexStr, unsigned char *lpData, DWORD dwDataBytes);
 DWORD HexStrToDataW(wchar_t *wpHexStr, unsigned char *lpData, DWORD dwDataBytes);
 
-void RegReadOptionsA();
-void RegReadOptionsW();
-void IniReadOptionsA();
-void IniReadOptionsW();
-void RegRegisterPluginsHotkeysA();
-void RegRegisterPluginsHotkeysW();
-void IniRegisterPluginsHotkeysA();
-void IniRegisterPluginsHotkeysW();
+DWORD ReadOptionA(HANDLE lpHandle, char *pParam, DWORD dwType, void *lpData, DWORD dwSize);
+DWORD ReadOptionW(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
+DWORD SaveOptionA(HANDLE lpHandle, char *pParam, DWORD dwType, void *lpData, DWORD dwSize);
+DWORD SaveOptionW(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
+void ReadOptionsA();
+void ReadOptionsW();
+void RegisterPluginsHotkeysA();
+void RegisterPluginsHotkeysW();
 void RegReadSearchA();
 void RegReadSearchW();
-BOOL RegSaveOptionsA();
-BOOL RegSaveOptionsW();
-BOOL IniSaveOptionsA();
-BOOL IniSaveOptionsW();
+BOOL SaveOptionsA();
+BOOL SaveOptionsW();
 
 int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
@@ -667,6 +679,19 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 BOOL CALLBACK OptionsAdvanced2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void FillMdiListListboxA(HWND hWnd, BOOL bSort, BOOL bOnlyModified);
+void FillMdiListListboxW(HWND hWnd, BOOL bSort, BOOL bOnlyModified);
+int MoveListboxItemA(HWND hWnd, int nOldIndex, int nNewIndex);
+int MoveListboxItemW(HWND hWnd, int nOldIndex, int nNewIndex);
+BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown);
+BOOL SaveListboxSelItems(HWND hWnd);
+void ArrangeListboxSelItems(HWND hWnd, int nBar);
+BOOL CloseListboxSelItems(HWND hWnd);
+int GetListboxSelItems(HWND hWnd, int **lpSelItems);
+void FreeListboxSelItems(int **lpSelItems);
+
 BOOL CALLBACK AboutDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK AboutDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -747,6 +772,7 @@ HWND NextDialog(BOOL bPrevious);
 void UpdateEdit(HWND hWnd);
 void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight);
 void UpdateSize();
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
 void DrawMovingRect(RECT *rcScreen);
 int GetMouseEdge(HWND hWnd, POINT *pt);
@@ -761,6 +787,8 @@ void UpdateTabs(HWND hWnd);
 int GetTabItemFromParam(HWND hWnd, LPARAM lParam);
 int GetTabItemFromPoint(HWND hWnd, POINT *pt);
 int SelectTabItem(HWND hWnd, int nIndex);
+int MoveTabItemA(HWND hWnd, int nIndexOld, int nIndexNew);
+int MoveTabItemW(HWND hWnd, int nIndexOld, int nIndexNew);
 BOOL DeleteTabItem(HWND hWnd, int nIndex);
 void FreeMemorySearchA();
 void FreeMemorySearchW();

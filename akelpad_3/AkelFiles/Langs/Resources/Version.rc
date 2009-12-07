@@ -1,5 +1,14 @@
 /////////////////////////////////////////////////////////////////////////////
 //
+// Manifest
+//
+
+#ifdef EXE_VERSION
+1                       24      MOVEABLE PURE   "AkelPad.exe.manifest"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // Version
 //
 
@@ -20,10 +29,10 @@ BEGIN
     BEGIN
         BLOCK "04090000"
         BEGIN
-            VALUE "FileDescription", "AkelPad text editor\0"
+            VALUE "FileDescription", RC_VERSIONDESCRIPTION "\0"
             VALUE "FileVersion", "0, 0, 0, 0\0"
-            VALUE "LegalCopyright", "Copyright © AkelSoft 2003-2009\0"
-            VALUE "OriginalFilename", "AkelPad.exe\0"
+            VALUE "LegalCopyright", RC_VERSIONCOPYRIGHT "\0"
+            VALUE "OriginalFilename", RC_VERSIONNAME "\0"
             VALUE "ProductName", "AkelPad\0"
             VALUE "ProductVersion", "0, 0, 0, 0\0"
         END

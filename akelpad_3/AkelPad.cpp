@@ -39,6 +39,8 @@
 //Include string functions
 #define xstrcmpnA
 #define xstrcmpnW
+#define xstrstrA
+#define xstrstrW
 #include "StrFunc.h"
 
 //Process
@@ -102,6 +104,7 @@ HSTACK hPluginListStack={0};
 HSTACK hHandlesStack={0};
 HHOOK hHookPlugins;
 HWND hWndHotkey;
+RECT rcPluginsDialog={0};
 BOOL bSavePluginsStackOnExit=FALSE;
 
 //INI
@@ -109,6 +112,7 @@ HSTACK hIniStack={0};
 char szIniFile[MAX_PATH];
 wchar_t wszIniFile[MAX_PATH];
 int nSaveSettings=SS_REGISTRY;
+int nRegSaveSettings=SS_REGISTRY;
 
 //Main Window
 HWND hMainWnd;
@@ -212,6 +216,7 @@ PROPSHEETHEADERW pshW={0};
 PROPSHEETPAGEA pspA[3]={0};
 PROPSHEETPAGEW pspW[3]={0};
 HHOOK hHookOptions;
+BOOL bOptionsSave;
 BOOL bOptionsRestart;
 
 //Font/Color
@@ -332,6 +337,7 @@ int nTabSwitch=TAB_SWITCH_NEXTPREV;
 HIMAGELIST hImageList;
 BOOL bTabPressed=FALSE;
 BOOL bFileExitError;
+RECT rcMdiListDialog={0};
 DWORD dwMdiStyle=WS_MAXIMIZE;
 WNDPROC OldMdiClientProc;
 WNDPROC OldTabProc;
@@ -436,16 +442,19 @@ extern "C" void _WinMain()
     //Read options
     wsprintfA(szIniFile, "%s\\AkelPad.ini", szExeDir);
     if (OpenIniA(&hIniStack, szIniFile, FALSE))
+    {
       IniGetValueA(&hIniStack, "Options", "SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD));
+      nRegSaveSettings=nSaveSettings;
+    }
     if (nSaveSettings == SS_REGISTRY)
     {
-      RegReadOptionsA();
-      RegRegisterPluginsHotkeysA();
+      ReadOptionsA();
+      RegisterPluginsHotkeysA();
     }
     else
     {
-      IniReadOptionsA();
-      IniRegisterPluginsHotkeysA();
+      ReadOptionsA();
+      RegisterPluginsHotkeysA();
     }
     StackFreeIni(&hIniStack);
 
@@ -867,16 +876,19 @@ extern "C" void _WinMain()
     //Read options
     wsprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
     if (OpenIniW(&hIniStack, wszIniFile, FALSE))
+    {
       IniGetValueW(&hIniStack, L"Options", L"SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD));
+      nRegSaveSettings=nSaveSettings;
+    }
     if (nSaveSettings == SS_REGISTRY)
     {
-      RegReadOptionsW();
-      RegRegisterPluginsHotkeysW();
+      ReadOptionsW();
+      RegisterPluginsHotkeysW();
     }
     else
     {
-      IniReadOptionsW();
-      IniRegisterPluginsHotkeysW();
+      ReadOptionsW();
+      RegisterPluginsHotkeysW();
     }
     StackFreeIni(&hIniStack);
 
@@ -2625,12 +2637,9 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_CREATENEW)
     {
-      if (!bMDI)
+      if (!bMDI || !bSingleOpenProgram)
       {
-        if (nSaveSettings == SS_REGISTRY)
-          RegSaveOptionsA();
-        else
-          IniSaveOptionsA();
+        SaveOptionsA();
       }
       return (int)DoFileNewWindowA(0);
     }
@@ -2974,18 +2983,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_FILE)
     {
       DoSettingsSingleOpenFile(!bSingleOpenFile);
-      if (nSaveSettings == SS_REGISTRY)
-        RegSaveOptionsA();
-      else
-        IniSaveOptionsA();
+      SaveOptionsA();
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_PROGRAM)
     {
       DoSettingsSingleOpenProgram(!bSingleOpenProgram);
-      if (nSaveSettings == SS_REGISTRY)
-        RegSaveOptionsA();
-      else
-        IniSaveOptionsA();
+      SaveOptionsA();
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SDI)
     {
@@ -3151,7 +3154,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //WM_COMMAND (MDI)
     if (bMDI)
     {
-      if (LOWORD(wParam) == IDM_WINDOW_TABVIEW_TOP)
+      if (LOWORD(wParam) == IDM_SELECTWINDOW)
+      {
+        DoWindowSelectWindowA();
+        return 0;
+      }
+      else if (LOWORD(wParam) == IDM_WINDOW_TABVIEW_TOP)
       {
         DoWindowTabView(TAB_VIEW_TOP, FALSE);
       }
@@ -3308,10 +3316,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_DESTROY)
   {
     //Save options
-    if (nSaveSettings == SS_REGISTRY)
-      RegSaveOptionsA();
-    else
-      IniSaveOptionsA();
+    SaveOptionsA();
 
     //Save plugin stack
     if (bSavePluginsStackOnExit)
@@ -4471,12 +4476,9 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_CREATENEW)
     {
-      if (!bMDI)
+      if (!bMDI || !bSingleOpenProgram)
       {
-        if (nSaveSettings == SS_REGISTRY)
-          RegSaveOptionsW();
-        else
-          IniSaveOptionsW();
+        SaveOptionsW();
       }
       return (int)DoFileNewWindowW(0);
     }
@@ -4820,18 +4822,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_FILE)
     {
       DoSettingsSingleOpenFile(!bSingleOpenFile);
-      if (nSaveSettings == SS_REGISTRY)
-        RegSaveOptionsW();
-      else
-        IniSaveOptionsW();
+      SaveOptionsW();
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_PROGRAM)
     {
       DoSettingsSingleOpenProgram(!bSingleOpenProgram);
-      if (nSaveSettings == SS_REGISTRY)
-        RegSaveOptionsW();
-      else
-        IniSaveOptionsW();
+      SaveOptionsW();
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SDI)
     {
@@ -4997,7 +4993,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //WM_COMMAND (MDI)
     if (bMDI)
     {
-      if (LOWORD(wParam) == IDM_WINDOW_TABVIEW_TOP)
+      if (LOWORD(wParam) == IDM_SELECTWINDOW)
+      {
+        DoWindowSelectWindowW();
+        return 0;
+      }
+      else if (LOWORD(wParam) == IDM_WINDOW_TABVIEW_TOP)
       {
         DoWindowTabView(TAB_VIEW_TOP, FALSE);
       }
@@ -5154,10 +5155,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_DESTROY)
   {
     //Save options
-    if (nSaveSettings == SS_REGISTRY)
-      RegSaveOptionsW();
-    else
-      IniSaveOptionsW();
+    SaveOptionsW();
 
     //Save plugin stack
     if (bSavePluginsStackOnExit)

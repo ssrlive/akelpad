@@ -78,6 +78,7 @@ extern HSTACK hPluginListStack;
 extern HSTACK hHandlesStack;
 extern HHOOK hHookPlugins;
 extern HWND hWndHotkey;
+extern RECT rcPluginsDialog;
 extern BOOL bSavePluginsStackOnExit;
 
 //INI
@@ -85,6 +86,7 @@ extern HSTACK hIniStack;
 extern char szIniFile[MAX_PATH];
 extern wchar_t wszIniFile[MAX_PATH];
 extern int nSaveSettings;
+extern int nRegSaveSettings;
 
 //Main Window
 extern HWND hMainWnd;
@@ -188,6 +190,7 @@ extern PROPSHEETHEADERW pshW;
 extern PROPSHEETPAGEA pspA[2];
 extern PROPSHEETPAGEW pspW[2];
 extern HHOOK hHookOptions;
+extern BOOL bOptionsSave;
 extern BOOL bOptionsRestart;
 
 //Font/Color
@@ -294,6 +297,7 @@ extern int nTabSwitch;
 extern HIMAGELIST hImageList;
 extern BOOL bTabPressed;
 extern BOOL bFileExitError;
+extern RECT rcMdiListDialog;
 extern DWORD dwMdiStyle;
 extern WNDPROC OldMdiClientProc;
 extern WNDPROC OldTabProc;
@@ -2314,10 +2318,29 @@ void DoSettingsOptionsA()
   hHookOptions=SetWindowsHookEx(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
   API_LoadStringA(hLangLib, STR_OPTIONS, buf, BUFFER_SIZE);
   pshA.pszCaption=buf;
+  bOptionsSave=FALSE;
   bOptionsRestart=FALSE;
 
   PropertySheetA(&pshA);
 
+  if (bOptionsSave)
+  {
+    int nTmp;
+
+    bEditFontChanged=TRUE;
+    bColorsChanged=TRUE;
+    bPrintFontChanged=TRUE;
+
+    nTmp=nSaveSettings;
+    nSaveSettings=SS_REGISTRY;
+    SaveOptionsA();
+    StackPluginSaveA(&hPluginsStack, TRUE);
+
+    nSaveSettings=SS_INI;
+    SaveOptionsA();
+    StackPluginSaveA(&hPluginsStack, TRUE);
+    nSaveSettings=nTmp;
+  }
   if (bOptionsRestart)
   {
     API_LoadStringA(hLangLib, MSG_RESTART_PROGRAM, buf, BUFFER_SIZE);
@@ -2330,10 +2353,29 @@ void DoSettingsOptionsW()
   hHookOptions=SetWindowsHookEx(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
   API_LoadStringW(hLangLib, STR_OPTIONS, wbuf, BUFFER_SIZE);
   pshW.pszCaption=wbuf;
+  bOptionsSave=FALSE;
   bOptionsRestart=FALSE;
 
   PropertySheetW(&pshW);
 
+  if (bOptionsSave)
+  {
+    int nTmp;
+
+    bEditFontChanged=TRUE;
+    bColorsChanged=TRUE;
+    bPrintFontChanged=TRUE;
+
+    nTmp=nSaveSettings;
+    nSaveSettings=SS_REGISTRY;
+    SaveOptionsW();
+    StackPluginSaveW(&hPluginsStack, TRUE);
+
+    nSaveSettings=SS_INI;
+    SaveOptionsW();
+    StackPluginSaveW(&hPluginsStack, TRUE);
+    nSaveSettings=nTmp;
+  }
   if (bOptionsRestart)
   {
     API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wbuf, BUFFER_SIZE);
@@ -2408,6 +2450,16 @@ void DoWindowTabType(int nType, BOOL bFirst)
     SetWindowLongA(hTab, GWL_STYLE, dwStyle|TCS_BUTTONS|TCS_FLATBUTTONS);
     SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
   }
+}
+
+void DoWindowSelectWindowA()
+{
+  API_DialogBoxA(hLangLib, MAKEINTRESOURCEA(IDD_MDILIST), hMainWnd, (DLGPROC)MdiListDlgProcA);
+}
+
+void DoWindowSelectWindowW()
+{
+  API_DialogBoxW(hLangLib, MAKEINTRESOURCEW(IDD_MDILIST), hMainWnd, (DLGPROC)MdiListDlgProcW);
 }
 
 void DoHelpAboutA()
@@ -3176,610 +3228,367 @@ DWORD HexStrToDataW(wchar_t *wpHexStr, unsigned char *lpData, DWORD dwDataBytes)
 
 //// Read/Save options
 
-void RegReadOptionsA()
+DWORD ReadOptionA(HANDLE lpHandle, char *pParam, DWORD dwType, void *lpData, DWORD dwSize)
 {
-  HKEY hKey;
-  DWORD dwType;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (dwType == PO_DWORD) dwType=REG_DWORD;
+    else if (dwType == PO_BINARY) dwType=REG_BINARY;
+    else if (dwType == PO_STRING) dwType=REG_SZ;
+
+    if (RegQueryValueExA((HKEY)lpHandle, pParam, NULL, &dwType, (LPBYTE)lpData, &dwSize) == ERROR_SUCCESS)
+      return dwSize;
+    else
+      return 0;
+  }
+  else
+  {
+    if (dwType == PO_DWORD) dwType=INI_DWORD;
+    else if (dwType == PO_BINARY) dwType=INI_BINARY;
+    else if (dwType == PO_STRING) dwType=INI_STRINGANSI;
+
+    return IniGetValueA((HSTACK *)lpHandle, "Options", pParam, dwType, (LPBYTE)lpData, dwSize);
+  }
+}
+
+DWORD ReadOptionW(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
+{
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (dwType == PO_DWORD) dwType=REG_DWORD;
+    else if (dwType == PO_BINARY) dwType=REG_BINARY;
+    else if (dwType == PO_STRING) dwType=REG_SZ;
+
+    if (RegQueryValueExW((HKEY)lpHandle, wpParam, NULL, &dwType, (LPBYTE)lpData, &dwSize) == ERROR_SUCCESS)
+      return dwSize;
+    else
+      return 0;
+  }
+  else
+  {
+    if (dwType == PO_DWORD) dwType=INI_DWORD;
+    else if (dwType == PO_BINARY) dwType=INI_BINARY;
+    else if (dwType == PO_STRING) dwType=INI_STRINGUNICODE;
+
+    return IniGetValueW((HSTACK *)lpHandle, L"Options", wpParam, dwType, (LPBYTE)lpData, dwSize);
+  }
+}
+
+DWORD SaveOptionA(HANDLE lpHandle, char *pParam, DWORD dwType, void *lpData, DWORD dwSize)
+{
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (dwType == PO_DWORD) dwType=REG_DWORD;
+    else if (dwType == PO_BINARY) dwType=REG_BINARY;
+    else if (dwType == PO_STRING) dwType=REG_SZ;
+
+    return !RegSetValueExA((HKEY)lpHandle, pParam, 0, dwType, (LPBYTE)lpData, dwSize);
+  }
+  else
+  {
+    if (dwType == PO_DWORD) dwType=INI_DWORD;
+    else if (dwType == PO_BINARY) dwType=INI_BINARY;
+    else if (dwType == PO_STRING) dwType=INI_STRINGANSI;
+
+    return IniSetValueA((HSTACK *)lpHandle, "Options", pParam, dwType, (LPBYTE)lpData, dwSize);
+  }
+}
+
+DWORD SaveOptionW(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
+{
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (dwType == PO_DWORD) dwType=REG_DWORD;
+    else if (dwType == PO_BINARY) dwType=REG_BINARY;
+    else if (dwType == PO_STRING) dwType=REG_SZ;
+
+    return !RegSetValueExW((HKEY)lpHandle, wpParam, 0, dwType, (LPBYTE)lpData, dwSize);
+  }
+  else
+  {
+    if (dwType == PO_DWORD) dwType=INI_DWORD;
+    else if (dwType == PO_BINARY) dwType=INI_BINARY;
+    else if (dwType == PO_STRING) dwType=INI_STRINGUNICODE;
+
+    return IniSetValueW((HSTACK *)lpHandle, L"Options", wpParam, dwType, (LPBYTE)lpData, dwSize);
+  }
+}
+
+void ReadOptionsA()
+{
+  HANDLE hHandle;
   DWORD dwSize;
 
-  if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Options", 0, KEY_READ, &hKey) != ERROR_SUCCESS)
-    return;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Options", 0, KEY_READ, (HKEY *)&hHandle) != ERROR_SUCCESS)
+      return;
+  }
+  else
+  {
+    hHandle=(HANDLE)&hIniStack;
+  }
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WordWrap", NULL, &dwType, (LPBYTE)&bWordWrap, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "OnTop", NULL, &dwType, (LPBYTE)&bOnTop, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "StatusBar", NULL, &dwType, (LPBYTE)&bStatusBar, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "ReadOnly", NULL, &dwType, (LPBYTE)&bReadOnly, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SaveTime", NULL, &dwType, (LPBYTE)&bSaveTime, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "KeepSpace", NULL, &dwType, (LPBYTE)&bKeepSpace, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "UndoLimit", NULL, &dwType, (LPBYTE)&nUndoLimit, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "DetailedUndo", NULL, &dwType, (LPBYTE)&bDetailedUndo, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "ShowURL", NULL, &dwType, (LPBYTE)&bShowURL, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "ClickURL", NULL, &dwType, (LPBYTE)&nClickURL, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "ReplaceAllAndClose", NULL, &dwType, (LPBYTE)&bReplaceAllAndClose, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SaveInReadOnlyMsg", NULL, &dwType, (LPBYTE)&bSaveInReadOnlyMsg, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WatchFile", NULL, &dwType, (LPBYTE)&bWatchFile, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SingleOpenFile", NULL, &dwType, (LPBYTE)&bSingleOpenFile, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SingleOpenProgram", NULL, &dwType, (LPBYTE)&bSingleOpenProgram, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "MDI", NULL, &dwType, (LPBYTE)&bRegMDI, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SavePositions", NULL, &dwType, (LPBYTE)&bSavePositions, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SaveCodepages", NULL, &dwType, (LPBYTE)&bSaveCodepages, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "DefaultCodepage", NULL, &dwType, (LPBYTE)&nDefaultCodePage, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "CodepageRecognition", NULL, &dwType, (LPBYTE)&dwLangCodepageRecognition, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "CodepageRecognitionBuffer", NULL, &dwType, (LPBYTE)&dwCodepageRecognitionBuffer, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "RecentFiles", NULL, &dwType, (LPBYTE)&nRecentFiles, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SearchStrings", NULL, &dwType, (LPBYTE)&nSearchStrings, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "SearchOptions", NULL, &dwType, (LPBYTE)&ftflags, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "TabStopSize", NULL, &dwType, (LPBYTE)&nTabStopSize, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "TabStopAsSpaces", NULL, &dwType, (LPBYTE)&bTabStopAsSpaces, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "MarginsEdit", NULL, &dwType, (LPBYTE)&dwEditMargins, &dwSize);
-
-  dwSize=sizeof(RECT);
-  RegQueryValueExA(hKey, "MarginsPrint", NULL, &dwType, (LPBYTE)&psdPageA.rtMargin, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WindowStyle", NULL, &dwType, (LPBYTE)&dwMainStyle, &dwSize);
-
-  dwSize=sizeof(RECT);
-  RegQueryValueExA(hKey, "WindowPosition", NULL, &dwType, (LPBYTE)&rcMainWindowRestored, &dwSize);
+  ReadOptionA(hHandle, "WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD));
+  ReadOptionA(hHandle, "OnTop", PO_DWORD, &bOnTop, sizeof(DWORD));
+  ReadOptionA(hHandle, "StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD));
+  ReadOptionA(hHandle, "ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD));
+  ReadOptionA(hHandle, "SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD));
+  ReadOptionA(hHandle, "KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD));
+  ReadOptionA(hHandle, "UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD));
+  ReadOptionA(hHandle, "DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD));
+  ReadOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
+  ReadOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
+  ReadOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
+  ReadOptionA(hHandle, "SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD));
+  ReadOptionA(hHandle, "SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD));
+  ReadOptionA(hHandle, "MDI", PO_DWORD, &bRegMDI, sizeof(DWORD));
+  ReadOptionA(hHandle, "SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD));
+  ReadOptionA(hHandle, "SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD));
+  ReadOptionA(hHandle, "DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD));
+  //ReadOptionA(hHandle, "DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD));
+  ReadOptionA(hHandle, "CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD));
+  ReadOptionA(hHandle, "CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD));
+  ReadOptionA(hHandle, "RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD));
+  ReadOptionA(hHandle, "SearchStrings", PO_DWORD, &nSearchStrings, sizeof(DWORD));
+  ReadOptionA(hHandle, "SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD));
+  ReadOptionA(hHandle, "TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD));
+  ReadOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
+  ReadOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
+  ReadOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT));
+  ReadOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT));
+  ReadOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
+  ReadOptionA(hHandle, "WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
 
   if (bRegMDI)
   {
-    dwSize=sizeof(DWORD);
-    RegQueryValueExA(hKey, "TabViewMDI", NULL, &dwType, (LPBYTE)&nTabView, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExA(hKey, "TabTypeMDI", NULL, &dwType, (LPBYTE)&nTabType, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExA(hKey, "TabSwitchMDI", NULL, &dwType, (LPBYTE)&nTabSwitch, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExA(hKey, "WindowStyleMDI", NULL, &dwType, (LPBYTE)&dwMdiStyle, &dwSize);
+    ReadOptionA(hHandle, "TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
+    ReadOptionA(hHandle, "TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
+    ReadOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
+    ReadOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT));
+    ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bWordDelimitersEnable, &dwSize);
+  ReadOptionA(hHandle, "ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD));
+  ReadOptionA(hHandle, "ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD));
+  ReadOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
+  ReadOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
+  ReadOptionA(hHandle, "FontFace", PO_STRING, &lfEditFontA.lfFaceName, LF_FACESIZE);
+  ReadOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintFont", PO_BINARY, &lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE);
+  ReadOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, LF_FACESIZE);
+  ReadOptionA(hHandle, "LanguageModule", PO_STRING, szLangModule, MAX_PATH);
+  ReadOptionA(hHandle, "ExecuteCommand", PO_STRING, szCommand, BUFFER_SIZE);
+  ReadOptionA(hHandle, "ExecuteDirectory", PO_STRING, szWorkDir, MAX_PATH);
+  ReadOptionA(hHandle, "FileTypesOpen", PO_STRING, szFileTypesOpen, MAX_PATH);
+  ReadOptionA(hHandle, "FileTypesEdit", PO_STRING, szFileTypesEdit, MAX_PATH);
+  ReadOptionA(hHandle, "FileTypesPrint", PO_STRING, szFileTypesPrint, MAX_PATH);
+  ReadOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintHeader", PO_STRING, szPrintHeader, MAX_PATH);
+  ReadOptionA(hHandle, "PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintFooter", PO_STRING, szPrintFooter, MAX_PATH);
 
-  dwSize=DELIMITERS_SIZE * sizeof(wchar_t);
-  RegQueryValueExA(hKey, "WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
-
-  dwSize=sizeof(LOGFONTA) - LF_FACESIZE;
-  RegQueryValueExA(hKey, "Font", NULL, &dwType, (LPBYTE)&lfEditFontA, &dwSize);
-
-  dwSize=LF_FACESIZE;
-  RegQueryValueExA(hKey, "FontFace", NULL, &dwType, (LPBYTE)&lfEditFontA.lfFaceName, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "PrintFontEnable", NULL, &dwType, (LPBYTE)&bPrintFontEnable, &dwSize);
-
-  dwSize=sizeof(LOGFONTA) - LF_FACESIZE;
-  RegQueryValueExA(hKey, "PrintFont", NULL, &dwType, (LPBYTE)&lfPrintFontA, &dwSize);
-
-  dwSize=LF_FACESIZE;
-  RegQueryValueExA(hKey, "PrintFontFace", NULL, &dwType, (LPBYTE)&lfPrintFontA.lfFaceName, &dwSize);
-
-  dwSize=sizeof(AECOLORS);
-  RegQueryValueExA(hKey, "Colors", NULL, &dwType, (LPBYTE)&aecColors, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "LanguageModule", NULL, &dwType, (LPBYTE)szLangModule, &dwSize);
-
-  dwSize=BUFFER_SIZE;
-  RegQueryValueExA(hKey, "ExecuteCommand", NULL, &dwType, (LPBYTE)szCommand, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "ExecuteDirectory", NULL, &dwType, (LPBYTE)szWorkDir, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "FileTypesOpen", NULL, &dwType, (LPBYTE)szFileTypesOpen, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "FileTypesEdit", NULL, &dwType, (LPBYTE)szFileTypesEdit, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "FileTypesPrint", NULL, &dwType, (LPBYTE)szFileTypesPrint, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "FileTypesAssociated", NULL, &dwType, (LPBYTE)&dwFileTypesAssociated, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "PrintHeaderEnable", NULL, &dwType, (LPBYTE)&bPrintHeaderEnable, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "PrintHeader", NULL, &dwType, (LPBYTE)szPrintHeader, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExA(hKey, "PrintFooterEnable", NULL, &dwType, (LPBYTE)&bPrintFooterEnable, &dwSize);
-
-  dwSize=MAX_PATH;
-  RegQueryValueExA(hKey, "PrintFooter", NULL, &dwType, (LPBYTE)szPrintFooter, &dwSize);
-
-  if (RegQueryValueExA(hKey, "CodepageList", NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
+  if (dwSize=ReadOptionA(hHandle, "CodepageList", INI_BINARY, NULL, 0))
   {
     if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
     {
-      RegQueryValueExA(hKey, "CodepageList", NULL, &dwType, (LPBYTE)lpCodepageList, &dwSize);
+      ReadOptionA(hHandle, "CodepageList", PO_BINARY, lpCodepageList, dwSize);
       nCodepageListLen=CodepageListLen(lpCodepageList);
     }
   }
 
-  RegCloseKey(hKey);
+  if (nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)hHandle);
 }
 
-void RegReadOptionsW()
+void ReadOptionsW()
 {
-  HKEY hKey;
-  DWORD dwType;
+  HANDLE hHandle;
   DWORD dwSize;
 
-  if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Options", 0, KEY_READ, &hKey) != ERROR_SUCCESS)
-    return;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Options", 0, KEY_READ, (HKEY *)&hHandle) != ERROR_SUCCESS)
+      return;
+  }
+  else
+  {
+    hHandle=(HANDLE)&hIniStack;
+  }
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WordWrap", NULL, &dwType, (LPBYTE)&bWordWrap, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"OnTop", NULL, &dwType, (LPBYTE)&bOnTop, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"StatusBar", NULL, &dwType, (LPBYTE)&bStatusBar, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"ReadOnly", NULL, &dwType, (LPBYTE)&bReadOnly, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SaveTime", NULL, &dwType, (LPBYTE)&bSaveTime, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"KeepSpace", NULL, &dwType, (LPBYTE)&bKeepSpace, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"UndoLimit", NULL, &dwType, (LPBYTE)&nUndoLimit, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"DetailedUndo", NULL, &dwType, (LPBYTE)&bDetailedUndo, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"ShowURL", NULL, &dwType, (LPBYTE)&bShowURL, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"ClickURL", NULL, &dwType, (LPBYTE)&nClickURL, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"ReplaceAllAndClose", NULL, &dwType, (LPBYTE)&bReplaceAllAndClose, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SaveInReadOnlyMsg", NULL, &dwType, (LPBYTE)&bSaveInReadOnlyMsg, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WatchFile", NULL, &dwType, (LPBYTE)&bWatchFile, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SingleOpenFile", NULL, &dwType, (LPBYTE)&bSingleOpenFile, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SingleOpenProgram", NULL, &dwType, (LPBYTE)&bSingleOpenProgram, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"MDI", NULL, &dwType, (LPBYTE)&bRegMDI, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SavePositions", NULL, &dwType, (LPBYTE)&bSavePositions, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SaveCodepages", NULL, &dwType, (LPBYTE)&bSaveCodepages, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"DefaultCodepage", NULL, &dwType, (LPBYTE)&nDefaultCodePage, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"CodepageRecognition", NULL, &dwType, (LPBYTE)&dwLangCodepageRecognition, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"CodepageRecognitionBuffer", NULL, &dwType, (LPBYTE)&dwCodepageRecognitionBuffer, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"RecentFiles", NULL, &dwType, (LPBYTE)&nRecentFiles, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SearchStrings", NULL, &dwType, (LPBYTE)&nSearchStrings, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"SearchOptions", NULL, &dwType, (LPBYTE)&ftflags, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"TabStopSize", NULL, &dwType, (LPBYTE)&nTabStopSize, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"TabStopAsSpaces", NULL, &dwType, (LPBYTE)&bTabStopAsSpaces, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"MarginsEdit", NULL, &dwType, (LPBYTE)&dwEditMargins, &dwSize);
-
-  dwSize=sizeof(RECT);
-  RegQueryValueExW(hKey, L"MarginsPrint", NULL, &dwType, (LPBYTE)&psdPageW.rtMargin, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WindowStyle", NULL, &dwType, (LPBYTE)&dwMainStyle, &dwSize);
-
-  dwSize=sizeof(RECT);
-  RegQueryValueExW(hKey, L"WindowPosition", NULL, &dwType, (LPBYTE)&rcMainWindowRestored, &dwSize);
+  ReadOptionW(hHandle, L"WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD));
+  ReadOptionW(hHandle, L"OnTop", PO_DWORD, &bOnTop, sizeof(DWORD));
+  ReadOptionW(hHandle, L"StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD));
+  ReadOptionW(hHandle, L"ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD));
+  ReadOptionW(hHandle, L"KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD));
+  ReadOptionW(hHandle, L"UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD));
+  ReadOptionW(hHandle, L"DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD));
+  ReadOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD));
+  ReadOptionW(hHandle, L"MDI", PO_DWORD, &bRegMDI, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD));
+  ReadOptionW(hHandle, L"DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD));
+  //ReadOptionW(hHandle, L"DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD));
+  ReadOptionW(hHandle, L"CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD));
+  ReadOptionW(hHandle, L"CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD));
+  ReadOptionW(hHandle, L"RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SearchStrings", PO_DWORD, &nSearchStrings, sizeof(DWORD));
+  ReadOptionW(hHandle, L"SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD));
+  ReadOptionW(hHandle, L"TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD));
+  ReadOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
+  ReadOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
+  ReadOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT));
+  ReadOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT));
+  ReadOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
 
   if (bRegMDI)
   {
-    dwSize=sizeof(DWORD);
-    RegQueryValueExW(hKey, L"TabViewMDI", NULL, &dwType, (LPBYTE)&nTabView, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExW(hKey, L"TabTypeMDI", NULL, &dwType, (LPBYTE)&nTabType, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExW(hKey, L"TabSwitchMDI", NULL, &dwType, (LPBYTE)&nTabSwitch, &dwSize);
-
-    dwSize=sizeof(DWORD);
-    RegQueryValueExW(hKey, L"WindowStyleMDI", NULL, &dwType, (LPBYTE)&dwMdiStyle, &dwSize);
+    ReadOptionW(hHandle, L"TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
+    ReadOptionW(hHandle, L"TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
+    ReadOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
+    ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT));
+    ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"WordDelimitersEnable", NULL, &dwType, (LPBYTE)&bWordDelimitersEnable, &dwSize);
+  ReadOptionW(hHandle, L"ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD));
+  ReadOptionW(hHandle, L"ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
+  ReadOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FontFace", PO_STRING, &lfEditFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintFont", PO_BINARY, &lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS));
+  ReadOptionW(hHandle, L"LanguageModule", PO_STRING, wszLangModule, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"ExecuteCommand", PO_STRING, wszCommand, BUFFER_SIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"ExecuteDirectory", PO_STRING, wszWorkDir, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FileTypesOpen", PO_STRING, wszFileTypesOpen, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FileTypesEdit", PO_STRING, wszFileTypesEdit, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintHeader", PO_STRING, wszPrintHeader, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintFooter", PO_STRING, wszPrintFooter, MAX_PATH * sizeof(wchar_t));
 
-  dwSize=DELIMITERS_SIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"WordDelimiters", NULL, &dwType, (LPBYTE)wszWordDelimiters, &dwSize);
-
-  dwSize=sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"Font", NULL, &dwType, (LPBYTE)&lfEditFontW, &dwSize);
-
-  dwSize=LF_FACESIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"FontFace", NULL, &dwType, (LPBYTE)&lfEditFontW.lfFaceName, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"PrintFontEnable", NULL, &dwType, (LPBYTE)&bPrintFontEnable, &dwSize);
-
-  dwSize=sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"PrintFont", NULL, &dwType, (LPBYTE)&lfPrintFontW, &dwSize);
-
-  dwSize=LF_FACESIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"PrintFontFace", NULL, &dwType, (LPBYTE)&lfPrintFontW.lfFaceName, &dwSize);
-
-  dwSize=sizeof(AECOLORS);
-  RegQueryValueExW(hKey, L"Colors", NULL, &dwType, (LPBYTE)&aecColors, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"LanguageModule", NULL, &dwType, (LPBYTE)wszLangModule, &dwSize);
-
-  dwSize=BUFFER_SIZE * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"ExecuteCommand", NULL, &dwType, (LPBYTE)wszCommand, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"ExecuteDirectory", NULL, &dwType, (LPBYTE)wszWorkDir, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"FileTypesOpen", NULL, &dwType, (LPBYTE)wszFileTypesOpen, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"FileTypesEdit", NULL, &dwType, (LPBYTE)wszFileTypesEdit, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"FileTypesPrint", NULL, &dwType, (LPBYTE)wszFileTypesPrint, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"FileTypesAssociated", NULL, &dwType, (LPBYTE)&dwFileTypesAssociated, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"PrintHeaderEnable", NULL, &dwType, (LPBYTE)&bPrintHeaderEnable, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"PrintHeader", NULL, &dwType, (LPBYTE)wszPrintHeader, &dwSize);
-
-  dwSize=sizeof(DWORD);
-  RegQueryValueExW(hKey, L"PrintFooterEnable", NULL, &dwType, (LPBYTE)&bPrintFooterEnable, &dwSize);
-
-  dwSize=MAX_PATH * sizeof(wchar_t);
-  RegQueryValueExW(hKey, L"PrintFooter", NULL, &dwType, (LPBYTE)wszPrintFooter, &dwSize);
-
-  if (RegQueryValueExW(hKey, L"CodepageList", NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
+  if (dwSize=ReadOptionW(hHandle, L"CodepageList", INI_BINARY, NULL, 0))
   {
     if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
     {
-      RegQueryValueExW(hKey, L"CodepageList", NULL, &dwType, (LPBYTE)lpCodepageList, &dwSize);
+      ReadOptionW(hHandle, L"CodepageList", PO_BINARY, lpCodepageList, dwSize);
       nCodepageListLen=CodepageListLen(lpCodepageList);
     }
   }
 
-  RegCloseKey(hKey);
+  if (nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)hHandle);
 }
 
-void IniReadOptionsA()
+void RegisterPluginsHotkeysA()
 {
-  DWORD dwSize;
-
-  IniGetValueA(&hIniStack, "Options", "WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SingleOpenFile", INI_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SingleOpenProgram", INI_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "MDI", INI_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SearchStrings", INI_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "SearchOptions", INI_DWORD, (LPBYTE)&ftflags, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "TabStopSize", INI_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "TabStopAsSpaces", INI_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "MarginsEdit", INI_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "MarginsPrint", INI_BINARY, (LPBYTE)&psdPageA.rtMargin, sizeof(RECT));
-  IniGetValueA(&hIniStack, "Options", "WindowStyle", INI_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WindowPosition", INI_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT));
-
-  if (bRegMDI)
+  if (nSaveSettings == SS_REGISTRY)
   {
-    IniGetValueA(&hIniStack, "Options", "TabViewMDI", INI_DWORD, (LPBYTE)&nTabView, sizeof(DWORD));
-    IniGetValueA(&hIniStack, "Options", "TabTypeMDI", INI_DWORD, (LPBYTE)&nTabType, sizeof(DWORD));
-    IniGetValueA(&hIniStack, "Options", "TabSwitchMDI", INI_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD));
-    IniGetValueA(&hIniStack, "Options", "WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD));
-  }
+    HKEY hKey;
+    DWORD dwType;
+    DWORD dwSizeValue;
+    DWORD dwSizeString;
+    DWORD dwIndex=0;
+    DWORD dwHotkey=0;
 
-  IniGetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, DELIMITERS_SIZE * sizeof(wchar_t));
-  IniGetValueA(&hIniStack, "Options", "Font", INI_BINARY, (LPBYTE)&lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
-  IniGetValueA(&hIniStack, "Options", "FontFace", INI_STRINGANSI, (LPBYTE)&lfEditFontA.lfFaceName, LF_FACESIZE);
-  IniGetValueA(&hIniStack, "Options", "PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE);
-  IniGetValueA(&hIniStack, "Options", "PrintFontFace", INI_STRINGANSI, (LPBYTE)&lfPrintFontA.lfFaceName, LF_FACESIZE);
-  IniGetValueA(&hIniStack, "Options", "Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS));
-  IniGetValueA(&hIniStack, "Options", "LanguageModule", INI_STRINGANSI, (LPBYTE)szLangModule, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "ExecuteCommand", INI_STRINGANSI, (LPBYTE)szCommand, BUFFER_SIZE);
-  IniGetValueA(&hIniStack, "Options", "ExecuteDirectory", INI_STRINGANSI, (LPBYTE)szWorkDir, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "FileTypesOpen", INI_STRINGANSI, (LPBYTE)szFileTypesOpen, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "FileTypesEdit", INI_STRINGANSI, (LPBYTE)szFileTypesEdit, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "FileTypesPrint", INI_STRINGANSI, (LPBYTE)szFileTypesPrint, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "FileTypesAssociated", INI_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "PrintHeaderEnable", INI_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "PrintHeader", INI_STRINGANSI, (LPBYTE)szPrintHeader, MAX_PATH);
-  IniGetValueA(&hIniStack, "Options", "PrintFooterEnable", INI_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD));
-  IniGetValueA(&hIniStack, "Options", "PrintFooter", INI_STRINGANSI, (LPBYTE)szPrintFooter, MAX_PATH);
-
-  if (dwSize=IniGetValueA(&hIniStack, "Options", "CodepageList", INI_BINARY, NULL, 0))
-  {
-    if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
+    if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Plugs", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
-      IniGetValueA(&hIniStack, "Options", "CodepageList", INI_BINARY, (LPBYTE)lpCodepageList, dwSize);
-      nCodepageListLen=CodepageListLen(lpCodepageList);
-    }
-  }
-}
-
-void IniReadOptionsW()
-{
-  DWORD dwSize;
-
-  IniGetValueW(&hIniStack, L"Options", L"WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SingleOpenFile", INI_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SingleOpenProgram", INI_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"MDI", INI_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SearchStrings", INI_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"SearchOptions", INI_DWORD, (LPBYTE)&ftflags, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"TabStopSize", INI_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"TabStopAsSpaces", INI_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"MarginsEdit", INI_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"MarginsPrint", INI_BINARY, (LPBYTE)&psdPageW.rtMargin, sizeof(RECT));
-  IniGetValueW(&hIniStack, L"Options", L"WindowStyle", INI_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WindowPosition", INI_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT));
-
-  if (bRegMDI)
-  {
-    IniGetValueW(&hIniStack, L"Options", L"TabViewMDI", INI_DWORD, (LPBYTE)&nTabView, sizeof(DWORD));
-    IniGetValueW(&hIniStack, L"Options", L"TabTypeMDI", INI_DWORD, (LPBYTE)&nTabType, sizeof(DWORD));
-    IniGetValueW(&hIniStack, L"Options", L"TabSwitchMDI", INI_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD));
-    IniGetValueW(&hIniStack, L"Options", L"WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD));
-  }
-
-  IniGetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, DELIMITERS_SIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"Font", INI_BINARY, (LPBYTE)&lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FontFace", INI_STRINGUNICODE, (LPBYTE)&lfEditFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFontFace", INI_STRINGUNICODE, (LPBYTE)&lfPrintFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS));
-  IniGetValueW(&hIniStack, L"Options", L"LanguageModule", INI_STRINGUNICODE, (LPBYTE)wszLangModule, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"ExecuteCommand", INI_STRINGUNICODE, (LPBYTE)wszCommand, BUFFER_SIZE * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"ExecuteDirectory", INI_STRINGUNICODE, (LPBYTE)wszWorkDir, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FileTypesOpen", INI_STRINGUNICODE, (LPBYTE)wszFileTypesOpen, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FileTypesEdit", INI_STRINGUNICODE, (LPBYTE)wszFileTypesEdit, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FileTypesPrint", INI_STRINGUNICODE, (LPBYTE)wszFileTypesPrint, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"FileTypesAssociated", INI_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"PrintHeaderEnable", INI_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"PrintHeader", INI_STRINGUNICODE, (LPBYTE)wszPrintHeader, MAX_PATH * sizeof(wchar_t));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFooterEnable", INI_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD));
-  IniGetValueW(&hIniStack, L"Options", L"PrintFooter", INI_STRINGUNICODE, (LPBYTE)wszPrintFooter, MAX_PATH * sizeof(wchar_t));
-
-  if (dwSize=IniGetValueW(&hIniStack, L"Options", L"CodepageList", INI_BINARY, NULL, 0))
-  {
-    if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
-    {
-      IniGetValueW(&hIniStack, L"Options", L"CodepageList", INI_BINARY, (LPBYTE)lpCodepageList, dwSize);
-      nCodepageListLen=CodepageListLen(lpCodepageList);
-    }
-  }
-}
-
-void RegRegisterPluginsHotkeysA()
-{
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSizeValue;
-  DWORD dwSizeString;
-  DWORD dwIndex=0;
-  DWORD dwHotkey=0;
-
-  if (RegOpenKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Plugs", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
-  {
-    while (1)
-    {
-      dwSizeValue=BUFFER_SIZE;
-      dwSizeString=sizeof(DWORD);
-      if (RegEnumValueA(hKey, dwIndex++, buf, &dwSizeValue, NULL, &dwType, (LPBYTE)&dwHotkey, &dwSizeString) != ERROR_SUCCESS)
-        break;
-
-      if (dwHotkey)
+      while (1)
       {
-        StackPluginAddA(&hPluginsStack, buf, lstrlenA(buf), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        dwSizeValue=BUFFER_SIZE;
+        dwSizeString=sizeof(DWORD);
+        if (RegEnumValueA(hKey, dwIndex++, buf, &dwSizeValue, NULL, &dwType, (LPBYTE)&dwHotkey, &dwSizeString) != ERROR_SUCCESS)
+          break;
+
+        if (dwHotkey)
+        {
+          StackPluginAddA(&hPluginsStack, buf, lstrlenA(buf), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        }
+      }
+      RegCloseKey(hKey);
+    }
+  }
+  else
+  {
+    HINISECTION *lpIniSection;
+    HINIKEY *lpIniKey;
+    DWORD dwHotkey=0;
+
+    if (lpIniSection=StackGetIniSectionA(&hIniStack, "Plugs", lstrlenA("Plugs")))
+    {
+      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
+
+      while (lpIniKey)
+      {
+        if (dwHotkey=(DWORD)xatoiA(lpIniKey->szString))
+        {
+          StackPluginAddA(&hPluginsStack, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        }
+        lpIniKey=lpIniKey->next;
       }
     }
-    RegCloseKey(hKey);
   }
 }
 
-void RegRegisterPluginsHotkeysW()
+void RegisterPluginsHotkeysW()
 {
-  HKEY hKey;
-  DWORD dwType;
-  DWORD dwSizeValue;
-  DWORD dwSizeString;
-  DWORD dwIndex=0;
-  DWORD dwHotkey=0;
-
-  if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Plugs", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+  if (nSaveSettings == SS_REGISTRY)
   {
-    while (1)
+    HKEY hKey;
+    DWORD dwType;
+    DWORD dwSizeValue;
+    DWORD dwSizeString;
+    DWORD dwIndex=0;
+    DWORD dwHotkey=0;
+
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Plugs", 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
-      dwSizeValue=BUFFER_SIZE;
-      dwSizeString=sizeof(DWORD);
-      if (RegEnumValueW(hKey, dwIndex++, wbuf, &dwSizeValue, NULL, &dwType, (LPBYTE)&dwHotkey, &dwSizeString) != ERROR_SUCCESS)
-        break;
-
-      if (dwHotkey)
+      while (1)
       {
-        StackPluginAddW(&hPluginsStack, wbuf, lstrlenW(wbuf), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        dwSizeValue=BUFFER_SIZE;
+        dwSizeString=sizeof(DWORD);
+        if (RegEnumValueW(hKey, dwIndex++, wbuf, &dwSizeValue, NULL, &dwType, (LPBYTE)&dwHotkey, &dwSizeString) != ERROR_SUCCESS)
+          break;
+
+        if (dwHotkey)
+        {
+          StackPluginAddW(&hPluginsStack, wbuf, lstrlenW(wbuf), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        }
       }
-    }
-    RegCloseKey(hKey);
-  }
-}
-
-void IniRegisterPluginsHotkeysA()
-{
-  HINISECTION *lpIniSection;
-  HINIKEY *lpIniKey;
-  DWORD dwHotkey=0;
-
-  if (lpIniSection=StackGetIniSectionA(&hIniStack, "Plugs", lstrlenA("Plugs")))
-  {
-    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
-
-    while (lpIniKey)
-    {
-      if (dwHotkey=(DWORD)xatoiA(lpIniKey->szString))
-      {
-        StackPluginAddA(&hPluginsStack, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
-      }
-      lpIniKey=lpIniKey->next;
+      RegCloseKey(hKey);
     }
   }
-}
-
-void IniRegisterPluginsHotkeysW()
-{
-  HINISECTION *lpIniSection;
-  HINIKEY *lpIniKey;
-  DWORD dwHotkey=0;
-
-  if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Plugs", lstrlenW(L"Plugs")))
+  else
   {
-    lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
+    HINISECTION *lpIniSection;
+    HINIKEY *lpIniKey;
+    DWORD dwHotkey=0;
 
-    while (lpIniKey)
+    if (lpIniSection=StackGetIniSectionW(&hIniStack, L"Plugs", lstrlenW(L"Plugs")))
     {
-      if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString))
+      lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
+
+      while (lpIniKey)
       {
-        StackPluginAddW(&hPluginsStack, lpIniKey->wszKey, (lpIniKey->nKeyUnicodeBytes - 1) / sizeof(wchar_t), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString))
+        {
+          StackPluginAddW(&hPluginsStack, lpIniKey->wszKey, (lpIniKey->nKeyUnicodeBytes - 1) / sizeof(wchar_t), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+        }
+        lpIniKey=lpIniKey->next;
       }
-      lpIniKey=lpIniKey->next;
     }
   }
 }
@@ -3840,580 +3649,340 @@ void RegReadSearchW()
   RegCloseKey(hKey);
 }
 
-BOOL RegSaveOptionsA()
+BOOL SaveOptionsA()
 {
-  HKEY hKey;
+  HANDLE hHandle;
+  BOOL bResult=FALSE;
 
   dwMainStyle=GetWindowLongA(hMainWnd, GWL_STYLE);
   dwMainStyle=((dwMainStyle & WS_MAXIMIZE) || ((dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
   if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
   dwMdiStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
 
-  if (RegCreateKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Options", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
-    return FALSE;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (RegCreateKeyExA(HKEY_CURRENT_USER, "Software\\Akelsoft\\AkelPad\\Options", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, (HKEY *)&hHandle, NULL) != ERROR_SUCCESS)
+      return FALSE;
+  }
+  else
+  {
+    if (!OpenIniA(&hIniStack, szIniFile, TRUE))
+      return FALSE;
+    hHandle=(HANDLE)&hIniStack;
 
-  if (RegSetValueExA(hKey, "WordWrap", 0, REG_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "SaveSettings", PO_DWORD, &nRegSaveSettings, sizeof(DWORD)))
+      goto Error;
+  }
+
+  if (!SaveOptionA(hHandle, "WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "OnTop", 0, REG_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "OnTop", PO_DWORD, &bOnTop, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "StatusBar", 0, REG_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "ReadOnly", 0, REG_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SaveTime", 0, REG_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "KeepSpace", 0, REG_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "UndoLimit", 0, REG_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "DetailedUndo", 0, REG_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "ShowURL", 0, REG_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "ClickURL", 0, REG_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "ReplaceAllAndClose", 0, REG_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SaveInReadOnlyMsg", 0, REG_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "WatchFile", 0, REG_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SingleOpenFile", 0, REG_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "MDI", PO_DWORD, &bRegMDI, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SingleOpenProgram", 0, REG_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "MDI", 0, REG_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SavePositions", 0, REG_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SaveCodepages", 0, REG_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)) != ERROR_SUCCESS)
+  //if (!SaveOptionA(hHandle, "DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD)))
+  //  goto Error;
+  if (!SaveOptionA(hHandle, "CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "DefaultCodepage", 0, REG_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "CodepageRecognition", 0, REG_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "CodepageRecognitionBuffer", 0, REG_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SearchStrings", PO_DWORD, &nSearchStrings, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "RecentFiles", 0, REG_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SearchStrings", 0, REG_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "SearchOptions", 0, REG_DWORD, (LPBYTE)&ftflags, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "TabStopSize", 0, REG_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "TabStopAsSpaces", 0, REG_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT)))
     goto Error;
-  if (RegSetValueExA(hKey, "MarginsEdit", 0, REG_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT)))
     goto Error;
-  if (RegSetValueExA(hKey, "MarginsPrint", 0, REG_BINARY, (LPBYTE)&psdPageA.rtMargin, sizeof(RECT)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "WindowStyle", 0, REG_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD)) != ERROR_SUCCESS)
-    goto Error;
-  if (RegSetValueExA(hKey, "WindowPosition", 0, REG_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT)))
     goto Error;
 
   if (bMDI)
   {
-    if (RegSetValueExA(hKey, "TabViewMDI", 0, REG_DWORD, (LPBYTE)&nTabView, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExA(hKey, "TabTypeMDI", 0, REG_DWORD, (LPBYTE)&nTabType, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExA(hKey, "TabSwitchMDI", 0, REG_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExA(hKey, "WindowStyleMDI", 0, REG_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT)))
+      goto Error;
+    if (!SaveOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
       goto Error;
   }
 
-  if (RegSetValueExA(hKey, "WordDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "WordDelimiters", 0, REG_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD)))
     goto Error;
+  if (!SaveOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+
   if (bEditFontChanged)
   {
-    if (RegSetValueExA(hKey, "Font", 0, REG_BINARY, (LPBYTE)&lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE))
       goto Error;
-    if (RegSetValueExA(hKey, "FontFace", 0, REG_SZ, (LPBYTE)&lfEditFontA.lfFaceName, lstrlenA(lfEditFontA.lfFaceName) + 1) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "FontFace", PO_STRING, &lfEditFontA.lfFaceName, lstrlenA(lfEditFontA.lfFaceName) + 1))
       goto Error;
   }
-  if (RegSetValueExA(hKey, "PrintFontEnable", 0, REG_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD)))
     goto Error;
   if (bPrintFontChanged)
   {
-    if (RegSetValueExA(hKey, "PrintFont", 0, REG_BINARY, (LPBYTE)&lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "PrintFont", PO_BINARY, &lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE))
       goto Error;
-    if (RegSetValueExA(hKey, "PrintFontFace", 0, REG_SZ, (LPBYTE)&lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1))
       goto Error;
   }
   if (bColorsChanged)
   {
-    if (RegSetValueExA(hKey, "Colors", 0, REG_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)) != ERROR_SUCCESS)
+    if (!SaveOptionA(hHandle, "Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
       goto Error;
   }
-  if (RegSetValueExA(hKey, "LanguageModule", 0, REG_SZ, (LPBYTE)szLangModule, lstrlenA(szLangModule) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "LanguageModule", PO_STRING, szLangModule, lstrlenA(szLangModule) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "ExecuteCommand", 0, REG_SZ, (LPBYTE)szCommand, lstrlenA(szCommand) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ExecuteCommand", PO_STRING, szCommand, lstrlenA(szCommand) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "ExecuteDirectory", 0, REG_SZ, (LPBYTE)szWorkDir, lstrlenA(szCommand) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "ExecuteDirectory", PO_STRING, szWorkDir, lstrlenA(szCommand) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "FileTypesOpen", 0, REG_SZ, (LPBYTE)szFileTypesOpen, lstrlenA(szFileTypesOpen) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "FileTypesOpen", PO_STRING, szFileTypesOpen, lstrlenA(szFileTypesOpen) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "FileTypesEdit", 0, REG_SZ, (LPBYTE)szFileTypesEdit, lstrlenA(szFileTypesEdit) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "FileTypesEdit", PO_STRING, szFileTypesEdit, lstrlenA(szFileTypesEdit) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "FileTypesPrint", 0, REG_SZ, (LPBYTE)szFileTypesPrint, lstrlenA(szFileTypesPrint) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "FileTypesPrint", PO_STRING, szFileTypesPrint, lstrlenA(szFileTypesPrint) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "FileTypesAssociated", 0, REG_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "PrintHeaderEnable", 0, REG_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "PrintHeader", 0, REG_SZ, (LPBYTE)szPrintHeader, lstrlenA(szPrintHeader) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintHeader", PO_STRING, szPrintHeader, lstrlenA(szPrintHeader) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "PrintFooterEnable", 0, REG_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExA(hKey, "PrintFooter", 0, REG_SZ, (LPBYTE)szPrintFooter, lstrlenA(szPrintFooter) + 1) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "PrintFooter", PO_STRING, szPrintFooter, lstrlenA(szPrintFooter) + 1))
     goto Error;
-  if (RegSetValueExA(hKey, "CodepageList", 0, REG_BINARY, (LPBYTE)lpCodepageList, nCodepageListLen * sizeof(int)) != ERROR_SUCCESS)
+  if (!SaveOptionA(hHandle, "CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
     goto Error;
 
-  RegCloseKey(hKey);
-  return TRUE;
+  if (nSaveSettings == SS_REGISTRY)
+    bResult=TRUE;
+  else
+    bResult=SaveIniA((HSTACK *)hHandle, szIniFile);
 
   Error:
-  RegCloseKey(hKey);
-  return FALSE;
+  if (nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)hHandle);
+  else
+    StackFreeIni((HSTACK *)hHandle);
+  return bResult;
 }
 
-BOOL RegSaveOptionsW()
+BOOL SaveOptionsW()
 {
-  HKEY hKey;
+  HANDLE hHandle;
+  BOOL bResult=FALSE;
 
   dwMainStyle=GetWindowLongW(hMainWnd, GWL_STYLE);
   dwMainStyle=((dwMainStyle & WS_MAXIMIZE) || ((dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
   if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
   dwMdiStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
 
-  if (RegCreateKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Options", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
-    return FALSE;
+  if (nSaveSettings == SS_REGISTRY)
+  {
+    if (RegCreateKeyExW(HKEY_CURRENT_USER, L"Software\\Akelsoft\\AkelPad\\Options", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, (HKEY *)&hHandle, NULL) != ERROR_SUCCESS)
+      return FALSE;
+  }
+  else
+  {
+    if (!OpenIniW(&hIniStack, wszIniFile, TRUE))
+      return FALSE;
+    hHandle=(HANDLE)&hIniStack;
 
-  if (RegSetValueExW(hKey, L"WordWrap", 0, REG_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"SaveSettings", PO_DWORD, &nRegSaveSettings, sizeof(DWORD)))
+      goto Error;
+  }
+
+  if (!SaveOptionW(hHandle, L"WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"OnTop", 0, REG_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"OnTop", PO_DWORD, &bOnTop, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"StatusBar", 0, REG_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"ReadOnly", 0, REG_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SaveTime", 0, REG_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"KeepSpace", 0, REG_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"UndoLimit", 0, REG_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"UndoLimit", PO_DWORD, &nUndoLimit, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"DetailedUndo", 0, REG_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"DetailedUndo", PO_DWORD, &bDetailedUndo, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"ShowURL", 0, REG_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"ClickURL", 0, REG_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"ReplaceAllAndClose", 0, REG_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SaveInReadOnlyMsg", 0, REG_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"WatchFile", 0, REG_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SingleOpenFile", 0, REG_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"MDI", PO_DWORD, &bRegMDI, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SingleOpenProgram", 0, REG_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"MDI", 0, REG_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SavePositions", 0, REG_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SaveCodepages", 0, REG_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)) != ERROR_SUCCESS)
+  //if (!SaveOptionW(hHandle, L"DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD)))
+  //  goto Error;
+  if (!SaveOptionW(hHandle, L"CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"DefaultCodepage", 0, REG_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"CodepageRecognition", 0, REG_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"CodepageRecognitionBuffer", 0, REG_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SearchStrings", PO_DWORD, &nSearchStrings, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"RecentFiles", 0, REG_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SearchStrings", 0, REG_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"SearchOptions", 0, REG_DWORD, (LPBYTE)&ftflags, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"TabStopSize", 0, REG_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"TabStopAsSpaces", 0, REG_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT)))
     goto Error;
-  if (RegSetValueExW(hKey, L"MarginsEdit", 0, REG_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT)))
     goto Error;
-  if (RegSetValueExW(hKey, L"MarginsPrint", 0, REG_BINARY, (LPBYTE)&psdPageW.rtMargin, sizeof(RECT)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"WindowStyle", 0, REG_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD)) != ERROR_SUCCESS)
-    goto Error;
-  if (RegSetValueExW(hKey, L"WindowPosition", 0, REG_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT)))
     goto Error;
 
   if (bMDI)
   {
-    if (RegSetValueExW(hKey, L"TabViewMDI", 0, REG_DWORD, (LPBYTE)&nTabView, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExW(hKey, L"TabTypeMDI", 0, REG_DWORD, (LPBYTE)&nTabType, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExW(hKey, L"TabSwitchMDI", 0, REG_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
       goto Error;
-    if (RegSetValueExW(hKey, L"WindowStyleMDI", 0, REG_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
       goto Error;
   }
 
-  if (RegSetValueExW(hKey, L"WordDelimitersEnable", 0, REG_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"WordDelimiters", 0, REG_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD)))
     goto Error;
+  if (!SaveOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
+    goto Error;
+
   if (bEditFontChanged)
   {
-    if (RegSetValueExW(hKey, L"Font", 0, REG_BINARY, (LPBYTE)&lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
       goto Error;
-    if (RegSetValueExW(hKey, L"FontFace", 0, REG_SZ, (LPBYTE)&lfEditFontW.lfFaceName, lstrlenW(lfEditFontW.lfFaceName) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"FontFace", PO_STRING, &lfEditFontW.lfFaceName, lstrlenW(lfEditFontW.lfFaceName) * sizeof(wchar_t) + 2))
       goto Error;
   }
-  if (RegSetValueExW(hKey, L"PrintFontEnable", 0, REG_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD)))
     goto Error;
   if (bPrintFontChanged)
   {
-    if (RegSetValueExW(hKey, L"PrintFont", 0, REG_BINARY, (LPBYTE)&lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"PrintFont", PO_BINARY, &lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
       goto Error;
-    if (RegSetValueExW(hKey, L"PrintFontFace", 0, REG_SZ, (LPBYTE)&lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2))
       goto Error;
   }
   if (bColorsChanged)
   {
-    if (RegSetValueExW(hKey, L"Colors", 0, REG_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)) != ERROR_SUCCESS)
+    if (!SaveOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
       goto Error;
   }
-  if (RegSetValueExW(hKey, L"LanguageModule", 0, REG_SZ, (LPBYTE)wszLangModule, lstrlenW(wszLangModule) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"LanguageModule", PO_STRING, wszLangModule, lstrlenW(wszLangModule) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"ExecuteCommand", 0, REG_SZ, (LPBYTE)wszCommand, lstrlenW(wszCommand) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ExecuteCommand", PO_STRING, wszCommand, lstrlenW(wszCommand) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"ExecuteDirectory", 0, REG_SZ, (LPBYTE)wszWorkDir, lstrlenW(wszWorkDir) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"ExecuteDirectory", PO_STRING, wszWorkDir, lstrlenW(wszWorkDir) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"FileTypesOpen", 0, REG_SZ, (LPBYTE)wszFileTypesOpen, lstrlenW(wszFileTypesOpen) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"FileTypesOpen", PO_STRING, wszFileTypesOpen, lstrlenW(wszFileTypesOpen) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"FileTypesEdit", 0, REG_SZ, (LPBYTE)wszFileTypesEdit, lstrlenW(wszFileTypesEdit) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"FileTypesEdit", PO_STRING, wszFileTypesEdit, lstrlenW(wszFileTypesEdit) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"FileTypesPrint", 0, REG_SZ, (LPBYTE)wszFileTypesPrint, lstrlenW(wszFileTypesPrint) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, lstrlenW(wszFileTypesPrint) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"FileTypesAssociated", 0, REG_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"PrintHeaderEnable", 0, REG_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"PrintHeader", 0, REG_SZ, (LPBYTE)wszPrintHeader, lstrlenW(wszPrintHeader) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintHeader", PO_STRING, wszPrintHeader, lstrlenW(wszPrintHeader) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"PrintFooterEnable", 0, REG_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD)))
     goto Error;
-  if (RegSetValueExW(hKey, L"PrintFooter", 0, REG_SZ, (LPBYTE)wszPrintFooter, lstrlenW(wszPrintFooter) * sizeof(wchar_t) + 2) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"PrintFooter", PO_STRING, wszPrintFooter, lstrlenW(wszPrintFooter) * sizeof(wchar_t) + 2))
     goto Error;
-  if (RegSetValueExW(hKey, L"CodepageList", 0, REG_BINARY, (LPBYTE)lpCodepageList, nCodepageListLen * sizeof(int)) != ERROR_SUCCESS)
+  if (!SaveOptionW(hHandle, L"CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
     goto Error;
 
-  RegCloseKey(hKey);
-  return TRUE;
+  if (nSaveSettings == SS_REGISTRY)
+    bResult=TRUE;
+  else
+    bResult=SaveIniW((HSTACK *)hHandle, wszIniFile);
 
   Error:
-  RegCloseKey(hKey);
-  return FALSE;
-}
-
-BOOL IniSaveOptionsA()
-{
-  dwMainStyle=GetWindowLongA(hMainWnd, GWL_STYLE);
-  dwMainStyle=((dwMainStyle & WS_MAXIMIZE) || ((dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
-  if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-  dwMdiStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
-
-  if (!OpenIniA(&hIniStack, szIniFile, TRUE))
-    return FALSE;
-
-  if (!IniSetValueA(&hIniStack, "Options", "SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SingleOpenFile", INI_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SingleOpenProgram", INI_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "MDI", INI_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SearchStrings", INI_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "SearchOptions", INI_DWORD, (LPBYTE)&ftflags, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "TabStopSize", INI_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "TabStopAsSpaces", INI_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "MarginsEdit", INI_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "MarginsPrint", INI_BINARY, (LPBYTE)&psdPageA.rtMargin, sizeof(RECT)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WindowStyle", INI_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WindowPosition", INI_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT)))
-    goto Error;
-
-  if (bMDI)
-  {
-    if (!IniSetValueA(&hIniStack, "Options", "TabViewMDI", INI_DWORD, (LPBYTE)&nTabView, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "TabTypeMDI", INI_DWORD, (LPBYTE)&nTabType, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "TabSwitchMDI", INI_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD)))
-      goto Error;
-  }
-
-  if (!IniSetValueA(&hIniStack, "Options", "WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (bEditFontChanged)
-  {
-    if (!IniSetValueA(&hIniStack, "Options", "Font", INI_BINARY, (LPBYTE)&lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "FontFace", INI_STRINGANSI, (LPBYTE)&lfEditFontA.lfFaceName, lstrlenA(lfEditFontA.lfFaceName) + 1))
-      goto Error;
-  }
-  if (!IniSetValueA(&hIniStack, "Options", "PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD)))
-    goto Error;
-  if (bPrintFontChanged)
-  {
-    if (!IniSetValueA(&hIniStack, "Options", "PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE))
-      goto Error;
-    if (!IniSetValueA(&hIniStack, "Options", "PrintFontFace", INI_STRINGANSI, (LPBYTE)&lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1))
-      goto Error;
-  }
-  if (bColorsChanged)
-  {
-    if (!IniSetValueA(&hIniStack, "Options", "Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)))
-      goto Error;
-  }
-  if (!IniSetValueA(&hIniStack, "Options", "LanguageModule", INI_STRINGANSI, (LPBYTE)szLangModule, lstrlenA(szLangModule) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ExecuteCommand", INI_STRINGANSI, (LPBYTE)szCommand, lstrlenA(szCommand) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "ExecuteDirectory", INI_STRINGANSI, (LPBYTE)szWorkDir, lstrlenA(szWorkDir) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "FileTypesOpen", INI_STRINGANSI, (LPBYTE)szFileTypesOpen, lstrlenA(szFileTypesOpen) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "FileTypesEdit", INI_STRINGANSI, (LPBYTE)szFileTypesEdit, lstrlenA(szFileTypesEdit) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "FileTypesPrint", INI_STRINGANSI, (LPBYTE)szFileTypesPrint, lstrlenA(szFileTypesPrint) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "FileTypesAssociated", INI_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "PrintHeaderEnable", INI_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "PrintHeader", INI_STRINGANSI, (LPBYTE)szPrintHeader, lstrlenA(szPrintHeader) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "PrintFooterEnable", INI_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "PrintFooter", INI_STRINGANSI, (LPBYTE)szPrintFooter, lstrlenA(szPrintFooter) + 1))
-    goto Error;
-  if (!IniSetValueA(&hIniStack, "Options", "CodepageList", INI_BINARY, (LPBYTE)lpCodepageList, nCodepageListLen * sizeof(int)))
-    goto Error;
-
-  if (SaveIniA(&hIniStack, szIniFile))
-  {
-    StackFreeIni(&hIniStack);
-    return TRUE;
-  }
-  Error:
-  StackFreeIni(&hIniStack);
-  return FALSE;
-}
-
-BOOL IniSaveOptionsW()
-{
-  dwMainStyle=GetWindowLongW(hMainWnd, GWL_STYLE);
-  dwMainStyle=((dwMainStyle & WS_MAXIMIZE) || ((dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
-  if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-  dwMdiStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
-
-  if (!OpenIniW(&hIniStack, wszIniFile, TRUE))
-    return FALSE;
-
-  if (!IniSetValueW(&hIniStack, L"Options", L"SaveSettings", INI_DWORD, (LPBYTE)&nSaveSettings, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordWrap", INI_DWORD, (LPBYTE)&bWordWrap, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"OnTop", INI_DWORD, (LPBYTE)&bOnTop, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"StatusBar", INI_DWORD, (LPBYTE)&bStatusBar, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ReadOnly", INI_DWORD, (LPBYTE)&bReadOnly, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SaveTime", INI_DWORD, (LPBYTE)&bSaveTime, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"KeepSpace", INI_DWORD, (LPBYTE)&bKeepSpace, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"UndoLimit", INI_DWORD, (LPBYTE)&nUndoLimit, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"DetailedUndo", INI_DWORD, (LPBYTE)&bDetailedUndo, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ShowURL", INI_DWORD, (LPBYTE)&bShowURL, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ClickURL", INI_DWORD, (LPBYTE)&nClickURL, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ReplaceAllAndClose", INI_DWORD, (LPBYTE)&bReplaceAllAndClose, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SaveInReadOnlyMsg", INI_DWORD, (LPBYTE)&bSaveInReadOnlyMsg, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WatchFile", INI_DWORD, (LPBYTE)&bWatchFile, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SingleOpenFile", INI_DWORD, (LPBYTE)&bSingleOpenFile, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SingleOpenProgram", INI_DWORD, (LPBYTE)&bSingleOpenProgram, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"MDI", INI_DWORD, (LPBYTE)&bRegMDI, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SavePositions", INI_DWORD, (LPBYTE)&bSavePositions, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SaveCodepages", INI_DWORD, (LPBYTE)&bSaveCodepages, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"DefaultCodepage", INI_DWORD, (LPBYTE)&nDefaultCodePage, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"CodepageRecognition", INI_DWORD, (LPBYTE)&dwLangCodepageRecognition, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"CodepageRecognitionBuffer", INI_DWORD, (LPBYTE)&dwCodepageRecognitionBuffer, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"RecentFiles", INI_DWORD, (LPBYTE)&nRecentFiles, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SearchStrings", INI_DWORD, (LPBYTE)&nSearchStrings, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"SearchOptions", INI_DWORD, (LPBYTE)&ftflags, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"TabStopSize", INI_DWORD, (LPBYTE)&nTabStopSize, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"TabStopAsSpaces", INI_DWORD, (LPBYTE)&bTabStopAsSpaces, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"MarginsEdit", INI_DWORD, (LPBYTE)&dwEditMargins, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"MarginsPrint", INI_BINARY, (LPBYTE)&psdPageW.rtMargin, sizeof(RECT)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WindowStyle", INI_DWORD, (LPBYTE)&dwMainStyle, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WindowPosition", INI_BINARY, (LPBYTE)&rcMainWindowRestored, sizeof(RECT)))
-    goto Error;
-
-  if (bMDI)
-  {
-    if (!IniSetValueW(&hIniStack, L"Options", L"TabViewMDI", INI_DWORD, (LPBYTE)&nTabView, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"TabTypeMDI", INI_DWORD, (LPBYTE)&nTabType, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"TabSwitchMDI", INI_DWORD, (LPBYTE)&nTabSwitch, sizeof(DWORD)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"WindowStyleMDI", INI_DWORD, (LPBYTE)&dwMdiStyle, sizeof(DWORD)))
-      goto Error;
-  }
-
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimitersEnable", INI_DWORD, (LPBYTE)&bWordDelimitersEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"WordDelimiters", INI_BINARY, (LPBYTE)wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (bEditFontChanged)
-  {
-    if (!IniSetValueW(&hIniStack, L"Options", L"Font", INI_BINARY, (LPBYTE)&lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"FontFace", INI_STRINGUNICODE, (LPBYTE)&lfEditFontW.lfFaceName, lstrlenW(lfEditFontW.lfFaceName) * sizeof(wchar_t) + 2))
-      goto Error;
-  }
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintFontEnable", INI_DWORD, (LPBYTE)&bPrintFontEnable, sizeof(DWORD)))
-    goto Error;
-  if (bPrintFontChanged)
-  {
-    if (!IniSetValueW(&hIniStack, L"Options", L"PrintFont", INI_BINARY, (LPBYTE)&lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
-      goto Error;
-    if (!IniSetValueW(&hIniStack, L"Options", L"PrintFontFace", INI_STRINGUNICODE, (LPBYTE)&lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2))
-      goto Error;
-  }
-  if (bColorsChanged)
-  {
-    if (!IniSetValueW(&hIniStack, L"Options", L"Colors", INI_BINARY, (LPBYTE)&aecColors, sizeof(AECOLORS)))
-      goto Error;
-  }
-  if (!IniSetValueW(&hIniStack, L"Options", L"LanguageModule", INI_STRINGUNICODE, (LPBYTE)wszLangModule, lstrlenW(wszLangModule) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ExecuteCommand", INI_STRINGUNICODE, (LPBYTE)wszCommand, lstrlenW(wszCommand) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"ExecuteDirectory", INI_STRINGUNICODE, (LPBYTE)wszWorkDir, lstrlenW(wszWorkDir) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"FileTypesOpen", INI_STRINGUNICODE, (LPBYTE)wszFileTypesOpen, lstrlenW(wszFileTypesOpen) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"FileTypesEdit", INI_STRINGUNICODE, (LPBYTE)wszFileTypesEdit, lstrlenW(wszFileTypesEdit) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"FileTypesPrint", INI_STRINGUNICODE, (LPBYTE)wszFileTypesPrint, lstrlenW(wszFileTypesPrint) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"FileTypesAssociated", INI_DWORD, (LPBYTE)&dwFileTypesAssociated, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintHeaderEnable", INI_DWORD, (LPBYTE)&bPrintHeaderEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintHeader", INI_STRINGUNICODE, (LPBYTE)wszPrintHeader, lstrlenW(wszPrintHeader) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintFooterEnable", INI_DWORD, (LPBYTE)&bPrintFooterEnable, sizeof(DWORD)))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"PrintFooter", INI_STRINGUNICODE, (LPBYTE)wszPrintFooter, lstrlenW(wszPrintFooter) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!IniSetValueW(&hIniStack, L"Options", L"CodepageList", INI_BINARY, (LPBYTE)lpCodepageList, nCodepageListLen * sizeof(int)))
-    goto Error;
-
-  if (SaveIniW(&hIniStack, wszIniFile))
-  {
-    StackFreeIni(&hIniStack);
-    return TRUE;
-  }
-  Error:
-  StackFreeIni(&hIniStack);
-  return FALSE;
+  if (nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)hHandle);
+  else
+    StackFreeIni((HSTACK *)hHandle);
+  return bResult;
 }
 
 
@@ -11364,10 +10933,23 @@ BOOL CALLBACK RecodeDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndList;
+  static HWND hWndListInfo;
+  static HWND hWndHotkeyLabel;
   static HWND hWndAssign;
   static HWND hWndCall;
+  static HWND hWndOK;
+  static HWND hWndCancel;
   static int nSelItem;
   static BOOL bListChanged;
+  static DIALOGRESIZE drs[]={{&hWndList,        DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndListInfo,    DRS_MOVE|DRS_Y},
+                             {&hWndHotkeyLabel, DRS_MOVE|DRS_X},
+                             {&hWndHotkey,      DRS_MOVE|DRS_X},
+                             {&hWndAssign,      DRS_MOVE|DRS_X},
+                             {&hWndCall,        DRS_MOVE|DRS_Y},
+                             {&hWndOK,          DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -11377,9 +10959,13 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_PLUGINS_LIST);
+    hWndListInfo=GetDlgItem(hDlg, IDC_PLUGINS_LIST_INFO);
+    hWndHotkeyLabel=GetDlgItem(hDlg, IDC_PLUGINS_HOTKEY_LABEL);
     hWndHotkey=GetDlgItem(hDlg, IDC_PLUGINS_HOTKEY);
     hWndAssign=GetDlgItem(hDlg, IDC_PLUGINS_ASSIGN);
     hWndCall=GetDlgItem(hDlg, IDC_PLUGINS_CALL);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
     SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
     EnableWindow(hWndHotkey, FALSE);
     EnableWindow(hWndAssign, FALSE);
@@ -11392,19 +10978,19 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     API_LoadStringA(hLangLib, STR_PLUGIN, szPlugin, BUFFER_SIZE);
     API_LoadStringA(hLangLib, STR_FUNCTION, szFunction, BUFFER_SIZE);
     wsprintfA(buf, "%s::%s", szPlugin, szFunction);
-    lvcA.cx=210;
-    lvcA.iSubItem=LVI_FUNCTION_NAME;
-    SendMessage(hWndList, LVM_INSERTCOLUMNA, LVI_FUNCTION_NAME, (LPARAM)&lvcA);
+    lvcA.cx=209;
+    lvcA.iSubItem=LVSI_FUNCTION_NAME;
+    SendMessage(hWndList, LVM_INSERTCOLUMNA, LVSI_FUNCTION_NAME, (LPARAM)&lvcA);
 
     API_LoadStringA(hLangLib, STR_HOTKEY, buf, BUFFER_SIZE);
     lvcA.cx=105;
-    lvcA.iSubItem=LVI_FUNCTION_HOTKEY;
-    SendMessage(hWndList, LVM_INSERTCOLUMNA, LVI_FUNCTION_HOTKEY, (LPARAM)&lvcA);
+    lvcA.iSubItem=LVSI_FUNCTION_HOTKEY;
+    SendMessage(hWndList, LVM_INSERTCOLUMNA, LVSI_FUNCTION_HOTKEY, (LPARAM)&lvcA);
 
     API_LoadStringA(hLangLib, STR_STATUS, buf, BUFFER_SIZE);
     lvcA.cx=63;
-    lvcA.iSubItem=LVI_FUNCTION_STATUS;
-    SendMessage(hWndList, LVM_INSERTCOLUMNA, LVI_FUNCTION_STATUS, (LPARAM)&lvcA);
+    lvcA.iSubItem=LVSI_FUNCTION_STATUS;
+    SendMessage(hWndList, LVM_INSERTCOLUMNA, LVSI_FUNCTION_STATUS, (LPARAM)&lvcA);
 
     FillPluginListA(hWndList);
     nSelItem=-1;
@@ -11431,7 +11017,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         lviA.mask=LVIF_TEXT;
         lviA.pszText=buf;
         lviA.iItem=nSelItem;
-        lviA.iSubItem=LVI_FUNCTION_HOTKEY;
+        lviA.iSubItem=LVSI_FUNCTION_HOTKEY;
         SendMessage(hWndList, LVM_SETITEMA, 0, (LPARAM)&lviA);
 
         if (pliElement=GetPluginListItemA(&hPluginListStack, nSelItem + 1))
@@ -11586,16 +11172,31 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     hWndHotkey=NULL;
   }
+  DialogResizeMessages(&drs[0], &rcPluginsDialog, hDlg, uMsg, wParam, lParam);
+
   return FALSE;
 }
 
 BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndList;
+  static HWND hWndListInfo;
+  static HWND hWndHotkeyLabel;
   static HWND hWndAssign;
   static HWND hWndCall;
+  static HWND hWndOK;
+  static HWND hWndCancel;
   static int nSelItem;
   static BOOL bListChanged;
+  static DIALOGRESIZE drs[]={{&hWndList,        DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndListInfo,    DRS_MOVE|DRS_Y},
+                             {&hWndHotkeyLabel, DRS_MOVE|DRS_X},
+                             {&hWndHotkey,      DRS_MOVE|DRS_X},
+                             {&hWndAssign,      DRS_MOVE|DRS_X},
+                             {&hWndCall,        DRS_MOVE|DRS_Y},
+                             {&hWndOK,          DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -11605,9 +11206,13 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
     hWndList=GetDlgItem(hDlg, IDC_PLUGINS_LIST);
+    hWndListInfo=GetDlgItem(hDlg, IDC_PLUGINS_LIST_INFO);
+    hWndHotkeyLabel=GetDlgItem(hDlg, IDC_PLUGINS_HOTKEY_LABEL);
     hWndHotkey=GetDlgItem(hDlg, IDC_PLUGINS_HOTKEY);
     hWndAssign=GetDlgItem(hDlg, IDC_PLUGINS_ASSIGN);
     hWndCall=GetDlgItem(hDlg, IDC_PLUGINS_CALL);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
     SendMessage(hWndList, LVM_SETEXTENDEDLISTVIEWSTYLE, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES, LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES|LVS_EX_CHECKBOXES);
     EnableWindow(hWndHotkey, FALSE);
     EnableWindow(hWndAssign, FALSE);
@@ -11620,19 +11225,19 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     API_LoadStringW(hLangLib, STR_PLUGIN, wszPlugin, BUFFER_SIZE);
     API_LoadStringW(hLangLib, STR_FUNCTION, wszFunction, BUFFER_SIZE);
     wsprintfW(wbuf, L"%s::%s", wszPlugin, wszFunction);
-    lvcW.cx=210;
-    lvcW.iSubItem=LVI_FUNCTION_NAME;
-    SendMessage(hWndList, LVM_INSERTCOLUMNW, LVI_FUNCTION_NAME, (LPARAM)&lvcW);
+    lvcW.cx=209;
+    lvcW.iSubItem=LVSI_FUNCTION_NAME;
+    SendMessage(hWndList, LVM_INSERTCOLUMNW, LVSI_FUNCTION_NAME, (LPARAM)&lvcW);
 
     API_LoadStringW(hLangLib, STR_HOTKEY, wbuf, BUFFER_SIZE);
     lvcW.cx=105;
-    lvcW.iSubItem=LVI_FUNCTION_HOTKEY;
-    SendMessage(hWndList, LVM_INSERTCOLUMNW, LVI_FUNCTION_HOTKEY, (LPARAM)&lvcW);
+    lvcW.iSubItem=LVSI_FUNCTION_HOTKEY;
+    SendMessage(hWndList, LVM_INSERTCOLUMNW, LVSI_FUNCTION_HOTKEY, (LPARAM)&lvcW);
 
     API_LoadStringW(hLangLib, STR_STATUS, wbuf, BUFFER_SIZE);
     lvcW.cx=63;
-    lvcW.iSubItem=LVI_FUNCTION_STATUS;
-    SendMessage(hWndList, LVM_INSERTCOLUMNW, LVI_FUNCTION_STATUS, (LPARAM)&lvcW);
+    lvcW.iSubItem=LVSI_FUNCTION_STATUS;
+    SendMessage(hWndList, LVM_INSERTCOLUMNW, LVSI_FUNCTION_STATUS, (LPARAM)&lvcW);
 
     FillPluginListW(hWndList);
     nSelItem=-1;
@@ -11659,7 +11264,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         lviW.mask=LVIF_TEXT;
         lviW.pszText=wbuf;
         lviW.iItem=nSelItem;
-        lviW.iSubItem=LVI_FUNCTION_HOTKEY;
+        lviW.iSubItem=LVSI_FUNCTION_HOTKEY;
         SendMessage(hWndList, LVM_SETITEMW, 0, (LPARAM)&lviW);
 
         if (pliElement=GetPluginListItemW(&hPluginListStack, nSelItem + 1))
@@ -11814,6 +11419,8 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
     hWndHotkey=NULL;
   }
+  DialogResizeMessages(&drs[0], &rcPluginsDialog, hDlg, uMsg, wParam, lParam);
+
   return FALSE;
 }
 
@@ -11936,7 +11543,7 @@ BOOL CALLBACK FillPluginListProcA(char *pExportName, LPARAM lParam)
     lviA.mask=LVIF_TEXT;
     lviA.pszText=buf;
     lviA.iItem=0;
-    lviA.iSubItem=LVI_FUNCTION_NAME;
+    lviA.iSubItem=LVSI_FUNCTION_NAME;
     nIndex=SendMessage(pld->hWndList, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
 
     if (!StackInsertIndex((stack **)&hPluginListStack.first, (stack **)&hPluginListStack.last, (stack **)&pliElement, nIndex + 1, sizeof(PLUGINLISTITEMA)))
@@ -11947,7 +11554,7 @@ BOOL CALLBACK FillPluginListProcA(char *pExportName, LPARAM lParam)
         {
           lviA.mask=LVIF_STATE;
           lviA.iItem=nIndex;
-          lviA.iSubItem=LVI_FUNCTION_NAME;
+          lviA.iSubItem=LVSI_FUNCTION_NAME;
           lviA.state=((pfElement->bOnStart + 1) << 12);
           lviA.stateMask=LVIS_STATEIMAGEMASK;
           SendMessage(pld->hWndList, LVM_SETITEMA, 0, (LPARAM)&lviA);
@@ -11958,7 +11565,7 @@ BOOL CALLBACK FillPluginListProcA(char *pExportName, LPARAM lParam)
           lviA.mask=LVIF_TEXT;
           lviA.pszText=buf;
           lviA.iItem=nIndex;
-          lviA.iSubItem=LVI_FUNCTION_HOTKEY;
+          lviA.iSubItem=LVSI_FUNCTION_HOTKEY;
           SendMessage(pld->hWndList, LVM_SETITEMA, 0, (LPARAM)&lviA);
         }
         if (pfElement->bRunning)
@@ -11967,7 +11574,7 @@ BOOL CALLBACK FillPluginListProcA(char *pExportName, LPARAM lParam)
           lviA.mask=LVIF_TEXT;
           lviA.pszText=buf;
           lviA.iItem=nIndex;
-          lviA.iSubItem=LVI_FUNCTION_STATUS;
+          lviA.iSubItem=LVSI_FUNCTION_STATUS;
           SendMessage(pld->hWndList, LVM_SETITEMA, 0, (LPARAM)&lviA);
         }
       }
@@ -11998,7 +11605,7 @@ BOOL CALLBACK FillPluginListProcW(char *pExportName, LPARAM lParam)
     lviW.mask=LVIF_TEXT;
     lviW.pszText=wbuf;
     lviW.iItem=0;
-    lviW.iSubItem=LVI_FUNCTION_NAME;
+    lviW.iSubItem=LVSI_FUNCTION_NAME;
     nIndex=SendMessage(pld->hWndList, LVM_INSERTITEMW, 0, (LPARAM)&lviW);
 
     if (!StackInsertIndex((stack **)&hPluginListStack.first, (stack **)&hPluginListStack.last, (stack **)&pliElement, nIndex + 1, sizeof(PLUGINLISTITEMW)))
@@ -12009,7 +11616,7 @@ BOOL CALLBACK FillPluginListProcW(char *pExportName, LPARAM lParam)
         {
           lviW.mask=LVIF_STATE;
           lviW.iItem=nIndex;
-          lviW.iSubItem=LVI_FUNCTION_NAME;
+          lviW.iSubItem=LVSI_FUNCTION_NAME;
           lviW.state=((pfElement->bOnStart + 1) << 12);
           lviW.stateMask=LVIS_STATEIMAGEMASK;
           SendMessage(pld->hWndList, LVM_SETITEMW, 0, (LPARAM)&lviW);
@@ -12020,7 +11627,7 @@ BOOL CALLBACK FillPluginListProcW(char *pExportName, LPARAM lParam)
           lviW.mask=LVIF_TEXT;
           lviW.pszText=wbuf;
           lviW.iItem=nIndex;
-          lviW.iSubItem=LVI_FUNCTION_HOTKEY;
+          lviW.iSubItem=LVSI_FUNCTION_HOTKEY;
           SendMessage(pld->hWndList, LVM_SETITEMW, 0, (LPARAM)&lviW);
         }
         if (pfElement->bRunning)
@@ -12029,7 +11636,7 @@ BOOL CALLBACK FillPluginListProcW(char *pExportName, LPARAM lParam)
           lviW.mask=LVIF_TEXT;
           lviW.pszText=wbuf;
           lviW.iItem=nIndex;
-          lviW.iSubItem=LVI_FUNCTION_STATUS;
+          lviW.iSubItem=LVSI_FUNCTION_STATUS;
           SendMessage(pld->hWndList, LVM_SETITEMW, 0, (LPARAM)&lviW);
         }
       }
@@ -14801,9 +14408,8 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (nSaveSettings != a)
       {
         nSaveSettings=a;
-        IniSaveOptionsA();
-        RegSaveOptionsA();
-        StackPluginSaveA(&hPluginsStack, TRUE);
+        nRegSaveSettings=a;
+        bOptionsSave=TRUE;
       }
     }
   }
@@ -15082,9 +14688,8 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
       if (nSaveSettings != a)
       {
         nSaveSettings=a;
-        IniSaveOptionsW();
-        RegSaveOptionsW();
-        StackPluginSaveW(&hPluginsStack, TRUE);
+        nRegSaveSettings=a;
+        bOptionsSave=TRUE;
       }
     }
   }
@@ -15289,6 +14894,756 @@ BOOL CALLBACK OptionsAdvanced2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     }
   }
   return FALSE;
+}
+
+//// MDI list
+
+BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndList;
+  static HWND hWndStats;
+  static HWND hWndSearch;
+  static HWND hWndOK;
+  static HWND hWndArrangeGroup;
+  static HWND hWndHorz;
+  static HWND hWndVert;
+  static HWND hWndTabsGroup;
+  static HWND hWndUp;
+  static HWND hWndDown;
+  static HWND hWndSort;
+  static HWND hWndModified;
+  static HWND hWndFilesGroup;
+  static HWND hWndSave;
+  static HWND hWndClose;
+  static HWND hWndCancel;
+  static BOOL bListChanged;
+  static BOOL bOnlyModified;
+  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndStats,        DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndSearch,       DRS_SIZE|DRS_X},
+                             {&hWndSearch,       DRS_MOVE|DRS_Y},
+                             {&hWndOK,           DRS_MOVE|DRS_X},
+                             {&hWndArrangeGroup, DRS_MOVE|DRS_X},
+                             {&hWndHorz,         DRS_MOVE|DRS_X},
+                             {&hWndVert,         DRS_MOVE|DRS_X},
+                             {&hWndTabsGroup,    DRS_MOVE|DRS_X},
+                             {&hWndUp,           DRS_MOVE|DRS_X},
+                             {&hWndDown,         DRS_MOVE|DRS_X},
+                             {&hWndSort,         DRS_MOVE|DRS_X},
+                             {&hWndModified,     DRS_MOVE|DRS_X},
+                             {&hWndFilesGroup,   DRS_MOVE|DRS_X},
+                             {&hWndSave,         DRS_MOVE|DRS_X},
+                             {&hWndClose,        DRS_MOVE|DRS_X},
+                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
+  int nItem;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
+    hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
+    hWndStats=GetDlgItem(hDlg, IDC_MDILIST_STATS);
+    hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndArrangeGroup=GetDlgItem(hDlg, IDC_MDILIST_ARRANGE_GROUP);
+    hWndHorz=GetDlgItem(hDlg, IDC_MDILIST_HORZ);
+    hWndVert=GetDlgItem(hDlg, IDC_MDILIST_VERT);
+    hWndTabsGroup=GetDlgItem(hDlg, IDC_MDILIST_TABS_GROUP);
+    hWndUp=GetDlgItem(hDlg, IDC_MDILIST_UP);
+    hWndDown=GetDlgItem(hDlg, IDC_MDILIST_DOWN);
+    hWndSort=GetDlgItem(hDlg, IDC_MDILIST_SORT);
+    hWndModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
+    hWndFilesGroup=GetDlgItem(hDlg, IDC_MDILIST_FILES_GROUP);
+    hWndSave=GetDlgItem(hDlg, IDC_MDILIST_SAVE);
+    hWndClose=GetDlgItem(hDlg, IDC_MDILIST_CLOSE);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
+
+    SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
+
+    FillMdiListListboxA(hWndList, FALSE, FALSE);
+    if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
+      SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
+
+    PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_MDILIST_SEARCH)
+    {
+      if (HIWORD(wParam) == EN_CHANGE)
+      {
+        char szSearch[MAX_PATH];
+
+        if (GetWindowTextA(hWndSearch, szSearch, MAX_PATH))
+        {
+          for (nItem=0; 1; ++nItem)
+          {
+            if (SendMessageA(hWndList, LB_GETTEXT, nItem, (LPARAM)buf) == LB_ERR)
+              break;
+            if (xstrstrA(buf, szSearch, FALSE, NULL, NULL))
+            {
+              SendMessage(hWndList, LB_SETSEL, FALSE, -1);
+              SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
+              break;
+            }
+          }
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_HORZ)
+    {
+      ArrangeListboxSelItems(hWndList, SB_HORZ);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_VERT)
+    {
+      ArrangeListboxSelItems(hWndList, SB_VERT);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_UP)
+    {
+      if (ShiftListboxSelItems(hWndList, FALSE))
+        bListChanged=TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_DOWN)
+    {
+      if (ShiftListboxSelItems(hWndList, TRUE))
+        bListChanged=TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_SORT)
+    {
+      FillMdiListListboxA(hWndList, TRUE, bOnlyModified);
+      bListChanged=TRUE;
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
+    {
+      bOnlyModified=SendMessage(hWndModified, BM_GETCHECK, 0, 0);
+      FillMdiListListboxA(hWndList, FALSE, bOnlyModified);
+      bListChanged=FALSE;
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_SAVE)
+    {
+      SaveListboxSelItems(hWndList);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_CLOSE)
+    {
+      if (CloseListboxSelItems(hWndList))
+        SetFocus(hWndList);
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_LIST)
+    {
+      if (HIWORD(wParam) == LBN_SELCHANGE)
+      {
+        int nCount;
+        int nSelCount;
+
+        nCount=SendMessage(hWndList, LB_GETCOUNT, 0, 0);
+        nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0);
+        //EnableWindow(hWndHorz, nSelCount > 1);
+        //EnableWindow(hWndVert, nSelCount > 1);
+        EnableWindow(hWndUp, nSelCount > 0 && !bOnlyModified);
+        EnableWindow(hWndDown, nSelCount > 0 && !bOnlyModified);
+        EnableWindow(hWndSort, !bOnlyModified);
+        EnableWindow(hWndSave, nSelCount > 0);
+        EnableWindow(hWndClose, nSelCount > 0);
+
+        wsprintfA(buf, "%d / %d", nSelCount, nCount);
+        SetWindowTextA(hWndStats, buf);
+      }
+      else if (HIWORD(wParam) == LBN_DBLCLK)
+      {
+        PostMessage(hDlg, WM_COMMAND, IDOK, 0);
+      }
+    }
+    else if (LOWORD(wParam) == IDOK)
+    {
+      int *lpSelItems;
+      int nItemNew;
+      int nItemOld;
+      int nData;
+
+      if (!bOnlyModified && bListChanged)
+      {
+        for (nItemNew=0; 1; ++nItemNew)
+        {
+          if ((nData=SendMessage(hWndList, LB_GETITEMDATA, nItemNew, 0)) == LB_ERR)
+            break;
+          if ((nItemOld=GetTabItemFromParam(hTab, nData)) != -1)
+            MoveTabItemA(hTab, nItemOld, nItemNew);
+        }
+        bListChanged=FALSE;
+      }
+      if (GetListboxSelItems(hWndList, &lpSelItems))
+      {
+        if ((nData=SendMessage(hWndList, LB_GETITEMDATA, lpSelItems[0], 0)) != LB_ERR)
+          if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+            SelectTabItem(hTab, nItem);
+        FreeListboxSelItems(&lpSelItems);
+      }
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  DialogResizeMessages(&drs[0], &rcMdiListDialog, hDlg, uMsg, wParam, lParam);
+
+  return FALSE;
+}
+
+BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndList;
+  static HWND hWndStats;
+  static HWND hWndSearch;
+  static HWND hWndOK;
+  static HWND hWndArrangeGroup;
+  static HWND hWndHorz;
+  static HWND hWndVert;
+  static HWND hWndTabsGroup;
+  static HWND hWndUp;
+  static HWND hWndDown;
+  static HWND hWndSort;
+  static HWND hWndModified;
+  static HWND hWndFilesGroup;
+  static HWND hWndSave;
+  static HWND hWndClose;
+  static HWND hWndCancel;
+  static BOOL bListChanged;
+  static BOOL bOnlyModified;
+  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
+                             {&hWndStats,        DRS_MOVE|DRS_X|DRS_Y},
+                             {&hWndSearch,       DRS_SIZE|DRS_X},
+                             {&hWndSearch,       DRS_MOVE|DRS_Y},
+                             {&hWndOK,           DRS_MOVE|DRS_X},
+                             {&hWndArrangeGroup, DRS_MOVE|DRS_X},
+                             {&hWndHorz,         DRS_MOVE|DRS_X},
+                             {&hWndVert,         DRS_MOVE|DRS_X},
+                             {&hWndTabsGroup,    DRS_MOVE|DRS_X},
+                             {&hWndUp,           DRS_MOVE|DRS_X},
+                             {&hWndDown,         DRS_MOVE|DRS_X},
+                             {&hWndSort,         DRS_MOVE|DRS_X},
+                             {&hWndModified,     DRS_MOVE|DRS_X},
+                             {&hWndFilesGroup,   DRS_MOVE|DRS_X},
+                             {&hWndSave,         DRS_MOVE|DRS_X},
+                             {&hWndClose,        DRS_MOVE|DRS_X},
+                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
+                             {0, 0}};
+  int nItem;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
+    hWndList=GetDlgItem(hDlg, IDC_MDILIST_LIST);
+    hWndStats=GetDlgItem(hDlg, IDC_MDILIST_STATS);
+    hWndSearch=GetDlgItem(hDlg, IDC_MDILIST_SEARCH);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndArrangeGroup=GetDlgItem(hDlg, IDC_MDILIST_ARRANGE_GROUP);
+    hWndHorz=GetDlgItem(hDlg, IDC_MDILIST_HORZ);
+    hWndVert=GetDlgItem(hDlg, IDC_MDILIST_VERT);
+    hWndTabsGroup=GetDlgItem(hDlg, IDC_MDILIST_TABS_GROUP);
+    hWndUp=GetDlgItem(hDlg, IDC_MDILIST_UP);
+    hWndDown=GetDlgItem(hDlg, IDC_MDILIST_DOWN);
+    hWndSort=GetDlgItem(hDlg, IDC_MDILIST_SORT);
+    hWndModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
+    hWndFilesGroup=GetDlgItem(hDlg, IDC_MDILIST_FILES_GROUP);
+    hWndSave=GetDlgItem(hDlg, IDC_MDILIST_SAVE);
+    hWndClose=GetDlgItem(hDlg, IDC_MDILIST_CLOSE);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
+
+    SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
+
+    FillMdiListListboxW(hWndList, FALSE, FALSE);
+    if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
+      SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
+
+    PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_MDILIST_SEARCH)
+    {
+      if (HIWORD(wParam) == EN_CHANGE)
+      {
+        wchar_t wszSearch[MAX_PATH];
+
+        if (GetWindowTextW(hWndSearch, wszSearch, MAX_PATH))
+        {
+          for (nItem=0; 1; ++nItem)
+          {
+            if (SendMessageW(hWndList, LB_GETTEXT, nItem, (LPARAM)wbuf) == LB_ERR)
+              break;
+            if (xstrstrW(wbuf, wszSearch, FALSE, NULL, NULL))
+            {
+              SendMessage(hWndList, LB_SETSEL, FALSE, -1);
+              SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
+              break;
+            }
+          }
+        }
+      }
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_HORZ)
+    {
+      ArrangeListboxSelItems(hWndList, SB_HORZ);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_VERT)
+    {
+      ArrangeListboxSelItems(hWndList, SB_VERT);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_UP)
+    {
+      if (ShiftListboxSelItems(hWndList, FALSE))
+        bListChanged=TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_DOWN)
+    {
+      if (ShiftListboxSelItems(hWndList, TRUE))
+        bListChanged=TRUE;
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_SORT)
+    {
+      FillMdiListListboxW(hWndList, TRUE, bOnlyModified);
+      bListChanged=TRUE;
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
+    {
+      bOnlyModified=SendMessage(hWndModified, BM_GETCHECK, 0, 0);
+      FillMdiListListboxW(hWndList, FALSE, bOnlyModified);
+      bListChanged=FALSE;
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_SAVE)
+    {
+      SaveListboxSelItems(hWndList);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_CLOSE)
+    {
+      if (CloseListboxSelItems(hWndList))
+        SetFocus(hWndList);
+
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_LIST)
+    {
+      if (HIWORD(wParam) == LBN_SELCHANGE)
+      {
+        int nCount;
+        int nSelCount;
+
+        nCount=SendMessage(hWndList, LB_GETCOUNT, 0, 0);
+        nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0);
+        //EnableWindow(hWndHorz, nSelCount > 1);
+        //EnableWindow(hWndVert, nSelCount > 1);
+        EnableWindow(hWndUp, nSelCount > 0 && !bOnlyModified);
+        EnableWindow(hWndDown, nSelCount > 0 && !bOnlyModified);
+        EnableWindow(hWndSort, !bOnlyModified);
+        EnableWindow(hWndSave, nSelCount > 0);
+        EnableWindow(hWndClose, nSelCount > 0);
+
+        wsprintfW(wbuf, L"%d / %d", nSelCount, nCount);
+        SetWindowTextW(hWndStats, wbuf);
+      }
+      else if (HIWORD(wParam) == LBN_DBLCLK)
+      {
+        PostMessage(hDlg, WM_COMMAND, IDOK, 0);
+      }
+    }
+    else if (LOWORD(wParam) == IDOK)
+    {
+      int *lpSelItems;
+      int nItemNew;
+      int nItemOld;
+      int nData;
+
+      if (!bOnlyModified && bListChanged)
+      {
+        for (nItemNew=0; 1; ++nItemNew)
+        {
+          if ((nData=SendMessage(hWndList, LB_GETITEMDATA, nItemNew, 0)) == LB_ERR)
+            break;
+          if ((nItemOld=GetTabItemFromParam(hTab, nData)) != -1)
+            MoveTabItemW(hTab, nItemOld, nItemNew);
+        }
+        bListChanged=FALSE;
+      }
+      if (GetListboxSelItems(hWndList, &lpSelItems))
+      {
+        if ((nData=SendMessage(hWndList, LB_GETITEMDATA, lpSelItems[0], 0)) != LB_ERR)
+          if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+            SelectTabItem(hTab, nItem);
+        FreeListboxSelItems(&lpSelItems);
+      }
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  DialogResizeMessages(&drs[0], &rcMdiListDialog, hDlg, uMsg, wParam, lParam);
+
+  return FALSE;
+}
+
+void FillMdiListListboxA(HWND hWnd, BOOL bSort, BOOL bOnlyModified)
+{
+  TCITEMA tcItemA;
+  WNDFRAMEA *wf;
+  int nNew;
+  int nTabItem;
+  int nListboxItem=0;
+  BOOL bFileModified;
+
+  SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
+
+  for (nTabItem=0; 1; ++nTabItem)
+  {
+    tcItemA.mask=TCIF_PARAM;
+    if (!SendMessage(hTab, TCM_GETITEMA, nTabItem, (LPARAM)&tcItemA))
+      break;
+
+    GetWindowTextA((HWND)tcItemA.lParam, buf, MAX_PATH);
+
+    if (hWndFrameActive == (HWND)tcItemA.lParam)
+      bFileModified=bModified;
+    else if (wf=(WNDFRAMEA *)GetWindowLongA((HWND)tcItemA.lParam, GWL_USERDATA))
+      bFileModified=wf->ei.bModified;
+    else
+      bFileModified=FALSE;
+    if (bFileModified) lstrcatA(buf, " *");
+
+    if (!bOnlyModified || bFileModified)
+    {
+      if (bSort)
+        nNew=SendMessageA(hWnd, LB_ADDSTRING, 0, (LPARAM)buf);
+      else
+        nNew=SendMessageA(hWnd, LB_INSERTSTRING, nListboxItem++, (LPARAM)buf);
+      SendMessage(hWnd, LB_SETITEMDATA, nNew, tcItemA.lParam);
+    }
+  }
+}
+
+void FillMdiListListboxW(HWND hWnd, BOOL bSort, BOOL bOnlyModified)
+{
+  TCITEMW tcItemW;
+  WNDFRAMEW *wf;
+  int nNew;
+  int nTabItem;
+  int nListboxItem=0;
+  BOOL bFileModified;
+
+  SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
+
+  for (nTabItem=0; 1; ++nTabItem)
+  {
+    tcItemW.mask=TCIF_PARAM;
+    if (!SendMessage(hTab, TCM_GETITEMW, nTabItem, (LPARAM)&tcItemW))
+      break;
+
+    GetWindowTextW((HWND)tcItemW.lParam, wbuf, MAX_PATH);
+
+    if (hWndFrameActive == (HWND)tcItemW.lParam)
+      bFileModified=bModified;
+    else if (wf=(WNDFRAMEW *)GetWindowLongW((HWND)tcItemW.lParam, GWL_USERDATA))
+      bFileModified=wf->ei.bModified;
+    else
+      bFileModified=FALSE;
+    if (bFileModified) lstrcatW(wbuf, L" *");
+
+    if (!bOnlyModified || bFileModified)
+    {
+      if (bSort)
+        nNew=SendMessageW(hWnd, LB_ADDSTRING, 0, (LPARAM)wbuf);
+      else
+        nNew=SendMessageW(hWnd, LB_INSERTSTRING, nListboxItem++, (LPARAM)wbuf);
+      SendMessage(hWnd, LB_SETITEMDATA, nNew, tcItemW.lParam);
+    }
+  }
+}
+
+int MoveListboxItemA(HWND hWnd, int nOldIndex, int nNewIndex)
+{
+  char *pText;
+  int nIndex=LB_ERR;
+  int nData;
+  int nTextLen;
+
+  if ((nTextLen=SendMessage(hWnd, LB_GETTEXTLEN, nOldIndex, 0)) != LB_ERR)
+  {
+    if (pText=(char *)API_HeapAlloc(hHeap, 0, nTextLen + 1))
+    {
+      SendMessageA(hWnd, LB_GETTEXT, nOldIndex, (LPARAM)pText);
+      nData=SendMessage(hWnd, LB_GETITEMDATA, nOldIndex, 0);
+
+      SendMessage(hWnd, LB_DELETESTRING, nOldIndex, 0);
+      nIndex=SendMessageA(hWnd, LB_INSERTSTRING, nNewIndex, (LPARAM)pText);
+      SendMessage(hWnd, LB_SETITEMDATA, nIndex, nData);
+      API_HeapFree(hHeap, 0, (LPVOID)pText);
+    }
+  }
+  return nIndex;
+}
+
+int MoveListboxItemW(HWND hWnd, int nOldIndex, int nNewIndex)
+{
+  wchar_t *wpText;
+  int nIndex=LB_ERR;
+  int nData;
+  int nTextLen;
+
+  if ((nTextLen=SendMessage(hWnd, LB_GETTEXTLEN, nOldIndex, 0)) != LB_ERR)
+  {
+    if (wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTextLen + 1) * sizeof(wchar_t)))
+    {
+      SendMessageW(hWnd, LB_GETTEXT, nOldIndex, (LPARAM)wpText);
+      nData=SendMessage(hWnd, LB_GETITEMDATA, nOldIndex, 0);
+
+      SendMessage(hWnd, LB_DELETESTRING, nOldIndex, 0);
+      nIndex=SendMessageW(hWnd, LB_INSERTSTRING, nNewIndex, (LPARAM)wpText);
+      SendMessage(hWnd, LB_SETITEMDATA, nIndex, nData);
+      API_HeapFree(hHeap, 0, (LPVOID)wpText);
+    }
+  }
+  return nIndex;
+}
+
+BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown)
+{
+  int *lpSelItems;
+  int nSelCount;
+  int nMinIndex;
+  int nMaxIndex;
+  int nOldIndex=-1;
+  int nNewIndex=-1;
+  int i;
+  BOOL bResult=FALSE;
+
+  nMinIndex=0;
+  nMaxIndex=SendMessage(hWnd, LB_GETCOUNT, 0, 0) - 1;
+
+  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  {
+    if (!bMoveDown)
+    {
+      for (i=0; i < nSelCount; ++i)
+      {
+        if (lpSelItems[i] > nMinIndex)
+        {
+          if (nNewIndex == -1 && i > 0)
+          {
+            if (lpSelItems[i] - 1 <= lpSelItems[i - 1])
+              continue;
+          }
+          nOldIndex=lpSelItems[i];
+          nNewIndex=lpSelItems[i] - 1;
+
+          if (bOldWindows)
+            MoveListboxItemA(hWnd, nOldIndex, nNewIndex);
+          else
+            MoveListboxItemW(hWnd, nOldIndex, nNewIndex);
+          SendMessage(hWnd, LB_SETSEL, TRUE, nNewIndex);
+          bResult=TRUE;
+        }
+      }
+    }
+    else
+    {
+      for (i=--nSelCount; i >= 0; --i)
+      {
+        if (lpSelItems[i] < nMaxIndex)
+        {
+          if (nNewIndex == -1 && i < nSelCount)
+          {
+            if (lpSelItems[i] + 1 >= lpSelItems[i + 1])
+              continue;
+          }
+          nOldIndex=lpSelItems[i];
+          nNewIndex=lpSelItems[i] + 1;
+
+          if (bOldWindows)
+            MoveListboxItemA(hWnd, nOldIndex, nNewIndex);
+          else
+            MoveListboxItemW(hWnd, nOldIndex, nNewIndex);
+          SendMessage(hWnd, LB_SETSEL, TRUE, nNewIndex);
+          bResult=TRUE;
+        }
+      }
+    }
+    FreeListboxSelItems(&lpSelItems);
+  }
+  return bResult;
+}
+
+BOOL SaveListboxSelItems(HWND hWnd)
+{
+  int *lpSelItems;
+  int nData;
+  int nSelCount;
+  int nItem;
+  int i;
+  BOOL bResult=TRUE;
+
+  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  {
+    for (i=nSelCount - 1; i >= 0; --i)
+    {
+      if ((nData=SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
+      {
+        if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+        {
+          SelectTabItem(hTab, nItem);
+
+          if (bOldWindows)
+          {
+            if (!DoFileSaveA())
+            {
+              bResult=FALSE;
+              break;
+            }
+            GetWindowTextA((HWND)nData, buf, MAX_PATH);
+            SendMessage(hWnd, LB_DELETESTRING, lpSelItems[i], 0);
+            SendMessageA(hWnd, LB_INSERTSTRING, lpSelItems[i], (LPARAM)buf);
+          }
+          else
+          {
+            if (!DoFileSaveW())
+            {
+              bResult=FALSE;
+              break;
+            }
+            GetWindowTextW((HWND)nData, wbuf, MAX_PATH);
+            SendMessage(hWnd, LB_DELETESTRING, lpSelItems[i], 0);
+            SendMessageW(hWnd, LB_INSERTSTRING, lpSelItems[i], (LPARAM)wbuf);
+          }
+          SendMessage(hWnd, LB_SETITEMDATA, lpSelItems[i], nData);
+          SendMessage(hWnd, LB_SETSEL, TRUE, lpSelItems[i]);
+        }
+      }
+    }
+    FreeListboxSelItems(&lpSelItems);
+  }
+  return bResult;
+}
+
+void ArrangeListboxSelItems(HWND hWnd, int nBar)
+{
+  RECT rcClient;
+  int *lpSelItems;
+  int nHeight;
+  int nWidth;
+  int nData;
+  int nSelCount;
+  int nItem;
+  int i;
+
+  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  {
+    GetClientRect(hMdiClient, &rcClient);
+    if (nBar == SB_HORZ)
+      rcClient.top=rcClient.bottom - rcClient.bottom / nSelCount;
+    else if (nBar == SB_VERT)
+      rcClient.left=rcClient.right - rcClient.right / nSelCount;
+
+    for (i=nSelCount - 1; i >= 0; --i)
+    {
+      if ((nData=SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
+      {
+        if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+        {
+          SelectTabItem(hTab, nItem);
+          if (GetWindowLongA((HWND)nData, GWL_STYLE) & WS_MAXIMIZE)
+            SendMessage(hMdiClient, WM_MDIRESTORE, nData, 0);
+          MoveWindow((HWND)nData, rcClient.left, rcClient.top, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top, TRUE);
+
+          if (nBar == SB_HORZ)
+          {
+            nHeight=rcClient.bottom - rcClient.top;
+            rcClient.top-=nHeight;
+            rcClient.bottom-=nHeight;
+          }
+          else if (nBar == SB_VERT)
+          {
+            nWidth=rcClient.right - rcClient.left;
+            rcClient.left-=nWidth;
+            rcClient.right-=nWidth;
+          }
+        }
+      }
+    }
+    FreeListboxSelItems(&lpSelItems);
+  }
+}
+
+BOOL CloseListboxSelItems(HWND hWnd)
+{
+  int *lpSelItems;
+  int nData;
+  int nSelCount;
+  int nItem;
+  int i;
+  BOOL bResult=TRUE;
+
+  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  {
+    for (i=nSelCount - 1; i >= 0; --i)
+    {
+      if ((nData=SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
+      {
+        if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
+        {
+          SelectTabItem(hTab, nItem);
+
+          SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
+          if (!bFileExitError)
+          {
+            bResult=FALSE;
+            break;
+          }
+          SendMessage(hWnd, LB_DELETESTRING, lpSelItems[i], 0);
+        }
+      }
+    }
+    FreeListboxSelItems(&lpSelItems);
+  }
+  return bResult;
+}
+
+int GetListboxSelItems(HWND hWnd, int **lpSelItems)
+{
+  int nSelCount;
+
+  if (lpSelItems)
+  {
+    nSelCount=SendMessage(hWnd, LB_GETSELCOUNT, 0, 0);
+
+    if (*lpSelItems=(int *)API_HeapAlloc(hHeap, 0, nSelCount * sizeof(int)))
+    {
+      return SendMessage(hWnd, LB_GETSELITEMS, nSelCount, (LPARAM)*lpSelItems);
+    }
+  }
+  return 0;
+}
+
+void FreeListboxSelItems(int **lpSelItems)
+{
+  if (lpSelItems && *lpSelItems)
+  {
+    API_HeapFree(hHeap, 0, (LPVOID)*lpSelItems);
+    *lpSelItems=NULL;
+  }
 }
 
 
@@ -17516,6 +17871,87 @@ void UpdateSize()
   }
 }
 
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static RECT rcInitDialog;
+  static RECT rcTempDialog;
+  static BOOL bRectChanged;
+
+  if (!rcDialog) rcDialog=&rcTempDialog;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    RECT rcTemplate;
+
+    GetWindowPos(hDlg, NULL, &rcInitDialog);
+    rcTemplate=*rcDialog;
+    *rcDialog=rcInitDialog;
+
+    if (rcTemplate.right && rcTemplate.bottom)
+    {
+      rcTemplate.left=rcInitDialog.left + (rcInitDialog.right - rcTemplate.right) / 2;
+      rcTemplate.top=rcInitDialog.top + (rcInitDialog.bottom - rcTemplate.bottom) / 2;
+      SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
+    }
+    bRectChanged=FALSE;
+  }
+  else if (uMsg == WM_GETMINMAXINFO)
+  {
+    MINMAXINFO *mmi=(MINMAXINFO *)lParam;
+
+    mmi->ptMinTrackSize.x=rcInitDialog.right;
+    mmi->ptMinTrackSize.y=rcInitDialog.bottom;
+  }
+  else if (uMsg == WM_SIZE)
+  {
+    if (lParam)
+    {
+      RECT rcTemplate;
+      RECT rcControl;
+      DWORD dwFlags;
+      POINT pt;
+      int i;
+
+      GetWindowPos(hDlg, NULL, &rcTemplate);
+      pt.x=rcTemplate.right - rcDialog->right;
+      pt.y=rcTemplate.bottom - rcDialog->bottom;
+      *rcDialog=rcTemplate;
+
+      for (i=0; drs[i].lpWnd; ++i)
+      {
+        if (*drs[i].lpWnd)
+        {
+          dwFlags=0;
+          if (drs[i].dwType & DRS_SIZE)
+            dwFlags|=SWP_NOMOVE;
+          else if (drs[i].dwType & DRS_MOVE)
+            dwFlags|=SWP_NOSIZE;
+          GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
+          SetWindowPos(*drs[i].lpWnd, 0, rcControl.left + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.top + ((drs[i].dwType & DRS_Y)?pt.y:0), rcControl.right + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.bottom + ((drs[i].dwType & DRS_Y)?pt.y:0), dwFlags|SWP_NOZORDER);
+        }
+      }
+      InvalidateRect(hDlg, NULL, TRUE);
+      bRectChanged=TRUE;
+    }
+  }
+  else if (uMsg == WM_PAINT)
+  {
+    PAINTSTRUCT ps;
+    RECT rcGrip;
+    HDC hDC;
+
+    if (hDC=BeginPaint(hDlg, &ps))
+    {
+      GetClientRect(hDlg, &rcGrip);
+      rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
+      rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
+      DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
+      EndPaint(hDlg, &ps);
+    }
+  }
+  return bRectChanged;
+}
+
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen)
 {
   RECT rcInitial=nsSize.rcInitial;
@@ -17896,6 +18332,42 @@ int SelectTabItem(HWND hWnd, int nIndex)
     else return -1;
   }
   return nCurSel;
+}
+
+int MoveTabItemA(HWND hWnd, int nIndexOld, int nIndexNew)
+{
+  TCITEMA tcItemA;
+  char szItemText[MAX_PATH];
+
+  tcItemA.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
+  tcItemA.pszText=szItemText;
+  tcItemA.cchTextMax=MAX_PATH;
+
+  if (SendMessage(hWnd, TCM_GETITEMA, nIndexOld, (LPARAM)&tcItemA))
+  {
+    if (nIndexOld == nIndexNew) return nIndexNew;
+    SendMessage(hWnd, TCM_DELETEITEM, nIndexOld, 0);
+    return SendMessage(hWnd, TCM_INSERTITEMA, nIndexNew, (LPARAM)&tcItemA);
+  }
+  return -1;
+}
+
+int MoveTabItemW(HWND hWnd, int nIndexOld, int nIndexNew)
+{
+  TCITEMW tcItemW;
+  wchar_t wszItemText[MAX_PATH];
+
+  tcItemW.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
+  tcItemW.pszText=wszItemText;
+  tcItemW.cchTextMax=MAX_PATH;
+
+  if (SendMessage(hWnd, TCM_GETITEMW, nIndexOld, (LPARAM)&tcItemW))
+  {
+    if (nIndexOld == nIndexNew) return nIndexNew;
+    SendMessage(hWnd, TCM_DELETEITEM, nIndexOld, 0);
+    return SendMessage(hWnd, TCM_INSERTITEMW, nIndexNew, (LPARAM)&tcItemW);
+  }
+  return -1;
 }
 
 BOOL DeleteTabItem(HWND hWnd, int nIndex)

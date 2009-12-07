@@ -7,6 +7,11 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#ifndef EXE_VERSION
+  #define RC_VERSIONDESCRIPTION "AkelPad language module"
+  #define RC_VERSIONCOPYRIGHT "(c) 2009 gony"
+  #define RC_VERSIONNAME "Korean.dll"
+#endif
 #include "winresrc.h"
 #include "version.h"
 
@@ -104,8 +109,8 @@ BEGIN
     POPUP "보기(&V)"
     BEGIN
         MENUITEM "글꼴(&F)...",                 IDM_VIEW_FONT
-        MENUITEM "글자 색상(&T)...",            IDM_VIEW_TEXT_COLOR
-        MENUITEM "배경 색상(&B)...",            IDM_VIEW_BG_COLOR
+        MENUITEM "글자 색상(&T)...",            IDM_VIEW_TEXT_COLOR_3X
+        MENUITEM "배경 색상(&B)...",            IDM_VIEW_BG_COLOR_3X
         MENUITEM SEPARATOR
         POPUP "글자 크기(&Z)"
         BEGIN
@@ -114,9 +119,9 @@ BEGIN
         END
         POPUP "정렬(&M)"
         BEGIN
-            MENUITEM "왼쪽(&L)",                    IDM_VIEW_ALIGN_LEFT
-            MENUITEM "중간(&C)",                    IDM_VIEW_ALIGN_CENTER
-            MENUITEM "오른쪽(&R)",                  IDM_VIEW_ALIGN_RIGHT
+            MENUITEM "왼쪽(&L)",                    IDM_VIEW_ALIGN_LEFT_3X
+            MENUITEM "중간(&C)",                    IDM_VIEW_ALIGN_CENTER_3X
+            MENUITEM "오른쪽(&R)",                  IDM_VIEW_ALIGN_RIGHT_3X
         END
         MENUITEM SEPARATOR
         MENUITEM "자동 줄바꿈(&W)\tCtrl+U",     IDM_VIEW_WORDWRAP
@@ -324,6 +329,7 @@ BEGIN
     VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
     VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
     VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
+    VK_F10,         IDM_SELECTWINDOW,       VIRTKEY, NOINVERT
     VK_F12,         IDM_POPUP_CODEPAGEMENU, VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
@@ -382,6 +388,32 @@ BEGIN
                     WS_TABSTOP,221,4,54,8
     CONTROL         "",IDC_OFN_PREVIEW,"richedit20a",WS_VSCROLL | WS_HSCROLL | 
                     WS_TABSTOP | 0x69c4,5,23,264,67
+END
+
+IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 270
+STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "창 선택"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LISTBOX         IDC_MDILIST_LIST,6,9,178,226,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "",IDC_MDILIST_STATS,92,238,89,8
+    EDITTEXT        IDC_MDILIST_SEARCH,6,249,178,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "확인",IDOK,198,10,50,14
+    GROUPBOX        "배열",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    PUSHBUTTON      "수평 배열",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "수직 배열",IDC_MDILIST_VERT,198,60,50,14
+    GROUPBOX        "문서 선택기",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    PUSHBUTTON      "위",IDC_MDILIST_UP,198,100,50,14
+    PUSHBUTTON      "아래",IDC_MDILIST_DOWN,198,115,50,14
+    PUSHBUTTON      "정렬",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "파일들",IDC_MDILIST_FILES_GROUP,191,163,64,72
+    PUSHBUTTON      "저장",IDC_MDILIST_SAVE,198,177,50,14
+    PUSHBUTTON      "닫기",IDC_MDILIST_CLOSE,198,192,50,14
+    CONTROL         "수정됨",IDC_MDILIST_ONLYMODIFIED,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
+    PUSHBUTTON      "취소",IDCANCEL,198,249,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 100
@@ -455,16 +487,20 @@ BEGIN
                     IDC_STATIC,21,67,97,33,NOT WS_GROUP
 END
 
-IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 62
+IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "줄 번호 이동..."
+CAPTION "줄 번호 이동"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    EDITTEXT        IDC_GOTOLINE,18,20,104,13
-    PUSHBUTTON      "확인",IDOK,18,41,50,14,BS_CENTER
-    PUSHBUTTON      "취소",IDCANCEL,72,41,50,14,BS_CENTER
-    LTEXT           "줄 번호:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
+    LTEXT           "번호:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
+    EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
+    CONTROL         "줄",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,40,
+                    52,10
+    CONTROL         "위치",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
+                    72,40,52,10
+    PUSHBUTTON      "확인",IDOK,18,60,50,14,BS_CENTER
+    PUSHBUTTON      "취소",IDCANCEL,72,60,50,14,BS_CENTER
 END
 
 IDD_RECODE DIALOG DISCARDABLE  70, 70, 174, 94
@@ -674,52 +710,6 @@ BEGIN
 END
 
 
-#ifndef _MAC
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 3,0,0,0
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x4L
- FILETYPE 0x2L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "04120000"
-        BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "AkelPad text editor language module\0"
-            VALUE "FileVersion", "1, 0, 0, 0\0"
-            VALUE "InternalName", "AkelPad\0"
-            VALUE "LegalCopyright", "(c) 2009 gony\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "3, 0, 0, 0\0"
-            VALUE "SpecialBuild", "\0"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x412, 0
-    END
-END
-
-#endif    // !_MAC
-
-
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -733,6 +723,11 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
+    "#ifndef EXE_VERSION\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""(c) 2009 gony""\r\n"
+    "  #define RC_VERSIONNAME ""Korean.dll""\r\n"
+    "#endif\r\n"
     "#include ""winresrc.h""\r\n"
     "#include ""version.h""\r\n"
     "\0"
@@ -772,21 +767,22 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 은 자동로드를 지원하지 않습니다."
     MSG_FUNCTION_NOT_FOUND  """%s""에서 ""%s::%s""을 찾을 수 없습니다."
-    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
-        MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_UPDATE_PROGRAM      "업데이트 AkelPad. \n\n 가능한 최소의 AkelPad 버젼: %d.%d.%d.%d\n현재의 AkelPad 버젼: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x는 지원되지 않습니다."
+    MSG_UPDATE_PLUGIN       "업데이트 %s.\n\nAkelPad 구성: %d.%d.%d.%d\n%s 플러그인 구성: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" 는 AkelPad 플러그인이 아닙니다."
+    MSG_UPDATE_LANGMODULE   "업데이트 %s\n\n현재 버젼: %d.%d.%d.%d\n필요한 버젼: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "이미 ""%s""에 할당된 단축키입니다."
     MSG_CANNOT_OPEN_FILE    """%s"" 파일을 열 수 없습니다."
     MSG_WRONG_STRING        "줄번호가 올바르지 않습니다."
     MSG_LONG_FILELIST       "선택한 파일이 너무 많습니다."
     MSG_DOCUMENT_CHANGED    "문서를 수정하셨습니다. 저장하시겠습니까?"
     MSG_FILE_DOES_NOT_EXIST "새 파일 생성 : ""%s""?"
-    MSG_RECENTFILES_DELETED "삭제된 기록: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "삭제된 기록: %d"
     MSG_SEARCH_ENDED        "검색을 마쳤습니다."
     MSG_REPLACE_COUNT       "바뀐 갯수: %d"
     MSG_REPLACE_COUNT_ALLFILES "바뀐 파일 수: %d\n바뀐 갯수: %d"
@@ -808,10 +804,22 @@ BEGIN
     STR_OPTIONS             "설정..."
     STR_LANGUAGE_NONE       "내장언어"
     STR_FILE_FILTER         "텍스트 파일 (*.txt)|*.txt|모든 파일 (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "실행파일 (*.exe)|*.exe|모든 파일 (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "없음"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Function"
     STR_HOTKEY              "단축키"
+    STR_STATUS              "상태"
+    STR_RUNNING             "실행중"
+    STR_FONT                "글꼴"
+    STR_HEADLINE            "헤드라인"
+    STR_TOP                 "위:"
+    STR_BOTTOM              "아래:"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -822,18 +830,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Chinese (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japanese (UTF-8)"
     STR_AUTODETECT_KOREAN   "Korean (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_STATUS              "상태"
-    STR_RUNNING             "실행중"
-    STR_EXECUTABLE_FILTER   "실행파일 (*.exe)|*.exe|모든 파일 (*.*)|*.*"
-    STR_FONT                "글꼴"
-    STR_HEADLINE            "헤드라인"
-    STR_TOP                 "위:"
-    STR_BOTTOM              "아래:"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Korean resources

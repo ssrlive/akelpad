@@ -7,6 +7,11 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#ifndef EXE_VERSION
+  #define RC_VERSIONDESCRIPTION "AkelPad language module"
+  #define RC_VERSIONCOPYRIGHT "© 2009 Cleverson Casarin Uliana (clever92000@yahoo.com.br)"
+  #define RC_VERSIONNAME "Brazilian.dll"
+#endif
 #include "winresrc.h"
 #include "version.h"
 
@@ -104,8 +109,8 @@ BEGIN
     POPUP "E&xibir"
     BEGIN
         MENUITEM "&Fonte...",                   IDM_VIEW_FONT
-        MENUITEM "Cor do &texto...",            IDM_VIEW_TEXT_COLOR
-        MENUITEM "Cor de &fundo...",            IDM_VIEW_BG_COLOR
+        MENUITEM "Cor do &texto...",            IDM_VIEW_TEXT_COLOR_3X
+        MENUITEM "Cor de &fundo...",            IDM_VIEW_BG_COLOR_3X
         MENUITEM SEPARATOR
         POPUP "T&amanho da fonte"
         BEGIN
@@ -114,9 +119,9 @@ BEGIN
         END
         POPUP "A&linhar"
         BEGIN
-            MENUITEM "&Esquerda",                   IDM_VIEW_ALIGN_LEFT
-            MENUITEM "&Centro",                     IDM_VIEW_ALIGN_CENTER
-            MENUITEM "&Direita",                    IDM_VIEW_ALIGN_RIGHT
+            MENUITEM "&Esquerda",                   IDM_VIEW_ALIGN_LEFT_3X
+            MENUITEM "&Centro",                     IDM_VIEW_ALIGN_CENTER_3X
+            MENUITEM "&Direita",                    IDM_VIEW_ALIGN_RIGHT_3X
         END
         MENUITEM SEPARATOR
         MENUITEM "&Quebrar linhas grandes\tCtrl+U", IDM_VIEW_WORDWRAP
@@ -325,6 +330,7 @@ BEGIN
     VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
     VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
     VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
+    VK_F10,         IDM_SELECTWINDOW,       VIRTKEY, NOINVERT
     VK_F12,         IDM_POPUP_CODEPAGEMENU, VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
@@ -383,6 +389,32 @@ BEGIN
                     WS_TABSTOP,221,4,54,8
     CONTROL         "",IDC_OFN_PREVIEW,"richedit20a",WS_VSCROLL | WS_HSCROLL | 
                     WS_TABSTOP | 0x69c4,5,23,264,67
+END
+
+IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 270
+STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Selecionar Janela"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LISTBOX         IDC_MDILIST_LIST,6,9,178,226,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "",IDC_MDILIST_STATS,92,238,89,8
+    EDITTEXT        IDC_MDILIST_SEARCH,6,249,178,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
+    GROUPBOX        "Posicionar",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    PUSHBUTTON      "Horizontal",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "Vertical",IDC_MDILIST_VERT,198,60,50,14
+    GROUPBOX        "Abas",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    PUSHBUTTON      "Para cima",IDC_MDILIST_UP,198,100,50,14
+    PUSHBUTTON      "Para baixo",IDC_MDILIST_DOWN,198,115,50,14
+    PUSHBUTTON      "Ordenar",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "Arquivos",IDC_MDILIST_FILES_GROUP,191,163,64,72
+    PUSHBUTTON      "Salvar",IDC_MDILIST_SAVE,198,177,50,14
+    PUSHBUTTON      "Fechar",IDC_MDILIST_CLOSE,198,192,50,14
+    CONTROL         "Modificado",IDC_MDILIST_ONLYMODIFIED,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
+    PUSHBUTTON      "Cancelar",IDCANCEL,198,249,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -458,16 +490,20 @@ BEGIN
                     IDC_STATIC,21,67,97,33,NOT WS_GROUP
 END
 
-IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 62
+IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Ir para linha"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    EDITTEXT        IDC_GOTOLINE,18,20,104,13
-    PUSHBUTTON      "OK",IDOK,18,41,50,14,BS_CENTER
-    PUSHBUTTON      "Cancelar",IDCANCEL,72,41,50,14,BS_CENTER
-    LTEXT           "Número da linha:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
+    LTEXT           "Número:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
+    EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
+    CONTROL         "Linha",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
+                    40,52,10
+    CONTROL         "Subseção",IDC_GOTOLINE_OFFSET,"Button",
+                    BS_AUTORADIOBUTTON,72,40,52,10
+    PUSHBUTTON      "OK",IDOK,18,60,50,14,BS_CENTER
+    PUSHBUTTON      "Cancelar",IDCANCEL,72,60,50,14,BS_CENTER
 END
 
 IDD_RECODE DIALOG DISCARDABLE  70, 70, 174, 94
@@ -692,6 +728,11 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
+    "#ifndef EXE_VERSION\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2009 Cleverson Casarin Uliana (clever92000@yahoo.com.br)""\r\n"
+    "  #define RC_VERSIONNAME ""Brazilian.dll""\r\n"
+    "#endif\r\n"
     "#include ""winresrc.h""\r\n"
     "#include ""version.h""\r\n"
     "\0"
@@ -704,52 +745,6 @@ BEGIN
 END
 
 #endif    // APSTUDIO_INVOKED
-
-
-#ifndef _MAC
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 3,0,0,0
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x4L
- FILETYPE 0x2L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "04160000"
-        BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "AkelPad text editor language module\0"
-            VALUE "FileVersion", "1, 0, 0, 0\0"
-            VALUE "InternalName", "AkelPad\0"
-            VALUE "LegalCopyright", "© 2009 Cleverson Casarin Uliana (clever92000@yahoo.com.br) \0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "3, 0, 0, 0\0"
-            VALUE "SpecialBuild", "\0"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x416, 0
-    END
-END
-
-#endif    // !_MAC
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -778,21 +773,23 @@ BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED 
                             """%s"" não suporta carregamento automático."
     MSG_FUNCTION_NOT_FOUND  "Não foi possível achar a função ""%s::%s"" em ""%s""."
-    MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
-        MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_UPDATE_PROGRAM      "Atualizar AkelPad.\n\nVersão mínima suportada: %d.%d.%d.%d\nVersão atual: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "O Akelpad 3.x.x não é suportado"
+    MSG_UPDATE_PLUGIN       "Atualização %s.\n\nArquitetura do Akelpad: %d.%d.%d.%d\n%s arquitetura dos plug-ins: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED 
+                            """%s"" não reconhecido como um plug-in do AkelPad"
+    MSG_UPDATE_LANGMODULE   "Atualizar %s\n\nVersão atual: %d.%d.%d.%d\nVersão necessária: %d.%d%d.%d"
     MSG_HOTKEY_EXISTS       "Tecla de atalho já associada ao ""%s""."
     MSG_CANNOT_OPEN_FILE    "Não foi possível abrir o arquivo ""%s""."
     MSG_WRONG_STRING        "Número de linha inválido."
     MSG_LONG_FILELIST       "Escolhidos arquivos demais."
     MSG_DOCUMENT_CHANGED    "O documento foi alterado. Quer salvá-lo ?"
     MSG_FILE_DOES_NOT_EXIST "Criar o arquivo ""%s""?"
-    MSG_RECENTFILES_DELETED "Entradas excluídas: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Entradas excluídas: %d"
     MSG_SEARCH_ENDED        "Busca acabou."
     MSG_REPLACE_COUNT       "Número de alterações: %d"
     MSG_REPLACE_COUNT_ALLFILES 
@@ -815,10 +812,22 @@ BEGIN
     STR_OPTIONS             "Configurações..."
     STR_LANGUAGE_NONE       "Interno"
     STR_FILE_FILTER         "Arquivos de texto (*.txt)|*.txt|Todos os arquivos (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "Arquivos executáveis (*.exe)|*.exe|Todos os arquivos (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "Nenhum"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN              "Plug-in"
     STR_FUNCTION            "Função"
     STR_HOTKEY              "Tecla de atalho"
+    STR_STATUS              "Status"
+    STR_RUNNING             "Executando"
+    STR_FONT                "Fonte"
+    STR_HEADLINE            "Cabeçalhos"
+    STR_TOP                 "Topo:"
+    STR_BOTTOM              "Fundo:"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -829,18 +838,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Chinês (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japonês (UTF-8)"
     STR_AUTODETECT_KOREAN   "Coreano (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_STATUS              "Status"
-    STR_RUNNING             "Executando"
-    STR_EXECUTABLE_FILTER   "Arquivos executáveis (*.exe)|*.exe|Todos os arquivos (*.*)|*.*"
-    STR_FONT                "Fonte"
-    STR_HEADLINE            "Cabeçalhos"
-    STR_TOP                 "Topo:"
-    STR_BOTTOM              "Fundo:"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Portuguese (Brazil) resources

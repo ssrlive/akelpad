@@ -7,6 +7,11 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#ifndef EXE_VERSION
+  #define RC_VERSIONDESCRIPTION "AkelPad language module"
+  #define RC_VERSIONCOPYRIGHT "© 2009 fero74 (www.yudumla.com)"
+  #define RC_VERSIONNAME "Turkish.dll"
+#endif
 #include "winresrc.h"
 #include "version.h"
 
@@ -100,8 +105,8 @@ BEGIN
     POPUP "&Görünüm"
     BEGIN
         MENUITEM "&Yazý...",                    IDM_VIEW_FONT
-        MENUITEM "&Metin rengi...",             IDM_VIEW_TEXT_COLOR
-        MENUITEM "&Arkaplan rengi...",          IDM_VIEW_BG_COLOR
+        MENUITEM "&Metin rengi...",             IDM_VIEW_TEXT_COLOR_3X
+        MENUITEM "&Arkaplan rengi...",          IDM_VIEW_BG_COLOR_3X
         MENUITEM SEPARATOR
         POPUP "Yazý &boyutu"
         BEGIN
@@ -110,9 +115,9 @@ BEGIN
         END
         POPUP "Hiza"
         BEGIN
-            MENUITEM "&Sola",                       IDM_VIEW_ALIGN_LEFT
-            MENUITEM "&Ortaya",                     IDM_VIEW_ALIGN_CENTER
-            MENUITEM "&Saða",                       IDM_VIEW_ALIGN_RIGHT
+            MENUITEM "&Sola",                       IDM_VIEW_ALIGN_LEFT_3X
+            MENUITEM "&Ortaya",                     IDM_VIEW_ALIGN_CENTER_3X
+            MENUITEM "&Saða",                       IDM_VIEW_ALIGN_RIGHT_3X
         END
         MENUITEM SEPARATOR
         MENUITEM "&Sözcük kaydýr\tCtrl+U",      IDM_VIEW_WORDWRAP
@@ -319,6 +324,7 @@ BEGIN
     VK_BACK,        IDM_EDIT_DELETE_FIRST_CHAR, VIRTKEY, SHIFT, NOINVERT
     VK_DELETE,      IDM_EDIT_CUT,           VIRTKEY, SHIFT, NOINVERT
     VK_ESCAPE,      IDM_FILE_EXIT,          VIRTKEY, NOINVERT
+    VK_F10,         IDM_SELECTWINDOW,       VIRTKEY, NOINVERT
     VK_F12,         IDM_POPUP_CODEPAGEMENU, VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVE,          VIRTKEY, NOINVERT
     VK_F2,          IDM_FILE_SAVEALL,       VIRTKEY, CONTROL, ALT, NOINVERT
@@ -377,6 +383,32 @@ BEGIN
                     WS_TABSTOP,221,4,54,8
     CONTROL         "",IDC_OFN_PREVIEW,"richedit20a",WS_VSCROLL | WS_HSCROLL | 
                     WS_TABSTOP | 0x69c4,5,23,264,67
+END
+
+IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 270
+STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Select Window"
+FONT 8, "MS Shell Dlg"
+BEGIN
+    LISTBOX         IDC_MDILIST_LIST,6,9,178,226,LBS_SORT | 
+                    LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
+                    WS_TABSTOP
+    RTEXT           "",IDC_MDILIST_STATS,92,238,89,8
+    EDITTEXT        IDC_MDILIST_SEARCH,6,249,178,14,ES_AUTOHSCROLL
+    DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
+    GROUPBOX        "Arrange",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
+    PUSHBUTTON      "Horizontal",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "Vertical",IDC_MDILIST_VERT,198,60,50,14
+    GROUPBOX        "Tabs",IDC_MDILIST_TABS_GROUP,191,86,64,72
+    PUSHBUTTON      "Up",IDC_MDILIST_UP,198,100,50,14
+    PUSHBUTTON      "Down",IDC_MDILIST_DOWN,198,115,50,14
+    PUSHBUTTON      "Sort",IDC_MDILIST_SORT,198,138,50,14
+    GROUPBOX        "Files",IDC_MDILIST_FILES_GROUP,191,163,64,72
+    PUSHBUTTON      "Save",IDC_MDILIST_SAVE,198,177,50,14
+    PUSHBUTTON      "Close",IDC_MDILIST_CLOSE,198,192,50,14
+    CONTROL         "Modified *",IDC_MDILIST_ONLYMODIFIED,"Button",
+                    BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,198,249,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -451,16 +483,20 @@ BEGIN
                     IDC_STATIC,21,67,97,33,NOT WS_GROUP
 END
 
-IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 62
+IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Satýra git..."
 FONT 8, "MS Shell Dlg"
 BEGIN
-    EDITTEXT        IDC_GOTOLINE,18,20,104,13
-    PUSHBUTTON      "Tamam",IDOK,18,41,50,14,BS_CENTER
-    PUSHBUTTON      "Ýptal",IDCANCEL,72,41,50,14,BS_CENTER
-    LTEXT           "Satýr numarasý:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
+    LTEXT           "Number:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
+    EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
+    CONTROL         "Line",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
+                    40,52,10
+    CONTROL         "Offset",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
+                    72,40,52,10
+    PUSHBUTTON      "Tamam",IDOK,18,60,50,14,BS_CENTER
+    PUSHBUTTON      "Ýptal",IDCANCEL,72,60,50,14,BS_CENTER
 END
 
 IDD_RECODE DIALOG DISCARDABLE  70, 70, 174, 94
@@ -670,52 +706,6 @@ BEGIN
 END
 
 
-#ifndef _MAC
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 3,0,0,0
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x4L
- FILETYPE 0x2L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "041f0000"
-        BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "AkelPad text editor language module\0"
-            VALUE "FileVersion", "1, 0, 0, 0\0"
-            VALUE "InternalName", "AkelPad\0"
-            VALUE "LegalCopyright", "© 2009 fero74 (www.yudumla.com)\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "3, 0, 0, 0\0"
-            VALUE "SpecialBuild", "\0"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x41f, 0
-    END
-END
-
-#endif    // !_MAC
-
-
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -729,6 +719,11 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
+    "#ifndef EXE_VERSION\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2009 fero74 (www.yudumla.com)""\r\n"
+    "  #define RC_VERSIONNAME ""Turkish.dll""\r\n"
+    "#endif\r\n"
     "#include ""winresrc.h""\r\n"
     "#include ""version.h""\r\n"
     "\0"
@@ -770,19 +765,20 @@ BEGIN
     MSG_FUNCTION_NOT_FOUND  " ""%s::%s"" fonksiyonu ""%s"" içerisinde bulunamadý."
     MSG_UPDATE_PROGRAM      "Update AkelPad.\n\nRequired minimum AkelPad version: %d.%d.%d.%d\nCurrent AkelPad version: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 3.x.x isn't supported."
-        MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
+    MSG_UPDATE_PLUGIN       "Update %s.\n\nAkelPad architecture: %d.%d.%d.%d\n%s plugin architecture: %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" isn't recognized as AkelPad plugin."
+    MSG_UPDATE_LANGMODULE   "Update %s\n\nCurrent version: %d.%d.%d.%d\nRequired version: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Kýsayol zaten ""%s"" ayarlý."
     MSG_CANNOT_OPEN_FILE    "Cannot open file ""%s""."
     MSG_WRONG_STRING        "Geçersiz satýr numarasý."
     MSG_LONG_FILELIST       "Fazla dosya seçimi."
     MSG_DOCUMENT_CHANGED    "Belge deðiþtirildi. Kayýt etmek istermisiniz?"
     MSG_FILE_DOES_NOT_EXIST """%s"" yeni dosyasý oluþturulsunmu?"
-    MSG_RECENTFILES_DELETED "Silinen kayýtlar: %d"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    MSG_RECENTFILES_DELETED "Silinen kayýtlar: %d"
     MSG_SEARCH_ENDED        "Arama tamamlandý."
     MSG_REPLACE_COUNT       "Deðiþiklik sayýsý: %d"
     MSG_REPLACE_COUNT_ALLFILES 
@@ -805,10 +801,22 @@ BEGIN
     STR_OPTIONS             "Ayarlar..."
     STR_LANGUAGE_NONE       "Dahili"
     STR_FILE_FILTER         "Metin dosyalarý (*.txt)|*.txt|Tüm dosyalar (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "Ýþletilebilir dosyalar (*.exe)|*.exe|Tüm dosyalar (*.*)|*.*"
+    STR_DEFAULT_SAVE_EXT    "txt"
     STR_NONE                "Hiçbiri"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
     STR_PLUGIN              "Eklenti"
     STR_FUNCTION            "Ýþlev"
     STR_HOTKEY              "Kýsayol"
+    STR_STATUS              "Durum"
+    STR_RUNNING             "Çalýþýyor"
+    STR_FONT                "Font"
+    STR_HEADLINE            "BaþlýkSatrýrlarý"
+    STR_TOP                 "Üst:"
+    STR_BOTTOM              "Alt:"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -819,18 +827,6 @@ BEGIN
     STR_AUTODETECT_CHINESE  "Chinese (UTF-8)"
     STR_AUTODETECT_JAPANESE "Japanese (UTF-8)"
     STR_AUTODETECT_KOREAN   "Korean (UTF-8)"
-END
-
-STRINGTABLE DISCARDABLE 
-BEGIN
-    STR_STATUS              "Durum"
-    STR_RUNNING             "Çalýþýyor"
-    STR_EXECUTABLE_FILTER   "Ýþletilebilir dosyalar (*.exe)|*.exe|Tüm dosyalar (*.*)|*.*"
-    STR_FONT                "Font"
-    STR_HEADLINE            "BaþlýkSatrýrlarý"
-    STR_TOP                 "Üst:"
-    STR_BOTTOM              "Alt:"
-    STR_DEFAULT_SAVE_EXT    "txt"
 END
 
 #endif    // Turkish resources

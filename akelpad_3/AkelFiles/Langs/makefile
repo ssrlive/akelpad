@@ -23,7 +23,7 @@ Module.o:
 	$(CC) $(CFLAGS) -c Module.cpp
 
 Resource.o:
-	windres -I Resources Resources/$(LANG).rc -o Resource.o
+	windres -D DLL_VERSION -I Resources Resources/$(LANG).rc -o Resource.o
 
 clean:
 	$(DEL) Module.o
