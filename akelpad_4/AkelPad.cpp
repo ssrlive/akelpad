@@ -2224,7 +2224,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->lpPluginFunction=NULL;
       pd->lpbAutoLoad=NULL;
       pd->nUnload=0;
-      pd->bActive=0;
+      pd->bInMemory=0;
       pd->bOnStart=0;
       pd->lParam=0;
       pd->pAkelDir=(unsigned char *)szExeDir;
@@ -4129,7 +4129,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->lpPluginFunction=NULL;
       pd->lpbAutoLoad=NULL;
       pd->nUnload=0;
-      pd->bActive=0;
+      pd->bInMemory=0;
       pd->bOnStart=0;
       pd->lParam=0;
       pd->pAkelDir=(unsigned char *)wszExeDir;
