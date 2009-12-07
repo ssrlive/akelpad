@@ -15134,6 +15134,7 @@ int CallPluginA(PLUGINFUNCTIONA *lpPluginFunction, char *pFullName, BOOL bOnStar
           pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
           pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
           pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+          pv.pPluginName=NULL;
           (*PluginIDPtr)(&pv);
 
           if (LOBYTE(pv.dwAkelDllVersion) == LOBYTE(AKELDLL) &&
@@ -15298,6 +15299,7 @@ int CallPluginW(PLUGINFUNCTIONW *lpPluginFunction, wchar_t *wpFullName, BOOL bOn
           pv.dwAkelDllVersion=MAKE_IDENTIFIER(-1, -1, -1, -1);
           pv.dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
           pv.dwExeMinVersion4x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+          pv.pPluginName=NULL;
           (*PluginIDPtr)(&pv);
 
           if (LOBYTE(pv.dwAkelDllVersion) == LOBYTE(AKELDLL) &&
@@ -15492,7 +15494,7 @@ int CallPluginReceiveSendA(PLUGINCALLSENDA *pcs)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
           if (pfElement)
           {
@@ -15537,7 +15539,7 @@ int CallPluginReceiveSendW(PLUGINCALLSENDW *pcs)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
           if (pfElement)
           {
@@ -15579,7 +15581,7 @@ void CallPluginReceivePostA(PLUGINCALLPOSTA *pcp)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
           if (pfElement)
           {
@@ -15621,7 +15623,7 @@ void CallPluginReceivePostW(PLUGINCALLPOSTW *pcp)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
         {
           if (pfElement)
           {
@@ -16758,7 +16760,7 @@ BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
 
           if (nResult != UD_FAILED)
           {
-            if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+            if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
               pfElement->bRunning=FALSE;
             else if (nResult & UD_NONUNLOAD_ACTIVE)
               pfElement->bRunning=TRUE;
@@ -16811,7 +16813,7 @@ BOOL TranslateHotkeyW(HSTACK *hStack, LPMSG lpMsg)
 
           if (nResult != UD_FAILED)
           {
-            if ((nResult & UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+            if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
               pfElement->bRunning=FALSE;
             else if (nResult & UD_NONUNLOAD_ACTIVE)
               pfElement->bRunning=TRUE;

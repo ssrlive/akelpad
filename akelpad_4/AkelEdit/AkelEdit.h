@@ -1023,26 +1023,32 @@ typedef struct {
 
 //// AkelEdit messages
 
-//Notifications
+//Error notifications
 #define AEN_ERRSPACE              (WM_USER + 1001)  //0x7E9
-#define AEN_SETFOCUS              (WM_USER + 1002)  //0x7EA
-#define AEN_KILLFOCUS             (WM_USER + 1003)  //0x7EB
-#define AEN_SELCHANGING           (WM_USER + 1004)  //0x7EC
-#define AEN_SELCHANGED            (WM_USER + 1005)  //0x7ED
-#define AEN_TEXTCHANGING          (WM_USER + 1006)  //0x7EE
-#define AEN_TEXTCHANGED           (WM_USER + 1007)  //0x7EF
-#define AEN_MODIFY                (WM_USER + 1008)  //0x7F0
-#define AEN_HSCROLL               (WM_USER + 1009)  //0x7F1
-#define AEN_VSCROLL               (WM_USER + 1010)  //0x7F2
-#define AEN_DROPFILES             (WM_USER + 1011)  //0x7F3
-#define AEN_DROPSOURCE            (WM_USER + 1012)  //0x7F4
-#define AEN_DROPTARGET            (WM_USER + 1013)  //0x7F5
-#define AEN_LINK                  (WM_USER + 1014)  //0x7F6
-#define AEN_PROGRESS              (WM_USER + 1015)  //0x7F7
-#define AEN_TEXTINSERTBEGIN       (WM_USER + 1016)  //0x7F8
-#define AEN_TEXTINSERTEND         (WM_USER + 1017)  //0x7F9
-#define AEN_TEXTDELETEBEGIN       (WM_USER + 1018)  //0x7FA
-#define AEN_TEXTDELETEEND         (WM_USER + 1019)  //0x7FB
+
+//Window notifications
+#define AEN_SETFOCUS              (WM_USER + 1026)  //0x802
+#define AEN_KILLFOCUS             (WM_USER + 1027)  //0x803
+#define AEN_HSCROLL               (WM_USER + 1028)  //0x804
+#define AEN_VSCROLL               (WM_USER + 1029)  //0x805
+
+//Text notifications
+#define AEN_PROGRESS              (WM_USER + 1051)  //0x81B
+#define AEN_MODIFY                (WM_USER + 1052)  //0x81C
+#define AEN_SELCHANGING           (WM_USER + 1053)  //0x81D
+#define AEN_SELCHANGED            (WM_USER + 1054)  //0x81E
+#define AEN_TEXTCHANGING          (WM_USER + 1055)  //0x81F
+#define AEN_TEXTINSERTBEGIN       (WM_USER + 1056)  //0x820
+#define AEN_TEXTINSERTEND         (WM_USER + 1057)  //0x821
+#define AEN_TEXTDELETEBEGIN       (WM_USER + 1058)  //0x822
+#define AEN_TEXTDELETEEND         (WM_USER + 1059)  //0x823
+#define AEN_TEXTCHANGED           (WM_USER + 1060)  //0x824
+
+//Mouse notifications
+#define AEN_DROPFILES             (WM_USER + 1076)  //0x834
+#define AEN_DROPSOURCE            (WM_USER + 1077)  //0x835
+#define AEN_DROPTARGET            (WM_USER + 1078)  //0x836
+#define AEN_LINK                  (WM_USER + 1079)  //0x837
 
 //Text retrieval and modification
 #define AEM_SETTEXTA              (WM_USER + 2001)
