@@ -12148,22 +12148,25 @@ int CallPluginReceiveSendA(PLUGINCALLSENDA *pcs)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if (!(nResult & UD_NONUNLOAD_UNCHANGE))
         {
-          if (pfElement)
+          if (nResult & UD_NONUNLOAD_ACTIVE)
           {
-            if (pfElement->wHotkey || pfElement->bOnStart)
-              pfElement->bRunning=FALSE;
+            if (pfElement)
+              pfElement->bRunning=TRUE;
             else
-              StackPluginDelete(&hPluginsStack, pfElement);
+              StackPluginAddA(&hPluginsStack, pcs->pFunction, lstrlenA(pcs->pFunction), 0, FALSE, TRUE, NULL, NULL);
           }
-        }
-        else if (nResult & UD_NONUNLOAD_ACTIVE)
-        {
-          if (pfElement)
-            pfElement->bRunning=TRUE;
           else
-            StackPluginAddA(&hPluginsStack, pcs->pFunction, lstrlenA(pcs->pFunction), 0, FALSE, TRUE, NULL, NULL);
+          {
+            if (pfElement)
+            {
+              if (pfElement->wHotkey || pfElement->bOnStart)
+                pfElement->bRunning=FALSE;
+              else
+                StackPluginDelete(&hPluginsStack, pfElement);
+            }
+          }
         }
       }
     }
@@ -12193,22 +12196,25 @@ int CallPluginReceiveSendW(PLUGINCALLSENDW *pcs)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if (!(nResult & UD_NONUNLOAD_UNCHANGE))
         {
-          if (pfElement)
+          if (nResult & UD_NONUNLOAD_ACTIVE)
           {
-            if (pfElement->wHotkey || pfElement->bOnStart)
-              pfElement->bRunning=FALSE;
+            if (pfElement)
+              pfElement->bRunning=TRUE;
             else
-              StackPluginDelete(&hPluginsStack, pfElement);
+              StackPluginAddW(&hPluginsStack, pcs->wpFunction, lstrlenW(pcs->wpFunction), 0, FALSE, TRUE, NULL, NULL);
           }
-        }
-        else if (nResult & UD_NONUNLOAD_ACTIVE)
-        {
-          if (pfElement)
-            pfElement->bRunning=TRUE;
           else
-            StackPluginAddW(&hPluginsStack, pcs->wpFunction, lstrlenW(pcs->wpFunction), 0, FALSE, TRUE, NULL, NULL);
+          {
+            if (pfElement)
+            {
+              if (pfElement->wHotkey || pfElement->bOnStart)
+                pfElement->bRunning=FALSE;
+              else
+                StackPluginDelete(&hPluginsStack, pfElement);
+            }
+          }
         }
       }
     }
@@ -12235,22 +12241,25 @@ void CallPluginReceivePostA(PLUGINCALLPOSTA *pcp)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if (!(nResult & UD_NONUNLOAD_UNCHANGE))
         {
-          if (pfElement)
+          if (nResult & UD_NONUNLOAD_ACTIVE)
           {
-            if (pfElement->wHotkey || pfElement->bOnStart)
-              pfElement->bRunning=FALSE;
+            if (pfElement)
+              pfElement->bRunning=TRUE;
             else
-              StackPluginDelete(&hPluginsStack, pfElement);
+              StackPluginAddA(&hPluginsStack, pcp->szFunction, lstrlenA(pcp->szFunction), 0, FALSE, TRUE, NULL, NULL);
           }
-        }
-        else if (nResult & UD_NONUNLOAD_ACTIVE)
-        {
-          if (pfElement)
-            pfElement->bRunning=TRUE;
           else
-            StackPluginAddA(&hPluginsStack, pcp->szFunction, lstrlenA(pcp->szFunction), 0, FALSE, TRUE, NULL, NULL);
+          {
+            if (pfElement)
+            {
+              if (pfElement->wHotkey || pfElement->bOnStart)
+                pfElement->bRunning=FALSE;
+              else
+                StackPluginDelete(&hPluginsStack, pfElement);
+            }
+          }
         }
       }
     }
@@ -12277,22 +12286,25 @@ void CallPluginReceivePostW(PLUGINCALLPOSTW *pcp)
 
       if (nResult != UD_FAILED)
       {
-        if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
+        if (!(nResult & UD_NONUNLOAD_UNCHANGE))
         {
-          if (pfElement)
+          if (nResult & UD_NONUNLOAD_ACTIVE)
           {
-            if (pfElement->wHotkey || pfElement->bOnStart)
-              pfElement->bRunning=FALSE;
+            if (pfElement)
+              pfElement->bRunning=TRUE;
             else
-              StackPluginDelete(&hPluginsStack, pfElement);
+              StackPluginAddW(&hPluginsStack, pcp->wszFunction, lstrlenW(pcp->wszFunction), 0, FALSE, TRUE, NULL, NULL);
           }
-        }
-        else if (nResult & UD_NONUNLOAD_ACTIVE)
-        {
-          if (pfElement)
-            pfElement->bRunning=TRUE;
           else
-            StackPluginAddW(&hPluginsStack, pcp->wszFunction, lstrlenW(pcp->wszFunction), 0, FALSE, TRUE, NULL, NULL);
+          {
+            if (pfElement)
+            {
+              if (pfElement->wHotkey || pfElement->bOnStart)
+                pfElement->bRunning=FALSE;
+              else
+                StackPluginDelete(&hPluginsStack, pfElement);
+            }
+          }
         }
       }
     }
@@ -13313,11 +13325,13 @@ BOOL TranslateHotkeyA(HSTACK *hStack, LPMSG lpMsg)
 
           if (nResult != UD_FAILED)
           {
-            if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
-              pfElement->bRunning=FALSE;
-            else if (nResult & UD_NONUNLOAD_ACTIVE)
-              pfElement->bRunning=TRUE;
-
+            if (!(nResult & UD_NONUNLOAD_UNCHANGE))
+            {
+              if (nResult & UD_NONUNLOAD_ACTIVE)
+                pfElement->bRunning=TRUE;
+              else
+                pfElement->bRunning=FALSE;
+            }
             if (nResult & UD_HOTKEY_DODEFAULT)
               break;
           }
@@ -13366,11 +13380,13 @@ BOOL TranslateHotkeyW(HSTACK *hStack, LPMSG lpMsg)
 
           if (nResult != UD_FAILED)
           {
-            if ((nResult == UD_UNLOAD) || (nResult & UD_NONUNLOAD_NONACTIVE))
-              pfElement->bRunning=FALSE;
-            else if (nResult & UD_NONUNLOAD_ACTIVE)
-              pfElement->bRunning=TRUE;
-
+            if (!(nResult & UD_NONUNLOAD_UNCHANGE))
+            {
+              if (nResult & UD_NONUNLOAD_ACTIVE)
+                pfElement->bRunning=TRUE;
+              else
+                pfElement->bRunning=FALSE;
+            }
             if (nResult & UD_HOTKEY_DODEFAULT)
               break;
           }
