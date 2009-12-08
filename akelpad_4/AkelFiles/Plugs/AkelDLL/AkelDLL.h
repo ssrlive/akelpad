@@ -28,7 +28,7 @@
 
 //Unload plugin flag
 #define UD_FAILED                -1  //Operation failed. Don't use it.
-#define UD_UNLOAD               0x0  //Unload plugin (default)
+#define UD_UNLOAD                 0  //Unload plugin (default)
 #define UD_NONUNLOAD_ACTIVE     0x1  //Don't unload plugin and set active status
 #define UD_NONUNLOAD_NONACTIVE  0x2  //Don't unload plugin and set non-active status
 #define UD_NONUNLOAD_UNCHANGE   0x4  //Don't unload plugin and don't change active status
