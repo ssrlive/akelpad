@@ -27,6 +27,11 @@
 #define AEMC_MOUSESCROLL       0x00000002
 #define AEMC_MOUSEDRAG         0x00000004
 
+//Mouse selection type
+#define AEMST_CHARS            0  //Characters selection.
+#define AEMST_WORDS            1  //Words selection.
+#define AEMST_LINES            2  //Lines selection.
+
 #ifndef NOTSRCINVERT
   #define NOTSRCINVERT         (DWORD)0x00990066 /* dest = (NOT source) XOR dest */
 #endif
@@ -465,10 +470,10 @@ typedef struct _AKELEDIT {
   //Cursor
   DWORD dwMouseCapture;
   AECHARRANGE crMouseOnLink;
-  BOOL bLButtonClick;
-  AECHARINDEX ciLButtonClick;
-  AECHARINDEX ciLButtonStart;
-  AECHARINDEX ciLButtonEnd;
+  int nMouseSelType;
+  AECHARINDEX ciMouseSelClick;
+  AECHARINDEX ciMouseSelStart;
+  AECHARINDEX ciMouseSelEnd;
   POINT ptLButtonDownPrevPos;
   int nLButtonDownPrevTime;
   int nLButtonDownCount;
