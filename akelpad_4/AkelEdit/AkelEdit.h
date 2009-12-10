@@ -139,6 +139,7 @@
 #define AECO_PAINTGROUP         0x00000800  //Paint text by group of characters (default is character by character). With this style combined unicode symbols can be drawn correctly but editing of whose characters isn't comfortable.
 #define AECO_ALTDECINPUT        0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECO_NOMARGINSEL        0x00002000  //Disables left margin line selection with mouse.
+#define AECO_NONEWLINEDRAW      0x00004000  //Disables draw new line as space in selection.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
