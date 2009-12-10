@@ -1,4 +1,10 @@
 
+AkelPad 4.4.0 ()
+----------------------------
+Changed: plugin architecture. Update plugins.
+Changed: mouse selection is now more closer to RichEdit.
+
+
 AkelPad 4.3.6 (Nov 27, 2009)
 ----------------------------
 Changed: syntax highlighting improved.
