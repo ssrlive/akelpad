@@ -9604,7 +9604,8 @@ void AE_Paint(AKELEDIT *ae)
             if (ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
                 ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
             {
-              if (ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+              if (ciDrawLine.lpLine->nLineBreak != AELB_WRAP &&
+                  !(ae->popt->dwOptions & AECO_NONEWLINEDRAW))
               {
                 if (ciDrawLine.lpLine->nLineWidth + ae->ptxt->nAveCharWidth > ae->nHScrollPos)
                 {
