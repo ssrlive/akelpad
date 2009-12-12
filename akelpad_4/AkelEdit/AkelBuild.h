@@ -679,7 +679,7 @@ void AE_Paint(AKELEDIT *ae);
 void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
-BOOL AE_ActiveColumnCreate(AKELEDIT *ae);
+void AE_ActiveColumnCreate(AKELEDIT *ae);
 void AE_ActiveColumnDraw(AKELEDIT *ae);
 void AE_ActiveColumnErase(AKELEDIT *ae);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);

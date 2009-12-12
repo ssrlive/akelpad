@@ -10423,26 +10423,22 @@ void AE_MButtonErase(AKELEDIT *ae)
   }
 }
 
-BOOL AE_ActiveColumnCreate(AKELEDIT *ae)
+void AE_ActiveColumnCreate(AKELEDIT *ae)
 {
-  if (!ae->popt->hActiveColumn)
-  {
-    AEBITMAPITEM *bi;
-    AEBITMAPDATA bd;
+  AEBITMAPITEM *bi;
+  AEBITMAPDATA bd;
 
-    bd.nWidth=8;
-    bd.nHeight=8;
-    bd.crBasic=ae->popt->crActiveColumn;
-    bd.crInvert=ae->popt->crBasicBk;
-    bd.bZebra=TRUE;
+  bd.nWidth=8;
+  bd.nHeight=8;
+  bd.crBasic=ae->popt->crActiveColumn;
+  bd.crInvert=ae->popt->crBasicBk;
+  bd.bZebra=TRUE;
 
-    if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
-      bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
-    if (!bi->hPatternBrush)
-      bi->hPatternBrush=CreatePatternBrush(bi->hBitmap);
-    ae->popt->hActiveColumn=bi->hPatternBrush;
-  }
-  return FALSE;
+  if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
+    bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
+  if (!bi->hPatternBrush)
+    bi->hPatternBrush=CreatePatternBrush(bi->hBitmap);
+  ae->popt->hActiveColumn=bi->hPatternBrush;
 }
 
 void AE_ActiveColumnDraw(AKELEDIT *ae)
@@ -15715,9 +15711,6 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
         ae->popt->bDefaultColors=FALSE;
       }
       bUpdateEditRect=TRUE;
-
-      if (ae->popt->dwOptions & AECO_ACTIVECOLUMN)
-        AE_ActiveColumnCreate(ae);
     }
     if (aec->dwFlags & AECLR_SELTEXT)
     {
