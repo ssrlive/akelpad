@@ -62,6 +62,7 @@
 #define FILELIST_BUFFER_SIZE       8192
 #define TRANSLATE_BUFFER_SIZE      8192
 #define PREVIEW_SIZE               8188  //4094*2; -1 preview all file
+#define PUTFIND_MAXSEL             16384
 #define DETECT_CODEPAGE_SIZE       1024
 #define RECENTFILES_AMOUNT         10
 #define RECENTFILES_RECORD_LENGTH  90
