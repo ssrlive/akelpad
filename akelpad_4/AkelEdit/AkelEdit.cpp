@@ -937,7 +937,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       }
       if ((dwOptionsOld & AECO_CARETOUTEDGE) && !(dwOptionsNew & AECO_CARETOUTEDGE))
       {
-        AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
+        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
       }
       if (!(dwOptionsOld & AECO_PAINTGROUP) != !(dwOptionsNew & AECO_PAINTGROUP))
       {
@@ -1025,7 +1025,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         AE_CalcLinesWidth(ae, NULL, NULL, AECLW_FRESH);
         ae->ptCaret.x=0;
         ae->ptCaret.y=0;
-        AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
+        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
         AE_UpdateCaret(ae, ae->bFocus);
 
         if (ae->ptxt->dwWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
@@ -1219,7 +1219,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         AE_UpdateScrollBars(ae, SB_VERT);
         ae->ptCaret.x=0;
         ae->ptCaret.y=0;
-        AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
+        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
         AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
         AE_UpdateCaret(ae, ae->bFocus);
 
@@ -2560,7 +2560,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     AE_CalcLinesWidth(ae, NULL, NULL, AECLW_FRESH);
     ae->ptCaret.x=0;
     ae->ptCaret.y=0;
-    AE_UpdateSelection(ae, AESELT_LOCKSCROLL);
+    AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
     AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
     AE_UpdateCaret(ae, ae->bFocus);
 
@@ -4113,7 +4113,7 @@ void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
         ae->ciCaretIndex=ae->lpCaretPoint->ciPoint;
         AE_GetPosFromChar(ae, &ae->ciCaretIndex, &ae->ptCaret, NULL);
 
-        AE_UpdateSelection(ae, AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING|AESELT_RESETSELECTION);
+        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING|AESELT_RESETSELECTION);
       }
     }
   }
@@ -5988,7 +5988,7 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
     ae->ptxt->nVScrollMax=(ae->ptxt->nLineCount + 1) * ae->ptxt->nCharHeight;
     AE_UpdateScrollBars(ae, SB_VERT);
   }
-  AE_UpdateSelection(ae, AESELT_LOCKSCROLL|AESELT_RESETSELECTION);
+  AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_RESETSELECTION);
   AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
   return nWrapCount;
 }

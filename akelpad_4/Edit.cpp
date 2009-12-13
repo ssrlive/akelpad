@@ -9775,6 +9775,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndCancelButton;
   static BOOL bCanReplace=TRUE;
   static BOOL bSpecialCheck=FALSE;
+  CHARRANGE cr;
   char *szData;
   HWND hWndFocus=NULL;
   HWND hWndComboboxEdit;
@@ -9811,8 +9812,9 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       FillComboboxSearchA(hWndFind, hWndReplace);
     }
+    SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
 
-    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax) || (ftflags & AEFR_SELECTION) || SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
+    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax) || cr.cpMax - cr.cpMin > PUTFIND_MAXSEL || (ftflags & AEFR_SELECTION) || SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
     {
       SendMessage(hWndFind, CB_SETCURSEL, 0, 0);
     }
@@ -10186,6 +10188,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndCancelButton;
   static BOOL bCanReplace=TRUE;
   static BOOL bSpecialCheck=FALSE;
+  CHARRANGE cr;
   wchar_t *wszData;
   HWND hWndFocus=NULL;
   HWND hWndComboboxEdit;
@@ -10222,8 +10225,9 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     {
       FillComboboxSearchW(hWndFind, hWndReplace);
     }
+    SendMessage(hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
 
-    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax) || (ftflags & AEFR_SELECTION) || SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
+    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax) || cr.cpMax - cr.cpMin > PUTFIND_MAXSEL || (ftflags & AEFR_SELECTION) || SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0))
     {
       SendMessage(hWndFind, CB_SETCURSEL, 0, 0);
     }
