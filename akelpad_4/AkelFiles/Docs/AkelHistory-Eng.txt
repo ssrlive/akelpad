@@ -4,6 +4,9 @@ AkelPad 4.4.0 ()
 Changed: plugin architecture. Update plugins.
 Changed: mouse selection is now more closer to RichEdit.
 
+Added: ability to assign Tab, Shift+Tab in plugins dialog, on condition that the hotkey input box was activated using
+       the mouse.
+
 
 AkelPad 4.3.6 (Nov 27, 2009)
 ----------------------------

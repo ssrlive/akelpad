@@ -81,6 +81,7 @@ extern HSTACK hHandlesStack;
 extern HHOOK hHookPlugins;
 extern HWND hWndHotkey;
 extern RECT rcPluginsDialog;
+extern BOOL bHotkeyLeftButtonClick;
 extern BOOL bSavePluginsStackOnExit;
 
 //INI
@@ -14333,6 +14334,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     nSelItem=-1;
     bListChanged=FALSE;
 
+    bHotkeyLeftButtonClick=FALSE;
     hHookPlugins=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
   }
   else if (uMsg == WM_COMMAND)
@@ -14580,6 +14582,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     nSelItem=-1;
     bListChanged=FALSE;
 
+    bHotkeyLeftButtonClick=FALSE;
     hHookPlugins=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
   }
   else if (uMsg == WM_COMMAND)
@@ -14767,30 +14770,36 @@ LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
   {
     MSG *msg=(MSG *)lParam;
 
+    if (msg->message == WM_LBUTTONDOWN)
+    {
+      if (hWndHotkey == msg->hwnd)
+        bHotkeyLeftButtonClick=TRUE;
+      else
+        bHotkeyLeftButtonClick=FALSE;
+    }
+
     if (hWndHotkey && hWndHotkey == msg->hwnd)
     {
-      if (msg->message >= WM_KEYFIRST && msg->message <= WM_KEYLAST)
+      if (msg->message == WM_KEYDOWN ||
+          msg->message == WM_SYSKEYDOWN)
       {
-        if (msg->message == WM_KEYDOWN ||
-            msg->message == WM_SYSKEYDOWN)
+        BYTE nMod=0;
+
+        if ((msg->lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
+        if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
+        if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
+        if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
+
+        if (msg->wParam == VK_SPACE ||
+            msg->wParam == VK_RETURN ||
+            msg->wParam == VK_ESCAPE ||
+            (msg->wParam == VK_BACK && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
+            (msg->wParam == VK_DELETE && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
+            (msg->wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
+            (msg->wParam == VK_TAB && bHotkeyLeftButtonClick))
         {
-          BYTE nMod=0;
-
-          if ((msg->lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
-          if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
-          if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
-          if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
-
-          if (msg->wParam == VK_SPACE ||
-              msg->wParam == VK_RETURN ||
-              msg->wParam == VK_ESCAPE ||
-              (msg->wParam == VK_BACK && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
-              (msg->wParam == VK_DELETE && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
-              (msg->wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)))
-          {
-            SendMessage(hWndHotkey, HKM_SETHOTKEY, MAKEWORD(msg->wParam, nMod), 0);
-            msg->message=WM_NULL;
-          }
+          SendMessage(hWndHotkey, HKM_SETHOTKEY, MAKEWORD(msg->wParam, nMod), 0);
+          msg->message=WM_NULL;
         }
       }
     }
