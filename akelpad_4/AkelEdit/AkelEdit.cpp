@@ -609,18 +609,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     if (uMsg == AEM_GETINDEXCOLUMN)
     {
       AECHARINDEX ciChar=*(AECHARINDEX *)lParam;
-      int nTabSize=LOWORD(wParam);
+      int nTabStop=LOWORD(wParam);
       BOOL bWrappedScan=HIWORD(wParam);
       int nScanLimit;
       int nColumn=0;
       int nResult;
+
+      //Tab current size if zero
+      if (!nTabStop) nTabStop=ae->ptxt->nTabStop;
 
       nScanLimit=min(ciChar.nCharInLine, ciChar.lpLine->nLineLen);
       nResult=ciChar.nCharInLine - nScanLimit;
 
       while (ciChar.lpLine)
       {
-        if (nTabSize == 1)
+        if (nTabStop == 1)
         {
           nColumn+=nScanLimit;
         }
@@ -629,7 +632,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
           for (ciChar.nCharInLine=0; ciChar.nCharInLine < nScanLimit; ++ciChar.nCharInLine)
           {
             if (ciChar.lpLine->wpLine[ciChar.nCharInLine] == L'\t')
-              nColumn+=nTabSize - nColumn % nTabSize;
+              nColumn+=nTabStop - nColumn % nTabStop;
             else
               ++nColumn;
           }
@@ -1017,9 +1020,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_SETTABSTOP)
     {
-      if (ae->ptxt->nTabStop != (int)wParam)
+      int nTabStop=(int)wParam;
+
+      //Tab default size if zero
+      if (!nTabStop) nTabStop=AETAB_DEFAULTSIZE;
+
+      if (ae->ptxt->nTabStop != nTabStop)
       {
-        ae->ptxt->nTabStop=wParam;
+        ae->ptxt->nTabStop=nTabStop;
         ae->ptxt->nTabWidth=ae->ptxt->nSpaceCharWidth * ae->ptxt->nTabStop;
 
         AE_CalcLinesWidth(ae, NULL, NULL, AECLW_FRESH);
@@ -3593,7 +3601,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs)
     ae->ptxt=&ae->txt;
     ae->popt=&ae->opt;
     ae->ptxt->hHeap=NULL;
-    ae->ptxt->nTabStop=8;
+    ae->ptxt->nTabStop=AETAB_DEFAULTSIZE;
     ae->ptxt->bSavePointExist=TRUE;
     ae->ptxt->dwTextLimit=(DWORD)-1;
     ae->ptxt->dwUndoLimit=(DWORD)-1;
