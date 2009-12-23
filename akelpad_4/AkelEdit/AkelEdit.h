@@ -2716,7 +2716,7 @@ __________________
 Retrieve the character index column taking into account tab stop size.
 
 (DWORD)wParam         == low-order word:
-                          tab stop size in characters.
+                          tab stop size in characters. Use current value if zero.
                          high-order word:
                           TRUE   scan all wrapped lines.
                           FALSE  scan to first char in line.
@@ -3547,7 +3547,7 @@ ______________
 
 Set tab stop size.
 
-(int)wParam == new tab stop size in characters.
+(int)wParam == new tab stop size in characters. Use default value if zero.
 lParam      == not used.
 
 Return Value
