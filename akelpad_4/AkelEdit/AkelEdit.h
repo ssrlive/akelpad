@@ -494,13 +494,6 @@ typedef struct {
   DWORD dwFlags;      //See AESELT_* defines.
 } AESELECTION;
 
-typedef struct _AEFOLD {
-  struct _AEFOLD *next;   //Pointer to the next AEFOLD structure.
-  struct _AEFOLD *prev;   //Pointer to the previous AEFOLD structure.
-  int nMin;               //Minimum line in range.
-  int nMax;               //Maximum line in range.
-} AEFOLD;
-
 typedef struct _AEPOINT {
   struct _AEPOINT *next;   //Pointer to the next AEPOINT structure.
   struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure.
@@ -508,6 +501,13 @@ typedef struct _AEPOINT {
   DWORD dwFlags;           //See AEPT_* defines.
   DWORD dwUserData;        //User data.
 } AEPOINT;
+
+typedef struct _AEFOLD {
+  struct _AEFOLD *next;   //Pointer to the next AEFOLD structure.
+  struct _AEFOLD *prev;   //Pointer to the previous AEFOLD structure.
+  AEPOINT *lpMinPoint;    //Minimum line point.
+  AEPOINT *lpMaxPoint;    //Maximum line point.
+} AEFOLD;
 
 typedef struct {
   char *pText;        //[in] Text to append.
