@@ -465,6 +465,9 @@ typedef struct _AKELEDIT {
   BOOL bFocus;
   int nAltChar;
 
+  //Fold
+  HSTACK hFoldsStack;
+
   //Notification
   DWORD dwNotifyFlags;
   DWORD dwNotifyTextChange;
@@ -570,6 +573,10 @@ void AE_StackFontItemsFreeW(HSTACK *hStack);
 AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd);
 AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd);
 void AE_StackBitmapItemsFree(HSTACK *hStack);
+AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, int nMinLine, int nMaxLine);
+AEFOLD* AE_StackIsLineInFold(AKELEDIT *ae, int nLine);
+void AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpElement);
+void AE_StackFoldFree(AKELEDIT *ae);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags);
 void AE_StackPointReset(AKELEDIT *ae);
@@ -690,6 +697,8 @@ void AE_ColumnMarkerDraw(AKELEDIT *ae);
 void AE_ColumnMarkerErase(AKELEDIT *ae);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide);
+int AE_LineFromVPos(AKELEDIT *ae, int nVPos);
+int AE_VPosFromLine(AKELEDIT *ae, int nLine);
 int AE_GetFirstVisibleLine(AKELEDIT *ae);
 int AE_GetLastVisibleLine(AKELEDIT *ae);
 int AE_GetFirstFullVisibleLine(AKELEDIT *ae);
