@@ -1200,7 +1200,8 @@ typedef struct {
 #define AEM_HIDESELECTION         (WM_USER + 2354)
 #define AEM_FOLDLINES             (WM_USER + 2361)
 #define AEM_GETFOLD               (WM_USER + 2362)
-#define AEM_UNFOLDLINES           (WM_USER + 2363)
+#define AEM_ISFOLDVALID           (WM_USER + 2363)
+#define AEM_UNFOLDLINES           (WM_USER + 2364)
 
 //Window data
 #define AEM_GETWINDOWDATA         (WM_USER + 2401)
@@ -4007,10 +4008,41 @@ Hides the range of lines.
 (int)lParam == last line to hide.
 
 Return Value
- Pointer to a AEFOLD structure.
+ Fold handle (pointer to a AEFOLD structure).
 
 Example:
  SendMessage(hWndEdit, AEM_FOLDLINES, 5, 10);
+
+
+AEM_GETFOLD
+___________
+
+Retrieves fold handle.
+
+(int)wParam == line number.
+lParam      == not used.
+
+Return Value
+ Fold handle (pointer to a AEFOLD structure).
+
+Example:
+ SendMessage(hWndEdit, AEM_GETFOLD, 5, 0);
+
+
+AEM_ISFOLDVALID
+_______________
+
+Checks is fold handle valid.
+
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDLINES.
+lParam           == not used.
+
+Return Value
+ TRUE   fold handle is valid.
+ FALSE  fold handle isn't valid.
+
+Example:
+ SendMessage(hWndEdit, AEM_ISFOLDVALID, (WPARAM)lpFold, 0);
 
 
 AEM_UNFOLDLINES
@@ -4018,7 +4050,7 @@ _______________
 
 Shows hidden range of lines.
 
-(AEFOLD *)wParam == pointer to a AEFOLD structure, returned by AEM_FOLDLINES.
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDLINES.
 lParam           == not used.
 
 Return Value
