@@ -494,6 +494,13 @@ typedef struct {
   DWORD dwFlags;      //See AESELT_* defines.
 } AESELECTION;
 
+typedef struct _AEFOLD {
+  struct _AEFOLD *next;   //Pointer to the next AEFOLD structure.
+  struct _AEFOLD *prev;   //Pointer to the previous AEFOLD structure.
+  int nMin;               //Minimum line in range.
+  int nMax;               //Maximum line in range.
+} AEFOLD;
+
 typedef struct _AEPOINT {
   struct _AEPOINT *next;   //Pointer to the next AEPOINT structure.
   struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure.
@@ -1185,6 +1192,8 @@ typedef struct {
 #define AEM_UPDATESCROLLBAR       (WM_USER + 2352)
 #define AEM_UPDATECARET           (WM_USER + 2353)
 #define AEM_HIDESELECTION         (WM_USER + 2354)
+#define AEM_FOLDLINES             (WM_USER + 2361)
+#define AEM_UNFOLDLINES           (WM_USER + 2362)
 
 //Window data
 #define AEM_GETWINDOWDATA         (WM_USER + 2401)
@@ -3944,6 +3953,36 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
+
+
+AEM_FOLDLINES
+_____________
+
+Hides the range of lines.
+
+(int)wParam == first line to hide.
+(int)lParam == last line to hide.
+
+Return Value
+ Pointer to a AEFOLD structure.
+
+Example:
+ SendMessage(hWndEdit, AEM_FOLDLINES, 5, 10);
+
+
+AEM_UNFOLDLINES
+_______________
+
+Shows hidden range of lines.
+
+(AEFOLD *)wParam == pointer to a AEFOLD structure, returned by AEM_FOLDLINES.
+lParam           == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_UNFOLDLINES, (WPARAM)lpFold, 0);
 
 
 AEM_GETWINDOWDATA
