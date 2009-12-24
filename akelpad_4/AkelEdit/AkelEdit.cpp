@@ -1307,12 +1307,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       return (LRESULT)AE_StackFoldGet(ae, wParam);
     }
+    if (uMsg == AEM_ISFOLDVALID)
+    {
+      return (LRESULT)AE_StackIsValidFold(ae, (AEFOLD *)wParam);
+    }
     if (uMsg == AEM_UNFOLDLINES)
     {
-      AEFOLD *lpFold=(AEFOLD *)wParam;
-
-      if (AE_StackIsValidFold(ae, lpFold))
-        AE_StackFoldDelete(ae, lpFold);
+      if (AE_StackIsValidFold(ae, (AEFOLD *)wParam))
+        AE_StackFoldDelete(ae, (AEFOLD *)wParam);
       return 0;
     }
 
