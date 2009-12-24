@@ -330,6 +330,10 @@
 #define AECPT_GLOBALTOCLIENT 0  //Convert position in the virtual text space of the document, to client area coordinates.
 #define AECPT_CLIENTTOGLOBAL 1  //Convert position in the client area coordinates, to virtual text space of the document.
 
+//Coordinate type
+#define AECT_GLOBAL 0  //Position in the virtual text space of the document.
+#define AECT_CLIENT 1  //Position in the client area coordinates.
+
 //AEM_POINTONMARGIN sides
 #define AESIDE_LEFT          0x00000001
 #define AESIDE_TOP           0x00000002
@@ -1146,6 +1150,8 @@ typedef struct {
 #define AEM_POINTONMARGIN         (WM_USER + 2170)
 #define AEM_POINTONSELECTION      (WM_USER + 2171)
 #define AEM_POINTONURL            (WM_USER + 2172)
+#define AEM_LINEFROMVPOS          (WM_USER + 2173)
+#define AEM_VPOSFROMLINE          (WM_USER + 2174)
 
 //Options
 #define AEM_CONTROLCLASS          (WM_USER + 2199)
@@ -1193,7 +1199,8 @@ typedef struct {
 #define AEM_UPDATECARET           (WM_USER + 2353)
 #define AEM_HIDESELECTION         (WM_USER + 2354)
 #define AEM_FOLDLINES             (WM_USER + 2361)
-#define AEM_UNFOLDLINES           (WM_USER + 2362)
+#define AEM_GETFOLD               (WM_USER + 2362)
+#define AEM_UNFOLDLINES           (WM_USER + 2363)
 
 //Window data
 #define AEM_GETWINDOWDATA         (WM_USER + 2401)
@@ -3242,6 +3249,42 @@ Example:
  pt.x=10;
  pt.y=10;
  SendMessage(hWndEdit, AEM_POINTONURL, (WPARAM)&pt, (LPARAM)&cr);
+
+
+AEM_LINEFROMVPOS
+________________
+
+Retrieves line from vertical position.
+
+(int)wParam == see AECT_* defines.
+(int)lParam == vertical position.
+
+Return Value
+ Zero based line number.
+
+Example:
+ POINT ptClient;
+
+ SendMessage(hWndEdit, AEM_GETCARETPOS, (LPARAM)&ptClient, (LPARAM)NULL);
+ SendMessage(hWndEdit, AEM_LINEFROMVPOS, AECT_CLIENT, ptClient.y);
+
+
+AEM_VPOSFROMLINE
+________________
+
+Retrieves vertical position from line.
+
+(int)wParam == see AECT_* defines.
+(int)lParam == zero based line number.
+
+Return Value
+ Vertical position.
+
+Example:
+ AECHARINDEX ciCaret;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_VPOSFROMLINE, AECT_CLIENT, ciCaret.nLine);
 
 
 AEM_CONTROLCLASS

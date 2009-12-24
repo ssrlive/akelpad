@@ -883,6 +883,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       if (lpcrLink) *lpcrLink=crLink;
       return dwResult;
     }
+    if (uMsg == AEM_LINEFROMVPOS)
+    {
+      if (wParam == AECT_GLOBAL)
+        return AE_LineFromVPos(ae, lParam);
+      if (wParam == AECT_CLIENT)
+        return AE_LineFromVPos(ae, ae->nVScrollPos + (lParam - ae->rcDraw.top));
+    }
+    if (uMsg == AEM_VPOSFROMLINE)
+    {
+      if (wParam == AECT_GLOBAL)
+        return AE_VPosFromLine(ae, lParam);
+      if (wParam == AECT_CLIENT)
+        return ae->rcDraw.top + (AE_VPosFromLine(ae, lParam) - ae->nVScrollPos);
+    }
 
     //Options
     if (uMsg == AEM_CONTROLCLASS)
@@ -1289,11 +1303,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       }
       return (LRESULT)lpElement;
     }
+    if (uMsg == AEM_GETFOLD)
+    {
+      return (LRESULT)AE_StackFoldGet(ae, wParam);
+    }
     if (uMsg == AEM_UNFOLDLINES)
     {
       AEFOLD *lpFold=(AEFOLD *)wParam;
 
-      AE_StackFoldDelete(ae, lpFold);
+      if (AE_StackIsValidFold(ae, lpFold))
+        AE_StackFoldDelete(ae, lpFold);
       return 0;
     }
 
@@ -4543,7 +4562,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AECHARRANGE *crRange)
   return lpElement2;
 }
 
-AEFOLD* AE_StackIsLineInFold(AKELEDIT *ae, int nLine)
+AEFOLD* AE_StackFoldGet(AKELEDIT *ae, int nLine)
 {
   AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
 
@@ -4557,7 +4576,7 @@ AEFOLD* AE_StackIsLineInFold(AKELEDIT *ae, int nLine)
   return NULL;
 }
 
-void AE_StackUpdateFold(AKELEDIT *ae)
+void AE_StackFoldUpdate(AKELEDIT *ae)
 {
   AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
   AEFOLD *lpElementNext;
@@ -4573,24 +4592,38 @@ void AE_StackUpdateFold(AKELEDIT *ae)
   }
 }
 
-void AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpElement)
+BOOL AE_StackIsValidFold(AKELEDIT *ae, AEFOLD *lpFold)
 {
-  AE_StackPointDelete(ae, lpElement->lpMinPoint);
-  AE_StackPointDelete(ae, lpElement->lpMaxPoint);
-  AE_HeapStackDelete(ae, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpElement);
+  AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+
+  while (lpElement)
+  {
+    if (lpElement == lpFold)
+      return TRUE;
+
+    lpElement=lpElement->next;
+  }
+  return FALSE;
+}
+
+void AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
+{
+  AE_StackPointDelete(ae, lpFold->lpMinPoint);
+  AE_StackPointDelete(ae, lpFold->lpMaxPoint);
+  AE_HeapStackDelete(ae, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpFold);
 }
 
 void AE_StackFoldFree(AKELEDIT *ae)
 {
   AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
-  AEFOLD *lpElementNext;
 
   while (lpElement)
   {
-    lpElementNext=lpElement->next;
-    AE_StackFoldDelete(ae, lpElement);
-    lpElement=lpElementNext;
+    AE_StackPointDelete(ae, lpElement->lpMinPoint);
+    AE_StackPointDelete(ae, lpElement->lpMaxPoint);
+    lpElement=lpElement->next;
   }
+  AE_HeapStackClear(ae, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last);
 }
 
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
@@ -5442,7 +5475,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
     while (AE_NextLine(&ciCharTmp))
     {
-      if (!AE_StackIsLineInFold(ae, ciCharTmp.nLine))
+      if (!AE_StackFoldGet(ae, ciCharTmp.nLine))
         break;
     }
 
@@ -5463,7 +5496,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
     while (AE_PrevLine(&ciCharTmp))
     {
-      if (!AE_StackIsLineInFold(ae, ciCharTmp.nLine))
+      if (!AE_StackFoldGet(ae, ciCharTmp.nLine))
         break;
     }
 
@@ -5494,7 +5527,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
       do
       {
-        if (!AE_StackIsLineInFold(ae, ciCharTmp.nLine))
+        if (!AE_StackFoldGet(ae, ciCharTmp.nLine))
           break;
       }
       while (AE_NextLine(&ciCharTmp));
@@ -5528,7 +5561,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
       do
       {
-        if (!AE_StackIsLineInFold(ae, ciCharTmp.nLine))
+        if (!AE_StackFoldGet(ae, ciCharTmp.nLine))
           break;
       }
       while (AE_PrevLine(&ciCharTmp));
@@ -9669,7 +9702,7 @@ void AE_Paint(AKELEDIT *ae)
 
       while (ciDrawLine.lpLine)
       {
-        if (!AE_StackIsLineInFold(ae, ciDrawLine.nLine))
+        if (!AE_StackFoldGet(ae, ciDrawLine.nLine))
         {
           //Get first paint char in line
           AE_GetCharInLine(ae, ciDrawLine.lpLine, nMinPaintWidth - ae->ptxt->nAveCharWidth, AECIL_ALLPOS, &ciDrawLine.nCharInLine, &nLineWidth, FALSE);
@@ -16163,7 +16196,7 @@ void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
 
 void AE_NotifyTextChanged(AKELEDIT *ae)
 {
-  AE_StackUpdateFold(ae);
+  AE_StackFoldUpdate(ae);
   AE_StackUpdateClones(ae);
 
   //Send AEN_TEXTCHANGED
