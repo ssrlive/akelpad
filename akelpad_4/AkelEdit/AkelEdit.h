@@ -4042,7 +4042,7 @@ Sets fold collapse state.
                     FALSE uncollapse fold.
 
 Return Value
- zero
+ Number of folds changed.
 
 Example:
  SendMessage(hWndEdit, AEM_FOLDCOLLAPSE, (WPARAM)lpFold, TRUE);
