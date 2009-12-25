@@ -511,6 +511,7 @@ typedef struct _AEFOLD {
   struct _AEFOLD *prev;   //Pointer to the previous AEFOLD structure.
   AEPOINT *lpMinPoint;    //Minimum line point.
   AEPOINT *lpMaxPoint;    //Maximum line point.
+  BOOL bCollapse;         //Collapse state.
 } AEFOLD;
 
 typedef struct {
@@ -1198,10 +1199,12 @@ typedef struct {
 #define AEM_UPDATESCROLLBAR       (WM_USER + 2352)
 #define AEM_UPDATECARET           (WM_USER + 2353)
 #define AEM_HIDESELECTION         (WM_USER + 2354)
-#define AEM_FOLDLINES             (WM_USER + 2361)
-#define AEM_GETFOLD               (WM_USER + 2362)
-#define AEM_ISFOLDVALID           (WM_USER + 2363)
-#define AEM_UNFOLDLINES           (WM_USER + 2364)
+#define AEM_FOLDADD               (WM_USER + 2361)
+#define AEM_FOLDGET               (WM_USER + 2362)
+#define AEM_FOLDCOLLAPSE          (WM_USER + 2363)
+#define AEM_FOLDISCOLLAPSED       (WM_USER + 2364)
+#define AEM_FOLDISVALID           (WM_USER + 2365)
+#define AEM_UNFOLDLINES           (WM_USER + 2366)
 
 //Window data
 #define AEM_GETWINDOWDATA         (WM_USER + 2401)
@@ -3999,8 +4002,8 @@ Example:
  SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
 
 
-AEM_FOLDLINES
-_____________
+AEM_FOLDADD
+___________
 
 Hides the range of lines.
 
@@ -4011,10 +4014,10 @@ Return Value
  Fold handle (pointer to a AEFOLD structure).
 
 Example:
- SendMessage(hWndEdit, AEM_FOLDLINES, 5, 10);
+ SendMessage(hWndEdit, AEM_FOLDADD, 5, 10);
 
 
-AEM_GETFOLD
+AEM_FOLDGET
 ___________
 
 Retrieves fold handle.
@@ -4026,15 +4029,47 @@ Return Value
  Fold handle (pointer to a AEFOLD structure).
 
 Example:
- SendMessage(hWndEdit, AEM_GETFOLD, 5, 0);
+ SendMessage(hWndEdit, AEM_FOLDGET, 5, 0);
 
 
-AEM_ISFOLDVALID
+AEM_FOLDCOLLAPSE
+________________
+
+Sets fold collapse state.
+
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDADD. If NULL, then process all folds.
+(BOOL)lParam     == TRUE  collapse fold.
+                    FALSE uncollapse fold.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_FOLDCOLLAPSE, (WPARAM)lpFold, TRUE);
+
+
+AEM_FOLDISCOLLAPSED
+___________________
+
+Checks is line collapsed.
+
+(int)wParam == line number.
+lParam      == not used.
+
+Return Value
+ TRUE   line is collapsed.
+ FALSE  line isn't collapsed.
+
+Example:
+ SendMessage(hWndEdit, AEM_FOLDISCOLLAPSED, 5, 0);
+
+
+AEM_FOLDISVALID
 _______________
 
 Checks is fold handle valid.
 
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDLINES.
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDADD.
 lParam           == not used.
 
 Return Value
@@ -4042,7 +4077,7 @@ Return Value
  FALSE  fold handle isn't valid.
 
 Example:
- SendMessage(hWndEdit, AEM_ISFOLDVALID, (WPARAM)lpFold, 0);
+ SendMessage(hWndEdit, AEM_FOLDISVALID, (WPARAM)lpFold, 0);
 
 
 AEM_UNFOLDLINES
@@ -4050,7 +4085,7 @@ _______________
 
 Shows hidden range of lines.
 
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDLINES.
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDADD.
 lParam           == not used.
 
 Return Value
