@@ -1278,7 +1278,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     if (uMsg == AEM_FOLDADD)
     {
       AECHARRANGE crRange;
-      AEFOLD *lpElement;
 
       crRange.ciMin.nCharInLine=0;
       crRange.ciMin.nLine=wParam;
@@ -1290,16 +1289,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AE_IndexUpdate(ae, &crRange.ciMax);
       crRange.ciMax.nCharInLine=crRange.ciMax.lpLine->nLineLen;
 
-      if (lpElement=AE_StackFoldInsert(ae, &crRange))
-      {
-        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
-        AE_UpdateScrollBars(ae, SB_VERT);
-        ae->ptCaret.x=0;
-        ae->ptCaret.y=0;
-        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
-        AE_UpdateCaret(ae, ae->bFocus);
-      }
-      return (LRESULT)lpElement;
+      return (LRESULT)AE_StackFoldInsert(ae, &crRange);
     }
     if (uMsg == AEM_FOLDGET)
     {
@@ -1307,8 +1297,18 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_FOLDCOLLAPSE)
     {
-      AE_StackFoldCollapse(ae, (AEFOLD *)wParam, lParam);
-      return 0;
+      int nResult;
+
+      if (nResult=AE_StackFoldCollapse(ae, (AEFOLD *)wParam, lParam))
+      {
+        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+        AE_UpdateScrollBars(ae, SB_VERT);
+        ae->ptCaret.x=0;
+        ae->ptCaret.y=0;
+        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
+        InvalidateRect(ae->hWndEdit, NULL, TRUE);
+      }
+      return nResult;
     }
     if (uMsg == AEM_FOLDISCOLLAPSED)
     {
@@ -4586,23 +4586,33 @@ AEFOLD* AE_StackFoldGet(AKELEDIT *ae, int nLine)
   return NULL;
 }
 
-void AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
+int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
 {
+  int nResult=0;
+
   if (lpFold)
   {
-    lpFold->bCollapse=bCollapse;
+    if (lpFold->bCollapse != bCollapse)
+    {
+      lpFold->bCollapse=bCollapse;
+      ++nResult;
+    }
   }
   else
   {
     AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
-  
+
     while (lpElement)
     {
-      lpElement->bCollapse=bCollapse;
-  
+      if (lpElement->bCollapse != bCollapse)
+      {
+        lpElement->bCollapse=bCollapse;
+        ++nResult;
+      }
       lpElement=lpElement->next;
     }
   }
+  return nResult;
 }
 
 BOOL AE_StackFoldIsCollapsed(AKELEDIT *ae, int nLine)
