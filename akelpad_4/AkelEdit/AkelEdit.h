@@ -1202,7 +1202,7 @@ typedef struct {
 #define AEM_FOLDADD               (WM_USER + 2361)
 #define AEM_FOLDGET               (WM_USER + 2362)
 #define AEM_FOLDCOLLAPSE          (WM_USER + 2363)
-#define AEM_FOLDISCOLLAPSED       (WM_USER + 2364)
+#define AEM_LINEISCOLLAPSED       (WM_USER + 2364)
 #define AEM_FOLDISVALID           (WM_USER + 2365)
 #define AEM_UNFOLDLINES           (WM_USER + 2366)
 
@@ -4048,7 +4048,7 @@ Example:
  SendMessage(hWndEdit, AEM_FOLDCOLLAPSE, (WPARAM)lpFold, TRUE);
 
 
-AEM_FOLDISCOLLAPSED
+AEM_LINEISCOLLAPSED
 ___________________
 
 Checks is line collapsed.
@@ -4061,7 +4061,7 @@ Return Value
  FALSE  line isn't collapsed.
 
 Example:
- SendMessage(hWndEdit, AEM_FOLDISCOLLAPSED, 5, 0);
+ SendMessage(hWndEdit, AEM_LINEISCOLLAPSED, 5, 0);
 
 
 AEM_FOLDISVALID

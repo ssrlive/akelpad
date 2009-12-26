@@ -576,7 +576,7 @@ void AE_StackBitmapItemsFree(HSTACK *hStack);
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AECHARRANGE *crRange);
 AEFOLD* AE_StackFoldGet(AKELEDIT *ae, int nLine);
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse);
-BOOL AE_StackFoldIsCollapsed(AKELEDIT *ae, int nLine);
+BOOL AE_StackLineIsCollapsed(AKELEDIT *ae, int nLine);
 void AE_StackFoldUpdate(AKELEDIT *ae);
 BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold);
 void AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold);

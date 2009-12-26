@@ -1310,9 +1310,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       }
       return nResult;
     }
-    if (uMsg == AEM_FOLDISCOLLAPSED)
+    if (uMsg == AEM_LINEISCOLLAPSED)
     {
-      return AE_StackFoldIsCollapsed(ae, wParam);
+      return AE_StackLineIsCollapsed(ae, wParam);
     }
     if (uMsg == AEM_FOLDISVALID)
     {
@@ -4615,7 +4615,7 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
   return nResult;
 }
 
-BOOL AE_StackFoldIsCollapsed(AKELEDIT *ae, int nLine)
+BOOL AE_StackLineIsCollapsed(AKELEDIT *ae, int nLine)
 {
   AEFOLD *lpFold;
 
@@ -5525,7 +5525,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
     while (AE_NextLine(&ciCharTmp))
     {
-      if (!AE_StackFoldIsCollapsed(ae, ciCharTmp.nLine))
+      if (!AE_StackLineIsCollapsed(ae, ciCharTmp.nLine))
         break;
     }
 
@@ -5546,7 +5546,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
     while (AE_PrevLine(&ciCharTmp))
     {
-      if (!AE_StackFoldIsCollapsed(ae, ciCharTmp.nLine))
+      if (!AE_StackLineIsCollapsed(ae, ciCharTmp.nLine))
         break;
     }
 
@@ -5577,7 +5577,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
       do
       {
-        if (!AE_StackFoldIsCollapsed(ae, ciCharTmp.nLine))
+        if (!AE_StackLineIsCollapsed(ae, ciCharTmp.nLine))
           break;
       }
       while (AE_NextLine(&ciCharTmp));
@@ -5611,7 +5611,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
       do
       {
-        if (!AE_StackFoldIsCollapsed(ae, ciCharTmp.nLine))
+        if (!AE_StackLineIsCollapsed(ae, ciCharTmp.nLine))
           break;
       }
       while (AE_PrevLine(&ciCharTmp));
@@ -9752,7 +9752,7 @@ void AE_Paint(AKELEDIT *ae)
 
       while (ciDrawLine.lpLine)
       {
-        if (!AE_StackFoldIsCollapsed(ae, ciDrawLine.nLine))
+        if (!AE_StackLineIsCollapsed(ae, ciDrawLine.nLine))
         {
           //Get first paint char in line
           AE_GetCharInLine(ae, ciDrawLine.lpLine, nMinPaintWidth - ae->ptxt->nAveCharWidth, AECIL_ALLPOS, &ciDrawLine.nCharInLine, &nLineWidth, FALSE);
@@ -10848,7 +10848,7 @@ int AE_VPosFromLine(AKELEDIT *ae, int nLine)
       if (lpElement->lpMinPoint->ciPoint.nLine < nLine && lpElement->lpMaxPoint->ciPoint.nLine > nLastMaxLine)
       {
         nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine);
-        nCalcLine-=lpElement->lpMaxPoint->ciPoint.nLine - nLastMinLine + 1;
+        nCalcLine-=min(nLine, lpElement->lpMaxPoint->ciPoint.nLine) - nLastMinLine + 1;
         nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine;
       }
     }
