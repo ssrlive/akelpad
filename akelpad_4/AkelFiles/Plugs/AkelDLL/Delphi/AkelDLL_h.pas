@@ -25,7 +25,7 @@ function PRIMARYLANGID(LangId: WORD): WORD; inline;
 function MakeIdentifier(a, b, c, d: Byte): DWORD; inline;
 
 const
-  AKELDLL = (1 or 1 shl 8) or (0 or 0 shl 8) shl 16; // MakeIdentifier(1, 1, 0, 0);
+  AKELDLL = (1 or 2 shl 8) or (0 or 0 shl 8) shl 16; // MakeIdentifier(1, 2, 0, 0);
   {$EXTERNALSYM AKELDLL}
 
   // Defines
@@ -52,27 +52,19 @@ const
   URL_DELIMITERS_SIZE  = 128;
   {$EXTERNALSYM URL_DELIMITERS_SIZE}
 
-  //Plugin call error
-  EDL_FAILED                = 0;           // Operation failed
-  {$EXTERNALSYM EDL_FAILED}
-  EDL_UNLOADED              = 1;           // Plugin unloaded
-  {$EXTERNALSYM EDL_UNLOADED}
-  EDL_NONUNLOADED_ACTIVE    = 2;           // Plugin in memory and active
-  {$EXTERNALSYM EDL_NONUNLOADED_ACTIVE}
-  EDL_NONUNLOADED_NONACTIVE = 3;           // Plugin in memory and non-active
-  {$EXTERNALSYM EDL_NONUNLOADED_NONACTIVE}
-  EDL_NONUNLOADED           = 4;           // Plugin in memory
-  {$EXTERNALSYM EDL_NONUNLOADED}
-
   //Unload plugin flag
+  UD_FAILED              = -1;  // Operation failed. Don't use it.
+  {$EXTERNALSYM UD_FAILED}
   UD_UNLOAD              = 0;  // Unload plugin (default)
   {$EXTERNALSYM UD_UNLOAD}
-  UD_NONUNLOAD_ACTIVE    = 1;  // Don't unload plugin and set active status
+  UD_NONUNLOAD_ACTIVE    = 0x1;  // Don't unload plugin and set active status
   {$EXTERNALSYM UD_NONUNLOAD_ACTIVE}
-  UD_NONUNLOAD_NONACTIVE = 2;  // Don't unload plugin and set non-active status
+  UD_NONUNLOAD_NONACTIVE = 0x2;  // Don't unload plugin and set non-active status
   {$EXTERNALSYM UD_NONUNLOAD_NONACTIVE}
-  UD_NONUNLOAD           = 3;  // Don't unload plugin and don't change active status
-  {$EXTERNALSYM UD_NONUNLOAD}
+  UD_NONUNLOAD_UNCHANGE  = 0x4;  // Don't unload plugin and don't change active status
+  {$EXTERNALSYM UD_NONUNLOAD_UNCHANGE}
+  UD_HOTKEY_DODEFAULT    = 0x4;  // Do default hotkey processing
+  {$EXTERNALSYM UD_HOTKEY_DODEFAULT}
 
   //Open document flags
   OD_ADT_BINARY_ERROR = $00000001;    // Check if file is binary
@@ -181,9 +173,9 @@ const
   POB_SAVE  = $2;                // Begins save options
   {$EXTERNALSYM POB_SAVE}
   POB_CLEAR = $4;                // Begins new save options (POB_SAVE|POB_CLEAR)
-  {$EXTERNALSYM POB_CLEAR}          
+  {$EXTERNALSYM POB_CLEAR}
 
-  //Option type                     
+  //Option type
   PO_DWORD  = 1;                 // 32-bit number
   {$EXTERNALSYM PO_DWORD}
   PO_BINARY = 2;                 // Binary data in any form
@@ -301,15 +293,15 @@ const
   {$EXTERNALSYM DK_HIDE}
   DK_SHOW       = $00000200;  // Show dockable window and remove DKF_HIDDEN flag
   {$EXTERNALSYM DK_SHOW}
-                                 
+
   //WM_INITMENU lParam
   IMENU_EDIT    = $00000001;  // Show dockable window and remove DKF_HIDDEN flag
   {$EXTERNALSYM IMENU_EDIT}
   IMENU_CHECKS  = $00000004;  // Show dockable window and remove DKF_HIDDEN flag
   {$EXTERNALSYM IMENU_CHECKS}
-                                 
+
   // Structures
-  
+
 {$IFNDEF _HSTACK_STRUCT_}
 {$DEFINE _HSTACK_STRUCT_}
 type
@@ -325,7 +317,7 @@ type
 {$ENDIF}
 
 type
-  PluginProc = procedure(lpPluginProc: Pointer); stdcall;
+  PluginProc = procedure(lpPluginProc: BOOL); stdcall;
   WndProcRet = procedure(lpWNDProcRet: PCWPRetStruct); stdcall;
   WndProc = function(hWnd: HWND; uMsg, WParam, LParam: Longint): Longint; stdcall;
 
@@ -341,6 +333,7 @@ type
     dwExeMinVersion4x: DWORD;  // Required minimum AkelPad 4.x version.
                                // Set as MAKE_IDENTIFIER(x, x, x, x) or
                                // if not supported MAKE_IDENTIFIER(-1, -1, -1, -1).
+    pPluginName: PChar;        // Plugin unique name
   end;
   {$EXTERNALSYM PLUGINVERSION}
   TPluginVersion = _PLUGINVERSION;
@@ -351,20 +344,20 @@ type
   _PLUGINDATA = record
     cb: DWORD;                 //Size of the structure
     pFunction: PByte;          //Called function name, format "Plugin::Function"
-                               //pFunction: Pchar     if bOldWindows == TRUE
-                               //pFunction PwideChar  if bOldWindows == FALSE
+                               //pFunction: Pchar      if bOldWindows == TRUE
+                               //pFunction: PwideChar  if bOldWindows == FALSE
     hInstanceDLL: HINST;       //DLL instance
     lpPluginFunction: Pointer; //cPointer to a PLUGINFUNCTION structure
     lpbAutoLoad: PBOOL;        //TRUE  if function supports autoload
                                //FALSE if function doesn't support autoload
     nUnload: Integer;          //See UD_* defines
-    bActive: BOOL;             //Plugin already loaded
+    bInMemory: BOOL;           //Plugin already loaded
     bOnStart: BOOL;            //TRUE  if plugin called on start-up
                                //FALSE if plugin called manually
     lParam: Longint;           //Input data
     pAkelDir: PByte;           //AkelPad directory
-                               //char *pAkelDir      if bOldWindows == TRUE
-                               //wchar_t *pAkelDir   if bOldWindows == FALSE
+                               //pAkelDir: Pchar      if bOldWindows == TRUE
+                               //pAkelDir: PwideChar  if bOldWindows == FALSE
     hInstanceEXE: HINST;       //EXE instance
     hPluginsStack: PHStack;    //cPointer to a plugins stack
     hMainWnd: HWND;            //Main window
@@ -386,8 +379,8 @@ type
     bMDI: BOOL;                //MDI mode
     nSaveSettings: Integer;    //See SS_* defines
     pLangModule: PByte;        //Language module
-                               //char *pLangModule      if bOldWindows == TRUE
-                               //wchar_t *pLangModule   if bOldWindows == FALSE
+                               //pLangModule: Pchar      if bOldWindows == TRUE
+                               //pLangModule: PwideChar  if bOldWindows == FALSE
     wLangSystem: LANGID;       //System language ID
   end;
   {$EXTERNALSYM _PLUGINDATA}
@@ -468,7 +461,7 @@ type
     bModified: BOOL;           // cFile has been modified
     bReadOnly: BOOL;           // Read only
     bWordWrap: BOOL;           // Word wrap
-    bInsertState: BOOL;        // Insert mode
+    bOvertypeMode: BOOL;       // Overtype mode
   end;
   {$EXTERNALSYM _EDITINFO}
   TEditInfo =_EDITINFO;
@@ -508,12 +501,13 @@ type
     bTabStopAsSpaces: BOOL;                // Insert tab stop as spaces
     nUndoLimit: Integer;                   // Undo limit
     bDetailedUndo: BOOL;                   // Detailed undo
-    nWrapType: Integer;                    // Wrap type AEWW_WORD or
+    dwWrapType: DWORD;                     // Wrap type AEWW_WORD or
                                            // AEWW_SYMBOL (4.x only)
     dwWrapLimit: DWORD;                    // Wrap characters limit, zero if
                                            // wrap by window edge (4.x only)
     dwMarker: DWORD;                       // Vertical marker, zero if no marker
                                            // set (4.x only)
+    dwMappedPrintWidth: DWORD;             // Mapped prinet page width (4.x only)
     bCaretOutEdge: BOOL;                   // Allow caret moving out of the line
                                            // edge (4.x only)
     bCaretVertLine: BOOL;                  // Draw caret vertical line (4.x only)
@@ -523,7 +517,8 @@ type
     bUrlPrefixesEnable: BOOL;              // URL prefixes enable (4.x only)
     wszUrlPrefixes: array[0..URL_PREFIXES_SIZE-1] of WideChar; //URL prefixes (4.x only)
     bUrlDelimitersEnable: BOOL;            // URL delimiters enable (4.x only)
-    wszUrlDelimiters: array[0..URL_DELIMITERS_SIZE-1] of WideChar;   // URL delimiters (4.x only)
+    wszUrlLeftDelimiters: array[0..URL_DELIMITERS_SIZE-1] of WideChar;   // URL left delimiters (4.x only)
+    wszUrlRightDelimiters: array[0..URL_DELIMITERS_SIZE-1] of WideChar;   // URL right delimiters (4.x only)
     bWordDelimitersEnable: BOOL;           // Word delimiters enabled
     wszWordDelimiters: array[0..WORD_DELIMITERS_SIZE-1] of WideChar; // Word delimiters
     bWrapDelimitersEnable: BOOL;           // Wrap delimiters enabled
@@ -554,12 +549,13 @@ type
     bTabStopAsSpaces: BOOL;                    // Insert tab stop as spaces
     nUndoLimit: Integer;                       // Undo limit
     bDetailedUndo: BOOL;                       // Detailed undo
-    nWrapType: Integer;                        // Wrap type AEWW_WORD or
+    dwWrapType: DWORD;                         // Wrap type AEWW_WORD or
                                                // AEWW_SYMBOL (4.x only)
     dwWrapLimit: DWORD;                        // Wrap characters limit, zero if
                                                // wrap by window edge (4.x only)
     dwMarker: DWORD;                           // Vertical marker, zero if no
                                                // marker set (4.x only)
+    dwMappedPrintWidth: DWORD;                 // Mapped prinet page width (4.x only)
     bCaretOutEdge: BOOL;                       // Allow caret moving out of
                                                // the line edge (4.x only)
     bCaretVertLine: BOOL;                      // Draw caret vertical line (4.x only)
@@ -569,7 +565,8 @@ type
     bUrlPrefixesEnable: BOOL;                  // URL prefixes enable (4.x only)
     wszUrlPrefixes: array[0..URL_PREFIXES_SIZE-1] of WideChar;       // URL prefixes (4.x only)
     bUrlDelimitersEnable: BOOL;                // URL delimiters enable (4.x only)
-    wszUrlDelimiters: array[0..URL_DELIMITERS_SIZE-1] of WideChar;   // URL delimiters (4.x only)
+    wszUrlLeftDelimiters: array[0..URL_DELIMITERS_SIZE-1] of WideChar;   // URL left delimiters (4.x only)
+    wszUrlRightDelimiters: array[0..URL_DELIMITERS_SIZE-1] of WideChar;   // URL right delimiters (4.x only)
     bWordDelimitersEnable: BOOL;               // Word delimiters enabled
     wszWordDelimiters: array[0..WORD_DELIMITERS_SIZE-1] of WideChar; // Word delimiters
     bWrapDelimitersEnable: BOOL;               // Wrap delimiters enabled
@@ -618,7 +615,7 @@ type
     Prev: PPluginFunctionA;
     szFunction: array[0..MAX_PATH-1] of Char; // Function name, format "Plugin::Function"
     nFunctionLen: Integer;                    // Function name length
-    wHotkey: WORD;                            // Function hotkey
+    wHotkey: WORD;                            // Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
     bOnStart: BOOL;                           // Function autoload on start-up
     bRunning: BOOL;                           // Function is running
     PluginProc: PLUGINPROC;                   // Function procedure
@@ -635,7 +632,7 @@ type
     Prev: PPLUGINFUNCTIONW;
     wszFunction: array[0..MAX_PATH-1] of WideChar; // Function name, format L"Plugin::Function"
     nFunctionLen: Integer;                    // Function name length
-    wHotkey: WORD;                            // Function hotkey
+    wHotkey: WORD;                            // Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
     bOnStart: BOOL;                           // Function autoload on start-up
     bRunning: BOOL;                           // Function is running
     PluginProc: PLUGINPROC;                   // Function procedure
@@ -756,8 +753,8 @@ type
     cpMax: Integer;      // Last character in the range. Last char of text: -1.
     pText: PByte;        // cPointer that receive allocated text. Must be
                          // eallocated with AKD_FREETEXT message.
-                         // char *pText      if bOldWindows == TRUE
-                         // wchar_t *pText   if bOldWindows == FALSE
+                         // pText: Pchar      if bOldWindows == TRUE
+                         // pText: PwideChar  if bOldWindows == FALSE
   end;
   {$EXTERNALSYM _GETTEXTRANGE}
   TGetTextRange = _GETTEXTRANGE;
@@ -767,14 +764,28 @@ type
 {$IFDEF __AKELEDIT_H__}
   PExGetTextRange = ^TExGetTextRange;
   _EXGETTEXTRANGE = record
-    cr: AECHARRANGE;     // Characters range to retrieve
-    bColumnSel: BOOL;    // Column selection. If this value is –1, active column
-                         // selection mode is used.
-    pText: PByte;        // cPointer that receive allocated text. Must be
-                         // deallocated with AKD_FREETEXT message.
-                         // pText: PChar       if bOldWindows == TRUE
-                         // pText: PwideChar   if bOldWindows == FALSE
-    nNewLine: Integer;   // see AELB_* defines
+    cr: AECHARRANGE;      // Characters range to retrieve
+    bColumnSel: BOOL;     // Column selection. If this value is –1, active column
+                          // selection mode is used.
+    pText: PByte;         // cPointer that receive allocated text. Must be
+                          // deallocated with AKD_FREETEXT message.
+                          // pText: PChar       if bOldWindows == TRUE
+                          // pText: PwideChar   if bOldWindows == FALSE
+    nNewLine: Integer;    // see AELB_* defines
+    nCodePage: Integer;   // Valid if bOldWindows == TRUE. Code page identifier
+                          // (any available in the system). You can also specify
+                          // one of the following values: CP_ACP - ANSI code page,
+                          // CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
+    lpDefaultChar: PChar; // Valid if bOldWindows == TRUE. Points to the character
+                          // used if a wide character cannot be represented in the
+                          // specified code page. If this member is NULL, a system
+                          // default value is used.
+    lpUsedDefChar: PBOOL; // Valid if bOldWindows == TRUE. Points to a flag that
+                          // indicates whether a default character was used.
+                          // The flag is set to TRUE if one or more wide characters
+                          // in the source string cannot be represented in the
+                          // specified code page. Otherwise, the flag is set to FALSE.
+                          // This member may be NULL.
   end;
   {$EXTERNALSYM _EXGETTEXTRANGE}
   TExGetTextRange = _EXGETTEXTRANGE;
@@ -1249,7 +1260,11 @@ const
   IDM_VIEW_SPLIT_WINDOW_NS  =         4214; // Split window into two horizontal panes
                                             // Return Value: zero
   {$EXTERNALSYM IDM_VIEW_SPLIT_WINDOW_NS}
-                                              
+
+  IDM_VIEW_SPLIT_WINDOW_OFF  =        4215; // Reserved.
+                                            // Return Value: zero
+  {$EXTERNALSYM IDM_VIEW_SPLIT_WINDOW_OFF}
+
   IDM_OPTIONS_EXEC  =                 4251; // Execute command. Return Value:
                                             // TRUE - success, FALSE - failed
   {$EXTERNALSYM IDM_OPTIONS_EXEC}
@@ -1478,6 +1493,10 @@ const
                                             // SendMessage(pd->hMainWnd,
                                             //     WM_COMMAND, IDM_FILE_NEW, 0);
   {$EXTERNALSYM IDM_POPUP_SAVEAS}
+
+  IDM_SELECTWINDOW  =                10019; // Select window dialog (MDI)
+                                            // Return Value: zero
+  {$EXTERNALSYM IDM_SELECTWINDOW}
 
 
 //// AkelPad main window WM_USER messages
@@ -2011,36 +2030,36 @@ const
 // SendMessage(pd->hMainWnd, AKD_GETMAINPROC, -1, (LPARAM)&wpd);
 //
 //
-// AKD_SETMAINPROC, AKD_SETEDITPROC, AKD_SETFRAMEPROC
-// _______________  _______________  ________________
+//AKD_SETMAINPROC, AKD_SETEDITPROC, AKD_SETFRAMEPROC
+//_______________  _______________  ________________
 //
-// Set procedure in main window subclass chain.                  
+//Set procedure in main window subclass chain.
 //
-// (WNDPROC)wParam        == procedure address,
+//(WNDPROC)wParam        == procedure address,
 //                          if (wParam == NULL) then lParam must point to the procedure
 //                            data that will be removed from main window subclass chain.
-// (WNDPROCDATA **)lParam == procedure data,
-//                           if (lParam == NULL) then create new procedure data
-//                           if (*(WNDPROCDATA **)lParam == NULL) then create new
-//                             procedure data and set it on top of the main window
-//                             subclass chain.
-//                           if (*(WNDPROCDATA **)lParam != NULL) then set wParam
-//                             procedure in procedure data and update main window
-//                             subclass chain.
+//(WNDPROCDATA **)lParam == procedure data,
+//                          if (lParam == NULL) then create new procedure data
+//                          if (*(WNDPROCDATA **)lParam == NULL) then create new
+//                            procedure data and set it on top of the main window
+//                            subclass chain.
+//                          if (*(WNDPROCDATA **)lParam != NULL) then set wParam
+//                            procedure in procedure data and update main window
+//                            subclass chain.
 //
-// Return Value
-//  zero
+//Return Value
+// zero
 //
-// Example:
-//  WNDPROCDATA *wpd=NULL;
-//  LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-//  {
-//    //...
+//Example:
+// WNDPROCDATA *wpd=NULL;
+// LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+// {
+//   //...
 //
-//    return wpd->NextProc(hWnd, uMsg, wParam, lParam);
-//  }
-//  wpd=NULL;
-//  SendMessage(pd->hMainWnd, AKD_SETMAINPROC, (WPARAM)NewMainProc, (LPARAM)&wpd);
+//   return wpd->NextProc(hWnd, uMsg, wParam, lParam);
+// }
+// wpd=NULL;
+// SendMessage(pd->hMainWnd, AKD_SETMAINPROC, (WPARAM)NewMainProc, (LPARAM)&wpd);
 //
 //
 //AKD_GETMAINPROCRET, AKD_GETEDITPROCRET, AKD_GETFRAMEPROCRET
@@ -2216,8 +2235,9 @@ const
 // pointer to a PLUGINFUNCTION structure in stack
 //
 //Example add plugin hotkey (bOldWindows == TRUE):
-// void CALLBACK PluginProc(void *lpParameter)
+// BOOL CALLBACK PluginProc(void *lpParameter)
 // {
+//   return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing
 // }
 // PLUGINFUNCTIONA pf;
 // pf.szFunction[0]='\0';
@@ -2230,8 +2250,9 @@ const
 // SendMessage(pd->hMainWnd, AKD_DLLADD, 0, (LPARAM)&pf);
 //
 //Example add plugin hotkey (bOldWindows == FALSE):
-// void CALLBACK PluginProc(void *lpParameter)
+// BOOL CALLBACK PluginProc(void *lpParameter)
 // {
+//   return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing
 // }
 // PLUGINFUNCTIONW pf;
 // pf.wszFunction[0]='\0';
@@ -3633,6 +3654,9 @@ const
 // SendMessage(pd->hWndEdit, AEM_GETSEL, (WPARAM)NULL, (LPARAM)&tr.cr);
 // tr.pText=NULL;
 // tr.nNewLine=AELB_ASIS;
+// tr.nCodePage=CP_ACP;
+// tr.lpDefaultChar=NULL;
+// tr.lpUsedDefChar=NULL;
 //
 // if (SendMessage(pd->hMainWnd, AKD_EXGETTEXTRANGEA, (WPARAM)pd->hWndEdit, (LPARAM)&tr))
 // {
@@ -3743,7 +3767,7 @@ begin
   Result:= LangId and $03FF;
 end;
 
-function MakeIdentifier(a, b, c, d: Byte): DWORD; 
+function MakeIdentifier(a, b, c, d: Byte): DWORD;
 begin
   Result:= MakeLong(MakeWord(a, b), MakeWord(c, d));
 end;
