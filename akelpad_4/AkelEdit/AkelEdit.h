@@ -169,10 +169,10 @@
 #define AEGI_CARETCHAR              5  //Caret character.
 #define AEGI_FIRSTVISIBLELINE       6  //First character of the first visible line.
 #define AEGI_LASTVISIBLELINE        7  //Last character of the last visible line.
-#define AEGI_NEXTLINE               8  //First character of the next line. lParam must point to an input index.
-#define AEGI_PREVLINE               9  //First character of the previous line. lParam must point to an input index.
-#define AEGI_NEXTCHAR              10  //Next wide character. lParam must point to an input index.
-#define AEGI_PREVCHAR              11  //Previous wide character. lParam must point to an input index.
+#define AEGI_NEXTLINE               8  //First character of the next line, collapsed folds are skipped. lParam must point to an input index.
+#define AEGI_PREVLINE               9  //First character of the previous line, collapsed folds are skipped. lParam must point to an input index.
+#define AEGI_NEXTCHAR              10  //Next wide character, collapsed folds are skipped. lParam must point to an input index.
+#define AEGI_PREVCHAR              11  //Previous wide character, collapsed folds are skippe. lParam must point to an input index.
 #define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.
