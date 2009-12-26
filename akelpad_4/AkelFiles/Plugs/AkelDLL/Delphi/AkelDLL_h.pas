@@ -55,15 +55,15 @@ const
   //Unload plugin flag
   UD_FAILED              = -1;  // Operation failed. Don't use it.
   {$EXTERNALSYM UD_FAILED}
-  UD_UNLOAD              = 0;  // Unload plugin (default)
+  UD_UNLOAD              =  0;  // Unload plugin (default)
   {$EXTERNALSYM UD_UNLOAD}
-  UD_NONUNLOAD_ACTIVE    = 0x1;  // Don't unload plugin and set active status
+  UD_NONUNLOAD_ACTIVE    = $1;  // Don't unload plugin and set active status
   {$EXTERNALSYM UD_NONUNLOAD_ACTIVE}
-  UD_NONUNLOAD_NONACTIVE = 0x2;  // Don't unload plugin and set non-active status
+  UD_NONUNLOAD_NONACTIVE = $2;  // Don't unload plugin and set non-active status
   {$EXTERNALSYM UD_NONUNLOAD_NONACTIVE}
-  UD_NONUNLOAD_UNCHANGE  = 0x4;  // Don't unload plugin and don't change active status
+  UD_NONUNLOAD_UNCHANGE  = $4;  // Don't unload plugin and don't change active status
   {$EXTERNALSYM UD_NONUNLOAD_UNCHANGE}
-  UD_HOTKEY_DODEFAULT    = 0x4;  // Do default hotkey processing
+  UD_HOTKEY_DODEFAULT    = $8;  // Do default hotkey processing
   {$EXTERNALSYM UD_HOTKEY_DODEFAULT}
 
   //Open document flags
