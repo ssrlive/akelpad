@@ -13029,9 +13029,8 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
   int nLineOffset;
   int nFirstRedrawLine;
   int nLastRedrawLine;
+  int nElementLine;
   int nCompare;
-
-  AE_StackPointUnset(ae, AEPT_LOCALMODIFY);
 
   if (ciRangeStart->lpLine && ciRangeEnd->lpLine)
   {
@@ -13088,6 +13087,8 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
       //Lines after deletion
       lpElement=ciDeleteStart.lpLine;
+      nElementLine=ciDeleteStart.nLine;
+      lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first;
 
       while (lpElement)
       {
@@ -13110,22 +13111,22 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
             lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
 
             //Update points
-            for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first; lpPoint; lpPoint=lpPoint->next)
+            for (; lpPoint; lpPoint=lpPoint->next)
             {
-              if (!(lpPoint->dwFlags & AEPT_LOCALMODIFY))
-              {
-                if (lpPoint->ciPoint.lpLine == lpElement)
-                {
-                  lpPoint->ciPoint.lpLine=lpNewElement;
+              if (lpPoint->ciPoint.nLine > nElementLine)
+                break;
 
-                  if (lpPoint->ciPoint.nCharInLine > lpElement->nSelStart &&
-                      lpElement->nSelStart < lpElement->nLineLen)
-                  {
-                    lpPoint->ciPoint.nCharInLine-=(min(lpElement->nSelEnd, lpElement->nLineLen) - lpElement->nSelStart);
-                    lpPoint->ciPoint.nCharInLine=max(lpPoint->ciPoint.nCharInLine, lpElement->nSelStart);
-                  }
-                  lpPoint->dwFlags|=AEPT_GLOBALMODIFY|AEPT_LOCALMODIFY;
+              if (lpPoint->ciPoint.nLine == nElementLine)
+              {
+                lpPoint->ciPoint.lpLine=lpNewElement;
+
+                if (lpPoint->ciPoint.nCharInLine > lpElement->nSelStart &&
+                    lpElement->nSelStart < lpElement->nLineLen)
+                {
+                  lpPoint->ciPoint.nCharInLine-=(min(lpElement->nSelEnd, lpElement->nLineLen) - lpElement->nSelStart);
+                  lpPoint->ciPoint.nCharInLine=max(lpPoint->ciPoint.nCharInLine, lpElement->nSelStart);
                 }
+                lpPoint->dwFlags|=AEPT_GLOBALMODIFY;
               }
             }
 
@@ -13186,6 +13187,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
         else
           nLineOffset+=lpNewElement->nLineLen + 1;
 
+        nElementLine+=1;
         lpElement=lpElement->next;
       }
 
@@ -13389,30 +13391,30 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       }
 
       //Update points
-      for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first; lpPoint; lpPoint=lpPoint->next)
+      for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
       {
-        if (!(lpPoint->dwFlags & AEPT_LOCALMODIFY))
+        if (lpPoint->ciPoint.nLine < ciDeleteStart.nLine)
+          break;
+
+        if (lpPoint->ciPoint.nLine >= ciDeleteStart.nLine)
         {
-          if (lpPoint->ciPoint.nLine >= ciDeleteStart.nLine)
+          if (lpPoint->ciPoint.nLine <= ciDeleteEnd.nLine)
           {
-            if (lpPoint->ciPoint.nLine <= ciDeleteEnd.nLine)
+            if (!(lpPoint->ciPoint.nLine == ciDeleteStart.nLine && lpPoint->ciPoint.nCharInLine <= ciDeleteStart.nCharInLine))
             {
-              if (!(lpPoint->ciPoint.nLine == ciDeleteStart.nLine && lpPoint->ciPoint.nCharInLine <= ciDeleteStart.nCharInLine))
-              {
-                if (lpPoint->ciPoint.nLine == ciDeleteEnd.nLine && lpPoint->ciPoint.nCharInLine > ciDeleteEnd.nCharInLine)
-                  lpPoint->ciPoint.nCharInLine=ciDeleteStart.nCharInLine + (lpPoint->ciPoint.nCharInLine - ciDeleteEnd.nCharInLine);
-                else
-                  lpPoint->ciPoint.nCharInLine=ciDeleteStart.nCharInLine;
-              }
-              lpPoint->ciPoint.nLine=ciDeleteStart.nLine;
-              lpPoint->ciPoint.lpLine=lpNewElement;
+              if (lpPoint->ciPoint.nLine == ciDeleteEnd.nLine && lpPoint->ciPoint.nCharInLine > ciDeleteEnd.nCharInLine)
+                lpPoint->ciPoint.nCharInLine=ciDeleteStart.nCharInLine + (lpPoint->ciPoint.nCharInLine - ciDeleteEnd.nCharInLine);
+              else
+                lpPoint->ciPoint.nCharInLine=ciDeleteStart.nCharInLine;
             }
-            else
-            {
-              lpPoint->ciPoint.nLine-=(ciDeleteEnd.nLine - ciDeleteStart.nLine);
-            }
-            lpPoint->dwFlags|=AEPT_GLOBALMODIFY|AEPT_LOCALMODIFY;
+            lpPoint->ciPoint.nLine=ciDeleteStart.nLine;
+            lpPoint->ciPoint.lpLine=lpNewElement;
           }
+          else
+          {
+            lpPoint->ciPoint.nLine-=(ciDeleteEnd.nLine - ciDeleteStart.nLine);
+          }
+          lpPoint->dwFlags|=AEPT_GLOBALMODIFY;
         }
       }
 
@@ -13635,8 +13637,6 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
   int nLastRedrawLine=0;
   int i;
 
-  AE_StackPointUnset(ae, AEPT_LOCALMODIFY);
-
   if (ciInsertFrom.lpLine)
   {
     if (dwTextLen == (DWORD)-1) dwTextLen=lstrlenW(wpText);
@@ -13698,6 +13698,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
         ciLastChar.lpLine=NULL;
         ciLastChar.nCharInLine=ciInsertFrom.nCharInLine;
         lpElement=ciInsertFrom.lpLine;
+        lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first;
 
         while (dwTextCount <= dwTextLen)
         {
@@ -13748,20 +13749,17 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                 }
 
                 //Update points
-                for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first; lpPoint; lpPoint=lpPoint->next)
+                for (; lpPoint; lpPoint=lpPoint->next)
                 {
-                  if (!(lpPoint->dwFlags & AEPT_LOCALMODIFY))
-                  {
-                    if (lpPoint->ciPoint.lpLine == lpElement)
-                    {
-                      lpPoint->ciPoint.lpLine=lpNewElement;
+                  if (lpPoint->ciPoint.nLine > ciLastChar.nLine)
+                    break;
 
-                      if (lpPoint->ciPoint.nCharInLine >= ciInsertFrom.nCharInLine)
-                      {
-                        lpPoint->ciPoint.nCharInLine+=nLineLen;
-                      }
-                      lpPoint->dwFlags|=AEPT_GLOBALMODIFY|AEPT_LOCALMODIFY;
-                    }
+                  if (lpPoint->ciPoint.nLine == ciLastChar.nLine)
+                  {
+                    lpPoint->ciPoint.lpLine=lpNewElement;
+                    if (lpPoint->ciPoint.nCharInLine >= ciInsertFrom.nCharInLine)
+                      lpPoint->ciPoint.nCharInLine+=nLineLen;
+                    lpPoint->dwFlags|=AEPT_GLOBALMODIFY;
                   }
                 }
 
@@ -14243,29 +14241,29 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
         if (dwTextCount)
         {
           //Update points
-          for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first; lpPoint; lpPoint=lpPoint->next)
+          for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
           {
-            if (!(lpPoint->dwFlags & AEPT_LOCALMODIFY))
+            if (lpPoint->ciPoint.nLine < ciInsertFrom.nLine)
+              break;
+
+            if (lpPoint->ciPoint.nLine > ciInsertFrom.nLine)
             {
-              if (lpPoint->ciPoint.nLine > ciInsertFrom.nLine)
+              lpPoint->ciPoint.nLine+=nLineCount;
+              lpPoint->dwFlags|=AEPT_GLOBALMODIFY;
+            }
+            else if (lpPoint->ciPoint.nLine == ciInsertFrom.nLine)
+            {
+              if (lpPoint->ciPoint.nCharInLine < ciInsertFrom.nCharInLine)
+              {
+                lpPoint->ciPoint.lpLine=ciFirstChar.lpLine;
+              }
+              else
               {
                 lpPoint->ciPoint.nLine+=nLineCount;
-                lpPoint->dwFlags|=AEPT_GLOBALMODIFY|AEPT_LOCALMODIFY;
+                lpPoint->ciPoint.lpLine=lpNewElement;
+                lpPoint->ciPoint.nCharInLine=nCaretIndexInLine + (lpPoint->ciPoint.nCharInLine - ciInsertFrom.nCharInLine);
               }
-              else if (lpPoint->ciPoint.nLine == ciInsertFrom.nLine)
-              {
-                if (lpPoint->ciPoint.nCharInLine < ciInsertFrom.nCharInLine)
-                {
-                  lpPoint->ciPoint.lpLine=ciFirstChar.lpLine;
-                }
-                else
-                {
-                  lpPoint->ciPoint.nLine+=nLineCount;
-                  lpPoint->ciPoint.lpLine=lpNewElement;
-                  lpPoint->ciPoint.nCharInLine=nCaretIndexInLine + (lpPoint->ciPoint.nCharInLine - ciInsertFrom.nCharInLine);
-                }
-                lpPoint->dwFlags|=AEPT_GLOBALMODIFY|AEPT_LOCALMODIFY;
-              }
+              lpPoint->dwFlags|=AEPT_GLOBALMODIFY;
             }
           }
 
