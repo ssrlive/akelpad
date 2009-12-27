@@ -4690,15 +4690,25 @@ void AE_StackFoldFree(AKELEDIT *ae)
 
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
 {
-  AEPOINT *lpElement=NULL;
+  AEPOINT *lpElement1=(AEPOINT *)ae->ptxt->hPointsStack.last;
+  AEPOINT *lpElement2=NULL;
 
-  AE_HeapStackInsertIndex(NULL, (stack **)&ae->ptxt->hPointsStack.first, (stack **)&ae->ptxt->hPointsStack.last, (stack **)&lpElement, -1, sizeof(AEPOINT));
-
-  if (lpElement)
+  while (lpElement1)
   {
-    lpElement->ciPoint=*ciPoint;
+    if (ciPoint->nLine > lpElement1->ciPoint.nLine)
+      break;
+    if (ciPoint->nLine == lpElement1->ciPoint.nLine && ciPoint->nCharInLine >= lpElement1->ciPoint.nCharInLine)
+      break;
+
+    lpElement1=lpElement1->prev;
   }
-  return lpElement;
+  AE_HeapStackInsertAfter(NULL, (stack **)&ae->ptxt->hPointsStack.first, (stack **)&ae->ptxt->hPointsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEPOINT));
+
+  if (lpElement2)
+  {
+    lpElement2->ciPoint=*ciPoint;
+  }
+  return lpElement2;
 }
 
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags)
@@ -6245,6 +6255,7 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
 int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwWrap)
 {
   AKELEDIT *lpSource=ae;
+  AEPOINT *lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first;
   AELINEINDEX liFirst;
   AELINEINDEX liCount;
   DWORD dwMaxWidth=0;
@@ -6324,14 +6335,14 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
 
       if (liCount.lpLine->nLineLen > 1 && (DWORD)liCount.lpLine->nLineWidth > dwMaxWidth)
       {
-        if (nWrapped=AE_LineWrap(ae, &liCount, (liCount.nLine == liFirst.nLine)?&liFirst:NULL, &liCount, dwMaxWidth, dwWrap))
+        if (nWrapped=AE_LineWrap(ae, &liCount, (liCount.nLine == liFirst.nLine)?&liFirst:NULL, &liCount, dwMaxWidth, dwWrap, &lpPoint))
         {
           nLineCount+=nWrapped;
         }
         else break;
       }
     }
-    if (nUnwrapped=AE_LineUnwrap(ae, &liCount, dwMaxWidth))
+    if (nUnwrapped=AE_LineUnwrap(ae, &liCount, dwMaxWidth, &lpPoint))
     {
       nLineCount+=nUnwrapped;
 
@@ -6431,14 +6442,14 @@ int AE_WrapLines(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd,
   return nLineCount;
 }
 
-int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwMaxWidth, DWORD dwWrap)
+int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwMaxWidth, DWORD dwWrap, AEPOINT **lpPoint)
 {
   AELINEINDEX liStart=*liLine;
   AELINEINDEX liEnd=*liLine;
   AELINEDATA ldLine;
   AELINEDATA *lpInitialElement=liLine->lpLine;
   AELINEDATA *lpNewElement=NULL;
-  AEPOINT *lpPoint;
+  AEPOINT *lpTmpPoint=*lpPoint;
   int nCharStart=0;
   int nCharEnd=0;
   int nLineCount=0;
@@ -6446,8 +6457,6 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
 
   if (lpInitialElement->nLineLen > 1)
   {
-    AE_StackPointUnset(ae, AEPT_LOCALMODIFY);
-
     while (nCharEnd < lpInitialElement->nLineLen)
     {
       ldLine.wpLine=lpInitialElement->wpLine + nCharStart;
@@ -6500,21 +6509,24 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
             AE_GetLineWidth(ae, lpNewElement);
 
             //Update points
-            for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first; lpPoint; lpPoint=lpPoint->next)
+            for (; lpTmpPoint; lpTmpPoint=lpTmpPoint->next)
             {
-              if (!(lpPoint->dwFlags & AEPT_LOCALMODIFY))
+              if (lpTmpPoint->ciPoint.nLine > liStart.nLine)
+                break;
+
+              if (lpTmpPoint->ciPoint.nLine == liStart.nLine)
               {
-                if (lpPoint->ciPoint.lpLine == lpInitialElement)
+                if ((lpTmpPoint->ciPoint.nCharInLine >= nCharStart && lpTmpPoint->ciPoint.nCharInLine <= nCharEnd) || nCharEnd >= lpInitialElement->nLineLen)
                 {
-                  if ((lpPoint->ciPoint.nCharInLine >= nCharStart && lpPoint->ciPoint.nCharInLine <= nCharEnd) || nCharEnd >= lpInitialElement->nLineLen)
-                  {
-                    lpPoint->ciPoint.nLine+=nLineCount;
-                    lpPoint->ciPoint.lpLine=lpNewElement;
-                    lpPoint->ciPoint.nCharInLine-=nCharStart;
-                    lpPoint->dwFlags|=AEPT_GLOBALMODIFY|AEPT_LOCALMODIFY;
-                  }
+                  lpTmpPoint->ciPoint.nLine+=nLineCount;
+                  lpTmpPoint->ciPoint.lpLine=lpNewElement;
+                  lpTmpPoint->ciPoint.nCharInLine-=nCharStart;
+                  lpTmpPoint->dwFlags|=AEPT_GLOBALMODIFY;
                 }
+                else if (lpTmpPoint->ciPoint.nCharInLine > nCharEnd)
+                  break;
               }
+              else *lpPoint=lpTmpPoint;
             }
             nCharStart=nCharEnd;
 
@@ -6535,17 +6547,15 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
 
       liEnd.lpLine=lpNewElement;
       liEnd.nLine+=nLineCount;
+      *lpPoint=lpTmpPoint;
 
       //Update points
-      for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first; lpPoint; lpPoint=lpPoint->next)
+      for (; lpTmpPoint; lpTmpPoint=lpTmpPoint->next)
       {
-        if (!(lpPoint->dwFlags & AEPT_LOCALMODIFY))
+        if (lpTmpPoint->ciPoint.nLine > liStart.nLine)
         {
-          if (lpPoint->ciPoint.nLine > liStart.nLine)
-          {
-            lpPoint->ciPoint.nLine+=nLineCount;
-            lpPoint->dwFlags|=AEPT_GLOBALMODIFY;
-          }
+          lpTmpPoint->ciPoint.nLine+=nLineCount;
+          lpTmpPoint->dwFlags|=AEPT_GLOBALMODIFY;
         }
       }
     }
@@ -6555,20 +6565,19 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
   return nLineCount;
 }
 
-int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
+int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT **lpPoint)
 {
+  AELINEINDEX liCurLine;
   AELINEDATA *lpNewElement;
   AELINEDATA *lpCurElement;
   AELINEDATA *lpNextElement;
-  AEPOINT *lpPoint;
+  AEPOINT *lpTmpPoint=*lpPoint;
   DWORD dwUnwrapLineWidth=0;
   DWORD dwUnwrapLineBreak=AELB_EOF;
   DWORD dwUnwrapLineLen=0;
   DWORD dwCountWidth=0;
   DWORD dwCountLen=0;
   int nLineCount=0;
-
-  AE_StackPointUnset(ae, AEPT_LOCALMODIFY);
 
   if (liLine->lpLine->nLineWidth == -1)
     AE_GetLineWidth(ae, liLine->lpLine);
@@ -6617,39 +6626,42 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
 
         if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
         {
-          lpCurElement=liLine->lpLine;
+          liCurLine=*liLine;
 
-          while (lpCurElement)
+          while (liCurLine.lpLine)
           {
-            AE_memcpy(lpNewElement->wpLine + dwCountLen, lpCurElement->wpLine, lpCurElement->nLineLen * sizeof(wchar_t));
-            dwCountWidth+=lpCurElement->nLineWidth;
-            dwCountLen+=lpCurElement->nLineLen;
+            AE_memcpy(lpNewElement->wpLine + dwCountLen, liCurLine.lpLine->wpLine, liCurLine.lpLine->nLineLen * sizeof(wchar_t));
+            dwCountWidth+=liCurLine.lpLine->nLineWidth;
+            dwCountLen+=liCurLine.lpLine->nLineLen;
 
             //Update points
-            for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first; lpPoint; lpPoint=lpPoint->next)
+            for (; lpTmpPoint; lpTmpPoint=lpTmpPoint->next)
             {
-              if (!(lpPoint->dwFlags & AEPT_LOCALMODIFY))
+              if (lpTmpPoint->ciPoint.nLine > liCurLine.nLine)
+                break;
+
+              if (lpTmpPoint->ciPoint.nLine == liCurLine.nLine)
               {
-                if (lpPoint->ciPoint.lpLine == lpCurElement)
-                {
-                  lpPoint->ciPoint.nLine+=nLineCount;
-                  lpPoint->ciPoint.lpLine=lpNewElement;
-                  lpPoint->ciPoint.nCharInLine+=(dwCountLen - lpCurElement->nLineLen);
-                  lpPoint->dwFlags|=AEPT_GLOBALMODIFY|AEPT_LOCALMODIFY;
-                }
+                lpTmpPoint->ciPoint.nLine+=nLineCount;
+                lpTmpPoint->ciPoint.lpLine=lpNewElement;
+                lpTmpPoint->ciPoint.nCharInLine+=(dwCountLen - liCurLine.lpLine->nLineLen);
+                lpTmpPoint->dwFlags|=AEPT_GLOBALMODIFY;
               }
+              else if (!nLineCount)
+                *lpPoint=lpTmpPoint;
             }
 
-            if (dwCountWidth >= dwMaxWidth || lpCurElement->nLineBreak != AELB_WRAP)
+            if (dwCountWidth >= dwMaxWidth || liCurLine.lpLine->nLineBreak != AELB_WRAP)
             {
-              AE_StackLineDelete(ae, lpCurElement);
+              AE_StackLineDelete(ae, liCurLine.lpLine);
               break;
             }
 
             --nLineCount;
-            lpNextElement=lpCurElement->next;
-            AE_StackLineDelete(ae, lpCurElement);
-            lpCurElement=lpNextElement;
+            lpNextElement=liCurLine.lpLine->next;
+            AE_StackLineDelete(ae, liCurLine.lpLine);
+            liCurLine.nLine+=1;
+            liCurLine.lpLine=lpNextElement;
           }
           lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
         }
@@ -6660,15 +6672,12 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth)
         liLine->lpLine=lpNewElement;
 
         //Update points
-        for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.first; lpPoint; lpPoint=lpPoint->next)
+        for (; lpTmpPoint; lpTmpPoint=lpTmpPoint->next)
         {
-          if (!(lpPoint->dwFlags & AEPT_LOCALMODIFY))
+          if (lpTmpPoint->ciPoint.nLine > liLine->nLine)
           {
-            if (lpPoint->ciPoint.nLine > liLine->nLine)
-            {
-              lpPoint->ciPoint.nLine+=nLineCount;
-              lpPoint->dwFlags|=AEPT_GLOBALMODIFY;
-            }
+            lpTmpPoint->ciPoint.nLine+=nLineCount;
+            lpTmpPoint->dwFlags|=AEPT_GLOBALMODIFY;
           }
         }
       }
