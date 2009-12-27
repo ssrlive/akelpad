@@ -4056,15 +4056,14 @@ ___________________
 
 Checks is line collapsed.
 
-(int)wParam == line number.
-lParam      == not used.
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), that will be checked initially. Can be NULL.
+(int)lParam      == line number.
 
 Return Value
- TRUE   line is collapsed.
- FALSE  line isn't collapsed.
+ Fold handle (pointer to a AEFOLD structure) that hides line or NULL if line isn't collapsed.
 
 Example:
- SendMessage(hWndEdit, AEM_LINEISCOLLAPSED, 5, 0);
+ SendMessage(hWndEdit, AEM_LINEISCOLLAPSED, (WPARAM)NULL, 5);
 
 
 AEM_FOLDISVALID

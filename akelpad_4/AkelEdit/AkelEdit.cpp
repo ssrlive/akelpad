@@ -1304,7 +1304,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_LINEISCOLLAPSED)
     {
-      return AE_StackLineIsCollapsed(ae, wParam);
+      return (LRESULT)AE_StackLineIsCollapsed(ae, (AEFOLD *)wParam, lParam);
     }
     if (uMsg == AEM_FOLDISVALID)
     {
@@ -4541,19 +4541,19 @@ void AE_StackBitmapItemsFree(HSTACK *hStack)
 
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AECHARRANGE *crRange)
 {
-  AEFOLD *lpElement1=(AEFOLD *)ae->hFoldsStack.first;
+  AEFOLD *lpElement1=(AEFOLD *)ae->hFoldsStack.last;
   AEFOLD *lpElement2=NULL;
 
   while (lpElement1)
   {
-    if (crRange->ciMin.nLine < lpElement1->lpMinPoint->ciPoint.nLine)
+    if (crRange->ciMin.nLine > lpElement1->lpMinPoint->ciPoint.nLine)
       break;
-    if (crRange->ciMin.nLine == lpElement1->lpMinPoint->ciPoint.nLine && crRange->ciMax.nLine <= lpElement1->lpMaxPoint->ciPoint.nLine)
+    if (crRange->ciMin.nLine == lpElement1->lpMinPoint->ciPoint.nLine && crRange->ciMax.nLine >= lpElement1->lpMaxPoint->ciPoint.nLine)
       break;
 
-    lpElement1=lpElement1->next;
+    lpElement1=lpElement1->prev;
   }
-  AE_HeapStackInsertBefore(ae, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEFOLD));
+  AE_HeapStackInsertAfter(ae, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEFOLD));
 
   if (lpElement2)
   {
@@ -4607,15 +4607,35 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
   return nResult;
 }
 
-BOOL AE_StackLineIsCollapsed(AKELEDIT *ae, int nLine)
+AEFOLD* AE_StackLineIsCollapsed(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
 {
-  AEFOLD *lpFold;
-
-  if (lpFold=AE_StackFoldGet(ae, nLine))
+  if (lpFold)
   {
-    return lpFold->bCollapse;
+    if (lpFold->bCollapse)
+    {
+      if (lpFold->lpMinPoint->ciPoint.nLine <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
+        return lpFold;
+    }
+    lpFold=NULL;
   }
-  return FALSE;
+
+  if (!lpFold)
+  {
+    AEFOLD *lpFold=(AEFOLD *)ae->hFoldsStack.first;
+
+    while (lpFold)
+    {
+      if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
+        break;
+      if (nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
+      {
+        if (lpFold->bCollapse)
+          return lpFold;
+      }
+      lpFold=lpFold->next;
+    }
+  }
+  return NULL;
 }
 
 void AE_StackFoldUpdate(AKELEDIT *ae)
@@ -5514,10 +5534,11 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
   else if (nType == AEGI_NEXTLINE)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
+    AEFOLD *lpFold=NULL;
 
     while (AE_NextLine(&ciCharTmp))
     {
-      if (!AE_StackLineIsCollapsed(ae, ciCharTmp.nLine))
+      if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
         break;
     }
 
@@ -5535,10 +5556,11 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
   else if (nType == AEGI_PREVLINE)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
+    AEFOLD *lpFold=NULL;
 
     while (AE_PrevLine(&ciCharTmp))
     {
-      if (!AE_StackLineIsCollapsed(ae, ciCharTmp.nLine))
+      if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
         break;
     }
 
@@ -5556,6 +5578,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
   else if (nType == AEGI_NEXTCHAR)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
+    AEFOLD *lpFold=NULL;
 
     if (bColumnSel)
     {
@@ -5569,7 +5592,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
       do
       {
-        if (!AE_StackLineIsCollapsed(ae, ciCharTmp.nLine))
+        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
           break;
       }
       while (AE_NextLine(&ciCharTmp));
@@ -5589,6 +5612,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
   else if (nType == AEGI_PREVCHAR)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
+    AEFOLD *lpFold=NULL;
 
     if (bColumnSel)
     {
@@ -5603,7 +5627,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
 
       do
       {
-        if (!AE_StackLineIsCollapsed(ae, ciCharTmp.nLine))
+        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
           break;
       }
       while (AE_PrevLine(&ciCharTmp));
@@ -9660,6 +9684,7 @@ void AE_Paint(AKELEDIT *ae)
     if (BeginPaint(ae->hWndEdit, &ps))
     {
       AEHLPAINT hlp={0};
+      AEFOLD *lpFold=NULL;
       AECHARINDEX ciDrawLine;
       AECHARINDEX ciLastCharInLine;
       RECT rcDraw;
@@ -9745,7 +9770,8 @@ void AE_Paint(AKELEDIT *ae)
 
       while (ciDrawLine.lpLine)
       {
-        if (!AE_StackLineIsCollapsed(ae, ciDrawLine.nLine))
+        //Line must be visible
+        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciDrawLine.nLine)))
         {
           //Get first paint char in line
           AE_GetCharInLine(ae, ciDrawLine.lpLine, nMinPaintWidth - ae->ptxt->nAveCharWidth, AECIL_ALLPOS, &ciDrawLine.nCharInLine, &nLineWidth, FALSE);
