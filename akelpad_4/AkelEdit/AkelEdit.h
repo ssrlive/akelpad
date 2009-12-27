@@ -4007,14 +4007,17 @@ ___________
 
 Hides the range of lines.
 
-(int)wParam == first line to hide.
-(int)lParam == last line to hide.
+wParam                == not used.
+(AECHARRANGE *)lParam == range of lines to hide.
 
 Return Value
  Fold handle (pointer to a AEFOLD structure).
 
 Example:
- SendMessage(hWndEdit, AEM_FOLDADD, 5, 10);
+ AECHARRANGE aecr;
+
+ SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&aecr.ciMin, (LPARAM)&aecr.ciMax);
+ SendMessage(hWndEdit, AEM_FOLDADD, 0, (LPARAM)&aecr);
 
 
 AEM_FOLDGET
