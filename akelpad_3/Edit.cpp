@@ -103,6 +103,7 @@ extern HACCEL hMainAccel;
 extern HICON hMainIcon;
 extern HICON hIconEmpty;
 extern HCURSOR hCursorDragMove;
+extern HBITMAP hBitmapClose;
 extern HMENU hMainMenu;
 extern HMENU hPopupMenu;
 extern HMENU hPopupEdit;
@@ -120,6 +121,7 @@ extern BOOL bMainOnStartFinish;
 extern HDOCK hDocksStack;
 extern NSIZE nsSize;
 extern WNDPROC OldDockProc;
+extern WNDPROC OldCloseButtonProc;
 
 //Codepages
 extern RECT rcRecodeDlg;

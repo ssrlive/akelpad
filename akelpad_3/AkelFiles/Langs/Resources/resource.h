@@ -83,6 +83,7 @@
 #define IDC_CURSOR_HANDOPEN             1102
 #define IDC_CURSOR_HANDCLOSE            1103
 #define IDB_BITMAP_DOWNARROW            1201
+#define IDB_BITMAP_CLOSE                1202
 #define IDA_ACCEL_GLOBAL                1301
 #define IDA_ACCEL_MAIN                  1302
 #define IDD_OFN                         2001

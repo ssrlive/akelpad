@@ -1118,6 +1118,7 @@ typedef struct _NSIZE {
 #define AKD_SETMODELESS            (WM_USER + 252)
 #define AKD_RESIZE                 (WM_USER + 253)
 #define AKD_DOCK                   (WM_USER + 254)
+#define AKD_SETCLOSEBUTTON         (WM_USER + 255)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -2793,6 +2794,21 @@ Example:
  dkNew=(DOCK *)SendMessage(pd->hMainWnd, AKD_DOCK, DK_ADD|DK_SUBCLASS, (LPARAM)&dk);
 
  SendMessage(pd->hMainWnd, AKD_DOCK, DK_DELETE, (LPARAM)dkNew);
+
+
+AKD_SETCLOSEBUTTON
+__________________
+
+Draw small cross on button 8x7 and make it unfocusable.
+
+(HWND)wParam  == button handle. Button must have BS_BITMAP style.
+lParam        == not used
+
+Return Value
+ zero
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETCLOSEBUTTON, (WPARAM)hWndButton, 0);
 
 
 AKD_GLOBALALLOC
