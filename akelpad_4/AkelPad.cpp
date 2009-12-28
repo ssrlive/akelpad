@@ -7712,29 +7712,65 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndFocusOld;
-  LRESULT lResult;
+  static BOOL bMouseDown=FALSE;
 
-  if (uMsg == WM_SETFOCUS)
+  if (uMsg == WM_MOUSEACTIVATE)
   {
-    hWndFocusOld=(HWND)wParam;
+    return MA_NOACTIVATE;
+  }
+  else if (uMsg == WM_SETFOCUS)
+  {
     return 0;
   }
   else if (uMsg == BM_SETSTYLE)
   {
     return 0;
   }
+  else if (uMsg == WM_LBUTTONDOWN ||
+           uMsg == WM_LBUTTONDBLCLK)
+  {
+    SendMessage(hWnd, BM_SETSTATE, BST_PUSHED, 0);
+    SetCapture(hWnd);
+    bMouseDown=TRUE;
+    return 0;
+  }
+  else if (uMsg == WM_MOUSEMOVE)
+  {
+    if (bMouseDown)
+    {
+      RECT rc;
+      POINT pt;
+
+      GetCursorPos(&pt);
+      GetWindowRect(hWnd, &rc);
+
+      if (PtInRect(&rc, pt))
+        SendMessage(hWnd, BM_SETSTATE, BST_PUSHED, 0);
+      else
+        SendMessage(hWnd, BM_SETSTATE, BST_UNCHECKED, 0);
+    }
+  }
+  else if (uMsg == WM_LBUTTONUP ||
+           uMsg == WM_CAPTURECHANGED)
+  {
+    if (bMouseDown)
+    {
+      bMouseDown=FALSE;
+      ReleaseCapture();
+
+      if (SendMessage(hWnd, BM_GETSTATE, 0, 0) & BST_PUSHED)
+      {
+        SendMessage(hWnd, BM_SETSTATE, BST_UNCHECKED, 0);
+        PostMessage(GetParent(hWnd), WM_COMMAND, MAKELONG(GetDlgCtrlID(hWnd), 0), 0);
+      }
+    }
+    return 0;
+  }
 
   if (!IsWindowUnicode(hWnd))
-    lResult=CallWindowProcA(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
+    return CallWindowProcA(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
   else
-    lResult=CallWindowProcW(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
-
-  if (uMsg == WM_LBUTTONUP)
-  {
-    if (hWndFocusOld) SetFocus(hWndFocusOld);
-  }
-  return lResult;
+    return CallWindowProcW(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT CALLBACK DummyProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
