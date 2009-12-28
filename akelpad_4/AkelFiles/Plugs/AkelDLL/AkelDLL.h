@@ -2801,7 +2801,7 @@ __________________
 
 Draw small cross on button 8x7 and make it unfocusable.
 
-(HWND)wParam  == button handle. Button must have BS_BITMAP style.
+(HWND)wParam  == button handle. Button must have BS_BITMAP style and if BS_NOTIFY specified, some notifications can be ignored.
 lParam        == not used
 
 Return Value
