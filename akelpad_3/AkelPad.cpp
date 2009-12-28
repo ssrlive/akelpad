@@ -129,6 +129,7 @@ HACCEL hMainAccel;
 HICON hMainIcon;
 HICON hIconEmpty;
 HCURSOR hCursorDragMove;
+HBITMAP hBitmapClose;
 HMENU hMainMenu;
 HMENU hPopupMenu;
 HMENU hPopupEdit;
@@ -146,6 +147,7 @@ BOOL bMainOnStartFinish=FALSE;
 HDOCK hDocksStack={0};
 NSIZE nsSize;
 WNDPROC OldDockProc=NULL;
+WNDPROC OldCloseButtonProc=NULL;
 
 //Codepages
 RECT rcRecodeDlg={0};
@@ -716,6 +718,7 @@ extern "C" void _WinMain()
     hMainIcon=API_LoadIconA(hLangLib, MAKEINTRESOURCEA(IDI_ICON_MAIN));
     hMainMenu=API_LoadMenuA(hLangLib, MAKEINTRESOURCEA(IDM_MENU_MAIN));
     hPopupMenu=API_LoadMenuA(hLangLib, MAKEINTRESOURCEA(IDM_MENU_POPUP));
+    hBitmapClose=(HBITMAP)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDB_BITMAP_CLOSE), IMAGE_BITMAP, 0, 0, 0);
     if (bMDI)
     {
       hIconEmpty=(HICON)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
@@ -1150,6 +1153,7 @@ extern "C" void _WinMain()
     hMainIcon=API_LoadIconW(hLangLib, MAKEINTRESOURCEW(IDI_ICON_MAIN));
     hMainMenu=API_LoadMenuW(hLangLib, MAKEINTRESOURCEW(IDM_MENU_MAIN));
     hPopupMenu=API_LoadMenuW(hLangLib, MAKEINTRESOURCEW(IDM_MENU_POPUP));
+    hBitmapClose=(HBITMAP)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDB_BITMAP_CLOSE), IMAGE_BITMAP, 0, 0, 0);
     if (bMDI)
     {
       hIconEmpty=(HICON)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
@@ -2392,6 +2396,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return (LRESULT)lpResult;
     }
+    if (uMsg == AKD_SETCLOSEBUTTON)
+    {
+      SendMessage((HWND)wParam, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmapClose);
+      OldCloseButtonProc=(WNDPROC)GetWindowLongA((HWND)wParam, GWL_WNDPROC);
+      SetWindowLongA((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
+      return 0;
+    }
 
     //Thread
     if (uMsg == AKD_GLOBALALLOC)
@@ -3331,6 +3342,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     DestroyAcceleratorTable(hMainAccel);
     DestroyAcceleratorTable(hGlobalAccel);
+    DeleteObject(hBitmapClose);
     DestroyIcon(hMainIcon);
     DestroyMenu(hMainMenu);
     DestroyMenu(hPopupMenu);
@@ -4230,6 +4242,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         StackDockDelete(&hDocksStack, lpDock);
       }
       return (LRESULT)lpResult;
+    }
+    if (uMsg == AKD_SETCLOSEBUTTON)
+    {
+      SendMessage((HWND)wParam, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmapClose);
+      OldCloseButtonProc=(WNDPROC)GetWindowLongW((HWND)wParam, GWL_WNDPROC);
+      SetWindowLongW((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
+      return 0;
     }
 
     //Thread
@@ -5170,6 +5189,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     DestroyAcceleratorTable(hMainAccel);
     DestroyAcceleratorTable(hGlobalAccel);
+    DeleteObject(hBitmapClose);
     DestroyIcon(hMainIcon);
     DestroyMenu(hMainMenu);
     DestroyMenu(hPopupMenu);
@@ -7064,6 +7084,33 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     }
   }
   return 0;
+}
+
+LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndFocusOld;
+  LRESULT lResult;
+
+  if (uMsg == WM_SETFOCUS)
+  {
+    hWndFocusOld=(HWND)wParam;
+    return 0;
+  }
+  else if (uMsg == BM_SETSTYLE)
+  {
+    return 0;
+  }
+
+  if (!IsWindowUnicode(hWnd))
+    lResult=CallWindowProcA(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
+  else
+    lResult=CallWindowProcW(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
+
+  if (uMsg == WM_LBUTTONUP)
+  {
+    if (hWndFocusOld) SetFocus(hWndFocusOld);
+  }
+  return lResult;
 }
 
 LRESULT CALLBACK DummyProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
