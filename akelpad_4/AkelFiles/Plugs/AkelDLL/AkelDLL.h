@@ -1118,6 +1118,7 @@ typedef struct _NSIZE {
 #define AKD_SETMODELESS            (WM_USER + 252)
 #define AKD_RESIZE                 (WM_USER + 253)
 #define AKD_DOCK                   (WM_USER + 254)
+#define AKD_SETCLOSEBUTTON         (WM_USER + 255)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)

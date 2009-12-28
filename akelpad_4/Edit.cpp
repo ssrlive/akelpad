@@ -109,6 +109,7 @@ extern HICON hMainIcon;
 extern HCURSOR hCursorDragMove;
 extern HCURSOR hCursorHandOpen;
 extern HCURSOR hCursorHandClose;
+extern HBITMAP hBitmapClose;
 extern HMENU hMainMenu;
 extern HMENU hPopupMenu;
 extern HMENU hPopupEdit;
@@ -138,6 +139,7 @@ extern RECT rcMasterWindow;
 extern HDOCK hDocksStack;
 extern NSIZE nsSize;
 extern WNDPROC OldDockProc;
+extern WNDPROC OldCloseButtonProc;
 
 //Codepages
 extern RECT rcRecodeDlg;
