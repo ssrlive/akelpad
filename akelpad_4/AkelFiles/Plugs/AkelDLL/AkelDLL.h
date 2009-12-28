@@ -2796,6 +2796,21 @@ Example:
  SendMessage(pd->hMainWnd, AKD_DOCK, DK_DELETE, (LPARAM)dkNew);
 
 
+AKD_SETCLOSEBUTTON
+__________________
+
+Draw small cross on button 8x7 and make it unfocusable.
+
+(HWND)wParam  == button handle. Button must have BS_BITMAP style.
+lParam        == not used
+
+Return Value
+ zero
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETCLOSEBUTTON, (WPARAM)hWndButton, 0);
+
+
 AKD_GLOBALALLOC
 _______________
 

@@ -1697,6 +1697,8 @@ const
   {$EXTERNALSYM AKD_RESIZE}
   AKD_DOCK  =                    (WM_USER + 254);  //0x420
   {$EXTERNALSYM AKD_DOCK}
+  AKD_SETCLOSEBUTTON  =          (WM_USER + 255);  //0x420
+  {$EXTERNALSYM AKD_SETCLOSEBUTTON}
 
 //Thread
   AKD_GLOBALALLOC  =             (WM_USER + 281);  //0x420
@@ -3385,6 +3387,21 @@ const
 // dkNew=(DOCK *)SendMessage(pd->hMainWnd, AKD_DOCK, DK_ADD|DK_SUBCLASS, (LPARAM)&dk);
 //
 // SendMessage(pd->hMainWnd, AKD_DOCK, DK_DELETE, (LPARAM)dkNew);
+//
+//
+//AKD_SETCLOSEBUTTON
+//__________________
+//
+//Draw small cross on button 8x7 and make it unfocusable.
+//
+//(HWND)wParam  == button handle. Button must have BS_BITMAP style.
+//lParam        == not used
+//
+//Return Value
+// zero
+//
+//Example:
+// SendMessage(pd->hMainWnd, AKD_SETCLOSEBUTTON, (WPARAM)hWndButton, 0);
 //
 //
 //AKD_GLOBALALLOC
