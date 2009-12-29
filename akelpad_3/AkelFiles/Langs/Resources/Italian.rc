@@ -9,7 +9,7 @@
 //
 #ifndef EXE_VERSION
   #define RC_VERSIONDESCRIPTION "AkelPad language module"
-  #define RC_VERSIONCOPYRIGHT "© 2009 Giovanni Fiocco aka Vecna"
+  #define RC_VERSIONCOPYRIGHT "© 2010 Giovanni Fiocco aka Vecna"
   #define RC_VERSIONNAME "Italian.dll"
 #endif
 #include "winresrc.h"
@@ -705,7 +705,7 @@ BEGIN
                     WS_BORDER,WS_EX_STATICEDGE
     EDITTEXT        IDC_ABOUT_EMAIL_KUZNETSOV,74,140,106,12,ES_READONLY | 
                     NOT WS_BORDER,WS_EX_STATICEDGE
-    LTEXT           "Shengalts Aleksander, 2006-2009",IDC_STATIC,73,82,120,
+    LTEXT           "Shengalts Aleksander, 2006-2010",IDC_STATIC,73,82,120,
                     12,NOT WS_GROUP
     LTEXT           "Alexey Kuznetsov, 2003-2006",IDC_STATIC,73,125,120,12,
                     NOT WS_GROUP
@@ -736,7 +736,7 @@ END
 BEGIN
     "#ifndef EXE_VERSION\r\n"
     "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""© 2009 Giovanni Fiocco aka Vecna""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2010 Giovanni Fiocco aka Vecna""\r\n"
     "  #define RC_VERSIONNAME ""Italian.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"
