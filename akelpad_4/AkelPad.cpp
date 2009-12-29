@@ -109,8 +109,8 @@ HSTACK hPluginListStack={0};
 HSTACK hHandlesStack={0};
 HHOOK hHookPlugins;
 HWND hWndHotkey;
-BOOL bHotkeyLeftButtonClick;
 RECT rcPluginsDialog={0};
+BOOL bHotkeyLeftButtonClick;
 BOOL bSavePluginsStackOnExit=FALSE;
 
 //INI
