@@ -1310,11 +1310,18 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       return (LRESULT)AE_StackFoldIsValid(ae, (AEFOLD *)wParam);
     }
-    if (uMsg == AEM_UNFOLDLINES)
+    if (uMsg == AEM_FOLDDELETE)
     {
-      if (AE_StackFoldIsValid(ae, (AEFOLD *)wParam))
-        AE_StackFoldDelete(ae, (AEFOLD *)wParam);
-      return 0;
+      if (wParam)
+      {
+        if (AE_StackFoldIsValid(ae, (AEFOLD *)wParam))
+          AE_StackFoldDelete(ae, (AEFOLD *)wParam);
+        else
+          return FALSE;
+      }
+      else AE_StackFoldFree(ae);
+
+      return TRUE;
     }
 
     //Window data
@@ -3829,7 +3836,7 @@ void AE_DestroyWindowData(AKELEDIT *ae)
       ae->ptxt->hHeap=NULL;
 
     AE_StackPointFree(ae);
-    //AE_StackFoldFree(ae)
+    //AE_StackFoldFree(ae);
     //AE_StackLineFree(ae);
   }
 

@@ -1204,7 +1204,7 @@ typedef struct {
 #define AEM_FOLDCOLLAPSE          (WM_USER + 2363)
 #define AEM_LINEISCOLLAPSED       (WM_USER + 2364)
 #define AEM_FOLDISVALID           (WM_USER + 2365)
-#define AEM_UNFOLDLINES           (WM_USER + 2366)
+#define AEM_FOLDDELETE            (WM_USER + 2366)
 
 //Window data
 #define AEM_GETWINDOWDATA         (WM_USER + 2401)
@@ -4082,19 +4082,20 @@ Example:
  SendMessage(hWndEdit, AEM_FOLDISVALID, (WPARAM)lpFold, 0);
 
 
-AEM_UNFOLDLINES
-_______________
+AEM_FOLDDELETE
+______________
 
-Shows hidden range of lines.
+Deletes specified or all folds.
 
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDADD.
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure). If NULL, then delete all folds.
 lParam           == not used.
 
 Return Value
- zero
+ TRUE   success.
+ FALSE  failed.
 
 Example:
- SendMessage(hWndEdit, AEM_UNFOLDLINES, (WPARAM)lpFold, 0);
+ SendMessage(hWndEdit, AEM_FOLDDELETE, (WPARAM)lpFold, 0);
 
 
 AEM_GETWINDOWDATA
