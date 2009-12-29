@@ -4573,16 +4573,19 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AECHARRANGE *crRange)
 
 AEFOLD* AE_StackFoldGet(AKELEDIT *ae, int nLine)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+  AEFOLD *lpFold=(AEFOLD *)ae->hFoldsStack.first;
+  AEFOLD *lpResult=NULL;
 
-  while (lpElement)
+  while (lpFold)
   {
-    if (lpElement->lpMinPoint->ciPoint.nLine <= nLine && nLine <= lpElement->lpMaxPoint->ciPoint.nLine)
-      return lpElement;
+    if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
+      break;
+    if (nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
+      lpResult=lpFold;
 
-    lpElement=lpElement->next;
+    lpFold=lpFold->next;
   }
-  return NULL;
+  return lpResult;
 }
 
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
