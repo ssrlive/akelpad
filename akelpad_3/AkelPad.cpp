@@ -2398,7 +2398,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETCLOSEBUTTON)
     {
-      SendMessage((HWND)wParam, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmapClose);
+      HBITMAP hBitmap=(HBITMAP)lParam;
+
+      if (!hBitmap) hBitmap=hBitmapClose;
+      SendMessage((HWND)wParam, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
       OldCloseButtonProc=(WNDPROC)GetWindowLongA((HWND)wParam, GWL_WNDPROC);
       SetWindowLongA((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
       return 0;
@@ -4245,7 +4248,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETCLOSEBUTTON)
     {
-      SendMessage((HWND)wParam, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmapClose);
+      HBITMAP hBitmap=(HBITMAP)lParam;
+
+      if (!hBitmap) hBitmap=hBitmapClose;
+      SendMessage((HWND)wParam, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
       OldCloseButtonProc=(WNDPROC)GetWindowLongW((HWND)wParam, GWL_WNDPROC);
       SetWindowLongW((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
       return 0;
