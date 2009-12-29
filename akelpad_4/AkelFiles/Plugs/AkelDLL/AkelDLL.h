@@ -2799,16 +2799,16 @@ Example:
 AKD_SETCLOSEBUTTON
 __________________
 
-Draw small cross on button 8x7 and make it unfocusable.
+Draw bitmap on button and make it unfocusable.
 
-(HWND)wParam  == button handle. Button must have BS_BITMAP style and if BS_NOTIFY specified, some notifications can be ignored.
-lParam        == not used
+(HWND)wParam    == button handle. Button must have BS_BITMAP style and if BS_NOTIFY specified, some notifications can be ignored.
+(HBITMAP)lParam == bitmap handle. If NULL, then default bitmap is small cross 8x7.
 
 Return Value
  zero
 
 Example:
- SendMessage(pd->hMainWnd, AKD_SETCLOSEBUTTON, (WPARAM)hWndButton, 0);
+ SendMessage(pd->hMainWnd, AKD_SETCLOSEBUTTON, (WPARAM)hWndButton, (LPARAM)NULL);
 
 
 AKD_GLOBALALLOC
