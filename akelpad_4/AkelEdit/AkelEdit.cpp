@@ -1279,8 +1279,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       AECHARRANGE crRange=*(AECHARRANGE *)lParam;
 
-      AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &crRange.ciMin, &crRange.ciMin, FALSE);
-      AE_GetIndex(ae, AEGI_WRAPLINEEND, &crRange.ciMax, &crRange.ciMax, FALSE);
+      //AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &crRange.ciMin, &crRange.ciMin, FALSE);
+      //AE_GetIndex(ae, AEGI_WRAPLINEEND, &crRange.ciMax, &crRange.ciMax, FALSE);
       return (LRESULT)AE_StackFoldInsert(ae, &crRange);
     }
     if (uMsg == AEM_FOLDGET)
