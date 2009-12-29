@@ -8,8 +8,8 @@ uses
 procedure DllAkelPadID(var pv: TPluginVersion); cdecl; export;
 begin
   pv.dwAkelDllVersion:= AKELDLL;
-  pv.dwExeMinVersion3x:= MakeIdentifier(3,7,3,0);
-  pv.dwExeMinVersion4x:= MakeIdentifier(4,3,0,0);
+  pv.dwExeMinVersion3x:= MakeIdentifier(3,7,4,0);
+  pv.dwExeMinVersion4x:= MakeIdentifier(4,4,0,0);
 end;
 
 //Plugin extern function
