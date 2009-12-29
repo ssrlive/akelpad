@@ -7724,7 +7724,7 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == BM_SETSTYLE)
   {
-    return 0;
+    wParam&=~BS_DEFPUSHBUTTON;
   }
   else if (uMsg == WM_LBUTTONDOWN ||
            uMsg == WM_LBUTTONDBLCLK)
