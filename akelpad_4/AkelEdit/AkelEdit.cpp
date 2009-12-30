@@ -1250,6 +1250,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       }
       return 0;
     }
+    if (uMsg == AEM_GETTEXTLIMIT)
+    {
+      return ae->ptxt->dwTextLimit;
+    }
+    if (uMsg == AEM_SETTEXTLIMIT)
+    {
+      ae->ptxt->dwTextLimit=wParam;
+      return 0;
+    }
 
     //Draw
     if (uMsg == AEM_SHOWSCROLLBAR)
@@ -4565,7 +4574,11 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AECHARRANGE *crRange)
   if (lpElement2)
   {
     lpElement2->lpMinPoint=AE_StackPointInsert(ae, &crRange->ciMin);
+    lpElement2->lpMinPoint->dwFlags=AEPT_FOLD;
+    lpElement2->lpMinPoint->dwUserData=(DWORD)lpElement2;
     lpElement2->lpMaxPoint=AE_StackPointInsert(ae, &crRange->ciMax);
+    lpElement2->lpMaxPoint->dwFlags=AEPT_FOLD;
+    lpElement2->lpMaxPoint->dwUserData=(DWORD)lpElement2;
     lpElement2->bCollapse=FALSE;
   }
   return lpElement2;
@@ -4740,7 +4753,8 @@ void AE_StackPointReset(AKELEDIT *ae)
   while (lpElement)
   {
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &lpElement->ciPoint, FALSE);
-    lpElement->dwFlags|=AEPT_MODIFY;
+    lpElement->dwFlags|=AEPT_MODIFY|AEPT_DELETE;
+    AE_NotifyPoint(ae, lpElement);
 
     lpElement=lpElement->next;
   }
@@ -13072,7 +13086,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
     nExtraEndOffset=max(ciDeleteEnd.nCharInLine - ciDeleteEnd.lpLine->nLineLen, 0);
 
     //Send AEN_TEXTDELETEBEGIN
-    if (ae->popt->dwEventMask & AENM_TEXTCHANGE)
+    if (ae->popt->dwEventMask & AENM_TEXTDELETE)
     {
       AENTEXTDELETE td;
 
@@ -13133,7 +13147,10 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                     lpElement->nSelStart < lpElement->nLineLen)
                 {
                   if (lpPoint->ciPoint.nCharInLine < lpElement->nSelEnd)
+                  {
                     lpPoint->dwFlags|=AEPT_DELETE;
+                    AE_NotifyPoint(ae, lpPoint);
+                  }
                   lpPoint->ciPoint.nCharInLine-=(min(lpElement->nSelEnd, lpElement->nLineLen) - lpElement->nSelStart);
                   lpPoint->ciPoint.nCharInLine=max(lpPoint->ciPoint.nCharInLine, lpElement->nSelStart);
                 }
@@ -13419,6 +13436,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
               {
                 lpPoint->ciPoint.nCharInLine=ciDeleteStart.nCharInLine;
                 lpPoint->dwFlags|=AEPT_DELETE;
+                AE_NotifyPoint(ae, lpPoint);
               }
             }
             lpPoint->ciPoint.nLine=ciDeleteStart.nLine;
@@ -13597,7 +13615,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
     }
 
     //Send AEN_TEXTDELETEEND
-    if (ae->popt->dwEventMask & AENM_TEXTCHANGE)
+    if (ae->popt->dwEventMask & AENM_TEXTDELETE)
     {
       AENTEXTDELETE td;
 
@@ -13682,7 +13700,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
       nEndOffset=nStartOffset;
 
       //Send AEN_TEXTINSERTBEGIN
-      if (ae->popt->dwEventMask & AENM_TEXTCHANGE)
+      if (ae->popt->dwEventMask & AENM_TEXTINSERT)
       {
         AENTEXTINSERT ti;
 
@@ -14480,7 +14498,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
       }
 
       //Send AEN_TEXTINSERTEND
-      if (ae->popt->dwEventMask & AENM_TEXTCHANGE)
+      if (ae->popt->dwEventMask & AENM_TEXTINSERT)
       {
         AENTEXTINSERT ti;
 
@@ -16175,12 +16193,6 @@ void AE_NotifyErrSpace(AKELEDIT *ae, DWORD dwBytes)
   AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_ERRSPACE), (LPARAM)ae->hWndEdit);
 }
 
-void AE_NotifyMaxText(AKELEDIT *ae)
-{
-  //Send EN_MAXTEXT
-  AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_MAXTEXT), (LPARAM)ae->hWndEdit);
-}
-
 void AE_NotifySetFocus(AKELEDIT *ae)
 {
   //Send AEN_SETFOCUS
@@ -16211,6 +16223,103 @@ void AE_NotifyKillFocus(AKELEDIT *ae)
 
   //Send EN_KILLFOCUS
   AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_KILLFOCUS), (LPARAM)ae->hWndEdit);
+}
+
+void AE_NotifyHScroll(AKELEDIT *ae)
+{
+  //Send AEN_HSCROLL
+  if (ae->popt->dwEventMask & AENM_SCROLL)
+  {
+    AENSCROLL aens;
+
+    aens.hdr.hwndFrom=ae->hWndEdit;
+    aens.hdr.idFrom=ae->nEditCtrlID;
+    aens.hdr.code=AEN_HSCROLL;
+    aens.nPosNew=ae->nHScrollPos;
+    aens.nPosOld=ae->nLastHScrollPos;
+    aens.nPosMax=ae->ptxt->nHScrollMax;
+    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
+  }
+
+  //Send EN_HSCROLL
+  if (ae->popt->dwRichEventMask & ENM_SCROLL)
+  {
+    AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_HSCROLL), (LPARAM)ae->hWndEdit);
+  }
+}
+
+void AE_NotifyVScroll(AKELEDIT *ae)
+{
+  //Send AEN_VSCROLL
+  if (ae->popt->dwEventMask & AENM_SCROLL)
+  {
+    AENSCROLL aens;
+
+    aens.hdr.hwndFrom=ae->hWndEdit;
+    aens.hdr.idFrom=ae->nEditCtrlID;
+    aens.hdr.code=AEN_VSCROLL;
+    aens.nPosNew=ae->nVScrollPos;
+    aens.nPosOld=ae->nLastVScrollPos;
+    aens.nPosMax=ae->ptxt->nVScrollMax;
+    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
+  }
+
+  //Send EN_VSCROLL
+  if (ae->popt->dwRichEventMask & ENM_SCROLL)
+  {
+    AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_VSCROLL), (LPARAM)ae->hWndEdit);
+  }
+}
+
+void AE_NotifyMaxText(AKELEDIT *ae)
+{
+  //Send AEN_MAXTEXT
+  {
+    NMHDR hdr;
+
+    hdr.hwndFrom=ae->hWndEdit;
+    hdr.idFrom=ae->nEditCtrlID;
+    hdr.code=AEN_MAXTEXT;
+    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+  }
+
+  //Send EN_MAXTEXT
+  AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_MAXTEXT), (LPARAM)ae->hWndEdit);
+}
+
+BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, int nCurrent, int nMaximum)
+{
+  BOOL bResult=FALSE;
+
+  //Send AEN_PROGRESS
+  {
+    AENPROGRESS aenp;
+
+    aenp.hdr.hwndFrom=ae->hWndEdit;
+    aenp.hdr.idFrom=ae->nEditCtrlID;
+    aenp.hdr.code=AEN_PROGRESS;
+    aenp.dwType=dwType;
+    aenp.dwTimeElapsed=dwTimeElapsed;
+    aenp.nCurrent=nCurrent;
+    aenp.nMaximum=nMaximum;
+    bResult=AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenp);
+  }
+  return bResult;
+}
+
+void AE_NotifyModify(AKELEDIT *ae)
+{
+  //Send AEN_MODIFY
+  if (ae->popt->dwEventMask & AENM_MODIFY)
+  {
+    AENMODIFY aenm;
+
+    aenm.hdr.hwndFrom=ae->hWndEdit;
+    aenm.hdr.idFrom=ae->nEditCtrlID;
+    aenm.hdr.code=AEN_MODIFY;
+    aenm.bModified=ae->ptxt->bModified;
+    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenm);
+  }
 }
 
 void AE_NotifySelChanging(AKELEDIT *ae, DWORD dwType)
@@ -16315,21 +16424,6 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
   }
 }
 
-void AE_NotifyModify(AKELEDIT *ae)
-{
-  //Send AEN_MODIFY
-  if (ae->popt->dwEventMask & AENM_MODIFY)
-  {
-    AENMODIFY aenm;
-
-    aenm.hdr.hwndFrom=ae->hWndEdit;
-    aenm.hdr.idFrom=ae->nEditCtrlID;
-    aenm.hdr.code=AEN_MODIFY;
-    aenm.bModified=ae->ptxt->bModified;
-    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenm);
-  }
-}
-
 void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType)
 {
   AE_NotifySelChanging(ae, LOWORD(dwType));
@@ -16380,74 +16474,19 @@ void AE_NotifyChanged(AKELEDIT *ae)
   }
 }
 
-void AE_NotifyHScroll(AKELEDIT *ae)
+void AE_NotifyPoint(AKELEDIT *ae, AEPOINT *lpPoint)
 {
-  //Send AEN_HSCROLL
-  if (ae->popt->dwEventMask & AENM_SCROLL)
+  //Send AEN_MODIFY
+  if (ae->popt->dwEventMask & AENM_POINT)
   {
-    AENSCROLL aens;
+    AENPOINT aenp;
 
-    aens.hdr.hwndFrom=ae->hWndEdit;
-    aens.hdr.idFrom=ae->nEditCtrlID;
-    aens.hdr.code=AEN_HSCROLL;
-    aens.nPosNew=ae->nHScrollPos;
-    aens.nPosOld=ae->nLastHScrollPos;
-    aens.nPosMax=ae->ptxt->nHScrollMax;
-    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
+    aenp.hdr.hwndFrom=ae->hWndEdit;
+    aenp.hdr.idFrom=ae->nEditCtrlID;
+    aenp.hdr.code=AEN_POINT;
+    aenp.lpPoint=lpPoint;
+    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenp);
   }
-
-  //Send EN_HSCROLL
-  if (ae->popt->dwRichEventMask & ENM_SCROLL)
-  {
-    AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_HSCROLL), (LPARAM)ae->hWndEdit);
-  }
-}
-
-void AE_NotifyVScroll(AKELEDIT *ae)
-{
-  //Send AEN_VSCROLL
-  if (ae->popt->dwEventMask & AENM_SCROLL)
-  {
-    AENSCROLL aens;
-
-    aens.hdr.hwndFrom=ae->hWndEdit;
-    aens.hdr.idFrom=ae->nEditCtrlID;
-    aens.hdr.code=AEN_VSCROLL;
-    aens.nPosNew=ae->nVScrollPos;
-    aens.nPosOld=ae->nLastVScrollPos;
-    aens.nPosMax=ae->ptxt->nVScrollMax;
-    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aens);
-  }
-
-  //Send EN_VSCROLL
-  if (ae->popt->dwRichEventMask & ENM_SCROLL)
-  {
-    AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_VSCROLL), (LPARAM)ae->hWndEdit);
-  }
-}
-
-BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam)
-{
-  BOOL bResult=FALSE;
-
-  //Send EN_MSGFILTER
-  {
-    MSGFILTER mf;
-
-    mf.nmhdr.hwndFrom=ae->hWndEdit;
-    mf.nmhdr.idFrom=ae->nEditCtrlID;
-    mf.nmhdr.code=EN_MSGFILTER;
-    mf.msg=uMsg;
-    mf.wParam=*wParam;
-    mf.lParam=*lParam;
-
-    if (!(bResult=AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&mf)))
-    {
-      *wParam=mf.wParam;
-      *lParam=mf.lParam;
-    }
-  }
-  return bResult;
 }
 
 BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
@@ -16620,22 +16659,26 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
   return FALSE;
 }
 
-BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, int nCurrent, int nMaximum)
+BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam)
 {
   BOOL bResult=FALSE;
 
-  //Send AEN_PROGRESS
+  //Send EN_MSGFILTER
   {
-    AENPROGRESS aenp;
+    MSGFILTER mf;
 
-    aenp.hdr.hwndFrom=ae->hWndEdit;
-    aenp.hdr.idFrom=ae->nEditCtrlID;
-    aenp.hdr.code=AEN_PROGRESS;
-    aenp.dwType=dwType;
-    aenp.dwTimeElapsed=dwTimeElapsed;
-    aenp.nCurrent=nCurrent;
-    aenp.nMaximum=nMaximum;
-    bResult=AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenp);
+    mf.nmhdr.hwndFrom=ae->hWndEdit;
+    mf.nmhdr.idFrom=ae->nEditCtrlID;
+    mf.nmhdr.code=EN_MSGFILTER;
+    mf.msg=uMsg;
+    mf.wParam=*wParam;
+    mf.lParam=*lParam;
+
+    if (!(bResult=AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&mf)))
+    {
+      *wParam=mf.wParam;
+      *lParam=mf.lParam;
+    }
   }
   return bResult;
 }
