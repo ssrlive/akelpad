@@ -43,15 +43,18 @@
 #define AES_URLPREFIXESW        L"http:\0https:\0www.\0ftp:\0file:\0mailto:\0\0"
 
 //AEM_SETEVENTMASK flags
-#define AENM_SELCHANGE          0x00000001  //Sends AEN_SELCHANGING and AEN_SELCHANGED notifications.
-#define AENM_TEXTCHANGE         0x00000002  //Sends AEN_TEXTCHANGING and AEN_TEXTCHANGED notifications.
-#define AENM_MODIFY             0x00000004  //Sends AEN_MODIFY notifications.
-#define AENM_MAXTEXT            0x00000008  //Don't use it. For internal code only.
-#define AENM_SCROLL             0x00000010  //Sends AEN_HSCROLL and AEN_VSCROLL notifications.
-#define AENM_DROPFILES          0x00000020  //Sends AEN_DROPFILES notifications.
-#define AENM_DRAGDROP           0x00000040  //Sends AEN_DROPSOURCE and AEN_DROPTARGET notifications.
-#define AENM_LINK               0x00000080  //Sends AEN_LINK notifications.
-#define AENM_PROGRESS           0x00000100  //Sends AEN_PROGRESS notifications.
+#define AENM_SCROLL             0x00000001  //Sends AEN_HSCROLL and AEN_VSCROLL notifications.
+#define AENM_MAXTEXT            0x00000010  //Don't use it. For internal code only.
+#define AENM_PROGRESS           0x00000020  //Sends AEN_PROGRESS notifications.
+#define AENM_MODIFY             0x00000040  //Sends AEN_MODIFY notifications.
+#define AENM_SELCHANGE          0x00000080  //Sends AEN_SELCHANGING and AEN_SELCHANGED notifications.
+#define AENM_TEXTCHANGE         0x00000100  //Sends AEN_TEXTCHANGING and AEN_TEXTCHANGED notifications.
+#define AENM_TEXTINSERT         0x00000200  //Sends AEN_TEXTINSERTBEGIN and AEN_TEXTINSERTEND notifications.
+#define AENM_TEXTDELETE         0x00000400  //Sends AEN_TEXTDELETEBEGIN and AEN_TEXTDELETEEND notifications.
+#define AENM_POINT              0x00000800  //Sends AEN_POINT notifications.
+#define AENM_DROPFILES          0x00010000  //Sends AEN_DROPFILES notifications.
+#define AENM_DRAGDROP           0x00020000  //Sends AEN_DROPSOURCE and AEN_DROPTARGET notifications.
+#define AENM_LINK               0x00040000  //Sends AEN_LINK notifications.
 
 //AEN_SELCHANGING and AEN_SELCHANGED types
 #define AESCT_REPLACESEL        0x00000001  //Replace selection.
@@ -205,6 +208,7 @@
 //AEM_ADDPOINT flags
 #define AEPT_MODIFY     0x00000001  //If set, AEPOINT.ciPoint index has been modified.
 #define AEPT_DELETE     0x00000002  //If set, AEPOINT.ciPoint index has been deleted. Additional for AEPT_MODIFY flag.
+#define AEPT_FOLD       0x00000010  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
@@ -808,6 +812,11 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
+  AEPOINT *lpPoint;    //pointer to a AEPOINT structure.
+} AENPOINT;
+
+typedef struct {
+  NMHDR hdr;
   int nPosNew;         //Current scroll position.
   int nPosOld;         //Previous scroll position.
   int nPosMax;         //Maximum scroll position.
@@ -1046,6 +1055,7 @@ typedef struct {
 #define AEN_VSCROLL               (WM_USER + 1029)  //0x805
 
 //Text notifications
+#define AEN_MAXTEXT               (WM_USER + 1050)  //0x81A
 #define AEN_PROGRESS              (WM_USER + 1051)  //0x81B
 #define AEN_MODIFY                (WM_USER + 1052)  //0x81C
 #define AEN_SELCHANGING           (WM_USER + 1053)  //0x81D
@@ -1056,6 +1066,7 @@ typedef struct {
 #define AEN_TEXTDELETEBEGIN       (WM_USER + 1058)  //0x822
 #define AEN_TEXTDELETEEND         (WM_USER + 1059)  //0x823
 #define AEN_TEXTCHANGED           (WM_USER + 1060)  //0x824
+#define AEN_POINT                 (WM_USER + 1061)  //0x825
 
 //Mouse notifications
 #define AEN_DROPFILES             (WM_USER + 1076)  //0x834
@@ -1193,6 +1204,8 @@ typedef struct {
 #define AEM_SETMARKER             (WM_USER + 2234)
 #define AEM_GETLINEGAP            (WM_USER + 2235)
 #define AEM_SETLINEGAP            (WM_USER + 2236)
+#define AEM_GETTEXTLIMIT          (WM_USER + 2237)
+#define AEM_SETTEXTLIMIT          (WM_USER + 2238)
 
 //Draw
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
@@ -1375,6 +1388,86 @@ Return Value
  zero
 
 
+AEN_HSCROLL
+___________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure before an edit control window scrolled horizontally.
+
+(int)wParam         == specifies the control identifier.
+(AENSCROLL *)lParam == pointer to a AENSCROLL structure.
+
+Return Value
+ If zero, the control allows scroll operation.
+ If a nonzero value, the control suppress scroll operation.
+
+Remarks
+ To receive AEN_HSCROLL notifications, specify AENM_SCROLL in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_VSCROLL
+___________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure before an edit control window scrolled horizontally.
+
+(int)wParam         == specifies the control identifier.
+(AENSCROLL *)lParam == pointer to a AENSCROLL structure.
+
+Return Value
+ If zero, the control allows scroll operation.
+ If a nonzero value, the control suppress scroll operation.
+
+Remarks
+ To receive AEN_VSCROLL notifications, specify AENM_SCROLL in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_MAXTEXT
+___________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when an edit control rich text limit.
+
+(int)wParam     == specifies the control identifier.
+(NMHDR *)lParam == pointer to a NMHDR structure.
+
+Return Value
+ zero
+
+
+AEN_PROGRESS
+____________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure when required number of lines was proceed.
+
+(int)wParam           == specifies the control identifier.
+(AENPROGRESS *)lParam == pointer to a AENPROGRESS structure.
+
+Return Value
+ If zero, the control continues operation.
+ If a nonzero value, the control stops operation.
+
+Remarks
+ To receive AEN_PROGRESS notifications, specify AENM_PROGRESS in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_MODIFY
+__________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure after the document modify state has changed.
+
+(int)wParam         == specifies the control identifier.
+(AENMODIFY *)lParam == pointer to a AENMODIFY structure.
+
+Return Value
+ zero
+
+Remarks
+ To receive AEN_MODIFY notifications, specify AENM_MODIFY in the mask sent with the AEM_SETEVENTMASK message.
+
+
 AEN_SELCHANGING
 _______________
 
@@ -1503,54 +1596,20 @@ Remarks
  To receive AEN_TEXTCHANGED notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
 
 
-AEN_MODIFY
-__________
+AEN_POINT
+_________
 
 Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure after the document modify state has changed.
+Sends to the parent window procedure after text point has deleted.
 
-(int)wParam         == specifies the control identifier.
-(AENMODIFY *)lParam == pointer to a AENMODIFY structure.
+(int)wParam        == specifies the control identifier.
+(AENPOINT *)lParam == pointer to a AENPOINT structure.
 
 Return Value
  zero
 
 Remarks
- To receive AEN_MODIFY notifications, specify AENM_MODIFY in the mask sent with the AEM_SETEVENTMASK message.
-
-
-AEN_HSCROLL
-___________
-
-Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure before an edit control window scrolled horizontally.
-
-(int)wParam         == specifies the control identifier.
-(AENSCROLL *)lParam == pointer to a AENSCROLL structure.
-
-Return Value
- If zero, the control allows scroll operation.
- If a nonzero value, the control suppress scroll operation.
-
-Remarks
- To receive AEN_HSCROLL notifications, specify AENM_SCROLL in the mask sent with the AEM_SETEVENTMASK message.
-
-
-AEN_VSCROLL
-___________
-
-Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure before an edit control window scrolled horizontally.
-
-(int)wParam         == specifies the control identifier.
-(AENSCROLL *)lParam == pointer to a AENSCROLL structure.
-
-Return Value
- If zero, the control allows scroll operation.
- If a nonzero value, the control suppress scroll operation.
-
-Remarks
- To receive AEN_VSCROLL notifications, specify AENM_SCROLL in the mask sent with the AEM_SETEVENTMASK message.
+ To receive AEN_POINT notifications, specify AENM_POINT in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_DROPFILES
@@ -1620,23 +1679,6 @@ Return Value
 
 Remarks
  To receive AEN_LINK notifications, specify AENM_LINK in the mask sent with the AEM_SETEVENTMASK message and turn on URL detection with the AEM_SETDETECTURL message.
-
-
-AEN_PROGRESS
-____________
-
-Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure when required number of lines was proceed.
-
-(int)wParam           == specifies the control identifier.
-(AENPROGRESS *)lParam == pointer to a AENPROGRESS structure.
-
-Return Value
- If zero, the control continues operation.
- If a nonzero value, the control stops operation.
-
-Remarks
- To receive AEN_PROGRESS notifications, specify AENM_PROGRESS in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEM_SETTEXTA
@@ -3933,6 +3975,36 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_SETLINEGAP, 3, 0);
+
+
+AEM_GETTEXTLIMIT
+________________
+
+Gets the current text limit for an edit control.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Text limit.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETTEXTLIMIT, 0, 0);
+
+
+AEM_SETTEXTLIMIT
+________________
+
+Sets the text limit of an edit control. The text limit is the maximum amount of text, in TCHARs, that the user can type into the edit control.
+
+(DWORD)wParam == the maximum number of TCHARs the user can enter. Default is unlimited.
+lParam        == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_SETTEXTLIMIT, MAX_PATH, 0);
 
 
 AEM_SHOWSCROLLBAR
