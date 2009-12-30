@@ -203,8 +203,8 @@
 #define AESELT_RESETSELECTION      0x00000400  //Don't use it. For internal code only.
 
 //AEM_ADDPOINT flags
-#define AEPT_GLOBALMODIFY          0x00000001  //If set, AEPOINT.ciPoint index has been modified.
-#define AEPT_LOCALMODIFY           0x00000002  //Don't use it. For internal code only.
+#define AEPT_MODIFY     0x00000001  //If set, AEPOINT.ciPoint index has been modified.
+#define AEPT_DELETE     0x00000002  //If set, AEPOINT.ciPoint index has been deleted. Additional for AEPT_MODIFY flag.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
