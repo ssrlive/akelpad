@@ -788,6 +788,7 @@ void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType);
 void AE_NotifyTextChanged(AKELEDIT *ae);
 void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType);
 void AE_NotifyChanged(AKELEDIT *ae);
+void AE_NotifyPoint(AKELEDIT *ae, AEPOINT *lpPoint);
 BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop);
 void AE_NotifyDragDropDone(AKELEDIT *ae);
 BOOL AE_NotifyDropSource(AKELEDIT *ae, int nAction, DWORD *lpdwEffect, DWORD dwDropResult);
