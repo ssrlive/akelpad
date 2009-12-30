@@ -16476,7 +16476,7 @@ void AE_NotifyChanged(AKELEDIT *ae)
 
 void AE_NotifyPoint(AKELEDIT *ae, AEPOINT *lpPoint)
 {
-  //Send AEN_MODIFY
+  //Send AEN_POINT
   if (ae->popt->dwEventMask & AENM_POINT)
   {
     AENPOINT aenp;
