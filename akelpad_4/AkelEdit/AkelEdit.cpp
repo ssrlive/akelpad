@@ -4746,7 +4746,7 @@ void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags)
   }
 }
 
-void AE_StackPointReset(AKELEDIT *ae)
+void AE_StackPointReset(AKELEDIT *ae, DWORD dwType)
 {
   AEPOINT *lpElement=(AEPOINT *)ae->ptxt->hPointsStack.first;
 
@@ -4754,7 +4754,7 @@ void AE_StackPointReset(AKELEDIT *ae)
   {
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &lpElement->ciPoint, FALSE);
     lpElement->dwFlags|=AEPT_MODIFY|AEPT_DELETE;
-    AE_NotifyPoint(ae, lpElement);
+    AE_NotifyPoint(ae, dwType, lpElement);
 
     lpElement=lpElement->next;
   }
@@ -12294,7 +12294,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
 
     if (!bFirstHeap)
     {
-      AE_StackPointReset(ae);
+      AE_StackPointReset(ae, AEPTT_SETTEXT);
       ae->dwNotifyFlags=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
       ae->dwNotifyTextChange|=AETCT_DELETEALL;
     }
@@ -12615,7 +12615,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
 
         if (!bFirstHeap)
         {
-          AE_StackPointReset(ae);
+          AE_StackPointReset(ae, AEPTT_STREAMIN);
           ae->dwNotifyFlags=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
           ae->dwNotifyTextChange|=AETCT_DELETEALL;
         }
@@ -13149,7 +13149,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                   if (lpPoint->ciPoint.nCharInLine < lpElement->nSelEnd)
                   {
                     lpPoint->dwFlags|=AEPT_DELETE;
-                    AE_NotifyPoint(ae, lpPoint);
+                    AE_NotifyPoint(ae, AEPTT_DELETE, lpPoint);
                   }
                   lpPoint->ciPoint.nCharInLine-=(min(lpElement->nSelEnd, lpElement->nLineLen) - lpElement->nSelStart);
                   lpPoint->ciPoint.nCharInLine=max(lpPoint->ciPoint.nCharInLine, lpElement->nSelStart);
@@ -13436,7 +13436,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
               {
                 lpPoint->ciPoint.nCharInLine=ciDeleteStart.nCharInLine;
                 lpPoint->dwFlags|=AEPT_DELETE;
-                AE_NotifyPoint(ae, lpPoint);
+                AE_NotifyPoint(ae, AEPTT_DELETE, lpPoint);
               }
             }
             lpPoint->ciPoint.nLine=ciDeleteStart.nLine;
@@ -16474,7 +16474,7 @@ void AE_NotifyChanged(AKELEDIT *ae)
   }
 }
 
-void AE_NotifyPoint(AKELEDIT *ae, AEPOINT *lpPoint)
+void AE_NotifyPoint(AKELEDIT *ae, DWORD dwType, AEPOINT *lpPoint)
 {
   //Send AEN_POINT
   if (ae->popt->dwEventMask & AENM_POINT)
@@ -16484,6 +16484,7 @@ void AE_NotifyPoint(AKELEDIT *ae, AEPOINT *lpPoint)
     aenp.hdr.hwndFrom=ae->hWndEdit;
     aenp.hdr.idFrom=ae->nEditCtrlID;
     aenp.hdr.code=AEN_POINT;
+    aenp.dwType=dwType;
     aenp.lpPoint=lpPoint;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aenp);
   }
