@@ -105,7 +105,8 @@
 //AEN_POINT types
 #define AEPTT_SETTEXT           0x00000001  //Set text.
 #define AEPTT_STREAMIN          0x00000002  //Stream in.
-#define AEPTT_DELETE            0x00000004  //Delete operation.
+#define AEPTT_INSERT            0x00000004  //Insert operation.
+#define AEPTT_DELETE            0x00000008  //Delete operation.
 
 //Insert text flags
 #define AEINST_LOCKUNDO      0x00000001
@@ -211,9 +212,14 @@
 #define AESELT_RESETSELECTION      0x00000400  //Don't use it. For internal code only.
 
 //AEM_ADDPOINT flags
-#define AEPT_MODIFY     0x00000001  //If set, AEPOINT.ciPoint index has been modified.
-#define AEPT_DELETE     0x00000002  //If set, AEPOINT.ciPoint index has been deleted. Additional for AEPT_MODIFY flag.
-#define AEPT_FOLD       0x00000010  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
+#define AEPTF_MODIFY     0x00000001  //If set, AEPOINT.ciPoint index has been modified.
+#define AEPTF_INSERT     0x00000002  //If set, AEPOINT.nPointLen index has been increased. Additional for AEPTF_MODIFY flag.
+#define AEPTF_DELETE     0x00000004  //If set, AEPOINT.nPointLen index has been decreased. Additional for AEPTF_MODIFY flag.
+#define AEPTF_FOLD       0x00000010  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
+
+//AEPOINT character offset value
+#define AEPTO_IGNORE    -1  //Character RichEdit offset is not used in AEPOINT.
+#define AEPTO_CALC      -2  //Character RichEdit offset will calculated automatically by AEM_ADDPOINT.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.
@@ -511,8 +517,11 @@ typedef struct _AEPOINT {
   struct _AEPOINT *next;   //Pointer to the next AEPOINT structure.
   struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure.
   AECHARINDEX ciPoint;     //Character index.
-  DWORD dwFlags;           //See AEPT_* defines.
+  int nPointOffset;        //Character RichEdit offset or one of the AEPTO_* define.
+  int nPointLen;           //Point length.
   DWORD dwUserData;        //User data.
+  DWORD dwFlags;           //See AEPTF_* defines.
+  int nReserved;           //Don't use it. For internal code only.
 } AEPOINT;
 
 typedef struct _AEFOLD {
@@ -1606,7 +1615,7 @@ AEN_POINT
 _________
 
 Notification message sends in the form of a WM_NOTIFY message.
-Sends to the parent window procedure after text point has deleted.
+Sends to the parent window procedure after text point has changed.
 
 (int)wParam        == specifies the control identifier.
 (AENPOINT *)lParam == pointer to a AENPOINT structure.
@@ -2746,21 +2755,26 @@ ____________
 
 Add character index to a points stack. Character index will be updated after every text change.
 
-wParam                == not used.
-(AECHARINDEX *)lParam == AkelEdit character index.
+wParam            == not used.
+(AEPOINT *)lParam == pointer to a filled AEPOINT structure. AEPOINT.ciPoint and AEPOINT.nPointOffset members required.
 
 Return Value
- Pointer to a AEPOINT structure.
+ Pointer to a created AEPOINT structure.
 
 Example:
  AEPOINT *lpPoint;
+ AEPOINT point={0};
  AECHARINDEX ciChar;
 
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&ciChar);
- lpPoint=(AEPOINT *)SendMessage(hWndEdit, AEM_ADDPOINT, 0, (LPARAM)&ciChar);
- SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
- ciChar=lpPoint->ciPoint;  //Read new position
- SendMessage(hWndEdit, AEM_DELPOINT, (WPARAM)lpPoint, 0);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&point.ciPoint);
+ point.nPointOffset=AEPTO_CALC;
+
+ if (lpPoint=(AEPOINT *)SendMessage(hWndEdit, AEM_ADDPOINT, 0, (LPARAM)&point))
+ {
+   SendMessage(hWndEdit, EM_REPLACESEL, TRUE, (LPARAM)"123");
+   ciChar=lpPoint->ciPoint;  //Read new position
+   SendMessage(hWndEdit, AEM_DELPOINT, (WPARAM)lpPoint, 0);
+ }
 
 
 AEM_DELPOINT
@@ -4085,17 +4099,20 @@ ___________
 
 Hides the range of lines.
 
-wParam                == not used.
-(AECHARRANGE *)lParam == range of lines to hide.
+(AEPOINT *)wParam == start text pointer. Pointer to a filled AEPOINT structure. AEPOINT.ciPoint and AEPOINT.nPointOffset members required.
+(AEPOINT *)lParam == end text pointer. pointer to a filled AEPOINT structure. AEPOINT.ciPoint and AEPOINT.nPointOffset members required.
 
 Return Value
  Fold handle (pointer to a AEFOLD structure).
 
 Example:
- AECHARRANGE aecr;
+ AEPOINT pointMin={0};
+ AEPOINT pointMax={0};
 
- SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&aecr.ciMin, (LPARAM)&aecr.ciMax);
- SendMessage(hWndEdit, AEM_FOLDADD, 0, (LPARAM)&aecr);
+ pointMin.nPointOffset=AEPTO_CALC;
+ pointMax.nPointOffset=AEPTO_CALC;
+ SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&pointMin.ciPoint, (LPARAM)&pointMax.ciPoint);
+ SendMessage(hWndEdit, AEM_FOLDADD, (WPARAM)&pointMin, (LPARAM)&pointMax);
 
 
 AEM_FOLDGET
