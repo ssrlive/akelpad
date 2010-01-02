@@ -595,9 +595,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_ADDPOINT)
     {
-      AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+      AEPOINT *lpSourcePoint=(AEPOINT *)lParam;
+      AEPOINT *lpTargetPoint;
 
-      return (LRESULT)AE_StackPointInsert(ae, ciCharIndex);
+      if (lpTargetPoint=AE_StackPointInsert(ae, &lpSourcePoint->ciPoint))
+      {
+        if (lpSourcePoint->nPointOffset == AEPTO_CALC)
+          lpTargetPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpSourcePoint->ciPoint);
+        else
+          lpTargetPoint->nPointOffset=lpSourcePoint->nPointOffset;
+        lpTargetPoint->nPointLen=lpSourcePoint->nPointLen;
+        lpTargetPoint->dwUserData=lpSourcePoint->dwUserData;
+        lpTargetPoint->dwFlags=lpSourcePoint->dwFlags;
+      }
+      return (LRESULT)lpTargetPoint;
     }
     if (uMsg == AEM_DELPOINT)
     {
@@ -1286,11 +1297,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_FOLDADD)
     {
-      AECHARRANGE crRange=*(AECHARRANGE *)lParam;
+      AEPOINT *lpMinPoint=(AEPOINT *)wParam;
+      AEPOINT *lpMaxPoint=(AEPOINT *)lParam;
 
-      //AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &crRange.ciMin, &crRange.ciMin, FALSE);
-      //AE_GetIndex(ae, AEGI_WRAPLINEEND, &crRange.ciMax, &crRange.ciMax, FALSE);
-      return (LRESULT)AE_StackFoldInsert(ae, &crRange);
+      return (LRESULT)AE_StackFoldInsert(ae, lpMinPoint, lpMaxPoint);
     }
     if (uMsg == AEM_FOLDGET)
     {
@@ -4555,16 +4565,16 @@ void AE_StackBitmapItemsFree(HSTACK *hStack)
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AECHARRANGE *crRange)
+AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoint)
 {
   AEFOLD *lpElement1=(AEFOLD *)ae->hFoldsStack.last;
   AEFOLD *lpElement2=NULL;
 
   while (lpElement1)
   {
-    if (crRange->ciMin.nLine > lpElement1->lpMinPoint->ciPoint.nLine)
+    if (lpMinPoint->ciPoint.nLine > lpElement1->lpMinPoint->ciPoint.nLine)
       break;
-    if (crRange->ciMin.nLine == lpElement1->lpMinPoint->ciPoint.nLine && crRange->ciMax.nLine >= lpElement1->lpMaxPoint->ciPoint.nLine)
+    if (lpMinPoint->ciPoint.nLine == lpElement1->lpMinPoint->ciPoint.nLine && lpMaxPoint->ciPoint.nLine >= lpElement1->lpMaxPoint->ciPoint.nLine)
       break;
 
     lpElement1=lpElement1->prev;
@@ -4573,12 +4583,26 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AECHARRANGE *crRange)
 
   if (lpElement2)
   {
-    lpElement2->lpMinPoint=AE_StackPointInsert(ae, &crRange->ciMin);
-    lpElement2->lpMinPoint->dwFlags=AEPT_FOLD;
-    lpElement2->lpMinPoint->dwUserData=(DWORD)lpElement2;
-    lpElement2->lpMaxPoint=AE_StackPointInsert(ae, &crRange->ciMax);
-    lpElement2->lpMaxPoint->dwFlags=AEPT_FOLD;
-    lpElement2->lpMaxPoint->dwUserData=(DWORD)lpElement2;
+    if (lpElement2->lpMinPoint=AE_StackPointInsert(ae, &lpMinPoint->ciPoint))
+    {
+      if (lpMinPoint->nPointOffset == AEPTO_CALC)
+        lpElement2->lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
+      else
+        lpElement2->lpMinPoint->nPointOffset=lpMinPoint->nPointOffset;
+      lpElement2->lpMinPoint->nPointLen=lpMinPoint->nPointLen;
+      lpElement2->lpMinPoint->dwUserData=(DWORD)lpElement2;
+      lpElement2->lpMinPoint->dwFlags=lpMinPoint->dwFlags|AEPTF_FOLD;
+    }
+    if (lpElement2->lpMaxPoint=AE_StackPointInsert(ae, &lpMaxPoint->ciPoint))
+    {
+      if (lpMaxPoint->nPointOffset == AEPTO_CALC)
+        lpElement2->lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
+      else
+        lpElement2->lpMaxPoint->nPointOffset=lpMaxPoint->nPointOffset;
+      lpElement2->lpMaxPoint->nPointLen=lpMaxPoint->nPointLen;
+      lpElement2->lpMaxPoint->dwUserData=(DWORD)lpElement2;
+      lpElement2->lpMaxPoint->dwFlags=lpMaxPoint->dwFlags|AEPTF_FOLD;
+    }
     lpElement2->bCollapse=FALSE;
   }
   return lpElement2;
@@ -4730,6 +4754,9 @@ AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
   if (lpElement2)
   {
     lpElement2->ciPoint=*ciPoint;
+    lpElement2->nPointOffset=AEPTO_IGNORE;
+    lpElement2->nPointLen=0;
+    lpElement2->nReserved=-1;
   }
   return lpElement2;
 }
@@ -4746,6 +4773,21 @@ void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags)
   }
 }
 
+void AE_StackPointUnreserve(AKELEDIT *ae)
+{
+  AEPOINT *lpElement=(AEPOINT *)ae->ptxt->hPointsStack.first;
+
+  while (lpElement)
+  {
+    if (lpElement->nReserved >= 0)
+    {
+      lpElement->nPointOffset=lpElement->nReserved;
+      lpElement->nReserved=-1;
+    }
+    lpElement=lpElement->next;
+  }
+}
+
 void AE_StackPointReset(AKELEDIT *ae, DWORD dwType)
 {
   AEPOINT *lpElement=(AEPOINT *)ae->ptxt->hPointsStack.first;
@@ -4753,7 +4795,13 @@ void AE_StackPointReset(AKELEDIT *ae, DWORD dwType)
   while (lpElement)
   {
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &lpElement->ciPoint, FALSE);
-    lpElement->dwFlags|=AEPT_MODIFY|AEPT_DELETE;
+    if (lpElement->nPointOffset >= 0)
+    {
+      lpElement->nPointOffset=0;
+      lpElement->nPointLen=0;
+      lpElement->nReserved=-1;
+    }
+    lpElement->dwFlags|=AEPTF_MODIFY|AEPTF_DELETE;
     AE_NotifyPoint(ae, dwType, lpElement);
 
     lpElement=lpElement->next;
@@ -6544,7 +6592,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
                   lpTmpPoint->ciPoint.nLine+=nLineCount;
                   lpTmpPoint->ciPoint.lpLine=lpNewElement;
                   lpTmpPoint->ciPoint.nCharInLine-=nCharStart;
-                  lpTmpPoint->dwFlags|=AEPT_MODIFY;
+                  lpTmpPoint->dwFlags|=AEPTF_MODIFY;
                 }
                 else if (lpTmpPoint->ciPoint.nCharInLine > nCharEnd)
                   break;
@@ -6578,7 +6626,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
         if (lpTmpPoint->ciPoint.nLine > liStart.nLine)
         {
           lpTmpPoint->ciPoint.nLine+=nLineCount;
-          lpTmpPoint->dwFlags|=AEPT_MODIFY;
+          lpTmpPoint->dwFlags|=AEPTF_MODIFY;
         }
       }
     }
@@ -6668,7 +6716,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
                 lpTmpPoint->ciPoint.nLine+=nLineCount;
                 lpTmpPoint->ciPoint.lpLine=lpNewElement;
                 lpTmpPoint->ciPoint.nCharInLine+=(dwCountLen - liCurLine.lpLine->nLineLen);
-                lpTmpPoint->dwFlags|=AEPT_MODIFY;
+                lpTmpPoint->dwFlags|=AEPTF_MODIFY;
               }
               else if (!nLineCount)
                 *lpPoint=lpTmpPoint;
@@ -6700,7 +6748,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
           if (lpTmpPoint->ciPoint.nLine > liLine->nLine)
           {
             lpTmpPoint->ciPoint.nLine+=nLineCount;
-            lpTmpPoint->dwFlags|=AEPT_MODIFY;
+            lpTmpPoint->dwFlags|=AEPTF_MODIFY;
           }
         }
       }
@@ -13034,6 +13082,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
   AELINEDATA *lpElement=NULL;
   AELINEDATA *lpNextElement=NULL;
   AEPOINT *lpPoint;
+  AEPOINT *lpBreak;
   AEPOINT *lpPointOne;
   AEPOINT *lpPointTwo;
   AEUNDOITEM *lpSetSelUndo=NULL;
@@ -13047,9 +13096,14 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
   int nVScrollPos;
   int nStartOffset;
   int nEndOffset;
+  int nDelLength;
   int nExtraStartOffset;
   int nExtraEndOffset;
-  int nLineOffset;
+  int nLineOffsetNew;
+  int nLineOffsetOld;
+  int nLineDelStartOffsetOld;
+  int nLineDelEndOffsetOld;
+  int nLineDelLength;
   int nFirstRedrawLine;
   int nLastRedrawLine;
   int nElementLine;
@@ -13081,7 +13135,9 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
     nStartOffset=AE_AkelIndexToRichOffset(ae, &ciDeleteStart);
     nEndOffset=AE_AkelIndexToRichOffset(ae, &ciDeleteEnd);
-    nLineOffset=nStartOffset - min(ciDeleteStart.nCharInLine, ciDeleteStart.lpLine->nLineLen);
+    nDelLength=nEndOffset - nStartOffset;
+    nLineOffsetNew=nStartOffset - min(ciDeleteStart.nCharInLine, ciDeleteStart.lpLine->nLineLen);
+    nLineOffsetOld=nLineOffsetNew;
     nExtraStartOffset=max(ciDeleteStart.nCharInLine - ciDeleteStart.lpLine->nLineLen, 0);
     nExtraEndOffset=max(ciDeleteEnd.nCharInLine - ciDeleteEnd.lpLine->nLineLen, 0);
 
@@ -13115,6 +13171,10 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
       while (lpElement)
       {
+        nLineDelStartOffsetOld=nLineOffsetOld + min(lpElement->nSelStart, lpElement->nLineLen);
+        nLineDelEndOffsetOld=nLineOffsetOld + min(lpElement->nSelEnd, lpElement->nLineLen);
+        nLineDelLength=nLineDelEndOffsetOld - nLineDelStartOffsetOld;
+
         if (lpNewElement=AE_StackLineInsertBefore(ae, ciDeleteStart.lpLine))
         {
           if (!lpFirstElement)
@@ -13122,9 +13182,8 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
           lpNewElement->nLineWidth=-1;
           lpNewElement->nLineBreak=lpElement->nLineBreak;
-          lpNewElement->nLineLen=lpElement->nSelStart + max(lpElement->nLineLen - lpElement->nSelEnd, 0);
-          lpNewElement->nLineLen=min(lpNewElement->nLineLen, lpElement->nLineLen);
-          nRichTextCount-=(lpElement->nLineLen - lpNewElement->nLineLen);
+          lpNewElement->nLineLen=lpElement->nLineLen - nLineDelLength;
+          nRichTextCount+=nLineDelLength;
 
           if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
           {
@@ -13134,9 +13193,9 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
             lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
 
             //Update points
-            for (; lpPoint; lpPoint=lpPoint->next)
+            for (lpBreak=NULL; lpPoint; lpPoint=lpPoint->next)
             {
-              if (lpPoint->ciPoint.nLine > nElementLine)
+              if (lpPoint->ciPoint.nLine > nElementLine && nElementLine != ciDeleteEnd.nLine)
                 break;
 
               if (lpPoint->ciPoint.nLine == nElementLine)
@@ -13146,17 +13205,32 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                 if (lpPoint->ciPoint.nCharInLine >= lpElement->nSelStart &&
                     lpElement->nSelStart < lpElement->nLineLen)
                 {
-                  if (lpPoint->ciPoint.nCharInLine < lpElement->nSelEnd)
-                  {
-                    lpPoint->dwFlags|=AEPT_DELETE;
-                    AE_NotifyPoint(ae, AEPTT_DELETE, lpPoint);
-                  }
-                  lpPoint->ciPoint.nCharInLine-=(min(lpElement->nSelEnd, lpElement->nLineLen) - lpElement->nSelStart);
+                  lpPoint->ciPoint.nCharInLine-=nLineDelLength;
                   lpPoint->ciPoint.nCharInLine=max(lpPoint->ciPoint.nCharInLine, lpElement->nSelStart);
                 }
-                lpPoint->dwFlags|=AEPT_MODIFY;
+                lpPoint->dwFlags|=AEPTF_MODIFY;
+              }
+
+              //Offsets
+              if (lpPoint->nPointOffset + lpPoint->nPointLen > nLineDelStartOffsetOld)
+              {
+                if (lpPoint->nPointOffset < nLineDelEndOffsetOld)
+                {
+                  lpPoint->nPointLen-=min(lpPoint->nPointOffset + lpPoint->nPointLen, nLineDelEndOffsetOld) - max(lpPoint->nPointOffset, nLineDelStartOffsetOld);
+                  if (lpPoint->nReserved < 0)
+                  {
+                    lpPoint->nReserved=min(lpPoint->nPointOffset, nLineDelStartOffsetOld) - (nRichTextCount - nLineDelLength);
+                    lpPoint->dwFlags|=AEPTF_DELETE;
+                    AE_NotifyPoint(ae, AEPTT_DELETE, lpPoint);
+                  }
+                }
+                else if (lpPoint->nReserved < 0)
+                  lpPoint->nReserved=lpPoint->nPointOffset - nRichTextCount;
+
+                if (!lpBreak) lpBreak=lpPoint;
               }
             }
+            if (lpBreak) lpPoint=lpBreak;
 
             //Add undo
             if (!(dwDeleteFlags & AEDELT_LOCKUNDO))
@@ -13167,7 +13241,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                 {
                   AEUNDOITEM *lpUndoElement;
                   wchar_t *wpUndoText;
-                  DWORD dwUndoTextLen=min(lpElement->nSelEnd, lpElement->nLineLen) - min(lpElement->nSelStart, lpElement->nLineLen);
+                  DWORD dwUndoTextLen=nLineDelLength;
 
                   if (dwUndoTextLen)
                   {
@@ -13181,14 +13255,14 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                     //Add text
                     if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
                     {
-                      AE_memcpy(wpUndoText, lpElement->wpLine + lpElement->nSelStart, (min(lpElement->nSelEnd, lpElement->nLineLen) - lpElement->nSelStart) * sizeof(wchar_t));
+                      AE_memcpy(wpUndoText, lpElement->wpLine + lpElement->nSelStart, dwUndoTextLen * sizeof(wchar_t));
                       wpUndoText[dwUndoTextLen]=L'\0';
 
                       if (lpUndoElement=AE_StackUndoItemInsert(ae))
                       {
                         lpUndoElement->dwFlags=AEUN_INSERT|AEUN_COLUMNGROUP;
-                        lpUndoElement->nActionStartOffset=nLineOffset + lpElement->nSelStart;
-                        lpUndoElement->nActionEndOffset=nLineOffset + min(lpElement->nSelEnd, lpElement->nLineLen);
+                        lpUndoElement->nActionStartOffset=nLineOffsetNew + min(lpElement->nSelStart, lpElement->nLineLen);
+                        lpUndoElement->nActionEndOffset=nLineOffsetNew + min(lpElement->nSelEnd, lpElement->nLineLen);
                         lpUndoElement->wpText=wpUndoText;
                         lpUndoElement->dwTextLen=dwUndoTextLen;
                       }
@@ -13211,13 +13285,19 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
         }
 
         if (lpNewElement->nLineBreak == AELB_WRAP)
-          nLineOffset+=lpNewElement->nLineLen;
+          nLineOffsetNew+=lpNewElement->nLineLen;
         else
-          nLineOffset+=lpNewElement->nLineLen + 1;
+          nLineOffsetNew+=lpNewElement->nLineLen + 1;
+        if (lpElement->nLineBreak == AELB_WRAP)
+          nLineOffsetOld+=lpElement->nLineLen;
+        else
+          nLineOffsetOld+=lpElement->nLineLen + 1;
 
+        //Next line
         nElementLine+=1;
         lpElement=lpElement->next;
       }
+      AE_StackPointUnreserve(ae);
 
       //Delete lines in range
       lpElement=ciDeleteStart.lpLine;
@@ -13244,10 +13324,10 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
       //Update control points
       if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciDeleteStart.nLine)
-        ae->nFirstDrawLineOffset+=nRichTextCount;
+        ae->nFirstDrawLineOffset-=nRichTextCount;
       if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciDeleteStart.nLine)
-        ae->nLastCallOffset+=nRichTextCount;
-      ae->ptxt->nLastCharOffset+=nRichTextCount;
+        ae->nLastCallOffset-=nRichTextCount;
+      ae->ptxt->nLastCharOffset-=nRichTextCount;
 
       //Set global
       nHScrollPos=ae->nHScrollPos;
@@ -13323,7 +13403,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       AE_StackPointDelete(ae, lpPointTwo);
 
       //Add undo
-      if (nRichTextCount < 0)
+      if (nRichTextCount > 0)
       {
         if (!(dwDeleteFlags & AEDELT_LOCKUNDO))
         {
@@ -13406,9 +13486,9 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
         lpNewElement->nLineWidth=-1;
         lpNewElement->nLineBreak=ciDeleteEnd.lpLine->nLineBreak;
         lpNewElement->nLineLen=ciDeleteStart.nCharInLine + (ciDeleteEnd.lpLine->nLineLen - ciDeleteEnd.nCharInLine);
-        nRichTextCount+=lpNewElement->nLineLen;
+        nRichTextCount-=lpNewElement->nLineLen;
         if (lpNewElement->nLineBreak != AELB_WRAP)
-          ++nRichTextCount;
+          --nRichTextCount;
 
         if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
         {
@@ -13421,8 +13501,8 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       //Update points
       for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
       {
-        if (lpPoint->ciPoint.nLine < ciDeleteStart.nLine)
-          break;
+        //if (lpPoint->ciPoint.nLine < ciDeleteStart.nLine)
+        //  break;
 
         if (lpPoint->ciPoint.nLine >= ciDeleteStart.nLine)
         {
@@ -13433,11 +13513,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
               if (lpPoint->ciPoint.nLine == ciDeleteEnd.nLine && lpPoint->ciPoint.nCharInLine >= ciDeleteEnd.nCharInLine)
                 lpPoint->ciPoint.nCharInLine=ciDeleteStart.nCharInLine + (lpPoint->ciPoint.nCharInLine - ciDeleteEnd.nCharInLine);
               else
-              {
                 lpPoint->ciPoint.nCharInLine=ciDeleteStart.nCharInLine;
-                lpPoint->dwFlags|=AEPT_DELETE;
-                AE_NotifyPoint(ae, AEPTT_DELETE, lpPoint);
-              }
             }
             lpPoint->ciPoint.nLine=ciDeleteStart.nLine;
             lpPoint->ciPoint.lpLine=lpNewElement;
@@ -13446,8 +13522,22 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
           {
             lpPoint->ciPoint.nLine-=(ciDeleteEnd.nLine - ciDeleteStart.nLine);
           }
-          lpPoint->dwFlags|=AEPT_MODIFY;
+          lpPoint->dwFlags|=AEPTF_MODIFY;
         }
+
+        //Offsets
+        if (lpPoint->nPointOffset + lpPoint->nPointLen > nStartOffset)
+        {
+          if (lpPoint->nPointOffset < nEndOffset)
+          {
+            lpPoint->nPointLen-=min(lpPoint->nPointOffset + lpPoint->nPointLen, nEndOffset) - max(lpPoint->nPointOffset, nStartOffset);
+            lpPoint->nPointOffset=min(lpPoint->nPointOffset, nStartOffset);
+            lpPoint->dwFlags|=AEPTF_DELETE;
+            AE_NotifyPoint(ae, AEPTT_DELETE, lpPoint);
+          }
+          else lpPoint->nPointOffset-=nDelLength;
+        }
+        else if (lpPoint->nPointOffset >= 0) break;
       }
 
       //Delete lines in range
@@ -13455,9 +13545,9 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
       while (lpElement)
       {
-        nRichTextCount-=lpElement->nLineLen;
+        nRichTextCount+=lpElement->nLineLen;
         if (lpElement->nLineBreak != AELB_WRAP)
-          --nRichTextCount;
+          ++nRichTextCount;
 
         if (lpElement == ciDeleteEnd.lpLine)
         {
@@ -13479,7 +13569,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       if (ae->liFirstDrawLine.lpLine && ae->liFirstDrawLine.nLine > ciFirstChar.nLine)
       {
         ae->liFirstDrawLine.nLine+=nLineCount;
-        ae->nFirstDrawLineOffset+=nRichTextCount;
+        ae->nFirstDrawLineOffset-=nRichTextCount;
       }
       if (ae->ptxt->liMaxWidthLine.lpLine && ae->ptxt->liMaxWidthLine.nLine > ciFirstChar.nLine)
       {
@@ -13493,9 +13583,9 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       if (ae->ciLastCallIndex.lpLine && ae->ciLastCallIndex.nLine > ciFirstChar.nLine)
       {
         ae->ciLastCallIndex.nLine+=nLineCount;
-        ae->nLastCallOffset+=nRichTextCount;
+        ae->nLastCallOffset-=nRichTextCount;
       }
-      ae->ptxt->nLastCharOffset+=nRichTextCount;
+      ae->ptxt->nLastCharOffset-=nRichTextCount;
 
       //Set global
       nHScrollPos=ae->nHScrollPos;
@@ -13607,7 +13697,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       }
     }
 
-    if (nRichTextCount < 0)
+    if (nRichTextCount > 0)
     {
       ae->dwNotifyFlags|=AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_MODIFY;
       if (!ae->ptxt->nLastCharOffset)
@@ -13632,7 +13722,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&td);
     }
   }
-  return mod(nRichTextCount);
+  return nRichTextCount;
 }
 
 DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, DWORD dwInsertFlags, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
@@ -13645,6 +13735,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
   AELINEDATA *lpNextElement=NULL;
   AELINEDATA *lpInsertToElement=NULL;
   AEPOINT *lpPoint;
+  AEPOINT *lpBreak;
   AEPOINT *lpPointOne;
   AEPOINT *lpPointTwo;
   POINT ptInsertFrom;
@@ -13664,7 +13755,9 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
   int nInsertOffset;
   int nStartOffset;
   int nEndOffset;
-  int nLineOffset;
+  int nLineOffsetNew;
+  int nLineOffsetOld;
+  int nLineInsertOffsetOld;
   int nFirstRedrawLine=0;
   int nLastRedrawLine=0;
   int i;
@@ -13695,8 +13788,9 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
         dwCalcLinesWidthFlags=AECLW_LOCKUPDATE;
 
       nInsertOffset=AE_AkelIndexToRichOffset(ae, &ciInsertFrom);
-      nLineOffset=nInsertOffset - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
-      nStartOffset=nLineOffset + ciInsertFrom.nCharInLine;
+      nLineOffsetNew=nInsertOffset - min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen);
+      nLineOffsetOld=nLineOffsetNew;
+      nStartOffset=nLineOffsetNew + ciInsertFrom.nCharInLine;
       nEndOffset=nStartOffset;
 
       //Send AEN_TEXTINSERTBEGIN
@@ -13753,6 +13847,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                 ciFirstChar.lpLine=lpNewElement;
               else
                 AE_GetCharInLine(ae, lpElement, ptInsertFrom.x, AECIL_HALFFIT|AECIL_ALLPOS, &ciInsertFrom.nCharInLine, NULL, bColumnSel);
+              nLineInsertOffsetOld=nLineOffsetOld + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
 
               lpNewElement->nLineWidth=-1;
               if (lpElement->nLineBreak != AELB_EOF)
@@ -13781,9 +13876,9 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                 }
 
                 //Update points
-                for (; lpPoint; lpPoint=lpPoint->next)
+                for (lpBreak=NULL; lpPoint; lpPoint=lpPoint->next)
                 {
-                  if (lpPoint->ciPoint.nLine > ciLastChar.nLine)
+                  if (lpPoint->ciPoint.nLine > ciLastChar.nLine && nLineBreak != AELB_EOF)
                     break;
 
                   if (lpPoint->ciPoint.nLine == ciLastChar.nLine)
@@ -13791,9 +13886,25 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                     lpPoint->ciPoint.lpLine=lpNewElement;
                     if (lpPoint->ciPoint.nCharInLine >= ciInsertFrom.nCharInLine)
                       lpPoint->ciPoint.nCharInLine+=nLineLen;
-                    lpPoint->dwFlags|=AEPT_MODIFY;
+                    lpPoint->dwFlags|=AEPTF_MODIFY;
+                  }
+
+                  //Offsets
+                  if (lpPoint->nPointOffset + lpPoint->nPointLen >= nLineInsertOffsetOld)
+                  {
+                    if (lpPoint->nPointOffset < nLineInsertOffsetOld)
+                    {
+                      lpPoint->nPointLen+=nLineLen;
+                      lpPoint->dwFlags|=AEPTF_INSERT;
+                      AE_NotifyPoint(ae, AEPTT_INSERT, lpPoint);
+                    }
+                    else if (lpPoint->nReserved < 0)
+                      lpPoint->nReserved=lpPoint->nPointOffset + dwRichTextCount;
+
+                    if (!lpBreak) lpBreak=lpPoint;
                   }
                 }
+                if (lpBreak) lpPoint=lpBreak;
 
                 //Add undo
                 if (!(dwInsertFlags & AEINST_LOCKUNDO))
@@ -13818,8 +13929,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                         if (lpUndoElement=AE_StackUndoItemInsert(ae))
                         {
                           lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                          lpUndoElement->nActionStartOffset=nLineOffset + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
-                          lpUndoElement->nActionEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
+                          lpUndoElement->nActionStartOffset=nLineOffsetNew + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
+                          lpUndoElement->nActionEndOffset=nLineOffsetNew + ciInsertFrom.nCharInLine + nLineLen;
                           lpUndoElement->wpText=wpUndoText;
                           lpUndoElement->dwTextLen=dwUndoTextLen;
                         }
@@ -13861,8 +13972,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                           if (lpUndoElement=AE_StackUndoItemInsert(ae))
                           {
                             lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                            lpUndoElement->nActionStartOffset=nLineOffset + lpNewElement->nLineLen;
-                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
+                            lpUndoElement->nActionStartOffset=nLineOffsetNew + lpNewElement->nLineLen;
+                            lpUndoElement->nActionEndOffset=nLineOffsetNew + lpNewElement->nLineLen + 1;
                             lpUndoElement->wpText=wpUndoText;
                             lpUndoElement->dwTextLen=dwUndoTextLen;
                           }
@@ -13874,6 +13985,11 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                   }
                 }
               }
+              if (lpElement->nLineBreak == AELB_WRAP)
+                nLineOffsetOld+=lpElement->nLineLen;
+              else
+                nLineOffsetOld+=lpElement->nLineLen + 1;
+
               lpElement=lpElement->next;
             }
             else
@@ -13923,11 +14039,11 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                         if (lpUndoElement=AE_StackUndoItemInsert(ae))
                         {
                           lpUndoElement->dwFlags=AEUN_DELETE|AEUN_COLUMNGROUP;
-                          lpUndoElement->nActionStartOffset=nLineOffset;
+                          lpUndoElement->nActionStartOffset=nLineOffsetNew;
                           if (nLineBreak != AELB_EOF)
-                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen + 1;
+                            lpUndoElement->nActionEndOffset=nLineOffsetNew + lpNewElement->nLineLen + 1;
                           else
-                            lpUndoElement->nActionEndOffset=nLineOffset + lpNewElement->nLineLen;
+                            lpUndoElement->nActionEndOffset=nLineOffsetNew + lpNewElement->nLineLen;
                           lpUndoElement->wpText=wpUndoText;
                           lpUndoElement->dwTextLen=dwUndoTextLen;
                         }
@@ -13944,15 +14060,17 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
               else break;
             }
             if (nLineBreak == AELB_EOF) break;
+
             if (lpNewElement->nLineBreak == AELB_WRAP)
-              nLineOffset+=lpNewElement->nLineLen;
+              nLineOffsetNew+=lpNewElement->nLineLen;
             else
-              nLineOffset+=lpNewElement->nLineLen + 1;
+              nLineOffsetNew+=lpNewElement->nLineLen + 1;
             ++ciLastChar.nLine;
             wpLineStart=wpLineEnd;
           }
           else break;
         }
+        AE_StackPointUnreserve(ae);
 
         if (dwTextCount)
         {
@@ -13995,7 +14113,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           ae->ciSelStartIndex=ciFirstChar;
           ae->nSelEndCharOffset=nStartOffset;
           ae->ciSelEndIndex=ciFirstChar;
-          nEndOffset=nLineOffset + ciInsertFrom.nCharInLine + nLineLen;
+          nEndOffset=nLineOffsetNew + ciInsertFrom.nCharInLine + nLineLen;
 
           //Post processing
           lpPointOne=AE_StackPointInsert(ae, &ciFirstChar);
@@ -14275,13 +14393,13 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           //Update points
           for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
           {
-            if (lpPoint->ciPoint.nLine < ciInsertFrom.nLine)
-              break;
+            //if (lpPoint->ciPoint.nLine < ciInsertFrom.nLine)
+            //  break;
 
             if (lpPoint->ciPoint.nLine > ciInsertFrom.nLine)
             {
               lpPoint->ciPoint.nLine+=nLineCount;
-              lpPoint->dwFlags|=AEPT_MODIFY;
+              lpPoint->dwFlags|=AEPTF_MODIFY;
             }
             else if (lpPoint->ciPoint.nLine == ciInsertFrom.nLine)
             {
@@ -14295,8 +14413,21 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                 lpPoint->ciPoint.lpLine=lpNewElement;
                 lpPoint->ciPoint.nCharInLine=nCaretIndexInLine + (lpPoint->ciPoint.nCharInLine - ciInsertFrom.nCharInLine);
               }
-              lpPoint->dwFlags|=AEPT_MODIFY;
+              lpPoint->dwFlags|=AEPTF_MODIFY;
             }
+
+            //Offsets
+            if (lpPoint->nPointOffset + lpPoint->nPointLen >= nInsertOffset)
+            {
+              if (lpPoint->nPointOffset < nInsertOffset)
+              {
+                lpPoint->nPointLen+=dwRichTextCount;
+                lpPoint->dwFlags|=AEPTF_INSERT;
+                AE_NotifyPoint(ae, AEPTT_INSERT, lpPoint);
+              }
+              else lpPoint->nPointOffset+=dwRichTextCount;
+            }
+            else if (lpPoint->nPointOffset >= 0) break;
           }
 
           AE_StackLineDelete(ae, ciInsertFrom.lpLine);
