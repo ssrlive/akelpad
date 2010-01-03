@@ -1229,8 +1229,8 @@ typedef struct {
 #define AEM_HIDESELECTION         (WM_USER + 2354)
 #define AEM_FOLDADD               (WM_USER + 2361)
 #define AEM_FOLDGET               (WM_USER + 2362)
-#define AEM_FOLDCOLLAPSE          (WM_USER + 2363)
-#define AEM_LINEISCOLLAPSED       (WM_USER + 2364)
+#define AEM_LINEISCOLLAPSED       (WM_USER + 2363)
+#define AEM_FOLDCOLLAPSE          (WM_USER + 2364)
 #define AEM_FOLDISVALID           (WM_USER + 2365)
 #define AEM_FOLDDELETE            (WM_USER + 2366)
 
@@ -4120,14 +4120,29 @@ ___________
 
 Retrieves fold handle.
 
-(int)wParam == line number.
-lParam      == not used.
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), that will be checked initially. Can be NULL.
+(int)lParam      == line number.
 
 Return Value
  Fold handle (pointer to a AEFOLD structure).
 
 Example:
- SendMessage(hWndEdit, AEM_FOLDGET, 5, 0);
+ SendMessage(hWndEdit, AEM_FOLDGET, (WPARAM)NULL, 5);
+
+
+AEM_LINEISCOLLAPSED
+___________________
+
+Checks is line collapsed.
+
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), that will be checked initially. Can be NULL.
+(int)lParam      == line number.
+
+Return Value
+ Fold handle (pointer to a AEFOLD structure) that hides line or NULL if line isn't collapsed.
+
+Example:
+ SendMessage(hWndEdit, AEM_LINEISCOLLAPSED, (WPARAM)NULL, 5);
 
 
 AEM_FOLDCOLLAPSE
@@ -4144,21 +4159,6 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_FOLDCOLLAPSE, (WPARAM)lpFold, TRUE);
-
-
-AEM_LINEISCOLLAPSED
-___________________
-
-Checks is line collapsed.
-
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), that will be checked initially. Can be NULL.
-(int)lParam      == line number.
-
-Return Value
- Fold handle (pointer to a AEFOLD structure) that hides line or NULL if line isn't collapsed.
-
-Example:
- SendMessage(hWndEdit, AEM_LINEISCOLLAPSED, (WPARAM)NULL, 5);
 
 
 AEM_FOLDISVALID
