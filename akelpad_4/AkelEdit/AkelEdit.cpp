@@ -1304,7 +1304,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_FOLDGET)
     {
-      return (LRESULT)AE_StackFoldGet(ae, wParam);
+      return (LRESULT)AE_StackFoldGet(ae, (AEFOLD *)wParam, lParam);
+    }
+    if (uMsg == AEM_LINEISCOLLAPSED)
+    {
+      return (LRESULT)AE_StackLineIsCollapsed(ae, (AEFOLD *)wParam, lParam);
     }
     if (uMsg == AEM_FOLDCOLLAPSE)
     {
@@ -1320,10 +1324,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         InvalidateRect(ae->hWndEdit, NULL, TRUE);
       }
       return nResult;
-    }
-    if (uMsg == AEM_LINEISCOLLAPSED)
-    {
-      return (LRESULT)AE_StackLineIsCollapsed(ae, (AEFOLD *)wParam, lParam);
     }
     if (uMsg == AEM_FOLDISVALID)
     {
@@ -4608,21 +4608,64 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
   return lpElement2;
 }
 
-AEFOLD* AE_StackFoldGet(AKELEDIT *ae, int nLine)
+AEFOLD* AE_StackFoldGet(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
 {
-  AEFOLD *lpFold=(AEFOLD *)ae->hFoldsStack.first;
   AEFOLD *lpResult=NULL;
 
-  while (lpFold)
+  if (lpFold)
   {
-    if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
-      break;
-    if (nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
-      lpResult=lpFold;
+    if (lpFold->lpMinPoint->ciPoint.nLine <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
+      return lpFold;
 
-    lpFold=lpFold->next;
+    lpFold=NULL;
+  }
+
+  if (!lpFold)
+  {
+    lpFold=(AEFOLD *)ae->hFoldsStack.first;
+
+    while (lpFold)
+    {
+      if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
+        break;
+      if (nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
+        lpResult=lpFold;
+
+      lpFold=lpFold->next;
+    }
   }
   return lpResult;
+}
+
+AEFOLD* AE_StackLineIsCollapsed(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
+{
+  if (lpFold)
+  {
+    if (lpFold->bCollapse)
+    {
+      if (lpFold->lpMinPoint->ciPoint.nLine <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
+        return lpFold;
+    }
+    lpFold=NULL;
+  }
+
+  if (!lpFold)
+  {
+    lpFold=(AEFOLD *)ae->hFoldsStack.first;
+
+    while (lpFold)
+    {
+      if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
+        break;
+      if (nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
+      {
+        if (lpFold->bCollapse)
+          return lpFold;
+      }
+      lpFold=lpFold->next;
+    }
+  }
+  return NULL;
 }
 
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
@@ -4652,37 +4695,6 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
     }
   }
   return nResult;
-}
-
-AEFOLD* AE_StackLineIsCollapsed(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
-{
-  if (lpFold)
-  {
-    if (lpFold->bCollapse)
-    {
-      if (lpFold->lpMinPoint->ciPoint.nLine <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
-        return lpFold;
-    }
-    lpFold=NULL;
-  }
-
-  if (!lpFold)
-  {
-    AEFOLD *lpFold=(AEFOLD *)ae->hFoldsStack.first;
-
-    while (lpFold)
-    {
-      if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
-        break;
-      if (nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
-      {
-        if (lpFold->bCollapse)
-          return lpFold;
-      }
-      lpFold=lpFold->next;
-    }
-  }
-  return NULL;
 }
 
 void AE_StackFoldUpdate(AKELEDIT *ae)
