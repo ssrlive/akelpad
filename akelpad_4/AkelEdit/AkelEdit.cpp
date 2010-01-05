@@ -9204,7 +9204,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
           AE_MButtonErase(ae);
           AE_ActiveColumnErase(ae);
 
-          ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcEdit);
+          ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
           ae->nHScrollPos=nPos;
           UpdateWindow(ae->hWndEdit);
 
@@ -9247,7 +9247,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
           AE_MButtonErase(ae);
           AE_ActiveColumnErase(ae);
 
-          ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcEdit);
+          ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
           ae->nVScrollPos=nPos;
           UpdateWindow(ae->hWndEdit);
 
