@@ -4592,6 +4592,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
       lpElement2->lpMinPoint->nPointLen=lpMinPoint->nPointLen;
       lpElement2->lpMinPoint->dwUserData=(DWORD)lpElement2;
       lpElement2->lpMinPoint->dwFlags=lpMinPoint->dwFlags|AEPTF_FOLD;
+      lpElement2->nHideMinLineOffset=1;
     }
     if (lpElement2->lpMaxPoint=AE_StackPointInsert(ae, &lpMaxPoint->ciPoint))
     {
@@ -4602,6 +4603,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
       lpElement2->lpMaxPoint->nPointLen=lpMaxPoint->nPointLen;
       lpElement2->lpMaxPoint->dwUserData=(DWORD)lpElement2;
       lpElement2->lpMaxPoint->dwFlags=lpMaxPoint->dwFlags|AEPTF_FOLD;
+      lpElement2->nHideMaxLineOffset=-1;
     }
     lpElement2->bCollapse=FALSE;
   }
@@ -4643,7 +4645,7 @@ AEFOLD* AE_StackLineIsCollapsed(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
   {
     if (lpFold->bCollapse)
     {
-      if (lpFold->lpMinPoint->ciPoint.nLine <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
+      if (lpFold->lpMinPoint->ciPoint.nLine + lpFold->nHideMinLineOffset <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine + lpFold->nHideMaxLineOffset)
         return lpFold;
     }
     lpFold=NULL;
@@ -4657,9 +4659,9 @@ AEFOLD* AE_StackLineIsCollapsed(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
     {
       if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
         break;
-      if (nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
+      if (lpFold->bCollapse)
       {
-        if (lpFold->bCollapse)
+        if (lpFold->lpMinPoint->ciPoint.nLine + lpFold->nHideMinLineOffset <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine + lpFold->nHideMaxLineOffset)
           return lpFold;
       }
       lpFold=lpFold->next;
@@ -10933,11 +10935,11 @@ int AE_LineFromVPos(AKELEDIT *ae, int nVPos)
   {
     if (lpElement->bCollapse)
     {
-      if (lpElement->lpMinPoint->ciPoint.nLine <= nCalcLine && lpElement->lpMaxPoint->ciPoint.nLine > nLastMaxLine)
+      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nCalcLine && lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
       {
-        nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine);
-        nCalcLine+=lpElement->lpMaxPoint->ciPoint.nLine - nLastMinLine + 1;
-        nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine;
+        nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
+        nCalcLine+=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset - nLastMinLine + 1;
+        nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
       }
     }
     lpElement=lpElement->next;
@@ -10956,11 +10958,11 @@ int AE_VPosFromLine(AKELEDIT *ae, int nLine)
   {
     if (lpElement->bCollapse)
     {
-      if (lpElement->lpMinPoint->ciPoint.nLine < nLine && lpElement->lpMaxPoint->ciPoint.nLine > nLastMaxLine)
+      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset < nLine && lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
       {
-        nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine);
-        nCalcLine-=min(nLine, lpElement->lpMaxPoint->ciPoint.nLine) - nLastMinLine + 1;
-        nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine;
+        nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
+        nCalcLine-=min(nLine, lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset) - nLastMinLine + 1;
+        nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
       }
     }
     lpElement=lpElement->next;
