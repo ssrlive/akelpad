@@ -406,12 +406,12 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-  SendMessage(hWndEditNew, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
+  SetMargins(hWndEditNew, 0, dwEditMargins);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontA(hWndEditNew, &lfEditFontA);
   DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
@@ -487,12 +487,12 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-  SendMessage(hWndEditNew, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
+  SetMargins(hWndEditNew, 0, dwEditMargins);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontW(hWndEditNew, &lfEditFontW);
   DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
@@ -18167,8 +18167,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       b=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, NULL, FALSE);
       if (dwEditMargins != (DWORD)MAKELONG(a, b))
       {
+        SetMargins(hWndEdit, dwEditMargins, MAKELONG(a, b));
         dwEditMargins=MAKELONG(a, b);
-        SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
         InvalidateRect(hWndEdit, NULL, TRUE);
       }
       bMarginSelection=SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0);
@@ -18366,8 +18366,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       b=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, NULL, FALSE);
       if (dwEditMargins != (DWORD)MAKELONG(a, b))
       {
+        SetMargins(hWndEdit, dwEditMargins, MAKELONG(a, b));
         dwEditMargins=MAKELONG(a, b);
-        SendMessage(hWndEdit, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
         InvalidateRect(hWndEdit, NULL, TRUE);
       }
       bMarginSelection=SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0);
@@ -20901,6 +20901,16 @@ void SetWordWrap(HWND hWnd, DWORD dwType, DWORD dwLimit)
     SendMessage(hWnd, AEM_SETWORDWRAP, dwType|AEWW_LIMITPIXEL, dwMappedPrintWidth);
   }
   else SendMessage(hWnd, AEM_SETWORDWRAP, dwType|AEWW_LIMITSYMBOL, dwWrapLimit);
+}
+
+void SetMargins(HWND hWnd, DWORD dwOldMargins, DWORD dwNewMargins)
+{
+  DWORD dwEditMargins;
+  DWORD dwCurMargins;
+
+  dwCurMargins=SendMessage(hWnd, EM_GETMARGINS, 0, 0);
+  dwEditMargins=MAKELONG(LOWORD(dwCurMargins) - LOWORD(dwOldMargins) + LOWORD(dwNewMargins), HIWORD(dwCurMargins) - HIWORD(dwOldMargins) + HIWORD(dwNewMargins));
+  SendMessage(hWnd, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
 }
 
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw)

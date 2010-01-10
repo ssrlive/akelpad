@@ -722,6 +722,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         AE_StackUpdateClones(ae);
       }
       AE_UpdateScrollBars(ae, SB_BOTH);
+      AE_NotifySetRect(ae);
       return 0;
     }
     if (uMsg == AEM_GETSCROLLPOS)
@@ -2399,6 +2400,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AE_StackUpdateClones(ae);
     }
     AE_UpdateScrollBars(ae, SB_BOTH);
+    AE_NotifySetRect(ae);
     return 0;
   }
   if (uMsg == EM_GETMARGINS)
@@ -2421,6 +2423,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AE_StackUpdateClones(ae);
     }
     AE_UpdateScrollBars(ae, SB_BOTH);
+    AE_NotifySetRect(ae);
     return 0;
   }
   if (uMsg == EM_GETSCROLLPOS)
@@ -16416,6 +16419,21 @@ void AE_NotifyVScroll(AKELEDIT *ae)
   if (ae->popt->dwRichEventMask & ENM_SCROLL)
   {
     AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_VSCROLL), (LPARAM)ae->hWndEdit);
+  }
+}
+
+void AE_NotifySetRect(AKELEDIT *ae)
+{
+  //Send AEN_SETRECT
+  {
+    AENSETRECT aensr;
+
+    aensr.hdr.hwndFrom=ae->hWndEdit;
+    aensr.hdr.idFrom=ae->nEditCtrlID;
+    aensr.hdr.code=AEN_SETRECT;
+    aensr.rcDraw=ae->rcDraw;
+    aensr.rcEdit=ae->rcEdit;
+    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&aensr);
   }
 }
 

@@ -784,6 +784,32 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
+  int nPosNew;         //Current scroll position.
+  int nPosOld;         //Previous scroll position.
+  int nPosMax;         //Maximum scroll position.
+} AENSCROLL;
+
+typedef struct {
+  NMHDR hdr;
+  RECT rcDraw;         //Draw rectangle.
+  RECT rcEdit;         //Edit client rectangle.
+} AENSETRECT;
+
+typedef struct {
+  NMHDR hdr;
+  DWORD dwType;        //See AEPGS_* defines.
+  DWORD dwTimeElapsed; //Elapsed time since action was start.
+  int nCurrent;        //Characters processed. Equal to zero, if first message.
+  int nMaximum;        //Total number of characters. Equal to nCurrent member, if last message.
+} AENPROGRESS;
+
+typedef struct {
+  NMHDR hdr;
+  BOOL bModified;      //TRUE document state is set to modified, FALSE document state is set to unmodified.
+} AENMODIFY;
+
+typedef struct {
+  NMHDR hdr;
   AESELECTION aes;      //Current selection.
   AECHARINDEX ciCaret;  //Caret character index position.
   DWORD dwType;         //See AESCT_* defines.
@@ -823,21 +849,9 @@ typedef struct {
 
 typedef struct {
   NMHDR hdr;
-  BOOL bModified;      //TRUE document state is set to modified, FALSE document state is set to unmodified.
-} AENMODIFY;
-
-typedef struct {
-  NMHDR hdr;
   DWORD dwType;        //See AEPTT_* defines.
   AEPOINT *lpPoint;    //pointer to a AEPOINT structure.
 } AENPOINT;
-
-typedef struct {
-  NMHDR hdr;
-  int nPosNew;         //Current scroll position.
-  int nPosOld;         //Previous scroll position.
-  int nPosMax;         //Maximum scroll position.
-} AENSCROLL;
 
 typedef struct {
   NMHDR hdr;
@@ -866,14 +880,6 @@ typedef struct {
   LPARAM lParam;       //Second parameter of a message.
   AECHARRANGE crLink;  //Range of characters which contain URL text.
 } AENLINK;
-
-typedef struct {
-  NMHDR hdr;
-  DWORD dwType;        //See AEPGS_* defines.
-  DWORD dwTimeElapsed; //Elapsed time since action was start.
-  int nCurrent;        //Characters processed. Equal to zero, if first message.
-  int nMaximum;        //Total number of characters. Equal to nCurrent member, if last message.
-} AENPROGRESS;
 
 
 //// AkelEdit functions
@@ -1070,6 +1076,7 @@ typedef struct {
 #define AEN_KILLFOCUS             (WM_USER + 1027)  //0x803
 #define AEN_HSCROLL               (WM_USER + 1028)  //0x804
 #define AEN_VSCROLL               (WM_USER + 1029)  //0x805
+#define AEN_SETRECT               (WM_USER + 1030)  //0x806
 
 //Text notifications
 #define AEN_MAXTEXT               (WM_USER + 1050)  //0x81A
@@ -1437,6 +1444,22 @@ Return Value
 
 Remarks
  To receive AEN_VSCROLL notifications, specify AENM_SCROLL in the mask sent with the AEM_SETEVENTMASK message.
+
+
+AEN_SETRECT
+___________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure after an edit control formatting rectangle changed.
+
+(int)wParam          == specifies the control identifier.
+(AENSETRECT *)lParam == pointer to a AENSETRECT structure.
+
+Return Value
+ zero
+
+Remarks
+ AEN_SETRECT notification is not sent during processing WM_SIZE message.
 
 
 AEN_MAXTEXT
