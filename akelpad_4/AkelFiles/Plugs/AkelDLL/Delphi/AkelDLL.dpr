@@ -1,4 +1,4 @@
-library AkelDLL_dpr;
+library AkelDLL_lib;
 
 uses
   Windows, Messages, SysUtils, RichEdit,
