@@ -852,7 +852,7 @@ BOOL SelectColorDialogW(HWND hWndOwner, COLORREF *crColor);
 BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc);
 void SetMarker(HWND hWnd, DWORD dwPos);
 void SetWordWrap(HWND hWnd, DWORD dwType, DWORD dwLimit);
-void SetMargins(HWND hWnd, DWORD dwOldMargins, DWORD dwNewMargins);
+void SetMargins(HWND hWnd, DWORD dwNewMargins, DWORD dwOldMargins);
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 BOOL InsertTabStopW(HWND hWnd);
 BOOL IndentTabStopW(HWND hWnd, int nAction);
