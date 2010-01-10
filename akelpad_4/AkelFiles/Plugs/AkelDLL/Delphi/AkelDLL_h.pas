@@ -19,16 +19,15 @@ uses
 (*$HPPEMIT '#include "AkelDLL.h"'*)
 (*$HPPEMIT ''*)
 
-function PRIMARYLANGID(LangId: WORD): WORD; inline;
+function PRIMARYLANGID(LangId: WORD): WORD;
 
 // Version
-function MakeIdentifier(a, b, c, d: Byte): DWORD; inline;
+function MakeIdentifier(a, b, c, d: Byte): DWORD;
 
 const
+  // Defines
   AKELDLL = (1 or 2 shl 8) or (0 or 0 shl 8) shl 16; // MakeIdentifier(1, 2, 0, 0);
   {$EXTERNALSYM AKELDLL}
-
-  // Defines
 
   //Control IDs
   ID_EDIT     = 10001;
@@ -410,9 +409,9 @@ type
   _OPENDOCUMENTW = record
     hWnd: HWND;                                   // Window to fill in, NULL for
                                                   // current edit window
-    wszFile: array[0..MAX_PATH-1] of WideChar;    // cFile to open
-    wszWorkDir: array[0..MAX_PATH-1] of WideChar; // Set working directory before
-                                                  // open, if (!*wszWorkDir) then
+    szFile: array[0..MAX_PATH-1] of WideChar;     // cFile to open
+    szWorkDir: array[0..MAX_PATH-1] of WideChar;  // Set working directory before
+                                                  // open, if (!*szWorkDir) then
                                                   // don't set
     dwFlags: DWORD;                               // Open flags. See OD_ADT_* defines
     nCodePage: Integer;                           // cFile code page, ignored if
@@ -439,7 +438,7 @@ type
 
   PSaveDocumentW = ^TSaveDocumentW;
   _SAVEDOCUMENTW = record
-    wszFile: array[0..MAX_PATH-1] of WideChar; // cFile to save
+    szFile: array[0..MAX_PATH-1] of WideChar; // cFile to save
     nCodePage: Integer;                        // cFile code page
     bBOM: BOOL;                                // cFile BOM
     dwFlags: DWORD;                            // See SD_* defines
@@ -538,7 +537,7 @@ type
   PWndFrameW = ^TWndFrameW;
   _WNDFRAMEW = record
     hIcon: HICON;                              // Frame icon
-    wszFile: array[0..MAX_PATH-1] of WideChar; // Frame file
+    szFile: array[0..MAX_PATH-1] of WideChar;  // Frame file
     ei: TEditInfo;                             // Edit info
     lf: TLogFontW;                             // Edit font
     aec: TAEColors;                            // Edit colors
@@ -630,7 +629,7 @@ type
   _PLUGINFUNCTIONW = record
     Next: PPLUGINFUNCTIONW;
     Prev: PPLUGINFUNCTIONW;
-    wszFunction: array[0..MAX_PATH-1] of WideChar; // Function name, format L"Plugin::Function"
+    szFunction: array[0..MAX_PATH-1] of WideChar; // Function name, format L"Plugin::Function"
     nFunctionLen: Integer;                    // Function name length
     wHotkey: WORD;                            // Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
     bOnStart: BOOL;                           // Function autoload on start-up
@@ -658,7 +657,7 @@ type
 
   PPluginCallSendW = ^TPluginCallSendW;
   _PLUGINCALLSENDW = record
-    wpFunction: PWideChar;          // Function name, format L"Plugin::Function"
+    pFunction: PWideChar;           // Function name, format L"Plugin::Function"
     bOnStart: BOOL;                 // TRUE  if plugin called on start-up
                                     // FALSE if plugin called manually
     lParam: LPARAM;                 // Input data
@@ -683,7 +682,7 @@ type
 
   PPluginCallPostW = ^TPluginCallPostW;
   _PLUGINCALLPOSTW = record
-    wszFunction: array[0..MAX_PATH-1] of WideChar; // Function name, format L"Plugin::Function"
+    szFunction: array[0..MAX_PATH-1] of WideChar;  // Function name, format L"Plugin::Function"
     bOnStart: BOOL;                                // TRUE  if plugin called on start-up
                                                    // FALSE if plugin called manually
     lParam: LPARAM;                                // Input data
@@ -695,7 +694,7 @@ type
 
   PPluginOptionA = ^TPluginOptionA;
   _PLUGINOPTIONA = record
-    szOptionName: PChar;         // Option name.
+    pOptionName: PChar;          // Option name.
     dwType: DWORD;               // Data type: PO_DWORD, PO_BINARY or PO_STRING.
     lpData: PBYTE;               // Data pointer. If NULL, AKD_OPTION returns
                                  // required buffer size in bytes.
@@ -708,7 +707,7 @@ type
 
   PPluginOptionW = ^TPluginOptionW;
   _PLUGINOPTIONW = record
-    wszOptionName: PWideChar;    // Option name.
+    pOptionName: PWideChar;      // Option name.
     dwType: DWORD;               // Data type: PO_DWORD, PO_BINARY or PO_STRING.
     lpData: PBYTE;               // Data pointer. If NULL, AKD_OPTION returns
                                  // required buffer size in bytes.
@@ -721,8 +720,8 @@ type
 
   PIniValueA = ^TIniValueA;
   _INIVALUEA = record
-    szSection: PChar;            // Section name.
-    szKey: PChar;                // Key name.
+    pSection: PChar;             // Section name.
+    pKey: PChar;                 // Key name.
     dwType: DWORD;               // Data type: see INI_* defines.
     lpData: PBYTE;               // Data pointer. If NULL, AKD_INIGETVALUE
                                  // returns required buffer size in bytes.
@@ -735,8 +734,8 @@ type
 
   PIniValueW = ^TIniValueW;
   _INIVALUEW = record
-    wszSection: PWideChar;       // Section name.
-    szKey: PChar;                // Key name.
+    pSection: PWideChar;         // Section name.
+    pKey: PChar;                 // Key name.
     dwType: DWORD;               // Data type: see INI_* defines.
     lpData: PBYTE;               // Data pointer. If NULL, AKD_INIGETVALUE
                                  // returns required buffer size in bytes.
@@ -828,7 +827,7 @@ type
   PTextFindW = ^TTextFindW;
   _TEXTFINDW = record
     dwFlags: DWORD;            // See FR_* defines
-    wpFindIt: PWideChar;       // Find string
+    pFindIt: PWideChar;        // Find string
   end;
   {$EXTERNALSYM _TEXTFINDW}
   TTextFindW = _TEXTFINDW;
@@ -851,8 +850,8 @@ type
   PTextReplaceW = ^TTextReplaceW;
   _TEXTREPLACEW = record
     dwFlags: DWORD;            // See FR_* defines
-    wpFindIt: PWideChar;       // Find string
-    wpReplaceWith: PWideChar;  // Replace string
+    pFindIt: PWideChar;        // Find string
+    pReplaceWith: PWideChar;   // Replace string
     bAll: BOOL;                // Replace all
     nChanges: Integer;         // Count of changes
   end;
@@ -892,8 +891,8 @@ type
 
   PCreateWindowW = ^TCreateWindowW;
   _CREATEWINDOWW = record
-    wszClassName: array[0..MAX_PATH-1] of WideChar;  //Window class name
-    wszWindowName: array[0..MAX_PATH-1] of WideChar; //Window caption
+    szClassName: array[0..MAX_PATH-1] of WideChar;   //Window class name
+    szWindowName: array[0..MAX_PATH-1] of WideChar;  //Window caption
     dwStyle: DWORD;                                  // Window style
     x: Integer;                                      // x position
     y: Integer;                                      // y position
@@ -949,7 +948,7 @@ type
 
   PNOpenDocumentA = ^TNOpenDocumentA;
   _NOPENDOCUMENTA = record
-    szFile: PChar;              // cPointer to a file string buffer
+    pFile: PChar;               // cPointer to a file string buffer
     nCodePage: PInteger;        // cPointer to a code page variable
     bBOM: PBOOL;                // cPointer to a BOM variable
     dwFlags: PDWORD;            // cPointer to a open flags variable
@@ -963,7 +962,7 @@ type
 
   PNOpenDocumentW = ^TNOpenDocumentW;
   _NOPENDOCUMENTW = record
-    wszFile: PWideChar;         // cPointer to a file string buffer
+    pFile: PWideChar;           // cPointer to a file string buffer
     nCodePage: PInteger;        // cPointer to a code page variable
     bBOM: PBOOL;                // cPointer to a BOM variable
     dwFlags: PDWORD;            // cPointer to a open flags variable
@@ -977,7 +976,7 @@ type
 
   PNSaveDocumentA = ^TNSaveDocumentA;
   _NSAVEDOCUMENTA = record
-    szFile: PChar;              // cPointer to a file string buffer
+    pFile: PChar;               // cPointer to a file string buffer
     nCodePage: PInteger;        // cPointer to a code page variable
     bBOM: PBOOL;                // cPointer to a BOM variable
     bProcess: BOOL;             // TRUE   save file
@@ -990,7 +989,7 @@ type
 
   PNSaveDocumentW = ^TNSaveDocumentW;
   _NSAVEDOCUMENTW = record
-    wszFile: PWideChar;         // cPointer to a file string buffer
+    pFile: PWideChar;           // cPointer to a file string buffer
     nCodePage: PInteger;        // cPointer to a code page variable
     bBOM: PBOOL;                // cPointer to a BOM variable
     bProcess: BOOL;             // TRUE   save file
@@ -1035,6 +1034,70 @@ type
   TNSize = _NSIZE;
   NSIZE = _NSIZE;
   {$EXTERNALSYM NSIZE}
+
+
+//// UNICODE define
+
+  {$IFNDEF UNICODE}
+    OPENDOCUMENT = OPENDOCUMENTA;
+    {$EXTERNALSYM OPENDOCUMENT}
+    SAVEDOCUMENT = SAVEDOCUMENTA;
+    {$EXTERNALSYM SAVEDOCUMENT}
+    WNDFRAME = WNDFRAMEA;
+    {$EXTERNALSYM WNDFRAME}
+    PLUGINFUNCTION = PLUGINFUNCTIONA;
+    {$EXTERNALSYM PLUGINFUNCTION}
+    PLUGINCALLSEND = PLUGINCALLSENDA;
+    {$EXTERNALSYM PLUGINCALLSEND}
+    PLUGINCALLPOST = PLUGINCALLPOSTA;
+    {$EXTERNALSYM PLUGINCALLPOST}
+    PLUGINOPTION = PLUGINOPTIONA;
+    {$EXTERNALSYM PLUGINOPTION}
+    INIVALUE = INIVALUEA;
+    {$EXTERNALSYM INIVALUE}
+    RECENTFILES = RECENTFILESA;
+    {$EXTERNALSYM RECENTFILES}
+    TEXTFIND = TEXTFINDA;
+    {$EXTERNALSYM TEXTFIND}
+    TEXTREPLACE = TEXTREPLACEA;
+    {$EXTERNALSYM TEXTREPLACE}
+    CREATEWINDOW = CREATEWINDOWA;
+    {$EXTERNALSYM CREATEWINDOW}
+    NOPENDOCUMENT = NOPENDOCUMENTA;
+    {$EXTERNALSYM NOPENDOCUMENT}
+    NSAVEDOCUMENT = NSAVEDOCUMENTA;
+    {$EXTERNALSYM NSAVEDOCUMENT}
+  {$ELSE}
+    OPENDOCUMENT = OPENDOCUMENTW;
+    {$EXTERNALSYM OPENDOCUMENT}
+    SAVEDOCUMENT = SAVEDOCUMENTW;
+    {$EXTERNALSYM SAVEDOCUMENT}
+    WNDFRAME = WNDFRAMEW;
+    {$EXTERNALSYM WNDFRAME}
+    PLUGINFUNCTION = PLUGINFUNCTIONW;
+    {$EXTERNALSYM PLUGINFUNCTION}
+    PLUGINCALLSEND = PLUGINCALLSENDW;
+    {$EXTERNALSYM PLUGINCALLSEND}
+    PLUGINCALLPOST = PLUGINCALLPOSTW;
+    {$EXTERNALSYM PLUGINCALLPOST}
+    PLUGINOPTION = PLUGINOPTIONW;
+    {$EXTERNALSYM PLUGINOPTION}
+    INIVALUE = INIVALUEW;
+    {$EXTERNALSYM INIVALUE}
+    RECENTFILES = RECENTFILESW;
+    {$EXTERNALSYM RECENTFILES}
+    TEXTFIND = TEXTFINDW;
+    {$EXTERNALSYM TEXTFIND}
+    TEXTREPLACE = TEXTREPLACEW;
+    {$EXTERNALSYM TEXTREPLACE}
+    CREATEWINDOW = CREATEWINDOWW;
+    {$EXTERNALSYM CREATEWINDOW}
+    NOPENDOCUMENT = NOPENDOCUMENTW;
+    {$EXTERNALSYM NOPENDOCUMENT}
+    NSAVEDOCUMENT = NSAVEDOCUMENTW;
+    {$EXTERNALSYM NSAVEDOCUMENT}
+  {$ENDIF}
+
 
 // ---------------------- AkelPad menu messages --------------------------------
 
@@ -2146,7 +2209,7 @@ const
 //
 //Example SendMessage (bOldWindows == FALSE):
 // PLUGINCALLSENDW pcs;
-// pcs.wpFunction=L"Plugin::Function";
+// pcs.pFunction=L"Plugin::Function";
 // pcs.bOnStart=FALSE;
 // pcs.lParam=0;
 // pcs.lpbAutoLoad=NULL;
@@ -2166,7 +2229,7 @@ const
 // PLUGINCALLPOSTW *pcp;
 // if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW)))
 // {
-//   lstrcpynW(pcp->wszFunction, L"Plugin::Function", MAX_PATH);
+//   lstrcpynW(pcp->szFunction, L"Plugin::Function", MAX_PATH);
 //   pcp->bOnStart=FALSE;
 //   pcp->lParam=0;
 //   PostMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)pcp);
@@ -2257,7 +2320,7 @@ const
 //   return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing
 // }
 // PLUGINFUNCTIONW pf;
-// pf.wszFunction[0]='\0';
+// pf.szFunction[0]='\0';
 // pf.nFunctionLen=0;
 // pf.wHotkey=589;       //Ctrl+M
 // pf.bOnStart=FALSE;
@@ -2352,7 +2415,7 @@ const
 //
 // if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)"AutoSave"))
 // {
-//   po.szOptionName="SaveDir";
+//   po.pOptionName="SaveDir";
 //   po.dwType=PO_STRING;
 //   po.lpData=(LPBYTE)szDir;
 //   po.dwData=MAX_PATH;
@@ -2368,7 +2431,7 @@ const
 //
 // if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)L"AutoSave"))
 // {
-//   po.wszOptionName=L"SaveDir";
+//   po.pOptionName=L"SaveDir";
 //   po.dwType=PO_STRING;
 //   po.lpData=(LPBYTE)wszDir;
 //   po.dwData=MAX_PATH * sizeof(wchar_t);
@@ -2384,7 +2447,7 @@ const
 //
 // if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)"AutoSave"))
 // {
-//   po.szOptionName="SaveDir";
+//   po.pOptionName="SaveDir";
 //   po.dwType=PO_STRING;
 //   po.lpData=(LPBYTE)szDir;
 //   po.dwData=lstrlenA(szDir) + 1;
@@ -2400,7 +2463,7 @@ const
 //
 // if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)L"AutoSave"))
 // {
-//   po.wszOptionName=L"SaveDir";
+//   po.pOptionName=L"SaveDir";
 //   po.dwType=PO_STRING;
 //   po.lpData=(LPBYTE)wszDir;
 //   po.dwData=lstrlenW(wszDir) * sizeof(wchar_t) + 2;
@@ -2462,8 +2525,8 @@ const
 //
 // if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)"C:\\File.ini"))
 // {
-//   iv.szSection="Options";
-//   iv.szKey="SaveDir";
+//   iv.pSection="Options";
+//   iv.pKey="SaveDir";
 //   iv.dwType=INI_STRINGANSI;
 //   iv.lpData=(LPBYTE)szDir;
 //   iv.dwData=MAX_PATH;
@@ -2479,8 +2542,8 @@ const
 //
 // if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)L"C:\\File.ini"))
 // {
-//   iv.wszSection=L"Options";
-//   iv.wszKey=L"SaveDir";
+//   iv.pSection=L"Options";
+//   iv.pKey=L"SaveDir";
 //   iv.dwType=INI_STRINGUNICODE;
 //   iv.lpData=(LPBYTE)wszDir;
 //   iv.dwData=MAX_PATH * sizeof(wchar_t);
@@ -2496,8 +2559,8 @@ const
 //
 // if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)"C:\\File.ini"))
 // {
-//   iv.szSection="Options";
-//   iv.szKey="SaveDir";
+//   iv.pSection="Options";
+//   iv.pKey="SaveDir";
 //   iv.dwType=INI_STRINGANSI;
 //   iv.lpData=(LPBYTE)szDir;
 //   iv.dwData=lstrlenA(szDir) + 1;
@@ -2513,8 +2576,8 @@ const
 //
 // if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)L"C:\\File.ini"))
 // {
-//   iv.wszSection=L"Options";
-//   iv.wszKey=L"SaveDir";
+//   iv.pSection=L"Options";
+//   iv.pKey=L"SaveDir";
 //   iv.dwType=INI_STRINGUNICODE;
 //   iv.lpData=(LPBYTE)wszDir;
 //   iv.dwData=lstrlenW(wszDir) * sizeof(wchar_t) + 2;
@@ -2709,7 +2772,7 @@ const
 //Example (bOldWindows == FALSE):
 // SAVEDOCUMENTW sd;
 //
-// lstrcpynW(sd.wszFile, L"C:\\MyFile.txt", MAX_PATH);
+// lstrcpynW(sd.szFile, L"C:\\MyFile.txt", MAX_PATH);
 // sd.nCodePage=65001;
 // sd.bBOM=TRUE;
 // sd.dwFlags=SD_UPDATE;
@@ -2883,7 +2946,7 @@ const
 // TEXTFINDW tf;
 //
 // tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
-// tf.wpFindIt=L"Text to find";
+// tf.pFindIt=L"Text to find";
 // SendMessage(pd->hMainWnd, AKD_TEXTFIND, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
 //
 //
@@ -2912,8 +2975,8 @@ const
 // TEXTREPLACEW tr;
 //
 // tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
-// tr.wpFindIt=L"Text to find";
-// tr.wpReplaceWith=L"Text to replace";
+// tr.pFindIt=L"Text to find";
+// tr.pReplaceWith=L"Text to replace";
 // tr.bAll=TRUE;
 // SendMessage(pd->hMainWnd, AKD_TEXTREPLACE, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 //
@@ -3529,8 +3592,8 @@ const
 // CREATEWINDOWW cw;
 // HWND hWndMemEdit;
 //
-// lstrcpynW(cw.wszClassName, L"RichEdit20W", MAX_PATH);
-// cw.wszWindowName[0]='\0';
+// lstrcpynW(cw.szClassName, L"RichEdit20W", MAX_PATH);
+// cw.szWindowName[0]='\0';
 // cw.dwStyle=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|ES_SUNKEN|ES_NOHIDESEL;
 // cw.x=0;
 // cw.y=0;
@@ -3625,7 +3688,7 @@ const
 //
 // if (pmsd=(PMSAVEDOCUMENTW *)GlobalAlloc(GPTR, sizeof(PMSAVEDOCUMENTW)))
 // {
-//   lstrcpynW(pmsd->sd.wszFile, L"C:\\MyFile.txt", MAX_PATH);
+//   lstrcpynW(pmsd->sd.szFile, L"C:\\MyFile.txt", MAX_PATH);
 //   pmsd->sd.nCodePage=65001;
 //   pmsd->sd.bBOM=TRUE;
 //   pmsd->sd.bUpdate=TRUE;
@@ -3765,8 +3828,8 @@ const
 //  COPYDATASTRUCT cds;
 //
 //  od.hWnd=NULL;
-//  lstrcpynW(od.wszFile, L"C:\\MyFile.txt", MAX_PATH);
-//  od.wszWorkDir[0]='\0';
+//  lstrcpynW(od.szFile, L"C:\\MyFile.txt", MAX_PATH);
+//  od.szWorkDir[0]='\0';
 //  od.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
 //  od.nCodePage=0;
 //  od.bBOM=0;

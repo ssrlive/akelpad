@@ -4229,7 +4229,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   if (!hWnd) hWnd=hWndEdit;
 
   //Notification message
-  nodA.szFile=szFile;
+  nodA.pFile=szFile;
   nodA.nCodePage=&nCodePage;
   nodA.bBOM=&bBOM;
   nodA.dwFlags=&dwFlags;
@@ -4500,7 +4500,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   if (!hWnd) hWnd=hWndEdit;
 
   //Notification message
-  nodW.wszFile=wszFile;
+  nodW.pFile=wszFile;
   nodW.nCodePage=&nCodePage;
   nodW.bBOM=&bBOM;
   nodW.dwFlags=&dwFlags;
@@ -4959,7 +4959,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   int nLine;
 
   //Notification message
-  nsd.szFile=szFile;
+  nsd.pFile=szFile;
   nsd.nCodePage=&nCodePage;
   nsd.bBOM=&bBOM;
   nsd.bProcess=TRUE;
@@ -5168,7 +5168,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
   int nLine;
 
   //Notification message
-  nsdW.wszFile=wszFile;
+  nsdW.pFile=wszFile;
   nsdW.nCodePage=&nCodePage;
   nsdW.bBOM=&bBOM;
   nsdW.bProcess=TRUE;
@@ -5328,7 +5328,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
             wf->ei.bBOM=bBOM;
             wf->ft=ft;
 
-            if (lstrcmpiW(wf->wszFile, wszFile))
+            if (lstrcmpiW(wf->szFile, wszFile))
             {
               UpdateTitleW(hWndFrame, wszFile);
             }
@@ -14618,7 +14618,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       else
       {
         API_LoadStringW(hLangLib, MSG_HOTKEY_EXISTS, wbuf, BUFFER_SIZE);
-        wsprintfW(wbuf2, wbuf, pfElement->wszFunction);
+        wsprintfW(wbuf2, wbuf, pfElement->szFunction);
         MessageBoxW(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
         SetFocus(hWndHotkey);
       }
@@ -14634,7 +14634,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         {
           if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW)))
           {
-            lstrcpynW(pcp->wszFunction, pliElement->pf->wszFunction, MAX_PATH);
+            lstrcpynW(pcp->szFunction, pliElement->pf->szFunction, MAX_PATH);
             pcp->bOnStart=FALSE;
             pcp->lParam=0;
           }
@@ -14701,13 +14701,13 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
                 {
                   if (pliElement->nAutoLoad == -1)
                   {
-                    CallPluginW(NULL, pliElement->pf->wszFunction, FALSE, 0, &pliElement->nAutoLoad);
+                    CallPluginW(NULL, pliElement->pf->szFunction, FALSE, 0, &pliElement->nAutoLoad);
                   }
                   if (pliElement->nAutoLoad == 0)
                   {
                     pliElement->pf->bOnStart=FALSE;
                     API_LoadStringW(hLangLib, MSG_AUTOLOAD_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
-                    wsprintfW(wbuf2, wbuf, pliElement->pf->wszFunction);
+                    wsprintfW(wbuf2, wbuf, pliElement->pf->szFunction);
                     MessageBoxW(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
                     SetWindowLongW(hDlg, DWL_MSGRESULT, TRUE);
                     return TRUE;
@@ -15470,7 +15470,7 @@ void CallPluginsOnStartW(HSTACK *hStack)
   {
     if (pfElement->bOnStart)
     {
-      pcs.wpFunction=pfElement->wszFunction;
+      pcs.pFunction=pfElement->szFunction;
       pcs.bOnStart=TRUE;
       pcs.lParam=0;
       pcs.lpbAutoLoad=NULL;
@@ -15542,7 +15542,7 @@ int CallPluginReceiveSendW(PLUGINCALLSENDW *pcs)
 
   if (pcs)
   {
-    pfElement=StackPluginFindW(&hPluginsStack, pcs->wpFunction);
+    pfElement=StackPluginFindW(&hPluginsStack, pcs->pFunction);
 
     if (pfElement && pfElement->PluginProc)
     {
@@ -15553,7 +15553,7 @@ int CallPluginReceiveSendW(PLUGINCALLSENDW *pcs)
     }
     else
     {
-      nResult=CallPluginW(pfElement, pcs->wpFunction, pcs->bOnStart, pcs->lParam, pcs->lpbAutoLoad);
+      nResult=CallPluginW(pfElement, pcs->pFunction, pcs->bOnStart, pcs->lParam, pcs->lpbAutoLoad);
 
       if (nResult != UD_FAILED)
       {
@@ -15564,7 +15564,7 @@ int CallPluginReceiveSendW(PLUGINCALLSENDW *pcs)
             if (pfElement)
               pfElement->bRunning=TRUE;
             else
-              StackPluginAddW(&hPluginsStack, pcs->wpFunction, lstrlenW(pcs->wpFunction), 0, FALSE, TRUE, NULL, NULL);
+              StackPluginAddW(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, TRUE, NULL, NULL);
           }
           else
           {
@@ -15635,7 +15635,7 @@ void CallPluginReceivePostW(PLUGINCALLPOSTW *pcp)
 
   if (pcp)
   {
-    pfElement=StackPluginFindW(&hPluginsStack, pcp->wszFunction);
+    pfElement=StackPluginFindW(&hPluginsStack, pcp->szFunction);
 
     if (pfElement && pfElement->PluginProc)
     {
@@ -15643,7 +15643,7 @@ void CallPluginReceivePostW(PLUGINCALLPOSTW *pcp)
     }
     else
     {
-      nResult=CallPluginW(pfElement, pcp->wszFunction, pcp->bOnStart, pcp->lParam, NULL);
+      nResult=CallPluginW(pfElement, pcp->szFunction, pcp->bOnStart, pcp->lParam, NULL);
 
       if (nResult != UD_FAILED)
       {
@@ -15654,7 +15654,7 @@ void CallPluginReceivePostW(PLUGINCALLPOSTW *pcp)
             if (pfElement)
               pfElement->bRunning=TRUE;
             else
-              StackPluginAddW(&hPluginsStack, pcp->wszFunction, lstrlenW(pcp->wszFunction), 0, FALSE, TRUE, NULL, NULL);
+              StackPluginAddW(&hPluginsStack, pcp->szFunction, lstrlenW(pcp->szFunction), 0, FALSE, TRUE, NULL, NULL);
           }
           else
           {
@@ -16217,7 +16217,7 @@ PLUGINFUNCTIONW* StackPluginFindW(HSTACK *hStack, wchar_t *wpString)
   {
     if (pfElement->nFunctionLen == nStringLen)
     {
-      if (!lstrcmpiW(pfElement->wszFunction, wpString))
+      if (!lstrcmpiW(pfElement->szFunction, wpString))
         break;
     }
     pfElement=pfElement->next;
@@ -16274,7 +16274,7 @@ PLUGINFUNCTIONW* StackPluginAddW(HSTACK *hStack, wchar_t *wpString, int nStringL
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&pfElement, -1, sizeof(PLUGINFUNCTIONW)))
   {
-    lstrcpynW(pfElement->wszFunction, wpString, MAX_PATH);
+    lstrcpynW(pfElement->szFunction, wpString, MAX_PATH);
     pfElement->nFunctionLen=nStringLen;
     pfElement->wHotkey=wHotkey;
     pfElement->bOnStart=bOnStart;
@@ -16384,7 +16384,7 @@ BOOL StackPluginSaveW(HSTACK *hStack, BOOL bCleanOld)
 
   while (pfElement)
   {
-    if (IsMainFunctionW(pfElement->wszFunction))
+    if (IsMainFunctionW(pfElement->szFunction))
     {
       if (!bCleanOld || (pfElement->wHotkey || pfElement->bOnStart))
       {
@@ -16392,12 +16392,12 @@ BOOL StackPluginSaveW(HSTACK *hStack, BOOL bCleanOld)
 
         if (nSaveSettings == SS_REGISTRY)
         {
-          if (RegSetValueExW(hKey, pfElement->wszFunction, 0, REG_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD)) != ERROR_SUCCESS)
+          if (RegSetValueExW(hKey, pfElement->szFunction, 0, REG_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD)) != ERROR_SUCCESS)
             break;
         }
         else
         {
-          if (!IniSetValueW(&hIniStack, L"Plugs", pfElement->wszFunction, INI_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD)))
+          if (!IniSetValueW(&hIniStack, L"Plugs", pfElement->szFunction, INI_DWORD, (LPBYTE)&dwHotkey, sizeof(DWORD)))
             break;
         }
       }
@@ -16469,7 +16469,7 @@ void StackPluginCleanUpW(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
     }
     if (bDeleteNonExistentDLL && pfElement)
     {
-      if (ParsePluginNameW(pfElement->wszFunction, wszPlugin, NULL))
+      if (ParsePluginNameW(pfElement->szFunction, wszPlugin, NULL))
       {
         wsprintfW(wszDLL, L"%s\\AkelFiles\\Plugs\\%s.dll", wszExeDir, wszPlugin);
 
@@ -16730,7 +16730,7 @@ BOOL TranslatePluginW(LPMSG lpMsg)
 
             while (pfElement)
             {
-              if (!xstrcmpnW(wszPluginName, pfElement->wszFunction, (DWORD)-1, FALSE))
+              if (!xstrcmpnW(wszPluginName, pfElement->szFunction, (DWORD)-1, FALSE))
               {
                 if (pfElement->wHotkey || pfElement->bOnStart)
                   pfElement->bRunning=FALSE;
@@ -16838,7 +16838,7 @@ BOOL TranslateHotkeyW(HSTACK *hStack, LPMSG lpMsg)
         {
           int nResult;
 
-          nResult=CallPluginW(pfElement, pfElement->wszFunction, FALSE, 0, NULL);
+          nResult=CallPluginW(pfElement, pfElement->szFunction, FALSE, 0, NULL);
 
           if (nResult != UD_FAILED)
           {
@@ -16895,12 +16895,12 @@ BOOL OpenDocumentSendW(HWND hWnd, HWND hWndEdit, wchar_t *wpFile, DWORD dwFlags,
   OPENDOCUMENTW od;
   COPYDATASTRUCT cds;
 
-  lstrcpynW(od.wszFile, wpFile, MAX_PATH);
+  lstrcpynW(od.szFile, wpFile, MAX_PATH);
 
   if (bOtherProcess)
-    GetCurrentDirectoryW(MAX_PATH, od.wszWorkDir);
+    GetCurrentDirectoryW(MAX_PATH, od.szWorkDir);
   else
-    od.wszWorkDir[0]='\0';
+    od.szWorkDir[0]='\0';
 
   od.hWnd=hWndEdit;
   od.dwFlags=dwFlags;
@@ -22531,7 +22531,7 @@ void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
     //Set frame info
     if (wf=(WNDFRAMEW *)GetWindowLongW(hWndEditParent, GWL_USERDATA))
     {
-      lstrcpynW(wf->wszFile, wszFile, MAX_PATH);
+      lstrcpynW(wf->szFile, wszFile, MAX_PATH);
       wf->hIcon=hIcon;
     }
     SendMessage(hWndEditParent, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);

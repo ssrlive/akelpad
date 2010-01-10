@@ -1,7 +1,7 @@
-library AkelDLL;
+library AkelDLL_dpr;
 
 uses
-  Messages, Windows, RichEdit,
+  Windows, Messages, SysUtils, RichEdit,
   AkelDLL_h;
 
 //Identification

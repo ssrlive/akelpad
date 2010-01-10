@@ -250,8 +250,8 @@ typedef struct _OPENDOCUMENTA {
 
 typedef struct _OPENDOCUMENTW {
   HWND hWnd;                     //Window to fill in, NULL for current edit window
-  wchar_t wszFile[MAX_PATH];     //File to open
-  wchar_t wszWorkDir[MAX_PATH];  //Set working directory before open, if (!*wszWorkDir) then don't set
+  wchar_t szFile[MAX_PATH];      //File to open
+  wchar_t szWorkDir[MAX_PATH];   //Set working directory before open, if (!*szWorkDir) then don't set
   DWORD dwFlags;                 //Open flags. See OD_ADT_* defines
   int nCodePage;                 //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
   BOOL bBOM;                     //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
@@ -265,7 +265,7 @@ typedef struct _SAVEDOCUMENTA {
 } SAVEDOCUMENTA;
 
 typedef struct _SAVEDOCUMENTW {
-  wchar_t wszFile[MAX_PATH];  //File to save
+  wchar_t szFile[MAX_PATH];   //File to save
   int nCodePage;              //File code page
   BOOL bBOM;                  //File BOM
   DWORD dwFlags;              //See SD_* defines
@@ -342,7 +342,7 @@ typedef struct _WNDFRAMEA {
 
 typedef struct _WNDFRAMEW {
   HICON hIcon;                                        //Frame icon
-  wchar_t wszFile[MAX_PATH];                          //Frame file
+  wchar_t szFile[MAX_PATH];                           //Frame file
   EDITINFO ei;                                        //Edit info
   LOGFONTW lf;                                        //Edit font
   AECOLORS aec;                                       //Edit colors
@@ -410,7 +410,7 @@ typedef struct _PLUGINFUNCTIONA {
 typedef struct _PLUGINFUNCTIONW {
   struct _PLUGINFUNCTIONW *next;
   struct _PLUGINFUNCTIONW *prev;
-  wchar_t wszFunction[MAX_PATH];  //Function name, format L"Plugin::Function"
+  wchar_t szFunction[MAX_PATH];   //Function name, format L"Plugin::Function"
   int nFunctionLen;               //Function name length
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
   BOOL bOnStart;                  //Function autoload on start-up
@@ -428,7 +428,7 @@ typedef struct _PLUGINCALLSENDA {
 } PLUGINCALLSENDA;
 
 typedef struct _PLUGINCALLSENDW {
-  wchar_t *wpFunction;            //Function name, format L"Plugin::Function"
+  wchar_t *pFunction;             //Function name, format L"Plugin::Function"
   BOOL bOnStart;                  //TRUE  if plugin called on start-up
                                   //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
@@ -443,37 +443,37 @@ typedef struct _PLUGINCALLPOSTA {
 } PLUGINCALLPOSTA;
 
 typedef struct _PLUGINCALLPOSTW {
-  wchar_t wszFunction[MAX_PATH];  //Function name, format L"Plugin::Function"
+  wchar_t szFunction[MAX_PATH];   //Function name, format L"Plugin::Function"
   BOOL bOnStart;                  //TRUE  if plugin called on start-up
                                   //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
 } PLUGINCALLPOSTW;
 
 typedef struct _PLUGINOPTIONA {
-  char *szOptionName;            //Option name.
+  char *pOptionName;             //Option name.
   DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONA;
 
 typedef struct _PLUGINOPTIONW {
-  wchar_t *wszOptionName;        //Option name.
+  wchar_t *pOptionName;          //Option name.
   DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONW;
 
 typedef struct _INIVALUEA {
-  char *szSection;               //Section name.
-  char *szKey;                   //Key name.
+  char *pSection;                //Section name.
+  char *pKey;                    //Key name.
   DWORD dwType;                  //Data type: see INI_* defines.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_INIGETVALUE returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } INIVALUEA;
 
 typedef struct _INIVALUEW {
-  wchar_t *wszSection;           //Section name.
-  wchar_t *wszKey;               //Key name.
+  wchar_t *pSection;             //Section name.
+  wchar_t *pKey;                 //Key name.
   DWORD dwType;                  //Data type: see INI_* defines.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_INIGETVALUE returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
@@ -508,7 +508,7 @@ typedef struct _RECENTFILESA {
 } RECENTFILESA;
 
 typedef struct _RECENTFILESW {
-  wchar_t (*lpwszRecentNames)[MAX_PATH];  //Recent files names
+  wchar_t (*lpszRecentNames)[MAX_PATH];   //Recent files names
   DWORD *lpdwRecentPositions;             //Recent files positions
   DWORD *lpdwRecentCodepages;             //Recent files codepages
 } RECENTFILESW;
@@ -520,7 +520,7 @@ typedef struct _TEXTFINDA {
 
 typedef struct _TEXTFINDW {
   DWORD dwFlags;            //See FR_* defines
-  wchar_t *wpFindIt;        //Find string
+  wchar_t *pFindIt;         //Find string
 } TEXTFINDW;
 
 typedef struct _TEXTREPLACEA {
@@ -533,8 +533,8 @@ typedef struct _TEXTREPLACEA {
 
 typedef struct _TEXTREPLACEW {
   DWORD dwFlags;            //See FR_* defines
-  wchar_t *wpFindIt;        //Find string
-  wchar_t *wpReplaceWith;   //Replace string
+  wchar_t *pFindIt;         //Find string
+  wchar_t *pReplaceWith;    //Replace string
   BOOL bAll;                //Replace all
   int nChanges;             //Count of changes
 } TEXTREPLACEW;
@@ -559,8 +559,8 @@ typedef struct _CREATEWINDOWA {
 } CREATEWINDOWA;
 
 typedef struct _CREATEWINDOWW {
-  wchar_t wszClassName[MAX_PATH];   //Window class name
-  wchar_t wszWindowName[MAX_PATH];  //Window caption
+  wchar_t szClassName[MAX_PATH];    //Window class name
+  wchar_t szWindowName[MAX_PATH];   //Window caption
   DWORD dwStyle;                    //Window style
   int x;                            //x position
   int y;                            //y position
@@ -596,7 +596,7 @@ typedef struct _CHARCOLOR {
 } CHARCOLOR;
 
 typedef struct _NOPENDOCUMENTA {
-  char *szFile;                  //Pointer to a file string buffer
+  char *pFile;                   //Pointer to a file string buffer
   int *nCodePage;                //Pointer to a code page variable
   BOOL *bBOM;                    //Pointer to a BOM variable
   DWORD *dwFlags;                //Pointer to a open flags variable
@@ -605,7 +605,7 @@ typedef struct _NOPENDOCUMENTA {
 } NOPENDOCUMENTA;
 
 typedef struct _NOPENDOCUMENTW {
-  wchar_t *wszFile;              //Pointer to a file string buffer
+  wchar_t *pFile;                //Pointer to a file string buffer
   int *nCodePage;                //Pointer to a code page variable
   BOOL *bBOM;                    //Pointer to a BOM variable
   DWORD *dwFlags;                //Pointer to a open flags variable
@@ -614,7 +614,7 @@ typedef struct _NOPENDOCUMENTW {
 } NOPENDOCUMENTW;
 
 typedef struct _NSAVEDOCUMENTA {
-  char *szFile;                  //Pointer to a file string buffer
+  char *pFile;                   //Pointer to a file string buffer
   int *nCodePage;                //Pointer to a code page variable
   BOOL *bBOM;                    //Pointer to a BOM variable
   BOOL bProcess;                 //TRUE   save file
@@ -622,7 +622,7 @@ typedef struct _NSAVEDOCUMENTA {
 } NSAVEDOCUMENTA;
 
 typedef struct _NSAVEDOCUMENTW {
-  wchar_t *wszFile;              //Pointer to a file string buffer
+  wchar_t *pFile;                //Pointer to a file string buffer
   int *nCodePage;                //Pointer to a code page variable
   BOOL *bBOM;                    //Pointer to a BOM variable
   BOOL bProcess;                 //TRUE   save file
@@ -1553,7 +1553,7 @@ Example SendMessage (bOldWindows == TRUE):
 
 Example SendMessage (bOldWindows == FALSE):
  PLUGINCALLSENDW pcs;
- pcs.wpFunction=L"Plugin::Function";
+ pcs.pFunction=L"Plugin::Function";
  pcs.bOnStart=FALSE;
  pcs.lParam=0;
  pcs.lpbAutoLoad=NULL;
@@ -1573,7 +1573,7 @@ Example PostMessage (bOldWindows == FALSE):
  PLUGINCALLPOSTW *pcp;
  if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW)))
  {
-   lstrcpynW(pcp->wszFunction, L"Plugin::Function", MAX_PATH);
+   lstrcpynW(pcp->szFunction, L"Plugin::Function", MAX_PATH);
    pcp->bOnStart=FALSE;
    pcp->lParam=0;
    PostMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)pcp);
@@ -1664,7 +1664,7 @@ Example add plugin hotkey (bOldWindows == FALSE):
    return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing
  }
  PLUGINFUNCTIONW pf;
- pf.wszFunction[0]='\0';
+ pf.szFunction[0]='\0';
  pf.nFunctionLen=0;
  pf.wHotkey=589;       //Ctrl+M
  pf.bOnStart=FALSE;
@@ -1759,7 +1759,7 @@ Example read (bOldWindows == TRUE):
 
  if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)"AutoSave"))
  {
-   po.szOptionName="SaveDir";
+   po.pOptionName="SaveDir";
    po.dwType=PO_STRING;
    po.lpData=(LPBYTE)szDir;
    po.dwData=MAX_PATH;
@@ -1775,7 +1775,7 @@ Example read (bOldWindows == FALSE):
 
  if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)L"AutoSave"))
  {
-   po.wszOptionName=L"SaveDir";
+   po.pOptionName=L"SaveDir";
    po.dwType=PO_STRING;
    po.lpData=(LPBYTE)wszDir;
    po.dwData=MAX_PATH * sizeof(wchar_t);
@@ -1791,7 +1791,7 @@ Example save (bOldWindows == TRUE):
 
  if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)"AutoSave"))
  {
-   po.szOptionName="SaveDir";
+   po.pOptionName="SaveDir";
    po.dwType=PO_STRING;
    po.lpData=(LPBYTE)szDir;
    po.dwData=lstrlenA(szDir) + 1;
@@ -1807,7 +1807,7 @@ Example save (bOldWindows == FALSE):
 
  if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)L"AutoSave"))
  {
-   po.wszOptionName=L"SaveDir";
+   po.pOptionName=L"SaveDir";
    po.dwType=PO_STRING;
    po.lpData=(LPBYTE)wszDir;
    po.dwData=lstrlenW(wszDir) * sizeof(wchar_t) + 2;
@@ -1869,8 +1869,8 @@ Example read (bOldWindows == TRUE):
 
  if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)"C:\\File.ini"))
  {
-   iv.szSection="Options";
-   iv.szKey="SaveDir";
+   iv.pSection="Options";
+   iv.pKey="SaveDir";
    iv.dwType=INI_STRINGANSI;
    iv.lpData=(LPBYTE)szDir;
    iv.dwData=MAX_PATH;
@@ -1886,8 +1886,8 @@ Example read (bOldWindows == FALSE):
 
  if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)L"C:\\File.ini"))
  {
-   iv.wszSection=L"Options";
-   iv.wszKey=L"SaveDir";
+   iv.pSection=L"Options";
+   iv.pKey=L"SaveDir";
    iv.dwType=INI_STRINGUNICODE;
    iv.lpData=(LPBYTE)wszDir;
    iv.dwData=MAX_PATH * sizeof(wchar_t);
@@ -1903,8 +1903,8 @@ Example save (bOldWindows == TRUE):
 
  if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)"C:\\File.ini"))
  {
-   iv.szSection="Options";
-   iv.szKey="SaveDir";
+   iv.pSection="Options";
+   iv.pKey="SaveDir";
    iv.dwType=INI_STRINGANSI;
    iv.lpData=(LPBYTE)szDir;
    iv.dwData=lstrlenA(szDir) + 1;
@@ -1920,8 +1920,8 @@ Example save (bOldWindows == FALSE):
 
  if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)L"C:\\File.ini"))
  {
-   iv.wszSection=L"Options";
-   iv.wszKey=L"SaveDir";
+   iv.pSection=L"Options";
+   iv.pKey=L"SaveDir";
    iv.dwType=INI_STRINGUNICODE;
    iv.lpData=(LPBYTE)wszDir;
    iv.dwData=lstrlenW(wszDir) * sizeof(wchar_t) + 2;
@@ -2116,7 +2116,7 @@ Example (bOldWindows == TRUE):
 Example (bOldWindows == FALSE):
  SAVEDOCUMENTW sd;
 
- lstrcpynW(sd.wszFile, L"C:\\MyFile.txt", MAX_PATH);
+ lstrcpynW(sd.szFile, L"C:\\MyFile.txt", MAX_PATH);
  sd.nCodePage=65001;
  sd.bBOM=TRUE;
  sd.dwFlags=SD_UPDATE;
@@ -2290,7 +2290,7 @@ Example (bOldWindows == FALSE):
  TEXTFINDW tf;
 
  tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
- tf.wpFindIt=L"Text to find";
+ tf.pFindIt=L"Text to find";
  SendMessage(pd->hMainWnd, AKD_TEXTFIND, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
 
 
@@ -2319,8 +2319,8 @@ Example (bOldWindows == FALSE):
  TEXTREPLACEW tr;
 
  tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
- tr.wpFindIt=L"Text to find";
- tr.wpReplaceWith=L"Text to replace";
+ tr.pFindIt=L"Text to find";
+ tr.pReplaceWith=L"Text to replace";
  tr.bAll=TRUE;
  SendMessage(pd->hMainWnd, AKD_TEXTREPLACE, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 
@@ -2936,8 +2936,8 @@ Example (bOldWindows == FALSE):
  CREATEWINDOWW cw;
  HWND hWndMemEdit;
 
- lstrcpynW(cw.wszClassName, L"RichEdit20W", MAX_PATH);
- cw.wszWindowName[0]='\0';
+ lstrcpynW(cw.szClassName, L"RichEdit20W", MAX_PATH);
+ cw.szWindowName[0]='\0';
  cw.dwStyle=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_LEFT|ES_MULTILINE|ES_DISABLENOSCROLL|ES_SUNKEN|ES_NOHIDESEL;
  cw.x=0;
  cw.y=0;
@@ -3032,7 +3032,7 @@ Example (bOldWindows == FALSE):
 
  if (pmsd=(PMSAVEDOCUMENTW *)GlobalAlloc(GPTR, sizeof(PMSAVEDOCUMENTW)))
  {
-   lstrcpynW(pmsd->sd.wszFile, L"C:\\MyFile.txt", MAX_PATH);
+   lstrcpynW(pmsd->sd.szFile, L"C:\\MyFile.txt", MAX_PATH);
    pmsd->sd.nCodePage=65001;
    pmsd->sd.bBOM=TRUE;
    pmsd->sd.bUpdate=TRUE;
@@ -3172,8 +3172,8 @@ Example (bOldWindows == FALSE):
   COPYDATASTRUCT cds;
 
   od.hWnd=NULL;
-  lstrcpynW(od.wszFile, L"C:\\MyFile.txt", MAX_PATH);
-  od.wszWorkDir[0]='\0';
+  lstrcpynW(od.szFile, L"C:\\MyFile.txt", MAX_PATH);
+  od.szWorkDir[0]='\0';
   od.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
   od.nCodePage=0;
   od.bBOM=0;
@@ -3183,5 +3183,39 @@ Example (bOldWindows == FALSE):
   cds.lpData=&od;
   SendMessage(pd->hMainWnd, WM_COPYDATA, (WPARAM)pd->hMainWnd, (LPARAM)&cds);
 */
+
+//// UNICODE define
+
+#ifndef UNICODE
+  #define OPENDOCUMENT OPENDOCUMENTA
+  #define SAVEDOCUMENT SAVEDOCUMENTA
+  #define WNDFRAME WNDFRAMEA
+  #define PLUGINFUNCTION PLUGINFUNCTIONA
+  #define PLUGINCALLSEND PLUGINCALLSENDA
+  #define PLUGINCALLPOST PLUGINCALLPOSTA
+  #define PLUGINOPTION PLUGINOPTIONA
+  #define INIVALUE INIVALUEA
+  #define RECENTFILES RECENTFILESA
+  #define TEXTFIND TEXTFINDA
+  #define TEXTREPLACE TEXTREPLACEA
+  #define CREATEWINDOW CREATEWINDOWA
+  #define NOPENDOCUMENT NOPENDOCUMENTA
+  #define NSAVEDOCUMENT NSAVEDOCUMENTA
+#else
+  #define OPENDOCUMENT OPENDOCUMENTW
+  #define SAVEDOCUMENT SAVEDOCUMENTW
+  #define WNDFRAME WNDFRAMEW
+  #define PLUGINFUNCTION PLUGINFUNCTIONW
+  #define PLUGINCALLSEND PLUGINCALLSENDW
+  #define PLUGINCALLPOST PLUGINCALLPOSTW
+  #define PLUGINOPTION PLUGINOPTIONW
+  #define INIVALUE INIVALUEW
+  #define RECENTFILES RECENTFILESW
+  #define TEXTFIND TEXTFINDW
+  #define TEXTREPLACE TEXTREPLACEW
+  #define CREATEWINDOW CREATEWINDOWW
+  #define NOPENDOCUMENT NOPENDOCUMENTW
+  #define NSAVEDOCUMENT NSAVEDOCUMENTW
+#endif
 
 #endif
