@@ -1320,7 +1320,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         AE_UpdateScrollBars(ae, SB_VERT);
         ae->ptCaret.x=0;
         ae->ptCaret.y=0;
-        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
+        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
         InvalidateRect(ae->hWndEdit, NULL, TRUE);
       }
       return nResult;
@@ -10938,8 +10938,8 @@ int AE_LineFromVPos(AKELEDIT *ae, int nVPos)
       if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nCalcLine && lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
       {
         nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
-        nCalcLine+=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset - nLastMinLine + 1;
         nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
+        nCalcLine+=nLastMaxLine - nLastMinLine + 1;
       }
     }
     lpElement=lpElement->next;
@@ -10961,8 +10961,11 @@ int AE_VPosFromLine(AKELEDIT *ae, int nLine)
       if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset < nLine && lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
       {
         nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
-        nCalcLine-=min(nLine, lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset) - nLastMinLine + 1;
         nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
+        if (nLine < nLastMaxLine)
+          nCalcLine-=nLine - nLastMinLine;
+        else
+          nCalcLine-=nLastMaxLine - nLastMinLine + 1;
       }
     }
     lpElement=lpElement->next;
