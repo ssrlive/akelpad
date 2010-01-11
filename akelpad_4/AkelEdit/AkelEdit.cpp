@@ -808,18 +808,65 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         ae->popt->bVScrollLock=lParam;
       return 0;
     }
-    if (uMsg == AEM_GETERASERECT)
+    if (uMsg == AEM_LOCKERASERECT)
     {
-      RECT *rcErase=(RECT *)lParam;
+      AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
+      AEERASE *lpEraseNext;
+      RECT *rcLockErase=(RECT *)lParam;
+      RECT rcErase;
+      BOOL bDelete;
 
-      *rcErase=ae->rcErase;
-      return 0;
-    }
-    if (uMsg == AEM_SETERASERECT)
-    {
-      RECT *rcErase=(RECT *)lParam;
+      while (lpErase)
+      {
+        if (IntersectRect(&rcErase, rcLockErase, &lpErase->rcErase))
+        {
+          if (lpErase->rcErase.left < rcLockErase->right && lpErase->rcErase.right > rcLockErase->left)
+          {
+            if (lpErase->rcErase.right > rcLockErase->right)
+            {
+              rcErase.left=rcLockErase->right;
+              rcErase.top=lpErase->rcErase.top;
+              rcErase.right=lpErase->rcErase.right;
+              rcErase.bottom=lpErase->rcErase.bottom;
+              AE_StackEraseInsert(ae, &rcErase);
+            }
+            if (lpErase->rcErase.left < rcLockErase->left)
+            {
+              rcErase.left=lpErase->rcErase.left;
+              rcErase.top=lpErase->rcErase.top;
+              rcErase.right=rcLockErase->left;
+              rcErase.bottom=lpErase->rcErase.bottom;
+              AE_StackEraseInsert(ae, &rcErase);
+            }
+          }
+          if (lpErase->rcErase.top < rcLockErase->bottom && lpErase->rcErase.bottom > rcLockErase->top)
+          {
+            if (lpErase->rcErase.bottom > rcLockErase->bottom)
+            {
+              rcErase.left=lpErase->rcErase.left;
+              rcErase.top=rcLockErase->bottom;
+              rcErase.right=lpErase->rcErase.right;
+              rcErase.bottom=lpErase->rcErase.bottom;
+              AE_StackEraseInsert(ae, &rcErase);
+            }
+            if (lpErase->rcErase.top < rcLockErase->top)
+            {
+              rcErase.left=lpErase->rcErase.left;
+              rcErase.top=lpErase->rcErase.top;
+              rcErase.right=lpErase->rcErase.right;
+              rcErase.bottom=rcLockErase->top;
+              AE_StackEraseInsert(ae, &rcErase);
+            }
+          }
+          bDelete=TRUE;
+        }
+        else bDelete=FALSE;
 
-      ae->rcErase=*rcErase;
+        //Next erase rectangle
+        lpEraseNext=lpErase->next;
+        if (bDelete) AE_StackEraseDelete(ae, lpErase);
+        lpErase=lpEraseNext;
+      }
       return 0;
     }
     if (uMsg == AEM_GETCHARSIZE)
@@ -3568,45 +3615,59 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
   {
     RECT rcErase;
     HBRUSH hBasicBk;
+    AEERASE *lpErase=(AEERASE *)ae->hEraseStack.first;
+    AEERASE *lpEraseNext;
 
     hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
 
-    if (ae->rcErase.left < ae->rcDraw.left)
-    {
-      rcErase=ae->rcErase;
-      rcErase.right=min(rcErase.right, ae->rcDraw.left);
-      FillRect((HDC)wParam, &rcErase, hBasicBk);
-      ae->rcErase.left=rcErase.right;
-    }
-    if (ae->rcErase.top < ae->rcDraw.top)
-    {
-      rcErase=ae->rcErase;
-      rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
-      FillRect((HDC)wParam, &rcErase, hBasicBk);
-      ae->rcErase.top=rcErase.bottom;
-    }
-    if (ae->rcErase.right > ae->rcDraw.right)
-    {
-      rcErase=ae->rcErase;
-      rcErase.left=max(rcErase.left, ae->rcDraw.right);
-      FillRect((HDC)wParam, &rcErase, hBasicBk);
-      ae->rcErase.right=rcErase.left;
-    }
-    if (ae->rcErase.bottom > ae->rcDraw.bottom)
-    {
-      rcErase=ae->rcErase;
-      rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
-      FillRect((HDC)wParam, &rcErase, hBasicBk);
-      ae->rcErase.bottom=rcErase.top;
-    }
+    //Message came not from WM_PAINT - use all edit area
+    if (!lpErase)
+      lpErase=AE_StackEraseInsert(ae, &ae->rcEdit);
 
-    //Erase only a space after the last line
-    rcErase=ae->rcErase;
-    rcErase.top=max(rcErase.top, ae->rcDraw.top + (ae->ptxt->nVScrollMax - ae->nVScrollPos));
-
-    if (rcErase.top < rcErase.bottom)
+    while (lpErase)
     {
-      FillRect((HDC)wParam, &rcErase, hBasicBk);
+      if (lpErase->rcErase.left < ae->rcDraw.left)
+      {
+        rcErase=lpErase->rcErase;
+        rcErase.right=min(rcErase.right, ae->rcDraw.left);
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
+        lpErase->rcErase.left=rcErase.right;
+      }
+      if (lpErase->rcErase.top < ae->rcDraw.top)
+      {
+        rcErase=lpErase->rcErase;
+        rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
+        lpErase->rcErase.top=rcErase.bottom;
+      }
+      if (lpErase->rcErase.right > ae->rcDraw.right)
+      {
+        rcErase=lpErase->rcErase;
+        rcErase.left=max(rcErase.left, ae->rcDraw.right);
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
+        lpErase->rcErase.right=rcErase.left;
+      }
+      if (lpErase->rcErase.bottom > ae->rcDraw.bottom)
+      {
+        rcErase=lpErase->rcErase;
+        rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
+        lpErase->rcErase.bottom=rcErase.top;
+      }
+
+      //Erase only a space after the last line
+      rcErase=lpErase->rcErase;
+      rcErase.top=max(rcErase.top, ae->rcDraw.top + (ae->ptxt->nVScrollMax - ae->nVScrollPos));
+
+      if (rcErase.top < rcErase.bottom)
+      {
+        FillRect((HDC)wParam, &rcErase, hBasicBk);
+      }
+
+      //Next erase rectangle
+      lpEraseNext=lpErase->next;
+      AE_StackEraseDelete(ae, lpErase);
+      lpErase=lpEraseNext;
     }
     DeleteObject(hBasicBk);
 
@@ -3860,6 +3921,7 @@ void AE_DestroyWindowData(AKELEDIT *ae)
     AE_StackPointFree(ae);
     //AE_StackFoldFree(ae);
     //AE_StackLineFree(ae);
+    //AE_StackEraseFree(ae);
   }
 
   AE_HeapStackDelete(NULL, (stack **)&hAkelEditWindowsStack.first, (stack **)&hAkelEditWindowsStack.last, (stack *)ae);
@@ -4369,6 +4431,44 @@ AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae)
     lpElement=lpElement->next;
   }
   return NULL;
+}
+
+AEERASE* AE_StackEraseInsert(AKELEDIT *ae, RECT *rcErase)
+{
+  AEERASE *lpElement=NULL;
+
+  //Insert at the beginning
+  if (!AE_HeapStackInsertIndex(ae, (stack **)&ae->hEraseStack.first, (stack **)&ae->hEraseStack.last, (stack **)&lpElement, 1, sizeof(AEERASE)))
+  {
+    lpElement->rcErase=*rcErase;
+  }
+  return NULL;
+}
+
+AEERASE* AE_StackEraseGet(AKELEDIT *ae, int nIndex)
+{
+  AEERASE *lpElement=(AEERASE *)ae->hEraseStack.first;
+  int nItem=0;
+
+  while (lpElement)
+  {
+    if (nIndex == nItem)
+      return lpElement;
+
+    ++nItem;
+    lpElement=lpElement->next;
+  }
+  return NULL;
+}
+
+void AE_StackEraseDelete(AKELEDIT *ae, AEERASE *lpErase)
+{
+  AE_HeapStackDelete(ae, (stack **)&ae->hEraseStack.first, (stack **)&ae->hEraseStack.last, (stack *)lpErase);
+}
+
+void AE_StackEraseFree(AKELEDIT *ae)
+{
+  AE_HeapStackClear(ae, (stack **)&ae->hEraseStack.first, (stack **)&ae->hEraseStack.last);
 }
 
 AEFONTITEMA* AE_StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont)
@@ -9775,9 +9875,12 @@ void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 void AE_Paint(AKELEDIT *ae)
 {
   PAINTSTRUCT ps;
+  RECT rcErase;
 
-  if (GetUpdateRect(ae->hWndEdit, &ae->rcErase, FALSE))
+  if (GetUpdateRect(ae->hWndEdit, &rcErase, FALSE))
   {
+    AE_StackEraseInsert(ae, &rcErase);
+
     if (BeginPaint(ae->hWndEdit, &ps))
     {
       AEHLPAINT hlp={0};
@@ -10620,7 +10723,6 @@ void AE_Paint(AKELEDIT *ae)
 
       EndPaint(ae->hWndEdit, &ps);
     }
-    ae->rcErase=ae->rcEdit;
   }
 }
 

@@ -279,6 +279,15 @@ typedef struct _AEHLPAINT {
 } AEHLPAINT;
 
 
+//// WM_ERASEBKGND
+
+typedef struct _AEERASE {
+  struct _AEERASE *next;
+  struct _AEERASE *prev;
+  RECT rcErase;
+} AEERASE;
+
+
 //// Manage fonts
 
 typedef struct _AEFONTITEMA {
@@ -457,7 +466,7 @@ typedef struct _AKELEDIT {
   HDC hDC;
   RECT rcEdit;
   RECT rcDraw;
-  RECT rcErase;
+  HSTACK hEraseStack;
   POINT ptActiveColumnDraw;
   DWORD dwInputLocale;
   DWORD dwImeChar;
@@ -564,6 +573,10 @@ void AE_StackCloneDelete(AECLONE *aec);
 void AE_StackCloneDeleteAll(AKELEDIT *ae);
 void AE_StackUpdateClones(AKELEDIT *ae);
 AKELEDIT* AE_StackDraggingGet(AKELEDIT *ae);
+AEERASE* AE_StackEraseInsert(AKELEDIT *ae, RECT *rcErase);
+AEERASE* AE_StackEraseGet(AKELEDIT *ae, int nIndex);
+void AE_StackEraseDelete(AKELEDIT *ae, AEERASE *lpErase);
+void AE_StackEraseFree(AKELEDIT *ae);
 AEFONTITEMA* AE_StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont);
 AEFONTITEMW* AE_StackFontItemInsertW(HSTACK *hStack, LOGFONTW *lfFont);
 AEFONTITEMA* AE_StackFontItemGetA(HSTACK *hStack, LOGFONTA *lfFont);
