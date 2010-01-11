@@ -1175,8 +1175,7 @@ typedef struct {
 #define AEM_SCROLLCARET           (WM_USER + 2159)
 #define AEM_SCROLLCARETTEST       (WM_USER + 2160)
 #define AEM_LOCKSCROLL            (WM_USER + 2161)
-#define AEM_GETERASERECT          (WM_USER + 2162)
-#define AEM_SETERASERECT          (WM_USER + 2163)
+#define AEM_LOCKERASERECT         (WM_USER + 2162)
 #define AEM_GETCHARSIZE           (WM_USER + 2164)
 #define AEM_GETSTRWIDTH           (WM_USER + 2165)
 #define AEM_GETCARETPOS           (WM_USER + 2166)
@@ -3145,10 +3144,10 @@ Example:
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, FALSE);
 
 
-AEM_GETERASERECT
-________________
+AEM_LOCKERASERECT
+_________________
 
-Retrieve the erasing rectangle of an edit control. Make sense in WM_ERASEBKGND respond.
+Lock the erasing rectangle of an edit control. Make sense in WM_ERASEBKGND respond.
 
 wParam         == not used.
 (RECT *)lParam == pointer to a RECT structure that receives the erasing rectangle.
@@ -3159,30 +3158,10 @@ Return Value
 Example:
  if (uMsg == WM_ERASEBKGND)
  {
-   RECT rcErase;
+   RECT rcKeep={10, 0, 100, 100}; //Don't erase this rectangle, to avoid flashing.
 
-   SendMessage(hWndEdit, AEM_GETERASERECT, 0, (LPARAM)&rcErase);
-   if (rcErase.left < 10)
-   {
-     //Don't erase left 10 pixels, to avoid flashing.
-     rcErase.left=10;
-     SendMessage(hWndEdit, AEM_SETERASERECT, 0, (LPARAM)&rcErase);
-   }
+   SendMessage(hWndEdit, AEM_LOCKERASERECT, 0, (LPARAM)&rcKeep);
  }
-
-AEM_SETERASERECT
-________________
-
-Set the erasing rectangle of an edit control. Make sense in WM_ERASEBKGND respond.
-
-wParam         == not used.
-(RECT *)lParam == pointer to a RECT structure that specifies the new dimensions of the rectangle.
-
-Return Value
- zero
-
-Example:
- See AEM_GETERASERECT example.
 
 
 AEM_GETCHARSIZE
