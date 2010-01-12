@@ -815,6 +815,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       RECT *rcLockErase=(RECT *)lParam;
       RECT rcErase;
       BOOL bDelete;
+      BOOL bResult=FALSE;
 
       while (lpErase)
       {
@@ -859,6 +860,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
             }
           }
           bDelete=TRUE;
+          bResult=TRUE;
         }
         else bDelete=FALSE;
 
@@ -867,7 +869,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         if (bDelete) AE_StackEraseDelete(ae, lpErase);
         lpErase=lpEraseNext;
       }
-      return 0;
+      return bResult;
     }
     if (uMsg == AEM_GETCHARSIZE)
     {

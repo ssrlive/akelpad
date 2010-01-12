@@ -3153,7 +3153,8 @@ wParam         == not used.
 (RECT *)lParam == pointer to a RECT structure that receives the erasing rectangle.
 
 Return Value
- zero
+ TRUE   rectangle has been locked.
+ FALSE  rectangle not in erase area.
 
 Example:
  if (uMsg == WM_ERASEBKGND)
