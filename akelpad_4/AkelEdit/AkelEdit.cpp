@@ -13336,7 +13336,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
               }
 
               //Offsets
-              if (lpPoint->nPointOffset + lpPoint->nPointLen > nLineDelStartOffsetOld)
+              if (lpPoint->nPointOffset + lpPoint->nPointLen >= nLineDelStartOffsetOld)
               {
                 if (lpPoint->nPointOffset < nLineDelEndOffsetOld)
                 {
@@ -13650,7 +13650,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
         }
 
         //Offsets
-        if (lpPoint->nPointOffset + lpPoint->nPointLen > nStartOffset)
+        if (lpPoint->nPointOffset + lpPoint->nPointLen >= nStartOffset)
         {
           if (lpPoint->nPointOffset < nEndOffset)
           {
