@@ -1475,7 +1475,7 @@ LRESULT CALLBACK CommonMainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     {
       PLUGINFUNCTIONW *pf=(PLUGINFUNCTIONW *)lParam;
 
-      return (LRESULT)StackPluginAddW(&hPluginsStack, pf->wszFunction, pf->nFunctionLen, pf->wHotkey, pf->bOnStart, pf->bRunning, pf->PluginProc, pf->lpParameter);
+      return (LRESULT)StackPluginAddW(&hPluginsStack, pf->szFunction, pf->nFunctionLen, pf->wHotkey, pf->bOnStart, pf->bRunning, pf->PluginProc, pf->lpParameter);
     }
     else if (uMsg == AKD_DLLDELETE)
     {
@@ -1896,12 +1896,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (rh->dwType & POB_READ)
         {
           dwSize=po->dwData;
-          if (RegQueryValueExA(rh->hKey, po->szOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
+          if (RegQueryValueExA(rh->hKey, po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
             dwResult=dwSize;
         }
         else if (rh->dwType & POB_SAVE)
         {
-          if (RegSetValueExA(rh->hKey, po->szOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
+          if (RegSetValueExA(rh->hKey, po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
             dwResult=TRUE;
         }
       }
@@ -1918,11 +1918,11 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (ih->dwType & POB_READ)
         {
-          dwResult=IniGetValueA(&ih->hStack, "Options", po->szOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          dwResult=IniGetValueA(&ih->hStack, "Options", po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
         }
         else if (ih->dwType & POB_SAVE)
         {
-          dwResult=IniSetValueA(&ih->hStack, "Options", po->szOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          dwResult=IniSetValueA(&ih->hStack, "Options", po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
         }
       }
       return dwResult;
@@ -2017,14 +2017,14 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       INIHANDLEA *ih=(INIHANDLEA *)wParam;
       INIVALUEA *iv=(INIVALUEA *)lParam;
 
-      return IniGetValueA(&ih->hStack, iv->szSection, iv->szKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+      return IniGetValueA(&ih->hStack, iv->pSection, iv->pKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
     }
     if (uMsg == AKD_INISETVALUE)
     {
       INIHANDLEA *ih=(INIHANDLEA *)wParam;
       INIVALUEA *iv=(INIVALUEA *)lParam;
 
-      return IniSetValueA(&ih->hStack, iv->szSection, iv->szKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+      return IniSetValueA(&ih->hStack, iv->pSection, iv->pKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
     }
     if (uMsg == AKD_INICLOSE)
     {
@@ -3746,12 +3746,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (rh->dwType & POB_READ)
         {
           dwSize=po->dwData;
-          if (RegQueryValueExW(rh->hKey, po->wszOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
+          if (RegQueryValueExW(rh->hKey, po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
             dwResult=dwSize;
         }
         else if (rh->dwType & POB_SAVE)
         {
-          if (RegSetValueExW(rh->hKey, po->wszOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
+          if (RegSetValueExW(rh->hKey, po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
             dwResult=TRUE;
         }
       }
@@ -3768,11 +3768,11 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (ih->dwType & POB_READ)
         {
-          dwResult=IniGetValueW(&ih->hStack, L"Options", po->wszOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          dwResult=IniGetValueW(&ih->hStack, L"Options", po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
         }
         else if (ih->dwType & POB_SAVE)
         {
-          dwResult=IniSetValueW(&ih->hStack, L"Options", po->wszOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          dwResult=IniSetValueW(&ih->hStack, L"Options", po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
         }
       }
       return dwResult;
@@ -3867,14 +3867,14 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       INIHANDLEW *ih=(INIHANDLEW *)wParam;
       INIVALUEW *iv=(INIVALUEW *)lParam;
 
-      return IniGetValueW(&ih->hStack, iv->wszSection, iv->wszKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+      return IniGetValueW(&ih->hStack, iv->pSection, iv->pKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
     }
     if (uMsg == AKD_INISETVALUE)
     {
       INIHANDLEW *ih=(INIHANDLEW *)wParam;
       INIVALUEW *iv=(INIVALUEW *)lParam;
 
-      return IniSetValueW(&ih->hStack, iv->wszSection, iv->wszKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+      return IniSetValueW(&ih->hStack, iv->pSection, iv->pKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
     }
     if (uMsg == AKD_INICLOSE)
     {
@@ -3898,7 +3898,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       SAVEDOCUMENTW *sd=(SAVEDOCUMENTW *)lParam;
 
-      return SaveDocumentW((HWND)wParam, sd->wszFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
+      return SaveDocumentW((HWND)wParam, sd->szFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
     }
     if (uMsg == AKD_GETTEXTLENGTH)
     {
@@ -3944,13 +3944,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       TEXTFINDW *ft=(TEXTFINDW *)lParam;
 
-      return FindTextW((HWND)wParam, ft->dwFlags, ft->wpFindIt);
+      return FindTextW((HWND)wParam, ft->dwFlags, ft->pFindIt);
     }
     if (uMsg == AKD_TEXTREPLACE)
     {
       TEXTREPLACEW *rt=(TEXTREPLACEW *)lParam;
 
-      return ReplaceTextW((HWND)wParam, rt->dwFlags, rt->wpFindIt, rt->wpReplaceWith, rt->bAll, &rt->nChanges);
+      return ReplaceTextW((HWND)wParam, rt->dwFlags, rt->pFindIt, rt->pReplaceWith, rt->bAll, &rt->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {
@@ -4144,7 +4144,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (rf)
         {
-          rf->lpwszRecentNames=lpwszRecentNames;
+          rf->lpszRecentNames=lpwszRecentNames;
           rf->lpdwRecentPositions=lpdwRecentPositions;
           rf->lpdwRecentCodepages=lpdwRecentCodepages;
         }
@@ -4287,7 +4287,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       CREATEWINDOWW *cw=(CREATEWINDOWW *)lParam;
 
-      return (LRESULT)CreateWindowW(cw->wszClassName, cw->wszWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
+      return (LRESULT)CreateWindowW(cw->szClassName, cw->szWindowName, cw->dwStyle, cw->x, cw->y, cw->nWidth, cw->nHeight, cw->hWndParent, cw->hMenu, cw->hInstance, cw->lpParam);
     }
     if (uMsg == AKD_WAITKEYBOARD)
     {
@@ -4334,9 +4334,9 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if ((od->hWnd && od->hWnd != hWndEdit) || bMDI || SaveChangedW())
       {
-        if (*od->wszWorkDir) SetCurrentDirectoryW(od->wszWorkDir);
-        nResult=OpenDocumentW(od->hWnd, od->wszFile, od->dwFlags, od->nCodePage, od->bBOM);
-        if (*od->wszWorkDir) SetCurrentDirectoryW(wszExeDir);
+        if (*od->szWorkDir) SetCurrentDirectoryW(od->szWorkDir);
+        nResult=OpenDocumentW(od->hWnd, od->szFile, od->dwFlags, od->nCodePage, od->bBOM);
+        if (*od->szWorkDir) SetCurrentDirectoryW(wszExeDir);
       }
     }
     return nResult;
@@ -5830,9 +5830,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nItemSum;
 
       lpWndFrameW->hIcon=hIconEmpty;
-      lpWndFrameW->wszFile[0]='\0';
+      lpWndFrameW->szFile[0]='\0';
       lpWndFrameW->ei.hWndEdit=CreateEditWindowW(hWnd);
-      lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->wszFile;
+      lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->szFile;
       lpWndFrameW->ei.nCodePage=nDefaultCodePage;
       lpWndFrameW->ei.bBOM=bDefaultBOM;
       lpWndFrameW->ei.nNewLine=NEWLINE_WIN;
@@ -5963,9 +5963,9 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (lpWndFrameW=(WNDFRAMEW *)GetWindowLongW((HWND)wParam, GWL_USERDATA))
           {
-            lstrcpynW(lpWndFrameW->wszFile, wszCurrentFile, MAX_PATH);
+            lstrcpynW(lpWndFrameW->szFile, wszCurrentFile, MAX_PATH);
             lpWndFrameW->ei.hWndEdit=hWndEdit;
-            lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->wszFile;
+            lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->szFile;
             lpWndFrameW->ei.nCodePage=nCurrentCodePage;
             lpWndFrameW->ei.bBOM=bCurrentBOM;
             lpWndFrameW->ei.nNewLine=nNewLine;
@@ -5995,7 +5995,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Set activated MDI window settings
         if (lpWndFrameW=(WNDFRAMEW *)GetWindowLongW((HWND)lParam, GWL_USERDATA))
         {
-          lstrcpynW(wszCurrentFile, lpWndFrameW->wszFile, MAX_PATH);
+          lstrcpynW(wszCurrentFile, lpWndFrameW->szFile, MAX_PATH);
           hWndEdit=lpWndFrameW->ei.hWndEdit;
           SetCodePageStatusW(lpWndFrameW->ei.nCodePage, lpWndFrameW->ei.bBOM, FALSE);
           SetNewLineStatusW(NULL, lpWndFrameW->ei.nNewLine, FALSE);
