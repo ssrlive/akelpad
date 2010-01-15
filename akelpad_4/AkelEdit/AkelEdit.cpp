@@ -1382,15 +1382,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     if (uMsg == AEM_FOLDDELETE)
     {
       if (wParam)
-      {
-        if (AE_StackFoldIsValid(ae, (AEFOLD *)wParam))
-          AE_StackFoldDelete(ae, (AEFOLD *)wParam);
-        else
-          return FALSE;
-      }
-      else AE_StackFoldFree(ae);
-
-      return TRUE;
+        AE_StackFoldDelete(ae, (AEFOLD *)wParam);
+      else
+        AE_StackFoldFree(ae);
+      return 0;
     }
 
     //Window data

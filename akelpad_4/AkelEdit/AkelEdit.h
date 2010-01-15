@@ -4191,8 +4191,7 @@ Deletes specified or all folds.
 lParam           == not used.
 
 Return Value
- TRUE   success.
- FALSE  failed.
+ zero
 
 Example:
  SendMessage(hWndEdit, AEM_FOLDDELETE, (WPARAM)lpFold, 0);
