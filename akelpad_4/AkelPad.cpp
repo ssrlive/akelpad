@@ -43,8 +43,8 @@
 #include "StackFunc.h"
 
 //Include string functions
-#define xstrcmpnA
-#define xstrcmpnW
+#define xstrcmpinA
+#define xstrcmpinW
 #include "StrFunc.h"
 
 //Process
