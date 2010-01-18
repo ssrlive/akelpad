@@ -279,6 +279,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
 
   if (uMsg >= WM_USER)
   {
+    if (uMsg >= AEM_CANUNDO)
+      goto CanUndo;
+
     //Text retrieval and modification
     if (uMsg == AEM_SETTEXTA)
     {
@@ -410,6 +413,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //Undo and Redo
+    CanUndo:
+    if (uMsg >= AEM_EXGETSEL)
+      goto ExGetSel;
+
     if (uMsg == AEM_CANUNDO)
     {
       return AE_EditCanUndo(ae);
@@ -478,6 +485,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //Text coordinates
+    ExGetSel:
+    if (uMsg >= AEM_CHARFROMPOS)
+      goto CharFromPos;
+
     if (uMsg == AEM_EXGETSEL)
     {
       AECHARINDEX *ciMin=(AECHARINDEX *)wParam;
@@ -689,6 +700,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //Screen coordinates
+    CharFromPos:
+    if (uMsg >= AEM_CONTROLCLASS)
+      goto ControlClass;
+
     if (uMsg == AEM_CHARFROMPOS)
     {
       POINT *pt=(POINT *)wParam;
@@ -960,6 +975,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //Options
+    ControlClass:
+    if (uMsg >= AEM_SHOWSCROLLBAR)
+      goto ShowScrollbar;
+
     if (uMsg == AEM_CONTROLCLASS)
     {
       if (ae->bRichEditClass)
@@ -1322,6 +1341,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //Draw
+    ShowScrollbar:
+    if (uMsg >= AEM_GETWINDOWDATA)
+      goto GetWindowData;
+
     if (uMsg == AEM_SHOWSCROLLBAR)
     {
       if (wParam == SB_BOTH || wParam == SB_HORZ)
@@ -1389,6 +1412,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //Window data
+    GetWindowData:
+    if (uMsg >= AEM_ADDCLONE)
+      goto AddClone;
+
     if (uMsg == AEM_GETWINDOWDATA)
     {
       return (LRESULT)ae;
@@ -1416,6 +1443,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //Clones
+    AddClone:
+    if (uMsg >= AEM_STARTPRINTDOC)
+      goto StartPrintDoc;
+
     if (uMsg == AEM_ADDCLONE)
     {
       AKELEDIT *aeClone;
@@ -1457,6 +1488,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //Print
+    StartPrintDoc:
+    if (uMsg >= AEM_HLCREATETHEMEA)
+      goto CreateTheme;
+
     if (uMsg == AEM_STARTPRINTDOC)
     {
       AEPRINT *prn=(AEPRINT *)lParam;
@@ -1483,6 +1518,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //HighLight
+    CreateTheme:
+
     if (uMsg == AEM_HLCREATETHEMEA)
     {
       char *pThemeName=(char *)lParam;
@@ -4179,11 +4216,11 @@ AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit)
   while (lpElement)
   {
     if (lpElement->hWndEdit == hWndEdit)
-      break;
+      return lpElement;
 
     lpElement=lpElement->next;
   }
-  return lpElement;
+  return NULL;
 }
 
 void AE_StackWindowFree(HSTACK *hStack)
@@ -15065,7 +15102,7 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
       }
       else return FALSE;
     }
-    if (ciCount.lpLine->nLineBreak == AELB_EOF) return FALSE;
+    if (ciCount.lpLine->nLineBreak == AELB_EOF) return 0;
 
     if (ciCount.lpLine->nLineBreak == AELB_WRAP)
     {
