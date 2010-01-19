@@ -103,8 +103,8 @@
 #define AETCT_DELETEALL         0x00200000  //Indicate that due to AETCT_* action all text has been modified.
 
 //AEN_POINT types
-#define AEPTT_SETTEXT           0x00000001  //Set text.
-#define AEPTT_STREAMIN          0x00000002  //Stream in.
+#define AEPTT_SETTEXT           0x00000001  //All document text has been changed. All points reset to first character.
+#define AEPTT_STREAMIN          0x00000002  //All document text has been changed. All points reset to first character.
 #define AEPTT_INSERT            0x00000004  //Insert operation.
 #define AEPTT_DELETE            0x00000008  //Delete operation.
 
@@ -850,7 +850,7 @@ typedef struct {
 typedef struct {
   NMHDR hdr;
   DWORD dwType;        //See AEPTT_* defines.
-  AEPOINT *lpPoint;    //pointer to a AEPOINT structure.
+  AEPOINT *lpPoint;    //Pointer to a AEPOINT structure. NULL if type is AEPTT_SETTEXT or AEPTT_STREAMIN.
 } AENPOINT;
 
 typedef struct {
