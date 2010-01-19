@@ -4953,10 +4953,10 @@ void AE_StackPointReset(AKELEDIT *ae, DWORD dwType)
       lpElement->nReserved=-1;
     }
     lpElement->dwFlags|=AEPTF_MODIFY|AEPTF_DELETE;
-    AE_NotifyPoint(ae, dwType, lpElement);
 
     lpElement=lpElement->next;
   }
+  AE_NotifyPoint(ae, dwType, NULL);
 }
 
 void AE_StackPointDelete(AKELEDIT *ae, AEPOINT *lpElement)
