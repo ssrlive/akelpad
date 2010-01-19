@@ -4012,6 +4012,8 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
     ae->ptCaret.y=0;
     ae->nCaretHorzIndent=0;
     ae->bColumnSel=FALSE;
+    ae->hEraseStack.first=0;
+    ae->hEraseStack.last=0;
     ae->hFoldsStack.first=0;
     ae->hFoldsStack.last=0;
   }
