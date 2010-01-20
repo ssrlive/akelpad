@@ -13370,7 +13370,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
               }
 
               //Offsets
-              if (lpPoint->nPointOffset + lpPoint->nPointLen >= nLineDelStartOffsetOld)
+              if (lpPoint->nPointOffset + lpPoint->nPointLen > nLineDelStartOffsetOld)
               {
                 if (lpPoint->nPointOffset < nLineDelEndOffsetOld)
                 {
@@ -13684,7 +13684,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
         }
 
         //Offsets
-        if (lpPoint->nPointOffset + lpPoint->nPointLen >= nStartOffset)
+        if (lpPoint->nPointOffset + lpPoint->nPointLen > nStartOffset)
         {
           if (lpPoint->nPointOffset < nEndOffset)
           {
@@ -14048,7 +14048,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                   }
 
                   //Offsets
-                  if (lpPoint->nPointOffset + lpPoint->nPointLen >= nLineInsertOffsetOld)
+                  if (lpPoint->nPointOffset + lpPoint->nPointLen > nLineInsertOffsetOld)
                   {
                     if (lpPoint->nPointOffset < nLineInsertOffsetOld)
                     {
@@ -14575,7 +14575,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
             }
 
             //Offsets
-            if (lpPoint->nPointOffset + lpPoint->nPointLen >= nInsertOffset)
+            if (lpPoint->nPointOffset + lpPoint->nPointLen > nInsertOffset)
             {
               if (lpPoint->nPointOffset < nInsertOffset)
               {
