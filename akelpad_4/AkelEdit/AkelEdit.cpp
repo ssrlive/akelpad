@@ -9347,7 +9347,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 
           ScrollWindow(ae->hWndEdit, ae->nHScrollPos - nPos, 0, NULL, &ae->rcDraw);
           ae->nHScrollPos=nPos;
-          UpdateWindow(ae->hWndEdit);
+          //UpdateWindow(ae->hWndEdit);
 
           if (ae->nHScrollPos != ae->nLastHScrollPos)
           {
@@ -9390,7 +9390,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 
           ScrollWindow(ae->hWndEdit, 0, ae->nVScrollPos - nPos, NULL, &ae->rcDraw);
           ae->nVScrollPos=nPos;
-          UpdateWindow(ae->hWndEdit);
+          //UpdateWindow(ae->hWndEdit);
 
           if (ae->nVScrollPos != ae->nLastVScrollPos)
           {
