@@ -13197,7 +13197,7 @@ BOOL TranslatePluginA(LPMSG lpMsg)
 
             while (pfElement)
             {
-              if (!xstrcmpnA(szPluginName, pfElement->szFunction, (DWORD)-1, FALSE))
+              if (!xstrcmpinA(szPluginName, pfElement->szFunction, (DWORD)-1))
               {
                 if (pfElement->wHotkey || pfElement->bOnStart)
                   pfElement->bRunning=FALSE;
@@ -13279,7 +13279,7 @@ BOOL TranslatePluginW(LPMSG lpMsg)
 
             while (pfElement)
             {
-              if (!xstrcmpnW(wszPluginName, pfElement->szFunction, (DWORD)-1, FALSE))
+              if (!xstrcmpinW(wszPluginName, pfElement->szFunction, (DWORD)-1))
               {
                 if (pfElement->wHotkey || pfElement->bOnStart)
                   pfElement->bRunning=FALSE;
