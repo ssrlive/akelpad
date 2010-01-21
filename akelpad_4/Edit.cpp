@@ -19010,7 +19010,7 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
           {
             if (SendMessageA(hWndList, LB_GETTEXT, nItem, (LPARAM)buf) == LB_ERR)
               break;
-            if (xstrstrA(buf, szSearch, FALSE, NULL, NULL))
+            if (xstrstrA(buf, (DWORD)-1, szSearch, FALSE, NULL, NULL))
             {
               SendMessage(hWndList, LB_SETSEL, FALSE, -1);
               SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
@@ -19210,7 +19210,7 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
           {
             if (SendMessageW(hWndList, LB_GETTEXT, nItem, (LPARAM)wbuf) == LB_ERR)
               break;
-            if (xstrstrW(wbuf, wszSearch, FALSE, NULL, NULL))
+            if (xstrstrW(wbuf, (DWORD)-1, wszSearch, FALSE, NULL, NULL))
             {
               SendMessage(hWndList, LB_SETSEL, FALSE, -1);
               SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
