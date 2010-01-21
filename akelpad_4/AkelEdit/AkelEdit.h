@@ -193,8 +193,6 @@
 #define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.
 #define AEGI_PREVCHARINLINE        21  //Previous character in line. lParam must point to an input index.
-#define AEGI_INCREMENT             22  //lParam must point to an input index.
-#define AEGI_DECREMENT             23  //lParam must point to an input index.
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_PREVCHAR  0x00000001  //Check previous char.
