@@ -638,13 +638,9 @@ int xstrcmpnA(const char *pString1, const char *pString2, DWORD dwMaxLength)
     ++pString2;
     --dwCount;
   }
-
-  if (!*pString1)
-  {
-    if (!*pString2) return 0;
-    return (dwMaxLength == (DWORD)-1)?0:-1;
-  }
-  return 0;
+  if (!dwCount) return 0;
+  if (!*pString2) return 0;
+  return (dwMaxLength == (DWORD)-1)?0:-1;
 }
 #endif
 
@@ -679,13 +675,9 @@ int xstrcmpnW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLen
     ++wpString2;
     --dwCount;
   }
-
-  if (!*wpString1)
-  {
-    if (!*wpString2) return 0;
-    return (dwMaxLength == (DWORD)-1)?0:-1;
-  }
-  return 0;
+  if (!dwCount) return 0;
+  if (!*wpString2) return 0;
+  return (dwMaxLength == (DWORD)-1)?0:-1;
 }
 #endif
 
@@ -721,13 +713,9 @@ int xstrcmpinA(const char *pString1, const char *pString2, DWORD dwMaxLength)
     ++pString2;
     --dwCount;
   }
-
-  if (!*pString1)
-  {
-    if (!*pString2) return 0;
-    return (dwMaxLength == (DWORD)-1)?0:-1;
-  }
-  return 0;
+  if (!dwCount) return 0;
+  if (!*pString2) return 0;
+  return (dwMaxLength == (DWORD)-1)?0:-1;
 }
 #endif
 
@@ -771,13 +759,9 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLe
     ++wpString2;
     --dwCount;
   }
-
-  if (!*wpString1)
-  {
-    if (!*wpString2) return 0;
-    return (dwMaxLength == (DWORD)-1)?0:-1;
-  }
-  return 0;
+  if (!dwCount) return 0;
+  if (!*wpString2) return 0;
+  return (dwMaxLength == (DWORD)-1)?0:-1;
 }
 #endif
 
