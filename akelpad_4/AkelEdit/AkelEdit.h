@@ -149,6 +149,7 @@
 #define AECO_ALTDECINPUT        0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECO_NOMARGINSEL        0x00002000  //Disables left margin line selection with mouse.
 #define AECO_NONEWLINEDRAW      0x00004000  //Disables draw new line as space in selection.
+#define AECO_NOPRINTCOLLAPSED   0x00008000  //Disables print collapsed lines. See AEM_FOLDCOLLAPSE message.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -176,20 +177,24 @@
 #define AEGI_FIRSTSELCHAR           3  //First character of the selection.
 #define AEGI_LASTSELCHAR            4  //Last character of the selection.
 #define AEGI_CARETCHAR              5  //Caret character.
-#define AEGI_FIRSTVISIBLELINE       6  //First character of the first visible line.
-#define AEGI_LASTVISIBLELINE        7  //Last character of the last visible line.
-#define AEGI_NEXTLINE               8  //First character of the next line, collapsed folds are skipped. lParam must point to an input index.
-#define AEGI_PREVLINE               9  //First character of the previous line, collapsed folds are skipped. lParam must point to an input index.
-#define AEGI_NEXTCHAR              10  //Next wide character, collapsed folds are skipped. lParam must point to an input index.
-#define AEGI_PREVCHAR              11  //Previous wide character, collapsed folds are skippe. lParam must point to an input index.
+#define AEGI_NEXTCHAR               6  //Next wide character. lParam must point to an input index.
+#define AEGI_PREVCHAR               7  //Previous wide character. lParam must point to an input index.
+#define AEGI_NEXTLINE               8  //First character of the next line. lParam must point to an input index.
+#define AEGI_PREVLINE               9  //First character of the previous line. lParam must point to an input index.
+#define AEGI_FIRSTVISIBLELINE      10  //First character of the first visible line, collapsed lines are skipped.
+#define AEGI_LASTVISIBLELINE       11  //Last character of the last visible line, collapsed lines are skipped.
+#define AEGI_FIRSTFULLVISIBLELINE  12  //First character of the first fully visible line, collapsed lines are skipped.
+#define AEGI_LASTFULLVISIBLELINE   13  //Last character of the last fully visible line, collapsed lines are skipped.
+#define AEGI_NEXTVISIBLELINE       14  //First character of the next line, collapsed lines are skipped. lParam must point to an input index.
+#define AEGI_PREVVISIBLELINE       15  //First character of the previous line, collapsed lines are skipped. lParam must point to an input index.
+#define AEGI_NEXTVISIBLECHAR       16  //Next wide character, collapsed lines are skipped. lParam must point to an input index.
+#define AEGI_PREVVISIBLECHAR       17  //Previous wide character, collapsed lines are skipped. lParam must point to an input index.
 #define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.
 #define AEGI_PREVCHARINLINE        21  //Previous character in line. lParam must point to an input index.
-#define AEGI_FIRSTFULLVISIBLELINE  22  //First character of the first fully visible line.
-#define AEGI_LASTFULLVISIBLELINE   23  //Last character of the last fully visible line.
-#define AEGI_INCREMENT             24  //lParam must point to an input index.
-#define AEGI_DECREMENT             25  //lParam must point to an input index.
+#define AEGI_INCREMENT             22  //lParam must point to an input index.
+#define AEGI_DECREMENT             23  //lParam must point to an input index.
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_PREVCHAR  0x00000001  //Check previous char.

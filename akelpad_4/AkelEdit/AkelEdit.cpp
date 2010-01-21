@@ -5737,6 +5737,137 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     *ciCharOut=ae->ciCaretIndex;
     return 1;
   }
+  else if (nType == AEGI_NEXTCHAR ||
+           nType == AEGI_NEXTVISIBLECHAR)
+  {
+    AECHARINDEX ciCharTmp=*ciCharIn;
+    AEFOLD *lpFold=NULL;
+
+    if (bColumnSel)
+    {
+      AE_IndexInc(&ciCharTmp);
+      *ciCharOut=ciCharTmp;
+      return 1;
+    }
+    else
+    {
+      AE_NextIndex(&ciCharTmp);
+
+      if (nType == AEGI_NEXTVISIBLECHAR)
+      {
+        do
+        {
+          if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
+            break;
+        }
+        while (AE_NextLine(&ciCharTmp));
+      }
+
+      if (ciCharTmp.lpLine)
+      {
+        *ciCharOut=ciCharTmp;
+        return 1;
+      }
+      else
+      {
+        *ciCharOut=*ciCharIn;
+        return 0;
+      }
+    }
+  }
+  else if (nType == AEGI_PREVCHAR ||
+           nType == AEGI_PREVVISIBLECHAR)
+  {
+    AECHARINDEX ciCharTmp=*ciCharIn;
+    AEFOLD *lpFold=NULL;
+
+    if (bColumnSel)
+    {
+      AE_IndexDec(&ciCharTmp);
+      *ciCharOut=ciCharTmp;
+      ciCharOut->nCharInLine=max(ciCharTmp.nCharInLine, 0);
+      return 1;
+    }
+    else
+    {
+      AE_PrevIndex(&ciCharTmp);
+
+      if (nType == AEGI_PREVVISIBLECHAR)
+      {
+        do
+        {
+          if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
+            break;
+        }
+        while (AE_PrevLine(&ciCharTmp));
+      }
+
+      if (ciCharTmp.lpLine)
+      {
+        *ciCharOut=ciCharTmp;
+        return 1;
+      }
+      else
+      {
+        *ciCharOut=*ciCharIn;
+        return 0;
+      }
+    }
+  }
+  else if (nType == AEGI_NEXTLINE ||
+           nType == AEGI_NEXTVISIBLELINE)
+  {
+    AECHARINDEX ciCharTmp=*ciCharIn;
+    AEFOLD *lpFold=NULL;
+
+    while (AE_NextLine(&ciCharTmp))
+    {
+      if (nType == AEGI_NEXTVISIBLELINE)
+      {
+        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
+          break;
+      }
+      else break;
+    }
+
+    if (ciCharTmp.lpLine)
+    {
+      *ciCharOut=ciCharTmp;
+      return 1;
+    }
+    else
+    {
+      *ciCharOut=*ciCharIn;
+      return 0;
+    }
+  }
+  else if (nType == AEGI_PREVLINE ||
+           nType == AEGI_PREVVISIBLELINE)
+  {
+    AECHARINDEX ciCharTmp=*ciCharIn;
+    AEFOLD *lpFold=NULL;
+
+    while (AE_PrevLine(&ciCharTmp))
+    {
+      if (nType == AEGI_PREVVISIBLELINE)
+      {
+        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
+          break;
+      }
+      else break;
+    }
+
+    if (ciCharTmp.lpLine)
+    {
+      *ciCharOut=ciCharTmp;
+      return 1;
+    }
+    else
+    {
+      *ciCharOut=*ciCharIn;
+      return 0;
+    }
+  }
   else if (nType == AEGI_FIRSTVISIBLELINE)
   {
     ciCharOut->nLine=AE_GetFirstVisibleLine(ae);
@@ -5764,119 +5895,6 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
     ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
     return ciCharOut->lpLine?1:0;
-  }
-  else if (nType == AEGI_NEXTLINE)
-  {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpFold=NULL;
-
-    while (AE_NextLine(&ciCharTmp))
-    {
-      if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
-        break;
-    }
-
-    if (ciCharTmp.lpLine)
-    {
-      *ciCharOut=ciCharTmp;
-      return 1;
-    }
-    else
-    {
-      *ciCharOut=*ciCharIn;
-      return 0;
-    }
-  }
-  else if (nType == AEGI_PREVLINE)
-  {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpFold=NULL;
-
-    while (AE_PrevLine(&ciCharTmp))
-    {
-      if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
-        break;
-    }
-
-    if (ciCharTmp.lpLine)
-    {
-      *ciCharOut=ciCharTmp;
-      return 1;
-    }
-    else
-    {
-      *ciCharOut=*ciCharIn;
-      return 0;
-    }
-  }
-  else if (nType == AEGI_NEXTCHAR)
-  {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpFold=NULL;
-
-    if (bColumnSel)
-    {
-      AE_IndexInc(&ciCharTmp);
-      *ciCharOut=ciCharTmp;
-      return 1;
-    }
-    else
-    {
-      AE_NextIndex(&ciCharTmp);
-
-      do
-      {
-        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
-          break;
-      }
-      while (AE_NextLine(&ciCharTmp));
-
-      if (ciCharTmp.lpLine)
-      {
-        *ciCharOut=ciCharTmp;
-        return 1;
-      }
-      else
-      {
-        *ciCharOut=*ciCharIn;
-        return 0;
-      }
-    }
-  }
-  else if (nType == AEGI_PREVCHAR)
-  {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpFold=NULL;
-
-    if (bColumnSel)
-    {
-      AE_IndexDec(&ciCharTmp);
-      *ciCharOut=ciCharTmp;
-      ciCharOut->nCharInLine=max(ciCharTmp.nCharInLine, 0);
-      return 1;
-    }
-    else
-    {
-      AE_PrevIndex(&ciCharTmp);
-
-      do
-      {
-        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
-          break;
-      }
-      while (AE_PrevLine(&ciCharTmp));
-
-      if (ciCharTmp.lpLine)
-      {
-        *ciCharOut=ciCharTmp;
-        return 1;
-      }
-      else
-      {
-        *ciCharOut=*ciCharIn;
-        return 0;
-      }
-    }
   }
   else if (nType == AEGI_WRAPLINEBEGIN)
   {
@@ -9839,9 +9857,13 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
       break;
   }
   if (ciCount.lpLine)
-    bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE);
-  else
-    bContinuePrint=FALSE;
+  {
+    if (ae->popt->dwOptions & AECO_NOPRINTCOLLAPSED)
+      bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTVISIBLELINE, &ciCount, &prn->crText.ciMin, FALSE);
+    else
+      bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE);
+  }
+  else bContinuePrint=FALSE;
 
   //Print line
   PrintLine:
