@@ -5684,17 +5684,7 @@ int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
 
 int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel)
 {
-  if (nType == AEGI_INCREMENT)
-  {
-    *ciCharOut=*ciCharIn;
-    return AE_IndexInc(ciCharOut);
-  }
-  else if (nType == AEGI_DECREMENT)
-  {
-    *ciCharOut=*ciCharIn;
-    return AE_IndexDec(ciCharOut);
-  }
-  else if (nType == AEGI_FIRSTCHAR)
+  if (nType == AEGI_FIRSTCHAR)
   {
     ciCharOut->nLine=0;
     ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
