@@ -770,6 +770,7 @@ int TranslateFileStringW(wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
 void UpdateEdit(HWND hWnd);
+void DestroyEdit(HWND *hWndEdit);
 void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight);
 void UpdateSize();
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

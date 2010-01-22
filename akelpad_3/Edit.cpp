@@ -117,6 +117,7 @@ extern BOOL bMenuPopupCodepage;
 extern BOOL bMenuRecentFiles;
 extern BOOL bMenuLanguage;
 extern BOOL bMainOnStartFinish;
+extern BOOL bEditOnFinish;
 
 //Docks
 extern HDOCK hDocksStack;
@@ -17849,6 +17850,21 @@ void UpdateEdit(HWND hWnd)
 
   SendMessage(hWnd, EM_GETRECT, 0, (LPARAM)&rcDraw);
   InvalidateRect(hWnd, &rcDraw, FALSE);
+}
+
+void DestroyEdit(HWND *hWndEdit)
+{
+  bEditOnFinish=TRUE;
+
+  if (hWndEdit && *hWndEdit)
+  {
+    SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)*hWndEdit, 0);
+    DestroyWindow(*hWndEdit);
+
+    *hWndEdit=NULL;
+  }
+
+  bEditOnFinish=FALSE;
 }
 
 void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight)
