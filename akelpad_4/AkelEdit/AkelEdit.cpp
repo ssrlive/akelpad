@@ -3952,8 +3952,8 @@ void AE_DestroyWindowData(AKELEDIT *ae)
     if (HeapDestroy(ae->ptxt->hHeap))
       ae->ptxt->hHeap=NULL;
 
+    AE_StackFoldFree(ae);
     AE_StackPointFree(ae);
-    //AE_StackFoldFree(ae);
     //AE_StackLineFree(ae);
     //AE_StackEraseFree(ae);
   }
@@ -4014,8 +4014,6 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
     ae->bColumnSel=FALSE;
     ae->hEraseStack.first=0;
     ae->hEraseStack.last=0;
-    ae->hFoldsStack.first=0;
-    ae->hFoldsStack.last=0;
   }
 
   //Create heap
@@ -4718,7 +4716,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
 
     lpElement1=lpElement1->prev;
   }
-  AE_HeapStackInsertAfter(ae, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEFOLD));
+  AE_HeapStackInsertAfter(NULL, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEFOLD));
 
   if (lpElement2)
   {
@@ -4872,7 +4870,7 @@ void AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
 {
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
-  AE_HeapStackDelete(ae, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpFold);
+  AE_HeapStackDelete(NULL, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpFold);
 }
 
 void AE_StackFoldFree(AKELEDIT *ae)
@@ -4885,7 +4883,7 @@ void AE_StackFoldFree(AKELEDIT *ae)
     AE_StackPointDelete(ae, lpElement->lpMaxPoint);
     lpElement=lpElement->next;
   }
-  AE_HeapStackClear(ae, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last);
+  AE_HeapStackClear(NULL, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last);
 }
 
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
