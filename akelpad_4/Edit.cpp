@@ -22162,7 +22162,6 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMs
 {
   static RECT rcInitDialog;
   static RECT rcTempDialog;
-  static BOOL bRectChanged;
 
   if (!rcDialog) rcDialog=&rcTempDialog;
 
@@ -22180,7 +22179,6 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMs
       rcTemplate.top=rcInitDialog.top + (rcInitDialog.bottom - rcTemplate.bottom) / 2;
       SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
     }
-    bRectChanged=FALSE;
   }
   else if (uMsg == WM_GETMINMAXINFO)
   {
@@ -22218,7 +22216,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMs
         }
       }
       InvalidateRect(hDlg, NULL, TRUE);
-      bRectChanged=TRUE;
+      return TRUE;
     }
   }
   else if (uMsg == WM_PAINT)
@@ -22236,7 +22234,7 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMs
       EndPaint(hDlg, &ps);
     }
   }
-  return bRectChanged;
+  return FALSE;
 }
 
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen)
