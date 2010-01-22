@@ -1991,8 +1991,8 @@ int GetOptionsW(wchar_t *wpLine, wchar_t *wpOption, BOOL bSensitive, wchar_t *ws
 #define StrReplaceA
 #define GetOptionsA
 #define xstrstrA
-#define xstrcmpA
-#define xstrcmpnA
+#define xstrcmpiA
+#define xstrcmpinA
 #include "StrFunc.h"
 
 void main()
@@ -2012,13 +2012,13 @@ void main()
   nError=GetOptionsA("/A=123 /B=\"456\" /C=`789`", "/b=", FALSE, szResult, MAX_PATH);
   printf("szResult={%s}, nError={%d}\n", szResult, nError);
 
-  nError=xstrstrA("ABC||dfg||HJK", "Dfg", FALSE, &pStringBegin, &pStringEnd);
+  nError=xstrstrA("ABC||dfg||HJK", (DWORD)-1, "Dfg", FALSE, &pStringBegin, &pStringEnd);
   printf("pStringBegin={%s}, pStringEnd={%s}, nError={%d}\n", pStringBegin, pStringEnd, nError);
 
-  nError=xstrcmpA("ABC", "abc", FALSE);
+  nError=xstrcmpiA("ABC", "abc");
   printf("nError={%d}\n", nError);
 
-  nError=xstrcmpnA("ABCdfg", "abcxyz", 3, FALSE);
+  nError=xstrcmpinA("ABCdfg", "abcxyz", 3);
   printf("nError={%d}\n", nError);
 }
 
