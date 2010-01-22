@@ -122,6 +122,7 @@ extern BOOL bMenuPopupCodepage;
 extern BOOL bMenuRecentFiles;
 extern BOOL bMenuLanguage;
 extern BOOL bMainOnStartFinish;
+extern BOOL bEditOnFinish;
 
 //Clones
 extern BOOL bSplitWindow;
@@ -21937,6 +21938,8 @@ HWND NextClone(BOOL bPrevious)
 
 void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3)
 {
+  bEditOnFinish=TRUE;
+
   if (hWndMaster && *hWndMaster)
   {
     if (dwFlags & CN_CLONE1)
@@ -22001,6 +22004,7 @@ void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClon
       *hWndEdit=NULL;
     }
   }
+  bEditOnFinish=FALSE;
 }
 
 void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight, RECT *rcMasterWindow, RECT *rcEditWindow, BOOL bTest)

@@ -143,6 +143,7 @@ BOOL bMenuPopupCodepage=TRUE;
 BOOL bMenuRecentFiles=FALSE;
 BOOL bMenuLanguage=FALSE;
 BOOL bMainOnStartFinish=FALSE;
+BOOL bEditOnFinish=FALSE;
 
 //Docks
 HDOCK hDocksStack={0};
@@ -1376,9 +1377,7 @@ LRESULT CALLBACK CommonMainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     //Destroy windows
     if (!bMDI)
     {
-      SendMessage(hWnd, AKDN_EDIT_ONFINISH, (WPARAM)hWndEdit, 0);
-      DestroyWindow(hWndEdit);
-      hWndEdit=NULL;
+      DestroyEdit(&hWndEdit);
     }
     else
     {
@@ -1503,9 +1502,7 @@ LRESULT CALLBACK CommonMainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     //Destroy windows
     if (!bMDI)
     {
-      SendMessage(hWnd, AKDN_EDIT_ONFINISH, (WPARAM)hWndEdit, 0);
-      DestroyWindow(hWndEdit);
-      hWndEdit=NULL;
+      DestroyEdit(&hWndEdit);
     }
     else
     {
@@ -5234,11 +5231,8 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 {
   if (uMsg == WM_SETFOCUS)
   {
-    if (bMDI)
-    {
-      if (hWndFrameDestroyed == hWnd)
-        return FALSE;
-    }
+    if (bEditOnFinish)
+      return FALSE;
     SetFocus(hWndEdit);
 
     if (bWatchFile && szCurrentFile[0] && (ftFileTime.dwLowDateTime || ftFileTime.dwHighDateTime))
@@ -5398,11 +5392,8 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 {
   if (uMsg == WM_SETFOCUS)
   {
-    if (bMDI)
-    {
-      if (hWndFrameDestroyed == hWnd)
-        return FALSE;
-    }
+    if (bEditOnFinish)
+      return FALSE;
     SetFocus(hWndEdit);
 
     if (bWatchFile && wszCurrentFile[0] && (ftFileTime.dwLowDateTime || ftFileTime.dwHighDateTime))
@@ -6429,9 +6420,8 @@ LRESULT CALLBACK NewMdiClientProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
       hWndFrameDestroyed=(HWND)wParam;
       hWndEditDestroyed=GetDlgItem((HWND)wParam, ID_EDIT);
       SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)hWndEditDestroyed, 0);
-      DestroyWindow(hWndEditDestroyed);
-      if (hWndEditDestroyed == hWndEdit) hWndEdit=NULL;
+      DestroyEdit(&hWndEditDestroyed);
+      if (hWndFrameActive == (HWND)wParam) hWndEdit=NULL;
 
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
       DeleteTabItem(hTab, nItem);
@@ -6537,9 +6527,8 @@ LRESULT CALLBACK NewMdiClientProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
       hWndFrameDestroyed=(HWND)wParam;
       hWndEditDestroyed=GetDlgItem((HWND)wParam, ID_EDIT);
       SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-      SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)hWndEditDestroyed, 0);
-      DestroyWindow(hWndEditDestroyed);
-      if (hWndEditDestroyed == hWndEdit) hWndEdit=NULL;
+      DestroyEdit(&hWndEditDestroyed);
+      if (hWndFrameActive == (HWND)wParam) hWndEdit=NULL;
 
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
       DeleteTabItem(hTab, nItem);
