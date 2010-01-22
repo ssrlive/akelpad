@@ -5234,6 +5234,11 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 {
   if (uMsg == WM_SETFOCUS)
   {
+    if (bMDI)
+    {
+      if (hWndFrameDestroyed == hWnd)
+        return FALSE;
+    }
     SetFocus(hWndEdit);
 
     if (bWatchFile && szCurrentFile[0] && (ftFileTime.dwLowDateTime || ftFileTime.dwHighDateTime))
@@ -5393,6 +5398,11 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 {
   if (uMsg == WM_SETFOCUS)
   {
+    if (bMDI)
+    {
+      if (hWndFrameDestroyed == hWnd)
+        return FALSE;
+    }
     SetFocus(hWndEdit);
 
     if (bWatchFile && wszCurrentFile[0] && (ftFileTime.dwLowDateTime || ftFileTime.dwHighDateTime))
