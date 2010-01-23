@@ -15499,7 +15499,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
           ciCharIn=ae->ciSelStartIndex;
           ciCharOut=ae->ciSelStartIndex;
         }
-        else AE_GetIndex(ae, AEGI_PREVCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+        else AE_GetIndex(ae, AEGI_PREVVISIBLECHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
       }
     }
     else if (nVk == VK_RIGHT)
@@ -15520,7 +15520,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
           ciCharIn=ae->ciSelEndIndex;
           ciCharOut=ae->ciSelEndIndex;
         }
-        else AE_GetIndex(ae, AEGI_NEXTCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+        else AE_GetIndex(ae, AEGI_NEXTVISIBLECHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
       }
     }
     else if (nVk == VK_UP)
@@ -15528,7 +15528,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
         ciCharIn=ae->ciSelStartIndex;
 
-      if (AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, FALSE))
+      if (AE_GetIndex(ae, AEGI_PREVVISIBLELINE, &ciCharIn, &ciCharOut, FALSE))
       {
         if (!bControl)
         {
@@ -15539,7 +15539,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         {
           if (!AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCharIn, &ciCharOut, FALSE))
           {
-            AE_GetIndex(ae, AEGI_PREVLINE, &ciCharIn, &ciCharOut, FALSE);
+            AE_GetIndex(ae, AEGI_PREVVISIBLELINE, &ciCharIn, &ciCharOut, FALSE);
             AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCharOut, &ciCharOut, FALSE);
           }
         }
@@ -15550,7 +15550,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
         ciCharIn=ae->ciSelEndIndex;
 
-      if (AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIn, &ciCharOut, FALSE))
+      if (AE_GetIndex(ae, AEGI_NEXTVISIBLELINE, &ciCharIn, &ciCharOut, FALSE))
       {
         if (!bControl)
         {
@@ -15560,7 +15560,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         else
         {
           AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCharIn, &ciCharOut, FALSE);
-          AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharOut, &ciCharOut, FALSE);
+          AE_GetIndex(ae, AEGI_NEXTVISIBLELINE, &ciCharOut, &ciCharOut, FALSE);
         }
       }
     }
