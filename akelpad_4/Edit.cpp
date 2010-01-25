@@ -7977,7 +7977,7 @@ BOOL FitInside(int nWidth, int nHeight, int nMaxWidth, int nMaxHeight, SIZE *s)
   }
   else
   {
-    s->cx=s->cy * nWidth / nHeight; //portrait
+    s->cx=s->cy * nWidth / nHeight; //landscape
     return FALSE;
   }
 }
