@@ -1316,7 +1316,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       if (ae->ptxt->nLineGap != (int)wParam)
       {
-        int nFirstVisibleLine;
+        int nFirstVisibleLine=0;
 
         if (!ae->popt->bVScrollLock)
           nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
@@ -1398,7 +1398,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_FOLDCOLLAPSE)
     {
-      int nFirstVisibleLine;
+      int nFirstVisibleLine=0;
       int nFirstVisiblePos;
       int nResult;
 
@@ -2749,7 +2749,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
   }
   else if (uMsg == WM_SETFONT)
   {
-    int nFirstVisibleLine;
+    int nFirstVisibleLine=0;
 
     if (!ae->popt->bVScrollLock)
       nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
