@@ -870,6 +870,9 @@ int StackExchange(stack **first, stack **last, stack *element1, stack *element2)
 #undef StackJoin
 void StackJoin(stack **first, stack **last, stack *index, stack *joinfirst, stack *joinlast)
 {
+  if (!joinfirst || !joinlast)
+    return;
+
   if (!index)
   {
     if (*last)
