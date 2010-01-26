@@ -1,7 +1,7 @@
 /*****************************************************************
- *              Stack functions header v3.0                      *
+ *              Stack functions header v3.1                      *
  *                                                               *
- * 2009 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Linear functions (ALLSTACKFUNCL):                              *
@@ -72,8 +72,8 @@ int StackDelete(stack **first, stack **last, stack *element);
 int StackMoveBefore(stack **first, stack **last, stack *src, stack *dst);
 int StackMoveAfter(stack **first, stack **last, stack *src, stack *dst);
 int StackExchange(stack **first, stack **last, stack *element1, stack *element2);
-void StackJoin(stack **first, stack **last, stack *joinfirst, stack *joinlast, BOOL bTop);
-void StackSplit(stack **first, stack **last, stack **splitfirst, stack **splitlast, stack *element);
+void StackJoin(stack **first, stack **last, stack *index, stack *joinfirst, stack *joinlast);
+void StackSplit(stack **first, stack **last, stack *splitfirst, stack *splitlast);
 int StackSize(stack *first, stack *last);
 void StackClear(stack **first, stack **last);
 
@@ -459,7 +459,8 @@ int StackGetElement(stack *first, stack *last, stack **element, int nIndex)
  *                          the first element in the stack
  *[in,out] stack **last    -Pointer to a pointer that specifies
  *                          the last element in the stack
- *    [in] stack *element  -Insert before this element
+ *    [in] stack *element  -Insert before this element,
+ *                          if NULL then insert to the end of the stack
  *   [out] stack **element -Pointer to a pointer to the element
  *    [in] int nBytes      -Size of the structure
  *
@@ -514,7 +515,8 @@ int StackInsertBefore(stack **first, stack **last, stack *index, stack **element
  *                          the first element in the stack
  *[in,out] stack **last    -Pointer to a pointer that specifies
  *                          the last element in the stack
- *    [in] stack *element  -Insert after this element
+ *    [in] stack *element  -Insert after this element,
+ *                          if NULL then insert to the top of the stack
  *   [out] stack **element -Pointer to a pointer to the element
  *    [in] int nBytes      -Size of the structure
  *
@@ -614,7 +616,8 @@ int StackDelete(stack **first, stack **last, stack *element)
  *[in,out] stack **last    -Pointer to a pointer that specifies
  *                          the last element in the stack
  *    [in] stack *src      -Pointer to the element (source)
- *    [in] stack *dst      -Pointer to the element (destination)
+ *    [in] stack *dst      -Pointer to the element (destination),
+ *                          if NULL then insert to the end of the stack
  *
  *Returns: 0 on success
  *         2 indexes pointed to the same element
@@ -685,7 +688,8 @@ int StackMoveBefore(stack **first, stack **last, stack *src, stack *dst)
  *[in,out] stack **last    -Pointer to a pointer that specifies
  *                          the last element in the stack
  *    [in] stack *src      -Pointer to the element (source)
- *    [in] stack *dst      -Pointer to the element (destination)
+ *    [in] stack *dst      -Pointer to the element (destination),
+ *                          if NULL then insert to the top of the stack
  *
  *Returns: 0 on success
  *         2 indexes pointed to the same element
@@ -852,40 +856,41 @@ int StackExchange(stack **first, stack **last, stack *element1, stack *element2)
  *Joins two stacks.
  *
  *[in,out] stack **first     -Pointer to a pointer that specifies
- *                            the first element in the stack
+ *                            the first element in the first stack
  *[in,out] stack **last      -Pointer to a pointer that specifies
- *                            the last element in the stack
- *    [in] stack *joinfirst  -Pointer to the first element in the stack
- *    [in] stack *joinlast   -Pointer to the last element in the stack
- *    [in] BOOL bTop         -If TRUE second stack will be joined
- *                            to the first element of the first stack.
- *                            If FALSE second stack will be joined
- *                            to the last element of the first stack.
+ *                            the last element in the first stack
+ *    [in] stack *index      -Pointer to element in first stack.
+ *                            Second stack will be inserted before this element,
+ *                            if NULL then will be inserted to the end of the first stack.
+ *    [in] stack *joinfirst  -Pointer to the first element in the second stack
+ *    [in] stack *joinlast   -Pointer to the last element in the second stack
  ********************************************************************/
 #if defined StackJoin || defined ALLSTACKFUNC
 #define StackJoin_INCLUDED
 #undef StackJoin
-void StackJoin(stack **first, stack **last, stack *joinfirst, stack *joinlast, BOOL bTop)
+void StackJoin(stack **first, stack **last, stack *index, stack *joinfirst, stack *joinlast)
 {
-  if (!*first)
+  if (!index)
   {
-    *first=joinfirst;
-    *last=joinlast;
-  }
-  else if (joinfirst)
-  {
-    if (bTop)
-    {
-      (*first)->prev=joinlast;
-      joinlast->next=*first;
-      *first=joinfirst;
-    }
-    else
+    if (*last)
     {
       (*last)->next=joinfirst;
       joinfirst->prev=*last;
-      *last=joinlast;
     }
+    else
+    {
+      *first=joinfirst;
+    }
+    *last=joinlast;
+  }
+  else
+  {
+    if (index == *first) *first=joinfirst;
+    else index->prev->next=joinfirst;
+
+    joinlast->next=index;
+    joinfirst->prev=index->prev;
+    index->prev=joinlast;
   }
 }
 #endif
@@ -894,37 +899,42 @@ void StackJoin(stack **first, stack **last, stack *joinfirst, stack *joinlast, B
  *
  *  StackSplit
  *
- *Splits stack.
+ *Splits one stack into two stacks.
  *
  *[in,out] stack **first       -Pointer to a pointer that specifies
  *                              the first element in the stack
  *[in,out] stack **last        -Pointer to a pointer that specifies
  *                              the last element in the stack
- *   [out] stack **splitfirst  -Pointer to a pointer that specifies
- *                              the first element in the stack
- *   [out] stack **splitlast   -Pointer to a pointer that specifies
- *                              the last element in the stack
- *    [in] stack *element      -After spliting this element will be
- *                              the last element of the first stack.
+ *[in] stack *splitfirst       -Pointer to the element that will be
+ *                              the first element in the second stack
+ *[in] stack *splitlast        -Pointer to the element that will be
+ *                              the last element in the second stack
  ********************************************************************/
 #if defined StackSplit || defined ALLSTACKFUNC
 #define StackSplit_INCLUDED
 #undef StackSplit
-void StackSplit(stack **first, stack **last, stack **splitfirst, stack **splitlast, stack *element)
+void StackSplit(stack **first, stack **last, stack *splitfirst, stack *splitlast)
 {
-  if (element == *last)
+  if (!splitfirst || !splitlast)
+    return;
+
+  if (splitfirst == *first ||
+      splitlast == *last)
   {
-    *splitfirst=NULL;
-    *splitlast=NULL;
+    if (splitfirst == *first)
+      *first=splitlast->next;
+    if (splitlast == *last)
+      *last=splitfirst->prev;
   }
   else
   {
-    *splitfirst=element->next;
-    *splitlast=*last;
-    *last=element;
-    (*splitfirst)->prev=NULL;
-    (*last)->next=NULL;
+    splitfirst->prev->next=splitlast->next;
+    splitlast->next->prev=splitfirst->prev;
   }
+  if (*first) (*first)->prev=NULL;
+  if (*last) (*last)->next=NULL;
+  splitfirst->prev=NULL;
+  splitlast->next=NULL;
 }
 #endif
 
