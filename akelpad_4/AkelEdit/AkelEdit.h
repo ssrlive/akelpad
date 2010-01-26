@@ -1159,12 +1159,13 @@ typedef struct {
 #define AEM_RICHOFFSETTOINDEX     (WM_USER + 2113)
 #define AEM_ADDPOINT              (WM_USER + 2114)
 #define AEM_DELPOINT              (WM_USER + 2115)
-#define AEM_GETINDEXCOLUMN        (WM_USER + 2116)
-#define AEM_GETWRAPLINE           (WM_USER + 2117)
-#define AEM_GETUNWRAPLINE         (WM_USER + 2118)
-#define AEM_GETNEXTBREAK          (WM_USER + 2119)
-#define AEM_GETPREVBREAK          (WM_USER + 2120)
-#define AEM_ISDELIMITER           (WM_USER + 2121)
+#define AEM_GETPOINTSTACK         (WM_USER + 2116)
+#define AEM_GETINDEXCOLUMN        (WM_USER + 2117)
+#define AEM_GETWRAPLINE           (WM_USER + 2118)
+#define AEM_GETUNWRAPLINE         (WM_USER + 2119)
+#define AEM_GETNEXTBREAK          (WM_USER + 2120)
+#define AEM_GETPREVBREAK          (WM_USER + 2121)
+#define AEM_ISDELIMITER           (WM_USER + 2122)
 
 //Screen coordinates
 #define AEM_CHARFROMPOS           (WM_USER + 2151)
@@ -1238,12 +1239,15 @@ typedef struct {
 #define AEM_UPDATESCROLLBAR       (WM_USER + 2352)
 #define AEM_UPDATECARET           (WM_USER + 2353)
 #define AEM_HIDESELECTION         (WM_USER + 2354)
-#define AEM_FOLDADD               (WM_USER + 2361)
-#define AEM_FOLDGET               (WM_USER + 2362)
-#define AEM_LINEISCOLLAPSED       (WM_USER + 2363)
-#define AEM_FOLDCOLLAPSE          (WM_USER + 2364)
-#define AEM_FOLDISVALID           (WM_USER + 2365)
-#define AEM_FOLDDELETE            (WM_USER + 2366)
+
+//Folding
+#define AEM_FOLDADD               (WM_USER + 2381)
+#define AEM_FOLDGET               (WM_USER + 2382)
+#define AEM_LINEISCOLLAPSED       (WM_USER + 2383)
+#define AEM_FOLDCOLLAPSE          (WM_USER + 2384)
+#define AEM_FOLDISVALID           (WM_USER + 2385)
+#define AEM_FOLDDELETE            (WM_USER + 2386)
+#define AEM_FOLDUPDATE            (WM_USER + 2387)
 
 //Window data
 #define AEM_GETWINDOWDATA         (WM_USER + 2401)
@@ -2819,6 +2823,43 @@ Example:
  See AEM_ADDPOINT example.
 
 
+AEM_GETPOINTSTACK
+_________________
+
+Retrieve point stack handle.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Pointer to a HSTACK structure.
+
+Example:
+void RemoveChangedPoints(HWND hWnd)
+{
+  HSTACK *hPointStack;
+  AEPOINT *lpPointItem;
+  AEPOINT *lpPointNextItem;
+
+  if (hPointStack=(HSTACK *)SendMessage(hWnd, AEM_GETPOINTSTACK, 0, 0))
+  {
+    lpPointItem=(AEPOINT *)hPointStack->first;
+
+    while (lpPointItem)
+    {
+      lpPointNextItem=lpPointItem->next;
+
+      if ((lpPointItem->dwFlags & AEPTF_INSERT) ||
+          (lpPointItem->dwFlags & AEPTF_DELETE))
+      {
+        SendMessage(hWnd, AEM_DELPOINT, (WPARAM)lpPointItem, 0);
+      }
+      lpPointItem=lpPointNextItem;
+    }
+  }
+}
+
+
 AEM_GETINDEXCOLUMN
 __________________
 
@@ -4198,6 +4239,21 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_FOLDDELETE, (WPARAM)lpFold, 0);
+
+
+AEM_FOLDUPDATE
+______________
+
+Clean up folds stack. Deletes fold if fold start and fold end points are equal.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(hWndEdit, AEM_FOLDUPDATE, 0, 0);
 
 
 AEM_GETWINDOWDATA

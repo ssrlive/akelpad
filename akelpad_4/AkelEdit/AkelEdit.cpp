@@ -628,6 +628,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AE_StackPointDelete(ae, lpPoint);
       return 0;
     }
+    if (uMsg == AEM_GETPOINTSTACK)
+    {
+      return (LRESULT)&ae->ptxt->hPointsStack;
+    }
     if (uMsg == AEM_GETINDEXCOLUMN)
     {
       AECHARINDEX ciChar=*(AECHARINDEX *)lParam;
@@ -1342,8 +1346,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
 
     //Draw
     ShowScrollbar:
-    if (uMsg >= AEM_GETWINDOWDATA)
-      goto GetWindowData;
+    if (uMsg >= AEM_FOLDADD)
+      goto FoldAdd;
 
     if (uMsg == AEM_SHOWSCROLLBAR)
     {
@@ -1368,6 +1372,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AE_HideSelection(ae, wParam);
       return 0;
     }
+
+    //Folding
+    FoldAdd:
+    if (uMsg >= AEM_GETWINDOWDATA)
+      goto GetWindowData;
+
     if (uMsg == AEM_FOLDADD)
     {
       AEPOINT *lpMinPoint=(AEPOINT *)wParam;
@@ -1408,6 +1418,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         AE_StackFoldDelete(ae, (AEFOLD *)wParam);
       else
         AE_StackFoldFree(ae);
+      return 0;
+    }
+    if (uMsg == AEM_FOLDUPDATE)
+    {
+      AE_StackFoldUpdate(ae);
       return 0;
     }
 
@@ -16715,7 +16730,7 @@ void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
 
 void AE_NotifyTextChanged(AKELEDIT *ae)
 {
-  AE_StackFoldUpdate(ae);
+  //AE_StackFoldUpdate(ae);
   AE_StackUpdateClones(ae);
 
   //Send AEN_TEXTCHANGED
