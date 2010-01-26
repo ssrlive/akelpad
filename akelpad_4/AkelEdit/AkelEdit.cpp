@@ -1316,8 +1316,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       if (ae->ptxt->nLineGap != (int)wParam)
       {
-        int nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+        int nFirstVisibleLine;
 
+        if (!ae->popt->bVScrollLock)
+          nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
         ae->ptxt->nCharHeight=(ae->ptxt->nCharHeight - ae->ptxt->nLineGap) + wParam;
         ae->ptxt->nLineGap=wParam;
 
@@ -1326,7 +1328,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         ae->ptCaret.x=0;
         ae->ptCaret.y=0;
         AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
-        AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
+        if (!ae->popt->bVScrollLock)
+          AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
         AE_UpdateCaret(ae, ae->bFocus);
 
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
@@ -1395,7 +1398,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_FOLDCOLLAPSE)
     {
+      int nFirstVisibleLine;
+      int nFirstVisiblePos;
       int nResult;
+
+      if (!ae->popt->bVScrollLock)
+        nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
 
       if (nResult=AE_StackFoldCollapse(ae, (AEFOLD *)wParam, lParam))
       {
@@ -1404,6 +1412,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         ae->ptCaret.x=0;
         ae->ptCaret.y=0;
         AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+        if (!ae->popt->bVScrollLock)
+        {
+          nFirstVisiblePos=AE_VPosFromLine(ae, nFirstVisibleLine);
+          AE_ScrollEditWindow(ae, SB_VERT, nFirstVisiblePos);
+        }
         InvalidateRect(ae->hWndEdit, NULL, TRUE);
       }
       return nResult;
@@ -2736,7 +2749,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
   }
   else if (uMsg == WM_SETFONT)
   {
-    int nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+    int nFirstVisibleLine;
+
+    if (!ae->popt->bVScrollLock)
+      nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
 
     if (!ae->bUnicodeWindow)
       AE_SetEditFontA(ae, (HFONT)wParam, FALSE);
@@ -2749,7 +2765,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     ae->ptCaret.x=0;
     ae->ptCaret.y=0;
     AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
-    AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
+    if (!ae->popt->bVScrollLock)
+      AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
     AE_UpdateCaret(ae, ae->bFocus);
 
     if (ae->ptxt->dwWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
