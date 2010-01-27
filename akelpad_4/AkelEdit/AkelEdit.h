@@ -149,7 +149,7 @@
 #define AECO_ALTDECINPUT        0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECO_NOMARGINSEL        0x00002000  //Disables left margin line selection with mouse.
 #define AECO_NONEWLINEDRAW      0x00004000  //Disables draw new line as space in selection.
-#define AECO_NOPRINTCOLLAPSED   0x00008000  //Disables print collapsed lines. See AEM_FOLDCOLLAPSE message.
+#define AECO_NOPRINTCOLLAPSED   0x00008000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
@@ -1241,13 +1241,14 @@ typedef struct {
 #define AEM_HIDESELECTION         (WM_USER + 2354)
 
 //Folding
-#define AEM_FOLDADD               (WM_USER + 2381)
-#define AEM_FOLDGET               (WM_USER + 2382)
-#define AEM_LINEISCOLLAPSED       (WM_USER + 2383)
-#define AEM_FOLDCOLLAPSE          (WM_USER + 2384)
-#define AEM_FOLDISVALID           (WM_USER + 2385)
-#define AEM_FOLDDELETE            (WM_USER + 2386)
-#define AEM_FOLDUPDATE            (WM_USER + 2387)
+#define AEM_ADDFOLD               (WM_USER + 2381)
+#define AEM_GETFOLD               (WM_USER + 2382)
+#define AEM_ISLINECOLLAPSED       (WM_USER + 2383)
+#define AEM_COLLAPSEFOLD          (WM_USER + 2384)
+#define AEM_ISFOLDVALID           (WM_USER + 2385)
+#define AEM_DELETEFOLD            (WM_USER + 2386)
+#define AEM_UPDATEFOLD            (WM_USER + 2387)
+#define AEM_GETFOLDSTACK          (WM_USER + 2388)
 
 //Window data
 #define AEM_GETWINDOWDATA         (WM_USER + 2401)
@@ -4143,7 +4144,7 @@ Example:
  SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
 
 
-AEM_FOLDADD
+AEM_ADDFOLD
 ___________
 
 Hides the range of lines.
@@ -4161,10 +4162,10 @@ Example:
  pointMin.nPointOffset=AEPTO_CALC;
  pointMax.nPointOffset=AEPTO_CALC;
  SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&pointMin.ciPoint, (LPARAM)&pointMax.ciPoint);
- SendMessage(hWndEdit, AEM_FOLDADD, (WPARAM)&pointMin, (LPARAM)&pointMax);
+ SendMessage(hWndEdit, AEM_ADDFOLD, (WPARAM)&pointMin, (LPARAM)&pointMax);
 
 
-AEM_FOLDGET
+AEM_GETFOLD
 ___________
 
 Retrieves fold handle.
@@ -4176,10 +4177,10 @@ Return Value
  Fold handle (pointer to a AEFOLD structure).
 
 Example:
- SendMessage(hWndEdit, AEM_FOLDGET, (WPARAM)NULL, 5);
+ SendMessage(hWndEdit, AEM_GETFOLD, (WPARAM)NULL, 5);
 
 
-AEM_LINEISCOLLAPSED
+AEM_ISLINECOLLAPSED
 ___________________
 
 Checks is line collapsed.
@@ -4196,15 +4197,15 @@ Return Value
 Example:
  AEFOLD *lpFold=NULL;
 
- SendMessage(hWndEdit, AEM_LINEISCOLLAPSED, (WPARAM)&lpFold, 5);
+ SendMessage(hWndEdit, AEM_ISLINECOLLAPSED, (WPARAM)&lpFold, 5);
 
 
-AEM_FOLDCOLLAPSE
+AEM_COLLAPSEFOLD
 ________________
 
 Sets fold collapse state.
 
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDADD. If NULL, then process all folds.
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_ADDFOLD. If NULL, then process all folds.
 (BOOL)lParam     == TRUE  collapse fold.
                     FALSE uncollapse fold.
 
@@ -4212,15 +4213,15 @@ Return Value
  Number of folds changed.
 
 Example:
- SendMessage(hWndEdit, AEM_FOLDCOLLAPSE, (WPARAM)lpFold, TRUE);
+ SendMessage(hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)lpFold, TRUE);
 
 
-AEM_FOLDISVALID
+AEM_ISFOLDVALID
 _______________
 
 Checks is fold handle valid.
 
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_FOLDADD.
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_ADDFOLD.
 lParam           == not used.
 
 Return Value
@@ -4228,10 +4229,10 @@ Return Value
  FALSE  fold handle isn't valid.
 
 Example:
- SendMessage(hWndEdit, AEM_FOLDISVALID, (WPARAM)lpFold, 0);
+ SendMessage(hWndEdit, AEM_ISFOLDVALID, (WPARAM)lpFold, 0);
 
 
-AEM_FOLDDELETE
+AEM_DELETEFOLD
 ______________
 
 Deletes specified or all folds.
@@ -4243,10 +4244,10 @@ Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_FOLDDELETE, (WPARAM)lpFold, 0);
+ SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold, 0);
 
 
-AEM_FOLDUPDATE
+AEM_UPDATEFOLD
 ______________
 
 Clean up folds stack. Deletes fold if fold start and fold end points are equal.
@@ -4258,7 +4259,43 @@ Return Value
  zero
 
 Example:
- SendMessage(hWndEdit, AEM_FOLDUPDATE, 0, 0);
+ SendMessage(hWndEdit, AEM_UPDATEFOLD, 0, 0);
+
+
+AEM_GETFOLDSTACK
+________________
+
+Retrieve fold stack handle.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Pointer to a HSTACK structure.
+
+Example:
+AEFOLD* GetFold(HWND hWnd, int nLine)
+{
+  HSTACK *hFoldStack;
+  AEFOLD *lpFold;
+  AEFOLD *lpResult=NULL;
+
+  if (hFoldStack=(HSTACK *)SendMessage(hWnd, AEM_GETFOLDSTACK, 0, 0))
+  {
+    lpFold=(AEFOLD *)hFoldStack->first;
+  
+    while (lpFold)
+    {
+      if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
+        break;
+      if (lpFold->lpMaxPoint->ciPoint.nLine >= nLine)
+        lpResult=lpFold;
+  
+      lpFold=lpFold->next;
+    }
+  }
+  return lpResult;
+}
 
 
 AEM_GETWINDOWDATA
