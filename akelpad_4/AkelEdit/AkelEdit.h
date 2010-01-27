@@ -4169,7 +4169,7 @@ ___________
 
 Retrieves fold handle.
 
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), that will be checked initially. Can be NULL.
+(AEFOLD *)wParam == fold handle to scan from, can be NULL to scan from beginning.
 (int)lParam      == line number.
 
 Return Value
@@ -4184,14 +4184,19 @@ ___________________
 
 Checks is line collapsed.
 
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), that will be checked initially. Can be NULL.
-(int)lParam      == line number.
+(AEFOLD **)wParam == pointer to a fold handle to scan from, can be NULL to scan from beginning.
+                     If return value is TRUE it contain pointer to a fold handle that hides the line.
+                     If return value is FALSE it contain pointer to a last checked fold handle.
+(int)lParam       == line number.
 
 Return Value
- Fold handle (pointer to a AEFOLD structure) that hides line or NULL if line isn't collapsed.
+ TRUE  line collapsed.
+ FALSE line doesn't collapsed.
 
 Example:
- SendMessage(hWndEdit, AEM_LINEISCOLLAPSED, (WPARAM)NULL, 5);
+ AEFOLD *lpFold=NULL;
+
+ SendMessage(hWndEdit, AEM_LINEISCOLLAPSED, (WPARAM)&lpFold, 5);
 
 
 AEM_FOLDCOLLAPSE

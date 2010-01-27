@@ -1394,7 +1394,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_LINEISCOLLAPSED)
     {
-      return (LRESULT)AE_StackLineIsCollapsed(ae, (AEFOLD *)wParam, lParam);
+      return AE_StackLineIsCollapsed(ae, (AEFOLD **)wParam, lParam);
     }
     if (uMsg == AEM_FOLDCOLLAPSE)
     {
@@ -4783,60 +4783,49 @@ AEFOLD* AE_StackFoldGet(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
 {
   AEFOLD *lpResult=NULL;
 
-  if (lpFold)
-  {
-    if (lpFold->lpMinPoint->ciPoint.nLine <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
-      return lpFold;
-
-    lpFold=NULL;
-  }
-
   if (!lpFold)
-  {
     lpFold=(AEFOLD *)ae->hFoldsStack.first;
 
-    while (lpFold)
-    {
-      if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
-        break;
-      if (nLine <= lpFold->lpMaxPoint->ciPoint.nLine)
-        lpResult=lpFold;
+  while (lpFold)
+  {
+    if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
+      break;
+    if (lpFold->lpMaxPoint->ciPoint.nLine >= nLine)
+      lpResult=lpFold;
 
-      lpFold=lpFold->next;
-    }
+    lpFold=lpFold->next;
   }
   return lpResult;
 }
 
-AEFOLD* AE_StackLineIsCollapsed(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
+BOOL AE_StackLineIsCollapsed(AKELEDIT *ae, AEFOLD **lpFold, int nLine)
 {
-  if (lpFold)
-  {
-    if (lpFold->bCollapse)
-    {
-      if (lpFold->lpMinPoint->ciPoint.nLine + lpFold->nHideMinLineOffset <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine + lpFold->nHideMaxLineOffset)
-        return lpFold;
-    }
-    lpFold=NULL;
-  }
+  AEFOLD *lpCount;
 
-  if (!lpFold)
-  {
-    lpFold=(AEFOLD *)ae->hFoldsStack.first;
+  if (!lpFold || !*lpFold)
+    lpCount=(AEFOLD *)ae->hFoldsStack.first;
+  else
+    lpCount=*lpFold;
 
-    while (lpFold)
+  while (lpCount)
+  {
+    if (lpCount->lpMinPoint->ciPoint.nLine > nLine)
+      break;
+
+    if (lpCount->bCollapse)
     {
-      if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
-        break;
-      if (lpFold->bCollapse)
+      if (lpCount->lpMinPoint->ciPoint.nLine + lpCount->nHideMinLineOffset <= nLine && nLine <= lpCount->lpMaxPoint->ciPoint.nLine + lpCount->nHideMaxLineOffset)
       {
-        if (lpFold->lpMinPoint->ciPoint.nLine + lpFold->nHideMinLineOffset <= nLine && nLine <= lpFold->lpMaxPoint->ciPoint.nLine + lpFold->nHideMaxLineOffset)
-          return lpFold;
+        if (lpFold) *lpFold=lpCount;
+        return TRUE;
       }
-      lpFold=lpFold->next;
+      if (lpCount->lpMaxPoint->ciPoint.nLine + lpCount->nHideMaxLineOffset >= nLine)
+        break;
     }
+    lpCount=lpCount->next;
   }
-  return NULL;
+  if (lpFold) *lpFold=lpCount;
+  return FALSE;
 }
 
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
@@ -5777,7 +5766,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
       {
         do
         {
-          if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
+          if (!AE_StackLineIsCollapsed(ae, &lpFold, ciCharTmp.nLine))
             break;
         }
         while (AE_NextLine(&ciCharTmp));
@@ -5816,7 +5805,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
       {
         do
         {
-          if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
+          if (!AE_StackLineIsCollapsed(ae, &lpFold, ciCharTmp.nLine))
             break;
         }
         while (AE_PrevLine(&ciCharTmp));
@@ -5844,7 +5833,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     {
       if (nType == AEGI_NEXTVISIBLELINE)
       {
-        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
+        if (!AE_StackLineIsCollapsed(ae, &lpFold, ciCharTmp.nLine))
           break;
       }
       else break;
@@ -5871,7 +5860,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     {
       if (nType == AEGI_PREVVISIBLELINE)
       {
-        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciCharTmp.nLine)))
+        if (!AE_StackLineIsCollapsed(ae, &lpFold, ciCharTmp.nLine))
           break;
       }
       else break;
@@ -10049,7 +10038,7 @@ void AE_Paint(AKELEDIT *ae)
       while (ciDrawLine.lpLine)
       {
         //Line must be visible
-        if (!(lpFold=AE_StackLineIsCollapsed(ae, lpFold, ciDrawLine.nLine)))
+        if (!AE_StackLineIsCollapsed(ae, &lpFold, ciDrawLine.nLine))
         {
           //Get first paint char in line
           AE_GetCharInLine(ae, ciDrawLine.lpLine, nMinPaintWidth - ae->ptxt->nAveCharWidth, AECIL_ALLPOS, &ciDrawLine.nCharInLine, &nLineWidth, FALSE);
