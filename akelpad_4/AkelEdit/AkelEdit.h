@@ -1244,11 +1244,12 @@ typedef struct {
 #define AEM_ADDFOLD               (WM_USER + 2381)
 #define AEM_GETFOLD               (WM_USER + 2382)
 #define AEM_ISLINECOLLAPSED       (WM_USER + 2383)
-#define AEM_COLLAPSEFOLD          (WM_USER + 2384)
-#define AEM_ISFOLDVALID           (WM_USER + 2385)
-#define AEM_DELETEFOLD            (WM_USER + 2386)
-#define AEM_UPDATEFOLD            (WM_USER + 2387)
-#define AEM_GETFOLDSTACK          (WM_USER + 2388)
+#define AEM_COLLAPSELINE          (WM_USER + 2384)
+#define AEM_COLLAPSEFOLD          (WM_USER + 2385)
+#define AEM_ISFOLDVALID           (WM_USER + 2386)
+#define AEM_DELETEFOLD            (WM_USER + 2387)
+#define AEM_UPDATEFOLD            (WM_USER + 2388)
+#define AEM_GETFOLDSTACK          (WM_USER + 2389)
 
 //Window data
 #define AEM_GETWINDOWDATA         (WM_USER + 2401)
@@ -4200,6 +4201,22 @@ Example:
  SendMessage(hWndEdit, AEM_ISLINECOLLAPSED, (WPARAM)&lpFold, 5);
 
 
+AEM_COLLAPSELINE
+________________
+
+Collapse or expand all folds that contain line.
+
+(int)wParam  == zero based line number.
+(BOOL)lParam == TRUE  collapse folds.
+                FALSE expand folds.
+
+Return Value
+ Number of folds changed.
+
+Example:
+ SendMessage(hWndEdit, AEM_COLLAPSELINE, 5, TRUE);
+
+
 AEM_COLLAPSEFOLD
 ________________
 
@@ -4207,7 +4224,7 @@ Sets fold collapse state.
 
 (AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_ADDFOLD. If NULL, then process all folds.
 (BOOL)lParam     == TRUE  collapse fold.
-                    FALSE uncollapse fold.
+                    FALSE expand fold.
 
 Return Value
  Number of folds changed.
