@@ -20800,15 +20800,24 @@ void RestoreLineScroll(HWND hWnd, int nBeforeLine)
 
 DWORD ScrollCaret(HWND hWnd)
 {
-  DWORD dwScrollFlags=0;
+  AESCROLLTOPOINT stp;
   DWORD dwScrollResult;
 
-  dwScrollResult=SendMessage(hWnd, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 0));
+  //Test scroll to caret
+  stp.dwFlags=AESC_TEST|AESC_POINTCARET|AESC_OFFSETCHARX|AESC_OFFSETCHARY;
+  stp.nOffsetX=1;
+  stp.nOffsetY=0;
+  dwScrollResult=SendMessage(hWnd, AEM_SCROLLTOPOINT, 0, (LPARAM)&stp);
+
+  //Scroll to caret
+  stp.dwFlags=AESC_POINTCARET;
+  stp.nOffsetX=3;
+  stp.nOffsetY=2;
   if (dwScrollResult & AECSE_SCROLLEDX)
-    dwScrollFlags|=AESC_UNITRECTDIVX;
+    stp.dwFlags|=AESC_OFFSETRECTDIVX;
   if (dwScrollResult & AECSE_SCROLLEDY)
-    dwScrollFlags|=AESC_UNITRECTDIVY;
-  return SendMessage(hWnd, AEM_SCROLLCARET, dwScrollFlags, MAKELONG(3, 2));
+    stp.dwFlags|=AESC_OFFSETRECTDIVY;
+  return SendMessage(hWnd, AEM_SCROLLTOPOINT, 0, (LPARAM)&stp);
 }
 
 BOOL SelectColorDialogA(HWND hWndOwner, COLORREF *crColor)
