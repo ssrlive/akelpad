@@ -320,19 +320,23 @@
 #define AESB_ALIGNTOP        0x00000020  //Align first visible line.
 #define AESB_ALIGNBOTTOM     0x00000040  //Align last visible line.
 
-//AEM_SCROLLCARET, AEM_SCROLLCARETTEST flags
-#define AESC_UNITPIXELX      0x00000001  //Low word of the lParam specifies pixels number.
-#define AESC_UNITPIXELY      0x00000002  //High word of the lParam specifies pixels number.
-#define AESC_UNITCHARX       0x00000004  //Low word of the lParam specifies characters number.
-#define AESC_UNITCHARY       0x00000008  //High word of the lParam specifies characters number.
-#define AESC_UNITRECTDIVX    0x00000010  //Low word of the lParam specifies divisor of the edit rectangle width.
-#define AESC_UNITRECTDIVY    0x00000020  //High word of the lParam specifies divisor of the edit rectangle width.
-#define AESC_FORCELEFT       0x00000040  //Scrolls to the left even if caret visible.
-#define AESC_FORCETOP        0x00000080  //Scrolls to the top even if caret visible.
-#define AESC_FORCERIGHT      0x00000100  //Scrolls to the right even if caret visible.
-#define AESC_FORCEBOTTOM     0x00000200  //Scrolls to the bottom even if caret visible.
+//AEM_SCROLLTOPOINT flags
+#define AESC_TEST            0x00000001  //Only test for scroll. Returns result, but not actually scroll.
+#define AESC_POINTCARET      0x00000010  //Caret position is used and AESCROLLTOPOINT.ptPos is ignored.
+#define AESC_POINTGLOBAL     0x00000020  //AESCROLLTOPOINT.ptPos is position in the virtual text space coordinates.
+#define AESC_POINTCLIENT     0x00000040  //AESCROLLTOPOINT.ptPos is position in the client area coordinates.
+#define AESC_OFFSETPIXELX    0x00000100  //AESCROLLTOPOINT.nOffsetX specifies pixels number.
+#define AESC_OFFSETPIXELY    0x00000200  //AESCROLLTOPOINT.nOffsetY specifies pixels number.
+#define AESC_OFFSETCHARX     0x00000400  //AESCROLLTOPOINT.nOffsetX specifies characters number.
+#define AESC_OFFSETCHARY     0x00000800  //AESCROLLTOPOINT.nOffsetY specifies characters number.
+#define AESC_OFFSETRECTDIVX  0x00001000  //AESCROLLTOPOINT.nOffsetX specifies divisor of the edit rectangle width.
+#define AESC_OFFSETRECTDIVY  0x00002000  //AESCROLLTOPOINT.nOffsetY specifies divisor of the edit rectangle width.
+#define AESC_FORCELEFT       0x00010000  //Scrolls to the left even if AESCROLLTOPOINT.ptPos visible.
+#define AESC_FORCETOP        0x00020000  //Scrolls to the top even if AESCROLLTOPOINT.ptPos visible.
+#define AESC_FORCERIGHT      0x00040000  //Scrolls to the right even if AESCROLLTOPOINT.ptPos visible.
+#define AESC_FORCEBOTTOM     0x00080000  //Scrolls to the bottom even if AESCROLLTOPOINT.ptPos visible.
 
-//AEM_SCROLLCARET, AEM_SCROLLCARETTEST return flags
+//AEM_SCROLLTOPOINT return values
 #define AECSE_SCROLLEDX      0x00000001  //Edit control was horizontally scrolled.
 #define AECSE_SCROLLEDY      0x00000002  //Edit control was vertically scrolled.
 #define AECSE_SCROLLEDLEFT   0x00000004  //Edit control was scrolled left horizontally.
@@ -349,7 +353,7 @@
 #define AECPT_CLIENTTOGLOBAL 1  //Convert position in the client area coordinates, to virtual text space of the document.
 
 //Coordinate type
-#define AECT_GLOBAL 0  //Position in the virtual text space of the document.
+#define AECT_GLOBAL 0  //Position in the virtual text space coordinates.
 #define AECT_CLIENT 1  //Position in the client area coordinates.
 
 //AEM_POINTONMARGIN sides
@@ -651,6 +655,13 @@ typedef struct {
   BOOL bColumnSel;        //[in] Column selection. If this value is –1, use current selection type.
   int nNewLine;           //[in] See AELB_* defines.
 } AEINDEXSUBTRACT;
+
+typedef struct {
+  DWORD dwFlags;  //[in] See AESC_* defines.
+  POINT ptPos;    //[in] Point to scroll to, ignored if AESC_POINTCARET flag specified.
+  int nOffsetX;   //[in] Horizontal scroll offset.
+  int nOffsetY;   //[in] Vertical scroll offset.
+} AESCROLLTOPOINT;
 
 typedef struct {
   DWORD dwFlags;          //[in]     See AEPRN_* defines.
@@ -1176,8 +1187,7 @@ typedef struct {
 #define AEM_SETSCROLLPOS          (WM_USER + 2156)
 #define AEM_SCROLL                (WM_USER + 2157)
 #define AEM_LINESCROLL            (WM_USER + 2158)
-#define AEM_SCROLLCARET           (WM_USER + 2159)
-#define AEM_SCROLLCARETTEST       (WM_USER + 2160)
+#define AEM_SCROLLTOPOINT         (WM_USER + 2159)
 #define AEM_LOCKSCROLL            (WM_USER + 2161)
 #define AEM_LOCKERASERECT         (WM_USER + 2162)
 #define AEM_GETCHARSIZE           (WM_USER + 2164)
@@ -3138,36 +3148,24 @@ Example:
  SendMessage(hWndEdit, AEM_LINESCROLL, AESB_VERT, -10);
 
 
-AEM_SCROLLCARET
-_______________
+AEM_SCROLLTOPOINT
+_________________
 
-Scroll the caret into view in an edit control.
+Scroll the specified point into view in an edit control.
 
-(DWORD)wParam == see AESC_* defines.
-(DWORD)lParam == the low-order word contains the horizontal scroll unit,
-                 the high-order word contains the vertical scroll unit.
-
-Return Value
- See AECSE_* defines.
-
-Example:
- SendMessage(hWndEdit, AEM_SCROLLCARET, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
-
-
-AEM_SCROLLCARETTEST
-___________________
-
-Same as AEM_SCROLLCARET, but only test for scroll.
-
-(DWORD)wParam == see AESC_* defines.
-(DWORD)lParam == the low-order word contains the horizontal scroll unit,
-                 the high-order word contains the vertical scroll unit.
+wParam                    == not used.
+(AESCROLLTOPOINT *)lParam == pointer to a AESCROLLTOPOINT structure.
 
 Return Value
  See AECSE_* defines.
 
 Example:
- SendMessage(hWndEdit, AEM_SCROLLCARETTEST, AESC_UNITCHARX|AESC_UNITCHARY, MAKELONG(1, 1));
+ AESCROLLTOPOINT stp={0};
+
+ stp.dwFlags=AESC_POINTCARET|AESC_OFFSETCHARX|AESC_OFFSETCHARY;
+ stp.nOffsetX=1;
+ stp.nOffsetY=1;
+ SendMessage(hWndEdit, AEM_SCROLLTOPOINT, 0, (LPARAM)&stp);
 
 
 AEM_LOCKSCROLL
