@@ -324,7 +324,7 @@
 #define AESC_TEST            0x00000001  //Only test for scroll. Returns result, but not actually scroll.
 #define AESC_POINTCARET      0x00000010  //Caret position is used and AESCROLLTOPOINT.ptPos is ignored.
 #define AESC_POINTGLOBAL     0x00000020  //AESCROLLTOPOINT.ptPos is position in the virtual text space coordinates.
-#define AESC_POINTCLIENT     0x00000040  //AESCROLLTOPOINT.ptPos is position in the client area coordinates.
+#define AESC_POINTCLIENT     0x00000040  //AESCROLLTOPOINT.ptPos is position in the client area coordinates (default).
 #define AESC_OFFSETPIXELX    0x00000100  //AESCROLLTOPOINT.nOffsetX specifies pixels number.
 #define AESC_OFFSETPIXELY    0x00000200  //AESCROLLTOPOINT.nOffsetY specifies pixels number.
 #define AESC_OFFSETCHARX     0x00000400  //AESCROLLTOPOINT.nOffsetX specifies characters number.

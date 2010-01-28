@@ -814,8 +814,24 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     if (uMsg == AEM_SCROLLTOPOINT)
     {
       AESCROLLTOPOINT *stp=(AESCROLLTOPOINT *)lParam;
+      POINT ptPos;
 
-      return AE_ScrollToPoint(ae, stp->dwFlags, (stp->dwFlags & AESC_POINTCARET)?&ae->ptCaret:&stp->ptPos, stp->nOffsetX, stp->nOffsetY);
+      if (stp->dwFlags & AESC_POINTCARET)
+      {
+        //AESC_POINTCARET
+        ptPos=ae->ptCaret;
+      }
+      else if (stp->dwFlags & AESC_POINTGLOBAL)
+      {
+        //AESC_POINTGLOBAL
+        ptPos=stp->ptPos;
+      }
+      else
+      {
+        //AESC_POINTCLIENT
+        AE_ClientToGlobal(ae, &stp->ptPos, &ptPos);
+      }
+      return AE_ScrollToPoint(ae, stp->dwFlags, &ptPos, stp->nOffsetX, stp->nOffsetY);
     }
     if (uMsg == AEM_LOCKSCROLL)
     {
