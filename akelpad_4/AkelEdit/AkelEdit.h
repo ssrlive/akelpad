@@ -1064,6 +1064,40 @@ typedef struct {
     }
     return ciChar->lpLine;
   }
+
+  int AEC_CharAtIndex(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+    {
+      if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+        return ciChar->lpLine->next->wpLine[0];
+      if (ciChar->lpLine->nLineBreak == AELB_EOF)
+        return -1;
+      return L'\n';
+    }
+    return ciChar->lpLine->wpLine[ciChar->nCharInLine];
+  }
+
+  BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->lpLine->nSelStart <= ciChar->nCharInLine && ciChar->nCharInLine < ciChar->lpLine->nSelEnd)
+      return TRUE;
+    return FALSE;
+  }
+
+  BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == 0 && (!ciChar->lpLine->prev || ciChar->lpLine->prev->nLineBreak != AELB_WRAP))
+      return TRUE;
+    return FALSE;
+  }
+
+  BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == ciChar->lpLine->nLineLen && ciChar->lpLine->nLineBreak != AELB_WRAP)
+      return TRUE;
+    return FALSE;
+  }
 #else
   int AEC_IsSurrogate(wchar_t wchChar);
   int AEC_IsHighSurrogate(wchar_t wchChar);
@@ -1077,6 +1111,10 @@ typedef struct {
   AELINEDATA* AEC_PrevLine(AECHARINDEX *ciChar);
   AELINEDATA* AEC_NextIndex(AECHARINDEX *ciChar);
   AELINEDATA* AEC_PrevIndex(AECHARINDEX *ciChar);
+  int AEC_CharAtIndex(const AECHARINDEX *ciChar);
+  BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar);
+  BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar);
+  BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar);
 #endif //AEC_FUNCTIONS
 
 
@@ -4298,14 +4336,14 @@ AEFOLD* GetFold(HWND hWnd, int nLine)
   if (hFoldStack=(HSTACK *)SendMessage(hWnd, AEM_GETFOLDSTACK, 0, 0))
   {
     lpFold=(AEFOLD *)hFoldStack->first;
-  
+
     while (lpFold)
     {
       if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
         break;
       if (lpFold->lpMaxPoint->ciPoint.nLine >= nLine)
         lpResult=lpFold;
-  
+
       lpFold=lpFold->next;
     }
   }
