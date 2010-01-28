@@ -1396,7 +1396,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       return AE_StackIsLineCollapsed(ae, (AEFOLD **)wParam, lParam);
     }
-    if (uMsg == AEM_COLLAPSEFOLD)
+    if (uMsg == AEM_COLLAPSELINE ||
+        uMsg == AEM_COLLAPSEFOLD)
     {
       int nFirstVisibleLine=0;
       int nFirstVisiblePos;
@@ -1405,7 +1406,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       if (!ae->popt->bVScrollLock)
         nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
 
-      if (nResult=AE_StackFoldCollapse(ae, (AEFOLD *)wParam, lParam))
+      if (uMsg == AEM_COLLAPSELINE)
+        nResult=AE_StackLineCollapse(ae, wParam, lParam);
+      else
+        nResult=AE_StackFoldCollapse(ae, (AEFOLD *)wParam, lParam);
+
+      if (nResult)
       {
         ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
         AE_UpdateScrollBars(ae, SB_VERT);
@@ -4804,39 +4810,64 @@ AEFOLD* AE_StackFoldGet(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
 
 BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, AEFOLD **lpFold, int nLine)
 {
-  AEFOLD *lpCount;
+  AEFOLD *lpElement;
 
   if (!lpFold || !*lpFold)
-    lpCount=(AEFOLD *)ae->hFoldsStack.first;
+    lpElement=(AEFOLD *)ae->hFoldsStack.first;
   else
-    lpCount=*lpFold;
+    lpElement=*lpFold;
 
-  while (lpCount)
+  while (lpElement)
   {
-    if (lpCount->lpMinPoint->ciPoint.nLine > nLine)
+    if (lpElement->lpMinPoint->ciPoint.nLine > nLine)
       break;
 
-    if (lpCount->bCollapse)
+    if (lpElement->bCollapse)
     {
-      if (lpCount->lpMinPoint->ciPoint.nLine + lpCount->nHideMinLineOffset <= nLine && nLine <= lpCount->lpMaxPoint->ciPoint.nLine + lpCount->nHideMaxLineOffset)
+      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nLine &&
+          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset >= nLine)
       {
-        if (lpFold) *lpFold=lpCount;
+        if (lpFold) *lpFold=lpElement;
         return TRUE;
       }
-      if (lpCount->lpMaxPoint->ciPoint.nLine + lpCount->nHideMaxLineOffset >= nLine)
+      if (lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset >= nLine)
         break;
     }
-    lpCount=lpCount->next;
+    lpElement=lpElement->next;
   }
 
   if (lpFold)
   {
-    if (lpCount)
-      *lpFold=lpCount;
+    if (lpElement)
+      *lpFold=lpElement;
     else
       *lpFold=(AEFOLD *)ae->hFoldsStack.last;
   }
   return FALSE;
+}
+
+int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse)
+{
+  AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+  int nResult=0;
+
+  while (lpElement)
+  {
+    if (lpElement->lpMinPoint->ciPoint.nLine > nLine)
+      break;
+
+    if (lpElement->bCollapse != bCollapse)
+    {
+      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nLine &&
+          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset >= nLine)
+      {
+        lpElement->bCollapse=bCollapse;
+        ++nResult;
+      }
+    }
+    lpElement=lpElement->next;
+  }
+  return nResult;
 }
 
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
@@ -11118,7 +11149,8 @@ int AE_LineFromVPos(AKELEDIT *ae, int nVPos)
   {
     if (lpElement->bCollapse)
     {
-      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nCalcLine && lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
+      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nCalcLine &&
+          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
       {
         nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
         nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
@@ -11141,7 +11173,8 @@ int AE_VPosFromLine(AKELEDIT *ae, int nLine)
   {
     if (lpElement->bCollapse)
     {
-      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset < nLine && lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
+      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset < nLine &&
+          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
       {
         nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
         nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
