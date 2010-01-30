@@ -108,6 +108,17 @@
 #define AEPTT_INSERT            0x00000004  //Insert operation.
 #define AEPTT_DELETE            0x00000008  //Delete operation.
 
+//AEPOINT flags
+#define AEPTF_MOVED      0x00000001  //If set, AEPOINT.ciPoint index has been moved.
+#define AEPTF_MODIFY     0x00000002  //If set, AEPOINT.ciPoint index has been modified.
+#define AEPTF_INSERT     0x00000004  //If set, AEPOINT.nPointLen index has been increased. Additional for AEPTF_MODIFY flag.
+#define AEPTF_DELETE     0x00000008  //If set, AEPOINT.nPointLen index has been decreased. Additional for AEPTF_MODIFY flag.
+#define AEPTF_FOLD       0x00000100  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
+
+//AEPOINT character offset value
+#define AEPTO_IGNORE    -1  //Character RichEdit offset is not used in AEPOINT.
+#define AEPTO_CALC      -2  //Character RichEdit offset will calculated automatically by AEM_ADDPOINT.
+
 //Insert text flags
 #define AEINST_LOCKUNDO      0x00000001
 #define AEINST_LOCKSCROLL    0x00000002
@@ -213,16 +224,6 @@
 #define AESELT_NOVERTSCROLLCORRECT 0x00000100  //On some conditions scroll can be increased to a height of one line.
 #define AESELT_MOUSE               0x00000200  //Don't use it. For internal code only.
 #define AESELT_RESETSELECTION      0x00000400  //Don't use it. For internal code only.
-
-//AEM_ADDPOINT flags
-#define AEPTF_MODIFY     0x00000001  //If set, AEPOINT.ciPoint index has been modified.
-#define AEPTF_INSERT     0x00000002  //If set, AEPOINT.nPointLen index has been increased. Additional for AEPTF_MODIFY flag.
-#define AEPTF_DELETE     0x00000004  //If set, AEPOINT.nPointLen index has been decreased. Additional for AEPTF_MODIFY flag.
-#define AEPTF_FOLD       0x00000010  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
-
-//AEPOINT character offset value
-#define AEPTO_IGNORE    -1  //Character RichEdit offset is not used in AEPOINT.
-#define AEPTO_CALC      -2  //Character RichEdit offset will calculated automatically by AEM_ADDPOINT.
 
 //AEM_CHARFROMPOS return value
 #define AEPC_ERROR    0  //Error.

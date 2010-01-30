@@ -5029,7 +5029,7 @@ void AE_StackPointReset(AKELEDIT *ae, DWORD dwType)
       lpElement->nPointLen=0;
       lpElement->nReserved=-1;
     }
-    lpElement->dwFlags|=AEPTF_MODIFY|AEPTF_DELETE;
+    lpElement->dwFlags|=AEPTF_MOVED|AEPTF_MODIFY|AEPTF_DELETE;
 
     lpElement=lpElement->next;
   }
@@ -6828,7 +6828,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
                   lpTmpPoint->ciPoint.nLine+=nLineCount;
                   lpTmpPoint->ciPoint.lpLine=lpNewElement;
                   lpTmpPoint->ciPoint.nCharInLine-=nCharStart;
-                  lpTmpPoint->dwFlags|=AEPTF_MODIFY;
+                  lpTmpPoint->dwFlags|=AEPTF_MOVED;
                 }
                 else if (lpTmpPoint->ciPoint.nCharInLine > nCharEnd)
                   break;
@@ -6862,7 +6862,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
         if (lpTmpPoint->ciPoint.nLine > liStart.nLine)
         {
           lpTmpPoint->ciPoint.nLine+=nLineCount;
-          lpTmpPoint->dwFlags|=AEPTF_MODIFY;
+          lpTmpPoint->dwFlags|=AEPTF_MOVED;
         }
       }
     }
@@ -6952,7 +6952,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
                 lpTmpPoint->ciPoint.nLine+=nLineCount;
                 lpTmpPoint->ciPoint.lpLine=lpNewElement;
                 lpTmpPoint->ciPoint.nCharInLine+=(dwCountLen - liCurLine.lpLine->nLineLen);
-                lpTmpPoint->dwFlags|=AEPTF_MODIFY;
+                lpTmpPoint->dwFlags|=AEPTF_MOVED;
               }
               else if (!nLineCount)
                 *lpPoint=lpTmpPoint;
@@ -6984,7 +6984,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
           if (lpTmpPoint->ciPoint.nLine > liLine->nLine)
           {
             lpTmpPoint->ciPoint.nLine+=nLineCount;
-            lpTmpPoint->dwFlags|=AEPTF_MODIFY;
+            lpTmpPoint->dwFlags|=AEPTF_MOVED;
           }
         }
       }
@@ -13455,7 +13455,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                   lpPoint->ciPoint.nCharInLine-=nLineDelLength;
                   lpPoint->ciPoint.nCharInLine=max(lpPoint->ciPoint.nCharInLine, lpElement->nSelStart);
                 }
-                lpPoint->dwFlags|=AEPTF_MODIFY;
+                lpPoint->dwFlags|=AEPTF_MOVED;
               }
 
               //Offsets
@@ -13467,7 +13467,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                   if (lpPoint->nReserved < 0)
                   {
                     lpPoint->nReserved=min(lpPoint->nPointOffset, nLineDelStartOffsetOld) - (nRichTextCount - nLineDelLength);
-                    lpPoint->dwFlags|=AEPTF_DELETE;
+                    lpPoint->dwFlags|=AEPTF_MODIFY|AEPTF_DELETE;
                     AE_NotifyPoint(ae, AEPTT_DELETE, lpPoint);
                   }
                 }
@@ -13769,7 +13769,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
           {
             lpPoint->ciPoint.nLine-=(ciDeleteEnd.nLine - ciDeleteStart.nLine);
           }
-          lpPoint->dwFlags|=AEPTF_MODIFY;
+          lpPoint->dwFlags|=AEPTF_MOVED;
         }
 
         //Offsets
@@ -13779,7 +13779,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
           {
             lpPoint->nPointLen-=min(lpPoint->nPointOffset + lpPoint->nPointLen, nEndOffset) - max(lpPoint->nPointOffset, nStartOffset);
             lpPoint->nPointOffset=min(lpPoint->nPointOffset, nStartOffset);
-            lpPoint->dwFlags|=AEPTF_DELETE;
+            lpPoint->dwFlags|=AEPTF_MODIFY|AEPTF_DELETE;
             AE_NotifyPoint(ae, AEPTT_DELETE, lpPoint);
           }
           else lpPoint->nPointOffset-=nDelLength;
@@ -14133,7 +14133,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                     lpPoint->ciPoint.lpLine=lpNewElement;
                     if (lpPoint->ciPoint.nCharInLine >= ciInsertFrom.nCharInLine)
                       lpPoint->ciPoint.nCharInLine+=nLineLen;
-                    lpPoint->dwFlags|=AEPTF_MODIFY;
+                    lpPoint->dwFlags|=AEPTF_MOVED;
                   }
 
                   //Offsets
@@ -14142,7 +14142,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                     if (lpPoint->nPointOffset < nLineInsertOffsetOld)
                     {
                       lpPoint->nPointLen+=nLineLen;
-                      lpPoint->dwFlags|=AEPTF_INSERT;
+                      lpPoint->dwFlags|=AEPTF_MODIFY|AEPTF_INSERT;
                       AE_NotifyPoint(ae, AEPTT_INSERT, lpPoint);
                     }
                     else if (lpPoint->nReserved < 0)
@@ -14646,7 +14646,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
             if (lpPoint->ciPoint.nLine > ciInsertFrom.nLine)
             {
               lpPoint->ciPoint.nLine+=nLineCount;
-              lpPoint->dwFlags|=AEPTF_MODIFY;
+              lpPoint->dwFlags|=AEPTF_MOVED;
             }
             else if (lpPoint->ciPoint.nLine == ciInsertFrom.nLine)
             {
@@ -14660,7 +14660,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                 lpPoint->ciPoint.lpLine=lpNewElement;
                 lpPoint->ciPoint.nCharInLine=nCaretIndexInLine + (lpPoint->ciPoint.nCharInLine - ciInsertFrom.nCharInLine);
               }
-              lpPoint->dwFlags|=AEPTF_MODIFY;
+              lpPoint->dwFlags|=AEPTF_MOVED;
             }
 
             //Offsets
@@ -14669,7 +14669,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
               if (lpPoint->nPointOffset < nInsertOffset)
               {
                 lpPoint->nPointLen+=dwRichTextCount;
-                lpPoint->dwFlags|=AEPTF_INSERT;
+                lpPoint->dwFlags|=AEPTF_MODIFY|AEPTF_INSERT;
                 AE_NotifyPoint(ae, AEPTT_INSERT, lpPoint);
               }
               else lpPoint->nPointOffset+=dwRichTextCount;
