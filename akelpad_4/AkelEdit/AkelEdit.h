@@ -189,9 +189,13 @@
 #define AEGI_LASTSELCHAR            4  //Last character of the selection.
 #define AEGI_CARETCHAR              5  //Caret character.
 #define AEGI_NEXTCHAR               6  //Next wide character. lParam must point to an input index.
+                                       //For better performance use AEC_NextChar instead.
 #define AEGI_PREVCHAR               7  //Previous wide character. lParam must point to an input index.
+                                       //For better performance use AEC_PrevChar instead.
 #define AEGI_NEXTLINE               8  //First character of the next line. lParam must point to an input index.
+                                       //For better performance use AEC_NextLine instead.
 #define AEGI_PREVLINE               9  //First character of the previous line. lParam must point to an input index.
+                                       //For better performance use AEC_PrevLine instead.
 #define AEGI_FIRSTVISIBLELINE      10  //First character of the first visible line, collapsed lines are skipped.
 #define AEGI_LASTVISIBLELINE       11  //Last character of the last visible line, collapsed lines are skipped.
 #define AEGI_FIRSTFULLVISIBLELINE  12  //First character of the first fully visible line, collapsed lines are skipped.
@@ -203,7 +207,10 @@
 #define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.
+                                       //For better performance use AEC_NextCharInLine instead.
 #define AEGI_PREVCHARINLINE        21  //Previous character in line. lParam must point to an input index.
+                                       //For better performance use AEC_PrevCharInLine instead.
+
 
 //AEM_ISDELIMITER parameter
 #define AEDLM_PREVCHAR  0x00000001  //Check previous char.
@@ -1032,7 +1039,7 @@ typedef struct {
     return ciChar->lpLine;
   }
 
-  AELINEDATA* AEC_NextIndex(AECHARINDEX *ciChar)
+  AELINEDATA* AEC_NextChar(AECHARINDEX *ciChar)
   {
     AEC_IndexInc(ciChar);
 
@@ -1049,7 +1056,7 @@ typedef struct {
     return ciChar->lpLine;
   }
 
-  AELINEDATA* AEC_PrevIndex(AECHARINDEX *ciChar)
+  AELINEDATA* AEC_PrevChar(AECHARINDEX *ciChar)
   {
     AEC_IndexDec(ciChar);
 
@@ -1063,6 +1070,28 @@ typedef struct {
           AEC_IndexDec(ciChar);
       }
     }
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_NextCharInLine(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen - 1)
+    {
+      if (ciChar->lpLine->nLineBreak != AELB_WRAP)
+        return NULL;
+    }
+    AEC_NextChar(ciChar);
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_PrevCharInLine(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == 0)
+    {
+      if (!ciChar->lpLine->prev || ciChar->lpLine->prev->nLineBreak != AELB_WRAP)
+        return NULL;
+    }
+    AEC_PrevChar(ciChar);
     return ciChar->lpLine;
   }
 
@@ -1110,8 +1139,10 @@ typedef struct {
   int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
   AELINEDATA* AEC_NextLine(AECHARINDEX *ciChar);
   AELINEDATA* AEC_PrevLine(AECHARINDEX *ciChar);
-  AELINEDATA* AEC_NextIndex(AECHARINDEX *ciChar);
-  AELINEDATA* AEC_PrevIndex(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_NextChar(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_PrevChar(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_NextCharInLine(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_PrevCharInLine(AECHARINDEX *ciChar);
   int AEC_CharAtIndex(const AECHARINDEX *ciChar);
   BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar);
   BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar);
