@@ -5816,7 +5816,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     }
     else
     {
-      AE_NextIndex(&ciCharTmp);
+      AE_NextChar(&ciCharTmp);
 
       if (nType == AEGI_NEXTVISIBLECHAR)
       {
@@ -5855,7 +5855,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     }
     else
     {
-      AE_PrevIndex(&ciCharTmp);
+      AE_PrevChar(&ciCharTmp);
 
       if (nType == AEGI_PREVVISIBLECHAR)
       {
@@ -6014,7 +6014,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
         return 0;
       }
     }
-    AE_NextIndex(&ciCharTmp);
+    AE_NextChar(&ciCharTmp);
     *ciCharOut=ciCharTmp;
     return 1;
   }
@@ -6030,7 +6030,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
         return 0;
       }
     }
-    AE_PrevIndex(&ciCharTmp);
+    AE_PrevChar(&ciCharTmp);
     *ciCharOut=ciCharTmp;
     return 1;
   }
@@ -6168,7 +6168,7 @@ AELINEDATA* AE_PrevLine(AECHARINDEX *ciChar)
   return ciChar->lpLine;
 }
 
-AELINEDATA* AE_NextIndex(AECHARINDEX *ciChar)
+AELINEDATA* AE_NextChar(AECHARINDEX *ciChar)
 {
   AE_IndexInc(ciChar);
 
@@ -6185,7 +6185,7 @@ AELINEDATA* AE_NextIndex(AECHARINDEX *ciChar)
   return ciChar->lpLine;
 }
 
-AELINEDATA* AE_PrevIndex(AECHARINDEX *ciChar)
+AELINEDATA* AE_PrevChar(AECHARINDEX *ciChar)
 {
   AE_IndexDec(ciChar);
 
@@ -12066,7 +12066,7 @@ BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType)
 
   if (dwType & AEDLM_PREVCHAR)
   {
-    if (AE_PrevIndex(&ciTmp))
+    if (AE_PrevChar(&ciTmp))
       nChar=AE_CharAtIndex(&ciTmp);
   }
   else nChar=AE_CharAtIndex(&ciTmp);
