@@ -629,6 +629,8 @@ AELINEDATA* AE_NextLine(AECHARINDEX *ciChar);
 AELINEDATA* AE_PrevLine(AECHARINDEX *ciChar);
 AELINEDATA* AE_NextChar(AECHARINDEX *ciChar);
 AELINEDATA* AE_PrevChar(AECHARINDEX *ciChar);
+AELINEDATA* AE_NextCharInLine(AECHARINDEX *ciChar);
+AELINEDATA* AE_PrevCharInLine(AECHARINDEX *ciChar);
 int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
 DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, int nOffset, int nNewLine);
 BOOL AE_IndexNormalize(AECHARINDEX *ciChar);

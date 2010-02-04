@@ -6202,6 +6202,28 @@ AELINEDATA* AE_PrevChar(AECHARINDEX *ciChar)
   return ciChar->lpLine;
 }
 
+AELINEDATA* AE_NextCharInLine(AECHARINDEX *ciChar)
+{
+  if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen - 1)
+  {
+    if (ciChar->lpLine->nLineBreak != AELB_WRAP)
+      return NULL;
+  }
+  AE_NextChar(ciChar);
+  return ciChar->lpLine;
+}
+
+AELINEDATA* AE_PrevCharInLine(AECHARINDEX *ciChar)
+{
+  if (ciChar->nCharInLine == 0)
+  {
+    if (!ciChar->lpLine->prev || ciChar->lpLine->prev->nLineBreak != AELB_WRAP)
+      return NULL;
+  }
+  AE_PrevChar(ciChar);
+  return ciChar->lpLine;
+}
+
 int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces)
 {
   AECHARINDEX ciStart;
@@ -12014,7 +12036,7 @@ BOOL AE_IsSpacesFromLeft(const AECHARINDEX *ciChar)
   if (AE_IsFirstCharInLine(&ciCount))
     return TRUE;
 
-  while (AE_GetIndex(NULL, AEGI_PREVCHARINLINE, &ciCount, &ciCount, FALSE))
+  while (AE_PrevCharInLine(&ciCount))
   {
     wchChar=*(ciCount.lpLine->wpLine + ciCount.nCharInLine);
     if (wchChar != L' ' && wchChar != L'\t')
@@ -12037,7 +12059,7 @@ BOOL AE_IsSpacesFromRight(const AECHARINDEX *ciChar)
     if (wchChar != L' ' && wchChar != L'\t')
       return FALSE;
   }
-  while (AE_GetIndex(NULL, AEGI_NEXTCHARINLINE, &ciCount, &ciCount, FALSE));
+  while (AE_NextCharInLine(&ciCount));
 
   return TRUE;
 }
@@ -12047,7 +12069,7 @@ BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape)
   AECHARINDEX ciCount=*ciChar;
   int nEscapeCount=0;
 
-  while (AE_GetIndex(NULL, AEGI_PREVCHARINLINE, &ciCount, &ciCount, FALSE))
+  while (AE_PrevCharInLine(&ciCount))
   {
     if (*(ciCount.lpLine->wpLine + ciCount.nCharInLine) == wchEscape)
       ++nEscapeCount;
