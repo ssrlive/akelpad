@@ -547,6 +547,7 @@ typedef struct _AEFOLD {
   int nHideMinLineOffset; //Must be positive, default is 1. Minimum line = lpMinPoint->ciPoint.nLine + nHideMinLineOffset.
   int nHideMaxLineOffset; //Must be negative, default is -1. Maximum line = lpMaxPoint->ciPoint.nLine + nHideMaxLineOffset.
   BOOL bCollapse;         //Collapse state.
+  DWORD dwUserData;       //User data.
 } AEFOLD;
 
 typedef struct {
