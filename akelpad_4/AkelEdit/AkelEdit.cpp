@@ -6845,15 +6845,21 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
 
               if (lpTmpPoint->ciPoint.nLine == liStart.nLine)
               {
-                if ((lpTmpPoint->ciPoint.nCharInLine >= nCharStart && lpTmpPoint->ciPoint.nCharInLine <= nCharEnd) || nCharEnd >= lpInitialElement->nLineLen)
+                if (lpTmpPoint->ciPoint.nCharInLine >= nCharStart &&
+                    (lpTmpPoint->ciPoint.nCharInLine <= nCharEnd || nCharEnd == lpInitialElement->nLineLen))
                 {
                   lpTmpPoint->ciPoint.nLine+=nLineCount;
                   lpTmpPoint->ciPoint.lpLine=lpNewElement;
                   lpTmpPoint->ciPoint.nCharInLine-=nCharStart;
                   lpTmpPoint->dwFlags|=AEPTF_MOVED;
+
+                  if (nCharEnd < lpInitialElement->nLineLen)
+                    *lpPoint=lpTmpPoint;
                 }
                 else if (lpTmpPoint->ciPoint.nCharInLine > nCharEnd)
+                {
                   break;
+                }
               }
               else *lpPoint=lpTmpPoint;
             }
@@ -6876,7 +6882,6 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
 
       liEnd.lpLine=lpNewElement;
       liEnd.nLine+=nLineCount;
-      *lpPoint=lpTmpPoint;
 
       //Update points
       for (; lpTmpPoint; lpTmpPoint=lpTmpPoint->next)
