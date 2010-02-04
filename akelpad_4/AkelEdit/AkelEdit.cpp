@@ -13778,8 +13778,8 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       //Update points
       for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
       {
-        if (lpPoint->ciPoint.nLine < ciDeleteStart.nLine)
-          break;
+        //if (lpPoint->ciPoint.nLine < ciDeleteStart.nLine)
+        //  break;
 
         if (lpPoint->ciPoint.nLine >= ciDeleteStart.nLine)
         {
@@ -14675,8 +14675,8 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           //Update points
           for (lpPoint=(AEPOINT *)ae->ptxt->hPointsStack.last; lpPoint; lpPoint=lpPoint->prev)
           {
-            if (lpPoint->ciPoint.nLine < ciInsertFrom.nLine)
-              break;
+            //if (lpPoint->ciPoint.nLine < ciInsertFrom.nLine)
+            //  break;
 
             if (lpPoint->ciPoint.nLine > ciInsertFrom.nLine)
             {
