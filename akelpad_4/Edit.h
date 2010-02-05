@@ -107,8 +107,8 @@
 //Print preview dialog notifications
 #define AKDLG_PREVIEWKEYDOWN           (WM_USER + 100) //lParam - WM_KEYDOWN's lParam, wParam - control handle.
 #define AKDLG_PREVIEWMOUSEWHEEL        (WM_USER + 151) //lParam - WM_MOUSEWHEEL's lParam, wParam - control handle.
-#define AKDLG_PREVIEWSETZOOM           (WM_USER + 152) //
-#define AKDLG_PREVIEWSETPAGE           (WM_USER + 153) //
+#define AKDLG_PREVIEWSETZOOM           (WM_USER + 152) //lParam - percentage, wParam - update control immediately.
+#define AKDLG_PREVIEWSETPAGE           (WM_USER + 153) //lParam - page number, wParam - not used.
 
 //PrintDocument flags
 #define PRN_REALPRINT          0x01  //Real printing
