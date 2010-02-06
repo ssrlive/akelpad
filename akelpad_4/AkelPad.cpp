@@ -7801,10 +7801,10 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndToolTip=NULL;
-  static BOOL bLButtonClick=FALSE;
-  static WORD wInitHotkey;
   static TOOLINFOA tiA;
   static TOOLINFOW tiW;
+  static BOOL bLButtonClick=FALSE;
+  static WORD wInitHotkey;
   LRESULT lResult=0;
 
   wInitHotkey=GetWindowLongA(hWnd, GWL_USERDATA);
@@ -7874,13 +7874,22 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
       if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
 
-      if (wParam == VK_SPACE ||
-          wParam == VK_RETURN ||
-          wParam == VK_ESCAPE ||
-          (wParam == VK_BACK && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
-          (wParam == VK_DELETE && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
-          (wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
-          (wParam == VK_TAB && bLButtonClick))
+      if (wParam == VK_ESCAPE && !(nMod & HOTKEYF_CONTROL) && !(nMod & HOTKEYF_ALT) && !(nMod & HOTKEYF_SHIFT))
+      {
+        //Reset to initial hotkey
+        if (!IsWindowUnicode(hWnd))
+          CallWindowProcA(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
+        else
+          CallWindowProcW(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
+        bOwnKey=TRUE;
+      }
+      else if (wParam == VK_SPACE ||
+               wParam == VK_RETURN ||
+               wParam == VK_ESCAPE ||
+               (wParam == VK_BACK && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
+               (wParam == VK_DELETE && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
+               (wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
+               (wParam == VK_TAB && bLButtonClick))
       {
         if (!IsWindowUnicode(hWnd))
           CallWindowProcA(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, MAKEWORD(wParam, nMod), 0);
@@ -7897,6 +7906,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         lResult=CallWindowProcW(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
     }
 
+    //Show tooltip if hotkey already exist
     if (bOldWindows)
     {
       PLUGINFUNCTIONA *pfElement=NULL;
@@ -8007,6 +8017,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   else
     lResult=CallWindowProcW(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
 
+  //Draw color rectangle if hotkey already exist
   if (uMsg == WM_PAINT)
   {
     HPEN hPen;
