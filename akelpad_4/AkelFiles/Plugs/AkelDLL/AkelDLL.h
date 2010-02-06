@@ -214,7 +214,7 @@ typedef struct _PLUGINDATA {
                               //char *pAkelDir      if bOldWindows == TRUE
                               //wchar_t *pAkelDir   if bOldWindows == FALSE
   HINSTANCE hInstanceEXE;     //EXE instance
-  HSTACK *hPluginsStack;      //Pointer to a plugins stack
+  HSTACK *hPluginsStack;      //Pointer to a plugins stack with PLUGINFUNCTION elements
   HWND hMainWnd;              //Main window
   HWND hWndEdit;              //Edit window
   HWND hStatus;               //StatusBar window
