@@ -107,8 +107,8 @@ WNDPROCRET lpfnEditProcRetW;
 HSTACK hPluginsStack={0};
 HSTACK hPluginListStack={0};
 HSTACK hHandlesStack={0};
-HWND hWndHotkey;
-RECT rcPluginsDialog={0};
+RECT rcPluginsInitDialog={0};
+RECT rcPluginsCurrentDialog={0};
 BOOL bSavePluginsStackOnExit=FALSE;
 WNDPROC OldHotkeyInputProc=NULL;
 
@@ -262,7 +262,8 @@ AECOLORS aecColors={0};
 COLORREF crCustColors[16]={0};
 BOOL bEditFontChanged=FALSE;
 BOOL bColorsChanged=FALSE;
-RECT rcColorsDialog={0};
+RECT rcColorsInitDialog={0};
+RECT rcColorsCurrentDialog={0};
 
 //Print
 HWND hWndPreviewEdit=NULL;
@@ -392,7 +393,8 @@ HIMAGELIST hImageList;
 HICON hIconEmpty;
 BOOL bTabPressed=FALSE;
 BOOL bFileExitError;
-RECT rcMdiListDialog={0};
+RECT rcMdiListInitDialog={0};
+RECT rcMdiListCurrentDialog={0};
 DWORD dwMdiStyle=WS_MAXIMIZE;
 WNDPROC OldMdiClientProc;
 WNDPROC OldTabProc;
