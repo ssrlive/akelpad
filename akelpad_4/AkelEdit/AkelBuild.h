@@ -625,6 +625,7 @@ int AE_IndexInc(AECHARINDEX *ciChar);
 int AE_IndexDec(AECHARINDEX *ciChar);
 int AE_IndexLen(AECHARINDEX *ciChar);
 int AE_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
+int AE_IndexCompareEx(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
 AELINEDATA* AE_NextLine(AECHARINDEX *ciChar);
 AELINEDATA* AE_PrevLine(AECHARINDEX *ciChar);
 AELINEDATA* AE_NextChar(AECHARINDEX *ciChar);

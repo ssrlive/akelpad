@@ -1013,6 +1013,30 @@ typedef struct {
     return 1;
   }
 
+  int AEC_IndexCompareEx(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
+  {
+    if ((ciChar1->nLine == ciChar2->nLine &&
+         ciChar1->nCharInLine == ciChar2->nCharInLine) ||
+        (ciChar1->lpLine->next == ciChar1->lpLine &&
+         ciChar1->lpLine->nLineBreak == AELB_WRAP &&
+         ciChar1->nCharInLine == ciChar1->lpLine->nLineLen &&
+         ciChar2->nCharInLine == 0) ||
+        (ciChar2->lpLine->next == ciChar1->lpLine &&
+         ciChar2->lpLine->nLineBreak == AELB_WRAP &&
+         ciChar2->nCharInLine == ciChar2->lpLine->nLineLen &&
+         ciChar1->nCharInLine == 0))
+    {
+      return 0;
+    }
+    if ((ciChar1->nLine < ciChar2->nLine) ||
+        (ciChar1->nLine == ciChar2->nLine &&
+         ciChar1->nCharInLine < ciChar2->nCharInLine))
+    {
+      return -1;
+    }
+    return 1;
+  }
+
   AELINEDATA* AEC_NextLine(AECHARINDEX *ciChar)
   {
     if (ciChar->lpLine)
@@ -1136,6 +1160,7 @@ typedef struct {
   int AEC_IndexDec(AECHARINDEX *ciChar);
   int AEC_IndexLen(AECHARINDEX *ciChar);
   int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
+  int AEC_IndexCompareEx(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
   AELINEDATA* AEC_NextLine(AECHARINDEX *ciChar);
   AELINEDATA* AEC_PrevLine(AECHARINDEX *ciChar);
   AELINEDATA* AEC_NextChar(AECHARINDEX *ciChar);
