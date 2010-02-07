@@ -6060,8 +6060,6 @@ int AE_IsLowSurrogate(wchar_t wchChar)
 
 int AE_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
 {
-  int nResult=0;
-
   if (AE_IsSurrogate(*wpSource))
   {
     if (dwTargetSize >= 2)
@@ -6073,16 +6071,16 @@ int AE_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
           *wszTarget=*wpSource;
           *(wszTarget + 1)=*(wpSource + 1);
         }
-        nResult=2;
+        return 2;
       }
     }
   }
   else
   {
     if (wszTarget) *wszTarget=*wpSource;
-    nResult=1;
+    return 1;
   }
-  return nResult;
+  return 0;
 }
 
 int AE_IndexInc(AECHARINDEX *ciChar)
