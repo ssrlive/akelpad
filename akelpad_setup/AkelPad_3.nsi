@@ -484,7 +484,7 @@ FunctionEnd
 
 Section
 	SetOutPath "$SETUPDIR"
-	File /r /x Stats*.* "Files\*.*"
+	File /r /x Stats*.* /x CodeFold*.* "Files\*.*"
 
 	IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
 	RegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
