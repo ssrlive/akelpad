@@ -932,8 +932,6 @@ typedef struct {
 
   int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
   {
-    int nResult=0;
-
     if (AEC_IsSurrogate(*wpSource))
     {
       if (dwTargetSize >= 2)
@@ -945,16 +943,16 @@ typedef struct {
             *wszTarget=*wpSource;
             *(wszTarget + 1)=*(wpSource + 1);
           }
-          nResult=2;
+          return 2;
         }
       }
     }
     else
     {
       if (wszTarget) *wszTarget=*wpSource;
-      nResult=1;
+      return 1;
     }
-    return nResult;
+    return 0;
   }
 
   int AEC_IndexInc(AECHARINDEX *ciChar)
