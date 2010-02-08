@@ -6,8 +6,8 @@ Changed: mouse selection is now more closer to RichEdit.
 Changed: now "ShowModify" parameter by default is equal to 1+8=9.
 
 Added: messages for text folding in AkelEdit.
-Added: ability to assign Tab, Shift+Tab in plugins dialog, on condition that the hotkey input box was activated using
-       the mouse.
+Added: ability to assign Tab, Shift+Tab in plugins dialog, on condition that the hotkey
+       input box was activated using the mouse.
 
 
 AkelPad 4.3.6 (Nov 27, 2009)
