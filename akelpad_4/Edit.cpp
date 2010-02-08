@@ -4232,16 +4232,19 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   if (!hWnd) hWnd=hWndEdit;
 
   //Notification message
-  nodA.pFile=szFile;
-  nodA.nCodePage=&nCodePage;
-  nodA.bBOM=&bBOM;
-  nodA.dwFlags=&dwFlags;
-  nodA.bProcess=TRUE;
-  SendMessage(hMainWnd, AKDN_OPENDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nodA);
-  if (!nodA.bProcess)
+  if (IsEditActive(hWnd))
   {
-    nResult=EOD_STOP;
-    goto End;
+    nodA.pFile=szFile;
+    nodA.nCodePage=&nCodePage;
+    nodA.bBOM=&bBOM;
+    nodA.dwFlags=&dwFlags;
+    nodA.bProcess=TRUE;
+    SendMessage(hMainWnd, AKDN_OPENDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nodA);
+    if (!nodA.bProcess)
+    {
+      nResult=EOD_STOP;
+      goto End;
+    }
   }
 
   if (!(bFileExist=GetFullNameA(szFile, MAX_PATH)))
@@ -4485,7 +4488,10 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   }
 
   End:
-  SendMessage(hMainWnd, AKDN_OPENDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
+  if (IsEditActive(hWnd))
+  {
+    SendMessage(hMainWnd, AKDN_OPENDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
+  }
   return nResult;
 }
 
@@ -4503,17 +4509,21 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   if (!hWnd) hWnd=hWndEdit;
 
   //Notification message
-  nodW.pFile=wszFile;
-  nodW.nCodePage=&nCodePage;
-  nodW.bBOM=&bBOM;
-  nodW.dwFlags=&dwFlags;
-  nodW.bProcess=TRUE;
-  SendMessage(hMainWnd, AKDN_OPENDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nodW);
-  if (!nodW.bProcess)
+  if (IsEditActive(hWnd))
   {
-    nResult=EOD_STOP;
-    goto End;
+    nodW.pFile=wszFile;
+    nodW.nCodePage=&nCodePage;
+    nodW.bBOM=&bBOM;
+    nodW.dwFlags=&dwFlags;
+    nodW.bProcess=TRUE;
+    SendMessage(hMainWnd, AKDN_OPENDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nodW);
+    if (!nodW.bProcess)
+    {
+      nResult=EOD_STOP;
+      goto End;
+    }
   }
+
   if (!(bFileExist=GetFullNameW(wszFile, MAX_PATH)))
   {
     //File doesn't exist
@@ -4755,7 +4765,10 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   }
 
   End:
-  SendMessage(hMainWnd, AKDN_OPENDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
+  if (IsEditActive(hWnd))
+  {
+    SendMessage(hMainWnd, AKDN_OPENDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
+  }
   return nResult;
 }
 
