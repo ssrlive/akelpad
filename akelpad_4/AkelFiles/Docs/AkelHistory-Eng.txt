@@ -4,7 +4,7 @@ AkelPad 4.4.0 ()
 Changed: plugin architecture. Update plugins.
 Changed: mouse selection is now more closer to RichEdit.
 Changed: now "ShowModify" parameter by default is equal to 1+8=9.
-
+Changed: file reopening if user saved a file in spite of prevention that symbols will be lost.
 Added: messages for text folding in AkelEdit.
 Added: ability to assign Tab, Shift+Tab in plugins dialog, on condition that the hotkey
        input box was activated using the mouse.

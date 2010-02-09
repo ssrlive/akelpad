@@ -4232,7 +4232,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   if (!hWnd) hWnd=hWndEdit;
 
   //Notification message
-  if (IsEditActive(hWnd))
+  if (GetWindowLongA(hWnd, GWL_ID) == ID_EDIT)
   {
     nodA.pFile=szFile;
     nodA.nCodePage=&nCodePage;
@@ -4488,7 +4488,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   }
 
   End:
-  if (IsEditActive(hWnd))
+  if (GetWindowLongA(hWnd, GWL_ID) == ID_EDIT)
   {
     SendMessage(hMainWnd, AKDN_OPENDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
   }
@@ -4509,7 +4509,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   if (!hWnd) hWnd=hWndEdit;
 
   //Notification message
-  if (IsEditActive(hWnd))
+  if (GetWindowLongW(hWnd, GWL_ID) == ID_EDIT)
   {
     nodW.pFile=wszFile;
     nodW.nCodePage=&nCodePage;
@@ -4765,7 +4765,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   }
 
   End:
-  if (IsEditActive(hWnd))
+  if (GetWindowLongW(hWnd, GWL_ID) == ID_EDIT)
   {
     SendMessage(hMainWnd, AKDN_OPENDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
   }
@@ -4972,18 +4972,21 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   int nWrite=0;
   int nFileCmp;
   int nCodePageCmp;
-  int nLine;
+  int nLine=0;
 
   //Notification message
-  nsd.pFile=szFile;
-  nsd.nCodePage=&nCodePage;
-  nsd.bBOM=&bBOM;
-  nsd.bProcess=TRUE;
-  SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nsd);
-  if (!nsd.bProcess)
+  if (GetWindowLongA(hWnd, GWL_ID) == ID_EDIT)
   {
-    nResult=ESD_STOP;
-    goto End;
+    nsd.pFile=szFile;
+    nsd.nCodePage=&nCodePage;
+    nsd.bBOM=&bBOM;
+    nsd.bProcess=TRUE;
+    SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nsd);
+    if (!nsd.bProcess)
+    {
+      nResult=ESD_STOP;
+      goto End;
+    }
   }
 
   //Check code page
@@ -5142,7 +5145,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
           }
         }
       }
-      if ((dwFlags & SD_SELECTION) || nCodePageCmp)
+      if ((dwFlags & SD_SELECTION) || nCodePageCmp || nLine)
       {
         bDocumentReopen=TRUE;
         OpenDocumentA(hWnd, szCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
@@ -5165,7 +5168,10 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   }
 
   End:
-  SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
+  if (GetWindowLongA(hWnd, GWL_ID) == ID_EDIT)
+  {
+    SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
+  }
   return nResult;
 }
 
@@ -5181,18 +5187,21 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
   int nWrite=0;
   int nFileCmp;
   int nCodePageCmp;
-  int nLine;
+  int nLine=0;
 
   //Notification message
-  nsdW.pFile=wszFile;
-  nsdW.nCodePage=&nCodePage;
-  nsdW.bBOM=&bBOM;
-  nsdW.bProcess=TRUE;
-  SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nsdW);
-  if (!nsdW.bProcess)
+  if (GetWindowLongW(hWnd, GWL_ID) == ID_EDIT)
   {
-    nResult=ESD_STOP;
-    goto End;
+    nsdW.pFile=wszFile;
+    nsdW.nCodePage=&nCodePage;
+    nsdW.bBOM=&bBOM;
+    nsdW.bProcess=TRUE;
+    SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nsdW);
+    if (!nsdW.bProcess)
+    {
+      nResult=ESD_STOP;
+      goto End;
+    }
   }
 
   //Check code page
@@ -5351,7 +5360,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
           }
         }
       }
-      if ((dwFlags & SD_SELECTION) || nCodePageCmp)
+      if ((dwFlags & SD_SELECTION) || nCodePageCmp || nLine)
       {
         bDocumentReopen=TRUE;
         OpenDocumentW(hWnd, wszCurrentFile, 0, nCurrentCodePage, bCurrentBOM);
@@ -5374,7 +5383,10 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
   }
 
   End:
-  SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
+  if (GetWindowLongW(hWnd, GWL_ID) == ID_EDIT)
+  {
+    SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
+  }
   return nResult;
 }
 
