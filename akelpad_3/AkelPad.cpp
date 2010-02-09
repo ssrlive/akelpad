@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#define _WIN32_IE 0x0400
 #include <windows.h>
 #include <commdlg.h>
 #include <commctrl.h>
@@ -102,11 +103,9 @@ WNDPROCRET lpfnEditProcRetW;
 HSTACK hPluginsStack={0};
 HSTACK hPluginListStack={0};
 HSTACK hHandlesStack={0};
-HHOOK hHookPlugins;
-HWND hWndHotkey;
 RECT rcPluginsDialog={0};
-BOOL bHotkeyLeftButtonClick;
 BOOL bSavePluginsStackOnExit=FALSE;
+WNDPROC OldHotkeyInputProc=NULL;
 
 //INI
 HSTACK hIniStack={0};
@@ -1664,7 +1663,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ofnA.nMaxFile       =FILELIST_BUFFER_SIZE;
       ofnA.lpstrInitialDir=szHomeDir;
       ofnA.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
-      ofnA.lpfnHook       =CodePageDlgProcA;
+      ofnA.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProcA;
       ofnA.lpTemplateName =MAKEINTRESOURCEA(IDD_OFN);
 
       pspA[0].dwSize      =sizeof(PROPSHEETPAGEA);
@@ -2402,6 +2401,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage((HWND)wParam, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
       OldCloseButtonProc=(WNDPROC)GetWindowLongA((HWND)wParam, GWL_WNDPROC);
       SetWindowLongA((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
+      return 0;
+    }
+    if (uMsg == AKD_SETHOTKEYINPUT)
+    {
+      SetWindowLongA((HWND)wParam, GWL_USERDATA, lParam);
+      OldHotkeyInputProc=(WNDPROC)GetWindowLongA((HWND)wParam, GWL_WNDPROC);
+      SetWindowLongA((HWND)wParam, GWL_WNDPROC, (LONG)NewHotkeyInputProc);
       return 0;
     }
 
@@ -3514,7 +3520,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ofnW.nMaxFile       =FILELIST_BUFFER_SIZE;
       ofnW.lpstrInitialDir=wszHomeDir;
       ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
-      ofnW.lpfnHook       =CodePageDlgProcW;
+      ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProcW;
       ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
       pspW[0].dwSize      =sizeof(PROPSHEETPAGEW);
@@ -4252,6 +4258,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage((HWND)wParam, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
       OldCloseButtonProc=(WNDPROC)GetWindowLongW((HWND)wParam, GWL_WNDPROC);
       SetWindowLongW((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
+      return 0;
+    }
+    if (uMsg == AKD_SETHOTKEYINPUT)
+    {
+      SetWindowLongA((HWND)wParam, GWL_USERDATA, lParam);
+      OldHotkeyInputProc=(WNDPROC)GetWindowLongW((HWND)wParam, GWL_WNDPROC);
+      SetWindowLongW((HWND)wParam, GWL_WNDPROC, (LONG)NewHotkeyInputProc);
       return 0;
     }
 
@@ -7153,6 +7166,293 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     return CallWindowProcA(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
   else
     return CallWindowProcW(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
+}
+
+LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndToolTip=NULL;
+  static TOOLINFOA tiA;
+  static TOOLINFOW tiW;
+  static HWND hWndLButtonClick=NULL;
+  static WORD wInitHotkey;
+  LRESULT lResult=0;
+
+  wInitHotkey=(WORD)GetWindowLongA(hWnd, GWL_USERDATA);
+
+  if (uMsg == HKM_SETHOTKEY)
+  {
+    wInitHotkey=wParam;
+    SetWindowLongA(hWnd, GWL_USERDATA, wInitHotkey);
+  }
+  else if (uMsg == WM_LBUTTONDOWN)
+  {
+    hWndLButtonClick=hWnd;
+  }
+  else if (uMsg == WM_KILLFOCUS ||
+           uMsg == WM_DESTROY)
+  {
+    if (hWndLButtonClick == hWnd)
+      hWndLButtonClick=NULL;
+
+    if (hWndToolTip)
+    {
+      if (GetFocus() == hWndToolTip)
+        PostMessage(hWnd, WM_SETFOCUS, (WPARAM)NULL, 0);
+      DestroyWindow(hWndToolTip);
+      hWndToolTip=NULL;
+    }
+  }
+  else if (uMsg == WM_GETDLGCODE)
+  {
+    if (lParam)
+    {
+      if (((MSG *)lParam)->message == WM_KEYDOWN ||
+          ((MSG *)lParam)->message == WM_SYSKEYDOWN)
+      {
+        int nVk=(int)((MSG *)lParam)->wParam;
+        BYTE nMod=0;
+
+        if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
+        if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
+        if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
+
+        if (nVk == VK_ESCAPE ||
+            nVk == VK_SPACE ||
+            nVk == VK_RETURN ||
+            nVk == VK_BACK ||
+            nVk == VK_DELETE ||
+            (nVk == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
+            (nVk == VK_TAB && hWndLButtonClick == hWnd))
+        {
+          if (wParam == VK_ESCAPE && !(nMod & HOTKEYF_CONTROL) && !(nMod & HOTKEYF_ALT) && !(nMod & HOTKEYF_SHIFT))
+          {
+            if ((WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0) == wInitHotkey)
+            {
+              return 0;
+            }
+          }
+          return DLGC_WANTMESSAGE;
+        }
+      }
+    }
+  }
+  else if (uMsg == WM_KEYDOWN ||
+           uMsg == WM_SYSKEYDOWN)
+  {
+    RECT rcWindow;
+    BOOL bOwnKey=FALSE;
+    BOOL bHotkeyExist=FALSE;
+    BYTE nMod=0;
+    WORD wHotkey;
+
+    if (wParam == VK_ESCAPE ||
+        wParam == VK_SPACE ||
+        wParam == VK_RETURN ||
+        wParam == VK_BACK ||
+        wParam == VK_DELETE ||
+        wParam == VK_TAB)
+    {
+      if ((lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
+      if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
+      if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
+      if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
+
+      if (wParam == VK_ESCAPE && !(nMod & HOTKEYF_CONTROL) && !(nMod & HOTKEYF_ALT) && !(nMod & HOTKEYF_SHIFT))
+      {
+        if ((WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0) != wInitHotkey)
+        {
+          //Reset to initial hotkey
+          if (!IsWindowUnicode(hWnd))
+            CallWindowProcA(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
+          else
+            CallWindowProcW(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
+          bOwnKey=TRUE;
+        }
+      }
+      else if (wParam == VK_SPACE ||
+               wParam == VK_RETURN ||
+               wParam == VK_ESCAPE ||
+               (wParam == VK_BACK && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
+               (wParam == VK_DELETE && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
+               (wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
+               (wParam == VK_TAB && hWndLButtonClick == hWnd))
+      {
+        if (!IsWindowUnicode(hWnd))
+          CallWindowProcA(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, MAKEWORD(wParam, nMod), 0);
+        else
+          CallWindowProcW(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, MAKEWORD(wParam, nMod), 0);
+        bOwnKey=TRUE;
+      }
+    }
+    if (!bOwnKey)
+    {
+      if (!IsWindowUnicode(hWnd))
+        lResult=CallWindowProcA(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
+      else
+        lResult=CallWindowProcW(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
+    }
+
+    //Show tooltip if hotkey already exist
+    if (bOldWindows)
+    {
+      PLUGINFUNCTIONA *pfElement=NULL;
+
+      if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
+      {
+        if (wHotkey != wInitHotkey)
+        {
+          if (pfElement=StackHotkeyFindA(&hPluginsStack, wHotkey))
+          {
+            bHotkeyExist=TRUE;
+
+            if (!hWndToolTip)
+            {
+              hWndToolTip=CreateWindowExA(WS_EX_TOPMOST,
+                                     "tooltips_class32",
+                                     NULL,
+                                     WS_POPUP|TTS_NOPREFIX,
+                                     CW_USEDEFAULT,
+                                     CW_USEDEFAULT,
+                                     CW_USEDEFAULT,
+                                     CW_USEDEFAULT,
+                                     hWnd,
+                                     NULL,
+                                     hInstance,
+                                     NULL);
+
+              tiA.cbSize=sizeof(TOOLINFOA);
+              tiA.uFlags=TTF_ABSOLUTE|TTF_TRACK;
+              tiA.hwnd=hWnd;
+              tiA.hinst=hInstance;
+              tiA.uId=0;
+              tiA.lpszText=pfElement->szFunction;
+              SendMessage(hWndToolTip, TTM_ADDTOOLA, 0, (LPARAM)&tiA);
+            }
+            else
+            {
+              tiA.lpszText=pfElement->szFunction;
+              SendMessage(hWndToolTip, TTM_SETTOOLINFOA, 0, (LPARAM)&tiA);
+            }
+            GetWindowRect(hWnd, &rcWindow);
+            SendMessage(hWndToolTip, TTM_TRACKPOSITION, 0, MAKELONG(rcWindow.left, rcWindow.top + RectH(&rcWindow)));
+            SendMessage(hWndToolTip, TTM_TRACKACTIVATE, TRUE, (LPARAM)&tiA);
+          }
+        }
+      }
+      if (!bHotkeyExist)
+      {
+        if (hWndToolTip) SendMessage(hWndToolTip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&tiA);
+      }
+    }
+    else
+    {
+      PLUGINFUNCTIONW *pfElement=NULL;
+
+      if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
+      {
+        if (wHotkey != wInitHotkey)
+        {
+          if (pfElement=StackHotkeyFindW(&hPluginsStack, wHotkey))
+          {
+            bHotkeyExist=TRUE;
+
+            if (!hWndToolTip)
+            {
+              hWndToolTip=CreateWindowExW(WS_EX_TOPMOST,
+                                     L"tooltips_class32",
+                                     NULL,
+                                     WS_POPUP|TTS_NOPREFIX,
+                                     CW_USEDEFAULT,
+                                     CW_USEDEFAULT,
+                                     CW_USEDEFAULT,
+                                     CW_USEDEFAULT,
+                                     hWnd,
+                                     NULL,
+                                     hInstance,
+                                     NULL);
+
+              tiW.cbSize=sizeof(TOOLINFOW);
+              tiW.uFlags=TTF_ABSOLUTE|TTF_TRACK;
+              tiW.hwnd=hWnd;
+              tiW.hinst=hInstance;
+              tiW.uId=0;
+              tiW.lpszText=pfElement->szFunction;
+              SendMessage(hWndToolTip, TTM_ADDTOOLW, 0, (LPARAM)&tiW);
+            }
+            else
+            {
+              tiW.lpszText=pfElement->szFunction;
+              SendMessage(hWndToolTip, TTM_SETTOOLINFOW, 0, (LPARAM)&tiW);
+            }
+            GetWindowRect(hWnd, &rcWindow);
+            SendMessage(hWndToolTip, TTM_TRACKPOSITION, 0, MAKELONG(rcWindow.left, rcWindow.top + RectH(&rcWindow)));
+            SendMessage(hWndToolTip, TTM_TRACKACTIVATE, TRUE, (LPARAM)&tiW);
+          }
+        }
+      }
+      if (!bHotkeyExist)
+      {
+        if (hWndToolTip) SendMessage(hWndToolTip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&tiW);
+      }
+    }
+    return lResult;
+  }
+
+  if (!IsWindowUnicode(hWnd))
+    lResult=CallWindowProcA(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
+  else
+    lResult=CallWindowProcW(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
+
+  //Draw color rectangle if hotkey already exist
+  if (uMsg == WM_PAINT)
+  {
+    HPEN hPen;
+    HPEN hPenOld;
+    HDC hDC;
+    RECT rcWindow;
+    WORD wHotkey;
+    BOOL bDrawRect=FALSE;
+
+    if (bOldWindows)
+    {
+      PLUGINFUNCTIONA *pfElement=NULL;
+
+      if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
+        if (wHotkey != wInitHotkey)
+          if (pfElement=StackHotkeyFindA(&hPluginsStack, wHotkey))
+            bDrawRect=TRUE;
+    }
+    else
+    {
+      PLUGINFUNCTIONW *pfElement=NULL;
+
+      if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
+        if (wHotkey != wInitHotkey)
+          if (pfElement=StackHotkeyFindW(&hPluginsStack, wHotkey))
+            bDrawRect=TRUE;
+    }
+
+    if (bDrawRect)
+    {
+      if (hDC=GetDC(hWnd))
+      {
+        GetClientRect(hWnd, &rcWindow);
+        hPen=CreatePen(PS_SOLID, 0, RGB(0xFF, 0x00, 0x00));
+        hPenOld=(HPEN)SelectObject(hDC, hPen);
+
+        MoveToEx(hDC, rcWindow.left, rcWindow.top, NULL);
+        LineTo(hDC, rcWindow.left, rcWindow.bottom - 1);
+        LineTo(hDC, rcWindow.right - 1, rcWindow.bottom - 1);
+        LineTo(hDC, rcWindow.right - 1, rcWindow.top);
+        LineTo(hDC, rcWindow.left, rcWindow.top);
+
+        SelectObject(hDC, hPenOld);
+        DeleteObject(hPen);
+        ReleaseDC(hWnd, hDC);
+      }
+    }
+  }
+  return lResult;
 }
 
 LRESULT CALLBACK DummyProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

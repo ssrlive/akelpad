@@ -76,10 +76,7 @@ extern WNDPROCRET lpfnEditProcRetW;
 extern HSTACK hPluginsStack;
 extern HSTACK hPluginListStack;
 extern HSTACK hHandlesStack;
-extern HHOOK hHookPlugins;
-extern HWND hWndHotkey;
 extern RECT rcPluginsDialog;
-extern BOOL bHotkeyLeftButtonClick;
 extern BOOL bSavePluginsStackOnExit;
 
 //INI
@@ -6165,7 +6162,7 @@ BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
 
 //// Code pages
 
-unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCP;
   static HWND hWndPreview;
@@ -6383,7 +6380,7 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
   return FALSE;
 }
 
-unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCP;
   static HWND hWndPreview;
@@ -10939,6 +10936,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndList;
   static HWND hWndListInfo;
   static HWND hWndHotkeyLabel;
+  static HWND hWndHotkey;
   static HWND hWndAssign;
   static HWND hWndCall;
   static HWND hWndOK;
@@ -11000,8 +10998,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     nSelItem=-1;
     bListChanged=FALSE;
 
-    bHotkeyLeftButtonClick=FALSE;
-    hHookPlugins=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
+    SendMessage(hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -11168,15 +11165,6 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
     }
   }
-  else if (uMsg == WM_DESTROY)
-  {
-    if (hHookPlugins)
-    {
-      if (UnhookWindowsHookEx(hHookPlugins))
-        hHookPlugins=NULL;
-    }
-    hWndHotkey=NULL;
-  }
   DialogResizeMessages(&drs[0], &rcPluginsDialog, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
@@ -11187,6 +11175,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndList;
   static HWND hWndListInfo;
   static HWND hWndHotkeyLabel;
+  static HWND hWndHotkey;
   static HWND hWndAssign;
   static HWND hWndCall;
   static HWND hWndOK;
@@ -11248,8 +11237,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     nSelItem=-1;
     bListChanged=FALSE;
 
-    bHotkeyLeftButtonClick=FALSE;
-    hHookPlugins=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
+    SendMessage(hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -11416,61 +11404,9 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
     }
   }
-  else if (uMsg == WM_DESTROY)
-  {
-    if (hHookPlugins)
-    {
-      if (UnhookWindowsHookEx(hHookPlugins))
-        hHookPlugins=NULL;
-    }
-    hWndHotkey=NULL;
-  }
   DialogResizeMessages(&drs[0], &rcPluginsDialog, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
-}
-
-LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam)
-{
-  if (code >= 0)
-  {
-    MSG *msg=(MSG *)lParam;
-
-    if (msg->message == WM_LBUTTONDOWN)
-    {
-      if (hWndHotkey == msg->hwnd)
-        bHotkeyLeftButtonClick=TRUE;
-      else
-        bHotkeyLeftButtonClick=FALSE;
-    }
-
-    if (hWndHotkey && hWndHotkey == msg->hwnd)
-    {
-      if (msg->message == WM_KEYDOWN ||
-          msg->message == WM_SYSKEYDOWN)
-      {
-        BYTE nMod=0;
-
-        if ((msg->lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
-        if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
-        if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
-        if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
-
-        if (msg->wParam == VK_SPACE ||
-            msg->wParam == VK_RETURN ||
-            msg->wParam == VK_ESCAPE ||
-            (msg->wParam == VK_BACK && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
-            (msg->wParam == VK_DELETE && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
-            (msg->wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
-            (msg->wParam == VK_TAB && bHotkeyLeftButtonClick))
-        {
-          SendMessage(hWndHotkey, HKM_SETHOTKEY, MAKEWORD(msg->wParam, nMod), 0);
-          msg->message=WM_NULL;
-        }
-      }
-    }
-  }
-  return CallNextHookEx(hHookPlugins, code, wParam, lParam);
 }
 
 void FillPluginListA(HWND hWnd)
@@ -18147,6 +18083,16 @@ BOOL ClientToScreenRect(HWND hWnd, RECT *rc)
   if (!ClientToScreen(hWnd, (POINT *)&rc->right))
     return FALSE;
   return TRUE;
+}
+
+int RectW(const RECT *rc)
+{
+  return rc->right - rc->left;
+}
+
+int RectH(const RECT *rc)
+{
+  return rc->bottom - rc->top;
 }
 
 void UpdateTitleA(HWND hWndEditParent, char *szFile)

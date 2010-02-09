@@ -85,15 +85,6 @@
 #ifndef PROPSHEETHEADERW_V1_SIZE
   #define PROPSHEETHEADERW_V1_SIZE CCSIZEOF_STRUCT(PROPSHEETHEADERW, pfnCallback)
 #endif
-#ifndef _INC_COMMCTRL
-  typedef struct tagNMMOUSE {
-    NMHDR hdr;
-    DWORD_PTR dwItemSpec;
-    DWORD_PTR dwItemData;
-    POINT pt;
-    LPARAM dwHitInfo;
-  } NMMOUSE, *LPNMMOUSE;
-#endif
 const CLSID IID_IRichEditOle={0x00020D00, 0x00, 0x00, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
 const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46}};
 
@@ -494,8 +485,8 @@ BOOL PrintTextW(HDC hDC, RECT *rc, TEXTMETRICW *tmW, DRAWTEXTPARAMS *dtp, wchar_
 BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber);
 BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber);
 
-unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewPreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewPreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxCodepageA(HWND hWnd, int *lpCodepageList);
@@ -605,7 +596,6 @@ BOOL CALLBACK RecodeDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam);
 void FillPluginListA(HWND hWnd);
 void FillPluginListW(HWND hWnd);
 BOOL CALLBACK FillPluginListProcA(char *pExportName, LPARAM lParam);
@@ -782,6 +772,8 @@ int GetOppEdge(int nEdge);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL ScreenToClientRect(HWND hWnd, RECT *rc);
 BOOL ClientToScreenRect(HWND hWnd, RECT *rc);
+int RectW(const RECT *rc);
+int RectH(const RECT *rc);
 void UpdateTitleA(HWND hWndEditParent, char *szFile);
 void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile);
 void UpdateTabs(HWND hWnd);
