@@ -7805,7 +7805,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndToolTip=NULL;
   static TOOLINFOA tiA;
   static TOOLINFOW tiW;
-  static BOOL bLButtonClick=FALSE;
+  static HWND hWndLButtonClick=NULL;
   static WORD wInitHotkey;
   LRESULT lResult=0;
 
@@ -7818,12 +7818,13 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == WM_LBUTTONDOWN)
   {
-    bLButtonClick=TRUE;
+    hWndLButtonClick=hWnd;
   }
   else if (uMsg == WM_KILLFOCUS ||
            uMsg == WM_DESTROY)
   {
-    bLButtonClick=FALSE;
+    if (hWndLButtonClick == hWnd)
+      hWndLButtonClick=NULL;
 
     if (hWndToolTip)
     {
@@ -7848,7 +7849,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             nVk == VK_BACK ||
             nVk == VK_DELETE ||
             (nVk == VK_TAB && (GetKeyState(VK_CONTROL) & 0x80)) ||
-            (nVk == VK_TAB && bLButtonClick))
+            (nVk == VK_TAB && hWndLButtonClick == hWnd))
         {
           return DLGC_WANTMESSAGE;
         }
@@ -7891,7 +7892,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                (wParam == VK_BACK && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
                (wParam == VK_DELETE && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
                (wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
-               (wParam == VK_TAB && bLButtonClick))
+               (wParam == VK_TAB && hWndLButtonClick == hWnd))
       {
         if (!IsWindowUnicode(hWnd))
           CallWindowProcA(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, MAKEWORD(wParam, nMod), 0);
