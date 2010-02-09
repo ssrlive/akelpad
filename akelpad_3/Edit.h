@@ -763,7 +763,7 @@ void UpdateEdit(HWND hWnd);
 void DestroyEdit(HWND *hWndEdit);
 void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight);
 void UpdateSize();
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
 void DrawMovingRect(RECT *rcScreen);
 int GetMouseEdge(HWND hWnd, POINT *pt);

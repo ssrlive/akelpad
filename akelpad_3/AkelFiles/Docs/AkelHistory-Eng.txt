@@ -1,6 +1,8 @@
 
 AkelPad 3.7.4 ()
 ----------------------------
+Changed: plugin architecture. Update plugins.
+
 Added: in the "Select Window" dialog (MDI):
        - tab search;
        - arrange horizontally/vertically selected tabs;
@@ -16,7 +18,9 @@ Added: installation with notepad replacement under WinVista and Win7.
 Added: option for going to specified offset in "Go to line..." dialog.
 Added: "Plugins..." dialog now resizable.
 Added: now possible to assign hotkeys in plugins dialog:
-       (Ctrl|Alt|Shift)+Delete, (Ctrl|Alt|Shift)+Backspace, Ctrl+Tab, Ctrl+Shift+Tab.
+       (Ctrl|Alt|Shift)+Delete, (Ctrl|Alt|Shift)+Backspace, Ctrl+Tab, Ctrl+Shift+Tab and
+       also ability to assign Tab, Shift+Tab on condition that the hotkey input box was
+       activated using the mouse.
 
 
 AkelPad 3.7.3 (Aug 28, 2009)
