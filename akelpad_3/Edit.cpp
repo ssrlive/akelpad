@@ -76,7 +76,8 @@ extern WNDPROCRET lpfnEditProcRetW;
 extern HSTACK hPluginsStack;
 extern HSTACK hPluginListStack;
 extern HSTACK hHandlesStack;
-extern RECT rcPluginsDialog;
+extern RECT rcPluginsInitDialog;
+extern RECT rcPluginsCurrentDialog;
 extern BOOL bSavePluginsStackOnExit;
 
 //INI
@@ -298,7 +299,8 @@ extern int nTabSwitch;
 extern HIMAGELIST hImageList;
 extern BOOL bTabPressed;
 extern BOOL bFileExitError;
-extern RECT rcMdiListDialog;
+extern RECT rcMdiListInitDialog;
+extern RECT rcMdiListCurrentDialog;
 extern DWORD dwMdiStyle;
 extern WNDPROC OldMdiClientProc;
 extern WNDPROC OldTabProc;
@@ -3357,7 +3359,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT));
-  ReadOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT));
+  ReadOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT));
   ReadOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
   ReadOptionA(hHandle, "WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
 
@@ -3366,7 +3368,7 @@ void ReadOptionsA()
     ReadOptionA(hHandle, "TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
     ReadOptionA(hHandle, "TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
     ReadOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
-    ReadOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT));
+    ReadOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
     ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
@@ -3446,7 +3448,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT));
-  ReadOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT));
+  ReadOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT));
   ReadOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
   ReadOptionW(hHandle, L"WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
 
@@ -3455,7 +3457,7 @@ void ReadOptionsW()
     ReadOptionW(hHandle, L"TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
     ReadOptionW(hHandle, L"TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
     ReadOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
-    ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT));
+    ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
     ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
@@ -3729,7 +3731,7 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT)))
     goto Error;
-  if (!SaveOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT)))
+  if (!SaveOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT)))
     goto Error;
   if (!SaveOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
@@ -3744,7 +3746,7 @@ BOOL SaveOptionsA()
       goto Error;
     if (!SaveOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
       goto Error;
-    if (!SaveOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT)))
+    if (!SaveOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
     if (!SaveOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
       goto Error;
@@ -3897,7 +3899,7 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT)))
     goto Error;
-  if (!SaveOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsDialog, sizeof(RECT)))
+  if (!SaveOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
@@ -3912,7 +3914,7 @@ BOOL SaveOptionsW()
       goto Error;
     if (!SaveOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
       goto Error;
-    if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListDialog, sizeof(RECT)))
+    if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
     if (!SaveOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
       goto Error;
@@ -11165,7 +11167,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
     }
   }
-  DialogResizeMessages(&drs[0], &rcPluginsDialog, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcPluginsInitDialog, &rcPluginsCurrentDialog, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -11404,7 +11406,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
     }
   }
-  DialogResizeMessages(&drs[0], &rcPluginsDialog, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcPluginsInitDialog, &rcPluginsCurrentDialog, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -15059,7 +15061,7 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       return TRUE;
     }
   }
-  DialogResizeMessages(&drs[0], &rcMdiListDialog, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcMdiListInitDialog, &rcMdiListCurrentDialog, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -15259,7 +15261,7 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       return TRUE;
     }
   }
-  DialogResizeMessages(&drs[0], &rcMdiListDialog, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcMdiListInitDialog, &rcMdiListCurrentDialog, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -17852,25 +17854,20 @@ void UpdateSize()
   }
 }
 
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static RECT rcInitDialog;
-  static RECT rcTempDialog;
-
-  if (!rcDialog) rcDialog=&rcTempDialog;
-
   if (uMsg == WM_INITDIALOG)
   {
     RECT rcTemplate;
 
-    GetWindowPos(hDlg, NULL, &rcInitDialog);
-    rcTemplate=*rcDialog;
-    *rcDialog=rcInitDialog;
+    GetWindowPos(hDlg, NULL, rcInit);
+    rcTemplate=*rcCurrent;
+    *rcCurrent=*rcInit;
 
     if (rcTemplate.right && rcTemplate.bottom)
     {
-      rcTemplate.left=rcInitDialog.left + (rcInitDialog.right - rcTemplate.right) / 2;
-      rcTemplate.top=rcInitDialog.top + (rcInitDialog.bottom - rcTemplate.bottom) / 2;
+      rcTemplate.left=rcInit->left + (rcInit->right - rcTemplate.right) / 2;
+      rcTemplate.top=rcInit->top + (rcInit->bottom - rcTemplate.bottom) / 2;
       SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
     }
   }
@@ -17878,8 +17875,8 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMs
   {
     MINMAXINFO *mmi=(MINMAXINFO *)lParam;
 
-    mmi->ptMinTrackSize.x=rcInitDialog.right;
-    mmi->ptMinTrackSize.y=rcInitDialog.bottom;
+    mmi->ptMinTrackSize.x=rcInit->right;
+    mmi->ptMinTrackSize.y=rcInit->bottom;
   }
   else if (uMsg == WM_SIZE)
   {
@@ -17892,9 +17889,9 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMs
       int i;
 
       GetWindowPos(hDlg, NULL, &rcTemplate);
-      pt.x=rcTemplate.right - rcDialog->right;
-      pt.y=rcTemplate.bottom - rcDialog->bottom;
-      *rcDialog=rcTemplate;
+      pt.x=rcTemplate.right - rcCurrent->right;
+      pt.y=rcTemplate.bottom - rcCurrent->bottom;
+      *rcCurrent=rcTemplate;
 
       for (i=0; drs[i].lpWnd; ++i)
       {
