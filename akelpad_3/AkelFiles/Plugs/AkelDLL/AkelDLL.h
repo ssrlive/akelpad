@@ -214,7 +214,7 @@ typedef struct _PLUGINDATA {
                               //char *pAkelDir      if bOldWindows == TRUE
                               //wchar_t *pAkelDir   if bOldWindows == FALSE
   HINSTANCE hInstanceEXE;     //EXE instance
-  HSTACK *hPluginsStack;      //Pointer to a plugins stack
+  HSTACK *hPluginsStack;      //Pointer to a plugins stack with PLUGINFUNCTION elements
   HWND hMainWnd;              //Main window
   HWND hWndEdit;              //Edit window
   HWND hStatus;               //StatusBar window
@@ -1119,6 +1119,7 @@ typedef struct _NSIZE {
 #define AKD_RESIZE                 (WM_USER + 253)
 #define AKD_DOCK                   (WM_USER + 254)
 #define AKD_SETCLOSEBUTTON         (WM_USER + 255)
+#define AKD_SETHOTKEYINPUT         (WM_USER + 256)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -2809,6 +2810,22 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SETCLOSEBUTTON, (WPARAM)hWndButton, (LPARAM)NULL);
+
+
+AKD_SETHOTKEYINPUT
+__________________
+
+Associate hotkey control with plugins hotkey input.
+
+(HWND)wParam == hotkey control handle.
+(WORD)lParam == initial hotkey value. See HKM_GETHOTKEY message return value (MSDN).
+                Initial hotkey value is sets automatically after HKM_SETHOTKEY message.
+
+Return Value
+ zero
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
 
 
 AKD_GLOBALALLOC
