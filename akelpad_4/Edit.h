@@ -588,8 +588,8 @@ PRINTPAGE* StackPageGet(HSTACK *hStack, int nPage);
 int StackPageFind(HSTACK *hStack, const AECHARINDEX *ciPos);
 void StackPageFree(HSTACK *hStack);
 
-unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewFilePreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewFilePreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxCodepageA(HWND hWnd, int *lpCodepageList);

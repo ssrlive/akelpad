@@ -8059,7 +8059,7 @@ void StackPageFree(HSTACK *hStack)
 
 //// Code pages
 
-unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCP;
   static HWND hWndFilePreview;
@@ -8276,7 +8276,7 @@ unsigned int CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
   return FALSE;
 }
 
-unsigned int CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCP;
   static HWND hWndFilePreview;
