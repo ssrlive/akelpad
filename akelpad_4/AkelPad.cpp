@@ -1739,7 +1739,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ofnA.nMaxFile       =FILELIST_BUFFER_SIZE;
       ofnA.lpstrInitialDir=szHomeDir;
       ofnA.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
-      ofnA.lpfnHook       =CodePageDlgProcA;
+      ofnA.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProcA;
       ofnA.lpTemplateName =MAKEINTRESOURCEA(IDD_OFN);
 
       pspA[0].dwSize      =sizeof(PROPSHEETPAGEA);
@@ -3662,7 +3662,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ofnW.nMaxFile       =FILELIST_BUFFER_SIZE;
       ofnW.lpstrInitialDir=wszHomeDir;
       ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
-      ofnW.lpfnHook       =CodePageDlgProcW;
+      ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProcW;
       ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
       pspW[0].dwSize      =sizeof(PROPSHEETPAGEW);
@@ -7809,7 +7809,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   static WORD wInitHotkey;
   LRESULT lResult=0;
 
-  wInitHotkey=GetWindowLongA(hWnd, GWL_USERDATA);
+  wInitHotkey=(WORD)GetWindowLongA(hWnd, GWL_USERDATA);
 
   if (uMsg == HKM_SETHOTKEY)
   {
@@ -7842,15 +7842,27 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           ((MSG *)lParam)->message == WM_SYSKEYDOWN)
       {
         int nVk=(int)((MSG *)lParam)->wParam;
+        BYTE nMod=0;
 
-        if (nVk == VK_SPACE ||
+        if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
+        if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
+        if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
+
+        if (nVk == VK_ESCAPE ||
+            nVk == VK_SPACE ||
             nVk == VK_RETURN ||
-            nVk == VK_ESCAPE ||
             nVk == VK_BACK ||
             nVk == VK_DELETE ||
-            (nVk == VK_TAB && (GetKeyState(VK_CONTROL) & 0x80)) ||
+            (nVk == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
             (nVk == VK_TAB && hWndLButtonClick == hWnd))
         {
+          if (wParam == VK_ESCAPE && !(nMod & HOTKEYF_CONTROL) && !(nMod & HOTKEYF_ALT) && !(nMod & HOTKEYF_SHIFT))
+          {
+            if ((WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0) == wInitHotkey)
+            {
+              return 0;
+            }
+          }
           return DLGC_WANTMESSAGE;
         }
       }
@@ -7865,9 +7877,9 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     BYTE nMod=0;
     WORD wHotkey;
 
-    if (wParam == VK_SPACE ||
+    if (wParam == VK_ESCAPE ||
+        wParam == VK_SPACE ||
         wParam == VK_RETURN ||
-        wParam == VK_ESCAPE ||
         wParam == VK_BACK ||
         wParam == VK_DELETE ||
         wParam == VK_TAB)
@@ -7879,12 +7891,15 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
       if (wParam == VK_ESCAPE && !(nMod & HOTKEYF_CONTROL) && !(nMod & HOTKEYF_ALT) && !(nMod & HOTKEYF_SHIFT))
       {
-        //Reset to initial hotkey
-        if (!IsWindowUnicode(hWnd))
-          CallWindowProcA(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
-        else
-          CallWindowProcW(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
-        bOwnKey=TRUE;
+        if ((WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0) != wInitHotkey)
+        {
+          //Reset to initial hotkey
+          if (!IsWindowUnicode(hWnd))
+            CallWindowProcA(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
+          else
+            CallWindowProcW(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
+          bOwnKey=TRUE;
+        }
       }
       else if (wParam == VK_SPACE ||
                wParam == VK_RETURN ||
