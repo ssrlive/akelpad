@@ -7,7 +7,7 @@
  *Functions:                                                     *
  * WideCharUpper, xstrcmpA, xstrcmpW, xstrcmpiA, xstrcmpiW,      *
  * xstrcmpnA, xstrcmpnW, xstrcmpinA, xstrcmpinW,                 *
- * xstrcpynA, xstrcpynW, xstrstrA, xstrstrW,                     *
+ * xstrcpyA, xstrcpyW, xstrcpynA, xstrcpynW, xstrstrA, xstrstrW, *
  * WordFindA, WordFindW, StrReplaceA, StrReplaceW,               *
  * GetOptionsA, GetOptionsW                                      *
  *                                                               *
@@ -25,6 +25,8 @@ int xstrcmpnA(const char *pString1, const char *pString2, DWORD dwMaxLength);
 int xstrcmpnW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLength);
 int xstrcmpinA(const char *pString1, const char *pString2, DWORD dwMaxLength);
 int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLength);
+char* xstrcpyA(char *pString1, const char *pString2);
+wchar_t* xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2);
 char* xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength);
 wchar_t* xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLength);
 BOOL xstrstrA(char *pText, DWORD dwTextLen, char *pStr, BOOL bSensitive, char **pStrBegin, char **pStrEnd);
@@ -762,6 +764,68 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLe
   if (!dwCount) return 0;
   if (!*wpString2) return 0;
   return (dwMaxLength == (DWORD)-1)?0:-1;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xstrcpyA
+ *
+ *Copies a string into a buffer.
+ *
+ *[in] char *pString1           Pointer to a buffer into which the function copies characters.
+ *                               The buffer must be large enough to contain the string,
+ *                               including the terminating null character.
+ *[in] char *pString2           Pointer to a null-terminated string from which the function copies characters.
+ *
+ *Returns:  pointer to the buffer.
+ ********************************************************************/
+#ifdef xstrcpyA
+#define xstrcpyA_INCLUDED
+#undef xstrcpyA
+char* xstrcpyA(char *pString1, const char *pString2)
+{
+  char *pDest=pString1;
+  char *pSrc=(char *)pString2;
+
+  if (pDest != pSrc)
+  {
+    while (*pSrc)
+      *pDest++=*pSrc++;
+    *pDest=L'\0';
+  }
+  return pString1;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xstrcpyW
+ *
+ *Copies a unicode string into a buffer.
+ *
+ *[in] wchar_t *wpString1       Pointer to a buffer into which the function copies characters.
+ *                               The buffer must be large enough to contain the string,
+ *                               including the terminating null character.
+ *[in] wchar_t *wpString2       Pointer to a null-terminated string from which the function copies characters.
+ *
+ *Returns:  pointer to the buffer.
+ ********************************************************************/
+#ifdef xstrcpyW
+#define xstrcpyW_INCLUDED
+#undef xstrcpyW
+wchar_t* xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
+{
+  wchar_t *wpDest=wpString1;
+  wchar_t *wpSrc=(wchar_t *)wpString2;
+
+  if (wpDest != wpSrc)
+  {
+    while (*wpSrc)
+      *wpDest++=*wpSrc++;
+    *wpDest=L'\0';
+  }
+  return wpString1;
 }
 #endif
 
