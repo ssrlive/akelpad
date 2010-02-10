@@ -1,5 +1,5 @@
 
-AkelPad 3.7.4 ()
+AkelPad 3.7.4 (Feb 10, 2010)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 
