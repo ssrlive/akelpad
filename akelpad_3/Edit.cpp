@@ -11026,6 +11026,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         if (pliElement=GetPluginListItemA(&hPluginListStack, nSelItem + 1))
         {
+          SendMessage(hWndHotkey, HKM_SETHOTKEY, wHotkey, 0);
           pliElement->pf->wHotkey=wHotkey;
           bListChanged=TRUE;
         }
@@ -11265,6 +11266,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         if (pliElement=GetPluginListItemW(&hPluginListStack, nSelItem + 1))
         {
+          SendMessage(hWndHotkey, HKM_SETHOTKEY, wHotkey, 0);
           pliElement->pf->wHotkey=wHotkey;
           bListChanged=TRUE;
         }
