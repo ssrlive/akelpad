@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.4.0                               *
+ *                      AkelEdit text control v1.4.1                               *
  *                                                                                 *
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -4532,7 +4532,7 @@ AEERASE* AE_StackEraseInsert(AKELEDIT *ae, RECT *rcErase)
   {
     lpElement->rcErase=*rcErase;
   }
-  return NULL;
+  return lpElement;
 }
 
 AEERASE* AE_StackEraseGet(AKELEDIT *ae, int nIndex)
