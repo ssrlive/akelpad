@@ -531,7 +531,7 @@ typedef struct {
 typedef struct _AEPOINT {
   struct _AEPOINT *next;   //Pointer to the next AEPOINT structure.
   struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure.
-  AECHARINDEX ciPoint;     //Character index.
+  AECHARINDEX ciPoint;     //Read-only character index.
   int nPointOffset;        //Character RichEdit offset or one of the AEPTO_* define.
   int nPointLen;           //Point length.
   DWORD dwUserData;        //User data.
