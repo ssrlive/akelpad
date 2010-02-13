@@ -1,4 +1,11 @@
 
+AkelPad 4.4.1 ()
+----------------------------
+Changed: improved file icon recognition (MDI).
+
+Fixed: program error when word wrapping in split windows.
+
+
 AkelPad 4.4.0 (Feb 10, 2010)
 ----------------------------
 Changed: plugin architecture. Update plugins.

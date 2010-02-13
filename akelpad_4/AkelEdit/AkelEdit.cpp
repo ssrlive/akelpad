@@ -4301,17 +4301,37 @@ void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
       if (aeSource)
       {
         if (!lpAkelEditPrev->lpSelStartPoint)
+        {
+          //Get selection start from master
           lpAkelEditPrev->lpSelStartPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelStartIndex);
+        }
         else
-          lpAkelEditPrev->lpSelStartPoint->ciPoint=lpAkelEditPrev->ciSelStartIndex;
+        {
+          AE_StackPointDelete(lpAkelEditPrev, lpAkelEditPrev->lpSelStartPoint);
+          lpAkelEditPrev->lpSelStartPoint=AE_StackPointInsert(lpAkelEditPrev, &lpAkelEditPrev->ciSelStartIndex);
+        }
+
         if (!lpAkelEditPrev->lpSelEndPoint)
+        {
+          //Get selection end from master
           lpAkelEditPrev->lpSelEndPoint=AE_StackPointInsert(aeSource, &aeSource->ciSelEndIndex);
+        }
         else
-          lpAkelEditPrev->lpSelEndPoint->ciPoint=lpAkelEditPrev->ciSelEndIndex;
+        {
+          AE_StackPointDelete(lpAkelEditPrev, lpAkelEditPrev->lpSelEndPoint);
+          lpAkelEditPrev->lpSelEndPoint=AE_StackPointInsert(lpAkelEditPrev, &lpAkelEditPrev->ciSelEndIndex);
+        }
+          
         if (!lpAkelEditPrev->lpCaretPoint)
+        {
+          //Get caret index from master
           lpAkelEditPrev->lpCaretPoint=AE_StackPointInsert(aeSource, &aeSource->ciCaretIndex);
+        }
         else
-          lpAkelEditPrev->lpCaretPoint->ciPoint=lpAkelEditPrev->ciCaretIndex;
+        {
+          AE_StackPointDelete(lpAkelEditPrev, lpAkelEditPrev->lpCaretPoint);
+          lpAkelEditPrev->lpCaretPoint=AE_StackPointInsert(lpAkelEditPrev, &lpAkelEditPrev->ciCaretIndex);
+        }
 
         //Clear lines selection
         if (AE_IndexCompare(&lpAkelEditPrev->ciSelStartIndex, &lpAkelEditPrev->ciSelEndIndex))
