@@ -405,14 +405,16 @@ typedef struct _FONTITEMW {
 typedef struct _ASSOCICONA {
   struct _ASSOCICONA *next;
   struct _ASSOCICONA *prev;
-  char szExt[MAX_PATH];
+  char szFile[MAX_PATH];
+  char *pExt;
   HICON hIcon;
 } ASSOCICONA;
 
 typedef struct _ASSOCICONW {
   struct _ASSOCICONW *next;
   struct _ASSOCICONW *prev;
-  wchar_t wszExt[MAX_PATH];
+  wchar_t wszFile[MAX_PATH];
+  wchar_t *wpExt;
   HICON hIcon;
 } ASSOCICONW;
 
@@ -820,14 +822,14 @@ void SetInsertStateStatusW(HWND hWnd, BOOL bState, BOOL bFirst);
 void SetCodePageStatusA(int nCodePage, BOOL bBOM, BOOL bFirst);
 void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst);
 
-void GetAssociatedIconA(char *pExt, char *szFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
-void GetAssociatedIconW(wchar_t *wpExt, wchar_t *wszFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
+char* GetAssociatedIconA(const char *pFile, char *szIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
+wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
 void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags);
 void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlags);
-ASSOCICONA* StackIconInsertA(HSTACK *hStack, char *pExt);
-ASSOCICONW* StackIconInsertW(HSTACK *hStack, wchar_t *wpExt);
-ASSOCICONA* StackIconGetA(HSTACK *hStack, char *pExt);
-ASSOCICONW* StackIconGetW(HSTACK *hStack, wchar_t *wpExt);
+ASSOCICONA* StackIconInsertA(HSTACK *hStack, const char *pFile);
+ASSOCICONW* StackIconInsertW(HSTACK *hStack, const wchar_t *wpFile);
+ASSOCICONA* StackIconGetA(HSTACK *hStack, const char *pFile, const char *pExt);
+ASSOCICONW* StackIconGetW(HSTACK *hStack, const wchar_t *wpFile, const wchar_t *wpExt);
 void StackIconsFreeA(HSTACK *hStack);
 void StackIconsFreeW(HSTACK *hStack);
 
@@ -885,8 +887,8 @@ char* GetFileNameA(char *pFile);
 wchar_t* GetFileNameW(wchar_t *wpFile);
 int GetBaseNameA(char *pFile, char *szBaseName, int nBaseNameMaxLen);
 int GetBaseNameW(wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
-char* GetFileExtA(char *pFile);
-wchar_t* GetFileExtW(wchar_t *wpFile);
+char* GetFileExtA(const char *pFile);
+wchar_t* GetFileExtW(const wchar_t *wpFile);
 void TrimModifyStateA(char *szFile);
 void TrimModifyStateW(wchar_t *wszFile);
 BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);

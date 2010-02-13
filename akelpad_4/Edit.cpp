@@ -20016,9 +20016,14 @@ void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst)
 
 //// Associations
 
-void GetAssociatedIconA(char *pExt, char *szFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
+char* GetAssociatedIconA(const char *pFile, char *szIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
 {
+  char szRoot[MAX_PATH]="";
+  char szKey[MAX_PATH];
+  char szValue[MAX_PATH];
+  char szTemp[MAX_PATH];
   char *pFileName;
+  char *pExt;
   HKEY hKey;
   DWORD dwType;
   DWORD dwSize;
@@ -20026,57 +20031,101 @@ void GetAssociatedIconA(char *pExt, char *szFile, int *nIconIndex, HICON *phicon
   int i;
   int j;
 
-  if (RegOpenKeyExA(HKEY_CLASSES_ROOT, pExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+  if (pExt=GetFileExtA(pFile))
   {
-    dwSize=BUFFER_SIZE;
-    RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf, &dwSize);
-    RegCloseKey(hKey);
-
-    wsprintfA(buf2, "%s\\DefaultIcon", buf);
-
-    if (RegOpenKeyExA(HKEY_CLASSES_ROOT, buf2, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    if (RegOpenKeyExA(HKEY_CLASSES_ROOT, pExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
       dwSize=BUFFER_SIZE;
-      RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)buf2, &dwSize);
+      RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)szRoot, &dwSize);
       RegCloseKey(hKey);
 
-      for (i=0, j=0; buf2[i]; ++i)
-        if (buf2[i] != '\"') buf[j++]=buf2[i];
-      buf[j]='\0';
-
-      for (i=lstrlenA(buf) - 1; i > 0; --i)
+      if (szRoot[0])
       {
-        if (buf[i] == ',')
+        //Get DefaultIcon string
+        wsprintfA(szKey, "%s\\DefaultIcon", szRoot);
+
+        if (RegOpenKeyExA(HKEY_CLASSES_ROOT, szKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
         {
-          buf[i]='\0';
-          nIndex=xatoiA(buf + i + 1);
-          if (nIndex == -1) nIndex=0;
+          dwSize=BUFFER_SIZE;
+          RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)szValue, &dwSize);
+          RegCloseKey(hKey);
+
+          for (i=0, j=0; szValue[i]; ++i)
+          {
+            if (szValue[i] != '\"')
+              szValue[j++]=szValue[i];
+          }
+          szValue[j]='\0';
+        }
+
+        //If no DefaultIcon or if it equal to %1
+        if (!hKey || !lstrcmpA(szValue, "%1"))
+        {
+          wsprintfA(szKey, "%s\\shell\\open\\command", szRoot);
+
+          if (RegOpenKeyExA(HKEY_CLASSES_ROOT, szKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+          {
+            dwSize=BUFFER_SIZE;
+            RegQueryValueExA(hKey, "", NULL, &dwType, (LPBYTE)szValue, &dwSize);
+            RegCloseKey(hKey);
+
+            for (i=0, j=0; szValue[i]; ++i)
+            {
+              if (szValue[i] != '\"')
+                szValue[j++]=szValue[i];
+              else
+                if (i != 0) break;
+            }
+            szValue[j]='\0';
+          }
+
+          if (!hKey || !lstrcmpA(szValue, "%1"))
+          {
+            lstrcpynA(szValue, pFile, MAX_PATH);
+            pExt=NULL;
+          }
+        }
+
+        //Extract icons
+        for (i=lstrlenA(szValue) - 1; i > 0; --i)
+        {
+          if (szValue[i] == ',')
+          {
+            szValue[i]='\0';
+            nIndex=xatoiA(szValue + i + 1);
+            if (nIndex == -1) nIndex=0;
+            break;
+          }
+          else if (szValue[i] == '-' || (szValue[i] >= '0' && szValue[i] <= '9'))
+            continue;
           break;
         }
-        else if (buf[i] == '-' || (buf[i] >= '0' && buf[i] <= '9'))
-          continue;
-        break;
-      }
-      ExpandEnvironmentStringsA(buf, buf2, BUFFER_SIZE);
-      if (SearchPathA(NULL, buf2, NULL, BUFFER_SIZE, buf, &pFileName))
-      {
-        (*ExtractIconExAPtr)(buf, nIndex, phiconLarge, phiconSmall, 1);
-        if (szFile) lstrcpynA(szFile, buf, MAX_PATH);
-        if (nIconIndex) *nIconIndex=nIndex;
-        return;
+        ExpandEnvironmentStringsA(szValue, szTemp, MAX_PATH);
+        if (SearchPathA(NULL, szTemp, NULL, MAX_PATH, szValue, &pFileName))
+        {
+          (*ExtractIconExAPtr)(szValue, nIndex, phiconLarge, phiconSmall, 1);
+          if (szIconFile) lstrcpynA(szIconFile, szValue, MAX_PATH);
+          if (nIconIndex) *nIconIndex=nIndex;
+          return pExt;
+        }
       }
     }
   }
-  if (szFile) szFile[0]='\0';
+  if (szIconFile) szIconFile[0]='\0';
   if (nIconIndex) *nIconIndex=0;
   if (phiconLarge) *phiconLarge=0;
   if (phiconSmall) *phiconSmall=0;
+  return NULL;
 }
 
-
-void GetAssociatedIconW(wchar_t *wpExt, wchar_t *wszFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
+wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
 {
+  wchar_t wszRoot[MAX_PATH]=L"";
+  wchar_t wszKey[MAX_PATH];
+  wchar_t wszValue[MAX_PATH];
+  wchar_t wszTemp[MAX_PATH];
   wchar_t *wpFileName;
+  wchar_t *wpExt;
   HKEY hKey;
   DWORD dwType;
   DWORD dwSize;
@@ -20084,51 +20133,91 @@ void GetAssociatedIconW(wchar_t *wpExt, wchar_t *wszFile, int *nIconIndex, HICON
   int i;
   int j;
 
-  if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wpExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+  if (wpExt=GetFileExtW(wpFile))
   {
-    dwSize=BUFFER_SIZE * sizeof(wchar_t);
-    RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf, &dwSize);
-    RegCloseKey(hKey);
-
-    wsprintfW(wbuf2, L"%s\\DefaultIcon", wbuf);
-
-    if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wbuf2, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+    if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wpExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
       dwSize=BUFFER_SIZE * sizeof(wchar_t);
-      RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize);
+      RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wszRoot, &dwSize);
       RegCloseKey(hKey);
 
-      for (i=0, j=0; wbuf2[i]; ++i)
-        if (wbuf2[i] != '\"') wbuf[j++]=wbuf2[i];
-      wbuf[j]='\0';
-
-      for (i=lstrlenW(wbuf) - 1; i > 0; --i)
+      if (wszRoot[0])
       {
-        if (wbuf[i] == ',')
+        //Get DefaultIcon string
+        wsprintfW(wszKey, L"%s\\DefaultIcon", wszRoot);
+
+        if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wszKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
         {
-          wbuf[i]='\0';
-          nIndex=xatoiW(wbuf + i + 1);
-          if (nIndex == -1) nIndex=0;
+          dwSize=BUFFER_SIZE * sizeof(wchar_t);
+          RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wszValue, &dwSize);
+          RegCloseKey(hKey);
+
+          for (i=0, j=0; wszValue[i]; ++i)
+          {
+            if (wszValue[i] != '\"')
+              wszValue[j++]=wszValue[i];
+          }
+          wszValue[j]='\0';
+        }
+
+        //If no DefaultIcon or if it equal to %1
+        if (!hKey || !lstrcmpW(wszValue, L"%1"))
+        {
+          wsprintfW(wszKey, L"%s\\shell\\open\\command", wszRoot);
+
+          if (RegOpenKeyExW(HKEY_CLASSES_ROOT, wszKey, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+          {
+            dwSize=BUFFER_SIZE * sizeof(wchar_t);
+            RegQueryValueExW(hKey, L"", NULL, &dwType, (LPBYTE)wszValue, &dwSize);
+            RegCloseKey(hKey);
+
+            for (i=0, j=0; wszValue[i]; ++i)
+            {
+              if (wszValue[i] != '\"')
+                wszValue[j++]=wszValue[i];
+              else
+                if (i != 0) break;
+            }
+            wszValue[j]='\0';
+          }
+
+          if (!hKey || !lstrcmpW(wszValue, L"%1"))
+          {
+            lstrcpynW(wszValue, wpFile, MAX_PATH);
+            wpExt=NULL;
+          }
+        }
+
+        //Extract icons
+        for (i=lstrlenW(wszValue) - 1; i > 0; --i)
+        {
+          if (wszValue[i] == ',')
+          {
+            wszValue[i]='\0';
+            nIndex=xatoiW(wszValue + i + 1);
+            if (nIndex == -1) nIndex=0;
+            break;
+          }
+          else if (wszValue[i] == '-' || (wszValue[i] >= '0' && wszValue[i] <= '9'))
+            continue;
           break;
         }
-        else if (wbuf[i] == '-' || (wbuf[i] >= '0' && wbuf[i] <= '9'))
-          continue;
-        break;
-      }
-      ExpandEnvironmentStringsW(wbuf, wbuf2, BUFFER_SIZE);
-      if (SearchPathW(NULL, wbuf2, NULL, BUFFER_SIZE, wbuf, &wpFileName))
-      {
-        (*ExtractIconExWPtr)(wbuf, nIndex, phiconLarge, phiconSmall, 1);
-        if (wszFile) lstrcpynW(wszFile, wbuf, MAX_PATH);
-        if (nIconIndex) *nIconIndex=nIndex;
-        return;
+        ExpandEnvironmentStringsW(wszValue, wszTemp, MAX_PATH);
+        if (SearchPathW(NULL, wszTemp, NULL, MAX_PATH, wszValue, &wpFileName))
+        {
+          (*ExtractIconExWPtr)(wszValue, nIndex, phiconLarge, phiconSmall, 1);
+          if (wszIconFile) lstrcpynW(wszIconFile, wszValue, MAX_PATH);
+          if (nIconIndex) *nIconIndex=nIndex;
+          return wpExt;
+        }
       }
     }
   }
-  if (wszFile) wszFile[0]='\0';
+  if (wszIconFile) wszIconFile[0]='\0';
   if (nIconIndex) *nIconIndex=0;
   if (phiconLarge) *phiconLarge=0;
   if (phiconSmall) *phiconSmall=0;
+  return NULL;
 }
 
 void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags)
@@ -20447,41 +20536,40 @@ void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlag
   }
 }
 
-ASSOCICONA* StackIconInsertA(HSTACK *hStack, char *pExt)
+ASSOCICONA* StackIconInsertA(HSTACK *hStack, const char *pFile)
 {
   ASSOCICONA *lpElement=NULL;
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ASSOCICONA)))
   {
-    lstrcpynA(lpElement->szExt, pExt, MAX_PATH);
-    GetAssociatedIconA(pExt, NULL, NULL, NULL, &lpElement->hIcon);
-
+    lstrcpynA(lpElement->szFile, pFile, MAX_PATH);
+    lpElement->pExt=GetAssociatedIconA(lpElement->szFile, NULL, NULL, NULL, &lpElement->hIcon);
     return lpElement;
   }
   return NULL;
 }
 
-ASSOCICONW* StackIconInsertW(HSTACK *hStack, wchar_t *wpExt)
+ASSOCICONW* StackIconInsertW(HSTACK *hStack, const wchar_t *wpFile)
 {
   ASSOCICONW *lpElement=NULL;
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ASSOCICONW)))
   {
-    lstrcpynW(lpElement->wszExt, wpExt, MAX_PATH);
-    GetAssociatedIconW(wpExt, NULL, NULL, NULL, &lpElement->hIcon);
-
+    lstrcpynW(lpElement->wszFile, wpFile, MAX_PATH);
+    lpElement->wpExt=GetAssociatedIconW(lpElement->wszFile, NULL, NULL, NULL, &lpElement->hIcon);
     return lpElement;
   }
   return NULL;
 }
 
-ASSOCICONA* StackIconGetA(HSTACK *hStack, char *pExt)
+ASSOCICONA* StackIconGetA(HSTACK *hStack, const char *pFile, const char *pExt)
 {
   ASSOCICONA *lpElement=(ASSOCICONA *)hStack->first;
 
   while (lpElement)
   {
-    if (!lstrcmpiA(lpElement->szExt, pExt))
+    if ((lpElement->pExt && !lstrcmpi(lpElement->pExt, pExt)) ||
+        (!lpElement->pExt && !lstrcmpiA(lpElement->szFile, pFile)))
       return lpElement;
 
     lpElement=lpElement->next;
@@ -20489,13 +20577,14 @@ ASSOCICONA* StackIconGetA(HSTACK *hStack, char *pExt)
   return NULL;
 }
 
-ASSOCICONW* StackIconGetW(HSTACK *hStack, wchar_t *wpExt)
+ASSOCICONW* StackIconGetW(HSTACK *hStack, const wchar_t *wpFile, const wchar_t *wpExt)
 {
   ASSOCICONW *lpElement=(ASSOCICONW *)hStack->first;
 
   while (lpElement)
   {
-    if (!lstrcmpiW(lpElement->wszExt, wpExt))
+    if ((lpElement->wpExt && !lstrcmpiW(lpElement->wpExt, wpExt)) ||
+        (!lpElement->wpExt && !lstrcmpiW(lpElement->wszFile, wpFile)))
       return lpElement;
 
     lpElement=lpElement->next;
@@ -21599,25 +21688,25 @@ int GetBaseNameW(wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
   return nBaseNameMaxLen;
 }
 
-char* GetFileExtA(char *pFile)
+char* GetFileExtA(const char *pFile)
 {
   int i;
 
   for (i=lstrlenA(pFile) - 1; i >= 0; --i)
   {
-    if (pFile[i] == '.') return (pFile + i + 1);
+    if (pFile[i] == '.') return (char *)(pFile + i + 1);
     else if (pFile[i] == '\\') break;
   }
   return "";
 }
 
-wchar_t* GetFileExtW(wchar_t *wpFile)
+wchar_t* GetFileExtW(const wchar_t *wpFile)
 {
   int i;
 
   for (i=lstrlenW(wpFile) - 1; i >= 0; --i)
   {
-    if (wpFile[i] == '.') return (wpFile + i + 1);
+    if (wpFile[i] == '.') return (wchar_t *)(wpFile + i + 1);
     else if (wpFile[i] == '\\') break;
   }
   return L"";
@@ -22384,7 +22473,6 @@ BOOL ClientToScreenRect(HWND hWnd, RECT *rc)
 void UpdateTitleA(HWND hWndEditParent, char *szFile)
 {
   char *pFileName;
-  char *pExt;
 
   //Get file name without path
   pFileName=GetFileNameA(szFile);
@@ -22407,6 +22495,7 @@ void UpdateTitleA(HWND hWndEditParent, char *szFile)
     ASSOCICONA *ai;
     WNDFRAMEA *wf;
     TCITEMA tcItemA;
+    char *pExt;
     HICON hIcon=NULL;
     int nItem;
 
@@ -22416,8 +22505,8 @@ void UpdateTitleA(HWND hWndEditParent, char *szFile)
     //Find file icon
     if (pExt=GetFileExtA(pFileName))
     {
-      if (!(ai=StackIconGetA(&hIconsStack, pExt)))
-        ai=StackIconInsertA(&hIconsStack, pExt);
+      if (!(ai=StackIconGetA(&hIconsStack, szFile, pExt)))
+        ai=StackIconInsertA(&hIconsStack, szFile);
       hIcon=ai->hIcon;
     }
     if (!hIcon) hIcon=hIconEmpty;
@@ -22454,7 +22543,6 @@ void UpdateTitleA(HWND hWndEditParent, char *szFile)
 void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
 {
   wchar_t *wpFileName;
-  wchar_t *wpExt;
 
   //Get file name without path
   wpFileName=GetFileNameW(wszFile);
@@ -22477,6 +22565,7 @@ void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
     ASSOCICONW *ai;
     WNDFRAMEW *wf;
     TCITEMW tcItemW;
+    wchar_t *wpExt;
     HICON hIcon=NULL;
     int nItem;
 
@@ -22486,8 +22575,8 @@ void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile)
     //Find file icon
     if (wpExt=GetFileExtW(wpFileName))
     {
-      if (!(ai=StackIconGetW(&hIconsStack, wpExt)))
-        ai=StackIconInsertW(&hIconsStack, wpExt);
+      if (!(ai=StackIconGetW(&hIconsStack, wszFile, wpExt)))
+        ai=StackIconInsertW(&hIconsStack, wszFile);
       hIcon=ai->hIcon;
     }
     if (!hIcon) hIcon=hIconEmpty;
