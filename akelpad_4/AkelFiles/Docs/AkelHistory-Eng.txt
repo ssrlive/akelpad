@@ -1,5 +1,5 @@
 
-AkelPad 4.4.1 ()
+AkelPad 4.4.1 (Feb 14, 2010)
 ----------------------------
 Changed: improved file icon detection (MDI).
 
