@@ -145,22 +145,23 @@
 #define AEPGS_STREAMIN          0x00000004  //Receiving stream text.
 
 //AEM_SETOPTIONS flags
-#define AECO_READONLY           0x00000001  //Set read-only mode. You can use ES_READONLY window style.
-#define AECO_DISABLENOSCROLL    0x00000002  //Disables scroll bars instead of hiding them when they are not needed. You can use ES_DISABLENOSCROLL window style.
-#define AECO_NOHIDESEL          0x00000004  //If you do not specify this style, then hides the selection when the control loses the input focus and inverts the selection when the control receives the input focus. You can use ES_NOHIDESEL window style.
-#define AECO_WANTRETURN         0x00000008  //If you do not specify this style, pressing the ENTER key has the same effect as pressing the dialog box's default push button. You can use ES_WANTRETURN window style.
-#define AECO_DETAILEDUNDO       0x00000010  //The control stores any typing action, into a new action in the undo queue.
-#define AECO_DISABLEBEEP        0x00000020  //Disables sound beep, when unallowable action occur.
-#define AECO_PASTESELECTCOLUMN  0x00000040  //Selects pasted text in column mode.
-#define AECO_DISABLEDRAG        0x00000080  //Disables OLE text dragging.
-#define AECO_DISABLEDROP        0x00000100  //Disables OLE text dropping.
-#define AECO_CARETOUTEDGE       0x00000200  //Allow caret moving out of the line edge.
-#define AECO_ACTIVECOLUMN       0x00000400  //Draw caret vertical line.
-#define AECO_PAINTGROUP         0x00000800  //Paint text by group of characters (default is character by character). With this style combined unicode symbols can be drawn correctly but editing of whose characters isn't comfortable.
-#define AECO_ALTDECINPUT        0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
-#define AECO_NOMARGINSEL        0x00002000  //Disables left margin line selection with mouse.
-#define AECO_NONEWLINEDRAW      0x00004000  //Disables draw new line as space in selection.
-#define AECO_NOPRINTCOLLAPSED   0x00008000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
+#define AECO_READONLY                 0x00000001  //Set read-only mode. You can use ES_READONLY window style.
+#define AECO_DISABLENOSCROLL          0x00000002  //Disables scroll bars instead of hiding them when they are not needed. You can use ES_DISABLENOSCROLL window style.
+#define AECO_NOHIDESEL                0x00000004  //If you do not specify this style, then hides the selection when the control loses the input focus and inverts the selection when the control receives the input focus. You can use ES_NOHIDESEL window style.
+#define AECO_WANTRETURN               0x00000008  //If you do not specify this style, pressing the ENTER key has the same effect as pressing the dialog box's default push button. You can use ES_WANTRETURN window style.
+#define AECO_DETAILEDUNDO             0x00000010  //The control stores any typing action, into a new action in the undo queue.
+#define AECO_DISABLEBEEP              0x00000020  //Disables sound beep, when unallowable action occur.
+#define AECO_PASTESELECTCOLUMN        0x00000040  //Selects pasted text in column mode.
+#define AECO_DISABLEDRAG              0x00000080  //Disables OLE text dragging.
+#define AECO_DISABLEDROP              0x00000100  //Disables OLE text dropping.
+#define AECO_CARETOUTEDGE             0x00000200  //Allow caret moving out of the line edge.
+#define AECO_ACTIVECOLUMN             0x00000400  //Draw caret vertical line.
+#define AECO_PAINTGROUP               0x00000800  //Paint text by group of characters (default is character by character). With this style combined unicode symbols can be drawn correctly but editing of whose characters isn't comfortable.
+#define AECO_ALTDECINPUT              0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
+#define AECO_NOMARGINSEL              0x00002000  //Disables left margin line selection with mouse.
+#define AECO_NONEWLINEDRAW            0x00004000  //Disables draw new line as space in selection.
+#define AECO_NOPRINTCOLLAPSED         0x00008000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
+#define AECO_LBUTTONUPCONTINUECAPTURE 0x00010000  //After WM_LBUTTONUP message capture operations doesn't stopped.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.

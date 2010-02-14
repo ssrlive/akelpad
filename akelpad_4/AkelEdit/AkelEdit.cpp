@@ -3311,7 +3311,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
           ae->ciMouseSelClick=ciCharIndex;
           ae->ciMouseSelStart=cr.ciMin;
           ae->ciMouseSelEnd=cr.ciMax;
-          ae->nMouseSelType=AEMST_LINES;
+          ae->dwMouseSelType=AEMST_LINES;
           AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE, AESCT_MOUSELEFTMARGIN|AESCT_MOUSESINGLECLK);
         }
         //Start drag source capture
@@ -3332,7 +3332,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
           }
 
           if (!bShift)
-            ae->nMouseSelType=AEMST_CHARS;
+            ae->dwMouseSelType=AEMST_CHARS;
           AE_SetMouseSelection(ae, &ptPos, bAlt, bShift);
         }
       }
@@ -3366,7 +3366,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
           ae->ciMouseSelClick=ae->ciCaretIndex;
           ae->ciMouseSelStart=ciPrevWord;
           ae->ciMouseSelEnd=ciNextWord;
-          ae->nMouseSelType=AEMST_WORDS;
+          ae->dwMouseSelType=AEMST_WORDS;
           AE_SetSelectionPos(ae, &ciNextWord, &ciPrevWord, ae->bColumnSel, AESELT_MOUSE, AESCT_MOUSEDOUBLECLK);
         }
       }
@@ -3400,7 +3400,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
           ae->ciMouseSelClick=ciCharIndex;
           ae->ciMouseSelStart=cr.ciMin;
           ae->ciMouseSelEnd=cr.ciMax;
-          ae->nMouseSelType=AEMST_LINES;
+          ae->dwMouseSelType=AEMST_LINES;
           AE_SetSelectionPos(ae, &cr.ciMax, &cr.ciMin, FALSE, AESELT_MOUSE, AESCT_MOUSETRIPLECLK);
         }
       }
@@ -3522,7 +3522,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
           ScreenToClient(ae->hWndEdit, &ptPos);
 
           if (!(wParam & MK_SHIFT))
-            ae->nMouseSelType=AEMST_CHARS;
+            ae->dwMouseSelType=AEMST_CHARS;
           AE_SetMouseSelection(ae, &ptPos, ae->bColumnSel, FALSE);
         }
       }
@@ -3532,6 +3532,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         ae->dwMouseMoveTimer=0;
         AE_ReleaseMouseCapture(ae, AEMC_MOUSEMOVE);
       }
+      if (!(ae->popt->dwOptions & AECO_LBUTTONUPCONTINUECAPTURE))
+        ae->dwMouseSelType=AEMST_CHARS;
+      if (ae->dwMouseSelType)
+        ae->dwMouseSelType|=AEMST_LBUTTONUP;
     }
     else if (uMsg == WM_MBUTTONUP)
     {
@@ -7384,7 +7388,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
     AE_StackUndoGroupStop(ae);
   }
   if (!(dwSelFlags & AESELT_MOUSE))
-    ae->nMouseSelType=AEMST_CHARS;
+    ae->dwMouseSelType=AEMST_CHARS;
 
   if (ciSelStart->lpLine && ciSelEnd->lpLine)
   {
@@ -7553,17 +7557,30 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
 {
   AECHARINDEX ciCharIndex;
   AECHARINDEX ciSelEnd;
-  int nMouseSelType=ae->nMouseSelType;
+  int dwMouseSelType=ae->dwMouseSelType;
 
   if (ae->rcDraw.bottom - ae->rcDraw.top > 0 && ae->rcDraw.right - ae->rcDraw.left > 0)
   {
     AE_GetCharFromPos(ae, ptPos, &ciCharIndex, NULL, bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
-    if (ae->nCurrentCursor == AECC_MARGIN && nMouseSelType == AEMST_WORDS)
-      nMouseSelType=AEMST_LINES;
+    if (ae->nCurrentCursor == AECC_MARGIN && (dwMouseSelType & AEMST_WORDS))
+      dwMouseSelType=AEMST_LINES;
+
+    //if ((dwMouseSelType & AEMST_WORDS) && (dwMouseSelType & AEMST_LBUTTONUP))
+    //{
+    //  if (bShift)
+    //  {
+    //    if (!AE_IndexCompare(&ae->ciSelStartIndex, &ciCharIndex) ||
+    //        !AE_IndexCompare(&ae->ciSelEndIndex, &ciCharIndex))
+    //    {
+    //      ae->dwMouseSelType=AEMST_CHARS;
+    //      dwMouseSelType=AEMST_CHARS;
+    //    }
+    //  }
+    //}
 
     //One click (capture)
-    if (nMouseSelType == AEMST_CHARS)
+    if (dwMouseSelType & AEMST_CHARS)
     {
       if (bShift)
       {
@@ -7607,7 +7624,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
       else AE_SetSelectionPos(ae, &ciCharIndex, &ciCharIndex, bColumnSel, AESELT_MOUSE, AESCT_MOUSESINGLECLK);
     }
     //Two clicks (capture)
-    else if (nMouseSelType == AEMST_WORDS)
+    else if (dwMouseSelType & AEMST_WORDS)
     {
       if (bShift)
       {
@@ -7637,7 +7654,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
       }
     }
     //Three clicks (capture)
-    else if (nMouseSelType == AEMST_LINES)
+    else if (dwMouseSelType & AEMST_LINES)
     {
       if (bShift)
       {
