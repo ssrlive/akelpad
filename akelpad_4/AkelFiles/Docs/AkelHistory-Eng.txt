@@ -1,9 +1,12 @@
 
 AkelPad 4.4.1 ()
 ----------------------------
-Changed: improved file icon recognition (MDI).
+Changed: improved file icon detection (MDI).
+
+Added: option for turn off RichEdit mouse selection type.
 
 Fixed: program error when word wrapping in split windows.
+Fixed: out of the text area didn't redraw after computer unlocking.
 
 
 AkelPad 4.4.0 (Feb 10, 2010)

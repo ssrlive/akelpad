@@ -311,6 +311,7 @@ extern BOOL bDetailedUndo;
 extern BOOL bCaretOutEdge;
 extern BOOL bCaretVertLine;
 extern int nCaretWidth;
+extern BOOL bRichEditMouse;
 extern DWORD dwLineGap;
 extern BOOL bShowURL;
 extern int nClickURL;
@@ -413,6 +414,7 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, bRichEditMouse?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetMargins(hWndEditNew, dwEditMargins, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
@@ -494,6 +496,7 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, bRichEditMouse?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetMargins(hWndEditNew, dwEditMargins, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
@@ -3181,6 +3184,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
+  ReadOptionA(hHandle, "RichEditMouse", PO_DWORD, &bRichEditMouse, sizeof(DWORD));
   ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
@@ -3291,6 +3295,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
+  ReadOptionW(hHandle, L"RichEditMouse", PO_DWORD, &bRichEditMouse, sizeof(DWORD));
   ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
@@ -3588,6 +3593,8 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
     goto Error;
+  if (!SaveOptionA(hHandle, "RichEditMouse", PO_DWORD, &bRichEditMouse, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
@@ -3795,6 +3802,8 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"RichEditMouse", PO_DWORD, &bRichEditMouse, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
     goto Error;
@@ -18062,6 +18071,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
+  static HWND hWndRichEditMouse;
   static HWND hWndLineGap;
   static HWND hWndLineGapSpin;
 
@@ -18088,6 +18098,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
+    hWndRichEditMouse=GetDlgItem(hDlg, IDC_OPTIONS_RICHEDITMOUSE);
     hWndLineGap=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP);
     hWndLineGapSpin=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP_SPIN);
 
@@ -18131,6 +18142,8 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
     if (bCaretVertLine)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
+    if (bRichEditMouse)
+      SendMessage(hWndRichEditMouse, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -18224,6 +18237,10 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           SendMessage(hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
         }
       }
+
+      //RichEdit mouse selection
+      bRichEditMouse=SendMessage(hWndRichEditMouse, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bRichEditMouse?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
 
       //Line gap
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
@@ -18261,6 +18278,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretVertLine;
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
+  static HWND hWndRichEditMouse;
   static HWND hWndLineGap;
   static HWND hWndLineGapSpin;
 
@@ -18287,6 +18305,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretVertLine=GetDlgItem(hDlg, IDC_OPTIONS_CARETVERTLINE);
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
+    hWndRichEditMouse=GetDlgItem(hDlg, IDC_OPTIONS_RICHEDITMOUSE);
     hWndLineGap=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP);
     hWndLineGapSpin=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP_SPIN);
 
@@ -18330,6 +18349,8 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
     if (bCaretVertLine)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
+    if (bRichEditMouse)
+      SendMessage(hWndRichEditMouse, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -18423,6 +18444,10 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           SendMessage(hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
         }
       }
+
+      //RichEdit mouse selection
+      bRichEditMouse=SendMessage(hWndRichEditMouse, BM_GETCHECK, 0, 0);
+      SendMessage(hWndEdit, AEM_SETOPTIONS, bRichEditMouse?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
 
       //Line gap
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);

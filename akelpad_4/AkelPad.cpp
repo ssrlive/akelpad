@@ -340,6 +340,7 @@ BOOL bDetailedUndo=FALSE;
 BOOL bCaretOutEdge=FALSE;
 BOOL bCaretVertLine=FALSE;
 int nCaretWidth=1;
+BOOL bRichEditMouse=TRUE;
 DWORD dwLineGap=0;
 BOOL bShowURL=FALSE;
 int nClickURL=2;
