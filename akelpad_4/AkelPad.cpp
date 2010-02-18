@@ -460,7 +460,7 @@ extern "C" void _WinMain()
     WNDCLASSA wndclassA={0};
     char *pCmdLine;
 
-    //Set default options before reading from registry
+    //Set default options before reading from registry/ini
     GetObjectA(GetStockObject(SYSTEM_FONT), sizeof(LOGFONTA), &lfEditFontA);
     lfEditFontA.lfHeight=-mod(lfEditFontA.lfHeight);
     lfEditFontA.lfWidth=0;
@@ -891,7 +891,7 @@ extern "C" void _WinMain()
     WNDCLASSW wndclassW={0};
     wchar_t *wpCmdLine;
 
-    //Set default options before reading from registry
+    //Set default options before reading from registry/ini
     GetObjectW(GetStockObject(SYSTEM_FONT), sizeof(LOGFONTW), &lfEditFontW);
     lfEditFontW.lfHeight=-mod(lfEditFontW.lfHeight);
     lfEditFontW.lfWidth=0;
