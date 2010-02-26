@@ -277,7 +277,19 @@ typedef struct _AEHLPAINT {
   AEMARKRANGEMATCH mrm;
   AEMARKTEXTMATCH mtm;
   AECHARRANGE crLink;
+  DWORD dwFindFirst;
 } AEHLPAINT;
+
+typedef struct _AETEXTOUT {
+  HDC hDC;
+  AECHARINDEX ciDrawLine;
+  int nDrawLineWidth;
+  int nDrawCharOffset;
+  POINT ptFirstCharInLine;
+  wchar_t *wpStartDraw;
+  int nStartDrawWidth;
+  int nMaxDrawCharsCount;
+} AETEXTOUT;
 
 
 //// WM_ERASEBKGND
@@ -709,7 +721,10 @@ void AE_GetPrintRect(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage);
 BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn);
 void AE_EndPrintDoc(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn);
 void AE_Paint(AKELEDIT *ae);
-void AE_PaintTextOut(AKELEDIT *ae, HDC hDC, AEHLPAINT *hlp, const POINT *ptDraw, const wchar_t *wpLine, int nLineLen, int nLineWidth, wchar_t **wpTextInLine, int *nTextInLineWidth);
+void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
+void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, int nLastDrawLine);
+void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
+void AE_PaintCheckHighlightEndLine(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
 void AE_ActiveColumnCreate(AKELEDIT *ae);
