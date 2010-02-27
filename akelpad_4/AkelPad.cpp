@@ -358,7 +358,7 @@ DWORD dwDefaultWordBreak=0;
 BOOL bWrapDelimitersEnable=FALSE;
 wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE]=WRAP_DELIMITERSW;
 FILETIME ftFileTime={0};
-BOOL bReopenMsg=FALSE;
+HWND hWndReopen=NULL;
 WNDPROC OldEditProc;
 
 //Execute
@@ -3143,36 +3143,6 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return DoEditPaste(hWndEdit, TRUE);
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_REOPEN_MSG)
-    {
-      if (IsEditActive((HWND)lParam))
-      {
-        bReopenMsg=TRUE;
-        API_LoadStringA(hLangLib, MSG_FILE_CHANGED, buf, BUFFER_SIZE);
-        wsprintfA(buf2, buf, szCurrentFile);
-        if (MessageBoxA(hWnd, buf2, APP_MAIN_TITLEA, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
-        {
-          EDITINFO ei;
-
-          if (GetEditInfoA((HWND)lParam, &ei))
-          {
-            bDocumentReopen=TRUE;
-            OpenDocumentA(ei.hWndEdit, (char *)ei.pFile, 0, ei.nCodePage, ei.bBOM);
-            bDocumentReopen=FALSE;
-          }
-        }
-        bReopenMsg=FALSE;
-      }
-    }
-    else if (LOWORD(wParam) == IDM_NONMENU_CANTOPEN_MSG)
-    {
-      if (IsEditActive((HWND)lParam))
-      {
-        API_LoadStringA(hLangLib, MSG_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
-        wsprintfA(buf2, buf, szCurrentFile);
-        MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
-      }
-    }
     else if (LOWORD(wParam) == IDM_NONMENU_REDETECT)
     {
       DoFileReopenAsA(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
@@ -3268,6 +3238,40 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_NONMENU_PASTEAFTER)
     {
       return PasteAfter(hWndEdit, FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_INTERNAL_REOPEN_MSG)
+    {
+      if (IsEditActive((HWND)lParam))
+      {
+        API_LoadStringA(hLangLib, MSG_FILE_CHANGED, buf, BUFFER_SIZE);
+        wsprintfA(buf2, buf, szCurrentFile);
+        if (MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
+        {
+          EDITINFO ei;
+
+          if (GetEditInfoA((HWND)lParam, &ei))
+          {
+            bDocumentReopen=TRUE;
+            OpenDocumentA(ei.hWndEdit, (char *)ei.pFile, 0, ei.nCodePage, ei.bBOM);
+            bDocumentReopen=FALSE;
+          }
+        }
+      }
+      hWndReopen=NULL;
+    }
+    else if (LOWORD(wParam) == IDM_INTERNAL_CANTOPEN_MSG)
+    {
+      if (IsEditActive((HWND)lParam))
+      {
+        API_LoadStringA(hLangLib, MSG_CANNOT_OPEN_FILE, buf, BUFFER_SIZE);
+        wsprintfA(buf2, buf, szCurrentFile);
+        MessageBoxA(hMainWnd, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+      }
+    }
+    else if (LOWORD(wParam) == IDM_INTERNAL_ERRORIO_MSG)
+    {
+      API_LoadStringA(hLangLib, MSG_ERROR_IO, buf, BUFFER_SIZE);
+      MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
@@ -5068,36 +5072,6 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return DoEditPaste(hWndEdit, TRUE);
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_REOPEN_MSG)
-    {
-      if (IsEditActive((HWND)lParam))
-      {
-        bReopenMsg=TRUE;
-        API_LoadStringW(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
-        wsprintfW(wbuf2, wbuf, wszCurrentFile);
-        if (MessageBoxW(hWnd, wbuf2, APP_MAIN_TITLEW, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
-        {
-          EDITINFO ei;
-
-          if (GetEditInfoW((HWND)lParam, &ei))
-          {
-            bDocumentReopen=TRUE;
-            OpenDocumentW(ei.hWndEdit, (wchar_t *)ei.pFile, 0, ei.nCodePage, ei.bBOM);
-            bDocumentReopen=FALSE;
-          }
-        }
-        bReopenMsg=FALSE;
-      }
-    }
-    else if (LOWORD(wParam) == IDM_NONMENU_CANTOPEN_MSG)
-    {
-      if (IsEditActive((HWND)lParam))
-      {
-        API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
-        wsprintfW(wbuf2, wbuf, wszCurrentFile);
-        MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
-      }
-    }
     else if (LOWORD(wParam) == IDM_NONMENU_REDETECT)
     {
       DoFileReopenAsW(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
@@ -5193,6 +5167,40 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_NONMENU_PASTEAFTER)
     {
       return PasteAfter(hWndEdit, FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_INTERNAL_REOPEN_MSG)
+    {
+      if (IsEditActive((HWND)lParam))
+      {
+        API_LoadStringW(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
+        wsprintfW(wbuf2, wbuf, wszCurrentFile);
+        if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
+        {
+          EDITINFO ei;
+
+          if (GetEditInfoW((HWND)lParam, &ei))
+          {
+            bDocumentReopen=TRUE;
+            OpenDocumentW(ei.hWndEdit, (wchar_t *)ei.pFile, 0, ei.nCodePage, ei.bBOM);
+            bDocumentReopen=FALSE;
+          }
+        }
+      }
+      hWndReopen=NULL;
+    }
+    else if (LOWORD(wParam) == IDM_INTERNAL_CANTOPEN_MSG)
+    {
+      if (IsEditActive((HWND)lParam))
+      {
+        API_LoadStringW(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
+        wsprintfW(wbuf2, wbuf, wszCurrentFile);
+        MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+      }
+    }
+    else if (LOWORD(wParam) == IDM_INTERNAL_ERRORIO_MSG)
+    {
+      API_LoadStringW(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
+      MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
@@ -5469,7 +5477,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         memset(&ftFileTime, 0, sizeof(FILETIME));
 
         SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-        PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_CANTOPEN_MSG, (LPARAM)hWndEdit);
+        PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)hWndEdit);
       }
       else if (GetFileWriteTimeA(szCurrentFile, &ftTmp))
       {
@@ -5477,10 +5485,11 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           ftFileTime=ftTmp;
 
-          if (!bReopenMsg)
+          if (!hWndReopen)
           {
+            hWndReopen=hWndEdit;
             SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-            PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_REOPEN_MSG, (LPARAM)hWndEdit);
+            PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)hWndEdit);
           }
         }
       }
@@ -5768,7 +5777,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         memset(&ftFileTime, 0, sizeof(FILETIME));
 
         SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-        PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_CANTOPEN_MSG, (LPARAM)hWndEdit);
+        PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)hWndEdit);
       }
       else if (GetFileWriteTimeW(wszCurrentFile, &ftTmp))
       {
@@ -5776,10 +5785,11 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           ftFileTime=ftTmp;
 
-          if (!bReopenMsg)
+          if (!hWndReopen)
           {
+            hWndReopen=hWndEdit;
             SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-            PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_REOPEN_MSG, (LPARAM)hWndEdit);
+            PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)hWndEdit);
           }
         }
       }

@@ -257,7 +257,7 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
       return AE_EditProc(ae, hWnd, uMsg, wParam, lParam);
     }
-    else return 0;
+    //else return 0;
   }
 
   if (!IsWindowUnicode(hWnd))
