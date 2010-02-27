@@ -911,6 +911,7 @@ int GetOppEdge(int nEdge);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL ScreenToClientRect(HWND hWnd, RECT *rc);
 BOOL ClientToScreenRect(HWND hWnd, RECT *rc);
+BOOL EnsureWindowInMonitor(RECT *rcWindow);
 void UpdateTitleA(HWND hWndEditParent, char *szFile);
 void UpdateTitleW(HWND hWndEditParent, wchar_t *wszFile);
 void UpdateTabs(HWND hWnd);

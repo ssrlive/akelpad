@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#define WINVER 0x0500
 #define _WIN32_IE 0x0400
 #include <windows.h>
 #include <commdlg.h>
@@ -328,6 +329,7 @@ extern DWORD dwDefaultWordBreak;
 extern BOOL bWrapDelimitersEnable;
 extern wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];
 extern FILETIME ftFileTime;
+extern BOOL bReopenMsg;
 extern WNDPROC OldEditProc;
 
 //Execute
@@ -374,6 +376,8 @@ extern WNDFRAMEA *lpWndFrameA;
 extern WNDFRAMEW *lpWndFrameW;
 
 //GetProcAddress
+extern HMONITOR (WINAPI *MonitorFromPointPtr)(POINT, DWORD);
+extern BOOL (WINAPI *GetMonitorInfoAPtr)(HMONITOR, LPMONITORINFO);
 extern BOOL (WINAPI *GetCPInfoExAPtr) (UINT, DWORD, LPCPINFOEXA);
 extern BOOL (WINAPI *GetCPInfoExWPtr) (UINT, DWORD, LPCPINFOEXW);
 extern DWORD (WINAPI *GetLongPathNameAPtr) (char *, char *, DWORD);
@@ -22493,6 +22497,50 @@ BOOL ClientToScreenRect(HWND hWnd, RECT *rc)
   if (!ClientToScreen(hWnd, (POINT *)&rc->right))
     return FALSE;
   return TRUE;
+}
+
+BOOL EnsureWindowInMonitor(RECT *rcWindow)
+{
+  MONITORINFO mi={0};
+  HMONITOR hMonitor=NULL;
+  RECT rcNewWindow;
+
+  //Size of the work area on the primary display monitor
+  SystemParametersInfo(SPI_GETWORKAREA, 0, &mi.rcWork, 0);
+
+  //Not in primary monitor
+  if (!PtInRect(&mi.rcWork, *(POINT *)&rcWindow->left))
+  {
+    //Get monitor handle
+    if (MonitorFromPointPtr)
+      hMonitor=(*MonitorFromPointPtr)(*(POINT *)&rcWindow->left, MONITOR_DEFAULTTONEAREST);
+
+    //Get monitor info
+    mi.cbSize=sizeof(MONITORINFO);
+
+    if (GetMonitorInfoAPtr)
+      (*GetMonitorInfoAPtr)(hMonitor, &mi);
+  }
+  else return TRUE;
+
+  //Not in any monitor
+  if (!PtInRect(&mi.rcWork, *(POINT *)&rcWindow->left))
+  {
+    //Make corrections
+    if (rcWindow->left >= mi.rcWork.left && rcWindow->left < mi.rcWork.right)
+      rcNewWindow.left=rcWindow->left;
+    else
+      rcNewWindow.left=mi.rcWork.left;
+    if (rcWindow->top >= mi.rcWork.top && rcWindow->top < mi.rcWork.bottom)
+      rcNewWindow.top=rcWindow->top;
+    else
+      rcNewWindow.top=mi.rcWork.top;
+    rcNewWindow.right=mi.rcWork.left + (rcWindow->right - rcWindow->left);
+    rcNewWindow.bottom=mi.rcWork.top + (rcWindow->bottom - rcWindow->top);
+    *rcWindow=rcNewWindow;
+    return FALSE;
+  }
+  else return TRUE;
 }
 
 void UpdateTitleA(HWND hWndEditParent, char *szFile)
