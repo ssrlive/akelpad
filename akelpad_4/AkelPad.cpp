@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#define WINVER 0x0500
 #define _WIN32_IE 0x0400
 #include <windows.h>
 #include <commdlg.h>
@@ -357,6 +358,7 @@ DWORD dwDefaultWordBreak=0;
 BOOL bWrapDelimitersEnable=FALSE;
 wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE]=WRAP_DELIMITERSW;
 FILETIME ftFileTime={0};
+BOOL bReopenMsg=FALSE;
 WNDPROC OldEditProc;
 
 //Execute
@@ -403,6 +405,8 @@ WNDFRAMEA *lpWndFrameA;
 WNDFRAMEW *lpWndFrameW;
 
 //GetProcAddress
+HMONITOR (WINAPI *MonitorFromPointPtr)(POINT, DWORD);
+BOOL (WINAPI *GetMonitorInfoAPtr)(HMONITOR, LPMONITORINFO);
 BOOL (WINAPI *GetCPInfoExAPtr)(UINT, DWORD, LPCPINFOEXA);
 BOOL (WINAPI *GetCPInfoExWPtr)(UINT, DWORD, LPCPINFOEXW);
 DWORD (WINAPI *GetLongPathNameAPtr)(char *, char *, DWORD);
@@ -427,6 +431,7 @@ extern "C" void _WinMain()
   MSG msg;
   BOOL bMsgStatus;
   HMODULE hKernel32=NULL;
+  HMODULE hUser32=NULL;
   HMODULE hShell32=NULL;
 #ifndef STATIC_BUILD
   HMODULE hAkelLib=NULL;
@@ -575,6 +580,10 @@ extern "C" void _WinMain()
     hKernel32=GetModuleHandleA("kernel32.dll");
     GetCPInfoExAPtr=(BOOL (WINAPI *)(UINT, DWORD, LPCPINFOEXA))GetProcAddress(hKernel32, "GetCPInfoExA");
     GetLongPathNameAPtr=(DWORD (WINAPI *)(char *, char *, DWORD))GetProcAddress(hKernel32, "GetLongPathNameA");
+
+    hUser32=GetModuleHandleA("user32.dll");
+    MonitorFromPointPtr=(HMONITOR (WINAPI *)(POINT, DWORD))GetProcAddress(hUser32, "MonitorFromPoint");
+    GetMonitorInfoAPtr=(BOOL (WINAPI *)(HMONITOR, LPMONITORINFO))GetProcAddress(hUser32, "GetMonitorInfoA");
 
     hShell32=GetModuleHandleA("shell32.dll");
     ExtractIconExAPtr=(UINT (WINAPI *)(char *, int, HICON *, HICON *, UINT))GetProcAddress(hShell32, "ExtractIconExA");
@@ -839,6 +848,8 @@ extern "C" void _WinMain()
       if (!RegisterClassA(&wndclassA)) goto Quit;
     }
 
+    EnsureWindowInMonitor(&rcMainWindowRestored);
+
     hMainWnd=CreateWindowA(APP_MAIN_CLASSA,             // window class name
                           APP_MAIN_TITLEA,              // window caption
                           WS_OVERLAPPEDWINDOW,          // window style
@@ -1003,6 +1014,10 @@ extern "C" void _WinMain()
     hKernel32=GetModuleHandleW(L"kernel32.dll");
     GetCPInfoExWPtr=(BOOL (WINAPI *)(UINT, DWORD, LPCPINFOEXW))GetProcAddress(hKernel32, "GetCPInfoExW");
     GetLongPathNameWPtr=(DWORD (WINAPI *)(wchar_t *, wchar_t *, DWORD))GetProcAddress(hKernel32, "GetLongPathNameW");
+
+    hUser32=GetModuleHandleW(L"user32.dll");
+    MonitorFromPointPtr=(HMONITOR (WINAPI *)(POINT, DWORD))GetProcAddress(hUser32, "MonitorFromPoint");
+    GetMonitorInfoAPtr=(BOOL (WINAPI *)(HMONITOR, LPMONITORINFO))GetProcAddress(hUser32, "GetMonitorInfoA");
 
     hShell32=GetModuleHandleW(L"shell32.dll");
     ExtractIconExWPtr=(UINT (WINAPI *)(wchar_t *, int, HICON *, HICON *, UINT))GetProcAddress(hShell32, "ExtractIconExW");
@@ -1266,6 +1281,8 @@ extern "C" void _WinMain()
       wndclassW.lpszClassName=APP_MDI_CLASSW;
       if (!RegisterClassW(&wndclassW)) goto Quit;
     }
+
+    EnsureWindowInMonitor(&rcMainWindowRestored);
 
     hMainWnd=CreateWindowW(APP_MAIN_CLASSW,              // window class name
                            APP_MAIN_TITLEW,              // window caption
@@ -3130,6 +3147,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (IsEditActive((HWND)lParam))
       {
+        bReopenMsg=TRUE;
         API_LoadStringA(hLangLib, MSG_FILE_CHANGED, buf, BUFFER_SIZE);
         wsprintfA(buf2, buf, szCurrentFile);
         if (MessageBoxA(hWnd, buf2, APP_MAIN_TITLEA, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
@@ -3143,6 +3161,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             bDocumentReopen=FALSE;
           }
         }
+        bReopenMsg=FALSE;
       }
     }
     else if (LOWORD(wParam) == IDM_NONMENU_CANTOPEN_MSG)
@@ -5053,6 +5072,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (IsEditActive((HWND)lParam))
       {
+        bReopenMsg=TRUE;
         API_LoadStringW(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
         wsprintfW(wbuf2, wbuf, wszCurrentFile);
         if (MessageBoxW(hWnd, wbuf2, APP_MAIN_TITLEW, bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
@@ -5066,6 +5086,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             bDocumentReopen=FALSE;
           }
         }
+        bReopenMsg=FALSE;
       }
     }
     else if (LOWORD(wParam) == IDM_NONMENU_CANTOPEN_MSG)
@@ -5456,8 +5477,11 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           ftFileTime=ftTmp;
 
-          SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-          PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_REOPEN_MSG, (LPARAM)hWndEdit);
+          if (!bReopenMsg)
+          {
+            SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
+            PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_REOPEN_MSG, (LPARAM)hWndEdit);
+          }
         }
       }
       else
@@ -5752,8 +5776,11 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         {
           ftFileTime=ftTmp;
 
-          SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-          PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_REOPEN_MSG, (LPARAM)hWndEdit);
+          if (!bReopenMsg)
+          {
+            SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
+            PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_REOPEN_MSG, (LPARAM)hWndEdit);
+          }
         }
       }
       else
