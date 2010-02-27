@@ -483,6 +483,7 @@ typedef struct _AKELEDIT {
   POINT ptActiveColumnDraw;
   DWORD dwInputLocale;
   DWORD dwImeChar;
+  BOOL bSkipMessages;
   BOOL bCaretVisible;
   BOOL bFocus;
   int nAltChar;
