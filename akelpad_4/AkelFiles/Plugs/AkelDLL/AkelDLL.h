@@ -913,9 +913,6 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_MDICLOSE            4406  //Close current MDI window
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_NONMENU_REOPEN_MSG          4407  //Internal command
-                                              //Return Value: zero
-                                              //
 #define IDM_NONMENU_REDETECT            4408  //Redetect code page of the current file
                                               //Return Value: zero
                                               //
@@ -985,7 +982,13 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_PASTEAFTER          4430  //Paste text after caret
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_NONMENU_CANTOPEN_MSG        4431  //Internal command
+#define IDM_INTERNAL_REOPEN_MSG          4451  //Internal command
+                                              //Return Value: zero
+                                              //
+#define IDM_INTERNAL_CANTOPEN_MSG        4452 //Internal command
+                                              //Return Value: zero
+                                              //
+#define IDM_INTERNAL_ERRORIO_MSG         4453 //Internal command
                                               //Return Value: zero
                                               //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files

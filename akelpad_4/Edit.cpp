@@ -329,7 +329,7 @@ extern DWORD dwDefaultWordBreak;
 extern BOOL bWrapDelimitersEnable;
 extern wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];
 extern FILETIME ftFileTime;
-extern BOOL bReopenMsg;
+extern HWND hWndReopen;
 extern WNDPROC OldEditProc;
 
 //Execute
@@ -4870,8 +4870,11 @@ void FileStreamIn(FILESTREAMDATA *lpData)
         SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
         SendMessage(lpData->hWnd, AEM_SETTEXTW, (WPARAM)dwCharsConverted, (LPARAM)wpBuffer);
       }
-      else lpData->bResult=FALSE;
-
+      else
+      {
+        lpData->bResult=FALSE;
+        PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_ERRORIO_MSG, 0);
+      }
       API_HeapFree(hHeap, 0, (LPVOID)wpBuffer);
     }
     else lpData->bResult=FALSE;
@@ -4967,6 +4970,7 @@ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufL
       }
       wszBuf[dwCharsConverted]='\0';
     }
+    else PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_ERRORIO_MSG, 0);
   }
   *dwBufDone=dwCharsConverted * sizeof(wchar_t);
 
@@ -9106,6 +9110,7 @@ int AutodetectCodePageA(char *pFile, DWORD dwBytesToCheck, DWORD dwFlags, int *n
 
     if (!API_ReadFile(hFile, pBuffer, dwBytesToCheck, &dwBytesRead, NULL))
     {
+      SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_ERRORIO_MSG, 0);
       API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
       CloseHandle(hFile);
       return EDT_READ;
@@ -9282,6 +9287,7 @@ int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, in
 
     if (!API_ReadFile(hFile, pBuffer, dwBytesToCheck, &dwBytesRead, NULL))
     {
+      SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_ERRORIO_MSG, 0);
       API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
       CloseHandle(hFile);
       return EDT_READ;
@@ -23184,16 +23190,7 @@ BOOL API_ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPD
 
   if (!(bResult=ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped)))
   {
-    if (bOldWindows)
-    {
-      API_LoadStringA(hLangLib, MSG_ERROR_IO, buf, BUFFER_SIZE);
-      MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
-    }
-    else
-    {
-      API_LoadStringW(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
-      MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-    }
+    //...
   }
 
   return bResult;
