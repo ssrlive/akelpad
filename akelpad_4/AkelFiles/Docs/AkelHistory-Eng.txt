@@ -1,4 +1,10 @@
 
+AkelPad 4.4.2 ()
+----------------------------
+Fixed: possible crash after I/O error.
+Fixed: vertical selection.
+
+
 AkelPad 4.4.1 (Feb 14, 2010)
 ----------------------------
 Changed: improved file icon detection (MDI).
