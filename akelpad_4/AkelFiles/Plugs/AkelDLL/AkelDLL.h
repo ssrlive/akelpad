@@ -982,13 +982,13 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_PASTEAFTER          4430  //Paste text after caret
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_INTERNAL_REOPEN_MSG          4451  //Internal command
+#define IDM_INTERNAL_REOPEN_MSG         4451  //Internal command
                                               //Return Value: zero
                                               //
-#define IDM_INTERNAL_CANTOPEN_MSG        4452 //Internal command
+#define IDM_INTERNAL_CANTOPEN_MSG       4452  //Internal command
                                               //Return Value: zero
                                               //
-#define IDM_INTERNAL_ERRORIO_MSG         4453 //Internal command
+#define IDM_INTERNAL_ERRORIO_MSG        4453  //Internal command
                                               //Return Value: zero
                                               //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files
