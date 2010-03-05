@@ -11246,7 +11246,8 @@ int AE_LineFromVPos(AKELEDIT *ae, int nVPos)
     if (lpElement->bCollapse)
     {
       if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nCalcLine &&
-          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
+          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine &&
+          lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset)
       {
         nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
         nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
@@ -11270,7 +11271,8 @@ int AE_VPosFromLine(AKELEDIT *ae, int nLine)
     if (lpElement->bCollapse)
     {
       if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset < nLine &&
-          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine)
+          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine &&
+          lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset)
       {
         nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
         nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
