@@ -257,7 +257,7 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
       return AE_EditProc(ae, hWnd, uMsg, wParam, lParam);
     }
-    //else return 0;
+    else return 0;
   }
 
   if (!IsWindowUnicode(hWnd))
@@ -12583,8 +12583,10 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
                 ae->ciSelStartIndex=ciCaretChar;
                 ae->ciSelEndIndex=ciCaretChar;
               }
+              ae->bSkipMessages=FALSE;
               InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
               UpdateWindow(ae->hWndEdit);
+              ae->bSkipMessages=TRUE;
 
               //Restore variables
               ++ae->ptxt->nLastCharOffset;
@@ -12906,8 +12908,10 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                   ae->ciSelStartIndex=ciCaretChar;
                   ae->ciSelEndIndex=ciCaretChar;
                 }
+                ae->bSkipMessages=FALSE;
                 InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
                 UpdateWindow(ae->hWndEdit);
+                ae->bSkipMessages=TRUE;
 
                 //Restore variables
                 ++ae->ptxt->nLastCharOffset;
