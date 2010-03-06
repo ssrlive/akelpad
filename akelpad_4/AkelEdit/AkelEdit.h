@@ -1602,6 +1602,7 @@ Return Value
  If a nonzero value, the control stops operation.
 
 Remarks
+ During the operation which calls AEN_PROGRESS, the edit control contents are unstable.
  To receive AEN_PROGRESS notifications, specify AENM_PROGRESS in the mask sent with the AEM_SETEVENTMASK message.
 
 
