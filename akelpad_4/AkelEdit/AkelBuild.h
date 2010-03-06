@@ -264,14 +264,14 @@ typedef struct _AEWORDMATCH {
 } AEWORDMATCH;
 
 typedef struct _AEHLPAINT {
-  DWORD dwActiveBG;
-  DWORD dwActiveText;
   DWORD dwDefaultText;
   DWORD dwDefaultBG;
   HBRUSH hbrDefaultBG;
+  DWORD dwActiveText;
+  DWORD dwActiveBG;
+  HBRUSH hbrActiveBG;
   DWORD dwPaintType;
   DWORD dwFontStyle;
-  HBRUSH hbrActiveBG;
   AEWORDMATCH wm;
   AEQUOTEMATCH qm;
   AEMARKRANGEMATCH mrm;
