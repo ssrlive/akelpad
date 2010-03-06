@@ -249,15 +249,14 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
   if (ae=AE_StackWindowGet(&hAkelEditWindowsStack, hWnd))
   {
-    if (!ae->bSkipMessages)
-    {
-      //Clone window processing
-      AE_ActivateClone(lpAkelEditPrev, ae);
-      lpAkelEditPrev=ae;
+    //if (ae->bSkipMessages)
+    //  return 0;
 
-      return AE_EditProc(ae, hWnd, uMsg, wParam, lParam);
-    }
-    else return 0;
+    //Clone window processing
+    AE_ActivateClone(lpAkelEditPrev, ae);
+    lpAkelEditPrev=ae;
+
+    return AE_EditProc(ae, hWnd, uMsg, wParam, lParam);
   }
 
   if (!IsWindowUnicode(hWnd))
@@ -12493,7 +12492,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     nNewLine=ae->popt->nOutputNewLine;
 
   //Free old and create new heap
-  ae->bSkipMessages=TRUE;
+  //ae->bSkipMessages=TRUE;
   AE_HeapCreate(ae);
 
   //Get DC for faster AE_GetTextExtentPoint32
@@ -12583,10 +12582,10 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
                 ae->ciSelStartIndex=ciCaretChar;
                 ae->ciSelEndIndex=ciCaretChar;
               }
-              ae->bSkipMessages=FALSE;
+              //ae->bSkipMessages=FALSE;
               InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
               UpdateWindow(ae->hWndEdit);
-              ae->bSkipMessages=TRUE;
+              //ae->bSkipMessages=TRUE;
 
               //Restore variables
               ++ae->ptxt->nLastCharOffset;
@@ -12673,7 +12672,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       ReleaseDC(ae->hWndEdit, ae->hDC);
       ae->hDC=NULL;
     }
-    ae->bSkipMessages=FALSE;
+    //ae->bSkipMessages=FALSE;
 
     if (!bFirstHeap)
     {
@@ -12682,7 +12681,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       ae->dwNotifyTextChange|=AETCT_DELETEALL;
     }
   }
-  ae->bSkipMessages=FALSE;
+  //ae->bSkipMessages=FALSE;
 
   if (!bFirstHeap)
   {
@@ -12791,7 +12790,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
     else
     {
       //Free old and create new heap
-      ae->bSkipMessages=TRUE;
+      //ae->bSkipMessages=TRUE;
       AE_HeapCreate(ae);
 
       //Get DC for faster AE_GetTextExtentPoint32
@@ -12908,10 +12907,10 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                   ae->ciSelStartIndex=ciCaretChar;
                   ae->ciSelEndIndex=ciCaretChar;
                 }
-                ae->bSkipMessages=FALSE;
+                //ae->bSkipMessages=FALSE;
                 InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
                 UpdateWindow(ae->hWndEdit);
-                ae->bSkipMessages=TRUE;
+                //ae->bSkipMessages=TRUE;
 
                 //Restore variables
                 ++ae->ptxt->nLastCharOffset;
@@ -13000,7 +12999,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           ReleaseDC(ae->hWndEdit, ae->hDC);
           ae->hDC=NULL;
         }
-        ae->bSkipMessages=FALSE;
+        //ae->bSkipMessages=FALSE;
 
         if (!bFirstHeap)
         {
@@ -13012,7 +13011,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
     }
     AE_HeapFree(NULL, 0, (LPVOID)wszBuf);
   }
-  ae->bSkipMessages=FALSE;
+  //ae->bSkipMessages=FALSE;
 
   if (!bFirstHeap)
   {
