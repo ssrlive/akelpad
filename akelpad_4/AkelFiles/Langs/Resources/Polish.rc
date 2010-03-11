@@ -106,7 +106,7 @@ BEGIN
             MENUITEM "Mac (0Dh)",                   IDM_EDIT_NEWLINE_MAC
         END
     END
-    POPUP "&Widok"
+    POPUP "W&idok"
     BEGIN
         MENUITEM "&Czcionka...",                  IDM_VIEW_FONT
         MENUITEM "&Kolory...",                    IDM_VIEW_COLORS
@@ -142,7 +142,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "U&stawienia...",                     IDM_OPTIONS
     END
-    POPUP "O&kno"
+    POPUP "Ok&no"
     BEGIN
         POPUP "&Karty"
         BEGIN
@@ -417,7 +417,7 @@ CAPTION "Podgl¹d"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "&Drukuj...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "&Ustawienia str...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    PUSHBUTTON      "&Ustaw. stro...",IDC_PREVIEW_PAGESETUP,62,9,50,14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -685,7 +685,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_LEFT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,40,20,
                     11,13
-    CONTROL         "Zaznaczenie",IDC_OPTIONS_EDITMARGIN_SELECTION,"Button",
+    CONTROL         "Zaznaczanie",IDC_OPTIONS_EDITMARGIN_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,22,100,10
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_RIGHT,168,20,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
@@ -723,7 +723,7 @@ BEGIN
     GROUPBOX        "Kursor",IDC_STATIC,9,128,200,56
     CONTROL         "Pozwól przesuwaæ kursor poza koniec wiersza",IDC_OPTIONS_CARETOUTEDGE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,142,185,10
-    CONTROL         "Poka¿ bie¿¹c¹ kolumnê",IDC_OPTIONS_CARETVERTLINE,"Button",
+    CONTROL         "Wyró¿nij bie¿¹c¹ kolumnê",IDC_OPTIONS_CARETVERTLINE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,153,185,10
     RTEXT           "Szerokoœæ:",IDC_STATIC,116,168,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,165,21,13,ES_NUMBER
@@ -801,7 +801,7 @@ BEGIN
                     WS_EX_RIGHT
     CONTROL         "",IDC_ABOUT_VERSION,"Static",SS_LEFTNOWORDWRAP,44,16,
                     150,11
-    LTEXT           "Stronoa domowa:",IDC_STATIC,19,41,85,11
+    LTEXT           "Strona domowa:",IDC_STATIC,19,41,85,11
     GROUPBOX        "Autorzy:",IDC_STATIC,20,62,177,109
     ICON            IDI_ICON_MAIN,IDC_ABOUT_ICON,10,10,20,20
 END
@@ -865,9 +865,9 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" nie obs³uguje automatycznego wczytywania."
     MSG_FUNCTION_NOT_FOUND  "Nie mo¿na znaleŸæ funkcji ""%s::%s"" in ""%s""."
-    MSG_UPDATE_PROGRAM      "Zaktualizuj AkelPad.\n\nMinimalna wymagana wersja AkelPad: %d.%d.%d.%d\nAktualna wersja AkelPad: %d.%d.%d.%d"
+    MSG_UPDATE_PROGRAM      "Zaktualizuj AkelPad.\n\nMinimalna wymagana wersja AkelPada: %d.%d.%d.%d\nAktualna wersja AkelPada: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x nie jest wspierany."
-    MSG_UPDATE_PLUGIN       "Zaktualizuj %s.\n\nArchitektura AkelPad: %d.%d.%d.%d\n%s - architektura pluginu: %d.%d.%d.%d"
+    MSG_UPDATE_PLUGIN       "Zaktualizuj %s.\n\nArchitektura AkelPada: %d.%d.%d.%d\nArchitektura pluginu %s: %d.%d.%d.%d"
     MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" nie jest rozpoznawany jako plugin AkelPada."
     MSG_UPDATE_LANGMODULE   "Zaktualizuj %s\n\nAktualna wersja: %d.%d.%d.%d\nWymagana wersja: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Klawisz skrótu jest ju¿ przypisany do ""%s""."
