@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.4.0"
+!define PRODUCT_VERSION "4.4.2"
 
 ;_____________________________________________________________________________________________
 ;
@@ -58,6 +58,7 @@ RequestExecutionLevel admin
 !define LANG_ROMANIAN             1048
 !define LANG_DUTCH                1043
 !define LANG_FINNISH              1035
+!define LANG_POLISH               1045
 
 !define INSTTYPE_STANDARD  1
 !define INSTTYPE_TOTALCMD  2
@@ -611,6 +612,8 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Dutch.dll"
 	StrCmp $SYSLANGUAGE ${LANG_FINNISH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Finnish.dll"
+	StrCmp $SYSLANGUAGE ${LANG_POLISH} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Polish.dll"
 
 	end:
 SectionEnd
