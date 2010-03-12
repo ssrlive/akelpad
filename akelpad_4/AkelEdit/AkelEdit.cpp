@@ -9746,6 +9746,8 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
       ReleaseDC(ae->hWndEdit, hEditDC);
     }
     ph->aePrint.ptxt->lfFontA.lfHeight=MulDiv(nPointSize, GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY), 72);
+    ph->aePrint.ptxt->lfFontA.lfHeight=-mod(ph->aePrint.ptxt->lfFontA.lfHeight);
+    ph->aePrint.ptxt->lfFontA.lfWidth=0;
 
     //Create print font
     prn->hPrintFont=CreateFontIndirectA(&ph->aePrint.ptxt->lfFontA);
@@ -9756,6 +9758,11 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
     if (!(fi=AE_StackFontItemGetA(&hAkelEditFontsStackA, &ph->aePrint.ptxt->lfFontA)))
       fi=AE_StackFontItemInsertA(&hAkelEditFontsStackA, &ph->aePrint.ptxt->lfFontA);
     ph->aePrint.ptxt->lpCharWidths=fi->lpCharWidths;
+    ph->aePrint.ptxt->hFontNormal=fi->hFontNormal;
+    ph->aePrint.ptxt->hFontBold=fi->hFontBold;
+    ph->aePrint.ptxt->hFontItalic=fi->hFontItalic;
+    ph->aePrint.ptxt->hFontBoldItalic=fi->hFontBoldItalic;
+    ph->aePrint.ptxt->hFontUrl=fi->hFontUrl;
 
     //Get print font sizes
     GetTextMetricsA(prn->hPrinterDC, &tmPrintA);
@@ -9777,6 +9784,8 @@ AEPRINTHANDLE* AE_StartPrintDocA(AKELEDIT *ae, AEPRINT *prn)
     //Get print page size
     AE_GetPrintRect(prn, NULL, &prn->rcPageFull);
     AE_GetPrintRect(prn, &prn->rcMargins, &prn->rcPageIn);
+    ph->aePrint.rcEdit=prn->rcPageFull;
+    ph->aePrint.rcDraw=prn->rcPageIn;
   }
   return ph;
 }
@@ -9815,6 +9824,8 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
       ReleaseDC(ae->hWndEdit, hEditDC);
     }
     ph->aePrint.ptxt->lfFontW.lfHeight=MulDiv(nPointSize, GetDeviceCaps(prn->hPrinterDC, LOGPIXELSY), 72);
+    ph->aePrint.ptxt->lfFontW.lfHeight=-mod(ph->aePrint.ptxt->lfFontW.lfHeight);
+    ph->aePrint.ptxt->lfFontW.lfWidth=0;
 
     //Create print font
     prn->hPrintFont=CreateFontIndirectW(&ph->aePrint.ptxt->lfFontW);
@@ -9825,6 +9836,11 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
     if (!(fi=AE_StackFontItemGetW(&hAkelEditFontsStackW, &ph->aePrint.ptxt->lfFontW)))
       fi=AE_StackFontItemInsertW(&hAkelEditFontsStackW, &ph->aePrint.ptxt->lfFontW);
     ph->aePrint.ptxt->lpCharWidths=fi->lpCharWidths;
+    ph->aePrint.ptxt->hFontNormal=fi->hFontNormal;
+    ph->aePrint.ptxt->hFontBold=fi->hFontBold;
+    ph->aePrint.ptxt->hFontItalic=fi->hFontItalic;
+    ph->aePrint.ptxt->hFontBoldItalic=fi->hFontBoldItalic;
+    ph->aePrint.ptxt->hFontUrl=fi->hFontUrl;
 
     //Get print font sizes
     GetTextMetricsW(prn->hPrinterDC, &tmPrintW);
@@ -9846,6 +9862,8 @@ AEPRINTHANDLE* AE_StartPrintDocW(AKELEDIT *ae, AEPRINT *prn)
     //Get print page size
     AE_GetPrintRect(prn, NULL, &prn->rcPageFull);
     AE_GetPrintRect(prn, &prn->rcMargins, &prn->rcPageIn);
+    ph->aePrint.rcEdit=prn->rcPageFull;
+    ph->aePrint.rcDraw=prn->rcPageIn;
   }
   return ph;
 }
@@ -9909,17 +9927,19 @@ void AE_GetPrintRect(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage)
 
 BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 {
+  AEHLPAINT hlp={0};
+  AETEXTOUT to={0};
   AECHARINDEX ciCount;
-  POINT ptText={prn->rcPageIn.left, prn->rcPageIn.top};
+  AECHARINDEX ciTmp;
+  HBRUSH hBasicBk;
   HFONT hPrintFontOld;
+  int nCharWidth=0;
   int nLineWidth;
   int nMaxLineWidth=0;
-  int nCharWidth;
-  int nCharLen;
   int nLineLen;
-  int nPrintedChars;
   int nLineCount=0;
-  int i;
+  int nMaxDrawCharOffset=0;
+  int nTmp;
   BOOL bFormFeed=FALSE;
   BOOL bContinuePrint=TRUE;
 
@@ -9929,31 +9949,56 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   //Select print font
   hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
 
-  NextLine:
-  ciCount=prn->crText.ciMin;
-  ptText.x=prn->rcPageIn.left;
-  nLineWidth=0;
-  nLineLen=0;
-  nPrintedChars=0;
+  //Set AETEXTOUT
+  to.hDC=ph->aePrint.hDC;
+  to.ptFirstCharInLine.x=prn->rcPageIn.left;
+  to.ptFirstCharInLine.y=prn->rcPageIn.top;
+  to.nDrawCharOffset=AE_AkelIndexToRichOffset(ae, &prn->crText.ciMin);
+  to.dwPrintFlags=prn->dwFlags;
+  nMaxDrawCharOffset=to.nDrawCharOffset;
+
+  //Set AEHLPAINT
+  hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
+  hlp.dwDefaultText=ae->popt->crBasicText;
+  hlp.dwDefaultBG=ae->popt->crBasicBk;
+  hlp.hbrDefaultBG=hBasicBk;
+  hlp.dwActiveText=hlp.dwDefaultText;
+  hlp.dwActiveBG=hlp.dwDefaultBG;
+  hlp.hbrActiveBG=hlp.hbrDefaultBG;
+  hlp.dwPaintType=0;
+  hlp.dwFontStyle=AEHLS_NONE;
+
+  //Fill page rectangle
+  if (!(prn->dwFlags & AEPRN_TEST))
+  {
+    if (prn->dwFlags & AEPRN_COLOREDBACKGROUND)
+    {
+      FillRect(ph->aePrint.hDC, &prn->rcPageIn, hBasicBk);
+    }
+  }
 
   //Calculate line
+  CalculateLine:
+  to.ciDrawLine=prn->crText.ciMin;
+  ciCount=prn->crText.ciMin;
+  nLineWidth=0;
+  nLineLen=0;
+
   while (ciCount.lpLine)
   {
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
-      AE_CopyChar(ph->wszPrintLine + nLineLen, AEPRNL_PRINTLINESIZE - nLineLen, ciCount.lpLine->wpLine + ciCount.nCharInLine);
-      if (ph->wszPrintLine[nLineLen] == L'\t')
-        nCharWidth=prn->nTabWidth - nLineWidth % prn->nTabWidth;
+      if (ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\t')
+        nCharWidth=prn->nTabWidth - to.nDrawLineWidth % prn->nTabWidth;
       else
-        nCharWidth=AE_GetCharWidth(&ph->aePrint, ph->wszPrintLine + nLineLen, NULL);
+        nCharWidth=AE_GetCharWidth(&ph->aePrint, ciCount.lpLine->wpLine + ciCount.nCharInLine, NULL);
       nLineWidth+=nCharWidth;
 
       if (nLineWidth > prn->rcPageIn.right - prn->rcPageIn.left ||
-          nLineLen >= AEPRNL_PRINTLINESIZE ||
           AE_IndexCompare(&ciCount, &prn->crText.ciMax) >= 0 ||
-          (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ph->wszPrintLine[nLineLen] == L'\f'))
+          (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\f'))
       {
-        if (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ph->wszPrintLine[nLineLen] == L'\f')
+        if (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\f')
           bFormFeed=TRUE;
 
         if (prn->dwFlags & AEPRN_WRAPNONE)
@@ -9975,18 +10020,20 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
           if (nLineWidth > prn->rcPageIn.right - prn->rcPageIn.left)
           {
             //Find end of word
-            for (i=nLineLen - 1; i >= 0; --i)
+            ciTmp=ciCount;
+            nTmp=nLineLen;
+
+            while (AE_PrevCharInLine(&ciTmp) && --nTmp >= 0)
             {
-              if (AE_IsInDelimiterList(ph->aePrint.ptxt->wszWrapDelimiters, ph->wszPrintLine[i], TRUE))
-                break;
-            }
-            if (i >= 0)
-            {
-              ++i;
-              AE_IndexOffset(&ph->aePrint, &ciCount, &prn->crText.ciMin, i - nLineLen, AELB_ASIS);
-              nLineLen=i;
-              bFormFeed=FALSE;
-              goto CheckTextEnd;
+              if (AE_IsInDelimiterList(ph->aePrint.ptxt->wszWrapDelimiters, ciTmp.lpLine->wpLine[ciTmp.nCharInLine], TRUE))
+              {
+                nLineLen=++nTmp;
+                AE_NextCharInLine(&ciTmp);
+                ciCount=ciTmp;
+                prn->crText.ciMin=ciCount;
+                bFormFeed=FALSE;
+                goto CheckTextEnd;
+              }
             }
           }
           if (bFormFeed)
@@ -9998,13 +10045,15 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
         CheckTextEnd:
         if (AE_IndexCompare(&prn->crText.ciMin, &prn->crText.ciMax) >= 0)
           bContinuePrint=FALSE;
-        nLineWidth-=nCharWidth;
         goto PrintLine;
       }
+
+      //Increment char count
       nLineLen+=AE_IndexLen(&ciCount);
       AE_IndexInc(&ciCount);
     }
 
+    //Next line
     if (ciCount.lpLine->nLineBreak == AELB_WRAP)
       AE_NextLine(&ciCount);
     else
@@ -10021,57 +10070,109 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
   //Print line
   PrintLine:
-  nLineWidth=0;
+  nMaxDrawCharOffset=to.nDrawCharOffset + nLineLen;
+  to.nDrawLineWidth=0;
+  to.ptFirstCharInLine.x=prn->rcPageIn.left;
+  to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
+  to.nStartDrawWidth=to.nDrawLineWidth;
+  to.nMaxDrawCharsCount=0;
+  hlp.dwFindFirst=AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
 
-  for (i=0; i < nLineLen; ++i)
+  while (to.ciDrawLine.lpLine)
   {
-    if (ph->wszPrintLine[i] == L'\t')
+    while (to.ciDrawLine.nCharInLine <= to.ciDrawLine.lpLine->nLineLen)
     {
+      if (to.nDrawCharOffset >= nMaxDrawCharOffset)
+        goto PrintLineEnd;
+
+      if (to.ciDrawLine.nCharInLine < to.ciDrawLine.lpLine->nLineLen)
+      {
+        if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
+          nCharWidth=prn->nTabWidth - to.nDrawLineWidth % prn->nTabWidth;
+        else
+          nCharWidth=AE_GetCharWidth(&ph->aePrint, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, NULL);
+      }
+
       if (!(prn->dwFlags & AEPRN_TEST))
       {
-        if (prn->dwFlags & AEPRN_ANSI)
+        if (prn->dwFlags & AEPRN_COLOREDTEXT)
         {
-          //CreateEnhMetaFileA and ExtTextOutW can be incompatible on Win9x
-          nPrintedChars=WideCharToMultiByte(CP_ACP, 0, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, ph->szPrintLine, AEPRNL_PRINTLINESIZE, NULL, NULL);
-          ExtTextOutA(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->szPrintLine, nPrintedChars, NULL);
+          //Check highlight close
+          AE_PaintCheckHighlightCloseItem(&ph->aePrint, &to, &hlp);
+
+          //Check highlight open
+          AE_PaintCheckHighlightOpenItem(&ph->aePrint, &to, &hlp, ae->ptxt->nLineCount);
         }
-        else ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, i - nPrintedChars, NULL);
       }
-      nLineWidth+=prn->nTabWidth - nLineWidth % prn->nTabWidth;
-      ptText.x=prn->rcPageIn.left + nLineWidth;
-      nPrintedChars=i + 1;
+      if (to.ciDrawLine.nCharInLine == to.ciDrawLine.lpLine->nLineLen) break;
+
+      //Draw text up to tab character
+      if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
+      {
+        AE_PaintTextOut(&ph->aePrint, &to, &hlp);
+
+        to.nStartDrawWidth+=nCharWidth;
+        to.wpStartDraw+=1;
+      }
+
+      //Draw only 2048 characters at once
+      if (to.nMaxDrawCharsCount >= 2048)
+      {
+        AE_PaintTextOut(ae, &to, &hlp);
+      }
+      else ++to.nMaxDrawCharsCount;
+
+      //Increment line width
+      to.nDrawLineWidth+=nCharWidth;
+
+      //Increment char count
+      to.nDrawCharOffset+=AE_IndexLen(&to.ciDrawLine);
+      AE_IndexInc(&to.ciDrawLine);
+    }
+
+    //Next line
+    if (to.ciDrawLine.lpLine->nLineBreak == AELB_WRAP)
+    {
+      AE_PaintTextOut(&ph->aePrint, &to, &hlp);
+      AE_NextLine(&to.ciDrawLine);
+      to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
     }
     else
     {
-      nLineWidth+=AE_GetCharWidth(&ph->aePrint, ph->wszPrintLine + i, &nCharLen);
-      if (nCharLen) i+=nCharLen - 1;
+      ++to.nDrawCharOffset;
+      break;
     }
   }
-  if (!(prn->dwFlags & AEPRN_TEST))
-  {
-    if (prn->dwFlags & AEPRN_ANSI)
-    {
-      //CreateEnhMetaFileA and ExtTextOutW can be incompatible on Win9x
-      nPrintedChars=WideCharToMultiByte(CP_ACP, 0, ph->wszPrintLine + nPrintedChars, nLineLen - nPrintedChars, ph->szPrintLine, AEPRNL_PRINTLINESIZE, NULL, NULL);
-      ExtTextOutA(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->szPrintLine, nPrintedChars, NULL);
-    }
-    else ExtTextOutW(ph->aePrint.hDC, ptText.x, ptText.y, 0, &prn->rcPageIn, ph->wszPrintLine + nPrintedChars, nLineLen - nPrintedChars, NULL);
-  }
-  ptText.y+=ph->aePrint.ptxt->nCharHeight;
+
+  PrintLineEnd:
+  to.nDrawCharOffset+=AE_IndexSubtract(&ph->aePrint, &prn->crText.ciMin, &to.ciDrawLine, AELB_R, FALSE, FALSE);
+  AE_PaintTextOut(&ph->aePrint, &to, &hlp);
+
+  //Next line
+  to.ptFirstCharInLine.y+=ph->aePrint.ptxt->nCharHeight;
   nMaxLineWidth=max(nLineWidth, nMaxLineWidth);
   ++nLineCount;
 
-  if (bContinuePrint && !bFormFeed && ptText.y + ph->aePrint.ptxt->nCharHeight <= prn->rcPageIn.bottom)
-    goto NextLine;
+  if (!(prn->dwFlags & AEPRN_TEST))
+  {
+    if (prn->dwFlags & AEPRN_COLOREDTEXT)
+    {
+      //Check highlight at line end
+      AE_PaintCheckHighlightEndLine(&ph->aePrint, &to, &hlp);
+    }
+  }
+  if (bContinuePrint && !bFormFeed && to.ptFirstCharInLine.y + ph->aePrint.ptxt->nCharHeight <= prn->rcPageIn.bottom)
+    goto CalculateLine;
 
   //Fill rcPageOut structure
   prn->rcPageOut.left=prn->rcPageIn.left;
   prn->rcPageOut.top=prn->rcPageIn.top;
   prn->rcPageOut.right=prn->rcPageIn.left + nMaxLineWidth;
-  prn->rcPageOut.bottom=ptText.y;
+  prn->rcPageOut.bottom=to.ptFirstCharInLine.y;
 
-  //Return font
+  //Free resources
   if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
+  DeleteObject(hBasicBk);
 
   return bContinuePrint;
 }
@@ -10170,6 +10271,7 @@ void AE_Paint(AKELEDIT *ae)
         if (!AE_HighlightIsThemeExists(ae, ae->popt->lpActiveTheme))
           ae->popt->lpActiveTheme=NULL;
       }
+      to.dwPrintFlags=AEPRN_COLOREDTEXT;
 
       while (to.ciDrawLine.lpLine)
       {
@@ -10432,9 +10534,14 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
 
   if (nTextLen)
   {
-    SetTextColor(to->hDC, hlp->dwActiveText);
-    SetBkColor(to->hDC, hlp->dwActiveBG);
-
+    if (!(to->dwPrintFlags & AEPRN_TEST))
+    {
+      if (to->dwPrintFlags & AEPRN_COLOREDTEXT)
+      {
+        SetTextColor(to->hDC, hlp->dwActiveText);
+        SetBkColor(to->hDC, hlp->dwActiveBG);
+      }
+    }
     rcTextOut.left=to->ptFirstCharInLine.x + to->nStartDrawWidth;
     rcTextOut.top=to->ptFirstCharInLine.y;
     rcTextOut.right=ae->rcDraw.right/*rcTextOut.left + nTextWidth*/;
@@ -10443,79 +10550,85 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
     if (rcTextOut.right > ae->rcDraw.left &&
         rcTextOut.left < ae->rcDraw.right)
     {
-      if (!(hlp->dwPaintType & AEHPT_SELECTION))
+      if (!(to->dwPrintFlags & AEPRN_TEST))
       {
-        if (hlp->dwPaintType & AEHPT_LINK)
+        if (to->dwPrintFlags & AEPRN_COLOREDTEXT)
         {
-          if (ae->ptxt->hFontUrl) SelectObject(to->hDC, ae->ptxt->hFontUrl);
-        }
-        if (hlp->dwFontStyle)
-        {
-          if (hlp->dwFontStyle == AEHLS_FONTNORMAL)
+          if (!(hlp->dwPaintType & AEHPT_SELECTION))
           {
-            if (ae->ptxt->hFontNormal) SelectObject(to->hDC, ae->ptxt->hFontNormal);
+            if (hlp->dwPaintType & AEHPT_LINK)
+            {
+              if (ae->ptxt->hFontUrl) SelectObject(to->hDC, ae->ptxt->hFontUrl);
+            }
+            if (hlp->dwFontStyle)
+            {
+              if (hlp->dwFontStyle == AEHLS_FONTNORMAL)
+              {
+                if (ae->ptxt->hFontNormal) SelectObject(to->hDC, ae->ptxt->hFontNormal);
+              }
+              else if (hlp->dwFontStyle == AEHLS_FONTBOLD)
+              {
+                if (ae->ptxt->hFontBold) SelectObject(to->hDC, ae->ptxt->hFontBold);
+              }
+              else if (hlp->dwFontStyle == AEHLS_FONTITALIC)
+              {
+                if (ae->ptxt->hFontItalic) SelectObject(to->hDC, ae->ptxt->hFontItalic);
+              }
+              else if (hlp->dwFontStyle == AEHLS_FONTBOLDITALIC)
+              {
+                if (ae->ptxt->hFontBoldItalic) SelectObject(to->hDC, ae->ptxt->hFontBoldItalic);
+              }
+            }
+            if (hlp->dwActiveBG != hlp->dwDefaultBG)
+            {
+              //Fill space of the external leading
+              dwTextOutFlags=ETO_OPAQUE;
+              rcTextOut.right=rcTextOut.left + nTextWidth;
+            }
+            else SetBkMode(to->hDC, TRANSPARENT);
           }
-          else if (hlp->dwFontStyle == AEHLS_FONTBOLD)
+          else
           {
-            if (ae->ptxt->hFontBold) SelectObject(to->hDC, ae->ptxt->hFontBold);
+            //Fill space of the external leading
+            dwTextOutFlags=ETO_OPAQUE;
+            rcTextOut.right=rcTextOut.left + nTextWidth;
           }
-          else if (hlp->dwFontStyle == AEHLS_FONTITALIC)
-          {
-            if (ae->ptxt->hFontItalic) SelectObject(to->hDC, ae->ptxt->hFontItalic);
-          }
-          else if (hlp->dwFontStyle == AEHLS_FONTBOLDITALIC)
-          {
-            if (ae->ptxt->hFontBoldItalic) SelectObject(to->hDC, ae->ptxt->hFontBoldItalic);
-          }
-        }
-        if (hlp->dwActiveBG != hlp->dwDefaultBG)
-        {
-          //Fill space of the external leading
-          dwTextOutFlags=ETO_OPAQUE;
-          rcTextOut.right=rcTextOut.left + nTextWidth;
-        }
-        else SetBkMode(to->hDC, TRANSPARENT);
-      }
-      else
-      {
-        //Fill space of the external leading
-        dwTextOutFlags=ETO_OPAQUE;
-        rcTextOut.right=rcTextOut.left + nTextWidth;
-      }
-
-      if (!(ae->popt->dwOptions & AECO_PAINTGROUP))
-      {
-        if (dwTextOutFlags & ETO_OPAQUE)
-        {
-          if (hBrush=CreateSolidBrush(hlp->dwActiveBG))
-          {
-            FillRect(to->hDC, &rcTextOut, hBrush);
-            DeleteObject(hBrush);
-          }
-          SetBkMode(to->hDC, TRANSPARENT);
         }
 
-        for (i=0; i < nTextLen; ++i)
+        if (!(ae->popt->dwOptions & AECO_PAINTGROUP))
         {
-          if (nCharLen=AE_CopyChar(NULL, nTextLen - i, wpText + i))
+          if (dwTextOutFlags & ETO_OPAQUE)
           {
-            TextOutW(to->hDC, rcTextOut.left, rcTextOut.top, wpText + i, nCharLen);
-            rcTextOut.left+=AE_GetCharWidth(ae, wpText + i, NULL);
-            i+=nCharLen - 1;
+            if (hBrush=CreateSolidBrush(hlp->dwActiveBG))
+            {
+              FillRect(to->hDC, &rcTextOut, hBrush);
+              DeleteObject(hBrush);
+            }
+            SetBkMode(to->hDC, TRANSPARENT);
+          }
+
+          for (i=0; i < nTextLen; ++i)
+          {
+            if (nCharLen=AE_CopyChar(NULL, nTextLen - i, wpText + i))
+            {
+              TextOutW(to->hDC, rcTextOut.left, rcTextOut.top, wpText + i, nCharLen);
+              rcTextOut.left+=AE_GetCharWidth(ae, wpText + i, NULL);
+              i+=nCharLen - 1;
+            }
           }
         }
-      }
-      else ExtTextOutW(to->hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, wpText, nTextLen, NULL);
+        else ExtTextOutW(to->hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, wpText, nTextLen, NULL);
 
-      if (!(hlp->dwPaintType & AEHPT_SELECTION))
-      {
-        if ((hlp->dwPaintType & AEHPT_LINK) || hlp->dwFontStyle)
+        if (!(hlp->dwPaintType & AEHPT_SELECTION))
         {
-          if (ae->ptxt->hFont) SelectObject(to->hDC, ae->ptxt->hFont);
+          if ((hlp->dwPaintType & AEHPT_LINK) || hlp->dwFontStyle)
+          {
+            if (ae->ptxt->hFont) SelectObject(to->hDC, ae->ptxt->hFont);
+          }
         }
+        if (GetBkMode(to->hDC) == TRANSPARENT)
+          SetBkMode(to->hDC, OPAQUE);
       }
-      if (GetBkMode(to->hDC) == TRANSPARENT)
-        SetBkMode(to->hDC, OPAQUE);
     }
     to->wpStartDraw+=nTextLen;
     to->nStartDrawWidth+=nTextWidth;

@@ -279,14 +279,16 @@
                               AECLR_COLUMNMARKER)
 
 //Print
-#define AEPRN_TEST                      0x01  //Calculate data without painting.
-#define AEPRN_INHUNDREDTHSOFMILLIMETERS 0x02  //Indicates that hundredths of millimeters are the unit of measurement for margins.
-#define AEPRN_INTHOUSANDTHSOFINCHES     0x04  //Indicates that thousandths of inches are the unit of measurement for margins.
-#define AEPRN_WRAPNONE                  0x08  //Print without wrapping.
-#define AEPRN_WRAPWORD                  0x10  //Print with word wrapping (default).
-#define AEPRN_WRAPSYMBOL                0x20  //Print with symbols wrapping.
-#define AEPRN_IGNOREFORMFEED            0x40  //Ignore form-feed character '\f'.
-#define AEPRN_ANSI                      0x80  //Ansi text output. Can solve draw problems on Win95/98/Me.
+#define AEPRN_TEST                      0x001  //Calculate data without painting.
+#define AEPRN_INHUNDREDTHSOFMILLIMETERS 0x002  //Indicates that hundredths of millimeters are the unit of measurement for margins.
+#define AEPRN_INTHOUSANDTHSOFINCHES     0x004  //Indicates that thousandths of inches are the unit of measurement for margins.
+#define AEPRN_WRAPNONE                  0x008  //Print without wrapping.
+#define AEPRN_WRAPWORD                  0x010  //Print with word wrapping (default).
+#define AEPRN_WRAPSYMBOL                0x020  //Print with symbols wrapping.
+#define AEPRN_IGNOREFORMFEED            0x040  //Ignore form-feed character '\f'.
+#define AEPRN_ANSI                      0x080  //Ansi text output. Can solve draw problems on Win95/98/Me.
+#define AEPRN_COLOREDTEXT               0x100  //Print colored text.
+#define AEPRN_COLOREDBACKGROUND         0x200  //Print on colored background.
 
 //Highlight flags
 #define AEHLF_MATCHCASE              0x0001  //If set, the highlight operation is case-sensitive. If not set, the highlight operation is case-insensitive.
