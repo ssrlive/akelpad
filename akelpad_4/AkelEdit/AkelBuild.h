@@ -289,6 +289,7 @@ typedef struct _AETEXTOUT {
   wchar_t *wpStartDraw;
   int nStartDrawWidth;
   int nMaxDrawCharsCount;
+  DWORD dwPrintFlags;
 } AETEXTOUT;
 
 
@@ -553,8 +554,6 @@ typedef struct _AECLONE {
 
 typedef struct {
   AKELEDIT aePrint;
-  char szPrintLine[AEPRNL_PRINTLINESIZE];
-  wchar_t wszPrintLine[AEPRNL_PRINTLINESIZE];
 } AEPRINTHANDLE;
 
 
