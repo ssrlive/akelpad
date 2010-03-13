@@ -927,6 +927,7 @@ BEGIN
     STR_STATUS              "Status"
     STR_RUNNING             "Uruchomione"
     STR_FONT                "Czcionka"
+    STR_COLOR               "Kolory"
     STR_HEADLINE            "Nag³ówki"
     STR_TOP                 "Górny:"
     STR_BOTTOM              "Dolny:"
