@@ -300,6 +300,7 @@ char szPrintHeader[MAX_PATH]=PRINT_HEADERA;
 wchar_t wszPrintHeader[MAX_PATH]=PRINT_HEADERW;
 char szPrintFooter[MAX_PATH]=PRINT_FOOTERA;
 wchar_t wszPrintFooter[MAX_PATH]=PRINT_FOOTERW;
+DWORD dwPrintColor=0;
 DWORD dwMappedPrintWidth=0;
 BOOL bPrintFontEnable=FALSE;
 BOOL bPrintHeaderEnable=FALSE;

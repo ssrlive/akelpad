@@ -932,6 +932,7 @@ BEGIN
     STR_STATUS              "Stato"
     STR_RUNNING             "In esecuzione"
     STR_FONT                "Carattere"
+    STR_COLOR               "Colori"
     STR_HEADLINE            "Intestazione"
     STR_TOP                 "Su:"
     STR_BOTTOM              "Giù:"

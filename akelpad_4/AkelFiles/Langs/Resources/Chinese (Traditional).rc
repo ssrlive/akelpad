@@ -914,6 +914,7 @@ BEGIN
     STR_STATUS              "狀態"
     STR_RUNNING             "執行中"
     STR_FONT                "字型"
+    STR_COLOR               "顏色"
     STR_HEADLINE            "標題"
     STR_TOP                 "上:"
     STR_BOTTOM              "下:"

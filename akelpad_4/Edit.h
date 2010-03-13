@@ -111,13 +111,13 @@
 #define AKDLG_PREVIEWSETPAGE           (WM_USER + 153) //lParam - page number, wParam - not used.
 
 //PrintDocument flags
-#define PRN_REALPRINT          0x01  //Real printing
-#define PRN_PREVIEW            0x02  //Get preview information
-#define PRN_ONEPAGE            0x04  //Print only one page
-#define PRN_ALLTEXT            0x08  //Process all text, prn->crText member input ignored
-#define PRN_SELECTION          0x10  //Process selection, prn->crText member input ignored
-#define PRN_RANGE              0x20  //Process text range pointed with prn->crText member
-#define PRN_ANSI               0x40  //Ansi output
+#define PRND_REALPRINT          0x01  //Real printing
+#define PRND_TEST               0x02  //Get preview information
+#define PRND_ONEPAGE            0x04  //Print only one page
+#define PRND_ALLTEXT            0x08  //Process all text, prn->crText member input ignored
+#define PRND_SELECTION          0x10  //Process selection, prn->crText member input ignored
+#define PRND_RANGE              0x20  //Process text range pointed with prn->crText member
+#define PRND_ANSI               0x40  //Ansi output
 
 //Print preview zoom
 #define PREVIEWZOOM_FIT        -1
@@ -132,13 +132,20 @@
 #define IDC_PSD_FONT_GROUP             10001
 #define IDC_PSD_FONT_CHECK             10002
 #define IDC_PSD_FONT_BUTTON            10003
-#define IDC_PSD_HEADLINE_GROUP         10004
-#define IDC_PSD_HEADLINE_HEADER_CHECK  10004
-#define IDC_PSD_HEADLINE_HEADER_EDIT   10005
-#define IDC_PSD_HEADLINE_HEADER_HELP   10006
-#define IDC_PSD_HEADLINE_FOOTER_CHECK  10007
-#define IDC_PSD_HEADLINE_FOOTER_EDIT   10008
-#define IDC_PSD_HEADLINE_FOOTER_HELP   10009
+#define IDC_PSD_COLOR_GROUP            10004
+#define IDC_PSD_COLOR_TEXT_CHECK       10005
+#define IDC_PSD_COLOR_BACKGROUND_CHECK 10006
+#define IDC_PSD_HEADLINE_GROUP         10007
+#define IDC_PSD_HEADLINE_HEADER_CHECK  10008
+#define IDC_PSD_HEADLINE_HEADER_EDIT   10009
+#define IDC_PSD_HEADLINE_HEADER_HELP   10010
+#define IDC_PSD_HEADLINE_FOOTER_CHECK  10011
+#define IDC_PSD_HEADLINE_FOOTER_EDIT   10012
+#define IDC_PSD_HEADLINE_FOOTER_HELP   10013
+
+//Color printing
+#define PRNC_TEXT                  0x01  //Print colored text
+#define PRNC_BACKGROUND            0x02  //Print on colored background
 
 //Search dialog
 #define IDC_COMBOBOX_EDIT              1001

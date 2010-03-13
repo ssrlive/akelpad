@@ -271,6 +271,7 @@ extern char szPrintHeader[MAX_PATH];
 extern wchar_t wszPrintHeader[MAX_PATH];
 extern char szPrintFooter[MAX_PATH];
 extern wchar_t wszPrintFooter[MAX_PATH];
+extern DWORD dwPrintColor;
 extern DWORD dwMappedPrintWidth;
 extern BOOL bPrintFontEnable;
 extern BOOL bPrintHeaderEnable;
@@ -964,7 +965,7 @@ int DoFilePrintA(HWND hWnd, BOOL bSilent)
   if (pdA.hDC)
   {
     prn.hPrinterDC=pdA.hDC;
-    nResult=PrintDocumentA(hWnd, &prn, PRN_REALPRINT|(pdA.Flags & PD_SELECTION?PRN_SELECTION:PRN_ALLTEXT), 0);
+    nResult=PrintDocumentA(hWnd, &prn, PRND_ANSI|PRND_REALPRINT|(pdA.Flags & PD_SELECTION?PRND_SELECTION:PRND_ALLTEXT), 0);
 
     pdA.Flags&=~PD_SELECTION;
     pdA.Flags&=~PD_PAGENUMS;
@@ -1003,7 +1004,7 @@ int DoFilePrintW(HWND hWnd, BOOL bSilent)
   if (pdW.hDC)
   {
     prn.hPrinterDC=pdW.hDC;
-    nResult=PrintDocumentW(hWnd, &prn, PRN_REALPRINT|(pdW.Flags & PD_SELECTION?PRN_SELECTION:PRN_ALLTEXT), 0);
+    nResult=PrintDocumentW(hWnd, &prn, PRND_REALPRINT|(pdW.Flags & PD_SELECTION?PRND_SELECTION:PRND_ALLTEXT), 0);
 
     pdW.Flags&=~PD_SELECTION;
     pdW.Flags&=~PD_PAGENUMS;
@@ -3249,6 +3250,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "FileTypesEdit", PO_STRING, szFileTypesEdit, MAX_PATH);
   ReadOptionA(hHandle, "FileTypesPrint", PO_STRING, szFileTypesPrint, MAX_PATH);
   ReadOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD));
   ReadOptionA(hHandle, "PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "PrintHeader", PO_STRING, szPrintHeader, MAX_PATH);
   ReadOptionA(hHandle, "PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD));
@@ -3360,6 +3362,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"FileTypesEdit", PO_STRING, wszFileTypesEdit, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD));
   ReadOptionW(hHandle, L"PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"PrintHeader", PO_STRING, wszPrintHeader, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD));
@@ -3724,6 +3727,8 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
     goto Error;
+  if (!SaveOptionA(hHandle, "PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionA(hHandle, "PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "PrintHeader", PO_STRING, szPrintHeader, lstrlenA(szPrintHeader) + 1))
@@ -3933,6 +3938,8 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, lstrlenW(wszFileTypesPrint) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD)))
     goto Error;
@@ -5521,6 +5528,9 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
   static HWND hWndFontGroup;
   static HWND hWndFontCheck;
   static HWND hWndFontButton;
+  static HWND hWndColorGroup;
+  static HWND hWndColorTextCheck;
+  static HWND hWndColorBkCheck;
   static HWND hWndHeadlineGroup;
   static HWND hWndHeaderCheck;
   static HWND hWndHeaderEdit;
@@ -5543,7 +5553,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
     HWND hWndOK;
     HWND hWndCancel;
     HWND hWndPrinter;
-    int nExtend=77;
+    int nExtend=155;
 
     hBitmapDownArrow=(HBITMAP)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDB_BITMAP_DOWNARROW), IMAGE_BITMAP, 0, 0, 0);
     memcpy(&lfTmpA, &lfPrintFontA, sizeof(LOGFONTA));
@@ -5608,12 +5618,42 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
                          (HMENU)IDC_PSD_FONT_BUTTON,
                          hInstance,
                          NULL);
-    //Group box
+    //Color group box
+    hWndColorGroup=CreateWindowExA(0,
+                         "BUTTON",
+                         NULL,
+                         WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
+                         120, rcControl.top - 6, 228, 70,
+                         hDlg,
+                         (HMENU)IDC_PSD_COLOR_GROUP,
+                         hInstance,
+                         NULL);
+    //Color text checkbox
+    hWndColorTextCheck=CreateWindowExA(0,
+                         "BUTTON",
+                         NULL,
+                         WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
+                         136, rcControl.top + 16, 200, 16,
+                         hDlg,
+                         (HMENU)IDC_PSD_COLOR_TEXT_CHECK,
+                         hInstance,
+                         NULL);
+    //Color background checkbox
+    hWndColorBkCheck=CreateWindowExA(0,
+                         "BUTTON",
+                         NULL,
+                         WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
+                         136, rcControl.top + 36, 200, 16,
+                         hDlg,
+                         (HMENU)IDC_PSD_COLOR_BACKGROUND_CHECK,
+                         hInstance,
+                         NULL);
+    //Headline group box
     hWndHeadlineGroup=CreateWindowExA(0,
                          "BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
-                         120, rcControl.top - 6, rcDlg.right - 138, 70,
+                         12, rcControl.top + 70, 336, 70,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_GROUP,
                          hInstance,
@@ -5623,7 +5663,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
                          "BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX|BS_RIGHTBUTTON,
-                         126, rcControl.top + 16, 66, 16,
+                         18, rcControl.top + 92, 76, 16,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_HEADER_CHECK,
                          hInstance,
@@ -5633,7 +5673,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
                          "EDIT",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,
-                         200, rcControl.top + 14, 118, 18,
+                         102, rcControl.top + 90, 216, 18,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_HEADER_EDIT,
                          hInstance,
@@ -5643,7 +5683,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
                          "BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_BITMAP,
-                         320, rcControl.top + 14, 18, 18,
+                         320, rcControl.top + 90, 18, 18,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_HEADER_HELP,
                          hInstance,
@@ -5653,7 +5693,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
                          "BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX|BS_RIGHTBUTTON,
-                         126, rcControl.top + 36, 66, 16,
+                         18, rcControl.top + 112, 76, 16,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_FOOTER_CHECK,
                          hInstance,
@@ -5663,7 +5703,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
                          "EDIT",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,
-                         200, rcControl.top + 34, 118, 18,
+                         102, rcControl.top + 110, 216, 18,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_FOOTER_EDIT,
                          hInstance,
@@ -5673,7 +5713,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
                          "BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_BITMAP,
-                         320, rcControl.top + 34, 18, 18,
+                         320, rcControl.top + 110, 18, 18,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_FOOTER_HELP,
                          hInstance,
@@ -5688,6 +5728,22 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
       EnableWindow(hWndFontButton, FALSE);
     SendMessage(hWndFontButton, WM_SETFONT, (WPARAM)hPrintFont, TRUE);
     SetWindowTextA(hWndFontButton, "...");
+
+    SendMessage(hWndColorGroup, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
+    API_LoadStringA(hLangLib, STR_COLOR, buf, BUFFER_SIZE);
+    SetWindowTextA(hWndColorGroup, buf);
+
+    SendMessage(hWndColorTextCheck, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
+    API_LoadStringA(hLangLib, STR_TEXT, buf, BUFFER_SIZE);
+    SetWindowTextA(hWndColorTextCheck, buf);
+    if (dwPrintColor & PRNC_TEXT)
+      SendMessage(hWndColorTextCheck, BM_SETCHECK, BST_CHECKED, 0);
+
+    SendMessage(hWndColorBkCheck, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
+    API_LoadStringA(hLangLib, STR_BACKGROUND, buf, BUFFER_SIZE);
+    SetWindowTextA(hWndColorBkCheck, buf);
+    if (dwPrintColor & PRNC_BACKGROUND)
+      SendMessage(hWndColorBkCheck, BM_SETCHECK, BST_CHECKED, 0);
 
     SendMessage(hWndHeadlineGroup, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
     API_LoadStringA(hLangLib, STR_HEADLINE, buf, BUFFER_SIZE);
@@ -5790,6 +5846,12 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
       memcpy(&lfPrintFontA, &lfTmpA, sizeof(LOGFONTA));
       if (bFontChanged) bPrintFontChanged=TRUE;
 
+      dwPrintColor=0;
+      if (SendMessage(hWndColorTextCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwPrintColor|=PRNC_TEXT;
+      if (SendMessage(hWndColorBkCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwPrintColor|=PRNC_BACKGROUND;
+
       bPrintHeaderEnable=SendMessage(hWndHeaderCheck, BM_GETCHECK, 0, 0);
       GetWindowTextA(hWndHeaderEdit, szPrintHeader, MAX_PATH);
 
@@ -5810,6 +5872,9 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
   static HWND hWndFontGroup;
   static HWND hWndFontCheck;
   static HWND hWndFontButton;
+  static HWND hWndColorGroup;
+  static HWND hWndColorTextCheck;
+  static HWND hWndColorBkCheck;
   static HWND hWndHeadlineGroup;
   static HWND hWndHeaderCheck;
   static HWND hWndHeaderEdit;
@@ -5832,7 +5897,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
     HWND hWndOK;
     HWND hWndCancel;
     HWND hWndPrinter;
-    int nExtend=77;
+    int nExtend=155;
 
     hBitmapDownArrow=(HBITMAP)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDB_BITMAP_DOWNARROW), IMAGE_BITMAP, 0, 0, 0);
     memcpy(&lfTmpW, &lfPrintFontW, sizeof(LOGFONTW));
@@ -5897,12 +5962,42 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
                          (HMENU)IDC_PSD_FONT_BUTTON,
                          hInstance,
                          NULL);
-    //Group box
+    //Color group box
+    hWndColorGroup=CreateWindowExW(0,
+                         L"BUTTON",
+                         NULL,
+                         WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
+                         120, rcControl.top - 6, 228, 70,
+                         hDlg,
+                         (HMENU)IDC_PSD_COLOR_GROUP,
+                         hInstance,
+                         NULL);
+    //Color text checkbox
+    hWndColorTextCheck=CreateWindowExW(0,
+                         L"BUTTON",
+                         NULL,
+                         WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
+                         136, rcControl.top + 16, 200, 16,
+                         hDlg,
+                         (HMENU)IDC_PSD_COLOR_TEXT_CHECK,
+                         hInstance,
+                         NULL);
+    //Color background checkbox
+    hWndColorBkCheck=CreateWindowExW(0,
+                         L"BUTTON",
+                         NULL,
+                         WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
+                         136, rcControl.top + 36, 200, 16,
+                         hDlg,
+                         (HMENU)IDC_PSD_COLOR_BACKGROUND_CHECK,
+                         hInstance,
+                         NULL);
+    //Headline group box
     hWndHeadlineGroup=CreateWindowExW(0,
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|BS_GROUPBOX,
-                         120, rcControl.top - 6, rcDlg.right - 138, 70,
+                         12, rcControl.top + 70, 336, 70,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_GROUP,
                          hInstance,
@@ -5912,7 +6007,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX|BS_RIGHTBUTTON,
-                         126, rcControl.top + 16, 66, 16,
+                         18, rcControl.top + 92, 76, 16,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_HEADER_CHECK,
                          hInstance,
@@ -5922,7 +6017,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
                          L"EDIT",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,
-                         200, rcControl.top + 14, 118, 18,
+                         102, rcControl.top + 90, 216, 18,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_HEADER_EDIT,
                          hInstance,
@@ -5932,7 +6027,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_BITMAP,
-                         320, rcControl.top + 14, 18, 18,
+                         320, rcControl.top + 90, 18, 18,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_HEADER_HELP,
                          hInstance,
@@ -5942,7 +6037,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX|BS_RIGHTBUTTON,
-                         126, rcControl.top + 36, 66, 16,
+                         18, rcControl.top + 112, 76, 16,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_FOOTER_CHECK,
                          hInstance,
@@ -5952,7 +6047,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
                          L"EDIT",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|ES_AUTOHSCROLL,
-                         200, rcControl.top + 34, 118, 18,
+                         102, rcControl.top + 110, 216, 18,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_FOOTER_EDIT,
                          hInstance,
@@ -5962,7 +6057,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
                          L"BUTTON",
                          NULL,
                          WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_BITMAP,
-                         320, rcControl.top + 34, 18, 18,
+                         320, rcControl.top + 110, 18, 18,
                          hDlg,
                          (HMENU)IDC_PSD_HEADLINE_FOOTER_HELP,
                          hInstance,
@@ -5977,6 +6072,22 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
       EnableWindow(hWndFontButton, FALSE);
     SendMessage(hWndFontButton, WM_SETFONT, (WPARAM)hPrintFont, TRUE);
     SetWindowTextW(hWndFontButton, L"...");
+
+    SendMessage(hWndColorGroup, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
+    API_LoadStringW(hLangLib, STR_COLOR, wbuf, BUFFER_SIZE);
+    SetWindowTextW(hWndColorGroup, wbuf);
+
+    SendMessage(hWndColorTextCheck, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
+    API_LoadStringW(hLangLib, STR_TEXT, wbuf, BUFFER_SIZE);
+    SetWindowTextW(hWndColorTextCheck, wbuf);
+    if (dwPrintColor & PRNC_TEXT)
+      SendMessage(hWndColorTextCheck, BM_SETCHECK, BST_CHECKED, 0);
+
+    SendMessage(hWndColorBkCheck, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
+    API_LoadStringW(hLangLib, STR_BACKGROUND, wbuf, BUFFER_SIZE);
+    SetWindowTextW(hWndColorBkCheck, wbuf);
+    if (dwPrintColor & PRNC_BACKGROUND)
+      SendMessage(hWndColorBkCheck, BM_SETCHECK, BST_CHECKED, 0);
 
     SendMessage(hWndHeadlineGroup, WM_SETFONT, (WPARAM)hGuiFont, TRUE);
     API_LoadStringW(hLangLib, STR_HEADLINE, wbuf, BUFFER_SIZE);
@@ -6078,6 +6189,12 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
       bPrintFontEnable=SendMessage(hWndFontCheck, BM_GETCHECK, 0, 0);
       memcpy(&lfPrintFontW, &lfTmpW, sizeof(LOGFONTW));
       if (bFontChanged) bPrintFontChanged=TRUE;
+
+      dwPrintColor=0;
+      if (SendMessage(hWndColorTextCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwPrintColor|=PRNC_TEXT;
+      if (SendMessage(hWndColorBkCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwPrintColor|=PRNC_BACKGROUND;
 
       bPrintHeaderEnable=SendMessage(hWndHeaderCheck, BM_GETCHECK, 0, 0);
       GetWindowTextW(hWndHeaderEdit, wszPrintHeader, MAX_PATH);
@@ -6250,17 +6367,19 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   //Set print settings
   prn->dwFlags=((dwWrapType & AEWW_SYMBOL)?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
                (psdPageA.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES)|
-               (dwFlags & PRN_PREVIEW?AEPRN_TEST:0)|
-               (dwFlags & PRN_ANSI?AEPRN_ANSI:0);
-  if (!(dwFlags & PRN_RANGE))
+               (dwFlags & PRND_TEST?AEPRN_TEST:0)|
+               (dwFlags & PRND_ANSI?AEPRN_ANSI:0)|
+               (dwPrintColor & PRNC_TEXT?AEPRN_COLOREDTEXT:0)|
+               (dwPrintColor & PRNC_BACKGROUND?AEPRN_COLOREDBACKGROUND:0);
+  if (!(dwFlags & PRND_RANGE))
   {
-    if (dwFlags & PRN_SELECTION)
+    if (dwFlags & PRND_SELECTION)
     {
       if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
         return 0;
       prn->crText=crSel;
     }
-    else if (dwFlags & PRN_ALLTEXT)
+    else if (dwFlags & PRND_ALLTEXT)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn->crText.ciMin);
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn->crText.ciMax);
@@ -6273,7 +6392,7 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   prn->rcMargins=psdPageA.rtMargin;
 
   //Document properties
-  if (dwFlags & PRN_REALPRINT)
+  if (dwFlags & PRND_REALPRINT)
   {
     API_LoadStringA(hLangLib, STR_DOCNAME, buf, BUFFER_SIZE);
     diA.cbSize=sizeof(DOCINFOA);
@@ -6281,11 +6400,11 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
     if (pdA.Flags & PD_PRINTTOFILE) diA.lpszOutput="FILE:";
   }
 
-  if (!(dwFlags & PRN_REALPRINT) || StartDocA(prn->hPrinterDC, &diA) > 0)
+  if (!(dwFlags & PRND_REALPRINT) || StartDocA(prn->hPrinterDC, &diA) > 0)
   {
     if (hPrintDoc=(HANDLE)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)prn))
     {
-      if (dwFlags & PRN_PREVIEW)
+      if (dwFlags & PRND_TEST)
       {
         //Get DPI for converting coordinates
         if (hScreenDC=GetDC(hWndPreviewDlg))
@@ -6321,7 +6440,7 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
       {
         ++nPageNumber;
 
-        if (dwFlags & PRN_REALPRINT)
+        if (dwFlags & PRND_REALPRINT)
         {
           if ((pdA.Flags & PD_PAGENUMS) && nPageNumber > pdA.nToPage)
           {
@@ -6339,11 +6458,11 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
         }
 
         //Print page
-        if (!(dwFlags & PRN_REALPRINT) || StartPage(prn->hPrinterDC) > 0)
+        if (!(dwFlags & PRND_REALPRINT) || StartPage(prn->hPrinterDC) > 0)
         {
-          if (dwFlags & PRN_PREVIEW)
+          if (dwFlags & PRND_TEST)
           {
-            if (dwFlags & PRN_SELECTION)
+            if (dwFlags & PRND_SELECTION)
             {
               if (lpElement=StackPageInsert(&hPreviewSelPagesStack))
                 lpElement->crText=prn->crText;
@@ -6374,19 +6493,19 @@ int PrintDocumentA(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
             if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
           }
 
-          if (dwFlags & PRN_REALPRINT)
+          if (dwFlags & PRND_REALPRINT)
           {
             if (EndPage(prn->hPrinterDC) <= 0)
               bPrintError=TRUE;
           }
-          if (dwFlags & PRN_ONEPAGE)
+          if (dwFlags & PRND_ONEPAGE)
             break;
         }
         else bPrintError=TRUE;
       }
       SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)prn);
     }
-    if (dwFlags & PRN_REALPRINT) EndDoc(prn->hPrinterDC);
+    if (dwFlags & PRND_REALPRINT) EndDoc(prn->hPrinterDC);
   }
   else bPrintError=TRUE;
 
@@ -6421,17 +6540,19 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   //Set print settings
   prn->dwFlags=((dwWrapType & AEWW_SYMBOL)?AEPRN_WRAPSYMBOL:AEPRN_WRAPWORD)|
                (psdPageW.Flags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES)|
-               (dwFlags & PRN_PREVIEW?AEPRN_TEST:0)|
-               (dwFlags & PRN_ANSI?AEPRN_ANSI:0);
-  if (!(dwFlags & PRN_RANGE))
+               (dwFlags & PRND_TEST?AEPRN_TEST:0)|
+               (dwFlags & PRND_ANSI?AEPRN_ANSI:0)|
+               (dwPrintColor & PRNC_TEXT?AEPRN_COLOREDTEXT:0)|
+               (dwPrintColor & PRNC_BACKGROUND?AEPRN_COLOREDBACKGROUND:0);
+  if (!(dwFlags & PRND_RANGE))
   {
-    if (dwFlags & PRN_SELECTION)
+    if (dwFlags & PRND_SELECTION)
     {
       if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
         return 0;
       prn->crText=crSel;
     }
-    else if (dwFlags & PRN_ALLTEXT)
+    else if (dwFlags & PRND_ALLTEXT)
     {
       SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&prn->crText.ciMin);
       SendMessage(hWnd, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&prn->crText.ciMax);
@@ -6444,7 +6565,7 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   prn->rcMargins=psdPageW.rtMargin;
 
   //Document properties
-  if (dwFlags & PRN_REALPRINT)
+  if (dwFlags & PRND_REALPRINT)
   {
     API_LoadStringW(hLangLib, STR_DOCNAME, wbuf, BUFFER_SIZE);
     diW.cbSize=sizeof(DOCINFOW);
@@ -6452,11 +6573,11 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
     if (pdW.Flags & PD_PRINTTOFILE) diW.lpszOutput=L"FILE:";
   }
 
-  if (!(dwFlags & PRN_REALPRINT) || StartDocW(prn->hPrinterDC, &diW) > 0)
+  if (!(dwFlags & PRND_REALPRINT) || StartDocW(prn->hPrinterDC, &diW) > 0)
   {
     if (hPrintDoc=(HANDLE)SendMessage(hWnd, AEM_STARTPRINTDOC, 0, (LPARAM)prn))
     {
-      if (dwFlags & PRN_PREVIEW)
+      if (dwFlags & PRND_TEST)
       {
         //Get DPI for converting coordinates
         if (hScreenDC=GetDC(hWndPreviewDlg))
@@ -6492,7 +6613,7 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
       {
         ++nPageNumber;
 
-        if (dwFlags & PRN_REALPRINT)
+        if (dwFlags & PRND_REALPRINT)
         {
           if ((pdW.Flags & PD_PAGENUMS) && nPageNumber > pdW.nToPage)
           {
@@ -6510,11 +6631,11 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
         }
 
         //Print page
-        if (!(dwFlags & PRN_REALPRINT) || StartPage(prn->hPrinterDC) > 0)
+        if (!(dwFlags & PRND_REALPRINT) || StartPage(prn->hPrinterDC) > 0)
         {
-          if (dwFlags & PRN_PREVIEW)
+          if (dwFlags & PRND_TEST)
           {
-            if (dwFlags & PRN_SELECTION)
+            if (dwFlags & PRND_SELECTION)
             {
               if (lpElement=StackPageInsert(&hPreviewSelPagesStack))
                 lpElement->crText=prn->crText;
@@ -6545,19 +6666,19 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
             if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
           }
 
-          if (dwFlags & PRN_REALPRINT)
+          if (dwFlags & PRND_REALPRINT)
           {
             if (EndPage(prn->hPrinterDC) <= 0)
               bPrintError=TRUE;
           }
-          if (dwFlags & PRN_ONEPAGE)
+          if (dwFlags & PRND_ONEPAGE)
             break;
         }
         else bPrintError=TRUE;
       }
       SendMessage(hWnd, AEM_ENDPRINTDOC, (WPARAM)hPrintDoc, (LPARAM)prn);
     }
-    if (dwFlags & PRN_REALPRINT) EndDoc(prn->hPrinterDC);
+    if (dwFlags & PRND_REALPRINT) EndDoc(prn->hPrinterDC);
   }
   else bPrintError=TRUE;
 
@@ -7504,8 +7625,8 @@ BOOL PreviewInitA(HWND hWndSelection)
   {
     //Initialize variables
     prn.hPrinterDC=pdA.hDC;
-    nPreviewAllPageSum=PrintDocumentA(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_ALLTEXT, 0);
-    nPreviewSelPageSum=PrintDocumentA(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_SELECTION, 0);
+    nPreviewAllPageSum=PrintDocumentA(hWndPreviewEdit, &prn, PRND_TEST|PRND_ALLTEXT, 0);
+    nPreviewSelPageSum=PrintDocumentA(hWndPreviewEdit, &prn, PRND_TEST|PRND_SELECTION, 0);
     bResult=TRUE;
   }
   if (!nPreviewSelPageSum)
@@ -7533,8 +7654,8 @@ BOOL PreviewInitW(HWND hWndSelection)
   {
     //Initialize variables
     prn.hPrinterDC=pdW.hDC;
-    nPreviewAllPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_ALLTEXT, 0);
-    nPreviewSelPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRN_PREVIEW|PRN_SELECTION, 0);
+    nPreviewAllPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRND_TEST|PRND_ALLTEXT, 0);
+    nPreviewSelPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRND_TEST|PRND_SELECTION, 0);
     bResult=TRUE;
   }
   if (!nPreviewSelPageSum)
@@ -7597,7 +7718,7 @@ LRESULT CALLBACK PreviewProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
           //Print page on metafile device
           prn.hPrinterDC=hMetaDC;
           prn.crText=lpElement->crText;
-          PrintDocumentA(hWndPreviewEdit, &prn, PRN_ANSI|PRN_RANGE|PRN_ONEPAGE, nPreviewPageCur - 1);
+          PrintDocumentA(hWndPreviewEdit, &prn, PRND_ANSI|PRND_RANGE|PRND_ONEPAGE, nPreviewPageCur - 1);
           hMetaFile=CloseEnhMetaFile(hMetaDC);
 
           //Draw page on window
@@ -7650,7 +7771,7 @@ LRESULT CALLBACK PreviewProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
           //Print page on metafile device
           prn.hPrinterDC=hMetaDC;
           prn.crText=lpElement->crText;
-          PrintDocumentW(hWndPreviewEdit, &prn, PRN_RANGE|PRN_ONEPAGE, nPreviewPageCur - 1);
+          PrintDocumentW(hWndPreviewEdit, &prn, PRND_RANGE|PRND_ONEPAGE, nPreviewPageCur - 1);
           hMetaFile=CloseEnhMetaFile(hMetaDC);
 
           //Draw page on window

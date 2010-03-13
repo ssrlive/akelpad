@@ -929,6 +929,7 @@ BEGIN
     STR_STATUS              "Stare"
     STR_RUNNING             "Ruleazã"
     STR_FONT                "Font"
+    STR_COLOR               "Culori"
     STR_HEADLINE            "Anteturi"
     STR_TOP                 "Sus:"
     STR_BOTTOM              "Jos:"

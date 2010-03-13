@@ -928,6 +928,7 @@ BEGIN
     STR_STATUS              "Status"
     STR_RUNNING             "Executando"
     STR_FONT                "Fonte"
+    STR_COLOR               "Cores"
     STR_HEADLINE            "Cabeçalhos"
     STR_TOP                 "Topo:"
     STR_BOTTOM              "Fundo:"
