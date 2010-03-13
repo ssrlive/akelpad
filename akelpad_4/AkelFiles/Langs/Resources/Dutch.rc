@@ -927,6 +927,7 @@ BEGIN
     STR_STATUS              "Status"
     STR_RUNNING             "Werkt"
     STR_FONT                "Lettertype"
+    STR_COLOR               "Kleuren"
     STR_HEADLINE            "Opschriften"
     STR_TOP                 "Boven:"
     STR_BOTTOM              "Onder:"

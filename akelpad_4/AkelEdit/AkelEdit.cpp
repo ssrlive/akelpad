@@ -10271,7 +10271,7 @@ void AE_Paint(AKELEDIT *ae)
         if (!AE_HighlightIsThemeExists(ae, ae->popt->lpActiveTheme))
           ae->popt->lpActiveTheme=NULL;
       }
-      to.dwPrintFlags=AEPRN_COLOREDTEXT;
+      to.dwPrintFlags=AEPRN_COLOREDTEXT|AEPRN_COLOREDBACKGROUND;
 
       while (to.ciDrawLine.lpLine)
       {
@@ -10525,12 +10525,15 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
 {
   RECT rcTextOut;
   HBRUSH hBrush;
-  DWORD dwTextOutFlags=0;
+  char *szText;
+  char szChar[4];
   wchar_t *wpText=to->wpStartDraw;
   int nTextLen=to->ciDrawLine.nCharInLine - (to->wpStartDraw - to->ciDrawLine.lpLine->wpLine);
   int nTextWidth=to->nDrawLineWidth - to->nStartDrawWidth;
   int nCharLen;
+  int nBytes;
   int i;
+  DWORD dwTextOutFlags=0;
 
   if (nTextLen)
   {
@@ -10539,6 +10542,9 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
       if (to->dwPrintFlags & AEPRN_COLOREDTEXT)
       {
         SetTextColor(to->hDC, hlp->dwActiveText);
+      }
+      if (to->dwPrintFlags & AEPRN_COLOREDBACKGROUND)
+      {
         SetBkColor(to->hDC, hlp->dwActiveBG);
       }
     }
@@ -10611,13 +10617,38 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
           {
             if (nCharLen=AE_CopyChar(NULL, nTextLen - i, wpText + i))
             {
-              TextOutW(to->hDC, rcTextOut.left, rcTextOut.top, wpText + i, nCharLen);
+              if (!(to->dwPrintFlags & AEPRN_ANSI))
+              {
+                TextOutW(to->hDC, rcTextOut.left, rcTextOut.top, wpText + i, nCharLen);
+              }
+              else
+              {
+                nBytes=WideCharToMultiByte(CP_ACP, 0, wpText + i, 1, szChar, sizeof(szChar), NULL, NULL);
+                TextOutA(to->hDC, rcTextOut.left, rcTextOut.top, szChar, nBytes);
+              }
               rcTextOut.left+=AE_GetCharWidth(ae, wpText + i, NULL);
               i+=nCharLen - 1;
             }
           }
         }
-        else ExtTextOutW(to->hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, wpText, nTextLen, NULL);
+        else
+        {
+          if (!(to->dwPrintFlags & AEPRN_ANSI))
+          {
+            ExtTextOutW(to->hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, wpText, nTextLen, NULL);
+          }
+          else
+          {
+            nBytes=WideCharToMultiByte(CP_ACP, 0, wpText, nTextLen, NULL, 0, NULL, NULL);
+
+            if (szText=(char *)AE_HeapAlloc(ae, 0, nBytes))
+            {
+              WideCharToMultiByte(CP_ACP, 0, wpText, nTextLen, szText, nBytes, NULL, NULL);
+              ExtTextOutA(to->hDC, rcTextOut.left, rcTextOut.top, dwTextOutFlags, &rcTextOut, szText, nBytes, NULL);
+              AE_HeapFree(ae, 0, (LPVOID)szText);
+            }
+          }
+        }
 
         if (!(hlp->dwPaintType & AEHPT_SELECTION))
         {

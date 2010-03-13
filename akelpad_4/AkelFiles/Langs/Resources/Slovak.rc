@@ -934,6 +934,7 @@ BEGIN
     STR_STATUS              "Stav"
     STR_RUNNING             "Spustený"
     STR_FONT                "Písmo"
+    STR_COLOR               "Farby"
     STR_HEADLINE            "Hlavièka a päta"
     STR_TOP                 "Vrch:"
     STR_BOTTOM              "Spodok:"

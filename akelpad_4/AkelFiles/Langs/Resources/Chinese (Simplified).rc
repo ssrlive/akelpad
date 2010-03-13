@@ -910,6 +910,7 @@ BEGIN
     STR_STATUS              "状态"
     STR_RUNNING             "正在运行"
     STR_FONT                "字体"
+    STR_COLOR               "颜色"
     STR_HEADLINE            "标题行"
     STR_TOP                 "页眉:"
     STR_BOTTOM              "页脚:"

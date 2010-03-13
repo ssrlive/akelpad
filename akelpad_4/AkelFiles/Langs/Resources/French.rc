@@ -932,6 +932,7 @@ BEGIN
     STR_STATUS              "Statut"
     STR_RUNNING             "Actif"
     STR_FONT                "Police"
+    STR_COLOR               "Couleurs"
     STR_HEADLINE            "Titres"
     STR_TOP                 "Haut:"
     STR_BOTTOM              "Bas:"

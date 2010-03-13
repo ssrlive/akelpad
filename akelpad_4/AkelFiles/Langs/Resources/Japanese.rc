@@ -922,6 +922,7 @@ BEGIN
     STR_STATUS              "状態"
     STR_RUNNING             "実行中"
     STR_FONT                "フォント"
+    STR_COLOR               "色"
     STR_HEADLINE            "ヘッドライン"
     STR_TOP                 "上:"
     STR_BOTTOM              "下:"

@@ -942,6 +942,7 @@ BEGIN
     STR_STATUS              "Статус"
     STR_RUNNING             "Працуе"
     STR_FONT                "Шрыфт"
+    STR_COLOR               "Колеры"
     STR_HEADLINE            "Калантытулы"
     STR_TOP                 "Верхні:"
     STR_BOTTOM              "Ніжні:"

@@ -925,6 +925,7 @@ BEGIN
     STR_STATUS              "Status"
     STR_RUNNING             "L‰uft"
     STR_FONT                "Font"
+    STR_COLOR               "Farben"
     STR_HEADLINE            "Kolumnentitel"
     STR_TOP                 "Kopfzeile:"
     STR_BOTTOM              "Fuﬂzeile:"

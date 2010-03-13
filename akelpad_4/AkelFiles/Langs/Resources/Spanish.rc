@@ -927,6 +927,7 @@ BEGIN
     STR_STATUS              "Estado"
     STR_RUNNING             "En ejecución"
     STR_FONT                "Fuente"
+    STR_COLOR               "Colores"
     STR_HEADLINE            "Titulares"
     STR_TOP                 "Superior:"
     STR_BOTTOM              "Inferior:"

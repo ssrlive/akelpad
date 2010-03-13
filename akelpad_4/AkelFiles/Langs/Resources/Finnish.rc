@@ -929,6 +929,7 @@ BEGIN
     STR_STATUS              "Tila"
     STR_RUNNING             "Käynnissä"
     STR_FONT                "Fontti"
+    STR_COLOR               "Värit"
     STR_HEADLINE            "Otsikot"
     STR_TOP                 "Yläosa:"
     STR_BOTTOM              "Alaosa:"
