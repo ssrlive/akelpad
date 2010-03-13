@@ -2,6 +2,7 @@
 AkelPad 4.4.2 ()
 ----------------------------
 Added: color printing.
+Added: check main window visibility on startup.
 
 Fixed: possible crash after I/O error.
 Fixed: text folding.
