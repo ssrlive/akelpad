@@ -5732,7 +5732,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               {
                 while (PeekMessageA(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
                 {
-                  if (msg.wParam == VK_ESCAPE)
+                  if (msg.message == WM_KEYDOWN && msg.wParam == VK_ESCAPE)
                   {
                     bStop=TRUE;
                   }
@@ -6032,7 +6032,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
               {
                 while (PeekMessageW(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
                 {
-                  if (msg.wParam == VK_ESCAPE)
+                  if (msg.message == WM_KEYDOWN && msg.wParam == VK_ESCAPE)
                   {
                     bStop=TRUE;
                   }
