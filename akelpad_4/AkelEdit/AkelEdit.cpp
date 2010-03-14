@@ -5391,14 +5391,15 @@ void AE_StackLineFree(AKELEDIT *ae)
 
 AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
 {
-  AELINEDATA *lpElementData=NULL;
+  AECHARINDEX ciElement;
   DWORD dwFirst=(DWORD)-1;
   DWORD dwSecond=(DWORD)-1;
   DWORD dwThird=(DWORD)-1;
   DWORD dwFourth=(DWORD)-1;
   DWORD dwFifth=(DWORD)-1;
   DWORD dwSixth=(DWORD)-1;
-  int nElementLine=0;
+  int nElementLineOffset=0;
+  int nCompare;
 
   if (nLine < 0) nLine=ae->ptxt->nLineCount + nLine + 1;
   if (nLine < 0 || nLine > ae->ptxt->nLineCount) return NULL;
@@ -5417,54 +5418,94 @@ AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
 
   if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth && dwFirst <= dwSixth)
   {
-    nElementLine=nLine - 0;
-    lpElementData=(AELINEDATA *)ae->ptxt->hLinesStack.first;
+    AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciElement, FALSE);
+    nElementLineOffset=0;
   }
   else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth && dwSecond <= dwSixth)
   {
-    nElementLine=nLine - ae->ptxt->nLineCount;
-    lpElementData=(AELINEDATA *)ae->ptxt->hLinesStack.last;
+    AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciElement, FALSE);
+    nElementLineOffset=ae->ptxt->nLastCharOffset;
   }
   else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth && dwThird <= dwSixth)
   {
-    nElementLine=nLine - ae->liFirstDrawLine.nLine;
-    lpElementData=ae->liFirstDrawLine.lpLine;
+    ciElement.nLine=ae->liFirstDrawLine.nLine;
+    ciElement.lpLine=ae->liFirstDrawLine.lpLine;
+    ciElement.nCharInLine=0;
+    nElementLineOffset=ae->nFirstDrawLineOffset;
   }
   else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth && dwFourth <= dwSixth)
   {
-    nElementLine=nLine - ae->ciSelStartIndex.nLine;
-    lpElementData=ae->ciSelStartIndex.lpLine;
+    ciElement.nLine=ae->ciSelStartIndex.nLine;
+    ciElement.lpLine=ae->ciSelStartIndex.lpLine;
+    ciElement.nCharInLine=min(ae->ciSelStartIndex.nCharInLine, ae->ciSelStartIndex.lpLine->nLineLen);
+    nElementLineOffset=ae->nSelStartCharOffset;
   }
   else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth && dwFifth <= dwSixth)
   {
-    nElementLine=nLine - ae->ciSelEndIndex.nLine;
-    lpElementData=ae->ciSelEndIndex.lpLine;
+    ciElement.nLine=ae->ciSelEndIndex.nLine;
+    ciElement.lpLine=ae->ciSelEndIndex.lpLine;
+    ciElement.nCharInLine=min(ae->ciSelEndIndex.nCharInLine, ae->ciSelEndIndex.lpLine->nLineLen);
+    nElementLineOffset=ae->nSelEndCharOffset;
   }
   else if (dwSixth <= dwFirst && dwSixth <= dwSecond && dwSixth <= dwThird && dwSixth <= dwFourth && dwSixth <= dwFifth)
   {
-    nElementLine=nLine - ae->ciLastCallIndex.nLine;
-    lpElementData=ae->ciLastCallIndex.lpLine;
+    ciElement=ae->ciLastCallIndex;
+    nElementLineOffset=ae->nLastCallOffset;
+  }
+  nCompare=nLine - ciElement.nLine;
+
+  if (nCompare == 0)
+  {
+    nElementLineOffset-=ciElement.nCharInLine;
+    ciElement.nCharInLine=0;
+  }
+  else if (nCompare > 0)
+  {
+    nElementLineOffset-=ciElement.nCharInLine;
+    ciElement.nCharInLine=0;
+
+    while (ciElement.lpLine)
+    {
+      if (ciElement.nLine == nLine)
+        break;
+
+      nElementLineOffset+=ciElement.lpLine->nLineLen;
+
+      //Next line
+      if (ciElement.lpLine->nLineBreak != AELB_WRAP && ciElement.lpLine->nLineBreak != AELB_EOF)
+        nElementLineOffset+=1;
+
+      ciElement.nLine+=1;
+      ciElement.lpLine=ciElement.lpLine->next;
+    }
+  }
+  else if (nCompare < 0)
+  {
+    nElementLineOffset+=ciElement.lpLine->nLineLen - ciElement.nCharInLine;
+    ciElement.nCharInLine=0;
+
+    while (ciElement.lpLine)
+    {
+      nElementLineOffset-=ciElement.lpLine->nLineLen;
+
+      if (ciElement.nLine == nLine)
+        break;
+
+      //Previous line
+      ciElement.nLine-=1;
+      ciElement.lpLine=ciElement.lpLine->prev;
+
+      if (ciElement.lpLine && ciElement.lpLine->nLineBreak != AELB_WRAP && ciElement.lpLine->nLineBreak != AELB_EOF)
+        nElementLineOffset-=1;
+    }
   }
 
-  if (nElementLine > 0)
+  if (ae->ciLastCallIndex.nLine != ciElement.nLine)
   {
-    while (lpElementData)
-    {
-      if (nElementLine-- == 0)
-        break;
-      lpElementData=lpElementData->next;
-    }
+    ae->ciLastCallIndex=ciElement;
+    ae->nLastCallOffset=nElementLineOffset;
   }
-  else if (nElementLine < 0)
-  {
-    while (lpElementData)
-    {
-      if (nElementLine++ == 0)
-        break;
-      lpElementData=lpElementData->prev;
-    }
-  }
-  return lpElementData;
+  return ciElement.lpLine;
 }
 
 int AE_GetWrapLine(AKELEDIT *ae, int nLine, AECHARINDEX *ciCharOut)
@@ -5631,7 +5672,7 @@ int AE_GetUnwrapLine(AKELEDIT *ae, int nLine)
 
 void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharIndex)
 {
-  AECHARINDEX ciElement={0};
+  AECHARINDEX ciElement;
   DWORD dwFirst=(DWORD)-1;
   DWORD dwSecond=(DWORD)-1;
   DWORD dwThird=(DWORD)-1;
@@ -5706,7 +5747,7 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharI
 int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
 {
   AECHARINDEX ciChar=*ciCharIndex;
-  AECHARINDEX ciElement={0};
+  AECHARINDEX ciElement;
   DWORD dwFirst=(DWORD)-1;
   DWORD dwSecond=(DWORD)-1;
   DWORD dwThird=(DWORD)-1;
