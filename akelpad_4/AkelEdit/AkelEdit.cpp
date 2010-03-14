@@ -2862,6 +2862,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
   }
   else if (uMsg == WM_SIZE)
   {
+    int nDrawWidth=ae->rcDraw.right - ae->rcDraw.left;
+
     ae->rcDraw.right+=LOWORD(lParam) - ae->rcEdit.right;
     ae->rcDraw.bottom+=HIWORD(lParam) - ae->rcEdit.bottom;
     ae->rcEdit.right=LOWORD(lParam);
@@ -2872,8 +2874,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
       if (ae->ptxt->dwWordWrap)
       {
-        AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
-        AE_StackUpdateClones(ae);
+        if (nDrawWidth != ae->rcDraw.right - ae->rcDraw.left)
+        {
+          AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
+          AE_StackUpdateClones(ae);
+        }
       }
       AE_UpdateScrollBars(ae, SB_BOTH);
       AE_UpdateEditWindow(ae->hWndEdit, TRUE);
