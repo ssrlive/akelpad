@@ -760,7 +760,7 @@ typedef struct _AEQUOTEITEMW {
   int nQuoteStartLen;        //Quote start string length.
   wchar_t *pQuoteEnd;        //Quote end string. If NULL, line end used as quote end.
   int nQuoteEndLen;          //Quote end string length.
-  wchar_t wchEscape;         //Escape character. If it precedes quote string then quote ignored.
+  wchar_t chEscape;          //Escape character. If it precedes quote string then quote ignored.
   wchar_t *pQuoteInclude;    //Quote include string.
   int nQuoteIncludeLen;      //Quote include string length.
   wchar_t *pQuoteExclude;    //Quote exclude string.
@@ -4694,6 +4694,7 @@ Example:
    di.dwFlags=AEHLF_MATCHCASE;
    di.crText=(DWORD)-1;
    di.crBk=(DWORD)-1;
+   di.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDDELIMITERA, (WPARAM)hTheme, (LPARAM)&di);
 
    wi.pWord="for";
@@ -4701,6 +4702,7 @@ Example:
    wi.dwFlags=AEHLF_MATCHCASE;
    wi.crText=RGB(0x00, 0xFF, 0x00);
    wi.crBk=(DWORD)-1;
+   wi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDWORDA, (WPARAM)hTheme, (LPARAM)&wi);
 
    qi.pQuoteStart="\"";
@@ -4708,9 +4710,14 @@ Example:
    qi.pQuoteEnd="\"";
    qi.nQuoteEndLen=lstrlenA(qi.pQuoteEnd);
    qi.chEscape='\\';
+   qi.pQuoteInclude=NULL;
+   qi.nQuoteIncludeLen=0
+   qi.pQuoteExclude=NULL;
+   qi.nQuoteExcludeLen=0;
    qi.dwFlags=AEHLF_MATCHCASE;
    qi.crText=RGB(0x00, 0x00, 0xFF);
    qi.crBk=(DWORD)-1;
+   qi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDQUOTEA, (WPARAM)hTheme, (LPARAM)&qi);
 
    mri.crMarkRange.cpMin=10;
@@ -4718,6 +4725,7 @@ Example:
    mri.dwFlags=0;
    mri.crText=RGB(0xFF, 0x00, 0x00);
    mri.crBk=(DWORD)-1;
+   mri.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
 
    mti.pMarkText="or";
@@ -4725,6 +4733,7 @@ Example:
    mti.dwFlags=AEHLF_MATCHCASE;
    mti.crText=(DWORD)-1;
    mti.crBk=RGB(0xFF, 0x00, 0x00);
+   mti.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDMARKTEXTA, (WPARAM)hTheme, (LPARAM)&mti);
 
    SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, TRUE);
@@ -4747,8 +4756,8 @@ Example:
  AEDELIMITEMW di;
  AEWORDITEMW wi;
  AEQUOTEITEMW qi;
- AEMARKTEXTITEMW mti;
  AEMARKRANGEITEM mri;
+ AEMARKTEXTITEMW mti;
 
  if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme"))
  {
@@ -4772,7 +4781,7 @@ Example:
    qi.nQuoteStartLen=lstrlenW(qi.pQuoteStart);
    qi.pQuoteEnd=L"\"";
    qi.nQuoteEndLen=lstrlenW(qi.pQuoteEnd);
-   qi.wchEscape=L'\\';
+   qi.chEscape=L'\\';
    qi.pQuoteInclude=NULL;
    qi.nQuoteIncludeLen=0
    qi.pQuoteExclude=NULL;
@@ -4783,14 +4792,6 @@ Example:
    qi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
 
-   mti.pMarkText=L"or";
-   mti.nMarkTextLen=lstrlenW(mti.pMarkText);
-   mti.dwFlags=AEHLF_MATCHCASE;
-   mti.crText=(DWORD)-1;
-   mti.crBk=RGB(0xFF, 0x00, 0x00);
-   mti.dwFontStyle=AEHLS_NONE;
-   SendMessage(hWndEdit, AEM_HLADDMARKTEXTW, (WPARAM)hTheme, (LPARAM)&mti);
-
    mri.crMarkRange.cpMin=10;
    mri.crMarkRange.cpMax=20;
    mri.dwFlags=0;
@@ -4798,6 +4799,14 @@ Example:
    mri.crBk=(DWORD)-1;
    mri.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
+
+   mti.pMarkText=L"or";
+   mti.nMarkTextLen=lstrlenW(mti.pMarkText);
+   mti.dwFlags=AEHLF_MATCHCASE;
+   mti.crText=(DWORD)-1;
+   mti.crBk=RGB(0xFF, 0x00, 0x00);
+   mti.dwFontStyle=AEHLS_NONE;
+   SendMessage(hWndEdit, AEM_HLADDMARKTEXTW, (WPARAM)hTheme, (LPARAM)&mti);
 
    SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, TRUE);
  }

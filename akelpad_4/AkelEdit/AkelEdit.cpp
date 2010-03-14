@@ -1792,7 +1792,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         }
         else lpQuoteDst->pQuoteEnd=NULL;
 
-        MultiByteToWideChar(CP_ACP, 0, &lpQuoteSrc->chEscape, 1, &lpQuoteDst->wchEscape, 1);
+        MultiByteToWideChar(CP_ACP, 0, &lpQuoteSrc->chEscape, 1, &lpQuoteDst->chEscape, 1);
 
         if (lpQuoteSrc->pQuoteInclude)
         {
@@ -1837,7 +1837,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         }
         else lpQuoteDst->pQuoteEnd=NULL;
 
-        lpQuoteDst->wchEscape=lpQuoteSrc->wchEscape;
+        lpQuoteDst->chEscape=lpQuoteSrc->chEscape;
 
         if (lpQuoteSrc->pQuoteInclude)
         {
@@ -8395,7 +8395,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
                 if (AE_IsMatch(ae, &ft, &ciCount))
                 {
-                  if (!AE_IsEscaped(&ciCount, lpQuoteElement->wchEscape))
+                  if (!AE_IsEscaped(&ciCount, lpQuoteElement->chEscape))
                   {
                     if (!(lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ISWORD) ||
                         ((AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMax, FALSE) || AE_IsLastCharInLine(&ft.crFound.ciMax)) &&
@@ -8472,7 +8472,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
               if (AE_IsMatch(ae, &ft, &ciCount))
               {
-                if (!AE_IsEscaped(&ciCount, qm->lpQuote->wchEscape))
+                if (!AE_IsEscaped(&ciCount, qm->lpQuote->chEscape))
                 {
                   if (!(qm->lpQuote->dwFlags & AEHLF_QUOTEEND_ISWORD) ||
                       ((AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMax, FALSE) || AE_IsLastCharInLine(&ft.crFound.ciMax)) &&
