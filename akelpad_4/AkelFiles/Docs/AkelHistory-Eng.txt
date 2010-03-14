@@ -7,6 +7,8 @@ Added: check main window visibility on startup.
 Fixed: possible crash after I/O error.
 Fixed: text folding.
 Fixed: vertical selection.
+Fixed: closing the plugin dockable window through the Esc key, could send a program exit
+       signal.
 
 
 AkelPad 4.4.1 (Feb 14, 2010)
