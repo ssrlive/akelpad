@@ -2,6 +2,7 @@
 AkelPad 4.4.2 (Mar 14, 2010)
 ----------------------------
 Added: color printing.
+Added: Polish language module (Krzysztof Janicki).
 Added: check main window visibility on startup.
 
 Fixed: possible crash after I/O error.
