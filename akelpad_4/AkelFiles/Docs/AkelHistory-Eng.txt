@@ -1,5 +1,5 @@
 
-AkelPad 4.4.2 ()
+AkelPad 4.4.2 (Mar 14, 2010)
 ----------------------------
 Added: color printing.
 Added: check main window visibility on startup.
