@@ -129,7 +129,7 @@ BEGIN
         MENUITEM "&Tylko do odczytu\tCtrl+E",          IDM_OPTIONS_READONLY
         MENUITEM "&Zachowaj spacje po lewej\tCtrl+L",  IDM_OPTIONS_KEEPSPACE
         MENUITEM "Œ&ledŸ zmiany pliku",                IDM_OPTIONS_WATCHFILE
-        MENUITEM "Zapisz &czas pliku",                 IDM_OPTIONS_SAVETIME
+        MENUITEM "Zachowaj oryginalny &czas pliku",    IDM_OPTIONS_SAVETIME
         MENUITEM "Nie &otwieraj pliku dwa razy",       IDM_OPTIONS_SINGLEOPEN_FILE
         MENUITEM "Nie u&ruchamiaj programu dwa razy",  IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
@@ -583,7 +583,7 @@ CAPTION "G³ówne"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Uruchom",IDC_STATIC,9,6,200,90
-    LTEXT           "Polecenie (%f – plik, %a – katalog AkelPad):",IDC_STATIC,21,
+    LTEXT           "Polecenie (%f – plik, %a – katalog AkelPada):",IDC_STATIC,21,
                     24,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
@@ -594,7 +594,7 @@ BEGIN
     LTEXT           "Rozpoznawanie strony kodowej:",IDC_STATIC,12,110,150,8
     COMBOBOX        IDC_OPTIONS_CODEPAGE_RECOGNITION,9,121,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Buffor:",IDC_STATIC,170,110,37,8
+    LTEXT           "Bufor:",IDC_STATIC,170,110,37,8
     EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,121,40,13,
                     ES_NUMBER
     LTEXT           "Domyœlna strona kodowa:",IDC_STATIC,12,150,150,8
@@ -655,7 +655,7 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,86,11,13
     PUSHBUTTON      "Wyczyœæ",IDC_OPTIONS_RECENTFILES_CLEAR,141,85,54,14
-    GROUPBOX        "Przeszukaj historiê",IDC_STATIC,9,113,200,33
+    GROUPBOX        "Historia wyszukiwania",IDC_STATIC,9,113,200,33
     LTEXT           "Liczba linii:",IDC_STATIC,19,128,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
@@ -708,7 +708,7 @@ BEGIN
     GROUPBOX        "Zawijanie",IDC_STATIC,121,46,88,76
     CONTROL         "Po s³owach",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,133,60,72,10
-    CONTROL         "Po symbolach",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
+    CONTROL         "Po znakach",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,133,73,72,10
     LTEXT           "Limit:",IDC_STATIC,129,91,37,8
     EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,129,102,21,13,ES_NUMBER
