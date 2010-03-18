@@ -9977,6 +9977,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   AETEXTOUT to={0};
   AECHARINDEX ciCount;
   AECHARINDEX ciTmp;
+  AEFOLD *lpFold=NULL;
   HBRUSH hBasicBk;
   HFONT hPrintFontOld;
   int nCharWidth=0;
@@ -10101,18 +10102,38 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
     //Next line
     if (ciCount.lpLine->nLineBreak == AELB_WRAP)
+    {
       AE_NextLine(&ciCount);
+    }
     else
-      break;
+    {
+      //Manual AEGI_NEXTVISIBLELINE implementation for faster AE_StackIsLineCollapsed call
+      AECHARINDEX ciCharTmp=ciCount;
+
+      while (AE_NextLine(&ciCharTmp))
+      {
+        if (ae->popt->dwOptions & AECO_NOPRINTCOLLAPSED)
+        {
+          if (!AE_StackIsLineCollapsed(&ph->aePrint, &lpFold, ciCharTmp.nLine))
+            break;
+        }
+        else break;
+      }
+
+      if (ciCharTmp.lpLine)
+      {
+        prn->crText.ciMin=ciCharTmp;
+        bContinuePrint=TRUE;
+      }
+      else
+      {
+        prn->crText.ciMin=ciCount;
+        bContinuePrint=FALSE;
+      }
+      goto PrintLine;
+    }
   }
-  if (ciCount.lpLine)
-  {
-    if (ae->popt->dwOptions & AECO_NOPRINTCOLLAPSED)
-      bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTVISIBLELINE, &ciCount, &prn->crText.ciMin, FALSE);
-    else
-      bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE);
-  }
-  else bContinuePrint=FALSE;
+  bContinuePrint=FALSE;
 
   //Print line
   PrintLine:
