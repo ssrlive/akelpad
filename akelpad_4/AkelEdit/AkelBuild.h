@@ -724,7 +724,7 @@ void AE_Paint(AKELEDIT *ae);
 void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
 void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, int nLastDrawLine);
 void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
-void AE_PaintCheckHighlightEndLine(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp);
+void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar);
 void AE_MButtonDraw(AKELEDIT *ae);
 void AE_MButtonErase(AKELEDIT *ae);
 void AE_ActiveColumnCreate(AKELEDIT *ae);

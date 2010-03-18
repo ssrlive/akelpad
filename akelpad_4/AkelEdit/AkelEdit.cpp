@@ -10118,7 +10118,6 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   PrintLine:
   nMaxDrawCharOffset=to.nDrawCharOffset + nLineLen;
   to.nDrawLineWidth=0;
-  to.ptFirstCharInLine.x=prn->rcPageIn.left;
   to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
   to.nStartDrawWidth=to.nDrawLineWidth;
   to.nMaxDrawCharsCount=0;
@@ -10194,19 +10193,20 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   to.nDrawCharOffset+=AE_IndexSubtract(&ph->aePrint, &prn->crText.ciMin, &to.ciDrawLine, AELB_R, FALSE, FALSE);
   AE_PaintTextOut(&ph->aePrint, &to, &hlp);
 
+  if (!(prn->dwFlags & AEPRN_TEST))
+  {
+    if (prn->dwFlags & AEPRN_COLOREDTEXT)
+    {
+      //Close all previous items
+      AE_PaintCheckHighlightCleanUp(&ph->aePrint, &to, &hlp, &prn->crText.ciMin);
+    }
+  }
+
   //Next line
   to.ptFirstCharInLine.y+=ph->aePrint.ptxt->nCharHeight;
   nMaxLineWidth=max(nLineWidth, nMaxLineWidth);
   ++nLineCount;
 
-  if (!(prn->dwFlags & AEPRN_TEST))
-  {
-    if (prn->dwFlags & AEPRN_COLOREDTEXT)
-    {
-      //Check highlight at line end
-      AE_PaintCheckHighlightEndLine(&ph->aePrint, &to, &hlp);
-    }
-  }
   if (bContinuePrint && !bFormFeed && to.ptFirstCharInLine.y + ph->aePrint.ptxt->nCharHeight <= prn->rcPageIn.bottom)
     goto CalculateLine;
 
@@ -10324,6 +10324,9 @@ void AE_Paint(AKELEDIT *ae)
         //Line must be visible
         if (!AE_StackIsLineCollapsed(ae, &lpFold, to.ciDrawLine.nLine))
         {
+          //Close all previous items
+          AE_PaintCheckHighlightCleanUp(ae, &to, &hlp, &to.ciDrawLine);
+
           //Get first paint char in line
           AE_GetCharInLine(ae, to.ciDrawLine.lpLine, nMinPaintWidth - ae->ptxt->nAveCharWidth, AECIL_ALLPOS, &to.ciDrawLine.nCharInLine, &to.nDrawLineWidth, FALSE);
           to.nDrawCharOffset+=min(to.ciDrawLine.nCharInLine, to.ciDrawLine.lpLine->nLineLen);
@@ -10534,9 +10537,6 @@ void AE_Paint(AKELEDIT *ae)
             rcSpace.bottom=ae->ptxt->nCharHeight;
             BitBlt(ps.hdc, rcSpace.left, rcSpace.top, rcSpace.right, rcSpace.bottom, to.hDC, rcSpace.left, rcSpace.top, SRCCOPY);
           }
-
-          //Check highlight at line end
-          AE_PaintCheckHighlightEndLine(ae, &to, &hlp);
 
           //Next line
           to.ptFirstCharInLine.y+=ae->ptxt->nCharHeight;
@@ -11150,19 +11150,13 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
   }
 }
 
-void AE_PaintCheckHighlightEndLine(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
+void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar)
 {
-  AECHARINDEX ciLastCharInLine;
-
-  ciLastCharInLine.nLine=to->ciDrawLine.nLine;
-  ciLastCharInLine.lpLine=to->ciDrawLine.lpLine;
-  ciLastCharInLine.nCharInLine=to->ciDrawLine.lpLine->nLineLen;
-
   if (ae->popt->lpActiveTheme)
   {
     if (hlp->wm.lpDelim1)
     {
-      if (AE_IndexCompare(&hlp->wm.crDelim1.ciMax, &ciLastCharInLine) <= 0)
+      if (AE_IndexCompare(&hlp->wm.crDelim1.ciMax, ciChar) <= 0)
       {
         hlp->dwPaintType&=~AEHPT_DELIM1;
         hlp->wm.lpDelim1=NULL;
@@ -11170,7 +11164,7 @@ void AE_PaintCheckHighlightEndLine(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
     }
     if (hlp->wm.lpWord)
     {
-      if (AE_IndexCompare(&hlp->wm.crWord.ciMax, &ciLastCharInLine) <= 0)
+      if (AE_IndexCompare(&hlp->wm.crWord.ciMax, ciChar) <= 0)
       {
         hlp->dwPaintType&=~AEHPT_WORD;
         hlp->wm.lpWord=NULL;
@@ -11178,7 +11172,7 @@ void AE_PaintCheckHighlightEndLine(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
     }
     if (hlp->wm.lpDelim2)
     {
-      if (AE_IndexCompare(&hlp->wm.crDelim2.ciMax, &ciLastCharInLine) <= 0)
+      if (AE_IndexCompare(&hlp->wm.crDelim2.ciMax, ciChar) <= 0)
       {
         hlp->dwPaintType&=~AEHPT_DELIM2;
         hlp->wm.lpDelim2=NULL;
@@ -11186,7 +11180,7 @@ void AE_PaintCheckHighlightEndLine(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
     }
     if (hlp->qm.lpQuote)
     {
-      if (AE_IndexCompare(&hlp->qm.crQuoteEnd.ciMax, &ciLastCharInLine) <= 0)
+      if (AE_IndexCompare(&hlp->qm.crQuoteEnd.ciMax, ciChar) <= 0)
       {
         hlp->dwPaintType&=~AEHPT_QUOTE;
         hlp->qm.lpQuote=NULL;
@@ -11202,7 +11196,7 @@ void AE_PaintCheckHighlightEndLine(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
     }
     if (hlp->mtm.lpMarkText)
     {
-      if (AE_IndexCompare(&hlp->mtm.crMarkText.ciMax, &ciLastCharInLine) <= 0)
+      if (AE_IndexCompare(&hlp->mtm.crMarkText.ciMax, ciChar) <= 0)
       {
         hlp->dwPaintType&=~AEHPT_MARKTEXT;
         hlp->mtm.lpMarkText=NULL;
@@ -11213,7 +11207,7 @@ void AE_PaintCheckHighlightEndLine(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
   {
     if (hlp->crLink.ciMin.lpLine && hlp->crLink.ciMax.lpLine)
     {
-      if (AE_IndexCompare(&hlp->crLink.ciMax, &ciLastCharInLine) <= 0)
+      if (AE_IndexCompare(&hlp->crLink.ciMax, ciChar) <= 0)
       {
         hlp->dwPaintType&=~AEHPT_LINK;
         hlp->crLink.ciMin.lpLine=NULL;
