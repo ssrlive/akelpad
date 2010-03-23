@@ -126,7 +126,7 @@ BEGIN
         MENUITEM "Plug-i&ns...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Execute\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Read only\tCtrl+E",          IDM_OPTIONS_READONLY
+        MENUITEM "&Read only",          IDM_OPTIONS_READONLY
         MENUITEM "&Keep left spaces\tCtrl+L",   IDM_OPTIONS_KEEPSPACE
         MENUITEM "Watch file &change",          IDM_OPTIONS_WATCHFILE
         MENUITEM "Save file &time",             IDM_OPTIONS_SAVETIME
@@ -281,7 +281,6 @@ BEGIN
     "D",            IDM_EDIT_INSERTDATE,    VIRTKEY, CONTROL, NOINVERT
     "D",            IDM_NONMENU_REOPENAS_OEM, VIRTKEY, ALT, NOINVERT
     "D",            IDM_NONMENU_SAVEAS_OEM, VIRTKEY, SHIFT, ALT, NOINVERT
-    "E",            IDM_OPTIONS_READONLY,   VIRTKEY, CONTROL, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
     "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT

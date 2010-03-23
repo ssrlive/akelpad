@@ -1,6 +1,8 @@
 
 AkelPad 4.4.3 ()
 ----------------------------
+Changed: released Ctrl+E hotkey, which used for "Read only" mode.
+
 Added: option for turn off mouse text dragging.
 
 Fixed: color printing.
