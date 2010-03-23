@@ -309,8 +309,7 @@ extern int nTabStopSize;
 extern BOOL bTabStopAsSpaces;
 extern int nUndoLimit;
 extern BOOL bDetailedUndo;
-extern BOOL bCaretOutEdge;
-extern BOOL bCaretVertLine;
+extern DWORD dwCaretOptions;
 extern int nCaretWidth;
 extern DWORD dwMouseOptions;
 extern DWORD dwLineGap;
@@ -416,8 +415,8 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETOUTEDGE)?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETVERTLINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
@@ -499,8 +498,8 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETOUTEDGE)?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETVERTLINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
@@ -3187,8 +3186,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "WrapType", PO_DWORD, &dwWrapType, sizeof(DWORD));
   ReadOptionA(hHandle, "WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
   ReadOptionA(hHandle, "Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
-  ReadOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
-  ReadOptionA(hHandle, "CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
+  ReadOptionA(hHandle, "CaretOptions", PO_DWORD, &dwCaretOptions, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
   ReadOptionA(hHandle, "MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD));
   ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
@@ -3298,8 +3296,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"WrapType", PO_DWORD, &dwWrapType, sizeof(DWORD));
   ReadOptionW(hHandle, L"WrapLimit", PO_DWORD, &dwWrapLimit, sizeof(DWORD));
   ReadOptionW(hHandle, L"Marker", PO_DWORD, &dwMarker, sizeof(DWORD));
-  ReadOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
-  ReadOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
+  ReadOptionW(hHandle, L"CaretOptions", PO_DWORD, &dwCaretOptions, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
   ReadOptionW(hHandle, L"MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD));
   ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
@@ -3593,9 +3590,7 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "Marker", PO_DWORD, &dwMarker, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionA(hHandle, "CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD)))
+  if (!SaveOptionA(hHandle, "CaretOptions", PO_DWORD, &dwCaretOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
     goto Error;
@@ -3803,9 +3798,7 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"Marker", PO_DWORD, &dwMarker, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD)))
+  if (!SaveOptionW(hHandle, L"CaretOptions", PO_DWORD, &dwCaretOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
     goto Error;
@@ -18256,8 +18249,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
-    if (dwMouseOptions & MO_LEFTMARGINSELECTION)
-      SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
     if (bTabStopAsSpaces)
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
     if (bDetailedUndo)
@@ -18266,10 +18257,12 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndWrapByWords, BM_SETCHECK, BST_CHECKED, 0);
     else if (dwWrapType & AEWW_SYMBOL)
       SendMessage(hWndWrapBySymbols, BM_SETCHECK, BST_CHECKED, 0);
-    if (bCaretOutEdge)
+    if (dwCaretOptions & CO_CARETOUTEDGE)
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
-    if (bCaretVertLine)
+    if (dwCaretOptions & CO_CARETVERTLINE)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwMouseOptions & MO_LEFTMARGINSELECTION)
+      SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
     if (dwMouseOptions & MO_RICHEDITMOUSE)
       SendMessage(hWndRichEditMouse, BM_SETCHECK, BST_CHECKED, 0);
     if (dwMouseOptions & MO_MOUSEDRAGGING)
@@ -18342,13 +18335,15 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         SetMarker(hWndEdit, dwMarker);
       }
 
-      //Allow caret moving out of the line edge
-      bCaretOutEdge=SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
+      //Caret options
+      dwCaretOptions=0;
+      if (SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwCaretOptions|=CO_CARETOUTEDGE;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETOUTEDGE)?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
 
-      //Draw caret vertical line
-      bCaretVertLine=SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
+      if (SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwCaretOptions|=CO_CARETVERTLINE;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETVERTLINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
 
       //Caret width
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, NULL, FALSE);
@@ -18475,8 +18470,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
-    if (dwMouseOptions & MO_LEFTMARGINSELECTION)
-      SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
     if (bTabStopAsSpaces)
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
     if (bDetailedUndo)
@@ -18485,10 +18478,12 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndWrapByWords, BM_SETCHECK, BST_CHECKED, 0);
     else if (dwWrapType & AEWW_SYMBOL)
       SendMessage(hWndWrapBySymbols, BM_SETCHECK, BST_CHECKED, 0);
-    if (bCaretOutEdge)
+    if (dwCaretOptions & CO_CARETOUTEDGE)
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
-    if (bCaretVertLine)
+    if (dwCaretOptions & CO_CARETVERTLINE)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwMouseOptions & MO_LEFTMARGINSELECTION)
+      SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
     if (dwMouseOptions & MO_RICHEDITMOUSE)
       SendMessage(hWndRichEditMouse, BM_SETCHECK, BST_CHECKED, 0);
     if (dwMouseOptions & MO_MOUSEDRAGGING)
@@ -18561,13 +18556,15 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         SetMarker(hWndEdit, dwMarker);
       }
 
-      //Allow caret moving out of the line edge
-      bCaretOutEdge=SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
+      //Caret options
+      dwCaretOptions=0;
+      if (SendMessage(hWndCaretOutEdge, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwCaretOptions|=CO_CARETOUTEDGE;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETOUTEDGE)?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
 
-      //Draw caret vertical line
-      bCaretVertLine=SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
+      if (SendMessage(hWndCaretVertLine, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwCaretOptions|=CO_CARETVERTLINE;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETVERTLINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
 
       //Caret width
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, NULL, FALSE);
