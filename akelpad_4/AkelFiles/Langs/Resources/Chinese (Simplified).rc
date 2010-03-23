@@ -125,7 +125,7 @@ BEGIN
         MENUITEM "插件(&N)...\tAlt+P",          IDM_OPTIONS_PLUGINS
         MENUITEM "执行(&E)\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "只读(&R)\tCtrl+E",            IDM_OPTIONS_READONLY
+        MENUITEM "只读(&R)",            IDM_OPTIONS_READONLY
         MENUITEM "保留左边空格(&K)\tCtrl+L",    IDM_OPTIONS_KEEPSPACE
         MENUITEM "监视文件更改(&C)",            IDM_OPTIONS_WATCHFILE
         MENUITEM "保存文件时间(&T)",            IDM_OPTIONS_SAVETIME
@@ -279,7 +279,6 @@ BEGIN
     "D",            IDM_EDIT_INSERTDATE,    VIRTKEY, CONTROL, NOINVERT
     "D",            IDM_NONMENU_REOPENAS_OEM, VIRTKEY, ALT, NOINVERT
     "D",            IDM_NONMENU_SAVEAS_OEM, VIRTKEY, SHIFT, ALT, NOINVERT
-    "E",            IDM_OPTIONS_READONLY,   VIRTKEY, CONTROL, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
     "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
