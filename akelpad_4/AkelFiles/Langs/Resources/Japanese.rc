@@ -737,6 +737,8 @@ BEGIN
                     165,11,13
     CONTROL         "RichEdit mouse selection",IDC_OPTIONS_RICHEDITMOUSE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
+    CONTROL         "Mouse dragging",IDC_OPTIONS_MOUSEDRAGGING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "行間隔",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
@@ -932,11 +934,11 @@ BEGIN
     STR_BACKGROUND          "背景"
     STR_SAMPLE              "サンプル"
     STR_BASIC               "基本色"
-    STR_SELECTION           "選択範囲"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SELECTION           "選択範囲"
     STR_ACTIVELINE          "アクティブな行"
     STR_ACTIVECOLUMN        "アクティブな列"
     STR_COLUMNMARKER        "列マーカー"

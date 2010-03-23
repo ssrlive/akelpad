@@ -739,6 +739,8 @@ BEGIN
                     165,11,13
     CONTROL         "RichEdit mouse selection",IDC_OPTIONS_RICHEDITMOUSE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
+    CONTROL         "Mouse dragging",IDC_OPTIONS_MOUSEDRAGGING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "Divisão de linha",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
@@ -938,11 +940,11 @@ BEGIN
     STR_BACKGROUND          "Fundo"
     STR_SAMPLE              "Amostra"
     STR_BASIC               "Cor básica"
-    STR_SELECTION           "Seleção"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SELECTION           "Seleção"
     STR_ACTIVELINE          "Linha atual"
     STR_ACTIVECOLUMN        "Coluna ativa"
     STR_COLUMNMARKER        "Marcador"

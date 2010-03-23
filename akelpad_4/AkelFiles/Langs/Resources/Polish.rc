@@ -37,67 +37,69 @@ IDM_MENU_MAIN MENU DISCARDABLE
 BEGIN
     POPUP "&Plik"
     BEGIN
-        MENUITEM "&Nowy\tCtrl+N",                   IDM_FILE_NEW
-        MENUITEM "Now&e okno\tCtrl+Shift+N",        IDM_FILE_CREATENEW
-        MENUITEM "&Otwórz...\tCtrl+O",              IDM_FILE_OPEN
-        MENUITEM "O&twórz ponownie\tF5",            IDM_FILE_REOPEN
-        MENUITEM "Zapi&sz\tCtrl+S",                 IDM_FILE_SAVE
-        MENUITEM "Z&apisz jako...\tCtrl+Shift+S",   IDM_FILE_SAVEAS
-        MENUITEM "Zapisz &wszystkie\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
+        MENUITEM "&Nowy\tCtrl+N",               IDM_FILE_NEW
+        MENUITEM "Now&e okno\tCtrl+Shift+N",    IDM_FILE_CREATENEW
+        MENUITEM "&Otwórz...\tCtrl+O",          IDM_FILE_OPEN
+        MENUITEM "O&twórz ponownie\tF5",        IDM_FILE_REOPEN
+        MENUITEM "Zapi&sz\tCtrl+S",             IDM_FILE_SAVE
+        MENUITEM "Z&apisz jako...\tCtrl+Shift+S", IDM_FILE_SAVEAS
+        MENUITEM "Zapisz &wszystkie\tCtrl+Alt+F2", IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
-        MENUITEM "&Ustawienia strony...",           IDM_FILE_PAGESETUP
-        MENUITEM "Pod&gl¹d wydruku...",             IDM_FILE_PRINTPREVIEW
-        MENUITEM "&Drukuj...\tCtrl+P",              IDM_FILE_PRINT
+        MENUITEM "&Ustawienia strony...",       IDM_FILE_PAGESETUP
+        MENUITEM "Pod&gl¹d wydruku...",         IDM_FILE_PRINTPREVIEW
+        MENUITEM "&Drukuj...\tCtrl+P",          IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Ostatnio otwarte &pliki"
         BEGIN
             MENUITEM "_",                           IDM_RECENT_FILES
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Zakoñcz\tEsc",                   IDM_FILE_EXIT
+        MENUITEM "&Zakoñcz\tEsc",               IDM_FILE_EXIT
     END
     POPUP "&Edycja"
     BEGIN
-        MENUITEM "&Cofnij\tCtrl+Z",                     IDM_EDIT_UNDO
-        MENUITEM "&Powtórz\tCtrl+Shift+Z",              IDM_EDIT_REDO
+        MENUITEM "&Cofnij\tCtrl+Z",             IDM_EDIT_UNDO
+        MENUITEM "&Powtórz\tCtrl+Shift+Z",      IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "&Wytnij\tCtrl+X",                     IDM_EDIT_CUT
-        MENUITEM "&Kopiuj\tCtrl+C",                     IDM_EDIT_COPY
-        MENUITEM "Wkl&ej\tCtrl+V",                      IDM_EDIT_PASTE
-        MENUITEM "&Usuñ\tDel",                          IDM_EDIT_CLEAR
-        MENUITEM "Zaznacz w&szystko\tCtrl+A",           IDM_EDIT_SELECTALL
+        MENUITEM "&Wytnij\tCtrl+X",             IDM_EDIT_CUT
+        MENUITEM "&Kopiuj\tCtrl+C",             IDM_EDIT_COPY
+        MENUITEM "Wkl&ej\tCtrl+V",              IDM_EDIT_PASTE
+        MENUITEM "&Usuñ\tDel",                  IDM_EDIT_CLEAR
+        MENUITEM "Zaznacz w&szystko\tCtrl+A",   IDM_EDIT_SELECTALL
         MENUITEM SEPARATOR
-        MENUITEM "&ZnajdŸ...\tCtrl+F",                  IDM_EDIT_FIND
-        MENUITEM "Z&najdŸ nastêpny poni¿ej\tF3",        IDM_EDIT_FINDNEXTDOWN
-        MENUITEM "Zn&ajdŸ nastêpny powy¿ej\tShift+F3",  IDM_EDIT_FINDNEXTUP
-        MENUITEM "Za&mieñ...\tCtrl+R",                  IDM_EDIT_REPLACE
-        MENUITEM "PrzejdŸ d&o wiersza...\tCtrl+G",      IDM_EDIT_GOTOLINE
+        MENUITEM "&ZnajdŸ...\tCtrl+F",          IDM_EDIT_FIND
+        MENUITEM "Z&najdŸ nastêpny poni¿ej\tF3", IDM_EDIT_FINDNEXTDOWN
+        MENUITEM "Zn&ajdŸ nastêpny powy¿ej\tShift+F3", IDM_EDIT_FINDNEXTUP
+        MENUITEM "Za&mieñ...\tCtrl+R",          IDM_EDIT_REPLACE
+        MENUITEM "PrzejdŸ d&o wiersza...\tCtrl+G", IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
-        MENUITEM "Ws&taw znak\tCtrl+I",                 IDM_EDIT_INSERTCHAR
-        MENUITEM "Wstaw &datê\tCtrl+D",                 IDM_EDIT_INSERTDATE
+        MENUITEM "Ws&taw znak\tCtrl+I",         IDM_EDIT_INSERTCHAR
+        MENUITEM "Wstaw &datê\tCtrl+D",         IDM_EDIT_INSERTDATE
         POPUP "Zaznaczen&ie"
         BEGIN
-            MENUITEM "Dodaj wciêcie ta&bem\tTab",       IDM_EDIT_INSERT_TAB_MENU
-            MENUITEM "Usuñ wciêcie &tabem\tShift+Tab",  IDM_EDIT_DELETE_TAB_MENU
-            MENUITEM "Dodaj wciêcie spa&cj¹\tSpacja",   IDM_EDIT_INSERT_SPACE_MENU
+            MENUITEM "Dodaj wciêcie ta&bem\tTab",   IDM_EDIT_INSERT_TAB_MENU
+            MENUITEM "Usuñ wciêcie &tabem\tShift+Tab", 
+                                                    IDM_EDIT_DELETE_TAB_MENU
+            MENUITEM "Dodaj wciêcie spa&cj¹\tSpacja", 
+                                                    IDM_EDIT_INSERT_SPACE_MENU
 
             MENUITEM "Usuñ wciêcie sp&acj¹\tShift+Spacja", 
-                                                        IDM_EDIT_DELETE_SPACE_MENU
+                                                    IDM_EDIT_DELETE_SPACE_MENU
 
             MENUITEM "&Usuñ pierwszy znak\tShift+Backspace", 
-                                                        IDM_EDIT_DELETE_FIRST_CHAR_MENU
+                                                    IDM_EDIT_DELETE_FIRST_CHAR_MENU
 
             MENUITEM "U&suñ bia³e znaki na koñcu\tAlt+Backspace", 
-                                                        IDM_EDIT_DELETE_TRAILING_WHITESPACES
+                                                    IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
             MENUITEM SEPARATOR
-            MENUITEM "&WIELKIE LITERY\tCtrl+6",         IDM_EDIT_UPPERCASE
-            MENUITEM "&ma³e litery\tCtrl+7",            IDM_EDIT_LOWERCASE
-            MENUITEM "Jak w &zdaniu.\tCtrl+8",          IDM_EDIT_SENTENCECASE
-            MENUITEM "Jak &Nazwy W³asne\tCtrl+9",       IDM_EDIT_TITLECASE
-            MENUITEM "zM&IEÑ wIELKOŒÆ lITER\tCtrl+0",   IDM_EDIT_INVERTCASE
+            MENUITEM "&WIELKIE LITERY\tCtrl+6",     IDM_EDIT_UPPERCASE
+            MENUITEM "&ma³e litery\tCtrl+7",        IDM_EDIT_LOWERCASE
+            MENUITEM "Jak w &zdaniu.\tCtrl+8",      IDM_EDIT_SENTENCECASE
+            MENUITEM "Jak &Nazwy W³asne\tCtrl+9",   IDM_EDIT_TITLECASE
+            MENUITEM "zM&IEÑ wIELKOŒÆ lITER\tCtrl+0", IDM_EDIT_INVERTCASE
             MENUITEM SEPARATOR
-            MENUITEM "Zmieñ stronê &kodow¹...\tAlt+R",  IDM_EDIT_RECODE
+            MENUITEM "Zmieñ stronê &kodow¹...\tAlt+R", IDM_EDIT_RECODE
         END
         POPUP "&Format nowego wiersza"
         BEGIN
@@ -108,69 +110,70 @@ BEGIN
     END
     POPUP "W&idok"
     BEGIN
-        MENUITEM "&Czcionka...",                  IDM_VIEW_FONT
-        MENUITEM "&Kolory...",                    IDM_VIEW_COLORS
+        MENUITEM "&Czcionka...",                IDM_VIEW_FONT
+        MENUITEM "&Kolory...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
-        MENUITEM "Za&wijanie wierszy\tCtrl+U",    IDM_VIEW_WORDWRAP
-        MENUITEM "&Podziel okno",                 IDM_VIEW_SPLIT_WINDOW_ALL
-        MENUITEM "Zawsze n&a wierzchu\tCtrl+T",   IDM_VIEW_ONTOP
-        MENUITEM "Pasek &stanu",                  IDM_VIEW_SHOW_STATUSBAR
+        MENUITEM "Za&wijanie wierszy\tCtrl+U",  IDM_VIEW_WORDWRAP
+        MENUITEM "&Podziel okno",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "Zawsze n&a wierzchu\tCtrl+T", IDM_VIEW_ONTOP
+        MENUITEM "Pasek &stanu",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
         POPUP "&Jêzyk"
         BEGIN
-            MENUITEM "_",                         IDM_LANGUAGE
+            MENUITEM "_",                           IDM_LANGUAGE
         END
     END
     POPUP "&Opcje"
     BEGIN
-        MENUITEM "&Wtyczki (Pluginy)...\tAlt+P",       IDM_OPTIONS_PLUGINS
-        MENUITEM "&Uruchom\tCtrl+F5",                  IDM_OPTIONS_EXEC
+        MENUITEM "&Wtyczki (Pluginy)...\tAlt+P", IDM_OPTIONS_PLUGINS
+        MENUITEM "&Uruchom\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Tylko do odczytu\tCtrl+E",          IDM_OPTIONS_READONLY
-        MENUITEM "&Zachowaj spacje po lewej\tCtrl+L",  IDM_OPTIONS_KEEPSPACE
-        MENUITEM "Œ&ledŸ zmiany pliku",                IDM_OPTIONS_WATCHFILE
-        MENUITEM "Zachowaj oryginalny &czas pliku",    IDM_OPTIONS_SAVETIME
-        MENUITEM "Nie &otwieraj pliku dwa razy",       IDM_OPTIONS_SINGLEOPEN_FILE
-        MENUITEM "Nie u&ruchamiaj programu dwa razy",  IDM_OPTIONS_SINGLEOPEN_PROGRAM
+        MENUITEM "&Tylko do odczytu\tCtrl+E",   IDM_OPTIONS_READONLY
+        MENUITEM "&Zachowaj spacje po lewej\tCtrl+L", IDM_OPTIONS_KEEPSPACE
+        MENUITEM "Œ&ledŸ zmiany pliku",         IDM_OPTIONS_WATCHFILE
+        MENUITEM "Zachowaj oryginalny &czas pliku", IDM_OPTIONS_SAVETIME
+        MENUITEM "Nie &otwieraj pliku dwa razy", IDM_OPTIONS_SINGLEOPEN_FILE
+        MENUITEM "Nie u&ruchamiaj programu dwa razy", 
+                                                IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
         MENUITEM SEPARATOR
         POPUP "Tr&yb okien"
         BEGIN
-            MENUITEM "&Pojedyncze okno (SDI)",         IDM_OPTIONS_SDI
-            MENUITEM "&Wiele okien (MDI)",             IDM_OPTIONS_MDI
+            MENUITEM "&Pojedyncze okno (SDI)",      IDM_OPTIONS_SDI
+            MENUITEM "&Wiele okien (MDI)",          IDM_OPTIONS_MDI
         END
         MENUITEM SEPARATOR
-        MENUITEM "U&stawienia...",                     IDM_OPTIONS
+        MENUITEM "U&stawienia...",              IDM_OPTIONS
     END
     POPUP "Ok&no"
     BEGIN
         POPUP "&Karty"
         BEGIN
-            MENUITEM "Na &górze",                IDM_WINDOW_TABVIEW_TOP
-            MENUITEM "Na &dole",                 IDM_WINDOW_TABVIEW_BOTTOM
+            MENUITEM "Na &górze",                   IDM_WINDOW_TABVIEW_TOP
+            MENUITEM "Na &dole",                    IDM_WINDOW_TABVIEW_BOTTOM
 
-            MENUITEM "&Ukryj",                   IDM_WINDOW_TABVIEW_NONE
+            MENUITEM "&Ukryj",                      IDM_WINDOW_TABVIEW_NONE
             MENUITEM SEPARATOR
-            MENUITEM "&Standardowe",             IDM_WINDOW_TABTYPE_STANDARD
+            MENUITEM "&Standardowe",                IDM_WINDOW_TABTYPE_STANDARD
 
-            MENUITEM "&Przyciski",               IDM_WINDOW_TABTYPE_BUTTONS
+            MENUITEM "&Przyciski",                  IDM_WINDOW_TABTYPE_BUTTONS
 
-            MENUITEM "P³&askie przyciski",       IDM_WINDOW_TABTYPE_FLATBUTTONS
+            MENUITEM "P³&askie przyciski",          IDM_WINDOW_TABTYPE_FLATBUTTONS
 
             MENUITEM SEPARATOR
-            MENUITEM "&Nastêpna-poprzednia",     IDM_WINDOW_TABSWITCH_NEXTPREV
+            MENUITEM "&Nastêpna-poprzednia",        IDM_WINDOW_TABSWITCH_NEXTPREV
 
-            MENUITEM "P&rawa-lewa",              IDM_WINDOW_TABSWITCH_RIGHTLEFT
+            MENUITEM "P&rawa-lewa",                 IDM_WINDOW_TABSWITCH_RIGHTLEFT
 
         END
         MENUITEM SEPARATOR
-        MENUITEM "&S¹siaduj¹co poziomo",         IDM_WINDOW_TILEHORIZONTAL
-        MENUITEM "S¹s&iaduj¹co pionowo",         IDM_WINDOW_TILEVERTICAL
-        MENUITEM "K&askadowo",                   IDM_WINDOW_CASCADE
+        MENUITEM "&S¹siaduj¹co poziomo",        IDM_WINDOW_TILEHORIZONTAL
+        MENUITEM "S¹s&iaduj¹co pionowo",        IDM_WINDOW_TILEVERTICAL
+        MENUITEM "K&askadowo",                  IDM_WINDOW_CASCADE
     END
     POPUP "Pomo&c"
     BEGIN
-        MENUITEM "&O programie",                 IDM_ABOUT
+        MENUITEM "&O programie",                IDM_ABOUT
     END
 END
 
@@ -178,49 +181,49 @@ IDM_MENU_POPUP MENU DISCARDABLE
 BEGIN
     POPUP "OkienkoEdycji"
     BEGIN
-        MENUITEM "&Cofnij",                      IDM_EDIT_UNDO
-        MENUITEM "&Powtórz",                     IDM_EDIT_REDO
+        MENUITEM "&Cofnij",                     IDM_EDIT_UNDO
+        MENUITEM "&Powtórz",                    IDM_EDIT_REDO
         MENUITEM SEPARATOR
-        MENUITEM "&Wytnij",                      IDM_EDIT_CUT
-        MENUITEM "&Kopiuj",                      IDM_EDIT_COPY
-        MENUITEM "Wkl&ej",                       IDM_EDIT_PASTE
-        MENUITEM "&Usuñ",                        IDM_EDIT_CLEAR
+        MENUITEM "&Wytnij",                     IDM_EDIT_CUT
+        MENUITEM "&Kopiuj",                     IDM_EDIT_COPY
+        MENUITEM "Wkl&ej",                      IDM_EDIT_PASTE
+        MENUITEM "&Usuñ",                       IDM_EDIT_CLEAR
         MENUITEM SEPARATOR
-        MENUITEM "Zaznacz w&szystko",            IDM_EDIT_SELECTALL
+        MENUITEM "Zaznacz w&szystko",           IDM_EDIT_SELECTALL
     END
     POPUP "OkienkoWidoku"
     BEGIN
-        MENUITEM "&Kopiuj",                      IDM_EDIT_COPY
+        MENUITEM "&Kopiuj",                     IDM_EDIT_COPY
         MENUITEM SEPARATOR
-        MENUITEM "Zaznacz w&szystko",                  IDM_EDIT_SELECTALL
+        MENUITEM "Zaznacz w&szystko",           IDM_EDIT_SELECTALL
     END
     POPUP "OkienkoStronyKodowej"
     BEGIN
         POPUP "Otwórz jako"
         BEGIN
-            MENUITEM "_",                        IDM_POPUP_OPENAS
+            MENUITEM "_",                           IDM_POPUP_OPENAS
         END
         MENUITEM SEPARATOR
         POPUP "Zapisz jako"
         BEGIN
-            MENUITEM "_",                        IDM_POPUP_SAVEAS
+            MENUITEM "_",                           IDM_POPUP_SAVEAS
         END
         MENUITEM SEPARATOR
-        MENUITEM "Wykryj ponownie",              IDM_NONMENU_REDETECT
+        MENUITEM "Wykryj ponownie",             IDM_NONMENU_REDETECT
     END
     POPUP "OkienkoNag³ówka"
     BEGIN
         MENUITEM "Numer strony[pierwsza strona]\t%n[1]", 
-                                                 IDM_POPUP_HEADLINE_PAGE_NUMBER
+                                                IDM_POPUP_HEADLINE_PAGE_NUMBER
 
-        MENUITEM "Nazwa pliku\t%f",              IDM_POPUP_HEADLINE_FILE_NAME
-        MENUITEM "Symbol %\t%%",                 IDM_POPUP_HEADLINE_SYMBOL
+        MENUITEM "Nazwa pliku\t%f",             IDM_POPUP_HEADLINE_FILE_NAME
+        MENUITEM "Symbol %\t%%",                IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
-        MENUITEM "Wyrównanie do œrodka\t%c",     IDM_POPUP_HEADLINE_ALIGN_CENTER
+        MENUITEM "Wyrównanie do œrodka\t%c",    IDM_POPUP_HEADLINE_ALIGN_CENTER
 
-        MENUITEM "Wyrównanie do lewej\t%l",      IDM_POPUP_HEADLINE_ALIGN_LEFT
+        MENUITEM "Wyrównanie do lewej\t%l",     IDM_POPUP_HEADLINE_ALIGN_LEFT
 
-        MENUITEM "Wyrównanie do prawej\t%r",     IDM_POPUP_HEADLINE_ALIGN_RIGHT
+        MENUITEM "Wyrównanie do prawej\t%r",    IDM_POPUP_HEADLINE_ALIGN_RIGHT
 
     END
 END
@@ -447,8 +450,8 @@ BEGIN
     GROUPBOX        "Kierunek",IDC_STATIC,121,27,66,58
     CONTROL         "W dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,60,10
-    CONTROL         "W górê",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,126,
-                    48,60,10
+    CONTROL         "W górê",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+                    126,48,60,10
     CONTROL         "Od pocz¹tku",IDC_SEARCH_BEGINNING,"Button",
                     BS_AUTORADIOBUTTON,126,59,60,10
     CONTROL         "W zaznaczeniu",IDC_SEARCH_INSEL,"Button",
@@ -456,8 +459,7 @@ BEGIN
     CONTROL         "Wszystkie pliki",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,87,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,66,19
-    DEFPUSHBUTTON   "&Nastêpny",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
-                    BS_CENTER
+    DEFPUSHBUTTON   "&Nastêpny",IDC_SEARCH_FIND_BUTTON,196,6,54,14,BS_CENTER
     PUSHBUTTON      "Anuluj",IDCANCEL,196,23,54,14,BS_CENTER
     LTEXT           "Co:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
     LTEXT           "(\\[...] - wartoœæ hex,\n \\\\ - backslash,\n \\n - nowy wiersz,\n \\t - tabulacja)",
@@ -484,8 +486,8 @@ BEGIN
     GROUPBOX        "Kierunek",IDC_STATIC,121,41,66,58
     CONTROL         "W dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,60,10
-    CONTROL         "W górê",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,126,
-                    62,60,10
+    CONTROL         "W górê",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+                    126,62,60,10
     CONTROL         "Od pocz¹tku",IDC_SEARCH_BEGINNING,"Button",
                     BS_AUTORADIOBUTTON,126,73,60,10
     CONTROL         "W zaznaczeniu",IDC_SEARCH_INSEL,"Button",
@@ -493,8 +495,7 @@ BEGIN
     CONTROL         "Wszystkie pliki",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,101,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,66,19
-    DEFPUSHBUTTON   "&Nastêpny",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
-                    BS_CENTER
+    DEFPUSHBUTTON   "&Nastêpny",IDC_SEARCH_FIND_BUTTON,196,6,54,14,BS_CENTER
     PUSHBUTTON      "Z&amieñ",IDC_SEARCH_REPLACE_BUTTON,196,23,54,14,
                     BS_CENTER
     PUSHBUTTON      "Za&mieñ wszystko",IDC_SEARCH_ALL_BUTTON,196,39,54,14,
@@ -514,10 +515,10 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Numer:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
     EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
-    CONTROL         "Wiersz",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,18,
-                    40,52,10
-    CONTROL         "Znak (Offset)",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
-                    72,40,52,10
+    CONTROL         "Wiersz",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,
+                    18,40,52,10
+    CONTROL         "Znak (Offset)",IDC_GOTOLINE_OFFSET,"Button",
+                    BS_AUTORADIOBUTTON,72,40,52,10
     PUSHBUTTON      "OK",IDOK,18,60,50,14,BS_CENTER
     PUSHBUTTON      "Anuluj",IDCANCEL,72,60,50,14,BS_CENTER
 END
@@ -568,8 +569,8 @@ BEGIN
     LTEXT           "Zaznacz pole, ¿eby automatycznie wczytywaæ wtyczkê (plugin)",
                     IDC_PLUGINS_LIST_INFO,11,192,264,8
     LTEXT           "Klawisz skrótu:",IDC_PLUGINS_HOTKEY_LABEL,284,13,46,8
-    CONTROL         "Klawisz skrótu1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER | 
-                    WS_TABSTOP,282,24,50,14
+    CONTROL         "Klawisz skrótu1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",
+                    WS_BORDER | WS_TABSTOP,282,24,50,14
     PUSHBUTTON      "Przydziel",IDC_PLUGINS_ASSIGN,282,42,50,14
     DEFPUSHBUTTON   "Wywo³aj",IDC_PLUGINS_CALL,9,209,50,14
     PUSHBUTTON      "OK",IDOK,228,209,50,14,BS_CENTER
@@ -583,12 +584,12 @@ CAPTION "G³ówne"
 FONT 8, "MS Shell Dlg"
 BEGIN
     GROUPBOX        "Uruchom",IDC_STATIC,9,6,200,90
-    LTEXT           "Polecenie (%f – plik, %a – katalog AkelPada):",IDC_STATIC,21,
-                    24,160,8,NOT WS_GROUP
+    LTEXT           "Polecenie (%f – plik, %a – katalog AkelPada):",
+                    IDC_STATIC,21,24,160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
-    LTEXT           "Katalog roboczy (%d – katalog pliku):",IDC_STATIC,21,
-                    59,160,8,NOT WS_GROUP
+    LTEXT           "Katalog roboczy (%d – katalog pliku):",IDC_STATIC,21,59,
+                    160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
     LTEXT           "Rozpoznawanie strony kodowej:",IDC_STATIC,12,110,150,8
@@ -647,8 +648,8 @@ BEGIN
     GROUPBOX        "Ostatnio otwarte pliki",IDC_STATIC,9,42,200,64
     CONTROL         "Zapamiêtaj pozycjê kursora",IDC_OPTIONS_SAVEPOSITIONS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,55,185,10
-    CONTROL         "Zapamiêtaj stronê kodow¹",IDC_OPTIONS_SAVECODEPAGES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,66,185,10
+    CONTROL         "Zapamiêtaj stronê kodow¹",IDC_OPTIONS_SAVECODEPAGES,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,66,185,10
     LTEXT           "Liczba plików:",IDC_STATIC,19,88,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_RECENTFILES_AMOUNT,95,86,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_RECENTFILES_AMOUNT_SPIN,
@@ -721,10 +722,11 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
                     102,11,13
     GROUPBOX        "Kursor",IDC_STATIC,9,128,200,56
-    CONTROL         "Pozwól przesuwaæ kursor poza koniec wiersza",IDC_OPTIONS_CARETOUTEDGE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,142,185,10
-    CONTROL         "Wyró¿nij bie¿¹c¹ kolumnê",IDC_OPTIONS_CARETVERTLINE,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,153,185,10
+    CONTROL         "Pozwól przesuwaæ kursor poza koniec wiersza",
+                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,142,185,10
+    CONTROL         "Wyró¿nij bie¿¹c¹ kolumnê",IDC_OPTIONS_CARETVERTLINE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,153,185,10
     RTEXT           "Szerokoœæ:",IDC_STATIC,116,168,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,165,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
@@ -732,6 +734,8 @@ BEGIN
                     165,11,13
     CONTROL         "RichEdit zaznaczanie mysz¹",IDC_OPTIONS_RICHEDITMOUSE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
+    CONTROL         "Mouse dragging",IDC_OPTIONS_MOUSEDRAGGING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "Odstêp miêdzy wierszami",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
@@ -748,8 +752,8 @@ BEGIN
     GROUPBOX        "Hiper³¹cza",IDC_STATIC,9,6,200,120
     CONTROL         "Poka¿",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,19,178,10
-    CONTROL         "Pojedyncze klikniêcie",IDC_OPTIONS_URL_SINGLECLICK,"Button",
-                    BS_AUTORADIOBUTTON,23,33,172,10
+    CONTROL         "Pojedyncze klikniêcie",IDC_OPTIONS_URL_SINGLECLICK,
+                    "Button",BS_AUTORADIOBUTTON,23,33,172,10
     CONTROL         "Podwójne klikniêcie",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
                     BS_AUTORADIOBUTTON,23,44,172,10
     CONTROL         "Prefiksy:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
@@ -764,13 +768,14 @@ BEGIN
     CONTROL         "Separatory s³ów:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,135,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,13,
-                    BS_CENTER
-    CONTROL         "Separatory zawijania:",IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
+    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,
+                    13,BS_CENTER
+    CONTROL         "Separatory zawijania:",
+                    IDC_OPTIONS_WRAP_DELIMITERS_ENABLE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,166,150,8
     EDITTEXT        IDC_OPTIONS_WRAP_DELIMITERS,9,177,148,13,ES_AUTOHSCROLL
-    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,13,
-                    BS_CENTER
+    PUSHBUTTON      "Resetuj",IDC_OPTIONS_WRAP_DELIMITERS_RESET,159,177,50,
+                    13,BS_CENTER
     CONTROL         "Zamieñ wszystko – zamyka okno dialogowe",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,200,200,10
@@ -863,12 +868,14 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" nie obs³uguje automatycznego wczytywania."
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED 
+                            """%s"" nie obs³uguje automatycznego wczytywania."
     MSG_FUNCTION_NOT_FOUND  "Nie mo¿na znaleŸæ funkcji ""%s::%s"" in ""%s""."
     MSG_UPDATE_PROGRAM      "Zaktualizuj AkelPad.\n\nMinimalna wymagana wersja AkelPada: %d.%d.%d.%d\nAktualna wersja AkelPada: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x nie jest wspierany."
     MSG_UPDATE_PLUGIN       "Zaktualizuj %s.\n\nArchitektura AkelPada: %d.%d.%d.%d\nArchitektura pluginu %s: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" nie jest rozpoznawany jako plugin AkelPada."
+    MSG_PLUGIN_IS_NOT_SUPPORTED 
+                            """%s"" nie jest rozpoznawany jako plugin AkelPada."
     MSG_UPDATE_LANGMODULE   "Zaktualizuj %s\n\nAktualna wersja: %d.%d.%d.%d\nWymagana wersja: %d.%d.%d.%d"
     MSG_HOTKEY_EXISTS       "Klawisz skrótu jest ju¿ przypisany do ""%s""."
     MSG_CANNOT_OPEN_FILE    "Nie mo¿na otworzyæ pliku ""%s""."
@@ -910,6 +917,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_SELECTION           "Zaznaczenie"
     STR_ACTIVELINE          "Bie¿¹cy wiersz"
     STR_ACTIVECOLUMN        "Bie¿¹ca kolumna"
     STR_COLUMNMARKER        "Znacznik kolumny"
@@ -937,7 +945,6 @@ BEGIN
     STR_BACKGROUND          "T³o"
     STR_SAMPLE              "Przyk³ad"
     STR_BASIC               "Podstawowy kolor"
-    STR_SELECTION           "Zaznaczenie"
 END
 
 STRINGTABLE DISCARDABLE 
