@@ -89,6 +89,10 @@
 #define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
 #define SPT_LINEWRAP    0x00000002  //Wrap line numbers. By default: Non-wrap line numbers.
 
+//Caret options
+#define CO_CARETOUTEDGE  0x00000001  //Allow caret moving out of the line edge.
+#define CO_CARETVERTLINE 0x00000002  //Draw caret vertical line.
+
 //Mouse options
 #define MO_LEFTMARGINSELECTION 0x00000001  //Enables left margin line selection with mouse.
 #define MO_RICHEDITMOUSE       0x00000002  //After WM_LBUTTONUP message capture operations doesn't stopped.
@@ -323,9 +327,9 @@ typedef struct _WNDFRAMEA {
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
   DWORD dwMappedPrintWidth;                           //Mapped prinet page width (4.x only)
-  BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)
-  BOOL bCaretVertLine;                                //Draw caret vertical line (4.x only)
+  DWORD dwCaretOptions;                               //See CO_* defines (4.x only)
   int nCaretWidth;                                    //Caret width (4.x only)
+  DWORD dwMouseOptions;                               //See MO_* defines (4.x only)
   DWORD dwLineGap;                                    //Line gap (4.x only)
   BOOL bShowURL;                                      //Show URL
   BOOL bUrlPrefixesEnable;                            //URL prefixes enable (4.x only)
@@ -362,9 +366,9 @@ typedef struct _WNDFRAMEW {
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
   DWORD dwMappedPrintWidth;                           //Mapped prinet page width (4.x only)
-  BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)
-  BOOL bCaretVertLine;                                //Draw caret vertical line (4.x only)
+  DWORD dwCaretOptions;                               //See CO_* defines (4.x only)
   int nCaretWidth;                                    //Caret width (4.x only)
+  DWORD dwMouseOptions;                               //See MO_* defines (4.x only)
   DWORD dwLineGap;                                    //Line gap (4.x only)
   BOOL bShowURL;                                      //Show URL
   BOOL bUrlPrefixesEnable;                            //URL prefixes enable (4.x only)
