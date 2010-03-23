@@ -1,4 +1,11 @@
 
+AkelPad 4.4.3 ()
+----------------------------
+Added: option for turn off mouse text dragging.
+
+Fixed: color printing.
+
+
 AkelPad 4.4.2 (Mar 14, 2010)
 ----------------------------
 Added: color printing.

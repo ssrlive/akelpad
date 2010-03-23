@@ -305,7 +305,6 @@ extern BOOL bKeepSpace;
 extern int nSelSubtract;
 extern int nLoopCase;
 extern DWORD dwEditMargins;
-extern BOOL bMarginSelection;
 extern int nTabStopSize;
 extern BOOL bTabStopAsSpaces;
 extern int nUndoLimit;
@@ -313,7 +312,7 @@ extern BOOL bDetailedUndo;
 extern BOOL bCaretOutEdge;
 extern BOOL bCaretVertLine;
 extern int nCaretWidth;
-extern BOOL bRichEditMouse;
+extern DWORD dwMouseOptions;
 extern DWORD dwLineGap;
 extern BOOL bShowURL;
 extern int nClickURL;
@@ -415,11 +414,12 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bRichEditMouse?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetMargins(hWndEditNew, dwEditMargins, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
@@ -497,11 +497,12 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretOutEdge?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, bCaretVertLine?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bRichEditMouse?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetMargins(hWndEditNew, dwEditMargins, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
@@ -3189,7 +3190,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
   ReadOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
-  ReadOptionA(hHandle, "RichEditMouse", PO_DWORD, &bRichEditMouse, sizeof(DWORD));
+  ReadOptionA(hHandle, "MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD));
   ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
@@ -3208,7 +3209,6 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD));
   ReadOptionA(hHandle, "TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD));
   ReadOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
-  ReadOptionA(hHandle, "MarginSelection", PO_DWORD, &bMarginSelection, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT));
   ReadOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT));
@@ -3301,7 +3301,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"CaretOutEdge", PO_DWORD, &bCaretOutEdge, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretVertLine", PO_DWORD, &bCaretVertLine, sizeof(DWORD));
   ReadOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
-  ReadOptionW(hHandle, L"RichEditMouse", PO_DWORD, &bRichEditMouse, sizeof(DWORD));
+  ReadOptionW(hHandle, L"MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD));
   ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
@@ -3320,7 +3320,6 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"SearchOptions", PO_DWORD, &ftflags, sizeof(DWORD));
   ReadOptionW(hHandle, L"TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD));
   ReadOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
-  ReadOptionW(hHandle, L"MarginSelection", PO_DWORD, &bMarginSelection, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT));
   ReadOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT));
@@ -3600,7 +3599,7 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "RichEditMouse", PO_DWORD, &bRichEditMouse, sizeof(DWORD)))
+  if (!SaveOptionA(hHandle, "MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
     goto Error;
@@ -3637,8 +3636,6 @@ BOOL SaveOptionsA()
   if (!SaveOptionA(hHandle, "TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionA(hHandle, "MarginSelection", PO_DWORD, &bMarginSelection, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD)))
     goto Error;
@@ -3812,7 +3809,7 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionW(hHandle, L"RichEditMouse", PO_DWORD, &bRichEditMouse, sizeof(DWORD)))
+  if (!SaveOptionW(hHandle, L"MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
     goto Error;
@@ -3849,8 +3846,6 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"TabStopSize", PO_DWORD, &nTabStopSize, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionW(hHandle, L"MarginSelection", PO_DWORD, &bMarginSelection, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD)))
     goto Error;
@@ -18203,6 +18198,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
   static HWND hWndRichEditMouse;
+  static HWND hWndMouseDragging;
   static HWND hWndLineGap;
   static HWND hWndLineGapSpin;
 
@@ -18230,6 +18226,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
     hWndRichEditMouse=GetDlgItem(hDlg, IDC_OPTIONS_RICHEDITMOUSE);
+    hWndMouseDragging=GetDlgItem(hDlg, IDC_OPTIONS_MOUSEDRAGGING);
     hWndLineGap=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP);
     hWndLineGapSpin=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP_SPIN);
 
@@ -18259,7 +18256,7 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
-    if (bMarginSelection)
+    if (dwMouseOptions & MO_LEFTMARGINSELECTION)
       SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
     if (bTabStopAsSpaces)
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
@@ -18273,8 +18270,10 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
     if (bCaretVertLine)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
-    if (bRichEditMouse)
+    if (dwMouseOptions & MO_RICHEDITMOUSE)
       SendMessage(hWndRichEditMouse, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwMouseOptions & MO_MOUSEDRAGGING)
+      SendMessage(hWndMouseDragging, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -18292,8 +18291,6 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         dwEditMargins=MAKELONG(a, b);
         InvalidateRect(hWndEdit, NULL, TRUE);
       }
-      bMarginSelection=SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
 
       //Tab stops
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);
@@ -18369,9 +18366,19 @@ BOOL CALLBACK OptionsEditorDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         }
       }
 
-      //RichEdit mouse selection
-      bRichEditMouse=SendMessage(hWndRichEditMouse, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bRichEditMouse?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
+      //Mouse options
+      dwMouseOptions=0;
+      if (SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwMouseOptions|=MO_LEFTMARGINSELECTION;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, (dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
+
+      if (SendMessage(hWndRichEditMouse, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwMouseOptions|=MO_RICHEDITMOUSE;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
+
+      if (SendMessage(hWndMouseDragging, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwMouseOptions|=MO_MOUSEDRAGGING;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
 
       //Line gap
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
@@ -18410,6 +18417,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndCaretWidth;
   static HWND hWndCaretWidthSpin;
   static HWND hWndRichEditMouse;
+  static HWND hWndMouseDragging;
   static HWND hWndLineGap;
   static HWND hWndLineGapSpin;
 
@@ -18437,6 +18445,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndCaretWidth=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH);
     hWndCaretWidthSpin=GetDlgItem(hDlg, IDC_OPTIONS_CARETWIDTH_SPIN);
     hWndRichEditMouse=GetDlgItem(hDlg, IDC_OPTIONS_RICHEDITMOUSE);
+    hWndMouseDragging=GetDlgItem(hDlg, IDC_OPTIONS_MOUSEDRAGGING);
     hWndLineGap=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP);
     hWndLineGapSpin=GetDlgItem(hDlg, IDC_OPTIONS_LINEGAP_SPIN);
 
@@ -18466,7 +18475,7 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     SetDlgItemInt(hDlg, IDC_OPTIONS_CARETWIDTH, nCaretWidth, FALSE);
     SetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, dwLineGap, FALSE);
 
-    if (bMarginSelection)
+    if (dwMouseOptions & MO_LEFTMARGINSELECTION)
       SendMessage(hWndMarginSelection, BM_SETCHECK, BST_CHECKED, 0);
     if (bTabStopAsSpaces)
       SendMessage(hWndTabSizeSpaces, BM_SETCHECK, BST_CHECKED, 0);
@@ -18480,8 +18489,10 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndCaretOutEdge, BM_SETCHECK, BST_CHECKED, 0);
     if (bCaretVertLine)
       SendMessage(hWndCaretVertLine, BM_SETCHECK, BST_CHECKED, 0);
-    if (bRichEditMouse)
+    if (dwMouseOptions & MO_RICHEDITMOUSE)
       SendMessage(hWndRichEditMouse, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwMouseOptions & MO_MOUSEDRAGGING)
+      SendMessage(hWndMouseDragging, BM_SETCHECK, BST_CHECKED, 0);
   }
   else if (uMsg == WM_NOTIFY)
   {
@@ -18499,8 +18510,6 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         dwEditMargins=MAKELONG(a, b);
         InvalidateRect(hWndEdit, NULL, TRUE);
       }
-      bMarginSelection=SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bMarginSelection?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
 
       //Tab stops
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_TABSIZE, NULL, FALSE);
@@ -18576,9 +18585,19 @@ BOOL CALLBACK OptionsEditorDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         }
       }
 
-      //RichEdit mouse selection
-      bRichEditMouse=SendMessage(hWndRichEditMouse, BM_GETCHECK, 0, 0);
-      SendMessage(hWndEdit, AEM_SETOPTIONS, bRichEditMouse?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
+      //Mouse options
+      dwMouseOptions=0;
+      if (SendMessage(hWndMarginSelection, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwMouseOptions|=MO_LEFTMARGINSELECTION;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, (dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
+
+      if (SendMessage(hWndRichEditMouse, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwMouseOptions|=MO_RICHEDITMOUSE;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
+
+      if (SendMessage(hWndMouseDragging, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwMouseOptions|=MO_MOUSEDRAGGING;
+      SendMessage(hWndEdit, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
 
       //Line gap
       a=GetDlgItemInt(hDlg, IDC_OPTIONS_LINEGAP, NULL, FALSE);
