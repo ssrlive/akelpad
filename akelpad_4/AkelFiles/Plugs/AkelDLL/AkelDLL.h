@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 2, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 2, 0, 1)
 
 
 //// Defines
@@ -88,6 +88,11 @@
 //Status bar position type
 #define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
 #define SPT_LINEWRAP    0x00000002  //Wrap line numbers. By default: Non-wrap line numbers.
+
+//Mouse options
+#define MO_LEFTMARGINSELECTION 0x00000001  //Enables left margin line selection with mouse.
+#define MO_RICHEDITMOUSE       0x00000002  //After WM_LBUTTONUP message capture operations doesn't stopped.
+#define MO_MOUSEDRAGGING       0x00000004  //Enables OLE text dragging.
 
 //INI value types
 #define INI_DWORD           1
