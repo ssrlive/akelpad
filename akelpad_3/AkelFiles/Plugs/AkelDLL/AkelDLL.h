@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 2, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 2, 0, 1)
 
 
 //// Defines
@@ -88,6 +88,33 @@
 //Status bar position type
 #define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
 #define SPT_LINEWRAP    0x00000002  //Wrap line numbers. By default: Non-wrap line numbers.
+
+//Caret options
+#define CO_CARETOUTEDGE  0x00000001  //Allow caret moving out of the line edge.
+#define CO_CARETVERTLINE 0x00000002  //Draw caret vertical line.
+
+//Mouse options
+#define MO_LEFTMARGINSELECTION 0x00000001  //Enables left margin line selection with mouse.
+#define MO_RICHEDITMOUSE       0x00000002  //After WM_LBUTTONUP message capture operations doesn't stopped.
+#define MO_MOUSEDRAGGING       0x00000004  //Enables OLE text dragging.
+
+//Tab options MDI
+#define TAB_VIEW_NONE         0x00000001
+#define TAB_VIEW_TOP          0x00000002
+#define TAB_VIEW_BOTTOM       0x00000004
+#define TAB_TYPE_STANDARD     0x00000100
+#define TAB_TYPE_BUTTONS      0x00000200
+#define TAB_TYPE_FLATBUTTONS  0x00000400
+#define TAB_SWITCH_NEXTPREV   0x00010000
+#define TAB_SWITCH_RIGHTLEFT  0x00020000
+
+//Status bar
+#define STATUS_POSITION       0
+#define STATUS_MODIFY         1
+#define STATUS_INSERT         2
+#define STATUS_NEWLINE        3
+#define STATUS_CODEPAGE       4
+#define STATUS_PARTS          5
 
 //INI value types
 #define INI_DWORD           1
@@ -318,9 +345,9 @@ typedef struct _WNDFRAMEA {
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
   DWORD dwMappedPrintWidth;                           //Mapped prinet page width (4.x only)
-  BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)
-  BOOL bCaretVertLine;                                //Draw caret vertical line (4.x only)
+  DWORD dwCaretOptions;                               //See CO_* defines (4.x only)
   int nCaretWidth;                                    //Caret width (4.x only)
+  DWORD dwMouseOptions;                               //See MO_* defines (4.x only)
   DWORD dwLineGap;                                    //Line gap (4.x only)
   BOOL bShowURL;                                      //Show URL
   BOOL bUrlPrefixesEnable;                            //URL prefixes enable (4.x only)
@@ -357,9 +384,9 @@ typedef struct _WNDFRAMEW {
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
   DWORD dwMappedPrintWidth;                           //Mapped prinet page width (4.x only)
-  BOOL bCaretOutEdge;                                 //Allow caret moving out of the line edge (4.x only)
-  BOOL bCaretVertLine;                                //Draw caret vertical line (4.x only)
+  DWORD dwCaretOptions;                               //See CO_* defines (4.x only)
   int nCaretWidth;                                    //Caret width (4.x only)
+  DWORD dwMouseOptions;                               //See MO_* defines (4.x only)
   DWORD dwLineGap;                                    //Line gap (4.x only)
   BOOL bShowURL;                                      //Show URL
   BOOL bUrlPrefixesEnable;                            //URL prefixes enable (4.x only)
@@ -913,9 +940,6 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_MDICLOSE            4406  //Close current MDI window
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_NONMENU_REOPEN_MSG          4407  //Internal command
-                                              //Return Value: zero
-                                              //
 #define IDM_NONMENU_REDETECT            4408  //Redetect code page of the current file
                                               //Return Value: zero
                                               //
@@ -985,7 +1009,13 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_PASTEAFTER          4430  //Paste text after caret
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
-#define IDM_NONMENU_CANTOPEN_MSG        4431  //Internal command
+#define IDM_INTERNAL_REOPEN_MSG         4451  //Internal command
+                                              //Return Value: zero
+                                              //
+#define IDM_INTERNAL_CANTOPEN_MSG       4452  //Internal command
+                                              //Return Value: zero
+                                              //
+#define IDM_INTERNAL_ERRORIO_MSG        4453  //Internal command
                                               //Return Value: zero
                                               //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files

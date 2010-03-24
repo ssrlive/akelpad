@@ -16,8 +16,8 @@
 #define APP_MDI_CLASSW              L"AkelPad MDI Class"
 #define APP_MUTEXA                   "AkelPad Mutex"
 #define APP_MUTEXW                  L"AkelPad Mutex"
-#define APP_ABOUT_VERSIONA           "AkelPad 3.7.4"
-#define APP_ABOUT_VERSIONW          L"AkelPad 3.7.4"
+#define APP_ABOUT_VERSIONA           "AkelPad 3.7.5"
+#define APP_ABOUT_VERSIONW          L"AkelPad 3.7.5"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -422,8 +422,8 @@ void DoSettingsPluginsA(HWND hWnd);
 void DoSettingsPluginsW(HWND hWnd);
 void DoSettingsOptionsA();
 void DoSettingsOptionsW();
-void DoWindowTabView(int nView, BOOL bFirst);
-void DoWindowTabType(int nType, BOOL bFirst);
+void DoWindowTabView(DWORD dwNewView, BOOL bFirst);
+void DoWindowTabType(DWORD dwNewType, BOOL bFirst);
 void DoWindowSelectWindowA();
 void DoWindowSelectWindowW();
 void DoHelpAboutA();
@@ -772,6 +772,7 @@ int GetOppEdge(int nEdge);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL ScreenToClientRect(HWND hWnd, RECT *rc);
 BOOL ClientToScreenRect(HWND hWnd, RECT *rc);
+BOOL EnsureWindowInMonitor(RECT *rcWindow);
 int RectW(const RECT *rc);
 int RectH(const RECT *rc);
 void UpdateTitleA(HWND hWndEditParent, char *szFile);

@@ -1,4 +1,12 @@
 
+AkelPad 3.7.5 ()
+----------------------------
+Changed: released Ctrl+E hotkey, which used for "Read only" mode.
+Changed: integrated settings "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" in "TabOptionsMDI" (MDI).
+
+Added: check main window visibility on startup.
+
+
 AkelPad 3.7.4 (Feb 10, 2010)
 ----------------------------
 Changed: plugin architecture. Update plugins.

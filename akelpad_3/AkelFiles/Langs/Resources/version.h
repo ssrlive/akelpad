@@ -1,4 +1,4 @@
-#define AKELPAD_ID 3,7,4,0
+#define AKELPAD_ID 3,7,5,0
 
 #if !defined(EXE_VERSION_INCLUDED) && !defined(DLL_VERSION_INCLUDED)
   #if defined(EXE_VERSION)
