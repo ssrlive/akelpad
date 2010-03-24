@@ -22668,7 +22668,7 @@ BOOL EnsureWindowInMonitor(RECT *rcWindow)
   HMONITOR hMonitor=NULL;
   RECT rcNewWindow;
 
-  if (rcWindow->left == CW_USEDEFAULT)
+  if ((DWORD)rcWindow->left == CW_USEDEFAULT)
     return TRUE;
 
   //Size of the work area on the primary display monitor
