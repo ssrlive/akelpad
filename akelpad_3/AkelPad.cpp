@@ -1,4 +1,5 @@
 #define WIN32_LEAN_AND_MEAN
+#define WINVER 0x0500
 #define _WIN32_IE 0x0400
 #include <windows.h>
 #include <commdlg.h>
@@ -335,9 +336,7 @@ BOOL bMdiNoWindows=FALSE;
 BOOL bDocumentReopen=FALSE;
 BOOL bMdiClientRedraw=TRUE;
 HWND hTab=NULL;
-int nTabView=TAB_VIEW_TOP;
-int nTabType=TAB_TYPE_STANDARD;
-int nTabSwitch=TAB_SWITCH_NEXTPREV;
+DWORD dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_NEXTPREV;
 HIMAGELIST hImageList;
 BOOL bTabPressed=FALSE;
 BOOL bFileExitError;
@@ -350,6 +349,8 @@ WNDFRAMEA *lpWndFrameA;
 WNDFRAMEW *lpWndFrameW;
 
 //GetProcAddress
+HMONITOR (WINAPI *MonitorFromPointPtr)(POINT, DWORD);
+BOOL (WINAPI *GetMonitorInfoAPtr)(HMONITOR, LPMONITORINFO);
 BOOL (WINAPI *GetCPInfoExAPtr)(UINT, DWORD, LPCPINFOEXA);
 BOOL (WINAPI *GetCPInfoExWPtr)(UINT, DWORD, LPCPINFOEXW);
 DWORD (WINAPI *GetLongPathNameAPtr)(char *, char *, DWORD);
@@ -373,10 +374,11 @@ extern "C" void _WinMain()
 {
   MSG msg;
   BOOL bMsgStatus;
-  HMODULE hKernel32=0;
-  HMODULE hShell32=0;
-  HMODULE hRichLib=0;
-  HWND hWndFriend=0;
+  HMODULE hKernel32=NULL;
+  HMODULE hUser32=NULL;
+  HMODULE hShell32=NULL;
+  HMODULE hRichLib=NULL;
+  HWND hWndFriend=NULL;
   BOOL bExit=FALSE;
   int nMajor;
   int nMinor;
@@ -528,6 +530,10 @@ extern "C" void _WinMain()
     hKernel32=GetModuleHandleA("kernel32.dll");
     GetCPInfoExAPtr=(BOOL (WINAPI *)(UINT, DWORD, LPCPINFOEXA))GetProcAddress(hKernel32, "GetCPInfoExA");
     GetLongPathNameAPtr=(DWORD (WINAPI *)(char *, char *, DWORD))GetProcAddress(hKernel32, "GetLongPathNameA");
+
+    hUser32=GetModuleHandleA("user32.dll");
+    MonitorFromPointPtr=(HMONITOR (WINAPI *)(POINT, DWORD))GetProcAddress(hUser32, "MonitorFromPoint");
+    GetMonitorInfoAPtr=(BOOL (WINAPI *)(HMONITOR, LPMONITORINFO))GetProcAddress(hUser32, "GetMonitorInfoA");
 
     hShell32=GetModuleHandleA("shell32.dll");
     ExtractIconExAPtr=(UINT (WINAPI *)(char *, int, HICON *, HICON *, UINT))GetProcAddress(hShell32, "ExtractIconExA");
@@ -781,6 +787,8 @@ extern "C" void _WinMain()
       if (!RegisterClassA(&wndclassA)) goto Quit;
     }
 
+    EnsureWindowInMonitor(&rcMainWindowRestored);
+
     hMainWnd=CreateWindowA(APP_MAIN_CLASSA,             // window class name
                           APP_MAIN_TITLEA,              // window caption
                           WS_OVERLAPPEDWINDOW,          // window style
@@ -963,6 +971,10 @@ extern "C" void _WinMain()
     hKernel32=GetModuleHandleW(L"kernel32.dll");
     GetCPInfoExWPtr=(BOOL (WINAPI *)(UINT, DWORD, LPCPINFOEXW))GetProcAddress(hKernel32, "GetCPInfoExW");
     GetLongPathNameWPtr=(DWORD (WINAPI *)(wchar_t *, wchar_t *, DWORD))GetProcAddress(hKernel32, "GetLongPathNameW");
+
+    hUser32=GetModuleHandleW(L"user32.dll");
+    MonitorFromPointPtr=(HMONITOR (WINAPI *)(POINT, DWORD))GetProcAddress(hUser32, "MonitorFromPoint");
+    GetMonitorInfoAPtr=(BOOL (WINAPI *)(HMONITOR, LPMONITORINFO))GetProcAddress(hUser32, "GetMonitorInfoA");
 
     hShell32=GetModuleHandleW(L"shell32.dll");
     ExtractIconExWPtr=(UINT (WINAPI *)(wchar_t *, int, HICON *, HICON *, UINT))GetProcAddress(hShell32, "ExtractIconExW");
@@ -1215,6 +1227,8 @@ extern "C" void _WinMain()
       wndclassW.lpszClassName=APP_MDI_CLASSW;
       if (!RegisterClassW(&wndclassW)) goto Quit;
     }
+
+    EnsureWindowInMonitor(&rcMainWindowRestored);
 
     hMainWnd=CreateWindowW(APP_MAIN_CLASSW,              // window class name
                            APP_MAIN_TITLEW,              // window caption
@@ -1752,10 +1766,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (bMDI)
       {
         DoSettingsSingleOpenProgram(bSingleOpenProgram);
-        DoWindowTabView(nTabView, TRUE);
-        DoWindowTabType(nTabType, TRUE);
+        DoWindowTabView(dwTabOptionsMDI, TRUE);
+        DoWindowTabType(dwTabOptionsMDI, TRUE);
         if (bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, MF_GRAYED);
-        CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, (nTabSwitch == TAB_SWITCH_NEXTPREV)?IDM_WINDOW_TABSWITCH_NEXTPREV:IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
+        CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, (dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)?IDM_WINDOW_TABSWITCH_NEXTPREV:IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
       }
 
       //PreShow
@@ -3205,18 +3219,20 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TABSWITCH_NEXTPREV)
       {
-        if (nTabSwitch == TAB_SWITCH_RIGHTLEFT)
+        if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
         {
           CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_NEXTPREV, MF_BYCOMMAND);
-          nTabSwitch=TAB_SWITCH_NEXTPREV;
+          dwTabOptionsMDI&=~TAB_SWITCH_RIGHTLEFT;
+          dwTabOptionsMDI|=TAB_SWITCH_NEXTPREV;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TABSWITCH_RIGHTLEFT)
       {
-        if (nTabSwitch == TAB_SWITCH_NEXTPREV)
+        if (dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)
         {
           CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
-          nTabSwitch=TAB_SWITCH_RIGHTLEFT;
+          dwTabOptionsMDI&=~TAB_SWITCH_NEXTPREV;
+          dwTabOptionsMDI|=TAB_SWITCH_RIGHTLEFT;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TILEHORIZONTAL)
@@ -3609,10 +3625,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (bMDI)
       {
         DoSettingsSingleOpenProgram(bSingleOpenProgram);
-        DoWindowTabView(nTabView, TRUE);
-        DoWindowTabType(nTabType, TRUE);
+        DoWindowTabView(dwTabOptionsMDI, TRUE);
+        DoWindowTabType(dwTabOptionsMDI, TRUE);
         if (bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, MF_GRAYED);
-        CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, (nTabSwitch == TAB_SWITCH_NEXTPREV)?IDM_WINDOW_TABSWITCH_NEXTPREV:IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
+        CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, (dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)?IDM_WINDOW_TABSWITCH_NEXTPREV:IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
       }
 
       //PreShow
@@ -5062,18 +5078,20 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TABSWITCH_NEXTPREV)
       {
-        if (nTabSwitch == TAB_SWITCH_RIGHTLEFT)
+        if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
         {
           CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_NEXTPREV, MF_BYCOMMAND);
-          nTabSwitch=TAB_SWITCH_NEXTPREV;
+          dwTabOptionsMDI&=~TAB_SWITCH_RIGHTLEFT;
+          dwTabOptionsMDI|=TAB_SWITCH_NEXTPREV;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TABSWITCH_RIGHTLEFT)
       {
-        if (nTabSwitch == TAB_SWITCH_NEXTPREV)
+        if (dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)
         {
           CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
-          nTabSwitch=TAB_SWITCH_RIGHTLEFT;
+          dwTabOptionsMDI&=~TAB_SWITCH_NEXTPREV;
+          dwTabOptionsMDI|=TAB_SWITCH_RIGHTLEFT;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TILEHORIZONTAL)
@@ -6376,7 +6394,7 @@ LRESULT CALLBACK NewMdiClientProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     int nItem;
     int nItemCount;
 
-    if (nTabSwitch == TAB_SWITCH_RIGHTLEFT)
+    if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
     {
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
       nItemCount=SendMessage(hTab, TCM_GETITEMCOUNT, 0, 0) - 1;
@@ -6483,7 +6501,7 @@ LRESULT CALLBACK NewMdiClientProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     int nItem;
     int nItemCount;
 
-    if (nTabSwitch == TAB_SWITCH_RIGHTLEFT)
+    if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
     {
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
       nItemCount=SendMessage(hTab, TCM_GETITEMCOUNT, 0, 0) - 1;

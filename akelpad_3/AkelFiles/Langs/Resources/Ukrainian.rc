@@ -135,7 +135,7 @@ BEGIN
         MENUITEM "П&лагіни...\tAlt+P",          IDM_OPTIONS_PLUGINS
         MENUITEM "&Виконати\tCtrl+F5",          IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Тільки для читання\tCtrl+E", IDM_OPTIONS_READONLY
+        MENUITEM "&Тільки для читання", IDM_OPTIONS_READONLY
         MENUITEM "Зб&ерегти відступи зліва\tCtrl+L", IDM_OPTIONS_KEEPSPACE
         MENUITEM "Слідкувати за змінам&и файлу", IDM_OPTIONS_WATCHFILE
         MENUITEM "Зберегти ча&с файлу",         IDM_OPTIONS_SAVETIME
@@ -291,7 +291,6 @@ BEGIN
     "D",            IDM_EDIT_INSERTDATE,    VIRTKEY, CONTROL, NOINVERT
     "D",            IDM_NONMENU_REOPENAS_OEM, VIRTKEY, ALT, NOINVERT
     "D",            IDM_NONMENU_SAVEAS_OEM, VIRTKEY, SHIFT, ALT, NOINVERT
-    "E",            IDM_OPTIONS_READONLY,   VIRTKEY, CONTROL, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
     "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
