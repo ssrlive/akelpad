@@ -98,6 +98,24 @@
 #define MO_RICHEDITMOUSE       0x00000002  //After WM_LBUTTONUP message capture operations doesn't stopped.
 #define MO_MOUSEDRAGGING       0x00000004  //Enables OLE text dragging.
 
+//Tab options MDI
+#define TAB_VIEW_NONE         0x00000001
+#define TAB_VIEW_TOP          0x00000002
+#define TAB_VIEW_BOTTOM       0x00000004
+#define TAB_TYPE_STANDARD     0x00000100
+#define TAB_TYPE_BUTTONS      0x00000200
+#define TAB_TYPE_FLATBUTTONS  0x00000400
+#define TAB_SWITCH_NEXTPREV   0x00010000
+#define TAB_SWITCH_RIGHTLEFT  0x00020000
+
+//Status bar
+#define STATUS_POSITION       0
+#define STATUS_MODIFY         1
+#define STATUS_INSERT         2
+#define STATUS_NEWLINE        3
+#define STATUS_CODEPAGE       4
+#define STATUS_PARTS          5
+
 //INI value types
 #define INI_DWORD           1
 #define INI_BINARY          2
