@@ -2,10 +2,12 @@
 AkelPad 4.4.3 ()
 ----------------------------
 Changed: released Ctrl+E hotkey, which used for "Read only" mode.
+Changed: integrated settings "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" in "TabOptionsMDI" (MDI).
 
 Added: option for turn off mouse text dragging.
 
 Fixed: color printing.
+Fixed: check main window visibility on startup.
 
 
 AkelPad 4.4.2 (Mar 14, 2010)

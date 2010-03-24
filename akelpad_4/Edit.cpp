@@ -358,9 +358,7 @@ extern BOOL bMdiMaximize;
 extern BOOL bMdiNoWindows;
 extern BOOL bMdiClientRedraw;
 extern HWND hTab;
-extern int nTabView;
-extern int nTabType;
-extern int nTabSwitch;
+extern DWORD dwTabOptionsMDI;
 extern HSTACK hIconsStack;
 extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
@@ -2242,68 +2240,102 @@ void DoSettingsOptionsW()
   }
 }
 
-void DoWindowTabView(int nView, BOOL bFirst)
+void DoWindowTabView(DWORD dwNewView, BOOL bFirst)
 {
+  DWORD dwOldView=dwTabOptionsMDI;
   DWORD dwStyle;
   int nCommand=0;
 
-  if (nView == TAB_VIEW_TOP)
+  if (dwNewView & TAB_VIEW_TOP)
+  {
     nCommand=IDM_WINDOW_TABVIEW_TOP;
-  else if (nView == TAB_VIEW_BOTTOM)
+    dwNewView=TAB_VIEW_TOP;
+  }
+  else if (dwNewView & TAB_VIEW_BOTTOM)
+  {
     nCommand=IDM_WINDOW_TABVIEW_BOTTOM;
-  else if (nView == TAB_VIEW_NONE)
+    dwNewView=TAB_VIEW_BOTTOM;
+  }
+  else if (dwNewView & TAB_VIEW_NONE)
+  {
     nCommand=IDM_WINDOW_TABVIEW_NONE;
+    dwNewView=TAB_VIEW_NONE;
+  }
+  if (dwOldView & TAB_VIEW_TOP)
+    dwOldView=TAB_VIEW_TOP;
+  else if (dwOldView & TAB_VIEW_BOTTOM)
+    dwOldView=TAB_VIEW_BOTTOM;
+  else if (dwOldView & TAB_VIEW_NONE)
+    dwOldView=TAB_VIEW_NONE;
   CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABVIEW_TOP, IDM_WINDOW_TABVIEW_NONE, nCommand, MF_BYCOMMAND);
+  EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_STANDARD, !(dwNewView & TAB_VIEW_NONE)?MF_ENABLED:MF_GRAYED);
+  EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_BUTTONS, !(dwNewView & TAB_VIEW_NONE)?MF_ENABLED:MF_GRAYED);
+  if (!bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, !(dwNewView & TAB_VIEW_NONE)?MF_ENABLED:MF_GRAYED);
 
-  EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_STANDARD, nView?MF_ENABLED:MF_GRAYED);
-  EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_BUTTONS, nView?MF_ENABLED:MF_GRAYED);
-  if (!bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, nView?MF_ENABLED:MF_GRAYED);
-  if (bFirst != TRUE && nView == nTabView) return;
-  nTabView=nView;
+  if (bFirst != TRUE && dwNewView == dwOldView) return;
+  dwTabOptionsMDI=dwTabOptionsMDI & ~TAB_VIEW_TOP & ~TAB_VIEW_BOTTOM & ~TAB_VIEW_NONE;
+  dwTabOptionsMDI|=dwNewView;
 
-  if (nTabView == TAB_VIEW_TOP)
+  if (dwTabOptionsMDI & TAB_VIEW_TOP)
   {
     dwStyle=GetWindowLongA(hTab, GWL_STYLE);
     SetWindowLongA(hTab, GWL_STYLE, dwStyle & ~TCS_BOTTOM);
   }
-  else if (nTabView == TAB_VIEW_BOTTOM)
+  else if (dwTabOptionsMDI & TAB_VIEW_BOTTOM)
   {
     dwStyle=GetWindowLongA(hTab, GWL_STYLE);
     SetWindowLongA(hTab, GWL_STYLE, dwStyle|TCS_BOTTOM);
   }
-  ShowWindow(hTab, nTabView?SW_SHOW:SW_HIDE);
+  ShowWindow(hTab, !(dwTabOptionsMDI & TAB_VIEW_NONE)?SW_SHOW:SW_HIDE);
   UpdateSize();
 }
 
-void DoWindowTabType(int nType, BOOL bFirst)
+void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
 {
+  DWORD dwOldType=dwTabOptionsMDI;
   DWORD dwStyle;
   int nCommand=0;
 
-  if (nType == TAB_TYPE_STANDARD)
+  if (dwNewType & TAB_TYPE_STANDARD)
+  {
     nCommand=IDM_WINDOW_TABTYPE_STANDARD;
-  else if (nType == TAB_TYPE_BUTTONS)
+    dwNewType=TAB_TYPE_STANDARD;
+  }
+  else if (dwNewType & TAB_TYPE_BUTTONS)
+  {
     nCommand=IDM_WINDOW_TABTYPE_BUTTONS;
-  else if (nType == TAB_TYPE_FLATBUTTONS)
+    dwNewType=TAB_TYPE_BUTTONS;
+  }
+  else if (dwNewType & TAB_TYPE_FLATBUTTONS)
+  {
     nCommand=IDM_WINDOW_TABTYPE_FLATBUTTONS;
+    dwNewType=TAB_TYPE_FLATBUTTONS;
+  }
+  if (dwOldType & TAB_TYPE_STANDARD)
+    dwOldType=TAB_TYPE_STANDARD;
+  else if (dwOldType & TAB_TYPE_BUTTONS)
+    dwOldType=TAB_TYPE_BUTTONS;
+  else if (dwOldType & TAB_TYPE_FLATBUTTONS)
+    dwOldType=TAB_TYPE_FLATBUTTONS;
   CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABTYPE_STANDARD, IDM_WINDOW_TABTYPE_FLATBUTTONS, nCommand, MF_BYCOMMAND);
 
-  if (bFirst != TRUE && nType == nTabType) return;
-  nTabType=nType;
+  if (bFirst != TRUE && dwNewType == dwOldType) return;
+  dwTabOptionsMDI=dwTabOptionsMDI & ~TAB_TYPE_STANDARD & ~TAB_TYPE_BUTTONS & ~TAB_TYPE_FLATBUTTONS;
+  dwTabOptionsMDI|=dwNewType;
 
-  if (nTabType == TAB_TYPE_STANDARD)
+  if (dwTabOptionsMDI & TAB_TYPE_STANDARD)
   {
     dwStyle=GetWindowLongA(hTab, GWL_STYLE);
     SetWindowLongA(hTab, GWL_STYLE, dwStyle & ~TCS_BUTTONS & ~TCS_FLATBUTTONS);
     SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT - 4));
   }
-  else if (nTabType == TAB_TYPE_BUTTONS)
+  else if (dwTabOptionsMDI & TAB_TYPE_BUTTONS)
   {
     dwStyle=GetWindowLongA(hTab, GWL_STYLE);
     SetWindowLongA(hTab, GWL_STYLE, (dwStyle|TCS_BUTTONS) & ~TCS_FLATBUTTONS);
     SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
   }
-  else if (nTabType == TAB_TYPE_FLATBUTTONS)
+  else if (dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS)
   {
     dwStyle=GetWindowLongA(hTab, GWL_STYLE);
     SetWindowLongA(hTab, GWL_STYLE, dwStyle|TCS_BUTTONS|TCS_FLATBUTTONS);
@@ -3215,9 +3247,7 @@ void ReadOptionsA()
 
   if (bRegMDI)
   {
-    ReadOptionA(hHandle, "TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
-    ReadOptionA(hHandle, "TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
-    ReadOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
+    ReadOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
     ReadOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
     ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
@@ -3325,9 +3355,7 @@ void ReadOptionsW()
 
   if (bRegMDI)
   {
-    ReadOptionW(hHandle, L"TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD));
-    ReadOptionW(hHandle, L"TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD));
-    ReadOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD));
+    ReadOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
     ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
     ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
@@ -3645,11 +3673,7 @@ BOOL SaveOptionsA()
 
   if (bMDI)
   {
-    if (!SaveOptionA(hHandle, "TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD)))
-      goto Error;
-    if (!SaveOptionA(hHandle, "TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD)))
-      goto Error;
-    if (!SaveOptionA(hHandle, "TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
+    if (!SaveOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
       goto Error;
     if (!SaveOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
@@ -3853,11 +3877,7 @@ BOOL SaveOptionsW()
 
   if (bMDI)
   {
-    if (!SaveOptionW(hHandle, L"TabViewMDI", PO_DWORD, &nTabView, sizeof(DWORD)))
-      goto Error;
-    if (!SaveOptionW(hHandle, L"TabTypeMDI", PO_DWORD, &nTabType, sizeof(DWORD)))
-      goto Error;
-    if (!SaveOptionW(hHandle, L"TabSwitchMDI", PO_DWORD, &nTabSwitch, sizeof(DWORD)))
+    if (!SaveOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
       goto Error;
     if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
@@ -22389,19 +22409,19 @@ void UpdateSize()
     }
     else
     {
-      i=nsSize.rcCurrent.bottom - (nTabView?TAB_HEIGHT:0);
+      i=nsSize.rcCurrent.bottom - (!(dwTabOptionsMDI & TAB_VIEW_NONE)?TAB_HEIGHT:0);
 
-      if (nTabView == TAB_VIEW_TOP)
+      if (dwTabOptionsMDI & TAB_VIEW_TOP)
       {
         MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, TAB_HEIGHT, TRUE);
         UpdateWindow(hTab);
       }
-      else if (nTabView == TAB_VIEW_BOTTOM)
+      else if (dwTabOptionsMDI & TAB_VIEW_BOTTOM)
       {
         MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + i, nsSize.rcCurrent.right, TAB_HEIGHT, TRUE);
         UpdateWindow(hTab);
       }
-      MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((nTabView == TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, i, TRUE);
+      MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, i, TRUE);
     }
 
     hDocksStack.bSizing=FALSE;
@@ -22647,6 +22667,9 @@ BOOL EnsureWindowInMonitor(RECT *rcWindow)
   MONITORINFO mi={0};
   HMONITOR hMonitor=NULL;
   RECT rcNewWindow;
+
+  if (rcWindow->left == CW_USEDEFAULT)
+    return TRUE;
 
   //Size of the work area on the primary display monitor
   SystemParametersInfo(SPI_GETWORKAREA, 0, &mi.rcWork, 0);

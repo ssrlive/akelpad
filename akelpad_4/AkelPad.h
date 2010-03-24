@@ -7,24 +7,6 @@
 #define TAB_HEIGHT           24
 #define TAB_WIDTH            90
 
-#define TAB_VIEW_NONE         0
-#define TAB_VIEW_TOP          1
-#define TAB_VIEW_BOTTOM       2
-
-#define TAB_TYPE_STANDARD     0
-#define TAB_TYPE_BUTTONS      1
-#define TAB_TYPE_FLATBUTTONS  2
-
-#define TAB_SWITCH_NEXTPREV   0
-#define TAB_SWITCH_RIGHTLEFT  1
-
-#define STATUS_POSITION       0
-#define STATUS_MODIFY         1
-#define STATUS_INSERT         2
-#define STATUS_NEWLINE        3
-#define STATUS_CODEPAGE       4
-#define STATUS_PARTS          5
-
 #define DOCK_MAINMIN_X       30
 #define DOCK_MAINMIN_Y       30
 #define DOCK_BORDER_1X        3

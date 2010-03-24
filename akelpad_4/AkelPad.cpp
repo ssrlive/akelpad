@@ -387,9 +387,7 @@ BOOL bMdiMaximize;
 BOOL bMdiNoWindows=FALSE;
 BOOL bMdiClientRedraw=TRUE;
 HWND hTab=NULL;
-int nTabView=TAB_VIEW_TOP;
-int nTabType=TAB_TYPE_STANDARD;
-int nTabSwitch=TAB_SWITCH_NEXTPREV;
+DWORD dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_NEXTPREV;
 HSTACK hIconsStack={0};
 HIMAGELIST hImageList;
 HICON hIconEmpty;
@@ -1848,10 +1846,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (bMDI)
       {
         DoSettingsSingleOpenProgram(bSingleOpenProgram);
-        DoWindowTabView(nTabView, TRUE);
-        DoWindowTabType(nTabType, TRUE);
+        DoWindowTabView(dwTabOptionsMDI, TRUE);
+        DoWindowTabType(dwTabOptionsMDI, TRUE);
         if (bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, MF_GRAYED);
-        CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, (nTabSwitch == TAB_SWITCH_NEXTPREV)?IDM_WINDOW_TABSWITCH_NEXTPREV:IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
+        CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, (dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)?IDM_WINDOW_TABSWITCH_NEXTPREV:IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
       }
 
       //PreShow
@@ -3315,18 +3313,20 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TABSWITCH_NEXTPREV)
       {
-        if (nTabSwitch == TAB_SWITCH_RIGHTLEFT)
+        if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
         {
           CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_NEXTPREV, MF_BYCOMMAND);
-          nTabSwitch=TAB_SWITCH_NEXTPREV;
+          dwTabOptionsMDI&=~TAB_SWITCH_RIGHTLEFT;
+          dwTabOptionsMDI|=TAB_SWITCH_NEXTPREV;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TABSWITCH_RIGHTLEFT)
       {
-        if (nTabSwitch == TAB_SWITCH_NEXTPREV)
+        if (dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)
         {
           CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
-          nTabSwitch=TAB_SWITCH_RIGHTLEFT;
+          dwTabOptionsMDI&=~TAB_SWITCH_NEXTPREV;
+          dwTabOptionsMDI|=TAB_SWITCH_RIGHTLEFT;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TILEHORIZONTAL)
@@ -3777,10 +3777,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (bMDI)
       {
         DoSettingsSingleOpenProgram(bSingleOpenProgram);
-        DoWindowTabView(nTabView, TRUE);
-        DoWindowTabType(nTabType, TRUE);
+        DoWindowTabView(dwTabOptionsMDI, TRUE);
+        DoWindowTabType(dwTabOptionsMDI, TRUE);
         if (bOldComctl32) EnableMenuItem(hMainMenu, IDM_WINDOW_TABTYPE_FLATBUTTONS, MF_GRAYED);
-        CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, (nTabSwitch == TAB_SWITCH_NEXTPREV)?IDM_WINDOW_TABSWITCH_NEXTPREV:IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
+        CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, (dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)?IDM_WINDOW_TABSWITCH_NEXTPREV:IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
       }
 
       //PreShow
@@ -5244,18 +5244,20 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TABSWITCH_NEXTPREV)
       {
-        if (nTabSwitch == TAB_SWITCH_RIGHTLEFT)
+        if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
         {
           CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_NEXTPREV, MF_BYCOMMAND);
-          nTabSwitch=TAB_SWITCH_NEXTPREV;
+          dwTabOptionsMDI&=~TAB_SWITCH_RIGHTLEFT;
+          dwTabOptionsMDI|=TAB_SWITCH_NEXTPREV;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TABSWITCH_RIGHTLEFT)
       {
-        if (nTabSwitch == TAB_SWITCH_NEXTPREV)
+        if (dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)
         {
           CheckMenuRadioItem(hMainMenu, IDM_WINDOW_TABSWITCH_NEXTPREV, IDM_WINDOW_TABSWITCH_RIGHTLEFT, IDM_WINDOW_TABSWITCH_RIGHTLEFT, MF_BYCOMMAND);
-          nTabSwitch=TAB_SWITCH_RIGHTLEFT;
+          dwTabOptionsMDI&=~TAB_SWITCH_NEXTPREV;
+          dwTabOptionsMDI|=TAB_SWITCH_RIGHTLEFT;
         }
       }
       else if (LOWORD(wParam) == IDM_WINDOW_TILEHORIZONTAL)
@@ -7037,7 +7039,7 @@ LRESULT CALLBACK NewMdiClientProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     int nItem;
     int nItemCount;
 
-    if (nTabSwitch == TAB_SWITCH_RIGHTLEFT)
+    if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
     {
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
       nItemCount=SendMessage(hTab, TCM_GETITEMCOUNT, 0, 0) - 1;
@@ -7149,7 +7151,7 @@ LRESULT CALLBACK NewMdiClientProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     int nItem;
     int nItemCount;
 
-    if (nTabSwitch == TAB_SWITCH_RIGHTLEFT)
+    if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
     {
       nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
       nItemCount=SendMessage(hTab, TCM_GETITEMCOUNT, 0, 0) - 1;
