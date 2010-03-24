@@ -2,7 +2,8 @@
 AkelPad 4.4.3 ()
 --------------------------
 Изменено: освобождено сочетание Ctrl+E, которое использовалось для режима "Только чтение".
-Изменено: объединены настройки "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" в "TabOptionsMDI" (MDI).
+Изменено: объединены настройки "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" в "TabOptionsMDI",
+          "CaretOutEdge", "CaretVertLine" в "CaretOptions".
 
 Добавлено: опция для отключения перетаскивания текста мышью.
 

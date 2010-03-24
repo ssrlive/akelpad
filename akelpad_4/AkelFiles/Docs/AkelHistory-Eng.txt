@@ -2,7 +2,8 @@
 AkelPad 4.4.3 ()
 ----------------------------
 Changed: released Ctrl+E hotkey, which used for "Read only" mode.
-Changed: integrated settings "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" in "TabOptionsMDI" (MDI).
+Changed: integrated settings "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" in "TabOptionsMDI",
+         "CaretOutEdge", "CaretVertLine" in "CaretOptions".
 
 Added: option for turn off mouse text dragging.
 
