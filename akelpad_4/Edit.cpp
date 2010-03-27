@@ -4257,7 +4257,14 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
   int nFileCmp;
   BOOL bFileExist;
 
-  if (!hWnd) hWnd=hWndEdit;
+  if (!hWnd)
+    hWnd=hWndEdit;
+  if (!hWnd)
+  {
+    //MDI has no windows
+    DoFileNewA();
+    hWnd=hWndEdit;
+  }
 
   //Notification message
   if (GetWindowLongA(hWnd, GWL_ID) == ID_EDIT)
@@ -4421,10 +4428,10 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       RecentFilesSaveA();
     }
 
+    //Create edit window if necessary
     if (bMDI && !bDocumentReopen && (!hWndFrameActive || bModified || szCurrentFile[0]))
     {
-      if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-      CreateMDIWindowA(APP_MDI_CLASSA, "", (bMdiMaximize == TRUE)?WS_MAXIMIZE:0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hMdiClient, hInstance, 0);
+      DoFileNewA();
       hWnd=hWndEdit;
     }
 
@@ -4534,7 +4541,14 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
   int nFileCmp;
   BOOL bFileExist;
 
-  if (!hWnd) hWnd=hWndEdit;
+  if (!hWnd)
+    hWnd=hWndEdit;
+  if (!hWnd)
+  {
+    //MDI has no windows
+    DoFileNewW();
+    hWnd=hWndEdit;
+  }
 
   //Notification message
   if (GetWindowLongW(hWnd, GWL_ID) == ID_EDIT)
@@ -4698,10 +4712,10 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       RecentFilesSaveW();
     }
 
+    //Create edit window if necessary
     if (bMDI && !bDocumentReopen && (!hWndFrameActive || bModified || wszCurrentFile[0]))
     {
-      if (hWndFrameActive) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
-      CreateMDIWindowW(APP_MDI_CLASSW, L"", (bMdiMaximize == TRUE)?WS_MAXIMIZE:0, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, hMdiClient, hInstance, 0);
+      DoFileNewW();
       hWnd=hWndEdit;
     }
 
@@ -21006,6 +21020,8 @@ BOOL GetEditInfoW(HWND hWnd, EDITINFO *ei)
 
 DWORD IsEditActive(HWND hWnd)
 {
+  if (!hWnd)
+    return 0;
   if (hWnd == hWndEdit)
     return CN_EDIT;
 
