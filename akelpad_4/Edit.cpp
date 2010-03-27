@@ -4972,8 +4972,8 @@ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufL
 
           if (dwCharsConverted > 0)
           {
-            if (pcTranslateBuffer[dwBytesRead - 1] != '\0' &&
-                wszBuf[dwCharsConverted - 1] == '\0')
+            if ((pcTranslateBuffer[dwBytesRead - 1] != '\0' && wszBuf[dwCharsConverted - 1] == '\0') || //Windows 95/98/Me/2000/XP/2003
+                (pcTranslateBuffer[dwBytesRead - 1] != '?' && wszBuf[dwCharsConverted - 1] == '?'))     //Windows Vista/7/2008
             {
               //Double-byte char was split
               --lpData->nBytesCurrent;
@@ -20078,6 +20078,7 @@ void SetNewLineStatusA(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
     else if (nState == NEWLINE_MAC)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
 
+    nSelSubtract=0;
     SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
   }
 
@@ -20119,6 +20120,7 @@ void SetNewLineStatusW(HWND hWnd, int nState, DWORD dwFlags, BOOL bFirst)
     else if (nState == NEWLINE_MAC)
       SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
 
+    nSelSubtract=0;
     SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
   }
 
