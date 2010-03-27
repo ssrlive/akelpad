@@ -8588,7 +8588,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   return nQuoteLen;
 }
 
-int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm)
+int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm)
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
@@ -8617,6 +8617,8 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
       {
         nWordLen+=AE_IndexLen(&ciCount);
         if (nWordLen > AEMAX_WORD_LENGTH)
+          return 0;
+        if (AE_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) < 0)
           return 0;
 
         //Is delimiter
@@ -10842,9 +10844,9 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           if (hlp->dwFindFirst & AEHPT_DELIM1)
           {
             hlp->dwFindFirst&=~AEHPT_DELIM1;
-            AE_HighlightFindWord(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->wm);
+            AE_HighlightFindWord(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->wm, &hlp->qm);
           }
-          else AE_HighlightFindWord(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->wm);
+          else AE_HighlightFindWord(ae, &to->ciDrawLine, AEHF_ISFIRSTCHAR, &hlp->wm, &hlp->qm);
         }
 
         //Check delimiters and word start
