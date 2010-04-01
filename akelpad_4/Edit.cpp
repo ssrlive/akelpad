@@ -327,6 +327,7 @@ extern DWORD dwCustomWordBreak;
 extern DWORD dwDefaultWordBreak;
 extern BOOL bWrapDelimitersEnable;
 extern wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];
+extern DWORD dwPaintOptions;
 extern FILETIME ftFileTime;
 extern HWND hWndReopen;
 extern WNDPROC OldEditProc;
@@ -417,6 +418,8 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETVERTLINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwPaintOptions & PAINT_PAINTGROUP)?AECOOP_OR:AECOOP_XOR, AECO_PAINTGROUP);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwPaintOptions & PAINT_NONEWLINEDRAW)?AECOOP_OR:AECOOP_XOR, AECO_NONEWLINEDRAW);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetMargins(hWndEditNew, dwEditMargins, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
@@ -500,6 +503,8 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETVERTLINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
   SendMessage(hWndEditNew, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwPaintOptions & PAINT_PAINTGROUP)?AECOOP_OR:AECOOP_XOR, AECO_PAINTGROUP);
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwPaintOptions & PAINT_NONEWLINEDRAW)?AECOOP_OR:AECOOP_XOR, AECO_NONEWLINEDRAW);
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SetMargins(hWndEditNew, dwEditMargins, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
@@ -3222,6 +3227,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
   ReadOptionA(hHandle, "MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD));
   ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
+  ReadOptionA(hHandle, "PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD));
   ReadOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
   ReadOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
@@ -3330,6 +3336,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
   ReadOptionW(hHandle, L"MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD));
   ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD));
   ReadOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
   ReadOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
@@ -3626,6 +3633,8 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
     goto Error;
+  if (!SaveOptionA(hHandle, "PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD)))
@@ -3829,6 +3838,8 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;

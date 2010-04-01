@@ -156,7 +156,8 @@
 #define AECO_DISABLEDROP              0x00000100  //Disables OLE text dropping.
 #define AECO_CARETOUTEDGE             0x00000200  //Allow caret moving out of the line edge.
 #define AECO_ACTIVECOLUMN             0x00000400  //Draw caret vertical line.
-#define AECO_PAINTGROUP               0x00000800  //Paint text by group of characters (default is character by character). With this style combined unicode symbols can be drawn correctly but editing of whose characters isn't comfortable.
+#define AECO_PAINTGROUP               0x00000800  //Paint text by group of characters (default is character by character).
+                                                  //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
 #define AECO_ALTDECINPUT              0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECO_NOMARGINSEL              0x00002000  //Disables left margin line selection with mouse.
 #define AECO_NONEWLINEDRAW            0x00004000  //Disables draw new line as space in selection.

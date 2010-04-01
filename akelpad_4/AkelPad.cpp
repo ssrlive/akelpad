@@ -356,6 +356,7 @@ DWORD dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
 DWORD dwDefaultWordBreak=0;
 BOOL bWrapDelimitersEnable=FALSE;
 wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE]=WRAP_DELIMITERSW;
+DWORD dwPaintOptions=0;
 FILETIME ftFileTime={0};
 HWND hWndReopen=NULL;
 WNDPROC OldEditProc;
