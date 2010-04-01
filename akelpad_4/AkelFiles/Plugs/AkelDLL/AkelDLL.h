@@ -98,6 +98,11 @@
 #define MO_RICHEDITMOUSE       0x00000002  //After WM_LBUTTONUP message capture operations doesn't stopped.
 #define MO_MOUSEDRAGGING       0x00000004  //Enables OLE text dragging.
 
+//Paint options
+#define PAINT_PAINTGROUP       0x00000001  //Paint text by group of characters (default is character by character).
+                                           //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
+#define PAINT_NONEWLINEDRAW    0x00000002  //Disables draw new line as space in selection.
+
 //Tab options MDI
 #define TAB_VIEW_NONE         0x00000001
 #define TAB_VIEW_TOP          0x00000002

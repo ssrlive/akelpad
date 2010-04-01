@@ -8618,7 +8618,8 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
         nWordLen+=AE_IndexLen(&ciCount);
         if (nWordLen > AEMAX_WORD_LENGTH)
           return 0;
-        if (AE_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) < 0)
+        if (AE_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) < 0 &&
+            AE_IndexCompare(&ciCount, &qm->crQuoteStart.ciMax) >= 0)
           return 0;
 
         //Is delimiter
@@ -10795,6 +10796,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwFindFirst&=~AEHPT_QUOTE;
           if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm))
           {
+            hlp->qm.crQuoteStart.ciMin=to->ciDrawLine;
+            hlp->qm.crQuoteStart.ciMax=to->ciDrawLine;
             hlp->qm.crQuoteEnd.ciMin=to->ciDrawLine;
             hlp->qm.crQuoteEnd.ciMax=to->ciDrawLine;
           }
