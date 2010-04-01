@@ -8,6 +8,7 @@ Added: parameter "PaintOptions" - defines, some draw text settings. Sets by the 
             drawn differently and editing of whose characters may become uncomfortable.
          2  Disables draw new line as space in selection.
        By default: 0.
+Added: possibility in "Go to line..." dialog to go to a specified column in line.
 
 
 AkelPad 4.4.3 (Mar 31, 2010)

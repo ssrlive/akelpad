@@ -12345,7 +12345,8 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   static HWND hWndLine;
   static HWND hWndOffset;
   AECHARRANGE cr;
-  int nNumber=0;
+  int nLine=0;
+  int nColumn=1;
   int nLineCount=0;
   int a;
   int b;
@@ -12389,7 +12390,14 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
             a=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
           else
             a=ciCaret.nLine;
-          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, a + 1, FALSE);
+
+          if (dwStatusPosType & SPT_COLUMN)
+            b=SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+          else
+            b=SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+
+          wsprintfA(buf, "%d:%d", a + 1, b + 1);
+          SetWindowTextA(hWndNumber, buf);
           SendMessage(hWndNumber, EM_SETSEL, 0, -1);
         }
       }
@@ -12414,10 +12422,18 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
             buf2[b++]=buf[a];
           else if (buf[a] == '-' && b == 0)
             buf2[b++]=buf[a];
+          else if (buf[a] == ':' && b > 0)
+          {
+            nColumn=xatoiA(buf + a + 1);
+            nColumn=max(1, nColumn);
+            break;
+          }
+          else if (buf[a] != ' ' && buf[a] != ',' && buf[a] != '.' && b > 0)
+            break;
         }
         buf2[b]='\0';
 
-        nNumber=xatoiA(buf2);
+        nLine=xatoiA(buf2);
       }
 
       if (nGotoType == NT_LINE)
@@ -12426,35 +12442,41 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
           nLineCount=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
 
-        if (!nNumber)
+        if (!nLine)
         {
           API_LoadStringA(hLangLib, MSG_WRONG_STRING, buf, BUFFER_SIZE);
           MessageBoxA(hDlg, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
           return FALSE;
         }
-        else if (nNumber < 0)
+        else if (nLine < 0)
         {
-          nNumber=nLineCount + nNumber + 1;
-          if (nNumber <= 0) nNumber=1;
+          nLine=nLineCount + nLine + 1;
+          if (nLine <= 0) nLine=1;
         }
-        nNumber=min(nNumber, nLineCount);
+        nLine=min(nLine, nLineCount);
 
         if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
-          SendMessage(hWndEdit, AEM_GETWRAPLINE, nNumber - 1, (LPARAM)&cr.ciMin);
+          SendMessage(hWndEdit, AEM_GETWRAPLINE, nLine - 1, (LPARAM)&cr.ciMin);
         else
-          SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
+          SendMessage(hWndEdit, AEM_GETLINEINDEX, nLine - 1, (LPARAM)&cr.ciMin);
+
+        cr.ciMin.nCharInLine=nColumn - 1;
+        if (dwStatusPosType & SPT_COLUMN)
+          SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
+        else
+          SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
       }
       else if (nGotoType == NT_OFFSET)
       {
-        if (nNumber >= 0)
+        if (nLine >= 0)
         {
           SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
-          IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
+          IndexOffset(hWndEdit, &cr.ciMin, nLine, AELB_ASIS);
         }
         else
         {
           SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMin);
-          IndexOffset(hWndEdit, &cr.ciMin, nNumber + 1, AELB_ASIS);
+          IndexOffset(hWndEdit, &cr.ciMin, nLine + 1, AELB_ASIS);
         }
       }
 
@@ -12481,7 +12503,8 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   static HWND hWndLine;
   static HWND hWndOffset;
   AECHARRANGE cr;
-  int nNumber=0;
+  int nLine=0;
+  int nColumn=1;
   int nLineCount=0;
   int a;
   int b;
@@ -12525,7 +12548,14 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
             a=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
           else
             a=ciCaret.nLine;
-          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, a + 1, FALSE);
+
+          if (dwStatusPosType & SPT_COLUMN)
+            b=SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+          else
+            b=SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+
+          wsprintfW(wbuf, L"%d:%d", a + 1, b + 1);
+          SetWindowTextW(hWndNumber, wbuf);
           SendMessage(hWndNumber, EM_SETSEL, 0, -1);
         }
       }
@@ -12550,10 +12580,18 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
             wbuf2[b++]=wbuf[a];
           else if (wbuf[a] == '-' && b == 0)
             wbuf2[b++]=wbuf[a];
+          else if (wbuf[a] == ':' && b > 0)
+          {
+            nColumn=xatoiW(wbuf + a + 1);
+            nColumn=max(1, nColumn);
+            break;
+          }
+          else if (wbuf[a] != ' ' && wbuf[a] != ',' && wbuf[a] != '.' && b > 0)
+            break;
         }
         wbuf2[b]='\0';
 
-        nNumber=xatoiW(wbuf2);
+        nLine=xatoiW(wbuf2);
       }
 
       if (nGotoType == NT_LINE)
@@ -12562,35 +12600,41 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
           nLineCount=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
 
-        if (!nNumber)
+        if (!nLine)
         {
           API_LoadStringW(hLangLib, MSG_WRONG_STRING, wbuf, BUFFER_SIZE);
           MessageBoxW(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
           return FALSE;
         }
-        else if (nNumber < 0)
+        else if (nLine < 0)
         {
-          nNumber=nLineCount + nNumber + 1;
-          if (nNumber <= 0) nNumber=1;
+          nLine=nLineCount + nLine + 1;
+          if (nLine <= 0) nLine=1;
         }
-        nNumber=min(nNumber, nLineCount);
+        nLine=min(nLine, nLineCount);
 
         if (!(dwStatusPosType & SPT_LINEWRAP) && bWordWrap)
-          SendMessage(hWndEdit, AEM_GETWRAPLINE, nNumber - 1, (LPARAM)&cr.ciMin);
+          SendMessage(hWndEdit, AEM_GETWRAPLINE, nLine - 1, (LPARAM)&cr.ciMin);
         else
-          SendMessage(hWndEdit, AEM_GETLINEINDEX, nNumber - 1, (LPARAM)&cr.ciMin);
+          SendMessage(hWndEdit, AEM_GETLINEINDEX, nLine - 1, (LPARAM)&cr.ciMin);
+
+        cr.ciMin.nCharInLine=nColumn - 1;
+        if (dwStatusPosType & SPT_COLUMN)
+          SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
+        else
+          SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
       }
       else if (nGotoType == NT_OFFSET)
       {
-        if (nNumber >= 0)
+        if (nLine >= 0)
         {
           SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
-          IndexOffset(hWndEdit, &cr.ciMin, nNumber, AELB_ASIS);
+          IndexOffset(hWndEdit, &cr.ciMin, nLine, AELB_ASIS);
         }
         else
         {
           SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMin);
-          IndexOffset(hWndEdit, &cr.ciMin, nNumber + 1, AELB_ASIS);
+          IndexOffset(hWndEdit, &cr.ciMin, nLine + 1, AELB_ASIS);
         }
       }
 
@@ -19953,13 +19997,13 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     nLine=ciCaret.nLine;
 
   if (dwStatusPosType & SPT_COLUMN)
-    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+    nColumn=SendMessage(hWnd, AEM_INDEXTOCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
   else
-    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+    nColumn=SendMessage(hWnd, AEM_INDEXTOCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
   {
-    wsprintfA(szStatus, "%u:%u", nLine + 1, nColumn);
+    wsprintfA(szStatus, "%u:%u", nLine + 1, nColumn + 1);
     nSelSubtract=0;
   }
   else
@@ -19973,7 +20017,7 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
       nSelSubtract+=IndexSubtract(hWnd, &crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
       nSelSubtract+=IndexSubtract(hWnd, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
     }
-    wsprintfA(szStatus, "%u:%u, %u", nLine + 1, nColumn, nSelSubtract);
+    wsprintfA(szStatus, "%u:%u, %u", nLine + 1, nColumn + 1, nSelSubtract);
     if (bColumnSel) nSelSubtract=0;
   }
   crPrevSel=crSel;
@@ -20006,13 +20050,13 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     nLine=ciCaret.nLine;
 
   if (dwStatusPosType & SPT_COLUMN)
-    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+    nColumn=SendMessage(hWnd, AEM_INDEXTOCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
   else
-    nColumn=SendMessage(hWnd, AEM_GETINDEXCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+    nColumn=SendMessage(hWnd, AEM_INDEXTOCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
 
   if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
   {
-    wsprintfW(wszStatus, L"%u:%u", nLine + 1, nColumn);
+    wsprintfW(wszStatus, L"%u:%u", nLine + 1, nColumn + 1);
     nSelSubtract=0;
   }
   else
@@ -20026,7 +20070,7 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
       nSelSubtract+=IndexSubtract(hWnd, &crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
       nSelSubtract+=IndexSubtract(hWnd, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
     }
-    wsprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn, nSelSubtract);
+    wsprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn + 1, nSelSubtract);
     if (bColumnSel) nSelSubtract=0;
   }
   crPrevSel=crSel;
