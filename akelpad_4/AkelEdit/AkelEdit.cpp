@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.4.3                               *
+ *                      AkelEdit text control v1.4.4                               *
  *                                                                                 *
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -635,7 +635,33 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       return (LRESULT)&ae->ptxt->hPointsStack;
     }
-    if (uMsg == AEM_GETINDEXCOLUMN)
+    if (uMsg == AEM_GETWRAPLINE)
+    {
+      AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+
+      return AE_GetWrapLine(ae, wParam, ciCharIndex);
+    }
+    if (uMsg == AEM_GETUNWRAPLINE)
+    {
+      return AE_GetUnwrapLine(ae, wParam);
+    }
+    if (uMsg == AEM_GETNEXTBREAK)
+    {
+      AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+
+      return AE_GetNextBreak(ae, ciCharIndex, ciCharIndex, FALSE, wParam?wParam:ae->popt->dwWordBreak);
+    }
+    if (uMsg == AEM_GETPREVBREAK)
+    {
+      AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+
+      return AE_GetPrevBreak(ae, ciCharIndex, ciCharIndex, FALSE, wParam?wParam:ae->popt->dwWordBreak);
+    }
+    if (uMsg == AEM_ISDELIMITER)
+    {
+      return AE_IsDelimiter(ae, (AECHARINDEX *)lParam, wParam);
+    }
+    if (uMsg == AEM_INDEXTOCOLUMN)
     {
       AECHARINDEX ciChar=*(AECHARINDEX *)lParam;
       int nTabStop=LOWORD(wParam);
@@ -668,42 +694,66 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         }
         nResult+=nColumn;
 
-        if (bWrappedScan && ciChar.lpLine->prev && ciChar.lpLine->prev->nLineBreak == AELB_WRAP)
+        if (bWrappedScan && AE_PrevLine(&ciChar) && ciChar.lpLine->nLineBreak == AELB_WRAP)
         {
-          --ciChar.nLine;
-          ciChar.lpLine=ciChar.lpLine->prev;
           nScanLimit=ciChar.lpLine->nLineLen;
           nColumn=0;
         }
         else break;
       }
-      return nResult + 1;
+      return nResult;
     }
-    if (uMsg == AEM_GETWRAPLINE)
+    if (uMsg == AEM_COLUMNTOINDEX)
     {
-      AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+      AECHARINDEX *ciInput=(AECHARINDEX *)lParam;
+      AECHARINDEX ciChar=*ciInput;
+      int nTabStop=LOWORD(wParam);
+      BOOL bWrappedScan=HIWORD(wParam);
+      int nColumn=ciChar.nCharInLine;
+      int nCount=0;
 
-      return AE_GetWrapLine(ae, wParam, ciCharIndex);
-    }
-    if (uMsg == AEM_GETUNWRAPLINE)
-    {
-      return AE_GetUnwrapLine(ae, wParam);
-    }
-    if (uMsg == AEM_GETNEXTBREAK)
-    {
-      AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+      //Tab current size if zero
+      if (!nTabStop) nTabStop=ae->ptxt->nTabStop;
 
-      return AE_GetNextBreak(ae, ciCharIndex, ciCharIndex, FALSE, wParam?wParam:ae->popt->dwWordBreak);
-    }
-    if (uMsg == AEM_GETPREVBREAK)
-    {
-      AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
+      while (ciChar.lpLine)
+      {
+        if (nTabStop == 1)
+        {
+          if (nColumn - nCount <= ciChar.lpLine->nLineLen)
+          {
+            ciChar.nCharInLine=nColumn - nCount;
+            nCount=nColumn;
+            goto ColumnToIndexEnd;
+          }
+          nCount+=ciChar.lpLine->nLineLen;
+        }
+        else
+        {
+          for (ciChar.nCharInLine=0; ciChar.nCharInLine < ciChar.lpLine->nLineLen; ++ciChar.nCharInLine)
+          {
+            if (nCount >= nColumn)
+              goto ColumnToIndexEnd;
 
-      return AE_GetPrevBreak(ae, ciCharIndex, ciCharIndex, FALSE, wParam?wParam:ae->popt->dwWordBreak);
-    }
-    if (uMsg == AEM_ISDELIMITER)
-    {
-      return AE_IsDelimiter(ae, (AECHARINDEX *)lParam, wParam);
+            if (ciChar.lpLine->wpLine[ciChar.nCharInLine] == L'\t')
+              nCount+=nTabStop - nCount % nTabStop;
+            else
+              ++nCount;
+          }
+        }
+
+        if (bWrappedScan && ciChar.lpLine->nLineBreak == AELB_WRAP)
+        {
+          AE_NextLine(&ciChar);
+        }
+        else
+        {
+          ciChar.nCharInLine=ciChar.lpLine->nLineLen;
+          goto ColumnToIndexEnd;
+        }
+      }
+      ColumnToIndexEnd:
+      *ciInput=ciChar;
+      return nCount;
     }
 
     //Screen coordinates

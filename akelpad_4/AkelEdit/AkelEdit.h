@@ -1269,12 +1269,13 @@ typedef struct {
 #define AEM_ADDPOINT              (WM_USER + 2114)
 #define AEM_DELPOINT              (WM_USER + 2115)
 #define AEM_GETPOINTSTACK         (WM_USER + 2116)
-#define AEM_GETINDEXCOLUMN        (WM_USER + 2117)
 #define AEM_GETWRAPLINE           (WM_USER + 2118)
 #define AEM_GETUNWRAPLINE         (WM_USER + 2119)
 #define AEM_GETNEXTBREAK          (WM_USER + 2120)
 #define AEM_GETPREVBREAK          (WM_USER + 2121)
 #define AEM_ISDELIMITER           (WM_USER + 2122)
+#define AEM_INDEXTOCOLUMN         (WM_USER + 2123)
+#define AEM_COLUMNTOINDEX         (WM_USER + 2124)
 
 //Screen coordinates
 #define AEM_CHARFROMPOS           (WM_USER + 2151)
@@ -2971,30 +2972,6 @@ void RemoveChangedPoints(HWND hWnd)
 }
 
 
-AEM_GETINDEXCOLUMN
-__________________
-
-Retrieve the character index column taking into account tab stop size.
-
-(DWORD)wParam         == low-order word:
-                          tab stop size in characters. Use current value if zero.
-                         high-order word:
-                          TRUE   scan all wrapped lines.
-                          FALSE  scan to first char in line.
-(AECHARINDEX *)lParam == AkelEdit character index.
-
-Return Value
- Character index column.
-
-Example:
- AECHARINDEX ciCaret;
- int nTabStop;
-
- nTabStop=SendMessage(hWndEdit, AEM_GETTABSTOP, 0, 0);
- SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
- SendMessage(hWndEdit, AEM_GETINDEXCOLUMN, MAKELONG(nTabStop, TRUE), (LPARAM)&ciCaret);
-
-
 AEM_GETWRAPLINE
 _______________
 
@@ -3087,6 +3064,58 @@ Example:
  AECHARINDEX ciChar;
 
  SendMessage(hWndEdit, AEM_ISDELIMITER, AEDLM_WORD, (LPARAM)&ciChar);
+
+
+AEM_INDEXTOCOLUMN
+_________________
+
+Retrieve the column in line of the character index taking into account tab stop size.
+
+(DWORD)wParam         == low-order word:
+                          tab stop size in characters. Use current value if zero.
+                         high-order word:
+                          TRUE   scan all wrapped lines.
+                          FALSE  scan to first char in line.
+(AECHARINDEX *)lParam == AkelEdit character index.
+
+Return Value
+ Zero based column in line of the character index.
+
+Example:
+ AECHARINDEX ciCaret;
+ int nTabStop;
+
+ nTabStop=SendMessage(hWndEdit, AEM_GETTABSTOP, 0, 0);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(nTabStop, TRUE), (LPARAM)&ciCaret);
+
+
+AEM_COLUMNTOINDEX
+_________________
+
+Retrieve the character index of the column in line taking into account tab stop size.
+
+(DWORD)wParam         == low-order word:
+                          tab stop size in characters. Use current value if zero.
+                         high-order word:
+                          TRUE   scan all wrapped lines.
+                          FALSE  scan to first char in line.
+(AECHARINDEX *)lParam == Input:  AECHARINDEX.lpLine and AECHARINDEX.nLine members specifies line to scan from.
+                                 AECHARINDEX.nCharInLine specifies zero based column in line.
+                         Output: AECHARINDEX structure is filled with result character index.
+
+Return Value
+ Number of columns scanned.
+
+Example:
+ AECHARINDEX ciCaret;
+ int nTabStop;
+
+ nTabStop=SendMessage(hWndEdit, AEM_GETTABSTOP, 0, 0);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&ciCaret);
+ ciCaret.nCharInLine=10;
+ SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(nTabStop, TRUE), (LPARAM)&ciCaret);
 
 
 AEM_CHARFROMPOS
