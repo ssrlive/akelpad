@@ -559,8 +559,8 @@ typedef struct {
 
 //// Functions prototypes
 
-BOOL AE_RegisterClassA(HINSTANCE hInstance);
-BOOL AE_RegisterClassW(HINSTANCE hInstance);
+BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit);
+BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit);
 BOOL AE_UnregisterClassA(HINSTANCE hInstance);
 BOOL AE_UnregisterClassW(HINSTANCE hInstance);
 LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

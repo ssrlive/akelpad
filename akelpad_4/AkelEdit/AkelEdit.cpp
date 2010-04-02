@@ -6,6 +6,31 @@
  * License: this source is distributed under "BSD license" conditions.             *
  ***********************************************************************************/
 
+/***********************************************************************************
+ *  Features:                                                                      *
+ *                                                                                 *
+ * - RichEdit control compatibility.                                               *
+ * - File size only limited by available memory.                                   *
+ * - Full unicode strings support.                                                 *
+ * - Support of UTF-16 surrogate pairs.                                            *
+ * - Support of DOS/Windows, Unix and Mac newline formats.                         *
+ * - Support of any length lines.                                                  *
+ * - Unlimited undo/redo.                                                          *
+ * - Column text selection.                                                        *
+ * - Editing and correct saving of binary files.                                   *
+ * - Syntax highlighing.                                                           *
+ * - URL detection and highlighing.                                                *
+ * - Code folding.                                                                 *
+ * - Color printing.                                                               *
+ * - OLE drag'n'drop editing capabilities.                                         *
+ * - Split edit window.                                                            *
+ * - Check a saving correctness of all symbols in the specified encoding.          *
+ *                                                                                 *
+ *  Not implemented:                                                               *
+ * - No BiDi (right-to-left) support.                                              *
+ * - No highlighing for multi-line "Quotes".                                       *
+ ***********************************************************************************/
+
 
 //// Includes
 
@@ -27,6 +52,8 @@ HSTACK hAkelEditBitmapsStack={0};
 HSTACK hAkelEditThemesStack={0};
 BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
+BOOL bRichEditClassRegisteredA=FALSE;
+BOOL bRichEditClassRegisteredW=FALSE;
 HCURSOR hAkelEditCursorIBeam=NULL;
 HCURSOR hAkelEditCursorArrow=NULL;
 HCURSOR hAkelEditCursorMargin=NULL;
@@ -58,8 +85,8 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvRe
   if (fdwReason == DLL_PROCESS_ATTACH)
   {
     OleInitialize(0);
-    AE_RegisterClassA(hinstDLL);
-    AE_RegisterClassW(hinstDLL);
+    AE_RegisterClassA(hinstDLL, TRUE);
+    AE_RegisterClassW(hinstDLL, TRUE);
   }
   else if (fdwReason == DLL_THREAD_ATTACH)
   {
@@ -80,7 +107,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvRe
 
 //// AkelEdit control
 
-BOOL AE_RegisterClassA(HINSTANCE hInstance)
+BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
 {
   if (!bAkelEditClassRegisteredA)
   {
@@ -100,8 +127,11 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance)
     bAkelEditClassRegisteredA=RegisterClassA(&wndclass);
 
     //RichEdit class
-    wndclass.lpszClassName=AES_RICHEDITCLASSA;
-    RegisterClassA(&wndclass);
+    if (bRegisterRichEdit)
+    {
+      wndclass.lpszClassName=AES_RICHEDITCLASSA;
+      bRichEditClassRegisteredA=RegisterClassA(&wndclass);
+    }
 
     if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatA("MSDEVColumnSelect");
@@ -127,7 +157,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance)
   return bAkelEditClassRegisteredA;
 }
 
-BOOL AE_RegisterClassW(HINSTANCE hInstance)
+BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
 {
   if (!bAkelEditClassRegisteredW)
   {
@@ -147,8 +177,11 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance)
     bAkelEditClassRegisteredW=RegisterClassW(&wndclass);
 
     //RichEdit class
-    wndclass.lpszClassName=AES_RICHEDITCLASSW;
-    RegisterClassW(&wndclass);
+    if (bRegisterRichEdit)
+    {
+      wndclass.lpszClassName=AES_RICHEDITCLASSW;
+      bRichEditClassRegisteredW=RegisterClassW(&wndclass);
+    }
 
     if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatW(L"MSDEVColumnSelect");
@@ -200,7 +233,8 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
   {
     if (UnregisterClassA(AES_AKELEDITCLASSA, hInstance))
       bAkelEditClassRegisteredA=FALSE;
-    UnregisterClassA(AES_RICHEDITCLASSA, hInstance);
+    if (UnregisterClassA(AES_RICHEDITCLASSA, hInstance))
+      bRichEditClassRegisteredA=FALSE;
   }
   return !bAkelEditClassRegisteredA;
 }
@@ -231,7 +265,8 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
   {
     if (UnregisterClassW(AES_AKELEDITCLASSW, hInstance))
       bAkelEditClassRegisteredW=FALSE;
-    UnregisterClassW(AES_RICHEDITCLASSW, hInstance);
+    if (UnregisterClassW(AES_RICHEDITCLASSW, hInstance))
+      bRichEditClassRegisteredW=FALSE;
   }
   return !bAkelEditClassRegisteredW;
 }
