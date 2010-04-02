@@ -4,7 +4,7 @@
 CC = g++
 CFLAGS = -Wall -Os
 LDFLAGS = -mwindows -e __WinMain -lkernel32 -luser32 -lgdi32 -ladvapi32 -lshell32 -lcomctl32 -lcomdlg32 -lole32 -luuid -limm32 -lversion
-DEFINES = -D STATIC_BUILD
+DEFINES = -D AKELEDIT_STATICBUILD
 ifndef LANG
   LANG = English
 endif
@@ -30,7 +30,7 @@ AkelEdit.o:
 	$(CC) $(CFLAGS) $(DEFINES) -c AkelEdit/AkelEdit.cpp
 
 Resource.o:
-	windres -D STATIC_BUILD -D EXE_VERSION -I AkelEdit\Resources -I AkelFiles/Langs/Resources "AkelFiles/Langs/Resources/$(LANG).rc" -o Resource.o
+	windres -D AKELEDIT_STATICBUILD -D EXE_VERSION -I AkelEdit\Resources -I AkelFiles/Langs/Resources "AkelFiles/Langs/Resources/$(LANG).rc" -o Resource.o
 
 clean:
 	$(DEL) AkelPad.o
