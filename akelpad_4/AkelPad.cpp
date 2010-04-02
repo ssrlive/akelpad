@@ -758,8 +758,8 @@ extern "C" void _WinMain()
 
 #ifdef STATIC_BUILD
     OleInitialize(0);
-    AE_RegisterClassA(hInstance);
-    AE_RegisterClassW(hInstance);
+    AE_RegisterClassA(hInstance, TRUE);
+    AE_RegisterClassW(hInstance, TRUE);
 #else
     if (!(hAkelLib=LoadLibraryA("AkelEdit.dll")))
     {
@@ -1192,8 +1192,8 @@ extern "C" void _WinMain()
 
 #ifdef STATIC_BUILD
     OleInitialize(0);
-    AE_RegisterClassA(hInstance);
-    AE_RegisterClassW(hInstance);
+    AE_RegisterClassA(hInstance, TRUE);
+    AE_RegisterClassW(hInstance, TRUE);
 #else
     if (!(hAkelLib=LoadLibraryW(L"AkelEdit.dll")))
     {
