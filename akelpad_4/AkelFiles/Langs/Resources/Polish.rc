@@ -128,7 +128,7 @@ BEGIN
         MENUITEM "&Wtyczki (Pluginy)...\tAlt+P", IDM_OPTIONS_PLUGINS
         MENUITEM "&Uruchom\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Tylko do odczytu",   IDM_OPTIONS_READONLY
+        MENUITEM "&Tylko do odczytu",           IDM_OPTIONS_READONLY
         MENUITEM "&Zachowaj spacje po lewej\tCtrl+L", IDM_OPTIONS_KEEPSPACE
         MENUITEM "Œ&ledŸ zmiany pliku",         IDM_OPTIONS_WATCHFILE
         MENUITEM "Zachowaj oryginalny &czas pliku", IDM_OPTIONS_SAVETIME
@@ -449,8 +449,8 @@ BEGIN
     GROUPBOX        "Kierunek",IDC_STATIC,121,27,66,58
     CONTROL         "W &dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,60,10
-    CONTROL         "W &górê",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
-                    126,48,60,10
+    CONTROL         "W &górê",IDC_SEARCH_BACKWARD,"Button",
+                    BS_AUTORADIOBUTTON,126,48,60,10
     CONTROL         "Od &pocz¹tku",IDC_SEARCH_BEGINNING,"Button",
                     BS_AUTORADIOBUTTON,126,59,60,10
     CONTROL         "W zaznaczeniu",IDC_SEARCH_INSEL,"Button",
@@ -485,8 +485,8 @@ BEGIN
     GROUPBOX        "Kierunek",IDC_STATIC,121,41,66,58
     CONTROL         "W &dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,60,10
-    CONTROL         "W &górê",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
-                    126,62,60,10
+    CONTROL         "W &górê",IDC_SEARCH_BACKWARD,"Button",
+                    BS_AUTORADIOBUTTON,126,62,60,10
     CONTROL         "Od &pocz¹tku",IDC_SEARCH_BEGINNING,"Button",
                     BS_AUTORADIOBUTTON,126,73,60,10
     CONTROL         "W zaznaczeniu",IDC_SEARCH_INSEL,"Button",
@@ -506,20 +506,20 @@ BEGIN
                     IDC_STATIC,21,80,97,33,NOT WS_GROUP
 END
 
-IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 140, 82
+IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 151, 85
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "PrzejdŸ do wiersza"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    LTEXT           "Numer:",IDC_STATIC,21,7,97,12,NOT WS_GROUP
-    EDITTEXT        IDC_GOTOLINE_NUMBER,18,20,104,13
-    CONTROL         "&Wiersz",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,
-                    18,40,52,10
+    LTEXT           "Numer:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
+    EDITTEXT        IDC_GOTOLINE_NUMBER,14,20,122,13
+    CONTROL         "&Wiersz:Column",IDC_GOTOLINE_LINE,"Button",
+                    BS_AUTORADIOBUTTON,14,41,70,10
     CONTROL         "&Znak (Offset)",IDC_GOTOLINE_OFFSET,"Button",
-                    BS_AUTORADIOBUTTON,72,40,52,10
-    PUSHBUTTON      "OK",IDOK,18,60,50,14,BS_CENTER
-    PUSHBUTTON      "Anuluj",IDCANCEL,72,60,50,14,BS_CENTER
+                    BS_AUTORADIOBUTTON,86,42,50,10
+    PUSHBUTTON      "OK",IDOK,23,63,50,14,BS_CENTER
+    PUSHBUTTON      "Anuluj",IDCANCEL,77,63,50,14,BS_CENTER
 END
 
 IDD_RECODE DIALOG DISCARDABLE  70, 70, 174, 94
