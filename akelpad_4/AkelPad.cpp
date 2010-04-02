@@ -431,7 +431,7 @@ extern "C" void _WinMain()
   HMODULE hKernel32=NULL;
   HMODULE hUser32=NULL;
   HMODULE hShell32=NULL;
-#ifndef STATIC_BUILD
+#ifndef AKELEDIT_STATICBUILD
   HMODULE hAkelLib=NULL;
 #endif
   HWND hWndFriend=NULL;
@@ -756,7 +756,7 @@ extern "C" void _WinMain()
       }
     }
 
-#ifdef STATIC_BUILD
+#ifdef AKELEDIT_STATICBUILD
     OleInitialize(0);
     AE_RegisterClassA(hInstance, TRUE);
     AE_RegisterClassW(hInstance, TRUE);
@@ -1190,7 +1190,7 @@ extern "C" void _WinMain()
       }
     }
 
-#ifdef STATIC_BUILD
+#ifdef AKELEDIT_STATICBUILD
     OleInitialize(0);
     AE_RegisterClassA(hInstance, TRUE);
     AE_RegisterClassW(hInstance, TRUE);
@@ -1340,7 +1340,7 @@ extern "C" void _WinMain()
   StackPluginFree(&hPluginsStack);
   StackDockFree(&hDocksStack);
   if (hLangLib && hLangLib != hInstance) FreeLibrary(hLangLib);
-#ifdef STATIC_BUILD
+#ifdef AKELEDIT_STATICBUILD
   AE_UnregisterClassA(hInstance);
   AE_UnregisterClassW(hInstance);
   OleUninitialize();

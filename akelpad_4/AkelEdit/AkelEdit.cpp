@@ -79,14 +79,20 @@ UINT cfAkelEditColumnSel=0;
 
 //// Entry point
 
-#ifndef STATIC_BUILD
+#ifndef AKELEDIT_STATICBUILD
 extern "C" BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
   if (fdwReason == DLL_PROCESS_ATTACH)
   {
-    OleInitialize(0);
-    AE_RegisterClassA(hinstDLL, TRUE);
-    AE_RegisterClassW(hinstDLL, TRUE);
+    #ifdef AKELEDIT_NOREGISTERRICHEDIT
+      OleInitialize(0);
+      AE_RegisterClassA(hinstDLL, FALSE);
+      AE_RegisterClassW(hinstDLL, FALSE);
+    #else
+      OleInitialize(0);
+      AE_RegisterClassA(hinstDLL, TRUE);
+      AE_RegisterClassW(hinstDLL, TRUE);
+    #endif
   }
   else if (fdwReason == DLL_THREAD_ATTACH)
   {
