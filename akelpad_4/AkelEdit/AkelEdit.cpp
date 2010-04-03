@@ -18,9 +18,11 @@
  * - Syntax highlighing.                                                           *
  * - URL detection and highlighing.                                                *
  * - Code folding.                                                                 *
- * - Color printing.                                                               *
- * - OLE drag'n'drop editing capabilities.                                         *
  * - Split edit window.                                                            *
+ * - Color printing.                                                               *
+ * - Support of proportional and non-proportional fonts.                           *
+ * - Support of Input Method Editors (IME).                                        *
+ * - OLE drag'n'drop editing capabilities.                                         *
  * - Check a saving correctness of all symbols in the specified encoding.          *
  *                                                                                 *
  *  Not implemented:                                                               *
