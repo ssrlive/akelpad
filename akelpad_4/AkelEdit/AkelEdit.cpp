@@ -4,11 +4,8 @@
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
  * License: this source is distributed under "BSD license" conditions.             *
- ***********************************************************************************/
-
-/***********************************************************************************
- *  Features:                                                                      *
  *                                                                                 *
+ *  Features:                                                                      *
  * - RichEdit control compatibility.                                               *
  * - File size only limited by available memory.                                   *
  * - Full unicode strings support.                                                 *
