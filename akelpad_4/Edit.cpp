@@ -2472,6 +2472,7 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
   wchar_t *wpSection;
   wchar_t *wpKey;
   wchar_t *wpString;
+  wchar_t *wpLastChar;
   DWORD dwFileSize;
   DWORD dwBytesRead;
   DWORD dwUnicodeLen;
@@ -2488,6 +2489,7 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
         if (ReadFile(hFile, wpText, dwFileSize, &dwBytesRead, NULL))
         {
           dwUnicodeLen=dwBytesRead / sizeof(wchar_t);
+          wpLastChar=wpText + dwUnicodeLen;
           wpText[dwUnicodeLen++]='\0';
           if (wszText[0] == 0xFEFF)
           {
@@ -2498,12 +2500,12 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
           while (*wpText == ' ' || *wpText == '\t' || *wpText == '\r' || *wpText == '\n')
             ++wpText;
 
-          while (*wpText)
+          while (wpText < wpLastChar)
           {
             //Section
             if (*wpText == '[')
             {
-              for (wpSection=++wpText; *wpText && *wpText != ']' && *wpText != '\r' && *wpText != '\n'; ++wpText);
+              for (wpSection=++wpText; wpText < wpLastChar && *wpText != ']' && *wpText != '\r' && *wpText != '\n'; ++wpText);
 
               if (*wpText == ']')
               {
@@ -2532,16 +2534,16 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
             {
               while (*wpText == ' ' || *wpText == '\t' || *wpText == '\r' || *wpText == '\n')
                 ++wpText;
-              if (*wpText == '\0' || *wpText == '[') break;
+              if (wpText >= wpLastChar || *wpText == '[') break;
 
-              for (wpKey=wpText; *wpText && *wpText != '=' && *wpText != '\r' && *wpText != '\n'; ++wpText);
+              for (wpKey=wpText; wpText < wpLastChar && *wpText != '=' && *wpText != '\r' && *wpText != '\n'; ++wpText);
 
               if (*wpText == '=')
               {
                 nKeyLen=wpText - wpKey;
                 *wpText++='\0';
 
-                for (wpString=wpText; *wpText && *wpText != '\r' && *wpText != '\n'; ++wpText);
+                for (wpString=wpText; wpText < wpLastChar && *wpText != '\r' && *wpText != '\n'; ++wpText);
                 nStringLen=wpText - wpString;
                 if (*wpText) *wpText++='\0';
 
