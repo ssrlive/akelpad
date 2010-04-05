@@ -354,6 +354,7 @@ typedef struct _PLUGINLISTITEMA {
   WORD wInitialHotkey;
   BOOL bInitialOnStart;
   int nAutoLoad;
+  int nCallResult;
 } PLUGINLISTITEMA;
 
 typedef struct _PLUGINLISTITEMW {
@@ -363,6 +364,7 @@ typedef struct _PLUGINLISTITEMW {
   WORD wInitialHotkey;
   BOOL bInitialOnStart;
   int nAutoLoad;
+  int nCallResult;
 } PLUGINLISTITEMW;
 
 typedef struct _REGHANDLEA {
