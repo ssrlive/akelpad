@@ -14680,6 +14680,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         PLUGINLISTITEMA *pliElement;
         BOOL bNewState;
         BOOL bOldState;
+        int nResult;
 
         if (((NMLISTVIEW *)lParam)->uNewState & LVIS_STATEIMAGEMASK)
         {
@@ -14699,14 +14700,17 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
                 {
                   if (pliElement->nAutoLoad == -1)
                   {
-                    CallPluginA(NULL, pliElement->pf->szFunction, FALSE, 0, &pliElement->nAutoLoad);
+                    nResult=CallPluginA(NULL, pliElement->pf->szFunction, FALSE, 0, &pliElement->nAutoLoad);
                   }
-                  if (pliElement->nAutoLoad == 0)
+                  if (pliElement->nAutoLoad == 0 || nResult == UD_FAILED)
                   {
+                    if (pliElement->nAutoLoad == 0)
+                    {
+                      API_LoadStringA(hLangLib, MSG_AUTOLOAD_IS_NOT_SUPPORTED, buf, BUFFER_SIZE);
+                      wsprintfA(buf2, buf, pliElement->pf->szFunction);
+                      MessageBoxA(hDlg, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
+                    }
                     pliElement->pf->bOnStart=FALSE;
-                    API_LoadStringA(hLangLib, MSG_AUTOLOAD_IS_NOT_SUPPORTED, buf, BUFFER_SIZE);
-                    wsprintfA(buf2, buf, pliElement->pf->szFunction);
-                    MessageBoxA(hDlg, buf2, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
                     SetWindowLongA(hDlg, DWL_MSGRESULT, TRUE);
                     return TRUE;
                   }
@@ -14920,6 +14924,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         PLUGINLISTITEMW *pliElement;
         BOOL bNewState;
         BOOL bOldState;
+        int nResult;
 
         if (((NMLISTVIEW *)lParam)->uNewState & LVIS_STATEIMAGEMASK)
         {
@@ -14939,14 +14944,17 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
                 {
                   if (pliElement->nAutoLoad == -1)
                   {
-                    CallPluginW(NULL, pliElement->pf->szFunction, FALSE, 0, &pliElement->nAutoLoad);
+                    nResult=CallPluginW(NULL, pliElement->pf->szFunction, FALSE, 0, &pliElement->nAutoLoad);
                   }
-                  if (pliElement->nAutoLoad == 0)
+                  if (pliElement->nAutoLoad == 0 || nResult == UD_FAILED)
                   {
+                    if (pliElement->nAutoLoad == 0)
+                    {
+                      API_LoadStringW(hLangLib, MSG_AUTOLOAD_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
+                      wsprintfW(wbuf2, wbuf, pliElement->pf->szFunction);
+                      MessageBoxW(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+                    }
                     pliElement->pf->bOnStart=FALSE;
-                    API_LoadStringW(hLangLib, MSG_AUTOLOAD_IS_NOT_SUPPORTED, wbuf, BUFFER_SIZE);
-                    wsprintfW(wbuf2, wbuf, pliElement->pf->szFunction);
-                    MessageBoxW(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
                     SetWindowLongW(hDlg, DWL_MSGRESULT, TRUE);
                     return TRUE;
                   }
