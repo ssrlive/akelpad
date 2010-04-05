@@ -14680,7 +14680,6 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         PLUGINLISTITEMA *pliElement;
         BOOL bNewState;
         BOOL bOldState;
-        int nResult;
 
         if (((NMLISTVIEW *)lParam)->uNewState & LVIS_STATEIMAGEMASK)
         {
@@ -14698,11 +14697,11 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
                 if (bNewState)
                 {
-                  if (pliElement->nAutoLoad == -1)
+                  if (pliElement->nAutoLoad == -1 || pliElement->nCallResult == UD_FAILED)
                   {
-                    nResult=CallPluginA(NULL, pliElement->pf->szFunction, FALSE, 0, &pliElement->nAutoLoad);
+                    pliElement->nCallResult=CallPluginA(NULL, pliElement->pf->szFunction, FALSE, 0, &pliElement->nAutoLoad);
                   }
-                  if (pliElement->nAutoLoad == 0 || nResult == UD_FAILED)
+                  if (pliElement->nAutoLoad == 0 || pliElement->nCallResult == UD_FAILED)
                   {
                     if (pliElement->nAutoLoad == 0)
                     {
@@ -14924,7 +14923,6 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         PLUGINLISTITEMW *pliElement;
         BOOL bNewState;
         BOOL bOldState;
-        int nResult;
 
         if (((NMLISTVIEW *)lParam)->uNewState & LVIS_STATEIMAGEMASK)
         {
@@ -14942,11 +14940,11 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
                 if (bNewState)
                 {
-                  if (pliElement->nAutoLoad == -1)
+                  if (pliElement->nAutoLoad == -1 || pliElement->nCallResult == UD_FAILED)
                   {
-                    nResult=CallPluginW(NULL, pliElement->pf->szFunction, FALSE, 0, &pliElement->nAutoLoad);
+                    pliElement->nCallResult=CallPluginW(NULL, pliElement->pf->szFunction, FALSE, 0, &pliElement->nAutoLoad);
                   }
-                  if (pliElement->nAutoLoad == 0 || nResult == UD_FAILED)
+                  if (pliElement->nAutoLoad == 0 || pliElement->nCallResult == UD_FAILED)
                   {
                     if (pliElement->nAutoLoad == 0)
                     {
@@ -15149,6 +15147,7 @@ BOOL CALLBACK FillPluginListProcA(char *pExportName, LPARAM lParam)
       pliElement->wInitialHotkey=pfElement->wHotkey;
       pliElement->bInitialOnStart=pfElement->bOnStart;
       pliElement->nAutoLoad=-1;
+      pliElement->nCallResult=UD_FAILED;
     }
   }
   return TRUE;
@@ -15211,6 +15210,7 @@ BOOL CALLBACK FillPluginListProcW(char *pExportName, LPARAM lParam)
       pliElement->wInitialHotkey=pfElement->wHotkey;
       pliElement->bInitialOnStart=pfElement->bOnStart;
       pliElement->nAutoLoad=-1;
+      pliElement->nCallResult=UD_FAILED;
     }
   }
   return TRUE;
