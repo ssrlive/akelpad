@@ -514,7 +514,7 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Numer:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTOLINE_NUMBER,14,20,122,13
-    CONTROL         "&Wiersz:Column",IDC_GOTOLINE_LINE,"Button",
+    CONTROL         "&Wiersz:Kolumna",IDC_GOTOLINE_LINE,"Button",
                     BS_AUTORADIOBUTTON,14,41,70,10
     CONTROL         "&Znak (Offset)",IDC_GOTOLINE_OFFSET,"Button",
                     BS_AUTORADIOBUTTON,86,42,50,10
@@ -869,7 +869,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED 
                             """%s"" nie obs³uguje automatycznego wczytywania."
-    MSG_FUNCTION_NOT_FOUND  "Nie mo¿na znaleŸæ funkcji ""%s::%s"" in ""%s""."
+    MSG_FUNCTION_NOT_FOUND  "Nie mo¿na znaleŸæ funkcji ""%s::%s"" w ""%s""."
     MSG_UPDATE_PROGRAM      "Zaktualizuj AkelPad.\n\nMinimalna wymagana wersja AkelPada: %d.%d.%d.%d\nAktualna wersja AkelPada: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x nie jest wspierany."
     MSG_UPDATE_PLUGIN       "Zaktualizuj %s.\n\nArchitektura AkelPada: %d.%d.%d.%d\nArchitektura pluginu %s: %d.%d.%d.%d"
@@ -935,11 +935,11 @@ BEGIN
     STR_RUNNING             "Uruchomione"
     STR_FONT                "Czcionka"
     STR_COLOR               "Kolory"
-    STR_HEADLINE            "Nag³ówki"
-    STR_TOP                 "Górny:"
-    STR_BOTTOM              "Dolny:"
+    STR_HEADLINE            "Nag³ówki i stopki"
+    STR_TOP                 "Nag³ówek:"
+    STR_BOTTOM              "Stopka:"
     STR_ELEMENT             "Element"
-    STR_STANDARDTHEME       "Standard"
+    STR_STANDARDTHEME       "Standardowy"
     STR_TEXT                "Tekst"
     STR_BACKGROUND          "T³o"
     STR_SAMPLE              "Przyk³ad"
