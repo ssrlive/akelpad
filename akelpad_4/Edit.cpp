@@ -12350,6 +12350,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   int nLine=0;
   int nColumn=1;
   int nLineCount=0;
+  int nNumberLen;
   int a;
   int b;
 
@@ -12366,12 +12367,12 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     if (nGotoType == NT_LINE)
     {
       SendMessage(hWndLine, BM_SETCHECK, BST_CHECKED, 0);
-      SendMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_LINE, 0);
+      PostMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_LINE, 0);
     }
     else if (nGotoType == NT_OFFSET)
     {
       SendMessage(hWndOffset, BM_SETCHECK, BST_CHECKED, 0);
-      SendMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_OFFSET, 0);
+      PostMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_OFFSET, 0);
     }
   }
   else if (uMsg == WM_COMMAND)
@@ -12392,6 +12393,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
             a=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
           else
             a=ciCaret.nLine;
+          nNumberLen=wsprintfA(buf, "%d", a + 1);
 
           if (dwStatusPosType & SPT_COLUMN)
             b=SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
@@ -12400,7 +12402,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
           wsprintfA(buf, "%d:%d", a + 1, b + 1);
           SetWindowTextA(hWndNumber, buf);
-          SendMessage(hWndNumber, EM_SETSEL, 0, -1);
+          SendMessage(hWndNumber, EM_SETSEL, 0, nNumberLen);
         }
       }
       else if (nGotoType == NT_OFFSET)
@@ -12508,6 +12510,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
   int nLine=0;
   int nColumn=1;
   int nLineCount=0;
+  int nNumberLen;
   int a;
   int b;
 
@@ -12524,12 +12527,12 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     if (nGotoType == NT_LINE)
     {
       SendMessage(hWndLine, BM_SETCHECK, BST_CHECKED, 0);
-      SendMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_LINE, 0);
+      PostMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_LINE, 0);
     }
     else if (nGotoType == NT_OFFSET)
     {
       SendMessage(hWndOffset, BM_SETCHECK, BST_CHECKED, 0);
-      SendMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_OFFSET, 0);
+      PostMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_OFFSET, 0);
     }
   }
   else if (uMsg == WM_COMMAND)
@@ -12550,6 +12553,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
             a=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
           else
             a=ciCaret.nLine;
+          nNumberLen=wsprintfW(wbuf, L"%d", a + 1);
 
           if (dwStatusPosType & SPT_COLUMN)
             b=SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
@@ -12558,7 +12562,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
           wsprintfW(wbuf, L"%d:%d", a + 1, b + 1);
           SetWindowTextW(hWndNumber, wbuf);
-          SendMessage(hWndNumber, EM_SETSEL, 0, -1);
+          SendMessage(hWndNumber, EM_SETSEL, 0, nNumberLen);
         }
       }
       else if (nGotoType == NT_OFFSET)
