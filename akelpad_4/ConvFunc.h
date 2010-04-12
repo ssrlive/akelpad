@@ -1,7 +1,7 @@
 /*****************************************************************
- *           Conversion functions header v2.5                    *
+ *           Conversion functions header v2.6                    *
  *                                                               *
- * 2008 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
  *Functions (ALLCONVFUNC):                                       *
@@ -21,12 +21,12 @@ int xatoiA(char *pStr);
 int xatoiW(wchar_t *wpStr);
 __int64 xatoi64A(char *pStr);
 __int64 xatoi64W(wchar_t *wpStr);
-char* xitoaA(int nNumber, char *szStr, int nWidth);
-wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth);
-char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth);
-wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth);
-char* xi64toaA(__int64 nNumber, char *szStr, int nWidth);
-wchar_t* xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth);
+int xitoaA(int nNumber, char *szStr, int nWidth);
+int xitoaW(int nNumber, wchar_t *wszStr, int nWidth);
+int xuitoaA(unsigned int nNumber, char *szStr, int nWidth);
+int xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth);
+int xi64toaA(__int64 nNumber, char *szStr, int nWidth);
+int xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth);
 int hex2decA(char *pStrHex);
 int hex2decW(wchar_t *wpStrHex);
 int dec2hexA(unsigned int nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase);
@@ -221,7 +221,7 @@ __int64 xatoi64W(wchar_t *wpStr)
  *[out]  char *szStr  -string number
  *[in]   int nWidth   -minimum number of characters to the output
  *
- *Returns: a pointer to string
+ *Returns: copied digits
  *
  *Examples:
  *  xitoaA(45, szResult, 0);   //szResult == "45"
@@ -231,7 +231,7 @@ __int64 xatoi64W(wchar_t *wpStr)
 #if defined xitoaA || defined ALLCONVFUNC
 #define xitoaA_INCLUDED
 #undef xitoaA
-char* xitoaA(int nNumber, char *szStr, int nWidth)
+int xitoaA(int nNumber, char *szStr, int nWidth)
 {
   char szReverse[128];
   int a;
@@ -259,7 +259,7 @@ char* xitoaA(int nNumber, char *szStr, int nWidth)
   for (--a; a >= 0; --a, ++b) szStr[b]=szReverse[a];
 
   szStr[b]='\0';
-  return szStr;
+  return b;
 }
 #endif
 
@@ -273,7 +273,7 @@ char* xitoaA(int nNumber, char *szStr, int nWidth)
  *[out]  wchar_t *wszStr  -unicode string number
  *[in]   int nWidth       -minimum number of characters to the output
  *
- *Returns: a pointer to unicode string
+ *Returns: copied digits
  *
  *Examples:
  *  xitoaW(45, wszResult, 0);   //wszResult == L"45"
@@ -283,7 +283,7 @@ char* xitoaA(int nNumber, char *szStr, int nWidth)
 #if defined xitoaW || defined ALLCONVFUNC
 #define xitoaW_INCLUDED
 #undef xitoaW
-wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
+int xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
 {
   wchar_t wszReverse[128];
   int a;
@@ -311,7 +311,7 @@ wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
   for (--a; a >= 0; --a, ++b) wszStr[b]=wszReverse[a];
 
   wszStr[b]='\0';
-  return wszStr;
+  return b;
 }
 #endif
 
@@ -325,7 +325,7 @@ wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
  *[out]  char *szStr           -string number
  *[in]   int nWidth            -minimum number of characters to the output
  *
- *Returns: a pointer to string
+ *Returns: copied digits
  *
  *Examples:
  *  xuitoaA(45, szResult, 0);   //szResult == "45"
@@ -334,7 +334,7 @@ wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
 #if defined xuitoaA || defined ALLCONVFUNC
 #define xuitoaA_INCLUDED
 #undef xuitoaA
-char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
+int xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
 {
   char szReverse[128];
   int a;
@@ -355,7 +355,7 @@ char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
   for (--a; a >= 0; --a, ++b) szStr[b]=szReverse[a];
 
   szStr[b]='\0';
-  return szStr;
+  return b;
 }
 #endif
 
@@ -369,7 +369,7 @@ char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
  *[out]  wchar_t *wszStr       -unicode string number
  *[in]   int nWidth            -minimum number of characters to the output
  *
- *Returns: a pointer to unicode string
+ *Returns: copied digits
  *
  *Examples:
  *  xuitoaW(45, wszResult, 0);   //wszResult == L"45"
@@ -378,7 +378,7 @@ char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
 #if defined xuitoaW || defined ALLCONVFUNC
 #define xuitoaW_INCLUDED
 #undef xuitoaW
-wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
+int xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
 {
   wchar_t wszReverse[128];
   int a;
@@ -399,7 +399,7 @@ wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
   for (--a; a >= 0; --a, ++b) wszStr[b]=wszReverse[a];
 
   wszStr[b]='\0';
-  return wszStr;
+  return b;
 }
 #endif
 
@@ -413,7 +413,7 @@ wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
  *[out]  char *szStr     -string number
  *[in]   int nWidth      -minimum number of characters to the output
  *
- *Returns: a pointer to string
+ *Returns: copied digits
  *
  *Examples:
  *  xi64toaA(45, szResult, 0);   //szResult == "45"
@@ -423,7 +423,7 @@ wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
 #if defined xi64toaA || defined ALLCONVFUNC
 #define xi64toaA_INCLUDED
 #undef xi64toaA
-char* xi64toaA(__int64 nNumber, char *szStr, int nWidth)
+int xi64toaA(__int64 nNumber, char *szStr, int nWidth)
 {
   char szReverse[128];
   int a;
@@ -451,7 +451,7 @@ char* xi64toaA(__int64 nNumber, char *szStr, int nWidth)
   for (--a; a >= 0; --a, ++b) szStr[b]=szReverse[a];
 
   szStr[b]='\0';
-  return szStr;
+  return b;
 }
 #endif
 
@@ -465,7 +465,7 @@ char* xi64toaA(__int64 nNumber, char *szStr, int nWidth)
  *[out]  wchar_t *wszStr  -unicode string number
  *[in]   int nWidth       -minimum number of characters to the output
  *
- *Returns: a pointer to unicode string
+ *Returns: copied digits
  *
  *Examples:
  *  xi64toaW(45, wszResult, 0);   //wszResult == L"45"
@@ -475,7 +475,7 @@ char* xi64toaA(__int64 nNumber, char *szStr, int nWidth)
 #if defined xi64toaW || defined ALLCONVFUNC
 #define xi64toaW_INCLUDED
 #undef xi64toaW
-wchar_t* xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth)
+int xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth)
 {
   wchar_t wszReverse[128];
   int a;
@@ -503,7 +503,7 @@ wchar_t* xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth)
   for (--a; a >= 0; --a, ++b) wszStr[b]=wszReverse[a];
 
   wszStr[b]='\0';
-  return wszStr;
+  return b;
 }
 #endif
 
