@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v3.2                     *
+ *              String functions header v3.3                     *
  *                                                               *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -25,10 +25,10 @@ int xstrcmpnA(const char *pString1, const char *pString2, DWORD dwMaxLength);
 int xstrcmpnW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLength);
 int xstrcmpinA(const char *pString1, const char *pString2, DWORD dwMaxLength);
 int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLength);
-char* xstrcpyA(char *pString1, const char *pString2);
-wchar_t* xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2);
-char* xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength);
-wchar_t* xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLength);
+int xstrcpyA(char *pString1, const char *pString2);
+int xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2);
+int xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength);
+int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLength);
 BOOL xstrstrA(char *pText, DWORD dwTextLen, char *pStr, BOOL bSensitive, char **pStrBegin, char **pStrEnd);
 BOOL xstrstrW(wchar_t *wpText, DWORD dwTextLen, wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd);
 int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppResult);
@@ -778,12 +778,12 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLe
  *                               including the terminating null character.
  *[in] char *pString2           Pointer to a null-terminated string from which the function copies characters.
  *
- *Returns:  pointer to the buffer.
+ *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
 #ifdef xstrcpyA
 #define xstrcpyA_INCLUDED
 #undef xstrcpyA
-char* xstrcpyA(char *pString1, const char *pString2)
+int xstrcpyA(char *pString1, const char *pString2)
 {
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
@@ -794,7 +794,7 @@ char* xstrcpyA(char *pString1, const char *pString2)
       *pDest++=*pSrc++;
     *pDest=L'\0';
   }
-  return pString1;
+  return pDest - pString1;
 }
 #endif
 
@@ -809,12 +809,12 @@ char* xstrcpyA(char *pString1, const char *pString2)
  *                               including the terminating null character.
  *[in] wchar_t *wpString2       Pointer to a null-terminated string from which the function copies characters.
  *
- *Returns:  pointer to the buffer.
+ *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
 #ifdef xstrcpyW
 #define xstrcpyW_INCLUDED
 #undef xstrcpyW
-wchar_t* xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
+int xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
 {
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
@@ -825,7 +825,7 @@ wchar_t* xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
       *wpDest++=*wpSrc++;
     *wpDest=L'\0';
   }
-  return wpString1;
+  return wpDest - wpString1;
 }
 #endif
 
@@ -842,12 +842,12 @@ wchar_t* xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
  *[in] unsigned int nMaxLength  Specifies the number of TCHAR values to be copied from the string pointed to by pString2 into the buffer pointed to by pString1,
  *                               including a terminating null character.
  *
- *Returns:  pointer to the buffer.
+ *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
 #ifdef xstrcpynA
 #define xstrcpynA_INCLUDED
 #undef xstrcpynA
-char* xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength)
+int xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength)
 {
   char *pDest=pString1;
   char *pSrc=(char *)pString2;
@@ -858,7 +858,7 @@ char* xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength)
       *pDest++=*pSrc++;
     *pDest=L'\0';
   }
-  return pString1;
+  return pDest - pString1;
 }
 #endif
 
@@ -875,12 +875,12 @@ char* xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength)
  *[in] unsigned int nMaxLength  Specifies the number of TCHAR values to be copied from the string pointed to by wpString2 into the buffer pointed to by wpString1,
  *                               including a terminating null character.
  *
- *Returns:  pointer to the buffer.
+ *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
 #ifdef xstrcpynW
 #define xstrcpynW_INCLUDED
 #undef xstrcpynW
-wchar_t* xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLength)
+int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLength)
 {
   wchar_t *wpDest=wpString1;
   wchar_t *wpSrc=(wchar_t *)wpString2;
@@ -891,7 +891,7 @@ wchar_t* xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nM
       *wpDest++=*wpSrc++;
     *wpDest=L'\0';
   }
-  return wpString1;
+  return wpDest - wpString1;
 }
 #endif
 
