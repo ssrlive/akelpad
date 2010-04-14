@@ -10886,6 +10886,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwFindFirst&=~AEHPT_QUOTE;
           if (!AE_HighlightFindQuote(ae, &to->ciDrawLine, AEHF_FINDFIRSTCHAR, &hlp->qm))
           {
+            hlp->qm.lpQuote=NULL;
             hlp->qm.crQuoteStart.ciMin=to->ciDrawLine;
             hlp->qm.crQuoteStart.ciMax=to->ciDrawLine;
             hlp->qm.crQuoteEnd.ciMin=to->ciDrawLine;
