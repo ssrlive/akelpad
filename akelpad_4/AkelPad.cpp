@@ -342,7 +342,7 @@ DWORD dwCaretOptions=0;
 int nCaretWidth=1;
 DWORD dwMouseOptions=MO_LEFTMARGINSELECTION|MO_RICHEDITMOUSE|MO_MOUSEDRAGGING;
 DWORD dwLineGap=0;
-BOOL bShowURL=FALSE;
+BOOL bShowURL=TRUE;
 int nClickURL=2;
 BOOL bUrlPrefixesEnable=FALSE;
 wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE]=URL_PREFIXESW;
@@ -5582,7 +5582,6 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         if (aensc->hdr.hwndFrom == hWndEdit)
         {
           SetSelectionStatusA(hWndEdit, &aensc->aes.crSel, &aensc->ciCaret);
-          nLoopCase=0;
         }
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
@@ -5882,7 +5881,6 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
         if (aensc->hdr.hwndFrom == hWndEdit)
         {
           SetSelectionStatusW(hWndEdit, &aensc->aes.crSel, &aensc->ciCaret);
-          nLoopCase=0;
         }
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
@@ -6367,9 +6365,6 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           rcMasterWindow=lpWndFrameA->rcMasterWindow;
         }
 
-        //Update selection
-        SetSelectionStatusA(hWndEdit, NULL, NULL);
-
         //Update tabs
         if (!bTabPressed)
         {
@@ -6665,9 +6660,6 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           rcMasterWindow=lpWndFrameW->rcMasterWindow;
         }
 
-        //Update selection
-        SetSelectionStatusW(hWndEdit, NULL, NULL);
-
         //Update tabs
         if (!bTabPressed)
         {
@@ -6756,7 +6748,13 @@ LRESULT CALLBACK EditProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)hWndFrame, 0);
     }
-    else hWndEdit=hWnd;
+    else
+    {
+      hWndEdit=hWnd;
+
+      //Update selection
+      SetSelectionStatusA(hWndEdit, NULL, NULL);
+    }
   }
   else if (uMsg == WM_KEYDOWN)
   {
@@ -6814,7 +6812,13 @@ LRESULT CALLBACK EditProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)hWndFrame, 0);
     }
-    else hWndEdit=hWnd;
+    else
+    {
+      hWndEdit=hWnd;
+
+      //Update selection
+      SetSelectionStatusW(hWndEdit, NULL, NULL);
+    }
   }
   else if (uMsg == WM_KEYDOWN)
   {
