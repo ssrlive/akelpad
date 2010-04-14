@@ -11,6 +11,7 @@ Added: parameter "PaintOptions" - defines, some draw text settings. Sets by the 
 Added: possibility in "Go to line..." dialog to go to a specified column in line.
 
 Fixed: saving non-active document.
+Fixed: selection didn't updated during switching panes (split window).
 
 
 AkelPad 4.4.3 (Mar 31, 2010)

@@ -3211,12 +3211,14 @@ void ReadOptionsA()
     hHandle=(HANDLE)&hIniStack;
   }
 
+  ReadOptionA(hHandle, "ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD));
+  ReadOptionA(hHandle, "StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD));
+  ReadOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
+  ReadOptionA(hHandle, "PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD));
   ReadOptionA(hHandle, "RichEditClass", PO_DWORD, &bRichEditClass, sizeof(DWORD));
   ReadOptionA(hHandle, "WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD));
   ReadOptionA(hHandle, "OnTop", PO_DWORD, &bOnTop, sizeof(DWORD));
   ReadOptionA(hHandle, "StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD));
-  ReadOptionA(hHandle, "ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD));
-  ReadOptionA(hHandle, "StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD));
   ReadOptionA(hHandle, "ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD));
   ReadOptionA(hHandle, "SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD));
   ReadOptionA(hHandle, "KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD));
@@ -3229,7 +3231,6 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
   ReadOptionA(hHandle, "MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD));
   ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
-  ReadOptionA(hHandle, "PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD));
   ReadOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
   ReadOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
@@ -3269,7 +3270,6 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "UrlRightDelimiters", PO_BINARY, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
   ReadOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
-  ReadOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
   ReadOptionA(hHandle, "WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "WrapDelimiters", PO_BINARY, wszWrapDelimiters, sizeof(wszWrapDelimiters));
   ReadOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
@@ -3320,12 +3320,14 @@ void ReadOptionsW()
     hHandle=(HANDLE)&hIniStack;
   }
 
+  ReadOptionW(hHandle, L"ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD));
+  ReadOptionW(hHandle, L"StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD));
+  ReadOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD));
   ReadOptionW(hHandle, L"RichEditClass", PO_DWORD, &bRichEditClass, sizeof(DWORD));
   ReadOptionW(hHandle, L"WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD));
   ReadOptionW(hHandle, L"OnTop", PO_DWORD, &bOnTop, sizeof(DWORD));
   ReadOptionW(hHandle, L"StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD));
-  ReadOptionW(hHandle, L"ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD));
-  ReadOptionW(hHandle, L"StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD));
   ReadOptionW(hHandle, L"ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD));
   ReadOptionW(hHandle, L"SaveTime", PO_DWORD, &bSaveTime, sizeof(DWORD));
   ReadOptionW(hHandle, L"KeepSpace", PO_DWORD, &bKeepSpace, sizeof(DWORD));
@@ -3338,7 +3340,6 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"CaretWidth", PO_DWORD, &nCaretWidth, sizeof(DWORD));
   ReadOptionW(hHandle, L"MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD));
   ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
-  ReadOptionW(hHandle, L"PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD));
   ReadOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
   ReadOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
@@ -3378,7 +3379,6 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"UrlRightDelimiters", PO_BINARY, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
   ReadOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
-  ReadOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD));
   ReadOptionW(hHandle, L"WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"WrapDelimiters", PO_BINARY, wszWrapDelimiters, sizeof(wszWrapDelimiters));
   ReadOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
@@ -3599,6 +3599,14 @@ BOOL SaveOptionsA()
       goto Error;
   }
 
+  if (!SaveOptionA(hHandle, "ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionA(hHandle, "RichEditClass", PO_DWORD, &bRichEditClass, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD)))
@@ -3606,10 +3614,6 @@ BOOL SaveOptionsA()
   if (!SaveOptionA(hHandle, "OnTop", PO_DWORD, &bOnTop, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionA(hHandle, "ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionA(hHandle, "StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD)))
     goto Error;
@@ -3634,8 +3638,6 @@ BOOL SaveOptionsA()
   if (!SaveOptionA(hHandle, "MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionA(hHandle, "PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
@@ -3709,8 +3711,6 @@ BOOL SaveOptionsA()
   if (!SaveOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!SaveOptionA(hHandle, "WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD)))
     goto Error;
@@ -3805,6 +3805,14 @@ BOOL SaveOptionsW()
       goto Error;
   }
 
+  if (!SaveOptionW(hHandle, L"ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionW(hHandle, L"RichEditClass", PO_DWORD, &bRichEditClass, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WordWrap", PO_DWORD, &bWordWrap, sizeof(DWORD)))
@@ -3812,10 +3820,6 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"OnTop", PO_DWORD, &bOnTop, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"StatusBar", PO_DWORD, &bStatusBar, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionW(hHandle, L"ShowModify", PO_DWORD, &dwShowModify, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionW(hHandle, L"StatusPosType", PO_DWORD, &dwStatusPosType, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"ReadOnly", PO_DWORD, &bReadOnly, sizeof(DWORD)))
     goto Error;
@@ -3840,8 +3844,6 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"MouseOptions", PO_DWORD, &dwMouseOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOptionW(hHandle, L"PaintOptions", PO_DWORD, &dwPaintOptions, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
@@ -3915,8 +3917,6 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
-    goto Error;
-  if (!SaveOptionW(hHandle, L"WordBreak", PO_DWORD, &dwCustomWordBreak, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD)))
     goto Error;
@@ -20009,6 +20009,8 @@ void SetSelectionStatusA(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   int nColumn;
   BOOL bColumnSel;
 
+  nLoopCase=0;
+
   if (cr && ci)
   {
     crSel=*cr;
@@ -20061,6 +20063,8 @@ void SetSelectionStatusW(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   int nLine;
   int nColumn;
   BOOL bColumnSel;
+
+  nLoopCase=0;
 
   if (cr && ci)
   {
