@@ -3250,17 +3250,10 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT));
+  ReadOptionA(hHandle, "ColorsDialog", PO_BINARY, &rcColorsCurrentDialog, sizeof(RECT));
   ReadOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT));
   ReadOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
   ReadOptionA(hHandle, "WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
-
-  if (bRegMDI)
-  {
-    ReadOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
-    ReadOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
-    ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
-  }
-
   ReadOptionA(hHandle, "ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD));
   ReadOptionA(hHandle, "ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD));
   ReadOptionA(hHandle, "UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD));
@@ -3272,13 +3265,6 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
   ReadOptionA(hHandle, "WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "WrapDelimiters", PO_BINARY, wszWrapDelimiters, sizeof(wszWrapDelimiters));
-  ReadOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
-  ReadOptionA(hHandle, "FontFace", PO_STRING, &lfEditFontA.lfFaceName, LF_FACESIZE);
-  ReadOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
-  ReadOptionA(hHandle, "PrintFont", PO_BINARY, &lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE);
-  ReadOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, LF_FACESIZE);
-  ReadOptionA(hHandle, "ColorsDialog", PO_BINARY, &rcColorsCurrentDialog, sizeof(RECT));
-  ReadOptionA(hHandle, "Colors", PO_BINARY, &aecColors, sizeof(AECOLORS));
   ReadOptionA(hHandle, "LanguageModule", PO_STRING, szLangModule, MAX_PATH);
   ReadOptionA(hHandle, "ExecuteCommand", PO_STRING, szCommand, BUFFER_SIZE);
   ReadOptionA(hHandle, "ExecuteDirectory", PO_STRING, szWorkDir, MAX_PATH);
@@ -3291,6 +3277,19 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "PrintHeader", PO_STRING, szPrintHeader, MAX_PATH);
   ReadOptionA(hHandle, "PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "PrintFooter", PO_STRING, szPrintFooter, MAX_PATH);
+  ReadOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE);
+  ReadOptionA(hHandle, "FontFace", PO_STRING, &lfEditFontA.lfFaceName, LF_FACESIZE);
+  ReadOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
+  ReadOptionA(hHandle, "PrintFont", PO_BINARY, &lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE);
+  ReadOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, LF_FACESIZE);
+  ReadOptionA(hHandle, "Colors", PO_BINARY, &aecColors, sizeof(AECOLORS));
+
+  if (bRegMDI)
+  {
+    ReadOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
+    ReadOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
+    ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
+  }
 
   if (dwSize=ReadOptionA(hHandle, "CodepageList", INI_BINARY, NULL, 0))
   {
@@ -3359,17 +3358,10 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"TabStopAsSpaces", PO_DWORD, &bTabStopAsSpaces, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsEdit", PO_DWORD, &dwEditMargins, sizeof(DWORD));
   ReadOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT));
+  ReadOptionW(hHandle, L"ColorsDialog", PO_BINARY, &rcColorsCurrentDialog, sizeof(RECT));
   ReadOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT));
   ReadOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD));
   ReadOptionW(hHandle, L"WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT));
-
-  if (bRegMDI)
-  {
-    ReadOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
-    ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
-    ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
-  }
-
   ReadOptionW(hHandle, L"ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD));
   ReadOptionW(hHandle, L"ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD));
   ReadOptionW(hHandle, L"UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD));
@@ -3381,13 +3373,6 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"WordDelimiters", PO_BINARY, wszWordDelimiters, sizeof(wszWordDelimiters));
   ReadOptionW(hHandle, L"WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"WrapDelimiters", PO_BINARY, wszWrapDelimiters, sizeof(wszWrapDelimiters));
-  ReadOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
-  ReadOptionW(hHandle, L"FontFace", PO_STRING, &lfEditFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
-  ReadOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
-  ReadOptionW(hHandle, L"PrintFont", PO_BINARY, &lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
-  ReadOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
-  ReadOptionW(hHandle, L"ColorsDialog", PO_BINARY, &rcColorsCurrentDialog, sizeof(RECT));
-  ReadOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS));
   ReadOptionW(hHandle, L"LanguageModule", PO_STRING, wszLangModule, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"ExecuteCommand", PO_STRING, wszCommand, BUFFER_SIZE * sizeof(wchar_t));
   ReadOptionW(hHandle, L"ExecuteDirectory", PO_STRING, wszWorkDir, MAX_PATH * sizeof(wchar_t));
@@ -3400,6 +3385,19 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"PrintHeader", PO_STRING, wszPrintHeader, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"PrintFooterEnable", PO_DWORD, &bPrintFooterEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"PrintFooter", PO_STRING, wszPrintFooter, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"FontFace", PO_STRING, &lfEditFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD));
+  ReadOptionW(hHandle, L"PrintFont", PO_BINARY, &lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, LF_FACESIZE * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS));
+
+  if (bRegMDI)
+  {
+    ReadOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
+    ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
+    ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
+  }
 
   if (dwSize=ReadOptionW(hHandle, L"CodepageList", INI_BINARY, NULL, 0))
   {
@@ -3677,23 +3675,14 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "MarginsPrint", PO_BINARY, &psdPageA.rtMargin, sizeof(RECT)))
     goto Error;
+  if (!SaveOptionA(hHandle, "ColorsDialog", PO_BINARY, &rcColorsCurrentDialog, sizeof(RECT)))
+    goto Error;
   if (!SaveOptionA(hHandle, "PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT)))
     goto Error;
   if (!SaveOptionA(hHandle, "WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT)))
     goto Error;
-
-  if (bMDI)
-  {
-    if (!SaveOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
-      goto Error;
-    if (!SaveOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
-      goto Error;
-    if (!SaveOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
-      goto Error;
-  }
-
   if (!SaveOptionA(hHandle, "ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD)))
@@ -3716,30 +3705,6 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "WrapDelimiters", PO_BINARY, wszWrapDelimiters, wcslen(wszWrapDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
-
-  if (bEditFontChanged)
-  {
-    if (!SaveOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE))
-      goto Error;
-    if (!SaveOptionA(hHandle, "FontFace", PO_STRING, &lfEditFontA.lfFaceName, lstrlenA(lfEditFontA.lfFaceName) + 1))
-      goto Error;
-  }
-  if (!SaveOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD)))
-    goto Error;
-  if (bPrintFontChanged)
-  {
-    if (!SaveOptionA(hHandle, "PrintFont", PO_BINARY, &lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE))
-      goto Error;
-    if (!SaveOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1))
-      goto Error;
-  }
-  if (!SaveOptionA(hHandle, "ColorsDialog", PO_BINARY, &rcColorsCurrentDialog, sizeof(RECT)))
-    goto Error;
-  if (bColorsChanged)
-  {
-    if (!SaveOptionA(hHandle, "Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
-      goto Error;
-  }
   if (!SaveOptionA(hHandle, "LanguageModule", PO_STRING, szLangModule, lstrlenA(szLangModule) + 1))
     goto Error;
   if (!SaveOptionA(hHandle, "ExecuteCommand", PO_STRING, szCommand, lstrlenA(szCommand) + 1))
@@ -3766,6 +3731,38 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
     goto Error;
+
+  if (bMDI)
+  {
+    if (!SaveOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
+      goto Error;
+    if (!SaveOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
+      goto Error;
+    if (!SaveOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
+      goto Error;
+  }
+
+  if (bEditFontChanged)
+  {
+    if (!SaveOptionA(hHandle, "Font", PO_BINARY, &lfEditFontA, sizeof(LOGFONTA) - LF_FACESIZE))
+      goto Error;
+    if (!SaveOptionA(hHandle, "FontFace", PO_STRING, &lfEditFontA.lfFaceName, lstrlenA(lfEditFontA.lfFaceName) + 1))
+      goto Error;
+  }
+  if (bPrintFontChanged)
+  {
+    if (!SaveOptionA(hHandle, "PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD)))
+      goto Error;
+    if (!SaveOptionA(hHandle, "PrintFont", PO_BINARY, &lfPrintFontA, sizeof(LOGFONTA) - LF_FACESIZE))
+      goto Error;
+    if (!SaveOptionA(hHandle, "PrintFontFace", PO_STRING, &lfPrintFontA.lfFaceName, lstrlenA(lfPrintFontA.lfFaceName) + 1))
+      goto Error;
+  }
+  if (bColorsChanged)
+  {
+    if (!SaveOptionA(hHandle, "Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
+      goto Error;
+  }
 
   if (nSaveSettings == SS_REGISTRY)
     bResult=TRUE;
@@ -3883,23 +3880,14 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"MarginsPrint", PO_BINARY, &psdPageW.rtMargin, sizeof(RECT)))
     goto Error;
+  if (!SaveOptionW(hHandle, L"ColorsDialog", PO_BINARY, &rcColorsCurrentDialog, sizeof(RECT)))
+    goto Error;
   if (!SaveOptionW(hHandle, L"PluginsDialog", PO_BINARY, &rcPluginsCurrentDialog, sizeof(RECT)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WindowStyle", PO_DWORD, &dwMainStyle, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WindowPosition", PO_BINARY, &rcMainWindowRestored, sizeof(RECT)))
     goto Error;
-
-  if (bMDI)
-  {
-    if (!SaveOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
-      goto Error;
-    if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
-      goto Error;
-    if (!SaveOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
-      goto Error;
-  }
-
   if (!SaveOptionW(hHandle, L"ShowURL", PO_DWORD, &bShowURL, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"ClickURL", PO_DWORD, &nClickURL, sizeof(DWORD)))
@@ -3922,30 +3910,6 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"WrapDelimiters", PO_BINARY, wszWrapDelimiters, lstrlenW(wszWrapDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
-
-  if (bEditFontChanged)
-  {
-    if (!SaveOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
-      goto Error;
-    if (!SaveOptionW(hHandle, L"FontFace", PO_STRING, &lfEditFontW.lfFaceName, lstrlenW(lfEditFontW.lfFaceName) * sizeof(wchar_t) + 2))
-      goto Error;
-  }
-  if (!SaveOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD)))
-    goto Error;
-  if (bPrintFontChanged)
-  {
-    if (!SaveOptionW(hHandle, L"PrintFont", PO_BINARY, &lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
-      goto Error;
-    if (!SaveOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2))
-      goto Error;
-  }
-  if (!SaveOptionW(hHandle, L"ColorsDialog", PO_BINARY, &rcColorsCurrentDialog, sizeof(RECT)))
-    goto Error;
-  if (bColorsChanged)
-  {
-    if (!SaveOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
-      goto Error;
-  }
   if (!SaveOptionW(hHandle, L"LanguageModule", PO_STRING, wszLangModule, lstrlenW(wszLangModule) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionW(hHandle, L"ExecuteCommand", PO_STRING, wszCommand, lstrlenW(wszCommand) * sizeof(wchar_t) + 2))
@@ -3972,6 +3936,38 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
     goto Error;
+
+  if (bMDI)
+  {
+    if (!SaveOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
+      goto Error;
+  }
+
+  if (bEditFontChanged)
+  {
+    if (!SaveOptionW(hHandle, L"Font", PO_BINARY, &lfEditFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"FontFace", PO_STRING, &lfEditFontW.lfFaceName, lstrlenW(lfEditFontW.lfFaceName) * sizeof(wchar_t) + 2))
+      goto Error;
+  }
+  if (bPrintFontChanged)
+  {
+    if (!SaveOptionW(hHandle, L"PrintFontEnable", PO_DWORD, &bPrintFontEnable, sizeof(DWORD)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"PrintFont", PO_BINARY, &lfPrintFontW, sizeof(LOGFONTW) - LF_FACESIZE * sizeof(wchar_t)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"PrintFontFace", PO_STRING, &lfPrintFontW.lfFaceName, lstrlenW(lfPrintFontW.lfFaceName) * sizeof(wchar_t) + 2))
+      goto Error;
+  }
+  if (bColorsChanged)
+  {
+    if (!SaveOptionW(hHandle, L"Colors", PO_BINARY, &aecColors, sizeof(AECOLORS)))
+      goto Error;
+  }
 
   if (nSaveSettings == SS_REGISTRY)
     bResult=TRUE;
@@ -5163,7 +5159,7 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
         //Compare
         nFileCmp=lstrcmpiA(szCurrentFile, szFile);
         nCodePageCmp=nCurrentCodePage - nCodePage;
-  
+
         if (nFileCmp || nCodePageCmp)
         {
           //Save position of the document
@@ -5386,7 +5382,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
         //Compare
         nFileCmp=lstrcmpiW(wszCurrentFile, wszFile);
         nCodePageCmp=nCurrentCodePage - nCodePage;
-  
+
         if (nFileCmp || nCodePageCmp)
         {
           //Save position of the document
@@ -5427,7 +5423,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
           {
             //Compare
             nFileCmp=lstrcmpiW(wf->szFile, wszFile);
-      
+
             GetFileWriteTimeW(wszFile, &ft);
             SetModifyStatusW(hWnd, FALSE, FALSE);
             wf->ei.nCodePage=nCodePage;
@@ -5593,7 +5589,6 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
   static HFONT hGuiFont;
   static HBITMAP hBitmapDownArrow;
   static LOGFONTA lfTmpA;
-  static BOOL bFontChanged=FALSE;
   BOOL bState;
   int i;
 
@@ -5885,7 +5880,6 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
         if (hPrintFont) DeleteObject(hPrintFont);
         hPrintFont=(HFONT)CreateFontIndirectA(&lfTmpA);
         SendMessage(hWndFontButton, WM_SETFONT, (WPARAM)hPrintFont, TRUE);
-        bFontChanged=TRUE;
       }
     }
     else if (LOWORD(wParam) == IDOK)
@@ -5895,7 +5889,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
 
       bPrintFontEnable=SendMessage(hWndFontCheck, BM_GETCHECK, 0, 0);
       memcpy(&lfPrintFontA, &lfTmpA, sizeof(LOGFONTA));
-      if (bFontChanged) bPrintFontChanged=TRUE;
+      bPrintFontChanged=TRUE;
 
       dwPrintColor=0;
       if (SendMessage(hWndColorTextCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
@@ -5937,7 +5931,6 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
   static HFONT hGuiFont;
   static HBITMAP hBitmapDownArrow;
   static LOGFONTW lfTmpW;
-  static BOOL bFontChanged=FALSE;
   BOOL bState;
   int i;
 
@@ -6229,7 +6222,6 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
         if (hPrintFont) DeleteObject(hPrintFont);
         hPrintFont=(HFONT)CreateFontIndirectW(&lfTmpW);
         SendMessage(hWndFontButton, WM_SETFONT, (WPARAM)hPrintFont, TRUE);
-        bFontChanged=TRUE;
       }
     }
     else if (LOWORD(wParam) == IDOK)
@@ -6239,7 +6231,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
 
       bPrintFontEnable=SendMessage(hWndFontCheck, BM_GETCHECK, 0, 0);
       memcpy(&lfPrintFontW, &lfTmpW, sizeof(LOGFONTW));
-      if (bFontChanged) bPrintFontChanged=TRUE;
+      bPrintFontChanged=TRUE;
 
       dwPrintColor=0;
       if (SendMessage(hWndColorTextCheck, BM_GETCHECK, 0, 0) == BST_CHECKED)
