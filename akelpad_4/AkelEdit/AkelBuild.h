@@ -369,6 +369,7 @@ typedef struct {
   int nTabWidth;
   int nTabStop;
   WORD *lpCharWidths;
+  HSTACK hFoldsStack;
   HSTACK hUndoStack;
   AEUNDOITEM *lpCurrentUndo;
   AEUNDOITEM *lpSavePoint;
@@ -488,9 +489,6 @@ typedef struct _AKELEDIT {
   BOOL bCaretVisible;
   BOOL bFocus;
   int nAltChar;
-
-  //Fold
-  HSTACK hFoldsStack;
 
   //Notification
   DWORD dwNotifyFlags;

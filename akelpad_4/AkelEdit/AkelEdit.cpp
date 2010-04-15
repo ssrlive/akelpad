@@ -1531,6 +1531,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
           AE_ScrollEditWindow(ae, SB_VERT, nFirstVisiblePos);
         }
         InvalidateRect(ae->hWndEdit, NULL, TRUE);
+        AE_StackUpdateClones(ae);
       }
       return nResult;
     }
@@ -1553,7 +1554,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_GETFOLDSTACK)
     {
-      return (LRESULT)&ae->hFoldsStack;
+      return (LRESULT)&ae->ptxt->hFoldsStack;
     }
 
     //Window data
@@ -4882,7 +4883,7 @@ void AE_StackBitmapItemsFree(HSTACK *hStack)
 
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoint)
 {
-  AEFOLD *lpElement1=(AEFOLD *)ae->hFoldsStack.last;
+  AEFOLD *lpElement1=(AEFOLD *)ae->ptxt->hFoldsStack.last;
   AEFOLD *lpElement2=NULL;
 
   while (lpElement1)
@@ -4894,7 +4895,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
 
     lpElement1=lpElement1->prev;
   }
-  AE_HeapStackInsertAfter(NULL, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEFOLD));
+  AE_HeapStackInsertAfter(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEFOLD));
 
   if (lpElement2)
   {
@@ -4930,7 +4931,7 @@ AEFOLD* AE_StackFoldGet(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
   AEFOLD *lpResult=NULL;
 
   if (!lpFold)
-    lpFold=(AEFOLD *)ae->hFoldsStack.first;
+    lpFold=(AEFOLD *)ae->ptxt->hFoldsStack.first;
 
   while (lpFold)
   {
@@ -4949,7 +4950,7 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, AEFOLD **lpFold, int nLine)
   AEFOLD *lpElement;
 
   if (!lpFold || !*lpFold)
-    lpElement=(AEFOLD *)ae->hFoldsStack.first;
+    lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
   else
     lpElement=*lpFold;
 
@@ -4977,14 +4978,14 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, AEFOLD **lpFold, int nLine)
     if (lpElement)
       *lpFold=lpElement;
     else
-      *lpFold=(AEFOLD *)ae->hFoldsStack.last;
+      *lpFold=(AEFOLD *)ae->ptxt->hFoldsStack.last;
   }
   return FALSE;
 }
 
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
   int nResult=0;
 
   while (lpElement)
@@ -5020,7 +5021,7 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
   }
   else
   {
-    AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+    AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
 
     while (lpElement)
     {
@@ -5037,7 +5038,7 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
 
 void AE_StackFoldUpdate(AKELEDIT *ae)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
   AEFOLD *lpElementNext;
 
   while (lpElement)
@@ -5053,7 +5054,7 @@ void AE_StackFoldUpdate(AKELEDIT *ae)
 
 BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
 
   while (lpElement)
   {
@@ -5069,12 +5070,12 @@ void AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
 {
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
-  AE_HeapStackDelete(NULL, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last, (stack *)lpFold);
+  AE_HeapStackDelete(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last, (stack *)lpFold);
 }
 
 void AE_StackFoldFree(AKELEDIT *ae)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
 
   while (lpElement)
   {
@@ -5082,7 +5083,7 @@ void AE_StackFoldFree(AKELEDIT *ae)
     AE_StackPointDelete(ae, lpElement->lpMaxPoint);
     lpElement=lpElement->next;
   }
-  AE_HeapStackClear(NULL, (stack **)&ae->hFoldsStack.first, (stack **)&ae->hFoldsStack.last);
+  AE_HeapStackClear(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last);
 }
 
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
@@ -11534,7 +11535,7 @@ void AE_HideSelection(AKELEDIT *ae, BOOL bHide)
 
 int AE_LineFromVPos(AKELEDIT *ae, int nVPos)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
   int nLastMinLine=-1;
   int nLastMaxLine=-1;
   int nCalcLine;
@@ -11561,7 +11562,7 @@ int AE_LineFromVPos(AKELEDIT *ae, int nVPos)
 
 int AE_VPosFromLine(AKELEDIT *ae, int nLine)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->hFoldsStack.first;
+  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
   int nLastMinLine=-1;
   int nLastMaxLine=-1;
   int nCalcLine=nLine;
