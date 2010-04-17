@@ -229,7 +229,7 @@ BOOL AE_UnregisterClassA(HINSTANCE hInstance)
     DeleteObject(hAkelEditBitmapMCenterTopBottom);
     hAkelEditBitmapMCenterTopBottom=NULL;
   }
-  AE_HighlightDeleteThemeAll(NULL);
+  AE_HighlightDeleteThemeAll();
   AE_StackFontItemsFreeA(&hAkelEditFontsStackA);
   AE_StackBitmapItemsFree(&hAkelEditBitmapsStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
@@ -261,7 +261,7 @@ BOOL AE_UnregisterClassW(HINSTANCE hInstance)
     DeleteObject(hAkelEditBitmapMCenterTopBottom);
     hAkelEditBitmapMCenterTopBottom=NULL;
   }
-  AE_HighlightDeleteThemeAll(NULL);
+  AE_HighlightDeleteThemeAll();
   AE_StackFontItemsFreeW(&hAkelEditFontsStackW);
   AE_StackBitmapItemsFree(&hAkelEditBitmapsStack);
   AE_StackWindowFree(&hAkelEditWindowsStack);
@@ -1672,13 +1672,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       wchar_t wszThemeName[MAX_PATH];
 
       MultiByteToWideChar(CP_ACP, 0, pThemeName, -1, wszThemeName, MAX_PATH);
-      return (LRESULT)AE_HighlightCreateTheme(ae, wszThemeName);
+      return (LRESULT)AE_HighlightCreateTheme(wszThemeName);
     }
     if (uMsg == AEM_HLCREATETHEMEW)
     {
       wchar_t *wpThemeName=(wchar_t *)lParam;
 
-      return (LRESULT)AE_HighlightCreateTheme(ae, wpThemeName);
+      return (LRESULT)AE_HighlightCreateTheme(wpThemeName);
     }
     if (uMsg == AEM_HLGETTHEMEA)
     {
@@ -1688,7 +1688,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       if (!pThemeName)
         return (LRESULT)ae->popt->lpActiveTheme;
       MultiByteToWideChar(CP_ACP, 0, pThemeName, -1, wszThemeName, MAX_PATH);
-      return (LRESULT)AE_HighlightGetTheme(ae, wszThemeName);
+      return (LRESULT)AE_HighlightGetTheme(wszThemeName);
     }
     if (uMsg == AEM_HLGETTHEMEW)
     {
@@ -1696,7 +1696,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
 
       if (!wpThemeName)
         return (LRESULT)ae->popt->lpActiveTheme;
-      return (LRESULT)AE_HighlightGetTheme(ae, wpThemeName);
+      return (LRESULT)AE_HighlightGetTheme(wpThemeName);
     }
     if (uMsg == AEM_HLGETTHEMENAMEA)
     {
@@ -1733,7 +1733,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
 
-      return AE_HighlightIsThemeExists(ae, lpTheme);
+      return AE_HighlightIsThemeExists(lpTheme);
     }
     if (uMsg == AEM_HLSETTHEME)
     {
@@ -1748,9 +1748,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AETHEMEITEMW *lpTheme=(AETHEMEITEMW *)wParam;
 
       if (lpTheme)
-        AE_HighlightDeleteTheme(ae, lpTheme);
+      {
+        AE_HighlightDeleteTheme(lpTheme);
+        AE_HighlightUnsetTheme(lpTheme);
+      }
       else
-        AE_HighlightDeleteThemeAll(ae);
+      {
+        AE_HighlightDeleteThemeAll();
+        AE_HighlightUnsetTheme(NULL);
+      }
       return 0;
     }
     if (uMsg == AEM_HLADDDELIMITERA)
@@ -1759,7 +1765,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEDELIMITEMA *lpDelimSrc=(AEDELIMITEMA *)lParam;
       AEDELIMITEMW *lpDelimDst;
 
-      if (lpDelimDst=AE_HighlightInsertDelimiter(ae, lpTheme, lpDelimSrc->nDelimiterLen))
+      if (lpDelimDst=AE_HighlightInsertDelimiter(lpTheme, lpDelimSrc->nDelimiterLen))
       {
         if (lpDelimDst->pDelimiter=(wchar_t *)AE_HeapAlloc(NULL, 0, lpDelimSrc->nDelimiterLen * sizeof(wchar_t) + 2))
           MultiByteToWideChar(CP_ACP, 0, lpDelimSrc->pDelimiter, lpDelimSrc->nDelimiterLen + 1, lpDelimDst->pDelimiter, lpDelimSrc->nDelimiterLen + 1);
@@ -1778,7 +1784,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEDELIMITEMW *lpDelimSrc=(AEDELIMITEMW *)lParam;
       AEDELIMITEMW *lpDelimDst;
 
-      if (lpDelimDst=AE_HighlightInsertDelimiter(ae, lpTheme, lpDelimSrc->nDelimiterLen))
+      if (lpDelimDst=AE_HighlightInsertDelimiter(lpTheme, lpDelimSrc->nDelimiterLen))
       {
         if (lpDelimDst->pDelimiter=(wchar_t *)AE_HeapAlloc(NULL, 0, lpDelimSrc->nDelimiterLen * sizeof(wchar_t) + 2))
           AE_memcpy(lpDelimDst->pDelimiter, lpDelimSrc->pDelimiter, lpDelimSrc->nDelimiterLen * sizeof(wchar_t) + 2);
@@ -1797,9 +1803,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEDELIMITEMW *lpDelim=(AEDELIMITEMW *)lParam;
 
       if (lpDelim)
-        AE_HighlightDeleteDelimiter(ae, lpTheme, lpDelim);
+        AE_HighlightDeleteDelimiter(lpTheme, lpDelim);
       else
-        AE_HighlightDeleteDelimiterAll(ae, lpTheme);
+        AE_HighlightDeleteDelimiterAll(lpTheme);
       return 0;
     }
     if (uMsg == AEM_HLADDWORDA)
@@ -1814,7 +1820,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       else
         nWordLen=0;
 
-      if (lpWordDst=AE_HighlightInsertWord(ae, lpTheme, nWordLen))
+      if (lpWordDst=AE_HighlightInsertWord(lpTheme, nWordLen))
       {
         if (lpWordDst->pWord=(wchar_t *)AE_HeapAlloc(NULL, 0, lpWordSrc->nWordLen * sizeof(wchar_t) + 2))
           MultiByteToWideChar(CP_ACP, 0, lpWordSrc->pWord, lpWordSrc->nWordLen + 1, lpWordDst->pWord, lpWordSrc->nWordLen + 1);
@@ -1839,7 +1845,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       else
         nWordLen=0;
 
-      if (lpWordDst=AE_HighlightInsertWord(ae, lpTheme, nWordLen))
+      if (lpWordDst=AE_HighlightInsertWord(lpTheme, nWordLen))
       {
         if (lpWordDst->pWord=(wchar_t *)AE_HeapAlloc(NULL, 0, lpWordSrc->nWordLen * sizeof(wchar_t) + 2))
           AE_memcpy(lpWordDst->pWord, lpWordSrc->pWord, lpWordSrc->nWordLen * sizeof(wchar_t) + 2);
@@ -1858,9 +1864,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEWORDITEMW *lpWord=(AEWORDITEMW *)lParam;
 
       if (lpWord)
-        AE_HighlightDeleteWord(ae, lpTheme, lpWord);
+        AE_HighlightDeleteWord(lpTheme, lpWord);
       else
-        AE_HighlightDeleteWordAll(ae, lpTheme);
+        AE_HighlightDeleteWordAll(lpTheme);
       return 0;
     }
     if (uMsg == AEM_HLADDQUOTEA)
@@ -1869,7 +1875,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEQUOTEITEMA *lpQuoteSrc=(AEQUOTEITEMA *)lParam;
       AEQUOTEITEMW *lpQuoteDst;
 
-      if (lpQuoteDst=AE_HighlightInsertQuote(ae, lpTheme))
+      if (lpQuoteDst=AE_HighlightInsertQuote(lpTheme))
       {
         if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteStartLen * sizeof(wchar_t) + 2))
           MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1, lpQuoteDst->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1);
@@ -1914,7 +1920,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEQUOTEITEMW *lpQuoteSrc=(AEQUOTEITEMW *)lParam;
       AEQUOTEITEMW *lpQuoteDst;
 
-      if (lpQuoteDst=AE_HighlightInsertQuote(ae, lpTheme))
+      if (lpQuoteDst=AE_HighlightInsertQuote(lpTheme))
       {
         if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteStartLen * sizeof(wchar_t) + 2))
           AE_memcpy(lpQuoteDst->pQuoteStart, lpQuoteSrc->pQuoteStart, lpQuoteSrc->nQuoteStartLen * sizeof(wchar_t) + 2);
@@ -1959,9 +1965,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEQUOTEITEMW *lpQuote=(AEQUOTEITEMW *)lParam;
 
       if (lpQuote)
-        AE_HighlightDeleteQuote(ae, lpTheme, lpQuote);
+        AE_HighlightDeleteQuote(lpTheme, lpQuote);
       else
-        AE_HighlightDeleteQuoteAll(ae, lpTheme);
+        AE_HighlightDeleteQuoteAll(lpTheme);
       return 0;
     }
     if (uMsg == AEM_HLADDMARKTEXTA)
@@ -1970,7 +1976,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEMARKTEXTITEMA *lpMarkTextSrc=(AEMARKTEXTITEMA *)lParam;
       AEMARKTEXTITEMW *lpMarkTextDst;
 
-      if (lpMarkTextDst=AE_HighlightInsertMarkText(ae, lpTheme))
+      if (lpMarkTextDst=AE_HighlightInsertMarkText(lpTheme))
       {
         if (lpMarkTextDst->pMarkText=(wchar_t *)AE_HeapAlloc(NULL, 0, lpMarkTextSrc->nMarkTextLen * sizeof(wchar_t) + 2))
           MultiByteToWideChar(CP_ACP, 0, lpMarkTextSrc->pMarkText, lpMarkTextSrc->nMarkTextLen + 1, lpMarkTextDst->pMarkText, lpMarkTextSrc->nMarkTextLen + 1);
@@ -1989,7 +1995,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEMARKTEXTITEMW *lpMarkTextSrc=(AEMARKTEXTITEMW *)lParam;
       AEMARKTEXTITEMW *lpMarkTextDst;
 
-      if (lpMarkTextDst=AE_HighlightInsertMarkText(ae, lpTheme))
+      if (lpMarkTextDst=AE_HighlightInsertMarkText(lpTheme))
       {
         if (lpMarkTextDst->pMarkText=(wchar_t *)AE_HeapAlloc(NULL, 0, lpMarkTextSrc->nMarkTextLen * sizeof(wchar_t) + 2))
           AE_memcpy(lpMarkTextDst->pMarkText, lpMarkTextSrc->pMarkText, lpMarkTextSrc->nMarkTextLen * sizeof(wchar_t) + 2);
@@ -2008,9 +2014,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEMARKTEXTITEMW *lpMarkText=(AEMARKTEXTITEMW *)lParam;
 
       if (lpMarkText)
-        AE_HighlightDeleteMarkText(ae, lpTheme, lpMarkText);
+        AE_HighlightDeleteMarkText(lpTheme, lpMarkText);
       else
-        AE_HighlightDeleteMarkTextAll(ae, lpTheme);
+        AE_HighlightDeleteMarkTextAll(lpTheme);
       return 0;
     }
     if (uMsg == AEM_HLADDMARKRANGE)
@@ -2019,7 +2025,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEMARKRANGEITEM *lpMarkRangeSrc=(AEMARKRANGEITEM *)lParam;
       AEMARKRANGEITEM *lpMarkRangeDst;
 
-      if (lpMarkRangeDst=AE_HighlightInsertMarkRange(ae, lpTheme))
+      if (lpMarkRangeDst=AE_HighlightInsertMarkRange(lpTheme))
       {
         lpMarkRangeDst->crMarkRange=lpMarkRangeSrc->crMarkRange;
         lpMarkRangeDst->dwFlags=lpMarkRangeSrc->dwFlags;
@@ -2035,9 +2041,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       AEMARKRANGEITEM *lpMarkRange=(AEMARKRANGEITEM *)lParam;
 
       if (lpMarkRange)
-        AE_HighlightDeleteMarkRange(ae, lpTheme, lpMarkRange);
+        AE_HighlightDeleteMarkRange(lpTheme, lpMarkRange);
       else
-        AE_HighlightDeleteMarkRangeAll(ae, lpTheme);
+        AE_HighlightDeleteMarkRangeAll(lpTheme);
       return 0;
     }
   }
@@ -8939,7 +8945,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
   return lpWordElement;
 }
 
-AETHEMEITEMW* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName)
+AETHEMEITEMW* AE_HighlightCreateTheme(wchar_t *wpThemeName)
 {
   AETHEMEITEMW *lpElement=NULL;
 
@@ -8953,7 +8959,7 @@ AETHEMEITEMW* AE_HighlightCreateTheme(AKELEDIT *ae, wchar_t *wpThemeName)
   return lpElement;
 }
 
-AETHEMEITEMW* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName)
+AETHEMEITEMW* AE_HighlightGetTheme(wchar_t *wpThemeName)
 {
   AETHEMEITEMW *lpElement=(AETHEMEITEMW *)hAkelEditThemesStack.first;
 
@@ -8967,7 +8973,7 @@ AETHEMEITEMW* AE_HighlightGetTheme(AKELEDIT *ae, wchar_t *wpThemeName)
   return NULL;
 }
 
-BOOL AE_HighlightIsThemeExists(AKELEDIT *ae, AETHEMEITEMW *aeti)
+BOOL AE_HighlightIsThemeExists(AETHEMEITEMW *aeti)
 {
   AETHEMEITEMW *lpElement=(AETHEMEITEMW *)hAkelEditThemesStack.first;
 
@@ -8981,38 +8987,47 @@ BOOL AE_HighlightIsThemeExists(AKELEDIT *ae, AETHEMEITEMW *aeti)
   return FALSE;
 }
 
-void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEMW *aeti)
+void AE_HighlightDeleteTheme(AETHEMEITEMW *aeti)
 {
-  if (aeti == ae->popt->lpActiveTheme) ae->popt->lpActiveTheme=NULL;
-
-  AE_HighlightDeleteDelimiterAll(ae, aeti);
-  AE_HighlightDeleteWordAll(ae, aeti);
-  AE_HighlightDeleteQuoteAll(ae, aeti);
-  AE_HighlightDeleteMarkTextAll(ae, aeti);
-  AE_HighlightDeleteMarkRangeAll(ae, aeti);
+  AE_HighlightDeleteDelimiterAll(aeti);
+  AE_HighlightDeleteWordAll(aeti);
+  AE_HighlightDeleteQuoteAll(aeti);
+  AE_HighlightDeleteMarkTextAll(aeti);
+  AE_HighlightDeleteMarkRangeAll(aeti);
   AE_HeapStackDelete(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last, (stack *)aeti);
 }
 
-void AE_HighlightDeleteThemeAll(AKELEDIT *ae)
+void AE_HighlightDeleteThemeAll()
 {
   AETHEMEITEMW *lpElement=(AETHEMEITEMW *)hAkelEditThemesStack.first;
 
-  if (ae) ae->popt->lpActiveTheme=NULL;
-
   while (lpElement)
   {
-    AE_HighlightDeleteDelimiterAll(ae, lpElement);
-    AE_HighlightDeleteWordAll(ae, lpElement);
-    AE_HighlightDeleteQuoteAll(ae, lpElement);
-    AE_HighlightDeleteMarkTextAll(ae, lpElement);
-    AE_HighlightDeleteMarkRangeAll(ae, lpElement);
+    AE_HighlightDeleteDelimiterAll(lpElement);
+    AE_HighlightDeleteWordAll(lpElement);
+    AE_HighlightDeleteQuoteAll(lpElement);
+    AE_HighlightDeleteMarkTextAll(lpElement);
+    AE_HighlightDeleteMarkRangeAll(lpElement);
 
     lpElement=lpElement->next;
   }
   AE_HeapStackClear(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last);
 }
 
-AEDELIMITEMW* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, int nDelimiterLen)
+void AE_HighlightUnsetTheme(AETHEMEITEMW *aeti)
+{
+  AKELEDIT *lpElement=(AKELEDIT *)hAkelEditWindowsStack.first;
+
+  while (lpElement)
+  {
+    if (!aeti || lpElement->popt->lpActiveTheme == aeti)
+      lpElement->popt->lpActiveTheme=NULL;
+
+    lpElement=lpElement->next;
+  }
+}
+
+AEDELIMITEMW* AE_HighlightInsertDelimiter(AETHEMEITEMW *aeti, int nDelimiterLen)
 {
   AEDELIMITEMW *lpElement=NULL;
 
@@ -9020,13 +9035,13 @@ AEDELIMITEMW* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, int 
   return lpElement;
 }
 
-void AE_HighlightDeleteDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, AEDELIMITEMW *aedi)
+void AE_HighlightDeleteDelimiter(AETHEMEITEMW *aeti, AEDELIMITEMW *aedi)
 {
   if (aedi->pDelimiter) AE_HeapFree(NULL, 0, (LPVOID)aedi->pDelimiter);
   AE_HeapStackDelete(NULL, (stack **)&aeti->hDelimiterStack.first, (stack **)&aeti->hDelimiterStack.last, (stack *)aedi);
 }
 
-void AE_HighlightDeleteDelimiterAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
+void AE_HighlightDeleteDelimiterAll(AETHEMEITEMW *aeti)
 {
   AEDELIMITEMW *lpElement=(AEDELIMITEMW *)aeti->hDelimiterStack.first;
 
@@ -9039,7 +9054,7 @@ void AE_HighlightDeleteDelimiterAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   AE_HeapStackClear(NULL, (stack **)&aeti->hDelimiterStack.first, (stack **)&aeti->hDelimiterStack.last);
 }
 
-AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordLen)
+AEWORDITEMW* AE_HighlightInsertWord(AETHEMEITEMW *aeti, int nWordLen)
 {
   AEWORDITEMW *lpTmp;
   AEWORDITEMW *lpElement=NULL;
@@ -9070,7 +9085,7 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
   return lpElement;
 }
 
-void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi)
+void AE_HighlightDeleteWord(AETHEMEITEMW *aeti, AEWORDITEMW *aewi)
 {
   if (aeti->hWordStack.lpWordLens[aewi->nWordLen] == (int)aewi)
   {
@@ -9084,7 +9099,7 @@ void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi)
   AE_HeapStackDelete(NULL, (stack **)&aeti->hWordStack.first, (stack **)&aeti->hWordStack.last, (stack *)aewi);
 }
 
-void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
+void AE_HighlightDeleteWordAll(AETHEMEITEMW *aeti)
 {
   AEWORDITEMW *lpElement=(AEWORDITEMW *)aeti->hWordStack.first;
 
@@ -9098,7 +9113,7 @@ void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   AE_memset(aeti->hWordStack.lpWordLens, 0, MAX_PATH * sizeof(int));
 }
 
-AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti)
+AEQUOTEITEMW* AE_HighlightInsertQuote(AETHEMEITEMW *aeti)
 {
   AEQUOTEITEMW *lpElement=NULL;
 
@@ -9106,7 +9121,7 @@ AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti)
   return lpElement;
 }
 
-void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *aeqi)
+void AE_HighlightDeleteQuote(AETHEMEITEMW *aeti, AEQUOTEITEMW *aeqi)
 {
   if (aeqi->pQuoteStart) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteStart);
   if (aeqi->pQuoteEnd) AE_HeapFree(NULL, 0, (LPVOID)aeqi->pQuoteEnd);
@@ -9115,7 +9130,7 @@ void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *aeq
   AE_HeapStackDelete(NULL, (stack **)&aeti->hQuoteStack.first, (stack **)&aeti->hQuoteStack.last, (stack *)aeqi);
 }
 
-void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
+void AE_HighlightDeleteQuoteAll(AETHEMEITEMW *aeti)
 {
   AEQUOTEITEMW *lpElement=(AEQUOTEITEMW *)aeti->hQuoteStack.first;
 
@@ -9131,7 +9146,7 @@ void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   AE_HeapStackClear(NULL, (stack **)&aeti->hQuoteStack.first, (stack **)&aeti->hQuoteStack.last);
 }
 
-AEMARKTEXTITEMW* AE_HighlightInsertMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti)
+AEMARKTEXTITEMW* AE_HighlightInsertMarkText(AETHEMEITEMW *aeti)
 {
   AEMARKTEXTITEMW *lpElement=NULL;
 
@@ -9139,13 +9154,13 @@ AEMARKTEXTITEMW* AE_HighlightInsertMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti)
   return lpElement;
 }
 
-void AE_HighlightDeleteMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKTEXTITEMW *aemti)
+void AE_HighlightDeleteMarkText(AETHEMEITEMW *aeti, AEMARKTEXTITEMW *aemti)
 {
   if (aemti->pMarkText) AE_HeapFree(NULL, 0, (LPVOID)aemti->pMarkText);
   AE_HeapStackDelete(NULL, (stack **)&aeti->hMarkTextStack.first, (stack **)&aeti->hMarkTextStack.last, (stack *)aemti);
 }
 
-void AE_HighlightDeleteMarkTextAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
+void AE_HighlightDeleteMarkTextAll(AETHEMEITEMW *aeti)
 {
   AEMARKTEXTITEMW *lpElement=(AEMARKTEXTITEMW *)aeti->hMarkTextStack.first;
 
@@ -9158,7 +9173,7 @@ void AE_HighlightDeleteMarkTextAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   AE_HeapStackClear(NULL, (stack **)&aeti->hMarkTextStack.first, (stack **)&aeti->hMarkTextStack.last);
 }
 
-AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti)
+AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AETHEMEITEMW *aeti)
 {
   AEMARKRANGEITEM *lpElement=NULL;
 
@@ -9166,12 +9181,12 @@ AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti)
   return lpElement;
 }
 
-void AE_HighlightDeleteMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKRANGEITEM *aemri)
+void AE_HighlightDeleteMarkRange(AETHEMEITEMW *aeti, AEMARKRANGEITEM *aemri)
 {
   AE_HeapStackDelete(NULL, (stack **)&aeti->hMarkRangeStack.first, (stack **)&aeti->hMarkRangeStack.last, (stack *)aemri);
 }
 
-void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
+void AE_HighlightDeleteMarkRangeAll(AETHEMEITEMW *aeti)
 {
   AE_HeapStackClear(NULL, (stack **)&aeti->hMarkRangeStack.first, (stack **)&aeti->hMarkRangeStack.last);
 }
@@ -10429,7 +10444,7 @@ void AE_Paint(AKELEDIT *ae)
       //Check that active highlight theme exists
       if (ae->popt->lpActiveTheme)
       {
-        if (!AE_HighlightIsThemeExists(ae, ae->popt->lpActiveTheme))
+        if (!AE_HighlightIsThemeExists(ae->popt->lpActiveTheme))
           ae->popt->lpActiveTheme=NULL;
       }
       to.dwPrintFlags=AEPRN_COLOREDTEXT|AEPRN_COLOREDBACKGROUND;
