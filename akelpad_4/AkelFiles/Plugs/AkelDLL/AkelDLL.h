@@ -966,25 +966,25 @@ typedef struct _NSIZE {
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
 #define IDM_NONMENU_REDETECT            4408  //Redetect code page of the current file
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_ANSI       4409  //Reopen file as ANSI
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_OEM        4410  //Reopen file as OEM
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_UTF16LE    4411  //Reopen file as UTF16LE
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_UTF16BE    4412  //Reopen file as UTF16BE
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_UTF8       4413  //Reopen file as UTF8
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_KOIR       4414  //Reopen file as KOI-R
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_SAVEAS_ANSI         4415  //Save file as ANSI
                                               //Return Value: see ESD_* defines
@@ -1051,19 +1051,19 @@ typedef struct _NSIZE {
                                               //6001 + n  activate language n
                                               //Return Value: zero
                                               //
-#define IDM_POPUP_OPENAS                7001  //Open as last popup menu item
-                                              //7001 + n  open as popup menu item
-                                              //Return Value: zero
+#define IDM_POPUP_OPENAS                7001  //Reopen file in first codepage of codepage list
+                                              //7001 + n  Reopen file in codepage n
+                                              //Return Value: see EOD_* defines
                                               //
-#define IDM_POPUP_SAVEAS                8001  //Save as last popup menu item
-                                              //8001 + n  save as popup menu item
+#define IDM_POPUP_SAVEAS                8001  //Save file in first codepage of codepage list
+                                              //8001 + n  Save file in codepage n
                                               //Return Value: see ESD_* defines
-                                              //
-                                              //Example:
-                                              //SendMessage(pd->hMainWnd, WM_COMMAND, IDM_FILE_NEW, 0);
 #define IDM_SELECTWINDOW                10019 //Select window dialog (MDI)
                                               //Return Value: zero
                                               //
+                                              //
+                                              //Example of usage:
+                                              //SendMessage(pd->hMainWnd, WM_COMMAND, IDM_FILE_NEW, 0);
 
 //// AkelPad main window WM_USER messages
 
