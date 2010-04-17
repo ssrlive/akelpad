@@ -41,20 +41,20 @@ BEGIN
         MENUITEM "Now&e okno\tCtrl+Shift+N",    IDM_FILE_CREATENEW
         MENUITEM "&Otwórz...\tCtrl+O",          IDM_FILE_OPEN
         MENUITEM "O&twórz ponownie\tF5",        IDM_FILE_REOPEN
-        MENUITEM "Zapi&sz\tCtrl+S",             IDM_FILE_SAVE
+        MENUITEM "&Zapisz\tCtrl+S",             IDM_FILE_SAVE
         MENUITEM "Z&apisz jako...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Zapisz &wszystkie\tCtrl+Alt+F2", IDM_FILE_SAVEALL
         MENUITEM SEPARATOR
         MENUITEM "&Ustawienia strony...",       IDM_FILE_PAGESETUP
-        MENUITEM "Pod&gl¹d wydruku...",         IDM_FILE_PRINTPREVIEW
+        MENUITEM "&Podgl¹d wydruku...",         IDM_FILE_PRINTPREVIEW
         MENUITEM "&Drukuj...\tCtrl+P",          IDM_FILE_PRINT
         MENUITEM SEPARATOR
-        POPUP "Ostatnio otwarte &pliki"
+        POPUP "O&statnio otwarte pliki"
         BEGIN
             MENUITEM "_",                           IDM_RECENT_FILES
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Zakoñcz\tEsc",               IDM_FILE_EXIT
+        MENUITEM "Za&koñcz\tEsc",               IDM_FILE_EXIT
     END
     POPUP "&Edycja"
     BEGIN
@@ -71,7 +71,7 @@ BEGIN
         MENUITEM "Z&najdŸ nastêpny poni¿ej\tF3", IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Zn&ajdŸ nastêpny powy¿ej\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "Za&mieñ...\tCtrl+R",          IDM_EDIT_REPLACE
-        MENUITEM "PrzejdŸ d&o wiersza...\tCtrl+G", IDM_EDIT_GOTOLINE
+        MENUITEM "PrzejdŸ d&o...\tCtrl+G",        IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
         MENUITEM "Ws&taw znak\tCtrl+I",         IDM_EDIT_INSERTCHAR
         MENUITEM "Wstaw &datê\tCtrl+D",         IDM_EDIT_INSERTDATE
@@ -442,9 +442,9 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Uwzglêdnij wielkoœæ &liter",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "Ca³e wyrazy",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "Ca³e &wyrazy",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
-    CONTROL         "Sekwencje Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Sekwencje &Esc",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     GROUPBOX        "Kierunek",IDC_STATIC,121,27,66,58
     CONTROL         "W &dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -453,7 +453,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,126,48,60,10
     CONTROL         "Od &pocz¹tku",IDC_SEARCH_BEGINNING,"Button",
                     BS_AUTORADIOBUTTON,126,59,60,10
-    CONTROL         "W zaznaczeniu",IDC_SEARCH_INSEL,"Button",
+    CONTROL         "W zaznaczeni&u",IDC_SEARCH_INSEL,"Button",
                     BS_AUTORADIOBUTTON,126,70,60,10
     CONTROL         "Wszystkie pliki",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,87,60,10
@@ -478,9 +478,9 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Uwzglêdnij wielkoœæ &liter",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
-    CONTROL         "Ca³e wyrazy",IDC_SEARCH_WHOLEWORD,"Button",
+    CONTROL         "Ca³e &wyrazy",IDC_SEARCH_WHOLEWORD,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
-    CONTROL         "Sekwencje Esc",IDC_SEARCH_ESCAPESEQ,"Button",
+    CONTROL         "Sekwencje &Esc",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     GROUPBOX        "Kierunek",IDC_STATIC,121,41,66,58
     CONTROL         "W &dó³",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
@@ -489,7 +489,7 @@ BEGIN
                     BS_AUTORADIOBUTTON,126,62,60,10
     CONTROL         "Od &pocz¹tku",IDC_SEARCH_BEGINNING,"Button",
                     BS_AUTORADIOBUTTON,126,73,60,10
-    CONTROL         "W zaznaczeniu",IDC_SEARCH_INSEL,"Button",
+    CONTROL         "W zaznaczeni&u",IDC_SEARCH_INSEL,"Button",
                     BS_AUTORADIOBUTTON,126,84,60,10
     CONTROL         "Wszystkie pliki",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,101,60,10
@@ -509,7 +509,7 @@ END
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 151, 85
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "PrzejdŸ do wiersza"
+CAPTION "PrzejdŸ do"
 FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Numer:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
