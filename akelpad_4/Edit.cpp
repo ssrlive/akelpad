@@ -13244,7 +13244,6 @@ void LanguageMenuW()
 
 void FillMenuPopupCodepageA()
 {
-  int nCurCodePageIndex=-1;
   int i;
 
   if (lpCodepageList)
@@ -13255,8 +13254,6 @@ void FillMenuPopupCodepageA()
     for (i=0; lpCodepageList[i]; ++i)
     {
       GetCodePageNameA(lpCodepageList[i], buf, BUFFER_SIZE);
-      if (lpCodepageList[i] == nCurrentCodePage)
-        nCurCodePageIndex=i;
 
       if (!i)
       {
@@ -13269,14 +13266,11 @@ void FillMenuPopupCodepageA()
         InsertMenuA(hPopupSaveCodepage, i + 1, MF_BYPOSITION|MF_STRING, IDM_POPUP_SAVEAS + i, buf);
       }
     }
-    CheckMenuRadioItem(hPopupOpenCodepage, 0, nCodepageListLen - 1, nCurCodePageIndex, MF_BYPOSITION);
-    CheckMenuRadioItem(hPopupSaveCodepage, 0, nCodepageListLen - 1, nCurCodePageIndex, MF_BYPOSITION);
   }
 }
 
 void FillMenuPopupCodepageW()
 {
-  int nCurCodePageIndex=-1;
   int i;
 
   if (lpCodepageList)
@@ -13287,8 +13281,6 @@ void FillMenuPopupCodepageW()
     for (i=0; lpCodepageList[i]; ++i)
     {
       GetCodePageNameW(lpCodepageList[i], wbuf, BUFFER_SIZE);
-      if (lpCodepageList[i] == nCurrentCodePage)
-        nCurCodePageIndex=i;
 
       if (!i)
       {
@@ -13301,8 +13293,6 @@ void FillMenuPopupCodepageW()
         InsertMenuW(hPopupSaveCodepage, i + 1, MF_BYPOSITION|MF_STRING, IDM_POPUP_SAVEAS + i, wbuf);
       }
     }
-    CheckMenuRadioItem(hPopupOpenCodepage, 0, nCodepageListLen - 1, nCurCodePageIndex, MF_BYPOSITION);
-    CheckMenuRadioItem(hPopupSaveCodepage, 0, nCodepageListLen - 1, nCurCodePageIndex, MF_BYPOSITION);
   }
 }
 

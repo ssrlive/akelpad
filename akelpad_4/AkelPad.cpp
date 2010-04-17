@@ -2658,6 +2658,15 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         bMenuPopupCodepage=FALSE;
         FillMenuPopupCodepageA();
       }
+
+      //Check radio item
+      {
+        int nCurrentCodePageIndex;
+
+        nCurrentCodePageIndex=CodepageListFind(lpCodepageList, nCurrentCodePage);
+        CheckMenuRadioItem(hPopupOpenCodepage, 0, nCodepageListLen - 1, nCurrentCodePageIndex, MF_BYPOSITION);
+        CheckMenuRadioItem(hPopupSaveCodepage, 0, nCodepageListLen - 1, nCurrentCodePageIndex, MF_BYPOSITION);
+      }
     }
   }
   else if (uMsg == WM_MOVE)
@@ -4591,6 +4600,15 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         bMenuPopupCodepage=FALSE;
         FillMenuPopupCodepageW();
+      }
+
+      //Check radio item
+      {
+        int nCurrentCodePageIndex;
+
+        nCurrentCodePageIndex=CodepageListFind(lpCodepageList, nCurrentCodePage);
+        CheckMenuRadioItem(hPopupOpenCodepage, 0, nCodepageListLen - 1, nCurrentCodePageIndex, MF_BYPOSITION);
+        CheckMenuRadioItem(hPopupSaveCodepage, 0, nCodepageListLen - 1, nCurrentCodePageIndex, MF_BYPOSITION);
       }
     }
   }
