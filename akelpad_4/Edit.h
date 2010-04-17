@@ -88,16 +88,6 @@
 #define PRINT_FOOTERA              "- %n[1] -"
 #define PRINT_FOOTERW             L"- %n[1] -"
 
-//Menu positions
-#define MENU_FILE_POSITION              0
-#define MENU_EDIT_POSITION              1
-#define MENU_VIEW_POSITION              2
-#define MENU_OPTIONS_POSITION           3
-#define MENU_MDI_POSITION               4
-#define MENU_ABOUT_POSITION             5
-#define MENU_FILE_RECENTFILES_POSITION  12
-#define MENU_VIEW_LANGUAGE_POSITION     8
-
 //Open file dialog
 #define IDC_OFN_EDIT           1152
 
@@ -448,8 +438,8 @@ BOOL CALLBACK EnumThreadProcA(HWND hwnd, LPARAM lParam);
 BOOL CALLBACK EnumThreadProcW(HWND hwnd, LPARAM lParam);
 BOOL DoFileOpenA();
 BOOL DoFileOpenW();
-void DoFileReopenAsA(DWORD dwFlags, int nCodePage, BOOL bBOM);
-void DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM);
+int DoFileReopenAsA(DWORD dwFlags, int nCodePage, BOOL bBOM);
+int DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM);
 BOOL DoFileSaveA();
 BOOL DoFileSaveW();
 BOOL DoFileSaveAsA();
