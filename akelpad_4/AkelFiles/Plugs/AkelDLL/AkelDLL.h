@@ -121,6 +121,26 @@
 #define STATUS_CODEPAGE       4
 #define STATUS_PARTS          5
 
+//Main menu
+#define MENU_FILE_POSITION              0
+#define MENU_EDIT_POSITION              1
+#define MENU_VIEW_POSITION              2
+#define MENU_OPTIONS_POSITION           3
+#define MENU_MDI_POSITION               4
+#define MENU_ABOUT_POSITION             5
+
+//Popup menu
+#define MENU_POPUP_EDIT       0
+#define MENU_POPUP_VIEW       1
+#define MENU_POPUP_CODEPAGE   2
+#define MENU_POPUP_HEADLINE   3
+
+//Submenu position
+#define MENU_FILE_RECENTFILES     12
+#define MENU_VIEW_LANGUAGE        8
+#define MENU_POPUP_CODEPAGE_OPEN  0
+#define MENU_POPUP_CODEPAGE_SAVE  2
+
 //INI value types
 #define INI_DWORD           1
 #define INI_BINARY          2
