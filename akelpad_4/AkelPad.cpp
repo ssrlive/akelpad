@@ -2751,7 +2751,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) >= IDM_POPUP_OPENAS && LOWORD(wParam) < IDM_POPUP_OPENAS + nCodepageListLen)
     {
-      return DoFileReopenAsA(OD_ADT_DETECT_BOM, lpCodepageList[LOWORD(wParam) - IDM_POPUP_OPENAS], FALSE);
+      return DoFileReopenAsA(OD_ADT_DETECT_BOM, lpCodepageList[LOWORD(wParam) - IDM_POPUP_OPENAS], TRUE);
     }
     else if (LOWORD(wParam) >= IDM_POPUP_SAVEAS && LOWORD(wParam) < IDM_POPUP_SAVEAS + nCodepageListLen)
     {
@@ -4694,7 +4694,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) >= IDM_POPUP_OPENAS && LOWORD(wParam) < IDM_POPUP_OPENAS + nCodepageListLen)
     {
-      return DoFileReopenAsW(OD_ADT_DETECT_BOM, lpCodepageList[LOWORD(wParam) - IDM_POPUP_OPENAS], FALSE);
+      return DoFileReopenAsW(OD_ADT_DETECT_BOM, lpCodepageList[LOWORD(wParam) - IDM_POPUP_OPENAS], TRUE);
     }
     else if (LOWORD(wParam) >= IDM_POPUP_SAVEAS && LOWORD(wParam) < IDM_POPUP_SAVEAS + nCodepageListLen)
     {
