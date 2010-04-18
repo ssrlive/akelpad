@@ -1,6 +1,8 @@
 
 AkelPad 4.4.4 ()
 ----------------------------
+Changed: plugins merged. Clean program installation recommended.
+
 Added: parameter "PaintOptions" - defines, some draw text settings. Sets by the sum of members:
          1  Paint text by group of characters (default is character by character).
             With this flag some text recognition programs could start to work, printer
@@ -9,6 +11,7 @@ Added: parameter "PaintOptions" - defines, some draw text settings. Sets by the 
          2  Disable draw new line as space in selection.
        By default: 0.
 Added: possibility in "Go to line..." dialog to go to a specified column in line.
+Added: reopening of the new, not saved document now leads to a current encoding change.
 
 Fixed: saving non-active document.
 Fixed: selection didn't updated during switching panes (split window).
