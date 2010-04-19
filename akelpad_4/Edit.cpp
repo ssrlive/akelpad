@@ -5667,26 +5667,25 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       bCodePageEnable=SendMessage(hWndCodePageCheck, BM_GETCHECK, 0, 0);
       bNewLineEnable=SendMessage(hWndNewLineCheck, BM_GETCHECK, 0, 0);
 
-      if (bCodePageEnable || bNewLineEnable)
-      {
+      if (!bCodePageEnable && !bNewLineEnable)
+        EnableWindow(hWndOK, FALSE);
+      else
         EnableWindow(hWndOK, TRUE);
-        EnableWindow(hWndCodePageList, bCodePageEnable);
-        EnableWindow(hWndBOM, bCodePageEnable);
+      EnableWindow(hWndCodePageList, bCodePageEnable);
+      EnableWindow(hWndBOM, bCodePageEnable);
 
-        if (bCodePageEnable)
+      if (bCodePageEnable)
+      {
+        if (nCodePage != CP_UNICODE_UCS2_LE &&
+            nCodePage != CP_UNICODE_UCS2_BE &&
+            nCodePage != CP_UNICODE_UTF8)
         {
-          if (nCodePage != CP_UNICODE_UCS2_LE &&
-              nCodePage != CP_UNICODE_UCS2_BE &&
-              nCodePage != CP_UNICODE_UTF8)
-          {
-            EnableWindow(hWndBOM, FALSE);
-          }
+          EnableWindow(hWndBOM, FALSE);
         }
-        EnableWindow(hWndNewLineWin, bNewLineEnable);
-        EnableWindow(hWndNewLineUnix, bNewLineEnable);
-        EnableWindow(hWndNewLineMac, bNewLineEnable);
       }
-      else EnableWindow(hWndOK, FALSE);
+      EnableWindow(hWndNewLineWin, bNewLineEnable);
+      EnableWindow(hWndNewLineUnix, bNewLineEnable);
+      EnableWindow(hWndNewLineMac, bNewLineEnable);
     }
     else if (LOWORD(wParam) == IDC_SAVEALLAS_CODEPAGE_LIST && HIWORD(wParam) == CBN_SELCHANGE)
     {
@@ -5735,12 +5734,12 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
               if (!szCurrentFile[0])
               {
-                if (!DoFileSaveAsA(nCodePage, bBOM))
+                if (!DoFileSaveAsA(bCodePageEnable?nCodePage:nCurrentCodePage, bCodePageEnable?bBOM:bCurrentBOM))
                   break;
               }
               else
               {
-                if (SaveDocumentA(hWndEdit, szCurrentFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
+                if (SaveDocumentA(hWndEdit, szCurrentFile, bCodePageEnable?nCodePage:nCurrentCodePage, bCodePageEnable?bBOM:bCurrentBOM, SD_UPDATE) != ESD_SUCCESS)
                   break;
               }
             }
@@ -5764,12 +5763,12 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
               if (!wszCurrentFile[0])
               {
-                if (!DoFileSaveAsW(nCodePage, bBOM))
+                if (!DoFileSaveAsW(bCodePageEnable?nCodePage:nCurrentCodePage, bCodePageEnable?bBOM:bCurrentBOM))
                   break;
               }
               else
               {
-                if (SaveDocumentW(hWndEdit, wszCurrentFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
+                if (SaveDocumentW(hWndEdit, wszCurrentFile, bCodePageEnable?nCodePage:nCurrentCodePage, bCodePageEnable?bBOM:bCurrentBOM, SD_UPDATE) != ESD_SUCCESS)
                   break;
               }
             }
