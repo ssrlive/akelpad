@@ -418,6 +418,12 @@ typedef struct _ASSOCICONW {
 } ASSOCICONW;
 
 typedef struct {
+  int nCodePage;
+  BOOL bBOM;
+  BOOL bResult;
+} DIALOGCODEPAGE;
+
+typedef struct {
   HWND *lpWnd;   //Control window
   DWORD dwType;  //See DRS_* defines
 } DIALOGRESIZE;
@@ -442,8 +448,10 @@ int DoFileReopenAsA(DWORD dwFlags, int nCodePage, BOOL bBOM);
 int DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM);
 BOOL DoFileSaveA();
 BOOL DoFileSaveW();
-BOOL DoFileSaveAsA();
-BOOL DoFileSaveAsW();
+BOOL DoFileSaveAsA(int nDialogCodePage, BOOL bDialogBOM);
+BOOL DoFileSaveAsW(int nDialogCodePage, BOOL bDialogBOM);
+void DoFileSaveAllAsA();
+void DoFileSaveAllAsW();
 BOOL DoFilePageSetupA(HWND hWndOwner);
 BOOL DoFilePageSetupW(HWND hWndOwner);
 int DoFilePrintA(HWND hWnd, BOOL bSilent);
@@ -556,6 +564,7 @@ void FileStreamOut(FILESTREAMDATA *lpData);
 DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
 BOOL OpenDirectoryA(char *pPath, BOOL bSubDir);
 BOOL OpenDirectoryW(wchar_t *wpPath, BOOL bSubDir);
+BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

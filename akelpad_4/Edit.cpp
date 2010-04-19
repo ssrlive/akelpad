@@ -872,19 +872,20 @@ int DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM)
 BOOL DoFileSaveA()
 {
   if (!bModified && szCurrentFile[0] && FileExistsA(szCurrentFile)) return TRUE;
-  if (!szCurrentFile[0]) return DoFileSaveAsA();
+  if (!szCurrentFile[0]) return DoFileSaveAsA(-1, -1);
   return !SaveDocumentA(hWndEdit, szCurrentFile, nCurrentCodePage, bCurrentBOM, SD_UPDATE);
 }
 
 BOOL DoFileSaveW()
 {
   if (!bModified && wszCurrentFile[0] && FileExistsW(wszCurrentFile)) return TRUE;
-  if (!wszCurrentFile[0]) return DoFileSaveAsW();
+  if (!wszCurrentFile[0]) return DoFileSaveAsW(-1, -1);
   return !SaveDocumentW(hWndEdit, wszCurrentFile, nCurrentCodePage, bCurrentBOM, SD_UPDATE);
 }
 
-BOOL DoFileSaveAsA()
+BOOL DoFileSaveAsA(int nDialogCodePage, BOOL bDialogBOM)
 {
+  DIALOGCODEPAGE dc={nDialogCodePage, bDialogBOM};
   char szDefaultExt[MAX_PATH];
 
   bSaveDlg=TRUE;
@@ -892,6 +893,7 @@ BOOL DoFileSaveAsA()
 
   ofnA.lStructSize=sizeof(OPENFILENAMEA);
   ofnA.lpstrDefExt=szDefaultExt;
+  ofnW.lCustData=(LPARAM)&dc;
   ofnA.Flags&=~OFN_ALLOWMULTISELECT;
   lstrcpynA(szFileBuffer, szCurrentFile, MAX_PATH);
 
@@ -906,8 +908,9 @@ BOOL DoFileSaveAsA()
   return FALSE;
 }
 
-BOOL DoFileSaveAsW()
+BOOL DoFileSaveAsW(int nDialogCodePage, BOOL bDialogBOM)
 {
+  DIALOGCODEPAGE dc={nDialogCodePage, bDialogBOM};
   wchar_t wszDefaultExt[MAX_PATH];
 
   bSaveDlg=TRUE;
@@ -915,6 +918,7 @@ BOOL DoFileSaveAsW()
 
   ofnW.lStructSize=sizeof(OPENFILENAMEW);
   ofnW.lpstrDefExt=wszDefaultExt;
+  ofnW.lCustData=(LPARAM)&dc;
   ofnW.Flags&=~OFN_ALLOWMULTISELECT;
   lstrcpynW(wszFileBuffer, wszCurrentFile, MAX_PATH);
 
@@ -927,6 +931,16 @@ BOOL DoFileSaveAsW()
       return TRUE;
   }
   return FALSE;
+}
+
+void DoFileSaveAllAsA()
+{
+  API_DialogBoxA(hLangLib, MAKEINTRESOURCEA(IDD_SAVEALLAS), hMainWnd, (DLGPROC)SaveAllAsDlgProc);
+}
+
+void DoFileSaveAllAsW()
+{
+  API_DialogBoxW(hLangLib, MAKEINTRESOURCEW(IDD_SAVEALLAS), hMainWnd, (DLGPROC)SaveAllAsDlgProc);
 }
 
 BOOL DoFilePageSetupA(HWND hWndOwner)
@@ -5581,6 +5595,207 @@ BOOL OpenDirectoryW(wchar_t *wpPath, BOOL bSubDir)
   return TRUE;
 }
 
+BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndCodePageCheck;
+  static HWND hWndCodePageList;
+  static HWND hWndBOM;
+  static HWND hWndNewLineCheck;
+  static HWND hWndNewLineWin;
+  static HWND hWndNewLineUnix;
+  static HWND hWndNewLineMac;
+  static HWND hWndOK;
+  static BOOL bCodePageEnable=TRUE;
+  static BOOL bNewLineEnable=FALSE;
+  static int nNewLine=-1;
+  static int nCodePage=-1;
+  static BOOL bBOM;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
+    hWndCodePageCheck=GetDlgItem(hDlg, IDC_SAVEALLAS_CODEPAGE_CHECK);
+    hWndCodePageList=GetDlgItem(hDlg, IDC_SAVEALLAS_CODEPAGE_LIST);
+    hWndBOM=GetDlgItem(hDlg, IDC_SAVEALLAS_BOM);
+    hWndNewLineCheck=GetDlgItem(hDlg, IDC_SAVEALLAS_NEWLINE_CHECK);
+    hWndNewLineWin=GetDlgItem(hDlg, IDC_SAVEALLAS_NEWLINE_WIN);
+    hWndNewLineUnix=GetDlgItem(hDlg, IDC_SAVEALLAS_NEWLINE_UNIX);
+    hWndNewLineMac=GetDlgItem(hDlg, IDC_SAVEALLAS_NEWLINE_MAC);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+
+    if (nNewLine < 0)
+      nNewLine=nDefaultNewLine;
+    if (nCodePage < 0)
+      nCodePage=nDefaultCodePage;
+
+    if (bOldWindows)
+    {
+      FillComboboxCodepageA(hWndCodePageList, lpCodepageList);
+      SelectComboboxCodepageA(hWndCodePageList, nCodePage);
+    }
+    else
+    {
+      FillComboboxCodepageW(hWndCodePageList, lpCodepageList);
+      SelectComboboxCodepageW(hWndCodePageList, nCodePage);
+    }
+
+    if (nCodePage == CP_UNICODE_UCS2_LE ||
+        nCodePage == CP_UNICODE_UCS2_BE ||
+        nCodePage == CP_UNICODE_UTF8)
+    {
+      if (bBOM)
+        SendMessage(hWndBOM, BM_SETCHECK, BST_CHECKED, 0);
+    }
+    if (bCodePageEnable)
+      SendMessage(hWndCodePageCheck, BM_SETCHECK, BST_CHECKED, 0);
+    if (bNewLineEnable)
+      SendMessage(hWndNewLineCheck, BM_SETCHECK, BST_CHECKED, 0);
+    if (nNewLine == NEWLINE_WIN)
+      SendMessage(hWndNewLineWin, BM_SETCHECK, BST_CHECKED, 0);
+    else if (nNewLine == NEWLINE_UNIX)
+      SendMessage(hWndNewLineUnix, BM_SETCHECK, BST_CHECKED, 0);
+    else if (nNewLine == NEWLINE_MAC)
+      SendMessage(hWndNewLineMac, BM_SETCHECK, BST_CHECKED, 0);
+
+    SendMessage(hDlg, WM_COMMAND, IDC_SAVEALLAS_CODEPAGE_CHECK, 0);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_SAVEALLAS_CODEPAGE_CHECK ||
+        LOWORD(wParam) == IDC_SAVEALLAS_NEWLINE_CHECK)
+    {
+      bCodePageEnable=SendMessage(hWndCodePageCheck, BM_GETCHECK, 0, 0);
+      bNewLineEnable=SendMessage(hWndNewLineCheck, BM_GETCHECK, 0, 0);
+
+      if (bCodePageEnable || bNewLineEnable)
+      {
+        EnableWindow(hWndOK, TRUE);
+        EnableWindow(hWndCodePageList, bCodePageEnable);
+        EnableWindow(hWndBOM, bCodePageEnable);
+
+        if (bCodePageEnable)
+        {
+          if (nCodePage != CP_UNICODE_UCS2_LE &&
+              nCodePage != CP_UNICODE_UCS2_BE &&
+              nCodePage != CP_UNICODE_UTF8)
+          {
+            EnableWindow(hWndBOM, FALSE);
+          }
+        }
+        EnableWindow(hWndNewLineWin, bNewLineEnable);
+        EnableWindow(hWndNewLineUnix, bNewLineEnable);
+        EnableWindow(hWndNewLineMac, bNewLineEnable);
+      }
+      else EnableWindow(hWndOK, FALSE);
+    }
+    else if (LOWORD(wParam) == IDC_SAVEALLAS_CODEPAGE_LIST && HIWORD(wParam) == CBN_SELCHANGE)
+    {
+      nCodePage=GetDlgItemInt(hDlg, IDC_SAVEALLAS_CODEPAGE_LIST, NULL, FALSE);
+
+      if (nCodePage != CP_UNICODE_UCS2_LE &&
+          nCodePage != CP_UNICODE_UCS2_BE &&
+          nCodePage != CP_UNICODE_UTF8)
+      {
+        SendMessage(hWndBOM, BM_SETCHECK, BST_UNCHECKED, 0);
+        EnableWindow(hWndBOM, FALSE);
+      }
+      else
+      {
+        EnableWindow(hWndBOM, TRUE);
+        SendMessage(hWndBOM, BM_SETCHECK, BST_CHECKED, 0);
+      }
+    }
+    else if (LOWORD(wParam) == IDOK)
+    {
+      bBOM=SendMessage(hWndBOM, BM_GETCHECK, 0, 0);
+
+      if (SendMessage(hWndNewLineWin, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nNewLine=NEWLINE_WIN;
+      else if (SendMessage(hWndNewLineUnix, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nNewLine=NEWLINE_UNIX;
+      else if (SendMessage(hWndNewLineMac, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nNewLine=NEWLINE_MAC;
+
+      EndDialog(hDlg, 0);
+
+      //Save documents
+      if (hWndFrameActive || !bMDI)
+      {
+        if (bOldWindows)
+        {
+          HWND hWndFrameInit=hWndFrameActive;
+
+          do
+          {
+            if ((bNewLineEnable && (nNewLine != nCurrentNewLine)) ||
+                (bCodePageEnable && (nCodePage != nCurrentCodePage || bBOM != bCurrentBOM || !szCurrentFile[0] || bModified || !FileExistsA(szCurrentFile))))
+            {
+              if (bNewLineEnable && nNewLine != nCurrentNewLine)
+                SetNewLineStatusA(hWndEdit, nNewLine, AENL_INPUT|AENL_OUTPUT, TRUE);
+
+              if (!szCurrentFile[0])
+              {
+                if (!DoFileSaveAsA(nCodePage, bBOM))
+                  break;
+              }
+              else
+              {
+                if (SaveDocumentA(hWndEdit, szCurrentFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
+                  break;
+              }
+            }
+            if (!bMDI) break;
+
+            SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, FALSE);
+          }
+          while (hWndFrameActive != hWndFrameInit);
+        }
+        else
+        {
+          HWND hWndFrameInit=hWndFrameActive;
+
+          do
+          {
+            if ((bNewLineEnable && (nNewLine != nCurrentNewLine)) ||
+                (bCodePageEnable && (nCodePage != nCurrentCodePage || bBOM != bCurrentBOM || !wszCurrentFile[0] || bModified || !FileExistsW(wszCurrentFile))))
+            {
+              if (bNewLineEnable && nNewLine != nCurrentNewLine)
+                SetNewLineStatusW(hWndEdit, nNewLine, AENL_INPUT|AENL_OUTPUT, TRUE);
+
+              if (!wszCurrentFile[0])
+              {
+                if (!DoFileSaveAsW(nCodePage, bBOM))
+                  break;
+              }
+              else
+              {
+                if (SaveDocumentW(hWndEdit, wszCurrentFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
+                  break;
+              }
+            }
+            if (!bMDI) break;
+
+            SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, FALSE);
+          }
+          while (hWndFrameActive != hWndFrameInit);
+        }
+      }
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  else if (uMsg == WM_CLOSE)
+  {
+    PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+    return TRUE;
+  }
+  return FALSE;
+}
+
 
 //// Print
 
@@ -8271,12 +8486,17 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
   if (uMsg == WM_INITDIALOG)
   {
+    OPENFILENAMEA *ofnData=(OPENFILENAMEA *)lParam;
+
     if (bMDI) hDlgEdit=GetDlgItem(GetParent(hDlg), IDC_OFN_EDIT);
     hWndCP=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
     hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
-    nCodePage=nCurrentCodePage;
+    if ((nCodePage=((DIALOGCODEPAGE *)ofnData->lCustData)->nCodePage) < 0)
+      nCodePage=nCurrentCodePage;
+    if ((bBOM=((DIALOGCODEPAGE *)ofnData->lCustData)->bBOM) < 0)
+      bBOM=bCurrentBOM;
     FillComboboxCodepageA(hWndCP, lpCodepageList);
     SelectComboboxCodepageA(hWndCP, nCodePage);
 
@@ -8290,16 +8510,12 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
       SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcFilePreview.top, SWP_NOMOVE|SWP_NOZORDER);
       SetWindowTextA(hWndAutodetect, "&BOM");
 
-      if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE || nCodePage == CP_UNICODE_UTF8)
-      {
-        SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bCurrentBOM, 0);
-        EnableWindow(hWndAutodetect, TRUE);
-      }
-      else
+      if (nCodePage != CP_UNICODE_UCS2_LE && nCodePage != CP_UNICODE_UCS2_BE && nCodePage != CP_UNICODE_UTF8)
       {
         SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)FALSE, 0);
         EnableWindow(hWndAutodetect, FALSE);
       }
+      else SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bBOM, 0);
     }
     else
     {
@@ -8425,15 +8641,15 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
       if (bSaveDlg)
       {
-        if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE || nCodePage == CP_UNICODE_UTF8)
-        {
-          EnableWindow(hWndAutodetect, TRUE);
-          SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)TRUE, 0);
-        }
-        else
+        if (nCodePage != CP_UNICODE_UCS2_LE && nCodePage != CP_UNICODE_UCS2_BE && nCodePage != CP_UNICODE_UTF8)
         {
           EnableWindow(hWndAutodetect, FALSE);
           SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)FALSE, 0);
+        }
+        else
+        {
+          EnableWindow(hWndAutodetect, TRUE);
+          SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)TRUE, 0);
         }
       }
       else
@@ -8488,12 +8704,17 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
   if (uMsg == WM_INITDIALOG)
   {
+    OPENFILENAMEW *ofnData=(OPENFILENAMEW *)lParam;
+
     if (bMDI) hDlgEdit=GetDlgItem(GetParent(hDlg), IDC_OFN_EDIT);
     hWndCP=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
     hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
-    nCodePage=nCurrentCodePage;
+    if ((nCodePage=((DIALOGCODEPAGE *)ofnData->lCustData)->nCodePage) < 0)
+      nCodePage=nCurrentCodePage;
+    if ((bBOM=((DIALOGCODEPAGE *)ofnData->lCustData)->bBOM) < 0)
+      bBOM=bCurrentBOM;
     FillComboboxCodepageW(hWndCP, lpCodepageList);
     SelectComboboxCodepageW(hWndCP, nCodePage);
 
@@ -8507,16 +8728,12 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
       SetWindowPos(hDlg, 0, 0, 0, rcDlg.right, rcFilePreview.top, SWP_NOMOVE|SWP_NOZORDER);
       SetWindowTextW(hWndAutodetect, L"&BOM");
 
-      if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE || nCodePage == CP_UNICODE_UTF8)
-      {
-        SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bCurrentBOM, 0);
-        EnableWindow(hWndAutodetect, TRUE);
-      }
-      else
+      if (nCodePage != CP_UNICODE_UCS2_LE && nCodePage != CP_UNICODE_UCS2_BE && nCodePage != CP_UNICODE_UTF8)
       {
         SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)FALSE, 0);
         EnableWindow(hWndAutodetect, FALSE);
       }
+      else SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bBOM, 0);
     }
     else
     {
@@ -8642,15 +8859,15 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
       if (bSaveDlg)
       {
-        if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE || nCodePage == CP_UNICODE_UTF8)
-        {
-          EnableWindow(hWndAutodetect, TRUE);
-          SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)TRUE, 0);
-        }
-        else
+        if (nCodePage != CP_UNICODE_UCS2_LE && nCodePage != CP_UNICODE_UCS2_BE && nCodePage != CP_UNICODE_UTF8)
         {
           EnableWindow(hWndAutodetect, FALSE);
           SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)FALSE, 0);
+        }
+        else
+        {
+          EnableWindow(hWndAutodetect, TRUE);
+          SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)TRUE, 0);
         }
       }
       else
@@ -10239,7 +10456,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
       if (ftflags & AEFR_ALLFILES)
       {
-        HWND hWndTmp=hWndFrameActive;
+        HWND hWndFrameInit=hWndFrameActive;
         int nChanges=0;
         int nChangedFiles=0;
 
@@ -10264,7 +10481,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
             }
             SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, FALSE);
           }
-          while (hWndFrameActive != hWndTmp);
+          while (hWndFrameActive != hWndFrameInit);
 
           if (!bReplaceAllAndClose)
           {
@@ -10306,7 +10523,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
               break;
             }
           }
-          while (hWndFrameActive != hWndTmp);
+          while (hWndFrameActive != hWndFrameInit);
 
           if (nResult == -1)
           {
@@ -10652,7 +10869,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
       if (ftflags & AEFR_ALLFILES)
       {
-        HWND hWndTmp=hWndFrameActive;
+        HWND hWndFrameInit=hWndFrameActive;
         int nChanges=0;
         int nChangedFiles=0;
 
@@ -10677,7 +10894,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
             }
             SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, FALSE);
           }
-          while (hWndFrameActive != hWndTmp);
+          while (hWndFrameActive != hWndFrameInit);
 
           if (!bReplaceAllAndClose)
           {
@@ -10719,7 +10936,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
               break;
             }
           }
-          while (hWndFrameActive != hWndTmp);
+          while (hWndFrameActive != hWndFrameInit);
 
           if (nResult == -1)
           {

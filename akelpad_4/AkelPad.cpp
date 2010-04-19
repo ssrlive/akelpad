@@ -1628,6 +1628,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (!bMDI)
     {
       DeleteMenu(hMainMenu, IDM_FILE_SAVEALL, MF_BYCOMMAND);
+      DeleteMenu(hMainMenu, IDM_FILE_SAVEALLAS, MF_BYCOMMAND);
       DeleteMenu(hMainMenu, IDM_OPTIONS_SINGLEOPEN_PROGRAM, MF_BYCOMMAND);
       DeleteMenu(hMainMenu, MENU_MDI_POSITION, MF_BYPOSITION);
       DrawMenuBar(hWnd);
@@ -2783,7 +2784,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEAS)
     {
-      return DoFileSaveAsA();
+      return DoFileSaveAsA(-1, -1);
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEALL)
     {
@@ -2793,14 +2794,14 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else
       {
-        HWND hWndTmp=hWndFrameActive;
+        HWND hWndFrameInit=hWndFrameActive;
 
         do
         {
           if (!DoFileSaveA()) return FALSE;
           SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, FALSE);
         }
-        while (hWndFrameActive != hWndTmp);
+        while (hWndFrameActive != hWndFrameInit);
 
         return TRUE;
       }
@@ -2825,18 +2826,22 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (bMDI)
       {
-        HWND hWndTmp=hWndFrameActive;
+        HWND hWndFrameInit=hWndFrameActive;
 
         while (1)
         {
           SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, FALSE);
-          if (hWndFrameActive == hWndTmp) break;
+          if (hWndFrameActive == hWndFrameInit) break;
 
           SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
           if (!bFileExitError) return FALSE;
         }
         return TRUE;
       }
+    }
+    else if (LOWORD(wParam) == IDM_FILE_SAVEALLAS)
+    {
+      DoFileSaveAllAsA();
     }
     else if (LOWORD(wParam) == IDM_FILE_PAGESETUP)
     {
@@ -3571,6 +3576,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (!bMDI)
     {
       DeleteMenu(hMainMenu, IDM_FILE_SAVEALL, MF_BYCOMMAND);
+      DeleteMenu(hMainMenu, IDM_FILE_SAVEALLAS, MF_BYCOMMAND);
       DeleteMenu(hMainMenu, IDM_OPTIONS_SINGLEOPEN_PROGRAM, MF_BYCOMMAND);
       DeleteMenu(hMainMenu, MENU_MDI_POSITION, MF_BYPOSITION);
       DrawMenuBar(hWnd);
@@ -4726,7 +4732,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEAS)
     {
-      return DoFileSaveAsW();
+      return DoFileSaveAsW(-1, -1);
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEALL)
     {
@@ -4736,14 +4742,14 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else
       {
-        HWND hWndTmp=hWndFrameActive;
+        HWND hWndFrameInit=hWndFrameActive;
 
         do
         {
           if (!DoFileSaveW()) return FALSE;
           SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, FALSE);
         }
-        while (hWndFrameActive != hWndTmp);
+        while (hWndFrameActive != hWndFrameInit);
 
         return TRUE;
       }
@@ -4768,18 +4774,22 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (bMDI)
       {
-        HWND hWndTmp=hWndFrameActive;
+        HWND hWndFrameInit=hWndFrameActive;
 
         while (1)
         {
           SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, TRUE);
-          if (hWndFrameActive == hWndTmp) break;
+          if (hWndFrameActive == hWndFrameInit) break;
 
           SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
           if (!bFileExitError) return FALSE;
         }
         return TRUE;
       }
+    }
+    else if (LOWORD(wParam) == IDM_FILE_SAVEALLAS)
+    {
+      DoFileSaveAllAsW();
     }
     else if (LOWORD(wParam) == IDM_FILE_PAGESETUP)
     {
@@ -6218,6 +6228,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_FILE_SAVE,
                      IDM_FILE_SAVEAS,
                      IDM_FILE_SAVEALL,
+                     IDM_FILE_SAVEALLAS,
                      IDM_FILE_PAGESETUP,
                      IDM_FILE_PRINT,
                      IDM_FILE_PRINTPREVIEW,
@@ -6513,6 +6524,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_FILE_SAVE,
                      IDM_FILE_SAVEAS,
                      IDM_FILE_SAVEALL,
+                     IDM_FILE_SAVEALLAS,
                      IDM_FILE_PAGESETUP,
                      IDM_FILE_PRINT,
                      IDM_FILE_PRINTPREVIEW,

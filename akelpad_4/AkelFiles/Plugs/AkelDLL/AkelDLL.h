@@ -746,6 +746,9 @@ typedef struct _NSIZE {
 #define IDM_FILE_PRINTPREVIEW           4114  //Print preview dialog. lParam can be used to pass edit window handle.
                                               //Return Value: zero
                                               //
+#define IDM_FILE_SAVEALLAS              4115  //Save all as dialog.
+                                              //Return Value: zero
+                                              //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation
                                               //Return Value: zero
                                               //
