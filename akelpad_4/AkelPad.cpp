@@ -391,6 +391,7 @@ BOOL bMdiNoWindows=FALSE;
 BOOL bMdiClientRedraw=TRUE;
 HWND hTab=NULL;
 DWORD dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_NEXTPREV;
+BOOL bKeybLayoutMDI=FALSE;
 HSTACK hIconsStack={0};
 HIMAGELIST hImageList;
 HICON hIconEmpty;
@@ -6195,6 +6196,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bUrlDelimitersEnable=bUrlDelimitersEnable;
       lpWndFrameA->bWordDelimitersEnable=bWordDelimitersEnable;
       lpWndFrameA->bWrapDelimitersEnable=bWrapDelimitersEnable;
+      lpWndFrameA->nKeybLayout=-1;
       lpWndFrameA->bSplitWindow=FALSE;
       lpWndFrameA->hWndMaster=NULL;
       lpWndFrameA->hWndClone1=NULL;
@@ -6359,6 +6361,12 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->hWndClone2=hWndClone2;
             lpWndFrameA->hWndClone3=hWndClone3;
             lpWndFrameA->rcMasterWindow=rcMasterWindow;
+
+            //Remember keyboard layout
+            if (bKeybLayoutMDI)
+            {
+              lpWndFrameA->nKeybLayout=LOWORD(GetKeyboardLayout(0));
+            }
           }
         }
         //Handles
@@ -6410,6 +6418,16 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           hWndClone2=lpWndFrameA->hWndClone2;
           hWndClone3=lpWndFrameA->hWndClone3;
           rcMasterWindow=lpWndFrameA->rcMasterWindow;
+
+          //Activate keyboard layout
+          if (bKeybLayoutMDI)
+          {
+            if (lpWndFrameA->nKeybLayout != -1)
+            {
+              if (LOWORD(GetKeyboardLayout(0)) != lpWndFrameA->nKeybLayout)
+                ActivateKeyboardLayout((HKL)lpWndFrameA->nKeybLayout, 0);
+            }
+          }
         }
 
         //Update tabs
@@ -6491,6 +6509,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bUrlDelimitersEnable=bUrlDelimitersEnable;
       lpWndFrameW->bWordDelimitersEnable=bWordDelimitersEnable;
       lpWndFrameW->bWrapDelimitersEnable=bWrapDelimitersEnable;
+      lpWndFrameW->nKeybLayout=-1;
       lpWndFrameW->bSplitWindow=FALSE;
       lpWndFrameW->hWndMaster=NULL;
       lpWndFrameW->hWndClone1=NULL;
@@ -6655,6 +6674,12 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->hWndClone2=hWndClone2;
             lpWndFrameW->hWndClone3=hWndClone3;
             lpWndFrameW->rcMasterWindow=rcMasterWindow;
+
+            //Remember keyboard layout
+            if (bKeybLayoutMDI)
+            {
+              lpWndFrameW->nKeybLayout=LOWORD(GetKeyboardLayout(0));
+            }
           }
         }
         //Handles
@@ -6706,6 +6731,16 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           hWndClone2=lpWndFrameW->hWndClone2;
           hWndClone3=lpWndFrameW->hWndClone3;
           rcMasterWindow=lpWndFrameW->rcMasterWindow;
+
+          //Activate keyboard layout
+          if (bKeybLayoutMDI)
+          {
+            if (lpWndFrameW->nKeybLayout != -1)
+            {
+              if (LOWORD(GetKeyboardLayout(0)) != lpWndFrameW->nKeybLayout)
+                ActivateKeyboardLayout((HKL)lpWndFrameW->nKeybLayout, 0);
+            }
+          }
         }
 
         //Update tabs
