@@ -362,6 +362,7 @@ extern BOOL bMdiNoWindows;
 extern BOOL bMdiClientRedraw;
 extern HWND hTab;
 extern DWORD dwTabOptionsMDI;
+extern BOOL bKeybLayoutMDI;
 extern HSTACK hIconsStack;
 extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
@@ -3315,6 +3316,7 @@ void ReadOptionsA()
   if (bRegMDI)
   {
     ReadOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
+    ReadOptionA(hHandle, "KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD));
     ReadOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
     ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
@@ -3423,6 +3425,7 @@ void ReadOptionsW()
   if (bRegMDI)
   {
     ReadOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
+    ReadOptionW(hHandle, L"KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD));
     ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
     ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
@@ -3764,6 +3767,8 @@ BOOL SaveOptionsA()
   {
     if (!SaveOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
       goto Error;
+    if (!SaveOptionA(hHandle, "KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD)))
+      goto Error;
     if (!SaveOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
     if (!SaveOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
@@ -3968,6 +3973,8 @@ BOOL SaveOptionsW()
   if (bMDI)
   {
     if (!SaveOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD)))
       goto Error;
     if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
@@ -19341,56 +19348,35 @@ BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static HWND hWndReplaceAllAndClose;
-  static HWND hWndSaveInReadOnlyMsg;
-  BOOL bState;
-
-  if (uMsg == WM_INITDIALOG)
-  {
-    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
-    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
-
-    if (bReplaceAllAndClose)
-      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
-    if (bSaveInReadOnlyMsg)
-      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
-    PostMessage(hDlg, WM_COMMAND, IDC_OPTIONS_URL_SHOW, 0);
-  }
-  else if (uMsg == WM_NOTIFY)
-  {
-    if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
-    {
-      //ReplaceAll and close dialog
-      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
-
-      //Save in read only file message
-      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
-    }
-  }
   return FALSE;
 }
 
 BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndRememberKeybLayout;
   static HWND hWndReplaceAllAndClose;
   static HWND hWndSaveInReadOnlyMsg;
-  BOOL bState;
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
 
+    if (bKeybLayoutMDI)
+      SendMessage(hWndRememberKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
     if (bReplaceAllAndClose)
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveInReadOnlyMsg)
       SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
-    PostMessage(hDlg, WM_COMMAND, IDC_OPTIONS_URL_SHOW, 0);
   }
   else if (uMsg == WM_NOTIFY)
   {
     if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
+      //Remember keyboard layout for each tab (MDI)
+      bKeybLayoutMDI=SendMessage(hWndRememberKeybLayout, BM_GETCHECK, 0, 0);
+
       //ReplaceAll and close dialog
       bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
 

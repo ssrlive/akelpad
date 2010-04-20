@@ -384,6 +384,7 @@ typedef struct _WNDFRAMEA {
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters
   BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters
+  int nKeybLayout;                                    //Keyboard layout (4.x only)
   BOOL bSplitWindow;                                  //Edit window is splited (4.x only)
   HWND hWndMaster;                                    //Master window (4.x only)
   HWND hWndClone1;                                    //Clone window one (4.x only)
@@ -423,6 +424,7 @@ typedef struct _WNDFRAMEW {
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters
   BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters
+  int nKeybLayout;                                    //Keyboard layout (4.x only)
   BOOL bSplitWindow;                                  //Edit window is splited (4.x only)
   HWND hWndMaster;                                    //Master window (4.x only)
   HWND hWndClone1;                                    //Clone window one (4.x only)
