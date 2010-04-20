@@ -44,11 +44,11 @@ BEGIN
         MENUITEM "&Сохранить\tCtrl+S",          IDM_FILE_SAVE
         MENUITEM "Сохранить &как...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Сохранить &все\tCtrl+Alt+F2", IDM_FILE_SAVEALL
-        MENUITEM "Сохранить все как...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Сохранить вс&е как...",             IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Пара&метры страницы...",      IDM_FILE_PAGESETUP
-        MENUITEM "Предпро&смотр...",            IDM_FILE_PRINTPREVIEW
-        MENUITEM "&Печать...\tCtrl+P",          IDM_FILE_PRINT
+        MENUITEM "Предпросмо&тр...",            IDM_FILE_PRINTPREVIEW
+        MENUITEM "Пе&чать...\tCtrl+P",          IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "Последние &файлы"
         BEGIN
@@ -405,10 +405,10 @@ BEGIN
                     BS_AUTORADIOBUTTON,17,85,60,8
     CONTROL         "Unix",IDC_SAVEALLAS_NEWLINE_UNIX,"Button",
                     BS_AUTORADIOBUTTON,84,85,50,8
-    DEFPUSHBUTTON   "OK",IDOK,47,115,50,14,BS_CENTER
-    PUSHBUTTON      "Отмена",IDCANCEL,102,115,50,14,BS_CENTER
     CONTROL         "Mac",IDC_SAVEALLAS_NEWLINE_MAC,"Button",
                     BS_AUTORADIOBUTTON,140,85,40,8
+    DEFPUSHBUTTON   "OK",IDOK,47,115,50,14,BS_CENTER
+    PUSHBUTTON      "Отмена",IDCANCEL,102,115,50,14,BS_CENTER
 END
 
 IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 270
