@@ -100,11 +100,12 @@
 #define IDD_OPTIONS_GENERAL             2011
 #define IDD_OPTIONS_GENERAL_FILTER      2012
 #define IDD_OPTIONS_REGISTRY            2013
-#define IDD_OPTIONS_EDITOR              2014
-#define IDD_OPTIONS_ADVANCED            2015
-#define IDD_OPTIONS_ADVANCED1_3X        2016
-#define IDD_OPTIONS_ADVANCED2_3X        2017
-#define IDD_ABOUT                       2018
+#define IDD_OPTIONS_EDITOR1             2014
+#define IDD_OPTIONS_EDITOR2             2015
+#define IDD_OPTIONS_ADVANCED            2016
+#define IDD_OPTIONS_ADVANCED1_3X        2017
+#define IDD_OPTIONS_ADVANCED2_3X        2018
+#define IDD_ABOUT                       2019
 #define IDC_OFN_AUTODETECT              2501
 #define IDC_OFN_CODEPAGE                2502
 #define IDC_OFN_PREVIEW                 2503

@@ -1,7 +1,15 @@
 
 AkelPad 4.4.4 ()
 ----------------------------
-Changed: plugins merged. Clean program installation recommended.
+Changed: clean program installation recommended.
+         Plugins merged:
+           HighLight + CodeFold + AutoComplete -> Coder
+           CaptureClipboard + SelAutoCopy -> Clipboard
+           AutoSave + NoBOM -> SaveFile
+           NoSelEOL + SmartHome -> SmartSel
+           Caret + Justify + PlainText + PrintClassic -> RichTune
+         Plugins integrated in program:
+           SaveAllAs, LogDate, KeybLayout
 
 Added: dialog "Save all as" that allows you to save all open documents in a particular encoding and
        new line format (MDI).
