@@ -179,6 +179,8 @@ extern char szFilter[MAX_PATH];
 extern wchar_t wszFilter[MAX_PATH];
 extern char szHomeDir[MAX_PATH];
 extern wchar_t wszHomeDir[MAX_PATH];
+extern char szDefaultSaveExt[MAX_PATH];
+extern wchar_t wszDefaultSaveExt[MAX_PATH];
 extern BOOL bAutodetect;
 extern BOOL bSaveDlg;
 extern DWORD dwOfnFlags;
@@ -887,13 +889,11 @@ BOOL DoFileSaveW()
 BOOL DoFileSaveAsA(int nDialogCodePage, BOOL bDialogBOM)
 {
   DIALOGCODEPAGE dc={nDialogCodePage, bDialogBOM};
-  char szDefaultExt[MAX_PATH];
 
   bSaveDlg=TRUE;
-  API_LoadStringA(hLangLib, STR_DEFAULT_SAVE_EXT, szDefaultExt, MAX_PATH);
 
   ofnA.lStructSize=sizeof(OPENFILENAMEA);
-  ofnA.lpstrDefExt=szDefaultExt;
+  ofnA.lpstrDefExt=szDefaultSaveExt;
   ofnW.lCustData=(LPARAM)&dc;
   ofnA.Flags&=~OFN_ALLOWMULTISELECT;
   lstrcpynA(szFileBuffer, szCurrentFile, MAX_PATH);
@@ -912,13 +912,11 @@ BOOL DoFileSaveAsA(int nDialogCodePage, BOOL bDialogBOM)
 BOOL DoFileSaveAsW(int nDialogCodePage, BOOL bDialogBOM)
 {
   DIALOGCODEPAGE dc={nDialogCodePage, bDialogBOM};
-  wchar_t wszDefaultExt[MAX_PATH];
 
   bSaveDlg=TRUE;
-  API_LoadStringW(hLangLib, STR_DEFAULT_SAVE_EXT, wszDefaultExt, MAX_PATH);
 
   ofnW.lStructSize=sizeof(OPENFILENAMEW);
-  ofnW.lpstrDefExt=wszDefaultExt;
+  ofnW.lpstrDefExt=wszDefaultSaveExt;
   ofnW.lCustData=(LPARAM)&dc;
   ofnW.Flags&=~OFN_ALLOWMULTISELECT;
   lstrcpynW(wszFileBuffer, wszCurrentFile, MAX_PATH);
@@ -1577,12 +1575,12 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     {
       while (pStart < pEnd)
       {
-        while (pStart < pEnd && (AKD_strchr(szWordDelimiters, *pStart) || AKD_strchr(SENTENCE_DELIMITERSA, *pStart)))
+        while (pStart < pEnd && (AKD_strchr(szWordDelimiters, *pStart) || AKD_strchr(STR_SENTENCE_DELIMITERSA, *pStart)))
           ++pStart;
 
         if (pStart < pEnd) *pStart++=(char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pStart);
 
-        while (pStart < pEnd && !AKD_strchr(SENTENCE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && !AKD_strchr(STR_SENTENCE_DELIMITERSA, *pStart))
           *pStart++=(char)(WORD)(DWORD)CharLowerA((char *)(DWORD)(WORD)*pStart);
       }
     }
@@ -1689,12 +1687,12 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     {
       while (wpStart < wpEnd)
       {
-        while (wpStart < wpEnd && (AKD_wcschr(wszWordDelimiters, *wpStart) || AKD_wcschr(SENTENCE_DELIMITERSW, *wpStart)))
+        while (wpStart < wpEnd && (AKD_wcschr(wszWordDelimiters, *wpStart) || AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpStart)))
           ++wpStart;
 
         if (wpStart < wpEnd) *wpStart++=(wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStart);
 
-        while (wpStart < wpEnd && !AKD_wcschr(SENTENCE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && !AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpStart))
           *wpStart++=(wchar_t)(WORD)(DWORD)CharLowerW((wchar_t *)(DWORD)(WORD)*wpStart);
       }
     }
@@ -3301,6 +3299,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "FileTypesEdit", PO_STRING, szFileTypesEdit, MAX_PATH);
   ReadOptionA(hHandle, "FileTypesPrint", PO_STRING, szFileTypesPrint, MAX_PATH);
   ReadOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionA(hHandle, "DefaultSaveExt", PO_STRING, szDefaultSaveExt, MAX_PATH);
   ReadOptionA(hHandle, "PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD));
   ReadOptionA(hHandle, "PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
   ReadOptionA(hHandle, "PrintHeader", PO_STRING, szPrintHeader, MAX_PATH);
@@ -3410,6 +3409,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"FileTypesEdit", PO_STRING, wszFileTypesEdit, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionW(hHandle, L"DefaultSaveExt", PO_STRING, wszDefaultSaveExt, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD));
   ReadOptionW(hHandle, L"PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
   ReadOptionW(hHandle, L"PrintHeader", PO_STRING, wszPrintHeader, MAX_PATH * sizeof(wchar_t));
@@ -3750,6 +3750,8 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
     goto Error;
+  if (!SaveOptionA(hHandle, "DefaultSaveExt", PO_STRING, szDefaultSaveExt, lstrlenA(szDefaultSaveExt) + 1))
+    goto Error;
   if (!SaveOptionA(hHandle, "PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD)))
@@ -3956,6 +3958,8 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, lstrlenW(wszFileTypesPrint) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"DefaultSaveExt", PO_STRING, wszDefaultSaveExt, lstrlenW(wszDefaultSaveExt) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionW(hHandle, L"PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD)))
     goto Error;
@@ -7046,7 +7050,7 @@ BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber)
 
           if (nCount + nPageNumberLen <= MAX_PATH)
           {
-            lstrcpyA(pCount + nCount, szPageNumber);
+            xstrcpyA(pCount + nCount, szPageNumber);
             nCount+=nPageNumberLen;
           }
           else break;
@@ -7057,7 +7061,7 @@ BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber)
       {
         if (nCount + nFileLen <= MAX_PATH)
         {
-          lstrcpyA(pCount + nCount, pFile);
+          xstrcpyA(pCount + nCount, pFile);
           nCount+=nFileLen;
         }
         else break;
@@ -7163,7 +7167,7 @@ BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
 
           if (nCount + nPageNumberLen <= MAX_PATH)
           {
-            lstrcpyW(wpCount + nCount, wszPageNumber);
+            xstrcpyW(wpCount + nCount, wszPageNumber);
             nCount+=nPageNumberLen;
           }
           else break;
@@ -7174,7 +7178,7 @@ BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
       {
         if (nCount + nFileLen <= MAX_PATH)
         {
-          lstrcpyW(wpCount + nCount, wpFile);
+          xstrcpyW(wpCount + nCount, wpFile);
           nCount+=nFileLen;
         }
         else break;
@@ -9832,35 +9836,35 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   //Watermarks
   if (dwLangID == LANG_RUSSIAN)
   {
-    lstrcpyA(szANSIwatermark, "\xE0\xE1\xE2\xE5\xE8\xED\xEE\xEF\xF0\xF2\xC0\xC1\xC2\xC5\xC8\xCD\xCE\xCF\xD2");  //àáâåèíîïðòÀÁÂÅÈÍÎÏÒ
-    lstrcpyA(szOEMwatermark,  "\xAE\xA5\xA0\xA8\xAD\xE2\x8E\x45\x80\x88\x8D\x92\xB0\xB1\xB2\xB3\xBA\xDB");      //Character graphics simbols: \xB0\xB1\xB2\xB3\xBA\xDB
-    lstrcpyA(szKOIwatermark,  "\xC1\xC2\xD7\xC5\xC9\xCE\xCF\xD2\xD4\xE1\xE2\xF7\xE5\xE9\xEE\xEF\xF0\xF2\xF4");  //ÁÂ×ÅÉÎÏÒÔáâ÷åéîïðòô
-    lstrcpyA(szUTF8watermark, "\xD0\xD1");
+    xstrcpyA(szANSIwatermark, "\xE0\xE1\xE2\xE5\xE8\xED\xEE\xEF\xF0\xF2\xC0\xC1\xC2\xC5\xC8\xCD\xCE\xCF\xD2");  //àáâåèíîïðòÀÁÂÅÈÍÎÏÒ
+    xstrcpyA(szOEMwatermark,  "\xAE\xA5\xA0\xA8\xAD\xE2\x8E\x45\x80\x88\x8D\x92\xB0\xB1\xB2\xB3\xBA\xDB");      //Character graphics simbols: \xB0\xB1\xB2\xB3\xBA\xDB
+    xstrcpyA(szKOIwatermark,  "\xC1\xC2\xD7\xC5\xC9\xCE\xCF\xD2\xD4\xE1\xE2\xF7\xE5\xE9\xEE\xEF\xF0\xF2\xF4");  //ÁÂ×ÅÉÎÏÒÔáâ÷åéîïðòô
+    xstrcpyA(szUTF8watermark, "\xD0\xD1");
   }
   else if (dwLangID == LANG_ENGLISH)
   {
-    lstrcpyA(szOEMwatermark, "\xB0\xB1\xB2\xB3\xBA\xDB");
+    xstrcpyA(szOEMwatermark, "\xB0\xB1\xB2\xB3\xBA\xDB");
   }
   else if (dwLangID == LANG_TURKISH)
   {
-    lstrcpyA(szANSIwatermark, "\xFC\xFD\xFE");
-    lstrcpyA(szOEMwatermark,  "\x81\x87\x8D\xB0\xB1\xB2\xB3\xBA\xDB");  //Character graphics simbols: \xB0\xB1\xB2\xB3\xBA\xDB
-    lstrcpyA(szUTF8watermark, "\xB0\xB1\xBC\xC3\xC4\xC5");
+    xstrcpyA(szANSIwatermark, "\xFC\xFD\xFE");
+    xstrcpyA(szOEMwatermark,  "\x81\x87\x8D\xB0\xB1\xB2\xB3\xBA\xDB");  //Character graphics simbols: \xB0\xB1\xB2\xB3\xBA\xDB
+    xstrcpyA(szUTF8watermark, "\xB0\xB1\xBC\xC3\xC4\xC5");
   }
   else if (dwLangID == LANG_CHINESE)
   {
-    lstrcpyA(szANSIwatermark, "\xA1\xA2\xA3\xA4\xA5\xA6\xC0\xC1\xC2\xC3\xC4\xC5");
-    lstrcpyA(szUTF8watermark, "\xE3\xE4\xE5\xE6\xE7\xE8");
+    xstrcpyA(szANSIwatermark, "\xA1\xA2\xA3\xA4\xA5\xA6\xC0\xC1\xC2\xC3\xC4\xC5");
+    xstrcpyA(szUTF8watermark, "\xE3\xE4\xE5\xE6\xE7\xE8");
   }
   else if (dwLangID == LANG_JAPANESE)
   {
-    lstrcpyA(szANSIwatermark, "\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF");
-    lstrcpyA(szUTF8watermark, "\xE3");
+    xstrcpyA(szANSIwatermark, "\xC0\xC1\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xCB\xCC\xCD\xCE\xCF");
+    xstrcpyA(szUTF8watermark, "\xE3");
   }
   else if (dwLangID == LANG_KOREAN)
   {
-    lstrcpyA(szANSIwatermark, "\xC0\xC1\xC2\xC3");
-    lstrcpyA(szUTF8watermark, "\xEA\xEB\xEC\xED");
+    xstrcpyA(szANSIwatermark, "\xC0\xC1\xC2\xC3");
+    xstrcpyA(szUTF8watermark, "\xEA\xEB\xEC\xED");
   }
   else return FALSE;
 
@@ -11065,7 +11069,7 @@ void FillComboboxSearchA(HWND hWndFind, HWND hWndReplace)
     return;
 
   hWnd=hWndFind;
-  lstrcpyA(buf, "find%d");
+  xstrcpyA(buf, "find%d");
 
   Read:
   for (i=0; i < nSearchStrings; ++i)
@@ -11089,7 +11093,7 @@ void FillComboboxSearchA(HWND hWndFind, HWND hWndReplace)
   if (bReplaceDlg && hWnd != hWndReplace)
   {
     hWnd=hWndReplace;
-    lstrcpyA(buf, "replace%d");
+    xstrcpyA(buf, "replace%d");
     goto Read;
   }
   RegCloseKey(hKey);
@@ -11109,7 +11113,7 @@ void FillComboboxSearchW(HWND hWndFind, HWND hWndReplace)
     return;
 
   hWnd=hWndFind;
-  lstrcpyW(wbuf, L"find%d");
+  xstrcpyW(wbuf, L"find%d");
 
   ReadW:
   for (i=0; i < nSearchStrings; ++i)
@@ -11133,7 +11137,7 @@ void FillComboboxSearchW(HWND hWndFind, HWND hWndReplace)
   if (bReplaceDlg && hWnd != hWndReplace)
   {
     hWnd=hWndReplace;
-    lstrcpyW(wbuf, L"replace%d");
+    xstrcpyW(wbuf, L"replace%d");
     goto ReadW;
   }
   RegCloseKey(hKey);
@@ -11252,7 +11256,7 @@ void SaveComboboxSearchA(HWND hWndFind, HWND hWndReplace)
     return;
 
   hWnd=hWndFind;
-  lstrcpyA(buf, "find%d");
+  xstrcpyA(buf, "find%d");
 
   Save:
   for (i=0; i < nSearchStrings; ++i)
@@ -11276,7 +11280,7 @@ void SaveComboboxSearchA(HWND hWndFind, HWND hWndReplace)
   if (bReplaceDlg && hWnd != hWndReplace)
   {
     hWnd=hWndReplace;
-    lstrcpyA(buf, "replace%d");
+    xstrcpyA(buf, "replace%d");
     goto Save;
   }
   RegCloseKey(hKey);
@@ -11295,7 +11299,7 @@ void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace)
     return;
 
   hWnd=hWndFind;
-  lstrcpyW(wbuf, L"find%d");
+  xstrcpyW(wbuf, L"find%d");
 
   SaveW:
   for (i=0; i < nSearchStrings; ++i)
@@ -11319,7 +11323,7 @@ void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace)
   if (bReplaceDlg && hWnd != hWndReplace)
   {
     hWnd=hWndReplace;
-    lstrcpyW(wbuf, L"replace%d");
+    xstrcpyW(wbuf, L"replace%d");
     goto SaveW;
   }
   RegCloseKey(hKey);
@@ -13282,7 +13286,7 @@ int TrimPathA(char *szResult, char *pPath, int nMax)
 
   if (nLen <= nMax)
   {
-    lstrcpyA(szResult, pPath);
+    xstrcpyA(szResult, pPath);
     return nLen;
   }
 
@@ -13300,7 +13304,7 @@ int TrimPathA(char *szResult, char *pPath, int nMax)
       return nMax;
     }
   }
-  lstrcpyA(szResult, "...");
+  xstrcpyA(szResult, "...");
   lstrcatA(szResult, pEnd - nMax + 3);
   return nMax;
 }
@@ -13314,7 +13318,7 @@ int TrimPathW(wchar_t *wszResult, wchar_t *wpPath, int nMax)
 
   if (nLen <= nMax)
   {
-    lstrcpyW(wszResult, wpPath);
+    xstrcpyW(wszResult, wpPath);
     return nLen;
   }
 
@@ -13332,7 +13336,7 @@ int TrimPathW(wchar_t *wszResult, wchar_t *wpPath, int nMax)
       return nMax;
     }
   }
-  lstrcpyW(wszResult, L"...");
+  xstrcpyW(wszResult, L"...");
   lstrcatW(wszResult, wpEnd - nMax + 3);
   return nMax;
 }
@@ -19033,7 +19037,7 @@ BOOL CALLBACK OptionsEditor2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
     {
-      EscapeDataToEscapeStringW(WORD_DELIMITERSW, (wchar_t *)buf);
+      EscapeDataToEscapeStringW(STR_WORD_DELIMITERSW, (wchar_t *)buf);
       WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
       SetWindowTextA(hWndWordDelimiters, buf2);
       return TRUE;
@@ -19046,7 +19050,7 @@ BOOL CALLBACK OptionsEditor2DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WRAP_DELIMITERS_RESET)
     {
-      EscapeDataToEscapeStringW(WRAP_DELIMITERSW, (wchar_t *)buf);
+      EscapeDataToEscapeStringW(STR_WRAP_DELIMITERSW, (wchar_t *)buf);
       WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
       SetWindowTextA(hWndWrapDelimiters, buf2);
       return TRUE;
@@ -19253,7 +19257,7 @@ BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
     {
-      EscapeDataToEscapeStringW(WORD_DELIMITERSW, wbuf);
+      EscapeDataToEscapeStringW(STR_WORD_DELIMITERSW, wbuf);
       SetWindowTextW(hWndWordDelimiters, wbuf);
       return TRUE;
     }
@@ -19265,7 +19269,7 @@ BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WRAP_DELIMITERS_RESET)
     {
-      EscapeDataToEscapeStringW(WRAP_DELIMITERSW, wbuf);
+      EscapeDataToEscapeStringW(STR_WRAP_DELIMITERSW, wbuf);
       SetWindowTextW(hWndWrapDelimiters, wbuf);
       return TRUE;
     }
@@ -19353,12 +19357,14 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
 BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndDefaultSaveExt;
   static HWND hWndRememberKeybLayout;
   static HWND hWndReplaceAllAndClose;
   static HWND hWndSaveInReadOnlyMsg;
 
   if (uMsg == WM_INITDIALOG)
   {
+    hWndDefaultSaveExt=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_SAVE_EXT);
     hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
@@ -19369,11 +19375,16 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveInReadOnlyMsg)
       SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
+
+    SetWindowTextW(hWndDefaultSaveExt, wszDefaultSaveExt);
   }
   else if (uMsg == WM_NOTIFY)
   {
     if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
+      //Default save extention
+      GetWindowTextW(hWndDefaultSaveExt, wszDefaultSaveExt, MAX_PATH);
+
       //Remember keyboard layout for each tab (MDI)
       bKeybLayoutMDI=SendMessage(hWndRememberKeybLayout, BM_GETCHECK, 0, 0);
 
@@ -20725,9 +20736,9 @@ void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags)
 
   GetModuleFileNameA(hInstance, szModule, MAX_PATH);
 
-  if (dwFlags & AE_OPEN) lstrcpyA(szTypeKey, "Open");
-  else if (dwFlags & AE_EDIT) lstrcpyA(szTypeKey, "Edit");
-  else if (dwFlags & AE_PRINT) lstrcpyA(szTypeKey, "Print");
+  if (dwFlags & AE_OPEN) xstrcpyA(szTypeKey, "Open");
+  else if (dwFlags & AE_EDIT) xstrcpyA(szTypeKey, "Edit");
+  else if (dwFlags & AE_PRINT) xstrcpyA(szTypeKey, "Print");
 
   while (1)
   {
@@ -20883,9 +20894,9 @@ void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlag
 
   GetModuleFileNameW(hInstance, wszModule, MAX_PATH);
 
-  if (dwFlags & AE_OPEN) lstrcpyW(wszTypeKey, L"Open");
-  else if (dwFlags & AE_EDIT) lstrcpyW(wszTypeKey, L"Edit");
-  else if (dwFlags & AE_PRINT) lstrcpyW(wszTypeKey, L"Print");
+  if (dwFlags & AE_OPEN) xstrcpyW(wszTypeKey, L"Open");
+  else if (dwFlags & AE_EDIT) xstrcpyW(wszTypeKey, L"Edit");
+  else if (dwFlags & AE_PRINT) xstrcpyW(wszTypeKey, L"Print");
 
   while (1)
   {
@@ -22332,7 +22343,7 @@ int TranslateFileStringA(char *pString, char *szBuffer, int nBufferSize)
       {
         if (!szBuffer || b + nFileLen <= nBufferSize)
         {
-          if (szBuffer) lstrcpyA(szBuffer + b, pFile);
+          if (szBuffer) xstrcpyA(szBuffer + b, pFile);
           b+=nFileLen - 1;
         }
         else break;
@@ -22341,7 +22352,7 @@ int TranslateFileStringA(char *pString, char *szBuffer, int nBufferSize)
       {
         if (!szBuffer || b + nFileDirLen <= nBufferSize)
         {
-          if (szBuffer) lstrcpyA(szBuffer + b, szFileDir);
+          if (szBuffer) xstrcpyA(szBuffer + b, szFileDir);
           b+=nFileDirLen - 1;
         }
         else break;
@@ -22350,7 +22361,7 @@ int TranslateFileStringA(char *pString, char *szBuffer, int nBufferSize)
       {
         if (!szBuffer || b + nExeDirLen <= nBufferSize)
         {
-          if (szBuffer) lstrcpyA(szBuffer + b, pExeDir);
+          if (szBuffer) xstrcpyA(szBuffer + b, pExeDir);
           b+=nExeDirLen - 1;
         }
         else break;
@@ -22391,7 +22402,7 @@ int TranslateFileStringW(wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
       {
         if (!wszBuffer || b + nFileLen <= nBufferSize)
         {
-          if (wszBuffer) lstrcpyW(wszBuffer + b, wpFile);
+          if (wszBuffer) xstrcpyW(wszBuffer + b, wpFile);
           b+=nFileLen - 1;
         }
         else break;
@@ -22400,7 +22411,7 @@ int TranslateFileStringW(wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
       {
         if (!wszBuffer || b + nFileDirLen <= nBufferSize)
         {
-          if (wszBuffer) lstrcpyW(wszBuffer + b, wszFileDir);
+          if (wszBuffer) xstrcpyW(wszBuffer + b, wszFileDir);
           b+=nFileDirLen - 1;
         }
         else break;
@@ -22409,7 +22420,7 @@ int TranslateFileStringW(wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
       {
         if (!wszBuffer || b + nExeDirLen <= nBufferSize)
         {
-          if (wszBuffer) lstrcpyW(wszBuffer + b, wpExeDir);
+          if (wszBuffer) xstrcpyW(wszBuffer + b, wpExeDir);
           b+=nExeDirLen - 1;
         }
         else break;

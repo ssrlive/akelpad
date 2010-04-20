@@ -44,6 +44,8 @@
 #include "StackFunc.h"
 
 //Include string functions
+#define xstrcpyA
+#define xstrcpyW
 #define xstrcmpinA
 #define xstrcmpinW
 #include "StrFunc.h"
@@ -208,6 +210,8 @@ char szFilter[MAX_PATH];
 wchar_t wszFilter[MAX_PATH];
 char szHomeDir[MAX_PATH]="";
 wchar_t wszHomeDir[MAX_PATH]=L"";
+char szDefaultSaveExt[MAX_PATH];
+wchar_t wszDefaultSaveExt[MAX_PATH];
 BOOL bAutodetect=TRUE;
 BOOL bSaveDlg;
 DWORD dwOfnFlags;
@@ -298,10 +302,10 @@ PAGESETUPDLGA psdPageA={0};
 PAGESETUPDLGW psdPageW={0};
 PRINTDLGA pdA={0};
 PRINTDLGW pdW={0};
-char szPrintHeader[MAX_PATH]=PRINT_HEADERA;
-wchar_t wszPrintHeader[MAX_PATH]=PRINT_HEADERW;
-char szPrintFooter[MAX_PATH]=PRINT_FOOTERA;
-wchar_t wszPrintFooter[MAX_PATH]=PRINT_FOOTERW;
+char szPrintHeader[MAX_PATH];
+wchar_t wszPrintHeader[MAX_PATH];
+char szPrintFooter[MAX_PATH];
+wchar_t wszPrintFooter[MAX_PATH];
 DWORD dwPrintColor=0;
 DWORD dwMappedPrintWidth=0;
 BOOL bPrintFontEnable=FALSE;
@@ -347,17 +351,17 @@ DWORD dwLineGap=0;
 BOOL bShowURL=TRUE;
 int nClickURL=2;
 BOOL bUrlPrefixesEnable=FALSE;
-wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE]=URL_PREFIXESW;
+wchar_t wszUrlPrefixes[URL_PREFIXES_SIZE];
 BOOL bUrlDelimitersEnable=FALSE;
-wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE]=URL_LEFTDELIMITERSW;
-wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]=URL_RIGHTDELIMITERSW;
+wchar_t wszUrlLeftDelimiters[URL_DELIMITERS_SIZE];
+wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE];
 BOOL bWordDelimitersEnable=TRUE;
 char szWordDelimiters[WORD_DELIMITERS_SIZE];
-wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE]=WORD_DELIMITERSW;
+wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];
 DWORD dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
 DWORD dwDefaultWordBreak=0;
 BOOL bWrapDelimitersEnable=FALSE;
-wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE]=WRAP_DELIMITERSW;
+wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];
 DWORD dwPaintOptions=0;
 FILETIME ftFileTime={0};
 HWND hWndReopen=NULL;
@@ -372,12 +376,12 @@ char szExeDir[MAX_PATH]="";
 wchar_t wszExeDir[MAX_PATH]=L"";
 
 //Associations
-char szFileTypesOpen[MAX_PATH]=ASSOCIATE_OPENA;
-wchar_t wszFileTypesOpen[MAX_PATH]=ASSOCIATE_OPENW;
-char szFileTypesEdit[MAX_PATH]=ASSOCIATE_EDITA;
-wchar_t wszFileTypesEdit[MAX_PATH]=ASSOCIATE_EDITW;
-char szFileTypesPrint[MAX_PATH]=ASSOCIATE_PRINTA;
-wchar_t wszFileTypesPrint[MAX_PATH]=ASSOCIATE_PRINTW;
+char szFileTypesOpen[MAX_PATH];
+wchar_t wszFileTypesOpen[MAX_PATH];
+char szFileTypesEdit[MAX_PATH];
+wchar_t wszFileTypesEdit[MAX_PATH];
+char szFileTypesPrint[MAX_PATH];
+wchar_t wszFileTypesPrint[MAX_PATH];
 DWORD dwFileTypesAssociated=0;
 
 //Mdi
@@ -487,6 +491,17 @@ extern "C" void _WinMain()
     nDefaultCodePage=nAnsiCodePage;
     bDefaultBOM=FALSE;
     dwLangCodepageRecognition=dwLangSystem=GetUserDefaultLangID();
+    xstrcpyA(szDefaultSaveExt, STR_DEFAULTSAVEEXTA);
+    xstrcpyA(szPrintHeader, STR_PRINT_HEADERA);
+    xstrcpyA(szPrintFooter, STR_PRINT_FOOTERA);
+    xstrcpyW(wszUrlPrefixes, STR_URL_PREFIXESW);
+    xstrcpyW(wszUrlLeftDelimiters, STR_URL_LEFTDELIMITERSW);
+    xstrcpyW(wszUrlRightDelimiters, STR_URL_RIGHTDELIMITERSW);
+    xstrcpyW(wszWordDelimiters, STR_WORD_DELIMITERSW);
+    xstrcpyW(wszWrapDelimiters, STR_WRAP_DELIMITERSW);
+    xstrcpyA(szFileTypesOpen, STR_ASSOCIATE_OPENA);
+    xstrcpyA(szFileTypesEdit, STR_ASSOCIATE_EDITA);
+    xstrcpyA(szFileTypesPrint, STR_ASSOCIATE_PRINTA);
 
     if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_IMEASURE, buf, BUFFER_SIZE))
     {
@@ -924,6 +939,18 @@ extern "C" void _WinMain()
     nDefaultCodePage=nAnsiCodePage;
     bDefaultBOM=FALSE;
     dwLangCodepageRecognition=dwLangSystem=GetUserDefaultLangID();
+    xstrcpyW(wszPrintHeader, STR_PRINT_HEADERW);
+    xstrcpyW(wszPrintFooter, STR_PRINT_FOOTERW);
+    xstrcpyW(wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
+    xstrcpyW(wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
+    xstrcpyW(wszUrlPrefixes, STR_URL_PREFIXESW);
+    xstrcpyW(wszUrlLeftDelimiters, STR_URL_LEFTDELIMITERSW);
+    xstrcpyW(wszUrlRightDelimiters, STR_URL_RIGHTDELIMITERSW);
+    xstrcpyW(wszWordDelimiters, STR_WORD_DELIMITERSW);
+    xstrcpyW(wszWrapDelimiters, STR_WRAP_DELIMITERSW);
+    xstrcpyW(wszFileTypesOpen, STR_ASSOCIATE_OPENW);
+    xstrcpyW(wszFileTypesEdit, STR_ASSOCIATE_EDITW);
+    xstrcpyW(wszFileTypesPrint, STR_ASSOCIATE_PRINTW);
 
     if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_IMEASURE, wbuf, BUFFER_SIZE))
     {
