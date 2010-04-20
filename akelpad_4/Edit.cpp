@@ -39,6 +39,7 @@ extern BOOL bOldRichEdit;
 extern BOOL bOldComctl32;
 extern BOOL bAkelEdit;
 extern BOOL bRichEditClass;
+extern BOOL bWindowsNT;
 
 //Buffers
 extern char buf[BUFFER_SIZE];
@@ -22431,6 +22432,30 @@ int TranslateFileStringW(wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
   }
   if (wszBuffer && b < nBufferSize) wszBuffer[b]='\0';
   return b;
+}
+
+void ActivateKeyboard(int nKeybLayout)
+{
+  if (nKeybLayout != -1)
+  {
+    if (bWindowsNT)
+    {
+      int nLayoutInit=LOWORD(GetKeyboardLayout(0));
+      int nLayoutCount=nLayoutInit;
+  
+      while (nLayoutCount != nKeybLayout)
+      {
+        ActivateKeyboardLayout((HKL)HKL_NEXT, 0);
+        nLayoutCount=LOWORD(GetKeyboardLayout(0));
+        if (nLayoutCount == nLayoutInit) break;
+      }
+    }
+    else
+    {
+      if (LOWORD(GetKeyboardLayout(0)) != nKeybLayout)
+        ActivateKeyboardLayout((HKL)nKeybLayout, 0);
+    }
+  }
 }
 
 void ActivateWindow(HWND hWnd)

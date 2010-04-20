@@ -70,6 +70,7 @@ BOOL bOldRichEdit=FALSE;
 BOOL bOldComctl32;
 BOOL bAkelEdit=TRUE;
 BOOL bRichEditClass=FALSE;
+BOOL bWindowsNT=FALSE;
 
 //Buffers
 char buf[BUFFER_SIZE];
@@ -457,6 +458,17 @@ extern "C" void _WinMain()
     bOldWindows=FALSE;
   else
     bOldWindows=TRUE;
+
+  //Is Windows NT4?
+  if (!bOldWindows)
+  {
+    OSVERSIONINFO ovi;
+
+    ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+    GetVersionEx(&ovi);
+    if (ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0 && ovi.dwPlatformId == VER_PLATFORM_WIN32_NT)
+      bWindowsNT=TRUE;
+  }
 
   //Get program version
   {
@@ -6449,11 +6461,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           //Activate keyboard layout
           if (bKeybLayoutMDI)
           {
-            if (lpWndFrameA->nKeybLayout != -1)
-            {
-              if (LOWORD(GetKeyboardLayout(0)) != lpWndFrameA->nKeybLayout)
-                ActivateKeyboardLayout((HKL)lpWndFrameA->nKeybLayout, 0);
-            }
+            ActivateKeyboard(lpWndFrameA->nKeybLayout);
           }
         }
 
@@ -6762,11 +6770,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           //Activate keyboard layout
           if (bKeybLayoutMDI)
           {
-            if (lpWndFrameW->nKeybLayout != -1)
-            {
-              if (LOWORD(GetKeyboardLayout(0)) != lpWndFrameW->nKeybLayout)
-                ActivateKeyboardLayout((HKL)lpWndFrameW->nKeybLayout, 0);
-            }
+            ActivateKeyboard(lpWndFrameW->nKeybLayout);
           }
         }
 
