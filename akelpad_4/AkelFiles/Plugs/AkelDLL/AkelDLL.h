@@ -136,7 +136,7 @@
 #define MENU_POPUP_HEADLINE   3
 
 //Submenu position
-#define MENU_FILE_RECENTFILES     12
+#define MENU_FILE_RECENTFILES     13
 #define MENU_VIEW_LANGUAGE        8
 #define MENU_POPUP_CODEPAGE_OPEN  0
 #define MENU_POPUP_CODEPAGE_SAVE  2
