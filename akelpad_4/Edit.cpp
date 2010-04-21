@@ -5057,7 +5057,7 @@ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufL
 
 int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
-  NSAVEDOCUMENTA nsd;
+  NSAVEDOCUMENTA nsdA;
   WIN32_FIND_DATAA wfdA;
   HANDLE hFile;
   FILESTREAMDATA fsd;
@@ -5072,12 +5072,13 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   //Notification message
   if (GetWindowLongA(hWnd, GWL_ID) == ID_EDIT)
   {
-    nsd.pFile=szFile;
-    nsd.nCodePage=&nCodePage;
-    nsd.bBOM=&bBOM;
-    nsd.bProcess=TRUE;
-    SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nsd);
-    if (!nsd.bProcess)
+    nsdA.pFile=szFile;
+    nsdA.nCodePage=&nCodePage;
+    nsdA.bBOM=&bBOM;
+    nsdA.dwFlags=dwFlags;
+    nsdA.bProcess=TRUE;
+    SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nsdA);
+    if (!nsdA.bProcess)
     {
       nResult=ESD_STOP;
       goto End;
@@ -5298,6 +5299,7 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
     nsdW.pFile=wszFile;
     nsdW.nCodePage=&nCodePage;
     nsdW.bBOM=&bBOM;
+    nsdW.dwFlags=dwFlags;
     nsdW.bProcess=TRUE;
     SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_START, (WPARAM)hWnd, (LPARAM)&nsdW);
     if (!nsdW.bProcess)
@@ -22442,7 +22444,7 @@ void ActivateKeyboard(int nKeybLayout)
     {
       int nLayoutInit=LOWORD(GetKeyboardLayout(0));
       int nLayoutCount=nLayoutInit;
-  
+
       while (nLayoutCount != nKeybLayout)
       {
         ActivateKeyboardLayout((HKL)HKL_NEXT, 0);
