@@ -4891,14 +4891,19 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
 {
   AEFOLD *lpElement1=(AEFOLD *)ae->ptxt->hFoldsStack.last;
   AEFOLD *lpElement2=NULL;
+  int nCompare;
 
   while (lpElement1)
   {
-    if (lpMinPoint->ciPoint.nLine > lpElement1->lpMinPoint->ciPoint.nLine)
-      break;
-    if (lpMinPoint->ciPoint.nLine == lpElement1->lpMinPoint->ciPoint.nLine && lpMaxPoint->ciPoint.nLine >= lpElement1->lpMaxPoint->ciPoint.nLine)
-      break;
+    nCompare=AE_IndexCompare(&lpMinPoint->ciPoint, &lpElement1->lpMinPoint->ciPoint);
 
+    if (nCompare >= 0)
+    {
+      if (nCompare > 0)
+        break;
+      if (AE_IndexCompare(&lpMaxPoint->ciPoint, &lpElement1->lpMaxPoint->ciPoint) <= 0)
+        break;
+    }
     lpElement1=lpElement1->prev;
   }
   AE_HeapStackInsertAfter(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEFOLD));
