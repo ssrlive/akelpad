@@ -671,6 +671,7 @@ typedef struct _NSAVEDOCUMENTA {
   char *pFile;                   //Pointer to a file string buffer
   int *nCodePage;                //Pointer to a code page variable
   BOOL *bBOM;                    //Pointer to a BOM variable
+  DWORD dwFlags;                 //See SD_* defines
   BOOL bProcess;                 //TRUE   save file
                                  //FALSE  do not save file
 } NSAVEDOCUMENTA;
@@ -679,6 +680,7 @@ typedef struct _NSAVEDOCUMENTW {
   wchar_t *pFile;                //Pointer to a file string buffer
   int *nCodePage;                //Pointer to a code page variable
   BOOL *bBOM;                    //Pointer to a BOM variable
+  DWORD dwFlags;                 //See SD_* defines
   BOOL bProcess;                 //TRUE   save file
                                  //FALSE  do not save file
 } NSAVEDOCUMENTW;
