@@ -46,6 +46,7 @@
 //Include string functions
 #define xstrcpyA
 #define xstrcpyW
+#define xstrcmpW
 #define xstrcmpinA
 #define xstrcmpinW
 #include "StrFunc.h"
