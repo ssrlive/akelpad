@@ -336,16 +336,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
     if (uMsg == AEM_APPENDTEXTA)
     {
-      AEAPPENDTEXTA *at=(AEAPPENDTEXTA *)lParam;
-
-      AE_AppendTextAnsi(ae, CP_ACP, at->pText, at->dwTextLen, at->bColumnSel);
+      AE_AppendTextAnsi(ae, CP_ACP, (char *)wParam, lParam);
       return 0;
     }
     if (uMsg == AEM_APPENDTEXTW)
     {
-      AEAPPENDTEXTW *at=(AEAPPENDTEXTW *)lParam;
-
-      AE_AppendText(ae, at->pText, at->dwTextLen, at->bColumnSel);
+      AE_AppendText(ae, (wchar_t *)wParam, lParam);
       return 0;
     }
     if (uMsg == AEM_REPLACESELA)
@@ -13631,7 +13627,7 @@ BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, const AECHARINDEX *ciCount, const AEC
   return TRUE;
 }
 
-void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, BOOL bColumnSel)
+void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen)
 {
   wchar_t *wszText;
   DWORD dwUnicodeBytes;
@@ -13642,13 +13638,13 @@ void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwT
   if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
   {
     MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
-    AE_AppendText(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), bColumnSel);
+    AE_AppendText(ae, wszText, dwUnicodeBytes / sizeof(wchar_t));
 
     AE_HeapFree(ae, 0, (LPVOID)wszText);
   }
 }
 
-void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bColumnSel)
+void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen)
 {
   AECHARINDEX ciCaretIndex;
   AECHARINDEX ciSelStartIndex;
@@ -13656,8 +13652,6 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bC
   AECHARINDEX ciLastChar;
   int nSelStartCharOffset;
   int nSelEndCharOffset;
-
-  if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
 
   AE_NotifyChanging(ae, AETCT_APPENDTEXT);
   AE_StackUndoGroupStop(ae);
@@ -13670,7 +13664,7 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, BOOL bC
   nSelStartCharOffset=ae->nSelStartCharOffset;
   nSelEndCharOffset=ae->nSelEndCharOffset;
 
-  if (AE_InsertText(ae, &ciLastChar, wpText, dwTextLen, ae->popt->nInputNewLine, bColumnSel, AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, NULL, NULL))
+  if (AE_InsertText(ae, &ciLastChar, wpText, dwTextLen, ae->popt->nInputNewLine, FALSE, AEINST_LOCKSCROLL|AEINST_LOCKUPDATE, NULL, NULL))
   {
     //Restore selection points
     AE_IndexUpdate(ae, &ciSelStartIndex);
