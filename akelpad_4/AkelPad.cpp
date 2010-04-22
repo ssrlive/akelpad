@@ -223,6 +223,7 @@ int nMsgCreate=AUTOANSWER_ASK;
 int nMsgBinary=AUTOANSWER_ASK;
 POINT ptDocumentPos;
 BOOL bDocumentReopen=FALSE;
+BOOL bLogDate=FALSE;
 BOOL bSaveInReadOnlyMsg=FALSE;
 WNDPROC OldFilePreviewProc;
 

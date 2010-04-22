@@ -14,6 +14,8 @@ Changed: clean program installation recommended.
 Added: dialog "Save all as" that allows you to save all open documents in a particular encoding and
        new line format (MDI).
 Added: option for remember keyboard layout of each tab (MDI).
+Added: option for insert current date and time to the end of opened file, if it has ".LOG"
+       at the beginning.
 Added: parameter "PaintOptions" - defines, some draw text settings. Sets by the sum of members:
          1  Paint text by group of characters (default is character by character).
             With this flag some text recognition programs could start to work, printer
