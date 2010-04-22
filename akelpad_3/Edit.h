@@ -346,8 +346,8 @@ BOOL CALLBACK EnumThreadProcA(HWND hwnd, LPARAM lParam);
 BOOL CALLBACK EnumThreadProcW(HWND hwnd, LPARAM lParam);
 BOOL DoFileOpenA();
 BOOL DoFileOpenW();
-void DoFileReopenAsA(DWORD dwFlags, int nCodePage, BOOL bBOM);
-void DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM);
+int DoFileReopenAsA(DWORD dwFlags, int nCodePage, BOOL bBOM);
+int DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM);
 BOOL DoFileSaveA();
 BOOL DoFileSaveW();
 BOOL DoFileSaveAsA();
@@ -507,7 +507,7 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
 unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax);
 unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, unsigned int *nWideStringDone, char *szMultiString, unsigned int nMultiStringMax);
 void ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
-BOOL CheckCodePage(int nCodePage);
+BOOL IsCodePageValid(int nCodePage);
 unsigned int TranslateNewLinesToUnixW(wchar_t *wpWideString, unsigned int nWideString);
 
 BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -684,6 +684,7 @@ void SetInsertStateStatusW(HWND hWnd, BOOL bState, BOOL bFirst);
 void SetCodePageStatusA(int nCodePage, BOOL bBOM, BOOL bFirst);
 void SetCodePageStatusW(int nCodePage, BOOL bBOM, BOOL bFirst);
 
+DWORD IsEditActive(HWND hWnd);
 int SetLayout(HWND hWnd);
 void RestoreLayout(HWND hWnd, DWORD dwLayout);
 void SaveCharScroll(HWND hWnd, RECT *rc, int *nBeforeChar);

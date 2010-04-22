@@ -138,6 +138,8 @@ HMENU hPopupMenu;
 HMENU hPopupEdit;
 HMENU hPopupView;
 HMENU hPopupCodepage;
+HMENU hPopupOpenCodepage;
+HMENU hPopupSaveCodepage;
 HMENU hPopupHeadline;
 HMENU hMenuRecentFiles=NULL;
 HMENU hMenuLanguage=NULL;
@@ -1561,6 +1563,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPopupEdit=GetSubMenu(hPopupMenu, 0);
     hPopupView=GetSubMenu(hPopupMenu, 1);
     hPopupCodepage=GetSubMenu(hPopupMenu, 2);
+    hPopupOpenCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_OPEN);
+    hPopupSaveCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_SAVE);
     hPopupHeadline=GetSubMenu(hPopupMenu, 3);
 
     hMenu=GetSubMenu(hMainMenu, MENU_FILE_POSITION);
@@ -2579,6 +2583,24 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RecentFilesMenuA();
       }
     }
+    else if ((HMENU)wParam == hPopupOpenCodepage ||
+             (HMENU)wParam == hPopupSaveCodepage)
+    {
+      if (bMenuPopupCodepage)
+      {
+        bMenuPopupCodepage=FALSE;
+        FillMenuPopupCodepageA();
+      }
+
+      //Check radio item
+      {
+        int nCurrentCodePageIndex;
+
+        nCurrentCodePageIndex=CodepageListFind(lpCodepageList, nCurrentCodePage);
+        CheckMenuRadioItem(hPopupOpenCodepage, 0, nCodepageListLen - 1, nCurrentCodePageIndex, MF_BYPOSITION);
+        CheckMenuRadioItem(hPopupSaveCodepage, 0, nCodepageListLen - 1, nCurrentCodePageIndex, MF_BYPOSITION);
+      }
+    }
   }
   else if (uMsg == WM_MOVE)
   {
@@ -2661,21 +2683,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       API_LoadStringA(hLangLib, MSG_RESTART_PROGRAM, buf, BUFFER_SIZE);
       MessageBoxA(hWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONEXCLAMATION);
     }
-    else if (LOWORD(wParam) >= IDM_POPUP_OPENAS && LOWORD(wParam) <= (IDM_POPUP_OPENAS + nCodepageListLen + 1))
+    else if (LOWORD(wParam) >= IDM_POPUP_OPENAS && LOWORD(wParam) < IDM_POPUP_OPENAS + nCodepageListLen)
     {
-      int nCodePageSel;
-
-      nCodePageSel=LOWORD(wParam) - IDM_POPUP_OPENAS - 1;
-      if (nCodePageSel < 0) nCodePageSel=nCodepageListLen - 2;
-      DoFileReopenAsA(OD_ADT_DETECT_BOM, lpCodepageList[nCodePageSel], FALSE);
+      return DoFileReopenAsA(OD_ADT_DETECT_BOM, lpCodepageList[LOWORD(wParam) - IDM_POPUP_OPENAS], TRUE);
     }
-    else if (LOWORD(wParam) >= IDM_POPUP_SAVEAS && LOWORD(wParam) <= (IDM_POPUP_SAVEAS + nCodepageListLen + 1))
+    else if (LOWORD(wParam) >= IDM_POPUP_SAVEAS && LOWORD(wParam) < IDM_POPUP_SAVEAS + nCodepageListLen)
     {
-      int nCodePageSel;
-
-      nCodePageSel=LOWORD(wParam) - IDM_POPUP_SAVEAS - 1;
-      if (nCodePageSel < 0) nCodePageSel=nCodepageListLen - 2;
-      return SaveDocumentA(hWndEdit, szCurrentFile, lpCodepageList[nCodePageSel], TRUE, SD_UPDATE);
+      return SaveDocumentA(hWndEdit, szCurrentFile, lpCodepageList[LOWORD(wParam) - IDM_POPUP_SAVEAS], TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_FILE_NEW)
     {
@@ -2695,7 +2709,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_REOPEN)
     {
-      DoFileReopenAsA(0, nCurrentCodePage, bCurrentBOM);
+      return DoFileReopenAsA(0, nCurrentCodePage, bCurrentBOM);
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVE)
     {
@@ -3107,31 +3121,31 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REDETECT)
     {
-      DoFileReopenAsA(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
+      return DoFileReopenAsA(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_ANSI)
     {
-      DoFileReopenAsA(0, nAnsiCodePage, FALSE);
+      return DoFileReopenAsA(0, nAnsiCodePage, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_OEM)
     {
-      DoFileReopenAsA(0, nOemCodePage, FALSE);
+      return DoFileReopenAsA(0, nOemCodePage, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_UTF16LE)
     {
-      DoFileReopenAsA(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_LE, FALSE);
+      return DoFileReopenAsA(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_LE, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_UTF16BE)
     {
-      DoFileReopenAsA(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_BE, FALSE);
+      return DoFileReopenAsA(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_BE, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_UTF8)
     {
-      DoFileReopenAsA(OD_ADT_DETECT_BOM, CP_UNICODE_UTF8, FALSE);
+      return DoFileReopenAsA(OD_ADT_DETECT_BOM, CP_UNICODE_UTF8, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_KOIR)
     {
-      DoFileReopenAsA(0, CP_KOI8_R, FALSE);
+      return DoFileReopenAsA(0, CP_KOI8_R, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_ANSI)
     {
@@ -3426,6 +3440,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPopupEdit=GetSubMenu(hPopupMenu, 0);
     hPopupView=GetSubMenu(hPopupMenu, 1);
     hPopupCodepage=GetSubMenu(hPopupMenu, 2);
+    hPopupOpenCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_OPEN);
+    hPopupSaveCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_SAVE);
     hPopupHeadline=GetSubMenu(hPopupMenu, 3);
 
     hMenu=GetSubMenu(hMainMenu, MENU_FILE_POSITION);
@@ -4444,6 +4460,24 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RecentFilesMenuW();
       }
     }
+    else if ((HMENU)wParam == hPopupOpenCodepage ||
+             (HMENU)wParam == hPopupSaveCodepage)
+    {
+      if (bMenuPopupCodepage)
+      {
+        bMenuPopupCodepage=FALSE;
+        FillMenuPopupCodepageW();
+      }
+
+      //Check radio item
+      {
+        int nCurrentCodePageIndex;
+
+        nCurrentCodePageIndex=CodepageListFind(lpCodepageList, nCurrentCodePage);
+        CheckMenuRadioItem(hPopupOpenCodepage, 0, nCodepageListLen - 1, nCurrentCodePageIndex, MF_BYPOSITION);
+        CheckMenuRadioItem(hPopupSaveCodepage, 0, nCodepageListLen - 1, nCurrentCodePageIndex, MF_BYPOSITION);
+      }
+    }
   }
   else if (uMsg == WM_MOVE)
   {
@@ -4526,21 +4560,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wbuf, BUFFER_SIZE);
       MessageBoxW(hWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
     }
-    else if (LOWORD(wParam) >= IDM_POPUP_OPENAS && LOWORD(wParam) <= (IDM_POPUP_OPENAS + nCodepageListLen + 1))
+    else if (LOWORD(wParam) >= IDM_POPUP_OPENAS && LOWORD(wParam) < IDM_POPUP_OPENAS + nCodepageListLen)
     {
-      int nCodePageSel;
-
-      nCodePageSel=LOWORD(wParam) - IDM_POPUP_OPENAS - 1;
-      if (nCodePageSel < 0) nCodePageSel=nCodepageListLen - 2;
-      DoFileReopenAsW(OD_ADT_DETECT_BOM, lpCodepageList[nCodePageSel], FALSE);
+      return DoFileReopenAsW(OD_ADT_DETECT_BOM, lpCodepageList[LOWORD(wParam) - IDM_POPUP_OPENAS], TRUE);
     }
-    else if (LOWORD(wParam) >= IDM_POPUP_SAVEAS && LOWORD(wParam) <= (IDM_POPUP_SAVEAS + nCodepageListLen + 1))
+    else if (LOWORD(wParam) >= IDM_POPUP_SAVEAS && LOWORD(wParam) < IDM_POPUP_SAVEAS + nCodepageListLen)
     {
-      int nCodePageSel;
-
-      nCodePageSel=LOWORD(wParam) - IDM_POPUP_SAVEAS - 1;
-      if (nCodePageSel < 0) nCodePageSel=nCodepageListLen - 2;
-      return SaveDocumentW(hWndEdit, wszCurrentFile, lpCodepageList[nCodePageSel], TRUE, SD_UPDATE);
+      return SaveDocumentW(hWndEdit, wszCurrentFile, lpCodepageList[LOWORD(wParam) - IDM_POPUP_SAVEAS], TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_FILE_NEW)
     {
@@ -4560,7 +4586,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_REOPEN)
     {
-      DoFileReopenAsW(0, nCurrentCodePage, bCurrentBOM);
+      return DoFileReopenAsW(0, nCurrentCodePage, bCurrentBOM);
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVE)
     {
@@ -4972,31 +4998,31 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REDETECT)
     {
-      DoFileReopenAsW(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
+      return DoFileReopenAsW(OD_ADT_BINARY_ERROR|OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM, 0, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_ANSI)
     {
-      DoFileReopenAsW(0, nAnsiCodePage, FALSE);
+      return DoFileReopenAsW(0, nAnsiCodePage, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_OEM)
     {
-      DoFileReopenAsW(0, nOemCodePage, FALSE);
+      return DoFileReopenAsW(0, nOemCodePage, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_UTF16LE)
     {
-      DoFileReopenAsW(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_LE, FALSE);
+      return DoFileReopenAsW(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_LE, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_UTF16BE)
     {
-      DoFileReopenAsW(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_BE, FALSE);
+      return DoFileReopenAsW(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_BE, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_UTF8)
     {
-      DoFileReopenAsW(OD_ADT_DETECT_BOM, CP_UNICODE_UTF8, FALSE);
+      return DoFileReopenAsW(OD_ADT_DETECT_BOM, CP_UNICODE_UTF8, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_KOIR)
     {
-      DoFileReopenAsW(0, CP_KOI8_R, FALSE);
+      return DoFileReopenAsW(0, CP_KOI8_R, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_ANSI)
     {
