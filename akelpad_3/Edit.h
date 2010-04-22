@@ -227,12 +227,6 @@ const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00,
 #define LVSI_FUNCTION_HOTKEY   1
 #define LVSI_FUNCTION_STATUS   2
 
-//DIALOGRESIZE
-#define DRS_SIZE  0x1 //Resize control
-#define DRS_MOVE  0x2 //Move control
-#define DRS_X     0x4 //X value
-#define DRS_Y     0x8 //Y value
-
 
 //// Structures
 
@@ -335,12 +329,6 @@ typedef struct _HDOCK {
   BOOL bSizing;
   int nSizingSide;
 } HDOCK;
-
-
-typedef struct {
-  HWND *lpWnd;   //Control window
-  DWORD dwType;  //See DRS_* defines
-} DIALOGRESIZE;
 
 
 //// Functions prototype
@@ -757,13 +745,14 @@ BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, i
 int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
 int TranslateFileStringA(char *pCommand, char *szBuffer, int nBufferSize);
 int TranslateFileStringW(wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
+void ActivateKeyboard(int nKeybLayout);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
 void UpdateEdit(HWND hWnd);
 void DestroyEdit(HWND *hWndEdit);
 void ResizeEdit(HWND hWnd, int X, int Y, int nWidth, int nHeight);
 void UpdateSize();
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
 void DrawMovingRect(RECT *rcScreen);
 int GetMouseEdge(HWND hWnd, POINT *pt);
