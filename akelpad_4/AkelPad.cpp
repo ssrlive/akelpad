@@ -7683,8 +7683,10 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               GetMovingRect(dkData, &pt, &mmi, &rcEdge);
               DrawMovingRect(&rcEdge);
 
-              nMouseDown=DOCK_SIZING;
+              nMouseDown=DKC_SIZING;
               SetCapture(hWnd);
+
+              SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONSTART, (WPARAM)dkData, DKC_SIZING);
             }
           }
           else
@@ -7701,9 +7703,11 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                   dkDragSource=dkData;
                   dkDropTarget=dkData;
 
-                  nMouseDown=DOCK_DRAGDROP;
+                  nMouseDown=DKC_DRAGDROP;
                   nMouseMove=4;
                   SetCapture(hWnd);
+
+                  SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONSTART, (WPARAM)dkData, DKC_DRAGDROP);
                 }
               }
             }
@@ -7716,13 +7720,13 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         if (nMouseDown)
         {
-          if (nMouseDown == DOCK_SIZING)
+          if (nMouseDown == DKC_SIZING)
           {
             DrawMovingRect(&rcEdge);
             GetMovingRect(dkData, &pt, &mmi, &rcEdge);
             DrawMovingRect(&rcEdge);
           }
-          else if (nMouseDown == DOCK_DRAGDROP)
+          else if (nMouseDown == DKC_DRAGDROP)
           {
             if (nMouseMove > 0)
             {
@@ -7817,57 +7821,62 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
       else if (uMsg == WM_LBUTTONUP)
       {
-        if (nMouseDown == DOCK_SIZING)
+        if (nMouseDown)
         {
-          nMouseDown=0;
-          DrawMovingRect(&rcEdge);
-          ReleaseCapture();
-
-          if (ScreenToClientRect(hMainWnd, &rcEdge))
+          if (nMouseDown == DKC_SIZING)
           {
-            if (dkData->nSide == DKS_LEFT ||
-                dkData->nSide == DKS_RIGHT)
+            nMouseDown=0;
+            DrawMovingRect(&rcEdge);
+            ReleaseCapture();
+  
+            if (ScreenToClientRect(hMainWnd, &rcEdge))
             {
-              dkData->rcSize.right=rcEdge.right;
-            }
-            else if (dkData->nSide == DKS_TOP ||
-                     dkData->nSide == DKS_BOTTOM)
-            {
-              dkData->rcSize.bottom=rcEdge.bottom;
-            }
-            hDocksStack.nSizingSide=dkData->nSide;
-            UpdateSize();
-          }
-        }
-        else if (nMouseDown == DOCK_DRAGDROP)
-        {
-          if (nMouseMove == 0)
-            DrawMovingRect(&rcDrop);
-          nMouseDown=0;
-          ReleaseCapture();
-
-          if (dkDropTarget != dkDragSource)
-          {
-            if (dkDropTarget)
-              nDropSide=dkDropTarget->nSide;
-            rc=rcDrop;
-
-            if (ScreenToClientRect(hMainWnd, &rc))
-            {
-              if (nDropSide == DKS_LEFT ||
-                  nDropSide == DKS_RIGHT)
+              if (dkData->nSide == DKS_LEFT ||
+                  dkData->nSide == DKS_RIGHT)
               {
-                dkDragSource->rcSize.left=rc.left;
+                dkData->rcSize.right=rcEdge.right;
               }
-              else if (nDropSide == DKS_TOP ||
-                       nDropSide == DKS_BOTTOM)
+              else if (dkData->nSide == DKS_TOP ||
+                       dkData->nSide == DKS_BOTTOM)
               {
-                dkDragSource->rcSize.top=rc.top;
+                dkData->rcSize.bottom=rcEdge.bottom;
               }
-              DockSetSide(&hDocksStack, dkDragSource, nDropSide);
-              hDocksStack.nSizingSide=dkDragSource->nSide;
+              hDocksStack.nSizingSide=dkData->nSide;
               UpdateSize();
             }
+            SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_SIZING);
+          }
+          else if (nMouseDown == DKC_DRAGDROP)
+          {
+            if (nMouseMove == 0)
+              DrawMovingRect(&rcDrop);
+            nMouseDown=0;
+            ReleaseCapture();
+  
+            if (dkDropTarget != dkDragSource)
+            {
+              if (dkDropTarget)
+                nDropSide=dkDropTarget->nSide;
+              rc=rcDrop;
+  
+              if (ScreenToClientRect(hMainWnd, &rc))
+              {
+                if (nDropSide == DKS_LEFT ||
+                    nDropSide == DKS_RIGHT)
+                {
+                  dkDragSource->rcSize.left=rc.left;
+                }
+                else if (nDropSide == DKS_TOP ||
+                         nDropSide == DKS_BOTTOM)
+                {
+                  dkDragSource->rcSize.top=rc.top;
+                }
+                DockSetSide(&hDocksStack, dkDragSource, nDropSide);
+                hDocksStack.nSizingSide=dkDragSource->nSide;
+                UpdateSize();
+              }
+            }
+            SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_DRAGDROP);
           }
         }
       }
@@ -7875,18 +7884,20 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
         if (nMouseDown)
         {
-          if (nMouseDown == DOCK_SIZING)
+          if (nMouseDown == DKC_SIZING)
           {
             nMouseDown=0;
             DrawMovingRect(&rcEdge);
             ReleaseCapture();
+            SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_SIZING);
           }
-          else if (nMouseDown == DOCK_DRAGDROP)
+          else if (nMouseDown == DKC_DRAGDROP)
           {
             if (nMouseMove == 0)
               DrawMovingRect(&rcDrop);
             nMouseDown=0;
             ReleaseCapture();
+            SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_DRAGDROP);
           }
         }
       }
