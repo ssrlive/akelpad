@@ -191,6 +191,7 @@ extern int nMsgCreate;
 extern int nMsgBinary;
 extern POINT ptDocumentPos;
 extern BOOL bDocumentReopen;
+extern BOOL bLogDate;
 extern BOOL bSaveInReadOnlyMsg;
 extern WNDPROC OldFilePreviewProc;
 
@@ -3259,6 +3260,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
+  ReadOptionA(hHandle, "LogDate", PO_DWORD, &bLogDate, sizeof(DWORD));
   ReadOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
   ReadOptionA(hHandle, "SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD));
   ReadOptionA(hHandle, "SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD));
@@ -3369,6 +3371,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
+  ReadOptionW(hHandle, L"LogDate", PO_DWORD, &bLogDate, sizeof(DWORD));
   ReadOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
   ReadOptionW(hHandle, L"SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD));
   ReadOptionW(hHandle, L"SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD));
@@ -3671,6 +3674,8 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD)))
     goto Error;
+  if (!SaveOptionA(hHandle, "LogDate", PO_DWORD, &bLogDate, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD)))
@@ -3879,6 +3884,8 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"LogDate", PO_DWORD, &bLogDate, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD)))
     goto Error;
@@ -4533,7 +4540,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       }
 
       //.LOG
-      if (!IsReadOnly())
+      if (bLogDate && !IsReadOnly())
       {
         AECHARINDEX ciChar;
         char szDate[128];
@@ -4841,7 +4848,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       }
 
       //.LOG
-      if (!IsReadOnly())
+      if (bLogDate && !IsReadOnly())
       {
         AECHARINDEX ciChar;
         wchar_t wszDate[128];
@@ -19413,6 +19420,51 @@ BOOL CALLBACK OptionsEditor2DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
 
 BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static HWND hWndDefaultSaveExt;
+  static HWND hWndRememberKeybLayout;
+  static HWND hWndReplaceAllAndClose;
+  static HWND hWndSaveInReadOnlyMsg;
+  static HWND hWndLogDate;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    hWndDefaultSaveExt=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_SAVE_EXT);
+    hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
+    hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
+    hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
+    hWndLogDate=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
+
+    if (bKeybLayoutMDI)
+      SendMessage(hWndRememberKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
+    if (bReplaceAllAndClose)
+      SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
+    if (bSaveInReadOnlyMsg)
+      SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
+    if (bLogDate)
+      SendMessage(hWndLogDate, BM_SETCHECK, BST_CHECKED, 0);
+
+    SetWindowTextA(hWndDefaultSaveExt, szDefaultSaveExt);
+  }
+  else if (uMsg == WM_NOTIFY)
+  {
+    if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    {
+      //Default save extention
+      GetWindowTextA(hWndDefaultSaveExt, szDefaultSaveExt, MAX_PATH);
+
+      //Remember keyboard layout for each tab (MDI)
+      bKeybLayoutMDI=SendMessage(hWndRememberKeybLayout, BM_GETCHECK, 0, 0);
+
+      //ReplaceAll and close dialog
+      bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
+
+      //Save in read only file message
+      bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
+
+      //.LOG feature
+      bLogDate=SendMessage(hWndLogDate, BM_GETCHECK, 0, 0);
+    }
+  }
   return FALSE;
 }
 
@@ -19422,6 +19474,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
   static HWND hWndRememberKeybLayout;
   static HWND hWndReplaceAllAndClose;
   static HWND hWndSaveInReadOnlyMsg;
+  static HWND hWndLogDate;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -19429,6 +19482,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
+    hWndLogDate=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
 
     if (bKeybLayoutMDI)
       SendMessage(hWndRememberKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
@@ -19436,6 +19490,8 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveInReadOnlyMsg)
       SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
+    if (bLogDate)
+      SendMessage(hWndLogDate, BM_SETCHECK, BST_CHECKED, 0);
 
     SetWindowTextW(hWndDefaultSaveExt, wszDefaultSaveExt);
   }
@@ -19454,6 +19510,9 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
 
       //Save in read only file message
       bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
+
+      //.LOG feature
+      bLogDate=SendMessage(hWndLogDate, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
