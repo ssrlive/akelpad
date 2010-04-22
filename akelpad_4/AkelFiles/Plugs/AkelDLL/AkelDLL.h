@@ -217,6 +217,10 @@
 #define DK_HIDE        0x00000100  //Hide dockable window and set DKF_HIDDEN flag
 #define DK_SHOW        0x00000200  //Show dockable window and remove DKF_HIDDEN flag
 
+//Dock capture
+#define DKC_SIZING           1
+#define DKC_DRAGDROP         2
+
 //WM_INITMENU lParam
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
@@ -1086,6 +1090,8 @@ typedef struct _NSIZE {
 #define AKDN_FRAME_NOWINDOWS       (WM_USER + 9)   //0x409
 #define AKDN_FRAME_ACTIVATE        (WM_USER + 10)  //0x40A
 #define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 11)  //0x40B
+#define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 12)  //0x40C
+#define AKDN_DOCK_CAPTURE_ONFINISH (WM_USER + 13)  //0x40D
 
 #define AKDN_ACTIVATE              (WM_USER + 21)  //0x415
 #define AKDN_SIZE                  (WM_USER + 22)  //0x416
@@ -1328,6 +1334,30 @@ Notification message, sends to the main procedure before changing dock window si
 
 (DOCK *)wParam       == pointer to a DOCK structure
 (MINMAXINFO *)lParam == pointer to a MINMAXINFO structure
+
+Return Value
+ zero
+
+
+AKDN_DOCK_CAPTURE_ONSTART
+_________________________
+
+Notification message, sends to the main procedure after mouse capturing started.
+
+(DOCK *)wParam == pointer to a DOCK structure
+(int)lParam    == see DKC_* defines
+
+Return Value
+ zero
+
+
+AKDN_DOCK_CAPTURE_ONFINISH
+__________________________
+
+Notification message, sends to the main procedure after mouse capturing finished.
+
+(DOCK *)wParam == pointer to a DOCK structure
+(int)lParam    == see DKC_* defines
 
 Return Value
  zero

@@ -12,9 +12,6 @@
 #define DOCK_BORDER_1X        3
 #define DOCK_BORDER_2X       (DOCK_BORDER_1X * 2)
 
-#define DOCK_SIZING           1
-#define DOCK_DRAGDROP         2
-
 
 //// Functions prototype
 
