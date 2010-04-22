@@ -1147,12 +1147,11 @@ void DoEditInsertDateA(HWND hWnd)
 
   if (IsReadOnly()) return;
 
-  if (GetTimeFormatA(LOCALE_USER_DEFAULT, TIME_NOSECONDS, 0, NULL, szTime, 128) &&
-      GetDateFormatA(LOCALE_USER_DEFAULT, 0, 0, NULL, szDate, 128))
-  {
-    wsprintfA(szTimeAndDate, "%s %s", szTime, szDate);
-    ReplaceSelA(hWnd, szTimeAndDate, -1, -1, NULL, NULL);
-  }
+  GetTimeFormatA(LOCALE_USER_DEFAULT, TIME_NOSECONDS, NULL, NULL, szTime, 128);
+  GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szDate, 128);
+
+  wsprintfA(szTimeAndDate, "%s %s", szTime, szDate);
+  ReplaceSelA(hWnd, szTimeAndDate, -1, -1, NULL, NULL);
 }
 
 void DoEditInsertDateW(HWND hWnd)
@@ -1163,12 +1162,11 @@ void DoEditInsertDateW(HWND hWnd)
 
   if (IsReadOnly()) return;
 
-  if (GetTimeFormatW(LOCALE_USER_DEFAULT, TIME_NOSECONDS, 0, NULL, wszTime, 128) &&
-      GetDateFormatW(LOCALE_USER_DEFAULT, 0, 0, NULL, wszDate, 128))
-  {
-    wsprintfW(wszTimeAndDate, L"%s %s", wszTime, wszDate);
-    ReplaceSelW(hWnd, wszTimeAndDate, -1, -1, NULL, NULL);
-  }
+  GetTimeFormatW(LOCALE_USER_DEFAULT, TIME_NOSECONDS, NULL, NULL, wszTime, 128);
+  GetDateFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
+
+  wsprintfW(wszTimeAndDate, L"%s %s", wszTime, wszDate);
+  ReplaceSelW(hWnd, wszTimeAndDate, -1, -1, NULL, NULL);
 }
 
 void DoEditRecodeA(HWND hWnd)
@@ -4534,6 +4532,29 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
         lstrcpynA(szCurrentFile, szFile, MAX_PATH);
       }
 
+      //.LOG
+      if (!IsReadOnly())
+      {
+        AECHARINDEX ciChar;
+        char szDate[128];
+        char szTime[128];
+        char szDateAndTime[MAX_PATH];
+    
+        if (SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar))
+        {
+          if (!xstrcmpW(ciChar.lpLine->wpLine, L".LOG"))
+          {
+            GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szDate, 128);
+            GetTimeFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szTime, 128);
+    
+            wsprintfA(szDateAndTime, "\r%s %s\r", szDate, szTime);
+            SendMessage(hWnd, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
+            ReplaceSelA(hWnd, szDateAndTime, -1, FALSE, NULL, NULL);
+            goto GlobalPrint;
+          }
+        }
+      }
+
       //Update selection
       if (nRecentFiles && bSavePositions)
       {
@@ -4552,6 +4573,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       }
 
       //Print if "/p" option used in command line
+      GlobalPrint:
       if (bGlobalPrint)
       {
         DoFilePrintA(hWnd, TRUE);
@@ -4818,6 +4840,29 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
         lstrcpynW(wszCurrentFile, wszFile, MAX_PATH);
       }
 
+      //.LOG
+      if (!IsReadOnly())
+      {
+        AECHARINDEX ciChar;
+        wchar_t wszDate[128];
+        wchar_t wszTime[128];
+        wchar_t wszDateAndTime[MAX_PATH];
+    
+        if (SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar))
+        {
+          if (!xstrcmpW(ciChar.lpLine->wpLine, L".LOG"))
+          {
+            GetDateFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
+            GetTimeFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszTime, 128);
+    
+            wsprintfW(wszDateAndTime, L"\r%s %s\r", wszDate, wszTime);
+            SendMessage(hWnd, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
+            ReplaceSelW(hWnd, wszDateAndTime, -1, FALSE, NULL, NULL);
+            goto GlobalPrint;
+          }
+        }
+      }
+
       //Update selection
       if (nRecentFiles && bSavePositions)
       {
@@ -4836,6 +4881,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       }
 
       //Print if "/p" option used in command line
+      GlobalPrint:
       if (bGlobalPrint)
       {
         DoFilePrintW(hWnd, TRUE);
