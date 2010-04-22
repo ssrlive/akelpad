@@ -2527,6 +2527,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SetWindowLongA((HWND)wParam, GWL_WNDPROC, (LONG)NewHotkeyInputProc);
       return 0;
     }
+    if (uMsg == AKD_DIALOGRESIZE)
+    {
+      DIALOGRESIZEMSG *drsm=(DIALOGRESIZEMSG *)lParam;
+
+      return DialogResizeMessages(drsm->drs, drsm->rcInit, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
+    }
 
     //Thread
     if (uMsg == AKD_GLOBALALLOC)
@@ -4479,6 +4485,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       OldHotkeyInputProc=(WNDPROC)GetWindowLongW((HWND)wParam, GWL_WNDPROC);
       SetWindowLongW((HWND)wParam, GWL_WNDPROC, (LONG)NewHotkeyInputProc);
       return 0;
+    }
+    if (uMsg == AKD_DIALOGRESIZE)
+    {
+      DIALOGRESIZEMSG *drsm=(DIALOGRESIZEMSG *)lParam;
+
+      return DialogResizeMessages(drsm->drs, drsm->rcInit, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
     }
 
     //Thread
@@ -7828,7 +7840,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             nMouseDown=0;
             DrawMovingRect(&rcEdge);
             ReleaseCapture();
-  
+
             if (ScreenToClientRect(hMainWnd, &rcEdge))
             {
               if (dkData->nSide == DKS_LEFT ||
@@ -7852,13 +7864,13 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               DrawMovingRect(&rcDrop);
             nMouseDown=0;
             ReleaseCapture();
-  
+
             if (dkDropTarget != dkDragSource)
             {
               if (dkDropTarget)
                 nDropSide=dkDropTarget->nSide;
               rc=rcDrop;
-  
+
               if (ScreenToClientRect(hMainWnd, &rc))
               {
                 if (nDropSide == DKS_LEFT ||

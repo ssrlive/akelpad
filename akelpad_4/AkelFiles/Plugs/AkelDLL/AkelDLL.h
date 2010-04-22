@@ -189,6 +189,16 @@
 #define AUTOANSWER_YES  1
 #define AUTOANSWER_NO   2
 
+//DIALOGRESIZEMSG flags
+#define DRM_GETMINMAXINFO 0x1 //Dialog can't be decreased less than creation size.
+#define DRM_PAINTSIZEGRIP 0x2 //Draw resize grid.
+
+//DIALOGRESIZE type
+#define DRS_SIZE  0x1 //Resize control. Can be combined with DRS_X ot DRS_Y.
+#define DRS_MOVE  0x2 //Move control. Can be combined with DRS_X ot DRS_Y.
+#define DRS_X     0x4 //X value. Can be combined with DRS_SIZE ot DRS_MOVE.
+#define DRS_Y     0x8 //Y value. Can be combined with DRS_SIZE ot DRS_MOVE.
+
 //Dock side
 #define DKS_LEFT    1
 #define DKS_RIGHT   2
@@ -629,6 +639,23 @@ typedef struct _CREATEWINDOWW {
   HINSTANCE hInstance;              //Program instance handle
   LPVOID lpParam;                   //Creation parameters
 } CREATEWINDOWW;
+
+typedef struct {
+  HWND *lpWnd;   //Control window
+  DWORD dwType;  //See DRS_* defines
+  int nOffset;   //Control offset, set it to zero
+} DIALOGRESIZE;
+
+typedef struct {
+  DIALOGRESIZE *drs;  //Pointer to a first DIALOGRESIZE element in array.
+  RECT *rcInit;       //Pointer to a initial rectangle. Set all members of RECT to zero at first call.
+  RECT *rcCurrent;    //Pointer to a current rectangle. Set all members of RECT to zero at first call.
+  DWORD dwFlags;      //See DRM_* defines
+  HWND hDlg;          //Dialog handle
+  UINT uMsg;          //Dialog message
+  WPARAM wParam;      //First message parameter 
+  LPARAM lParam;      //Second message parameter
+} DIALOGRESIZEMSG;
 
 typedef struct _DOCK {
   struct _DOCK *next;
@@ -1188,6 +1215,7 @@ typedef struct _NSIZE {
 #define AKD_DOCK                   (WM_USER + 254)
 #define AKD_SETCLOSEBUTTON         (WM_USER + 255)
 #define AKD_SETHOTKEYINPUT         (WM_USER + 256)
+#define AKD_DIALOGRESIZE           (WM_USER + 257)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -2918,6 +2946,52 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
+
+
+AKD_DIALOGRESIZE
+________________
+
+Automatic controls alignment in dialog.
+
+wParam                    == not used
+(DIALOGRESIZEMSG *)lParam == pointer to a DIALOGRESIZEMSG structure
+
+Return Value
+ TRUE  dialog size changed.
+ FALSE dialog size unchanged.
+
+Example:
+RECT rcMainInitDialog={0};
+RECT rcMainCurrentDialog={0};
+BOOL bMainDialogRectChanged=FALSE;
+
+BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndOK;
+  static HWND hWndCancel;
+  static DIALOGRESIZE drs[]={{&hWndOK,     DRS_MOVE|DRS_X, 0},
+                             {&hWndOK,     DRS_MOVE|DRS_Y, 0},
+                             {&hWndCancel, DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel, DRS_MOVE|DRS_Y, 0},
+                             {0, 0, 0}};
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
+  }
+
+  //...Dialog messages processing
+
+  //Dialog resize messages
+  {
+    DIALOGRESIZEMSG drsm={&drs[0], &rcMainInitDialog, &rcMainCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+
+    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+      bMainDialogRectChanged=TRUE;
+  }
+  return FALSE;
+}
 
 
 AKD_GLOBALALLOC
