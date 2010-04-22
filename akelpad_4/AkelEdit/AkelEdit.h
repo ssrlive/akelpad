@@ -1874,19 +1874,14 @@ _______________
 
 Append ansi text to the end of the edit control.
 
-wParam                  == not used.
-(AEAPPENDTEXTA *)lParam == pointer to a AEAPPENDTEXTA structure.
+(char *)wParam == text to append.
+(DWORD)lParam  == text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
 
 Return Value
  zero
 
 Example:
- AEAPPENDTEXTA at;
-
- at.pText="SomeText";
- at.dwTextLen=(DWORD)-1;
- at.bColumnSel=FALSE;
- SendMessage(hWndEdit, AEM_APPENDTEXTA, 0, (LPARAM)&at);
+ SendMessage(hWndEdit, AEM_APPENDTEXTW, (WPARAM)L"SomeText", (LPARAM)-1);
 
 
 AEM_APPENDTEXTW
@@ -1894,19 +1889,14 @@ _______________
 
 Append unicode text to the end of the edit control.
 
-wParam                  == not used.
-(AEAPPENDTEXTW *)lParam == pointer to a AEAPPENDTEXTW structure.
+(wchar_t *)wParam == text to append.
+(DWORD)lParam     == text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
 
 Return Value
  zero
 
 Example:
- AEAPPENDTEXTW at;
-
- at.pText=L"SomeText";
- at.dwTextLen=(DWORD)-1;
- at.bColumnSel=FALSE;
- SendMessage(hWndEdit, AEM_APPENDTEXTW, 0, (LPARAM)&at);
+ SendMessage(hWndEdit, AEM_APPENDTEXTW, (WPARAM)L"SomeText", (LPARAM)-1);
 
 
 AEM_REPLACESELA
