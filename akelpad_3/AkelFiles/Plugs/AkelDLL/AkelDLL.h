@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 2, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(1, 2, 0, 2)
 
 
 //// Defines
@@ -98,6 +98,11 @@
 #define MO_RICHEDITMOUSE       0x00000002  //After WM_LBUTTONUP message capture operations doesn't stopped.
 #define MO_MOUSEDRAGGING       0x00000004  //Enables OLE text dragging.
 
+//Paint options
+#define PAINT_PAINTGROUP       0x00000001  //Paint text by group of characters (default is character by character).
+                                           //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
+#define PAINT_NONEWLINEDRAW    0x00000002  //Disables draw new line as space in selection.
+
 //Tab options MDI
 #define TAB_VIEW_NONE         0x00000001
 #define TAB_VIEW_TOP          0x00000002
@@ -115,6 +120,26 @@
 #define STATUS_NEWLINE        3
 #define STATUS_CODEPAGE       4
 #define STATUS_PARTS          5
+
+//Main menu
+#define MENU_FILE_POSITION              0
+#define MENU_EDIT_POSITION              1
+#define MENU_VIEW_POSITION              2
+#define MENU_OPTIONS_POSITION           3
+#define MENU_MDI_POSITION               4
+#define MENU_ABOUT_POSITION             5
+
+//Popup menu
+#define MENU_POPUP_EDIT       0
+#define MENU_POPUP_VIEW       1
+#define MENU_POPUP_CODEPAGE   2
+#define MENU_POPUP_HEADLINE   3
+
+//Submenu position
+#define MENU_FILE_RECENTFILES     13
+#define MENU_VIEW_LANGUAGE        8
+#define MENU_POPUP_CODEPAGE_OPEN  0
+#define MENU_POPUP_CODEPAGE_SAVE  2
 
 //INI value types
 #define INI_DWORD           1
@@ -164,6 +189,16 @@
 #define AUTOANSWER_YES  1
 #define AUTOANSWER_NO   2
 
+//DIALOGRESIZEMSG flags
+#define DRM_GETMINMAXINFO 0x1 //Dialog can't be decreased less than creation size.
+#define DRM_PAINTSIZEGRIP 0x2 //Draw resize grid.
+
+//DIALOGRESIZE type
+#define DRS_SIZE  0x1 //Resize control. Can be combined with DRS_X ot DRS_Y.
+#define DRS_MOVE  0x2 //Move control. Can be combined with DRS_X ot DRS_Y.
+#define DRS_X     0x4 //X value. Can be combined with DRS_SIZE ot DRS_MOVE.
+#define DRS_Y     0x8 //Y value. Can be combined with DRS_SIZE ot DRS_MOVE.
+
 //Dock side
 #define DKS_LEFT    1
 #define DKS_RIGHT   2
@@ -191,6 +226,10 @@
 #define DK_SETBOTTOM   0x00000080  //Set DKS_BOTTOM side
 #define DK_HIDE        0x00000100  //Hide dockable window and set DKF_HIDDEN flag
 #define DK_SHOW        0x00000200  //Show dockable window and remove DKF_HIDDEN flag
+
+//Dock capture
+#define DKC_SIZING           1
+#define DKC_DRAGDROP         2
 
 //WM_INITMENU lParam
 #define IMENU_EDIT     0x00000001
@@ -359,6 +398,7 @@ typedef struct _WNDFRAMEA {
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters
   BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters
+  int nKeybLayout;                                    //Keyboard layout (4.x only)
   BOOL bSplitWindow;                                  //Edit window is splited (4.x only)
   HWND hWndMaster;                                    //Master window (4.x only)
   HWND hWndClone1;                                    //Clone window one (4.x only)
@@ -398,6 +438,7 @@ typedef struct _WNDFRAMEW {
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters
   BOOL bWrapDelimitersEnable;                         //Wrap delimiters enabled
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters
+  int nKeybLayout;                                    //Keyboard layout (4.x only)
   BOOL bSplitWindow;                                  //Edit window is splited (4.x only)
   HWND hWndMaster;                                    //Master window (4.x only)
   HWND hWndClone1;                                    //Clone window one (4.x only)
@@ -599,6 +640,23 @@ typedef struct _CREATEWINDOWW {
   LPVOID lpParam;                   //Creation parameters
 } CREATEWINDOWW;
 
+typedef struct {
+  HWND *lpWnd;   //Control window
+  DWORD dwType;  //See DRS_* defines
+  int nOffset;   //Control offset, set it to zero
+} DIALOGRESIZE;
+
+typedef struct {
+  DIALOGRESIZE *drs;  //Pointer to a first DIALOGRESIZE element in array.
+  RECT *rcInit;       //Pointer to a initial rectangle. Set all members of RECT to zero at first call.
+  RECT *rcCurrent;    //Pointer to a current rectangle. Set all members of RECT to zero at first call.
+  DWORD dwFlags;      //See DRM_* defines
+  HWND hDlg;          //Dialog handle
+  UINT uMsg;          //Dialog message
+  WPARAM wParam;      //First message parameter 
+  LPARAM lParam;      //Second message parameter
+} DIALOGRESIZEMSG;
+
 typedef struct _DOCK {
   struct _DOCK *next;
   struct _DOCK *prev;
@@ -644,6 +702,7 @@ typedef struct _NSAVEDOCUMENTA {
   char *pFile;                   //Pointer to a file string buffer
   int *nCodePage;                //Pointer to a code page variable
   BOOL *bBOM;                    //Pointer to a BOM variable
+  DWORD dwFlags;                 //See SD_* defines
   BOOL bProcess;                 //TRUE   save file
                                  //FALSE  do not save file
 } NSAVEDOCUMENTA;
@@ -652,6 +711,7 @@ typedef struct _NSAVEDOCUMENTW {
   wchar_t *pFile;                //Pointer to a file string buffer
   int *nCodePage;                //Pointer to a code page variable
   BOOL *bBOM;                    //Pointer to a BOM variable
+  DWORD dwFlags;                 //See SD_* defines
   BOOL bProcess;                 //TRUE   save file
                                  //FALSE  do not save file
 } NSAVEDOCUMENTW;
@@ -719,6 +779,9 @@ typedef struct _NSIZE {
                                               //Return Value: number of printed pages
                                               //
 #define IDM_FILE_PRINTPREVIEW           4114  //Print preview dialog. lParam can be used to pass edit window handle.
+                                              //Return Value: zero
+                                              //
+#define IDM_FILE_SAVEALLAS              4115  //Save all as dialog.
                                               //Return Value: zero
                                               //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation
@@ -941,25 +1004,25 @@ typedef struct _NSIZE {
                                               //Return Value: TRUE - success, FALSE - failed
                                               //
 #define IDM_NONMENU_REDETECT            4408  //Redetect code page of the current file
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_ANSI       4409  //Reopen file as ANSI
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_OEM        4410  //Reopen file as OEM
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_UTF16LE    4411  //Reopen file as UTF16LE
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_UTF16BE    4412  //Reopen file as UTF16BE
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_UTF8       4413  //Reopen file as UTF8
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_REOPENAS_KOIR       4414  //Reopen file as KOI-R
-                                              //Return Value: zero
+                                              //Return Value: see EOD_* defines
                                               //
 #define IDM_NONMENU_SAVEAS_ANSI         4415  //Save file as ANSI
                                               //Return Value: see ESD_* defines
@@ -1026,19 +1089,19 @@ typedef struct _NSIZE {
                                               //6001 + n  activate language n
                                               //Return Value: zero
                                               //
-#define IDM_POPUP_OPENAS                7001  //Open as last popup menu item
-                                              //7001 + n  open as popup menu item
-                                              //Return Value: zero
+#define IDM_POPUP_OPENAS                7001  //Reopen file in first codepage of codepage list
+                                              //7001 + n  Reopen file in codepage n
+                                              //Return Value: see EOD_* defines
                                               //
-#define IDM_POPUP_SAVEAS                8001  //Save as last popup menu item
-                                              //8001 + n  save as popup menu item
+#define IDM_POPUP_SAVEAS                8001  //Save file in first codepage of codepage list
+                                              //8001 + n  Save file in codepage n
                                               //Return Value: see ESD_* defines
-                                              //
-                                              //Example:
-                                              //SendMessage(pd->hMainWnd, WM_COMMAND, IDM_FILE_NEW, 0);
 #define IDM_SELECTWINDOW                10019 //Select window dialog (MDI)
                                               //Return Value: zero
                                               //
+                                              //
+                                              //Example of usage:
+                                              //SendMessage(pd->hMainWnd, WM_COMMAND, IDM_FILE_NEW, 0);
 
 //// AkelPad main window WM_USER messages
 
@@ -1054,6 +1117,8 @@ typedef struct _NSIZE {
 #define AKDN_FRAME_NOWINDOWS       (WM_USER + 9)   //0x409
 #define AKDN_FRAME_ACTIVATE        (WM_USER + 10)  //0x40A
 #define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 11)  //0x40B
+#define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 12)  //0x40C
+#define AKDN_DOCK_CAPTURE_ONFINISH (WM_USER + 13)  //0x40D
 
 #define AKDN_ACTIVATE              (WM_USER + 21)  //0x415
 #define AKDN_SIZE                  (WM_USER + 22)  //0x416
@@ -1150,6 +1215,7 @@ typedef struct _NSIZE {
 #define AKD_DOCK                   (WM_USER + 254)
 #define AKD_SETCLOSEBUTTON         (WM_USER + 255)
 #define AKD_SETHOTKEYINPUT         (WM_USER + 256)
+#define AKD_DIALOGRESIZE           (WM_USER + 257)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -1296,6 +1362,30 @@ Notification message, sends to the main procedure before changing dock window si
 
 (DOCK *)wParam       == pointer to a DOCK structure
 (MINMAXINFO *)lParam == pointer to a MINMAXINFO structure
+
+Return Value
+ zero
+
+
+AKDN_DOCK_CAPTURE_ONSTART
+_________________________
+
+Notification message, sends to the main procedure after mouse capturing started.
+
+(DOCK *)wParam == pointer to a DOCK structure
+(int)lParam    == see DKC_* defines
+
+Return Value
+ zero
+
+
+AKDN_DOCK_CAPTURE_ONFINISH
+__________________________
+
+Notification message, sends to the main procedure after mouse capturing finished.
+
+(DOCK *)wParam == pointer to a DOCK structure
+(int)lParam    == see DKC_* defines
 
 Return Value
  zero
@@ -2856,6 +2946,52 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SETHOTKEYINPUT, (WPARAM)hWndHotkey, 0);
+
+
+AKD_DIALOGRESIZE
+________________
+
+Automatic controls alignment in dialog.
+
+wParam                    == not used
+(DIALOGRESIZEMSG *)lParam == pointer to a DIALOGRESIZEMSG structure
+
+Return Value
+ TRUE  dialog size changed.
+ FALSE dialog size unchanged.
+
+Example:
+RECT rcMainInitDialog={0};
+RECT rcMainCurrentDialog={0};
+BOOL bMainDialogRectChanged=FALSE;
+
+BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndOK;
+  static HWND hWndCancel;
+  static DIALOGRESIZE drs[]={{&hWndOK,     DRS_MOVE|DRS_X, 0},
+                             {&hWndOK,     DRS_MOVE|DRS_Y, 0},
+                             {&hWndCancel, DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel, DRS_MOVE|DRS_Y, 0},
+                             {0, 0, 0}};
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    hWndOK=GetDlgItem(hDlg, IDOK);
+    hWndCancel=GetDlgItem(hDlg, IDCANCEL);
+  }
+
+  //...Dialog messages processing
+
+  //Dialog resize messages
+  {
+    DIALOGRESIZEMSG drsm={&drs[0], &rcMainInitDialog, &rcMainCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
+
+    if (SendMessage(hMainWnd, AKD_DIALOGRESIZE, 0, (LPARAM)&drsm))
+      bMainDialogRectChanged=TRUE;
+  }
+  return FALSE;
+}
 
 
 AKD_GLOBALALLOC

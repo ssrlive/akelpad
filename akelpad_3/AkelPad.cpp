@@ -64,6 +64,7 @@ BOOL bOldWindows;
 BOOL bOldRichEdit;
 BOOL bOldComctl32;
 BOOL bAkelEdit=FALSE;
+BOOL bWindowsNT=FALSE;
 
 //Buffers
 char buf[BUFFER_SIZE];
@@ -337,6 +338,7 @@ BOOL bDocumentReopen=FALSE;
 BOOL bMdiClientRedraw=TRUE;
 HWND hTab=NULL;
 DWORD dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_NEXTPREV;
+BOOL bKeybLayoutMDI=FALSE;
 HIMAGELIST hImageList;
 BOOL bTabPressed=FALSE;
 BOOL bFileExitError;
@@ -395,6 +397,24 @@ extern "C" void _WinMain()
   else
     bOldWindows=TRUE;
 
+  //Is Windows NT4?
+  if (!bOldWindows)
+  {
+    OSVERSIONINFO ovi;
+
+    ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+    GetVersionEx(&ovi);
+    if (ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0 && ovi.dwPlatformId == VER_PLATFORM_WIN32_NT)
+      bWindowsNT=TRUE;
+  }
+
+  //Get program version
+  {
+    DWORD ver[4]={AKELPAD_ID};
+
+    dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
+  }
+
   if (bOldWindows)
   {
     WNDCLASSA wndclassA={0};
@@ -438,13 +458,6 @@ extern "C" void _WinMain()
 
     //Get program directory
     GetExeDirA(hInstance, szExeDir, MAX_PATH);
-
-    //Get program version
-    {
-      DWORD ver[4]={AKELPAD_ID};
-
-      dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
-    }
 
     //Read options
     wsprintfA(szIniFile, "%s\\AkelPad.ini", szExeDir);
@@ -879,13 +892,6 @@ extern "C" void _WinMain()
 
     //Get program directory
     GetExeDirW(hInstance, wszExeDir, MAX_PATH);
-
-    //Get program version
-    {
-      DWORD ver[4]={AKELPAD_ID};
-
-      dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
-    }
 
     //Read options
     wsprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
@@ -2425,6 +2431,12 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       OldHotkeyInputProc=(WNDPROC)GetWindowLongA((HWND)wParam, GWL_WNDPROC);
       SetWindowLongA((HWND)wParam, GWL_WNDPROC, (LONG)NewHotkeyInputProc);
       return 0;
+    }
+    if (uMsg == AKD_DIALOGRESIZE)
+    {
+      DIALOGRESIZEMSG *drsm=(DIALOGRESIZEMSG *)lParam;
+
+      return DialogResizeMessages(drsm->drs, drsm->rcInit, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
     }
 
     //Thread
@@ -4285,6 +4297,12 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SetWindowLongW((HWND)wParam, GWL_WNDPROC, (LONG)NewHotkeyInputProc);
       return 0;
     }
+    if (uMsg == AKD_DIALOGRESIZE)
+    {
+      DIALOGRESIZEMSG *drsm=(DIALOGRESIZEMSG *)lParam;
+
+      return DialogResizeMessages(drsm->drs, drsm->rcInit, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
+    }
 
     //Thread
     if (uMsg == AKD_GLOBALALLOC)
@@ -5657,6 +5675,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->bShowURL=bShowURL;
       lpWndFrameA->bUrlPrefixesEnable=FALSE;
       lpWndFrameA->bUrlDelimitersEnable=FALSE;
+      lpWndFrameA->nKeybLayout=-1;
       SetWindowLongA(hWnd, GWL_USERDATA, (LONG)lpWndFrameA);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -5789,6 +5808,12 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->bShowURL=bShowURL;
             lpWndFrameA->bUrlPrefixesEnable=FALSE;
             lpWndFrameA->bUrlDelimitersEnable=FALSE;
+
+            //Remember keyboard layout
+            if (bKeybLayoutMDI)
+            {
+              lpWndFrameA->nKeybLayout=LOWORD(GetKeyboardLayout(0));
+            }
           }
         }
         //Handles
@@ -5819,6 +5844,12 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bShowURL=lpWndFrameA->bShowURL;
           //bUrlPrefixesEnable=lpWndFrameA->bUrlPrefixesEnable;
           //bUrlDelimitersEnable=lpWndFrameA->bUrlDelimitersEnable;
+
+          //Activate keyboard layout
+          if (bKeybLayoutMDI)
+          {
+            ActivateKeyboard(lpWndFrameA->nKeybLayout);
+          }
         }
 
         //Update selection
@@ -5888,6 +5919,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->bShowURL=bShowURL;
       lpWndFrameW->bUrlPrefixesEnable=FALSE;
       lpWndFrameW->bUrlDelimitersEnable=FALSE;
+      lpWndFrameW->nKeybLayout=-1;
       SetWindowLongW(hWnd, GWL_USERDATA, (LONG)lpWndFrameW);
 
       nIndex=ImageList_AddIcon(hImageList, hIconEmpty);
@@ -6020,6 +6052,12 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->bShowURL=bShowURL;
             lpWndFrameW->bUrlPrefixesEnable=FALSE;
             lpWndFrameW->bUrlDelimitersEnable=FALSE;
+
+            //Remember keyboard layout
+            if (bKeybLayoutMDI)
+            {
+              lpWndFrameW->nKeybLayout=LOWORD(GetKeyboardLayout(0));
+            }
           }
         }
         //Handles
@@ -6050,6 +6088,12 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bShowURL=lpWndFrameW->bShowURL;
           //bUrlPrefixesEnable=lpWndFrameW->bUrlPrefixesEnable;
           //bUrlDelimitersEnable=lpWndFrameW->bUrlDelimitersEnable;
+
+          //Activate keyboard layout
+          if (bKeybLayoutMDI)
+          {
+            ActivateKeyboard(lpWndFrameW->nKeybLayout);
+          }
         }
 
         //Update selection
@@ -6913,8 +6957,10 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               GetMovingRect(dkData, &pt, &mmi, &rcEdge);
               DrawMovingRect(&rcEdge);
 
-              nMouseDown=DOCK_SIZING;
+              nMouseDown=DKC_SIZING;
               SetCapture(hWnd);
+
+              SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONSTART, (WPARAM)dkData, DKC_SIZING);
             }
           }
           else
@@ -6931,9 +6977,11 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                   dkDragSource=dkData;
                   dkDropTarget=dkData;
 
-                  nMouseDown=DOCK_DRAGDROP;
+                  nMouseDown=DKC_DRAGDROP;
                   nMouseMove=4;
                   SetCapture(hWnd);
+
+                  SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONSTART, (WPARAM)dkData, DKC_DRAGDROP);
                 }
               }
             }
@@ -6946,13 +6994,13 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         if (nMouseDown)
         {
-          if (nMouseDown == DOCK_SIZING)
+          if (nMouseDown == DKC_SIZING)
           {
             DrawMovingRect(&rcEdge);
             GetMovingRect(dkData, &pt, &mmi, &rcEdge);
             DrawMovingRect(&rcEdge);
           }
-          else if (nMouseDown == DOCK_DRAGDROP)
+          else if (nMouseDown == DKC_DRAGDROP)
           {
             if (nMouseMove > 0)
             {
@@ -7047,57 +7095,62 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
       else if (uMsg == WM_LBUTTONUP)
       {
-        if (nMouseDown == DOCK_SIZING)
+        if (nMouseDown)
         {
-          nMouseDown=0;
-          DrawMovingRect(&rcEdge);
-          ReleaseCapture();
-
-          if (ScreenToClientRect(hMainWnd, &rcEdge))
+          if (nMouseDown == DKC_SIZING)
           {
-            if (dkData->nSide == DKS_LEFT ||
-                dkData->nSide == DKS_RIGHT)
-            {
-              dkData->rcSize.right=rcEdge.right;
-            }
-            else if (dkData->nSide == DKS_TOP ||
-                     dkData->nSide == DKS_BOTTOM)
-            {
-              dkData->rcSize.bottom=rcEdge.bottom;
-            }
-            hDocksStack.nSizingSide=dkData->nSide;
-            UpdateSize();
-          }
-        }
-        else if (nMouseDown == DOCK_DRAGDROP)
-        {
-          if (nMouseMove == 0)
-            DrawMovingRect(&rcDrop);
-          nMouseDown=0;
-          ReleaseCapture();
+            nMouseDown=0;
+            DrawMovingRect(&rcEdge);
+            ReleaseCapture();
 
-          if (dkDropTarget != dkDragSource)
-          {
-            if (dkDropTarget)
-              nDropSide=dkDropTarget->nSide;
-            rc=rcDrop;
-
-            if (ScreenToClientRect(hMainWnd, &rc))
+            if (ScreenToClientRect(hMainWnd, &rcEdge))
             {
-              if (nDropSide == DKS_LEFT ||
-                  nDropSide == DKS_RIGHT)
+              if (dkData->nSide == DKS_LEFT ||
+                  dkData->nSide == DKS_RIGHT)
               {
-                dkDragSource->rcSize.left=rc.left;
+                dkData->rcSize.right=rcEdge.right;
               }
-              else if (nDropSide == DKS_TOP ||
-                       nDropSide == DKS_BOTTOM)
+              else if (dkData->nSide == DKS_TOP ||
+                       dkData->nSide == DKS_BOTTOM)
               {
-                dkDragSource->rcSize.top=rc.top;
+                dkData->rcSize.bottom=rcEdge.bottom;
               }
-              DockSetSide(&hDocksStack, dkDragSource, nDropSide);
-              hDocksStack.nSizingSide=dkDragSource->nSide;
+              hDocksStack.nSizingSide=dkData->nSide;
               UpdateSize();
             }
+            SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_SIZING);
+          }
+          else if (nMouseDown == DKC_DRAGDROP)
+          {
+            if (nMouseMove == 0)
+              DrawMovingRect(&rcDrop);
+            nMouseDown=0;
+            ReleaseCapture();
+
+            if (dkDropTarget != dkDragSource)
+            {
+              if (dkDropTarget)
+                nDropSide=dkDropTarget->nSide;
+              rc=rcDrop;
+
+              if (ScreenToClientRect(hMainWnd, &rc))
+              {
+                if (nDropSide == DKS_LEFT ||
+                    nDropSide == DKS_RIGHT)
+                {
+                  dkDragSource->rcSize.left=rc.left;
+                }
+                else if (nDropSide == DKS_TOP ||
+                         nDropSide == DKS_BOTTOM)
+                {
+                  dkDragSource->rcSize.top=rc.top;
+                }
+                DockSetSide(&hDocksStack, dkDragSource, nDropSide);
+                hDocksStack.nSizingSide=dkDragSource->nSide;
+                UpdateSize();
+              }
+            }
+            SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_DRAGDROP);
           }
         }
       }
@@ -7105,18 +7158,20 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
         if (nMouseDown)
         {
-          if (nMouseDown == DOCK_SIZING)
+          if (nMouseDown == DKC_SIZING)
           {
             nMouseDown=0;
             DrawMovingRect(&rcEdge);
             ReleaseCapture();
+            SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_SIZING);
           }
-          else if (nMouseDown == DOCK_DRAGDROP)
+          else if (nMouseDown == DKC_DRAGDROP)
           {
             if (nMouseMove == 0)
               DrawMovingRect(&rcDrop);
             nMouseDown=0;
             ReleaseCapture();
+            SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_DRAGDROP);
           }
         }
       }

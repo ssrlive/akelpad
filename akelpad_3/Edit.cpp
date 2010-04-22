@@ -37,6 +37,7 @@ extern BOOL bOldWindows;
 extern BOOL bOldRichEdit;
 extern BOOL bOldComctl32;
 extern BOOL bAkelEdit;
+extern BOOL bWindowsNT;
 
 //Buffers
 extern char buf[BUFFER_SIZE];
@@ -295,6 +296,7 @@ extern BOOL bDocumentReopen;
 extern BOOL bMdiClientRedraw;
 extern HWND hTab;
 extern DWORD dwTabOptionsMDI;
+extern BOOL bKeybLayoutMDI;
 extern HIMAGELIST hImageList;
 extern BOOL bTabPressed;
 extern BOOL bFileExitError;
@@ -3401,6 +3403,7 @@ void ReadOptionsA()
   if (bRegMDI)
   {
     ReadOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
+    ReadOptionA(hHandle, "KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD));
     ReadOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
     ReadOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
@@ -3488,6 +3491,7 @@ void ReadOptionsW()
   if (bRegMDI)
   {
     ReadOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
+    ReadOptionW(hHandle, L"KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD));
     ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
     ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
@@ -3773,6 +3777,8 @@ BOOL SaveOptionsA()
   {
     if (!SaveOptionA(hHandle, "TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
       goto Error;
+    if (!SaveOptionA(hHandle, "KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD)))
+      goto Error;
     if (!SaveOptionA(hHandle, "WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
     if (!SaveOptionA(hHandle, "WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
@@ -3936,6 +3942,8 @@ BOOL SaveOptionsW()
   if (bMDI)
   {
     if (!SaveOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD)))
       goto Error;
     if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
@@ -10968,15 +10976,18 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndCancel;
   static int nSelItem;
   static BOOL bListChanged;
-  static DIALOGRESIZE drs[]={{&hWndList,        DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndListInfo,    DRS_MOVE|DRS_Y},
-                             {&hWndHotkeyLabel, DRS_MOVE|DRS_X},
-                             {&hWndHotkey,      DRS_MOVE|DRS_X},
-                             {&hWndAssign,      DRS_MOVE|DRS_X},
-                             {&hWndCall,        DRS_MOVE|DRS_Y},
-                             {&hWndOK,          DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
-                             {0, 0}};
+  static DIALOGRESIZE drs[]={{&hWndList,        DRS_SIZE|DRS_X, 0},
+                             {&hWndList,        DRS_SIZE|DRS_Y, 0},
+                             {&hWndListInfo,    DRS_MOVE|DRS_Y, 0},
+                             {&hWndHotkeyLabel, DRS_MOVE|DRS_X, 0},
+                             {&hWndHotkey,      DRS_MOVE|DRS_X, 0},
+                             {&hWndAssign,      DRS_MOVE|DRS_X, 0},
+                             {&hWndCall,        DRS_MOVE|DRS_Y, 0},
+                             {&hWndOK,          DRS_MOVE|DRS_X, 0},
+                             {&hWndOK,          DRS_MOVE|DRS_Y, 0},
+                             {&hWndCancel,      DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel,      DRS_MOVE|DRS_Y, 0},
+                             {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -11191,7 +11202,7 @@ BOOL CALLBACK PluginsDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
     }
   }
-  DialogResizeMessages(&drs[0], &rcPluginsInitDialog, &rcPluginsCurrentDialog, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcPluginsInitDialog, &rcPluginsCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -11208,15 +11219,18 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndCancel;
   static int nSelItem;
   static BOOL bListChanged;
-  static DIALOGRESIZE drs[]={{&hWndList,        DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndListInfo,    DRS_MOVE|DRS_Y},
-                             {&hWndHotkeyLabel, DRS_MOVE|DRS_X},
-                             {&hWndHotkey,      DRS_MOVE|DRS_X},
-                             {&hWndAssign,      DRS_MOVE|DRS_X},
-                             {&hWndCall,        DRS_MOVE|DRS_Y},
-                             {&hWndOK,          DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
-                             {0, 0}};
+  static DIALOGRESIZE drs[]={{&hWndList,        DRS_SIZE|DRS_X, 0},
+                             {&hWndList,        DRS_SIZE|DRS_Y, 0},
+                             {&hWndListInfo,    DRS_MOVE|DRS_Y, 0},
+                             {&hWndHotkeyLabel, DRS_MOVE|DRS_X, 0},
+                             {&hWndHotkey,      DRS_MOVE|DRS_X, 0},
+                             {&hWndAssign,      DRS_MOVE|DRS_X, 0},
+                             {&hWndCall,        DRS_MOVE|DRS_Y, 0},
+                             {&hWndOK,          DRS_MOVE|DRS_X, 0},
+                             {&hWndOK,          DRS_MOVE|DRS_Y, 0},
+                             {&hWndCancel,      DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel,      DRS_MOVE|DRS_Y, 0},
+                             {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -11431,7 +11445,7 @@ BOOL CALLBACK PluginsDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
     }
   }
-  DialogResizeMessages(&drs[0], &rcPluginsInitDialog, &rcPluginsCurrentDialog, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcPluginsInitDialog, &rcPluginsCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -14911,24 +14925,27 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndCancel;
   static BOOL bListChanged;
   static BOOL bOnlyModified;
-  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndStats,        DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndSearch,       DRS_SIZE|DRS_X},
-                             {&hWndSearch,       DRS_MOVE|DRS_Y},
-                             {&hWndOK,           DRS_MOVE|DRS_X},
-                             {&hWndArrangeGroup, DRS_MOVE|DRS_X},
-                             {&hWndHorz,         DRS_MOVE|DRS_X},
-                             {&hWndVert,         DRS_MOVE|DRS_X},
-                             {&hWndTabsGroup,    DRS_MOVE|DRS_X},
-                             {&hWndUp,           DRS_MOVE|DRS_X},
-                             {&hWndDown,         DRS_MOVE|DRS_X},
-                             {&hWndSort,         DRS_MOVE|DRS_X},
-                             {&hWndModified,     DRS_MOVE|DRS_X},
-                             {&hWndFilesGroup,   DRS_MOVE|DRS_X},
-                             {&hWndSave,         DRS_MOVE|DRS_X},
-                             {&hWndClose,        DRS_MOVE|DRS_X},
-                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
-                             {0, 0}};
+  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X, 0},
+                             {&hWndList,         DRS_SIZE|DRS_Y, 0},
+                             {&hWndStats,        DRS_MOVE|DRS_X, 0},
+                             {&hWndStats,        DRS_MOVE|DRS_Y, 0},
+                             {&hWndSearch,       DRS_SIZE|DRS_X, 0},
+                             {&hWndSearch,       DRS_MOVE|DRS_Y, 0},
+                             {&hWndOK,           DRS_MOVE|DRS_X, 0},
+                             {&hWndArrangeGroup, DRS_MOVE|DRS_X, 0},
+                             {&hWndHorz,         DRS_MOVE|DRS_X, 0},
+                             {&hWndVert,         DRS_MOVE|DRS_X, 0},
+                             {&hWndTabsGroup,    DRS_MOVE|DRS_X, 0},
+                             {&hWndUp,           DRS_MOVE|DRS_X, 0},
+                             {&hWndDown,         DRS_MOVE|DRS_X, 0},
+                             {&hWndSort,         DRS_MOVE|DRS_X, 0},
+                             {&hWndModified,     DRS_MOVE|DRS_X, 0},
+                             {&hWndFilesGroup,   DRS_MOVE|DRS_X, 0},
+                             {&hWndSave,         DRS_MOVE|DRS_X, 0},
+                             {&hWndClose,        DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel,       DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel,       DRS_MOVE|DRS_Y, 0},
+                             {0, 0, 0}};
   int nItem;
 
   if (uMsg == WM_INITDIALOG)
@@ -15086,7 +15103,7 @@ BOOL CALLBACK MdiListDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       return TRUE;
     }
   }
-  DialogResizeMessages(&drs[0], &rcMdiListInitDialog, &rcMdiListCurrentDialog, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcMdiListInitDialog, &rcMdiListCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -15111,24 +15128,27 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   static HWND hWndCancel;
   static BOOL bListChanged;
   static BOOL bOnlyModified;
-  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndStats,        DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndSearch,       DRS_SIZE|DRS_X},
-                             {&hWndSearch,       DRS_MOVE|DRS_Y},
-                             {&hWndOK,           DRS_MOVE|DRS_X},
-                             {&hWndArrangeGroup, DRS_MOVE|DRS_X},
-                             {&hWndHorz,         DRS_MOVE|DRS_X},
-                             {&hWndVert,         DRS_MOVE|DRS_X},
-                             {&hWndTabsGroup,    DRS_MOVE|DRS_X},
-                             {&hWndUp,           DRS_MOVE|DRS_X},
-                             {&hWndDown,         DRS_MOVE|DRS_X},
-                             {&hWndSort,         DRS_MOVE|DRS_X},
-                             {&hWndModified,     DRS_MOVE|DRS_X},
-                             {&hWndFilesGroup,   DRS_MOVE|DRS_X},
-                             {&hWndSave,         DRS_MOVE|DRS_X},
-                             {&hWndClose,        DRS_MOVE|DRS_X},
-                             {&hWndCancel,       DRS_MOVE|DRS_X|DRS_Y},
-                             {0, 0}};
+  static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X, 0},
+                             {&hWndList,         DRS_SIZE|DRS_Y, 0},
+                             {&hWndStats,        DRS_MOVE|DRS_X, 0},
+                             {&hWndStats,        DRS_MOVE|DRS_Y, 0},
+                             {&hWndSearch,       DRS_SIZE|DRS_X, 0},
+                             {&hWndSearch,       DRS_MOVE|DRS_Y, 0},
+                             {&hWndOK,           DRS_MOVE|DRS_X, 0},
+                             {&hWndArrangeGroup, DRS_MOVE|DRS_X, 0},
+                             {&hWndHorz,         DRS_MOVE|DRS_X, 0},
+                             {&hWndVert,         DRS_MOVE|DRS_X, 0},
+                             {&hWndTabsGroup,    DRS_MOVE|DRS_X, 0},
+                             {&hWndUp,           DRS_MOVE|DRS_X, 0},
+                             {&hWndDown,         DRS_MOVE|DRS_X, 0},
+                             {&hWndSort,         DRS_MOVE|DRS_X, 0},
+                             {&hWndModified,     DRS_MOVE|DRS_X, 0},
+                             {&hWndFilesGroup,   DRS_MOVE|DRS_X, 0},
+                             {&hWndSave,         DRS_MOVE|DRS_X, 0},
+                             {&hWndClose,        DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel,       DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel,       DRS_MOVE|DRS_Y, 0},
+                             {0, 0, 0}};
   int nItem;
 
   if (uMsg == WM_INITDIALOG)
@@ -15286,7 +15306,7 @@ BOOL CALLBACK MdiListDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       return TRUE;
     }
   }
-  DialogResizeMessages(&drs[0], &rcMdiListInitDialog, &rcMdiListCurrentDialog, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcMdiListInitDialog, &rcMdiListCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -17763,6 +17783,30 @@ int TranslateFileStringW(wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
   return b;
 }
 
+void ActivateKeyboard(int nKeybLayout)
+{
+  if (nKeybLayout != -1)
+  {
+    if (bWindowsNT)
+    {
+      int nLayoutInit=LOWORD(GetKeyboardLayout(0));
+      int nLayoutCount=nLayoutInit;
+
+      while (nLayoutCount != nKeybLayout)
+      {
+        ActivateKeyboardLayout((HKL)HKL_NEXT, 0);
+        nLayoutCount=LOWORD(GetKeyboardLayout(0));
+        if (nLayoutCount == nLayoutInit) break;
+      }
+    }
+    else
+    {
+      if (LOWORD(GetKeyboardLayout(0)) != nKeybLayout)
+        ActivateKeyboardLayout((HKL)nKeybLayout, 0);
+    }
+  }
+}
+
 void ActivateWindow(HWND hWnd)
 {
   DWORD dwStyle=GetWindowLongA(hWnd, GWL_STYLE);
@@ -17884,15 +17928,39 @@ void UpdateSize()
   }
 }
 
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_INITDIALOG)
   {
     RECT rcTemplate;
+    RECT rcControl;
+    int i;
 
     GetWindowPos(hDlg, NULL, rcInit);
     rcTemplate=*rcCurrent;
     *rcCurrent=*rcInit;
+
+    for (i=0; drs[i].lpWnd; ++i)
+    {
+      if (*drs[i].lpWnd)
+      {
+        GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
+        if (drs[i].dwType & DRS_SIZE)
+        {
+          if (drs[i].dwType & DRS_X)
+            drs[i].nOffset=rcInit->right - (rcControl.left + rcControl.right);
+          else if (drs[i].dwType & DRS_Y)
+            drs[i].nOffset=rcInit->bottom - (rcControl.top + rcControl.bottom);
+        }
+        else if (drs[i].dwType & DRS_MOVE)
+        {
+          if (drs[i].dwType & DRS_X)
+            drs[i].nOffset=rcInit->right - rcControl.left;
+          else if (drs[i].dwType & DRS_Y)
+            drs[i].nOffset=rcInit->bottom - rcControl.top;
+        }
+      }
+    }
 
     if (rcTemplate.right && rcTemplate.bottom)
     {
@@ -17903,25 +17971,23 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, HWND
   }
   else if (uMsg == WM_GETMINMAXINFO)
   {
-    MINMAXINFO *mmi=(MINMAXINFO *)lParam;
+    if (dwFlags & DRM_GETMINMAXINFO)
+    {
+      MINMAXINFO *mmi=(MINMAXINFO *)lParam;
 
-    mmi->ptMinTrackSize.x=rcInit->right;
-    mmi->ptMinTrackSize.y=rcInit->bottom;
+      mmi->ptMinTrackSize.x=rcInit->right;
+      mmi->ptMinTrackSize.y=rcInit->bottom;
+    }
   }
   else if (uMsg == WM_SIZE)
   {
     if (lParam)
     {
-      RECT rcTemplate;
       RECT rcControl;
       DWORD dwFlags;
-      POINT pt;
       int i;
 
-      GetWindowPos(hDlg, NULL, &rcTemplate);
-      pt.x=rcTemplate.right - rcCurrent->right;
-      pt.y=rcTemplate.bottom - rcCurrent->bottom;
-      *rcCurrent=rcTemplate;
+      GetWindowPos(hDlg, NULL, rcCurrent);
 
       for (i=0; drs[i].lpWnd; ++i)
       {
@@ -17932,8 +17998,15 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, HWND
             dwFlags|=SWP_NOMOVE;
           else if (drs[i].dwType & DRS_MOVE)
             dwFlags|=SWP_NOSIZE;
+          else
+            continue;
+
           GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
-          SetWindowPos(*drs[i].lpWnd, 0, rcControl.left + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.top + ((drs[i].dwType & DRS_Y)?pt.y:0), rcControl.right + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.bottom + ((drs[i].dwType & DRS_Y)?pt.y:0), dwFlags|SWP_NOZORDER);
+          SetWindowPos(*drs[i].lpWnd, 0, (drs[i].dwType & DRS_X)?(rcCurrent->right - drs[i].nOffset):rcControl.left,
+                                         (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - drs[i].nOffset):rcControl.top,
+                                         (drs[i].dwType & DRS_X)?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right,
+                                         (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom,
+                                          dwFlags|SWP_NOZORDER);
         }
       }
       InvalidateRect(hDlg, NULL, TRUE);
@@ -17942,17 +18015,20 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, HWND
   }
   else if (uMsg == WM_PAINT)
   {
-    PAINTSTRUCT ps;
-    RECT rcGrip;
-    HDC hDC;
-
-    if (hDC=BeginPaint(hDlg, &ps))
+    if (dwFlags & DRM_PAINTSIZEGRIP)
     {
-      GetClientRect(hDlg, &rcGrip);
-      rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
-      rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
-      DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
-      EndPaint(hDlg, &ps);
+      PAINTSTRUCT ps;
+      RECT rcGrip;
+      HDC hDC;
+
+      if (hDC=BeginPaint(hDlg, &ps))
+      {
+        GetClientRect(hDlg, &rcGrip);
+        rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
+        rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
+        DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
+        EndPaint(hDlg, &ps);
+      }
     }
   }
   return FALSE;
