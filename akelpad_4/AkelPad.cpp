@@ -27,8 +27,9 @@
 #define xuitoaW
 #define hex2decA
 #define hex2decW
-#define xstrstrA
-#define xstrstrW
+#define dec2hexW
+#define hex2binW
+#define bin2hexW
 #include "ConvFunc.h"
 
 //Include stack functions
@@ -44,11 +45,15 @@
 #include "StackFunc.h"
 
 //Include string functions
+#define WideCharLower
 #define xstrcpyA
 #define xstrcpyW
+#define xstrstrA
+#define xstrstrW
 #define xstrcmpW
 #define xstrcmpinA
 #define xstrcmpinW
+#define xstrcmpiW
 #include "StrFunc.h"
 
 //Process
@@ -214,6 +219,10 @@ char szHomeDir[MAX_PATH]="";
 wchar_t wszHomeDir[MAX_PATH]=L"";
 char szDefaultSaveExt[MAX_PATH];
 wchar_t wszDefaultSaveExt[MAX_PATH];
+char szDateLogFormat[MAX_PATH]="";
+wchar_t wszDateLogFormat[MAX_PATH]=L"";
+char szDateInsertFormat[MAX_PATH]="";
+wchar_t wszDateInsertFormat[MAX_PATH]=L"";
 BOOL bAutodetect=TRUE;
 BOOL bSaveDlg;
 DWORD dwOfnFlags;
@@ -223,7 +232,7 @@ int nMsgCreate=AUTOANSWER_ASK;
 int nMsgBinary=AUTOANSWER_ASK;
 POINT ptDocumentPos;
 BOOL bDocumentReopen=FALSE;
-BOOL bLogDate=FALSE;
+BOOL bDateLog=FALSE;
 BOOL bSaveInReadOnlyMsg=FALSE;
 WNDPROC OldFilePreviewProc;
 

@@ -182,6 +182,10 @@ extern char szHomeDir[MAX_PATH];
 extern wchar_t wszHomeDir[MAX_PATH];
 extern char szDefaultSaveExt[MAX_PATH];
 extern wchar_t wszDefaultSaveExt[MAX_PATH];
+extern char szDateLogFormat[MAX_PATH];
+extern wchar_t wszDateLogFormat[MAX_PATH];
+extern char szDateInsertFormat[MAX_PATH];
+extern wchar_t wszDateInsertFormat[MAX_PATH];
 extern BOOL bAutodetect;
 extern BOOL bSaveDlg;
 extern DWORD dwOfnFlags;
@@ -191,7 +195,7 @@ extern int nMsgCreate;
 extern int nMsgBinary;
 extern POINT ptDocumentPos;
 extern BOOL bDocumentReopen;
-extern BOOL bLogDate;
+extern BOOL bDateLog;
 extern BOOL bSaveInReadOnlyMsg;
 extern WNDPROC OldFilePreviewProc;
 
@@ -1148,9 +1152,17 @@ void DoEditInsertDateA(HWND hWnd)
 
   if (IsReadOnly()) return;
 
-  GetTimeFormatA(LOCALE_USER_DEFAULT, TIME_NOSECONDS, NULL, NULL, szTime, 128);
-  GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szDate, 128);
-
+  if (!szDateInsertFormat[0])
+  {
+    GetTimeFormatA(LOCALE_USER_DEFAULT, TIME_NOSECONDS, NULL, NULL, szTime, 128);
+    GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szDate, 128);
+    wsprintfA(szTimeAndDate, "%s %s", szTime, szDate);
+  }
+  else
+  {
+    GetTimeFormatA(LOCALE_USER_DEFAULT, 0, NULL, szDateInsertFormat, buf, 128);
+    GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, buf, szTimeAndDate, 128);
+  }
   wsprintfA(szTimeAndDate, "%s %s", szTime, szDate);
   ReplaceSelA(hWnd, szTimeAndDate, -1, -1, NULL, NULL);
 }
@@ -1163,10 +1175,17 @@ void DoEditInsertDateW(HWND hWnd)
 
   if (IsReadOnly()) return;
 
-  GetTimeFormatW(LOCALE_USER_DEFAULT, TIME_NOSECONDS, NULL, NULL, wszTime, 128);
-  GetDateFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
-
-  wsprintfW(wszTimeAndDate, L"%s %s", wszTime, wszDate);
+  if (!wszDateInsertFormat[0])
+  {
+    GetTimeFormatW(LOCALE_USER_DEFAULT, TIME_NOSECONDS, NULL, NULL, wszTime, 128);
+    GetDateFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
+    wsprintfW(wszTimeAndDate, L"%s %s", wszTime, wszDate);
+  }
+  else
+  {
+    GetTimeFormatW(LOCALE_USER_DEFAULT, 0, NULL, wszDateInsertFormat, wbuf, 128);
+    GetDateFormatW(LOCALE_USER_DEFAULT, 0, NULL, wbuf, wszTimeAndDate, 128);
+  }
   ReplaceSelW(hWnd, wszTimeAndDate, -1, -1, NULL, NULL);
 }
 
@@ -2541,12 +2560,9 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
 
                 if (!StackInsertIndex((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
                 {
-                  lpIniSection->nSectionUnicodeBytes=nSectionLen * sizeof(wchar_t) + 2;
-                  if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionUnicodeBytes))
-                    memcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionUnicodeBytes);
-                  lpIniSection->nSectionAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, NULL, 0, NULL, NULL);
-                  if (lpIniSection->szSection=(char *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionAnsiBytes))
-                    WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, lpIniSection->szSection, lpIniSection->nSectionAnsiBytes, NULL, NULL);
+                  lpIniSection->nSectionBytes=nSectionLen * sizeof(wchar_t) + 2;
+                  if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionBytes))
+                    memcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionBytes);
                   lpIniSection->hKeysStack.first=0;
                   lpIniSection->hKeysStack.last=0;
                 }
@@ -2576,19 +2592,13 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
 
                 if (!StackInsertIndex((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
                 {
-                  lpIniKey->nKeyUnicodeBytes=nKeyLen * sizeof(wchar_t) + 2;
-                  if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
-                    memcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyUnicodeBytes);
-                  lpIniKey->nKeyAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpKey, nKeyLen + 1, NULL, 0, NULL, NULL);
-                  if (lpIniKey->szKey=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyAnsiBytes))
-                    WideCharToMultiByte(CP_ACP, 0, wpKey, nKeyLen + 1, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes, NULL, NULL);
+                  lpIniKey->nKeyBytes=nKeyLen * sizeof(wchar_t) + 2;
+                  if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyBytes))
+                    memcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyBytes);
 
-                  lpIniKey->nStringUnicodeBytes=nStringLen * sizeof(wchar_t) + 2;
-                  if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-                    memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
-                  lpIniKey->nStringAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpString, nStringLen + 1, NULL, 0, NULL, NULL);
-                  if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-                    WideCharToMultiByte(CP_ACP, 0, wpString, nStringLen + 1, lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
+                  lpIniKey->nStringBytes=nStringLen * sizeof(wchar_t) + 2;
+                  if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
+                    memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringBytes);
                 }
                 else goto Error;
               }
@@ -2620,7 +2630,7 @@ BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile)
     //Section
     if (!API_WriteFile(hFile, L"[", 2, &dwBytesWritten, NULL))
       return FALSE;
-    if (!API_WriteFile(hFile, lpIniSection->wszSection, lpIniSection->nSectionUnicodeBytes - 2, &dwBytesWritten, NULL))
+    if (!API_WriteFile(hFile, lpIniSection->wszSection, lpIniSection->nSectionBytes - 2, &dwBytesWritten, NULL))
       return FALSE;
     if (!API_WriteFile(hFile, L"]\r\n", 6, &dwBytesWritten, NULL))
       return FALSE;
@@ -2630,11 +2640,11 @@ BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile)
 
     while (lpIniKey)
     {
-      if (!API_WriteFile(hFile, lpIniKey->wszKey, lpIniKey->nKeyUnicodeBytes - 2, &dwBytesWritten, NULL))
+      if (!API_WriteFile(hFile, lpIniKey->wszKey, lpIniKey->nKeyBytes - 2, &dwBytesWritten, NULL))
         return FALSE;
       if (!API_WriteFile(hFile, L"=", 2, &dwBytesWritten, NULL))
         return FALSE;
-      if (!API_WriteFile(hFile, lpIniKey->wszString, lpIniKey->nStringUnicodeBytes - 2, &dwBytesWritten, NULL))
+      if (!API_WriteFile(hFile, lpIniKey->wszString, lpIniKey->nStringBytes - 2, &dwBytesWritten, NULL))
         return FALSE;
       if (!API_WriteFile(hFile, L"\r\n", 4, &dwBytesWritten, NULL))
         return FALSE;
@@ -2652,20 +2662,16 @@ BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile)
 
 HINISECTION* StackGetIniSectionA(HSTACK *hIniStack, char *pSection, int nSectionLen)
 {
-  HINISECTION *lpIniSection=(HINISECTION *)hIniStack->first;
+  HINISECTION *lpIniSection=NULL;
+  wchar_t *wpSection;
 
-  nSectionLen=nSectionLen + 1;
-
-  while (lpIniSection)
+  if (wpSection=(wchar_t *)API_HeapAlloc(hHeap, 0, nSectionLen * sizeof(wchar_t) + 2))
   {
-    if (lpIniSection->nSectionAnsiBytes == nSectionLen)
-    {
-      if (!lstrcmpiA(lpIniSection->szSection, pSection))
-        return lpIniSection;
-    }
-    lpIniSection=lpIniSection->next;
+    nSectionLen=MultiByteToWideChar(CP_ACP, 0, pSection, nSectionLen + 1, wpSection, nSectionLen + 1);
+    lpIniSection=StackGetIniSectionW(hIniStack, wpSection, nSectionLen - 1);
+    API_HeapFree(hHeap, 0, (LPVOID)wpSection);
   }
-  return NULL;
+  return lpIniSection;
 }
 
 HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSectionLen)
@@ -2676,9 +2682,9 @@ HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSec
 
   while (lpIniSection)
   {
-    if (lpIniSection->nSectionUnicodeBytes == nSectionLen)
+    if (lpIniSection->nSectionBytes == nSectionLen)
     {
-      if (!lstrcmpiW(lpIniSection->wszSection, wpSection))
+      if (!xstrcmpiW(lpIniSection->wszSection, wpSection))
         return lpIniSection;
     }
     lpIniSection=lpIniSection->next;
@@ -2688,20 +2694,16 @@ HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSec
 
 HINIKEY* StackGetIniKeyA(HINISECTION *lpIniSection, char *pKey, int nKeyLen)
 {
-  HINIKEY *lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
+  HINIKEY *lpIniKey=NULL;
+  wchar_t *wpKey;
 
-  nKeyLen=nKeyLen + 1;
-
-  while (lpIniKey)
+  if (wpKey=(wchar_t *)API_HeapAlloc(hHeap, 0, nKeyLen * sizeof(wchar_t) + 2))
   {
-    if (lpIniKey->nKeyAnsiBytes == nKeyLen)
-    {
-      if (!lstrcmpiA(lpIniKey->szKey, pKey))
-        return lpIniKey;
-    }
-    lpIniKey=lpIniKey->next;
+    nKeyLen=MultiByteToWideChar(CP_ACP, 0, pKey, nKeyLen + 1, wpKey, nKeyLen + 1);
+    lpIniKey=StackGetIniKeyW(lpIniSection, wpKey, nKeyLen - 1);
+    API_HeapFree(hHeap, 0, (LPVOID)wpKey);
   }
-  return NULL;
+  return lpIniKey;
 }
 
 HINIKEY* StackGetIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen)
@@ -2712,9 +2714,9 @@ HINIKEY* StackGetIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen)
 
   while (lpIniKey)
   {
-    if (lpIniKey->nKeyUnicodeBytes == nKeyLen)
+    if (lpIniKey->nKeyBytes == nKeyLen)
     {
-      if (!lstrcmpiW(lpIniKey->wszKey, wpKey))
+      if (!xstrcmpiW(lpIniKey->wszKey, wpKey))
         return lpIniKey;
     }
     lpIniKey=lpIniKey->next;
@@ -2722,55 +2724,113 @@ HINIKEY* StackGetIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen)
   return NULL;
 }
 
-int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+int StackGetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
 {
-  HINISECTION *lpIniSection=NULL;
-  HINIKEY *lpIniKey=NULL;
-  int nSectionLen=lstrlenA(pSection);
-  int nKeyLen=lstrlenA(pKey);
   DWORD dwStringLen;
 
-  if (lpIniSection=StackGetIniSectionA(hIniStack, pSection, nSectionLen))
+  if (nType == INI_DWORD)
   {
-    if (lpIniKey=StackGetIniKeyA(lpIniSection, pKey, nKeyLen))
+    if (lpData)
     {
-      if (nType == INI_DWORD)
-      {
-        if (lpData)
-        {
-          DWORD dwNumber;
+      DWORD dwNumber;
 
-          dwNumber=(DWORD)xatoiA(lpIniKey->szString);
-          dwStringLen=min(sizeof(DWORD), dwDataBytes);
-          memcpy((DWORD *)lpData, &dwNumber, dwStringLen);
-          return dwStringLen;
-        }
-        return sizeof(DWORD);
-      }
-      else if (nType == INI_BINARY)
-      {
-        return HexStrToDataA(lpIniKey->szString, lpData, dwDataBytes);
-      }
-      else if (nType == INI_STRINGANSI)
-      {
-        if (lpData)
-        {
-          dwStringLen=min((DWORD)lpIniKey->nStringAnsiBytes, dwDataBytes);
-          memcpy((char *)lpData, lpIniKey->szString, dwStringLen);
-          return dwStringLen;
-        }
-        return lpIniKey->nStringAnsiBytes;
-      }
-      else if (nType == INI_STRINGUNICODE)
-      {
-        if (lpData)
-        {
-          dwStringLen=min((DWORD)lpIniKey->nStringUnicodeBytes, dwDataBytes);
-          memcpy((wchar_t *)lpData, lpIniKey->wszString, dwStringLen);
-          return dwStringLen;
-        }
-        return lpIniKey->nStringUnicodeBytes;
-      }
+      dwNumber=(DWORD)xatoiW(lpIniKey->wszString);
+      dwStringLen=min(sizeof(DWORD), dwDataBytes);
+      memcpy((DWORD *)lpData, &dwNumber, dwStringLen);
+      return dwStringLen;
+    }
+    return sizeof(DWORD);
+  }
+  else if (nType == INI_BINARY)
+  {
+    return hex2binW(lpIniKey->wszString, lpData, dwDataBytes);
+  }
+  else if (nType == INI_STRINGANSI)
+  {
+    if (lpData)
+    {
+      dwStringLen=WideCharToMultiByte(CP_ACP, 0, lpIniKey->wszString, lpIniKey->nStringBytes / sizeof(wchar_t), (char *)lpData, dwDataBytes / sizeof(wchar_t), NULL, NULL);
+      ((char *)lpData)[dwStringLen - 1]='\0';
+      return dwStringLen;
+    }
+    return WideCharToMultiByte(CP_ACP, 0, lpIniKey->wszString, lpIniKey->nStringBytes / sizeof(wchar_t), NULL, 0, NULL, NULL);
+  }
+  else if (nType == INI_STRINGUNICODE)
+  {
+    if (lpData)
+    {
+      dwStringLen=min((DWORD)lpIniKey->nStringBytes, dwDataBytes);
+      dwStringLen=(dwStringLen / sizeof(wchar_t)) * sizeof(wchar_t);
+      memcpy((wchar_t *)lpData, lpIniKey->wszString, dwStringLen);
+      ((wchar_t *)lpData)[dwStringLen / sizeof(wchar_t) - 1]=L'\0';
+      return dwStringLen;
+    }
+    return lpIniKey->nStringBytes;
+  }
+  return 0;
+}
+
+BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+{
+  if (nType == INI_DWORD)
+  {
+    wchar_t wszNumber[16];
+
+    lpIniKey->nStringBytes=xuitoaW(*(DWORD *)lpData, wszNumber, 0) * sizeof(wchar_t) + 2;
+    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
+    {
+      memcpy(lpIniKey->wszString, wszNumber, lpIniKey->nStringBytes);
+      return TRUE;
+    }
+  }
+  else if (nType == INI_BINARY)
+  {
+    lpIniKey->nStringBytes=(dwDataBytes * 2) * sizeof(wchar_t) + 2;
+    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
+    {
+      bin2hexW(lpData, dwDataBytes, lpIniKey->wszString, lpIniKey->nStringBytes / sizeof(wchar_t), TRUE);
+      return TRUE;
+    }
+  }
+  else if (nType == INI_STRINGANSI)
+  {
+    dwDataBytes=max(dwDataBytes, sizeof(char));
+
+    lpIniKey->nStringBytes=MultiByteToWideChar(CP_ACP, 0, (char *)lpData, dwDataBytes, NULL, 0) * sizeof(wchar_t);
+    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
+    {
+      MultiByteToWideChar(CP_ACP, 0, (char *)lpData, dwDataBytes, lpIniKey->wszString, lpIniKey->nStringBytes / sizeof(wchar_t));
+      if (lpIniKey->wszString[lpIniKey->nStringBytes / sizeof(wchar_t) - 1] != L'\0')
+        lpIniKey->wszString[lpIniKey->nStringBytes / sizeof(wchar_t) - 1]=L'\0';
+      return TRUE;
+    }
+  }
+  else if (nType == INI_STRINGUNICODE)
+  {
+    dwDataBytes=max(dwDataBytes, sizeof(wchar_t));
+
+    lpIniKey->nStringBytes=(dwDataBytes / sizeof(wchar_t)) * sizeof(wchar_t);
+    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
+    {
+      memcpy(lpIniKey->wszString, (wchar_t *)lpData, lpIniKey->nStringBytes);
+      if (lpIniKey->wszString[lpIniKey->nStringBytes / sizeof(wchar_t) - 1] != L'\0')
+        lpIniKey->wszString[lpIniKey->nStringBytes / sizeof(wchar_t) - 1]=L'\0';
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+{
+  HINISECTION *lpIniSection;
+  HINIKEY *lpIniKey;
+
+  if (lpIniSection=StackGetIniSectionA(hIniStack, pSection, lstrlenA(pSection)))
+  {
+    if (lpIniKey=StackGetIniKeyA(lpIniSection, pKey, lstrlenA(pKey)))
+    {
+      return StackGetIniData(lpIniKey, nType, lpData, dwDataBytes);
     }
   }
   return 0;
@@ -2778,53 +2838,14 @@ int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsig
 
 int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
 {
-  HINISECTION *lpIniSection=NULL;
-  HINIKEY *lpIniKey=NULL;
-  int nSectionLen=lstrlenW(wpSection);
-  int nKeyLen=lstrlenW(wpKey);
-  DWORD dwStringLen;
+  HINISECTION *lpIniSection;
+  HINIKEY *lpIniKey;
 
-  if (lpIniSection=StackGetIniSectionW(hIniStack, wpSection, nSectionLen))
+  if (lpIniSection=StackGetIniSectionW(hIniStack, wpSection, lstrlenW(wpSection)))
   {
-    if (lpIniKey=StackGetIniKeyW(lpIniSection, wpKey, nKeyLen))
+    if (lpIniKey=StackGetIniKeyW(lpIniSection, wpKey, lstrlenW(wpKey)))
     {
-      if (nType == INI_DWORD)
-      {
-        if (lpData)
-        {
-          DWORD dwNumber;
-
-          dwNumber=(DWORD)xatoiW(lpIniKey->wszString);
-          dwStringLen=min(sizeof(DWORD), dwDataBytes);
-          memcpy((DWORD *)lpData, &dwNumber, dwStringLen);
-          return dwStringLen;
-        }
-        return sizeof(DWORD);
-      }
-      else if (nType == INI_BINARY)
-      {
-        return HexStrToDataW(lpIniKey->wszString, lpData, dwDataBytes);
-      }
-      else if (nType == INI_STRINGANSI)
-      {
-        if (lpData)
-        {
-          dwStringLen=min((DWORD)lpIniKey->nStringAnsiBytes, dwDataBytes);
-          memcpy((char *)lpData, lpIniKey->szString, dwStringLen);
-          return dwStringLen;
-        }
-        return lpIniKey->nStringAnsiBytes;
-      }
-      else if (nType == INI_STRINGUNICODE)
-      {
-        if (lpData)
-        {
-          dwStringLen=min((DWORD)lpIniKey->nStringUnicodeBytes, dwDataBytes);
-          memcpy((wchar_t *)lpData, lpIniKey->wszString, dwStringLen);
-          return dwStringLen;
-        }
-        return lpIniKey->nStringUnicodeBytes;
-      }
+      return StackGetIniData(lpIniKey, nType, lpData, dwDataBytes);
     }
   }
   return 0;
@@ -2834,25 +2855,17 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
 {
   HINISECTION *lpIniSection=NULL;
   HINIKEY *lpIniKey=NULL;
-  char *pString;
-  wchar_t *wpString;
-  char szNumber[16];
   int nSectionLen=lstrlenA(pSection);
   int nKeyLen=lstrlenA(pKey);
-  DWORD dwStringLen;
-  DWORD a;
-  DWORD b;
 
   if (!(lpIniSection=StackGetIniSectionA(hIniStack, pSection, nSectionLen)))
   {
     if (!StackInsertIndex((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
     {
-      lpIniSection->nSectionUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pSection, nSectionLen + 1, NULL, 0) * sizeof(wchar_t);
-      if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionUnicodeBytes))
-        MultiByteToWideChar(CP_ACP, 0, pSection, nSectionLen + 1, lpIniSection->wszSection, lpIniSection->nSectionUnicodeBytes / sizeof(wchar_t));
-      lpIniSection->nSectionAnsiBytes=nSectionLen + 1;
-      if (lpIniSection->szSection=(char *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionAnsiBytes))
-        memcpy(lpIniSection->szSection, pSection, lpIniSection->nSectionAnsiBytes);
+      lpIniSection->nSectionBytes=MultiByteToWideChar(CP_ACP, 0, pSection, nSectionLen + 1, NULL, 0) * sizeof(wchar_t);
+      if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionBytes))
+        MultiByteToWideChar(CP_ACP, 0, pSection, nSectionLen + 1, lpIniSection->wszSection, lpIniSection->nSectionBytes / sizeof(wchar_t));
+
       lpIniSection->hKeysStack.first=0;
       lpIniSection->hKeysStack.last=0;
     }
@@ -2862,100 +2875,36 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
   {
     if (!StackInsertIndex((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
     {
-      lpIniKey->nKeyUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pKey, nKeyLen + 1, NULL, 0) * sizeof(wchar_t);
-      if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
-        MultiByteToWideChar(CP_ACP, 0, pKey, nKeyLen + 1, lpIniKey->wszKey, lpIniKey->nKeyUnicodeBytes / sizeof(wchar_t));
-      lpIniKey->nKeyAnsiBytes=nKeyLen + 1;
-      if (lpIniKey->szKey=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyAnsiBytes))
-        memcpy(lpIniKey->szKey, pKey, lpIniKey->nKeyAnsiBytes);
+      lpIniKey->nKeyBytes=MultiByteToWideChar(CP_ACP, 0, pKey, nKeyLen + 1, NULL, 0) * sizeof(wchar_t);
+      if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyBytes))
+        MultiByteToWideChar(CP_ACP, 0, pKey, nKeyLen + 1, lpIniKey->wszKey, lpIniKey->nKeyBytes / sizeof(wchar_t));
     }
     else return FALSE;
   }
-  if (lpIniKey->wszString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->wszString);
-  if (lpIniKey->szString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->szString);
-
-  if (nType == INI_DWORD)
+  if (lpIniKey->wszString)
   {
-    pString=szNumber;
-    dwStringLen=wsprintfA(szNumber, "%u", *(DWORD *)lpData);
-
-    lpIniKey->nStringUnicodeBytes=dwStringLen * sizeof(wchar_t) + 2;
-    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      MultiByteToWideChar(CP_ACP, 0, pString, dwStringLen + 1, lpIniKey->wszString, lpIniKey->nStringUnicodeBytes / sizeof(wchar_t));
-    lpIniKey->nStringAnsiBytes=dwStringLen + 1;
-    if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      memcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
+    API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->wszString);
+    lpIniKey->wszString=NULL;
   }
-  else if (nType == INI_BINARY)
-  {
-    dwStringLen=dwDataBytes * 2;
 
-    if (pString=(char *)API_HeapAlloc(hHeap, 0, dwStringLen + 1))
-    {
-      for (a=0, b=0; a < dwDataBytes && b < dwStringLen; ++a)
-      {
-        b+=wsprintfA(pString + b, "%02X", (unsigned char)lpData[a]);
-      }
-    }
-
-    lpIniKey->nStringUnicodeBytes=dwStringLen * sizeof(wchar_t) + 2;
-    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      MultiByteToWideChar(CP_ACP, 0, pString, dwStringLen + 1, lpIniKey->wszString, lpIniKey->nStringUnicodeBytes / sizeof(wchar_t));
-    lpIniKey->nStringAnsiBytes=dwStringLen + 1;
-    if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      memcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
-    API_HeapFree(hHeap, 0, (LPVOID)pString);
-  }
-  else if (nType == INI_STRINGANSI)
-  {
-    pString=(char *)lpData;
-
-    lpIniKey->nStringUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pString, dwDataBytes, NULL, 0) * sizeof(wchar_t);
-    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      MultiByteToWideChar(CP_ACP, 0, pString, dwDataBytes, lpIniKey->wszString, lpIniKey->nStringUnicodeBytes / sizeof(wchar_t));
-    lpIniKey->nStringAnsiBytes=dwDataBytes;
-    if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      memcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
-  }
-  else if (nType == INI_STRINGUNICODE)
-  {
-    wpString=(wchar_t *)lpData;
-
-    lpIniKey->nStringUnicodeBytes=dwDataBytes;
-    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
-    lpIniKey->nStringAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpString, dwDataBytes / sizeof(wchar_t), NULL, 0, NULL, NULL);
-    if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      WideCharToMultiByte(CP_ACP, 0, wpString, dwDataBytes / sizeof(wchar_t), lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
-  }
-  else return FALSE;
-
-  return TRUE;
+  return StackSetIniData(lpIniKey, nType, lpData, dwDataBytes);
 }
 
 BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
 {
   HINISECTION *lpIniSection=NULL;
   HINIKEY *lpIniKey=NULL;
-  char *pString;
-  wchar_t *wpString;
-  wchar_t wszNumber[16];
   int nSectionLen=lstrlenW(wpSection);
   int nKeyLen=lstrlenW(wpKey);
-  DWORD dwStringLen;
-  DWORD a;
-  DWORD b;
 
   if (!(lpIniSection=StackGetIniSectionW(hIniStack, wpSection, nSectionLen)))
   {
     if (!StackInsertIndex((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
     {
-      lpIniSection->nSectionUnicodeBytes=nSectionLen * sizeof(wchar_t) + 2;
-      if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionUnicodeBytes))
-        memcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionUnicodeBytes);
-      lpIniSection->nSectionAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, NULL, 0, NULL, NULL);
-      if (lpIniSection->szSection=(char *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionAnsiBytes))
-        WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, lpIniSection->szSection, lpIniSection->nSectionAnsiBytes, NULL, NULL);
+      lpIniSection->nSectionBytes=nSectionLen * sizeof(wchar_t) + 2;
+      if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionBytes))
+        memcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionBytes);
+
       lpIniSection->hKeysStack.first=0;
       lpIniSection->hKeysStack.last=0;
     }
@@ -2965,75 +2914,19 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
   {
     if (!StackInsertIndex((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
     {
-      lpIniKey->nKeyUnicodeBytes=nKeyLen * sizeof(wchar_t) + 2;
-      if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
-        memcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyUnicodeBytes);
-      lpIniKey->nKeyAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpKey, nKeyLen + 1, NULL, 0, NULL, NULL);
-      if (lpIniKey->szKey=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyAnsiBytes))
-        WideCharToMultiByte(CP_ACP, 0, wpKey, nKeyLen + 1, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes, NULL, NULL);
+      lpIniKey->nKeyBytes=nKeyLen * sizeof(wchar_t) + 2;
+      if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyBytes))
+        memcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyBytes);
     }
     else return FALSE;
   }
-  if (lpIniKey->wszString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->wszString);
-  if (lpIniKey->szString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->szString);
-
-  if (nType == INI_DWORD)
+  if (lpIniKey->wszString)
   {
-    wpString=wszNumber;
-    dwStringLen=wsprintfW(wszNumber, L"%u", *(DWORD *)lpData);
-
-    lpIniKey->nStringUnicodeBytes=dwStringLen * sizeof(wchar_t) + 2;
-    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
-    lpIniKey->nStringAnsiBytes=dwStringLen + 1;
-    if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      WideCharToMultiByte(CP_ACP, 0, wpString, dwStringLen + 1, lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
+    API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->wszString);
+    lpIniKey->wszString=NULL;
   }
-  else if (nType == INI_BINARY)
-  {
-    dwStringLen=dwDataBytes * 2;
 
-    if (wpString=(wchar_t *)API_HeapAlloc(hHeap, 0, dwStringLen * sizeof(wchar_t) + 2))
-    {
-      for (a=0, b=0; a < dwDataBytes && b < dwStringLen; ++a)
-      {
-        b+=wsprintfW(wpString + b, L"%02X", (unsigned char)lpData[a]);
-      }
-    }
-
-    lpIniKey->nStringUnicodeBytes=dwStringLen * sizeof(wchar_t) + 2;
-    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
-    lpIniKey->nStringAnsiBytes=dwStringLen + 1;
-    if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      WideCharToMultiByte(CP_ACP, 0, wpString, dwStringLen + 1, lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
-    API_HeapFree(hHeap, 0, (LPVOID)wpString);
-  }
-  else if (nType == INI_STRINGANSI)
-  {
-    pString=(char *)lpData;
-
-    lpIniKey->nStringUnicodeBytes=MultiByteToWideChar(CP_ACP, 0, pString, dwDataBytes, NULL, 0) * sizeof(wchar_t);
-    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      MultiByteToWideChar(CP_ACP, 0, pString, dwDataBytes, lpIniKey->wszString, lpIniKey->nStringUnicodeBytes / sizeof(wchar_t));
-    lpIniKey->nStringAnsiBytes=dwDataBytes;
-    if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      memcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
-  }
-  else if (nType == INI_STRINGUNICODE)
-  {
-    wpString=(wchar_t *)lpData;
-
-    lpIniKey->nStringUnicodeBytes=dwDataBytes;
-    if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
-    lpIniKey->nStringAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpString, dwDataBytes / sizeof(wchar_t), NULL, 0, NULL, NULL);
-    if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      WideCharToMultiByte(CP_ACP, 0, wpString, dwDataBytes / sizeof(wchar_t), lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
-  }
-  else return FALSE;
-
-  return TRUE;
+  return StackSetIniData(lpIniKey, nType, lpData, dwDataBytes);
 }
 
 void StackDeleteIniKey(HINISECTION *lpIniSection, HINIKEY *lpIniKey)
@@ -3041,11 +2934,10 @@ void StackDeleteIniKey(HINISECTION *lpIniSection, HINIKEY *lpIniKey)
   if (lpIniKey)
   {
     if (lpIniKey->wszKey) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->wszKey);
-    if (lpIniKey->szKey) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->szKey);
     if (lpIniKey->wszString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->wszString);
-    if (lpIniKey->szString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->szString);
+
+    StackDelete((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack *)lpIniKey);
   }
-  StackDelete((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack *)lpIniKey);
 }
 
 void StackDeleteIniSection(HSTACK *hIniStack, HINISECTION *lpIniSection, BOOL bClear)
@@ -3055,15 +2947,17 @@ void StackDeleteIniSection(HSTACK *hIniStack, HINISECTION *lpIniSection, BOOL bC
   while (lpIniKey)
   {
     if (lpIniKey->wszKey) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->wszKey);
-    if (lpIniKey->szKey) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->szKey);
     if (lpIniKey->wszString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->wszString);
-    if (lpIniKey->szString) API_HeapFree(hHeap, 0, (LPVOID)lpIniKey->szString);
+
     lpIniKey=lpIniKey->next;
   }
   StackClear((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last);
 
   if (!bClear)
+  {
+    API_HeapFree(hHeap, 0, (LPVOID)lpIniSection->wszSection);
     StackDelete((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack *)lpIniSection);
+  }
 }
 
 void StackFreeIni(HSTACK *hIniStack)
@@ -3072,66 +2966,12 @@ void StackFreeIni(HSTACK *hIniStack)
 
   while (lpIniSection)
   {
-    if (lpIniSection->wszSection) API_HeapFree(hHeap, 0, (LPVOID)lpIniSection->wszSection);
-    if (lpIniSection->szSection) API_HeapFree(hHeap, 0, (LPVOID)lpIniSection->szSection);
+    API_HeapFree(hHeap, 0, (LPVOID)lpIniSection->wszSection);
     StackDeleteIniSection(hIniStack, lpIniSection, TRUE);
+
     lpIniSection=lpIniSection->next;
   }
   StackClear((stack **)&hIniStack->first, (stack **)&hIniStack->last);
-}
-
-DWORD HexStrToDataA(char *pHexStr, unsigned char *lpData, DWORD dwDataBytes)
-{
-  int a,b,c;
-  DWORD dwLen=0;
-
-  while (*pHexStr && (!lpData || dwLen < dwDataBytes))
-  {
-    a=*pHexStr;
-    if (a >= '0' && a <= '9') a-='0';
-    else if (a >= 'a' && a <= 'f') a-='a' - 10;
-    else if (a >= 'A' && a <= 'F') a-='A' - 10;
-    else break;
-
-    b=*++pHexStr;
-    if (b >= '0' && b <= '9') b-='0';
-    else if (b >= 'a' && b <= 'f') b-='a' - 10;
-    else if (b >= 'A' && b <= 'F') b-='A' - 10;
-    else break;
-
-    ++pHexStr;
-    c=(a << 4) | b;
-    if (lpData) lpData[dwLen]=c;
-    ++dwLen;
-  }
-  return dwLen;
-}
-
-DWORD HexStrToDataW(wchar_t *wpHexStr, unsigned char *lpData, DWORD dwDataBytes)
-{
-  int a,b,c;
-  DWORD dwLen=0;
-
-  while (*wpHexStr && (!lpData || dwLen < dwDataBytes))
-  {
-    a=*wpHexStr;
-    if (a >= '0' && a <= '9') a-='0';
-    else if (a >= 'a' && a <= 'f') a-='a' - 10;
-    else if (a >= 'A' && a <= 'F') a-='A' - 10;
-    else break;
-
-    b=*++wpHexStr;
-    if (b >= '0' && b <= '9') b-='0';
-    else if (b >= 'a' && b <= 'f') b-='a' - 10;
-    else if (b >= 'A' && b <= 'F') b-='A' - 10;
-    else break;
-
-    ++wpHexStr;
-    c=(a << 4) | b;
-    if (lpData) lpData[dwLen]=c;
-    ++dwLen;
-  }
-  return dwLen;
 }
 
 
@@ -3260,7 +3100,6 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionA(hHandle, "ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
-  ReadOptionA(hHandle, "LogDate", PO_DWORD, &bLogDate, sizeof(DWORD));
   ReadOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
   ReadOptionA(hHandle, "SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD));
   ReadOptionA(hHandle, "SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD));
@@ -3300,6 +3139,9 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "FileTypesEdit", PO_STRING, szFileTypesEdit, MAX_PATH);
   ReadOptionA(hHandle, "FileTypesPrint", PO_STRING, szFileTypesPrint, MAX_PATH);
   ReadOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionA(hHandle, "DateLog", PO_DWORD, &bDateLog, sizeof(DWORD));
+  ReadOptionA(hHandle, "DateLogFormat", PO_STRING, szDateLogFormat, MAX_PATH);
+  ReadOptionA(hHandle, "DateInsertFormat", PO_STRING, szDateInsertFormat, MAX_PATH);
   ReadOptionA(hHandle, "DefaultSaveExt", PO_STRING, szDefaultSaveExt, MAX_PATH);
   ReadOptionA(hHandle, "PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD));
   ReadOptionA(hHandle, "PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
@@ -3371,7 +3213,6 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"LineGap", PO_DWORD, &dwLineGap, sizeof(DWORD));
   ReadOptionW(hHandle, L"ReplaceAllAndClose", PO_DWORD, &bReplaceAllAndClose, sizeof(DWORD));
   ReadOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD));
-  ReadOptionW(hHandle, L"LogDate", PO_DWORD, &bLogDate, sizeof(DWORD));
   ReadOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD));
   ReadOptionW(hHandle, L"SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD));
   ReadOptionW(hHandle, L"SingleOpenProgram", PO_DWORD, &bSingleOpenProgram, sizeof(DWORD));
@@ -3411,6 +3252,9 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"FileTypesEdit", PO_STRING, wszFileTypesEdit, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD));
+  ReadOptionW(hHandle, L"DateLog", PO_DWORD, &bDateLog, sizeof(DWORD));
+  ReadOptionW(hHandle, L"DateLogFormat", PO_STRING, wszDateLogFormat, MAX_PATH * sizeof(wchar_t));
+  ReadOptionW(hHandle, L"DateInsertFormat", PO_STRING, wszDateInsertFormat, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"DefaultSaveExt", PO_STRING, wszDefaultSaveExt, MAX_PATH * sizeof(wchar_t));
   ReadOptionW(hHandle, L"PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD));
   ReadOptionW(hHandle, L"PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
@@ -3477,6 +3321,7 @@ void RegisterPluginsHotkeysA()
   {
     HINISECTION *lpIniSection;
     HINIKEY *lpIniKey;
+    DWORD dwSizeString;
     DWORD dwHotkey=0;
 
     if (lpIniSection=StackGetIniSectionA(&hIniStack, "Plugs", lstrlenA("Plugs")))
@@ -3485,9 +3330,10 @@ void RegisterPluginsHotkeysA()
 
       while (lpIniKey)
       {
-        if (dwHotkey=(DWORD)xatoiA(lpIniKey->szString))
+        if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString))
         {
-          StackPluginAddA(&hPluginsStack, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+          dwSizeString=WideCharToMultiByte(CP_ACP, 0, lpIniKey->wszKey, -1, buf, BUFFER_SIZE, NULL, NULL);
+          StackPluginAddA(&hPluginsStack, buf, dwSizeString - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
         }
         lpIniKey=lpIniKey->next;
       }
@@ -3537,7 +3383,7 @@ void RegisterPluginsHotkeysW()
       {
         if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString))
         {
-          StackPluginAddW(&hPluginsStack, lpIniKey->wszKey, (lpIniKey->nKeyUnicodeBytes - 1) / sizeof(wchar_t), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+          StackPluginAddW(&hPluginsStack, lpIniKey->wszKey, (lpIniKey->nKeyBytes - 1) / sizeof(wchar_t), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
         }
         lpIniKey=lpIniKey->next;
       }
@@ -3674,8 +3520,6 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "LogDate", PO_DWORD, &bLogDate, sizeof(DWORD)))
-    goto Error;
   if (!SaveOptionA(hHandle, "WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD)))
@@ -3753,6 +3597,12 @@ BOOL SaveOptionsA()
   if (!SaveOptionA(hHandle, "FileTypesPrint", PO_STRING, szFileTypesPrint, lstrlenA(szFileTypesPrint) + 1))
     goto Error;
   if (!SaveOptionA(hHandle, "FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "DateLog", PO_DWORD, &bDateLog, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionA(hHandle, "DateLogFormat", PO_STRING, szDateLogFormat, lstrlenA(szDateLogFormat) + 1))
+    goto Error;
+  if (!SaveOptionA(hHandle, "DateInsertFormat", PO_STRING, szDateInsertFormat, lstrlenA(szDateInsertFormat) + 1))
     goto Error;
   if (!SaveOptionA(hHandle, "DefaultSaveExt", PO_STRING, szDefaultSaveExt, lstrlenA(szDefaultSaveExt) + 1))
     goto Error;
@@ -3885,8 +3735,6 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &bSaveInReadOnlyMsg, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionW(hHandle, L"LogDate", PO_DWORD, &bLogDate, sizeof(DWORD)))
-    goto Error;
   if (!SaveOptionW(hHandle, L"WatchFile", PO_DWORD, &bWatchFile, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"SingleOpenFile", PO_DWORD, &bSingleOpenFile, sizeof(DWORD)))
@@ -3964,6 +3812,12 @@ BOOL SaveOptionsW()
   if (!SaveOptionW(hHandle, L"FileTypesPrint", PO_STRING, wszFileTypesPrint, lstrlenW(wszFileTypesPrint) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionW(hHandle, L"FileTypesAssociated", PO_DWORD, &dwFileTypesAssociated, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"DateLog", PO_DWORD, &bDateLog, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"DateLogFormat", PO_STRING, wszDateLogFormat, lstrlenW(wszDateLogFormat) * sizeof(wchar_t) + 2))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"DateInsertFormat", PO_STRING, wszDateInsertFormat, lstrlenW(wszDateInsertFormat) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionW(hHandle, L"DefaultSaveExt", PO_STRING, wszDefaultSaveExt, lstrlenW(wszDefaultSaveExt) * sizeof(wchar_t) + 2))
     goto Error;
@@ -4078,8 +3932,9 @@ void ReadThemesA()
 
       while (lpIniKey)
       {
-        IniGetValueA(&hIniStack, "Themes", lpIniKey->szKey, INI_BINARY, (LPBYTE)&aec, sizeof(AECOLORS));
-        StackThemeAddA(&hThemesStack, lpIniKey->szKey, &aec);
+        WideCharToMultiByte(CP_ACP, 0, lpIniKey->wszKey, -1, buf, BUFFER_SIZE, NULL, NULL);
+        IniGetValueA(&hIniStack, "Themes", buf, INI_BINARY, (LPBYTE)&aec, sizeof(AECOLORS));
+        StackThemeAddA(&hThemesStack, buf, &aec);
         ++dwIndex;
 
         lpIniKey=lpIniKey->next;
@@ -4540,20 +4395,20 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       }
 
       //.LOG
-      if (bLogDate && !IsReadOnly())
+      if (bDateLog && !IsReadOnly())
       {
         AECHARINDEX ciChar;
         char szDate[128];
         char szTime[128];
         char szDateAndTime[MAX_PATH];
-    
+
         if (SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar))
         {
           if (!xstrcmpW(ciChar.lpLine->wpLine, L".LOG"))
           {
             GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szDate, 128);
             GetTimeFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szTime, 128);
-    
+
             wsprintfA(szDateAndTime, "\r%s %s\r", szDate, szTime);
             SendMessage(hWnd, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
             ReplaceSelA(hWnd, szDateAndTime, -1, FALSE, NULL, NULL);
@@ -4848,20 +4703,20 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       }
 
       //.LOG
-      if (bLogDate && !IsReadOnly())
+      if (bDateLog && !IsReadOnly())
       {
         AECHARINDEX ciChar;
         wchar_t wszDate[128];
         wchar_t wszTime[128];
         wchar_t wszDateAndTime[MAX_PATH];
-    
+
         if (SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar))
         {
           if (!xstrcmpW(ciChar.lpLine->wpLine, L".LOG"))
           {
             GetDateFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
             GetTimeFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszTime, 128);
-    
+
             wsprintfW(wszDateAndTime, L"\r%s %s\r", wszDate, wszTime);
             SendMessage(hWnd, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
             ReplaceSelW(hWnd, wszDateAndTime, -1, FALSE, NULL, NULL);
@@ -13582,7 +13437,6 @@ void FillMenuPopupCodepageW()
 void ShowMenuPopupCodepageA(POINT *pt)
 {
   NCONTEXTMENU ncm;
-  int i;
 
   ncm.hWnd=hStatus;
   ncm.uType=NCM_STATUS;
@@ -13599,7 +13453,6 @@ void ShowMenuPopupCodepageA(POINT *pt)
 void ShowMenuPopupCodepageW(POINT *pt)
 {
   NCONTEXTMENU ncm;
-  int i;
 
   ncm.hWnd=hStatus;
   ncm.uType=NCM_STATUS;
@@ -19424,7 +19277,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
   static HWND hWndRememberKeybLayout;
   static HWND hWndReplaceAllAndClose;
   static HWND hWndSaveInReadOnlyMsg;
-  static HWND hWndLogDate;
+  static HWND hWndDateLog;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -19432,7 +19285,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
-    hWndLogDate=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
+    hWndDateLog=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
 
     if (bKeybLayoutMDI)
       SendMessage(hWndRememberKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
@@ -19440,8 +19293,8 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveInReadOnlyMsg)
       SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
-    if (bLogDate)
-      SendMessage(hWndLogDate, BM_SETCHECK, BST_CHECKED, 0);
+    if (bDateLog)
+      SendMessage(hWndDateLog, BM_SETCHECK, BST_CHECKED, 0);
 
     SetWindowTextA(hWndDefaultSaveExt, szDefaultSaveExt);
   }
@@ -19462,7 +19315,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
 
       //.LOG feature
-      bLogDate=SendMessage(hWndLogDate, BM_GETCHECK, 0, 0);
+      bDateLog=SendMessage(hWndDateLog, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;
@@ -19474,7 +19327,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
   static HWND hWndRememberKeybLayout;
   static HWND hWndReplaceAllAndClose;
   static HWND hWndSaveInReadOnlyMsg;
-  static HWND hWndLogDate;
+  static HWND hWndDateLog;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -19482,7 +19335,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
     hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
     hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
-    hWndLogDate=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
+    hWndDateLog=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
 
     if (bKeybLayoutMDI)
       SendMessage(hWndRememberKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
@@ -19490,8 +19343,8 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
     if (bSaveInReadOnlyMsg)
       SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
-    if (bLogDate)
-      SendMessage(hWndLogDate, BM_SETCHECK, BST_CHECKED, 0);
+    if (bDateLog)
+      SendMessage(hWndDateLog, BM_SETCHECK, BST_CHECKED, 0);
 
     SetWindowTextW(hWndDefaultSaveExt, wszDefaultSaveExt);
   }
@@ -19512,7 +19365,7 @@ BOOL CALLBACK OptionsAdvancedDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARA
       bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
 
       //.LOG feature
-      bLogDate=SendMessage(hWndLogDate, BM_GETCHECK, 0, 0);
+      bDateLog=SendMessage(hWndDateLog, BM_GETCHECK, 0, 0);
     }
   }
   return FALSE;

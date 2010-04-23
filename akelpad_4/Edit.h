@@ -268,24 +268,18 @@ typedef BOOL (CALLBACK *EXPORTNAMESPROC)(char *, LPARAM);
 typedef struct _HINISECTION {
   struct _HINISECTION *next;
   struct _HINISECTION *prev;
-  char *szSection;
   wchar_t *wszSection;
-  int nSectionAnsiBytes;
-  int nSectionUnicodeBytes;
+  int nSectionBytes;
   HSTACK hKeysStack;
 } HINISECTION;
 
 typedef struct _HINIKEY {
   struct _HINIKEY *next;
   struct _HINIKEY *prev;
-  char *szKey;
   wchar_t *wszKey;
-  int nKeyAnsiBytes;
-  int nKeyUnicodeBytes;
-  char *szString;
+  int nKeyBytes;
   wchar_t *wszString;
-  int nStringAnsiBytes;
-  int nStringUnicodeBytes;
+  int nStringBytes;
 } HINIKEY;
 
 typedef struct _FILESTREAMDATA {
@@ -518,6 +512,8 @@ HINISECTION* StackGetIniSectionA(HSTACK *hIniStack, char *pSection, int nSection
 HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSectionLen);
 HINIKEY* StackGetIniKeyA(HINISECTION *lpIniSection, char *pKey, int nKeyLen);
 HINIKEY* StackGetIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen);
+int StackGetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
+BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
@@ -525,8 +521,6 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
 void StackDeleteIniKey(HINISECTION *lpIniSection, HINIKEY *lpIniKey);
 void StackDeleteIniSection(HSTACK *hIniStack, HINISECTION *lpIniSection, BOOL bClear);
 void StackFreeIni(HSTACK *hIniStack);
-DWORD HexStrToDataA(char *pHexStr, unsigned char *lpData, DWORD dwDataBytes);
-DWORD HexStrToDataW(wchar_t *wpHexStr, unsigned char *lpData, DWORD dwDataBytes);
 
 DWORD ReadOptionA(HANDLE lpHandle, char *pParam, DWORD dwType, void *lpData, DWORD dwSize);
 DWORD ReadOptionW(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
