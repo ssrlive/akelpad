@@ -9576,6 +9576,8 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
     {
       si.cbSize=sizeof(SCROLLINFO);
       si.fMask=SIF_RANGE;
+      si.nMin=0;
+      si.nMax=0;
       GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
 
       if (si.nMin || si.nMax)
@@ -9616,6 +9618,8 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
     {
       si.cbSize=sizeof(SCROLLINFO);
       si.fMask=SIF_RANGE;
+      si.nMin=0;
+      si.nMax=0;
       GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
 
       if (si.nMin || si.nMax)
