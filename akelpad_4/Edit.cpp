@@ -1163,7 +1163,6 @@ void DoEditInsertDateA(HWND hWnd)
     GetTimeFormatA(LOCALE_USER_DEFAULT, 0, NULL, szDateInsertFormat, buf, 128);
     GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, buf, szTimeAndDate, 128);
   }
-  wsprintfA(szTimeAndDate, "%s %s", szTime, szDate);
   ReplaceSelA(hWnd, szTimeAndDate, -1, -1, NULL, NULL);
 }
 
@@ -4406,10 +4405,18 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
         {
           if (!xstrcmpW(ciChar.lpLine->wpLine, L".LOG"))
           {
-            GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szDate, 128);
-            GetTimeFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szTime, 128);
-
-            wsprintfA(szDateAndTime, "\r%s %s\r", szDate, szTime);
+            if (!szDateLogFormat[0])
+            {
+              GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szDate, 128);
+              GetTimeFormatA(LOCALE_USER_DEFAULT, 0, NULL, NULL, szTime, 128);
+              wsprintfA(szDateAndTime, "\r%s %s\r", szDate, szTime);
+            }
+            else
+            {
+              GetTimeFormatA(LOCALE_USER_DEFAULT, 0, NULL, szDateLogFormat, buf, 128);
+              GetDateFormatA(LOCALE_USER_DEFAULT, 0, NULL, buf, buf2, 128);
+              wsprintfA(szDateAndTime, "\r%s\r", buf2);
+            }
             SendMessage(hWnd, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
             ReplaceSelA(hWnd, szDateAndTime, -1, FALSE, NULL, NULL);
             goto GlobalPrint;
@@ -4714,10 +4721,18 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
         {
           if (!xstrcmpW(ciChar.lpLine->wpLine, L".LOG"))
           {
-            GetDateFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
-            GetTimeFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszTime, 128);
-
-            wsprintfW(wszDateAndTime, L"\r%s %s\r", wszDate, wszTime);
+            if (!wszDateLogFormat[0])
+            {
+              GetDateFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
+              GetTimeFormatW(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszTime, 128);
+              wsprintfW(wszDateAndTime, L"\r%s %s\r", wszDate, wszTime);
+            }
+            else
+            {
+              GetTimeFormatW(LOCALE_USER_DEFAULT, 0, NULL, wszDateLogFormat, wbuf, 128);
+              GetDateFormatW(LOCALE_USER_DEFAULT, 0, NULL, wbuf, wbuf2, 128);
+              wsprintfW(wszDateAndTime, L"\r%s\r", wbuf2);
+            }
             SendMessage(hWnd, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
             ReplaceSelW(hWnd, wszDateAndTime, -1, FALSE, NULL, NULL);
             goto GlobalPrint;
