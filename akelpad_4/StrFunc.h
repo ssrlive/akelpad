@@ -52,7 +52,7 @@ int GetOptionsW(wchar_t *wpLine, wchar_t *wpOption, BOOL bSensitive, wchar_t *ws
  *
  *Returns: lowercase unicode character
  ********************************************************************/
-#ifdef WideCharLower
+#if defined WideCharLower || defined ALLSTRFUNC
 #define WideCharLower_INCLUDED
 #undef WideCharLower
 wchar_t WideCharLower(wchar_t c)
@@ -447,7 +447,7 @@ wchar_t WideCharLower(wchar_t c)
  *
  *Returns: uppercase unicode character
  ********************************************************************/
-#ifdef WideCharUpper
+#if defined WideCharUpper || defined ALLSTRFUNC
 #define WideCharUpper_INCLUDED
 #undef WideCharUpper
 wchar_t WideCharUpper(wchar_t c)
@@ -873,7 +873,7 @@ wchar_t WideCharUpper(wchar_t c)
  *           0 string1 identical to string2
  *           1 string1 greater than string2
  ********************************************************************/
-#ifdef xstrcmpA
+#if defined xstrcmpA || defined ALLSTRFUNC
 #define xstrcmpA_INCLUDED
 #undef xstrcmpA
 int xstrcmpA(const char *pString1, const char *pString2)
@@ -906,7 +906,7 @@ int xstrcmpA(const char *pString1, const char *pString2)
  *           0 string1 identical to string2
  *           1 string1 greater than string2
  ********************************************************************/
-#ifdef xstrcmpW
+#if defined xstrcmpW || defined ALLSTRFUNC
 #define xstrcmpW_INCLUDED
 #undef xstrcmpW
 int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2)
@@ -940,7 +940,7 @@ int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2)
  *           0 string1 identical to string2
  *           1 string1 greater than string2
  ********************************************************************/
-#ifdef xstrcmpiA
+#if defined xstrcmpiA || defined ALLSTRFUNC
 #define xstrcmpiA_INCLUDED
 #undef xstrcmpiA
 int xstrcmpiA(const char *pString1, const char *pString2)
@@ -978,7 +978,7 @@ int xstrcmpiA(const char *pString1, const char *pString2)
  *Note:
  *  xstrcmpiW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
  ********************************************************************/
-#ifdef xstrcmpiW
+#if defined xstrcmpiW || defined ALLSTRFUNC
 #define xstrcmpiW_INCLUDED
 #undef xstrcmpiW
 int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
@@ -1023,7 +1023,7 @@ int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
  *           0 string1 identical to string2
  *           1 string1 greater than string2
  ********************************************************************/
-#ifdef xstrcmpnA
+#if defined xstrcmpnA || defined ALLSTRFUNC
 #define xstrcmpnA_INCLUDED
 #undef xstrcmpnA
 int xstrcmpnA(const char *pString1, const char *pString2, DWORD dwMaxLength)
@@ -1059,7 +1059,7 @@ int xstrcmpnA(const char *pString1, const char *pString2, DWORD dwMaxLength)
  *           0 string1 identical to string2
  *           1 string1 greater than string2
  ********************************************************************/
-#ifdef xstrcmpnW
+#if defined xstrcmpnW || defined ALLSTRFUNC
 #define xstrcmpnW_INCLUDED
 #undef xstrcmpnW
 int xstrcmpnW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLength)
@@ -1096,7 +1096,7 @@ int xstrcmpnW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLen
  *           0 string1 identical to string2
  *           1 string1 greater than string2
  ********************************************************************/
-#ifdef xstrcmpinA
+#if defined xstrcmpinA || defined ALLSTRFUNC
 #define xstrcmpinA_INCLUDED
 #undef xstrcmpinA
 int xstrcmpinA(const char *pString1, const char *pString2, DWORD dwMaxLength)
@@ -1137,7 +1137,7 @@ int xstrcmpinA(const char *pString1, const char *pString2, DWORD dwMaxLength)
  *Note:
  *  xstrcmpinW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
  ********************************************************************/
-#ifdef xstrcmpinW
+#if defined xstrcmpinW || defined ALLSTRFUNC
 #define xstrcmpinW_INCLUDED
 #undef xstrcmpinW
 int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLength)
@@ -1181,7 +1181,7 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLe
  *
  *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
-#ifdef xstrcpyA
+#if defined xstrcpyA || defined ALLSTRFUNC
 #define xstrcpyA_INCLUDED
 #undef xstrcpyA
 int xstrcpyA(char *pString1, const char *pString2)
@@ -1212,7 +1212,7 @@ int xstrcpyA(char *pString1, const char *pString2)
  *
  *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
-#ifdef xstrcpyW
+#if defined xstrcpyW || defined ALLSTRFUNC
 #define xstrcpyW_INCLUDED
 #undef xstrcpyW
 int xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
@@ -1245,7 +1245,7 @@ int xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
  *
  *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
-#ifdef xstrcpynA
+#if defined xstrcpynA || defined ALLSTRFUNC
 #define xstrcpynA_INCLUDED
 #undef xstrcpynA
 int xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength)
@@ -1278,7 +1278,7 @@ int xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength)
  *
  *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
-#ifdef xstrcpynW
+#if defined xstrcpynW || defined ALLSTRFUNC
 #define xstrcpynW_INCLUDED
 #undef xstrcpynW
 int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLength)
@@ -1313,7 +1313,7 @@ int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLen
  *Returns:  TRUE  pStr is founded
  *          FALSE pStr isn't founded
  ********************************************************************/
-#ifdef xstrstrA
+#if defined xstrstrA || defined ALLSTRFUNC
 #define xstrstrA_INCLUDED
 #undef xstrstrA
 BOOL xstrstrA(char *pText, DWORD dwTextLen, char *pStr, BOOL bSensitive, char **pStrBegin, char **pStrEnd)
@@ -1372,7 +1372,7 @@ BOOL xstrstrA(char *pText, DWORD dwTextLen, char *pStr, BOOL bSensitive, char **
  *Note:
  *  xstrstrW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
  ********************************************************************/
-#ifdef xstrstrW
+#if defined xstrstrW || defined ALLSTRFUNC
 #define xstrstrW_INCLUDED
 #undef xstrstrW
 BOOL xstrstrW(wchar_t *wpText, DWORD dwTextLen, wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd)
@@ -1455,7 +1455,7 @@ BOOL xstrstrW(wchar_t *wpText, DWORD dwTextLen, wchar_t *wpStr, BOOL bSensitive,
  * #define WordFindA_UNMINUS  //nNumber only positive (uses for minimize program size)
  * #define WordFindA_UNPLUS   //nNumber only negative (uses for minimize program size)
  ********************************************************************/
-#ifdef WordFindA
+#if defined WordFindA || defined ALLSTRFUNC
 #define WordFindA_INCLUDED
 #undef WordFindA
 int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppResult)
@@ -1825,7 +1825,7 @@ int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensi
  *Note:
  *  WordFindW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
  ********************************************************************/
-#ifdef WordFindW
+#if defined WordFindW || defined ALLSTRFUNC
 #define WordFindW_INCLUDED
 #undef WordFindW
 int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppResult)
@@ -2183,7 +2183,7 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
  *
  *Returns:  Number of changes
  ********************************************************************/
-#ifdef StrReplaceA
+#if defined StrReplaceA || defined ALLSTRFUNC
 #define StrReplaceA_INCLUDED
 #undef StrReplaceA
 int StrReplaceA(char *pText, char *pIt, char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult)
@@ -2249,7 +2249,7 @@ int StrReplaceA(char *pText, char *pIt, char *pWith, BOOL bSensitive, char *szRe
  *Note:
  *  StrReplaceW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
  ********************************************************************/
-#ifdef StrReplaceW
+#if defined StrReplaceW || defined ALLSTRFUNC
 #define StrReplaceW_INCLUDED
 #undef StrReplaceW
 int StrReplaceW(wchar_t *wpText, wchar_t *wpIt, wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult)
@@ -2316,7 +2316,7 @@ int StrReplaceW(wchar_t *wpText, wchar_t *wpIt, wchar_t *wpWith, BOOL bSensitive
  *Returns:  length of the string copied to szResult,
  *          including the terminating null character
  ********************************************************************/
-#ifdef GetOptionsA
+#if defined GetOptionsA || defined ALLSTRFUNC
 #define GetOptionsA_INCLUDED
 #undef GetOptionsA
 int GetOptionsA(char *pLine, char *pOption, BOOL bSensitive, char *szResult, int nMaxResult)
@@ -2395,7 +2395,7 @@ int GetOptionsA(char *pLine, char *pOption, BOOL bSensitive, char *szResult, int
  *Note:
  *  GetOptionsW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
  ********************************************************************/
-#ifdef GetOptionsW
+#if defined GetOptionsW || defined ALLSTRFUNC
 #define GetOptionsW_INCLUDED
 #undef GetOptionsW
 int GetOptionsW(wchar_t *wpLine, wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult)
