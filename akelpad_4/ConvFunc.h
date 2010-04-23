@@ -790,10 +790,12 @@ int hex2binA(const char *pStrHex, unsigned char *pData, int nDataMax)
 {
   char szHexChar[4];
   int nHexChar;
-  int a;
-  int b;
+  DWORD a;
+  DWORD b;
 
-  for (a=0, b=0; pStrHex[a] && b < nDataMax; ++b)
+  if (!pData) nDataMax=-1;
+
+  for (a=0, b=0; pStrHex[a] && b < (DWORD)nDataMax; ++b)
   {
     szHexChar[0]=pStrHex[a++];
     if (!pStrHex[a]) break;
@@ -835,10 +837,12 @@ int hex2binW(const wchar_t *wpStrHex, unsigned char *pData, int nDataMax)
 {
   wchar_t wszHexChar[4];
   int nHexChar;
-  int a;
-  int b;
+  DWORD a;
+  DWORD b;
 
-  for (a=0, b=0; wpStrHex[a] && b < nDataMax; ++b)
+  if (!pData) nDataMax=-1;
+
+  for (a=0, b=0; wpStrHex[a] && b < (DWORD)nDataMax; ++b)
   {
     wszHexChar[0]=wpStrHex[a++];
     if (!wpStrHex[a]) break;

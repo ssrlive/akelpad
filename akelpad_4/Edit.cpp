@@ -2820,7 +2820,7 @@ BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD 
     lpIniKey->nStringBytes=(dwDataBytes * 2) * sizeof(wchar_t) + 2;
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
     {
-      bin2hexW(lpData, dwDataBytes, lpIniKey->wszString, lpIniKey->nStringBytes / sizeof(wchar_t), TRUE);
+      bin2hexW(lpData, dwDataBytes, lpIniKey->wszString, lpIniKey->nStringBytes / sizeof(wchar_t), FALSE);
       return TRUE;
     }
   }
