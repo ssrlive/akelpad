@@ -2020,7 +2020,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 HINISECTION *lpIniSection;
 
-                if (lpIniSection=StackGetIniSectionA(&ih->hStack, "Options", lstrlenA("Options")))
+                if (lpIniSection=StackOpenIniSectionA(&ih->hStack, "Options", lstrlenA("Options"), FALSE))
                   StackDeleteIniSection(&ih->hStack, lpIniSection, TRUE);
               }
             }
@@ -2132,7 +2132,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       INIHANDLEA *ih=(INIHANDLEA *)wParam;
       char *pSection=(char *)lParam;
 
-      return (LRESULT)StackGetIniSectionA(&ih->hStack, pSection, lstrlenA(pSection));
+      return (LRESULT)StackOpenIniSectionA(&ih->hStack, pSection, lstrlenA(pSection), FALSE);
     }
     if (uMsg == AKD_INICLEARSECTION ||
         uMsg == AKD_INIDELETESECTION)
@@ -2148,7 +2148,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       HINISECTION *lpIniSection=(HINISECTION *)wParam;
       char *pKey=(char *)lParam;
 
-      return (LRESULT)StackGetIniKeyA(lpIniSection, pKey, lstrlenA(pKey));
+      return (LRESULT)StackOpenIniKeyA(lpIniSection, pKey, lstrlenA(pKey), FALSE);
     }
     if (uMsg == AKD_INIDELETEKEY)
     {
@@ -3979,7 +3979,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 HINISECTION *lpIniSection;
 
-                if (lpIniSection=StackGetIniSectionW(&ih->hStack, L"Options", lstrlenW(L"Options")))
+                if (lpIniSection=StackOpenIniSectionW(&ih->hStack, L"Options", lstrlenW(L"Options"), FALSE))
                   StackDeleteIniSection(&ih->hStack, lpIniSection, TRUE);
               }
             }
@@ -4091,7 +4091,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       INIHANDLEW *ih=(INIHANDLEW *)wParam;
       wchar_t *wpSection=(wchar_t *)lParam;
 
-      return (LRESULT)StackGetIniSectionW(&ih->hStack, wpSection, lstrlenW(wpSection));
+      return (LRESULT)StackOpenIniSectionW(&ih->hStack, wpSection, lstrlenW(wpSection), FALSE);
     }
     if (uMsg == AKD_INICLEARSECTION ||
         uMsg == AKD_INIDELETESECTION)
@@ -4107,7 +4107,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       HINISECTION *lpIniSection=(HINISECTION *)wParam;
       wchar_t *wpKey=(wchar_t *)lParam;
 
-      return (LRESULT)StackGetIniKeyW(lpIniSection, wpKey, lstrlenW(wpKey));
+      return (LRESULT)StackOpenIniKeyW(lpIniSection, wpKey, lstrlenW(wpKey), FALSE);
     }
     if (uMsg == AKD_INIDELETEKEY)
     {

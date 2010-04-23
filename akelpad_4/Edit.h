@@ -70,6 +70,7 @@
 #define EDIT_TABSTOPS              8
 #define EDIT_UNDOLIMIT             1000
 #define EDIT_MARGINS               MAKELONG(4, 4)
+
 #define STR_DEFAULTSAVEEXTA            "txt"
 #define STR_DEFAULTSAVEEXTW           L"txt"
 #define STR_ASSOCIATE_OPENA            "txt;log;ini;inf"
@@ -508,10 +509,10 @@ BOOL SaveIniA(HSTACK *hIniStack, char *pFile);
 BOOL SaveIniW(HSTACK *hIniStack, wchar_t *wpFile);
 BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile);
 BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile);
-HINISECTION* StackGetIniSectionA(HSTACK *hIniStack, char *pSection, int nSectionLen);
-HINISECTION* StackGetIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSectionLen);
-HINIKEY* StackGetIniKeyA(HINISECTION *lpIniSection, char *pKey, int nKeyLen);
-HINIKEY* StackGetIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen);
+HINISECTION* StackOpenIniSectionA(HSTACK *hIniStack, char *pSection, int nSectionLen, BOOL bCreate);
+HINISECTION* StackOpenIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSectionLen, BOOL bCreate);
+HINIKEY* StackOpenIniKeyA(HINISECTION *lpIniSection, char *pKey, int nKeyLen, BOOL bCreate);
+HINIKEY* StackOpenIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen, BOOL bCreate);
 int StackGetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
@@ -519,7 +520,7 @@ int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTyp
 BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
 void StackDeleteIniKey(HINISECTION *lpIniSection, HINIKEY *lpIniKey);
-void StackDeleteIniSection(HSTACK *hIniStack, HINISECTION *lpIniSection, BOOL bClear);
+void StackDeleteIniSection(HSTACK *hIniStack, HINISECTION *lpIniSection, BOOL bOnlyClear);
 void StackFreeIni(HSTACK *hIniStack);
 
 DWORD ReadOptionA(HANDLE lpHandle, char *pParam, DWORD dwType, void *lpData, DWORD dwSize);
