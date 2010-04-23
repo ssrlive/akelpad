@@ -8,8 +8,8 @@
  * WideCharLower, WideCharUpper, xstrcmpA, xstrcmpW, xstrcmpiA,  *
  * xstrcmpiW, xstrcmpnA, xstrcmpnW, xstrcmpinA, xstrcmpinW,      *
  * xstrcpyA, xstrcpyW, xstrcpynA, xstrcpynW, xstrstrA, xstrstrW, *
- * WordFindA, WordFindW, StrReplaceA, StrReplaceW,               *
- * GetOptionsA, GetOptionsW                                      *
+ * StrReplaceA, StrReplaceW, GetOptionsA, GetOptionsW            *
+ * WordFindA, WordFindW                                          *
  *                                                               *
  *****************************************************************/
 
@@ -30,14 +30,14 @@ int xstrcpyA(char *pString1, const char *pString2);
 int xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2);
 int xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength);
 int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLength);
-BOOL xstrstrA(char *pText, DWORD dwTextLen, char *pStr, BOOL bSensitive, char **pStrBegin, char **pStrEnd);
-BOOL xstrstrW(wchar_t *wpText, DWORD dwTextLen, wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd);
-int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppResult);
-int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppResult);
-int StrReplaceA(char *pText, char *pIt, char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult);
-int StrReplaceW(wchar_t *wpText, wchar_t *wpIt, wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult);
-int GetOptionsA(char *pLine, char *pOption, BOOL bSensitive, char *szResult, int nMaxResult);
-int GetOptionsW(wchar_t *wpLine, wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult);
+BOOL xstrstrA(const char *pText, DWORD dwTextLen, const char *pStr, BOOL bSensitive, char **pStrBegin, char **pStrEnd);
+BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd);
+int StrReplaceA(const char *pText, const char *pIt, const char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult);
+int StrReplaceW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult);
+int GetOptionsA(const char *pLine, const char *pOption, BOOL bSensitive, char *szResult, int nMaxResult);
+int GetOptionsW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult);
+int WordFindA(const char *pText, const char *pDelim, int nNumber, const char *pOption, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppResult);
+int WordFindW(const wchar_t *wpText, const wchar_t *wpDelim, int nNumber, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppResult);
 
 #endif
 
@@ -1302,13 +1302,13 @@ int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLen
  *
  *Find substring in string.
  *
- * [in] char *pText      Text.
- * [in] DWORD dwTextLen  Text length, -1 search until NULL character in pText.
- * [in] char *pStr       Find it.
- * [in] BOOL bSensitive  TRUE   case sensitive.
- *                       FALSE  case insensitive.
- *[out] char **pStrBegin Pointer to the first char of pStr, can be NULL.
- *[out] char **pStrEnd   Pointer to the first char after pStr, can be NULL.
+ * [in] const char *pText Text.
+ * [in] DWORD dwTextLen   Text length, -1 search until NULL character in pText.
+ * [in] const char *pStr  Find it.
+ * [in] BOOL bSensitive   TRUE   case sensitive.
+ *                        FALSE  case insensitive.
+ *[out] char **pStrBegin  Pointer to the first char of pStr, can be NULL.
+ *[out] char **pStrEnd    Pointer to the first char after pStr, can be NULL.
  *
  *Returns:  TRUE  pStr is founded
  *          FALSE pStr isn't founded
@@ -1316,11 +1316,11 @@ int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLen
 #if defined xstrstrA || defined ALLSTRFUNC
 #define xstrstrA_INCLUDED
 #undef xstrstrA
-BOOL xstrstrA(char *pText, DWORD dwTextLen, char *pStr, BOOL bSensitive, char **pStrBegin, char **pStrEnd)
+BOOL xstrstrA(const char *pText, DWORD dwTextLen, const char *pStr, BOOL bSensitive, char **pStrBegin, char **pStrEnd)
 {
-  char *pTextCount;
-  char *pTextMax=pText + dwTextLen;
-  char *pStrCount;
+  const char *pTextCount;
+  const char *pTextMax=pText + dwTextLen;
+  const char *pStrCount;
 
   for (; ; ++pText)
   {
@@ -1342,8 +1342,8 @@ BOOL xstrstrA(char *pText, DWORD dwTextLen, char *pStr, BOOL bSensitive, char **
     {
       if (!*++pStrCount)
       {
-        if (pStrBegin) *pStrBegin=pText;
-        if (pStrEnd) *pStrEnd=pTextCount + 1;
+        if (pStrBegin) *pStrBegin=(char *)pText;
+        if (pStrEnd) *pStrEnd=(char *)(pTextCount + 1);
         return TRUE;
       }
     }
@@ -1358,13 +1358,13 @@ BOOL xstrstrA(char *pText, DWORD dwTextLen, char *pStr, BOOL bSensitive, char **
  *
  *Find substring in unicode string.
  *
- * [in] wchar_t *wpText      Text.
- * [in] DWORD dwTextLen      Text length, -1 search until NULL character in wpText.
- * [in] wchar_t *wpStr       Find it.
- * [in] BOOL bSensitive      TRUE   case sensitive.
- *                           FALSE  case insensitive.
- *[out] wchar_t **wpStrBegin Pointer to the first char of wpStr, can be NULL.
- *[out] wchar_t **wpStrEnd   Pointer to the first char after wpStr, can be NULL.
+ * [in] const wchar_t *wpText Text.
+ * [in] DWORD dwTextLen       Text length, -1 search until NULL character in wpText.
+ * [in] const wchar_t *wpStr  Find it.
+ * [in] BOOL bSensitive       TRUE   case sensitive.
+ *                            FALSE  case insensitive.
+ *[out] wchar_t **wpStrBegin  Pointer to the first char of wpStr, can be NULL.
+ *[out] wchar_t **wpStrEnd    Pointer to the first char after wpStr, can be NULL.
  *
  *Returns:  TRUE  wpStr is founded
  *          FALSE wpStr isn't founded
@@ -1375,11 +1375,11 @@ BOOL xstrstrA(char *pText, DWORD dwTextLen, char *pStr, BOOL bSensitive, char **
 #if defined xstrstrW || defined ALLSTRFUNC
 #define xstrstrW_INCLUDED
 #undef xstrstrW
-BOOL xstrstrW(wchar_t *wpText, DWORD dwTextLen, wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd)
+BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd)
 {
-  wchar_t *wpTextCount;
-  wchar_t *wpTextMax=wpText + dwTextLen;
-  wchar_t *wpStrCount;
+  const wchar_t *wpTextCount;
+  const wchar_t *wpTextMax=wpText + dwTextLen;
+  const wchar_t *wpStrCount;
 
   for (; ; ++wpText)
   {
@@ -1407,8 +1407,8 @@ BOOL xstrstrW(wchar_t *wpText, DWORD dwTextLen, wchar_t *wpStr, BOOL bSensitive,
     {
       if (!*++wpStrCount)
       {
-        if (wpStrBegin) *wpStrBegin=wpText;
-        if (wpStrEnd) *wpStrEnd=wpTextCount + 1;
+        if (wpStrBegin) *wpStrBegin=(wchar_t *)wpText;
+        if (wpStrEnd) *wpStrEnd=(wchar_t *)(wpTextCount + 1);
         return TRUE;
       }
     }
@@ -1419,32 +1419,326 @@ BOOL xstrstrW(wchar_t *wpText, DWORD dwTextLen, wchar_t *wpStr, BOOL bSensitive,
 
 /********************************************************************
  *
+ *  StrReplaceA
+ *
+ *Replace substring in string.
+ *
+ * [in] const char *pText Text.
+ * [in] const char *pIt   Replace it.
+ * [in] const char *pWith Replace with.
+ * [in] BOOL bSensitive   TRUE   case sensitive.
+ *                        FALSE  case insensitive.
+ *[out] char *szResult    Output, can be NULL.
+ *[out] int *nMaxResult   Contains the length of the result string,
+ *                         including the terminating null character,
+ *                         can be NULL.
+ *
+ *Returns:  Number of changes
+ ********************************************************************/
+#if defined StrReplaceA || defined ALLSTRFUNC
+#define StrReplaceA_INCLUDED
+#undef StrReplaceA
+int StrReplaceA(const char *pText, const char *pIt, const char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult)
+{
+  const char *pTextCount;
+  const char *pItCount;
+  char *pResult=szResult;
+  int nWithLen=lstrlenA(pWith);
+  int nChanges=0;
+  int i;
+
+  for (pTextCount=pText; *pText; ++pText)
+  {
+    for (pTextCount=pText, pItCount=pIt;
+          *pTextCount == *pItCount ||
+          (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pTextCount) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pItCount));
+         ++pTextCount)
+    {
+      if (!*++pItCount)
+      {
+        if (szResult)
+        {
+          for (i=0; i < nWithLen; ++i)
+            *pResult++=pWith[i];
+        }
+        else pResult+=nWithLen;
+
+        pText=pTextCount + 1;
+        pItCount=pIt;
+        ++nChanges;
+        if (!*pText) goto End;
+      }
+    }
+    if (szResult) *pResult=*pText;
+    ++pResult;
+  }
+
+  End:
+  if (szResult) *pResult=*pText;
+  if (nMaxResult) *nMaxResult=(pResult - szResult) + 1;
+  return nChanges;
+}
+#endif
+
+/********************************************************************
+ *
+ *  StrReplaceW
+ *
+ *Replace substring in unicode string.
+ *
+ * [in] const wchar_t *wpText Text.
+ * [in] const wchar_t *wpIt   Replace it.
+ * [in] const wchar_t *wpWith Replace with.
+ * [in] BOOL bSensitive       TRUE   case sensitive.
+ *                            FALSE  case insensitive.
+ *[out] wchar_t *wszResult    Output, can be NULL.
+ *[out] int *nMaxResult       Contains the length of the result string,
+ *                             including the terminating null character,
+ *                             can be NULL.
+ *
+ *Returns:  Number of changes
+ *
+ *Note:
+ *  StrReplaceW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
+ ********************************************************************/
+#if defined StrReplaceW || defined ALLSTRFUNC
+#define StrReplaceW_INCLUDED
+#undef StrReplaceW
+int StrReplaceW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult)
+{
+  const wchar_t *wpTextCount;
+  const wchar_t *wpItCount;
+  wchar_t *wpResult=wszResult;
+  int nWithLen=lstrlenW(wpWith);
+  int nChanges=0;
+  int i;
+
+  for (wpTextCount=wpText; *wpText; ++wpText)
+  {
+    for (wpTextCount=wpText, wpItCount=wpIt;
+          *wpTextCount == *wpItCount ||
+          #if defined WideCharLower_INCLUDED
+            (bSensitive == FALSE && WideCharLower(*wpTextCount) == WideCharLower(*wpItCount));
+          #elif defined WideCharUpper_INCLUDED
+            (bSensitive == FALSE && WideCharUpper(*wpTextCount) == WideCharUpper(*wpItCount));
+          #else
+            (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextCount) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpItCount));
+          #endif
+         ++wpTextCount)
+    {
+      if (!*++wpItCount)
+      {
+        if (wszResult)
+        {
+          for (i=0; i < nWithLen; ++i)
+            *wpResult++=wpWith[i];
+        }
+        else wpResult+=nWithLen;
+
+        wpText=wpTextCount + 1;
+        wpItCount=wpIt;
+        ++nChanges;
+        if (!*wpText) goto End;
+      }
+    }
+    if (wszResult) *wpResult=*wpText;
+    ++wpResult;
+  }
+
+  End:
+  if (wszResult) *wpResult=*wpText;
+  if (nMaxResult) *nMaxResult=(wpResult - wszResult) + 1;
+  return nChanges;
+}
+#endif
+
+/********************************************************************
+ *
+ *  GetOptionsA
+ *
+ *Gets option string from parameters line.
+ *
+ * [in] const char *pLine   Parameters line.
+ * [in] const char *pOption Option.
+ * [in] BOOL bSensitive     TRUE   case sensitive.
+ *                          FALSE  case insensitive.
+ *[out] char *szResult      Output, can be NULL.
+ * [in] int nMaxResult      Output buffer size.
+ *
+ *Returns:  length of the string copied to szResult,
+ *          including the terminating null character
+ ********************************************************************/
+#if defined GetOptionsA || defined ALLSTRFUNC
+#define GetOptionsA_INCLUDED
+#undef GetOptionsA
+int GetOptionsA(const char *pLine, const char *pOption, BOOL bSensitive, char *szResult, int nMaxResult)
+{
+  const char *pLineStart;
+  const char *pLineEnd;
+  const char *pOptionCount;
+  const char *pOptionString=NULL;
+  char chQuote='\0';
+  char chDelimiter=*pOption++;
+  int nBytes=0;
+
+  for (pLineStart=pLineEnd=pLine; *pLineStart && *pLineEnd; ++pLineStart)
+  {
+    if (chQuote == '\0' && *pLineStart != '\"' && *pLineStart != '\'' && *pLineStart != '`')
+    {
+      if (*pLineStart == chDelimiter)
+      {
+        if (pOptionString) break;
+
+        for (pLineEnd=pLineStart + 1, pOptionCount=pOption;
+              *pLineEnd &&
+              (*pLineEnd == *pOptionCount ||
+              (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pLineEnd) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pOptionCount)));
+             ++pLineEnd)
+        {
+          if (!*++pOptionCount)
+          {
+            pLineStart=pLineEnd;
+            pOptionString=pLineEnd + 1;
+            break;
+          }
+        }
+      }
+    }
+    else if (chQuote == '\0')
+      chQuote=*pLineStart;
+    else if (*pLineStart == chQuote)
+      chQuote='\0';
+  }
+  if (pOptionString)
+  {
+    while (*--pLineStart == ' ' || *pLineStart == '\t');
+
+    if (*pOptionString == *pLineStart && (*pOptionString == '\"' || *pOptionString == '\'' || *pOptionString == '`'))
+    {
+      ++pOptionString, --pLineStart;
+    }
+    nBytes=pLineStart - pOptionString + 2;
+    if (szResult)
+    {
+      if (nMaxResult < nBytes) nBytes=nMaxResult;
+      lstrcpynA(szResult, pOptionString, nBytes);
+    }
+  }
+  return nBytes;
+}
+#endif
+
+/********************************************************************
+ *
+ *  GetOptionsW
+ *
+ *Gets option string from unicode parameters line.
+ *
+ * [in] const wchar_t *wpLine   Parameters line.
+ * [in] const wchar_t *wpOption Option.
+ * [in] BOOL bSensitive         TRUE   case sensitive.
+ *                              FALSE  case insensitive.
+ *[out] wchar_t *wszResult      Output, can be NULL.
+ * [in] int nMaxResult          Output buffer size.
+ *
+ *Returns:  length of the string copied to wszResult,
+ *          including the terminating null character
+ ********************************************************************/
+#if defined GetOptionsW || defined ALLSTRFUNC
+#define GetOptionsW_INCLUDED
+#undef GetOptionsW
+int GetOptionsW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult)
+{
+  const wchar_t *wpLineStart;
+  const wchar_t *wpLineEnd;
+  const wchar_t *wpOptionCount;
+  const wchar_t *wpOptionString=NULL;
+  wchar_t wchQuote='\0';
+  wchar_t wchDelimiter=*wpOption++;
+  int nBytes=0;
+
+  for (wpLineStart=wpLineEnd=wpLine; *wpLineStart && *wpLineEnd; ++wpLineStart)
+  {
+    if (wchQuote == '\0' && *wpLineStart != '\"' && *wpLineStart != '\'' && *wpLineStart != '`')
+    {
+      if (*wpLineStart == wchDelimiter)
+      {
+        if (wpOptionString) break;
+
+        for (wpLineEnd=wpLineStart + 1, wpOptionCount=wpOption;
+              *wpLineEnd &&
+              (*wpLineEnd == *wpOptionCount ||
+               #if defined WideCharLower_INCLUDED
+                 (bSensitive == FALSE && WideCharLower(*wpLineEnd) == WideCharLower(*wpOptionCount)));
+               #elif defined WideCharUpper_INCLUDED
+                 (bSensitive == FALSE && WideCharUpper(*wpLineEnd) == WideCharUpper(*wpOptionCount)));
+               #else
+                 (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpLineEnd) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpOptionCount)));
+               #endif
+             ++wpLineEnd)
+        {
+          if (!*++wpOptionCount)
+          {
+            wpLineStart=wpLineEnd;
+            wpOptionString=wpLineEnd + 1;
+            break;
+          }
+        }
+      }
+    }
+    else if (wchQuote == '\0')
+      wchQuote=*wpLineStart;
+    else if (*wpLineStart == wchQuote)
+      wchQuote='\0';
+  }
+  if (wpOptionString)
+  {
+    while (*--wpLineStart == ' ' || *wpLineStart == '\t');
+
+    if (*wpOptionString == *wpLineStart && (*wpOptionString == '\"' || *wpOptionString == '\'' || *wpOptionString == '`'))
+    {
+      ++wpOptionString, --wpLineStart;
+    }
+    nBytes=wpLineStart - wpOptionString + 2;
+    if (wszResult)
+    {
+      if (nMaxResult < nBytes) nBytes=nMaxResult;
+      lstrcpynW(wszResult, wpOptionString, nBytes);
+    }
+  }
+  return nBytes;
+}
+#endif
+
+
+/********************************************************************
+ *
  *  WordFindA
  *
  *String manipulation function.
  *
- * [in] char *pText      Text.
- * [in] char *pDelim     Delimiter.
- * [in] int nNumber      Number of the delimiter/word if positive
- *                        search from beginning if negative from end,
- *                        if (nNumber == 0) then returns sum of delimiters/words.
- * [in] char *pOption    ">"     all text before founded delimiter.
- *                       "<"     all text after founded delimiter.
- *                       "<>"    deletes delimiter.
- *                       "*"     text between delimiters (word).
- *                       "*>"    all text after founded word.
- *                       ">*"    word and all text after founded word.
- *                       "<*"    all text before founded word.
- *                       "*<"    word and all text before founded word.
- *                       "<*>"   deletes word and neighbouring delimiter.
- * [in] BOOL bSensitive  TRUE   case sensitive.
- *                       FALSE  case insensitive.
- *[out] char *szResult   Output for result string, can be NULL.
- *[out] int *nMaxResult  Contains the length of the result string,
- *                        not including the terminating null character,
- *                        can be NULL.
- *[out] char **ppResult  Pointer to the first character of result string in pText,
- *                        can be NULL.
+ * [in] const char *pText   Text.
+ * [in] const char *pDelim  Delimiter.
+ * [in] int nNumber         Number of the delimiter/word if positive
+ *                           search from beginning if negative from end,
+ *                           if (nNumber == 0) then returns sum of delimiters/words.
+ * [in] const char *pOption ">"     all text before founded delimiter.
+ *                          "<"     all text after founded delimiter.
+ *                          "<>"    deletes delimiter.
+ *                          "*"     text between delimiters (word).
+ *                          "*>"    all text after founded word.
+ *                          ">*"    word and all text after founded word.
+ *                          "<*"    all text before founded word.
+ *                          "*<"    word and all text before founded word.
+ *                          "<*>"   deletes word and neighbouring delimiter.
+ * [in] BOOL bSensitive     TRUE   case sensitive.
+ *                          FALSE  case insensitive.
+ *[out] char *szResult      Output for result string, can be NULL.
+ *[out] int *nMaxResult     Contains the length of the result string,
+ *                           not including the terminating null character,
+ *                           can be NULL.
+ *[out] char **ppResult     Pointer to the first character of result string in pText,
+ *                           can be NULL.
  *
  *Returns (nRes):  sum of delimiters/words, if (nNumber == 0)
  *                 -1 syntax error or pDelim is empty
@@ -1458,15 +1752,15 @@ BOOL xstrstrW(wchar_t *wpText, DWORD dwTextLen, wchar_t *wpStr, BOOL bSensitive,
 #if defined WordFindA || defined ALLSTRFUNC
 #define WordFindA_INCLUDED
 #undef WordFindA
-int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppResult)
+int WordFindA(const char *pText, const char *pDelim, int nNumber, const char *pOption, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppResult)
 {
-  char *pTextStart;
-  char *pTextEnd;
-  char *pTextMinus=NULL;
-  char *pDelimCount;
-  char *pDelimMinus=NULL;
-  char *pWord;
-  char *pResult=NULL;
+  const char *pTextStart;
+  const char *pTextEnd;
+  const char *pTextMinus=NULL;
+  const char *pDelimCount;
+  const char *pDelimMinus=NULL;
+  const char *pWord;
+  const char *pResult=NULL;
   BOOL bFound=FALSE;
   BOOL bRow=TRUE;
   int nOption=0;
@@ -1535,7 +1829,7 @@ int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensi
                 pResult=pTextEnd + 1;
                 nResultSize=(pWord - pResult) + lstrlenA(pResult);
               }
-              if (ppResult) *ppResult=pResult;
+              if (ppResult) *ppResult=(char *)pResult;
               if (nMaxResult) *nMaxResult=nResultSize;
               if (szResult)
               {
@@ -1568,7 +1862,7 @@ int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensi
               pResult=pTextEnd + 1;
               nResultSize=(pResult - pText - nDelimLen) + lstrlenA(pResult);
             }
-            if (ppResult) *ppResult=pResult;
+            if (ppResult) *ppResult=(char *)pResult;
             if (nMaxResult) *nMaxResult=nResultSize;
             if (szResult)
             {
@@ -1617,7 +1911,7 @@ int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensi
         pResult=pText;
         nResultSize=(pWord - nDelimLen) - pResult;
       }
-      if (ppResult) *ppResult=pResult;
+      if (ppResult) *ppResult=(char *)pResult;
       if (nMaxResult) *nMaxResult=nResultSize;
       if (szResult)
       {
@@ -1685,7 +1979,7 @@ int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensi
                 pResult=pTextStart;
                 nResultSize=(pResult - pText) + (pTextMinus - pWord) + 1;
               }
-              if (ppResult) *ppResult=pResult;
+              if (ppResult) *ppResult=(char *)pResult;
               if (nMaxResult) *nMaxResult=nResultSize;
               if (szResult)
               {
@@ -1718,7 +2012,7 @@ int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensi
               pResult=pTextStart;
               nResultSize=pTextMinus - pText - nDelimLen + 1;
             }
-            if (ppResult) *ppResult=pResult;
+            if (ppResult) *ppResult=(char *)pResult;
             if (nMaxResult) *nMaxResult=nResultSize;
             if (szResult)
             {
@@ -1765,7 +2059,7 @@ int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensi
         pResult=pWord + nDelimLen;
         nResultSize=pTextMinus - pResult + 1;
       }
-      if (ppResult) *ppResult=pResult;
+      if (ppResult) *ppResult=(char *)pResult;
       if (nMaxResult) *nMaxResult=nResultSize;
       if (szResult)
       {
@@ -1790,28 +2084,28 @@ int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensi
  *
  *Unicode string manipulation function.
  *
- * [in] wchar_t *wpText      Text.
- * [in] wchar_t *wpDelim     Delimiter.
- * [in] int nNumber          Number of the delimiter/word if positive
- *                            search from beginning if negative from end,
- *                            if (nNumber == 0) then returns sum of delimiters/words.
- * [in] wchar_t *wpOption    L">"     all text before founded delimiter.
- *                           L"<"     all text after founded delimiter.
- *                           L"<>"    deletes delimiter.
- *                           L"*"     text between delimiters (word).
- *                           L"*>"    all text after founded word.
- *                           L">*"    word and all text after founded word.
- *                           L"<*"    all text before founded word.
- *                           L"*<"    word and all text before founded word.
- *                           L"<*>"   deletes word and neighbouring delimiter.
- * [in] BOOL bSensitive      TRUE   case sensitive.
- *                           FALSE  case insensitive.
- *[out] wchar_t *wszResult   Output for result string, can be NULL.
- *[out] int *nMaxResult      Contains the length of the result string,
- *                            not including the terminating null character,
- *                            can be NULL.
- *[out] wchar_t **wppResult  Pointer to the first character of result string in wpText,
- *                            can be NULL.
+ * [in] const wchar_t *wpText   Text.
+ * [in] const wchar_t *wpDelim  Delimiter.
+ * [in] int nNumber             Number of the delimiter/word if positive
+ *                               search from beginning if negative from end,
+ *                               if (nNumber == 0) then returns sum of delimiters/words.
+ * [in] const wchar_t *wpOption L">"     all text before founded delimiter.
+ *                              L"<"     all text after founded delimiter.
+ *                              L"<>"    deletes delimiter.
+ *                              L"*"     text between delimiters (word).
+ *                              L"*>"    all text after founded word.
+ *                              L">*"    word and all text after founded word.
+ *                              L"<*"    all text before founded word.
+ *                              L"*<"    word and all text before founded word.
+ *                              L"<*>"   deletes word and neighbouring delimiter.
+ * [in] BOOL bSensitive         TRUE   case sensitive.
+ *                              FALSE  case insensitive.
+ *[out] wchar_t *wszResult      Output for result string, can be NULL.
+ *[out] int *nMaxResult         Contains the length of the result string,
+ *                               not including the terminating null character,
+ *                               can be NULL.
+ *[out] wchar_t **wppResult     Pointer to the first character of result string in wpText,
+ *                               can be NULL.
  *
  *Returns (nRes):  sum of delimiters/words, if (nNumber == 0)
  *                 -1 syntax error or wpDelim is empty
@@ -1821,22 +2115,19 @@ int WordFindA(char *pText, char *pDelim, int nNumber, char *pOption, BOOL bSensi
  *Defines:
  * #define WordFindW_UNMINUS  //nNumber only positive (uses for minimize program size)
  * #define WordFindW_UNPLUS   //nNumber only negative (uses for minimize program size)
- *
- *Note:
- *  WordFindW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
  ********************************************************************/
 #if defined WordFindW || defined ALLSTRFUNC
 #define WordFindW_INCLUDED
 #undef WordFindW
-int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppResult)
+int WordFindW(const wchar_t *wpText, const wchar_t *wpDelim, int nNumber, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppResult)
 {
-  wchar_t *wpTextStart;
-  wchar_t *wpTextEnd;
-  wchar_t *wpTextMinus=NULL;
-  wchar_t *wpDelimCount;
-  wchar_t *wpDelimMinus=NULL;
-  wchar_t *wpWord;
-  wchar_t *wpResult=NULL;
+  const wchar_t *wpTextStart;
+  const wchar_t *wpTextEnd;
+  const wchar_t *wpTextMinus=NULL;
+  const wchar_t *wpDelimCount;
+  const wchar_t *wpDelimMinus=NULL;
+  const wchar_t *wpWord;
+  const wchar_t *wpResult=NULL;
   BOOL bFound=FALSE;
   BOOL bRow=TRUE;
   int nOption=0;
@@ -1866,13 +2157,7 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
       for (wpTextEnd=wpTextStart, wpDelimCount=wpDelim;
             *wpTextEnd &&
             (*wpTextEnd == *wpDelimCount ||
-             #if defined WideCharLower_INCLUDED
-               (bSensitive == FALSE && WideCharLower(*wpTextEnd) == WideCharLower(*wpDelimCount)));
-             #elif defined WideCharUpper_INCLUDED
-               (bSensitive == FALSE && WideCharUpper(*wpTextEnd) == WideCharUpper(*wpDelimCount)));
-             #else
-               (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextEnd) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpDelimCount)));
-             #endif
+            (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextEnd) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpDelimCount)));
            ++wpTextEnd)
       {
         if (!*++wpDelimCount)
@@ -1911,7 +2196,7 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
                 wpResult=wpTextEnd + 1;
                 nResultSize=(wpWord - wpResult) + lstrlenW(wpResult);
               }
-              if (wppResult) *wppResult=wpResult;
+              if (wppResult) *wppResult=(wchar_t *)wpResult;
               if (nMaxResult) *nMaxResult=nResultSize;
               if (wszResult)
               {
@@ -1944,7 +2229,7 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
               wpResult=wpTextEnd + 1;
               nResultSize=(wpResult - wpText - nDelimLen) + lstrlenW(wpResult);
             }
-            if (wppResult) *wppResult=wpResult;
+            if (wppResult) *wppResult=(wchar_t *)wpResult;
             if (nMaxResult) *nMaxResult=nResultSize;
             if (wszResult)
             {
@@ -1993,7 +2278,7 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
         wpResult=wpText;
         nResultSize=(wpWord - nDelimLen) - wpResult;
       }
-      if (wppResult) *wppResult=wpResult;
+      if (wppResult) *wppResult=(wchar_t *)wpResult;
       if (nMaxResult) *nMaxResult=nResultSize;
       if (wszResult)
       {
@@ -2022,13 +2307,7 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
       for (wpTextStart=wpTextEnd, wpDelimCount=wpDelimMinus;
             wpTextStart >= wpText &&
             (*wpTextStart == *wpDelimCount ||
-             #if defined WideCharLower_INCLUDED
-               (bSensitive == FALSE && WideCharLower(*wpTextStart) == WideCharLower(*wpDelimCount)));
-             #elif defined WideCharUpper_INCLUDED
-               (bSensitive == FALSE && WideCharUpper(*wpTextStart) == WideCharUpper(*wpDelimCount)));
-             #else
-               (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextStart) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpDelimCount)));
-             #endif
+            (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextStart) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpDelimCount)));
            --wpTextStart)
       {
         if (--wpDelimCount < wpDelim)
@@ -2067,7 +2346,7 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
                 wpResult=wpTextStart;
                 nResultSize=(wpResult - wpText) + (wpTextMinus - wpWord) + 1;
               }
-              if (wppResult) *wppResult=wpResult;
+              if (wppResult) *wppResult=(wchar_t *)wpResult;
               if (nMaxResult) *nMaxResult=nResultSize;
               if (wszResult)
               {
@@ -2100,7 +2379,7 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
               wpResult=wpTextStart;
               nResultSize=wpTextMinus - wpText - nDelimLen + 1;
             }
-            if (wppResult) *wppResult=wpResult;
+            if (wppResult) *wppResult=(wchar_t *)wpResult;
             if (nMaxResult) *nMaxResult=nResultSize;
             if (wszResult)
             {
@@ -2147,7 +2426,7 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
         wpResult=wpWord + nDelimLen;
         nResultSize=wpTextMinus - wpResult + 1;
       }
-      if (wppResult) *wppResult=wpResult;
+      if (wppResult) *wppResult=(wchar_t *)wpResult;
       if (nMaxResult) *nMaxResult=nResultSize;
       if (wszResult)
       {
@@ -2162,302 +2441,6 @@ int WordFindW(wchar_t *wpText, wchar_t *wpDelim, int nNumber, wchar_t *wpOption,
     return -3;
   else
     return -2;
-}
-#endif
-
-/********************************************************************
- *
- *  StrReplaceA
- *
- *Replace substring in string.
- *
- * [in] char *pText      Text.
- * [in] char *pIt        Replace it.
- * [in] char *pWith      Replace with.
- * [in] BOOL bSensitive  TRUE   case sensitive.
- *                       FALSE  case insensitive.
- *[out] char *szResult   Output, can be NULL.
- *[out] int *nMaxResult  Contains the length of the result string,
- *                        including the terminating null character,
- *                        can be NULL.
- *
- *Returns:  Number of changes
- ********************************************************************/
-#if defined StrReplaceA || defined ALLSTRFUNC
-#define StrReplaceA_INCLUDED
-#undef StrReplaceA
-int StrReplaceA(char *pText, char *pIt, char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult)
-{
-  char *pTextCount;
-  char *pItCount;
-  char *pResult=szResult;
-  int nWithLen=lstrlenA(pWith);
-  int nChanges=0;
-  int i;
-
-  for (pTextCount=pText; *pText; ++pText)
-  {
-    for (pTextCount=pText, pItCount=pIt;
-          *pTextCount == *pItCount ||
-          (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pTextCount) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pItCount));
-         ++pTextCount)
-    {
-      if (!*++pItCount)
-      {
-        if (szResult)
-        {
-          for (i=0; i < nWithLen; ++i)
-            *pResult++=pWith[i];
-        }
-        else pResult+=nWithLen;
-
-        pText=pTextCount + 1;
-        pItCount=pIt;
-        ++nChanges;
-        if (!*pText) goto End;
-      }
-    }
-    if (szResult) *pResult=*pText;
-    ++pResult;
-  }
-
-  End:
-  if (szResult) *pResult=*pText;
-  if (nMaxResult) *nMaxResult=(pResult - szResult) + 1;
-  return nChanges;
-}
-#endif
-
-/********************************************************************
- *
- *  StrReplaceW
- *
- *Replace substring in unicode string.
- *
- * [in] wchar_t *wpText      Text.
- * [in] wchar_t *wpIt        Replace it.
- * [in] wchar_t *wpWith      Replace with.
- * [in] BOOL bSensitive      TRUE   case sensitive.
- *                           FALSE  case insensitive.
- *[out] wchar_t *wszResult   Output, can be NULL.
- *[out] int *nMaxResult      Contains the length of the result string,
- *                            including the terminating null character,
- *                            can be NULL.
- *
- *Returns:  Number of changes
- *
- *Note:
- *  StrReplaceW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
- ********************************************************************/
-#if defined StrReplaceW || defined ALLSTRFUNC
-#define StrReplaceW_INCLUDED
-#undef StrReplaceW
-int StrReplaceW(wchar_t *wpText, wchar_t *wpIt, wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult)
-{
-  wchar_t *wpTextCount;
-  wchar_t *wpItCount;
-  wchar_t *wpResult=wszResult;
-  int nWithLen=lstrlenW(wpWith);
-  int nChanges=0;
-  int i;
-
-  for (wpTextCount=wpText; *wpText; ++wpText)
-  {
-    for (wpTextCount=wpText, wpItCount=wpIt;
-          *wpTextCount == *wpItCount ||
-          #if defined WideCharLower_INCLUDED
-            (bSensitive == FALSE && WideCharLower(*wpTextCount) == WideCharLower(*wpItCount));
-          #elif defined WideCharUpper_INCLUDED
-            (bSensitive == FALSE && WideCharUpper(*wpTextCount) == WideCharUpper(*wpItCount));
-          #else
-            (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextCount) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpItCount));
-          #endif
-         ++wpTextCount)
-    {
-      if (!*++wpItCount)
-      {
-        if (wszResult)
-        {
-          for (i=0; i < nWithLen; ++i)
-            *wpResult++=wpWith[i];
-        }
-        else wpResult+=nWithLen;
-
-        wpText=wpTextCount + 1;
-        wpItCount=wpIt;
-        ++nChanges;
-        if (!*wpText) goto End;
-      }
-    }
-    if (wszResult) *wpResult=*wpText;
-    ++wpResult;
-  }
-
-  End:
-  if (wszResult) *wpResult=*wpText;
-  if (nMaxResult) *nMaxResult=(wpResult - wszResult) + 1;
-  return nChanges;
-}
-#endif
-
-/********************************************************************
- *
- *  GetOptionsA
- *
- *Gets option string from parameters line.
- *
- * [in] char *pLine      Parameters line.
- * [in] char *pOption    Option.
- * [in] BOOL bSensitive  TRUE   case sensitive.
- *                       FALSE  case insensitive.
- *[out] char *szResult   Output, can be NULL.
- * [in] int nMaxResult   Output buffer size.
- *
- *Returns:  length of the string copied to szResult,
- *          including the terminating null character
- ********************************************************************/
-#if defined GetOptionsA || defined ALLSTRFUNC
-#define GetOptionsA_INCLUDED
-#undef GetOptionsA
-int GetOptionsA(char *pLine, char *pOption, BOOL bSensitive, char *szResult, int nMaxResult)
-{
-  char *pLineStart;
-  char *pLineEnd;
-  char *pOptionCount;
-  char *pOptionString=NULL;
-  char chQuote='\0';
-  char chDelimiter=*pOption++;
-  int nBytes=0;
-
-  for (pLineStart=pLineEnd=pLine; *pLineStart && *pLineEnd; ++pLineStart)
-  {
-    if (chQuote == '\0' && *pLineStart != '\"' && *pLineStart != '\'' && *pLineStart != '`')
-    {
-      if (*pLineStart == chDelimiter)
-      {
-        if (pOptionString) break;
-
-        for (pLineEnd=pLineStart + 1, pOptionCount=pOption;
-              *pLineEnd &&
-              (*pLineEnd == *pOptionCount ||
-              (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pLineEnd) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pOptionCount)));
-             ++pLineEnd)
-        {
-          if (!*++pOptionCount)
-          {
-            pLineStart=pLineEnd;
-            pOptionString=pLineEnd + 1;
-            break;
-          }
-        }
-      }
-    }
-    else if (chQuote == '\0')
-      chQuote=*pLineStart;
-    else if (*pLineStart == chQuote)
-      chQuote='\0';
-  }
-  if (pOptionString)
-  {
-    while (*--pLineStart == ' ' || *pLineStart == '\t');
-
-    if (*pOptionString == *pLineStart && (*pOptionString == '\"' || *pOptionString == '\'' || *pOptionString == '`'))
-    {
-      ++pOptionString, --pLineStart;
-    }
-    nBytes=pLineStart - pOptionString + 2;
-    if (szResult)
-    {
-      if (nMaxResult < nBytes) nBytes=nMaxResult;
-      lstrcpynA(szResult, pOptionString, nBytes);
-    }
-  }
-  return nBytes;
-}
-#endif
-
-/********************************************************************
- *
- *  GetOptionsW
- *
- *Gets option string from unicode parameters line.
- *
- * [in] wchar_t *wpLine      Parameters line.
- * [in] wchar_t *wpOption    Option.
- * [in] BOOL bSensitive      TRUE   case sensitive.
- *                           FALSE  case insensitive.
- *[out] wchar_t *wszResult   Output, can be NULL.
- * [in] int nMaxResult       Output buffer size.
- *
- *Returns:  length of the string copied to wszResult,
- *          including the terminating null character
- *
- *Note:
- *  GetOptionsW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
- ********************************************************************/
-#if defined GetOptionsW || defined ALLSTRFUNC
-#define GetOptionsW_INCLUDED
-#undef GetOptionsW
-int GetOptionsW(wchar_t *wpLine, wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult)
-{
-  wchar_t *wpLineStart;
-  wchar_t *wpLineEnd;
-  wchar_t *wpOptionCount;
-  wchar_t *wpOptionString=NULL;
-  wchar_t wchQuote='\0';
-  wchar_t wchDelimiter=*wpOption++;
-  int nBytes=0;
-
-  for (wpLineStart=wpLineEnd=wpLine; *wpLineStart && *wpLineEnd; ++wpLineStart)
-  {
-    if (wchQuote == '\0' && *wpLineStart != '\"' && *wpLineStart != '\'' && *wpLineStart != '`')
-    {
-      if (*wpLineStart == wchDelimiter)
-      {
-        if (wpOptionString) break;
-
-        for (wpLineEnd=wpLineStart + 1, wpOptionCount=wpOption;
-              *wpLineEnd &&
-              (*wpLineEnd == *wpOptionCount ||
-               #if defined WideCharLower_INCLUDED
-                 (bSensitive == FALSE && WideCharLower(*wpLineEnd) == WideCharLower(*wpOptionCount)));
-               #elif defined WideCharUpper_INCLUDED
-                 (bSensitive == FALSE && WideCharUpper(*wpLineEnd) == WideCharUpper(*wpOptionCount)));
-               #else
-                 (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpLineEnd) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpOptionCount)));
-               #endif
-             ++wpLineEnd)
-        {
-          if (!*++wpOptionCount)
-          {
-            wpLineStart=wpLineEnd;
-            wpOptionString=wpLineEnd + 1;
-            break;
-          }
-        }
-      }
-    }
-    else if (wchQuote == '\0')
-      wchQuote=*wpLineStart;
-    else if (*wpLineStart == wchQuote)
-      wchQuote='\0';
-  }
-  if (wpOptionString)
-  {
-    while (*--wpLineStart == ' ' || *wpLineStart == '\t');
-
-    if (*wpOptionString == *wpLineStart && (*wpOptionString == '\"' || *wpOptionString == '\'' || *wpOptionString == '`'))
-    {
-      ++wpOptionString, --wpLineStart;
-    }
-    nBytes=wpLineStart - wpOptionString + 2;
-    if (wszResult)
-    {
-      if (nMaxResult < nBytes) nBytes=nMaxResult;
-      lstrcpynW(wszResult, wpOptionString, nBytes);
-    }
-  }
-  return nBytes;
 }
 #endif
 
