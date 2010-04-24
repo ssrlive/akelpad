@@ -47,6 +47,7 @@
 #define xmemcpy
 #define xmemcmp
 #define xmemset
+#define xstrcpynW
 #include "StrFunc.h"
 
 
@@ -1717,7 +1718,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
 
       if (!lParam)
         return lstrlenW(lpTheme->wszThemeName) + 1;
-      return AE_wcsncpy((wchar_t *)lParam, lpTheme->wszThemeName, MAX_PATH);
+      return xstrcpynW((wchar_t *)lParam, lpTheme->wszThemeName, MAX_PATH);
     }
     if (uMsg == AEM_HLGETTHEMESTACK)
     {
@@ -8963,7 +8964,7 @@ AETHEMEITEMW* AE_HighlightCreateTheme(wchar_t *wpThemeName)
   {
     if (!AE_HeapStackInsertIndex(NULL, (stack **)&hAkelEditThemesStack.first, (stack **)&hAkelEditThemesStack.last, (stack **)&lpElement, -1, sizeof(AETHEMEITEMW)))
     {
-      AE_wcsncpy(lpElement->wszThemeName, wpThemeName, MAX_PATH);
+      xstrcpynW(lpElement->wszThemeName, wpThemeName, MAX_PATH);
     }
   }
   return lpElement;
@@ -17534,46 +17535,6 @@ void AE_ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen)
     lpBuffer[a]=lpBuffer[b];
     lpBuffer[b]=ch;
   }
-}
-
-int AE_strncpy(char *dest, const char *src, unsigned int count)
-{
-  char *char_dest=(char *)dest;
-  char *char_src=(char *)src;
-  unsigned int init_count=count;
-
-  if (char_dest != char_src)
-  {
-    while (count)
-    {
-      *char_dest=*char_src;
-      if (*char_src == '\0') break;
-      ++char_dest;
-      ++char_src;
-      --count;
-    }
-  }
-  return init_count - count;
-}
-
-int AE_wcsncpy(wchar_t *dest, const wchar_t *src, unsigned int count)
-{
-  wchar_t *char_dest=(wchar_t *)dest;
-  wchar_t *char_src=(wchar_t *)src;
-  unsigned int init_count=count;
-
-  if (char_dest != char_src)
-  {
-    while (count)
-    {
-      *char_dest=*char_src;
-      if (*char_src == L'\0') break;
-      ++char_dest;
-      ++char_src;
-      --count;
-    }
-  }
-  return init_count - count;
 }
 
 wchar_t* AE_wcschr(const wchar_t *s, wchar_t c, BOOL bMatchCase)
