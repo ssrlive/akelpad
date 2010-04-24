@@ -813,20 +813,20 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Додатково"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Remember keyboard layout of each tab (MDI)",
+    CONTROL         "Запоминать раскладку клавиатуры для вкладки (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
     CONTROL         "Замінити все - закриває діалог",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
-    CONTROL         "Insert date if file has .LOG at the beginning",
+    CONTROL         "Вставить дату, если файл содержит .LOG в начале",
                     IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
     CONTROL         "Попередження про збереження в read-only файли",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13
-    LTEXT           "default saving extention",IDC_STATIC,37,65,171,8
+    LTEXT           "расширение по умолчанию при сохранении документа",IDC_STATIC,37,65,171,8
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
