@@ -149,6 +149,119 @@
           <br>By default: 0.
         </td>
       </tr>
+      <tr>
+        <td><b>DateInsertFormat</b></td>
+        <td>Defines insert date and time format.
+
+          <br><br>Time:
+          <table cellspacing=0 cellpadding=1 border=0>
+            <tr>
+              <td width=50><li>h</td>
+              <td>Hours with no leading zero for single-digit hours; 12-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>hh</td>
+              <td>Hours with leading zero for single-digit hours; 12-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>H</td>
+              <td>Hours with no leading zero for single-digit hours; 24-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>HH</td>
+              <td>Hours with leading zero for single-digit hours; 24-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>m</td>
+              <td>Minutes with no leading zero for single-digit minutes.</td>
+            </tr>
+            <tr>
+              <td><li>mm</td>
+              <td>Minutes with leading zero for single-digit minutes.</td>
+            </tr>
+            <tr>
+              <td><li>s</td>
+              <td>Seconds with no leading zero for single-digit seconds.</td>
+            </tr>
+            <tr>
+              <td><li>ss</td>
+              <td>Seconds with leading zero for single-digit seconds.</td>
+            </tr>
+            <tr>
+              <td><li>t</td>
+              <td>One character time-marker string, such as A or P.</td>
+            </tr>
+            <tr>
+              <td><li>tt</td>
+              <td>Multicharacter time-marker string, such as AM or PM.</td>
+            </tr>
+          </table>
+
+          <br>Date:
+          <table cellspacing=0 cellpadding=1 border=0>
+            <tr>
+              <td width=80><li>d</td>
+              <td>Day of month as digits with no leading zero for single-digit days.</td>
+            </tr>
+            <tr>
+              <td><li>dd</td>
+              <td>Day of month as digits with leading zero for single-digit days.</td>
+            </tr>
+            <tr>
+              <td><li>ddd</td>
+              <td>Day of week as a three-letter abbreviation.</td>
+            </tr>
+            <tr>
+              <td><li>dddd</td>
+              <td>Day of week as its full name.</td>
+            </tr>
+            <tr>
+              <td><li>M</td>
+              <td>Month as digits with no leading zero for single-digit months.</td>
+            </tr>
+            <tr>
+              <td><li>MM</td>
+              <td>Month as digits with leading zero for single-digit months.</td>
+            </tr>
+            <tr>
+              <td><li>MMM</td>
+              <td>Month as a three-letter abbreviation.</td>
+            </tr>
+            <tr>
+              <td><li>MMMM</td>
+              <td>Month as its full name.</td>
+            </tr>
+            <tr>
+              <td><li>y</td>
+              <td>Year as last two digits, but with no leading zero for years less than 10.</td>
+            </tr>
+            <tr>
+              <td><li>yy</td>
+              <td>Year as last two digits, but with leading zero for years less than 10.</td>
+            </tr>
+            <tr>
+              <td><li>yyyy</td>
+              <td>Year represented by full four digits.</td>
+            </tr>
+            <tr>
+              <td><li>gg</td>
+              <td>Period/era string.</td>
+            </tr>
+          </table>
+
+          <br>Example:
+          <br>"H:mm:ss dd MMMM yyyy" -> "12:50:24 07 January 2008"
+          <br>
+          <br>By default: "" - program defined date and time format.
+        </td>
+      </tr>
+      <tr>
+        <td><b>DateLogFormat</b></td>
+        <td>Defines date and time format for files containing ".LOG" at the beginning. Works only if enabled "Insert date if file has .LOG at the beginning" in settings (DateLog=1). See DateInsertFormat for syntax description.
+          <br>
+          <br>By default: "" - program defined date and time format.
+        </td>
+      </tr>
     </table>
   </ul>
 
