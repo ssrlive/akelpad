@@ -4,17 +4,17 @@
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
- *Linear functions (ALLSTACKFUNCL):                              *
+ *Linear functions:                                              *
  * StackGetIndexL, StackGetElementL, StackPushFrontL,            *
  * StackPopFrontL, StackPushBackL, StackSizeL, StackClearL       *
  *                                                               *
- *Bilinear functions (ALLSTACKFUNC):                             *
+ *Bilinear functions:                                            *
  * StackGetIndex, StackGetElement, StackInsertBefore,            *
  * StackInsertAfter, StackDelete, StackMoveBefore,               *
  * StackMoveAfter, StackExchange, StackJoin, StackSplit,         *
  * StackSize, StackClear                                         *
  *                                                               *
- *Special functions (ALLSTACKFUNCS):                             *
+ *Special functions:                                             *
  * StackInsertIndex, StackMoveIndex, StackDeleteRange,           *
  * StackMoveRange, StackReverseRange, StackCopy,                 *
  * StackPushSortA, StackSortA                                    *
@@ -112,7 +112,7 @@ int StackSortA(stackS **first, stackS **last, int nUpDown);
  *
  *Returns: element index, zero if not found
  ********************************************************************/
-#if defined StackGetIndexL || defined ALLSTACKFUNCL
+#if defined StackGetIndexL || defined ALLSTACKFUNC
 #define StackGetIndexL_INCLUDED
 #undef StackGetIndexL
 int StackGetIndexL(stackL *first, stackL *last, stackL *element)
@@ -147,7 +147,7 @@ int StackGetIndexL(stackL *first, stackL *last, stackL *element)
  *Returns: 0 on success
  *         1 on empty stack
  ********************************************************************/
-#if defined StackGetElementL || defined ALLSTACKFUNCL
+#if defined StackGetElementL || defined ALLSTACKFUNC
 #define StackGetElementL_INCLUDED
 #undef StackGetElementL
 int StackGetElementL(stackL *first, stackL *last, stackL **element, int nIndex)
@@ -186,7 +186,7 @@ int StackGetElementL(stackL *first, stackL *last, stackL **element, int nIndex)
  *Returns: 0 on success
  *         2 on memory allocating error
  ********************************************************************/
-#if defined StackPushFrontL || defined ALLSTACKFUNCL
+#if defined StackPushFrontL || defined ALLSTACKFUNC
 #define StackPushFrontL_INCLUDED
 #undef StackPushFrontL
 int StackPushFrontL(stackL **first, stackL **last, stackL **element, int nBytes)
@@ -219,7 +219,7 @@ int StackPushFrontL(stackL **first, stackL **last, stackL **element, int nBytes)
  *Returns: 0 on success
  *         1 on empty stack
  ********************************************************************/
-#if defined StackPopFrontL || defined ALLSTACKFUNCL
+#if defined StackPopFrontL || defined ALLSTACKFUNC
 #define StackPopFrontL_INCLUDED
 #undef StackPopFrontL
 int StackPopFrontL(stackL **first, stackL **last)
@@ -250,7 +250,7 @@ int StackPopFrontL(stackL **first, stackL **last)
  *Returns: 0 on success
  *         2 on memory allocating error
  ********************************************************************/
-#if defined StackPushBackL || defined ALLSTACKFUNCL
+#if defined StackPushBackL || defined ALLSTACKFUNC
 #define StackPushBackL_INCLUDED
 #undef StackPushBackL
 int StackPushBackL(stackL **first, stackL **last, stackL **element, int nBytes)
@@ -282,7 +282,7 @@ int StackPushBackL(stackL **first, stackL **last, stackL **element, int nBytes)
  *
  *Returns: the number of elements
  ********************************************************************/
-#if defined StackSizeL || defined ALLSTACKFUNCL
+#if defined StackSizeL || defined ALLSTACKFUNC
 #define StackSizeL_INCLUDED
 #undef StackSizeL
 int StackSizeL(stackL *first, stackL *last)
@@ -307,7 +307,7 @@ int StackSizeL(stackL *first, stackL *last)
  *[in,out] stackL **last    -Pointer to a pointer that specifies
  *                           the last element in the stack
  ********************************************************************/
-#if defined StackClearL || defined ALLSTACKFUNCL
+#if defined StackClearL || defined ALLSTACKFUNC
 #define StackClearL_INCLUDED
 #undef StackClearL
 void StackClearL(stackL **first, stackL **last)
@@ -1030,7 +1030,7 @@ void StackClear(stack **first, stack **last)
  *Note:
  *  StackInsertIndex uses StackInsertAfter, StackInsertBefore
  ********************************************************************/
-#if defined StackInsertIndex || defined ALLSTACKFUNCS
+#if defined StackInsertIndex || defined ALLSTACKFUNC
 #define StackInsertIndex_INCLUDED
 #undef StackInsertIndex
 int StackInsertIndex(stack **first, stack **last, stack **element, int nIndex, int nBytes)
@@ -1097,7 +1097,7 @@ int StackInsertIndex(stack **first, stack **last, stack **element, int nIndex, i
  *Note:
  *  StackMoveIndex uses StackMoveAfter, StackMoveBefore
  ********************************************************************/
-#if defined StackMoveIndex || defined ALLSTACKFUNCS
+#if defined StackMoveIndex || defined ALLSTACKFUNC
 #define StackMoveIndex_INCLUDED
 #undef StackMoveIndex
 int StackMoveIndex(stack **first, stack **last, stack *element, int nIndex)
@@ -1159,7 +1159,7 @@ int StackMoveIndex(stack **first, stack **last, stack *element, int nIndex)
  *Returns: 0 on success
  *         1 on empty stack
  ********************************************************************/
-#if defined StackDeleteRange || defined ALLSTACKFUNCS
+#if defined StackDeleteRange || defined ALLSTACKFUNC
 #define StackDeleteRange_INCLUDED
 #undef StackDeleteRange
 int StackDeleteRange(stack **first, stack **last, int nIndex, int nIndex2)
@@ -1271,7 +1271,7 @@ int StackDeleteRange(stack **first, stack **last, int nIndex, int nIndex2)
  *         1 on empty stack
  *         2 destination index pointed to the element in the range
  ********************************************************************/
-#if defined StackMoveRange || defined ALLSTACKFUNCS
+#if defined StackMoveRange || defined ALLSTACKFUNC
 #define StackMoveRange_INCLUDED
 #undef StackMoveRange
 int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIndex3)
@@ -1403,7 +1403,7 @@ int StackMoveRange(stack **first, stack **last, int nIndex, int nIndex2, int nIn
  *Note:
  *  StackReverseRange uses StackExchange
  ********************************************************************/
-#if defined StackReverseRange || defined ALLSTACKFUNCS
+#if defined StackReverseRange || defined ALLSTACKFUNC
 #define StackReverseRange_INCLUDED
 #undef StackReverseRange
 void StackReverseRange(stack **first, stack **last, stack *rangemin, stack *rangemax)
@@ -1451,7 +1451,7 @@ void StackReverseRange(stack **first, stack **last, stack *rangemin, stack *rang
  *Note:
  *  StackCopy uses StackInsertAfter
  ********************************************************************/
-#if defined StackCopy || defined ALLSTACKFUNCS
+#if defined StackCopy || defined ALLSTACKFUNC
 #define StackCopy_INCLUDED
 #undef StackCopy
 int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, int nBytes)
@@ -1505,7 +1505,7 @@ int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, in
  *Note:
  *  StackPushSortA uses StackInsertBefore
  ********************************************************************/
-#if defined StackPushSortA || defined ALLSTACKFUNCS
+#if defined StackPushSortA || defined ALLSTACKFUNC
 #define StackPushSortA_INCLUDED
 #undef StackPushSortA
 int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pString, int nUpDown, int nBytes)
@@ -1546,7 +1546,7 @@ int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pStrin
  *Note:
  *  StackSortA uses StackMoveBefore
  ********************************************************************/
-#if defined StackSortA || defined ALLSTACKFUNCS
+#if defined StackSortA || defined ALLSTACKFUNC
 #define StackSortA_INCLUDED
 #undef StackSortA
 int StackSortA(stackS **first, stackS **last, int nUpDown)
