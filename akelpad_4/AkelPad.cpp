@@ -9,7 +9,7 @@
 #include <richedit.h>
 #include "ConvFunc.h"
 #include "StackFunc.h"
-#include "StrFunc.h"
+#include "AkelEdit\StrFunc.h"
 
 #define AEC_FUNCTIONS
 #include "AkelEdit\AkelBuild.h"
@@ -45,7 +45,17 @@
 #include "StackFunc.h"
 
 //Include string functions
-#define WideCharLower
+#ifndef AKELEDIT_STATICBUILD
+  #define WideCharLower
+  #define xmemcpy
+  #define xmemcmp
+  #define xmemset
+#else
+  #define WideCharLower_INCLUDED
+  #define xmemcpy_INCLUDED
+  #define xmemcmp_INCLUDED
+  #define xmemset_INCLUDED
+#endif
 #define xstrcpyA
 #define xstrcpyW
 #define xstrstrA
@@ -54,7 +64,8 @@
 #define xstrcmpinA
 #define xstrcmpinW
 #define xstrcmpiW
-#include "StrFunc.h"
+#include "AkelEdit\StrFunc.h"
+
 
 //Process
 HANDLE hHeap;
@@ -497,7 +508,7 @@ extern "C" void _WinMain()
     GetObjectA(GetStockObject(SYSTEM_FONT), sizeof(LOGFONTA), &lfEditFontA);
     lfEditFontA.lfHeight=-mod(lfEditFontA.lfHeight);
     lfEditFontA.lfWidth=0;
-    memcpy(&lfPrintFontA, &lfEditFontA, sizeof(LOGFONTA));
+    xmemcpy(&lfPrintFontA, &lfEditFontA, sizeof(LOGFONTA));
     aecColors.dwFlags=AECLR_ALL;
     aecColors.crCaret=RGB(0x00, 0x00, 0x00);
     aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
@@ -945,7 +956,7 @@ extern "C" void _WinMain()
     GetObjectW(GetStockObject(SYSTEM_FONT), sizeof(LOGFONTW), &lfEditFontW);
     lfEditFontW.lfHeight=-mod(lfEditFontW.lfHeight);
     lfEditFontW.lfWidth=0;
-    memcpy(&lfPrintFontW, &lfEditFontW, sizeof(LOGFONTW));
+    xmemcpy(&lfPrintFontW, &lfEditFontW, sizeof(LOGFONTW));
     aecColors.dwFlags=AECLR_ALL;
     aecColors.crCaret=RGB(0x00, 0x00, 0x00);
     aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
@@ -2376,7 +2387,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (SetChosenFontA((HWND)wParam, (LOGFONTA *)lParam))
       {
-        memcpy(&lfEditFontA, (LOGFONTA *)lParam, sizeof(LOGFONTA));
+        xmemcpy(&lfEditFontA, (LOGFONTA *)lParam, sizeof(LOGFONTA));
         bEditFontChanged=TRUE;
         return TRUE;
       }
@@ -3099,13 +3110,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       LOGFONTA lf;
 
-      memcpy(&lf, &lfEditFontA, sizeof(LOGFONTA));
+      xmemcpy(&lf, &lfEditFontA, sizeof(LOGFONTA));
 
       if (DoViewFontA(hMainWnd, &lf))
       {
         if (SetChosenFontA(hWndEdit, &lf))
         {
-          memcpy(&lfEditFontA, &lf, sizeof(LOGFONTA));
+          xmemcpy(&lfEditFontA, &lf, sizeof(LOGFONTA));
           bEditFontChanged=TRUE;
           return TRUE;
         }
@@ -4335,7 +4346,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (SetChosenFontW((HWND)wParam, (LOGFONTW *)lParam))
       {
-        memcpy(&lfEditFontW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
+        xmemcpy(&lfEditFontW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
         bEditFontChanged=TRUE;
         return TRUE;
       }
@@ -5058,13 +5069,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       LOGFONTW lf;
 
-      memcpy(&lf, &lfEditFontW, sizeof(LOGFONTW));
+      xmemcpy(&lf, &lfEditFontW, sizeof(LOGFONTW));
 
       if (DoViewFontW(hMainWnd, &lf))
       {
         if (SetChosenFontW(hWndEdit, &lf))
         {
-          memcpy(&lfEditFontW, &lf, sizeof(LOGFONTW));
+          xmemcpy(&lfEditFontW, &lf, sizeof(LOGFONTW));
           bEditFontChanged=TRUE;
           return TRUE;
         }
@@ -5585,7 +5596,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
       if (!FileExistsA(szCurrentFile))
       {
-        memset(&ftFileTime, 0, sizeof(FILETIME));
+        xmemset(&ftFileTime, 0, sizeof(FILETIME));
 
         SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
         PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)hWndEdit);
@@ -5606,7 +5617,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       }
       else
       {
-        memset(&ftFileTime, 0, sizeof(FILETIME));
+        xmemset(&ftFileTime, 0, sizeof(FILETIME));
       }
     }
   }
@@ -5884,7 +5895,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
       if (!FileExistsW(wszCurrentFile))
       {
-        memset(&ftFileTime, 0, sizeof(FILETIME));
+        xmemset(&ftFileTime, 0, sizeof(FILETIME));
 
         SendMessage(hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
         PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)hWndEdit);
@@ -5905,7 +5916,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       }
       else
       {
-        memset(&ftFileTime, 0, sizeof(FILETIME));
+        xmemset(&ftFileTime, 0, sizeof(FILETIME));
       }
     }
   }
@@ -6230,12 +6241,12 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->ei.bReadOnly=bReadOnly;
       lpWndFrameA->ei.bWordWrap=bWordWrap;
       lpWndFrameA->ei.bOvertypeMode=FALSE;
-      memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-      memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
-      memcpy(&lpWndFrameA->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
-      memcpy(&lpWndFrameA->wszUrlRightDelimiters, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
-      memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
-      memcpy(&lpWndFrameA->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
+      xmemcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+      xmemcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+      xmemcpy(&lpWndFrameA->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
+      xmemcpy(&lpWndFrameA->wszUrlRightDelimiters, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
+      xmemcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+      xmemcpy(&lpWndFrameA->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
       lpWndFrameA->aec=aecColors;
       lpWndFrameA->ft.dwLowDateTime=0;
@@ -6389,12 +6400,12 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->ei.bReadOnly=bReadOnly;
             lpWndFrameA->ei.bWordWrap=bWordWrap;
             lpWndFrameA->ei.bOvertypeMode=bOvertypeMode;
-            memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
-            memcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
-            memcpy(&lpWndFrameA->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
-            memcpy(&lpWndFrameA->wszUrlRightDelimiters, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
-            memcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
-            memcpy(&lpWndFrameA->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
+            xmemcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+            xmemcpy(&lpWndFrameA->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+            xmemcpy(&lpWndFrameA->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
+            xmemcpy(&lpWndFrameA->wszUrlRightDelimiters, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
+            xmemcpy(&lpWndFrameA->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+            xmemcpy(&lpWndFrameA->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
             lpWndFrameA->aec=aecColors;
             lpWndFrameA->ft=ftFileTime;
@@ -6446,12 +6457,12 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bReadOnly=lpWndFrameA->ei.bReadOnly;
           bWordWrap=lpWndFrameA->ei.bWordWrap;
           SetInsertStateStatusA(NULL, lpWndFrameA->ei.bOvertypeMode, FALSE);
-          memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
-          memcpy(wszUrlPrefixes, &lpWndFrameA->wszUrlPrefixes, sizeof(wszUrlPrefixes));
-          memcpy(wszUrlLeftDelimiters, &lpWndFrameA->wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
-          memcpy(wszUrlRightDelimiters, &lpWndFrameA->wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
-          memcpy(wszWordDelimiters, &lpWndFrameA->wszWordDelimiters, sizeof(wszWordDelimiters));
-          memcpy(wszWrapDelimiters, &lpWndFrameA->wszWrapDelimiters, sizeof(wszWrapDelimiters));
+          xmemcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
+          xmemcpy(wszUrlPrefixes, &lpWndFrameA->wszUrlPrefixes, sizeof(wszUrlPrefixes));
+          xmemcpy(wszUrlLeftDelimiters, &lpWndFrameA->wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
+          xmemcpy(wszUrlRightDelimiters, &lpWndFrameA->wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
+          xmemcpy(wszWordDelimiters, &lpWndFrameA->wszWordDelimiters, sizeof(wszWordDelimiters));
+          xmemcpy(wszWrapDelimiters, &lpWndFrameA->wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
           aecColors=lpWndFrameA->aec;
           ftFileTime=lpWndFrameA->ft;
@@ -6539,12 +6550,12 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->ei.bReadOnly=bReadOnly;
       lpWndFrameW->ei.bWordWrap=bWordWrap;
       lpWndFrameW->ei.bOvertypeMode=FALSE;
-      memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-      memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
-      memcpy(&lpWndFrameW->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
-      memcpy(&lpWndFrameW->wszUrlRightDelimiters, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
-      memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
-      memcpy(&lpWndFrameW->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
+      xmemcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+      xmemcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+      xmemcpy(&lpWndFrameW->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
+      xmemcpy(&lpWndFrameW->wszUrlRightDelimiters, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
+      xmemcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+      xmemcpy(&lpWndFrameW->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
       lpWndFrameW->aec=aecColors;
       lpWndFrameW->ft.dwLowDateTime=0;
@@ -6698,12 +6709,12 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->ei.bReadOnly=bReadOnly;
             lpWndFrameW->ei.bWordWrap=bWordWrap;
             lpWndFrameW->ei.bOvertypeMode=bOvertypeMode;
-            memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
-            memcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
-            memcpy(&lpWndFrameW->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
-            memcpy(&lpWndFrameW->wszUrlRightDelimiters, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
-            memcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
-            memcpy(&lpWndFrameW->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
+            xmemcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+            xmemcpy(&lpWndFrameW->wszUrlPrefixes, wszUrlPrefixes, sizeof(wszUrlPrefixes));
+            xmemcpy(&lpWndFrameW->wszUrlLeftDelimiters, wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
+            xmemcpy(&lpWndFrameW->wszUrlRightDelimiters, wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
+            xmemcpy(&lpWndFrameW->wszWordDelimiters, wszWordDelimiters, sizeof(wszWordDelimiters));
+            xmemcpy(&lpWndFrameW->wszWrapDelimiters, wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
             lpWndFrameW->aec=aecColors;
             lpWndFrameW->ft=ftFileTime;
@@ -6755,12 +6766,12 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bReadOnly=lpWndFrameW->ei.bReadOnly;
           bWordWrap=lpWndFrameW->ei.bWordWrap;
           SetInsertStateStatusW(NULL, lpWndFrameW->ei.bOvertypeMode, FALSE);
-          memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
-          memcpy(wszUrlPrefixes, &lpWndFrameW->wszUrlPrefixes, sizeof(wszUrlPrefixes));
-          memcpy(wszUrlLeftDelimiters, &lpWndFrameW->wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
-          memcpy(wszUrlRightDelimiters, &lpWndFrameW->wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
-          memcpy(wszWordDelimiters, &lpWndFrameW->wszWordDelimiters, sizeof(wszWordDelimiters));
-          memcpy(wszWrapDelimiters, &lpWndFrameW->wszWrapDelimiters, sizeof(wszWrapDelimiters));
+          xmemcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
+          xmemcpy(wszUrlPrefixes, &lpWndFrameW->wszUrlPrefixes, sizeof(wszUrlPrefixes));
+          xmemcpy(wszUrlLeftDelimiters, &lpWndFrameW->wszUrlLeftDelimiters, sizeof(wszUrlLeftDelimiters));
+          xmemcpy(wszUrlRightDelimiters, &lpWndFrameW->wszUrlRightDelimiters, sizeof(wszUrlRightDelimiters));
+          xmemcpy(wszWordDelimiters, &lpWndFrameW->wszWordDelimiters, sizeof(wszWordDelimiters));
+          xmemcpy(wszWrapDelimiters, &lpWndFrameW->wszWrapDelimiters, sizeof(wszWrapDelimiters));
 
           aecColors=lpWndFrameW->aec;
           ftFileTime=lpWndFrameW->ft;
@@ -7695,7 +7706,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
           {
             if (!(dkData->dwFlags & DKF_FIXEDSIZE))
             {
-              memset(&mmi, 0, sizeof(MINMAXINFO));
+              xmemset(&mmi, 0, sizeof(MINMAXINFO));
               mmi.ptMinTrackSize.x=0;
               mmi.ptMinTrackSize.y=0;
               mmi.ptMaxTrackSize.x=0x0FFFFFFF;

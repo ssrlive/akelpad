@@ -9,7 +9,7 @@
 #include <richedit.h>
 #include "ConvFunc.h"
 #include "StackFunc.h"
-#include "StrFunc.h"
+#include "AkelEdit\StrFunc.h"
 
 #include "AkelEdit\AkelBuild.h"
 #include "AkelFiles\Langs\Resources\resource.h"
@@ -1249,7 +1249,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
 
     if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMax, &crRange.ciMin, AELB_ASIS, FALSE))
     {
-      nStringLen=wcslen(wpString);
+      nStringLen=lstrlenW(wpString);
       nStringBytes=nStringLen * sizeof(wchar_t);
 
       nFirstLine=SaveLineScroll(hWnd);
@@ -1271,7 +1271,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
           b=nStringLenAll;
 
-          memcpy(wszRange, wpString, nStringBytes);
+          xmemcpy(wszRange, wpString, nStringBytes);
           a=nStringLen;
 
           while (b < nBufferLen)
@@ -1303,7 +1303,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
 
             if (b < nBufferLen)
             {
-              memcpy(wszRange + a, wpString, nStringBytes);
+              xmemcpy(wszRange + a, wpString, nStringBytes);
               a+=nStringLen;
             }
           }
@@ -1337,7 +1337,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
           }
           else
           {
-            if (!memcmp(wszRange + b, wpString, nStringBytes))
+            if (!xmemcmp(wszRange + b, wpString, nStringBytes))
               b+=nStringLen;
           }
 
@@ -1384,7 +1384,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
               }
               else
               {
-                if (!memcmp(wszRange + b, wpString, nStringBytes))
+                if (!xmemcmp(wszRange + b, wpString, nStringBytes))
                   b+=nStringLen;
               }
             }
@@ -1903,7 +1903,7 @@ BOOL DoViewFontA(HWND hWndOwner, LOGFONTA *lfA)
 {
   LOGFONTA lfTmpA;
 
-  memcpy(&lfTmpA, lfA, sizeof(LOGFONTA));
+  xmemcpy(&lfTmpA, lfA, sizeof(LOGFONTA));
   cfA.hwndOwner=hWndOwner;
   cfA.lpLogFont=lfA;
 
@@ -1912,7 +1912,7 @@ BOOL DoViewFontA(HWND hWndOwner, LOGFONTA *lfA)
     lfA->lfHeight=-mod(lfA->lfHeight);
     return TRUE;
   }
-  memcpy(lfA, &lfTmpA, sizeof(LOGFONTA));
+  xmemcpy(lfA, &lfTmpA, sizeof(LOGFONTA));
   return FALSE;
 }
 
@@ -1920,7 +1920,7 @@ BOOL DoViewFontW(HWND hWndOwner, LOGFONTW *lfW)
 {
   LOGFONTW lfTmpW;
 
-  memcpy(&lfTmpW, lfW, sizeof(LOGFONTW));
+  xmemcpy(&lfTmpW, lfW, sizeof(LOGFONTW));
   cfW.hwndOwner=hWndOwner;
   cfW.lpLogFont=lfW;
 
@@ -1929,7 +1929,7 @@ BOOL DoViewFontW(HWND hWndOwner, LOGFONTW *lfW)
     lfW->lfHeight=-mod(lfW->lfHeight);
     return TRUE;
   }
-  memcpy(lfW, &lfTmpW, sizeof(LOGFONTW));
+  xmemcpy(lfW, &lfTmpW, sizeof(LOGFONTW));
   return FALSE;
 }
 
@@ -2561,7 +2561,7 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
                 {
                   lpIniSection->nSectionBytes=nSectionLen * sizeof(wchar_t) + 2;
                   if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionBytes))
-                    memcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionBytes);
+                    xmemcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionBytes);
 
                   lpIniSection->hKeysStack.first=0;
                   lpIniSection->hKeysStack.last=0;
@@ -2594,11 +2594,11 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
                 {
                   lpIniKey->nKeyBytes=nKeyLen * sizeof(wchar_t) + 2;
                   if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyBytes))
-                    memcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyBytes);
+                    xmemcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyBytes);
 
                   lpIniKey->nStringBytes=nStringLen * sizeof(wchar_t) + 2;
                   if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
-                    memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringBytes);
+                    xmemcpy(lpIniKey->wszString, wpString, lpIniKey->nStringBytes);
                 }
                 else goto Error;
               }
@@ -2695,7 +2695,7 @@ HINISECTION* StackOpenIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSe
     {
       lpIniSection->nSectionBytes=nSectionBytes;
       if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionBytes))
-        memcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionBytes);
+        xmemcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionBytes);
    
       lpIniSection->hKeysStack.first=0;
       lpIniSection->hKeysStack.last=0;
@@ -2739,7 +2739,7 @@ HINIKEY* StackOpenIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen
     {
       lpIniKey->nKeyBytes=nKeyBytes;
       if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyBytes))
-        memcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyBytes);
+        xmemcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyBytes);
 
       lpIniKey->wszString=NULL;
       lpIniKey->nStringBytes=0;
@@ -2760,7 +2760,7 @@ int StackGetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD d
 
       dwNumber=(DWORD)xatoiW(lpIniKey->wszString);
       dwStringLen=min(sizeof(DWORD), dwDataBytes);
-      memcpy((DWORD *)lpData, &dwNumber, dwStringLen);
+      xmemcpy((DWORD *)lpData, &dwNumber, dwStringLen);
       return dwStringLen;
     }
     return sizeof(DWORD);
@@ -2785,7 +2785,7 @@ int StackGetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD d
     {
       dwStringLen=min((DWORD)lpIniKey->nStringBytes, dwDataBytes);
       dwStringLen=(dwStringLen / sizeof(wchar_t)) * sizeof(wchar_t);
-      memcpy((wchar_t *)lpData, lpIniKey->wszString, dwStringLen);
+      xmemcpy((wchar_t *)lpData, lpIniKey->wszString, dwStringLen);
       ((wchar_t *)lpData)[dwStringLen / sizeof(wchar_t) - 1]=L'\0';
       return dwStringLen;
     }
@@ -2810,7 +2810,7 @@ BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD 
     lpIniKey->nStringBytes=xuitoaW(*(DWORD *)lpData, wszNumber, 0) * sizeof(wchar_t) + 2;
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
     {
-      memcpy(lpIniKey->wszString, wszNumber, lpIniKey->nStringBytes);
+      xmemcpy(lpIniKey->wszString, wszNumber, lpIniKey->nStringBytes);
       return TRUE;
     }
   }
@@ -2843,7 +2843,7 @@ BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD 
     lpIniKey->nStringBytes=(dwDataBytes / sizeof(wchar_t)) * sizeof(wchar_t);
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
     {
-      memcpy(lpIniKey->wszString, (wchar_t *)lpData, lpIniKey->nStringBytes);
+      xmemcpy(lpIniKey->wszString, (wchar_t *)lpData, lpIniKey->nStringBytes);
       if (lpIniKey->wszString[lpIniKey->nStringBytes / sizeof(wchar_t) - 1] != L'\0')
         lpIniKey->wszString[lpIniKey->nStringBytes / sizeof(wchar_t) - 1]=L'\0';
       return TRUE;
@@ -3566,21 +3566,21 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "UrlPrefixesEnable", PO_DWORD, &bUrlPrefixesEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "UrlPrefixes", PO_BINARY, wszUrlPrefixes, wcslen(wszUrlPrefixes) * sizeof(wchar_t) + 2))
+  if (!SaveOptionA(hHandle, "UrlPrefixes", PO_BINARY, wszUrlPrefixes, lstrlenW(wszUrlPrefixes) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionA(hHandle, "UrlDelimitersEnable", PO_DWORD, &bUrlDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "UrlLeftDelimiters", PO_BINARY, wszUrlLeftDelimiters, wcslen(wszUrlLeftDelimiters) * sizeof(wchar_t) + 2))
+  if (!SaveOptionA(hHandle, "UrlLeftDelimiters", PO_BINARY, wszUrlLeftDelimiters, lstrlenW(wszUrlLeftDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
-  if (!SaveOptionA(hHandle, "UrlRightDelimiters", PO_BINARY, wszUrlRightDelimiters, wcslen(wszUrlRightDelimiters) * sizeof(wchar_t) + 2))
+  if (!SaveOptionA(hHandle, "UrlRightDelimiters", PO_BINARY, wszUrlRightDelimiters, lstrlenW(wszUrlRightDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
+  if (!SaveOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionA(hHandle, "WrapDelimitersEnable", PO_DWORD, &bWrapDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "WrapDelimiters", PO_BINARY, wszWrapDelimiters, wcslen(wszWrapDelimiters) * sizeof(wchar_t) + 2))
+  if (!SaveOptionA(hHandle, "WrapDelimiters", PO_BINARY, wszWrapDelimiters, lstrlenW(wszWrapDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
   if (!SaveOptionA(hHandle, "LanguageModule", PO_STRING, szLangModule, lstrlenA(szLangModule) + 1))
     goto Error;
@@ -4930,13 +4930,13 @@ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufL
       //Translate data to UNICODE
       if (lpData->nCodePage == CP_UNICODE_UCS2_LE)
       {
-        memcpy(wszBuf, pcTranslateBuffer, dwBytesRead);
+        xmemcpy(wszBuf, pcTranslateBuffer, dwBytesRead);
         dwCharsConverted=dwBytesRead / sizeof(wchar_t);
       }
       else if (lpData->nCodePage == CP_UNICODE_UCS2_BE)
       {
         ChangeByteOrder(pcTranslateBuffer, dwBytesRead);
-        memcpy(wszBuf, pcTranslateBuffer, dwBytesRead);
+        xmemcpy(wszBuf, pcTranslateBuffer, dwBytesRead);
         dwCharsConverted=dwBytesRead / sizeof(wchar_t);
       }
       else
@@ -5767,7 +5767,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
     int nExtend=155;
 
     hBitmapDownArrow=(HBITMAP)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDB_BITMAP_DOWNARROW), IMAGE_BITMAP, 0, 0, 0);
-    memcpy(&lfTmpA, &lfPrintFontA, sizeof(LOGFONTA));
+    xmemcpy(&lfTmpA, &lfPrintFontA, sizeof(LOGFONTA));
     hPrintFont=(HFONT)CreateFontIndirectA(&lfTmpA);
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
     hWndOK=GetDlgItem(hDlg, IDOK);
@@ -6053,7 +6053,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
       if (hPrintFont) DeleteObject(hPrintFont);
 
       bPrintFontEnable=SendMessage(hWndFontCheck, BM_GETCHECK, 0, 0);
-      memcpy(&lfPrintFontA, &lfTmpA, sizeof(LOGFONTA));
+      xmemcpy(&lfPrintFontA, &lfTmpA, sizeof(LOGFONTA));
       bPrintFontChanged=TRUE;
 
       dwPrintColor=0;
@@ -6109,7 +6109,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
     int nExtend=155;
 
     hBitmapDownArrow=(HBITMAP)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDB_BITMAP_DOWNARROW), IMAGE_BITMAP, 0, 0, 0);
-    memcpy(&lfTmpW, &lfPrintFontW, sizeof(LOGFONTW));
+    xmemcpy(&lfTmpW, &lfPrintFontW, sizeof(LOGFONTW));
     hPrintFont=(HFONT)CreateFontIndirectW(&lfTmpW);
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
     hWndOK=GetDlgItem(hDlg, IDOK);
@@ -6395,7 +6395,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
       if (hPrintFont) DeleteObject(hPrintFont);
 
       bPrintFontEnable=SendMessage(hWndFontCheck, BM_GETCHECK, 0, 0);
-      memcpy(&lfPrintFontW, &lfTmpW, sizeof(LOGFONTW));
+      xmemcpy(&lfPrintFontW, &lfTmpW, sizeof(LOGFONTW));
       bPrintFontChanged=TRUE;
 
       dwPrintColor=0;
@@ -6437,7 +6437,7 @@ void GetPrinterDCA(PRINTDLGA *pdA)
   }
   if (!pdA->hDC)
   {
-    memcpy(&pdTmpA, pdA, sizeof(PRINTDLGA));
+    xmemcpy(&pdTmpA, pdA, sizeof(PRINTDLGA));
     pdTmpA.Flags|=PD_RETURNDEFAULT|PD_RETURNDC;
     pdTmpA.hDevMode=NULL;
     pdTmpA.hDevNames=NULL;
@@ -6469,7 +6469,7 @@ void GetPrinterDCW(PRINTDLGW *pdW)
   }
   if (!pdW->hDC)
   {
-    memcpy(&pdTmpW, pdW, sizeof(PRINTDLGW));
+    xmemcpy(&pdTmpW, pdW, sizeof(PRINTDLGW));
     pdTmpW.Flags|=PD_RETURNDEFAULT|PD_RETURNDC;
     pdTmpW.hDevMode=NULL;
     pdTmpW.hDevNames=NULL;
@@ -7817,7 +7817,7 @@ BOOL PreviewInitA(HWND hWndSelection)
 {
   BOOL bResult=FALSE;
 
-  memset(&rcPreviewZoomed, 0, sizeof(RECT));
+  xmemset(&rcPreviewZoomed, 0, sizeof(RECT));
   nPreviewAllPageSum=0;
   nPreviewSelPageSum=0;
 
@@ -7846,7 +7846,7 @@ BOOL PreviewInitW(HWND hWndSelection)
 {
   BOOL bResult=FALSE;
 
-  memset(&rcPreviewZoomed, 0, sizeof(RECT));
+  xmemset(&rcPreviewZoomed, 0, sizeof(RECT));
   nPreviewAllPageSum=0;
   nPreviewSelPageSum=0;
 
@@ -9795,7 +9795,7 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   else return FALSE;
 
   //Zero counter
-  memset(dwCounter, 0, 0x80 * sizeof(DWORD));
+  xmemset(dwCounter, 0, 0x80 * sizeof(DWORD));
 
   //Count number of each character in input buffer
   for (j=0, i=0; i < dwBytesToCheck; ++i)
@@ -12326,7 +12326,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd)
         wchar_t *wpTargetCount;
         int nTargetLen;
 
-        nTargetLen=wcslen(wpSource);
+        nTargetLen=lstrlenW(wpSource);
 
         if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, nTargetLen * sizeof(wchar_t) + 2))
         {
@@ -12439,7 +12439,7 @@ BOOL ColumnPaste(HWND hWnd)
            wchar_t *wpSource=(wchar_t *)pData;
            wchar_t *wpTarget;
 
-           nSourceLen=wcslen(wpSource);
+           nSourceLen=lstrlenW(wpSource);
            nTargetLen=(nSourceLen + 1) * nLineRange - 1;
 
            if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, nTargetLen * sizeof(wchar_t) + 2))
@@ -12447,7 +12447,7 @@ BOOL ColumnPaste(HWND hWnd)
              for (i=0; i < nLineRange; ++i)
              {
                nTargetCount=i * (nSourceLen + 1);
-               memcpy(wpTarget + nTargetCount, wpSource, nSourceLen * sizeof(wchar_t));
+               xmemcpy(wpTarget + nTargetCount, wpSource, nSourceLen * sizeof(wchar_t));
                wpTarget[nTargetCount + nSourceLen]='\r';
              }
              wpTarget[nTargetLen]='\0';
@@ -12478,7 +12478,7 @@ BOOL ColumnPaste(HWND hWnd)
              for (i=0; i < nLineRange; ++i)
              {
                nTargetCount=i * (nSourceLen + 1);
-               memcpy(pTarget + nTargetCount, pSource, nSourceLen);
+               xmemcpy(pTarget + nTargetCount, pSource, nSourceLen);
                pTarget[nTargetCount + nSourceLen]='\r';
              }
              pTarget[nTargetLen]='\0';
@@ -12863,16 +12863,16 @@ BOOL RecentFilesAllocW()
 
 void RecentFilesZeroA()
 {
-  memset(lpszRecentNames, 0, nRecentFiles * MAX_PATH);
-  memset(lpdwRecentPositions, 0, nRecentFiles * sizeof(DWORD));
-  memset(lpdwRecentCodepages, 0, nRecentFiles * sizeof(DWORD));
+  xmemset(lpszRecentNames, 0, nRecentFiles * MAX_PATH);
+  xmemset(lpdwRecentPositions, 0, nRecentFiles * sizeof(DWORD));
+  xmemset(lpdwRecentCodepages, 0, nRecentFiles * sizeof(DWORD));
 }
 
 void RecentFilesZeroW()
 {
-  memset(lpwszRecentNames, 0, nRecentFiles * MAX_PATH * sizeof(wchar_t));
-  memset(lpdwRecentPositions, 0, nRecentFiles * sizeof(DWORD));
-  memset(lpdwRecentCodepages, 0, nRecentFiles * sizeof(DWORD));
+  xmemset(lpwszRecentNames, 0, nRecentFiles * MAX_PATH * sizeof(wchar_t));
+  xmemset(lpdwRecentPositions, 0, nRecentFiles * sizeof(DWORD));
+  xmemset(lpdwRecentCodepages, 0, nRecentFiles * sizeof(DWORD));
 }
 
 void RecentFilesReadA()
@@ -15241,7 +15241,7 @@ BOOL CALLBACK FillPluginListProcA(char *pExportName, LPARAM lParam)
   LVITEMA lviA;
   int nIndex;
 
-  if (memcmp(pExportName, "Dll", 3))
+  if (xmemcmp(pExportName, "Dll", 3))
   {
     wsprintfA(buf, "%s::%s", (char *)pld->pBaseName, pExportName);
     lviA.mask=LVIF_TEXT;
@@ -15303,7 +15303,7 @@ BOOL CALLBACK FillPluginListProcW(char *pExportName, LPARAM lParam)
   LVITEMW lviW;
   int nIndex;
 
-  if (memcmp(pExportName, "Dll", 3))
+  if (xmemcmp(pExportName, "Dll", 3))
   {
     MultiByteToWideChar(CP_ACP, 0, pExportName, -1, wszExportName, MAX_PATH);
     wsprintfW(wbuf, L"%s::%s", (wchar_t *)pld->pBaseName, wszExportName);
@@ -16169,7 +16169,7 @@ COLORTHEMEA* StackThemeGetByColorsA(HSTACK *hStack, AECOLORS *aec)
 
   while (ctElement)
   {
-    if (!memcmp(&ctElement->aec.crCaret, &aec->crCaret, sizeof(AECOLORS) - sizeof(DWORD)))
+    if (!xmemcmp(&ctElement->aec.crCaret, &aec->crCaret, sizeof(AECOLORS) - sizeof(DWORD)))
       return ctElement;
 
     ctElement=ctElement->next;
@@ -16183,7 +16183,7 @@ COLORTHEMEW* StackThemeGetByColorsW(HSTACK *hStack, AECOLORS *aec)
 
   while (ctElement)
   {
-    if (!memcmp(&ctElement->aec.crCaret, &aec->crCaret, sizeof(AECOLORS) - sizeof(DWORD)))
+    if (!xmemcmp(&ctElement->aec.crCaret, &aec->crCaret, sizeof(AECOLORS) - sizeof(DWORD)))
       return ctElement;
 
     ctElement=ctElement->next;
@@ -21145,7 +21145,7 @@ FONTITEMA* StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont)
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(FONTITEMA)))
   {
-    memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTA));
+    xmemcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTA));
     lpElement->hFont=(HFONT)CreateFontIndirectA(lfFont);
 
     return lpElement;
@@ -21159,7 +21159,7 @@ FONTITEMW* StackFontItemInsertW(HSTACK *hStack, LOGFONTW *lfFont)
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(FONTITEMW)))
   {
-    memcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTW));
+    xmemcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTW));
     lpElement->hFont=(HFONT)CreateFontIndirectW(lfFont);
 
     return lpElement;
