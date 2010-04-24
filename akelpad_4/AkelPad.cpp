@@ -50,11 +50,13 @@
   #define xmemcpy
   #define xmemcmp
   #define xmemset
+  #define xstrcpynW
 #else
   #define WideCharLower_INCLUDED
   #define xmemcpy_INCLUDED
   #define xmemcmp_INCLUDED
   #define xmemset_INCLUDED
+  #define xstrcpynW_INCLUDED
 #endif
 #define xstrcpyA
 #define xstrcpyW
