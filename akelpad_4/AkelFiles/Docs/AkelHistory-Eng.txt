@@ -30,6 +30,7 @@ Added: reopening of the new, not saved document now leads to a current encoding 
 Fixed: saving non-active document.
 Fixed: selection didn't updated during switching panes (split window).
 Fixed: folding in split window.
+Fixed: case insensitive search.
 
 
 AkelPad 4.4.3 (Mar 31, 2010)
