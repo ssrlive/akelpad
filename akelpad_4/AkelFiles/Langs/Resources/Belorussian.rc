@@ -824,7 +824,7 @@ BEGIN
     CONTROL         "ѕап€рэджанне аб захаванн≥ Ґ read-only файлы",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
-    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13
+    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
     LTEXT           "расширение по умолчанию при сохранении документа",IDC_STATIC,37,65,171,8
 END
 
