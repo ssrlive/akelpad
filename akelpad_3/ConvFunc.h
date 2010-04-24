@@ -1,41 +1,41 @@
 /*****************************************************************
- *           Conversion functions header v2.5                    *
+ *           Conversion functions header v2.6                    *
  *                                                               *
- * 2008 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
  *                                                               *
- *Functions (ALLCONVFUNC):                                       *
+ *Functions:                                                     *
  * xatoiA, xatoiW, xatoi64A, xatoi64W,                           *
  * xitoaA, xitoaW, xuitoaA, xuitoaW, xi64toaA, xi64toaW,         *
  * hex2decA, hex2decW, dec2hexA, dec2hexW                        *
  *                                                               *
- *Special functions (ALLCONVFUNCS):                              *
- * str2hexA, str2hexW, hex2strA, hex2strW                        *
+ *Special functions:                                             *
+ * bin2hexA, bin2hexW, hex2binA, hex2binW                        *
  *                                                               *
  *****************************************************************/
 
 #ifndef _CONVFUNC_H_
 #define _CONVFUNC_H_
 
-int xatoiA(char *pStr);
-int xatoiW(wchar_t *wpStr);
-__int64 xatoi64A(char *pStr);
-__int64 xatoi64W(wchar_t *wpStr);
-char* xitoaA(int nNumber, char *szStr, int nWidth);
-wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth);
-char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth);
-wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth);
-char* xi64toaA(__int64 nNumber, char *szStr, int nWidth);
-wchar_t* xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth);
-int hex2decA(char *pStrHex);
-int hex2decW(wchar_t *wpStrHex);
+int xatoiA(const char *pStr);
+int xatoiW(const wchar_t *wpStr);
+__int64 xatoi64A(const char *pStr);
+__int64 xatoi64W(const wchar_t *wpStr);
+int xitoaA(int nNumber, char *szStr, int nWidth);
+int xitoaW(int nNumber, wchar_t *wszStr, int nWidth);
+int xuitoaA(unsigned int nNumber, char *szStr, int nWidth);
+int xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth);
+int xi64toaA(__int64 nNumber, char *szStr, int nWidth);
+int xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth);
+int hex2decA(const char *pStrHex);
+int hex2decW(const wchar_t *wpStrHex);
 int dec2hexA(unsigned int nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase);
 int dec2hexW(unsigned int nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLowerCase);
 
-int str2hexA(unsigned char *pStr, int nBytes, char *szStrHex, int nStrHexMax, BOOL bLowerCase);
-int str2hexW(unsigned char *pStr, int nBytes, wchar_t *wszStrHex, int nStrHexMax, BOOL bLowerCase);
-int hex2strA(char *pStrHex, unsigned char *szStr, int nStrMax);
-int hex2strW(wchar_t *wpStrHex, unsigned char *szStr, int nStrMax);
+int bin2hexA(const unsigned char *pData, int nBytes, char *szStrHex, int nStrHexMax, BOOL bLowerCase);
+int bin2hexW(const unsigned char *pData, int nBytes, wchar_t *wszStrHex, int nStrHexMax, BOOL bLowerCase);
+int hex2binA(const char *pStrHex, unsigned char *pData, int nDataMax);
+int hex2binW(const wchar_t *wpStrHex, unsigned char *pData, int nDataMax);
 
 #endif
 
@@ -45,7 +45,7 @@ int hex2strW(wchar_t *wpStrHex, unsigned char *szStr, int nStrMax);
  *
  *Converts string to int.
  *
- *[in]  char *pStr   -string number
+ *[in]  const char *pStr   -string number
  *
  *Returns: integer
  *
@@ -56,7 +56,7 @@ int hex2strW(wchar_t *wpStrHex, unsigned char *szStr, int nStrMax);
 #if defined xatoiA || defined ALLCONVFUNC
 #define xatoiA_INCLUDED
 #undef xatoiA
-int xatoiA(char *pStr)
+int xatoiA(const char *pStr)
 {
   int nNumber=0;
   BOOL bMinus=FALSE;
@@ -88,7 +88,7 @@ int xatoiA(char *pStr)
  *
  *Converts unicode string to int.
  *
- *[in]  wchar_t *wpStr   -string number
+ *[in]  const wchar_t *wpStr   -string number
  *
  *Returns: integer
  *
@@ -99,7 +99,7 @@ int xatoiA(char *pStr)
 #if defined xatoiW || defined ALLCONVFUNC
 #define xatoiW_INCLUDED
 #undef xatoiW
-int xatoiW(wchar_t *wpStr)
+int xatoiW(const wchar_t *wpStr)
 {
   int nNumber=0;
   BOOL bMinus=FALSE;
@@ -131,7 +131,7 @@ int xatoiW(wchar_t *wpStr)
  *
  *Converts string to int64.
  *
- *[in]  char *pStr   -string number
+ *[in]  const char *pStr   -string number
  *
  *Returns: 64-bit integer
  *
@@ -142,7 +142,7 @@ int xatoiW(wchar_t *wpStr)
 #if defined xatoi64A || defined ALLCONVFUNC
 #define xatoi64A_INCLUDED
 #undef xatoi64A
-__int64 xatoi64A(char *pStr)
+__int64 xatoi64A(const char *pStr)
 {
   __int64 nNumber=0;
   BOOL bMinus=FALSE;
@@ -174,7 +174,7 @@ __int64 xatoi64A(char *pStr)
  *
  *Converts unicode string to int64.
  *
- *[in]  wchar_t *wpStr   -unicode string number
+ *[in]  const wchar_t *wpStr   -unicode string number
  *
  *Returns: 64-bit integer
  *
@@ -185,7 +185,7 @@ __int64 xatoi64A(char *pStr)
 #if defined xatoi64W || defined ALLCONVFUNC
 #define xatoi64W_INCLUDED
 #undef xatoi64W
-__int64 xatoi64W(wchar_t *wpStr)
+__int64 xatoi64W(const wchar_t *wpStr)
 {
   __int64 nNumber=0;
   BOOL bMinus=FALSE;
@@ -221,7 +221,7 @@ __int64 xatoi64W(wchar_t *wpStr)
  *[out]  char *szStr  -string number
  *[in]   int nWidth   -minimum number of characters to the output
  *
- *Returns: a pointer to string
+ *Returns: copied digits
  *
  *Examples:
  *  xitoaA(45, szResult, 0);   //szResult == "45"
@@ -231,7 +231,7 @@ __int64 xatoi64W(wchar_t *wpStr)
 #if defined xitoaA || defined ALLCONVFUNC
 #define xitoaA_INCLUDED
 #undef xitoaA
-char* xitoaA(int nNumber, char *szStr, int nWidth)
+int xitoaA(int nNumber, char *szStr, int nWidth)
 {
   char szReverse[128];
   int a;
@@ -259,7 +259,7 @@ char* xitoaA(int nNumber, char *szStr, int nWidth)
   for (--a; a >= 0; --a, ++b) szStr[b]=szReverse[a];
 
   szStr[b]='\0';
-  return szStr;
+  return b;
 }
 #endif
 
@@ -273,7 +273,7 @@ char* xitoaA(int nNumber, char *szStr, int nWidth)
  *[out]  wchar_t *wszStr  -unicode string number
  *[in]   int nWidth       -minimum number of characters to the output
  *
- *Returns: a pointer to unicode string
+ *Returns: copied digits
  *
  *Examples:
  *  xitoaW(45, wszResult, 0);   //wszResult == L"45"
@@ -283,7 +283,7 @@ char* xitoaA(int nNumber, char *szStr, int nWidth)
 #if defined xitoaW || defined ALLCONVFUNC
 #define xitoaW_INCLUDED
 #undef xitoaW
-wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
+int xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
 {
   wchar_t wszReverse[128];
   int a;
@@ -311,7 +311,7 @@ wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
   for (--a; a >= 0; --a, ++b) wszStr[b]=wszReverse[a];
 
   wszStr[b]='\0';
-  return wszStr;
+  return b;
 }
 #endif
 
@@ -325,7 +325,7 @@ wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
  *[out]  char *szStr           -string number
  *[in]   int nWidth            -minimum number of characters to the output
  *
- *Returns: a pointer to string
+ *Returns: copied digits
  *
  *Examples:
  *  xuitoaA(45, szResult, 0);   //szResult == "45"
@@ -334,7 +334,7 @@ wchar_t* xitoaW(int nNumber, wchar_t *wszStr, int nWidth)
 #if defined xuitoaA || defined ALLCONVFUNC
 #define xuitoaA_INCLUDED
 #undef xuitoaA
-char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
+int xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
 {
   char szReverse[128];
   int a;
@@ -355,7 +355,7 @@ char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
   for (--a; a >= 0; --a, ++b) szStr[b]=szReverse[a];
 
   szStr[b]='\0';
-  return szStr;
+  return b;
 }
 #endif
 
@@ -369,7 +369,7 @@ char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
  *[out]  wchar_t *wszStr       -unicode string number
  *[in]   int nWidth            -minimum number of characters to the output
  *
- *Returns: a pointer to unicode string
+ *Returns: copied digits
  *
  *Examples:
  *  xuitoaW(45, wszResult, 0);   //wszResult == L"45"
@@ -378,7 +378,7 @@ char* xuitoaA(unsigned int nNumber, char *szStr, int nWidth)
 #if defined xuitoaW || defined ALLCONVFUNC
 #define xuitoaW_INCLUDED
 #undef xuitoaW
-wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
+int xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
 {
   wchar_t wszReverse[128];
   int a;
@@ -399,7 +399,7 @@ wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
   for (--a; a >= 0; --a, ++b) wszStr[b]=wszReverse[a];
 
   wszStr[b]='\0';
-  return wszStr;
+  return b;
 }
 #endif
 
@@ -413,7 +413,7 @@ wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
  *[out]  char *szStr     -string number
  *[in]   int nWidth      -minimum number of characters to the output
  *
- *Returns: a pointer to string
+ *Returns: copied digits
  *
  *Examples:
  *  xi64toaA(45, szResult, 0);   //szResult == "45"
@@ -423,7 +423,7 @@ wchar_t* xuitoaW(unsigned int nNumber, wchar_t *wszStr, int nWidth)
 #if defined xi64toaA || defined ALLCONVFUNC
 #define xi64toaA_INCLUDED
 #undef xi64toaA
-char* xi64toaA(__int64 nNumber, char *szStr, int nWidth)
+int xi64toaA(__int64 nNumber, char *szStr, int nWidth)
 {
   char szReverse[128];
   int a;
@@ -451,7 +451,7 @@ char* xi64toaA(__int64 nNumber, char *szStr, int nWidth)
   for (--a; a >= 0; --a, ++b) szStr[b]=szReverse[a];
 
   szStr[b]='\0';
-  return szStr;
+  return b;
 }
 #endif
 
@@ -465,7 +465,7 @@ char* xi64toaA(__int64 nNumber, char *szStr, int nWidth)
  *[out]  wchar_t *wszStr  -unicode string number
  *[in]   int nWidth       -minimum number of characters to the output
  *
- *Returns: a pointer to unicode string
+ *Returns: copied digits
  *
  *Examples:
  *  xi64toaW(45, wszResult, 0);   //wszResult == L"45"
@@ -475,7 +475,7 @@ char* xi64toaA(__int64 nNumber, char *szStr, int nWidth)
 #if defined xi64toaW || defined ALLCONVFUNC
 #define xi64toaW_INCLUDED
 #undef xi64toaW
-wchar_t* xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth)
+int xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth)
 {
   wchar_t wszReverse[128];
   int a;
@@ -503,7 +503,7 @@ wchar_t* xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth)
   for (--a; a >= 0; --a, ++b) wszStr[b]=wszReverse[a];
 
   wszStr[b]='\0';
-  return wszStr;
+  return b;
 }
 #endif
 
@@ -513,7 +513,7 @@ wchar_t* xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth)
  *
  *Converts hex value to decimal.
  *
- *[in]  char *pStrHex   -hex value
+ *[in]  const char *pStrHex   -hex value
  *
  *Returns: integer
  *         -1 wrong hex value
@@ -524,7 +524,7 @@ wchar_t* xi64toaW(__int64 nNumber, wchar_t *wszStr, int nWidth)
 #if defined hex2decA || defined ALLCONVFUNC
 #define hex2decA_INCLUDED
 #undef hex2decA
-int hex2decA(char *pStrHex)
+int hex2decA(const char *pStrHex)
 {
   int a;
   int b=0;
@@ -549,7 +549,7 @@ int hex2decA(char *pStrHex)
  *
  *Converts unicode hex value to decimal.
  *
- *[in]  wchar_t *wpStrHex   -unicode hex value
+ *[in]  const wchar_t *wpStrHex   -unicode hex value
  *
  *Returns: integer
  *         -1 wrong hex value
@@ -560,7 +560,7 @@ int hex2decA(char *pStrHex)
 #if defined hex2decW || defined ALLCONVFUNC
 #define hex2decW_INCLUDED
 #undef hex2decW
-int hex2decW(wchar_t *wpStrHex)
+int hex2decW(const wchar_t *wpStrHex)
 {
   int a;
   int b=0;
@@ -685,29 +685,29 @@ int dec2hexW(unsigned int nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bL
 
 /********************************************************************
  *
- *  str2hexA
+ *  bin2hexA
  *
- *Converts string to hex values.
+ *Converts binary data to hex string.
  *
- *[in]   unsigned char *pStr -string
- *[in]   int nBytes          -number of bytes in string
- *[out]  char *szStrHex      -hex string (output)
- *[in]   int nStrHexMax      -size of the hex string buffer
- *[in]   BOOL bLowerCase     -if TRUE hexadecimal value in lowercase
- *                            if FALSE in uppercase.
+ *[in]   const unsigned char *pData -binary data
+ *[in]   int nBytes                 -number of bytes in pData
+ *[out]  char *szStrHex             -output hex string buffer
+ *[in]   int nStrHexMax             -size of the hex string buffer in TCHARs
+ *[in]   BOOL bLowerCase            -if TRUE hexadecimal value in lowercase
+ *                                   if FALSE in uppercase.
  *
  *Returns: copied chars
  *
  *Note:
- *  str2hexA uses dec2hexA
+ *  bin2hexA uses dec2hexA
  *
  *Examples:
- *  str2hexA((unsigned char *)"Some Text", lstrlenA("Some Text"), szResult, MAX_PATH, TRUE);   //szResult == "536f6d652054657874"
+ *  bin2hexA((unsigned char *)"Some Text", lstrlenA("Some Text"), szResult, MAX_PATH, TRUE);   //szResult == "536f6d652054657874"
  ********************************************************************/
-#if defined str2hexA || defined ALLCONVFUNCS
-#define str2hexA_INCLUDED
-#undef str2hexA
-int str2hexA(unsigned char *pStr, int nBytes, char *szStrHex, int nStrHexMax, BOOL bLowerCase)
+#if defined bin2hexA || defined ALLCONVFUNC
+#define bin2hexA_INCLUDED
+#undef bin2hexA
+int bin2hexA(const unsigned char *pData, int nBytes, char *szStrHex, int nStrHexMax, BOOL bLowerCase)
 {
   int a;
   int b;
@@ -716,8 +716,8 @@ int str2hexA(unsigned char *pStr, int nBytes, char *szStrHex, int nStrHexMax, BO
 
   for (a=0, b=0; a < nBytes && b <= nStrHexMax; ++a, b+=2)
   {
-    //wsprintfA(szStrHex + b, "%02x", (unsigned int)pStr[a]);
-    dec2hexA((unsigned int)pStr[a], szStrHex + b, 2, bLowerCase);
+    //wsprintfA(szStrHex + b, "%02x", (unsigned int)pData[a]);
+    dec2hexA((unsigned int)pData[a], szStrHex + b, 2, bLowerCase);
   }
   szStrHex[b]='\0';
   return b;
@@ -726,29 +726,29 @@ int str2hexA(unsigned char *pStr, int nBytes, char *szStrHex, int nStrHexMax, BO
 
 /********************************************************************
  *
- *  str2hexW
+ *  bin2hexW
  *
- *Converts string to hex values.
+ *Converts binary data to hex unicode string.
  *
- *[in]   unsigned char *pStr -string
- *[in]   int nBytes          -number of bytes in string
- *[out]  wchar_t *wszStrHex  -hex string (output)
- *[in]   int nStrHexMax      -size of the hex string buffer
- *[in]   BOOL bLowerCase     -if TRUE hexadecimal value in lowercase
- *                            if FALSE in uppercase.
+ *[in]   const unsigned char *pData -binary data
+ *[in]   int nBytes                 -number of bytes in pData
+ *[out]  wchar_t *wszStrHex         -output hex string buffer
+ *[in]   int nStrHexMax             -size of the hex string buffer in TCHARs
+ *[in]   BOOL bLowerCase            -if TRUE hexadecimal value in lowercase
+ *                                   if FALSE in uppercase.
  *
  *Returns: copied chars
  *
  *Note:
- *  str2hexW uses dec2hexW
+ *  bin2hexW uses dec2hexW
  *
  *Examples:
- *  str2hexW((unsigned char *)"Some Text", lstrlenA("Some Text"), wszResult, MAX_PATH, TRUE);   //wszResult == L"536f6d652054657874"
+ *  bin2hexW((unsigned char *)"Some Text", lstrlenA("Some Text"), wszResult, MAX_PATH, TRUE);   //wszResult == L"536f6d652054657874"
  ********************************************************************/
-#if defined str2hexW || defined ALLCONVFUNCS
-#define str2hexW_INCLUDED
-#undef str2hexW
-int str2hexW(unsigned char *pStr, int nBytes, wchar_t *wszStrHex, int nStrHexMax, BOOL bLowerCase)
+#if defined bin2hexW || defined ALLCONVFUNC
+#define bin2hexW_INCLUDED
+#undef bin2hexW
+int bin2hexW(const unsigned char *pData, int nBytes, wchar_t *wszStrHex, int nStrHexMax, BOOL bLowerCase)
 {
   int a;
   int b;
@@ -757,8 +757,8 @@ int str2hexW(unsigned char *pStr, int nBytes, wchar_t *wszStrHex, int nStrHexMax
 
   for (a=0, b=0; a < nBytes && b <= nStrHexMax; ++a, b+=2)
   {
-    //wsprintfW(wszStrHex + b, L"%02x", (unsigned int)pStr[a]);
-    dec2hexW((unsigned int)pStr[a], wszStrHex + b, 2, bLowerCase);
+    //wsprintfW(wszStrHex + b, L"%02x", (unsigned int)pData[a]);
+    dec2hexW((unsigned int)pData[a], wszStrHex + b, 2, bLowerCase);
   }
   wszStrHex[b]='\0';
   return b;
@@ -767,33 +767,35 @@ int str2hexW(unsigned char *pStr, int nBytes, wchar_t *wszStrHex, int nStrHexMax
 
 /********************************************************************
  *
- *  hex2strA
+ *  hex2binA
  *
- *Converts hex values to string.
+ *Converts hex string to binary data.
  *
- *[in]   char *pStrHex        -hex string
- *[out]  unsigned char *szStr -string (output)
- *[in]   int nStrMax          -size of the string buffer
+ *[in]   const char *pStrHex  -hex string
+ *[out]  unsigned char *pData -output buffer, if NULL required buffer size returned
+ *[in]   int nDataMax         -size of the output buffer in bytes
  *
  *Returns: copied bytes
  *
  *Note:
- *  hex2strA uses hex2decA
+ *  hex2binA uses hex2decA
  *
  *Examples:
- *  hex2strA("536f6d652054657874", (unsigned char *)szResult, MAX_PATH);   //szResult == "Some Text"
+ *  hex2binA("536f6d652054657874", (unsigned char *)szResult, MAX_PATH);   //szResult == "Some Text"
  ********************************************************************/
-#if defined hex2strA || defined ALLCONVFUNCS
-#define hex2strA_INCLUDED
-#undef hex2strA
-int hex2strA(char *pStrHex, unsigned char *szStr, int nStrMax)
+#if defined hex2binA || defined ALLCONVFUNC
+#define hex2binA_INCLUDED
+#undef hex2binA
+int hex2binA(const char *pStrHex, unsigned char *pData, int nDataMax)
 {
   char szHexChar[4];
   int nHexChar;
-  int a;
-  int b;
+  DWORD a;
+  DWORD b;
 
-  for (a=0, b=0; pStrHex[a] && b < nStrMax; ++b)
+  if (!pData) nDataMax=-1;
+
+  for (a=0, b=0; pStrHex[a] && b < (DWORD)nDataMax; ++b)
   {
     szHexChar[0]=pStrHex[a++];
     if (!pStrHex[a]) break;
@@ -801,9 +803,10 @@ int hex2strA(char *pStrHex, unsigned char *szStr, int nStrMax)
     szHexChar[2]='\0';
 
     if ((nHexChar=hex2decA(szHexChar)) >= 0)
-      szStr[b]=nHexChar;
-    else
-      break;
+    {
+      if (pData) pData[b]=nHexChar;
+    }
+    else break;
   }
   return b;
 }
@@ -811,33 +814,35 @@ int hex2strA(char *pStrHex, unsigned char *szStr, int nStrMax)
 
 /********************************************************************
  *
- *  hex2strW
+ *  hex2binW
  *
- *Converts hex values to string.
+ *Converts hex unicode string to binary data.
  *
- *[in]   wchar_t *wpStrHex    -hex string
- *[out]  unsigned char *szStr -string (output)
- *[in]   int nStrMax          -size of the string buffer
+ *[in]   const wchar_t *wpStrHex -hex unicode string
+ *[out]  unsigned char *pData    -output buffer, if NULL required buffer size returned
+ *[in]   int nDataMax            -size of the output buffer in bytes
  *
  *Returns: copied bytes
  *
  *Note:
- *  hex2strW uses hex2decW
+ *  hex2binW uses hex2decW
  *
  *Examples:
- *  hex2strW(L"536f6d652054657874", (unsigned char *)szResult, MAX_PATH);   //szResult == "Some Text"
+ *  hex2binW(L"536f6d652054657874", (unsigned char *)szResult, MAX_PATH);   //szResult == "Some Text"
  ********************************************************************/
-#if defined hex2strW || defined ALLCONVFUNCS
-#define hex2strW_INCLUDED
-#undef hex2strW
-int hex2strW(wchar_t *wpStrHex, unsigned char *szStr, int nStrMax)
+#if defined hex2binW || defined ALLCONVFUNC
+#define hex2binW_INCLUDED
+#undef hex2binW
+int hex2binW(const wchar_t *wpStrHex, unsigned char *pData, int nDataMax)
 {
   wchar_t wszHexChar[4];
   int nHexChar;
-  int a;
-  int b;
+  DWORD a;
+  DWORD b;
 
-  for (a=0, b=0; wpStrHex[a] && b < nStrMax; ++b)
+  if (!pData) nDataMax=-1;
+
+  for (a=0, b=0; wpStrHex[a] && b < (DWORD)nDataMax; ++b)
   {
     wszHexChar[0]=wpStrHex[a++];
     if (!wpStrHex[a]) break;
@@ -845,9 +850,10 @@ int hex2strW(wchar_t *wpStrHex, unsigned char *szStr, int nStrMax)
     wszHexChar[2]='\0';
 
     if ((nHexChar=hex2decW(wszHexChar)) >= 0)
-      szStr[b]=nHexChar;
-    else
-      break;
+    {
+      if (pData) pData[b]=nHexChar;
+    }
+    else break;
   }
   return b;
 }
