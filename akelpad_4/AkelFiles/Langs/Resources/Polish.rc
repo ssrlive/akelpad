@@ -389,7 +389,7 @@ END
 IDD_SAVEALLAS DIALOG DISCARDABLE  70, 70, 200, 135
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Save all as"
+CAPTION "Zapisz wszystkie jako"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Kodowanie:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
@@ -816,7 +816,7 @@ BEGIN
     CONTROL         "Zamieñ wszystko – zamyka okno dialogowe",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
-    CONTROL         "Insert date if file has .LOG at the beginning",
+    CONTROL         "Wstaw datê, gdy plik zawiera na pocz¹tku wpis .LOG",
                     IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
     CONTROL         "Ostrze¿enie o zapisywaniu plików tylko do odczytu",
