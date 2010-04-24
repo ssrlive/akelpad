@@ -5,11 +5,12 @@
  *                                                               *
  *                                                               *
  *Functions:                                                     *
- * WideCharLower, WideCharUpper, xstrcmpA, xstrcmpW, xstrcmpiA,  *
- * xstrcmpiW, xstrcmpnA, xstrcmpnW, xstrcmpinA, xstrcmpinW,      *
- * xstrcpyA, xstrcpyW, xstrcpynA, xstrcpynW, xstrstrA, xstrstrW, *
- * StrReplaceA, StrReplaceW, GetOptionsA, GetOptionsW            *
- * WordFindA, WordFindW                                          *
+ * WideCharLower, WideCharUpper, xmemcpy, xmemcmp, xmemset,      *
+ * xstrcmpA, xstrcmpW, xstrcmpiA, xstrcmpiW,                     *
+ * xstrcmpnA, xstrcmpnW, xstrcmpinA, xstrcmpinW,                 *
+ * xstrcpyA, xstrcpyW, xstrcpynA, xstrcpynW,                     *
+ * xstrstrA, xstrstrW, StrReplaceA, StrReplaceW,                 *
+ * GetOptionsA, GetOptionsW, WordFindA, WordFindW                *
  *                                                               *
  *****************************************************************/
 
@@ -18,6 +19,9 @@
 
 wchar_t WideCharLower(wchar_t c);
 wchar_t WideCharUpper(wchar_t c);
+void* xmemcpy(void *dest, const void *src, unsigned int count);
+int xmemcmp(const void *buf1, const void *buf2, unsigned int count);
+void* xmemset(void *dest, int c, unsigned int count);
 int xstrcmpA(const char *pString1, const char *pString2);
 int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2);
 int xstrcmpiA(const char *pString1, const char *pString2);
@@ -48,7 +52,7 @@ int WordFindW(const wchar_t *wpText, const wchar_t *wpDelim, int nNumber, const 
  *
  *Translate wide character to lowercase.
  *
- * [in] wchar_t c   Unicode character.
+ * [in] wchar_t c  Unicode character.
  *
  *Returns: lowercase unicode character
  ********************************************************************/
@@ -57,9 +61,6 @@ int WordFindW(const wchar_t *wpText, const wchar_t *wpDelim, int nNumber, const 
 #undef WideCharLower
 wchar_t WideCharLower(wchar_t c)
 {
-  if (c < 0x00ff)
-    return (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c;
-
   if (c < 0x100)
   {
     if ((c >= 0x0041 && c <= 0x005a) ||
@@ -443,7 +444,7 @@ wchar_t WideCharLower(wchar_t c)
  *
  *Translate wide character to uppercase.
  *
- * [in] wchar_t c   Unicode character.
+ * [in] wchar_t c  Unicode character.
  *
  *Returns: uppercase unicode character
  ********************************************************************/
@@ -452,17 +453,14 @@ wchar_t WideCharLower(wchar_t c)
 #undef WideCharUpper
 wchar_t WideCharUpper(wchar_t c)
 {
-  if (c < 0x00ff)
-    return (c >= 'a' && c <= 'z') ? c - 'a' + 'A' : c;
-
   if (c < 0x100)
   {
+    if ((c >= 0x0061 && c <= 0x007a) ||
+        (c >= 0x00e0 && c <= 0x00fe))
+      return (c - 0x20);
+
     if (c == 0x00b5)
       return 0x039c;
-
-    if ((c >= 0x00e0 && c <= 0x00fe) ||
-        (c >= 0x0061 && c <= 0x007a))
-      return (c - 0x20);
 
     if (c == 0xff)
       return 0x0178;
@@ -862,12 +860,106 @@ wchar_t WideCharUpper(wchar_t c)
 
 /********************************************************************
  *
+ *  xmemcpy
+ *
+ *Copies characters between buffers.
+ *
+ *[out] void *dest          New buffer.
+ * [in] const void *src     Buffer to copy from.
+ * [in] unsigned int count  Number of bytes to copy.
+ *
+ *Returns:  the value of dest.
+ ********************************************************************/
+#if defined xmemcpy || defined ALLSTRFUNC
+#define xmemcpy_INCLUDED
+#undef xmemcpy
+void* xmemcpy(void *dest, const void *src, unsigned int count)
+{
+  unsigned char *byte_dest=(unsigned char *)dest;
+  unsigned char *byte_src=(unsigned char *)src;
+
+  if (byte_dest != byte_src)
+    while (count--) *byte_dest++=*byte_src++;
+
+  return dest;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xmemcmp
+ *
+ *Compare characters in two buffers.
+ *
+ *[in] const void *buf1    First buffer.
+ *[in] const void *buf2    Second buffer.
+ *[in] unsigned int count  Number of bytes.
+ *
+ *Returns:  -1 buf1 less than buf2
+ *           0 buf1 identical to buf2
+ *           1 buf1 greater than buf2
+ ********************************************************************/
+#if defined xmemcmp || defined ALLSTRFUNC
+#define xmemcmp_INCLUDED
+#undef xmemcmp
+int xmemcmp(const void *buf1, const void *buf2, unsigned int count)
+{
+  unsigned char *byte_buf1=(unsigned char *)buf1;
+  unsigned char *byte_buf2=(unsigned char *)buf2;
+
+  if (byte_buf1 != byte_buf2)
+  {
+    while (count--)
+    {
+      if (*byte_buf1 == *byte_buf2)
+      {
+        ++byte_buf1;
+        ++byte_buf2;
+        continue;
+      }
+      else if (*byte_buf1 < *byte_buf2)
+        return -1;
+      else
+        return 1;
+    }
+  }
+  return 0;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xmemset
+ *
+ *Compare characters in two buffers.
+ *
+ *[out] void *dest          Pointer to destination.
+ * [in] int c               Character to set.
+ * [in] unsigned int count  Number of characters.
+ *
+ *Returns:  the value of dest.
+ ********************************************************************/
+#if defined xmemset || defined ALLSTRFUNC
+#define xmemset_INCLUDED
+#undef xmemset
+void* xmemset(void *dest, int c, unsigned int count)
+{
+  unsigned char *byte_dest=(unsigned char *)dest;
+
+  while (count--) *byte_dest++=c;
+
+  return dest;
+}
+#endif
+
+/********************************************************************
+ *
  *  xstrcmpA
  *
  *Case sensitive comparison of two strings.
  *
- *[in] char *pString1   First string to compare.
- *[in] char *pString2   Second string to compare.
+ *[in] char *pString1  First string to compare.
+ *[in] char *pString2  Second string to compare.
  *
  *Returns:  -1 string1 less than string2
  *           0 string1 identical to string2
@@ -899,8 +991,8 @@ int xstrcmpA(const char *pString1, const char *pString2)
  *
  *Case sensitive comparison of two unicode strings.
  *
- *[in] wchar_t *wpString1   First string to compare.
- *[in] wchar_t *wpString2   Second string to compare.
+ *[in] wchar_t *wpString1  First string to compare.
+ *[in] wchar_t *wpString2  Second string to compare.
  *
  *Returns:  -1 string1 less than string2
  *           0 string1 identical to string2
@@ -926,15 +1018,14 @@ int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2)
 }
 #endif
 
-
 /********************************************************************
  *
  *  xstrcmpiA
  *
  *Case insensitive comparison of two strings.
  *
- *[in] char *pString1   First string to compare.
- *[in] char *pString2   Second string to compare.
+ *[in] char *pString1  First string to compare.
+ *[in] char *pString2  Second string to compare.
  *
  *Returns:  -1 string1 less than string2
  *           0 string1 identical to string2
@@ -968,8 +1059,8 @@ int xstrcmpiA(const char *pString1, const char *pString2)
  *
  *Case insensitive comparison of two unicode strings.
  *
- *[in] wchar_t *wpString1   First string to compare.
- *[in] wchar_t *wpString2   Second string to compare.
+ *[in] wchar_t *wpString1  First string to compare.
+ *[in] wchar_t *wpString2  Second string to compare.
  *
  *Returns:  -1 string1 less than string2
  *           0 string1 identical to string2
@@ -1050,10 +1141,10 @@ int xstrcmpnA(const char *pString1, const char *pString2, DWORD dwMaxLength)
  *
  *Case sensitive comparison specified number of characters of two unicode strings.
  *
- *[in] wchar_t *wpString1   First string to compare.
- *[in] wchar_t *wpString2   Second string to compare.
- *[in] DWORD dwMaxLength    Number of characters to compare,
- *                           -1 compare until NULL character in wpString1.
+ *[in] wchar_t *wpString1  First string to compare.
+ *[in] wchar_t *wpString2  Second string to compare.
+ *[in] DWORD dwMaxLength   Number of characters to compare,
+ *                          -1 compare until NULL character in wpString1.
  *
  *Returns:  -1 string1 less than string2
  *           0 string1 identical to string2
@@ -1125,10 +1216,10 @@ int xstrcmpinA(const char *pString1, const char *pString2, DWORD dwMaxLength)
  *
  *Case insensitive comparison specified number of characters of two unicode strings.
  *
- *[in] wchar_t *wpString1   First string to compare.
- *[in] wchar_t *wpString2   Second string to compare.
- *[in] DWORD dwMaxLength    Number of characters to compare,
- *                           -1 compare until NULL character in wpString1.
+ *[in] wchar_t *wpString1  First string to compare.
+ *[in] wchar_t *wpString2  Second string to compare.
+ *[in] DWORD dwMaxLength   Number of characters to compare,
+ *                          -1 compare until NULL character in wpString1.
  *
  *Returns:  -1 string1 less than string2
  *           0 string1 identical to string2
@@ -1174,10 +1265,10 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLe
  *
  *Copies a string into a buffer.
  *
- *[in] char *pString1           Pointer to a buffer into which the function copies characters.
- *                               The buffer must be large enough to contain the string,
- *                               including the terminating null character.
- *[in] char *pString2           Pointer to a null-terminated string from which the function copies characters.
+ *[in] char *pString1  Pointer to a buffer into which the function copies characters.
+ *                      The buffer must be large enough to contain the string,
+ *                      including the terminating null character.
+ *[in] char *pString2  Pointer to a null-terminated string from which the function copies characters.
  *
  *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
@@ -1205,10 +1296,10 @@ int xstrcpyA(char *pString1, const char *pString2)
  *
  *Copies a unicode string into a buffer.
  *
- *[in] wchar_t *wpString1       Pointer to a buffer into which the function copies characters.
- *                               The buffer must be large enough to contain the string,
- *                               including the terminating null character.
- *[in] wchar_t *wpString2       Pointer to a null-terminated string from which the function copies characters.
+ *[in] wchar_t *wpString1  Pointer to a buffer into which the function copies characters.
+ *                          The buffer must be large enough to contain the string,
+ *                          including the terminating null character.
+ *[in] wchar_t *wpString2  Pointer to a null-terminated string from which the function copies characters.
  *
  *Returns:  number of characters copied, not including the terminating null character.
  ********************************************************************/
@@ -1302,13 +1393,13 @@ int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLen
  *
  *Find substring in string.
  *
- * [in] const char *pText Text.
- * [in] DWORD dwTextLen   Text length, -1 search until NULL character in pText.
- * [in] const char *pStr  Find it.
- * [in] BOOL bSensitive   TRUE   case sensitive.
- *                        FALSE  case insensitive.
- *[out] char **pStrBegin  Pointer to the first char of pStr, can be NULL.
- *[out] char **pStrEnd    Pointer to the first char after pStr, can be NULL.
+ * [in] const char *pText  Text.
+ * [in] DWORD dwTextLen    Text length, -1 search until NULL character in pText.
+ * [in] const char *pStr   Find it.
+ * [in] BOOL bSensitive    TRUE   case sensitive.
+ *                         FALSE  case insensitive.
+ *[out] char **pStrBegin   Pointer to the first char of pStr, can be NULL.
+ *[out] char **pStrEnd     Pointer to the first char after pStr, can be NULL.
  *
  *Returns:  TRUE  pStr is founded
  *          FALSE pStr isn't founded
@@ -1358,13 +1449,13 @@ BOOL xstrstrA(const char *pText, DWORD dwTextLen, const char *pStr, BOOL bSensit
  *
  *Find substring in unicode string.
  *
- * [in] const wchar_t *wpText Text.
- * [in] DWORD dwTextLen       Text length, -1 search until NULL character in wpText.
- * [in] const wchar_t *wpStr  Find it.
- * [in] BOOL bSensitive       TRUE   case sensitive.
- *                            FALSE  case insensitive.
- *[out] wchar_t **wpStrBegin  Pointer to the first char of wpStr, can be NULL.
- *[out] wchar_t **wpStrEnd    Pointer to the first char after wpStr, can be NULL.
+ * [in] const wchar_t *wpText  Text.
+ * [in] DWORD dwTextLen        Text length, -1 search until NULL character in wpText.
+ * [in] const wchar_t *wpStr   Find it.
+ * [in] BOOL bSensitive        TRUE   case sensitive.
+ *                             FALSE  case insensitive.
+ *[out] wchar_t **wpStrBegin   Pointer to the first char of wpStr, can be NULL.
+ *[out] wchar_t **wpStrEnd     Pointer to the first char after wpStr, can be NULL.
  *
  *Returns:  TRUE  wpStr is founded
  *          FALSE wpStr isn't founded
@@ -1423,15 +1514,15 @@ BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL
  *
  *Replace substring in string.
  *
- * [in] const char *pText Text.
- * [in] const char *pIt   Replace it.
- * [in] const char *pWith Replace with.
- * [in] BOOL bSensitive   TRUE   case sensitive.
- *                        FALSE  case insensitive.
- *[out] char *szResult    Output, can be NULL.
- *[out] int *nMaxResult   Contains the length of the result string,
- *                         including the terminating null character,
- *                         can be NULL.
+ * [in] const char *pText  Text.
+ * [in] const char *pIt    Replace it.
+ * [in] const char *pWith  Replace with.
+ * [in] BOOL bSensitive    TRUE   case sensitive.
+ *                         FALSE  case insensitive.
+ *[out] char *szResult     Output, can be NULL.
+ *[out] int *nMaxResult    Contains the length of the result string,
+ *                          including the terminating null character,
+ *                          can be NULL.
  *
  *Returns:  Number of changes
  ********************************************************************/
@@ -1486,15 +1577,15 @@ int StrReplaceA(const char *pText, const char *pIt, const char *pWith, BOOL bSen
  *
  *Replace substring in unicode string.
  *
- * [in] const wchar_t *wpText Text.
- * [in] const wchar_t *wpIt   Replace it.
- * [in] const wchar_t *wpWith Replace with.
- * [in] BOOL bSensitive       TRUE   case sensitive.
- *                            FALSE  case insensitive.
- *[out] wchar_t *wszResult    Output, can be NULL.
- *[out] int *nMaxResult       Contains the length of the result string,
- *                             including the terminating null character,
- *                             can be NULL.
+ * [in] const wchar_t *wpText  Text.
+ * [in] const wchar_t *wpIt    Replace it.
+ * [in] const wchar_t *wpWith  Replace with.
+ * [in] BOOL bSensitive        TRUE   case sensitive.
+ *                             FALSE  case insensitive.
+ *[out] wchar_t *wszResult     Output, can be NULL.
+ *[out] int *nMaxResult        Contains the length of the result string,
+ *                              including the terminating null character,
+ *                              can be NULL.
  *
  *Returns:  Number of changes
  *
@@ -1558,12 +1649,12 @@ int StrReplaceW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWit
  *
  *Gets option string from parameters line.
  *
- * [in] const char *pLine   Parameters line.
- * [in] const char *pOption Option.
- * [in] BOOL bSensitive     TRUE   case sensitive.
- *                          FALSE  case insensitive.
- *[out] char *szResult      Output, can be NULL.
- * [in] int nMaxResult      Output buffer size.
+ * [in] const char *pLine    Parameters line.
+ * [in] const char *pOption  Option.
+ * [in] BOOL bSensitive      TRUE   case sensitive.
+ *                           FALSE  case insensitive.
+ *[out] char *szResult       Output, can be NULL.
+ * [in] int nMaxResult       Output buffer size.
  *
  *Returns:  length of the string copied to szResult,
  *          including the terminating null character
@@ -1634,12 +1725,12 @@ int GetOptionsA(const char *pLine, const char *pOption, BOOL bSensitive, char *s
  *
  *Gets option string from unicode parameters line.
  *
- * [in] const wchar_t *wpLine   Parameters line.
- * [in] const wchar_t *wpOption Option.
- * [in] BOOL bSensitive         TRUE   case sensitive.
- *                              FALSE  case insensitive.
- *[out] wchar_t *wszResult      Output, can be NULL.
- * [in] int nMaxResult          Output buffer size.
+ * [in] const wchar_t *wpLine    Parameters line.
+ * [in] const wchar_t *wpOption  Option.
+ * [in] BOOL bSensitive          TRUE   case sensitive.
+ *                               FALSE  case insensitive.
+ *[out] wchar_t *wszResult       Output, can be NULL.
+ * [in] int nMaxResult           Output buffer size.
  *
  *Returns:  length of the string copied to wszResult,
  *          including the terminating null character
@@ -1710,35 +1801,34 @@ int GetOptionsW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive,
 }
 #endif
 
-
 /********************************************************************
  *
  *  WordFindA
  *
  *String manipulation function.
  *
- * [in] const char *pText   Text.
- * [in] const char *pDelim  Delimiter.
- * [in] int nNumber         Number of the delimiter/word if positive
- *                           search from beginning if negative from end,
- *                           if (nNumber == 0) then returns sum of delimiters/words.
- * [in] const char *pOption ">"     all text before founded delimiter.
- *                          "<"     all text after founded delimiter.
- *                          "<>"    deletes delimiter.
- *                          "*"     text between delimiters (word).
- *                          "*>"    all text after founded word.
- *                          ">*"    word and all text after founded word.
- *                          "<*"    all text before founded word.
- *                          "*<"    word and all text before founded word.
- *                          "<*>"   deletes word and neighbouring delimiter.
- * [in] BOOL bSensitive     TRUE   case sensitive.
- *                          FALSE  case insensitive.
- *[out] char *szResult      Output for result string, can be NULL.
- *[out] int *nMaxResult     Contains the length of the result string,
- *                           not including the terminating null character,
- *                           can be NULL.
- *[out] char **ppResult     Pointer to the first character of result string in pText,
- *                           can be NULL.
+ * [in] const char *pText    Text.
+ * [in] const char *pDelim   Delimiter.
+ * [in] int nNumber          Number of the delimiter/word if positive
+ *                            search from beginning if negative from end,
+ *                            if (nNumber == 0) then returns sum of delimiters/words.
+ * [in] const char *pOption  ">"     all text before founded delimiter.
+ *                           "<"     all text after founded delimiter.
+ *                           "<>"    deletes delimiter.
+ *                           "*"     text between delimiters (word).
+ *                           "*>"    all text after founded word.
+ *                           ">*"    word and all text after founded word.
+ *                           "<*"    all text before founded word.
+ *                           "*<"    word and all text before founded word.
+ *                           "<*>"   deletes word and neighbouring delimiter.
+ * [in] BOOL bSensitive      TRUE   case sensitive.
+ *                           FALSE  case insensitive.
+ *[out] char *szResult       Output for result string, can be NULL.
+ *[out] int *nMaxResult      Contains the length of the result string,
+ *                            not including the terminating null character,
+ *                            can be NULL.
+ *[out] char **ppResult      Pointer to the first character of result string in pText,
+ *                            can be NULL.
  *
  *Returns (nRes):  sum of delimiters/words, if (nNumber == 0)
  *                 -1 syntax error or pDelim is empty
@@ -2077,35 +2167,34 @@ int WordFindA(const char *pText, const char *pDelim, int nNumber, const char *pO
 }
 #endif
 
-
 /********************************************************************
  *
  *  WordFindW
  *
  *Unicode string manipulation function.
  *
- * [in] const wchar_t *wpText   Text.
- * [in] const wchar_t *wpDelim  Delimiter.
- * [in] int nNumber             Number of the delimiter/word if positive
- *                               search from beginning if negative from end,
- *                               if (nNumber == 0) then returns sum of delimiters/words.
- * [in] const wchar_t *wpOption L">"     all text before founded delimiter.
- *                              L"<"     all text after founded delimiter.
- *                              L"<>"    deletes delimiter.
- *                              L"*"     text between delimiters (word).
- *                              L"*>"    all text after founded word.
- *                              L">*"    word and all text after founded word.
- *                              L"<*"    all text before founded word.
- *                              L"*<"    word and all text before founded word.
- *                              L"<*>"   deletes word and neighbouring delimiter.
- * [in] BOOL bSensitive         TRUE   case sensitive.
- *                              FALSE  case insensitive.
- *[out] wchar_t *wszResult      Output for result string, can be NULL.
- *[out] int *nMaxResult         Contains the length of the result string,
- *                               not including the terminating null character,
- *                               can be NULL.
- *[out] wchar_t **wppResult     Pointer to the first character of result string in wpText,
- *                               can be NULL.
+ * [in] const wchar_t *wpText    Text.
+ * [in] const wchar_t *wpDelim   Delimiter.
+ * [in] int nNumber              Number of the delimiter/word if positive
+ *                                search from beginning if negative from end,
+ *                                if (nNumber == 0) then returns sum of delimiters/words.
+ * [in] const wchar_t *wpOption  L">"     all text before founded delimiter.
+ *                               L"<"     all text after founded delimiter.
+ *                               L"<>"    deletes delimiter.
+ *                               L"*"     text between delimiters (word).
+ *                               L"*>"    all text after founded word.
+ *                               L">*"    word and all text after founded word.
+ *                               L"<*"    all text before founded word.
+ *                               L"*<"    word and all text before founded word.
+ *                               L"<*>"   deletes word and neighbouring delimiter.
+ * [in] BOOL bSensitive          TRUE   case sensitive.
+ *                               FALSE  case insensitive.
+ *[out] wchar_t *wszResult       Output for result string, can be NULL.
+ *[out] int *nMaxResult          Contains the length of the result string,
+ *                                not including the terminating null character,
+ *                                can be NULL.
+ *[out] wchar_t **wppResult      Pointer to the first character of result string in wpText,
+ *                                can be NULL.
  *
  *Returns (nRes):  sum of delimiters/words, if (nNumber == 0)
  *                 -1 syntax error or wpDelim is empty
