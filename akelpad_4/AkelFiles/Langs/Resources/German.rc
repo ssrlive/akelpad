@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "&Speichern\tCtrl+S",          IDM_FILE_SAVE
         MENUITEM "Speichern &unter...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "&Alle sichern\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
-        MENUITEM "Sav&e all as...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Alle speichern unter...",             IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Se&ite einrichten...",        IDM_FILE_PAGESETUP
         MENUITEM "Vo&rschau...",                IDM_FILE_PRINTPREVIEW
@@ -390,7 +390,7 @@ END
 IDD_SAVEALLAS DIALOG DISCARDABLE  70, 70, 200, 135
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Save all as"
+CAPTION "Alle speichern unter"
 FONT 8, "MS Shell Dlg"
 BEGIN
     CONTROL         "Codepage:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
@@ -544,7 +544,7 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Nummer:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTOLINE_NUMBER,14,20,122,13
-    CONTROL         "Zeile:Column",IDC_GOTOLINE_LINE,"Button",
+    CONTROL         "Zeile:Spalte",IDC_GOTOLINE_LINE,"Button",
                     BS_AUTORADIOBUTTON,14,41,70,10
     CONTROL         "Zeichen",IDC_GOTOLINE_OFFSET,"Button",
                     BS_AUTORADIOBUTTON,86,42,50,10
@@ -762,9 +762,9 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    CONTROL         "RichEdit mouse selection",IDC_OPTIONS_RICHEDITMOUSE,
+    CONTROL         "RichEdit Mausauswahl",IDC_OPTIONS_RICHEDITMOUSE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
-    CONTROL         "Mouse dragging",IDC_OPTIONS_MOUSEDRAGGING,"Button",
+    CONTROL         "Verschieben mit der Maus",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "Zeilenabstand",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
@@ -814,20 +814,20 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Erweitert"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Remember keyboard layout of each tab (MDI)",
+    CONTROL         "Tastaturbelegung für jedes Tab einzeln merken (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
     CONTROL         "Alles ersetzen - schließt den Dialog",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
-    CONTROL         "Insert date if file has .LOG at the beginning",
+    CONTROL         "Datum einfügen, wenn die Datei .LOG am Anfang enthält",
                     IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
     CONTROL         "Warnung beim Speichern von schreibgeschützten Dateien",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
-    LTEXT           "default saving extension",IDC_STATIC,37,65,171,8
+    LTEXT           "Standard-Dateierweiterung beim Speichern",IDC_STATIC,37,65,171,8
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
