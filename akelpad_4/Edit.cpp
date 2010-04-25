@@ -12428,75 +12428,80 @@ BOOL ColumnPaste(HWND hWnd)
 
   if (IsReadOnly()) return FALSE;
 
-  if (SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0) && nLineRange > 0)
+  if (SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0))
   {
-     if (OpenClipboard(hWnd))
-     {
-       if (hData=GetClipboardData(CF_UNICODETEXT))
-       {
-         if (pData=GlobalLock(hData))
-         {
-           wchar_t *wpSource=(wchar_t *)pData;
-           wchar_t *wpTarget;
-
-           nSourceLen=lstrlenW(wpSource);
-           nTargetLen=(nSourceLen + 1) * nLineRange - 1;
-
-           if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, nTargetLen * sizeof(wchar_t) + 2))
-           {
-             for (i=0; i < nLineRange; ++i)
-             {
-               nTargetCount=i * (nSourceLen + 1);
-               xmemcpy(wpTarget + nTargetCount, wpSource, nSourceLen * sizeof(wchar_t));
-               wpTarget[nTargetCount + nSourceLen]='\r';
-             }
-             wpTarget[nTargetLen]='\0';
-
-             ReplaceSelW(hWnd, wpTarget, nTargetLen, TRUE, &crRange.ciMin, &crRange.ciMax);
-             if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-               SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
-             else
-               SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMax);
-             bResult=FALSE;
-             API_HeapFree(hHeap, 0, (LPVOID)wpTarget);
-           }
-           GlobalUnlock(hData);
-         }
-       }
-       else if (hData=GetClipboardData(CF_TEXT))
-       {
-         if (pData=GlobalLock(hData))
-         {
-           char *pSource=(char *)pData;
-           char *pTarget;
-
-           nSourceLen=lstrlenA(pSource);
-           nTargetLen=(nSourceLen + 1) * nLineRange - 1;
-
-           if (pTarget=(char *)API_HeapAlloc(hHeap, 0, nTargetLen + 1))
-           {
-             for (i=0; i < nLineRange; ++i)
-             {
-               nTargetCount=i * (nSourceLen + 1);
-               xmemcpy(pTarget + nTargetCount, pSource, nSourceLen);
-               pTarget[nTargetCount + nSourceLen]='\r';
-             }
-             pTarget[nTargetLen]='\0';
-
-             ReplaceSelA(hWnd, pTarget, nTargetLen, TRUE, NULL, NULL);
-             if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-               SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
-             else
-               SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMax);
-             bResult=FALSE;
-             API_HeapFree(hHeap, 0, (LPVOID)pTarget);
-           }
-           GlobalUnlock(hData);
-         }
-       }
-      CloseClipboard();
+    if (nLineRange > 0)
+    {
+      if (OpenClipboard(hWnd))
+      {
+        if (hData=GetClipboardData(CF_UNICODETEXT))
+        {
+          if (pData=GlobalLock(hData))
+          {
+            wchar_t *wpSource=(wchar_t *)pData;
+            wchar_t *wpTarget;
+ 
+            nSourceLen=lstrlenW(wpSource);
+            nTargetLen=(nSourceLen + 1) * nLineRange - 1;
+ 
+            if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, nTargetLen * sizeof(wchar_t) + 2))
+            {
+              for (i=0; i < nLineRange; ++i)
+              {
+                nTargetCount=i * (nSourceLen + 1);
+                xmemcpy(wpTarget + nTargetCount, wpSource, nSourceLen * sizeof(wchar_t));
+                wpTarget[nTargetCount + nSourceLen]='\r';
+              }
+              wpTarget[nTargetLen]='\0';
+ 
+              ReplaceSelW(hWnd, wpTarget, nTargetLen, TRUE, &crRange.ciMin, &crRange.ciMax);
+              if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+                SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
+              else
+                SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMax);
+              bResult=FALSE;
+              API_HeapFree(hHeap, 0, (LPVOID)wpTarget);
+            }
+            GlobalUnlock(hData);
+          }
+        }
+        else if (hData=GetClipboardData(CF_TEXT))
+        {
+          if (pData=GlobalLock(hData))
+          {
+            char *pSource=(char *)pData;
+            char *pTarget;
+ 
+            nSourceLen=lstrlenA(pSource);
+            nTargetLen=(nSourceLen + 1) * nLineRange - 1;
+ 
+            if (pTarget=(char *)API_HeapAlloc(hHeap, 0, nTargetLen + 1))
+            {
+              for (i=0; i < nLineRange; ++i)
+              {
+                nTargetCount=i * (nSourceLen + 1);
+                xmemcpy(pTarget + nTargetCount, pSource, nSourceLen);
+                pTarget[nTargetCount + nSourceLen]='\r';
+              }
+              pTarget[nTargetLen]='\0';
+ 
+              ReplaceSelA(hWnd, pTarget, nTargetLen, TRUE, NULL, NULL);
+              if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+                SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
+              else
+                SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMax);
+              bResult=FALSE;
+              API_HeapFree(hHeap, 0, (LPVOID)pTarget);
+            }
+            GlobalUnlock(hData);
+          }
+        }
+        CloseClipboard();
+      }
     }
   }
+  else DoEditPaste(hWnd, FALSE);
+
   return bResult;
 }
 

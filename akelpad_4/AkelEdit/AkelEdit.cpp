@@ -4089,7 +4089,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs)
     AE_SetText(ae, L"", 0, ae->popt->nInputNewLine);
 
     //Register drop window
-    CoLockObjectExternal((LPUNKNOWN)&ae->idt, TRUE, FALSE);
+    //CoLockObjectExternal((LPUNKNOWN)&ae->idt, TRUE, FALSE);
     RegisterDragDrop(ae->hWndEdit, (LPDROPTARGET)&ae->idt);
 
     //Scrollbars updated in WM_SIZE
@@ -4101,8 +4101,8 @@ void AE_DestroyWindowData(AKELEDIT *ae)
 {
   //Unregister drop window
   RevokeDragDrop(ae->hWndEdit);
-  CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
-  ((IDropTarget *)&ae->idt)->Release();
+  //CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
+  //((IDropTarget *)&ae->idt)->Release();
 
   if (!ae->lpMaster)
   {
