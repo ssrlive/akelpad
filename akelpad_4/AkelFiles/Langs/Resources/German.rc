@@ -827,7 +827,7 @@ BEGIN
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
-    LTEXT           "default saving extention",IDC_STATIC,37,65,171,8
+    LTEXT           "default saving extension",IDC_STATIC,37,65,171,8
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
