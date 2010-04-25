@@ -2696,7 +2696,7 @@ HINISECTION* StackOpenIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSe
       lpIniSection->nSectionBytes=nSectionBytes;
       if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionBytes))
         xmemcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionBytes);
-   
+
       lpIniSection->hKeysStack.first=0;
       lpIniSection->hKeysStack.last=0;
     }
@@ -12440,10 +12440,10 @@ BOOL ColumnPaste(HWND hWnd)
           {
             wchar_t *wpSource=(wchar_t *)pData;
             wchar_t *wpTarget;
- 
+
             nSourceLen=lstrlenW(wpSource);
             nTargetLen=(nSourceLen + 1) * nLineRange - 1;
- 
+
             if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, nTargetLen * sizeof(wchar_t) + 2))
             {
               for (i=0; i < nLineRange; ++i)
@@ -12453,7 +12453,7 @@ BOOL ColumnPaste(HWND hWnd)
                 wpTarget[nTargetCount + nSourceLen]='\r';
               }
               wpTarget[nTargetLen]='\0';
- 
+
               ReplaceSelW(hWnd, wpTarget, nTargetLen, TRUE, &crRange.ciMin, &crRange.ciMax);
               if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
                 SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
@@ -12471,10 +12471,10 @@ BOOL ColumnPaste(HWND hWnd)
           {
             char *pSource=(char *)pData;
             char *pTarget;
- 
+
             nSourceLen=lstrlenA(pSource);
             nTargetLen=(nSourceLen + 1) * nLineRange - 1;
- 
+
             if (pTarget=(char *)API_HeapAlloc(hHeap, 0, nTargetLen + 1))
             {
               for (i=0; i < nLineRange; ++i)
@@ -12484,7 +12484,7 @@ BOOL ColumnPaste(HWND hWnd)
                 pTarget[nTargetCount + nSourceLen]='\r';
               }
               pTarget[nTargetLen]='\0';
- 
+
               ReplaceSelA(hWnd, pTarget, nTargetLen, TRUE, NULL, NULL);
               if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
                 SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
