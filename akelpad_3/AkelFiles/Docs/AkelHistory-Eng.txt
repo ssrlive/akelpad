@@ -1,6 +1,8 @@
 
 AkelPad 3.7.5 ()
 ----------------------------
+Changed: now libc.lib not used, which allow to compile the program on the latest MS VS
+         without errors.
 Changed: released Ctrl+E hotkey, which used for "Read only" mode.
 Changed: integrated settings "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" in
          "TabOptionsMDI" (MDI).

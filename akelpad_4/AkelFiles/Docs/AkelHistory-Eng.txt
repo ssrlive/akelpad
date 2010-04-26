@@ -10,6 +10,8 @@ Changed: clean program installation recommended.
            Caret + Justify + PlainText + PrintClassic -> RichTune
          Plugins integrated in program:
            SaveAllAs, LogDate, KeybLayout
+Changed: now libc.lib not used, which allow to compile the program on the latest MS VS without
+         errors.
 
 Added: dialog "Save all as" that allows you to save all open documents in a particular encoding and
        new line format (MDI).
