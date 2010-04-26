@@ -49,6 +49,9 @@
 #ifndef SPI_GETWHEELSCROLLLINES
   #define SPI_GETWHEELSCROLLLINES 0x0068
 #endif
+#ifndef INVALID_FILE_ATTRIBUTES
+  #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
+#endif
 #ifndef BIF_NEWDIALOGSTYLE
   #define BIF_NEWDIALOGSTYLE 0x0040
 #endif
@@ -778,6 +781,8 @@ void FreeMemorySearchA();
 void FreeMemorySearchW();
 void FreeMemoryRecentFilesA();
 void FreeMemoryRecentFilesW();
+char* AKD_strchr(const char *s, int c);
+wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c);
 
 HMENU API_LoadMenuA(HINSTANCE hLoadInstance, char *lpMenuName);
 HMENU API_LoadMenuW(HINSTANCE hLoadInstance, wchar_t *lpMenuName);
@@ -842,6 +847,7 @@ HRESULT WINAPI REOLE_ContextSensitiveHelp(LPUNKNOWN lpTable, BOOL fEnterMode);
 HRESULT WINAPI REOLE_GetClipboardData(LPUNKNOWN lpTable, CHARRANGE FAR *lpchrg, DWORD reco, LPDATAOBJECT FAR *lplpdataobj);
 HRESULT WINAPI REOLE_GetDragDropEffect(LPUNKNOWN lpTable, BOOL fDrag, DWORD grfKeyState, LPDWORD pdwEffect);
 HRESULT WINAPI REOLE_GetContextMenu(LPUNKNOWN lpTable, WORD seltype, LPOLEOBJECT lpoleobj, CHARRANGE FAR *lpchrg, HMENU FAR *lphmenu);
+BOOL REOLE_IsEqualIID(REFGUID rguid1, REFGUID rguid2);
 HWND RealChildWindowFromPoint95(HWND hWndParent, POINT pt);
 
 #endif

@@ -883,14 +883,14 @@ BOOL DoFilePrintA(HWND hWnd, BOOL bSilent)
         hEditDC=GetDC(hWnd);
         nPointSize=-MulDiv(lfPrintFontA.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
         ReleaseDC(hWnd, hEditDC);
-        memcpy(&lfA, &lfPrintFontA, sizeof(LOGFONTA));
+        xmemcpy(&lfA, &lfPrintFontA, sizeof(LOGFONTA));
       }
       else
       {
         hEditDC=GetDC(hWnd);
         nPointSize=-MulDiv(lfEditFontA.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
         ReleaseDC(hWnd, hEditDC);
-        memcpy(&lfA, &lfEditFontA, sizeof(LOGFONTA));
+        xmemcpy(&lfA, &lfEditFontA, sizeof(LOGFONTA));
       }
       lfA.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(pdA.hDC, LOGPIXELSY), 72);
       hFont=CreateFontIndirectA(&lfA);
@@ -1031,14 +1031,14 @@ BOOL DoFilePrintW(HWND hWnd, BOOL bSilent)
         hEditDC=GetDC(hWnd);
         nPointSize=-MulDiv(lfPrintFontW.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
         ReleaseDC(hWnd, hEditDC);
-        memcpy(&lfW, &lfPrintFontW, sizeof(LOGFONTW));
+        xmemcpy(&lfW, &lfPrintFontW, sizeof(LOGFONTW));
       }
       else
       {
         hEditDC=GetDC(hWnd);
         nPointSize=-MulDiv(lfEditFontW.lfHeight, 72, GetDeviceCaps(hEditDC, LOGPIXELSY));
         ReleaseDC(hWnd, hEditDC);
-        memcpy(&lfW, &lfEditFontW, sizeof(LOGFONTW));
+        xmemcpy(&lfW, &lfEditFontW, sizeof(LOGFONTW));
       }
       lfW.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(pdW.hDC, LOGPIXELSY), 72);
       hFont=CreateFontIndirectW(&lfW);
@@ -1405,7 +1405,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
       else bEndSel=TRUE;
       cr.cpMin=nMinLineIndex;
 
-      nStringLength=wcslen(wpString);
+      nStringLength=lstrlenW(wpString);
       nStringLengthW=nStringLength * sizeof(wchar_t);
       nStringsSum=(nMaxLine - nMinLine) + 1;
       nStringsSize=nStringsSum * nStringLength;
@@ -1422,7 +1422,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         {
           a=wszText + nStringLength;
           b=wszText + nStringsSize;
-          memcpy(wszText, wpString, nStringLengthW);
+          xmemcpy(wszText, wpString, nStringLengthW);
 
           bsd.wpData=b;
           bsd.nDataLen=-1;
@@ -1440,12 +1440,12 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
 
               if (*b)
               {
-                memcpy(a, wpString, nStringLengthW);
+                xmemcpy(a, wpString, nStringLengthW);
                 a+=nStringLength;
               }
               else if (bEndSel)
               {
-                memcpy(a, wpString, nStringLengthW);
+                xmemcpy(a, wpString, nStringLengthW);
                 a+=nStringLength;
                 break;
               }
@@ -1486,7 +1486,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
           }
           else
           {
-            if (!memcmp(b, wpString, nStringLengthW)) b+=nStringLength;
+            if (!xmemcmp(b, wpString, nStringLengthW)) b+=nStringLength;
           }
 
           while (b <= wpTextEnd)
@@ -1508,7 +1508,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
               }
               else
               {
-                if (!memcmp(b, wpString, nStringLengthW)) b+=nStringLength;
+                if (!xmemcmp(b, wpString, nStringLengthW)) b+=nStringLength;
               }
             }
             else *a++=*b++;
@@ -1710,12 +1710,12 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     {
       while (pStart < pEnd)
       {
-        while (pStart < pEnd && (*pStart == ' ' || *pStart == '\t' || *pStart == '\r' || strchr(SENTENCE_DELIMITERSA, *pStart)))
+        while (pStart < pEnd && (*pStart == ' ' || *pStart == '\t' || *pStart == '\r' || AKD_strchr(SENTENCE_DELIMITERSA, *pStart)))
           ++pStart;
 
         if (pStart < pEnd) *pStart++=(char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pStart);
 
-        while (pStart < pEnd && !strchr(SENTENCE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && !AKD_strchr(SENTENCE_DELIMITERSA, *pStart))
           *pStart++=(char)(WORD)(DWORD)CharLowerA((char *)(DWORD)(WORD)*pStart);
       }
     }
@@ -1723,12 +1723,12 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     {
       while (pStart < pEnd)
       {
-        while (pStart < pEnd && strchr(TITLE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && AKD_strchr(TITLE_DELIMITERSA, *pStart))
           ++pStart;
 
         if (pStart < pEnd) *pStart++=(char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pStart);
 
-        while (pStart < pEnd && !strchr(TITLE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && !AKD_strchr(TITLE_DELIMITERSA, *pStart))
           *pStart++=(char)(WORD)(DWORD)CharLowerA((char *)(DWORD)(WORD)*pStart);
       }
     }
@@ -1798,12 +1798,12 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     {
       while (wpStart < wpEnd)
       {
-        while (wpStart < wpEnd && (*wpStart == ' ' || *wpStart == '\t' || *wpStart == '\r' || wcschr(SENTENCE_DELIMITERSW, *wpStart)))
+        while (wpStart < wpEnd && (*wpStart == ' ' || *wpStart == '\t' || *wpStart == '\r' || AKD_wcschr(SENTENCE_DELIMITERSW, *wpStart)))
           ++wpStart;
 
         if (wpStart < wpEnd) *wpStart++=(wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStart);
 
-        while (wpStart < wpEnd && !wcschr(SENTENCE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && !AKD_wcschr(SENTENCE_DELIMITERSW, *wpStart))
           *wpStart++=(wchar_t)(WORD)(DWORD)CharLowerW((wchar_t *)(DWORD)(WORD)*wpStart);
       }
     }
@@ -1811,12 +1811,12 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     {
       while (wpStart < wpEnd)
       {
-        while (wpStart < wpEnd && wcschr(TITLE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && AKD_wcschr(TITLE_DELIMITERSW, *wpStart))
           ++wpStart;
 
         if (wpStart < wpEnd) *wpStart++=(wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStart);
 
-        while (wpStart < wpEnd && !wcschr(TITLE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && !AKD_wcschr(TITLE_DELIMITERSW, *wpStart))
           *wpStart++=(wchar_t)(WORD)(DWORD)CharLowerW((wchar_t *)(DWORD)(WORD)*wpStart);
       }
     }
@@ -1981,7 +1981,7 @@ BOOL DoViewFontA(HWND hWndOwner, LOGFONTA *lfA)
 {
   LOGFONTA lfTmpA;
 
-  memcpy(&lfTmpA, lfA, sizeof(LOGFONTA));
+  xmemcpy(&lfTmpA, lfA, sizeof(LOGFONTA));
   cfA.hwndOwner=hWndOwner;
   cfA.lpLogFont=lfA;
 
@@ -1990,7 +1990,7 @@ BOOL DoViewFontA(HWND hWndOwner, LOGFONTA *lfA)
     lfA->lfHeight=-mod(lfA->lfHeight);
     return TRUE;
   }
-  memcpy(lfA, &lfTmpA, sizeof(LOGFONTA));
+  xmemcpy(lfA, &lfTmpA, sizeof(LOGFONTA));
   return FALSE;
 }
 
@@ -1998,7 +1998,7 @@ BOOL DoViewFontW(HWND hWndOwner, LOGFONTW *lfW)
 {
   LOGFONTW lfTmpW;
 
-  memcpy(&lfTmpW, lfW, sizeof(LOGFONTW));
+  xmemcpy(&lfTmpW, lfW, sizeof(LOGFONTW));
   cfW.hwndOwner=hWndOwner;
   cfW.lpLogFont=lfW;
 
@@ -2007,7 +2007,7 @@ BOOL DoViewFontW(HWND hWndOwner, LOGFONTW *lfW)
     lfW->lfHeight=-mod(lfW->lfHeight);
     return TRUE;
   }
-  memcpy(lfW, &lfTmpW, sizeof(LOGFONTW));
+  xmemcpy(lfW, &lfTmpW, sizeof(LOGFONTW));
   return FALSE;
 }
 
@@ -2688,7 +2688,7 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
                 {
                   lpIniSection->nSectionUnicodeBytes=nSectionLen * sizeof(wchar_t) + 2;
                   if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionUnicodeBytes))
-                    memcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionUnicodeBytes);
+                    xmemcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionUnicodeBytes);
                   lpIniSection->nSectionAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, NULL, 0, NULL, NULL);
                   if (lpIniSection->szSection=(char *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionAnsiBytes))
                     WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, lpIniSection->szSection, lpIniSection->nSectionAnsiBytes, NULL, NULL);
@@ -2723,14 +2723,14 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
                 {
                   lpIniKey->nKeyUnicodeBytes=nKeyLen * sizeof(wchar_t) + 2;
                   if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
-                    memcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyUnicodeBytes);
+                    xmemcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyUnicodeBytes);
                   lpIniKey->nKeyAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpKey, nKeyLen + 1, NULL, 0, NULL, NULL);
                   if (lpIniKey->szKey=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyAnsiBytes))
                     WideCharToMultiByte(CP_ACP, 0, wpKey, nKeyLen + 1, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes, NULL, NULL);
 
                   lpIniKey->nStringUnicodeBytes=nStringLen * sizeof(wchar_t) + 2;
                   if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-                    memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
+                    xmemcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
                   lpIniKey->nStringAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpString, nStringLen + 1, NULL, 0, NULL, NULL);
                   if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
                     WideCharToMultiByte(CP_ACP, 0, wpString, nStringLen + 1, lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
@@ -2887,7 +2887,7 @@ int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsig
 
           dwNumber=(DWORD)xatoiA(lpIniKey->szString);
           dwStringLen=min(sizeof(DWORD), dwDataBytes);
-          memcpy((DWORD *)lpData, &dwNumber, dwStringLen);
+          xmemcpy((DWORD *)lpData, &dwNumber, dwStringLen);
           return dwStringLen;
         }
         return sizeof(DWORD);
@@ -2901,7 +2901,7 @@ int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsig
         if (lpData)
         {
           dwStringLen=min((DWORD)lpIniKey->nStringAnsiBytes, dwDataBytes);
-          memcpy((char *)lpData, lpIniKey->szString, dwStringLen);
+          xmemcpy((char *)lpData, lpIniKey->szString, dwStringLen);
           return dwStringLen;
         }
         return lpIniKey->nStringAnsiBytes;
@@ -2911,7 +2911,7 @@ int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsig
         if (lpData)
         {
           dwStringLen=min((DWORD)lpIniKey->nStringUnicodeBytes, dwDataBytes);
-          memcpy((wchar_t *)lpData, lpIniKey->wszString, dwStringLen);
+          xmemcpy((wchar_t *)lpData, lpIniKey->wszString, dwStringLen);
           return dwStringLen;
         }
         return lpIniKey->nStringUnicodeBytes;
@@ -2941,7 +2941,7 @@ int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTyp
 
           dwNumber=(DWORD)xatoiW(lpIniKey->wszString);
           dwStringLen=min(sizeof(DWORD), dwDataBytes);
-          memcpy((DWORD *)lpData, &dwNumber, dwStringLen);
+          xmemcpy((DWORD *)lpData, &dwNumber, dwStringLen);
           return dwStringLen;
         }
         return sizeof(DWORD);
@@ -2955,7 +2955,7 @@ int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTyp
         if (lpData)
         {
           dwStringLen=min((DWORD)lpIniKey->nStringAnsiBytes, dwDataBytes);
-          memcpy((char *)lpData, lpIniKey->szString, dwStringLen);
+          xmemcpy((char *)lpData, lpIniKey->szString, dwStringLen);
           return dwStringLen;
         }
         return lpIniKey->nStringAnsiBytes;
@@ -2965,7 +2965,7 @@ int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTyp
         if (lpData)
         {
           dwStringLen=min((DWORD)lpIniKey->nStringUnicodeBytes, dwDataBytes);
-          memcpy((wchar_t *)lpData, lpIniKey->wszString, dwStringLen);
+          xmemcpy((wchar_t *)lpData, lpIniKey->wszString, dwStringLen);
           return dwStringLen;
         }
         return lpIniKey->nStringUnicodeBytes;
@@ -2997,7 +2997,7 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
         MultiByteToWideChar(CP_ACP, 0, pSection, nSectionLen + 1, lpIniSection->wszSection, lpIniSection->nSectionUnicodeBytes / sizeof(wchar_t));
       lpIniSection->nSectionAnsiBytes=nSectionLen + 1;
       if (lpIniSection->szSection=(char *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionAnsiBytes))
-        memcpy(lpIniSection->szSection, pSection, lpIniSection->nSectionAnsiBytes);
+        xmemcpy(lpIniSection->szSection, pSection, lpIniSection->nSectionAnsiBytes);
       lpIniSection->hKeysStack.first=0;
       lpIniSection->hKeysStack.last=0;
     }
@@ -3012,7 +3012,7 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
         MultiByteToWideChar(CP_ACP, 0, pKey, nKeyLen + 1, lpIniKey->wszKey, lpIniKey->nKeyUnicodeBytes / sizeof(wchar_t));
       lpIniKey->nKeyAnsiBytes=nKeyLen + 1;
       if (lpIniKey->szKey=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyAnsiBytes))
-        memcpy(lpIniKey->szKey, pKey, lpIniKey->nKeyAnsiBytes);
+        xmemcpy(lpIniKey->szKey, pKey, lpIniKey->nKeyAnsiBytes);
     }
     else return FALSE;
   }
@@ -3029,7 +3029,7 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
       MultiByteToWideChar(CP_ACP, 0, pString, dwStringLen + 1, lpIniKey->wszString, lpIniKey->nStringUnicodeBytes / sizeof(wchar_t));
     lpIniKey->nStringAnsiBytes=dwStringLen + 1;
     if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      memcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
+      xmemcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
   }
   else if (nType == INI_BINARY)
   {
@@ -3048,7 +3048,7 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
       MultiByteToWideChar(CP_ACP, 0, pString, dwStringLen + 1, lpIniKey->wszString, lpIniKey->nStringUnicodeBytes / sizeof(wchar_t));
     lpIniKey->nStringAnsiBytes=dwStringLen + 1;
     if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      memcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
+      xmemcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
     API_HeapFree(hHeap, 0, (LPVOID)pString);
   }
   else if (nType == INI_STRINGANSI)
@@ -3060,7 +3060,7 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
       MultiByteToWideChar(CP_ACP, 0, pString, dwDataBytes, lpIniKey->wszString, lpIniKey->nStringUnicodeBytes / sizeof(wchar_t));
     lpIniKey->nStringAnsiBytes=dwDataBytes;
     if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      memcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
+      xmemcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
   }
   else if (nType == INI_STRINGUNICODE)
   {
@@ -3068,7 +3068,7 @@ BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsi
 
     lpIniKey->nStringUnicodeBytes=dwDataBytes;
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
+      xmemcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
     lpIniKey->nStringAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpString, dwDataBytes / sizeof(wchar_t), NULL, 0, NULL, NULL);
     if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
       WideCharToMultiByte(CP_ACP, 0, wpString, dwDataBytes / sizeof(wchar_t), lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
@@ -3097,7 +3097,7 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
     {
       lpIniSection->nSectionUnicodeBytes=nSectionLen * sizeof(wchar_t) + 2;
       if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionUnicodeBytes))
-        memcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionUnicodeBytes);
+        xmemcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionUnicodeBytes);
       lpIniSection->nSectionAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, NULL, 0, NULL, NULL);
       if (lpIniSection->szSection=(char *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionAnsiBytes))
         WideCharToMultiByte(CP_ACP, 0, wpSection, nSectionLen + 1, lpIniSection->szSection, lpIniSection->nSectionAnsiBytes, NULL, NULL);
@@ -3112,7 +3112,7 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
     {
       lpIniKey->nKeyUnicodeBytes=nKeyLen * sizeof(wchar_t) + 2;
       if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyUnicodeBytes))
-        memcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyUnicodeBytes);
+        xmemcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyUnicodeBytes);
       lpIniKey->nKeyAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpKey, nKeyLen + 1, NULL, 0, NULL, NULL);
       if (lpIniKey->szKey=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyAnsiBytes))
         WideCharToMultiByte(CP_ACP, 0, wpKey, nKeyLen + 1, lpIniKey->szKey, lpIniKey->nKeyAnsiBytes, NULL, NULL);
@@ -3129,7 +3129,7 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
 
     lpIniKey->nStringUnicodeBytes=dwStringLen * sizeof(wchar_t) + 2;
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
+      xmemcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
     lpIniKey->nStringAnsiBytes=dwStringLen + 1;
     if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
       WideCharToMultiByte(CP_ACP, 0, wpString, dwStringLen + 1, lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
@@ -3148,7 +3148,7 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
 
     lpIniKey->nStringUnicodeBytes=dwStringLen * sizeof(wchar_t) + 2;
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
+      xmemcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
     lpIniKey->nStringAnsiBytes=dwStringLen + 1;
     if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
       WideCharToMultiByte(CP_ACP, 0, wpString, dwStringLen + 1, lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
@@ -3163,7 +3163,7 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
       MultiByteToWideChar(CP_ACP, 0, pString, dwDataBytes, lpIniKey->wszString, lpIniKey->nStringUnicodeBytes / sizeof(wchar_t));
     lpIniKey->nStringAnsiBytes=dwDataBytes;
     if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
-      memcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
+      xmemcpy(lpIniKey->szString, pString, lpIniKey->nStringAnsiBytes);
   }
   else if (nType == INI_STRINGUNICODE)
   {
@@ -3171,7 +3171,7 @@ BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nTy
 
     lpIniKey->nStringUnicodeBytes=dwDataBytes;
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringUnicodeBytes))
-      memcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
+      xmemcpy(lpIniKey->wszString, wpString, lpIniKey->nStringUnicodeBytes);
     lpIniKey->nStringAnsiBytes=WideCharToMultiByte(CP_ACP, 0, wpString, dwDataBytes / sizeof(wchar_t), NULL, 0, NULL, NULL);
     if (lpIniKey->szString=(char *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringAnsiBytes))
       WideCharToMultiByte(CP_ACP, 0, wpString, dwDataBytes / sizeof(wchar_t), lpIniKey->szString, lpIniKey->nStringAnsiBytes, NULL, NULL);
@@ -3805,7 +3805,7 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "WordDelimitersEnable", PO_DWORD, &bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, wcslen(wszWordDelimiters) * sizeof(wchar_t) + 2))
+  if (!SaveOptionA(hHandle, "WordDelimiters", PO_BINARY, wszWordDelimiters, lstrlenW(wszWordDelimiters) * sizeof(wchar_t) + 2))
     goto Error;
 
   if (bEditFontChanged)
@@ -5210,7 +5210,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
     int nExtend=77;
 
     hBitmapDownArrow=(HBITMAP)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDB_BITMAP_DOWNARROW), IMAGE_BITMAP, 0, 0, 0);
-    memcpy(&lfTmpA, &lfPrintFontA, sizeof(LOGFONTA));
+    xmemcpy(&lfTmpA, &lfPrintFontA, sizeof(LOGFONTA));
     hPrintFont=(HFONT)CreateFontIndirectA(&lfTmpA);
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
     hWndOK=GetDlgItem(hDlg, IDOK);
@@ -5451,7 +5451,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam
       if (hPrintFont) DeleteObject(hPrintFont);
 
       bPrintFontEnable=SendMessage(hWndFontCheck, BM_GETCHECK, 0, 0);
-      memcpy(&lfPrintFontA, &lfTmpA, sizeof(LOGFONTA));
+      xmemcpy(&lfPrintFontA, &lfTmpA, sizeof(LOGFONTA));
       if (bFontChanged) bPrintFontChanged=TRUE;
 
       bPrintHeaderEnable=SendMessage(hWndHeaderCheck, BM_GETCHECK, 0, 0);
@@ -5499,7 +5499,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
     int nExtend=77;
 
     hBitmapDownArrow=(HBITMAP)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDB_BITMAP_DOWNARROW), IMAGE_BITMAP, 0, 0, 0);
-    memcpy(&lfTmpW, &lfPrintFontW, sizeof(LOGFONTW));
+    xmemcpy(&lfTmpW, &lfPrintFontW, sizeof(LOGFONTW));
     hPrintFont=(HFONT)CreateFontIndirectW(&lfTmpW);
     hGuiFont=(HFONT)GetStockObject(DEFAULT_GUI_FONT);
     hWndOK=GetDlgItem(hDlg, IDOK);
@@ -5740,7 +5740,7 @@ unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam
       if (hPrintFont) DeleteObject(hPrintFont);
 
       bPrintFontEnable=SendMessage(hWndFontCheck, BM_GETCHECK, 0, 0);
-      memcpy(&lfPrintFontW, &lfTmpW, sizeof(LOGFONTW));
+      xmemcpy(&lfPrintFontW, &lfTmpW, sizeof(LOGFONTW));
       if (bFontChanged) bPrintFontChanged=TRUE;
 
       bPrintHeaderEnable=SendMessage(hWndHeaderCheck, BM_GETCHECK, 0, 0);
@@ -5824,7 +5824,7 @@ void GetPrinterDCA(PRINTDLGA *pdA)
   }
   if (!pdA->hDC)
   {
-    memcpy(&pdTmpA, pdA, sizeof(PRINTDLGA));
+    xmemcpy(&pdTmpA, pdA, sizeof(PRINTDLGA));
     pdTmpA.Flags|=PD_RETURNDEFAULT|PD_RETURNDC;
     pdTmpA.hDevMode=NULL;
     pdTmpA.hDevNames=NULL;
@@ -5856,7 +5856,7 @@ void GetPrinterDCW(PRINTDLGW *pdW)
   }
   if (!pdW->hDC)
   {
-    memcpy(&pdTmpW, pdW, sizeof(PRINTDLGW));
+    xmemcpy(&pdTmpW, pdW, sizeof(PRINTDLGW));
     pdTmpW.Flags|=PD_RETURNDEFAULT|PD_RETURNDC;
     pdTmpW.hDevMode=NULL;
     pdTmpW.hDevNames=NULL;
@@ -7562,7 +7562,7 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   else return FALSE;
 
   //Zero counter
-  memset(dwCounter, 0, 0x80 * sizeof(DWORD));
+  xmemset(dwCounter, 0, 0x80 * sizeof(DWORD));
 
   //Count number of each character in input buffer
   for (j=0, i=0; i < dwBytesToCheck; ++i)
@@ -7591,10 +7591,10 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
       }
       if (!dwCounter[dwMaxIndex]) break;
 
-      if (strchr(szANSIwatermark, dwMaxIndex + 0x80)) nANSIrate+=dwCounter[dwMaxIndex];
-      if (strchr(szOEMwatermark, dwMaxIndex + 0x80)) nOEMrate+=dwCounter[dwMaxIndex];
-      if (strchr(szKOIwatermark, dwMaxIndex + 0x80)) nKOIrate+=dwCounter[dwMaxIndex];
-      if (strchr(szUTF8watermark, dwMaxIndex + 0x80)) nUTF8rate+=dwCounter[dwMaxIndex];
+      if (AKD_strchr(szANSIwatermark, dwMaxIndex + 0x80)) nANSIrate+=dwCounter[dwMaxIndex];
+      if (AKD_strchr(szOEMwatermark, dwMaxIndex + 0x80)) nOEMrate+=dwCounter[dwMaxIndex];
+      if (AKD_strchr(szKOIwatermark, dwMaxIndex + 0x80)) nKOIrate+=dwCounter[dwMaxIndex];
+      if (AKD_strchr(szUTF8watermark, dwMaxIndex + 0x80)) nUTF8rate+=dwCounter[dwMaxIndex];
       dwCounter[dwMaxIndex]=0;
     }
 
@@ -9722,7 +9722,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd)
         wchar_t *wpTargetCount;
         int nTargetLen;
 
-        nTargetLen=wcslen(wpSource);
+        nTargetLen=lstrlenW(wpSource);
 
         if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, nTargetLen * sizeof(wchar_t) + 2))
         {
@@ -10093,16 +10093,16 @@ BOOL RecentFilesAllocW()
 
 void RecentFilesZeroA()
 {
-  memset(lpszRecentNames, 0, nRecentFiles * MAX_PATH);
-  memset(lpdwRecentPositions, 0, nRecentFiles * sizeof(DWORD));
-  memset(lpdwRecentCodepages, 0, nRecentFiles * sizeof(DWORD));
+  xmemset(lpszRecentNames, 0, nRecentFiles * MAX_PATH);
+  xmemset(lpdwRecentPositions, 0, nRecentFiles * sizeof(DWORD));
+  xmemset(lpdwRecentCodepages, 0, nRecentFiles * sizeof(DWORD));
 }
 
 void RecentFilesZeroW()
 {
-  memset(lpwszRecentNames, 0, nRecentFiles * MAX_PATH * sizeof(wchar_t));
-  memset(lpdwRecentPositions, 0, nRecentFiles * sizeof(DWORD));
-  memset(lpdwRecentCodepages, 0, nRecentFiles * sizeof(DWORD));
+  xmemset(lpwszRecentNames, 0, nRecentFiles * MAX_PATH * sizeof(wchar_t));
+  xmemset(lpdwRecentPositions, 0, nRecentFiles * sizeof(DWORD));
+  xmemset(lpdwRecentCodepages, 0, nRecentFiles * sizeof(DWORD));
 }
 
 void RecentFilesReadA()
@@ -10682,7 +10682,6 @@ void FillMenuPopupCodepageW()
 void ShowMenuPopupCodepageA(POINT *pt)
 {
   NCONTEXTMENU ncm;
-  int i;
 
   ncm.hWnd=hStatus;
   ncm.uType=NCM_STATUS;
@@ -10699,7 +10698,6 @@ void ShowMenuPopupCodepageA(POINT *pt)
 void ShowMenuPopupCodepageW(POINT *pt)
 {
   NCONTEXTMENU ncm;
-  int i;
 
   ncm.hWnd=hStatus;
   ncm.uType=NCM_STATUS;
@@ -10718,7 +10716,7 @@ void ShowMenuPopupCodepageW(POINT *pt)
 
 BOOL isInDelimiterList(wchar_t c)
 {
-  if (wcschr(wszWordDelimiters, c) != NULL)
+  if (AKD_wcschr(wszWordDelimiters, c) != NULL)
     return TRUE;
   else
     return FALSE;
@@ -10726,7 +10724,7 @@ BOOL isInDelimiterList(wchar_t c)
 
 BOOL isInWhitespaceList(wchar_t c)
 {
-  if (wcschr(WORD_WHITESPACESW, c) != NULL)
+  if (AKD_wcschr(WORD_WHITESPACESW, c) != NULL)
     return TRUE;
   else
     return FALSE;
@@ -11520,7 +11518,7 @@ BOOL CALLBACK FillPluginListProcA(char *pExportName, LPARAM lParam)
   LVITEMA lviA;
   int nIndex;
 
-  if (memcmp(pExportName, "Dll", 3))
+  if (xmemcmp(pExportName, "Dll", 3))
   {
     wsprintfA(buf, "%s::%s", (char *)pld->pBaseName, pExportName);
     lviA.mask=LVIF_TEXT;
@@ -11581,7 +11579,7 @@ BOOL CALLBACK FillPluginListProcW(char *pExportName, LPARAM lParam)
   LVITEMW lviW;
   int nIndex;
 
-  if (memcmp(pExportName, "Dll", 3))
+  if (xmemcmp(pExportName, "Dll", 3))
   {
     MultiByteToWideChar(CP_ACP, 0, pExportName, -1, wszExportName, MAX_PATH);
     wsprintfW(wbuf, L"%s::%s", (wchar_t *)pld->pBaseName, wszExportName);
@@ -11705,7 +11703,7 @@ BOOL ParsePluginNameA(char *pFullName, char *szPlugin, char *szFunction)
 {
   char *pFunction;
 
-  if ((pFunction=strchr(pFullName, ':')) && *(pFunction + 1) == ':')
+  if ((pFunction=AKD_strchr(pFullName, ':')) && *(pFunction + 1) == ':')
   {
     if (szPlugin) lstrcpynA(szPlugin, pFullName, min(pFunction - pFullName + 1, MAX_PATH));
     if (szFunction) lstrcpynA(szFunction, pFunction + 2, MAX_PATH);
@@ -11718,7 +11716,7 @@ BOOL ParsePluginNameW(wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunct
 {
   wchar_t *wpFunction;
 
-  if ((wpFunction=wcschr(wpFullName, ':')) && *(wpFunction + 1) == ':')
+  if ((wpFunction=AKD_wcschr(wpFullName, ':')) && *(wpFunction + 1) == ':')
   {
     if (wszPlugin) lstrcpynW(wszPlugin, wpFullName, min(wpFunction - wpFullName + 1, MAX_PATH));
     if (wszFunction) lstrcpynW(wszFunction, wpFunction + 2, MAX_PATH);
@@ -16959,7 +16957,7 @@ void AssociateFileTypesA(HINSTANCE hInstance, char *pFileTypes, DWORD dwFlags)
 
   while (1)
   {
-    if (pExtEnd=strchr(pExtStart, ';'))
+    if (pExtEnd=AKD_strchr(pExtStart, ';'))
       lstrcpynA(buf, pExtStart, pExtEnd - pExtStart + 1);
     else
       lstrcpynA(buf, pExtStart, MAX_PATH);
@@ -17117,7 +17115,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, wchar_t *wpFileTypes, DWORD dwFlag
 
   while (1)
   {
-    if (wpExtEnd=wcschr(wpExtStart, ';'))
+    if (wpExtEnd=AKD_wcschr(wpExtStart, ';'))
       lstrcpynW(wbuf, wpExtStart, wpExtEnd - wpExtStart + 1);
     else
       lstrcpynW(wbuf, wpExtStart, MAX_PATH);
@@ -18621,6 +18619,46 @@ void FreeMemoryRecentFilesW()
   }
 }
 
+char* AKD_strchr(const char *s, int c)
+{
+  if (c == '\r' || c == '\n')
+  {
+    while (*s != '\0' && *s != '\r' && *s != '\n')
+      ++s;
+    if (*s != '\0')
+      return ((char *)s);
+    return NULL;
+  }
+  else
+  {
+    while (*s != '\0' && *s != (char)c)
+      ++s;
+    if (*s != '\0')
+      return ((char *)s);
+    return NULL;
+  }
+}
+
+wchar_t* AKD_wcschr(const wchar_t *s, wchar_t c)
+{
+  if (c == L'\r' || c == L'\n')
+  {
+    while (*s != L'\0' && *s != L'\r' && *s != L'\n')
+      ++s;
+    if (*s != L'\0')
+      return ((wchar_t *)s);
+    return NULL;
+  }
+  else
+  {
+    while (*s != L'\0' && *s != c)
+      ++s;
+    if (*s != L'\0')
+      return ((wchar_t *)s);
+    return NULL;
+  }
+}
+
 
 //// OLE Drag'n'Drop
 
@@ -18636,7 +18674,7 @@ ULONG WINAPI REOLE_Release(LPUNKNOWN lpTable)
 
 HRESULT WINAPI REOLE_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj)
 {
-  if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_IRichEditOleCallback))
+  if (REOLE_IsEqualIID(riid, IID_IUnknown) || REOLE_IsEqualIID(riid, IID_IRichEditOleCallback))
   {
     *ppvObj=lpTable;
     REOLE_AddRef((LPUNKNOWN)*ppvObj);
@@ -18755,6 +18793,11 @@ HRESULT WINAPI REOLE_GetDragDropEffect(LPUNKNOWN lpTable, BOOL fDrag, DWORD grfK
 HRESULT WINAPI REOLE_GetContextMenu(LPUNKNOWN lpTable, WORD seltype, LPOLEOBJECT lpoleobj, CHARRANGE FAR *lpchrg, HMENU FAR *lphmenu)
 {
   return E_NOTIMPL;
+}
+
+BOOL REOLE_IsEqualIID(REFGUID rguid1, REFGUID rguid2)
+{
+  return !xmemcmp(&rguid1, &rguid2, sizeof(GUID));
 }
 
 HWND RealChildWindowFromPoint95(HWND hWndParent, POINT pt)
