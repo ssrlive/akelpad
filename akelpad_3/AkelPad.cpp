@@ -39,6 +39,9 @@
 #include "StackFunc.h"
 
 //Include string functions
+#define xmemcpy
+#define xmemcmp
+#define xmemset
 #define xstrcmpinA
 #define xstrcmpinW
 #define xstrstrA
@@ -426,7 +429,7 @@ extern "C" void _WinMain()
     GetObjectA(GetStockObject(SYSTEM_FONT), sizeof(LOGFONTA), &lfEditFontA);
     lfEditFontA.lfHeight=-mod(lfEditFontA.lfHeight);
     lfEditFontA.lfWidth=0;
-    memcpy(&lfPrintFontA, &lfEditFontA, sizeof(LOGFONTA));
+    xmemcpy(&lfPrintFontA, &lfEditFontA, sizeof(LOGFONTA));
     aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
     aecColors.crBasicBk=GetSysColor(COLOR_WINDOW);
     nAnsiCodePage=GetACP();
@@ -860,7 +863,7 @@ extern "C" void _WinMain()
     GetObjectW(GetStockObject(SYSTEM_FONT), sizeof(LOGFONTW), &lfEditFontW);
     lfEditFontW.lfHeight=-mod(lfEditFontW.lfHeight);
     lfEditFontW.lfWidth=0;
-    memcpy(&lfPrintFontW, &lfEditFontW, sizeof(LOGFONTW));
+    xmemcpy(&lfPrintFontW, &lfEditFontW, sizeof(LOGFONTW));
     aecColors.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
     aecColors.crBasicBk=GetSysColor(COLOR_WINDOW);
     nAnsiCodePage=GetACP();
@@ -2274,7 +2277,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (SetChosenFontA((HWND)wParam, (LOGFONTA *)lParam))
       {
-        memcpy(&lfEditFontA, (LOGFONTA *)lParam, sizeof(LOGFONTA));
+        xmemcpy(&lfEditFontA, (LOGFONTA *)lParam, sizeof(LOGFONTA));
         bEditFontChanged=TRUE;
         return TRUE;
       }
@@ -2950,13 +2953,13 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       LOGFONTA lf;
 
-      memcpy(&lf, &lfEditFontA, sizeof(LOGFONTA));
+      xmemcpy(&lf, &lfEditFontA, sizeof(LOGFONTA));
 
       if (DoViewFontA(hMainWnd, &lf))
       {
         if (SetChosenFontA(hWndEdit, &lf))
         {
-          memcpy(&lfEditFontA, &lf, sizeof(LOGFONTA));
+          xmemcpy(&lfEditFontA, &lf, sizeof(LOGFONTA));
           bEditFontChanged=TRUE;
           return TRUE;
         }
@@ -4151,7 +4154,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (SetChosenFontW((HWND)wParam, (LOGFONTW *)lParam))
       {
-        memcpy(&lfEditFontW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
+        xmemcpy(&lfEditFontW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
         bEditFontChanged=TRUE;
         return TRUE;
       }
@@ -4827,13 +4830,13 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       LOGFONTW lf;
 
-      memcpy(&lf, &lfEditFontW, sizeof(LOGFONTW));
+      xmemcpy(&lf, &lfEditFontW, sizeof(LOGFONTW));
 
       if (DoViewFontW(hMainWnd, &lf))
       {
         if (SetChosenFontW(hWndEdit, &lf))
         {
-          memcpy(&lfEditFontW, &lf, sizeof(LOGFONTW));
+          xmemcpy(&lfEditFontW, &lf, sizeof(LOGFONTW));
           bEditFontChanged=TRUE;
           return TRUE;
         }
@@ -5318,7 +5321,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
       if (!FileExistsA(szCurrentFile))
       {
-        memset(&ftFileTime, 0, sizeof(FILETIME));
+        xmemset(&ftFileTime, 0, sizeof(FILETIME));
         PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_CANTOPEN_MSG, (LPARAM)hWndEdit);
       }
       else if (GetFileWriteTimeA(szCurrentFile, &ftTmp))
@@ -5331,7 +5334,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       }
       else
       {
-        memset(&ftFileTime, 0, sizeof(FILETIME));
+        xmemset(&ftFileTime, 0, sizeof(FILETIME));
       }
     }
   }
@@ -5479,7 +5482,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
       if (!FileExistsW(wszCurrentFile))
       {
-        memset(&ftFileTime, 0, sizeof(FILETIME));
+        xmemset(&ftFileTime, 0, sizeof(FILETIME));
         PostMessage(hMainWnd, WM_COMMAND, IDM_NONMENU_CANTOPEN_MSG, (LPARAM)hWndEdit);
       }
       else if (GetFileWriteTimeW(wszCurrentFile, &ftTmp))
@@ -5492,7 +5495,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
       }
       else
       {
-        memset(&ftFileTime, 0, sizeof(FILETIME));
+        xmemset(&ftFileTime, 0, sizeof(FILETIME));
       }
     }
   }
@@ -5687,7 +5690,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->ei.bReadOnly=bReadOnly;
       lpWndFrameA->ei.bWordWrap=bWordWrap;
       lpWndFrameA->ei.bOvertypeMode=FALSE;
-      memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+      xmemcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
 
       lpWndFrameA->aec=aecColors;
       lpWndFrameA->ft.dwLowDateTime=0;
@@ -5821,7 +5824,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->ei.bReadOnly=bReadOnly;
             lpWndFrameA->ei.bWordWrap=bWordWrap;
             lpWndFrameA->ei.bOvertypeMode=bOvertypeMode;
-            memcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
+            xmemcpy(&lpWndFrameA->lf, &lfEditFontA, sizeof(LOGFONTA));
 
             lpWndFrameA->aec=aecColors;
             lpWndFrameA->ft=ftFileTime;
@@ -5857,7 +5860,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bReadOnly=lpWndFrameA->ei.bReadOnly;
           bWordWrap=lpWndFrameA->ei.bWordWrap;
           SetInsertStateStatusA(NULL, lpWndFrameA->ei.bOvertypeMode, FALSE);
-          memcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
+          xmemcpy(&lfEditFontA, &lpWndFrameA->lf, sizeof(LOGFONTA));
 
           aecColors=lpWndFrameA->aec;
           ftFileTime=lpWndFrameA->ft;
@@ -5931,7 +5934,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->ei.bReadOnly=bReadOnly;
       lpWndFrameW->ei.bWordWrap=bWordWrap;
       lpWndFrameW->ei.bOvertypeMode=FALSE;
-      memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+      xmemcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
 
       lpWndFrameW->aec=aecColors;
       lpWndFrameW->ft.dwLowDateTime=0;
@@ -6065,7 +6068,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->ei.bReadOnly=bReadOnly;
             lpWndFrameW->ei.bWordWrap=bWordWrap;
             lpWndFrameW->ei.bOvertypeMode=bOvertypeMode;
-            memcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
+            xmemcpy(&lpWndFrameW->lf, &lfEditFontW, sizeof(LOGFONTW));
 
             lpWndFrameW->aec=aecColors;
             lpWndFrameW->ft=ftFileTime;
@@ -6101,7 +6104,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           bReadOnly=lpWndFrameW->ei.bReadOnly;
           bWordWrap=lpWndFrameW->ei.bWordWrap;
           SetInsertStateStatusW(NULL, lpWndFrameW->ei.bOvertypeMode, FALSE);
-          memcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
+          xmemcpy(&lfEditFontW, &lpWndFrameW->lf, sizeof(LOGFONTW));
 
           aecColors=lpWndFrameW->aec;
           ftFileTime=lpWndFrameW->ft;
@@ -6972,7 +6975,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
           {
             if (!(dkData->dwFlags & DKF_FIXEDSIZE))
             {
-              memset(&mmi, 0, sizeof(MINMAXINFO));
+              xmemset(&mmi, 0, sizeof(MINMAXINFO));
               mmi.ptMinTrackSize.x=0;
               mmi.ptMinTrackSize.y=0;
               mmi.ptMaxTrackSize.x=0x0FFFFFFF;
