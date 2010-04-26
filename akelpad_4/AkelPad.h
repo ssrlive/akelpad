@@ -7,6 +7,12 @@
 #define TAB_HEIGHT           24
 #define TAB_WIDTH            90
 
+//Timer IDs
+#define TIMERID_TABOPEN     1
+
+//Times
+#define TIME_TABOPEN        1000
+
 #define DOCK_MAINMIN_X       30
 #define DOCK_MAINMIN_Y       30
 #define DOCK_BORDER_1X        3
