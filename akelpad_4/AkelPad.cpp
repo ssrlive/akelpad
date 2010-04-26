@@ -527,9 +527,9 @@ extern "C" void _WinMain()
     nDefaultCodePage=nAnsiCodePage;
     bDefaultBOM=FALSE;
     dwLangCodepageRecognition=dwLangSystem=GetUserDefaultLangID();
-    xstrcpyA(szDefaultSaveExt, STR_DEFAULTSAVEEXTA);
     xstrcpyA(szPrintHeader, STR_PRINT_HEADERA);
     xstrcpyA(szPrintFooter, STR_PRINT_FOOTERA);
+    xstrcpyA(szDefaultSaveExt, STR_DEFAULTSAVEEXTA);
     xstrcpyW(wszUrlPrefixes, STR_URL_PREFIXESW);
     xstrcpyW(wszUrlLeftDelimiters, STR_URL_LEFTDELIMITERSW);
     xstrcpyW(wszUrlRightDelimiters, STR_URL_RIGHTDELIMITERSW);
