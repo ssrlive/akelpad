@@ -42,6 +42,8 @@
 #define xmemcpy
 #define xmemcmp
 #define xmemset
+#define xstrcpyA
+#define xstrcpyW
 #define xstrcmpinA
 #define xstrcmpinW
 #define xstrstrA
@@ -249,10 +251,10 @@ PAGESETUPDLGA psdPageA={0};
 PAGESETUPDLGW psdPageW={0};
 PRINTDLGA pdA={0};
 PRINTDLGW pdW={0};
-char szPrintHeader[MAX_PATH]=PRINT_HEADERA;
-wchar_t wszPrintHeader[MAX_PATH]=PRINT_HEADERW;
-char szPrintFooter[MAX_PATH]=PRINT_FOOTERA;
-wchar_t wszPrintFooter[MAX_PATH]=PRINT_FOOTERW;
+char szPrintHeader[MAX_PATH];
+wchar_t wszPrintHeader[MAX_PATH];
+char szPrintFooter[MAX_PATH];
+wchar_t wszPrintFooter[MAX_PATH];
 BOOL bPrintFontEnable=FALSE;
 BOOL bPrintHeaderEnable=FALSE;
 BOOL bPrintFooterEnable=FALSE;
@@ -292,7 +294,7 @@ FILETIME ftFileTime={0};
 WNDPROC OldEditProc;
 
 //Word breaking
-wchar_t wszWordDelimiters[DELIMITERS_SIZE]=WORD_DELIMITERSW;
+wchar_t wszWordDelimiters[DELIMITERS_SIZE];
 BOOL bWordDelimitersEnable=TRUE;
 BOOL bFirstWordBreak=TRUE;
 
@@ -305,12 +307,12 @@ char szExeDir[MAX_PATH]="";
 wchar_t wszExeDir[MAX_PATH]=L"";
 
 //Associations
-char szFileTypesOpen[MAX_PATH]=ASSOCIATE_OPENA;
-wchar_t wszFileTypesOpen[MAX_PATH]=ASSOCIATE_OPENW;
-char szFileTypesEdit[MAX_PATH]=ASSOCIATE_EDITA;
-wchar_t wszFileTypesEdit[MAX_PATH]=ASSOCIATE_EDITW;
-char szFileTypesPrint[MAX_PATH]=ASSOCIATE_PRINTA;
-wchar_t wszFileTypesPrint[MAX_PATH]=ASSOCIATE_PRINTW;
+char szFileTypesOpen[MAX_PATH];
+wchar_t wszFileTypesOpen[MAX_PATH];
+char szFileTypesEdit[MAX_PATH];
+wchar_t wszFileTypesEdit[MAX_PATH];
+char szFileTypesPrint[MAX_PATH];
+wchar_t wszFileTypesPrint[MAX_PATH];
 DWORD dwFileTypesAssociated=0;
 
 //OLE Drag'n'Drop
@@ -437,6 +439,12 @@ extern "C" void _WinMain()
     nDefaultCodePage=nAnsiCodePage;
     bDefaultBOM=FALSE;
     dwLangCodepageRecognition=dwLangSystem=GetUserDefaultLangID();
+    xstrcpyA(szPrintHeader, STR_PRINT_HEADERA);
+    xstrcpyA(szPrintFooter, STR_PRINT_FOOTERA);
+    xstrcpyW(wszWordDelimiters, STR_WORD_DELIMITERSW);
+    xstrcpyA(szFileTypesOpen, STR_ASSOCIATE_OPENA);
+    xstrcpyA(szFileTypesEdit, STR_ASSOCIATE_EDITA);
+    xstrcpyA(szFileTypesPrint, STR_ASSOCIATE_PRINTA);
 
     if (GetLocaleInfoA(LOCALE_USER_DEFAULT, LOCALE_IMEASURE, buf, BUFFER_SIZE))
     {
@@ -871,6 +879,12 @@ extern "C" void _WinMain()
     nDefaultCodePage=nAnsiCodePage;
     bDefaultBOM=FALSE;
     dwLangCodepageRecognition=dwLangSystem=GetUserDefaultLangID();
+    xstrcpyW(wszPrintHeader, STR_PRINT_HEADERW);
+    xstrcpyW(wszPrintFooter, STR_PRINT_FOOTERW);
+    xstrcpyW(wszWordDelimiters, STR_WORD_DELIMITERSW);
+    xstrcpyW(wszFileTypesOpen, STR_ASSOCIATE_OPENW);
+    xstrcpyW(wszFileTypesEdit, STR_ASSOCIATE_EDITW);
+    xstrcpyW(wszFileTypesPrint, STR_ASSOCIATE_PRINTW);
 
     if (GetLocaleInfoW(LOCALE_USER_DEFAULT, LOCALE_IMEASURE, wbuf, BUFFER_SIZE))
     {

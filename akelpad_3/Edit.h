@@ -107,22 +107,23 @@ const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00,
 #define EDIT_TABSTOPS              8
 #define EDIT_UNDOLIMIT             1000
 #define EDIT_MARGINS               MAKELONG(4, 4)
-#define ASSOCIATE_OPENA            "txt;log;ini;inf"
-#define ASSOCIATE_OPENW           L"txt;log;ini;inf"
-#define ASSOCIATE_EDITA            "bat;cmd;reg;htm;html"
-#define ASSOCIATE_EDITW           L"bat;cmd;reg;htm;html"
-#define ASSOCIATE_PRINTA           "txt;log;ini;inf"
-#define ASSOCIATE_PRINTW          L"txt;log;ini;inf"
-#define WORD_DELIMITERSW          L" \t\r\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
-#define WORD_WHITESPACESW         L" \t\r"
-#define SENTENCE_DELIMITERSA       ".?!"
-#define SENTENCE_DELIMITERSW      L".?!"
-#define TITLE_DELIMITERSA          " \t\r"
-#define TITLE_DELIMITERSW         L" \t\r"
-#define PRINT_HEADERA              "%l***%c<%f>%r***"
-#define PRINT_HEADERW             L"%l***%c<%f>%r***"
-#define PRINT_FOOTERA              "- %n[1] -"
-#define PRINT_FOOTERW             L"- %n[1] -"
+
+#define STR_ASSOCIATE_OPENA         "txt;log;ini;inf"
+#define STR_ASSOCIATE_OPENW        L"txt;log;ini;inf"
+#define STR_ASSOCIATE_EDITA         "bat;cmd;reg;htm;html"
+#define STR_ASSOCIATE_EDITW        L"bat;cmd;reg;htm;html"
+#define STR_ASSOCIATE_PRINTA        "txt;log;ini;inf"
+#define STR_ASSOCIATE_PRINTW       L"txt;log;ini;inf"
+#define STR_WORD_DELIMITERSW       L" \t\r\\|[](){}<>,.;:+-=~!@#$%^&*/?'`\""
+#define STR_WORD_WHITESPACESW      L" \t\r"
+#define STR_SENTENCE_DELIMITERSA    ".?!"
+#define STR_SENTENCE_DELIMITERSW   L".?!"
+#define STR_TITLE_DELIMITERSA       " \t\r"
+#define STR_TITLE_DELIMITERSW      L" \t\r"
+#define STR_PRINT_HEADERA           "%l***%c<%f>%r***"
+#define STR_PRINT_HEADERW          L"%l***%c<%f>%r***"
+#define STR_PRINT_FOOTERA           "- %n[1] -"
+#define STR_PRINT_FOOTERW          L"- %n[1] -"
 
 //Menu positions
 #define MENU_FILE_POSITION              0

@@ -1710,12 +1710,12 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     {
       while (pStart < pEnd)
       {
-        while (pStart < pEnd && (*pStart == ' ' || *pStart == '\t' || *pStart == '\r' || AKD_strchr(SENTENCE_DELIMITERSA, *pStart)))
+        while (pStart < pEnd && (*pStart == ' ' || *pStart == '\t' || *pStart == '\r' || AKD_strchr(STR_SENTENCE_DELIMITERSA, *pStart)))
           ++pStart;
 
         if (pStart < pEnd) *pStart++=(char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pStart);
 
-        while (pStart < pEnd && !AKD_strchr(SENTENCE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && !AKD_strchr(STR_SENTENCE_DELIMITERSA, *pStart))
           *pStart++=(char)(WORD)(DWORD)CharLowerA((char *)(DWORD)(WORD)*pStart);
       }
     }
@@ -1723,12 +1723,12 @@ BOOL DoEditChangeCaseA(HWND hWnd, int nCase)
     {
       while (pStart < pEnd)
       {
-        while (pStart < pEnd && AKD_strchr(TITLE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && AKD_strchr(STR_TITLE_DELIMITERSA, *pStart))
           ++pStart;
 
         if (pStart < pEnd) *pStart++=(char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pStart);
 
-        while (pStart < pEnd && !AKD_strchr(TITLE_DELIMITERSA, *pStart))
+        while (pStart < pEnd && !AKD_strchr(STR_TITLE_DELIMITERSA, *pStart))
           *pStart++=(char)(WORD)(DWORD)CharLowerA((char *)(DWORD)(WORD)*pStart);
       }
     }
@@ -1798,12 +1798,12 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     {
       while (wpStart < wpEnd)
       {
-        while (wpStart < wpEnd && (*wpStart == ' ' || *wpStart == '\t' || *wpStart == '\r' || AKD_wcschr(SENTENCE_DELIMITERSW, *wpStart)))
+        while (wpStart < wpEnd && (*wpStart == ' ' || *wpStart == '\t' || *wpStart == '\r' || AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpStart)))
           ++wpStart;
 
         if (wpStart < wpEnd) *wpStart++=(wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStart);
 
-        while (wpStart < wpEnd && !AKD_wcschr(SENTENCE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && !AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpStart))
           *wpStart++=(wchar_t)(WORD)(DWORD)CharLowerW((wchar_t *)(DWORD)(WORD)*wpStart);
       }
     }
@@ -1811,12 +1811,12 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
     {
       while (wpStart < wpEnd)
       {
-        while (wpStart < wpEnd && AKD_wcschr(TITLE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && AKD_wcschr(STR_TITLE_DELIMITERSW, *wpStart))
           ++wpStart;
 
         if (wpStart < wpEnd) *wpStart++=(wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStart);
 
-        while (wpStart < wpEnd && !AKD_wcschr(TITLE_DELIMITERSW, *wpStart))
+        while (wpStart < wpEnd && !AKD_wcschr(STR_TITLE_DELIMITERSW, *wpStart))
           *wpStart++=(wchar_t)(WORD)(DWORD)CharLowerW((wchar_t *)(DWORD)(WORD)*wpStart);
       }
     }
@@ -10724,7 +10724,7 @@ BOOL isInDelimiterList(wchar_t c)
 
 BOOL isInWhitespaceList(wchar_t c)
 {
-  if (AKD_wcschr(WORD_WHITESPACESW, c) != NULL)
+  if (AKD_wcschr(STR_WORD_WHITESPACESW, c) != NULL)
     return TRUE;
   else
     return FALSE;
@@ -14254,7 +14254,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
     {
-      EscapeDataToEscapeStringW(WORD_DELIMITERSW, (wchar_t *)buf);
+      EscapeDataToEscapeStringW(STR_WORD_DELIMITERSW, (wchar_t *)buf);
       WideCharToMultiByte(CP_ACP, 0, (wchar_t *)buf, -1, buf2, BUFFER_SIZE, NULL, NULL);
       SetDlgItemTextA(hDlg, IDC_OPTIONS_WORD_DELIMITERS, buf2);
       return TRUE;
@@ -14536,7 +14536,7 @@ BOOL CALLBACK OptionsAdvanced1DlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_WORD_DELIMITERS_RESET)
     {
-      EscapeDataToEscapeStringW(WORD_DELIMITERSW, wbuf);
+      EscapeDataToEscapeStringW(STR_WORD_DELIMITERSW, wbuf);
       SetDlgItemTextW(hDlg, IDC_OPTIONS_WORD_DELIMITERS, wbuf);
       return TRUE;
     }
