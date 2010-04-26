@@ -369,6 +369,7 @@ extern BOOL bMdiMaximize;
 extern BOOL bMdiNoWindows;
 extern BOOL bMdiClientRedraw;
 extern HWND hTab;
+extern DWORD dwTabOpenTimer;
 extern DWORD dwTabOptionsMDI;
 extern BOOL bKeybLayoutMDI;
 extern HSTACK hIconsStack;
@@ -23253,7 +23254,16 @@ int GetTabItemFromParam(HWND hWnd, LPARAM lParam)
   return -1;
 }
 
-int GetTabItemFromPoint(HWND hWnd, POINT *pt)
+int GetTabItemFromCursorPos(HWND hWnd)
+{
+  TCHITTESTINFO thti;
+
+  GetCursorPos(&thti.pt);
+  ScreenToClient(hWnd, &thti.pt);
+  return SendMessage(hWnd, TCM_HITTEST, 0, (LPARAM)&thti);
+}
+
+int GetTabItemForDrop(HWND hWnd, POINT *pt)
 {
   TCHITTESTINFO thti;
   RECT rcTab;
