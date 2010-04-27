@@ -370,6 +370,7 @@ extern BOOL bMdiNoWindows;
 extern BOOL bMdiClientRedraw;
 extern HWND hTab;
 extern DWORD dwTabOpenTimer;
+extern int nTabOpenItem;
 extern DWORD dwTabOptionsMDI;
 extern BOOL bKeybLayoutMDI;
 extern HSTACK hIconsStack;
