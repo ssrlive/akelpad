@@ -652,6 +652,7 @@ extern "C" void _WinMain()
         if (hWndFriend=FindWindowA(APP_MAIN_CLASSA, NULL))
         {
           ActivateWindow(hWndFriend);
+          UpdateWindow(hWndFriend);
           SendMessage(hWndFriend, AKDN_ACTIVATE, 0, 0);
           bExit=TRUE;
         }
@@ -1098,6 +1099,7 @@ extern "C" void _WinMain()
         if (hWndFriend=FindWindowW(APP_MAIN_CLASSW, NULL))
         {
           ActivateWindow(hWndFriend);
+          UpdateWindow(hWndFriend);
           SendMessage(hWndFriend, AKDN_ACTIVATE, 0, 0);
           bExit=TRUE;
         }
