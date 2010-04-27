@@ -25,6 +25,11 @@
 #define AETIMERID_MOUSEMOVE       1
 #define AETIMERID_MOUSESCROLL     2
 
+//Required mouse moves before ...
+#define AEMMB_MBUTTONSCROLL  1
+#define AEMMB_BEGINDRAG      5
+#define AEMMB_DROPSCROLL     15
+
 //Mouse capture
 #define AEMC_MOUSEMOVE         0x00000001
 #define AEMC_MOUSESCROLL       0x00000002
@@ -514,7 +519,7 @@ typedef struct _AKELEDIT {
   BOOL bMButtonBitmapDraw;
   BOOL bMButtonDown;
   BOOL bMButtonUp;
-  int nMButtonMove;
+  int nMButtonMoveBeforeScroll;
 
   //OLE Drag'n'Drop
   AEIDropTargetCallbackVtbl idtVtbl;
@@ -527,8 +532,8 @@ typedef struct _AKELEDIT {
   BOOL bDragging;
   BOOL bDragSelectionDelete;
   DWORD dwDragSelectionLength;
-  int nMoveBeforeDragging;
-  int nDraggingBeforeScroll;
+  int nMoveBeforeBeginDrag;
+  int nMoveBeforeDropScroll;
 
   //Clone
   HSTACK hClonesStack;
