@@ -913,24 +913,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     if (uMsg == AEM_SCROLLTOPOINT)
     {
       AESCROLLTOPOINT *stp=(AESCROLLTOPOINT *)lParam;
-      POINT ptPos;
 
-      if (stp->dwFlags & AESC_POINTCARET)
-      {
-        //AESC_POINTCARET
-        ptPos=ae->ptCaret;
-      }
-      else if (stp->dwFlags & AESC_POINTGLOBAL)
-      {
-        //AESC_POINTGLOBAL
-        ptPos=stp->ptPos;
-      }
-      else
-      {
-        //AESC_POINTCLIENT
-        AE_ClientToGlobal(ae, &stp->ptPos, &ptPos);
-      }
-      return AE_ScrollToPoint(ae, stp->dwFlags, &ptPos, stp->nOffsetX, stp->nOffsetY);
+      return AE_ScrollToPoint(ae, stp->dwFlags, &stp->ptPos, stp->nOffsetX, stp->nOffsetY);
     }
     if (uMsg == AEM_LOCKSCROLL)
     {
@@ -9474,91 +9458,108 @@ void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect)
   }
 }
 
-DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPos, int nOffsetX, int nOffsetY)
+DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPosition, int nOffsetX, int nOffsetY)
 {
+  POINT ptPos;
   int x=-1;
   int y=-1;
   DWORD dwResult=0;
 
+  if (dwFlags & AESC_POINTCARET)
+    ptPos=ae->ptCaret;
+  else if (dwFlags & AESC_POINTGLOBAL)
+    ptPos=*ptPosition;
+  else
+    AE_ClientToGlobal(ae, ptPosition, &ptPos);
+
   if (dwFlags & AESC_OFFSETPIXELX)
-  {
     x=nOffsetX;
-  }
   else if (dwFlags & AESC_OFFSETCHARX)
-  {
     x=ae->ptxt->nAveCharWidth * nOffsetX;
-  }
   else if (dwFlags & AESC_OFFSETRECTDIVX)
-  {
     x=(ae->rcDraw.right - ae->rcDraw.left) / nOffsetX;
-  }
 
   if (dwFlags & AESC_OFFSETPIXELY)
-  {
     y=nOffsetY;
-  }
   else if (dwFlags & AESC_OFFSETCHARY)
-  {
     y=ae->ptxt->nCharHeight * nOffsetY;
-  }
   else if (dwFlags & AESC_OFFSETRECTDIVY)
-  {
     y=(ae->rcDraw.bottom - ae->rcDraw.top) / nOffsetY;
-  }
 
   if (x != -1)
   {
     if (dwFlags & AESC_FORCELEFT)
-    {
-      if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_HORZ, max(ptPos->x - x, 0));
-      dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDLEFT;
-    }
+      ptPos.x=max(ptPos.x - x, 0);
     else if (dwFlags & AESC_FORCERIGHT)
-    {
-      if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_HORZ, max(ptPos->x - (ae->rcDraw.right - ae->rcDraw.left) + x + 1, 0));
-      dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDRIGHT;
-    }
+      ptPos.x=max(ptPos.x - (ae->rcDraw.right - ae->rcDraw.left) + x + 1, 0);
     else
     {
-      if (ptPos->x >= ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left) - x)
+      if (ptPos.x >= ae->nHScrollPos + (ae->rcDraw.right - ae->rcDraw.left) - x)
+        ptPos.x=max(ptPos.x - (ae->rcDraw.right - ae->rcDraw.left) + x + 1, 0);
+      else if (ptPos.x < ae->nHScrollPos + x)
+        ptPos.x=max(ptPos.x - x, 0);
+      else
+        goto Ordinate;
+    }
+    if (ptPos.x != ae->nHScrollPos)
+    {
+      if (ptPos.x < ae->nHScrollPos)
       {
-        if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_HORZ, max(ptPos->x - (ae->rcDraw.right - ae->rcDraw.left) + x + 1, 0));
-        dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDRIGHT;
+        if (ae->nHScrollPos > 0)
+        {
+          if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_HORZ, ptPos.x);
+          dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDLEFT;
+        }
       }
-      else if (ptPos->x < ae->nHScrollPos + x)
+      else if (ptPos.x > ae->nHScrollPos)
       {
-        if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_HORZ, max(ptPos->x - x, 0));
-        dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDLEFT;
+        if (ae->nHScrollPos < ae->ptxt->nHScrollMax)
+        {
+          if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_HORZ, ptPos.x);
+          dwResult|=AECSE_SCROLLEDX|AECSE_SCROLLEDRIGHT;
+        }
       }
     }
   }
 
+  Ordinate:
   if (y != -1)
   {
     if (dwFlags & AESC_FORCETOP)
-    {
-      if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_VERT, max(ptPos->y - y, 0));
-      dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDUP;
-    }
+      ptPos.y=max(ptPos.y - y, 0);
     else if (dwFlags & AESC_FORCEBOTTOM)
-    {
-      if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_VERT, max(ptPos->y - (ae->rcDraw.bottom - ae->rcDraw.top) + y + 1, 0));
-      dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDDOWN;
-    }
+      ptPos.y=max(ptPos.y - (ae->rcDraw.bottom - ae->rcDraw.top) + y + 1, 0);
     else
     {
-      if (ptPos->y >= ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top) - ae->ptxt->nCharHeight - y)
+      if (ptPos.y >= ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top) - ae->ptxt->nCharHeight - y)
+        ptPos.y=max(ptPos.y - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight + y + 1, 0);
+      else if (ptPos.y < ae->nVScrollPos + y)
+        ptPos.y=max(ptPos.y - y, 0);
+      else
+        goto End;
+    }
+    if (ptPos.y != ae->nVScrollPos)
+    {
+      if (ptPos.y < ae->nVScrollPos)
       {
-        if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_VERT, max(ptPos->y - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight + y + 1, 0));
-        dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDDOWN;
+        if (ae->nVScrollPos > 0)
+        {
+          if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_VERT, ptPos.y);
+          dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDUP;
+        }
       }
-      else if (ptPos->y < ae->nVScrollPos + y)
+      else if (ptPos.y > ae->nVScrollPos)
       {
-        if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_VERT, max(ptPos->y - y, 0));
-        dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDUP;
+        if (ae->nHScrollPos < ae->ptxt->nVScrollMax)
+        {
+          if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_VERT, ptPos.y);
+          dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDDOWN;
+        }
       }
     }
   }
+
+  End:
   return dwResult;
 }
 
@@ -17881,6 +17882,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
   {
     AE_ScrollToCaret(ae, &ae->ptCaret, FALSE);
     AE_SetCaretPos(ae, &ae->ptCaret);
+    ae->nDraggingBeforeScroll=15;
   }
   else
   {
@@ -17888,6 +17890,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
     {
       //Deny dropping in non-rect
       AE_SetCaretPos(ae, &ae->ptCaret);
+      ae->nDraggingBeforeScroll=15;
       *pdwEffect=DROPEFFECT_NONE;
     }
     else
@@ -17914,7 +17917,18 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
       }
       else
       {
-        AE_ScrollToCaret(ae, &ptGlobal, FALSE);
+        DWORD dwScrollTest=AE_ScrollToPoint(ae, AESC_TEST|AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 2, 2);
+
+        if ((dwScrollTest & AECSE_SCROLLEDX) || (dwScrollTest & AECSE_SCROLLEDY))
+        {
+          if (ae->nDraggingBeforeScroll > 0)
+            --ae->nDraggingBeforeScroll;
+
+          if (ae->nDraggingBeforeScroll == 0)
+            AE_ScrollToCaret(ae, &ptGlobal, FALSE);
+        }
+        else ae->nDraggingBeforeScroll=15;
+
         AE_SetCaretPos(ae, &ptGlobal);
       }
     }
