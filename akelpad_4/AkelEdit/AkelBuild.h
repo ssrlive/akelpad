@@ -22,8 +22,8 @@
 #define AETIME_BEFOREUPDATE    100
 
 //Timer IDs
-#define AETIMERID_MOUSEMOVE    1
-#define AETIMERID_MOUSESCROLL  2
+#define AETIMERID_MOUSEMOVE       1
+#define AETIMERID_MOUSESCROLL     2
 
 //Mouse capture
 #define AEMC_MOUSEMOVE         0x00000001
@@ -528,6 +528,7 @@ typedef struct _AKELEDIT {
   BOOL bDragSelectionDelete;
   DWORD dwDragSelectionLength;
   int nMoveBeforeDragging;
+  int nDraggingBeforeScroll;
 
   //Clone
   HSTACK hClonesStack;
@@ -706,7 +707,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus);
 BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret);
 void AE_SetCaretVis(AKELEDIT *ae, const POINT *ptCaret);
 void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect);
-DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPos, int nOffsetX, int nOffsetY);
+DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPosition, int nOffsetX, int nOffsetY);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
 int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos);
 int AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign);
