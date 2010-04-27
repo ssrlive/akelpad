@@ -9458,7 +9458,7 @@ void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect)
   }
 }
 
-DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPosition, int nOffsetX, int nOffsetY)
+DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOffsetX, int nOffsetY)
 {
   POINT ptPos;
   int x=-1;
@@ -9499,7 +9499,7 @@ DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPosition, int
       else if (ptPos.x < ae->nHScrollPos + x)
         ptPos.x=max(ptPos.x - x, 0);
       else
-        goto Ordinate;
+        ptPos.x=ae->nHScrollPos;
     }
     if (ptPos.x != ae->nHScrollPos)
     {
@@ -9522,7 +9522,6 @@ DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPosition, int
     }
   }
 
-  Ordinate:
   if (y != -1)
   {
     if (dwFlags & AESC_FORCETOP)
@@ -9536,7 +9535,7 @@ DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPosition, int
       else if (ptPos.y < ae->nVScrollPos + y)
         ptPos.y=max(ptPos.y - y, 0);
       else
-        goto End;
+        ptPos.y=ae->nVScrollPos;
     }
     if (ptPos.y != ae->nVScrollPos)
     {
@@ -9559,7 +9558,21 @@ DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPosition, int
     }
   }
 
-  End:
+  if (dwFlags & AESC_POINTOUT)
+  {
+    if (ptPosition)
+    {
+      if (!(dwFlags & AESC_TEST))
+      {
+        ptPos.x=ae->nHScrollPos;
+        ptPos.y=ae->nVScrollPos;
+      }
+      if (dwFlags & AESC_POINTGLOBAL)
+        *ptPosition=ptPos;
+      else
+        AE_GlobalToClient(ae, &ptPos, ptPosition);
+    }
+  }
   return dwResult;
 }
 
@@ -17898,9 +17911,33 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
     {
       AECHARINDEX ciCharIndex;
       POINT ptGlobal;
+      DWORD dwScrollTest;
 
       AE_GetCharFromPos(ae, (POINT *)pt, &ciCharIndex, &ptGlobal, pDropTarget->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
+      //Scroll to dropping point
+      dwScrollTest=AE_ScrollToPoint(ae, AESC_TEST|AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 2, 1);
+
+      if ((dwScrollTest & AECSE_SCROLLEDX) || (dwScrollTest & AECSE_SCROLLEDY))
+      {
+        if (ae->nMoveBeforeDropScroll > 0)
+          ae->nMoveBeforeDropScroll-=3;
+      }
+      else
+      {
+        dwScrollTest=AE_ScrollToPoint(ae, AESC_TEST|AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 3, 2);
+
+        if ((dwScrollTest & AECSE_SCROLLEDX) || (dwScrollTest & AECSE_SCROLLEDY))
+        {
+          if (ae->nMoveBeforeDropScroll > 0)
+            ae->nMoveBeforeDropScroll-=2;
+        }
+        else ae->nMoveBeforeDropScroll=min(ae->nMoveBeforeDropScroll + 1, AEMMB_DROPSCROLL);
+      }
+      if (ae->nMoveBeforeDropScroll <= 0)
+        AE_ScrollToPoint(ae, AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 3, 2);
+
+      //Set caret position
       if (ae->bDragging &&
           (((*pdwEffect & DROPEFFECT_COPY) &&
              ciCharIndex.nCharInLine > ciCharIndex.lpLine->nSelStart &&
@@ -17911,25 +17948,12 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
              ciCharIndex.nCharInLine >= ciCharIndex.lpLine->nSelStart &&
              ciCharIndex.nCharInLine <= ciCharIndex.lpLine->nSelEnd)))
       {
-        //Scroll, but deny dropping in selection
-        AE_ScrollToCaret(ae, &ptGlobal, FALSE);
+        //Deny dropping in selection
         AE_SetCaretPos(ae, &ae->ptCaret);
         *pdwEffect=DROPEFFECT_NONE;
       }
       else
       {
-        DWORD dwScrollTest=AE_ScrollToPoint(ae, AESC_TEST|AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 2, 2);
-
-        if ((dwScrollTest & AECSE_SCROLLEDX) || (dwScrollTest & AECSE_SCROLLEDY))
-        {
-          if (ae->nMoveBeforeDropScroll > 0)
-            --ae->nMoveBeforeDropScroll;
-
-          if (ae->nMoveBeforeDropScroll == 0)
-            AE_ScrollToCaret(ae, &ptGlobal, FALSE);
-        }
-        else ae->nMoveBeforeDropScroll=AEMMB_DROPSCROLL;
-
         AE_SetCaretPos(ae, &ptGlobal);
       }
     }
