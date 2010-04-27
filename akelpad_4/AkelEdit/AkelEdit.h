@@ -337,6 +337,7 @@
 #define AESC_POINTCARET      0x00000010  //Caret position is used and AESCROLLTOPOINT.ptPos is ignored.
 #define AESC_POINTGLOBAL     0x00000020  //AESCROLLTOPOINT.ptPos is position in the virtual text space coordinates.
 #define AESC_POINTCLIENT     0x00000040  //AESCROLLTOPOINT.ptPos is position in the client area coordinates (default).
+#define AESC_POINTOUT        0x00000080  //AESCROLLTOPOINT.ptPos will contain new scroll position after AEM_SCROLLTOPOINT returns.
 #define AESC_OFFSETPIXELX    0x00000100  //AESCROLLTOPOINT.nOffsetX specifies pixels number.
 #define AESC_OFFSETPIXELY    0x00000200  //AESCROLLTOPOINT.nOffsetY specifies pixels number.
 #define AESC_OFFSETCHARX     0x00000400  //AESCROLLTOPOINT.nOffsetX specifies characters number.
@@ -670,10 +671,11 @@ typedef struct {
 } AEINDEXSUBTRACT;
 
 typedef struct {
-  DWORD dwFlags;  //[in] See AESC_* defines.
-  POINT ptPos;    //[in] Point to scroll to, ignored if AESC_POINTCARET flag specified.
-  int nOffsetX;   //[in] Horizontal scroll offset.
-  int nOffsetY;   //[in] Vertical scroll offset.
+  DWORD dwFlags;  //[in]     See AESC_* defines.
+  POINT ptPos;    //[in,out] Point to scroll to, ignored if AESC_POINTCARET flag specified.
+                  //         If AESC_POINTOUT flag specified, then after AEM_SCROLLTOPOINT returns ptPos will contain new scroll position, otherwise unchanged.
+  int nOffsetX;   //[in]     Horizontal scroll offset.
+  int nOffsetY;   //[in]     Vertical scroll offset.
 } AESCROLLTOPOINT;
 
 typedef struct {

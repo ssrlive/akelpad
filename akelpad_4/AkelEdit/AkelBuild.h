@@ -28,7 +28,7 @@
 //Required mouse moves before ...
 #define AEMMB_MBUTTONSCROLL  1
 #define AEMMB_BEGINDRAG      5
-#define AEMMB_DROPSCROLL     15
+#define AEMMB_DROPSCROLL     60
 
 //Mouse capture
 #define AEMC_MOUSEMOVE         0x00000001
@@ -712,7 +712,7 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus);
 BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret);
 void AE_SetCaretVis(AKELEDIT *ae, const POINT *ptCaret);
 void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect);
-DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, const POINT *ptPosition, int nOffsetX, int nOffsetY);
+DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOffsetX, int nOffsetY);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
 int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos);
 int AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign);
