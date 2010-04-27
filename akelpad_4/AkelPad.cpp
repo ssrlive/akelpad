@@ -420,6 +420,7 @@ BOOL bMdiNoWindows=FALSE;
 BOOL bMdiClientRedraw=TRUE;
 HWND hTab=NULL;
 DWORD dwTabOpenTimer=0;
+int nTabOpenItem=-1;
 DWORD dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_NEXTPREV;
 BOOL bKeybLayoutMDI=FALSE;
 HSTACK hIconsStack={0};
@@ -3500,9 +3501,19 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (((NMHDR *)lParam)->code == TCN_GETOBJECT)
         {
-          if (!dwTabOpenTimer)
+          if (((LPNMOBJECTNOTIFY)lParam)->iItem != -1)
           {
-            dwTabOpenTimer=SetTimer(hTab, TIMERID_TABOPEN, TIME_TABOPEN, NULL);
+            if (!dwTabOpenTimer)
+            {
+              dwTabOpenTimer=SetTimer(hTab, TIMERID_TABOPEN, TIME_TABOPEN, NULL);
+              nTabOpenItem=((LPNMOBJECTNOTIFY)lParam)->iItem;
+            }
+            else if (nTabOpenItem != ((LPNMOBJECTNOTIFY)lParam)->iItem)
+            {
+              KillTimer(hTab, dwTabOpenTimer);
+              dwTabOpenTimer=0;
+              nTabOpenItem=-1;
+            }
           }
           return 0;
         }
@@ -3510,7 +3521,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (dwTabOpenTimer)
             return TRUE;
-        } 
+        }
         else if (((NMHDR *)lParam)->code == TCN_SELCHANGE)
         {
           TCITEMA tcItemA;
@@ -5447,9 +5458,19 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (((NMHDR *)lParam)->code == TCN_GETOBJECT)
         {
-          if (!dwTabOpenTimer)
+          if (((LPNMOBJECTNOTIFY)lParam)->iItem != -1)
           {
-            dwTabOpenTimer=SetTimer(hTab, TIMERID_TABOPEN, TIME_TABOPEN, NULL);
+            if (!dwTabOpenTimer)
+            {
+              dwTabOpenTimer=SetTimer(hTab, TIMERID_TABOPEN, TIME_TABOPEN, NULL);
+              nTabOpenItem=((LPNMOBJECTNOTIFY)lParam)->iItem;
+            }
+            else if (nTabOpenItem != ((LPNMOBJECTNOTIFY)lParam)->iItem)
+            {
+              KillTimer(hTab, dwTabOpenTimer);
+              dwTabOpenTimer=0;
+              nTabOpenItem=-1;
+            }
           }
           return 0;
         }
@@ -5457,7 +5478,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (dwTabOpenTimer)
             return TRUE;
-        } 
+        }
         else if (((NMHDR *)lParam)->code == TCN_SELCHANGE)
         {
           TCITEMW tcItemW;
@@ -7441,16 +7462,17 @@ LRESULT CALLBACK NewTabProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Remove timer
         KillTimer(hTab, dwTabOpenTimer);
         dwTabOpenTimer=0;
+        nTabOpenItem=-1;
 
         //Activate tab
         if ((nItem=GetTabItemFromCursorPos(hTab)) != -1)
         {
           SelectTabItem(hTab, nItem);
-        
+
           //Restore minimized frame
           tcItemA.mask=TCIF_PARAM;
           SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemA);
-        
+
           if (GetWindowLongW((HWND)tcItemA.lParam, GWL_STYLE) & WS_MINIMIZE)
           {
             SendMessage(hMdiClient, WM_MDIRESTORE, (WPARAM)tcItemA.lParam, 0);
@@ -7606,16 +7628,17 @@ LRESULT CALLBACK NewTabProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Remove timer
         KillTimer(hTab, dwTabOpenTimer);
         dwTabOpenTimer=0;
+        nTabOpenItem=-1;
 
         //Activate tab
         if ((nItem=GetTabItemFromCursorPos(hTab)) != -1)
         {
           SelectTabItem(hTab, nItem);
-        
+
           //Restore minimized frame
           tcItemW.mask=TCIF_PARAM;
           SendMessage(hTab, TCM_GETITEMW, nItem, (LPARAM)&tcItemW);
-        
+
           if (GetWindowLongW((HWND)tcItemW.lParam, GWL_STYLE) & WS_MINIMIZE)
           {
             SendMessage(hMdiClient, WM_MDIRESTORE, (WPARAM)tcItemW.lParam, 0);

@@ -11,7 +11,7 @@
 #define TIMERID_TABOPEN     1
 
 //Times
-#define TIME_TABOPEN        1000
+#define TIME_TABOPEN        500
 
 #define DOCK_MAINMIN_X       30
 #define DOCK_MAINMIN_Y       30
