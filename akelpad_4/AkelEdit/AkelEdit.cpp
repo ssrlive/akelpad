@@ -3414,7 +3414,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         {
           AE_SetMouseCapture(ae, AEMC_MOUSEDRAG);
           ae->bDragging=TRUE;
-          ae->nMoveBeforeDragging=5;
+          ae->nMoveBeforeBeginDrag=AEMMB_BEGINDRAG;
         }
         //Start selection change capture
         else
@@ -3520,7 +3520,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
           ScreenToClient(ae->hWndEdit, &ae->ptMButtonDown);
           ae->bMButtonDown=TRUE;
           ae->bMButtonUp=FALSE;
-          ae->nMButtonMove=1;
+          ae->nMButtonMoveBeforeScroll=AEMMB_MBUTTONSCROLL;
 
           AE_MButtonDraw(ae);
 
@@ -3538,10 +3538,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       if (ae->bDragging)
       {
-        if (ae->nMoveBeforeDragging > 0)
-          --ae->nMoveBeforeDragging;
+        if (ae->nMoveBeforeBeginDrag > 0)
+          --ae->nMoveBeforeBeginDrag;
 
-        if (ae->nMoveBeforeDragging == 0)
+        if (ae->nMoveBeforeBeginDrag == 0)
         {
           DWORD dwEffectIn;
           DWORD dwEffectOut=0;
@@ -3596,8 +3596,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
 
         if (ae->bMButtonDown)
         {
-          if (ae->nMButtonMove > 0)
-            --ae->nMButtonMove;
+          if (ae->nMButtonMoveBeforeScroll > 0)
+            --ae->nMButtonMoveBeforeScroll;
         }
       }
       return 0;
@@ -3609,7 +3609,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
         ae->bDragging=FALSE;
         AE_ReleaseMouseCapture(ae, AEMC_MOUSEDRAG);
 
-        //Set selection if nMoveBeforeDragging not reached
+        //Set selection if nMoveBeforeBeginDrag not reached
         {
           POINT ptPos;
 
@@ -3638,7 +3638,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
       {
         if (!ae->bMButtonUp)
         {
-          if (!ae->nMButtonMove)
+          if (!ae->nMButtonMoveBeforeScroll)
           {
             if (ae->dwMouseScrollTimer)
             {
@@ -17642,6 +17642,7 @@ HRESULT WINAPI AEIDropTarget_DragEnter(LPUNKNOWN lpTable, IDataObject *pDataObje
         AE_UpdateCaret(ae, TRUE);
     }
     ae->bDropping=TRUE;
+    ae->nMoveBeforeDropScroll=AEMMB_DROPSCROLL;
     ScreenToClient(ae->hWndEdit, (POINT *)&pt);
     AE_DropTargetDropCursor(pDropTarget, &pt, pdwEffect);
   }
@@ -17882,7 +17883,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
   {
     AE_ScrollToCaret(ae, &ae->ptCaret, FALSE);
     AE_SetCaretPos(ae, &ae->ptCaret);
-    ae->nDraggingBeforeScroll=15;
+    ae->nMoveBeforeDropScroll=AEMMB_DROPSCROLL;
   }
   else
   {
@@ -17890,7 +17891,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
     {
       //Deny dropping in non-rect
       AE_SetCaretPos(ae, &ae->ptCaret);
-      ae->nDraggingBeforeScroll=15;
+      ae->nMoveBeforeDropScroll=AEMMB_DROPSCROLL;
       *pdwEffect=DROPEFFECT_NONE;
     }
     else
@@ -17921,13 +17922,13 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
 
         if ((dwScrollTest & AECSE_SCROLLEDX) || (dwScrollTest & AECSE_SCROLLEDY))
         {
-          if (ae->nDraggingBeforeScroll > 0)
-            --ae->nDraggingBeforeScroll;
+          if (ae->nMoveBeforeDropScroll > 0)
+            --ae->nMoveBeforeDropScroll;
 
-          if (ae->nDraggingBeforeScroll == 0)
+          if (ae->nMoveBeforeDropScroll == 0)
             AE_ScrollToCaret(ae, &ptGlobal, FALSE);
         }
-        else ae->nDraggingBeforeScroll=15;
+        else ae->nMoveBeforeDropScroll=AEMMB_DROPSCROLL;
 
         AE_SetCaretPos(ae, &ptGlobal);
       }
