@@ -7,7 +7,6 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <richedit.h>
-#include "ConvFunc.h"
 #include "StackFunc.h"
 #include "AkelEdit\StrFunc.h"
 
@@ -19,18 +18,6 @@
 #include "AkelPad.h"
 #include "Edit.h"
 
-
-//Include conversion functions
-#define xatoiA
-#define xatoiW
-#define xuitoaA
-#define xuitoaW
-#define hex2decA
-#define hex2decW
-#define dec2hexW
-#define hex2binW
-#define bin2hexW
-#include "ConvFunc.h"
 
 //Include stack functions
 #define StackGetElement
@@ -66,6 +53,15 @@
 #define xstrcmpinA
 #define xstrcmpinW
 #define xstrcmpiW
+#define xatoiA
+#define xatoiW
+#define xuitoaA
+#define xuitoaW
+#define hex2decA
+#define hex2decW
+#define dec2hexW
+#define hex2binW
+#define bin2hexW
 #include "AkelEdit\StrFunc.h"
 
 

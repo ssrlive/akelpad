@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v3.3                     *
+ *              String functions header v4.0                     *
  *                                                               *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -9,9 +9,14 @@
  * xstrcmpA, xstrcmpW, xstrcmpiA, xstrcmpiW,                     *
  * xstrcmpnA, xstrcmpnW, xstrcmpinA, xstrcmpinW,                 *
  * xstrcpyA, xstrcpyW, xstrcpynA, xstrcpynW,                     *
- * xstrstrA, xstrstrW, StrReplaceA, StrReplaceW,                 *
- * GetOptionsA, GetOptionsW, WordFindA, WordFindW                *
+ * xstrstrA, xstrstrW, xstrrepA, xstrrepW, xstroptA, xstroptW    *
  *                                                               *
+ * xatoiA, xatoiW, xatoi64A, xatoi64W,                           *
+ * xitoaA, xitoaW, xuitoaA, xuitoaW, xi64toaA, xi64toaW,         *
+ * hex2decA, hex2decW, dec2hexA, dec2hexW                        *
+ *                                                               *
+ *Special functions:                                             *
+ * bin2hexA, bin2hexW, hex2binA, hex2binW, xprintfA, xprintfW    *
  *****************************************************************/
 
 #ifndef _STRFUNC_H_
@@ -36,12 +41,32 @@ int xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength);
 int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLength);
 BOOL xstrstrA(const char *pText, DWORD dwTextLen, const char *pStr, BOOL bSensitive, char **pStrBegin, char **pStrEnd);
 BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd);
-int StrReplaceA(const char *pText, const char *pIt, const char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult);
-int StrReplaceW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult);
-int GetOptionsA(const char *pLine, const char *pOption, BOOL bSensitive, char *szResult, int nMaxResult);
-int GetOptionsW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult);
-int WordFindA(const char *pText, const char *pDelim, int nNumber, const char *pOption, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppResult);
-int WordFindW(const wchar_t *wpText, const wchar_t *wpDelim, int nNumber, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppResult);
+int xstrrepA(const char *pText, const char *pIt, const char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult);
+int xstrrepW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult);
+int xstroptA(const char *pLine, const char *pOption, BOOL bSensitive, char *szResult, int nMaxResult);
+int xstroptW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult);
+
+int xatoiA(const char *pStr, const char **pNext);
+int xatoiW(const wchar_t *wpStr, const wchar_t **wpNext);
+__int64 xatoi64A(const char *pStr, const char **pNext);
+__int64 xatoi64W(const wchar_t *wpStr, const wchar_t **wpNext);
+int xitoaA(int nNumber, char *szStr);
+int xitoaW(int nNumber, wchar_t *wszStr);
+int xuitoaA(unsigned int nNumber, char *szStr);
+int xuitoaW(unsigned int nNumber, wchar_t *wszStr);
+int xi64toaA(__int64 nNumber, char *szStr);
+int xi64toaW(__int64 nNumber, wchar_t *wszStr);
+int hex2decA(const char *pStrHex);
+int hex2decW(const wchar_t *wpStrHex);
+int dec2hexA(unsigned int nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase);
+int dec2hexW(unsigned int nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLowerCase);
+
+int bin2hexA(const unsigned char *pData, int nBytes, char *szStrHex, int nStrHexMax, BOOL bLowerCase);
+int bin2hexW(const unsigned char *pData, int nBytes, wchar_t *wszStrHex, int nStrHexMax, BOOL bLowerCase);
+int hex2binA(const char *pStrHex, unsigned char *pData, int nDataMax);
+int hex2binW(const wchar_t *wpStrHex, unsigned char *pData, int nDataMax);
+int xprintfA(char *szOutput, const char *pFormat, ...);
+int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...);
 
 #endif
 
@@ -54,7 +79,7 @@ int WordFindW(const wchar_t *wpText, const wchar_t *wpDelim, int nNumber, const 
  *
  * [in] wchar_t c  Unicode character.
  *
- *Returns: lowercase unicode character
+ *Returns: lowercase unicode character.
  ********************************************************************/
 #if defined WideCharLower || defined ALLSTRFUNC
 #define WideCharLower_INCLUDED
@@ -446,7 +471,7 @@ wchar_t WideCharLower(wchar_t c)
  *
  * [in] wchar_t c  Unicode character.
  *
- *Returns: uppercase unicode character
+ *Returns: uppercase unicode character.
  ********************************************************************/
 #if defined WideCharUpper || defined ALLSTRFUNC
 #define WideCharUpper_INCLUDED
@@ -895,9 +920,9 @@ void* xmemcpy(void *dest, const void *src, unsigned int count)
  *[in] const void *buf2    Second buffer.
  *[in] unsigned int count  Number of bytes.
  *
- *Returns:  -1 buf1 less than buf2
- *           0 buf1 identical to buf2
- *           1 buf1 greater than buf2
+ *Returns:  -1 buf1 less than buf2.
+ *           0 buf1 identical to buf2.
+ *           1 buf1 greater than buf2.
  ********************************************************************/
 #if defined xmemcmp || defined ALLSTRFUNC
 #define xmemcmp_INCLUDED
@@ -961,9 +986,9 @@ void* xmemset(void *dest, int c, unsigned int count)
  *[in] char *pString1  First string to compare.
  *[in] char *pString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2
- *           0 string1 identical to string2
- *           1 string1 greater than string2
+ *Returns:  -1 string1 less than string2.
+ *           0 string1 identical to string2.
+ *           1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpA || defined ALLSTRFUNC
 #define xstrcmpA_INCLUDED
@@ -994,9 +1019,9 @@ int xstrcmpA(const char *pString1, const char *pString2)
  *[in] wchar_t *wpString1  First string to compare.
  *[in] wchar_t *wpString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2
- *           0 string1 identical to string2
- *           1 string1 greater than string2
+ *Returns:  -1 string1 less than string2.
+ *           0 string1 identical to string2.
+ *           1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpW || defined ALLSTRFUNC
 #define xstrcmpW_INCLUDED
@@ -1027,9 +1052,9 @@ int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2)
  *[in] char *pString1  First string to compare.
  *[in] char *pString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2
- *           0 string1 identical to string2
- *           1 string1 greater than string2
+ *Returns:  -1 string1 less than string2.
+ *           0 string1 identical to string2.
+ *           1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpiA || defined ALLSTRFUNC
 #define xstrcmpiA_INCLUDED
@@ -1062,9 +1087,9 @@ int xstrcmpiA(const char *pString1, const char *pString2)
  *[in] wchar_t *wpString1  First string to compare.
  *[in] wchar_t *wpString2  Second string to compare.
  *
- *Returns:  -1 string1 less than string2
- *           0 string1 identical to string2
- *           1 string1 greater than string2
+ *Returns:  -1 string1 less than string2.
+ *           0 string1 identical to string2.
+ *           1 string1 greater than string2.
  *
  *Note:
  *  xstrcmpiW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
@@ -1110,9 +1135,9 @@ int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
  *[in] DWORD dwMaxLength  Number of characters to compare,
  *                         -1 compare until NULL character in pString1.
  *
- *Returns:  -1 string1 less than string2
- *           0 string1 identical to string2
- *           1 string1 greater than string2
+ *Returns:  -1 string1 less than string2.
+ *           0 string1 identical to string2.
+ *           1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpnA || defined ALLSTRFUNC
 #define xstrcmpnA_INCLUDED
@@ -1146,9 +1171,9 @@ int xstrcmpnA(const char *pString1, const char *pString2, DWORD dwMaxLength)
  *[in] DWORD dwMaxLength   Number of characters to compare,
  *                          -1 compare until NULL character in wpString1.
  *
- *Returns:  -1 string1 less than string2
- *           0 string1 identical to string2
- *           1 string1 greater than string2
+ *Returns:  -1 string1 less than string2.
+ *           0 string1 identical to string2.
+ *           1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpnW || defined ALLSTRFUNC
 #define xstrcmpnW_INCLUDED
@@ -1183,9 +1208,9 @@ int xstrcmpnW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLen
  *[in] DWORD dwMaxLength  Number of characters to compare,
  *                         -1 compare until NULL character in pString1.
  *
- *Returns:  -1 string1 less than string2
- *           0 string1 identical to string2
- *           1 string1 greater than string2
+ *Returns:  -1 string1 less than string2.
+ *           0 string1 identical to string2.
+ *           1 string1 greater than string2.
  ********************************************************************/
 #if defined xstrcmpinA || defined ALLSTRFUNC
 #define xstrcmpinA_INCLUDED
@@ -1221,9 +1246,9 @@ int xstrcmpinA(const char *pString1, const char *pString2, DWORD dwMaxLength)
  *[in] DWORD dwMaxLength   Number of characters to compare,
  *                          -1 compare until NULL character in wpString1.
  *
- *Returns:  -1 string1 less than string2
- *           0 string1 identical to string2
- *           1 string1 greater than string2
+ *Returns:  -1 string1 less than string2.
+ *           0 string1 identical to string2.
+ *           1 string1 greater than string2.
  *
  *Note:
  *  xstrcmpinW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
@@ -1286,6 +1311,8 @@ int xstrcpyA(char *pString1, const char *pString2)
       *pDest++=*pSrc++;
     *pDest=L'\0';
   }
+  else return lstrlenA(pSrc);
+
   return pDest - pString1;
 }
 #endif
@@ -1317,6 +1344,8 @@ int xstrcpyW(wchar_t *wpString1, const wchar_t *wpString2)
       *wpDest++=*wpSrc++;
     *wpDest=L'\0';
   }
+  else return lstrlenW(wpSrc);
+
   return wpDest - wpString1;
 }
 #endif
@@ -1349,6 +1378,11 @@ int xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength)
     while (*pSrc && --nMaxLength)
       *pDest++=*pSrc++;
     *pDest=L'\0';
+  }
+  else
+  {
+    unsigned int nLen=lstrlenA(pSrc);
+    return min(nLen, nMaxLength);
   }
   return pDest - pString1;
 }
@@ -1383,6 +1417,11 @@ int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLen
       *wpDest++=*wpSrc++;
     *wpDest=L'\0';
   }
+  else
+  {
+    unsigned int nLen=lstrlenW(wpSrc);
+    return min(nLen, nMaxLength);
+  }
   return wpDest - wpString1;
 }
 #endif
@@ -1401,8 +1440,8 @@ int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLen
  *[out] char **pStrBegin   Pointer to the first char of pStr, can be NULL.
  *[out] char **pStrEnd     Pointer to the first char after pStr, can be NULL.
  *
- *Returns:  TRUE  pStr is founded
- *          FALSE pStr isn't founded
+ *Returns:  TRUE  pStr is founded.
+ *          FALSE pStr isn't founded.
  ********************************************************************/
 #if defined xstrstrA || defined ALLSTRFUNC
 #define xstrstrA_INCLUDED
@@ -1457,8 +1496,8 @@ BOOL xstrstrA(const char *pText, DWORD dwTextLen, const char *pStr, BOOL bSensit
  *[out] wchar_t **wpStrBegin   Pointer to the first char of wpStr, can be NULL.
  *[out] wchar_t **wpStrEnd     Pointer to the first char after wpStr, can be NULL.
  *
- *Returns:  TRUE  wpStr is founded
- *          FALSE wpStr isn't founded
+ *Returns:  TRUE  wpStr is founded.
+ *          FALSE wpStr isn't founded.
  *
  *Note:
  *  xstrstrW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
@@ -1510,9 +1549,9 @@ BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL
 
 /********************************************************************
  *
- *  StrReplaceA
+ *  xstrrepA
  *
- *Replace substring in string.
+ *Replace substring with string.
  *
  * [in] const char *pText  Text.
  * [in] const char *pIt    Replace it.
@@ -1524,12 +1563,12 @@ BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL
  *                          including the terminating null character,
  *                          can be NULL.
  *
- *Returns:  Number of changes
+ *Returns:  number of changes.
  ********************************************************************/
-#if defined StrReplaceA || defined ALLSTRFUNC
-#define StrReplaceA_INCLUDED
-#undef StrReplaceA
-int StrReplaceA(const char *pText, const char *pIt, const char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult)
+#if defined xstrrepA || defined ALLSTRFUNC
+#define xstrrepA_INCLUDED
+#undef xstrrepA
+int xstrrepA(const char *pText, const char *pIt, const char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult)
 {
   const char *pTextCount;
   const char *pItCount;
@@ -1573,9 +1612,9 @@ int StrReplaceA(const char *pText, const char *pIt, const char *pWith, BOOL bSen
 
 /********************************************************************
  *
- *  StrReplaceW
+ *  xstrrepW
  *
- *Replace substring in unicode string.
+ *Replace substring with unicode string.
  *
  * [in] const wchar_t *wpText  Text.
  * [in] const wchar_t *wpIt    Replace it.
@@ -1587,15 +1626,15 @@ int StrReplaceA(const char *pText, const char *pIt, const char *pWith, BOOL bSen
  *                              including the terminating null character,
  *                              can be NULL.
  *
- *Returns:  Number of changes
+ *Returns:  number of changes.
  *
  *Note:
- *  StrReplaceW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
+ *  xstrrepW can be used on Win95/98/Me if WideCharLower or WideCharUpper defined.
  ********************************************************************/
-#if defined StrReplaceW || defined ALLSTRFUNC
-#define StrReplaceW_INCLUDED
-#undef StrReplaceW
-int StrReplaceW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult)
+#if defined xstrrepW || defined ALLSTRFUNC
+#define xstrrepW_INCLUDED
+#undef xstrrepW
+int xstrrepW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult)
 {
   const wchar_t *wpTextCount;
   const wchar_t *wpItCount;
@@ -1645,7 +1684,7 @@ int StrReplaceW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWit
 
 /********************************************************************
  *
- *  GetOptionsA
+ *  xstroptA
  *
  *Gets option string from parameters line.
  *
@@ -1657,12 +1696,12 @@ int StrReplaceW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWit
  * [in] int nMaxResult       Output buffer size.
  *
  *Returns:  length of the string copied to szResult,
- *          including the terminating null character
+ *          including the terminating null character.
  ********************************************************************/
-#if defined GetOptionsA || defined ALLSTRFUNC
-#define GetOptionsA_INCLUDED
-#undef GetOptionsA
-int GetOptionsA(const char *pLine, const char *pOption, BOOL bSensitive, char *szResult, int nMaxResult)
+#if defined xstroptA || defined ALLSTRFUNC
+#define xstroptA_INCLUDED
+#undef xstroptA
+int xstroptA(const char *pLine, const char *pOption, BOOL bSensitive, char *szResult, int nMaxResult)
 {
   const char *pLineStart;
   const char *pLineEnd;
@@ -1721,7 +1760,7 @@ int GetOptionsA(const char *pLine, const char *pOption, BOOL bSensitive, char *s
 
 /********************************************************************
  *
- *  GetOptionsW
+ *  xstroptW
  *
  *Gets option string from unicode parameters line.
  *
@@ -1733,12 +1772,15 @@ int GetOptionsA(const char *pLine, const char *pOption, BOOL bSensitive, char *s
  * [in] int nMaxResult           Output buffer size.
  *
  *Returns:  length of the string copied to wszResult,
- *          including the terminating null character
+ *          including the terminating null character.
+ *
+ *Note:
+ *  xstrrepW can be used on Win95/98/Me if xstrcpynW and WideCharLower/WideCharUpper defined.
  ********************************************************************/
-#if defined GetOptionsW || defined ALLSTRFUNC
-#define GetOptionsW_INCLUDED
-#undef GetOptionsW
-int GetOptionsW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult)
+#if defined xstroptW || defined ALLSTRFUNC
+#define xstroptW_INCLUDED
+#undef xstroptW
+int xstroptW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult)
 {
   const wchar_t *wpLineStart;
   const wchar_t *wpLineEnd;
@@ -1794,7 +1836,11 @@ int GetOptionsW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive,
     if (wszResult)
     {
       if (nMaxResult < nBytes) nBytes=nMaxResult;
-      lstrcpynW(wszResult, wpOptionString, nBytes);
+      #if defined xstrcpynW_INCLUDED
+        xstrcpynW(wszResult, wpOptionString, nBytes);
+      #else
+        lstrcpynW(wszResult, wpOptionString, nBytes);
+      #endif
     }
   }
   return nBytes;
@@ -1803,733 +1849,1183 @@ int GetOptionsW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive,
 
 /********************************************************************
  *
- *  WordFindA
+ *  xatoiA
  *
- *String manipulation function.
+ *Converts string to int.
  *
- * [in] const char *pText    Text.
- * [in] const char *pDelim   Delimiter.
- * [in] int nNumber          Number of the delimiter/word if positive
- *                            search from beginning if negative from end,
- *                            if (nNumber == 0) then returns sum of delimiters/words.
- * [in] const char *pOption  ">"     all text before founded delimiter.
- *                           "<"     all text after founded delimiter.
- *                           "<>"    deletes delimiter.
- *                           "*"     text between delimiters (word).
- *                           "*>"    all text after founded word.
- *                           ">*"    word and all text after founded word.
- *                           "<*"    all text before founded word.
- *                           "*<"    word and all text before founded word.
- *                           "<*>"   deletes word and neighbouring delimiter.
- * [in] BOOL bSensitive      TRUE   case sensitive.
- *                           FALSE  case insensitive.
- *[out] char *szResult       Output for result string, can be NULL.
- *[out] int *nMaxResult      Contains the length of the result string,
- *                            not including the terminating null character,
- *                            can be NULL.
- *[out] char **ppResult      Pointer to the first character of result string in pText,
- *                            can be NULL.
+ *[in]  const char *pStr  String number.
+ *[out] char **pNext      Pointer to the first char after number, can be NULL.
  *
- *Returns (nRes):  sum of delimiters/words, if (nNumber == 0)
- *                 -1 syntax error or pDelim is empty
- *                 -2 no delimiters found
- *                 -3 no such delimiter/word number
+ *Returns: integer.
  *
- *Defines:
- * #define WordFindA_UNMINUS  //nNumber only positive (uses for minimize program size)
- * #define WordFindA_UNPLUS   //nNumber only negative (uses for minimize program size)
+ *Examples:
+ *  xatoiA("45", NULL) == 45;
+ *  xatoiA("  -0045:value", &pNext) == -45, pNext == ":value"
  ********************************************************************/
-#if defined WordFindA || defined ALLSTRFUNC
-#define WordFindA_INCLUDED
-#undef WordFindA
-int WordFindA(const char *pText, const char *pDelim, int nNumber, const char *pOption, BOOL bSensitive, char *szResult, int *nMaxResult, char **ppResult)
+#if defined xatoiA || defined ALLSTRFUNC
+#define xatoiA_INCLUDED
+#undef xatoiA
+int xatoiA(const char *pStr, const char **pNext)
 {
-  const char *pTextStart;
-  const char *pTextEnd;
-  const char *pTextMinus=NULL;
-  const char *pDelimCount;
-  const char *pDelimMinus=NULL;
-  const char *pWord;
-  const char *pResult=NULL;
-  BOOL bFound=FALSE;
-  BOOL bRow=TRUE;
-  int nOption=0;
-  int nCurStrNumber=0;
-  int nCurWordNumber=0;
-  int nDelimLen=lstrlenA(pDelim);
-  int nResultSize=0;
+  int nNumber=0;
+  BOOL bMinus=FALSE;
 
-  if (!lstrcmpA(pOption, ">")) nOption=1;
-  else if (!lstrcmpA(pOption, "<")) nOption=2;
-  else if (!lstrcmpA(pOption, "<>")) nOption=3;
-  else if (!lstrcmpA(pOption, "*")) nOption=4;
-  else if (!lstrcmpA(pOption, "*>")) nOption=5;
-  else if (!lstrcmpA(pOption, ">*")) nOption=6;
-  else if (!lstrcmpA(pOption, "<*")) nOption=7;
-  else if (!lstrcmpA(pOption, "*<")) nOption=8;
-  else if (!lstrcmpA(pOption, "<*>")) nOption=9;
-
-  if (nDelimLen == 0 || nOption == 0)
-    return -1;
-
-  #ifndef WordFindA_UNPLUS
-  if (nNumber >= 0)
+  while (*pStr == ' ' || *pStr == '\t')
+    ++pStr;
+  if (*pStr == '+')
+    ++pStr;
+  else if (*pStr == '-')
   {
-    for (pWord=pTextStart=pTextEnd=pText; *pTextStart && *pTextEnd; ++pTextStart)
-    {
-      for (pTextEnd=pTextStart, pDelimCount=pDelim;
-            *pTextEnd &&
-            (*pTextEnd == *pDelimCount ||
-            (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pTextEnd) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pDelimCount)));
-           ++pTextEnd)
-      {
-        if (!*++pDelimCount)
-        {
-          if (nOption > 3)
-          {
-            if (bRow == FALSE && ++nCurWordNumber == nNumber)
-            {
-              if (nOption == 4)
-              {
-                pResult=pWord;
-                nResultSize=pTextEnd - pResult - nDelimLen + 1;
-              }
-              else if (nOption == 5)
-              {
-                pResult=pTextEnd - nDelimLen + 1;
-                nResultSize=lstrlenA(pResult);
-              }
-              else if (nOption == 6)
-              {
-                pResult=pWord;
-                nResultSize=lstrlenA(pResult);
-              }
-              else if (nOption == 7)
-              {
-                pResult=pText;
-                nResultSize=pWord - pResult;
-              }
-              else if (nOption == 8)
-              {
-                pResult=pText;
-                nResultSize=pTextEnd - pResult - nDelimLen + 1;
-              }
-              else if (nOption == 9)
-              {
-                pResult=pTextEnd + 1;
-                nResultSize=(pWord - pResult) + lstrlenA(pResult);
-              }
-              if (ppResult) *ppResult=(char *)pResult;
-              if (nMaxResult) *nMaxResult=nResultSize;
-              if (szResult)
-              {
-                if (nOption == 9)
-                {
-                  lstrcpynA(szResult, pText, pWord - pText + 1);
-                  lstrcatA(szResult, pResult);
-                }
-                else lstrcpynA(szResult, pResult, nResultSize + 1);
-              }
-              return 0;
-            }
-            pWord=pTextEnd + 1;
-            bRow=TRUE;
-          }
-          else if (++nCurStrNumber == nNumber)
-          {
-            if (nOption == 1)
-            {
-              pResult=pTextEnd + 1;
-              nResultSize=lstrlenA(pResult);
-            }
-            else if (nOption == 2)
-            {
-              pResult=pText;
-              nResultSize=pTextEnd - pResult - nDelimLen + 1;
-            }
-            else if (nOption == 3)
-            {
-              pResult=pTextEnd + 1;
-              nResultSize=(pResult - pText - nDelimLen) + lstrlenA(pResult);
-            }
-            if (ppResult) *ppResult=(char *)pResult;
-            if (nMaxResult) *nMaxResult=nResultSize;
-            if (szResult)
-            {
-              if (nOption == 3)
-              {
-                lstrcpynA(szResult, pText, pTextEnd - pText - nDelimLen + 2);
-                lstrcatA(szResult, pResult);
-              }
-              else lstrcpynA(szResult, pResult, nResultSize + 1);
-            }
-            return 0;
-          }
-          pTextStart=pTextEnd + 1;
-          pDelimCount=pDelim;
-          bFound=TRUE;
-        }
-      }
-      if (*pTextStart && *pTextEnd) bRow=FALSE;
-    }
-    if (*pTextEnd) pTextEnd=pTextStart;
-
-    if (nOption > 3 && bFound == TRUE && bRow == FALSE && ++nCurWordNumber == nNumber)
-    {
-      if (nOption == 4 || nOption == 6)
-      {
-        pResult=pWord;
-        nResultSize=pTextEnd - pResult;
-      }
-      else if (nOption == 5)
-      {
-        pResult=pTextEnd;
-        nResultSize=0;
-      }
-      else if (nOption == 7)
-      {
-        pResult=pText;
-        nResultSize=pWord - pResult;
-      }
-      else if (nOption == 8)
-      {
-        pResult=pText;
-        nResultSize=pTextEnd - pResult;
-      }
-      else if (nOption == 9)
-      {
-        pResult=pText;
-        nResultSize=(pWord - nDelimLen) - pResult;
-      }
-      if (ppResult) *ppResult=(char *)pResult;
-      if (nMaxResult) *nMaxResult=nResultSize;
-      if (szResult)
-      {
-        lstrcpynA(szResult, pResult, nResultSize + 1);
-      }
-      return 0;
-    }
-    if (nNumber == 0)
-    {
-      if (nOption <= 3)
-        return nCurStrNumber;
-      return nCurWordNumber;
-    }
+    bMinus=TRUE;
+    ++pStr;
   }
-  #endif
 
-  #ifndef WordFindA_UNMINUS
-  else if (nNumber < 0)
+  while (*pStr >= '0' && *pStr <= '9')
   {
-    pTextMinus=pTextStart=pTextEnd=pText + lstrlenA(pText) - 1;
-    pDelimMinus=pDelim + nDelimLen - 1;
-    pWord=pTextMinus + 1;
-
-    for (; pTextEnd >= pText && pTextStart >= pText; --pTextEnd)
-    {
-      for (pTextStart=pTextEnd, pDelimCount=pDelimMinus;
-            pTextStart >= pText &&
-            (*pTextStart == *pDelimCount ||
-            (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pTextStart) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pDelimCount)));
-           --pTextStart)
-      {
-        if (--pDelimCount < pDelim)
-        {
-          if (nOption > 3)
-          {
-            if (bRow == FALSE && --nCurWordNumber == nNumber)
-            {
-              if (nOption == 4)
-              {
-                pResult=pTextStart + nDelimLen;
-                nResultSize=pWord - pResult;
-              }
-              else if (nOption == 5)
-              {
-                pResult=pWord;
-                nResultSize=pTextMinus - pResult + 1;
-              }
-              else if (nOption == 6)
-              {
-                pResult=pTextStart + nDelimLen;
-                nResultSize=pTextMinus - pResult + 1;
-              }
-              else if (nOption == 7)
-              {
-                pResult=pText;
-                nResultSize=(pTextStart + nDelimLen) - pResult;
-              }
-              else if (nOption == 8)
-              {
-                pResult=pText;
-                nResultSize=pWord - pResult;
-              }
-              else if (nOption == 9)
-              {
-                pResult=pTextStart;
-                nResultSize=(pResult - pText) + (pTextMinus - pWord) + 1;
-              }
-              if (ppResult) *ppResult=(char *)pResult;
-              if (nMaxResult) *nMaxResult=nResultSize;
-              if (szResult)
-              {
-                if (nOption == 9)
-                {
-                  lstrcpynA(szResult, pText, pTextStart - pText + 1);
-                  lstrcatA(szResult, pWord);
-                }
-                else lstrcpynA(szResult, pResult, nResultSize + 1);
-              }
-              return 0;
-            }
-            pWord=pTextStart;
-            bRow=TRUE;
-          }
-          else if (--nCurStrNumber == nNumber)
-          {
-            if (nOption == 1)
-            {
-              pResult=pTextStart + nDelimLen;
-              nResultSize=pTextMinus - pResult + 1;
-            }
-            else if (nOption == 2)
-            {
-              pResult=pText;
-              nResultSize=pTextStart - pResult;
-            }
-            else if (nOption == 3)
-            {
-              pResult=pTextStart;
-              nResultSize=pTextMinus - pText - nDelimLen + 1;
-            }
-            if (ppResult) *ppResult=(char *)pResult;
-            if (nMaxResult) *nMaxResult=nResultSize;
-            if (szResult)
-            {
-              if (nOption == 3)
-              {
-                lstrcpynA(szResult, pText, pTextStart - pText + 1);
-                lstrcatA(szResult, pTextStart + nDelimLen);
-              }
-              else lstrcpynA(szResult, pResult, nResultSize + 1);
-            }
-            return 0;
-          }
-          pTextEnd=pTextStart;
-          pDelimCount=pDelimMinus;
-          bFound=TRUE;
-        }
-      }
-      if (pTextEnd >= pText && pTextStart >= pText) bRow=FALSE;
-    }
-    if (nOption > 3 && bFound == TRUE && bRow == FALSE && --nCurWordNumber == nNumber)
-    {
-      if (nOption == 4 || nOption == 8)
-      {
-        pResult=pText;
-        nResultSize=pWord - pResult;
-      }
-      else if (nOption == 5)
-      {
-        pResult=pWord;
-        nResultSize=pTextMinus - pResult + 1;
-      }
-      else if (nOption == 6)
-      {
-        pResult=pText;
-        nResultSize=pTextMinus - pResult + 1;
-      }
-      else if (nOption == 7)
-      {
-        pResult=pText;
-        nResultSize=0;
-      }
-      else if (nOption == 9)
-      {
-        pResult=pWord + nDelimLen;
-        nResultSize=pTextMinus - pResult + 1;
-      }
-      if (ppResult) *ppResult=(char *)pResult;
-      if (nMaxResult) *nMaxResult=nResultSize;
-      if (szResult)
-      {
-        lstrcpynA(szResult, pResult, nResultSize + 1);
-      }
-      return 0;
-    }
+    nNumber=(nNumber * 10) + (*pStr - '0');
+    ++pStr;
   }
-  #endif
-
-  if (bFound == TRUE)
-    return -3;
-  else
-    return -2;
+  if (bMinus == TRUE) nNumber=-nNumber;
+  if (pNext) *pNext=pStr;
+  return nNumber;
 }
 #endif
 
 /********************************************************************
  *
- *  WordFindW
+ *  xatoiW
  *
- *Unicode string manipulation function.
+ *Converts unicode string to int.
  *
- * [in] const wchar_t *wpText    Text.
- * [in] const wchar_t *wpDelim   Delimiter.
- * [in] int nNumber              Number of the delimiter/word if positive
- *                                search from beginning if negative from end,
- *                                if (nNumber == 0) then returns sum of delimiters/words.
- * [in] const wchar_t *wpOption  L">"     all text before founded delimiter.
- *                               L"<"     all text after founded delimiter.
- *                               L"<>"    deletes delimiter.
- *                               L"*"     text between delimiters (word).
- *                               L"*>"    all text after founded word.
- *                               L">*"    word and all text after founded word.
- *                               L"<*"    all text before founded word.
- *                               L"*<"    word and all text before founded word.
- *                               L"<*>"   deletes word and neighbouring delimiter.
- * [in] BOOL bSensitive          TRUE   case sensitive.
- *                               FALSE  case insensitive.
- *[out] wchar_t *wszResult       Output for result string, can be NULL.
- *[out] int *nMaxResult          Contains the length of the result string,
- *                                not including the terminating null character,
- *                                can be NULL.
- *[out] wchar_t **wppResult      Pointer to the first character of result string in wpText,
- *                                can be NULL.
+ *[in]  const wchar_t *wpStr  Unicode string number.
+ *[out] wchar_t **wpNext      Pointer to the first char after number, can be NULL.
  *
- *Returns (nRes):  sum of delimiters/words, if (nNumber == 0)
- *                 -1 syntax error or wpDelim is empty
- *                 -2 no delimiters found
- *                 -3 no such delimiter/word number
+ *Returns: integer.
  *
- *Defines:
- * #define WordFindW_UNMINUS  //nNumber only positive (uses for minimize program size)
- * #define WordFindW_UNPLUS   //nNumber only negative (uses for minimize program size)
+ *Examples:
+ *  xatoiW(L"45", NULL) == 45;
+ *  xatoiW(L"  -0045:value", &wpNext) == -45, wpNext == L":value"
  ********************************************************************/
-#if defined WordFindW || defined ALLSTRFUNC
-#define WordFindW_INCLUDED
-#undef WordFindW
-int WordFindW(const wchar_t *wpText, const wchar_t *wpDelim, int nNumber, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult, wchar_t **wppResult)
+#if defined xatoiW || defined ALLSTRFUNC
+#define xatoiW_INCLUDED
+#undef xatoiW
+int xatoiW(const wchar_t *wpStr, const wchar_t **wpNext)
 {
-  const wchar_t *wpTextStart;
-  const wchar_t *wpTextEnd;
-  const wchar_t *wpTextMinus=NULL;
-  const wchar_t *wpDelimCount;
-  const wchar_t *wpDelimMinus=NULL;
-  const wchar_t *wpWord;
-  const wchar_t *wpResult=NULL;
-  BOOL bFound=FALSE;
-  BOOL bRow=TRUE;
-  int nOption=0;
-  int nCurStrNumber=0;
-  int nCurWordNumber=0;
-  int nDelimLen=lstrlenW(wpDelim);
-  int nResultSize=0;
+  int nNumber=0;
+  BOOL bMinus=FALSE;
 
-  if (!lstrcmpW(wpOption, L">")) nOption=1;
-  else if (!lstrcmpW(wpOption, L"<")) nOption=2;
-  else if (!lstrcmpW(wpOption, L"<>")) nOption=3;
-  else if (!lstrcmpW(wpOption, L"*")) nOption=4;
-  else if (!lstrcmpW(wpOption, L"*>")) nOption=5;
-  else if (!lstrcmpW(wpOption, L">*")) nOption=6;
-  else if (!lstrcmpW(wpOption, L"<*")) nOption=7;
-  else if (!lstrcmpW(wpOption, L"*<")) nOption=8;
-  else if (!lstrcmpW(wpOption, L"<*>")) nOption=9;
-
-  if (nDelimLen == 0 || nOption == 0)
-    return -1;
-
-  #ifndef WordFindW_UNPLUS
-  if (nNumber >= 0)
+  while (*wpStr == ' ' || *wpStr == '\t')
+    ++wpStr;
+  if (*wpStr == '+')
+    ++wpStr;
+  else if (*wpStr == '-')
   {
-    for (wpWord=wpTextStart=wpTextEnd=wpText; *wpTextStart && *wpTextEnd; ++wpTextStart)
-    {
-      for (wpTextEnd=wpTextStart, wpDelimCount=wpDelim;
-            *wpTextEnd &&
-            (*wpTextEnd == *wpDelimCount ||
-            (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextEnd) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpDelimCount)));
-           ++wpTextEnd)
-      {
-        if (!*++wpDelimCount)
-        {
-          if (nOption > 3)
-          {
-            if (bRow == FALSE && ++nCurWordNumber == nNumber)
-            {
-              if (nOption == 4)
-              {
-                wpResult=wpWord;
-                nResultSize=wpTextEnd - wpResult - nDelimLen + 1;
-              }
-              else if (nOption == 5)
-              {
-                wpResult=wpTextEnd - nDelimLen + 1;
-                nResultSize=lstrlenW(wpResult);
-              }
-              else if (nOption == 6)
-              {
-                wpResult=wpWord;
-                nResultSize=lstrlenW(wpResult);
-              }
-              else if (nOption == 7)
-              {
-                wpResult=wpText;
-                nResultSize=wpWord - wpResult;
-              }
-              else if (nOption == 8)
-              {
-                wpResult=wpText;
-                nResultSize=wpTextEnd - wpResult - nDelimLen + 1;
-              }
-              else if (nOption == 9)
-              {
-                wpResult=wpTextEnd + 1;
-                nResultSize=(wpWord - wpResult) + lstrlenW(wpResult);
-              }
-              if (wppResult) *wppResult=(wchar_t *)wpResult;
-              if (nMaxResult) *nMaxResult=nResultSize;
-              if (wszResult)
-              {
-                if (nOption == 9)
-                {
-                  lstrcpynW(wszResult, wpText, wpWord - wpText + 1);
-                  lstrcatW(wszResult, wpResult);
-                }
-                else lstrcpynW(wszResult, wpResult, nResultSize + 1);
-              }
-              return 0;
-            }
-            wpWord=wpTextEnd + 1;
-            bRow=TRUE;
-          }
-          else if (++nCurStrNumber == nNumber)
-          {
-            if (nOption == 1)
-            {
-              wpResult=wpTextEnd + 1;
-              nResultSize=lstrlenW(wpResult);
-            }
-            else if (nOption == 2)
-            {
-              wpResult=wpText;
-              nResultSize=wpTextEnd - wpResult - nDelimLen + 1;
-            }
-            else if (nOption == 3)
-            {
-              wpResult=wpTextEnd + 1;
-              nResultSize=(wpResult - wpText - nDelimLen) + lstrlenW(wpResult);
-            }
-            if (wppResult) *wppResult=(wchar_t *)wpResult;
-            if (nMaxResult) *nMaxResult=nResultSize;
-            if (wszResult)
-            {
-              if (nOption == 3)
-              {
-                lstrcpynW(wszResult, wpText, wpTextEnd - wpText - nDelimLen + 2);
-                lstrcatW(wszResult, wpResult);
-              }
-              else lstrcpynW(wszResult, wpResult, nResultSize + 1);
-            }
-            return 0;
-          }
-          wpTextStart=wpTextEnd + 1;
-          wpDelimCount=wpDelim;
-          bFound=TRUE;
-        }
-      }
-      if (*wpTextStart && *wpTextEnd) bRow=FALSE;
-    }
-    if (*wpTextEnd) wpTextEnd=wpTextStart;
-
-    if (nOption > 3 && bFound == TRUE && bRow == FALSE && ++nCurWordNumber == nNumber)
-    {
-      if (nOption == 4 || nOption == 6)
-      {
-        wpResult=wpWord;
-        nResultSize=wpTextEnd - wpResult;
-      }
-      else if (nOption == 5)
-      {
-        wpResult=wpTextEnd;
-        nResultSize=0;
-      }
-      else if (nOption == 7)
-      {
-        wpResult=wpText;
-        nResultSize=wpWord - wpResult;
-      }
-      else if (nOption == 8)
-      {
-        wpResult=wpText;
-        nResultSize=wpTextEnd - wpResult;
-      }
-      else if (nOption == 9)
-      {
-        wpResult=wpText;
-        nResultSize=(wpWord - nDelimLen) - wpResult;
-      }
-      if (wppResult) *wppResult=(wchar_t *)wpResult;
-      if (nMaxResult) *nMaxResult=nResultSize;
-      if (wszResult)
-      {
-        lstrcpynW(wszResult, wpResult, nResultSize + 1);
-      }
-      return 0;
-    }
-    if (nNumber == 0)
-    {
-      if (nOption <= 3)
-        return nCurStrNumber;
-      return nCurWordNumber;
-    }
+    bMinus=TRUE;
+    ++wpStr;
   }
-  #endif
 
-  #ifndef WordFindW_UNMINUS
+  while (*wpStr >= '0' && *wpStr <= '9')
+  {
+    nNumber=(nNumber * 10) + (*wpStr - '0');
+    ++wpStr;
+  }
+  if (bMinus == TRUE) nNumber=-nNumber;
+  if (wpNext) *wpNext=wpStr;
+  return nNumber;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xatoi64A
+ *
+ *Converts string to int64.
+ *
+ *[in]  const char *pStr  String number.
+ *[out] char **pNext      Pointer to the first char after number, can be NULL.
+ *
+ *Returns: 64-bit integer.
+ *
+ *Examples:
+ *  xatoi64A("45", NULL) == 45;
+ *  xatoi64A("  -0045:value", &pNext) == -45, pNext == ":value"
+ ********************************************************************/
+#if defined xatoi64A || defined ALLSTRFUNC
+#define xatoi64A_INCLUDED
+#undef xatoi64A
+__int64 xatoi64A(const char *pStr, const char **pNext)
+{
+  __int64 nNumber=0;
+  BOOL bMinus=FALSE;
+
+  while (*pStr == ' ' || *pStr == '\t')
+    ++pStr;
+  if (*pStr == '+')
+    ++pStr;
+  else if (*pStr == '-')
+  {
+    bMinus=TRUE;
+    ++pStr;
+  }
+
+  while (*pStr >= '0' && *pStr <= '9')
+  {
+    nNumber=(nNumber * 10) + (*pStr - '0');
+    ++pStr;
+  }
+  if (bMinus == TRUE) nNumber=-nNumber;
+  if (pNext) *pNext=pStr;
+  return nNumber;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xatoi64W
+ *
+ *Converts unicode string to int64.
+ *
+ *[in]  const wchar_t *wpStr  Unicode string number.
+ *[out] wchar_t **wpNext      Pointer to the first char after number, can be NULL.
+ *
+ *Returns: 64-bit integer.
+ *
+ *Examples:
+ *  xatoi64W(L"45", NULL) == 45;
+ *  xatoi64W(L"  -0045:value", &wpNext) == -45, wpNext == L":value"
+ ********************************************************************/
+#if defined xatoi64W || defined ALLSTRFUNC
+#define xatoi64W_INCLUDED
+#undef xatoi64W
+__int64 xatoi64W(const wchar_t *wpStr, const wchar_t **wpNext)
+{
+  __int64 nNumber=0;
+  BOOL bMinus=FALSE;
+
+  while (*wpStr == ' ' || *wpStr == '\t')
+    ++wpStr;
+  if (*wpStr == '+')
+    ++wpStr;
+  else if (*wpStr == '-')
+  {
+    bMinus=TRUE;
+    ++wpStr;
+  }
+
+  while (*wpStr >= '0' && *wpStr <= '9')
+  {
+    nNumber=(nNumber * 10) + (*wpStr - '0');
+    ++wpStr;
+  }
+  if (bMinus == TRUE) nNumber=-nNumber;
+  if (wpNext) *wpNext=wpStr;
+  return nNumber;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xitoaA
+ *
+ *Converts int to string.
+ *
+ *[in]   int nNumber  Integer.
+ *[out]  char *szStr  String number, if NULL required buffer size returned in TCHARs.
+ *
+ *Returns: copied digits.
+ *
+ *Examples:
+ *  xitoaA(45, szResult);   //szResult == "45"
+ *  xitoaA(-45, szResult);  //szResult == "-45"
+ ********************************************************************/
+#if defined xitoaA || defined ALLSTRFUNC
+#define xitoaA_INCLUDED
+#undef xitoaA
+int xitoaA(int nNumber, char *szStr)
+{
+  char szReverse[128];
+  int a;
+  int b=0;
+
+  if (nNumber == 0)
+  {
+    if (szStr) szStr[b]='0';
+    ++b;
+  }
   else if (nNumber < 0)
   {
-    wpTextMinus=wpTextStart=wpTextEnd=wpText + lstrlenW(wpText) - 1;
-    wpDelimMinus=wpDelim + nDelimLen - 1;
-    wpWord=wpTextMinus + 1;
+    if (szStr) szStr[b]='-';
+    ++b;
+    nNumber=-nNumber;
+  }
+  for (a=0; nNumber != 0; ++a)
+  {
+    szReverse[a]=(nNumber % 10) + '0';
+    nNumber=nNumber / 10;
+  }
+  if (!szStr) return a + b + 1;
 
-    for (; wpTextEnd >= wpText && wpTextStart >= wpText; --wpTextEnd)
+  while (--a >= 0) szStr[b++]=szReverse[a];
+  szStr[b]='\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xitoaW
+ *
+ *Converts int to unicode string.
+ *
+ *[in]   int nNumber      Integer.
+ *[out]  wchar_t *wszStr  Unicode string number, if NULL required buffer size returned in TCHARs.
+ *
+ *Returns: copied digits.
+ *
+ *Examples:
+ *  xitoaW(45, wszResult);   //wszResult == L"45"
+ *  xitoaW(-45, wszResult);  //wszResult == L"-45"
+ ********************************************************************/
+#if defined xitoaW || defined ALLSTRFUNC
+#define xitoaW_INCLUDED
+#undef xitoaW
+int xitoaW(int nNumber, wchar_t *wszStr)
+{
+  wchar_t wszReverse[128];
+  int a;
+  int b=0;
+
+  if (nNumber == 0)
+  {
+    if (wszStr) wszStr[b]=L'0';
+    ++b;
+  }
+  else if (nNumber < 0)
+  {
+    if (wszStr) wszStr[b]=L'-';
+    ++b;
+    nNumber=-nNumber;
+  }
+  for (a=0; nNumber != 0; ++a)
+  {
+    wszReverse[a]=(nNumber % 10) + L'0';
+    nNumber=nNumber / 10;
+  }
+  if (!wszStr) return a + b + 1;
+
+  while (--a >= 0) wszStr[b++]=wszReverse[a];
+  wszStr[b]=L'\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xuitoaA
+ *
+ *Converts unsigned int to string.
+ *
+ *[in]   unsigned int nNumber  Unsigned integer.
+ *[out]  char *szStr           String number, if NULL required buffer size returned in TCHARs.
+ *
+ *Returns: copied digits.
+ *
+ *Examples:
+ *  xuitoaA(45, szResult);                //szResult == "45"
+ *  xuitoaA((unsigned int)-1, szResult);  //szResult == "4294967295"
+ ********************************************************************/
+#if defined xuitoaA || defined ALLSTRFUNC
+#define xuitoaA_INCLUDED
+#undef xuitoaA
+int xuitoaA(unsigned int nNumber, char *szStr)
+{
+  char szReverse[128];
+  int a;
+  int b=0;
+
+  if (nNumber == 0)
+  {
+    if (szStr) szStr[b]='0';
+    ++b;
+  }
+  for (a=0; nNumber != 0; ++a)
+  {
+    szReverse[a]=(nNumber % 10) + '0';
+    nNumber=nNumber / 10;
+  }
+  if (!szStr) return a + b + 1;
+
+  while (--a >= 0) szStr[b++]=szReverse[a];
+  szStr[b]='\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xuitoaW
+ *
+ *Converts unsigned int to unicode string.
+ *
+ *[in]   unsigned int nNumber  Unsigned integer.
+ *[out]  wchar_t *wszStr       Unicode string number, if NULL required buffer size returned in TCHARs.
+ *
+ *Returns: copied digits.
+ *
+ *Examples:
+ *  xuitoaW(45, wszResult);                //wszResult == L"45"
+ *  xuitoaW((unsigned int)-1, wszResult);  //wszResult == L"4294967295"
+ ********************************************************************/
+#if defined xuitoaW || defined ALLSTRFUNC
+#define xuitoaW_INCLUDED
+#undef xuitoaW
+int xuitoaW(unsigned int nNumber, wchar_t *wszStr)
+{
+  wchar_t wszReverse[128];
+  int a;
+  int b=0;
+
+  if (nNumber == 0)
+  {
+    if (wszStr) wszStr[b]=L'0';
+    ++b;
+  }
+  for (a=0; nNumber != 0; ++a)
+  {
+    wszReverse[a]=(nNumber % 10) + L'0';
+    nNumber=nNumber / 10;
+  }
+  if (!wszStr) return a + b + 1;
+
+  while (--a >= 0) wszStr[b++]=wszReverse[a];
+  wszStr[b]=L'\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xitoa64A
+ *
+ *Converts int64 to string.
+ *
+ *[in]   __int64 nNumber  64-bit integer.
+ *[out]  char *szStr      String number, if NULL required buffer size returned in TCHARs.
+ *
+ *Returns: copied digits.
+ *
+ *Examples:
+ *  xitoa64A(45, szResult);   //szResult == "45"
+ *  xitoa64A(-45, szResult);  //szResult == "-45"
+ ********************************************************************/
+#if defined xi64toaA || defined ALLSTRFUNC
+#define xi64toaA_INCLUDED
+#undef xi64toaA
+int xi64toaA(__int64 nNumber, char *szStr)
+{
+  char szReverse[128];
+  int a;
+  int b=0;
+
+  if (nNumber == 0)
+  {
+    if (szStr) szStr[b]='0';
+    ++b;
+  }
+  else if (nNumber < 0)
+  {
+    if (szStr) szStr[b]='-';
+    ++b;
+    nNumber=-nNumber;
+  }
+  for (a=0; nNumber != 0; ++a)
+  {
+    szReverse[a]=(nNumber % 10) + '0';
+    nNumber=nNumber / 10;
+  }
+  if (!szStr) return a + b + 1;
+
+  while (--a >= 0) szStr[b++]=szReverse[a];
+  szStr[b]='\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xitoa64W
+ *
+ *Converts int64 to unicode string.
+ *
+ *[in]   __int64 nNumber  64-bit integer.
+ *[out]  wchar_t *wszStr  Unicode string number, if NULL required buffer size returned in TCHARs.
+ *
+ *Returns: copied digits.
+ *
+ *Examples:
+ *  xitoa64W(45, wszResult);   //wszResult == L"45"
+ *  xitoa64W(-45, wszResult);  //wszResult == L"-45"
+ ********************************************************************/
+#if defined xi64toaW || defined ALLSTRFUNC
+#define xi64toaW_INCLUDED
+#undef xi64toaW
+int xi64toaW(__int64 nNumber, wchar_t *wszStr)
+{
+  wchar_t wszReverse[128];
+  int a;
+  int b=0;
+
+  if (nNumber == 0)
+  {
+    if (wszStr) wszStr[b]=L'0';
+    ++b;
+  }
+  else if (nNumber < 0)
+  {
+    if (wszStr) wszStr[b]=L'-';
+    ++b;
+    nNumber=-nNumber;
+  }
+  for (a=0; nNumber != 0; ++a)
+  {
+    wszReverse[a]=(nNumber % 10) + L'0';
+    nNumber=nNumber / 10;
+  }
+  if (!wszStr) return a + b + 1;
+
+  while (--a >= 0) wszStr[b++]=wszReverse[a];
+  wszStr[b]=L'\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  hex2decA
+ *
+ *Converts hex value to decimal.
+ *
+ *[in]  const char *pStrHex  Hex value.
+ *
+ *Returns: integer. Wrong hex value if equal to -1.
+ *
+ *Examples:
+ *  hex2decA("A1F") == 2591;
+ ********************************************************************/
+#if defined hex2decA || defined ALLSTRFUNC
+#define hex2decA_INCLUDED
+#undef hex2decA
+int hex2decA(const char *pStrHex)
+{
+  int a;
+  int b=0;
+
+  while (1)
+  {
+    a=*pStrHex++;
+    if (a >= '0' && a <= '9') a-='0';
+    else if (a >= 'a' && a <= 'f') a-='a' - 10;
+    else if (a >= 'A' && a <= 'F') a-='A' - 10;
+    else return -1;
+
+    if (*pStrHex) b=(b + a) * 16;
+    else return (b + a);
+  }
+}
+#endif
+
+/********************************************************************
+ *
+ *  hex2decW
+ *
+ *Converts unicode hex value to decimal.
+ *
+ *[in]  const wchar_t *wpStrHex  Unicode hex value.
+ *
+ *Returns: integer. Wrong hex value if equal to -1.
+ *
+ *Examples:
+ *  hex2decW(L"A1F") == 2591;
+ ********************************************************************/
+#if defined hex2decW || defined ALLSTRFUNC
+#define hex2decW_INCLUDED
+#undef hex2decW
+int hex2decW(const wchar_t *wpStrHex)
+{
+  int a;
+  int b=0;
+
+  while (1)
+  {
+    a=*wpStrHex++;
+    if (a >= '0' && a <= '9') a-='0';
+    else if (a >= 'a' && a <= 'f') a-='a' - 10;
+    else if (a >= 'A' && a <= 'F') a-='A' - 10;
+    else return -1;
+
+    if (*wpStrHex) b=(b + a) * 16;
+    else return (b + a);
+  }
+}
+#endif
+
+/********************************************************************
+ *
+ *  dec2hexA
+ *
+ *Converts decimal to hex value.
+ *
+ *[in]   unsigned int nDec    Positive integer.
+ *[out]  char *szStrHex       Hex value (output), if NULL required buffer size returned in TCHARs.
+ *[in]   unsigned int nWidth  Minimum number of characters to the output.
+ *[in]   BOOL bLowerCase       TRUE hexadecimal value in lowercase.
+ *                             FALSE in uppercase.
+ *
+ *Returns: copied chars.
+ *
+ *Examples:
+ *  dec2hexA(2591, szResult, 2, FALSE);   //szResult == "A1F"
+ *  dec2hexA(10, szResult, 2, TRUE);      //szResult == "0a"
+ ********************************************************************/
+#if defined dec2hexA || defined ALLSTRFUNC
+#define dec2hexA_INCLUDED
+#undef dec2hexA
+int dec2hexA(unsigned int nDec, char *szStrHex, unsigned int nWidth, BOOL bLowerCase)
+{
+  unsigned int a=nDec;
+  unsigned int b=0;
+  unsigned int c=0;
+  char d;
+  int nResult;
+
+  while (a)
+  {
+    b=a % 16;
+    a=a / 16;
+    if (b < 10)
     {
-      for (wpTextStart=wpTextEnd, wpDelimCount=wpDelimMinus;
-            wpTextStart >= wpText &&
-            (*wpTextStart == *wpDelimCount ||
-            (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextStart) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpDelimCount)));
-           --wpTextStart)
-      {
-        if (--wpDelimCount < wpDelim)
-        {
-          if (nOption > 3)
-          {
-            if (bRow == FALSE && --nCurWordNumber == nNumber)
-            {
-              if (nOption == 4)
-              {
-                wpResult=wpTextStart + nDelimLen;
-                nResultSize=wpWord - wpResult;
-              }
-              else if (nOption == 5)
-              {
-                wpResult=wpWord;
-                nResultSize=wpTextMinus - wpResult + 1;
-              }
-              else if (nOption == 6)
-              {
-                wpResult=wpTextStart + nDelimLen;
-                nResultSize=wpTextMinus - wpResult + 1;
-              }
-              else if (nOption == 7)
-              {
-                wpResult=wpText;
-                nResultSize=(wpTextStart + nDelimLen) - wpResult;
-              }
-              else if (nOption == 8)
-              {
-                wpResult=wpText;
-                nResultSize=wpWord - wpResult;
-              }
-              else if (nOption == 9)
-              {
-                wpResult=wpTextStart;
-                nResultSize=(wpResult - wpText) + (wpTextMinus - wpWord) + 1;
-              }
-              if (wppResult) *wppResult=(wchar_t *)wpResult;
-              if (nMaxResult) *nMaxResult=nResultSize;
-              if (wszResult)
-              {
-                if (nOption == 9)
-                {
-                  lstrcpynW(wszResult, wpText, wpTextStart - wpText + 1);
-                  lstrcatW(wszResult, wpWord);
-                }
-                else lstrcpynW(wszResult, wpResult, nResultSize + 1);
-              }
-              return 0;
-            }
-            wpWord=wpTextStart;
-            bRow=TRUE;
-          }
-          else if (--nCurStrNumber == nNumber)
-          {
-            if (nOption == 1)
-            {
-              wpResult=wpTextStart + nDelimLen;
-              nResultSize=wpTextMinus - wpResult + 1;
-            }
-            else if (nOption == 2)
-            {
-              wpResult=wpText;
-              nResultSize=wpTextStart - wpResult;
-            }
-            else if (nOption == 3)
-            {
-              wpResult=wpTextStart;
-              nResultSize=wpTextMinus - wpText - nDelimLen + 1;
-            }
-            if (wppResult) *wppResult=(wchar_t *)wpResult;
-            if (nMaxResult) *nMaxResult=nResultSize;
-            if (wszResult)
-            {
-              if (nOption == 3)
-              {
-                lstrcpynW(wszResult, wpText, wpTextStart - wpText + 1);
-                lstrcatW(wszResult, wpTextStart + nDelimLen);
-              }
-              else lstrcpynW(wszResult, wpResult, nResultSize + 1);
-            }
-            return 0;
-          }
-          wpTextEnd=wpTextStart;
-          wpDelimCount=wpDelimMinus;
-          bFound=TRUE;
-        }
-      }
-      if (wpTextEnd >= wpText && wpTextStart >= wpText) bRow=FALSE;
+      if (szStrHex) szStrHex[c]=b + '0';
+      ++c;
     }
-    if (nOption > 3 && bFound == TRUE && bRow == FALSE && --nCurWordNumber == nNumber)
+    else
     {
-      if (nOption == 4 || nOption == 8)
-      {
-        wpResult=wpText;
-        nResultSize=wpWord - wpResult;
-      }
-      else if (nOption == 5)
-      {
-        wpResult=wpWord;
-        nResultSize=wpTextMinus - wpResult + 1;
-      }
-      else if (nOption == 6)
-      {
-        wpResult=wpText;
-        nResultSize=wpTextMinus - wpResult + 1;
-      }
-      else if (nOption == 7)
-      {
-        wpResult=wpText;
-        nResultSize=0;
-      }
-      else if (nOption == 9)
-      {
-        wpResult=wpWord + nDelimLen;
-        nResultSize=wpTextMinus - wpResult + 1;
-      }
-      if (wppResult) *wppResult=(wchar_t *)wpResult;
-      if (nMaxResult) *nMaxResult=nResultSize;
-      if (wszResult)
-      {
-        lstrcpynW(wszResult, wpResult, nResultSize + 1);
-      }
-      return 0;
+      if (szStrHex) szStrHex[c]=b + (bLowerCase?'a':'A') - 10;
+      ++c;
     }
   }
-  #endif
+  if (!szStrHex) return max(nWidth, c) + 1;
+  while (nWidth > c) szStrHex[c++]='0';
+  szStrHex[c]='\0';
+  nResult=c;
 
-  if (bFound == TRUE)
-    return -3;
+  for (b=0, --c; b < c; d=szStrHex[b], szStrHex[b++]=szStrHex[c], szStrHex[c--]=d);
+
+  return nResult;
+}
+#endif
+
+/********************************************************************
+ *
+ *  dec2hexW
+ *
+ *Converts decimal to unicode hex value.
+ *
+ *[in]   unsigned int nDec    Positive integer.
+ *[out]  wchar_t *wszStrHex   Unicode hex value (output), if NULL required buffer size returned in TCHARs.
+ *[in]   unsigned int nWidth  Minimum number of characters to the output.
+ *[in]   BOOL bLowerCase       TRUE hexadecimal value in lowercase.
+ *                             FALSE in uppercase.
+ *
+ *Returns: copied chars.
+ *
+ *Examples:
+ *  dec2hexW(2591, wszResult, 2, FALSE);   //wszResult == L"A1F"
+ *  dec2hexW(10, wszResult, 2, TRUE);      //wszResult == L"0a"
+ ********************************************************************/
+#if defined dec2hexW || defined ALLSTRFUNC
+#define dec2hexW_INCLUDED
+#undef dec2hexW
+int dec2hexW(unsigned int nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bLowerCase)
+{
+  unsigned int a=nDec;
+  unsigned int b=0;
+  unsigned int c=0;
+  wchar_t d;
+  int nResult;
+
+  while (a)
+  {
+    b=a % 16;
+    a=a / 16;
+    if (b < 10)
+    {
+      if (wszStrHex) wszStrHex[c]=b + '0';
+      ++c;
+    }
+    else
+    {
+      if (wszStrHex) wszStrHex[c]=b + (bLowerCase?L'a':L'A') - 10;
+      ++c;
+    }
+  }
+  if (!wszStrHex) return max(nWidth, c) + 1;
+  while (nWidth > c) wszStrHex[c++]='0';
+  wszStrHex[c]='\0';
+  nResult=c;
+
+  for (b=0, --c; b < c; d=wszStrHex[b], wszStrHex[b++]=wszStrHex[c], wszStrHex[c--]=d);
+
+  return nResult;
+}
+#endif
+
+/********************************************************************
+ *
+ *  bin2hexA
+ *
+ *Converts binary data to hex string.
+ *
+ *[in]   const unsigned char *pData  Binary data.
+ *[in]   int nBytes                  Number of bytes in pData.
+ *[out]  char *szStrHex              Output hex string buffer.
+ *[in]   int nStrHexMax              Size of the hex string buffer in TCHARs.
+ *[in]   BOOL bLowerCase              TRUE hexadecimal value in lowercase.
+ *                                    FALSE in uppercase.
+ *
+ *Returns: copied chars.
+ *
+ *Note:
+ *  bin2hexA uses dec2hexA.
+ *
+ *Examples:
+ *  bin2hexA((unsigned char *)"Some Text", lstrlenA("Some Text"), szResult, MAX_PATH, TRUE);   //szResult == "536f6d652054657874"
+ ********************************************************************/
+#if defined bin2hexA || defined ALLSTRFUNC
+#define bin2hexA_INCLUDED
+#undef bin2hexA
+int bin2hexA(const unsigned char *pData, int nBytes, char *szStrHex, int nStrHexMax, BOOL bLowerCase)
+{
+  int a;
+  int b;
+
+  nStrHexMax-=3;
+
+  for (a=0, b=0; a < nBytes && b <= nStrHexMax; ++a, b+=2)
+  {
+    dec2hexA((unsigned int)pData[a], szStrHex + b, 2, bLowerCase);
+  }
+  szStrHex[b]='\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  bin2hexW
+ *
+ *Converts binary data to hex unicode string.
+ *
+ *[in]   const unsigned char *pData  Binary data.
+ *[in]   int nBytes                  Number of bytes in pData.
+ *[out]  wchar_t *wszStrHex          Output hex string buffer.
+ *[in]   int nStrHexMax              Size of the hex string buffer in TCHARs.
+ *[in]   BOOL bLowerCase              TRUE hexadecimal value in lowercase.
+ *                                    FALSE in uppercase.
+ *
+ *Returns: copied chars.
+ *
+ *Note:
+ *  bin2hexW uses dec2hexW.
+ *
+ *Examples:
+ *  bin2hexW((unsigned char *)"Some Text", lstrlenA("Some Text"), wszResult, MAX_PATH, TRUE);   //wszResult == L"536f6d652054657874"
+ ********************************************************************/
+#if defined bin2hexW || defined ALLSTRFUNC
+#define bin2hexW_INCLUDED
+#undef bin2hexW
+int bin2hexW(const unsigned char *pData, int nBytes, wchar_t *wszStrHex, int nStrHexMax, BOOL bLowerCase)
+{
+  int a;
+  int b;
+
+  nStrHexMax-=3;
+
+  for (a=0, b=0; a < nBytes && b <= nStrHexMax; ++a, b+=2)
+  {
+    dec2hexW((unsigned int)pData[a], wszStrHex + b, 2, bLowerCase);
+  }
+  wszStrHex[b]='\0';
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  hex2binA
+ *
+ *Converts hex string to binary data.
+ *
+ *[in]   const char *pStrHex   Hex string.
+ *[out]  unsigned char *pData  Output buffer, if NULL required buffer size returned in TCHARs.
+ *[in]   int nDataMax          Size of the output buffer in bytes.
+ *
+ *Returns: copied bytes.
+ *
+ *Note:
+ *  hex2binA uses hex2decA.
+ *
+ *Examples:
+ *  hex2binA("536f6d652054657874", (unsigned char *)szResult, MAX_PATH);   //szResult == "Some Text"
+ ********************************************************************/
+#if defined hex2binA || defined ALLSTRFUNC
+#define hex2binA_INCLUDED
+#undef hex2binA
+int hex2binA(const char *pStrHex, unsigned char *pData, int nDataMax)
+{
+  char szHexChar[4];
+  int nHexChar;
+  DWORD a;
+  DWORD b;
+
+  if (!pData) nDataMax=-1;
+
+  for (a=0, b=0; pStrHex[a] && b < (DWORD)nDataMax; ++b)
+  {
+    szHexChar[0]=pStrHex[a++];
+    if (!pStrHex[a]) break;
+    szHexChar[1]=pStrHex[a++];
+    szHexChar[2]='\0';
+
+    if ((nHexChar=hex2decA(szHexChar)) >= 0)
+    {
+      if (pData) pData[b]=nHexChar;
+    }
+    else break;
+  }
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  hex2binW
+ *
+ *Converts hex unicode string to binary data.
+ *
+ *[in]   const wchar_t *wpStrHex  Hex unicode string.
+ *[out]  unsigned char *pData     Output buffer, if NULL required buffer size returned in TCHARs.
+ *[in]   int nDataMax             Size of the output buffer in bytes.
+ *
+ *Returns: copied bytes.
+ *
+ *Note:
+ *  hex2binW uses hex2decW.
+ *
+ *Examples:
+ *  hex2binW(L"536f6d652054657874", (unsigned char *)szResult, MAX_PATH);   //szResult == "Some Text"
+ ********************************************************************/
+#if defined hex2binW || defined ALLSTRFUNC
+#define hex2binW_INCLUDED
+#undef hex2binW
+int hex2binW(const wchar_t *wpStrHex, unsigned char *pData, int nDataMax)
+{
+  wchar_t wszHexChar[4];
+  int nHexChar;
+  DWORD a;
+  DWORD b;
+
+  if (!pData) nDataMax=-1;
+
+  for (a=0, b=0; wpStrHex[a] && b < (DWORD)nDataMax; ++b)
+  {
+    wszHexChar[0]=wpStrHex[a++];
+    if (!wpStrHex[a]) break;
+    wszHexChar[1]=wpStrHex[a++];
+    wszHexChar[2]='\0';
+
+    if ((nHexChar=hex2decW(wszHexChar)) >= 0)
+    {
+      if (pData) pData[b]=nHexChar;
+    }
+    else break;
+  }
+  return b;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xprintfA
+ *
+ *Function formats and stores a series of characters and values in a buffer. 
+ *
+ *[out] char *szOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
+ *[in]  const char *pFormat  Pointer to a null-terminated string that contains the format-control specifications.
+ *                            pFormat syntax is equal to wsprintfA function.
+ *[in]  ...                  Specifies one or more optional arguments. The number and type of argument parameters
+ *                            depend on the corresponding format-control specifications in the pFormat parameter.
+ *
+ *Returns:  number of characters copied, not including the terminating null character.
+ *
+ *Note:
+ *  xprintfA uses xatoiA, xitoaA, xuitoaA, dec2hexA, xstrcpynA.
+ ********************************************************************/
+#if defined xprintfA || defined ALLSTRFUNC
+#define xprintfA_INCLUDED
+#undef xprintfA
+int xprintfA(char *szOutput, const char *pFormat, ...)
+{
+  const char *pFmt=pFormat;
+  char *pOut=szOutput;
+  char *pStartOut;
+  char *pString;
+  char chFillChar;
+  int nPrecision;
+  int nWidth;
+  int nLen=0;
+  int i;
+
+  va_list val;
+  va_start(val, pFormat);
+
+  while (*pFmt)
+  {
+    if (*pFmt == '%')
+    {
+      pStartOut=pOut;
+      chFillChar=' ';
+      nPrecision=0;
+      nWidth=0;
+      ++pFmt;
+
+      if (*pFmt == '-')
+      {
+        nWidth=-1;
+        ++pFmt;
+      }
+      if (*pFmt == '0')
+      {
+        chFillChar='0';
+        ++pFmt;
+      }
+      if (*pFmt >= '1' && *pFmt <= '9')
+      {
+        if (nWidth == -1)
+          nWidth-=xatoiA(pFmt, &pFmt) - 1;
+        else
+          nWidth=xatoiA(pFmt, &pFmt);
+      }
+      if (*pFmt == '.')
+      {
+        nPrecision=xatoiA(pFmt + 1, &pFmt);
+      }
+
+      if (*pFmt == '%')
+      {
+        if (szOutput) *pOut='%';
+        ++pOut;
+      }
+      else if (*pFmt == 'c')
+      {
+        i=va_arg(val, unsigned int);
+        if (nWidth > 0)
+        {
+          nWidth=max(nWidth - 1, 0);
+          pOut+=nWidth;
+        }
+        if (szOutput) *pOut=i;
+        ++pOut;
+      }
+      else if (*pFmt == 'd')
+      {
+        i=va_arg(val, int);
+        if (!szOutput || nWidth > 0)
+        {
+          nLen=xitoaA(i, NULL) - 1;
+          if (nWidth > 0)
+          {
+            nWidth=max(nWidth - nLen, 0);
+            pOut+=nWidth;
+            if (nWidth > 0 && i < 0)
+            {
+              if (szOutput) *pStartOut='-';
+              ++pStartOut;
+            }
+          }
+        }
+        if (szOutput) nLen=xitoaA(i, pOut);
+        pOut+=nLen;
+      }
+      else if (*pFmt == 'u')
+      {
+        i=va_arg(val, int);
+        if (!szOutput || nWidth > 0)
+        {
+          nLen=xuitoaA((unsigned int)i, NULL) - 1;
+          if (nWidth > 0)
+          {
+            nWidth=max(nWidth - nLen, 0);
+            pOut+=nWidth;
+          }
+        }
+        if (szOutput) nLen=xuitoaA((unsigned int)i, pOut);
+        pOut+=nLen;
+      }
+      else if (*pFmt == 'x' || *pFmt == 'X')
+      {
+        i=va_arg(val, int);
+        if (!szOutput || nWidth > 0)
+        {
+          nLen=dec2hexA((unsigned int)i, NULL, 0, (*pFmt == 'x')?TRUE:FALSE) - 1;
+          if (nWidth > 0)
+          {
+            nWidth=max(nWidth - nLen, 0);
+            pOut+=nWidth;
+          }
+        }
+        if (szOutput) nLen=dec2hexA((unsigned int)i, pOut, 0, (*pFmt == 'x')?TRUE:FALSE);
+        pOut+=nLen;
+      }
+      else if (*pFmt == 's')
+      {
+        pString=va_arg(val, char *);
+        if (!szOutput || nWidth > 0)
+        {
+          nLen=lstrlenA(pString);
+          if (nPrecision)
+            nLen=min(nLen, nPrecision);
+          if (nWidth > 0)
+          {
+            nWidth=max(nWidth - nLen, 0);
+            pOut+=nWidth;
+          }
+        }
+        if (szOutput) nLen=xstrcpynA(pOut, pString, (unsigned int)(nPrecision?nPrecision + 1:-1));
+        pOut+=nLen;
+      }
+
+      if (nWidth > 0)
+      {
+        if (szOutput)
+        {
+          while (--nWidth >= 0)
+            pStartOut[nWidth]=chFillChar;
+        }
+      }
+      else if (nWidth < 0)
+      {
+        nWidth=min((pOut - pStartOut) + nWidth, 0);
+
+        if (szOutput)
+        {
+          while (++nWidth <= 0)
+            *pOut++=chFillChar;
+        }
+        else pOut+=0 - nWidth;
+      }
+    }
+    else
+    {
+      if (szOutput) *pOut=*pFmt;
+      ++pOut;
+    }
+    ++pFmt;
+  }
+  if (szOutput)
+    *pOut='\0';
   else
-    return -2;
+    ++pOut;
+
+  va_end(val);
+  return pOut - szOutput;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xprintfW
+ *
+ *Function formats and stores a series of characters and values in a buffer. 
+ *
+ *[out] wchar_t *wszOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
+ *[in]  const wchar_t *wpFormat  Pointer to a null-terminated string that contains the format-control specifications.
+ *                                wpFormat syntax is equal to wsprintfW function.
+ *[in]  ...                      Specifies one or more optional arguments. The number and type of argument parameters
+ *                                depend on the corresponding format-control specifications in the wpFormat parameter.
+ *
+ *Returns:  number of characters copied, not including the terminating null character.
+ *
+ *Note:
+ *  xprintfW uses xatoiW, xitoaW, xuitoaW, dec2hexW, xstrcpynW.
+ ********************************************************************/
+#if defined xprintfW || defined ALLSTRFUNC
+#define xprintfW_INCLUDED
+#undef xprintfW
+int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
+{
+  const wchar_t *wpFmt=wpFormat;
+  wchar_t *wpOut=wszOutput;
+  wchar_t *wpStartOut;
+  wchar_t *wpString;
+  wchar_t wchFillChar;
+  int nPrecision;
+  int nWidth;
+  int nLen=0;
+  int i;
+
+  va_list val;
+  va_start(val, wpFormat);
+
+  while (*wpFmt)
+  {
+    if (*wpFmt == L'%')
+    {
+      wpStartOut=wpOut;
+      wchFillChar=L' ';
+      nPrecision=0;
+      nWidth=0;
+      ++wpFmt;
+
+      if (*wpFmt == L'-')
+      {
+        nWidth=-1;
+        ++wpFmt;
+      }
+      if (*wpFmt == L'0')
+      {
+        wchFillChar=L'0';
+        ++wpFmt;
+      }
+      if (*wpFmt >= L'1' && *wpFmt <= L'9')
+      {
+        if (nWidth == -1)
+          nWidth-=xatoiW(wpFmt, &wpFmt) - 1;
+        else
+          nWidth=xatoiW(wpFmt, &wpFmt);
+      }
+      if (*wpFmt == L'.')
+      {
+        nPrecision=xatoiW(wpFmt + 1, &wpFmt);
+      }
+
+      if (*wpFmt == L'%')
+      {
+        if (wszOutput) *wpOut=L'%';
+        ++wpOut;
+      }
+      else if (*wpFmt == L'c')
+      {
+        i=va_arg(val, unsigned int);
+        if (nWidth > 0)
+        {
+          nWidth=max(nWidth - 1, 0);
+          wpOut+=nWidth;
+        }
+        if (wszOutput) *wpOut=i;
+        ++wpOut;
+      }
+      else if (*wpFmt == L'd')
+      {
+        i=va_arg(val, int);
+        if (!wszOutput || nWidth > 0)
+        {
+          nLen=xitoaW(i, NULL) - 1;
+          if (nWidth > 0)
+          {
+            nWidth=max(nWidth - nLen, 0);
+            wpOut+=nWidth;
+            if (nWidth > 0 && i < 0)
+            {
+              if (wszOutput) *wpStartOut=L'-';
+              ++wpStartOut;
+            }
+          }
+        }
+        if (wszOutput) nLen=xitoaW(i, wpOut);
+        wpOut+=nLen;
+      }
+      else if (*wpFmt == L'u')
+      {
+        i=va_arg(val, int);
+        if (!wszOutput || nWidth > 0)
+        {
+          nLen=xuitoaW((unsigned int)i, NULL) - 1;
+          if (nWidth > 0)
+          {
+            nWidth=max(nWidth - nLen, 0);
+            wpOut+=nWidth;
+          }
+        }
+        if (wszOutput) nLen=xuitoaW((unsigned int)i, wpOut);
+        wpOut+=nLen;
+      }
+      else if (*wpFmt == L'x' || *wpFmt == L'X')
+      {
+        i=va_arg(val, int);
+        if (!wszOutput || nWidth > 0)
+        {
+          nLen=dec2hexW((unsigned int)i, NULL, 0, (*wpFmt == L'x')?TRUE:FALSE) - 1;
+          if (nWidth > 0)
+          {
+            nWidth=max(nWidth - nLen, 0);
+            wpOut+=nWidth;
+          }
+        }
+        if (wszOutput) nLen=dec2hexW((unsigned int)i, wpOut, 0, (*wpFmt == L'x')?TRUE:FALSE);
+        wpOut+=nLen;
+      }
+      else if (*wpFmt == L's')
+      {
+        wpString=va_arg(val, wchar_t *);
+        if (!wszOutput || nWidth > 0)
+        {
+          nLen=lstrlenW(wpString);
+          if (nPrecision)
+            nLen=min(nLen, nPrecision);
+          if (nWidth > 0)
+          {
+            nWidth=max(nWidth - nLen, 0);
+            wpOut+=nWidth;
+          }
+        }
+        if (wszOutput) nLen=xstrcpynW(wpOut, wpString, (unsigned int)(nPrecision?nPrecision + 1:-1));
+        wpOut+=nLen;
+      }
+
+      if (nWidth > 0)
+      {
+        if (wszOutput)
+        {
+          while (--nWidth >= 0)
+            wpStartOut[nWidth]=wchFillChar;
+        }
+      }
+      else if (nWidth < 0)
+      {
+        nWidth=min((wpOut - wpStartOut) + nWidth, 0);
+
+        if (wszOutput)
+        {
+          while (++nWidth <= 0)
+            *wpOut++=wchFillChar;
+        }
+        else wpOut+=0 - nWidth;
+      }
+    }
+    else
+    {
+      if (wszOutput) *wpOut=*wpFmt;
+      ++wpOut;
+    }
+    ++wpFmt;
+  }
+  if (wszOutput)
+    *wpOut=L'\0';
+  else
+    ++wpOut;
+
+  va_end(val);
+  return wpOut - wszOutput;
 }
 #endif
 
@@ -2546,9 +3042,10 @@ int WordFindW(const wchar_t *wpText, const wchar_t *wpDelim, int nNumber, const 
 #include "StrFunc.h"
 
 //insert functions
-#define WordFindA
-#define StrReplaceA
-#define GetOptionsA
+#define xatoiA
+#define xitoaA
+#define xstrrepA
+#define xstroptA
 #define xstrstrA
 #define xstrcmpiA
 #define xstrcmpinA
@@ -2562,13 +3059,16 @@ void main()
   int nStringLen;
   int nError;
 
-  nError=WordFindA("ABC||dfg||HJK", "||", 2, "*", TRUE, szResult, &nStringLen, &pStringBegin);
-  printf("szResult={%s}, nStringLen={%d}, pStringBegin={%s}, nError={%d}\n", szResult, nStringLen, pStringBegin, nError);
+  nError=xatoiA("123", NULL);
+  printf("nError={%d}\n", nError);
 
-  nError=StrReplaceA("ABC||dfg||HJK", "||", "##", TRUE, szResult, &nStringLen);
+  nError=xitoaA(45, szResult);
+  printf("szResult={%s}, nError={%d}\n", szResult, nError);
+
+  nError=xstrrepA("ABC||dfg||HJK", "||", "##", TRUE, szResult, &nStringLen);
   printf("szResult={%s}, nStringLen={%d}, nError={%d}\n", szResult, nStringLen, nError);
 
-  nError=GetOptionsA("/A=123 /B=\"456\" /C=`789`", "/b=", FALSE, szResult, MAX_PATH);
+  nError=xstroptA("/A=123 /B=\"456\" /C=`789`", "/b=", FALSE, szResult, MAX_PATH);
   printf("szResult={%s}, nError={%d}\n", szResult, nError);
 
   nError=xstrstrA("ABC||dfg||HJK", (DWORD)-1, "Dfg", FALSE, &pStringBegin, &pStringEnd);

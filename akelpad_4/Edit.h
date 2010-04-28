@@ -41,6 +41,15 @@
 
 #ifndef TCN_GETOBJECT
   #define TCN_GETOBJECT (TCN_FIRST - 3)
+
+  typedef struct tagNMOBJECTNOTIFY {
+    NMHDR hdr;
+    int iItem;
+    const void *piid;
+    void *pObject;
+    HRESULT hResult;
+    DWORD dwFlags;
+  } NMOBJECTNOTIFY, *LPNMOBJECTNOTIFY;
 #endif
 #ifndef INVALID_FILE_ATTRIBUTES
   #define INVALID_FILE_ATTRIBUTES ((DWORD)-1)
