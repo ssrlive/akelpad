@@ -22468,8 +22468,11 @@ void ActivateWindow(HWND hWnd, BOOL bUpdate)
       ShowWindow(hWnd, SW_RESTORE);
     else
       SetForegroundWindow(hWnd); //BringWindowToTop(hWnd);
-
-    if (bUpdate) UpdateWindow(hWnd);
+  }
+  if (bUpdate)
+  {
+    InvalidateRect(hWnd, NULL, FALSE);
+    UpdateWindow(hWnd);
   }
 }
 
