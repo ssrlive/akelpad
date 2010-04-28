@@ -22458,7 +22458,7 @@ void ActivateKeyboard(int nKeybLayout)
   }
 }
 
-void ActivateWindow(HWND hWnd)
+void ActivateWindow(HWND hWnd, BOOL bUpdate)
 {
   DWORD dwStyle=GetWindowLongA(hWnd, GWL_STYLE);
 
@@ -22468,6 +22468,8 @@ void ActivateWindow(HWND hWnd)
       ShowWindow(hWnd, SW_RESTORE);
     else
       SetForegroundWindow(hWnd); //BringWindowToTop(hWnd);
+
+    if (bUpdate) UpdateWindow(hWnd);
   }
 }
 
