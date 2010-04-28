@@ -7,7 +7,6 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <richedit.h>
-#include "ConvFunc.h"
 #include "StackFunc.h"
 #include "AkelEdit\StrFunc.h"
 
@@ -2760,7 +2759,7 @@ int StackGetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD d
     {
       DWORD dwNumber;
 
-      dwNumber=(DWORD)xatoiW(lpIniKey->wszString);
+      dwNumber=(DWORD)xatoiW(lpIniKey->wszString, NULL);
       dwStringLen=min(sizeof(DWORD), dwDataBytes);
       xmemcpy((DWORD *)lpData, &dwNumber, dwStringLen);
       return dwStringLen;
@@ -2809,7 +2808,7 @@ BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD 
   {
     wchar_t wszNumber[16];
 
-    lpIniKey->nStringBytes=xuitoaW(*(DWORD *)lpData, wszNumber, 0) * sizeof(wchar_t) + 2;
+    lpIniKey->nStringBytes=xuitoaW(*(DWORD *)lpData, wszNumber) * sizeof(wchar_t) + 2;
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
     {
       xmemcpy(lpIniKey->wszString, wszNumber, lpIniKey->nStringBytes);
@@ -3329,7 +3328,7 @@ void RegisterPluginsHotkeysA()
 
       while (lpIniKey)
       {
-        if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString))
+        if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString, NULL))
         {
           dwSizeString=WideCharToMultiByte(CP_ACP, 0, lpIniKey->wszKey, -1, buf, BUFFER_SIZE, NULL, NULL);
           StackPluginAddA(&hPluginsStack, buf, dwSizeString - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
@@ -3380,7 +3379,7 @@ void RegisterPluginsHotkeysW()
 
       while (lpIniKey)
       {
-        if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString))
+        if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString, NULL))
         {
           StackPluginAddW(&hPluginsStack, lpIniKey->wszKey, (lpIniKey->nKeyBytes - 1) / sizeof(wchar_t), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
         }
@@ -6973,7 +6972,7 @@ BOOL PrintHeadlineA(HDC hDC, RECT *rc, char *pHeadline, int nPageNumber)
           for (++a, nPageNumberLen=0; pHeadline[a] && pHeadline[a] != ']' && nPageNumberLen < 30; ++a, ++nPageNumberLen)
             szPageNumber[nPageNumberLen]=pHeadline[a];
           szPageNumber[nPageNumberLen]='\0';
-          nPageStart=xatoiA(szPageNumber);
+          nPageStart=xatoiA(szPageNumber, NULL);
           nPageNumberLen=wsprintfA(szPageNumber, "%d", nPageNumber + nPageStart - 1);
 
           if (nCount + nPageNumberLen <= MAX_PATH)
@@ -7090,7 +7089,7 @@ BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
           for (++a, nPageNumberLen=0; wpHeadline[a] && wpHeadline[a] != ']' && nPageNumberLen < 30; ++a, ++nPageNumberLen)
             wszPageNumber[nPageNumberLen]=wpHeadline[a];
           wszPageNumber[nPageNumberLen]='\0';
-          nPageStart=xatoiW(wszPageNumber);
+          nPageStart=xatoiW(wszPageNumber, NULL);
           nPageNumberLen=wsprintfW(wszPageNumber, L"%d", nPageNumber + nPageStart - 1);
 
           if (nCount + nPageNumberLen <= MAX_PATH)
@@ -7269,12 +7268,12 @@ BOOL CALLBACK PreviewDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       if ((HWND)lParam == hWndZoomEdit)
       {
         GetWindowTextA(hWndZoomEdit, buf, BUFFER_SIZE);
-        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiA(buf), FALSE);
+        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiA(buf, NULL), FALSE);
       }
       else if ((HWND)lParam == hWndPageCount)
       {
         GetWindowTextA(hWndPageCount, buf, BUFFER_SIZE);
-        PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, xatoiA(buf), 0);
+        PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, xatoiA(buf, NULL), 0);
       }
       else return FALSE;
     }
@@ -7607,12 +7606,12 @@ BOOL CALLBACK PreviewDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
       if ((HWND)lParam == hWndZoomEdit)
       {
         GetWindowTextW(hWndZoomEdit, wbuf, BUFFER_SIZE);
-        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiW(wbuf), FALSE);
+        PostMessage(hDlg, AKDLG_PREVIEWSETZOOM, xatoiW(wbuf, NULL), FALSE);
       }
       else if ((HWND)lParam == hWndPageCount)
       {
         GetWindowTextW(hWndPageCount, wbuf, BUFFER_SIZE);
-        PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, xatoiW(wbuf), 0);
+        PostMessage(hDlg, AKDLG_PREVIEWSETPAGE, xatoiW(wbuf, NULL), 0);
       }
       else return FALSE;
     }
@@ -8963,7 +8962,7 @@ int GetComboboxCodepageA(HWND hWnd)
   if ((nSelection=SendMessage(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
   {
     SendMessageA(hWnd, CB_GETLBTEXT, (WPARAM)nSelection, (LPARAM)buf);
-    nCodePage=xatoiA(buf);
+    nCodePage=xatoiA(buf, NULL);
   }
   return nCodePage;
 }
@@ -8976,7 +8975,7 @@ int GetComboboxCodepageW(HWND hWnd)
   if ((nSelection=SendMessage(hWnd, CB_GETCURSEL, 0, 0)) != CB_ERR)
   {
     SendMessageW(hWnd, CB_GETLBTEXT, (WPARAM)nSelection, (LPARAM)wbuf);
-    nCodePage=xatoiW(wbuf);
+    nCodePage=xatoiW(wbuf, NULL);
   }
   return nCodePage;
 }
@@ -8989,7 +8988,7 @@ int GetListboxCodepageA(HWND hWnd)
   if ((nSelection=(int)SendMessage(hWnd, LB_GETCURSEL, 0, 0)) != LB_ERR)
   {
     SendMessageA(hWnd, LB_GETTEXT, (WPARAM)nSelection, (LPARAM)buf);
-    nCodePage=xatoiA(buf);
+    nCodePage=xatoiA(buf, NULL);
   }
   return nCodePage;
 }
@@ -9002,7 +9001,7 @@ int GetListboxCodepageW(HWND hWnd)
   if ((nSelection=(int)SendMessage(hWnd, LB_GETCURSEL, 0, 0)) != LB_ERR)
   {
     SendMessageW(hWnd, LB_GETTEXT, (WPARAM)nSelection, (LPARAM)wbuf);
-    nCodePage=xatoiW(wbuf);
+    nCodePage=xatoiW(wbuf, NULL);
   }
   return nCodePage;
 }
@@ -9068,7 +9067,7 @@ void GetListboxCodepageListA(HWND hWnd, int **lpCodepageList)
       for (i=0; i < nCount; ++i)
       {
         SendMessageA(hWnd, LB_GETTEXT, (WPARAM)i, (LPARAM)buf);
-        *lpCodepageListCount++=xatoiA(buf);
+        *lpCodepageListCount++=xatoiA(buf, NULL);
       }
       *lpCodepageListCount=0;
     }
@@ -9088,7 +9087,7 @@ void GetListboxCodepageListW(HWND hWnd, int **lpCodepageList)
       for (i=0; i < nCount; ++i)
       {
         SendMessageW(hWnd, LB_GETTEXT, (WPARAM)i, (LPARAM)wbuf);
-        *lpCodepageListCount++=xatoiW(wbuf);
+        *lpCodepageListCount++=xatoiW(wbuf, NULL);
       }
       *lpCodepageListCount=0;
     }
@@ -9158,7 +9157,7 @@ void RegEnumSystemCodePagesA()
 
       if (*buf2)
       {
-        if ((i=xatoiA(buf)) > 0 && i < 65536 &&
+        if ((i=xatoiA(buf, NULL)) > 0 && i < 65536 &&
             i != nAnsiCodePage &&
             i != nOemCodePage &&
             i != CP_UNICODE_UCS2_LE &&
@@ -9179,7 +9178,7 @@ BOOL CALLBACK EnumCodePagesProc(wchar_t *wpCodePage)
 {
   int i;
 
-  if ((i=xatoiW(wpCodePage)) > 0 && i < 65536 &&
+  if ((i=xatoiW(wpCodePage, NULL)) > 0 && i < 65536 &&
       i != nAnsiCodePage &&
       i != nOemCodePage &&
       i != CP_UNICODE_UCS2_LE &&
@@ -9246,7 +9245,7 @@ void GetCodePageNameA(int nCodePage, char *szCodePage, int nLen)
       lstrcpynA(szCodePage, STR_UNICODE_UTF7A, nLen);
     else
     {
-      if (GetCPInfoExAPtr && (*GetCPInfoExAPtr)(nCodePage, 0, &CPInfoExA) && nCodePage == xatoiA(CPInfoExA.CodePageName))
+      if (GetCPInfoExAPtr && (*GetCPInfoExAPtr)(nCodePage, 0, &CPInfoExA) && nCodePage == xatoiA(CPInfoExA.CodePageName, NULL))
       {
         lstrcpynA(szCodePage, CPInfoExA.CodePageName, nLen);
       }
@@ -9277,7 +9276,7 @@ void GetCodePageNameW(int nCodePage, wchar_t *wszCodePage, int nLen)
       lstrcpynW(wszCodePage, STR_UNICODE_UTF7W, nLen);
     else
     {
-      if (GetCPInfoExWPtr && (*GetCPInfoExWPtr)(nCodePage, 0, &CPInfoExW) && nCodePage == xatoiW(CPInfoExW.CodePageName))
+      if (GetCPInfoExWPtr && (*GetCPInfoExWPtr)(nCodePage, 0, &CPInfoExW) && nCodePage == xatoiW(CPInfoExW.CodePageName, NULL))
       {
         lstrcpynW(wszCodePage, CPInfoExW.CodePageName, nLen);
       }
@@ -12610,7 +12609,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
             buf2[b++]=buf[a];
           else if (buf[a] == ':' && b > 0)
           {
-            nColumn=xatoiA(buf + a + 1);
+            nColumn=xatoiA(buf + a + 1, NULL);
             nColumn=max(1, nColumn);
             break;
           }
@@ -12619,7 +12618,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         }
         buf2[b]='\0';
 
-        nLine=xatoiA(buf2);
+        nLine=xatoiA(buf2, NULL);
       }
 
       if (nGotoType == NT_LINE)
@@ -12770,7 +12769,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
             wbuf2[b++]=wbuf[a];
           else if (wbuf[a] == ':' && b > 0)
           {
-            nColumn=xatoiW(wbuf + a + 1);
+            nColumn=xatoiW(wbuf + a + 1, NULL);
             nColumn=max(1, nColumn);
             break;
           }
@@ -12779,7 +12778,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
         }
         wbuf2[b]='\0';
 
-        nLine=xatoiW(wbuf2);
+        nLine=xatoiW(wbuf2, NULL);
       }
 
       if (nGotoType == NT_LINE)
@@ -20595,7 +20594,7 @@ char* GetAssociatedIconA(const char *pFile, char *szIconFile, int *nIconIndex, H
           if (szValue[i] == ',')
           {
             szValue[i]='\0';
-            nIndex=xatoiA(szValue + i + 1);
+            nIndex=xatoiA(szValue + i + 1, NULL);
             if (nIndex == -1) nIndex=0;
             break;
           }
@@ -20697,7 +20696,7 @@ wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nI
           if (wszValue[i] == ',')
           {
             wszValue[i]='\0';
-            nIndex=xatoiW(wszValue + i + 1);
+            nIndex=xatoiW(wszValue + i + 1, NULL);
             if (nIndex == -1) nIndex=0;
             break;
           }
