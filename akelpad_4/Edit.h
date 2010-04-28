@@ -893,7 +893,7 @@ int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
 int TranslateFileStringA(char *pCommand, char *szBuffer, int nBufferSize);
 int TranslateFileStringW(wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
 void ActivateKeyboard(int nKeybLayout);
-void ActivateWindow(HWND hWnd);
+void ActivateWindow(HWND hWnd, BOOL bUpdate);
 HWND NextDialog(BOOL bPrevious);
 HWND NextClone(BOOL bPrevious);
 void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3);
