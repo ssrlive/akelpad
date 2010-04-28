@@ -9,7 +9,7 @@
  * xstrcmpA, xstrcmpW, xstrcmpiA, xstrcmpiW,                     *
  * xstrcmpnA, xstrcmpnW, xstrcmpinA, xstrcmpinW,                 *
  * xstrcpyA, xstrcpyW, xstrcpynA, xstrcpynW,                     *
- * xstrstrA, xstrstrW, xstrrepA, xstrrepW, xstroptA, xstroptW    *
+ * xstrstrA, xstrstrW, xstrrepA, xstrrepW                        *
  *                                                               *
  * xatoiA, xatoiW, xatoi64A, xatoi64W,                           *
  * xitoaA, xitoaW, xuitoaA, xuitoaW, xi64toaA, xi64toaW,         *
@@ -43,8 +43,6 @@ BOOL xstrstrA(const char *pText, DWORD dwTextLen, const char *pStr, BOOL bSensit
 BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd);
 int xstrrepA(const char *pText, const char *pIt, const char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult);
 int xstrrepW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult);
-int xstroptA(const char *pLine, const char *pOption, BOOL bSensitive, char *szResult, int nMaxResult);
-int xstroptW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult);
 
 int xatoiA(const char *pStr, const char **pNext);
 int xatoiW(const wchar_t *wpStr, const wchar_t **wpNext);
@@ -1684,171 +1682,6 @@ int xstrrepW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, 
 
 /********************************************************************
  *
- *  xstroptA
- *
- *Gets option string from parameters line.
- *
- * [in] const char *pLine    Parameters line.
- * [in] const char *pOption  Option.
- * [in] BOOL bSensitive      TRUE   case sensitive.
- *                           FALSE  case insensitive.
- *[out] char *szResult       Output, can be NULL.
- * [in] int nMaxResult       Output buffer size.
- *
- *Returns:  length of the string copied to szResult,
- *          including the terminating null character.
- ********************************************************************/
-#if defined xstroptA || defined ALLSTRFUNC
-#define xstroptA_INCLUDED
-#undef xstroptA
-int xstroptA(const char *pLine, const char *pOption, BOOL bSensitive, char *szResult, int nMaxResult)
-{
-  const char *pLineStart;
-  const char *pLineEnd;
-  const char *pOptionCount;
-  const char *pOptionString=NULL;
-  char chQuote='\0';
-  char chDelimiter=*pOption++;
-  int nBytes=0;
-
-  for (pLineStart=pLineEnd=pLine; *pLineStart && *pLineEnd; ++pLineStart)
-  {
-    if (chQuote == '\0' && *pLineStart != '\"' && *pLineStart != '\'' && *pLineStart != '`')
-    {
-      if (*pLineStart == chDelimiter)
-      {
-        if (pOptionString) break;
-
-        for (pLineEnd=pLineStart + 1, pOptionCount=pOption;
-              *pLineEnd &&
-              (*pLineEnd == *pOptionCount ||
-              (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pLineEnd) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pOptionCount)));
-             ++pLineEnd)
-        {
-          if (!*++pOptionCount)
-          {
-            pLineStart=pLineEnd;
-            pOptionString=pLineEnd + 1;
-            break;
-          }
-        }
-      }
-    }
-    else if (chQuote == '\0')
-      chQuote=*pLineStart;
-    else if (*pLineStart == chQuote)
-      chQuote='\0';
-  }
-  if (pOptionString)
-  {
-    while (*--pLineStart == ' ' || *pLineStart == '\t');
-
-    if (*pOptionString == *pLineStart && (*pOptionString == '\"' || *pOptionString == '\'' || *pOptionString == '`'))
-    {
-      ++pOptionString, --pLineStart;
-    }
-    nBytes=pLineStart - pOptionString + 2;
-    if (szResult)
-    {
-      if (nMaxResult < nBytes) nBytes=nMaxResult;
-      lstrcpynA(szResult, pOptionString, nBytes);
-    }
-  }
-  return nBytes;
-}
-#endif
-
-/********************************************************************
- *
- *  xstroptW
- *
- *Gets option string from unicode parameters line.
- *
- * [in] const wchar_t *wpLine    Parameters line.
- * [in] const wchar_t *wpOption  Option.
- * [in] BOOL bSensitive          TRUE   case sensitive.
- *                               FALSE  case insensitive.
- *[out] wchar_t *wszResult       Output, can be NULL.
- * [in] int nMaxResult           Output buffer size.
- *
- *Returns:  length of the string copied to wszResult,
- *          including the terminating null character.
- *
- *Note:
- *  xstrrepW can be used on Win95/98/Me if xstrcpynW and WideCharLower/WideCharUpper defined.
- ********************************************************************/
-#if defined xstroptW || defined ALLSTRFUNC
-#define xstroptW_INCLUDED
-#undef xstroptW
-int xstroptW(const wchar_t *wpLine, const wchar_t *wpOption, BOOL bSensitive, wchar_t *wszResult, int nMaxResult)
-{
-  const wchar_t *wpLineStart;
-  const wchar_t *wpLineEnd;
-  const wchar_t *wpOptionCount;
-  const wchar_t *wpOptionString=NULL;
-  wchar_t wchQuote='\0';
-  wchar_t wchDelimiter=*wpOption++;
-  int nBytes=0;
-
-  for (wpLineStart=wpLineEnd=wpLine; *wpLineStart && *wpLineEnd; ++wpLineStart)
-  {
-    if (wchQuote == '\0' && *wpLineStart != '\"' && *wpLineStart != '\'' && *wpLineStart != '`')
-    {
-      if (*wpLineStart == wchDelimiter)
-      {
-        if (wpOptionString) break;
-
-        for (wpLineEnd=wpLineStart + 1, wpOptionCount=wpOption;
-              *wpLineEnd &&
-              (*wpLineEnd == *wpOptionCount ||
-               #if defined WideCharLower_INCLUDED
-                 (bSensitive == FALSE && WideCharLower(*wpLineEnd) == WideCharLower(*wpOptionCount)));
-               #elif defined WideCharUpper_INCLUDED
-                 (bSensitive == FALSE && WideCharUpper(*wpLineEnd) == WideCharUpper(*wpOptionCount)));
-               #else
-                 (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpLineEnd) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpOptionCount)));
-               #endif
-             ++wpLineEnd)
-        {
-          if (!*++wpOptionCount)
-          {
-            wpLineStart=wpLineEnd;
-            wpOptionString=wpLineEnd + 1;
-            break;
-          }
-        }
-      }
-    }
-    else if (wchQuote == '\0')
-      wchQuote=*wpLineStart;
-    else if (*wpLineStart == wchQuote)
-      wchQuote='\0';
-  }
-  if (wpOptionString)
-  {
-    while (*--wpLineStart == ' ' || *wpLineStart == '\t');
-
-    if (*wpOptionString == *wpLineStart && (*wpOptionString == '\"' || *wpOptionString == '\'' || *wpOptionString == '`'))
-    {
-      ++wpOptionString, --wpLineStart;
-    }
-    nBytes=wpLineStart - wpOptionString + 2;
-    if (wszResult)
-    {
-      if (nMaxResult < nBytes) nBytes=nMaxResult;
-      #if defined xstrcpynW_INCLUDED
-        xstrcpynW(wszResult, wpOptionString, nBytes);
-      #else
-        lstrcpynW(wszResult, wpOptionString, nBytes);
-      #endif
-    }
-  }
-  return nBytes;
-}
-#endif
-
-/********************************************************************
- *
  *  xatoiA
  *
  *Converts string to int.
@@ -3042,13 +2875,12 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
 #include "StrFunc.h"
 
 //insert functions
-#define xatoiA
-#define xitoaA
-#define xstrrepA
-#define xstroptA
-#define xstrstrA
 #define xstrcmpiA
 #define xstrcmpinA
+#define xstrrepA
+#define xstrstrA
+#define xatoiA
+#define xitoaA
 #include "StrFunc.h"
 
 void main()
@@ -3059,26 +2891,23 @@ void main()
   int nStringLen;
   int nError;
 
-  nError=xatoiA("123", NULL);
-  printf("nError={%d}\n", nError);
-
-  nError=xitoaA(45, szResult);
-  printf("szResult={%s}, nError={%d}\n", szResult, nError);
-
-  nError=xstrrepA("ABC||dfg||HJK", "||", "##", TRUE, szResult, &nStringLen);
-  printf("szResult={%s}, nStringLen={%d}, nError={%d}\n", szResult, nStringLen, nError);
-
-  nError=xstroptA("/A=123 /B=\"456\" /C=`789`", "/b=", FALSE, szResult, MAX_PATH);
-  printf("szResult={%s}, nError={%d}\n", szResult, nError);
-
-  nError=xstrstrA("ABC||dfg||HJK", (DWORD)-1, "Dfg", FALSE, &pStringBegin, &pStringEnd);
-  printf("pStringBegin={%s}, pStringEnd={%s}, nError={%d}\n", pStringBegin, pStringEnd, nError);
-
   nError=xstrcmpiA("ABC", "abc");
   printf("nError={%d}\n", nError);
 
   nError=xstrcmpinA("ABCdfg", "abcxyz", 3);
   printf("nError={%d}\n", nError);
+
+  nError=xstrrepA("ABC||dfg||HJK", "||", "##", TRUE, szResult, &nStringLen);
+  printf("szResult={%s}, nStringLen={%d}, nError={%d}\n", szResult, nStringLen, nError);
+
+  nError=xstrstrA("ABC||dfg||HJK", (DWORD)-1, "Dfg", FALSE, &pStringBegin, &pStringEnd);
+  printf("pStringBegin={%s}, pStringEnd={%s}, nError={%d}\n", pStringBegin, pStringEnd, nError);
+
+  nError=xatoiA("123", NULL);
+  printf("nError={%d}\n", nError);
+
+  nError=xitoaA(45, szResult);
+  printf("szResult={%s}, nError={%d}\n", szResult, nError);
 }
 
 */
