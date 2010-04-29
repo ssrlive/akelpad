@@ -406,6 +406,7 @@ HWND CreateEditWindowA(HWND hWndParent)
 {
   RECT rcRect;
   HWND hWndEditNew;
+  DWORD dwOptions;
 
   GetClientRect(hWndParent, &rcRect);
 
@@ -423,16 +424,30 @@ HWND CreateEditWindowA(HWND hWndParent)
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
-  SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETOUTEDGE)?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETVERTLINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwPaintOptions & PAINT_PAINTGROUP)?AECOOP_OR:AECOOP_XOR, AECO_PAINTGROUP);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwPaintOptions & PAINT_NONEWLINEDRAW)?AECOOP_OR:AECOOP_XOR, AECO_NONEWLINEDRAW);
+
+  dwOptions=0;
+  if (bDetailedUndo)
+    dwOptions|=AECO_DETAILEDUNDO;
+  if (dwCaretOptions & CO_CARETOUTEDGE)
+    dwOptions|=AECO_CARETOUTEDGE;
+  if (dwCaretOptions & CO_CARETVERTLINE)
+    dwOptions|=AECO_ACTIVECOLUMN;
+  if (dwMouseOptions & MO_RICHEDITMOUSE)
+    dwOptions|=AECO_LBUTTONUPCONTINUECAPTURE;
+  if (!(dwMouseOptions & MO_LEFTMARGINSELECTION))
+    dwOptions|=AECO_NOMARGINSEL;
+  if (!(dwMouseOptions & MO_MOUSEDRAGGING))
+    dwOptions|=AECO_DISABLEDRAG;
+  if (dwPaintOptions & PAINT_PAINTGROUP)
+    dwOptions|=AECO_PAINTGROUP;
+  if (dwPaintOptions & PAINT_NONEWLINEDRAW)
+    dwOptions|=AECO_NONEWLINEDRAW;
+  if (dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
+    dwOptions|=AECO_ENTIRENEWLINEDRAW;
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
+
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
+  SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SetMargins(hWndEditNew, dwEditMargins, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontA(hWndEditNew, &lfEditFontA);
@@ -491,6 +506,7 @@ HWND CreateEditWindowW(HWND hWndParent)
 {
   RECT rcRect;
   HWND hWndEditNew;
+  DWORD dwOptions;
 
   GetClientRect(hWndParent, &rcRect);
 
@@ -508,16 +524,30 @@ HWND CreateEditWindowW(HWND hWndParent)
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
-  SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_LEFTMARGINSELECTION)?AECOOP_XOR:AECOOP_OR, AECO_NOMARGINSEL);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, bDetailedUndo?AECOOP_OR:AECOOP_XOR, AECO_DETAILEDUNDO);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETOUTEDGE)?AECOOP_OR:AECOOP_XOR, AECO_CARETOUTEDGE);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwCaretOptions & CO_CARETVERTLINE)?AECOOP_OR:AECOOP_XOR, AECO_ACTIVECOLUMN);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwMouseOptions & MO_RICHEDITMOUSE)?AECOOP_OR:AECOOP_XOR, AECO_LBUTTONUPCONTINUECAPTURE);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, !(dwMouseOptions & MO_MOUSEDRAGGING)?AECOOP_OR:AECOOP_XOR, AECO_DISABLEDRAG);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwPaintOptions & PAINT_PAINTGROUP)?AECOOP_OR:AECOOP_XOR, AECO_PAINTGROUP);
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, (dwPaintOptions & PAINT_NONEWLINEDRAW)?AECOOP_OR:AECOOP_XOR, AECO_NONEWLINEDRAW);
+
+  dwOptions=0;
+  if (bDetailedUndo)
+    dwOptions|=AECO_DETAILEDUNDO;
+  if (dwCaretOptions & CO_CARETOUTEDGE)
+    dwOptions|=AECO_CARETOUTEDGE;
+  if (dwCaretOptions & CO_CARETVERTLINE)
+    dwOptions|=AECO_ACTIVECOLUMN;
+  if (dwMouseOptions & MO_RICHEDITMOUSE)
+    dwOptions|=AECO_LBUTTONUPCONTINUECAPTURE;
+  if (!(dwMouseOptions & MO_LEFTMARGINSELECTION))
+    dwOptions|=AECO_NOMARGINSEL;
+  if (!(dwMouseOptions & MO_MOUSEDRAGGING))
+    dwOptions|=AECO_DISABLEDRAG;
+  if (dwPaintOptions & PAINT_PAINTGROUP)
+    dwOptions|=AECO_PAINTGROUP;
+  if (dwPaintOptions & PAINT_NONEWLINEDRAW)
+    dwOptions|=AECO_NONEWLINEDRAW;
+  if (dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
+    dwOptions|=AECO_ENTIRENEWLINEDRAW;
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
+
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
+  SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
   SetMargins(hWndEditNew, dwEditMargins, 0);
   SetTabStops(hWndEditNew, nTabStopSize, FALSE);
   SetChosenFontW(hWndEditNew, &lfEditFontW);
