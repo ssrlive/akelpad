@@ -10567,16 +10567,28 @@ void AE_Paint(AKELEDIT *ae)
             }
             else
             {
-              //Draw new line selection
-              if (to.ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
-                  to.ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
+              if (!ae->popt->bHideSelection)
               {
-                if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP &&
-                    !(ae->popt->dwOptions & AECO_NONEWLINEDRAW))
+                //Draw new line selection
+                if (to.ciDrawLine.nLine >= ae->ciSelStartIndex.nLine &&
+                    to.ciDrawLine.nLine < ae->ciSelEndIndex.nLine)
                 {
-                  if (to.ciDrawLine.lpLine->nLineWidth + ae->ptxt->nAveCharWidth > ae->nHScrollPos)
+                  if (ae->popt->dwOptions & AECO_ENTIRENEWLINEDRAW)
                   {
-                    if (!ae->popt->bHideSelection)
+                    //Draw selection to the right edge
+                    if (rcSpace.right < ae->rcDraw.right)
+                    {
+                      rcSpace.left=rcSpace.right;
+                      rcSpace.top=to.ptFirstCharInLine.y;
+                      rcSpace.right=ae->rcDraw.right;
+                      rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
+                      FillRect(to.hDC, &rcSpace, hSelBk);
+                    }
+                  }
+                  else if (!(ae->popt->dwOptions & AECO_NONEWLINEDRAW) &&
+                           to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+                  {
+                    if (to.ciDrawLine.lpLine->nLineWidth + ae->ptxt->nAveCharWidth > ae->nHScrollPos)
                     {
                       rcSpace.left=rcSpace.right;
                       rcSpace.top=to.ptFirstCharInLine.y;

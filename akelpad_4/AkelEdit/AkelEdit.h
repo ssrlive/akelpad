@@ -160,9 +160,10 @@
                                                   //With this flag some text recognition programs could start to work, printer could print faster, but highlighted symbols and combined unicode symbols can be drawn differently and editing of whose characters may become uncomfortable.
 #define AECO_ALTDECINPUT              0x00001000  //Do Alt+NumPad decimal input with NumLock on (default is decimal input after two "Num 0").
 #define AECO_NOMARGINSEL              0x00002000  //Disables left margin line selection with mouse.
-#define AECO_NONEWLINEDRAW            0x00004000  //Disables draw new line as space in selection.
-#define AECO_NOPRINTCOLLAPSED         0x00008000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
-#define AECO_LBUTTONUPCONTINUECAPTURE 0x00010000  //After WM_LBUTTONUP message capture operations doesn't stopped.
+#define AECO_NONEWLINEDRAW            0x00004000  //Disables drawing new line selection as space character.
+#define AECO_ENTIRENEWLINEDRAW        0x00008000  //Draw new line selection to the right edge.
+#define AECO_NOPRINTCOLLAPSED         0x00010000  //Disables print collapsed lines. See AEM_COLLAPSEFOLD message.
+#define AECO_LBUTTONUPCONTINUECAPTURE 0x00020000  //After WM_LBUTTONUP message capture operations doesn't stopped.
 
 #define AECOOP_SET              1  //Sets the options to those specified by lParam.
 #define AECOOP_OR               2  //Combines the specified options with the current options.
