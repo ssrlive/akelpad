@@ -4372,6 +4372,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     {
       DoFileNewA();
       hWnd=hWndEdit;
+      UpdateWindow(hMainWnd);
     }
 
     //Get file write time
@@ -4688,6 +4689,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     {
       DoFileNewW();
       hWnd=hWndEdit;
+      UpdateWindow(hMainWnd);
     }
 
     //Get file write time
@@ -22487,7 +22489,7 @@ void ActivateKeyboard(int nKeybLayout)
   }
 }
 
-void ActivateWindow(HWND hWnd, BOOL bUpdate)
+void ActivateWindow(HWND hWnd)
 {
   DWORD dwStyle=GetWindowLongA(hWnd, GWL_STYLE);
 
@@ -22497,11 +22499,6 @@ void ActivateWindow(HWND hWnd, BOOL bUpdate)
       ShowWindow(hWnd, SW_RESTORE);
     else
       SetForegroundWindow(hWnd); //BringWindowToTop(hWnd);
-  }
-  if (bUpdate)
-  {
-    InvalidateRect(hWnd, NULL, FALSE);
-    UpdateWindow(hWnd);
   }
 }
 
