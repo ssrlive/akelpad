@@ -647,7 +647,7 @@ extern "C" void _WinMain()
       {
         if (hWndFriend=FindWindowA(APP_MAIN_CLASSA, NULL))
         {
-          ActivateWindow(hWndFriend, TRUE);
+          ActivateWindow(hWndFriend);
           SendMessage(hWndFriend, AKDN_ACTIVATE, 0, 0);
           bExit=TRUE;
         }
@@ -738,7 +738,7 @@ extern "C" void _WinMain()
               if ((hWndFriend=FindWindowA(APP_SDI_CLASSA, szFileBuffer)) &&
                   (hWndFriend=GetParent(hWndFriend)))
               {
-                ActivateWindow(hWndFriend, TRUE);
+                ActivateWindow(hWndFriend);
                 SendMessage(hWndFriend, AKDN_ACTIVATE, 0, 0);
 
                 if (hWndFriend)
@@ -1093,7 +1093,7 @@ extern "C" void _WinMain()
       {
         if (hWndFriend=FindWindowW(APP_MAIN_CLASSW, NULL))
         {
-          ActivateWindow(hWndFriend, TRUE);
+          ActivateWindow(hWndFriend);
           SendMessage(hWndFriend, AKDN_ACTIVATE, 0, 0);
           bExit=TRUE;
         }
@@ -1184,7 +1184,7 @@ extern "C" void _WinMain()
               if ((hWndFriend=FindWindowW(APP_SDI_CLASSW, wszFileBuffer)) &&
                   (hWndFriend=GetParent(hWndFriend)))
               {
-                ActivateWindow(hWndFriend, TRUE);
+                ActivateWindow(hWndFriend);
                 SendMessage(hWndFriend, AKDN_ACTIVATE, 0, 0);
 
                 if (hWndFriend)

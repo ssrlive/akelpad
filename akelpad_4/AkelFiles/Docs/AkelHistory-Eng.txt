@@ -13,7 +13,7 @@ Changed: clean program installation recommended.
 Changed: now libc.lib not used, which allow to compile the program on the latest MS VS without
          errors.
 Changed: more soft work with text Drag'n'Drop.
-Changed: before file opening controls are updated if the main window was minimized.
+Changed: before file opening controls are updated if the main window was minimized (MDI).
 
 Added: dialog "Save all as" that allows you to save all open documents in a particular encoding and
        new line format (MDI).
