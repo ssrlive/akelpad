@@ -410,7 +410,7 @@ HWND CreateEditWindowA(HWND hWndParent)
 
   GetClientRect(hWndParent, &rcRect);
 
-  hWndEditNew=CreateWindowExA(WS_EX_CLIENTEDGE,
+  hWndEditNew=CreateWindowExA((dwPaintOptions & PAINT_STATICEDGE)?WS_EX_STATICEDGE:WS_EX_CLIENTEDGE,
                               bRichEditClass?AES_RICHEDITCLASSA:AES_AKELEDITCLASSA,
                               NULL,
                               WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL|ES_NOHIDESEL,
@@ -425,6 +425,7 @@ HWND CreateEditWindowA(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
 
+  //Turn on
   dwOptions=0;
   if (bDetailedUndo)
     dwOptions|=AECO_DETAILEDUNDO;
@@ -445,6 +446,14 @@ HWND CreateEditWindowA(HWND hWndParent)
   if (dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
     dwOptions|=AECO_ENTIRENEWLINEDRAW;
   SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
+
+  //Turn off
+  dwOptions=0;
+  if (dwPaintOptions & PAINT_HIDESEL)
+    dwOptions|=AECO_NOHIDESEL;
+  if (dwPaintOptions & PAINT_HIDENOSCROLL)
+    dwOptions|=AECO_DISABLENOSCROLL;
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_XOR, dwOptions);
 
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
@@ -510,7 +519,7 @@ HWND CreateEditWindowW(HWND hWndParent)
 
   GetClientRect(hWndParent, &rcRect);
 
-  hWndEditNew=CreateWindowExW(WS_EX_CLIENTEDGE,
+  hWndEditNew=CreateWindowExW((dwPaintOptions & PAINT_STATICEDGE)?WS_EX_STATICEDGE:WS_EX_CLIENTEDGE,
                               bRichEditClass?AES_RICHEDITCLASSW:AES_AKELEDITCLASSW,
                               NULL,
                               WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL|ES_NOHIDESEL,
@@ -525,6 +534,7 @@ HWND CreateEditWindowW(HWND hWndParent)
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
   SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
 
+  //Turn on
   dwOptions=0;
   if (bDetailedUndo)
     dwOptions|=AECO_DETAILEDUNDO;
@@ -545,6 +555,14 @@ HWND CreateEditWindowW(HWND hWndParent)
   if (dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
     dwOptions|=AECO_ENTIRENEWLINEDRAW;
   SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
+
+  //Turn off
+  dwOptions=0;
+  if (dwPaintOptions & PAINT_HIDESEL)
+    dwOptions|=AECO_NOHIDESEL;
+  if (dwPaintOptions & PAINT_HIDENOSCROLL)
+    dwOptions|=AECO_DISABLENOSCROLL;
+  SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_XOR, dwOptions);
 
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
