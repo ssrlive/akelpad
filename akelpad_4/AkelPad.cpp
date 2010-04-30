@@ -2513,7 +2513,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpDock->hWnd)
         {
           lpDock->dwFlags|=DKF_HIDDEN;
-          ShowWindow(lpDock->hWnd, FALSE);
+          ShowWindow(lpDock->hWnd, SW_HIDE);
           UpdateSize();
         }
       }
@@ -2522,7 +2522,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpDock->hWnd)
         {
           lpDock->dwFlags&=~DKF_HIDDEN;
-          ShowWindow(lpDock->hWnd, TRUE);
+          ShowWindow(lpDock->hWnd, SW_SHOW);
           UpdateSize();
         }
       }
@@ -4470,7 +4470,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpDock->hWnd)
         {
           lpDock->dwFlags|=DKF_HIDDEN;
-          ShowWindow(lpDock->hWnd, FALSE);
+          ShowWindow(lpDock->hWnd, SW_HIDE);
           UpdateSize();
         }
       }
@@ -4479,7 +4479,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpDock->hWnd)
         {
           lpDock->dwFlags&=~DKF_HIDDEN;
-          ShowWindow(lpDock->hWnd, TRUE);
+          ShowWindow(lpDock->hWnd, SW_SHOW);
           UpdateSize();
         }
       }
@@ -5816,7 +5816,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
               SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
               SendMessage(hProgress, PBM_SETPOS, 0, 0);
-              ShowWindow(hProgress, TRUE);
+              ShowWindow(hProgress, SW_SHOW);
               nIncrement=aenp->nMaximum / nProgressWidth;
               if (!nIncrement)
                 nBarrier=0;
@@ -5859,7 +5859,7 @@ LRESULT CALLBACK EditParentMessagesA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
             //End progress
             if (aenp->nCurrent == aenp->nMaximum || bStop)
             {
-              ShowWindow(hProgress, FALSE);
+              ShowWindow(hProgress, SW_HIDE);
               UpdateWindow(hStatus);
               dwProgressType=0;
 
@@ -6115,7 +6115,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 
               SendMessage(hProgress, PBM_SETRANGE32, 0, aenp->nMaximum);
               SendMessage(hProgress, PBM_SETPOS, 0, 0);
-              ShowWindow(hProgress, TRUE);
+              ShowWindow(hProgress, SW_SHOW);
               nIncrement=aenp->nMaximum / nProgressWidth;
               if (!nIncrement)
                 nBarrier=0;
@@ -6158,7 +6158,7 @@ LRESULT CALLBACK EditParentMessagesW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
             //End progress
             if (aenp->nCurrent == aenp->nMaximum || bStop)
             {
-              ShowWindow(hProgress, FALSE);
+              ShowWindow(hProgress, SW_HIDE);
               UpdateWindow(hStatus);
               dwProgressType=0;
 
