@@ -34,7 +34,7 @@ Added: manual parameter "PaintOptions" - defines, some text draw settings. Sets 
           4  Draw new line selection to the right edge.
           8  Hides the selection when the control loses the input focus.
         256  Hides scroll bars instead of disabling them.
-        512  Draw thin edit window border style.
+        512  Draw thin edit window border.
        By default: 0.
 Added: possibility in "Go to line..." dialog to go to a specified column in line.
 Added: possibility to set default file save extention.
