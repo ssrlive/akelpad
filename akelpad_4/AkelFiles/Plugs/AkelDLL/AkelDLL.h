@@ -105,7 +105,7 @@
 #define PAINT_ENTIRENEWLINEDRAW 0x00000004  //Draw new line selection to the right edge.
 #define PAINT_HIDESEL           0x00000008  //Hides the selection when the control loses the input focus and inverts the selection when the control receives the input focus.
 #define PAINT_HIDENOSCROLL      0x00000100  //Hides scroll bars instead of disabling them when they are not needed.
-#define PAINT_STATICEDGE        0x00000200  //Draw thin edit window border style.
+#define PAINT_STATICEDGE        0x00000200  //Draw thin edit window border.
 
 //Tab options MDI
 #define TAB_VIEW_NONE         0x00000001
