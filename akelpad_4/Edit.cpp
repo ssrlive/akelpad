@@ -413,7 +413,9 @@ HWND CreateEditWindowA(HWND hWndParent)
   hWndEditNew=CreateWindowExA((dwPaintOptions & PAINT_STATICEDGE)?WS_EX_STATICEDGE:WS_EX_CLIENTEDGE,
                               bRichEditClass?AES_RICHEDITCLASSA:AES_AKELEDITCLASSA,
                               NULL,
-                              WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL|ES_NOHIDESEL,
+                              WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
+                              ((dwPaintOptions & PAINT_HIDESEL)?0:ES_NOHIDESEL)|
+                              ((dwPaintOptions & PAINT_HIDENOSCROLL)?0:ES_DISABLENOSCROLL),
                               0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
                               hWndParent,
                               (HMENU)ID_EDIT,
@@ -446,14 +448,6 @@ HWND CreateEditWindowA(HWND hWndParent)
   if (dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
     dwOptions|=AECO_ENTIRENEWLINEDRAW;
   SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
-
-  //Turn off
-  dwOptions=0;
-  if (dwPaintOptions & PAINT_HIDESEL)
-    dwOptions|=AECO_NOHIDESEL;
-  if (dwPaintOptions & PAINT_HIDENOSCROLL)
-    dwOptions|=AECO_DISABLENOSCROLL;
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_XOR, dwOptions);
 
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
@@ -522,7 +516,9 @@ HWND CreateEditWindowW(HWND hWndParent)
   hWndEditNew=CreateWindowExW((dwPaintOptions & PAINT_STATICEDGE)?WS_EX_STATICEDGE:WS_EX_CLIENTEDGE,
                               bRichEditClass?AES_RICHEDITCLASSW:AES_AKELEDITCLASSW,
                               NULL,
-                              WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|ES_DISABLENOSCROLL|ES_NOHIDESEL,
+                              WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
+                              ((dwPaintOptions & PAINT_HIDESEL)?0:ES_NOHIDESEL)|
+                              ((dwPaintOptions & PAINT_HIDENOSCROLL)?0:ES_DISABLENOSCROLL),
                               0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
                               hWndParent,
                               (HMENU)ID_EDIT,
@@ -555,14 +551,6 @@ HWND CreateEditWindowW(HWND hWndParent)
   if (dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
     dwOptions|=AECO_ENTIRENEWLINEDRAW;
   SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
-
-  //Turn off
-  dwOptions=0;
-  if (dwPaintOptions & PAINT_HIDESEL)
-    dwOptions|=AECO_NOHIDESEL;
-  if (dwPaintOptions & PAINT_HIDENOSCROLL)
-    dwOptions|=AECO_DISABLENOSCROLL;
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_XOR, dwOptions);
 
   SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&aecColors);
@@ -21385,21 +21373,24 @@ DWORD IsEditActive(HWND hWnd)
 
 void UpdateShowHScroll(HWND hWnd)
 {
-  BOOL bShowScroll=TRUE;
-
-  if (bWordWrap && !dwWrapLimit && !hWndClone1 && !hWndClone3)
-    bShowScroll=FALSE;
-
-  if (!bSplitWindow)
+  if (!(dwPaintOptions & PAINT_HIDENOSCROLL))
   {
-    SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-  }
-  else
-  {
-    if (hWndMaster) SendMessage(hWndMaster, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-    if (hWndClone1) SendMessage(hWndClone1, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-    if (hWndClone2) SendMessage(hWndClone2, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-    if (hWndClone3) SendMessage(hWndClone3, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+    BOOL bShowScroll=TRUE;
+
+    if (bWordWrap && !dwWrapLimit && !hWndClone1 && !hWndClone3)
+      bShowScroll=FALSE;
+
+    if (!bSplitWindow)
+    {
+      SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+    }
+    else
+    {
+      if (hWndMaster) SendMessage(hWndMaster, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (hWndClone1) SendMessage(hWndClone1, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (hWndClone2) SendMessage(hWndClone2, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (hWndClone3) SendMessage(hWndClone3, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+    }
   }
 }
 
