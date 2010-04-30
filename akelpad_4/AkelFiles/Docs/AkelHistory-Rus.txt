@@ -8,6 +8,8 @@ AkelPad 4.4.4 ()
             AutoSave + NoBOM -> SaveFile
             NoSelEOL + SmartHome -> SmartSel
             Caret + Justify + PlainText + PrintClassic -> RichTune
+          Переименованные плагины:
+            AutoScroll -> Scroll
           Плагины интегрированные в программу:
             SaveAllAs, LogDate, KeybLayout
 Изменено: теперь не используется libc.lib, что позволит безошибочно компилироваться программе
