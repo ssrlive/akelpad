@@ -15,12 +15,17 @@ Changed: now libc.lib not used, which allow to compile the program on the latest
 Changed: more soft work with text Drag'n'Drop.
 Changed: before file opening controls are updated if the main window was minimized (MDI).
 
-Added: dialog "Save all as" that allows you to save all open documents in a particular encoding and
-       new line format (MDI).
+Added: dialog "Save all as" that allows you to save all open documents in a particular encoding
+       and new line format (MDI).
 Added: option for remember keyboard layout of each tab (MDI).
 Added: option for insert current date and time to the end of opened file, if it has ".LOG"
        at the beginning.
-Added: parameter "PaintOptions" - defines, some draw text settings. Sets by the sum of members:
+Added: manual parameter "DateInsertFormat" - defines insert date and time format.
+Added: manual parameter "DateLogFormat" - defines date and time format for files containing
+       ".LOG" at the beginning. Works only if enabled "Insert date if file has .LOG at the
+       beginning" in settings (DateLog=1).
+Added: manual parameter "PaintOptions" - defines, some text draw settings. Sets by the sum of
+       members:
          1  Paint text by group of characters (default is character by character).
             With this flag some text recognition programs could start to work, printer
             could print faster, but highlighted symbols and combined unicode symbols can be
@@ -29,7 +34,7 @@ Added: parameter "PaintOptions" - defines, some draw text settings. Sets by the 
          4  Draw new line selection to the right edge.
        By default: 0.
 Added: possibility in "Go to line..." dialog to go to a specified column in line.
-Added: option for default file save extention.
+Added: possibility to set default file save extention.
 Added: reopening of the new, not saved document in different encoding now leads to a current
        encoding change.
 
