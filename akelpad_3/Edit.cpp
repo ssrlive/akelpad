@@ -4648,6 +4648,71 @@ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG 
   return 0;
 }
 
+DWORD ReadFileContents(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContents)
+{
+  unsigned char *pBuffer;
+  wchar_t *wpBuffer=NULL;
+  DWORD dwBufferLen;
+  DWORD dwFileSize;
+  DWORD dwBytesRead;
+  DWORD dwCharsConverted=0;
+
+  //Offset BOM
+  if (bBOM)
+  {
+    if (nCodePage == CP_UNICODE_UCS2_LE)
+      SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+    else if (nCodePage == CP_UNICODE_UCS2_BE)
+      SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+    else if (nCodePage == CP_UNICODE_UTF8)
+      SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
+  }
+
+  if ((dwFileSize=GetFileSize(hFile, NULL)) != INVALID_FILE_SIZE)
+  {
+    if (dwBytesMax == (DWORD)-1)
+      dwBytesMax=dwFileSize;
+
+    if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE)
+      dwBufferLen=dwBytesMax;
+    else
+      dwBufferLen=dwBytesMax * sizeof(wchar_t);
+
+    if (wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, dwBufferLen + 2))
+    {
+      if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE)
+        pBuffer=(unsigned char *)wpBuffer;
+      else
+        pBuffer=(unsigned char *)wpBuffer + dwBytesMax;
+
+      //Read data from file
+      if (API_ReadFile(hFile, pBuffer, dwBytesMax, &dwBytesRead, NULL))
+      {
+        //Translate data to UNICODE
+        if (nCodePage == CP_UNICODE_UCS2_LE)
+        {
+          dwCharsConverted=dwBytesRead / sizeof(wchar_t);
+        }
+        else if (nCodePage == CP_UNICODE_UCS2_BE)
+        {
+          ChangeByteOrder(pBuffer, dwBytesRead);
+          dwCharsConverted=dwBytesRead / sizeof(wchar_t);
+        }
+        else
+        {
+          if (nCodePage == CP_UNICODE_UTF8)
+            dwCharsConverted=UTF8toUTF16(pBuffer, dwBytesRead, NULL, wpBuffer, dwBytesRead);
+          else
+            dwCharsConverted=MultiByteToWideChar(nCodePage, 0, (char *)pBuffer, dwBytesRead, wpBuffer, dwBytesRead);
+        }
+        wpBuffer[dwCharsConverted]='\0';
+      }
+    }
+  }
+  *wpContents=wpBuffer;
+  return dwCharsConverted;
+}
+
 int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
   NSAVEDOCUMENTA nsdA;

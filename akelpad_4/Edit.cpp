@@ -761,10 +761,13 @@ BOOL CALLBACK EnumThreadProcW(HWND hwnd, LPARAM lParam)
 
 BOOL DoFileOpenA()
 {
-  if (!bMDI && !SaveChangedA()) return FALSE;
+  DIALOGCODEPAGE dc={-1, -1};
 
+  if (!bMDI && !SaveChangedA()) return FALSE;
   bSaveDlg=FALSE;
+
   ofnA.lStructSize=sizeof(OPENFILENAMEA);
+  ofnA.lCustData=(LPARAM)&dc;
   ofnA.lpstrDefExt=NULL;
   if (!bMDI)
     ofnA.Flags&=~OFN_ALLOWMULTISELECT;
@@ -814,10 +817,13 @@ BOOL DoFileOpenA()
 
 BOOL DoFileOpenW()
 {
-  if (!bMDI && !SaveChangedW()) return FALSE;
+  DIALOGCODEPAGE dc={-1, -1};
 
+  if (!bMDI && !SaveChangedW()) return FALSE;
   bSaveDlg=FALSE;
+
   ofnW.lStructSize=sizeof(OPENFILENAMEW);
+  ofnW.lCustData=(LPARAM)&dc;
   ofnW.lpstrDefExt=NULL;
   if (!bMDI)
     ofnW.Flags&=~OFN_ALLOWMULTISELECT;
@@ -937,7 +943,7 @@ BOOL DoFileSaveAsA(int nDialogCodePage, BOOL bDialogBOM)
 
   ofnA.lStructSize=sizeof(OPENFILENAMEA);
   ofnA.lpstrDefExt=szDefaultSaveExt;
-  ofnW.lCustData=(LPARAM)&dc;
+  ofnA.lCustData=(LPARAM)&dc;
   ofnA.Flags&=~OFN_ALLOWMULTISELECT;
   lstrcpynA(szFileBuffer, szCurrentFile, MAX_PATH);
 
@@ -5017,6 +5023,71 @@ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufL
   return 0;
 }
 
+DWORD ReadFileContents(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContents)
+{
+  unsigned char *pBuffer;
+  wchar_t *wpBuffer=NULL;
+  DWORD dwBufferLen;
+  DWORD dwFileSize;
+  DWORD dwBytesRead;
+  DWORD dwCharsConverted=0;
+
+  //Offset BOM
+  if (bBOM)
+  {
+    if (nCodePage == CP_UNICODE_UCS2_LE)
+      SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+    else if (nCodePage == CP_UNICODE_UCS2_BE)
+      SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+    else if (nCodePage == CP_UNICODE_UTF8)
+      SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
+  }
+
+  if ((dwFileSize=GetFileSize(hFile, NULL)) != INVALID_FILE_SIZE)
+  {
+    if (dwBytesMax == (DWORD)-1)
+      dwBytesMax=dwFileSize;
+
+    if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE)
+      dwBufferLen=dwBytesMax;
+    else
+      dwBufferLen=dwBytesMax * sizeof(wchar_t);
+
+    if (wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, dwBufferLen + 2))
+    {
+      if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE)
+        pBuffer=(unsigned char *)wpBuffer;
+      else
+        pBuffer=(unsigned char *)wpBuffer + dwBytesMax;
+
+      //Read data from file
+      if (API_ReadFile(hFile, pBuffer, dwBytesMax, &dwBytesRead, NULL))
+      {
+        //Translate data to UNICODE
+        if (nCodePage == CP_UNICODE_UCS2_LE)
+        {
+          dwCharsConverted=dwBytesRead / sizeof(wchar_t);
+        }
+        else if (nCodePage == CP_UNICODE_UCS2_BE)
+        {
+          ChangeByteOrder(pBuffer, dwBytesRead);
+          dwCharsConverted=dwBytesRead / sizeof(wchar_t);
+        }
+        else
+        {
+          if (nCodePage == CP_UNICODE_UTF8)
+            dwCharsConverted=UTF8toUTF16(pBuffer, dwBytesRead, NULL, wpBuffer, dwBytesRead);
+          else
+            dwCharsConverted=MultiByteToWideChar(nCodePage, 0, (char *)pBuffer, dwBytesRead, wpBuffer, dwBytesRead);
+        }
+        wpBuffer[dwCharsConverted]='\0';
+      }
+    }
+  }
+  *wpContents=wpBuffer;
+  return dwCharsConverted;
+}
+
 int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
   NSAVEDOCUMENTA nsdA;
@@ -8480,9 +8551,9 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
     hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
-    if ((nCodePage=((DIALOGCODEPAGE *)ofnData->lCustData)->nCodePage) < 0)
+    if (!ofnData->lCustData || (nCodePage=((DIALOGCODEPAGE *)ofnData->lCustData)->nCodePage) < 0)
       nCodePage=nCurrentCodePage;
-    if ((bBOM=((DIALOGCODEPAGE *)ofnData->lCustData)->bBOM) < 0)
+    if (!ofnData->lCustData || (bBOM=((DIALOGCODEPAGE *)ofnData->lCustData)->bBOM) < 0)
       bBOM=bCurrentBOM;
     FillComboboxCodepageA(hWndCP, lpCodepageList);
     SelectComboboxCodepageA(hWndCP, nCodePage);
@@ -8698,9 +8769,9 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
     hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
-    if ((nCodePage=((DIALOGCODEPAGE *)ofnData->lCustData)->nCodePage) < 0)
+    if (!ofnData->lCustData || (nCodePage=((DIALOGCODEPAGE *)ofnData->lCustData)->nCodePage) < 0)
       nCodePage=nCurrentCodePage;
-    if ((bBOM=((DIALOGCODEPAGE *)ofnData->lCustData)->bBOM) < 0)
+    if (!ofnData->lCustData || (bBOM=((DIALOGCODEPAGE *)ofnData->lCustData)->bBOM) < 0)
       bBOM=bCurrentBOM;
     FillComboboxCodepageW(hWndCP, lpCodepageList);
     SelectComboboxCodepageW(hWndCP, nCodePage);
@@ -9614,7 +9685,7 @@ int AutodetectCodePageA(char *pFile, DWORD dwBytesToCheck, DWORD dwFlags, int *n
   //Free buffer
   Free:
   if (pBuffer) API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
-  return 0;
+  return EDT_SUCCESS;
 }
 
 int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
@@ -9791,7 +9862,7 @@ int AutodetectCodePageW(wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, in
   //Free buffer
   Free:
   if (pBuffer) API_HeapFree(hHeap, 0, (LPVOID)pBuffer);
-  return 0;
+  return EDT_SUCCESS;
 }
 
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage)
