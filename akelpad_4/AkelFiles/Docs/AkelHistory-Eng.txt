@@ -43,8 +43,8 @@ Added: manual parameter "PaintOptions" - defines, some text draw settings. Sets 
        By default: 0.
 Added: possibility in "Go to line..." dialog to go to a specified column in line.
 Added: possibility to set default file save extention.
-Added: reopening of the new, not saved document in different encoding now leads to a current
-       encoding change.
+Added: fast saving or reopening of the new, not saved document in different encoding now
+       leads to a current encoding change.
 
 Fixed: saving non-active document.
 Fixed: selection didn't updated during switching panes (split window).

@@ -4662,6 +4662,12 @@ int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFla
   int nCodePageCmp;
   int nLine=0;
 
+  if (!szFile[0])
+  {
+    SetCodePageStatusA(nCodePage, bBOM, FALSE);
+    return nResult;
+  }
+
   //Notification message
   if (GetWindowLongA(hWnd, GWL_ID) == ID_EDIT)
   {
@@ -4868,6 +4874,12 @@ int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD d
   int nFileCmp;
   int nCodePageCmp;
   int nLine=0;
+
+  if (!wszFile[0])
+  {
+    SetCodePageStatusW(nCodePage, bBOM, FALSE);
+    return nResult;
+  }
 
   //Notification message
   if (GetWindowLongW(hWnd, GWL_ID) == ID_EDIT)
