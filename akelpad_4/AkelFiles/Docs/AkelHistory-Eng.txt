@@ -4,12 +4,17 @@ AkelPad 4.4.4 ()
 Changed: clean program installation recommended.
          Plugins merged:
            HighLight + CodeFold + AutoComplete -> Coder
-           CaptureClipboard + SelAutoCopy -> Clipboard
+           CaptureClipboard + PasteSerial + SelAutoCopy -> Clipboard
            AutoSave + NoBOM -> SaveFile
+           Lines + Crypt + LinkExtract -> Format
            NoSelEOL + SmartHome -> SmartSel
            Caret + Justify + PlainText + PrintClassic -> RichTune
+         Plugins renamed:
+            AutoScroll -> Scroll
          Plugins integrated in program:
            SaveAllAs, LogDate, KeybLayout
+Changed: commands 4421 - "Insert/Overtype mode" and 4426 - "Save file as UTF8 without BOM"
+         swapped.
 Changed: now libc.lib not used, which allow to compile the program on the latest MS VS without
          errors.
 Changed: more soft work with text Drag'n'Drop.

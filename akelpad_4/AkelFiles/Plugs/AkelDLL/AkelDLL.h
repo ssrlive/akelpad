@@ -1046,8 +1046,8 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_SAVEAS_KOIR         4420  //Save file as KOI-R
                                               //Return Value: see ESD_* defines
                                               //
-#define IDM_NONMENU_INSERTMODE          4421  //Insert mode (on\off)
-                                              //Return Value: zero
+#define IDM_NONMENU_SAVEAS_UTF8_NOBOM   4421  //Save file as UTF8 without BOM
+                                              //Return Value: see ESD_* defines
                                               //
 #define IDM_NONMENU_FILECLOSE           4422  //Close file
                                               //Return Value: TRUE - success, FALSE - failed
@@ -1061,8 +1061,8 @@ typedef struct _NSIZE {
 #define IDM_NONMENU_AUTOINDENT          4425  //Insert new line with keeping left spaces
                                               //Return Value: TRUE - inserted with spaces, FALSE - inserted without spaces
                                               //
-#define IDM_NONMENU_SAVEAS_UTF8_NOBOM   4426  //Save file as UTF8 without BOM
-                                              //Return Value: see ESD_* defines
+#define IDM_NONMENU_INSERTMODE          4426  //Insert mode (on\off)
+                                              //Return Value: zero
                                               //
 #define IDM_NONMENU_CLONENEXT           4427  //Activate next pane (split window)
                                               //Return Value: activated pane handle

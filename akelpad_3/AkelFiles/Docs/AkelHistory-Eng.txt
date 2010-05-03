@@ -1,6 +1,18 @@
 
 AkelPad 3.7.5 ()
 ----------------------------
+Changed: clean program installation recommended.
+         Plugins merged:
+           HighLight + CodeFold + AutoComplete -> Coder
+           CaptureClipboard + PasteSerial + SelAutoCopy -> Clipboard
+           AutoSave + NoBOM -> SaveFile
+           Lines + Crypt + LinkExtract -> Format
+           NoSelEOL + SmartHome -> SmartSel
+           Caret + Justify + PlainText + PrintClassic -> RichTune
+         Plugins renamed:
+            AutoScroll -> Scroll
+Changed: commands 4421 - "Insert/Overtype mode" and 4426 - "Save file as UTF8 without BOM"
+         swapped.
 Changed: now libc.lib not used, which allow to compile the program on the latest MS VS
          without errors.
 Changed: released Ctrl+E hotkey, which used for "Read only" mode.

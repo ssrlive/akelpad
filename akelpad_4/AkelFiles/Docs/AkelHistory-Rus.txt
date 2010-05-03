@@ -4,14 +4,17 @@ AkelPad 4.4.4 ()
 Изменено: Рекомендуется "чистая" установка программы.
           Объединенные плагины:
             HighLight + CodeFold + AutoComplete -> Coder
-            CaptureClipboard + SelAutoCopy -> Clipboard
+            CaptureClipboard + PasteSerial + SelAutoCopy -> Clipboard
             AutoSave + NoBOM -> SaveFile
+            Lines + Crypt + LinkExtract -> Format
             NoSelEOL + SmartHome -> SmartSel
             Caret + Justify + PlainText + PrintClassic -> RichTune
           Переименованные плагины:
             AutoScroll -> Scroll
           Плагины интегрированные в программу:
             SaveAllAs, LogDate, KeybLayout
+Изменено: команды 4421 - "Режим вставки/замены" и 4426 - "Сохранить файл как UTF8 без BOM"
+          поменяны местами.
 Изменено: теперь не используется libc.lib, что позволит безошибочно компилироваться программе
           на последних MS VS.
 Изменено: более спокойная работа с перетаскиванием текста мышью.
