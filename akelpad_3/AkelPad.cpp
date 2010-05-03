@@ -2083,6 +2083,31 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     //Text retrieval and modification
+    if (uMsg == AKD_DETECTCODEPAGE)
+    {
+      DETECTCODEPAGEA *dc=(DETECTCODEPAGEA *)lParam;
+
+      return AutodetectCodePageA(dc->pFile, dc->dwBytesToCheck, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
+    }
+    if (uMsg == AKD_READFILECONTENT)
+    {
+      FILECONTENT *fc=(FILECONTENT *)lParam;
+
+      return ReadFileContents(fc->hFile, fc->dwBytesMax, fc->nCodePage, fc->bBOM, &fc->wpContents);
+    }
+    if (uMsg == AKD_OPENDOCUMENT)
+    {
+      OPENDOCUMENTA *od=(OPENDOCUMENTA *)lParam;
+      int nResult=0;
+
+      if ((od->hWnd && !IsEditActive(od->hWnd)) || bMDI || SaveChangedA())
+      {
+        if (*od->szWorkDir) SetCurrentDirectoryA(od->szWorkDir);
+        nResult=OpenDocumentA(od->hWnd, od->szFile, od->dwFlags, od->nCodePage, od->bBOM);
+        if (*od->szWorkDir) SetCurrentDirectoryA(szExeDir);
+      }
+      return nResult;
+    }
     if (uMsg == AKD_SAVEDOCUMENT)
     {
       SAVEDOCUMENTA *sd=(SAVEDOCUMENTA *)lParam;
@@ -3960,6 +3985,31 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     //Text retrieval and modification
+    if (uMsg == AKD_DETECTCODEPAGE)
+    {
+      DETECTCODEPAGEW *dc=(DETECTCODEPAGEW *)lParam;
+
+      return AutodetectCodePageW(dc->pFile, dc->dwBytesToCheck, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
+    }
+    if (uMsg == AKD_READFILECONTENT)
+    {
+      FILECONTENT *fc=(FILECONTENT *)lParam;
+
+      return ReadFileContents(fc->hFile, fc->dwBytesMax, fc->nCodePage, fc->bBOM, &fc->wpContents);
+    }
+    if (uMsg == AKD_OPENDOCUMENT)
+    {
+      OPENDOCUMENTW *od=(OPENDOCUMENTW *)lParam;
+      int nResult=0;
+
+      if ((od->hWnd && !IsEditActive(od->hWnd)) || bMDI || SaveChangedW())
+      {
+        if (*od->szWorkDir) SetCurrentDirectoryW(od->szWorkDir);
+        nResult=OpenDocumentW(od->hWnd, od->szFile, od->dwFlags, od->nCodePage, od->bBOM);
+        if (*od->szWorkDir) SetCurrentDirectoryW(wszExeDir);
+      }
+      return nResult;
+    }
     if (uMsg == AKD_SAVEDOCUMENT)
     {
       SAVEDOCUMENTW *sd=(SAVEDOCUMENTW *)lParam;

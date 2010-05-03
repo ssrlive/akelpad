@@ -188,18 +188,6 @@
 //STARTUPINFO flags
 #define STARTF_NOMUTEX  0x00001000
 
-//Autodetect flags
-#define ADT_BINARY_ERROR        0x00000001
-#define ADT_REG_CODEPAGE        0x00000002
-#define ADT_DETECT_CODEPAGE     0x00000004
-#define ADT_DETECT_BOM          0x00000008
-
-//Autodetect errors
-#define EDT_OPEN          -1
-#define EDT_ALLOC         -2
-#define EDT_READ          -3
-#define EDT_BINARY        -4
-
 //Search/Replace options
 #define AEFR_UP                 0x00100000
 #define AEFR_BEGINNING          0x00200000
@@ -553,6 +541,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
 int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
 DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
+DWORD ReadFileContents(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContents);
 int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);

@@ -460,6 +460,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
 int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
 DWORD CALLBACK InputStreamCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
+DWORD ReadFileContents(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContents);
 int SaveDocumentA(HWND hWnd, char *szFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 int SaveDocumentW(HWND hWnd, wchar_t *wszFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);

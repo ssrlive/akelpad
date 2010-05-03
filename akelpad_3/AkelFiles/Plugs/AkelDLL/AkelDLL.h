@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 2, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(1, 3, 0, 0)
 
 
 //// Defines
@@ -33,6 +33,19 @@
 #define UD_NONUNLOAD_NONACTIVE  0x2  //Don't unload plugin and set non-active status
 #define UD_NONUNLOAD_UNCHANGE   0x4  //Don't unload plugin and don't change active status
 #define UD_HOTKEY_DODEFAULT     0x8  //Do default hotkey processing
+
+//Autodetect flags
+#define ADT_BINARY_ERROR        0x00000001
+#define ADT_REG_CODEPAGE        0x00000002
+#define ADT_DETECT_CODEPAGE     0x00000004
+#define ADT_DETECT_BOM          0x00000008
+
+//Autodetect errors
+#define EDT_SUCCESS       0
+#define EDT_OPEN          -1
+#define EDT_ALLOC         -2
+#define EDT_READ          -3
+#define EDT_BINARY        -4
 
 //Open document flags
 #define OD_ADT_BINARY_ERROR      0x00000001  //Check if file is binary
@@ -317,6 +330,30 @@ typedef struct _OPENDOCUMENTA {
   int nCodePage;               //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
   BOOL bBOM;                   //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
 } OPENDOCUMENTA;
+
+typedef struct _DETECTCODEPAGEA {
+  char *pFile;           //File to detect
+  DWORD dwBytesToCheck;  //How many bytes will be checked
+  DWORD dwFlags;         //See ADT_* defines
+  int nCodePage;         //Detected codepage
+  BOOL bBOM;             //Detected BOM
+} DETECTCODEPAGEA;
+
+typedef struct _DETECTCODEPAGEW {
+  wchar_t *pFile;        //File to detect
+  DWORD dwBytesToCheck;  //How many bytes will be checked
+  DWORD dwFlags;         //See ADT_* defines
+  int nCodePage;         //Detected codepage
+  BOOL bBOM;             //Detected BOM
+} DETECTCODEPAGEW;
+
+typedef struct _FILECONTENT {
+  HANDLE hFile;        //File handle, returned by CreateFile function
+  DWORD dwBytesMax;    //Maximum bytes to read, if -1 read entire file
+  int nCodePage;       //File codepage
+  BOOL bBOM;           //File BOM
+  wchar_t *wpContents; //Returned file contents
+} FILECONTENT;
 
 typedef struct _OPENDOCUMENTW {
   HWND hWnd;                     //Window to fill in, NULL for current edit window
@@ -1175,6 +1212,9 @@ typedef struct _NSIZE {
 #define AKD_INICLOSE               (WM_USER + 142)
 
 //Text retrieval and modification
+#define AKD_DETECTCODEPAGE         (WM_USER + 148)
+#define AKD_READFILECONTENT        (WM_USER + 149)
+#define AKD_OPENDOCUMENT           (WM_USER + 150)
 #define AKD_SAVEDOCUMENT           (WM_USER + 151)
 #define AKD_GETTEXTLENGTH          (WM_USER + 152)
 #define AKD_GETTEXTRANGE           (WM_USER + 153)
@@ -2216,6 +2256,85 @@ Example:
  See AKD_INIOPEN examples
 
 
+AKD_DETECTCODEPAGE
+__________________
+
+Detect codepage of a file.
+
+lParam                   == not used
+(DETECTCODEPAGE *)lParam == pointer to a DETECTCODEPAGE structure
+                            (DETECTCODEPAGEA *)lParam   if bOldWindows == TRUE
+                            (DETECTCODEPAGEW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ See EDT_* defines
+
+Example:
+ See AKD_READFILECONTENT example.
+
+
+AKD_READFILECONTENT
+___________________
+
+Read contents of a file.
+
+lParam                == not used
+(FILECONTENT *)lParam == pointer to a FILECONTENT structure
+
+Return Value
+ Number of wide characters copied to a FILECONTENT.wpContents buffer.
+ When you no longer need the buffer, call the AKD_FREETEXT function to delete it. 
+
+Example (bOldWindows == FALSE):
+ DETECTCODEPAGEW dc;
+ FILECONTENT fc;
+ wchar_t wszMsg[MAX_PATH];
+
+ //Detect codepage
+ dc.pFile=L"C:\\MyFile.txt";
+ dc.dwBytesToCheck=1024;
+ dc.dwFlags=ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM;
+ if (SendMessage(pd->hMainWnd, AKD_DETECTCODEPAGE, 0, (LPARAM)&dc) == EDT_SUCCESS)
+ {
+   wsprintfW(wszMsg, L"CP=%d, BOM=%d", dc.nCodePage, dc.bBOM);
+   MessageBoxW(pd->hMainWnd, wszMsg, NULL, MB_OK);
+
+   //Read contents
+   fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+
+   if (fc.hFile != INVALID_HANDLE_VALUE)
+   {
+     fc.dwBytesMax=(DWORD)-1;
+     fc.nCodePage=dc.nCodePage;
+     fc.bBOM=dc.bBOM;
+     if (SendMessage(pd->hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
+     {
+       //Show contents
+       MessageBoxW(pd->hMainWnd, fc.wpContents, NULL, MB_OK);
+       SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)fc.wpContents);
+     }
+     CloseHandle(fc.hFile);
+   }
+ }
+
+
+AKD_OPENDOCUMENT
+________________
+
+Save file.
+
+lParam                 == not used
+(OPENDOCUMENT *)lParam == pointer to a OPENDOCUMENT structure
+                         (OPENDOCUMENTA *)lParam   if bOldWindows == TRUE
+                         (OPENDOCUMENTW *)lParam   if bOldWindows == FALSE
+
+Return Value
+ See EOD_* defines
+
+Example:
+ See WM_COPYDATA with CD_OPENDOCUMENT examples
+
+
 AKD_SAVEDOCUMENT
 ________________
 
@@ -2227,7 +2346,7 @@ Save file.
                          (SAVEDOCUMENTW *)lParam   if bOldWindows == FALSE
 
 Return Value
- see ESD_* defines
+ See ESD_* defines
 
 Example (bOldWindows == TRUE):
  SAVEDOCUMENTA sd;
@@ -3327,7 +3446,7 @@ Example:
 CD_OPENDOCUMENT
 _______________
 
-Open file.
+Open file. Same as AKD_OPENDOCUMENT, but can be used from outside of AkelPad process.
 
 (DWORD)dwData          == CD_OPENDOCUMENT
 (DWORD)cbData          == sizeof(OPENDOCUMENTA)    if bOldWindows == TRUE
@@ -3374,6 +3493,7 @@ Example (bOldWindows == FALSE):
 //// UNICODE define
 
 #ifndef UNICODE
+  #define DETECTCODEPAGE DETECTCODEPAGEA
   #define OPENDOCUMENT OPENDOCUMENTA
   #define SAVEDOCUMENT SAVEDOCUMENTA
   #define WNDFRAME WNDFRAMEA
@@ -3389,6 +3509,7 @@ Example (bOldWindows == FALSE):
   #define NOPENDOCUMENT NOPENDOCUMENTA
   #define NSAVEDOCUMENT NSAVEDOCUMENTA
 #else
+  #define DETECTCODEPAGE DETECTCODEPAGEW
   #define OPENDOCUMENT OPENDOCUMENTW
   #define SAVEDOCUMENT SAVEDOCUMENTW
   #define WNDFRAME WNDFRAMEW
