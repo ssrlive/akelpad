@@ -20,7 +20,8 @@ Changed: integrated settings "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" in
          "TabOptionsMDI" (MDI).
 
 Added: check main window visibility on startup.
-Added: reopening of the new, not saved document now leads to a current encoding change.
+Added: fast saving or reopening of the new, not saved document in different encoding now
+       leads to a current encoding change.
 
 
 AkelPad 3.7.4 (Feb 10, 2010)
