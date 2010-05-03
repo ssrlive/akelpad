@@ -1,6 +1,18 @@
 
 AkelPad 3.7.5 ()
 --------------------------
+Изменено: Рекомендуется "чистая" установка программы.
+          Объединенные плагины:
+            HighLight + CodeFold + AutoComplete -> Coder
+            CaptureClipboard + PasteSerial + SelAutoCopy -> Clipboard
+            AutoSave + NoBOM -> SaveFile
+            Lines + Crypt + LinkExtract -> Format
+            NoSelEOL + SmartHome -> SmartSel
+            Caret + Justify + PlainText + PrintClassic -> RichTune
+          Переименованные плагины:
+            AutoScroll -> Scroll
+Изменено: команды 4421 - "Режим вставки/замены" и 4426 - "Сохранить файл как UTF8 без BOM"
+          поменяны местами.
 Изменено: теперь не используется libc.lib, что позволит безошибочно компилироваться
           программе на последних MS VS.
 Изменено: освобождено сочетание Ctrl+E, которое использовалось для режима "Только чтение".
