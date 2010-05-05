@@ -625,17 +625,21 @@ typedef struct _RECENTFILESW {
 typedef struct _TEXTFINDA {
   DWORD dwFlags;            //See FR_* defines
   char *pFindIt;            //Find string
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
 } TEXTFINDA;
 
 typedef struct _TEXTFINDW {
   DWORD dwFlags;            //See FR_* defines
   wchar_t *pFindIt;         //Find string
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
 } TEXTFINDW;
 
 typedef struct _TEXTREPLACEA {
   DWORD dwFlags;            //See FR_* defines
   char *pFindIt;            //Find string
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   char *pReplaceWith;       //Replace string
+  int nReplaceWithLen;      //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   BOOL bAll;                //Replace all
   int nChanges;             //Count of changes
 } TEXTREPLACEA;
@@ -643,7 +647,9 @@ typedef struct _TEXTREPLACEA {
 typedef struct _TEXTREPLACEW {
   DWORD dwFlags;            //See FR_* defines
   wchar_t *pFindIt;         //Find string
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   wchar_t *pReplaceWith;    //Replace string
+  int nReplaceWithLen;      //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   BOOL bAll;                //Replace all
   int nChanges;             //Count of changes
 } TEXTREPLACEW;
@@ -1225,9 +1231,13 @@ typedef struct _NSIZE {
 #define AKD_PASTE                  (WM_USER + 158)
 #define AKD_COPY                   (WM_USER + 159)
 #define AKD_TEXTFIND               (WM_USER + 160)
-#define AKD_TEXTREPLACE            (WM_USER + 161)
-#define AKD_RECODESEL              (WM_USER + 162)
-#define AKD_GETCHARCOLOR           (WM_USER + 163)
+#define AKD_TEXTFINDA              (WM_USER + 161)
+#define AKD_TEXTFINDW              (WM_USER + 162)
+#define AKD_TEXTREPLACE            (WM_USER + 163)
+#define AKD_TEXTREPLACEA           (WM_USER + 164)
+#define AKD_TEXTREPLACEW           (WM_USER + 165)
+#define AKD_RECODESEL              (WM_USER + 166)
+#define AKD_GETCHARCOLOR           (WM_USER + 167)
 
 //Print
 #define AKD_GETFILEPRINT           (WM_USER + 191)
@@ -2528,6 +2538,7 @@ Example (bOldWindows == TRUE):
 
  tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
  tf.pFindIt="Text to find";
+ tf.nFindItLen=-1;
  SendMessage(pd->hMainWnd, AKD_TEXTFIND, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
 
 Example (bOldWindows == FALSE):
@@ -2535,6 +2546,7 @@ Example (bOldWindows == FALSE):
 
  tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
  tf.pFindIt=L"Text to find";
+ tf.nFindItLen=-1;
  SendMessage(pd->hMainWnd, AKD_TEXTFIND, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
 
 
@@ -2555,7 +2567,9 @@ Example (bOldWindows == TRUE):
 
  tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
  tr.pFindIt="Text to find";
+ tr.nFindItLen=-1;
  tr.pReplaceWith="Text to replace";
+ tr.nReplaceWithLen=-1;
  tr.bAll=TRUE;
  SendMessage(pd->hMainWnd, AKD_TEXTREPLACE, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 
@@ -2564,7 +2578,9 @@ Example (bOldWindows == FALSE):
 
  tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
  tr.pFindIt=L"Text to find";
+ tr.nFindItLen=-1;
  tr.pReplaceWith=L"Text to replace";
+ tr.nReplaceWithLen=-1;
  tr.bAll=TRUE;
  SendMessage(pd->hMainWnd, AKD_TEXTREPLACE, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 
