@@ -2281,17 +2281,31 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DoEditCopy((HWND)wParam);
       return 0;
     }
-    if (uMsg == AKD_TEXTFIND)
+    if (uMsg == AKD_TEXTFIND ||
+        uMsg == AKD_TEXTFINDA)
     {
       TEXTFINDA *ft=(TEXTFINDA *)lParam;
 
-      return FindTextA((HWND)wParam, ft->dwFlags, ft->pFindIt, -1);
+      return FindTextA((HWND)wParam, ft->dwFlags, ft->pFindIt, ft->nFindItLen);
     }
-    if (uMsg == AKD_TEXTREPLACE)
+    if (uMsg == AKD_TEXTFINDW)
+    {
+      TEXTFINDW *ft=(TEXTFINDW *)lParam;
+
+      return FindTextW((HWND)wParam, ft->dwFlags, ft->pFindIt, ft->nFindItLen);
+    }
+    if (uMsg == AKD_TEXTREPLACE ||
+        uMsg == AKD_TEXTREPLACEA)
     {
       TEXTREPLACEA *rt=(TEXTREPLACEA *)lParam;
 
-      return ReplaceTextA((HWND)wParam, rt->dwFlags, rt->pFindIt, -1, rt->pReplaceWith, -1, rt->bAll, &rt->nChanges);
+      return ReplaceTextA((HWND)wParam, rt->dwFlags, rt->pFindIt, ft->nFindItLen, rt->pReplaceWith, rt->nReplaceWithLen, rt->bAll, &rt->nChanges);
+    }
+    if (uMsg == AKD_TEXTREPLACEW)
+    {
+      TEXTREPLACEW *rt=(TEXTREPLACEW *)lParam;
+
+      return ReplaceTextW((HWND)wParam, rt->dwFlags, rt->pFindIt, ft->nFindItLen, rt->pReplaceWith, rt->nReplaceWithLen, rt->bAll, &rt->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {
@@ -4263,17 +4277,31 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DoEditCopy((HWND)wParam);
       return 0;
     }
-    if (uMsg == AKD_TEXTFIND)
+    if (uMsg == AKD_TEXTFIND ||
+        uMsg == AKD_TEXTFINDW)
     {
       TEXTFINDW *ft=(TEXTFINDW *)lParam;
 
-      return FindTextW((HWND)wParam, ft->dwFlags, ft->pFindIt, -1);
+      return FindTextW((HWND)wParam, ft->dwFlags, ft->pFindIt, ft->nFindItLen);
     }
-    if (uMsg == AKD_TEXTREPLACE)
+    if (uMsg == AKD_TEXTFINDA)
+    {
+      TEXTFINDA *ft=(TEXTFINDA *)lParam;
+
+      return FindTextA((HWND)wParam, ft->dwFlags, ft->pFindIt, ft->nFindItLen);
+    }
+    if (uMsg == AKD_TEXTREPLACE ||
+        uMsg == AKD_TEXTREPLACEW)
     {
       TEXTREPLACEW *rt=(TEXTREPLACEW *)lParam;
 
-      return ReplaceTextW((HWND)wParam, rt->dwFlags, rt->pFindIt, -1, rt->pReplaceWith, -1, rt->bAll, &rt->nChanges);
+      return ReplaceTextW((HWND)wParam, rt->dwFlags, rt->pFindIt, ft->nFindItLen, rt->pReplaceWith, rt->nReplaceWithLen, rt->bAll, &rt->nChanges);
+    }
+    if (uMsg == AKD_TEXTREPLACEA)
+    {
+      TEXTREPLACEA *rt=(TEXTREPLACEA *)lParam;
+
+      return ReplaceTextA((HWND)wParam, rt->dwFlags, rt->pFindIt, ft->nFindItLen, rt->pReplaceWith, rt->nReplaceWithLen, rt->bAll, &rt->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {

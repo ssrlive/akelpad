@@ -558,35 +558,35 @@ typedef struct _AEFOLD {
 
 typedef struct {
   char *pText;        //[in] Text to append.
-  DWORD dwTextLen;    //[in] Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //[in] Column selection. If this value is –1, use current selection type.
+  DWORD dwTextLen;    //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;    //[in] Column selection. If this value is -1, use current selection type.
 } AEAPPENDTEXTA;
 
 typedef struct {
   wchar_t *pText;     //[in] Text to append.
-  DWORD dwTextLen;    //[in] Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //[in] Column selection. If this value is –1, use current selection type.
+  DWORD dwTextLen;    //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;    //[in] Column selection. If this value is -1, use current selection type.
 } AEAPPENDTEXTW;
 
 typedef struct {
   char *pText;                 //[in]  Text to replace with.
-  DWORD dwTextLen;             //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;             //[in]  Column selection. If this value is –1, use current selection type.
+  DWORD dwTextLen;             //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
   AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
 } AEREPLACESELA;
 
 typedef struct {
   wchar_t *pText;              //[in]  Text to replace with.
-  DWORD dwTextLen;             //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;             //[in]  Column selection. If this value is –1, use current selection type.
+  DWORD dwTextLen;             //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
   AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
 } AEREPLACESELW;
 
 typedef struct {
   AECHARRANGE cr;      //[in]  Characters range to retrieve.
-  BOOL bColumnSel;     //[in]  Column selection. If this value is –1, use current selection type.
+  BOOL bColumnSel;     //[in]  Column selection. If this value is -1, use current selection type.
   char *pBuffer;       //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
   DWORD dwBufferMax;   //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
   int nNewLine;        //[in]  See AELB_* defines.
@@ -598,7 +598,7 @@ typedef struct {
 
 typedef struct {
   AECHARRANGE cr;      //[in]  Characters range to retrieve.
-  BOOL bColumnSel;     //[in]  Column selection. If this value is –1, use current selection type.
+  BOOL bColumnSel;     //[in]  Column selection. If this value is -1, use current selection type.
   wchar_t *pBuffer;    //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
   DWORD dwBufferMax;   //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
   int nNewLine;        //[in]  See AELB_* defines.
@@ -622,13 +622,13 @@ typedef struct {
   DWORD dwError;                //[out] Indicates the results of the stream-out (write) operation.
   AEStreamCallback lpCallback;  //[in]  Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
   int nNewLine;                 //[in]  See AELB_* defines.
-  BOOL bColumnSel;              //[in]  Column selection. If this value is –1, use current selection type.
+  BOOL bColumnSel;              //[in]  Column selection. If this value is -1, use current selection type.
 } AESTREAMOUT;
 
 typedef struct {
   DWORD dwFlags;           //[in]  See AEFR_* defines.
   char *pText;             //[in]  Text to find.
-  DWORD dwTextLen;         //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  DWORD dwTextLen;         //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;            //[in]  See AELB_* defines.
   AECHARRANGE crSearch;    //[in]  Range of characters to search.
   AECHARRANGE crFound;     //[out] Range of characters in which text is found.
@@ -637,7 +637,7 @@ typedef struct {
 typedef struct {
   DWORD dwFlags;           //[in]  See AEFR_* defines.
   wchar_t *pText;          //[in]  Text to find.
-  DWORD dwTextLen;         //[in]  Text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+  DWORD dwTextLen;         //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;            //[in]  See AELB_* defines.
   AECHARRANGE crSearch;    //[in]  Range of characters to search.
   AECHARRANGE crFound;     //[out] Range of characters in which text is found.
@@ -667,7 +667,7 @@ typedef struct {
 typedef struct {
   AECHARINDEX *ciChar1;   //[in] First character index.
   AECHARINDEX *ciChar2;   //[in] Second character index.
-  BOOL bColumnSel;        //[in] Column selection. If this value is –1, use current selection type.
+  BOOL bColumnSel;        //[in] Column selection. If this value is -1, use current selection type.
   int nNewLine;           //[in] See AELB_* defines.
 } AEINDEXSUBTRACT;
 
@@ -1847,7 +1847,7 @@ ____________
 
 Set ansi text of the edit control.
 
-(DWORD)wParam  == text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+(DWORD)wParam  == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 (char *)lParam == text pointer.
 
 Return Value
@@ -1862,7 +1862,7 @@ ____________
 
 Set unicode text of the edit control.
 
-(DWORD)wParam     == text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+(DWORD)wParam     == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 (wchar_t *)lParam == text pointer.
 
 Return Value
@@ -1878,7 +1878,7 @@ _______________
 Append ansi text to the end of the edit control.
 
 (char *)wParam == text to append.
-(DWORD)lParam  == text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+(DWORD)lParam  == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 
 Return Value
  zero
@@ -1893,7 +1893,7 @@ _______________
 Append unicode text to the end of the edit control.
 
 (wchar_t *)wParam == text to append.
-(DWORD)lParam     == text length. If this value is –1, the string is assumed to be null-terminated and the length is calculated automatically.
+(DWORD)lParam     == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 
 Return Value
  zero
