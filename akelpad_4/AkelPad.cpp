@@ -2211,7 +2211,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       FILECONTENT *fc=(FILECONTENT *)lParam;
 
-      return ReadFileContents(fc->hFile, fc->dwBytesMax, fc->nCodePage, fc->bBOM, &fc->wpContents);
+      return ReadFileContent(fc->hFile, fc->dwBytesMax, fc->nCodePage, fc->bBOM, &fc->wpContent);
     }
     if (uMsg == AKD_OPENDOCUMENT)
     {
@@ -2284,28 +2284,28 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_TEXTFIND ||
         uMsg == AKD_TEXTFINDA)
     {
-      TEXTFINDA *ft=(TEXTFINDA *)lParam;
+      TEXTFINDA *tf=(TEXTFINDA *)lParam;
 
-      return FindTextA((HWND)wParam, ft->dwFlags, ft->pFindIt, ft->nFindItLen);
+      return FindTextA((HWND)wParam, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
     }
     if (uMsg == AKD_TEXTFINDW)
     {
-      TEXTFINDW *ft=(TEXTFINDW *)lParam;
+      TEXTFINDW *tf=(TEXTFINDW *)lParam;
 
-      return FindTextW((HWND)wParam, ft->dwFlags, ft->pFindIt, ft->nFindItLen);
+      return FindTextW((HWND)wParam, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
     }
     if (uMsg == AKD_TEXTREPLACE ||
         uMsg == AKD_TEXTREPLACEA)
     {
-      TEXTREPLACEA *rt=(TEXTREPLACEA *)lParam;
+      TEXTREPLACEA *tr=(TEXTREPLACEA *)lParam;
 
-      return ReplaceTextA((HWND)wParam, rt->dwFlags, rt->pFindIt, ft->nFindItLen, rt->pReplaceWith, rt->nReplaceWithLen, rt->bAll, &rt->nChanges);
+      return ReplaceTextA((HWND)wParam, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
     }
     if (uMsg == AKD_TEXTREPLACEW)
     {
-      TEXTREPLACEW *rt=(TEXTREPLACEW *)lParam;
+      TEXTREPLACEW *tr=(TEXTREPLACEW *)lParam;
 
-      return ReplaceTextW((HWND)wParam, rt->dwFlags, rt->pFindIt, ft->nFindItLen, rt->pReplaceWith, rt->nReplaceWithLen, rt->bAll, &rt->nChanges);
+      return ReplaceTextW((HWND)wParam, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {
@@ -4207,7 +4207,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       FILECONTENT *fc=(FILECONTENT *)lParam;
 
-      return ReadFileContents(fc->hFile, fc->dwBytesMax, fc->nCodePage, fc->bBOM, &fc->wpContents);
+      return ReadFileContent(fc->hFile, fc->dwBytesMax, fc->nCodePage, fc->bBOM, &fc->wpContent);
     }
     if (uMsg == AKD_OPENDOCUMENT)
     {
@@ -4280,28 +4280,28 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_TEXTFIND ||
         uMsg == AKD_TEXTFINDW)
     {
-      TEXTFINDW *ft=(TEXTFINDW *)lParam;
+      TEXTFINDW *tf=(TEXTFINDW *)lParam;
 
-      return FindTextW((HWND)wParam, ft->dwFlags, ft->pFindIt, ft->nFindItLen);
+      return FindTextW((HWND)wParam, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
     }
     if (uMsg == AKD_TEXTFINDA)
     {
-      TEXTFINDA *ft=(TEXTFINDA *)lParam;
+      TEXTFINDA *tf=(TEXTFINDA *)lParam;
 
-      return FindTextA((HWND)wParam, ft->dwFlags, ft->pFindIt, ft->nFindItLen);
+      return FindTextA((HWND)wParam, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
     }
     if (uMsg == AKD_TEXTREPLACE ||
         uMsg == AKD_TEXTREPLACEW)
     {
-      TEXTREPLACEW *rt=(TEXTREPLACEW *)lParam;
+      TEXTREPLACEW *tr=(TEXTREPLACEW *)lParam;
 
-      return ReplaceTextW((HWND)wParam, rt->dwFlags, rt->pFindIt, ft->nFindItLen, rt->pReplaceWith, rt->nReplaceWithLen, rt->bAll, &rt->nChanges);
+      return ReplaceTextW((HWND)wParam, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
     }
     if (uMsg == AKD_TEXTREPLACEA)
     {
-      TEXTREPLACEA *rt=(TEXTREPLACEA *)lParam;
+      TEXTREPLACEA *tr=(TEXTREPLACEA *)lParam;
 
-      return ReplaceTextA((HWND)wParam, rt->dwFlags, rt->pFindIt, ft->nFindItLen, rt->pReplaceWith, rt->nReplaceWithLen, rt->bAll, &rt->nChanges);
+      return ReplaceTextA((HWND)wParam, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {
