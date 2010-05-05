@@ -5023,7 +5023,7 @@ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufL
   return 0;
 }
 
-DWORD ReadFileContents(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContents)
+DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent)
 {
   unsigned char *pBuffer;
   wchar_t *wpBuffer=NULL;
@@ -5084,7 +5084,7 @@ DWORD ReadFileContents(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM,
       }
     }
   }
-  *wpContents=wpBuffer;
+  *wpContent=wpBuffer;
   return dwCharsConverted;
 }
 

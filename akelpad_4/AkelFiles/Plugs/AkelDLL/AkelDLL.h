@@ -28,11 +28,11 @@
 
 //Unload plugin flag
 #define UD_FAILED                -1  //Operation failed. Don't use it.
-#define UD_UNLOAD                 0  //Unload plugin (default)
-#define UD_NONUNLOAD_ACTIVE     0x1  //Don't unload plugin and set active status
-#define UD_NONUNLOAD_NONACTIVE  0x2  //Don't unload plugin and set non-active status
-#define UD_NONUNLOAD_UNCHANGE   0x4  //Don't unload plugin and don't change active status
-#define UD_HOTKEY_DODEFAULT     0x8  //Do default hotkey processing
+#define UD_UNLOAD                 0  //Unload plugin (default).
+#define UD_NONUNLOAD_ACTIVE     0x1  //Don't unload plugin and set active status.
+#define UD_NONUNLOAD_NONACTIVE  0x2  //Don't unload plugin and set non-active status.
+#define UD_NONUNLOAD_UNCHANGE   0x4  //Don't unload plugin and don't change active status.
+#define UD_HOTKEY_DODEFAULT     0x8  //Do default hotkey processing.
 
 //Autodetect flags
 #define ADT_BINARY_ERROR        0x00000001
@@ -352,7 +352,7 @@ typedef struct _FILECONTENT {
   DWORD dwBytesMax;    //Maximum bytes to read, if -1 read entire file
   int nCodePage;       //File codepage
   BOOL bBOM;           //File BOM
-  wchar_t *wpContents; //Returned file contents
+  wchar_t *wpContent;  //Returned file contents
 } FILECONTENT;
 
 typedef struct _OPENDOCUMENTW {
@@ -2292,38 +2292,102 @@ lParam                == not used
 (FILECONTENT *)lParam == pointer to a FILECONTENT structure
 
 Return Value
- Number of wide characters copied to a FILECONTENT.wpContents buffer.
- When you no longer need the buffer, call the AKD_FREETEXT function to delete it. 
+ Number of wide characters copied to a FILECONTENT.wpContent buffer.
+ When you no longer need the buffer, call the AKD_FREETEXT function to delete it.
+
+Example (bOldWindows == TRUE):
+ int ReadFileContentA(char *pFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
+ {
+   DETECTCODEPAGEA dc;
+   FILECONTENT fc;
+   int nResult=0;
+
+   *wpContent=NULL;
+
+   //Detect codepage
+   dc.pFile=pFile;
+   dc.dwBytesToCheck=1024;
+   dc.dwFlags=dwFlags;
+   dc.nCodePage=nCodePage;
+   dc.bBOM=bBOM;
+   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGE, 0, (LPARAM)&dc) == EDT_SUCCESS)
+   {
+     //Read contents
+     if ((fc.hFile=CreateFileA(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
+     {
+       fc.dwBytesMax=(DWORD)-1;
+       fc.nCodePage=dc.nCodePage;
+       fc.bBOM=dc.bBOM;
+       if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
+       {
+         CloseHandle(fc.hFile);
+         fc.hFile=NULL;
+
+         *wpContent=fc.wpContent;
+       }
+       if (fc.hFile) CloseHandle(fc.hFile);
+     }
+   }
+   return nResult;
+ }
+
+ //Call ReadFileContentA function
+ {
+   wchar_t *wpContent;
+
+   if (ReadFileContentA("C:\\MyFile.txt", ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, 0, 0, &wpContent))
+   {
+     //Show contents
+     MessageBoxW(hMainWnd, wpContent, NULL, MB_OK);
+     SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
+   }
+ }
 
 Example (bOldWindows == FALSE):
- DETECTCODEPAGEW dc;
- FILECONTENT fc;
- wchar_t wszMsg[MAX_PATH];
-
- //Detect codepage
- dc.pFile=L"C:\\MyFile.txt";
- dc.dwBytesToCheck=1024;
- dc.dwFlags=ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM;
- if (SendMessage(pd->hMainWnd, AKD_DETECTCODEPAGE, 0, (LPARAM)&dc) == EDT_SUCCESS)
+ int ReadFileContentW(wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
  {
-   wsprintfW(wszMsg, L"CP=%d, BOM=%d", dc.nCodePage, dc.bBOM);
-   MessageBoxW(pd->hMainWnd, wszMsg, NULL, MB_OK);
+   DETECTCODEPAGEW dc;
+   FILECONTENT fc;
+   int nResult=0;
 
-   //Read contents
-   fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+   *wpContent=NULL;
 
-   if (fc.hFile != INVALID_HANDLE_VALUE)
+   //Detect codepage
+   dc.pFile=wpFile;
+   dc.dwBytesToCheck=1024;
+   dc.dwFlags=dwFlags;
+   dc.nCodePage=nCodePage;
+   dc.bBOM=bBOM;
+   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGE, 0, (LPARAM)&dc) == EDT_SUCCESS)
    {
-     fc.dwBytesMax=(DWORD)-1;
-     fc.nCodePage=dc.nCodePage;
-     fc.bBOM=dc.bBOM;
-     if (SendMessage(pd->hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
+     //Read contents
+     if ((fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
-       //Show contents
-       MessageBoxW(pd->hMainWnd, fc.wpContents, NULL, MB_OK);
-       SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)fc.wpContents);
+       fc.dwBytesMax=(DWORD)-1;
+       fc.nCodePage=dc.nCodePage;
+       fc.bBOM=dc.bBOM;
+       if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
+       {
+         CloseHandle(fc.hFile);
+         fc.hFile=NULL;
+
+         *wpContent=fc.wpContent;
+       }
+       if (fc.hFile) CloseHandle(fc.hFile);
      }
-     CloseHandle(fc.hFile);
+   }
+   return nResult;
+ }
+
+ //Call ReadFileContentW function
+ {
+   wchar_t *wpContent;
+
+   if (ReadFileContentW(L"C:\\MyFile.txt", ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, 0, 0, &wpContent))
+   {
+     //Show contents
+     MessageBoxW(hMainWnd, wpContent, NULL, MB_OK);
+     SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
    }
  }
 
