@@ -3595,7 +3595,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //Close modeless dialog
     if (hDlgModeless)
-      SendMessage(hDlgModeless, WM_COMMAND, IDCANCEL, 0);
+      SendMessage(hDlgModeless, WM_CLOSE, 0, 0);
 
     //Main window will be destroyed
     PostMessage(hWnd, AKDN_MAIN_ONFINISH, 0, 0);
@@ -5591,7 +5591,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //Close modeless dialog
     if (hDlgModeless)
-      SendMessage(hDlgModeless, WM_COMMAND, IDCANCEL, 0);
+      SendMessage(hDlgModeless, WM_CLOSE, 0, 0);
 
     //Main window will be destroyed
     PostMessage(hWnd, AKDN_MAIN_ONFINISH, 0, 0);

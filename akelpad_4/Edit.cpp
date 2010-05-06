@@ -4494,12 +4494,12 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
 
         if (!bMDI)
         {
-          SendMessage(hMainWnd, WM_CLOSE, 0, 0);
+          PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
         else
         {
           SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
-          if (!bSingleOpenProgram && !hWndFrameActive) SendMessage(hMainWnd, WM_CLOSE, 0, 0);
+          if (!bSingleOpenProgram && !hWndFrameActive) PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
       }
     }
@@ -4811,12 +4811,12 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
 
         if (!bMDI)
         {
-          SendMessage(hMainWnd, WM_CLOSE, 0, 0);
+          PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
         else
         {
           SendMessage(hMdiClient, WM_MDIDESTROY, (WPARAM)hWndFrameActive, 0);
-          if (!bSingleOpenProgram && !hWndFrameActive) SendMessage(hMainWnd, WM_CLOSE, 0, 0);
+          if (!bSingleOpenProgram && !hWndFrameActive) PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
       }
     }
@@ -5845,11 +5845,6 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       EndDialog(hDlg, 0);
       return TRUE;
     }
-  }
-  else if (uMsg == WM_CLOSE)
-  {
-    PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
-    return TRUE;
   }
   return FALSE;
 }
@@ -17409,8 +17404,9 @@ LRESULT CALLBACK CBTProc(int iCode, WPARAM wParam, LPARAM lParam)
     if (rcSheet.top < 0) rcSheet.top=0;
 
     SetWindowPos((HWND)wParam, NULL, rcSheet.left, rcSheet.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+    return 0;
   }
-  return 0;
+  else return CallNextHookEx(hHookOptions, iCode, wParam, lParam);
 }
 
 int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam)
