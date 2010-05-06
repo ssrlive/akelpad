@@ -144,7 +144,6 @@ HWND hWndEdit=NULL;
 HWND hDummyWindow;
 HWND hStatus;
 HWND hProgress;
-HWND hDlgModeless=NULL;
 RECT rcMainWindowRestored={CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT};
 DWORD dwMainStyle=0;
 DWORD dwLastMainSize=0;
@@ -192,7 +191,6 @@ WNDPROC OldDockProc=NULL;
 WNDPROC OldCloseButtonProc=NULL;
 
 //Codepages
-RECT rcRecodeDlg={0};
 int *lpCodepageList=NULL;
 int nCodepageListLen=0;
 int *lpCodepageTable;
@@ -204,7 +202,6 @@ int nDefaultCodePage;
 int nAnsiCodePage;
 int nOemCodePage;
 DWORD dwCodepageRecognitionBuffer=DETECT_CODEPAGE_SIZE;
-BOOL bRecodeDlg;
 
 //Recent files
 char szCurrentFile[MAX_PATH]="";
@@ -245,10 +242,16 @@ BOOL bDateLog=FALSE;
 BOOL bSaveInReadOnlyMsg=FALSE;
 WNDPROC OldFilePreviewProc;
 
+//Modeless
+HWND hDlgModeless=NULL;
+int nModelessType=MLT_NONE;
+
+//Recode dialog
+RECT rcRecodeDlg={0};
+
 //Find/Replace dialog
 RECT rcFindAndReplaceDlg={0};
 DWORD ftflags=FR_DOWN;
-BOOL bReplaceDlg;
 BOOL bReplaceAllAndClose=FALSE;
 int nSearchStrings=SEARCHSTRINGS_AMOUNT;
 char *szFindText_orig=NULL;
@@ -2496,11 +2499,18 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Windows
     if (uMsg == AKD_GETMODELESS)
     {
+      BOOL *bType=(BOOL *)lParam;
+
+      if (bType) *bType=nModelessType;
       return (LRESULT)hDlgModeless;
     }
     if (uMsg == AKD_SETMODELESS)
     {
       hDlgModeless=(HWND)wParam;
+      if (hDlgModeless)
+        nModelessType=MLT_CUSTOM;
+      else
+        nModelessType=MLT_NONE;
       return 0;
     }
     if (uMsg == AKD_RESIZE)
@@ -4492,11 +4502,18 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Windows
     if (uMsg == AKD_GETMODELESS)
     {
+      BOOL *bType=(BOOL *)lParam;
+
+      if (bType) *bType=nModelessType;
       return (LRESULT)hDlgModeless;
     }
     if (uMsg == AKD_SETMODELESS)
     {
       hDlgModeless=(HWND)wParam;
+      if (hDlgModeless)
+        nModelessType=MLT_CUSTOM;
+      else
+        nModelessType=MLT_NONE;
       return 0;
     }
     if (uMsg == AKD_RESIZE)

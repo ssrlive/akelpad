@@ -28,11 +28,11 @@
 
 //Unload plugin flag
 #define UD_FAILED                -1  //Operation failed. Don't use it.
-#define UD_UNLOAD                 0  //Unload plugin (default)
-#define UD_NONUNLOAD_ACTIVE     0x1  //Don't unload plugin and set active status
-#define UD_NONUNLOAD_NONACTIVE  0x2  //Don't unload plugin and set non-active status
-#define UD_NONUNLOAD_UNCHANGE   0x4  //Don't unload plugin and don't change active status
-#define UD_HOTKEY_DODEFAULT     0x8  //Do default hotkey processing
+#define UD_UNLOAD                 0  //Unload plugin (default).
+#define UD_NONUNLOAD_ACTIVE     0x1  //Don't unload plugin and set active status.
+#define UD_NONUNLOAD_NONACTIVE  0x2  //Don't unload plugin and set non-active status.
+#define UD_NONUNLOAD_UNCHANGE   0x4  //Don't unload plugin and don't change active status.
+#define UD_HOTKEY_DODEFAULT     0x8  //Do default hotkey processing.
 
 //Autodetect flags
 #define ADT_BINARY_ERROR        0x00000001
@@ -206,6 +206,14 @@
 #define AUTOANSWER_YES  1
 #define AUTOANSWER_NO   2
 
+//AKD_GETMODELESS types
+#define MLT_NONE     0 //No registered modeless dialog open.
+#define MLT_CUSTOM   1 //Dialog registered with AKD_SETMODELESS.
+#define MLT_RECODE   2 //Recode dialog.
+#define MLT_FIND     3 //Find dialog.
+#define MLT_REPLACE  4 //Replace dialog.
+#define MLT_GOTO     5 //Go to line dialog.
+
 //DIALOGRESIZEMSG flags
 #define DRM_GETMINMAXINFO 0x1 //Dialog can't be decreased less than creation size.
 #define DRM_PAINTSIZEGRIP 0x2 //Draw resize grid.
@@ -352,7 +360,7 @@ typedef struct _FILECONTENT {
   DWORD dwBytesMax;    //Maximum bytes to read, if -1 read entire file
   int nCodePage;       //File codepage
   BOOL bBOM;           //File BOM
-  wchar_t *wpContents; //Returned file contents
+  wchar_t *wpContent;  //Returned file contents
 } FILECONTENT;
 
 typedef struct _OPENDOCUMENTW {
@@ -625,17 +633,21 @@ typedef struct _RECENTFILESW {
 typedef struct _TEXTFINDA {
   DWORD dwFlags;            //See FR_* defines
   char *pFindIt;            //Find string
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
 } TEXTFINDA;
 
 typedef struct _TEXTFINDW {
   DWORD dwFlags;            //See FR_* defines
   wchar_t *pFindIt;         //Find string
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
 } TEXTFINDW;
 
 typedef struct _TEXTREPLACEA {
   DWORD dwFlags;            //See FR_* defines
   char *pFindIt;            //Find string
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   char *pReplaceWith;       //Replace string
+  int nReplaceWithLen;      //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   BOOL bAll;                //Replace all
   int nChanges;             //Count of changes
 } TEXTREPLACEA;
@@ -643,7 +655,9 @@ typedef struct _TEXTREPLACEA {
 typedef struct _TEXTREPLACEW {
   DWORD dwFlags;            //See FR_* defines
   wchar_t *pFindIt;         //Find string
+  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   wchar_t *pReplaceWith;    //Replace string
+  int nReplaceWithLen;      //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
   BOOL bAll;                //Replace all
   int nChanges;             //Count of changes
 } TEXTREPLACEW;
@@ -1225,9 +1239,13 @@ typedef struct _NSIZE {
 #define AKD_PASTE                  (WM_USER + 158)
 #define AKD_COPY                   (WM_USER + 159)
 #define AKD_TEXTFIND               (WM_USER + 160)
-#define AKD_TEXTREPLACE            (WM_USER + 161)
-#define AKD_RECODESEL              (WM_USER + 162)
-#define AKD_GETCHARCOLOR           (WM_USER + 163)
+#define AKD_TEXTFINDA              (WM_USER + 161)
+#define AKD_TEXTFINDW              (WM_USER + 162)
+#define AKD_TEXTREPLACE            (WM_USER + 163)
+#define AKD_TEXTREPLACEA           (WM_USER + 164)
+#define AKD_TEXTREPLACEW           (WM_USER + 165)
+#define AKD_RECODESEL              (WM_USER + 166)
+#define AKD_GETCHARCOLOR           (WM_USER + 167)
 
 //Print
 #define AKD_GETFILEPRINT           (WM_USER + 191)
@@ -2282,38 +2300,102 @@ lParam                == not used
 (FILECONTENT *)lParam == pointer to a FILECONTENT structure
 
 Return Value
- Number of wide characters copied to a FILECONTENT.wpContents buffer.
- When you no longer need the buffer, call the AKD_FREETEXT function to delete it. 
+ Number of wide characters copied to a FILECONTENT.wpContent buffer.
+ When you no longer need the buffer, call the AKD_FREETEXT function to delete it.
+
+Example (bOldWindows == TRUE):
+ int ReadFileContentA(char *pFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
+ {
+   DETECTCODEPAGEA dc;
+   FILECONTENT fc;
+   int nResult=0;
+
+   *wpContent=NULL;
+
+   //Detect codepage
+   dc.pFile=pFile;
+   dc.dwBytesToCheck=1024;
+   dc.dwFlags=dwFlags;
+   dc.nCodePage=nCodePage;
+   dc.bBOM=bBOM;
+   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGE, 0, (LPARAM)&dc) == EDT_SUCCESS)
+   {
+     //Read contents
+     if ((fc.hFile=CreateFileA(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
+     {
+       fc.dwBytesMax=(DWORD)-1;
+       fc.nCodePage=dc.nCodePage;
+       fc.bBOM=dc.bBOM;
+       if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
+       {
+         CloseHandle(fc.hFile);
+         fc.hFile=NULL;
+
+         *wpContent=fc.wpContent;
+       }
+       if (fc.hFile) CloseHandle(fc.hFile);
+     }
+   }
+   return nResult;
+ }
+
+ //Call ReadFileContentA function
+ {
+   wchar_t *wpContent;
+
+   if (ReadFileContentA("C:\\MyFile.txt", ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, 0, 0, &wpContent))
+   {
+     //Show contents
+     MessageBoxW(hMainWnd, wpContent, NULL, MB_OK);
+     SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
+   }
+ }
 
 Example (bOldWindows == FALSE):
- DETECTCODEPAGEW dc;
- FILECONTENT fc;
- wchar_t wszMsg[MAX_PATH];
-
- //Detect codepage
- dc.pFile=L"C:\\MyFile.txt";
- dc.dwBytesToCheck=1024;
- dc.dwFlags=ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM;
- if (SendMessage(pd->hMainWnd, AKD_DETECTCODEPAGE, 0, (LPARAM)&dc) == EDT_SUCCESS)
+ int ReadFileContentW(wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
  {
-   wsprintfW(wszMsg, L"CP=%d, BOM=%d", dc.nCodePage, dc.bBOM);
-   MessageBoxW(pd->hMainWnd, wszMsg, NULL, MB_OK);
+   DETECTCODEPAGEW dc;
+   FILECONTENT fc;
+   int nResult=0;
 
-   //Read contents
-   fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+   *wpContent=NULL;
 
-   if (fc.hFile != INVALID_HANDLE_VALUE)
+   //Detect codepage
+   dc.pFile=wpFile;
+   dc.dwBytesToCheck=1024;
+   dc.dwFlags=dwFlags;
+   dc.nCodePage=nCodePage;
+   dc.bBOM=bBOM;
+   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGE, 0, (LPARAM)&dc) == EDT_SUCCESS)
    {
-     fc.dwBytesMax=(DWORD)-1;
-     fc.nCodePage=dc.nCodePage;
-     fc.bBOM=dc.bBOM;
-     if (SendMessage(pd->hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
+     //Read contents
+     if ((fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
-       //Show contents
-       MessageBoxW(pd->hMainWnd, fc.wpContents, NULL, MB_OK);
-       SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)fc.wpContents);
+       fc.dwBytesMax=(DWORD)-1;
+       fc.nCodePage=dc.nCodePage;
+       fc.bBOM=dc.bBOM;
+       if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
+       {
+         CloseHandle(fc.hFile);
+         fc.hFile=NULL;
+
+         *wpContent=fc.wpContent;
+       }
+       if (fc.hFile) CloseHandle(fc.hFile);
      }
-     CloseHandle(fc.hFile);
+   }
+   return nResult;
+ }
+
+ //Call ReadFileContentW function
+ {
+   wchar_t *wpContent;
+
+   if (ReadFileContentW(L"C:\\MyFile.txt", ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, 0, 0, &wpContent))
+   {
+     //Show contents
+     MessageBoxW(hMainWnd, wpContent, NULL, MB_OK);
+     SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
    }
  }
 
@@ -2528,6 +2610,7 @@ Example (bOldWindows == TRUE):
 
  tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
  tf.pFindIt="Text to find";
+ tf.nFindItLen=-1;
  SendMessage(pd->hMainWnd, AKD_TEXTFIND, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
 
 Example (bOldWindows == FALSE):
@@ -2535,6 +2618,7 @@ Example (bOldWindows == FALSE):
 
  tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
  tf.pFindIt=L"Text to find";
+ tf.nFindItLen=-1;
  SendMessage(pd->hMainWnd, AKD_TEXTFIND, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
 
 
@@ -2555,7 +2639,9 @@ Example (bOldWindows == TRUE):
 
  tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
  tr.pFindIt="Text to find";
+ tr.nFindItLen=-1;
  tr.pReplaceWith="Text to replace";
+ tr.nReplaceWithLen=-1;
  tr.bAll=TRUE;
  SendMessage(pd->hMainWnd, AKD_TEXTREPLACE, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 
@@ -2564,7 +2650,9 @@ Example (bOldWindows == FALSE):
 
  tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
  tr.pFindIt=L"Text to find";
+ tr.nFindItLen=-1;
  tr.pReplaceWith=L"Text to replace";
+ tr.nReplaceWithLen=-1;
  tr.bAll=TRUE;
  SendMessage(pd->hMainWnd, AKD_TEXTREPLACE, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 
@@ -2973,14 +3061,15 @@ _______________
 
 Get modeless dialog handle.
 
-wParam == not used
-lParam == not used
+wParam        == not used
+(int *)lParam == pointer to a variable that receive dialog MLT_* type. Can be NULL.
 
 Return Value
  dialog handle
 
 Example:
- HWND hDlg=(HWND)SendMessage(pd->hMainWnd, AKD_GETMODELESS, 0, 0);
+ int nType;
+ HWND hDlg=(HWND)SendMessage(pd->hMainWnd, AKD_GETMODELESS, 0, (LPARAM)&nType);
 
 
 AKD_SETMODELESS
@@ -2993,6 +3082,9 @@ lParam       == not used
 
 Return Value
  zero
+
+Note
+ Only one dialog can be registered as modeless. Application should unregister dialog before closing, passing NULL in wParam.
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SETMODELESS, (LPARAM)hMyDialog, 0);
