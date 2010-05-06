@@ -206,6 +206,14 @@
 #define AUTOANSWER_YES  1
 #define AUTOANSWER_NO   2
 
+//AKD_GETMODELESS types
+#define MLT_NONE     0 //No registered modeless dialog open.
+#define MLT_CUSTOM   1 //Dialog registered with AKD_SETMODELESS.
+#define MLT_RECODE   2 //Recode dialog.
+#define MLT_FIND     3 //Find dialog.
+#define MLT_REPLACE  4 //Replace dialog.
+#define MLT_GOTO     5 //Go to line dialog.
+
 //DIALOGRESIZEMSG flags
 #define DRM_GETMINMAXINFO 0x1 //Dialog can't be decreased less than creation size.
 #define DRM_PAINTSIZEGRIP 0x2 //Draw resize grid.
@@ -3053,14 +3061,15 @@ _______________
 
 Get modeless dialog handle.
 
-wParam == not used
-lParam == not used
+wParam        == not used
+(int *)lParam == pointer to a variable that receive dialog MLT_* type. Can be NULL.
 
 Return Value
  dialog handle
 
 Example:
- HWND hDlg=(HWND)SendMessage(pd->hMainWnd, AKD_GETMODELESS, 0, 0);
+ int nType;
+ HWND hDlg=(HWND)SendMessage(pd->hMainWnd, AKD_GETMODELESS, 0, (LPARAM)&nType);
 
 
 AKD_SETMODELESS
@@ -3073,6 +3082,9 @@ lParam       == not used
 
 Return Value
  zero
+
+Note
+ Only one dialog can be registered as modeless. Application should unregister dialog before closing, passing NULL in wParam.
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SETMODELESS, (LPARAM)hMyDialog, 0);

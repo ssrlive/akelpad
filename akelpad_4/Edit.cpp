@@ -97,7 +97,6 @@ extern HWND hWndEdit;
 extern HWND hDummyWindow;
 extern HWND hStatus;
 extern HWND hProgress;
-extern HWND hDlgModeless;
 extern RECT rcMainWindowRestored;
 extern DWORD dwMainStyle;
 extern DWORD dwLastMainSize;
@@ -145,7 +144,6 @@ extern WNDPROC OldDockProc;
 extern WNDPROC OldCloseButtonProc;
 
 //Codepages
-extern RECT rcRecodeDlg;
 extern int *lpCodepageList;
 extern int nCodepageListLen;
 extern int *lpCodepageTable;
@@ -157,7 +155,6 @@ extern int nDefaultCodePage;
 extern int nAnsiCodePage;
 extern int nOemCodePage;
 extern DWORD dwCodepageRecognitionBuffer;
-extern BOOL bRecodeDlg;
 
 //Recent files
 extern char szCurrentFile[MAX_PATH];
@@ -198,10 +195,16 @@ extern BOOL bDateLog;
 extern BOOL bSaveInReadOnlyMsg;
 extern WNDPROC OldFilePreviewProc;
 
+//Modeless
+extern HWND hDlgModeless;
+extern int nModelessType;
+
+//Recode dialog
+extern RECT rcRecodeDlg;
+
 //Find/Replace dialog
 extern RECT rcFindAndReplaceDlg;
 extern DWORD ftflags;
-extern BOOL bReplaceDlg;
 extern BOOL bReplaceAllAndClose;
 extern int nSearchStrings;
 extern char *szFindText_orig;
@@ -1235,6 +1238,8 @@ void DoEditRecodeA(HWND hWnd)
 {
   if (!hDlgModeless)
   {
+    nModelessType=MLT_RECODE;
+
     if (hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_RECODE), hMainWnd, (DLGPROC)RecodeDlgProcA))
     {
       ShowWindow(hDlgModeless, SW_SHOW);
@@ -1246,6 +1251,8 @@ void DoEditRecodeW(HWND hWnd)
 {
   if (!hDlgModeless)
   {
+    nModelessType=MLT_RECODE;
+
     if (hDlgModeless=API_CreateDialogW(hLangLib, MAKEINTRESOURCEW(IDD_RECODE), hMainWnd, (DLGPROC)RecodeDlgProcW))
     {
       ShowWindow(hDlgModeless, SW_SHOW);
@@ -1816,7 +1823,8 @@ void DoEditFindA()
 {
   if (!hDlgModeless)
   {
-    bReplaceDlg=FALSE;
+    nModelessType=MLT_FIND;
+
     if ((ftflags & AEFR_ALLFILES) && !bMDI)
       ftflags&=~AEFR_ALLFILES;
     if ((ftflags & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -1833,7 +1841,8 @@ void DoEditFindW()
 {
   if (!hDlgModeless)
   {
-    bReplaceDlg=FALSE;
+    nModelessType=MLT_FIND;
+
     if ((ftflags & AEFR_ALLFILES) && !bMDI)
       ftflags&=~AEFR_ALLFILES;
     if ((ftflags & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -1890,7 +1899,8 @@ void DoEditReplaceA()
 {
   if (!hDlgModeless)
   {
-    bReplaceDlg=TRUE;
+    nModelessType=MLT_REPLACE;
+
     if ((ftflags & AEFR_ALLFILES) && !bMDI)
       ftflags&=~AEFR_ALLFILES;
     if ((ftflags & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -1907,7 +1917,8 @@ void DoEditReplaceW()
 {
   if (!hDlgModeless)
   {
-    bReplaceDlg=TRUE;
+    nModelessType=MLT_REPLACE;
+
     if ((ftflags & AEFR_ALLFILES) && !bMDI)
       ftflags&=~AEFR_ALLFILES;
     if ((ftflags & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
@@ -1924,6 +1935,8 @@ void DoEditGoToLineA()
 {
   if (!hDlgModeless)
   {
+    nModelessType=MLT_GOTO;
+
     if (hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_GOTOLINE), hMainWnd, (DLGPROC)GoToLineDlgProcA))
     {
       ShowWindow(hDlgModeless, SW_SHOW);
@@ -1935,6 +1948,8 @@ void DoEditGoToLineW()
 {
   if (!hDlgModeless)
   {
+    nModelessType=MLT_GOTO;
+
     if (hDlgModeless=API_CreateDialogW(hLangLib, MAKEINTRESOURCEW(IDD_GOTOLINE), hMainWnd, (DLGPROC)GoToLineDlgProcW))
     {
       ShowWindow(hDlgModeless, SW_SHOW);
@@ -8992,8 +9007,9 @@ void FillComboboxCodepageA(HWND hWnd, int *lpCodepageList)
   {
     for (i=0; lpCodepageList[i]; ++i)
     {
-      if (bRecodeDlg && (lpCodepageList[i] == CP_UNICODE_UCS2_LE ||
-                         lpCodepageList[i] == CP_UNICODE_UCS2_BE))
+      if (nModelessType == MLT_RECODE &&
+          (lpCodepageList[i] == CP_UNICODE_UCS2_LE ||
+           lpCodepageList[i] == CP_UNICODE_UCS2_BE))
       {
         continue;
       }
@@ -9011,8 +9027,9 @@ void FillComboboxCodepageW(HWND hWnd, int *lpCodepageList)
   {
     for (i=0; lpCodepageList[i]; ++i)
     {
-      if (bRecodeDlg && (lpCodepageList[i] == CP_UNICODE_UCS2_LE ||
-                         lpCodepageList[i] == CP_UNICODE_UCS2_BE))
+      if (nModelessType == MLT_RECODE &&
+          (lpCodepageList[i] == CP_UNICODE_UCS2_LE ||
+           lpCodepageList[i] == CP_UNICODE_UCS2_BE))
       {
         continue;
       }
@@ -10295,7 +10312,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndBackward=GetDlgItem(hDlg, IDC_SEARCH_BACKWARD);
     hWndBeginning=GetDlgItem(hDlg, IDC_SEARCH_BEGINNING);
     hWndInSelection=GetDlgItem(hDlg, IDC_SEARCH_INSEL);
-    if (bReplaceDlg == TRUE)
+    if (nModelessType == MLT_REPLACE)
     {
       hWndReplace=GetDlgItem(hDlg, IDC_SEARCH_REPLACE);
       hWndReplaceButton=GetDlgItem(hDlg, IDC_SEARCH_REPLACE_BUTTON);
@@ -10327,7 +10344,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       ShowWindow(hWndAllFiles, SW_HIDE);
       ShowWindow(hWndAllFilesGroup, SW_HIDE);
     }
-    if (bReplaceDlg == TRUE)
+    if (nModelessType == MLT_REPLACE)
     {
       SendMessage(hWndReplace, CB_SETCURSEL, 0, 0);
     }
@@ -10353,7 +10370,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       OldComboboxEdit=(WNDPROC)GetWindowLongA(hWndComboboxEdit, GWL_WNDPROC);
       SetWindowLongA(hWndComboboxEdit, GWL_WNDPROC, (LONG)NewComboboxEditProcA);
     }
-    if (bReplaceDlg == TRUE)
+    if (nModelessType == MLT_REPLACE)
     {
       if (hWndComboboxEdit=GetDlgItem(hWndReplace, IDC_COMBOBOX_EDIT))
       {
@@ -10416,7 +10433,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else if (LOWORD(wParam) == IDC_SETREADONLY)
     {
-      if (bReplaceDlg == TRUE)
+      if (nModelessType == MLT_REPLACE)
       {
         EnableWindow(hWndReplaceButton, !bReadOnly);
         EnableWindow(hWndReplaceAllButton, !bReadOnly);
@@ -10431,7 +10448,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         LOWORD(wParam) == IDC_SEARCH_ALLFILES)
     {
       EnableWindow(hWndFindNextButton, TRUE);
-      if (bReplaceDlg == TRUE)
+      if (nModelessType == MLT_REPLACE)
       {
         if (!bReadOnly)
         {
@@ -10458,21 +10475,12 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (i == 0)
       {
         EnableWindow(hWndFindNextButton, FALSE);
-        if (bReplaceDlg == TRUE)
+        if (nModelessType == MLT_REPLACE)
         {
           EnableWindow(hWndReplaceButton, FALSE);
           EnableWindow(hWndReplaceAllButton, FALSE);
         }
       }
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDCANCEL)
-    {
-      if (bSpecialCheck == TRUE || (ftflags & AEFR_ALLFILES)) ftflags|=AEFR_BEGINNING;
-      if (nSearchStrings) SaveComboboxSearchA(hWndFind, hWndReplace);
-      GetWindowPos(hDlg, NULL, &rcFindAndReplaceDlg);
-      DestroyWindow(hDlg);
-      hDlgModeless=NULL;
       return TRUE;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_REPLACE_BUTTON)
@@ -10494,7 +10502,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         FreeMemorySearchA();
         return TRUE;
       }
-      if (bReplaceDlg == TRUE)
+      if (nModelessType == MLT_REPLACE)
       {
         if ((nReplaceTextLen=GetComboboxSearchTextA(hWndReplace, &szReplaceText_orig, &szReplaceText, nCurrentNewLine)) < 0)
         {
@@ -10513,7 +10521,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         int nChanges=0;
         int nChangedFiles=0;
 
-        if (bReplaceDlg == TRUE && bReplaceAll == TRUE)
+        if (nModelessType == MLT_REPLACE && bReplaceAll == TRUE)
         {
           ftflags|=AEFR_BEGINNING;
           if (bSpecialCheck == TRUE)
@@ -10589,7 +10597,7 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       }
       else
       {
-        if (bReplaceDlg == TRUE && (bReplace == TRUE || bReplaceAll == TRUE))
+        if (nModelessType == MLT_REPLACE && (bReplace == TRUE || bReplaceAll == TRUE))
           nResult=ReplaceTextA(hWndEdit, ftflags, szFindText, nFindTextLen, szReplaceText, nReplaceTextLen, bReplaceAll, &nReplaceCount);
         else
           nResult=FindTextA(hWndEdit, ftflags, szFindText, nFindTextLen);
@@ -10636,6 +10644,16 @@ BOOL CALLBACK FindAndReplaceDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         EnableWindow(hWndReplaceAllButton, !bReplaceAllButtonState);
       SetFocus(hWndFocus);
 
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      if (bSpecialCheck == TRUE || (ftflags & AEFR_ALLFILES)) ftflags|=AEFR_BEGINNING;
+      if (nSearchStrings) SaveComboboxSearchA(hWndFind, hWndReplace);
+      GetWindowPos(hDlg, NULL, &rcFindAndReplaceDlg);
+      DestroyWindow(hDlg);
+      hDlgModeless=NULL;
+      nModelessType=MLT_NONE;
       return TRUE;
     }
   }
@@ -10708,7 +10726,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndBackward=GetDlgItem(hDlg, IDC_SEARCH_BACKWARD);
     hWndBeginning=GetDlgItem(hDlg, IDC_SEARCH_BEGINNING);
     hWndInSelection=GetDlgItem(hDlg, IDC_SEARCH_INSEL);
-    if (bReplaceDlg == TRUE)
+    if (nModelessType == MLT_REPLACE)
     {
       hWndReplace=GetDlgItem(hDlg, IDC_SEARCH_REPLACE);
       hWndReplaceButton=GetDlgItem(hDlg, IDC_SEARCH_REPLACE_BUTTON);
@@ -10740,7 +10758,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       ShowWindow(hWndAllFiles, SW_HIDE);
       ShowWindow(hWndAllFilesGroup, SW_HIDE);
     }
-    if (bReplaceDlg == TRUE)
+    if (nModelessType == MLT_REPLACE)
     {
       SendMessage(hWndReplace, CB_SETCURSEL, 0, 0);
     }
@@ -10766,7 +10784,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       OldComboboxEdit=(WNDPROC)GetWindowLongW(hWndComboboxEdit, GWL_WNDPROC);
       SetWindowLongW(hWndComboboxEdit, GWL_WNDPROC, (LONG)NewComboboxEditProcW);
     }
-    if (bReplaceDlg == TRUE)
+    if (nModelessType == MLT_REPLACE)
     {
       if (hWndComboboxEdit=GetDlgItem(hWndReplace, IDC_COMBOBOX_EDIT))
       {
@@ -10829,7 +10847,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     }
     else if (LOWORD(wParam) == IDC_SETREADONLY)
     {
-      if (bReplaceDlg == TRUE)
+      if (nModelessType == MLT_REPLACE)
       {
         EnableWindow(hWndReplaceButton, !bReadOnly);
         EnableWindow(hWndReplaceAllButton, !bReadOnly);
@@ -10844,7 +10862,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         LOWORD(wParam) == IDC_SEARCH_ALLFILES)
     {
       EnableWindow(hWndFindNextButton, TRUE);
-      if (bReplaceDlg == TRUE)
+      if (nModelessType == MLT_REPLACE)
       {
         if (!bReadOnly)
         {
@@ -10871,21 +10889,12 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       if (i == 0)
       {
         EnableWindow(hWndFindNextButton, FALSE);
-        if (bReplaceDlg == TRUE)
+        if (nModelessType == MLT_REPLACE)
         {
           EnableWindow(hWndReplaceButton, FALSE);
           EnableWindow(hWndReplaceAllButton, FALSE);
         }
       }
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDCANCEL)
-    {
-      if (bSpecialCheck == TRUE || (ftflags & AEFR_ALLFILES)) ftflags|=AEFR_BEGINNING;
-      if (nSearchStrings) SaveComboboxSearchW(hWndFind, hWndReplace);
-      GetWindowPos(hDlg, NULL, &rcFindAndReplaceDlg);
-      DestroyWindow(hDlg);
-      hDlgModeless=NULL;
       return TRUE;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_REPLACE_BUTTON)
@@ -10907,7 +10916,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         FreeMemorySearchW();
         return TRUE;
       }
-      if (bReplaceDlg == TRUE)
+      if (nModelessType == MLT_REPLACE)
       {
         if ((nReplaceTextLen=GetComboboxSearchTextW(hWndReplace, &wszReplaceText_orig, &wszReplaceText, nCurrentNewLine)) < 0)
         {
@@ -10926,7 +10935,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         int nChanges=0;
         int nChangedFiles=0;
 
-        if (bReplaceDlg == TRUE && bReplaceAll == TRUE)
+        if (nModelessType == MLT_REPLACE && bReplaceAll == TRUE)
         {
           ftflags|=AEFR_BEGINNING;
           if (bSpecialCheck == TRUE)
@@ -11002,7 +11011,7 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       }
       else
       {
-        if (bReplaceDlg == TRUE && (bReplace == TRUE || bReplaceAll == TRUE))
+        if (nModelessType == MLT_REPLACE && (bReplace == TRUE || bReplaceAll == TRUE))
           nResult=ReplaceTextW(hWndEdit, ftflags, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, bReplaceAll, &nReplaceCount);
         else
           nResult=FindTextW(hWndEdit, ftflags, wszFindText, nFindTextLen);
@@ -11049,6 +11058,16 @@ BOOL CALLBACK FindAndReplaceDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         EnableWindow(hWndReplaceAllButton, !bReplaceAllButtonState);
       SetFocus(hWndFocus);
 
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      if (bSpecialCheck == TRUE || (ftflags & AEFR_ALLFILES)) ftflags|=AEFR_BEGINNING;
+      if (nSearchStrings) SaveComboboxSearchW(hWndFind, hWndReplace);
+      GetWindowPos(hDlg, NULL, &rcFindAndReplaceDlg);
+      DestroyWindow(hDlg);
+      hDlgModeless=NULL;
+      nModelessType=MLT_NONE;
       return TRUE;
     }
   }
@@ -11133,7 +11152,7 @@ void FillComboboxSearchA(HWND hWndFind, HWND hWndReplace)
     }
     break;
   }
-  if (bReplaceDlg && hWnd != hWndReplace)
+  if (nModelessType == MLT_REPLACE && hWnd != hWndReplace)
   {
     hWnd=hWndReplace;
     xstrcpyA(buf, "replace%d");
@@ -11177,7 +11196,7 @@ void FillComboboxSearchW(HWND hWndFind, HWND hWndReplace)
     }
     break;
   }
-  if (bReplaceDlg && hWnd != hWndReplace)
+  if (nModelessType == MLT_REPLACE && hWnd != hWndReplace)
   {
     hWnd=hWndReplace;
     xstrcpyW(wbuf, L"replace%d");
@@ -11320,7 +11339,7 @@ void SaveComboboxSearchA(HWND hWndFind, HWND hWndReplace)
     }
     break;
   }
-  if (bReplaceDlg && hWnd != hWndReplace)
+  if (nModelessType == MLT_REPLACE && hWnd != hWndReplace)
   {
     hWnd=hWndReplace;
     xstrcpyA(buf, "replace%d");
@@ -11363,7 +11382,7 @@ void SaveComboboxSearchW(HWND hWndFind, HWND hWndReplace)
     }
     break;
   }
-  if (bReplaceDlg && hWnd != hWndReplace)
+  if (nModelessType == MLT_REPLACE && hWnd != hWndReplace)
   {
     hWnd=hWndReplace;
     xstrcpyW(wbuf, L"replace%d");
@@ -12792,6 +12811,7 @@ BOOL CALLBACK GoToLineDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       GetWindowPos(hDlg, NULL, &rcGotoLineDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
+      nModelessType=MLT_NONE;
       return TRUE;
     }
   }
@@ -12952,6 +12972,7 @@ BOOL CALLBACK GoToLineDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       GetWindowPos(hDlg, NULL, &rcGotoLineDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
+      nModelessType=MLT_NONE;
       return TRUE;
     }
   }
@@ -13689,10 +13710,8 @@ BOOL CALLBACK RecodeDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndCodePageFrom=GetDlgItem(hDlg, IDC_RECODE_CODEPAGE_FROM);
     hWndCodePageTo=GetDlgItem(hDlg, IDC_RECODE_CODEPAGE_TO);
 
-    bRecodeDlg=TRUE;
     FillComboboxCodepageA(hWndCodePageFrom, lpCodepageList);
     FillComboboxCodepageA(hWndCodePageTo, lpCodepageList);
-    bRecodeDlg=FALSE;
 
     if (!nCodePageFrom || SelectComboboxCodepageA(hWndCodePageFrom, nCodePageFrom) == CB_ERR)
       SendMessage(hWndCodePageFrom, CB_SETCURSEL, 0, 0);
@@ -13710,21 +13729,23 @@ BOOL CALLBACK RecodeDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       EnableWindow(GetDlgItem(hDlg, IDOK), !bReadOnly);
     }
-    else if (LOWORD(wParam) == IDOK)
+    if (LOWORD(wParam) == IDOK ||
+        LOWORD(wParam) == IDCANCEL)
     {
-      nCodePageFrom=GetComboboxCodepageA(hWndCodePageFrom);
-      nCodePageTo=GetComboboxCodepageA(hWndCodePageTo);
-      DestroyWindow(hDlg);
-      hDlgModeless=NULL;
-
-      RecodeTextW(hWndEdit, nCodePageFrom, nCodePageTo);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDCANCEL)
-    {
+      if (LOWORD(wParam) == IDOK)
+      {
+        nCodePageFrom=GetComboboxCodepageA(hWndCodePageFrom);
+        nCodePageTo=GetComboboxCodepageA(hWndCodePageTo);
+      }
       GetWindowPos(hDlg, NULL, &rcRecodeDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
+      nModelessType=MLT_NONE;
+
+      if (LOWORD(wParam) == IDOK)
+      {
+        RecodeTextW(hWndEdit, nCodePageFrom, nCodePageTo);
+      }
       return TRUE;
     }
   }
@@ -13744,10 +13765,8 @@ BOOL CALLBACK RecodeDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndCodePageFrom=GetDlgItem(hDlg, IDC_RECODE_CODEPAGE_FROM);
     hWndCodePageTo=GetDlgItem(hDlg, IDC_RECODE_CODEPAGE_TO);
 
-    bRecodeDlg=TRUE;
     FillComboboxCodepageW(hWndCodePageFrom, lpCodepageList);
     FillComboboxCodepageW(hWndCodePageTo, lpCodepageList);
-    bRecodeDlg=FALSE;
 
     if (!nCodePageFrom || SelectComboboxCodepageW(hWndCodePageFrom, nCodePageFrom) == CB_ERR)
       SendMessage(hWndCodePageFrom, CB_SETCURSEL, 0, 0);
@@ -13765,21 +13784,23 @@ BOOL CALLBACK RecodeDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       EnableWindow(GetDlgItem(hDlg, IDOK), !bReadOnly);
     }
-    else if (LOWORD(wParam) == IDOK)
+    if (LOWORD(wParam) == IDOK ||
+        LOWORD(wParam) == IDCANCEL)
     {
-      nCodePageFrom=GetComboboxCodepageW(hWndCodePageFrom);
-      nCodePageTo=GetComboboxCodepageW(hWndCodePageTo);
-      DestroyWindow(hDlg);
-      hDlgModeless=NULL;
-
-      RecodeTextW(hWndEdit, nCodePageFrom, nCodePageTo);
-      return TRUE;
-    }
-    else if (LOWORD(wParam) == IDCANCEL)
-    {
+      if (LOWORD(wParam) == IDOK)
+      {
+        nCodePageFrom=GetComboboxCodepageW(hWndCodePageFrom);
+        nCodePageTo=GetComboboxCodepageW(hWndCodePageTo);
+      }
       GetWindowPos(hDlg, NULL, &rcRecodeDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
+      nModelessType=MLT_NONE;
+
+      if (LOWORD(wParam) == IDOK)
+      {
+        RecodeTextW(hWndEdit, nCodePageFrom, nCodePageTo);
+      }
       return TRUE;
     }
   }
