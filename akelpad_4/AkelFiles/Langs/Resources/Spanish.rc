@@ -401,7 +401,7 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "Newline format",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
+    CONTROL         "&Formato de nueva línea:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",

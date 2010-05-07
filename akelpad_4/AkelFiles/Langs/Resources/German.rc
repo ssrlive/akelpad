@@ -393,14 +393,14 @@ STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
 CAPTION "Alle speichern unter"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Codepage:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
+    CONTROL         "Kodierung:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
     GROUPBOX        "",IDC_STATIC,9,16,182,35
     COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "Newline format",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
+    CONTROL         "&Format einer neuen Zeile:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
