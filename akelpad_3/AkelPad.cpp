@@ -1590,17 +1590,17 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     RECT rcRect;
     HMENU hMenu;
 
-    hPopupEdit=GetSubMenu(hPopupMenu, 0);
-    hPopupView=GetSubMenu(hPopupMenu, 1);
-    hPopupCodepage=GetSubMenu(hPopupMenu, 2);
+    hPopupEdit=GetSubMenu(hPopupMenu, MENU_POPUP_EDIT);
+    hPopupView=GetSubMenu(hPopupMenu, MENU_POPUP_VIEW);
+    hPopupCodepage=GetSubMenu(hPopupMenu, MENU_POPUP_CODEPAGE);
     hPopupOpenCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_OPEN);
     hPopupSaveCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_SAVE);
-    hPopupHeadline=GetSubMenu(hPopupMenu, 3);
+    hPopupHeadline=GetSubMenu(hPopupMenu, MENU_POPUP_HEADLINE);
 
     hMenu=GetSubMenu(hMainMenu, MENU_FILE_POSITION);
-    hMenuRecentFiles=GetSubMenu(hMenu, MENU_FILE_RECENTFILES_POSITION);
+    hMenuRecentFiles=GetSubMenu(hMenu, MENU_FILE_RECENTFILES_3X);
     hMenu=GetSubMenu(hMainMenu, MENU_VIEW_POSITION);
-    hMenuLanguage=GetSubMenu(hMenu, MENU_VIEW_LANGUAGE_POSITION);
+    hMenuLanguage=GetSubMenu(hMenu, MENU_VIEW_LANGUAGE_3X);
 
     if (!bMDI)
     {
@@ -3503,17 +3503,17 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     RECT rcRect;
     HMENU hMenu;
 
-    hPopupEdit=GetSubMenu(hPopupMenu, 0);
-    hPopupView=GetSubMenu(hPopupMenu, 1);
-    hPopupCodepage=GetSubMenu(hPopupMenu, 2);
+    hPopupEdit=GetSubMenu(hPopupMenu, MENU_POPUP_EDIT);
+    hPopupView=GetSubMenu(hPopupMenu, MENU_POPUP_VIEW);
+    hPopupCodepage=GetSubMenu(hPopupMenu, MENU_POPUP_CODEPAGE);
     hPopupOpenCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_OPEN);
     hPopupSaveCodepage=GetSubMenu(hPopupCodepage, MENU_POPUP_CODEPAGE_SAVE);
-    hPopupHeadline=GetSubMenu(hPopupMenu, 3);
+    hPopupHeadline=GetSubMenu(hPopupMenu, MENU_POPUP_HEADLINE);
 
     hMenu=GetSubMenu(hMainMenu, MENU_FILE_POSITION);
-    hMenuRecentFiles=GetSubMenu(hMenu, MENU_FILE_RECENTFILES_POSITION);
+    hMenuRecentFiles=GetSubMenu(hMenu, MENU_FILE_RECENTFILES_3X);
     hMenu=GetSubMenu(hMainMenu, MENU_VIEW_POSITION);
-    hMenuLanguage=GetSubMenu(hMenu, MENU_VIEW_LANGUAGE_POSITION);
+    hMenuLanguage=GetSubMenu(hMenu, MENU_VIEW_LANGUAGE_3X);
 
     if (!bMDI)
     {
