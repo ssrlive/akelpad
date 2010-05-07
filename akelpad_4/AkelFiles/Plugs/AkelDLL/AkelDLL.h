@@ -153,10 +153,12 @@
 #define MENU_POPUP_HEADLINE   3
 
 //Submenu position
-#define MENU_FILE_RECENTFILES     13
-#define MENU_VIEW_LANGUAGE        8
-#define MENU_POPUP_CODEPAGE_OPEN  0
-#define MENU_POPUP_CODEPAGE_SAVE  2
+#define MENU_FILE_RECENTFILES_3X   12
+#define MENU_FILE_RECENTFILES_4X   13
+#define MENU_VIEW_LANGUAGE_3X      11
+#define MENU_VIEW_LANGUAGE_4X      8
+#define MENU_POPUP_CODEPAGE_OPEN   0
+#define MENU_POPUP_CODEPAGE_SAVE   2
 
 //INI value types
 #define INI_DWORD           1

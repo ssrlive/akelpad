@@ -1685,9 +1685,9 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPopupHeadline=GetSubMenu(hPopupMenu, MENU_POPUP_HEADLINE);
 
     hMenu=GetSubMenu(hMainMenu, MENU_FILE_POSITION);
-    hMenuRecentFiles=GetSubMenu(hMenu, MENU_FILE_RECENTFILES);
+    hMenuRecentFiles=GetSubMenu(hMenu, MENU_FILE_RECENTFILES_4X);
     hMenu=GetSubMenu(hMainMenu, MENU_VIEW_POSITION);
-    hMenuLanguage=GetSubMenu(hMenu, MENU_VIEW_LANGUAGE);
+    hMenuLanguage=GetSubMenu(hMenu, MENU_VIEW_LANGUAGE_4X);
 
     if (!bMDI)
     {
@@ -3688,9 +3688,9 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hPopupHeadline=GetSubMenu(hPopupMenu, MENU_POPUP_HEADLINE);
 
     hMenu=GetSubMenu(hMainMenu, MENU_FILE_POSITION);
-    hMenuRecentFiles=GetSubMenu(hMenu, MENU_FILE_RECENTFILES);
+    hMenuRecentFiles=GetSubMenu(hMenu, MENU_FILE_RECENTFILES_4X);
     hMenu=GetSubMenu(hMainMenu, MENU_VIEW_POSITION);
-    hMenuLanguage=GetSubMenu(hMenu, MENU_VIEW_LANGUAGE);
+    hMenuLanguage=GetSubMenu(hMenu, MENU_VIEW_LANGUAGE_4X);
 
     if (!bMDI)
     {

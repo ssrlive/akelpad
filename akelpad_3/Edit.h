@@ -127,16 +127,6 @@ const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00,
 #define STR_PRINT_FOOTERA           "- %n[1] -"
 #define STR_PRINT_FOOTERW          L"- %n[1] -"
 
-//Menu positions
-#define MENU_FILE_POSITION              0
-#define MENU_EDIT_POSITION              1
-#define MENU_VIEW_POSITION              2
-#define MENU_OPTIONS_POSITION           3
-#define MENU_MDI_POSITION               4
-#define MENU_ABOUT_POSITION             5
-#define MENU_FILE_RECENTFILES_POSITION  11
-#define MENU_VIEW_LANGUAGE_POSITION     11
-
 //Open file dialog
 #define IDC_OFN_EDIT                   1152
 
