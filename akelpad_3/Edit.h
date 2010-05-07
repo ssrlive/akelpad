@@ -108,6 +108,8 @@ const CLSID IID_IRichEditOleCallback={0x00020D03, 0x00, 0x00, {0xC0, 0x00, 0x00,
 #define EDIT_UNDOLIMIT             1000
 #define EDIT_MARGINS               MAKELONG(4, 4)
 
+#define STR_DEFAULTSAVEEXTA         "txt"
+#define STR_DEFAULTSAVEEXTW        L"txt"
 #define STR_ASSOCIATE_OPENA         "txt;log;ini;inf"
 #define STR_ASSOCIATE_OPENW        L"txt;log;ini;inf"
 #define STR_ASSOCIATE_EDITA         "bat;cmd;reg;htm;html"

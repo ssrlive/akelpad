@@ -14,14 +14,15 @@
   <li><a href=#ch1>General remarks</a>
   <li><a href=#ch2>Features</a>
   <li><a href=#ch3>Command line parameters</a>
-  <li><a href=#ch4>Keyboard commands</a>
-  <li><a href=#ch5>Internal commands</a>
-  <li><a href=#ch6>License</a>
-  <li><a href=#ch7>Contributors</a>
+  <li><a href=#ch4>Manual settings</a>
+  <li><a href=#ch5>Keyboard commands</a>
+  <li><a href=#ch6>Internal commands</a>
+  <li><a href=#ch7>License</a>
+  <li><a href=#ch8>Contributors</a>
 </ol>
 
 <a name=ch0><h3>Compatibility</h3></a>
-  Programs is intended to work under Windows 95/98/Me and Windows NT 4.0/2000/XP/2003.
+  Programs is intended to work under Windows 95/98/Me and Windows NT 4.0/2000/XP/2003/Vista/Seven.
 
 <a name=ch1><h3>General remarks</h3></a>
   Notepad is a wonderful editor, being used to edit files in plain text format, thus it is irreplaceable for programming, designing of Web documents, and so on. However, the one comprised in Windows, is very inconvenient due to several limitations. This program claims to be able to fill up these drawbacks.
@@ -97,8 +98,149 @@
     </table>
   </ul>
 
+<a name=ch4><h3>Manual settings</h3></a>
+  Settings are saved in AkelPad.ini or in registry (<i>HKEY_CURRENT_USER\Software\Akelsoft\AkelPad</i>).
+  <ul>
+    <table cellspacing=0 cellpadding=5 border=1>
+      <tr>
+        <td><b>KeybLayoutMDI</b></td>
+        <td>Remembers keyboard layout of each tab (MDI).
+          <br><li>0 - Disable.
+          <br><li>1 - Enable.
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>DateLog</b></td>
+        <td>Inserts current date and time to the end of opened file, if it has ".LOG" at the beginning.
+          <br><li>0 - Disable.
+          <br><li>1 - Enable.
+          <br>By default: 0.
+        </td>
+      </tr>
+      <tr>
+        <td><b>DefaultSaveExt</b></td>
+        <td>Sets default file save extention.
+          <br>By default: txt.
+        </td>
+      </tr>
+      <tr>
+        <td><b>DateInsertFormat</b></td>
+        <td>Defines insert date and time format.
 
-<a name=ch4><h3>Keyboard commands</h3></a>
+          <br><br>Time:
+          <table cellspacing=0 cellpadding=1 border=0>
+            <tr>
+              <td width=50><li>h</td>
+              <td>Hours with no leading zero for single-digit hours; 12-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>hh</td>
+              <td>Hours with leading zero for single-digit hours; 12-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>H</td>
+              <td>Hours with no leading zero for single-digit hours; 24-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>HH</td>
+              <td>Hours with leading zero for single-digit hours; 24-hour clock.</td>
+            </tr>
+            <tr>
+              <td><li>m</td>
+              <td>Minutes with no leading zero for single-digit minutes.</td>
+            </tr>
+            <tr>
+              <td><li>mm</td>
+              <td>Minutes with leading zero for single-digit minutes.</td>
+            </tr>
+            <tr>
+              <td><li>s</td>
+              <td>Seconds with no leading zero for single-digit seconds.</td>
+            </tr>
+            <tr>
+              <td><li>ss</td>
+              <td>Seconds with leading zero for single-digit seconds.</td>
+            </tr>
+            <tr>
+              <td><li>t</td>
+              <td>One character time-marker string, such as A or P.</td>
+            </tr>
+            <tr>
+              <td><li>tt</td>
+              <td>Multicharacter time-marker string, such as AM or PM.</td>
+            </tr>
+          </table>
+
+          <br>Date:
+          <table cellspacing=0 cellpadding=1 border=0>
+            <tr>
+              <td width=80><li>d</td>
+              <td>Day of month as digits with no leading zero for single-digit days.</td>
+            </tr>
+            <tr>
+              <td><li>dd</td>
+              <td>Day of month as digits with leading zero for single-digit days.</td>
+            </tr>
+            <tr>
+              <td><li>ddd</td>
+              <td>Day of week as a three-letter abbreviation.</td>
+            </tr>
+            <tr>
+              <td><li>dddd</td>
+              <td>Day of week as its full name.</td>
+            </tr>
+            <tr>
+              <td><li>M</td>
+              <td>Month as digits with no leading zero for single-digit months.</td>
+            </tr>
+            <tr>
+              <td><li>MM</td>
+              <td>Month as digits with leading zero for single-digit months.</td>
+            </tr>
+            <tr>
+              <td><li>MMM</td>
+              <td>Month as a three-letter abbreviation.</td>
+            </tr>
+            <tr>
+              <td><li>MMMM</td>
+              <td>Month as its full name.</td>
+            </tr>
+            <tr>
+              <td><li>y</td>
+              <td>Year as last two digits, but with no leading zero for years less than 10.</td>
+            </tr>
+            <tr>
+              <td><li>yy</td>
+              <td>Year as last two digits, but with leading zero for years less than 10.</td>
+            </tr>
+            <tr>
+              <td><li>yyyy</td>
+              <td>Year represented by full four digits.</td>
+            </tr>
+            <tr>
+              <td><li>gg</td>
+              <td>Period/era string.</td>
+            </tr>
+          </table>
+
+          <br>Example:
+          <br>"H:mm:ss dd MMMM yyyy" -> "12:50:24 01 September 2010"
+          <br>
+          <br>By default: "" - program defined date and time format.
+        </td>
+      </tr>
+      <tr>
+        <td><b>DateLogFormat</b></td>
+        <td>Defines date and time format for files containing ".LOG" at the beginning. Works only if enabled "Insert date if file has .LOG at the beginning" in settings (DateLog=1). See DateInsertFormat for syntax description.
+          <br>
+          <br>By default: "" - program defined date and time format.
+        </td>
+      </tr>
+    </table>
+  </ul>
+
+<a name=ch5><h3>Keyboard commands</h3></a>
   <ul>
   <table cellspacing=0 cellpadding=1 border=1>
     <tr>
@@ -462,6 +604,11 @@
     </tr>
 
     <tr>
+      <td><b>F10</b></td>
+      <td>select window dialog (MDI)</td>
+    </tr>
+
+    <tr>
       <td><b>Ctrl+Tab</b><br><b>Ctrl+F6</b></td>
       <td>next window (MDI)</td>
     </tr>
@@ -479,7 +626,7 @@
   </table>
   </ul>
 
-<a name=ch5><h3>Internal commands</h3></a>
+<a name=ch6><h3>Internal commands</h3></a>
   Can be used in ContextMenu, ToolBar, Hotkeys and Scripts plugins.
   <ul>
   <table cellspacing=0 cellpadding=1 border=1>
@@ -546,6 +693,11 @@
     <tr>
       <td align=center><b>4113</b></td>
       <td>Print without dialog</td>
+    </tr>
+
+    <tr>
+      <td align=center><b>4115</b></td>
+      <td>Save all as dialog</td>
     </tr>
 
     <tr>
@@ -894,11 +1046,6 @@
     </tr>
 
     <tr>
-      <td align=center><b>4407</b></td>
-      <td>(internal command)</td>
-    </tr>
-
-    <tr>
       <td align=center><b>4408</b></td>
       <td>Redetect code page of the current file</td>
     </tr>
@@ -999,11 +1146,6 @@
     </tr>
 
     <tr>
-      <td align=center><b>4431</b></td>
-      <td>(internal command)</td>
-    </tr>
-
-    <tr>
       <td align=center><b>5001</b></td>
       <td>Delete dead recent files</td>
     </tr>
@@ -1051,10 +1193,10 @@
   </table>
   </ul>
 
-<a name=ch6><h3>License</h3></a>
+<a name=ch7><h3>License</h3></a>
   This program is distributed under <i>"BSD license"</i> conditions. <i>BSD license</i> is open source license approved by OSI. It can be found on <a href=http://www.opensource.org/licenses/bsd-license.php>their site</a>.
 
-<a name=ch7><h3>Contributors</h3></a>
+<a name=ch8><h3>Contributors</h3></a>
   Shengalts Aleksander (e-mail: <a href=mailto:shengalts@mail.ru>shengalts@mail.ru</a>)
   <br>Kuznetsov Alexey (e-mail: <a href=mailto:developer@akelpad.net.ru>developer@akelpad.net.ru</a>)
   <br><br><a href=http://akelpad.sf.net>http://akelpad.sf.net</a>
