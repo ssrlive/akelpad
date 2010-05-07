@@ -4326,10 +4326,13 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
         char szDate[128];
         char szTime[128];
         char szDateAndTime[MAX_PATH];
+        int nLen;
 
-        *(WORD *)buf=(WORD)5;
-        if (SendMessageA(hWnd, EM_GETLINE, 0, (LPARAM)buf))
+        *(WORD *)buf=(WORD)4;
+        if (nLen=SendMessageA(hWnd, EM_GETLINE, 0, (LPARAM)buf))
         {
+          buf[nLen]='\0';
+
           if (!lstrcmpA(buf, ".LOG"))
           {
             if (!szDateLogFormat[0])
@@ -4601,10 +4604,13 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
         wchar_t wszDate[128];
         wchar_t wszTime[128];
         wchar_t wszDateAndTime[MAX_PATH];
+        int nLen;
 
-        *(WORD *)wbuf=(WORD)5;
-        if (SendMessageW(hWnd, EM_GETLINE, 0, (LPARAM)wbuf))
+        *(WORD *)wbuf=(WORD)4;
+        if (nLen=SendMessageW(hWnd, EM_GETLINE, 0, (LPARAM)wbuf))
         {
+          wbuf[nLen]='\0';
+
           if (!lstrcmpW(wbuf, L".LOG"))
           {
             if (!wszDateLogFormat[0])
