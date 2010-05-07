@@ -11,6 +11,8 @@ Changed: clean program installation recommended.
            Caret + Justify + PlainText + PrintClassic -> RichTune
          Plugins renamed:
             AutoScroll -> Scroll
+         Plugins integrated in program:
+           SaveAllAs, LogDate, KeybLayout
 Changed: commands 4421 - "Insert/Overtype mode" and 4426 - "Save file as UTF8 without BOM"
          swapped.
 Changed: now libc.lib not used, which allow to compile the program on the latest MS VS
@@ -19,6 +21,16 @@ Changed: released Ctrl+E hotkey, which used for "Read only" mode.
 Changed: integrated settings "TabViewMDI", "TabTypeMDI", "TabSwitchMDI" in
          "TabOptionsMDI" (MDI).
 
+Added: dialog "Save all as" that allows you to save all open documents in a particular encoding
+       and new line format (MDI).
+Added: manual parameter "KeybLayoutMDI" for remember keyboard layout of each tab (MDI).
+Added: manual parameter "DateLog" for insert current date and time to the end of opened file, if it has ".LOG"
+       at the beginning.
+Added: manual parameter "DateInsertFormat" - defines insert date and time format.
+Added: manual parameter "DateLogFormat" - defines date and time format for files containing
+       ".LOG" at the beginning. Works only if enabled "Insert date if file has .LOG at the
+       beginning" in settings (DateLog=1).
+Added: manual parameter "DefaultSaveExt" to set default file save extention.
 Added: check main window visibility on startup.
 Added: fast saving or reopening of the new, not saved document in different encoding now
        leads to a current encoding change.
