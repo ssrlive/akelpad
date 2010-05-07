@@ -334,6 +334,12 @@ typedef struct _HDOCK {
   int nSizingSide;
 } HDOCK;
 
+typedef struct {
+  int nCodePage;
+  BOOL bBOM;
+  BOOL bResult;
+} DIALOGCODEPAGE;
+
 
 //// Functions prototype
 
@@ -354,8 +360,10 @@ int DoFileReopenAsA(DWORD dwFlags, int nCodePage, BOOL bBOM);
 int DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM);
 BOOL DoFileSaveA();
 BOOL DoFileSaveW();
-BOOL DoFileSaveAsA();
-BOOL DoFileSaveAsW();
+BOOL DoFileSaveAsA(int nDialogCodePage, BOOL bDialogBOM);
+BOOL DoFileSaveAsW(int nDialogCodePage, BOOL bDialogBOM);
+void DoFileSaveAllAsA();
+void DoFileSaveAllAsW();
 BOOL DoFilePageSetupA();
 BOOL DoFilePageSetupW();
 BOOL DoFilePrintA(HWND hWnd, BOOL bSilent);
@@ -467,6 +475,7 @@ void FileStreamOut(FILESTREAMDATA *lpData);
 DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG *pcb);
 BOOL OpenDirectoryA(char *pPath, BOOL bSubDir);
 BOOL OpenDirectoryW(wchar_t *wpPath, BOOL bSubDir);
+BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 unsigned int CALLBACK PrintPageSetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 unsigned int CALLBACK PrintPageSetupDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

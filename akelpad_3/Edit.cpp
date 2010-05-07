@@ -243,7 +243,8 @@ extern int nMcstep;
 extern BOOL bModified;
 extern BOOL bOvertypeMode;
 extern BOOL bOvertypeModeChange;
-extern int nNewLine;
+extern int nCurrentNewLine;
+extern int nDefaultNewLine;
 extern BOOL bWordWrap;
 extern BOOL bOnTop;
 extern BOOL bStatusBar;
@@ -364,6 +365,7 @@ HWND CreateEditWindowA(HWND hWndParent)
   if (bWordDelimitersEnable) SendMessage(hWndEditNew, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
 
   DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
+  SetNewLineStatusA(hWndEditNew, nDefaultNewLine, TRUE);
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
   SendMessage(hWndEditNew, EM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEditNew, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
@@ -414,6 +416,7 @@ HWND CreateEditWindowW(HWND hWndParent)
   if (bWordDelimitersEnable) SendMessage(hWndEditNew, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
 
   DoViewWordWrap(hWndEditNew, bWordWrap, TRUE);
+  SetNewLineStatusW(hWndEditNew, nDefaultNewLine, TRUE);
   DoSettingsReadOnly(hWndEditNew, bReadOnly, TRUE);
   SendMessage(hWndEditNew, EM_SETUNDOLIMIT, (WPARAM)nUndoLimit, 0);
   SendMessage(hWndEditNew, EM_SETMARGINS, EC_LEFTMARGIN|EC_RIGHTMARGIN, dwEditMargins);
@@ -478,7 +481,7 @@ BOOL DoFileCloseA()
   SetWindowTextA(hWndEdit, "");
   ShowCaret(NULL);
   szCurrentFile[0]='\0';
-  SetNewLineStatusA(hWndEdit, NEWLINE_WIN, FALSE);
+  SetNewLineStatusA(hWndEdit, nDefaultNewLine, FALSE);
   SetModifyStatusA(hWndEdit, FALSE, FALSE);
   SetCodePageStatusA(nDefaultCodePage, bDefaultBOM, FALSE);
   UpdateTitleA(GetParent(hWndEdit), "");
@@ -502,7 +505,7 @@ BOOL DoFileCloseW()
   SetWindowTextW(hWndEdit, L"");
   ShowCaret(NULL);
   wszCurrentFile[0]='\0';
-  SetNewLineStatusW(hWndEdit, NEWLINE_WIN, FALSE);
+  SetNewLineStatusW(hWndEdit, nDefaultNewLine, FALSE);
   SetModifyStatusW(hWndEdit, FALSE, FALSE);
   SetCodePageStatusW(nDefaultCodePage, bDefaultBOM, FALSE);
   UpdateTitleW(GetParent(hWndEdit), L"");
@@ -741,26 +744,28 @@ int DoFileReopenAsW(DWORD dwFlags, int nCodePage, BOOL bBOM)
 BOOL DoFileSaveA()
 {
   if (!bModified && szCurrentFile[0] && FileExistsA(szCurrentFile)) return TRUE;
-  if (!szCurrentFile[0]) return DoFileSaveAsA();
+  if (!szCurrentFile[0]) return DoFileSaveAsA(-1, -1);
   return !SaveDocumentA(hWndEdit, szCurrentFile, nCurrentCodePage, bCurrentBOM, SD_UPDATE);
 }
 
 BOOL DoFileSaveW()
 {
   if (!bModified && wszCurrentFile[0] && FileExistsW(wszCurrentFile)) return TRUE;
-  if (!wszCurrentFile[0]) return DoFileSaveAsW();
+  if (!wszCurrentFile[0]) return DoFileSaveAsW(-1, -1);
   return !SaveDocumentW(hWndEdit, wszCurrentFile, nCurrentCodePage, bCurrentBOM, SD_UPDATE);
 }
 
-BOOL DoFileSaveAsA()
+BOOL DoFileSaveAsA(int nDialogCodePage, BOOL bDialogBOM)
 {
+  DIALOGCODEPAGE dc={nDialogCodePage, bDialogBOM};
   char szDefaultExt[MAX_PATH];
 
   bSaveDlg=TRUE;
-  API_LoadStringA(hLangLib, STR_DEFAULT_SAVE_EXT, szDefaultExt, MAX_PATH);
 
+  API_LoadStringA(hLangLib, STR_DEFAULT_SAVE_EXT, szDefaultExt, MAX_PATH);
   ofnA.lStructSize=sizeof(OPENFILENAMEA);
   ofnA.lpstrDefExt=szDefaultExt;
+  ofnA.lCustData=(LPARAM)&dc;
   ofnA.Flags&=~OFN_ALLOWMULTISELECT;
   lstrcpynA(szFileBuffer, szCurrentFile, MAX_PATH);
 
@@ -775,15 +780,17 @@ BOOL DoFileSaveAsA()
   return FALSE;
 }
 
-BOOL DoFileSaveAsW()
+BOOL DoFileSaveAsW(int nDialogCodePage, BOOL bDialogBOM)
 {
+  DIALOGCODEPAGE dc={nDialogCodePage, bDialogBOM};
   wchar_t wszDefaultExt[MAX_PATH];
 
   bSaveDlg=TRUE;
-  API_LoadStringW(hLangLib, STR_DEFAULT_SAVE_EXT, wszDefaultExt, MAX_PATH);
 
+  API_LoadStringW(hLangLib, STR_DEFAULT_SAVE_EXT, wszDefaultExt, MAX_PATH);
   ofnW.lStructSize=sizeof(OPENFILENAMEW);
   ofnW.lpstrDefExt=wszDefaultExt;
+  ofnW.lCustData=(LPARAM)&dc;
   ofnW.Flags&=~OFN_ALLOWMULTISELECT;
   lstrcpynW(wszFileBuffer, wszCurrentFile, MAX_PATH);
 
@@ -796,6 +803,16 @@ BOOL DoFileSaveAsW()
       return TRUE;
   }
   return FALSE;
+}
+
+void DoFileSaveAllAsA()
+{
+  API_DialogBoxA(hLangLib, MAKEINTRESOURCEA(IDD_SAVEALLAS), hMainWnd, (DLGPROC)SaveAllAsDlgProc);
+}
+
+void DoFileSaveAllAsW()
+{
+  API_DialogBoxW(hLangLib, MAKEINTRESOURCEW(IDD_SAVEALLAS), hMainWnd, (DLGPROC)SaveAllAsDlgProc);
 }
 
 BOOL DoFilePageSetupA()
@@ -3416,7 +3433,7 @@ void ReadOptionsA()
   ReadOptionA(hHandle, "SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD));
   ReadOptionA(hHandle, "SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD));
   ReadOptionA(hHandle, "DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD));
-  //ReadOptionA(hHandle, "DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD));
+  ReadOptionA(hHandle, "DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD));
   ReadOptionA(hHandle, "CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD));
   ReadOptionA(hHandle, "CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD));
   ReadOptionA(hHandle, "RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD));
@@ -3504,7 +3521,7 @@ void ReadOptionsW()
   ReadOptionW(hHandle, L"SavePositions", PO_DWORD, &bSavePositions, sizeof(DWORD));
   ReadOptionW(hHandle, L"SaveCodepages", PO_DWORD, &bSaveCodepages, sizeof(DWORD));
   ReadOptionW(hHandle, L"DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD));
-  //ReadOptionW(hHandle, L"DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD));
+  ReadOptionW(hHandle, L"DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD));
   ReadOptionW(hHandle, L"CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD));
   ReadOptionW(hHandle, L"CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD));
   ReadOptionW(hHandle, L"RecentFiles", PO_DWORD, &nRecentFiles, sizeof(DWORD));
@@ -3776,8 +3793,8 @@ BOOL SaveOptionsA()
     goto Error;
   if (!SaveOptionA(hHandle, "DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD)))
     goto Error;
-  //if (!SaveOptionA(hHandle, "DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD)))
-  //  goto Error;
+  if (!SaveOptionA(hHandle, "DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionA(hHandle, "CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionA(hHandle, "CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD)))
@@ -3942,8 +3959,8 @@ BOOL SaveOptionsW()
     goto Error;
   if (!SaveOptionW(hHandle, L"DefaultCodepage", PO_DWORD, &nDefaultCodePage, sizeof(DWORD)))
     goto Error;
-  //if (!SaveOptionW(hHandle, L"DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD)))
-  //  goto Error;
+  if (!SaveOptionW(hHandle, L"DefaultNewLine", PO_DWORD, &nDefaultNewLine, sizeof(DWORD)))
+    goto Error;
   if (!SaveOptionW(hHandle, L"CodepageRecognition", PO_DWORD, &dwLangCodepageRecognition, sizeof(DWORD)))
     goto Error;
   if (!SaveOptionW(hHandle, L"CodepageRecognitionBuffer", PO_DWORD, &dwCodepageRecognitionBuffer, sizeof(DWORD)))
@@ -4217,7 +4234,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
     //Get file write time
     GetFileTime(hFile, NULL, NULL, &ftFileTime);
 
-    nNewLine=NEWLINE_WIN;
+    nCurrentNewLine=nDefaultNewLine;
     HideCaret(NULL);
   }
 
@@ -4254,7 +4271,7 @@ int OpenDocumentA(HWND hWnd, char *szFile, DWORD dwFlags, int nCodePage, BOOL bB
       }
 
       //Update titles
-      SetNewLineStatusA(hWndEdit, nNewLine, TRUE);
+      SetNewLineStatusA(hWndEdit, nCurrentNewLine, TRUE);
       SetModifyStatusA(hWndEdit, FALSE, FALSE);
       SetCodePageStatusA(nCodePage, bBOM, FALSE);
 
@@ -4460,7 +4477,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
     //Get file write time
     GetFileTime(hFile, NULL, NULL, &ftFileTime);
 
-    nNewLine=NEWLINE_WIN;
+    nCurrentNewLine=nDefaultNewLine;
     HideCaret(NULL);
   }
 
@@ -4497,7 +4514,7 @@ int OpenDocumentW(HWND hWnd, wchar_t *wszFile, DWORD dwFlags, int nCodePage, BOO
       }
 
       //Update titles
-      SetNewLineStatusW(hWndEdit, nNewLine, TRUE);
+      SetNewLineStatusW(hWndEdit, nCurrentNewLine, TRUE);
       SetModifyStatusW(hWndEdit, FALSE, FALSE);
       SetCodePageStatusW(nCodePage, bBOM, FALSE);
 
@@ -5174,7 +5191,7 @@ DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, LPBYTE pbBuff, LONG cb, LONG
   DWORD dwBytesToWrite;
   DWORD dwBytesWritten;
 
-  if (nNewLine == NEWLINE_UNIX)
+  if (nCurrentNewLine == NEWLINE_UNIX)
   {
     dwBytesToWrite=TranslateNewLinesToUnixW((wchar_t *)pbBuff, cb / sizeof(wchar_t)) * sizeof(wchar_t);
   }
@@ -5268,6 +5285,202 @@ BOOL OpenDirectoryW(wchar_t *wpPath, BOOL bSubDir)
     else return FALSE;
   }
   return TRUE;
+}
+
+BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  static HWND hWndCodePageCheck;
+  static HWND hWndCodePageList;
+  static HWND hWndBOM;
+  static HWND hWndNewLineCheck;
+  static HWND hWndNewLineWin;
+  static HWND hWndNewLineUnix;
+  static HWND hWndNewLineMac;
+  static HWND hWndOK;
+  static BOOL bCodePageEnable=TRUE;
+  static BOOL bNewLineEnable=FALSE;
+  static int nNewLine=-1;
+  static int nCodePage=-1;
+  static BOOL bBOM;
+
+  if (uMsg == WM_INITDIALOG)
+  {
+    SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
+    hWndCodePageCheck=GetDlgItem(hDlg, IDC_SAVEALLAS_CODEPAGE_CHECK);
+    hWndCodePageList=GetDlgItem(hDlg, IDC_SAVEALLAS_CODEPAGE_LIST);
+    hWndBOM=GetDlgItem(hDlg, IDC_SAVEALLAS_BOM);
+    hWndNewLineCheck=GetDlgItem(hDlg, IDC_SAVEALLAS_NEWLINE_CHECK);
+    hWndNewLineWin=GetDlgItem(hDlg, IDC_SAVEALLAS_NEWLINE_WIN);
+    hWndNewLineUnix=GetDlgItem(hDlg, IDC_SAVEALLAS_NEWLINE_UNIX);
+    hWndNewLineMac=GetDlgItem(hDlg, IDC_SAVEALLAS_NEWLINE_MAC);
+    hWndOK=GetDlgItem(hDlg, IDOK);
+
+    if (nNewLine < 0)
+      nNewLine=nDefaultNewLine;
+    if (nCodePage < 0)
+      nCodePage=nDefaultCodePage;
+
+    if (bOldWindows)
+    {
+      FillComboboxCodepageA(hWndCodePageList, lpCodepageList);
+      SelectComboboxCodepageA(hWndCodePageList, nCodePage);
+    }
+    else
+    {
+      FillComboboxCodepageW(hWndCodePageList, lpCodepageList);
+      SelectComboboxCodepageW(hWndCodePageList, nCodePage);
+    }
+
+    if (nCodePage == CP_UNICODE_UCS2_LE ||
+        nCodePage == CP_UNICODE_UCS2_BE ||
+        nCodePage == CP_UNICODE_UTF8)
+    {
+      if (bBOM)
+        SendMessage(hWndBOM, BM_SETCHECK, BST_CHECKED, 0);
+    }
+    if (bCodePageEnable)
+      SendMessage(hWndCodePageCheck, BM_SETCHECK, BST_CHECKED, 0);
+    if (bNewLineEnable)
+      SendMessage(hWndNewLineCheck, BM_SETCHECK, BST_CHECKED, 0);
+    if (nNewLine == NEWLINE_WIN)
+      SendMessage(hWndNewLineWin, BM_SETCHECK, BST_CHECKED, 0);
+    else if (nNewLine == NEWLINE_UNIX)
+      SendMessage(hWndNewLineUnix, BM_SETCHECK, BST_CHECKED, 0);
+    //else if (nNewLine == NEWLINE_MAC)
+    //  SendMessage(hWndNewLineMac, BM_SETCHECK, BST_CHECKED, 0);
+    EnableWindow(hWndNewLineMac, FALSE);
+
+    SendMessage(hDlg, WM_COMMAND, IDC_SAVEALLAS_CODEPAGE_CHECK, 0);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (LOWORD(wParam) == IDC_SAVEALLAS_CODEPAGE_CHECK ||
+        LOWORD(wParam) == IDC_SAVEALLAS_NEWLINE_CHECK)
+    {
+      bCodePageEnable=SendMessage(hWndCodePageCheck, BM_GETCHECK, 0, 0);
+      bNewLineEnable=SendMessage(hWndNewLineCheck, BM_GETCHECK, 0, 0);
+
+      if (!bCodePageEnable && !bNewLineEnable)
+        EnableWindow(hWndOK, FALSE);
+      else
+        EnableWindow(hWndOK, TRUE);
+      EnableWindow(hWndCodePageList, bCodePageEnable);
+      EnableWindow(hWndBOM, bCodePageEnable);
+
+      if (bCodePageEnable)
+      {
+        if (nCodePage != CP_UNICODE_UCS2_LE &&
+            nCodePage != CP_UNICODE_UCS2_BE &&
+            nCodePage != CP_UNICODE_UTF8)
+        {
+          EnableWindow(hWndBOM, FALSE);
+        }
+      }
+      EnableWindow(hWndNewLineWin, bNewLineEnable);
+      EnableWindow(hWndNewLineUnix, bNewLineEnable);
+      //EnableWindow(hWndNewLineMac, bNewLineEnable);
+    }
+    else if (LOWORD(wParam) == IDC_SAVEALLAS_CODEPAGE_LIST && HIWORD(wParam) == CBN_SELCHANGE)
+    {
+      nCodePage=GetDlgItemInt(hDlg, IDC_SAVEALLAS_CODEPAGE_LIST, NULL, FALSE);
+
+      if (nCodePage != CP_UNICODE_UCS2_LE &&
+          nCodePage != CP_UNICODE_UCS2_BE &&
+          nCodePage != CP_UNICODE_UTF8)
+      {
+        SendMessage(hWndBOM, BM_SETCHECK, BST_UNCHECKED, 0);
+        EnableWindow(hWndBOM, FALSE);
+      }
+      else
+      {
+        EnableWindow(hWndBOM, TRUE);
+        SendMessage(hWndBOM, BM_SETCHECK, BST_CHECKED, 0);
+      }
+    }
+    else if (LOWORD(wParam) == IDOK)
+    {
+      bBOM=SendMessage(hWndBOM, BM_GETCHECK, 0, 0);
+
+      if (SendMessage(hWndNewLineWin, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nNewLine=NEWLINE_WIN;
+      else if (SendMessage(hWndNewLineUnix, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        nNewLine=NEWLINE_UNIX;
+      //else if (SendMessage(hWndNewLineMac, BM_GETCHECK, 0, 0) == BST_CHECKED)
+      //  nNewLine=NEWLINE_MAC;
+
+      EndDialog(hDlg, 0);
+
+      //Save documents
+      if (hWndFrameActive || !bMDI)
+      {
+        if (bOldWindows)
+        {
+          HWND hWndFrameInit=hWndFrameActive;
+
+          do
+          {
+            if ((bNewLineEnable && (nNewLine != nCurrentNewLine)) ||
+                (bCodePageEnable && (nCodePage != nCurrentCodePage || bBOM != bCurrentBOM || !szCurrentFile[0] || bModified || !FileExistsA(szCurrentFile))))
+            {
+              if (bNewLineEnable && nNewLine != nCurrentNewLine)
+                SetNewLineStatusA(hWndEdit, nNewLine, TRUE);
+
+              if (!szCurrentFile[0])
+              {
+                if (!DoFileSaveAsA(bCodePageEnable?nCodePage:nCurrentCodePage, bCodePageEnable?bBOM:bCurrentBOM))
+                  break;
+              }
+              else
+              {
+                if (SaveDocumentA(hWndEdit, szCurrentFile, bCodePageEnable?nCodePage:nCurrentCodePage, bCodePageEnable?bBOM:bCurrentBOM, SD_UPDATE) != ESD_SUCCESS)
+                  break;
+              }
+            }
+            if (!bMDI) break;
+
+            SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, FALSE);
+          }
+          while (hWndFrameActive != hWndFrameInit);
+        }
+        else
+        {
+          HWND hWndFrameInit=hWndFrameActive;
+
+          do
+          {
+            if ((bNewLineEnable && (nNewLine != nCurrentNewLine)) ||
+                (bCodePageEnable && (nCodePage != nCurrentCodePage || bBOM != bCurrentBOM || !wszCurrentFile[0] || bModified || !FileExistsW(wszCurrentFile))))
+            {
+              if (bNewLineEnable && nNewLine != nCurrentNewLine)
+                SetNewLineStatusW(hWndEdit, nNewLine, TRUE);
+
+              if (!wszCurrentFile[0])
+              {
+                if (!DoFileSaveAsW(bCodePageEnable?nCodePage:nCurrentCodePage, bCodePageEnable?bBOM:bCurrentBOM))
+                  break;
+              }
+              else
+              {
+                if (SaveDocumentW(hWndEdit, wszCurrentFile, bCodePageEnable?nCodePage:nCurrentCodePage, bCodePageEnable?bBOM:bCurrentBOM, SD_UPDATE) != ESD_SUCCESS)
+                  break;
+              }
+            }
+            if (!bMDI) break;
+
+            SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)hWndFrameActive, FALSE);
+          }
+          while (hWndFrameActive != hWndFrameInit);
+        }
+      }
+      return TRUE;
+    }
+    else if (LOWORD(wParam) == IDCANCEL)
+    {
+      EndDialog(hDlg, 0);
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
 
 
@@ -6333,7 +6546,7 @@ BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
 UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCP;
-  static HWND hWndPreview;
+  static HWND hWndFilePreview;
   static HWND hWndAutodetect;
   static HWND hDlgEdit;
   static RECT rcDlg;
@@ -6347,19 +6560,21 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
   if (uMsg == WM_INITDIALOG)
   {
+    OPENFILENAMEA *ofnData=(OPENFILENAMEA *)lParam;
+
     if (bMDI) hDlgEdit=GetDlgItem(GetParent(hDlg), IDC_OFN_EDIT);
     hWndCP=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
-    hWndPreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
+    hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
-    nCodePage=nCurrentCodePage;
-    FillComboboxCodepageA(hWndCP, lpCodepageList);
-    SelectComboboxCodepageA(hWndCP, nCodePage);
-
+    if (!ofnData->lCustData || (nCodePage=((DIALOGCODEPAGE *)ofnData->lCustData)->nCodePage) < 0)
+      nCodePage=nCurrentCodePage;
+    if (!ofnData->lCustData || (bBOM=((DIALOGCODEPAGE *)ofnData->lCustData)->bBOM) < 0)
+      bBOM=bCurrentBOM;
     GetWindowPos(hDlg, NULL, &rcDlg);
     GetWindowPos(hWndCP, hDlg, &rcCodePage);
     GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
-    GetWindowPos(hWndPreview, hDlg, &rcPreview);
+    GetWindowPos(hWndFilePreview, hDlg, &rcPreview);
 
     if (bSaveDlg)
     {
@@ -6384,13 +6599,13 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
       SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bAutodetect, 0);
       EnableWindow(hWndCP, !bAutodetect);
     }
-    SendMessage(hWndPreview, EM_SETTEXTMODE, TM_PLAINTEXT|TM_SINGLELEVELUNDO|TM_MULTICODEPAGE, 0);
-    SendMessage(hWndPreview, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
-    SetChosenFontA(hWndPreview, &lfEditFontA);
-    SetChosenFontColorA(hWndPreview, aecColors.crBasicText);
+    SendMessage(hWndFilePreview, EM_SETTEXTMODE, TM_PLAINTEXT|TM_SINGLELEVELUNDO|TM_MULTICODEPAGE, 0);
+    SendMessage(hWndFilePreview, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
+    SetChosenFontA(hWndFilePreview, &lfEditFontA);
+    SetChosenFontColorA(hWndFilePreview, aecColors.crBasicText);
 
-    OldPreviewProc=(WNDPROC)GetWindowLongA(hWndPreview, GWL_WNDPROC);
-    SetWindowLongA(hWndPreview, GWL_WNDPROC, (LONG)NewPreviewProcA);
+    OldPreviewProc=(WNDPROC)GetWindowLongA(hWndFilePreview, GWL_WNDPROC);
+    SetWindowLongA(hWndFilePreview, GWL_WNDPROC, (LONG)NewPreviewProcA);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -6410,12 +6625,12 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
     SetWindowPos(hWndCP, 0, 0, 0, rcCodePage.right, rcCodePage.bottom, SWP_NOMOVE|SWP_NOZORDER);
     SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-    SetWindowPos(hWndPreview, 0, 0, 0, rcPreview.right, rcPreview.bottom, SWP_NOMOVE|SWP_NOZORDER);
+    SetWindowPos(hWndFilePreview, 0, 0, 0, rcPreview.right, rcPreview.bottom, SWP_NOMOVE|SWP_NOZORDER);
     return 0;
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
-    if ((HWND)wParam == hWndPreview)
+    if ((HWND)wParam == hWndFilePreview)
     {
       RECT rcRect;
       POINT pt;
@@ -6482,14 +6697,14 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
         SendMessageA(((OFNOTIFY*)lParam)->hdr.hwndFrom, CDM_GETFILEPATH, (LPARAM)MAX_PATH, (WPARAM)szFile);
 
-        if (FilePreviewA(hWndPreview, szFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewA(hWndFilePreview, szFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
+          EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepageA(hWndCP, nDefaultCodePage);
-          SetWindowTextA(hWndPreview, "");
+          SetWindowTextA(hWndFilePreview, "");
           return TRUE;
         }
-        EnableWindow(hWndPreview, TRUE);
+        EnableWindow(hWndFilePreview, TRUE);
         if (bAutodetect) SelectComboboxCodepageA(hWndCP, nCodePage);
       }
     }
@@ -6515,12 +6730,12 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
       }
       else
       {
-        if (FilePreviewA(hWndPreview, szFile, PREVIEW_SIZE, OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewA(hWndFilePreview, szFile, PREVIEW_SIZE, OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
-          SetWindowTextA(hWndPreview, "");
+          EnableWindow(hWndFilePreview, FALSE);
+          SetWindowTextA(hWndFilePreview, "");
         }
-        else EnableWindow(hWndPreview, TRUE);
+        else EnableWindow(hWndFilePreview, TRUE);
       }
       return TRUE;
     }
@@ -6532,14 +6747,14 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
         EnableWindow(hWndCP, !bAutodetect);
         nCodePage=GetComboboxCodepageA(hWndCP);
 
-        if (FilePreviewA(hWndPreview, szFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewA(hWndFilePreview, szFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
+          EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepageA(hWndCP, nDefaultCodePage);
-          SetWindowTextA(hWndPreview, "");
+          SetWindowTextA(hWndFilePreview, "");
           return TRUE;
         }
-        EnableWindow(hWndPreview, TRUE);
+        EnableWindow(hWndFilePreview, TRUE);
         if (bAutodetect) SelectComboboxCodepageA(hWndCP, nCodePage);
       }
       return TRUE;
@@ -6551,7 +6766,7 @@ UINT_PTR CALLBACK CodePageDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCP;
-  static HWND hWndPreview;
+  static HWND hWndFilePreview;
   static HWND hWndAutodetect;
   static HWND hDlgEdit;
   static RECT rcDlg;
@@ -6565,19 +6780,24 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
   if (uMsg == WM_INITDIALOG)
   {
+    OPENFILENAMEW *ofnData=(OPENFILENAMEW *)lParam;
+
     if (bMDI) hDlgEdit=GetDlgItem(GetParent(hDlg), IDC_OFN_EDIT);
     hWndCP=GetDlgItem(hDlg, IDC_OFN_CODEPAGE);
-    hWndPreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
+    hWndFilePreview=GetDlgItem(hDlg, IDC_OFN_PREVIEW);
     hWndAutodetect=GetDlgItem(hDlg, IDC_OFN_AUTODETECT);
 
-    nCodePage=nCurrentCodePage;
+    if (!ofnData->lCustData || (nCodePage=((DIALOGCODEPAGE *)ofnData->lCustData)->nCodePage) < 0)
+      nCodePage=nCurrentCodePage;
+    if (!ofnData->lCustData || (bBOM=((DIALOGCODEPAGE *)ofnData->lCustData)->bBOM) < 0)
+      bBOM=bCurrentBOM;
     FillComboboxCodepageW(hWndCP, lpCodepageList);
     SelectComboboxCodepageW(hWndCP, nCodePage);
 
     GetWindowPos(hDlg, NULL, &rcDlg);
     GetWindowPos(hWndCP, hDlg, &rcCodePage);
     GetWindowPos(hWndAutodetect, hDlg, &rcAutodetect);
-    GetWindowPos(hWndPreview, hDlg, &rcPreview);
+    GetWindowPos(hWndFilePreview, hDlg, &rcPreview);
 
     if (bSaveDlg)
     {
@@ -6602,13 +6822,13 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
       SendMessage(hWndAutodetect, BM_SETCHECK, (WPARAM)bAutodetect, 0);
       EnableWindow(hWndCP, !bAutodetect);
     }
-    SendMessage(hWndPreview, EM_SETTEXTMODE, TM_PLAINTEXT|TM_SINGLELEVELUNDO|TM_MULTICODEPAGE, 0);
-    SendMessage(hWndPreview, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
-    SetChosenFontW(hWndPreview, &lfEditFontW);
-    SetChosenFontColorW(hWndPreview, aecColors.crBasicText);
+    SendMessage(hWndFilePreview, EM_SETTEXTMODE, TM_PLAINTEXT|TM_SINGLELEVELUNDO|TM_MULTICODEPAGE, 0);
+    SendMessage(hWndFilePreview, EM_SETBKGNDCOLOR, 0, aecColors.crBasicBk);
+    SetChosenFontW(hWndFilePreview, &lfEditFontW);
+    SetChosenFontColorW(hWndFilePreview, aecColors.crBasicText);
 
-    OldPreviewProc=(WNDPROC)GetWindowLongW(hWndPreview, GWL_WNDPROC);
-    SetWindowLongW(hWndPreview, GWL_WNDPROC, (LONG)NewPreviewProcW);
+    OldPreviewProc=(WNDPROC)GetWindowLongW(hWndFilePreview, GWL_WNDPROC);
+    SetWindowLongW(hWndFilePreview, GWL_WNDPROC, (LONG)NewPreviewProcW);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -6628,12 +6848,12 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
     SetWindowPos(hWndCP, 0, 0, 0, rcCodePage.right, rcCodePage.bottom, SWP_NOMOVE|SWP_NOZORDER);
     SetWindowPos(hWndAutodetect, 0, rcAutodetect.left, rcAutodetect.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
-    SetWindowPos(hWndPreview, 0, 0, 0, rcPreview.right, rcPreview.bottom, SWP_NOMOVE|SWP_NOZORDER);
+    SetWindowPos(hWndFilePreview, 0, 0, 0, rcPreview.right, rcPreview.bottom, SWP_NOMOVE|SWP_NOZORDER);
     return 0;
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
-    if ((HWND)wParam == hWndPreview)
+    if ((HWND)wParam == hWndFilePreview)
     {
       RECT rcRect;
       POINT pt;
@@ -6700,14 +6920,14 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
 
         SendMessageW(((OFNOTIFY*)lParam)->hdr.hwndFrom, CDM_GETFILEPATH, (LPARAM)MAX_PATH, (WPARAM)wszFile);
 
-        if (FilePreviewW(hWndPreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewW(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
+          EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepageW(hWndCP, nDefaultCodePage);
-          SetWindowTextW(hWndPreview, L"");
+          SetWindowTextW(hWndFilePreview, L"");
           return TRUE;
         }
-        EnableWindow(hWndPreview, TRUE);
+        EnableWindow(hWndFilePreview, TRUE);
         if (bAutodetect) SelectComboboxCodepageW(hWndCP, nCodePage);
       }
     }
@@ -6733,12 +6953,12 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
       }
       else
       {
-        if (FilePreviewW(hWndPreview, wszFile, PREVIEW_SIZE, OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewW(hWndFilePreview, wszFile, PREVIEW_SIZE, OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
-          SetWindowTextW(hWndPreview, L"");
+          EnableWindow(hWndFilePreview, FALSE);
+          SetWindowTextW(hWndFilePreview, L"");
         }
-        else EnableWindow(hWndPreview, TRUE);
+        else EnableWindow(hWndFilePreview, TRUE);
       }
       return TRUE;
     }
@@ -6750,14 +6970,14 @@ UINT_PTR CALLBACK CodePageDlgProcW(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM l
         EnableWindow(hWndCP, !bAutodetect);
         nCodePage=GetComboboxCodepageW(hWndCP);
 
-        if (FilePreviewW(hWndPreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
+        if (FilePreviewW(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
-          EnableWindow(hWndPreview, FALSE);
+          EnableWindow(hWndFilePreview, FALSE);
           if (bAutodetect) SelectComboboxCodepageW(hWndCP, nDefaultCodePage);
-          SetWindowTextW(hWndPreview, L"");
+          SetWindowTextW(hWndFilePreview, L"");
           return TRUE;
         }
-        EnableWindow(hWndPreview, TRUE);
+        EnableWindow(hWndFilePreview, TRUE);
         if (bAutodetect) SelectComboboxCodepageW(hWndCP, nCodePage);
       }
       return TRUE;
@@ -15837,7 +16057,7 @@ void SetSelectionStatusA(HWND hWnd, CHARRANGE *cr)
   }
   else
   {
-    if (nNewLine == NEWLINE_WIN) nLinebreaks=SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMax) - SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMin);
+    if (nCurrentNewLine == NEWLINE_WIN) nLinebreaks=SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMax) - SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMin);
     wsprintfA(szStatus, "%u:%u, %u", nLine, nColumn, chrg.cpMax - chrg.cpMin + nLinebreaks);
   }
   SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
@@ -15872,7 +16092,7 @@ void SetSelectionStatusW(HWND hWnd, CHARRANGE *cr)
   }
   else
   {
-    if (nNewLine == NEWLINE_WIN) nLinebreaks=SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMax) - SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMin);
+    if (nCurrentNewLine == NEWLINE_WIN) nLinebreaks=SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMax) - SendMessage(hWnd, EM_EXLINEFROMCHAR, 0, chrg.cpMin);
     wsprintfW(wszStatus, L"%u:%u, %u", nLine, nColumn, chrg.cpMax - chrg.cpMin + nLinebreaks);
   }
   SendMessage(hStatus, SB_SETTEXTW, STATUS_POSITION, (LPARAM)wszStatus);
@@ -15945,12 +16165,12 @@ void SetNewLineStatusA(HWND hWnd, int nState, BOOL bFirst)
       NMHDR nmhdr={hWndEdit, ID_EDIT, EN_SELCHANGE};
       HWND hWndParent;
 
-      if (bFirst != TRUE && nNewLine == nState) return;
-      nNewLine=nState;
+      if (bFirst != TRUE && nCurrentNewLine == nState) return;
+      nCurrentNewLine=nState;
 
-      if (nNewLine == NEWLINE_WIN)
+      if (nCurrentNewLine == NEWLINE_WIN)
         SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Win");
-      else if (nNewLine == NEWLINE_UNIX)
+      else if (nCurrentNewLine == NEWLINE_UNIX)
         SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Unix");
 
       if (hWndParent=GetParent(hWnd))
@@ -15981,12 +16201,12 @@ void SetNewLineStatusW(HWND hWnd, int nState, BOOL bFirst)
       NMHDR nmhdr={hWndEdit, ID_EDIT, EN_SELCHANGE};
       HWND hWndParent;
 
-      if (bFirst != TRUE && nNewLine == nState) return;
-      nNewLine=nState;
+      if (bFirst != TRUE && nCurrentNewLine == nState) return;
+      nCurrentNewLine=nState;
 
-      if (nNewLine == NEWLINE_WIN)
+      if (nCurrentNewLine == NEWLINE_WIN)
         SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Win");
-      else if (nNewLine == NEWLINE_UNIX)
+      else if (nCurrentNewLine == NEWLINE_UNIX)
         SendMessage(hStatus, SB_SETTEXTW, STATUS_NEWLINE, (LPARAM)L"Unix");
 
       if (hWndParent=GetParent(hWnd))

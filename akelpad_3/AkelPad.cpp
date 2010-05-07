@@ -275,7 +275,8 @@ int nMcstep=0x0FFFFFFF;
 BOOL bModified=FALSE;
 BOOL bOvertypeMode=FALSE;
 BOOL bOvertypeModeChange=FALSE;
-int nNewLine=NEWLINE_WIN;
+int nCurrentNewLine=NEWLINE_WIN;
+int nDefaultNewLine=NEWLINE_WIN;
 BOOL bWordWrap=FALSE;
 BOOL bOnTop=FALSE;
 BOOL bStatusBar=TRUE;
@@ -1779,7 +1780,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Apply settings
       szCurrentFile[0]='\0';
       SetFocus(hWndEdit);
-      SetNewLineStatusA(hWndEdit, NEWLINE_WIN, TRUE);
+      SetNewLineStatusA(hWndEdit, nDefaultNewLine, TRUE);
       SetInsertStateStatusA(NULL, FALSE, TRUE);
       SetModifyStatusA(hWndEdit, FALSE, TRUE);
       SetCodePageStatusA(nDefaultCodePage, bDefaultBOM, TRUE);
@@ -2262,7 +2263,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->pFile=(unsigned char *)szCurrentFile;
           ei->nCodePage=nCurrentCodePage;
           ei->bBOM=bCurrentBOM;
-          ei->nNewLine=nNewLine;
+          ei->nNewLine=nCurrentNewLine;
           ei->bModified=bModified;
           ei->bReadOnly=bReadOnly;
           ei->bWordWrap=bWordWrap;
@@ -2610,7 +2611,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (!lParam || (lParam & IMENU_CHECKS))
     {
-      CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_UNIX, (nNewLine == NEWLINE_WIN)?IDM_EDIT_NEWLINE_WIN:IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
+      CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_UNIX, (nCurrentNewLine == NEWLINE_WIN)?IDM_EDIT_NEWLINE_WIN:IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
     }
@@ -2769,7 +2770,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEAS)
     {
-      return DoFileSaveAsA();
+      return DoFileSaveAsA(-1, -1);
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEALL)
     {
@@ -2823,6 +2824,10 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return TRUE;
       }
+    }
+    else if (LOWORD(wParam) == IDM_FILE_SAVEALLAS)
+    {
+      DoFileSaveAllAsA();
     }
     else if (LOWORD(wParam) == IDM_FILE_PAGESETUP)
     {
@@ -2960,7 +2965,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (nNewLine != NEWLINE_WIN)
+        if (nCurrentNewLine != NEWLINE_WIN)
         {
           SetNewLineStatusA(hWndEdit, NEWLINE_WIN, FALSE);
           SetModifyStatusA(hWndEdit, TRUE, FALSE);
@@ -2971,7 +2976,7 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (nNewLine != NEWLINE_UNIX)
+        if (nCurrentNewLine != NEWLINE_UNIX)
         {
           SetNewLineStatusA(hWndEdit, NEWLINE_UNIX, FALSE);
           SetModifyStatusA(hWndEdit, TRUE, FALSE);
@@ -3359,8 +3364,8 @@ LRESULT CALLBACK MainProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (!IsReadOnly())
           {
-            if (nNewLine == NEWLINE_WIN) SetNewLineStatusA(hWndEdit, NEWLINE_UNIX, FALSE);
-            else if (nNewLine == NEWLINE_UNIX) SetNewLineStatusA(hWndEdit, NEWLINE_WIN, FALSE);
+            if (nCurrentNewLine == NEWLINE_WIN) SetNewLineStatusA(hWndEdit, NEWLINE_UNIX, FALSE);
+            else if (nCurrentNewLine == NEWLINE_UNIX) SetNewLineStatusA(hWndEdit, NEWLINE_WIN, FALSE);
             SetModifyStatusA(hWndEdit, TRUE, FALSE);
           }
         }
@@ -3688,7 +3693,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Apply settings
       wszCurrentFile[0]='\0';
       SetFocus(hWndEdit);
-      SetNewLineStatusW(hWndEdit, NEWLINE_WIN, TRUE);
+      SetNewLineStatusW(hWndEdit, nDefaultNewLine, TRUE);
       SetInsertStateStatusW(NULL, FALSE, TRUE);
       SetModifyStatusW(hWndEdit, FALSE, TRUE);
       SetCodePageStatusW(nDefaultCodePage, bDefaultBOM, TRUE);
@@ -4171,7 +4176,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           ei->pFile=(unsigned char *)wszCurrentFile;
           ei->nCodePage=nCurrentCodePage;
           ei->bBOM=bCurrentBOM;
-          ei->nNewLine=nNewLine;
+          ei->nNewLine=nCurrentNewLine;
           ei->bModified=bModified;
           ei->bReadOnly=bReadOnly;
           ei->bWordWrap=bWordWrap;
@@ -4519,7 +4524,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (!lParam || (lParam & IMENU_CHECKS))
     {
-      CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_UNIX, (nNewLine == NEWLINE_WIN)?IDM_EDIT_NEWLINE_WIN:IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
+      CheckMenuRadioItem(hMainMenu, IDM_EDIT_NEWLINE_WIN, IDM_EDIT_NEWLINE_UNIX, (nCurrentNewLine == NEWLINE_WIN)?IDM_EDIT_NEWLINE_WIN:IDM_EDIT_NEWLINE_UNIX, MF_BYCOMMAND);
       CheckMenuItem(hMainMenu, IDM_OPTIONS_READONLY, bReadOnly?MF_CHECKED:MF_UNCHECKED);
       CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bWordWrap?MF_CHECKED:MF_UNCHECKED);
     }
@@ -4678,7 +4683,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEAS)
     {
-      return DoFileSaveAsW();
+      return DoFileSaveAsW(-1, -1);
     }
     else if (LOWORD(wParam) == IDM_FILE_SAVEALL)
     {
@@ -4732,6 +4737,10 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return TRUE;
       }
+    }
+    else if (LOWORD(wParam) == IDM_FILE_SAVEALLAS)
+    {
+      DoFileSaveAllAsW();
     }
     else if (LOWORD(wParam) == IDM_FILE_PAGESETUP)
     {
@@ -4869,7 +4878,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (nNewLine != NEWLINE_WIN)
+        if (nCurrentNewLine != NEWLINE_WIN)
         {
           SetNewLineStatusW(hWndEdit, NEWLINE_WIN, FALSE);
           SetModifyStatusW(hWndEdit, TRUE, FALSE);
@@ -4880,7 +4889,7 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!IsReadOnly())
       {
-        if (nNewLine != NEWLINE_UNIX)
+        if (nCurrentNewLine != NEWLINE_UNIX)
         {
           SetNewLineStatusW(hWndEdit, NEWLINE_UNIX, FALSE);
           SetModifyStatusW(hWndEdit, TRUE, FALSE);
@@ -5268,8 +5277,8 @@ LRESULT CALLBACK MainProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (!IsReadOnly())
           {
-            if (nNewLine == NEWLINE_WIN) SetNewLineStatusW(hWndEdit, NEWLINE_UNIX, FALSE);
-            else if (nNewLine == NEWLINE_UNIX) SetNewLineStatusW(hWndEdit, NEWLINE_WIN, FALSE);
+            if (nCurrentNewLine == NEWLINE_WIN) SetNewLineStatusW(hWndEdit, NEWLINE_UNIX, FALSE);
+            else if (nCurrentNewLine == NEWLINE_UNIX) SetNewLineStatusW(hWndEdit, NEWLINE_WIN, FALSE);
             SetModifyStatusW(hWndEdit, TRUE, FALSE);
           }
         }
@@ -5766,7 +5775,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameA->ei.pFile=(unsigned char *)lpWndFrameA->szFile;
       lpWndFrameA->ei.nCodePage=nDefaultCodePage;
       lpWndFrameA->ei.bBOM=bDefaultBOM;
-      lpWndFrameA->ei.nNewLine=NEWLINE_WIN;
+      lpWndFrameA->ei.nNewLine=nDefaultNewLine;
       lpWndFrameA->ei.bModified=FALSE;
       lpWndFrameA->ei.bReadOnly=bReadOnly;
       lpWndFrameA->ei.bWordWrap=bWordWrap;
@@ -5882,7 +5891,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           EnableMenuItem(hMainMenu, nMessages[i], MF_ENABLED);
         bMdiNoWindows=FALSE;
 
-        SetNewLineStatusA(hWndEdit, NEWLINE_WIN, TRUE);
+        SetNewLineStatusA(hWndEdit, nDefaultNewLine, TRUE);
         SetInsertStateStatusA(NULL, FALSE, TRUE);
         SetModifyStatusA(hWndEdit, FALSE, TRUE);
         SetCodePageStatusA(nDefaultCodePage, bDefaultBOM, TRUE);
@@ -5900,7 +5909,7 @@ LRESULT CALLBACK FrameProcA(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameA->ei.pFile=(unsigned char *)lpWndFrameA->szFile;
             lpWndFrameA->ei.nCodePage=nCurrentCodePage;
             lpWndFrameA->ei.bBOM=bCurrentBOM;
-            lpWndFrameA->ei.nNewLine=nNewLine;
+            lpWndFrameA->ei.nNewLine=nCurrentNewLine;
             lpWndFrameA->ei.bModified=bModified;
             lpWndFrameA->ei.bReadOnly=bReadOnly;
             lpWndFrameA->ei.bWordWrap=bWordWrap;
@@ -6010,7 +6019,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->szFile;
       lpWndFrameW->ei.nCodePage=nDefaultCodePage;
       lpWndFrameW->ei.bBOM=bDefaultBOM;
-      lpWndFrameW->ei.nNewLine=NEWLINE_WIN;
+      lpWndFrameW->ei.nNewLine=nDefaultNewLine;
       lpWndFrameW->ei.bModified=FALSE;
       lpWndFrameW->ei.bReadOnly=bReadOnly;
       lpWndFrameW->ei.bWordWrap=bWordWrap;
@@ -6126,7 +6135,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           EnableMenuItem(hMainMenu, nMessages[i], MF_ENABLED);
         bMdiNoWindows=FALSE;
 
-        SetNewLineStatusW(hWndEdit, NEWLINE_WIN, TRUE);
+        SetNewLineStatusW(hWndEdit, nDefaultNewLine, TRUE);
         SetInsertStateStatusW(NULL, FALSE, TRUE);
         SetModifyStatusW(hWndEdit, FALSE, TRUE);
         SetCodePageStatusW(nDefaultCodePage, bDefaultBOM, TRUE);
@@ -6144,7 +6153,7 @@ LRESULT CALLBACK FrameProcW(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpWndFrameW->ei.pFile=(unsigned char *)lpWndFrameW->szFile;
             lpWndFrameW->ei.nCodePage=nCurrentCodePage;
             lpWndFrameW->ei.bBOM=bCurrentBOM;
-            lpWndFrameW->ei.nNewLine=nNewLine;
+            lpWndFrameW->ei.nNewLine=nCurrentNewLine;
             lpWndFrameW->ei.bModified=bModified;
             lpWndFrameW->ei.bReadOnly=bReadOnly;
             lpWndFrameW->ei.bWordWrap=bWordWrap;
