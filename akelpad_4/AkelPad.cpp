@@ -979,7 +979,6 @@ extern "C" void _WinMain()
     xstrcpyW(wszPrintHeader, STR_PRINT_HEADERW);
     xstrcpyW(wszPrintFooter, STR_PRINT_FOOTERW);
     xstrcpyW(wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
-    xstrcpyW(wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
     xstrcpyW(wszUrlPrefixes, STR_URL_PREFIXESW);
     xstrcpyW(wszUrlLeftDelimiters, STR_URL_LEFTDELIMITERSW);
     xstrcpyW(wszUrlRightDelimiters, STR_URL_RIGHTDELIMITERSW);
