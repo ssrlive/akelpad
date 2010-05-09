@@ -292,7 +292,7 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
   if (uMsg == WM_CREATE)
   {
-    if (ae=AE_CreateWindowData(hWnd, (CREATESTRUCTA *)lParam))
+    if (ae=AE_CreateWindowData(hWnd, (CREATESTRUCTA *)lParam, (AEEditProc)AE_EditProc))
       return 0;
     return -1;
   }
@@ -302,11 +302,7 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     //if (ae->bSkipMessages)
     //  return 0;
 
-    //Clone window processing
-    AE_ActivateClone(lpAkelEditPrev, ae);
-    lpAkelEditPrev=ae;
-
-    return AE_EditProc(ae, hWnd, uMsg, wParam, lParam);
+    return AE_EditProc(ae, uMsg, wParam, lParam);
   }
 
   if (!IsWindowUnicode(hWnd))
@@ -315,8 +311,14 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     return DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }
 
-LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  //// Clone window processing
+
+  AE_ActivateClone(lpAkelEditPrev, ae);
+  lpAkelEditPrev=ae;
+
+
   //// Character input: Alt + NumPad
 
   if (uMsg != WM_CHAR)
@@ -1475,8 +1477,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
 
     //Folding
     AddFold:
-    if (uMsg >= AEM_GETWINDOWDATA)
-      goto GetWindowData;
+    if (uMsg >= AEM_CREATEWINDOWDATA)
+      goto CreateWindowData;
 
     if (uMsg == AEM_ADDFOLD)
     {
@@ -1548,10 +1550,19 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     }
 
     //Window data
-    GetWindowData:
+    CreateWindowData:
     if (uMsg >= AEM_ADDCLONE)
       goto AddClone;
 
+    if (uMsg == AEM_CREATEWINDOWDATA)
+    {
+      return (LRESULT)AE_CreateWindowData(ae->hWndEdit, (CREATESTRUCTA *)lParam, (AEEditProc)AE_EditProc);
+    }
+    if (uMsg == AEM_DELETEWINDOWDATA)
+    {
+      AE_DestroyWindowData((AKELEDIT *)lParam);
+      return 0;
+    }
     if (uMsg == AEM_GETWINDOWDATA)
     {
       return (LRESULT)ae;
@@ -1560,23 +1571,24 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
     {
       AKELEDIT *aeNew=(AKELEDIT *)wParam;
 
+      aeNew->hWndEdit=ae->hWndEdit;
       ae->hWndEdit=NULL;
-      aeNew->hWndEdit=hWnd;
-      if (GetFocus() == hWnd)
+      if (GetFocus() == aeNew->hWndEdit)
         aeNew->bFocus=TRUE;
       else
         aeNew->bFocus=FALSE;
       return (LRESULT)ae;
     }
-    if (uMsg == AEM_CREATEWINDOWDATA)
+    if (uMsg == AEM_GETWINDOWPROC)
     {
-      return (LRESULT)AE_CreateWindowData(hWnd, (CREATESTRUCTA *)lParam);
+      AKELEDIT *aeHandle=(AKELEDIT *)wParam;
+
+      if (aeHandle)
+        return (LRESULT)aeHandle->lpEditProc;
+      else
+        return (LRESULT)ae->lpEditProc;
     }
-    if (uMsg == AEM_DELETEWINDOWDATA)
-    {
-      AE_DestroyWindowData((AKELEDIT *)lParam);
-      return 0;
-    }
+
 
     //Clones
     AddClone:
@@ -3217,9 +3229,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
           LRESULT lResult;
 
           if (!ae->bUnicodeWindow)
-            lResult=DefWindowProcA(hWnd, uMsg, wParam, lParam);
+            lResult=DefWindowProcA(ae->hWndEdit, uMsg, wParam, lParam);
           else
-            lResult=DefWindowProcW(hWnd, uMsg, wParam, lParam);
+            lResult=DefWindowProcW(ae->hWndEdit, uMsg, wParam, lParam);
           AE_UpdateCompositionPos(ae, 0);
           return lResult;
         }
@@ -3917,17 +3929,18 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, 
   }
 
   if (!ae->bUnicodeWindow)
-    return DefWindowProcA(hWnd, uMsg, wParam, lParam);
+    return DefWindowProcA(ae->hWndEdit, uMsg, wParam, lParam);
   else
-    return DefWindowProcW(hWnd, uMsg, wParam, lParam);
+    return DefWindowProcW(ae->hWndEdit, uMsg, wParam, lParam);
 }
 
-AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs)
+AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditProc)
 {
   AKELEDIT *ae;
 
   if (ae=AE_StackWindowInsert(&hAkelEditWindowsStack))
   {
+    ae->lpEditProc=lpEditProc;
     ae->hWndEdit=hWnd;
     ae->hWndParent=GetParent(ae->hWndEdit);
     ae->nEditCtrlID=GetWindowLongA(ae->hWndEdit, GWL_ID);

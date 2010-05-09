@@ -450,6 +450,7 @@ typedef struct _AKELEDIT {
   struct _AKELEDIT *prev;
 
   //Ident
+  AEEditProc lpEditProc;
   HWND hWndEdit;
   HWND hWndParent;
   int nEditCtrlID;
@@ -568,8 +569,8 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit);
 BOOL AE_UnregisterClassA(HINSTANCE hInstance);
 BOOL AE_UnregisterClassW(HINSTANCE hInstance);
 LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs);
+LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam);
+AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditProc);
 void AE_DestroyWindowData(AKELEDIT *ae);
 HANDLE AE_HeapCreate(AKELEDIT *ae);
 LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes);
