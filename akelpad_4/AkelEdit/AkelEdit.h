@@ -469,6 +469,15 @@
   #define mod(a)  ((((int)(a)) < 0) ? (0 - ((int)(a))) : (a))
 #endif
 
+typedef LRESULT (CALLBACK *AEEditProc)(HANDLE hHandle, UINT uMsg, WPARAM wParam, LPARAM lParam);
+//hHandle     Window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA.
+//uMsg        Message ID for example EM_SETSEL.
+//lParam      Additional parameter.
+//wParam      Additional parameter.
+//
+//Return Value
+// Depends on message.
+
 typedef DWORD (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
 //dwCookie    Value of the dwCookie member of the AESTREAMIN or AESTREAMOUT structure. The application specifies this value when it sends the AEM_STREAMIN or AEM_STREAMOUT message.
 //wszBuf      Pointer to a buffer to read from or write to. For a stream-in (read) operation, the callback function fills this buffer with data to transfer into the edit control. For a stream-out (write) operation, the buffer contains data from the control that the callback function writes to some storage.
@@ -1364,10 +1373,11 @@ typedef struct {
 #define AEM_GETFOLDSTACK          (WM_USER + 2389)
 
 //Window data
-#define AEM_GETWINDOWDATA         (WM_USER + 2401)
-#define AEM_SETWINDOWDATA         (WM_USER + 2402)
-#define AEM_CREATEWINDOWDATA      (WM_USER + 2403)
-#define AEM_DELETEWINDOWDATA      (WM_USER + 2404)
+#define AEM_CREATEWINDOWDATA      (WM_USER + 2401)
+#define AEM_DELETEWINDOWDATA      (WM_USER + 2402)
+#define AEM_GETWINDOWDATA         (WM_USER + 2403)
+#define AEM_SETWINDOWDATA         (WM_USER + 2404)
+#define AEM_GETWINDOWPROC         (WM_USER + 2405)
 
 //Clone
 #define AEM_ADDCLONE              (WM_USER + 2421)
@@ -4434,36 +4444,6 @@ AEFOLD* GetFold(HWND hWnd, int nLine)
 }
 
 
-AEM_GETWINDOWDATA
-_________________
-
-Retrieve window data handle.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- Window data handle.
-
-Example:
- HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
-
-
-AEM_SETWINDOWDATA
-_________________
-
-Associate new window data handle.
-
-(HANDLE)wParam == window data handle.
-lParam         == not used.
-
-Return Value
- Old window data handle.
-
-Example:
- See AEM_CREATEWINDOWDATA example.
-
-
 AEM_CREATEWINDOWDATA
 ____________________
 
@@ -4513,6 +4493,55 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)hHandle, 0);
+
+
+AEM_GETWINDOWDATA
+_________________
+
+Retrieve window data handle.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Window data handle.
+
+Example:
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+
+
+AEM_SETWINDOWDATA
+_________________
+
+Associate new window data handle.
+
+(HANDLE)wParam == window data handle.
+lParam         == not used.
+
+Return Value
+ Old window data handle.
+
+Example:
+ See AEM_CREATEWINDOWDATA example.
+
+
+AEM_GETWINDOWPROC
+_________________
+
+Retrieve window data procedure.
+
+(HANDLE)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current window data procedure returned.
+lParam == not used.
+
+Return Value
+ Pointer to an AEEditProc procedure.
+
+Example (Call window procedure directly):
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+ AEEditProc lpEditProc=(AEEditProc)SendMessage(hWndEdit, AEM_GETWINDOWPROC, (WPARAM)hHandle, 0);
+ LRESULT lResult;
+
+ lResult=lpEditProc(hHandle, EM_SETSEL, (WPARAM)0, (LPARAM)-1);
 
 
 AEM_ADDCLONE
