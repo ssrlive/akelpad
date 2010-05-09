@@ -1556,7 +1556,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     if (uMsg == AEM_CREATEWINDOWDATA)
     {
-      return (LRESULT)AE_CreateWindowData(ae->hWndEdit, (CREATESTRUCTA *)lParam, (AEEditProc)AE_EditProc);
+      AKELEDIT *aeNew;
+
+      if (aeNew=AE_CreateWindowData(ae->hWndEdit, (CREATESTRUCTA *)lParam, (AEEditProc)AE_EditProc))
+      {
+        //Initially unassigned. Later assigned with AEM_SETWINDOWDATA.
+        aeNew->hWndEdit=NULL;
+      }
+      return (LRESULT)aeNew;
     }
     if (uMsg == AEM_DELETEWINDOWDATA)
     {
@@ -1571,12 +1578,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AKELEDIT *aeNew=(AKELEDIT *)wParam;
 
-      aeNew->hWndEdit=ae->hWndEdit;
-      ae->hWndEdit=NULL;
-      if (GetFocus() == aeNew->hWndEdit)
-        aeNew->bFocus=TRUE;
-      else
-        aeNew->bFocus=FALSE;
+      if (ae != aeNew)
+      {
+        aeNew->hWndEdit=ae->hWndEdit;
+        ae->hWndEdit=NULL;
+        if (GetFocus() == aeNew->hWndEdit)
+          aeNew->bFocus=TRUE;
+        else
+          aeNew->bFocus=FALSE;
+      }
       return (LRESULT)ae;
     }
     if (uMsg == AEM_GETWINDOWPROC)
@@ -2890,7 +2900,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     AE_CalcLinesWidth(ae, NULL, NULL, AECLW_FRESH);
     ae->ptCaret.x=0;
     ae->ptCaret.y=0;
-    AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
+    AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKNOTIFY);
     if (!ae->popt->bVScrollLock)
       AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
     AE_UpdateCaret(ae, ae->bFocus);
@@ -3944,7 +3954,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->hWndEdit=hWnd;
     ae->hWndParent=GetParent(ae->hWndEdit);
     ae->nEditCtrlID=GetWindowLongA(ae->hWndEdit, GWL_ID);
-    ae->bUnicodeWindow=IsWindowUnicode(hWnd);
+    ae->bUnicodeWindow=IsWindowUnicode(ae->hWndEdit);
     ae->ptxt=&ae->txt;
     ae->popt=&ae->opt;
     ae->ptxt->hHeap=NULL;
