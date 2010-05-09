@@ -2073,7 +2073,7 @@ int xi64toaA(__int64 nNumber, char *szStr)
   }
   for (a=0; nNumber != 0; ++a)
   {
-    szReverse[a]=(nNumber % 10) + '0';
+    szReverse[a]=(char)(nNumber % 10) + '0';
     nNumber=nNumber / 10;
   }
   if (!szStr) return a + b + 1;
@@ -2121,7 +2121,7 @@ int xi64toaW(__int64 nNumber, wchar_t *wszStr)
   }
   for (a=0; nNumber != 0; ++a)
   {
-    wszReverse[a]=(nNumber % 10) + L'0';
+    wszReverse[a]=(wchar_t)(nNumber % 10) + L'0';
     nNumber=nNumber / 10;
   }
   if (!wszStr) return a + b + 1;
@@ -2701,9 +2701,9 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
   wchar_t *wpStartOut;
   wchar_t *wpString;
   wchar_t wchFillChar;
-  int nPrecision;
+  unsigned int dwPrecision;
+  unsigned int dwLen=0;
   int nWidth;
-  int nLen=0;
   int i;
 
   va_list val;
@@ -2715,7 +2715,7 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
     {
       wpStartOut=wpOut;
       wchFillChar=L' ';
-      nPrecision=0;
+      dwPrecision=0;
       nWidth=0;
       ++wpFmt;
 
@@ -2738,7 +2738,15 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       }
       if (*wpFmt == L'.')
       {
-        nPrecision=xatoiW(wpFmt + 1, &wpFmt);
+        if (!(dwPrecision=(unsigned int)xatoiW(wpFmt + 1, &wpFmt)))
+        {
+          //Special format to specify argument as precision: "%.%us" or "%.%ds"
+          if (*wpFmt == '%' && (*(wpFmt + 1) == 'u' || *(wpFmt + 1) == 'd'))
+          {
+            dwPrecision=(unsigned int)va_arg(val, int);
+            wpFmt+=2;
+          }
+        }
       }
 
       if (*wpFmt == L'%')
@@ -2762,10 +2770,10 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
         i=va_arg(val, int);
         if (!wszOutput || nWidth > 0)
         {
-          nLen=xitoaW(i, NULL) - 1;
+          dwLen=xitoaW(i, NULL) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - nLen, 0);
+            nWidth=max(nWidth - dwLen, 0);
             wpOut+=nWidth;
             if (nWidth > 0 && i < 0)
             {
@@ -2774,55 +2782,55 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
             }
           }
         }
-        if (wszOutput) nLen=xitoaW(i, wpOut);
-        wpOut+=nLen;
+        if (wszOutput) dwLen=xitoaW(i, wpOut);
+        wpOut+=dwLen;
       }
       else if (*wpFmt == L'u')
       {
         i=va_arg(val, int);
         if (!wszOutput || nWidth > 0)
         {
-          nLen=xuitoaW((unsigned int)i, NULL) - 1;
+          dwLen=xuitoaW((unsigned int)i, NULL) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - nLen, 0);
+            nWidth=max(nWidth - dwLen, 0);
             wpOut+=nWidth;
           }
         }
-        if (wszOutput) nLen=xuitoaW((unsigned int)i, wpOut);
-        wpOut+=nLen;
+        if (wszOutput) dwLen=xuitoaW((unsigned int)i, wpOut);
+        wpOut+=dwLen;
       }
       else if (*wpFmt == L'x' || *wpFmt == L'X')
       {
         i=va_arg(val, int);
         if (!wszOutput || nWidth > 0)
         {
-          nLen=dec2hexW((unsigned int)i, NULL, 0, (*wpFmt == L'x')?TRUE:FALSE) - 1;
+          dwLen=dec2hexW((unsigned int)i, NULL, 0, (*wpFmt == L'x')?TRUE:FALSE) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - nLen, 0);
+            nWidth=max(nWidth - dwLen, 0);
             wpOut+=nWidth;
           }
         }
-        if (wszOutput) nLen=dec2hexW((unsigned int)i, wpOut, 0, (*wpFmt == L'x')?TRUE:FALSE);
-        wpOut+=nLen;
+        if (wszOutput) dwLen=dec2hexW((unsigned int)i, wpOut, 0, (*wpFmt == L'x')?TRUE:FALSE);
+        wpOut+=dwLen;
       }
       else if (*wpFmt == L's')
       {
         wpString=va_arg(val, wchar_t *);
         if (!wszOutput || nWidth > 0)
         {
-          nLen=lstrlenW(wpString);
-          if (nPrecision)
-            nLen=min(nLen, nPrecision);
+          dwLen=lstrlenW(wpString);
+          if (dwPrecision)
+            dwLen=min(dwLen, dwPrecision);
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - nLen, 0);
+            nWidth=max(nWidth - dwLen, 0);
             wpOut+=nWidth;
           }
         }
-        if (wszOutput) nLen=xstrcpynW(wpOut, wpString, (unsigned int)(nPrecision?nPrecision + 1:-1));
-        wpOut+=nLen;
+        if (wszOutput) dwLen=xstrcpynW(wpOut, wpString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
+        wpOut+=dwLen;
       }
 
       if (nWidth > 0)
