@@ -293,7 +293,12 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
   if (uMsg == WM_CREATE)
   {
     if (ae=AE_CreateWindowData(hWnd, (CREATESTRUCTA *)lParam, (AEEditProc)AE_EditProc))
+    {
+      //Register drop window
+      //CoLockObjectExternal((LPUNKNOWN)&ae->idt, TRUE, FALSE);
+      RegisterDragDrop(ae->hWndEdit, (LPDROPTARGET)&ae->idt);
       return 0;
+    }
     return -1;
   }
 
@@ -1567,7 +1572,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_DELETEWINDOWDATA)
     {
-      AE_DestroyWindowData((AKELEDIT *)lParam);
+      AE_DestroyWindowData((AKELEDIT *)wParam);
       return 0;
     }
     if (uMsg == AEM_GETWINDOWDATA)
@@ -3932,6 +3937,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_DESTROY)
   {
+    //Unregister drop window
+    RevokeDragDrop(ae->hWndEdit);
+    //CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
+    //((IDropTarget *)&ae->idt)->Release();
+
     AE_DestroyWindowData(ae);
     lpAkelEditPrev=NULL;
     ae=NULL;
@@ -4095,10 +4105,6 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
 
     AE_SetText(ae, L"", 0, ae->popt->nInputNewLine);
 
-    //Register drop window
-    //CoLockObjectExternal((LPUNKNOWN)&ae->idt, TRUE, FALSE);
-    RegisterDragDrop(ae->hWndEdit, (LPDROPTARGET)&ae->idt);
-
     //Scrollbars updated in WM_SIZE
   }
   return ae;
@@ -4106,11 +4112,6 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
 
 void AE_DestroyWindowData(AKELEDIT *ae)
 {
-  //Unregister drop window
-  RevokeDragDrop(ae->hWndEdit);
-  //CoLockObjectExternal((LPUNKNOWN)&ae->idt, FALSE, TRUE);
-  //((IDropTarget *)&ae->idt)->Release();
-
   if (!ae->lpMaster)
   {
     //Uncloning all clones
