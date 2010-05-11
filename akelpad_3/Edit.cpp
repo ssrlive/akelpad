@@ -18005,7 +18005,7 @@ char* GetFileExtA(char *pFile)
     if (pFile[i] == '.') return (pFile + i + 1);
     else if (pFile[i] == '\\') break;
   }
-  return "";
+  return NULL;
 }
 
 wchar_t* GetFileExtW(wchar_t *wpFile)
@@ -18017,7 +18017,7 @@ wchar_t* GetFileExtW(wchar_t *wpFile)
     if (wpFile[i] == '.') return (wpFile + i + 1);
     else if (wpFile[i] == '\\') break;
   }
-  return L"";
+  return NULL;
 }
 
 BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild)
