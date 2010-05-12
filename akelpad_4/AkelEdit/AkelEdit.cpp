@@ -610,7 +610,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AECHARINDEX *ciCharIndex=(AECHARINDEX *)lParam;
 
-      return AE_GetIndex(ae, wParam, ciCharIndex, ciCharIndex, FALSE);
+      return (LRESULT)AE_GetIndex(ae, wParam, ciCharIndex, ciCharIndex, FALSE);
     }
     if (uMsg == AEM_GETLINEINDEX)
     {
@@ -3427,7 +3427,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           cr.ciMin=ciCharIndex;
           cr.ciMax=ciCharIndex;
           cr.ciMin.nCharInLine=0;
-          if (!AE_GetIndex(ae, AEGI_NEXTLINE, &cr.ciMax, &cr.ciMax, FALSE))
+          if (!AE_NextLineEx(&cr.ciMax, &cr.ciMax))
             cr.ciMax.nCharInLine=cr.ciMax.lpLine->nLineLen;
 
           ae->ciMouseSelClick=ciCharIndex;
@@ -3517,7 +3517,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           AE_GetCharFromPos(ae, &ptPos, &ciCharIndex, NULL, ae->bColumnSel);
           AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCharIndex, &cr.ciMin, FALSE);
           AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCharIndex, &cr.ciMax, FALSE);
-          AE_GetIndex(ae, AEGI_NEXTLINE, &cr.ciMax, &cr.ciMax, FALSE);
+          AE_NextLineEx(&cr.ciMax, &cr.ciMax);
 
           ae->ciMouseSelClick=ciCharIndex;
           ae->ciMouseSelStart=cr.ciMin;
@@ -5946,21 +5946,21 @@ int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex)
   return nResult;
 }
 
-int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel)
+AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel)
 {
   if (nType == AEGI_FIRSTCHAR)
   {
     ciCharOut->nLine=0;
     ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.first;
     ciCharOut->nCharInLine=0;
-    return ciCharOut->lpLine?1:0;
+    return ciCharOut->lpLine;
   }
   else if (nType == AEGI_LASTCHAR)
   {
     ciCharOut->nLine=ae->ptxt->nLineCount;
     ciCharOut->lpLine=(AELINEDATA *)ae->ptxt->hLinesStack.last;
     ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
-    return ciCharOut->lpLine?1:0;
+    return ciCharOut->lpLine;
   }
   else if (nType == AEGI_FIRSTSELCHAR)
   {
@@ -5972,7 +5972,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     }
     else *ciCharOut=ae->ciSelStartIndex;
 
-    return 1;
+    return ciCharOut->lpLine;
   }
   else if (nType == AEGI_LASTSELCHAR)
   {
@@ -5984,12 +5984,12 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     }
     else *ciCharOut=ae->ciSelEndIndex;
 
-    return 1;
+    return ciCharOut->lpLine;
   }
   else if (nType == AEGI_CARETCHAR)
   {
     *ciCharOut=ae->ciCaretIndex;
-    return 1;
+    return ciCharOut->lpLine;
   }
   else if (nType == AEGI_NEXTCHAR ||
            nType == AEGI_NEXTVISIBLECHAR)
@@ -6001,7 +6001,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     {
       AE_IndexInc(&ciCharTmp);
       *ciCharOut=ciCharTmp;
-      return 1;
+      return ciCharOut->lpLine;
     }
     else
     {
@@ -6020,12 +6020,12 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
       if (ciCharTmp.lpLine)
       {
         *ciCharOut=ciCharTmp;
-        return 1;
+        return ciCharOut->lpLine;
       }
       else
       {
         *ciCharOut=*ciCharIn;
-        return 0;
+        return NULL;
       }
     }
   }
@@ -6040,7 +6040,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
       AE_IndexDec(&ciCharTmp);
       *ciCharOut=ciCharTmp;
       ciCharOut->nCharInLine=max(ciCharTmp.nCharInLine, 0);
-      return 1;
+      return ciCharOut->lpLine;
     }
     else
     {
@@ -6059,12 +6059,12 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
       if (ciCharTmp.lpLine)
       {
         *ciCharOut=ciCharTmp;
-        return 1;
+        return ciCharOut->lpLine;
       }
       else
       {
         *ciCharOut=*ciCharIn;
-        return 0;
+        return NULL;
       }
     }
   }
@@ -6087,12 +6087,12 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     if (ciCharTmp.lpLine)
     {
       *ciCharOut=ciCharTmp;
-      return 1;
+      return ciCharOut->lpLine;
     }
     else
     {
       *ciCharOut=*ciCharIn;
-      return 0;
+      return NULL;
     }
   }
   else if (nType == AEGI_PREVLINE ||
@@ -6114,12 +6114,12 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     if (ciCharTmp.lpLine)
     {
       *ciCharOut=ciCharTmp;
-      return 1;
+      return ciCharOut->lpLine;
     }
     else
     {
       *ciCharOut=*ciCharIn;
-      return 0;
+      return NULL;
     }
   }
   else if (nType == AEGI_FIRSTVISIBLELINE)
@@ -6127,28 +6127,28 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     ciCharOut->nLine=AE_GetFirstVisibleLine(ae);
     ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
     ciCharOut->nCharInLine=0;
-    return ciCharOut->lpLine?1:0;
+    return ciCharOut->lpLine;
   }
   else if (nType == AEGI_LASTVISIBLELINE)
   {
     ciCharOut->nLine=AE_GetLastVisibleLine(ae);
     ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
     ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
-    return ciCharOut->lpLine?1:0;
+    return ciCharOut->lpLine;
   }
   else if (nType == AEGI_FIRSTFULLVISIBLELINE)
   {
     ciCharOut->nLine=AE_GetFirstFullVisibleLine(ae);
     ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
     ciCharOut->nCharInLine=0;
-    return ciCharOut->lpLine?1:0;
+    return ciCharOut->lpLine;
   }
   else if (nType == AEGI_LASTFULLVISIBLELINE)
   {
     ciCharOut->nLine=AE_GetLastFullVisibleLine(ae);
     ciCharOut->lpLine=AE_GetLineData(ae, ciCharOut->nLine);
     ciCharOut->nCharInLine=ciCharOut->lpLine->nLineLen;
-    return ciCharOut->lpLine?1:0;
+    return ciCharOut->lpLine;
   }
   else if (nType == AEGI_WRAPLINEBEGIN)
   {
@@ -6170,7 +6170,7 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     ciCharOut->nLine=ciCharTmp.nLine;
     ciCharOut->lpLine=ciCharTmp.lpLine;
     ciCharOut->nCharInLine=0;
-    return nCount;
+    return (AELINEDATA *)nCount;
   }
   else if (nType == AEGI_WRAPLINEEND)
   {
@@ -6189,41 +6189,17 @@ int AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDE
     ciCharOut->nLine=ciCharTmp.nLine;
     ciCharOut->lpLine=ciCharTmp.lpLine;
     ciCharOut->nCharInLine=ciCharTmp.lpLine->nLineLen;
-    return nCount;
+    return (AELINEDATA *)nCount;
   }
   else if (nType == AEGI_NEXTCHARINLINE)
   {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-
-    if (ciCharTmp.nCharInLine >= ciCharTmp.lpLine->nLineLen - 1)
-    {
-      if (ciCharTmp.lpLine->nLineBreak != AELB_WRAP)
-      {
-        *ciCharOut=*ciCharIn;
-        return 0;
-      }
-    }
-    AE_NextChar(&ciCharTmp);
-    *ciCharOut=ciCharTmp;
-    return 1;
+    return AE_NextCharInLineEx(ciCharIn, ciCharOut);
   }
   else if (nType == AEGI_PREVCHARINLINE)
   {
-    AECHARINDEX ciCharTmp=*ciCharIn;
-
-    if (ciCharTmp.nCharInLine == 0)
-    {
-      if (!ciCharTmp.lpLine->prev || ciCharTmp.lpLine->prev->nLineBreak != AELB_WRAP)
-      {
-        *ciCharOut=*ciCharIn;
-        return 0;
-      }
-    }
-    AE_PrevChar(&ciCharTmp);
-    *ciCharOut=ciCharTmp;
-    return 1;
+    return AE_PrevCharInLineEx(ciCharIn, ciCharOut);
   }
-  return 0;
+  return NULL;
 }
 
 int AE_IsSurrogate(wchar_t wchChar)
@@ -6379,6 +6355,38 @@ AELINEDATA* AE_PrevLine(AECHARINDEX *ciChar)
   return ciChar->lpLine;
 }
 
+AELINEDATA* AE_NextLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+{
+  AECHARINDEX ciTmp=*ciIn;
+
+  if (AE_NextLine(&ciTmp))
+  {
+    *ciOut=ciTmp;
+    return ciOut->lpLine;
+  }
+  else
+  {
+    *ciOut=*ciIn;
+    return NULL;
+  }
+}
+
+AELINEDATA* AE_PrevLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+{
+  AECHARINDEX ciTmp=*ciIn;
+
+  if (AE_PrevLine(&ciTmp))
+  {
+    *ciOut=ciTmp;
+    return ciOut->lpLine;
+  }
+  else
+  {
+    *ciOut=*ciIn;
+    return NULL;
+  }
+}
+
 AELINEDATA* AE_NextChar(AECHARINDEX *ciChar)
 {
   AE_IndexInc(ciChar);
@@ -6413,6 +6421,38 @@ AELINEDATA* AE_PrevChar(AECHARINDEX *ciChar)
   return ciChar->lpLine;
 }
 
+AELINEDATA* AE_NextCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+{
+  AECHARINDEX ciTmp=*ciIn;
+
+  if (AE_NextChar(&ciTmp))
+  {
+    *ciOut=ciTmp;
+    return ciOut->lpLine;
+  }
+  else
+  {
+    *ciOut=*ciIn;
+    return NULL;
+  }
+}
+
+AELINEDATA* AE_PrevCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+{
+  AECHARINDEX ciTmp=*ciIn;
+
+  if (AE_PrevChar(&ciTmp))
+  {
+    *ciOut=ciTmp;
+    return ciOut->lpLine;
+  }
+  else
+  {
+    *ciOut=*ciIn;
+    return NULL;
+  }
+}
+
 AELINEDATA* AE_NextCharInLine(AECHARINDEX *ciChar)
 {
   if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen - 1)
@@ -6433,6 +6473,38 @@ AELINEDATA* AE_PrevCharInLine(AECHARINDEX *ciChar)
   }
   AE_PrevChar(ciChar);
   return ciChar->lpLine;
+}
+
+AELINEDATA* AE_NextCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+{
+  AECHARINDEX ciTmp=*ciIn;
+
+  if (AE_NextCharInLine(&ciTmp))
+  {
+    *ciOut=ciTmp;
+    return ciOut->lpLine;
+  }
+  else
+  {
+    *ciOut=*ciIn;
+    return NULL;
+  }
+}
+
+AELINEDATA* AE_PrevCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+{
+  AECHARINDEX ciTmp=*ciIn;
+
+  if (AE_PrevCharInLine(&ciTmp))
+  {
+    *ciOut=ciTmp;
+    return ciOut->lpLine;
+  }
+  else
+  {
+    *ciOut=*ciIn;
+    return NULL;
+  }
 }
 
 int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces)
@@ -7763,7 +7835,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
             ciCharIndex.nCharInLine=0;
           else
           {
-            if (!AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIndex, &ciCharIndex, FALSE))
+            if (!AE_NextLineEx(&ciCharIndex, &ciCharIndex))
               ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
           }
         }
@@ -7835,7 +7907,7 @@ void AE_SetMouseSelection(AKELEDIT *ae, const POINT *ptPos, BOOL bColumnSel, BOO
         {
           if (AE_IndexCompare(&ciCharIndex, &ae->ciMouseSelEnd) >= 0)
           {
-            if (!AE_GetIndex(ae, AEGI_NEXTLINE, &ciCharIndex, &ciCharIndex, FALSE))
+            if (!AE_NextLineEx(&ciCharIndex, &ciCharIndex))
               ciCharIndex.nCharInLine=ciCharIndex.lpLine->nLineLen;
           }
           else
@@ -8580,7 +8652,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           {
             if (!qm->lpQuote->pQuoteEnd || !*qm->lpQuote->pQuoteEnd)
             {
-              nQuoteLen+=AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCount, &ciCount, FALSE);
+              nQuoteLen+=(int)AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCount, &ciCount, FALSE);
               qm->crQuoteEnd.ciMin=ciCount;
               qm->crQuoteEnd.ciMax=ciCount;
               goto SetQuote;
@@ -10203,52 +10275,53 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
         nCharWidth=AE_GetCharWidth(&ph->aePrint, ciCount.lpLine->wpLine + ciCount.nCharInLine, NULL);
       nLineWidth+=nCharWidth;
 
+      if (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\f')
+        bFormFeed=TRUE;
+
       if (nLineWidth > prn->rcPageIn.right - prn->rcPageIn.left ||
           AE_IndexCompare(&ciCount, &prn->crText.ciMax) >= 0 ||
-          (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\f'))
+          bFormFeed)
       {
-        if (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\f')
-          bFormFeed=TRUE;
-
-        if (prn->dwFlags & AEPRN_WRAPNONE)
+        if (bFormFeed)
         {
-          if (bFormFeed)
-            bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTCHARINLINE, &ciCount, &prn->crText.ciMin, FALSE);
-          else
-            bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE);
-        }
-        else if (prn->dwFlags & AEPRN_WRAPSYMBOL)
-        {
-          if (bFormFeed)
-            bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTCHARINLINE, &ciCount, &prn->crText.ciMin, FALSE);
-          else
-            prn->crText.ciMin=ciCount;
+          if (AE_NextCharEx(&ciCount, &prn->crText.ciMin))
+            if (AE_IsLastCharInLine(&prn->crText.ciMin))
+              AE_NextCharEx(&prn->crText.ciMin, &prn->crText.ciMin);
         }
         else
         {
-          if (nLineWidth > prn->rcPageIn.right - prn->rcPageIn.left)
+          if (prn->dwFlags & AEPRN_WRAPNONE)
           {
-            //Find end of word
-            ciTmp=ciCount;
-            nTmp=nLineLen;
-
-            while (AE_PrevCharInLine(&ciTmp) && --nTmp >= 0)
+            if (!AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE))
+              bContinuePrint=FALSE;
+          }
+          else if (prn->dwFlags & AEPRN_WRAPSYMBOL)
+          {
+            prn->crText.ciMin=ciCount;
+          }
+          else
+          {
+            //prn->dwFlags & AEPRN_WRAPWORD
+            if (nLineWidth > prn->rcPageIn.right - prn->rcPageIn.left)
             {
-              if (AE_IsInDelimiterList(ph->aePrint.ptxt->wszWrapDelimiters, ciTmp.lpLine->wpLine[ciTmp.nCharInLine], TRUE))
+              //Find end of word
+              ciTmp=ciCount;
+              nTmp=nLineLen;
+  
+              while (AE_PrevCharInLine(&ciTmp) && --nTmp >= 0)
               {
-                nLineLen=++nTmp;
-                AE_NextCharInLine(&ciTmp);
-                ciCount=ciTmp;
-                prn->crText.ciMin=ciCount;
-                bFormFeed=FALSE;
-                goto CheckTextEnd;
+                if (AE_IsInDelimiterList(ph->aePrint.ptxt->wszWrapDelimiters, ciTmp.lpLine->wpLine[ciTmp.nCharInLine], TRUE))
+                {
+                  nLineLen=++nTmp;
+                  AE_NextCharInLineEx(&ciTmp, &ciCount);
+                  prn->crText.ciMin=ciCount;
+                  bFormFeed=FALSE;
+                  goto CheckTextEnd;
+                }
               }
             }
-          }
-          if (bFormFeed)
-            bContinuePrint=AE_GetIndex(&ph->aePrint, AEGI_NEXTCHARINLINE, &ciCount, &prn->crText.ciMin, FALSE);
-          else
             prn->crText.ciMin=ciCount;
+          }
         }
 
         CheckTextEnd:
