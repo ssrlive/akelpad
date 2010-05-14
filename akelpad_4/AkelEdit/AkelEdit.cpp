@@ -2112,17 +2112,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     return dwResult;
   }
-  if (uMsg == EM_REPLACESEL)
+  if (uMsg == EM_REPLACESEL ||
+      uMsg == EM_REPLACESELA ||
+      uMsg == EM_REPLACESELW)
   {
-    if (!ae->bUnicodeWindow)
+    if (uMsg == EM_REPLACESELA || (!ae->bUnicodeWindow && uMsg == EM_REPLACESEL))
       AE_ReplaceSelAnsi(ae, CP_ACP, (char *)lParam, (DWORD)-1, FALSE, NULL, NULL);
     else
       AE_ReplaceSel(ae, (wchar_t *)lParam, (DWORD)-1, FALSE, NULL, NULL);
     return 0;
   }
-  if (uMsg == EM_GETTEXTRANGE)
+  if (uMsg == EM_GETTEXTRANGE ||
+      uMsg == EM_GETTEXTRANGEA ||
+      uMsg == EM_GETTEXTRANGEW)
   {
-    if (!ae->bUnicodeWindow)
+    if (uMsg == EM_GETTEXTRANGEA || (!ae->bUnicodeWindow && uMsg == EM_GETTEXTRANGE))
     {
       TEXTRANGEA *trRE=(TEXTRANGEA *)lParam;
       AECHARRANGE cr;
@@ -2148,16 +2152,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     return 0;
   }
-  if (uMsg == EM_GETSELTEXT)
+  if (uMsg == EM_GETSELTEXT ||
+      uMsg == EM_GETSELTEXTA ||
+      uMsg == EM_GETSELTEXTW)
   {
-    if (!ae->bUnicodeWindow)
+    if (uMsg == EM_GETSELTEXTA || (!ae->bUnicodeWindow && uMsg == EM_GETSELTEXT))
       return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (char *)lParam, (DWORD)-1, AELB_R, FALSE, FALSE);
     else
       return AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)lParam, (DWORD)-1, AELB_R, FALSE, FALSE);
   }
-  if (uMsg == EM_GETLINE)
+  if (uMsg == EM_GETLINE ||
+      uMsg == EM_GETLINEA ||
+      uMsg == EM_GETLINEW)
   {
-    if (!ae->bUnicodeWindow)
+    if (uMsg == EM_GETLINEA || (!ae->bUnicodeWindow && uMsg == EM_GETLINE))
     {
       AELINEDATA *lpLine;
       char *szBuffer=(char *)lParam;
@@ -10292,7 +10300,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
         {
           if (prn->dwFlags & AEPRN_WRAPNONE)
           {
-            if (!AE_GetIndex(&ph->aePrint, AEGI_NEXTLINE, &ciCount, &prn->crText.ciMin, FALSE))
+            if (!AE_NextLineEx(&ciCount, &prn->crText.ciMin))
               bContinuePrint=FALSE;
           }
           else if (prn->dwFlags & AEPRN_WRAPSYMBOL)
@@ -10307,7 +10315,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
               //Find end of word
               ciTmp=ciCount;
               nTmp=nLineLen;
-  
+
               while (AE_PrevCharInLine(&ciTmp) && --nTmp >= 0)
               {
                 if (AE_IsInDelimiterList(ph->aePrint.ptxt->wszWrapDelimiters, ciTmp.lpLine->wpLine[ciTmp.nCharInLine], TRUE))
@@ -12896,18 +12904,20 @@ DWORD AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHA
 DWORD AE_SetTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, int nNewLine)
 {
   wchar_t *wszText;
-  DWORD dwUnicodeBytes;
+  DWORD dwUnicodeLen;
   DWORD dwResult=0;
 
-  dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, NULL, 0) * sizeof(wchar_t);
-  if (dwTextLen == (DWORD)-1) dwUnicodeBytes-=2;
-
-  if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes))
+  if (dwUnicodeLen=MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
-    MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
-    dwResult=AE_SetText(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), nNewLine);
+    if (dwTextLen == (DWORD)-1) dwUnicodeLen-=1;
 
-    AE_HeapFree(NULL, 0, (LPVOID)wszText);
+    if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
+    {
+      MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeLen + 1);
+      dwResult=AE_SetText(ae, wszText, dwUnicodeLen, nNewLine);
+
+      AE_HeapFree(NULL, 0, (LPVOID)wszText);
+    }
   }
   return dwResult;
 }
@@ -13767,17 +13777,19 @@ BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, const AECHARINDEX *ciCount, const AEC
 void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen)
 {
   wchar_t *wszText;
-  DWORD dwUnicodeBytes;
+  DWORD dwUnicodeLen;
 
-  dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, NULL, 0) * sizeof(wchar_t);
-  if (dwTextLen == (DWORD)-1) dwUnicodeBytes-=2;
-
-  if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
+  if (dwUnicodeLen=MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
-    MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
-    AE_AppendText(ae, wszText, dwUnicodeBytes / sizeof(wchar_t));
+    if (dwTextLen == (DWORD)-1) dwUnicodeLen-=1;
 
-    AE_HeapFree(ae, 0, (LPVOID)wszText);
+    if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
+    {
+      MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeLen + 1);
+      AE_AppendText(ae, wszText, dwUnicodeLen);
+
+      AE_HeapFree(NULL, 0, (LPVOID)wszText);
+    }
   }
 }
 
@@ -13824,17 +13836,19 @@ void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen)
 void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   wchar_t *wszText;
-  DWORD dwUnicodeBytes;
+  DWORD dwUnicodeLen;
 
-  dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, NULL, 0) * sizeof(wchar_t);
-  if (dwTextLen == (DWORD)-1) dwUnicodeBytes-=2;
-
-  if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
+  if (dwUnicodeLen=MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, NULL, 0))
   {
-    MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeBytes / sizeof(wchar_t));
-    AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), bColumnSel, ciInsertStart, ciInsertEnd);
+    if (dwTextLen == (DWORD)-1) dwUnicodeLen-=1;
 
-    AE_HeapFree(ae, 0, (LPVOID)wszText);
+    if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
+    {
+      MultiByteToWideChar(nCodePage, 0, pText, dwTextLen, wszText, dwUnicodeLen + 1);
+      AE_ReplaceSel(ae, wszText, dwUnicodeLen, bColumnSel, ciInsertStart, ciInsertEnd);
+
+      AE_HeapFree(NULL, 0, (LPVOID)wszText);
+    }
   }
 }
 
@@ -15561,29 +15575,26 @@ BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA)
 {
   AEFINDTEXTW ftW={0};
   wchar_t *wszText;
-  DWORD dwUnicodeBytes;
+  DWORD dwUnicodeLen;
   BOOL bResult=FALSE;
 
-  if (ftA->dwTextLen == (DWORD)-1)
-    ftA->dwTextLen=lstrlenA(ftA->pText);
-  if (!ftA->dwTextLen)
-    return FALSE;
-
-  dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, NULL, 0) * sizeof(wchar_t);
-
-  if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
+  if (dwUnicodeLen=MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen, NULL, 0))
   {
-    MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, wszText, dwUnicodeBytes / sizeof(wchar_t));
+    if (ftA->dwTextLen == (DWORD)-1) dwUnicodeLen-=1;
 
-    ftW.dwFlags=ftA->dwFlags;
-    ftW.pText=wszText;
-    ftW.dwTextLen=dwUnicodeBytes / sizeof(wchar_t) - 1;
-    ftW.nNewLine=ftA->nNewLine;
-    ftW.crSearch=ftA->crSearch;
-    bResult=AE_FindText(ae, &ftW);
-    ftA->crFound=ftW.crFound;
+    if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
+    {
+      MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen, wszText, dwUnicodeLen + 1);
+      ftW.dwFlags=ftA->dwFlags;
+      ftW.pText=wszText;
+      ftW.dwTextLen=dwUnicodeLen;
+      ftW.nNewLine=ftA->nNewLine;
+      ftW.crSearch=ftA->crSearch;
+      bResult=AE_FindText(ae, &ftW);
+      ftA->crFound=ftW.crFound;
 
-    AE_HeapFree(ae, 0, (LPVOID)wszText);
+      AE_HeapFree(ae, 0, (LPVOID)wszText);
+    }
   }
   return bResult;
 }
@@ -15682,29 +15693,26 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
 {
   AEFINDTEXTW ftW={0};
   wchar_t *wszText;
-  DWORD dwUnicodeBytes;
+  DWORD dwUnicodeLen;
   DWORD dwResult=0;
 
-  if (ftA->dwTextLen == (DWORD)-1)
-    ftA->dwTextLen=lstrlenA(ftA->pText);
-  if (!ftA->dwTextLen)
-    return FALSE;
-
-  dwUnicodeBytes=MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, NULL, 0) * sizeof(wchar_t);
-
-  if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUnicodeBytes))
+  if (dwUnicodeLen=MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen, NULL, 0))
   {
-    MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen + 1, wszText, dwUnicodeBytes / sizeof(wchar_t));
+    if (ftA->dwTextLen == (DWORD)-1) dwUnicodeLen-=1;
 
-    ftW.dwFlags=ftA->dwFlags;
-    ftW.pText=wszText;
-    ftW.dwTextLen=dwUnicodeBytes / sizeof(wchar_t) - 1;
-    ftW.nNewLine=ftA->nNewLine;
-    ftW.crSearch=ftA->crSearch;
-    dwResult=AE_IsMatch(ae, &ftW, ciChar);
-    ftA->crFound=ftW.crFound;
+    if (wszText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUnicodeLen + 1) * sizeof(wchar_t)))
+    {
+      MultiByteToWideChar(nCodePage, 0, ftA->pText, ftA->dwTextLen, wszText, dwUnicodeLen + 1);
+      ftW.dwFlags=ftA->dwFlags;
+      ftW.pText=wszText;
+      ftW.dwTextLen=dwUnicodeLen;
+      ftW.nNewLine=ftA->nNewLine;
+      ftW.crSearch=ftA->crSearch;
+      dwResult=AE_IsMatch(ae, &ftW, ciChar);
+      ftA->crFound=ftW.crFound;
 
-    AE_HeapFree(ae, 0, (LPVOID)wszText);
+      AE_HeapFree(ae, 0, (LPVOID)wszText);
+    }
   }
   return dwResult;
 }
