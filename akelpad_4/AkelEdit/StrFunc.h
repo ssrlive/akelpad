@@ -2490,7 +2490,7 @@ int hex2binW(const wchar_t *wpStrHex, unsigned char *pData, int nDataMax)
  *
  *  xprintfA
  *
- *Function formats and stores a series of characters and values in a buffer. 
+ *Function formats and stores a series of characters and values in a buffer.
  *
  *[out] char *szOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
  *[in]  const char *pFormat  Pointer to a null-terminated string that contains the format-control specifications.
@@ -2511,11 +2511,11 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
   const char *pFmt=pFormat;
   char *pOut=szOutput;
   char *pStartOut;
-  char *pString;
+  unsigned char *pString;
   char chFillChar;
-  int nPrecision;
+  unsigned int dwPrecision;
+  unsigned int dwLen=0;
   int nWidth;
-  int nLen=0;
   int i;
 
   va_list val;
@@ -2527,7 +2527,7 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
     {
       pStartOut=pOut;
       chFillChar=' ';
-      nPrecision=0;
+      dwPrecision=0;
       nWidth=0;
       ++pFmt;
 
@@ -2550,7 +2550,15 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
       }
       if (*pFmt == '.')
       {
-        nPrecision=xatoiA(pFmt + 1, &pFmt);
+        if (!(dwPrecision=(unsigned int)xatoiA(pFmt + 1, &pFmt)))
+        {
+          //Special format to specify argument as precision: "%.%us" or "%.%ds"
+          if (*pFmt == '%' && (*(pFmt + 1) == 'u' || *(pFmt + 1) == 'd'))
+          {
+            dwPrecision=(unsigned int)va_arg(val, int);
+            pFmt+=2;
+          }
+        }
       }
 
       if (*pFmt == '%')
@@ -2574,10 +2582,10 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
         i=va_arg(val, int);
         if (!szOutput || nWidth > 0)
         {
-          nLen=xitoaA(i, NULL) - 1;
+          dwLen=xitoaA(i, NULL) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - nLen, 0);
+            nWidth=max(nWidth - dwLen, 0);
             pOut+=nWidth;
             if (nWidth > 0 && i < 0)
             {
@@ -2586,55 +2594,68 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
             }
           }
         }
-        if (szOutput) nLen=xitoaA(i, pOut);
-        pOut+=nLen;
+        if (szOutput) dwLen=xitoaA(i, pOut);
+        pOut+=dwLen;
       }
       else if (*pFmt == 'u')
       {
         i=va_arg(val, int);
         if (!szOutput || nWidth > 0)
         {
-          nLen=xuitoaA((unsigned int)i, NULL) - 1;
+          dwLen=xuitoaA((unsigned int)i, NULL) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - nLen, 0);
+            nWidth=max(nWidth - dwLen, 0);
             pOut+=nWidth;
           }
         }
-        if (szOutput) nLen=xuitoaA((unsigned int)i, pOut);
-        pOut+=nLen;
+        if (szOutput) dwLen=xuitoaA((unsigned int)i, pOut);
+        pOut+=dwLen;
       }
       else if (*pFmt == 'x' || *pFmt == 'X')
       {
         i=va_arg(val, int);
         if (!szOutput || nWidth > 0)
         {
-          nLen=dec2hexA((unsigned int)i, NULL, 0, (*pFmt == 'x')?TRUE:FALSE) - 1;
+          dwLen=dec2hexA((unsigned int)i, NULL, 0, (*pFmt == 'x')?TRUE:FALSE) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - nLen, 0);
+            nWidth=max(nWidth - dwLen, 0);
             pOut+=nWidth;
           }
         }
-        if (szOutput) nLen=dec2hexA((unsigned int)i, pOut, 0, (*pFmt == 'x')?TRUE:FALSE);
-        pOut+=nLen;
+        if (szOutput) dwLen=dec2hexA((unsigned int)i, pOut, 0, (*pFmt == 'x')?TRUE:FALSE);
+        pOut+=dwLen;
       }
-      else if (*pFmt == 's')
+      else if (*pFmt == 's' || *pFmt == 'S')
       {
-        pString=va_arg(val, char *);
-        if (!szOutput || nWidth > 0)
+        if (pString=va_arg(val, unsigned char *))
         {
-          nLen=lstrlenA(pString);
-          if (nPrecision)
-            nLen=min(nLen, nPrecision);
-          if (nWidth > 0)
+          if (*pFmt == 'S')
+            dwLen=lstrlenW((wchar_t *)pString);
+          if (!szOutput || nWidth > 0)
           {
-            nWidth=max(nWidth - nLen, 0);
-            pOut+=nWidth;
+            if (*pFmt == 's')
+              dwLen=lstrlenA((char *)pString);
+            if (dwPrecision)
+              dwLen=min(dwLen, dwPrecision);
+            if (nWidth > 0)
+            {
+              nWidth=max(nWidth - dwLen, 0);
+              pOut+=nWidth;
+            }
           }
+          if (szOutput)
+          {
+            if (*pFmt == 'S')
+            {
+              if (dwLen=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pString, dwPrecision?(int)dwPrecision + 1:-1, pOut, (dwLen + 1) * sizeof(wchar_t), NULL, NULL))
+                pOut[--dwLen]='\0';
+            }
+            else dwLen=xstrcpynA(pOut, (char *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
+          }
+          pOut+=dwLen;
         }
-        if (szOutput) nLen=xstrcpynA(pOut, pString, (unsigned int)(nPrecision?nPrecision + 1:-1));
-        pOut+=nLen;
       }
 
       if (nWidth > 0)
@@ -2678,7 +2699,7 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
  *
  *  xprintfW
  *
- *Function formats and stores a series of characters and values in a buffer. 
+ *Function formats and stores a series of characters and values in a buffer.
  *
  *[out] wchar_t *wszOutput       Pointer to a buffer to receive the formatted output. If NULL required buffer size returned in TCHARs.
  *[in]  const wchar_t *wpFormat  Pointer to a null-terminated string that contains the format-control specifications.
@@ -2699,7 +2720,7 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
   const wchar_t *wpFmt=wpFormat;
   wchar_t *wpOut=wszOutput;
   wchar_t *wpStartOut;
-  wchar_t *wpString;
+  unsigned char *pString;
   wchar_t wchFillChar;
   unsigned int dwPrecision;
   unsigned int dwLen=0;
@@ -2815,22 +2836,35 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
         if (wszOutput) dwLen=dec2hexW((unsigned int)i, wpOut, 0, (*wpFmt == L'x')?TRUE:FALSE);
         wpOut+=dwLen;
       }
-      else if (*wpFmt == L's')
+      else if (*wpFmt == L's' || *wpFmt == L'S')
       {
-        wpString=va_arg(val, wchar_t *);
-        if (!wszOutput || nWidth > 0)
+        if (pString=va_arg(val, unsigned char *))
         {
-          dwLen=lstrlenW(wpString);
-          if (dwPrecision)
-            dwLen=min(dwLen, dwPrecision);
-          if (nWidth > 0)
+          if (*wpFmt == L'S')
+            dwLen=lstrlenA((char *)pString);
+          if (!wszOutput || nWidth > 0)
           {
-            nWidth=max(nWidth - dwLen, 0);
-            wpOut+=nWidth;
+            if (*wpFmt == L's')
+              dwLen=lstrlenW((wchar_t *)pString);
+            if (dwPrecision)
+              dwLen=min(dwLen, dwPrecision);
+            if (nWidth > 0)
+            {
+              nWidth=max(nWidth - dwLen, 0);
+              wpOut+=nWidth;
+            }
           }
+          if (wszOutput)
+          {
+            if (*wpFmt == L'S')
+            {
+              if (dwLen=MultiByteToWideChar(CP_ACP, 0, (char *)pString, dwPrecision?(int)dwPrecision + 1:-1, wpOut, dwLen + 1))
+                wpOut[--dwLen]='\0';
+            }
+            else dwLen=xstrcpynW(wpOut, (wchar_t *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
+          }
+          wpOut+=dwLen;
         }
-        if (wszOutput) dwLen=xstrcpynW(wpOut, wpString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
-        wpOut+=dwLen;
       }
 
       if (nWidth > 0)

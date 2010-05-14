@@ -443,6 +443,12 @@
 #ifndef EM_SHOWSCROLLBAR
   #define EM_SHOWSCROLLBAR (WM_USER + 96)
 #endif
+#ifndef EM_GETSCROLLPOS
+  #define EM_GETSCROLLPOS (WM_USER + 221)
+#endif
+#ifndef EM_SETSCROLLPOS
+  #define EM_SETSCROLLPOS (WM_USER + 222)
+#endif
 #ifndef EM_SETTEXTEX
   #define EM_SETTEXTEX (WM_USER + 97)
 
@@ -456,12 +462,7 @@
     UINT codepage;
   } SETTEXTEX;
 #endif
-#ifndef EM_GETSCROLLPOS
-  #define EM_GETSCROLLPOS (WM_USER + 221)
-#endif
-#ifndef EM_SETSCROLLPOS
-  #define EM_SETSCROLLPOS (WM_USER + 222)
-#endif
+
 #ifndef MAKE_IDENTIFIER
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
@@ -566,19 +567,19 @@ typedef struct _AEFOLD {
 } AEFOLD;
 
 typedef struct {
-  char *pText;        //[in] Text to append.
-  DWORD dwTextLen;    //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //[in] Column selection. If this value is -1, use current selection type.
+  const char *pText;     //[in] Text to append.
+  DWORD dwTextLen;       //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;       //[in] Column selection. If this value is -1, use current selection type.
 } AEAPPENDTEXTA;
 
 typedef struct {
-  wchar_t *pText;     //[in] Text to append.
-  DWORD dwTextLen;    //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;    //[in] Column selection. If this value is -1, use current selection type.
+  const wchar_t *pText;  //[in] Text to append.
+  DWORD dwTextLen;       //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  BOOL bColumnSel;       //[in] Column selection. If this value is -1, use current selection type.
 } AEAPPENDTEXTW;
 
 typedef struct {
-  char *pText;                 //[in]  Text to replace with.
+  const char *pText;           //[in]  Text to replace with.
   DWORD dwTextLen;             //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
@@ -586,7 +587,7 @@ typedef struct {
 } AEREPLACESELA;
 
 typedef struct {
-  wchar_t *pText;              //[in]  Text to replace with.
+  const wchar_t *pText;        //[in]  Text to replace with.
   DWORD dwTextLen;             //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
@@ -636,7 +637,7 @@ typedef struct {
 
 typedef struct {
   DWORD dwFlags;           //[in]  See AEFR_* defines.
-  char *pText;             //[in]  Text to find.
+  const char *pText;       //[in]  Text to find.
   DWORD dwTextLen;         //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;            //[in]  See AELB_* defines.
   AECHARRANGE crSearch;    //[in]  Range of characters to search.
@@ -645,7 +646,7 @@ typedef struct {
 
 typedef struct {
   DWORD dwFlags;           //[in]  See AEFR_* defines.
-  wchar_t *pText;          //[in]  Text to find.
+  const wchar_t *pText;    //[in]  Text to find.
   DWORD dwTextLen;         //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;            //[in]  See AELB_* defines.
   AECHARRANGE crSearch;    //[in]  Range of characters to search.
@@ -921,377 +922,6 @@ typedef struct {
 } AENLINK;
 
 
-//// AkelEdit functions
-
-#ifdef AEC_FUNCTIONS
-#define AEC_FUNCTIONS_INCLUDED
-  int AEC_IsSurrogate(wchar_t wchChar)
-  {
-    if (wchChar >= 0xD800 && wchChar <= 0xDFFF)
-      return TRUE;
-    return FALSE;
-  }
-
-  int AEC_IsHighSurrogate(wchar_t wchChar)
-  {
-    if (wchChar >= 0xD800 && wchChar <= 0xDBFF)
-      return TRUE;
-    return FALSE;
-  }
-
-  int AEC_IsLowSurrogate(wchar_t wchChar)
-  {
-    if (wchChar >= 0xDC00 && wchChar <= 0xDFFF)
-      return TRUE;
-    return FALSE;
-  }
-
-  int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
-  {
-    if (AEC_IsSurrogate(*wpSource))
-    {
-      if (dwTargetSize >= 2)
-      {
-        if (AEC_IsHighSurrogate(*wpSource) && AEC_IsLowSurrogate(*(wpSource + 1)))
-        {
-          if (wszTarget)
-          {
-            *wszTarget=*wpSource;
-            *(wszTarget + 1)=*(wpSource + 1);
-          }
-          return 2;
-        }
-      }
-    }
-    else
-    {
-      if (wszTarget) *wszTarget=*wpSource;
-      return 1;
-    }
-    return 0;
-  }
-
-  int AEC_IndexInc(AECHARINDEX *ciChar)
-  {
-    if (ciChar->nCharInLine >= 0)
-    {
-      if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
-      {
-        if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
-          if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
-            ++ciChar->nCharInLine;
-      }
-    }
-    return ++ciChar->nCharInLine;
-  }
-
-  int AEC_IndexDec(AECHARINDEX *ciChar)
-  {
-    if (ciChar->nCharInLine - 2 >= 0)
-    {
-      if (ciChar->nCharInLine - 1 < ciChar->lpLine->nLineLen)
-      {
-        if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
-          if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 2]))
-            --ciChar->nCharInLine;
-      }
-    }
-    return --ciChar->nCharInLine;
-  }
-
-  int AEC_IndexLen(AECHARINDEX *ciChar)
-  {
-    if (ciChar->nCharInLine >= 0)
-    {
-      if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
-      {
-        if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
-          if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
-            return 2;
-      }
-    }
-    return 1;
-  }
-
-  int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
-  {
-    if (ciChar1->nLine == ciChar2->nLine &&
-        ciChar1->nCharInLine == ciChar2->nCharInLine)
-    {
-      return 0;
-    }
-    if ((ciChar1->nLine < ciChar2->nLine) ||
-        (ciChar1->nLine == ciChar2->nLine &&
-         ciChar1->nCharInLine < ciChar2->nCharInLine))
-    {
-      return -1;
-    }
-    return 1;
-  }
-
-  int AEC_IndexCompareEx(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
-  {
-    if ((ciChar1->nLine == ciChar2->nLine &&
-         ciChar1->nCharInLine == ciChar2->nCharInLine) ||
-        (ciChar1->lpLine->next == ciChar1->lpLine &&
-         ciChar1->lpLine->nLineBreak == AELB_WRAP &&
-         ciChar1->nCharInLine == ciChar1->lpLine->nLineLen &&
-         ciChar2->nCharInLine == 0) ||
-        (ciChar2->lpLine->next == ciChar1->lpLine &&
-         ciChar2->lpLine->nLineBreak == AELB_WRAP &&
-         ciChar2->nCharInLine == ciChar2->lpLine->nLineLen &&
-         ciChar1->nCharInLine == 0))
-    {
-      return 0;
-    }
-    if ((ciChar1->nLine < ciChar2->nLine) ||
-        (ciChar1->nLine == ciChar2->nLine &&
-         ciChar1->nCharInLine < ciChar2->nCharInLine))
-    {
-      return -1;
-    }
-    return 1;
-  }
-
-  AELINEDATA* AEC_NextLine(AECHARINDEX *ciChar)
-  {
-    if (ciChar->lpLine)
-    {
-      ciChar->nLine+=1;
-      ciChar->lpLine=ciChar->lpLine->next;
-      ciChar->nCharInLine=0;
-    }
-    return ciChar->lpLine;
-  }
-
-  AELINEDATA* AEC_PrevLine(AECHARINDEX *ciChar)
-  {
-    if (ciChar->lpLine)
-    {
-      ciChar->nLine-=1;
-      ciChar->lpLine=ciChar->lpLine->prev;
-      if (ciChar->lpLine)
-        ciChar->nCharInLine=ciChar->lpLine->nLineLen;
-      else
-        ciChar->nCharInLine=0;
-    }
-    return ciChar->lpLine;
-  }
-
-  AELINEDATA* AEC_NextLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
-  {
-    AECHARINDEX ciTmp=*ciIn;
-
-    if (AEC_NextLine(&ciTmp))
-    {
-      *ciOut=ciTmp;
-      return ciOut->lpLine;
-    }
-    else
-    {
-      *ciOut=*ciIn;
-      return NULL;
-    }
-  }
-
-  AELINEDATA* AEC_PrevLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
-  {
-    AECHARINDEX ciTmp=*ciIn;
-
-    if (AEC_PrevLine(&ciTmp))
-    {
-      *ciOut=ciTmp;
-      return ciOut->lpLine;
-    }
-    else
-    {
-      *ciOut=*ciIn;
-      return NULL;
-    }
-  }
-
-  AELINEDATA* AEC_NextChar(AECHARINDEX *ciChar)
-  {
-    AEC_IndexInc(ciChar);
-
-    if (ciChar->nCharInLine > ciChar->lpLine->nLineLen)
-    {
-      AEC_NextLine(ciChar);
-
-      if (ciChar->lpLine)
-      {
-        if (ciChar->lpLine->prev->nLineBreak == AELB_WRAP)
-          AEC_IndexInc(ciChar);
-      }
-    }
-    return ciChar->lpLine;
-  }
-
-  AELINEDATA* AEC_PrevChar(AECHARINDEX *ciChar)
-  {
-    AEC_IndexDec(ciChar);
-
-    if (ciChar->nCharInLine < 0)
-    {
-      AEC_PrevLine(ciChar);
-
-      if (ciChar->lpLine)
-      {
-        if (ciChar->lpLine->nLineBreak == AELB_WRAP)
-          AEC_IndexDec(ciChar);
-      }
-    }
-    return ciChar->lpLine;
-  }
-
-  AELINEDATA* AEC_NextCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
-  {
-    AECHARINDEX ciTmp=*ciIn;
-
-    if (AEC_NextChar(&ciTmp))
-    {
-      *ciOut=ciTmp;
-      return ciOut->lpLine;
-    }
-    else
-    {
-      *ciOut=*ciIn;
-      return NULL;
-    }
-  }
-
-  AELINEDATA* AEC_PrevCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
-  {
-    AECHARINDEX ciTmp=*ciIn;
-
-    if (AEC_PrevChar(&ciTmp))
-    {
-      *ciOut=ciTmp;
-      return ciOut->lpLine;
-    }
-    else
-    {
-      *ciOut=*ciIn;
-      return NULL;
-    }
-  }
-
-  AELINEDATA* AEC_NextCharInLine(AECHARINDEX *ciChar)
-  {
-    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen - 1)
-    {
-      if (ciChar->lpLine->nLineBreak != AELB_WRAP)
-        return NULL;
-    }
-    AEC_NextChar(ciChar);
-    return ciChar->lpLine;
-  }
-
-  AELINEDATA* AEC_PrevCharInLine(AECHARINDEX *ciChar)
-  {
-    if (ciChar->nCharInLine == 0)
-    {
-      if (!ciChar->lpLine->prev || ciChar->lpLine->prev->nLineBreak != AELB_WRAP)
-        return NULL;
-    }
-    AEC_PrevChar(ciChar);
-    return ciChar->lpLine;
-  }
-
-  AELINEDATA* AEC_NextCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
-  {
-    AECHARINDEX ciTmp=*ciIn;
-
-    if (AEC_NextCharInLine(&ciTmp))
-    {
-      *ciOut=ciTmp;
-      return ciOut->lpLine;
-    }
-    else
-    {
-      *ciOut=*ciIn;
-      return NULL;
-    }
-  }
-
-  AELINEDATA* AEC_PrevCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
-  {
-    AECHARINDEX ciTmp=*ciIn;
-
-    if (AEC_PrevCharInLine(&ciTmp))
-    {
-      *ciOut=ciTmp;
-      return ciOut->lpLine;
-    }
-    else
-    {
-      *ciOut=*ciIn;
-      return NULL;
-    }
-  }
-
-  int AEC_CharAtIndex(const AECHARINDEX *ciChar)
-  {
-    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
-    {
-      if (ciChar->lpLine->nLineBreak == AELB_WRAP)
-        return ciChar->lpLine->next->wpLine[0];
-      if (ciChar->lpLine->nLineBreak == AELB_EOF)
-        return -1;
-      return L'\n';
-    }
-    return ciChar->lpLine->wpLine[ciChar->nCharInLine];
-  }
-
-  BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar)
-  {
-    if (ciChar->lpLine->nSelStart <= ciChar->nCharInLine && ciChar->nCharInLine < ciChar->lpLine->nSelEnd)
-      return TRUE;
-    return FALSE;
-  }
-
-  BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar)
-  {
-    if (ciChar->nCharInLine == 0 && (!ciChar->lpLine->prev || ciChar->lpLine->prev->nLineBreak != AELB_WRAP))
-      return TRUE;
-    return FALSE;
-  }
-
-  BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar)
-  {
-    if (ciChar->nCharInLine == ciChar->lpLine->nLineLen && ciChar->lpLine->nLineBreak != AELB_WRAP)
-      return TRUE;
-    return FALSE;
-  }
-#else
-  int AEC_IsSurrogate(wchar_t wchChar);
-  int AEC_IsHighSurrogate(wchar_t wchChar);
-  int AEC_IsLowSurrogate(wchar_t wchChar);
-  int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource);
-  int AEC_IndexInc(AECHARINDEX *ciChar);
-  int AEC_IndexDec(AECHARINDEX *ciChar);
-  int AEC_IndexLen(AECHARINDEX *ciChar);
-  int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
-  int AEC_IndexCompareEx(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
-  AELINEDATA* AEC_NextLine(AECHARINDEX *ciChar);
-  AELINEDATA* AEC_PrevLine(AECHARINDEX *ciChar);
-  AELINEDATA* AEC_NextLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
-  AELINEDATA* AEC_PrevLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
-  AELINEDATA* AEC_NextChar(AECHARINDEX *ciChar);
-  AELINEDATA* AEC_PrevChar(AECHARINDEX *ciChar);
-  AELINEDATA* AEC_NextCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
-  AELINEDATA* AEC_PrevCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
-  AELINEDATA* AEC_NextCharInLine(AECHARINDEX *ciChar);
-  AELINEDATA* AEC_PrevCharInLine(AECHARINDEX *ciChar);
-  AELINEDATA* AEC_NextCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
-  AELINEDATA* AEC_PrevCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
-  int AEC_CharAtIndex(const AECHARINDEX *ciChar);
-  BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar);
-  BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar);
-  BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar);
-#endif //AEC_FUNCTIONS
-
-
 //// AkelEdit messages
 
 //Error notifications
@@ -1323,6 +953,16 @@ typedef struct {
 #define AEN_DROPSOURCE            (WM_USER + 1077)  //0x835
 #define AEN_DROPTARGET            (WM_USER + 1078)  //0x836
 #define AEN_LINK                  (WM_USER + 1079)  //0x837
+
+//RichEdit extensions
+#define EM_REPLACESELA            (WM_USER + 1901)
+#define EM_REPLACESELW            (WM_USER + 1902)
+#define EM_GETTEXTRANGEA          (WM_USER + 1903)
+#define EM_GETTEXTRANGEW          (WM_USER + 1904)
+#define EM_GETSELTEXTA            (WM_USER + 1905)
+#define EM_GETSELTEXTW            (WM_USER + 1906)
+#define EM_GETLINEA               (WM_USER + 1907)
+#define EM_GETLINEW               (WM_USER + 1908)
 
 //Text retrieval and modification
 #define AEM_SETTEXTA              (WM_USER + 2001)
@@ -1599,6 +1239,16 @@ EM_STOPGROUPTYPING
 EM_STREAMIN
 EM_STREAMOUT
 EM_UNDO
+
+And additional messages:
+EM_REPLACESELA
+EM_REPLACESELW
+EM_GETTEXTRANGEA
+EM_GETTEXTRANGEW
+EM_GETSELTEXTA
+EM_GETSELTEXTW
+EM_GETLINEA
+EM_GETLINEW
 */
 
 
@@ -5394,4 +5044,375 @@ Example:
   #define AEM_HLADDMARKTEXT AEM_HLADDMARKTEXTW
 #endif
 
-#endif
+#endif //__AKELEDIT_H__
+
+
+//// AkelEdit functions
+
+#ifdef AEC_FUNCTIONS
+#define AEC_FUNCTIONS_INCLUDED
+  int AEC_IsSurrogate(wchar_t wchChar)
+  {
+    if (wchChar >= 0xD800 && wchChar <= 0xDFFF)
+      return TRUE;
+    return FALSE;
+  }
+
+  int AEC_IsHighSurrogate(wchar_t wchChar)
+  {
+    if (wchChar >= 0xD800 && wchChar <= 0xDBFF)
+      return TRUE;
+    return FALSE;
+  }
+
+  int AEC_IsLowSurrogate(wchar_t wchChar)
+  {
+    if (wchChar >= 0xDC00 && wchChar <= 0xDFFF)
+      return TRUE;
+    return FALSE;
+  }
+
+  int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
+  {
+    if (AEC_IsSurrogate(*wpSource))
+    {
+      if (dwTargetSize >= 2)
+      {
+        if (AEC_IsHighSurrogate(*wpSource) && AEC_IsLowSurrogate(*(wpSource + 1)))
+        {
+          if (wszTarget)
+          {
+            *wszTarget=*wpSource;
+            *(wszTarget + 1)=*(wpSource + 1);
+          }
+          return 2;
+        }
+      }
+    }
+    else
+    {
+      if (wszTarget) *wszTarget=*wpSource;
+      return 1;
+    }
+    return 0;
+  }
+
+  int AEC_IndexInc(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine >= 0)
+    {
+      if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+      {
+        if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+          if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
+            ++ciChar->nCharInLine;
+      }
+    }
+    return ++ciChar->nCharInLine;
+  }
+
+  int AEC_IndexDec(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine - 2 >= 0)
+    {
+      if (ciChar->nCharInLine - 1 < ciChar->lpLine->nLineLen)
+      {
+        if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 1]))
+          if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine - 2]))
+            --ciChar->nCharInLine;
+      }
+    }
+    return --ciChar->nCharInLine;
+  }
+
+  int AEC_IndexLen(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine >= 0)
+    {
+      if (ciChar->nCharInLine + 1 < ciChar->lpLine->nLineLen)
+      {
+        if (AEC_IsHighSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine]))
+          if (AEC_IsLowSurrogate(ciChar->lpLine->wpLine[ciChar->nCharInLine + 1]))
+            return 2;
+      }
+    }
+    return 1;
+  }
+
+  int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
+  {
+    if (ciChar1->nLine == ciChar2->nLine &&
+        ciChar1->nCharInLine == ciChar2->nCharInLine)
+    {
+      return 0;
+    }
+    if ((ciChar1->nLine < ciChar2->nLine) ||
+        (ciChar1->nLine == ciChar2->nLine &&
+         ciChar1->nCharInLine < ciChar2->nCharInLine))
+    {
+      return -1;
+    }
+    return 1;
+  }
+
+  int AEC_IndexCompareEx(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2)
+  {
+    if ((ciChar1->nLine == ciChar2->nLine &&
+         ciChar1->nCharInLine == ciChar2->nCharInLine) ||
+        (ciChar1->lpLine->next == ciChar1->lpLine &&
+         ciChar1->lpLine->nLineBreak == AELB_WRAP &&
+         ciChar1->nCharInLine == ciChar1->lpLine->nLineLen &&
+         ciChar2->nCharInLine == 0) ||
+        (ciChar2->lpLine->next == ciChar1->lpLine &&
+         ciChar2->lpLine->nLineBreak == AELB_WRAP &&
+         ciChar2->nCharInLine == ciChar2->lpLine->nLineLen &&
+         ciChar1->nCharInLine == 0))
+    {
+      return 0;
+    }
+    if ((ciChar1->nLine < ciChar2->nLine) ||
+        (ciChar1->nLine == ciChar2->nLine &&
+         ciChar1->nCharInLine < ciChar2->nCharInLine))
+    {
+      return -1;
+    }
+    return 1;
+  }
+
+  AELINEDATA* AEC_NextLine(AECHARINDEX *ciChar)
+  {
+    if (ciChar->lpLine)
+    {
+      ciChar->nLine+=1;
+      ciChar->lpLine=ciChar->lpLine->next;
+      ciChar->nCharInLine=0;
+    }
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_PrevLine(AECHARINDEX *ciChar)
+  {
+    if (ciChar->lpLine)
+    {
+      ciChar->nLine-=1;
+      ciChar->lpLine=ciChar->lpLine->prev;
+      if (ciChar->lpLine)
+        ciChar->nCharInLine=ciChar->lpLine->nLineLen;
+      else
+        ciChar->nCharInLine=0;
+    }
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_NextLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+  {
+    AECHARINDEX ciTmp=*ciIn;
+
+    if (AEC_NextLine(&ciTmp))
+    {
+      *ciOut=ciTmp;
+      return ciOut->lpLine;
+    }
+    else
+    {
+      *ciOut=*ciIn;
+      return NULL;
+    }
+  }
+
+  AELINEDATA* AEC_PrevLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+  {
+    AECHARINDEX ciTmp=*ciIn;
+
+    if (AEC_PrevLine(&ciTmp))
+    {
+      *ciOut=ciTmp;
+      return ciOut->lpLine;
+    }
+    else
+    {
+      *ciOut=*ciIn;
+      return NULL;
+    }
+  }
+
+  AELINEDATA* AEC_NextChar(AECHARINDEX *ciChar)
+  {
+    AEC_IndexInc(ciChar);
+
+    if (ciChar->nCharInLine > ciChar->lpLine->nLineLen)
+    {
+      AEC_NextLine(ciChar);
+
+      if (ciChar->lpLine)
+      {
+        if (ciChar->lpLine->prev->nLineBreak == AELB_WRAP)
+          AEC_IndexInc(ciChar);
+      }
+    }
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_PrevChar(AECHARINDEX *ciChar)
+  {
+    AEC_IndexDec(ciChar);
+
+    if (ciChar->nCharInLine < 0)
+    {
+      AEC_PrevLine(ciChar);
+
+      if (ciChar->lpLine)
+      {
+        if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+          AEC_IndexDec(ciChar);
+      }
+    }
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_NextCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+  {
+    AECHARINDEX ciTmp=*ciIn;
+
+    if (AEC_NextChar(&ciTmp))
+    {
+      *ciOut=ciTmp;
+      return ciOut->lpLine;
+    }
+    else
+    {
+      *ciOut=*ciIn;
+      return NULL;
+    }
+  }
+
+  AELINEDATA* AEC_PrevCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+  {
+    AECHARINDEX ciTmp=*ciIn;
+
+    if (AEC_PrevChar(&ciTmp))
+    {
+      *ciOut=ciTmp;
+      return ciOut->lpLine;
+    }
+    else
+    {
+      *ciOut=*ciIn;
+      return NULL;
+    }
+  }
+
+  AELINEDATA* AEC_NextCharInLine(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen - 1)
+    {
+      if (ciChar->lpLine->nLineBreak != AELB_WRAP)
+        return NULL;
+    }
+    AEC_NextChar(ciChar);
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_PrevCharInLine(AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == 0)
+    {
+      if (!ciChar->lpLine->prev || ciChar->lpLine->prev->nLineBreak != AELB_WRAP)
+        return NULL;
+    }
+    AEC_PrevChar(ciChar);
+    return ciChar->lpLine;
+  }
+
+  AELINEDATA* AEC_NextCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+  {
+    AECHARINDEX ciTmp=*ciIn;
+
+    if (AEC_NextCharInLine(&ciTmp))
+    {
+      *ciOut=ciTmp;
+      return ciOut->lpLine;
+    }
+    else
+    {
+      *ciOut=*ciIn;
+      return NULL;
+    }
+  }
+
+  AELINEDATA* AEC_PrevCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+  {
+    AECHARINDEX ciTmp=*ciIn;
+
+    if (AEC_PrevCharInLine(&ciTmp))
+    {
+      *ciOut=ciTmp;
+      return ciOut->lpLine;
+    }
+    else
+    {
+      *ciOut=*ciIn;
+      return NULL;
+    }
+  }
+
+  int AEC_CharAtIndex(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+    {
+      if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+        return ciChar->lpLine->next->wpLine[0];
+      if (ciChar->lpLine->nLineBreak == AELB_EOF)
+        return -1;
+      return L'\n';
+    }
+    return ciChar->lpLine->wpLine[ciChar->nCharInLine];
+  }
+
+  BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->lpLine->nSelStart <= ciChar->nCharInLine && ciChar->nCharInLine < ciChar->lpLine->nSelEnd)
+      return TRUE;
+    return FALSE;
+  }
+
+  BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == 0 && (!ciChar->lpLine->prev || ciChar->lpLine->prev->nLineBreak != AELB_WRAP))
+      return TRUE;
+    return FALSE;
+  }
+
+  BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar)
+  {
+    if (ciChar->nCharInLine == ciChar->lpLine->nLineLen && ciChar->lpLine->nLineBreak != AELB_WRAP)
+      return TRUE;
+    return FALSE;
+  }
+#else
+  int AEC_IsSurrogate(wchar_t wchChar);
+  int AEC_IsHighSurrogate(wchar_t wchChar);
+  int AEC_IsLowSurrogate(wchar_t wchChar);
+  int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource);
+  int AEC_IndexInc(AECHARINDEX *ciChar);
+  int AEC_IndexDec(AECHARINDEX *ciChar);
+  int AEC_IndexLen(AECHARINDEX *ciChar);
+  int AEC_IndexCompare(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
+  int AEC_IndexCompareEx(const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2);
+  AELINEDATA* AEC_NextLine(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_PrevLine(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_NextLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
+  AELINEDATA* AEC_PrevLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
+  AELINEDATA* AEC_NextChar(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_PrevChar(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_NextCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
+  AELINEDATA* AEC_PrevCharEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
+  AELINEDATA* AEC_NextCharInLine(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_PrevCharInLine(AECHARINDEX *ciChar);
+  AELINEDATA* AEC_NextCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
+  AELINEDATA* AEC_PrevCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
+  int AEC_CharAtIndex(const AECHARINDEX *ciChar);
+  BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar);
+  BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar);
+  BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar);
+#endif //AEC_FUNCTIONS
