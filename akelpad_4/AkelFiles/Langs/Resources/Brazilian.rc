@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "&Salvar\tCtrl+S",             IDM_FILE_SAVE
         MENUITEM "Salvar &como...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Salvar &todos\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
-        MENUITEM "Salvar todos como...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Salvar todos como...",        IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Configurar &página...",       IDM_FILE_PAGESETUP
         MENUITEM "&Ver...",                     IDM_FILE_PRINTPREVIEW
@@ -115,6 +115,7 @@ BEGIN
         MENUITEM "&Fonte...",                   IDM_VIEW_FONT
         MENUITEM "&Cores...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Somente leitura",            IDM_VIEW_READONLY
         MENUITEM "&Quebrar linhas grandes\tCtrl+U", IDM_VIEW_WORDWRAP
         MENUITEM "&Dividir janela",             IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Sempre visível\tCtrl+T",     IDM_VIEW_ONTOP
@@ -130,7 +131,6 @@ BEGIN
         MENUITEM "Plug-i&ns...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Executar\tCtrl+F5",          IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Somente leitura",            IDM_OPTIONS_READONLY
         MENUITEM "&Preservar espaços\tCtrl+L",  IDM_OPTIONS_KEEPSPACE
         MENUITEM "&Monitorar mudanças no arquivo", IDM_OPTIONS_WATCHFILE
         MENUITEM "Salvar &hora do arquivo",     IDM_OPTIONS_SAVETIME
@@ -144,6 +144,7 @@ BEGIN
         BEGIN
             MENUITEM "&Unijanela(SDI)",             IDM_OPTIONS_SDI
             MENUITEM "&Multijanela(MDI)",           IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Configurações...",           IDM_OPTIONS
@@ -173,6 +174,7 @@ BEGIN
         MENUITEM "&Horizontal",                 IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Vertical",                   IDM_WINDOW_TILEVERTICAL
         MENUITEM "Em &cascata",                 IDM_WINDOW_CASCADE
+        MENUITEM "Selecionar Janela...",        IDM_WINDOW_MDILIST
     END
     POPUP "A&juda"
     BEGIN
@@ -401,8 +403,8 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "&Formato do fim de linha:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "&Formato do fim de linha:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8

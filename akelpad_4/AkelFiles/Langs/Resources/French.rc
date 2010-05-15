@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "&Enregistrer\tCtrl+S",        IDM_FILE_SAVE
         MENUITEM "Enregistrer &sous...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Enregistrer &tout\tCtrl+Alt+F2", IDM_FILE_SAVEALL
-        MENUITEM "Enregistrer tout sous...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Enregistrer tout sous...",    IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "&Mise en page...",            IDM_FILE_PAGESETUP
         MENUITEM "&Aperçu...",                  IDM_FILE_PRINTPREVIEW
@@ -115,6 +115,7 @@ BEGIN
         MENUITEM "&Police...",                  IDM_VIEW_FONT
         MENUITEM "&Couleurs...",                IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "Fichiers en &lecture seule modifiables", IDM_VIEW_READONLY
         MENUITEM "&Renvoyer les mots à la ligne\tCtrl+U", IDM_VIEW_WORDWRAP
         MENUITEM "Partager la fenêtre",         IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Toujours au dessus\tCtrl+T", IDM_VIEW_ONTOP
@@ -130,8 +131,6 @@ BEGIN
         MENUITEM "Plug-i&ns...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Exécuter\tCtrl+F5",          IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "Fichiers en &lecture seule modifiables", 
-                                                IDM_OPTIONS_READONLY
         MENUITEM "&Garder le mème décalage (tabulation)\tCtrl+L", 
                                                 IDM_OPTIONS_KEEPSPACE
         MENUITEM "Surveiller les &modifications externes", 
@@ -148,6 +147,7 @@ BEGIN
         BEGIN
             MENUITEM "&Mono-document (SDI)",        IDM_OPTIONS_SDI
             MENUITEM "&Multi-document (MDI)",       IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Réglages...",                IDM_OPTIONS
@@ -177,6 +177,7 @@ BEGIN
         MENUITEM "&Mosaïque horizontale",       IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Mosaïque verticale",         IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Cascade",                    IDM_WINDOW_CASCADE
+        MENUITEM "Sélectionner une fenêtre...", IDM_WINDOW_MDILIST
     END
     POPUP "&Aide"
     BEGIN
@@ -405,8 +406,8 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "&Format fin de ligne:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "&Format fin de ligne:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8
@@ -768,10 +769,11 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    CONTROL         "Sélection RichEdit avec la souris",IDC_OPTIONS_RICHEDITMOUSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
-    CONTROL         "Glissement avec la souris",IDC_OPTIONS_MOUSEDRAGGING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
+    CONTROL         "Sélection RichEdit avec la souris",
+                    IDC_OPTIONS_RICHEDITMOUSE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,193,109,10
+    CONTROL         "Glissement avec la souris",IDC_OPTIONS_MOUSEDRAGGING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "Interligne",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",
@@ -834,7 +836,8 @@ BEGIN
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
-    LTEXT           "Extension d'enregistrement par défaut",IDC_STATIC,37,65,171,8
+    LTEXT           "Extension d'enregistrement par défaut",IDC_STATIC,37,65,
+                    171,8
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

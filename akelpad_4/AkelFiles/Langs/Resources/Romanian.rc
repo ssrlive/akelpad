@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "&Salveazã\tCtrl+S",           IDM_FILE_SAVE
         MENUITEM "Salveazã &Ca...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Salveazã &Tot\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
-        MENUITEM "Salveazã Tot ca...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Salveazã Tot ca...",          IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Aranjeazã Pa&gina...",        IDM_FILE_PAGESETUP
         MENUITEM "&Previzioneazã",              IDM_FILE_PRINTPREVIEW
@@ -116,6 +116,7 @@ BEGIN
         MENUITEM "&Font...",                    IDM_VIEW_FONT
         MENUITEM "&Culori...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Nemodificabil (Doar-Citire)", IDM_VIEW_READONLY
         MENUITEM "Î&ncadreazã Textul\tCtrl+U",  IDM_VIEW_WORDWRAP
         MENUITEM "S&cindeazã Fereastra",        IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Mereu Deasupra\tCtrl+T",     IDM_VIEW_ONTOP
@@ -131,7 +132,6 @@ BEGIN
         MENUITEM "E&xtensii...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Executã\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Nemodificabil (Doar-Citire)", IDM_OPTIONS_READONLY
         MENUITEM "&Pãstreazã Spaþiile din Stînga\tCtrl+L", 
                                                 IDM_OPTIONS_KEEPSPACE
         MENUITEM "&Monitorizeazã Modificãrile Fiºierului", 
@@ -147,6 +147,7 @@ BEGIN
         BEGIN
             MENUITEM "&Simplã (SDI)",               IDM_OPTIONS_SDI
             MENUITEM "&Multiplã / Taburi (MDI)",    IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Setãri...",                  IDM_OPTIONS
@@ -176,6 +177,7 @@ BEGIN
         MENUITEM "Pavimenteazã &Orizontal",     IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Pavimenteazã &Vertical",      IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Cascadeazã",                 IDM_WINDOW_CASCADE
+        MENUITEM "Selecteazã Fereastra...",     IDM_WINDOW_MDILIST
     END
     POPUP "A&jutor"
     BEGIN
@@ -404,8 +406,9 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "&Formatul Linienouã (Newline):",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "&Formatul Linienouã (Newline):",
+                    IDC_SAVEALLAS_NEWLINE_CHECK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8
@@ -767,8 +770,8 @@ BEGIN
                     165,11,13
     CONTROL         "Selectare RichEdit cu mausul",IDC_OPTIONS_RICHEDITMOUSE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
-    CONTROL         "Tragere cu mausul a textului",IDC_OPTIONS_MOUSEDRAGGING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
+    CONTROL         "Tragere cu mausul a textului",IDC_OPTIONS_MOUSEDRAGGING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "Spaþiu între rînduri",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_LINEGAP_SPIN,"msctls_updown32",

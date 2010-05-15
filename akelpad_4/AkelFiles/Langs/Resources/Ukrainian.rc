@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "&Зберегти\tCtrl+S",           IDM_FILE_SAVE
         MENUITEM "Зберегти я&к...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Зберегти &все\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
-        MENUITEM "Зберегти все як...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Зберегти все як...",          IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Пара&метри сторінки...",      IDM_FILE_PAGESETUP
         MENUITEM "Попередній пере&гляд...",     IDM_FILE_PRINTPREVIEW
@@ -112,6 +112,7 @@ BEGIN
         MENUITEM "&Шрифт...",                   IDM_VIEW_FONT
         MENUITEM "&Кольори...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Тільки для читання",         IDM_VIEW_READONLY
         MENUITEM "П&еренесення по словах\tCtrl+U", IDM_VIEW_WORDWRAP
         MENUITEM "&Розділити вікно",            IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Поверх усіх вікон\tCtrl+T",  IDM_VIEW_ONTOP
@@ -127,7 +128,6 @@ BEGIN
         MENUITEM "П&лаґіни...\tAlt+P",          IDM_OPTIONS_PLUGINS
         MENUITEM "&Виконати\tCtrl+F5",          IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Тільки для читання",         IDM_OPTIONS_READONLY
         MENUITEM "Зб&ерегти відступи зліва\tCtrl+L", IDM_OPTIONS_KEEPSPACE
         MENUITEM "Слідкувати за змінам&и файлу", IDM_OPTIONS_WATCHFILE
         MENUITEM "Зберегти ча&с файлу",         IDM_OPTIONS_SAVETIME
@@ -140,6 +140,7 @@ BEGIN
         BEGIN
             MENUITEM "&Одновіконний (SDI)",         IDM_OPTIONS_SDI
             MENUITEM "&Багатовіконний (MDI)",       IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Параметри...",               IDM_OPTIONS
@@ -169,6 +170,7 @@ BEGIN
         MENUITEM "&Горизонтально",              IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Вертикально",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Каскадом",                   IDM_WINDOW_CASCADE
+        MENUITEM "Вибір вікна...",              IDM_WINDOW_MDILIST
     END
     POPUP "&Довідка"
     BEGIN
@@ -399,8 +401,8 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "&Формат нового рядка:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "&Формат нового рядка:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8
@@ -826,7 +828,8 @@ BEGIN
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
-    LTEXT           "розширення за-замовчуванням при збереженні документу",IDC_STATIC,37,65,171,8
+    LTEXT           "розширення за-замовчуванням при збереженні документу",
+                    IDC_STATIC,37,65,171,8
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

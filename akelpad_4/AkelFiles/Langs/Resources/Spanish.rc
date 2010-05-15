@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "&Guardar\tCtrl+S",            IDM_FILE_SAVE
         MENUITEM "Guardar &como...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Guardar &todo\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
-        MENUITEM "Guardar todo como...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Guardar todo como...",        IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Configurar pá&gina...",       IDM_FILE_PAGESETUP
         MENUITEM "V&ista previa...",            IDM_FILE_PRINTPREVIEW
@@ -114,6 +114,7 @@ BEGIN
         MENUITEM "&Fuente...",                  IDM_VIEW_FONT
         MENUITEM "&Colores...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Sólo lectura",               IDM_VIEW_READONLY
         MENUITEM "A&juste de texto\tCtrl+U",    IDM_VIEW_WORDWRAP
         MENUITEM "&Dividir ventana",            IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "Siempre &visible\tCtrl+T",    IDM_VIEW_ONTOP
@@ -129,7 +130,6 @@ BEGIN
         MENUITEM "Plug-i&ns...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Ejecutar\tCtrl+F5",          IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Sólo lectura",               IDM_OPTIONS_READONLY
         MENUITEM "&Mantener espacios izquierdos\tCtrl+L", 
                                                 IDM_OPTIONS_KEEPSPACE
         MENUITEM "Vigilar &cambios del archivo", IDM_OPTIONS_WATCHFILE
@@ -144,6 +144,7 @@ BEGIN
         BEGIN
             MENUITEM "Ventana-&simple (SDI)",       IDM_OPTIONS_SDI
             MENUITEM "&Multi-ventana (MDI)",        IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Configuración...",           IDM_OPTIONS
@@ -173,6 +174,7 @@ BEGIN
         MENUITEM "Mosaico &horizontal",         IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Mosaico &vertical",           IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Cascada",                    IDM_WINDOW_CASCADE
+        MENUITEM "Seleccionar ventana...",      IDM_WINDOW_MDILIST
     END
     POPUP "Ay&uda"
     BEGIN
@@ -401,8 +403,8 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "&Formato de nueva línea:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "&Formato de nueva línea:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8
@@ -764,8 +766,9 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    CONTROL         "Selección del ratón de RichEdit",IDC_OPTIONS_RICHEDITMOUSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
+    CONTROL         "Selección del ratón de RichEdit",
+                    IDC_OPTIONS_RICHEDITMOUSE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,9,193,109,10
     CONTROL         "Arrastrar ratón",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "Hueco de línea",IDC_STATIC,122,190,87,33
@@ -830,7 +833,8 @@ BEGIN
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
-    LTEXT           "Extensión predeterminada para guardar",IDC_STATIC,37,65,171,8
+    LTEXT           "Extensión predeterminada para guardar",IDC_STATIC,37,65,
+                    171,8
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

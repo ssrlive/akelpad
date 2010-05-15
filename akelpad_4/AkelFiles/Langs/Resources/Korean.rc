@@ -115,6 +115,7 @@ BEGIN
         MENUITEM "글꼴(&F)...",                 IDM_VIEW_FONT
         MENUITEM "색상(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "읽기 전용(&R)",               IDM_VIEW_READONLY
         MENUITEM "자동 줄바꿈(&W)\tCtrl+U",     IDM_VIEW_WORDWRAP
         MENUITEM "창 나누기(&P)",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "항상 맨 위(&A)\tCtrl+T",      IDM_VIEW_ONTOP
@@ -130,7 +131,6 @@ BEGIN
         MENUITEM "플러그인(&N)...\tAlt+P",      IDM_OPTIONS_PLUGINS
         MENUITEM "실행(&E)\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "읽기 전용(&R)",               IDM_OPTIONS_READONLY
         MENUITEM "왼쪽 공백 보존(&K)\tCtrl+L",  IDM_OPTIONS_KEEPSPACE
         MENUITEM "파일변경 감시(&C)",           IDM_OPTIONS_WATCHFILE
         MENUITEM "파일 시간 저장(&T)",          IDM_OPTIONS_SAVETIME
@@ -143,6 +143,7 @@ BEGIN
         BEGIN
             MENUITEM "단일 창(&SDI)",               IDM_OPTIONS_SDI
             MENUITEM "다중 창(&MDI)",               IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "설정(&S)...",                 IDM_OPTIONS
@@ -172,6 +173,7 @@ BEGIN
         MENUITEM "수평 배열(&H)",               IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "수직 배열(&V)",               IDM_WINDOW_TILEVERTICAL
         MENUITEM "계단식(&C)",                  IDM_WINDOW_CASCADE
+        MENUITEM "창 선택...",                  IDM_WINDOW_MDILIST
     END
     POPUP "도움말(&H)"
     BEGIN

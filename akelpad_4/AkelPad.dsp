@@ -17,9 +17,9 @@ CFG=AkelPad - Win32 Debug English
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "AkelPad - Win32 Debug English" (based on "Win32 (x86) Dynamic-Link Library")
-!MESSAGE "AkelPad - Win32 Release English" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "AkelPad - Win32 Dinamic Release English" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "AkelPad - Win32 Release English" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "AkelPad - Win32 Debug English" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project
@@ -71,7 +71,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "AkelPad_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /D "AKELEDIT_STATICBUILD" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /D "AKELEDIT_STATICBUILD" /FR /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -168,6 +168,14 @@ SOURCE=.\AkelFiles\Langs\Resources\Empty.ico
 # Begin Source File
 
 SOURCE=.\AkelFiles\Langs\Resources\English.rc
+# End Source File
+# Begin Source File
+
+SOURCE=.\AkelFiles\Langs\Resources\HandClose.cur
+# End Source File
+# Begin Source File
+
+SOURCE=.\AkelFiles\Langs\Resources\HandOpen.cur
 # End Source File
 # End Group
 # End Target

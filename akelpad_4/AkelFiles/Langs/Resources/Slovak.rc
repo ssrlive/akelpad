@@ -115,6 +115,7 @@ BEGIN
         MENUITEM "&PÌsmo...",                   IDM_VIEW_FONT
         MENUITEM "&Farby...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Len na ËÌtanie",             IDM_VIEW_READONLY
         MENUITEM "&Zalomiù text\tCtrl+U",       IDM_VIEW_WORDWRAP
         MENUITEM "&Rozdeliù okno",              IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Vûdy na vrchu\tCtrl+T",      IDM_VIEW_ONTOP
@@ -130,7 +131,6 @@ BEGIN
         MENUITEM "Plugi&ny...\tAlt+P",          IDM_OPTIONS_PLUGINS
         MENUITEM "&Spustiù\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Len na ËÌtanie",             IDM_OPTIONS_READONLY
         MENUITEM "AutomatickÈ &odsadzovanie\tCtrl+L", IDM_OPTIONS_KEEPSPACE
         MENUITEM "Sledovaù zmeny v s˙bore",     IDM_OPTIONS_WATCHFILE
         MENUITEM "Ponechaù pÙvodn˝ Ëas poslednej &modifik·cie pri ukladanÌ", 
@@ -145,6 +145,7 @@ BEGIN
         BEGIN
             MENUITEM "&Jedin˝ dokument (SDI)",      IDM_OPTIONS_SDI
             MENUITEM "&Viacero dokumentov (MDI)",   IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Nastavenia...",              IDM_OPTIONS
@@ -174,6 +175,7 @@ BEGIN
         MENUITEM "&Horizont·lne",               IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Vertik·lne",                 IDM_WINDOW_TILEVERTICAL
         MENUITEM "Do &kask·dy",                 IDM_WINDOW_CASCADE
+        MENUITEM "V˝ber okna...",               IDM_WINDOW_MDILIST
     END
     POPUP "&PomocnÌk"
     BEGIN
@@ -402,8 +404,8 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "&Form·t konca riadkov:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "&Form·t konca riadkov:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8

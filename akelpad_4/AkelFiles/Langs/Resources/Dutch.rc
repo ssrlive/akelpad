@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "&Opslaan\tCtrl+S",            IDM_FILE_SAVE
         MENUITEM "Opslaan &als...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Opslaan a&lles\tCtrl+Alt+F2", IDM_FILE_SAVEALL
-        MENUITEM "Alles opslaan als...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Alles opslaan als...",        IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Pa&gina instellingen...",     IDM_FILE_PAGESETUP
         MENUITEM "Voo&rbeeld...",               IDM_FILE_PRINTPREVIEW
@@ -117,6 +117,7 @@ BEGIN
         MENUITEM "&Lettertype",                 IDM_VIEW_FONT
         MENUITEM "&Kleuren...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Alleen lezen",               IDM_VIEW_READONLY
         MENUITEM "&Regelterugloop\tCtrl+U",     IDM_VIEW_WORDWRAP
         MENUITEM "&Venster delen",              IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Altijd bovenaan\tCtrl+T",    IDM_VIEW_ONTOP
@@ -132,7 +133,6 @@ BEGIN
         MENUITEM "Plug-i&ns...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Extern programma\tCtrl+F5",  IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Alleen lezen",               IDM_OPTIONS_READONLY
         MENUITEM "&Houd linker spaties\tCtrl+L", IDM_OPTIONS_KEEPSPACE
         MENUITEM "&Let op bestands wijzigingen", IDM_OPTIONS_WATCHFILE
         MENUITEM "Bewaar bestand t&ijd",        IDM_OPTIONS_SAVETIME
@@ -145,6 +145,7 @@ BEGIN
         BEGIN
             MENUITEM "&Enkel venster (SDI)",        IDM_OPTIONS_SDI
             MENUITEM "Venster &tabs (MDI)",         IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Instellingen...",            IDM_OPTIONS
@@ -174,6 +175,7 @@ BEGIN
         MENUITEM "&Horizontaal groeperen",      IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Vertikaal groeperen",        IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Getrapt groeperen",          IDM_WINDOW_CASCADE
+        MENUITEM "Kies Venster...",             IDM_WINDOW_MDILIST
     END
     POPUP "&Help"
     BEGIN
@@ -763,8 +765,8 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    CONTROL         "RichEdit Muisselectie",IDC_OPTIONS_RICHEDITMOUSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
+    CONTROL         "RichEdit Muisselectie",IDC_OPTIONS_RICHEDITMOUSE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
     CONTROL         "Muis slepen",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "Regelafstand",IDC_STATIC,122,190,87,33
