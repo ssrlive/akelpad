@@ -15929,12 +15929,12 @@ BOOL API_HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem)
   return bResult;
 }
 
-wchar_t* VarAlloc(DWORD dwSize)
+wchar_t* AllocWideStr(DWORD dwSize)
 {
   return (wchar_t *)API_HeapAlloc(hHeap, 0, dwSize * sizeof(wchar_t));
 }
 
-void VarFree(wchar_t *wpVar)
+void FreeWideStr(wchar_t *wpVar)
 {
   if (wpVar)
     API_HeapFree(hHeap, 0, (LPVOID)wpVar);

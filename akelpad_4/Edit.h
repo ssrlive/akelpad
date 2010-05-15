@@ -786,7 +786,7 @@ BOOL API_ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPD
 BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped);
 LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
 BOOL API_HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem);
-wchar_t* VarAlloc(DWORD dwSize);
-void VarFree(wchar_t *wpVar);
+wchar_t* AllocWideStr(DWORD dwSize);
+void FreeWideStr(wchar_t *wpVar);
 
 #endif
