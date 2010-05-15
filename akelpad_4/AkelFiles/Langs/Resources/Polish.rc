@@ -72,7 +72,7 @@ BEGIN
         MENUITEM "Z&najdŸ nastêpny poni¿ej\tF3", IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Zn&ajdŸ nastêpny powy¿ej\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "Za&mieñ...\tCtrl+R",          IDM_EDIT_REPLACE
-        MENUITEM "PrzejdŸ d&o...\tCtrl+G",        IDM_EDIT_GOTOLINE
+        MENUITEM "PrzejdŸ d&o...\tCtrl+G",      IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
         MENUITEM "Ws&taw znak\tCtrl+I",         IDM_EDIT_INSERTCHAR
         MENUITEM "Wstaw &datê\tCtrl+D",         IDM_EDIT_INSERTDATE
@@ -114,6 +114,7 @@ BEGIN
         MENUITEM "&Czcionka...",                IDM_VIEW_FONT
         MENUITEM "&Kolory...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Tylko do odczytu",           IDM_VIEW_READONLY
         MENUITEM "Za&wijanie wierszy\tCtrl+U",  IDM_VIEW_WORDWRAP
         MENUITEM "&Podziel okno",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "Zawsze n&a wierzchu\tCtrl+T", IDM_VIEW_ONTOP
@@ -129,7 +130,6 @@ BEGIN
         MENUITEM "&Wtyczki (Pluginy)...\tAlt+P", IDM_OPTIONS_PLUGINS
         MENUITEM "&Uruchom\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Tylko do odczytu",           IDM_OPTIONS_READONLY
         MENUITEM "&Zachowaj spacje po lewej\tCtrl+L", IDM_OPTIONS_KEEPSPACE
         MENUITEM "Œ&ledŸ zmiany pliku",         IDM_OPTIONS_WATCHFILE
         MENUITEM "Zachowaj oryginalny &czas pliku", IDM_OPTIONS_SAVETIME
@@ -142,6 +142,7 @@ BEGIN
         BEGIN
             MENUITEM "&Pojedyncze okno (SDI)",      IDM_OPTIONS_SDI
             MENUITEM "&Wiele okien (MDI)",          IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "U&stawienia...",              IDM_OPTIONS
@@ -171,6 +172,7 @@ BEGIN
         MENUITEM "&S¹siaduj¹co poziomo",        IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "S¹s&iaduj¹co pionowo",        IDM_WINDOW_TILEVERTICAL
         MENUITEM "K&askadowo",                  IDM_WINDOW_CASCADE
+        MENUITEM "Wybór okna...",               IDM_WINDOW_MDILIST
     END
     POPUP "Pomo&c"
     BEGIN
@@ -399,8 +401,8 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "&Format nowego wiersza:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "&Format nowego wiersza:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8
@@ -823,7 +825,8 @@ BEGIN
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
-    LTEXT           "domyœlne rozszerzenie nazwy przy zapisie",IDC_STATIC,37,65,171,8
+    LTEXT           "domyœlne rozszerzenie nazwy przy zapisie",IDC_STATIC,37,
+                    65,171,8
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

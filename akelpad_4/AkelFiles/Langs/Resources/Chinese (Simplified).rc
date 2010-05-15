@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "保存(&S)\tCtrl+S",            IDM_FILE_SAVE
         MENUITEM "另存为(&A)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "全部保存(&L)\tCtrl+Alt+F2",   IDM_FILE_SAVEALL
-        MENUITEM "全部另存为...",             IDM_FILE_SAVEALLAS
+        MENUITEM "全部另存为...",               IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "页面设置(&G)...",             IDM_FILE_PAGESETUP
         MENUITEM "预览(&V)...",                 IDM_FILE_PRINTPREVIEW
@@ -111,6 +111,7 @@ BEGIN
         MENUITEM "字体(&F)...",                 IDM_VIEW_FONT
         MENUITEM "颜色(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "只读(&R)",                    IDM_VIEW_READONLY
         MENUITEM "自动换行(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
         MENUITEM "拆分窗口(&P)",                IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "总在最前(&A)\tCtrl+T",        IDM_VIEW_ONTOP
@@ -126,7 +127,6 @@ BEGIN
         MENUITEM "插件(&N)...\tAlt+P",          IDM_OPTIONS_PLUGINS
         MENUITEM "执行(&E)\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "只读(&R)",                    IDM_OPTIONS_READONLY
         MENUITEM "保留左边空格(&K)\tCtrl+L",    IDM_OPTIONS_KEEPSPACE
         MENUITEM "监视文件更改(&C)",            IDM_OPTIONS_WATCHFILE
         MENUITEM "保存文件时间(&T)",            IDM_OPTIONS_SAVETIME
@@ -138,6 +138,7 @@ BEGIN
         BEGIN
             MENUITEM "单窗口 (&SDI)",               IDM_OPTIONS_SDI
             MENUITEM "多窗口 (&MDI)",               IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "设置(&S)...",                 IDM_OPTIONS
@@ -167,6 +168,7 @@ BEGIN
         MENUITEM "水平平铺(&H)",                IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "垂直平铺(&V)",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "层叠(&C)",                    IDM_WINDOW_CASCADE
+        MENUITEM "选择窗口...",                 IDM_WINDOW_MDILIST
     END
     POPUP "帮助(&H)"
     BEGIN
@@ -538,8 +540,8 @@ FONT 9, "宋体"
 BEGIN
     LTEXT           "跳转到:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTOLINE_NUMBER,14,20,122,13
-    CONTROL         "行:列",IDC_GOTOLINE_LINE,"Button",
-                    BS_AUTORADIOBUTTON,14,41,70,10
+    CONTROL         "行:列",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,14,
+                    41,70,10
     CONTROL         "偏移量",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
                     86,42,50,10
     PUSHBUTTON      "确定",IDOK,23,63,50,14,BS_CENTER
@@ -755,8 +757,8 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    CONTROL         "RichEdit 鼠标选择",IDC_OPTIONS_RICHEDITMOUSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
+    CONTROL         "RichEdit 鼠标选择",IDC_OPTIONS_RICHEDITMOUSE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
     CONTROL         "鼠标拖放",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "行距",IDC_STATIC,122,190,87,33
@@ -809,15 +811,12 @@ BEGIN
     CONTROL         "记住每个标签页的键盘布局(MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "全部替换 - 关闭对话框",
-                    IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,23,200,10
-    CONTROL         "如果文件以 .LOG 开头就插入日期",
-                    IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,35,200,10
-    CONTROL         "保存到只读文件时警告",
-                    IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,47,200,10
+    CONTROL         "全部替换 - 关闭对话框",IDC_OPTIONS_REPLACEALL_CLOSE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,23,200,10
+    CONTROL         "如果文件以 .LOG 开头就插入日期",IDC_OPTIONS_LOGDATE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,35,200,10
+    CONTROL         "保存到只读文件时警告",IDC_OPTIONS_SAVEIN_READONLY_MSG,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
     LTEXT           "保存时默认的扩展名",IDC_STATIC,37,65,171,8
 END

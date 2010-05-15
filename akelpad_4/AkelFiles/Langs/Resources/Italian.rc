@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "&Salva\tCtrl+S",              IDM_FILE_SAVE
         MENUITEM "Salva come...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Salva tutto\tCtrl+Alt+F2",    IDM_FILE_SAVEALL
-        MENUITEM "Sav&e all as...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Salva tutto come...",         IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Imposta Pagina...",           IDM_FILE_PAGESETUP
         MENUITEM "&Anteprima...",               IDM_FILE_PRINTPREVIEW
@@ -115,6 +115,7 @@ BEGIN
         MENUITEM "&Carattere...",               IDM_VIEW_FONT
         MENUITEM "C&olori...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Sola-lettura",               IDM_VIEW_READONLY
         MENUITEM "A ca&po automatico\tCtrl+U",  IDM_VIEW_WORDWRAP
         MENUITEM "&Dividi finestra",            IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Sempre in Primo Piano\tCtrl+T", IDM_VIEW_ONTOP
@@ -130,7 +131,6 @@ BEGIN
         MENUITEM "Plug-i&ns...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Esegui\tCtrl+F5",            IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Sola-lettura",               IDM_OPTIONS_READONLY
         MENUITEM "&Mantieni gli spazi (tabulazione)\tCtrl+L", 
                                                 IDM_OPTIONS_KEEPSPACE
         MENUITEM "Osserva i cambiamenti sul file", IDM_OPTIONS_WATCHFILE
@@ -146,6 +146,7 @@ BEGIN
         BEGIN
             MENUITEM "Mono-finestra (SDI)",         IDM_OPTIONS_SDI
             MENUITEM "Multi-finestra (MDI)",        IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Impostazioni...",            IDM_OPTIONS
@@ -175,6 +176,7 @@ BEGIN
         MENUITEM "Ordine orizzontale",          IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Ordine verticale",            IDM_WINDOW_TILEVERTICAL
         MENUITEM "A &Cascata",                  IDM_WINDOW_CASCADE
+        MENUITEM "Seleziona Finestra...",       IDM_WINDOW_MDILIST
     END
     POPUP "&Aiuto"
     BEGIN
@@ -393,18 +395,18 @@ END
 IDD_SAVEALLAS DIALOG DISCARDABLE  70, 70, 200, 135
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "Save all as"
+CAPTION "Salva tutto come"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Codice della pagina:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
+    CONTROL         "Codice della pagina:",IDC_SAVEALLAS_CODEPAGE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
     GROUPBOX        "",IDC_STATIC,9,16,182,35
     COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "&Formato nuova riga:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "&Formato nuova riga:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8
@@ -547,7 +549,7 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Numero:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTOLINE_NUMBER,14,20,122,13
-    CONTROL         "Riga:Column",IDC_GOTOLINE_LINE,"Button",
+    CONTROL         "Riga:Colonna",IDC_GOTOLINE_LINE,"Button",
                     BS_AUTORADIOBUTTON,14,41,70,10
     CONTROL         "Offset",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
                     86,42,50,10
@@ -821,20 +823,21 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
 CAPTION "Avanzate"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Remember keyboard layout of each tab (MDI)",
+    CONTROL         "Ricorda il layout tastiera per ogni tabulazione (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
     CONTROL         "Sostituisci tutto - chiudi la finestra",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,23,200,10
-    CONTROL         "Insert date if file has .LOG at the beginning",
+    CONTROL         "Inserisci la data se il file ha l'estensione .LOG all'inizio",
                     IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
     CONTROL         "Chiedi conferma se si salva un file in sola-lettura",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
-    LTEXT           "default saving extension",IDC_STATIC,37,65,171,8
+    LTEXT           "salvataggio estensioni predefinito",IDC_STATIC,37,65,
+                    171,8
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

@@ -112,6 +112,7 @@ BEGIN
         MENUITEM "&Font...",                    IDM_VIEW_FONT
         MENUITEM "&Colors...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Read only",                  IDM_VIEW_READONLY
         MENUITEM "&Wrap words\tCtrl+U",         IDM_VIEW_WORDWRAP
         MENUITEM "S&plit window",               IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "&Always on top\tCtrl+T",      IDM_VIEW_ONTOP
@@ -127,7 +128,6 @@ BEGIN
         MENUITEM "Plug-i&ns...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Execute\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Read only",                  IDM_OPTIONS_READONLY
         MENUITEM "&Keep left spaces\tCtrl+L",   IDM_OPTIONS_KEEPSPACE
         MENUITEM "Watch file &change",          IDM_OPTIONS_WATCHFILE
         MENUITEM "Save file &time",             IDM_OPTIONS_SAVETIME
@@ -139,6 +139,7 @@ BEGIN
         BEGIN
             MENUITEM "&Single-window (SDI)",        IDM_OPTIONS_SDI
             MENUITEM "&Multi-window (MDI)",         IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Settings...",                IDM_OPTIONS
@@ -168,6 +169,7 @@ BEGIN
         MENUITEM "Tile &Horizontal",            IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Tile &Vertical",              IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Cascade",                    IDM_WINDOW_CASCADE
+        MENUITEM "Select Window...",            IDM_WINDOW_MDILIST
     END
     POPUP "&Help"
     BEGIN

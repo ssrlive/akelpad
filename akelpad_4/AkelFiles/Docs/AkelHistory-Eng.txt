@@ -8,18 +8,25 @@ Changed: clean program installation recommended.
            AutoSave + NoBOM -> SaveFile
            Lines + Crypt + LinkExtract -> Format
            NoSelEOL + SmartHome -> SmartSel
-           Caret + Justify + PlainText + PrintClassic -> RichTune
          Plugins renamed:
             AutoScroll -> Scroll
          Plugins integrated in program:
            SaveAllAs, LogDate, KeybLayout
-Changed: commands 4421 - "Insert/Overtype mode" and 4426 - "Save file as UTF8 without BOM"
-         swapped.
+Changed: greatly reduced the number of lines in program code by optimizing Win95/98/Me support.
 Changed: now libc.lib not used, which allow to compile the program on the latest MS VS without
          errors.
+Changed: commands 4421 - "Insert/Overtype mode" and 4426 - "Save file as UTF8 without BOM"
+         swapped.
+Changed: read-only mode is not inherited and not saved now. Item from the menu "Options"
+         moved to "View" menu. Read-only mode command is now 4216.
+Changed: at program exit, settings saved of the active tab, not of the last closed (MDI).
 Changed: more soft work with text Drag'n'Drop.
 Changed: before file opening controls are updated if the main window was minimized (MDI).
 
+Added: pseudo multi-window (PMDI), which allows you to open an unlimited number of files.
+       In contrast to the MDI mode, opening a new tab does not lead creation of new graphical
+       objects, thus avoid GDI buffer overflow. For SDI/MDI/PMDI modes now used commands
+       4261/4262/4263 respectively.
 Added: dialog "Save all as" that allows you to save all open documents in a particular encoding
        and new line format (MDI).
 Added: option for remember keyboard layout of each tab (MDI).

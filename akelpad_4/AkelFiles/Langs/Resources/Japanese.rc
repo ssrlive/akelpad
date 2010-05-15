@@ -115,6 +115,7 @@ BEGIN
         MENUITEM "フォント(&F)...",             IDM_VIEW_FONT
         MENUITEM "色(&C)...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "読み取り専用(&R)",            IDM_VIEW_READONLY
         MENUITEM "文章を折り返す(&W)\tCtrl+U",  IDM_VIEW_WORDWRAP
         MENUITEM "ウィンドウの分割(&P)",        IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "常に手前に表示(&A)\tCtrl+T",  IDM_VIEW_ONTOP
@@ -130,7 +131,6 @@ BEGIN
         MENUITEM "プラグイン(&N)...\tAlt+P",    IDM_OPTIONS_PLUGINS
         MENUITEM "実行(&E)\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "読み取り専用(&R)",            IDM_OPTIONS_READONLY
         MENUITEM "左のスペースを維持(&K)\tCtrl+L", IDM_OPTIONS_KEEPSPACE
         MENUITEM "ファイルの変更を監視(&C)",    IDM_OPTIONS_WATCHFILE
         MENUITEM "ファイルの時間を保存(&T)",    IDM_OPTIONS_SAVETIME
@@ -143,6 +143,7 @@ BEGIN
         BEGIN
             MENUITEM "単一のウィンドウ (SDI)(&S)",  IDM_OPTIONS_SDI
             MENUITEM "複数のウィンドウ (MDI)(&M)",  IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "設定(&S)...",                 IDM_OPTIONS
@@ -172,6 +173,7 @@ BEGIN
         MENUITEM "水平に並べる(&T)",            IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "垂直に並べる(&T)",            IDM_WINDOW_TILEVERTICAL
         MENUITEM "重ねる(&C)",                  IDM_WINDOW_CASCADE
+        MENUITEM "Select Window...",            IDM_WINDOW_MDILIST
     END
     POPUP "ヘルプ(&H)"
     BEGIN
@@ -400,8 +402,8 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "改行のフォーマット(&F):",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "改行のフォーマット(&F):",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8

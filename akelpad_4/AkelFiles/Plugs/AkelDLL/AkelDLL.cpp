@@ -8,8 +8,8 @@
 extern "C" void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
-  pv->dwExeMinVersion3x=MAKE_IDENTIFIER(3, 7, 4, 0);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 4, 0, 0);
+  pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 4, 4, 0);
   pv->pPluginName="AkelDLL";
 }
 

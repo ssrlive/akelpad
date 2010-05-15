@@ -44,7 +44,7 @@ BEGIN
         MENUITEM "&Tallenna\tCtrl+S",           IDM_FILE_SAVE
         MENUITEM "Tallenna &nimell‰...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Tallenna &kaikki\tCtrl+Alt+F2", IDM_FILE_SAVEALL
-        MENUITEM "Tallenna kaikki nimell‰...",             IDM_FILE_SAVEALLAS
+        MENUITEM "Tallenna kaikki nimell‰...",  IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "Si&vun asetukset...",         IDM_FILE_PAGESETUP
         MENUITEM "&Esikatselu...",              IDM_FILE_PRINTPREVIEW
@@ -115,6 +115,7 @@ BEGIN
         MENUITEM "&Fontti...",                  IDM_VIEW_FONT
         MENUITEM "&V‰rit...",                   IDM_VIEW_COLORS
         MENUITEM SEPARATOR
+        MENUITEM "&Vain luku",                  IDM_VIEW_READONLY
         MENUITEM "&Automaattinen rivitys\tCtrl+U", IDM_VIEW_WORDWRAP
         MENUITEM "&Jaa ikkuna",                 IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "Aina &p‰‰llimm‰isen‰\tCtrl+T", IDM_VIEW_ONTOP
@@ -130,7 +131,6 @@ BEGIN
         MENUITEM "&Lis‰osat...\tAlt+P",         IDM_OPTIONS_PLUGINS
         MENUITEM "&Suorita\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Vain luku",                  IDM_OPTIONS_READONLY
         MENUITEM "&S‰ilyt‰ vasemmanpuoleiset v‰lit\tCtrl+L", 
                                                 IDM_OPTIONS_KEEPSPACE
         MENUITEM "Seuraa tiedoston &muutoksia", IDM_OPTIONS_WATCHFILE
@@ -145,6 +145,7 @@ BEGIN
         BEGIN
             MENUITEM "&Yksi ikkuna (SDI)",          IDM_OPTIONS_SDI
             MENUITEM "&Useita ikkunoita (MDI)",     IDM_OPTIONS_MDI
+            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Asetukset...",               IDM_OPTIONS
@@ -174,6 +175,7 @@ BEGIN
         MENUITEM "Jaa &vaakasuunnassa",         IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Jaa &pystysuunnassa",         IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Limitt‰in",                  IDM_WINDOW_CASCADE
+        MENUITEM "Valitse ikkuna...",           IDM_WINDOW_MDILIST
     END
     POPUP "&Ohje"
     BEGIN
@@ -402,8 +404,8 @@ BEGIN
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,155,31,27,10
-    CONTROL         "Rivinvaihtomerkin &muoto:",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
+    CONTROL         "Rivinvaihtomerkin &muoto:",IDC_SAVEALLAS_NEWLINE_CHECK,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,17,85,60,8
@@ -767,8 +769,8 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    CONTROL         "RichEdit-hiirivalinta",IDC_OPTIONS_RICHEDITMOUSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
+    CONTROL         "RichEdit-hiirivalinta",IDC_OPTIONS_RICHEDITMOUSE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
     CONTROL         "Hiiren raahaaminen",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "Riviv‰li",IDC_STATIC,122,190,87,33
@@ -832,7 +834,8 @@ BEGIN
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,47,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
-    LTEXT           "tiedoston oletustarkenne tallennettaessa",IDC_STATIC,37,65,171,8
+    LTEXT           "tiedoston oletustarkenne tallennettaessa",IDC_STATIC,37,
+                    65,171,8
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
