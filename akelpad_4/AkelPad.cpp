@@ -1525,7 +1525,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_DETECTCODEPAGEW)
     {
       DETECTCODEPAGEW *dc=(DETECTCODEPAGEW *)lParam;
-      wchar_t *wpFile=VarAlloc(MAX_PATH);
+      wchar_t *wpFile=AllocWideStr(MAX_PATH);
       int nResult;
 
       if (uMsg == AKD_DETECTCODEPAGEA || (bOldWindows && uMsg == AKD_DETECTCODEPAGE))
@@ -1534,7 +1534,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpFile, L"%s", (wchar_t *)dc->pFile);
       nResult=AutodetectCodePage(wpFile, dc->dwBytesToCheck, dc->dwFlags, &dc->nCodePage, &dc->bBOM);
 
-      VarFree(wpFile);
+      FreeWideStr(wpFile);
       return nResult;
     }
     if (uMsg == AKD_READFILECONTENT)
@@ -1548,8 +1548,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_OPENDOCUMENTW)
     {
       OPENDOCUMENTW *od=(OPENDOCUMENTW *)lParam;
-      wchar_t *wpFile=VarAlloc(MAX_PATH);
-      wchar_t *wpWorkDir=VarAlloc(MAX_PATH);
+      wchar_t *wpFile=AllocWideStr(MAX_PATH);
+      wchar_t *wpWorkDir=AllocWideStr(MAX_PATH);
       int nResult=0;
 
       if (((HWND)wParam && !IsEditActive((HWND)wParam)) || nMDI || SaveChanged())
@@ -1569,8 +1569,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nResult=OpenDocument((HWND)wParam, wpFile, od->dwFlags, od->nCodePage, od->bBOM);
         if (*wpWorkDir) SetCurrentDirectoryWide(wszExeDir);
       }
-      VarFree(wpFile);
-      VarFree(wpWorkDir);
+      FreeWideStr(wpFile);
+      FreeWideStr(wpWorkDir);
       return nResult;
     }
     if (uMsg == AKD_SAVEDOCUMENT ||
@@ -1578,7 +1578,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_SAVEDOCUMENTW)
     {
       SAVEDOCUMENTW *sd=(SAVEDOCUMENTW *)lParam;
-      wchar_t *wpFile=VarAlloc(MAX_PATH);
+      wchar_t *wpFile=AllocWideStr(MAX_PATH);
       int nResult;
 
       if (uMsg == AKD_SAVEDOCUMENTA || (bOldWindows && uMsg == AKD_SAVEDOCUMENT))
@@ -1587,7 +1587,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpFile, L"%s", (wchar_t *)sd->pFile);
       nResult=SaveDocument((HWND)wParam, wpFile, sd->nCodePage, sd->bBOM, sd->dwFlags);
 
-      VarFree(wpFile);
+      FreeWideStr(wpFile);
       return nResult;
     }
     if (uMsg == AKD_GETTEXTLENGTH)
@@ -2191,7 +2191,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_OPTIONW)
     {
       PLUGINOPTIONW *po=(PLUGINOPTIONW *)lParam;
-      wchar_t *wpOptionName=VarAlloc(MAX_PATH);
+      wchar_t *wpOptionName=AllocWideStr(MAX_PATH);
       DWORD dwType;
       DWORD dwResult=0;
 
@@ -2240,7 +2240,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (ih->dwType & POB_SAVE)
           dwResult=IniSetValueW(&ih->hStack, L"Options", wpOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
       }
-      VarFree(wpOptionName);
+      FreeWideStr(wpOptionName);
       return dwResult;
     }
     if (uMsg == AKD_ENDOPTIONS)
@@ -2304,7 +2304,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_INIGETSECTIONW)
     {
       INIHANDLE *ih=(INIHANDLE *)wParam;
-      wchar_t *wpSection=VarAlloc(MAX_PATH);
+      wchar_t *wpSection=AllocWideStr(MAX_PATH);
       int nSectionLen;
       HINISECTION *lpResult;
 
@@ -2314,7 +2314,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nSectionLen=xprintfW(wpSection, L"%s", (wchar_t *)lParam);
       lpResult=StackOpenIniSectionW(&ih->hStack, wpSection, nSectionLen, FALSE);
 
-      VarFree(wpSection);
+      FreeWideStr(wpSection);
       return (LRESULT)lpResult;
     }
     if (uMsg == AKD_INICLEARSECTION ||
@@ -2331,7 +2331,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_INIGETKEYW)
     {
       HINISECTION *lpIniSection=(HINISECTION *)wParam;
-      wchar_t *wpKey=VarAlloc(MAX_PATH);
+      wchar_t *wpKey=AllocWideStr(MAX_PATH);
       int nKeyLen;
       HINIKEY *lpResult;
 
@@ -2341,7 +2341,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nKeyLen=xprintfW(wpKey, L"%s", (wchar_t *)lParam);
       lpResult=StackOpenIniKeyW(lpIniSection, wpKey, nKeyLen, FALSE);
 
-      VarFree(wpKey);
+      FreeWideStr(wpKey);
       return (LRESULT)lpResult;
     }
     if (uMsg == AKD_INIDELETEKEY)
@@ -2358,8 +2358,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       INIHANDLE *ih=(INIHANDLE *)wParam;
       INIVALUEW *iv=(INIVALUEW *)lParam;
-      wchar_t *wpSection=VarAlloc(MAX_PATH);
-      wchar_t *wpKey=VarAlloc(MAX_PATH);
+      wchar_t *wpSection=AllocWideStr(MAX_PATH);
+      wchar_t *wpKey=AllocWideStr(MAX_PATH);
       int nResult;
 
       if (uMsg == AKD_INIGETVALUEA || (bOldWindows && uMsg == AKD_INIGETVALUE))
@@ -2374,8 +2374,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       nResult=IniGetValueW(&ih->hStack, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
 
-      VarFree(wpSection);
-      VarFree(wpKey);
+      FreeWideStr(wpSection);
+      FreeWideStr(wpKey);
       return (LRESULT)nResult;
     }
     if (uMsg == AKD_INISETVALUE ||
@@ -2384,8 +2384,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       INIHANDLE *ih=(INIHANDLE *)wParam;
       INIVALUEW *iv=(INIVALUEW *)lParam;
-      wchar_t *wpSection=VarAlloc(MAX_PATH);
-      wchar_t *wpKey=VarAlloc(MAX_PATH);
+      wchar_t *wpSection=AllocWideStr(MAX_PATH);
+      wchar_t *wpKey=AllocWideStr(MAX_PATH);
       int nResult;
 
       if (uMsg == AKD_INISETVALUEA || (bOldWindows && uMsg == AKD_INISETVALUE))
@@ -2400,8 +2400,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       nResult=IniSetValueW(&ih->hStack, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
 
-      VarFree(wpSection);
-      VarFree(wpKey);
+      FreeWideStr(wpSection);
+      FreeWideStr(wpKey);
       return (LRESULT)nResult;
     }
     if (uMsg == AKD_INICLOSE)
@@ -2454,8 +2454,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       OPENDOCUMENTPOSTA *odpA=(OPENDOCUMENTPOSTA *)cds->lpData;
       OPENDOCUMENTPOSTW *odpW=(OPENDOCUMENTPOSTW *)cds->lpData;
-      wchar_t *wpFile=VarAlloc(MAX_PATH);
-      wchar_t *wpWorkDir=VarAlloc(MAX_PATH);
+      wchar_t *wpFile=AllocWideStr(MAX_PATH);
+      wchar_t *wpWorkDir=AllocWideStr(MAX_PATH);
       int nResult=0;
 
       if ((odpA->hWnd && !IsEditActive(odpA->hWnd)) || nMDI || SaveChanged())
@@ -2475,8 +2475,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         nResult=OpenDocument(odpA->hWnd, wpFile, odpA->dwFlags, odpA->nCodePage, odpA->bBOM);
         if (*wpWorkDir) SetCurrentDirectoryWide(wszExeDir);
       }
-      VarFree(wpFile);
-      VarFree(wpWorkDir);
+      FreeWideStr(wpFile);
+      FreeWideStr(wpWorkDir);
     }
     return nResult;
   }
@@ -2620,12 +2620,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (nMDI || SaveChanged())
       {
-        wchar_t *wpFile=VarAlloc(MAX_PATH);
+        wchar_t *wpFile=AllocWideStr(MAX_PATH);
 
         xstrcpynW(wpFile, lpwszRecentNames[LOWORD(wParam) - IDM_RECENT_FILES - 1], MAX_PATH);
         OpenDocument(lpFrameCurrent->ei.hWndEdit, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
 
-        VarFree(wpFile);
+        FreeWideStr(wpFile);
       }
     }
     else if (LOWORD(wParam) >= IDM_LANGUAGE && LOWORD(wParam) <= (IDM_LANGUAGE + nLangModules + 1))
@@ -3588,7 +3588,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         {
           if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
           {
-            wchar_t *wpMainName=VarAlloc(MAX_PATH);
+            wchar_t *wpMainName=AllocWideStr(MAX_PATH);
             const wchar_t *wpFileName=GetFileNameW(lpFrameCurrent->wszFile);
 
             if (aenm->bModified)
@@ -3597,7 +3597,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
               xprintfW(wpMainName, L"%s - %s", wpFileName, APP_MAIN_TITLEW);
             SetWindowTextWide(hMainWnd, wpMainName);
 
-            VarFree(wpMainName);
+            FreeWideStr(wpMainName);
           }
         }
         if (dwShowModify & SM_TABTITLE_MDI)
@@ -3611,7 +3611,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             {
               if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
               {
-                wchar_t *wpTabName=VarAlloc(MAX_PATH);
+                wchar_t *wpTabName=AllocWideStr(MAX_PATH);
                 TCITEMW tcItemW;
 
                 tcItemW.mask=TCIF_TEXT;
@@ -3625,7 +3625,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                   TrimModifyStateW(wpTabName);
                 TabCtrl_SetItemWide(hTab, nItem, &tcItemW);
 
-                VarFree(wpTabName);
+                FreeWideStr(wpTabName);
               }
             }
           }
@@ -3634,7 +3634,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         {
           if (nMDI == WMD_MDI)
           {
-            wchar_t *wpFrameName=VarAlloc(MAX_PATH);
+            wchar_t *wpFrameName=AllocWideStr(MAX_PATH);
             WNDFRAME *lpFrame;
 
             if (lpFrame=GetFrameDataFromEdit(aenm->hdr.hwndFrom))
@@ -3645,7 +3645,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                 xstrcpynW(wpFrameName, lpFrame->wszFile, MAX_PATH);
               SetWindowTextWide(lpFrame->hWndEditParent, wpFrameName);
             }
-            VarFree(wpFrameName);
+            FreeWideStr(wpFrameName);
           }
         }
         SetModifyStatus(aenm->hdr.hwndFrom, aenm->bModified);
@@ -3924,6 +3924,11 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (hWnd == (HWND)lParam)
       {
+        //Change current frame handle in WM_MDIACTIVATE because WM_SETFOCUS can be uncalled if WM_MDINEXT used.
+        if (lpFrameCurrent->hWndEditParent != (HWND)lParam)
+          if (lpFrame=(WNDFRAME *)GetWindowLongWide((HWND)lParam, GWL_USERDATA))
+            lpFrameCurrent=lpFrame;
+
         //Restore activated MDI window settings
         RestoreFrameData(lpFrameCurrent);
 
