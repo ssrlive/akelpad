@@ -3991,6 +3991,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else SetSelectionStatus(lpFrameCurrent->ei.hWndEdit, NULL, NULL);
 
+    //Assign current window. Need for split windows.
     lpFrameCurrent->ei.hWndEdit=hWnd;
   }
   else if (uMsg == WM_KEYDOWN)
