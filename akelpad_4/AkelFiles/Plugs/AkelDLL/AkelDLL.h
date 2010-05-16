@@ -454,6 +454,10 @@ typedef struct _EDITINFO {
   BOOL bReadOnly;      //Read only
   BOOL bWordWrap;      //Word wrap
   BOOL bOvertypeMode;  //Overtype mode
+  HWND hWndMaster;     //Master window (4.x only)
+  HWND hWndClone1;     //Clone window one (4.x only)
+  HWND hWndClone2;     //Clone window two (4.x only)
+  HWND hWndClone3;     //Clone window three (4.x only)
 } EDITINFO;
 
 #ifndef __AKELEDIT_H__
@@ -479,18 +483,24 @@ typedef struct _EDITINFO {
 typedef struct _WNDFRAME {
   struct _WNDFRAME *next;
   struct _WNDFRAME *prev;
+
+  //Edit state
+  AEEditProc lpEditProc;                              //Edit window procedure
+  HANDLE hDataHandle;                                 //Edit window data handle
   HWND hWndEditParent;                                //Edit parent window
-  HANDLE hDataHandle;                                 //Edit window data (nMDI == WMD_PMDI)
-  AEEditProc lpDataProc;                              //Edit window procedure (nMDI == WMD_PMDI)
-  HICON hIcon;                                        //Frame icon
-  char szFile[MAX_PATH];                              //Frame file
-  wchar_t wszFile[MAX_PATH];                          //Frame file
-  int nFileLen;                                       //Frame file length
   EDITINFO ei;                                        //Edit info
+  char szFile[MAX_PATH];                              //Frame file (Ansi)
+  wchar_t wszFile[MAX_PATH];                          //Frame file (Unicode)
+  int nFileLen;                                       //Frame file length
+  HICON hIcon;                                        //Frame icon
   LOGFONTW lf;                                        //Edit font
   FILETIME ft;                                        //File time
   AECOLORS aec;                                       //Edit colors
   RECT rcEditWindow;                                  //Edit RECT
+  RECT rcMasterWindow;                                //Master window RECT (4.x only)
+  DWORD dwInputLocale;                                //Keyboard layout (4.x only)
+
+  //Edit settings
   DWORD dwEditMargins;                                //Edit margins
   int nTabStopSize;                                   //Tab stop size
   BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces
@@ -499,7 +509,7 @@ typedef struct _WNDFRAME {
   DWORD dwWrapType;                                   //Wrap type AEWW_WORD or AEWW_SYMBOL (4.x only)
   DWORD dwWrapLimit;                                  //Wrap characters limit, zero if wrap by window edge (4.x only)
   DWORD dwMarker;                                     //Vertical marker, zero if no marker set (4.x only)
-  DWORD dwMappedPrintWidth;                           //Mapped prinet page width (4.x only)
+  DWORD dwMappedPrintWidth;                           //Mapped print page width (4.x only)
   DWORD dwCaretOptions;                               //See CO_* defines (4.x only)
   int nCaretWidth;                                    //Caret width (4.x only)
   DWORD dwMouseOptions;                               //See MO_* defines (4.x only)
@@ -515,13 +525,6 @@ typedef struct _WNDFRAME {
   wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters (4.x only)
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters (4.x only)
-  int nKeybLayout;                                    //Keyboard layout (4.x only)
-  BOOL bSplitWindow;                                  //Edit window is splited (4.x only)
-  HWND hWndMaster;                                    //Master window (4.x only)
-  HWND hWndClone1;                                    //Clone window one (4.x only)
-  HWND hWndClone2;                                    //Clone window two (4.x only)
-  HWND hWndClone3;                                    //Clone window three (4.x only)
-  RECT rcMasterWindow;                                //Master window RECT (4.x only)
 } WNDFRAME;
 
 typedef struct _WNDPROCDATA {

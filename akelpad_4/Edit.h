@@ -733,7 +733,7 @@ BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *
 BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);
 int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
 int TranslateFileStringW(const wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
-void ActivateKeyboard(int nKeybLayout);
+void ActivateKeyboard(DWORD dwInputLocale);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
 HWND NextClone(BOOL bPrevious);

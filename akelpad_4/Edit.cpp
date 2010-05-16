@@ -357,9 +357,6 @@ HWND CreateEditWindow(WNDFRAME *lpFrameNew, WNDFRAME *lpFrameOld)
     //Create virtual window handle
     lpFrameNew->hDataHandle=(HANDLE)SendMessage(lpFrameNew->ei.hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
 
-    //Get procedure of virtual window
-    lpFrameNew->lpDataProc=(AEEditProc)SendMessage(lpFrameNew->ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)lpFrameNew->hDataHandle, 0);
-
     //Replace current real window data with created, it will be restored at the end of CreateEditWindow.
     SendMessage(lpFrameNew->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)lpFrameNew->hDataHandle, 0);
     hWndEditNew=lpFrameNew->ei.hWndEdit;
@@ -384,8 +381,12 @@ HWND CreateEditWindow(WNDFRAME *lpFrameNew, WNDFRAME *lpFrameOld)
                                     (HMENU)ID_EDIT,
                                     hInstance,
                                     NULL);
-    lpFrameNew->ei.hWndEdit=hWndEditNew;
+
+    //Retrive data handle of created window
+    lpFrameNew->hDataHandle=(HANDLE)SendMessage(hWndEditNew, AEM_GETWINDOWDATA, 0, 0);
   }
+  //Get procedure of edit window
+  lpFrameNew->lpEditProc=(AEEditProc)SendMessage(hWndEditNew, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
 
   DoSettingsReadOnly(hWndEditNew, lpFrameNew->ei.bReadOnly, TRUE);
   SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
@@ -488,12 +489,12 @@ WNDFRAME* CreateFrameData(WNDFRAME *lpFrameSource, HWND hWndEditParent)
     //Create edit
     if (nMDI == WMD_SDI)
     {
-      CreateEditWindow(lpFrame, NULL);
+      lpFrame->ei.hWndEdit=CreateEditWindow(lpFrame, NULL);
     }
     else if (nMDI == WMD_MDI)
     {
       SetWindowLongWide(hWndEditParent, GWL_USERDATA, (LONG)lpFrame);
-      CreateEditWindow(lpFrame, NULL);
+      lpFrame->ei.hWndEdit=CreateEditWindow(lpFrame, NULL);
     }
     else if (nMDI == WMD_PMDI)
     {
@@ -504,9 +505,9 @@ WNDFRAME* CreateFrameData(WNDFRAME *lpFrameSource, HWND hWndEditParent)
       }
       else
       {
-        CreateEditWindow(lpFrame, NULL);
+        lpFrame->ei.hWndEdit=CreateEditWindow(lpFrame, NULL);
         lpFrame->hDataHandle=(HANDLE)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
-        lpFrame->lpDataProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)lpFrame->hDataHandle, 0);
+        lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)lpFrame->hDataHandle, 0);
       }
     }
   }
@@ -519,13 +520,9 @@ void CopyFrameData(WNDFRAME *lpFrameTarget, WNDFRAME *lpFrameSource)
   xmemcpy(((LPBYTE)lpFrameTarget) + sizeof(HSTACK), ((LPBYTE)lpFrameSource) + sizeof(HSTACK), sizeof(WNDFRAME) - sizeof(HSTACK));
 
   //Initialize own settings
-  lpFrameTarget->hWndEditParent=NULL;
+  lpFrameTarget->lpEditProc=NULL;
   lpFrameTarget->hDataHandle=NULL;
-  lpFrameTarget->lpDataProc=NULL;
-  lpFrameTarget->hIcon=hIconEmpty;
-  lpFrameTarget->szFile[0]='\0';
-  lpFrameTarget->wszFile[0]=L'\0';
-  lpFrameTarget->nFileLen=0;
+  lpFrameTarget->hWndEditParent=NULL;
   lpFrameTarget->ei.hWndEdit=NULL;
   lpFrameTarget->ei.pFile=bOldWindows?(LPBYTE)lpFrameTarget->szFile:(LPBYTE)lpFrameTarget->wszFile;
   lpFrameTarget->ei.szFile=lpFrameTarget->szFile;
@@ -537,16 +534,20 @@ void CopyFrameData(WNDFRAME *lpFrameTarget, WNDFRAME *lpFrameSource)
   lpFrameTarget->ei.bReadOnly=FALSE;
   //lpFrameTarget->ei.bWordWrap=lpFrameSource->ei.bWordWrap;
   lpFrameTarget->ei.bOvertypeMode=FALSE;
+  lpFrameTarget->ei.hWndMaster=NULL;
+  lpFrameTarget->ei.hWndClone1=NULL;
+  lpFrameTarget->ei.hWndClone2=NULL;
+  lpFrameTarget->ei.hWndClone3=NULL;
+  lpFrameTarget->szFile[0]='\0';
+  lpFrameTarget->wszFile[0]=L'\0';
+  lpFrameTarget->nFileLen=0;
+  lpFrameTarget->hIcon=hIconEmpty;
   //xmemcpy(&lpFrameTarget->lf, &lpFrameSource->lf, sizeof(LOGFONTW));
-  //xmemcpy(&lpFrameTarget->wszUrlPrefixes, lpFrameSource->wszUrlPrefixes, sizeof(lpFrameTarget->wszUrlPrefixes));
-  //xmemcpy(&lpFrameTarget->wszUrlLeftDelimiters, lpFrameSource->wszUrlLeftDelimiters, sizeof(lpFrameTarget->wszUrlLeftDelimiters));
-  //xmemcpy(&lpFrameTarget->wszUrlRightDelimiters, lpFrameSource->wszUrlRightDelimiters, sizeof(lpFrameTarget->wszUrlRightDelimiters));
-  //xmemcpy(&lpFrameTarget->wszWordDelimiters, lpFrameSource->wszWordDelimiters, sizeof(lpFrameTarget->wszWordDelimiters));
-  //xmemcpy(&lpFrameTarget->wszWrapDelimiters, lpFrameSource->wszWrapDelimiters, sizeof(lpFrameTarget->wszWrapDelimiters));
-
   lpFrameTarget->ft.dwLowDateTime=0;
   lpFrameTarget->ft.dwHighDateTime=0;
   //lpFrameTarget->aec=lpFrameSource->aec;
+  lpFrameTarget->dwInputLocale=(DWORD)-1;
+
   //lpFrameTarget->dwEditMargins=lpFrameSource->dwEditMargins;
   //lpFrameTarget->nTabStopSize=lpFrameSource->nTabStopSize;
   //lpFrameTarget->bTabStopAsSpaces=lpFrameSource->bTabStopAsSpaces;
@@ -565,12 +566,11 @@ void CopyFrameData(WNDFRAME *lpFrameTarget, WNDFRAME *lpFrameSource)
   //lpFrameTarget->bUrlDelimitersEnable=lpFrameSource->bUrlDelimitersEnable;
   //lpFrameTarget->bWordDelimitersEnable=lpFrameSource->bWordDelimitersEnable;
   //lpFrameTarget->bWrapDelimitersEnable=lpFrameSource->bWrapDelimitersEnable;
-  lpFrameTarget->nKeybLayout=-1;
-  lpFrameTarget->bSplitWindow=FALSE;
-  lpFrameTarget->hWndMaster=NULL;
-  lpFrameTarget->hWndClone1=NULL;
-  lpFrameTarget->hWndClone2=NULL;
-  lpFrameTarget->hWndClone3=NULL;
+  //xmemcpy(&lpFrameTarget->wszUrlPrefixes, lpFrameSource->wszUrlPrefixes, sizeof(lpFrameTarget->wszUrlPrefixes));
+  //xmemcpy(&lpFrameTarget->wszUrlLeftDelimiters, lpFrameSource->wszUrlLeftDelimiters, sizeof(lpFrameTarget->wszUrlLeftDelimiters));
+  //xmemcpy(&lpFrameTarget->wszUrlRightDelimiters, lpFrameSource->wszUrlRightDelimiters, sizeof(lpFrameTarget->wszUrlRightDelimiters));
+  //xmemcpy(&lpFrameTarget->wszWordDelimiters, lpFrameSource->wszWordDelimiters, sizeof(lpFrameTarget->wszWordDelimiters));
+  //xmemcpy(&lpFrameTarget->wszWrapDelimiters, lpFrameSource->wszWrapDelimiters, sizeof(lpFrameTarget->wszWrapDelimiters));
 }
 
 void SaveFrameData(WNDFRAME *lpFrame)
@@ -580,7 +580,7 @@ void SaveFrameData(WNDFRAME *lpFrame)
     //Remember keyboard layout
     if (bKeybLayoutMDI)
     {
-      lpFrame->nKeybLayout=LOWORD(GetKeyboardLayout(0));
+      lpFrame->dwInputLocale=(DWORD)GetKeyboardLayout(0);
     }
   }
 }
@@ -594,6 +594,8 @@ void RestoreFrameData(WNDFRAME *lpFrame)
     SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATECARET, 0, 0);
     InvalidateRect(lpFrame->ei.hWndEdit, NULL, TRUE);
   }
+  //Update selection to set valid globals: crSel, ciCaret and nSelSubtract
+  SetSelectionStatus(lpFrame->ei.hWndEdit, NULL, NULL);
   SetCodePageStatus(NULL, lpFrame->ei.nCodePage, lpFrame->ei.bBOM);
   SetNewLineStatus(NULL, lpFrame->ei.nNewLine, 0);
   SetModifyStatus(NULL, lpFrame->ei.bModified);
@@ -604,7 +606,7 @@ void RestoreFrameData(WNDFRAME *lpFrame)
     //Activate keyboard layout
     if (bKeybLayoutMDI)
     {
-      ActivateKeyboard(lpFrame->nKeybLayout);
+      ActivateKeyboard(lpFrame->dwInputLocale);
     }
 
     //Update tabs
@@ -680,9 +682,6 @@ void ActivateFrameWindow(WNDFRAME *lpFrame)
         SetWindowTextWide(hMainWnd, wbuf);
       }
       else SetWindowTextWide(hMainWnd, APP_MAIN_TITLEW);
-
-      //Update selection to set valid globals: crSel, ciCaret and nSelSubtract
-      SetSelectionStatus(lpFrameCurrent->ei.hWndEdit, NULL, NULL);
 
       SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)lpFrameCurrent->hWndEditParent);
     }
@@ -883,42 +882,7 @@ BOOL DoFileOpen()
   if (nMDI != WMD_MDI && !SaveChanged()) return FALSE;
   bSaveDlg=FALSE;
 
-  if (bOldWindows)
-  {
-    OPENFILENAMEA ofnA={0};
-    char szFilter[MAX_PATH];
-    char szHomeDir[MAX_PATH];
-
-    WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, -1, szCmdLine, COMMANDLINE_SIZE, NULL, NULL);
-    WideCharToMultiByte(CP_ACP, 0, wszFilter, nFilterLen + 1, szFilter, MAX_PATH, NULL, NULL);
-    WideCharToMultiByte(CP_ACP, 0, wszHomeDir, -1, szHomeDir, MAX_PATH, NULL, NULL);
-    ofnA.lStructSize    =sizeof(OPENFILENAMEA);
-    ofnA.lCustData      =(LPARAM)&dc;
-    ofnA.hwndOwner      =hMainWnd;
-    ofnA.hInstance      =hLangLib;
-    ofnA.lpstrFile      =szCmdLine;
-    ofnA.lpstrFilter    =szFilter;
-    ofnA.nFilterIndex   =2;
-    ofnA.nMaxFile       =COMMANDLINE_SIZE;
-    ofnA.lpstrInitialDir=szHomeDir;
-    ofnA.lpstrDefExt    =NULL;
-    ofnA.Flags          =(nMDI?OFN_ALLOWMULTISELECT:0)|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
-    ofnA.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
-    ofnA.lpTemplateName =MAKEINTRESOURCEA(IDD_OFN);
-
-    if (bResult=GetOpenFileNameA(&ofnA))
-    {
-      if (ofnA.Flags & OFN_ALLOWMULTISELECT)
-      {
-        int nLen;
-
-        for (nLen=0; szCmdLine[nLen] != '\0' || szCmdLine[nLen + 1] != '\0'; ++nLen);
-        MultiByteToWideChar(CP_ACP, 0, szCmdLine, nLen + 2, wszCmdLine, COMMANDLINE_SIZE);
-      }
-      else MultiByteToWideChar(CP_ACP, 0, szCmdLine, -1, wszCmdLine, COMMANDLINE_SIZE);
-    }
-  }
-  else
+  //Open file dialog
   {
     OPENFILENAMEW ofnW={0};
 
@@ -937,7 +901,7 @@ BOOL DoFileOpen()
     ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
     ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
-    bResult=GetOpenFileNameW(&ofnW);
+    bResult=GetOpenFileNameWide(&ofnW);
   }
 
   if (bResult)
@@ -1022,37 +986,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
 
   bSaveDlg=TRUE;
 
-  if (bOldWindows)
-  {
-    OPENFILENAMEA ofnA={0};
-    char szFilter[MAX_PATH];
-    char szHomeDir[MAX_PATH];
-    char szDefaultSaveExt[MAX_PATH];
-
-    WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, -1, szCmdLine, COMMANDLINE_SIZE, NULL, NULL);
-    WideCharToMultiByte(CP_ACP, 0, wszFilter, nFilterLen + 1, szFilter, MAX_PATH, NULL, NULL);
-    WideCharToMultiByte(CP_ACP, 0, wszHomeDir, -1, szHomeDir, MAX_PATH, NULL, NULL);
-    WideCharToMultiByte(CP_ACP, 0, wszDefaultSaveExt, -1, szDefaultSaveExt, MAX_PATH, NULL, NULL);
-    ofnA.lStructSize    =sizeof(OPENFILENAMEA);
-    ofnA.lCustData      =(LPARAM)&dc;
-    ofnA.hwndOwner      =hMainWnd;
-    ofnA.hInstance      =hLangLib;
-    ofnA.lpstrFile      =szCmdLine;
-    ofnA.lpstrFilter    =szFilter;
-    ofnA.nFilterIndex   =2;
-    ofnA.nMaxFile       =COMMANDLINE_SIZE;
-    ofnA.lpstrInitialDir=szHomeDir;
-    ofnA.lpstrDefExt    =szDefaultSaveExt;
-    ofnA.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
-    ofnA.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
-    ofnA.lpTemplateName =MAKEINTRESOURCEA(IDD_OFN);
-
-    if (bResult=GetSaveFileNameA(&ofnA))
-    {
-      MultiByteToWideChar(CP_ACP, 0, szCmdLine, -1, wszCmdLine, COMMANDLINE_SIZE);
-    }
-  }
-  else
+  //Save file dialog
   {
     OPENFILENAMEW ofnW={0};
 
@@ -1071,7 +1005,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
     ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
     ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
-    bResult=GetSaveFileNameW(&ofnW);
+    bResult=GetSaveFileNameWide(&ofnW);
   }
 
   if (bResult)
@@ -1944,29 +1878,28 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
 void DoViewSplitWindow(BOOL bState, WPARAM wParam)
 {
   CheckMenuItem(hMainMenu, IDM_VIEW_SPLIT_WINDOW_ALL, bState?MF_CHECKED:MF_UNCHECKED);
-  lpFrameCurrent->bSplitWindow=bState;
 
-  if (lpFrameCurrent->bSplitWindow)
+  if (bState)
   {
     //Create
-    lpFrameCurrent->hWndMaster=lpFrameCurrent->ei.hWndEdit;
+    lpFrameCurrent->ei.hWndMaster=lpFrameCurrent->ei.hWndEdit;
 
     if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL ||
         wParam == IDM_VIEW_SPLIT_WINDOW_WE)
     {
-      lpFrameCurrent->hWndClone1=CreateEditWindow(lpFrameCurrent, NULL);
-      if (lpFrameCurrent->hWndClone1) SendMessage(lpFrameCurrent->hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrameCurrent->hWndClone1, 0);
+      lpFrameCurrent->ei.hWndClone1=CreateEditWindow(lpFrameCurrent, NULL);
+      if (lpFrameCurrent->ei.hWndClone1) SendMessage(lpFrameCurrent->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrameCurrent->ei.hWndClone1, 0);
     }
     if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL ||
         wParam == IDM_VIEW_SPLIT_WINDOW_NS)
     {
-      lpFrameCurrent->hWndClone2=CreateEditWindow(lpFrameCurrent, NULL);
-      if (lpFrameCurrent->hWndClone2) SendMessage(lpFrameCurrent->hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrameCurrent->hWndClone2, 0);
+      lpFrameCurrent->ei.hWndClone2=CreateEditWindow(lpFrameCurrent, NULL);
+      if (lpFrameCurrent->ei.hWndClone2) SendMessage(lpFrameCurrent->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrameCurrent->ei.hWndClone2, 0);
     }
     if (wParam == IDM_VIEW_SPLIT_WINDOW_ALL)
     {
-      lpFrameCurrent->hWndClone3=CreateEditWindow(lpFrameCurrent, NULL);
-      if (lpFrameCurrent->hWndClone3) SendMessage(lpFrameCurrent->hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrameCurrent->hWndClone3, 0);
+      lpFrameCurrent->ei.hWndClone3=CreateEditWindow(lpFrameCurrent, NULL);
+      if (lpFrameCurrent->ei.hWndClone3) SendMessage(lpFrameCurrent->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrameCurrent->ei.hWndClone3, 0);
     }
 
     if (lpFrameCurrent->ei.bWordWrap)
@@ -1982,16 +1915,16 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
   else
   {
     //Destroy
-    lpFrameCurrent->ei.hWndEdit=lpFrameCurrent->hWndMaster;
-    DestroyEdit(CN_CLONE1|CN_CLONE2|CN_CLONE3, &lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->hWndMaster, &lpFrameCurrent->hWndClone1, &lpFrameCurrent->hWndClone2, &lpFrameCurrent->hWndClone3);
-    lpFrameCurrent->hWndMaster=NULL;
+    lpFrameCurrent->ei.hWndEdit=lpFrameCurrent->ei.hWndMaster;
+    DestroyEdit(CN_CLONE1|CN_CLONE2|CN_CLONE3, &lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->ei.hWndMaster, &lpFrameCurrent->ei.hWndClone1, &lpFrameCurrent->ei.hWndClone2, &lpFrameCurrent->ei.hWndClone3);
+    lpFrameCurrent->ei.hWndMaster=NULL;
 
     if (lpFrameCurrent->ei.bWordWrap)
     {
       UpdateShowHScroll(lpFrameCurrent->ei.hWndEdit);
     }
   }
-  ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->hWndMaster, lpFrameCurrent->hWndClone1, lpFrameCurrent->hWndClone2, lpFrameCurrent->hWndClone3, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, FALSE);
+  ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, FALSE);
 }
 
 void DoViewOnTop(BOOL bState, BOOL bFirst)
@@ -5376,12 +5309,12 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       for (i=0; i <= nPreviewZoomMaxIndex; ++i)
       {
         xprintfW(wbuf, L"%d%%", lpZoom[i]);
-        SendMessageW(hWndZoom, CB_ADDSTRING, 0, (LPARAM)wbuf);
+        ComboBox_AddStringWide(hWndZoom, wbuf);
       }
       LoadStringWide(hLangLib, STR_PAGEFIT, wbuf, BUFFER_SIZE);
-      SendMessageW(hWndZoom, CB_ADDSTRING, 0, (LPARAM)wbuf);
+      ComboBox_AddStringWide(hWndZoom, wbuf);
       LoadStringWide(hLangLib, STR_PAGEWIDTH, wbuf, BUFFER_SIZE);
-      SendMessageW(hWndZoom, CB_ADDSTRING, 0, (LPARAM)wbuf);
+      ComboBox_AddStringWide(hWndZoom, wbuf);
 
       hHookKeys=SetWindowsHookEx(WH_GETMESSAGE, GetMsgProc, NULL, GetCurrentThreadId());
     }
@@ -6324,10 +6257,10 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
 
         if (bOldWindows)
         {
-          SendMessageA(((OFNOTIFY*)lParam)->hdr.hwndFrom, CDM_GETFILEPATH, (LPARAM)MAX_PATH, (WPARAM)buf);
+          SendMessageA(((OFNOTIFY *)lParam)->hdr.hwndFrom, CDM_GETFILEPATH, BUFFER_SIZE, (WPARAM)buf);
           MultiByteToWideChar(CP_ACP, 0, buf, -1, wszFile, MAX_PATH);
         }
-        else SendMessageW(((OFNOTIFY*)lParam)->hdr.hwndFrom, CDM_GETFILEPATH, (LPARAM)MAX_PATH, (WPARAM)wszFile);
+        else SendMessageW(((OFNOTIFY *)lParam)->hdr.hwndFrom, CDM_GETFILEPATH, MAX_PATH, (WPARAM)wszFile);
 
         if (FilePreview(hWndFilePreview, wszFile, PREVIEW_SIZE, bAutodetect?(OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE):OD_ADT_DETECT_BOM, &nCodePage, &bBOM) < 0)
         {
@@ -11680,24 +11613,6 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       wszExeFilter[++i]='\0';
 
       //File browse
-      if (bOldWindows)
-      {
-        OPENFILENAMEA efnA={0};
-        char szExeFilter[MAX_PATH];
-
-        WideCharToMultiByte(CP_ACP, 0, wszExeFilter, -1, szExeFilter, MAX_PATH, NULL, NULL);
-        buf[0]='\0';
-        efnA.lStructSize      =sizeof(OPENFILENAMEA);
-        efnA.hwndOwner        =hDlg;
-        efnA.lpstrFile        =buf;
-        efnA.nMaxFile         =MAX_PATH;
-        efnA.lpstrFilter      =szExeFilter;
-        efnA.nFilterIndex     =1;
-        efnA.Flags            =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST;
-        bResult=GetOpenFileNameA(&efnA);
-        MultiByteToWideChar(CP_ACP, 0, buf, -1, wbuf, MAX_PATH);
-      }
-      else
       {
         OPENFILENAMEW efnW={0};
 
@@ -11709,7 +11624,8 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         efnW.lpstrFilter      =wszExeFilter;
         efnW.nFilterIndex     =1;
         efnW.Flags            =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST;
-        bResult=GetOpenFileNameW(&efnW);
+
+        bResult=GetOpenFileNameWide(&efnW);
       }
 
       if (bResult)
@@ -13235,7 +13151,7 @@ void StackFramesFree(HSTACK *hStack)
 
 void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
-  if (IsEditActive(hWnd))
+  if (IsEditActive(hWnd) == CN_EDIT)
   {
     char szStatus[MAX_PATH];
     int nLine;
@@ -13845,15 +13761,15 @@ DWORD IsEditActive(HWND hWnd)
   if (hWnd == lpFrameCurrent->ei.hWndEdit)
     return CN_EDIT;
 
-  if (lpFrameCurrent->hWndMaster)
+  if (lpFrameCurrent->ei.hWndMaster)
   {
-    if (hWnd == lpFrameCurrent->hWndMaster)
+    if (hWnd == lpFrameCurrent->ei.hWndMaster)
       return CN_MASTER;
-    if (lpFrameCurrent->hWndClone1 && hWnd == lpFrameCurrent->hWndClone1)
+    if (lpFrameCurrent->ei.hWndClone1 && hWnd == lpFrameCurrent->ei.hWndClone1)
       return CN_CLONE1;
-    if (lpFrameCurrent->hWndClone2 && hWnd == lpFrameCurrent->hWndClone2)
+    if (lpFrameCurrent->ei.hWndClone2 && hWnd == lpFrameCurrent->ei.hWndClone2)
       return CN_CLONE2;
-    if (lpFrameCurrent->hWndClone3 && hWnd == lpFrameCurrent->hWndClone3)
+    if (lpFrameCurrent->ei.hWndClone3 && hWnd == lpFrameCurrent->ei.hWndClone3)
       return CN_CLONE3;
   }
   return 0;
@@ -13865,19 +13781,19 @@ void UpdateShowHScroll(HWND hWnd)
   {
     BOOL bShowScroll=TRUE;
 
-    if (lpFrameCurrent->ei.bWordWrap && !lpFrameCurrent->dwWrapLimit && !lpFrameCurrent->hWndClone1 && !lpFrameCurrent->hWndClone3)
+    if (lpFrameCurrent->ei.bWordWrap && !lpFrameCurrent->dwWrapLimit && !lpFrameCurrent->ei.hWndClone1 && !lpFrameCurrent->ei.hWndClone3)
       bShowScroll=FALSE;
 
-    if (!lpFrameCurrent->bSplitWindow)
+    if (!lpFrameCurrent->ei.hWndMaster)
     {
       SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
     }
     else
     {
-      if (lpFrameCurrent->hWndMaster) SendMessage(lpFrameCurrent->hWndMaster, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-      if (lpFrameCurrent->hWndClone1) SendMessage(lpFrameCurrent->hWndClone1, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-      if (lpFrameCurrent->hWndClone2) SendMessage(lpFrameCurrent->hWndClone2, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-      if (lpFrameCurrent->hWndClone3) SendMessage(lpFrameCurrent->hWndClone3, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (lpFrameCurrent->ei.hWndMaster) SendMessage(lpFrameCurrent->ei.hWndMaster, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (lpFrameCurrent->ei.hWndClone1) SendMessage(lpFrameCurrent->ei.hWndClone1, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (lpFrameCurrent->ei.hWndClone2) SendMessage(lpFrameCurrent->ei.hWndClone2, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (lpFrameCurrent->ei.hWndClone3) SendMessage(lpFrameCurrent->ei.hWndClone3, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
     }
   }
 }
@@ -14686,16 +14602,16 @@ int TranslateFileStringW(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffe
   return b;
 }
 
-void ActivateKeyboard(int nKeybLayout)
+void ActivateKeyboard(DWORD dwInputLocale)
 {
-  if (nKeybLayout != -1)
+  if (dwInputLocale != (DWORD)-1)
   {
     if (bWindowsNT)
     {
       int nLayoutInit=LOWORD(GetKeyboardLayout(0));
       int nLayoutCount=nLayoutInit;
 
-      while (nLayoutCount != nKeybLayout)
+      while (nLayoutCount != LOWORD(dwInputLocale))
       {
         ActivateKeyboardLayout((HKL)HKL_NEXT, 0);
         nLayoutCount=LOWORD(GetKeyboardLayout(0));
@@ -14704,8 +14620,8 @@ void ActivateKeyboard(int nKeybLayout)
     }
     else
     {
-      if (LOWORD(GetKeyboardLayout(0)) != nKeybLayout)
-        ActivateKeyboardLayout((HKL)nKeybLayout, 0);
+      if (LOWORD(GetKeyboardLayout(0)) != LOWORD(dwInputLocale))
+        ActivateKeyboardLayout((HKL)LOWORD(dwInputLocale), 0);
     }
   }
 }
@@ -14756,11 +14672,11 @@ HWND NextDialog(BOOL bPrevious)
 
 HWND NextClone(BOOL bPrevious)
 {
-  HWND lpClones[]={lpFrameCurrent->hWndMaster, lpFrameCurrent->hWndClone1, lpFrameCurrent->hWndClone2, lpFrameCurrent->hWndClone3};
+  HWND lpClones[]={lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3};
   int nCloneCount=sizeof(lpClones) / sizeof(HWND);
   int i;
 
-  if (lpFrameCurrent->hWndMaster && lpFrameCurrent->ei.hWndEdit)
+  if (lpFrameCurrent->ei.hWndMaster && lpFrameCurrent->ei.hWndEdit)
   {
     for (i=0; i < nCloneCount; ++i)
     {
@@ -15010,11 +14926,11 @@ void UpdateSize()
       if (nMDI == WMD_MDI)
         MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, i, TRUE);
       else
-        ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->hWndMaster, lpFrameCurrent->hWndClone1, lpFrameCurrent->hWndClone2, lpFrameCurrent->hWndClone3, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, i, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, FALSE);
+        ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, i, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, FALSE);
     }
     else
     {
-      ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->hWndMaster, lpFrameCurrent->hWndClone1, lpFrameCurrent->hWndClone2, lpFrameCurrent->hWndClone3, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, nsSize.rcCurrent.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, FALSE);
+      ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, nsSize.rcCurrent.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, FALSE);
     }
     hDocksStack.bSizing=FALSE;
   }
