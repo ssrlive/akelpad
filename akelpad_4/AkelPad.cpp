@@ -284,7 +284,7 @@ wchar_t wszDateInsertFormat[MAX_PATH]=L"";
 BOOL bDateLog=FALSE;
 
 //Open/Save document
-wchar_t wszHomeDir[MAX_PATH]=L"";
+wchar_t wszLastDir[MAX_PATH]=L"";
 wchar_t wszDefaultSaveExt[MAX_PATH];
 wchar_t wszFilter[MAX_PATH];
 int nFilterLen;

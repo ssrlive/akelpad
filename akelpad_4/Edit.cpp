@@ -160,7 +160,7 @@ extern wchar_t wszDateInsertFormat[MAX_PATH];
 extern BOOL bDateLog;
 
 //Open/Save document
-extern wchar_t wszHomeDir[MAX_PATH];
+extern wchar_t wszLastDir[MAX_PATH];
 extern wchar_t wszDefaultSaveExt[MAX_PATH];
 extern wchar_t wszFilter[MAX_PATH];
 extern int nFilterLen;
@@ -895,7 +895,7 @@ BOOL DoFileOpen()
     ofnW.lpstrFilter    =wszFilter;
     ofnW.nFilterIndex   =2;
     ofnW.nMaxFile       =COMMANDLINE_SIZE;
-    ofnW.lpstrInitialDir=wszHomeDir;
+    ofnW.lpstrInitialDir=wszLastDir;
     ofnW.lpstrDefExt    =NULL;
     ofnW.Flags          =(nMDI?OFN_ALLOWMULTISELECT:0)|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
     ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
@@ -906,12 +906,12 @@ BOOL DoFileOpen()
 
   if (bResult)
   {
-    //GetCurrentDirectoryWide(MAX_PATH, wszHomeDir);
+    //GetCurrentDirectoryWide(MAX_PATH, wszLastDir);
     SetCurrentDirectoryWide(wszExeDir);
 
     if (!nMDI)
     {
-      GetFileDirW(wszCmdLine, wszHomeDir, MAX_PATH);
+      GetFileDirW(wszCmdLine, wszLastDir, MAX_PATH);
       if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszCmdLine, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
         return FALSE;
     }
@@ -924,7 +924,7 @@ BOOL DoFileOpen()
       {
         //Multiple files selected
         if (*(wpFile - 2) == '\\') *(wpFile - 2)='\0';
-        xstrcpynW(wszHomeDir, wszCmdLine, MAX_PATH);
+        xstrcpynW(wszLastDir, wszCmdLine, MAX_PATH);
 
         do
         {
@@ -939,7 +939,7 @@ BOOL DoFileOpen()
       else
       {
         //One file selected
-        GetFileDirW(wszCmdLine, wszHomeDir, MAX_PATH);
+        GetFileDirW(wszCmdLine, wszLastDir, MAX_PATH);
         if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszCmdLine, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
           return FALSE;
       }
@@ -999,7 +999,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
     ofnW.lpstrFilter    =wszFilter;
     ofnW.nFilterIndex   =2;
     ofnW.nMaxFile       =COMMANDLINE_SIZE;
-    ofnW.lpstrInitialDir=wszHomeDir;
+    ofnW.lpstrInitialDir=wszLastDir;
     ofnW.lpstrDefExt    =wszDefaultSaveExt;
     ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
     ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
@@ -1010,7 +1010,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
 
   if (bResult)
   {
-    GetCurrentDirectoryWide(MAX_PATH, wszHomeDir);
+    GetCurrentDirectoryWide(MAX_PATH, wszLastDir);
     SetCurrentDirectoryWide(wszExeDir);
 
     if (!SaveDocument(lpFrameCurrent->ei.hWndEdit, wszCmdLine, nOfnCodePage, bOfnBOM, SD_UPDATE))
@@ -2960,6 +2960,7 @@ void ReadOptions()
   ReadOptionW(hHandle, L"DateLog", PO_DWORD, &bDateLog, sizeof(DWORD));
   ReadOptionW(hHandle, L"DateLogFormat", PO_STRING, wszDateLogFormat, sizeof(wszDateLogFormat));
   ReadOptionW(hHandle, L"DateInsertFormat", PO_STRING, wszDateInsertFormat, sizeof(wszDateInsertFormat));
+  ReadOptionW(hHandle, L"LastDirectory", PO_STRING, wszLastDir, sizeof(wszLastDir));
   ReadOptionW(hHandle, L"DefaultSaveExt", PO_STRING, wszDefaultSaveExt, sizeof(wszDefaultSaveExt));
   ReadOptionW(hHandle, L"PrintColor", PO_DWORD, &dwPrintColor, sizeof(DWORD));
   ReadOptionW(hHandle, L"PrintHeaderEnable", PO_DWORD, &bPrintHeaderEnable, sizeof(DWORD));
@@ -3238,6 +3239,8 @@ BOOL SaveOptions()
   if (!SaveOptionW(hHandle, L"DateLogFormat", PO_STRING, wszDateLogFormat, BytesInString(wszDateLogFormat)))
     goto Error;
   if (!SaveOptionW(hHandle, L"DateInsertFormat", PO_STRING, wszDateInsertFormat, BytesInString(wszDateInsertFormat)))
+    goto Error;
+  if (!SaveOptionW(hHandle, L"LastDirectory", PO_STRING, wszLastDir, BytesInString(wszLastDir)))
     goto Error;
   if (!SaveOptionW(hHandle, L"DefaultSaveExt", PO_STRING, wszDefaultSaveExt, BytesInString(wszDefaultSaveExt)))
     goto Error;
