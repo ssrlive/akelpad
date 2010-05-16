@@ -1,12 +1,16 @@
-/*****************************************************************
- *                  Wide functions header v1.0                   *
- *                                                               *
- * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
- *                                                               *
- *  Header provide functions that can be successfully called in  *
- *        all versions of Windows including Win95/98/Me.         *
- *                                                               *
- *  Some functions required xmemcpy, xstrcpynW from StrFunc.h.   *
+/******************************************************************
+ *                  Wide functions header v1.0                    *
+ *                                                                *
+ * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
+ *                                                                *
+ *  Header provide functions that can be successfully called in   *
+ *        all versions of Windows including Win95/98/Me.          *
+ *                                                                *
+ *                                                                *
+ *  WideFunc.h header uses some functions from StrFunc.h header:  *
+ *   - Basic requirement is xmemcpy.                              *
+ *   - GetLongPathNameWide required xstrcpynW.                    *
+ *   - GetOpenFileNameWide required xarraysizeA and xarraysizeW.  *
  *****************************************************************/
 
 #define WIN32_LEAN_AND_MEAN
@@ -37,6 +41,7 @@ extern LPITEMIDLIST (WINAPI *WideGlobal_SHBrowseForFolderWPtr)(LPBROWSEINFOW);
 void WideInitialize();
 void WideNotInitialized();
 char* AllocAnsi(const wchar_t *wpWideStr);
+char* AllocAnsiLen(const wchar_t *wpWideStr, int nWideStrLen);
 void FreeAnsi(char *pAnsiBuf);
 int WideToAnsi(const wchar_t *wpWideStr, int nWideStrLen, char *szAnsiBuf, int nAnsiBufMax);
 int AnsiToWide(const char *pAnsiStr, int nAnsiStrLen, wchar_t *wszWideBuf, int nWideBufMax);
@@ -46,6 +51,7 @@ LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA);
 //File and directories (FILEWIDEFUNC). Kernel32.lib.
 BOOL CreateDirectoryWide(const wchar_t *wpDir, LPSECURITY_ATTRIBUTES lpSecurityAttributes);
 HANDLE CreateFileWide(const wchar_t *wpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
+BOOL MoveFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileName);
 BOOL DeleteFileWide(const wchar_t *wpFile);
 DWORD GetFileAttributesWide(const wchar_t *wpFile);
 BOOL SetFileAttributesWide(const wchar_t *wpFile, DWORD dwFileAttributes);
@@ -65,10 +71,13 @@ BOOL CreateProcessWide(const wchar_t *wpApplicationName, wchar_t *wpCommandLine,
 BOOL FileExistsAnsi(const char *pFile);
 BOOL FileExistsWide(const wchar_t *wpFile);
 
-//Shell (SHELLWIDEFUNC). Shell32.lib.
+//Shell (SHELLWIDEFUNC). Shell32.lib and Comdlg32.lib.
 HINSTANCE ShellExecuteWide(HWND hwnd, const wchar_t *wpOperation, const wchar_t *wpFile, const wchar_t *wpParameters, const wchar_t *wpDirectory, INT nShowCmd);
 BOOL SHGetPathFromIDListWide(LPCITEMIDLIST pidl, wchar_t *wszPath);
 LPITEMIDLIST SHBrowseForFolderWide(BROWSEINFOW *lpbi);
+BOOL GetOpenFileNameWide(LPOPENFILENAMEW lpofn);
+BOOL GetSaveFileNameWide(LPOPENFILENAMEW lpofn);
+BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave);
 UINT DragQueryFileWide(HDROP hDrop, UINT iFile, wchar_t *wszFile, UINT cch);
 
 //Registry (REGWIDEFUNC). Advapi32.lib.
@@ -196,6 +205,34 @@ HANDLE CreateFileWide(const wchar_t *wpFileName, DWORD dwDesiredAccess, DWORD dw
 
   WideNotInitialized();
   return 0;
+}
+#endif
+
+#if defined MoveFileWide || defined FILEWIDEFUNC || defined ALLWIDEFUNC
+#define MoveFileWide_INCLUDED
+#undef MoveFileWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL MoveFileWide(const wchar_t *wpExistingFileName, const wchar_t *wpNewFileName)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pExistingFileName=AllocAnsi(wpExistingFileName);
+    char *pNewFileName=AllocAnsi(wpNewFileName);
+    BOOL bResult;
+
+    bResult=MoveFileA(pExistingFileName, pNewFileName);
+
+    FreeAnsi(pExistingFileName);
+    FreeAnsi(pNewFileName);
+    return bResult;
+  }
+  else if (WideGlobal_bOldWindows == FALSE)
+    return MoveFileW(wpExistingFileName, wpNewFileName);
+
+  WideNotInitialized();
+  return FALSE;
 }
 #endif
 
@@ -796,6 +833,94 @@ LPITEMIDLIST SHBrowseForFolderWide(BROWSEINFOW *lpbi)
   else WideNotInitialized();
 
   return NULL;
+}
+#endif
+
+#if defined GetOpenFileNameWide || defined SHELLWIDEFUNC || defined ALLWIDEFUNC
+#define GetOpenFileNameWide_INCLUDED
+#undef GetOpenFileNameWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL GetOpenFileNameWide(LPOPENFILENAMEW lpofn)
+{
+  return GetOpenOrSaveFileNameWide(lpofn, FALSE);
+}
+#endif
+
+#if defined GetSaveFileNameWide || defined SHELLWIDEFUNC || defined ALLWIDEFUNC
+#define GetSaveFileNameWide_INCLUDED
+#undef GetSaveFileNameWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL GetSaveFileNameWide(LPOPENFILENAMEW lpofn)
+{
+  return GetOpenOrSaveFileNameWide(lpofn, TRUE);
+}
+#endif
+
+#if defined GetOpenFileNameWide_INCLUDED || defined GetSaveFileNameWide_INCLUDED || defined SHELLWIDEFUNC || defined ALLWIDEFUNC
+BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+  {
+    OPENFILENAMEA ofnA;
+    BOOL bResult;
+
+    //Make nMaxFile less than 0x7FFF otherwise crash possible
+    xmemcpy(&ofnA, lpofn, sizeof(OPENFILENAMEA));
+    ofnA.lpstrFilter=AllocAnsiLen(lpofn->lpstrFilter, xarraysizeW(lpofn->lpstrFilter));
+    ofnA.lpstrCustomFilter=AllocAnsiLen(lpofn->lpstrCustomFilter, xarraysizeW(lpofn->lpstrCustomFilter));
+    ofnA.nMaxFile=min(lpofn->nMaxFile * sizeof(wchar_t), 0x7FFF);
+    ofnA.lpstrFile=(char *)GlobalAlloc(GPTR, ofnA.nMaxFile);
+    WideToAnsi(lpofn->lpstrFile, -1, ofnA.lpstrFile, ofnA.nMaxFile);
+    if (lpofn->lpstrFileTitle)
+    {
+      ofnA.nMaxFileTitle=min(lpofn->nMaxFileTitle * sizeof(wchar_t), 0x7FFF);
+      ofnA.lpstrFileTitle=(char *)GlobalAlloc(GPTR, ofnA.nMaxFileTitle);
+    }
+    ofnA.lpstrInitialDir=AllocAnsi(lpofn->lpstrInitialDir);
+    ofnA.lpstrTitle=AllocAnsi(lpofn->lpstrTitle);
+    ofnA.lpstrDefExt=AllocAnsi(lpofn->lpstrDefExt);
+    if (lpofn->Flags & OFN_ENABLETEMPLATE)
+      if ((DWORD)lpofn->lpTemplateName > 0xFFFF)
+        ofnA.lpTemplateName=AllocAnsi(lpofn->lpTemplateName);
+
+    if (!bSave)
+      bResult=GetOpenFileNameA(&ofnA);
+    else
+      bResult=GetSaveFileNameA(&ofnA);
+    if (bResult)
+    {
+      AnsiToWide(ofnA.lpstrCustomFilter, xarraysizeA(ofnA.lpstrCustomFilter), lpofn->lpstrCustomFilter, lpofn->nMaxCustFilter);
+      AnsiToWide(ofnA.lpstrFile, xarraysizeA(ofnA.lpstrFile), lpofn->lpstrFile, lpofn->nMaxFile);
+      AnsiToWide(ofnA.lpstrFileTitle, xarraysizeA(ofnA.lpstrFileTitle), lpofn->lpstrFileTitle, lpofn->nMaxFileTitle);
+    }
+
+    FreeAnsi((char *)ofnA.lpstrFilter);
+    FreeAnsi((char *)ofnA.lpstrCustomFilter);
+    GlobalFree((HGLOBAL)ofnA.lpstrFile);
+    if (lpofn->lpstrFileTitle)
+      GlobalFree((HGLOBAL)ofnA.lpstrFileTitle);
+    FreeAnsi((char *)ofnA.lpstrInitialDir);
+    FreeAnsi((char *)ofnA.lpstrTitle);
+    FreeAnsi((char *)ofnA.lpstrDefExt);
+    if (lpofn->Flags & OFN_ENABLETEMPLATE)
+      if ((DWORD)lpofn->lpTemplateName > 0xFFFF)
+        FreeAnsi((char *)ofnA.lpTemplateName);
+    return bResult;
+  }
+  else if (WideGlobal_bOldWindows == FALSE)
+  {
+    if (!bSave)
+      return GetOpenFileNameW(lpofn);
+    else
+      return GetSaveFileNameW(lpofn);
+  }
+
+  WideNotInitialized();
+  return FALSE;
 }
 #endif
 
@@ -2445,11 +2570,11 @@ int TabCtrl_InsertItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
     {
       TCITEMA tciA;
       int nResult;
-  
+
       xmemcpy(&tciA, tciW, sizeof(TCITEMA));
       tciA.pszText=AllocAnsi(tciW->pszText);
       nResult=SendMessageA(hWnd, TCM_INSERTITEMA, (WPARAM)nIndex, (LPARAM)&tciA);
-  
+
       FreeAnsi((char *)tciA.pszText);
       return nResult;
     }
@@ -2477,11 +2602,11 @@ BOOL TabCtrl_SetItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
     {
       TCITEMA tciA;
       BOOL bResult;
-  
+
       xmemcpy(&tciA, tciW, sizeof(TCITEMA));
       tciA.pszText=AllocAnsi(tciW->pszText);
       bResult=SendMessageA(hWnd, TCM_SETITEMA, (WPARAM)nIndex, (LPARAM)&tciA);
-  
+
       FreeAnsi((char *)tciA.pszText);
       return bResult;
     }
@@ -2593,16 +2718,21 @@ void WideNotInitialized()
 
 char* AllocAnsi(const wchar_t *wpWideStr)
 {
+  return AllocAnsiLen(wpWideStr, -1);
+}
+
+char* AllocAnsiLen(const wchar_t *wpWideStr, int nWideStrLen)
+{
   char *szAnsiStr;
   int nAnsiChars;
 
   if (wpWideStr)
   {
-    if (nAnsiChars=WideCharToMultiByte(CP_ACP, 0, wpWideStr, -1, NULL, 0, NULL, NULL))
+    if (nAnsiChars=WideCharToMultiByte(CP_ACP, 0, wpWideStr, nWideStrLen, NULL, 0, NULL, NULL))
     {
       if (szAnsiStr=(char *)GlobalAlloc(GMEM_FIXED, nAnsiChars))
       {
-        if (nAnsiChars=WideCharToMultiByte(CP_ACP, 0, wpWideStr, -1, szAnsiStr, nAnsiChars, NULL, NULL))
+        if (nAnsiChars=WideCharToMultiByte(CP_ACP, 0, wpWideStr, nWideStrLen, szAnsiStr, nAnsiChars, NULL, NULL))
           szAnsiStr[nAnsiChars - 1]='\0';
         return szAnsiStr;
       }
@@ -2675,7 +2805,6 @@ LOGFONTA* LogFontWtoA(const LOGFONTW *lfW, LOGFONTA *lfA)
 
 //Include string functions
 #define xmemcpy
-#define xstrcpynW
 #include "StrFunc.h"
 
 //Include wide functions

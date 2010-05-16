@@ -6,6 +6,7 @@
  *                                                               *
  *Functions:                                                     *
  * WideCharLower, WideCharUpper, xmemcpy, xmemcmp, xmemset,      *
+ * xarraysizeA, xarraysizeW, xstrlenA, xstrlenW,                 *
  * xstrcmpA, xstrcmpW, xstrcmpiA, xstrcmpiW,                     *
  * xstrcmpnA, xstrcmpnW, xstrcmpinA, xstrcmpinW,                 *
  * xstrcpyA, xstrcpyW, xstrcpynA, xstrcpynW,                     *
@@ -27,6 +28,10 @@ wchar_t WideCharUpper(wchar_t c);
 void* xmemcpy(void *dest, const void *src, unsigned int count);
 int xmemcmp(const void *buf1, const void *buf2, unsigned int count);
 void* xmemset(void *dest, int c, unsigned int count);
+int xarraysizeA(const char *pString);
+int xarraysizeW(const wchar_t *wpString);
+int xstrlenA(const char *pString);
+int xstrlenW(const wchar_t *wpString);
 int xstrcmpA(const char *pString1, const char *pString2);
 int xstrcmpW(const wchar_t *wpString1, const wchar_t *wpString2);
 int xstrcmpiA(const char *pString1, const char *pString2);
@@ -977,6 +982,98 @@ void* xmemset(void *dest, int c, unsigned int count)
 
 /********************************************************************
  *
+ *  xarraysizeA
+ *
+ *Retrieves size of the string that is terminated with two NULL characters.
+ *
+ *[in] const char *pString   Pointer to a string terminated with two NULL characters.
+ *
+ *Returns:  number of characters, including two NULL characters.
+ ********************************************************************/
+#if defined xarraysizeA || defined ALLSTRFUNC
+#define xarraysizeA_INCLUDED
+#undef xarraysizeA
+int xarraysizeA(const char *pString)
+{
+  const char *pCount;
+
+  if (!pString) return 0;
+  for (pCount=pString; *pCount != '\0' || *(pCount + 1) != '\0'; ++pCount);
+  return (pCount - pString) + 2;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xarraysizeW
+ *
+ *Retrieves size of the string that is terminated with two NULL characters.
+ *
+ *[in] const wchar_t *wpString   Pointer to a string terminated with two NULL characters.
+ *
+ *Returns:  number of characters, including two NULL characters.
+ ********************************************************************/
+#if defined xarraysizeW || defined ALLSTRFUNC
+#define xarraysizeW_INCLUDED
+#undef xarraysizeW
+int xarraysizeW(const wchar_t *wpString)
+{
+  const wchar_t *wpCount;
+
+  if (!wpString) return 0;
+  for (wpCount=wpString; *wpCount != L'\0' || *(wpCount + 1) != L'\0'; ++wpCount);
+  return (wpCount - wpString) + 2;
+}
+#endif
+
+/********************************************************************
+ *
+ *  xstrlenA
+ *
+ *Retrieves length of the string that is terminated with NULL character.
+ *
+ *[in] const char *pString   Pointer to a string terminated with NULL character.
+ *
+ *Returns:  number of characters, not including the terminating NULL character.
+ ********************************************************************/
+#if defined xstrlenA || defined ALLSTRFUNC
+#define xstrlenA_INCLUDED
+#undef xstrlenA
+int xstrlenA(const char *pString)
+{
+  const char *pCount;
+
+  if (!pString) return 0;
+  for (pCount=pString; *pCount != '\0'; ++pCount);
+  return (pCount - pString);
+}
+#endif
+
+/********************************************************************
+ *
+ *  xstrlenW
+ *
+ *Retrieves length of the string that is terminated with NULL character.
+ *
+ *[in] const wchar_t *wpString   Pointer to a string terminated with NULL character.
+ *
+ *Returns:  number of characters, not including the terminating NULL character.
+ ********************************************************************/
+#if defined xstrlenW || defined ALLSTRFUNC
+#define xstrlenW_INCLUDED
+#undef xstrlenW
+int xstrlenW(const wchar_t *wpString)
+{
+  const wchar_t *wpCount;
+
+  if (!wpString) return 0;
+  for (wpCount=wpString; *wpCount != L'\0'; ++wpCount);
+  return (wpCount - wpString);
+}
+#endif
+
+/********************************************************************
+ *
  *  xstrcmpA
  *
  *Case sensitive comparison of two strings.
@@ -1108,6 +1205,7 @@ int xstrcmpiW(const wchar_t *wpString1, const wchar_t *wpString2)
       if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
         return (nCompare > 0)?1:-1;
     #else
+      #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpiW will not work on Win95/98/Me.")
       if (nCompare=(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpString1) - (WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpString2))
         return (nCompare > 0)?1:-1;
     #endif
@@ -1268,6 +1366,7 @@ int xstrcmpinW(const wchar_t *wpString1, const wchar_t *wpString2, DWORD dwMaxLe
       if (nCompare=WideCharUpper(*wpString1) - WideCharUpper(*wpString2))
         return (nCompare > 0)?1:-1;
     #else
+      #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrcmpinW will not work on Win95/98/Me.")
       if (nCompare=(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpString1) - (WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpString2))
         return (nCompare > 0)?1:-1;
     #endif
@@ -1529,6 +1628,7 @@ BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL
           #elif defined WideCharUpper_INCLUDED
             (bSensitive == FALSE && WideCharUpper(*wpTextCount) == WideCharUpper(*wpStrCount));
           #else
+            #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrstrW will not work on Win95/98/Me.")
             (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextCount) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStrCount));
           #endif
          ++wpTextCount)
@@ -1650,6 +1750,7 @@ int xstrrepW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, 
           #elif defined WideCharUpper_INCLUDED
             (bSensitive == FALSE && WideCharUpper(*wpTextCount) == WideCharUpper(*wpItCount));
           #else
+            #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrrepW will not work on Win95/98/Me.")
             (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextCount) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpItCount));
           #endif
          ++wpTextCount)
