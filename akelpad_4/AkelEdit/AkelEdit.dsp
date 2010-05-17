@@ -17,8 +17,8 @@ CFG=AkelEdit - Win32 Debug
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "AkelEdit - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "AkelEdit - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "AkelEdit - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 
 # Begin Project

@@ -543,34 +543,52 @@ typedef struct _WNDPROCRETDATA {
   WNDPROCRET PrevProc;
 } WNDPROCRETDATA;
 
+typedef struct _PLUGINADDA {
+  wchar_t *pFunction;             //Function name, format "Plugin::Function"
+  WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
+  BOOL bOnStart;                  //Function autoload on start-up
+  BOOL bRunning;                  //Function is running
+  PLUGINPROC PluginProc;          //Function procedure
+  void *lpParameter;              //Procedure parameter
+} PLUGINADDA;
+
+typedef struct _PLUGINADDW {
+  wchar_t *pFunction;             //Function name, format "Plugin::Function"
+  WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
+  BOOL bOnStart;                  //Function autoload on start-up
+  BOOL bRunning;                  //Function is running
+  PLUGINPROC PluginProc;          //Function procedure
+  void *lpParameter;              //Procedure parameter
+} PLUGINADDW;
+
 typedef struct _PLUGINCALLSENDA {
+  char *pFunction;                //Function name, format "Plugin::Function"
   BOOL bOnStart;                  //TRUE  if plugin called on start-up
                                   //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
   BOOL *lpbAutoLoad;              //If not NULL, then check plugin autoload
-  char *pFunction;                //Function name, format "Plugin::Function"
 } PLUGINCALLSENDA;
 
 typedef struct _PLUGINCALLSENDW {
+  wchar_t *pFunction;             //Function name, format L"Plugin::Function"
   BOOL bOnStart;                  //TRUE  if plugin called on start-up
                                   //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
   BOOL *lpbAutoLoad;              //If not NULL, then check plugin autoload
-  wchar_t *pFunction;             //Function name, format L"Plugin::Function"
 } PLUGINCALLSENDW;
 
 typedef struct _PLUGINCALLPOSTA {
+  char szFunction[MAX_PATH];      //Function name, format "Plugin::Function"
   BOOL bOnStart;                  //TRUE  if plugin called on start-up
                                   //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
-  char szFunction[MAX_PATH];      //Function name, format "Plugin::Function"
 } PLUGINCALLPOSTA;
 
 typedef struct _PLUGINCALLPOSTW {
+  wchar_t szFunction[MAX_PATH];   //Function name, format L"Plugin::Function"
   BOOL bOnStart;                  //TRUE  if plugin called on start-up
                                   //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
-  wchar_t szFunction[MAX_PATH];   //Function name, format L"Plugin::Function"
 } PLUGINCALLPOSTW;
 
 typedef struct _PLUGINOPTIONA {
@@ -1177,26 +1195,30 @@ typedef struct _NSIZE {
 #define AKDN_MAIN_ONSTART_FINISH   (WM_USER + 4)   //0x404
 #define AKDN_MAIN_ONSTART_IDLE     (WM_USER + 5)   //0x405
 #define AKDN_MAIN_ONFINISH         (WM_USER + 6)   //0x406
-#define AKDN_EDIT_ONSTART          (WM_USER + 7)   //0x407
-#define AKDN_EDIT_ONFINISH         (WM_USER + 8)   //0x408
-#define AKDN_FRAME_NOWINDOWS       (WM_USER + 9)   //0x409
-#define AKDN_FRAME_ACTIVATE        (WM_USER + 10)  //0x40A
-#define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 11)  //0x40B
-#define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 12)  //0x40C
-#define AKDN_DOCK_CAPTURE_ONFINISH (WM_USER + 13)  //0x40D
 
-#define AKDN_ACTIVATE              (WM_USER + 21)  //0x415
-#define AKDN_SIZE                  (WM_USER + 22)  //0x416
-#define AKDN_OPENDOCUMENT_START    (WM_USER + 23)  //0x417
-#define AKDN_OPENDOCUMENT_FINISH   (WM_USER + 24)  //0x418
-#define AKDN_SAVEDOCUMENT_START    (WM_USER + 25)  //0x419
-#define AKDN_SAVEDOCUMENT_FINISH   (WM_USER + 26)  //0x41A
-#define AKDN_DLLCALL               (WM_USER + 27)  //0x41B
-#define AKDN_DLLUNLOAD             (WM_USER + 28)  //0x41C
-#define AKDN_HOTKEY                (WM_USER + 29)  //0x41D
-#define AKDN_CONTEXTMENU           (WM_USER + 30)  //0x41E
-#define AKDN_RECENTFILESDELETE     (WM_USER + 31)  //0x41F
-#define AKDN_SEARCH_ENDED          (WM_USER + 32)  //0x420
+#define AKDN_EDIT_ONSTART          (WM_USER + 11)  //0x40B
+#define AKDN_EDIT_ONFINISH         (WM_USER + 12)  //0x40C
+
+#define AKDN_FRAME_NOWINDOWS       (WM_USER + 21)  //0x415
+#define AKDN_FRAME_ACTIVATE        (WM_USER + 22)  //0x416
+
+#define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 31)  //0x41F
+#define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 32)  //0x420
+#define AKDN_DOCK_CAPTURE_ONFINISH (WM_USER + 33)  //0x421
+
+#define AKDN_DLLCALL               (WM_USER + 41)  //0x429
+#define AKDN_DLLUNLOAD             (WM_USER + 42)  //0x42A
+
+#define AKDN_ACTIVATE              (WM_USER + 51)  //0x433
+#define AKDN_SIZE                  (WM_USER + 52)  //0x434
+#define AKDN_OPENDOCUMENT_START    (WM_USER + 53)  //0x435
+#define AKDN_OPENDOCUMENT_FINISH   (WM_USER + 54)  //0x436
+#define AKDN_SAVEDOCUMENT_START    (WM_USER + 55)  //0x437
+#define AKDN_SAVEDOCUMENT_FINISH   (WM_USER + 56)  //0x438
+#define AKDN_HOTKEY                (WM_USER + 57)  //0x439
+#define AKDN_CONTEXTMENU           (WM_USER + 58)  //0x43A
+#define AKDN_RECENTFILESDELETE     (WM_USER + 59)  //0x43B
+#define AKDN_SEARCH_ENDED          (WM_USER + 60)  //0x43C
 
 //SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -1279,6 +1301,12 @@ typedef struct _NSIZE {
 #define AKD_SETHOTKEYINPUT         (WM_USER + 256)
 #define AKD_DIALOGRESIZE           (WM_USER + 257)
 
+//Frame
+#define AKD_FRAMEFIND              (WM_USER + 261)
+#define AKD_FRAMEACTIVATE          (WM_USER + 262)
+#define AKD_FRAMENEXT              (WM_USER + 263)
+#define AKD_FRAMEDESTROY           (WM_USER + 264)
+
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
 #define AKD_GLOBALLOCK             (WM_USER + 282)
@@ -1300,9 +1328,11 @@ typedef struct _NSIZE {
 #define AKD_DLLFINDA               (WM_USER + 306)
 #define AKD_DLLFINDW               (WM_USER + 307)
 #define AKD_DLLADD                 (WM_USER + 308)
-#define AKD_DLLDELETE              (WM_USER + 309)
-#define AKD_DLLSAVE                (WM_USER + 310)
-#define AKD_CALLPROC               (WM_USER + 311)
+#define AKD_DLLADDA                (WM_USER + 309)
+#define AKD_DLLADDW                (WM_USER + 310)
+#define AKD_DLLDELETE              (WM_USER + 311)
+#define AKD_DLLSAVE                (WM_USER + 312)
+#define AKD_CALLPROC               (WM_USER + 313)
 
 //Plugin options
 #define AKD_BEGINOPTIONS           (WM_USER + 331)
@@ -1746,8 +1776,8 @@ Example:
  SendMessage(pd->hMainWnd, AKD_SETMAINPROCRET, (WPARAM)NewMainProcRet, (LPARAM)&wprd);
 
 
-AKD_DETECTCODEPAGE, AKD_DETECTCODEPAGEA,  AKD_DETECTCODEPAGEW
-__________________  ___________________   ___________________
+AKD_DETECTCODEPAGE, AKD_DETECTCODEPAGEA, AKD_DETECTCODEPAGEW
+__________________  ___________________  ___________________
 
 Detect codepage of a file.
 
@@ -1788,7 +1818,7 @@ Example (bOldWindows == TRUE):
    dc.dwFlags=dwFlags;
    dc.nCodePage=nCodePage;
    dc.bBOM=bBOM;
-   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGE, 0, (LPARAM)&dc) == EDT_SUCCESS)
+   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGEA, 0, (LPARAM)&dc) == EDT_SUCCESS)
    {
      //Read contents
      if ((fc.hFile=CreateFileA(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
@@ -1836,7 +1866,7 @@ Example (bOldWindows == FALSE):
    dc.dwFlags=dwFlags;
    dc.nCodePage=nCodePage;
    dc.bBOM=bBOM;
-   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGE, 0, (LPARAM)&dc) == EDT_SUCCESS)
+   if (SendMessage(hMainWnd, AKD_DETECTCODEPAGEW, 0, (LPARAM)&dc) == EDT_SUCCESS)
    {
      //Read contents
      if ((fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
@@ -1881,7 +1911,7 @@ Open file. See also WM_COPYDATA with CD_OPENDOCUMENT for different process.
 Return Value
  See EOD_* defines
 
-Example:
+Example (Unicode):
   OPENDOCUMENTW od;
 
   od.pFile=L"C:\\MyFile.txt";
@@ -1903,14 +1933,14 @@ Save file.
 Return Value
  See ESD_* defines
 
-Example:
+Example (Unicode):
  SAVEDOCUMENTW sd;
 
  sd.pFile=L"C:\\MyFile.txt";
  sd.nCodePage=65001;
  sd.bBOM=TRUE;
  sd.dwFlags=SD_UPDATE;
- SendMessage(pd->hMainWnd, AKD_SAVEDOCUMENT, (WPARAM)pd->hWndEdit, (LPARAM)&sd);
+ SendMessage(pd->hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)pd->hWndEdit, (LPARAM)&sd);
 
 
 AKD_GETTEXTLENGTH
@@ -1939,23 +1969,23 @@ Retrieves a specified range of characters from a edit control.
 Return Value
  Text length in TCHARs without null character
 
-Example (bOldWindows == TRUE):
+Example (Ansi):
  GETTEXTRANGE gtr;
 
  gtr.cpMin=0;
  gtr.cpMax=-1;
- if (SendMessage(pd->hMainWnd, AKD_GETTEXTRANGE, (WPARAM)pd->hWndEdit, (LPARAM)&gtr))
+ if (SendMessage(pd->hMainWnd, AKD_GETTEXTRANGEA, (WPARAM)pd->hWndEdit, (LPARAM)&gtr))
  {
    MessageBoxA(pd->hMainWnd, (char *)gtr.pText, "Test", MB_OK);
    SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)gtr.pText);
  }
 
-Example (bOldWindows == FALSE):
+Example (Unicode):
  GETTEXTRANGE gtr;
 
  gtr.cpMin=0;
  gtr.cpMax=-1;
- if (SendMessage(pd->hMainWnd, AKD_GETTEXTRANGE, (WPARAM)pd->hWndEdit, (LPARAM)&gtr))
+ if (SendMessage(pd->hMainWnd, AKD_GETTEXTRANGEW, (WPARAM)pd->hWndEdit, (LPARAM)&gtr))
  {
    MessageBoxW(pd->hMainWnd, (wchar_t *)gtr.pText, L"Test", MB_OK);
    SendMessage(pd->hMainWnd, AKD_FREETEXT, 0, (LPARAM)gtr.pText);
@@ -2007,8 +2037,8 @@ Replace selection of the edit control.
 Return Value
  zero
 
-Example:
- SendMessage(pd->hMainWnd, AKD_REPLACESELA, (WPARAM)pd->hWndEdit, (LPARAM)"SomeString");
+Example (Unicode):
+ SendMessage(pd->hMainWnd, AKD_REPLACESELW, (WPARAM)pd->hWndEdit, (LPARAM)L"SomeString");
 
 
 AKD_PASTE
@@ -2053,21 +2083,13 @@ Finds text in a edit control.
 Return Value
  Character position of the next match. If there are no more matches, the return value is –1.
 
-Example (bOldWindows == TRUE):
- TEXTFINDA tf;
-
- tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
- tf.pFindIt="Text to find";
- tf.nFindItLen=-1;
- SendMessage(pd->hMainWnd, AKD_TEXTFIND, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
-
-Example (bOldWindows == FALSE):
+Example (Unicode):
  TEXTFINDW tf;
 
  tf.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
  tf.pFindIt=L"Text to find";
  tf.nFindItLen=-1;
- SendMessage(pd->hMainWnd, AKD_TEXTFIND, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
+ SendMessage(pd->hMainWnd, AKD_TEXTFINDW, (WPARAM)pd->hWndEdit, (LPARAM)&tf);
 
 
 AKD_TEXTREPLACE, AKD_TEXTREPLACEA, AKD_TEXTREPLACEW
@@ -2081,18 +2103,7 @@ Replaces text in a edit control.
 Return Value
  Character position of the next match. If there are no more matches, the return value is –1.
 
-Example (bOldWindows == TRUE):
- TEXTREPLACEA tr;
-
- tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
- tr.pFindIt="Text to find";
- tr.nFindItLen=-1;
- tr.pReplaceWith="Text to replace";
- tr.nReplaceWithLen=-1;
- tr.bAll=TRUE;
- SendMessage(pd->hMainWnd, AKD_TEXTREPLACE, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
-
-Example (bOldWindows == FALSE):
+Example (Unicode):
  TEXTREPLACEW tr;
 
  tr.dwFlags=FR_DOWN|FR_BEGINNING|FR_MATCHCASE;
@@ -2101,7 +2112,7 @@ Example (bOldWindows == FALSE):
  tr.pReplaceWith=L"Text to replace";
  tr.nReplaceWithLen=-1;
  tr.bAll=TRUE;
- SendMessage(pd->hMainWnd, AKD_TEXTREPLACE, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
+ SendMessage(pd->hMainWnd, AKD_TEXTREPLACEW, (WPARAM)pd->hWndEdit, (LPARAM)&tr);
 
 
 AKD_RECODESEL
@@ -2332,18 +2343,15 @@ ___________  ____________  ____________
 
 Get font.
 
-(HWND)wParam == edit window,
-                NULL for current edit window
-lParam       == not used
+(HWND)wParam      == edit window,
+                     NULL for current edit window
+(LOGFONT *)lParam == pointer to a LOGFONT structure
 
 Return Value
  pointer to a LOGFONT structure
 
-Example (bOldWindows == TRUE):
- LOGFONTA *lf=(LOGFONTA *)SendMessage(pd->hMainWnd, AKD_GETFONT, (WPARAM)NULL, 0);
-
-Example (bOldWindows == FALSE):
- LOGFONTW *lf=(LOGFONTW *)SendMessage(pd->hMainWnd, AKD_GETFONT, (WPARAM)NULL, 0);
+Example:
+ See AKD_SETFONT example.
 
 
 AKD_SETFONT, AKD_SETFONTA, AKD_SETFONTW
@@ -2358,21 +2366,13 @@ Return Value
  TRUE   success
  FALSE  failed
 
-Example (bOldWindows == TRUE):
- LOGFONTA *lf;
+Example (Unicode):
+ LOGFONTW lfFont;
 
- lf=(LOGFONTA *)SendMessage(pd->hMainWnd, AKD_GETFONT, 0, 0);
- lf->lfHeight-=2;
- lstrcpynA(lf->lfFaceName, "Courier New", LF_FACESIZE);
- SendMessage(pd->hMainWnd, AKD_SETFONT, (WPARAM)pd->hWndEdit, (LPARAM)lf);
-
-Example (bOldWindows == FALSE):
- LOGFONTW *lf;
-
- lf=(LOGFONTW *)SendMessage(pd->hMainWnd, AKD_GETFONT, 0, 0);
- lf->lfHeight-=2;
- lstrcpynW(lf->lfFaceName, L"Courier New", LF_FACESIZE);
- SendMessage(pd->hMainWnd, AKD_SETFONT, (WPARAM)pd->hWndEdit, (LPARAM)lf);
+ SendMessage(pd->hMainWnd, AKD_GETFONTW, (WPARAM)NULL, (LPARAM)&lfFont);
+ lfFont.lfHeight-=2;
+ lstrcpynW(lfFont.lfFaceName, L"Courier New", LF_FACESIZE);
+ SendMessage(pd->hMainWnd, AKD_SETFONTW, (WPARAM)pd->hWndEdit, (LPARAM)&lfFont);
 
 
 AKD_GETMSGCREATE
@@ -2894,40 +2894,24 @@ wParam                   == not used
 Return Value
  see EDL_* defines
 
-Example SendMessage (bOldWindows == TRUE):
- PLUGINCALLSENDA pcs;
- pcs.bOnStart=FALSE;
- pcs.lParam=0;
- pcs.lpbAutoLoad=NULL;
- pcs.pFunction="Plugin::Function";
- SendMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)&pcs);
-
-Example SendMessage (bOldWindows == FALSE):
+Example SendMessage (Unicode):
  PLUGINCALLSENDW pcs;
+
+ pcs.pFunction=L"Plugin::Function";
  pcs.bOnStart=FALSE;
  pcs.lParam=0;
  pcs.lpbAutoLoad=NULL;
- pcs.pFunction=L"Plugin::Function";
- SendMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)&pcs);
+ SendMessage(pd->hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
 
-Example PostMessage (bOldWindows == TRUE):
- PLUGINCALLPOSTA *pcp;
- if (pcp=(PLUGINCALLPOSTA *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTA)))
- {
-   pcp->bOnStart=FALSE;
-   pcp->lParam=0;
-   lstrcpynA(pcp->szFunction, "Plugin::Function", MAX_PATH);
-   PostMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)pcp);
- }
-
-Example PostMessage (bOldWindows == FALSE):
+Example PostMessage (Unicode):
  PLUGINCALLPOSTW *pcp;
+
  if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW)))
  {
+   lstrcpynW(pcp->szFunction, L"Plugin::Function", MAX_PATH);
    pcp->bOnStart=FALSE;
    pcp->lParam=0;
-   lstrcpynW(pcp->szFunction, L"Plugin::Function", MAX_PATH);
-   PostMessage(pd->hMainWnd, AKD_DLLCALL, 0, (LPARAM)pcp);
+   PostMessage(pd->hMainWnd, AKD_DLLCALLW, 0, (LPARAM)pcp);
  }
 
 
@@ -2949,7 +2933,7 @@ Example:
 AKD_DLLFIND, AKD_DLLFINDA, AKD_DLLFINDW
 ___________  ____________  ____________
 
-Get dll stack function structure pointer.
+Get dll function.
 
 (unsigned char *)wParam == function name, format "Plugin::Function"
 (WORD)lParam            == hotkey returned by HKM_GETHOTKEY,
@@ -2958,48 +2942,48 @@ Get dll stack function structure pointer.
 Return Value
  pointer to a PLUGINFUNCTION structure
 
-Example find by name (bOldWindows == FALSE):
+Example find by name (Unicode):
  PLUGINFUNCTION *pf;
- if (pf=(PLUGINFUNCTION *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)L"SomePlugin::SomeFunction", 0))
+ if (pf=(PLUGINFUNCTION *)SendMessage(pd->hMainWnd, AKD_DLLFINDW, (WPARAM)L"SomePlugin::SomeFunction", 0))
    if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
 
-Example find by hotkey (bOldWindows == FALSE):
+Example find by hotkey:
  PLUGINFUNCTION *pf;
  if (pf=(PLUGINFUNCTION *)SendMessage(pd->hMainWnd, AKD_DLLFIND, (WPARAM)NULL, 3112))
    if (pf->bRunning) MessageBoxW(NULL, L"Plugin is running", NULL, 0);
 
 
-AKD_DLLADD
-__________
+AKD_DLLADD, AKD_DLLADDA, AKD_DLLADDW
+__________  ___________  ___________
 
-Add dll stack function structure.
+Add dll function.
 
-wParam                   == not used
-(PLUGINFUNCTION *)lParam == function structure pointer.
+wParam              == not used
+(PLUGINADD *)lParam == function structure pointer.
 
 Return Value
  pointer to a PLUGINFUNCTION structure in stack
 
-Example add plugin hotkey:
+Example add plugin hotkey (Unicode):
  BOOL CALLBACK PluginProc(void *lpParameter)
  {
    return TRUE; //TRUE - catch hotkey, FALSE - do default hotkey processing
  }
- PLUGINFUNCTION pf={0};
+ PLUGINADDW pf;
 
+ pf.pFunction=L"MyDLL::MyFunction";
  pf.wHotkey=589;       //Ctrl+M
  pf.bOnStart=FALSE;
  pf.bRunning=FALSE;
  pf.PluginProc=(PLUGINPROC)PluginProc;
  pf.lpParameter=NULL;
- pf.nFunctionLen=wsprintfA(pf.szFunction, "%s", "MyDLL::MyFunction");
- SendMessage(pd->hMainWnd, AKD_DLLADD, 0, (LPARAM)&pf);
+ SendMessage(pd->hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pf);
 
 
 AKD_DLLDELETE
 _____________
 
-Delete dll stack function structure.
+Delete dll function.
 
 wParam                   == not used
 (PLUGINFUNCTION *)lParam == pointer to a PLUGINFUNCTION structure
