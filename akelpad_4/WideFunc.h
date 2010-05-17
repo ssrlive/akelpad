@@ -758,7 +758,7 @@ HINSTANCE ShellExecuteWide(HWND hwnd, const wchar_t *wpOperation, const wchar_t 
     return hResult;
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return ShellExecuteWide(hwnd, wpOperation, wpFile, wpParameters, wpDirectory, nShowCmd);
+    return ShellExecuteW(hwnd, wpOperation, wpFile, wpParameters, wpDirectory, nShowCmd);
 
   WideNotInitialized();
   return 0;
