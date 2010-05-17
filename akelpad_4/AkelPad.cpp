@@ -1172,14 +1172,15 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
              uMsg == AKD_DLLFINDW)
     {
       wchar_t wszPluginFunction[MAX_PATH];
+      int nPluginFunctionLen;
 
       if (wParam)
       {
         if (uMsg == AKD_DLLFINDA || (bOldWindows && uMsg == AKD_DLLFIND))
-          xprintfW(wszPluginFunction, L"%S", (char *)wParam);
+          nPluginFunctionLen=xprintfW(wszPluginFunction, L"%S", (char *)wParam);
         else
-          xprintfW(wszPluginFunction, L"%s", (wchar_t *)wParam);
-        return (LRESULT)StackPluginFind(&hPluginsStack, wszPluginFunction, -1);
+          nPluginFunctionLen=xprintfW(wszPluginFunction, L"%s", (wchar_t *)wParam);
+        return (LRESULT)StackPluginFind(&hPluginsStack, wszPluginFunction, nPluginFunctionLen);
       }
       if (lParam)
       {
@@ -1187,19 +1188,19 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       return 0;
     }
-    else if (uMsg == AKD_DLLADD)
+    else if (uMsg == AKD_DLLADD ||
+             uMsg == AKD_DLLADDA ||
+             uMsg == AKD_DLLADDW)
     {
-      PLUGINFUNCTION *pf=(PLUGINFUNCTION *)lParam;
+      PLUGINADDW *pa=(PLUGINADDW *)lParam;
       wchar_t wszPluginFunction[MAX_PATH];
+      int nPluginFunctionLen;
 
-      if (pf->szFunction || (bOldWindows && pf->pFunction))
-        xprintfW(wszPluginFunction, L"%S", pf->szFunction?pf->szFunction:(char *)pf->pFunction);
-      else if (pf->wszFunction || (!bOldWindows && pf->pFunction))
-        xprintfW(wszPluginFunction, L"%s", pf->wszFunction?pf->wszFunction:(wchar_t *)pf->pFunction);
+      if (uMsg == AKD_DLLADDA || (bOldWindows && uMsg == AKD_DLLADD))
+        nPluginFunctionLen=xprintfW(wszPluginFunction, L"%S", (char *)pa->pFunction);
       else
-        return 0;
-
-      return (LRESULT)StackPluginAdd(&hPluginsStack, wszPluginFunction, pf->nFunctionLen, pf->wHotkey, pf->bOnStart, pf->bRunning, pf->PluginProc, pf->lpParameter);
+        nPluginFunctionLen=xprintfW(wszPluginFunction, L"%s", (wchar_t *)pa->pFunction);
+      return (LRESULT)StackPluginAdd(&hPluginsStack, wszPluginFunction, nPluginFunctionLen, pa->wHotkey, pa->bOnStart, pa->bRunning, pa->PluginProc, pa->lpParameter);
     }
     else if (uMsg == AKD_DLLDELETE)
     {
@@ -1814,14 +1815,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_GETFONTW)
     {
       WNDFRAME *lpFrame;
-      LOGFONTA lfA;
 
-      if (lpFrame=GetFrameDataFromEdit((HWND)wParam))
+      if (lParam)
       {
-        if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
-          return (LRESULT)LogFontWtoA(&lpFrame->lf, &lfA);
-        else
-          return (LRESULT)&lpFrame->lf;
+        if (lpFrame=GetFrameDataFromEdit((HWND)wParam))
+        {
+          if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
+            LogFontWtoA(&lpFrame->lf, (LOGFONTA *)lParam);
+          else
+            xmemcpy((LOGFONTW *)lParam, &lpFrame->lf, sizeof(LOGFONTW));
+          return (LRESULT)lParam;
+        }
       }
       return (LRESULT)NULL;
     }
@@ -3266,7 +3270,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (LOWORD(wParam) == IDM_NONMENU_MDICLOSE)
       {
-        return DestroyFrameWindow(lpFrameCurrent, -1);
+        return !DestroyFrameWindow(lpFrameCurrent, -1);
       }
     }
   }
