@@ -1030,6 +1030,7 @@ typedef struct {
 #define AEM_ISDELIMITER           (WM_USER + 2122)
 #define AEM_INDEXTOCOLUMN         (WM_USER + 2123)
 #define AEM_COLUMNTOINDEX         (WM_USER + 2124)
+#define AEM_INDEXINURL            (WM_USER + 2125)
 
 //Screen coordinates
 #define AEM_CHARFROMPOS           (WM_USER + 2151)
@@ -2871,6 +2872,28 @@ Example:
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&ciCaret);
  ciCaret.nCharInLine=10;
  SendMessage(hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(nTabStop, TRUE), (LPARAM)&ciCaret);
+
+
+AEM_INDEXINURL
+______________
+
+Checks is index in URL.
+
+(AECHARINDEX *)wParam == character index.
+(AECHARRANGE *)lParam == pointer to a AECHARRANGE structure, that receives URL range, if character in URL.
+
+Return Value
+ Length of the URL if index in URL or zero if not in URL.
+
+Remarks
+ Use AEM_POINTONURL to detect URL under point.
+
+Example:
+ AECHARINDEX ciCaret;
+ AECHARRANGE crUrl;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ SendMessage(hWndEdit, AEM_INDEXINURL, (WPARAM)&ciCaret, (LPARAM)&crUrl);
 
 
 AEM_CHARFROMPOS

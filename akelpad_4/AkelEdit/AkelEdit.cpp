@@ -808,6 +808,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       *ciInput=ciChar;
       return nCount;
     }
+    if (uMsg == AEM_INDEXINURL)
+    {
+      AECHARINDEX *ciChar=(AECHARINDEX *)wParam;
+      AECHARRANGE *crRange=(AECHARRANGE *)lParam;
+
+      return AE_HighlightFindUrl(ae, ciChar, AEHF_FINDFIRSTCHAR, ae->ptxt->nLineCount, crRange);
+    }
 
     //Screen coordinates
     CharFromPos:
