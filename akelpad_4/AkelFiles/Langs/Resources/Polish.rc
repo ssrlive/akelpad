@@ -140,9 +140,9 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Tr&yb okien"
         BEGIN
-            MENUITEM "&Pojedyncze okno (SDI)",      IDM_OPTIONS_SDI
+            MENUITEM "&Jedno okno (SDI)",      IDM_OPTIONS_SDI
             MENUITEM "&Wiele okien (MDI)",          IDM_OPTIONS_MDI
-            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "&Pseudo wielo-okienkowy (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "U&stawienia...",              IDM_OPTIONS
@@ -169,8 +169,8 @@ BEGIN
 
         END
         MENUITEM SEPARATOR
-        MENUITEM "&S¹siaduj¹co poziomo",        IDM_WINDOW_TILEHORIZONTAL
-        MENUITEM "S¹s&iaduj¹co pionowo",        IDM_WINDOW_TILEVERTICAL
+        MENUITEM "S¹siaduj¹co pozio&mo",        IDM_WINDOW_TILEHORIZONTAL
+        MENUITEM "S¹siaduj¹co piono&wo",        IDM_WINDOW_TILEVERTICAL
         MENUITEM "K&askadowo",                  IDM_WINDOW_CASCADE
         MENUITEM "Wybór okna...",               IDM_WINDOW_MDILIST
     END
