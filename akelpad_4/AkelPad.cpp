@@ -1161,11 +1161,11 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       else
         xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallSend->pFunction);
 
+      pcsW.pFunction=wszPluginFunction;
       pcsW.bOnStart=lpCallSend->bOnStart;
       pcsW.lParam=lpCallSend->lParam;
       pcsW.lpbAutoLoad=lpCallSend->lpbAutoLoad;
-      pcsW.pFunction=wszPluginFunction;
-      return (LRESULT)CallPluginReceive(&pcsW);
+      return (LRESULT)CallPluginReceive(NULL, &pcsW);
     }
     else if (uMsg == AKD_DLLFIND ||
              uMsg == AKD_DLLFINDA ||
@@ -1651,10 +1651,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_TEXTFINDW)
     {
       TEXTFINDW *tf=(TEXTFINDW *)lParam;
-      wchar_t *wpFindIt=tf->pFindIt;
 
       if (uMsg == AKD_TEXTFINDA || (bOldWindows && uMsg == AKD_TEXTFIND))
       {
+        wchar_t *wpFindIt;
         int nFindItLen;
         int nResult=-1;
 
@@ -1668,18 +1668,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return nResult;
       }
-      return FindTextW((HWND)wParam, tf->dwFlags, wpFindIt, tf->nFindItLen);
+      return FindTextW((HWND)wParam, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
     }
     if (uMsg == AKD_TEXTREPLACE ||
         uMsg == AKD_TEXTREPLACEA ||
         uMsg == AKD_TEXTREPLACEW)
     {
       TEXTREPLACEW *tr=(TEXTREPLACEW *)lParam;
-      wchar_t *wpFindIt=tr->pFindIt;
-      wchar_t *wpReplaceWith=tr->pReplaceWith;
 
       if (uMsg == AKD_TEXTREPLACEA || (bOldWindows && uMsg == AKD_TEXTREPLACE))
       {
+        wchar_t *wpFindIt;
+        wchar_t *wpReplaceWith;
         int nFindItLen;
         int nReplaceWithLen;
         int nResult=-1;
@@ -1701,7 +1701,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         return nResult;
       }
-      return ReplaceTextW((HWND)wParam, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+      return ReplaceTextW((HWND)wParam, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {

@@ -292,30 +292,30 @@ typedef struct _PLUGINVERSION {
   DWORD dwExeMinVersion4x;    //Required minimum AkelPad 4.x version.
                               //Set as MAKE_IDENTIFIER(x, x, x, x) or
                               //if not supported MAKE_IDENTIFIER(-1, -1, -1, -1).
-  char *pPluginName;          //Plugin unique name
+  const char *pPluginName;    //Plugin unique name
 } PLUGINVERSION;
 
 typedef struct _PLUGINFUNCTION {
   struct _PLUGINFUNCTION *next;
   struct _PLUGINFUNCTION *prev;
+  const BYTE *pFunction;          //Function name, format "Plugin::Function"
+                                  //  const char *pFunction      if bOldWindows == TRUE
+                                  //  const wchar_t *pFunction   if bOldWindows == FALSE
+  char szFunction[MAX_PATH];      //Function name (Ansi)
+  wchar_t wszFunction[MAX_PATH];  //Function name (Unicode)
+  int nFunctionLen;               //Function name length
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
   BOOL bOnStart;                  //Function autoload on start-up
   BOOL bRunning;                  //Function is running
   PLUGINPROC PluginProc;          //Function procedure
   void *lpParameter;              //Procedure parameter
-  int nFunctionLen;               //Function name length
-  BYTE *pFunction;                //Function name, format "Plugin::Function"
-                                  //  char *pFunction      if bOldWindows == TRUE
-                                  //  wchar_t *pFunction   if bOldWindows == FALSE
-  char szFunction[MAX_PATH];      //Function name (Ansi)
-  wchar_t wszFunction[MAX_PATH];  //Function name (Unicode)
 } PLUGINFUNCTION;
 
 typedef struct _PLUGINDATA {
   DWORD cb;                         //Size of the structure
   const BYTE *pFunction;            //Called function name, format "Plugin::Function"
-                                    //  char *pFunction     if bOldWindows == TRUE
-                                    //  wchar_t *pFunction  if bOldWindows == FALSE
+                                    //  const char *pFunction     if bOldWindows == TRUE
+                                    //  const wchar_t *pFunction  if bOldWindows == FALSE
   const char *szFunction;           //Called function name (Ansi)
   const wchar_t *wszFunction;       //Called function name (Unicode)
   HINSTANCE hInstanceDLL;           //DLL instance
@@ -328,8 +328,8 @@ typedef struct _PLUGINDATA {
                                     //FALSE if plugin called manually
   LPARAM lParam;                    //Input data
   const BYTE *pAkelDir;             //AkelPad directory
-                                    //  char *pAkelDir      if bOldWindows == TRUE
-                                    //  wchar_t *pAkelDir   if bOldWindows == FALSE
+                                    //  const char *pAkelDir      if bOldWindows == TRUE
+                                    //  const wchar_t *pAkelDir   if bOldWindows == FALSE
   const char *szAkelDir;            //AkelPad directory (Ansi)
   const wchar_t *wszAkelDir;        //AkelPad directory (Unicode)
   HINSTANCE hInstanceEXE;           //EXE instance
@@ -353,8 +353,8 @@ typedef struct _PLUGINDATA {
   int nMDI;                         //MDI mode, see WMD_* defines
   int nSaveSettings;                //See SS_* defines
   const BYTE *pLangModule;          //Language module
-                                    //  char *pLangModule      if bOldWindows == TRUE
-                                    //  wchar_t *pLangModule   if bOldWindows == FALSE
+                                    //  const char *pLangModule      if bOldWindows == TRUE
+                                    //  const wchar_t *pLangModule   if bOldWindows == FALSE
   const char *szLangModule;         //Language module (Ansi)
   const wchar_t *wszLangModule;     //Language module (Unicode)
   LANGID wLangSystem;               //System language ID
@@ -362,14 +362,14 @@ typedef struct _PLUGINDATA {
 
 typedef struct {
   const BYTE *pString;        //Depend on Windows. Win9x or WinNT.
-                              //  char *pString     if bOldWindows == TRUE
-                              //  wchar_t *pString  if bOldWindows == FALSE
+                              //  const char *pString     if bOldWindows == TRUE
+                              //  const wchar_t *pString  if bOldWindows == FALSE
   const char *szString;       //Ansi string
   const wchar_t *wszString;   //Unicode string
 } UNISTRING;
 
 typedef struct _DETECTCODEPAGEA {
-  char *pFile;           //File to detect
+  const char *pFile;     //File to detect
   DWORD dwBytesToCheck;  //How many bytes will be checked
   DWORD dwFlags;         //See ADT_* defines
   int nCodePage;         //Detected codepage
@@ -377,7 +377,7 @@ typedef struct _DETECTCODEPAGEA {
 } DETECTCODEPAGEA;
 
 typedef struct _DETECTCODEPAGEW {
-  wchar_t *pFile;        //File to detect
+  const wchar_t *pFile;  //File to detect
   DWORD dwBytesToCheck;  //How many bytes will be checked
   DWORD dwFlags;         //See ADT_* defines
   int nCodePage;         //Detected codepage
@@ -385,79 +385,79 @@ typedef struct _DETECTCODEPAGEW {
 } DETECTCODEPAGEW;
 
 typedef struct _FILECONTENT {
-  HANDLE hFile;        //File handle, returned by CreateFile function
-  DWORD dwBytesMax;    //Maximum bytes to read, if -1 read entire file
-  int nCodePage;       //File codepage
-  BOOL bBOM;           //File BOM
-  wchar_t *wpContent;  //Returned file contents
+  HANDLE hFile;          //File handle, returned by CreateFile function
+  DWORD dwBytesMax;      //Maximum bytes to read, if -1 read entire file
+  int nCodePage;         //File codepage
+  BOOL bBOM;             //File BOM
+  wchar_t *wpContent;    //Returned file contents
 } FILECONTENT;
 
 typedef struct _OPENDOCUMENTA {
-  char *pFile;         //File to open
-  char *pWorkDir;      //Set working directory before open, if NULL then don't set
-  DWORD dwFlags;       //Open flags. See OD_* defines
-  int nCodePage;       //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
-  BOOL bBOM;           //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
+  const char *pFile;        //File to open
+  const char *pWorkDir;     //Set working directory before open, if NULL then don't set
+  DWORD dwFlags;            //Open flags. See OD_* defines
+  int nCodePage;            //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
+  BOOL bBOM;                //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
 } OPENDOCUMENTA;
 
 typedef struct _OPENDOCUMENTW {
-  wchar_t *pFile;      //File to open
-  wchar_t *pWorkDir;   //Set working directory before open, if NULL then don't set
-  DWORD dwFlags;       //Open flags. See OD_* defines
-  int nCodePage;       //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
-  BOOL bBOM;           //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
+  const wchar_t *pFile;     //File to open
+  const wchar_t *pWorkDir;  //Set working directory before open, if NULL then don't set
+  DWORD dwFlags;            //Open flags. See OD_* defines
+  int nCodePage;            //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
+  BOOL bBOM;                //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
 } OPENDOCUMENTW;
 
 typedef struct _OPENDOCUMENTPOSTA {
+  char szFile[MAX_PATH];     //File to open
+  char szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set
   HWND hWnd;                 //Window to fill in, NULL for current edit window
   DWORD dwFlags;             //Open flags. See OD_* defines
   int nCodePage;             //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
   BOOL bBOM;                 //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
-  char szFile[MAX_PATH];     //File to open
-  char szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set
 } OPENDOCUMENTPOSTA;
 
 typedef struct _OPENDOCUMENTPOSTW {
+  wchar_t szFile[MAX_PATH];     //File to open
+  wchar_t szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set
   HWND hWnd;                    //Window to fill in, NULL for current edit window
   DWORD dwFlags;                //Open flags. See OD_* defines
   int nCodePage;                //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
   BOOL bBOM;                    //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
-  wchar_t szFile[MAX_PATH];     //File to open
-  wchar_t szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set
 } OPENDOCUMENTPOSTW;
 
 typedef struct _SAVEDOCUMENTA {
-  char *pFile;         //File to save
-  int nCodePage;       //File code page
-  BOOL bBOM;           //File BOM
-  DWORD dwFlags;       //See SD_* defines
+  const char *pFile;     //File to save
+  int nCodePage;         //File code page
+  BOOL bBOM;             //File BOM
+  DWORD dwFlags;         //See SD_* defines
 } SAVEDOCUMENTA;
 
 typedef struct _SAVEDOCUMENTW {
-  wchar_t *pFile;      //File to save
-  int nCodePage;       //File code page
-  BOOL bBOM;           //File BOM
-  DWORD dwFlags;       //See SD_* defines
+  const wchar_t *pFile;  //File to save
+  int nCodePage;         //File code page
+  BOOL bBOM;             //File BOM
+  DWORD dwFlags;         //See SD_* defines
 } SAVEDOCUMENTW;
 
 typedef struct _EDITINFO {
-  HWND hWndEdit;       //Edit window
-  BYTE *pFile;         //Current editing file
-                       //  char *pFile         if bOldWindows == TRUE
-                       //  wchar_t *pFile      if bOldWindows == FALSE
-  char *szFile;        //Current editing file (Ansi)
-  wchar_t *wszFile;    //Current editing file (Unicode)
-  int nCodePage;       //Current code page
-  BOOL bBOM;           //Current BOM
-  int nNewLine;        //Current new line format, see NEWLINE_* defines
-  BOOL bModified;      //File has been modified
-  BOOL bReadOnly;      //Read only
-  BOOL bWordWrap;      //Word wrap
-  BOOL bOvertypeMode;  //Overtype mode
-  HWND hWndMaster;     //Master window (4.x only)
-  HWND hWndClone1;     //Clone window one (4.x only)
-  HWND hWndClone2;     //Clone window two (4.x only)
-  HWND hWndClone3;     //Clone window three (4.x only)
+  HWND hWndEdit;           //Edit window
+  const BYTE *pFile;       //Current editing file
+                           //  const char *pFile         if bOldWindows == TRUE
+                           //  const wchar_t *pFile      if bOldWindows == FALSE
+  const char *szFile;      //Current editing file (Ansi)
+  const wchar_t *wszFile;  //Current editing file (Unicode)
+  int nCodePage;           //Current code page
+  BOOL bBOM;               //Current BOM
+  int nNewLine;            //Current new line format, see NEWLINE_* defines
+  BOOL bModified;          //File has been modified
+  BOOL bReadOnly;          //Read only
+  BOOL bWordWrap;          //Word wrap
+  BOOL bOvertypeMode;      //Overtype mode
+  HWND hWndMaster;         //Master window (4.x only)
+  HWND hWndClone1;         //Clone window one (4.x only)
+  HWND hWndClone2;         //Clone window two (4.x only)
+  HWND hWndClone3;         //Clone window three (4.x only)
 } EDITINFO;
 
 #ifndef __AKELEDIT_H__
@@ -544,7 +544,7 @@ typedef struct _WNDPROCRETDATA {
 } WNDPROCRETDATA;
 
 typedef struct _PLUGINADDA {
-  wchar_t *pFunction;             //Function name, format "Plugin::Function"
+  const char *pFunction;          //Function name, format "Plugin::Function"
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
   BOOL bOnStart;                  //Function autoload on start-up
   BOOL bRunning;                  //Function is running
@@ -553,7 +553,7 @@ typedef struct _PLUGINADDA {
 } PLUGINADDA;
 
 typedef struct _PLUGINADDW {
-  wchar_t *pFunction;             //Function name, format "Plugin::Function"
+  const wchar_t *pFunction;       //Function name, format "Plugin::Function"
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
   BOOL bOnStart;                  //Function autoload on start-up
   BOOL bRunning;                  //Function is running
@@ -562,7 +562,7 @@ typedef struct _PLUGINADDW {
 } PLUGINADDW;
 
 typedef struct _PLUGINCALLSENDA {
-  char *pFunction;                //Function name, format "Plugin::Function"
+  const char *pFunction;          //Function name, format "Plugin::Function"
   BOOL bOnStart;                  //TRUE  if plugin called on start-up
                                   //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
@@ -570,7 +570,7 @@ typedef struct _PLUGINCALLSENDA {
 } PLUGINCALLSENDA;
 
 typedef struct _PLUGINCALLSENDW {
-  wchar_t *pFunction;             //Function name, format L"Plugin::Function"
+  const wchar_t *pFunction;       //Function name, format L"Plugin::Function"
   BOOL bOnStart;                  //TRUE  if plugin called on start-up
                                   //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
@@ -592,54 +592,54 @@ typedef struct _PLUGINCALLPOSTW {
 } PLUGINCALLPOSTW;
 
 typedef struct _PLUGINOPTIONA {
-  char *pOptionName;             //Option name.
+  const char *pOptionName;       //Option name.
   DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONA;
 
 typedef struct _PLUGINOPTIONW {
-  wchar_t *pOptionName;          //Option name.
+  const wchar_t *pOptionName;    //Option name.
   DWORD dwType;                  //Data type: PO_DWORD, PO_BINARY or PO_STRING.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_OPTION returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } PLUGINOPTIONW;
 
 typedef struct _INIVALUEA {
-  char *pSection;                //Section name.
-  char *pKey;                    //Key name.
+  const char *pSection;          //Section name.
+  const char *pKey;              //Key name.
   DWORD dwType;                  //Data type: see INI_* defines.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_INIGETVALUE returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } INIVALUEA;
 
 typedef struct _INIVALUEW {
-  wchar_t *pSection;             //Section name.
-  wchar_t *pKey;                 //Key name.
+  const wchar_t *pSection;       //Section name.
+  const wchar_t *pKey;           //Key name.
   DWORD dwType;                  //Data type: see INI_* defines.
   BYTE *lpData;                  //Data pointer. If NULL, AKD_INIGETVALUE returns required buffer size in bytes.
   DWORD dwData;                  //Data size in bytes.
 } INIVALUEW;
 
 typedef struct _GETTEXTRANGE {
-  int cpMin;                      //First character in the range. First char of text: 0.
-  int cpMax;                      //Last character in the range. Last char of text: -1.
-  unsigned char *pText;           //Pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
-                                  //  char *pText      if bOldWindows == TRUE
-                                  //  wchar_t *pText   if bOldWindows == FALSE
+  int cpMin;                  //First character in the range. First char of text: 0.
+  int cpMax;                  //Last character in the range. Last char of text: -1.
+  unsigned char *pText;       //Pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
+                              //  char *pText      if bOldWindows == TRUE
+                              //  wchar_t *pText   if bOldWindows == FALSE
 } GETTEXTRANGE;
 
 #ifdef __AKELEDIT_H__
 typedef struct _EXGETTEXTRANGE {
-  AECHARRANGE cr;                 //Characters range to retrieve
-  BOOL bColumnSel;                //Column selection. If this value is –1, active column selection mode is used.
-  unsigned char *pText;           //Pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
-                                  //  char *pText      if bOldWindows == TRUE
-                                  //  wchar_t *pText   if bOldWindows == FALSE
-  int nNewLine;                   //see AELB_* defines
-  int nCodePage;                  //Valid if bOldWindows == TRUE. Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
-  char *lpDefaultChar;            //Valid if bOldWindows == TRUE. Points to the character used if a wide character cannot be represented in the specified code page. If this member is NULL, a system default value is used.
-  BOOL *lpUsedDefChar;            //Valid if bOldWindows == TRUE. Points to a flag that indicates whether a default character was used. The flag is set to TRUE if one or more wide characters in the source string cannot be represented in the specified code page. Otherwise, the flag is set to FALSE. This member may be NULL.
+  AECHARRANGE cr;             //Characters range to retrieve
+  BOOL bColumnSel;            //Column selection. If this value is –1, active column selection mode is used.
+  unsigned char *pText;       //Pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
+                              //  char *pText      if bOldWindows == TRUE
+                              //  wchar_t *pText   if bOldWindows == FALSE
+  int nNewLine;               //see AELB_* defines
+  int nCodePage;              //Valid if bOldWindows == TRUE. Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
+  const char *lpDefaultChar;  //Valid if bOldWindows == TRUE. Points to the character used if a wide character cannot be represented in the specified code page. If this member is NULL, a system default value is used.
+  BOOL *lpUsedDefChar;        //Valid if bOldWindows == TRUE. Points to a flag that indicates whether a default character was used. The flag is set to TRUE if one or more wide characters in the source string cannot be represented in the specified code page. Otherwise, the flag is set to FALSE. This member may be NULL.
 } EXGETTEXTRANGE;
 #endif
 
@@ -651,34 +651,34 @@ typedef struct _RECENTFILESW {
 
 typedef struct _TEXTFINDA {
   DWORD dwFlags;            //See FR_* defines
-  char *pFindIt;            //Find string
+  const char *pFindIt;      //Find string
   int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
 } TEXTFINDA;
 
 typedef struct _TEXTFINDW {
   DWORD dwFlags;            //See FR_* defines
-  wchar_t *pFindIt;         //Find string
+  const wchar_t *pFindIt;   //Find string
   int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
 } TEXTFINDW;
 
 typedef struct _TEXTREPLACEA {
-  DWORD dwFlags;            //See FR_* defines
-  char *pFindIt;            //Find string
-  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
-  char *pReplaceWith;       //Replace string
-  int nReplaceWithLen;      //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
-  BOOL bAll;                //Replace all
-  int nChanges;             //Count of changes
+  DWORD dwFlags;               //See FR_* defines
+  const char *pFindIt;         //Find string
+  int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  const char *pReplaceWith;    //Replace string
+  int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  BOOL bAll;                   //Replace all
+  int nChanges;                //Count of changes
 } TEXTREPLACEA;
 
 typedef struct _TEXTREPLACEW {
-  DWORD dwFlags;            //See FR_* defines
-  wchar_t *pFindIt;         //Find string
-  int nFindItLen;           //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
-  wchar_t *pReplaceWith;    //Replace string
-  int nReplaceWithLen;      //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
-  BOOL bAll;                //Replace all
-  int nChanges;             //Count of changes
+  DWORD dwFlags;               //See FR_* defines
+  const wchar_t *pFindIt;      //Find string
+  int nFindItLen;              //Find string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  const wchar_t *pReplaceWith; //Replace string
+  int nReplaceWithLen;         //Replace string length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically (4.x only).
+  BOOL bAll;                   //Replace all
+  int nChanges;                //Count of changes
 } TEXTREPLACEW;
 
 typedef struct _TEXTRECODE {
@@ -772,8 +772,8 @@ typedef struct _CHARCOLOR {
 
 typedef struct _NOPENDOCUMENT {
   const BYTE *pFile;        //Opening file
-                            //  char *pFile         if bOldWindows == TRUE
-                            //  wchar_t *pFile      if bOldWindows == FALSE
+                            //  const char *pFile         if bOldWindows == TRUE
+                            //  const wchar_t *pFile      if bOldWindows == FALSE
   const char *szFile;       //Opening file (Ansi)
   const wchar_t *wszFile;   //Opening file (Unicode)
   int *nCodePage;           //Pointer to a code page variable
@@ -785,8 +785,8 @@ typedef struct _NOPENDOCUMENT {
 
 typedef struct _NSAVEDOCUMENT {
   const BYTE *pFile;        //Saving file
-                            //  char *pFile         if bOldWindows == TRUE
-                            //  wchar_t *pFile      if bOldWindows == FALSE
+                            //  const char *pFile         if bOldWindows == TRUE
+                            //  const wchar_t *pFile      if bOldWindows == FALSE
   const char *szFile;       //Saving file (Ansi)
   const wchar_t *wszFile;   //Saving file (Unicode)
   int *nCodePage;           //Pointer to a code page variable
@@ -1804,7 +1804,7 @@ Return Value
  When you no longer need the buffer, call the AKD_FREETEXT function to delete it.
 
 Example (bOldWindows == TRUE):
- int ReadFileContentA(char *pFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
+ int ReadFileContentA(const char *pFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
  {
    DETECTCODEPAGEA dc;
    FILECONTENT fc;
@@ -1852,7 +1852,7 @@ Example (bOldWindows == TRUE):
  }
 
 Example (bOldWindows == FALSE):
- int ReadFileContentW(wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
+ int ReadFileContentW(const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, wchar_t **wpContent)
  {
    DETECTCODEPAGEW dc;
    FILECONTENT fc;
