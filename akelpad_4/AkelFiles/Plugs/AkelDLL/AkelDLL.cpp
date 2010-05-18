@@ -27,9 +27,6 @@ extern "C" void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
     return;
   }
 
-  //If function load on start (autoload), then exit
-  if (pd->bOnStart) return;
-
   //Get current text selection
   SendMessage(pd->hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
   gtr.cpMin=cr.cpMin;
@@ -66,9 +63,6 @@ extern "C" void __declspec(dllexport) OpenDialogTest(PLUGINDATA *pd)
     *pd->lpbAutoLoad=FALSE;
     return;
   }
-
-  //If function load on start (autoload), then exit
-  if (pd->bOnStart) return;
 
   SendMessage(pd->hMainWnd, WM_COMMAND, IDM_FILE_OPEN, 0);
 }

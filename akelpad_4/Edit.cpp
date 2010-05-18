@@ -11116,6 +11116,7 @@ PLUGINFUNCTION* StackHotkeyFind(HSTACK *hStack, WORD wHotkey)
   {
     if (pfElement->wHotkey == wHotkey)
         break;
+
     pfElement=pfElement->next;
   }
   return pfElement;
@@ -11218,13 +11219,13 @@ BOOL StackPluginSave(HSTACK *hStack, BOOL bCleanOld)
 void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
 {
   PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
-  PLUGINFUNCTION *pfElement2;
+  PLUGINFUNCTION *pfNextElement;
   wchar_t wszDLL[MAX_PATH];
   wchar_t wszPlugin[MAX_PATH];
 
   while (pfElement)
   {
-    pfElement2=pfElement->next;
+    pfNextElement=pfElement->next;
 
     if (!pfElement->wHotkey && !pfElement->bOnStart && !pfElement->bRunning)
     {
@@ -11244,7 +11245,7 @@ void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
         }
       }
     }
-    pfElement=pfElement2;
+    pfElement=pfNextElement;
   }
 }
 
@@ -11403,7 +11404,7 @@ BOOL TranslatePlugin(LPMSG lpMsg)
         if (FreeLibrary(hInstanceDLL))
         {
           PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hPluginsStack.first;
-          PLUGINFUNCTION *pfElement2;
+          PLUGINFUNCTION *pfNextElement;
           UNISTRING us;
 
           StackHandleDecrease(&hHandlesStack, hInstanceDLL);
@@ -11411,19 +11412,16 @@ BOOL TranslatePlugin(LPMSG lpMsg)
           //Clean-up plugins stack
           while (pfElement)
           {
+            pfNextElement=pfElement->next;
+
             if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (DWORD)-1))
             {
               if (pfElement->wHotkey || pfElement->bOnStart)
                 pfElement->bRunning=FALSE;
               else
-              {
-                pfElement2=pfElement->next;
                 StackPluginDelete(&hPluginsStack, pfElement);
-                pfElement=pfElement2;
-                continue;
-              }
             }
-            pfElement=pfElement->next;
+            pfElement=pfNextElement;
           }
           us.pString=bOldWindows?(LPBYTE)szPluginName:(LPBYTE)wszPluginName;
           us.szString=szPluginName;
