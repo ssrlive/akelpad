@@ -1163,7 +1163,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       pcsW.pFunction=wszPluginFunction;
       pcsW.lParam=lpCallSend->lParam;
       pcsW.lpbAutoLoad=lpCallSend->lpbAutoLoad;
-      return (LRESULT)CallPluginSend(NULL, &pcsW);
+      return (LRESULT)CallPluginSend(NULL, &pcsW, FALSE);
     }
     else if (uMsg == AKD_DLLFIND ||
              uMsg == AKD_DLLFINDA ||
@@ -1198,7 +1198,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         nPluginFunctionLen=xprintfW(wszPluginFunction, L"%S", (char *)pa->pFunction);
       else
         nPluginFunctionLen=xprintfW(wszPluginFunction, L"%s", (wchar_t *)pa->pFunction);
-      return (LRESULT)StackPluginAdd(&hPluginsStack, wszPluginFunction, nPluginFunctionLen, pa->wHotkey, pa->bOnStart, pa->PluginProc, pa->lpParameter);
+      return (LRESULT)StackPluginAdd(&hPluginsStack, wszPluginFunction, nPluginFunctionLen, pa->wHotkey, pa->bAutoLoad, pa->PluginProc, pa->lpParameter);
     }
     else if (uMsg == AKD_DLLDELETE)
     {
@@ -1212,7 +1212,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         bSavePluginsStackOnExit=TRUE;
         return TRUE;
       }
-      return StackPluginSave(&hPluginsStack, (lParam == DLLS_CLEAR)?TRUE:FALSE);
+      return StackPluginSave(&hPluginsStack);
     }
   }
 
@@ -3402,7 +3402,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //Save plugin stack
     if (bSavePluginsStackOnExit)
-      StackPluginSave(&hPluginsStack, DLLS_CLEAR);
+      StackPluginSave(&hPluginsStack);
 
     //Clean up
     if (nMDI)

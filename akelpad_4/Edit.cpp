@@ -2150,13 +2150,13 @@ void DoSettingsOptions()
     nTmp=nSaveSettings;
     nSaveSettings=SS_REGISTRY;
     SaveOptions();
-    SaveThemes(TRUE);
-    StackPluginSave(&hPluginsStack, TRUE);
+    SaveThemes();
+    StackPluginSave(&hPluginsStack);
 
     nSaveSettings=SS_INI;
     SaveOptions();
-    SaveThemes(TRUE);
-    StackPluginSave(&hPluginsStack, TRUE);
+    SaveThemes();
+    StackPluginSave(&hPluginsStack);
     nSaveSettings=nTmp;
   }
 
@@ -9761,7 +9761,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         lpFrameCurrent->aec.dwFlags=AECLR_ALL;
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
       }
-      SaveThemes(TRUE);
+      SaveThemes();
 
       EndDialog(hDlg, 0);
       return TRUE;
@@ -9922,7 +9922,7 @@ void ReadThemes()
   }
 }
 
-BOOL SaveThemes(BOOL bCleanOld)
+BOOL SaveThemes()
 {
   COLORTHEME *ctElement=(COLORTHEME *)hThemesStack.first;
   HKEY hKey;
@@ -9934,8 +9934,8 @@ BOOL SaveThemes(BOOL bCleanOld)
     wchar_t wszRegKey[MAX_PATH];
 
     xprintfW(wszRegKey, L"%s\\Themes", APP_REGHOMEW);
-    if (bCleanOld)
-      RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+    //Clean old
+    RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
     if (RegCreateKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
       return FALSE;
   }
@@ -9944,11 +9944,9 @@ BOOL SaveThemes(BOOL bCleanOld)
     if (!OpenIniW(&hIniStack, wszIniFile, TRUE))
       return FALSE;
 
-    if (bCleanOld)
-    {
-      if (lpIniSection=StackOpenIniSectionW(&hIniStack, L"Themes", lstrlenW(L"Themes"), FALSE))
-        StackDeleteIniSection(&hIniStack, lpIniSection, TRUE);
-    }
+    //Clean old
+    if (lpIniSection=StackOpenIniSectionW(&hIniStack, L"Themes", lstrlenW(L"Themes"), FALSE))
+      StackDeleteIniSection(&hIniStack, lpIniSection, TRUE);
   }
 
   //Skip "Standard" theme
@@ -10111,7 +10109,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         FreePluginList(&hPluginListStack);
         StackPluginCleanUp(&hPluginsStack, bListChanged?TRUE:FALSE);
-        if (bListChanged) StackPluginSave(&hPluginsStack, TRUE);
+        if (bListChanged) StackPluginSave(&hPluginsStack);
 
         EndDialog(hDlg, 0);
         if (pcp) PostMessage(hMainWnd, AKD_DLLCALLW, 0, (LPARAM)pcp);
@@ -10121,7 +10119,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       FreePluginList(&hPluginListStack);
       StackPluginCleanUp(&hPluginsStack, TRUE);
-      StackPluginSave(&hPluginsStack, TRUE);
+      StackPluginSave(&hPluginsStack);
 
       EndDialog(hDlg, 0);
     }
@@ -10132,7 +10130,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       while (pliElement)
       {
         pliElement->pf->wHotkey=pliElement->wInitialHotkey;
-        pliElement->pf->bOnStart=pliElement->bInitialOnStart;
+        pliElement->pf->bAutoLoad=pliElement->bInitialOnStart;
 
         pliElement=pliElement->next;
       }
@@ -10163,7 +10161,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               if (pliElement->pf)
               {
-                pliElement->pf->bOnStart=bNewState;
+                pliElement->pf->bAutoLoad=bNewState;
                 bListChanged=TRUE;
 
                 if (bNewState)
@@ -10176,7 +10174,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     pcs.pFunction=pliElement->pf->wszFunction;
                     pcs.lParam=0;
                     pcs.lpbAutoLoad=&pliElement->nAutoLoad;
-                    pliElement->nCallResult=CallPluginSend(NULL, &pcs);
+                    pliElement->nCallResult=CallPluginSend(NULL, &pcs, FALSE);
                   }
                   if (pliElement->nAutoLoad == 0 || pliElement->nCallResult == UD_FAILED)
                   {
@@ -10186,7 +10184,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                       xprintfW(wbuf2, wbuf, pliElement->pf->wszFunction);
                       MessageBoxW(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
                     }
-                    pliElement->pf->bOnStart=FALSE;
+                    pliElement->pf->bAutoLoad=FALSE;
                     SetWindowLongWide(hDlg, DWL_MSGRESULT, TRUE);
                     return TRUE;
                   }
@@ -10317,12 +10315,12 @@ BOOL CALLBACK FillPluginListProc(char *pExportName, LPARAM lParam)
     {
       if (pfElement=StackPluginFind(&hPluginsStack, wszPluginFunction, nPluginFunctionLen))
       {
-        if (pfElement->bOnStart)
+        if (pfElement->bAutoLoad)
         {
           lviW.mask=LVIF_STATE;
           lviW.iItem=nIndex;
           lviW.iSubItem=LVSI_FUNCTION_NAME;
-          lviW.state=((pfElement->bOnStart + 1) << 12);
+          lviW.state=((pfElement->bAutoLoad + 1) << 12);
           lviW.stateMask=LVIS_STATEIMAGEMASK;
           ListView_SetItemWide(pld->hWndList, &lviW);
         }
@@ -10349,7 +10347,7 @@ BOOL CALLBACK FillPluginListProc(char *pExportName, LPARAM lParam)
 
       pliElement->pf=pfElement;
       pliElement->wInitialHotkey=pfElement->wHotkey;
-      pliElement->bInitialOnStart=pfElement->bOnStart;
+      pliElement->bInitialOnStart=pfElement->bAutoLoad;
       pliElement->nAutoLoad=-1;
       pliElement->nCallResult=UD_FAILED;
     }
@@ -10421,12 +10419,12 @@ void CallPluginsOnStart(HSTACK *hStack)
   {
     pfNextElement=pfElement->next;
 
-    if (pfElement->bOnStart)
+    if (pfElement->bAutoLoad)
     {
       pcs.pFunction=pfElement->wszFunction;
       pcs.lParam=0;
       pcs.lpbAutoLoad=NULL;
-      if (CallPluginSend(&pfElement, &pcs) == UD_FAILED)
+      if (CallPluginSend(&pfElement, &pcs, TRUE) == UD_FAILED)
       {
         if (pfElement)
           StackPluginDelete(hStack, pfElement);
@@ -10436,7 +10434,7 @@ void CallPluginsOnStart(HSTACK *hStack)
   }
 }
 
-int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs)
+int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, BOOL bOnStart)
 {
   PLUGINFUNCTION *pfElement=NULL;
   int nResult=UD_FAILED;
@@ -10465,7 +10463,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs)
     }
     else
     {
-      nResult=CallPlugin(pfElement, pcs);
+      nResult=CallPlugin(pfElement, pcs, bOnStart);
 
       if (!pcs->lpbAutoLoad)
       {
@@ -10479,7 +10477,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs)
             }
             else
             {
-              if (pfElement->wHotkey || pfElement->bOnStart)
+              if (pfElement->wHotkey || pfElement->bAutoLoad)
               {
                 pfElement->bRunning=FALSE;
               }
@@ -10491,7 +10489,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs)
             }
           }
         }
-        else if (!pfElement->wHotkey && !pfElement->bOnStart)
+        else if (!pfElement->wHotkey && !pfElement->bAutoLoad)
         {
           StackPluginDelete(&hPluginsStack, pfElement);
           pfElement=NULL;
@@ -10505,7 +10503,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs)
   return nResult;
 }
 
-int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs)
+int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnStart)
 {
   wchar_t wszPlugin[MAX_PATH];
   wchar_t wszFunction[MAX_PATH];
@@ -10566,14 +10564,15 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs)
                 if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
                 {
                   pd.cb=sizeof(PLUGINDATA);
+                  pd.lpbAutoLoad=pcs->lpbAutoLoad;
                   pd.pFunction=bOldWindows?(LPBYTE)szFullName:(LPBYTE)pcs->pFunction;
                   pd.szFunction=szFullName;
                   pd.wszFunction=pcs->pFunction;
                   pd.hInstanceDLL=hModule;
                   pd.lpPluginFunction=lpPluginFunction;
-                  pd.lpbAutoLoad=pcs->lpbAutoLoad;
                   pd.nUnload=UD_UNLOAD;
                   pd.bInMemory=bInMemory;
+                  pd.bOnStart=bOnStart;
                   pd.lParam=pcs->lParam;
                   pd.pAkelDir=bOldWindows?(LPBYTE)szExeDir:(LPBYTE)wszExeDir;
                   pd.szAkelDir=szExeDir;
@@ -11122,14 +11121,14 @@ PLUGINFUNCTION* StackHotkeyFind(HSTACK *hStack, WORD wHotkey)
   return pfElement;
 }
 
-PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen, WORD wHotkey, BOOL bOnStart, PLUGINPROC PluginProc, void *lpParameter)
+PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen, WORD wHotkey, BOOL bAutoLoad, PLUGINPROC PluginProc, void *lpParameter)
 {
   PLUGINFUNCTION *pfElement;
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&pfElement, -1, sizeof(PLUGINFUNCTION)))
   {
     pfElement->wHotkey=wHotkey;
-    pfElement->bOnStart=bOnStart;
+    pfElement->bAutoLoad=bAutoLoad;
     pfElement->bRunning=FALSE;
     pfElement->PluginProc=PluginProc;
     pfElement->lpParameter=lpParameter;
@@ -11150,7 +11149,7 @@ void StackPluginDelete(HSTACK *hStack, void *lpElement)
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpElement);
 }
 
-BOOL StackPluginSave(HSTACK *hStack, BOOL bCleanOld)
+BOOL StackPluginSave(HSTACK *hStack)
 {
   PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
   HKEY hKey;
@@ -11163,8 +11162,8 @@ BOOL StackPluginSave(HSTACK *hStack, BOOL bCleanOld)
     wchar_t wszRegKey[MAX_PATH];
 
     xprintfW(wszRegKey, L"%s\\Plugs", APP_REGHOMEW);
-    if (bCleanOld)
-      RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+    //Clean old
+    RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
     if (RegCreateKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL) != ERROR_SUCCESS)
       return FALSE;
   }
@@ -11173,20 +11172,18 @@ BOOL StackPluginSave(HSTACK *hStack, BOOL bCleanOld)
     if (!OpenIniW(&hIniStack, wszIniFile, TRUE))
       return FALSE;
 
-    if (bCleanOld)
-    {
-      if (lpIniSection=StackOpenIniSectionW(&hIniStack, L"Plugs", lstrlenW(L"Plugs"), FALSE))
-        StackDeleteIniSection(&hIniStack, lpIniSection, TRUE);
-    }
+    //Clean old
+    if (lpIniSection=StackOpenIniSectionW(&hIniStack, L"Plugs", lstrlenW(L"Plugs"), FALSE))
+      StackDeleteIniSection(&hIniStack, lpIniSection, TRUE);
   }
 
   while (pfElement)
   {
     if (IsMainFunctionW(pfElement->wszFunction))
     {
-      if (!bCleanOld || (pfElement->wHotkey || pfElement->bOnStart))
+      if (pfElement->wHotkey || pfElement->bAutoLoad)
       {
-        dwHotkey=MAKELONG(pfElement->wHotkey, pfElement->bOnStart);
+        dwHotkey=MAKELONG(pfElement->wHotkey, pfElement->bAutoLoad);
 
         if (nSaveSettings == SS_REGISTRY)
         {
@@ -11227,7 +11224,7 @@ void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL)
   {
     pfNextElement=pfElement->next;
 
-    if (!pfElement->wHotkey && !pfElement->bOnStart && !pfElement->bRunning)
+    if (!pfElement->wHotkey && !pfElement->bAutoLoad && !pfElement->bRunning)
     {
       StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)pfElement);
       pfElement=NULL;
@@ -11377,7 +11374,7 @@ BOOL TranslatePlugin(LPMSG lpMsg)
     pcsW.pFunction=wszPluginFunction;
     pcsW.lParam=lpCallPostW->lParam;
     pcsW.lpbAutoLoad=NULL;
-    CallPluginSend(NULL, &pcsW);
+    CallPluginSend(NULL, &pcsW, FALSE);
     return TRUE;
   }
   else if (lpMsg->message == AKD_DLLUNLOAD)
@@ -11416,7 +11413,7 @@ BOOL TranslatePlugin(LPMSG lpMsg)
 
             if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (DWORD)-1))
             {
-              if (pfElement->wHotkey || pfElement->bOnStart)
+              if (pfElement->wHotkey || pfElement->bAutoLoad)
                 pfElement->bRunning=FALSE;
               else
                 StackPluginDelete(&hPluginsStack, pfElement);
@@ -11460,7 +11457,7 @@ BOOL TranslateHotkey(HSTACK *hStack, LPMSG lpMsg)
         pcs.pFunction=pfElement->wszFunction;
         pcs.lParam=0;
         pcs.lpbAutoLoad=NULL;
-        if (CallPluginSend(&pfElement, &pcs) & UD_HOTKEY_DODEFAULT)
+        if (CallPluginSend(&pfElement, &pcs, FALSE) & UD_HOTKEY_DODEFAULT)
           break;
         return TRUE;
       }

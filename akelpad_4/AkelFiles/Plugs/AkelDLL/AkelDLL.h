@@ -183,8 +183,8 @@
 #define PO_STRING    3  //Null-terminated string
 
 //Save plugins stack
-#define DLLS_CLEAR   1  //Clear all records before saving
-#define DLLS_ONEXIT  2  //Save stack on program exit
+#define DLLS_NOW     0  //Save plugins stack immediately
+#define DLLS_ONEXIT  1  //Save plugins stack on program exit
 
 //Context menu owner
 #define NCM_EDIT     1  //Edit control
@@ -305,8 +305,8 @@ typedef struct _PLUGINFUNCTION {
   wchar_t wszFunction[MAX_PATH];  //Function name (Unicode)
   int nFunctionLen;               //Function name length
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bOnStart;                  //TRUE  if plugin has start-up flag
-                                  //FALSE if plugin doesn't have start-up flag
+  BOOL bAutoLoad;                 //TRUE  if function support autoload
+                                  //FALSE if function doesn't support autoload
   BOOL bRunning;                  //Function is running
   PLUGINPROC PluginProc;          //Function procedure
   void *lpParameter;              //Procedure parameter
@@ -314,6 +314,9 @@ typedef struct _PLUGINFUNCTION {
 
 typedef struct _PLUGINDATA {
   DWORD cb;                         //Size of the structure
+  BOOL *lpbAutoLoad;                //This member is not NULL if caller wants to get autoload flag. In this case function must set this member to TRUE or FALSE and quit execution.
+                                    //  TRUE  if function support autoload
+                                    //  FALSE if function doesn't support autoload
   const BYTE *pFunction;            //Called function name, format "Plugin::Function"
                                     //  const char *pFunction     if bOldWindows == TRUE
                                     //  const wchar_t *pFunction  if bOldWindows == FALSE
@@ -321,10 +324,11 @@ typedef struct _PLUGINDATA {
   const wchar_t *wszFunction;       //Called function name (Unicode)
   HINSTANCE hInstanceDLL;           //DLL instance
   PLUGINFUNCTION *lpPluginFunction; //Pointer to a PLUGINFUNCTION structure
-  BOOL *lpbAutoLoad;                //TRUE  if function supports autoload
-                                    //FALSE if function doesn't support autoload
   int nUnload;                      //See UD_* defines
   BOOL bInMemory;                   //Plugin already loaded
+  BOOL bOnStart;                    //Indicates when function has been called:
+                                    //  TRUE  if function called on start-up
+                                    //  FALSE if function called manually
   LPARAM lParam;                    //Input data
   const BYTE *pAkelDir;             //AkelPad directory
                                     //  const char *pAkelDir      if bOldWindows == TRUE
@@ -545,8 +549,8 @@ typedef struct _WNDPROCRETDATA {
 typedef struct _PLUGINADDA {
   const char *pFunction;          //Function name, format "Plugin::Function"
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bOnStart;                  //TRUE  if plugin has start-up flag
-                                  //FALSE if plugin doesn't have start-up flag
+  BOOL bAutoLoad;                 //TRUE  if function support autoload
+                                  //FALSE if function doesn't support autoload
   PLUGINPROC PluginProc;          //Function procedure
   void *lpParameter;              //Procedure parameter
 } PLUGINADDA;
@@ -554,8 +558,8 @@ typedef struct _PLUGINADDA {
 typedef struct _PLUGINADDW {
   const wchar_t *pFunction;       //Function name, format "Plugin::Function"
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bOnStart;                  //TRUE  if plugin has start-up flag
-                                  //FALSE if plugin doesn't have start-up flag
+  BOOL bAutoLoad;                 //TRUE  if function support autoload
+                                  //FALSE if function doesn't support autoload
   PLUGINPROC PluginProc;          //Function procedure
   void *lpParameter;              //Procedure parameter
 } PLUGINADDW;
@@ -2962,7 +2966,7 @@ Example add plugin hotkey (Unicode):
 
  pf.pFunction=L"MyDLL::MyFunction";
  pf.wHotkey=589;       //Ctrl+M
- pf.bOnStart=FALSE;
+ pf.bAutoLoad=FALSE;
  pf.PluginProc=(PLUGINPROC)PluginProc;
  pf.lpParameter=NULL;
  SendMessage(pd->hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pf);
@@ -3009,7 +3013,7 @@ Return Value
  FALSE error
 
 Example:
- SendMessage(pd->hMainWnd, AKD_DLLSAVE, 0, DLLS_CLEAR);
+ SendMessage(pd->hMainWnd, AKD_DLLSAVE, 0, DLLS_NOW);
 
 
 AKD_CALLPROC

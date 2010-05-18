@@ -604,7 +604,7 @@ COLORTHEME* StackThemeGetByColors(HSTACK *hStack, AECOLORS *aec);
 void StackThemeDelete(HSTACK *hStack, COLORTHEME *ctElement);
 void StackThemeFree(HSTACK *hStack);
 void ReadThemes();
-BOOL SaveThemes(BOOL bCleanOld);
+BOOL SaveThemes();
 
 BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam);
@@ -615,8 +615,8 @@ void FreePluginList(HSTACK *hStack);
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
 BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunction);
 void CallPluginsOnStart(HSTACK *hStack);
-int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs);
-int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs);
+int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, BOOL bOnStart);
+int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnStart);
 BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM lParam);
 
 int StackProcGet(HSTACK *hStack, int nIndex, WNDPROCDATA **ProcData);
@@ -638,7 +638,7 @@ PLUGINFUNCTION* StackPluginFind(HSTACK *hStack, const wchar_t *wpPluginFunction,
 PLUGINFUNCTION* StackHotkeyFind(HSTACK *hStack, WORD wHotkey);
 PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpString, int nStringLen, WORD wHotkey, BOOL bOnStart, PLUGINPROC PluginProc, void *lpParameter);
 void StackPluginDelete(HSTACK *hStack, void *lpElement);
-BOOL StackPluginSave(HSTACK *hStack, BOOL bCleanOld);
+BOOL StackPluginSave(HSTACK *hStack);
 void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL);
 void StackPluginFree(HSTACK *hStack);
 BOOL IsMainFunctionW(const wchar_t *wpFunction);
