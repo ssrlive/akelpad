@@ -614,9 +614,9 @@ PLUGINLISTITEM* GetPluginListItem(HSTACK *hStack, int nIndex);
 void FreePluginList(HSTACK *hStack);
 int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
 BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunction);
-int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs);
 void CallPluginsOnStart(HSTACK *hStack);
-int CallPluginReceive(PLUGINFUNCTION *pfElement, PLUGINCALLSENDW *pcs);
+int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs);
+int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs);
 BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM lParam);
 
 int StackProcGet(HSTACK *hStack, int nIndex, WNDPROCDATA **ProcData);

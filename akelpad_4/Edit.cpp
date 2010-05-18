@@ -10105,7 +10105,6 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW)))
           {
             xstrcpynW(pcp->szFunction, pliElement->pf->wszFunction, MAX_PATH);
-            pcp->bOnStart=FALSE;
             pcp->lParam=0;
           }
         }
@@ -10171,13 +10170,13 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 {
                   if (pliElement->nAutoLoad == -1 || pliElement->nCallResult == UD_FAILED)
                   {
+                    //Check plugin autoload support
                     PLUGINCALLSENDW pcs;
 
                     pcs.pFunction=pliElement->pf->wszFunction;
-                    pcs.bOnStart=FALSE;
                     pcs.lParam=0;
                     pcs.lpbAutoLoad=&pliElement->nAutoLoad;
-                    pliElement->nCallResult=CallPlugin(NULL, &pcs);
+                    pliElement->nCallResult=CallPluginSend(NULL, &pcs);
                   }
                   if (pliElement->nAutoLoad == 0 || pliElement->nCallResult == UD_FAILED)
                   {
@@ -10412,6 +10411,100 @@ BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *ws
   return FALSE;
 }
 
+void CallPluginsOnStart(HSTACK *hStack)
+{
+  PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
+  PLUGINFUNCTION *pfNextElement;
+  PLUGINCALLSENDW pcs;
+
+  while (pfElement)
+  {
+    pfNextElement=pfElement->next;
+
+    if (pfElement->bOnStart)
+    {
+      pcs.pFunction=pfElement->wszFunction;
+      pcs.lParam=0;
+      pcs.lpbAutoLoad=NULL;
+      if (CallPluginSend(&pfElement, &pcs) == UD_FAILED)
+      {
+        if (pfElement)
+          StackPluginDelete(hStack, pfElement);
+      }
+    }
+    pfElement=pfNextElement;
+  }
+}
+
+int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs)
+{
+  PLUGINFUNCTION *pfElement=NULL;
+  int nResult=UD_FAILED;
+
+  if (pcs)
+  {
+    if (ppfElement)
+      pfElement=*ppfElement;
+
+    if (!pcs->lpbAutoLoad)
+    {
+      if (!pfElement)
+      {
+        if (!(pfElement=StackPluginFind(&hPluginsStack, pcs->pFunction, -1)))
+          if (!(pfElement=StackPluginAdd(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, FALSE, NULL, NULL)))
+            return UD_FAILED;
+      }
+    }
+
+    if (pfElement && pfElement->PluginProc)
+    {
+      if ((pfElement->PluginProc)(pfElement->lpParameter))
+        nResult=UD_NONUNLOAD_UNCHANGE;
+      else
+        nResult=UD_NONUNLOAD_UNCHANGE|UD_HOTKEY_DODEFAULT;
+    }
+    else
+    {
+      nResult=CallPlugin(pfElement, pcs);
+
+      if (!pcs->lpbAutoLoad)
+      {
+        if (nResult != UD_FAILED)
+        {
+          if (!(nResult & UD_NONUNLOAD_UNCHANGE))
+          {
+            if (nResult & UD_NONUNLOAD_ACTIVE)
+            {
+              pfElement->bRunning=TRUE;
+            }
+            else
+            {
+              if (pfElement->wHotkey || pfElement->bOnStart)
+              {
+                pfElement->bRunning=FALSE;
+              }
+              else
+              {
+                StackPluginDelete(&hPluginsStack, pfElement);
+                pfElement=NULL;
+              }
+            }
+          }
+        }
+        else if (!pfElement->wHotkey && !pfElement->bOnStart)
+        {
+          StackPluginDelete(&hPluginsStack, pfElement);
+          pfElement=NULL;
+        }
+      }
+    }
+
+    if (ppfElement)
+      *ppfElement=pfElement;
+  }
+  return nResult;
+}
+
 int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs)
 {
   wchar_t wszPlugin[MAX_PATH];
@@ -10481,7 +10574,6 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs)
                   pd.lpbAutoLoad=pcs->lpbAutoLoad;
                   pd.nUnload=UD_UNLOAD;
                   pd.bInMemory=bInMemory;
-                  pd.bOnStart=pcs->bOnStart;
                   pd.lParam=pcs->lParam;
                   pd.pAkelDir=bOldWindows?(LPBYTE)szExeDir:(LPBYTE)wszExeDir;
                   pd.szAkelDir=szExeDir;
@@ -10583,83 +10675,6 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs)
     }
   }
   return UD_FAILED;
-}
-
-void CallPluginsOnStart(HSTACK *hStack)
-{
-  PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
-  PLUGINFUNCTION *pfTmp;
-  PLUGINCALLSENDW pcs;
-
-  while (pfElement)
-  {
-    if (pfElement->bOnStart)
-    {
-      pcs.pFunction=pfElement->wszFunction;
-      pcs.bOnStart=TRUE;
-      pcs.lParam=0;
-      pcs.lpbAutoLoad=NULL;
-
-      if (CallPluginReceive(pfElement, &pcs) == UD_FAILED)
-      {
-        pfTmp=pfElement->next;
-        StackPluginDelete(hStack, pfElement);
-        pfElement=pfTmp;
-        continue;
-      }
-    }
-    pfElement=pfElement->next;
-  }
-}
-
-int CallPluginReceive(PLUGINFUNCTION *pfElement, PLUGINCALLSENDW *pcs)
-{
-  int nResult=UD_FAILED;
-
-  if (pcs)
-  {
-    if (!pfElement)
-      pfElement=StackPluginFind(&hPluginsStack, pcs->pFunction, -1);
-    if (!pfElement)
-      StackPluginAdd(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, TRUE, NULL, NULL);
-
-    if (pfElement && pfElement->PluginProc)
-    {
-      if ((pfElement->PluginProc)(pfElement->lpParameter))
-        nResult=UD_NONUNLOAD_UNCHANGE;
-      else
-        nResult=UD_NONUNLOAD_UNCHANGE|UD_HOTKEY_DODEFAULT;
-    }
-    else
-    {
-      nResult=CallPlugin(pfElement, pcs);
-
-      if (nResult != UD_FAILED)
-      {
-        if (!(nResult & UD_NONUNLOAD_UNCHANGE))
-        {
-          if (nResult & UD_NONUNLOAD_ACTIVE)
-          {
-            if (pfElement)
-              pfElement->bRunning=TRUE;
-            else
-              StackPluginAdd(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, TRUE, NULL, NULL);
-          }
-          else
-          {
-            if (pfElement)
-            {
-              if (pfElement->wHotkey || pfElement->bOnStart)
-                pfElement->bRunning=FALSE;
-              else
-                StackPluginDelete(&hPluginsStack, pfElement);
-            }
-          }
-        }
-      }
-    }
-  }
-  return nResult;
 }
 
 BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM lParam)
@@ -11349,20 +11364,19 @@ BOOL TranslatePlugin(LPMSG lpMsg)
            lpMsg->message == AKD_DLLCALLA ||
            lpMsg->message == AKD_DLLCALLW)
   {
-    PLUGINCALLPOSTW *pcpW=(PLUGINCALLPOSTW *)lpMsg->lParam;
+    PLUGINCALLPOSTA *lpCallPostA=(PLUGINCALLPOSTA *)lpMsg->lParam;
+    PLUGINCALLPOSTW *lpCallPostW=(PLUGINCALLPOSTW *)lpMsg->lParam;
     PLUGINCALLSENDW pcsW;
     wchar_t wszPluginFunction[MAX_PATH];
-    BOOL bAnsi=FALSE;
 
     if (lpMsg->message == AKD_DLLCALLA || (bOldWindows && lpMsg->message == AKD_DLLCALL))
-      bAnsi=TRUE;
-
-    xprintfW(wszPluginFunction, L"%S%s", bAnsi?(char *)pcpW->szFunction:"", bAnsi?L"":(wchar_t *)pcpW->szFunction);
-    pcsW.bOnStart=pcpW->bOnStart;
-    pcsW.lParam=pcpW->lParam;
-    pcsW.lpbAutoLoad=NULL;
+      xprintfW(wszPluginFunction, L"%S", (char *)lpCallPostA->szFunction);
+    else
+      xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallPostW->szFunction);
     pcsW.pFunction=wszPluginFunction;
-    CallPluginReceive(NULL, &pcsW);
+    pcsW.lParam=lpCallPostW->lParam;
+    pcsW.lpbAutoLoad=NULL;
+    CallPluginSend(NULL, &pcsW);
     return TRUE;
   }
   else if (lpMsg->message == AKD_DLLUNLOAD)
@@ -11443,35 +11457,13 @@ BOOL TranslateHotkey(HSTACK *hStack, LPMSG lpMsg)
     {
       if (pfElement->wHotkey == wHotkey)
       {
-        if (pfElement->PluginProc)
-        {
-          if (!(pfElement->PluginProc)(pfElement->lpParameter))
-            break;
-        }
-        else
-        {
-          PLUGINCALLSENDW pcs;
-          int nResult;
+        PLUGINCALLSENDW pcs;
 
-          pcs.pFunction=pfElement->wszFunction;
-          pcs.bOnStart=FALSE;
-          pcs.lParam=0;
-          pcs.lpbAutoLoad=NULL;
-          nResult=CallPlugin(pfElement, &pcs);
-
-          if (nResult != UD_FAILED)
-          {
-            if (!(nResult & UD_NONUNLOAD_UNCHANGE))
-            {
-              if (nResult & UD_NONUNLOAD_ACTIVE)
-                pfElement->bRunning=TRUE;
-              else
-                pfElement->bRunning=FALSE;
-            }
-            if (nResult & UD_HOTKEY_DODEFAULT)
-              break;
-          }
-        }
+        pcs.pFunction=pfElement->wszFunction;
+        pcs.lParam=0;
+        pcs.lpbAutoLoad=NULL;
+        if (CallPluginSend(&pfElement, &pcs) & UD_HOTKEY_DODEFAULT)
+          break;
         return TRUE;
       }
       pfElement=pfElement->next;

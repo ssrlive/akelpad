@@ -1160,12 +1160,10 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         xprintfW(wszPluginFunction, L"%S", (char *)lpCallSend->pFunction);
       else
         xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallSend->pFunction);
-
       pcsW.pFunction=wszPluginFunction;
-      pcsW.bOnStart=lpCallSend->bOnStart;
       pcsW.lParam=lpCallSend->lParam;
       pcsW.lpbAutoLoad=lpCallSend->lpbAutoLoad;
-      return (LRESULT)CallPluginReceive(NULL, &pcsW);
+      return (LRESULT)CallPluginSend(NULL, &pcsW);
     }
     else if (uMsg == AKD_DLLFIND ||
              uMsg == AKD_DLLFINDA ||
@@ -1764,7 +1762,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->lpbAutoLoad=NULL;
       pd->nUnload=0;
       pd->bInMemory=0;
-      pd->bOnStart=0;
       pd->lParam=0;
       pd->pAkelDir=bOldWindows?(LPBYTE)szExeDir:(LPBYTE)wszExeDir;
       pd->szAkelDir=szExeDir;
