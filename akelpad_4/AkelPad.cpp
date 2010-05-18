@@ -1198,7 +1198,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         nPluginFunctionLen=xprintfW(wszPluginFunction, L"%S", (char *)pa->pFunction);
       else
         nPluginFunctionLen=xprintfW(wszPluginFunction, L"%s", (wchar_t *)pa->pFunction);
-      return (LRESULT)StackPluginAdd(&hPluginsStack, wszPluginFunction, nPluginFunctionLen, pa->wHotkey, pa->bOnStart, pa->bRunning, pa->PluginProc, pa->lpParameter);
+      return (LRESULT)StackPluginAdd(&hPluginsStack, wszPluginFunction, nPluginFunctionLen, pa->wHotkey, pa->bOnStart, pa->PluginProc, pa->lpParameter);
     }
     else if (uMsg == AKD_DLLDELETE)
     {
