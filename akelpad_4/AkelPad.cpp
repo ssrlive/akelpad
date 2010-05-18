@@ -2021,6 +2021,66 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       return DialogResizeMessages(drsm->drs, drsm->rcInit, drsm->rcCurrent, drsm->dwFlags, drsm->hDlg, drsm->uMsg, drsm->wParam, drsm->lParam);
     }
 
+    //Frames
+    if (uMsg == AKD_FRAMEFIND ||
+        uMsg == AKD_FRAMEFINDA ||
+        uMsg == AKD_FRAMEFINDW)
+    {
+      if (wParam == FFT_CURRENT)
+        return (LRESULT)lpFrameCurrent;
+      if (wParam == FFT_NEXT)
+      {
+        WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+
+        return (LRESULT)(lpFrame?lpFrame->next:NULL);
+      }
+      if (wParam == FFT_PREV)
+      {
+        WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+
+        return (LRESULT)(lpFrame?lpFrame->prev:NULL);
+      }
+      if (wParam == FFT_BYINDEX)
+        return (LRESULT)StackFrameGetByIndex(&hFramesStack, lParam);
+      if (wParam == FFT_BYFILENAME)
+      {
+        wchar_t *wpFileName=AllocWideStr(MAX_PATH);
+        WNDFRAME *lpResult;
+        int nFileNameLen;
+
+        if (uMsg == AKD_FRAMEFINDA || (bOldWindows && uMsg == AKD_FRAMEFIND))
+          nFileNameLen=xprintfW(wpFileName, L"%S", (char *)lParam);
+        else
+          nFileNameLen=xprintfW(wpFileName, L"%s", (wchar_t *)lParam);
+        lpResult=StackFrameGetByName(&hFramesStack, wpFileName, nFileNameLen);
+
+        FreeWideStr(wpFileName);
+        return (LRESULT)lpResult;
+      }
+      if (wParam == FFT_BYEDITWINDOW)
+        return (LRESULT)GetFrameDataFromEdit((HWND)lParam);
+      return 0;
+    }
+    if (uMsg == AKD_FRAMEACTIVATE)
+    {
+      WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+
+      ActivateFrameWindow(lpFrame);
+      return 0;
+    }
+    if (uMsg == AKD_FRAMENEXT)
+    {
+      WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+
+      return (LRESULT)NextFrameWindow(lpFrame, wParam);
+    }
+    if (uMsg == AKD_FRAMEDESTROY)
+    {
+      WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+
+      return DestroyFrameWindow(lpFrame, -1);
+    }
+
     //Thread
     if (uMsg == AKD_GLOBALALLOC)
     {

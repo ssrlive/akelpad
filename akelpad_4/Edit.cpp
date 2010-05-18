@@ -476,6 +476,34 @@ HWND CreateEditWindow(WNDFRAME *lpFrameNew, WNDFRAME *lpFrameOld)
   return hWndEditNew;
 }
 
+WNDFRAME* GetFrameDataFromEdit(HWND hWndEditCtrl)
+{
+  if (lpFrameCurrent->ei.hWndEdit)
+  {
+    if (!hWndEditCtrl || hWndEditCtrl == lpFrameCurrent->ei.hWndEdit)
+      return lpFrameCurrent;
+    if (lpFrameCurrent->ei.hWndMaster)
+    {
+      if (hWndEditCtrl == lpFrameCurrent->ei.hWndMaster ||
+          hWndEditCtrl == lpFrameCurrent->ei.hWndClone1 ||
+          hWndEditCtrl == lpFrameCurrent->ei.hWndClone2 ||
+          hWndEditCtrl == lpFrameCurrent->ei.hWndClone3)
+        return lpFrameCurrent;
+    }
+    if (nMDI == WMD_MDI)
+    {
+      HWND hWndParent;
+
+      if (GetWindowLongWide(hWndEditCtrl, GWL_ID) == ID_EDIT)
+      {
+        if (hWndParent=GetParent(hWndEditCtrl))
+          return (WNDFRAME *)GetWindowLongWide(hWndParent, GWL_USERDATA);
+      }
+    }
+  }
+  return NULL;
+}
+
 WNDFRAME* CreateFrameData(WNDFRAME *lpFrameSource, HWND hWndEditParent)
 {
   WNDFRAME *lpFrame;
@@ -635,7 +663,7 @@ BOOL CreateFrameWindow(RECT *rcRect)
     if (bMdiMaximize == -1)
       dwStyle=dwMdiStyle;
     else
-      dwStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
+      dwStyle=!bMdiMaximize?0:WS_MAXIMIZE;
     CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRect?rcRect->left:CW_USEDEFAULT, rcRect?rcRect->top:CW_USEDEFAULT, rcRect?rcRect->right:CW_USEDEFAULT, rcRect?rcRect->bottom:CW_USEDEFAULT, hMdiClient, hInstance, 0);
     bResult=TRUE;
   }
@@ -688,7 +716,7 @@ void ActivateFrameWindow(WNDFRAME *lpFrame)
   }
 }
 
-void NextFrameWindow(WNDFRAME *lpFrame, BOOL bPrev)
+WNDFRAME* NextFrameWindow(WNDFRAME *lpFrame, BOOL bPrev)
 {
   if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
   {
@@ -741,6 +769,7 @@ void NextFrameWindow(WNDFRAME *lpFrame, BOOL bPrev)
         ActivateFrameWindow(lpFrameNext);
     }
   }
+  return lpFrameCurrent;
 }
 
 int DestroyFrameWindow(WNDFRAME *lpFrame, int nTabItem)
@@ -792,27 +821,6 @@ int DestroyFrameWindow(WNDFRAME *lpFrame, int nTabItem)
     return FWD_SUCCESS;
   }
   return FWD_NOWINDOW;
-}
-
-WNDFRAME* GetFrameDataFromEdit(HWND hWndEditCtrl)
-{
-  if (lpFrameCurrent->ei.hWndEdit)
-  {
-    if (!hWndEditCtrl || hWndEditCtrl == lpFrameCurrent->ei.hWndEdit)
-      return lpFrameCurrent;
-
-    if (nMDI == WMD_MDI)
-    {
-      HWND hWndParent;
-
-      if (GetWindowLongWide(hWndEditCtrl, GWL_ID) == ID_EDIT)
-      {
-        if (hWndParent=GetParent(hWndEditCtrl))
-          return (WNDFRAME *)GetWindowLongWide(hWndParent, GWL_USERDATA);
-      }
-    }
-  }
-  return NULL;
 }
 
 
@@ -3092,8 +3100,8 @@ BOOL SaveOptions()
   if (nMDI == WMD_MDI)
   {
     if (lpFrameCurrent->hWndEditParent) SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
+    dwMdiStyle=!bMdiMaximize?0:WS_MAXIMIZE;
   }
-  dwMdiStyle=(bMdiMaximize == TRUE)?WS_MAXIMIZE:0;
 
   if (nSaveSettings == SS_REGISTRY)
   {
@@ -13090,6 +13098,15 @@ WNDFRAME* StackFrameInsert(HSTACK *hStack)
 
   StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(WNDFRAME));
   return lpElement;
+}
+
+WNDFRAME* StackFrameGetByIndex(HSTACK *hStack, int nIndex)
+{
+  WNDFRAME *lpFrame;
+
+  if (!StackGetElement((stack *)hStack->first, (stack *)hStack->last, (stack **)&lpFrame, nIndex))
+    return lpFrame;
+  return NULL;
 }
 
 WNDFRAME* StackFrameGetByHandle(HSTACK *hStack, HANDLE hDataHandle)

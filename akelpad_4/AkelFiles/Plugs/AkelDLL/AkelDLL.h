@@ -191,6 +191,14 @@
 #define NCM_TAB      2  //Tab control
 #define NCM_STATUS   3  //Status bar control
 
+//AKD_FRAMEFIND flags
+#define FFT_CURRENT       1
+#define FFT_NEXT          2
+#define FFT_PREV          3
+#define FFT_BYINDEX       4
+#define FFT_BYFILENAME    5
+#define FFT_BYEDITWINDOW  6
+
 //Find text flags
 #ifndef FR_DOWN
   #define FR_DOWN      0x00000001  //Find down
@@ -487,7 +495,7 @@ typedef struct _WNDFRAME {
   struct _WNDFRAME *next;
   struct _WNDFRAME *prev;
 
-  //Edit state
+  //Edit state external
   AEEditProc lpEditProc;                              //Edit window procedure
   HANDLE hDataHandle;                                 //Edit window data handle
   HWND hWndEditParent;                                //Edit parent window
@@ -497,6 +505,8 @@ typedef struct _WNDFRAME {
   int nFileLen;                                       //Frame file length
   HICON hIcon;                                        //Frame icon
   LOGFONTW lf;                                        //Edit font
+
+  //Edit state internal
   FILETIME ft;                                        //File time
   AECOLORS aec;                                       //Edit colors
   RECT rcEditWindow;                                  //Edit RECT
@@ -1296,11 +1306,13 @@ typedef struct _NSIZE {
 #define AKD_SETHOTKEYINPUT         (WM_USER + 256)
 #define AKD_DIALOGRESIZE           (WM_USER + 257)
 
-//Frame
+//Frames
 #define AKD_FRAMEFIND              (WM_USER + 261)
-#define AKD_FRAMEACTIVATE          (WM_USER + 262)
-#define AKD_FRAMENEXT              (WM_USER + 263)
-#define AKD_FRAMEDESTROY           (WM_USER + 264)
+#define AKD_FRAMEFINDA             (WM_USER + 262)
+#define AKD_FRAMEFINDW             (WM_USER + 263)
+#define AKD_FRAMEACTIVATE          (WM_USER + 264)
+#define AKD_FRAMENEXT              (WM_USER + 265)
+#define AKD_FRAMEDESTROY           (WM_USER + 266)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
