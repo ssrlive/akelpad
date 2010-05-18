@@ -1308,7 +1308,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         nStringLenAll=(crRange.ciMax.nLine - crRange.ciMin.nLine + 1) * nStringLen;
         nBufferLen=nRangeLen + nStringLenAll;
 
-        if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferLen * sizeof(wchar_t) + 2))
+        if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, (nBufferLen + 1) * sizeof(wchar_t)))
         {
           tr.cr=crRange;
           tr.bColumnSel=FALSE;
@@ -1361,7 +1361,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
       }
       else if (nAction & STRSEL_DELETE)
       {
-        if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, nRangeLen * sizeof(wchar_t) + 2))
+        if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, (nRangeLen + 1) * sizeof(wchar_t)))
         {
           tr.cr=crRange;
           tr.bColumnSel=FALSE;
@@ -1962,9 +1962,9 @@ BOOL DoSettingsExec()
   nCommandLen=TranslateFileStringW(wszCommand, NULL, 0);
   nWorkDirLen=TranslateFileStringW(wszWorkDir, NULL, 0);
 
-  if (wszCommandExp=(wchar_t *)API_HeapAlloc(hHeap, 0, nCommandLen * sizeof(wchar_t) + 2))
+  if (wszCommandExp=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCommandLen + 1) * sizeof(wchar_t)))
   {
-    if (wszWorkDirExp=(wchar_t *)API_HeapAlloc(hHeap, 0, nWorkDirLen * sizeof(wchar_t) + 2))
+    if (wszWorkDirExp=(wchar_t *)API_HeapAlloc(hHeap, 0, (nWorkDirLen + 1) * sizeof(wchar_t)))
     {
       TranslateFileStringW(wszCommand, wszCommandExp, nCommandLen + 1);
       TranslateFileStringW(wszWorkDir, wszWorkDirExp, nWorkDirLen + 1);
@@ -2400,9 +2400,9 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
 
   if ((dwFileSize=GetFileSize(hFile, NULL)) != INVALID_FILE_SIZE)
   {
-    if (dwFileSize >= 2)
+    if (dwFileSize >= sizeof(wchar_t))
     {
-      if (wszText=wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwFileSize + 2))
+      if (wszText=wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwFileSize + sizeof(wchar_t)))
       {
         if (ReadFile(hFile, wpText, dwFileSize, &dwBytesRead, NULL))
         {
@@ -2432,7 +2432,7 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
 
                 if (!StackInsertIndex((stack **)&hIniStack->first, (stack **)&hIniStack->last, (stack **)&lpIniSection, -1, sizeof(HINISECTION)))
                 {
-                  lpIniSection->nSectionBytes=nSectionLen * sizeof(wchar_t) + 2;
+                  lpIniSection->nSectionBytes=(nSectionLen + 1) * sizeof(wchar_t);
                   if (lpIniSection->wszSection=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniSection->nSectionBytes))
                     xmemcpy(lpIniSection->wszSection, wpSection, lpIniSection->nSectionBytes);
 
@@ -2465,11 +2465,11 @@ BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile)
 
                 if (!StackInsertIndex((stack **)&lpIniSection->hKeysStack.first, (stack **)&lpIniSection->hKeysStack.last, (stack **)&lpIniKey, -1, sizeof(HINIKEY)))
                 {
-                  lpIniKey->nKeyBytes=nKeyLen * sizeof(wchar_t) + 2;
+                  lpIniKey->nKeyBytes=(nKeyLen + 1) * sizeof(wchar_t);
                   if (lpIniKey->wszKey=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nKeyBytes))
                     xmemcpy(lpIniKey->wszKey, wpKey, lpIniKey->nKeyBytes);
 
-                  lpIniKey->nStringBytes=nStringLen * sizeof(wchar_t) + 2;
+                  lpIniKey->nStringBytes=(nStringLen + 1) * sizeof(wchar_t);
                   if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
                     xmemcpy(lpIniKey->wszString, wpString, lpIniKey->nStringBytes);
                 }
@@ -2503,7 +2503,7 @@ BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile)
     //Section
     if (!API_WriteFile(hFile, L"[", 2, &dwBytesWritten, NULL))
       return FALSE;
-    if (!API_WriteFile(hFile, lpIniSection->wszSection, lpIniSection->nSectionBytes - 2, &dwBytesWritten, NULL))
+    if (!API_WriteFile(hFile, lpIniSection->wszSection, lpIniSection->nSectionBytes - sizeof(wchar_t), &dwBytesWritten, NULL))
       return FALSE;
     if (!API_WriteFile(hFile, L"]\r\n", 6, &dwBytesWritten, NULL))
       return FALSE;
@@ -2513,11 +2513,11 @@ BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile)
 
     while (lpIniKey)
     {
-      if (!API_WriteFile(hFile, lpIniKey->wszKey, lpIniKey->nKeyBytes - 2, &dwBytesWritten, NULL))
+      if (!API_WriteFile(hFile, lpIniKey->wszKey, lpIniKey->nKeyBytes - sizeof(wchar_t), &dwBytesWritten, NULL))
         return FALSE;
       if (!API_WriteFile(hFile, L"=", 2, &dwBytesWritten, NULL))
         return FALSE;
-      if (!API_WriteFile(hFile, lpIniKey->wszString, lpIniKey->nStringBytes - 2, &dwBytesWritten, NULL))
+      if (!API_WriteFile(hFile, lpIniKey->wszString, lpIniKey->nStringBytes - sizeof(wchar_t), &dwBytesWritten, NULL))
         return FALSE;
       if (!API_WriteFile(hFile, L"\r\n", 4, &dwBytesWritten, NULL))
         return FALSE;
@@ -2538,7 +2538,7 @@ HINISECTION* StackOpenIniSectionA(HSTACK *hIniStack, char *pSection, int nSectio
   HINISECTION *lpIniSection=NULL;
   wchar_t *wpSection;
 
-  if (wpSection=(wchar_t *)API_HeapAlloc(hHeap, 0, nSectionLen * sizeof(wchar_t) + 2))
+  if (wpSection=(wchar_t *)API_HeapAlloc(hHeap, 0, (nSectionLen + 1) * sizeof(wchar_t)))
   {
     nSectionLen=MultiByteToWideChar(CP_ACP, 0, pSection, nSectionLen + 1, wpSection, nSectionLen + 1);
     lpIniSection=StackOpenIniSectionW(hIniStack, wpSection, nSectionLen - 1, bCreate);
@@ -2550,7 +2550,7 @@ HINISECTION* StackOpenIniSectionA(HSTACK *hIniStack, char *pSection, int nSectio
 HINISECTION* StackOpenIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSectionLen, BOOL bCreate)
 {
   HINISECTION *lpIniSection=(HINISECTION *)hIniStack->first;
-  int nSectionBytes=nSectionLen * sizeof(wchar_t) + 2;
+  int nSectionBytes=(nSectionLen + 1) * sizeof(wchar_t);
 
   while (lpIniSection)
   {
@@ -2582,7 +2582,7 @@ HINIKEY* StackOpenIniKeyA(HINISECTION *lpIniSection, char *pKey, int nKeyLen, BO
   HINIKEY *lpIniKey=NULL;
   wchar_t *wpKey;
 
-  if (wpKey=(wchar_t *)API_HeapAlloc(hHeap, 0, nKeyLen * sizeof(wchar_t) + 2))
+  if (wpKey=(wchar_t *)API_HeapAlloc(hHeap, 0, (nKeyLen + 1) * sizeof(wchar_t)))
   {
     nKeyLen=MultiByteToWideChar(CP_ACP, 0, pKey, nKeyLen + 1, wpKey, nKeyLen + 1);
     lpIniKey=StackOpenIniKeyW(lpIniSection, wpKey, nKeyLen - 1, bCreate);
@@ -2594,7 +2594,7 @@ HINIKEY* StackOpenIniKeyA(HINISECTION *lpIniSection, char *pKey, int nKeyLen, BO
 HINIKEY* StackOpenIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen, BOOL bCreate)
 {
   HINIKEY *lpIniKey=(HINIKEY *)lpIniSection->hKeysStack.first;
-  int nKeyBytes=nKeyLen * sizeof(wchar_t) + 2;
+  int nKeyBytes=(nKeyLen + 1) * sizeof(wchar_t);
 
   while (lpIniKey)
   {
@@ -2680,7 +2680,7 @@ BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD 
   {
     wchar_t wszNumber[16];
 
-    lpIniKey->nStringBytes=xuitoaW(*(DWORD *)lpData, wszNumber) * sizeof(wchar_t) + 2;
+    lpIniKey->nStringBytes=(xuitoaW(*(DWORD *)lpData, wszNumber) + 1) * sizeof(wchar_t);
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
     {
       xmemcpy(lpIniKey->wszString, wszNumber, lpIniKey->nStringBytes);
@@ -2689,7 +2689,7 @@ BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD 
   }
   else if (nType == INI_BINARY)
   {
-    lpIniKey->nStringBytes=(dwDataBytes * 2) * sizeof(wchar_t) + 2;
+    lpIniKey->nStringBytes=(dwDataBytes * 2 + 1) * sizeof(wchar_t);
     if (lpIniKey->wszString=(wchar_t *)API_HeapAlloc(hHeap, 0, lpIniKey->nStringBytes))
     {
       bin2hexW(lpData, dwDataBytes, lpIniKey->wszString, lpIniKey->nStringBytes / sizeof(wchar_t), FALSE);
@@ -3039,7 +3039,7 @@ void RegisterPluginsHotkeys()
       {
         if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString, NULL))
         {
-          StackPluginAdd(&hPluginsStack, lpIniKey->wszKey, (lpIniKey->nKeyBytes - 1) / sizeof(wchar_t), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+          StackPluginAdd(&hPluginsStack, lpIniKey->wszKey, lpIniKey->nKeyBytes / sizeof(wchar_t) - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
         }
         lpIniKey=lpIniKey->next;
       }
@@ -3060,7 +3060,7 @@ void RegReadSearch()
 
   if (RegQueryValueExWide(hKey, L"find0", NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
   {
-    if (wszFindText_orig=wszFindText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize + 2))
+    if (wszFindText_orig=wszFindText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
     {
       if (RegQueryValueExWide(hKey, L"find0", NULL, &dwType, (LPBYTE)wszFindText_orig, &dwSize) == ERROR_SUCCESS)
       {
@@ -3068,7 +3068,7 @@ void RegReadSearch()
 
         if (ftflags & AEFR_ESCAPESEQ)
         {
-          if (wszFindText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize + 2))
+          if (wszFindText=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
           {
             nFindTextLen=EscapeStringToEscapeDataW(wszFindText_orig, wszFindText, NEWLINE_MAC);
           }
@@ -3656,7 +3656,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
     else
       nBufferLen=lpData->nBytesMax * sizeof(wchar_t);
 
-    if (wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferLen + 2))
+    if (wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferLen + sizeof(wchar_t)))
     {
       if (lpData->nCodePage == CP_UNICODE_UCS2_LE || lpData->nCodePage == CP_UNICODE_UCS2_BE)
         pBuffer=(unsigned char *)wpBuffer;
@@ -3856,7 +3856,7 @@ DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, 
     else
       dwBufferLen=dwBytesMax * sizeof(wchar_t);
 
-    if (wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, dwBufferLen + 2))
+    if (wpBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, dwBufferLen + sizeof(wchar_t)))
     {
       if (nCodePage == CP_UNICODE_UCS2_LE || nCodePage == CP_UNICODE_UCS2_BE)
         pBuffer=(unsigned char *)wpBuffer;
@@ -7696,7 +7696,7 @@ void FillComboboxSearch(HWND hWndFind, HWND hWndReplace)
 
     if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, NULL, &dwSize) == ERROR_SUCCESS && dwSize > 0)
     {
-      if (wszData=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize + 2))
+      if (wszData=(wchar_t *)API_HeapAlloc(hHeap, 0, dwSize))
       {
         if (RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)wszData, &dwSize) == ERROR_SUCCESS)
         {
@@ -7726,7 +7726,7 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, 
 
   nTextLen_orig=GetWindowTextLengthWide(hWnd) + 1;
 
-  if (*wszText_orig=*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nTextLen_orig * sizeof(wchar_t) + 2))
+  if (*wszText_orig=*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTextLen_orig + 1) * sizeof(wchar_t)))
   {
     nTextLen=GetWindowTextWide(hWnd, *wszText_orig, nTextLen_orig);
 
@@ -7751,7 +7751,7 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, 
     {
       if (ftflags & AEFR_ESCAPESEQ)
       {
-        if (*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nTextLen_orig * sizeof(wchar_t) + 2))
+        if (*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTextLen_orig + 1) * sizeof(wchar_t)))
         {
           if (!(nTextLen=EscapeStringToEscapeDataW(*wszText_orig, *wszText, nNewLine)))
           {
@@ -7793,7 +7793,7 @@ void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace)
     {
       ++nSize;
 
-      if (wszData=(wchar_t *)API_HeapAlloc(hHeap, 0, nSize * sizeof(wchar_t) + 2))
+      if (wszData=(wchar_t *)API_HeapAlloc(hHeap, 0, (nSize + 1) * sizeof(wchar_t)))
       {
         ComboBox_GetLBTextWide(hWnd, i, wszData);
         RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)wszData, nSize * sizeof(wchar_t));
@@ -7955,7 +7955,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
     {
       if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
       {
-        if (wszResultText=(wchar_t *)API_HeapAlloc(hHeap, 0, nResultTextLen * sizeof(wchar_t) + 2))
+        if (wszResultText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nResultTextLen + 1) * sizeof(wchar_t)))
         {
           //Remember selection
           if (nNewLine == AELB_ASIS)
@@ -8378,7 +8378,7 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
   {
     nLen=(nMax - nMin);
 
-    if (*wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t) + 2))
+    if (*wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nLen + 1) * sizeof(wchar_t)))
     {
       txtrngW.chrg.cpMin=nMin;
       txtrngW.chrg.cpMax=nMax;
@@ -8392,7 +8392,7 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
   return 0;
 }
 
-int ExGetRangeTextA(HWND hWnd, int nCodePage, char *lpDefaultChar, BOOL *lpUsedDefChar, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces)
+int ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefChar, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces)
 {
   AETEXTRANGEA tr;
   int nLen;
@@ -8470,7 +8470,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd)
 
         nTargetLen=lstrlenW(wpSource);
 
-        if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, nTargetLen * sizeof(wchar_t) + 2))
+        if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTargetLen + 1) * sizeof(wchar_t)))
         {
           for (wpTargetCount=wpTarget, wpSourceCount=wpSource; *wpSourceCount; ++wpSourceCount, ++wpTargetCount)
           {
@@ -8586,7 +8586,7 @@ BOOL ColumnPaste(HWND hWnd)
             nSourceLen=lstrlenW(wpSource);
             nTargetLen=(nSourceLen + 1) * nLineRange - 1;
 
-            if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, nTargetLen * sizeof(wchar_t) + 2))
+            if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTargetLen + 1) * sizeof(wchar_t)))
             {
               for (i=0; i < nLineRange; ++i)
               {
@@ -8976,7 +8976,7 @@ void RecentFilesSave()
   for (i=0; i < nRecentFiles; ++i)
   {
     xprintfW(wszRegValue, L"nm%d", i);
-    RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)lpwszRecentNames[i], (lstrlenW(lpwszRecentNames[i]) + 1) * sizeof(wchar_t));
+    RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)lpwszRecentNames[i], BytesInString(lpwszRecentNames[i]));
 
     xprintfW(wszRegValue, L"ps%d", i);
     RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(DWORD));
@@ -10171,7 +10171,13 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 {
                   if (pliElement->nAutoLoad == -1 || pliElement->nCallResult == UD_FAILED)
                   {
-                    pliElement->nCallResult=CallPlugin(NULL, pliElement->pf->wszFunction, FALSE, 0, &pliElement->nAutoLoad);
+                    PLUGINCALLSENDW pcs;
+
+                    pcs.pFunction=pliElement->pf->wszFunction;
+                    pcs.bOnStart=FALSE;
+                    pcs.lParam=0;
+                    pcs.lpbAutoLoad=&pliElement->nAutoLoad;
+                    pliElement->nCallResult=CallPlugin(NULL, &pcs);
                   }
                   if (pliElement->nAutoLoad == 0 || pliElement->nCallResult == UD_FAILED)
                   {
@@ -10406,7 +10412,7 @@ BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *ws
   return FALSE;
 }
 
-int CallPlugin(PLUGINFUNCTION *lpPluginFunction, const wchar_t *wpFullName, BOOL bOnStart, LPARAM lParam, BOOL *lpbAutoLoad)
+int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs)
 {
   wchar_t wszPlugin[MAX_PATH];
   wchar_t wszFunction[MAX_PATH];
@@ -10423,14 +10429,14 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, const wchar_t *wpFullName, BOOL
   void (*PluginIDPtr)(PLUGINVERSION *);
   void (*PluginFunctionPtr)(PLUGINDATA *);
 
-  if (lpbAutoLoad) *lpbAutoLoad=TRUE;
+  if (pcs->lpbAutoLoad) *pcs->lpbAutoLoad=TRUE;
 
-  if (wpFullName)
+  if (pcs->pFunction)
   {
-    if (ParsePluginNameW(wpFullName, wszPlugin, wszFunction))
+    if (ParsePluginNameW(pcs->pFunction, wszPlugin, wszFunction))
     {
       WideCharToMultiByte(CP_ACP, 0, wszFunction, -1, szFunction, MAX_PATH, NULL, NULL);
-      WideCharToMultiByte(CP_ACP, 0, wpFullName, -1, szFullName, MAX_PATH, NULL, NULL);
+      WideCharToMultiByte(CP_ACP, 0, pcs->pFunction, -1, szFullName, MAX_PATH, NULL, NULL);
       xprintfW(wszDLL, L"%s\\AkelFiles\\Plugs\\%s.dll", wszExeDir, wszPlugin);
       nWordLen=LoadStringWide(hLangLib, STR_PLUGIN, wbuf, BUFFER_SIZE);
       wbuf[0]=WideCharLower(wbuf[0]);
@@ -10467,16 +10473,16 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, const wchar_t *wpFullName, BOOL
                 if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
                 {
                   pd.cb=sizeof(PLUGINDATA);
-                  pd.pFunction=bOldWindows?(LPBYTE)szFullName:(LPBYTE)wpFullName;
+                  pd.pFunction=bOldWindows?(LPBYTE)szFullName:(LPBYTE)pcs->pFunction;
                   pd.szFunction=szFullName;
-                  pd.wszFunction=wpFullName;
+                  pd.wszFunction=pcs->pFunction;
                   pd.hInstanceDLL=hModule;
                   pd.lpPluginFunction=lpPluginFunction;
-                  pd.lpbAutoLoad=lpbAutoLoad;
+                  pd.lpbAutoLoad=pcs->lpbAutoLoad;
                   pd.nUnload=UD_UNLOAD;
                   pd.bInMemory=bInMemory;
-                  pd.bOnStart=bOnStart;
-                  pd.lParam=lParam;
+                  pd.bOnStart=pcs->bOnStart;
+                  pd.lParam=pcs->lParam;
                   pd.pAkelDir=bOldWindows?(LPBYTE)szExeDir:(LPBYTE)wszExeDir;
                   pd.szAkelDir=szExeDir;
                   pd.wszAkelDir=wszExeDir;
@@ -10508,7 +10514,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, const wchar_t *wpFullName, BOOL
                   (*PluginFunctionPtr)(&pd);
                   SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
 
-                  if (lpbAutoLoad && bInMemory)
+                  if (pcs->lpbAutoLoad && bInMemory)
                     return UD_NONUNLOAD_UNCHANGE;
                   if ((pd.nUnload & UD_NONUNLOAD_ACTIVE) ||
                       (pd.nUnload & UD_NONUNLOAD_NONACTIVE) ||
@@ -10589,12 +10595,12 @@ void CallPluginsOnStart(HSTACK *hStack)
   {
     if (pfElement->bOnStart)
     {
+      pcs.pFunction=pfElement->wszFunction;
       pcs.bOnStart=TRUE;
       pcs.lParam=0;
       pcs.lpbAutoLoad=NULL;
-      pcs.pFunction=pfElement->wszFunction;
 
-      if (CallPluginReceive(&pcs) == UD_FAILED)
+      if (CallPluginReceive(pfElement, &pcs) == UD_FAILED)
       {
         pfTmp=pfElement->next;
         StackPluginDelete(hStack, pfElement);
@@ -10606,14 +10612,16 @@ void CallPluginsOnStart(HSTACK *hStack)
   }
 }
 
-int CallPluginReceive(PLUGINCALLSENDW *pcs)
+int CallPluginReceive(PLUGINFUNCTION *pfElement, PLUGINCALLSENDW *pcs)
 {
-  PLUGINFUNCTION *pfElement;
   int nResult=UD_FAILED;
 
   if (pcs)
   {
-    pfElement=StackPluginFind(&hPluginsStack, pcs->pFunction, -1);
+    if (!pfElement)
+      pfElement=StackPluginFind(&hPluginsStack, pcs->pFunction, -1);
+    if (!pfElement)
+      StackPluginAdd(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, TRUE, NULL, NULL);
 
     if (pfElement && pfElement->PluginProc)
     {
@@ -10624,7 +10632,7 @@ int CallPluginReceive(PLUGINCALLSENDW *pcs)
     }
     else
     {
-      nResult=CallPlugin(pfElement, pcs->pFunction, pcs->bOnStart, pcs->lParam, pcs->lpbAutoLoad);
+      nResult=CallPlugin(pfElement, pcs);
 
       if (nResult != UD_FAILED)
       {
@@ -11354,7 +11362,7 @@ BOOL TranslatePlugin(LPMSG lpMsg)
     pcsW.lParam=pcpW->lParam;
     pcsW.lpbAutoLoad=NULL;
     pcsW.pFunction=wszPluginFunction;
-    CallPluginReceive(&pcsW);
+    CallPluginReceive(NULL, &pcsW);
     return TRUE;
   }
   else if (lpMsg->message == AKD_DLLUNLOAD)
@@ -11442,9 +11450,14 @@ BOOL TranslateHotkey(HSTACK *hStack, LPMSG lpMsg)
         }
         else
         {
+          PLUGINCALLSENDW pcs;
           int nResult;
 
-          nResult=CallPlugin(pfElement, pfElement->wszFunction, FALSE, 0, NULL);
+          pcs.pFunction=pfElement->wszFunction;
+          pcs.bOnStart=FALSE;
+          pcs.lParam=0;
+          pcs.lpbAutoLoad=NULL;
+          nResult=CallPlugin(pfElement, &pcs);
 
           if (nResult != UD_FAILED)
           {
@@ -11927,7 +11940,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     else if (LOWORD(wParam) == IDC_OPTIONS_SEARCHSTRINGS_CLEAR)
     {
       wchar_t wszRegKey[MAX_PATH];
-  
+
       xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
       RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
       EnableWindow((HWND)lParam, FALSE);
@@ -12010,7 +12023,7 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
         //Clean save
         {
           wchar_t wszRegKey[MAX_PATH];
-    
+
           xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
           RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
           RecentFilesSave();
@@ -13501,7 +13514,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
         if (dwFlags & AE_ASSOCIATE)
         {
           xprintfW(wszAssocKey, L"%sfile", wszExt + 1);
-          RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wszAssocKey, lstrlenW(wszAssocKey) * sizeof(wchar_t) + 2);
+          RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wszAssocKey, BytesInString(wszAssocKey));
         }
         else if (dwFlags & AE_DEASSOCIATE)
         {
@@ -13521,7 +13534,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
           dwSize=BUFFER_SIZE * sizeof(wchar_t);
           if (RegQueryValueExWide(hKey, L"", NULL, &dwType, (LPBYTE)wbuf2, &dwSize) != ERROR_SUCCESS || !*wbuf2)
           {
-            if (dwFlags & AE_ASSOCIATE) RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wszModule, lstrlenW(wszModule) * sizeof(wchar_t) + 2);
+            if (dwFlags & AE_ASSOCIATE) RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wszModule, BytesInString(wszModule));
           }
           else if (dwFlags & AE_DEASSOCIATE)
           {
@@ -13548,7 +13561,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
                 RegSetValueExWide(hKey, L"AkelUndo", 0, dwType, (LPBYTE)wbuf2, dwSize);
             }
           }
-          RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wbuf, lstrlenW(wbuf) * sizeof(wchar_t) + 2);
+          RegSetValueExWide(hKey, L"", 0, REG_SZ, (LPBYTE)wbuf, BytesInString(wbuf));
         }
         else if (dwFlags & AE_DEASSOCIATE)
         {
