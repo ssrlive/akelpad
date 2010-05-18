@@ -388,6 +388,7 @@ typedef struct {
 
 //// Functions prototype
 
+WNDFRAME* GetFrameDataFromEdit(HWND hWndEditCtrl);
 HWND CreateEditWindow(WNDFRAME *lpFrameNew, WNDFRAME *lpFrameOld);
 WNDFRAME* CreateFrameData(WNDFRAME *lpFrameSource, HWND hWndEditParent);
 void CopyFrameData(WNDFRAME *lpFrameTarget, WNDFRAME *lpFrameSource);
@@ -395,9 +396,8 @@ void SaveFrameData(WNDFRAME *lpFrame);
 void RestoreFrameData(WNDFRAME *lpFrame);
 BOOL CreateFrameWindow(RECT *rcRect);
 void ActivateFrameWindow(WNDFRAME *lpFrame);
-void NextFrameWindow(WNDFRAME *lpFrame, BOOL bPrev);
+WNDFRAME* NextFrameWindow(WNDFRAME *lpFrame, BOOL bPrev);
 int DestroyFrameWindow(WNDFRAME *lpFrame, int nTabItem);
-WNDFRAME* GetFrameDataFromEdit(HWND hWndEditCtrl);
 
 BOOL DoFileNew();
 HWND DoFileNewWindow(DWORD dwAddFlags);
@@ -672,7 +672,8 @@ void FreeListboxSelItems(int **lpSelItems);
 BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 WNDFRAME* StackFrameInsert(HSTACK *hStack);
-WNDFRAME* StackFrameGetByHandle(HSTACK *hStack, HANDLE hHandle);
+WNDFRAME* StackFrameGetByIndex(HSTACK *hStack, int nIndex);
+WNDFRAME* StackFrameGetByHandle(HSTACK *hStack, HANDLE hDataHandle);
 WNDFRAME* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nFileNameLen);
 void StackFrameMove(HSTACK *hStack, WNDFRAME *lpFrame, int nIndex);
 void StackFrameDelete(HSTACK *hStack, WNDFRAME *lpFrame);
