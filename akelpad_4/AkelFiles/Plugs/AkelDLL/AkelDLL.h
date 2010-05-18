@@ -547,7 +547,6 @@ typedef struct _PLUGINADDA {
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
   BOOL bOnStart;                  //TRUE  if plugin has start-up flag
                                   //FALSE if plugin doesn't have start-up flag
-  BOOL bRunning;                  //Function is running
   PLUGINPROC PluginProc;          //Function procedure
   void *lpParameter;              //Procedure parameter
 } PLUGINADDA;
@@ -557,7 +556,6 @@ typedef struct _PLUGINADDW {
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
   BOOL bOnStart;                  //TRUE  if plugin has start-up flag
                                   //FALSE if plugin doesn't have start-up flag
-  BOOL bRunning;                  //Function is running
   PLUGINPROC PluginProc;          //Function procedure
   void *lpParameter;              //Procedure parameter
 } PLUGINADDW;
@@ -2965,7 +2963,6 @@ Example add plugin hotkey (Unicode):
  pf.pFunction=L"MyDLL::MyFunction";
  pf.wHotkey=589;       //Ctrl+M
  pf.bOnStart=FALSE;
- pf.bRunning=FALSE;
  pf.PluginProc=(PLUGINPROC)PluginProc;
  pf.lpParameter=NULL;
  SendMessage(pd->hMainWnd, AKD_DLLADDW, 0, (LPARAM)&pf);

@@ -3019,7 +3019,7 @@ void RegisterPluginsHotkeys()
 
         if (dwHotkey)
         {
-          StackPluginAdd(&hPluginsStack, wbuf, lstrlenW(wbuf), LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+          StackPluginAdd(&hPluginsStack, wbuf, lstrlenW(wbuf), LOWORD(dwHotkey), HIWORD(dwHotkey), NULL, NULL);
         }
       }
       RegCloseKey(hKey);
@@ -3039,7 +3039,7 @@ void RegisterPluginsHotkeys()
       {
         if (dwHotkey=(DWORD)xatoiW(lpIniKey->wszString, NULL))
         {
-          StackPluginAdd(&hPluginsStack, lpIniKey->wszKey, lpIniKey->nKeyBytes / sizeof(wchar_t) - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), FALSE, NULL, NULL);
+          StackPluginAdd(&hPluginsStack, lpIniKey->wszKey, lpIniKey->nKeyBytes / sizeof(wchar_t) - 1, LOWORD(dwHotkey), HIWORD(dwHotkey), NULL, NULL);
         }
         lpIniKey=lpIniKey->next;
       }
@@ -10345,7 +10345,7 @@ BOOL CALLBACK FillPluginListProc(char *pExportName, LPARAM lParam)
           ListView_SetItemWide(pld->hWndList, &lviW);
         }
       }
-      else pfElement=StackPluginAdd(&hPluginsStack, wszPluginFunction, nPluginFunctionLen, 0, FALSE, FALSE, NULL, NULL);
+      else pfElement=StackPluginAdd(&hPluginsStack, wszPluginFunction, nPluginFunctionLen, 0, FALSE, NULL, NULL);
 
       pliElement->pf=pfElement;
       pliElement->wInitialHotkey=pfElement->wHotkey;
@@ -10451,7 +10451,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs)
       if (!pfElement)
       {
         if (!(pfElement=StackPluginFind(&hPluginsStack, pcs->pFunction, -1)))
-          if (!(pfElement=StackPluginAdd(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, FALSE, NULL, NULL)))
+          if (!(pfElement=StackPluginAdd(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, NULL, NULL)))
             return UD_FAILED;
       }
     }
@@ -11121,7 +11121,7 @@ PLUGINFUNCTION* StackHotkeyFind(HSTACK *hStack, WORD wHotkey)
   return pfElement;
 }
 
-PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen, WORD wHotkey, BOOL bOnStart, BOOL bRunning, PLUGINPROC PluginProc, void *lpParameter)
+PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen, WORD wHotkey, BOOL bOnStart, PLUGINPROC PluginProc, void *lpParameter)
 {
   PLUGINFUNCTION *pfElement;
 
@@ -11129,7 +11129,7 @@ PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpPluginFunction, 
   {
     pfElement->wHotkey=wHotkey;
     pfElement->bOnStart=bOnStart;
-    pfElement->bRunning=bRunning;
+    pfElement->bRunning=FALSE;
     pfElement->PluginProc=PluginProc;
     pfElement->lpParameter=lpParameter;
 

@@ -636,7 +636,7 @@ BOOL StackDockUpdateCheck(HDOCK *hDocks);
 void StackDockFree(HDOCK *hDocks);
 PLUGINFUNCTION* StackPluginFind(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen);
 PLUGINFUNCTION* StackHotkeyFind(HSTACK *hStack, WORD wHotkey);
-PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpString, int nStringLen, WORD wHotkey, BOOL bOnStart, BOOL bRunning, PLUGINPROC PluginProc, void *lpParameter);
+PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpString, int nStringLen, WORD wHotkey, BOOL bOnStart, PLUGINPROC PluginProc, void *lpParameter);
 void StackPluginDelete(HSTACK *hStack, void *lpElement);
 BOOL StackPluginSave(HSTACK *hStack, BOOL bCleanOld);
 void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL);
