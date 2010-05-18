@@ -305,7 +305,8 @@ typedef struct _PLUGINFUNCTION {
   wchar_t wszFunction[MAX_PATH];  //Function name (Unicode)
   int nFunctionLen;               //Function name length
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bOnStart;                  //Function autoload on start-up
+  BOOL bOnStart;                  //TRUE  if plugin has start-up flag
+                                  //FALSE if plugin doesn't have start-up flag
   BOOL bRunning;                  //Function is running
   PLUGINPROC PluginProc;          //Function procedure
   void *lpParameter;              //Procedure parameter
@@ -324,8 +325,6 @@ typedef struct _PLUGINDATA {
                                     //FALSE if function doesn't support autoload
   int nUnload;                      //See UD_* defines
   BOOL bInMemory;                   //Plugin already loaded
-  BOOL bOnStart;                    //TRUE  if plugin called on start-up
-                                    //FALSE if plugin called manually
   LPARAM lParam;                    //Input data
   const BYTE *pAkelDir;             //AkelPad directory
                                     //  const char *pAkelDir      if bOldWindows == TRUE
@@ -409,21 +408,21 @@ typedef struct _OPENDOCUMENTW {
 } OPENDOCUMENTW;
 
 typedef struct _OPENDOCUMENTPOSTA {
-  char szFile[MAX_PATH];     //File to open
-  char szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set
   HWND hWnd;                 //Window to fill in, NULL for current edit window
   DWORD dwFlags;             //Open flags. See OD_* defines
   int nCodePage;             //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
   BOOL bBOM;                 //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
+  char szFile[MAX_PATH];     //File to open
+  char szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set
 } OPENDOCUMENTPOSTA;
 
 typedef struct _OPENDOCUMENTPOSTW {
-  wchar_t szFile[MAX_PATH];     //File to open
-  wchar_t szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set
   HWND hWnd;                    //Window to fill in, NULL for current edit window
   DWORD dwFlags;                //Open flags. See OD_* defines
   int nCodePage;                //File code page, ignored if (dwFlags & OD_ADT_DETECT_CODEPAGE)
   BOOL bBOM;                    //File BOM, ignored if (dwFlags & OD_ADT_DETECT_BOM)
+  wchar_t szFile[MAX_PATH];     //File to open
+  wchar_t szWorkDir[MAX_PATH];  //Set working directory before open, if (!*szWorkDir) then don't set
 } OPENDOCUMENTPOSTW;
 
 typedef struct _SAVEDOCUMENTA {
@@ -546,7 +545,8 @@ typedef struct _WNDPROCRETDATA {
 typedef struct _PLUGINADDA {
   const char *pFunction;          //Function name, format "Plugin::Function"
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bOnStart;                  //Function autoload on start-up
+  BOOL bOnStart;                  //TRUE  if plugin has start-up flag
+                                  //FALSE if plugin doesn't have start-up flag
   BOOL bRunning;                  //Function is running
   PLUGINPROC PluginProc;          //Function procedure
   void *lpParameter;              //Procedure parameter
@@ -555,7 +555,8 @@ typedef struct _PLUGINADDA {
 typedef struct _PLUGINADDW {
   const wchar_t *pFunction;       //Function name, format "Plugin::Function"
   WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bOnStart;                  //Function autoload on start-up
+  BOOL bOnStart;                  //TRUE  if plugin has start-up flag
+                                  //FALSE if plugin doesn't have start-up flag
   BOOL bRunning;                  //Function is running
   PLUGINPROC PluginProc;          //Function procedure
   void *lpParameter;              //Procedure parameter
@@ -563,32 +564,24 @@ typedef struct _PLUGINADDW {
 
 typedef struct _PLUGINCALLSENDA {
   const char *pFunction;          //Function name, format "Plugin::Function"
-  BOOL bOnStart;                  //TRUE  if plugin called on start-up
-                                  //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
   BOOL *lpbAutoLoad;              //If not NULL, then check plugin autoload
 } PLUGINCALLSENDA;
 
 typedef struct _PLUGINCALLSENDW {
   const wchar_t *pFunction;       //Function name, format L"Plugin::Function"
-  BOOL bOnStart;                  //TRUE  if plugin called on start-up
-                                  //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
   BOOL *lpbAutoLoad;              //If not NULL, then check plugin autoload
 } PLUGINCALLSENDW;
 
 typedef struct _PLUGINCALLPOSTA {
-  char szFunction[MAX_PATH];      //Function name, format "Plugin::Function"
-  BOOL bOnStart;                  //TRUE  if plugin called on start-up
-                                  //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
+  char szFunction[MAX_PATH];      //Function name, format "Plugin::Function"
 } PLUGINCALLPOSTA;
 
 typedef struct _PLUGINCALLPOSTW {
-  wchar_t szFunction[MAX_PATH];   //Function name, format L"Plugin::Function"
-  BOOL bOnStart;                  //TRUE  if plugin called on start-up
-                                  //FALSE if plugin called manually
   LPARAM lParam;                  //Input data
+  wchar_t szFunction[MAX_PATH];   //Function name, format L"Plugin::Function"
 } PLUGINCALLPOSTW;
 
 typedef struct _PLUGINOPTIONA {
@@ -2898,7 +2891,6 @@ Example SendMessage (Unicode):
  PLUGINCALLSENDW pcs;
 
  pcs.pFunction=L"Plugin::Function";
- pcs.bOnStart=FALSE;
  pcs.lParam=0;
  pcs.lpbAutoLoad=NULL;
  SendMessage(pd->hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
@@ -2909,7 +2901,6 @@ Example PostMessage (Unicode):
  if (pcp=(PLUGINCALLPOSTW *)GlobalAlloc(GPTR, sizeof(PLUGINCALLPOSTW)))
  {
    lstrcpynW(pcp->szFunction, L"Plugin::Function", MAX_PATH);
-   pcp->bOnStart=FALSE;
    pcp->lParam=0;
    PostMessage(pd->hMainWnd, AKD_DLLCALLW, 0, (LPARAM)pcp);
  }
@@ -3462,13 +3453,13 @@ Open file. Same as AKD_OPENDOCUMENT, but can be used from outside of AkelPad pro
 Return Value
  see EOD_* defines
 
-Example:
+Example (Ansi):
   OPENDOCUMENTPOSTA odp;
   COPYDATASTRUCT cds;
 
-  odp.hWnd=NULL;
   lstrcpynA(odp.szFile, "C:\\MyFile.txt", MAX_PATH);
   odp.szWorkDir[0]='\0';
+  odp.hWnd=NULL;
   odp.dwFlags=OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE;
   odp.nCodePage=0;
   odp.bBOM=0;
