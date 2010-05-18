@@ -11367,14 +11367,18 @@ BOOL TranslatePlugin(LPMSG lpMsg)
     PLUGINCALLSENDW pcsW;
     wchar_t wszPluginFunction[MAX_PATH];
 
-    if (lpMsg->message == AKD_DLLCALLA || (bOldWindows && lpMsg->message == AKD_DLLCALL))
-      xprintfW(wszPluginFunction, L"%S", (char *)lpCallPostA->szFunction);
-    else
-      xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallPostW->szFunction);
-    pcsW.pFunction=wszPluginFunction;
-    pcsW.lParam=lpCallPostW->lParam;
-    pcsW.lpbAutoLoad=NULL;
-    CallPluginSend(NULL, &pcsW, FALSE);
+    if (lpMsg->lParam)
+    {
+      if (lpMsg->message == AKD_DLLCALLA || (bOldWindows && lpMsg->message == AKD_DLLCALL))
+        xprintfW(wszPluginFunction, L"%S", (char *)lpCallPostA->szFunction);
+      else
+        xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallPostW->szFunction);
+      pcsW.pFunction=wszPluginFunction;
+      pcsW.lParam=lpCallPostW->lParam;
+      pcsW.lpbAutoLoad=NULL;
+      CallPluginSend(NULL, &pcsW, FALSE);
+      GlobalFree((HGLOBAL)lpMsg->lParam);
+    }
     return TRUE;
   }
   else if (lpMsg->message == AKD_DLLUNLOAD)
