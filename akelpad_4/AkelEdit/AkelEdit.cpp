@@ -1598,6 +1598,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           aeNew->bFocus=TRUE;
         else
           aeNew->bFocus=FALSE;
+
+        if (lParam)
+        {
+          AE_UpdateScrollBars(aeNew, SB_BOTH);
+          AE_UpdateCaret(aeNew, aeNew->bFocus);
+          InvalidateRect(aeNew->hWndEdit, NULL, TRUE);
+        }
       }
       return (LRESULT)ae;
     }

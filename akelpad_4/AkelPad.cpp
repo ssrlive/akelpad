@@ -416,8 +416,8 @@ DWORD dwFileTypesAssociated=0;
 
 //Mdi
 HSTACK hFramesStack={0};
-WNDFRAME wfInit={0};
-WNDFRAME *lpFrameCurrent=&wfInit;
+FRAMEDATA fdInit={0};
+FRAMEDATA *lpFrameCurrent=&fdInit;
 int nMDI=WMD_SDI;
 int nRegMDI=WMD_SDI;
 HWND hMdiClient=NULL;
@@ -438,7 +438,7 @@ RECT rcMdiListCurrentDialog={0};
 DWORD dwMdiStyle=WS_MAXIMIZE;
 WNDPROC OldMdiClientProc;
 WNDPROC OldTabProc;
-WNDFRAME *lpFrame;
+FRAMEDATA *lpFrame;
 
 //GetProcAddress
 HMONITOR (WINAPI *MonitorFromPointPtr)(POINT, DWORD);
@@ -503,8 +503,6 @@ extern "C" void _WinMain()
   nDefaultNewLine=NEWLINE_WIN;
   dwLangCodepageRecognition=dwLangSystem=GetUserDefaultLangID();
 
-  //lpFrameCurrent->lpEditProc=NULL;
-  //lpFrameCurrent->hDataHandle=NULL;
   //lpFrameCurrent->hWndEditParent=NULL;
   //lpFrameCurrent->ei.hWndEdit=NULL;
   lpFrameCurrent->ei.pFile=bOldWindows?(LPBYTE)lpFrameCurrent->szFile:(LPBYTE)lpFrameCurrent->wszFile;
@@ -538,6 +536,12 @@ extern "C" void _WinMain()
   lpFrameCurrent->lf.lfHeight=-mod(lpFrameCurrent->lf.lfHeight);
   lpFrameCurrent->lf.lfWidth=0;
 
+  //lpFrameCurrent->lpEditProc=NULL;
+  //lpFrameCurrent->hDataEdit=NULL;
+  //lpFrameCurrent->hDataMaster=NULL;
+  //lpFrameCurrent->hDataClone1=NULL;
+  //lpFrameCurrent->hDataClone2=NULL;
+  //lpFrameCurrent->hDataClone3=NULL;
   //lpFrameCurrent->ft.dwLowDateTime=0;
   //lpFrameCurrent->ft.dwHighDateTime=0;
   lpFrameCurrent->aec.dwFlags=AECLR_ALL;
@@ -1425,15 +1429,46 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Call plugins on start
       CallPluginsOnStart(&hPluginsStack);
 
-      //Create edit window
+      //Create first edit window
+      //
+      //AkelPad support 3 window modes:
+      //SDI:
+      //  - Maximum edit windows in SDI mode is 4. At next step we will create first one, later when window will be split
+      //  we will create another 3 windows. Those 1 or 4 windows will be destroyed only on program exit.
+      //  - SDI mode has one allocated FRAMEDATA.
+      //  - fdInit structure keeps default settings and also all created edit windows.
+      //MDI:
+      //  - Maximum edit windows in MDI mode is limited by GDI buffer. During tests this number is about 800-1000 windows.
+      //  - MDI mode allocated FRAMEDATA count is equal to number of tabs (MDI client frame windows).
+      //  - Each tab is 1 MDI client frame window and 1 edit window (or 4 if window split).
+      //  - fdInit structure keeps default settings, but not edit windows.
+      //PMDI:
+      //  - Allows you to open an unlimited number of files. In contrast to the MDI mode, opening a new tab does not lead
+      //  creation of new graphical objects, thus avoid GDI buffer overflow.
+      //  - Maximum edit windows in PMDI mode is 4. At next step we will create first one, later when window will be split
+      //  we will create another 3 windows. Those 1 or 4 windows will be destroyed only on program exit.
+      //  - PMDI mode allocated FRAMEDATA count is equal to number of tabs.
+      //  - fdInit structure keeps default settings and also all created edit windows.
+
       if (nMDI == WMD_SDI)
       {
-        if (lpFrameCurrent=CreateFrameData(WMD_SDI, lpFrameCurrent, hMainWnd))
+        if (lpFrameCurrent=CreateFrameData(lpFrameCurrent, hMainWnd))
+        {
+          CreateEditWindow(lpFrame, NULL, &lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->hDataEdit);
           RestoreFrameData(lpFrameCurrent);
+        }
+
+        //Remember the first edit window
+        if (!fdInit.ei.hWndEdit)
+          fdInit.ei.hWndEdit=lpFrameCurrent->ei.hWndEdit;
       }
       else if (nMDI == WMD_PMDI)
       {
         CreateMdiFrameWindow(NULL);
+
+        //Remember the first edit window
+        if (!fdInit.ei.hWndEdit)
+          fdInit.ei.hWndEdit=lpFrameCurrent->ei.hWndEdit;
       }
       else if (nMDI == WMD_MDI)
       {
@@ -1807,7 +1842,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_GETFONTA ||
         uMsg == AKD_GETFONTW)
     {
-      WNDFRAME *lpFrame;
+      FRAMEDATA *lpFrame;
 
       if (lParam)
       {
@@ -1826,7 +1861,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_SETFONTA ||
         uMsg == AKD_SETFONTW)
     {
-      WNDFRAME *lpFrame;
+      FRAMEDATA *lpFrame;
       LOGFONTW lfW;
 
       if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
@@ -2026,13 +2061,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return (LRESULT)lpFrameCurrent;
       if (wParam == FWF_NEXT)
       {
-        WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+        FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
 
         return (LRESULT)(lpFrame?lpFrame->next:NULL);
       }
       if (wParam == FWF_PREV)
       {
-        WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+        FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
 
         return (LRESULT)(lpFrame?lpFrame->prev:NULL);
       }
@@ -2041,7 +2076,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (wParam == FWF_BYFILENAME)
       {
         wchar_t *wpFileName=AllocWideStr(MAX_PATH);
-        WNDFRAME *lpResult;
+        FRAMEDATA *lpResult;
         int nFileNameLen;
 
         if (uMsg == AKD_FRAMEFINDA || (bOldWindows && uMsg == AKD_FRAMEFIND))
@@ -2059,20 +2094,20 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_FRAMEACTIVATE)
     {
-      WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+      FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
 
       ActivateMdiFrameWindow(lpFrame);
       return 0;
     }
     if (uMsg == AKD_FRAMENEXT)
     {
-      WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+      FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
 
       return (LRESULT)NextMdiFrameWindow(lpFrame, wParam);
     }
     if (uMsg == AKD_FRAMEDESTROY)
     {
-      WNDFRAME *lpFrame=(WNDFRAME *)lParam;
+      FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
 
       return DestroyMdiFrameWindow(lpFrame, -1);
     }
@@ -3399,14 +3434,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (((NMHDR *)lParam)->code == TCN_SELCHANGE)
         {
           TCITEMW tcItemW;
-          WNDFRAME *lpFrame;
+          FRAMEDATA *lpFrame;
           int nItem;
 
           bTabPressed=TRUE;
           nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
           tcItemW.mask=TCIF_PARAM;
           TabCtrl_GetItemWide(hTab, nItem, &tcItemW);
-          lpFrame=(WNDFRAME *)tcItemW.lParam;
+          lpFrame=(FRAMEDATA *)tcItemW.lParam;
 
           ActivateMdiFrameWindow(lpFrame);
           bTabPressed=FALSE;
@@ -3419,14 +3454,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (!nMDI)
     {
       if (!DoFileExit()) return TRUE;
-      CopyFrameData(&wfInit, lpFrameCurrent);
+      CopyFrameData(&fdInit, lpFrameCurrent);
     }
     else
     {
       int nDestroyResult;
 
       bMdiClientRedraw=FALSE;
-      CopyFrameData(&wfInit, lpFrameCurrent);
+      CopyFrameData(&fdInit, lpFrameCurrent);
 
       while (lpFrameCurrent->hWndEditParent)
       {
@@ -3662,7 +3697,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         {
           if (nMDI)
           {
-            WNDFRAME *lpFrame;
+            FRAMEDATA *lpFrame;
             int nItem;
 
             if (lpFrame=GetFrameDataFromEdit(aenm->hdr.hwndFrom))
@@ -3693,7 +3728,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           if (nMDI == WMD_MDI)
           {
             wchar_t *wpFrameName=AllocWideStr(MAX_PATH);
-            WNDFRAME *lpFrame;
+            FRAMEDATA *lpFrame;
 
             if (lpFrame=GetFrameDataFromEdit(aenm->hdr.hwndFrom))
             {
@@ -3858,16 +3893,19 @@ LRESULT CALLBACK CommonFrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
 LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  WNDFRAME *lpFrame;
+  FRAMEDATA *lpFrame;
 
   if (uMsg == WM_CREATE)
   {
     //CREATESTRUCT *cs=(CREATESTRUCT *)lParam;
     //MDICREATESTRUCT *mcs=(MDICREATESTRUCT *)cs->lpCreateParams;
-    //lpFrame=(WNDFRAME *)mcs->lParam
+    //lpFrame=(FRAMEDATA *)mcs->lParam
 
-    if (lpFrame=CreateFrameData(WMD_MDI, lpFrameCurrent, hWnd))
+    if (lpFrame=CreateFrameData(lpFrameCurrent, hWnd))
     {
+      SetWindowLongWide(hWnd, GWL_USERDATA, (LONG)lpFrame);
+      CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndEdit, &lpFrame->hDataEdit);
+
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
     }
@@ -3876,9 +3914,9 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (wParam != SIZE_MINIMIZED)
     {
-      WNDFRAME *lpFrame;
+      FRAMEDATA *lpFrame;
 
-      if (lpFrame=(WNDFRAME *)GetWindowLongWide(hWnd, GWL_USERDATA))
+      if (lpFrame=(FRAMEDATA *)GetWindowLongWide(hWnd, GWL_USERDATA))
       {
         ResizeEdit(lpFrame, 0, 0, LOWORD(lParam), HIWORD(lParam), FALSE);
       }
@@ -3965,26 +4003,26 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       //Variants:
       //A. MDI window just created - MDI client has now one window. WM_MDIACTIVATE sended 1 time:
-      //  1. On enter lpFrameCurrent == &wfInit, wParam == NULL, lParam != NULL
+      //  1. On enter lpFrameCurrent == &fdInit, wParam == NULL, lParam != NULL
       //B. Another MDI window created or switching between MDI windows. WM_MDIACTIVATE sended 2 times:
       //  1. On enter lpFrameCurrent == wParam, wParam != NULL, lParam != NULL
       //  2. On leave lpFrameCurrent == lParam, wParam != NULL, lParam != NULL
       //C. Active MDI window just received WM_MDIDESTROY - MDI client has still one or more windows. WM_MDIACTIVATE sended 2 times:
-      //  1. On enter lpFrameCurrent == &wfInit, wParam != NULL, lParam != NULL
+      //  1. On enter lpFrameCurrent == &fdInit, wParam != NULL, lParam != NULL
       //  2. On leave lpFrameCurrent == lParam, wParam != NULL, lParam != NULL
       //D. Active MDI window just received WM_MDIDESTROY - MDI client has no more windows. WM_MDIACTIVATE not sended.
 
       if (hWnd == (HWND)wParam)
       {
         //Save deactivated MDI window settings
-        if (lpFrame=(WNDFRAME *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
+        if (lpFrame=(FRAMEDATA *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
           SaveFrameData(lpFrame);
       }
       else if (hWnd == (HWND)lParam)
       {
         //Change current frame handle in WM_MDIACTIVATE because WM_SETFOCUS can be uncalled if WM_MDINEXT used.
         if (lpFrameCurrent->hWndEditParent != (HWND)lParam)
-          if (lpFrame=(WNDFRAME *)GetWindowLongWide((HWND)lParam, GWL_USERDATA))
+          if (lpFrame=(FRAMEDATA *)GetWindowLongWide((HWND)lParam, GWL_USERDATA))
             lpFrameCurrent=lpFrame;
 
         //Restore activated MDI window settings
@@ -3997,7 +4035,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_SETFOCUS)
   {
     //Change current frame handle in WM_SETFOCUS because WM_MDIACTIVATE sended later.
-    if (lpFrame=(WNDFRAME *)GetWindowLongWide(hWnd, GWL_USERDATA))
+    if (lpFrame=(FRAMEDATA *)GetWindowLongWide(hWnd, GWL_USERDATA))
       lpFrameCurrent=lpFrame;
   }
 
@@ -4041,7 +4079,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (nMDI == WMD_MDI && !IsEditActive(hWnd))
     {
-      WNDFRAME *lpFrame;
+      FRAMEDATA *lpFrame;
 
       if (lpFrame=GetFrameDataFromEdit(hWnd))
         ActivateMdiFrameWindow(lpFrame);
@@ -4299,10 +4337,10 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
     //WM_MDIDESTROY should not be called directly. Use DestroyMdiFrameWindow function.
     if ((HWND)wParam)
     {
-      WNDFRAME *lpFrame;
+      FRAMEDATA *lpFrame;
       int nTabItem;
 
-      if (lpFrame=(WNDFRAME *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
+      if (lpFrame=(FRAMEDATA *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
       {
         //Activate frame
         ActivateMdiFrameWindow(lpFrame);
@@ -4311,7 +4349,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (!DoFileExit()) return TRUE;
 
         //Save closed frame settings
-        if (bMdiClientRedraw) CopyFrameData(&wfInit, lpFrame);
+        if (bMdiClientRedraw) CopyFrameData(&fdInit, lpFrame);
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {
@@ -4416,7 +4454,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (dwTabOpenTimer)
       {
         TCITEMW tcItemW;
-        WNDFRAME *lpFrame;
+        FRAMEDATA *lpFrame;
         int nItem;
 
         //Remove timer
@@ -4434,7 +4472,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             //Restore minimized frame
             tcItemW.mask=TCIF_PARAM;
             TabCtrl_GetItemWide(hTab, nItem, &tcItemW);
-            lpFrame=(WNDFRAME *)tcItemW.lParam;
+            lpFrame=(FRAMEDATA *)tcItemW.lParam;
 
             if (GetWindowLongWide(lpFrame->hWndEditParent, GWL_STYLE) & WS_MINIMIZE)
             {

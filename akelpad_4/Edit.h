@@ -382,16 +382,16 @@ typedef struct {
 
 //// Functions prototype
 
-WNDFRAME* GetFrameDataFromEdit(HWND hWndEditCtrl);
-HWND CreateEditWindow(WNDFRAME *lpFrameNew, WNDFRAME *lpFrameOld);
-WNDFRAME* CreateFrameData(int nMode, WNDFRAME *lpFrameSource, HWND hWndEditParent);
-void CopyFrameData(WNDFRAME *lpFrameTarget, WNDFRAME *lpFrameSource);
-void SaveFrameData(WNDFRAME *lpFrame);
-void RestoreFrameData(WNDFRAME *lpFrame);
+FRAMEDATA* GetFrameDataFromEdit(HWND hWndEditCtrl);
+BOOL CreateEditWindow(FRAMEDATA *lpFrameNew, FRAMEDATA *lpFrameOld, HWND *hWndEdit, HANDLE *hDataEdit);
+FRAMEDATA* CreateFrameData(FRAMEDATA *lpFrameSource, HWND hWndEditParent);
+void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
+void SaveFrameData(FRAMEDATA *lpFrame);
+void RestoreFrameData(FRAMEDATA *lpFrame);
 BOOL CreateMdiFrameWindow(RECT *rcRect);
-void ActivateMdiFrameWindow(WNDFRAME *lpFrame);
-WNDFRAME* NextMdiFrameWindow(WNDFRAME *lpFrame, BOOL bPrev);
-int DestroyMdiFrameWindow(WNDFRAME *lpFrame, int nTabItem);
+void ActivateMdiFrameWindow(FRAMEDATA *lpFrame);
+FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev);
+int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem);
 
 BOOL DoFileNew();
 HWND DoFileNewWindow(DWORD dwAddFlags);
@@ -665,12 +665,12 @@ void FreeListboxSelItems(int **lpSelItems);
 
 BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-WNDFRAME* StackFrameInsert(HSTACK *hStack);
-WNDFRAME* StackFrameGetByIndex(HSTACK *hStack, int nIndex);
-WNDFRAME* StackFrameGetByHandle(HSTACK *hStack, HANDLE hDataHandle);
-WNDFRAME* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nFileNameLen);
-void StackFrameMove(HSTACK *hStack, WNDFRAME *lpFrame, int nIndex);
-void StackFrameDelete(HSTACK *hStack, WNDFRAME *lpFrame);
+FRAMEDATA* StackFrameInsert(HSTACK *hStack);
+FRAMEDATA* StackFrameGetByIndex(HSTACK *hStack, int nIndex);
+FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, HANDLE hDataHandle);
+FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nFileNameLen);
+void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex);
+void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame);
 void StackFramesFree(HSTACK *hStack);
 
 void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci);
@@ -732,8 +732,8 @@ void ActivateKeyboard(DWORD dwInputLocale);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
 HWND NextClone(BOOL bPrevious);
-void DestroyEdit(DWORD dwFlags, WNDFRAME *lpFrame);
-void ResizeEdit(WNDFRAME *lpFrame, int X, int Y, int nWidth, int nHeight, BOOL bTest);
+void DestroyEdit(DWORD dwFlags, FRAMEDATA *lpFrame);
+void ResizeEdit(FRAMEDATA *lpFrame, int X, int Y, int nWidth, int nHeight, BOOL bTest);
 void UpdateSize();
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
@@ -745,7 +745,7 @@ BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL ScreenToClientRect(HWND hWnd, RECT *rc);
 BOOL ClientToScreenRect(HWND hWnd, RECT *rc);
 BOOL EnsureWindowInMonitor(RECT *rcWindow);
-void UpdateTitle(WNDFRAME *lpFrame, const wchar_t *wszFile);
+void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile);
 void UpdateTabs(HWND hWnd);
 int AddTabItem(HWND hWnd, HICON hIcon, LPARAM lParam);
 int GetTabItemFromParam(HWND hWnd, LPARAM lParam);
