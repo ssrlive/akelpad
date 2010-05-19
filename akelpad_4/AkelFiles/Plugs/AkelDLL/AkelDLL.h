@@ -497,13 +497,11 @@ typedef struct _EDITINFO {
   typedef LRESULT (CALLBACK *AEEditProc)(HANDLE hHandle, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
-typedef struct _WNDFRAME {
-  struct _WNDFRAME *next;
-  struct _WNDFRAME *prev;
+typedef struct _FRAMEDATA {
+  struct _FRAMEDATA *next;
+  struct _FRAMEDATA *prev;
 
   //Edit state external
-  AEEditProc lpEditProc;                              //Edit window procedure
-  HANDLE hDataHandle;                                 //Edit window data handle
   HWND hWndEditParent;                                //Edit parent window
   EDITINFO ei;                                        //Edit info
   char szFile[MAX_PATH];                              //Frame file (Ansi)
@@ -513,6 +511,12 @@ typedef struct _WNDFRAME {
   LOGFONTW lf;                                        //Edit font
 
   //Edit state internal
+  AEEditProc lpEditProc;                              //Edit window procedure
+  HANDLE hDataEdit;                                   //Edit window data handle
+  HANDLE hDataMaster;                                 //Edit window data handle
+  HANDLE hDataClone1;                                 //Edit window data handle
+  HANDLE hDataClone2;                                 //Edit window data handle
+  HANDLE hDataClone3;                                 //Edit window data handle
   FILETIME ft;                                        //File time
   AECOLORS aec;                                       //Edit colors
   RECT rcEditWindow;                                  //Edit RECT
@@ -544,7 +548,7 @@ typedef struct _WNDFRAME {
   wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters (4.x only)
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters (4.x only)
-} WNDFRAME;
+} FRAMEDATA;
 
 typedef struct _WNDPROCDATA {
   struct _WNDPROCDATA *next;

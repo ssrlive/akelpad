@@ -4292,7 +4292,8 @@ _________________
 Associate new window data handle.
 
 (HANDLE)wParam == window data handle.
-lParam         == not used.
+(BOOL)lParam   == TRUE   redraw the edit window.
+                  FALSE  don't redraw the edit window.
 
 Return Value
  Old window data handle.
