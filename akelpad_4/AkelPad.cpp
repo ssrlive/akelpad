@@ -2782,14 +2782,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else
       {
-        HWND hWndFrameInit=lpFrameCurrent->hWndEditParent;
+        FRAMEDATA *lpFrameInit=lpFrameCurrent;
 
         do
         {
           if (!DoFileSave()) return FALSE;
           NextMdiFrameWindow(lpFrameCurrent, FALSE);
         }
-        while (lpFrameCurrent->hWndEditParent != hWndFrameInit);
+        while (lpFrameCurrent != lpFrameInit);
 
         return TRUE;
       }
@@ -2814,12 +2814,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (nMDI)
       {
-        HWND hWndFrameInit=lpFrameCurrent->hWndEditParent;
+        FRAMEDATA *lpFrameInit=lpFrameCurrent;
 
         while (1)
         {
           NextMdiFrameWindow(lpFrameCurrent, FALSE);
-          if (lpFrameCurrent->hWndEditParent == hWndFrameInit) break;
+          if (lpFrameCurrent == lpFrameInit) break;
 
           if (DestroyMdiFrameWindow(lpFrameCurrent, -1) != FWD_SUCCESS)
             return FALSE;

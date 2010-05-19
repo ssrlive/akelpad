@@ -4439,7 +4439,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
       //Save documents
       if (lpFrameCurrent->hWndEditParent || !nMDI)
       {
-        HWND hWndFrameInit=lpFrameCurrent->hWndEditParent;
+        FRAMEDATA *lpFrameInit=lpFrameCurrent;
 
         do
         {
@@ -4464,7 +4464,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
 
           NextMdiFrameWindow(lpFrameCurrent, FALSE);
         }
-        while (lpFrameCurrent->hWndEditParent != hWndFrameInit);
+        while (lpFrameCurrent != lpFrameInit);
       }
       return TRUE;
     }
@@ -7544,7 +7544,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       if (ftflags & AEFR_ALLFILES)
       {
-        HWND hWndFrameInit=lpFrameCurrent->hWndEditParent;
+        FRAMEDATA *lpFrameInit=lpFrameCurrent;
         int nChanges=0;
         int nChangedFiles=0;
 
@@ -7569,7 +7569,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
             }
             NextMdiFrameWindow(lpFrameCurrent, FALSE);
           }
-          while (lpFrameCurrent->hWndEditParent != hWndFrameInit);
+          while (lpFrameCurrent != lpFrameInit);
 
           if (!bReplaceAllAndClose)
           {
@@ -7611,7 +7611,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
               break;
             }
           }
-          while (lpFrameCurrent->hWndEditParent != hWndFrameInit);
+          while (lpFrameCurrent != lpFrameInit);
 
           if (nResult == -1)
           {
