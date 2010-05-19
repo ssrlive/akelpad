@@ -184,12 +184,6 @@
                     CN_CLONE2 |\
                     CN_CLONE3)
 
-//DestroyFrameWindow return value
-#define FWD_SUCCESS   0
-#define FWD_ABORT     1
-#define FWD_LASTTAB   2
-#define FWD_NOWINDOW  3
-
 //STARTUPINFO flags
 #define STARTF_NOMUTEX  0x00001000
 
@@ -390,14 +384,14 @@ typedef struct {
 
 WNDFRAME* GetFrameDataFromEdit(HWND hWndEditCtrl);
 HWND CreateEditWindow(WNDFRAME *lpFrameNew, WNDFRAME *lpFrameOld);
-WNDFRAME* CreateFrameData(WNDFRAME *lpFrameSource, HWND hWndEditParent);
+WNDFRAME* CreateFrameData(int nMode, WNDFRAME *lpFrameSource, HWND hWndEditParent);
 void CopyFrameData(WNDFRAME *lpFrameTarget, WNDFRAME *lpFrameSource);
 void SaveFrameData(WNDFRAME *lpFrame);
 void RestoreFrameData(WNDFRAME *lpFrame);
-BOOL CreateFrameWindow(RECT *rcRect);
-void ActivateFrameWindow(WNDFRAME *lpFrame);
-WNDFRAME* NextFrameWindow(WNDFRAME *lpFrame, BOOL bPrev);
-int DestroyFrameWindow(WNDFRAME *lpFrame, int nTabItem);
+BOOL CreateMdiFrameWindow(RECT *rcRect);
+void ActivateMdiFrameWindow(WNDFRAME *lpFrame);
+WNDFRAME* NextMdiFrameWindow(WNDFRAME *lpFrame, BOOL bPrev);
+int DestroyMdiFrameWindow(WNDFRAME *lpFrame, int nTabItem);
 
 BOOL DoFileNew();
 HWND DoFileNewWindow(DWORD dwAddFlags);
@@ -738,8 +732,8 @@ void ActivateKeyboard(DWORD dwInputLocale);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
 HWND NextClone(BOOL bPrevious);
-void DestroyEdit(DWORD dwFlags, HWND *hWndEdit, HWND *hWndMaster, HWND *hWndClone1, HWND *hWndClone2, HWND *hWndClone3);
-void ResizeEdit(HWND hWndEdit, HWND hWndMaster, HWND hWndClone1, HWND hWndClone2, HWND hWndClone3, int X, int Y, int nWidth, int nHeight, RECT *rcMasterWindow, RECT *rcEditWindow, BOOL bTest);
+void DestroyEdit(DWORD dwFlags, WNDFRAME *lpFrame);
+void ResizeEdit(WNDFRAME *lpFrame, int X, int Y, int nWidth, int nHeight, BOOL bTest);
 void UpdateSize();
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
