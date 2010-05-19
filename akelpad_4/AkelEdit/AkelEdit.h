@@ -4276,14 +4276,14 @@ _________________
 
 Retrieve window data handle.
 
-wParam       == not used.
-(HWND)wParam == edit control handle. If NULL, current window data handle returned.
+wParam == not used.
+lParam == not used.
 
 Return Value
  Window data handle.
 
 Example:
- HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, (LPARAM)NULL);
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
 
 
 AEM_SETWINDOWDATA
@@ -4313,7 +4313,7 @@ Return Value
  Pointer to an AEEditProc procedure.
 
 Example (Call window procedure directly):
- HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, (LPARAM)NULL);
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
  AEEditProc lpEditProc=(AEEditProc)SendMessage(hWndEdit, AEM_GETWINDOWPROC, (WPARAM)hHandle, 0);
  LRESULT lResult;
 
@@ -4332,8 +4332,9 @@ Return Value
  Edit control handle.
 
 Example:
- HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, (LPARAM)NULL);
- HWND hWnd=(HWND)SendMessage(hWndEdit, AEM_GETWINDOWHANDLE, (WPARAM)hHandle, 0);
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEditFirst, AEM_GETWINDOWDATA, 0, 0);
+ HWND hWnd=(HWND)SendMessage(hWndEditSecond, AEM_GETWINDOWHANDLE, (WPARAM)hHandle, 0);
+ //hWnd == hWndEditFirst
 
 
 AEM_ADDCLONE
