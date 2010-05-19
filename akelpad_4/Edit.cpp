@@ -383,7 +383,7 @@ HWND CreateEditWindow(WNDFRAME *lpFrameNew, WNDFRAME *lpFrameOld)
                                     NULL);
 
     //Retrive data handle of created window
-    lpFrameNew->hDataHandle=(HANDLE)SendMessage(hWndEditNew, AEM_GETWINDOWDATA, 0, 0);
+    lpFrameNew->hDataHandle=(HANDLE)SendMessage(hWndEditNew, AEM_GETWINDOWDATA, 0, (LPARAM)NULL);
   }
   //Get procedure of edit window
   lpFrameNew->lpEditProc=(AEEditProc)SendMessage(hWndEditNew, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
@@ -531,12 +531,7 @@ WNDFRAME* CreateFrameData(int nMode, WNDFRAME *lpFrameSource, HWND hWndEditParen
         lpFrame->ei.hWndEdit=lpFrameSource->ei.hWndEdit;
         CreateEditWindow(lpFrame, lpFrameSource);
       }
-      else
-      {
-        lpFrame->ei.hWndEdit=CreateEditWindow(lpFrame, NULL);
-        lpFrame->hDataHandle=(HANDLE)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
-        lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)lpFrame->hDataHandle, 0);
-      }
+      else lpFrame->ei.hWndEdit=CreateEditWindow(lpFrame, NULL);
     }
   }
   return lpFrame;
