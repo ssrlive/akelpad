@@ -2096,7 +2096,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
 
-      ActivateMdiFrameWindow(lpFrame);
+      ActivateMdiFrameWindow(lpFrame, TRUE);
       return 0;
     }
     if (uMsg == AKD_FRAMENEXT)
@@ -3443,7 +3443,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           TabCtrl_GetItemWide(hTab, nItem, &tcItemW);
           lpFrame=(FRAMEDATA *)tcItemW.lParam;
 
-          ActivateMdiFrameWindow(lpFrame);
+          ActivateMdiFrameWindow(lpFrame, TRUE);
           bTabPressed=FALSE;
         }
       }
@@ -4082,7 +4082,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FRAMEDATA *lpFrame;
 
       if (lpFrame=GetFrameDataFromEdit(hWnd))
-        ActivateMdiFrameWindow(lpFrame);
+        ActivateMdiFrameWindow(lpFrame, TRUE);
     }
     else SetSelectionStatus(lpFrameCurrent->ei.hWndEdit, NULL, NULL);
 
@@ -4343,7 +4343,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
       if (lpFrame=(FRAMEDATA *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
       {
         //Activate frame
-        ActivateMdiFrameWindow(lpFrame);
+        ActivateMdiFrameWindow(lpFrame, TRUE);
 
         //Ask if document unsaved
         if (!DoFileExit()) return TRUE;

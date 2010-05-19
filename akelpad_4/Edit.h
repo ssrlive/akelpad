@@ -389,7 +389,7 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
 void SaveFrameData(FRAMEDATA *lpFrame);
 void RestoreFrameData(FRAMEDATA *lpFrame);
 BOOL CreateMdiFrameWindow(RECT *rcRect);
-void ActivateMdiFrameWindow(FRAMEDATA *lpFrame);
+void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bUpdateOrderPMDI);
 FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev);
 int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem);
 

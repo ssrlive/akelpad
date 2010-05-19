@@ -676,14 +676,14 @@ BOOL CreateMdiFrameWindow(RECT *rcRect)
       else CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndEdit, &lpFrame->hDataEdit);
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
-      ActivateMdiFrameWindow(lpFrame);
+      ActivateMdiFrameWindow(lpFrame, TRUE);
       bResult=TRUE;
     }
   }
   return FALSE;
 }
 
-void ActivateMdiFrameWindow(FRAMEDATA *lpFrame)
+void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bUpdateOrderPMDI)
 {
   if (lpFrameCurrent != lpFrame)
   {
@@ -697,8 +697,11 @@ void ActivateMdiFrameWindow(FRAMEDATA *lpFrame)
       if (lpFrameCurrent->hDataEdit)
         SaveFrameData(lpFrameCurrent);
 
-      //Move item to the end of stack, to use access order later.
-      StackFrameMove(&hFramesStack, lpFrame, -1);
+      if (bUpdateOrderPMDI)
+      {
+        //Move item to the end of stack, to use access order later.
+        StackFrameMove(&hFramesStack, lpFrame, -1);
+      }
 
       //Restore activated frame data
       lpFrameCurrent=lpFrame;
@@ -768,7 +771,7 @@ FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev)
           lpFrameNext=(FRAMEDATA *)hFramesStack.first;
       }
       if (lpFrameNext != lpFrame)
-        ActivateMdiFrameWindow(lpFrameNext);
+        ActivateMdiFrameWindow(lpFrameNext, FALSE);
     }
   }
   return lpFrameCurrent;
@@ -789,7 +792,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
       int nTabItem;
 
       //Activate frame
-      ActivateMdiFrameWindow(lpFrame);
+      ActivateMdiFrameWindow(lpFrame, TRUE);
 
       //Ask if document unsaved
       if (!lpFrame->prev && !lpFrame->next)
@@ -815,7 +818,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
 
         //Activate previous window
         if (lpFramePrev)
-          ActivateMdiFrameWindow(lpFramePrev);
+          ActivateMdiFrameWindow(lpFramePrev, TRUE);
 
         //Destroy window data
         SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataEdit, 0);
@@ -3449,7 +3452,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         {
           if (lpFrame=StackFrameGetByName(&hFramesStack, wpFile, -1))
           {
-            ActivateMdiFrameWindow(lpFrame);
+            ActivateMdiFrameWindow(lpFrame, TRUE);
             hWnd=lpFrameCurrent->ei.hWndEdit;
 
             if (SaveChanged())
