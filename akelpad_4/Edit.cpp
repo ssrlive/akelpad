@@ -383,7 +383,7 @@ HWND CreateEditWindow(WNDFRAME *lpFrameNew, WNDFRAME *lpFrameOld)
                                     NULL);
 
     //Retrive data handle of created window
-    lpFrameNew->hDataHandle=(HANDLE)SendMessage(hWndEditNew, AEM_GETWINDOWDATA, 0, (LPARAM)NULL);
+    lpFrameNew->hDataHandle=(HANDLE)SendMessage(hWndEditNew, AEM_GETWINDOWDATA, 0, 0);
   }
   //Get procedure of edit window
   lpFrameNew->lpEditProc=(AEEditProc)SendMessage(hWndEditNew, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
@@ -810,6 +810,7 @@ int DestroyMdiFrameWindow(WNDFRAME *lpFrame, int nTabItem)
           ActivateMdiFrameWindow(lpFramePrev);
 
         //Destroy window data
+        SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataHandle, 0);
         StackFrameDelete(&hFramesStack, lpFrame);
       }
     }
@@ -13155,8 +13156,6 @@ void StackFrameDelete(HSTACK *hStack, WNDFRAME *lpFrame)
 {
   if (lpFrame == lpFrameCurrent)
     lpFrameCurrent=&wfInit;
-  if (nMDI == WMD_PMDI)
-    SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataHandle, 0);
   StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpFrame);
 }
 

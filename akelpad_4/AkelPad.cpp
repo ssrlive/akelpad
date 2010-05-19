@@ -1231,11 +1231,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else
     {
-      WNDFRAME wf;
-
-      xmemcpy(&wf, lpFrameCurrent, sizeof(WNDFRAME));
-      StackFrameDelete(&hFramesStack, lpFrameCurrent);
-      DestroyEdit(CN_ALL, &wf);
+      DestroyEdit(CN_ALL, lpFrameCurrent);
     }
     DestroyWindow(hMainWnd);
     hMainWnd=NULL;
