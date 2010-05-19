@@ -1584,7 +1584,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETWINDOWDATA)
     {
-      return (LRESULT)ae;
+      HWND hWndEdit=(HWND)lParam;
+
+      if (!hWndEdit || hWndEdit == ae->hWndEdit)
+        return (LRESULT)ae;
+      return AE_StackWindowGet(&hAkelEditWindowsStack, hWndEdit);
     }
     if (uMsg == AEM_SETWINDOWDATA)
     {
@@ -1610,7 +1614,15 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       else
         return (LRESULT)ae->lpEditProc;
     }
+    if (uMsg == AEM_GETWINDOWHANDLE)
+    {
+      AKELEDIT *aeHandle=(AKELEDIT *)wParam;
 
+      if (aeHandle)
+        return (LRESULT)aeHandle->hWndEdit;
+      else
+        return (LRESULT)ae->hWndEdit;
+    }
 
     //Clones
     AddClone:

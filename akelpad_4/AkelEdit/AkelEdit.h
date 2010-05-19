@@ -1121,6 +1121,7 @@ typedef struct {
 #define AEM_GETWINDOWDATA         (WM_USER + 2403)
 #define AEM_SETWINDOWDATA         (WM_USER + 2404)
 #define AEM_GETWINDOWPROC         (WM_USER + 2405)
+#define AEM_GETWINDOWHANDLE       (WM_USER + 2406)
 
 //Clone
 #define AEM_ADDCLONE              (WM_USER + 2421)
@@ -4275,14 +4276,14 @@ _________________
 
 Retrieve window data handle.
 
-wParam == not used.
-lParam == not used.
+wParam       == not used.
+(HWND)wParam == edit control handle. If NULL, current window data handle returned.
 
 Return Value
  Window data handle.
 
 Example:
- HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, (LPARAM)NULL);
 
 
 AEM_SETWINDOWDATA
@@ -4303,20 +4304,36 @@ Example:
 AEM_GETWINDOWPROC
 _________________
 
-Retrieve window data procedure.
+Retrieve procedure of window data.
 
-(HANDLE)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current window data procedure returned.
+(HANDLE)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current procedure returned.
 lParam == not used.
 
 Return Value
  Pointer to an AEEditProc procedure.
 
 Example (Call window procedure directly):
- HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, (LPARAM)NULL);
  AEEditProc lpEditProc=(AEEditProc)SendMessage(hWndEdit, AEM_GETWINDOWPROC, (WPARAM)hHandle, 0);
  LRESULT lResult;
 
  lResult=lpEditProc(hHandle, EM_SETSEL, (WPARAM)0, (LPARAM)-1);
+
+
+AEM_GETWINDOWHANDLE
+___________________
+
+Retrieve edit control of window data.
+
+(HANDLE)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current edit control returned.
+lParam == not used.
+
+Return Value
+ Edit control handle.
+
+Example:
+ HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, (LPARAM)NULL);
+ HWND hWnd=(HWND)SendMessage(hWndEdit, AEM_GETWINDOWHANDLE, (WPARAM)hHandle, 0);
 
 
 AEM_ADDCLONE
