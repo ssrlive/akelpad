@@ -1588,7 +1588,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (!hWndEdit || hWndEdit == ae->hWndEdit)
         return (LRESULT)ae;
-      return AE_StackWindowGet(&hAkelEditWindowsStack, hWndEdit);
+      return (LRESULT)AE_StackWindowGet(&hAkelEditWindowsStack, hWndEdit);
     }
     if (uMsg == AEM_SETWINDOWDATA)
     {
