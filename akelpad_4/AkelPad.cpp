@@ -1452,9 +1452,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nMDI == WMD_SDI)
       {
-        if (lpFrameCurrent=CreateFrameData(lpFrameCurrent, hMainWnd))
+        if (lpFrameCurrent=CreateFrameData(hMainWnd, lpFrameCurrent))
         {
-          CreateEditWindow(lpFrame, NULL, &lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->hDataEdit);
+          CreateEditWindow(lpFrameCurrent, NULL, &lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->hDataEdit);
           RestoreFrameData(lpFrameCurrent);
         }
 
@@ -2787,7 +2787,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         do
         {
           if (!DoFileSave()) return FALSE;
-          NextMdiFrameWindow(lpFrameCurrent, FALSE);
+          lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
         }
         while (lpFrameCurrent != lpFrameInit);
 
@@ -2818,7 +2818,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         while (1)
         {
-          NextMdiFrameWindow(lpFrameCurrent, FALSE);
+          lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
           if (lpFrameCurrent == lpFrameInit) break;
 
           if (DestroyMdiFrameWindow(lpFrameCurrent, -1) != FWD_SUCCESS)
@@ -3901,7 +3901,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //MDICREATESTRUCT *mcs=(MDICREATESTRUCT *)cs->lpCreateParams;
     //lpFrame=(FRAMEDATA *)mcs->lParam
 
-    if (lpFrame=CreateFrameData(lpFrameCurrent, hWnd))
+    if (lpFrame=CreateFrameData(hWnd, lpFrameCurrent))
     {
       SetWindowLongWide(hWnd, GWL_USERDATA, (LONG)lpFrame);
       CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndEdit, &lpFrame->hDataEdit);

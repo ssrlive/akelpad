@@ -509,7 +509,7 @@ FRAMEDATA* GetFrameDataFromEdit(HWND hWndEditCtrl)
   return NULL;
 }
 
-FRAMEDATA* CreateFrameData(FRAMEDATA *lpFrameSource, HWND hWndEditParent)
+FRAMEDATA* CreateFrameData(HWND hWndEditParent, FRAMEDATA *lpFrameSource)
 {
   FRAMEDATA *lpFrame;
 
@@ -663,7 +663,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRect)
   {
     FRAMEDATA *lpFrame;
 
-    if (lpFrame=CreateFrameData(lpFrameCurrent, hMainWnd))
+    if (lpFrame=CreateFrameData(hMainWnd, lpFrameCurrent))
     {
       if (lpFrameCurrent->ei.hWndEdit)
       {
@@ -671,9 +671,15 @@ BOOL CreateMdiFrameWindow(RECT *rcRect)
           lpFrame->ei.hWndEdit=lpFrameCurrent->ei.hWndMaster;
         else
           lpFrame->ei.hWndEdit=lpFrameCurrent->ei.hWndEdit;
+
+        //Create virtual window
         CreateEditWindow(lpFrame, lpFrameCurrent, NULL, &lpFrame->hDataEdit);
       }
-      else CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndEdit, &lpFrame->hDataEdit);
+      else
+      {
+        //Create real window
+        CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndEdit, &lpFrame->hDataEdit);
+      }
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       ActivateMdiFrameWindow(lpFrame, TRUE);
@@ -4465,7 +4471,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
           }
           if (!nMDI) break;
 
-          NextMdiFrameWindow(lpFrameCurrent, FALSE);
+          lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
         }
         while (lpFrameCurrent != lpFrameInit);
       }
@@ -7570,7 +7576,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
               ++nChangedFiles;
               nChanges+=nReplaceCount;
             }
-            NextMdiFrameWindow(lpFrameCurrent, FALSE);
+            lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
           }
           while (lpFrameCurrent != lpFrameInit);
 
@@ -7605,7 +7611,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
             {
               bCanReplace=FALSE;
               ftflags|=AEFR_BEGINNING;
-              NextMdiFrameWindow(lpFrameCurrent, FALSE);
+              lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
             }
             else
             {
