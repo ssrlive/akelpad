@@ -1231,11 +1231,11 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else
     {
-      EDITINFO ei;
+      WNDFRAME wf;
 
-      ei=lpFrameCurrent->ei;
+      xmemcpy(&wf, lpFrameCurrent, sizeof(WNDFRAME));
       StackFrameDelete(&hFramesStack, lpFrameCurrent);
-      DestroyEdit(CN_ALL, &ei.hWndEdit, &ei.hWndMaster, &ei.hWndClone1, &ei.hWndClone2, &ei.hWndClone3);
+      DestroyEdit(CN_ALL, &wf);
     }
     DestroyWindow(hMainWnd);
     hMainWnd=NULL;
@@ -1432,12 +1432,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Create edit window
       if (nMDI == WMD_SDI)
       {
-        if (lpFrameCurrent=CreateFrameData(lpFrameCurrent, hMainWnd))
+        if (lpFrameCurrent=CreateFrameData(WMD_SDI, lpFrameCurrent, hMainWnd))
           RestoreFrameData(lpFrameCurrent);
       }
       else if (nMDI == WMD_PMDI)
       {
-        CreateFrameWindow(NULL);
+        CreateMdiFrameWindow(NULL);
       }
       else if (nMDI == WMD_MDI)
       {
@@ -1453,7 +1453,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         rcRect.top=0;
         rcRect.right-=i;
         rcRect.bottom-=i;
-        CreateFrameWindow(&rcRect);
+        CreateMdiFrameWindow(&rcRect);
       }
 
       //Apply settings
@@ -2026,23 +2026,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_FRAMEFINDA ||
         uMsg == AKD_FRAMEFINDW)
     {
-      if (wParam == FFT_CURRENT)
+      if (wParam == FWF_CURRENT)
         return (LRESULT)lpFrameCurrent;
-      if (wParam == FFT_NEXT)
+      if (wParam == FWF_NEXT)
       {
         WNDFRAME *lpFrame=(WNDFRAME *)lParam;
 
         return (LRESULT)(lpFrame?lpFrame->next:NULL);
       }
-      if (wParam == FFT_PREV)
+      if (wParam == FWF_PREV)
       {
         WNDFRAME *lpFrame=(WNDFRAME *)lParam;
 
         return (LRESULT)(lpFrame?lpFrame->prev:NULL);
       }
-      if (wParam == FFT_BYINDEX)
+      if (wParam == FWF_BYINDEX)
         return (LRESULT)StackFrameGetByIndex(&hFramesStack, lParam);
-      if (wParam == FFT_BYFILENAME)
+      if (wParam == FWF_BYFILENAME)
       {
         wchar_t *wpFileName=AllocWideStr(MAX_PATH);
         WNDFRAME *lpResult;
@@ -2057,7 +2057,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         FreeWideStr(wpFileName);
         return (LRESULT)lpResult;
       }
-      if (wParam == FFT_BYEDITWINDOW)
+      if (wParam == FWF_BYEDITWINDOW)
         return (LRESULT)GetFrameDataFromEdit((HWND)lParam);
       return 0;
     }
@@ -2065,20 +2065,20 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       WNDFRAME *lpFrame=(WNDFRAME *)lParam;
 
-      ActivateFrameWindow(lpFrame);
+      ActivateMdiFrameWindow(lpFrame);
       return 0;
     }
     if (uMsg == AKD_FRAMENEXT)
     {
       WNDFRAME *lpFrame=(WNDFRAME *)lParam;
 
-      return (LRESULT)NextFrameWindow(lpFrame, wParam);
+      return (LRESULT)NextMdiFrameWindow(lpFrame, wParam);
     }
     if (uMsg == AKD_FRAMEDESTROY)
     {
       WNDFRAME *lpFrame=(WNDFRAME *)lParam;
 
-      return DestroyFrameWindow(lpFrame, -1);
+      return DestroyMdiFrameWindow(lpFrame, -1);
     }
 
     //Thread
@@ -2756,7 +2756,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         do
         {
           if (!DoFileSave()) return FALSE;
-          NextFrameWindow(lpFrameCurrent, FALSE);
+          NextMdiFrameWindow(lpFrameCurrent, FALSE);
         }
         while (lpFrameCurrent->hWndEditParent != hWndFrameInit);
 
@@ -2773,7 +2773,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         while (lpFrameCurrent->hWndEditParent)
         {
-          if (DestroyFrameWindow(lpFrameCurrent, -1) != FWD_SUCCESS)
+          if (DestroyMdiFrameWindow(lpFrameCurrent, -1) != FWD_SUCCESS)
             return FALSE;
         }
         return TRUE;
@@ -2787,10 +2787,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         while (1)
         {
-          NextFrameWindow(lpFrameCurrent, FALSE);
+          NextMdiFrameWindow(lpFrameCurrent, FALSE);
           if (lpFrameCurrent->hWndEditParent == hWndFrameInit) break;
 
-          if (DestroyFrameWindow(lpFrameCurrent, -1) != FWD_SUCCESS)
+          if (DestroyMdiFrameWindow(lpFrameCurrent, -1) != FWD_SUCCESS)
             return FALSE;
         }
         return TRUE;
@@ -3319,15 +3319,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (LOWORD(wParam) == IDM_NONMENU_MDINEXT)
       {
-        NextFrameWindow(lpFrameCurrent, FALSE);
+        NextMdiFrameWindow(lpFrameCurrent, FALSE);
       }
       else if (LOWORD(wParam) == IDM_NONMENU_MDIPREV)
       {
-        NextFrameWindow(lpFrameCurrent, TRUE);
+        NextMdiFrameWindow(lpFrameCurrent, TRUE);
       }
       else if (LOWORD(wParam) == IDM_NONMENU_MDICLOSE)
       {
-        return !DestroyFrameWindow(lpFrameCurrent, -1);
+        return !DestroyMdiFrameWindow(lpFrameCurrent, -1);
       }
     }
   }
@@ -3412,7 +3412,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           TabCtrl_GetItemWide(hTab, nItem, &tcItemW);
           lpFrame=(WNDFRAME *)tcItemW.lParam;
 
-          ActivateFrameWindow(lpFrame);
+          ActivateMdiFrameWindow(lpFrame);
           bTabPressed=FALSE;
         }
       }
@@ -3434,7 +3434,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       while (lpFrameCurrent->hWndEditParent)
       {
-        nDestroyResult=DestroyFrameWindow(lpFrameCurrent, -1);
+        nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent, -1);
 
         if (nDestroyResult == FWD_ABORT)
         {
@@ -3491,7 +3491,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_MBUTTONDOWN)
     {
-      CreateFrameWindow(NULL);
+      CreateMdiFrameWindow(NULL);
     }
   }
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
@@ -3870,7 +3870,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //MDICREATESTRUCT *mcs=(MDICREATESTRUCT *)cs->lpCreateParams;
     //lpFrame=(WNDFRAME *)mcs->lParam
 
-    if (lpFrame=CreateFrameData(lpFrameCurrent, hWnd))
+    if (lpFrame=CreateFrameData(WMD_MDI, lpFrameCurrent, hWnd))
     {
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
@@ -3884,7 +3884,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lpFrame=(WNDFRAME *)GetWindowLongWide(hWnd, GWL_USERDATA))
       {
-        ResizeEdit(lpFrame->ei.hWndEdit, lpFrame->ei.hWndMaster, lpFrame->ei.hWndClone1, lpFrame->ei.hWndClone2, lpFrame->ei.hWndClone3, 0, 0, LOWORD(lParam), HIWORD(lParam), &lpFrame->rcMasterWindow, &lpFrame->rcEditWindow, FALSE);
+        ResizeEdit(lpFrame, 0, 0, LOWORD(lParam), HIWORD(lParam), FALSE);
       }
     }
   }
@@ -4048,7 +4048,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       WNDFRAME *lpFrame;
 
       if (lpFrame=GetFrameDataFromEdit(hWnd))
-        ActivateFrameWindow(lpFrame);
+        ActivateMdiFrameWindow(lpFrame);
     }
     else SetSelectionStatus(lpFrameCurrent->ei.hWndEdit, NULL, NULL);
 
@@ -4164,9 +4164,9 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
     if (hCursorClone)
     {
       if (hCursorClone == hCursorSizeWE || hCursorClone == hCursorSizeALL)
-        DestroyEdit(CN_CLONE1|CN_CLONE3, &lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->ei.hWndMaster, &lpFrameCurrent->ei.hWndClone1, &lpFrameCurrent->ei.hWndClone2, &lpFrameCurrent->ei.hWndClone3);
+        DestroyEdit(CN_CLONE1|CN_CLONE3, lpFrameCurrent);
       if (hCursorClone == hCursorSizeNS || hCursorClone == hCursorSizeALL)
-        DestroyEdit(CN_CLONE2|CN_CLONE3, &lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->ei.hWndMaster, &lpFrameCurrent->ei.hWndClone1, &lpFrameCurrent->ei.hWndClone2, &lpFrameCurrent->ei.hWndClone3);
+        DestroyEdit(CN_CLONE2|CN_CLONE3, lpFrameCurrent);
 
       if (!lpFrameCurrent->ei.hWndClone1 && !lpFrameCurrent->ei.hWndClone2 && !lpFrameCurrent->ei.hWndClone3)
       {
@@ -4176,7 +4176,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         UpdateShowHScroll(lpFrameCurrent->ei.hWndEdit);
         SetFocus(lpFrameCurrent->ei.hWndEdit);
-        ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, FALSE);
+        ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, FALSE);
       }
       return TRUE;
     }
@@ -4207,18 +4207,18 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         if (--nMouseMove == 0)
         {
-          ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, TRUE);
+          ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, TRUE);
         }
       }
       else
       {
-        ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, TRUE);
+        ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, TRUE);
         GetCursorPos(&ptPos);
         if (hCursorClone == hCursorSizeWE || hCursorClone == hCursorSizeALL)
           lpFrameCurrent->rcMasterWindow.right+=(ptPos.x - ptMouseDown.x);
         if (hCursorClone == hCursorSizeNS || hCursorClone == hCursorSizeALL)
           lpFrameCurrent->rcMasterWindow.bottom+=(ptPos.y - ptMouseDown.y);
-        ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, TRUE);
+        ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, TRUE);
 
         ptMouseDown.x+=(lpFrameCurrent->rcMasterWindow.right - rcMasterInitial.right);
         ptMouseDown.y+=(lpFrameCurrent->rcMasterWindow.bottom - rcMasterInitial.bottom);
@@ -4235,8 +4235,8 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
       if (nMouseMove == 0)
       {
-        ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, TRUE);
-        ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, FALSE);
+        ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, TRUE);
+        ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, FALSE);
         return TRUE;
       }
     }
@@ -4250,7 +4250,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
       if (nMouseMove == 0)
       {
-        ResizeEdit(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->ei.hWndMaster, lpFrameCurrent->ei.hWndClone1, lpFrameCurrent->ei.hWndClone2, lpFrameCurrent->ei.hWndClone3, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, &lpFrameCurrent->rcMasterWindow, &lpFrameCurrent->rcEditWindow, TRUE);
+        ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, TRUE);
       }
     }
   }
@@ -4266,13 +4266,13 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
   }
   else if (uMsg == WM_LBUTTONDBLCLK || uMsg == WM_MBUTTONDOWN)
   {
-    CreateFrameWindow(NULL);
+    CreateMdiFrameWindow(NULL);
   }
   else if (uMsg == WM_MDINEXT)
   {
     if (dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
     {
-      NextFrameWindow(lpFrameCurrent, lParam);
+      NextMdiFrameWindow(lpFrameCurrent, lParam);
       return TRUE;
     }
   }
@@ -4300,7 +4300,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
   }
   else if (uMsg == WM_MDIDESTROY)
   {
-    //WM_MDIDESTROY should not be called directly. Use DestroyFrameWindow function.
+    //WM_MDIDESTROY should not be called directly. Use DestroyMdiFrameWindow function.
     if ((HWND)wParam)
     {
       WNDFRAME *lpFrame;
@@ -4309,7 +4309,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
       if (lpFrame=(WNDFRAME *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
       {
         //Activate frame
-        ActivateFrameWindow(lpFrame);
+        ActivateMdiFrameWindow(lpFrame);
 
         //Ask if document unsaved
         if (!DoFileExit()) return TRUE;
@@ -4333,7 +4333,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
 
           //Destroy edit
-          DestroyEdit(CN_ALL, &lpFrame->ei.hWndEdit, &lpFrame->ei.hWndMaster, &lpFrame->ei.hWndClone1, &lpFrame->ei.hWndClone2, &lpFrame->ei.hWndClone3);
+          DestroyEdit(CN_ALL, lpFrame);
 
           //Delete frame data
           SetWindowLongWide((HWND)wParam, GWL_USERDATA, (LONG)0);
@@ -4404,13 +4404,13 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (nItem != -1)
     {
       SelectTabItem(hWnd, nItem);
-      DestroyFrameWindow(lpFrameCurrent, nItem);
+      DestroyMdiFrameWindow(lpFrameCurrent, nItem);
       return TRUE;
     }
   }
   else if (uMsg == WM_LBUTTONDBLCLK)
   {
-    DestroyFrameWindow(lpFrameCurrent, -1);
+    DestroyMdiFrameWindow(lpFrameCurrent, -1);
     return TRUE;
   }
   else if (uMsg == WM_TIMER)

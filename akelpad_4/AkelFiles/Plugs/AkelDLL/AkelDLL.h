@@ -192,12 +192,18 @@
 #define NCM_STATUS   3  //Status bar control
 
 //AKD_FRAMEFIND flags
-#define FFT_CURRENT       1
-#define FFT_NEXT          2
-#define FFT_PREV          3
-#define FFT_BYINDEX       4
-#define FFT_BYFILENAME    5
-#define FFT_BYEDITWINDOW  6
+#define FWF_CURRENT       1
+#define FWF_NEXT          2
+#define FWF_PREV          3
+#define FWF_BYINDEX       4
+#define FWF_BYFILENAME    5
+#define FWF_BYEDITWINDOW  6
+
+//AKD_FRAMEDESTROY return value
+#define FWD_SUCCESS   0
+#define FWD_ABORT     1
+#define FWD_LASTTAB   2
+#define FWD_NOWINDOW  3
 
 //Find text flags
 #ifndef FR_DOWN
