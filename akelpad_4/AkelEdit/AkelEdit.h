@@ -214,7 +214,6 @@
 #define AEGI_PREVCHARINLINE        21  //Previous character in line. lParam must point to an input index.
                                        //For better performance use AEC_PrevCharInLineEx instead.
 
-
 //AEM_ISDELIMITER parameter
 #define AEDLM_PREVCHAR  0x00000001  //Check previous char.
 #define AEDLM_WORD      0x00000010  //Word delimiter.
@@ -255,6 +254,14 @@
 //AEM_SETNEWLINE flags
 #define AENL_INPUT           0x00000001  //Sets default new line for the input operations, for example AEM_PASTE.
 #define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
+
+//AEM_SETWINDOWDATA flags
+#define AESWD_NOREFRESH        0x00000001  //Don't redraw edit window.
+#define AESWD_NODRAGDROP       0x00000002  //Don't register drag-and-drop with a new IDropTarget.
+
+//AEM_DRAGDROP flags
+#define AEDD_GETDRAGWINDOW   1  //Return dragging window handle.
+#define AEDD_STOPDRAG        2  //Set stop dragging operation flag.
 
 //AEM_SETCOLORS flags
 #define AECLR_DEFAULT        0x00000001  //Use default system colors for the specified flags, all members of the AECOLORS structure are ignored.
@@ -380,10 +387,6 @@
 #define AEFR_DOWN            0x00000001  //If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
 #define AEFR_WHOLEWORD       0x00000002  //If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
 #define AEFR_MATCHCASE       0x00000004  //If set, the search operation is case-sensitive. If not set, the search operation is case-insensitive.
-
-//AEM_DRAGDROP flags
-#define AEDD_GETDRAGWINDOW   1  //Return dragging window handle.
-#define AEDD_STOPDRAG        2  //Set stop dragging operation flag.
 
 //AEM_SETWORDWRAP flags
 #define AEWW_WORD            0x00000001  //Wrap by words.
@@ -4251,9 +4254,6 @@ Example:
 
  hHandleNew=(HANDLE)SendMessage(hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
  hHandleOld=(HANDLE)SendMessage(hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hHandleNew, 0);
- SendMessage(hWndEdit, AEM_UPDATESCROLLBAR, SB_BOTH, 0);
- SendMessage(hWndEdit, AEM_UPDATECARET, 0, 0);
- InvalidateRect(hWndEdit, NULL, TRUE);
 
 
 AEM_DELETEWINDOWDATA
@@ -4292,8 +4292,7 @@ _________________
 Associate new window data handle.
 
 (HANDLE)wParam == window data handle.
-(BOOL)lParam   == TRUE   redraw the edit window.
-                  FALSE  don't redraw the edit window.
+(DWORD)lParam  == see AESWD_* defines.
 
 Return Value
  Old window data handle.
@@ -4347,7 +4346,8 @@ Adds clone to the master window. Message sended to a master window which will be
 lParam       == not used.
 
 Return Value
- zero
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  SendMessage(hWndEdit, AEM_ADDCLONE, (HWND)hWndEdit2, 0);
