@@ -1592,14 +1592,25 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (ae != aeNew)
       {
+        //Assign new AKELEDIT.
         aeNew->hWndEdit=ae->hWndEdit;
-        ae->hWndEdit=NULL;
         if (GetFocus() == aeNew->hWndEdit)
           aeNew->bFocus=TRUE;
         else
           aeNew->bFocus=FALSE;
 
-        if (lParam)
+        //Unassign current AKELEDIT.
+        ae->hWndEdit=NULL;
+
+        //Register Drag'n'Drop with new idt pointer.
+        if (!(lParam & AESWD_NODRAGDROP))
+        {
+          RevokeDragDrop(aeNew->hWndEdit);
+          RegisterDragDrop(aeNew->hWndEdit, (LPDROPTARGET)&aeNew->idt);
+        }
+
+        //Redraw edit window.
+        if (!(lParam & AESWD_NOREFRESH))
         {
           AE_UpdateScrollBars(aeNew, SB_BOTH);
           AE_UpdateCaret(aeNew, aeNew->bFocus);
@@ -1637,8 +1648,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AKELEDIT *aeClone;
 
       if (aeClone=AE_StackWindowGet(&hAkelEditWindowsStack, (HWND)wParam))
+      {
         AE_StackCloneAdd(ae, aeClone);
-      return 0;
+        return TRUE;
+      }
+      return FALSE;
     }
     if (uMsg == AEM_DELCLONE)
     {
@@ -4144,12 +4158,12 @@ void AE_DestroyWindowData(AKELEDIT *ae)
 {
   if (!ae->lpMaster)
   {
-    //Uncloning all clones
+    //Destroying master - uncloning all clones
     AE_StackCloneDeleteAll(ae);
   }
   else
   {
-    //Uncloning current clone
+    //Destroying clone - uncloning current clone
     AECLONE *aec;
 
     if (aec=AE_StackCloneGet(ae->lpMaster, ae->hWndEdit))
@@ -4630,7 +4644,7 @@ void AE_StackCloneDelete(AECLONE *aec)
     AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelStartIndex, FALSE);
     AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelEndIndex, FALSE);
     AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciCaretIndex, FALSE);
-    AE_UpdateScrollBars(aeClone, SB_BOTH);
+    if (aeClone->hWndEdit) AE_UpdateScrollBars(aeClone, SB_BOTH);
   }
 }
 
