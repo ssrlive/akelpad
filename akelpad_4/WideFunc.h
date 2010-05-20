@@ -121,6 +121,15 @@ BOOL SetWindowTextWide(HWND hWnd, const wchar_t *wpText);
 int GetDlgItemTextWide(HWND hDlg, int nIDDlgItem, wchar_t *wszText, int nTextMax);
 BOOL SetDlgItemTextWide(HWND hDlg, int nIDDlgItem, const wchar_t *wpText);
 
+//Messages (MESSAGEWIDEFUNC). User32.lib.
+BOOL GetMessageWide(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
+BOOL PeekMessageWide(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
+LRESULT DispatchMessageWide(const MSG *lpMsg);
+int TranslateAcceleratorWide(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg);
+BOOL IsDialogMessageWide(HWND hDlg, LPMSG lpMsg);
+LRESULT SendMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT PostMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
 //Resources (RESOURCEWIDEFUNC). User32.lib.
 int LoadStringWide(HINSTANCE hLoadInstance, UINT uID, wchar_t *wszText, int nTextMax);
 UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge, HICON *phiconSmall, UINT nIcons);
@@ -153,6 +162,8 @@ int ListBox_GetTextWide(HWND hWnd, int nIndex, wchar_t *wszText);
 BOOL TabCtrl_GetItemWide(HWND hWnd, int nIndex, TCITEMW *tciW);
 int TabCtrl_InsertItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW);
 BOOL TabCtrl_SetItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW);
+DWORD StatusBar_GetTextWide(HWND hWnd, int iPart, wchar_t *wszText);
+BOOL StatusBar_SetTextWide(HWND hWnd, int iPart, const wchar_t *wpText);
 
 #endif //_WIDEFUNC_H_
 
@@ -1723,7 +1734,7 @@ BOOL SetWindowTextWide(HWND hWnd, const wchar_t *wpText)
   if (WideGlobal_bOldWindows == TRUE)
   {
     char *pText=AllocAnsi(wpText);
-    BOOL bResult=FALSE;
+    BOOL bResult;
 
     bResult=SetWindowTextA(hWnd, pText);
 
@@ -1779,7 +1790,7 @@ BOOL SetDlgItemTextWide(HWND hDlg, int nIDDlgItem, const wchar_t *wpText)
   if (WideGlobal_bOldWindows == TRUE)
   {
     char *pText=AllocAnsi(wpText);
-    BOOL bResult=FALSE;
+    BOOL bResult;
 
     bResult=SetDlgItemTextA(hDlg, nIDDlgItem, pText);
 
@@ -1791,6 +1802,134 @@ BOOL SetDlgItemTextWide(HWND hDlg, int nIDDlgItem, const wchar_t *wpText)
 
   WideNotInitialized();
   return FALSE;
+}
+#endif
+
+
+//// Messages
+#if defined GetMessageWide || defined MESSAGEWIDEFUNC || defined ALLWIDEFUNC
+#define GetMessageWide_INCLUDED
+#undef GetMessageWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL GetMessageWide(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+    return GetMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
+  else if (WideGlobal_bOldWindows == FALSE)
+    return GetMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined PeekMessageWide || defined MESSAGEWIDEFUNC || defined ALLWIDEFUNC
+#define PeekMessageWide_INCLUDED
+#undef PeekMessageWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL PeekMessageWide(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+    return PeekMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+  else if (WideGlobal_bOldWindows == FALSE)
+    return PeekMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined DispatchMessageWide || defined MESSAGEWIDEFUNC || defined ALLWIDEFUNC
+#define DispatchMessageWide_INCLUDED
+#undef DispatchMessageWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+LRESULT DispatchMessageWide(const MSG *lpMsg)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+    return DispatchMessageA(lpMsg);
+  else if (WideGlobal_bOldWindows == FALSE)
+    return DispatchMessageW(lpMsg);
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined TranslateAcceleratorWide || defined MESSAGEWIDEFUNC || defined ALLWIDEFUNC
+#define TranslateAcceleratorWide_INCLUDED
+#undef TranslateAcceleratorWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+int TranslateAcceleratorWide(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+    return TranslateAcceleratorA(hWnd, hAccTable, lpMsg);
+  else if (WideGlobal_bOldWindows == FALSE)
+    return TranslateAcceleratorW(hWnd, hAccTable, lpMsg);
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined IsDialogMessageWide || defined MESSAGEWIDEFUNC || defined ALLWIDEFUNC
+#define IsDialogMessageWide_INCLUDED
+#undef IsDialogMessageWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL IsDialogMessageWide(HWND hDlg, LPMSG lpMsg)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+    return IsDialogMessageA(hDlg, lpMsg);
+  else if (WideGlobal_bOldWindows == FALSE)
+    return IsDialogMessageW(hDlg, lpMsg);
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined SendMessageWide || defined MESSAGEWIDEFUNC || defined ALLWIDEFUNC
+#define SendMessageWide_INCLUDED
+#undef SendMessageWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+LRESULT SendMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+    return SendMessageA(hWnd, uMsg, wParam, lParam);
+  else if (WideGlobal_bOldWindows == FALSE)
+    return SendMessageW(hWnd, uMsg, wParam, lParam);
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined PostMessageWide || defined MESSAGEWIDEFUNC || defined ALLWIDEFUNC
+#define PostMessageWide_INCLUDED
+#undef PostMessageWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+LRESULT PostMessageWide(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+    return PostMessageA(hWnd, uMsg, wParam, lParam);
+  else if (WideGlobal_bOldWindows == FALSE)
+    return PostMessageW(hWnd, uMsg, wParam, lParam);
+
+  WideNotInitialized();
+  return 0;
 }
 #endif
 
@@ -2010,10 +2149,10 @@ int ListView_InsertColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW)
       FreeAnsi((char *)lvcA.pszText);
       return nResult;
     }
-    return SendMessage(hWnd, LVM_INSERTCOLUMNA, (WPARAM)iCol, (LPARAM)lvcW);
+    return SendMessageA(hWnd, LVM_INSERTCOLUMNA, (WPARAM)iCol, (LPARAM)lvcW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessage(hWnd, LVM_INSERTCOLUMNW, (WPARAM)iCol, (LPARAM)lvcW);
+    return SendMessageW(hWnd, LVM_INSERTCOLUMNW, (WPARAM)iCol, (LPARAM)lvcW);
 
   WideNotInitialized();
   return -1;
@@ -2039,7 +2178,7 @@ BOOL ListView_GetItemWide(HWND hWnd, LVITEMW *lviW)
       lviW->cchTextMax*=sizeof(wchar_t);
       if (lviW->pszText=(wchar_t *)GlobalAlloc(GPTR, lviW->cchTextMax))
       {
-        bResult=SendMessage(hWnd, LVM_GETITEMA, 0, (LPARAM)lviW);
+        bResult=SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM)lviW);
         AnsiToWide((char *)lviW->pszText, -1, wpSaveText, nSaveTextMax);
         GlobalFree((HGLOBAL)lviW->pszText);
       }
@@ -2047,10 +2186,10 @@ BOOL ListView_GetItemWide(HWND hWnd, LVITEMW *lviW)
       lviW->cchTextMax=nSaveTextMax;
       return bResult;
     }
-    return SendMessage(hWnd, LVM_GETITEMA, 0, (LPARAM)lviW);
+    return SendMessageA(hWnd, LVM_GETITEMA, 0, (LPARAM)lviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessage(hWnd, LVM_GETITEMW, 0, (LPARAM)lviW);
+    return SendMessageW(hWnd, LVM_GETITEMW, 0, (LPARAM)lviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2079,10 +2218,10 @@ int ListView_InsertItemWide(HWND hWnd, const LVITEMW *lviW)
       FreeAnsi((char *)lviA.pszText);
       return nResult;
     }
-    return SendMessage(hWnd, LVM_INSERTITEMA, 0, (LPARAM)lviW);
+    return SendMessageA(hWnd, LVM_INSERTITEMA, 0, (LPARAM)lviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessage(hWnd, LVM_INSERTITEMW, 0, (LPARAM)lviW);
+    return SendMessageW(hWnd, LVM_INSERTITEMW, 0, (LPARAM)lviW);
 
   WideNotInitialized();
   return -1;
@@ -2111,10 +2250,10 @@ BOOL ListView_SetItemWide(HWND hWnd, const LVITEMW *lviW)
       FreeAnsi((char *)lviA.pszText);
       return bResult;
     }
-    return SendMessage(hWnd, LVM_SETITEMA, 0, (LPARAM)lviW);
+    return SendMessageA(hWnd, LVM_SETITEMA, 0, (LPARAM)lviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessage(hWnd, LVM_SETITEMW, 0, (LPARAM)lviW);
+    return SendMessageW(hWnd, LVM_SETITEMW, 0, (LPARAM)lviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2140,7 +2279,7 @@ BOOL TreeView_GetItemWide(HWND hWnd, TVITEMW *tviW)
       tviW->cchTextMax*=sizeof(wchar_t);
       if (tviW->pszText=(wchar_t *)GlobalAlloc(GPTR, tviW->cchTextMax))
       {
-        bResult=SendMessage(hWnd, TVM_GETITEMA, 0, (LPARAM)tviW);
+        bResult=SendMessageA(hWnd, TVM_GETITEMA, 0, (LPARAM)tviW);
         AnsiToWide((char *)tviW->pszText, -1, wpSaveText, nSaveTextMax);
         GlobalFree((HGLOBAL)tviW->pszText);
       }
@@ -2148,10 +2287,10 @@ BOOL TreeView_GetItemWide(HWND hWnd, TVITEMW *tviW)
       tviW->cchTextMax=nSaveTextMax;
       return bResult;
     }
-    return SendMessage(hWnd, TVM_GETITEMA, 0, (LPARAM)tviW);
+    return SendMessageA(hWnd, TVM_GETITEMA, 0, (LPARAM)tviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessage(hWnd, TVM_GETITEMW, 0, (LPARAM)tviW);
+    return SendMessageW(hWnd, TVM_GETITEMW, 0, (LPARAM)tviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2171,7 +2310,7 @@ HTREEITEM TreeView_InsertItemWide(HWND hWnd, TVINSERTSTRUCTW *tvisW)
     if (tvisW->item.mask & TVIF_TEXT)
     {
       TVINSERTSTRUCTA tvisA;
-      HTREEITEM hResult=NULL;
+      HTREEITEM hResult;
 
       xmemcpy(&tvisA, &tvisW->item, sizeof(TVINSERTSTRUCTA));
       tvisA.item.pszText=AllocAnsi(tvisW->item.pszText);
@@ -2180,10 +2319,10 @@ HTREEITEM TreeView_InsertItemWide(HWND hWnd, TVINSERTSTRUCTW *tvisW)
       FreeAnsi((char *)tvisA.item.pszText);
       return hResult;
     }
-    return (HTREEITEM)SendMessage(hWnd, TVM_INSERTITEMA, 0, (LPARAM)tvisW);
+    return (HTREEITEM)SendMessageA(hWnd, TVM_INSERTITEMA, 0, (LPARAM)tvisW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return (HTREEITEM)SendMessage(hWnd, TVM_INSERTITEMW, 0, (LPARAM)tvisW);
+    return (HTREEITEM)SendMessageW(hWnd, TVM_INSERTITEMW, 0, (LPARAM)tvisW);
 
   WideNotInitialized();
   return 0;
@@ -2203,7 +2342,7 @@ BOOL TreeView_SetItemWide(HWND hWnd, const TVITEMW *tviW)
     if (tviW->mask & TVIF_TEXT)
     {
       TVITEMA tviA;
-      BOOL bResult=FALSE;
+      BOOL bResult;
 
       xmemcpy(&tviA, tviW, sizeof(TVITEMA));
       tviA.pszText=AllocAnsi(tviW->pszText);
@@ -2212,10 +2351,10 @@ BOOL TreeView_SetItemWide(HWND hWnd, const TVITEMW *tviW)
       FreeAnsi((char *)tviA.pszText);
       return bResult;
     }
-    return SendMessage(hWnd, TVM_SETITEMA, 0, (LPARAM)tviW);
+    return SendMessageA(hWnd, TVM_SETITEMA, 0, (LPARAM)tviW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessage(hWnd, TVM_SETITEMW, 0, (LPARAM)tviW);
+    return SendMessageW(hWnd, TVM_SETITEMW, 0, (LPARAM)tviW);
 
   WideNotInitialized();
   return FALSE;
@@ -2539,7 +2678,7 @@ BOOL TabCtrl_GetItemWide(HWND hWnd, int nIndex, TCITEMW *tciW)
       tciW->cchTextMax*=sizeof(wchar_t);
       if (tciW->pszText=(wchar_t *)GlobalAlloc(GPTR, tciW->cchTextMax))
       {
-        bResult=SendMessage(hWnd, TCM_GETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
+        bResult=SendMessageA(hWnd, TCM_GETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
         AnsiToWide((char *)tciW->pszText, -1, wpSaveText, nSaveTextMax);
         GlobalFree((HGLOBAL)tciW->pszText);
       }
@@ -2547,10 +2686,10 @@ BOOL TabCtrl_GetItemWide(HWND hWnd, int nIndex, TCITEMW *tciW)
       tciW->cchTextMax=nSaveTextMax;
       return bResult;
     }
-    return SendMessage(hWnd, TCM_GETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
+    return SendMessageA(hWnd, TCM_GETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessage(hWnd, TCM_GETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+    return SendMessageW(hWnd, TCM_GETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
 
   WideNotInitialized();
   return FALSE;
@@ -2579,10 +2718,10 @@ int TabCtrl_InsertItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
       FreeAnsi((char *)tciA.pszText);
       return nResult;
     }
-    return SendMessage(hWnd, TCM_INSERTITEMA, (WPARAM)nIndex, (LPARAM)tciW);
+    return SendMessageA(hWnd, TCM_INSERTITEMA, (WPARAM)nIndex, (LPARAM)tciW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessage(hWnd, TCM_INSERTITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+    return SendMessageW(hWnd, TCM_INSERTITEMW, (WPARAM)nIndex, (LPARAM)tciW);
 
   WideNotInitialized();
   return -1;
@@ -2611,10 +2750,69 @@ BOOL TabCtrl_SetItemWide(HWND hWnd, int nIndex, const TCITEMW *tciW)
       FreeAnsi((char *)tciA.pszText);
       return bResult;
     }
-    return SendMessage(hWnd, TCM_SETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
+    return SendMessageA(hWnd, TCM_SETITEMA, (WPARAM)nIndex, (LPARAM)tciW);
   }
   else if (WideGlobal_bOldWindows == FALSE)
-    return SendMessage(hWnd, TCM_SETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+    return SendMessageW(hWnd, TCM_SETITEMW, (WPARAM)nIndex, (LPARAM)tciW);
+
+  WideNotInitialized();
+  return FALSE;
+}
+#endif
+
+#if defined StatusBar_GetTextWide || defined CONTROLWIDEFUNC || defined ALLWIDEFUNC
+#define StatusBar_GetTextWide_INCLUDED
+#undef StatusBar_GetTextWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+DWORD StatusBar_GetTextWide(HWND hWnd, int iPart, wchar_t *wszText)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *szText;
+    int nTextLen;
+    DWORD dwResult=0;
+
+    nTextLen=SendMessageA(hWnd, SB_GETTEXTLENGTH, (WPARAM)iPart, 0);
+    nTextLen=LOWORD(nTextLen);
+
+    if (szText=(char *)GlobalAlloc(GPTR, nTextLen + 1))
+    {
+      dwResult=SendMessageA(hWnd, SB_GETTEXTA, (WPARAM)iPart, (LPARAM)szText);
+      AnsiToWide(szText, nTextLen + 1, wszText, nTextLen + 1);
+      GlobalFree((HGLOBAL)szText);
+    }
+    return dwResult;
+  }
+  else if (WideGlobal_bOldWindows == FALSE)
+    return SendMessageW(hWnd, SB_GETTEXTW, (WPARAM)iPart, (LPARAM)wszText);
+
+  WideNotInitialized();
+  return 0;
+}
+#endif
+
+#if defined StatusBar_SetTextWide || defined CONTROLWIDEFUNC || defined ALLWIDEFUNC
+#define StatusBar_SetTextWide_INCLUDED
+#undef StatusBar_SetTextWide
+#ifndef ANYWIDEFUNC_INCLUDED
+  #define ANYWIDEFUNC_INCLUDED
+#endif
+BOOL StatusBar_SetTextWide(HWND hWnd, int iPart, const wchar_t *wpText)
+{
+  if (WideGlobal_bOldWindows == TRUE)
+  {
+    char *pText=AllocAnsi(wpText);
+    BOOL bResult;
+
+    bResult=SendMessageA(hWnd, SB_SETTEXTA, (WPARAM)iPart, (LPARAM)pText);
+
+    FreeAnsi(pText);
+    return bResult;
+  }
+  else if (WideGlobal_bOldWindows == FALSE)
+    return SendMessageW(hWnd, SB_SETTEXTW, (WPARAM)iPart, (LPARAM)wpText);
 
   WideNotInitialized();
   return FALSE;

@@ -78,6 +78,7 @@
 #define CreateProcessWide
 #define CreateWindowExWide
 #define DeleteFileWide
+#define DispatchMessageWide
 #define DragQueryFileWide
 #define ExpandEnvironmentStringsWide
 #define ExtractIconExWide
@@ -94,6 +95,7 @@
 #define GetFullPathNameWide
 #define GetKeyNameTextWide
 #define GetLongPathNameWide
+#define GetMessageWide
 #define GetModuleFileNameWide
 #define GetModuleHandleWide
 #define GetOpenFileNameWide
@@ -103,6 +105,7 @@
 #define GetWindowTextLengthWide
 #define GetWindowTextWide
 #define InsertMenuWide
+#define IsDialogMessageWide
 #define ListBox_AddStringWide
 #define ListBox_FindStringWide
 #define ListBox_GetTextWide
@@ -114,6 +117,7 @@
 #define LoadLibraryWide
 #define LoadStringWide
 #define ModifyMenuWide
+#define PeekMessageWide
 #define RegClearKeyAnsi
 #define RegClearKeyWide
 #define RegCreateKeyExWide
@@ -125,6 +129,7 @@
 #define RegQueryValueExWide
 #define RegSetValueExWide
 #define SearchPathWide
+#define SendMessageWide
 #define SetCurrentDirectoryWide
 #define SetDlgItemTextWide
 #define SetFileAttributesWide
@@ -133,9 +138,11 @@
 #define SHBrowseForFolderWide
 #define SHGetPathFromIDListWide
 #define StartDocWide
+#define StatusBar_SetTextWide
 #define TabCtrl_GetItemWide
 #define TabCtrl_InsertItemWide
 #define TabCtrl_SetItemWide
+#define TranslateAcceleratorWide
 #include "WideFunc.h"
 
 //Include AEC functions
@@ -999,65 +1006,31 @@ extern "C" void _WinMain()
                               NULL);                        // creation parameters
   if (!hMainWnd) goto Quit;
 
-  if (bOldWindows)
+  while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
   {
-    while ((bMsgStatus=GetMessageA(&msg, NULL, 0, 0)) && bMsgStatus != -1)
+    if (!TranslateAccelerator(hMainWnd, hGlobalAccel, &msg))
     {
-      if (!TranslateAccelerator(hMainWnd, hGlobalAccel, &msg))
+      if (!TranslateDialog(&hDocksStack, &msg))
       {
-        if (!TranslateDialogA(&hDocksStack, &msg))
+        if (!TranslatePlugin(&msg))
         {
-          if (!TranslatePlugin(&msg))
+          if (!TranslateHotkey(&hPluginsStack, &msg))
           {
-            if (!TranslateHotkey(&hPluginsStack, &msg))
+            if (!TranslateAcceleratorWide(hMainWnd, hMainAccel, &msg))
             {
-              if (!TranslateAccelerator(hMainWnd, hMainAccel, &msg))
-              {
-                TranslateMessage(&msg);
-                DispatchMessageA(&msg);
-              }
+              TranslateMessage(&msg);
+              DispatchMessageWide(&msg);
             }
           }
-        }
-      }
-      if (bMainOnStartFinish)
-      {
-        if (GetQueueStatus(QS_ALLINPUT) == 0)
-        {
-          bMainOnStartFinish=FALSE;
-          SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
         }
       }
     }
-  }
-  else
-  {
-    while ((bMsgStatus=GetMessageW(&msg, NULL, 0, 0)) && bMsgStatus != -1)
+    if (bMainOnStartFinish)
     {
-      if (!TranslateAccelerator(hMainWnd, hGlobalAccel, &msg))
+      if (GetQueueStatus(QS_ALLINPUT) == 0)
       {
-        if (!TranslateDialogW(&hDocksStack, &msg))
-        {
-          if (!TranslatePlugin(&msg))
-          {
-            if (!TranslateHotkey(&hPluginsStack, &msg))
-            {
-              if (!TranslateAcceleratorW(hMainWnd, hMainAccel, &msg))
-              {
-                TranslateMessage(&msg);
-                DispatchMessageW(&msg);
-              }
-            }
-          }
-        }
-      }
-      if (bMainOnStartFinish)
-      {
-        if (GetQueueStatus(QS_ALLINPUT) == 0)
-        {
-          bMainOnStartFinish=FALSE;
-          SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
-        }
+        bMainOnStartFinish=FALSE;
+        SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
       }
     }
   }
@@ -2106,6 +2079,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (wParam == FWF_BYEDITWINDOW)
         return (LRESULT)GetFrameDataFromEdit((HWND)lParam);
+      if (wParam == FWF_BYEDITDATA)
+        return (LRESULT)StackFrameGetByHandle(&hFramesStack, (HANDLE)lParam);
       return 0;
     }
     if (uMsg == AKD_FRAMEACTIVATE)
@@ -2176,21 +2151,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (wParam) return 1;
 
-            if (bOldWindows)
+            while (PeekMessageWide(&msg, NULL, 0, 0, PM_REMOVE))
             {
-              while (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE))
-              {
-                TranslateMessage(&msg);
-                DispatchMessageA(&msg);
-              }
-            }
-            else
-            {
-              while (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE))
-              {
-                TranslateMessage(&msg);
-                DispatchMessageW(&msg);
-              }
+              TranslateMessage(&msg);
+              DispatchMessageWide(&msg);
             }
             goto Loop;
           }
@@ -3847,16 +3811,16 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
               dwSeconds=aenp->dwTimeElapsed / 500;
 
               //Check for progress update
-              while (PeekMessageA(&msg, hProgress, 0, 0, PM_REMOVE))
+              while (PeekMessageWide(&msg, hProgress, 0, 0, PM_REMOVE))
               {
                 TranslateMessage(&msg);
-                DispatchMessageA(&msg);
+                DispatchMessageWide(&msg);
               }
 
               //Check for stop processing
               //if (dwProgressType == AEPGS_SETTEXT || dwProgressType == AEPGS_STREAMIN)
               {
-                while (PeekMessageA(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
+                while (PeekMessageWide(&msg, hMainWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE))
                 {
                   if (msg.message == WM_KEYDOWN && msg.wParam == VK_ESCAPE)
                   {
@@ -4000,7 +3964,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ssStatus.nCodePage=-1;
       ssStatus.bBOM=-1;
       for (i=0; i < STATUS_PARTS; ++i)
-        SendMessage(hStatus, SB_SETTEXTA, i, (LPARAM)"");
+        StatusBar_SetTextWide(hStatus, i, L"");
 
       SendMessage(hMainWnd, AKDN_FRAME_NOWINDOWS, 0, 0);
     }

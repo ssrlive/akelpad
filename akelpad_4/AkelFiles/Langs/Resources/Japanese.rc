@@ -949,6 +949,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad ドキュメント"
     STR_MODIFIED            "変更済み"
+    STR_COUNT               "%d of %d"
     STR_AUTODETECT          "自動検出(&A)"
     STR_RECENT_FILES_EMPTY  "空です"
     STR_RECENT_FILES_DELETE_DEAD "不在の削除"

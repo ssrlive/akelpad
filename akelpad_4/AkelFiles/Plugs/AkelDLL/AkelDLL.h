@@ -198,6 +198,7 @@
 #define FWF_BYINDEX       4
 #define FWF_BYFILENAME    5
 #define FWF_BYEDITWINDOW  6
+#define FWF_BYEDITDATA    7
 
 //AKD_FRAMEDESTROY return value
 #define FWD_SUCCESS   0
@@ -1463,8 +1464,8 @@ _________________
 
 Notification message, sends to the main procedure after edit window created.
 
-(HWND)wParam == edit window
-lParam       == not used
+(HWND)wParam   == edit window
+(HANDLE)lParam == edit window data handle
 
 Return Value
  zero
@@ -1475,8 +1476,8 @@ __________________
 
 Notification message, sends to the main procedure before destroying edit window.
 
-(HWND)wParam == edit window
-lParam       == not used
+(HWND)wParam   == edit window
+(HANDLE)lParam == edit window data handle
 
 Return Value
  zero

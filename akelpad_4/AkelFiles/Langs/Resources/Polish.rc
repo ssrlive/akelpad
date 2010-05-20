@@ -949,6 +949,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "Dokument AkelPada"
     STR_MODIFIED            "Zmodyfikowany"
+    STR_COUNT               "%d of %d"
     STR_AUTODETECT          "&Autodetekcja"
     STR_RECENT_FILES_EMPTY  "Puste"
     STR_RECENT_FILES_DELETE_DEAD "Usuñ odwo³ania do nieistniej¹cych plików"

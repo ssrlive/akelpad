@@ -636,8 +636,7 @@ BOOL StackPluginSave(HSTACK *hStack);
 void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL);
 void StackPluginFree(HSTACK *hStack);
 BOOL IsMainFunctionW(const wchar_t *wpFunction);
-BOOL TranslateDialogA(HDOCK *hDocks, LPMSG lpMsg);
-BOOL TranslateDialogW(HDOCK *hDocks, LPMSG lpMsg);
+BOOL TranslateDialog(HDOCK *hDocks, LPMSG lpMsg);
 BOOL TranslatePlugin(LPMSG lpMsg);
 BOOL TranslateHotkey(HSTACK *hStack, LPMSG lpMsg);
 
