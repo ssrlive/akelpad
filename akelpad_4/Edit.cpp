@@ -4284,6 +4284,37 @@ void DropFiles(HDROP hDrop)
   DragFinish(hDrop);
 }
 
+void CheckModificationTime(FRAMEDATA *lpFrame)
+{
+  if (bWatchFile && lpFrame->wszFile[0] && (lpFrame->ft.dwLowDateTime || lpFrame->ft.dwHighDateTime))
+  {
+    FILETIME ftTmp;
+
+    if (!FileExistsWide(lpFrame->wszFile))
+    {
+      xmemset(&lpFrame->ft, 0, sizeof(FILETIME));
+
+      SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
+      PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)lpFrame->ei.hWndEdit);
+    }
+    else if (GetFileWriteTimeWide(lpFrame->wszFile, &ftTmp))
+    {
+      if (CompareFileTime(&lpFrame->ft, &ftTmp))
+      {
+        lpFrame->ft=ftTmp;
+
+        if (!hWndReopen)
+        {
+          hWndReopen=lpFrame->ei.hWndEdit;
+          SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
+          PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)lpFrame->ei.hWndEdit);
+        }
+      }
+    }
+    else xmemset(&lpFrame->ft, 0, sizeof(FILETIME));
+  }
+}
+
 BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndCodePageCheck;
@@ -14588,24 +14619,26 @@ int TranslateFileStringW(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffe
 
 void ActivateKeyboard(DWORD dwInputLocale)
 {
+  DWORD dwLangId=LOWORD(dwInputLocale);
+
   if (dwInputLocale != (DWORD)-1)
   {
     if (bWindowsNT)
     {
-      int nLayoutInit=LOWORD(GetKeyboardLayout(0));
-      int nLayoutCount=nLayoutInit;
+      DWORD dwLangIdInit=LOWORD(GetKeyboardLayout(0));
+      DWORD dwLangIdCount=dwLangIdInit;
 
-      while (nLayoutCount != LOWORD(dwInputLocale))
+      while (dwLangIdCount != dwLangId)
       {
         ActivateKeyboardLayout((HKL)HKL_NEXT, 0);
-        nLayoutCount=LOWORD(GetKeyboardLayout(0));
-        if (nLayoutCount == nLayoutInit) break;
+        dwLangIdCount=LOWORD(GetKeyboardLayout(0));
+        if (dwLangIdCount == dwLangIdInit) break;
       }
     }
     else
     {
-      if (LOWORD(GetKeyboardLayout(0)) != LOWORD(dwInputLocale))
-        ActivateKeyboardLayout((HKL)LOWORD(dwInputLocale), 0);
+      if (LOWORD(GetKeyboardLayout(0)) != dwLangId)
+        ActivateKeyboardLayout((HKL)dwLangId, 0);
     }
   }
 }
@@ -14795,8 +14828,6 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
   //AEM_DELCLONE is not necessary cause AkelEdit do all the job.
   if (lpFrame->ei.hWndMaster)
   {
-    HWND hWndFocus=GetFocus();
-
     if (dwFlags & CN_CLONE1)
     {
       if (lpFrame->ei.hWndClone1)
