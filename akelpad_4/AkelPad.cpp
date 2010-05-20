@@ -401,7 +401,7 @@ char szWordDelimiters[WORD_DELIMITERS_SIZE];
 DWORD dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
 DWORD dwDefaultWordBreak=0;
 DWORD dwPaintOptions=0;
-HWND hWndReopen=NULL;
+BOOL bReopenMsg=FALSE;
 WNDPROC OldEditProc;
 
 //Execute
@@ -3221,25 +3221,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_REOPEN_MSG)
     {
-      if (IsEditActive((HWND)lParam))
+      if (bReopenMsg)
       {
-        LoadStringWide(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
-        xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);
-        if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, lpFrameCurrent->ei.bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
+        if ((FRAMEDATA *)lParam == lpFrameCurrent)
         {
-          EDITINFO ei;
-
-          if (GetEditInfo((HWND)lParam, &ei))
+          LoadStringWide(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
+          xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);
+          if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, lpFrameCurrent->ei.bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
           {
-            OpenDocument(ei.hWndEdit, (wchar_t *)ei.pFile, OD_REOPEN, ei.nCodePage, ei.bBOM);
+            OpenDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
           }
         }
+        bReopenMsg=FALSE;
       }
-      hWndReopen=NULL;
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_CANTOPEN_MSG)
     {
-      if (IsEditActive((HWND)lParam))
+      if ((FRAMEDATA *)lParam == lpFrameCurrent)
       {
         LoadStringWide(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
         xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);

@@ -270,7 +270,7 @@ extern char szWordDelimiters[WORD_DELIMITERS_SIZE];
 extern DWORD dwCustomWordBreak;
 extern DWORD dwDefaultWordBreak;
 extern DWORD dwPaintOptions;
-extern HWND hWndReopen;
+extern BOOL bReopenMsg;
 extern WNDPROC OldEditProc;
 
 //Execute
@@ -4289,7 +4289,7 @@ void CheckModificationTime(FRAMEDATA *lpFrame)
       xmemset(&lpFrame->ft, 0, sizeof(FILETIME));
 
       SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-      PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)lpFrame->ei.hWndEdit);
+      PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)lpFrame);
     }
     else if (GetFileWriteTimeWide(lpFrame->wszFile, &ftTmp))
     {
@@ -4297,11 +4297,11 @@ void CheckModificationTime(FRAMEDATA *lpFrame)
       {
         lpFrame->ft=ftTmp;
 
-        if (!hWndReopen)
+        if (!bReopenMsg)
         {
-          hWndReopen=lpFrame->ei.hWndEdit;
+          bReopenMsg=TRUE;
           SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-          PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)lpFrame->ei.hWndEdit);
+          PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)lpFrame);
         }
       }
     }
@@ -14908,6 +14908,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
       }
     }
     SplitVisUpdate(lpFrame);
+    SetSelectionStatus(lpFrame->ei.hWndEdit, NULL, NULL);
   }
   bEditOnFinish=FALSE;
 }
