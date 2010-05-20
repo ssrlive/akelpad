@@ -28,8 +28,8 @@ wchar_t WideCharUpper(wchar_t c);
 void* xmemcpy(void *dest, const void *src, unsigned int count);
 int xmemcmp(const void *buf1, const void *buf2, unsigned int count);
 void* xmemset(void *dest, int c, unsigned int count);
-int xarraysizeA(const char *pString);
-int xarraysizeW(const wchar_t *wpString);
+int xarraysizeA(const char *pString, int *nElements);
+int xarraysizeW(const wchar_t *wpString, int *nElements);
 int xstrlenA(const char *pString);
 int xstrlenW(const wchar_t *wpString);
 int xstrcmpA(const char *pString1, const char *pString2);
@@ -986,20 +986,31 @@ void* xmemset(void *dest, int c, unsigned int count)
  *
  *Retrieves size of the string that is terminated with two NULL characters.
  *
- *[in] const char *pString   Pointer to a string terminated with two NULL characters.
+ *[in]  const char *pString  Pointer to a string terminated with two NULL characters.
+ *[out] int *nElements       Number of elements in array, each element separated by NULL character. Can be NULL.
  *
  *Returns:  number of characters, including two NULL characters.
  ********************************************************************/
 #if defined xarraysizeA || defined ALLSTRFUNC
 #define xarraysizeA_INCLUDED
 #undef xarraysizeA
-int xarraysizeA(const char *pString)
+int xarraysizeA(const char *pString, int *nElements)
 {
-  const char *pCount;
+  const char *pCount=pString;
+  int nCount=1;
 
-  if (!pString) return 0;
-  for (pCount=pString; *pCount != '\0' || *(pCount + 1) != '\0'; ++pCount);
-  return (pCount - pString) + 2;
+  for (;;)
+  {
+    if (*pCount == '\0')
+    {
+      if (*++pCount == '\0')
+        break;
+      ++nCount;
+    }
+    ++pCount;
+  }
+  if (nElements) *nElements=nCount;
+  return (pCount - pString) + 1;
 }
 #endif
 
@@ -1009,20 +1020,31 @@ int xarraysizeA(const char *pString)
  *
  *Retrieves size of the string that is terminated with two NULL characters.
  *
- *[in] const wchar_t *wpString   Pointer to a string terminated with two NULL characters.
+ *[in]  const wchar_t *wpString  Pointer to a string terminated with two NULL characters.
+ *[out] int *nElements           Number of elements in array, each element separated by NULL character. Can be NULL.
  *
  *Returns:  number of characters, including two NULL characters.
  ********************************************************************/
 #if defined xarraysizeW || defined ALLSTRFUNC
 #define xarraysizeW_INCLUDED
 #undef xarraysizeW
-int xarraysizeW(const wchar_t *wpString)
+int xarraysizeW(const wchar_t *wpString, int *nElements)
 {
-  const wchar_t *wpCount;
+  const wchar_t *wpCount=wpString;
+  int nCount=1;
 
-  if (!wpString) return 0;
-  for (wpCount=wpString; *wpCount != L'\0' || *(wpCount + 1) != L'\0'; ++wpCount);
-  return (wpCount - wpString) + 2;
+  for (;;)
+  {
+    if (*wpCount == L'\0')
+    {
+      if (*++wpCount == L'\0')
+        break;
+      ++nCount;
+    }
+    ++wpCount;
+  }
+  if (nElements) *nElements=nCount;
+  return (wpCount - wpString) + 1;
 }
 #endif
 
