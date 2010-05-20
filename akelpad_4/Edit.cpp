@@ -674,12 +674,11 @@ BOOL CreateMdiFrameWindow(RECT *rcRect)
       else
         lpFrame->ei.hWndEdit=lpFrameCurrent->ei.hWndEdit;
       CreateEditWindow(lpFrame, lpFrameCurrent, NULL, &lpFrame->hDataEdit);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       ActivateMdiFrameWindow(lpFrame, TRUE);
       bResult=TRUE;
-
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, 0);
     }
   }
   return FALSE;
@@ -708,6 +707,7 @@ void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bUpdateOrderPMDI)
       //Restore activated frame data
       lpFrameCurrent=lpFrame;
       RestoreFrameData(lpFrameCurrent);
+      SetFocus(lpFrameCurrent->ei.hWndEdit);
 
       //Set caption of main window
       if (lpFrameCurrent->wszFile[0])
@@ -823,7 +823,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
 
         //Destroy deactivated window data
         SplitDestroy(lpFrame, CN_CLONE1|CN_CLONE2|CN_CLONE3);
-        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, 0);
+        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
         SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataEdit, 0);
         StackFrameDelete(&hFramesStack, lpFrame);
       }
@@ -14770,7 +14770,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndClone1, &lpFrame->hDataClone1);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone1, 0);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone1, 0);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->hDataClone1);
     }
     if (dwFlags & CN_CLONE2)
     {
@@ -14797,7 +14797,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndClone2, &lpFrame->hDataClone2);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone2, 0);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone2, 0);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->hDataClone2);
     }
     if (dwFlags & CN_CLONE3)
     {
@@ -14824,7 +14824,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndClone3, &lpFrame->hDataClone3);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, 0);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->hDataClone3);
     }
     SplitVisUpdate(lpFrame);
   }
@@ -14843,7 +14843,8 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
     {
       if (lpFrame->ei.hWndClone1)
       {
-        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone1, 0);
+        if (lpFrame != &fdInit)
+          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->hDataClone1);
 
         if (nMDI == WMD_MDI || lpFrame == &fdInit)
         {
@@ -14869,7 +14870,8 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
     {
       if (lpFrame->ei.hWndClone2)
       {
-        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone2, 0);
+        if (lpFrame != &fdInit)
+          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->hDataClone2);
 
         if (nMDI == WMD_MDI || lpFrame == &fdInit)
         {
@@ -14895,7 +14897,8 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
     {
       if (lpFrame->ei.hWndClone3)
       {
-        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone3, 0);
+        if (lpFrame != &fdInit)
+          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->hDataClone3);
 
         if (nMDI == WMD_MDI || lpFrame == &fdInit)
         {
