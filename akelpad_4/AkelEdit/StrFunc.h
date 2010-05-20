@@ -999,6 +999,8 @@ int xarraysizeA(const char *pString, int *nElements)
   const char *pCount=pString;
   int nCount=1;
 
+  if (!pCount) return 0;
+
   for (;;)
   {
     if (*pCount == '\0')
@@ -1032,6 +1034,8 @@ int xarraysizeW(const wchar_t *wpString, int *nElements)
 {
   const wchar_t *wpCount=wpString;
   int nCount=1;
+
+  if (!wpCount) return 0;
 
   for (;;)
   {
