@@ -692,7 +692,7 @@ void StackFontItemsFree(HSTACK *hStack);
 
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);
 DWORD IsEditActive(HWND hWnd);
-void UpdateShowHScroll(HWND hWnd);
+void UpdateShowHScroll(FRAMEDATA *lpFrame);
 int SaveLineScroll(HWND hWnd);
 void RestoreLineScroll(HWND hWnd, int nBeforeLine);
 DWORD ScrollCaret(HWND hWnd);

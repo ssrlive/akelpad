@@ -4160,7 +4160,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
       if (lpFrameCurrent->ei.hWndClone1 || lpFrameCurrent->ei.hWndClone2 || lpFrameCurrent->ei.hWndClone3)
       {
-        UpdateShowHScroll(lpFrameCurrent->ei.hWndEdit);
+        UpdateShowHScroll(lpFrameCurrent);
         ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, FALSE);
       }
       else DoViewSplitWindow(FALSE, 0);

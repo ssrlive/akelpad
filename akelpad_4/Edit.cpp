@@ -1913,13 +1913,13 @@ void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
 
     if (lpFrameCurrent->ei.bWordWrap)
     {
-      UpdateShowHScroll(hWnd);
+      UpdateShowHScroll(lpFrameCurrent);
       SetWordWrap(hWnd, lpFrameCurrent->dwWrapType, lpFrameCurrent->dwWrapLimit);
     }
     else
     {
       SetWordWrap(hWnd, 0, 0);
-      UpdateShowHScroll(hWnd);
+      UpdateShowHScroll(lpFrameCurrent);
     }
   }
 }
@@ -1943,10 +1943,6 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
       SplitCreate(lpFrameCurrent, CN_CLONE1|CN_CLONE2|CN_CLONE3);
     }
 
-    if (lpFrameCurrent->ei.bWordWrap)
-    {
-      UpdateShowHScroll(lpFrameCurrent->ei.hWndEdit);
-    }
     lpFrameCurrent->rcMasterWindow.left=0;
     lpFrameCurrent->rcMasterWindow.top=0;
     lpFrameCurrent->rcMasterWindow.right=lpFrameCurrent->rcEditWindow.right / 2;
@@ -1961,12 +1957,10 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
     lpFrameCurrent->ei.hWndMaster=NULL;
     lpFrameCurrent->hDataMaster=NULL;
     SetFocus(lpFrameCurrent->ei.hWndEdit);
-
-    if (lpFrameCurrent->ei.bWordWrap)
-    {
-      UpdateShowHScroll(lpFrameCurrent->ei.hWndEdit);
-    }
   }
+
+  if (lpFrameCurrent->ei.bWordWrap)
+    UpdateShowHScroll(lpFrameCurrent);
   ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, FALSE);
 }
 
@@ -12268,15 +12262,13 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if ((int)lpFrameCurrent->dwWrapType != a || (int)lpFrameCurrent->dwWrapLimit != b)
       {
         if (lpFrameCurrent->ei.bWordWrap)
-        {
-          UpdateShowHScroll(lpFrameCurrent->ei.hWndEdit);
-        }
+          UpdateShowHScroll(lpFrameCurrent);
         lpFrameCurrent->dwWrapType=a;
         lpFrameCurrent->dwWrapLimit=b;
 
         if (lpFrameCurrent->ei.bWordWrap)
         {
-          UpdateShowHScroll(lpFrameCurrent->ei.hWndEdit);
+          UpdateShowHScroll(lpFrameCurrent);
           SetWordWrap(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->dwWrapType, lpFrameCurrent->dwWrapLimit);
         }
       }
@@ -13796,26 +13788,26 @@ DWORD IsEditActive(HWND hWnd)
   return 0;
 }
 
-void UpdateShowHScroll(HWND hWnd)
+void UpdateShowHScroll(FRAMEDATA *lpFrame)
 {
   if (!(dwPaintOptions & PAINT_HIDENOSCROLL))
   {
     BOOL bShowScroll=TRUE;
 
-    if (lpFrameCurrent->ei.bWordWrap && !lpFrameCurrent->dwWrapLimit && !lpFrameCurrent->ei.hWndClone1 && !lpFrameCurrent->ei.hWndClone3)
+    if (lpFrame->ei.bWordWrap && !lpFrame->dwWrapLimit && !lpFrame->ei.hWndClone1 && !lpFrame->ei.hWndClone3)
       bShowScroll=FALSE;
 
-    if (!lpFrameCurrent->ei.hWndMaster)
+    if (lpFrame->ei.hWndMaster)
     {
-      SendMessage(hWnd, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      SendMessage(lpFrame->ei.hWndMaster, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (lpFrame->ei.hWndClone1)
+        SendMessage(lpFrame->ei.hWndClone1, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (lpFrame->ei.hWndClone2)
+        SendMessage(lpFrame->ei.hWndClone2, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
+      if (lpFrame->ei.hWndClone3)
+        SendMessage(lpFrame->ei.hWndClone3, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
     }
-    else
-    {
-      if (lpFrameCurrent->ei.hWndMaster) SendMessage(lpFrameCurrent->ei.hWndMaster, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-      if (lpFrameCurrent->ei.hWndClone1) SendMessage(lpFrameCurrent->ei.hWndClone1, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-      if (lpFrameCurrent->ei.hWndClone2) SendMessage(lpFrameCurrent->ei.hWndClone2, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-      if (lpFrameCurrent->ei.hWndClone3) SendMessage(lpFrameCurrent->ei.hWndClone3, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
-    }
+    else SendMessage(lpFrame->ei.hWndEdit, AEM_SHOWSCROLLBAR, SB_HORZ, bShowScroll);
   }
 }
 
