@@ -3531,46 +3531,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  if (uMsg == AKDN_FRAME_ACTIVATE ||
+      uMsg == WM_SETFOCUS)
+  {
+    //Check modification time
+    CheckModificationTime(lpFrameCurrent);
+  }
   if (uMsg == WM_SETFOCUS)
   {
     if (bEditOnFinish)
       return FALSE;
 
     if (lpFrameCurrent->ei.hWndEdit)
-    {
       SetFocus(lpFrameCurrent->ei.hWndEdit);
-
-      if (bWatchFile && lpFrameCurrent->wszFile[0] && (lpFrameCurrent->ft.dwLowDateTime || lpFrameCurrent->ft.dwHighDateTime))
-      {
-        FILETIME ftTmp;
-
-        if (!FileExistsWide(lpFrameCurrent->wszFile))
-        {
-          xmemset(&lpFrameCurrent->ft, 0, sizeof(FILETIME));
-
-          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-          PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)lpFrameCurrent->ei.hWndEdit);
-        }
-        else if (GetFileWriteTimeWide(lpFrameCurrent->wszFile, &ftTmp))
-        {
-          if (CompareFileTime(&lpFrameCurrent->ft, &ftTmp))
-          {
-            lpFrameCurrent->ft=ftTmp;
-
-            if (!hWndReopen)
-            {
-              hWndReopen=lpFrameCurrent->ei.hWndEdit;
-              SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
-              PostMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)lpFrameCurrent->ei.hWndEdit);
-            }
-          }
-        }
-        else
-        {
-          xmemset(&lpFrameCurrent->ft, 0, sizeof(FILETIME));
-        }
-      }
-    }
   }
   else if (uMsg == WM_CONTEXTMENU)
   {
