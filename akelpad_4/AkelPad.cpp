@@ -1231,17 +1231,21 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     //Destroy windows
     if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
     {
+      //Destroy virtual edits
+      SplitDestroy(lpFrameCurrent, CN_CLONE1|CN_CLONE2|CN_CLONE3);
+
       if (nMDI == WMD_PMDI)
       {
         //Destroy last empty tab
-        SplitDestroy(lpFrameCurrent, CN_CLONE1|CN_CLONE2|CN_CLONE3);
+        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->hDataEdit);
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataEdit, FALSE);
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrameCurrent->hDataEdit, 0);
       }
       StackFrameDelete(&hFramesStack, lpFrameCurrent);
 
-      //Destroy edits
+      //Destroy real edits
       SplitDestroy(&fdInit, CN_CLONE1|CN_CLONE2|CN_CLONE3);
+
       SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)fdInit.ei.hWndEdit, 0);
       DestroyWindow(fdInit.ei.hWndEdit);
       fdInit.ei.hWndEdit=NULL;
@@ -1473,7 +1477,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           if (lpFrameCurrent=CreateFrameData(hMainWnd, lpFrameCurrent))
             lpFrameCurrent->ei.hWndEdit=fdInit.ei.hWndEdit;
-          SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, 0);
+          SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->hDataEdit);
           RestoreFrameData(lpFrameCurrent);
         }
         else if (nMDI == WMD_PMDI)
@@ -3917,6 +3921,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       SetWindowLongWide(hWnd, GWL_USERDATA, (LONG)lpFrame);
       CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndEdit, &lpFrame->hDataEdit);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
