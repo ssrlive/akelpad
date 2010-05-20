@@ -957,6 +957,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad-asiakirja"
     STR_MODIFIED            "Muokattu"
+    STR_COUNT               "%d of %d"
     STR_AUTODETECT          "&Automaattinen tunnistus"
     STR_RECENT_FILES_EMPTY  "Tyhj‰"
     STR_RECENT_FILES_DELETE_DEAD "Poista tiedostot, joita ei en‰‰ ole"

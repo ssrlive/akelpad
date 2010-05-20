@@ -971,6 +971,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad документ"
     STR_MODIFIED            "Змінений"
+    STR_COUNT               "%d из %d"
     STR_AUTODETECT          "&Автовибір"
     STR_RECENT_FILES_EMPTY  "Порожньо"
     STR_RECENT_FILES_DELETE_DEAD "Видалити неіснуючі"

@@ -4211,8 +4211,11 @@ BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
 void DropFiles(HDROP hDrop)
 {
   wchar_t wszFile[MAX_PATH];
+  wchar_t wszString[MAX_PATH];
   int nDropped;
   int i;
+
+  LoadStringWide(hLangLib, STR_COUNT, wszString, MAX_PATH);
 
   if (nMDI || SaveChanged())
   {
@@ -4226,60 +4229,28 @@ void DropFiles(HDROP hDrop)
       else
         OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
       if (nMDI == WMD_SDI) break;
+
+      //Status update
+      if (bStatusBar)
+      {
+        MSG msg;
+
+        xprintfW(wbuf, wszString, i + 1, nDropped);
+        StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+
+        while (PeekMessageWide(&msg, hStatus, 0, 0, PM_REMOVE))
+        {
+          TranslateMessage(&msg);
+          DispatchMessageWide(&msg);
+        }
+      }
     }
+
+    if (bStatusBar)
+      StatusBar_SetTextWide(hStatus, STATUS_MODIFY, L"");
   }
   DragFinish(hDrop);
 }
-
-/* Drop files in separate thread. It executed slower.
-DWORD WINAPI DropThreadProc(LPVOID lpParameter)
-{
-  DROPFILESTHREAD *lpDropFiles=(DROPFILESTHREAD *)lpParameter;
-  wchar_t wszFile[MAX_PATH];
-  int nDropped;
-  int i;
-
-  if (nMDI || SaveChanged())
-  {
-    nDropped=DragQueryFileWide(lpDropFiles->hDrop, 0xFFFFFFFF, NULL, 0);
-
-    for (i=0; i < nDropped; ++i)
-    {
-      DragQueryFileWide(lpDropFiles->hDrop, i, wszFile, MAX_PATH);
-      if (nMDI && IsFileW(wszFile) == ERROR_FILE_NOT_FOUND)
-        OpenDirectory(wszFile, TRUE);
-      else
-        OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
-      if (nMDI == WMD_SDI) break;
-
-      //Exit signal
-      if (!bMdiClientRedraw) break;
-    }
-  }
-  DragFinish(lpDropFiles->hDrop);
-
-  //Free thread handle
-  if (lpDropFiles->hThread)
-  {
-    CloseHandle(lpDropFiles->hThread);
-    lpDropFiles->hThread=NULL;
-  }
-  GlobalFree((HGLOBAL)lpDropFiles);
-  return 0;
-}
-
-void DropFiles(HDROP hDrop)
-{
-  DROPFILESTHREAD *lpDropFiles;
-  DWORD dwThreadId=0;
-
-  if (lpDropFiles=(DROPFILESTHREAD *)GlobalAlloc(GPTR, sizeof(DROPFILESTHREAD)))
-  {
-    lpDropFiles->hDrop=hDrop;
-    lpDropFiles->hThread=CreateThread(NULL, 0, DropThreadProc, lpDropFiles, 0, &dwThreadId);
-  }
-}
-*/
 
 BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -11280,13 +11251,13 @@ BOOL IsMainFunctionW(const wchar_t *wpFunction)
   return FALSE;
 }
 
-BOOL TranslateDialogA(HDOCK *hDocks, LPMSG lpMsg)
+BOOL TranslateDialog(HDOCK *hDocks, LPMSG lpMsg)
 {
-  if (hDlgModeless && IsDialogMessageA(hDlgModeless, lpMsg))
+  if (hDlgModeless && IsDialogMessageWide(hDlgModeless, lpMsg))
   {
     if (lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
     {
-      SendMessageA(hDlgModeless, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+      SendMessageWide(hDlgModeless, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
     }
     return TRUE;
   }
@@ -11298,44 +11269,11 @@ BOOL TranslateDialogA(HDOCK *hDocks, LPMSG lpMsg)
     {
       if (!(dkElement->dwFlags & DKF_OWNTHREAD))
       {
-        if (dkElement->hWnd && IsDialogMessageA(dkElement->hWnd, lpMsg))
+        if (dkElement->hWnd && IsDialogMessageWide(dkElement->hWnd, lpMsg))
         {
           if (lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
           {
-            SendMessageA(dkElement->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-          }
-          return TRUE;
-        }
-      }
-      dkElement=dkElement->next;
-    }
-  }
-  return FALSE;
-}
-
-BOOL TranslateDialogW(HDOCK *hDocks, LPMSG lpMsg)
-{
-  if (hDlgModeless && IsDialogMessageW(hDlgModeless, lpMsg))
-  {
-    if (lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
-    {
-      SendMessageW(hDlgModeless, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
-    }
-    return TRUE;
-  }
-  else
-  {
-    DOCK *dkElement=(DOCK *)hDocks->hStack.first;
-
-    while (dkElement)
-    {
-      if (!(dkElement->dwFlags & DKF_OWNTHREAD))
-      {
-        if (dkElement->hWnd && IsDialogMessageW(dkElement->hWnd, lpMsg))
-        {
-          if (lpMsg->message >= WM_KEYFIRST && lpMsg->message <= WM_KEYLAST)
-          {
-            SendMessageW(dkElement->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
+            SendMessageWide(dkElement->hWnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam);
           }
           return TRUE;
         }
@@ -13179,7 +13117,7 @@ void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 {
   if (IsEditActive(hWnd) == CN_EDIT)
   {
-    char szStatus[MAX_PATH];
+    wchar_t wszStatus[MAX_PATH];
     int nLine;
     int nColumn;
     BOOL bColumnSel;
@@ -13210,7 +13148,7 @@ void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
 
     if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
     {
-      wsprintfA(szStatus, "%u:%u", nLine + 1, nColumn + 1);
+      xprintfW(wszStatus, L"%u:%u", nLine + 1, nColumn + 1);
       nSelSubtract=0;
     }
     else
@@ -13224,12 +13162,12 @@ void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
         nSelSubtract+=IndexSubtract(hWnd, &crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
         nSelSubtract+=IndexSubtract(hWnd, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
       }
-      wsprintfA(szStatus, "%u:%u, %u", nLine + 1, nColumn + 1, nSelSubtract);
+      xprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn + 1, nSelSubtract);
       if (bColumnSel) nSelSubtract=0;
     }
     crPrevSel=crSel;
 
-    SendMessage(hStatus, SB_SETTEXTA, STATUS_POSITION, (LPARAM)szStatus);
+    StatusBar_SetTextWide(hStatus, STATUS_POSITION, wszStatus);
   }
 }
 
@@ -13241,16 +13179,9 @@ void SetModifyStatus(HWND hWnd, BOOL bState)
     {
       if (ssStatus.bModified != bState)
       {
-        if (bOldWindows)
-        {
-          API_LoadStringA(hLangLib, STR_MODIFIED, buf, BUFFER_SIZE);
-          SendMessage(hStatus, SB_SETTEXTA, STATUS_MODIFY, (LPARAM)(bState?buf:""));
-        }
-        else
-        {
-          LoadStringWide(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
-          SendMessage(hStatus, SB_SETTEXTW, STATUS_MODIFY, (LPARAM)(bState?wbuf:L""));
-        }
+        LoadStringWide(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
+        StatusBar_SetTextWide(hStatus, STATUS_MODIFY, bState?wbuf:L"");
+
         ssStatus.bModified=bState;
       }
     }
@@ -13278,7 +13209,7 @@ void SetOvertypeStatus(HWND hWnd, BOOL bState)
   {
     if (ssStatus.bOvertypeMode != bState)
     {
-      SendMessage(hStatus, SB_SETTEXTA, STATUS_INSERT, (LPARAM)(bState?"Ovr":"Ins"));
+      StatusBar_SetTextWide(hStatus, STATUS_INSERT, bState?L"Ovr":L"Ins");
       ssStatus.bOvertypeMode=bState;
     }
     if (!hWnd) return;
@@ -13306,11 +13237,11 @@ void SetNewLineStatus(HWND hWnd, int nState, DWORD dwFlags)
     if (ssStatus.nNewLine != nState)
     {
       if (nState == NEWLINE_WIN)
-        SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Win");
+        StatusBar_SetTextWide(hStatus, STATUS_NEWLINE, L"Win");
       else if (nState == NEWLINE_UNIX)
-        SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Unix");
+        StatusBar_SetTextWide(hStatus, STATUS_NEWLINE, L"Unix");
       else if (nState == NEWLINE_MAC)
-        SendMessage(hStatus, SB_SETTEXTA, STATUS_NEWLINE, (LPARAM)"Mac");
+        StatusBar_SetTextWide(hStatus, STATUS_NEWLINE, L"Mac");
       ssStatus.nNewLine=nState;
     }
     if (!hWnd) return;
@@ -13355,12 +13286,7 @@ void SetCodePageStatus(HWND hWnd, int nCodePage, BOOL bBOM)
       {
         if (!bBOM) xprintfW(wbuf, L"%s%s", wbuf, STR_NOBOMW);
       }
-      if (bOldWindows)
-      {
-        WideCharToMultiByte(CP_ACP, 0, wbuf, -1, buf, MAX_PATH, NULL, NULL);
-        SendMessage(hStatus, SB_SETTEXTA, STATUS_CODEPAGE, (LPARAM)buf);
-      }
-      else SendMessage(hStatus, SB_SETTEXTW, STATUS_CODEPAGE, (LPARAM)wbuf);
+      StatusBar_SetTextWide(hStatus, STATUS_CODEPAGE, wbuf);
 
       ssStatus.nCodePage=nCodePage;
       ssStatus.bBOM=bBOM;

@@ -940,6 +940,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad 文件"
     STR_MODIFIED            "已修改"
+    STR_COUNT               "%d of %d"
     STR_AUTODETECT          "自動偵測(&A)"
     STR_RECENT_FILES_EMPTY  "空白"
     STR_RECENT_FILES_DELETE_DEAD "刪除不存在的文件"

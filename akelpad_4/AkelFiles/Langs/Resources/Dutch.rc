@@ -954,6 +954,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad dokument"
     STR_MODIFIED            "Gewijzigd"
+    STR_COUNT               "%d of %d"
     STR_AUTODETECT          "&Autodetectie"
     STR_RECENT_FILES_EMPTY  "Leeg"
     STR_RECENT_FILES_DELETE_DEAD "Verwijder niet-bestaande bestandnamen"
