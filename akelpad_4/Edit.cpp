@@ -12671,6 +12671,12 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
+    if (nMDI == WMD_PMDI)
+    {
+      EnableWindow(hWndArrangeGroup, FALSE);
+      EnableWindow(hWndHorz, FALSE);
+      EnableWindow(hWndVert, FALSE);
+    }
 
     FillMdiListListbox(hWndList, FALSE, FALSE);
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)

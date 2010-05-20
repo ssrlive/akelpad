@@ -3534,16 +3534,17 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   if (uMsg == AKDN_FRAME_ACTIVATE ||
       uMsg == WM_SETFOCUS)
   {
-    //Check modification time
-    CheckModificationTime(lpFrameCurrent);
-  }
-  if (uMsg == WM_SETFOCUS)
-  {
     if (bEditOnFinish)
       return FALSE;
 
-    if (lpFrameCurrent->ei.hWndEdit)
-      SetFocus(lpFrameCurrent->ei.hWndEdit);
+    if (uMsg == WM_SETFOCUS)
+    {
+      if (lpFrameCurrent->ei.hWndEdit)
+        SetFocus(lpFrameCurrent->ei.hWndEdit);
+    }
+
+    //Check modification time
+    CheckModificationTime(lpFrameCurrent);
   }
   else if (uMsg == WM_CONTEXTMENU)
   {

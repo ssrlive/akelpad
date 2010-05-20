@@ -1465,11 +1465,29 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     if (uMsg == AEM_SHOWSCROLLBAR)
     {
+      BOOL bUpdate=FALSE;
+
       if (wParam == SB_BOTH || wParam == SB_HORZ)
-        ae->popt->bHScrollShow=lParam;
+      {
+        if (ae->popt->bHScrollShow != lParam)
+        {
+          ae->popt->bHScrollShow=lParam;
+          bUpdate=TRUE;
+        }
+      }
       if (wParam == SB_BOTH || wParam == SB_VERT)
-        ae->popt->bVScrollShow=lParam;
-      ShowScrollBar(ae->hWndEdit, wParam, lParam);
+      {
+        if (ae->popt->bVScrollShow != lParam)
+        {
+          ae->popt->bVScrollShow=lParam;
+          bUpdate=TRUE;
+        }
+      }
+
+      if (bUpdate)
+      {
+        ShowScrollBar(ae->hWndEdit, wParam, lParam);
+      }
       return 0;
     }
     if (uMsg == AEM_UPDATESCROLLBAR)
@@ -1612,6 +1630,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         //Redraw edit window.
         if (!(lParam & AESWD_NOREFRESH))
         {
+          if (aeNew->popt->bHScrollShow != ae->popt->bHScrollShow)
+            ShowScrollBar(aeNew->hWndEdit, SB_HORZ, aeNew->popt->bHScrollShow);
+          if (aeNew->popt->bVScrollShow != ae->popt->bVScrollShow)
+            ShowScrollBar(aeNew->hWndEdit, SB_VERT, aeNew->popt->bVScrollShow);
+
           AE_UpdateScrollBars(aeNew, SB_BOTH);
           AE_UpdateCaret(aeNew, aeNew->bFocus);
           InvalidateRect(aeNew->hWndEdit, NULL, TRUE);
@@ -9719,6 +9742,7 @@ DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOffs
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
 {
   SCROLLINFO si;
+  BOOL bSetScroll;
 
   if (ae->hWndEdit)
   {
@@ -9733,37 +9757,53 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
         si.nPage=ae->rcDraw.right - ae->rcDraw.left;
         si.nPos=ae->nHScrollPos;
         SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
-  
+
         si.fMask=SIF_POS;
         GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
         ae->nHScrollPos=si.nPos;
       }
       else
       {
-        si.cbSize=sizeof(SCROLLINFO);
-        si.fMask=SIF_RANGE;
-        si.nMin=0;
-        si.nMax=0;
-        GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
-  
-        //if (si.nMin || si.nMax)
+        bSetScroll=FALSE;
+
+        if (!ae->popt->bHScrollShow)
         {
-          si.fMask=SIF_RANGE|(ae->popt->dwOptions & AECO_DISABLENOSCROLL?SIF_DISABLENOSCROLL:0);
+          si.cbSize=sizeof(SCROLLINFO);
+          si.fMask=SIF_RANGE;
+          GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
+          if (si.nMin || si.nMax)
+            bSetScroll=TRUE;
+        }
+        else bSetScroll=TRUE;
+
+        if (bSetScroll)
+        {
+          si.cbSize=sizeof(SCROLLINFO);
+          si.fMask=SIF_RANGE|SIF_PAGE|(ae->popt->dwOptions & AECO_DISABLENOSCROLL?SIF_DISABLENOSCROLL:0);
+
+          //Set to non-disabled state
           si.nMin=0;
           si.nMax=0;
+          si.nPage=1;
+          SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, FALSE);
+
+          //Set to disabled state
+          si.nMin=0;
+          si.nMax=0;
+          si.nPage=0;
           SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
-  
+
           ae->nHScrollPos=0;
         }
       }
-  
+
       if (ae->nHScrollPos != ae->nLastHScrollPos)
       {
         AE_NotifyHScroll(ae);
         ae->nLastHScrollPos=ae->nHScrollPos;
       }
     }
-  
+
     if (nBar == SB_BOTH || nBar == SB_VERT)
     {
       if (ae->popt->bVScrollShow && ae->ptxt->nVScrollMax > ae->rcDraw.bottom - ae->rcDraw.top)
@@ -9775,30 +9815,46 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
         si.nPage=ae->rcDraw.bottom - ae->rcDraw.top;
         si.nPos=ae->nVScrollPos;
         SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
-  
+
         si.fMask=SIF_POS;
         GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
         ae->nVScrollPos=si.nPos;
       }
       else
       {
-        si.cbSize=sizeof(SCROLLINFO);
-        si.fMask=SIF_RANGE;
-        si.nMin=0;
-        si.nMax=0;
-        GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
-  
-        //if (si.nMin || si.nMax)
+        bSetScroll=FALSE;
+
+        if (!ae->popt->bVScrollShow)
         {
-          si.fMask=SIF_RANGE|(ae->popt->dwOptions & AECO_DISABLENOSCROLL?SIF_DISABLENOSCROLL:0);
+          si.cbSize=sizeof(SCROLLINFO);
+          si.fMask=SIF_RANGE;
+          GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
+          if (si.nMin || si.nMax)
+            bSetScroll=TRUE;
+        }
+        else bSetScroll=TRUE;
+
+        if (bSetScroll)
+        {
+          si.cbSize=sizeof(SCROLLINFO);
+          si.fMask=SIF_RANGE|SIF_PAGE|(ae->popt->dwOptions & AECO_DISABLENOSCROLL?SIF_DISABLENOSCROLL:0);
+
+          //Set to non-disabled state
           si.nMin=0;
           si.nMax=0;
+          si.nPage=1;
+          SetScrollInfo(ae->hWndEdit, SB_VERT, &si, FALSE);
+
+          //Set to disabled state
+          si.nMin=0;
+          si.nMax=0;
+          si.nPage=0;
           SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
-  
+
           ae->nVScrollPos=0;
         }
       }
-  
+
       if (ae->nVScrollPos != ae->nLastVScrollPos)
       {
         AE_NotifyVScroll(ae);
