@@ -405,8 +405,6 @@ typedef struct {
   DWORD dwOptions;
   int nInputNewLine;
   int nOutputNewLine;
-  BOOL bVScrollShow;
-  BOOL bHScrollShow;
   BOOL bVScrollLock;
   BOOL bHScrollLock;
   BOOL bHideSelection;
@@ -483,7 +481,7 @@ typedef struct _AKELEDIT {
   int nCaretHorzIndent;
   BOOL bColumnSel;
 
-  //Dinamic
+  //Window
   HDC hDC;
   RECT rcEdit;
   RECT rcDraw;
@@ -492,6 +490,8 @@ typedef struct _AKELEDIT {
   DWORD dwInputLocale;
   DWORD dwImeChar;
   BOOL bSkipMessages;
+  BOOL bHScrollShow;
+  BOOL bVScrollShow;
   BOOL bCaretVisible;
   BOOL bFocus;
   int nAltChar;
