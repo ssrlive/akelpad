@@ -936,13 +936,26 @@ BOOL DoFileOpen()
     else
     {
       wchar_t wszFile[MAX_PATH];
+      wchar_t wszString[MAX_PATH];
       wchar_t *wpFile=wszCmdLine + lstrlenW(wszCmdLine) + 1;
+      int nFiles;
+      int nFileCount=0;
 
       if (*wpFile)
       {
         //Multiple files selected
         if (*(wpFile - 2) == '\\') *(wpFile - 2)='\0';
         xstrcpynW(wszLastDir, wszCmdLine, MAX_PATH);
+
+        //Get files count
+        if (bStatusBar)
+        {
+          LoadStringWide(hLangLib, STR_COUNT, wszString, MAX_PATH);
+          xarraysizeW(wszCmdLine, &nFiles);
+
+          //First element in array is directory.
+          --nFiles;
+        }
 
         do
         {
@@ -951,8 +964,26 @@ BOOL DoFileOpen()
           else
             xprintfW(wszFile, L"%s\\%s", wszCmdLine, wpFile);
           OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFile, dwOfnFlags, nOfnCodePage, bOfnBOM);
+
+          //Status update
+          if (bStatusBar)
+          {
+            MSG msg;
+
+            xprintfW(wbuf, wszString, ++nFileCount, nFiles);
+            StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+
+            while (PeekMessageWide(&msg, hStatus, 0, 0, PM_REMOVE))
+            {
+              TranslateMessage(&msg);
+              DispatchMessageWide(&msg);
+            }
+          }
         }
         while (*(wpFile+=lstrlenW(wpFile) + 1));
+
+        if (bStatusBar)
+          StatusBar_SetTextWide(hStatus, STATUS_MODIFY, L"");
       }
       else
       {
@@ -4215,7 +4246,8 @@ void DropFiles(HDROP hDrop)
   int nDropped;
   int i;
 
-  LoadStringWide(hLangLib, STR_COUNT, wszString, MAX_PATH);
+  if (bStatusBar)
+    LoadStringWide(hLangLib, STR_COUNT, wszString, MAX_PATH);
 
   if (nMDI || SaveChanged())
   {

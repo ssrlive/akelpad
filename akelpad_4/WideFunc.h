@@ -882,8 +882,8 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
 
     //Make nMaxFile less than 0x7FFF otherwise crash possible
     xmemcpy(&ofnA, lpofn, sizeof(OPENFILENAMEA));
-    ofnA.lpstrFilter=AllocAnsiLen(lpofn->lpstrFilter, xarraysizeW(lpofn->lpstrFilter));
-    ofnA.lpstrCustomFilter=AllocAnsiLen(lpofn->lpstrCustomFilter, xarraysizeW(lpofn->lpstrCustomFilter));
+    ofnA.lpstrFilter=AllocAnsiLen(lpofn->lpstrFilter, xarraysizeW(lpofn->lpstrFilter, NULL));
+    ofnA.lpstrCustomFilter=AllocAnsiLen(lpofn->lpstrCustomFilter, xarraysizeW(lpofn->lpstrCustomFilter, NULL));
     ofnA.nMaxFile=min(lpofn->nMaxFile * sizeof(wchar_t), 0x7FFF);
     ofnA.lpstrFile=(char *)GlobalAlloc(GPTR, ofnA.nMaxFile);
     WideToAnsi(lpofn->lpstrFile, -1, ofnA.lpstrFile, ofnA.nMaxFile);
@@ -905,9 +905,9 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
       bResult=GetSaveFileNameA(&ofnA);
     if (bResult)
     {
-      AnsiToWide(ofnA.lpstrCustomFilter, xarraysizeA(ofnA.lpstrCustomFilter), lpofn->lpstrCustomFilter, lpofn->nMaxCustFilter);
-      AnsiToWide(ofnA.lpstrFile, xarraysizeA(ofnA.lpstrFile), lpofn->lpstrFile, lpofn->nMaxFile);
-      AnsiToWide(ofnA.lpstrFileTitle, xarraysizeA(ofnA.lpstrFileTitle), lpofn->lpstrFileTitle, lpofn->nMaxFileTitle);
+      AnsiToWide(ofnA.lpstrCustomFilter, xarraysizeA(ofnA.lpstrCustomFilter, NULL), lpofn->lpstrCustomFilter, lpofn->nMaxCustFilter);
+      AnsiToWide(ofnA.lpstrFile, xarraysizeA(ofnA.lpstrFile, NULL), lpofn->lpstrFile, lpofn->nMaxFile);
+      AnsiToWide(ofnA.lpstrFileTitle, xarraysizeA(ofnA.lpstrFileTitle, NULL), lpofn->lpstrFileTitle, lpofn->nMaxFileTitle);
     }
 
     FreeAnsi((char *)ofnA.lpstrFilter);
