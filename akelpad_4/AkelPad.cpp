@@ -1840,7 +1840,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (lParam)
       {
-        if (lpFrame=GetFrameDataFromEdit((HWND)wParam))
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
         {
           if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
             LogFontWtoA(&lpFrame->lf, (LOGFONTA *)lParam);
@@ -1865,7 +1865,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (SetChosenFont((HWND)wParam, &lfW))
       {
-        if (lpFrame=GetFrameDataFromEdit((HWND)wParam))
+        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
           xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
         bEditFontChanged=TRUE;
         return TRUE;
@@ -2083,7 +2083,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return (LRESULT)lpResult;
       }
       if (wParam == FWF_BYEDITWINDOW)
-        return (LRESULT)GetFrameDataFromEdit((HWND)lParam);
+        return (LRESULT)GetFrameDataFromEditWindow((HWND)lParam);
       if (wParam == FWF_BYEDITDATA)
         return (LRESULT)StackFrameGetByHandle(&hFramesStack, (HANDLE)lParam);
       return 0;
@@ -2822,7 +2822,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_PRINT)
     {
-      FRAMEDATA *lpFrame=lParam?GetFrameDataFromEdit((HWND)lParam):lpFrameCurrent;
+      FRAMEDATA *lpFrame=lParam?GetFrameDataFromEditWindow((HWND)lParam):lpFrameCurrent;
 
       return DoFilePrint(lpFrame, FALSE);
     }
@@ -2835,7 +2835,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_SILENTPRINT)
     {
-      FRAMEDATA *lpFrame=lParam?GetFrameDataFromEdit((HWND)lParam):lpFrameCurrent;
+      FRAMEDATA *lpFrame=lParam?GetFrameDataFromEditWindow((HWND)lParam):lpFrameCurrent;
 
       return DoFilePrint(lpFrame, TRUE);
     }
@@ -3638,6 +3638,12 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
       {
         AENMODIFY *aenm=(AENMODIFY *)lParam;
+        FRAMEDATA *lpFrame;
+
+        if (nMDI == WMD_PMDI)
+          lpFrame=GetFrameDataFromEditData(aenm->hEditData);
+        else
+          lpFrame=GetFrameDataFromEditWindow(aenm->hdr.hwndFrom);
 
         //Synchronize changed state
         if (dwShowModify & SM_MAINTITLE_SDI)
@@ -3645,7 +3651,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
           {
             wchar_t *wpMainName=AllocWideStr(MAX_PATH);
-            const wchar_t *wpFileName=GetFileNameW(lpFrameCurrent->wszFile);
+            const wchar_t *wpFileName=GetFileNameW(lpFrame->wszFile);
 
             if (aenm->bModified)
               xprintfW(wpMainName, L"* %s - %s", wpFileName, APP_MAIN_TITLEW);
@@ -3660,29 +3666,25 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         {
           if (nMDI)
           {
-            FRAMEDATA *lpFrame;
             int nItem;
 
-            if (lpFrame=GetFrameDataFromEdit(aenm->hdr.hwndFrom))
+            if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
             {
-              if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
-              {
-                wchar_t *wpTabName=AllocWideStr(MAX_PATH);
-                TCITEMW tcItemW;
+              wchar_t *wpTabName=AllocWideStr(MAX_PATH);
+              TCITEMW tcItemW;
 
-                tcItemW.mask=TCIF_TEXT;
-                tcItemW.pszText=wpTabName;
-                tcItemW.cchTextMax=MAX_PATH;
-                TabCtrl_GetItemWide(hTab, nItem, &tcItemW);
+              tcItemW.mask=TCIF_TEXT;
+              tcItemW.pszText=wpTabName;
+              tcItemW.cchTextMax=MAX_PATH;
+              TabCtrl_GetItemWide(hTab, nItem, &tcItemW);
 
-                if (aenm->bModified)
-                  xprintfW(wpTabName, L"%s *", wpTabName);
-                else
-                  TrimModifyStateW(wpTabName);
-                TabCtrl_SetItemWide(hTab, nItem, &tcItemW);
+              if (aenm->bModified)
+                xprintfW(wpTabName, L"%s *", wpTabName);
+              else
+                TrimModifyStateW(wpTabName);
+              TabCtrl_SetItemWide(hTab, nItem, &tcItemW);
 
-                FreeWideStr(wpTabName);
-              }
+              FreeWideStr(wpTabName);
             }
           }
         }
@@ -3691,16 +3693,13 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           if (nMDI == WMD_MDI)
           {
             wchar_t *wpFrameName=AllocWideStr(MAX_PATH);
-            FRAMEDATA *lpFrame;
 
-            if (lpFrame=GetFrameDataFromEdit(aenm->hdr.hwndFrom))
-            {
-              if (aenm->bModified)
-                xprintfW(wpFrameName, L"%s *", lpFrame->wszFile);
-              else
-                xstrcpynW(wpFrameName, lpFrame->wszFile, MAX_PATH);
-              SetWindowTextWide(lpFrame->hWndEditParent, wpFrameName);
-            }
+            if (aenm->bModified)
+              xprintfW(wpFrameName, L"%s *", lpFrame->wszFile);
+            else
+              xstrcpynW(wpFrameName, lpFrame->wszFile, MAX_PATH);
+            SetWindowTextWide(lpFrame->hWndEditParent, wpFrameName);
+
             FreeWideStr(wpFrameName);
           }
         }
@@ -3890,7 +3889,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         lpFrame->rcEditWindow.top=0;
         lpFrame->rcEditWindow.right=LOWORD(lParam);
         lpFrame->rcEditWindow.bottom=HIWORD(lParam);
-        ResizeEdit(lpFrame, FALSE);
+        ResizeEditWindow(lpFrame, FALSE);
       }
     }
   }
@@ -4053,7 +4052,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       FRAMEDATA *lpFrame;
 
-      if (lpFrame=GetFrameDataFromEdit(hWnd))
+      if (lpFrame=GetFrameDataFromEditWindow(hWnd))
         ActivateMdiFrameWindow(lpFrame, TRUE);
     }
     else SetSelectionStatus(lpFrameCurrent->ei.hWndEdit, NULL, NULL);
@@ -4178,7 +4177,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       if (lpFrameCurrent->ei.hWndClone1 || lpFrameCurrent->ei.hWndClone2 || lpFrameCurrent->ei.hWndClone3)
       {
         UpdateShowHScroll(lpFrameCurrent);
-        ResizeEdit(lpFrameCurrent, FALSE);
+        ResizeEditWindow(lpFrameCurrent, FALSE);
       }
       else DoViewSplitWindow(FALSE, 0);
 
@@ -4211,18 +4210,18 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         if (--nMouseMove == 0)
         {
-          ResizeEdit(lpFrameCurrent, TRUE);
+          ResizeEditWindow(lpFrameCurrent, TRUE);
         }
       }
       else
       {
-        ResizeEdit(lpFrameCurrent, TRUE);
+        ResizeEditWindow(lpFrameCurrent, TRUE);
         GetCursorPos(&ptPos);
         if (hCursorClone == hCursorSizeWE || hCursorClone == hCursorSizeALL)
           lpFrameCurrent->rcMasterWindow.right+=(ptPos.x - ptMouseDown.x);
         if (hCursorClone == hCursorSizeNS || hCursorClone == hCursorSizeALL)
           lpFrameCurrent->rcMasterWindow.bottom+=(ptPos.y - ptMouseDown.y);
-        ResizeEdit(lpFrameCurrent, TRUE);
+        ResizeEditWindow(lpFrameCurrent, TRUE);
 
         ptMouseDown.x+=(lpFrameCurrent->rcMasterWindow.right - rcMasterInitial.right);
         ptMouseDown.y+=(lpFrameCurrent->rcMasterWindow.bottom - rcMasterInitial.bottom);
@@ -4239,8 +4238,8 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
       if (nMouseMove == 0)
       {
-        ResizeEdit(lpFrameCurrent, TRUE);
-        ResizeEdit(lpFrameCurrent, FALSE);
+        ResizeEditWindow(lpFrameCurrent, TRUE);
+        ResizeEditWindow(lpFrameCurrent, FALSE);
         return TRUE;
       }
     }
@@ -4254,7 +4253,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
       if (nMouseMove == 0)
       {
-        ResizeEdit(lpFrameCurrent, TRUE);
+        ResizeEditWindow(lpFrameCurrent, TRUE);
       }
     }
   }
