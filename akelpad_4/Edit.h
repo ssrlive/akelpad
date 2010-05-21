@@ -382,9 +382,11 @@ typedef struct {
 
 //// Functions prototype
 
-FRAMEDATA* GetFrameDataFromEdit(HWND hWndEditCtrl);
 HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI);
 void SetEditWindowSettings(FRAMEDATA *lpFrame);
+void ResizeEditWindow(FRAMEDATA *lpFrame, BOOL bTest);
+FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl);
+FRAMEDATA* GetFrameDataFromEditData(HANDLE hDataEditHandle);
 FRAMEDATA* CreateFrameData(HWND hWndEditParent, FRAMEDATA *lpFrameSource);
 void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
 void SaveFrameData(FRAMEDATA *lpFrame);
@@ -393,6 +395,9 @@ BOOL CreateMdiFrameWindow(RECT *rcRect);
 void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bUpdateOrderPMDI);
 FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev);
 int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem);
+void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
+void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
+void SplitVisUpdate(FRAMEDATA *lpFrame);
 
 BOOL DoFileNew();
 HWND DoFileNewWindow(DWORD dwAddFlags);
@@ -731,10 +736,6 @@ void ActivateKeyboard(DWORD dwInputLocale);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
 HWND NextClone(BOOL bPrevious);
-void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
-void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
-void SplitVisUpdate(FRAMEDATA *lpFrame);
-void ResizeEdit(FRAMEDATA *lpFrame, BOOL bTest);
 void UpdateSize();
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);
