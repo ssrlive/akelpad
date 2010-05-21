@@ -753,14 +753,18 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
     }
     else if (nMDI == WMD_PMDI)
     {
-      FRAMEDATA *lpFramePrev=lpFrame->prev;
+      FRAMEDATA *lpFramePrev;
       int nTabItem;
+
+      //Get previous frame
+      lpFramePrev=lpFrame->prev;
+      if (!lpFramePrev)
+        lpFramePrev=(FRAMEDATA *)hFramesStack.last;
 
       //Activate frame
       ActivateMdiFrameWindow(lpFrame, TRUE);
 
-      //Ask if document unsaved
-      if (!lpFrame->prev && !lpFrame->next)
+      if (lpFramePrev == lpFrame)
       {
         //Don't destroy last tab
         if (!DoFileClose()) return FWD_ABORT;
@@ -769,6 +773,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
       }
       else
       {
+        //Ask if document unsaved
         if (!DoFileExit()) return FWD_ABORT;
       }
 
