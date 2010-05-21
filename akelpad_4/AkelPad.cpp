@@ -1453,8 +1453,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpFrameCurrent->ei.hWndEdit=fdInit.ei.hWndEdit;
             lpFrameCurrent->lpEditProc=fdInit.lpEditProc;
             lpFrameCurrent->hDataEdit=fdInit.hDataEdit;
-            SetEditWindowSettings(lpFrameCurrent);
             RestoreFrameData(lpFrameCurrent);
+            SetEditWindowSettings(lpFrameCurrent);
             SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->hDataEdit);
           }
         }
