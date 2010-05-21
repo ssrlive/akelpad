@@ -1442,16 +1442,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
       {
-        //Create edit window
-        fdInit.hWndEditParent=hMainWnd;
-        CreateEditWindow(&fdInit, NULL, &fdInit.ei.hWndEdit, &fdInit.hDataEdit);
+        fdInit.ei.hWndEdit=(HWND)CreateEditWindow(hMainWnd, NULL);
+        fdInit.lpEditProc=(AEEditProc)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
+        fdInit.hDataEdit=(HANDLE)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
 
         if (nMDI == WMD_SDI)
         {
-          if (lpFrameCurrent=CreateFrameData(hMainWnd, lpFrameCurrent))
+          if (lpFrameCurrent=CreateFrameData(hMainWnd, &fdInit))
+          {
             lpFrameCurrent->ei.hWndEdit=fdInit.ei.hWndEdit;
-          SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->hDataEdit);
-          RestoreFrameData(lpFrameCurrent);
+            lpFrameCurrent->lpEditProc=fdInit.lpEditProc;
+            lpFrameCurrent->hDataEdit=fdInit.hDataEdit;
+            SetEditWindowSettings(lpFrameCurrent);
+            RestoreFrameData(lpFrameCurrent);
+            SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->hDataEdit);
+          }
         }
         else if (nMDI == WMD_PMDI)
         {
@@ -2817,16 +2822,22 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_FILE_PRINT)
     {
-      return DoFilePrint((lParam?(HWND)lParam:lpFrameCurrent->ei.hWndEdit), FALSE);
+      FRAMEDATA *lpFrame=lParam?GetFrameDataFromEdit((HWND)lParam):lpFrameCurrent;
+
+      return DoFilePrint(lpFrame, FALSE);
     }
     else if (LOWORD(wParam) == IDM_FILE_PRINTPREVIEW)
     {
-      DoFilePreview((lParam?(HWND)lParam:lpFrameCurrent->ei.hWndEdit));
+      HWND hWndForPreview=lParam?(HWND)lParam:lpFrameCurrent->ei.hWndEdit;
+
+      DoFilePreview(hWndForPreview);
       return 0;
     }
     else if (LOWORD(wParam) == IDM_FILE_SILENTPRINT)
     {
-      return DoFilePrint((lParam?(HWND)lParam:lpFrameCurrent->ei.hWndEdit), TRUE);
+      FRAMEDATA *lpFrame=lParam?GetFrameDataFromEdit((HWND)lParam):lpFrameCurrent;
+
+      return DoFilePrint(lpFrame, TRUE);
     }
     else if (LOWORD(wParam) == IDM_FILE_EXIT)
     {
@@ -3030,7 +3041,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_WORDWRAP)
     {
-      DoViewWordWrap(lpFrameCurrent->ei.hWndEdit, !lpFrameCurrent->ei.bWordWrap, FALSE);
+      DoViewWordWrap(lpFrameCurrent, !lpFrameCurrent->ei.bWordWrap, FALSE);
     }
     else if (LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_ALL ||
              LOWORD(wParam) == IDM_VIEW_SPLIT_WINDOW_WE ||
@@ -3052,7 +3063,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_READONLY)
     {
-      DoSettingsReadOnly(lpFrameCurrent->ei.hWndEdit, !lpFrameCurrent->ei.bReadOnly, FALSE);
+      DoViewReadOnly(lpFrameCurrent, !lpFrameCurrent->ei.bReadOnly, FALSE);
       if (hDlgModeless) PostMessage(hDlgModeless, WM_COMMAND, IDC_SETREADONLY, 0);
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SAVETIME)
@@ -3856,11 +3867,15 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (lpFrame=CreateFrameData(hWnd, lpFrameCurrent))
     {
       SetWindowLongWide(hWnd, GWL_USERDATA, (LONG)lpFrame);
-      CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndEdit, &lpFrame->hDataEdit);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
+
+      lpFrame->ei.hWndEdit=(HWND)CreateEditWindow(hWnd, NULL);
+      lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
+      lpFrame->hDataEdit=(HANDLE)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
+      SetEditWindowSettings(lpFrame);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
     }
   }
   else if (uMsg == WM_SIZE)

@@ -324,89 +324,68 @@ extern BOOL (WINAPI *GetMonitorInfoAPtr)(HMONITOR, LPMONITORINFO);
 
 //// Init function
 
-BOOL CreateEditWindow(FRAMEDATA *lpFrameNew, FRAMEDATA *lpFrameOld, HWND *hWndEdit, HANDLE *hDataEdit)
+HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
 {
+  CREATESTRUCTW cs;
   RECT rcRect;
-  HWND hWndEditNew;
-  HANDLE hDataEditNew;
-  DWORD dwOptions;
+  HANDLE hResult;
 
-  GetClientRect(lpFrameNew->hWndEditParent, &rcRect);
+  GetClientRect(hWndParent, &rcRect);
 
-  if (lpFrameOld)
+  cs.dwExStyle=(dwPaintOptions & PAINT_STATICEDGE)?WS_EX_STATICEDGE:WS_EX_CLIENTEDGE;
+  if (bRichEditClass)
+    cs.lpszClass=bOldWindows?L"RichEdit20A":L"RichEdit20W";
+  else
+    cs.lpszClass=bOldWindows?L"AkelEditA":L"AkelEditW";
+  cs.lpszName=NULL;
+  cs.style=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
+           ((dwPaintOptions & PAINT_HIDESEL)?0:ES_NOHIDESEL)|
+           ((dwPaintOptions & PAINT_HIDENOSCROLL)?0:ES_DISABLENOSCROLL);
+  cs.x=0;
+  cs.y=0;
+  cs.cx=rcRect.right;
+  cs.cy=rcRect.bottom - (bStatusBar?nStatusHeight:0);
+  cs.hwndParent=hWndParent;
+  cs.hMenu=(HMENU)ID_EDIT;
+  cs.hInstance=hInstance;
+  cs.lpCreateParams=NULL;
+
+  if (hWndEditPMDI)
   {
-    //PMDI
-    CREATESTRUCTA cs;
-
-    cs.dwExStyle=(dwPaintOptions & PAINT_STATICEDGE)?WS_EX_STATICEDGE:WS_EX_CLIENTEDGE;
-    if (bOldWindows)
-      cs.lpszClass=bRichEditClass?AES_RICHEDITCLASSA:AES_AKELEDITCLASSA;
-    else
-      cs.lpszClass=(char *)(bRichEditClass?AES_RICHEDITCLASSW:AES_AKELEDITCLASSW);
-    cs.lpszName=NULL;
-    cs.style=WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
-             ((dwPaintOptions & PAINT_HIDESEL)?0:ES_NOHIDESEL)|
-             ((dwPaintOptions & PAINT_HIDENOSCROLL)?0:ES_DISABLENOSCROLL),
-    cs.x=0;
-    cs.y=0;
-    cs.cx=rcRect.right;
-    cs.cy=rcRect.bottom - (bStatusBar?nStatusHeight:0);
-    cs.hwndParent=lpFrameNew->hWndEditParent;
-    cs.hMenu=(HMENU)ID_EDIT;
-    cs.hInstance=hInstance;
-    cs.lpCreateParams=NULL;
-
-    //Create virtual window data
-    hDataEditNew=(HANDLE)SendMessage(lpFrameNew->ei.hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
-
-    //Replace current real window data with created, it will be restored at the end of CreateEditWindow.
-    SendMessage(lpFrameNew->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hDataEditNew, AESWD_NOREFRESH|AESWD_NODRAGDROP);
-    hWndEditNew=lpFrameNew->ei.hWndEdit;
+    hResult=(HANDLE)SendMessage(hWndEditPMDI, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
   }
   else
   {
-    const wchar_t *wpWindowClass;
-
-    if (bRichEditClass)
-      wpWindowClass=bOldWindows?L"RichEdit20A":L"RichEdit20W";
-    else
-      wpWindowClass=bOldWindows?L"AkelEditA":L"AkelEditW";
-
-    hWndEditNew=CreateWindowExWide((dwPaintOptions & PAINT_STATICEDGE)?WS_EX_STATICEDGE:WS_EX_CLIENTEDGE,
-                                    wpWindowClass,
-                                    NULL,
-                                    WS_CHILD|WS_VISIBLE|WS_HSCROLL|WS_VSCROLL|
-                                    ((dwPaintOptions & PAINT_HIDESEL)?0:ES_NOHIDESEL)|
-                                    ((dwPaintOptions & PAINT_HIDENOSCROLL)?0:ES_DISABLENOSCROLL),
-                                    0, 0, rcRect.right, rcRect.bottom - (bStatusBar?nStatusHeight:0),
-                                    lpFrameNew->hWndEditParent,
-                                    (HMENU)ID_EDIT,
-                                    hInstance,
-                                    NULL);
-
-    //Retrive data handle of created window
-    hDataEditNew=(HANDLE)SendMessage(hWndEditNew, AEM_GETWINDOWDATA, 0, 0);
+    if (hResult=(HANDLE)CreateWindowExWide(cs.dwExStyle, cs.lpszClass, cs.lpszName, cs.style, cs.x, cs.y, cs.cx, cs.cy, cs.hwndParent, cs.hMenu, cs.hInstance, cs.lpCreateParams))
+    {
+      OldEditProc=(WNDPROC)GetWindowLongWide((HWND)hResult, GWL_WNDPROC);
+      SetWindowLongWide((HWND)hResult, GWL_WNDPROC, (LONG)CommonEditProc);
+    }
   }
-  //Get procedure of edit window
-  lpFrameNew->lpEditProc=(AEEditProc)SendMessage(hWndEditNew, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
+  return hResult;
+}
 
-  DoSettingsReadOnly(hWndEditNew, lpFrameNew->ei.bReadOnly, TRUE);
-  SendMessage(hWndEditNew, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
-  SendMessage(hWndEditNew, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
+void SetEditWindowSettings(FRAMEDATA *lpFrame)
+{
+  DWORD dwOptions;
 
-  //Turn on
+  //Set settings
+  DoViewReadOnly(lpFrame, lpFrame->ei.bReadOnly, TRUE);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_POINT|AENM_LINK);
+  SendMessage(lpFrame->ei.hWndEdit, EM_SETEVENTMASK, 0, ENM_SELCHANGE|ENM_CHANGE|ENM_LINK);
+
   dwOptions=0;
-  if (lpFrameNew->bDetailedUndo)
+  if (lpFrame->bDetailedUndo)
     dwOptions|=AECO_DETAILEDUNDO;
-  if (lpFrameNew->dwCaretOptions & CO_CARETOUTEDGE)
+  if (lpFrame->dwCaretOptions & CO_CARETOUTEDGE)
     dwOptions|=AECO_CARETOUTEDGE;
-  if (lpFrameNew->dwCaretOptions & CO_CARETVERTLINE)
+  if (lpFrame->dwCaretOptions & CO_CARETVERTLINE)
     dwOptions|=AECO_ACTIVECOLUMN;
-  if (lpFrameNew->dwMouseOptions & MO_RICHEDITMOUSE)
+  if (lpFrame->dwMouseOptions & MO_RICHEDITMOUSE)
     dwOptions|=AECO_LBUTTONUPCONTINUECAPTURE;
-  if (!(lpFrameNew->dwMouseOptions & MO_LEFTMARGINSELECTION))
+  if (!(lpFrame->dwMouseOptions & MO_LEFTMARGINSELECTION))
     dwOptions|=AECO_NOMARGINSEL;
-  if (!(lpFrameNew->dwMouseOptions & MO_MOUSEDRAGGING))
+  if (!(lpFrame->dwMouseOptions & MO_MOUSEDRAGGING))
     dwOptions|=AECO_DISABLEDRAG;
   if (dwPaintOptions & PAINT_PAINTGROUP)
     dwOptions|=AECO_PAINTGROUP;
@@ -414,69 +393,53 @@ BOOL CreateEditWindow(FRAMEDATA *lpFrameNew, FRAMEDATA *lpFrameOld, HWND *hWndEd
     dwOptions|=AECO_NONEWLINEDRAW;
   if (dwPaintOptions & PAINT_ENTIRENEWLINEDRAW)
     dwOptions|=AECO_ENTIRENEWLINEDRAW;
-  SendMessage(hWndEditNew, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
 
-  SendMessage(hWndEditNew, AEM_SETUNDOLIMIT, (WPARAM)lpFrameNew->nUndoLimit, 0);
-  SendMessage(hWndEditNew, AEM_SETCOLORS, 0, (LPARAM)&lpFrameNew->aec);
-  SetMargins(hWndEditNew, lpFrameNew->dwEditMargins, 0);
-  SetTabStops(hWndEditNew, lpFrameNew->nTabStopSize, FALSE);
-  SetChosenFont(hWndEditNew, &lpFrameNew->lf);
-  DoViewWordWrap(hWndEditNew, lpFrameNew->ei.bWordWrap, TRUE);
-  SetNewLineStatus(hWndEditNew, lpFrameNew->ei.nNewLine, AENL_INPUT);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrame->nUndoLimit, 0);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrame->aec);
+  SetMargins(lpFrame->ei.hWndEdit, lpFrame->dwEditMargins, 0);
+  SetTabStops(lpFrame->ei.hWndEdit, lpFrame->nTabStopSize, FALSE);
+  SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
+  DoViewWordWrap(lpFrame, lpFrame->ei.bWordWrap, TRUE);
+  SetNewLineStatus(lpFrame->ei.hWndEdit, lpFrame->ei.nNewLine, AENL_INPUT);
 
-  if (lpFrameNew->dwMarker)
+  if (lpFrame->dwMarker)
   {
-    SetMarker(hWndEditNew, lpFrameNew->dwMarker);
+    SetMarker(lpFrame, lpFrame->dwMarker);
   }
-  if (lpFrameNew->dwLineGap)
+  if (lpFrame->dwLineGap)
   {
-    SendMessage(hWndEditNew, AEM_SETLINEGAP, lpFrameNew->dwLineGap, 0);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETLINEGAP, lpFrame->dwLineGap, 0);
   }
-  if (lpFrameNew->nCaretWidth != 1)
+  if (lpFrame->nCaretWidth != 1)
   {
     POINT pt;
 
-    SendMessage(hWndEditNew, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
-    pt.x=lpFrameNew->nCaretWidth;
-    SendMessage(hWndEditNew, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_GETCARETWIDTH, 0, (LPARAM)&pt);
+    pt.x=lpFrame->nCaretWidth;
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETCARETWIDTH, 0, (LPARAM)&pt);
   }
-  if (lpFrameNew->bShowURL)
+  if (lpFrame->bShowURL)
   {
-    SendMessage(hWndEditNew, AEM_SETDETECTURL, lpFrameNew->bShowURL, 0);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETDETECTURL, lpFrame->bShowURL, 0);
 
-    if (lpFrameNew->bUrlPrefixesEnable)
-      SetUrlPrefixes(hWndEditNew, lpFrameNew->wszUrlPrefixes);
-    if (lpFrameNew->bUrlDelimitersEnable)
+    if (lpFrame->bUrlPrefixesEnable)
+      SetUrlPrefixes(lpFrame->ei.hWndEdit, lpFrame->wszUrlPrefixes);
+    if (lpFrame->bUrlDelimitersEnable)
     {
-      SendMessage(hWndEditNew, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)lpFrameNew->wszUrlLeftDelimiters);
-      SendMessage(hWndEditNew, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)lpFrameNew->wszUrlRightDelimiters);
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLLEFTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlLeftDelimiters);
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETURLRIGHTDELIMITERS, 0, (LPARAM)lpFrame->wszUrlRightDelimiters);
     }
   }
-
-  dwDefaultWordBreak=SendMessage(hWndEditNew, AEM_GETWORDBREAK, 0, 0);
-
-  if (lpFrameNew->bWordDelimitersEnable)
+  if (dwDefaultWordBreak == (DWORD)-1)
+    dwDefaultWordBreak=SendMessage(lpFrame->ei.hWndEdit, AEM_GETWORDBREAK, 0, 0);
+  if (lpFrame->bWordDelimitersEnable)
   {
-    SendMessage(hWndEditNew, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
-    SendMessage(hWndEditNew, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrameNew->wszWordDelimiters);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDBREAK, dwCustomWordBreak, 0);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrame->wszWordDelimiters);
   }
-  if (lpFrameNew->bWrapDelimitersEnable)
-  {
-    SendMessage(hWndEditNew, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrameNew->wszWrapDelimiters);
-  }
-
-  if (!lpFrameOld)
-  {
-    OldEditProc=(WNDPROC)GetWindowLongWide(hWndEditNew, GWL_WNDPROC);
-    SetWindowLongWide(hWndEditNew, GWL_WNDPROC, (LONG)CommonEditProc);
-  }
-  else SendMessage(hWndEditNew, AEM_SETWINDOWDATA, (WPARAM)lpFrameOld->hDataEdit, AESWD_NOREFRESH|AESWD_NODRAGDROP);
-
-  if (hWndEdit) *hWndEdit=hWndEditNew;
-  if (hDataEdit) *hDataEdit=hDataEditNew;
-  if (hWndEditNew)
-    return TRUE;
-  return FALSE;
+  if (lpFrame->bWrapDelimitersEnable)
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
 }
 
 FRAMEDATA* GetFrameDataFromEdit(HWND hWndEditCtrl)
@@ -646,7 +609,7 @@ void RestoreFrameData(FRAMEDATA *lpFrame)
   }
 }
 
-BOOL CreateMdiFrameWindow(RECT *rcRect)
+BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
 {
   BOOL bResult=FALSE;
 
@@ -659,7 +622,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRect)
       dwStyle=dwMdiStyle;
     else
       dwStyle=!bMdiMaximize?0:WS_MAXIMIZE;
-    CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRect?rcRect->left:CW_USEDEFAULT, rcRect?rcRect->top:CW_USEDEFAULT, rcRect?rcRect->right:CW_USEDEFAULT, rcRect?rcRect->bottom:CW_USEDEFAULT, hMdiClient, hInstance, 0);
+    CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRectMDI?rcRectMDI->left:CW_USEDEFAULT, rcRectMDI?rcRectMDI->top:CW_USEDEFAULT, rcRectMDI?rcRectMDI->right:CW_USEDEFAULT, rcRectMDI?rcRectMDI->bottom:CW_USEDEFAULT, hMdiClient, hInstance, 0);
     bResult=TRUE;
   }
   else if (nMDI == WMD_PMDI)
@@ -668,16 +631,16 @@ BOOL CreateMdiFrameWindow(RECT *rcRect)
 
     if (lpFrame=CreateFrameData(hMainWnd, lpFrameCurrent))
     {
-      //Create virtual window data
-      if (lpFrameCurrent->ei.hWndMaster)
-        lpFrame->ei.hWndEdit=lpFrameCurrent->ei.hWndMaster;
-      else
-        lpFrame->ei.hWndEdit=lpFrameCurrent->ei.hWndEdit;
-      CreateEditWindow(lpFrame, lpFrameCurrent, NULL, &lpFrame->hDataEdit);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
+      //Create virtual window data. Procedure and window aren't changed.
+      lpFrame->hDataEdit=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
+      lpFrame->lpEditProc=fdInit.lpEditProc;
+      lpFrame->ei.hWndEdit=fdInit.ei.hWndEdit;
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       ActivateMdiFrameWindow(lpFrame, TRUE);
+      SetEditWindowSettings(lpFrameCurrent);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->hDataEdit);
+
       bResult=TRUE;
     }
   }
@@ -1118,11 +1081,11 @@ BOOL DoFilePageSetup(HWND hWndOwner)
     prninfo.hDevMode=psdPageW.hDevMode;
     prninfo.hDevNames=psdPageW.hDevNames;
   }
-  UpdateMappedPrintWidth(lpFrameCurrent->ei.hWndEdit);
+  UpdateMappedPrintWidth(lpFrameCurrent);
   return bResult;
 }
 
-int DoFilePrint(HWND hWnd, BOOL bSilent)
+int DoFilePrint(FRAMEDATA *lpFrame, BOOL bSilent)
 {
   int nResult=0;
 
@@ -1149,7 +1112,7 @@ int DoFilePrint(HWND hWnd, BOOL bSilent)
     prn.hPrinterDC=prninfo.hDC;
     prn.rcMargins=prninfo.rtMargin;
 
-    nResult=PrintDocumentW(hWnd, &prn, (bOldWindows?PRND_ANSI:0)|PRND_REALPRINT|(prninfo.dwPrintFlags & PD_SELECTION?PRND_SELECTION:PRND_ALLTEXT), 0);
+    nResult=PrintDocument(lpFrame->ei.hWndEdit, &prn, (bOldWindows?PRND_ANSI:0)|PRND_REALPRINT|(prninfo.dwPrintFlags & PD_SELECTION?PRND_SELECTION:PRND_ALLTEXT), 0);
 
     DeleteDC(prninfo.hDC);
     prninfo.hDC=NULL;
@@ -1157,7 +1120,7 @@ int DoFilePrint(HWND hWnd, BOOL bSilent)
     prninfo.dwPrintFlags&=~PD_PAGENUMS;
     prninfo.dwPrintFlags&=~PD_PRINTTOFILE;
   }
-  UpdateMappedPrintWidth(hWnd);
+  UpdateMappedPrintWidth(lpFrame);
   return nResult;
 }
 
@@ -1903,24 +1866,30 @@ void DoViewFontSize(HWND hWnd, int nAction)
   }
 }
 
-void DoViewWordWrap(HWND hWnd, BOOL bState, BOOL bFirst)
+void DoViewReadOnly(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
 {
-  if (IsEditActive(hWnd))
-  {
-    CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bState?MF_CHECKED:MF_UNCHECKED);
-    if (bFirst != TRUE && bState == lpFrameCurrent->ei.bWordWrap) return;
-    lpFrameCurrent->ei.bWordWrap=bState;
+  CheckMenuItem(hMainMenu, IDM_VIEW_READONLY, bState?MF_CHECKED:MF_UNCHECKED);
+  if (bFirst != TRUE && bState == lpFrameCurrent->ei.bReadOnly) return;
+  lpFrameCurrent->ei.bReadOnly=bState;
 
-    if (lpFrameCurrent->ei.bWordWrap)
-    {
-      UpdateShowHScroll(lpFrameCurrent);
-      SetWordWrap(hWnd, lpFrameCurrent->dwWrapType, lpFrameCurrent->dwWrapLimit);
-    }
-    else
-    {
-      SetWordWrap(hWnd, 0, 0);
-      UpdateShowHScroll(lpFrameCurrent);
-    }
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrameCurrent->ei.bReadOnly?AECOOP_OR:AECOOP_XOR, AECO_READONLY);
+}
+
+void DoViewWordWrap(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
+{
+  CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bState?MF_CHECKED:MF_UNCHECKED);
+  if (bFirst != TRUE && bState == lpFrame->ei.bWordWrap) return;
+  lpFrame->ei.bWordWrap=bState;
+
+  if (lpFrame->ei.bWordWrap)
+  {
+    UpdateShowHScroll(lpFrame);
+    SetWordWrap(lpFrame, lpFrame->dwWrapType, lpFrame->dwWrapLimit);
+  }
+  else
+  {
+    SetWordWrap(lpFrame, 0, 0);
+    UpdateShowHScroll(lpFrame);
   }
 }
 
@@ -2023,21 +1992,6 @@ BOOL DoSettingsExec()
     API_HeapFree(hHeap, 0, (LPVOID)wszCommandExp);
   }
   return bResult;
-}
-
-void DoSettingsReadOnly(HWND hWnd, BOOL bState, BOOL bFirst)
-{
-  if (IsEditActive(hWnd))
-  {
-    CheckMenuItem(hMainMenu, IDM_VIEW_READONLY, bState?MF_CHECKED:MF_UNCHECKED);
-    if (bFirst != TRUE && bState == lpFrameCurrent->ei.bReadOnly) return;
-    lpFrameCurrent->ei.bReadOnly=bState;
-
-    if (hWnd)
-    {
-      SendMessage(hWnd, AEM_SETOPTIONS, lpFrameCurrent->ei.bReadOnly?AECOOP_OR:AECOOP_XOR, AECO_READONLY);
-    }
-  }
 }
 
 void DoSettingsSaveTime(BOOL bState)
@@ -3645,7 +3599,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       GlobalPrint:
       if (bGlobalPrint)
       {
-        DoFilePrint(hWnd, TRUE);
+        DoFilePrint(lpFrameCurrent, TRUE);
         bGlobalPrint=FALSE;
 
         if (!nMDI)
@@ -4959,22 +4913,24 @@ DWORD GetMappedPrintWidth(HWND hWnd)
   return dwWidth;
 }
 
-BOOL UpdateMappedPrintWidth(HWND hWnd)
+BOOL UpdateMappedPrintWidth(FRAMEDATA *lpFrame)
 {
-  if (IsEditActive(hWnd))
+  if (lpFrame == lpFrameCurrent)
   {
-    if (lpFrameCurrent->dwMarker == (DWORD)-1 || (lpFrameCurrent->ei.bWordWrap && lpFrameCurrent->dwWrapLimit == (DWORD)-1))
+    if (lpFrame->dwMarker == (DWORD)-1 || (lpFrame->ei.bWordWrap && lpFrame->dwWrapLimit == (DWORD)-1))
     {
-      lpFrameCurrent->dwMappedPrintWidth=GetMappedPrintWidth(hWnd);
-      if (lpFrameCurrent->dwMarker == (DWORD)-1) SetMarker(hWnd, lpFrameCurrent->dwMarker);
-      if (lpFrameCurrent->ei.bWordWrap && lpFrameCurrent->dwWrapLimit == (DWORD)-1) SetWordWrap(hWnd, lpFrameCurrent->dwWrapType, lpFrameCurrent->dwWrapLimit);
+      lpFrame->dwMappedPrintWidth=GetMappedPrintWidth(lpFrame->ei.hWndEdit);
+      if (lpFrame->dwMarker == (DWORD)-1)
+        SetMarker(lpFrame, lpFrame->dwMarker);
+      if (lpFrame->ei.bWordWrap && lpFrame->dwWrapLimit == (DWORD)-1)
+        SetWordWrap(lpFrame, lpFrame->dwWrapType, lpFrame->dwWrapLimit);
       return TRUE;
     }
   }
   return FALSE;
 }
 
-int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
+int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
 {
   DOCINFOW diW={0};
   POINT ptScreenDpi;
@@ -5101,7 +5057,7 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
           if (bPrintHeaderEnable)
           {
             hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
-            if (!PrintHeadlineW(prn->hPrinterDC, &rcHeader, wszPrintHeader, nPageNumber))
+            if (!PrintHeadline(prn->hPrinterDC, &rcHeader, wszPrintHeader, nPageNumber))
               bPrintStop=TRUE;
             if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
           }
@@ -5112,7 +5068,7 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
           if (bPrintFooterEnable)
           {
             hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
-            if (!PrintHeadlineW(prn->hPrinterDC, &rcFooter, wszPrintFooter, nPageNumber))
+            if (!PrintHeadline(prn->hPrinterDC, &rcFooter, wszPrintFooter, nPageNumber))
               bPrintStop=TRUE;
             if (hPrintFontOld) SelectObject(prn->hPrinterDC, hPrintFontOld);
           }
@@ -5146,7 +5102,7 @@ int PrintDocumentW(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
   return nPageNumber;
 }
 
-BOOL PrintHeadlineW(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
+BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
 {
   //%% == %, %n[1] == nPageNumber[nPageStart], %f == lpFrameCurrent->wszFile, %c == DT_CENTER, %l == DT_LEFT, %r == DT_RIGHT
   wchar_t wszCenter[MAX_PATH];
@@ -5646,8 +5602,8 @@ BOOL PreviewInit(HWND hWndSelection)
     prn.hPrinterDC=prninfo.hDC;
     prn.rcMargins=prninfo.rtMargin;
 
-    nPreviewAllPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRND_TEST|PRND_ALLTEXT, 0);
-    nPreviewSelPageSum=PrintDocumentW(hWndPreviewEdit, &prn, PRND_TEST|PRND_SELECTION, 0);
+    nPreviewAllPageSum=PrintDocument(hWndPreviewEdit, &prn, PRND_TEST|PRND_ALLTEXT, 0);
+    nPreviewSelPageSum=PrintDocument(hWndPreviewEdit, &prn, PRND_TEST|PRND_SELECTION, 0);
     bResult=TRUE;
   }
 
@@ -5702,7 +5658,7 @@ LRESULT CALLBACK PreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           //Print page on metafile device
           prn.hPrinterDC=hMetaDC;
           prn.crText=lpElement->crText;
-          PrintDocumentW(hWndPreviewEdit, &prn, (bOldWindows?PRND_ANSI:0)|PRND_RANGE|PRND_ONEPAGE, nPreviewPageCur - 1);
+          PrintDocument(hWndPreviewEdit, &prn, (bOldWindows?PRND_ANSI:0)|PRND_RANGE|PRND_ONEPAGE, nPreviewPageCur - 1);
           hMetaFile=CloseEnhMetaFile(hMetaDC);
 
           //Draw page on window
@@ -12269,7 +12225,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         if (lpFrameCurrent->ei.bWordWrap)
         {
           UpdateShowHScroll(lpFrameCurrent);
-          SetWordWrap(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->dwWrapType, lpFrameCurrent->dwWrapLimit);
+          SetWordWrap(lpFrameCurrent, lpFrameCurrent->dwWrapType, lpFrameCurrent->dwWrapLimit);
         }
       }
 
@@ -12278,7 +12234,7 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if ((int)lpFrameCurrent->dwMarker != a)
       {
         lpFrameCurrent->dwMarker=a;
-        SetMarker(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->dwMarker);
+        SetMarker(lpFrameCurrent, lpFrameCurrent->dwMarker);
       }
 
       //Caret options
@@ -13695,7 +13651,7 @@ HFONT SetChosenFont(HWND hWnd, LOGFONTW *lfFont)
   if (!(fi=StackFontItemGet(&hFontsStack, lfFont)))
     fi=StackFontItemInsert(&hFontsStack, lfFont);
   SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
-  UpdateMappedPrintWidth(hWnd);
+  UpdateMappedPrintWidth(lpFrameCurrent);
   return fi->hFont;
 }
 
@@ -13918,30 +13874,26 @@ BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc)
   return FALSE;
 }
 
-void SetMarker(HWND hWnd, DWORD dwPos)
+void SetMarker(FRAMEDATA *lpFrame, DWORD dwPos)
 {
   if (dwPos == (DWORD)-1)
   {
-    if (!lpFrameCurrent->dwMappedPrintWidth)
-    {
-      lpFrameCurrent->dwMappedPrintWidth=GetMappedPrintWidth(hWnd);
-    }
-    SendMessage(hWnd, AEM_SETMARKER, AEMT_PIXEL, lpFrameCurrent->dwMappedPrintWidth);
+    if (!lpFrame->dwMappedPrintWidth)
+      lpFrame->dwMappedPrintWidth=GetMappedPrintWidth(lpFrame->ei.hWndEdit);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETMARKER, AEMT_PIXEL, lpFrame->dwMappedPrintWidth);
   }
-  else SendMessage(hWnd, AEM_SETMARKER, AEMT_SYMBOL, dwPos);
+  else SendMessage(lpFrame->ei.hWndEdit, AEM_SETMARKER, AEMT_SYMBOL, dwPos);
 }
 
-void SetWordWrap(HWND hWnd, DWORD dwType, DWORD dwLimit)
+void SetWordWrap(FRAMEDATA *lpFrame, DWORD dwType, DWORD dwLimit)
 {
   if (dwLimit == (DWORD)-1)
   {
-    if (!lpFrameCurrent->dwMappedPrintWidth)
-    {
-      lpFrameCurrent->dwMappedPrintWidth=GetMappedPrintWidth(hWnd);
-    }
-    SendMessage(hWnd, AEM_SETWORDWRAP, dwType|AEWW_LIMITPIXEL, lpFrameCurrent->dwMappedPrintWidth);
+    if (!lpFrame->dwMappedPrintWidth)
+      lpFrame->dwMappedPrintWidth=GetMappedPrintWidth(lpFrame->ei.hWndEdit);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDWRAP, dwType|AEWW_LIMITPIXEL, lpFrame->dwMappedPrintWidth);
   }
-  else SendMessage(hWnd, AEM_SETWORDWRAP, dwType|AEWW_LIMITSYMBOL, lpFrameCurrent->dwWrapLimit);
+  else SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDWRAP, dwType|AEWW_LIMITSYMBOL, dwLimit);
 }
 
 void SetMargins(HWND hWnd, DWORD dwNewMargins, DWORD dwOldMargins)
@@ -14740,7 +14692,10 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
       {
         //Create real edit window for clone #1 if not created before
         if (!fdInit.ei.hWndClone1)
-          CreateEditWindow(&fdInit, NULL, &fdInit.ei.hWndClone1, &fdInit.hDataClone1);
+        {
+          fdInit.ei.hWndClone1=(HWND)CreateEditWindow(hMainWnd, NULL);
+          fdInit.hDataClone1=(HANDLE)SendMessage(fdInit.ei.hWndClone1, AEM_GETWINDOWDATA, 0, 0);
+        }
         lpFrame->ei.hWndClone1=fdInit.ei.hWndClone1;
 
         if (nMDI == WMD_SDI)
@@ -14750,13 +14705,14 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         else if (nMDI == WMD_PMDI)
         {
           //Create and assign virtual window data
-          CreateEditWindow(lpFrame, lpFrame, NULL, &lpFrame->hDataClone1);
+          lpFrame->hDataClone1=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
           SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone1, AESWD_NOREFRESH);
         }
       }
       else if (nMDI == WMD_MDI)
       {
-        CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndClone1, &lpFrame->hDataClone1);
+        lpFrame->ei.hWndClone1=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
+        lpFrame->hDataClone1=(HANDLE)SendMessage(lpFrame->ei.hWndClone1, AEM_GETWINDOWDATA, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone1, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->hDataClone1);
@@ -14767,7 +14723,10 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
       {
         //Create real edit window for clone #2 if not created before
         if (!fdInit.ei.hWndClone2)
-          CreateEditWindow(&fdInit, NULL, &fdInit.ei.hWndClone2, &fdInit.hDataClone2);
+        {
+          fdInit.ei.hWndClone2=(HWND)CreateEditWindow(hMainWnd, NULL);
+          fdInit.hDataClone2=(HANDLE)SendMessage(fdInit.ei.hWndClone2, AEM_GETWINDOWDATA, 0, 0);
+        }
         lpFrame->ei.hWndClone2=fdInit.ei.hWndClone2;
 
         if (nMDI == WMD_SDI)
@@ -14777,13 +14736,14 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         else if (nMDI == WMD_PMDI)
         {
           //Create and assign virtual window data
-          CreateEditWindow(lpFrame, lpFrame, NULL, &lpFrame->hDataClone2);
+          lpFrame->hDataClone2=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
           SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone2, AESWD_NOREFRESH);
         }
       }
       else if (nMDI == WMD_MDI)
       {
-        CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndClone2, &lpFrame->hDataClone2);
+        lpFrame->ei.hWndClone2=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
+        lpFrame->hDataClone2=(HANDLE)SendMessage(lpFrame->ei.hWndClone2, AEM_GETWINDOWDATA, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone2, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->hDataClone2);
@@ -14794,7 +14754,10 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
       {
         //Create real edit window for clone #3 if not created before
         if (!fdInit.ei.hWndClone3)
-          CreateEditWindow(&fdInit, NULL, &fdInit.ei.hWndClone3, &fdInit.hDataClone3);
+        {
+          fdInit.ei.hWndClone3=(HWND)CreateEditWindow(hMainWnd, NULL);
+          fdInit.hDataClone3=(HANDLE)SendMessage(fdInit.ei.hWndClone3, AEM_GETWINDOWDATA, 0, 0);
+        }
         lpFrame->ei.hWndClone3=fdInit.ei.hWndClone3;
 
         if (nMDI == WMD_SDI)
@@ -14804,13 +14767,14 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         else if (nMDI == WMD_PMDI)
         {
           //Create and assign virtual window data
-          CreateEditWindow(lpFrame, lpFrame, NULL, &lpFrame->hDataClone3);
+          lpFrame->hDataClone3=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
           SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone3, AESWD_NOREFRESH);
         }
       }
       else if (nMDI == WMD_MDI)
       {
-        CreateEditWindow(lpFrame, NULL, &lpFrame->ei.hWndClone3, &lpFrame->hDataClone3);
+        lpFrame->ei.hWndClone3=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
+        lpFrame->hDataClone3=(HANDLE)SendMessage(lpFrame->ei.hWndClone3, AEM_GETWINDOWDATA, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->hDataClone3);
