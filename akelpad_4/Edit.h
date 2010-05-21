@@ -734,7 +734,7 @@ HWND NextClone(BOOL bPrevious);
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitVisUpdate(FRAMEDATA *lpFrame);
-void ResizeEdit(FRAMEDATA *lpFrame, int X, int Y, int nWidth, int nHeight, BOOL bTest);
+void ResizeEdit(FRAMEDATA *lpFrame, BOOL bTest);
 void UpdateSize();
 BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void GetMovingRect(DOCK *dkData, POINT *pt, MINMAXINFO *mmi, RECT *rcScreen);

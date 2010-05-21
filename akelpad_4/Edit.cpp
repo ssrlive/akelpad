@@ -567,13 +567,13 @@ void RestoreFrameData(FRAMEDATA *lpFrame)
   {
     if (lpFrame->hDataMaster)
     {
-      SendMessage(lpFrame->ei.hWndMaster, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataMaster, 0);
+      SendMessage(lpFrame->ei.hWndMaster, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataMaster, AESWD_NOREDRAW);
       if (lpFrame->hDataClone1)
-        SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone1, 0);
+        SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone1, AESWD_NOREDRAW);
       if (lpFrame->hDataClone2)
-        SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone2, 0);
+        SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone2, AESWD_NOREDRAW);
       if (lpFrame->hDataClone3)
-        SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone3, 0);
+        SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone3, AESWD_NOREDRAW);
     }
     else if (lpFrame->hDataEdit)
       SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataEdit, 0);
@@ -1904,6 +1904,8 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
 
   if (bState)
   {
+    RECT *lprcEditWindow;
+
     if (wParam == IDM_VIEW_SPLIT_WINDOW_WE)
     {
       SplitCreate(lpFrameCurrent, CN_CLONE1);
@@ -1917,10 +1919,14 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
       SplitCreate(lpFrameCurrent, CN_CLONE1|CN_CLONE2|CN_CLONE3);
     }
 
+    if (nMDI == WMD_MDI)
+      lprcEditWindow=&lpFrameCurrent->rcEditWindow;
+    else
+      lprcEditWindow=&fdInit.rcEditWindow;
     lpFrameCurrent->rcMasterWindow.left=0;
     lpFrameCurrent->rcMasterWindow.top=0;
-    lpFrameCurrent->rcMasterWindow.right=lpFrameCurrent->rcEditWindow.right / 2;
-    lpFrameCurrent->rcMasterWindow.bottom=lpFrameCurrent->rcEditWindow.bottom / 2;
+    lpFrameCurrent->rcMasterWindow.right=lprcEditWindow->right / 2;
+    lpFrameCurrent->rcMasterWindow.bottom=lprcEditWindow->bottom / 2;
   }
   else
   {
@@ -1935,7 +1941,7 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
 
   if (lpFrameCurrent->ei.bWordWrap)
     UpdateShowHScroll(lpFrameCurrent);
-  ResizeEdit(lpFrameCurrent, lpFrameCurrent->rcEditWindow.left, lpFrameCurrent->rcEditWindow.top, lpFrameCurrent->rcEditWindow.right, lpFrameCurrent->rcEditWindow.bottom, FALSE);
+  ResizeEdit(lpFrameCurrent, FALSE);
 }
 
 void DoViewOnTop(BOOL bState, BOOL bFirst)
@@ -14711,7 +14717,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         {
           //Create and assign virtual window data
           lpFrame->hDataClone1=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
-          SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone1, AESWD_NOREFRESH);
+          SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone1, AESWD_NOREDRAW);
         }
       }
       else if (nMDI == WMD_MDI)
@@ -14742,7 +14748,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         {
           //Create and assign virtual window data
           lpFrame->hDataClone2=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
-          SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone2, AESWD_NOREFRESH);
+          SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone2, AESWD_NOREDRAW);
         }
       }
       else if (nMDI == WMD_MDI)
@@ -14773,7 +14779,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         {
           //Create and assign virtual window data
           lpFrame->hDataClone3=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
-          SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone3, AESWD_NOREFRESH);
+          SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone3, AESWD_NOREDRAW);
         }
       }
       else if (nMDI == WMD_MDI)
@@ -14809,7 +14815,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         else if (nMDI == WMD_PMDI)
         {
           if (lpFrame->hDataClone1 == (HANDLE)SendMessage(lpFrame->ei.hWndClone1, AEM_GETWINDOWDATA, 0, 0))
-            SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataClone1, AESWD_NOREFRESH);
+            SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataClone1, AESWD_NOREDRAW);
           SendMessage(lpFrame->ei.hWndClone1, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataClone1, 0);
         }
 
@@ -14836,7 +14842,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         else if (nMDI == WMD_PMDI)
         {
           if (lpFrame->hDataClone2 == (HANDLE)SendMessage(lpFrame->ei.hWndClone2, AEM_GETWINDOWDATA, 0, 0))
-            SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataClone2, AESWD_NOREFRESH);
+            SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataClone2, AESWD_NOREDRAW);
           SendMessage(lpFrame->ei.hWndClone2, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataClone2, 0);
         }
 
@@ -14863,7 +14869,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         else if (nMDI == WMD_PMDI)
         {
           if (lpFrame->hDataClone3 == (HANDLE)SendMessage(lpFrame->ei.hWndClone3, AEM_GETWINDOWDATA, 0, 0))
-            SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataClone3, AESWD_NOREFRESH);
+            SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataClone3, AESWD_NOREDRAW);
           SendMessage(lpFrame->ei.hWndClone3, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataClone3, 0);
         }
 
@@ -14886,66 +14892,60 @@ void SplitVisUpdate(FRAMEDATA *lpFrame)
 {
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
   {
-    if (fdInit.hDataMaster)
+    if (fdInit.ei.hWndMaster)
     {
-      BOOL bResize=FALSE;
-
       if (fdInit.ei.hWndClone1)
       {
         if (IsWindowVisible(fdInit.ei.hWndClone1) == !lpFrame->hDataClone1)
-        {
           ShowWindow(fdInit.ei.hWndClone1, lpFrame->hDataClone1?SW_SHOW:SW_HIDE);
-          bResize=TRUE;
-        }
       }
       if (fdInit.ei.hWndClone2)
       {
         if (IsWindowVisible(fdInit.ei.hWndClone2) == !lpFrame->hDataClone2)
-        {
           ShowWindow(fdInit.ei.hWndClone2, lpFrame->hDataClone2?SW_SHOW:SW_HIDE);
-          bResize=TRUE;
-        }
       }
       if (fdInit.ei.hWndClone3)
       {
         if (IsWindowVisible(fdInit.ei.hWndClone3) == !lpFrame->hDataClone3)
-        {
           ShowWindow(fdInit.ei.hWndClone3, lpFrame->hDataClone3?SW_SHOW:SW_HIDE);
-          bResize=TRUE;
-        }
       }
-      if (bResize)
-        ResizeEdit(lpFrame, lpFrame->rcEditWindow.left, lpFrame->rcEditWindow.top, lpFrame->rcEditWindow.right, lpFrame->rcEditWindow.bottom, FALSE);
+      ResizeEdit(lpFrame, FALSE);
     }
   }
 }
 
-void ResizeEdit(FRAMEDATA *lpFrame, int X, int Y, int nWidth, int nHeight, BOOL bTest)
+void ResizeEdit(FRAMEDATA *lpFrame, BOOL bTest)
 {
+  RECT *lprcEditWindow;
+
+  if (nMDI == WMD_MDI)
+    lprcEditWindow=&lpFrame->rcEditWindow;
+  else
+    lprcEditWindow=&fdInit.rcEditWindow;
   UpdateWindow(hStatus);
 
   if (lpFrame->ei.hWndMaster)
   {
     RECT rc;
 
-    lpFrame->rcMasterWindow.left=X;
-    lpFrame->rcMasterWindow.top=Y;
+    lpFrame->rcMasterWindow.left=lprcEditWindow->left;
+    lpFrame->rcMasterWindow.top=lprcEditWindow->top;
 
     if (lpFrame->ei.hWndClone1)
     {
       lpFrame->rcMasterWindow.right=max(lpFrame->rcMasterWindow.right, 40);
-      lpFrame->rcMasterWindow.right=min(lpFrame->rcMasterWindow.right, nWidth - 40);
+      lpFrame->rcMasterWindow.right=min(lpFrame->rcMasterWindow.right, lprcEditWindow->right - 40);
       lpFrame->rcMasterWindow.right=max(lpFrame->rcMasterWindow.right, 0);
     }
-    else lpFrame->rcMasterWindow.right=nWidth;
+    else lpFrame->rcMasterWindow.right=lprcEditWindow->right;
 
     if (lpFrame->ei.hWndClone2)
     {
       lpFrame->rcMasterWindow.bottom=max(lpFrame->rcMasterWindow.bottom, 40);
-      lpFrame->rcMasterWindow.bottom=min(lpFrame->rcMasterWindow.bottom, nHeight - 40);
+      lpFrame->rcMasterWindow.bottom=min(lpFrame->rcMasterWindow.bottom, lprcEditWindow->bottom - 40);
       lpFrame->rcMasterWindow.bottom=max(lpFrame->rcMasterWindow.bottom, 0);
     }
-    else lpFrame->rcMasterWindow.bottom=nHeight;
+    else lpFrame->rcMasterWindow.bottom=lprcEditWindow->bottom;
 
     if (lpFrame->ei.hWndMaster)
     {
@@ -14968,7 +14968,7 @@ void ResizeEdit(FRAMEDATA *lpFrame, int X, int Y, int nWidth, int nHeight, BOOL 
     {
       rc.left=lpFrame->rcMasterWindow.left + lpFrame->rcMasterWindow.right;
       rc.top=lpFrame->rcMasterWindow.top;
-      rc.right=nWidth - lpFrame->rcMasterWindow.right;
+      rc.right=lprcEditWindow->right - lpFrame->rcMasterWindow.right;
       rc.bottom=lpFrame->rcMasterWindow.bottom;
 
       if (!bTest)
@@ -14986,7 +14986,7 @@ void ResizeEdit(FRAMEDATA *lpFrame, int X, int Y, int nWidth, int nHeight, BOOL 
       rc.left=lpFrame->rcMasterWindow.left;
       rc.top=lpFrame->rcMasterWindow.top + lpFrame->rcMasterWindow.bottom;
       rc.right=lpFrame->rcMasterWindow.right;
-      rc.bottom=nHeight - lpFrame->rcMasterWindow.bottom;
+      rc.bottom=lprcEditWindow->bottom - lpFrame->rcMasterWindow.bottom;
 
       if (!bTest)
       {
@@ -15002,8 +15002,8 @@ void ResizeEdit(FRAMEDATA *lpFrame, int X, int Y, int nWidth, int nHeight, BOOL 
     {
       rc.left=lpFrame->rcMasterWindow.left + lpFrame->rcMasterWindow.right;
       rc.top=lpFrame->rcMasterWindow.top + lpFrame->rcMasterWindow.bottom;
-      rc.right=nWidth - lpFrame->rcMasterWindow.right;
-      rc.bottom=nHeight - lpFrame->rcMasterWindow.bottom;
+      rc.right=lprcEditWindow->right - lpFrame->rcMasterWindow.right;
+      rc.bottom=lprcEditWindow->bottom - lpFrame->rcMasterWindow.bottom;
 
       if (!bTest)
       {
@@ -15020,19 +15020,14 @@ void ResizeEdit(FRAMEDATA *lpFrame, int X, int Y, int nWidth, int nHeight, BOOL 
   {
     if (!bTest)
     {
-      MoveWindow(lpFrame->ei.hWndEdit, X, Y, nWidth, nHeight, TRUE);
+      MoveWindow(lpFrame->ei.hWndEdit, lprcEditWindow->left, lprcEditWindow->top, lprcEditWindow->right, lprcEditWindow->bottom, TRUE);
     }
   }
-
-  lpFrame->rcEditWindow.left=X;
-  lpFrame->rcEditWindow.top=Y;
-  lpFrame->rcEditWindow.right=nWidth;
-  lpFrame->rcEditWindow.bottom=nHeight;
 }
 
 void UpdateSize()
 {
-  int i;
+  int nHeight;
 
   if (!hDocksStack.bSizing)
   {
@@ -15043,35 +15038,33 @@ void UpdateSize()
     nsSize.rcCurrent=nsSize.rcInitial;
     SendMessage(hMainWnd, AKDN_SIZE, 0, (LPARAM)&nsSize);
 
+    //Docks
     StackDockSize(&hDocksStack, (hDocksStack.nSizingSide == DKS_LEFT)?DKS_RIGHT:DKS_LEFT, &nsSize);
     StackDockSize(&hDocksStack, (hDocksStack.nSizingSide == DKS_LEFT)?DKS_LEFT:DKS_RIGHT, &nsSize);
     StackDockSize(&hDocksStack, (hDocksStack.nSizingSide == DKS_TOP)?DKS_BOTTOM:DKS_TOP, &nsSize);
     StackDockSize(&hDocksStack, (hDocksStack.nSizingSide == DKS_TOP)?DKS_TOP:DKS_BOTTOM, &nsSize);
     hDocksStack.nSizingSide=0;
 
+    //Edits
+    nHeight=nsSize.rcCurrent.bottom - ((!nMDI || (dwTabOptionsMDI & TAB_VIEW_NONE))?0:TAB_HEIGHT);
+
     if (nMDI)
     {
-      i=nsSize.rcCurrent.bottom - (!(dwTabOptionsMDI & TAB_VIEW_NONE)?TAB_HEIGHT:0);
-
-      if (dwTabOptionsMDI & TAB_VIEW_TOP)
+      if ((dwTabOptionsMDI & TAB_VIEW_TOP) || (dwTabOptionsMDI & TAB_VIEW_BOTTOM))
       {
-        MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, TAB_HEIGHT, TRUE);
+        MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nHeight:0), nsSize.rcCurrent.right, TAB_HEIGHT, TRUE);
         UpdateWindow(hTab);
       }
-      else if (dwTabOptionsMDI & TAB_VIEW_BOTTOM)
-      {
-        MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + i, nsSize.rcCurrent.right, TAB_HEIGHT, TRUE);
-        UpdateWindow(hTab);
-      }
-
       if (nMDI == WMD_MDI)
-        MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, i, TRUE);
-      else
-        ResizeEdit(lpFrameCurrent, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, i, FALSE);
+        MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, nHeight, TRUE);
     }
-    else
+    if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
     {
-      ResizeEdit(lpFrameCurrent, nsSize.rcCurrent.left, nsSize.rcCurrent.top, nsSize.rcCurrent.right, nsSize.rcCurrent.bottom, FALSE);
+      fdInit.rcEditWindow.left=nsSize.rcCurrent.left;
+      fdInit.rcEditWindow.top=nsSize.rcCurrent.top + ((nMDI && (dwTabOptionsMDI & TAB_VIEW_TOP))?TAB_HEIGHT:0);
+      fdInit.rcEditWindow.right=nsSize.rcCurrent.right;
+      fdInit.rcEditWindow.bottom=nHeight;
+      ResizeEdit(lpFrameCurrent, FALSE);
     }
     hDocksStack.bSizing=FALSE;
   }

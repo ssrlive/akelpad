@@ -256,9 +256,15 @@
 #define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
 
 //AEM_SETWINDOWDATA flags
-#define AESWD_NOREFRESH        0x00000001  //Don't redraw edit window.
-#define AESWD_NODRAGDROP       0x00000002  //Don't register drag-and-drop with a new IDropTarget.
+#define AESWD_NODRAGDROP          0x00000001  //Don't register drag-and-drop with a new IDropTarget.
+#define AESWD_NOSHOWSCROLLBARS    0x00000002  //Don't update scrollbars visibility.
+#define AESWD_NOUPDATESCROLLBARS  0x00000004  //Don't update scrollbars position.
+#define AESWD_NOUPDATECARET       0x00000008  //Don't update caret.
+#define AESWD_NOINVALIDATERECT    0x00000010  //Don't redraw edit window.
 
+#define AESWD_NOREDRAW  (AESWD_NOUPDATESCROLLBARS |\
+                         AESWD_NOUPDATECARET      |\
+                         AESWD_NOINVALIDATERECT)
 //AEM_DRAGDROP flags
 #define AEDD_GETDRAGWINDOW   1  //Return dragging window handle.
 #define AEDD_STOPDRAG        2  //Set stop dragging operation flag.
@@ -276,16 +282,16 @@
 #define AECLR_ACTIVECOLUMN   0x00000200  //Sets active column color. crActiveColumn member is valid.
 #define AECLR_COLUMNMARKER   0x00000400  //Sets column marker color. crColumnMarker member is valid.
 
-#define AECLR_ALL            (AECLR_CARET         |\
-                              AECLR_BASICTEXT     |\
-                              AECLR_BASICBK       |\
-                              AECLR_SELTEXT       |\
-                              AECLR_SELBK         |\
-                              AECLR_ACTIVELINETEXT|\
-                              AECLR_ACTIVELINEBK  |\
-                              AECLR_URLTEXT       |\
-                              AECLR_ACTIVECOLUMN  |\
-                              AECLR_COLUMNMARKER)
+#define AECLR_ALL  (AECLR_CARET          |\
+                    AECLR_BASICTEXT      |\
+                    AECLR_BASICBK        |\
+                    AECLR_SELTEXT        |\
+                    AECLR_SELBK          |\
+                    AECLR_ACTIVELINETEXT |\
+                    AECLR_ACTIVELINEBK   |\
+                    AECLR_URLTEXT        |\
+                    AECLR_ACTIVECOLUMN   |\
+                    AECLR_COLUMNMARKER)
 
 //Print
 #define AEPRN_TEST                      0x001  //Calculate data without painting.
