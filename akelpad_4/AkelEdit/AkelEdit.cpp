@@ -1626,15 +1626,23 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         }
 
         //Redraw edit window.
-        if (!(lParam & AESWD_NOREFRESH))
+        if (!(lParam & AESWD_NOSHOWSCROLLBARS))
         {
           if (aeNew->bHScrollShow != ae->bHScrollShow)
             ShowScrollBar(aeNew->hWndEdit, SB_HORZ, aeNew->bHScrollShow);
           if (aeNew->bVScrollShow != ae->bVScrollShow)
             ShowScrollBar(aeNew->hWndEdit, SB_VERT, aeNew->bVScrollShow);
-
+        }
+        if (!(lParam & AESWD_NOUPDATESCROLLBARS))
+        {
           AE_UpdateScrollBars(aeNew, SB_BOTH);
+        }
+        if (!(lParam & AESWD_NOUPDATECARET))
+        {
           AE_UpdateCaret(aeNew, aeNew->bFocus);
+        }
+        if (!(lParam & AESWD_NOINVALIDATERECT))
+        {
           InvalidateRect(aeNew->hWndEdit, NULL, TRUE);
         }
       }
