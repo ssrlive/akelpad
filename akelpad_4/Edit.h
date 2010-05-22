@@ -184,6 +184,10 @@
                     CN_CLONE2 |\
                     CN_CLONE3)
 
+//ResizeEditWindow flags
+#define REW_TEST      0x00000001
+#define REW_NOREDRAW  0x00000002
+
 //STARTUPINFO flags
 #define STARTF_NOMUTEX  0x00001000
 
@@ -384,20 +388,20 @@ typedef struct {
 
 HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI);
 void SetEditWindowSettings(FRAMEDATA *lpFrame);
-void ResizeEditWindow(FRAMEDATA *lpFrame, BOOL bTest);
+void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags);
 FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl);
 FRAMEDATA* GetFrameDataFromEditData(HANDLE hDataEditHandle);
 FRAMEDATA* CreateFrameData(HWND hWndEditParent, FRAMEDATA *lpFrameSource);
 void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
 void SaveFrameData(FRAMEDATA *lpFrame);
-void RestoreFrameData(FRAMEDATA *lpFrame);
+void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
 BOOL CreateMdiFrameWindow(RECT *rcRect);
-void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bUpdateOrderPMDI);
+void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
 FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev);
 int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem);
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
-void SplitVisUpdate(FRAMEDATA *lpFrame);
+void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
 
 BOOL DoFileNew();
 HWND DoFileNewWindow(DWORD dwAddFlags);
@@ -750,6 +754,7 @@ BOOL EnsureWindowInMonitor(RECT *rcWindow);
 void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile);
 void UpdateTabs(HWND hWnd);
 int AddTabItem(HWND hWnd, HICON hIcon, LPARAM lParam);
+LPARAM GetTabParamFromItem(HWND hWnd, int nItem);
 int GetTabItemFromParam(HWND hWnd, LPARAM lParam);
 int GetTabItemFromCursorPos(HWND hWnd);
 int GetTabItemForDrop(HWND hWnd, POINT *pt);
