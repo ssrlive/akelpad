@@ -1632,13 +1632,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETSELTEXTW)
     {
-      int *nResultLen=(int *)lParam;
+      FRAMEDATA *lpFrame;
       AECHARRANGE cr;
       wchar_t *wpText=NULL;
       int nTextLen;
       BOOL bColumnSel=FALSE;
+      int *nResultLen=(int *)lParam;
 
-      GetSel((HWND)wParam, &cr, &bColumnSel, NULL);
+      if (nMDI == WMD_PMDI)
+        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
+      else
+        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
+
+      GetSel(lpFrame->ei.hWndEdit, &cr, &bColumnSel, NULL);
       nTextLen=ExGetRangeTextW((HWND)wParam, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
       if (nResultLen) *nResultLen=nTextLen;
       return (LRESULT)wpText;
@@ -1736,8 +1742,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (uMsg == AKD_GETCHARCOLOR)
     {
       CHARCOLOR *cc=(CHARCOLOR *)lParam;
+      FRAMEDATA *lpFrame;
 
-      return GetCharColor((HWND)wParam, cc);
+      if (nMDI == WMD_PMDI)
+        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
+      else
+        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
+      return GetCharColor(lpFrame, cc);
     }
 
     //Print
@@ -1824,12 +1835,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_SETMODIFY)
     {
-      SetModifyStatus((HWND)wParam, lParam);
+      FRAMEDATA *lpFrame;
+
+      if (nMDI == WMD_PMDI)
+        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
+      else
+        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
+      SetModifyStatus(lpFrame, lParam);
       return 0;
     }
     if (uMsg == AKD_SETNEWLINE)
     {
-      SetNewLineStatus((HWND)wParam, lParam, AENL_INPUT|AENL_OUTPUT);
+      FRAMEDATA *lpFrame;
+
+      if (nMDI == WMD_PMDI)
+        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
+      else
+        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
+      SetNewLineStatus(lpFrame, lParam, AENL_INPUT|AENL_OUTPUT);
       return 0;
     }
     if (uMsg == AKD_GETFONT ||
@@ -1858,15 +1881,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FRAMEDATA *lpFrame;
       LOGFONTW lfW;
 
+      if (nMDI == WMD_PMDI)
+        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
+      else
+        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
+
       if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
         LogFontAtoW((LOGFONTA *)lParam, &lfW);
       else
         xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
 
-      if (SetChosenFont((HWND)wParam, &lfW))
+      if (SetChosenFont(lpFrame, &lfW))
       {
-        if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
-          xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
+        xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
         bEditFontChanged=TRUE;
         return TRUE;
       }
@@ -3005,7 +3032,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (DoViewFont(hMainWnd, &lpFrameCurrent->lf))
       {
-        if (SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf))
+        if (SetChosenFont(lpFrameCurrent, &lpFrameCurrent->lf))
         {
           bEditFontChanged=TRUE;
           return TRUE;
@@ -3020,12 +3047,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_VIEW_INCREASE_FONT)
     {
-      DoViewFontSize(lpFrameCurrent->ei.hWndEdit, INCREASE_FONT);
+      DoViewFontSize(lpFrameCurrent, INCREASE_FONT);
       bEditFontChanged=TRUE;
     }
     else if (LOWORD(wParam) == IDM_VIEW_DECREASE_FONT)
     {
-      DoViewFontSize(lpFrameCurrent->ei.hWndEdit, DECREASE_FONT);
+      DoViewFontSize(lpFrameCurrent, DECREASE_FONT);
       bEditFontChanged=TRUE;
     }
     else if (LOWORD(wParam) == IDM_VIEW_WORDWRAP)
@@ -3618,7 +3645,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatus(aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
+        SetSelectionStatus(aensc->hEditData, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
       {
@@ -3695,7 +3722,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         AENLINK *aenl=(AENLINK *)lParam;
         static BOOL bDownURL=FALSE;
 
-        if (aenl->hdr.hwndFrom == lpFrameCurrent->ei.hWndEdit)
+        if (aenl->hEditData == lpFrameCurrent->hDataEdit)
         {
           if (nClickURL == 1 && aenl->uMsg == WM_LBUTTONDOWN)
           {
@@ -4040,7 +4067,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (lpFrame=GetFrameDataFromEditWindow(hWnd))
         ActivateMdiFrameWindow(lpFrame, 0);
     }
-    else SetSelectionStatus(lpFrameCurrent->ei.hWndEdit, NULL, NULL);
+    else SetSelectionStatus(lpFrameCurrent->hDataEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
 
     //Assign current window. Need for split windows.
     lpFrameCurrent->ei.hWndEdit=hWnd;
@@ -4069,9 +4096,9 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (LOWORD(wParam) == MK_CONTROL)
     {
       if ((short)HIWORD(wParam) < 0)
-        DoViewFontSize(hWnd, DECREASE_FONT);
+        DoViewFontSize(lpFrameCurrent, DECREASE_FONT);
       else
-        DoViewFontSize(hWnd, INCREASE_FONT);
+        DoViewFontSize(lpFrameCurrent, INCREASE_FONT);
       bEditFontChanged=TRUE;
       return TRUE;
     }

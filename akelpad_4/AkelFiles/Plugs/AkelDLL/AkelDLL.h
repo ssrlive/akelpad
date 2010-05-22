@@ -2381,7 +2381,8 @@ ___________  ____________  ____________
 
 Set font.
 
-(HWND)wParam      == edit window
+(HWND)wParam      == edit window,
+                     NULL for current edit window
 (LOGFONT *)lParam == pointer to a LOGFONT structure
 
 Return Value

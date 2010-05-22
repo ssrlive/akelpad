@@ -399,7 +399,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrame->aec);
   SetMargins(lpFrame->ei.hWndEdit, lpFrame->dwEditMargins, 0);
   SetTabStops(lpFrame->ei.hWndEdit, lpFrame->nTabStopSize, FALSE);
-  SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
+  SetChosenFont(lpFrame, &lpFrame->lf);
   DoViewWordWrap(lpFrame, lpFrame->ei.bWordWrap, TRUE);
   SetNewLineStatus(lpFrame, lpFrame->ei.nNewLine, AENL_INPUT);
 
@@ -711,7 +711,7 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     SplitVisUpdate(lpFrame, dwFlagsPMDI);
   }
   //Update selection to set valid globals: crSel, ciCaret and nSelSubtract
-  SetSelectionStatus(lpFrame->ei.hWndEdit, NULL, NULL);
+  SetSelectionStatus(lpFrame->hDataEdit, lpFrame->ei.hWndEdit, NULL, NULL);
   SetCodePageStatus(NULL, lpFrame->ei.nCodePage, lpFrame->ei.bBOM);
   SetNewLineStatus(NULL, lpFrame->ei.nNewLine, 0);
   SetModifyStatus(NULL, lpFrame->ei.bModified);
@@ -1133,7 +1133,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
       }
     }
     SplitVisUpdate(lpFrame, 0);
-    SetSelectionStatus(lpFrame->ei.hWndEdit, NULL, NULL);
+    SetSelectionStatus(lpFrame->hDataEdit, lpFrame->ei.hWndEdit, NULL, NULL);
   }
   bEditOnFinish=FALSE;
 }
@@ -1162,6 +1162,26 @@ void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
       ResizeEditWindow(lpFrame, (dwFlagsPMDI & FWA_NOUPDATEEDIT)?REW_NOREDRAW:0);
     }
   }
+}
+
+LRESULT SendFrame(FRAMEDATA *lpFrame, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  return SendEdit(lpFrame->hDataEdit, lpFrame->ei.hWndEdit, uMsg, wParam, lParam);
+}
+
+LRESULT SendEdit(HANDLE hDataEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (nMDI == WMD_PMDI)
+  {
+    AESENDMESSAGE sm;
+  
+    sm.hEditData=hDataEdit;
+    sm.uMsg=uMsg;
+    sm.wParam=wParam;
+    sm.lParam=lParam;
+    return SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
+  }
+  return SendMessage(hWndEdit, uMsg, wParam, lParam);
 }
 
 
@@ -2214,22 +2234,22 @@ void DoViewColors()
     API_DialogBoxW(hLangLib, MAKEINTRESOURCEW(IDD_COLORS), hMainWnd, (DLGPROC)ColorsDlgProc);
 }
 
-void DoViewFontSize(HWND hWnd, int nAction)
+void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
 {
   if (nAction == INCREASE_FONT)
   {
-    if (lpFrameCurrent->lf.lfHeight <= -1)
+    if (lpFrame->lf.lfHeight <= -1)
     {
-      lpFrameCurrent->lf.lfHeight-=1;
-      SetChosenFont(hWnd, &lpFrameCurrent->lf);
+      lpFrame->lf.lfHeight-=1;
+      SetChosenFont(lpFrame, &lpFrame->lf);
     }
   }
   else if (nAction == DECREASE_FONT)
   {
-    if (lpFrameCurrent->lf.lfHeight < -1)
+    if (lpFrame->lf.lfHeight < -1)
     {
-      lpFrameCurrent->lf.lfHeight+=1;
-      SetChosenFont(hWnd, &lpFrameCurrent->lf);
+      lpFrame->lf.lfHeight+=1;
+      SetChosenFont(lpFrame, &lpFrame->lf);
     }
   }
 }
@@ -6535,7 +6555,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     }
     SendMessage(hWndFilePreview, AEM_SETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
     SetTabStops(hWndFilePreview, lpFrameCurrent->nTabStopSize, FALSE);
-    SetChosenFont(hWndFilePreview, &lpFrameCurrent->lf);
+    SetChosenFont(lpFrameCurrent, &lpFrameCurrent->lf);
 
     OldFilePreviewProc=(WNDPROC)GetWindowLongWide(hWndFilePreview, GWL_WNDPROC);
     SetWindowLongWide(hWndFilePreview, GWL_WNDPROC, (LONG)NewFilePreviewProc);
@@ -13504,9 +13524,9 @@ void StackFramesFree(HSTACK *hStack)
 
 //// Status bar
 
-void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
+void SetSelectionStatus(HANDLE hDataEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci)
 {
-  if (IsEditActive(hWnd) == CN_EDIT)
+  if (lpFrameCurrent->hDataEdit == hDataEdit)
   {
     wchar_t wszStatus[MAX_PATH];
     int nLine;
@@ -13519,23 +13539,23 @@ void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     {
       crSel=*cr;
       ciCaret=*ci;
-      bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0);
+      bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
     }
     else
     {
-      GetSel(hWnd, &crSel, &bColumnSel, &ciCaret);
+      GetSel(hWndEdit, &crSel, &bColumnSel, &ciCaret);
       nSelSubtract=0;
     }
 
     if (!(dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
-      nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
+      nLine=SendMessage(hWndEdit, AEM_GETUNWRAPLINE, (WPARAM)ciCaret.nLine, 0);
     else
       nLine=ciCaret.nLine;
 
     if (dwStatusPosType & SPT_COLUMN)
-      nColumn=SendMessage(hWnd, AEM_INDEXTOCOLUMN, MAKELONG(lpFrameCurrent->nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+      nColumn=SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(lpFrameCurrent->nTabStopSize, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
     else
-      nColumn=SendMessage(hWnd, AEM_INDEXTOCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+      nColumn=SendMessage(hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(1, !(dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
 
     if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
     {
@@ -13546,12 +13566,12 @@ void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
     {
       if (bColumnSel || !nSelSubtract || mod(crPrevSel.ciMin.nLine - crSel.ciMin.nLine) + mod(crPrevSel.ciMax.nLine - crSel.ciMax.nLine) >= crSel.ciMax.nLine - crSel.ciMin.nLine)
       {
-        nSelSubtract=IndexSubtract(hWnd, &crSel.ciMax, &crSel.ciMin, AELB_ASOUTPUT, -1);
+        nSelSubtract=IndexSubtract(hWndEdit, &crSel.ciMax, &crSel.ciMin, AELB_ASOUTPUT, -1);
       }
       else
       {
-        nSelSubtract+=IndexSubtract(hWnd, &crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
-        nSelSubtract+=IndexSubtract(hWnd, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
+        nSelSubtract+=IndexSubtract(hWndEdit, &crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
+        nSelSubtract+=IndexSubtract(hWndEdit, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
       }
       xprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn + 1, nSelSubtract);
       if (bColumnSel) nSelSubtract=0;
@@ -13583,7 +13603,7 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
   else lpFrame->ei.bModified=bState;
 
   //Set modify flag
-  SendMessage(lpFrame->ei.hWndEdit, AEM_SETMODIFY, bState, 0);
+  SendFrame(lpFrame, AEM_SETMODIFY, bState, 0);
 }
 
 void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState)
@@ -13602,7 +13622,7 @@ void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState)
   else lpFrame->ei.bOvertypeMode=bState;
 
   //Set overtype mode
-  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOVERTYPE, bState, 0);
+  SendFrame(lpFrame, AEM_SETOVERTYPE, bState, 0);
 }
 
 void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags)
@@ -13626,37 +13646,19 @@ void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags)
   else lpFrame->ei.nNewLine=nState;
 
   //Set new line
-  SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
+  SendFrame(lpFrame, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
 
   if (nState == NEWLINE_WIN)
-    SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
+    SendFrame(lpFrame, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
   else if (nState == NEWLINE_UNIX)
-    SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+    SendFrame(lpFrame, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
   else if (nState == NEWLINE_MAC)
-    SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
+    SendFrame(lpFrame, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
 
   nSelSubtract=0;
-  SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
+  SendFrame(lpFrame, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
 }
-/*
-SendEditMsg(lpFrame->ei.hDataEdit, lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
 
-
-LRESULT SendMsg(HANDLE hDataEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-  if (nMDI == WMD_PMDI)
-  {
-    AESENDMESSAGE sm;
-  
-    sm.hEditData=hEditData;
-    sm.uMsg=uMsg;
-    sm.wParam=wParam;
-    sm.lParam=lParam;
-    return SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
-  }
-  return SendMessage(hWndEdit, uMsg, wParam, lParam);
-}
-*/
 void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM)
 {
   if (!lpFrame || lpFrame == lpFrameCurrent)
@@ -14006,14 +14008,14 @@ void StackIconsFree(HSTACK *hStack)
 
 //// Fonts
 
-HFONT SetChosenFont(HWND hWnd, LOGFONTW *lfFont)
+HFONT SetChosenFont(FRAMEDATA *lpFrame, LOGFONTW *lfFont)
 {
   FONTITEM *fi;
 
   if (!(fi=StackFontItemGet(&hFontsStack, lfFont)))
     fi=StackFontItemInsert(&hFontsStack, lfFont);
-  SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
-  UpdateMappedPrintWidth(lpFrameCurrent);
+  SendFrame(lpFrame, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
+  UpdateMappedPrintWidth(lpFrame);
   return fi->hFont;
 }
 
@@ -14205,33 +14207,31 @@ BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor)
   return FALSE;
 }
 
-BOOL GetCharColor(HWND hWnd, CHARCOLOR *cc)
+BOOL GetCharColor(FRAMEDATA *lpFrame, CHARCOLOR *cc)
 {
   AECHARRANGE cr;
   AECHARINDEX ciCaretIndex;
   AECHARINDEX ciCharIndex;
 
-  if (!hWnd) hWnd=lpFrameCurrent->ei.hWndEdit;
-
-  GetSel(hWnd, &cr, NULL, &ciCaretIndex);
-  SendMessage(hWnd, AEM_RICHOFFSETTOINDEX, cc->nCharPos, (LPARAM)&ciCharIndex);
+  GetSel(lpFrame->ei.hWndEdit, &cr, NULL, &ciCaretIndex);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_RICHOFFSETTOINDEX, cc->nCharPos, (LPARAM)&ciCharIndex);
 
   if (AEC_IndexCompare(&ciCharIndex, &cr.ciMin) >= 0 &&
       AEC_IndexCompare(&ciCharIndex, &cr.ciMax) < 0)
   {
-    cc->crText=lpFrameCurrent->aec.crSelText;
-    cc->crBk=lpFrameCurrent->aec.crSelBk;
+    cc->crText=lpFrame->aec.crSelText;
+    cc->crBk=lpFrame->aec.crSelBk;
     return TRUE;
   }
   else if (ciCharIndex.nLine == ciCaretIndex.nLine)
   {
-    cc->crText=lpFrameCurrent->aec.crActiveLineText;
-    cc->crBk=lpFrameCurrent->aec.crActiveLineBk;
+    cc->crText=lpFrame->aec.crActiveLineText;
+    cc->crBk=lpFrame->aec.crActiveLineBk;
   }
   else
   {
-    cc->crText=lpFrameCurrent->aec.crBasicText;
-    cc->crBk=lpFrameCurrent->aec.crBasicBk;
+    cc->crText=lpFrame->aec.crBasicText;
+    cc->crBk=lpFrame->aec.crBasicBk;
   }
   return FALSE;
 }
