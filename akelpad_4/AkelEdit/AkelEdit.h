@@ -256,15 +256,21 @@
 #define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
 
 //AEM_SETWINDOWDATA flags
-#define AESWD_NODRAGDROP          0x00000001  //Don't register drag-and-drop with a new IDropTarget.
-#define AESWD_NOSHOWSCROLLBARS    0x00000002  //Don't update scrollbars visibility.
-#define AESWD_NOUPDATESCROLLBARS  0x00000004  //Don't update scrollbars position.
-#define AESWD_NOUPDATECARET       0x00000008  //Don't update caret.
-#define AESWD_NOINVALIDATERECT    0x00000010  //Don't redraw edit window.
+#define AESWD_NOCHECKFOCUS        0x00000001  //Don't update focus state.
+#define AESWD_NODRAGDROP          0x00000002  //Don't register drag-and-drop with a new IDropTarget.
+#define AESWD_NOSHOWSCROLLBARS    0x00000004  //Don't update scrollbars visibility.
+#define AESWD_NOUPDATESCROLLBARS  0x00000008  //Don't update scrollbars position.
+#define AESWD_NOUPDATECARET       0x00000010  //Don't update caret.
+#define AESWD_NOINVALIDATERECT    0x00000020  //Don't redraw edit window.
 
 #define AESWD_NOREDRAW  (AESWD_NOUPDATESCROLLBARS |\
                          AESWD_NOUPDATECARET      |\
                          AESWD_NOINVALIDATERECT)
+#define AESWD_NOALL     (AESWD_NOCHECKFOCUS     |\
+                         AESWD_NODRAGDROP       |\
+                         AESWD_NOSHOWSCROLLBARS |\
+                         AESWD_NOREDRAW)
+
 //AEM_DRAGDROP flags
 #define AEDD_GETDRAGWINDOW   1  //Return dragging window handle.
 #define AEDD_STOPDRAG        2  //Set stop dragging operation flag.
@@ -697,6 +703,13 @@ typedef struct {
   int nOffsetX;   //[in]     Horizontal scroll offset.
   int nOffsetY;   //[in]     Vertical scroll offset.
 } AESCROLLTOPOINT;
+
+typedef struct {
+  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  UINT uMsg;           //Window message.
+  WPARAM wParam;       //Window first additional parameter.
+  LPARAM lParam;       //Window second additional parameter.
+} AESENDMESSAGE;
 
 typedef struct {
   DWORD dwFlags;          //[in]     See AEPRN_* defines.
@@ -1158,6 +1171,7 @@ typedef struct {
 #define AEM_SETWINDOWDATA         (WM_USER + 2404)
 #define AEM_GETWINDOWPROC         (WM_USER + 2405)
 #define AEM_GETWINDOWHANDLE       (WM_USER + 2406)
+#define AEM_SENDMESSAGE           (WM_USER + 2407)
 
 //Clone
 #define AEM_ADDCLONE              (WM_USER + 2421)
@@ -4340,7 +4354,7 @@ _________________
 Retrieve procedure of window data.
 
 (HANDLE)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current procedure returned.
-lParam == not used.
+lParam         == not used.
 
 Return Value
  Pointer to an AEEditProc procedure.
@@ -4359,7 +4373,7 @@ ___________________
 Retrieve edit control of window data.
 
 (HANDLE)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current edit control returned.
-lParam == not used.
+lParam         == not used.
 
 Return Value
  Edit control handle.
@@ -4368,6 +4382,27 @@ Example:
  HANDLE hHandle=(HANDLE)SendMessage(hWndEditFirst, AEM_GETWINDOWDATA, 0, 0);
  HWND hWnd=(HWND)SendMessage(hWndEditSecond, AEM_GETWINDOWHANDLE, (WPARAM)hHandle, 0);
  //hWnd == hWndEditFirst
+
+
+AEM_SENDMESSAGE
+_______________
+
+Send message to a specified window data handle.
+
+lParam                  == not used.
+(AESENDMESSAGE *)lParam == pointer to a AESENDMESSAGE structure.
+
+Return Value
+ Return value is message specific.
+
+Example:
+ AESENDMESSAGE sm;
+
+ sm.hEditData=hEditData;
+ sm.uMsg=EM_SETSEL;
+ sm.wParam=0;
+ sm.lParam=(LPARAM)-1;
+ return SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
 
 
 AEM_ADDCLONE

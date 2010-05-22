@@ -2959,36 +2959,25 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       DoEditChangeCaseW(lpFrameCurrent->ei.hWndEdit, nCase);
       nLoopCase=nCase;
     }
-    else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_WIN)
+    else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_WIN ||
+             LOWORD(wParam) == IDM_EDIT_NEWLINE_UNIX ||
+             LOWORD(wParam) == IDM_EDIT_NEWLINE_MAC)
     {
+      int nNewLine=0;
+
+      if (LOWORD(wParam) == IDM_EDIT_NEWLINE_WIN)
+        nNewLine=NEWLINE_WIN;
+      else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_UNIX)
+        nNewLine=NEWLINE_UNIX;
+      else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_MAC)
+        nNewLine=NEWLINE_MAC;
+
       if (!IsReadOnly(NULL))
       {
-        if (!(lpFrameCurrent->ei.nNewLine == NEWLINE_WIN))
+        if (lpFrameCurrent->ei.nNewLine != nNewLine)
         {
-          SetNewLineStatus(lpFrameCurrent->ei.hWndEdit, NEWLINE_WIN, AENL_INPUT|AENL_OUTPUT);
-          SetModifyStatus(lpFrameCurrent->ei.hWndEdit, TRUE);
-        }
-      }
-    }
-    else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_UNIX)
-    {
-      if (!IsReadOnly(NULL))
-      {
-        if (!(lpFrameCurrent->ei.nNewLine == NEWLINE_UNIX))
-        {
-          SetNewLineStatus(lpFrameCurrent->ei.hWndEdit, NEWLINE_UNIX, AENL_INPUT|AENL_OUTPUT);
-          SetModifyStatus(lpFrameCurrent->ei.hWndEdit, TRUE);
-        }
-      }
-    }
-    else if (LOWORD(wParam) == IDM_EDIT_NEWLINE_MAC)
-    {
-      if (!IsReadOnly(NULL))
-      {
-        if (!(lpFrameCurrent->ei.nNewLine == NEWLINE_MAC))
-        {
-          SetNewLineStatus(lpFrameCurrent->ei.hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT);
-          SetModifyStatus(lpFrameCurrent->ei.hWndEdit, TRUE);
+          SetNewLineStatus(lpFrameCurrent, nNewLine, AENL_INPUT|AENL_OUTPUT);
+          SetModifyStatus(lpFrameCurrent, TRUE);
         }
       }
     }
@@ -3192,7 +3181,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
-      if (lpFrameCurrent->ei.hWndEdit) SetOvertypeStatus(lpFrameCurrent->ei.hWndEdit, !lpFrameCurrent->ei.bOvertypeMode);
+      if (lpFrameCurrent->ei.hWndEdit) SetOvertypeStatus(lpFrameCurrent, !lpFrameCurrent->ei.bOvertypeMode);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_FILECLOSE)
     {
@@ -3364,19 +3353,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 2)
         {
-          SetOvertypeStatus(lpFrameCurrent->ei.hWndEdit, !lpFrameCurrent->ei.bOvertypeMode);
+          SetOvertypeStatus(lpFrameCurrent, !lpFrameCurrent->ei.bOvertypeMode);
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 3)
         {
           if (!IsReadOnly(NULL))
           {
             if (lpFrameCurrent->ei.nNewLine == NEWLINE_WIN)
-              SetNewLineStatus(lpFrameCurrent->ei.hWndEdit, NEWLINE_UNIX, AENL_INPUT|AENL_OUTPUT);
+              SetNewLineStatus(lpFrameCurrent, NEWLINE_UNIX, AENL_INPUT|AENL_OUTPUT);
             else if (lpFrameCurrent->ei.nNewLine == NEWLINE_UNIX)
-              SetNewLineStatus(lpFrameCurrent->ei.hWndEdit, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT);
+              SetNewLineStatus(lpFrameCurrent, NEWLINE_MAC, AENL_INPUT|AENL_OUTPUT);
             else if (lpFrameCurrent->ei.nNewLine == NEWLINE_MAC)
-              SetNewLineStatus(lpFrameCurrent->ei.hWndEdit, NEWLINE_WIN, AENL_INPUT|AENL_OUTPUT);
-            SetModifyStatus(lpFrameCurrent->ei.hWndEdit, TRUE);
+              SetNewLineStatus(lpFrameCurrent, NEWLINE_WIN, AENL_INPUT|AENL_OUTPUT);
+            SetModifyStatus(lpFrameCurrent, TRUE);
           }
         }
       }
@@ -3699,7 +3688,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             FreeWideStr(wpFrameName);
           }
         }
-        SetModifyStatus(aenm->hdr.hwndFrom, aenm->bModified);
+        SetModifyStatus(lpFrame, aenm->bModified);
       }
       else if (((NMHDR *)lParam)->code == AEN_LINK)
       {

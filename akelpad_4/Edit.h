@@ -682,10 +682,10 @@ void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame);
 void StackFramesFree(HSTACK *hStack);
 
 void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci);
-void SetModifyStatus(HWND hWnd, BOOL bState);
-void SetOvertypeStatus(HWND hWnd, BOOL bState);
-void SetNewLineStatus(HWND hWnd, int nState, DWORD dwFlags);
-void SetCodePageStatus(HWND hWnd, int nCodePage, BOOL bBOM);
+void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);
+void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState);
+void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags);
+void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM);
 
 const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
 void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD dwFlags);
