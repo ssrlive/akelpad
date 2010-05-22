@@ -401,7 +401,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
   SetTabStops(lpFrame->ei.hWndEdit, lpFrame->nTabStopSize, FALSE);
   SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
   DoViewWordWrap(lpFrame, lpFrame->ei.bWordWrap, TRUE);
-  SetNewLineStatus(lpFrame->ei.hWndEdit, lpFrame->ei.nNewLine, AENL_INPUT);
+  SetNewLineStatus(lpFrame, lpFrame->ei.nNewLine, AENL_INPUT);
 
   if (lpFrame->dwMarker)
   {
@@ -1336,7 +1336,7 @@ int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM)
 
   if (!lpFrameCurrent->wszFile[0])
   {
-    SetCodePageStatus(lpFrameCurrent->ei.hWndEdit, nCodePage, bBOM);
+    SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
     return nResult;
   }
 
@@ -1540,9 +1540,9 @@ BOOL DoFileClose()
   lpFrameCurrent->szFile[0]='\0';
   lpFrameCurrent->wszFile[0]=L'\0';
   lpFrameCurrent->nFileLen=0;
-  SetNewLineStatus(lpFrameCurrent->ei.hWndEdit, nDefaultNewLine, AENL_INPUT);
-  SetModifyStatus(lpFrameCurrent->ei.hWndEdit, FALSE);
-  SetCodePageStatus(lpFrameCurrent->ei.hWndEdit, nDefaultCodePage, bDefaultBOM);
+  SetNewLineStatus(lpFrameCurrent, nDefaultNewLine, AENL_INPUT);
+  SetModifyStatus(lpFrameCurrent, FALSE);
+  SetCodePageStatus(lpFrameCurrent, nDefaultCodePage, bDefaultBOM);
   UpdateTitle(lpFrameCurrent, L"");
 
   return TRUE;
@@ -3909,9 +3909,9 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       }
 
       //Update titles
-      SetNewLineStatus(lpFrameCurrent->ei.hWndEdit, fsd.nNewLine, AENL_INPUT);
-      SetModifyStatus(lpFrameCurrent->ei.hWndEdit, FALSE);
-      SetCodePageStatus(lpFrameCurrent->ei.hWndEdit, nCodePage, bBOM);
+      SetNewLineStatus(lpFrameCurrent, fsd.nNewLine, AENL_INPUT);
+      SetModifyStatus(lpFrameCurrent, FALSE);
+      SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
 
       if (nFileCmp)
       {
@@ -4271,7 +4271,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
   if (!wpFile[0])
   {
-    SetCodePageStatus(lpFrameCurrent->ei.hWndEdit, nCodePage, bBOM);
+    SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
     return nResult;
   }
 
@@ -4426,8 +4426,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           }
         }
         GetFileWriteTimeWide(wpFile, &lpFrameCurrent->ft);
-        SetModifyStatus(lpFrameCurrent->ei.hWndEdit, FALSE);
-        SetCodePageStatus(lpFrameCurrent->ei.hWndEdit, nCodePage, bBOM);
+        SetModifyStatus(lpFrameCurrent, FALSE);
+        SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
 
         if (nFileCmp)
         {
@@ -4452,7 +4452,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           nFileCmp=xstrcmpiW(lpFrame->wszFile, wpFile);
 
           GetFileWriteTimeWide(wpFile, &ft);
-          SetModifyStatus(hWnd, FALSE);
+          SetModifyStatus(lpFrame, FALSE);
           lpFrame->ei.nCodePage=nCodePage;
           lpFrame->ei.bBOM=bBOM;
           lpFrame->ft=ft;
@@ -4762,7 +4762,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
               (bCodePageEnable && (nCodePage != lpFrameCurrent->ei.nCodePage || bBOM != lpFrameCurrent->ei.bBOM || !lpFrameCurrent->wszFile[0] || lpFrameCurrent->ei.bModified || !FileExistsWide(lpFrameCurrent->wszFile))))
           {
             if (bNewLineEnable && nNewLine != lpFrameCurrent->ei.nNewLine)
-              SetNewLineStatus(lpFrameCurrent->ei.hWndEdit, nNewLine, AENL_INPUT|AENL_OUTPUT);
+              SetNewLineStatus(lpFrameCurrent, nNewLine, AENL_INPUT|AENL_OUTPUT);
 
             if (!lpFrameCurrent->wszFile[0])
             {
@@ -13562,9 +13562,9 @@ void SetSelectionStatus(HWND hWnd, AECHARRANGE *cr, AECHARINDEX *ci)
   }
 }
 
-void SetModifyStatus(HWND hWnd, BOOL bState)
+void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
 {
-  if (!hWnd || IsEditActive(hWnd))
+  if (!lpFrame || lpFrame == lpFrameCurrent)
   {
     if (dwShowModify & SM_STATUSBAR)
     {
@@ -13576,54 +13576,38 @@ void SetModifyStatus(HWND hWnd, BOOL bState)
         ssStatus.bModified=bState;
       }
     }
-    if (!hWnd) return;
+    if (!lpFrame) return;
 
     lpFrameCurrent->ei.bModified=bState;
   }
-  else
-  {
-    FRAMEDATA *lpFrame;
-
-    if (lpFrame=GetFrameDataFromEditWindow(hWnd))
-      lpFrame->ei.bModified=bState;
-    else
-      return;
-  }
+  else lpFrame->ei.bModified=bState;
 
   //Set modify flag
-  SendMessage(hWnd, AEM_SETMODIFY, bState, 0);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETMODIFY, bState, 0);
 }
 
-void SetOvertypeStatus(HWND hWnd, BOOL bState)
+void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState)
 {
-  if (!hWnd || IsEditActive(hWnd))
+  if (!lpFrame || lpFrame == lpFrameCurrent)
   {
     if (ssStatus.bOvertypeMode != bState)
     {
       StatusBar_SetTextWide(hStatus, STATUS_INSERT, bState?L"Ovr":L"Ins");
       ssStatus.bOvertypeMode=bState;
     }
-    if (!hWnd) return;
+    if (!lpFrame) return;
 
     lpFrameCurrent->ei.bOvertypeMode=bState;
   }
-  else
-  {
-    FRAMEDATA *lpFrame;
-
-    if (lpFrame=GetFrameDataFromEditWindow(hWnd))
-      lpFrame->ei.bOvertypeMode=bState;
-    else
-      return;
-  }
+  else lpFrame->ei.bOvertypeMode=bState;
 
   //Set overtype mode
-  SendMessage(hWnd, AEM_SETOVERTYPE, bState, 0);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOVERTYPE, bState, 0);
 }
 
-void SetNewLineStatus(HWND hWnd, int nState, DWORD dwFlags)
+void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags)
 {
-  if (!hWnd || IsEditActive(hWnd))
+  if (!lpFrame || lpFrame == lpFrameCurrent)
   {
     if (ssStatus.nNewLine != nState)
     {
@@ -13635,37 +13619,47 @@ void SetNewLineStatus(HWND hWnd, int nState, DWORD dwFlags)
         StatusBar_SetTextWide(hStatus, STATUS_NEWLINE, L"Mac");
       ssStatus.nNewLine=nState;
     }
-    if (!hWnd) return;
+    if (!lpFrame) return;
 
     lpFrameCurrent->ei.nNewLine=nState;
   }
-  else
-  {
-    FRAMEDATA *lpFrame;
-
-    if (lpFrame=GetFrameDataFromEditWindow(hWnd))
-      lpFrame->ei.nNewLine=nState;
-    else
-      return;
-  }
+  else lpFrame->ei.nNewLine=nState;
 
   //Set new line
-  SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
 
   if (nState == NEWLINE_WIN)
-    SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
   else if (nState == NEWLINE_UNIX)
-    SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
   else if (nState == NEWLINE_MAC)
-    SendMessage(hWnd, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
 
   nSelSubtract=0;
-  SendMessage(hWnd, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
 }
+/*
+SendEditMsg(lpFrame->ei.hDataEdit, lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
 
-void SetCodePageStatus(HWND hWnd, int nCodePage, BOOL bBOM)
+
+LRESULT SendMsg(HANDLE hDataEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (!hWnd || IsEditActive(hWnd))
+  if (nMDI == WMD_PMDI)
+  {
+    AESENDMESSAGE sm;
+  
+    sm.hEditData=hEditData;
+    sm.uMsg=uMsg;
+    sm.wParam=wParam;
+    sm.lParam=lParam;
+    return SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
+  }
+  return SendMessage(hWndEdit, uMsg, wParam, lParam);
+}
+*/
+void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM)
+{
+  if (!lpFrame || lpFrame == lpFrameCurrent)
   {
     if (ssStatus.nCodePage != nCodePage || ssStatus.bBOM != bBOM)
     {
@@ -13682,21 +13676,15 @@ void SetCodePageStatus(HWND hWnd, int nCodePage, BOOL bBOM)
       ssStatus.nCodePage=nCodePage;
       ssStatus.bBOM=bBOM;
     }
-    if (!hWnd) return;
+    if (!lpFrame) return;
 
     lpFrameCurrent->ei.nCodePage=nCodePage;
     lpFrameCurrent->ei.bBOM=bBOM;
   }
   else
   {
-    FRAMEDATA *lpFrame;
-
-    if (lpFrame=GetFrameDataFromEditWindow(hWnd))
-    {
-      lpFrame->ei.nCodePage=nCodePage;
-      lpFrame->ei.bBOM=bBOM;
-    }
-    else return;
+    lpFrame->ei.nCodePage=nCodePage;
+    lpFrame->ei.bBOM=bBOM;
   }
 }
 

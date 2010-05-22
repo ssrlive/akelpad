@@ -304,6 +304,9 @@ LRESULT CALLBACK AE_EditShellProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
   if (ae=AE_StackWindowGet(&hAkelEditWindowsStack, hWnd))
   {
+    //Move founded AKELEDIT in first place. To make next AE_StackWindowGet calls faster.
+    AE_StackWindowMakeFirst(&hAkelEditWindowsStack, ae);
+
     //if (ae->bSkipMessages)
     //  return 0;
 
@@ -1604,49 +1607,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_SETWINDOWDATA)
     {
-      AKELEDIT *aeNew=(AKELEDIT *)wParam;
-
-      if (ae != aeNew)
-      {
-        //Assign new AKELEDIT.
-        aeNew->hWndEdit=ae->hWndEdit;
-        if (GetFocus() == aeNew->hWndEdit)
-          aeNew->bFocus=TRUE;
-        else
-          aeNew->bFocus=FALSE;
-
-        //Unassign current AKELEDIT.
-        ae->hWndEdit=NULL;
-
-        //Register Drag'n'Drop with new idt pointer.
-        if (!(lParam & AESWD_NODRAGDROP))
-        {
-          RevokeDragDrop(aeNew->hWndEdit);
-          RegisterDragDrop(aeNew->hWndEdit, (LPDROPTARGET)&aeNew->idt);
-        }
-
-        //Redraw edit window.
-        if (!(lParam & AESWD_NOSHOWSCROLLBARS))
-        {
-          if (aeNew->bHScrollShow != ae->bHScrollShow)
-            ShowScrollBar(aeNew->hWndEdit, SB_HORZ, aeNew->bHScrollShow);
-          if (aeNew->bVScrollShow != ae->bVScrollShow)
-            ShowScrollBar(aeNew->hWndEdit, SB_VERT, aeNew->bVScrollShow);
-        }
-        if (!(lParam & AESWD_NOUPDATESCROLLBARS))
-        {
-          AE_UpdateScrollBars(aeNew, SB_BOTH);
-        }
-        if (!(lParam & AESWD_NOUPDATECARET))
-        {
-          AE_UpdateCaret(aeNew, aeNew->bFocus);
-        }
-        if (!(lParam & AESWD_NOINVALIDATERECT))
-        {
-          InvalidateRect(aeNew->hWndEdit, NULL, TRUE);
-        }
-      }
-      return (LRESULT)ae;
+      return (LRESULT)AE_SetWindowData(ae, (AKELEDIT *)wParam, lParam);
     }
     if (uMsg == AEM_GETWINDOWPROC)
     {
@@ -1665,6 +1626,24 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return (LRESULT)aeHandle->hWndEdit;
       else
         return (LRESULT)ae->hWndEdit;
+    }
+    if (uMsg == AEM_SENDMESSAGE)
+    {
+      AESENDMESSAGE *psm=(AESENDMESSAGE *)lParam;
+      HWND hWndEdit=ae->hWndEdit;
+      LRESULT lResult;
+
+      if (psm->hEditData && (AKELEDIT *)psm->hEditData != ae)
+        AE_SetWindowData(ae, (AKELEDIT *)psm->hEditData, AESWD_NOALL);
+
+      if (!ae->bUnicodeWindow)
+        lResult=SendMessageA(hWndEdit, psm->uMsg, psm->wParam, psm->lParam);
+      else
+        lResult=SendMessageW(hWndEdit, psm->uMsg, psm->wParam, psm->lParam);
+
+      if (psm->hEditData && (AKELEDIT *)psm->hEditData != ae)
+        AE_SetWindowData((AKELEDIT *)psm->hEditData, ae, AESWD_NOALL);
+      return lResult;
     }
 
     //Clones
@@ -4199,6 +4178,56 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
   return ae;
 }
 
+AKELEDIT* AE_SetWindowData(AKELEDIT *aeOld, AKELEDIT *aeNew, DWORD dwFlags)
+{
+  if (aeOld != aeNew)
+  {
+    //Assign new AKELEDIT.
+    aeNew->hWndEdit=aeOld->hWndEdit;
+
+    //Unassign current AKELEDIT.
+    aeOld->hWndEdit=NULL;
+
+    //Update focus state.
+    if (!(dwFlags & AESWD_NOCHECKFOCUS))
+    {
+      if (GetFocus() == aeNew->hWndEdit)
+        aeNew->bFocus=TRUE;
+      else
+        aeNew->bFocus=FALSE;
+    }
+
+    //Register Drag'n'Drop with new idt pointer.
+    if (!(dwFlags & AESWD_NODRAGDROP))
+    {
+      RevokeDragDrop(aeNew->hWndEdit);
+      RegisterDragDrop(aeNew->hWndEdit, (LPDROPTARGET)&aeNew->idt);
+    }
+
+    //Redraw edit window.
+    if (!(dwFlags & AESWD_NOSHOWSCROLLBARS))
+    {
+      if (aeNew->bHScrollShow != aeOld->bHScrollShow)
+        ShowScrollBar(aeNew->hWndEdit, SB_HORZ, aeNew->bHScrollShow);
+      if (aeNew->bVScrollShow != aeOld->bVScrollShow)
+        ShowScrollBar(aeNew->hWndEdit, SB_VERT, aeNew->bVScrollShow);
+    }
+    if (!(dwFlags & AESWD_NOUPDATESCROLLBARS))
+    {
+      AE_UpdateScrollBars(aeNew, SB_BOTH);
+    }
+    if (!(dwFlags & AESWD_NOUPDATECARET))
+    {
+      AE_UpdateCaret(aeNew, aeNew->bFocus);
+    }
+    if (!(dwFlags & AESWD_NOINVALIDATERECT))
+    {
+      InvalidateRect(aeNew->hWndEdit, NULL, TRUE);
+    }
+  }
+  return aeOld;
+}
+
 void AE_DestroyWindowData(AKELEDIT *ae)
 {
   if (!ae->lpMaster)
@@ -4429,6 +4458,57 @@ int AE_HeapStackInsertAfter(AKELEDIT *ae, stack **first, stack **last, stack *in
   return 0;
 }
 
+int AE_HeapStackMoveBefore(AKELEDIT *ae, stack **first, stack **last, stack *src, stack *dst)
+{
+  if (src == dst) return 2;
+
+  //Unlink src
+  if (src == *first)
+  {
+    *first=src->next;
+    if (*first) (*first)->prev=NULL;
+    else *last=NULL;
+  }
+  else if (src == *last)
+  {
+    *last=src->prev;
+    if (*last) (*last)->next=NULL;
+    else *first=NULL;
+  }
+  else
+  {
+    src->prev->next=src->next;
+    src->next->prev=src->prev;
+  }
+  src->next=NULL;
+  src->prev=NULL;
+
+  //Insert element
+  if (!dst)
+  {
+    if (*last)
+    {
+      (*last)->next=src;
+      src->prev=*last;
+    }
+    else
+    {
+      *first=src;
+    }
+    *last=src;
+  }
+  else
+  {
+    if (dst == *first) *first=src;
+    else dst->prev->next=src;
+
+    src->next=dst;
+    src->prev=dst->prev;
+    dst->prev=src;
+  }
+  return 0;
+}
+
 int AE_HeapStackDelete(AKELEDIT *ae, stack **first, stack **last, stack *element)
 {
   if (!element) return 1;
@@ -4489,6 +4569,11 @@ AKELEDIT* AE_StackWindowGet(HSTACK *hStack, HWND hWndEdit)
     lpElement=lpElement->next;
   }
   return NULL;
+}
+
+void AE_StackWindowMakeFirst(HSTACK *hStack, AKELEDIT *ae)
+{
+  AE_HeapStackMoveBefore(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack *)ae, (stack *)hStack->first);
 }
 
 void AE_StackWindowFree(HSTACK *hStack)
