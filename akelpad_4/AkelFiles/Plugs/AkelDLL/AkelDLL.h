@@ -200,11 +200,15 @@
 #define FWF_BYEDITWINDOW  6
 #define FWF_BYEDITDATA    7
 
+//AKD_FRAMEACTIVATE flags
+#define FWA_NOUPDATEORDER  0x00000001
+#define FWA_NOUPDATEEDIT   0x00000002
+
 //AKD_FRAMEDESTROY return value
-#define FWD_SUCCESS   0
-#define FWD_ABORT     1
-#define FWD_LASTTAB   2
-#define FWD_NOWINDOW  3
+#define FWDE_SUCCESS   0
+#define FWDE_ABORT     1
+#define FWDE_LASTTAB   2
+#define FWDE_NOWINDOW  3
 
 //Find text flags
 #ifndef FR_DOWN
