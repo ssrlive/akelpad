@@ -927,18 +927,19 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
 
       if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
       {
+        //Destroy active window data
+        SplitDestroy(lpFrame, CN_CLONE1|CN_CLONE2|CN_CLONE3);
+        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataEdit, AESWD_NOREDRAW);
+        SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataEdit, 0);
+        StackFrameDelete(&hFramesStack, lpFrame);
+
         //Remove tab item
         DeleteTabItem(hTab, nTabItem);
 
         //Activate previous window
         if (lpFrameToActivate)
           ActivateMdiFrameWindow(lpFrameToActivate, 0);
-
-        //Destroy deactivated window data
-        SplitDestroy(lpFrame, CN_CLONE1|CN_CLONE2|CN_CLONE3);
-        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
-        SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataEdit, 0);
-        StackFrameDelete(&hFramesStack, lpFrame);
       }
     }
     return FWDE_SUCCESS;

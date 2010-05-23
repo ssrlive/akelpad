@@ -4306,7 +4306,7 @@ Example:
 AEM_DELETEWINDOWDATA
 ____________________
 
-Destroys window data handle.
+Destroys window data handle. Data handle must be free and not associated with any edit window.
 
 (HANDLE)wParam == window data handle.
 lParam         == not used.
@@ -4336,7 +4336,7 @@ Example:
 AEM_SETWINDOWDATA
 _________________
 
-Associate new window data handle.
+Associate or deassociate window data handle.
 
 (HANDLE)wParam == window data handle.
 (DWORD)lParam  == see AESWD_* defines.
