@@ -192,13 +192,15 @@
 #define NCM_STATUS   3  //Status bar control
 
 //AKD_FRAMEFIND flags
-#define FWF_CURRENT       1  //Retrive current frame data pointer.
-#define FWF_NEXT          2  //Retrive next frame data pointer.
-#define FWF_PREV          3  //Retrive previous frame data pointer.
-#define FWF_BYINDEX       4  //Retrive frame data by index. First frame has index 1.
-#define FWF_BYFILENAME    5  //Retrive frame data by full file name.
-#define FWF_BYEDITWINDOW  6  //Retrive frame data by edit window handle.
-#define FWF_BYEDITDATA    7  //Retrive frame data by edit data handle.
+#define FWF_CURRENT       1  //Retrive current frame data pointer. lParam not used.
+#define FWF_NEXT          2  //Retrive next frame data pointer. lParam is a frame data pointer.
+#define FWF_PREV          3  //Retrive previous frame data pointer. lParam is a frame data pointer.
+#define FWF_BYINDEX       4  //Retrive frame data by index. lParam is frame index. First frame has index 1.
+#define FWF_BYFILENAME    5  //Retrive frame data by full file name. lParam is full file name string.
+                             // For AKD_FRAMEFINDA string is ansi.
+                             // For AKD_FRAMEFINDW string is unicode.
+#define FWF_BYEDITWINDOW  6  //Retrive frame data by edit window handle. lParam is edit window handle.
+#define FWF_BYEDITDATA    7  //Retrive frame data by edit data handle. lParam is edit data handle.
 
 //AKD_FRAMEACTIVATE flags
 #define FWA_NOUPDATEORDER  0x00000001  //For WMD_PMDI mode. Don't update access order during activating.
@@ -2671,6 +2673,68 @@ BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
+AKD_FRAMEFIND, AKD_FRAMEFINDA, AKD_FRAMEFINDW
+_____________  ______________  ______________
+
+Find frame data pointer.
+
+(int)wParam    == see FWF_* defines.
+(void *)lParam == depend on FWF_ value.
+
+Return Value
+ Pointer to a FRAMEDATA structure.
+
+Example:
+ See AKD_FRAMEACTIVATE example.
+
+
+AKD_FRAMEACTIVATE
+_________________
+
+Activate specified frame.
+
+(DWORD)wParam       == see FWA_* defines.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure.
+
+Return Value
+ Pointer to a FRAMEDATA structure that has lost active status.
+
+Example:
+ FRAMEDATA *lpFrame=(FRAMEDATA *)SendMessage(pd->hMainWnd, AKD_FRAMEFINDW, FWF_BYFILENAME, (LPARAM)L"C:\\File.txt");
+ SendMessage(pd->hMainWnd, AKD_FRAMEACTIVATE, 0, (LPARAM)lpFrame);
+
+
+AKD_FRAMENEXT
+_____________
+
+Activate next or previous frame.
+
+(BOOL)wParam        == TRUE  activate previous frame.
+                       FALSE activate next frame.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure.
+
+Return Value
+ Pointer to a FRAMEDATA structure that has been activated.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_FRAMENEXT, FALSE, (LPARAM)lpFrameCurrent);
+
+
+AKD_FRAMEDESTROY
+________________
+
+Destroy specified frame.
+
+wParam              == not used.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure.
+
+Return Value
+ See FWDE_* defines.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_FRAMEDESTROY, 0, (LPARAM)lpFrameCurrent);
+
+
 AKD_GLOBALALLOC
 _______________
 
@@ -2680,7 +2744,7 @@ wParam == memory allocation attributes
 lParam == number of bytes to allocate
 
 Return Value
-  handle to the newly allocated memory object
+ handle to the newly allocated memory object
 
 Example:
  HGLOBAL hMem=(HGLOBAL)SendMessage(pd->hMainWnd, AKD_GLOBALALLOC, GPTR, 128);
@@ -2695,7 +2759,7 @@ wParam == handle to the global memory object
 lParam == not used
 
 Return Value
-  pointer to the first byte of the memory block
+ pointer to the first byte of the memory block
 
 Example:
  void *pMem=(void *)SendMessage(pd->hMainWnd, AKD_GLOBALLOCK, (WPARAM)hMem, 0);
