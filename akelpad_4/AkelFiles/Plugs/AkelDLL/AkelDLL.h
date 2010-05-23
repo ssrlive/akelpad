@@ -1738,7 +1738,7 @@ Example:
  WNDPROCDATA *wpd=NULL;
  LRESULT CALLBACK NewMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
  {
-   //.
+   //...
 
    return wpd->NextProc(hWnd, uMsg, wParam, lParam);
  }
@@ -1792,7 +1792,7 @@ Example:
    {
      if (cwprs->wParam == ID_EDIT)
      {
-       //.
+       //...
      }
    }
 
@@ -1839,7 +1839,7 @@ Example (bOldWindows == TRUE):
 
    *wpContent=NULL;
 
-   //Detect codepage.
+   //Detect codepage
    dc.pFile=pFile;
    dc.dwBytesToCheck=1024;
    dc.dwFlags=dwFlags;
@@ -1847,7 +1847,7 @@ Example (bOldWindows == TRUE):
    dc.bBOM=bBOM;
    if (SendMessage(hMainWnd, AKD_DETECTCODEPAGEA, 0, (LPARAM)&dc) == EDT_SUCCESS)
    {
-     //Read contents.
+     //Read contents
      if ((fc.hFile=CreateFileA(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
        fc.dwBytesMax=(DWORD)-1;
@@ -1866,13 +1866,13 @@ Example (bOldWindows == TRUE):
    return nResult;
  }
 
- //Call ReadFileContentA function.
+ //Call ReadFileContentA function
  {
    wchar_t *wpContent;
 
    if (ReadFileContentA("C:\\MyFile.txt", ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, 0, 0, &wpContent))
    {
-     //Show contents.
+     //Show contents
      MessageBoxW(hMainWnd, wpContent, NULL, MB_OK);
      SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
    }
@@ -1887,7 +1887,7 @@ Example (bOldWindows == FALSE):
 
    *wpContent=NULL;
 
-   //Detect codepage.
+   //Detect codepage
    dc.pFile=wpFile;
    dc.dwBytesToCheck=1024;
    dc.dwFlags=dwFlags;
@@ -1895,7 +1895,7 @@ Example (bOldWindows == FALSE):
    dc.bBOM=bBOM;
    if (SendMessage(hMainWnd, AKD_DETECTCODEPAGEW, 0, (LPARAM)&dc) == EDT_SUCCESS)
    {
-     //Read contents.
+     //Read contents
      if ((fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
        fc.dwBytesMax=(DWORD)-1;
@@ -1914,13 +1914,13 @@ Example (bOldWindows == FALSE):
    return nResult;
  }
 
- //Call ReadFileContentW function.
+ //Call ReadFileContentW function
  {
    wchar_t *wpContent;
 
    if (ReadFileContentW(L"C:\\MyFile.txt", ADT_BINARY_ERROR|ADT_DETECT_CODEPAGE|ADT_DETECT_BOM, 0, 0, &wpContent))
    {
-     //Show contents.
+     //Show contents
      MessageBoxW(hMainWnd, wpContent, NULL, MB_OK);
      SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpContent);
    }
@@ -2656,9 +2656,9 @@ BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
   }
 
-  //.Dialog messages processing
+  //...Dialog messages processing
 
-  //Dialog resize messages.
+  //Dialog resize messages
   {
     DIALOGRESIZEMSG drsm={&drs[0], &rcMainInitDialog, &rcMainCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam};
 
