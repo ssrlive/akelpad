@@ -822,7 +822,7 @@ void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
       }
       else SetWindowTextWide(hMainWnd, APP_MAIN_TITLEW);
 
-      SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)lpFrameCurrent->hWndEditParent);
+      SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, (WPARAM)lpFrameCurrent, (LPARAM)NULL);
     }
   }
 }
@@ -927,6 +927,8 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
 
       if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
       {
+        SendMessage(hMainWnd, AKDN_FRAME_DESTROY, (WPARAM)lpFrame, (LPARAM)NULL);
+
         //Destroy active window data
         SplitDestroy(lpFrame, CN_CLONE1|CN_CLONE2|CN_CLONE3);
         SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
@@ -1187,7 +1189,7 @@ LRESULT SendEdit(HANDLE hDataEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
   if (nMDI == WMD_PMDI)
   {
     AESENDMESSAGE sm;
-  
+
     sm.hEditData=hDataEdit;
     sm.uMsg=uMsg;
     sm.wParam=wParam;
