@@ -365,6 +365,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
   return hResult;
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SetEditWindowSettings(FRAMEDATA *lpFrame)
 {
   DWORD dwOptions;
@@ -442,6 +443,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     SendMessage(lpFrame->ei.hWndEdit, AEM_SETWRAPDELIMITERS, 0, (LPARAM)lpFrame->wszWrapDelimiters);
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
   RECT *lprcEditWindow;
@@ -691,24 +693,33 @@ void SaveFrameData(FRAMEDATA *lpFrame)
   }
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
 {
   if (nMDI == WMD_PMDI)
   {
+    DWORD dwSetDataFlags=0;
+
+    if (dwFlagsPMDI & FWA_NOVISUPDATE)
+      dwSetDataFlags|=AESWD_NOALL;
+    else if (dwFlagsPMDI & FWA_NOUPDATEEDIT)
+      dwSetDataFlags|=AESWD_NOREDRAW;
+
     if (lpFrame->hDataMaster)
     {
-      SendMessage(lpFrame->ei.hWndMaster, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataMaster, AESWD_NOREDRAW);
+      SendMessage(lpFrame->ei.hWndMaster, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataMaster, dwSetDataFlags);
       if (lpFrame->hDataClone1)
-        SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone1, AESWD_NOREDRAW);
+        SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone1, dwSetDataFlags);
       if (lpFrame->hDataClone2)
-        SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone2, AESWD_NOREDRAW);
+        SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone2, dwSetDataFlags);
       if (lpFrame->hDataClone3)
-        SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone3, AESWD_NOREDRAW);
+        SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone3, dwSetDataFlags);
     }
     else if (lpFrame->hDataEdit)
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataEdit, (dwFlagsPMDI & FWA_NOUPDATEEDIT)?AESWD_NOREDRAW:0);
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataEdit, dwSetDataFlags);
 
-    SplitVisUpdate(lpFrame, dwFlagsPMDI);
+    if (!(dwFlagsPMDI & FWA_NOVISUPDATE))
+      SplitVisUpdate(lpFrame, dwFlagsPMDI);
   }
   //Update selection to set valid globals: crSel, ciCaret and nSelSubtract
   SetSelectionStatus(lpFrame->hDataEdit, lpFrame->ei.hWndEdit, NULL, NULL);
@@ -935,6 +946,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
   return FWDE_NOWINDOW;
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
   if (!lpFrame->ei.hWndMaster)
@@ -1044,6 +1056,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
   }
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
   bEditOnFinish=TRUE;
@@ -1138,6 +1151,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
   bEditOnFinish=FALSE;
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
 {
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
@@ -1164,13 +1178,11 @@ void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
   }
 }
 
-LRESULT SendFrame(FRAMEDATA *lpFrame, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT SendEdit(HANDLE hDataEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  return SendEdit(lpFrame->hDataEdit, lpFrame->ei.hWndEdit, uMsg, wParam, lParam);
-}
+  if (lpFrameCurrent->hDataEdit == hDataEdit)
+    return SendMessage(lpFrameCurrent->ei.hWndEdit, uMsg, wParam, lParam);
 
-LRESULT SendEdit(HANDLE hDataEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
   if (nMDI == WMD_PMDI)
   {
     AESENDMESSAGE sm;
@@ -1179,9 +1191,33 @@ LRESULT SendEdit(HANDLE hDataEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPAR
     sm.uMsg=uMsg;
     sm.wParam=wParam;
     sm.lParam=lParam;
-    return SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
+    return SendMessage(fdInit.ei.hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
   }
-  return SendMessage(hWndEdit, uMsg, wParam, lParam);
+  else
+  {
+    HWND hWndEdit;
+
+    hWndEdit=(HWND)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETWINDOWHANDLE, (WPARAM)hDataEdit, 0);
+    return SendMessage(hWndEdit, uMsg, wParam, lParam);
+  }
+}
+
+HWND SetEditData(HANDLE hDataEditNew, HANDLE *hDataEditOld)
+{
+  if (hDataEditOld) *hDataEditOld=NULL;
+
+  if (nMDI == WMD_PMDI)
+  {
+    HANDLE hResult;
+
+    if (lpFrameCurrent->hDataEdit == hDataEditNew)
+      return lpFrameCurrent->ei.hWndEdit;
+
+    hResult=(HANDLE)SendMessage(fdInit.ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hDataEditNew, AESWD_NOALL);
+    if (hDataEditOld) *hDataEditOld=hResult;
+    return fdInit.ei.hWndEdit;
+  }
+  else return (HWND)hDataEditNew;
 }
 
 
@@ -1473,6 +1509,7 @@ BOOL DoFilePageSetup(HWND hWndOwner)
   return bResult;
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 int DoFilePrint(FRAMEDATA *lpFrame, BOOL bSilent)
 {
   int nResult=0;
@@ -2234,6 +2271,7 @@ void DoViewColors()
     API_DialogBoxW(hLangLib, MAKEINTRESOURCEW(IDD_COLORS), hMainWnd, (DLGPROC)ColorsDlgProc);
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
 {
   if (nAction == INCREASE_FONT)
@@ -2254,15 +2292,17 @@ void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
   }
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void DoViewReadOnly(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
 {
   CheckMenuItem(hMainMenu, IDM_VIEW_READONLY, bState?MF_CHECKED:MF_UNCHECKED);
-  if (bFirst != TRUE && bState == lpFrameCurrent->ei.bReadOnly) return;
-  lpFrameCurrent->ei.bReadOnly=bState;
+  if (bFirst != TRUE && bState == lpFrame->ei.bReadOnly) return;
+  lpFrame->ei.bReadOnly=bState;
 
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrameCurrent->ei.bReadOnly?AECOOP_OR:AECOOP_XOR, AECO_READONLY);
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void DoViewWordWrap(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
 {
   CheckMenuItem(hMainMenu, IDM_VIEW_WORDWRAP, bState?MF_CHECKED:MF_UNCHECKED);
@@ -4626,6 +4666,7 @@ void DropFiles(HDROP hDrop)
   DragFinish(hDrop);
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void CheckModificationTime(FRAMEDATA *lpFrame)
 {
   if (bWatchFile && lpFrame->wszFile[0] && (lpFrame->ft.dwLowDateTime || lpFrame->ft.dwHighDateTime))
@@ -5307,6 +5348,7 @@ DWORD GetMappedPrintWidth(HWND hWnd)
   return dwWidth;
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 BOOL UpdateMappedPrintWidth(FRAMEDATA *lpFrame)
 {
   if (lpFrame == lpFrameCurrent)
@@ -8720,12 +8762,11 @@ void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar)
 
 int GetTextLength(HWND hWnd)
 {
-  int nLastLineIndex;
-  int nLastLineLen;
+  GETTEXTLENGTHEX gtl;
 
-  nLastLineIndex=SendMessage(hWnd, EM_LINEINDEX, SendMessage(hWnd, EM_GETLINECOUNT, 0, 0) - 1, 0);
-  nLastLineLen=SendMessage(hWnd, EM_LINELENGTH, nLastLineIndex, 0);
-  return nLastLineIndex + nLastLineLen;
+  gtl.flags=GTL_PRECISE|GTL_NUMCHARS;
+  gtl.codepage=1200;
+  return SendMessage(hWnd, EM_GETTEXTLENGTHEX, (WPARAM)&gtl, 0);
 }
 
 int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText)
@@ -13582,6 +13623,7 @@ void SetSelectionStatus(HANDLE hDataEdit, HWND hWndEdit, AECHARRANGE *cr, AECHAR
   }
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
 {
   if (!lpFrame || lpFrame == lpFrameCurrent)
@@ -13603,9 +13645,10 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
   else lpFrame->ei.bModified=bState;
 
   //Set modify flag
-  SendFrame(lpFrame, AEM_SETMODIFY, bState, 0);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETMODIFY, bState, 0);
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState)
 {
   if (!lpFrame || lpFrame == lpFrameCurrent)
@@ -13622,9 +13665,10 @@ void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState)
   else lpFrame->ei.bOvertypeMode=bState;
 
   //Set overtype mode
-  SendFrame(lpFrame, AEM_SETOVERTYPE, bState, 0);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOVERTYPE, bState, 0);
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags)
 {
   if (!lpFrame || lpFrame == lpFrameCurrent)
@@ -13646,17 +13690,17 @@ void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags)
   else lpFrame->ei.nNewLine=nState;
 
   //Set new line
-  SendFrame(lpFrame, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
 
   if (nState == NEWLINE_WIN)
-    SendFrame(lpFrame, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_RN, AELB_RN));
   else if (nState == NEWLINE_UNIX)
-    SendFrame(lpFrame, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_N, AELB_N));
   else if (nState == NEWLINE_MAC)
-    SendFrame(lpFrame, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
 
   nSelSubtract=0;
-  SendFrame(lpFrame, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
 }
 
 void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM)
@@ -14008,18 +14052,19 @@ void StackIconsFree(HSTACK *hStack)
 
 //// Fonts
 
-HFONT SetChosenFont(FRAMEDATA *lpFrame, LOGFONTW *lfFont)
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
+HFONT SetChosenFont(FRAMEDATA *lpFrame, const LOGFONTW *lfFont)
 {
   FONTITEM *fi;
 
   if (!(fi=StackFontItemGet(&hFontsStack, lfFont)))
     fi=StackFontItemInsert(&hFontsStack, lfFont);
-  SendFrame(lpFrame, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
+  SendMessage(lpFrame->ei.hWndEdit, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
   UpdateMappedPrintWidth(lpFrame);
   return fi->hFont;
 }
 
-FONTITEM* StackFontItemInsert(HSTACK *hStack, LOGFONTW *lfFont)
+FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont)
 {
   FONTITEM *lpElement=NULL;
 
@@ -14032,7 +14077,7 @@ FONTITEM* StackFontItemInsert(HSTACK *hStack, LOGFONTW *lfFont)
   return NULL;
 }
 
-FONTITEM* StackFontItemGet(HSTACK *hStack, LOGFONTW *lfFont)
+FONTITEM* StackFontItemGet(HSTACK *hStack, const LOGFONTW *lfFont)
 {
   FONTITEM *lpElement=(FONTITEM *)hStack->first;
 
@@ -14108,6 +14153,7 @@ DWORD IsEditActive(HWND hWnd)
   return 0;
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void UpdateShowHScroll(FRAMEDATA *lpFrame)
 {
   if (!(dwPaintOptions & PAINT_HIDENOSCROLL))
@@ -14207,6 +14253,7 @@ BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor)
   return FALSE;
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 BOOL GetCharColor(FRAMEDATA *lpFrame, CHARCOLOR *cc)
 {
   AECHARRANGE cr;
@@ -14236,6 +14283,7 @@ BOOL GetCharColor(FRAMEDATA *lpFrame, CHARCOLOR *cc)
   return FALSE;
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SetMarker(FRAMEDATA *lpFrame, DWORD dwPos)
 {
   if (dwPos == (DWORD)-1)
@@ -14247,6 +14295,7 @@ void SetMarker(FRAMEDATA *lpFrame, DWORD dwPos)
   else SendMessage(lpFrame->ei.hWndEdit, AEM_SETMARKER, AEMT_SYMBOL, dwPos);
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SetWordWrap(FRAMEDATA *lpFrame, DWORD dwType, DWORD dwLimit)
 {
   if (dwLimit == (DWORD)-1)
@@ -15394,6 +15443,7 @@ BOOL EnsureWindowInMonitor(RECT *rcWindow)
   else return TRUE;
 }
 
+//For WMD_PMDI required: lpFrame == lpFrameCurrent
 void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
 {
   const wchar_t *wpFileName;
