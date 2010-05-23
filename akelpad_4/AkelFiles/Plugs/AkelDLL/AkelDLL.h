@@ -467,6 +467,7 @@ typedef struct {
 
 typedef struct {
   HWND hWndEdit;           //Edit window.
+  HANDLE hDataEdit;        //Edit data (4.x only).
   const BYTE *pFile;       //Current editing file.
                            //  const char *pFile         if bOldWindows == TRUE
                            //  const wchar_t *pFile      if bOldWindows == FALSE
@@ -480,9 +481,13 @@ typedef struct {
   BOOL bWordWrap;          //Word wrap.
   BOOL bOvertypeMode;      //Overtype mode.
   HWND hWndMaster;         //Master window (4.x only).
-  HWND hWndClone1;         //Clone window one (4.x only).
-  HWND hWndClone2;         //Clone window two (4.x only).
-  HWND hWndClone3;         //Clone window three (4.x only).
+  HANDLE hDataMaster;      //Master data (4.x only).
+  HWND hWndClone1;         //First clone window (4.x only).
+  HANDLE hDataClone1;      //First clone data (4.x only).
+  HWND hWndClone2;         //Second clone window (4.x only).
+  HANDLE hDataClone2;      //Second clone data (4.x only).
+  HWND hWndClone3;         //Third clone window (4.x only).
+  HANDLE hDataClone3;      //Third clone data (4.x only).  
 } EDITINFO;
 
 #ifndef __AKELEDIT_H__
@@ -515,20 +520,15 @@ typedef struct _FRAMEDATA {
   char szFile[MAX_PATH];                              //Frame file (Ansi).
   wchar_t wszFile[MAX_PATH];                          //Frame file (Unicode).
   int nFileLen;                                       //Frame file length.
-  HICON hIcon;                                        //Frame icon.
   LOGFONTW lf;                                        //Edit font.
-
-  //Edit state internal
-  AEEditProc lpEditProc;                              //Edit window procedure.
-  HANDLE hDataEdit;                                   //Edit window data handle.
-  HANDLE hDataMaster;                                 //Edit window data handle.
-  HANDLE hDataClone1;                                 //Edit window data handle.
-  HANDLE hDataClone2;                                 //Edit window data handle.
-  HANDLE hDataClone3;                                 //Edit window data handle.
-  FILETIME ft;                                        //File time.
-  AECOLORS aec;                                       //Edit colors.
+  HICON hIcon;                                        //Frame icon.
   RECT rcEditWindow;                                  //Edit RECT.
   RECT rcMasterWindow;                                //Master window RECT (4.x only).
+
+  //Edit state internal
+  AEEditProc lpEditProc;                              //Edit window procedure (4.x only).
+  FILETIME ft;                                        //File time.
+  AECOLORS aec;                                       //Edit colors.
   DWORD dwInputLocale;                                //Keyboard layout (4.x only).
 
   //Edit settings
