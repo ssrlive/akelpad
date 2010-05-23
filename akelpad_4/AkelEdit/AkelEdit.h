@@ -1317,7 +1317,7 @@ Sends to the parent window procedure when an edit control cannot allocate enough
 (AENERRSPACE *)lParam == pointer to a AENERRSPACE structure.
 
 Return Value
- zero
+ Zero.
 
 
 AEN_SETFOCUS
@@ -1330,7 +1330,7 @@ Sends to the parent window procedure when an edit control receives the keyboard 
 (NMHDR *)lParam == pointer to a NMHDR structure.
 
 Return Value
- zero
+ Zero.
 
 
 AEN_KILLFOCUS
@@ -1343,7 +1343,7 @@ Sends to the parent window procedure when an edit control loses the keyboard foc
 (NMHDR *)lParam == pointer to a NMHDR structure.
 
 Return Value
- zero
+ Zero.
 
 
 AEN_HSCROLL
@@ -1390,7 +1390,7 @@ Sends to the parent window procedure after an edit control formatting rectangle 
 (AENSETRECT *)lParam == pointer to a AENSETRECT structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  AEN_SETRECT notification is not sent during processing WM_SIZE message.
@@ -1406,7 +1406,7 @@ Sends to the parent window procedure when an edit control rich text limit.
 (NMHDR *)lParam == pointer to a NMHDR structure.
 
 Return Value
- zero
+ Zero.
 
 
 AEN_PROGRESS
@@ -1437,7 +1437,7 @@ Sends to the parent window procedure after the document modify state has changed
 (AENMODIFY *)lParam == pointer to a AENMODIFY structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_MODIFY notifications, specify AENM_MODIFY in the mask sent with the AEM_SETEVENTMASK message.
@@ -1453,7 +1453,7 @@ Sends to the parent window procedure before the current selection has changed.
 (AENSELCHANGE *)lParam == pointer to a AENSELCHANGE structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_SELCHANGING notifications, specify AENM_SELCHANGE in the mask sent with the AEM_SETEVENTMASK message.
@@ -1469,7 +1469,7 @@ Sends to the parent window procedure after the current selection has changed.
 (AENSELCHANGE *)lParam == pointer to a AENSELCHANGE structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_SELCHANGED notifications, specify AENM_SELCHANGE in the mask sent with the AEM_SETEVENTMASK message.
@@ -1485,7 +1485,7 @@ Sends to the parent window procedure before the document text has changed.
 (AENTEXTCHANGE *)lParam == pointer to a AENTEXTCHANGE structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_TEXTCHANGING notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
@@ -1501,7 +1501,7 @@ Sends to the parent window procedure before text is inserted in the document.
 (AENTEXTINSERT *)lParam == pointer to a AENTEXTINSERT structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_TEXTINSERTBEGIN notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
@@ -1517,7 +1517,7 @@ Sends to the parent window procedure after text is inserted in the document.
 (AENTEXTINSERT *)lParam == pointer to a AENTEXTINSERT structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_TEXTINSERTEND notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
@@ -1533,7 +1533,7 @@ Sends to the parent window procedure before text is deleted from the document.
 (AENTEXTDELETE *)lParam == pointer to a AENTEXTDELETE structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_TEXTDELETEBEGIN notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
@@ -1549,7 +1549,7 @@ Sends to the parent window procedure after text is deleted from the document.
 (AENTEXTDELETE *)lParam == pointer to a AENTEXTDELETE structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_TEXTDELETEEND notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
@@ -1565,7 +1565,7 @@ Sends to the parent window procedure after the document text has changed.
 (AENTEXTCHANGE *)lParam == pointer to a AENTEXTCHANGE structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_TEXTCHANGED notifications, specify AENM_TEXTCHANGE in the mask sent with the AEM_SETEVENTMASK message.
@@ -1581,7 +1581,7 @@ Sends to the parent window procedure after text point has changed.
 (AENPOINT *)lParam == pointer to a AENPOINT structure.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  To receive AEN_POINT notifications, specify AENM_POINT in the mask sent with the AEM_SETEVENTMASK message.
@@ -1695,7 +1695,7 @@ Append ansi text to the end of the edit control.
 (DWORD)lParam  == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_APPENDTEXTW, (WPARAM)L"SomeText", (LPARAM)-1);
@@ -1710,7 +1710,7 @@ Append unicode text to the end of the edit control.
 (DWORD)lParam     == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_APPENDTEXTW, (WPARAM)L"SomeText", (LPARAM)-1);
@@ -1725,7 +1725,7 @@ wParam                  == not used.
 (AEREPLACESELA *)lParam == pointer to a AEREPLACESELA structure.
 
 Return Value
- zero
+ Zero.
 
 Example:
  AEREPLACESELA rs;
@@ -1747,7 +1747,7 @@ wParam                  == not used.
 (AEREPLACESELW *)lParam == pointer to a AEREPLACESELW structure.
 
 Return Value
- zero
+ Zero.
 
 Example:
  AEREPLACESELW rs;
@@ -1963,7 +1963,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_CUT, 0, 0);
@@ -1978,7 +1978,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_COPY, 0, 0);
@@ -2133,7 +2133,7 @@ Emulate key down pressing.
 (DWORD)lParam == see AEMOD_* defines.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_KEYDOWN, VK_RIGHT, AEMOD_SHIFT|AEMOD_CONTROL);
@@ -2219,7 +2219,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_UNDO, 0, 0);
@@ -2234,7 +2234,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_REDO, 0, 0);
@@ -2249,7 +2249,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_EMPTYUNDOBUFFER, 0, 0);
@@ -2265,7 +2265,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_STOPGROUPTYPING, 0, 0);
@@ -2280,7 +2280,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_STOPGROUPTYPING, 0, 0);
@@ -2300,7 +2300,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  See AEM_BEGINUNDOACTION example.
@@ -2316,7 +2316,7 @@ Stop collect undo/redo history.
 lParam       == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_EMPTYUNDOBUFFER, 0, 0);
@@ -2350,7 +2350,7 @@ Set the maximum number of actions that can stored in the undo queue.
 lParam        == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETUNDOLIMIT, 100, 0);
@@ -2382,7 +2382,7 @@ Set the state of an edit control's modification flag.
 lParam       == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETMODIFY, FALSE, 0);
@@ -2430,7 +2430,7 @@ Set the current selection of an edit control. Simple form of AEM_SETSEL.
 (AECHARINDEX *)lParam == selection end index.
 
 Return Value
- zero
+ Zero.
 
 Example:
  AECHARRANGE aecr;
@@ -2473,7 +2473,7 @@ Set the current selection of an edit control.
 (AESELECTION *)lParam == pointer to a AESELECTION structure.
 
 Return Value
- zero
+ Zero.
 
 Example:
  AESELECTION aes;
@@ -2509,7 +2509,7 @@ Update current selection.
 lParam        == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL, 0);
@@ -2689,7 +2689,7 @@ Convert RichEdit offset to AkelEdit character index.
 (AECHARINDEX *)lParam == AkelEdit character index.
 
 Return Value
- zero
+ Zero.
 
 Example:
  AECHARRANGE aecr;
@@ -2736,7 +2736,7 @@ Delete character index from points stack.
 lParam            == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  See AEM_ADDPOINT example.
@@ -2994,7 +2994,7 @@ wParam         == not used.
 (RECT *)lParam == pointer to a RECT structure that receives the formatting rectangle.
 
 Return Value
- zero
+ Zero.
 
 Example:
  RECT rc;
@@ -3012,7 +3012,7 @@ Set the formatting rectangle of an edit control. The formatting rectangle is the
 (RECT *)lParam == pointer to a RECT structure that specifies the new dimensions of the rectangle. If this parameter is NULL, the formatting rectangle is set to its default values.
 
 Return Value
- zero
+ Zero.
 
 Example:
  RECT rc;
@@ -3033,7 +3033,7 @@ Obtain the current and/or maximum scroll position of the edit control.
 (POINT *)lParam == pointer to a POINT structure that receives the upper-left corner position in the virtual text space of the document, expressed in pixels. Can be NULL.
 
 Return Value
- zero
+ Zero.
 
 Example:
  POINT ptMax;
@@ -3051,7 +3051,7 @@ wParam          == not used.
 (POINT *)lParam == pointer to a POINT structure which specifies a point in the virtual text space of the document, expressed in pixels.
 
 Return Value
- zero
+ Zero.
 
 Example:
  POINT pt;
@@ -3137,7 +3137,7 @@ Lock scrolling of an edit control.
                 FALSE  unlock scroll.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_LOCKSCROLL, SB_BOTH, TRUE);
@@ -3239,7 +3239,7 @@ Set caret horizontal indent. It's unchanged after VK_UP, VK_DOWN, VK_PRIOR, VK_N
 lParam        == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETCARETHORZINDENT, 10, 0);
@@ -3254,7 +3254,7 @@ Convert position coordinates.
 (POINT *)lParam == pointer to a POINT structure.
 
 Return Value
- zero
+ Zero.
 
 Example:
  POINT pt;
@@ -3504,7 +3504,7 @@ Set the default new line options for an edit control.
                  the high-order word contains the default output new line. Valid if AENL_OUTPUT is specified.
 
 Return Value
- zero
+ Zero.
 
 Remarks
  Possible new lines: AELB_ASIS, AELB_R, AELB_N, AELB_RN, AELB_RRN.
@@ -3522,7 +3522,7 @@ wParam             == not used.
 (AECOLORS *)lParam == pointer to a AECOLORS structure.
 
 Return Value
- zero
+ Zero.
 
 Example:
  AECOLORS aec;
@@ -3540,7 +3540,7 @@ wParam             == not used.
 (AECOLORS *)lParam == pointer to a AECOLORS structure.
 
 Return Value
- zero
+ Zero.
 
 Example:
  AECOLORS aec;
@@ -3577,7 +3577,7 @@ Enables or disables detection and highligthing of URLs by an edit control.
 lParam       == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETDETECTURL, TRUE, 0);
@@ -3609,7 +3609,7 @@ Set type mode.
 lParam       == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETOVERTYPE, TRUE, 0);
@@ -3624,7 +3624,7 @@ wParam          == not used.
 (POINT *)lParam == pointer to a POINT structure that receives the insert mode caret width in x member and overtype mode caret height in y member.
 
 Return Value
- zero
+ Zero.
 
 Example:
  POINT pt;
@@ -3641,7 +3641,7 @@ wParam          == not used.
 (POINT *)lParam == pointer to a POINT structure which specifies the insert mode caret width in x member and overtype mode caret height in y member.
 
 Return Value
- zero
+ Zero.
 
 Example:
  POINT pt;
@@ -3675,7 +3675,7 @@ Set tab stop size.
 lParam      == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETTABSTOP, 4, 0);
@@ -3707,7 +3707,7 @@ Set word wrap mode.
 (int)lParam   == wrap limit, if zero window right edge is used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETWORDWRAP, AEWW_WORD, 0);
@@ -3722,7 +3722,7 @@ Retrieve word break delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- zero
+ Zero.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -3739,7 +3739,7 @@ wParam            == not used.
 (wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  wchar_t wszDelimiters[128]=L" \t\n[](){}<>";
@@ -3756,7 +3756,7 @@ Retrieve word wrapping delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- zero
+ Zero.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -3773,7 +3773,7 @@ wParam            == not used.
 (wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  wchar_t wszDelimiters[128]=L" \t\n[](){}<>";
@@ -3790,7 +3790,7 @@ Retrieve URL left delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- zero
+ Zero.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -3807,7 +3807,7 @@ wParam            == not used.
 (wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  wchar_t wszDelimiters[128]=L" \t\n'`\"(<{[=";
@@ -3824,7 +3824,7 @@ Retrieve URL right delimiters.
 (wchar_t *)lParam == pointer to a buffer that receives delimiter characters.
 
 Return Value
- zero
+ Zero.
 
 Example:
  wchar_t wszDelimiters[128];
@@ -3841,7 +3841,7 @@ wParam            == not used.
 (wchar_t *)lParam == string that specifies delimiter characters. If NULL, then default delimiters will be used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  wchar_t wszDelimiters[128]=L" \t\n'`\")>}]";
@@ -3858,7 +3858,7 @@ Retrieve URL prefixes.
 (wchar_t *)lParam == pointer to a buffer that receives pairs of null-terminated prefixes strings. The last string terminated by two NULL characters.
 
 Return Value
- zero
+ Zero.
 
 Example:
  wchar_t wszPrefixes[128];
@@ -3907,7 +3907,7 @@ Set URL maximum length.
 lParam        == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETURLMAXLENGTH, 1024, 0);
@@ -3967,7 +3967,7 @@ Set marker at specified position.
 (int)lParam == integer, zero to clear marker.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETMARKER, AEMT_SYMBOL, 80);
@@ -3997,7 +3997,7 @@ Set character external leading.
 lParam      == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETLINEGAP, 3, 0);
@@ -4027,7 +4027,7 @@ Sets the text limit of an edit control. The text limit is the maximum amount of 
 lParam        == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SETTEXTLIMIT, MAX_PATH, 0);
@@ -4045,7 +4045,7 @@ Show or hide scroll bars in the edit control.
                 FALSE  hide.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_SHOWSCROLLBAR, SB_BOTH, FALSE);
@@ -4062,7 +4062,7 @@ Update scroll bars in the edit control.
 lParam       == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_UPDATESCROLLBAR, SB_BOTH, 0);
@@ -4094,7 +4094,7 @@ Hides or shows the selection in an edit control.
 lParam       == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
@@ -4213,7 +4213,7 @@ Deletes specified or all folds.
 lParam           == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold, 0);
@@ -4228,7 +4228,7 @@ wParam == not used.
 lParam == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_UPDATEFOLD, 0, 0);
@@ -4312,7 +4312,7 @@ Destroys window data handle.
 lParam         == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)hHandle, 0);
@@ -4430,7 +4430,7 @@ Removes clone from the master window. Message sended to a master window.
 lParam       == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_DELCLONE, (HWND)hWndEdit2, 0);
@@ -4576,7 +4576,7 @@ Close print document handle.
 (AEPRINT *)lParam == pointer to a AEPRINT structure.
 
 Return Value
- zero
+ Zero.
 
 Example:
  See AEM_STARTPRINTDOC example.
@@ -4862,7 +4862,7 @@ Activate highlight theme.
                   FALSE  don't redraw the edit window.
 
 Return Value
- zero
+ Zero.
 
 Example:
  See AEM_HLCREATETHEMEA or AEM_HLCREATETHEMEW example.
@@ -4877,7 +4877,7 @@ Delete highlight theme.
 lParam         == not used.
 
 Return Value
- zero
+ Zero.
 
 Example:
  HANDLE hTheme;
@@ -4925,7 +4925,7 @@ Delete delimiter from highlight theme.
 (HANDLE)lParam == delimiter handle. If NULL, delete all delimiters.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_HLDELETEDELIMITER, (WPARAM)hTheme, (LPARAM)hDelimiter);
@@ -4970,7 +4970,7 @@ Delete word from highlight theme.
 (HANDLE)lParam == word handle. If NULL, delete all words.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_HLDELETEWORD, (WPARAM)hTheme, (LPARAM)hWord);
@@ -5015,7 +5015,7 @@ Delete quote from highlight theme.
 (HANDLE)lParam == quote handle. If NULL, delete all quotes.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_HLDELETEQUOTE, (WPARAM)hTheme, (LPARAM)hQuote);
@@ -5060,7 +5060,7 @@ Delete text mark from highlight theme.
 (HANDLE)lParam == text mark handle. If NULL, delete all marks.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_HLDELETEMARKTEXT, (WPARAM)hTheme, (LPARAM)hMark);
@@ -5090,7 +5090,7 @@ Delete range mark from highlight theme.
 (HANDLE)lParam == range mark handle. If NULL, delete all marks.
 
 Return Value
- zero
+ Zero.
 
 Example:
  SendMessage(hWndEdit, AEM_HLDELETEMARKRANGE, (WPARAM)hTheme, (LPARAM)hMark);
