@@ -1439,7 +1439,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //  we will create another 3 windows. Those 1 or 4 windows will be destroyed only on program exit.
       //  - PMDI mode allocated FRAMEDATA count is equal to number of tabs.
       //  - fdInit structure keeps default settings and also all created real edit windows.
-      //  - If you want to send any message to non-active frame in PMDI mode, you should activate it first with AKD_FRAMEACTIVATE.
+      //  - If you want to send any message to non-active frame in PMDI mode, you should activate it first with AKD_FRAMEACTIVATE or use special message AEM_SENDMESSAGE.
 
       if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
       {
