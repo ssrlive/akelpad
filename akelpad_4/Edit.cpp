@@ -585,16 +585,16 @@ FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl)
 
 FRAMEDATA* GetFrameDataFromEditData(HANDLE hDataEditHandle)
 {
-  if (lpFrameCurrent->hDataEdit)
+  if (lpFrameCurrent->ei.hDataEdit)
   {
-    if (!hDataEditHandle || hDataEditHandle == lpFrameCurrent->hDataEdit)
+    if (!hDataEditHandle || hDataEditHandle == lpFrameCurrent->ei.hDataEdit)
       return lpFrameCurrent;
-    if (lpFrameCurrent->hDataMaster)
+    if (lpFrameCurrent->ei.hDataMaster)
     {
-      if (hDataEditHandle == lpFrameCurrent->hDataMaster ||
-          hDataEditHandle == lpFrameCurrent->hDataClone1 ||
-          hDataEditHandle == lpFrameCurrent->hDataClone2 ||
-          hDataEditHandle == lpFrameCurrent->hDataClone3)
+      if (hDataEditHandle == lpFrameCurrent->ei.hDataMaster ||
+          hDataEditHandle == lpFrameCurrent->ei.hDataClone1 ||
+          hDataEditHandle == lpFrameCurrent->ei.hDataClone2 ||
+          hDataEditHandle == lpFrameCurrent->ei.hDataClone3)
         return lpFrameCurrent;
     }
     return StackFrameGetByHandle(&hFramesStack, hDataEditHandle);
@@ -623,6 +623,7 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   //Initialize own settings
   lpFrameTarget->hWndEditParent=NULL;
   lpFrameTarget->ei.hWndEdit=NULL;
+  lpFrameTarget->ei.hDataEdit=NULL;
   lpFrameTarget->ei.pFile=bOldWindows?(LPBYTE)lpFrameTarget->szFile:(LPBYTE)lpFrameTarget->wszFile;
   lpFrameTarget->ei.szFile=lpFrameTarget->szFile;
   lpFrameTarget->ei.wszFile=lpFrameTarget->wszFile;
@@ -634,26 +635,25 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   //lpFrameTarget->ei.bWordWrap=lpFrameSource->ei.bWordWrap;
   lpFrameTarget->ei.bOvertypeMode=FALSE;
   lpFrameTarget->ei.hWndMaster=NULL;
+  lpFrameTarget->ei.hDataMaster=NULL;
   lpFrameTarget->ei.hWndClone1=NULL;
+  lpFrameTarget->ei.hDataClone1=NULL;
   lpFrameTarget->ei.hWndClone2=NULL;
+  lpFrameTarget->ei.hDataClone2=NULL;
   lpFrameTarget->ei.hWndClone3=NULL;
+  lpFrameTarget->ei.hDataClone3=NULL;
   lpFrameTarget->szFile[0]='\0';
   lpFrameTarget->wszFile[0]=L'\0';
   lpFrameTarget->nFileLen=0;
-  lpFrameTarget->hIcon=hIconEmpty;
   //xmemcpy(&lpFrameTarget->lf, &lpFrameSource->lf, sizeof(LOGFONTW));
+  lpFrameTarget->hIcon=hIconEmpty;
+  //lpFrameTarget->rcEditWindow=lpFrameSource->rcEditWindow;
+  //lpFrameTarget->rcMasterWindow=lpFrameSource->rcMasterWindow;
 
   lpFrameTarget->lpEditProc=NULL;
-  lpFrameTarget->hDataEdit=NULL;
-  lpFrameTarget->hDataMaster=NULL;
-  lpFrameTarget->hDataClone1=NULL;
-  lpFrameTarget->hDataClone2=NULL;
-  lpFrameTarget->hDataClone3=NULL;
   lpFrameTarget->ft.dwLowDateTime=0;
   lpFrameTarget->ft.dwHighDateTime=0;
   //lpFrameTarget->aec=lpFrameSource->aec;
-  //lpFrameTarget->rcEditWindow=lpFrameSource->rcEditWindow;
-  //lpFrameTarget->rcMasterWindow=lpFrameSource->rcMasterWindow;
   lpFrameTarget->dwInputLocale=(DWORD)-1;
 
   //lpFrameTarget->dwEditMargins=lpFrameSource->dwEditMargins;
@@ -705,24 +705,24 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     else if (dwFlagsPMDI & FWA_NOUPDATEEDIT)
       dwSetDataFlags|=AESWD_NOREDRAW;
 
-    if (lpFrame->hDataMaster)
+    if (lpFrame->ei.hDataMaster)
     {
-      SendMessage(lpFrame->ei.hWndMaster, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataMaster, dwSetDataFlags);
-      if (lpFrame->hDataClone1)
-        SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone1, dwSetDataFlags);
-      if (lpFrame->hDataClone2)
-        SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone2, dwSetDataFlags);
-      if (lpFrame->hDataClone3)
-        SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone3, dwSetDataFlags);
+      SendMessage(lpFrame->ei.hWndMaster, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataMaster, dwSetDataFlags);
+      if (lpFrame->ei.hDataClone1)
+        SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataClone1, dwSetDataFlags);
+      if (lpFrame->ei.hDataClone2)
+        SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataClone2, dwSetDataFlags);
+      if (lpFrame->ei.hDataClone3)
+        SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataClone3, dwSetDataFlags);
     }
-    else if (lpFrame->hDataEdit)
-      SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataEdit, dwSetDataFlags);
+    else if (lpFrame->ei.hDataEdit)
+      SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataEdit, dwSetDataFlags);
 
     if (!(dwFlagsPMDI & FWA_NOVISUPDATE))
       SplitVisUpdate(lpFrame, dwFlagsPMDI);
   }
   //Update selection to set valid globals: crSel, ciCaret and nSelSubtract
-  SetSelectionStatus(lpFrame->hDataEdit, lpFrame->ei.hWndEdit, NULL, NULL);
+  SetSelectionStatus(lpFrame->ei.hDataEdit, lpFrame->ei.hWndEdit, NULL, NULL);
   SetCodePageStatus(NULL, lpFrame->ei.nCodePage, lpFrame->ei.bBOM);
   SetNewLineStatus(NULL, lpFrame->ei.nNewLine, 0);
   SetModifyStatus(NULL, lpFrame->ei.bModified);
@@ -773,14 +773,14 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
     if (lpFrame=CreateFrameData(hMainWnd, lpFrameCurrent))
     {
       //Create virtual window data. Procedure and window aren't changed.
-      lpFrame->hDataEdit=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
+      lpFrame->ei.hDataEdit=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
       lpFrame->lpEditProc=fdInit.lpEditProc;
       lpFrame->ei.hWndEdit=fdInit.ei.hWndEdit;
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       ActivateMdiFrameWindow(lpFrame, 0);
       SetEditWindowSettings(lpFrameCurrent);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->hDataEdit);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDataEdit);
 
       bResult=TRUE;
     }
@@ -799,7 +799,7 @@ void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     else if (nMDI == WMD_PMDI)
     {
       //Save deactivated frame data
-      if (lpFrameCurrent->hDataEdit)
+      if (lpFrameCurrent->ei.hDataEdit)
         SaveFrameData(lpFrameCurrent);
 
       if (!(dwFlagsPMDI & FWA_NOUPDATEORDER))
@@ -931,9 +931,9 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
 
         //Destroy active window data
         SplitDestroy(lpFrame, CN_CLONE1|CN_CLONE2|CN_CLONE3);
-        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
-        SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataEdit, AESWD_NOREDRAW);
-        SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataEdit, 0);
+        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDataEdit);
+        SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)fdInit.ei.hDataEdit, AESWD_NOREDRAW);
+        SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->ei.hDataEdit, 0);
         StackFrameDelete(&hFramesStack, lpFrame);
 
         //Remove tab item
@@ -955,11 +955,11 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
   if (!lpFrame->ei.hWndMaster)
   {
     lpFrame->ei.hWndMaster=lpFrame->ei.hWndEdit;
-    lpFrame->hDataMaster=lpFrame->hDataEdit;
+    lpFrame->ei.hDataMaster=lpFrame->ei.hDataEdit;
     if (!fdInit.ei.hWndMaster)
     {
       fdInit.ei.hWndMaster=fdInit.ei.hWndEdit;
-      fdInit.hDataMaster=fdInit.hDataEdit;
+      fdInit.ei.hDataMaster=fdInit.ei.hDataEdit;
     }
 
     if (dwFlags & CN_CLONE1)
@@ -970,28 +970,28 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         if (!fdInit.ei.hWndClone1)
         {
           fdInit.ei.hWndClone1=(HWND)CreateEditWindow(hMainWnd, NULL);
-          fdInit.hDataClone1=(HANDLE)SendMessage(fdInit.ei.hWndClone1, AEM_GETWINDOWDATA, 0, 0);
+          fdInit.ei.hDataClone1=(HANDLE)SendMessage(fdInit.ei.hWndClone1, AEM_GETWINDOWDATA, 0, 0);
         }
         lpFrame->ei.hWndClone1=fdInit.ei.hWndClone1;
 
         if (nMDI == WMD_SDI)
         {
-          lpFrame->hDataClone1=fdInit.hDataClone1;
+          lpFrame->ei.hDataClone1=fdInit.ei.hDataClone1;
         }
         else if (nMDI == WMD_PMDI)
         {
           //Create and assign virtual window data
-          lpFrame->hDataClone1=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
-          SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone1, AESWD_NOREDRAW);
+          lpFrame->ei.hDataClone1=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
+          SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataClone1, AESWD_NOREDRAW);
         }
       }
       else if (nMDI == WMD_MDI)
       {
         lpFrame->ei.hWndClone1=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
-        lpFrame->hDataClone1=(HANDLE)SendMessage(lpFrame->ei.hWndClone1, AEM_GETWINDOWDATA, 0, 0);
+        lpFrame->ei.hDataClone1=(HANDLE)SendMessage(lpFrame->ei.hWndClone1, AEM_GETWINDOWDATA, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone1, 0);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->hDataClone1);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->ei.hDataClone1);
     }
     if (dwFlags & CN_CLONE2)
     {
@@ -1001,28 +1001,28 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         if (!fdInit.ei.hWndClone2)
         {
           fdInit.ei.hWndClone2=(HWND)CreateEditWindow(hMainWnd, NULL);
-          fdInit.hDataClone2=(HANDLE)SendMessage(fdInit.ei.hWndClone2, AEM_GETWINDOWDATA, 0, 0);
+          fdInit.ei.hDataClone2=(HANDLE)SendMessage(fdInit.ei.hWndClone2, AEM_GETWINDOWDATA, 0, 0);
         }
         lpFrame->ei.hWndClone2=fdInit.ei.hWndClone2;
 
         if (nMDI == WMD_SDI)
         {
-          lpFrame->hDataClone2=fdInit.hDataClone2;
+          lpFrame->ei.hDataClone2=fdInit.ei.hDataClone2;
         }
         else if (nMDI == WMD_PMDI)
         {
           //Create and assign virtual window data
-          lpFrame->hDataClone2=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
-          SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone2, AESWD_NOREDRAW);
+          lpFrame->ei.hDataClone2=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
+          SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataClone2, AESWD_NOREDRAW);
         }
       }
       else if (nMDI == WMD_MDI)
       {
         lpFrame->ei.hWndClone2=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
-        lpFrame->hDataClone2=(HANDLE)SendMessage(lpFrame->ei.hWndClone2, AEM_GETWINDOWDATA, 0, 0);
+        lpFrame->ei.hDataClone2=(HANDLE)SendMessage(lpFrame->ei.hWndClone2, AEM_GETWINDOWDATA, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone2, 0);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->hDataClone2);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->ei.hDataClone2);
     }
     if (dwFlags & CN_CLONE3)
     {
@@ -1032,28 +1032,28 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         if (!fdInit.ei.hWndClone3)
         {
           fdInit.ei.hWndClone3=(HWND)CreateEditWindow(hMainWnd, NULL);
-          fdInit.hDataClone3=(HANDLE)SendMessage(fdInit.ei.hWndClone3, AEM_GETWINDOWDATA, 0, 0);
+          fdInit.ei.hDataClone3=(HANDLE)SendMessage(fdInit.ei.hWndClone3, AEM_GETWINDOWDATA, 0, 0);
         }
         lpFrame->ei.hWndClone3=fdInit.ei.hWndClone3;
 
         if (nMDI == WMD_SDI)
         {
-          lpFrame->hDataClone3=fdInit.hDataClone3;
+          lpFrame->ei.hDataClone3=fdInit.ei.hDataClone3;
         }
         else if (nMDI == WMD_PMDI)
         {
           //Create and assign virtual window data
-          lpFrame->hDataClone3=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
-          SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->hDataClone3, AESWD_NOREDRAW);
+          lpFrame->ei.hDataClone3=CreateEditWindow(lpFrame->hWndEditParent, fdInit.ei.hWndEdit);
+          SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataClone3, AESWD_NOREDRAW);
         }
       }
       else if (nMDI == WMD_MDI)
       {
         lpFrame->ei.hWndClone3=(HWND)CreateEditWindow(lpFrame->hWndEditParent, NULL);
-        lpFrame->hDataClone3=(HANDLE)SendMessage(lpFrame->ei.hWndClone3, AEM_GETWINDOWDATA, 0, 0);
+        lpFrame->ei.hDataClone3=(HANDLE)SendMessage(lpFrame->ei.hWndClone3, AEM_GETWINDOWDATA, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->hDataClone3);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->ei.hDataClone3);
     }
     SplitVisUpdate(lpFrame, 0);
   }
@@ -1072,7 +1072,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
       if (lpFrame->ei.hWndClone1)
       {
         if (lpFrame != &fdInit)
-          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->hDataClone1);
+          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->ei.hDataClone1);
 
         if (nMDI == WMD_MDI || lpFrame == &fdInit)
         {
@@ -1080,18 +1080,18 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         }
         else if (nMDI == WMD_PMDI)
         {
-          if (lpFrame->hDataClone1 == (HANDLE)SendMessage(lpFrame->ei.hWndClone1, AEM_GETWINDOWDATA, 0, 0))
-            SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataClone1, AESWD_NOREDRAW);
-          SendMessage(lpFrame->ei.hWndClone1, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataClone1, 0);
+          if (lpFrame->ei.hDataClone1 == (HANDLE)SendMessage(lpFrame->ei.hWndClone1, AEM_GETWINDOWDATA, 0, 0))
+            SendMessage(lpFrame->ei.hWndClone1, AEM_SETWINDOWDATA, (WPARAM)fdInit.ei.hDataClone1, AESWD_NOREDRAW);
+          SendMessage(lpFrame->ei.hWndClone1, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->ei.hDataClone1, 0);
         }
 
         if (lpFrame->ei.hWndEdit && lpFrame->ei.hWndClone1 == lpFrame->ei.hWndEdit)
         {
           lpFrame->ei.hWndEdit=lpFrame->ei.hWndMaster;
-          lpFrame->hDataEdit=lpFrame->hDataMaster;
+          lpFrame->ei.hDataEdit=lpFrame->ei.hDataMaster;
         }
         lpFrame->ei.hWndClone1=NULL;
-        lpFrame->hDataClone1=NULL;
+        lpFrame->ei.hDataClone1=NULL;
       }
     }
     if (dwFlags & CN_CLONE2)
@@ -1099,7 +1099,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
       if (lpFrame->ei.hWndClone2)
       {
         if (lpFrame != &fdInit)
-          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->hDataClone2);
+          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->ei.hDataClone2);
 
         if (nMDI == WMD_MDI || lpFrame == &fdInit)
         {
@@ -1107,18 +1107,18 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         }
         else if (nMDI == WMD_PMDI)
         {
-          if (lpFrame->hDataClone2 == (HANDLE)SendMessage(lpFrame->ei.hWndClone2, AEM_GETWINDOWDATA, 0, 0))
-            SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataClone2, AESWD_NOREDRAW);
-          SendMessage(lpFrame->ei.hWndClone2, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataClone2, 0);
+          if (lpFrame->ei.hDataClone2 == (HANDLE)SendMessage(lpFrame->ei.hWndClone2, AEM_GETWINDOWDATA, 0, 0))
+            SendMessage(lpFrame->ei.hWndClone2, AEM_SETWINDOWDATA, (WPARAM)fdInit.ei.hDataClone2, AESWD_NOREDRAW);
+          SendMessage(lpFrame->ei.hWndClone2, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->ei.hDataClone2, 0);
         }
 
         if (lpFrame->ei.hWndEdit && lpFrame->ei.hWndClone2 == lpFrame->ei.hWndEdit)
         {
           lpFrame->ei.hWndEdit=lpFrame->ei.hWndMaster;
-          lpFrame->hDataEdit=lpFrame->hDataMaster;
+          lpFrame->ei.hDataEdit=lpFrame->ei.hDataMaster;
         }
         lpFrame->ei.hWndClone2=NULL;
-        lpFrame->hDataClone2=NULL;
+        lpFrame->ei.hDataClone2=NULL;
       }
     }
     if (dwFlags & CN_CLONE3)
@@ -1126,7 +1126,7 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
       if (lpFrame->ei.hWndClone3)
       {
         if (lpFrame != &fdInit)
-          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->hDataClone3);
+          SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->ei.hDataClone3);
 
         if (nMDI == WMD_MDI || lpFrame == &fdInit)
         {
@@ -1134,22 +1134,22 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         }
         else if (nMDI == WMD_PMDI)
         {
-          if (lpFrame->hDataClone3 == (HANDLE)SendMessage(lpFrame->ei.hWndClone3, AEM_GETWINDOWDATA, 0, 0))
-            SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataClone3, AESWD_NOREDRAW);
-          SendMessage(lpFrame->ei.hWndClone3, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->hDataClone3, 0);
+          if (lpFrame->ei.hDataClone3 == (HANDLE)SendMessage(lpFrame->ei.hWndClone3, AEM_GETWINDOWDATA, 0, 0))
+            SendMessage(lpFrame->ei.hWndClone3, AEM_SETWINDOWDATA, (WPARAM)fdInit.ei.hDataClone3, AESWD_NOREDRAW);
+          SendMessage(lpFrame->ei.hWndClone3, AEM_DELETEWINDOWDATA, (WPARAM)lpFrame->ei.hDataClone3, 0);
         }
 
         if (lpFrame->ei.hWndEdit && lpFrame->ei.hWndClone3 == lpFrame->ei.hWndEdit)
         {
           lpFrame->ei.hWndEdit=lpFrame->ei.hWndMaster;
-          lpFrame->hDataEdit=lpFrame->hDataMaster;
+          lpFrame->ei.hDataEdit=lpFrame->ei.hDataMaster;
         }
         lpFrame->ei.hWndClone3=NULL;
-        lpFrame->hDataClone3=NULL;
+        lpFrame->ei.hDataClone3=NULL;
       }
     }
     SplitVisUpdate(lpFrame, 0);
-    SetSelectionStatus(lpFrame->hDataEdit, lpFrame->ei.hWndEdit, NULL, NULL);
+    SetSelectionStatus(lpFrame->ei.hDataEdit, lpFrame->ei.hWndEdit, NULL, NULL);
   }
   bEditOnFinish=FALSE;
 }
@@ -1163,18 +1163,18 @@ void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     {
       if (fdInit.ei.hWndClone1)
       {
-        if (IsWindowVisible(fdInit.ei.hWndClone1) == !lpFrame->hDataClone1)
-          ShowWindow(fdInit.ei.hWndClone1, lpFrame->hDataClone1?SW_SHOW:SW_HIDE);
+        if (IsWindowVisible(fdInit.ei.hWndClone1) == !lpFrame->ei.hDataClone1)
+          ShowWindow(fdInit.ei.hWndClone1, lpFrame->ei.hDataClone1?SW_SHOW:SW_HIDE);
       }
       if (fdInit.ei.hWndClone2)
       {
-        if (IsWindowVisible(fdInit.ei.hWndClone2) == !lpFrame->hDataClone2)
-          ShowWindow(fdInit.ei.hWndClone2, lpFrame->hDataClone2?SW_SHOW:SW_HIDE);
+        if (IsWindowVisible(fdInit.ei.hWndClone2) == !lpFrame->ei.hDataClone2)
+          ShowWindow(fdInit.ei.hWndClone2, lpFrame->ei.hDataClone2?SW_SHOW:SW_HIDE);
       }
       if (fdInit.ei.hWndClone3)
       {
-        if (IsWindowVisible(fdInit.ei.hWndClone3) == !lpFrame->hDataClone3)
-          ShowWindow(fdInit.ei.hWndClone3, lpFrame->hDataClone3?SW_SHOW:SW_HIDE);
+        if (IsWindowVisible(fdInit.ei.hWndClone3) == !lpFrame->ei.hDataClone3)
+          ShowWindow(fdInit.ei.hWndClone3, lpFrame->ei.hDataClone3?SW_SHOW:SW_HIDE);
       }
       ResizeEditWindow(lpFrame, (dwFlagsPMDI & FWA_NOUPDATEEDIT)?REW_NOREDRAW:0);
     }
@@ -1183,7 +1183,7 @@ void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
 
 LRESULT SendEdit(HANDLE hDataEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (lpFrameCurrent->hDataEdit == hDataEdit)
+  if (lpFrameCurrent->ei.hDataEdit == hDataEdit)
     return SendMessage(lpFrameCurrent->ei.hWndEdit, uMsg, wParam, lParam);
 
   if (nMDI == WMD_PMDI)
@@ -1213,7 +1213,7 @@ HWND SetEditData(HANDLE hDataEditNew, HANDLE *hDataEditOld)
   {
     HANDLE hResult;
 
-    if (lpFrameCurrent->hDataEdit == hDataEditNew)
+    if (lpFrameCurrent->ei.hDataEdit == hDataEditNew)
       return lpFrameCurrent->ei.hWndEdit;
 
     hResult=(HANDLE)SendMessage(fdInit.ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hDataEditNew, AESWD_NOALL);
@@ -2358,10 +2358,10 @@ void DoViewSplitWindow(BOOL bState, WPARAM wParam)
   {
     //Destroy
     lpFrameCurrent->ei.hWndEdit=lpFrameCurrent->ei.hWndMaster;
-    lpFrameCurrent->hDataEdit=lpFrameCurrent->hDataMaster;
+    lpFrameCurrent->ei.hDataEdit=lpFrameCurrent->ei.hDataMaster;
     SplitDestroy(lpFrameCurrent, CN_CLONE1|CN_CLONE2|CN_CLONE3);
     lpFrameCurrent->ei.hWndMaster=NULL;
-    lpFrameCurrent->hDataMaster=NULL;
+    lpFrameCurrent->ei.hDataMaster=NULL;
     SetFocus(lpFrameCurrent->ei.hWndEdit);
   }
 
@@ -13512,7 +13512,7 @@ FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, HANDLE hDataEdit)
 
   while (lpFrame)
   {
-    if (lpFrame->hDataEdit == hDataEdit)
+    if (lpFrame->ei.hDataEdit == hDataEdit)
       return lpFrame;
 
     lpFrame=lpFrame->prev;
@@ -13570,7 +13570,7 @@ void StackFramesFree(HSTACK *hStack)
 
 void SetSelectionStatus(HANDLE hDataEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci)
 {
-  if (lpFrameCurrent->hDataEdit == hDataEdit)
+  if (lpFrameCurrent->ei.hDataEdit == hDataEdit)
   {
     wchar_t wszStatus[MAX_PATH];
     int nLine;

@@ -513,6 +513,7 @@ extern "C" void _WinMain()
 
   //fdInit.hWndEditParent=NULL;
   //fdInit.ei.hWndEdit=NULL;
+  //fdInit.ei.hDataEdit=NULL;
   fdInit.ei.pFile=bOldWindows?(LPBYTE)fdInit.szFile:(LPBYTE)fdInit.wszFile;
   fdInit.ei.szFile=fdInit.szFile;
   fdInit.ei.wszFile=fdInit.wszFile;
@@ -524,13 +525,16 @@ extern "C" void _WinMain()
   //fdInit.ei.bWordWrap=FALSE;
   //fdInit.ei.bOvertypeMode=FALSE;
   //fdInit.ei.hWndMaster=NULL;
+  //fdInit.ei.hDataMaster=NULL;
   //fdInit.ei.hWndClone1=NULL;
+  //fdInit.ei.hDataClone1=NULL;
   //fdInit.ei.hWndClone2=NULL;
+  //fdInit.ei.hDataClone2=NULL;
   //fdInit.ei.hWndClone3=NULL;
+  //fdInit.ei.hDataClone3=NULL;
   //fdInit.szFile[0]='\0';
   //fdInit.wszFile[0]=L'\0';
   //fdInit.nFileLen=0;
-  fdInit.hIcon=hIconEmpty;
 
   //Font
   if (bOldWindows)
@@ -543,13 +547,17 @@ extern "C" void _WinMain()
   else GetObjectW(GetStockObject(SYSTEM_FONT), sizeof(LOGFONTW), &fdInit.lf);
   fdInit.lf.lfHeight=-mod(fdInit.lf.lfHeight);
   fdInit.lf.lfWidth=0;
+  fdInit.hIcon=hIconEmpty;
+  //fdInit.rcEditWindow.left=0;
+  //fdInit.rcEditWindow.top=0;
+  //fdInit.rcEditWindow.right=0;
+  //fdInit.rcEditWindow.bottom=0;
+  //fdInit.rcMasterWindow.left=0;
+  //fdInit.rcMasterWindow.top=0;
+  //fdInit.rcMasterWindow.right=0;
+  //fdInit.rcMasterWindow.bottom=0;
 
   //fdInit.lpEditProc=NULL;
-  //fdInit.hDataEdit=NULL;
-  //fdInit.hDataMaster=NULL;
-  //fdInit.hDataClone1=NULL;
-  //fdInit.hDataClone2=NULL;
-  //fdInit.hDataClone3=NULL;
   //fdInit.ft.dwLowDateTime=0;
   //fdInit.ft.dwHighDateTime=0;
   fdInit.aec.dwFlags=AECLR_ALL;
@@ -563,14 +571,6 @@ extern "C" void _WinMain()
   fdInit.aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   fdInit.aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   fdInit.aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
-  //fdInit.rcEditWindow.left=0;
-  //fdInit.rcEditWindow.top=0;
-  //fdInit.rcEditWindow.right=0;
-  //fdInit.rcEditWindow.bottom=0;
-  //fdInit.rcMasterWindow.left=0;
-  //fdInit.rcMasterWindow.top=0;
-  //fdInit.rcMasterWindow.right=0;
-  //fdInit.rcMasterWindow.bottom=0;
   fdInit.dwInputLocale=(DWORD)-1;
 
   fdInit.dwEditMargins=EDIT_MARGINS;
@@ -1210,9 +1210,9 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (nMDI == WMD_PMDI)
       {
         //Destroy last empty tab
-        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->hDataEdit);
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)fdInit.hDataEdit, FALSE);
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrameCurrent->hDataEdit, 0);
+        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDataEdit);
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)fdInit.ei.hDataEdit, FALSE);
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrameCurrent->ei.hDataEdit, 0);
       }
       StackFrameDelete(&hFramesStack, lpFrameCurrent);
 
@@ -1222,7 +1222,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)fdInit.ei.hWndEdit, 0);
       DestroyWindow(fdInit.ei.hWndEdit);
       fdInit.ei.hWndEdit=NULL;
-      fdInit.hDataEdit=NULL;
+      fdInit.ei.hDataEdit=NULL;
     }
     else if (nMDI == WMD_MDI)
     {
@@ -1445,7 +1445,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         fdInit.ei.hWndEdit=(HWND)CreateEditWindow(hMainWnd, NULL);
         fdInit.lpEditProc=(AEEditProc)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
-        fdInit.hDataEdit=(HANDLE)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+        fdInit.ei.hDataEdit=(HANDLE)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
 
         if (nMDI == WMD_SDI)
         {
@@ -1453,10 +1453,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             lpFrameCurrent->ei.hWndEdit=fdInit.ei.hWndEdit;
             lpFrameCurrent->lpEditProc=fdInit.lpEditProc;
-            lpFrameCurrent->hDataEdit=fdInit.hDataEdit;
+            lpFrameCurrent->ei.hDataEdit=fdInit.ei.hDataEdit;
             RestoreFrameData(lpFrameCurrent, 0);
             SetEditWindowSettings(lpFrameCurrent);
-            SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->hDataEdit);
+            SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDataEdit);
           }
         }
         else if (nMDI == WMD_PMDI)
@@ -3718,7 +3718,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         AENLINK *aenl=(AENLINK *)lParam;
         static BOOL bDownURL=FALSE;
 
-        if (aenl->hEditData == lpFrameCurrent->hDataEdit)
+        if (aenl->hEditData == lpFrameCurrent->ei.hDataEdit)
         {
           if (nClickURL == 1 && aenl->uMsg == WM_LBUTTONDOWN)
           {
@@ -3877,12 +3877,12 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       lpFrame->ei.hWndEdit=(HWND)CreateEditWindow(hWnd, NULL);
       lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
-      lpFrame->hDataEdit=(HANDLE)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+      lpFrame->ei.hDataEdit=(HANDLE)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
       SetEditWindowSettings(lpFrame);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->hDataEdit);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDataEdit);
     }
   }
   else if (uMsg == WM_SIZE)
@@ -4064,7 +4064,7 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (lpFrame=GetFrameDataFromEditWindow(hWnd))
         ActivateMdiFrameWindow(lpFrame, 0);
     }
-    else SetSelectionStatus(lpFrameCurrent->hDataEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
+    else SetSelectionStatus(lpFrameCurrent->ei.hDataEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
 
     //Assign current window. Need for split windows.
     lpFrameCurrent->ei.hWndEdit=hWnd;
@@ -4352,7 +4352,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, 0);
           DestroyWindow(lpFrame->ei.hWndEdit);
           lpFrame->ei.hWndEdit=NULL;
-          lpFrame->hDataEdit=NULL;
+          lpFrame->ei.hDataEdit=NULL;
 
           //Delete frame data
           SetWindowLongWide((HWND)wParam, GWL_USERDATA, (LONG)0);

@@ -4273,7 +4273,7 @@ AEFOLD* GetFold(HWND hWnd, int nLine)
 AEM_CREATEWINDOWDATA
 ____________________
 
-Create new window data handle.
+Create new window data handle. This is like virtual window created in memory.
 
 wParam                 == not used.
 (CREATESTRUCT *)lParam == pointer to a CREATESTRUCT structure.
@@ -4336,7 +4336,7 @@ Example:
 AEM_SETWINDOWDATA
 _________________
 
-Associate or deassociate window data handle.
+Associate or deassociate window data handle with edit control to which message is sended.
 
 (HANDLE)wParam == window data handle.
 (DWORD)lParam  == see AESWD_* defines.
@@ -4387,7 +4387,7 @@ Example:
 AEM_SENDMESSAGE
 _______________
 
-Send message to a specified window data handle.
+Send message to an associated or deassociated window data handle. AEM_SENDMESSAGE can be sended to any edit control window.
 
 lParam                  == not used.
 (AESENDMESSAGE *)lParam == pointer to a AESENDMESSAGE structure.
@@ -4402,7 +4402,7 @@ Example:
  sm.uMsg=EM_SETSEL;
  sm.wParam=0;
  sm.lParam=(LPARAM)-1;
- return SendMessage(hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
+ return SendMessage(hWndAnyEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
 
 
 AEM_ADDCLONE
