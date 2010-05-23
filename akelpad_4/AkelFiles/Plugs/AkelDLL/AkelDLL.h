@@ -1224,6 +1224,7 @@ typedef struct {
 
 #define AKDN_FRAME_NOWINDOWS       (WM_USER + 21)  //0x415
 #define AKDN_FRAME_ACTIVATE        (WM_USER + 22)  //0x416
+#define AKDN_FRAME_DESTROY         (WM_USER + 23)  //0x417
 
 #define AKDN_DOCK_GETMINMAXINFO    (WM_USER + 31)  //0x41F
 #define AKDN_DOCK_CAPTURE_ONSTART  (WM_USER + 32)  //0x420
@@ -1493,7 +1494,7 @@ Return Value
 AKDN_FRAME_NOWINDOWS
 ____________________
 
-Notification message, sends to the main procedure when no frame windows in MDI client.
+Notification message, sends to the main procedure after closing tab when no windows in MDI client (WMD_MDI) or when there is only last empty window (WMD_PMDI).
 
 wParam == not used.
 lParam == not used.
@@ -1505,10 +1506,22 @@ Return Value
 AKDN_FRAME_ACTIVATE
 ___________________
 
-Notification message, sends to the main procedure when frame window has been activated.
+Notification message, sends to the main procedure when frame has been activated.
 
-wParam       == not used.
-(HWND)lParam == handle to the MDI frame window being activated.
+(FRAMEDATA *)wParam == Pointer to a FRAMEDATA structure, that has been activated.
+(HWND)lParam        == handle to the MDI window being activated (WMD_MDI).
+
+Return Value
+ Zero.
+
+
+AKDN_FRAME_DESTROY
+__________________
+
+Notification message, sends to the main procedure before destroying frame.
+
+(FRAMEDATA *)wParam == Pointer to a FRAMEDATA structure, that will be destroyed.
+(HWND)lParam        == handle to the MDI window that will be destroyed (WMD_MDI).
 
 Return Value
  Zero.

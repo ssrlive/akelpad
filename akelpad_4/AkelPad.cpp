@@ -3989,7 +3989,8 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //C. Active MDI window just received WM_MDIDESTROY - MDI client has still one or more windows. WM_MDIACTIVATE sended 2 times:
       //  1. On enter lpFrameCurrent == &fdInit, wParam != NULL, lParam != NULL
       //  2. On leave lpFrameCurrent == lParam, wParam != NULL, lParam != NULL
-      //D. Active MDI window just received WM_MDIDESTROY - MDI client has no more windows. WM_MDIACTIVATE not sended.
+      //D. Active MDI window just received WM_MDIDESTROY - MDI client has no more windows. WM_MDIACTIVATE sended 1 time:
+      //  1. On leave lpFrameCurrent == &fdInit, wParam != NULL, lParam == NULL
 
       if (hWnd == (HWND)wParam)
       {
@@ -4007,7 +4008,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         //Restore activated MDI window settings
         RestoreFrameData(lpFrameCurrent, 0);
 
-        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, 0, (LPARAM)lpFrameCurrent->hWndEditParent);
+        SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, (WPARAM)lpFrameCurrent, (LPARAM)lpFrameCurrent->hWndEditParent);
       }
     }
   }
@@ -4320,7 +4321,8 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
       if (lpFrame=(FRAMEDATA *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
       {
         //Activate frame
-        ActivateMdiFrameWindow(lpFrame, 0);
+        if (lpFrame->ei.bModified)
+          ActivateMdiFrameWindow(lpFrame, 0);
 
         //Ask if document unsaved
         if (!DoFileExit()) return TRUE;
@@ -4330,6 +4332,8 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {
+          SendMessage(hMainWnd, AKDN_FRAME_DESTROY, (WPARAM)lpFrame, (LPARAM)lpFrame->hWndEditParent);
+
           //Avoid program exit blinking on last frame close
           if (!bMdiClientRedraw)
           {
