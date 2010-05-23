@@ -402,8 +402,8 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem);
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
-LRESULT SendFrame(FRAMEDATA *lpFrame, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT SendEdit(HANDLE hDataEdit, HWND hWndEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT SendEdit(HANDLE hDataEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
+HWND SetEditData(HANDLE hDataEditNew, HANDLE *hDataEditOld);
 
 BOOL DoFileNew();
 HWND DoFileNewWindow(DWORD dwAddFlags);
@@ -695,9 +695,9 @@ ASSOCICON* StackIconInsert(HSTACK *hStack, const wchar_t *wpFile, int nFileLen);
 ASSOCICON* StackIconGet(HSTACK *hStack, const wchar_t *wpFile, int nFileLen, const wchar_t *wpExt);
 void StackIconsFree(HSTACK *hStack);
 
-HFONT SetChosenFont(FRAMEDATA *lpFrame, LOGFONTW *lfFont);
-FONTITEM* StackFontItemInsert(HSTACK *hStack, LOGFONTW *lfFont);
-FONTITEM* StackFontItemGet(HSTACK *hStack, LOGFONTW *lfFont);
+HFONT SetChosenFont(FRAMEDATA *lpFrame, const LOGFONTW *lfFont);
+FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont);
+FONTITEM* StackFontItemGet(HSTACK *hStack, const LOGFONTW *lfFont);
 void StackFontItemsFree(HSTACK *hStack);
 
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);

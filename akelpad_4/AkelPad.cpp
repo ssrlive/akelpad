@@ -1632,19 +1632,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETSELTEXTW)
     {
-      FRAMEDATA *lpFrame;
       AECHARRANGE cr;
       wchar_t *wpText=NULL;
       int nTextLen;
       BOOL bColumnSel=FALSE;
       int *nResultLen=(int *)lParam;
 
-      if (nMDI == WMD_PMDI)
-        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
-      else
-        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
-
-      GetSel(lpFrame->ei.hWndEdit, &cr, &bColumnSel, NULL);
+      GetSel((HWND)wParam, &cr, &bColumnSel, NULL);
       nTextLen=ExGetRangeTextW((HWND)wParam, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
       if (nResultLen) *nResultLen=nTextLen;
       return (LRESULT)wpText;
