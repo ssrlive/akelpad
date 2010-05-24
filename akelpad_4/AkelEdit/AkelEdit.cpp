@@ -14159,7 +14159,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       td.hdr.hwndFrom=ae->hWndEdit;
       td.hdr.idFrom=ae->nEditCtrlID;
       td.hdr.code=AEN_TEXTDELETEBEGIN;
-      td.hEditData=(HANDLE)ae;
+      td.hdr.dataFrom=(HANDLE)ae;
       td.dwType=ae->dwNotifyTextChange;
       td.bColumnSel=bColumnSel;
       td.dwDeleteFlags=dwDeleteFlags;
@@ -14728,7 +14728,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       td.hdr.hwndFrom=ae->hWndEdit;
       td.hdr.idFrom=ae->nEditCtrlID;
       td.hdr.code=AEN_TEXTDELETEEND;
-      td.hEditData=(HANDLE)ae;
+      td.hdr.dataFrom=(HANDLE)ae;
       td.dwType=ae->dwNotifyTextChange;
       td.bColumnSel=bColumnSel;
       td.dwDeleteFlags=dwDeleteFlags;
@@ -14818,7 +14818,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
         ti.hdr.hwndFrom=ae->hWndEdit;
         ti.hdr.idFrom=ae->nEditCtrlID;
         ti.hdr.code=AEN_TEXTINSERTBEGIN;
-        ti.hEditData=(HANDLE)ae;
+        ti.hdr.dataFrom=(HANDLE)ae;
         ti.dwType=ae->dwNotifyTextChange;
         ti.wpText=wpText;
         ti.dwTextLen=dwTextLen;
@@ -15659,7 +15659,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
         ti.hdr.hwndFrom=ae->hWndEdit;
         ti.hdr.idFrom=ae->nEditCtrlID;
         ti.hdr.code=AEN_TEXTINSERTEND;
-        ti.hEditData=(HANDLE)ae;
+        ti.hdr.dataFrom=(HANDLE)ae;
         ti.dwType=ae->dwNotifyTextChange;
         ti.wpText=wpText;
         ti.dwTextLen=dwTextLen;
@@ -17334,7 +17334,7 @@ void AE_NotifyErrSpace(AKELEDIT *ae, DWORD dwBytes)
     es.hdr.hwndFrom=ae->hWndEdit;
     es.hdr.idFrom=ae->nEditCtrlID;
     es.hdr.code=AEN_ERRSPACE;
-    es.hEditData=(HANDLE)ae;
+    es.hdr.dataFrom=(HANDLE)ae;
     es.dwBytes=dwBytes;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&es);
   }
@@ -17352,7 +17352,7 @@ void AE_NotifySetFocus(AKELEDIT *ae, HWND hWndLost)
     fcs.hdr.hwndFrom=ae->hWndEdit;
     fcs.hdr.idFrom=ae->nEditCtrlID;
     fcs.hdr.code=AEN_SETFOCUS;
-    fcs.hEditData=(HANDLE)ae;
+    fcs.hdr.dataFrom=(HANDLE)ae;
     fcs.hWndChange=hWndLost;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&fcs);
   }
@@ -17370,7 +17370,7 @@ void AE_NotifyKillFocus(AKELEDIT *ae, HWND hWndReceive)
     fcs.hdr.hwndFrom=ae->hWndEdit;
     fcs.hdr.idFrom=ae->nEditCtrlID;
     fcs.hdr.code=AEN_KILLFOCUS;
-    fcs.hEditData=(HANDLE)ae;
+    fcs.hdr.dataFrom=(HANDLE)ae;
     fcs.hWndChange=hWndReceive;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&fcs);
   }
@@ -17389,7 +17389,7 @@ void AE_NotifyHScroll(AKELEDIT *ae)
     scr.hdr.hwndFrom=ae->hWndEdit;
     scr.hdr.idFrom=ae->nEditCtrlID;
     scr.hdr.code=AEN_HSCROLL;
-    scr.hEditData=(HANDLE)ae;
+    scr.hdr.dataFrom=(HANDLE)ae;
     scr.nPosNew=ae->nHScrollPos;
     scr.nPosOld=ae->nLastHScrollPos;
     scr.nPosMax=ae->ptxt->nHScrollMax;
@@ -17413,7 +17413,7 @@ void AE_NotifyVScroll(AKELEDIT *ae)
     scr.hdr.hwndFrom=ae->hWndEdit;
     scr.hdr.idFrom=ae->nEditCtrlID;
     scr.hdr.code=AEN_VSCROLL;
-    scr.hEditData=(HANDLE)ae;
+    scr.hdr.dataFrom=(HANDLE)ae;
     scr.nPosNew=ae->nVScrollPos;
     scr.nPosOld=ae->nLastVScrollPos;
     scr.nPosMax=ae->ptxt->nVScrollMax;
@@ -17436,7 +17436,7 @@ void AE_NotifySetRect(AKELEDIT *ae)
     sr.hdr.hwndFrom=ae->hWndEdit;
     sr.hdr.idFrom=ae->nEditCtrlID;
     sr.hdr.code=AEN_SETRECT;
-    sr.hEditData=(HANDLE)ae;
+    sr.hdr.dataFrom=(HANDLE)ae;
     sr.rcDraw=ae->rcDraw;
     sr.rcEdit=ae->rcEdit;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sr);
@@ -17452,7 +17452,7 @@ void AE_NotifyMaxText(AKELEDIT *ae)
     mt.hdr.hwndFrom=ae->hWndEdit;
     mt.hdr.idFrom=ae->nEditCtrlID;
     mt.hdr.code=AEN_MAXTEXT;
-    mt.hEditData=(HANDLE)ae;
+    mt.hdr.dataFrom=(HANDLE)ae;
     mt.dwTextLimit=ae->ptxt->dwTextLimit;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&mt);
   }
@@ -17472,7 +17472,7 @@ BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, int nCur
     pgs.hdr.hwndFrom=ae->hWndEdit;
     pgs.hdr.idFrom=ae->nEditCtrlID;
     pgs.hdr.code=AEN_PROGRESS;
-    pgs.hEditData=(HANDLE)ae;
+    pgs.hdr.dataFrom=(HANDLE)ae;
     pgs.dwType=dwType;
     pgs.dwTimeElapsed=dwTimeElapsed;
     pgs.nCurrent=nCurrent;
@@ -17492,7 +17492,7 @@ void AE_NotifyModify(AKELEDIT *ae)
     mdf.hdr.hwndFrom=ae->hWndEdit;
     mdf.hdr.idFrom=ae->nEditCtrlID;
     mdf.hdr.code=AEN_MODIFY;
-    mdf.hEditData=(HANDLE)ae;
+    mdf.hdr.dataFrom=(HANDLE)ae;
     mdf.bModified=ae->ptxt->bModified;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&mdf);
   }
@@ -17510,7 +17510,7 @@ void AE_NotifySelChanging(AKELEDIT *ae, DWORD dwType)
     sc.hdr.hwndFrom=ae->hWndEdit;
     sc.hdr.idFrom=ae->nEditCtrlID;
     sc.hdr.code=AEN_SELCHANGING;
-    sc.hEditData=(HANDLE)ae;
+    sc.hdr.dataFrom=(HANDLE)ae;
     sc.dwType=dwType;
     AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
@@ -17527,7 +17527,7 @@ void AE_NotifySelChanged(AKELEDIT *ae)
     sc.hdr.hwndFrom=ae->hWndEdit;
     sc.hdr.idFrom=ae->nEditCtrlID;
     sc.hdr.code=AEN_SELCHANGED;
-    sc.hEditData=(HANDLE)ae;
+    sc.hdr.dataFrom=(HANDLE)ae;
     sc.dwType=ae->dwNotifySelChange;
     AE_AkelEditGetSel(ae, &sc.aes, &sc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
@@ -17571,7 +17571,7 @@ void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
     tc.hdr.hwndFrom=ae->hWndEdit;
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGING;
-    tc.hEditData=(HANDLE)ae;
+    tc.hdr.dataFrom=(HANDLE)ae;
     tc.dwType=ae->dwNotifyTextChange;
     AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
@@ -17591,7 +17591,7 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
     tc.hdr.hwndFrom=ae->hWndEdit;
     tc.hdr.idFrom=ae->nEditCtrlID;
     tc.hdr.code=AEN_TEXTCHANGED;
-    tc.hEditData=(HANDLE)ae;
+    tc.hdr.dataFrom=(HANDLE)ae;
     tc.dwType=ae->dwNotifyTextChange;
     AE_AkelEditGetSel(ae, &tc.aes, &tc.ciCaret);
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&tc);
@@ -17664,7 +17664,7 @@ void AE_NotifyPoint(AKELEDIT *ae, DWORD dwType, AEPOINT *lpPoint)
     pnt.hdr.hwndFrom=ae->hWndEdit;
     pnt.hdr.idFrom=ae->nEditCtrlID;
     pnt.hdr.code=AEN_POINT;
-    pnt.hEditData=(HANDLE)ae;
+    pnt.hdr.dataFrom=(HANDLE)ae;
     pnt.dwType=dwType;
     pnt.lpPoint=lpPoint;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&pnt);
@@ -17690,7 +17690,7 @@ BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
     df.hdr.hwndFrom=ae->hWndEdit;
     df.hdr.idFrom=ae->nEditCtrlID;
     df.hdr.code=AEN_DROPFILES;
-    df.hEditData=(HANDLE)ae;
+    df.hdr.dataFrom=(HANDLE)ae;
     df.hDrop=hDrop;
     df.ciChar=ciCharIndex;
 
@@ -17753,7 +17753,7 @@ BOOL AE_NotifyDropSource(AKELEDIT *ae, int nAction, DWORD *lpdwEffect, DWORD dwD
     ds.hdr.hwndFrom=ae->hWndEdit;
     ds.hdr.idFrom=ae->nEditCtrlID;
     ds.hdr.code=AEN_DROPSOURCE;
-    ds.hEditData=(HANDLE)ae;
+    ds.hdr.dataFrom=(HANDLE)ae;
     ds.nAction=nAction;
     if (lpdwEffect)
       ds.dwEffect=*lpdwEffect;
@@ -17780,7 +17780,7 @@ BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect
     dt.hdr.hwndFrom=ae->hWndEdit;
     dt.hdr.idFrom=ae->nEditCtrlID;
     dt.hdr.code=AEN_DROPTARGET;
-    dt.hEditData=(HANDLE)ae;
+    dt.hdr.dataFrom=(HANDLE)ae;
     dt.nAction=nAction;
     if (pt)
       dt.pt=*pt;
@@ -17813,7 +17813,7 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
     lnk.hdr.hwndFrom=ae->hWndEdit;
     lnk.hdr.idFrom=ae->nEditCtrlID;
     lnk.hdr.code=AEN_LINK;
-    lnk.hEditData=(HANDLE)ae;
+    lnk.hdr.dataFrom=(HANDLE)ae;
     lnk.uMsg=uMsg;
     lnk.wParam=wParam;
     lnk.lParam=lParam;

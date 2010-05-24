@@ -840,42 +840,46 @@ typedef struct _AEMARKRANGEITEM {
 } AEMARKRANGEITEM;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  //Standard NMHDR
+  HWND hwndFrom;
+  UINT idFrom;
+  UINT code;
+
+  //AkelEdit members
+  HANDLE dataFrom;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+} AENMHDR;
+
+typedef struct {
+  AENMHDR hdr;
   DWORD dwBytes;       //Number of bytes that cannot be allocated.
 } AENERRSPACE;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   HWND hWndChange;     //AEN_SETFOCUS - handle to the window that has lost the keyboard focus.
                        //AEN_KILLFOCUS - handle to the window that receives the keyboard focus.
 } AENFOCUS;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   int nPosNew;         //Current scroll position.
   int nPosOld;         //Previous scroll position.
   int nPosMax;         //Maximum scroll position.
 } AENSCROLL;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   RECT rcDraw;         //Draw rectangle.
   RECT rcEdit;         //Edit client rectangle.
 } AENSETRECT;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   DWORD dwTextLimit;   //Current text limit.
 } AENMAXTEXT;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   DWORD dwType;        //See AEPGS_* defines.
   DWORD dwTimeElapsed; //Elapsed time since action was start.
   int nCurrent;        //Characters processed. Equal to zero, if first message.
@@ -883,30 +887,26 @@ typedef struct {
 } AENPROGRESS;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   BOOL bModified;      //TRUE document state is set to modified, FALSE document state is set to unmodified.
 } AENMODIFY;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;     //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   AESELECTION aes;      //Current selection.
   AECHARINDEX ciCaret;  //Caret character index position.
   DWORD dwType;         //See AESCT_* defines.
 } AENSELCHANGE;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;     //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   AESELECTION aes;      //Current selection.
   AECHARINDEX ciCaret;  //Caret character index position.
   DWORD dwType;         //See AETCT_* defines.
 } AENTEXTCHANGE;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;         //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   AESELECTION aes;          //Current selection.
   AECHARINDEX ciCaret;      //Caret character index position.
   DWORD dwType;             //See AETCT_* defines.
@@ -920,8 +920,7 @@ typedef struct {
 } AENTEXTINSERT;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;         //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   AESELECTION aes;          //Current selection.
   AECHARINDEX ciCaret;      //Caret character index position.
   DWORD dwType;             //See AETCT_* defines.
@@ -932,38 +931,33 @@ typedef struct {
 } AENTEXTDELETE;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   DWORD dwType;        //See AEPTT_* defines.
   AEPOINT *lpPoint;    //Pointer to a AEPOINT structure. NULL if type is AEPTT_SETTEXT or AEPTT_STREAMIN.
 } AENPOINT;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   HDROP hDrop;         //Handle to the dropped files list (same as with WM_DROPFILES).
   AECHARINDEX ciChar;  //Character index at which the dropped files would be inserted.
 } AENDROPFILES;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   int nAction;         //See AEDS_* defines.
   DWORD dwEffect;      //Cursor effect: DROPEFFECT_COPY, DROPEFFECT_MOVE or DROPEFFECT_NONE.
   DWORD dwDropResult;  //Drop result, valid if nAction equal to AEDS_SOURCEEND.
 } AENDROPSOURCE;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   int nAction;         //See AEDT_* defines.
   POINT pt;            //Cursor position.
   DWORD dwEffect;      //Cursor effect: DROPEFFECT_COPY, DROPEFFECT_MOVE or DROPEFFECT_NONE.
 } AENDROPTARGET;
 
 typedef struct {
-  NMHDR hdr;
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AENMHDR hdr;
   UINT uMsg;           //Mouse message: WM_LBUTTONDBLCLK, WM_LBUTTONDOWN, WM_LBUTTONUP, WM_MOUSEMOVE, WM_RBUTTONDBLCLK, WM_RBUTTONDOWN, WM_RBUTTONUP, WM_SETCURSOR.
   WPARAM wParam;       //First parameter of a message.
   LPARAM lParam;       //Second parameter of a message.

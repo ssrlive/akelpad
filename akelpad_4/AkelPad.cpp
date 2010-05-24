@@ -3641,7 +3641,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatus(aensc->hEditData, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
+        SetSelectionStatus(aensc->hdr.dataFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
       {
@@ -3649,7 +3649,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         FRAMEDATA *lpFrame;
 
         if (nMDI == WMD_PMDI)
-          lpFrame=GetFrameDataFromEditData(aenm->hEditData);
+          lpFrame=GetFrameDataFromEditData(aenm->hdr.dataFrom);
         else
           lpFrame=GetFrameDataFromEditWindow(aenm->hdr.hwndFrom);
 
@@ -3718,7 +3718,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         AENLINK *aenl=(AENLINK *)lParam;
         static BOOL bDownURL=FALSE;
 
-        if (aenl->hEditData == lpFrameCurrent->ei.hDataEdit)
+        if (aenl->hdr.dataFrom == lpFrameCurrent->ei.hDataEdit)
         {
           if (nClickURL == 1 && aenl->uMsg == WM_LBUTTONDOWN)
           {
