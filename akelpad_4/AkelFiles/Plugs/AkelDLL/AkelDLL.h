@@ -1100,13 +1100,13 @@ typedef struct {
 #define IDM_NONMENU_PASTEANSI           4403  //Paste as ANSI text.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_NONMENU_MDINEXT             4404  //Activate next MDI window.
+#define IDM_NONMENU_FRAMENEXT           4404  //Activate next MDI window.
                                               //Return Value: zero.
                                               //
-#define IDM_NONMENU_MDIPREV             4405  //Activate previous MDI window.
+#define IDM_NONMENU_FRAMEPREV           4405  //Activate previous MDI window.
                                               //Return Value: zero.
                                               //
-#define IDM_NONMENU_MDICLOSE            4406  //Close current MDI window.
+#define IDM_NONMENU_FRAMECLOSE          4406  //Close current MDI window.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_NONMENU_REDETECT            4408  //Redetect code page of the current file.
@@ -1326,12 +1326,13 @@ typedef struct {
 #define AKD_DIALOGRESIZE           (WM_USER + 257)
 
 //Frames
-#define AKD_FRAMEFIND              (WM_USER + 261)
-#define AKD_FRAMEFINDA             (WM_USER + 262)
-#define AKD_FRAMEFINDW             (WM_USER + 263)
-#define AKD_FRAMEACTIVATE          (WM_USER + 264)
-#define AKD_FRAMENEXT              (WM_USER + 265)
-#define AKD_FRAMEDESTROY           (WM_USER + 266)
+#define AKD_FRAMEACTIVATE          (WM_USER + 261)
+#define AKD_FRAMENEXT              (WM_USER + 262)
+#define AKD_FRAMEDESTROY           (WM_USER + 263)
+#define AKD_FRAMEFIND              (WM_USER + 264)
+#define AKD_FRAMEFINDA             (WM_USER + 265)
+#define AKD_FRAMEFINDW             (WM_USER + 266)
+#define AKD_FRAMENOWINDOWS         (WM_USER + 267)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -1494,7 +1495,7 @@ Return Value
 AKDN_FRAME_NOWINDOWS
 ____________________
 
-Notification message, sends to the main procedure after closing tab when no windows in MDI client (WMD_MDI) or when there is only last empty window (WMD_PMDI).
+Notification message, sends to the main procedure after closing tab when no windows in MDI client (WMD_MDI) or when there is only one empty window (WMD_PMDI).
 
 wParam == not used.
 lParam == not used.
@@ -2682,21 +2683,6 @@ BOOL CALLBACK DialogProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
-AKD_FRAMEFIND, AKD_FRAMEFINDA, AKD_FRAMEFINDW
-_____________  ______________  ______________
-
-Find frame data pointer.
-
-(int)wParam    == see FWF_* defines.
-(void *)lParam == depend on FWF_ value.
-
-Return Value
- Pointer to a FRAMEDATA structure.
-
-Example:
- See AKD_FRAMEACTIVATE example.
-
-
 AKD_FRAMEACTIVATE
 _________________
 
@@ -2742,6 +2728,39 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_FRAMEDESTROY, 0, (LPARAM)lpFrameCurrent);
+
+
+AKD_FRAMEFIND, AKD_FRAMEFINDA, AKD_FRAMEFINDW
+_____________  ______________  ______________
+
+Find frame data pointer.
+
+(int)wParam    == see FWF_* defines.
+(void *)lParam == depend on FWF_ value.
+
+Return Value
+ Pointer to a FRAMEDATA structure.
+
+Example:
+ See AKD_FRAMEACTIVATE example.
+
+
+AKD_FRAMENOWINDOWS
+__________________
+
+Retrive is there no windows in MDI client (WMD_MDI) or only one empty window (WMD_PMDI).
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE   no windows in MDI client (WMD_MDI),
+        only one empty window (WMD_PMDI).
+ FALSE  one or more windows in MDI client (WMD_MDI),
+        one non-empty window or more than one window (WMD_PMDI).
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_FRAMENOWINDOWS, 0, 0);
 
 
 AKD_GLOBALALLOC

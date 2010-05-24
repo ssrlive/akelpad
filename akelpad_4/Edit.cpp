@@ -788,8 +788,10 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
   return FALSE;
 }
 
-void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
+FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
 {
+  FRAMEDATA *lpFrameLostFocus=lpFrameCurrent;
+
   if (lpFrameCurrent != lpFrame)
   {
     if (nMDI == WMD_MDI)
@@ -825,6 +827,7 @@ void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
       SendMessage(hMainWnd, AKDN_FRAME_ACTIVATE, (WPARAM)lpFrameCurrent, (LPARAM)NULL);
     }
   }
+  return lpFrameLostFocus;
 }
 
 FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev)

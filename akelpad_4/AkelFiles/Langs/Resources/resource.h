@@ -353,9 +353,9 @@
 #define IDM_NONMENU_CHANGESIZE          4401
 #define IDM_NONMENU_DELLINE             4402
 #define IDM_NONMENU_PASTEANSI           4403
-#define IDM_NONMENU_MDINEXT             4404
-#define IDM_NONMENU_MDIPREV             4405
-#define IDM_NONMENU_MDICLOSE            4406
+#define IDM_NONMENU_FRAMENEXT           4404
+#define IDM_NONMENU_FRAMEPREV           4405
+#define IDM_NONMENU_FRAMECLOSE          4406
 #define IDM_NONMENU_REOPEN_MSG          4407
 #define IDM_NONMENU_REDETECT            4408
 #define IDM_NONMENU_REOPENAS_ANSI       4409

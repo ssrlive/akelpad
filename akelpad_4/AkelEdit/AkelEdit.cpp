@@ -3910,42 +3910,46 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     while (lpErase)
     {
-      if (lpErase->rcErase.left < ae->rcDraw.left)
+      if (lpErase->rcErase.right - lpErase->rcErase.left > 0 &&
+          lpErase->rcErase.bottom - lpErase->rcErase.top > 0)
       {
-        rcErase=lpErase->rcErase;
-        rcErase.right=min(rcErase.right, ae->rcDraw.left);
-        FillRect((HDC)wParam, &rcErase, hBasicBk);
-        lpErase->rcErase.left=rcErase.right;
-      }
-      if (lpErase->rcErase.top < ae->rcDraw.top)
-      {
-        rcErase=lpErase->rcErase;
-        rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
-        FillRect((HDC)wParam, &rcErase, hBasicBk);
-        lpErase->rcErase.top=rcErase.bottom;
-      }
-      if (lpErase->rcErase.right > ae->rcDraw.right)
-      {
-        rcErase=lpErase->rcErase;
-        rcErase.left=max(rcErase.left, ae->rcDraw.right);
-        FillRect((HDC)wParam, &rcErase, hBasicBk);
-        lpErase->rcErase.right=rcErase.left;
-      }
-      if (lpErase->rcErase.bottom > ae->rcDraw.bottom)
-      {
-        rcErase=lpErase->rcErase;
-        rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
-        FillRect((HDC)wParam, &rcErase, hBasicBk);
-        lpErase->rcErase.bottom=rcErase.top;
-      }
+        if (lpErase->rcErase.left < ae->rcDraw.left)
+        {
+          rcErase=lpErase->rcErase;
+          rcErase.right=min(rcErase.right, ae->rcDraw.left);
+          FillRect((HDC)wParam, &rcErase, hBasicBk);
+          lpErase->rcErase.left=rcErase.right;
+        }
+        if (lpErase->rcErase.top < ae->rcDraw.top)
+        {
+          rcErase=lpErase->rcErase;
+          rcErase.bottom=min(rcErase.bottom, ae->rcDraw.top);
+          FillRect((HDC)wParam, &rcErase, hBasicBk);
+          lpErase->rcErase.top=rcErase.bottom;
+        }
+        if (lpErase->rcErase.right > ae->rcDraw.right)
+        {
+          rcErase=lpErase->rcErase;
+          rcErase.left=max(rcErase.left, ae->rcDraw.right);
+          FillRect((HDC)wParam, &rcErase, hBasicBk);
+          lpErase->rcErase.right=rcErase.left;
+        }
+        if (lpErase->rcErase.bottom > ae->rcDraw.bottom)
+        {
+          rcErase=lpErase->rcErase;
+          rcErase.top=max(rcErase.top, ae->rcDraw.bottom);
+          FillRect((HDC)wParam, &rcErase, hBasicBk);
+          lpErase->rcErase.bottom=rcErase.top;
+        }
 
-      //Erase only a space after the last line
-      rcErase=lpErase->rcErase;
-      rcErase.top=max(rcErase.top, ae->rcDraw.top + (ae->ptxt->nVScrollMax - ae->nVScrollPos));
+        //Erase only a space after the last line
+        rcErase=lpErase->rcErase;
+        rcErase.top=max(rcErase.top, ae->rcDraw.top + (ae->ptxt->nVScrollMax - ae->nVScrollPos));
 
-      if (rcErase.top < rcErase.bottom)
-      {
-        FillRect((HDC)wParam, &rcErase, hBasicBk);
+        if (rcErase.top < rcErase.bottom)
+        {
+          FillRect((HDC)wParam, &rcErase, hBasicBk);
+        }
       }
 
       //Next erase rectangle
