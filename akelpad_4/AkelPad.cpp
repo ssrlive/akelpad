@@ -332,6 +332,7 @@ int nGotoType=NT_LINE;
 
 //Options dialog
 HHOOK hHookOptions;
+int nPropertySheetStartPage=0;
 BOOL bOptionsSave;
 BOOL bOptionsRestart;
 
