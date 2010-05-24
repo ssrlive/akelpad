@@ -205,7 +205,7 @@
 //AKD_FRAMEACTIVATE flags
 #define FWA_NOUPDATEORDER  0x00000001  //For WMD_PMDI mode. Don't update access order during activating.
 #define FWA_NOUPDATEEDIT   0x00000002  //For WMD_PMDI mode. Don't redraw edit control area during activating.
-#define FWA_NOVISUPDATE    0x00000004  //For WMD_PMDI mode. Don't make any visual updates during activating. Use it only if you will activate later any other frame without this flag.
+#define FWA_NOVISUPDATE    0x00000004  //For WMD_PMDI mode. Don't make any visual updates during activating. Use it only if you later will activate back frame that has lost active status.
 
 //AKD_FRAMEDESTROY return value
 #define FWDE_SUCCESS   0  //Operation is successful.
