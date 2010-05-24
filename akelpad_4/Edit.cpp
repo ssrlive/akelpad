@@ -201,6 +201,7 @@ extern int nGotoType;
 
 //Options dialog
 extern HHOOK hHookOptions;
+extern int nPropertySheetStartPage;
 extern BOOL bOptionsSave;
 extern BOOL bOptionsRestart;
 
@@ -2518,7 +2519,7 @@ void DoSettingsOptions()
     pshA.hInstance   =hLangLib;
     pshA.pszIcon     =MAKEINTRESOURCEA(IDI_ICON_MAIN);
     pshA.nPages      =sizeof(pspA) / sizeof(PROPSHEETPAGEA);
-    pshA.nStartPage  =0;
+    pshA.nStartPage  =nPropertySheetStartPage;
     pshA.ppsp        =&pspA[0];
     pshA.pfnCallback =PropSheetProc;
 
@@ -2563,7 +2564,7 @@ void DoSettingsOptions()
     pshW.hInstance   =hLangLib;
     pshW.pszIcon     =MAKEINTRESOURCEW(IDI_ICON_MAIN);
     pshW.nPages      =sizeof(pspW) / sizeof(PROPSHEETPAGEW);
-    pshW.nStartPage  =0;
+    pshW.nStartPage  =nPropertySheetStartPage;
     pshW.ppsp        =&pspW[0];
     pshW.pfnCallback =PropSheetProc;
 
