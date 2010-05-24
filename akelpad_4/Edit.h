@@ -396,7 +396,7 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
 void SaveFrameData(FRAMEDATA *lpFrame);
 void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
 BOOL CreateMdiFrameWindow(RECT *rcRect);
-void ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
+FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
 FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev);
 int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem);
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);

@@ -206,60 +206,60 @@ typedef struct _AEIDataObject {
 
 //// Hightlight
 
-typedef struct _AEHDELIMSTACK {
-  int first;
-  int last;
-} AEHDELIMSTACK;
+typedef struct {
+  AEDELIMITEMW *first;
+  AEDELIMITEMW *last;
+} AESTACKDELIM;
 
-typedef struct _AEHWORDSTACK {
-  int first;
-  int last;
+typedef struct {
+  AEWORDITEMW *first;
+  AEWORDITEMW *last;
   int lpWordLens[MAX_PATH];
-} AEHWORDSTACK;
+} AESTACKWORD;
 
-typedef struct _AEHQUOTESTACK {
-  int first;
-  int last;
-} AEHQUOTESTACK;
+typedef struct {
+  AEQUOTEITEMW *first;
+  AEQUOTEITEMW *last;
+} AESTACKQUOTE;
 
-typedef struct _AEHMARKTEXTSTACK {
-  int first;
-  int last;
-} AEHMARKTEXTSTACK;
+typedef struct {
+  AEMARKRANGEITEM *first;
+  AEMARKRANGEITEM *last;
+} AESTACKMARKRANGE;
 
-typedef struct _AEHMARKRANGESTACK {
-  int first;
-  int last;
-} AEHMARKRANGESTACK;
+typedef struct {
+  AEMARKTEXTITEMW *first;
+  AEMARKTEXTITEMW *last;
+} AESTACKMARKTEXT;
 
 typedef struct _AETHEMEITEMW {
   struct _AETHEMEITEMW *next;
   struct _AETHEMEITEMW *prev;
   wchar_t wszThemeName[MAX_PATH];
-  AEHDELIMSTACK hDelimiterStack;
-  AEHWORDSTACK hWordStack;
-  AEHQUOTESTACK hQuoteStack;
-  AEHMARKRANGESTACK hMarkRangeStack;
-  AEHMARKTEXTSTACK hMarkTextStack;
+  AESTACKDELIM hDelimiterStack;
+  AESTACKWORD hWordStack;
+  AESTACKQUOTE hQuoteStack;
+  AESTACKMARKRANGE hMarkRangeStack;
+  AESTACKMARKTEXT hMarkTextStack;
 } AETHEMEITEMW;
 
-typedef struct _AEMARKTEXTMATCH {
+typedef struct {
   AEMARKTEXTITEMW *lpMarkText;
   AECHARRANGE crMarkText;
 } AEMARKTEXTMATCH;
 
-typedef struct _AEMARKRANGEMATCH {
+typedef struct {
   AEMARKRANGEITEM *lpMarkRange;
   CHARRANGE crMarkRange;
 } AEMARKRANGEMATCH;
 
-typedef struct _AEQUOTEMATCH {
+typedef struct {
   AEQUOTEITEMW *lpQuote;
   AECHARRANGE crQuoteStart;
   AECHARRANGE crQuoteEnd;
 } AEQUOTEMATCH;
 
-typedef struct _AEWORDMATCH {
+typedef struct {
   AEDELIMITEMW *lpDelim1;
   AECHARRANGE crDelim1;
   AEWORDITEMW *lpWord;
@@ -268,7 +268,7 @@ typedef struct _AEWORDMATCH {
   AECHARRANGE crDelim2;
 } AEWORDMATCH;
 
-typedef struct _AEHLPAINT {
+typedef struct {
   DWORD dwDefaultText;
   DWORD dwDefaultBG;
   HBRUSH hbrDefaultBG;
@@ -285,7 +285,7 @@ typedef struct _AEHLPAINT {
   DWORD dwFindFirst;
 } AEHLPAINT;
 
-typedef struct _AETEXTOUT {
+typedef struct {
   HDC hDC;
   AECHARINDEX ciDrawLine;
   int nDrawLineWidth;
@@ -353,12 +353,40 @@ typedef struct _AEBITMAPITEM {
 } AEBITMAPITEM;
 
 
+//// Stacks
+
+typedef struct {
+  AELINEDATA *first;
+  AELINEDATA *last;
+} AESTACKLINE;
+
+typedef struct {
+  AEPOINT *first;
+  AEPOINT *last;
+} AESTACKPOINT;
+
+typedef struct {
+  AEFOLD *first;
+  AEFOLD *last;
+} AESTACKFOLD;
+
+typedef struct {
+  AEUNDOITEM *first;
+  AEUNDOITEM *last;
+} AESTACKUNDO;
+
+typedef struct {
+  AEERASE *first;
+  AEERASE *last;
+} AESTACKERASE;
+
+
 //// AKELEDIT
 
 typedef struct {
   HANDLE hHeap;
-  HSTACK hLinesStack;
-  HSTACK hPointsStack;
+  AESTACKLINE hLinesStack;
+  AESTACKPOINT hPointsStack;
   HFONT hFont;
   HFONT hFontNormal;
   HFONT hFontBold;
@@ -374,8 +402,8 @@ typedef struct {
   int nTabWidth;
   int nTabStop;
   WORD *lpCharWidths;
-  HSTACK hFoldsStack;
-  HSTACK hUndoStack;
+  AESTACKFOLD hFoldsStack;
+  AESTACKUNDO hUndoStack;
   AEUNDOITEM *lpCurrentUndo;
   AEUNDOITEM *lpSavePoint;
   BOOL bSavePointExist;
@@ -485,7 +513,7 @@ typedef struct _AKELEDIT {
   HDC hDC;
   RECT rcEdit;
   RECT rcDraw;
-  HSTACK hEraseStack;
+  AESTACKERASE hEraseStack;
   POINT ptActiveColumnDraw;
   DWORD dwInputLocale;
   DWORD dwImeChar;

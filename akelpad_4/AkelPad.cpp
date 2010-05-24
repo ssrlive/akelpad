@@ -1219,10 +1219,12 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       //Destroy real edits
       SplitDestroy(&fdInit, CN_CLONE1|CN_CLONE2|CN_CLONE3);
 
+      bEditOnFinish=TRUE;
       SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)fdInit.ei.hWndEdit, 0);
       DestroyWindow(fdInit.ei.hWndEdit);
       fdInit.ei.hWndEdit=NULL;
       fdInit.ei.hDataEdit=NULL;
+      bEditOnFinish=FALSE;
     }
     else if (nMDI == WMD_MDI)
     {
@@ -2069,6 +2071,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     //Frames
+    if (uMsg == AKD_FRAMEACTIVATE)
+    {
+      return (LRESULT)ActivateMdiFrameWindow((FRAMEDATA *)lParam, wParam);
+    }
+    if (uMsg == AKD_FRAMENEXT)
+    {
+      return (LRESULT)NextMdiFrameWindow((FRAMEDATA *)lParam, wParam);
+    }
+    if (uMsg == AKD_FRAMEDESTROY)
+    {
+      return DestroyMdiFrameWindow((FRAMEDATA *)lParam, -1);
+    }
     if (uMsg == AKD_FRAMEFIND ||
         uMsg == AKD_FRAMEFINDA ||
         uMsg == AKD_FRAMEFINDW)
@@ -2110,25 +2124,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return (LRESULT)StackFrameGetByHandle(&hFramesStack, (HANDLE)lParam);
       return 0;
     }
-    if (uMsg == AKD_FRAMEACTIVATE)
+    if (uMsg == AKD_FRAMENOWINDOWS)
     {
-      FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
-      FRAMEDATA *lpCurrent=lpFrameCurrent;
-
-      ActivateMdiFrameWindow(lpFrame, wParam);
-      return (LRESULT)lpCurrent;
-    }
-    if (uMsg == AKD_FRAMENEXT)
-    {
-      FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
-
-      return (LRESULT)NextMdiFrameWindow(lpFrame, wParam);
-    }
-    if (uMsg == AKD_FRAMEDESTROY)
-    {
-      FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
-
-      return DestroyMdiFrameWindow(lpFrame, -1);
+      if (nMDI == WMD_MDI)
+      {
+        if (!lpFrameCurrent->hWndEditParent)
+          return TRUE;
+      }
+      else if (nMDI == WMD_PMDI)
+      {
+        if (lpFrameCurrent == (FRAMEDATA *)hFramesStack.first &&
+            lpFrameCurrent == (FRAMEDATA *)hFramesStack.last &&
+            !lpFrameCurrent->ei.bModified &&
+            !lpFrameCurrent->ei.wszFile[0])
+        {
+          return TRUE;
+        }
+      }
+      return FALSE;
     }
 
     //Thread
@@ -3349,15 +3362,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
 
-      if (LOWORD(wParam) == IDM_NONMENU_MDINEXT)
+      if (LOWORD(wParam) == IDM_NONMENU_FRAMENEXT)
       {
         NextMdiFrameWindow(lpFrameCurrent, FALSE);
       }
-      else if (LOWORD(wParam) == IDM_NONMENU_MDIPREV)
+      else if (LOWORD(wParam) == IDM_NONMENU_FRAMEPREV)
       {
         NextMdiFrameWindow(lpFrameCurrent, TRUE);
       }
-      else if (LOWORD(wParam) == IDM_NONMENU_MDICLOSE)
+      else if (LOWORD(wParam) == IDM_NONMENU_FRAMECLOSE)
       {
         return !DestroyMdiFrameWindow(lpFrameCurrent, -1);
       }
@@ -4349,10 +4362,13 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
           //Destroy edits
           SplitDestroy(lpFrame, CN_CLONE1|CN_CLONE2|CN_CLONE3);
+
+          bEditOnFinish=TRUE;
           SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, 0);
           DestroyWindow(lpFrame->ei.hWndEdit);
           lpFrame->ei.hWndEdit=NULL;
           lpFrame->ei.hDataEdit=NULL;
+          bEditOnFinish=FALSE;
 
           //Delete frame data
           SetWindowLongWide((HWND)wParam, GWL_USERDATA, (LONG)0);
