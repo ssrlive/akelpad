@@ -950,6 +950,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       BOOL bDelete;
       BOOL bResult=FALSE;
 
+      //WM_ERASEBKGND came not from WM_PAINT - use all edit area
+      if (!lpErase)
+        lpErase=AE_StackEraseInsert(ae, &ae->rcEdit);
+
       while (lpErase)
       {
         if (IntersectRect(&rcErase, rcLockErase, &lpErase->rcErase))
