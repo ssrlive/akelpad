@@ -1742,11 +1742,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       CHARCOLOR *cc=(CHARCOLOR *)lParam;
       FRAMEDATA *lpFrame;
 
-      if (nMDI == WMD_PMDI)
-        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
-      else
-        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
-      return GetCharColor(lpFrame, cc);
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        return GetCharColor(lpFrame, cc);
+      return FALSE;
     }
 
     //Print
@@ -1835,22 +1833,16 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       FRAMEDATA *lpFrame;
 
-      if (nMDI == WMD_PMDI)
-        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
-      else
-        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
-      SetModifyStatus(lpFrame, lParam);
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        SetModifyStatus(lpFrame, lParam);
       return 0;
     }
     if (uMsg == AKD_SETNEWLINE)
     {
       FRAMEDATA *lpFrame;
 
-      if (nMDI == WMD_PMDI)
-        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
-      else
-        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
-      SetNewLineStatus(lpFrame, lParam, AENL_INPUT|AENL_OUTPUT);
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
+        SetNewLineStatus(lpFrame, lParam, AENL_INPUT|AENL_OUTPUT);
       return 0;
     }
     if (uMsg == AKD_GETFONT ||
@@ -1879,21 +1871,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FRAMEDATA *lpFrame;
       LOGFONTW lfW;
 
-      if (nMDI == WMD_PMDI)
-        lpFrame=GetFrameDataFromEditData((HANDLE)wParam);
-      else
-        lpFrame=GetFrameDataFromEditWindow((HWND)wParam);
-
-      if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
-        LogFontAtoW((LOGFONTA *)lParam, &lfW);
-      else
-        xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
-
-      if (SetChosenFont(lpFrame, &lfW))
+      if (lpFrame=GetFrameDataFromEditWindow((HWND)wParam))
       {
-        xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
-        bEditFontChanged=TRUE;
-        return TRUE;
+        if (uMsg == AKD_GETFONTA || (bOldWindows && uMsg == AKD_GETFONT))
+          LogFontAtoW((LOGFONTA *)lParam, &lfW);
+        else
+          xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
+  
+        if (SetChosenFont(lpFrame, &lfW))
+        {
+          xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
+          bEditFontChanged=TRUE;
+          return TRUE;
+        }
       }
       return FALSE;
     }
@@ -2122,7 +2112,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (wParam == FWF_BYEDITWINDOW)
         return (LRESULT)GetFrameDataFromEditWindow((HWND)lParam);
       if (wParam == FWF_BYEDITDATA)
-        return (LRESULT)StackFrameGetByHandle(&hFramesStack, (HANDLE)lParam);
+        return (LRESULT)GetFrameDataFromEditData((HANDLE)lParam);
       return 0;
     }
     if (uMsg == AKD_FRAMENOWINDOWS)

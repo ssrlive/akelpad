@@ -436,6 +436,7 @@ typedef struct {
   BOOL bVScrollLock;
   BOOL bHScrollLock;
   BOOL bHideSelection;
+  DWORD dwLockUpdate;
   BOOL bHeapSerialize;
   COLORREF crCaret;
   COLORREF crBasicText;

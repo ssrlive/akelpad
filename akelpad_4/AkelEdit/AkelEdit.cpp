@@ -1504,6 +1504,24 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       return AE_UpdateCaret(ae, ae->bFocus);
     }
+    if (uMsg == AEM_LOCKUPDATE)
+    {
+      if (wParam & AELU_SCROLLBAR)
+      {
+        if (lParam)
+          ae->popt->dwLockUpdate|=AELU_SCROLLBAR;
+        else
+          ae->popt->dwLockUpdate&=~AELU_SCROLLBAR;
+      }
+      if (wParam & AELU_CARET)
+      {
+        if (lParam)
+          ae->popt->dwLockUpdate|=AELU_CARET;
+        else
+          ae->popt->dwLockUpdate&=~AELU_CARET;
+      }
+      return ae->popt->dwLockUpdate;
+    }
     if (uMsg == AEM_HIDESELECTION)
     {
       AE_HideSelection(ae, wParam);
@@ -4197,13 +4215,10 @@ AKELEDIT* AE_SetWindowData(AKELEDIT *aeOld, AKELEDIT *aeNew, DWORD dwFlags)
     aeOld->hWndEdit=NULL;
 
     //Update focus state.
-    if (!(dwFlags & AESWD_NOCHECKFOCUS))
-    {
-      if (GetFocus() == aeNew->hWndEdit)
-        aeNew->bFocus=TRUE;
-      else
-        aeNew->bFocus=FALSE;
-    }
+    if (GetFocus() == aeNew->hWndEdit)
+      aeNew->bFocus=TRUE;
+    else
+      aeNew->bFocus=FALSE;
 
     //Register Drag'n'Drop with new idt pointer.
     if (!(dwFlags & AESWD_NODRAGDROP))
@@ -9579,48 +9594,51 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
   int nCaretWidth;
   int nCaretHeight;
 
-  if (bFocus)
+  if (!(ae->popt->dwLockUpdate & AELU_CARET))
   {
-    DestroyCaret();
-  }
-
-  if (!ae->popt->bOverType)
-  {
-    nCaretWidth=ae->popt->nCaretInsertWidth;
-    nCaretHeight=ae->ptxt->nCharHeight;
-  }
-  else
-  {
-    nCaretWidth=ae->ptxt->nAveCharWidth;
-    nCaretHeight=ae->popt->nCaretOvertypeHeight;
-  }
-
-  if (ae->popt->crCaret != RGB(0x00, 0x00, 0x00))
-  {
-    bd.nWidth=nCaretWidth;
-    bd.nHeight=nCaretHeight;
-    bd.crBasic=ae->popt->crCaret;
-    bd.crInvert=ae->popt->crActiveLineBk;
-    bd.bZebra=FALSE;
-
-    if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
-      bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
-    hCaretBitmap=bi->hBitmap;
+    if (bFocus)
+    {
+      DestroyCaret();
+    }
 
     if (!ae->popt->bOverType)
-      ae->popt->hCaretInsert=hCaretBitmap;
-    else
-      ae->popt->hCaretOvertype=hCaretBitmap;
-  }
-
-  if (bFocus)
-  {
-    if (CreateCaret(ae->hWndEdit, (HBITMAP)hCaretBitmap, nCaretWidth, nCaretHeight))
     {
-      ae->bCaretVisible=FALSE;
-      AE_SetCaretPos(ae, &ae->ptCaret);
+      nCaretWidth=ae->popt->nCaretInsertWidth;
+      nCaretHeight=ae->ptxt->nCharHeight;
     }
-    return TRUE;
+    else
+    {
+      nCaretWidth=ae->ptxt->nAveCharWidth;
+      nCaretHeight=ae->popt->nCaretOvertypeHeight;
+    }
+
+    if (ae->popt->crCaret != RGB(0x00, 0x00, 0x00))
+    {
+      bd.nWidth=nCaretWidth;
+      bd.nHeight=nCaretHeight;
+      bd.crBasic=ae->popt->crCaret;
+      bd.crInvert=ae->popt->crActiveLineBk;
+      bd.bZebra=FALSE;
+
+      if (!(bi=AE_StackBitmapItemGet(&hAkelEditBitmapsStack, &bd)))
+        bi=AE_StackBitmapItemInsert(&hAkelEditBitmapsStack, &bd);
+      hCaretBitmap=bi->hBitmap;
+
+      if (!ae->popt->bOverType)
+        ae->popt->hCaretInsert=hCaretBitmap;
+      else
+        ae->popt->hCaretOvertype=hCaretBitmap;
+    }
+
+    if (bFocus)
+    {
+      if (CreateCaret(ae->hWndEdit, (HBITMAP)hCaretBitmap, nCaretWidth, nCaretHeight))
+      {
+        ae->bCaretVisible=FALSE;
+        AE_SetCaretPos(ae, &ae->ptCaret);
+      }
+      return TRUE;
+    }
   }
   return FALSE;
 }
@@ -9628,14 +9646,17 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus)
 BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret)
 {
   POINT ptClient;
-  BOOL bResult;
+  BOOL bResult=FALSE;
 
   AE_GlobalToClient(ae, ptCaret, &ptClient);
 
-  if (ae->popt->bOverType)
-    bResult=SetCaretPos(ptClient.x, ptClient.y + max(ae->ptxt->nCharHeight - ae->popt->nCaretOvertypeHeight, 0));
-  else
-    bResult=SetCaretPos(ptClient.x, ptClient.y);
+  if (!(ae->popt->dwLockUpdate & AELU_CARET))
+  {
+    if (ae->popt->bOverType)
+      bResult=SetCaretPos(ptClient.x, ptClient.y + max(ae->ptxt->nCharHeight - ae->popt->nCaretOvertypeHeight, 0));
+    else
+      bResult=SetCaretPos(ptClient.x, ptClient.y);
+  }
 
   AE_SetCaretVis(ae, ptCaret);
   return bResult;
@@ -9654,7 +9675,8 @@ void AE_SetCaretVis(AKELEDIT *ae, const POINT *ptCaret)
   {
     if (ae->bCaretVisible)
     {
-      HideCaret(ae->hWndEdit);
+      if (!(ae->popt->dwLockUpdate & AELU_CARET))
+        HideCaret(ae->hWndEdit);
       ae->bCaretVisible=FALSE;
     }
   }
@@ -9662,7 +9684,8 @@ void AE_SetCaretVis(AKELEDIT *ae, const POINT *ptCaret)
   {
     if (!ae->bCaretVisible)
     {
-      ShowCaret(ae->hWndEdit);
+      if (!(ae->popt->dwLockUpdate & AELU_CARET))
+        ShowCaret(ae->hWndEdit);
       ae->bCaretVisible=TRUE;
     }
   }
@@ -9858,6 +9881,7 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
 {
   SCROLLINFO si;
   BOOL bSetScroll;
+  BOOL bUpdateScroll=!(ae->popt->dwLockUpdate & AELU_SCROLLBAR);
 
   if (ae->hWndEdit)
   {
@@ -9871,7 +9895,7 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
         si.nMax=ae->ptxt->nHScrollMax;
         si.nPage=ae->rcDraw.right - ae->rcDraw.left;
         si.nPos=ae->nHScrollPos;
-        SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
+        SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, bUpdateScroll);
 
         si.fMask=SIF_POS;
         GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
@@ -9906,7 +9930,7 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
           si.nMin=0;
           si.nMax=0;
           si.nPage=0;
-          SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
+          SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, bUpdateScroll);
 
           ae->nHScrollPos=0;
         }
@@ -9929,7 +9953,7 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
         si.nMax=ae->ptxt->nVScrollMax;
         si.nPage=ae->rcDraw.bottom - ae->rcDraw.top;
         si.nPos=ae->nVScrollPos;
-        SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
+        SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);
 
         si.fMask=SIF_POS;
         GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
@@ -9964,7 +9988,7 @@ void AE_UpdateScrollBars(AKELEDIT *ae, int nBar)
           si.nMin=0;
           si.nMax=0;
           si.nPage=0;
-          SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
+          SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);
 
           ae->nVScrollPos=0;
         }
@@ -9984,6 +10008,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
 {
   SCROLLINFO si;
   int nScrollPos=0;
+  BOOL bUpdateScroll=!(ae->popt->dwLockUpdate & AELU_SCROLLBAR);
 
   if (nBar == SB_HORZ)
   {
@@ -9996,7 +10021,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
           si.cbSize=sizeof(SCROLLINFO);
           si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
           si.nPos=nPos;
-          SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, TRUE);
+          SetScrollInfo(ae->hWndEdit, SB_HORZ, &si, bUpdateScroll);
 
           si.fMask=SIF_POS;
           GetScrollInfo(ae->hWndEdit, SB_HORZ, &si);
@@ -10039,7 +10064,7 @@ int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos)
           si.cbSize=sizeof(SCROLLINFO);
           si.fMask=SIF_POS|SIF_DISABLENOSCROLL;
           si.nPos=nPos;
-          SetScrollInfo(ae->hWndEdit, SB_VERT, &si, TRUE);
+          SetScrollInfo(ae->hWndEdit, SB_VERT, &si, bUpdateScroll);
 
           si.fMask=SIF_POS;
           GetScrollInfo(ae->hWndEdit, SB_VERT, &si);
