@@ -220,7 +220,8 @@ BEGIN
         MENUITEM "페이지 번호[첫 페이지]\t%n[1]", 
                                                 IDM_POPUP_HEADLINE_PAGE_NUMBER
 
-        MENUITEM "파일 이름\t%f",               IDM_POPUP_HEADLINE_FILE_NAME
+        MENUITEM "파일 이름\t%f",               IDM_POPUP_HEADLINE_FILENAME
+        MENUITEM "개 파일 디렉토리\t%d",        IDM_POPUP_HEADLINE_FILEDIR
         MENUITEM "기호 %\t%%",                  IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
         MENUITEM "중간 정렬\t%c",               IDM_POPUP_HEADLINE_ALIGN_CENTER
@@ -334,13 +335,13 @@ BEGIN
     VK_F3,          IDM_EDIT_FINDNEXTDOWN,  VIRTKEY, NOINVERT
     VK_F3,          IDM_EDIT_FINDNEXTUP,    VIRTKEY, SHIFT, NOINVERT
     VK_F4,          IDM_NONMENU_CHANGESIZE, VIRTKEY, NOINVERT
-    VK_F4,          IDM_NONMENU_FRAMECLOSE,   VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          IDM_NONMENU_FRAMECLOSE, VIRTKEY, CONTROL, NOINVERT
     VK_F4,          IDM_FILE_CLOSEALL,      VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F5,          IDM_FILE_REOPEN,        VIRTKEY, NOINVERT
     VK_F5,          IDM_OPTIONS_EXEC,       VIRTKEY, CONTROL, NOINVERT
     VK_F5,          IDM_NONMENU_REDETECT,   VIRTKEY, ALT, NOINVERT
-    VK_F6,          IDM_NONMENU_FRAMENEXT,    VIRTKEY, CONTROL, NOINVERT
-    VK_F6,          IDM_NONMENU_FRAMEPREV,    VIRTKEY, SHIFT, CONTROL, 
+    VK_F6,          IDM_NONMENU_FRAMENEXT,  VIRTKEY, CONTROL, NOINVERT
+    VK_F6,          IDM_NONMENU_FRAMEPREV,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     VK_F8,          IDM_NONMENU_DELLINE,    VIRTKEY, NOINVERT
     VK_F9,          IDM_NONMENU_CLONENEXT,  VIRTKEY, NOINVERT
@@ -356,11 +357,11 @@ BEGIN
     VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
     VK_SUBTRACT,    IDM_VIEW_DECREASE_FONT, VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
-    VK_TAB,         IDM_NONMENU_FRAMENEXT,    VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_NONMENU_FRAMENEXT,  VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
-    VK_TAB,         IDM_NONMENU_FRAMEPREV,    VIRTKEY, SHIFT, CONTROL, 
+    VK_TAB,         IDM_NONMENU_FRAMEPREV,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "W",            IDM_NONMENU_FRAMECLOSE,   VIRTKEY, CONTROL, NOINVERT
+    "W",            IDM_NONMENU_FRAMECLOSE, VIRTKEY, CONTROL, NOINVERT
     "W",            IDM_NONMENU_REOPENAS_ANSI, VIRTKEY, ALT, NOINVERT
     "W",            IDM_NONMENU_SAVEAS_ANSI, VIRTKEY, SHIFT, ALT, NOINVERT
     "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
@@ -953,11 +954,11 @@ BEGIN
     STR_LANGUAGE_NONE       "내장언어"
     STR_FILE_FILTER         "텍스트 파일 (*.txt)|*.txt|모든 파일 (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "실행파일 (*.exe)|*.exe|모든 파일 (*.*)|*.*"
-    STR_NONE                "없음"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "없음"
     STR_PLUGIN              "플러그인"
     STR_FUNCTION            "기능"
     STR_HOTKEY              "단축키"
@@ -973,11 +974,11 @@ BEGIN
     STR_TEXT                "텍스트"
     STR_BACKGROUND          "배경색"
     STR_SAMPLE              "샘플"
-    STR_BASIC               "기본 색상"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "기본 색상"
     STR_SELECTION           "선택영역"
     STR_ACTIVELINE          "현재 줄"
     STR_ACTIVECOLUMN        "활성열"

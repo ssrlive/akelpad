@@ -217,7 +217,8 @@ BEGIN
         MENUITEM "Номер сторінки[перша сторінка]\t%n[1]", 
                                                 IDM_POPUP_HEADLINE_PAGE_NUMBER
 
-        MENUITEM "Ім'я файлу\t%f",              IDM_POPUP_HEADLINE_FILE_NAME
+        MENUITEM "Ім'я файлу\t%f",              IDM_POPUP_HEADLINE_FILENAME
+        MENUITEM "Каталог файлу\t%d",           IDM_POPUP_HEADLINE_FILEDIR
         MENUITEM "Символ %\t%%",                IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
         MENUITEM "Вирівнювання по центру\t%c",  IDM_POPUP_HEADLINE_ALIGN_CENTER
@@ -333,13 +334,13 @@ BEGIN
     VK_F3,          IDM_EDIT_FINDNEXTDOWN,  VIRTKEY, NOINVERT
     VK_F3,          IDM_EDIT_FINDNEXTUP,    VIRTKEY, SHIFT, NOINVERT
     VK_F4,          IDM_NONMENU_CHANGESIZE, VIRTKEY, NOINVERT
-    VK_F4,          IDM_NONMENU_FRAMECLOSE,   VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          IDM_NONMENU_FRAMECLOSE, VIRTKEY, CONTROL, NOINVERT
     VK_F4,          IDM_FILE_CLOSEALL,      VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F5,          IDM_FILE_REOPEN,        VIRTKEY, NOINVERT
     VK_F5,          IDM_OPTIONS_EXEC,       VIRTKEY, CONTROL, NOINVERT
     VK_F5,          IDM_NONMENU_REDETECT,   VIRTKEY, ALT, NOINVERT
-    VK_F6,          IDM_NONMENU_FRAMENEXT,    VIRTKEY, CONTROL, NOINVERT
-    VK_F6,          IDM_NONMENU_FRAMEPREV,    VIRTKEY, SHIFT, CONTROL, 
+    VK_F6,          IDM_NONMENU_FRAMENEXT,  VIRTKEY, CONTROL, NOINVERT
+    VK_F6,          IDM_NONMENU_FRAMEPREV,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     VK_F8,          IDM_NONMENU_DELLINE,    VIRTKEY, NOINVERT
     VK_F9,          IDM_NONMENU_CLONENEXT,  VIRTKEY, NOINVERT
@@ -355,11 +356,11 @@ BEGIN
     VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
     VK_SUBTRACT,    IDM_VIEW_DECREASE_FONT, VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
-    VK_TAB,         IDM_NONMENU_FRAMENEXT,    VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_NONMENU_FRAMENEXT,  VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
-    VK_TAB,         IDM_NONMENU_FRAMEPREV,    VIRTKEY, SHIFT, CONTROL, 
+    VK_TAB,         IDM_NONMENU_FRAMEPREV,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "W",            IDM_NONMENU_FRAMECLOSE,   VIRTKEY, CONTROL, NOINVERT
+    "W",            IDM_NONMENU_FRAMECLOSE, VIRTKEY, CONTROL, NOINVERT
     "W",            IDM_NONMENU_REOPENAS_ANSI, VIRTKEY, ALT, NOINVERT
     "W",            IDM_NONMENU_SAVEAS_ANSI, VIRTKEY, SHIFT, ALT, NOINVERT
     "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
@@ -979,11 +980,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Внутрішня"
     STR_FILE_FILTER         "Текстові файли (*.txt)|*.txt|Всі файли (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
-    STR_NONE                "Ні"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Ні"
     STR_PLUGIN              "Плаґін"
     STR_FUNCTION            "Функція"
     STR_HOTKEY              "Гаряча клавіша"
@@ -999,11 +1000,11 @@ BEGIN
     STR_TEXT                "Текст"
     STR_BACKGROUND          "Фон"
     STR_SAMPLE              "Зразок"
-    STR_BASIC               "Основний колір"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Основний колір"
     STR_SELECTION           "Виділення"
     STR_ACTIVELINE          "Активний рядок"
     STR_ACTIVECOLUMN        "Активний стовпчик"

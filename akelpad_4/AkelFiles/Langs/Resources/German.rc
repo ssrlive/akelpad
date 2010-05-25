@@ -219,7 +219,8 @@ BEGIN
         MENUITEM "Seitennummer[erste Seite]\t%n[1]", 
                                                 IDM_POPUP_HEADLINE_PAGE_NUMBER
 
-        MENUITEM "Dateiname\t%f",               IDM_POPUP_HEADLINE_FILE_NAME
+        MENUITEM "Dateiname\t%f",               IDM_POPUP_HEADLINE_FILENAME
+        MENUITEM "Dateipfad\t%d",               IDM_POPUP_HEADLINE_FILEDIR
         MENUITEM "Symbol %\t%%",                IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
         MENUITEM "Zentrieren\t%c",              IDM_POPUP_HEADLINE_ALIGN_CENTER
@@ -334,13 +335,13 @@ BEGIN
     VK_F3,          IDM_EDIT_FINDNEXTDOWN,  VIRTKEY, NOINVERT
     VK_F3,          IDM_EDIT_FINDNEXTUP,    VIRTKEY, SHIFT, NOINVERT
     VK_F4,          IDM_NONMENU_CHANGESIZE, VIRTKEY, NOINVERT
-    VK_F4,          IDM_NONMENU_FRAMECLOSE,   VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          IDM_NONMENU_FRAMECLOSE, VIRTKEY, CONTROL, NOINVERT
     VK_F4,          IDM_FILE_CLOSEALL,      VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F5,          IDM_FILE_REOPEN,        VIRTKEY, NOINVERT
     VK_F5,          IDM_OPTIONS_EXEC,       VIRTKEY, CONTROL, NOINVERT
     VK_F5,          IDM_NONMENU_REDETECT,   VIRTKEY, ALT, NOINVERT
-    VK_F6,          IDM_NONMENU_FRAMENEXT,    VIRTKEY, CONTROL, NOINVERT
-    VK_F6,          IDM_NONMENU_FRAMEPREV,    VIRTKEY, SHIFT, CONTROL, 
+    VK_F6,          IDM_NONMENU_FRAMENEXT,  VIRTKEY, CONTROL, NOINVERT
+    VK_F6,          IDM_NONMENU_FRAMEPREV,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     VK_F8,          IDM_NONMENU_DELLINE,    VIRTKEY, NOINVERT
     VK_F9,          IDM_NONMENU_CLONENEXT,  VIRTKEY, NOINVERT
@@ -356,11 +357,11 @@ BEGIN
     VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
     VK_SUBTRACT,    IDM_VIEW_DECREASE_FONT, VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
-    VK_TAB,         IDM_NONMENU_FRAMENEXT,    VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_NONMENU_FRAMENEXT,  VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
-    VK_TAB,         IDM_NONMENU_FRAMEPREV,    VIRTKEY, SHIFT, CONTROL, 
+    VK_TAB,         IDM_NONMENU_FRAMEPREV,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "W",            IDM_NONMENU_FRAMECLOSE,   VIRTKEY, CONTROL, NOINVERT
+    "W",            IDM_NONMENU_FRAMECLOSE, VIRTKEY, CONTROL, NOINVERT
     "W",            IDM_NONMENU_REOPENAS_ANSI, VIRTKEY, ALT, NOINVERT
     "W",            IDM_NONMENU_SAVEAS_ANSI, VIRTKEY, SHIFT, ALT, NOINVERT
     "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
@@ -961,11 +962,11 @@ BEGIN
     STR_LANGUAGE_NONE       "System"
     STR_FILE_FILTER         "Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Ausführbare Dateien (*.exe)|*.exe|Alle Dateien (*.*)|*.*"
-    STR_NONE                "None"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "None"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funktion"
     STR_HOTKEY              "Hotkey"
@@ -981,11 +982,11 @@ BEGIN
     STR_TEXT                "Text"
     STR_BACKGROUND          "Hintergrund"
     STR_SAMPLE              "Muster"
-    STR_BASIC               "Hauptfarbe"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Hauptfarbe"
     STR_SELECTION           "Auswahl"
     STR_ACTIVELINE          "Aktive Zeile"
     STR_ACTIVECOLUMN        "Aktive Spalte"
