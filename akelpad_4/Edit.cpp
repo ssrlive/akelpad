@@ -200,8 +200,9 @@ extern RECT rcGotoLineDlg;
 extern int nGotoType;
 
 //Options dialog
-extern HHOOK hHookOptions;
-extern int nPropertySheetStartPage;
+extern HHOOK hPropertyHook;
+extern HWND hPropertyTab;
+extern int nPropertyStartPage;
 extern BOOL bOptionsSave;
 extern BOOL bOptionsRestart;
 
@@ -2476,7 +2477,7 @@ void DoSettingsPlugins(HWND hWnd)
 
 void DoSettingsOptions()
 {
-  hHookOptions=SetWindowsHookEx(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
+  hPropertyHook=SetWindowsHookEx(WH_CBT, CBTProc, NULL, GetCurrentThreadId());
   bOptionsSave=FALSE;
   bOptionsRestart=FALSE;
 
@@ -2519,7 +2520,7 @@ void DoSettingsOptions()
     pshA.hInstance   =hLangLib;
     pshA.pszIcon     =MAKEINTRESOURCEA(IDI_ICON_MAIN);
     pshA.nPages      =sizeof(pspA) / sizeof(PROPSHEETPAGEA);
-    pshA.nStartPage  =nPropertySheetStartPage;
+    pshA.nStartPage  =nPropertyStartPage;
     pshA.ppsp        =&pspA[0];
     pshA.pfnCallback =PropSheetProc;
 
@@ -2564,7 +2565,7 @@ void DoSettingsOptions()
     pshW.hInstance   =hLangLib;
     pshW.pszIcon     =MAKEINTRESOURCEW(IDI_ICON_MAIN);
     pshW.nPages      =sizeof(pspW) / sizeof(PROPSHEETPAGEW);
-    pshW.nStartPage  =nPropertySheetStartPage;
+    pshW.nStartPage  =nPropertyStartPage;
     pshW.ppsp        =&pspW[0];
     pshW.pfnCallback =PropSheetProc;
 
@@ -11914,10 +11915,10 @@ LRESULT CALLBACK CBTProc(int iCode, WPARAM wParam, LPARAM lParam)
     RECT rcEdit;
     RECT rcSheet;
 
-    if (hHookOptions)
+    if (hPropertyHook)
     {
-      if (UnhookWindowsHookEx(hHookOptions))
-        hHookOptions=NULL;
+      if (UnhookWindowsHookEx(hPropertyHook))
+        hPropertyHook=NULL;
     }
     GetWindowRect(hMainWnd, &rcEdit);
     GetWindowRect((HWND)wParam, &rcSheet);
@@ -11929,15 +11930,20 @@ LRESULT CALLBACK CBTProc(int iCode, WPARAM wParam, LPARAM lParam)
     SetWindowPos((HWND)wParam, NULL, rcSheet.left, rcSheet.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
     return 0;
   }
-  else return CallNextHookEx(hHookOptions, iCode, wParam, lParam);
+  else return CallNextHookEx(hPropertyHook, iCode, wParam, lParam);
 }
 
 int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam)
 {
   //Remove "?"
   if (uMsg == PSCB_PRECREATE)
+  {
     ((DLGTEMPLATE *)lParam)->style&=~DS_CONTEXTHELP;
-
+  }
+  else if (uMsg == PSCB_INITIALIZED)
+  {
+    hPropertyTab=(HWND)SendMessage(hDlg, PSM_GETTABCONTROL, 0, 0);
+  }
   return TRUE;
 }
 
@@ -12084,7 +12090,11 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    {
+      nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+    }
+    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
       //Execute
       GetDlgItemTextWide(hDlg, IDC_OPTIONS_EXECCOM, wszCommand, BUFFER_SIZE);
@@ -12366,7 +12376,11 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    {
+      nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+    }
+    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
       wchar_t wszWindowText[MAX_PATH];
       BOOL bRecentFilesRefresh=FALSE;
@@ -12616,7 +12630,11 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    {
+      nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+    }
+    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
       int a;
       int b;
@@ -12870,7 +12888,11 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    {
+      nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+    }
+    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
       int a;
 
@@ -12973,7 +12995,11 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    {
+      nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
+    }
+    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
     {
       //Default save extention
       GetWindowTextWide(hWndDefaultSaveExt, wszDefaultSaveExt, MAX_PATH);

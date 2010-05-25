@@ -331,8 +331,9 @@ RECT rcGotoLineDlg={0};
 int nGotoType=NT_LINE;
 
 //Options dialog
-HHOOK hHookOptions;
-int nPropertySheetStartPage=0;
+HHOOK hPropertyHook;
+HWND hPropertyTab;
+int nPropertyStartPage=0;
 BOOL bOptionsSave;
 BOOL bOptionsRestart;
 
