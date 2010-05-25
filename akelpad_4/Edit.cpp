@@ -5159,8 +5159,10 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
           SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%%");
         else if (i == IDM_POPUP_HEADLINE_PAGE_NUMBER)
           SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%n[1]");
-        else if (i == IDM_POPUP_HEADLINE_FILE_NAME)
+        else if (i == IDM_POPUP_HEADLINE_FILENAME)
           SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%f");
+        else if (i == IDM_POPUP_HEADLINE_FILEDIR)
+          SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%d");
         else if (i == IDM_POPUP_HEADLINE_ALIGN_CENTER)
           SendMessageA(hWnd, EM_REPLACESEL, TRUE, (LPARAM)"%c");
         else if (i == IDM_POPUP_HEADLINE_ALIGN_LEFT)
@@ -5548,7 +5550,8 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
 
 BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
 {
-  //%% == %, %n[1] == nPageNumber[nPageStart], %f == lpFrameCurrent->wszFile, %c == DT_CENTER, %l == DT_LEFT, %r == DT_RIGHT
+  //%% == %, %n[1] == nPageNumber[nPageStart], %f == lpFrameCurrent->wszFile, %d == GetFileDirW(lpFrameCurrent->wszFile), %c == DT_CENTER, %l == DT_LEFT, %r == DT_RIGHT
+  wchar_t wszFileDir[MAX_PATH];
   wchar_t wszCenter[MAX_PATH];
   wchar_t wszLeft[MAX_PATH];
   wchar_t wszRight[MAX_PATH];
@@ -5564,11 +5567,13 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   int nPageNumberLen;
   int nPageStart;
   int nFileLen;
+  int nFileDirLen;
   int a;
   BOOL bResult=TRUE;
 
   wpFile=GetFileNameW(lpFrameCurrent->wszFile);
   nFileLen=lstrlenW(wpFile);
+  nFileDirLen=GetFileDirW(lpFrameCurrent->wszFile, wszFileDir, MAX_PATH);
 
   for (a=0; wpHeadline[a] && nCount < MAX_PATH; ++a)
   {
@@ -5633,6 +5638,15 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
         {
           xstrcpyW(wpCount + nCount, wpFile);
           nCount+=nFileLen;
+        }
+        else break;
+      }
+      else if (wpHeadline[a] == 'd' || wpHeadline[a] == 'D')
+      {
+        if (nCount + nFileDirLen <= MAX_PATH)
+        {
+          xstrcpyW(wpCount + nCount, wszFileDir);
+          nCount+=nFileDirLen;
         }
         else break;
       }

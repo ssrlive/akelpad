@@ -216,7 +216,8 @@ BEGIN
         MENUITEM "Номер страницы[первая страница]\t%n[1]", 
                                                 IDM_POPUP_HEADLINE_PAGE_NUMBER
 
-        MENUITEM "Имя файла\t%f",               IDM_POPUP_HEADLINE_FILE_NAME
+        MENUITEM "Имя файла\t%f",               IDM_POPUP_HEADLINE_FILENAME
+        MENUITEM "Директория файла\t%d",        IDM_POPUP_HEADLINE_FILEDIR
         MENUITEM "Символ %\t%%",                IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
         MENUITEM "Выравнивание по центру\t%c",  IDM_POPUP_HEADLINE_ALIGN_CENTER
@@ -332,13 +333,13 @@ BEGIN
     VK_F3,          IDM_EDIT_FINDNEXTDOWN,  VIRTKEY, NOINVERT
     VK_F3,          IDM_EDIT_FINDNEXTUP,    VIRTKEY, SHIFT, NOINVERT
     VK_F4,          IDM_NONMENU_CHANGESIZE, VIRTKEY, NOINVERT
-    VK_F4,          IDM_NONMENU_FRAMECLOSE,   VIRTKEY, CONTROL, NOINVERT
+    VK_F4,          IDM_NONMENU_FRAMECLOSE, VIRTKEY, CONTROL, NOINVERT
     VK_F4,          IDM_FILE_CLOSEALL,      VIRTKEY, CONTROL, ALT, NOINVERT
     VK_F5,          IDM_FILE_REOPEN,        VIRTKEY, NOINVERT
     VK_F5,          IDM_OPTIONS_EXEC,       VIRTKEY, CONTROL, NOINVERT
     VK_F5,          IDM_NONMENU_REDETECT,   VIRTKEY, ALT, NOINVERT
-    VK_F6,          IDM_NONMENU_FRAMENEXT,    VIRTKEY, CONTROL, NOINVERT
-    VK_F6,          IDM_NONMENU_FRAMEPREV,    VIRTKEY, SHIFT, CONTROL, 
+    VK_F6,          IDM_NONMENU_FRAMENEXT,  VIRTKEY, CONTROL, NOINVERT
+    VK_F6,          IDM_NONMENU_FRAMEPREV,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
     VK_F8,          IDM_NONMENU_DELLINE,    VIRTKEY, NOINVERT
     VK_F9,          IDM_NONMENU_CLONENEXT,  VIRTKEY, NOINVERT
@@ -354,11 +355,11 @@ BEGIN
     VK_SPACE,       IDM_EDIT_DELETE_SPACE,  VIRTKEY, SHIFT, NOINVERT
     VK_SUBTRACT,    IDM_VIEW_DECREASE_FONT, VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_INSERT_TAB,    VIRTKEY, NOINVERT
-    VK_TAB,         IDM_NONMENU_FRAMENEXT,    VIRTKEY, CONTROL, NOINVERT
+    VK_TAB,         IDM_NONMENU_FRAMENEXT,  VIRTKEY, CONTROL, NOINVERT
     VK_TAB,         IDM_EDIT_DELETE_TAB,    VIRTKEY, SHIFT, NOINVERT
-    VK_TAB,         IDM_NONMENU_FRAMEPREV,    VIRTKEY, SHIFT, CONTROL, 
+    VK_TAB,         IDM_NONMENU_FRAMEPREV,  VIRTKEY, SHIFT, CONTROL, 
                                                     NOINVERT
-    "W",            IDM_NONMENU_FRAMECLOSE,   VIRTKEY, CONTROL, NOINVERT
+    "W",            IDM_NONMENU_FRAMECLOSE, VIRTKEY, CONTROL, NOINVERT
     "W",            IDM_NONMENU_REOPENAS_ANSI, VIRTKEY, ALT, NOINVERT
     "W",            IDM_NONMENU_SAVEAS_ANSI, VIRTKEY, SHIFT, ALT, NOINVERT
     "X",            IDM_EDIT_CUT,           VIRTKEY, CONTROL, NOINVERT
@@ -977,11 +978,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Внутренний"
     STR_FILE_FILTER         "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Исполняемые файлы (*.exe)|*.exe|Все файлы (*.*)|*.*"
-    STR_NONE                "Нет"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Нет"
     STR_PLUGIN              "Плагин"
     STR_FUNCTION            "Функция"
     STR_HOTKEY              "Горячая клавиша"
@@ -997,11 +998,11 @@ BEGIN
     STR_TEXT                "Текст"
     STR_BACKGROUND          "Фон"
     STR_SAMPLE              "Образец"
-    STR_BASIC               "Основной цвет"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Основной цвет"
     STR_SELECTION           "Выделение"
     STR_ACTIVELINE          "Активная строка"
     STR_ACTIVECOLUMN        "Активный столбец"
