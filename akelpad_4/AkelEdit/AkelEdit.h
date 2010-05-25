@@ -255,6 +255,10 @@
 #define AENL_INPUT           0x00000001  //Sets default new line for the input operations, for example AEM_PASTE.
 #define AENL_OUTPUT          0x00000002  //Sets default new line for the output operations, for example AEM_COPY.
 
+//AEM_LOCKUPDATE FLAGS
+#define AELU_SCROLLBAR  0x00000001
+#define AELU_CARET      0x00000002
+
 //AEM_SETWINDOWDATA flags
 #define AESWD_NOCHECKFOCUS        0x00000001  //Don't update focus state.
 #define AESWD_NODRAGDROP          0x00000002  //Don't register drag-and-drop with a new IDropTarget.
@@ -1145,7 +1149,8 @@ typedef struct {
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
 #define AEM_UPDATESCROLLBAR       (WM_USER + 2352)
 #define AEM_UPDATECARET           (WM_USER + 2353)
-#define AEM_HIDESELECTION         (WM_USER + 2354)
+#define AEM_LOCKUPDATE            (WM_USER + 2354)
+#define AEM_HIDESELECTION         (WM_USER + 2355)
 
 //Folding
 #define AEM_ADDFOLD               (WM_USER + 2381)
@@ -4076,6 +4081,26 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_UPDATECARET, 0, 0);
+
+
+AEM_LOCKUPDATE
+______________
+
+Lock update of specified objects.
+
+(DWORD)wParam == see AELU_* defines.
+(BOOL)lParam  == TRUE  lock update.
+                 FALSE unlock update.
+
+Return Value
+ New update state, see AELU_* defines.
+
+Example:
+ RECT rc={10, 10, 200, 200};
+
+ SendMessage(hWndEdit, AEM_LOCKUPDATE, AELU_SCROLLBAR|AELU_CARET, TRUE);
+ SendMessage(hWndEdit, AEM_SETRECT, FALSE, (LPARAM)&rc);
+ SendMessage(hWndEdit, AEM_LOCKUPDATE, AELU_SCROLLBAR|AELU_CARET, FALSE);
 
 
 AEM_HIDESELECTION
