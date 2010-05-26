@@ -481,10 +481,7 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 
     if (lpFrame->ei.hWndMaster)
     {
-      rc.left=lpFrame->rcMasterWindow.left;
-      rc.top=lpFrame->rcMasterWindow.top;
-      rc.right=lpFrame->rcMasterWindow.right;
-      rc.bottom=lpFrame->rcMasterWindow.bottom;
+      rc=lpFrame->rcMasterWindow;
 
       if (!(dwFlags & REW_TEST))
       {
@@ -555,6 +552,10 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
       MoveWindow(lpFrame->ei.hWndEdit, lprcEditWindow->left, lprcEditWindow->top, lprcEditWindow->right, lprcEditWindow->bottom, (dwFlags & REW_NOREDRAW)?FALSE:TRUE);
     }
   }
+
+  //Remember current frame edit RECT
+  if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
+    lpFrame->rcEditWindow=fdInit.rcEditWindow;
 }
 
 FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl)
@@ -719,6 +720,13 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     }
     else if (lpFrame->ei.hDataEdit)
       SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataEdit, dwSetDataFlags);
+
+    //If window size has been changed, update virtual window according to current window size
+    if (xmemcmp(&lpFrame->rcEditWindow, &fdInit.rcEditWindow, sizeof(RECT)))
+    {
+      SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATESIZE, 0, 0);
+      lpFrame->rcEditWindow=fdInit.rcEditWindow;
+    }
 
     if (!(dwFlagsPMDI & FWA_NOVISUPDATE))
       SplitVisUpdate(lpFrame, dwFlagsPMDI);

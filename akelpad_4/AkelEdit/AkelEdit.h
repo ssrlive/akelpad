@@ -1149,8 +1149,9 @@ typedef struct {
 #define AEM_SHOWSCROLLBAR         (WM_USER + 2351)
 #define AEM_UPDATESCROLLBAR       (WM_USER + 2352)
 #define AEM_UPDATECARET           (WM_USER + 2353)
-#define AEM_LOCKUPDATE            (WM_USER + 2354)
-#define AEM_HIDESELECTION         (WM_USER + 2355)
+#define AEM_UPDATESIZE            (WM_USER + 2354)
+#define AEM_LOCKUPDATE            (WM_USER + 2355)
+#define AEM_HIDESELECTION         (WM_USER + 2356)
 
 //Folding
 #define AEM_ADDFOLD               (WM_USER + 2381)
@@ -4081,6 +4082,21 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_UPDATECARET, 0, 0);
+
+
+AEM_UPDATESIZE
+______________
+
+Update edit control after window resizing. Useful for virtual window data handle.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(hWndEdit, AEM_UPDATESIZE, 0, 0);
 
 
 AEM_LOCKUPDATE
