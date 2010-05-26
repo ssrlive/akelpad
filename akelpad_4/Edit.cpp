@@ -721,6 +721,10 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     else if (lpFrame->ei.hDataEdit)
       SendMessage(lpFrame->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)lpFrame->ei.hDataEdit, dwSetDataFlags);
 
+    //Edit window focus in other frame can be different
+    if (GetFocus() != lpFrame->ei.hWndEdit)
+      SetFocus(lpFrame->ei.hWndEdit);
+
     //If window size has been changed, update virtual window according to current window size
     if (xmemcmp(&lpFrame->rcEditWindow, &fdInit.rcEditWindow, sizeof(RECT)))
     {
@@ -823,7 +827,6 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
       //Restore activated frame data
       lpFrameCurrent=lpFrame;
       RestoreFrameData(lpFrameCurrent, dwFlagsPMDI);
-      //SetFocus(lpFrameCurrent->ei.hWndEdit);
 
       //Set caption of main window
       if (lpFrameCurrent->wszFile[0])
