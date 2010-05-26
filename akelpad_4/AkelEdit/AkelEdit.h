@@ -951,7 +951,7 @@ typedef struct {
   AENMHDR hdr;
   int nAction;         //See AEDS_* defines.
   DWORD dwEffect;      //Cursor effect: DROPEFFECT_COPY, DROPEFFECT_MOVE or DROPEFFECT_NONE.
-  DWORD dwDropResult;  //Drop result, valid if nAction equal to AEDS_SOURCEEND.
+  DWORD dwDropResult;  //Drop result. Valid if nAction equal to AEDS_SOURCEEND or AEDS_SOURCEDONE.
 } AENDROPSOURCE;
 
 typedef struct {

@@ -3649,8 +3649,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         if (ae->nMoveBeforeBeginDrag == 0)
         {
           DWORD dwEffectIn;
-          DWORD dwEffectOut=0;
-          DWORD dwResult=0;
+          DWORD dwEffectOut=DROPEFFECT_NONE;
+          DWORD dwResult=DRAGDROP_S_CANCEL;
 
           dwEffectIn=DROPEFFECT_COPY;
           if (!(ae->popt->dwOptions & AECO_READONLY))
@@ -3690,7 +3690,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           }
           ae->bDragging=FALSE;
           AE_ReleaseMouseCapture(ae, AEMC_MOUSEDRAG);
-          AE_NotifyDropSource(ae, AEDS_SOURCEDONE, 0, 0);
+          AE_NotifyDropSource(ae, AEDS_SOURCEDONE, &dwEffectOut, dwResult);
         }
       }
       else
