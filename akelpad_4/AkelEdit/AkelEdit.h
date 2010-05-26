@@ -137,7 +137,8 @@
 
 //AEN_DROPSOURCE actions
 #define AEDS_SOURCEBEGIN        1  //Begin selection dragging.
-#define AEDS_SOURCEEND          2  //End selection dragging.
+#define AEDS_SOURCEEND          2  //End selection dragging. Before selection deletion.
+#define AEDS_SOURCEDONE         3  //End dragging operation. Same as EN_DRAGDROPDONE.
 
 //AEN_PROGRESS type
 #define AEPGS_SETTEXT           0x00000001  //Setting text.

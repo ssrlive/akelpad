@@ -3690,7 +3690,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           }
           ae->bDragging=FALSE;
           AE_ReleaseMouseCapture(ae, AEMC_MOUSEDRAG);
-          AE_NotifyDragDropDone(ae);
+          AE_NotifyDropSource(ae, AEDS_SOURCEDONE, 0, 0);
         }
       }
       else
@@ -17771,21 +17771,6 @@ BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
   return TRUE;
 }
 
-void AE_NotifyDragDropDone(AKELEDIT *ae)
-{
-  //Send EN_DRAGDROPDONE
-  if (ae->popt->dwRichEventMask & ENM_DRAGDROPDONE)
-  {
-    NMHDR hdr;
-
-    hdr.hwndFrom=ae->hWndEdit;
-    hdr.idFrom=ae->nEditCtrlID;
-    hdr.code=EN_DRAGDROPDONE;
-
-    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
-  }
-}
-
 BOOL AE_NotifyDropSource(AKELEDIT *ae, int nAction, DWORD *lpdwEffect, DWORD dwDropResult)
 {
   BOOL bResult=FALSE;
@@ -17809,6 +17794,21 @@ BOOL AE_NotifyDropSource(AKELEDIT *ae, int nAction, DWORD *lpdwEffect, DWORD dwD
     bResult=AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&ds);
 
     if (lpdwEffect) *lpdwEffect=ds.dwEffect;
+  }
+
+  //Send EN_DRAGDROPDONE
+  if (ae->popt->dwRichEventMask & ENM_DRAGDROPDONE)
+  {
+    if (nAction == AEDS_SOURCEDONE)
+    {
+      NMHDR hdr;
+
+      hdr.hwndFrom=ae->hWndEdit;
+      hdr.idFrom=ae->nEditCtrlID;
+      hdr.code=EN_DRAGDROPDONE;
+
+      AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&hdr);
+    }
   }
   return bResult;
 }
