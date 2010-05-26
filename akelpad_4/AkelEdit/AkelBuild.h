@@ -774,6 +774,7 @@ void AE_MButtonErase(AKELEDIT *ae);
 void AE_ActiveColumnCreate(AKELEDIT *ae);
 void AE_ActiveColumnDraw(AKELEDIT *ae);
 void AE_ActiveColumnErase(AKELEDIT *ae);
+void AE_UpdateSize(AKELEDIT *ae);
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase);
 void AE_ColumnMarkerDraw(AKELEDIT *ae);
 void AE_ColumnMarkerErase(AKELEDIT *ae);

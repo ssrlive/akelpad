@@ -1504,6 +1504,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       return AE_UpdateCaret(ae, ae->bFocus);
     }
+    if (uMsg == AEM_UPDATESIZE)
+    {
+      AE_UpdateSize(ae);
+      return 0;
+    }
     if (uMsg == AEM_LOCKUPDATE)
     {
       if (wParam & AELU_SCROLLBAR)
@@ -3066,26 +3071,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_SIZE)
   {
-    int nDrawWidth=ae->rcDraw.right - ae->rcDraw.left;
-
-    ae->rcDraw.right+=LOWORD(lParam) - ae->rcEdit.right;
-    ae->rcDraw.bottom+=HIWORD(lParam) - ae->rcEdit.bottom;
-    ae->rcEdit.right=LOWORD(lParam);
-    ae->rcEdit.bottom=HIWORD(lParam);
-
     if (lParam)
     {
-      AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
-      if (ae->ptxt->dwWordWrap)
-      {
-        if (nDrawWidth != ae->rcDraw.right - ae->rcDraw.left)
-        {
-          AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
-          AE_StackUpdateClones(ae);
-        }
-      }
-      AE_UpdateScrollBars(ae, SB_BOTH);
-      AE_UpdateEditWindow(ae->hWndEdit, TRUE);
+      AE_UpdateSize(ae);
     }
     return 0;
   }
@@ -11885,6 +11873,30 @@ void AE_ColumnMarkerErase(AKELEDIT *ae)
       InvalidateRect(ae->hWndEdit, &rcMarker, TRUE);
     }
   }
+}
+
+void AE_UpdateSize(AKELEDIT *ae)
+{
+  RECT rcClient;
+  int nDrawWidth=ae->rcDraw.right - ae->rcDraw.left;
+
+  GetClientRect(ae->hWndEdit, &rcClient);
+  ae->rcDraw.right+=rcClient.right - ae->rcEdit.right;
+  ae->rcDraw.bottom+=rcClient.bottom - ae->rcEdit.bottom;
+  ae->rcEdit.right=rcClient.right;
+  ae->rcEdit.bottom=rcClient.bottom;
+
+  AE_SetDrawRect(ae, &ae->rcDraw, FALSE);
+  if (ae->ptxt->dwWordWrap)
+  {
+    if (nDrawWidth != ae->rcDraw.right - ae->rcDraw.left)
+    {
+      AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
+      AE_StackUpdateClones(ae);
+    }
+  }
+  AE_UpdateScrollBars(ae, SB_BOTH);
+  AE_UpdateEditWindow(ae->hWndEdit, TRUE);
 }
 
 void AE_UpdateEditWindow(HWND hWndEdit, BOOL bErase)
