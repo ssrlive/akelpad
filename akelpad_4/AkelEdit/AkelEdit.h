@@ -499,11 +499,11 @@ typedef LRESULT (CALLBACK *AEEditProc)(HANDLE hHandle, UINT uMsg, WPARAM wParam,
 //Return Value
 // Depends on message.
 
-typedef DWORD (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
-//dwCookie    Value of the dwCookie member of the AESTREAMIN or AESTREAMOUT structure. The application specifies this value when it sends the AEM_STREAMIN or AEM_STREAMOUT message.
-//wszBuf      Pointer to a buffer to read from or write to. For a stream-in (read) operation, the callback function fills this buffer with data to transfer into the edit control. For a stream-out (write) operation, the buffer contains data from the control that the callback function writes to some storage.
-//dwBufLen    Number of bytes to read or write.
-//dwBufDone   Pointer to a variable that the callback function sets to the number of bytes actually read or written.
+typedef DWORD (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone);
+//dwCookie        Value of the dwCookie member of the AESTREAMIN or AESTREAMOUT structure. The application specifies this value when it sends the AEM_STREAMIN or AEM_STREAMOUT message.
+//wszBuf          Pointer to a buffer to read from or write to. For a stream-in (read) operation, the callback function fills this buffer with data to transfer into the edit control. For a stream-out (write) operation, the buffer contains data from the control that the callback function writes to some storage.
+//dwBufBytesSize  Number of bytes to read or write.
+//dwBufBytesDone  Pointer to a variable that the callback function sets to the number of bytes actually read or written.
 //
 //Return Value
 // The callback function returns zero to indicate success.
@@ -511,7 +511,7 @@ typedef DWORD (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWOR
 //Remarks
 // The control continues to call the callback function until one of the following conditions occurs:
 // * The callback function returns a nonzero value.
-// * The callback function returns zero in the *dwBufDone parameter.
+// * The callback function returns zero in the *dwBufBytesDone parameter.
 
 
 //// Structures
@@ -1837,7 +1837,7 @@ Replace the contents of an edit control with a stream of data provided by an app
 (AESTREAMIN *)lParam == pointer to a AESTREAMIN structure.
 
 Return Value
- Number of characters read.
+ Number of bytes read.
 
 Example:
  typedef struct {
@@ -1859,12 +1859,12 @@ Example:
  aesi.dwTextLen=sid.nDataLen;
  SendMessage(hWndEdit, AEM_STREAMIN, AESF_SELECTION, (LPARAM)&aesi);
 
- DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
+ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone)
  {
    STREAMINDATA *lpData=(STREAMINDATA *)dwCookie;
    wchar_t *wpSrc=lpData->wpData;
    wchar_t *wpDest=wszBuf;
-   DWORD dwDestLen=dwBufLen / sizeof(wchar_t);
+   DWORD dwDestLen=dwBufBytesSize / sizeof(wchar_t);
    DWORD i;
 
    for (i=0; i < dwDestLen; ++i)
@@ -1873,7 +1873,7 @@ Example:
        break;
      wpDest[i]=wpSrc[lpData->nCount++];
    }
-   *dwBufDone=i * sizeof(wchar_t);
+   *dwBufBytesDone=i * sizeof(wchar_t);
 
    return 0;
  }
@@ -1889,7 +1889,7 @@ The callback function can then write the stream of data to a file or any other l
 (AESTREAMOUT *)lParam == pointer to a AESTREAMOUT structure.
 
 Return Value
- Number of characters written to the data stream.
+ Number of bytes written to the data stream.
 
 Example:
  typedef struct {
@@ -1912,13 +1912,13 @@ Example:
    CloseHandle(sod.hFile);
  }
 
- DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone)
+ DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone)
  {
    STREAMOUTDATA *lpData=(STREAMOUTDATA *)dwCookie;
    unsigned char *pDataToWrite=(unsigned char *)wszBuf;
-   DWORD dwBytesToWrite=dwBufLen;
+   DWORD dwBytesToWrite=dwBufBytesSize;
 
-   return !WriteFile(lpData->hFile, pDataToWrite, dwBytesToWrite, dwBufDone, NULL);
+   return !WriteFile(lpData->hFile, pDataToWrite, dwBytesToWrite, dwBufBytesDone, NULL);
  }
 
 

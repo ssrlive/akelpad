@@ -652,7 +652,7 @@ extern "C" void _WinMain()
   ReadThemes();
   StackFreeIni(&hIniStack);
 
-  if (nDefaultCodePage == CP_UNICODE_UCS2_LE || nDefaultCodePage == CP_UNICODE_UCS2_BE || nDefaultCodePage == CP_UNICODE_UTF8)
+  if (IsCodePageUnicode(nDefaultCodePage))
     bDefaultBOM=TRUE;
   fdInit.ei.bBOM=bDefaultBOM;
   fdInit.ei.nCodePage=nDefaultCodePage;
@@ -3165,11 +3165,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_UTF16LE)
     {
-      return DoFileReopenAs(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_LE, FALSE);
+      return DoFileReopenAs(OD_ADT_DETECT_BOM, CP_UNICODE_UTF16LE, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_UTF16BE)
     {
-      return DoFileReopenAs(OD_ADT_DETECT_BOM, CP_UNICODE_UCS2_BE, FALSE);
+      return DoFileReopenAs(OD_ADT_DETECT_BOM, CP_UNICODE_UTF16BE, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REOPENAS_UTF8)
     {
@@ -3189,11 +3189,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16LE)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, CP_UNICODE_UCS2_LE, TRUE, SD_UPDATE);
+      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, CP_UNICODE_UTF16LE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16BE)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, CP_UNICODE_UCS2_BE, TRUE, SD_UPDATE);
+      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, CP_UNICODE_UTF16BE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8)
     {

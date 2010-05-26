@@ -1855,7 +1855,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpDelimDst=AE_HighlightInsertDelimiter(lpTheme, lpDelimSrc->nDelimiterLen))
       {
-        if (lpDelimDst->pDelimiter=(wchar_t *)AE_HeapAlloc(NULL, 0, lpDelimSrc->nDelimiterLen * sizeof(wchar_t) + 2))
+        if (lpDelimDst->pDelimiter=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpDelimSrc->nDelimiterLen + 1) * sizeof(wchar_t)))
           MultiByteToWideChar(CP_ACP, 0, lpDelimSrc->pDelimiter, lpDelimSrc->nDelimiterLen + 1, lpDelimDst->pDelimiter, lpDelimSrc->nDelimiterLen + 1);
         lpDelimDst->nDelimiterLen=lpDelimSrc->nDelimiterLen;
 
@@ -1874,8 +1874,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpDelimDst=AE_HighlightInsertDelimiter(lpTheme, lpDelimSrc->nDelimiterLen))
       {
-        if (lpDelimDst->pDelimiter=(wchar_t *)AE_HeapAlloc(NULL, 0, lpDelimSrc->nDelimiterLen * sizeof(wchar_t) + 2))
-          xmemcpy(lpDelimDst->pDelimiter, lpDelimSrc->pDelimiter, lpDelimSrc->nDelimiterLen * sizeof(wchar_t) + 2);
+        if (lpDelimDst->pDelimiter=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpDelimSrc->nDelimiterLen + 1) * sizeof(wchar_t)))
+          xmemcpy(lpDelimDst->pDelimiter, lpDelimSrc->pDelimiter, (lpDelimSrc->nDelimiterLen + 1) * sizeof(wchar_t));
         lpDelimDst->nDelimiterLen=lpDelimSrc->nDelimiterLen;
 
         lpDelimDst->dwFlags=lpDelimSrc->dwFlags;
@@ -1910,7 +1910,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpWordDst=AE_HighlightInsertWord(lpTheme, nWordLen))
       {
-        if (lpWordDst->pWord=(wchar_t *)AE_HeapAlloc(NULL, 0, lpWordSrc->nWordLen * sizeof(wchar_t) + 2))
+        if (lpWordDst->pWord=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpWordSrc->nWordLen + 1) * sizeof(wchar_t)))
           MultiByteToWideChar(CP_ACP, 0, lpWordSrc->pWord, lpWordSrc->nWordLen + 1, lpWordDst->pWord, lpWordSrc->nWordLen + 1);
         lpWordDst->nWordLen=nWordLen;
 
@@ -1935,8 +1935,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpWordDst=AE_HighlightInsertWord(lpTheme, nWordLen))
       {
-        if (lpWordDst->pWord=(wchar_t *)AE_HeapAlloc(NULL, 0, lpWordSrc->nWordLen * sizeof(wchar_t) + 2))
-          xmemcpy(lpWordDst->pWord, lpWordSrc->pWord, lpWordSrc->nWordLen * sizeof(wchar_t) + 2);
+        if (lpWordDst->pWord=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpWordSrc->nWordLen + 1) * sizeof(wchar_t)))
+          xmemcpy(lpWordDst->pWord, lpWordSrc->pWord, (lpWordSrc->nWordLen + 1) * sizeof(wchar_t));
         lpWordDst->nWordLen=nWordLen;
 
         lpWordDst->dwFlags=lpWordSrc->dwFlags;
@@ -1965,13 +1965,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpQuoteDst=AE_HighlightInsertQuote(lpTheme))
       {
-        if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteStartLen * sizeof(wchar_t) + 2))
+        if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
           MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1, lpQuoteDst->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1);
         lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
 
         if (lpQuoteSrc->pQuoteEnd)
         {
-          if (lpQuoteDst->pQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2))
+          if (lpQuoteDst->pQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t)))
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1, lpQuoteDst->pQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1);
           lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
         }
@@ -1981,7 +1981,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (lpQuoteSrc->pQuoteInclude)
         {
-          if (lpQuoteDst->pQuoteInclude=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteIncludeLen * sizeof(wchar_t) + 2))
+          if (lpQuoteDst->pQuoteInclude=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t)))
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen + 1, lpQuoteDst->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen + 1);
           lpQuoteDst->nQuoteIncludeLen=lpQuoteSrc->nQuoteIncludeLen;
         }
@@ -1989,7 +1989,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (lpQuoteSrc->pQuoteExclude)
         {
-          if (lpQuoteDst->pQuoteExclude=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteExcludeLen * sizeof(wchar_t) + 2))
+          if (lpQuoteDst->pQuoteExclude=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t)))
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen + 1, lpQuoteDst->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen + 1);
           lpQuoteDst->nQuoteExcludeLen=lpQuoteSrc->nQuoteExcludeLen;
         }
@@ -2010,14 +2010,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpQuoteDst=AE_HighlightInsertQuote(lpTheme))
       {
-        if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteStartLen * sizeof(wchar_t) + 2))
-          xmemcpy(lpQuoteDst->pQuoteStart, lpQuoteSrc->pQuoteStart, lpQuoteSrc->nQuoteStartLen * sizeof(wchar_t) + 2);
+        if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
+          xmemcpy(lpQuoteDst->pQuoteStart, lpQuoteSrc->pQuoteStart, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t));
         lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
 
         if (lpQuoteSrc->pQuoteEnd)
         {
-          if (lpQuoteDst->pQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2))
-            xmemcpy(lpQuoteDst->pQuoteEnd, lpQuoteSrc->pQuoteEnd, lpQuoteSrc->nQuoteEndLen * sizeof(wchar_t) + 2);
+          if (lpQuoteDst->pQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t)))
+            xmemcpy(lpQuoteDst->pQuoteEnd, lpQuoteSrc->pQuoteEnd, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
         }
         else lpQuoteDst->pQuoteEnd=NULL;
@@ -2026,16 +2026,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
         if (lpQuoteSrc->pQuoteInclude)
         {
-          if (lpQuoteDst->pQuoteInclude=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteIncludeLen * sizeof(wchar_t) + 2))
-            xmemcpy(lpQuoteDst->pQuoteInclude, lpQuoteSrc->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen * sizeof(wchar_t) + 2);
+          if (lpQuoteDst->pQuoteInclude=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t)))
+            xmemcpy(lpQuoteDst->pQuoteInclude, lpQuoteSrc->pQuoteInclude, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteIncludeLen=lpQuoteSrc->nQuoteIncludeLen;
         }
         else lpQuoteDst->pQuoteInclude=NULL;
 
         if (lpQuoteSrc->pQuoteExclude)
         {
-          if (lpQuoteDst->pQuoteExclude=(wchar_t *)AE_HeapAlloc(NULL, 0, lpQuoteSrc->nQuoteExcludeLen * sizeof(wchar_t) + 2))
-            xmemcpy(lpQuoteDst->pQuoteExclude, lpQuoteSrc->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen * sizeof(wchar_t) + 2);
+          if (lpQuoteDst->pQuoteExclude=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t)))
+            xmemcpy(lpQuoteDst->pQuoteExclude, lpQuoteSrc->pQuoteExclude, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteExcludeLen=lpQuoteSrc->nQuoteExcludeLen;
         }
         else lpQuoteDst->pQuoteExclude=NULL;
@@ -2066,7 +2066,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpMarkTextDst=AE_HighlightInsertMarkText(lpTheme))
       {
-        if (lpMarkTextDst->pMarkText=(wchar_t *)AE_HeapAlloc(NULL, 0, lpMarkTextSrc->nMarkTextLen * sizeof(wchar_t) + 2))
+        if (lpMarkTextDst->pMarkText=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpMarkTextSrc->nMarkTextLen + 1) * sizeof(wchar_t)))
           MultiByteToWideChar(CP_ACP, 0, lpMarkTextSrc->pMarkText, lpMarkTextSrc->nMarkTextLen + 1, lpMarkTextDst->pMarkText, lpMarkTextSrc->nMarkTextLen + 1);
         lpMarkTextDst->nMarkTextLen=lpMarkTextSrc->nMarkTextLen;
 
@@ -2085,8 +2085,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpMarkTextDst=AE_HighlightInsertMarkText(lpTheme))
       {
-        if (lpMarkTextDst->pMarkText=(wchar_t *)AE_HeapAlloc(NULL, 0, lpMarkTextSrc->nMarkTextLen * sizeof(wchar_t) + 2))
-          xmemcpy(lpMarkTextDst->pMarkText, lpMarkTextSrc->pMarkText, lpMarkTextSrc->nMarkTextLen * sizeof(wchar_t) + 2);
+        if (lpMarkTextDst->pMarkText=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpMarkTextSrc->nMarkTextLen + 1) * sizeof(wchar_t)))
+          xmemcpy(lpMarkTextDst->pMarkText, lpMarkTextSrc->pMarkText, (lpMarkTextSrc->nMarkTextLen + 1) * sizeof(wchar_t));
         lpMarkTextDst->nMarkTextLen=lpMarkTextSrc->nMarkTextLen;
 
         lpMarkTextDst->dwFlags=lpMarkTextSrc->dwFlags;
@@ -2347,7 +2347,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     else if (gt->codepage == 1201)
     {
       dwResult=AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, (wchar_t *)lParam, gt->cb / sizeof(wchar_t), nNewLine, FALSE, FALSE);
-      AE_ChangeByteOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t));
+      AE_ChangeTwoBytesOrder((unsigned char *)lParam, dwResult * sizeof(wchar_t));
     }
     else dwResult=AE_GetTextRangeAnsi(ae, gt->codepage, gt->lpDefaultChar, gt->lpUsedDefChar, &cr.ciMin, &cr.ciMax, (char *)lParam, gt->cb, nNewLine, FALSE, FALSE);
 
@@ -2380,7 +2380,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (wszText=(wchar_t *)AE_HeapAlloc(NULL, 0, dwUnicodeBytes + 2))
       {
         xmemcpy(wszText, (wchar_t *)lParam, dwUnicodeBytes + 2);
-        AE_ChangeByteOrder((unsigned char *)wszText, dwUnicodeBytes);
+        AE_ChangeTwoBytesOrder((unsigned char *)wszText, dwUnicodeBytes);
         AE_ReplaceSel(ae, wszText, dwUnicodeBytes / sizeof(wchar_t), FALSE, NULL, NULL);
         AE_HeapFree(NULL, 0, (LPVOID)wszText);
       }
@@ -5521,7 +5521,7 @@ void AE_StackUndoGroupStop(AKELEDIT *ae)
         //Allocate string
         if (dwUndoTextLen)
         {
-          if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+          if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUndoTextLen + 1) * sizeof(wchar_t)))
           {
             //Last index
             if (lpElement)
@@ -7299,7 +7299,7 @@ int AE_LineWrap(AKELEDIT *ae, const AELINEINDEX *liLine, AELINEINDEX *liWrapStar
             lpNewElement->nLineBreak=lpInitialElement->nLineBreak;
           lpNewElement->nLineLen=nCharEnd - nCharStart;
 
-          if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+          if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
           {
             xmemcpy(lpNewElement->wpLine, lpInitialElement->wpLine + nCharStart, lpNewElement->nLineLen * sizeof(wchar_t));
             lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
@@ -7426,7 +7426,7 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
         lpNewElement->nLineBreak=dwUnwrapLineBreak;
         lpNewElement->nLineLen=dwUnwrapLineLen;
 
-        if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+        if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
         {
           liCurLine=*liLine;
 
@@ -13248,7 +13248,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
         }
         else --ae->ptxt->nLastCharOffset;
 
-        if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpElement->nLineLen * sizeof(wchar_t) + 2))
+        if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpElement->nLineLen + 1) * sizeof(wchar_t)))
         {
           xmemcpy(lpElement->wpLine, wpLineStart, lpElement->nLineLen * sizeof(wchar_t));
           lpElement->wpLine[lpElement->nLineLen]=L'\0';
@@ -13445,7 +13445,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   else if (nNewLine == AELB_ASOUTPUT)
     nNewLine=ae->popt->nOutputNewLine;
 
-  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
+  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwBufLen + 1) * sizeof(wchar_t)))
   {
     if (dwFlags & AESF_SELECTION)
     {
@@ -13568,7 +13568,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
               }
               else --ae->ptxt->nLastCharOffset;
 
-              if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpElement->nLineLen * sizeof(wchar_t) + 2))
+              if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpElement->nLineLen + 1) * sizeof(wchar_t)))
               {
                 xmemcpy(lpElement->wpLine, wpLineStart, lpElement->nLineLen * sizeof(wchar_t));
                 lpElement->wpLine[lpElement->nLineLen]=L'\0';
@@ -13840,7 +13840,7 @@ int AE_JoinNewLines(AKELEDIT *ae)
           lpNewElement->nLineBreak=liLineEnd.lpLine->nLineBreak;
           lpNewElement->nLineLen=dwCountLen;
 
-          if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+          if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
           {
             lpCurElement=liLineStart.lpLine;
             dwCountLen=0;
@@ -13913,7 +13913,7 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
     AE_GetIndex(ae, AEGI_LASTCHAR, NULL, &ciEnd, FALSE);
   }
 
-  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, dwBufLen * sizeof(wchar_t) + 2))
+  if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwBufLen + 1) * sizeof(wchar_t)))
   {
     while (ciCount.lpLine)
     {
@@ -14241,7 +14241,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
           lpNewElement->nLineLen=lpElement->nLineLen - nLineDelLength;
           nRichTextCount+=nLineDelLength;
 
-          if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+          if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
           {
             xmemcpy(lpNewElement->wpLine, lpElement->wpLine, min(lpElement->nSelStart, lpNewElement->nLineLen) * sizeof(wchar_t));
             if (lpElement->nSelEnd < lpElement->nLineLen)
@@ -14312,7 +14312,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                     }
 
                     //Add text
-                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                    if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUndoTextLen + 1) * sizeof(wchar_t)))
                     {
                       xmemcpy(wpUndoText, lpElement->wpLine + lpElement->nSelStart, dwUndoTextLen * sizeof(wchar_t));
                       wpUndoText[dwUndoTextLen]=L'\0';
@@ -14549,7 +14549,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
         if (lpNewElement->nLineBreak != AELB_WRAP)
           --nRichTextCount;
 
-        if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+        if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
         {
           xmemcpy(lpNewElement->wpLine, ciDeleteStart.lpLine->wpLine, ciDeleteStart.nCharInLine * sizeof(wchar_t));
           xmemcpy(lpNewElement->wpLine + ciDeleteStart.nCharInLine, ciDeleteEnd.lpLine->wpLine + ciDeleteEnd.nCharInLine, (ciDeleteEnd.lpLine->nLineLen - ciDeleteEnd.nCharInLine) * sizeof(wchar_t));
@@ -14920,7 +14920,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
               lpNewElement->nLineLen=lpElement->nLineLen + max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
               nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
 
-              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
               {
                 xmemcpy(lpNewElement->wpLine, lpElement->wpLine, min(ciInsertFrom.nCharInLine, lpElement->nLineLen) * sizeof(wchar_t));
 
@@ -14983,7 +14983,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                       wchar_t *wpUndoText;
                       DWORD dwUndoTextLen=max(ciInsertFrom.nCharInLine - lpElement->nLineLen, 0) + nLineLen;
 
-                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUndoTextLen + 1) * sizeof(wchar_t)))
                       {
                         nSpaces=ciInsertFrom.nCharInLine - lpElement->nLineLen;
 
@@ -15030,7 +15030,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                         wchar_t *wpLineBreak;
                         DWORD dwUndoTextLen=AE_GetNewLineString(ae, lpNewElement->nLineBreak, &wpLineBreak);
 
-                        if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                        if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUndoTextLen + 1) * sizeof(wchar_t)))
                         {
                           xmemcpy(wpUndoText, wpLineBreak, dwUndoTextLen * sizeof(wchar_t));
                           wpUndoText[dwUndoTextLen]=L'\0';
@@ -15067,7 +15067,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
               lpNewElement->nLineLen=ciInsertFrom.nCharInLine + nLineLen;
               nCaretIndexInLine=ciInsertFrom.nCharInLine + nLineLen;
 
-              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
               {
                 dwRichTextCount+=ciInsertFrom.nCharInLine;
                 if (nLineBreak != AELB_EOF)
@@ -15091,7 +15091,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                       if (nLineBreak == AELB_EOF)
                         --dwUndoTextLen;
 
-                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwUndoTextLen * sizeof(wchar_t) + 2))
+                      if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUndoTextLen + 1) * sizeof(wchar_t)))
                       {
                         nSpaces=ciInsertFrom.nCharInLine;
 
@@ -15320,7 +15320,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                 nCaretIndexInLine=0;
               }
 
-              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
               {
                 xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine, min(ciInsertFrom.nCharInLine, ciInsertFrom.lpLine->nLineLen) * sizeof(wchar_t));
 
@@ -15356,7 +15356,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                       lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0);
                       nCaretIndexInLine=0;
 
-                      if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+                      if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
                       {
                         if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
                           xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
@@ -15386,7 +15386,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                 lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0) + nLineLen;
                 nCaretIndexInLine=nLineLen;
 
-                if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+                if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
                 {
                   xmemcpy(lpNewElement->wpLine, wpLineStart, nLineLen * sizeof(wchar_t));
                   if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
@@ -15402,7 +15402,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                 lpNewElement->nLineLen=nLineLen;
                 nCaretIndexInLine=0;
 
-                if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+                if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
                 {
                   xmemcpy(lpNewElement->wpLine, wpLineStart, lpNewElement->nLineLen * sizeof(wchar_t));
                   lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
@@ -15419,7 +15419,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                   lpNewElement->nLineLen=max(ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine, 0);
                   nCaretIndexInLine=0;
 
-                  if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+                  if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
                   {
                     if (ciInsertFrom.nCharInLine < ciInsertFrom.lpLine->nLineLen)
                       xmemcpy(lpNewElement->wpLine, ciInsertFrom.lpLine->wpLine + ciInsertFrom.nCharInLine, (ciInsertFrom.lpLine->nLineLen - ciInsertFrom.nCharInLine) * sizeof(wchar_t));
@@ -15439,7 +15439,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
               lpNewElement->nLineLen=nLineLen;
               nCaretIndexInLine=0;
 
-              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, lpNewElement->nLineLen * sizeof(wchar_t) + 2))
+              if (lpNewElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, (lpNewElement->nLineLen + 1) * sizeof(wchar_t)))
               {
                 xmemcpy(lpNewElement->wpLine, wpLineStart, lpNewElement->nLineLen * sizeof(wchar_t));
                 lpNewElement->wpLine[lpNewElement->nLineLen]=L'\0';
@@ -15626,7 +15626,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
 
                 if (nSpaces > 0)
                 {
-                  if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, nSpaces * sizeof(wchar_t) + 2))
+                  if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (nSpaces + 1) * sizeof(wchar_t)))
                   {
                     for (i=0; i < nSpaces; ++i)
                       wpUndoText[i]=L' ';
@@ -15643,7 +15643,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                   }
                 }
 
-                if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, dwTextLen * sizeof(wchar_t) + 2))
+                if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwTextLen + 1) * sizeof(wchar_t)))
                 {
                   xmemcpy(wpUndoText, wpText, dwTextLen * sizeof(wchar_t));
                   wpUndoText[dwTextLen]=L'\0';
@@ -17041,7 +17041,7 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl)
 
       if (nSpaces > 0)
       {
-        if (wpSpaces=(wchar_t *)AE_HeapAlloc(ae, 0, nSpaces * sizeof(wchar_t) + 2))
+        if (wpSpaces=(wchar_t *)AE_HeapAlloc(ae, 0, (nSpaces + 1) * sizeof(wchar_t)))
         {
           for (i=0; i < nSpaces; ++i)
             wpSpaces[i]=L' ';
@@ -17925,17 +17925,17 @@ LRESULT AE_SendMessage(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
   return lResult;
 }
 
-void AE_ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen)
+void AE_ChangeTwoBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen)
 {
+  unsigned char *lpBufferEnd=lpBuffer + nBufferLen;
+  unsigned char *lpByte=lpBuffer;
   unsigned char ch;
-  unsigned int a;
-  unsigned int b;
 
-  for (a=0, b=1; b < nBufferLen; a+=2, b+=2)
+  for (; lpByte + 1 < lpBufferEnd; lpByte+=2)
   {
-    ch=lpBuffer[a];
-    lpBuffer[a]=lpBuffer[b];
-    lpBuffer[b]=ch;
+    ch=*lpByte;
+    *lpByte=*(lpByte + 1);
+    *(lpByte + 1)=ch;
   }
 }
 

@@ -30,14 +30,18 @@
 #define APP_ABOUT_EMAIL_KUZNETSOVW  L"developer@akelpad.net.ru"
 
 //Code pages strings
-#define STR_UNICODE_UCS2_LEA   "1200  (UTF-16 LE)"
-#define STR_UNICODE_UCS2_LEW  L"1200  (UTF-16 LE)"
-#define STR_UNICODE_UCS2_BEA   "1201  (UTF-16 BE)"
-#define STR_UNICODE_UCS2_BEW  L"1201  (UTF-16 BE)"
+#define STR_UNICODE_UTF16LEA   "1200  (UTF-16 LE)"
+#define STR_UNICODE_UTF16LEW  L"1200  (UTF-16 LE)"
+#define STR_UNICODE_UTF16BEA   "1201  (UTF-16 BE)"
+#define STR_UNICODE_UTF16BEW  L"1201  (UTF-16 BE)"
 #define STR_UNICODE_UTF8A      "65001 (UTF-8)"
 #define STR_UNICODE_UTF8W     L"65001 (UTF-8)"
 #define STR_UNICODE_UTF7A      "65000 (UTF-7)"
 #define STR_UNICODE_UTF7W     L"65000 (UTF-7)"
+#define STR_UNICODE_UTF32LEA   "12000  (UTF-32 LE)"
+#define STR_UNICODE_UTF32LEW  L"12000  (UTF-32 LE)"
+#define STR_UNICODE_UTF32BEA   "12001  (UTF-32 BE)"
+#define STR_UNICODE_UTF32BEW  L"12001  (UTF-32 BE)"
 #define STR_NOBOMA             "  *BOM"
 #define STR_NOBOMW            L"  *BOM"
 
@@ -160,8 +164,10 @@
 #define LANGID_KOREAN     0x0412
 
 //Code pages int
-#define CP_UNICODE_UCS2_LE  1200
-#define CP_UNICODE_UCS2_BE  1201
+#define CP_UNICODE_UTF16LE  1200
+#define CP_UNICODE_UTF16BE  1201
+#define CP_UNICODE_UTF32LE  12000
+#define CP_UNICODE_UTF32BE  12001
 #define CP_UNICODE_UTF7     65000
 #define CP_UNICODE_UTF8     65001
 #define CP_KOI8_R           20866
@@ -489,11 +495,11 @@ BOOL SaveOptions();
 
 int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
-DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
+DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
 DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent);
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);
-DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufDone);
+DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
 BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir);
 void DropFiles(HDROP hDrop);
 void CheckModificationTime(FRAMEDATA *lpFrame);
@@ -544,9 +550,13 @@ void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen);
 int FilePreview(HWND hWnd, wchar_t *wpFile, int nPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 int AutodetectCodePage(const wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage);
-unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax);
+unsigned int UTF32toUTF16(const unsigned long *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned short *szTarget, unsigned int nTargetMax);
+unsigned int UTF16toUTF32(const unsigned short *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned long *szTarget, unsigned int nTargetMax);
 unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, unsigned int *nWideStringDone, char *szMultiString, unsigned int nMultiStringMax);
-void ChangeByteOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
+unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax);
+void ChangeTwoBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
+void ChangeFourBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
+BOOL IsCodePageUnicode(int nCodePage);
 BOOL IsCodePageValid(int nCodePage);
 unsigned int TranslateNewLinesToUnixW(wchar_t *wszWideString, unsigned int nWideStringLen);
 
