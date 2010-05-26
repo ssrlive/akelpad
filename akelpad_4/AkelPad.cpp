@@ -3638,6 +3638,20 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         LoadStringWide(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, wbuf, BUFFER_SIZE);
         MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
       }
+      else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)
+      {
+        AENDROPSOURCE *aeds=(AENDROPSOURCE *)lParam;
+
+        if (aeds->nAction == AEDS_SOURCEDONE)
+        {
+          if (nMDI == WMD_PMDI)
+          {
+            //Drag'n'Drop was from one tab to another, update caret position cause it has source window coordinates.
+            if (lpFrameCurrent->ei.hDataEdit != aeds->hdr.dataFrom)
+              SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_UPDATECARET, 0, 0);
+          }
+        }
+      }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGING)
       {
         nSelSubtract=0;

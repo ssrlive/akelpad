@@ -870,7 +870,6 @@ void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType);
 void AE_NotifyChanged(AKELEDIT *ae);
 void AE_NotifyPoint(AKELEDIT *ae, DWORD dwType, AEPOINT *lpPoint);
 BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop);
-void AE_NotifyDragDropDone(AKELEDIT *ae);
 BOOL AE_NotifyDropSource(AKELEDIT *ae, int nAction, DWORD *lpdwEffect, DWORD dwDropResult);
 BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect);
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const AECHARRANGE *crLink);
