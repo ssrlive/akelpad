@@ -1878,7 +1878,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           LogFontAtoW((LOGFONTA *)lParam, &lfW);
         else
           xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
-  
+
         if (SetChosenFont(lpFrame, &lfW))
         {
           xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
@@ -4076,17 +4076,28 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_SETFOCUS)
   {
-    if (nMDI == WMD_MDI && !IsEditActive(hWnd))
+    if (nMDI == WMD_MDI)
     {
-      FRAMEDATA *lpFrame;
+      if (!IsEditActive(hWnd))
+      {
+        FRAMEDATA *lpFrame;
 
-      if (lpFrame=GetFrameDataFromEditWindow(hWnd))
-        ActivateMdiFrameWindow(lpFrame, 0);
+        if (lpFrame=GetFrameDataFromEditWindow(hWnd))
+          ActivateMdiFrameWindow(lpFrame, 0);
+      }
+
+      //Assign current window. Need for split windows.
+      lpFrameCurrent->ei.hWndEdit=hWnd;
+      lpFrameCurrent->ei.hDataEdit=(HANDLE)SendMessage(hWnd, AEM_GETWINDOWDATA, 0, 0);
     }
-    else SetSelectionStatus(lpFrameCurrent->ei.hDataEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
+    else
+    {
+      //Assign current window. Need for split windows.
+      lpFrameCurrent->ei.hWndEdit=hWnd;
+      lpFrameCurrent->ei.hDataEdit=(HANDLE)SendMessage(hWnd, AEM_GETWINDOWDATA, 0, 0);
 
-    //Assign current window. Need for split windows.
-    lpFrameCurrent->ei.hWndEdit=hWnd;
+      SetSelectionStatus(lpFrameCurrent->ei.hDataEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
+    }
   }
   else if (uMsg == WM_KEYDOWN)
   {
