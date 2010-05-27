@@ -15317,14 +15317,16 @@ HWND NextClone(BOOL bPrevious)
 
 void UpdateSize()
 {
-  int nHeight;
+  int nTabHeight;
+  int nEditHeight;
 
   if (!hDocksStack.bSizing)
   {
     hDocksStack.bSizing=TRUE;
 
     GetClientRect(hMainWnd, &nsSize.rcInitial);
-    if (bStatusBar) nsSize.rcInitial.bottom-=nStatusHeight;
+    if (bStatusBar && IsWindowVisible(hStatus))
+      nsSize.rcInitial.bottom-=nStatusHeight;
     nsSize.rcCurrent=nsSize.rcInitial;
     SendMessage(hMainWnd, AKDN_SIZE, 0, (LPARAM)&nsSize);
 
@@ -15336,24 +15338,28 @@ void UpdateSize()
     hDocksStack.nSizingSide=0;
 
     //Edits
-    nHeight=nsSize.rcCurrent.bottom - ((!nMDI || (dwTabOptionsMDI & TAB_VIEW_NONE))?0:TAB_HEIGHT);
+    if (!nMDI || (dwTabOptionsMDI & TAB_VIEW_NONE) || !IsWindowVisible(hTab))
+      nTabHeight=0;
+    else
+      nTabHeight=TAB_HEIGHT;
+    nEditHeight=nsSize.rcCurrent.bottom - nTabHeight;
 
     if (nMDI)
     {
-      if ((dwTabOptionsMDI & TAB_VIEW_TOP) || (dwTabOptionsMDI & TAB_VIEW_BOTTOM))
+      if (nTabHeight && ((dwTabOptionsMDI & TAB_VIEW_TOP) || (dwTabOptionsMDI & TAB_VIEW_BOTTOM)))
       {
-        MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nHeight:0), nsSize.rcCurrent.right, TAB_HEIGHT, TRUE);
+        MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHeight:0), nsSize.rcCurrent.right, nTabHeight, TRUE);
         UpdateWindow(hTab);
       }
       if (nMDI == WMD_MDI)
-        MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?TAB_HEIGHT:0), nsSize.rcCurrent.right, nHeight, TRUE);
+        MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, TRUE);
     }
     if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
     {
       fdInit.rcEditWindow.left=nsSize.rcCurrent.left;
-      fdInit.rcEditWindow.top=nsSize.rcCurrent.top + ((nMDI && (dwTabOptionsMDI & TAB_VIEW_TOP))?TAB_HEIGHT:0);
+      fdInit.rcEditWindow.top=nsSize.rcCurrent.top + ((dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0);
       fdInit.rcEditWindow.right=nsSize.rcCurrent.right;
-      fdInit.rcEditWindow.bottom=nHeight;
+      fdInit.rcEditWindow.bottom=nEditHeight;
       ResizeEditWindow(lpFrameCurrent, 0);
     }
     hDocksStack.bSizing=FALSE;
