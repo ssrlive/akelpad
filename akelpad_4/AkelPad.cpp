@@ -136,6 +136,7 @@
 #define SetWindowLongWide
 #define SetWindowTextWide
 #define SHBrowseForFolderWide
+#define ShellExecuteWide
 #define SHGetPathFromIDListWide
 #define StartDocWide
 #define StatusBar_SetTextWide
@@ -3751,25 +3752,12 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             {
               if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
               {
-                if (bOldWindows)
-                {
-                  char *szURL;
+                wchar_t *wszURL;
 
-                  if (ExGetRangeTextA(lpFrameCurrent->ei.hWndEdit, CP_ACP, NULL, NULL, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &szURL, AELB_ASIS, FALSE))
-                  {
-                    ShellExecuteA(lpFrameCurrent->ei.hWndEdit, "open", szURL, NULL, NULL, SW_SHOWNORMAL);
-                    FreeText(szURL);
-                  }
-                }
-                else
+                if (ExGetRangeTextW(lpFrameCurrent->ei.hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &wszURL, AELB_ASIS, FALSE))
                 {
-                  wchar_t *wszURL;
-
-                  if (ExGetRangeTextW(lpFrameCurrent->ei.hWndEdit, &aenl->crLink.ciMin, &aenl->crLink.ciMax, FALSE, &wszURL, AELB_ASIS, FALSE))
-                  {
-                    ShellExecuteW(lpFrameCurrent->ei.hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
-                    FreeText(wszURL);
-                  }
+                  ShellExecuteWide(lpFrameCurrent->ei.hWndEdit, L"open", wszURL, NULL, NULL, SW_SHOWNORMAL);
+                  FreeText(wszURL);
                 }
                 return TRUE;
               }
@@ -4942,91 +4930,100 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       hWndToolTip=NULL;
     }
   }
-  else if (uMsg == WM_GETDLGCODE)
-  {
-    if (lParam)
-    {
-      if (((MSG *)lParam)->message == WM_KEYDOWN ||
-          ((MSG *)lParam)->message == WM_SYSKEYDOWN)
-      {
-        int nVk=(int)((MSG *)lParam)->wParam;
-        BYTE nMod=0;
-
-        if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
-        if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
-        if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
-
-        if (nVk == VK_ESCAPE ||
-            nVk == VK_SPACE ||
-            nVk == VK_RETURN ||
-            nVk == VK_BACK ||
-            nVk == VK_DELETE ||
-            (nVk == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
-            (nVk == VK_TAB && hWndLButtonClick == hWnd))
-        {
-          if (wParam == VK_ESCAPE && !(nMod & HOTKEYF_CONTROL) && !(nMod & HOTKEYF_ALT) && !(nMod & HOTKEYF_SHIFT))
-          {
-            if ((WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0) == wInitHotkey)
-            {
-              return 0;
-            }
-          }
-          return DLGC_WANTMESSAGE;
-        }
-      }
-    }
-  }
-  else if (uMsg == WM_KEYDOWN ||
+  else if ((uMsg == WM_GETDLGCODE && lParam &&
+            (((MSG *)lParam)->message == WM_KEYDOWN ||
+             ((MSG *)lParam)->message == WM_SYSKEYDOWN)) ||
+           uMsg == WM_KEYDOWN ||
            uMsg == WM_SYSKEYDOWN)
   {
+    MSG msg={0};
     RECT rcWindow;
     BOOL bOwnKey=FALSE;
     BOOL bHotkeyExist=FALSE;
     BYTE nMod=0;
     WORD wHotkey;
 
-    if (wParam == VK_ESCAPE ||
-        wParam == VK_SPACE ||
-        wParam == VK_RETURN ||
-        wParam == VK_BACK ||
-        wParam == VK_DELETE ||
-        wParam == VK_TAB)
+    if (uMsg == WM_GETDLGCODE)
     {
-      if ((lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
+      msg=*(MSG *)lParam;
+    }
+    else
+    {
+      msg.hwnd=hWnd;
+      msg.message=uMsg;
+      msg.wParam=wParam;
+      msg.lParam=lParam;
+    }
+
+    if (msg.wParam == VK_ESCAPE ||
+        msg.wParam == VK_SPACE ||
+        msg.wParam == VK_RETURN ||
+        msg.wParam == VK_BACK ||
+        msg.wParam == VK_DELETE ||
+        msg.wParam == VK_TAB)
+    {
+      if ((msg.lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
       if (GetKeyState(VK_CONTROL) & 0x80) nMod|=HOTKEYF_CONTROL;
       if (GetKeyState(VK_MENU) & 0x80) nMod|=HOTKEYF_ALT;
       if (GetKeyState(VK_SHIFT) & 0x80) nMod|=HOTKEYF_SHIFT;
 
-      if (wParam == VK_ESCAPE && !(nMod & HOTKEYF_CONTROL) && !(nMod & HOTKEYF_ALT) && !(nMod & HOTKEYF_SHIFT))
+      if (msg.wParam == VK_ESCAPE && !(nMod & HOTKEYF_CONTROL) && !(nMod & HOTKEYF_ALT) && !(nMod & HOTKEYF_SHIFT))
       {
-        if ((WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0) != wInitHotkey)
+        if ((WORD)SendMessage(msg.hwnd, HKM_GETHOTKEY, 0, 0) != wInitHotkey)
         {
+          if (uMsg == WM_GETDLGCODE)
+            return DLGC_WANTMESSAGE;
+
           //Reset to initial hotkey
-          if (!IsWindowUnicode(hWnd))
-            CallWindowProcA(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
+          if (!IsWindowUnicode(msg.hwnd))
+            CallWindowProcA(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, wInitHotkey, 0);
           else
-            CallWindowProcW(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, wInitHotkey, 0);
+            CallWindowProcW(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, wInitHotkey, 0);
+          SendMessage(GetParent(msg.hwnd), WM_COMMAND, GetDlgCtrlID(msg.hwnd), 0);
           bOwnKey=TRUE;
         }
       }
-      else if (wParam == VK_SPACE ||
-               wParam == VK_RETURN ||
-               wParam == VK_ESCAPE ||
-               (wParam == VK_BACK && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
-               (wParam == VK_DELETE && ((nMod & HOTKEYF_CONTROL) || (nMod & HOTKEYF_ALT) || (nMod & HOTKEYF_SHIFT))) ||
-               (wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
-               (wParam == VK_TAB && hWndLButtonClick == hWnd))
+      else if ((msg.wParam == VK_BACK || msg.wParam == VK_DELETE) && !(nMod & HOTKEYF_CONTROL) && !(nMod & HOTKEYF_ALT) && !(nMod & HOTKEYF_SHIFT))
       {
-        if (!IsWindowUnicode(hWnd))
-          CallWindowProcA(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, MAKEWORD(wParam, nMod), 0);
+        if ((WORD)SendMessage(msg.hwnd, HKM_GETHOTKEY, 0, 0) == 0)
+        {
+          if (uMsg == WM_GETDLGCODE)
+            return DLGC_WANTMESSAGE;
+
+          //If hotkey window already empty assign Backspace or Delete
+          if (!IsWindowUnicode(msg.hwnd))
+            CallWindowProcA(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
+          else
+            CallWindowProcW(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
+          SendMessage(GetParent(msg.hwnd), WM_COMMAND, GetDlgCtrlID(msg.hwnd), 0);
+          bOwnKey=TRUE;
+        }
+      }
+      else if (msg.wParam == VK_SPACE ||
+               msg.wParam == VK_RETURN ||
+               msg.wParam == VK_ESCAPE ||
+               msg.wParam == VK_BACK ||
+               msg.wParam == VK_DELETE ||
+               (msg.wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
+               (msg.wParam == VK_TAB && hWndLButtonClick == msg.hwnd))
+      {
+        if (uMsg == WM_GETDLGCODE)
+          return DLGC_WANTMESSAGE;
+
+        if (!IsWindowUnicode(msg.hwnd))
+          CallWindowProcA(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
         else
-          CallWindowProcW(OldHotkeyInputProc, hWnd, HKM_SETHOTKEY, MAKEWORD(wParam, nMod), 0);
+          CallWindowProcW(OldHotkeyInputProc, msg.hwnd, HKM_SETHOTKEY, MAKEWORD(msg.wParam, nMod), 0);
+        SendMessage(GetParent(msg.hwnd), WM_COMMAND, GetDlgCtrlID(msg.hwnd), 0);
         bOwnKey=TRUE;
       }
     }
+    if (uMsg == WM_GETDLGCODE)
+      return 0;
+
     if (!bOwnKey)
     {
-      if (!IsWindowUnicode(hWnd))
+      if (!IsWindowUnicode(msg.hwnd))
         lResult=CallWindowProcA(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
       else
         lResult=CallWindowProcW(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
@@ -5115,6 +5112,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   //Draw color rectangle if hotkey already exist
   if (uMsg == WM_PAINT)
   {
+    PLUGINFUNCTION *pfElement=NULL;
     HPEN hPen;
     HPEN hPenOld;
     HDC hDC;
@@ -5122,24 +5120,10 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     WORD wHotkey;
     BOOL bDrawRect=FALSE;
 
-    if (bOldWindows)
-    {
-      PLUGINFUNCTION *pfElement=NULL;
-
-      if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
-        if (wHotkey != wInitHotkey)
-          if (pfElement=StackHotkeyFind(&hPluginsStack, wHotkey))
-            bDrawRect=TRUE;
-    }
-    else
-    {
-      PLUGINFUNCTION *pfElement=NULL;
-
-      if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
-        if (wHotkey != wInitHotkey)
-          if (pfElement=StackHotkeyFind(&hPluginsStack, wHotkey))
-            bDrawRect=TRUE;
-    }
+    if (wHotkey=(WORD)SendMessage(hWnd, HKM_GETHOTKEY, 0, 0))
+      if (wHotkey != wInitHotkey)
+        if (pfElement=StackHotkeyFind(&hPluginsStack, wHotkey))
+          bDrawRect=TRUE;
 
     if (bDrawRect)
     {
