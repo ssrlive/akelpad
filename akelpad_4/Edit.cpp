@@ -2261,7 +2261,7 @@ BOOL DoViewFont(HWND hWndOwner, LOGFONTW *lfFont)
     cfA.hwndOwner  =hWndOwner;
     cfA.lpLogFont  =&lfTmpA;
     if (!ChooseFontA(&cfA))
-     return FALSE;
+      return FALSE;
     LogFontAtoW(&lfTmpA, lfFont);
   }
   else
@@ -11953,10 +11953,7 @@ BOOL TranslatePlugin(LPMSG lpMsg)
 
     if (pm)
     {
-      if (bOldWindows)
-        SendMessageA(pm->hWnd, pm->uMsg, pm->wParam, pm->lParam);
-      else
-        SendMessageW(pm->hWnd, pm->uMsg, pm->wParam, pm->lParam);
+      SendMessageWide(pm->hWnd, pm->uMsg, pm->wParam, pm->lParam);
       GlobalFree((HGLOBAL)pm);
     }
     return TRUE;
@@ -13711,10 +13708,7 @@ BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDC_ABOUT_HOMEPAGE)
     {
-      if (bOldWindows)
-        ShellExecuteA(GetParent(hDlg), "open", APP_ABOUT_HOMEPAGEA, NULL, NULL, SW_MAXIMIZE);
-      else
-        ShellExecuteW(GetParent(hDlg), L"open", APP_ABOUT_HOMEPAGEW, NULL, NULL, SW_MAXIMIZE);
+      ShellExecuteWide(GetParent(hDlg), L"open", APP_ABOUT_HOMEPAGEW, NULL, NULL, SW_MAXIMIZE);
       return TRUE;
     }
   }
@@ -16242,16 +16236,8 @@ BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, 
 
   if (!(bResult=WriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped)))
   {
-    if (bOldWindows)
-    {
-      API_LoadStringA(hLangLib, MSG_ERROR_IO, buf, BUFFER_SIZE);
-      MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
-    }
-    else
-    {
-      LoadStringWide(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
-      MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-    }
+    LoadStringWide(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
+    MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
 
   return bResult;
@@ -16263,16 +16249,8 @@ LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes)
 
   if (!(lpResult=HeapAlloc(hHeap, dwFlags, dwBytes)))
   {
-    if (bOldWindows)
-    {
-      API_LoadStringA(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, buf, BUFFER_SIZE);
-      MessageBoxA(hMainWnd, buf, APP_MAIN_TITLEA, MB_OK|MB_ICONERROR);
-    }
-    else
-    {
-      LoadStringWide(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, wbuf, BUFFER_SIZE);
-      MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-    }
+    LoadStringWide(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY, wbuf, BUFFER_SIZE);
+    MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
 
   return lpResult;
