@@ -2082,18 +2082,39 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_FRAMEFINDW)
     {
       if (wParam == FWF_CURRENT)
+      {
+        if (nMDI == WMD_MDI)
+        {
+          if (!lpFrameCurrent->hWndEditParent)
+            return (LRESULT)NULL;
+        }
         return (LRESULT)lpFrameCurrent;
+      }
       if (wParam == FWF_NEXT)
       {
         FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
 
-        return (LRESULT)(lpFrame?lpFrame->next:NULL);
+        if (lpFrame)
+        {
+          if (!lpFrame->next)
+            return (LRESULT)hFramesStack.first;
+          else
+            return (LRESULT)lpFrame->next;
+        }
+        return (LRESULT)NULL;
       }
       if (wParam == FWF_PREV)
       {
         FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
 
-        return (LRESULT)(lpFrame?lpFrame->prev:NULL);
+        if (lpFrame)
+        {
+          if (!lpFrame->prev)
+            return (LRESULT)hFramesStack.last;
+          else
+            return (LRESULT)lpFrame->prev;
+        }
+        return (LRESULT)NULL;
       }
       if (wParam == FWF_BYINDEX)
         return (LRESULT)StackFrameGetByIndex(&hFramesStack, lParam);
