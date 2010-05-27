@@ -552,8 +552,8 @@ int AutodetectCodePage(const wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlag
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage);
 unsigned int UTF32toUTF16(const unsigned long *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned short *szTarget, unsigned int nTargetMax);
 unsigned int UTF16toUTF32(const unsigned short *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned long *szTarget, unsigned int nTargetMax);
-unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, unsigned int *nWideStringDone, char *szMultiString, unsigned int nMultiStringMax);
-unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax);
+unsigned int UTF16toUTF8(const unsigned short *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned char *szTarget, unsigned int nTargetMax);
+unsigned int UTF8toUTF16(const unsigned char *pSource, unsigned int nSourceLen, unsigned int *nSourceDone,  unsigned short *szTarget, unsigned int nTargetMax);
 void ChangeTwoBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
 void ChangeFourBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
 BOOL IsCodePageUnicode(int nCodePage);
