@@ -4647,7 +4647,7 @@ DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBuf
   else
   {
     if (lpData->nCodePage == CP_UNICODE_UTF8)
-      dwBytesToWrite=UTF16toUTF8(wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
+      dwBytesToWrite=UTF16toUTF8(wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
     else
       dwBytesToWrite=WideCharToMultiByte(lpData->nCodePage, 0, wszBuf, dwBufBytesSize / sizeof(wchar_t), (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE, NULL, NULL);
 
@@ -7637,7 +7637,7 @@ unsigned int UTF16toUTF32(const unsigned short *pSource, unsigned int nSourceLen
   return (pDst - szTarget);
 }
 
-unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLen, unsigned int *nWideStringDone, char *szMultiString, unsigned int nMultiStringMax)
+unsigned int UTF16toUTF8(const unsigned short *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned char *szTarget, unsigned int nTargetMax)
 {
   unsigned int lpFirstByteMark[7]={0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
   unsigned int i=0;
@@ -7646,23 +7646,23 @@ unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLe
   unsigned int nRead=0;
   unsigned int nBitesInChar;
 
-  while (ti < nWideStringLen && i < nMultiStringMax)
+  while (ti < nSourceLen && i < nTargetMax)
   {
-    nChar=wpWideString[ti];
+    nChar=pSource[ti];
 
     //Surrogate pair. High surrogate.
     if (nChar >= 0xD800 && nChar <= 0xDBFF)
     {
-      if (++ti >= nWideStringLen)
+      if (++ti >= nSourceLen)
       {
         --ti;
         break;
       }
 
       //Low surrogate
-      if (wpWideString[ti] >= 0xDC00 && wpWideString[ti] <= 0xDFFF)
+      if (pSource[ti] >= 0xDC00 && pSource[ti] <= 0xDFFF)
       {
-        nChar=0x10000 + ((nChar - 0xD800) << 10) + (wpWideString[ti] - 0xDC00);
+        nChar=0x10000 + ((nChar - 0xD800) << 10) + (pSource[ti] - 0xDC00);
       }
       else
       {
@@ -7675,17 +7675,17 @@ unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLe
     {
       if (nChar >= 0x10000)
       {
-        if (i + 3 >= nMultiStringMax) break;
+        if (i + 3 >= nTargetMax) break;
         nBitesInChar=4;
       }
       else if (nChar >= 0x800)
       {
-        if (i + 2 >= nMultiStringMax) break;
+        if (i + 2 >= nTargetMax) break;
         nBitesInChar=3;
       }
       else if (nChar >= 0x80)
       {
-        if (i + 1 >= nMultiStringMax) break;
+        if (i + 1 >= nTargetMax) break;
         nBitesInChar=2;
       }
       else if (nChar >= 0)
@@ -7697,34 +7697,34 @@ unsigned int UTF16toUTF8(const wchar_t *wpWideString, unsigned int nWideStringLe
       {
         case 4:
         {
-          szMultiString[i + 3]=(nChar | 0x80) & 0xBF;
+          szTarget[i + 3]=(nChar | 0x80) & 0xBF;
           nChar=nChar >> 6;
         }
         case 3:
         {
-          szMultiString[i + 2]=(nChar | 0x80) & 0xBF;
+          szTarget[i + 2]=(nChar | 0x80) & 0xBF;
           nChar=nChar >> 6;
         }
         case 2:
         {
-          szMultiString[i + 1]=(nChar | 0x80) & 0xBF;
+          szTarget[i + 1]=(nChar | 0x80) & 0xBF;
           nChar=nChar >> 6;
         }
         case 1:
         {
-          szMultiString[i]=nChar | lpFirstByteMark[nBitesInChar];
+          szTarget[i]=nChar | lpFirstByteMark[nBitesInChar];
         }
       }
       i+=nBitesInChar;
     }
     nRead=++ti;
   }
-  if (nWideStringDone)
-    *nWideStringDone=nRead;
+  if (nSourceDone)
+    *nSourceDone=nRead;
   return i;
 }
 
-unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiStringLen, unsigned int *nMultiStringDone,  wchar_t *wszWideString, unsigned int nWideStringMax)
+unsigned int UTF8toUTF16(const unsigned char *pSource, unsigned int nSourceLen, unsigned int *nSourceDone,  unsigned short *szTarget, unsigned int nTargetMax)
 {
   unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
   unsigned int i=0;
@@ -7733,31 +7733,31 @@ unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiS
   unsigned int nRead=0;
   unsigned int nTrailing;
 
-  while (i < nMultiStringLen && ti < nWideStringMax)
+  while (i < nSourceLen && ti < nTargetMax)
   {
-    if (pMultiString[i] < 0x80)
+    if (pSource[i] < 0x80)
     {
       nTrailing=0;
     }
-    else if (pMultiString[i] < 0xC0)
+    else if (pSource[i] < 0xC0)
     {
       //Trailing byte in leading position
       nRead=++i;
       continue;
     }
-    else if (pMultiString[i] < 0xE0)
+    else if (pSource[i] < 0xE0)
     {
-      if (i + 1 >= nMultiStringLen) break;
+      if (i + 1 >= nSourceLen) break;
       nTrailing=1;
     }
-    else if (pMultiString[i] < 0xF0)
+    else if (pSource[i] < 0xF0)
     {
-      if (i + 2 >= nMultiStringLen) break;
+      if (i + 2 >= nSourceLen) break;
       nTrailing=2;
     }
-    else if (pMultiString[i] < 0xF8)
+    else if (pSource[i] < 0xF8)
     {
-      if (i + 3 >= nMultiStringLen) break;
+      if (i + 3 >= nSourceLen) break;
       nTrailing=3;
     }
     else
@@ -7774,22 +7774,22 @@ unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiS
     {
       case 3:
       {
-        nChar+=pMultiString[i++];
+        nChar+=pSource[i++];
         nChar=nChar << 6;
       }
       case 2:
       {
-        nChar+=pMultiString[i++];
+        nChar+=pSource[i++];
         nChar=nChar << 6;
       }
       case 1:
       {
-        nChar+=pMultiString[i++];
+        nChar+=pSource[i++];
         nChar=nChar << 6;
       }
       case 0:
       {
-        nChar+=pMultiString[i++];
+        nChar+=pSource[i++];
       }
     }
     nChar-=lpOffsetsFromUTF8[nTrailing];
@@ -7797,21 +7797,21 @@ unsigned int UTF8toUTF16(const unsigned char *pMultiString, unsigned int nMultiS
     //Write unicode char
     if (nChar <= 0xFFFF)
     {
-      wszWideString[ti]=nChar;
+      szTarget[ti]=nChar;
     }
     else
     {
       //Surrogate pair
-      if (ti + 1 >= nWideStringMax) break;
+      if (ti + 1 >= nTargetMax) break;
       nChar-=0x10000;
-      wszWideString[ti++]=(unsigned short)((nChar >> 10) + 0xD800);
-      wszWideString[ti]=(unsigned short)((nChar & 0x3ff) + 0xDC00);
+      szTarget[ti++]=(unsigned short)((nChar >> 10) + 0xD800);
+      szTarget[ti]=(unsigned short)((nChar & 0x3ff) + 0xDC00);
     }
     nRead=i;
     ++ti;
   }
-  if (nMultiStringDone)
-    *nMultiStringDone=nRead;
+  if (nSourceDone)
+    *nSourceDone=nRead;
   return ti;
 }
 
