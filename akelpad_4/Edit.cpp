@@ -7598,7 +7598,8 @@ unsigned int UTF32toUTF16(const unsigned long *pSource, unsigned int nSourceLen,
     }
     ++pSrc;
   }
-  if (nSourceDone) *nSourceDone=pSrc - pSource;
+  if (nSourceDone)
+    *nSourceDone=pSrc - pSource;
   return (pDst - szTarget);
 }
 
@@ -7608,7 +7609,7 @@ unsigned int UTF16toUTF32(const unsigned short *pSource, unsigned int nSourceLen
   const unsigned short *pSrcEnd=pSource + nSourceLen;
   unsigned long *pDst=szTarget;
   unsigned long *pDstEnd=szTarget + nTargetMax;
-  unsigned short nChar;
+  unsigned long nChar;
 
   while (pSrc < pSrcEnd && pDst < pDstEnd)
   {
@@ -7625,48 +7626,48 @@ unsigned int UTF16toUTF32(const unsigned short *pSource, unsigned int nSourceLen
 
       //Low surrogate
       if (*pSrc >= 0xDC00 && *pSrc <= 0xDFFF)
-      {
-        *pDst++=((nChar - 0xD800) << 10) + (*pSrc - 0xDC00) + 0x0010000UL;
-        ++pSrc;
+        nChar=((nChar - 0xD800) << 10) + (*pSrc - 0xDC00) + 0x0010000UL;
+      else
         continue;
-      }
     }
-    *pDst++=*pSrc++;
+    *pDst++=nChar;
+    ++pSrc;
   }
-  if (nSourceDone) *nSourceDone=pSrc - pSource;
+  if (nSourceDone)
+    *nSourceDone=pSrc - pSource;
   return (pDst - szTarget);
 }
 
 unsigned int UTF16toUTF8(const unsigned short *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned char *szTarget, unsigned int nTargetMax)
 {
   unsigned int lpFirstByteMark[7]={0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
-  unsigned int i=0;
-  unsigned int ti=0;
-  unsigned int nChar;
-  unsigned int nRead=0;
+  const unsigned short *pSrc=pSource;
+  const unsigned short *pSrcEnd=pSource + nSourceLen;
+  const unsigned short *pSrcDone=pSource;
+  unsigned char *pDst=szTarget;
+  unsigned char *pDstEnd=szTarget + nTargetMax;
+  unsigned long nChar;
   unsigned int nBitesInChar;
 
-  while (ti < nSourceLen && i < nTargetMax)
+  while (pSrc < pSrcEnd && pDst < pDstEnd)
   {
-    nChar=pSource[ti];
+    nChar=*pSrc;
 
     //Surrogate pair. High surrogate.
     if (nChar >= 0xD800 && nChar <= 0xDBFF)
     {
-      if (++ti >= nSourceLen)
+      if (++pSrc >= pSrcEnd)
       {
-        --ti;
+        --pSrc;
         break;
       }
 
       //Low surrogate
-      if (pSource[ti] >= 0xDC00 && pSource[ti] <= 0xDFFF)
-      {
-        nChar=0x10000 + ((nChar - 0xD800) << 10) + (pSource[ti] - 0xDC00);
-      }
+      if (*pSrc >= 0xDC00 && *pSrc <= 0xDFFF)
+        nChar=0x10000 + ((nChar - 0xD800) << 10) + (*pSrc - 0xDC00);
       else
       {
-        nRead=ti;
+        pSrcDone=pSource;
         continue;
       }
     }
@@ -7675,17 +7676,17 @@ unsigned int UTF16toUTF8(const unsigned short *pSource, unsigned int nSourceLen,
     {
       if (nChar >= 0x10000)
       {
-        if (i + 3 >= nTargetMax) break;
+        if (pDst + 3 >= pDstEnd) break;
         nBitesInChar=4;
       }
       else if (nChar >= 0x800)
       {
-        if (i + 2 >= nTargetMax) break;
+        if (pDst + 2 >= pDstEnd) break;
         nBitesInChar=3;
       }
       else if (nChar >= 0x80)
       {
-        if (i + 1 >= nTargetMax) break;
+        if (pDst + 1 >= pDstEnd) break;
         nBitesInChar=2;
       }
       else if (nChar >= 0)
@@ -7697,73 +7698,75 @@ unsigned int UTF16toUTF8(const unsigned short *pSource, unsigned int nSourceLen,
       {
         case 4:
         {
-          szTarget[i + 3]=(nChar | 0x80) & 0xBF;
+          *(pDst + 3)=(unsigned char)(nChar | 0x80) & 0xBF;
           nChar=nChar >> 6;
         }
         case 3:
         {
-          szTarget[i + 2]=(nChar | 0x80) & 0xBF;
+          *(pDst + 2)=(unsigned char)(nChar | 0x80) & 0xBF;
           nChar=nChar >> 6;
         }
         case 2:
         {
-          szTarget[i + 1]=(nChar | 0x80) & 0xBF;
+          *(pDst + 1)=(unsigned char)(nChar | 0x80) & 0xBF;
           nChar=nChar >> 6;
         }
         case 1:
         {
-          szTarget[i]=nChar | lpFirstByteMark[nBitesInChar];
+          *pDst=(unsigned char)(nChar | lpFirstByteMark[nBitesInChar]);
         }
       }
-      i+=nBitesInChar;
+      pDst+=nBitesInChar;
     }
-    nRead=++ti;
+    pSrcDone=++pSrc;
   }
   if (nSourceDone)
-    *nSourceDone=nRead;
-  return i;
+    *nSourceDone=pSrcDone - pSource;
+  return (pDst - szTarget);
 }
 
 unsigned int UTF8toUTF16(const unsigned char *pSource, unsigned int nSourceLen, unsigned int *nSourceDone,  unsigned short *szTarget, unsigned int nTargetMax)
 {
   unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
-  unsigned int i=0;
-  unsigned int ti=0;
-  unsigned int nChar;
-  unsigned int nRead=0;
+  const unsigned char *pSrc=pSource;
+  const unsigned char *pSrcEnd=pSource + nSourceLen;
+  const unsigned char *pSrcDone=pSource;
+  unsigned short *pDst=szTarget;
+  unsigned short *pDstEnd=szTarget + nTargetMax;
+  unsigned long nChar;
   unsigned int nTrailing;
 
-  while (i < nSourceLen && ti < nTargetMax)
+  while (pSrc < pSrcEnd && pDst < pDstEnd)
   {
-    if (pSource[i] < 0x80)
+    if (*pSrc < 0x80)
     {
       nTrailing=0;
     }
-    else if (pSource[i] < 0xC0)
+    else if (*pSrc < 0xC0)
     {
       //Trailing byte in leading position
-      nRead=++i;
+      pSrcDone=++pSrc;
       continue;
     }
-    else if (pSource[i] < 0xE0)
+    else if (*pSrc < 0xE0)
     {
-      if (i + 1 >= nSourceLen) break;
+      if (pSrc + 1 >= pSrcEnd) break;
       nTrailing=1;
     }
-    else if (pSource[i] < 0xF0)
+    else if (*pSrc < 0xF0)
     {
-      if (i + 2 >= nSourceLen) break;
+      if (pSrc + 2 >= pSrcEnd) break;
       nTrailing=2;
     }
-    else if (pSource[i] < 0xF8)
+    else if (*pSrc < 0xF8)
     {
-      if (i + 3 >= nSourceLen) break;
+      if (pSrc + 3 >= pSrcEnd) break;
       nTrailing=3;
     }
     else
     {
       //No chance for this in UTF-16
-      nRead=++i;
+      pSrcDone=++pSrc;
       continue;
     }
 
@@ -7774,22 +7777,22 @@ unsigned int UTF8toUTF16(const unsigned char *pSource, unsigned int nSourceLen, 
     {
       case 3:
       {
-        nChar+=pSource[i++];
+        nChar+=*pSrc++;
         nChar=nChar << 6;
       }
       case 2:
       {
-        nChar+=pSource[i++];
+        nChar+=*pSrc++;
         nChar=nChar << 6;
       }
       case 1:
       {
-        nChar+=pSource[i++];
+        nChar+=*pSrc++;
         nChar=nChar << 6;
       }
       case 0:
       {
-        nChar+=pSource[i++];
+        nChar+=*pSrc++;
       }
     }
     nChar-=lpOffsetsFromUTF8[nTrailing];
@@ -7797,22 +7800,21 @@ unsigned int UTF8toUTF16(const unsigned char *pSource, unsigned int nSourceLen, 
     //Write unicode char
     if (nChar <= 0xFFFF)
     {
-      szTarget[ti]=nChar;
+      *pDst++=(unsigned short)nChar;
     }
     else
     {
       //Surrogate pair
-      if (ti + 1 >= nTargetMax) break;
+      if (pDst + 1 >= pDstEnd) break;
       nChar-=0x10000;
-      szTarget[ti++]=(unsigned short)((nChar >> 10) + 0xD800);
-      szTarget[ti]=(unsigned short)((nChar & 0x3ff) + 0xDC00);
+      *pDst++=(unsigned short)((nChar >> 10) + 0xD800);
+      *pDst++=(unsigned short)((nChar & 0x3ff) + 0xDC00);
     }
-    nRead=i;
-    ++ti;
+    pSrcDone=pSrc;
   }
   if (nSourceDone)
-    *nSourceDone=nRead;
-  return ti;
+    *nSourceDone=pSrcDone - pSource;
+  return (pDst - szTarget);
 }
 
 void ChangeTwoBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen)
@@ -11222,6 +11224,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnS
                   pd.hPluginsStack=&hPluginsStack;
                   pd.hMainWnd=hMainWnd;
                   pd.hWndEdit=lpFrameCurrent->ei.hWndEdit;
+                  pd.hDataEdit=lpFrameCurrent->ei.hDataEdit;
                   pd.hStatus=hStatus;
                   pd.hMdiClient=hMdiClient;
                   pd.hTab=hTab;

@@ -361,6 +361,7 @@ typedef struct _PLUGINDATA {
   HSTACK *hPluginsStack;            //Pointer to a plugins stack with PLUGINFUNCTION elements.
   HWND hMainWnd;                    //Main window.
   HWND hWndEdit;                    //Edit window.
+  HANDLE hDataEdit;                 //Edit data.
   HWND hStatus;                     //StatusBar window.
   HWND hMdiClient;                  //MDI client window (if nMDI == WMD_MDI).
   HWND hTab;                        //Tab window        (if nMDI == WMD_MDI || nMDI == WMD_PMDI).
