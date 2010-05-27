@@ -1803,6 +1803,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hPluginsStack=&hPluginsStack;
       pd->hMainWnd=hMainWnd;
       pd->hWndEdit=lpFrameCurrent->ei.hWndEdit;
+      pd->hDataEdit=lpFrameCurrent->ei.hDataEdit;
       pd->hStatus=hStatus;
       pd->hMdiClient=hMdiClient;
       pd->hTab=hTab;
