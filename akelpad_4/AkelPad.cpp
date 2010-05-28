@@ -36,12 +36,14 @@
   #define xmemcpy
   #define xmemcmp
   #define xmemset
+  #define xstrcpynA
   #define xstrcpynW
 #else
   #define WideCharLower_INCLUDED
   #define xmemcpy_INCLUDED
   #define xmemcmp_INCLUDED
   #define xmemset_INCLUDED
+  #define xstrcpynA_INCLUDED
   #define xstrcpynW_INCLUDED
 #endif
 #define WideCharUpper
@@ -3721,7 +3723,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
             {
               wchar_t *wpTabName=AllocWideStr(MAX_PATH);
-              TCITEMW tcItemW;
+              TCITEMW tcItemW={0};
 
               tcItemW.mask=TCIF_TEXT;
               tcItemW.pszText=wpTabName;

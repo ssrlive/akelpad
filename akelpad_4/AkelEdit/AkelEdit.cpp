@@ -35,6 +35,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <stddef.h>
 #include <imm.h>
 #include "StrFunc.h"
 #include "AkelBuild.h"
@@ -47,6 +48,7 @@
 #define xmemcpy
 #define xmemcmp
 #define xmemset
+#define xstrcpynA
 #define xstrcpynW
 #include "StrFunc.h"
 
@@ -1837,13 +1839,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpTheme)
       {
-        AE_HighlightDeleteTheme(lpTheme);
         AE_HighlightUnsetTheme(lpTheme);
+        AE_HighlightDeleteTheme(lpTheme);
       }
       else
       {
-        AE_HighlightDeleteThemeAll();
         AE_HighlightUnsetTheme(NULL);
+        AE_HighlightDeleteThemeAll();
       }
       return 0;
     }
@@ -4896,8 +4898,9 @@ AEFONTITEMA* AE_StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont)
 
   if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTITEMA)))
   {
-    xmemcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTA));
-    xmemcpy(&lfTmp, lfFont, sizeof(LOGFONTA));
+    xmemcpy(&lpElement->lfFont, lfFont, offsetof(LOGFONTA, lfFaceName));
+    xstrcpynA(lpElement->lfFont.lfFaceName, lfFont->lfFaceName, LF_FACESIZE);
+    xmemcpy(&lfTmp, &lpElement->lfFont, sizeof(LOGFONTA));
 
     //Create normal font
     lfTmp.lfWeight=FW_NORMAL;
@@ -4937,8 +4940,9 @@ AEFONTITEMW* AE_StackFontItemInsertW(HSTACK *hStack, LOGFONTW *lfFont)
 
   if (!AE_HeapStackInsertIndex(NULL, (stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(AEFONTITEMW)))
   {
-    xmemcpy(&lpElement->lfFont, lfFont, sizeof(LOGFONTW));
-    xmemcpy(&lfTmp, lfFont, sizeof(LOGFONTW));
+    xmemcpy(&lpElement->lfFont, lfFont, offsetof(LOGFONTW, lfFaceName));
+    xstrcpynW(lpElement->lfFont.lfFaceName, lfFont->lfFaceName, LF_FACESIZE);
+    xmemcpy(&lfTmp, &lpElement->lfFont, sizeof(LOGFONTW));
 
     //Create normal font
     lfTmp.lfWeight=FW_NORMAL;
