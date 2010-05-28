@@ -1222,6 +1222,7 @@ typedef struct {
 
 #define AKDN_EDIT_ONSTART          (WM_USER + 11)  //0x40B
 #define AKDN_EDIT_ONFINISH         (WM_USER + 12)  //0x40C
+#define AKDN_EDIT_ONCLOSE          (WM_USER + 13)  //0x40D
 
 #define AKDN_FRAME_NOWINDOWS       (WM_USER + 21)  //0x415
 #define AKDN_FRAME_ACTIVATE        (WM_USER + 22)  //0x416
@@ -1485,6 +1486,18 @@ AKDN_EDIT_ONFINISH
 __________________
 
 Notification message, sends to the main procedure before destroying edit window.
+
+(HWND)wParam   == edit window.
+(HANDLE)lParam == edit window data handle.
+
+Return Value
+ Zero.
+
+
+AKDN_EDIT_ONCLOSE
+_________________
+
+Notification message, sends to the main procedure before closing edit window document. After closing current document will be empty.
 
 (HWND)wParam   == edit window.
 (HANDLE)lParam == edit window data handle.
