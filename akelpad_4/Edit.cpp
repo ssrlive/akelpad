@@ -1602,6 +1602,8 @@ BOOL DoFileClose()
 {
   if (!SaveChanged()) return FALSE;
 
+  SendMessage(hMainWnd, AKDN_EDIT_ONCLOSE, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDataEdit);
+
   if (nRecentFiles && lpFrameCurrent->wszFile[0])
   {
     RecentFilesZero();
@@ -1610,9 +1612,7 @@ BOOL DoFileClose()
     RecentFilesSave();
   }
 
-  HideCaret(NULL);
   SetWindowTextWide(lpFrameCurrent->ei.hWndEdit, L"");
-  ShowCaret(NULL);
   lpFrameCurrent->szFile[0]='\0';
   lpFrameCurrent->wszFile[0]=L'\0';
   lpFrameCurrent->nFileLen=0;
@@ -3771,6 +3771,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     DoFileNew();
     hWnd=lpFrameCurrent->ei.hWndEdit;
   }
+  bFileExist=GetFullNameW(wpFile, wszFile, MAX_PATH);
 
   //Notification message
   if (GetWindowLongWide(hWnd, GWL_ID) == ID_EDIT)
@@ -3778,10 +3779,10 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     NOPENDOCUMENT nod;
     char szFile[MAX_PATH];
 
-    WideCharToMultiByte(CP_ACP, 0, wpFile, -1, szFile, MAX_PATH, NULL, NULL);
-    nod.pFile=bOldWindows?(LPBYTE)szFile:(LPBYTE)wpFile;
+    WideCharToMultiByte(CP_ACP, 0, wszFile, -1, szFile, MAX_PATH, NULL, NULL);
+    nod.pFile=bOldWindows?(LPBYTE)szFile:(LPBYTE)wszFile;
     nod.szFile=szFile;
-    nod.wszFile=wpFile;
+    nod.wszFile=wszFile;
     nod.nCodePage=&nCodePage;
     nod.bBOM=&bBOM;
     nod.dwFlags=&dwFlags;
@@ -3794,15 +3795,13 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     }
   }
 
-  bFileExist=GetFullNameW(wpFile, wszFile, MAX_PATH);
-
   if (!bFileExist)
   {
     //File doesn't exist
     if (nMsgCreate == AUTOANSWER_ASK)
     {
       LoadStringWide(hLangLib, MSG_FILE_DOES_NOT_EXIST, wbuf, BUFFER_SIZE);
-      xprintfW(wbuf2, wbuf, wpFile);
+      xprintfW(wbuf2, wbuf, wszFile);
       if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION) == IDCANCEL)
       {
         nResult=EOD_CANCEL;
@@ -3825,27 +3824,27 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       //File exists
       if (!(dwFlags & OD_REOPEN) && bSingleOpenFile)
       {
-        if (!nMDI && xstrcmpiW(wpFile, lpFrameCurrent->wszFile))
+        if (!nMDI && xstrcmpiW(wszFile, lpFrameCurrent->wszFile))
         {
-          if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wpFile)) &&
+          if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wszFile)) &&
               (hWndFriend=GetParent(hWndFriend)))
           {
             SetForegroundWindow(hWndFriend);
-            OpenDocumentSend(hWndFriend, NULL, wpFile, dwFlags, nCodePage, bBOM, FALSE);
+            OpenDocumentSend(hWndFriend, NULL, wszFile, dwFlags, nCodePage, bBOM, FALSE);
             nResult=EOD_WINDOW_EXIST;
             goto End;
           }
         }
         if (nMDI)
         {
-          if (lpFrame=StackFrameGetByName(&hFramesStack, wpFile, -1))
+          if (lpFrame=StackFrameGetByName(&hFramesStack, wszFile, -1))
           {
             ActivateMdiFrameWindow(lpFrame, 0);
             hWnd=lpFrameCurrent->ei.hWndEdit;
 
             if (SaveChanged())
             {
-              OpenDocument(hWnd, wpFile, dwFlags|OD_REOPEN, nCodePage, bBOM);
+              OpenDocument(hWnd, wszFile, dwFlags|OD_REOPEN, nCodePage, bBOM);
             }
             nResult=EOD_WINDOW_EXIST;
             goto End;
@@ -3859,7 +3858,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     }
 
     //Autodetect code page
-    if ((nDetect=AutodetectCodePage(wpFile, dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
+    if ((nDetect=AutodetectCodePage(wszFile, dwCodepageRecognitionBuffer, dwFlags, &nCodePage, &bBOM)) < 0)
     {
       if (!(dwFlags & OD_REOPEN))
       {
@@ -3868,7 +3867,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
           if (nMsgBinary == AUTOANSWER_ASK)
           {
             LoadStringWide(hLangLib, MSG_ERROR_BINARY, wbuf, BUFFER_SIZE);
-            xprintfW(wbuf2, wbuf, wpFile);
+            xprintfW(wbuf2, wbuf, wszFile);
             if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
             {
               nResult=EOD_CANCEL;
@@ -3901,7 +3900,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   }
 
   //Open file
-  if ((hFile=CreateFileWide(wpFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
+  if ((hFile=CreateFileWide(wszFile, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, bFileExist?OPEN_EXISTING:OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL)) == INVALID_HANDLE_VALUE)
   {
     nResult=EOD_OPEN;
     goto End;
@@ -3952,8 +3951,6 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
 
     //Get file write time
     GetFileTime(hFile, NULL, NULL, &lpFrameCurrent->ft);
-
-    HideCaret(NULL);
   }
 
   //Load text
@@ -3969,12 +3966,10 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
 
   if (IsEditActive(hWnd))
   {
-    ShowCaret(NULL);
-
     if (fsd.bResult)
     {
       //Compare paths
-      nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wpFile);
+      nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile);
 
       if (nFileCmp || lpFrameCurrent->ei.nCodePage != nCodePage)
       {
@@ -3983,7 +3978,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         {
           RecentFilesZero();
           RecentFilesRead();
-          RecentFilesUpdate(wpFile, -1, nCodePage);
+          RecentFilesUpdate(wszFile, -1, nCodePage);
           RecentFilesSave();
           if (nFileCmp) bMenuRecentFiles=TRUE;
         }
@@ -3996,8 +3991,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
 
       if (nFileCmp)
       {
-        UpdateTitle(lpFrameCurrent, wpFile);
-        xstrcpynW(lpFrameCurrent->wszFile, wpFile, MAX_PATH);
+        UpdateTitle(lpFrameCurrent, wszFile);
+        xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
         lpFrameCurrent->nFileLen=lstrlenW(lpFrameCurrent->wszFile);
         WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
       }
@@ -4374,6 +4369,7 @@ DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, 
 
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags)
 {
+  wchar_t wszFile[MAX_PATH];
   WIN32_FIND_DATAW wfdW;
   HANDLE hFile;
   FILESTREAMDATA fsd;
@@ -4390,6 +4386,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
     return nResult;
   }
+  GetFullNameW(wpFile, wszFile, MAX_PATH);
 
   //Notification message
   if (GetWindowLongWide(hWnd, GWL_ID) == ID_EDIT)
@@ -4397,10 +4394,10 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     NSAVEDOCUMENT nsd;
     char szFile[MAX_PATH];
 
-    WideCharToMultiByte(CP_ACP, 0, wpFile, -1, szFile, MAX_PATH, NULL, NULL);
-    nsd.pFile=bOldWindows?(LPBYTE)szFile:(LPBYTE)wpFile;
+    WideCharToMultiByte(CP_ACP, 0, wszFile, -1, szFile, MAX_PATH, NULL, NULL);
+    nsd.pFile=bOldWindows?(LPBYTE)szFile:(LPBYTE)wszFile;
     nsd.szFile=szFile;
-    nsd.wszFile=wpFile;
+    nsd.wszFile=wszFile;
     nsd.nCodePage=&nCodePage;
     nsd.bBOM=&bBOM;
     nsd.dwFlags=dwFlags;
@@ -4442,7 +4439,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     }
   }
 
-  dwAttr=GetFileAttributesWide(wpFile);
+  dwAttr=GetFileAttributesWide(wszFile);
 
   if (dwAttr != INVALID_FILE_ATTRIBUTES)
   {
@@ -4451,7 +4448,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       if (!IsEditActive(hWnd))
         SetFocus(hWnd);
       LoadStringWide(hLangLib, MSG_SAVEIN_READONLY, wbuf, BUFFER_SIZE);
-      xprintfW(wbuf2, wbuf, wpFile);
+      xprintfW(wbuf2, wbuf, wszFile);
       if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_YESNO|MB_ICONEXCLAMATION) == IDNO)
       {
         nResult=ESD_READONLY;
@@ -4459,15 +4456,15 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       }
     }
     if ((dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
-      SetFileAttributesWide(wpFile, dwAttr & ~FILE_ATTRIBUTE_READONLY & ~FILE_ATTRIBUTE_HIDDEN & ~FILE_ATTRIBUTE_SYSTEM);
+      SetFileAttributesWide(wszFile, dwAttr & ~FILE_ATTRIBUTE_READONLY & ~FILE_ATTRIBUTE_HIDDEN & ~FILE_ATTRIBUTE_SYSTEM);
     if (bSaveTime)
     {
-      if ((hFile=FindFirstFileWide(wpFile, &wfdW)) != INVALID_HANDLE_VALUE)
+      if ((hFile=FindFirstFileWide(wszFile, &wfdW)) != INVALID_HANDLE_VALUE)
         FindClose(hFile);
     }
   }
 
-  hFile=CreateFileWide(wpFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
+  hFile=CreateFileWide(wszFile, GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, (dwAttr != INVALID_FILE_ATTRIBUTES)?TRUNCATE_EXISTING:CREATE_NEW, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (hFile == INVALID_HANDLE_VALUE)
   {
@@ -4513,10 +4510,10 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     if (dwAttr != INVALID_FILE_ATTRIBUTES)
     {
       if (!(dwAttr & FILE_ATTRIBUTE_ARCHIVE) || (dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
-        SetFileAttributesWide(wpFile, dwAttr|FILE_ATTRIBUTE_ARCHIVE);
+        SetFileAttributesWide(wszFile, dwAttr|FILE_ATTRIBUTE_ARCHIVE);
       if (bSaveTime)
       {
-        if ((hFile=CreateFileWide(wpFile, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL)) != INVALID_HANDLE_VALUE)
+        if ((hFile=CreateFileWide(wszFile, FILE_WRITE_ATTRIBUTES, 0, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL)) != INVALID_HANDLE_VALUE)
         {
           SetFileTime(hFile, NULL, NULL, &wfdW.ftLastWriteTime);
           CloseHandle(hFile);
@@ -4530,7 +4527,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
       if (IsEditActive(hWnd))
       {
         //Compare
-        nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wpFile);
+        nFileCmp=xstrcmpiW(lpFrameCurrent->wszFile, wszFile);
         nCodePageCmp=lpFrameCurrent->ei.nCodePage - nCodePage;
 
         if (nFileCmp || nCodePageCmp)
@@ -4540,19 +4537,19 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
           {
             RecentFilesZero();
             RecentFilesRead();
-            RecentFilesUpdate(wpFile, AkelIndexToRichOffset(lpFrameCurrent->ei.hWndEdit, &ciCaret), nCodePage);
+            RecentFilesUpdate(wszFile, AkelIndexToRichOffset(lpFrameCurrent->ei.hWndEdit, &ciCaret), nCodePage);
             RecentFilesSave();
             if (nFileCmp) bMenuRecentFiles=TRUE;
           }
         }
-        GetFileWriteTimeWide(wpFile, &lpFrameCurrent->ft);
+        GetFileWriteTimeWide(wszFile, &lpFrameCurrent->ft);
         SetModifyStatus(lpFrameCurrent, FALSE);
         SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
 
         if (nFileCmp)
         {
-          UpdateTitle(lpFrameCurrent, wpFile);
-          xstrcpynW(lpFrameCurrent->wszFile, wpFile, MAX_PATH);
+          UpdateTitle(lpFrameCurrent, wszFile);
+          xstrcpynW(lpFrameCurrent->wszFile, wszFile, MAX_PATH);
           lpFrameCurrent->nFileLen=lstrlenW(lpFrameCurrent->wszFile);
           WideCharToMultiByte(CP_ACP, 0, lpFrameCurrent->wszFile, lpFrameCurrent->nFileLen + 1, lpFrameCurrent->szFile, MAX_PATH, NULL, NULL);
         }
@@ -4569,9 +4566,9 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
         if (lpFrame=GetFrameDataFromEditWindow(hWnd))
         {
           //Compare
-          nFileCmp=xstrcmpiW(lpFrame->wszFile, wpFile);
+          nFileCmp=xstrcmpiW(lpFrame->wszFile, wszFile);
 
-          GetFileWriteTimeWide(wpFile, &ft);
+          GetFileWriteTimeWide(wszFile, &ft);
           SetModifyStatus(lpFrame, FALSE);
           lpFrame->ei.nCodePage=nCodePage;
           lpFrame->ei.bBOM=bBOM;
@@ -4579,7 +4576,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
 
           if (nFileCmp)
           {
-            UpdateTitle(lpFrame, wpFile);
+            UpdateTitle(lpFrame, wszFile);
           }
         }
       }
@@ -4596,7 +4593,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   if (dwAttr != INVALID_FILE_ATTRIBUTES)
   {
     if ((dwAttr & FILE_ATTRIBUTE_READONLY) || (dwAttr & FILE_ATTRIBUTE_HIDDEN) || (dwAttr & FILE_ATTRIBUTE_SYSTEM))
-      SetFileAttributesWide(wpFile, dwAttr);
+      SetFileAttributesWide(wszFile, dwAttr);
   }
 
   End:
