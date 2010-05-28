@@ -2312,7 +2312,7 @@ HTREEITEM TreeView_InsertItemWide(HWND hWnd, TVINSERTSTRUCTW *tvisW)
       TVINSERTSTRUCTA tvisA;
       HTREEITEM hResult;
 
-      xmemcpy(&tvisA, &tvisW->item, sizeof(TVINSERTSTRUCTA));
+      xmemcpy(&tvisA, tvisW, sizeof(TVINSERTSTRUCTA));
       tvisA.item.pszText=AllocAnsi(tvisW->item.pszText);
       hResult=(HTREEITEM)SendMessageA(hWnd, TVM_INSERTITEMA, 0, (LPARAM)&tvisA);
 

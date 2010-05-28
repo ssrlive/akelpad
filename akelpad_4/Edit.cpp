@@ -15717,7 +15717,7 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
   if (nMDI == WMD_MDI || nMDI == WMD_PMDI)
   {
     ASSOCICON *ai;
-    TCITEMW tcItemW;
+    TCITEMW tcItemW={0};
     const wchar_t *wpExt;
     HICON hIcon=NULL;
     int nItem;
@@ -15786,7 +15786,7 @@ void UpdateTabs(HWND hWnd)
 
 int AddTabItem(HWND hWnd, HICON hIcon, LPARAM lParam)
 {
-  TCITEMW tcItem;
+  TCITEMW tcItem={0};
   int nItemCount;
   int nResult=-1;
 
@@ -15911,7 +15911,7 @@ int SelectTabItem(HWND hWnd, int nIndex)
 
 int MoveTabItem(HWND hWnd, int nIndexOld, int nIndexNew)
 {
-  TCITEMW tcItemW;
+  TCITEMW tcItemW={0};
   wchar_t wszItemText[MAX_PATH];
 
   tcItemW.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;

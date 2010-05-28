@@ -2378,8 +2378,10 @@ int dec2hexA(unsigned int nDec, char *szStrHex, unsigned int nWidth, BOOL bLower
   szStrHex[c]='\0';
   nResult=c;
 
-  for (b=0, --c; b < c; d=szStrHex[b], szStrHex[b++]=szStrHex[c], szStrHex[c--]=d);
-
+  if (c)
+  {
+    for (b=0, --c; b < c; d=szStrHex[b], szStrHex[b++]=szStrHex[c], szStrHex[c--]=d);
+  }
   return nResult;
 }
 #endif
@@ -2433,8 +2435,10 @@ int dec2hexW(unsigned int nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bL
   wszStrHex[c]='\0';
   nResult=c;
 
-  for (b=0, --c; b < c; d=wszStrHex[b], wszStrHex[b++]=wszStrHex[c], wszStrHex[c--]=d);
-
+  if (c)
+  {
+    for (b=0, --c; b < c; d=wszStrHex[b], wszStrHex[b++]=wszStrHex[c], wszStrHex[c--]=d);
+  }
   return nResult;
 }
 #endif
