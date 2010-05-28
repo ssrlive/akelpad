@@ -2951,52 +2951,30 @@ wParam                == not used.
 Return Value
   Zero.
 
-Example (bOldWindows == TRUE):
- typedef struct {
-   POSTMESSAGE pm;
-   SAVEDOCUMENTA sd;
- } PMSAVEDOCUMENTA;
-
- PMSAVEDOCUMENTA *pmsd;
-
- if (pmsd=(PMSAVEDOCUMENTA *)GlobalAlloc(GPTR, sizeof(PMSAVEDOCUMENTA)))
- {
-   lstrcpynA(pmsd->sd.szFile, "C:\\MyFile.txt", MAX_PATH);
-   pmsd->sd.nCodePage=65001;
-   pmsd->sd.bBOM=TRUE;
-   pmsd->sd.bUpdate=TRUE;
-
-   //Post message
-   pmsd->pm.hWnd=pd->hMainWnd;
-   pmsd->pm.uMsg=AKD_SAVEDOCUMENT;
-   pmsd->pm.wParam=(WPARAM)pd->hWndEdit;
-   pmsd->pm.lParam=(LPARAM)&pmsd->sd;
-   PostMessage(pd->hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmsd);
- }
-
-Example (bOldWindows == FALSE):
+Example (Unicode):
  typedef struct {
    POSTMESSAGE pm;
    SAVEDOCUMENTW sd;
+   wchar_t szFile[MAX_PATH];
  } PMSAVEDOCUMENTW;
 
  PMSAVEDOCUMENTW *pmsd;
 
  if (pmsd=(PMSAVEDOCUMENTW *)GlobalAlloc(GPTR, sizeof(PMSAVEDOCUMENTW)))
  {
-   lstrcpynW(pmsd->sd.szFile, L"C:\\MyFile.txt", MAX_PATH);
+   lstrcpynW(pmsd->szFile, L"C:\\MyFile.txt", MAX_PATH);
+   pmsd->sd.pFile=pmsd->szFile;
    pmsd->sd.nCodePage=65001;
    pmsd->sd.bBOM=TRUE;
-   pmsd->sd.bUpdate=TRUE;
+   pmsd->sd.dwFlags=SD_UPDATE;
 
    //Post message
    pmsd->pm.hWnd=pd->hMainWnd;
-   pmsd->pm.uMsg=AKD_SAVEDOCUMENT;
+   pmsd->pm.uMsg=AKD_SAVEDOCUMENTW;
    pmsd->pm.wParam=(WPARAM)pd->hWndEdit;
    pmsd->pm.lParam=(LPARAM)&pmsd->sd;
    PostMessage(pd->hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmsd);
  }
-
 
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW
 ___________  ____________  ____________
