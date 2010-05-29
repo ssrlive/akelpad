@@ -13300,6 +13300,13 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
               //ae->bSkipMessages=FALSE;
               InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
               UpdateWindow(ae->hWndEdit);
+
+              //Make sure that WM_PAINT will be send after setting text
+              {
+                RECT rcOnePixel={0, 0, 1, 1};
+
+                InvalidateRect(ae->hWndEdit, &rcOnePixel, TRUE);
+              }
               //ae->bSkipMessages=TRUE;
 
               //Restore variables
@@ -13625,6 +13632,13 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                 //ae->bSkipMessages=FALSE;
                 InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
                 UpdateWindow(ae->hWndEdit);
+
+                //Make sure that WM_PAINT will be send after setting text
+                {
+                  RECT rcOnePixel={0, 0, 1, 1};
+
+                  InvalidateRect(ae->hWndEdit, &rcOnePixel, TRUE);
+                }
                 //ae->bSkipMessages=TRUE;
 
                 //Restore variables
