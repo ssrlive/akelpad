@@ -3303,6 +3303,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
       return 0;
     }
+    else if (LOWORD(wParam) == IDM_INTERNAL_UPDATEMAINCHILDREN)
+    {
+      HWND hWndChild;
+
+      //Update main window non-edit children
+      hWndChild=GetWindow(hMainWnd, GW_CHILD);
+
+      while (hWndChild)
+      {
+        if (((nMDI == WMD_SDI || nMDI == WMD_PMDI) && GetWindowLongA(hWndChild, GWL_ID) != ID_EDIT) ||
+            (nMDI == WMD_MDI && hWndChild != hMdiClient))
+        {
+          UpdateWindow(hWndChild);
+        }
+        hWndChild=GetNextWindow(hWndChild, GW_HWNDNEXT);
+      }
+      return 0;
+    }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
       RECT rc;
