@@ -15240,6 +15240,8 @@ void ActivateWindow(HWND hWnd)
       ShowWindow(hWnd, SW_RESTORE);
     else
       SetForegroundWindow(hWnd); //BringWindowToTop(hWnd);
+
+    SendMessage(hWnd, WM_COMMAND, IDM_INTERNAL_UPDATEMAINCHILDREN, 0);
   }
   SendMessage(hWnd, AKDN_ACTIVATE, 0, 0);
 }

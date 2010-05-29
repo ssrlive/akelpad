@@ -1188,6 +1188,9 @@ typedef struct {
 #define IDM_INTERNAL_ERRORIO_MSG        4503  //Internal command.
                                               //Return Value: zero.
                                               //
+#define IDM_INTERNAL_UPDATEMAINCHILDREN 4504  //Internal command.
+                                              //Return Value: zero.
+                                              //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files.
                                               //5001 + n   Open recent file n.
                                               //Return Value: zero.
