@@ -721,7 +721,6 @@ extern "C" void _WinMain()
       if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
       {
         ActivateWindow(hWndFriend);
-        SendMessage(hWndFriend, AKDN_ACTIVATE, 0, 0);
         bExit=TRUE;
       }
     }
@@ -821,7 +820,6 @@ extern "C" void _WinMain()
                 (hWndFriend=GetParent(hWndFriend)))
             {
               ActivateWindow(hWndFriend);
-              SendMessage(hWndFriend, AKDN_ACTIVATE, 0, 0);
               bExit=TRUE;
               goto OpenSendW;
             }
@@ -3287,6 +3285,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         bReopenMsg=FALSE;
       }
+      return 0;
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_CANTOPEN_MSG)
     {
@@ -3296,11 +3295,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);
         MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
+      return 0;
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_ERRORIO_MSG)
     {
       LoadStringWide(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
       MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+      return 0;
     }
     else if (LOWORD(wParam) == IDM_POPUP_CODEPAGEMENU)
     {
