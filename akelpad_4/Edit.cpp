@@ -3946,7 +3946,6 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     {
       DoFileNew();
       hWnd=lpFrameCurrent->ei.hWndEdit;
-      UpdateWindow(hMainWnd);
     }
 
     //Get file write time
@@ -15242,6 +15241,7 @@ void ActivateWindow(HWND hWnd)
     else
       SetForegroundWindow(hWnd); //BringWindowToTop(hWnd);
   }
+  SendMessage(hWnd, AKDN_ACTIVATE, 0, 0);
 }
 
 HWND NextDialog(BOOL bPrevious)

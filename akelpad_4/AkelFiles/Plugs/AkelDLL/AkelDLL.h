@@ -376,7 +376,7 @@ typedef struct _PLUGINDATA {
   BOOL bOldRichEdit;                //Riched20.dll lower then 5.30 (v3.0).
   BOOL bOldComctl32;                //Comctl32.dll lower then 4.71.
   BOOL bAkelEdit;                   //AkelEdit control is used.
-  int nMDI;                         //MDI mode, see WMD_* defines.
+  int nMDI;                         //Window mode, see WMD_* defines.
   int nSaveSettings;                //See SS_* defines.
   const BYTE *pLangModule;          //Language module.
                                     //  const char *pLangModule      if bOldWindows == TRUE
@@ -1449,7 +1449,7 @@ Return Value
 AKDN_MAIN_ONSTART_IDLE
 ______________________
 
-Notification message, sends to the main procedure when main window is finished initialize and there is no messages in the main thread's queue.
+Notification message, sends to the main procedure when main window is finished initialize and there are no messages in the main thread's queue.
 
 wParam == not used.
 lParam == not used.

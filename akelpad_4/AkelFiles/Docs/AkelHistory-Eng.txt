@@ -21,7 +21,6 @@ Changed: read-only mode is not inherited and not saved now. Item from the menu "
          moved to "View" menu. Read-only mode command is now 4216.
 Changed: at program exit, settings saved of the active tab, not of the last closed (MDI).
 Changed: more soft work with text Drag'n'Drop.
-Changed: before file opening controls are updated if the main window was minimized (MDI).
 
 Added: pseudo multi-window (PMDI), which allows you to open an unlimited number of files.
        In contrast to the MDI mode, opening a new tab does not lead creation of new graphical
