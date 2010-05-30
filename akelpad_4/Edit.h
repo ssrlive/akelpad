@@ -75,6 +75,8 @@
 
 #define BUFFER_SIZE                1024
 #define COMMANDLINE_SIZE           32768
+#define COMMANDARG_SIZE            16384
+#define OPENFILELIST_SIZE          32768
 #define TRANSLATE_BUFFER_SIZE      8192
 #define PREVIEW_SIZE               8188  //4094*2; -1 preview all file
 #define PUTFIND_MAXSEL             16384
@@ -405,6 +407,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRect);
 FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
 FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev);
 int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem);
+BOOL FrameNoWindows();
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
@@ -413,7 +416,7 @@ HWND SetEditData(HANDLE hDataEditNew, HANDLE *hDataEditOld);
 
 BOOL DoFileNew();
 HWND DoFileNewWindow(DWORD dwAddFlags);
-BOOL CALLBACK EnumThreadProc(HWND hwnd, LPARAM lParam);
+BOOL CALLBACK EnumThreadWindowsProc(HWND hwnd, LPARAM lParam);
 BOOL DoFileOpen();
 int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM);
 BOOL DoFileSave();
@@ -710,6 +713,14 @@ FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemGet(HSTACK *hStack, const LOGFONTW *lfFont);
 void StackFontItemsFree(HSTACK *hStack);
 
+wchar_t* GetCommandLineWide(void);
+char* GetCommandLineParamsA();
+wchar_t* GetCommandLineParamsW();
+int GetCommandLineArgA(const char *pCmdLine, char *szArgName, int nArgNameLen, const char **pArgOption, int *nArgOptionLen, const char **pNextArg, BOOL bParseAsNotepad);
+int GetCommandLineArgW(const wchar_t *wpCmdLine, wchar_t *wszArgName, int nArgNameLen, const wchar_t **wpArgOption, int *nArgOptionLen, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
+int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad);
+void PostCmdLine(HWND hWnd, const wchar_t *wpCmdLine);
+
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);
 DWORD IsEditActive(HWND hWnd);
 void UpdateShowHScroll(FRAMEDATA *lpFrame);
@@ -726,11 +737,6 @@ void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw);
 BOOL InsertTabStopW(HWND hWnd);
 BOOL IndentTabStopW(HWND hWnd, int nAction);
 BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr);
-wchar_t* GetCommandLineWide(void);
-char* GetCommandLineParamsA();
-wchar_t* GetCommandLineParamsW();
-int GetCommandLineArgA(const char *pCmdLine, char *szArgName, int nArgNameLen, const char **pArgOption, int *nArgOptionLen, const char **pNextArg, BOOL bParseAsNotepad);
-int GetCommandLineArgW(const wchar_t *wpCmdLine, wchar_t *wszArgName, int nArgNameLen, const wchar_t **wpArgOption, int *nArgOptionLen, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
 int SetUrlPrefixes(HWND hWnd, const wchar_t *wpPrefixes);
 BOOL IsReadOnly(HWND hWnd);
 BOOL SaveChanged();
@@ -801,6 +807,6 @@ BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, 
 LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
 BOOL API_HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem);
 wchar_t* AllocWideStr(DWORD dwSize);
-void FreeWideStr(wchar_t *wpVar);
+BOOL FreeWideStr(wchar_t *wpVar);
 
 #endif

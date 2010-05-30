@@ -26,7 +26,8 @@ extern HANDLE hMutex;
 //WinMain
 extern HINSTANCE hInstance;
 extern DWORD dwCmdShow;
-extern BOOL bNotepadCommandLine;
+extern DWORD dwCmdLineOptions;
+extern const wchar_t *wpCmdLine;
 
 //Identification
 extern DWORD dwExeVersion;
@@ -40,7 +41,7 @@ extern BOOL bWindowsNT;
 //Buffers
 extern char szCmdLine[COMMANDLINE_SIZE];
 extern wchar_t wszCmdLine[COMMANDLINE_SIZE];
-extern wchar_t wszCmdFile[MAX_PATH];
+extern wchar_t wszCmdArg[COMMANDARG_SIZE];
 extern unsigned char pcTranslateBuffer[TRANSLATE_BUFFER_SIZE];
 extern char buf[BUFFER_SIZE];
 extern wchar_t wbuf[BUFFER_SIZE];
@@ -169,8 +170,6 @@ extern BOOL bSaveDlg;
 extern DWORD dwOfnFlags;
 extern BOOL bOfnBOM;
 extern int nOfnCodePage;
-extern int nMsgCreate;
-extern int nMsgBinary;
 extern POINT ptDocumentPos;
 extern BOOL bSaveInReadOnlyMsg;
 extern WNDPROC OldFilePreviewProc;
@@ -250,7 +249,6 @@ extern DWORD dwPrintColor;
 extern BOOL bPrintFontEnable;
 extern BOOL bPrintHeaderEnable;
 extern BOOL bPrintFooterEnable;
-extern BOOL bGlobalPrint;
 extern BOOL bPrintFontChanged;
 
 //Edit state
@@ -965,6 +963,26 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
   return FWDE_NOWINDOW;
 }
 
+BOOL FrameNoWindows()
+{
+  if (nMDI == WMD_MDI)
+  {
+    if (!lpFrameCurrent->hWndEditParent)
+      return TRUE;
+  }
+  else
+  {
+    if (lpFrameCurrent == (FRAMEDATA *)hFramesStack.first &&
+        lpFrameCurrent == (FRAMEDATA *)hFramesStack.last &&
+        !lpFrameCurrent->ei.bModified &&
+        !lpFrameCurrent->ei.wszFile[0])
+    {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
@@ -1265,7 +1283,7 @@ HWND DoFileNewWindow(DWORD dwAddFlags)
   if (CreateProcessWide(wbuf, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &siW, &pi))
   {
     WaitForInputIdle(pi.hProcess, INFINITE);
-    EnumThreadWindows(pi.dwThreadId, EnumThreadProc, (LPARAM)&hWnd);
+    EnumThreadWindows(pi.dwThreadId, EnumThreadWindowsProc, (LPARAM)&hWnd);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
     return hWnd;
@@ -1273,7 +1291,7 @@ HWND DoFileNewWindow(DWORD dwAddFlags)
   return 0;
 }
 
-BOOL CALLBACK EnumThreadProc(HWND hwnd, LPARAM lParam)
+BOOL CALLBACK EnumThreadWindowsProc(HWND hwnd, LPARAM lParam)
 {
   HWND *hWnd=(HWND *)lParam;
 
@@ -1300,6 +1318,7 @@ BOOL CALLBACK EnumThreadProc(HWND hwnd, LPARAM lParam)
 
 BOOL DoFileOpen()
 {
+  wchar_t *wszFileList;
   DIALOGCODEPAGE dc={-1, -1};
   BOOL bResult;
 
@@ -1307,18 +1326,19 @@ BOOL DoFileOpen()
   bSaveDlg=FALSE;
 
   //Open file dialog
+  if (wszFileList=AllocWideStr(OPENFILELIST_SIZE))
   {
     OPENFILENAMEW ofnW={0};
 
-    xstrcpynW(wszCmdLine, lpFrameCurrent->wszFile, MAX_PATH);
+    xstrcpynW(wszFileList, lpFrameCurrent->wszFile, MAX_PATH);
     ofnW.lStructSize    =sizeof(OPENFILENAMEW);
     ofnW.lCustData      =(LPARAM)&dc;
     ofnW.hwndOwner      =hMainWnd;
     ofnW.hInstance      =hLangLib;
-    ofnW.lpstrFile      =wszCmdLine;
+    ofnW.lpstrFile      =wszFileList;
     ofnW.lpstrFilter    =wszFilter;
     ofnW.nFilterIndex   =2;
-    ofnW.nMaxFile       =COMMANDLINE_SIZE;
+    ofnW.nMaxFile       =OPENFILELIST_SIZE;
     ofnW.lpstrInitialDir=wszLastDir;
     ofnW.lpstrDefExt    =NULL;
     ofnW.Flags          =(nMDI?OFN_ALLOWMULTISELECT:0)|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
@@ -1326,80 +1346,81 @@ BOOL DoFileOpen()
     ofnW.lpTemplateName =MAKEINTRESOURCEW(IDD_OFN);
 
     bResult=GetOpenFileNameWide(&ofnW);
-  }
 
-  if (bResult)
-  {
-    //GetCurrentDirectoryWide(MAX_PATH, wszLastDir);
-    SetCurrentDirectoryWide(wszExeDir);
-
-    if (!nMDI)
+    if (bResult)
     {
-      GetFileDirW(wszCmdLine, wszLastDir, MAX_PATH);
-      if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszCmdLine, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
-        return FALSE;
-    }
-    else
-    {
-      wchar_t wszFile[MAX_PATH];
-      wchar_t wszString[MAX_PATH];
-      wchar_t *wpFile=wszCmdLine + lstrlenW(wszCmdLine) + 1;
-      int nFiles;
-      int nFileCount=0;
-
-      if (*wpFile)
+      //GetCurrentDirectoryWide(MAX_PATH, wszLastDir);
+      SetCurrentDirectoryWide(wszExeDir);
+  
+      if (!nMDI)
       {
-        //Multiple files selected
-        if (*(wpFile - 2) == '\\') *(wpFile - 2)='\0';
-        xstrcpynW(wszLastDir, wszCmdLine, MAX_PATH);
-
-        //Get files count
-        if (bStatusBar)
-        {
-          LoadStringWide(hLangLib, STR_COUNT, wszString, MAX_PATH);
-          xarraysizeW(wszCmdLine, &nFiles);
-
-          //First element in array is directory.
-          --nFiles;
-        }
-
-        do
-        {
-          if (IsPathFullW(wpFile))
-            xstrcpynW(wszFile, wpFile, MAX_PATH);  //.lnk target
-          else
-            xprintfW(wszFile, L"%s\\%s", wszCmdLine, wpFile);
-          OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFile, dwOfnFlags, nOfnCodePage, bOfnBOM);
-
-          //Status update
-          if (bStatusBar)
-          {
-            MSG msg;
-
-            xprintfW(wbuf, wszString, ++nFileCount, nFiles);
-            StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
-
-            while (PeekMessageWide(&msg, hStatus, 0, 0, PM_REMOVE))
-            {
-              TranslateMessage(&msg);
-              DispatchMessageWide(&msg);
-            }
-          }
-        }
-        while (*(wpFile+=lstrlenW(wpFile) + 1));
-
-        if (bStatusBar)
-          StatusBar_SetTextWide(hStatus, STATUS_MODIFY, L"");
+        GetFileDirW(wszFileList, wszLastDir, MAX_PATH);
+        if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
+          return FALSE;
       }
       else
       {
-        //One file selected
-        GetFileDirW(wszCmdLine, wszLastDir, MAX_PATH);
-        if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszCmdLine, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
-          return FALSE;
+        wchar_t wszFile[MAX_PATH];
+        wchar_t wszString[MAX_PATH];
+        wchar_t *wpFile=wszFileList + lstrlenW(wszFileList) + 1;
+        int nFiles;
+        int nFileCount=0;
+  
+        if (*wpFile)
+        {
+          //Multiple files selected
+          if (*(wpFile - 2) == '\\') *(wpFile - 2)='\0';
+          xstrcpynW(wszLastDir, wszFileList, MAX_PATH);
+  
+          //Get files count
+          if (bStatusBar)
+          {
+            LoadStringWide(hLangLib, STR_COUNT, wszString, MAX_PATH);
+            xarraysizeW(wszFileList, &nFiles);
+  
+            //First element in array is directory.
+            --nFiles;
+          }
+  
+          do
+          {
+            if (IsPathFullW(wpFile))
+              xstrcpynW(wszFile, wpFile, MAX_PATH);  //.lnk target
+            else
+              xprintfW(wszFile, L"%s\\%s", wszFileList, wpFile);
+            OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFile, dwOfnFlags, nOfnCodePage, bOfnBOM);
+  
+            //Status update
+            if (bStatusBar)
+            {
+              MSG msg;
+  
+              xprintfW(wbuf, wszString, ++nFileCount, nFiles);
+              StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+  
+              while (PeekMessageWide(&msg, hStatus, 0, 0, PM_REMOVE))
+              {
+                TranslateMessage(&msg);
+                DispatchMessageWide(&msg);
+              }
+            }
+          }
+          while (*(wpFile+=lstrlenW(wpFile) + 1));
+  
+          if (bStatusBar)
+            StatusBar_SetTextWide(hStatus, STATUS_MODIFY, L"");
+        }
+        else
+        {
+          //One file selected
+          GetFileDirW(wszFileList, wszLastDir, MAX_PATH);
+          if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
+            return FALSE;
+        }
       }
+      return TRUE;
     }
-    return TRUE;
+    FreeWideStr(wszFileList);
   }
   return FALSE;
 }
@@ -1436,6 +1457,7 @@ BOOL DoFileSave()
 
 BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
 {
+  wchar_t wszSaveFile[MAX_PATH];
   DIALOGCODEPAGE dc={nDialogCodePage, bDialogBOM};
   BOOL bResult;
 
@@ -1445,15 +1467,15 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
   {
     OPENFILENAMEW ofnW={0};
 
-    xstrcpynW(wszCmdLine, lpFrameCurrent->wszFile, MAX_PATH);
+    xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
     ofnW.lStructSize    =sizeof(OPENFILENAMEW);
     ofnW.lCustData      =(LPARAM)&dc;
     ofnW.hwndOwner      =hMainWnd;
     ofnW.hInstance      =hLangLib;
-    ofnW.lpstrFile      =wszCmdLine;
+    ofnW.lpstrFile      =wszSaveFile;
     ofnW.lpstrFilter    =wszFilter;
     ofnW.nFilterIndex   =2;
-    ofnW.nMaxFile       =COMMANDLINE_SIZE;
+    ofnW.nMaxFile       =MAX_PATH;
     ofnW.lpstrInitialDir=wszLastDir;
     ofnW.lpstrDefExt    =wszDefaultSaveExt;
     ofnW.Flags          =OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
@@ -1468,7 +1490,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
     GetCurrentDirectoryWide(MAX_PATH, wszLastDir);
     SetCurrentDirectoryWide(wszExeDir);
 
-    if (!SaveDocument(lpFrameCurrent->ei.hWndEdit, wszCmdLine, nOfnCodePage, bOfnBOM, SD_UPDATE))
+    if (!SaveDocument(lpFrameCurrent->ei.hWndEdit, wszSaveFile, nOfnCodePage, bOfnBOM, SD_UPDATE))
       return TRUE;
   }
   return FALSE;
@@ -1764,7 +1786,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         nStringLenAll=(crRange.ciMax.nLine - crRange.ciMin.nLine + 1) * nStringLen;
         nBufferLen=nRangeLen + nStringLenAll;
 
-        if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, (nBufferLen + 1) * sizeof(wchar_t)))
+        if (wszRange=AllocWideStr(nBufferLen + 1))
         {
           tr.cr=crRange;
           tr.bColumnSel=FALSE;
@@ -1817,7 +1839,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
       }
       else if (nAction & STRSEL_DELETE)
       {
-        if (wszRange=(wchar_t *)API_HeapAlloc(hHeap, 0, (nRangeLen + 1) * sizeof(wchar_t)))
+        if (wszRange=AllocWideStr(nRangeLen + 1))
         {
           tr.cr=crRange;
           tr.bColumnSel=FALSE;
@@ -1912,7 +1934,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
       InvalidateRect(hWnd, NULL, TRUE);
       RestoreLineScroll(hWnd, nFirstLine);
 
-      API_HeapFree(hHeap, 0, (LPVOID)wszRange);
+      FreeWideStr(wszRange);
       return bResult;
     }
   }
@@ -2421,9 +2443,9 @@ BOOL DoSettingsExec()
   nCommandLen=TranslateFileStringW(wszCommand, NULL, 0);
   nWorkDirLen=TranslateFileStringW(wszWorkDir, NULL, 0);
 
-  if (wszCommandExp=(wchar_t *)API_HeapAlloc(hHeap, 0, (nCommandLen + 1) * sizeof(wchar_t)))
+  if (wszCommandExp=AllocWideStr(nCommandLen + 1))
   {
-    if (wszWorkDirExp=(wchar_t *)API_HeapAlloc(hHeap, 0, (nWorkDirLen + 1) * sizeof(wchar_t)))
+    if (wszWorkDirExp=AllocWideStr(nWorkDirLen + 1))
     {
       TranslateFileStringW(wszCommand, wszCommandExp, nCommandLen + 1);
       TranslateFileStringW(wszWorkDir, wszWorkDirExp, nWorkDirLen + 1);
@@ -2440,9 +2462,9 @@ BOOL DoSettingsExec()
         LoadStringWide(hLangLib, MSG_ERROR_RUN, wbuf, BUFFER_SIZE);
         MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
-      API_HeapFree(hHeap, 0, (LPVOID)wszWorkDirExp);
+      FreeWideStr(wszWorkDirExp);
     }
-    API_HeapFree(hHeap, 0, (LPVOID)wszCommandExp);
+    FreeWideStr(wszCommandExp);
   }
   return bResult;
 }
@@ -3798,7 +3820,15 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   if (!bFileExist)
   {
     //File doesn't exist
-    if (nMsgCreate == AUTOANSWER_ASK)
+    if (dwCmdLineOptions & CLO_MSGCREATEFILEYES)
+    {
+    }
+    else if (dwCmdLineOptions & CLO_MSGCREATEFILENO)
+    {
+      nResult=EOD_CANCEL;
+      goto End;
+    }
+    else
     {
       LoadStringWide(hLangLib, MSG_FILE_DOES_NOT_EXIST, wbuf, BUFFER_SIZE);
       xprintfW(wbuf2, wbuf, wszFile);
@@ -3808,12 +3838,6 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         goto End;
       }
     }
-    else if (nMsgCreate == AUTOANSWER_NO)
-    {
-      nResult=EOD_CANCEL;
-      goto End;
-    }
-
     nCodePage=nDefaultCodePage;
     bBOM=bDefaultBOM;
   }
@@ -3829,7 +3853,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
           if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wszFile)) &&
               (hWndFriend=GetParent(hWndFriend)))
           {
-            SetForegroundWindow(hWndFriend);
+            ActivateWindow(hWndFriend);
             OpenDocumentSend(hWndFriend, NULL, wszFile, dwFlags, nCodePage, bBOM, FALSE);
             nResult=EOD_WINDOW_EXIST;
             goto End;
@@ -3864,7 +3888,15 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       {
         if (nDetect == EDT_BINARY)
         {
-          if (nMsgBinary == AUTOANSWER_ASK)
+          if (dwCmdLineOptions & CLO_MSGBINARYOPENYES)
+          {
+          }
+          else if (dwCmdLineOptions & CLO_MSGBINARYOPENNO)
+          {
+            nResult=EOD_CANCEL;
+            goto End;
+          }
+          else
           {
             LoadStringWide(hLangLib, MSG_ERROR_BINARY, wbuf, BUFFER_SIZE);
             xprintfW(wbuf2, wbuf, wszFile);
@@ -3873,11 +3905,6 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
               nResult=EOD_CANCEL;
               goto End;
             }
-          }
-          else if (nMsgBinary == AUTOANSWER_NO)
-          {
-            nResult=EOD_CANCEL;
-            goto End;
           }
         }
         else
@@ -4046,10 +4073,10 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
 
       //Print if "/p" option used in command line
       GlobalPrint:
-      if (bGlobalPrint)
+      if (dwCmdLineOptions & CLO_GLOBALPRINT)
       {
         DoFilePrint(lpFrameCurrent, TRUE);
-        bGlobalPrint=FALSE;
+        dwCmdLineOptions&=~CLO_GLOBALPRINT;
 
         if (!nMDI)
         {
@@ -4058,7 +4085,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         else
         {
           DestroyMdiFrameWindow(lpFrameCurrent, -1);
-          if (!bSingleOpenProgram && !lpFrameCurrent->hWndEditParent)
+          if (FrameNoWindows())
             PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
       }
@@ -6754,7 +6781,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
       {
         if (nMDI)
         {
-          if (GetWindowTextLengthWide(hDlgEdit) > COMMANDLINE_SIZE)
+          if (GetWindowTextLengthWide(hDlgEdit) > OPENFILELIST_SIZE)
           {
             LoadStringWide(hLangLib, MSG_LONG_FILELIST, wbuf, BUFFER_SIZE);
             MessageBoxW(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
@@ -8366,7 +8393,7 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, 
 
   nTextLen_orig=GetWindowTextLengthWide(hWnd) + 1;
 
-  if (*wszText_orig=*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTextLen_orig + 1) * sizeof(wchar_t)))
+  if (*wszText_orig=*wszText=AllocWideStr(nTextLen_orig + 1))
   {
     nTextLen=GetWindowTextWide(hWnd, *wszText_orig, nTextLen_orig);
 
@@ -8391,7 +8418,7 @@ int GetComboboxSearchText(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, 
     {
       if (ftflags & AEFR_ESCAPESEQ)
       {
-        if (*wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTextLen_orig + 1) * sizeof(wchar_t)))
+        if (*wszText=AllocWideStr(nTextLen_orig + 1))
         {
           if (!(nTextLen=EscapeStringToEscapeDataW(*wszText_orig, *wszText, nNewLine)))
           {
@@ -8433,11 +8460,11 @@ void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace)
     {
       ++nSize;
 
-      if (wszData=(wchar_t *)API_HeapAlloc(hHeap, 0, (nSize + 1) * sizeof(wchar_t)))
+      if (wszData=AllocWideStr(nSize + 1))
       {
         ComboBox_GetLBTextWide(hWnd, i, wszData);
         RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)wszData, nSize * sizeof(wchar_t));
-        API_HeapFree(hHeap, 0, (LPVOID)wszData);
+        FreeWideStr(wszData);
         continue;
       }
     }
@@ -8595,7 +8622,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
     {
       if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
       {
-        if (wszResultText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nResultTextLen + 1) * sizeof(wchar_t)))
+        if (wszResultText=AllocWideStr(nResultTextLen + 1))
         {
           //Remember selection
           if (nNewLine == AELB_ASIS)
@@ -8687,7 +8714,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
             }
             else SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
           }
-          API_HeapFree(hHeap, 0, (LPVOID)wszResultText);
+          FreeWideStr(wszResultText);
         }
       }
       if (wszRangeText) FreeText(wszRangeText);
@@ -9084,7 +9111,8 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
 
 BOOL FreeText(LPVOID pText)
 {
-  if (pText) return API_HeapFree(hHeap, 0, pText);
+  if (pText)
+    return API_HeapFree(hHeap, 0, (LPVOID)pText);
   return FALSE;
 }
 
@@ -9109,7 +9137,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd)
 
         nTargetLen=lstrlenW(wpSource);
 
-        if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTargetLen + 1) * sizeof(wchar_t)))
+        if (wpTarget=AllocWideStr(nTargetLen + 1))
         {
           for (wpTargetCount=wpTarget, wpSourceCount=wpSource; *wpSourceCount; ++wpSourceCount, ++wpTargetCount)
           {
@@ -9137,7 +9165,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd)
 
           SendMessageW(hWnd, EM_REPLACESEL, TRUE, (LPARAM)wpTarget);
           bResult=TRUE;
-          API_HeapFree(hHeap, 0, (LPVOID)wpTarget);
+          FreeWideStr(wpTarget);
         }
         GlobalUnlock(hData);
       }
@@ -9225,7 +9253,7 @@ BOOL ColumnPaste(HWND hWnd)
             nSourceLen=lstrlenW(wpSource);
             nTargetLen=(nSourceLen + 1) * nLineRange - 1;
 
-            if (wpTarget=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTargetLen + 1) * sizeof(wchar_t)))
+            if (wpTarget=AllocWideStr(nTargetLen + 1))
             {
               for (i=0; i < nLineRange; ++i)
               {
@@ -9241,7 +9269,7 @@ BOOL ColumnPaste(HWND hWnd)
               else
                 SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMax);
               bResult=FALSE;
-              API_HeapFree(hHeap, 0, (LPVOID)wpTarget);
+              FreeWideStr(wpTarget);
             }
             GlobalUnlock(hData);
           }
@@ -9848,7 +9876,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
       WideCharToMultiByte(nCodePageFrom, 0, wszSelText, nUnicodeLen + 1, szText, nAnsiLen, NULL, NULL);
       nUnicodeLen=MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, NULL, 0);
 
-      if (wszText=(wchar_t *)API_HeapAlloc(hHeap, 0, nUnicodeLen * sizeof(wchar_t)))
+      if (wszText=AllocWideStr(nUnicodeLen))
       {
         MultiByteToWideChar(nCodePageTo, 0, szText, nAnsiLen, wszText, nUnicodeLen);
         API_HeapFree(hHeap, 0, (LPVOID)szText);
@@ -9869,7 +9897,7 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
         else
           SetSel(hWnd, &crRange, AESELT_COLUMNASIS, &crRange.ciMax);
 
-        API_HeapFree(hHeap, 0, (LPVOID)wszText);
+        FreeWideStr(wszText);
       }
       if (szText) API_HeapFree(hHeap, 0, (LPVOID)szText);
     }
@@ -13465,7 +13493,7 @@ int MoveListboxItem(HWND hWnd, int nOldIndex, int nNewIndex)
 
   if ((nTextLen=SendMessage(hWnd, LB_GETTEXTLEN, nOldIndex, 0)) != LB_ERR)
   {
-    if (wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, (nTextLen + 1) * sizeof(wchar_t)))
+    if (wpText=AllocWideStr(nTextLen + 1))
     {
       ListBox_GetTextWide(hWnd, nOldIndex, wpText);
       nData=SendMessage(hWnd, LB_GETITEMDATA, nOldIndex, 0);
@@ -13473,7 +13501,7 @@ int MoveListboxItem(HWND hWnd, int nOldIndex, int nNewIndex)
       SendMessage(hWnd, LB_DELETESTRING, nOldIndex, 0);
       nIndex=ListBox_InsertStringWide(hWnd, nNewIndex, wpText);
       SendMessage(hWnd, LB_SETITEMDATA, nIndex, nData);
-      API_HeapFree(hHeap, 0, (LPVOID)wpText);
+      FreeWideStr(wpText);
     }
   }
   return nIndex;
@@ -14336,6 +14364,411 @@ void StackFontItemsFree(HSTACK *hStack)
 }
 
 
+//// Command line functions
+
+wchar_t* GetCommandLineWide(void)
+{
+  if (bOldWindows)
+  {
+    AnsiToWide(GetCommandLineA(), -1, wszCmdLine, COMMANDLINE_SIZE);
+    return wszCmdLine;
+  }
+  else return GetCommandLineW();
+}
+
+char* GetCommandLineParamsA()
+{
+  char *lpCmdLine=GetCommandLineA();
+
+  if (*lpCmdLine++ == '\"')
+    while (*lpCmdLine != '\"' && *lpCmdLine != '\0') ++lpCmdLine;
+  else
+    while (*lpCmdLine != ' ' && *lpCmdLine != '\0') ++lpCmdLine;
+  if (*lpCmdLine != '\0')
+    while (*++lpCmdLine == ' ');
+
+  return lpCmdLine;
+}
+
+wchar_t* GetCommandLineParamsW()
+{
+  wchar_t *lpwCmdLine=GetCommandLineWide();
+
+  if (*lpwCmdLine++ == '\"')
+    while (*lpwCmdLine != '\"' && *lpwCmdLine != '\0') ++lpwCmdLine;
+  else
+    while (*lpwCmdLine != ' ' && *lpwCmdLine != '\0') ++lpwCmdLine;
+  if (*lpwCmdLine != '\0')
+    while (*++lpwCmdLine == ' ');
+
+  return lpwCmdLine;
+}
+
+int GetCommandLineArgA(const char *pCmdLine, char *szArgName, int nArgNameLen, const char **pArgOption, int *nArgOptionLen, const char **pNextArg, BOOL bParseAsNotepad)
+{
+  const char *pCount=pCmdLine;
+  char *pArgName=szArgName;
+  char *pArgNameMax=szArgName + nArgNameLen - 1;
+  char chStopChar;
+  BOOL bArgName=TRUE;
+
+  if (pArgOption) *pArgOption=NULL;
+  if (nArgOptionLen) *nArgOptionLen=0;
+  while (*pCount == ' ') ++pCount;
+
+  if (*pCount == '/')
+  {
+    for (chStopChar=' '; *pCount != chStopChar && *pCount != '\0'; ++pCount)
+    {
+      if (bArgName)
+      {
+        if (*pCount == '=')
+        {
+          ++pCount;
+          if (*pCount == '\"' || *pCount == '\'' || *pCount == '`')
+            chStopChar=*pCount;
+          if (pArgOption) *pArgOption=pCount;
+          --pCount;
+          bArgName=FALSE;
+        }
+        else
+        {
+          if (pArgName < pArgNameMax)
+          {
+            if (szArgName) *pArgName=*pCount;
+            ++pArgName;
+          }
+        }
+      }
+    }
+    if (*pCount == '\"' || *pCount == '\'' || *pCount == '`')
+      ++pCount;
+  }
+  else if (*pCount == '\"')
+  {
+    for (++pCount; *pCount != '\"' && *pCount != '\0'; ++pCount)
+    {
+      if (pArgName < pArgNameMax)
+      {
+        if (szArgName) *pArgName=*pCount;
+        ++pArgName;
+      }
+    }
+    if (*pCount == '\"')
+      ++pCount;
+  }
+  else
+  {
+    if (bParseAsNotepad)
+    {
+      for (; *pCount != '\"' && *pCount != '\0'; ++pCount)
+      {
+        if (pArgName < pArgNameMax)
+        {
+          if (szArgName) *pArgName=*pCount;
+          ++pArgName;
+        }
+      }
+      if (pArgName < pArgNameMax)
+      {
+        if (szArgName)
+        {
+          while (*--pArgName == ' ') *pArgName='\0';
+          ++pArgName;
+        }
+      }
+    }
+    else
+    {
+      for (; *pCount != ' ' && *pCount != '\0'; ++pCount)
+      {
+        if (pArgName < pArgNameMax)
+        {
+          if (szArgName) *pArgName=*pCount;
+          ++pArgName;
+        }
+      }
+    }
+  }
+  if (szArgName) *pArgName='\0';
+
+  if (pNextArg)
+    for (*pNextArg=pCount; **pNextArg == ' '; ++*pNextArg);
+  if (pArgOption && *pArgOption && nArgOptionLen)
+    *nArgOptionLen=pCount - *pArgOption;
+
+  return pArgName - szArgName;
+}
+
+int GetCommandLineArgW(const wchar_t *wpCmdLine, wchar_t *wszArgName, int nArgNameLen, const wchar_t **wpArgOption, int *nArgOptionLen, const wchar_t **wpNextArg, BOOL bParseAsNotepad)
+{
+  const wchar_t *wpCount=wpCmdLine;
+  wchar_t *wpArgName=wszArgName;
+  wchar_t *wpArgNameMax=wszArgName + nArgNameLen - 1;
+  wchar_t wchStopChar;
+  BOOL bArgName=TRUE;
+
+  if (wpArgOption) *wpArgOption=NULL;
+  if (nArgOptionLen) *nArgOptionLen=0;
+  while (*wpCount == ' ') ++wpCount;
+
+  if (*wpCount == '/')
+  {
+    for (wchStopChar=' '; *wpCount != wchStopChar && *wpCount != '\0'; ++wpCount)
+    {
+      if (bArgName)
+      {
+        if (*wpCount == '=')
+        {
+          ++wpCount;
+          if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
+            wchStopChar=*wpCount;
+          if (wpArgOption) *wpArgOption=wpCount;
+          --wpCount;
+          bArgName=FALSE;
+        }
+        else
+        {
+          if (wpArgName < wpArgNameMax)
+          {
+            if (wszArgName) *wpArgName=*wpCount;
+            ++wpArgName;
+          }
+        }
+      }
+    }
+    if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
+      ++wpCount;
+  }
+  else if (*wpCount == '\"')
+  {
+    for (++wpCount; *wpCount != '\"' && *wpCount != '\0'; ++wpCount)
+    {
+      if (wpArgName < wpArgNameMax)
+      {
+        if (wszArgName) *wpArgName=*wpCount;
+        ++wpArgName;
+      }
+    }
+    if (*wpCount == '\"')
+      ++wpCount;
+  }
+  else
+  {
+    if (bParseAsNotepad)
+    {
+      for (; *wpCount != '\"' && *wpCount != '\0'; ++wpCount)
+      {
+        if (wpArgName < wpArgNameMax)
+        {
+          if (wszArgName) *wpArgName=*wpCount;
+          ++wpArgName;
+        }
+      }
+      if (wpArgName < wpArgNameMax)
+      {
+        if (wszArgName)
+        {
+          while (wpArgName > wszArgName && *(wpArgName - 1) == ' ')
+            *--wpArgName='\0';
+        }
+      }
+    }
+    else
+    {
+      for (; *wpCount != ' ' && *wpCount != '\0'; ++wpCount)
+      {
+        if (wpArgName < wpArgNameMax)
+        {
+          if (wszArgName) *wpArgName=*wpCount;
+          ++wpArgName;
+        }
+      }
+    }
+  }
+  if (wszArgName) *wpArgName='\0';
+
+  if (wpNextArg)
+    for (*wpNextArg=wpCount; **wpNextArg == ' '; ++*wpNextArg);
+  if (wpArgOption && *wpArgOption && nArgOptionLen)
+    *nArgOptionLen=wpCount - *wpArgOption;
+
+  return wpArgName - wszArgName;
+}
+
+int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
+{
+  const wchar_t *wpCmdLine;
+  const wchar_t *wpCmdLineNext;
+  HWND hWndFriend=NULL;
+  BOOL bFileOpenedSDI=FALSE;
+
+  if (wppCmdLine && *wppCmdLine)
+  {
+    wpCmdLine=*wppCmdLine;
+    wpCmdLineNext=*wppCmdLine;
+
+    for (; GetCommandLineArgW(wpCmdLine, wszCmdArg, COMMANDARG_SIZE, NULL, NULL, &wpCmdLineNext, !(dwCmdLineOptions & CLO_NONOTEPADCMD)); wpCmdLine=wpCmdLineNext)
+    {
+      if (wszCmdArg[0] == '/')
+      {
+        //On load
+        if (!xstrcmpiW(wszCmdArg, L"/REASSOC"))
+        {
+          if (dwFileTypesAssociated & AE_OPEN)
+            AssociateFileTypesW(hInstance, wszFileTypesOpen, AE_OPEN|AE_ASSOCIATE);
+          else if (dwFileTypesAssociated & AE_EDIT)
+            AssociateFileTypesW(hInstance, wszFileTypesEdit, AE_EDIT|AE_ASSOCIATE);
+          else if (dwFileTypesAssociated & AE_PRINT)
+            AssociateFileTypesW(hInstance, wszFileTypesPrint, AE_PRINT|AE_ASSOCIATE);
+          if (dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/DEASSOC"))
+        {
+          if (dwFileTypesAssociated & AE_OPEN)
+            AssociateFileTypesW(hInstance, wszFileTypesOpen, AE_OPEN|AE_DEASSOCIATE);
+          else if (dwFileTypesAssociated & AE_EDIT)
+            AssociateFileTypesW(hInstance, wszFileTypesEdit, AE_EDIT|AE_DEASSOCIATE);
+          else if (dwFileTypesAssociated & AE_PRINT)
+            AssociateFileTypesW(hInstance, wszFileTypesPrint, AE_PRINT|AE_DEASSOCIATE);
+          if (dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/QUIT"))
+        {
+          return PCLE_QUIT;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/END"))
+        {
+          return PCLE_END;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/P"))
+        {
+          dwCmdLineOptions|=CLO_GLOBALPRINT;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/C+"))
+        {
+          dwCmdLineOptions&=~CLO_MSGCREATEFILENO;
+          dwCmdLineOptions|=CLO_MSGCREATEFILEYES;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/C-"))
+        {
+          dwCmdLineOptions&=~CLO_MSGCREATEFILEYES;
+          dwCmdLineOptions|=CLO_MSGCREATEFILENO;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/B+"))
+        {
+          dwCmdLineOptions&=~CLO_MSGBINARYOPENNO;
+          dwCmdLineOptions|=CLO_MSGBINARYOPENYES;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/B-"))
+        {
+          dwCmdLineOptions&=~CLO_MSGBINARYOPENYES;
+          dwCmdLineOptions|=CLO_MSGBINARYOPENNO;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/X"))
+        {
+          dwCmdLineOptions|=CLO_NONOTEPADCMD;
+          continue;
+        }
+        else
+        {
+          if (bOnLoad) return PCLE_ONLOAD;
+        }
+
+/*
+        if (!xstrcmpinW(L"/Command", wszCmdArg, (DWORD)-1))
+        {
+          dwAction=ACT_COMMAND;
+        }
+        else if (!xstrcmpinW(L"/Call", wszCmdArg, (DWORD)-1))
+        {
+          dwAction=ACT_CALL;
+        }
+        else if (!xstrcmpinW(L"/Exec", wszCmdArg, (DWORD)-1))
+        {
+          dwAction=ACT_EXEC;
+        }
+        else if (!xstrcmpinW(L"/Font", wszCmdArg, (DWORD)-1))
+        {
+          dwAction=ACT_FONT;
+        }
+        else if (!xstrcmpinW(L"/Recode", wszCmdArg, (DWORD)-1))
+        {
+          dwAction=ACT_RECODE;
+        }
+        else if (!xstrcmpinW(L"/Insert", wszCmdArg, (DWORD)-1))
+        {
+          dwAction=ACT_INSERT;
+        }
+*/
+        continue;
+      }
+      if (!*wszCmdArg) continue;
+
+      //Open file
+      if (nMDI == WMD_SDI)
+      {
+        if (bSingleOpenFile)
+        {
+          if (GetFullNameW(wszCmdArg, wszCmdArg, MAX_PATH))
+          {
+            if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wszCmdArg)) &&
+                (hWndFriend=GetParent(hWndFriend)))
+            {
+              if (hWndFriend != hMainWnd)
+              {
+                ActivateWindow(hWndFriend);
+                SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
+                PostCmdLine(hWndFriend, wpCmdLine);
+                return PCLE_QUIT;
+              }
+            }
+          }
+        }
+        if (bOnLoad) return PCLE_ONLOAD;
+
+        if (!bFileOpenedSDI)
+        {
+          if (!SaveChanged())
+            return PCLE_END;
+          if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE) != EOD_SUCCESS)
+            return PCLE_END;
+          bFileOpenedSDI=TRUE;
+          continue;
+        }
+        hWndFriend=DoFileNewWindow(STARTF_NOMUTEX);
+        SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
+        PostCmdLine(hWndFriend, wpCmdLine);
+        return PCLE_END;
+      }
+      if (bOnLoad) return PCLE_ONLOAD;
+
+      //nMDI == WMD_MDI || nMDI == WMD_PMDI
+      if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE) != EOD_SUCCESS)
+        return PCLE_END;
+    }
+  }
+  return PCLE_END;
+}
+
+void PostCmdLine(HWND hWnd, const wchar_t *wpCmdLine)
+{
+  COPYDATASTRUCT cds;
+
+  cds.dwData=CD_PARSECMDLINEPOSTW;
+  cds.cbData=BytesInString(wpCmdLine);
+  cds.lpData=(PVOID)wpCmdLine;
+  SendMessage(hWnd, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
+}
+
+
 //// Other functions
 
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei)
@@ -14620,7 +15053,7 @@ BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr)
   if (ciChar.nCharInLine)
   {
     //Insert spaces
-    if (wpText=(wchar_t *)API_HeapAlloc(hHeap, 0, (ciChar.nCharInLine + 2) * sizeof(wchar_t)))
+    if (wpText=AllocWideStr(ciChar.nCharInLine + 2))
     {
       wpText[0]='\n';
 
@@ -14633,241 +15066,11 @@ BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr)
       wpText[ciChar.nCharInLine + 1]='\0';
 
       ReplaceSelW(hWnd, wpText, -1, FALSE, NULL, NULL);
-      API_HeapFree(hHeap, 0, (LPVOID)wpText);
+      FreeWideStr(wpText);
       return TRUE;
     }
   }
   return FALSE;
-}
-
-wchar_t* GetCommandLineWide(void)
-{
-  if (bOldWindows)
-  {
-    AnsiToWide(GetCommandLineA(), -1, wszCmdLine, COMMANDLINE_SIZE);
-    return wszCmdLine;
-  }
-  else return GetCommandLineW();
-}
-
-char* GetCommandLineParamsA()
-{
-  char *lpCmdLine=GetCommandLineA();
-
-  if (*lpCmdLine++ == '\"')
-    while (*lpCmdLine != '\"' && *lpCmdLine != '\0') ++lpCmdLine;
-  else
-    while (*lpCmdLine != ' ' && *lpCmdLine != '\0') ++lpCmdLine;
-  if (*lpCmdLine != '\0')
-    while (*++lpCmdLine == ' ');
-
-  return lpCmdLine;
-}
-
-wchar_t* GetCommandLineParamsW()
-{
-  wchar_t *lpwCmdLine=GetCommandLineWide();
-
-  if (*lpwCmdLine++ == '\"')
-    while (*lpwCmdLine != '\"' && *lpwCmdLine != '\0') ++lpwCmdLine;
-  else
-    while (*lpwCmdLine != ' ' && *lpwCmdLine != '\0') ++lpwCmdLine;
-  if (*lpwCmdLine != '\0')
-    while (*++lpwCmdLine == ' ');
-
-  return lpwCmdLine;
-}
-
-int GetCommandLineArgA(const char *pCmdLine, char *szArgName, int nArgNameLen, const char **pArgOption, int *nArgOptionLen, const char **pNextArg, BOOL bParseAsNotepad)
-{
-  const char *pCount=pCmdLine;
-  char *pArgName=szArgName;
-  char *pArgNameMax=szArgName + nArgNameLen - 1;
-  char chStopChar;
-  BOOL bArgName=TRUE;
-
-  if (pArgOption) *pArgOption=NULL;
-  if (nArgOptionLen) *nArgOptionLen=0;
-  while (*pCount == ' ') ++pCount;
-
-  if (*pCount == '/')
-  {
-    for (chStopChar=' '; *pCount != chStopChar && *pCount != '\0'; ++pCount)
-    {
-      if (bArgName)
-      {
-        if (*pCount == '=')
-        {
-          ++pCount;
-          if (*pCount == '\"' || *pCount == '\'' || *pCount == '`')
-            chStopChar=*pCount;
-          if (pArgOption) *pArgOption=pCount;
-          --pCount;
-          bArgName=FALSE;
-        }
-        else
-        {
-          if (pArgName < pArgNameMax)
-          {
-            if (szArgName) *pArgName=*pCount;
-            ++pArgName;
-          }
-        }
-      }
-    }
-    if (*pCount == '\"' || *pCount == '\'' || *pCount == '`')
-      ++pCount;
-  }
-  else if (*pCount == '\"')
-  {
-    for (++pCount; *pCount != '\"' && *pCount != '\0'; ++pCount)
-    {
-      if (pArgName < pArgNameMax)
-      {
-        if (szArgName) *pArgName=*pCount;
-        ++pArgName;
-      }
-    }
-    if (*pCount == '\"')
-      ++pCount;
-  }
-  else
-  {
-    if (bParseAsNotepad)
-    {
-      for (; *pCount != '\"' && *pCount != '\0'; ++pCount)
-      {
-        if (pArgName < pArgNameMax)
-        {
-          if (szArgName) *pArgName=*pCount;
-          ++pArgName;
-        }
-      }
-      if (pArgName < pArgNameMax)
-      {
-        if (szArgName)
-        {
-          while (*--pArgName == ' ') *pArgName='\0';
-          ++pArgName;
-        }
-      }
-    }
-    else
-    {
-      for (; *pCount != ' ' && *pCount != '\0'; ++pCount)
-      {
-        if (pArgName < pArgNameMax)
-        {
-          if (szArgName) *pArgName=*pCount;
-          ++pArgName;
-        }
-      }
-    }
-  }
-  if (szArgName) *pArgName='\0';
-
-  if (pNextArg)
-    for (*pNextArg=pCount; **pNextArg == ' '; ++*pNextArg);
-  if (pArgOption && *pArgOption && nArgOptionLen)
-    *nArgOptionLen=pCount - *pArgOption;
-
-  return pArgName - szArgName;
-}
-
-int GetCommandLineArgW(const wchar_t *wpCmdLine, wchar_t *wszArgName, int nArgNameLen, const wchar_t **wpArgOption, int *nArgOptionLen, const wchar_t **wpNextArg, BOOL bParseAsNotepad)
-{
-  const wchar_t *wpCount=wpCmdLine;
-  wchar_t *wpArgName=wszArgName;
-  wchar_t *wpArgNameMax=wszArgName + nArgNameLen - 1;
-  wchar_t wchStopChar;
-  BOOL bArgName=TRUE;
-
-  if (wpArgOption) *wpArgOption=NULL;
-  if (nArgOptionLen) *nArgOptionLen=0;
-  while (*wpCount == ' ') ++wpCount;
-
-  if (*wpCount == '/')
-  {
-    for (wchStopChar=' '; *wpCount != wchStopChar && *wpCount != '\0'; ++wpCount)
-    {
-      if (bArgName)
-      {
-        if (*wpCount == '=')
-        {
-          ++wpCount;
-          if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
-            wchStopChar=*wpCount;
-          if (wpArgOption) *wpArgOption=wpCount;
-          --wpCount;
-          bArgName=FALSE;
-        }
-        else
-        {
-          if (wpArgName < wpArgNameMax)
-          {
-            if (wszArgName) *wpArgName=*wpCount;
-            ++wpArgName;
-          }
-        }
-      }
-    }
-    if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
-      ++wpCount;
-  }
-  else if (*wpCount == '\"')
-  {
-    for (++wpCount; *wpCount != '\"' && *wpCount != '\0'; ++wpCount)
-    {
-      if (wpArgName < wpArgNameMax)
-      {
-        if (wszArgName) *wpArgName=*wpCount;
-        ++wpArgName;
-      }
-    }
-    if (*wpCount == '\"')
-      ++wpCount;
-  }
-  else
-  {
-    if (bParseAsNotepad)
-    {
-      for (; *wpCount != '\"' && *wpCount != '\0'; ++wpCount)
-      {
-        if (wpArgName < wpArgNameMax)
-        {
-          if (wszArgName) *wpArgName=*wpCount;
-          ++wpArgName;
-        }
-      }
-      if (wpArgName < wpArgNameMax)
-      {
-        if (wszArgName)
-        {
-          while (*--wpArgName == ' ') *wpArgName='\0';
-          ++wpArgName;
-        }
-      }
-    }
-    else
-    {
-      for (; *wpCount != ' ' && *wpCount != '\0'; ++wpCount)
-      {
-        if (wpArgName < wpArgNameMax)
-        {
-          if (wszArgName) *wpArgName=*wpCount;
-          ++wpArgName;
-        }
-      }
-    }
-  }
-  if (wszArgName) *wpArgName='\0';
-
-  if (wpNextArg)
-    for (*wpNextArg=wpCount; **wpNextArg == ' '; ++*wpNextArg);
-  if (wpArgOption && *wpArgOption && nArgOptionLen)
-    *nArgOptionLen=wpCount - *wpArgOption;
-
-  return wpArgName - wszArgName;
 }
 
 int SetUrlPrefixes(HWND hWnd, const wchar_t *wpPrefixes)
@@ -15946,25 +16149,25 @@ void FreeMemorySearch()
   {
     if (wszFindText_orig == wszFindText)
       wszFindText=NULL;
-    API_HeapFree(hHeap, 0, (LPVOID)wszFindText_orig);
+    FreeWideStr(wszFindText_orig);
     wszFindText_orig=NULL;
   }
   if (wszReplaceText_orig)
   {
     if (wszReplaceText_orig == wszReplaceText)
       wszReplaceText=NULL;
-    API_HeapFree(hHeap, 0, (LPVOID)wszReplaceText_orig);
+    FreeWideStr(wszReplaceText_orig);
     wszReplaceText_orig=NULL;
   }
 
   if (wszFindText)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)wszFindText);
+    FreeWideStr(wszFindText);
     wszFindText=NULL;
   }
   if (wszReplaceText)
   {
-    API_HeapFree(hHeap, 0, (LPVOID)wszReplaceText);
+    FreeWideStr(wszReplaceText);
     wszReplaceText=NULL;
   }
 }
@@ -16275,8 +16478,9 @@ wchar_t* AllocWideStr(DWORD dwSize)
   return (wchar_t *)API_HeapAlloc(hHeap, 0, dwSize * sizeof(wchar_t));
 }
 
-void FreeWideStr(wchar_t *wpVar)
+BOOL FreeWideStr(wchar_t *wpVar)
 {
   if (wpVar)
-    API_HeapFree(hHeap, 0, (LPVOID)wpVar);
+    return API_HeapFree(hHeap, 0, (LPVOID)wpVar);
+  return FALSE;
 }
