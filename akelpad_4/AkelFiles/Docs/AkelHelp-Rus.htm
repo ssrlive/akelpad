@@ -50,12 +50,16 @@
   </ul>
 
 <a name=ch3><h3>Параметры командной строки</h3></a>
-  AkelPad.exe [параметры] "file1.ext" "file2.ext" ...
+  AkelPad.exe [параметры] "file1.ext" [параметры] "file2.ext" [параметры] ...
   <ul>
     <table cellspacing=0 cellpadding=0 border=0>
       <tr>
-        <td width="80"><li><b>/p</b></td>
-        <td>- печать</td>
+        <td width="80"><li><b>/x</b></td>
+        <td>- не использовать режим совместимости с MS Notepad при обработке параметров командной строки</td>
+      </tr>
+      <tr>
+        <td><li><b>/p</b></td>
+        <td>- напечатать следующий файл</td>
       </tr>
       <tr>
         <td><li><b>/c+</b></td>
@@ -74,10 +78,6 @@
         <td>- не открывать файл, если он бинарный</td>
       </tr>
       <tr>
-        <td><li><b>/x</b></td>
-        <td>- не использовать режим совместимости с MS Notepad при обработке параметров командной строки</td>
-      </tr>
-      <tr>
         <td><li><b>/reassoc</b></td>
         <td>- переустановить ранее назначенные ассоциации типов файлов</td>
       </tr>
@@ -93,6 +93,71 @@
         <td><li><b>/end</b></td>
         <td>- закончить обработку параметров командной строки</td>
       </tr>
+    </table>
+
+    <table>
+      <br>
+      <div style="margin-top:10px">Методы:</div>
+
+      <div style="margin-top:10px"><li><b>/Command(номер)</b></div>
+      <div style="margin-left:30px">/Command(4162)</div>
+        <div style="margin-left:60px">метод вызывает <a href=#ch6>внутреннюю команду</a> под номером 4162.</div>
+
+      <div style="margin-top:10px"><li><b>/Exec("командная строка", ["рабочая директория"])</b></div>
+      <div style="margin-left:30px">/Exec("notepad.exe")</div>
+        <div style="margin-left:60px">метод вызывает блокнот.</div>
+      <div style="margin-left:30px">/Exec(`notepad.exe`)</div>
+        <div style="margin-left:60px">метод вызывает блокнот.</div>
+      <div style="margin-left:30px">/Exec('notepad.exe')</div>
+        <div style="margin-left:60px">метод вызывает блокнот.</div>
+      <div style="margin-left:30px">/Exec('%windir%\notepad.exe')</div>
+        <div style="margin-left:60px">метод вызывает блокнот.</div>
+      <div style="margin-left:30px">/Exec(`rundll32.exe shell32,Shell/Exec_RunDLL "%f"`, "%d")</div>
+        <div style="margin-left:60px">метод передает активный файл для открытия по ассоциации Windows.</div>
+
+      <div style="margin-top:10px"><li><b>/Call("Плагин::Функция", [дополнительные параметры])</b></div>
+      <div style="margin-left:30px">/Call("Scripts::Main")</div>
+        <div style="margin-left:60px">метод вызывает плагин Scripts и функцию Main.</div>
+
+      <div style="margin-top:10px"><li><b>/Font("Шрифт", Начертание, Размер)</b></div>
+      <div style="margin-left:30px">"Шрифт"</div>
+        <div style="margin-left:60px">Имя шрифта, например, "Courier". Не изменяется, если "".</div>
+      <div style="margin-left:30px">Начертание (одно из следующих):</div>
+        <div style="margin-left:60px">0  игнорировать.</div>
+        <div style="margin-left:60px">1  обычный шрифт.</div>
+        <div style="margin-left:60px">2  жирный шрифт.</div>
+        <div style="margin-left:60px">3  курсивный шрифт.</div>
+        <div style="margin-left:60px">4  жирный курсивный шрифт.</div>
+      <div style="margin-left:30px">Размер</div>
+        <div style="margin-left:60px">Размер шрифта. Не изменяется, если 0.</div>
+      <div style="margin-left:30px">/Font("Courier", 4, 10)</div>
+        <div style="margin-left:60px">метод устанавливает жирный курсив Courier шрифт размером 10 pt.</div>
+
+      <div style="margin-top:10px"><li><b>/Recode(ПерекодироватьИз, ПерекодироватьВ)</b></div>
+      <div style="margin-left:30px">/Recode(1251, 866)</div>
+        <div style="margin-left:60px">метод перекодирует текст из кодировки 1251 в 866.</div>
+
+      <div style="margin-top:10px"><li><b>/Insert("текст", [Esc-последовательности])</b></div>
+      <div style="margin-left:30px">"текст"</div>
+        <div style="margin-left:60px">Вставляемый текст.</div>
+      <div style="margin-left:30px">Esc-последовательности:</div>
+        <div style="margin-left:60px">0 - "текст" не содержит Esc-последовательностей (по умолчанию).</div>
+        <div style="margin-left:60px">1 - "текст" содержит Esc-последовательности. Набор последовательностей аналогичен диалогу поиска/замены в программе, а также "\s", заменяющееся на выделенный в окне редактирования текст.</div>
+      <div style="margin-left:30px">/Insert("Некая строка")</div>
+        <div style="margin-left:60px">метод заменяет выделение на указанный текст.</div>
+      <div style="margin-left:30px">/Insert("&lt;B&gt;\s&lt;/B&gt;", 1)</div>
+        <div style="margin-left:60px">метод добавляет к выделению текст по краям.</div>
+      <div style="margin-left:30px">/Insert("\[0031 0032 0033]", 1)</div>
+        <div style="margin-left:60px">метод заменяет выделение на "123".</div>
+
+      <br>
+      <div style="margin-top:10px">Переменные в методах:</div>
+
+      <div style="margin-left:30px;margin-top:10px">%f - активный файл</div>
+      <div style="margin-left:30px">%d - директория активного файла</div>
+      <div style="margin-left:30px">%a - директория AkelPad'а</div>
+      <div style="margin-left:30px">%% - символ %</div>
+      <div style="margin-left:30px">%системная переменная%</div>
     </table>
   </ul>
 

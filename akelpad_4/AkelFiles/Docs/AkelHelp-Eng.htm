@@ -50,11 +50,15 @@
   </ul>
 
 <a name=ch3><h3>Command line parameters</h3></a>
-  AkelPad.exe [options] "file1.ext" "file2.ext" ...
+  AkelPad.exe [parameters] "file1.ext" [parameters] "file2.ext" [parameters] ...
   <ul>
     <table cellspacing=0 cellpadding=0 border=0>
       <tr>
-        <td width="80"><li><b>/p</b></td>
+        <td width="80"><li><b>/x</b></td>
+        <td>- don't use MS Notepad compatibility mode when parse command line parameters</td>
+      </tr>
+      <tr>
+        <td><li><b>/p</b></td>
         <td>- print</td>
       </tr>
       <tr>
@@ -74,10 +78,6 @@
         <td>- don't open file, if binary</td>
       </tr>
       <tr>
-        <td><li><b>/x</b></td>
-        <td>- don't use MS Notepad compatibility mode when parse command line parameters</td>
-      </tr>
-      <tr>
         <td><li><b>/reassoc</b></td>
         <td>- reinstall assigned earlier associations of file types</td>
       </tr>
@@ -93,6 +93,71 @@
         <td><li><b>/end</b></td>
         <td>- stop parsing command line parameters</td>
       </tr>
+    </table>
+
+    <table>
+      <br>
+      <div style="margin-top:10px">Methods:</div>
+
+      <div style="margin-top:10px"><li><b>/Command(4162)</b></div>
+      <div style="margin-left:30px">/Command(4162)</div>
+        <div style="margin-left:60px">method calls the <a href=#ch6>internal command</a> at number 4162.</div>
+
+      <div style="margin-top:10px"><li><b>/Exec("command line", ["working directory"])</b></div>
+      <div style="margin-left:30px">/Exec("notepad.exe")</div>
+        <div style="margin-left:60px">method calls notepad.</div>
+      <div style="margin-left:30px">/Exec(`notepad.exe`)</div>
+        <div style="margin-left:60px">method calls notepad.</div>
+      <div style="margin-left:30px">/Exec('notepad.exe')</div>
+        <div style="margin-left:60px">method calls notepad.</div>
+      <div style="margin-left:30px">/Exec('%windir%\notepad.exe')</div>
+        <div style="margin-left:60px">method calls notepad.</div>
+      <div style="margin-left:30px">/Exec(`rundll32.exe shell32,Shell/Exec_RunDLL "%f"`, "%d")</div>
+        <div style="margin-left:60px">method pass an active file for opening on Windows associatio</div>
+
+      <div style="margin-top:10px"><li><b>/Call("Plugin::Function", [additional parameters])</b></div>
+      <div style="margin-left:30px">/Call("Scripts::Main")</div>
+        <div style="margin-left:60px">method calls Scripts plugin and Main function.</div>
+
+      <div style="margin-top:10px"><li><b>/Font("FaceName", Style, Size)</b></div>
+      <div style="margin-left:30px">"FaceName"</div>
+        <div style="margin-left:60px">Font face, for example, "Courier". Unchanged, if "".</div>
+      <div style="margin-left:30px">Style (one of the following):</div>
+        <div style="margin-left:60px">0  ignored.</div>
+        <div style="margin-left:60px">1  normal.</div>
+        <div style="margin-left:60px">2  bold.</div>
+        <div style="margin-left:60px">3  italic.</div>
+        <div style="margin-left:60px">4  bold italic.</div>
+      <div style="margin-left:30px">Size</div>
+        <div style="margin-left:60px">Font size. Unchanged, if 0.</div>
+      <div style="margin-left:30px">/Font("Courier", 4, 10)</div>
+        <div style="margin-left:60px">method sets Courier bold italic font with 10 pt.</div>
+
+      <div style="margin-top:10px"><li><b>/Recode(RecodeFrom, RecodeTo)</b></div>
+      <div style="margin-left:30px">/Recode(1252, 437)</div>
+        <div style="margin-left:60px">method recodes the text from 1252 codepage to 437.</div>
+
+      <div style="margin-top:10px"><li><b>/Insert("text", [Esc-sequences])</b></div>
+      <div style="margin-left:30px">"text"</div>
+        <div style="margin-left:60px">Inserted text.</div>
+      <div style="margin-left:30px">Esc-sequences:</div>
+        <div style="margin-left:60px">0 - "text" isn't contain Esc-sequences (default).</div>
+        <div style="margin-left:60px">1 - "text" contain Esc-sequences. A set of sequences similar to the find/replace dialog in the program, and also "\s" that is replaced by the selected text of the editing window.</div>
+      <div style="margin-left:30px">/Insert("Some string")</div>
+        <div style="margin-left:60px">method replaces selection with the specified text.</div>
+      <div style="margin-left:30px">/Insert("&lt;B&gt;\s&lt;/B&gt;", 1)</div>
+        <div style="margin-left:60px">method enclose selection.</div>
+      <div style="margin-left:30px">/Insert("\[0031 0032 0033]", 1)</div>
+        <div style="margin-left:60px">method replaces selection with "123".</div>
+
+      <br>
+      <div style="margin-top:10px">Variables in methods:</div>
+
+      <div style="margin-left:30px;margin-top:10px">%f - active file</div>
+      <div style="margin-left:30px">%d - directory of active file</div>
+      <div style="margin-left:30px">%a - AkelPad's directory</div>
+      <div style="margin-left:30px">%% - symbol %</div>
+      <div style="margin-left:30px">%system variable%</div>
     </table>
   </ul>
 
