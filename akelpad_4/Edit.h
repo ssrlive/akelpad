@@ -114,6 +114,25 @@
 //Combobox edit ID
 #define IDC_COMBOBOXEDIT       1001
 
+//External actions
+#define EXTACT_COMMAND    1
+#define EXTACT_CALL       2
+#define EXTACT_EXEC       3
+#define EXTACT_FONT       4
+#define EXTACT_RECODE     5
+#define EXTACT_INSERT     6
+
+//External parameters
+#define EXTPARAM_CHAR     1
+#define EXTPARAM_INT      2
+
+//Font styles
+#define FS_NONE            0
+#define FS_FONTNORMAL      1
+#define FS_FONTITALIC      2
+#define FS_FONTBOLD        3
+#define FS_FONTBOLDITALIC  4
+
 //Print preview dialog notifications
 #define AKDLG_PREVIEWKEYDOWN           (WM_USER + 100) //lParam - WM_KEYDOWN's lParam, wParam - control handle.
 #define AKDLG_PREVIEWMOUSEWHEEL        (WM_USER + 151) //lParam - WM_MOUSEWHEEL's lParam, wParam - control handle.
@@ -273,6 +292,23 @@
 //// Structures
 
 typedef BOOL (CALLBACK *EXPORTNAMESPROC)(char *, LPARAM);
+
+typedef struct _EXTPARAM {
+  struct _EXTPARAM *next;
+  struct _EXTPARAM *prev;
+  DWORD dwType;        //See EXTPARAM_* defines.
+  int nNumber;         //External parameter number.
+  char *pString;       //External parameter string (Ansi).
+  wchar_t *wpString;   //External parameter string (Unicode).
+  char *pExpanded;     //External parameter expanded string - without %variables% (Ansi).
+  wchar_t *wpExpanded; //External parameter expanded string - without %variables% (Unicode).
+} EXTPARAM;
+
+typedef struct {
+  EXTPARAM *first;
+  EXTPARAM *last;
+  int nElements;
+} STACKEXTPARAM;
 
 typedef struct _HINISECTION {
   struct _HINISECTION *next;
@@ -720,6 +756,16 @@ int GetCommandLineArgA(const char *pCmdLine, char *szArgName, int nArgNameLen, c
 int GetCommandLineArgW(const wchar_t *wpCmdLine, wchar_t *wszArgName, int nArgNameLen, const wchar_t **wpArgOption, int *nArgOptionLen, const wchar_t **wpNextArg, BOOL bParseAsNotepad);
 int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad);
 void PostCmdLine(HWND hWnd, const wchar_t *wpCmdLine);
+void GetActionParameters(STACKEXTPARAM *hParamStack, wchar_t *wpText, wchar_t **wppText);
+void SetParametersExpChar(STACKEXTPARAM *hParamStack, wchar_t *wpFile, wchar_t *wpExeDir);
+int CreateParametersStruct(STACKEXTPARAM *hParamStack, unsigned char **lppStruct);
+int GetParameterInt(STACKEXTPARAM *hParamStack, int nIndex);
+char* GetParameterCharA(STACKEXTPARAM *hParamStack, int nIndex);
+wchar_t* GetParameterCharW(STACKEXTPARAM *hParamStack, int nIndex);
+char* GetParameterExpCharA(STACKEXTPARAM *hParamStack, int nIndex);
+wchar_t* GetParameterExpCharW(STACKEXTPARAM *hParamStack, int nIndex);
+int RecoverEscapeString(HWND hWndEdit, wchar_t *wpInput, wchar_t *wszOutput);
+void FreeActionParameters(STACKEXTPARAM *hParamStack);
 
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);
 DWORD IsEditActive(HWND hWnd);
@@ -734,26 +780,26 @@ void SetMarker(FRAMEDATA *lpFrame, DWORD dwPos);
 void SetWordWrap(FRAMEDATA *lpFrame, DWORD dwType, DWORD dwLimit);
 void SetMargins(HWND hWnd, DWORD dwNewMargins, DWORD dwOldMargins);
 void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw);
-BOOL InsertTabStopW(HWND hWnd);
-BOOL IndentTabStopW(HWND hWnd, int nAction);
+BOOL InsertTabStop(HWND hWnd);
+BOOL IndentTabStop(HWND hWnd, int nAction);
 BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr);
 int SetUrlPrefixes(HWND hWnd, const wchar_t *wpPrefixes);
 BOOL IsReadOnly(HWND hWnd);
 BOOL SaveChanged();
-int IsFileW(const wchar_t *wpFile);
-BOOL IsPathFullW(const wchar_t *wpPath);
-int GetExeDirW(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen);
-int GetFileDirW(const wchar_t *wpFile, wchar_t *wszFileDir, int nFileDirLen);
-BOOL GetFullNameW(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax);
-const wchar_t* GetFileNameW(const wchar_t *wpFile);
-int GetBaseNameW(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
-const wchar_t* GetFileExtW(const wchar_t *wpFile);
-void TrimModifyStateW(wchar_t *wszFile);
+int IsFile(const wchar_t *wpFile);
+BOOL IsPathFull(const wchar_t *wpPath);
+int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen);
+int GetFileDir(const wchar_t *wpFile, wchar_t *wszFileDir, int nFileDirLen);
+BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax);
+const wchar_t* GetFileName(const wchar_t *wpFile);
+int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
+const wchar_t* GetFileExt(const wchar_t *wpFile);
+void TrimModifyState(wchar_t *wszFile);
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft);
 BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);
 BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild);
 int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
-int TranslateFileStringW(const wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
+int TranslateFileString(const wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
 void ActivateKeyboard(DWORD dwInputLocale);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
