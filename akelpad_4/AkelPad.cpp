@@ -4291,8 +4291,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
       if (lpFrame=(FRAMEDATA *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
       {
         //Activate frame
-        if (lpFrame->ei.bModified)
-          ActivateMdiFrameWindow(lpFrame, 0);
+        ActivateMdiFrameWindow(lpFrame, 0);
 
         //Ask if document unsaved
         if (!DoFileExit()) return TRUE;
