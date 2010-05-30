@@ -14454,6 +14454,8 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
       {
         if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
           wchStopCharCur=*wpCount;
+        else if (*wpCount == '(')
+          wchStopCharCur=')';
       }
       if (wpArg < wpArgMax)
       {
@@ -14603,22 +14605,21 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
             }
             else if (dwAction == EXTACT_CALL)
             {
-/*
-              PLUGINCALL *pc;
+              PLUGINCALLSENDW pcs;
               unsigned char *lpStruct=NULL;
 
               SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
 
               if (CreateParametersStruct(&hParamStack, &lpStruct))
               {
-                if (pc=(PLUGINCALL *)GlobalAlloc(GPTR, sizeof(PLUGINCALL)))
-                {
-                  pc->lpStruct=lpStruct;
-                  pc->bAutoLoad=bAutoLoad;
-                  PostMessage(hMainWnd, AKD_CALLPROC, (WPARAM)CallPlugin, (LPARAM)pc);
-                }
+                pcs.pFunction=(wchar_t *)*(int *)lpStruct;
+                if (*(int *)(lpStruct + sizeof(int)) > (int)sizeof(int))
+                  pcs.lParam=(LPARAM)(lpStruct + sizeof(int));
+                else
+                  pcs.lParam=0;
+                pcs.lpbAutoLoad=NULL;
+                CallPluginSend(NULL, &pcs, FALSE);
               }
-*/
             }
             else if (dwAction == EXTACT_EXEC)
             {
