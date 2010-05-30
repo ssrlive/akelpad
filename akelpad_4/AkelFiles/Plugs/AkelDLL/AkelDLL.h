@@ -39,40 +39,53 @@
 #define UD_NONUNLOAD_UNCHANGE   0x4  //Don't unload plugin and don't change active status.
 #define UD_HOTKEY_DODEFAULT     0x8  //Do default hotkey processing.
 
+//Command line options
+#define CLO_NONOTEPADCMD      0x01  //Don't use MS Notepad compatibility mode when parse command line parameters.
+#define CLO_GLOBALPRINT       0x02  //Next opened file will be printed.
+#define CLO_MSGCREATEFILEYES  0x04  //Silently create new file, if doesn't exist.
+#define CLO_MSGCREATEFILENO   0x08  //Don't create new file, if doesn't exist.
+#define CLO_MSGBINARYOPENYES  0x10  //Silently open file, if binary.
+#define CLO_MSGBINARYOPENNO   0x20  //Don't open file, if binary.
+
+//AKD_PARSECMDLINE return value
+#define PCLE_QUIT    0x01  //Stop parsing command line parameters and close program.
+#define PCLE_END     0x02  //Stop parsing command line parameters.
+#define PCLE_ONLOAD  0x04  //Done parsing command line parameters on program load (used internally).
+
 //Autodetect flags
-#define ADT_BINARY_ERROR        0x00000001
-#define ADT_REG_CODEPAGE        0x00000002
-#define ADT_DETECT_CODEPAGE     0x00000004
-#define ADT_DETECT_BOM          0x00000008
+#define ADT_BINARY_ERROR        0x00000001  //Check if file is binary.
+#define ADT_REG_CODEPAGE        0x00000002  //If last open code page found in registry, then it will be
+                                            //used with ADT_DETECT_BOM flag. If not found, then next flags
+                                            //will be used ADT_DETECT_CODEPAGE|ADT_DETECT_BOM.
+#define ADT_DETECT_CODEPAGE     0x00000004  //Detect code page.
+#define ADT_DETECT_BOM          0x00000008  //Detect BOM mark.
 
 //Autodetect errors
-#define EDT_SUCCESS       0
-#define EDT_OPEN          -1
-#define EDT_ALLOC         -2
-#define EDT_READ          -3
-#define EDT_BINARY        -4
+#define EDT_SUCCESS        0   //Success.
+#define EDT_OPEN          -1   //Can't open file.
+#define EDT_ALLOC         -2   //Can't allocate buffer.
+#define EDT_READ          -3   //Read file error.
+#define EDT_BINARY        -4   //File is binary.
 
 //Open document flags
-#define OD_ADT_BINARY_ERROR      0x00000001  //Check if file is binary.
-#define OD_ADT_REG_CODEPAGE      0x00000002  //If last open code page found in registry, then it will be.
-                                             //Used with OD_ADT_DETECT_BOM flag, if not found, then next flags.
-                                             //Will be used OD_ADT_DETECT_CODEPAGE|OD_ADT_DETECT_BOM.
-#define OD_ADT_DETECT_CODEPAGE   0x00000004  //Detect code page.
-#define OD_ADT_DETECT_BOM        0x00000008  //Detect BOM mark.
-#define OD_REOPEN                0x00000100  //Don't create new MDI window, use the exited one.
+#define OD_ADT_BINARY_ERROR      ADT_BINARY_ERROR     //See ADT_BINARY_ERROR.
+#define OD_ADT_REG_CODEPAGE      ADT_REG_CODEPAGE     //See ADT_REG_CODEPAGE.
+#define OD_ADT_DETECT_CODEPAGE   ADT_DETECT_CODEPAGE  //See ADT_DETECT_CODEPAGE.
+#define OD_ADT_DETECT_BOM        ADT_DETECT_BOM       //See ADT_DETECT_BOM.
+#define OD_REOPEN                0x00000100           //Don't create new MDI window, use the exited one.
 
 //Open document errors
-#define EOD_SUCCESS              0  //Success.
-#define EOD_ADT_OPEN            -1  //Autodetect codepage, can't open file.
-#define EOD_ADT_ALLOC           -2  //Autodetect codepage, can't allocate buffer.
-#define EOD_ADT_READ            -3  //Autodetect codepage, read file error.
-#define EOD_ADT_BINARY          -4  //Autodetect codepage, file is binary.
-#define EOD_OPEN                -5  //Can't open file.
-#define EOD_CANCEL              -6  //User press cancel.
-#define EOD_WINDOW_EXIST        -7  //File already opened.
-#define EOD_CODEPAGE_ERROR      -8  //Code page isn't implemented.
-#define EOD_STOP                -9  //Stopped from AKDN_OPENDOCUMENT_START.
-#define EOD_STREAMIN           -10  //Error in EM_STREAMIN.
+#define EOD_SUCCESS              0          //Success.
+#define EOD_ADT_OPEN             EDT_OPEN   //See EDT_OPEN.     
+#define EOD_ADT_ALLOC            EDT_ALLOC  //See EDT_ALLOC.     
+#define EOD_ADT_READ             EDT_READ   //See EDT_READ.  
+#define EOD_ADT_BINARY           EDT_BINARY //See EDT_BINARY.       
+#define EOD_OPEN                 -11        //Can't open file.
+#define EOD_CANCEL               -12        //User press cancel.
+#define EOD_WINDOW_EXIST         -13        //File already opened.
+#define EOD_CODEPAGE_ERROR       -14        //Code page isn't implemented.
+#define EOD_STOP                 -15        //Stopped from AKDN_OPENDOCUMENT_START.
+#define EOD_STREAMIN             -16        //Error in EM_STREAMIN.
 
 //Save document flags
 #define SD_UPDATE            0x00000001  //Update file info.
@@ -488,7 +501,7 @@ typedef struct {
   HWND hWndClone2;         //Second clone window (4.x only).
   HANDLE hDataClone2;      //Second clone data (4.x only).
   HWND hWndClone3;         //Third clone window (4.x only).
-  HANDLE hDataClone3;      //Third clone data (4.x only).  
+  HANDLE hDataClone3;      //Third clone data (4.x only).
 } EDITINFO;
 
 #ifndef __AKELEDIT_H__
@@ -1263,6 +1276,11 @@ typedef struct {
 #define AKD_GETFRAMEPROCRET        (WM_USER + 111)
 #define AKD_SETFRAMEPROCRET        (WM_USER + 112)
 
+//Command line
+#define AKD_GETCMDLINEOPTIONS      (WM_USER + 121)
+#define AKD_SETCMDLINEOPTIONS      (WM_USER + 122)
+#define AKD_PARSECMDLINEW          (WM_USER + 125)
+
 //Text retrieval and modification
 #define AKD_DETECTCODEPAGE         (WM_USER + 151)
 #define AKD_DETECTCODEPAGEA        (WM_USER + 152)
@@ -1295,10 +1313,8 @@ typedef struct {
 #define AKD_GETCHARCOLOR           (WM_USER + 179)
 
 //Print
-#define AKD_GETFILEPRINT           (WM_USER + 191)
-#define AKD_SETFILEPRINT           (WM_USER + 192)
-#define AKD_GETPRINTINFO           (WM_USER + 193)
-#define AKD_SETPRINTINFO           (WM_USER + 194)
+#define AKD_GETPRINTINFO           (WM_USER + 191)
+#define AKD_SETPRINTINFO           (WM_USER + 192)
 
 //Options
 #define AKD_PROGRAMVERSION         (WM_USER + 201)
@@ -1313,13 +1329,9 @@ typedef struct {
 #define AKD_SETFONT                (WM_USER + 210)
 #define AKD_SETFONTA               (WM_USER + 211)
 #define AKD_SETFONTW               (WM_USER + 212)
-#define AKD_GETMSGCREATE           (WM_USER + 213)
-#define AKD_SETMSGCREATE           (WM_USER + 214)
-#define AKD_GETMSGBINARY           (WM_USER + 215)
-#define AKD_SETMSGBINARY           (WM_USER + 216)
-#define AKD_GETCODEPAGELIST        (WM_USER + 217)
-#define AKD_RECENTFILES            (WM_USER + 218)
-#define AKD_SEARCHHISTORY          (WM_USER + 219)
+#define AKD_GETCODEPAGELIST        (WM_USER + 213)
+#define AKD_RECENTFILES            (WM_USER + 214)
+#define AKD_SEARCHHISTORY          (WM_USER + 215)
 
 //Windows
 #define AKD_GETMODELESS            (WM_USER + 251)
@@ -1834,6 +1846,54 @@ Example:
  SendMessage(pd->hMainWnd, AKD_SETMAINPROCRET, (WPARAM)NewMainProcRet, (LPARAM)&wprd);
 
 
+AKD_GETCMDLINEOPTIONS
+_____________________
+
+Retrieve current command line options.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ See CLO_* defines.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_GETCMDLINEOPTIONS, 0, 0);
+
+
+AKD_SETCMDLINEOPTIONS
+_____________________
+
+Set command line options.
+
+(DWORD)wParam == see CLO_* defines.
+lParam        == not used.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETCMDLINEOPTIONS, CLO_MSGCREATEFILENO|CLO_MSGBINARYOPENNO, 0);
+
+
+AKD_PARSECMDLINEW
+_________________
+
+Set command line options.
+
+(wchar_t *)wParam  == command line string.
+(wchar_t **)lParam == pointer to a variable that receive next argument pointer in command line.
+                      If NULL, wParam assumed to be allocated with GlobalAlloc and caller wants to free it.
+
+Return Value
+ See PCLE_* defines.
+
+Example:
+ wchar_t *wpCmdLineNext;
+
+ SendMessage(pd->hMainWnd, AKD_PARSECMDLINEW, (WPARAM)L"/p \"C:\\MyFile.txt\"", (LPARAM)&wpCmdLineNext);
+
+
 AKD_DETECTCODEPAGE, AKD_DETECTCODEPAGEA, AKD_DETECTCODEPAGEW
 __________________  ___________________  ___________________
 
@@ -2211,38 +2271,6 @@ Example:
  SendMessage(pd->hMainWnd, AKD_GETCHARCOLOR, (WPARAM)pd->hWndEdit, (LPARAM)&cc);
 
 
-AKD_GETFILEPRINT
-________________
-
-Retrieve global print state.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- TRUE  next opened file will be printed.
- FALSE next opened file will not be printed.
-
-Example:
- SendMessage(pd->hMainWnd, AKD_GETFILEPRINT, 0, 0);
-
-
-AKD_SETFILEPRINT
-________________
-
-Next opened file will be printed.
-
-(BOOL)wParam == TRUE  will be printed.
-                FALSE will not be printed.
-lParam       == not used.
-
-Return Value
- Zero.
-
-Example:
- SendMessage(pd->hMainWnd, AKD_SETFILEPRINT, TRUE, 0);
-
-
 AKD_GETPRINTINFO
 ________________
 
@@ -2427,74 +2455,6 @@ Example (Unicode):
  lfFont.lfHeight-=2;
  lstrcpynW(lfFont.lfFaceName, L"Courier New", LF_FACESIZE);
  SendMessage(pd->hMainWnd, AKD_SETFONTW, (WPARAM)pd->hWndEdit, (LPARAM)&lfFont);
-
-
-AKD_GETMSGCREATE
-________________
-
-Retrieve unexisted file autoanswer.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- AUTOANSWER_ASK   Show message (default).
- AUTOANSWER_YES   Create unexisted file.
- AUTOANSWER_NO    Don't create unexisted file.
-
-Example:
- SendMessage(pd->hMainWnd, AKD_GETMSGCREATE, 0, 0);
-
-
-AKD_SETMSGCREATE
-________________
-
-Create unexisted file autoanswer.
-
-(int)wParam == AUTOANSWER_ASK   Show message (default).
-               AUTOANSWER_YES   Create unexisted file.
-               AUTOANSWER_NO    Don't create unexisted file.
-lParam      == not used.
-
-Return Value
- Zero.
-
-Example:
- SendMessage(pd->hMainWnd, AKD_SETMSGCREATE, AUTOANSWER_YES, 0);
-
-
-AKD_GETMSGBINARY
-________________
-
-Retrive binary file autoanswer.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- AUTOANSWER_ASK  Show message (default).
- AUTOANSWER_YES  Open binary file.
- AUTOANSWER_NO   Don't open binary file.
-
-Example:
- SendMessage(pd->hMainWnd, AKD_GETMSGBINARY, 0, 0);
-
-
-AKD_SETMSGBINARY
-________________
-
-Open binary file autoanswer.
-
-(int)wParam == AUTOANSWER_ASK  Show message (default).
-               AUTOANSWER_YES  Open binary file.
-               AUTOANSWER_NO   Don't open binary file.
-lParam      == not used.
-
-Return Value
- Zero.
-
-Example:
- SendMessage(pd->hMainWnd, AKD_SETMSGBINARY, AUTOANSWER_YES, 0);
 
 
 AKD_GETCODEPAGELIST
@@ -2765,16 +2725,16 @@ Example:
 AKD_FRAMENOWINDOWS
 __________________
 
-Retrive is there no windows in MDI client (WMD_MDI) or only one empty window (WMD_PMDI).
+Retrive is there no windows in MDI client (WMD_MDI) or only one empty window (WMD_PMDI or WMD_SDI).
 
 wParam == not used.
 lParam == not used.
 
 Return Value
  TRUE   no windows in MDI client (WMD_MDI),
-        only one empty window (WMD_PMDI).
+        only one empty window (WMD_PMDI or WMD_SDI).
  FALSE  one or more windows in MDI client (WMD_MDI),
-        one non-empty window or more than one window (WMD_PMDI).
+        one non-empty window (WMD_PMDI or WMD_SDI) or more than one window (WMD_PMDI).
 
 Example:
  SendMessage(pd->hMainWnd, AKD_FRAMENOWINDOWS, 0, 0);
@@ -3548,9 +3508,16 @@ Example:
 
 //// AkelPad WM_COPYDATA messages
 
-#define CD_OPENDOCUMENT   1
-#define CD_OPENDOCUMENTA  2
-#define CD_OPENDOCUMENTW  3
+#define CD_OPENDOCUMENT       1
+#define CD_OPENDOCUMENTA      2
+#define CD_OPENDOCUMENTW      3
+#define CD_PARSECMDLINESEND   4
+#define CD_PARSECMDLINESENDA  5
+#define CD_PARSECMDLINESENDW  6
+#define CD_PARSECMDLINEPOST   7
+#define CD_PARSECMDLINEPOSTA  8
+#define CD_PARSECMDLINEPOSTW  9
+
 
 
 /*
@@ -3582,7 +3549,31 @@ Example (Ansi):
   cds.dwData=CD_OPENDOCUMENTA;
   cds.cbData=sizeof(OPENDOCUMENTPOSTA);
   cds.lpData=&odp;
-  SendMessage(pd->hMainWnd, WM_COPYDATA, (WPARAM)pd->hMainWnd, (LPARAM)&cds);
+  SendMessage(hWndDestination, WM_COPYDATA, (WPARAM)pd->hMainWnd, (LPARAM)&cds);
+
+
+CD_PARSECMDLINESEND, CD_PARSECMDLINESENDA, CD_PARSECMDLINESENDW, CD_PARSECMDLINEPOST, CD_PARSECMDLINEPOSTA, CD_PARSECMDLINEPOSTW  
+___________________  ____________________  ____________________  ___________________  ____________________  ____________________  
+
+Parse command line. Same as AKD_PARSECMDLINE, but can be used from outside of AkelPad process.
+
+(DWORD)dwData           == CD_PARSECMDLINESEND for sending message (wait for return).
+                           CD_PARSECMDLINEPOST for posting message (returns immediately).
+(DWORD)cbData           == size of the string in bytes, including the terminating null character.
+(unsigned char *)lpData == command line string.
+
+Return Value
+ CD_PARSECMDLINESEND - see PCLE_* defines.
+ CD_PARSECMDLINEPOST - zero.
+
+Example (Ansi):
+  COPYDATASTRUCT cds;
+  char *pCmdLine="/p \"C:\\MyFile.txt\""
+
+  cds.dwData=CD_PARSECMDLINESENDA;
+  cds.cbData=lstrlenA(pCmdLine) + 1;
+  cds.lpData=(PVOID)pCmdLine;
+  SendMessage(hWndDestination, WM_COPYDATA, (WPARAM)pd->hMainWnd, (LPARAM)&cds);
 */
 
 //// UNICODE define

@@ -160,7 +160,8 @@ HANDLE hMutex=0;
 //WinMain
 HINSTANCE hInstance;
 DWORD dwCmdShow;
-BOOL bNotepadCommandLine=TRUE;
+DWORD dwCmdLineOptions=0;
+const wchar_t *wpCmdLine=NULL;
 
 //Identification
 DWORD dwExeVersion=0;
@@ -172,9 +173,9 @@ BOOL bRichEditClass=FALSE;
 BOOL bWindowsNT=FALSE;
 
 //Buffers
-char szCmdLine[32768];
-wchar_t wszCmdLine[32768];
-wchar_t wszCmdFile[MAX_PATH]=L"";
+char szCmdLine[COMMANDLINE_SIZE];
+wchar_t wszCmdLine[COMMANDLINE_SIZE];
+wchar_t wszCmdArg[COMMANDARG_SIZE];
 unsigned char pcTranslateBuffer[TRANSLATE_BUFFER_SIZE];
 char buf[BUFFER_SIZE];
 wchar_t wbuf[BUFFER_SIZE];
@@ -220,7 +221,7 @@ int nSaveSettings=SS_REGISTRY;
 int nRegSaveSettings=SS_REGISTRY;
 
 //Main Window
-HWND hMainWnd;
+HWND hMainWnd=NULL;
 HWND hDummyWindow;
 RECT rcMainWindowRestored={CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT};
 DWORD dwMainStyle=0;
@@ -303,8 +304,6 @@ BOOL bSaveDlg;
 DWORD dwOfnFlags;
 BOOL bOfnBOM=FALSE;
 int nOfnCodePage;
-int nMsgCreate=AUTOANSWER_ASK;
-int nMsgBinary=AUTOANSWER_ASK;
 POINT ptDocumentPos;
 BOOL bSaveInReadOnlyMsg=FALSE;
 WNDPROC OldFilePreviewProc;
@@ -384,7 +383,6 @@ DWORD dwPrintColor=0;
 BOOL bPrintFontEnable=FALSE;
 BOOL bPrintHeaderEnable=FALSE;
 BOOL bPrintFooterEnable=FALSE;
-BOOL bGlobalPrint=FALSE;
 BOOL bPrintFontChanged=FALSE;
 
 //Edit state
@@ -468,14 +466,12 @@ extern "C" void _WinMain()
 {
   WNDCLASSW wndclassW={0};
   MSG msg;
-  const wchar_t *wpCmdLine;
   HMODULE hUser32=NULL;
 #ifndef AKELEDIT_STATICBUILD
   HMODULE hAkelLib=NULL;
 #endif
   HWND hWndFriend=NULL;
   BOOL bMsgStatus;
-  BOOL bExit=FALSE;
   int nMajor;
   int nMinor;
   int nRelease;
@@ -700,6 +696,29 @@ extern "C" void _WinMain()
   //Get command line
   wpCmdLine=GetCommandLineParamsW();
 
+  //Parse commmand line on load
+  if (wpCmdLine)
+  {
+    int nResult=ParseCmdLine(&wpCmdLine, TRUE);
+
+    if (nResult == PCLE_QUIT)
+      goto Quit;
+    else if (nResult == PCLE_END)
+      wpCmdLine=NULL;
+  }
+
+  if (nMDI == WMD_MDI && bSingleOpenProgram)
+  {
+    //Pass command line to opened instance
+    if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
+    {
+      ActivateWindow(hWndFriend);
+      SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
+      PostCmdLine(hWndFriend, wpCmdLine);
+      goto Quit;
+    }
+  }
+
   //Get common controls version
   GetFileVersionA("comctl32.dll", &nMajor, &nMinor, &nRelease, &nBuild);
   if (nMajor < 4 || (nMajor == 4 && nMinor < 71))
@@ -712,137 +731,6 @@ extern "C" void _WinMain()
 
   MonitorFromPointPtr=(HMONITOR (WINAPI *)(POINT, DWORD))GetProcAddress(hUser32, "MonitorFromPoint");
   GetMonitorInfoAPtr=(BOOL (WINAPI *)(HMONITOR, LPMONITORINFO))GetProcAddress(hUser32, "GetMonitorInfoA");
-
-  //Get command line arguments
-  if (nMDI)
-  {
-    if (bSingleOpenProgram)
-    {
-      if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
-      {
-        ActivateWindow(hWndFriend);
-        bExit=TRUE;
-      }
-    }
-  }
-
-  if (*wpCmdLine)
-  {
-    while (GetCommandLineArgW(wpCmdLine, wbuf, BUFFER_SIZE, NULL, NULL, &wpCmdLine, bNotepadCommandLine))
-    {
-      if (wbuf[0] == '/')
-      {
-        if (!xstrcmpiW(wbuf, L"/P"))
-        {
-          bGlobalPrint=TRUE;
-        }
-        else if (!xstrcmpiW(wbuf, L"/C+"))
-        {
-          nMsgCreate=AUTOANSWER_YES;
-        }
-        else if (!xstrcmpiW(wbuf, L"/C-"))
-        {
-          nMsgCreate=AUTOANSWER_NO;
-        }
-        else if (!xstrcmpiW(wbuf, L"/B+"))
-        {
-          nMsgBinary=AUTOANSWER_YES;
-        }
-        else if (!xstrcmpiW(wbuf, L"/B-"))
-        {
-          nMsgBinary=AUTOANSWER_NO;
-        }
-        else if (!xstrcmpiW(wbuf, L"/X"))
-        {
-          bNotepadCommandLine=FALSE;
-        }
-        else if (!xstrcmpiW(wbuf, L"/REASSOC"))
-        {
-          if (dwFileTypesAssociated & AE_OPEN)
-          {
-            AssociateFileTypesW(hInstance, wszFileTypesOpen, AE_OPEN|AE_ASSOCIATE);
-          }
-          else if (dwFileTypesAssociated & AE_EDIT)
-          {
-            AssociateFileTypesW(hInstance, wszFileTypesEdit, AE_EDIT|AE_ASSOCIATE);
-          }
-          else if (dwFileTypesAssociated & AE_PRINT)
-          {
-            AssociateFileTypesW(hInstance, wszFileTypesPrint, AE_PRINT|AE_ASSOCIATE);
-          }
-          if (dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
-        }
-        else if (!xstrcmpiW(wbuf, L"/DEASSOC"))
-        {
-          if (dwFileTypesAssociated & AE_OPEN)
-          {
-            AssociateFileTypesW(hInstance, wszFileTypesOpen, AE_OPEN|AE_DEASSOCIATE);
-          }
-          else if (dwFileTypesAssociated & AE_EDIT)
-          {
-            AssociateFileTypesW(hInstance, wszFileTypesEdit, AE_EDIT|AE_DEASSOCIATE);
-          }
-          else if (dwFileTypesAssociated & AE_PRINT)
-          {
-            AssociateFileTypesW(hInstance, wszFileTypesPrint, AE_PRINT|AE_DEASSOCIATE);
-          }
-          if (dwFileTypesAssociated) SHChangeNotify(SHCNE_ASSOCCHANGED, 0, 0, 0);
-        }
-        else if (!xstrcmpiW(wbuf, L"/QUIT"))
-        {
-          goto Quit;
-        }
-        else if (!xstrcmpiW(wbuf, L"/END"))
-        {
-          break;
-        }
-        continue;
-      }
-      if (!*wbuf) continue;
-      xstrcpynW(wszCmdFile, wbuf, MAX_PATH);
-
-      if (nMDI)
-      {
-        if (!hWndFriend)
-        {
-          if (!*wpCmdLine) break;
-          if (hWndFriend=DoFileNewWindow(STARTF_NOMUTEX))
-            bExit=TRUE;
-        }
-      }
-      else
-      {
-        if (bSingleOpenFile)
-        {
-          if (GetFullNameW(wszCmdFile, wszCmdFile, MAX_PATH))
-          {
-            if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wszCmdFile)) &&
-                (hWndFriend=GetParent(hWndFriend)))
-            {
-              ActivateWindow(hWndFriend);
-              bExit=TRUE;
-              goto OpenSendW;
-            }
-          }
-        }
-        bExit=FALSE;
-        if (!*wpCmdLine) break;
-
-        hWndFriend=DoFileNewWindow(STARTF_NOMUTEX);
-      }
-
-      OpenSendW:
-      if (hWndFriend)
-      {
-        if (bGlobalPrint) SendMessage(hWndFriend, AKD_SETFILEPRINT, TRUE, 0);
-        if (nMsgCreate != AUTOANSWER_ASK) SendMessage(hWndFriend, AKD_SETMSGCREATE, (WPARAM)nMsgCreate, 0);
-        if (nMsgBinary != AUTOANSWER_ASK) SendMessage(hWndFriend, AKD_SETMSGBINARY, (WPARAM)nMsgBinary, 0);
-
-        OpenDocumentSend(hWndFriend, NULL, wszCmdFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, 0, TRUE);
-      }
-    }
-  }
-  if (bExit) goto Quit;
 
   //Load DLL's
   hLangLib=hInstance;
@@ -938,8 +826,6 @@ extern "C" void _WinMain()
       hCursorDragMove=(HCURSOR)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDC_CURSOR_DRAGMOVE), IMAGE_CURSOR, 0, 0, 0);
     }
   }
-
-
 
   lpfnMainProc=MainProc;
   lpfnMainProcRet=NULL;
@@ -1535,7 +1421,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       SendMessage(hMainWnd, AKDN_MAIN_ONSTART_SHOW, 0, 0);
 
-      if (*wszCmdFile) OpenDocument(lpFrameCurrent->ei.hWndEdit, wszCmdFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+      //Parse commmand line on show
+      if (wpCmdLine)
+      {
+        int nResult=ParseCmdLine(&wpCmdLine, FALSE);
+
+        wpCmdLine=NULL;
+        if (nResult == PCLE_QUIT)
+          PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
+      }
       SetCurrentDirectoryWide(wszExeDir);
 
       if (hMutex)
@@ -1548,6 +1442,30 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
       bMainOnStartFinish=TRUE;
       return 0;
+    }
+
+    //Command line
+    if (uMsg == AKD_GETCMDLINEOPTIONS)
+    {
+      return dwCmdLineOptions;
+    }
+    if (uMsg == AKD_SETCMDLINEOPTIONS)
+    {
+      dwCmdLineOptions=wParam;
+      return 0;
+    }
+    if (uMsg == AKD_PARSECMDLINEW)
+    {
+      const wchar_t *wpCmdLine=(wchar_t *)wParam;
+      int nResult;
+
+      nResult=ParseCmdLine(&wpCmdLine, FALSE);
+      if (lParam)
+        *(const wchar_t **)lParam=wpCmdLine;
+      else
+        GlobalFree((HGLOBAL)wParam);
+
+      return nResult;
     }
 
     //Text retrieval and modification
@@ -1750,15 +1668,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
 
     //Print
-    if (uMsg == AKD_GETFILEPRINT)
-    {
-      return bGlobalPrint;
-    }
-    if (uMsg == AKD_SETFILEPRINT)
-    {
-      bGlobalPrint=(BOOL)wParam;
-      return 0;
-    }
     if (uMsg == AKD_GETPRINTINFO)
     {
       PRINTINFO *info=(PRINTINFO *)wParam;
@@ -1889,24 +1798,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
       return FALSE;
-    }
-    if (uMsg == AKD_GETMSGCREATE)
-    {
-      return nMsgCreate;
-    }
-    if (uMsg == AKD_SETMSGCREATE)
-    {
-      nMsgCreate=(int)wParam;
-      return 0;
-    }
-    if (uMsg == AKD_GETMSGBINARY)
-    {
-      return nMsgBinary;
-    }
-    if (uMsg == AKD_SETMSGBINARY)
-    {
-      nMsgBinary=(int)wParam;
-      return 0;
     }
     if (uMsg == AKD_GETCODEPAGELIST)
     {
@@ -2141,22 +2032,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_FRAMENOWINDOWS)
     {
-      if (nMDI == WMD_MDI)
-      {
-        if (!lpFrameCurrent->hWndEditParent)
-          return TRUE;
-      }
-      else if (nMDI == WMD_PMDI)
-      {
-        if (lpFrameCurrent == (FRAMEDATA *)hFramesStack.first &&
-            lpFrameCurrent == (FRAMEDATA *)hFramesStack.last &&
-            !lpFrameCurrent->ei.bModified &&
-            !lpFrameCurrent->ei.wszFile[0])
-        {
-          return TRUE;
-        }
-      }
-      return FALSE;
+      return FrameNoWindows();
     }
 
     //Thread
@@ -2585,7 +2461,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       OPENDOCUMENTPOSTW *odpW=(OPENDOCUMENTPOSTW *)cds->lpData;
       wchar_t *wpFile=AllocWideStr(MAX_PATH);
       wchar_t *wpWorkDir=AllocWideStr(MAX_PATH);
-      int nResult=0;
 
       if ((odpA->hWnd && !IsEditActive(odpA->hWnd)) || nMDI || SaveChanged())
       {
@@ -2606,6 +2481,40 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       FreeWideStr(wpFile);
       FreeWideStr(wpWorkDir);
+    }
+    else if (cds->dwData == CD_PARSECMDLINESEND ||
+             cds->dwData == CD_PARSECMDLINESENDA ||
+             cds->dwData == CD_PARSECMDLINESENDW ||
+             cds->dwData == CD_PARSECMDLINEPOST ||
+             cds->dwData == CD_PARSECMDLINEPOSTA ||
+             cds->dwData == CD_PARSECMDLINEPOSTW)
+    {
+      wchar_t *wpCmdLine=NULL;
+      wchar_t *wpCmdLineNext=NULL;
+
+      if (cds->dwData == CD_PARSECMDLINESENDA || (bOldWindows && cds->dwData == CD_PARSECMDLINESEND) ||
+          cds->dwData == CD_PARSECMDLINEPOSTA || (bOldWindows && cds->dwData == CD_PARSECMDLINEPOST))
+      {
+        if (wpCmdLine=(wchar_t *)GlobalAlloc(GMEM_FIXED, cds->cbData * sizeof(wchar_t)))
+          MultiByteToWideChar(CP_ACP, 0, (char *)cds->lpData, cds->cbData, wpCmdLine, cds->cbData);
+      }
+      else
+      {
+        if (wpCmdLine=(wchar_t *)GlobalAlloc(GMEM_FIXED, cds->cbData))
+          xmemcpy(wpCmdLine, (wchar_t *)cds->lpData, cds->cbData);
+      }
+
+      if (cds->dwData == CD_PARSECMDLINESEND ||
+          cds->dwData == CD_PARSECMDLINESENDA ||
+          cds->dwData == CD_PARSECMDLINESENDW)
+      {
+        nResult=SendMessage(hMainWnd, AKD_PARSECMDLINEW, (WPARAM)wpCmdLine, (LPARAM)&wpCmdLineNext);
+        GlobalFree((HGLOBAL)wpCmdLine);
+      }
+      else
+      {
+        PostMessage(hMainWnd, AKD_PARSECMDLINEW, (WPARAM)wpCmdLine, (LPARAM)NULL);
+      }
     }
     return nResult;
   }
