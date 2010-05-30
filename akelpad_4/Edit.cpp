@@ -14462,7 +14462,8 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
       }
     }
   }
-  if (*wpCount) ++wpCount;
+  if (*wpCount == wchStopCharCur)
+    ++wpCount;
   if (wszArg) *wpArg='\0';
   if (wpNextArg)
     for (*wpNextArg=wpCount; **wpNextArg == ' '; ++*wpNextArg);
