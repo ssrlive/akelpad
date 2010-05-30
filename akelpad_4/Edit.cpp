@@ -829,7 +829,7 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
       //Set caption of main window
       if (lpFrameCurrent->wszFile[0])
       {
-        //xprintfW(wbuf, L"%s - %s", GetFileNameW(lpFrameCurrent->wszFile), APP_MAIN_TITLEW);
+        //xprintfW(wbuf, L"%s - %s", GetFileName(lpFrameCurrent->wszFile), APP_MAIN_TITLEW);
         xprintfW(wbuf, L"%s - [%s]", APP_MAIN_TITLEW, lpFrameCurrent->wszFile);
         SetWindowTextWide(hMainWnd, wbuf);
       }
@@ -1351,10 +1351,10 @@ BOOL DoFileOpen()
     {
       //GetCurrentDirectoryWide(MAX_PATH, wszLastDir);
       SetCurrentDirectoryWide(wszExeDir);
-  
+
       if (!nMDI)
       {
-        GetFileDirW(wszFileList, wszLastDir, MAX_PATH);
+        GetFileDir(wszFileList, wszLastDir, MAX_PATH);
         if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
           return FALSE;
       }
@@ -1365,39 +1365,39 @@ BOOL DoFileOpen()
         wchar_t *wpFile=wszFileList + lstrlenW(wszFileList) + 1;
         int nFiles;
         int nFileCount=0;
-  
+
         if (*wpFile)
         {
           //Multiple files selected
           if (*(wpFile - 2) == '\\') *(wpFile - 2)='\0';
           xstrcpynW(wszLastDir, wszFileList, MAX_PATH);
-  
+
           //Get files count
           if (bStatusBar)
           {
             LoadStringWide(hLangLib, STR_COUNT, wszString, MAX_PATH);
             xarraysizeW(wszFileList, &nFiles);
-  
+
             //First element in array is directory.
             --nFiles;
           }
-  
+
           do
           {
-            if (IsPathFullW(wpFile))
+            if (IsPathFull(wpFile))
               xstrcpynW(wszFile, wpFile, MAX_PATH);  //.lnk target
             else
               xprintfW(wszFile, L"%s\\%s", wszFileList, wpFile);
             OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFile, dwOfnFlags, nOfnCodePage, bOfnBOM);
-  
+
             //Status update
             if (bStatusBar)
             {
               MSG msg;
-  
+
               xprintfW(wbuf, wszString, ++nFileCount, nFiles);
               StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
-  
+
               while (PeekMessageWide(&msg, hStatus, 0, 0, PM_REMOVE))
               {
                 TranslateMessage(&msg);
@@ -1406,14 +1406,14 @@ BOOL DoFileOpen()
             }
           }
           while (*(wpFile+=lstrlenW(wpFile) + 1));
-  
+
           if (bStatusBar)
             StatusBar_SetTextWide(hStatus, STATUS_MODIFY, L"");
         }
         else
         {
           //One file selected
-          GetFileDirW(wszFileList, wszLastDir, MAX_PATH);
+          GetFileDir(wszFileList, wszLastDir, MAX_PATH);
           if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
             return FALSE;
         }
@@ -2440,15 +2440,15 @@ BOOL DoSettingsExec()
   int nWorkDirLen;
   BOOL bResult=FALSE;
 
-  nCommandLen=TranslateFileStringW(wszCommand, NULL, 0);
-  nWorkDirLen=TranslateFileStringW(wszWorkDir, NULL, 0);
+  nCommandLen=TranslateFileString(wszCommand, NULL, 0);
+  nWorkDirLen=TranslateFileString(wszWorkDir, NULL, 0);
 
   if (wszCommandExp=AllocWideStr(nCommandLen + 1))
   {
     if (wszWorkDirExp=AllocWideStr(nWorkDirLen + 1))
     {
-      TranslateFileStringW(wszCommand, wszCommandExp, nCommandLen + 1);
-      TranslateFileStringW(wszWorkDir, wszWorkDirExp, nWorkDirLen + 1);
+      TranslateFileString(wszCommand, wszCommandExp, nCommandLen + 1);
+      TranslateFileString(wszWorkDir, wszWorkDirExp, nWorkDirLen + 1);
 
       siW.cb=sizeof(STARTUPINFOW);
       if (CreateProcessWide(NULL, wszCommandExp, NULL, NULL, FALSE, 0, NULL, *wszWorkDirExp?wszWorkDirExp:NULL, &siW, &pi))
@@ -3793,7 +3793,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     DoFileNew();
     hWnd=lpFrameCurrent->ei.hWndEdit;
   }
-  bFileExist=GetFullNameW(wpFile, wszFile, MAX_PATH);
+  bFileExist=GetFullName(wpFile, wszFile, MAX_PATH);
 
   //Notification message
   if (GetWindowLongWide(hWnd, GWL_ID) == ID_EDIT)
@@ -4412,7 +4412,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
     return nResult;
   }
-  GetFullNameW(wpFile, wszFile, MAX_PATH);
+  GetFullName(wpFile, wszFile, MAX_PATH);
 
   //Notification message
   if (GetWindowLongWide(hWnd, GWL_ID) == ID_EDIT)
@@ -4728,7 +4728,7 @@ void DropFiles(HDROP hDrop)
     for (i=0; i < nDropped; ++i)
     {
       DragQueryFileWide(hDrop, i, wszFile, MAX_PATH);
-      if (nMDI && IsFileW(wszFile) == ERROR_FILE_NOT_FOUND)
+      if (nMDI && IsFile(wszFile) == ERROR_FILE_NOT_FOUND)
         OpenDirectory(wszFile, TRUE);
       else
         OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
@@ -5626,7 +5626,7 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
 
 BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
 {
-  //%% == %, %n[1] == nPageNumber[nPageStart], %f == lpFrameCurrent->wszFile, %d == GetFileDirW(lpFrameCurrent->wszFile), %c == DT_CENTER, %l == DT_LEFT, %r == DT_RIGHT
+  //%% == %, %n[1] == nPageNumber[nPageStart], %f == lpFrameCurrent->wszFile, %d == GetFileDir(lpFrameCurrent->wszFile), %c == DT_CENTER, %l == DT_LEFT, %r == DT_RIGHT
   wchar_t wszFileDir[MAX_PATH];
   wchar_t wszCenter[MAX_PATH];
   wchar_t wszLeft[MAX_PATH];
@@ -5647,9 +5647,9 @@ BOOL PrintHeadline(HDC hDC, RECT *rc, wchar_t *wpHeadline, int nPageNumber)
   int a;
   BOOL bResult=TRUE;
 
-  wpFile=GetFileNameW(lpFrameCurrent->wszFile);
+  wpFile=GetFileName(lpFrameCurrent->wszFile);
   nFileLen=lstrlenW(wpFile);
-  nFileDirLen=GetFileDirW(lpFrameCurrent->wszFile, wszFileDir, MAX_PATH);
+  nFileDirLen=GetFileDir(lpFrameCurrent->wszFile, wszFileDir, MAX_PATH);
 
   for (a=0; wpHeadline[a] && nCount < MAX_PATH; ++a)
   {
@@ -7185,7 +7185,7 @@ int FilePreview(HWND hWnd, wchar_t *wpFile, int nPreviewBytes, DWORD dwFlags, in
   if (!(dwFlags & ADT_REG_CODEPAGE) && !(dwFlags & ADT_DETECT_CODEPAGE))
     if (!*nCodePage) return EOD_OPEN;
 
-  if (IsFileW(wpFile) != ERROR_SUCCESS)
+  if (IsFile(wpFile) != ERROR_SUCCESS)
     return EOD_OPEN;
 
   if ((i=AutodetectCodePage(wpFile, dwCodepageRecognitionBuffer, dwFlags, nCodePage, bBOM)) < 0)
@@ -9770,7 +9770,7 @@ void LanguageMenu()
     {
       if (!xstrcmpiW(wszLangModule, wfdW.cFileName))
         nCommand=IDM_LANGUAGE + i;
-      GetBaseNameW(wfdW.cFileName, wbuf, BUFFER_SIZE);
+      GetBaseName(wfdW.cFileName, wbuf, BUFFER_SIZE);
       InsertMenuWide(hMainMenu, IDM_LANGUAGE, MF_BYCOMMAND|MF_STRING, IDM_LANGUAGE + i, wbuf);
       ++i;
     }
@@ -10944,7 +10944,7 @@ void FillPluginList(HWND hWnd)
       {
         if (GetProcAddress(hInstance, "DllAkelPadID"))
         {
-          GetBaseNameW(wfdW.cFileName, wszBaseName, MAX_PATH);
+          GetBaseName(wfdW.cFileName, wszBaseName, MAX_PATH);
           pld.pBaseName=(unsigned char *)wszBaseName;
           GetExportNames(hInstance, FillPluginListProc, (LPARAM)&pld);
         }
@@ -12030,7 +12030,7 @@ BOOL TranslatePlugin(LPMSG lpMsg)
 
       if (GetModuleFileNameWide(hInstanceDLL, wbuf, BUFFER_SIZE))
       {
-        GetBaseNameW(wbuf, wszPluginName, MAX_PATH);
+        GetBaseName(wbuf, wszPluginName, MAX_PATH);
         xprintfW(wszPluginName, L"%s::", wszPluginName);
         WideCharToMultiByte(CP_ACP, 0, wszPluginName, -1, szPluginName, MAX_PATH, NULL, NULL);
 
@@ -14006,7 +14006,7 @@ const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, i
   int i;
   int j;
 
-  if (wpExt=GetFileExtW(wpFile))
+  if (wpExt=GetFileExt(wpFile))
   {
     if (RegOpenKeyExWide(HKEY_CLASSES_ROOT, wpExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
@@ -14404,102 +14404,6 @@ wchar_t* GetCommandLineParamsW()
   return lpwCmdLine;
 }
 
-int GetCommandLineArgA(const char *pCmdLine, char *szArgName, int nArgNameLen, const char **pArgOption, int *nArgOptionLen, const char **pNextArg, BOOL bParseAsNotepad)
-{
-  const char *pCount=pCmdLine;
-  char *pArgName=szArgName;
-  char *pArgNameMax=szArgName + nArgNameLen - 1;
-  char chStopChar;
-  BOOL bArgName=TRUE;
-
-  if (pArgOption) *pArgOption=NULL;
-  if (nArgOptionLen) *nArgOptionLen=0;
-  while (*pCount == ' ') ++pCount;
-
-  if (*pCount == '/')
-  {
-    for (chStopChar=' '; *pCount != chStopChar && *pCount != '\0'; ++pCount)
-    {
-      if (bArgName)
-      {
-        if (*pCount == '=')
-        {
-          ++pCount;
-          if (*pCount == '\"' || *pCount == '\'' || *pCount == '`')
-            chStopChar=*pCount;
-          if (pArgOption) *pArgOption=pCount;
-          --pCount;
-          bArgName=FALSE;
-        }
-        else
-        {
-          if (pArgName < pArgNameMax)
-          {
-            if (szArgName) *pArgName=*pCount;
-            ++pArgName;
-          }
-        }
-      }
-    }
-    if (*pCount == '\"' || *pCount == '\'' || *pCount == '`')
-      ++pCount;
-  }
-  else if (*pCount == '\"')
-  {
-    for (++pCount; *pCount != '\"' && *pCount != '\0'; ++pCount)
-    {
-      if (pArgName < pArgNameMax)
-      {
-        if (szArgName) *pArgName=*pCount;
-        ++pArgName;
-      }
-    }
-    if (*pCount == '\"')
-      ++pCount;
-  }
-  else
-  {
-    if (bParseAsNotepad)
-    {
-      for (; *pCount != '\"' && *pCount != '\0'; ++pCount)
-      {
-        if (pArgName < pArgNameMax)
-        {
-          if (szArgName) *pArgName=*pCount;
-          ++pArgName;
-        }
-      }
-      if (pArgName < pArgNameMax)
-      {
-        if (szArgName)
-        {
-          while (*--pArgName == ' ') *pArgName='\0';
-          ++pArgName;
-        }
-      }
-    }
-    else
-    {
-      for (; *pCount != ' ' && *pCount != '\0'; ++pCount)
-      {
-        if (pArgName < pArgNameMax)
-        {
-          if (szArgName) *pArgName=*pCount;
-          ++pArgName;
-        }
-      }
-    }
-  }
-  if (szArgName) *pArgName='\0';
-
-  if (pNextArg)
-    for (*pNextArg=pCount; **pNextArg == ' '; ++*pNextArg);
-  if (pArgOption && *pArgOption && nArgOptionLen)
-    *nArgOptionLen=pCount - *pArgOption;
-
-  return pArgName - szArgName;
-}
-
 int GetCommandLineArgW(const wchar_t *wpCmdLine, wchar_t *wszArgName, int nArgNameLen, const wchar_t **wpArgOption, int *nArgOptionLen, const wchar_t **wpNextArg, BOOL bParseAsNotepad)
 {
   const wchar_t *wpCount=wpCmdLine;
@@ -14600,6 +14504,9 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
 {
   const wchar_t *wpCmdLine;
   const wchar_t *wpCmdLineNext;
+  wchar_t *wpAction;
+  STACKEXTPARAM hParamStack={0};
+  DWORD dwAction;
   HWND hWndFriend=NULL;
   BOOL bFileOpenedSDI=FALSE;
 
@@ -14677,37 +14584,162 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           dwCmdLineOptions|=CLO_NONOTEPADCMD;
           continue;
         }
-        else
-        {
-          if (bOnLoad) return PCLE_ONLOAD;
-        }
+        if (bOnLoad) return PCLE_ONLOAD;
 
+        //Process standard actions
+        if (lpFrameCurrent->ei.hWndEdit)
+        {
+          dwAction=0;
+
+          if (!xstrcmpinW(L"/Command(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_COMMAND;
+          }
+          else if (!xstrcmpinW(L"/Call(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_CALL;
+          }
+          else if (!xstrcmpinW(L"/Exec(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_EXEC;
+          }
+          else if (!xstrcmpinW(L"/Font(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_FONT;
+          }
+          else if (!xstrcmpinW(L"/Recode(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_RECODE;
+          }
+          else if (!xstrcmpinW(L"/Insert(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_INSERT;
+          }
+
+          if (dwAction)
+          {
+            for (wpAction=wszCmdArg; *wpAction != '('; ++wpAction);
+            GetActionParameters(&hParamStack, ++wpAction, NULL);
+
+            if (dwAction == EXTACT_COMMAND)
+            {
+              int nCommand=GetParameterInt(&hParamStack, 1);
+
+              if (nCommand)
+              {
+                SendMessage(hMainWnd, WM_COMMAND, nCommand, 0);
+              }
+            }
+            else if (dwAction == EXTACT_CALL)
+            {
 /*
-        if (!xstrcmpinW(L"/Command", wszCmdArg, (DWORD)-1))
-        {
-          dwAction=ACT_COMMAND;
-        }
-        else if (!xstrcmpinW(L"/Call", wszCmdArg, (DWORD)-1))
-        {
-          dwAction=ACT_CALL;
-        }
-        else if (!xstrcmpinW(L"/Exec", wszCmdArg, (DWORD)-1))
-        {
-          dwAction=ACT_EXEC;
-        }
-        else if (!xstrcmpinW(L"/Font", wszCmdArg, (DWORD)-1))
-        {
-          dwAction=ACT_FONT;
-        }
-        else if (!xstrcmpinW(L"/Recode", wszCmdArg, (DWORD)-1))
-        {
-          dwAction=ACT_RECODE;
-        }
-        else if (!xstrcmpinW(L"/Insert", wszCmdArg, (DWORD)-1))
-        {
-          dwAction=ACT_INSERT;
-        }
+              PLUGINCALL *pc;
+              unsigned char *lpStruct=NULL;
+
+              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+
+              if (CreateParametersStruct(&hParamStack, &lpStruct))
+              {
+                if (pc=(PLUGINCALL *)GlobalAlloc(GPTR, sizeof(PLUGINCALL)))
+                {
+                  pc->lpStruct=lpStruct;
+                  pc->bAutoLoad=bAutoLoad;
+                  PostMessage(hMainWnd, AKD_CALLPROC, (WPARAM)CallPlugin, (LPARAM)pc);
+                }
+              }
 */
+            }
+            else if (dwAction == EXTACT_EXEC)
+            {
+              STARTUPINFOW si={0};
+              PROCESS_INFORMATION pi={0};
+              wchar_t *wpCmdLine=NULL;
+              wchar_t *wpWorkDir=NULL;
+
+              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+              wpCmdLine=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
+              wpWorkDir=(wchar_t *)GetParameterExpCharW(&hParamStack, 2);
+
+              if (wpCmdLine)
+              {
+                si.cb=sizeof(STARTUPINFOW);
+                if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, wpWorkDir, &si, &pi))
+                {
+                  CloseHandle(pi.hProcess);
+                  CloseHandle(pi.hThread);
+                }
+              }
+            }
+            else if (dwAction == EXTACT_FONT)
+            {
+              wchar_t *wpFaceName=NULL;
+              DWORD dwFontStyle=0;
+              int nPointSize=0;
+              HDC hDC;
+
+              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+              wpFaceName=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
+              dwFontStyle=GetParameterInt(&hParamStack, 2);
+              nPointSize=GetParameterInt(&hParamStack, 3);
+
+              if (nPointSize)
+              {
+                if (hDC=GetDC(lpFrameCurrent->ei.hWndEdit))
+                {
+                  lpFrameCurrent->lf.lfHeight=-MulDiv(nPointSize, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+                  ReleaseDC(lpFrameCurrent->ei.hWndEdit, hDC);
+                }
+              }
+              if (dwFontStyle != FS_NONE)
+              {
+                lpFrameCurrent->lf.lfWeight=(dwFontStyle == FS_FONTBOLD || dwFontStyle == FS_FONTBOLDITALIC)?FW_BOLD:FW_NORMAL;
+                lpFrameCurrent->lf.lfItalic=(dwFontStyle == FS_FONTITALIC || dwFontStyle == FS_FONTBOLDITALIC)?TRUE:FALSE;
+              }
+              if (*wpFaceName != '\0')
+              {
+                xstrcpynW(lpFrameCurrent->lf.lfFaceName, wpFaceName, LF_FACESIZE);
+              }
+              SetChosenFont(lpFrameCurrent, &lpFrameCurrent->lf);
+            }
+            else if (dwAction == EXTACT_RECODE)
+            {
+              TEXTRECODE tr;
+
+              tr.nCodePageFrom=GetParameterInt(&hParamStack, 1);
+              tr.nCodePageTo=GetParameterInt(&hParamStack, 2);
+              RecodeTextW(lpFrameCurrent->ei.hWndEdit, tr.nCodePageFrom, tr.nCodePageTo);
+            }
+            else if (dwAction == EXTACT_INSERT)
+            {
+              wchar_t *wpText=NULL;
+              wchar_t *wpUnescText=NULL;
+              int nUnescTextLen;
+              BOOL bEscSequences=FALSE;
+
+              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+              wpText=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
+              bEscSequences=GetParameterInt(&hParamStack, 2);
+
+              if (bEscSequences)
+              {
+                if (nUnescTextLen=RecoverEscapeString(lpFrameCurrent->ei.hWndEdit, wpText, NULL))
+                {
+                  if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
+                  {
+                    RecoverEscapeString(lpFrameCurrent->ei.hWndEdit, wpText, wpUnescText);
+                  }
+                }
+                wpText=wpUnescText;
+              }
+              if (wpText)
+              {
+                ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, -1, -1, NULL, NULL);
+              }
+              if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
+            }
+            FreeActionParameters(&hParamStack);
+          }
+        }
         continue;
       }
       if (!*wszCmdArg) continue;
@@ -14717,7 +14749,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
       {
         if (bSingleOpenFile)
         {
-          if (GetFullNameW(wszCmdArg, wszCmdArg, MAX_PATH))
+          if (GetFullName(wszCmdArg, wszCmdArg, MAX_PATH))
           {
             if ((hWndFriend=FindWindowExWide(NULL, NULL, APP_SDI_CLASSW, wszCmdArg)) &&
                 (hWndFriend=GetParent(hWndFriend)))
@@ -14766,6 +14798,429 @@ void PostCmdLine(HWND hWnd, const wchar_t *wpCmdLine)
   cds.cbData=BytesInString(wpCmdLine);
   cds.lpData=(PVOID)wpCmdLine;
   SendMessage(hWnd, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
+}
+
+void GetActionParameters(STACKEXTPARAM *hParamStack, wchar_t *wpText, wchar_t **wppText)
+{
+  EXTPARAM *lpParameter;
+  wchar_t *wpParamBegin=wpText;
+  wchar_t *wpParamEnd;
+  wchar_t *wpString;
+  wchar_t wchStopChar;
+  int nStringLen;
+
+  GetActionParameter:
+  while (*wpParamBegin == ' ' || *wpParamBegin == '\t') ++wpParamBegin;
+
+  if (*wpParamBegin == '\"' || *wpParamBegin == '\'' || *wpParamBegin == '`')
+  {
+    //String
+    wchStopChar=*wpParamBegin++;
+    nStringLen=0;
+
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != '\0'; ++wpParamEnd)
+      ++nStringLen;
+
+    if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
+    {
+      ++hParamStack->nElements;
+
+      if (lpParameter->wpString=(wchar_t *)GlobalAlloc(GPTR, (nStringLen + 1) * sizeof(wchar_t)))
+      {
+        lpParameter->dwType=EXTPARAM_CHAR;
+        wpString=lpParameter->wpString;
+
+        for (wpParamEnd=wpParamBegin; *wpParamEnd != wchStopChar && *wpParamEnd != '\0'; ++wpParamEnd)
+          *wpString++=*wpParamEnd;
+        *wpString='\0';
+
+        if (bOldWindows)
+        {
+          nStringLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, NULL, 0, NULL, NULL);
+          if (lpParameter->pString=(char *)GlobalAlloc(GPTR, nStringLen))
+            WideCharToMultiByte(CP_ACP, 0, lpParameter->wpString, -1, lpParameter->pString, nStringLen, NULL, NULL);
+        }
+      }
+    }
+  }
+  else
+  {
+    //Number
+    for (wpParamEnd=wpParamBegin; *wpParamEnd != ',' && *wpParamEnd != ')' && *wpParamEnd != '\0'; ++wpParamEnd);
+
+    if (!StackInsertIndex((stack **)&hParamStack->first, (stack **)&hParamStack->last, (stack **)&lpParameter, -1, sizeof(EXTPARAM)))
+    {
+      ++hParamStack->nElements;
+
+      lpParameter->dwType=EXTPARAM_INT;
+      lpParameter->nNumber=xatoiW(wpParamBegin, NULL);
+    }
+  }
+
+  while (*wpParamEnd != ',' && *wpParamEnd != ')' && *wpParamEnd != '\0')
+    ++wpParamEnd;
+  if (*wpParamEnd == ',')
+  {
+    wpParamBegin=++wpParamEnd;
+    goto GetActionParameter;
+  }
+  if (*wpParamEnd == ')')
+    ++wpParamEnd;
+  if (wppText) *wppText=wpParamEnd;
+}
+
+void SetParametersExpChar(STACKEXTPARAM *hParamStack, wchar_t *wpFile, wchar_t *wpExeDir)
+{
+  //%f -file, %d -file directory, %a -AkelPad directory, %% -%
+  EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
+  wchar_t wszFileDir[MAX_PATH];
+  wchar_t *wszString;
+  wchar_t *wpCount;
+  wchar_t *wpExpandStr;
+  int nFileLen;
+  int nFileDirLen;
+  int nExeDirLen;
+  int nExpandStrLen;
+  int nEnvironmentLen;
+
+  nFileLen=lstrlenW(wpFile);
+  nFileDirLen=GetFileDir(wpFile, wszFileDir, MAX_PATH);
+  nExeDirLen=lstrlenW(wpExeDir);
+  nExpandStrLen=0;
+
+  while (lpParameter)
+  {
+    if (lpParameter->dwType == EXTPARAM_CHAR)
+    {
+      nEnvironmentLen=ExpandEnvironmentStringsWide(lpParameter->wpString, NULL, 0);
+
+      if (wszString=(wchar_t *)GlobalAlloc(GPTR, nEnvironmentLen * sizeof(wchar_t)))
+      {
+        //Expand environment strings
+        ExpandEnvironmentStringsWide(lpParameter->wpString, wszString, nEnvironmentLen);
+
+        //Calculate expanded size
+        for (wpCount=wszString; *wpCount; ++wpCount)
+        {
+          if (*wpCount == '%')
+          {
+            if (*(wpCount + 1) == '%')
+            {
+              ++wpCount;
+              ++nExpandStrLen;
+              continue;
+            }
+            if (*(wpCount + 1) == 'f' || *(wpCount + 1) == 'F')
+            {
+              ++wpCount;
+              nExpandStrLen+=nFileLen;
+              continue;
+            }
+            if (*(wpCount + 1) == 'd' || *(wpCount + 1) == 'D')
+            {
+              ++wpCount;
+              nExpandStrLen+=nFileDirLen;
+              continue;
+            }
+            if (*(wpCount + 1) == 'a' || *(wpCount + 1) == 'A')
+            {
+              ++wpCount;
+              nExpandStrLen+=nExeDirLen;
+              continue;
+            }
+          }
+          else ++nExpandStrLen;
+        }
+
+        //Expand string
+        if (lpParameter->pExpanded)
+        {
+          GlobalFree((HGLOBAL)lpParameter->pExpanded);
+          lpParameter->pExpanded=NULL;
+        }
+        if (lpParameter->wpExpanded)
+        {
+          GlobalFree((HGLOBAL)lpParameter->wpExpanded);
+          lpParameter->wpExpanded=NULL;
+        }
+
+        if (lpParameter->wpExpanded=(wchar_t *)GlobalAlloc(GPTR, (nExpandStrLen + 1) * sizeof(wchar_t)))
+        {
+          wpExpandStr=lpParameter->wpExpanded;
+
+          for (wpCount=wszString; *wpCount; ++wpCount)
+          {
+            if (*wpCount == '%')
+            {
+              if (*(wpCount + 1) == '%')
+              {
+                ++wpCount;
+                *wpExpandStr++='%';
+                continue;
+              }
+              if (*(wpCount + 1) == 'f' || *(wpCount + 1) == 'F')
+              {
+                ++wpCount;
+                xstrcpyW(wpExpandStr, wpFile);
+                wpExpandStr+=nFileLen;
+                continue;
+              }
+              if (*(wpCount + 1) == 'd' || *(wpCount + 1) == 'D')
+              {
+                ++wpCount;
+                xstrcpyW(wpExpandStr, wszFileDir);
+                wpExpandStr+=nFileDirLen;
+                continue;
+              }
+              if (*(wpCount + 1) == 'a' || *(wpCount + 1) == 'A')
+              {
+                ++wpCount;
+                xstrcpyW(wpExpandStr, wpExeDir);
+                wpExpandStr+=nExeDirLen;
+                continue;
+              }
+            }
+            else *wpExpandStr++=*wpCount;
+          }
+          *wpExpandStr='\0';
+
+          if (bOldWindows)
+          {
+            nExpandStrLen=WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, NULL, 0, NULL, NULL);
+            if (lpParameter->pExpanded=(char *)GlobalAlloc(GPTR, nExpandStrLen))
+              WideCharToMultiByte(CP_ACP, 0, lpParameter->wpExpanded, -1, lpParameter->pExpanded, nExpandStrLen, NULL, NULL);
+          }
+        }
+        GlobalFree((HGLOBAL)wszString);
+      }
+    }
+    lpParameter=lpParameter->next;
+  }
+}
+
+int CreateParametersStruct(STACKEXTPARAM *hParamStack, unsigned char **lppStruct)
+{
+  EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
+  unsigned char *lpStruct=NULL;
+  int nStructSize=0;
+  int nOffset=0;
+  int nElements=0;
+  int nIndex=0;
+
+  if (hParamStack->nElements)
+  {
+    nStructSize=(hParamStack->nElements + 1) * sizeof(int);
+
+    if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
+    {
+      while (lpParameter)
+      {
+        if (nIndex == 1)
+        {
+          //nIndex == 1 is the size of the call parameters structure
+          *((int *)(lpStruct + nOffset))=hParamStack->nElements * sizeof(int);
+          nOffset+=sizeof(int);
+          ++nIndex;
+        }
+
+        //nIndex == 0 is function name, nIndex >= 2 is call parameters
+        if (lpParameter->dwType == EXTPARAM_CHAR)
+        {
+          if (bOldWindows && nIndex > 0)
+            *((int *)(lpStruct + nOffset))=(int)lpParameter->pExpanded;
+          else
+            *((int *)(lpStruct + nOffset))=(int)lpParameter->wpExpanded;
+        }
+        else *((int *)(lpStruct + nOffset))=lpParameter->nNumber;
+
+        nOffset+=sizeof(int);
+        ++nIndex;
+        lpParameter=lpParameter->next;
+      }
+    }
+  }
+  *lppStruct=lpStruct;
+  return nStructSize;
+}
+
+int GetParameterInt(STACKEXTPARAM *hParamStack, int nIndex)
+{
+  EXTPARAM *lpParameter;
+
+  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
+  {
+    if (lpParameter->dwType == EXTPARAM_INT)
+      return lpParameter->nNumber;
+  }
+  return 0;
+}
+
+char* GetParameterCharA(STACKEXTPARAM *hParamStack, int nIndex)
+{
+  EXTPARAM *lpParameter;
+
+  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
+  {
+    if (lpParameter->dwType == EXTPARAM_CHAR)
+      return lpParameter->pString;
+  }
+  return NULL;
+}
+
+wchar_t* GetParameterCharW(STACKEXTPARAM *hParamStack, int nIndex)
+{
+  EXTPARAM *lpParameter;
+
+  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
+  {
+    if (lpParameter->dwType == EXTPARAM_CHAR)
+      return lpParameter->wpString;
+  }
+  return NULL;
+}
+
+char* GetParameterExpCharA(STACKEXTPARAM *hParamStack, int nIndex)
+{
+  EXTPARAM *lpParameter;
+
+  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
+  {
+    if (lpParameter->dwType == EXTPARAM_CHAR)
+      return lpParameter->pExpanded;
+  }
+  return NULL;
+}
+
+wchar_t* GetParameterExpCharW(STACKEXTPARAM *hParamStack, int nIndex)
+{
+  EXTPARAM *lpParameter;
+
+  if (!StackGetElement((stack *)hParamStack->first, (stack *)hParamStack->last, (stack **)&lpParameter, nIndex))
+  {
+    if (lpParameter->dwType == EXTPARAM_CHAR)
+      return lpParameter->wpExpanded;
+  }
+  return NULL;
+}
+
+int RecoverEscapeString(HWND hWndEdit, wchar_t *wpInput, wchar_t *wszOutput)
+{
+  EDITINFO ei;
+  wchar_t *a=wpInput;
+  wchar_t *b=wszOutput;
+  wchar_t whex[5];
+  int nDec;
+
+  if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)hWndEdit, (LPARAM)&ei))
+  {
+    for (whex[4]='\0'; *a; ++a, ++b)
+    {
+      if (*a == '\\')
+      {
+        if (*++a == '\\')
+        {
+          if (wszOutput) *b='\\';
+        }
+        else if (*a == 'n')
+        {
+          if (ei.nNewLine == NEWLINE_MAC)
+          {
+            if (wszOutput) *b='\r';
+          }
+          else if (ei.nNewLine == NEWLINE_UNIX)
+          {
+            if (wszOutput) *b='\n';
+          }
+          else if (ei.nNewLine == NEWLINE_WIN)
+          {
+            if (wszOutput) *b='\r';
+            ++b;
+            if (wszOutput) *b='\n';
+          }
+        }
+        else if (*a == 't')
+        {
+          if (wszOutput) *b='\t';
+        }
+        else if (*a == '[')
+        {
+          while (*++a == ' ');
+
+          do
+          {
+            whex[0]=*a;
+            if (!*a) goto Error;
+            whex[1]=*++a;
+            if (!*a) goto Error;
+            whex[2]=*++a;
+            if (!*a) goto Error;
+            whex[3]=*++a;
+            if (!*a) goto Error;
+            nDec=hex2decW(whex);
+            if (nDec == -1) goto Error;
+            while (*++a == ' ');
+
+            if (wszOutput) *b=nDec;
+          }
+          while (*a && *a != ']' && ++b);
+
+          if (!*a) goto Error;
+        }
+        else if (*a == 's')
+        {
+          CHARRANGE cr;
+
+          SendMessage(hWndEdit, EM_EXGETSEL, 0, (WPARAM)&cr);
+          if (cr.cpMin != cr.cpMax)
+          {
+            if (wszOutput)
+            {
+              wchar_t *wpText;
+              int nTextLen=0;
+
+              if (wpText=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)hWndEdit, (LPARAM)&nTextLen))
+              {
+                xstrcpynW(b, wpText, nTextLen + 1);
+                b+=nTextLen - 1;
+                SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpText);
+              }
+            }
+            else b+=cr.cpMax - cr.cpMin - 1;
+          }
+        }
+        else goto Error;
+      }
+      else if (wszOutput) *b=*a;
+    }
+    if (wszOutput)
+      *b='\0';
+    else
+      ++b;
+    return (b - wszOutput);
+  }
+
+  Error:
+  if (wszOutput) *wszOutput='\0';
+  return 0;
+}
+
+void FreeActionParameters(STACKEXTPARAM *hParamStack)
+{
+  EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
+
+  while (lpParameter)
+  {
+    if (lpParameter->dwType == EXTPARAM_CHAR)
+    {
+      if (lpParameter->pString) GlobalFree((HGLOBAL)lpParameter->pString);
+      if (lpParameter->wpString) GlobalFree((HGLOBAL)lpParameter->wpString);
+      if (lpParameter->pExpanded) GlobalFree((HGLOBAL)lpParameter->pExpanded);
+      if (lpParameter->wpExpanded) GlobalFree((HGLOBAL)lpParameter->wpExpanded);
+    }
+    lpParameter=lpParameter->next;
+  }
+  StackClear((stack **)&hParamStack->first, (stack **)&hParamStack->last);
+  hParamStack->nElements=0;
 }
 
 
@@ -14981,7 +15436,7 @@ void SetTabStops(HWND hWnd, int nTabStops, BOOL bSetRedraw)
   SendMessage(hWnd, AEM_SETTABSTOP, nTabStops, bSetRedraw);
 }
 
-BOOL InsertTabStopW(HWND hWnd)
+BOOL InsertTabStop(HWND hWnd)
 {
   wchar_t wszSpaces[MAX_PATH];
   int nSpaces;
@@ -15014,7 +15469,7 @@ BOOL InsertTabStopW(HWND hWnd)
   return TRUE;
 }
 
-BOOL IndentTabStopW(HWND hWnd, int nAction)
+BOOL IndentTabStop(HWND hWnd, int nAction)
 {
   wchar_t wszSpaces[MAX_PATH];
   int nSpaces;
@@ -15136,7 +15591,7 @@ BOOL SaveChanged()
   return TRUE;
 }
 
-int IsFileW(const wchar_t *wpFile)
+int IsFile(const wchar_t *wpFile)
 {
   DWORD dwAttr;
 
@@ -15148,14 +15603,14 @@ int IsFileW(const wchar_t *wpFile)
   return ERROR_SUCCESS;
 }
 
-BOOL IsPathFullW(const wchar_t *wpPath)
+BOOL IsPathFull(const wchar_t *wpPath)
 {
   if (wpPath[0] == '\\' && wpPath[1] == '\\') return TRUE;
   if (wpPath[0] != '\0' && wpPath[1] == ':') return TRUE;
   return FALSE;
 }
 
-int GetExeDirW(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen)
+int GetExeDir(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen)
 {
   if (nLen=GetModuleFileNameWide(hInstance, wszExeDir, nLen))
   {
@@ -15165,7 +15620,7 @@ int GetExeDirW(HINSTANCE hInstance, wchar_t *wszExeDir, int nLen)
   return nLen;
 }
 
-int GetFileDirW(const wchar_t *wpFile, wchar_t *wszFileDir, int nFileDirLen)
+int GetFileDir(const wchar_t *wpFile, wchar_t *wszFileDir, int nFileDirLen)
 {
   int i;
 
@@ -15184,7 +15639,7 @@ int GetFileDirW(const wchar_t *wpFile, wchar_t *wszFileDir, int nFileDirLen)
   return 0;
 }
 
-BOOL GetFullNameW(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax)
+BOOL GetFullName(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax)
 {
   wchar_t wszFileBuf[MAX_PATH];
   wchar_t *wpFileName;
@@ -15201,7 +15656,7 @@ BOOL GetFullNameW(const wchar_t *wpFile, wchar_t *wszFileFullName, int nFileMax)
   return FALSE;
 }
 
-const wchar_t* GetFileNameW(const wchar_t *wpFile)
+const wchar_t* GetFileName(const wchar_t *wpFile)
 {
   int i;
 
@@ -15213,7 +15668,7 @@ const wchar_t* GetFileNameW(const wchar_t *wpFile)
   return wpFile;
 }
 
-int GetBaseNameW(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
+int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen)
 {
   int nFileLen=lstrlenW(wpFile);
   int nEndOffset=-1;
@@ -15238,7 +15693,7 @@ int GetBaseNameW(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLe
   return nBaseNameMaxLen;
 }
 
-const wchar_t* GetFileExtW(const wchar_t *wpFile)
+const wchar_t* GetFileExt(const wchar_t *wpFile)
 {
   int i;
 
@@ -15250,7 +15705,7 @@ const wchar_t* GetFileExtW(const wchar_t *wpFile)
   return NULL;
 }
 
-void TrimModifyStateW(wchar_t *wszFile)
+void TrimModifyState(wchar_t *wszFile)
 {
   int i;
 
@@ -15348,7 +15803,7 @@ int VersionCompare(DWORD dwVersion1, DWORD dwVersion2)
   return 0;
 }
 
-int TranslateFileStringW(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
+int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
 {
   //%f -file, %d -file directory, %a -AkelPad directory, %% -%
   wchar_t wszFileDir[MAX_PATH];
@@ -15361,7 +15816,7 @@ int TranslateFileStringW(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffe
   int b;
 
   nFileLen=lstrlenW(wpFile);
-  nFileDirLen=GetFileDirW(wpFile, wszFileDir, MAX_PATH);
+  nFileDirLen=GetFileDir(wpFile, wszFileDir, MAX_PATH);
   nExeDirLen=lstrlenW(wpExeDir);
 
   for (a=0, b=0; wpString[a] && (!wszBuffer || b < nBufferSize); ++a, ++b)
@@ -15888,7 +16343,7 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
   int nFileLen=lstrlenW(wszFile);
 
   //Get file name without path
-  wpFileName=GetFileNameW(wszFile);
+  wpFileName=GetFileName(wszFile);
 
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
   {
@@ -15931,7 +16386,7 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
     }
 
     //Find file icon
-    if (wpExt=GetFileExtW(wpFileName))
+    if (wpExt=GetFileExt(wpFileName))
     {
       if (!(ai=StackIconGet(&hIconsStack, wszFile, nFileLen, wpExt)))
         ai=StackIconInsert(&hIconsStack, wszFile, nFileLen);

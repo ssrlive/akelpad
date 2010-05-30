@@ -636,7 +636,7 @@ extern "C" void _WinMain()
   hInstance=GetModuleHandleWide(NULL);
 
   //Get program directory
-  GetExeDirW(hInstance, wszExeDir, MAX_PATH);
+  GetExeDir(hInstance, wszExeDir, MAX_PATH);
   WideCharToMultiByte(CP_ACP, 0, wszExeDir, -1, szExeDir, MAX_PATH, NULL, NULL);
 
   //Read options
@@ -2847,17 +2847,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
              LOWORD(wParam) == IDM_EDIT_INSERT_TAB)
     {
       if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
-        InsertTabStopW(lpFrameCurrent->ei.hWndEdit);
+        InsertTabStop(lpFrameCurrent->ei.hWndEdit);
       else
-        IndentTabStopW(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_TAB);
+        IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_INSERT|STRSEL_TAB);
     }
     else if (LOWORD(wParam) == IDM_EDIT_DELETE_TAB_MENU ||
              LOWORD(wParam) == IDM_EDIT_DELETE_TAB)
     {
       if (!DoEditInsertStringInSelectionW(lpFrameCurrent->ei.hWndEdit, STRSEL_CHECK, NULL))
-        InsertTabStopW(lpFrameCurrent->ei.hWndEdit);
+        InsertTabStop(lpFrameCurrent->ei.hWndEdit);
       else
-        IndentTabStopW(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_TAB);
+        IndentTabStop(lpFrameCurrent->ei.hWndEdit, STRSEL_DELETE|STRSEL_TAB);
     }
     else if (LOWORD(wParam) == IDM_EDIT_INSERT_SPACE_MENU ||
              LOWORD(wParam) == IDM_EDIT_INSERT_SPACE)
@@ -3631,7 +3631,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
           {
             wchar_t *wpMainName=AllocWideStr(MAX_PATH);
-            const wchar_t *wpFileName=GetFileNameW(lpFrame->wszFile);
+            const wchar_t *wpFileName=GetFileName(lpFrame->wszFile);
 
             if (aenm->bModified)
               xprintfW(wpMainName, L"* %s - %s", wpFileName, APP_MAIN_TITLEW);
@@ -3661,7 +3661,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
               if (aenm->bModified)
                 xprintfW(wpTabName, L"%s *", wpTabName);
               else
-                TrimModifyStateW(wpTabName);
+                TrimModifyState(wpTabName);
               TabCtrl_SetItemWide(hTab, nItem, &tcItemW);
 
               FreeWideStr(wpTabName);
