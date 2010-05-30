@@ -14410,18 +14410,20 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
   wchar_t *wpArg=wszArg;
   wchar_t *wpArgMax=wszArg + nArgMax - 1;
   wchar_t wchFirstChar;
-  wchar_t wchStopCharInit;
-  wchar_t wchStopCharCur;
+  wchar_t wchStopChar;
+  wchar_t wchQuoteChar=0;
 
   while (*wpCount == ' ') ++wpCount;
 
   wchFirstChar=*wpCount;
   if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
-    wchStopCharInit=*wpCount++;
-  else
-    wchStopCharInit=' ';
+  {
+    wchStopChar=*wpCount++;
+    wchQuoteChar=wchStopChar;
+  }
+  else wchStopChar=' ';
 
-  if (bParseAsNotepad && wchFirstChar != '/' && wchStopCharInit == ' ')
+  if (bParseAsNotepad && wchFirstChar != '/' && wchStopChar == ' ')
   {
     for (; *wpCount != '/' && *wpCount != '\"' && *wpCount != '\0'; ++wpCount)
     {
@@ -14431,31 +14433,38 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
         ++wpArg;
       }
     }
-    if (wpArg < wpArgMax)
+    while (wpArg > wszArg && *(wpArg - 1) == ' ')
     {
-      if (wszArg)
-      {
-        while (wpArg > wszArg && *(wpArg - 1) == ' ')
-          *--wpArg='\0';
-      }
+      --wpArg;
+      if (wszArg) *wpArg='\0';
     }
   }
   else
   {
-    for (wchStopCharCur=wchStopCharInit; *wpCount; ++wpCount)
+    for (; *wpCount; ++wpCount)
     {
-      if (*wpCount == wchStopCharCur)
+      if (!wchQuoteChar || *wpCount == wchQuoteChar)
       {
-        if (wchStopCharCur == wchStopCharInit)
+        if (*wpCount == wchStopChar)
+        {
+          if (wchStopChar != wchFirstChar && wchStopChar != ' ')
+          {
+            if (wpArg < wpArgMax)
+            {
+              if (wszArg) *wpArg=*wpCount;
+              ++wpArg;
+            }
+          }
           break;
-        wchStopCharCur=wchStopCharInit;
-      }
-      else if (wchFirstChar == '/' && wchStopCharCur == ' ')
-      {
-        if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
-          wchStopCharCur=*wpCount;
-        else if (*wpCount == '(')
-          wchStopCharCur=')';
+        }
+        if (!wchQuoteChar && wchFirstChar == '/')
+        {
+          if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
+            wchQuoteChar=*wpCount;
+          else if (*wpCount == '(')
+            wchStopChar=')';
+        }
+        else wchQuoteChar=0;
       }
       if (wpArg < wpArgMax)
       {
@@ -14464,7 +14473,7 @@ int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, co
       }
     }
   }
-  if (*wpCount == wchStopCharCur)
+  if (*wpCount == wchStopChar)
     ++wpCount;
   if (wszArg) *wpArg='\0';
   if (wpNextArg)
