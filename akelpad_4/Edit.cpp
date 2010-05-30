@@ -4085,8 +4085,8 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         else
         {
           DestroyMdiFrameWindow(lpFrameCurrent, -1);
-          if (FrameNoWindows())
-            PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
+          //if (FrameNoWindows())
+          //  PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
       }
     }
