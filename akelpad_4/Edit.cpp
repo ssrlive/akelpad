@@ -14404,100 +14404,70 @@ wchar_t* GetCommandLineParamsW()
   return lpwCmdLine;
 }
 
-int GetCommandLineArgW(const wchar_t *wpCmdLine, wchar_t *wszArgName, int nArgNameLen, const wchar_t **wpArgOption, int *nArgOptionLen, const wchar_t **wpNextArg, BOOL bParseAsNotepad)
+int GetCommandLineArg(const wchar_t *wpCmdLine, wchar_t *wszArg, int nArgMax, const wchar_t **wpNextArg, BOOL bParseAsNotepad)
 {
   const wchar_t *wpCount=wpCmdLine;
-  wchar_t *wpArgName=wszArgName;
-  wchar_t *wpArgNameMax=wszArgName + nArgNameLen - 1;
-  wchar_t wchStopChar;
-  BOOL bArgName=TRUE;
+  wchar_t *wpArg=wszArg;
+  wchar_t *wpArgMax=wszArg + nArgMax - 1;
+  wchar_t wchFirstChar;
+  wchar_t wchStopCharInit;
+  wchar_t wchStopCharCur;
 
-  if (wpArgOption) *wpArgOption=NULL;
-  if (nArgOptionLen) *nArgOptionLen=0;
   while (*wpCount == ' ') ++wpCount;
 
-  if (*wpCount == '/')
+  wchFirstChar=*wpCount;
+  if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
+    wchStopCharInit=*wpCount++;
+  else
+    wchStopCharInit=' ';
+
+  if (bParseAsNotepad && wchFirstChar != '/' && wchStopCharInit == ' ')
   {
-    for (wchStopChar=' '; *wpCount != wchStopChar && *wpCount != '\0'; ++wpCount)
+    for (; *wpCount != '/' && *wpCount != '\"' && *wpCount != '\0'; ++wpCount)
     {
-      if (bArgName)
+      if (wpArg < wpArgMax)
       {
-        if (*wpCount == '=')
-        {
-          ++wpCount;
-          if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
-            wchStopChar=*wpCount;
-          if (wpArgOption) *wpArgOption=wpCount;
-          --wpCount;
-          bArgName=FALSE;
-        }
-        else
-        {
-          if (wpArgName < wpArgNameMax)
-          {
-            if (wszArgName) *wpArgName=*wpCount;
-            ++wpArgName;
-          }
-        }
+        if (wszArg) *wpArg=*wpCount;
+        ++wpArg;
       }
     }
-    if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
-      ++wpCount;
-  }
-  else if (*wpCount == '\"')
-  {
-    for (++wpCount; *wpCount != '\"' && *wpCount != '\0'; ++wpCount)
+    if (wpArg < wpArgMax)
     {
-      if (wpArgName < wpArgNameMax)
+      if (wszArg)
       {
-        if (wszArgName) *wpArgName=*wpCount;
-        ++wpArgName;
+        while (wpArg > wszArg && *(wpArg - 1) == ' ')
+          *--wpArg='\0';
       }
     }
-    if (*wpCount == '\"')
-      ++wpCount;
   }
   else
   {
-    if (bParseAsNotepad)
+    for (wchStopCharCur=wchStopCharInit; *wpCount; ++wpCount)
     {
-      for (; *wpCount != '\"' && *wpCount != '\0'; ++wpCount)
+      if (*wpCount == wchStopCharCur)
       {
-        if (wpArgName < wpArgNameMax)
-        {
-          if (wszArgName) *wpArgName=*wpCount;
-          ++wpArgName;
-        }
+        if (wchStopCharCur == wchStopCharInit)
+          break;
+        wchStopCharCur=wchStopCharInit;
       }
-      if (wpArgName < wpArgNameMax)
+      else if (wchFirstChar == '/' && wchStopCharCur == ' ')
       {
-        if (wszArgName)
-        {
-          while (wpArgName > wszArgName && *(wpArgName - 1) == ' ')
-            *--wpArgName='\0';
-        }
+        if (*wpCount == '\"' || *wpCount == '\'' || *wpCount == '`')
+          wchStopCharCur=*wpCount;
       }
-    }
-    else
-    {
-      for (; *wpCount != ' ' && *wpCount != '\0'; ++wpCount)
+      if (wpArg < wpArgMax)
       {
-        if (wpArgName < wpArgNameMax)
-        {
-          if (wszArgName) *wpArgName=*wpCount;
-          ++wpArgName;
-        }
+        if (wszArg) *wpArg=*wpCount;
+        ++wpArg;
       }
     }
   }
-  if (wszArgName) *wpArgName='\0';
-
+  if (*wpCount) ++wpCount;
+  if (wszArg) *wpArg='\0';
   if (wpNextArg)
     for (*wpNextArg=wpCount; **wpNextArg == ' '; ++*wpNextArg);
-  if (wpArgOption && *wpArgOption && nArgOptionLen)
-    *nArgOptionLen=wpCount - *wpArgOption;
 
-  return wpArgName - wszArgName;
+  return wpArg - wszArg;
 }
 
 int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
@@ -14515,7 +14485,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
     wpCmdLine=*wppCmdLine;
     wpCmdLineNext=*wppCmdLine;
 
-    for (; GetCommandLineArgW(wpCmdLine, wszCmdArg, COMMANDARG_SIZE, NULL, NULL, &wpCmdLineNext, !(dwCmdLineOptions & CLO_NONOTEPADCMD)); wpCmdLine=wpCmdLineNext)
+    for (; GetCommandLineArg(wpCmdLine, wszCmdArg, COMMANDARG_SIZE, &wpCmdLineNext, !(dwCmdLineOptions & CLO_NONOTEPADCMD)); wpCmdLine=wpCmdLineNext)
     {
       if (wszCmdArg[0] == '/')
       {
