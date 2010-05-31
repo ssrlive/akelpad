@@ -703,7 +703,7 @@ extern "C" void _WinMain()
       wpCmdLine=NULL;
   }
 
-  if (nMDI == WMD_MDI && bSingleOpenProgram)
+  if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && bSingleOpenProgram)
   {
     //Pass command line to opened instance
     if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
