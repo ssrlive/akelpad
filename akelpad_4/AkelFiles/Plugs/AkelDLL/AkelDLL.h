@@ -40,12 +40,14 @@
 #define UD_HOTKEY_DODEFAULT     0x8  //Do default hotkey processing.
 
 //Command line options
-#define CLO_NONOTEPADCMD      0x01  //Don't use MS Notepad compatibility mode when parse command line parameters.
-#define CLO_GLOBALPRINT       0x02  //Next opened file will be printed.
-#define CLO_MSGCREATEFILEYES  0x04  //Silently create new file, if doesn't exist.
-#define CLO_MSGCREATEFILENO   0x08  //Don't create new file, if doesn't exist.
-#define CLO_MSGBINARYOPENYES  0x10  //Silently open file, if binary.
-#define CLO_MSGBINARYOPENNO   0x20  //Don't open file, if binary.
+#define CLO_NONOTEPADCMD          0x01  //Don't use MS Notepad compatibility mode when parse command line parameters.
+#define CLO_GLOBALPRINT           0x02  //Next opened file will be printed.
+#define CLO_MSGOPENCREATEYES      0x04  //Silently create new file, if doesn't exist.
+#define CLO_MSGOPENCREATENO       0x08  //Don't create new file, if doesn't exist.
+#define CLO_MSGOPENBINARYYES      0x10  //Silently open file, if binary.
+#define CLO_MSGOPENBINARYNO       0x20  //Don't open file, if binary.
+#define CLO_MSGSAVELOSTSYMBOLSYES 0x40  //Silently save file, even if symbols will be lost.
+#define CLO_MSGSAVELOSTSYMBOLSNO  0x80  //Don't save file, if symbols will be lost.
 
 //AKD_PARSECMDLINE return value
 #define PCLE_QUIT    0x01  //Stop parsing command line parameters and close program.
@@ -1874,7 +1876,7 @@ Return Value
  Zero.
 
 Example:
- SendMessage(pd->hMainWnd, AKD_SETCMDLINEOPTIONS, CLO_MSGCREATEFILENO|CLO_MSGBINARYOPENNO, 0);
+ SendMessage(pd->hMainWnd, AKD_SETCMDLINEOPTIONS, CLO_MSGOPENCREATENO|CLO_MSGOPENBINARYNO, 0);
 
 
 AKD_PARSECMDLINEW

@@ -121,6 +121,8 @@
 #define EXTACT_FONT       4
 #define EXTACT_RECODE     5
 #define EXTACT_INSERT     6
+#define EXTACT_OPENFILE   7
+#define EXTACT_SAVEFILE   8
 
 //External parameters
 #define EXTPARAM_CHAR     1

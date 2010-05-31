@@ -27,8 +27,9 @@ Added: pseudo multi-window (PMDI), which allows you to open an unlimited number 
        In contrast to the MDI mode, opening a new tab does not lead creation of new graphical
        objects, thus avoid GDI buffer overflow. For SDI/MDI/PMDI modes now used commands
        4261/4262/4263 respectively.
-Added: possibility to use /Command(), /Call(), /Exec(), /Font(), /Recode(), /Insert() methods
-       in command line.
+Added: possibility to use /OpenFile(), /SaveFile(), /Command(), /Call(), /Exec(), /Font(),
+       /Recode(), /Insert() methods in command line. And also added parameters /L+ and /L- for
+       silent answer on symbols loss warning.
 Added: UTF32-LE and UTF32-BE codepage support.
 Added: dialog "Save all as" that allows you to save all open documents in a particular encoding
        and new line format (MDI).

@@ -62,20 +62,28 @@
         <td>- print next file and close it.</td>
       </tr>
       <tr>
-        <td><li><b>/c+</b></td>
+        <td><li><b>/C+</b></td>
         <td>- silently create new file, if doesn't exist.</td>
       </tr>
       <tr>
-        <td><li><b>/c-</b></td>
+        <td><li><b>/C-</b></td>
         <td>- don't create new file, if doesn't exist.</td>
       </tr>
       <tr>
-        <td><li><b>/b+</b></td>
+        <td><li><b>/B+</b></td>
         <td>- silently open file, if binary.</td>
       </tr>
       <tr>
-        <td><li><b>/b-</b></td>
+        <td><li><b>/B-</b></td>
         <td>- don't open file, if binary.</td>
+      </tr>
+      <tr>
+        <td><li><b>/L+</b></td>
+        <td>- silently save file, even if symbols will be lost in specified encoding.</td>
+      </tr>
+      <tr>
+        <td><li><b>/L-</b></td>
+        <td>- don't save file, if symbols will be lost in specified encoding.</td>
       </tr>
       <tr>
         <td><li><b>/reassoc</b></td>
@@ -99,7 +107,27 @@
       <br>
       <div style="margin-top:10px">Methods:</div>
 
-      <div style="margin-top:10px"><li><b>/Command(4162)</b></div>
+      <div style="margin-top:10px"><li><b>/OpenFile("file", OpenCodepage, OpenBOM)</b></div>
+      <div style="margin-left:30px">"file"</div>
+        <div style="margin-left:60px">file to open.</div>
+      <div style="margin-left:30px">OpenCodepage</div>
+        <div style="margin-left:60px">Open codepage, if -1 it will be autodetected.</div>
+      <div style="margin-left:30px">OpenBOM</div>
+        <div style="margin-left:60px">File byte order mark, if -1 it will be autodetected.</div>
+      <div style="margin-left:30px">/OpenFile("C:\File.txt", 65001, -1)</div>
+        <div style="margin-left:60px">method opens file in UTF-8 codepage.</div>
+
+      <div style="margin-top:10px"><li><b>/SaveFile("file", SaveCodepage, SaveBOM)</b></div>
+      <div style="margin-left:30px">"file"</div>
+        <div style="margin-left:60px">save file name.</div>
+      <div style="margin-left:30px">SaveCodepage</div>
+        <div style="margin-left:60px">codepage.</div>
+      <div style="margin-left:30px">SaveBOM</div>
+        <div style="margin-left:60px">Byte order mark. 1 - exist, 0 - doesn't exist.</div>
+      <div style="margin-left:30px">/SaveFile("C:\File.txt", 65001, 0)</div>
+        <div style="margin-left:60px">method saves file in UTF-8 codepage without BOM.</div>
+
+      <div style="margin-top:10px"><li><b>/Command(InternalCommand)</b></div>
       <div style="margin-left:30px">/Command(4162)</div>
         <div style="margin-left:60px">method calls the <a href=#ch6>internal command</a> at number 4162.</div>
 
