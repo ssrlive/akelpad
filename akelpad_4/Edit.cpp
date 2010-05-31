@@ -3824,10 +3824,10 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   if (!bFileExist)
   {
     //File doesn't exist
-    if (dwCmdLineOptions & CLO_MSGCREATEFILEYES)
+    if (dwCmdLineOptions & CLO_MSGOPENCREATEYES)
     {
     }
-    else if (dwCmdLineOptions & CLO_MSGCREATEFILENO)
+    else if (dwCmdLineOptions & CLO_MSGOPENCREATENO)
     {
       nResult=EOD_CANCEL;
       goto End;
@@ -3892,10 +3892,10 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       {
         if (nDetect == EDT_BINARY)
         {
-          if (dwCmdLineOptions & CLO_MSGBINARYOPENYES)
+          if (dwCmdLineOptions & CLO_MSGOPENBINARYYES)
           {
           }
-          else if (dwCmdLineOptions & CLO_MSGBINARYOPENNO)
+          else if (dwCmdLineOptions & CLO_MSGOPENBINARYNO)
           {
             nResult=EOD_CANCEL;
             goto End;
@@ -4457,16 +4457,27 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   {
     if (nLine=SendMessage(hWnd, AEM_CHECKCODEPAGE, (WPARAM)nCodePage, 0))
     {
-      if (!IsEditActive(hWnd))
-        SetFocus(hWnd);
-      if (!(dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
-        nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, nLine - 1, 0) + 1;
-      LoadStringWide(hLangLib, MSG_CP_MISMATCH, wbuf, BUFFER_SIZE);
-      xprintfW(wbuf2, wbuf, nLine);
-      if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
+      if (dwCmdLineOptions & CLO_MSGSAVELOSTSYMBOLSYES)
+      {
+      }
+      else if (dwCmdLineOptions & CLO_MSGSAVELOSTSYMBOLSNO)
       {
         nResult=ESD_CODEPAGE_ERROR;
         goto End;
+      }
+      else
+      {
+        if (!IsEditActive(hWnd))
+          SetFocus(hWnd);
+        if (!(dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
+          nLine=SendMessage(hWnd, AEM_GETUNWRAPLINE, nLine - 1, 0) + 1;
+        LoadStringWide(hLangLib, MSG_CP_MISMATCH, wbuf, BUFFER_SIZE);
+        xprintfW(wbuf2, wbuf, nLine);
+        if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OKCANCEL|MB_ICONEXCLAMATION|MB_DEFBUTTON2) == IDCANCEL)
+        {
+          nResult=ESD_CODEPAGE_ERROR;
+          goto End;
+        }
       }
     }
   }
@@ -14551,26 +14562,38 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
         }
         else if (!xstrcmpiW(wszCmdArg, L"/C+"))
         {
-          dwCmdLineOptions&=~CLO_MSGCREATEFILENO;
-          dwCmdLineOptions|=CLO_MSGCREATEFILEYES;
+          dwCmdLineOptions&=~CLO_MSGOPENCREATENO;
+          dwCmdLineOptions|=CLO_MSGOPENCREATEYES;
           continue;
         }
         else if (!xstrcmpiW(wszCmdArg, L"/C-"))
         {
-          dwCmdLineOptions&=~CLO_MSGCREATEFILEYES;
-          dwCmdLineOptions|=CLO_MSGCREATEFILENO;
+          dwCmdLineOptions&=~CLO_MSGOPENCREATEYES;
+          dwCmdLineOptions|=CLO_MSGOPENCREATENO;
           continue;
         }
         else if (!xstrcmpiW(wszCmdArg, L"/B+"))
         {
-          dwCmdLineOptions&=~CLO_MSGBINARYOPENNO;
-          dwCmdLineOptions|=CLO_MSGBINARYOPENYES;
+          dwCmdLineOptions&=~CLO_MSGOPENBINARYNO;
+          dwCmdLineOptions|=CLO_MSGOPENBINARYYES;
           continue;
         }
         else if (!xstrcmpiW(wszCmdArg, L"/B-"))
         {
-          dwCmdLineOptions&=~CLO_MSGBINARYOPENYES;
-          dwCmdLineOptions|=CLO_MSGBINARYOPENNO;
+          dwCmdLineOptions&=~CLO_MSGOPENBINARYYES;
+          dwCmdLineOptions|=CLO_MSGOPENBINARYNO;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/L+"))
+        {
+          dwCmdLineOptions&=~CLO_MSGSAVELOSTSYMBOLSNO;
+          dwCmdLineOptions|=CLO_MSGSAVELOSTSYMBOLSYES;
+          continue;
+        }
+        else if (!xstrcmpiW(wszCmdArg, L"/L-"))
+        {
+          dwCmdLineOptions&=~CLO_MSGSAVELOSTSYMBOLSYES;
+          dwCmdLineOptions|=CLO_MSGSAVELOSTSYMBOLSNO;
           continue;
         }
         else if (!xstrcmpiW(wszCmdArg, L"/X"))
@@ -14580,7 +14603,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
         }
         if (bOnLoad) return PCLE_ONLOAD;
 
-        //Process standard actions
+        //Process actions
         if (lpFrameCurrent->ei.hWndEdit)
         {
           dwAction=0;
@@ -14608,6 +14631,14 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           else if (!xstrcmpinW(L"/Insert(", wszCmdArg, (DWORD)-1))
           {
             dwAction=EXTACT_INSERT;
+          }
+          else if (!xstrcmpinW(L"/OpenFile(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_OPENFILE;
+          }
+          else if (!xstrcmpinW(L"/SaveFile(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_SAVEFILE;
           }
 
           if (dwAction)
@@ -14729,6 +14760,38 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
                 ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, -1, -1, NULL, NULL);
               }
               if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
+            }
+            else if (dwAction == EXTACT_OPENFILE ||
+                     dwAction == EXTACT_SAVEFILE)
+            {
+              wchar_t *wpFile=NULL;
+              int nCodePage=-1;
+              BOOL bBOM=-1;
+
+              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+              wpFile=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
+              if (hParamStack.nElements >= 2)
+                nCodePage=GetParameterInt(&hParamStack, 2);
+              if (hParamStack.nElements >= 3)
+                bBOM=GetParameterInt(&hParamStack, 3);
+
+              if (dwAction == EXTACT_OPENFILE)
+              {
+                DWORD dwFlags=OD_ADT_BINARY_ERROR;
+
+                if (nCodePage == -1) dwFlags|=OD_ADT_DETECT_CODEPAGE;
+                if (bBOM == -1) dwFlags|=OD_ADT_DETECT_BOM;
+                if (OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM) != EOD_SUCCESS)
+                  return PCLE_END;
+              }
+              else if (dwAction == EXTACT_SAVEFILE)
+              {
+                if (nCodePage != -1 && bBOM != -1)
+                {
+                  if (SaveDocument(NULL, lpFrameCurrent->wszFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
+                    return PCLE_END;
+                }
+              }
             }
             FreeActionParameters(&hParamStack);
           }
