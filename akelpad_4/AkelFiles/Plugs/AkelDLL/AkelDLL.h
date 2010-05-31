@@ -1195,6 +1195,9 @@ typedef struct {
 #define IDM_NONMENU_PASTEAFTER          4430  //Paste text after caret.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
+#define IDM_NONMENU_FILEEXIT            4431  //Close file and exit program (SDI) or close tab of a file (MDI or PMDI).
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
 #define IDM_INTERNAL_REOPEN_MSG         4501  //Internal command.
                                               //Return Value: zero.
                                               //

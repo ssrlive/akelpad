@@ -3192,6 +3192,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return DoFileClose();
     }
+    else if (LOWORD(wParam) == IDM_NONMENU_FILEEXIT)
+    {
+      if (DoFileClose())
+      {
+        if (!nMDI)
+          PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
+        else
+          DestroyMdiFrameWindow(lpFrameCurrent, -1);
+        return TRUE;
+      }
+      return FALSE;
+    }
     else if (LOWORD(wParam) == IDM_NONMENU_DLGNEXT)
     {
       return (LRESULT)NextDialog(FALSE);
