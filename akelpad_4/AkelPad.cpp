@@ -3120,13 +3120,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       ShowWindow(hWnd, (GetWindowLongWide(hWnd, GWL_STYLE) & WS_MAXIMIZE)?SW_RESTORE:SW_MAXIMIZE);
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_DELLINE)
+    else if (LOWORD(wParam) == IDM_NONMENU_DLGNEXT)
     {
-      DoNonMenuDelLine(lpFrameCurrent->ei.hWndEdit);
+      return (LRESULT)NextDialog(FALSE);
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_PASTEANSI)
+    else if (LOWORD(wParam) == IDM_NONMENU_DLGPREV)
     {
-      return DoEditPaste(lpFrameCurrent->ei.hWndEdit, TRUE);
+      return (LRESULT)NextDialog(TRUE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT)
+    {
+      return (LRESULT)NextClone(FALSE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_CLONEPREV)
+    {
+      return (LRESULT)NextClone(TRUE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_REDETECT)
     {
@@ -3176,17 +3184,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, TRUE, SD_UPDATE);
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8_NOBOM)
-    {
-      return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
-    }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_KOIR)
     {
       return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_KOI8_R, FALSE, SD_UPDATE);
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
+    else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8_NOBOM)
     {
-      if (lpFrameCurrent->ei.hWndEdit) SetOvertypeStatus(lpFrameCurrent, !lpFrameCurrent->ei.bOvertypeMode);
+      return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_FILECLOSE)
     {
@@ -3204,13 +3208,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return FALSE;
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_DLGNEXT)
+    else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
-      return (LRESULT)NextDialog(FALSE);
+      if (lpFrameCurrent->ei.hWndEdit) SetOvertypeStatus(lpFrameCurrent, !lpFrameCurrent->ei.bOvertypeMode);
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_DLGPREV)
+    else if (LOWORD(wParam) == IDM_NONMENU_PASTEANSI)
     {
-      return (LRESULT)NextDialog(TRUE);
+      return DoEditPaste(lpFrameCurrent->ei.hWndEdit, TRUE);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_PASTECOLUMN)
+    {
+      return ColumnPaste(lpFrameCurrent->ei.hWndEdit);
+    }
+    else if (LOWORD(wParam) == IDM_NONMENU_PASTEAFTER)
+    {
+      return PasteAfter(lpFrameCurrent->ei.hWndEdit, FALSE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_AUTOINDENT)
     {
@@ -3220,21 +3232,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L"\n", -1, FALSE, NULL, NULL);
       return bResult;
     }
-    else if (LOWORD(wParam) == IDM_NONMENU_CLONENEXT)
+    else if (LOWORD(wParam) == IDM_NONMENU_DELLINE)
     {
-      return (LRESULT)NextClone(FALSE);
-    }
-    else if (LOWORD(wParam) == IDM_NONMENU_CLONEPREV)
-    {
-      return (LRESULT)NextClone(TRUE);
-    }
-    else if (LOWORD(wParam) == IDM_NONMENU_COLUMNPASTE)
-    {
-      return ColumnPaste(lpFrameCurrent->ei.hWndEdit);
-    }
-    else if (LOWORD(wParam) == IDM_NONMENU_PASTEAFTER)
-    {
-      return PasteAfter(lpFrameCurrent->ei.hWndEdit, FALSE);
+      DoNonMenuDelLine(lpFrameCurrent->ei.hWndEdit);
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_REOPEN_MSG)
     {
