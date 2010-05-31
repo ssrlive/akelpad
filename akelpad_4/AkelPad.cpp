@@ -680,15 +680,10 @@ extern "C" void _WinMain()
     //Mutex
     if (!(lpStartupInfoA.dwFlags & STARTF_NOMUTEX))
     {
-      if (hMutex=CreateMutexA(NULL, TRUE, APP_MUTEXA))
+      if (hMutex=CreateEventA(NULL, FALSE, FALSE, APP_MUTEXA))
       {
         if (GetLastError() == ERROR_ALREADY_EXISTS)
-        {
           WaitForSingleObject(hMutex, INFINITE);
-          ReleaseMutex(hMutex);
-          CloseHandle(hMutex);
-          hMutex=0;
-        }
       }
     }
   }
@@ -933,7 +928,7 @@ extern "C" void _WinMain()
   Quit:
   if (hMutex)
   {
-    ReleaseMutex(hMutex);
+    SetEvent(hMutex);
     CloseHandle(hMutex);
     hMutex=0;
   }
@@ -1434,7 +1429,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (hMutex)
       {
-        ReleaseMutex(hMutex);
+        SetEvent(hMutex);
         CloseHandle(hMutex);
         hMutex=0;
       }
