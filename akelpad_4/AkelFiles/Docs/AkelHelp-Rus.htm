@@ -112,7 +112,7 @@
         <div style="margin-left:60px">метод вызывает блокнот.</div>
       <div style="margin-left:30px">/Exec('%windir%\notepad.exe')</div>
         <div style="margin-left:60px">метод вызывает блокнот.</div>
-      <div style="margin-left:30px">/Exec(`rundll32.exe shell32,Shell/Exec_RunDLL "%f"`, "%d")</div>
+      <div style="margin-left:30px">/Exec(`rundll32.exe shell32,ShellExec_RunDLL "%%f"`, "%%d")</div>
         <div style="margin-left:60px">метод передает активный файл для открытия по ассоциации Windows.</div>
 
       <div style="margin-top:10px"><li><b>/Call("Плагин::Функция", [дополнительные параметры])</b></div>

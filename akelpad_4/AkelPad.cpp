@@ -273,6 +273,7 @@ WNDPROC OldCloseButtonProc=NULL;
 //Codepages
 int *lpCodepageList=NULL;
 int nCodepageListLen=0;
+BOOL bCodepageListChanged=FALSE;
 int *lpCodepageTable;
 int nCodepageTableCount;
 BOOL bDefaultBOM;
