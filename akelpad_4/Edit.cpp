@@ -4878,7 +4878,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
       nCodePage=GetDlgItemInt(hDlg, IDC_SAVEALLAS_CODEPAGE_LIST, NULL, FALSE);
 
-      if (IsCodePageUnicode(nCodePage))
+      if (!IsCodePageUnicode(nCodePage))
       {
         SendMessage(hWndBOM, BM_SETCHECK, BST_UNCHECKED, 0);
         EnableWindow(hWndBOM, FALSE);
@@ -6892,8 +6892,7 @@ void FillComboboxCodepage(HWND hWnd, int *lpCodepageList)
     for (i=0; lpCodepageList[i]; ++i)
     {
       if (nModelessType == MLT_RECODE &&
-          (IsCodePageUnicode(lpCodepageList[i]) &&
-           lpCodepageList[i] != CP_UNICODE_UTF8))
+          (IsCodePageUnicode(lpCodepageList[i]) && lpCodepageList[i] != CP_UNICODE_UTF8))
       {
         continue;
       }
