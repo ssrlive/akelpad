@@ -9083,12 +9083,15 @@ int ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *l
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
   {
-    if (tr.pBuffer=(char *)API_HeapAlloc(hHeap, 0, nLen))
+    if (pText)
     {
-      nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
+      if (tr.pBuffer=(char *)API_HeapAlloc(hHeap, 0, nLen))
+      {
+        nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
+      }
     }
   }
-  *pText=tr.pBuffer;
+  if (pText) *pText=tr.pBuffer;
   return nLen;
 }
 
@@ -9107,12 +9110,15 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
 
   if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
   {
-    if (tr.pBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t)))
+    if (wpText)
     {
-      nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+      if (tr.pBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t)))
+      {
+        nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+      }
     }
   }
-  *wpText=tr.pBuffer;
+  if (wpText) *wpText=tr.pBuffer;
   return nLen;
 }
 
@@ -14710,11 +14716,11 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
 
               if (bEscSequences)
               {
-                if (nUnescTextLen=RecoverEscapeString(lpFrameCurrent->ei.hWndEdit, wpText, NULL))
+                if (nUnescTextLen=RecoverEscapeString(lpFrameCurrent, wpText, NULL))
                 {
                   if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
                   {
-                    RecoverEscapeString(lpFrameCurrent->ei.hWndEdit, wpText, wpUnescText);
+                    RecoverEscapeString(lpFrameCurrent, wpText, wpUnescText);
                   }
                 }
                 wpText=wpUnescText;
@@ -15091,101 +15097,92 @@ wchar_t* GetParameterExpCharW(STACKEXTPARAM *hParamStack, int nIndex)
   return NULL;
 }
 
-int RecoverEscapeString(HWND hWndEdit, wchar_t *wpInput, wchar_t *wszOutput)
+int RecoverEscapeString(FRAMEDATA *lpFrame, wchar_t *wpInput, wchar_t *wszOutput)
 {
-  EDITINFO ei;
   wchar_t *a=wpInput;
   wchar_t *b=wszOutput;
   wchar_t whex[5];
   int nDec;
 
-  if (SendMessage(hMainWnd, AKD_GETEDITINFO, (WPARAM)hWndEdit, (LPARAM)&ei))
+  for (whex[4]='\0'; *a; ++a, ++b)
   {
-    for (whex[4]='\0'; *a; ++a, ++b)
+    if (*a == '\\')
     {
-      if (*a == '\\')
+      if (*++a == '\\')
       {
-        if (*++a == '\\')
+        if (wszOutput) *b='\\';
+      }
+      else if (*a == 'n')
+      {
+        if (lpFrame->ei.nNewLine == NEWLINE_MAC)
         {
-          if (wszOutput) *b='\\';
+          if (wszOutput) *b='\r';
         }
-        else if (*a == 'n')
+        else if (lpFrame->ei.nNewLine == NEWLINE_UNIX)
         {
-          if (ei.nNewLine == NEWLINE_MAC)
-          {
-            if (wszOutput) *b='\r';
-          }
-          else if (ei.nNewLine == NEWLINE_UNIX)
-          {
-            if (wszOutput) *b='\n';
-          }
-          else if (ei.nNewLine == NEWLINE_WIN)
-          {
-            if (wszOutput) *b='\r';
-            ++b;
-            if (wszOutput) *b='\n';
-          }
+          if (wszOutput) *b='\n';
         }
-        else if (*a == 't')
+        else if (lpFrame->ei.nNewLine == NEWLINE_WIN)
         {
-          if (wszOutput) *b='\t';
+          if (wszOutput) *b='\r';
+          ++b;
+          if (wszOutput) *b='\n';
         }
-        else if (*a == '[')
+      }
+      else if (*a == 't')
+      {
+        if (wszOutput) *b='\t';
+      }
+      else if (*a == '[')
+      {
+        while (*++a == ' ');
+
+        do
         {
+          whex[0]=*a;
+          if (!*a) goto Error;
+          whex[1]=*++a;
+          if (!*a) goto Error;
+          whex[2]=*++a;
+          if (!*a) goto Error;
+          whex[3]=*++a;
+          if (!*a) goto Error;
+          nDec=hex2decW(whex);
+          if (nDec == -1) goto Error;
           while (*++a == ' ');
 
-          do
-          {
-            whex[0]=*a;
-            if (!*a) goto Error;
-            whex[1]=*++a;
-            if (!*a) goto Error;
-            whex[2]=*++a;
-            if (!*a) goto Error;
-            whex[3]=*++a;
-            if (!*a) goto Error;
-            nDec=hex2decW(whex);
-            if (nDec == -1) goto Error;
-            while (*++a == ' ');
-
-            if (wszOutput) *b=nDec;
-          }
-          while (*a && *a != ']' && ++b);
-
-          if (!*a) goto Error;
+          if (wszOutput) *b=nDec;
         }
-        else if (*a == 's')
-        {
-          CHARRANGE cr;
+        while (*a && *a != ']' && ++b);
 
-          SendMessage(hWndEdit, EM_EXGETSEL, 0, (WPARAM)&cr);
-          if (cr.cpMin != cr.cpMax)
-          {
-            if (wszOutput)
-            {
-              wchar_t *wpText;
-              int nTextLen=0;
-
-              if (wpText=(wchar_t *)SendMessage(hMainWnd, AKD_GETSELTEXTW, (WPARAM)hWndEdit, (LPARAM)&nTextLen))
-              {
-                xstrcpynW(b, wpText, nTextLen + 1);
-                b+=nTextLen - 1;
-                SendMessage(hMainWnd, AKD_FREETEXT, 0, (LPARAM)wpText);
-              }
-            }
-            else b+=cr.cpMax - cr.cpMin - 1;
-          }
-        }
-        else goto Error;
+        if (!*a) goto Error;
       }
-      else if (wszOutput) *b=*a;
+      else if (*a == 's')
+      {
+        AECHARRANGE cr;
+        wchar_t *wszSelText=NULL;
+        int nSelTextLen;
+
+        GetSel(lpFrame->ei.hWndEdit, &cr, NULL, NULL);
+        if (nSelTextLen=ExGetRangeTextW(lpFrame->ei.hWndEdit, &cr.ciMin, &cr.ciMax, FALSE, wszOutput?&wszSelText:NULL, AELB_ASIS, FALSE))
+        {
+          if (wszOutput)
+            xstrcpynW(b, wszSelText, nSelTextLen + 1);
+          else
+            --nSelTextLen;
+          b+=nSelTextLen - 1;
+          FreeText(wszSelText);
+        }
+      }
+      else goto Error;
     }
-    if (wszOutput)
-      *b='\0';
-    else
-      ++b;
-    return (b - wszOutput);
+    else if (wszOutput) *b=*a;
   }
+  if (wszOutput)
+    *b='\0';
+  else
+    ++b;
+  return (b - wszOutput);
 
   Error:
   if (wszOutput) *wszOutput='\0';

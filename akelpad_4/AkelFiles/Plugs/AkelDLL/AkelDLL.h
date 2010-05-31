@@ -670,7 +670,8 @@ typedef struct {
 typedef struct {
   AECHARRANGE cr;             //Characters range to retrieve.
   BOOL bColumnSel;            //Column selection. If this value is –1, active column selection mode is used.
-  unsigned char *pText;       //Pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
+  unsigned char *pText;       //Pointer that receive allocated text. If NULL message return required buffer size including the terminating null character.
+                              //Must be deallocated with AKD_FREETEXT message.
                               //  char *pText      if bOldWindows == TRUE
                               //  wchar_t *pText   if bOldWindows == FALSE
   int nNewLine;               //See AELB_* defines.
@@ -2116,7 +2117,7 @@ _______________
 Retrieves the currently selected text in a edit control.
 
 (HWND)wParam  == edit window, NULL for current edit window.
-(int *)lParam == pointer to a variable that receive text length, can be NULL.
+(int *)lParam == pointer to a variable that receive text length (not including the terminating null character), can be NULL.
 
 Return Value
  Text pointer.
@@ -3473,7 +3474,7 @@ Retrieves a specified range of characters from a AkelEdit control.
 (EXGETTEXTRANGE *)lParam == pointer to a EXGETTEXTRANGE structure.
 
 Return Value
- Text length in TCHARs without null character.
+ Text length in TCHARs. Without null character if EXGETTEXTRANGE.pText member is not NULL or including null character if EXGETTEXTRANGE.pText member is NULL.
 
 Example (bOldWindows == FALSE):
  EXGETTEXTRANGE tr;

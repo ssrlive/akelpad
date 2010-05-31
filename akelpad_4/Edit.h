@@ -763,7 +763,7 @@ char* GetParameterCharA(STACKEXTPARAM *hParamStack, int nIndex);
 wchar_t* GetParameterCharW(STACKEXTPARAM *hParamStack, int nIndex);
 char* GetParameterExpCharA(STACKEXTPARAM *hParamStack, int nIndex);
 wchar_t* GetParameterExpCharW(STACKEXTPARAM *hParamStack, int nIndex);
-int RecoverEscapeString(HWND hWndEdit, wchar_t *wpInput, wchar_t *wszOutput);
+int RecoverEscapeString(FRAMEDATA *lpFrame, wchar_t *wpInput, wchar_t *wszOutput);
 void FreeActionParameters(STACKEXTPARAM *hParamStack);
 
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);
