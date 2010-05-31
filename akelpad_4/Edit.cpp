@@ -139,6 +139,7 @@ extern WNDPROC OldCloseButtonProc;
 //Codepages
 extern int *lpCodepageList;
 extern int nCodepageListLen;
+extern BOOL bCodepageListChanged;
 extern int *lpCodepageTable;
 extern int nCodepageTableCount;
 extern BOOL bDefaultBOM;
@@ -3720,8 +3721,6 @@ BOOL SaveOptions()
     goto Error;
   if (!SaveOptionW(hHandle, L"PrintFooter", PO_STRING, wszPrintFooter, BytesInString(wszPrintFooter)))
     goto Error;
-  if (!SaveOptionW(hHandle, L"CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
-    goto Error;
 
   if (nMDI)
   {
@@ -3735,6 +3734,11 @@ BOOL SaveOptions()
       goto Error;
   }
 
+  if (bCodepageListChanged)
+  {
+    if (!SaveOptionW(hHandle, L"CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
+      goto Error;
+  }
   if (bEditFontChanged)
   {
     if (!SaveOptionW(hHandle, L"Font", PO_BINARY, &fdLast.lf, offsetof(LOGFONTW, lfFaceName)))
@@ -6997,6 +7001,7 @@ void GetListboxCodepageList(HWND hWnd, int **lpCodepageList)
         *lpCodepageListCount++=xatoiW(wbuf, NULL);
       }
       *lpCodepageListCount=0;
+      bCodepageListChanged=TRUE;
     }
   }
 }
