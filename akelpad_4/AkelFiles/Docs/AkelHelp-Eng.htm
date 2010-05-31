@@ -34,8 +34,8 @@
   <ul>
     <li>Single window mode (SDI), multi window mode (MDI);
     <li>Editing of files, which size is more than 64K (generally speaking, size isn't theoretically limited);
-    <li>Full support of Unicode strings on Unicode systems (NT/2000/XP/2003);
-    <li>Support of Unicode codepages (UTF-16 little endian, UTF-16 big endian, UTF-8);
+    <li>Full support of Unicode strings on Unicode systems (NT/2000/XP/2003/Vista/Seven);
+    <li>Support of Unicode codepages (UTF-8, UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE);
     <li>Support of any codepage installed in the system;
     <li>Support of DOS/Windows, Unix and Mac newline formats;
     <li>Preview file open;
@@ -55,43 +55,43 @@
     <table cellspacing=0 cellpadding=0 border=0>
       <tr>
         <td width="80"><li><b>/x</b></td>
-        <td>- don't use MS Notepad compatibility mode when parse command line parameters</td>
+        <td>- don't use MS Notepad compatibility mode when parse command line parameters.</td>
       </tr>
       <tr>
         <td><li><b>/p</b></td>
-        <td>- print</td>
+        <td>- print next file and close it.</td>
       </tr>
       <tr>
         <td><li><b>/c+</b></td>
-        <td>- silently create new file, if doesn't exist</td>
+        <td>- silently create new file, if doesn't exist.</td>
       </tr>
       <tr>
         <td><li><b>/c-</b></td>
-        <td>- don't create new file, if doesn't exist</td>
+        <td>- don't create new file, if doesn't exist.</td>
       </tr>
       <tr>
         <td><li><b>/b+</b></td>
-        <td>- silently open file, if binary</td>
+        <td>- silently open file, if binary.</td>
       </tr>
       <tr>
         <td><li><b>/b-</b></td>
-        <td>- don't open file, if binary</td>
+        <td>- don't open file, if binary.</td>
       </tr>
       <tr>
         <td><li><b>/reassoc</b></td>
-        <td>- reinstall assigned earlier associations of file types</td>
+        <td>- reinstall assigned earlier associations of file types.</td>
       </tr>
       <tr>
         <td><li><b>/deassoc</b></td>
-        <td>- uninstall assigned earlier associations of file types</td>
+        <td>- uninstall assigned earlier associations of file types.</td>
       </tr>
       <tr>
         <td><li><b>/quit</b></td>
-        <td>- stop parsing command line parameters and close program</td>
+        <td>- stop parsing command line parameters and close program.</td>
       </tr>
       <tr>
         <td><li><b>/end</b></td>
-        <td>- stop parsing command line parameters</td>
+        <td>- stop parsing command line parameters.</td>
       </tr>
     </table>
 
@@ -113,7 +113,7 @@
       <div style="margin-left:30px">/Exec('%windir%\notepad.exe')</div>
         <div style="margin-left:60px">method calls notepad.</div>
       <div style="margin-left:30px">/Exec(`rundll32.exe shell32,Shell/Exec_RunDLL "%f"`, "%d")</div>
-        <div style="margin-left:60px">method pass an active file for opening on Windows associatio</div>
+        <div style="margin-left:60px">method pass an active file for opening on Windows association.</div>
 
       <div style="margin-top:10px"><li><b>/Call("Plugin::Function", [additional parameters])</b></div>
       <div style="margin-left:30px">/Call("Scripts::Main")</div>
