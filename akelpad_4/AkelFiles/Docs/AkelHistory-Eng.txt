@@ -15,8 +15,7 @@ Changed: clean program installation recommended.
 Changed: greatly reduced the number of lines in program code by optimizing Win95/98/Me support.
 Changed: now libc.lib not used, which allow to compile the program on the latest MS VS without
          errors.
-Changed: commands 4421 - "Insert/Overtype mode" and 4426 - "Save file as UTF8 without BOM"
-         swapped.
+Changed: sorted non-menu commands > 4351.
 Changed: read-only mode is not inherited and not saved now. Item from the menu "Options"
          moved to "View" menu. Read-only mode command is now 4216.
 Changed: at program exit, settings saved of the active tab, not of the last closed (MDI).
