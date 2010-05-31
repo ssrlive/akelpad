@@ -1355,7 +1355,7 @@ BOOL DoFileOpen()
       if (!nMDI)
       {
         GetFileDir(wszFileList, wszLastDir, MAX_PATH);
-        if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
+        if (OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
           return FALSE;
       }
       else
@@ -1388,7 +1388,7 @@ BOOL DoFileOpen()
               xstrcpynW(wszFile, wpFile, MAX_PATH);  //.lnk target
             else
               xprintfW(wszFile, L"%s\\%s", wszFileList, wpFile);
-            OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFile, dwOfnFlags, nOfnCodePage, bOfnBOM);
+            OpenDocument(NULL, wszFile, dwOfnFlags, nOfnCodePage, bOfnBOM);
 
             //Status update
             if (bStatusBar)
@@ -1414,7 +1414,7 @@ BOOL DoFileOpen()
         {
           //One file selected
           GetFileDir(wszFileList, wszLastDir, MAX_PATH);
-          if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
+          if (OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
             return FALSE;
         }
       }
@@ -1443,7 +1443,7 @@ int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM)
   }
   if (!lpFrameCurrent->ei.bModified || nAnswer == IDOK)
   {
-    nResult=OpenDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, dwFlags|OD_REOPEN, nCodePage, bBOM);
+    nResult=OpenDocument(NULL, lpFrameCurrent->wszFile, dwFlags|OD_REOPEN, nCodePage, bBOM);
   }
   return nResult;
 }
@@ -1452,7 +1452,7 @@ BOOL DoFileSave()
 {
   if (!lpFrameCurrent->ei.bModified && lpFrameCurrent->wszFile[0] && FileExistsWide(lpFrameCurrent->wszFile)) return TRUE;
   if (!lpFrameCurrent->wszFile[0]) return DoFileSaveAs(-1, -1);
-  return !SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM, SD_UPDATE);
+  return !SaveDocument(NULL, lpFrameCurrent->wszFile, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM, SD_UPDATE);
 }
 
 BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
@@ -1490,7 +1490,7 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
     GetCurrentDirectoryWide(MAX_PATH, wszLastDir);
     SetCurrentDirectoryWide(wszExeDir);
 
-    if (!SaveDocument(lpFrameCurrent->ei.hWndEdit, wszSaveFile, nOfnCodePage, bOfnBOM, SD_UPDATE))
+    if (!SaveDocument(NULL, wszSaveFile, nOfnCodePage, bOfnBOM, SD_UPDATE))
       return TRUE;
   }
   return FALSE;
@@ -4412,6 +4412,8 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     SetCodePageStatus(lpFrameCurrent, nCodePage, bBOM);
     return nResult;
   }
+  if (!hWnd)
+    hWnd=lpFrameCurrent->ei.hWndEdit;
   GetFullName(wpFile, wszFile, MAX_PATH);
 
   //Notification message
@@ -4700,7 +4702,7 @@ BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
         if (wfdW.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
           OpenDirectory(wszName, TRUE);
         else
-          OpenDocument(lpFrameCurrent->ei.hWndEdit, wszName, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+          OpenDocument(NULL, wszName, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
       }
       while (FindNextFileWide(hSearch, &wfdW));
 
@@ -4731,7 +4733,7 @@ void DropFiles(HDROP hDrop)
       if (nMDI && IsFile(wszFile) == ERROR_FILE_NOT_FOUND)
         OpenDirectory(wszFile, TRUE);
       else
-        OpenDocument(lpFrameCurrent->ei.hWndEdit, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+        OpenDocument(NULL, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
       if (nMDI == WMD_SDI) break;
 
       //Status update
@@ -4916,7 +4918,7 @@ BOOL CALLBACK SaveAllAsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lPara
             }
             else
             {
-              if (SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, bCodePageEnable?nCodePage:lpFrameCurrent->ei.nCodePage, bCodePageEnable?bBOM:lpFrameCurrent->ei.bBOM, SD_UPDATE) != ESD_SUCCESS)
+              if (SaveDocument(NULL, lpFrameCurrent->wszFile, bCodePageEnable?nCodePage:lpFrameCurrent->ei.nCodePage, bCodePageEnable?bBOM:lpFrameCurrent->ei.bBOM, SD_UPDATE) != ESD_SUCCESS)
                 break;
             }
           }
@@ -14751,7 +14753,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
         {
           if (!SaveChanged())
             return PCLE_END;
-          if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE) != EOD_SUCCESS)
+          if (OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE) != EOD_SUCCESS)
             return PCLE_END;
           bFileOpenedSDI=TRUE;
           continue;
@@ -14764,7 +14766,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
       if (bOnLoad) return PCLE_ONLOAD;
 
       //nMDI == WMD_MDI || nMDI == WMD_PMDI
-      if (OpenDocument(lpFrameCurrent->ei.hWndEdit, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE) != EOD_SUCCESS)
+      if (OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE) != EOD_SUCCESS)
         return PCLE_END;
     }
   }

@@ -1541,18 +1541,27 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_GETTEXTLENGTH)
     {
-      return GetTextLength((HWND)wParam);
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
+
+      return GetTextLength(hWnd);
     }
     if (uMsg == AKD_GETTEXTRANGE ||
         uMsg == AKD_GETTEXTRANGEA ||
         uMsg == AKD_GETTEXTRANGEW)
     {
       GETTEXTRANGE *gtr=(GETTEXTRANGE *)lParam;
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
 
       if (uMsg == AKD_GETTEXTRANGEA || (bOldWindows && uMsg == AKD_GETTEXTRANGE))
-        return GetRangeTextA((HWND)wParam, gtr->cpMin, gtr->cpMax, (char **)&gtr->pText);
+        return GetRangeTextA(hWnd, gtr->cpMin, gtr->cpMax, (char **)&gtr->pText);
       else
-        return GetRangeTextW((HWND)wParam, gtr->cpMin, gtr->cpMax, (wchar_t **)&gtr->pText);
+        return GetRangeTextW(hWnd, gtr->cpMin, gtr->cpMax, (wchar_t **)&gtr->pText);
     }
     if (uMsg == AKD_GETSELTEXTW)
     {
@@ -1560,10 +1569,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       wchar_t *wpText=NULL;
       int nTextLen;
       BOOL bColumnSel=FALSE;
+      HWND hWnd=(HWND)wParam;
       int *nResultLen=(int *)lParam;
 
-      GetSel((HWND)wParam, &cr, &bColumnSel, NULL);
-      nTextLen=ExGetRangeTextW((HWND)wParam, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
+
+      GetSel(hWnd, &cr, &bColumnSel, NULL);
+      nTextLen=ExGetRangeTextW(hWnd, &cr.ciMin, &cr.ciMax, bColumnSel, &wpText, AELB_R, TRUE);
       if (nResultLen) *nResultLen=nTextLen;
       return (LRESULT)wpText;
     }
@@ -1575,22 +1588,37 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_REPLACESELA ||
         uMsg == AKD_REPLACESELW)
     {
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
+
       if (uMsg == AKD_REPLACESELA || (bOldWindows && uMsg == AKD_REPLACESEL))
-        ReplaceSelA((HWND)wParam, (char *)lParam, -1, -1, NULL, NULL);
+        ReplaceSelA(hWnd, (char *)lParam, -1, -1, NULL, NULL);
       else
-        ReplaceSelW((HWND)wParam, (wchar_t *)lParam, -1, -1, NULL, NULL);
+        ReplaceSelW(hWnd, (wchar_t *)lParam, -1, -1, NULL, NULL);
       return 0;
     }
     if (uMsg == AKD_PASTE)
     {
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
+
       if (lParam == PASTE_SINGLELINE)
-        return PasteInEditAsRichEdit((HWND)wParam);
+        return PasteInEditAsRichEdit(hWnd);
       else
-        return DoEditPaste((HWND)wParam, lParam);
+        return DoEditPaste(hWnd, lParam);
     }
     if (uMsg == AKD_COPY)
     {
-      DoEditCopy((HWND)wParam);
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
+
+      DoEditCopy(hWnd);
       return 0;
     }
     if (uMsg == AKD_TEXTFIND ||
@@ -1598,6 +1626,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_TEXTFINDW)
     {
       TEXTFINDW *tf=(TEXTFINDW *)lParam;
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
 
       if (uMsg == AKD_TEXTFINDA || (bOldWindows && uMsg == AKD_TEXTFIND))
       {
@@ -1610,18 +1642,22 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, wpFindIt, nFindItLen);
 
-          nResult=FindTextW((HWND)wParam, tf->dwFlags, wpFindIt, tf->nFindItLen);
+          nResult=FindTextW(hWnd, tf->dwFlags, wpFindIt, tf->nFindItLen);
           GlobalFree((HGLOBAL)wpFindIt);
         }
         return nResult;
       }
-      return FindTextW((HWND)wParam, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
+      return FindTextW(hWnd, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
     }
     if (uMsg == AKD_TEXTREPLACE ||
         uMsg == AKD_TEXTREPLACEA ||
         uMsg == AKD_TEXTREPLACEW)
     {
       TEXTREPLACEW *tr=(TEXTREPLACEW *)lParam;
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
 
       if (uMsg == AKD_TEXTREPLACEA || (bOldWindows && uMsg == AKD_TEXTREPLACE))
       {
@@ -1641,20 +1677,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, wpReplaceWith, nReplaceWithLen);
 
-            nResult=ReplaceTextW((HWND)wParam, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+            nResult=ReplaceTextW(hWnd, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
             GlobalFree((HGLOBAL)wpReplaceWith);
           }
           GlobalFree((HGLOBAL)wpFindIt);
         }
         return nResult;
       }
-      return ReplaceTextW((HWND)wParam, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+      return ReplaceTextW(hWnd, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {
       TEXTRECODE *tr=(TEXTRECODE *)lParam;
+      HWND hWnd=(HWND)wParam;
 
-      RecodeTextW((HWND)wParam, tr->nCodePageFrom, tr->nCodePageTo);
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
+
+      RecodeTextW(hWnd, tr->nCodePageFrom, tr->nCodePageTo);
       return 0;
     }
     if (uMsg == AKD_GETCHARCOLOR)
@@ -2429,18 +2469,27 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //AkelPad 4.x only messages
     if (uMsg == AKD_EXGETTEXTLENGTH)
     {
-      return -IndexSubtract((HWND)wParam, NULL, NULL, lParam, FALSE);
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
+
+      return -IndexSubtract(hWnd, NULL, NULL, lParam, FALSE);
     }
     if (uMsg == AKD_EXGETTEXTRANGE ||
         uMsg == AKD_EXGETTEXTRANGEA ||
         uMsg == AKD_EXGETTEXTRANGEW)
     {
       EXGETTEXTRANGE *tr=(EXGETTEXTRANGE *)lParam;
+      HWND hWnd=(HWND)wParam;
+
+      if (!hWnd)
+        hWnd=lpFrameCurrent->ei.hWndEdit;
 
       if (uMsg == AKD_EXGETTEXTRANGEA || (bOldWindows && uMsg == AKD_EXGETTEXTRANGE))
-        return ExGetRangeTextA((HWND)wParam, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
+        return ExGetRangeTextA(hWnd, tr->nCodePage, tr->lpDefaultChar, tr->lpUsedDefChar, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (char **)&tr->pText, tr->nNewLine, TRUE);
       else
-        return ExGetRangeTextW((HWND)wParam, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
+        return ExGetRangeTextW(hWnd, &tr->cr.ciMin, &tr->cr.ciMax, tr->bColumnSel, (wchar_t **)&tr->pText, tr->nNewLine, TRUE);
     }
     if (uMsg == AKD_GETSTATUSPOSTYPE)
     {
@@ -2661,7 +2710,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         wchar_t *wpFile=AllocWideStr(MAX_PATH);
 
         xstrcpynW(wpFile, lpwszRecentNames[LOWORD(wParam) - IDM_RECENT_FILES - 1], MAX_PATH);
-        OpenDocument(lpFrameCurrent->ei.hWndEdit, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+        OpenDocument(NULL, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
 
         FreeWideStr(wpFile);
       }
@@ -2689,7 +2738,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) >= IDM_POPUP_SAVEAS && LOWORD(wParam) < IDM_POPUP_SAVEAS + nCodepageListLen)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, lpCodepageList[LOWORD(wParam) - IDM_POPUP_SAVEAS], TRUE, SD_UPDATE);
+      return SaveDocument(NULL, lpFrameCurrent->wszFile, lpCodepageList[LOWORD(wParam) - IDM_POPUP_SAVEAS], TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_FILE_NEW)
     {
@@ -3113,31 +3162,31 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_ANSI)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, nAnsiCodePage, FALSE, SD_UPDATE);
+      return SaveDocument(NULL, lpFrameCurrent->wszFile, nAnsiCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_OEM)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, nOemCodePage, FALSE, SD_UPDATE);
+      return SaveDocument(NULL, lpFrameCurrent->wszFile, nOemCodePage, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16LE)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, CP_UNICODE_UTF16LE, TRUE, SD_UPDATE);
+      return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF16LE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF16BE)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, CP_UNICODE_UTF16BE, TRUE, SD_UPDATE);
+      return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF16BE, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, TRUE, SD_UPDATE);
+      return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, TRUE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_UTF8_NOBOM)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
+      return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_UNICODE_UTF8, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_SAVEAS_KOIR)
     {
-      return SaveDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, CP_KOI8_R, FALSE, SD_UPDATE);
+      return SaveDocument(NULL, lpFrameCurrent->wszFile, CP_KOI8_R, FALSE, SD_UPDATE);
     }
     else if (LOWORD(wParam) == IDM_NONMENU_INSERTMODE)
     {
@@ -3189,7 +3238,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);
           if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, lpFrameCurrent->ei.bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
           {
-            OpenDocument(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
+            OpenDocument(NULL, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
           }
         }
         bReopenMsg=FALSE;
