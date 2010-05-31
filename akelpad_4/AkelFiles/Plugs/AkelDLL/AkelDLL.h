@@ -1108,14 +1108,20 @@ typedef struct {
 #define IDM_ABOUT                       4351  //About dialog.
                                               //Return Value: zero.
                                               //
-#define IDM_NONMENU_CHANGESIZE          4401  //Change style of the main window SW_RESTORE\SW_MAXIMIZE.
+#define IDM_NONMENU_CHANGESIZE          4391  //Change style of the main window SW_RESTORE\SW_MAXIMIZE.
                                               //Return Value: zero.
                                               //
-#define IDM_NONMENU_DELLINE             4402  //Delete current line.
-                                              //Return Value: zero.
+#define IDM_NONMENU_DLGNEXT             4394  //Activate next dialog window.
+                                              //Return Value: activated dialog handle.
                                               //
-#define IDM_NONMENU_PASTEANSI           4403  //Paste as ANSI text.
-                                              //Return Value: TRUE - success, FALSE - failed.
+#define IDM_NONMENU_DLGPREV             4395  //Activate previous dialog window.
+                                              //Return Value: activated dialog handle.
+                                              //
+#define IDM_NONMENU_CLONENEXT           4398  //Activate next pane (split window).
+                                              //Return Value: activated pane handle.
+                                              //
+#define IDM_NONMENU_CLONEPREV           4399  //Activate previous pane (split window).
+                                              //Return Value: activated pane handle.
                                               //
 #define IDM_NONMENU_FRAMENEXT           4404  //Activate next MDI window.
                                               //Return Value: zero.
@@ -1171,32 +1177,26 @@ typedef struct {
 #define IDM_NONMENU_FILECLOSE           4422  //Close file.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_NONMENU_DLGNEXT             4423  //Activate next dialog window.
-                                              //Return Value: activated dialog handle.
+#define IDM_NONMENU_FILEEXIT            4423  //Close file and exit program (SDI) or close tab of a file (MDI or PMDI).
+                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_NONMENU_DLGPREV             4424  //Activate previous dialog window.
-                                              //Return Value: activated dialog handle.
-                                              //
-#define IDM_NONMENU_AUTOINDENT          4425  //Insert new line with keeping left spaces.
-                                              //Return Value: TRUE - inserted with spaces, FALSE - inserted without spaces.
-                                              //
-#define IDM_NONMENU_INSERTMODE          4426  //Insert mode (on\off).
+#define IDM_NONMENU_INSERTMODE          4441  //Insert mode (on\off).
                                               //Return Value: zero.
                                               //
-#define IDM_NONMENU_CLONENEXT           4427  //Activate next pane (split window).
-                                              //Return Value: activated pane handle.
-                                              //
-#define IDM_NONMENU_CLONEPREV           4428  //Activate previous pane (split window).
-                                              //Return Value: activated pane handle.
-                                              //
-#define IDM_NONMENU_COLUMNPASTE         4429  //Paste to column selection.
+#define IDM_NONMENU_PASTEANSI           4451  //Paste as ANSI text.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_NONMENU_PASTEAFTER          4430  //Paste text after caret.
+#define IDM_NONMENU_PASTECOLUMN         4452  //Paste to column selection.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_NONMENU_FILEEXIT            4431  //Close file and exit program (SDI) or close tab of a file (MDI or PMDI).
+#define IDM_NONMENU_PASTEAFTER          4453  //Paste text after caret.
                                               //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_NONMENU_AUTOINDENT          4454  //Insert new line with keeping left spaces.
+                                              //Return Value: TRUE - inserted with spaces, FALSE - inserted without spaces.
+                                              //
+#define IDM_NONMENU_DELLINE             4456  //Delete current line.
+                                              //Return Value: zero.
                                               //
 #define IDM_INTERNAL_REOPEN_MSG         4501  //Internal command.
                                               //Return Value: zero.
