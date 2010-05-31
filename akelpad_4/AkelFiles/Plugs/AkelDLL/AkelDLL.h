@@ -2045,7 +2045,7 @@ ________________  _________________  _________________
 
 Save file.
 
-(HWND)wParam           == edit window.
+(HWND)wParam           == edit window, NULL for current edit window.
 (SAVEDOCUMENT *)lParam == pointer to a SAVEDOCUMENT structure.
 
 Return Value
@@ -2058,7 +2058,7 @@ Example (Unicode):
  sd.nCodePage=65001;
  sd.bBOM=TRUE;
  sd.dwFlags=SD_UPDATE;
- SendMessage(pd->hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)pd->hWndEdit, (LPARAM)&sd);
+ SendMessage(pd->hMainWnd, AKD_SAVEDOCUMENTW, (WPARAM)NULL, (LPARAM)&sd);
 
 
 AKD_GETTEXTLENGTH
@@ -2066,7 +2066,7 @@ _________________
 
 Get edit window text length.
 
-(HWND)wParam == edit window.
+(HWND)wParam == edit window, NULL for current edit window.
 lParam       == not used.
 
 Return Value
@@ -2081,7 +2081,7 @@ ________________  _________________  _________________
 
 Retrieves a specified range of characters from a edit control.
 
-(HWND)wParam           == edit window.
+(HWND)wParam           == edit window, NULL for current edit window.
 (GETTEXTRANGE *)lParam == pointer to a GETTEXTRANGE structure.
 
 Return Value
@@ -2115,7 +2115,7 @@ _______________
 
 Retrieves the currently selected text in a edit control.
 
-(HWND)wParam  == edit window.
+(HWND)wParam  == edit window, NULL for current edit window.
 (int *)lParam == pointer to a variable that receive text length, can be NULL.
 
 Return Value
@@ -2149,7 +2149,7 @@ ______________  _______________  _______________
 
 Replace selection of the edit control.
 
-(HWND)wParam            == edit window.
+(HWND)wParam            == edit window, NULL for current edit window.
 (unsigned char *)lParam == text pointer.
 
 Return Value
@@ -2164,7 +2164,7 @@ _________
 
 Paste text from clipboard to the edit control.
 
-(HWND)wParam == edit window.
+(HWND)wParam == edit window, NULL for current edit window.
 (int)lParam  == see PASTE_* defines.
 
 Return Value
@@ -2180,7 +2180,7 @@ ________
 
 Copy text to clipboard from edit control.
 
-(HWND)wParam == edit window.
+(HWND)wParam == edit window, NULL for current edit window.
 lParam       == not used.
 
 Return Value
@@ -2195,7 +2195,7 @@ ____________  _____________  _____________
 
 Finds text in a edit control.
 
-(HWND)wParam       == edit window.
+(HWND)wParam       == edit window, NULL for current edit window.
 (TEXTFIND *)lParam == pointer to a TEXTFIND structure.
 
 Return Value
@@ -2215,7 +2215,7 @@ _______________  ________________  ________________
 
 Replaces text in a edit control.
 
-(HWND)wParam          == edit window.
+(HWND)wParam          == edit window, NULL for current edit window.
 (TEXTREPLACE *)lParam == pointer to a TEXTREPLACE structure.
 
 Return Value
@@ -2238,7 +2238,7 @@ _____________
 
 Recode text in a edit control.
 
-(HWND)wParam         == edit window.
+(HWND)wParam         == edit window, NULL for current edit window.
 (TEXTRECODE *)lParam == pointer to a TEXTRECODE structure.
 
 Return Value
@@ -2257,7 +2257,7 @@ ________________
 
 Get colors of the specified char.
 
-(HWND)wParam        == edit window.
+(HWND)wParam        == edit window, NULL for current edit window.
 (CHARCOLOR *)lParam == pointer to a CHARCOLOR structure.
 
 Return Value
@@ -3454,7 +3454,7 @@ ___________________
 
 Get AkelEdit window text length.
 
-(HWND)wParam == AkelEdit window.
+(HWND)wParam == AkelEdit window, NULL for current edit window.
 (int)lParam  == see AELB_* defines.
 
 Return Value
@@ -3469,7 +3469,7 @@ __________________  ___________________  ___________________
 
 Retrieves a specified range of characters from a AkelEdit control.
 
-(HWND)wParam             == AkelEdit window.
+(HWND)wParam             == AkelEdit window, NULL for current edit window.
 (EXGETTEXTRANGE *)lParam == pointer to a EXGETTEXTRANGE structure.
 
 Return Value
