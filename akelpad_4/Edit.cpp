@@ -6913,7 +6913,7 @@ void FillComboboxCodepage(HWND hWnd, int *lpCodepageList)
   }
 }
 
-void FillListboxCodepage(HWND hWnd, int *lpCodepageList)
+void FillListBoxCodepage(HWND hWnd, int *lpCodepageList)
 {
   int i;
 
@@ -6937,7 +6937,7 @@ void ClearCombobox(HWND hWnd)
   }
 }
 
-void ClearListbox(HWND hWnd)
+void ClearListBox(HWND hWnd)
 {
   int nCount;
 
@@ -6960,7 +6960,7 @@ int GetComboboxCodepage(HWND hWnd)
   return nCodePage;
 }
 
-int GetListboxCodepage(HWND hWnd)
+int GetListBoxCodepage(HWND hWnd)
 {
   int nCodePage=0;
   int nSelection;
@@ -6984,7 +6984,7 @@ int SelectComboboxCodepage(HWND hWnd, int nCodepage)
   return nSelection;
 }
 
-int SelectListboxCodepage(HWND hWnd, int nCodepage)
+int SelectListBoxCodepage(HWND hWnd, int nCodepage)
 {
   int nSelection;
 
@@ -6995,7 +6995,7 @@ int SelectListboxCodepage(HWND hWnd, int nCodepage)
   return nSelection;
 }
 
-void GetListboxCodepageList(HWND hWnd, int **lpCodepageList)
+void GetListBoxCodepageList(HWND hWnd, int **lpCodepageList)
 {
   int *lpCodepageListCount;
   int nCount;
@@ -12417,9 +12417,9 @@ BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
     hWndOK=GetDlgItem(hDlg, IDOK);
     hWndDefaultCP=(HWND)lParam;
 
-    FillListboxCodepage(hWndCustomList, lpCodepageList);
+    FillListBoxCodepage(hWndCustomList, lpCodepageList);
     EnumCodepageList(&lpFullCodepageList);
-    FillListboxCodepage(hWndSystemList, lpFullCodepageList);
+    FillListBoxCodepage(hWndSystemList, lpFullCodepageList);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -12477,13 +12477,13 @@ BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_CODEPAGES_FILTER_ADDALL)
     {
-      ClearListbox(hWndCustomList);
-      FillListboxCodepage(hWndCustomList, lpFullCodepageList);
+      ClearListBox(hWndCustomList);
+      FillListBoxCodepage(hWndCustomList, lpFullCodepageList);
       EnableWindow(hWndOK, TRUE);
     }
     else if (LOWORD(wParam) == IDC_OPTIONS_CODEPAGES_FILTER_DELETEALL)
     {
-      ClearListbox(hWndCustomList);
+      ClearListBox(hWndCustomList);
       EnableWindow(hWndOK, FALSE);
     }
     else if (LOWORD(wParam) == IDOK)
@@ -12491,7 +12491,7 @@ BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
       bMenuPopupCodepage=TRUE;
       CodepageListFree(&lpCodepageList);
       CodepageListFree(&lpFullCodepageList);
-      GetListboxCodepageList(hWndCustomList, &lpCodepageList);
+      GetListBoxCodepageList(hWndCustomList, &lpCodepageList);
       nCodepageListLen=CodepageListLen(lpCodepageList);
       ClearCombobox(hWndDefaultCP);
       FillComboboxCodepage(hWndDefaultCP, lpCodepageList);
@@ -13343,7 +13343,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       EnableWindow(hWndVert, FALSE);
     }
 
-    FillMdiListListbox(hWndList, FALSE, FALSE);
+    FillMdiListListBox(hWndList, FALSE, FALSE);
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
       SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
 
@@ -13375,25 +13375,25 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDC_MDILIST_HORZ)
     {
-      ArrangeListboxSelItems(hWndList, SB_HORZ);
+      ArrangeListBoxSelItems(hWndList, SB_HORZ);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_VERT)
     {
-      ArrangeListboxSelItems(hWndList, SB_VERT);
+      ArrangeListBoxSelItems(hWndList, SB_VERT);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_UP)
     {
-      if (ShiftListboxSelItems(hWndList, FALSE))
+      if (ShiftListBoxSelItems(hWndList, FALSE))
         bListChanged=TRUE;
     }
     else if (LOWORD(wParam) == IDC_MDILIST_DOWN)
     {
-      if (ShiftListboxSelItems(hWndList, TRUE))
+      if (ShiftListBoxSelItems(hWndList, TRUE))
         bListChanged=TRUE;
     }
     else if (LOWORD(wParam) == IDC_MDILIST_SORT)
     {
-      FillMdiListListbox(hWndList, TRUE, bOnlyModified);
+      FillMdiListListBox(hWndList, TRUE, bOnlyModified);
       bListChanged=TRUE;
 
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
@@ -13401,18 +13401,18 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
     {
       bOnlyModified=SendMessage(hWndModified, BM_GETCHECK, 0, 0);
-      FillMdiListListbox(hWndList, FALSE, bOnlyModified);
+      FillMdiListListBox(hWndList, FALSE, bOnlyModified);
       bListChanged=FALSE;
 
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_SAVE)
     {
-      SaveListboxSelItems(hWndList);
+      SaveListBoxSelItems(hWndList);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_CLOSE)
     {
-      if (CloseListboxSelItems(hWndList))
+      if (CloseListBoxSelItems(hWndList))
         SetFocus(hWndList);
 
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
@@ -13460,12 +13460,12 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         bListChanged=FALSE;
       }
-      if (GetListboxSelItems(hWndList, &lpSelItems))
+      if (GetListBoxSelItems(hWndList, &lpSelItems))
       {
         if ((nData=SendMessage(hWndList, LB_GETITEMDATA, lpSelItems[0], 0)) != LB_ERR)
           if ((nItem=GetTabItemFromParam(hTab, nData)) != -1)
             SelectTabItem(hTab, nItem);
-        FreeListboxSelItems(&lpSelItems);
+        FreeListBoxSelItems(&lpSelItems);
       }
       EndDialog(hDlg, 0);
       return TRUE;
@@ -13481,11 +13481,11 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return FALSE;
 }
 
-void FillMdiListListbox(HWND hWnd, BOOL bSort, BOOL bOnlyModified)
+void FillMdiListListBox(HWND hWnd, BOOL bSort, BOOL bOnlyModified)
 {
   FRAMEDATA *lpFrame;
   int nNew;
-  int nListboxItem=0;
+  int nListBoxItem=0;
   BOOL bFileModified;
 
   SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
@@ -13500,14 +13500,14 @@ void FillMdiListListbox(HWND hWnd, BOOL bSort, BOOL bOnlyModified)
       if (bSort)
         nNew=ListBox_AddStringWide(hWnd, wbuf);
       else
-        nNew=ListBox_InsertStringWide(hWnd, nListboxItem++, wbuf);
+        nNew=ListBox_InsertStringWide(hWnd, nListBoxItem++, wbuf);
 
       SendMessage(hWnd, LB_SETITEMDATA, nNew, (LPARAM)lpFrame);
     }
   }
 }
 
-int MoveListboxItem(HWND hWnd, int nOldIndex, int nNewIndex)
+int MoveListBoxItem(HWND hWnd, int nOldIndex, int nNewIndex)
 {
   wchar_t *wpText;
   int nIndex=LB_ERR;
@@ -13530,7 +13530,7 @@ int MoveListboxItem(HWND hWnd, int nOldIndex, int nNewIndex)
   return nIndex;
 }
 
-BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown)
+BOOL ShiftListBoxSelItems(HWND hWnd, BOOL bMoveDown)
 {
   int *lpSelItems;
   int nSelCount;
@@ -13544,7 +13544,7 @@ BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown)
   nMinIndex=0;
   nMaxIndex=SendMessage(hWnd, LB_GETCOUNT, 0, 0) - 1;
 
-  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  if (nSelCount=GetListBoxSelItems(hWnd, &lpSelItems))
   {
     if (!bMoveDown)
     {
@@ -13560,7 +13560,7 @@ BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown)
           nOldIndex=lpSelItems[i];
           nNewIndex=lpSelItems[i] - 1;
 
-          MoveListboxItem(hWnd, nOldIndex, nNewIndex);
+          MoveListBoxItem(hWnd, nOldIndex, nNewIndex);
           SendMessage(hWnd, LB_SETSEL, TRUE, nNewIndex);
           bResult=TRUE;
         }
@@ -13580,18 +13580,18 @@ BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown)
           nOldIndex=lpSelItems[i];
           nNewIndex=lpSelItems[i] + 1;
 
-          MoveListboxItem(hWnd, nOldIndex, nNewIndex);
+          MoveListBoxItem(hWnd, nOldIndex, nNewIndex);
           SendMessage(hWnd, LB_SETSEL, TRUE, nNewIndex);
           bResult=TRUE;
         }
       }
     }
-    FreeListboxSelItems(&lpSelItems);
+    FreeListBoxSelItems(&lpSelItems);
   }
   return bResult;
 }
 
-BOOL SaveListboxSelItems(HWND hWnd)
+BOOL SaveListBoxSelItems(HWND hWnd)
 {
   FRAMEDATA *lpFrame;
   int *lpSelItems;
@@ -13600,7 +13600,7 @@ BOOL SaveListboxSelItems(HWND hWnd)
   int i;
   BOOL bResult=TRUE;
 
-  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  if (nSelCount=GetListBoxSelItems(hWnd, &lpSelItems))
   {
     for (i=nSelCount - 1; i >= 0; --i)
     {
@@ -13623,12 +13623,12 @@ BOOL SaveListboxSelItems(HWND hWnd)
         }
       }
     }
-    FreeListboxSelItems(&lpSelItems);
+    FreeListBoxSelItems(&lpSelItems);
   }
   return bResult;
 }
 
-void ArrangeListboxSelItems(HWND hWnd, int nBar)
+void ArrangeListBoxSelItems(HWND hWnd, int nBar)
 {
   FRAMEDATA *lpFrame;
   RECT rcClient;
@@ -13641,7 +13641,7 @@ void ArrangeListboxSelItems(HWND hWnd, int nBar)
 
   if (nMDI == WMD_MDI)
   {
-    if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+    if (nSelCount=GetListBoxSelItems(hWnd, &lpSelItems))
     {
       GetClientRect(hMdiClient, &rcClient);
       if (nBar == SB_HORZ)
@@ -13676,12 +13676,12 @@ void ArrangeListboxSelItems(HWND hWnd, int nBar)
           }
         }
       }
-      FreeListboxSelItems(&lpSelItems);
+      FreeListBoxSelItems(&lpSelItems);
     }
   }
 }
 
-BOOL CloseListboxSelItems(HWND hWnd)
+BOOL CloseListBoxSelItems(HWND hWnd)
 {
   FRAMEDATA *lpFrame;
   int *lpSelItems;
@@ -13689,7 +13689,7 @@ BOOL CloseListboxSelItems(HWND hWnd)
   int i;
   BOOL bResult=TRUE;
 
-  if (nSelCount=GetListboxSelItems(hWnd, &lpSelItems))
+  if (nSelCount=GetListBoxSelItems(hWnd, &lpSelItems))
   {
     for (i=nSelCount - 1; i >= 0; --i)
     {
@@ -13703,12 +13703,12 @@ BOOL CloseListboxSelItems(HWND hWnd)
         SendMessage(hWnd, LB_DELETESTRING, lpSelItems[i], 0);
       }
     }
-    FreeListboxSelItems(&lpSelItems);
+    FreeListBoxSelItems(&lpSelItems);
   }
   return bResult;
 }
 
-int GetListboxSelItems(HWND hWnd, int **lpSelItems)
+int GetListBoxSelItems(HWND hWnd, int **lpSelItems)
 {
   int nSelCount;
 
@@ -13724,7 +13724,7 @@ int GetListboxSelItems(HWND hWnd, int **lpSelItems)
   return 0;
 }
 
-void FreeListboxSelItems(int **lpSelItems)
+void FreeListBoxSelItems(int **lpSelItems)
 {
   if (lpSelItems && *lpSelItems)
   {
