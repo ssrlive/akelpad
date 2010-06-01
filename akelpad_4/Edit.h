@@ -573,14 +573,14 @@ void StackPageFree(HSTACK *hStack);
 UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewFilePreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxCodepage(HWND hWnd, int *lpCodepageList);
-void FillListboxCodepage(HWND hWnd, int *lpCodepageList);
+void FillListBoxCodepage(HWND hWnd, int *lpCodepageList);
 void ClearCombobox(HWND hWnd);
-void ClearListbox(HWND hWnd);
+void ClearListBox(HWND hWnd);
 int GetComboboxCodepage(HWND hWnd);
-int GetListboxCodepage(HWND hWnd);
+int GetListBoxCodepage(HWND hWnd);
 int SelectComboboxCodepage(HWND hWnd, int nCodepage);
-int SelectListboxCodepage(HWND hWnd, int nCodepage);
-void GetListboxCodepageList(HWND hWnd, int **lpCodepageList);
+int SelectListBoxCodepage(HWND hWnd, int nCodepage);
+void GetListBoxCodepageList(HWND hWnd, int **lpCodepageList);
 int EnumCodepageList(int **lpCodepageList);
 void RegEnumSystemCodePagesA();
 BOOL CALLBACK EnumCodePagesProc(wchar_t *wpCodePage);
@@ -715,14 +715,14 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void FillMdiListListbox(HWND hWnd, BOOL bSort, BOOL bOnlyModified);
-int MoveListboxItem(HWND hWnd, int nOldIndex, int nNewIndex);
-BOOL ShiftListboxSelItems(HWND hWnd, BOOL bMoveDown);
-BOOL SaveListboxSelItems(HWND hWnd);
-void ArrangeListboxSelItems(HWND hWnd, int nBar);
-BOOL CloseListboxSelItems(HWND hWnd);
-int GetListboxSelItems(HWND hWnd, int **lpSelItems);
-void FreeListboxSelItems(int **lpSelItems);
+void FillMdiListListBox(HWND hWnd, BOOL bSort, BOOL bOnlyModified);
+int MoveListBoxItem(HWND hWnd, int nOldIndex, int nNewIndex);
+BOOL ShiftListBoxSelItems(HWND hWnd, BOOL bMoveDown);
+BOOL SaveListBoxSelItems(HWND hWnd);
+void ArrangeListBoxSelItems(HWND hWnd, int nBar);
+BOOL CloseListBoxSelItems(HWND hWnd);
+int GetListBoxSelItems(HWND hWnd, int **lpSelItems);
+void FreeListBoxSelItems(int **lpSelItems);
 
 BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
