@@ -128,10 +128,11 @@
 #define IDC_MDILIST_UP                  2558
 #define IDC_MDILIST_DOWN                2559
 #define IDC_MDILIST_SORT                2560
-#define IDC_MDILIST_ONLYMODIFIED        2561
-#define IDC_MDILIST_FILES_GROUP         2562
-#define IDC_MDILIST_SAVE                2563
-#define IDC_MDILIST_CLOSE               2564
+#define IDC_MDILIST_FILES_GROUP         2561
+#define IDC_MDILIST_SAVE                2562
+#define IDC_MDILIST_CLOSE               2563
+#define IDC_MDILIST_ONLYMODIFIED        2564
+#define IDC_MDILIST_ONLYNAMES           2565
 #define IDC_PREVIEW_BOX                 3001
 #define IDC_PREVIEW_PRINT               3002
 #define IDC_PREVIEW_PAGESETUP           3003

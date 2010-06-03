@@ -3748,18 +3748,18 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
             {
               wchar_t *wpTabName=AllocWideStr(MAX_PATH);
-              TCITEMW tcItemW={0};
+              TCITEMW tcItem={0};
 
-              tcItemW.mask=TCIF_TEXT;
-              tcItemW.pszText=wpTabName;
-              tcItemW.cchTextMax=MAX_PATH;
-              TabCtrl_GetItemWide(hTab, nItem, &tcItemW);
+              tcItem.mask=TCIF_TEXT;
+              tcItem.pszText=wpTabName;
+              tcItem.cchTextMax=MAX_PATH;
+              TabCtrl_GetItemWide(hTab, nItem, &tcItem);
 
               if (aenm->bModified)
                 xprintfW(wpTabName, L"%s *", wpTabName);
               else
                 TrimModifyState(wpTabName);
-              TabCtrl_SetItemWide(hTab, nItem, &tcItemW);
+              TabCtrl_SetItemWide(hTab, nItem, &tcItem);
 
               FreeWideStr(wpTabName);
             }
