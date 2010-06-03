@@ -1357,7 +1357,7 @@ BOOL DoFileOpen()
       {
         GetFileDir(wszFileList, wszLastDir, MAX_PATH);
         if (OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
-          return FALSE;
+          bResult=FALSE;
       }
       else
       {
@@ -1416,14 +1416,13 @@ BOOL DoFileOpen()
           //One file selected
           GetFileDir(wszFileList, wszLastDir, MAX_PATH);
           if (OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
-            return FALSE;
+            bResult=FALSE;
         }
       }
-      return TRUE;
     }
     FreeWideStr(wszFileList);
   }
-  return FALSE;
+  return bResult;
 }
 
 int DoFileReopenAs(DWORD dwFlags, int nCodePage, BOOL bBOM)
