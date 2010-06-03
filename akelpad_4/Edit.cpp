@@ -11115,11 +11115,7 @@ void CallPluginsOnStart(HSTACK *hStack)
       pcs.pFunction=pfElement->wszFunction;
       pcs.lParam=0;
       pcs.lpbAutoLoad=NULL;
-      if (CallPluginSend(&pfElement, &pcs, TRUE) == UD_FAILED)
-      {
-        if (pfElement)
-          StackPluginDelete(hStack, pfElement);
-      }
+      CallPluginSend(&pfElement, &pcs, TRUE);
     }
     pfElement=pfNextElement;
   }
@@ -11180,10 +11176,13 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, BOOL bOnSt
             }
           }
         }
-        else if (!pfElement->wHotkey && !pfElement->bAutoLoad)
+        else
         {
-          StackPluginDelete(&hPluginsStack, pfElement);
-          pfElement=NULL;
+          //if (!pfElement->wHotkey && !pfElement->bAutoLoad)
+          {
+            StackPluginDelete(&hPluginsStack, pfElement);
+            pfElement=NULL;
+          }
         }
       }
     }
