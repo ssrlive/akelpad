@@ -715,7 +715,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void FillMdiListListBox(HWND hWnd, BOOL bSort, BOOL bOnlyModified);
+void FillMdiListListBox(HWND hWnd, BOOL bSort, BOOL bOnlyModified, BOOL bOnlyNames);
 int MoveListBoxItem(HWND hWnd, int nOldIndex, int nNewIndex);
 BOOL ShiftListBoxSelItems(HWND hWnd, BOOL bMoveDown);
 BOOL SaveListBoxSelItems(HWND hWnd);

@@ -13286,12 +13286,14 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndDown;
   static HWND hWndSort;
   static HWND hWndModified;
+  static HWND hWndNames;
   static HWND hWndFilesGroup;
   static HWND hWndSave;
   static HWND hWndClose;
   static HWND hWndCancel;
   static BOOL bListChanged;
   static BOOL bOnlyModified;
+  static BOOL bOnlyNames;
   static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X, 0},
                              {&hWndList,         DRS_SIZE|DRS_Y, 0},
                              {&hWndStats,        DRS_MOVE|DRS_X, 0},
@@ -13307,6 +13309,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                              {&hWndDown,         DRS_MOVE|DRS_X, 0},
                              {&hWndSort,         DRS_MOVE|DRS_X, 0},
                              {&hWndModified,     DRS_MOVE|DRS_X, 0},
+                             {&hWndNames,        DRS_MOVE|DRS_X, 0},
                              {&hWndFilesGroup,   DRS_MOVE|DRS_X, 0},
                              {&hWndSave,         DRS_MOVE|DRS_X, 0},
                              {&hWndClose,        DRS_MOVE|DRS_X, 0},
@@ -13330,6 +13333,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndDown=GetDlgItem(hDlg, IDC_MDILIST_DOWN);
     hWndSort=GetDlgItem(hDlg, IDC_MDILIST_SORT);
     hWndModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
+    hWndNames=GetDlgItem(hDlg, IDC_MDILIST_ONLYNAMES);
     hWndFilesGroup=GetDlgItem(hDlg, IDC_MDILIST_FILES_GROUP);
     hWndSave=GetDlgItem(hDlg, IDC_MDILIST_SAVE);
     hWndClose=GetDlgItem(hDlg, IDC_MDILIST_CLOSE);
@@ -13342,8 +13346,11 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       EnableWindow(hWndHorz, FALSE);
       EnableWindow(hWndVert, FALSE);
     }
+    if (bOnlyNames) SendMessage(hWndNames, BM_SETCHECK, BST_CHECKED, 0);
 
-    FillMdiListListBox(hWndList, FALSE, FALSE);
+    bOnlyModified=FALSE;
+    bListChanged=FALSE;
+    FillMdiListListBox(hWndList, FALSE, bOnlyModified, bOnlyNames);
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
       SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
 
@@ -13369,6 +13376,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
           }
         }
+        PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
       }
     }
     else if (LOWORD(wParam) == IDC_MDILIST_HORZ)
@@ -13382,26 +13390,50 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDC_MDILIST_UP)
     {
       if (ShiftListBoxSelItems(hWndList, FALSE))
+      {
         bListChanged=TRUE;
+        PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+      }
     }
     else if (LOWORD(wParam) == IDC_MDILIST_DOWN)
     {
       if (ShiftListBoxSelItems(hWndList, TRUE))
+      {
         bListChanged=TRUE;
+        PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+      }
     }
     else if (LOWORD(wParam) == IDC_MDILIST_SORT)
     {
-      FillMdiListListBox(hWndList, TRUE, bOnlyModified);
+      FillMdiListListBox(hWndList, TRUE, bOnlyModified, bOnlyNames);
       bListChanged=TRUE;
-
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
     {
       bOnlyModified=SendMessage(hWndModified, BM_GETCHECK, 0, 0);
-      FillMdiListListBox(hWndList, FALSE, bOnlyModified);
-      bListChanged=FALSE;
+      FillMdiListListBox(hWndList, FALSE, bOnlyModified, bOnlyNames);
+      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_ONLYNAMES)
+    {
+      FRAMEDATA *lpFrame;
+      int nListBoxItem=0;
+      BOOL bSelected;
 
+      bOnlyNames=SendMessage(hWndNames, BM_GETCHECK, 0, 0);
+
+      while ((int)(lpFrame=(FRAMEDATA *)SendMessage(hWndList, LB_GETITEMDATA, nListBoxItem, 0)) != LB_ERR)
+      {
+        xprintfW(wbuf, L"%s%s", bOnlyNames?GetFileName(lpFrame->wszFile):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
+        bSelected=SendMessage(hWndList, LB_GETSEL, nListBoxItem, 0);
+        SendMessage(hWndList, LB_DELETESTRING, nListBoxItem, 0);
+        ListBox_InsertStringWide(hWndList, nListBoxItem, wbuf);
+        SendMessage(hWndList, LB_SETITEMDATA, nListBoxItem, (LPARAM)lpFrame);
+        SendMessage(hWndList, LB_SETSEL, bSelected, nListBoxItem);
+
+        ++nListBoxItem;
+      }
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_SAVE)
@@ -13412,7 +13444,6 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (CloseListBoxSelItems(hWndList))
         SetFocus(hWndList);
-
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_LIST)
@@ -13424,13 +13455,12 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         nCount=SendMessage(hWndList, LB_GETCOUNT, 0, 0);
         nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0);
-        //EnableWindow(hWndHorz, nSelCount > 1);
-        //EnableWindow(hWndVert, nSelCount > 1);
         EnableWindow(hWndUp, nSelCount > 0 && !bOnlyModified);
         EnableWindow(hWndDown, nSelCount > 0 && !bOnlyModified);
         EnableWindow(hWndSort, !bOnlyModified);
         EnableWindow(hWndSave, nSelCount > 0);
         EnableWindow(hWndClose, nSelCount > 0);
+        EnableWindow(hWndModified, !bListChanged);
 
         xprintfW(wbuf, L"%d / %d", nSelCount, nCount);
         SetWindowTextWide(hWndStats, wbuf);
@@ -13479,22 +13509,27 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return FALSE;
 }
 
-void FillMdiListListBox(HWND hWnd, BOOL bSort, BOOL bOnlyModified)
+void FillMdiListListBox(HWND hWnd, BOOL bSort, BOOL bOnlyModified, BOOL bOnlyNames)
 {
+  TCITEMW tcItem;
   FRAMEDATA *lpFrame;
-  int nNew;
+  int nTabItem=0;
   int nListBoxItem=0;
-  BOOL bFileModified;
+  int nNew;
 
   SendMessage(hWnd, LB_RESETCONTENT, 0, 0);
 
-  for (lpFrame=(FRAMEDATA *)hFramesStack.first; lpFrame; lpFrame=lpFrame->next)
+  for (;;)
   {
-    bFileModified=lpFrame->ei.bModified;
-    xprintfW(wbuf, L"%s", lpFrame->wszFile, bFileModified?L" *":L"");
+    tcItem.mask=TCIF_PARAM;
+    if (!SendMessage(hTab, TCM_GETITEMW, nTabItem++, (LPARAM)&tcItem))
+      break;
+    lpFrame=(FRAMEDATA *)tcItem.lParam;
 
-    if (!bOnlyModified || bFileModified)
+    if (!bOnlyModified || lpFrame->ei.bModified)
     {
+      xprintfW(wbuf, L"%s%s", bOnlyNames?GetFileName(lpFrame->wszFile):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
+
       if (bSort)
         nNew=ListBox_AddStringWide(hWnd, wbuf);
       else
@@ -16418,7 +16453,7 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
   if (nMDI == WMD_MDI || nMDI == WMD_PMDI)
   {
     ASSOCICON *ai;
-    TCITEMW tcItemW={0};
+    TCITEMW tcItem={0};
     const wchar_t *wpExt;
     HICON hIcon=NULL;
     int nItem;
@@ -16446,14 +16481,14 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
       FixAmpW(wpFileName, wszTabName, MAX_PATH);
 
       //Set tab icon
-      tcItemW.mask=TCIF_IMAGE;
-      TabCtrl_GetItemWide(hTab, nItem, &tcItemW);
-      ImageList_ReplaceIcon(hImageList, tcItemW.iImage, hIcon);
+      tcItem.mask=TCIF_IMAGE;
+      TabCtrl_GetItemWide(hTab, nItem, &tcItem);
+      ImageList_ReplaceIcon(hImageList, tcItem.iImage, hIcon);
 
       //Set tab text
-      tcItemW.mask=TCIF_TEXT;
-      tcItemW.pszText=wszTabName;
-      TabCtrl_SetItemWide(hTab, nItem, &tcItemW);
+      tcItem.mask=TCIF_TEXT;
+      tcItem.pszText=wszTabName;
+      TabCtrl_SetItemWide(hTab, nItem, &tcItem);
     }
 
     //Set frame info
@@ -16507,31 +16542,31 @@ int AddTabItem(HWND hWnd, HICON hIcon, LPARAM lParam)
 
 LPARAM GetTabParamFromItem(HWND hWnd, int nItem)
 {
-  TCITEMW tcItemW;
+  TCITEMW tcItem;
 
-  tcItemW.mask=TCIF_PARAM;
-  if (TabCtrl_GetItemWide(hWnd, nItem, &tcItemW))
-    return tcItemW.lParam;
+  tcItem.mask=TCIF_PARAM;
+  if (TabCtrl_GetItemWide(hWnd, nItem, &tcItem))
+    return tcItem.lParam;
   return 0;
 }
 
 int GetTabItemFromParam(HWND hWnd, LPARAM lParam)
 {
-  TCITEMW tcItemW;
+  TCITEMW tcItem;
   int nCurSel;
   int i;
 
   nCurSel=SendMessage(hWnd, TCM_GETCURSEL, 0, 0);
-  tcItemW.mask=TCIF_PARAM;
-  TabCtrl_GetItemWide(hWnd, nCurSel, &tcItemW);
-  if (tcItemW.lParam == lParam)
+  tcItem.mask=TCIF_PARAM;
+  TabCtrl_GetItemWide(hWnd, nCurSel, &tcItem);
+  if (tcItem.lParam == lParam)
     return nCurSel;
 
-  for (i=0; TabCtrl_GetItemWide(hWnd, i, &tcItemW); ++i)
+  for (i=0; TabCtrl_GetItemWide(hWnd, i, &tcItem); ++i)
   {
     if (i != nCurSel)
     {
-      if (tcItemW.lParam == lParam)
+      if (tcItem.lParam == lParam)
         return i;
     }
   }
@@ -16612,30 +16647,30 @@ int SelectTabItem(HWND hWnd, int nIndex)
 
 int MoveTabItem(HWND hWnd, int nIndexOld, int nIndexNew)
 {
-  TCITEMW tcItemW={0};
+  TCITEMW tcItem={0};
   wchar_t wszItemText[MAX_PATH];
 
-  tcItemW.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
-  tcItemW.pszText=wszItemText;
-  tcItemW.cchTextMax=MAX_PATH;
+  tcItem.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
+  tcItem.pszText=wszItemText;
+  tcItem.cchTextMax=MAX_PATH;
 
-  if (TabCtrl_GetItemWide(hWnd, nIndexOld, &tcItemW))
+  if (TabCtrl_GetItemWide(hWnd, nIndexOld, &tcItem))
   {
     if (nIndexOld == nIndexNew) return nIndexNew;
     SendMessage(hWnd, TCM_DELETEITEM, nIndexOld, 0);
-    return TabCtrl_InsertItemWide(hWnd, nIndexNew, &tcItemW);
+    return TabCtrl_InsertItemWide(hWnd, nIndexNew, &tcItem);
   }
   return -1;
 }
 
 BOOL DeleteTabItem(HWND hWnd, int nIndex)
 {
-  TCITEMW tcItemW;
+  TCITEMW tcItem;
 
-  tcItemW.mask=TCIF_IMAGE;
-  if (TabCtrl_GetItemWide(hWnd, nIndex, &tcItemW))
+  tcItem.mask=TCIF_IMAGE;
+  if (TabCtrl_GetItemWide(hWnd, nIndex, &tcItem))
   {
-    SendMessage(hWnd, TCM_REMOVEIMAGE, tcItemW.iImage, 0);
+    SendMessage(hWnd, TCM_REMOVEIMAGE, tcItem.iImage, 0);
     SendMessage(hWnd, TCM_DELETEITEM, nIndex, 0);
     return TRUE;
   }
