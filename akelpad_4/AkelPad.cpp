@@ -246,7 +246,8 @@ HMENU hMenuLanguage=NULL;
 BOOL bMenuPopupCodepage=TRUE;
 BOOL bMenuRecentFiles=FALSE;
 BOOL bMenuLanguage=FALSE;
-BOOL bMainOnStartFinish=FALSE;
+BOOL bMainOnStart=FALSE;
+BOOL bMainOnFinish=FALSE;
 BOOL bEditOnFinish=FALSE;
 
 //Status window
@@ -909,11 +910,11 @@ extern "C" void _WinMain()
         }
       }
     }
-    if (bMainOnStartFinish)
+    if (bMainOnStart)
     {
       if (GetQueueStatus(QS_ALLINPUT) == 0)
       {
-        bMainOnStartFinish=FALSE;
+        bMainOnStart=FALSE;
         SendMessage(hMainWnd, AKDN_MAIN_ONSTART_IDLE, 0, 0);
       }
     }
@@ -1435,7 +1436,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
 
       SendMessage(hMainWnd, AKDN_MAIN_ONSTART_FINISH, 0, 0);
-      bMainOnStartFinish=TRUE;
+      bMainOnStart=TRUE;
       return 0;
     }
 
@@ -3275,7 +3276,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (bReopenMsg)
       {
-        if ((FRAMEDATA *)lParam == lpFrameCurrent)
+        if (!bMainOnFinish && (FRAMEDATA *)lParam == lpFrameCurrent)
         {
           LoadStringWide(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
           xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);
@@ -3290,7 +3291,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_CANTOPEN_MSG)
     {
-      if ((FRAMEDATA *)lParam == lpFrameCurrent)
+      if (!bMainOnFinish && (FRAMEDATA *)lParam == lpFrameCurrent)
       {
         LoadStringWide(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
         xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);
@@ -3300,8 +3301,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_ERRORIO_MSG)
     {
-      LoadStringWide(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
-      MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+      if (!bMainOnFinish)
+      {
+        LoadStringWide(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
+        MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+      }
       return 0;
     }
     else if (LOWORD(wParam) == IDM_INTERNAL_UPDATEMAINCHILDREN)
@@ -3529,6 +3533,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hDlgModeless, WM_CLOSE, 0, 0);
 
     //Main window will be destroyed
+    bMainOnFinish=TRUE;
     PostMessage(hWnd, AKDN_MAIN_ONFINISH, 0, 0);
 
     return 0;

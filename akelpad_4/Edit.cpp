@@ -112,7 +112,8 @@ extern HMENU hMenuLanguage;
 extern BOOL bMenuPopupCodepage;
 extern BOOL bMenuRecentFiles;
 extern BOOL bMenuLanguage;
-extern BOOL bMainOnStartFinish;
+extern BOOL bMainOnStart;
+extern BOOL bMainOnFinish;
 extern BOOL bEditOnFinish;
 
 //Status window
