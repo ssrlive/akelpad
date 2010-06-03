@@ -9535,7 +9535,7 @@ void RecentFilesZero()
   xmemset(lpdwRecentCodepages, 0, nRecentFiles * sizeof(DWORD));
 }
 
-void RecentFilesRead()
+int RecentFilesRead()
 {
   wchar_t wszRegKey[MAX_PATH];
   wchar_t wszRegValue[32];
@@ -9548,7 +9548,7 @@ void RecentFilesRead()
   //Read recent files array
   xprintfW(wszRegKey, L"%s\\Recent", APP_REGHOMEW);
   if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
-    return;
+    return 0;
 
   for (i=0; i < nRecentFiles; ++i)
   {
@@ -9569,6 +9569,7 @@ void RecentFilesRead()
       lpdwRecentCodepages[i]=LOWORD(dwCodePage);
   }
   RegCloseKey(hKey);
+  return i;
 }
 
 BOOL RecentFilesGet(const wchar_t *wpFile, int *nPosition, int *nCodePage)
@@ -9624,7 +9625,7 @@ BOOL RecentFilesUpdate(const wchar_t *wpFile, int nPosition, int nCodePage)
   return TRUE;
 }
 
-int RecentFilesDeleteDead()
+int RecentFilesDeleteOld()
 {
   int a;
   int b;

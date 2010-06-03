@@ -107,8 +107,24 @@
 #define SS_INI        2  //INI file.
 
 //AKD_RECENTFILES flags
-#define RF_GET    1  //Retrive recent files info.
-#define RF_CLEAR  2  //Clear recent files.
+#define RF_GET        1  //Retrive current recent files info.
+                         //lParam is a pointer to a RECENTFILES structure, can be NULL.
+                         //Return value is maximum number of recent files.
+#define RF_SET        2  //Set recent files number.
+                         //lParam is maximum number of recent files.
+                         //Return value is zero.
+#define RF_READ       3  //Update recent files from registry.
+                         //lParam not used.
+                         //Return value is number of records read.
+#define RF_SAVE       4  //Save current recent files to registry.
+                         //lParam not used.
+                         //Return value is zero.
+#define RF_CLEAR      5  //Clear recent files.
+                         //lParam not used.
+                         //Return value is zero.
+#define RF_DELETEOLD  6  //Delete non-existent recent files records.
+                         //lParam not used.
+                         //Return value is number of records deleted.
 
 //AKD_SEARCHHISTORY flags
 #define SH_GET    1  //Retrive searh strings count.
@@ -1265,8 +1281,7 @@ typedef struct {
 #define AKDN_SAVEDOCUMENT_FINISH   (WM_USER + 56)  //0x438
 #define AKDN_HOTKEY                (WM_USER + 57)  //0x439
 #define AKDN_CONTEXTMENU           (WM_USER + 58)  //0x43A
-#define AKDN_RECENTFILESDELETE     (WM_USER + 59)  //0x43B
-#define AKDN_SEARCH_ENDED          (WM_USER + 60)  //0x43C
+#define AKDN_SEARCH_ENDED          (WM_USER + 59)  //0x43B
 
 //SubClass
 #define AKD_GETMAINPROC            (WM_USER + 101)
@@ -1715,19 +1730,6 @@ Notification message, sends to the main procedure before displaying context menu
 
 wParam                 == not used.
 (NCONTEXTMENU *)lParam == pointer to a NCONTEXTMENU structure.
-
-Return Value
- Zero.
-
-
-AKDN_RECENTFILESDELETE
-______________________
-
-Notification message, sends to the main procedure before displaying message about deleted non-existent recent files records.
-
-(int)wParam    == records deleted.
-(BOOL *)lParam == TRUE   show message (default).
-                  FALSE  don't show message.
 
 Return Value
  Zero.
@@ -2486,11 +2488,11 @@ _______________
 
 Recent files operations.
 
-(int)wParam           == see RF_* defines.
-(RECENTFILES *)lParam == pointer to a RECENTFILES structure, can be NULL.
+(int)wParam  == see RF_* defines.
+(void)lParam == depend of RF_* define.
 
 Return Value
- Number of recent files.
+ Depend on RF_* define.
 
 Example:
  RECENTFILES rf;
