@@ -1,5 +1,5 @@
 /*****************************************************************
- *              Stack functions header v3.1                      *
+ *              Stack functions header v3.2                      *
  *                                                               *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -1510,20 +1510,17 @@ int StackCopy(stack *first, stack *last, stack **copyfirst, stack **copylast, in
 #undef StackPushSortA
 int StackPushSortA(stackS **first, stackS **last, stackS **element, char *pString, int nUpDown, int nBytes)
 {
-  stackS *tmp=*first;
+  stackS *tmp;
   int i;
 
   if (nUpDown != 1 && nUpDown != -1) return 1;
 
-  while (tmp)
+  for (tmp=*first; tmp; tmp=tmp->next)
   {
     i=lstrcmpiA(tmp->string, pString);
 
     if (i == 0 || i == nUpDown)
-    {
       break;
-    }
-    tmp=tmp->next;
   }
   return StackInsertBefore((stack **)first, (stack **)last, (stack *)tmp, (stack **)element, nBytes);
 }
@@ -1553,29 +1550,25 @@ int StackSortA(stackS **first, stackS **last, int nUpDown)
 {
   stackS *tmp1;
   stackS *tmp2;
-  stackS *tmp3;
-  int a,b,c;
+  stackS *tmpNext;
+  int i;
 
   if (nUpDown != 1 && nUpDown != -1) return 1;
 
-  for (tmp1=*first, a=1; tmp1; ++a)
+  for (tmp1=*first; tmp1; tmp1=tmpNext)
   {
-    for (tmp2=*first, b=1; b < a && tmp2; ++b)
+    tmpNext=tmp1->next;
+
+    for (tmp2=*first; tmp2 != tmp1; tmp2=tmp2->next)
     {
-      c=lstrcmpiA(tmp2->string, tmp1->string);
+      i=lstrcmpiA(tmp2->string, tmp1->string);
 
-      if (c == 0 || c == nUpDown)
+      if (i == 0 || i == nUpDown)
       {
-        tmp3=tmp1;
-        tmp1=tmp1->next;
-        StackMoveBefore((stack **)first, (stack **)last, (stack *)tmp3, (stack *)tmp2);
-        goto next;
+        StackMoveBefore((stack **)first, (stack **)last, (stack *)tmp1, (stack *)tmp2);
+        break;
       }
-      tmp2=tmp2->next;
     }
-    tmp1=tmp1->next;
-
-    next:;
   }
   return 0;
 }
@@ -1600,25 +1593,25 @@ int StackSortA(stackS **first, stackS **last, int nUpDown)
 #include "StackFunc.h"
 
 //Structure initialization
-typedef struct _HTEXTSTACK {
-  struct _HTEXTSTACK *next;
-  struct _HTEXTSTACK *prev;
+typedef struct _TEXTITEM {
+  struct _TEXTITEM *next;
+  struct _TEXTITEM *prev;
   char szText[MAX_PATH];
-  DWORD dwLength;
-} HTEXTSTACK;
+  int nTextLen;
+} TEXTITEM;
 
 //Stack initialization
 HSTACK hTextStack={0};
 
 void main()
 {
-  HTEXTSTACK *lpElement;
+  TEXTITEM *lpElement;
   int nError;
 
-  if (!StackInsertAfter((stack **)&hTextStack.first, (stack **)&hTextStack.last, (stack *)hTextStack.last, (stack **)&lpElement, sizeof(HTEXTSTACK)))
+  if (!StackInsertAfter((stack **)&hTextStack.first, (stack **)&hTextStack.last, (stack *)hTextStack.last, (stack **)&lpElement, sizeof(TEXTITEM)))
   {
     lstrcpyA(lpElement->szText, "some string");
-    lpElement->dwLength=lstrlenA(lpElement->szText);
+    lpElement->nTextLen=lstrlenA(lpElement->szText);
   }
   if (!(nError=StackGetElement((stack *)hTextStack.first, (stack *)hTextStack.last, (stack **)&lpElement, -1)))
   {

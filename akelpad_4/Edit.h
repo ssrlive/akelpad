@@ -634,10 +634,10 @@ BOOL CALLBACK GoToLineDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 BOOL RecentFilesAlloc();
 void RecentFilesZero();
-void RecentFilesRead();
+int RecentFilesRead();
 BOOL RecentFilesGet(const wchar_t *wpFile, int *nPosition, int *nCodePage);
 BOOL RecentFilesUpdate(const wchar_t *wpFile, int nPosition, int nCodePage);
-int RecentFilesDeleteDead();
+int RecentFilesDeleteOld();
 void RecentFilesSave();
 void RecentFilesMenu();
 void FreeMemoryRecentFiles();

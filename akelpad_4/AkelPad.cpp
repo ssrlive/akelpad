@@ -692,6 +692,17 @@ extern "C" void _WinMain()
   //Get command line
   wpCmdLine=GetCommandLineParamsW();
 
+  if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && bSingleOpenProgram)
+  {
+    //Pass command line to opened instance
+    if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
+    {
+      ActivateWindow(hWndFriend);
+      PostCmdLine(hWndFriend, wpCmdLine);
+      goto Quit;
+    }
+  }
+
   //Parse commmand line on load
   if (wpCmdLine)
   {
@@ -701,18 +712,6 @@ extern "C" void _WinMain()
       goto Quit;
     else if (nResult == PCLE_END)
       wpCmdLine=NULL;
-  }
-
-  if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && bSingleOpenProgram)
-  {
-    //Pass command line to opened instance
-    if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
-    {
-      ActivateWindow(hWndFriend);
-      SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
-      PostCmdLine(hWndFriend, wpCmdLine);
-      goto Quit;
-    }
   }
 
   //Get common controls version
@@ -1461,6 +1460,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
         GlobalFree((HGLOBAL)wParam);
 
+      if (nResult == PCLE_QUIT)
+        PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
       return nResult;
     }
 
@@ -1857,6 +1858,34 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           rf->lpdwRecentPositions=lpdwRecentPositions;
           rf->lpdwRecentCodepages=lpdwRecentCodepages;
         }
+        return nRecentFiles;
+      }
+      else if (wParam == RF_SET)
+      {
+        if (nRecentFiles != lParam)
+        {
+          nRecentFiles=lParam;
+          FreeMemoryRecentFiles();
+
+          if (nRecentFiles)
+          {
+            if (RecentFilesAlloc())
+            {
+              RecentFilesZero();
+              RecentFilesRead();
+            }
+          }
+          bMenuRecentFiles=TRUE;
+        }
+      }
+      else if (wParam == RF_READ)
+      {
+        return RecentFilesRead();
+      }
+      else if (wParam == RF_SAVE)
+      {
+        RecentFilesSave();
+        bMenuRecentFiles=TRUE;
       }
       else if (wParam == RF_CLEAR)
       {
@@ -1864,7 +1893,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         RecentFilesSave();
         bMenuRecentFiles=TRUE;
       }
-      return nRecentFiles;
+      else if (wParam == RF_DELETEOLD)
+      {
+        int nDead;
+
+        RecentFilesRead();
+        nDead=RecentFilesDeleteOld();
+        RecentFilesSave();
+        bMenuRecentFiles=TRUE;
+        return nDead;
+      }
+      return 0;
     }
     if (uMsg == AKD_SEARCHHISTORY)
     {
@@ -2684,20 +2723,16 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (LOWORD(wParam) == IDM_RECENT_FILES)
     {
       int nDead;
-      BOOL bMessageShow=TRUE;
 
       RecentFilesRead();
-      nDead=RecentFilesDeleteDead();
+      nDead=RecentFilesDeleteOld();
       RecentFilesSave();
       bMenuRecentFiles=TRUE;
-      SendMessage(hMainWnd, AKDN_RECENTFILESDELETE, nDead, (LPARAM)&bMessageShow);
 
-      if (bMessageShow)
-      {
-        LoadStringWide(hLangLib, MSG_RECENTFILES_DELETED, wbuf, BUFFER_SIZE);
-        xprintfW(wbuf2, wbuf, nDead);
-        MessageBoxW(hWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
-      }
+      LoadStringWide(hLangLib, MSG_RECENTFILES_DELETED, wbuf, BUFFER_SIZE);
+      xprintfW(wbuf2, wbuf, nDead);
+      MessageBoxW(hWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
+      return nDead;
     }
     else if (LOWORD(wParam) > IDM_RECENT_FILES && LOWORD(wParam) <= (IDM_RECENT_FILES + nRecentFiles))
     {
