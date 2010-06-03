@@ -4269,18 +4269,18 @@ DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufB
       }
       else if (lpData->nCodePage == CP_UNICODE_UTF32LE)
       {
-        dwCharsConverted=UTF32toUTF16((const unsigned long *)pcTranslateBuffer, dwBytesRead / sizeof(unsigned long), NULL, wszBuf, dwBufBytesSize / sizeof(wchar_t));
+        dwCharsConverted=UTF32toUTF16((const unsigned long *)pcTranslateBuffer, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t));
       }
       else if (lpData->nCodePage == CP_UNICODE_UTF32BE)
       {
         ChangeFourBytesOrder(pcTranslateBuffer, dwBytesRead);
-        dwCharsConverted=UTF32toUTF16((const unsigned long *)pcTranslateBuffer, dwBytesRead / sizeof(unsigned long), NULL, wszBuf, dwBufBytesSize / sizeof(wchar_t));
+        dwCharsConverted=UTF32toUTF16((const unsigned long *)pcTranslateBuffer, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t));
       }
       else
       {
         if (lpData->nCodePage == CP_UNICODE_UTF8)
         {
-          dwCharsConverted=UTF8toUTF16(pcTranslateBuffer, dwBytesRead, (unsigned int *)&dwBytesConverted, wszBuf, dwBufBytesSize / sizeof(wchar_t));
+          dwCharsConverted=UTF8toUTF16(pcTranslateBuffer, dwBytesRead, (unsigned int *)&dwBytesConverted, (unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t));
 
           if (dwBytesRead != dwBytesConverted)
           {
@@ -4375,17 +4375,17 @@ DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, 
         }
         else if (nCodePage == CP_UNICODE_UTF32LE)
         {
-          dwCharsConverted=UTF32toUTF16((const unsigned long *)szBuffer, dwBytesRead / sizeof(unsigned long), NULL, wszBuffer, dwBufferBytes / sizeof(wchar_t));
+          dwCharsConverted=UTF32toUTF16((const unsigned long *)szBuffer, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
         }
         else if (nCodePage == CP_UNICODE_UTF32BE)
         {
           ChangeFourBytesOrder(szBuffer, dwBytesRead);
-          dwCharsConverted=UTF32toUTF16((const unsigned long *)szBuffer, dwBytesRead / sizeof(unsigned long), NULL, wszBuffer, dwBufferBytes / sizeof(wchar_t));
+          dwCharsConverted=UTF32toUTF16((const unsigned long *)szBuffer, dwBytesRead / sizeof(unsigned long), NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
         }
         else
         {
           if (nCodePage == CP_UNICODE_UTF8)
-            dwCharsConverted=UTF8toUTF16(szBuffer, dwBytesRead, NULL, wszBuffer, dwBufferBytes / sizeof(wchar_t));
+            dwCharsConverted=UTF8toUTF16(szBuffer, dwBytesRead, NULL, (unsigned short *)wszBuffer, dwBufferBytes / sizeof(wchar_t));
           else
             dwCharsConverted=MultiByteToWideChar(nCodePage, 0, (char *)szBuffer, dwBytesRead, wszBuffer, dwBufferBytes / sizeof(wchar_t));
         }
@@ -4677,17 +4677,17 @@ DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBuf
   }
   else if (lpData->nCodePage == CP_UNICODE_UTF32LE)
   {
-    dwBytesToWrite=UTF16toUTF32(wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
+    dwBytesToWrite=UTF16toUTF32((const unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
   }
   else if (lpData->nCodePage == CP_UNICODE_UTF32BE)
   {
-    dwBytesToWrite=UTF16toUTF32(wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
+    dwBytesToWrite=UTF16toUTF32((const unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
     ChangeFourBytesOrder(pcTranslateBuffer, dwBytesToWrite);
   }
   else
   {
     if (lpData->nCodePage == CP_UNICODE_UTF8)
-      dwBytesToWrite=UTF16toUTF8(wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
+      dwBytesToWrite=UTF16toUTF8((const unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
     else
       dwBytesToWrite=WideCharToMultiByte(lpData->nCodePage, 0, wszBuf, dwBufBytesSize / sizeof(wchar_t), (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE, NULL, NULL);
 
@@ -7765,7 +7765,7 @@ unsigned int UTF16toUTF8(const unsigned short *pSource, unsigned int nSourceLen,
   return (pDst - szTarget);
 }
 
-unsigned int UTF8toUTF16(const unsigned char *pSource, unsigned int nSourceLen, unsigned int *nSourceDone,  unsigned short *szTarget, unsigned int nTargetMax)
+unsigned int UTF8toUTF16(const unsigned char *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned short *szTarget, unsigned int nTargetMax)
 {
   unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
   const unsigned char *pSrc=pSource;
@@ -13358,6 +13358,8 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         wchar_t wszSearch[MAX_PATH];
 
+        SendMessage(hWndList, LB_SETSEL, FALSE, -1);
+
         if (GetWindowTextWide(hWndSearch, wszSearch, MAX_PATH))
         {
           for (nItem=0; 1; ++nItem)
@@ -13365,11 +13367,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (ListBox_GetTextWide(hWndList, nItem, wbuf) == LB_ERR)
               break;
             if (xstrstrW(wbuf, (DWORD)-1, wszSearch, FALSE, NULL, NULL))
-            {
-              SendMessage(hWndList, LB_SETSEL, FALSE, -1);
               SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
-              break;
-            }
           }
         }
       }
@@ -15061,7 +15059,6 @@ int CreateParametersStruct(STACKEXTPARAM *hParamStack, unsigned char **lppStruct
   unsigned char *lpStruct=NULL;
   int nStructSize=0;
   int nOffset=0;
-  int nElements=0;
   int nIndex=0;
 
   if (hParamStack->nElements)
