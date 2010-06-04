@@ -5004,10 +5004,10 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     }
 
     if (msg.wParam == VK_ESCAPE ||
-        msg.wParam == VK_SPACE ||
-        msg.wParam == VK_RETURN ||
         msg.wParam == VK_BACK ||
         msg.wParam == VK_DELETE ||
+        msg.wParam == VK_SPACE ||
+        msg.wParam == VK_RETURN ||
         msg.wParam == VK_TAB)
     {
       if ((msg.lParam >> 24) & 1) nMod|=HOTKEYF_EXT;
@@ -5047,11 +5047,11 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           bOwnKey=TRUE;
         }
       }
-      else if (msg.wParam == VK_SPACE ||
-               msg.wParam == VK_RETURN ||
-               msg.wParam == VK_ESCAPE ||
+      else if (msg.wParam == VK_ESCAPE ||
                msg.wParam == VK_BACK ||
                msg.wParam == VK_DELETE ||
+               msg.wParam == VK_SPACE ||
+               msg.wParam == VK_RETURN ||
                (msg.wParam == VK_TAB && (nMod & HOTKEYF_CONTROL)) ||
                (msg.wParam == VK_TAB && hWndLButtonClick == msg.hwnd))
       {
@@ -5066,8 +5066,6 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         bOwnKey=TRUE;
       }
     }
-    if (uMsg == WM_GETDLGCODE)
-      return 0;
 
     if (!bOwnKey)
     {
@@ -5076,6 +5074,8 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       else
         lResult=CallWindowProcW(OldHotkeyInputProc, hWnd, uMsg, wParam, lParam);
     }
+    if (uMsg == WM_GETDLGCODE)
+      return lResult;
 
     //Show tooltip if hotkey already exist
     {
