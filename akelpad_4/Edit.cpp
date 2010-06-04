@@ -314,6 +314,7 @@ extern HICON hIconEmpty;
 extern BOOL bTabPressed;
 extern RECT rcMdiListInitDialog;
 extern RECT rcMdiListCurrentDialog;
+extern DWORD dwMdiListOptions;
 extern DWORD dwMdiStyle;
 extern WNDPROC OldMdiClientProc;
 extern WNDPROC OldTabProc;
@@ -1322,7 +1323,7 @@ BOOL DoFileOpen()
 {
   wchar_t *wszFileList;
   DIALOGCODEPAGE dc={-1, -1};
-  BOOL bResult;
+  BOOL bResult=FALSE;
 
   if (nMDI != WMD_MDI && !SaveChanged()) return FALSE;
   bSaveDlg=FALSE;
@@ -3445,7 +3446,8 @@ void ReadOptions()
   {
     ReadOptionW(hHandle, L"TabOptionsMDI", PO_DWORD, &dwTabOptionsMDI, sizeof(DWORD));
     ReadOptionW(hHandle, L"KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD));
-    ReadOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
+    ReadOptionW(hHandle, L"MdiListOptions", PO_DWORD, &dwMdiListOptions, sizeof(DWORD));
+    ReadOptionW(hHandle, L"MdiListDialog", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT));
     ReadOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD));
   }
 
@@ -3728,7 +3730,9 @@ BOOL SaveOptions()
       goto Error;
     if (!SaveOptionW(hHandle, L"KeybLayoutMDI", PO_DWORD, &bKeybLayoutMDI, sizeof(DWORD)))
       goto Error;
-    if (!SaveOptionW(hHandle, L"WindowListMDI", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
+    if (!SaveOptionW(hHandle, L"MdiListOptions", PO_DWORD, &dwMdiListOptions, sizeof(DWORD)))
+      goto Error;
+    if (!SaveOptionW(hHandle, L"MdiListDialog", PO_BINARY, &rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
     if (!SaveOptionW(hHandle, L"WindowStyleMDI", PO_DWORD, &dwMdiStyle, sizeof(DWORD)))
       goto Error;
@@ -13293,7 +13297,6 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndCancel;
   static BOOL bListChanged;
   static BOOL bOnlyModified;
-  static BOOL bOnlyNames;
   static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X, 0},
                              {&hWndList,         DRS_SIZE|DRS_Y, 0},
                              {&hWndStats,        DRS_MOVE|DRS_X, 0},
@@ -13346,11 +13349,12 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       EnableWindow(hWndHorz, FALSE);
       EnableWindow(hWndVert, FALSE);
     }
-    if (bOnlyNames) SendMessage(hWndNames, BM_SETCHECK, BST_CHECKED, 0);
+    if (dwMdiListOptions & MLO_ONLYNAMES)
+      SendMessage(hWndNames, BM_SETCHECK, BST_CHECKED, 0);
 
     bOnlyModified=FALSE;
     bListChanged=FALSE;
-    FillMdiListListBox(hWndList, FALSE, bOnlyModified, bOnlyNames);
+    FillMdiListListBox(hWndList, FALSE, bOnlyModified, (dwMdiListOptions & MLO_ONLYNAMES));
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
       SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
 
@@ -13405,14 +13409,14 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDC_MDILIST_SORT)
     {
-      FillMdiListListBox(hWndList, TRUE, bOnlyModified, bOnlyNames);
+      FillMdiListListBox(hWndList, TRUE, bOnlyModified, (dwMdiListOptions & MLO_ONLYNAMES));
       bListChanged=TRUE;
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
     {
       bOnlyModified=SendMessage(hWndModified, BM_GETCHECK, 0, 0);
-      FillMdiListListBox(hWndList, FALSE, bOnlyModified, bOnlyNames);
+      FillMdiListListBox(hWndList, FALSE, bOnlyModified, (dwMdiListOptions & MLO_ONLYNAMES));
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_ONLYNAMES)
@@ -13421,11 +13425,14 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nListBoxItem=0;
       BOOL bSelected;
 
-      bOnlyNames=SendMessage(hWndNames, BM_GETCHECK, 0, 0);
+      if (SendMessage(hWndNames, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        dwMdiListOptions|=MLO_ONLYNAMES;
+      else
+        dwMdiListOptions&=~MLO_ONLYNAMES;
 
       while ((int)(lpFrame=(FRAMEDATA *)SendMessage(hWndList, LB_GETITEMDATA, nListBoxItem, 0)) != LB_ERR)
       {
-        xprintfW(wbuf, L"%s%s", bOnlyNames?GetFileName(lpFrame->wszFile):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
+        xprintfW(wbuf, L"%s%s", (dwMdiListOptions & MLO_ONLYNAMES)?GetFileName(lpFrame->wszFile):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
         bSelected=SendMessage(hWndList, LB_GETSEL, nListBoxItem, 0);
         SendMessage(hWndList, LB_DELETESTRING, nListBoxItem, 0);
         ListBox_InsertStringWide(hWndList, nListBoxItem, wbuf);

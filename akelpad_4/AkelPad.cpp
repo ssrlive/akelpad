@@ -448,6 +448,7 @@ HICON hIconEmpty;
 BOOL bTabPressed=FALSE;
 RECT rcMdiListInitDialog={0};
 RECT rcMdiListCurrentDialog={0};
+DWORD dwMdiListOptions=0;
 DWORD dwMdiStyle=WS_MAXIMIZE;
 WNDPROC OldMdiClientProc;
 WNDPROC OldTabProc;
