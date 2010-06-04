@@ -438,7 +438,7 @@ BEGIN
     PUSHBUTTON      "Zamknij",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Zmienione *",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
-    CONTROL         "Tylko nazwy",IDC_MDILIST_ONLYNAMES,"Button",
+    CONTROL         "Only names",IDC_MDILIST_ONLYNAMES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,191,240,67,10
     PUSHBUTTON      "Anuluj",IDCANCEL,198,264,50,14
 END
