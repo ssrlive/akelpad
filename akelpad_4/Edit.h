@@ -290,6 +290,9 @@
 #define LVSI_FUNCTION_HOTKEY   1
 #define LVSI_FUNCTION_STATUS   2
 
+//Mdi list options
+#define MLO_ONLYNAMES      0x1
+
 
 //// Structures
 
