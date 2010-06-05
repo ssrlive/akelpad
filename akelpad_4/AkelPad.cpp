@@ -2770,7 +2770,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!nMDI || !moCur.bSingleOpenProgram)
       {
-        SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings);
+        SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings, FALSE);
       }
       return (int)DoFileNewWindow(0);
     }
@@ -3101,12 +3101,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_FILE)
     {
       DoSettingsSingleOpenFile(!moCur.bSingleOpenFile);
-      SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings);
+      SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings, FALSE);
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_PROGRAM)
     {
       DoSettingsSingleOpenProgram(!moCur.bSingleOpenProgram);
-      SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings);
+      SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings, FALSE);
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SDI ||
              LOWORD(wParam) == IDM_OPTIONS_MDI ||
@@ -3540,7 +3540,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_DESTROY)
   {
     //Save options
-    SaveOptions(&moCur, &fdLast, moCur.nSaveSettings);
+    SaveOptions(&moCur, &fdLast, moCur.nSaveSettings, FALSE);
 
     //Save plugin stack
     if (bSavePluginsStackOnExit)

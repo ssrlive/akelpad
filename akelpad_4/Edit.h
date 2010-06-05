@@ -618,7 +618,7 @@ DWORD ReadOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData,
 DWORD SaveOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
 void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd);
 void RegReadSearch();
-BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings);
+BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceWrite);
 
 int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
