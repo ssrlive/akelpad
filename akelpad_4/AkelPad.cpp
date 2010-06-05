@@ -318,8 +318,6 @@ BOOL bOptionsRestart;
 HSTACK hFontsStack={0};
 HSTACK hThemesStack={0};
 COLORREF crCustColors[16]={0};
-BOOL bEditFontChanged=FALSE;
-BOOL bColorsChanged=FALSE;
 RECT rcColorsInitDialog={0};
 
 //Print
@@ -348,7 +346,6 @@ BOOL bPreviewRedrawLock;
 HHOOK hHookKeys=NULL;
 AEPRINT prn;
 PRINTINFO prninfo={0};
-BOOL bPrintFontChanged=FALSE;
 
 //Edit state
 AECHARRANGE crSel={0};
@@ -644,6 +641,7 @@ extern "C" void _WinMain()
     bDefaultBOM=TRUE;
   fdInit.ei.bBOM=bDefaultBOM;
   fdInit.ei.nCodePage=moInit.nDefaultCodePage;
+  prninfo.rtMargin=moInit.rcPrintMargins;
   nMDI=moInit.nMDI;
   if (!lpCodepageList) nCodepageListLen=EnumCodepageList(&lpCodepageList);
 
@@ -1821,7 +1819,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (SetChosenFont(lpFrame, &lfW))
         {
           xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
-          bEditFontChanged=TRUE;
           return TRUE;
         }
       }
@@ -3038,7 +3035,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (SetChosenFont(lpFrameCurrent, &lpFrameCurrent->lf))
         {
-          bEditFontChanged=TRUE;
           return TRUE;
         }
       }
@@ -3052,12 +3048,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_VIEW_INCREASE_FONT)
     {
       DoViewFontSize(lpFrameCurrent, INCREASE_FONT);
-      bEditFontChanged=TRUE;
     }
     else if (LOWORD(wParam) == IDM_VIEW_DECREASE_FONT)
     {
       DoViewFontSize(lpFrameCurrent, DECREASE_FONT);
-      bEditFontChanged=TRUE;
     }
     else if (LOWORD(wParam) == IDM_VIEW_WORDWRAP)
     {
@@ -4162,7 +4156,6 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DoViewFontSize(lpFrameCurrent, DECREASE_FONT);
       else
         DoViewFontSize(lpFrameCurrent, INCREASE_FONT);
-      bEditFontChanged=TRUE;
       return TRUE;
     }
   }
