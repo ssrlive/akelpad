@@ -18,7 +18,8 @@ Changed: now libc.lib not used, which allow to compile the program on the latest
 Changed: sorted non-menu commands > 4351.
 Changed: read-only mode is not inherited and not saved now. Item from the menu "Options"
          moved to "View" menu. Read-only mode command is now 4216.
-Changed: program settings saved only if any changes made.
+Changed: program settings saved only if any changes made. Now it is possible to edit
+         AkelPad.ini from the program.
 Changed: at program exit, settings saved of the active tab, not of the last closed (MDI).
 Changed: more soft work with text Drag'n'Drop.
 Changed: before file opening controls are updated if the main window was minimized (MDI).
