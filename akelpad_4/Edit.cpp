@@ -3491,7 +3491,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
 
   if (!xmemcmp(mo, &moInit, sizeof(MAINOPTIONS)) &&
       !xmemcmp(&fd->lf, &fdInit.lf, sizeof(FRAMEDATA) - offsetof(FRAMEDATA, lf)) &&
-      !bCodepageListChanged && fd->ei.bWordWrap == fdInit.ei.bWordWrap)
+      fd->ei.bWordWrap == fdInit.ei.bWordWrap && !bCodepageListChanged)
   {
     //Settings unchanged
     return TRUE;
@@ -3518,20 +3518,41 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
   }
 
   //Manual
-  if (!SaveOption(&oh, L"ShowModify", PO_DWORD, &mo->dwShowModify, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOption(&oh, L"StatusPosType", PO_DWORD, &mo->dwStatusPosType, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOption(&oh, L"WordBreak", PO_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOption(&oh, L"PaintOptions", PO_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOption(&oh, L"RichEditClass", PO_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
-    goto Error;
-  if (!SaveOption(&oh, L"DateLogFormat", PO_STRING, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
-    goto Error;
-  if (!SaveOption(&oh, L"DateInsertFormat", PO_STRING, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
-    goto Error;
+  if (mo->dwShowModify != moInit.dwShowModify)
+  {
+    if (!SaveOption(&oh, L"ShowModify", PO_DWORD, &mo->dwShowModify, sizeof(DWORD)))
+      goto Error;
+  }
+  if (mo->dwStatusPosType != moInit.dwStatusPosType)
+  {
+    if (!SaveOption(&oh, L"StatusPosType", PO_DWORD, &mo->dwStatusPosType, sizeof(DWORD)))
+      goto Error;
+  }
+  if (mo->dwCustomWordBreak != moInit.dwCustomWordBreak)
+  {
+    if (!SaveOption(&oh, L"WordBreak", PO_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD)))
+      goto Error;
+  }
+  if (mo->dwPaintOptions != moInit.dwPaintOptions)
+  {
+    if (!SaveOption(&oh, L"PaintOptions", PO_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
+      goto Error;
+  }
+  if (mo->bRichEditClass != moInit.bRichEditClass)
+  {
+    if (!SaveOption(&oh, L"RichEditClass", PO_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
+      goto Error;
+  }
+  if (xstrcmpW(mo->wszDateLogFormat, moInit.wszDateLogFormat))
+  {
+    if (!SaveOption(&oh, L"DateLogFormat", PO_STRING, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
+      goto Error;
+  }
+  if (xstrcmpW(mo->wszDateInsertFormat, moInit.wszDateInsertFormat))
+  {
+    if (!SaveOption(&oh, L"DateInsertFormat", PO_STRING, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
+      goto Error;
+  }
 
   //Frame data
   if (!SaveOption(&oh, L"WordWrap", PO_DWORD, &fd->ei.bWordWrap, sizeof(DWORD)))
