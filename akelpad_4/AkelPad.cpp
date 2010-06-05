@@ -3509,12 +3509,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       RecentFilesSaveCurrentFile();
       CopyFrameData(&fdLast, lpFrameCurrent);
+      xstrcpynW(fdLast.wszFile, lpFrameCurrent->wszFile, MAX_PATH);
     }
     else
     {
       int nDestroyResult;
 
-      CopyFrameData(&fdLast, lpFrameCurrent);
+      if (lpFrameCurrent->hWndEditParent)
+      {
+        RecentFilesSaveCurrentFile();
+        CopyFrameData(&fdLast, lpFrameCurrent);
+        xstrcpynW(fdLast.wszFile, lpFrameCurrent->wszFile, MAX_PATH);
+      }
 
       while (lpFrameCurrent->hWndEditParent)
       {

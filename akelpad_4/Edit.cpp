@@ -9634,7 +9634,7 @@ void RecentFilesSaveCurrentFile()
 {
   if (moCur.nRecentFiles && lpFrameCurrent->wszFile[0])
   {
-    if (!bMainOnFinish || !nMDI ||  !xstrcmpiW(fdLast.wszFile, lpFrameCurrent->wszFile))
+    if (!bMainOnFinish || !nMDI || xstrcmpiW(fdLast.wszFile, lpFrameCurrent->wszFile))
     {
       RecentFilesZero();
       RecentFilesRead();
