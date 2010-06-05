@@ -220,6 +220,13 @@
 //STARTUPINFO flags
 #define STARTF_NOMUTEX  0x00001000
 
+//Main option type
+#define MOT_DWORD       0x01  //32-bit number.
+#define MOT_BINARY      0x02  //Binary data in any form.
+#define MOT_STRING      0x04  //Null-terminated string.
+#define MOT_MAINOFFSET  0x10  //lpData specifies offset of MAINOPTIONS structure.
+#define MOT_FRAMEOFFSET 0x20  //lpData specifies offset of FRAMEDATA structure.
+
 //Search/Replace options
 #define AEFR_UP                 0x00100000
 #define AEFR_BEGINNING          0x00200000
@@ -378,8 +385,11 @@ typedef struct {
 } MAINOPTIONS;
 
 typedef struct {
-  int nSaveSettings; //See SS_* defines.
-  HANDLE hHandle;    //Registry key or ini section handle.
+  HANDLE hHandle;
+  MAINOPTIONS *mo;
+  FRAMEDATA *fd;
+  int nSaveSettings;
+  BOOL bForceWrite;
 } OPTIONHANDLE;
 
 typedef struct _EXTPARAM {
@@ -617,7 +627,6 @@ void StackFreeIni(HSTACK *hIniStack);
 DWORD ReadOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
 DWORD SaveOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
 void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd);
-void RegReadSearch();
 BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceWrite);
 
 int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
@@ -688,6 +697,7 @@ BOOL IsCodePageUnicode(int nCodePage);
 BOOL IsCodePageValid(int nCodePage);
 unsigned int TranslateNewLinesToUnixW(wchar_t *wszWideString, unsigned int nWideStringLen);
 
+void RegReadSearch();
 BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK NewComboboxEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void FillComboboxSearch(HWND hWndFind, HWND hWndReplace);
