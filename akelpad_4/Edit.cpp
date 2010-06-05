@@ -3511,37 +3511,37 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   }
 
   //Manual
-  if (bForceWrite || mo->dwShowModify != moInit.dwShowModify)
+  if (bForceWrite || !ReadOption(&oh, L"ShowModify", PO_DWORD, NULL, 0))
   {
     if (!SaveOption(&oh, L"ShowModify", PO_DWORD, &mo->dwShowModify, sizeof(DWORD)))
       goto Error;
   }
-  if (bForceWrite || mo->dwStatusPosType != moInit.dwStatusPosType)
+  if (bForceWrite || !ReadOption(&oh, L"StatusPosType", PO_DWORD, NULL, 0))
   {
     if (!SaveOption(&oh, L"StatusPosType", PO_DWORD, &mo->dwStatusPosType, sizeof(DWORD)))
       goto Error;
   }
-  if (bForceWrite || mo->dwCustomWordBreak != moInit.dwCustomWordBreak)
+  if (bForceWrite || !ReadOption(&oh, L"WordBreak", PO_DWORD, NULL, 0))
   {
     if (!SaveOption(&oh, L"WordBreak", PO_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD)))
       goto Error;
   }
-  if (bForceWrite || mo->dwPaintOptions != moInit.dwPaintOptions)
+  if (bForceWrite || !ReadOption(&oh, L"PaintOptions", PO_DWORD, NULL, 0))
   {
     if (!SaveOption(&oh, L"PaintOptions", PO_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
       goto Error;
   }
-  if (bForceWrite || mo->bRichEditClass != moInit.bRichEditClass)
+  if (bForceWrite || !ReadOption(&oh, L"RichEditClass", PO_DWORD, NULL, 0))
   {
     if (!SaveOption(&oh, L"RichEditClass", PO_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
       goto Error;
   }
-  if (bForceWrite || xstrcmpW(mo->wszDateLogFormat, moInit.wszDateLogFormat))
+  if (bForceWrite || !ReadOption(&oh, L"DateLogFormat", PO_STRING, NULL, 0))
   {
     if (!SaveOption(&oh, L"DateLogFormat", PO_STRING, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
       goto Error;
   }
-  if (bForceWrite || xstrcmpW(mo->wszDateInsertFormat, moInit.wszDateInsertFormat))
+  if (bForceWrite || !ReadOption(&oh, L"DateInsertFormat", PO_STRING, NULL, 0))
   {
     if (!SaveOption(&oh, L"DateInsertFormat", PO_STRING, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
       goto Error;
