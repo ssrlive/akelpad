@@ -2540,17 +2540,28 @@ void DoSettingsOptions()
   if (bOptionsSave)
   {
     //Save to INI
+    if (moCur.nSaveSettings == SS_INI)
+    {
+      bEditFontChanged=TRUE;
+      bPrintFontChanged=TRUE;
+      bColorsChanged=TRUE;
+      bCodepageListChanged=TRUE;
+    }
     SaveOptions(&moCur, lpFrameCurrent, SS_INI);
     SaveThemes(SS_INI);
     StackPluginSave(&hPluginsStack, SS_INI);
 
     //Save to registry
+    if (moCur.nSaveSettings == SS_REGISTRY)
+    {
+      bEditFontChanged=TRUE;
+      bPrintFontChanged=TRUE;
+      bColorsChanged=TRUE;
+      bCodepageListChanged=TRUE;
+    }
     SaveOptions(&moCur, lpFrameCurrent, SS_REGISTRY);
     SaveThemes(SS_REGISTRY);
     StackPluginSave(&hPluginsStack, SS_REGISTRY);
-
-    //Update initial options
-    xmemcpy(&moInit, &moCur, sizeof(MAINOPTIONS));
   }
 
   if (bOptionsRestart)
@@ -3218,15 +3229,15 @@ void StackFreeIni(HSTACK *hIniStack)
 
 //// Read/Save options
 
-DWORD ReadOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
+DWORD ReadOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
 {
-  if (moInit.nSaveSettings == SS_REGISTRY)
+  if (oh->nSaveSettings == SS_REGISTRY)
   {
     if (dwType == PO_DWORD) dwType=REG_DWORD;
     else if (dwType == PO_BINARY) dwType=REG_BINARY;
     else if (dwType == PO_STRING) dwType=REG_SZ;
 
-    if (RegQueryValueExWide((HKEY)lpHandle, wpParam, NULL, &dwType, (LPBYTE)lpData, &dwSize) == ERROR_SUCCESS)
+    if (RegQueryValueExWide((HKEY)oh->hHandle, wpParam, NULL, &dwType, (LPBYTE)lpData, &dwSize) == ERROR_SUCCESS)
       return dwSize;
     else
       return 0;
@@ -3239,22 +3250,22 @@ DWORD ReadOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, 
     else if (dwType == PO_BINARY) dwType=INI_BINARY;
     else if (dwType == PO_STRING) dwType=INI_STRINGUNICODE;
 
-    if (lpIniKey=StackOpenIniKeyW((HINISECTION *)lpHandle, wpParam, lstrlenW(wpParam), FALSE))
+    if (lpIniKey=StackOpenIniKeyW((HINISECTION *)oh->hHandle, wpParam, lstrlenW(wpParam), FALSE))
       return StackGetIniData(lpIniKey, dwType, (LPBYTE)lpData, dwSize);
     else
       return 0;
   }
 }
 
-DWORD SaveOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
+DWORD SaveOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
 {
-  if (moCur.nSaveSettings == SS_REGISTRY)
+  if (oh->nSaveSettings == SS_REGISTRY)
   {
     if (dwType == PO_DWORD) dwType=REG_DWORD;
     else if (dwType == PO_BINARY) dwType=REG_BINARY;
     else if (dwType == PO_STRING) dwType=REG_SZ;
 
-    return !RegSetValueExWide((HKEY)lpHandle, wpParam, 0, dwType, (LPBYTE)lpData, dwSize);
+    return !RegSetValueExWide((HKEY)oh->hHandle, wpParam, 0, dwType, (LPBYTE)lpData, dwSize);
   }
   else
   {
@@ -3264,7 +3275,7 @@ DWORD SaveOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, 
     else if (dwType == PO_BINARY) dwType=INI_BINARY;
     else if (dwType == PO_STRING) dwType=INI_STRINGUNICODE;
 
-    if (lpIniKey=StackOpenIniKeyW((HINISECTION *)lpHandle, wpParam, lstrlenW(wpParam), TRUE))
+    if (lpIniKey=StackOpenIniKeyW((HINISECTION *)oh->hHandle, wpParam, lstrlenW(wpParam), TRUE))
       return StackSetIniData(lpIniKey, dwType, (LPBYTE)lpData, dwSize);
     else
       return 0;
@@ -3273,150 +3284,149 @@ DWORD SaveOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, 
 
 void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
 {
-  HANDLE hHandle;
+  OPTIONHANDLE oh;
   DWORD dwSize;
 
   xprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
   if (OpenIniW(&hIniStack, wszIniFile, FALSE))
-  {
     IniGetValueW(&hIniStack, L"Options", L"SaveSettings", INI_DWORD, (LPBYTE)&mo->nSaveSettings, sizeof(DWORD));
-  }
+  oh.nSaveSettings=mo->nSaveSettings;
 
-  if (mo->nSaveSettings == SS_REGISTRY)
+  if (oh.nSaveSettings == SS_REGISTRY)
   {
     wchar_t wszRegKey[MAX_PATH];
 
     xprintfW(wszRegKey, L"%s\\Options", APP_REGHOMEW);
-    if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, (HKEY *)&hHandle) != ERROR_SUCCESS)
+    if (RegOpenKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, KEY_READ, (HKEY *)&oh.hHandle) != ERROR_SUCCESS)
       return;
   }
   else
   {
-    if (!(hHandle=(HANDLE)StackOpenIniSectionW(&hIniStack, L"Options", lstrlenW(L"Options"), FALSE)))
+    if (!(oh.hHandle=(HANDLE)StackOpenIniSectionW(&hIniStack, L"Options", lstrlenW(L"Options"), FALSE)))
       return;
   }
 
   //Manual
-  ReadOption(hHandle, L"ShowModify", PO_DWORD, &mo->dwShowModify, sizeof(DWORD));
-  ReadOption(hHandle, L"StatusPosType", PO_DWORD, &mo->dwStatusPosType, sizeof(DWORD));
-  ReadOption(hHandle, L"WordBreak", PO_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD));
-  ReadOption(hHandle, L"PaintOptions", PO_DWORD, &mo->dwPaintOptions, sizeof(DWORD));
-  ReadOption(hHandle, L"RichEditClass", PO_DWORD, &mo->bRichEditClass, sizeof(DWORD));
-  ReadOption(hHandle, L"DateLogFormat", PO_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
-  ReadOption(hHandle, L"DateInsertFormat", PO_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat));
+  ReadOption(&oh, L"ShowModify", PO_DWORD, &mo->dwShowModify, sizeof(DWORD));
+  ReadOption(&oh, L"StatusPosType", PO_DWORD, &mo->dwStatusPosType, sizeof(DWORD));
+  ReadOption(&oh, L"WordBreak", PO_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD));
+  ReadOption(&oh, L"PaintOptions", PO_DWORD, &mo->dwPaintOptions, sizeof(DWORD));
+  ReadOption(&oh, L"RichEditClass", PO_DWORD, &mo->bRichEditClass, sizeof(DWORD));
+  ReadOption(&oh, L"DateLogFormat", PO_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
+  ReadOption(&oh, L"DateInsertFormat", PO_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat));
 
   //Frame data
-  ReadOption(hHandle, L"WordWrap", PO_DWORD, &fd->ei.bWordWrap, sizeof(DWORD));
-  ReadOption(hHandle, L"UndoLimit", PO_DWORD, &fd->nUndoLimit, sizeof(DWORD));
-  ReadOption(hHandle, L"DetailedUndo", PO_DWORD, &fd->bDetailedUndo, sizeof(DWORD));
-  ReadOption(hHandle, L"WrapType", PO_DWORD, &fd->dwWrapType, sizeof(DWORD));
-  ReadOption(hHandle, L"WrapLimit", PO_DWORD, &fd->dwWrapLimit, sizeof(DWORD));
-  ReadOption(hHandle, L"Marker", PO_DWORD, &fd->dwMarker, sizeof(DWORD));
-  ReadOption(hHandle, L"CaretOptions", PO_DWORD, &fd->dwCaretOptions, sizeof(DWORD));
-  ReadOption(hHandle, L"CaretWidth", PO_DWORD, &fd->nCaretWidth, sizeof(DWORD));
-  ReadOption(hHandle, L"MouseOptions", PO_DWORD, &fd->dwMouseOptions, sizeof(DWORD));
-  ReadOption(hHandle, L"LineGap", PO_DWORD, &fd->dwLineGap, sizeof(DWORD));
-  ReadOption(hHandle, L"TabStopSize", PO_DWORD, &fd->nTabStopSize, sizeof(DWORD));
-  ReadOption(hHandle, L"TabStopAsSpaces", PO_DWORD, &fd->bTabStopAsSpaces, sizeof(DWORD));
-  ReadOption(hHandle, L"MarginsEdit", PO_DWORD, &fd->dwEditMargins, sizeof(DWORD));
-  ReadOption(hHandle, L"MarginsPrint", PO_BINARY, &prninfo.rtMargin, sizeof(RECT));
-  ReadOption(hHandle, L"ShowURL", PO_DWORD, &fd->bShowURL, sizeof(DWORD));
-  ReadOption(hHandle, L"ClickURL", PO_DWORD, &fd->nClickURL, sizeof(DWORD));
-  ReadOption(hHandle, L"UrlPrefixesEnable", PO_DWORD, &fd->bUrlPrefixesEnable, sizeof(DWORD));
-  ReadOption(hHandle, L"UrlPrefixes", PO_BINARY, fd->wszUrlPrefixes, sizeof(fd->wszUrlPrefixes));
-  ReadOption(hHandle, L"UrlDelimitersEnable", PO_DWORD, &fd->bUrlDelimitersEnable, sizeof(DWORD));
-  ReadOption(hHandle, L"UrlLeftDelimiters", PO_BINARY, fd->wszUrlLeftDelimiters, sizeof(fd->wszUrlLeftDelimiters));
-  ReadOption(hHandle, L"UrlRightDelimiters", PO_BINARY, fd->wszUrlRightDelimiters, sizeof(fd->wszUrlRightDelimiters));
-  ReadOption(hHandle, L"WordDelimitersEnable", PO_DWORD, &fd->bWordDelimitersEnable, sizeof(DWORD));
-  ReadOption(hHandle, L"WordDelimiters", PO_BINARY, fd->wszWordDelimiters, sizeof(fd->wszWordDelimiters));
-  ReadOption(hHandle, L"WrapDelimitersEnable", PO_DWORD, &fd->bWrapDelimitersEnable, sizeof(DWORD));
-  ReadOption(hHandle, L"WrapDelimiters", PO_BINARY, fd->wszWrapDelimiters, sizeof(fd->wszWrapDelimiters));
-  ReadOption(hHandle, L"Font", PO_BINARY, &fd->lf, offsetof(LOGFONTW, lfFaceName));
-  ReadOption(hHandle, L"FontFace", PO_STRING, fd->lf.lfFaceName, sizeof(fd->lf.lfFaceName));
-  ReadOption(hHandle, L"Colors", PO_BINARY, &fd->aec, sizeof(AECOLORS));
+  ReadOption(&oh, L"WordWrap", PO_DWORD, &fd->ei.bWordWrap, sizeof(DWORD));
+  ReadOption(&oh, L"UndoLimit", PO_DWORD, &fd->nUndoLimit, sizeof(DWORD));
+  ReadOption(&oh, L"DetailedUndo", PO_DWORD, &fd->bDetailedUndo, sizeof(DWORD));
+  ReadOption(&oh, L"WrapType", PO_DWORD, &fd->dwWrapType, sizeof(DWORD));
+  ReadOption(&oh, L"WrapLimit", PO_DWORD, &fd->dwWrapLimit, sizeof(DWORD));
+  ReadOption(&oh, L"Marker", PO_DWORD, &fd->dwMarker, sizeof(DWORD));
+  ReadOption(&oh, L"CaretOptions", PO_DWORD, &fd->dwCaretOptions, sizeof(DWORD));
+  ReadOption(&oh, L"CaretWidth", PO_DWORD, &fd->nCaretWidth, sizeof(DWORD));
+  ReadOption(&oh, L"MouseOptions", PO_DWORD, &fd->dwMouseOptions, sizeof(DWORD));
+  ReadOption(&oh, L"LineGap", PO_DWORD, &fd->dwLineGap, sizeof(DWORD));
+  ReadOption(&oh, L"TabStopSize", PO_DWORD, &fd->nTabStopSize, sizeof(DWORD));
+  ReadOption(&oh, L"TabStopAsSpaces", PO_DWORD, &fd->bTabStopAsSpaces, sizeof(DWORD));
+  ReadOption(&oh, L"MarginsEdit", PO_DWORD, &fd->dwEditMargins, sizeof(DWORD));
+  ReadOption(&oh, L"MarginsPrint", PO_BINARY, &prninfo.rtMargin, sizeof(RECT));
+  ReadOption(&oh, L"ShowURL", PO_DWORD, &fd->bShowURL, sizeof(DWORD));
+  ReadOption(&oh, L"ClickURL", PO_DWORD, &fd->nClickURL, sizeof(DWORD));
+  ReadOption(&oh, L"UrlPrefixesEnable", PO_DWORD, &fd->bUrlPrefixesEnable, sizeof(DWORD));
+  ReadOption(&oh, L"UrlPrefixes", PO_BINARY, fd->wszUrlPrefixes, sizeof(fd->wszUrlPrefixes));
+  ReadOption(&oh, L"UrlDelimitersEnable", PO_DWORD, &fd->bUrlDelimitersEnable, sizeof(DWORD));
+  ReadOption(&oh, L"UrlLeftDelimiters", PO_BINARY, fd->wszUrlLeftDelimiters, sizeof(fd->wszUrlLeftDelimiters));
+  ReadOption(&oh, L"UrlRightDelimiters", PO_BINARY, fd->wszUrlRightDelimiters, sizeof(fd->wszUrlRightDelimiters));
+  ReadOption(&oh, L"WordDelimitersEnable", PO_DWORD, &fd->bWordDelimitersEnable, sizeof(DWORD));
+  ReadOption(&oh, L"WordDelimiters", PO_BINARY, fd->wszWordDelimiters, sizeof(fd->wszWordDelimiters));
+  ReadOption(&oh, L"WrapDelimitersEnable", PO_DWORD, &fd->bWrapDelimitersEnable, sizeof(DWORD));
+  ReadOption(&oh, L"WrapDelimiters", PO_BINARY, fd->wszWrapDelimiters, sizeof(fd->wszWrapDelimiters));
+  ReadOption(&oh, L"Font", PO_BINARY, &fd->lf, offsetof(LOGFONTW, lfFaceName));
+  ReadOption(&oh, L"FontFace", PO_STRING, fd->lf.lfFaceName, sizeof(fd->lf.lfFaceName));
+  ReadOption(&oh, L"Colors", PO_BINARY, &fd->aec, sizeof(AECOLORS));
 
   //Menu settings
-  ReadOption(hHandle, L"OnTop", PO_DWORD, &mo->bOnTop, sizeof(DWORD));
-  ReadOption(hHandle, L"StatusBar", PO_DWORD, &mo->bStatusBar, sizeof(DWORD));
-  ReadOption(hHandle, L"LanguageModule", PO_STRING, mo->wszLangModule, sizeof(mo->wszLangModule));
-  ReadOption(hHandle, L"KeepSpace", PO_DWORD, &mo->bKeepSpace, sizeof(DWORD));
-  ReadOption(hHandle, L"WatchFile", PO_DWORD, &mo->bWatchFile, sizeof(DWORD));
-  ReadOption(hHandle, L"SaveTime", PO_DWORD, &mo->bSaveTime, sizeof(DWORD));
-  ReadOption(hHandle, L"SingleOpenFile", PO_DWORD, &mo->bSingleOpenFile, sizeof(DWORD));
-  ReadOption(hHandle, L"SingleOpenProgram", PO_DWORD, &mo->bSingleOpenProgram, sizeof(DWORD));
-  ReadOption(hHandle, L"MDI", PO_DWORD, &mo->nMDI, sizeof(DWORD));
+  ReadOption(&oh, L"OnTop", PO_DWORD, &mo->bOnTop, sizeof(DWORD));
+  ReadOption(&oh, L"StatusBar", PO_DWORD, &mo->bStatusBar, sizeof(DWORD));
+  ReadOption(&oh, L"LanguageModule", PO_STRING, mo->wszLangModule, sizeof(mo->wszLangModule));
+  ReadOption(&oh, L"KeepSpace", PO_DWORD, &mo->bKeepSpace, sizeof(DWORD));
+  ReadOption(&oh, L"WatchFile", PO_DWORD, &mo->bWatchFile, sizeof(DWORD));
+  ReadOption(&oh, L"SaveTime", PO_DWORD, &mo->bSaveTime, sizeof(DWORD));
+  ReadOption(&oh, L"SingleOpenFile", PO_DWORD, &mo->bSingleOpenFile, sizeof(DWORD));
+  ReadOption(&oh, L"SingleOpenProgram", PO_DWORD, &mo->bSingleOpenProgram, sizeof(DWORD));
+  ReadOption(&oh, L"MDI", PO_DWORD, &mo->nMDI, sizeof(DWORD));
   if (mo->nMDI)
   {
-    ReadOption(hHandle, L"TabOptionsMDI", PO_DWORD, &mo->dwTabOptionsMDI, sizeof(DWORD));
+    ReadOption(&oh, L"TabOptionsMDI", PO_DWORD, &mo->dwTabOptionsMDI, sizeof(DWORD));
   }
 
   //Settings dialog
-  if (dwSize=ReadOption(hHandle, L"CodepageList", INI_BINARY, NULL, 0))
+  if (dwSize=ReadOption(&oh, L"CodepageList", INI_BINARY, NULL, 0))
   {
     if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
     {
-      ReadOption(hHandle, L"CodepageList", PO_BINARY, lpCodepageList, dwSize);
+      ReadOption(&oh, L"CodepageList", PO_BINARY, lpCodepageList, dwSize);
       nCodepageListLen=CodepageListLen(lpCodepageList);
     }
   }
-  ReadOption(hHandle, L"ExecuteCommand", PO_STRING, mo->wszCommand, sizeof(mo->wszCommand));
-  ReadOption(hHandle, L"ExecuteDirectory", PO_STRING, mo->wszWorkDir, sizeof(mo->wszWorkDir));
-  ReadOption(hHandle, L"DefaultCodepage", PO_DWORD, &mo->nDefaultCodePage, sizeof(DWORD));
-  ReadOption(hHandle, L"DefaultNewLine", PO_DWORD, &mo->nDefaultNewLine, sizeof(DWORD));
-  ReadOption(hHandle, L"CodepageRecognition", PO_DWORD, &mo->dwLangCodepageRecognition, sizeof(DWORD));
-  ReadOption(hHandle, L"CodepageRecognitionBuffer", PO_DWORD, &mo->dwCodepageRecognitionBuffer, sizeof(DWORD));
-  ReadOption(hHandle, L"SavePositions", PO_DWORD, &mo->bSavePositions, sizeof(DWORD));
-  ReadOption(hHandle, L"SaveCodepages", PO_DWORD, &mo->bSaveCodepages, sizeof(DWORD));
-  ReadOption(hHandle, L"RecentFiles", PO_DWORD, &mo->nRecentFiles, sizeof(DWORD));
-  ReadOption(hHandle, L"SearchStrings", PO_DWORD, &mo->nSearchStrings, sizeof(DWORD));
-  ReadOption(hHandle, L"FileTypesOpen", PO_STRING, mo->wszFileTypesOpen, sizeof(mo->wszFileTypesOpen));
-  ReadOption(hHandle, L"FileTypesEdit", PO_STRING, mo->wszFileTypesEdit, sizeof(mo->wszFileTypesEdit));
-  ReadOption(hHandle, L"FileTypesPrint", PO_STRING, mo->wszFileTypesPrint, sizeof(mo->wszFileTypesPrint));
-  ReadOption(hHandle, L"FileTypesAssociated", PO_DWORD, &mo->dwFileTypesAssociated, sizeof(DWORD));
+  ReadOption(&oh, L"ExecuteCommand", PO_STRING, mo->wszCommand, sizeof(mo->wszCommand));
+  ReadOption(&oh, L"ExecuteDirectory", PO_STRING, mo->wszWorkDir, sizeof(mo->wszWorkDir));
+  ReadOption(&oh, L"DefaultCodepage", PO_DWORD, &mo->nDefaultCodePage, sizeof(DWORD));
+  ReadOption(&oh, L"DefaultNewLine", PO_DWORD, &mo->nDefaultNewLine, sizeof(DWORD));
+  ReadOption(&oh, L"CodepageRecognition", PO_DWORD, &mo->dwLangCodepageRecognition, sizeof(DWORD));
+  ReadOption(&oh, L"CodepageRecognitionBuffer", PO_DWORD, &mo->dwCodepageRecognitionBuffer, sizeof(DWORD));
+  ReadOption(&oh, L"SavePositions", PO_DWORD, &mo->bSavePositions, sizeof(DWORD));
+  ReadOption(&oh, L"SaveCodepages", PO_DWORD, &mo->bSaveCodepages, sizeof(DWORD));
+  ReadOption(&oh, L"RecentFiles", PO_DWORD, &mo->nRecentFiles, sizeof(DWORD));
+  ReadOption(&oh, L"SearchStrings", PO_DWORD, &mo->nSearchStrings, sizeof(DWORD));
+  ReadOption(&oh, L"FileTypesOpen", PO_STRING, mo->wszFileTypesOpen, sizeof(mo->wszFileTypesOpen));
+  ReadOption(&oh, L"FileTypesEdit", PO_STRING, mo->wszFileTypesEdit, sizeof(mo->wszFileTypesEdit));
+  ReadOption(&oh, L"FileTypesPrint", PO_STRING, mo->wszFileTypesPrint, sizeof(mo->wszFileTypesPrint));
+  ReadOption(&oh, L"FileTypesAssociated", PO_DWORD, &mo->dwFileTypesAssociated, sizeof(DWORD));
   if (mo->nMDI)
   {
-    ReadOption(hHandle, L"KeybLayoutMDI", PO_DWORD, &mo->bKeybLayoutMDI, sizeof(DWORD));
+    ReadOption(&oh, L"KeybLayoutMDI", PO_DWORD, &mo->bKeybLayoutMDI, sizeof(DWORD));
   }
-  ReadOption(hHandle, L"ReplaceAllAndClose", PO_DWORD, &mo->bReplaceAllAndClose, sizeof(DWORD));
-  ReadOption(hHandle, L"DateLog", PO_DWORD, &mo->bDateLog, sizeof(DWORD));
-  ReadOption(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &mo->bSaveInReadOnlyMsg, sizeof(DWORD));
-  ReadOption(hHandle, L"DefaultSaveExt", PO_STRING, mo->wszDefaultSaveExt, sizeof(mo->wszDefaultSaveExt));
+  ReadOption(&oh, L"ReplaceAllAndClose", PO_DWORD, &mo->bReplaceAllAndClose, sizeof(DWORD));
+  ReadOption(&oh, L"DateLog", PO_DWORD, &mo->bDateLog, sizeof(DWORD));
+  ReadOption(&oh, L"SaveInReadOnlyMsg", PO_DWORD, &mo->bSaveInReadOnlyMsg, sizeof(DWORD));
+  ReadOption(&oh, L"DefaultSaveExt", PO_STRING, mo->wszDefaultSaveExt, sizeof(mo->wszDefaultSaveExt));
 
   //Search dialog
-  ReadOption(hHandle, L"SearchOptions", PO_DWORD, &mo->dwSearchOptions, sizeof(DWORD));
+  ReadOption(&oh, L"SearchOptions", PO_DWORD, &mo->dwSearchOptions, sizeof(DWORD));
 
   //Open file dialog
-  ReadOption(hHandle, L"LastDirectory", PO_STRING, mo->wszLastDir, sizeof(mo->wszLastDir));
+  ReadOption(&oh, L"LastDirectory", PO_STRING, mo->wszLastDir, sizeof(mo->wszLastDir));
 
   //Print dialog
-  ReadOption(hHandle, L"PrintColor", PO_DWORD, &mo->dwPrintColor, sizeof(DWORD));
-  ReadOption(hHandle, L"PrintHeaderEnable", PO_DWORD, &mo->bPrintHeaderEnable, sizeof(DWORD));
-  ReadOption(hHandle, L"PrintHeader", PO_STRING, mo->wszPrintHeader, sizeof(mo->wszPrintHeader));
-  ReadOption(hHandle, L"PrintFooterEnable", PO_DWORD, &mo->bPrintFooterEnable, sizeof(DWORD));
-  ReadOption(hHandle, L"PrintFooter", PO_STRING, mo->wszPrintFooter, sizeof(mo->wszPrintFooter));
-  ReadOption(hHandle, L"PrintFontEnable", PO_DWORD, &mo->bPrintFontEnable, sizeof(DWORD));
-  ReadOption(hHandle, L"PrintFont", PO_BINARY, &mo->lfPrintFont, offsetof(LOGFONTW, lfFaceName));
-  ReadOption(hHandle, L"PrintFontFace", PO_STRING, mo->lfPrintFont.lfFaceName, sizeof(mo->lfPrintFont.lfFaceName));
+  ReadOption(&oh, L"PrintColor", PO_DWORD, &mo->dwPrintColor, sizeof(DWORD));
+  ReadOption(&oh, L"PrintHeaderEnable", PO_DWORD, &mo->bPrintHeaderEnable, sizeof(DWORD));
+  ReadOption(&oh, L"PrintHeader", PO_STRING, mo->wszPrintHeader, sizeof(mo->wszPrintHeader));
+  ReadOption(&oh, L"PrintFooterEnable", PO_DWORD, &mo->bPrintFooterEnable, sizeof(DWORD));
+  ReadOption(&oh, L"PrintFooter", PO_STRING, mo->wszPrintFooter, sizeof(mo->wszPrintFooter));
+  ReadOption(&oh, L"PrintFontEnable", PO_DWORD, &mo->bPrintFontEnable, sizeof(DWORD));
+  ReadOption(&oh, L"PrintFont", PO_BINARY, &mo->lfPrintFont, offsetof(LOGFONTW, lfFaceName));
+  ReadOption(&oh, L"PrintFontFace", PO_STRING, mo->lfPrintFont.lfFaceName, sizeof(mo->lfPrintFont.lfFaceName));
 
   //Colors dialog
-  ReadOption(hHandle, L"ColorsDialog", PO_BINARY, &mo->rcColorsCurrentDialog, sizeof(RECT));
+  ReadOption(&oh, L"ColorsDialog", PO_BINARY, &mo->rcColorsCurrentDialog, sizeof(RECT));
 
   //Plugin dialog
-  ReadOption(hHandle, L"PluginsDialog", PO_BINARY, &mo->rcPluginsCurrentDialog, sizeof(RECT));
+  ReadOption(&oh, L"PluginsDialog", PO_BINARY, &mo->rcPluginsCurrentDialog, sizeof(RECT));
 
   //Mdi list dialog
   if (mo->nMDI)
   {
-    ReadOption(hHandle, L"MdiListOptions", PO_DWORD, &mo->dwMdiListOptions, sizeof(DWORD));
-    ReadOption(hHandle, L"MdiListDialog", PO_BINARY, &mo->rcMdiListCurrentDialog, sizeof(RECT));
+    ReadOption(&oh, L"MdiListOptions", PO_DWORD, &mo->dwMdiListOptions, sizeof(DWORD));
+    ReadOption(&oh, L"MdiListDialog", PO_BINARY, &mo->rcMdiListCurrentDialog, sizeof(RECT));
   }
 
   //Main window
-  ReadOption(hHandle, L"WindowStyle", PO_DWORD, &mo->dwMainStyle, sizeof(DWORD));
-  ReadOption(hHandle, L"WindowPosition", PO_BINARY, &mo->rcMainWindowRestored, sizeof(RECT));
+  ReadOption(&oh, L"WindowStyle", PO_DWORD, &mo->dwMainStyle, sizeof(DWORD));
+  ReadOption(&oh, L"WindowPosition", PO_BINARY, &mo->rcMainWindowRestored, sizeof(RECT));
   if (mo->nMDI)
   {
-    ReadOption(hHandle, L"WindowStyleMDI", PO_DWORD, &mo->dwMdiStyle, sizeof(DWORD));
+    ReadOption(&oh, L"WindowStyleMDI", PO_DWORD, &mo->dwMdiStyle, sizeof(DWORD));
   }
 
   //Read and register plugins hotkeys
@@ -3425,8 +3435,8 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
   //Read theams
   ReadThemes(mo);
 
-  if (mo->nSaveSettings == SS_REGISTRY)
-    RegCloseKey((HKEY)hHandle);
+  if (oh.nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)oh.hHandle);
   else
     StackFreeIni(&hIniStack);
 }
@@ -3465,7 +3475,7 @@ void RegReadSearch()
 
 BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
 {
-  HANDLE hHandle;
+  OPTIONHANDLE oh;
   BOOL bResult=FALSE;
 
   //Main window style
@@ -3486,244 +3496,257 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
     //Settings unchanged
     return TRUE;
   }
+  oh.nSaveSettings=nSaveSettings;
 
-  if (nSaveSettings == SS_REGISTRY)
+  if (oh.nSaveSettings == SS_REGISTRY)
   {
     wchar_t wszRegKey[MAX_PATH];
 
     xprintfW(wszRegKey, L"%s\\Options", APP_REGHOMEW);
-    if (RegCreateKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, (HKEY *)&hHandle, NULL) != ERROR_SUCCESS)
+    if (RegCreateKeyExWide(HKEY_CURRENT_USER, wszRegKey, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, (HKEY *)&oh.hHandle, NULL) != ERROR_SUCCESS)
       return FALSE;
   }
   else
   {
     if (!OpenIniW(&hIniStack, wszIniFile, TRUE))
       return FALSE;
-    if (!(hHandle=(HANDLE)StackOpenIniSectionW(&hIniStack, L"Options", lstrlenW(L"Options"), TRUE)))
+    if (!(oh.hHandle=(HANDLE)StackOpenIniSectionW(&hIniStack, L"Options", lstrlenW(L"Options"), TRUE)))
       goto Error;
 
-    if (!SaveOption(hHandle, L"SaveSettings", PO_DWORD, &mo->nSaveSettings, sizeof(DWORD)))
+    if (!SaveOption(&oh, L"SaveSettings", PO_DWORD, &mo->nSaveSettings, sizeof(DWORD)))
       goto Error;
   }
 
   //Manual
-  if (!SaveOption(hHandle, L"ShowModify", PO_DWORD, &mo->dwShowModify, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"ShowModify", PO_DWORD, &mo->dwShowModify, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"StatusPosType", PO_DWORD, &mo->dwStatusPosType, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"StatusPosType", PO_DWORD, &mo->dwStatusPosType, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"WordBreak", PO_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"WordBreak", PO_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"PaintOptions", PO_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"PaintOptions", PO_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"RichEditClass", PO_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"RichEditClass", PO_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"DateLogFormat", PO_STRING, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
+  if (!SaveOption(&oh, L"DateLogFormat", PO_STRING, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
     goto Error;
-  if (!SaveOption(hHandle, L"DateInsertFormat", PO_STRING, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
+  if (!SaveOption(&oh, L"DateInsertFormat", PO_STRING, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
     goto Error;
 
   //Frame data
-  if (!SaveOption(hHandle, L"WordWrap", PO_DWORD, &fd->ei.bWordWrap, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"WordWrap", PO_DWORD, &fd->ei.bWordWrap, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"UndoLimit", PO_DWORD, &fd->nUndoLimit, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"UndoLimit", PO_DWORD, &fd->nUndoLimit, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"DetailedUndo", PO_DWORD, &fd->bDetailedUndo, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"DetailedUndo", PO_DWORD, &fd->bDetailedUndo, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"WrapType", PO_DWORD, &fd->dwWrapType, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"WrapType", PO_DWORD, &fd->dwWrapType, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"WrapLimit", PO_DWORD, &fd->dwWrapLimit, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"WrapLimit", PO_DWORD, &fd->dwWrapLimit, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"Marker", PO_DWORD, &fd->dwMarker, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"Marker", PO_DWORD, &fd->dwMarker, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"CaretOptions", PO_DWORD, &fd->dwCaretOptions, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"CaretOptions", PO_DWORD, &fd->dwCaretOptions, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"CaretWidth", PO_DWORD, &fd->nCaretWidth, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"CaretWidth", PO_DWORD, &fd->nCaretWidth, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"MouseOptions", PO_DWORD, &fd->dwMouseOptions, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"MouseOptions", PO_DWORD, &fd->dwMouseOptions, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"LineGap", PO_DWORD, &fd->dwLineGap, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"LineGap", PO_DWORD, &fd->dwLineGap, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"TabStopSize", PO_DWORD, &fd->nTabStopSize, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"TabStopSize", PO_DWORD, &fd->nTabStopSize, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"TabStopAsSpaces", PO_DWORD, &fd->bTabStopAsSpaces, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"TabStopAsSpaces", PO_DWORD, &fd->bTabStopAsSpaces, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"MarginsEdit", PO_DWORD, &fd->dwEditMargins, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"MarginsEdit", PO_DWORD, &fd->dwEditMargins, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"ShowURL", PO_DWORD, &fd->bShowURL, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"ShowURL", PO_DWORD, &fd->bShowURL, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"ClickURL", PO_DWORD, &fd->nClickURL, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"ClickURL", PO_DWORD, &fd->nClickURL, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"UrlPrefixesEnable", PO_DWORD, &fd->bUrlPrefixesEnable, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"UrlPrefixesEnable", PO_DWORD, &fd->bUrlPrefixesEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"UrlPrefixes", PO_BINARY, fd->wszUrlPrefixes, BytesInString(fd->wszUrlPrefixes)))
+  if (!SaveOption(&oh, L"UrlPrefixes", PO_BINARY, fd->wszUrlPrefixes, BytesInString(fd->wszUrlPrefixes)))
     goto Error;
-  if (!SaveOption(hHandle, L"UrlDelimitersEnable", PO_DWORD, &fd->bUrlDelimitersEnable, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"UrlDelimitersEnable", PO_DWORD, &fd->bUrlDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"UrlLeftDelimiters", PO_BINARY, fd->wszUrlLeftDelimiters, BytesInString(fd->wszUrlLeftDelimiters)))
+  if (!SaveOption(&oh, L"UrlLeftDelimiters", PO_BINARY, fd->wszUrlLeftDelimiters, BytesInString(fd->wszUrlLeftDelimiters)))
     goto Error;
-  if (!SaveOption(hHandle, L"UrlRightDelimiters", PO_BINARY, fd->wszUrlRightDelimiters, BytesInString(fd->wszUrlRightDelimiters)))
+  if (!SaveOption(&oh, L"UrlRightDelimiters", PO_BINARY, fd->wszUrlRightDelimiters, BytesInString(fd->wszUrlRightDelimiters)))
     goto Error;
-  if (!SaveOption(hHandle, L"WordDelimitersEnable", PO_DWORD, &fd->bWordDelimitersEnable, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"WordDelimitersEnable", PO_DWORD, &fd->bWordDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"WordDelimiters", PO_BINARY, fd->wszWordDelimiters, BytesInString(fd->wszWordDelimiters)))
+  if (!SaveOption(&oh, L"WordDelimiters", PO_BINARY, fd->wszWordDelimiters, BytesInString(fd->wszWordDelimiters)))
     goto Error;
-  if (!SaveOption(hHandle, L"WrapDelimitersEnable", PO_DWORD, &fd->bWrapDelimitersEnable, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"WrapDelimitersEnable", PO_DWORD, &fd->bWrapDelimitersEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"WrapDelimiters", PO_BINARY, fd->wszWrapDelimiters, BytesInString(fd->wszWrapDelimiters)))
+  if (!SaveOption(&oh, L"WrapDelimiters", PO_BINARY, fd->wszWrapDelimiters, BytesInString(fd->wszWrapDelimiters)))
     goto Error;
   if (bEditFontChanged)
   {
-    if (!SaveOption(hHandle, L"Font", PO_BINARY, &fd->lf, offsetof(LOGFONTW, lfFaceName)))
+    bEditFontChanged=FALSE;
+    if (!SaveOption(&oh, L"Font", PO_BINARY, &fd->lf, offsetof(LOGFONTW, lfFaceName)))
       goto Error;
-    if (!SaveOption(hHandle, L"FontFace", PO_STRING, fd->lf.lfFaceName, BytesInString(fd->lf.lfFaceName)))
+    if (!SaveOption(&oh, L"FontFace", PO_STRING, fd->lf.lfFaceName, BytesInString(fd->lf.lfFaceName)))
       goto Error;
   }
   if (bColorsChanged)
   {
-    if (!SaveOption(hHandle, L"Colors", PO_BINARY, &fd->aec, sizeof(AECOLORS)))
+    bColorsChanged=FALSE;
+    if (!SaveOption(&oh, L"Colors", PO_BINARY, &fd->aec, sizeof(AECOLORS)))
       goto Error;
   }
 
   //Menu settings
-  if (!SaveOption(hHandle, L"OnTop", PO_DWORD, &mo->bOnTop, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"OnTop", PO_DWORD, &mo->bOnTop, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"StatusBar", PO_DWORD, &mo->bStatusBar, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"StatusBar", PO_DWORD, &mo->bStatusBar, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"LanguageModule", PO_STRING, mo->wszLangModule, BytesInString(mo->wszLangModule)))
+  if (!SaveOption(&oh, L"LanguageModule", PO_STRING, mo->wszLangModule, BytesInString(mo->wszLangModule)))
     goto Error;
-  if (!SaveOption(hHandle, L"KeepSpace", PO_DWORD, &mo->bKeepSpace, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"KeepSpace", PO_DWORD, &mo->bKeepSpace, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"WatchFile", PO_DWORD, &mo->bWatchFile, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"WatchFile", PO_DWORD, &mo->bWatchFile, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"SaveTime", PO_DWORD, &mo->bSaveTime, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"SaveTime", PO_DWORD, &mo->bSaveTime, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"SingleOpenFile", PO_DWORD, &mo->bSingleOpenFile, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"SingleOpenFile", PO_DWORD, &mo->bSingleOpenFile, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"SingleOpenProgram", PO_DWORD, &mo->bSingleOpenProgram, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"SingleOpenProgram", PO_DWORD, &mo->bSingleOpenProgram, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"MDI", PO_DWORD, &mo->nMDI, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"MDI", PO_DWORD, &mo->nMDI, sizeof(DWORD)))
     goto Error;
   if (nMDI)
   {
-    if (!SaveOption(hHandle, L"TabOptionsMDI", PO_DWORD, &mo->dwTabOptionsMDI, sizeof(DWORD)))
+    if (!SaveOption(&oh, L"TabOptionsMDI", PO_DWORD, &mo->dwTabOptionsMDI, sizeof(DWORD)))
       goto Error;
   }
 
   //Settings dialog
   if (bCodepageListChanged)
   {
-    if (!SaveOption(hHandle, L"CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
+    bCodepageListChanged=FALSE;
+    if (!SaveOption(&oh, L"CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
       goto Error;
   }
-  if (!SaveOption(hHandle, L"ExecuteCommand", PO_STRING, mo->wszCommand, BytesInString(mo->wszCommand)))
+  if (!SaveOption(&oh, L"ExecuteCommand", PO_STRING, mo->wszCommand, BytesInString(mo->wszCommand)))
     goto Error;
-  if (!SaveOption(hHandle, L"ExecuteDirectory", PO_STRING, mo->wszWorkDir, BytesInString(mo->wszWorkDir)))
+  if (!SaveOption(&oh, L"ExecuteDirectory", PO_STRING, mo->wszWorkDir, BytesInString(mo->wszWorkDir)))
     goto Error;
-  if (!SaveOption(hHandle, L"DefaultCodepage", PO_DWORD, &mo->nDefaultCodePage, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"DefaultCodepage", PO_DWORD, &mo->nDefaultCodePage, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"DefaultNewLine", PO_DWORD, &mo->nDefaultNewLine, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"DefaultNewLine", PO_DWORD, &mo->nDefaultNewLine, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"CodepageRecognition", PO_DWORD, &mo->dwLangCodepageRecognition, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"CodepageRecognition", PO_DWORD, &mo->dwLangCodepageRecognition, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"CodepageRecognitionBuffer", PO_DWORD, &mo->dwCodepageRecognitionBuffer, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"CodepageRecognitionBuffer", PO_DWORD, &mo->dwCodepageRecognitionBuffer, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"SavePositions", PO_DWORD, &mo->bSavePositions, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"SavePositions", PO_DWORD, &mo->bSavePositions, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"SaveCodepages", PO_DWORD, &mo->bSaveCodepages, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"SaveCodepages", PO_DWORD, &mo->bSaveCodepages, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"RecentFiles", PO_DWORD, &mo->nRecentFiles, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"RecentFiles", PO_DWORD, &mo->nRecentFiles, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"SearchStrings", PO_DWORD, &mo->nSearchStrings, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"SearchStrings", PO_DWORD, &mo->nSearchStrings, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"FileTypesOpen", PO_STRING, mo->wszFileTypesOpen, BytesInString(mo->wszFileTypesOpen)))
+  if (!SaveOption(&oh, L"FileTypesOpen", PO_STRING, mo->wszFileTypesOpen, BytesInString(mo->wszFileTypesOpen)))
     goto Error;
-  if (!SaveOption(hHandle, L"FileTypesEdit", PO_STRING, mo->wszFileTypesEdit, BytesInString(mo->wszFileTypesEdit)))
+  if (!SaveOption(&oh, L"FileTypesEdit", PO_STRING, mo->wszFileTypesEdit, BytesInString(mo->wszFileTypesEdit)))
     goto Error;
-  if (!SaveOption(hHandle, L"FileTypesPrint", PO_STRING, mo->wszFileTypesPrint, BytesInString(mo->wszFileTypesPrint)))
+  if (!SaveOption(&oh, L"FileTypesPrint", PO_STRING, mo->wszFileTypesPrint, BytesInString(mo->wszFileTypesPrint)))
     goto Error;
-  if (!SaveOption(hHandle, L"FileTypesAssociated", PO_DWORD, &mo->dwFileTypesAssociated, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"FileTypesAssociated", PO_DWORD, &mo->dwFileTypesAssociated, sizeof(DWORD)))
     goto Error;
   if (nMDI)
   {
-    if (!SaveOption(hHandle, L"KeybLayoutMDI", PO_DWORD, &mo->bKeybLayoutMDI, sizeof(DWORD)))
+    if (!SaveOption(&oh, L"KeybLayoutMDI", PO_DWORD, &mo->bKeybLayoutMDI, sizeof(DWORD)))
       goto Error;
   }
-  if (!SaveOption(hHandle, L"ReplaceAllAndClose", PO_DWORD, &mo->bReplaceAllAndClose, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"ReplaceAllAndClose", PO_DWORD, &mo->bReplaceAllAndClose, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"DateLog", PO_DWORD, &mo->bDateLog, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"DateLog", PO_DWORD, &mo->bDateLog, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"SaveInReadOnlyMsg", PO_DWORD, &mo->bSaveInReadOnlyMsg, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"SaveInReadOnlyMsg", PO_DWORD, &mo->bSaveInReadOnlyMsg, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"DefaultSaveExt", PO_STRING, mo->wszDefaultSaveExt, BytesInString(mo->wszDefaultSaveExt)))
+  if (!SaveOption(&oh, L"DefaultSaveExt", PO_STRING, mo->wszDefaultSaveExt, BytesInString(mo->wszDefaultSaveExt)))
     goto Error;
 
   //Search dialog
-  if (!SaveOption(hHandle, L"SearchOptions", PO_DWORD, &mo->dwSearchOptions, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"SearchOptions", PO_DWORD, &mo->dwSearchOptions, sizeof(DWORD)))
     goto Error;
 
   //Open file dialog
-  if (!SaveOption(hHandle, L"LastDirectory", PO_STRING, mo->wszLastDir, BytesInString(mo->wszLastDir)))
+  if (!SaveOption(&oh, L"LastDirectory", PO_STRING, mo->wszLastDir, BytesInString(mo->wszLastDir)))
     goto Error;
 
   //Print dialog
-  if (!SaveOption(hHandle, L"MarginsPrint", PO_BINARY, &prninfo.rtMargin, sizeof(RECT)))
+  if (!SaveOption(&oh, L"MarginsPrint", PO_BINARY, &prninfo.rtMargin, sizeof(RECT)))
     goto Error;
-  if (!SaveOption(hHandle, L"PrintColor", PO_DWORD, &mo->dwPrintColor, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"PrintColor", PO_DWORD, &mo->dwPrintColor, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"PrintHeaderEnable", PO_DWORD, &mo->bPrintHeaderEnable, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"PrintHeaderEnable", PO_DWORD, &mo->bPrintHeaderEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"PrintHeader", PO_STRING, mo->wszPrintHeader, BytesInString(mo->wszPrintHeader)))
+  if (!SaveOption(&oh, L"PrintHeader", PO_STRING, mo->wszPrintHeader, BytesInString(mo->wszPrintHeader)))
     goto Error;
-  if (!SaveOption(hHandle, L"PrintFooterEnable", PO_DWORD, &mo->bPrintFooterEnable, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"PrintFooterEnable", PO_DWORD, &mo->bPrintFooterEnable, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"PrintFooter", PO_STRING, mo->wszPrintFooter, BytesInString(mo->wszPrintFooter)))
+  if (!SaveOption(&oh, L"PrintFooter", PO_STRING, mo->wszPrintFooter, BytesInString(mo->wszPrintFooter)))
     goto Error;
   if (bPrintFontChanged)
   {
-    if (!SaveOption(hHandle, L"PrintFontEnable", PO_DWORD, &mo->bPrintFontEnable, sizeof(DWORD)))
+    bPrintFontChanged=FALSE;
+    if (!SaveOption(&oh, L"PrintFontEnable", PO_DWORD, &mo->bPrintFontEnable, sizeof(DWORD)))
       goto Error;
-    if (!SaveOption(hHandle, L"PrintFont", PO_BINARY, &mo->lfPrintFont, offsetof(LOGFONTW, lfFaceName)))
+    if (!SaveOption(&oh, L"PrintFont", PO_BINARY, &mo->lfPrintFont, offsetof(LOGFONTW, lfFaceName)))
       goto Error;
-    if (!SaveOption(hHandle, L"PrintFontFace", PO_STRING, mo->lfPrintFont.lfFaceName, BytesInString(mo->lfPrintFont.lfFaceName)))
+    if (!SaveOption(&oh, L"PrintFontFace", PO_STRING, mo->lfPrintFont.lfFaceName, BytesInString(mo->lfPrintFont.lfFaceName)))
       goto Error;
   }
 
   //Colors dialog
-  if (!SaveOption(hHandle, L"ColorsDialog", PO_BINARY, &mo->rcColorsCurrentDialog, sizeof(RECT)))
+  if (!SaveOption(&oh, L"ColorsDialog", PO_BINARY, &mo->rcColorsCurrentDialog, sizeof(RECT)))
     goto Error;
 
   //Plugin dialog
-  if (!SaveOption(hHandle, L"PluginsDialog", PO_BINARY, &mo->rcPluginsCurrentDialog, sizeof(RECT)))
+  if (!SaveOption(&oh, L"PluginsDialog", PO_BINARY, &mo->rcPluginsCurrentDialog, sizeof(RECT)))
     goto Error;
 
   //Mdi list dialog
   if (nMDI)
   {
-    if (!SaveOption(hHandle, L"MdiListOptions", PO_DWORD, &mo->dwMdiListOptions, sizeof(DWORD)))
+    if (!SaveOption(&oh, L"MdiListOptions", PO_DWORD, &mo->dwMdiListOptions, sizeof(DWORD)))
       goto Error;
-    if (!SaveOption(hHandle, L"MdiListDialog", PO_BINARY, &mo->rcMdiListCurrentDialog, sizeof(RECT)))
+    if (!SaveOption(&oh, L"MdiListDialog", PO_BINARY, &mo->rcMdiListCurrentDialog, sizeof(RECT)))
       goto Error;
   }
 
   //Main window
-  if (!SaveOption(hHandle, L"WindowStyle", PO_DWORD, &mo->dwMainStyle, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"WindowStyle", PO_DWORD, &mo->dwMainStyle, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(hHandle, L"WindowPosition", PO_BINARY, &mo->rcMainWindowRestored, sizeof(RECT)))
+  if (!SaveOption(&oh, L"WindowPosition", PO_BINARY, &mo->rcMainWindowRestored, sizeof(RECT)))
     goto Error;
   if (nMDI)
   {
-    if (!SaveOption(hHandle, L"WindowStyleMDI", PO_DWORD, &mo->dwMdiStyle, sizeof(DWORD)))
+    if (!SaveOption(&oh, L"WindowStyleMDI", PO_DWORD, &mo->dwMdiStyle, sizeof(DWORD)))
       goto Error;
   }
 
-  if (nSaveSettings == SS_REGISTRY)
+  if (oh.nSaveSettings == SS_REGISTRY)
     bResult=TRUE;
   else
     bResult=SaveIniW(&hIniStack, wszIniFile);
 
+  if (bResult)
+  {
+    //Update initial options
+    xmemcpy(&moInit, mo, sizeof(MAINOPTIONS));
+    xmemcpy(&fdInit.lf, &fd->lf, sizeof(FRAMEDATA) - offsetof(FRAMEDATA, lf));
+    fdInit.ei.bWordWrap=fd->ei.bWordWrap;
+  }
+
   Error:
-  if (nSaveSettings == SS_REGISTRY)
-    RegCloseKey((HKEY)hHandle);
+  if (oh.nSaveSettings == SS_REGISTRY)
+    RegCloseKey((HKEY)oh.hHandle);
   else
     StackFreeIni(&hIniStack);
   return bResult;
