@@ -298,6 +298,85 @@
 
 typedef BOOL (CALLBACK *EXPORTNAMESPROC)(char *, LPARAM);
 
+typedef struct {
+  int nSaveSettings;
+
+  //Manual
+  DWORD dwShowModify;
+  DWORD dwStatusPosType;
+  DWORD dwCustomWordBreak;
+  DWORD dwPaintOptions;
+  BOOL bRichEditClass;
+  wchar_t wszDateLogFormat[MAX_PATH];
+  wchar_t wszDateInsertFormat[MAX_PATH];
+
+  //Menu settings
+  BOOL bOnTop;
+  BOOL bStatusBar;
+  char szLangModule[MAX_PATH];
+  wchar_t wszLangModule[MAX_PATH];
+  BOOL bKeepSpace;
+  BOOL bWatchFile;
+  BOOL bSaveTime;
+  BOOL bSingleOpenFile;
+  BOOL bSingleOpenProgram;
+  BOOL nMDI;
+  DWORD dwTabOptionsMDI;
+
+  //Settings dialog
+  wchar_t wszCommand[BUFFER_SIZE];
+  wchar_t wszWorkDir[MAX_PATH];
+  int nDefaultCodePage;
+  int nDefaultNewLine;
+  DWORD dwLangCodepageRecognition;
+  DWORD dwCodepageRecognitionBuffer;
+  BOOL bSavePositions;
+  BOOL bSaveCodepages;
+  int nRecentFiles;
+  int nSearchStrings;
+  wchar_t wszFileTypesOpen[MAX_PATH];
+  wchar_t wszFileTypesEdit[MAX_PATH];
+  wchar_t wszFileTypesPrint[MAX_PATH];
+  DWORD dwFileTypesAssociated;
+  int nClickURL;
+  BOOL bKeybLayoutMDI;
+  BOOL bReplaceAllAndClose;
+  BOOL bDateLog;
+  BOOL bSaveInReadOnlyMsg;
+  wchar_t wszDefaultSaveExt[MAX_PATH];
+
+  //Search dialog
+  DWORD dwSearchOptions;
+
+  //Open file dialog
+  wchar_t wszLastDir[MAX_PATH];
+
+  //Print dialog
+  RECT rcPrintMargins;
+  DWORD dwPrintColor;
+  BOOL bPrintHeaderEnable;
+  wchar_t wszPrintHeader[MAX_PATH];
+  BOOL bPrintFooterEnable;
+  wchar_t wszPrintFooter[MAX_PATH];
+  BOOL bPrintFontEnable;
+  LOGFONTW lfPrintFont;
+
+  //Colors dialog
+  RECT rcColorsCurrentDialog;
+
+  //Plugin dialog
+  RECT rcPluginsCurrentDialog;
+
+  //Mdi list dialog
+  DWORD dwMdiListOptions;
+  RECT rcMdiListCurrentDialog;
+
+  //Main window
+  DWORD dwMainStyle;
+  RECT rcMainWindowRestored;
+  DWORD dwMdiStyle;
+} MAINOPTIONS;
+
 typedef struct _EXTPARAM {
   struct _EXTPARAM *next;
   struct _EXTPARAM *prev;
@@ -530,10 +609,9 @@ void StackDeleteIniKey(HINISECTION *lpIniSection, HINIKEY *lpIniKey);
 void StackDeleteIniSection(HSTACK *hIniStack, HINISECTION *lpIniSection, BOOL bOnlyClear);
 void StackFreeIni(HSTACK *hIniStack);
 
-DWORD ReadOptionW(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
-DWORD SaveOptionW(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
-void ReadOptions();
-void RegisterPluginsHotkeys();
+DWORD ReadOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
+DWORD SaveOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
+void ReadOptions(MAINOPTIONS *mo);
 void RegReadSearch();
 BOOL SaveOptions();
 
@@ -541,6 +619,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
 void FileStreamIn(FILESTREAMDATA *lpData);
 DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
 DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent);
+BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, BOOL bOtherProcess);
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);
 DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
@@ -662,37 +741,10 @@ COLORTHEME* StackThemeGetByName(HSTACK *hStack, const wchar_t *wpName);
 COLORTHEME* StackThemeGetByColors(HSTACK *hStack, AECOLORS *aec);
 void StackThemeDelete(HSTACK *hStack, COLORTHEME *ctElement);
 void StackThemeFree(HSTACK *hStack);
-void ReadThemes();
+void ReadThemes(MAINOPTIONS *mo);
 BOOL SaveThemes();
 
-BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam);
-void FillPluginList(HWND hWnd);
-BOOL CALLBACK FillPluginListProc(char *pExportName, LPARAM lParam);
-PLUGINLISTITEM* GetPluginListItem(HSTACK *hStack, int nIndex);
-void FreePluginList(HSTACK *hStack);
-int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
-BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunction);
-void CallPluginsOnStart(HSTACK *hStack);
-int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, BOOL bOnStart);
-int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnStart);
-BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM lParam);
-
-int StackProcGet(HSTACK *hStack, int nIndex, WNDPROCDATA **ProcData);
-int StackProcSet(HSTACK *hStack, WNDPROC NewProc, WNDPROCDATA **NewProcData, WNDPROC *FirstProc);
-void StackProcFree(HSTACK *hStack);
-PLUGINHANDLE* StackHandleIncrease(HSTACK *hStack, HMODULE hModule);
-PLUGINHANDLE* StackHandleDecrease(HSTACK *hStack, HMODULE hModule);
-void StackHandleFree(HSTACK *hStack);
-DOCK* StackDockAdd(HDOCK *hDocks, DOCK *dkData);
-int DockSetSide(HDOCK *hDocks, DOCK *dkData, int nSide);
-void StackDockDelete(HDOCK *hDocks, DOCK *dkData);
-DOCK* StackDockFindWindow(HDOCK *hDocks, HWND hWnd, BOOL bChild);
-HWND StackDockNextWindow(HDOCK *hDocks, DOCK *dkData, BOOL bPrevious);
-DOCK* StackDockFromPoint(HDOCK *hDocks, POINT *pt);
-void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns);
-BOOL StackDockUpdateCheck(HDOCK *hDocks);
-void StackDockFree(HDOCK *hDocks);
+void RegisterPluginsHotkeys(MAINOPTIONS *mo);
 PLUGINFUNCTION* StackPluginFind(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen);
 PLUGINFUNCTION* StackHotkeyFind(HSTACK *hStack, WORD wHotkey);
 PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpString, int nStringLen, WORD wHotkey, BOOL bOnStart, PLUGINPROC PluginProc, void *lpParameter);
@@ -700,12 +752,22 @@ void StackPluginDelete(HSTACK *hStack, void *lpElement);
 BOOL StackPluginSave(HSTACK *hStack);
 void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL);
 void StackPluginFree(HSTACK *hStack);
-BOOL IsMainFunctionW(const wchar_t *wpFunction);
-BOOL TranslateDialog(HDOCK *hDocks, LPMSG lpMsg);
+void CallPluginsOnStart(HSTACK *hStack);
+int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, BOOL bOnStart);
+int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnStart);
 BOOL TranslatePlugin(LPMSG lpMsg);
 BOOL TranslateHotkey(HSTACK *hStack, LPMSG lpMsg);
+BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunction);
+BOOL IsMainFunctionW(const wchar_t *wpFunction);
 
-BOOL OpenDocumentSend(HWND hWnd, HWND hWndEdit, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, BOOL bOtherProcess);
+BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+LRESULT CALLBACK GetMsgProc(int code, WPARAM wParam, LPARAM lParam);
+void FillPluginList(HWND hWnd);
+BOOL CALLBACK FillPluginListProc(char *pExportName, LPARAM lParam);
+PLUGINLISTITEM* GetPluginListItem(HSTACK *hStack, int nIndex);
+void FreePluginList(HSTACK *hStack);
+BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM lParam);
+int GetHotkeyString(WORD wHotkey, wchar_t *wszString);
 
 LRESULT CALLBACK CBTProc(int iCode, WPARAM wParam, LPARAM lParam);
 int CALLBACK PropSheetProc(HWND hDlg, UINT uMsg, LPARAM lParam);
@@ -728,6 +790,25 @@ int GetListBoxSelItems(HWND hWnd, int **lpSelItems);
 void FreeListBoxSelItems(int **lpSelItems);
 
 BOOL CALLBACK AboutDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+DOCK* StackDockAdd(HDOCK *hDocks, DOCK *dkData);
+int DockSetSide(HDOCK *hDocks, DOCK *dkData, int nSide);
+void StackDockDelete(HDOCK *hDocks, DOCK *dkData);
+DOCK* StackDockFindWindow(HDOCK *hDocks, HWND hWnd, BOOL bChild);
+HWND StackDockNextWindow(HDOCK *hDocks, DOCK *dkData, BOOL bPrevious);
+DOCK* StackDockFromPoint(HDOCK *hDocks, POINT *pt);
+void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns);
+BOOL StackDockUpdateCheck(HDOCK *hDocks);
+void StackDockFree(HDOCK *hDocks);
+BOOL TranslateDialog(HDOCK *hDocks, LPMSG lpMsg);
+
+int StackProcGet(HSTACK *hStack, int nIndex, WNDPROCDATA **ProcData);
+int StackProcSet(HSTACK *hStack, WNDPROC NewProc, WNDPROCDATA **NewProcData, WNDPROC *FirstProc);
+void StackProcFree(HSTACK *hStack);
+
+PLUGINHANDLE* StackHandleIncrease(HSTACK *hStack, HMODULE hModule);
+PLUGINHANDLE* StackHandleDecrease(HSTACK *hStack, HMODULE hModule);
+void StackHandleFree(HSTACK *hStack);
 
 FRAMEDATA* StackFrameInsert(HSTACK *hStack);
 FRAMEDATA* StackFrameGetByIndex(HSTACK *hStack, int nIndex);

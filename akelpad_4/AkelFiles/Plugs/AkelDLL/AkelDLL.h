@@ -552,7 +552,6 @@ typedef struct _FRAMEDATA {
   char szFile[MAX_PATH];                              //Frame file (Ansi).
   wchar_t wszFile[MAX_PATH];                          //Frame file (Unicode).
   int nFileLen;                                       //Frame file length.
-  LOGFONTW lf;                                        //Edit font.
   HICON hIcon;                                        //Frame icon.
   RECT rcEditWindow;                                  //Edit RECT.
   RECT rcMasterWindow;                                //Master window RECT (4.x only).
@@ -560,10 +559,11 @@ typedef struct _FRAMEDATA {
   //Edit state internal
   AEEditProc lpEditProc;                              //Edit window procedure (4.x only).
   FILETIME ft;                                        //File time.
-  AECOLORS aec;                                       //Edit colors.
   DWORD dwInputLocale;                                //Keyboard layout (4.x only).
 
   //Edit settings
+  LOGFONTW lf;                                        //Edit font.
+  AECOLORS aec;                                       //Edit colors.
   DWORD dwEditMargins;                                //Edit margins.
   int nTabStopSize;                                   //Tab stop size.
   BOOL bTabStopAsSpaces;                              //Insert tab stop as spaces.
