@@ -373,7 +373,6 @@ int nMDI=WMD_SDI;
 HWND hMdiClient=NULL;
 BOOL bMdiMaximize=-1;
 BOOL bMdiNoWindows=FALSE;
-BOOL bMdiClientRedraw=TRUE;
 HWND hTab=NULL;
 DWORD dwTabOpenTimer=0;
 int nTabOpenItem=-1;
@@ -2823,7 +2822,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!nMDI)
       {
-        return DoFileClose();
+        return CloseDocument();
       }
       else
       {
@@ -3227,11 +3226,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_NONMENU_FILECLOSE)
     {
-      return DoFileClose();
+      return CloseDocument();
     }
     else if (LOWORD(wParam) == IDM_NONMENU_FILEEXIT)
     {
-      if (DoFileClose())
+      if (CloseDocument())
       {
         if (!nMDI)
           PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
@@ -3499,16 +3498,22 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_CLOSE)
   {
+    bMainOnFinish=TRUE;
+
     if (!nMDI)
     {
-      if (!DoFileExit()) return TRUE;
+      if (!SaveChanged())
+      {
+        bMainOnFinish=FALSE;
+        return TRUE;
+      }
+      RecentFilesSaveCurrentFile();
       CopyFrameData(&fdLast, lpFrameCurrent);
     }
     else
     {
       int nDestroyResult;
 
-      bMdiClientRedraw=FALSE;
       CopyFrameData(&fdLast, lpFrameCurrent);
 
       while (lpFrameCurrent->hWndEditParent)
@@ -3517,7 +3522,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (nDestroyResult == FWDE_ABORT)
         {
-          bMdiClientRedraw=TRUE;
+          bMainOnFinish=FALSE;
           return TRUE;
         }
         else if (nDestroyResult != FWDE_SUCCESS)
@@ -3530,7 +3535,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hDlgModeless, WM_CLOSE, 0, 0);
 
     //Main window will be destroyed
-    bMainOnFinish=TRUE;
     PostMessage(hWnd, AKDN_MAIN_ONFINISH, 0, 0);
 
     return 0;
@@ -4388,17 +4392,18 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         ActivateMdiFrameWindow(lpFrame, 0);
 
         //Ask if document unsaved
-        if (!DoFileExit()) return TRUE;
+        if (!SaveChanged()) return TRUE;
+        RecentFilesSaveCurrentFile();
 
         //Save closed frame settings
-        if (bMdiClientRedraw) CopyFrameData(&fdLast, lpFrame);
+        if (!bMainOnFinish) CopyFrameData(&fdLast, lpFrame);
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {
           SendMessage(hMainWnd, AKDN_FRAME_DESTROY, (WPARAM)lpFrame, (LPARAM)lpFrame->hWndEditParent);
 
           //Avoid program exit blinking on last frame close
-          if (!bMdiClientRedraw)
+          if (bMainOnFinish)
           {
             if (SendMessage(hTab, TCM_GETITEMCOUNT, 0, 0) == 1)
               SendMessage(hMdiClient, WM_SETREDRAW, FALSE, 0);
