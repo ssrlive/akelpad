@@ -2540,26 +2540,17 @@ void DoSettingsOptions()
   if (bOptionsSave)
   {
     //Save to INI
-    if (moCur.nSaveSettings == SS_INI)
-    {
-      bEditFontChanged=TRUE;
-      bPrintFontChanged=TRUE;
-      bColorsChanged=TRUE;
-      bCodepageListChanged=TRUE;
-    }
-    SaveOptions(&moCur, lpFrameCurrent, SS_INI);
+    SaveOptions(&moCur, lpFrameCurrent, SS_INI, TRUE);
     SaveThemes(SS_INI);
     StackPluginSave(&hPluginsStack, SS_INI);
 
     //Save to registry
-    if (moCur.nSaveSettings == SS_REGISTRY)
-    {
-      bEditFontChanged=TRUE;
-      bPrintFontChanged=TRUE;
-      bColorsChanged=TRUE;
-      bCodepageListChanged=TRUE;
-    }
-    SaveOptions(&moCur, lpFrameCurrent, SS_REGISTRY);
+    bEditFontChanged=TRUE;
+    bPrintFontChanged=TRUE;
+    bColorsChanged=TRUE;
+    bCodepageListChanged=TRUE;
+
+    SaveOptions(&moCur, lpFrameCurrent, SS_REGISTRY, TRUE);
     SaveThemes(SS_REGISTRY);
     StackPluginSave(&hPluginsStack, SS_REGISTRY);
   }
@@ -3437,8 +3428,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
 
   if (oh.nSaveSettings == SS_REGISTRY)
     RegCloseKey((HKEY)oh.hHandle);
-  else
-    StackFreeIni(&hIniStack);
+  StackFreeIni(&hIniStack);
 }
 
 void RegReadSearch()
@@ -3473,7 +3463,7 @@ void RegReadSearch()
   RegCloseKey(hKey);
 }
 
-BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
+BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceWrite)
 {
   OPTIONHANDLE oh;
   BOOL bResult=FALSE;
@@ -3489,12 +3479,15 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
     mo->dwMdiStyle=!bMdiMaximize?0:WS_MAXIMIZE;
   }
 
-  if (!xmemcmp(mo, &moInit, sizeof(MAINOPTIONS)) &&
-      !xmemcmp(&fd->lf, &fdInit.lf, sizeof(FRAMEDATA) - offsetof(FRAMEDATA, lf)) &&
-      fd->ei.bWordWrap == fdInit.ei.bWordWrap && !bCodepageListChanged)
+  if (!bForceWrite)
   {
-    //Settings unchanged
-    return TRUE;
+    if (!xmemcmp(mo, &moInit, sizeof(MAINOPTIONS)) &&
+        !xmemcmp(&fd->lf, &fdInit.lf, sizeof(FRAMEDATA) - offsetof(FRAMEDATA, lf)) &&
+        fd->ei.bWordWrap == fdInit.ei.bWordWrap && !bCodepageListChanged)
+    {
+      //Settings unchanged
+      return TRUE;
+    }
   }
   oh.nSaveSettings=nSaveSettings;
 
@@ -3518,37 +3511,37 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
   }
 
   //Manual
-  if (mo->dwShowModify != moInit.dwShowModify)
+  if (bForceWrite || mo->dwShowModify != moInit.dwShowModify)
   {
     if (!SaveOption(&oh, L"ShowModify", PO_DWORD, &mo->dwShowModify, sizeof(DWORD)))
       goto Error;
   }
-  if (mo->dwStatusPosType != moInit.dwStatusPosType)
+  if (bForceWrite || mo->dwStatusPosType != moInit.dwStatusPosType)
   {
     if (!SaveOption(&oh, L"StatusPosType", PO_DWORD, &mo->dwStatusPosType, sizeof(DWORD)))
       goto Error;
   }
-  if (mo->dwCustomWordBreak != moInit.dwCustomWordBreak)
+  if (bForceWrite || mo->dwCustomWordBreak != moInit.dwCustomWordBreak)
   {
     if (!SaveOption(&oh, L"WordBreak", PO_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD)))
       goto Error;
   }
-  if (mo->dwPaintOptions != moInit.dwPaintOptions)
+  if (bForceWrite || mo->dwPaintOptions != moInit.dwPaintOptions)
   {
     if (!SaveOption(&oh, L"PaintOptions", PO_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
       goto Error;
   }
-  if (mo->bRichEditClass != moInit.bRichEditClass)
+  if (bForceWrite || mo->bRichEditClass != moInit.bRichEditClass)
   {
     if (!SaveOption(&oh, L"RichEditClass", PO_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
       goto Error;
   }
-  if (xstrcmpW(mo->wszDateLogFormat, moInit.wszDateLogFormat))
+  if (bForceWrite || xstrcmpW(mo->wszDateLogFormat, moInit.wszDateLogFormat))
   {
     if (!SaveOption(&oh, L"DateLogFormat", PO_STRING, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
       goto Error;
   }
-  if (xstrcmpW(mo->wszDateInsertFormat, moInit.wszDateInsertFormat))
+  if (bForceWrite || xstrcmpW(mo->wszDateInsertFormat, moInit.wszDateInsertFormat))
   {
     if (!SaveOption(&oh, L"DateInsertFormat", PO_STRING, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
       goto Error;
@@ -3603,7 +3596,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
     goto Error;
   if (!SaveOption(&oh, L"WrapDelimiters", PO_BINARY, fd->wszWrapDelimiters, BytesInString(fd->wszWrapDelimiters)))
     goto Error;
-  if (bEditFontChanged)
+  if (bForceWrite || bEditFontChanged)
   {
     bEditFontChanged=FALSE;
     if (!SaveOption(&oh, L"Font", PO_BINARY, &fd->lf, offsetof(LOGFONTW, lfFaceName)))
@@ -3611,7 +3604,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
     if (!SaveOption(&oh, L"FontFace", PO_STRING, fd->lf.lfFaceName, BytesInString(fd->lf.lfFaceName)))
       goto Error;
   }
-  if (bColorsChanged)
+  if (bForceWrite || bColorsChanged)
   {
     bColorsChanged=FALSE;
     if (!SaveOption(&oh, L"Colors", PO_BINARY, &fd->aec, sizeof(AECOLORS)))
@@ -3644,7 +3637,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
   }
 
   //Settings dialog
-  if (bCodepageListChanged)
+  if (bForceWrite || bCodepageListChanged)
   {
     bCodepageListChanged=FALSE;
     if (!SaveOption(&oh, L"CodepageList", PO_BINARY, lpCodepageList, nCodepageListLen * sizeof(int)))
@@ -3713,7 +3706,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings)
     goto Error;
   if (!SaveOption(&oh, L"PrintFooter", PO_STRING, mo->wszPrintFooter, BytesInString(mo->wszPrintFooter)))
     goto Error;
-  if (bPrintFontChanged)
+  if (bForceWrite || bPrintFontChanged)
   {
     bPrintFontChanged=FALSE;
     if (!SaveOption(&oh, L"PrintFontEnable", PO_DWORD, &mo->bPrintFontEnable, sizeof(DWORD)))
