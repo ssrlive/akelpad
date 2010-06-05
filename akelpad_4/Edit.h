@@ -377,6 +377,11 @@ typedef struct {
   DWORD dwMdiStyle;
 } MAINOPTIONS;
 
+typedef struct {
+  int nSaveSettings; //See SS_* defines.
+  HANDLE hHandle;    //Registry key or ini section handle.
+} OPTIONHANDLE;
+
 typedef struct _EXTPARAM {
   struct _EXTPARAM *next;
   struct _EXTPARAM *prev;
@@ -609,8 +614,8 @@ void StackDeleteIniKey(HINISECTION *lpIniSection, HINIKEY *lpIniKey);
 void StackDeleteIniSection(HSTACK *hIniStack, HINISECTION *lpIniSection, BOOL bOnlyClear);
 void StackFreeIni(HSTACK *hIniStack);
 
-DWORD ReadOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
-DWORD SaveOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
+DWORD ReadOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
+DWORD SaveOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
 void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd);
 void RegReadSearch();
 BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings);
