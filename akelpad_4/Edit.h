@@ -611,9 +611,9 @@ void StackFreeIni(HSTACK *hIniStack);
 
 DWORD ReadOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
 DWORD SaveOption(HANDLE lpHandle, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
-void ReadOptions(MAINOPTIONS *mo);
+void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd);
 void RegReadSearch();
-BOOL SaveOptions();
+BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings);
 
 int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
@@ -743,14 +743,14 @@ COLORTHEME* StackThemeGetByColors(HSTACK *hStack, AECOLORS *aec);
 void StackThemeDelete(HSTACK *hStack, COLORTHEME *ctElement);
 void StackThemeFree(HSTACK *hStack);
 void ReadThemes(MAINOPTIONS *mo);
-BOOL SaveThemes();
+BOOL SaveThemes(int nSaveSettings);
 
 void RegisterPluginsHotkeys(MAINOPTIONS *mo);
 PLUGINFUNCTION* StackPluginFind(HSTACK *hStack, const wchar_t *wpPluginFunction, int nPluginFunctionLen);
 PLUGINFUNCTION* StackHotkeyFind(HSTACK *hStack, WORD wHotkey);
 PLUGINFUNCTION* StackPluginAdd(HSTACK *hStack, const wchar_t *wpString, int nStringLen, WORD wHotkey, BOOL bOnStart, PLUGINPROC PluginProc, void *lpParameter);
 void StackPluginDelete(HSTACK *hStack, void *lpElement);
-BOOL StackPluginSave(HSTACK *hStack);
+BOOL StackPluginSave(HSTACK *hStack, int nSaveSettings);
 void StackPluginCleanUp(HSTACK *hStack, BOOL bDeleteNonExistentDLL);
 void StackPluginFree(HSTACK *hStack);
 void CallPluginsOnStart(HSTACK *hStack);

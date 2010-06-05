@@ -638,15 +638,7 @@ extern "C" void _WinMain()
   WideCharToMultiByte(CP_ACP, 0, wszExeDir, -1, szExeDir, MAX_PATH, NULL, NULL);
 
   //Read options
-  xprintfW(wszIniFile, L"%s\\AkelPad.ini", wszExeDir);
-  if (OpenIniW(&hIniStack, wszIniFile, FALSE))
-  {
-    IniGetValueW(&hIniStack, L"Options", L"SaveSettings", INI_DWORD, (LPBYTE)&moInit.nSaveSettings, sizeof(DWORD));
-  }
-  ReadOptions(&moInit);
-  RegisterPluginsHotkeys(&moInit);
-  ReadThemes(&moInit);
-  StackFreeIni(&hIniStack);
+  ReadOptions(&moInit, &fdInit);
 
   if (IsCodePageUnicode(moInit.nDefaultCodePage))
     bDefaultBOM=TRUE;
@@ -665,7 +657,7 @@ extern "C" void _WinMain()
           (moInit.dwSearchOptions & AEFR_ESCAPESEQ) |
           (moInit.dwSearchOptions & AEFR_ALLFILES);
 
-  //Copy main options
+  //Copy initial options
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));
 
   //Get startup info
@@ -1073,7 +1065,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         bSavePluginsStackOnExit=TRUE;
         return TRUE;
       }
-      return StackPluginSave(&hPluginsStack);
+      return StackPluginSave(&hPluginsStack, moCur.nSaveSettings);
     }
   }
 
@@ -2778,7 +2770,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (!nMDI || !moCur.bSingleOpenProgram)
       {
-        SaveOptions();
+        SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings);
       }
       return (int)DoFileNewWindow(0);
     }
@@ -3109,12 +3101,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_FILE)
     {
       DoSettingsSingleOpenFile(!moCur.bSingleOpenFile);
-      SaveOptions();
+      SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings);
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SINGLEOPEN_PROGRAM)
     {
       DoSettingsSingleOpenProgram(!moCur.bSingleOpenProgram);
-      SaveOptions();
+      SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings);
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_SDI ||
              LOWORD(wParam) == IDM_OPTIONS_MDI ||
@@ -3548,11 +3540,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_DESTROY)
   {
     //Save options
-    SaveOptions();
+    SaveOptions(&moCur, &fdLast, moCur.nSaveSettings);
 
     //Save plugin stack
     if (bSavePluginsStackOnExit)
-      StackPluginSave(&hPluginsStack);
+      StackPluginSave(&hPluginsStack, moCur.nSaveSettings);
 
     //Clean up
     if (nMDI)
