@@ -136,9 +136,9 @@ UINT ExtractIconExWide(const wchar_t *wpFile, int nIconIndex, HICON *phiconLarge
 
 //Menus (MENUWIDEFUNC). User32.lib.
 int GetMenuStringWide(HMENU hMenu, UINT uIDItem, wchar_t *wszText, int nTextMax, UINT uFlag);
-BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT uIDNewItem, wchar_t *wpNewItem);
-BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, wchar_t *wpNewItem);
-BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, wchar_t *wpNewItem);
+BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem);
+BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem);
+BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem);
 
 //Controls (CONTROLWIDEFUNC). User32.lib.
 int ListView_InsertColumnWide(HWND hWnd, int iCol, const LVCOLUMNW *lvcW);
@@ -2038,7 +2038,7 @@ int GetMenuStringWide(HMENU hMenu, UINT uIDItem, wchar_t *wszText, int nTextMax,
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT uIDNewItem, wchar_t *wpNewItem)
+BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem)
 {
   if (WideGlobal_bOldWindows == TRUE)
   {
@@ -2069,7 +2069,7 @@ BOOL AppendMenuWide(HMENU hMenu, UINT uFlags, UINT uIDNewItem, wchar_t *wpNewIte
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, wchar_t *wpNewItem)
+BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem)
 {
   if (WideGlobal_bOldWindows == TRUE)
   {
@@ -2100,7 +2100,7 @@ BOOL InsertMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, w
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, wchar_t *wpNewItem)
+BOOL ModifyMenuWide(HMENU hMenu, UINT uPosition, UINT uFlags, UINT uIDNewItem, const wchar_t *wpNewItem)
 {
   if (WideGlobal_bOldWindows == TRUE)
   {
