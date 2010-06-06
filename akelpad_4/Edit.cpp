@@ -12066,7 +12066,7 @@ BOOL CALLBACK OptionsGeneralFilterDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, L
     {
       if ((nSelection=(int)SendMessage(hWndSystemList, LB_GETCURSEL, 0, 0)) != LB_ERR)
       {
-        ListBox_GetTextWide(hWndCustomList, nSelection, wbuf);
+        ListBox_GetTextWide(hWndSystemList, nSelection, wbuf);
 
         if (ListBox_FindStringWide(hWndCustomList, -1, wbuf) == LB_ERR)
         {
