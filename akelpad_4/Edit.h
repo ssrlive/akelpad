@@ -226,6 +226,7 @@
 #define MOT_STRING      0x04  //Null-terminated string.
 #define MOT_MAINOFFSET  0x10  //lpData specifies offset of MAINOPTIONS structure.
 #define MOT_FRAMEOFFSET 0x20  //lpData specifies offset of FRAMEDATA structure.
+#define MOT_MANUAL      0x40  //lpData specifies manual parameter.
 
 //Search/Replace options
 #define AEFR_UP                 0x00100000

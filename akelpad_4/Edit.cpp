@@ -3244,15 +3244,23 @@ DWORD SaveOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData,
 {
   if (dwType & MOT_MAINOFFSET)
   {
+    //lpData is MAINOPTIONS structure offset. Check does specified member in lpData changed.
     if (!oh->bForceWrite && !xmemcmp(((LPBYTE)oh->mo) + (DWORD)lpData, ((LPBYTE)&moInit) + (DWORD)lpData, dwSize))
       return dwSize;
     lpData=((LPBYTE)oh->mo) + (DWORD)lpData;
   }
   else if (dwType & MOT_FRAMEOFFSET)
   {
+    //lpData is FRAMEDATA structure offset. Check does specified member in lpData changed.
     if (!oh->bForceWrite && !xmemcmp(((LPBYTE)oh->fd) + (DWORD)lpData, ((LPBYTE)&fdInit) + (DWORD)lpData, dwSize))
       return dwSize;
     lpData=((LPBYTE)oh->fd) + (DWORD)lpData;
+  }
+  else if (dwType & MOT_MANUAL)
+  {
+    //lpData is manual parameter. Save it only if no bForceWrite and not saved before.
+    if (!oh->bForceWrite && ReadOption(oh, wpParam, dwType, NULL, 0))
+      return dwSize;
   }
 
   if (oh->nSaveSettings == SS_REGISTRY)
@@ -3490,41 +3498,20 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   }
 
   //Manual
-  if (bForceWrite || !ReadOption(&oh, L"ShowModify", MOT_DWORD, NULL, 0))
-  {
-    if (!SaveOption(&oh, L"ShowModify", MOT_DWORD, &mo->dwShowModify, sizeof(DWORD)))
-      goto Error;
-  }
-  if (bForceWrite || !ReadOption(&oh, L"StatusPosType", MOT_DWORD, NULL, 0))
-  {
-    if (!SaveOption(&oh, L"StatusPosType", MOT_DWORD, &mo->dwStatusPosType, sizeof(DWORD)))
-      goto Error;
-  }
-  if (bForceWrite || !ReadOption(&oh, L"WordBreak", MOT_DWORD, NULL, 0))
-  {
-    if (!SaveOption(&oh, L"WordBreak", MOT_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD)))
-      goto Error;
-  }
-  if (bForceWrite || !ReadOption(&oh, L"PaintOptions", MOT_DWORD, NULL, 0))
-  {
-    if (!SaveOption(&oh, L"PaintOptions", MOT_DWORD, &mo->dwPaintOptions, sizeof(DWORD)))
-      goto Error;
-  }
-  if (bForceWrite || !ReadOption(&oh, L"RichEditClass", MOT_DWORD, NULL, 0))
-  {
-    if (!SaveOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD)))
-      goto Error;
-  }
-  if (bForceWrite || !ReadOption(&oh, L"DateLogFormat", MOT_STRING, NULL, 0))
-  {
-    if (!SaveOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
-      goto Error;
-  }
-  if (bForceWrite || !ReadOption(&oh, L"DateInsertFormat", MOT_STRING, NULL, 0))
-  {
-    if (!SaveOption(&oh, L"DateInsertFormat", MOT_STRING, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
-      goto Error;
-  }
+  if (!SaveOption(&oh, L"ShowModify", MOT_DWORD|MOT_MANUAL, &mo->dwShowModify, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"StatusPosType", MOT_DWORD|MOT_MANUAL, &mo->dwStatusPosType, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"WordBreak", MOT_DWORD|MOT_MANUAL, &mo->dwCustomWordBreak, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"PaintOptions", MOT_DWORD|MOT_MANUAL, &mo->dwPaintOptions, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"RichEditClass", MOT_DWORD|MOT_MANUAL, &mo->bRichEditClass, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"DateLogFormat", MOT_STRING|MOT_MANUAL, mo->wszDateLogFormat, BytesInString(mo->wszDateLogFormat)))
+    goto Error;
+  if (!SaveOption(&oh, L"DateInsertFormat", MOT_STRING|MOT_MANUAL, mo->wszDateInsertFormat, BytesInString(mo->wszDateInsertFormat)))
+    goto Error;
 
   //Frame data
   if (!SaveOption(&oh, L"WordWrap", MOT_DWORD|MOT_FRAMEOFFSET, (void *)offsetof(FRAMEDATA, ei.bWordWrap), sizeof(DWORD)))
