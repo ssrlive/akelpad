@@ -3313,56 +3313,56 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
   }
 
   //Manual
-  ReadOption(&oh, L"ShowModify", PO_DWORD, &mo->dwShowModify, sizeof(DWORD));
-  ReadOption(&oh, L"StatusPosType", PO_DWORD, &mo->dwStatusPosType, sizeof(DWORD));
-  ReadOption(&oh, L"WordBreak", PO_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD));
-  ReadOption(&oh, L"PaintOptions", PO_DWORD, &mo->dwPaintOptions, sizeof(DWORD));
-  ReadOption(&oh, L"RichEditClass", PO_DWORD, &mo->bRichEditClass, sizeof(DWORD));
-  ReadOption(&oh, L"DateLogFormat", PO_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
-  ReadOption(&oh, L"DateInsertFormat", PO_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat));
+  ReadOption(&oh, L"ShowModify", MOT_DWORD, &mo->dwShowModify, sizeof(DWORD));
+  ReadOption(&oh, L"StatusPosType", MOT_DWORD, &mo->dwStatusPosType, sizeof(DWORD));
+  ReadOption(&oh, L"WordBreak", MOT_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD));
+  ReadOption(&oh, L"PaintOptions", MOT_DWORD, &mo->dwPaintOptions, sizeof(DWORD));
+  ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD));
+  ReadOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
+  ReadOption(&oh, L"DateInsertFormat", MOT_STRING, mo->wszDateInsertFormat, sizeof(mo->wszDateInsertFormat));
 
   //Frame data
-  ReadOption(&oh, L"WordWrap", PO_DWORD, &fd->ei.bWordWrap, sizeof(DWORD));
-  ReadOption(&oh, L"UndoLimit", PO_DWORD, &fd->nUndoLimit, sizeof(DWORD));
-  ReadOption(&oh, L"DetailedUndo", PO_DWORD, &fd->bDetailedUndo, sizeof(DWORD));
-  ReadOption(&oh, L"WrapType", PO_DWORD, &fd->dwWrapType, sizeof(DWORD));
-  ReadOption(&oh, L"WrapLimit", PO_DWORD, &fd->dwWrapLimit, sizeof(DWORD));
-  ReadOption(&oh, L"Marker", PO_DWORD, &fd->dwMarker, sizeof(DWORD));
-  ReadOption(&oh, L"CaretOptions", PO_DWORD, &fd->dwCaretOptions, sizeof(DWORD));
-  ReadOption(&oh, L"CaretWidth", PO_DWORD, &fd->nCaretWidth, sizeof(DWORD));
-  ReadOption(&oh, L"MouseOptions", PO_DWORD, &fd->dwMouseOptions, sizeof(DWORD));
-  ReadOption(&oh, L"LineGap", PO_DWORD, &fd->dwLineGap, sizeof(DWORD));
-  ReadOption(&oh, L"TabStopSize", PO_DWORD, &fd->nTabStopSize, sizeof(DWORD));
-  ReadOption(&oh, L"TabStopAsSpaces", PO_DWORD, &fd->bTabStopAsSpaces, sizeof(DWORD));
-  ReadOption(&oh, L"MarginsEdit", PO_DWORD, &fd->dwEditMargins, sizeof(DWORD));
-  ReadOption(&oh, L"ShowURL", PO_DWORD, &fd->bShowURL, sizeof(DWORD));
-  ReadOption(&oh, L"ClickURL", PO_DWORD, &fd->nClickURL, sizeof(DWORD));
-  ReadOption(&oh, L"UrlPrefixesEnable", PO_DWORD, &fd->bUrlPrefixesEnable, sizeof(DWORD));
-  ReadOption(&oh, L"UrlPrefixes", PO_BINARY, fd->wszUrlPrefixes, sizeof(fd->wszUrlPrefixes));
-  ReadOption(&oh, L"UrlDelimitersEnable", PO_DWORD, &fd->bUrlDelimitersEnable, sizeof(DWORD));
-  ReadOption(&oh, L"UrlLeftDelimiters", PO_BINARY, fd->wszUrlLeftDelimiters, sizeof(fd->wszUrlLeftDelimiters));
-  ReadOption(&oh, L"UrlRightDelimiters", PO_BINARY, fd->wszUrlRightDelimiters, sizeof(fd->wszUrlRightDelimiters));
-  ReadOption(&oh, L"WordDelimitersEnable", PO_DWORD, &fd->bWordDelimitersEnable, sizeof(DWORD));
-  ReadOption(&oh, L"WordDelimiters", PO_BINARY, fd->wszWordDelimiters, sizeof(fd->wszWordDelimiters));
-  ReadOption(&oh, L"WrapDelimitersEnable", PO_DWORD, &fd->bWrapDelimitersEnable, sizeof(DWORD));
-  ReadOption(&oh, L"WrapDelimiters", PO_BINARY, fd->wszWrapDelimiters, sizeof(fd->wszWrapDelimiters));
-  ReadOption(&oh, L"Font", PO_BINARY, &fd->lf, offsetof(LOGFONTW, lfFaceName));
-  ReadOption(&oh, L"FontFace", PO_STRING, fd->lf.lfFaceName, sizeof(fd->lf.lfFaceName));
-  ReadOption(&oh, L"Colors", PO_BINARY, &fd->aec, sizeof(AECOLORS));
+  ReadOption(&oh, L"WordWrap", MOT_DWORD, &fd->ei.bWordWrap, sizeof(DWORD));
+  ReadOption(&oh, L"UndoLimit", MOT_DWORD, &fd->nUndoLimit, sizeof(DWORD));
+  ReadOption(&oh, L"DetailedUndo", MOT_DWORD, &fd->bDetailedUndo, sizeof(DWORD));
+  ReadOption(&oh, L"WrapType", MOT_DWORD, &fd->dwWrapType, sizeof(DWORD));
+  ReadOption(&oh, L"WrapLimit", MOT_DWORD, &fd->dwWrapLimit, sizeof(DWORD));
+  ReadOption(&oh, L"Marker", MOT_DWORD, &fd->dwMarker, sizeof(DWORD));
+  ReadOption(&oh, L"CaretOptions", MOT_DWORD, &fd->dwCaretOptions, sizeof(DWORD));
+  ReadOption(&oh, L"CaretWidth", MOT_DWORD, &fd->nCaretWidth, sizeof(DWORD));
+  ReadOption(&oh, L"MouseOptions", MOT_DWORD, &fd->dwMouseOptions, sizeof(DWORD));
+  ReadOption(&oh, L"LineGap", MOT_DWORD, &fd->dwLineGap, sizeof(DWORD));
+  ReadOption(&oh, L"TabStopSize", MOT_DWORD, &fd->nTabStopSize, sizeof(DWORD));
+  ReadOption(&oh, L"TabStopAsSpaces", MOT_DWORD, &fd->bTabStopAsSpaces, sizeof(DWORD));
+  ReadOption(&oh, L"MarginsEdit", MOT_DWORD, &fd->dwEditMargins, sizeof(DWORD));
+  ReadOption(&oh, L"ShowURL", MOT_DWORD, &fd->bShowURL, sizeof(DWORD));
+  ReadOption(&oh, L"ClickURL", MOT_DWORD, &fd->nClickURL, sizeof(DWORD));
+  ReadOption(&oh, L"UrlPrefixesEnable", MOT_DWORD, &fd->bUrlPrefixesEnable, sizeof(DWORD));
+  ReadOption(&oh, L"UrlPrefixes", MOT_BINARY, fd->wszUrlPrefixes, sizeof(fd->wszUrlPrefixes));
+  ReadOption(&oh, L"UrlDelimitersEnable", MOT_DWORD, &fd->bUrlDelimitersEnable, sizeof(DWORD));
+  ReadOption(&oh, L"UrlLeftDelimiters", MOT_BINARY, fd->wszUrlLeftDelimiters, sizeof(fd->wszUrlLeftDelimiters));
+  ReadOption(&oh, L"UrlRightDelimiters", MOT_BINARY, fd->wszUrlRightDelimiters, sizeof(fd->wszUrlRightDelimiters));
+  ReadOption(&oh, L"WordDelimitersEnable", MOT_DWORD, &fd->bWordDelimitersEnable, sizeof(DWORD));
+  ReadOption(&oh, L"WordDelimiters", MOT_BINARY, fd->wszWordDelimiters, sizeof(fd->wszWordDelimiters));
+  ReadOption(&oh, L"WrapDelimitersEnable", MOT_DWORD, &fd->bWrapDelimitersEnable, sizeof(DWORD));
+  ReadOption(&oh, L"WrapDelimiters", MOT_BINARY, fd->wszWrapDelimiters, sizeof(fd->wszWrapDelimiters));
+  ReadOption(&oh, L"Font", MOT_BINARY, &fd->lf, offsetof(LOGFONTW, lfFaceName));
+  ReadOption(&oh, L"FontFace", MOT_STRING, fd->lf.lfFaceName, sizeof(fd->lf.lfFaceName));
+  ReadOption(&oh, L"Colors", MOT_BINARY, &fd->aec, sizeof(AECOLORS));
 
   //Menu settings
-  ReadOption(&oh, L"OnTop", PO_DWORD, &mo->bOnTop, sizeof(DWORD));
-  ReadOption(&oh, L"StatusBar", PO_DWORD, &mo->bStatusBar, sizeof(DWORD));
-  ReadOption(&oh, L"LanguageModule", PO_STRING, mo->wszLangModule, sizeof(mo->wszLangModule));
-  ReadOption(&oh, L"KeepSpace", PO_DWORD, &mo->bKeepSpace, sizeof(DWORD));
-  ReadOption(&oh, L"WatchFile", PO_DWORD, &mo->bWatchFile, sizeof(DWORD));
-  ReadOption(&oh, L"SaveTime", PO_DWORD, &mo->bSaveTime, sizeof(DWORD));
-  ReadOption(&oh, L"SingleOpenFile", PO_DWORD, &mo->bSingleOpenFile, sizeof(DWORD));
-  ReadOption(&oh, L"SingleOpenProgram", PO_DWORD, &mo->bSingleOpenProgram, sizeof(DWORD));
-  ReadOption(&oh, L"MDI", PO_DWORD, &mo->nMDI, sizeof(DWORD));
+  ReadOption(&oh, L"OnTop", MOT_DWORD, &mo->bOnTop, sizeof(DWORD));
+  ReadOption(&oh, L"StatusBar", MOT_DWORD, &mo->bStatusBar, sizeof(DWORD));
+  ReadOption(&oh, L"LanguageModule", MOT_STRING, mo->wszLangModule, sizeof(mo->wszLangModule));
+  ReadOption(&oh, L"KeepSpace", MOT_DWORD, &mo->bKeepSpace, sizeof(DWORD));
+  ReadOption(&oh, L"WatchFile", MOT_DWORD, &mo->bWatchFile, sizeof(DWORD));
+  ReadOption(&oh, L"SaveTime", MOT_DWORD, &mo->bSaveTime, sizeof(DWORD));
+  ReadOption(&oh, L"SingleOpenFile", MOT_DWORD, &mo->bSingleOpenFile, sizeof(DWORD));
+  ReadOption(&oh, L"SingleOpenProgram", MOT_DWORD, &mo->bSingleOpenProgram, sizeof(DWORD));
+  ReadOption(&oh, L"MDI", MOT_DWORD, &mo->nMDI, sizeof(DWORD));
   if (mo->nMDI)
   {
-    ReadOption(&oh, L"TabOptionsMDI", PO_DWORD, &mo->dwTabOptionsMDI, sizeof(DWORD));
+    ReadOption(&oh, L"TabOptionsMDI", MOT_DWORD, &mo->dwTabOptionsMDI, sizeof(DWORD));
   }
 
   //Settings dialog
@@ -3370,69 +3370,69 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
   {
     if (lpCodepageList=(int *)API_HeapAlloc(hHeap, 0, dwSize))
     {
-      ReadOption(&oh, L"CodepageList", PO_BINARY, lpCodepageList, dwSize);
+      ReadOption(&oh, L"CodepageList", MOT_BINARY, lpCodepageList, dwSize);
       nCodepageListLen=CodepageListLen(lpCodepageList);
     }
   }
-  ReadOption(&oh, L"ExecuteCommand", PO_STRING, mo->wszCommand, sizeof(mo->wszCommand));
-  ReadOption(&oh, L"ExecuteDirectory", PO_STRING, mo->wszWorkDir, sizeof(mo->wszWorkDir));
-  ReadOption(&oh, L"DefaultCodepage", PO_DWORD, &mo->nDefaultCodePage, sizeof(DWORD));
-  ReadOption(&oh, L"DefaultNewLine", PO_DWORD, &mo->nDefaultNewLine, sizeof(DWORD));
-  ReadOption(&oh, L"CodepageRecognition", PO_DWORD, &mo->dwLangCodepageRecognition, sizeof(DWORD));
-  ReadOption(&oh, L"CodepageRecognitionBuffer", PO_DWORD, &mo->dwCodepageRecognitionBuffer, sizeof(DWORD));
-  ReadOption(&oh, L"SavePositions", PO_DWORD, &mo->bSavePositions, sizeof(DWORD));
-  ReadOption(&oh, L"SaveCodepages", PO_DWORD, &mo->bSaveCodepages, sizeof(DWORD));
-  ReadOption(&oh, L"RecentFiles", PO_DWORD, &mo->nRecentFiles, sizeof(DWORD));
-  ReadOption(&oh, L"SearchStrings", PO_DWORD, &mo->nSearchStrings, sizeof(DWORD));
-  ReadOption(&oh, L"FileTypesOpen", PO_STRING, mo->wszFileTypesOpen, sizeof(mo->wszFileTypesOpen));
-  ReadOption(&oh, L"FileTypesEdit", PO_STRING, mo->wszFileTypesEdit, sizeof(mo->wszFileTypesEdit));
-  ReadOption(&oh, L"FileTypesPrint", PO_STRING, mo->wszFileTypesPrint, sizeof(mo->wszFileTypesPrint));
-  ReadOption(&oh, L"FileTypesAssociated", PO_DWORD, &mo->dwFileTypesAssociated, sizeof(DWORD));
+  ReadOption(&oh, L"ExecuteCommand", MOT_STRING, mo->wszCommand, sizeof(mo->wszCommand));
+  ReadOption(&oh, L"ExecuteDirectory", MOT_STRING, mo->wszWorkDir, sizeof(mo->wszWorkDir));
+  ReadOption(&oh, L"DefaultCodepage", MOT_DWORD, &mo->nDefaultCodePage, sizeof(DWORD));
+  ReadOption(&oh, L"DefaultNewLine", MOT_DWORD, &mo->nDefaultNewLine, sizeof(DWORD));
+  ReadOption(&oh, L"CodepageRecognition", MOT_DWORD, &mo->dwLangCodepageRecognition, sizeof(DWORD));
+  ReadOption(&oh, L"CodepageRecognitionBuffer", MOT_DWORD, &mo->dwCodepageRecognitionBuffer, sizeof(DWORD));
+  ReadOption(&oh, L"SavePositions", MOT_DWORD, &mo->bSavePositions, sizeof(DWORD));
+  ReadOption(&oh, L"SaveCodepages", MOT_DWORD, &mo->bSaveCodepages, sizeof(DWORD));
+  ReadOption(&oh, L"RecentFiles", MOT_DWORD, &mo->nRecentFiles, sizeof(DWORD));
+  ReadOption(&oh, L"SearchStrings", MOT_DWORD, &mo->nSearchStrings, sizeof(DWORD));
+  ReadOption(&oh, L"FileTypesOpen", MOT_STRING, mo->wszFileTypesOpen, sizeof(mo->wszFileTypesOpen));
+  ReadOption(&oh, L"FileTypesEdit", MOT_STRING, mo->wszFileTypesEdit, sizeof(mo->wszFileTypesEdit));
+  ReadOption(&oh, L"FileTypesPrint", MOT_STRING, mo->wszFileTypesPrint, sizeof(mo->wszFileTypesPrint));
+  ReadOption(&oh, L"FileTypesAssociated", MOT_DWORD, &mo->dwFileTypesAssociated, sizeof(DWORD));
   if (mo->nMDI)
   {
-    ReadOption(&oh, L"KeybLayoutMDI", PO_DWORD, &mo->bKeybLayoutMDI, sizeof(DWORD));
+    ReadOption(&oh, L"KeybLayoutMDI", MOT_DWORD, &mo->bKeybLayoutMDI, sizeof(DWORD));
   }
-  ReadOption(&oh, L"ReplaceAllAndClose", PO_DWORD, &mo->bReplaceAllAndClose, sizeof(DWORD));
-  ReadOption(&oh, L"DateLog", PO_DWORD, &mo->bDateLog, sizeof(DWORD));
-  ReadOption(&oh, L"SaveInReadOnlyMsg", PO_DWORD, &mo->bSaveInReadOnlyMsg, sizeof(DWORD));
-  ReadOption(&oh, L"DefaultSaveExt", PO_STRING, mo->wszDefaultSaveExt, sizeof(mo->wszDefaultSaveExt));
+  ReadOption(&oh, L"ReplaceAllAndClose", MOT_DWORD, &mo->bReplaceAllAndClose, sizeof(DWORD));
+  ReadOption(&oh, L"DateLog", MOT_DWORD, &mo->bDateLog, sizeof(DWORD));
+  ReadOption(&oh, L"SaveInReadOnlyMsg", MOT_DWORD, &mo->bSaveInReadOnlyMsg, sizeof(DWORD));
+  ReadOption(&oh, L"DefaultSaveExt", MOT_STRING, mo->wszDefaultSaveExt, sizeof(mo->wszDefaultSaveExt));
 
   //Search dialog
-  ReadOption(&oh, L"SearchOptions", PO_DWORD, &mo->dwSearchOptions, sizeof(DWORD));
+  ReadOption(&oh, L"SearchOptions", MOT_DWORD, &mo->dwSearchOptions, sizeof(DWORD));
 
   //Open file dialog
-  ReadOption(&oh, L"LastDirectory", PO_STRING, mo->wszLastDir, sizeof(mo->wszLastDir));
+  ReadOption(&oh, L"LastDirectory", MOT_STRING, mo->wszLastDir, sizeof(mo->wszLastDir));
 
   //Print dialog
-  ReadOption(&oh, L"MarginsPrint", PO_BINARY, &mo->rcPrintMargins, sizeof(RECT));
-  ReadOption(&oh, L"PrintColor", PO_DWORD, &mo->dwPrintColor, sizeof(DWORD));
-  ReadOption(&oh, L"PrintHeaderEnable", PO_DWORD, &mo->bPrintHeaderEnable, sizeof(DWORD));
-  ReadOption(&oh, L"PrintHeader", PO_STRING, mo->wszPrintHeader, sizeof(mo->wszPrintHeader));
-  ReadOption(&oh, L"PrintFooterEnable", PO_DWORD, &mo->bPrintFooterEnable, sizeof(DWORD));
-  ReadOption(&oh, L"PrintFooter", PO_STRING, mo->wszPrintFooter, sizeof(mo->wszPrintFooter));
-  ReadOption(&oh, L"PrintFontEnable", PO_DWORD, &mo->bPrintFontEnable, sizeof(DWORD));
-  ReadOption(&oh, L"PrintFont", PO_BINARY, &mo->lfPrintFont, offsetof(LOGFONTW, lfFaceName));
-  ReadOption(&oh, L"PrintFontFace", PO_STRING, mo->lfPrintFont.lfFaceName, sizeof(mo->lfPrintFont.lfFaceName));
+  ReadOption(&oh, L"MarginsPrint", MOT_BINARY, &mo->rcPrintMargins, sizeof(RECT));
+  ReadOption(&oh, L"PrintColor", MOT_DWORD, &mo->dwPrintColor, sizeof(DWORD));
+  ReadOption(&oh, L"PrintHeaderEnable", MOT_DWORD, &mo->bPrintHeaderEnable, sizeof(DWORD));
+  ReadOption(&oh, L"PrintHeader", MOT_STRING, mo->wszPrintHeader, sizeof(mo->wszPrintHeader));
+  ReadOption(&oh, L"PrintFooterEnable", MOT_DWORD, &mo->bPrintFooterEnable, sizeof(DWORD));
+  ReadOption(&oh, L"PrintFooter", MOT_STRING, mo->wszPrintFooter, sizeof(mo->wszPrintFooter));
+  ReadOption(&oh, L"PrintFontEnable", MOT_DWORD, &mo->bPrintFontEnable, sizeof(DWORD));
+  ReadOption(&oh, L"PrintFont", MOT_BINARY, &mo->lfPrintFont, offsetof(LOGFONTW, lfFaceName));
+  ReadOption(&oh, L"PrintFontFace", MOT_STRING, mo->lfPrintFont.lfFaceName, sizeof(mo->lfPrintFont.lfFaceName));
 
   //Colors dialog
-  ReadOption(&oh, L"ColorsDialog", PO_BINARY, &mo->rcColorsCurrentDialog, sizeof(RECT));
+  ReadOption(&oh, L"ColorsDialog", MOT_BINARY, &mo->rcColorsCurrentDialog, sizeof(RECT));
 
   //Plugin dialog
-  ReadOption(&oh, L"PluginsDialog", PO_BINARY, &mo->rcPluginsCurrentDialog, sizeof(RECT));
+  ReadOption(&oh, L"PluginsDialog", MOT_BINARY, &mo->rcPluginsCurrentDialog, sizeof(RECT));
 
   //Mdi list dialog
   if (mo->nMDI)
   {
-    ReadOption(&oh, L"MdiListOptions", PO_DWORD, &mo->dwMdiListOptions, sizeof(DWORD));
-    ReadOption(&oh, L"MdiListDialog", PO_BINARY, &mo->rcMdiListCurrentDialog, sizeof(RECT));
+    ReadOption(&oh, L"MdiListOptions", MOT_DWORD, &mo->dwMdiListOptions, sizeof(DWORD));
+    ReadOption(&oh, L"MdiListDialog", MOT_BINARY, &mo->rcMdiListCurrentDialog, sizeof(RECT));
   }
 
   //Main window
-  ReadOption(&oh, L"WindowStyle", PO_DWORD, &mo->dwMainStyle, sizeof(DWORD));
-  ReadOption(&oh, L"WindowPosition", PO_BINARY, &mo->rcMainWindowRestored, sizeof(RECT));
+  ReadOption(&oh, L"WindowStyle", MOT_DWORD, &mo->dwMainStyle, sizeof(DWORD));
+  ReadOption(&oh, L"WindowPosition", MOT_BINARY, &mo->rcMainWindowRestored, sizeof(RECT));
   if (mo->nMDI)
   {
-    ReadOption(&oh, L"WindowStyleMDI", PO_DWORD, &mo->dwMdiStyle, sizeof(DWORD));
+    ReadOption(&oh, L"WindowStyleMDI", MOT_DWORD, &mo->dwMdiStyle, sizeof(DWORD));
   }
 
   //Read and register plugins hotkeys
