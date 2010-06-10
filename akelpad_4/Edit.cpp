@@ -10903,14 +10903,14 @@ void CallPluginsOnStart(HSTACK *hStack)
     {
       pcs.pFunction=pfElement->wszFunction;
       pcs.lParam=0;
-      pcs.lpbAutoLoad=NULL;
-      CallPluginSend(&pfElement, &pcs, TRUE);
+      //pcs.dwSupport=0;
+      CallPluginSend(&pfElement, &pcs, DLLCF_ONPROGRAMLOAD);
     }
     pfElement=pfNextElement;
   }
 }
 
-int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, BOOL bOnStart)
+int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFlags)
 {
   PLUGINFUNCTION *pfElement=NULL;
   int nResult=UD_FAILED;
@@ -10920,14 +10920,11 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, BOOL bOnSt
     if (ppfElement)
       pfElement=*ppfElement;
 
-    if (!pcs->lpbAutoLoad)
+    if (!pfElement)
     {
-      if (!pfElement)
-      {
-        if (!(pfElement=StackPluginFind(&hPluginsStack, pcs->pFunction, -1)))
-          if (!(pfElement=StackPluginAdd(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, NULL, NULL)))
-            return UD_FAILED;
-      }
+      if (!(pfElement=StackPluginFind(&hPluginsStack, pcs->pFunction, -1)))
+        if (!(pfElement=StackPluginAdd(&hPluginsStack, pcs->pFunction, lstrlenW(pcs->pFunction), 0, FALSE, NULL, NULL)))
+          return UD_FAILED;
     }
 
     if (pfElement && pfElement->PluginProc)
@@ -10939,39 +10936,58 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, BOOL bOnSt
     }
     else
     {
-      nResult=CallPlugin(pfElement, pcs, bOnStart);
+      nResult=CallPlugin(pfElement, pcs, dwFlags);
 
-      if (!pcs->lpbAutoLoad)
+      if (nResult != UD_FAILED)
       {
-        if (nResult != UD_FAILED)
+        if (!(nResult & UD_NONUNLOAD_UNCHANGE))
         {
-          if (!(nResult & UD_NONUNLOAD_UNCHANGE))
+          if (nResult & UD_NONUNLOAD_ACTIVE)
           {
-            if (nResult & UD_NONUNLOAD_ACTIVE)
+            if ((dwFlags & DLLCF_SWITCHAUTOLOAD) && !(pcs->dwSupport & PDS_NOAUTOLOAD) && !(dwFlags & DLLCF_GETSUPPORT))
             {
-              pfElement->bRunning=TRUE;
+              if (!pfElement->bAutoLoad)
+              {
+                pfElement->bAutoLoad=TRUE;
+                if (dwFlags & DLLCF_SAVENOW)
+                  PostMessage(hMainWnd, AKD_DLLSAVE, DLLSF_NOW, 0);
+                else if (dwFlags & DLLCF_SAVEONEXIT)
+                  PostMessage(hMainWnd, AKD_DLLSAVE, DLLSF_ONEXIT, 0);
+              }
+            }
+            pfElement->bRunning=TRUE;
+          }
+          else
+          {
+            if (dwFlags & DLLCF_SWITCHAUTOLOAD)
+            {
+              if (pfElement->bAutoLoad)
+              {
+                pfElement->bAutoLoad=FALSE;
+                if (dwFlags & DLLCF_SAVENOW)
+                  PostMessage(hMainWnd, AKD_DLLSAVE, DLLSF_NOW, 0);
+                else if (dwFlags & DLLCF_SAVEONEXIT)
+                  PostMessage(hMainWnd, AKD_DLLSAVE, DLLSF_ONEXIT, 0);
+              }
+            }
+            if (pfElement->wHotkey || pfElement->bAutoLoad)
+            {
+              pfElement->bRunning=FALSE;
             }
             else
             {
-              if (pfElement->wHotkey || pfElement->bAutoLoad)
-              {
-                pfElement->bRunning=FALSE;
-              }
-              else
-              {
-                StackPluginDelete(&hPluginsStack, pfElement);
-                pfElement=NULL;
-              }
+              StackPluginDelete(&hPluginsStack, pfElement);
+              pfElement=NULL;
             }
           }
         }
-        else
+      }
+      else
+      {
+        //if (!pfElement->wHotkey && !pfElement->bAutoLoad)
         {
-          //if (!pfElement->wHotkey && !pfElement->bAutoLoad)
-          {
-            StackPluginDelete(&hPluginsStack, pfElement);
-            pfElement=NULL;
-          }
+          StackPluginDelete(&hPluginsStack, pfElement);
+          pfElement=NULL;
         }
       }
     }
@@ -10982,7 +10998,7 @@ int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, BOOL bOnSt
   return nResult;
 }
 
-int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnStart)
+int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwFlags)
 {
   wchar_t wszPlugin[MAX_PATH];
   wchar_t wszFunction[MAX_PATH];
@@ -10998,8 +11014,6 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnS
   int nWordLen;
   void (*PluginIDPtr)(PLUGINVERSION *);
   void (*PluginFunctionPtr)(PLUGINDATA *);
-
-  if (pcs->lpbAutoLoad) *pcs->lpbAutoLoad=TRUE;
 
   if (pcs->pFunction)
   {
@@ -11043,7 +11057,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnS
                 if (PluginFunctionPtr=(void (*)(PLUGINDATA *))GetProcAddress(hModule, szFunction))
                 {
                   pd.cb=sizeof(PLUGINDATA);
-                  pd.lpbAutoLoad=pcs->lpbAutoLoad;
+                  pd.dwSupport=(dwFlags & DLLCF_GETSUPPORT)?PDS_GETSUPPORT:PDS_SUPPORTALL;
                   pd.pFunction=bOldWindows?(LPBYTE)szFullName:(LPBYTE)pcs->pFunction;
                   pd.szFunction=szFullName;
                   pd.wszFunction=pcs->pFunction;
@@ -11051,7 +11065,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnS
                   pd.lpPluginFunction=lpPluginFunction;
                   pd.nUnload=UD_UNLOAD;
                   pd.bInMemory=bInMemory;
-                  pd.bOnStart=bOnStart;
+                  pd.bOnStart=(dwFlags & DLLCF_ONPROGRAMLOAD);
                   pd.lParam=pcs->lParam;
                   pd.pAkelDir=bOldWindows?(LPBYTE)szExeDir:(LPBYTE)wszExeDir;
                   pd.szAkelDir=szExeDir;
@@ -11085,7 +11099,8 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, BOOL bOnS
                   (*PluginFunctionPtr)(&pd);
                   SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
 
-                  if (pcs->lpbAutoLoad && bInMemory)
+                  pcs->dwSupport=pd.dwSupport;
+                  if ((dwFlags & DLLCF_GETSUPPORT) && bInMemory)
                     return UD_NONUNLOAD_UNCHANGE;
                   if ((pd.nUnload & UD_NONUNLOAD_ACTIVE) ||
                       (pd.nUnload & UD_NONUNLOAD_NONACTIVE) ||
@@ -11194,8 +11209,8 @@ BOOL TranslatePlugin(LPMSG lpMsg)
         xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallPostW->szFunction);
       pcsW.pFunction=wszPluginFunction;
       pcsW.lParam=lpCallPostW->lParam;
-      pcsW.lpbAutoLoad=NULL;
-      CallPluginSend(NULL, &pcsW, FALSE);
+      //pcsW.dwSupport=0;
+      CallPluginSend(NULL, &pcsW, lpMsg->wParam);
       GlobalFree((HGLOBAL)lpMsg->lParam);
     }
     return TRUE;
@@ -11279,8 +11294,8 @@ BOOL TranslateHotkey(HSTACK *hStack, LPMSG lpMsg)
 
         pcs.pFunction=pfElement->wszFunction;
         pcs.lParam=0;
-        pcs.lpbAutoLoad=NULL;
-        if (CallPluginSend(&pfElement, &pcs, FALSE) & UD_HOTKEY_DODEFAULT)
+        //pcs.dwSupport=0;
+        if (CallPluginSend(&pfElement, &pcs, 0) & UD_HOTKEY_DODEFAULT)
           break;
         return TRUE;
       }
@@ -11509,17 +11524,23 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                 if (bNewState)
                 {
-                  if (pliElement->nAutoLoad == -1 || pliElement->nCallResult == UD_FAILED)
+                  if (pliElement->nCallResult == UD_FAILED || pliElement->nAutoLoad == -1)
                   {
                     //Check plugin autoload support
                     PLUGINCALLSENDW pcs;
 
                     pcs.pFunction=pliElement->pf->wszFunction;
                     pcs.lParam=0;
-                    pcs.lpbAutoLoad=&pliElement->nAutoLoad;
-                    pliElement->nCallResult=CallPluginSend(NULL, &pcs, FALSE);
+                    pcs.dwSupport=0;
+                    if ((pliElement->nCallResult=CallPluginSend(NULL, &pcs, DLLCF_GETSUPPORT)) != UD_FAILED)
+                    {
+                      if (pcs.dwSupport & PDS_NOAUTOLOAD)
+                        pliElement->nAutoLoad=0;
+                      else
+                        pliElement->nAutoLoad=1;
+                    }
                   }
-                  if (pliElement->nAutoLoad == 0 || pliElement->nCallResult == UD_FAILED)
+                  if (pliElement->nCallResult == UD_FAILED || pliElement->nAutoLoad == 0)
                   {
                     if (pliElement->nAutoLoad == 0)
                     {
@@ -14715,7 +14736,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           if (dwAction)
           {
             for (wpAction=wszCmdArg; *wpAction != '('; ++wpAction);
-            GetActionParameters(&hParamStack, ++wpAction, NULL);
+            GetMethodParameters(&hParamStack, ++wpAction, NULL);
 
             if (dwAction == EXTACT_COMMAND)
             {
@@ -14740,8 +14761,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
                   pcs.lParam=(LPARAM)(lpStruct + sizeof(int));
                 else
                   pcs.lParam=0;
-                pcs.lpbAutoLoad=NULL;
-                CallPluginSend(NULL, &pcs, FALSE);
+                //pcs.dwSupport=0;
+                CallPluginSend(NULL, &pcs, 0);
               }
             }
             else if (dwAction == EXTACT_EXEC)
@@ -14817,11 +14838,11 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
 
               if (bEscSequences)
               {
-                if (nUnescTextLen=RecoverEscapeString(lpFrameCurrent, wpText, NULL))
+                if (nUnescTextLen=TranslateEscapeString(lpFrameCurrent, wpText, NULL))
                 {
                   if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
                   {
-                    RecoverEscapeString(lpFrameCurrent, wpText, wpUnescText);
+                    TranslateEscapeString(lpFrameCurrent, wpText, wpUnescText);
                   }
                 }
                 wpText=wpUnescText;
@@ -14864,7 +14885,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
                 }
               }
             }
-            FreeActionParameters(&hParamStack);
+            FreeMethodParameters(&hParamStack);
           }
         }
         continue;
@@ -14927,16 +14948,16 @@ void PostCmdLine(HWND hWnd, const wchar_t *wpCmdLine)
   SendMessage(hWnd, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
 }
 
-void GetActionParameters(STACKEXTPARAM *hParamStack, wchar_t *wpText, wchar_t **wppText)
+void GetMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
 {
   EXTPARAM *lpParameter;
-  wchar_t *wpParamBegin=wpText;
-  wchar_t *wpParamEnd;
+  const wchar_t *wpParamBegin=wpText;
+  const wchar_t *wpParamEnd;
   wchar_t *wpString;
   wchar_t wchStopChar;
   int nStringLen;
 
-  GetActionParameter:
+  GetMethodParameter:
   while (*wpParamBegin == ' ' || *wpParamBegin == '\t') ++wpParamBegin;
 
   if (*wpParamBegin == '\"' || *wpParamBegin == '\'' || *wpParamBegin == '`')
@@ -14989,14 +15010,14 @@ void GetActionParameters(STACKEXTPARAM *hParamStack, wchar_t *wpText, wchar_t **
   if (*wpParamEnd == ',')
   {
     wpParamBegin=++wpParamEnd;
-    goto GetActionParameter;
+    goto GetMethodParameter;
   }
   if (*wpParamEnd == ')')
     ++wpParamEnd;
   if (wppText) *wppText=wpParamEnd;
 }
 
-void SetParametersExpChar(STACKEXTPARAM *hParamStack, wchar_t *wpFile, wchar_t *wpExeDir)
+void SetParametersExpChar(STACKEXTPARAM *hParamStack, const wchar_t *wpFile, const wchar_t *wpExeDir)
 {
   //%f -file, %d -file directory, %a -AkelPad directory, %% -%
   EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
@@ -15229,9 +15250,9 @@ wchar_t* GetParameterExpCharW(STACKEXTPARAM *hParamStack, int nIndex)
   return NULL;
 }
 
-int RecoverEscapeString(FRAMEDATA *lpFrame, wchar_t *wpInput, wchar_t *wszOutput)
+int TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput)
 {
-  wchar_t *a=wpInput;
+  const wchar_t *a=wpInput;
   wchar_t *b=wszOutput;
   wchar_t whex[5];
   int nDec;
@@ -15321,7 +15342,7 @@ int RecoverEscapeString(FRAMEDATA *lpFrame, wchar_t *wpInput, wchar_t *wszOutput
   return 0;
 }
 
-void FreeActionParameters(STACKEXTPARAM *hParamStack)
+void FreeMethodParameters(STACKEXTPARAM *hParamStack)
 {
   EXTPARAM *lpParameter=(EXTPARAM *)hParamStack->first;
 
