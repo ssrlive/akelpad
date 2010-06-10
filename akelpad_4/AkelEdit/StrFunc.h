@@ -2681,14 +2681,16 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
       }
       if (*pFmt == '.')
       {
-        if (!(dwPrecision=(unsigned int)xatoiA(pFmt + 1, &pFmt)))
+        //Special format to specify argument as precision: "%.%us" or "%.%ds"
+        if (*++pFmt == '%' && (*(pFmt + 1) == 'u' || *(pFmt + 1) == 'd'))
         {
-          //Special format to specify argument as precision: "%.%us" or "%.%ds"
-          if (*pFmt == '%' && (*(pFmt + 1) == 'u' || *(pFmt + 1) == 'd'))
-          {
-            dwPrecision=(unsigned int)va_arg(val, int);
-            pFmt+=2;
-          }
+          dwPrecision=(unsigned int)va_arg(val, int);
+          pFmt+=2;
+        }
+        else if (!(dwPrecision=(unsigned int)xatoiA(pFmt, &pFmt)))
+        {
+          //"%.0s" - ignore string
+          dwPrecision=(unsigned int)-1;
         }
       }
 
@@ -2762,30 +2764,33 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
       {
         if (pString=va_arg(val, unsigned char *))
         {
-          if (*pFmt == 'S')
-            dwLen=lstrlenW((wchar_t *)pString);
-          if (!szOutput || nWidth > 0)
-          {
-            if (*pFmt == 's')
-              dwLen=lstrlenA((char *)pString);
-            if (dwPrecision)
-              dwLen=min(dwLen, dwPrecision);
-            if (nWidth > 0)
-            {
-              nWidth=max(nWidth - dwLen, 0);
-              pOut+=nWidth;
-            }
-          }
-          if (szOutput)
+          if (dwPrecision != (DWORD)-1)
           {
             if (*pFmt == 'S')
+              dwLen=lstrlenW((wchar_t *)pString);
+            if (!szOutput || nWidth > 0)
             {
-              if (dwLen=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pString, dwPrecision?(int)dwPrecision + 1:-1, pOut, (dwLen + 1) * sizeof(wchar_t), NULL, NULL))
-                pOut[--dwLen]='\0';
+              if (*pFmt == 's')
+                dwLen=lstrlenA((char *)pString);
+              if (dwPrecision)
+                dwLen=min(dwLen, dwPrecision);
+              if (nWidth > 0)
+              {
+                nWidth=max(nWidth - dwLen, 0);
+                pOut+=nWidth;
+              }
             }
-            else dwLen=xstrcpynA(pOut, (char *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
+            if (szOutput)
+            {
+              if (*pFmt == 'S')
+              {
+                if (dwLen=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pString, dwPrecision?(int)dwPrecision + 1:-1, pOut, (dwLen + 1) * sizeof(wchar_t), NULL, NULL))
+                  pOut[--dwLen]='\0';
+              }
+              else dwLen=xstrcpynA(pOut, (char *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
+            }
+            pOut+=dwLen;
           }
-          pOut+=dwLen;
         }
       }
 
@@ -2890,14 +2895,16 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       }
       if (*wpFmt == L'.')
       {
-        if (!(dwPrecision=(unsigned int)xatoiW(wpFmt + 1, &wpFmt)))
+        //Special format to specify argument as precision: "%.%us" or "%.%ds"
+        if (*++wpFmt == '%' && (*(wpFmt + 1) == L'u' || *(wpFmt + 1) == L'd'))
         {
-          //Special format to specify argument as precision: "%.%us" or "%.%ds"
-          if (*wpFmt == '%' && (*(wpFmt + 1) == 'u' || *(wpFmt + 1) == 'd'))
-          {
-            dwPrecision=(unsigned int)va_arg(val, int);
-            wpFmt+=2;
-          }
+          dwPrecision=(unsigned int)va_arg(val, int);
+          wpFmt+=2;
+        }
+        else if (!(dwPrecision=(unsigned int)xatoiW(wpFmt, &wpFmt)))
+        {
+          //"%.0s" - ignore string
+          dwPrecision=(unsigned int)-1;
         }
       }
 
@@ -2971,30 +2978,33 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
       {
         if (pString=va_arg(val, unsigned char *))
         {
-          if (*wpFmt == L'S')
-            dwLen=lstrlenA((char *)pString);
-          if (!wszOutput || nWidth > 0)
-          {
-            if (*wpFmt == L's')
-              dwLen=lstrlenW((wchar_t *)pString);
-            if (dwPrecision)
-              dwLen=min(dwLen, dwPrecision);
-            if (nWidth > 0)
-            {
-              nWidth=max(nWidth - dwLen, 0);
-              wpOut+=nWidth;
-            }
-          }
-          if (wszOutput)
+          if (dwPrecision != (DWORD)-1)
           {
             if (*wpFmt == L'S')
+              dwLen=lstrlenA((char *)pString);
+            if (!wszOutput || nWidth > 0)
             {
-              if (dwLen=MultiByteToWideChar(CP_ACP, 0, (char *)pString, dwPrecision?(int)dwPrecision + 1:-1, wpOut, dwLen + 1))
-                wpOut[--dwLen]='\0';
+              if (*wpFmt == L's')
+                dwLen=lstrlenW((wchar_t *)pString);
+              if (dwPrecision)
+                dwLen=min(dwLen, dwPrecision);
+              if (nWidth > 0)
+              {
+                nWidth=max(nWidth - dwLen, 0);
+                wpOut+=nWidth;
+              }
             }
-            else dwLen=xstrcpynW(wpOut, (wchar_t *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
+            if (wszOutput)
+            {
+              if (*wpFmt == L'S')
+              {
+                if (dwLen=MultiByteToWideChar(CP_ACP, 0, (char *)pString, dwPrecision?(int)dwPrecision + 1:-1, wpOut, dwLen + 1))
+                  wpOut[--dwLen]='\0';
+              }
+              else dwLen=xstrcpynW(wpOut, (wchar_t *)pString, dwPrecision?dwPrecision + 1:(unsigned int)-1);
+            }
+            wpOut+=dwLen;
           }
-          wpOut+=dwLen;
         }
       }
 
