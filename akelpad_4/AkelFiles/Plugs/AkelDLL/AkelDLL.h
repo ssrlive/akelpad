@@ -213,9 +213,26 @@
 #define PO_BINARY    2  //Binary data in any form.
 #define PO_STRING    3  //Null-terminated string.
 
-//Save plugins stack
-#define DLLS_NOW     0  //Save plugins stack immediately.
-#define DLLS_ONEXIT  1  //Save plugins stack on program exit.
+//AKD_DLLCALL flags
+#define PDS_SUPPORTALL   0x00000000  //Function support everything (default).
+#define PDS_NOAUTOLOAD   0x00000001  //Function doesn't support autoload.
+#define PDS_NOANSI       0x00000002  //Function doesn't support ansi API and can be executed only on unicode Windows (WinNT/2000/XP/2003/Vista/Seven).
+#define PDS_NOUNICODE    0x00000004  //Function doesn't support unicode API.
+#define PDS_NOSDI        0x00000008  //Function doesn't support SDI mode.
+#define PDS_NOMDI        0x00000010  //Function doesn't support MDI mode.
+#define PDS_NOPMDI       0x00000020  //Function doesn't support PMDI mode.
+#define PDS_GETSUPPORT   0x10000000  //Flag is set if caller specified DLLCF_GETSUPPORT in AKD_DLLCALL and wants to get PDS_* flags without function execution.
+
+//AKD_DLLCALL flags
+#define DLLCF_ONPROGRAMLOAD   0x01  //Don't use it. For internal code only.
+#define DLLCF_GETSUPPORT      0x02  //Get PDS_* flags without function execution.
+#define DLLCF_SWITCHAUTOLOAD  0x04  //If function running after call then turn on autoload, if not then turn off autoload.
+#define DLLCF_SAVENOW         0x08  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_NOW after switching autoload flag.
+#define DLLCF_SAVEONEXIT      0x10  //Using with DLLCF_SWITCHAUTOLOAD. Call AKD_DLLSAVE with DLLSF_ONEXIT after switching autoload flag.
+
+//AKD_DLLSAVE flags
+#define DLLSF_NOW     0x1  //Save plugins stack immediately.
+#define DLLSF_ONEXIT  0x2  //Save plugins stack on program exit.
 
 //Context menu owner
 #define NCM_EDIT     1  //Edit control.
@@ -367,9 +384,7 @@ typedef struct _PLUGINFUNCTION {
 
 typedef struct _PLUGINDATA {
   DWORD cb;                         //Size of the structure.
-  BOOL *lpbAutoLoad;                //This member is not NULL if caller wants to get autoload flag. In this case function must set this member to TRUE or FALSE and quit execution.
-                                    //  TRUE  if function support autoload.
-                                    //  FALSE if function doesn't support autoload.
+  DWORD dwSupport;                  //If (dwSupport & PDS_GETSUPPORT) != 0, then caller wants to get PDS_* flags without function execution.
   const BYTE *pFunction;            //Called function name, format "Plugin::Function".
                                     //  const char *pFunction     if bOldWindows == TRUE
                                     //  const wchar_t *pFunction  if bOldWindows == FALSE
@@ -607,38 +622,38 @@ typedef struct _WNDPROCRETDATA {
 } WNDPROCRETDATA;
 
 typedef struct {
-  const char *pFunction;          //Function name, format "Plugin::Function".
-  WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bAutoLoad;                 //TRUE  if function support autoload.
-                                  //FALSE if function doesn't support autoload.
-  PLUGINPROC PluginProc;          //Function procedure.
-  void *lpParameter;              //Procedure parameter.
+  const char *pFunction;      //Function name, format "Plugin::Function".
+  WORD wHotkey;               //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
+  BOOL bAutoLoad;             //TRUE  if function support autoload.
+                              //FALSE if function doesn't support autoload.
+  PLUGINPROC PluginProc;      //Function procedure.
+  void *lpParameter;          //Procedure parameter.
 } PLUGINADDA;
 
 typedef struct {
-  const wchar_t *pFunction;       //Function name, format "Plugin::Function".
-  WORD wHotkey;                   //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
-  BOOL bAutoLoad;                 //TRUE  if function support autoload.
-                                  //FALSE if function doesn't support autoload.
-  PLUGINPROC PluginProc;          //Function procedure.
-  void *lpParameter;              //Procedure parameter.
+  const wchar_t *pFunction;   //Function name, format "Plugin::Function".
+  WORD wHotkey;               //Function hotkey. See HKM_GETHOTKEY message return value (MSDN).
+  BOOL bAutoLoad;             //TRUE  if function support autoload.
+                              //FALSE if function doesn't support autoload.
+  PLUGINPROC PluginProc;      //Function procedure.
+  void *lpParameter;          //Procedure parameter.
 } PLUGINADDW;
 
 typedef struct {
-  const char *pFunction;          //Function name, format "Plugin::Function".
-  LPARAM lParam;                  //Input data.
-  BOOL *lpbAutoLoad;              //If not NULL, then check plugin autoload.
+  const char *pFunction;      //Function name, format "Plugin::Function".
+  LPARAM lParam;              //Input data.
+  DWORD dwSupport;            //Receives PDS_* flags.
 } PLUGINCALLSENDA;
 
 typedef struct {
-  const wchar_t *pFunction;       //Function name, format L"Plugin::Function".
-  LPARAM lParam;                  //Input data.
-  BOOL *lpbAutoLoad;              //If not NULL, then check plugin autoload.
+  const wchar_t *pFunction;   //Function name, format L"Plugin::Function".
+  LPARAM lParam;              //Input data.
+  DWORD dwSupport;            //Receives PDS_* flags.
 } PLUGINCALLSENDW;
 
 typedef struct {
-  LPARAM lParam;                  //Input data.
-  char szFunction[MAX_PATH];      //Function name, format "Plugin::Function".
+  LPARAM lParam;              //Input data.
+  char szFunction[MAX_PATH];  //Function name, format "Plugin::Function".
 } PLUGINCALLPOSTA;
 
 typedef struct {
@@ -1406,26 +1421,26 @@ typedef struct {
 #define AKD_OPTION                 (WM_USER + 334)
 #define AKD_OPTIONA                (WM_USER + 335)
 #define AKD_OPTIONW                (WM_USER + 336)
-#define AKD_ENDOPTIONS             (WM_USER + 337)
-#define AKD_INIOPEN                (WM_USER + 338)
-#define AKD_INIOPENA               (WM_USER + 339)
-#define AKD_INIOPENW               (WM_USER + 340)
-#define AKD_INIGETSECTION          (WM_USER + 341)
-#define AKD_INIGETSECTIONA         (WM_USER + 342)
-#define AKD_INIGETSECTIONW         (WM_USER + 343)
-#define AKD_INICLEARSECTION        (WM_USER + 344)
-#define AKD_INIDELETESECTION       (WM_USER + 345)
-#define AKD_INIGETKEY              (WM_USER + 346)
-#define AKD_INIGETKEYA             (WM_USER + 347)
-#define AKD_INIGETKEYW             (WM_USER + 348)
-#define AKD_INIDELETEKEY           (WM_USER + 349)
-#define AKD_INIGETVALUE            (WM_USER + 350)
-#define AKD_INIGETVALUEA           (WM_USER + 351)
-#define AKD_INIGETVALUEW           (WM_USER + 352)
-#define AKD_INISETVALUE            (WM_USER + 353)
-#define AKD_INISETVALUEA           (WM_USER + 354)
-#define AKD_INISETVALUEW           (WM_USER + 355)
-#define AKD_INICLOSE               (WM_USER + 356)
+#define AKD_ENDOPTIONS             (WM_USER + 341)
+#define AKD_INIOPEN                (WM_USER + 342)
+#define AKD_INIOPENA               (WM_USER + 343)
+#define AKD_INIOPENW               (WM_USER + 344)
+#define AKD_INIGETSECTION          (WM_USER + 345)
+#define AKD_INIGETSECTIONA         (WM_USER + 346)
+#define AKD_INIGETSECTIONW         (WM_USER + 347)
+#define AKD_INICLEARSECTION        (WM_USER + 348)
+#define AKD_INIDELETESECTION       (WM_USER + 349)
+#define AKD_INIGETKEY              (WM_USER + 350)
+#define AKD_INIGETKEYA             (WM_USER + 351)
+#define AKD_INIGETKEYW             (WM_USER + 352)
+#define AKD_INIDELETEKEY           (WM_USER + 353)
+#define AKD_INIGETVALUE            (WM_USER + 354)
+#define AKD_INIGETVALUEA           (WM_USER + 355)
+#define AKD_INIGETVALUEW           (WM_USER + 356)
+#define AKD_INISETVALUE            (WM_USER + 357)
+#define AKD_INISETVALUEA           (WM_USER + 358)
+#define AKD_INISETVALUEW           (WM_USER + 359)
+#define AKD_INICLOSE               (WM_USER + 360)
 
 //AkelPad 4.x messages
 #define AKD_EXGETTEXTLENGTH        (WM_USER + 401)
@@ -2965,7 +2980,7 @@ ___________  ____________  ____________
 
 Call dll.
 
-wParam                   == not used.
+(DWORD)wParam            == see DLLCF_* defines.
 (PLUGINCALLSEND *)lParam == pointer to a PLUGINCALLSEND structure if SendMessage used
                             or pointer to a PLUGINCALLPOST, allocated with GlobalAlloc, if PostMessage used.
 
@@ -2977,7 +2992,7 @@ Example SendMessage (Unicode):
 
  pcs.pFunction=L"Plugin::Function";
  pcs.lParam=0;
- pcs.lpbAutoLoad=NULL;
+ pcs.dwSupport=0;
  SendMessage(pd->hMainWnd, AKD_DLLCALLW, 0, (LPARAM)&pcs);
 
 Example PostMessage (Unicode):
@@ -3088,15 +3103,15 @@ ___________
 
 Save dll stack.
 
-wParam      == not used.
-(int)lParam == see DLLS_* defines.
+(DWORD)wParam == see DLLSF_* defines.
+lParam        == not used.
 
 Return Value
  TRUE  success.
  FALSE error.
 
 Example:
- SendMessage(pd->hMainWnd, AKD_DLLSAVE, 0, DLLS_NOW);
+ SendMessage(pd->hMainWnd, AKD_DLLSAVE, DLLSF_NOW, 0);
 
 
 AKD_CALLPROC

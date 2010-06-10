@@ -21,11 +21,9 @@ extern "C" void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
   int nLen;
 
   //Function doesn't support autoload
-  if (pd->lpbAutoLoad)
-  {
-    *pd->lpbAutoLoad=FALSE;
+  pd->dwSupport|=PDS_NOAUTOLOAD;
+  if (pd->dwSupport & PDS_GETSUPPORT)
     return;
-  }
 
   //Get current text selection
   SendMessage(pd->hWndEdit, EM_EXGETSEL, 0, (LPARAM)&cr);
@@ -58,11 +56,9 @@ extern "C" void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
 extern "C" void __declspec(dllexport) OpenDialogTest(PLUGINDATA *pd)
 {
   //Function doesn't support autoload
-  if (pd->lpbAutoLoad)
-  {
-    *pd->lpbAutoLoad=FALSE;
+  pd->dwSupport|=PDS_NOAUTOLOAD;
+  if (pd->dwSupport & PDS_GETSUPPORT)
     return;
-  }
 
   SendMessage(pd->hMainWnd, WM_COMMAND, IDM_FILE_OPEN, 0);
 }

@@ -1006,6 +1006,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       PLUGINCALLSENDW *lpCallSend=(PLUGINCALLSENDW *)lParam;
       PLUGINCALLSENDW pcsW;
       wchar_t wszPluginFunction[MAX_PATH];
+      int nResult;
 
       if (uMsg == AKD_DLLCALLA || (bOldWindows && uMsg == AKD_DLLCALL))
         xprintfW(wszPluginFunction, L"%S", (char *)lpCallSend->pFunction);
@@ -1013,8 +1014,11 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
         xprintfW(wszPluginFunction, L"%s", (wchar_t *)lpCallSend->pFunction);
       pcsW.pFunction=wszPluginFunction;
       pcsW.lParam=lpCallSend->lParam;
-      pcsW.lpbAutoLoad=lpCallSend->lpbAutoLoad;
-      return (LRESULT)CallPluginSend(NULL, &pcsW, FALSE);
+      pcsW.dwSupport=lpCallSend->dwSupport;
+      nResult=CallPluginSend(NULL, &pcsW, wParam);
+
+      lpCallSend->dwSupport=pcsW.dwSupport;
+      return nResult;
     }
     else if (uMsg == AKD_DLLFIND ||
              uMsg == AKD_DLLFINDA ||
@@ -1058,12 +1062,15 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else if (uMsg == AKD_DLLSAVE)
     {
-      if (lParam == DLLS_ONEXIT)
+      if (wParam & DLLSF_NOW)
+      {
+        return StackPluginSave(&hPluginsStack, moCur.nSaveSettings);
+      }
+      if (wParam & DLLSF_ONEXIT)
       {
         bSavePluginsStackOnExit=TRUE;
         return TRUE;
       }
-      return StackPluginSave(&hPluginsStack, moCur.nSaveSettings);
     }
   }
 
@@ -1728,7 +1735,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->wszFunction=NULL;
       pd->hInstanceDLL=NULL;
       pd->lpPluginFunction=NULL;
-      pd->lpbAutoLoad=NULL;
+      pd->dwSupport=0;
       pd->nUnload=0;
       pd->bInMemory=0;
       pd->lParam=0;
