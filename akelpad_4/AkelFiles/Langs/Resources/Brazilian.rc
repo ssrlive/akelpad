@@ -41,6 +41,7 @@ BEGIN
         MENUITEM "Nova &janela\tCtrl+Shift+N",  IDM_FILE_CREATENEW
         MENUITEM "&Abrir...\tCtrl+O",           IDM_FILE_OPEN
         MENUITEM "&Reabrir\tF5",                IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
         MENUITEM "&Salvar\tCtrl+S",             IDM_FILE_SAVE
         MENUITEM "Salvar &como...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Salvar &todos\tCtrl+Alt+F2",  IDM_FILE_SAVEALL

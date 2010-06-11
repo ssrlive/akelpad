@@ -41,6 +41,7 @@ BEGIN
         MENUITEM "Ства&рыць акно\tCtrl+Shift+N", IDM_FILE_CREATENEW
         MENUITEM "&Адкрыць...\tCtrl+O",         IDM_FILE_OPEN
         MENUITEM "&Пераадкрыць\tF5",            IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
         MENUITEM "&Захаваць\tCtrl+S",           IDM_FILE_SAVE
         MENUITEM "Захаваць &як...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Захаваць &усё\tCtrl+Alt+F2",  IDM_FILE_SAVEALL
