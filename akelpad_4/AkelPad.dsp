@@ -30,31 +30,32 @@ CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "AkelPad - Win32 Debug English"
+!IF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
 
 # PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "Debug"
-# PROP BASE Intermediate_Dir "Debug"
+# PROP BASE Use_Debug_Libraries 0
+# PROP BASE Output_Dir "Release"
+# PROP BASE Intermediate_Dir "Release"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
-# PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
+# PROP Use_Debug_Libraries 0
+# PROP Output_Dir "Release"
+# PROP Intermediate_Dir "Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "AkelPad_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "DEBUG" /D "AKELEDIT_STATICBUILD" /YX /FD /GZ /c
-# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
-# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
-# ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "_DEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION"
+# ADD BASE CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /D "AKELEDIT_STATICBUILD" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /D RC_VERSIONLANGID=0x409 /YX /FD /c
+# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION"
+# ADD RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib imm32.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /debug /machine:I386 /nodefaultlib /pdbtype:sept
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
+# SUBTRACT BASE LINK32 /pdb:none
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib version.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "AkelPad - Win32 Release English"
@@ -71,11 +72,11 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "AkelPad_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /D "AKELEDIT_STATICBUILD" /FR /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /D "AKELEDIT_STATICBUILD" /D RC_VERSIONLANGID=0x409 /FR /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
-# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "NDEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION"
+# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "NDEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -84,41 +85,40 @@ LINK32=link.exe
 # ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib imm32.lib version.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
 # SUBTRACT LINK32 /pdb:none
 
-!ELSEIF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
+!ELSEIF  "$(CFG)" == "AkelPad - Win32 Debug English"
 
 # PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "Release"
-# PROP BASE Intermediate_Dir "Release"
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "Debug"
+# PROP BASE Intermediate_Dir "Debug"
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
-# PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir "Debug"
+# PROP Intermediate_Dir "Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /D "AKELEDIT_STATICBUILD" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O1 /D "WIN32" /D "NDEBUG" /YX /FD /c
-# ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
-# ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
-# ADD BASE RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION"
-# ADD RSC /l 0x409 /d "NDEBUG" /d "EXE_VERSION"
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "AkelPad_EXPORTS" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "DEBUG" /D "AKELEDIT_STATICBUILD" /D RC_VERSIONLANGID=0x409 /YX /FD /GZ /c
+# ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
+# ADD BASE RSC /l 0x409 /d "_DEBUG"
+# ADD RSC /l 0x409 /i "AkelEdit\Resources" /d "_DEBUG" /d "AKELEDIT_STATICBUILD" /d "EXE_VERSION" /d RC_VERSIONLANGID=0x409
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
-# SUBTRACT BASE LINK32 /pdb:none
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib version.lib /nologo /entry:"_WinMain" /subsystem:windows /machine:I386 /nodefaultlib /opt:nowin98
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 kernel32.lib user32.lib gdi32.lib advapi32.lib shell32.lib comctl32.lib comdlg32.lib ole32.lib uuid.lib imm32.lib version.lib libc.lib /nologo /entry:"_WinMain" /subsystem:windows /debug /machine:I386 /nodefaultlib /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
 
 # Begin Target
 
-# Name "AkelPad - Win32 Debug English"
-# Name "AkelPad - Win32 Release English"
 # Name "AkelPad - Win32 Dinamic Release English"
+# Name "AkelPad - Win32 Release English"
+# Name "AkelPad - Win32 Debug English"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -126,13 +126,13 @@ LINK32=link.exe
 
 SOURCE=.\AkelEdit\AkelEdit.cpp
 
-!IF  "$(CFG)" == "AkelPad - Win32 Debug English"
+!IF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
+
+# PROP Exclude_From_Build 1
 
 !ELSEIF  "$(CFG)" == "AkelPad - Win32 Release English"
 
-!ELSEIF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
-
-# PROP Exclude_From_Build 1
+!ELSEIF  "$(CFG)" == "AkelPad - Win32 Debug English"
 
 !ENDIF 
 

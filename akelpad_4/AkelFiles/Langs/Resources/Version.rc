@@ -39,6 +39,6 @@ BEGIN
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x0, 0
+        VALUE "Translation", RC_VERSIONLANGID, 0
     END
 END

@@ -430,6 +430,7 @@ typedef struct _PLUGINDATA {
   const char *szLangModule;         //Language module (Ansi).
   const wchar_t *wszLangModule;     //Language module (Unicode).
   LANGID wLangSystem;               //System language ID.
+  LANGID wLangModule;               //Language module language ID
 } PLUGINDATA;
 
 typedef struct {
