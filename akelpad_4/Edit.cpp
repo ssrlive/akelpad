@@ -14712,6 +14712,14 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           {
             dwAction=EXTACT_EXEC;
           }
+          else if (!xstrcmpinW(L"/OpenFile(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_OPENFILE;
+          }
+          else if (!xstrcmpinW(L"/SaveFile(", wszCmdArg, (DWORD)-1))
+          {
+            dwAction=EXTACT_SAVEFILE;
+          }
           else if (!xstrcmpinW(L"/Font(", wszCmdArg, (DWORD)-1))
           {
             dwAction=EXTACT_FONT;
@@ -14723,14 +14731,6 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
           else if (!xstrcmpinW(L"/Insert(", wszCmdArg, (DWORD)-1))
           {
             dwAction=EXTACT_INSERT;
-          }
-          else if (!xstrcmpinW(L"/OpenFile(", wszCmdArg, (DWORD)-1))
-          {
-            dwAction=EXTACT_OPENFILE;
-          }
-          else if (!xstrcmpinW(L"/SaveFile(", wszCmdArg, (DWORD)-1))
-          {
-            dwAction=EXTACT_SAVEFILE;
           }
 
           if (dwAction)
@@ -14783,6 +14783,38 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
                 {
                   CloseHandle(pi.hProcess);
                   CloseHandle(pi.hThread);
+                }
+              }
+            }
+            else if (dwAction == EXTACT_OPENFILE ||
+                     dwAction == EXTACT_SAVEFILE)
+            {
+              wchar_t *wpFile=NULL;
+              int nCodePage=-1;
+              BOOL bBOM=-1;
+
+              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+              wpFile=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
+              if (hParamStack.nElements >= 2)
+                nCodePage=GetParameterInt(&hParamStack, 2);
+              if (hParamStack.nElements >= 3)
+                bBOM=GetParameterInt(&hParamStack, 3);
+
+              if (dwAction == EXTACT_OPENFILE)
+              {
+                DWORD dwFlags=OD_ADT_BINARY_ERROR;
+
+                if (nCodePage == -1) dwFlags|=OD_ADT_DETECT_CODEPAGE;
+                if (bBOM == -1) dwFlags|=OD_ADT_DETECT_BOM;
+                if (OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM) != EOD_SUCCESS)
+                  return PCLE_END;
+              }
+              else if (dwAction == EXTACT_SAVEFILE)
+              {
+                if (nCodePage != -1 && bBOM != -1)
+                {
+                  if (SaveDocument(NULL, lpFrameCurrent->wszFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
+                    return PCLE_END;
                 }
               }
             }
@@ -14852,38 +14884,6 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
                 ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, -1, -1, NULL, NULL);
               }
               if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
-            }
-            else if (dwAction == EXTACT_OPENFILE ||
-                     dwAction == EXTACT_SAVEFILE)
-            {
-              wchar_t *wpFile=NULL;
-              int nCodePage=-1;
-              BOOL bBOM=-1;
-
-              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-              wpFile=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
-              if (hParamStack.nElements >= 2)
-                nCodePage=GetParameterInt(&hParamStack, 2);
-              if (hParamStack.nElements >= 3)
-                bBOM=GetParameterInt(&hParamStack, 3);
-
-              if (dwAction == EXTACT_OPENFILE)
-              {
-                DWORD dwFlags=OD_ADT_BINARY_ERROR;
-
-                if (nCodePage == -1) dwFlags|=OD_ADT_DETECT_CODEPAGE;
-                if (bBOM == -1) dwFlags|=OD_ADT_DETECT_BOM;
-                if (OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM) != EOD_SUCCESS)
-                  return PCLE_END;
-              }
-              else if (dwAction == EXTACT_SAVEFILE)
-              {
-                if (nCodePage != -1 && bBOM != -1)
-                {
-                  if (SaveDocument(NULL, lpFrameCurrent->wszFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
-                    return PCLE_END;
-                }
-              }
             }
             FreeMethodParameters(&hParamStack);
           }

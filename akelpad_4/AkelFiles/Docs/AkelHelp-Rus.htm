@@ -110,13 +110,13 @@
           <br>
           <div style="margin-top:10px">Методы:</div>
 
-          <div style="margin-top:10px"><li><b>/OpenFile("файл", Кодировка, СигнатураBOM)</b></div>
+          <div style="margin-top:10px"><li><b>/OpenFile("файл", [Кодировка], [СигнатураBOM])</b></div>
           <div style="margin-left:30px">"файл"</div>
             <div style="margin-left:60px">файл для открытия.</div>
           <div style="margin-left:30px">Кодировка</div>
-            <div style="margin-left:60px">кодировка открытия, если -1 она будет определена автоматически.</div>
+            <div style="margin-left:60px">кодировка открытия, если -1 либо не указана, она будет определена автоматически.</div>
           <div style="margin-left:30px">СигнатураBOM</div>
-            <div style="margin-left:60px">сигнатура BOM файла, если -1 она будет определена автоматически.</div>
+            <div style="margin-left:60px">сигнатура BOM файла, если -1 либо не указана, она будет определена автоматически.</div>
           <div style="margin-left:30px">/OpenFile("C:\File.txt", 65001, -1)</div>
             <div style="margin-left:60px">метод открывает файл в кодировке UTF-8.</div>
 
@@ -134,6 +134,10 @@
           <div style="margin-left:30px">/Command(4162)</div>
             <div style="margin-left:60px">метод вызывает <a href=#ch6>внутреннюю команду</a> под номером 4162.</div>
 
+          <div style="margin-top:10px"><li><b>/Call("Плагин::Функция", [дополнительные параметры])</b></div>
+          <div style="margin-left:30px">/Call("Scripts::Main")</div>
+            <div style="margin-left:60px">метод вызывает плагин Scripts и функцию Main.</div>
+
           <div style="margin-top:10px"><li><b>/Exec("командная строка", ["рабочая директория"])</b></div>
           <div style="margin-left:30px">/Exec("notepad.exe")</div>
             <div style="margin-left:60px">метод вызывает блокнот.</div>
@@ -145,10 +149,6 @@
             <div style="margin-left:60px">метод вызывает блокнот.</div>
           <div style="margin-left:30px">/Exec(`rundll32.exe shell32,ShellExec_RunDLL "%%f"`, "%%d")</div>
             <div style="margin-left:60px">метод передает активный файл для открытия по ассоциации Windows.</div>
-
-          <div style="margin-top:10px"><li><b>/Call("Плагин::Функция", [дополнительные параметры])</b></div>
-          <div style="margin-left:30px">/Call("Scripts::Main")</div>
-            <div style="margin-left:60px">метод вызывает плагин Scripts и функцию Main.</div>
 
           <div style="margin-top:10px"><li><b>/Font("Шрифт", Начертание, Размер)</b></div>
           <div style="margin-left:30px">"Шрифт"</div>

@@ -110,13 +110,13 @@
           <br>
           <div style="margin-top:10px">Methods:</div>
 
-          <div style="margin-top:10px"><li><b>/OpenFile("file", OpenCodepage, OpenBOM)</b></div>
+          <div style="margin-top:10px"><li><b>/OpenFile("file", [OpenCodepage], [OpenBOM])</b></div>
           <div style="margin-left:30px">"file"</div>
             <div style="margin-left:60px">file to open.</div>
           <div style="margin-left:30px">OpenCodepage</div>
-            <div style="margin-left:60px">Open codepage, if -1 it will be autodetected.</div>
+            <div style="margin-left:60px">Open codepage, if -1 or not specified, it will be autodetected.</div>
           <div style="margin-left:30px">OpenBOM</div>
-            <div style="margin-left:60px">File byte order mark, if -1 it will be autodetected.</div>
+            <div style="margin-left:60px">File byte order mark, if -1 or not specified, it will be autodetected.</div>
           <div style="margin-left:30px">/OpenFile("C:\File.txt", 65001, -1)</div>
             <div style="margin-left:60px">method opens file in UTF-8 codepage.</div>
 
@@ -134,6 +134,10 @@
           <div style="margin-left:30px">/Command(4162)</div>
             <div style="margin-left:60px">method calls the <a href=#ch6>internal command</a> at number 4162.</div>
 
+          <div style="margin-top:10px"><li><b>/Call("Plugin::Function", [additional parameters])</b></div>
+          <div style="margin-left:30px">/Call("Scripts::Main")</div>
+            <div style="margin-left:60px">method calls Scripts plugin and Main function.</div>
+
           <div style="margin-top:10px"><li><b>/Exec("command line", ["working directory"])</b></div>
           <div style="margin-left:30px">/Exec("notepad.exe")</div>
             <div style="margin-left:60px">method calls notepad.</div>
@@ -145,10 +149,6 @@
             <div style="margin-left:60px">method calls notepad.</div>
           <div style="margin-left:30px">/Exec(`rundll32.exe shell32,ShellExec_RunDLL "%%f"`, "%%d")</div>
             <div style="margin-left:60px">method pass an active file for opening on Windows association.</div>
-
-          <div style="margin-top:10px"><li><b>/Call("Plugin::Function", [additional parameters])</b></div>
-          <div style="margin-left:30px">/Call("Scripts::Main")</div>
-            <div style="margin-left:60px">method calls Scripts plugin and Main function.</div>
 
           <div style="margin-top:10px"><li><b>/Font("FaceName", Style, Size)</b></div>
           <div style="margin-left:30px">"FaceName"</div>
