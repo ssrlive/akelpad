@@ -41,6 +41,7 @@ BEGIN
         MENUITEM "Створи&ти вікно\tCtrl+Shift+N", IDM_FILE_CREATENEW
         MENUITEM "В&ідкрити...\tCtrl+O",        IDM_FILE_OPEN
         MENUITEM "&Перевідкрити\tF5",           IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
         MENUITEM "&Зберегти\tCtrl+S",           IDM_FILE_SAVE
         MENUITEM "Зберегти я&к...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Зберегти &все\tCtrl+Alt+F2",  IDM_FILE_SAVEALL

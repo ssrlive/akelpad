@@ -41,6 +41,7 @@ BEGIN
         MENUITEM "새 창(&W)\tCtrl+Shift+N",     IDM_FILE_CREATENEW
         MENUITEM "열기(&O)...\tCtrl+O",         IDM_FILE_OPEN
         MENUITEM "다시 열기(&R)\tF5",           IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
         MENUITEM "저장(&S)\tCtrl+S",            IDM_FILE_SAVE
         MENUITEM "다른 이름으로 저장(&A)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "모두 저장(&L)\tCtrl+Alt+F2",  IDM_FILE_SAVEALL

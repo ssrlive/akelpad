@@ -41,6 +41,7 @@ BEGIN
         MENUITEM "開啟新視窗(&W)\tCtrl+Shift+N", IDM_FILE_CREATENEW
         MENUITEM "開啟文件(&O)...\tCtrl+O",     IDM_FILE_OPEN
         MENUITEM "重新開啟(&R)\tF5",            IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
         MENUITEM "儲存(&S)\tCtrl+S",            IDM_FILE_SAVE
         MENUITEM "另存為(&A)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "全部儲存(&L)\tCtrl+Alt+F2",   IDM_FILE_SAVEALL

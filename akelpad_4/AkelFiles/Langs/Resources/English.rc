@@ -41,11 +41,12 @@ BEGIN
         MENUITEM "New &window\tCtrl+Shift+N",   IDM_FILE_CREATENEW
         MENUITEM "&Open...\tCtrl+O",            IDM_FILE_OPEN
         MENUITEM "&Reopen\tF5",                 IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
+        MENUITEM SEPARATOR
         MENUITEM "&Save\tCtrl+S",               IDM_FILE_SAVE
         MENUITEM "Save &as...\tCtrl+Shift+S",   IDM_FILE_SAVEAS
         MENUITEM "Save a&ll\tCtrl+Alt+F2",      IDM_FILE_SAVEALL
         MENUITEM "Sav&e all as...",             IDM_FILE_SAVEALLAS
-        MENUITEM SEPARATOR
         MENUITEM "Pa&ge setup...",              IDM_FILE_PAGESETUP
         MENUITEM "Pre&view...",                 IDM_FILE_PRINTPREVIEW
         MENUITEM "&Print...\tCtrl+P",           IDM_FILE_PRINT

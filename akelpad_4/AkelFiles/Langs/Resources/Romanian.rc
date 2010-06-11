@@ -41,6 +41,7 @@ BEGIN
         MENUITEM "&Fereastrã Nouã\tCtrl+Shift+N", IDM_FILE_CREATENEW
         MENUITEM "&Deschide...\tCtrl+O",        IDM_FILE_OPEN
         MENUITEM "&Redeschide\tF5",             IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
         MENUITEM "&Salveazã\tCtrl+S",           IDM_FILE_SAVE
         MENUITEM "Salveazã &Ca...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Salveazã &Tot\tCtrl+Alt+F2",  IDM_FILE_SAVEALL

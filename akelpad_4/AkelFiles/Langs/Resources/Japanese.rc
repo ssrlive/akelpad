@@ -41,6 +41,7 @@ BEGIN
         MENUITEM "新しいウィンドウ(&W)\tCtrl+Shift+N", IDM_FILE_CREATENEW
         MENUITEM "開く(&O)...\tCtrl+O",         IDM_FILE_OPEN
         MENUITEM "開き直す(&R)\tF5",            IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
         MENUITEM "上書き保存(&S)\tCtrl+S",      IDM_FILE_SAVE
         MENUITEM "名前を付けて保存(&A)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "すべて保存(&L)\tCtrl+Alt+F2", IDM_FILE_SAVEALL

@@ -41,6 +41,7 @@ BEGIN
         MENUITEM "Uusi &ikkuna\tCtrl+Shift+N",  IDM_FILE_CREATENEW
         MENUITEM "&Avaa...\tCtrl+O",            IDM_FILE_OPEN
         MENUITEM "Avaa uu&delleen\tF5",         IDM_FILE_REOPEN
+        MENUITEM SEPARATOR
         MENUITEM "&Tallenna\tCtrl+S",           IDM_FILE_SAVE
         MENUITEM "Tallenna &nimellä...\tCtrl+Shift+S", IDM_FILE_SAVEAS
         MENUITEM "Tallenna &kaikki\tCtrl+Alt+F2", IDM_FILE_SAVEALL
