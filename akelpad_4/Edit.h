@@ -118,11 +118,11 @@
 #define EXTACT_COMMAND    1
 #define EXTACT_CALL       2
 #define EXTACT_EXEC       3
-#define EXTACT_FONT       4
-#define EXTACT_RECODE     5
-#define EXTACT_INSERT     6
-#define EXTACT_OPENFILE   7
-#define EXTACT_SAVEFILE   8
+#define EXTACT_OPENFILE   4
+#define EXTACT_SAVEFILE   5
+#define EXTACT_FONT       6
+#define EXTACT_RECODE     7
+#define EXTACT_INSERT     8
 
 //External parameters
 #define EXTPARAM_CHAR     1
