@@ -181,9 +181,10 @@ char buf2[BUFFER_SIZE];
 wchar_t wbuf2[BUFFER_SIZE];
 
 //Language
-int nLangModules=0;
 HMODULE hLangLib;
 DWORD dwLangSystem;
+DWORD dwLangModule;
+int nLangModuleCount=0;
 
 //Procedures
 HSTACK hMainProcStack={0};
@@ -444,6 +445,7 @@ extern "C" void _WinMain()
   nAnsiCodePage=GetACP();
   nOemCodePage=GetOEMCP();
   bDefaultBOM=FALSE;
+  dwLangSystem=GetUserDefaultLangID();
   moInit.nDefaultCodePage=nAnsiCodePage;
   moInit.nDefaultNewLine=NEWLINE_WIN;
 
@@ -583,7 +585,7 @@ extern "C" void _WinMain()
   //moInit.wszCommand[0]='\0';
   //moInit.wszWorkDir[0]='\0';
   //lpCodepageList=NULL;
-  moInit.dwLangCodepageRecognition=dwLangSystem=GetUserDefaultLangID();
+  moInit.dwLangCodepageRecognition=dwLangSystem;
   moInit.dwCodepageRecognitionBuffer=DETECT_CODEPAGE_SIZE;
   moInit.bSavePositions=TRUE;
   moInit.bSaveCodepages=TRUE;
@@ -704,7 +706,7 @@ extern "C" void _WinMain()
   }
 
   //Get common controls version
-  GetFileVersionA("comctl32.dll", &nMajor, &nMinor, &nRelease, &nBuild);
+  GetFileVersionA("comctl32.dll", &nMajor, &nMinor, &nRelease, &nBuild, NULL);
   if (nMajor < 4 || (nMajor == 4 && nMinor < 71))
     bOldComctl32=TRUE;
   else
@@ -718,6 +720,7 @@ extern "C" void _WinMain()
 
   //Load DLL's
   hLangLib=hInstance;
+  dwLangModule=RC_VERSIONLANGID;
   WideCharToMultiByte(CP_ACP, 0, moCur.wszLangModule, -1, moCur.szLangModule, MAX_PATH, NULL, NULL);
 
   if (*moCur.wszLangModule)
@@ -728,9 +731,9 @@ extern "C" void _WinMain()
     if (bOldWindows)
     {
       WideCharToMultiByte(CP_ACP, 0, wbuf, -1, buf, MAX_PATH, NULL, NULL);
-      bResult=GetFileVersionA(buf, &nMajor, &nMinor, &nRelease, &nBuild);
+      bResult=GetFileVersionA(buf, &nMajor, &nMinor, &nRelease, &nBuild, &dwLangModule);
     }
-    else bResult=GetFileVersionW(wbuf, &nMajor, &nMinor, &nRelease, &nBuild);
+    else bResult=GetFileVersionW(wbuf, &nMajor, &nMinor, &nRelease, &nBuild, &dwLangModule);
 
     if (bResult && MAKE_IDENTIFIER(nMajor, nMinor, nRelease, nBuild) == dwExeVersion)
     {
@@ -1767,6 +1770,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->szLangModule=moCur.szLangModule;
       pd->wszLangModule=moCur.wszLangModule;
       pd->wLangSystem=(WORD)dwLangSystem;
+      pd->wLangModule=(WORD)dwLangModule;
 
       return 0;
     }
@@ -2741,7 +2745,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         FreeWideStr(wpFile);
       }
     }
-    else if (LOWORD(wParam) >= IDM_LANGUAGE && LOWORD(wParam) <= (IDM_LANGUAGE + nLangModules + 1))
+    else if (LOWORD(wParam) >= IDM_LANGUAGE && LOWORD(wParam) <= (IDM_LANGUAGE + nLangModuleCount + 1))
     {
       if (LOWORD(wParam) == IDM_LANGUAGE)
       {

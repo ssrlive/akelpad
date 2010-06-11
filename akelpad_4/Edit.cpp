@@ -47,9 +47,10 @@ extern char buf2[BUFFER_SIZE];
 extern wchar_t wbuf2[BUFFER_SIZE];
 
 //Language
-extern int nLangModules;
 extern HMODULE hLangLib;
 extern DWORD dwLangSystem;
+extern DWORD dwLangModule;
+extern int nLangModuleCount;
 
 //Procedures
 extern HSTACK hMainProcStack;
@@ -9778,7 +9779,7 @@ void LanguageMenu()
   HANDLE hFind;
   int nCommand=0;
   int i;
-  nLangModules=0;
+  nLangModuleCount=0;
 
   for (i=1; DeleteMenu(hMainMenu, IDM_LANGUAGE + i, MF_BYCOMMAND); ++i);
 
@@ -9798,7 +9799,7 @@ void LanguageMenu()
     }
     while (FindNextFileWide(hFind, &wfdW));
 
-    nLangModules=i - 1;
+    nLangModuleCount=i - 1;
     InsertMenuWide(hMainMenu, IDM_LANGUAGE, MF_BYCOMMAND|MF_SEPARATOR, IDM_LANGUAGE + i, NULL);
     FindClose(hFind);
   }
@@ -11095,6 +11096,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
                   pd.szLangModule=moCur.szLangModule;
                   pd.wszLangModule=moCur.wszLangModule;
                   pd.wLangSystem=(WORD)dwLangSystem;
+                  pd.wLangModule=(WORD)dwLangModule;
 
                   (*PluginFunctionPtr)(&pd);
                   SendMessage(hMainWnd, AKDN_DLLCALL, 0, (LPARAM)&pd);
@@ -15850,8 +15852,13 @@ BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
   return TRUE;
 }
 
-BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild)
+BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage)
 {
+  struct LANGANDCODEPAGE {
+    WORD wLanguage;
+    WORD wCodePage;
+  } *lpTranslate;
+
   VS_FIXEDFILEINFO ffi;
   VS_FIXEDFILEINFO *pffi=&ffi;
   void *pVerBuf;
@@ -15866,13 +15873,23 @@ BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *
   {
     if (pVerBuf=API_HeapAlloc(hHeap, 0, dwVerSize))
     {
-      if (GetFileVersionInfoA(pFile, dwHandle, dwVerSize, pVerBuf) && VerQueryValueA(pVerBuf, "\\", (void **)&pffi, &uLen))
+      if (GetFileVersionInfoA(pFile, dwHandle, dwVerSize, pVerBuf))
       {
-        *nMajor=pffi->dwFileVersionMS / 0x00010000;
-        *nMinor=pffi->dwFileVersionMS & 0x0000FFFF;
-        *nRelease=pffi->dwFileVersionLS / 0x00010000;
-        *nBuild=pffi->dwFileVersionLS & 0x0000FFFF;
-        bResult=TRUE;
+        if (VerQueryValueA(pVerBuf, "\\", (void **)&pffi, &uLen))
+        {
+          *nMajor=pffi->dwFileVersionMS / 0x00010000;
+          *nMinor=pffi->dwFileVersionMS & 0x0000FFFF;
+          *nRelease=pffi->dwFileVersionLS / 0x00010000;
+          *nBuild=pffi->dwFileVersionLS & 0x0000FFFF;
+          bResult=TRUE;
+        }
+        if (dwLanguage)
+        {
+          if (VerQueryValueA(pVerBuf, "\\VarFileInfo\\Translation", (void **)&lpTranslate, &uLen))
+          {
+            *dwLanguage=lpTranslate->wLanguage;
+          }
+        }
       }
       API_HeapFree(hHeap, 0, pVerBuf);
     }
@@ -15880,8 +15897,13 @@ BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *
   return bResult;
 }
 
-BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild)
+BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage)
 {
+  struct LANGANDCODEPAGE {
+    WORD wLanguage;
+    WORD wCodePage;
+  } *lpTranslate;
+
   VS_FIXEDFILEINFO ffi;
   VS_FIXEDFILEINFO *pffi=&ffi;
   void *pVerBuf;
@@ -15896,13 +15918,23 @@ BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, i
   {
     if (pVerBuf=API_HeapAlloc(hHeap, 0, dwVerSize))
     {
-      if (GetFileVersionInfoW(wpFile, dwHandle, dwVerSize, pVerBuf) && VerQueryValueW(pVerBuf, L"\\", (void **)&pffi, &uLen))
+      if (GetFileVersionInfoW(wpFile, dwHandle, dwVerSize, pVerBuf))
       {
-        *nMajor=pffi->dwFileVersionMS / 0x00010000;
-        *nMinor=pffi->dwFileVersionMS & 0x0000FFFF;
-        *nRelease=pffi->dwFileVersionLS / 0x00010000;
-        *nBuild=pffi->dwFileVersionLS & 0x0000FFFF;
-        bResult=TRUE;
+        if (VerQueryValueW(pVerBuf, L"\\", (void **)&pffi, &uLen))
+        {
+          *nMajor=pffi->dwFileVersionMS / 0x00010000;
+          *nMinor=pffi->dwFileVersionMS & 0x0000FFFF;
+          *nRelease=pffi->dwFileVersionLS / 0x00010000;
+          *nBuild=pffi->dwFileVersionLS & 0x0000FFFF;
+          bResult=TRUE;
+        }
+        if (dwLanguage)
+        {
+          if (VerQueryValueW(pVerBuf, L"\\VarFileInfo\\Translation", (void **)&lpTranslate, &uLen))
+          {
+            *dwLanguage=lpTranslate->wLanguage;
+          }
+        }
       }
       API_HeapFree(hHeap, 0, pVerBuf);
     }
