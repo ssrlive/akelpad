@@ -1136,6 +1136,15 @@ typedef struct {
 #define IDM_WINDOW_CASCADE              4309  //MDI windows - cascade.
                                               //Return Value: zero.
                                               //
+#define IDM_WINDOW_TABSWITCH_NEXTPREV   4310  //Switch MDI windows: next-previous.
+                                              //Return Value: zero.
+                                              //
+#define IDM_WINDOW_TABSWITCH_RIGHTLEFT  4311  //Switch MDI windows: right-left.
+                                              //Return Value: zero.
+                                              //
+#define IDM_WINDOW_MDILIST              4312  //Select window dialog (MDI). Same as IDM_SELECTWINDOW.
+                                              //Return Value: zero.
+                                              //
 #define IDM_ABOUT                       4351  //About dialog.
                                               //Return Value: zero.
                                               //
@@ -1256,7 +1265,7 @@ typedef struct {
 #define IDM_POPUP_SAVEAS                8001  //Save file in first codepage of codepage list.
                                               //8001 + n   Save file in codepage n.
                                               //Return Value: see ESD_* defines.
-#define IDM_SELECTWINDOW                10019 //Select window dialog (MDI).
+#define IDM_SELECTWINDOW                10019 //Select window dialog (MDI). Same as IDM_WINDOW_MDILIST.
                                               //Return Value: zero.
                                               //
                                               //
