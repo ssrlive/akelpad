@@ -1682,6 +1682,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
   int a=0;
   int b=0;
   int i;
+  BOOL bColumnSel;
   BOOL bResult=FALSE;
 
   if (!(nAction & STRSEL_CHECK) && IsReadOnly(hWnd)) return FALSE;
@@ -1690,27 +1691,31 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
   {
     if (nAction & STRSEL_CHECK) return TRUE;
 
-    SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&crRange.ciMin);
-    if (crRange.ciMax.nCharInLine || (crRange.ciMax.lpLine->prev && crRange.ciMax.lpLine->prev->nLineBreak == AELB_WRAP))
+    if (!(bColumnSel=SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0)))
     {
-      SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEEND, (LPARAM)&crRange.ciMax);
-      //SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTLINE, (LPARAM)&crRange.ciMax);
+      SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&crRange.ciMin);
+      if (crRange.ciMax.nCharInLine || (crRange.ciMax.lpLine->prev && crRange.ciMax.lpLine->prev->nLineBreak == AELB_WRAP))
+      {
+        SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEEND, (LPARAM)&crRange.ciMax);
+        //SendMessage(hWnd, AEM_GETINDEX, AEGI_NEXTLINE, (LPARAM)&crRange.ciMax);
+      }
     }
-
     crInitialSel=crRange;
     if (!AEC_IndexCompare(&crSel.ciMin, &ciCaret))
       ciInitialCaret=crInitialSel.ciMin;
     else
       ciInitialCaret=crInitialSel.ciMax;
 
-    if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMax, &crRange.ciMin, AELB_ASIS, FALSE))
+    if (nRangeLen=IndexSubtract(hWnd, &crRange.ciMax, &crRange.ciMin, AELB_ASIS, bColumnSel))
     {
       nStringLen=lstrlenW(wpString);
       nStringBytes=nStringLen * sizeof(wchar_t);
 
       nFirstLine=SaveLineScroll(hWnd);
       SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-      SetSel(hWnd, &crRange, 0, NULL);
+      if (!bColumnSel)
+        SetSel(hWnd, &crRange, 0, NULL);
+
       if (nAction & STRSEL_INSERT)
       {
         nStringLenAll=(crRange.ciMax.nLine - crRange.ciMin.nLine + 1) * nStringLen;
@@ -1719,7 +1724,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         if (wszRange=AllocWideStr(nBufferLen + 1))
         {
           tr.cr=crRange;
-          tr.bColumnSel=FALSE;
+          tr.bColumnSel=bColumnSel;
           tr.pBuffer=wszRange + nStringLenAll;
           tr.dwBufferMax=(DWORD)-1;
           tr.nNewLine=AELB_ASIS;
@@ -1772,7 +1777,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
         if (wszRange=AllocWideStr(nRangeLen + 1))
         {
           tr.cr=crRange;
-          tr.bColumnSel=FALSE;
+          tr.bColumnSel=bColumnSel;
           tr.pBuffer=wszRange;
           tr.dwBufferMax=(DWORD)-1;
           tr.nNewLine=AELB_ASIS;
@@ -1852,13 +1857,13 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
 
       if (bResult)
       {
-        ReplaceSelW(hWnd, wszRange, a, FALSE, &crRange.ciMin, &crRange.ciMax);
+        ReplaceSelW(hWnd, wszRange, a, bColumnSel, &crRange.ciMin, &crRange.ciMax);
 
         //Update selection
         if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-          SetSel(hWnd, &crRange, 0, &crRange.ciMin);
+          SetSel(hWnd, &crRange, bColumnSel?AESELT_COLUMNON:0, &crRange.ciMin);
         else
-          SetSel(hWnd, &crRange, 0, &crRange.ciMax);
+          SetSel(hWnd, &crRange, bColumnSel?AESELT_COLUMNON:0, &crRange.ciMax);
       }
       SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
       InvalidateRect(hWnd, NULL, TRUE);
