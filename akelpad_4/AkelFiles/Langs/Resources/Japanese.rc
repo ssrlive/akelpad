@@ -174,7 +174,6 @@ BEGIN
         MENUITEM "êÖïΩÇ…ï¿Ç◊ÇÈ(&T)",            IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "êÇíºÇ…ï¿Ç◊ÇÈ(&T)",            IDM_WINDOW_TILEVERTICAL
         MENUITEM "èdÇÀÇÈ(&C)",                  IDM_WINDOW_CASCADE
-        MENUITEM SEPARATOR
         MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
         MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE

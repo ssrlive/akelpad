@@ -176,7 +176,6 @@ BEGIN
         MENUITEM "&Horizontálne",               IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Vertikálne",                 IDM_WINDOW_TILEVERTICAL
         MENUITEM "Do &kaskády",                 IDM_WINDOW_CASCADE
-        MENUITEM SEPARATOR
         MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
         MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE

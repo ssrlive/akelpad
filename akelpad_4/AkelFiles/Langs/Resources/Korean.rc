@@ -174,7 +174,6 @@ BEGIN
         MENUITEM "수평 배열(&H)",               IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "수직 배열(&V)",               IDM_WINDOW_TILEVERTICAL
         MENUITEM "계단식(&C)",                  IDM_WINDOW_CASCADE
-        MENUITEM SEPARATOR
         MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
         MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE

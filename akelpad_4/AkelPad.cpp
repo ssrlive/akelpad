@@ -1203,6 +1203,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         OldMdiClientProc=(WNDPROC)GetWindowLongWide(hMdiClient, GWL_WNDPROC);
         SetWindowLongWide(hMdiClient, GWL_WNDPROC, (LONG)NewMdiClientProc);
 
+        InsertMenuWide(hMainMenu, IDM_WINDOW_FRAMECLOSE, MF_BYCOMMAND|MF_SEPARATOR, 0, NULL);
         DeleteMenu(hMainMenu, IDM_WINDOW_MDILIST, MF_BYCOMMAND);
         DragAcceptFiles(hMdiClient, TRUE);
       }
@@ -1213,6 +1214,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DeleteMenu(hMainMenu, IDM_WINDOW_TILEHORIZONTAL, MF_BYCOMMAND);
         DeleteMenu(hMainMenu, IDM_WINDOW_TILEVERTICAL, MF_BYCOMMAND);
         DeleteMenu(hMainMenu, IDM_WINDOW_CASCADE, MF_BYCOMMAND);
+        InsertMenuWide(hMainMenu, IDM_WINDOW_MDILIST, MF_BYCOMMAND|MF_SEPARATOR, 0, NULL);
         DragAcceptFiles(hWnd, TRUE);
       }
 

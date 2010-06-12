@@ -171,7 +171,6 @@ BEGIN
         MENUITEM "水平並排(&T)",                IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "垂直並排(&T)",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "重疊顯示(&C)",                IDM_WINDOW_CASCADE
-        MENUITEM SEPARATOR
         MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
         MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE

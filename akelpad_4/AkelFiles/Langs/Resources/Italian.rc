@@ -177,7 +177,6 @@ BEGIN
         MENUITEM "Ordine orizzontale",          IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Ordine verticale",            IDM_WINDOW_TILEVERTICAL
         MENUITEM "A &Cascata",                  IDM_WINDOW_CASCADE
-        MENUITEM SEPARATOR
         MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
         MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
