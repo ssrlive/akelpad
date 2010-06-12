@@ -176,7 +176,6 @@ BEGIN
         MENUITEM "Jaa &vaakasuunnassa",         IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Jaa &pystysuunnassa",         IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Limittäin",                  IDM_WINDOW_CASCADE
-        MENUITEM SEPARATOR
         MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
         MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE

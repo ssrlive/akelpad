@@ -141,7 +141,7 @@ BEGIN
         BEGIN
             MENUITEM "&Аднааконны (SDI)",           IDM_OPTIONS_SDI
             MENUITEM "&Шматваконны (MDI)",          IDM_OPTIONS_MDI
-            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "&Псевдо-многооконный (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Параметры...",               IDM_OPTIONS
@@ -171,7 +171,6 @@ BEGIN
         MENUITEM "&Гарызантальна",              IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Вертыкальна",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Каскадам",                   IDM_WINDOW_CASCADE
-        MENUITEM SEPARATOR
         MENUITEM "Закрыть",                     IDM_WINDOW_FRAMECLOSE
         MENUITEM "Закрыть все",                 IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Закрыть все, кроме активного", IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
