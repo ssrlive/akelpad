@@ -78,10 +78,10 @@
 
 //Open document errors
 #define EOD_SUCCESS              0          //Success.
-#define EOD_ADT_OPEN             EDT_OPEN   //See EDT_OPEN.     
-#define EOD_ADT_ALLOC            EDT_ALLOC  //See EDT_ALLOC.     
-#define EOD_ADT_READ             EDT_READ   //See EDT_READ.  
-#define EOD_ADT_BINARY           EDT_BINARY //See EDT_BINARY.       
+#define EOD_ADT_OPEN             EDT_OPEN   //See EDT_OPEN.
+#define EOD_ADT_ALLOC            EDT_ALLOC  //See EDT_ALLOC.
+#define EOD_ADT_READ             EDT_READ   //See EDT_READ.
+#define EOD_ADT_BINARY           EDT_BINARY //See EDT_BINARY.
 #define EOD_OPEN                 -11        //Can't open file.
 #define EOD_CANCEL               -12        //User press cancel.
 #define EOD_WINDOW_EXIST         -13        //File already opened.
@@ -930,6 +930,48 @@ typedef struct {
 #define IDM_FILE_PRINTPREVIEW           4114  //Print preview dialog. lParam can be used to pass edit window handle.
                                               //Return Value: zero.
                                               //
+#define IDM_FILE_REDETECT               4121  //Redetect code page of the current file.
+                                              //Return Value: see EOD_* defines.
+                                              //
+#define IDM_FILE_REOPENAS_ANSI          4122  //Reopen file as ANSI.
+                                              //Return Value: see EOD_* defines.
+                                              //
+#define IDM_FILE_REOPENAS_OEM           4123  //Reopen file as OEM.
+                                              //Return Value: see EOD_* defines.
+                                              //
+#define IDM_FILE_REOPENAS_KOIR          4124  //Reopen file as KOI-R.
+                                              //Return Value: see EOD_* defines.
+                                              //
+#define IDM_FILE_REOPENAS_UTF16LE       4125  //Reopen file as UTF16LE.
+                                              //Return Value: see EOD_* defines.
+                                              //
+#define IDM_FILE_REOPENAS_UTF16BE       4126  //Reopen file as UTF16BE.
+                                              //Return Value: see EOD_* defines.
+                                              //
+#define IDM_FILE_REOPENAS_UTF8          4127  //Reopen file as UTF8.
+                                              //Return Value: see EOD_* defines.
+                                              //
+#define IDM_FILE_SAVEAS_ANSI            4131  //Save file as ANSI.
+                                              //Return Value: see ESD_* defines.
+                                              //
+#define IDM_FILE_SAVEAS_OEM             4132  //Save file as OEM.
+                                              //Return Value: see ESD_* defines.
+                                              //
+#define IDM_FILE_SAVEAS_KOIR            4133  //Save file as KOI-R.
+                                              //Return Value: see ESD_* defines.
+                                              //
+#define IDM_FILE_SAVEAS_UTF16LE         4134  //Save file as UTF16LE.
+                                              //Return Value: see ESD_* defines.
+                                              //
+#define IDM_FILE_SAVEAS_UTF16BE         4135  //Save file as UTF16BE.
+                                              //Return Value: see ESD_* defines.
+                                              //
+#define IDM_FILE_SAVEAS_UTF8            4136  //Save file as UTF8.
+                                              //Return Value: see ESD_* defines.
+                                              //
+#define IDM_FILE_SAVEAS_UTF8_NOBOM      4137  //Save file as UTF8 without BOM.
+                                              //Return Value: see ESD_* defines.
+                                              //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation.
                                               //Return Value: zero.
                                               //
@@ -1033,6 +1075,24 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_NEWLINE_MAC            4186  //Mac new line format.
+                                              //Return Value: zero.
+                                              //
+#define IDM_EDIT_INSERTMODE             4190  //Insert mode (on\off).
+                                              //Return Value: zero.
+                                              //
+#define IDM_EDIT_PASTEANSI              4191  //Paste as ANSI text.
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_EDIT_PASTECOLUMN            4192  //Paste to column selection.
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_EDIT_PASTEAFTER             4193  //Paste text after caret.
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_EDIT_AUTOINDENT             4196  //Insert new line with keeping left spaces.
+                                              //Return Value: TRUE - inserted with spaces, FALSE - inserted without spaces.
+                                              //
+#define IDM_EDIT_DELLINE                4197  //Delete current line.
                                               //Return Value: zero.
                                               //
 #define IDM_VIEW_FONT                   4201  //Font dialog.
@@ -1150,93 +1210,33 @@ typedef struct {
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE 4320  //Close all documents, but active.
+                                                 //Return Value: TRUE - success, FALSE - failed.
+                                                 //
+#define IDM_WINDOW_FILECLOSE            4324  //Close file.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_WINDOW_MDILIST              4325  //Select window dialog (MDI). Same as IDM_SELECTWINDOW.
+#define IDM_WINDOW_FILEEXIT             4325  //Close file and exit program (SDI) or close tab of a file (MDI or PMDI).
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_WINDOW_MDILIST              4327  //Select window dialog (MDI). Same as IDM_SELECTWINDOW.
                                               //Return Value: zero.
+                                              //
+#define IDM_WINDOW_CHANGESIZE           4331  //Change style of the main window SW_RESTORE\SW_MAXIMIZE.
+                                              //Return Value: zero.
+                                              //
+#define IDM_WINDOW_DLGNEXT              4332  //Activate next dialog window.
+                                              //Return Value: activated dialog handle.
+                                              //
+#define IDM_WINDOW_DLGPREV              4333  //Activate previous dialog window.
+                                              //Return Value: activated dialog handle.
+                                              //
+#define IDM_WINDOW_CLONENEXT            4341  //Activate next pane (split window).
+                                              //Return Value: activated pane handle.
+                                              //
+#define IDM_WINDOW_CLONEPREV            4342  //Activate previous pane (split window).
+                                              //Return Value: activated pane handle.
                                               //
 #define IDM_ABOUT                       4351  //About dialog.
-                                              //Return Value: zero.
-                                              //
-#define IDM_NONMENU_CHANGESIZE          4391  //Change style of the main window SW_RESTORE\SW_MAXIMIZE.
-                                              //Return Value: zero.
-                                              //
-#define IDM_NONMENU_DLGNEXT             4394  //Activate next dialog window.
-                                              //Return Value: activated dialog handle.
-                                              //
-#define IDM_NONMENU_DLGPREV             4395  //Activate previous dialog window.
-                                              //Return Value: activated dialog handle.
-                                              //
-#define IDM_NONMENU_CLONENEXT           4398  //Activate next pane (split window).
-                                              //Return Value: activated pane handle.
-                                              //
-#define IDM_NONMENU_CLONEPREV           4399  //Activate previous pane (split window).
-                                              //Return Value: activated pane handle.
-                                              //
-#define IDM_NONMENU_REDETECT            4408  //Redetect code page of the current file.
-                                              //Return Value: see EOD_* defines.
-                                              //
-#define IDM_NONMENU_REOPENAS_ANSI       4409  //Reopen file as ANSI.
-                                              //Return Value: see EOD_* defines.
-                                              //
-#define IDM_NONMENU_REOPENAS_OEM        4410  //Reopen file as OEM.
-                                              //Return Value: see EOD_* defines.
-                                              //
-#define IDM_NONMENU_REOPENAS_UTF16LE    4411  //Reopen file as UTF16LE.
-                                              //Return Value: see EOD_* defines.
-                                              //
-#define IDM_NONMENU_REOPENAS_UTF16BE    4412  //Reopen file as UTF16BE.
-                                              //Return Value: see EOD_* defines.
-                                              //
-#define IDM_NONMENU_REOPENAS_UTF8       4413  //Reopen file as UTF8.
-                                              //Return Value: see EOD_* defines.
-                                              //
-#define IDM_NONMENU_REOPENAS_KOIR       4414  //Reopen file as KOI-R.
-                                              //Return Value: see EOD_* defines.
-                                              //
-#define IDM_NONMENU_SAVEAS_ANSI         4415  //Save file as ANSI.
-                                              //Return Value: see ESD_* defines.
-                                              //
-#define IDM_NONMENU_SAVEAS_OEM          4416  //Save file as OEM.
-                                              //Return Value: see ESD_* defines.
-                                              //
-#define IDM_NONMENU_SAVEAS_UTF16LE      4417  //Save file as UTF16LE.
-                                              //Return Value: see ESD_* defines.
-                                              //
-#define IDM_NONMENU_SAVEAS_UTF16BE      4418  //Save file as UTF16BE.
-                                              //Return Value: see ESD_* defines.
-                                              //
-#define IDM_NONMENU_SAVEAS_UTF8         4419  //Save file as UTF8.
-                                              //Return Value: see ESD_* defines.
-                                              //
-#define IDM_NONMENU_SAVEAS_KOIR         4420  //Save file as KOI-R.
-                                              //Return Value: see ESD_* defines.
-                                              //
-#define IDM_NONMENU_SAVEAS_UTF8_NOBOM   4421  //Save file as UTF8 without BOM.
-                                              //Return Value: see ESD_* defines.
-                                              //
-#define IDM_NONMENU_FILECLOSE           4422  //Close file.
-                                              //Return Value: TRUE - success, FALSE - failed.
-                                              //
-#define IDM_NONMENU_FILEEXIT            4423  //Close file and exit program (SDI) or close tab of a file (MDI or PMDI).
-                                              //Return Value: TRUE - success, FALSE - failed.
-                                              //
-#define IDM_NONMENU_INSERTMODE          4441  //Insert mode (on\off).
-                                              //Return Value: zero.
-                                              //
-#define IDM_NONMENU_PASTEANSI           4451  //Paste as ANSI text.
-                                              //Return Value: TRUE - success, FALSE - failed.
-                                              //
-#define IDM_NONMENU_PASTECOLUMN         4452  //Paste to column selection.
-                                              //Return Value: TRUE - success, FALSE - failed.
-                                              //
-#define IDM_NONMENU_PASTEAFTER          4453  //Paste text after caret.
-                                              //Return Value: TRUE - success, FALSE - failed.
-                                              //
-#define IDM_NONMENU_AUTOINDENT          4454  //Insert new line with keeping left spaces.
-                                              //Return Value: TRUE - inserted with spaces, FALSE - inserted without spaces.
-                                              //
-#define IDM_NONMENU_DELLINE             4456  //Delete current line.
                                               //Return Value: zero.
                                               //
 #define IDM_INTERNAL_REOPEN_MSG         4501  //Internal command.
@@ -3585,8 +3585,8 @@ Example (Ansi):
   SendMessage(hWndDestination, WM_COPYDATA, (WPARAM)pd->hMainWnd, (LPARAM)&cds);
 
 
-CD_PARSECMDLINESEND, CD_PARSECMDLINESENDA, CD_PARSECMDLINESENDW, CD_PARSECMDLINEPOST, CD_PARSECMDLINEPOSTA, CD_PARSECMDLINEPOSTW  
-___________________  ____________________  ____________________  ___________________  ____________________  ____________________  
+CD_PARSECMDLINESEND, CD_PARSECMDLINESENDA, CD_PARSECMDLINESENDW, CD_PARSECMDLINEPOST, CD_PARSECMDLINEPOSTA, CD_PARSECMDLINEPOSTW
+___________________  ____________________  ____________________  ___________________  ____________________  ____________________
 
 Parse command line. Same as AKD_PARSECMDLINE, but can be used from outside of AkelPad process.
 
