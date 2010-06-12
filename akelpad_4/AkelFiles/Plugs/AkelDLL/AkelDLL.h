@@ -921,19 +921,13 @@ typedef struct {
 #define IDM_FILE_SAVEALL                4110  //Save all documents.
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
-#define IDM_FILE_CLOSEALL               4111  //Close all documents.
-                                              //Return Value: TRUE - success, FALSE - failed.
-                                              //
-#define IDM_FILE_CLOSEALL_BUTACTIVE     4112  //Close all documents, but active.
-                                              //Return Value: TRUE - success, FALSE - failed.
+#define IDM_FILE_SAVEALLAS              4111  //Save all as dialog.
+                                              //Return Value: zero.
                                               //
 #define IDM_FILE_SILENTPRINT            4113  //Print without dialog. lParam can be used to pass edit window handle.
                                               //Return Value: number of printed pages.
                                               //
 #define IDM_FILE_PRINTPREVIEW           4114  //Print preview dialog. lParam can be used to pass edit window handle.
-                                              //Return Value: zero.
-                                              //
-#define IDM_FILE_SAVEALLAS              4115  //Save all as dialog.
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_UNDO                   4151  //Undo last operation.
@@ -1143,7 +1137,22 @@ typedef struct {
 #define IDM_WINDOW_TABSWITCH_RIGHTLEFT  4311  //Switch MDI windows: right-left.
                                               //Return Value: zero.
                                               //
-#define IDM_WINDOW_MDILIST              4312  //Select window dialog (MDI). Same as IDM_SELECTWINDOW.
+#define IDM_WINDOW_FRAMENEXT            4316  //Activate next MDI window.
+                                              //Return Value: zero.
+                                              //
+#define IDM_WINDOW_FRAMEPREV            4317  //Activate previous MDI window.
+                                              //Return Value: zero.
+                                              //
+#define IDM_WINDOW_FRAMECLOSE           4318  //Close current MDI window.
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_WINDOW_FRAMECLOSEALL        4319  //Close all documents.
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE 4320  //Close all documents, but active.
+                                              //Return Value: TRUE - success, FALSE - failed.
+                                              //
+#define IDM_WINDOW_MDILIST              4325  //Select window dialog (MDI). Same as IDM_SELECTWINDOW.
                                               //Return Value: zero.
                                               //
 #define IDM_ABOUT                       4351  //About dialog.
@@ -1163,15 +1172,6 @@ typedef struct {
                                               //
 #define IDM_NONMENU_CLONEPREV           4399  //Activate previous pane (split window).
                                               //Return Value: activated pane handle.
-                                              //
-#define IDM_NONMENU_FRAMENEXT           4404  //Activate next MDI window.
-                                              //Return Value: zero.
-                                              //
-#define IDM_NONMENU_FRAMEPREV           4405  //Activate previous MDI window.
-                                              //Return Value: zero.
-                                              //
-#define IDM_NONMENU_FRAMECLOSE          4406  //Close current MDI window.
-                                              //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_NONMENU_REDETECT            4408  //Redetect code page of the current file.
                                               //Return Value: see EOD_* defines.
