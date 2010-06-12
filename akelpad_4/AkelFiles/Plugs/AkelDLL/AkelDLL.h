@@ -221,6 +221,7 @@
 #define PDS_NOSDI        0x00000008  //Function doesn't support SDI mode.
 #define PDS_NOMDI        0x00000010  //Function doesn't support MDI mode.
 #define PDS_NOPMDI       0x00000020  //Function doesn't support PMDI mode.
+#define PDS_NORICHEDIT   0x00000040  //Reserved.
 #define PDS_GETSUPPORT   0x10000000  //Flag is set if caller specified DLLCF_GETSUPPORT in AKD_DLLCALL and wants to get PDS_* flags without function execution.
 
 //AKD_DLLCALL flags
