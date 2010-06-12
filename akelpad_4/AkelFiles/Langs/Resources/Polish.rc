@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "Wstaw &datê\tCtrl+D",         IDM_EDIT_INSERTDATE
         POPUP "Zaznaczen&ie"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Dodaj wciêcie ta&bem\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Usuñ wciêcie &tabem\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -94,8 +96,6 @@ BEGIN
             MENUITEM "U&suñ bia³e znaki na koñcu\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "&WIELKIE LITERY\tCtrl+6",     IDM_EDIT_UPPERCASE
             MENUITEM "&ma³e litery\tCtrl+7",        IDM_EDIT_LOWERCASE

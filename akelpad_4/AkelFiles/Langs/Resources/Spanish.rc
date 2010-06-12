@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "Insertar fec&ha\tCtrl+D",     IDM_EDIT_INSERTDATE
         POPUP "&Selección"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Ta&bulación con sangría\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Tabulación sin sangría\tShift+Tab", 
@@ -94,8 +96,6 @@ BEGIN
             MENUITEM "Arreglar rastro de espacios &blancos\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "&MAYÚSCULAS\tCtrl+6",         IDM_EDIT_UPPERCASE
             MENUITEM "mi&núsculas\tCtrl+7",         IDM_EDIT_LOWERCASE

@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "Inserire &data\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "&Selezione"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Sposta a destra di una tabulazione\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Sposta a sinistra di una tabulazione\tShift+Tab", 
@@ -95,8 +97,6 @@ BEGIN
             MENUITEM "Elimina gli spazi alla fine\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "&MAIUSCOLE\tCtrl+6",          IDM_EDIT_UPPERCASE
             MENUITEM "m&inuscole\tCtrl+7",          IDM_EDIT_LOWERCASE

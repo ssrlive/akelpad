@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "날짜 삽입(&T)\tCtrl+D",       IDM_EDIT_INSERTDATE
         POPUP "선택(&S)"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "탭 들여쓰기 늘임(&B)\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "탭 들여쓰기 줄임(&T)\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -94,8 +96,6 @@ BEGIN
             MENUITEM "줄끝 공백 제거(&W)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "대문자로(&U)\tCtrl+6",        IDM_EDIT_UPPERCASE
             MENUITEM "소문자로(&L)\tCtrl+7",        IDM_EDIT_LOWERCASE

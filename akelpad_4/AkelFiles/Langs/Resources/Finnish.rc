@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "Lis‰‰ p‰&iv‰ys\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "&Valinta"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "&Sarkainsisennys\tTab",       IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Poista sarkainsisennys\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -93,8 +95,6 @@ BEGIN
             MENUITEM "Poista tyhj‰t v&‰lit rivien lopuista\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "&ISOT KIRJAIMET\tCtrl+6",     IDM_EDIT_UPPERCASE
             MENUITEM "&pienet kirjaimet\tCtrl+7",   IDM_EDIT_LOWERCASE

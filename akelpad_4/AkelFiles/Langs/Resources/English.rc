@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "Insert da&te\tCtrl+D",        IDM_EDIT_INSERTDATE
         POPUP "&Selection"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Ta&b indent\tTab",            IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Tab unindent\tShift+Tab",    IDM_EDIT_DELETE_TAB_MENU
             MENUITEM "Spa&ce indent\tSpace",        IDM_EDIT_INSERT_SPACE_MENU
@@ -92,8 +94,6 @@ BEGIN
             MENUITEM "Trim trailing &whitespace\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "&UPPERCASE\tCtrl+6",          IDM_EDIT_UPPERCASE
             MENUITEM "&lowercase\tCtrl+7",          IDM_EDIT_LOWERCASE

@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "&Datum einfügen\tCtrl+D",     IDM_EDIT_INSERTDATE
         POPUP "Auswa&hl"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Tab einfüg&en\tTab",          IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Tab entfer&nen\tShift+Tab",   IDM_EDIT_DELETE_TAB_MENU
             MENUITEM "Leerstelle einfü&gen\tSpace", IDM_EDIT_INSERT_SPACE_MENU
@@ -92,8 +94,6 @@ BEGIN
             MENUITEM "&Tabs und Leerstellen am Ende entfernen\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "&GROSSBUCHSTABEN\tCtrl+6",    IDM_EDIT_UPPERCASE
             MENUITEM "&kleinbuchstaben\tCtrl+7",    IDM_EDIT_LOWERCASE
