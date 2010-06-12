@@ -8527,6 +8527,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
 {
   AECHARRANGE crInitialSel=crSel;
   AECHARRANGE crRange;
+  AECHARRANGE crInsert;
   AECHARINDEX ciInitialCaret=ciCaret;
   AECHARINDEX ciFirstVisibleBefore;
   AECHARINDEX ciFirstVisibleAfter;
@@ -8669,35 +8670,45 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
               i=SendMessage(hWnd, AEM_GETNEWLINE, 0, 0);
               SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT, AELB_ASIS);
             }
-            ReplaceSelW(hWnd, wszResultText, nResultTextLen, bColumnSel, NULL, NULL);
+            ReplaceSelW(hWnd, wszResultText, nResultTextLen, bColumnSel, &crInsert.ciMin, &crInsert.ciMax);
             if (nNewLine == AELB_ASIS)
               SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT, i);
 
             //Restore selection
-            if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
+            if (dwFlags & AEFR_SELECTION)
             {
-              if (nNewLine == AELB_ASIS)
-              {
-                SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crInitialSel.ciMin);
-                IndexOffset(hWnd, &crInitialSel.ciMin, nMin, nNewLine);
-              }
-              else if (nNewLine == AELB_R)
-              {
-                RichOffsetToAkelIndex(hWnd, nMin, &crInitialSel.ciMin);
-              }
-              crInitialSel.ciMax=crInitialSel.ciMin;
-              IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
+              if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+                SetSel(hWnd, &crInsert, bInitialColumnSel, &crInsert.ciMin);
+              else
+                SetSel(hWnd, &crInsert, bInitialColumnSel, &crInsert.ciMax);
             }
-            else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
-            {
-              SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
-              crInitialSel.ciMax=crInitialSel.ciMin;
-              IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
-            }
-            if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-              SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMin);
             else
-              SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMax);
+            {
+              if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
+              {
+                if (nNewLine == AELB_ASIS)
+                {
+                  SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crInitialSel.ciMin);
+                  IndexOffset(hWnd, &crInitialSel.ciMin, nMin, nNewLine);
+                }
+                else if (nNewLine == AELB_R)
+                {
+                  RichOffsetToAkelIndex(hWnd, nMin, &crInitialSel.ciMin);
+                }
+                crInitialSel.ciMax=crInitialSel.ciMin;
+                IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
+              }
+              else if (dwFlags & AEFR_DOWN)
+              {
+                SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
+                crInitialSel.ciMax=crInitialSel.ciMin;
+                IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
+              }
+              if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+                SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMin);
+              else
+                SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMax);
+            }
 
             //Start redraw
             SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
