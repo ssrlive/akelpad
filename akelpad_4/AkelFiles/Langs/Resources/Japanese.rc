@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "日付の挿入(&T)\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "選択範囲(&S)"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Tab インデント(&B)\tTab",     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Tab アンインデント(&T)\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -94,8 +96,6 @@ BEGIN
             MENUITEM "末尾の空白を整形(&W)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "大文字(&U)\tCtrl+6",          IDM_EDIT_UPPERCASE
             MENUITEM "小文字(&L)\tCtrl+7",          IDM_EDIT_LOWERCASE

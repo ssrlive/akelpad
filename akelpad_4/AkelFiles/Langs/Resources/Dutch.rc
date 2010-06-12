@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "Voeg da&tum in\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "&Selectie"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Ta&b insprong vergroten\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Tab insprong verkleinen\tShift+Tab", 
@@ -95,8 +97,6 @@ BEGIN
             MENUITEM "Ver&wijder achterliggende witruimtes\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "&HOOFDLETTERS\tCtrl+6",       IDM_EDIT_UPPERCASE
             MENUITEM "&kleine letters\tCtrl+7",     IDM_EDIT_LOWERCASE

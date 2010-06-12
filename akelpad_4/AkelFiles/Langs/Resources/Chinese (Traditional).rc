@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "插入日期(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
         POPUP "選取項目(&S)"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Tab 縮排(&B)\tTab",           IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "取消 Tab 縮排(&T)\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -93,8 +95,6 @@ BEGIN
             MENUITEM "除去行尾空格(&W)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "全部大寫(&U)\tCtrl+6",        IDM_EDIT_UPPERCASE
             MENUITEM "全部小寫(&L)\tCtrl+7",        IDM_EDIT_LOWERCASE

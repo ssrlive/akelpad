@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "Уставіць &дату\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "Вы&лучэнне"
         BEGIN
+            MENUITEM "Вертикальная вставка\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "&Дадаць Tab\tTab",            IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Прыбраць Tab\tShift+Tab",    IDM_EDIT_DELETE_TAB_MENU
             MENUITEM "Д&адаць прабел\tSpace",       IDM_EDIT_INSERT_SPACE_MENU
@@ -92,8 +94,6 @@ BEGIN
             MENUITEM "Пры&браць Tab'ы і прабелы ў канцы\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Вертикальная вставка\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "УСЁ &ПРАПІСНЫЯ\tCtrl+6",      IDM_EDIT_UPPERCASE
             MENUITEM "усё &маленькія\tCtrl+7",      IDM_EDIT_LOWERCASE

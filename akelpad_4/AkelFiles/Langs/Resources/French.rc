@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "Insérer la &date\tCtrl+D",    IDM_EDIT_INSERTDATE
         POPUP "&Sélection"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Décaler à droite d'une ta&bulation\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Décaler à gauche d'une &tabulation\tShift+Tab", 
@@ -95,8 +97,6 @@ BEGIN
             MENUITEM "Suppimer les espaces &finaux\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "&MAJUSCULE\tCtrl+6",          IDM_EDIT_UPPERCASE
             MENUITEM "m&inuscule\tCtrl+7",          IDM_EDIT_LOWERCASE

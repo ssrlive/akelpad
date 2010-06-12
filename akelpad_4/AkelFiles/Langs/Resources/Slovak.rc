@@ -79,6 +79,8 @@ BEGIN
         MENUITEM "Vloûiù d·&tum\tCtrl+D",       IDM_EDIT_INSERTDATE
         POPUP "V˝&ber"
         BEGIN
+            MENUITEM "Columnar paste\tAlt+V", 
+                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM "Ods&adiù tabul·tormi\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Zruöiù odsadenie &tab\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -93,8 +95,6 @@ BEGIN
             MENUITEM "Vymazaù medzery na konci riadku\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
             MENUITEM SEPARATOR
             MENUITEM "&VEºK… PÕSMEN¡\tCtrl+6",      IDM_EDIT_UPPERCASE
             MENUITEM "Ma&lÈ pÌsmen·\tCtrl+7",       IDM_EDIT_LOWERCASE
