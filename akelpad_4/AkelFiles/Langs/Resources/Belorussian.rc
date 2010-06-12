@@ -174,7 +174,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Закрыть",                     IDM_WINDOW_FRAMECLOSE
         MENUITEM "Закрыть все",                 IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Закрыть все кроме активного", IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Закрыть все, кроме активного", IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
         MENUITEM "Выбар акна...",               IDM_WINDOW_MDILIST
     END
     POPUP "&Даведка"
