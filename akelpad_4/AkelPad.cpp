@@ -4952,6 +4952,16 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     }
     return 0;
   }
+  else if (uMsg == WM_SETFOCUS)
+  {
+    BUTTONDRAWITEM *lpButtonDraw;
+
+    if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
+    {
+      if (lpButtonDraw->bd.dwFlags & BIF_ENABLEFOCUS)
+        InvalidateRect(hWnd, NULL, FALSE);
+    }
+  }
   else if (uMsg == WM_ERASEBKGND)
   {
     return 1;
@@ -4980,7 +4990,12 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         }
         else
         {
-          if (lpButtonDraw->bd.dwFlags & BIF_ETCHED)
+          if ((lpButtonDraw->bd.dwFlags & BIF_ENABLEFOCUS) && hWnd == GetFocus())
+          {
+            //Draw focus rect
+            DrawFocusRect(ps.hdc, &rcButton);
+          }
+          else if (lpButtonDraw->bd.dwFlags & BIF_ETCHED)
             DrawEdge(ps.hdc, &rcButton, EDGE_ETCHED, BF_RECT);
         }
 
