@@ -336,10 +336,11 @@
 #define DKC_DRAGDROP   2
 
 //AKD_SETBUTTONDRAW flags
-#define BIF_BITMAP  0x001 //Bitmap handle is used in BUTTONDRAW.hImage.
-#define BIF_ICON    0x002 //Icon handle is used in BUTTONDRAW.hImage.
-#define BIF_CROSS   0x004 //Draw small cross 8x7. BUTTONDRAW.hImage is ignored.
-#define BIF_ETCHED  0x100 //Draw edge around button.
+#define BIF_BITMAP      0x001 //Bitmap handle is used in BUTTONDRAW.hImage.
+#define BIF_ICON        0x002 //Icon handle is used in BUTTONDRAW.hImage.
+#define BIF_CROSS       0x004 //Draw small cross 8x7. BUTTONDRAW.hImage is ignored.
+#define BIF_ETCHED      0x100 //Draw edge around button.
+#define BIF_ENABLEFOCUS 0x200 //Draw focus rectangle when button receive focus.
 
 //WM_INITMENU lParam
 #define IMENU_EDIT     0x00000001
@@ -2633,7 +2634,7 @@ Example:
 AKD_SETBUTTONDRAW
 _________________
 
-Draw icon or bitmap on button and make it unfocusable.
+Draw icon or bitmap on button.
 
 (HWND)wParam         == button handle. Button must have BS_OWNERDRAW style.
 (BUTTONDRAW *)lParam == pointer to a BUTTONDRAW structure.
