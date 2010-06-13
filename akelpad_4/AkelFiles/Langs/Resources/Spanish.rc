@@ -267,7 +267,6 @@ IDC_CURSOR_HANDCLOSE    CURSOR  DISCARDABLE     "HandClose.cur"
 //
 
 IDB_BITMAP_DOWNARROW    BITMAP  DISCARDABLE     "DownArrow.bmp"
-IDB_BITMAP_CLOSE        BITMAP  DISCARDABLE     "Close.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

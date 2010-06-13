@@ -90,7 +90,6 @@ extern HICON hMainIcon;
 extern HCURSOR hCursorDragMove;
 extern HCURSOR hCursorHandOpen;
 extern HCURSOR hCursorHandClose;
-extern HBITMAP hBitmapClose;
 extern HMENU hMainMenu;
 extern HMENU hPopupMenu;
 extern HMENU hPopupEdit;
@@ -126,6 +125,9 @@ extern HDOCK hDocksStack;
 extern NSIZE nsSize;
 extern WNDPROC OldDockProc;
 extern WNDPROC OldCloseButtonProc;
+
+//Owner-drawn buttons
+extern HSTACK hButtonDrawStack;
 
 //Codepages
 extern int *lpCodepageList;
@@ -13952,6 +13954,41 @@ void StackFramesFree(HSTACK *hStack)
 }
 
 
+//// Owner-drawn buttons
+
+BUTTONDRAWITEM* StackButtonDrawInsert(HSTACK *hStack)
+{
+  BUTTONDRAWITEM *lpElement=NULL;
+
+  StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(BUTTONDRAWITEM));
+  return lpElement;
+}
+
+BUTTONDRAWITEM* StackButtonDrawGet(HSTACK *hStack, HWND hWnd)
+{
+  BUTTONDRAWITEM *lpButtonDraw=(BUTTONDRAWITEM *)hStack->last;
+
+  while (lpButtonDraw)
+  {
+    if (lpButtonDraw->hWnd == hWnd)
+      return lpButtonDraw;
+
+    lpButtonDraw=lpButtonDraw->prev;
+  }
+  return NULL;
+}
+
+void StackButtonDrawDelete(HSTACK *hStack, BUTTONDRAWITEM *lpButtonDraw)
+{
+  StackDelete((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpButtonDraw);
+}
+
+void StackButtonDrawFree(HSTACK *hStack)
+{
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+
 //// Status bar
 
 void SetSelectionStatus(HANDLE hDataEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci)
@@ -16414,6 +16451,16 @@ int GetOppEdge(int nEdge)
   if (nEdge == DKS_RIGHT) return DKS_LEFT;
   if (nEdge == DKS_BOTTOM) return DKS_TOP;
   return 0;
+}
+
+BOOL IsCursorOnWindow(HWND hWnd)
+{
+  RECT rc;
+  POINT pt;
+
+  GetCursorPos(&pt);
+  GetWindowRect(hWnd, &rc);
+  return PtInRect(&rc, pt);
 }
 
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)

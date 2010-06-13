@@ -224,7 +224,6 @@ HICON hMainIcon;
 HCURSOR hCursorDragMove;
 HCURSOR hCursorHandOpen;
 HCURSOR hCursorHandClose;
-HBITMAP hBitmapClose;
 HMENU hMainMenu;
 HMENU hPopupMenu;
 HMENU hPopupEdit;
@@ -260,6 +259,9 @@ HDOCK hDocksStack={0};
 NSIZE nsSize;
 WNDPROC OldDockProc=NULL;
 WNDPROC OldCloseButtonProc=NULL;
+
+//Owner-drawn buttons
+HSTACK hButtonDrawStack={0};
 
 //Codepages
 int *lpCodepageList=NULL;
@@ -787,7 +789,6 @@ extern "C" void _WinMain()
     hCursorSizeALL=LoadCursor(NULL, IDC_SIZEALL);
     hCursorHandOpen=(HCURSOR)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDC_CURSOR_HANDOPEN), IMAGE_CURSOR, 0, 0, 0);
     hCursorHandClose=(HCURSOR)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDC_CURSOR_HANDCLOSE), IMAGE_CURSOR, 0, 0, 0);
-    hBitmapClose=(HBITMAP)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDB_BITMAP_CLOSE), IMAGE_BITMAP, 0, 0, 0);
     if (nMDI)
     {
       hIconEmpty=(HICON)API_LoadImageA(hLangLib, MAKEINTRESOURCEA(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
@@ -806,7 +807,6 @@ extern "C" void _WinMain()
     hCursorSizeALL=LoadCursor(NULL, IDC_SIZEALL);
     hCursorHandOpen=(HCURSOR)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDC_CURSOR_HANDOPEN), IMAGE_CURSOR, 0, 0, 0);
     hCursorHandClose=(HCURSOR)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDC_CURSOR_HANDCLOSE), IMAGE_CURSOR, 0, 0, 0);
-    hBitmapClose=(HBITMAP)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDB_BITMAP_CLOSE), IMAGE_BITMAP, 0, 0, 0);
     if (nMDI)
     {
       hIconEmpty=(HICON)API_LoadImageW(hLangLib, MAKEINTRESOURCEW(IDI_ICON_EMPTY), IMAGE_ICON, 0, 0, 0);
@@ -2006,15 +2006,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return (LRESULT)lpResult;
     }
-    if (uMsg == AKD_SETCLOSEBUTTON)
+    if (uMsg == AKD_SETBUTTONDRAW)
     {
-      HBITMAP hBitmap=(HBITMAP)lParam;
+      BUTTONDRAWITEM *lpButtonDraw;
 
-      if (!hBitmap) hBitmap=hBitmapClose;
-      SendMessage((HWND)wParam, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap);
+      if (lpButtonDraw=StackButtonDrawInsert(&hButtonDrawStack))
+      {
+        lpButtonDraw->hWnd=(HWND)wParam;
+        xmemcpy(&lpButtonDraw->bd, (BUTTONDRAW *)lParam, sizeof(BUTTONDRAW));
 
-      OldCloseButtonProc=(WNDPROC)GetWindowLongWide((HWND)wParam, GWL_WNDPROC);
-      SetWindowLongWide((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
+        OldCloseButtonProc=(WNDPROC)GetWindowLongWide((HWND)wParam, GWL_WNDPROC);
+        SetWindowLongWide((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
+      }
       return 0;
     }
     if (uMsg == AKD_SETHOTKEYINPUT)
@@ -3565,10 +3568,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     DestroyAcceleratorTable(hGlobalAccel);
     DestroyCursor(hCursorHandOpen);
     DestroyCursor(hCursorHandClose);
-    DeleteObject(hBitmapClose);
     DestroyIcon(hMainIcon);
     DestroyMenu(hMainMenu);
     DestroyMenu(hPopupMenu);
+    StackButtonDrawFree(&hButtonDrawStack);
     StackFontItemsFree(&hFontsStack);
 
     PostQuitMessage(0);
@@ -4888,42 +4891,48 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static BOOL bMouseMove=FALSE;
   static BOOL bMouseDown=FALSE;
+  static BOOL bMousePush=FALSE;
 
-  if (uMsg == WM_MOUSEACTIVATE)
+  if (uMsg == WM_LBUTTONDOWN ||
+      uMsg == WM_LBUTTONDBLCLK)
   {
-    return MA_NOACTIVATE;
-  }
-  else if (uMsg == WM_SETFOCUS)
-  {
-    return 0;
-  }
-  else if (uMsg == BM_SETSTYLE)
-  {
-    wParam&=~BS_DEFPUSHBUTTON;
-  }
-  else if (uMsg == WM_LBUTTONDOWN ||
-           uMsg == WM_LBUTTONDBLCLK)
-  {
-    SendMessage(hWnd, BM_SETSTATE, BST_PUSHED, 0);
-    SetCapture(hWnd);
-    bMouseDown=TRUE;
+    if (!bMouseDown)
+    {
+      if (!bMouseMove)
+        SetCapture(hWnd);
+      bMouseMove=FALSE;
+      bMouseDown=TRUE;
+      bMousePush=TRUE;
+    }
+    InvalidateRect(hWnd, NULL, FALSE);
     return 0;
   }
   else if (uMsg == WM_MOUSEMOVE)
   {
-    if (bMouseDown)
+    if (!bMouseDown)
     {
-      RECT rc;
-      POINT pt;
-
-      GetCursorPos(&pt);
-      GetWindowRect(hWnd, &rc);
-
-      if (PtInRect(&rc, pt))
-        SendMessage(hWnd, BM_SETSTATE, BST_PUSHED, 0);
-      else
-        SendMessage(hWnd, BM_SETSTATE, BST_UNCHECKED, 0);
+      if (!bMouseMove)
+      {
+        SetCapture(hWnd);
+        bMouseMove=TRUE;
+        InvalidateRect(hWnd, NULL, FALSE);
+      }
+      else if (!IsCursorOnWindow(hWnd))
+      {
+        bMouseMove=FALSE;
+        ReleaseCapture();
+        InvalidateRect(hWnd, NULL, FALSE);
+      }
+    }
+    else
+    {
+      if (IsCursorOnWindow(hWnd) != bMousePush)
+      {
+        bMousePush=!bMousePush;
+        InvalidateRect(hWnd, NULL, FALSE);
+      }
     }
   }
   else if (uMsg == WM_LBUTTONUP ||
@@ -4933,14 +4942,111 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     {
       bMouseDown=FALSE;
       ReleaseCapture();
+      InvalidateRect(hWnd, NULL, FALSE);
 
-      if (SendMessage(hWnd, BM_GETSTATE, 0, 0) & BST_PUSHED)
+      if (bMousePush)
       {
-        SendMessage(hWnd, BM_SETSTATE, BST_UNCHECKED, 0);
         PostMessage(GetParent(hWnd), WM_COMMAND, MAKELONG(GetDlgCtrlID(hWnd), 0), 0);
+        bMousePush=FALSE;
       }
     }
     return 0;
+  }
+  else if (uMsg == WM_ERASEBKGND)
+  {
+    return 1;
+  }
+  else if (uMsg == WM_PAINT)
+  {
+    BUTTONDRAWITEM *lpButtonDraw;
+    PAINTSTRUCT ps;
+    RECT rcButton;
+
+    if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
+    {
+      if (BeginPaint(hWnd, &ps))
+      {
+        //Fill background
+        GetClientRect(hWnd, &rcButton);
+        FillRect(ps.hdc, &rcButton, GetSysColorBrush(COLOR_BTNFACE));
+
+        //Draw edge
+        if (IsCursorOnWindow(hWnd))
+        {
+          if (bMouseDown)
+            DrawEdge(ps.hdc, &rcButton, EDGE_SUNKEN, BF_RECT);
+          else
+            DrawEdge(ps.hdc, &rcButton, BDR_RAISEDINNER, BF_RECT);
+        }
+        else
+        {
+          if (lpButtonDraw->bd.dwFlags & BIF_ETCHED)
+            DrawEdge(ps.hdc, &rcButton, EDGE_ETCHED, BF_RECT);
+        }
+
+        if ((lpButtonDraw->bd.dwFlags & BIF_BITMAP) || (lpButtonDraw->bd.dwFlags & BIF_ICON))
+        {
+          //Draw image
+          if (lpButtonDraw->bd.hImage)
+          {
+            int x=(rcButton.right - rcButton.left) / 2 - lpButtonDraw->bd.nImageWidth / 2 + (bMousePush?1:0);
+            int y=(rcButton.bottom - rcButton.top) / 2 - lpButtonDraw->bd.nImageHeight / 2 + (bMousePush?1:0);
+
+            DrawStateA(ps.hdc, NULL, (DRAWSTATEPROC)NULL, (LPARAM)lpButtonDraw->bd.hImage, (WPARAM)NULL, x, y, 0, 0, ((lpButtonDraw->bd.dwFlags & BIF_BITMAP)?DST_BITMAP:0)|((lpButtonDraw->bd.dwFlags & BIF_ICON)?DST_ICON:0));
+          }
+        }
+        else if (lpButtonDraw->bd.dwFlags & BIF_CROSS)
+        {
+          //Draw cross
+          HPEN hPen;
+          HPEN hPenOld;
+          int nCrossWidth=8;
+          int nCrossHeight=7;
+          int x=(rcButton.right - rcButton.left) / 2 - nCrossWidth / 2 + (bMousePush?1:0);
+          int y=(rcButton.bottom - rcButton.top) / 2 - nCrossHeight / 2 + (bMousePush?1:0);
+
+          //Draw on one pixel higher
+          --y;
+
+          if (hPen=CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNTEXT)))
+          {
+            POINT ptArray[]={{0, 0}, {2, 0},
+                             {6, 0}, {8, 0},
+                             {1, 1}, {3, 1},
+                             {5, 1}, {7, 1},
+                             {2, 2}, {6, 2},
+                             {3, 3}, {5, 3},
+                             {2, 4}, {6, 4},
+                             {1, 5}, {3, 5},
+                             {5, 5}, {7, 5},
+                             {0, 6}, {2, 6},
+                             {6, 6}, {8, 6}};
+            int nElements=sizeof(ptArray) / sizeof(POINT);
+            int i;
+
+            hPenOld=(HPEN)SelectObject(ps.hdc, hPen);
+            for (i=0; i < nElements; i+=2)
+            {
+              MoveToEx(ps.hdc, x + ptArray[i].x, y + ptArray[i].y, NULL);
+              LineTo(ps.hdc, x + ptArray[i + 1].x, y + ptArray[i + 1].y);
+            }
+            SelectObject (ps.hdc, hPenOld);
+            DeleteObject(hPen);
+          }
+        }
+        EndPaint(hWnd, &ps);
+        return TRUE;
+      }
+    }
+  }
+  else if (uMsg == WM_DESTROY)
+  {
+    BUTTONDRAWITEM *lpButtonDraw;
+
+    if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
+    {
+      StackButtonDrawDelete(&hButtonDrawStack, lpButtonDraw);
+    }
   }
 
   if (!IsWindowUnicode(hWnd))

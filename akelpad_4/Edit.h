@@ -492,6 +492,13 @@ typedef struct _HDOCK {
   int nSizingSide;
 } HDOCK;
 
+typedef struct _BUTTONDRAWITEM {
+  struct _BUTTONDRAWITEM *next;
+  struct _BUTTONDRAWITEM *prev;
+  HWND hWnd;
+  BUTTONDRAW bd;
+} BUTTONDRAWITEM;
+
 typedef struct _FONTITEM {
   struct _FONTITEM *next;
   struct _FONTITEM *prev;
@@ -835,6 +842,11 @@ void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex);
 void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame);
 void StackFramesFree(HSTACK *hStack);
 
+BUTTONDRAWITEM* StackButtonDrawInsert(HSTACK *hStack);
+BUTTONDRAWITEM* StackButtonDrawGet(HSTACK *hStack, HWND hWnd);
+void StackButtonDrawDelete(HSTACK *hStack, BUTTONDRAWITEM *lpButtonDraw);
+void StackButtonDrawFree(HSTACK *hStack);
+
 void SetSelectionStatus(HANDLE hDataEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci);
 void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState);
@@ -912,6 +924,7 @@ void DrawMovingRect(RECT *rcScreen);
 int GetMouseEdge(HWND hWnd, POINT *pt);
 void SetEdgeCursor(int nEdge);
 int GetOppEdge(int nEdge);
+BOOL IsCursorOnWindow(HWND hWnd);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
 BOOL ScreenToClientRect(HWND hWnd, RECT *rc);
 BOOL ClientToScreenRect(HWND hWnd, RECT *rc);
