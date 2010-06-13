@@ -73,13 +73,13 @@ BEGIN
         MENUITEM "Знайти далі в&низ\tF3",       IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Знайти далі вгор&у\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "&Замінити...\tCtrl+R",        IDM_EDIT_REPLACE
-        MENUITEM "&Перейти до рядка...\tCtrl+G", IDM_EDIT_GOTOLINE
+        MENUITEM "&Перейти...\tCtrl+G", IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
         MENUITEM "Вставити &символ\tCtrl+I",    IDM_EDIT_INSERTCHAR
         MENUITEM "Вставити &дату\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "Позна&чене"
         BEGIN
-            MENUITEM "Вертикальная вставка\tAlt+V", 
+            MENUITEM "Вертикальна вставка\tAlt+V", 
                                                     IDM_EDIT_PASTECOLUMN
             MENUITEM "&Додати Tab\tTab",            IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Прибрати Tab\tShift+Tab",    IDM_EDIT_DELETE_TAB_MENU
@@ -143,7 +143,7 @@ BEGIN
         BEGIN
             MENUITEM "&Одновіконний (SDI)",         IDM_OPTIONS_SDI
             MENUITEM "&Багатовіконний (MDI)",       IDM_OPTIONS_MDI
-            MENUITEM "&Псевдо-многооконный (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "&Псевдо-багатовіконний (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Параметри...",               IDM_OPTIONS
@@ -173,9 +173,9 @@ BEGIN
         MENUITEM "&Горизонтально",              IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Вертикально",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Каскадом",                   IDM_WINDOW_CASCADE
-        MENUITEM "Закрыть",                     IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Закрыть все",                 IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Закрыть все, кроме активного", 
+        MENUITEM "Закрити",                     IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Закрити все",                 IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Закрити все, окрім активного", 
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Вибір вікна...",              IDM_WINDOW_MDILIST
@@ -445,7 +445,7 @@ BEGIN
     PUSHBUTTON      "Закрити",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Змінені",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
-    CONTROL         "Только имена",IDC_MDILIST_ONLYNAMES,"Button",
+    CONTROL         "Тільки імена",IDC_MDILIST_ONLYNAMES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,191,240,67,10
     PUSHBUTTON      "Скасувати",IDCANCEL,198,264,50,14
 END
