@@ -490,6 +490,7 @@ typedef struct _HDOCK {
   HSTACK hStack;
   BOOL bSizing;
   int nSizingSide;
+  int nSizingType;
 } HDOCK;
 
 typedef struct _BUTTONDRAWITEM {

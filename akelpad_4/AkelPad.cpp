@@ -4825,6 +4825,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 dkData->rcSize.bottom=rcEdge.bottom;
               }
               hDocksStack.nSizingSide=dkData->nSide;
+              hDocksStack.nSizingType=DKC_SIZING;
               UpdateSize();
             }
             SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_SIZING);
@@ -4856,6 +4857,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                 }
                 DockSetSide(&hDocksStack, dkDragSource, nDropSide);
                 hDocksStack.nSizingSide=dkDragSource->nSide;
+                hDocksStack.nSizingType=DKC_DRAGDROP;
                 UpdateSize();
               }
             }

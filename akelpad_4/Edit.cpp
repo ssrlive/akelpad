@@ -13697,13 +13697,15 @@ void StackDockSize(HDOCK *hDocks, int nSide, NSIZE *ns)
                 dkElement->nSide == DKS_RIGHT)
             {
               if (hDocksStack.nSizingSide) dkElement->rcSize.left=rcDock.left;
-              MoveWindow(dkElement->hWnd, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, TRUE);
+              MoveWindow(dkElement->hWnd, rcDock.left, ns->rcCurrent.top, rcDock.right, ns->rcCurrent.bottom, FALSE);
+              RedrawWindow(dkElement->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ALLCHILDREN);
             }
             else if (dkElement->nSide == DKS_TOP ||
                      dkElement->nSide == DKS_BOTTOM)
             {
               if (hDocksStack.nSizingSide) dkElement->rcSize.top=rcDock.top;
-              MoveWindow(dkElement->hWnd, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, TRUE);
+              MoveWindow(dkElement->hWnd, ns->rcCurrent.left, rcDock.top, ns->rcCurrent.right, rcDock.bottom, FALSE);
+              RedrawWindow(dkElement->hWnd, NULL, NULL, RDW_INVALIDATE|RDW_ALLCHILDREN);
             }
           }
         }
