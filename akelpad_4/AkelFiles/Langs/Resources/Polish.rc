@@ -79,7 +79,7 @@ BEGIN
         MENUITEM "Wstaw &datê\tCtrl+D",         IDM_EDIT_INSERTDATE
         POPUP "Zaznaczen&ie"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V", 
+            MENUITEM "Wklej pionowo\tAlt+V", 
                                                     IDM_EDIT_PASTECOLUMN
             MENUITEM "Dodaj wciêcie ta&bem\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Usuñ wciêcie &tabem\tShift+Tab", 
@@ -175,9 +175,9 @@ BEGIN
         MENUITEM "S¹siaduj¹co pozio&mo",        IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "S¹siaduj¹co piono&wo",        IDM_WINDOW_TILEVERTICAL
         MENUITEM "K&askadowo",                  IDM_WINDOW_CASCADE
-        MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Zamknij",                     IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Zamknij wszystkie",           IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Zamknij wszystkie, oprócz aktywnego", IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Wybór okna...",               IDM_WINDOW_MDILIST
     END
