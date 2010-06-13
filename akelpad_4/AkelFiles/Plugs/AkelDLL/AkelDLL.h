@@ -335,6 +335,12 @@
 #define DKC_SIZING     1
 #define DKC_DRAGDROP   2
 
+//AKD_SETBUTTONDRAW flags
+#define BIF_BITMAP  0x001 //Bitmap handle is used in BUTTONDRAW.hImage.
+#define BIF_ICON    0x002 //Icon handle is used in BUTTONDRAW.hImage.
+#define BIF_CROSS   0x004 //Draw small cross 8x7. BUTTONDRAW.hImage is ignored.
+#define BIF_ETCHED  0x100 //Draw edge around button.
+
 //WM_INITMENU lParam
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
@@ -813,6 +819,13 @@ typedef struct _DOCK {
   RECT rcSize;         //Dock window client RECT.
   RECT rcDragDrop;     //Drag-and-drop client RECT.
 } DOCK;
+
+typedef struct {
+  DWORD dwFlags;          //See BIF_* defines.
+  HANDLE hImage;          //Bitmap handle if BIF_BITMAP specified or icon handle if BIF_ICON specified.
+  int nImageWidth;        //Image width.
+  int nImageHeight;       //Image height.
+} BUTTONDRAW;
 
 typedef struct {
   HWND hWnd;           //Window handle.
@@ -1385,7 +1398,7 @@ typedef struct {
 #define AKD_SETMODELESS            (WM_USER + 252)
 #define AKD_RESIZE                 (WM_USER + 253)
 #define AKD_DOCK                   (WM_USER + 254)
-#define AKD_SETCLOSEBUTTON         (WM_USER + 255)
+#define AKD_SETBUTTONDRAW          (WM_USER + 255)
 #define AKD_SETHOTKEYINPUT         (WM_USER + 256)
 #define AKD_DIALOGRESIZE           (WM_USER + 257)
 
@@ -2617,19 +2630,25 @@ Example:
  SendMessage(pd->hMainWnd, AKD_DOCK, DK_DELETE, (LPARAM)dkNew);
 
 
-AKD_SETCLOSEBUTTON
-__________________
+AKD_SETBUTTONDRAW
+_________________
 
-Draw bitmap on button and make it unfocusable.
+Draw icon or bitmap on button and make it unfocusable.
 
-(HWND)wParam    == button handle. Button must have BS_BITMAP style and if BS_NOTIFY specified, some notifications can be ignored.
-(HBITMAP)lParam == bitmap handle. If NULL, then default bitmap is small cross 8x7.
+(HWND)wParam         == button handle. Button must have BS_OWNERDRAW style.
+(BUTTONDRAW *)lParam == pointer to a BUTTONDRAW structure.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(pd->hMainWnd, AKD_SETCLOSEBUTTON, (WPARAM)hWndButton, (LPARAM)NULL);
+ BUTTONDRAW bd;
+
+ bd.dwFlags=BIF_CROSS|BIF_ETCHED;
+ bd.hImage=NULL;
+ bd.nImageWidth=0;
+ bd.nImageHeight=0;
+ SendMessage(pd->hMainWnd, AKD_SETBUTTONDRAW, (WPARAM)hWndButton, (LPARAM)&bd);
 
 
 AKD_SETHOTKEYINPUT
