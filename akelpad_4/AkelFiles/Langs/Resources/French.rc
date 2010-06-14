@@ -79,7 +79,7 @@ BEGIN
         MENUITEM "Insérer la &date\tCtrl+D",    IDM_EDIT_INSERTDATE
         POPUP "&Sélection"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V", 
+            MENUITEM "Coller dans la colonne\tAlt+V", 
                                                     IDM_EDIT_PASTECOLUMN
             MENUITEM "Décaler à droite d'une ta&bulation\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
