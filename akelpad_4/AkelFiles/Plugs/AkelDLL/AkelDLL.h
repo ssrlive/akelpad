@@ -916,7 +916,7 @@ typedef struct {
                                               //Return Value: TRUE - success, FALSE - failed.
                                               //
 #define IDM_FILE_REOPEN                 4104  //Reopen file.
-                                              //Return Value: zero.
+                                              //Return Value: see EOD_* defines.
                                               //
 #define IDM_FILE_SAVE                   4105  //Save file.
                                               //Return Value: TRUE - success, FALSE - failed.
