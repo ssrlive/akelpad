@@ -73,7 +73,7 @@ BEGIN
         MENUITEM "Z&najdŸ nastêpny poni¿ej\tF3", IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Zn&ajdŸ nastêpny powy¿ej\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "Za&mieñ...\tCtrl+R",          IDM_EDIT_REPLACE
-        MENUITEM "PrzejdŸ d&o...\tCtrl+G",      IDM_EDIT_GOTOLINE
+        MENUITEM "PrzejdŸ d&o...\tCtrl+G",      IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "Ws&taw znak\tCtrl+I",         IDM_EDIT_INSERTCHAR
         MENUITEM "Wstaw &datê\tCtrl+D",         IDM_EDIT_INSERTDATE
@@ -295,7 +295,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT

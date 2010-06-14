@@ -73,7 +73,7 @@ BEGIN
         MENUITEM "Zoek volgende om&laag\tF3",   IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Zoek volgende om&hoog\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "Ve&rvangen...\tCtrl+R",       IDM_EDIT_REPLACE
-        MENUITEM "&Ga naar...\tCtrl+G",   IDM_EDIT_GOTOLINE
+        MENUITEM "&Ga naar...\tCtrl+G",   IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "Voeg speciaal ka&rakter in\tCtrl+I", IDM_EDIT_INSERTCHAR
         MENUITEM "Voeg da&tum in\tCtrl+D",      IDM_EDIT_INSERTDATE
@@ -298,7 +298,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT
@@ -552,7 +552,7 @@ END
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 151, 85
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Ga naar regel"
+CAPTION "Ga naar"
 FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Nummer:",IDC_STATIC,17,8,97,8,NOT WS_GROUP

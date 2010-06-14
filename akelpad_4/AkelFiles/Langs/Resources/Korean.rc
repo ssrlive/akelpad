@@ -73,7 +73,7 @@ BEGIN
         MENUITEM "다음 찾기 아래로(&W)\tF3",    IDM_EDIT_FINDNEXTDOWN
         MENUITEM "다음 찾기 위로(&U)\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "바꾸기(&R)...\tCtrl+R",       IDM_EDIT_REPLACE
-        MENUITEM "줄번호 이동(&G)...\tCtrl+G",  IDM_EDIT_GOTOLINE
+        MENUITEM "줄번호 이동(&G)...\tCtrl+G",  IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "특수문자 삽입(&H)\tCtrl+I",   IDM_EDIT_INSERTCHAR
         MENUITEM "날짜 삽입(&T)\tCtrl+D",       IDM_EDIT_INSERTDATE
@@ -296,7 +296,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT

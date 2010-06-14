@@ -299,7 +299,7 @@
 #define IDM_EDIT_FINDNEXTDOWN           4159
 #define IDM_EDIT_FINDNEXTUP             4160
 #define IDM_EDIT_REPLACE                4161
-#define IDM_EDIT_GOTOLINE               4162
+#define IDM_EDIT_GOTO                   4162
 #define IDM_EDIT_INSERTCHAR             4163
 #define IDM_EDIT_INSERT_TAB             4164
 #define IDM_EDIT_INSERT_TAB_MENU        4165

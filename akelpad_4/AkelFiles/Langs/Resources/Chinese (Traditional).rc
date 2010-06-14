@@ -73,7 +73,7 @@ BEGIN
         MENUITEM "往下尋找(&W)\tF3",            IDM_EDIT_FINDNEXTDOWN
         MENUITEM "往上尋找(&U)\tShift+F3",      IDM_EDIT_FINDNEXTUP
         MENUITEM "取代(&R)...\tCtrl+R",         IDM_EDIT_REPLACE
-        MENUITEM "移至列(&G)...\tCtrl+G",       IDM_EDIT_GOTOLINE
+        MENUITEM "移至列(&G)...\tCtrl+G",       IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "插入字元(&H)\tCtrl+I",        IDM_EDIT_INSERTCHAR
         MENUITEM "插入日期(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
@@ -292,7 +292,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT
