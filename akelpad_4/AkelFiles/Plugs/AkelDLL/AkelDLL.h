@@ -3179,7 +3179,7 @@ Example read (bOldWindows == TRUE):
  HANDLE hOptions;
  char szDir[MAX_PATH];
 
- if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)"AutoSave"))
+ if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)"SaveFile"))
  {
    po.pOptionName="SaveDir";
    po.dwType=PO_STRING;
@@ -3195,7 +3195,7 @@ Example read (bOldWindows == FALSE):
  HANDLE hOptions;
  wchar_t wszDir[MAX_PATH];
 
- if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)L"AutoSave"))
+ if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_READ, (LPARAM)L"SaveFile"))
  {
    po.pOptionName=L"SaveDir";
    po.dwType=PO_STRING;
@@ -3211,7 +3211,7 @@ Example save (bOldWindows == TRUE):
  HANDLE hOptions;
  char szDir[MAX_PATH]="C:\\Temp";
 
- if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)"AutoSave"))
+ if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)"SaveFile"))
  {
    po.pOptionName="SaveDir";
    po.dwType=PO_STRING;
@@ -3227,12 +3227,12 @@ Example save (bOldWindows == FALSE):
  HANDLE hOptions;
  wchar_t wszDir[MAX_PATH]=L"C:\\Temp";
 
- if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)L"AutoSave"))
+ if (hOptions=(HANDLE)SendMessage(pd->hMainWnd, AKD_BEGINOPTIONS, POB_SAVE, (LPARAM)L"SaveFile"))
  {
    po.pOptionName=L"SaveDir";
    po.dwType=PO_STRING;
    po.lpData=(LPBYTE)wszDir;
-   po.dwData=lstrlenW(wszDir) * sizeof(wchar_t) + 2;
+   po.dwData=(lstrlenW(wszDir) + 1) * sizeof(wchar_t);
    SendMessage(pd->hMainWnd, AKD_OPTION, (WPARAM)hOptions, (LPARAM)&po);
 
    SendMessage(pd->hMainWnd, AKD_ENDOPTIONS, (WPARAM)hOptions, 0);
@@ -3343,7 +3343,7 @@ Example save (bOldWindows == FALSE):
    iv.pKey=L"SaveDir";
    iv.dwType=INI_STRINGUNICODE;
    iv.lpData=(LPBYTE)wszDir;
-   iv.dwData=lstrlenW(wszDir) * sizeof(wchar_t) + 2;
+   iv.dwData=(lstrlenW(wszDir) + 1) * sizeof(wchar_t);
    SendMessage(pd->hMainWnd, AKD_INISETVALUE, (WPARAM)hIniFile, (LPARAM)&iv);
 
    SendMessage(pd->hMainWnd, AKD_INICLOSE, (WPARAM)hIniFile, 0);

@@ -2275,14 +2275,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_OPTIONW)
     {
       PLUGINOPTIONW *po=(PLUGINOPTIONW *)lParam;
-      wchar_t *wpOptionName=AllocWideStr(MAX_PATH);
       DWORD dwType;
       DWORD dwResult=0;
+      BOOL bAnsi;
 
       if (uMsg == AKD_OPTIONA || (bOldWindows && uMsg == AKD_OPTION))
-        xprintfW(wpOptionName, L"%S", (char *)po->pOptionName);
+        bAnsi=TRUE;
       else
-        xprintfW(wpOptionName, L"%s", (wchar_t *)po->pOptionName);
+        bAnsi=FALSE;
 
       if (moCur.nSaveSettings == SS_REGISTRY)
       {
@@ -2299,13 +2299,29 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (rh->dwType & POB_READ)
         {
           dwSize=po->dwData;
-          if (RegQueryValueExWide(rh->hKey, wpOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
-            dwResult=dwSize;
+          if (bAnsi)
+          {
+            if (RegQueryValueExA(rh->hKey, (char *)po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
+              dwResult=dwSize;
+          }
+          else
+          {
+            if (RegQueryValueExWide(rh->hKey, (wchar_t *)po->pOptionName, NULL, &dwType, (LPBYTE)po->lpData, &dwSize) == ERROR_SUCCESS)
+              dwResult=dwSize;
+          }
         }
         else if (rh->dwType & POB_SAVE)
         {
-          if (RegSetValueExWide(rh->hKey, wpOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
-            dwResult=TRUE;
+          if (bAnsi)
+          {
+            if (RegSetValueExA(rh->hKey, (char *)po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
+              dwResult=TRUE;
+          }
+          else
+          {
+            if (RegSetValueExWide(rh->hKey, (wchar_t *)po->pOptionName, 0, dwType, (LPBYTE)po->lpData, po->dwData) == ERROR_SUCCESS)
+              dwResult=TRUE;
+          }
         }
       }
       else
@@ -2317,14 +2333,23 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (po->dwType == PO_BINARY)
           dwType=INI_BINARY;
         else if (po->dwType == PO_STRING)
-          dwType=INI_STRINGUNICODE;
+          dwType=bAnsi?INI_STRINGANSI:INI_STRINGUNICODE;
 
         if (ih->dwType & POB_READ)
-          dwResult=IniGetValueW(&ih->hStack, L"Options", wpOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+        {
+          if (bAnsi)
+            dwResult=IniGetValueA(&ih->hStack, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          else
+            dwResult=IniGetValueW(&ih->hStack, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+        }
         else if (ih->dwType & POB_SAVE)
-          dwResult=IniSetValueW(&ih->hStack, L"Options", wpOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+        {
+          if (bAnsi)
+            dwResult=IniSetValueA(&ih->hStack, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+          else
+            dwResult=IniSetValueW(&ih->hStack, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+        }
       }
-      FreeWideStr(wpOptionName);
       return dwResult;
     }
     if (uMsg == AKD_ENDOPTIONS)
