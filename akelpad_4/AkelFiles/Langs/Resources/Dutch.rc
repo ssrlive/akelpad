@@ -73,13 +73,13 @@ BEGIN
         MENUITEM "Zoek volgende om&laag\tF3",   IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Zoek volgende om&hoog\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "Ve&rvangen...\tCtrl+R",       IDM_EDIT_REPLACE
-        MENUITEM "&Ga naar regel...\tCtrl+G",   IDM_EDIT_GOTOLINE
+        MENUITEM "&Ga naar...\tCtrl+G",   IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
         MENUITEM "Voeg speciaal ka&rakter in\tCtrl+I", IDM_EDIT_INSERTCHAR
         MENUITEM "Voeg da&tum in\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "&Selectie"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V", 
+            MENUITEM "Kolomvormig plakken\tAlt+V", 
                                                     IDM_EDIT_PASTECOLUMN
             MENUITEM "Ta&b insprong vergroten\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
@@ -148,7 +148,7 @@ BEGIN
         BEGIN
             MENUITEM "&Enkel venster (SDI)",        IDM_OPTIONS_SDI
             MENUITEM "Venster &tabs (MDI)",         IDM_OPTIONS_MDI
-            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "&Pseudo multi-venster (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Instellingen...",            IDM_OPTIONS
@@ -178,9 +178,9 @@ BEGIN
         MENUITEM "&Horizontaal groeperen",      IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Vertikaal groeperen",        IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Getrapt groeperen",          IDM_WINDOW_CASCADE
-        MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Sluiten",                       IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Alles Sluiten",                   IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Alles Sluiten behalve actieve",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Kies Venster...",             IDM_WINDOW_MDILIST
     END
@@ -447,7 +447,7 @@ BEGIN
     PUSHBUTTON      "Sluiten",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Gewijzigd",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
-    CONTROL         "Only names",IDC_MDILIST_ONLYNAMES,"Button",
+    CONTROL         "Alleen namen",IDC_MDILIST_ONLYNAMES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,191,240,67,10
     PUSHBUTTON      "Annuleren",IDCANCEL,198,264,50,14
 END
@@ -963,7 +963,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad dokument"
     STR_MODIFIED            "Gewijzigd"
-    STR_COUNT               "%d of %d"
+    STR_COUNT               "%d van %d"
     STR_AUTODETECT          "&Autodetectie"
     STR_RECENT_FILES_EMPTY  "Leeg"
     STR_RECENT_FILES_DELETE_DEAD "Verwijder niet-bestaande bestandnamen"
