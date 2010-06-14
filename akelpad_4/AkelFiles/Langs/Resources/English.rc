@@ -73,7 +73,7 @@ BEGIN
         MENUITEM "Find next do&wn\tF3",         IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Find next &up\tShift+F3",     IDM_EDIT_FINDNEXTUP
         MENUITEM "&Replace...\tCtrl+R",         IDM_EDIT_REPLACE
-        MENUITEM "&Go to line...\tCtrl+G",      IDM_EDIT_GOTOLINE
+        MENUITEM "&Go to...\tCtrl+G",      IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "Insert c&haracter\tCtrl+I",   IDM_EDIT_INSERTCHAR
         MENUITEM "Insert da&te\tCtrl+D",        IDM_EDIT_INSERTDATE
@@ -292,7 +292,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTOLINE,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT
@@ -546,7 +546,7 @@ END
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 151, 85
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Go to line"
+CAPTION "Go to"
 FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Number:",IDC_STATIC,17,8,97,8,NOT WS_GROUP

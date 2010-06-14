@@ -1020,7 +1020,7 @@ typedef struct {
 #define IDM_EDIT_REPLACE                4161  //Replace dialog.
                                               //Return Value: zero.
                                               //
-#define IDM_EDIT_GOTOLINE               4162  //Go to line dialog.
+#define IDM_EDIT_GOTO                   4162  //Go to line dialog.
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_INSERTCHAR             4163  //Run charmap.exe.

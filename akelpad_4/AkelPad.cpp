@@ -2954,7 +2954,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       DoEditReplace();
     }
-    else if (LOWORD(wParam) == IDM_EDIT_GOTOLINE)
+    else if (LOWORD(wParam) == IDM_EDIT_GOTO)
     {
       DoEditGoToLine();
     }
@@ -3987,8 +3987,9 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_EDIT_FINDNEXTDOWN,
                      IDM_EDIT_FINDNEXTUP,
                      IDM_EDIT_REPLACE,
-                     IDM_EDIT_GOTOLINE,
+                     IDM_EDIT_GOTO,
                      IDM_EDIT_INSERTDATE,
+                     IDM_EDIT_PASTECOLUMN,
                      IDM_EDIT_INSERT_TAB_MENU,
                      IDM_EDIT_DELETE_TAB_MENU,
                      IDM_EDIT_INSERT_SPACE_MENU,
@@ -4006,11 +4007,15 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                      IDM_EDIT_NEWLINE_MAC,
                      IDM_VIEW_FONT,
                      IDM_VIEW_COLORS,
+                     IDM_VIEW_READONLY,
                      IDM_VIEW_WORDWRAP,
                      IDM_VIEW_SPLIT_WINDOW_ALL,
                      IDM_WINDOW_TILEHORIZONTAL,
                      IDM_WINDOW_TILEVERTICAL,
                      IDM_WINDOW_CASCADE,
+                     IDM_WINDOW_FRAMECLOSE,
+                     IDM_WINDOW_FRAMECLOSEALL,
+                     IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE,
                      0};
     int i;
 
