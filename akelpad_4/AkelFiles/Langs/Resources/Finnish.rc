@@ -73,13 +73,13 @@ BEGIN
         MENUITEM "Etsi seuraava al&haalta\tF3", IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Etsi seuraava &ylh‰‰lt‰\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "&Korvaa...\tCtrl+R",          IDM_EDIT_REPLACE
-        MENUITEM "&Siirry riville...\tCtrl+G",  IDM_EDIT_GOTOLINE
+        MENUITEM "&Siirry...\tCtrl+G",  IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
         MENUITEM "Lis‰‰ m&erkki\tCtrl+I",       IDM_EDIT_INSERTCHAR
         MENUITEM "Lis‰‰ p‰&iv‰ys\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "&Valinta"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V", 
+            MENUITEM "Liit‰ sarakkeittain\tAlt+V", 
                                                     IDM_EDIT_PASTECOLUMN
             MENUITEM "&Sarkainsisennys\tTab",       IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Poista sarkainsisennys\tShift+Tab", 
@@ -148,7 +148,7 @@ BEGIN
         BEGIN
             MENUITEM "&Yksi ikkuna (SDI)",          IDM_OPTIONS_SDI
             MENUITEM "&Useita ikkunoita (MDI)",     IDM_OPTIONS_MDI
-            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "&N‰enn‰iset useat ikkunat (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Asetukset...",               IDM_OPTIONS
@@ -178,9 +178,9 @@ BEGIN
         MENUITEM "Jaa &vaakasuunnassa",         IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Jaa &pystysuunnassa",         IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Limitt‰in",                  IDM_WINDOW_CASCADE
-        MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Sulje",                       IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Sulje kaikki",                   IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Sulje kaikki paitsi aktiivinen",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Valitse ikkuna...",           IDM_WINDOW_MDILIST
     END
@@ -447,7 +447,7 @@ BEGIN
     PUSHBUTTON      "Sulje",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Muokattu",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
-    CONTROL         "Only names",IDC_MDILIST_ONLYNAMES,"Button",
+    CONTROL         "Pelk‰t nimet",IDC_MDILIST_ONLYNAMES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,191,240,67,10
     PUSHBUTTON      "Peruuta",IDCANCEL,198,264,50,14
 END
@@ -966,7 +966,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad-asiakirja"
     STR_MODIFIED            "Muokattu"
-    STR_COUNT               "%d of %d"
+    STR_COUNT               "%d / %d"
     STR_AUTODETECT          "&Automaattinen tunnistus"
     STR_RECENT_FILES_EMPTY  "Tyhj‰"
     STR_RECENT_FILES_DELETE_DEAD "Poista tiedostot, joita ei en‰‰ ole"

@@ -73,13 +73,13 @@ BEGIN
         MENUITEM "Procurar próximo abai&xo\tF3", IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Procurar próximo aci&ma\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "&Substituir...\tCtrl+R",      IDM_EDIT_REPLACE
-        MENUITEM "&Ir para linha...\tCtrl+G",   IDM_EDIT_GOTOLINE
+        MENUITEM "&Ir para...\tCtrl+G",   IDM_EDIT_GOTOLINE
         MENUITEM SEPARATOR
         MENUITEM "I&nserir caractere\tCtrl+I",  IDM_EDIT_INSERTCHAR
         MENUITEM "Ins&erir data\tCtrl+D",       IDM_EDIT_INSERTDATE
         POPUP "Seleçã&o"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V", 
+            MENUITEM "Colar por coluna\tAlt+V", 
                                                     IDM_EDIT_PASTECOLUMN
             MENUITEM "&Indentar por tabs\tTab",     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Desindentar por tabs\tShift+Tab", 
@@ -147,7 +147,7 @@ BEGIN
         BEGIN
             MENUITEM "&Unijanela(SDI)",             IDM_OPTIONS_SDI
             MENUITEM "&Multijanela(MDI)",           IDM_OPTIONS_MDI
-            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "&Pseudo multijanela (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Configurações...",           IDM_OPTIONS
@@ -177,9 +177,9 @@ BEGIN
         MENUITEM "&Horizontal",                 IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Vertical",                   IDM_WINDOW_TILEVERTICAL
         MENUITEM "Em &cascata",                 IDM_WINDOW_CASCADE
-        MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Fechar",                       IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Fechar todos",                   IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Fechar todos exceto o atual",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Selecionar Janela...",        IDM_WINDOW_MDILIST
     END
@@ -446,7 +446,7 @@ BEGIN
     PUSHBUTTON      "Fechar",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Modificado",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
-    CONTROL         "Only names",IDC_MDILIST_ONLYNAMES,"Button",
+    CONTROL         "Somente nomes",IDC_MDILIST_ONLYNAMES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,191,240,67,10
     PUSHBUTTON      "Cancelar",IDCANCEL,198,264,50,14
 END
@@ -964,7 +964,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "Documento AkelPad"
     STR_MODIFIED            "Modificado"
-    STR_COUNT               "%d of %d"
+    STR_COUNT               "%d de %d"
     STR_AUTODETECT          "&Autodetectar"
     STR_RECENT_FILES_EMPTY  "Vazio"
     STR_RECENT_FILES_DELETE_DEAD "Apagar os que não existem"
