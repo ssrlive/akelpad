@@ -73,13 +73,13 @@ BEGIN
         MENUITEM "Buscar siguiente a&bajo\tF3", IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Buscar siguiente &arriba\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "&Reemplazar...\tCtrl+R",      IDM_EDIT_REPLACE
-        MENUITEM "&Ir a la línea...\tCtrl+G",   IDM_EDIT_GOTO
+        MENUITEM "&Ir a...\tCtrl+G",   IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "I&nsertar caracter\tCtrl+I",  IDM_EDIT_INSERTCHAR
         MENUITEM "Insertar fec&ha\tCtrl+D",     IDM_EDIT_INSERTDATE
         POPUP "&Selección"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V", 
+            MENUITEM "Pegar columna\tAlt+V", 
                                                     IDM_EDIT_PASTECOLUMN
             MENUITEM "Ta&bulación con sangría\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
@@ -145,9 +145,9 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "Modo de &ventana"
         BEGIN
-            MENUITEM "Ventana-&simple (SDI)",       IDM_OPTIONS_SDI
+            MENUITEM "&Ventana-simple (SDI)",       IDM_OPTIONS_SDI
             MENUITEM "&Multi-ventana (MDI)",        IDM_OPTIONS_MDI
-            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "&Seudo ventana múltiple (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "&Configuración...",           IDM_OPTIONS
@@ -177,9 +177,9 @@ BEGIN
         MENUITEM "Mosaico &horizontal",         IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Mosaico &vertical",           IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Cascada",                    IDM_WINDOW_CASCADE
-        MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Cerrar",                       IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Cerrar todo",                   IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Cerrar todas excepto la activa",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Seleccionar ventana...",      IDM_WINDOW_MDILIST
     END
@@ -446,7 +446,7 @@ BEGIN
     PUSHBUTTON      "Cerrar",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Modificado",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
-    CONTROL         "Only names",IDC_MDILIST_ONLYNAMES,"Button",
+    CONTROL         "Sólo nombres",IDC_MDILIST_ONLYNAMES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,191,240,67,10
     PUSHBUTTON      "Cancelar",IDCANCEL,198,264,50,14
 END
@@ -551,7 +551,7 @@ END
 IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 151, 85
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Ir a la línea"
+CAPTION "Ir a"
 FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Número:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
@@ -965,7 +965,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "Documento de AkelPad"
     STR_MODIFIED            "Modificado"
-    STR_COUNT               "%d of %d"
+    STR_COUNT               "%d de %d"
     STR_AUTODETECT          "&Autodetectar"
     STR_RECENT_FILES_EMPTY  "Vacío"
     STR_RECENT_FILES_DELETE_DEAD "Eliminar inexistentes"
