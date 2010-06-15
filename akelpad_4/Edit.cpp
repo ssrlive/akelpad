@@ -2277,7 +2277,7 @@ void DoViewReadOnly(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
   if (bFirst != TRUE && bState == lpFrame->ei.bReadOnly) return;
   lpFrame->ei.bReadOnly=bState;
 
-  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrameCurrent->ei.bReadOnly?AECOOP_OR:AECOOP_XOR, AECO_READONLY);
+  SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrame->ei.bReadOnly?AECOOP_OR:AECOOP_XOR, AECO_READONLY);
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
