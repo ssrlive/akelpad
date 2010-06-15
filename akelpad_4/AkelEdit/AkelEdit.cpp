@@ -480,10 +480,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     if (uMsg == AEM_CANUNDO)
     {
+      if (ae->popt->dwOptions & AECO_READONLY)
+        return FALSE;
       return AE_EditCanUndo(ae);
     }
     if (uMsg == AEM_CANREDO)
     {
+      if (ae->popt->dwOptions & AECO_READONLY)
+        return FALSE;
       return AE_EditCanRedo(ae);
     }
     if (uMsg == AEM_UNDO)
@@ -2498,10 +2502,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   //Undo and Redo
   if (uMsg == EM_CANUNDO)
   {
+    if (ae->popt->dwOptions & AECO_READONLY)
+      return FALSE;
     return AE_EditCanUndo(ae);
   }
   if (uMsg == EM_CANREDO)
   {
+    if (ae->popt->dwOptions & AECO_READONLY)
+      return FALSE;
     return AE_EditCanRedo(ae);
   }
   if (uMsg == EM_UNDO)
@@ -16587,29 +16595,23 @@ BOOL AE_EditCanPaste(AKELEDIT *ae)
 
 BOOL AE_EditCanRedo(AKELEDIT *ae)
 {
-  if (!(ae->popt->dwOptions & AECO_READONLY))
+  if (ae->ptxt->lpCurrentUndo != (AEUNDOITEM *)ae->ptxt->hUndoStack.last)
   {
-    if (ae->ptxt->lpCurrentUndo != (AEUNDOITEM *)ae->ptxt->hUndoStack.last)
+    if (!ae->ptxt->lpCurrentUndo)
     {
-      if (!ae->ptxt->lpCurrentUndo)
-      {
-        if (ae->ptxt->hUndoStack.first)
-          return TRUE;
-        return FALSE;
-      }
-      return TRUE;
+      if (ae->ptxt->hUndoStack.first)
+        return TRUE;
+      return FALSE;
     }
+    return TRUE;
   }
   return FALSE;
 }
 
 BOOL AE_EditCanUndo(AKELEDIT *ae)
 {
-  if (!(ae->popt->dwOptions & AECO_READONLY))
-  {
-    if (ae->ptxt->lpCurrentUndo)
-      return TRUE;
-  }
+  if (ae->ptxt->lpCurrentUndo)
+    return TRUE;
   return FALSE;
 }
 
