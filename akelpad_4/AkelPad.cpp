@@ -107,6 +107,7 @@
 #define GetWindowTextLengthWide
 #define GetWindowTextWide
 #define InsertMenuWide
+#define GetMenuStringWide
 #define IsDialogMessageWide
 #define ListBox_AddStringWide
 #define ListBox_FindStringWide
@@ -2784,7 +2785,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else
       {
-        GetMenuStringW(hMainMenu, LOWORD(wParam), wbuf, BUFFER_SIZE, MF_BYCOMMAND);
+        GetMenuStringWide(hMainMenu, LOWORD(wParam), wbuf, BUFFER_SIZE, MF_BYCOMMAND);
         xprintfW(wbuf2, L"%s.dll", wbuf);
         if (!xstrcmpiW(moCur.wszLangModule, wbuf2)) return TRUE;
         xstrcpynW(moCur.wszLangModule, wbuf2, MAX_PATH);
