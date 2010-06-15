@@ -1,18 +1,20 @@
 # Make file for build AkelPad with GCC
-# mingw32-make.exe LANG=English all clean
+# mingw32-make.exe LANGNAME=English all clean
 
-CC = g++
-CFLAGS = -Wall -Os
-LDFLAGS = -mwindows -e __WinMain -lkernel32 -luser32 -lgdi32 -ladvapi32 -lshell32 -lcomctl32 -lcomdlg32 -lole32 -luuid -limm32 -lversion
-DEFINES = -D AKELEDIT_STATICBUILD
-ifndef LANG
-  LANG = English
+ifndef LANGNAME
+  LANGNAME = English
+  LANGID = 0x409
 endif
 ifndef NIX
   DEL = del
 else
   DEL = rm -f
 endif
+
+CC = g++
+CFLAGS = -Wall -Os
+LDFLAGS = -mwindows -e __WinMain -lkernel32 -luser32 -lgdi32 -ladvapi32 -lshell32 -lcomctl32 -lcomdlg32 -lole32 -luuid -limm32 -lversion
+DEFINES = -D AKELEDIT_STATICBUILD -D RC_VERSIONLANGID=$(LANGID) 
 
 all: AkelPad.exe
 
@@ -30,7 +32,7 @@ AkelEdit.o:
 	$(CC) $(CFLAGS) $(DEFINES) -c AkelEdit/AkelEdit.cpp
 
 Resource.o:
-	windres -D AKELEDIT_STATICBUILD -D EXE_VERSION -I AkelEdit\Resources -I AkelFiles/Langs/Resources "AkelFiles/Langs/Resources/$(LANG).rc" -o Resource.o
+	windres -D AKELEDIT_STATICBUILD -D EXE_VERSION -D RC_VERSIONLANGID=$(LANGID) -I AkelEdit\Resources -I AkelFiles/Langs/Resources "AkelFiles/Langs/Resources/$(LANGNAME).rc" -o Resource.o
 
 clean:
 	$(DEL) AkelPad.o
