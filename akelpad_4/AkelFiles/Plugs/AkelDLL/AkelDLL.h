@@ -213,7 +213,7 @@
 #define PO_BINARY    2  //Binary data in any form.
 #define PO_STRING    3  //Null-terminated string.
 
-//AKD_DLLCALL flags
+//Support flags
 #define PDS_SUPPORTALL   0x00000000  //Function support everything (default).
 #define PDS_NOAUTOLOAD   0x00000001  //Function doesn't support autoload.
 #define PDS_NOANSI       0x00000002  //Function doesn't support ansi API and can be executed only on unicode Windows (WinNT/2000/XP/2003/Vista/Seven).
@@ -291,7 +291,7 @@
 #define MLT_RECODE   2 //Recode dialog.
 #define MLT_FIND     3 //Find dialog.
 #define MLT_REPLACE  4 //Replace dialog.
-#define MLT_GOTO     5 //Go to line dialog.
+#define MLT_GOTO     5 //Go to dialog.
 
 //DIALOGRESIZEMSG flags
 #define DRM_GETMINMAXINFO 0x1 //Dialog can't be decreased less than creation size.
@@ -1020,7 +1020,7 @@ typedef struct {
 #define IDM_EDIT_REPLACE                4161  //Replace dialog.
                                               //Return Value: zero.
                                               //
-#define IDM_EDIT_GOTO                   4162  //Go to line dialog.
+#define IDM_EDIT_GOTO                   4162  //Go to dialog.
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_INSERTCHAR             4163  //Run charmap.exe.

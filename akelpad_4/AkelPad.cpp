@@ -4983,6 +4983,12 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         bMousePush=FALSE;
       }
     }
+    else if (bMouseMove)
+    {
+      bMouseMove=FALSE;
+      ReleaseCapture();
+      InvalidateRect(hWnd, NULL, FALSE);
+    }
     return 0;
   }
   else if (uMsg == WM_SETFOCUS)
@@ -5014,12 +5020,13 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         FillRect(ps.hdc, &rcButton, GetSysColorBrush(COLOR_BTNFACE));
 
         //Draw edge
-        if (IsCursorOnWindow(hWnd))
+        if (bMouseDown && bMousePush)
         {
-          if (bMouseDown)
-            DrawEdge(ps.hdc, &rcButton, EDGE_SUNKEN, BF_RECT);
-          else
-            DrawEdge(ps.hdc, &rcButton, BDR_RAISEDINNER, BF_RECT);
+          DrawEdge(ps.hdc, &rcButton, EDGE_SUNKEN, BF_RECT);
+        }
+        else if (bMouseMove)
+        {
+          DrawEdge(ps.hdc, &rcButton, BDR_RAISEDINNER, BF_RECT);
         }
         else
         {
@@ -5029,7 +5036,9 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             DrawFocusRect(ps.hdc, &rcButton);
           }
           else if (lpButtonDraw->bd.dwFlags & BIF_ETCHED)
+          {
             DrawEdge(ps.hdc, &rcButton, EDGE_ETCHED, BF_RECT);
+          }
         }
 
         if ((lpButtonDraw->bd.dwFlags & BIF_BITMAP) || (lpButtonDraw->bd.dwFlags & BIF_ICON))
