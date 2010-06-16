@@ -73,14 +73,13 @@ BEGIN
         MENUITEM "Zoek volgende om&laag\tF3",   IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Zoek volgende om&hoog\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "Ve&rvangen...\tCtrl+R",       IDM_EDIT_REPLACE
-        MENUITEM "&Ga naar...\tCtrl+G",   IDM_EDIT_GOTO
+        MENUITEM "&Ga naar...\tCtrl+G",         IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "Voeg speciaal ka&rakter in\tCtrl+I", IDM_EDIT_INSERTCHAR
         MENUITEM "Voeg da&tum in\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "&Selectie"
         BEGIN
-            MENUITEM "Kolomvormig plakken\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
+            MENUITEM "Kolomvormig plakken\tAlt+V",  IDM_EDIT_PASTECOLUMN
             MENUITEM "Ta&b insprong vergroten\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Tab insprong verkleinen\tShift+Tab", 
@@ -178,9 +177,10 @@ BEGIN
         MENUITEM "&Horizontaal groeperen",      IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Vertikaal groeperen",        IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Getrapt groeperen",          IDM_WINDOW_CASCADE
-        MENUITEM "Sluiten",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Alles Sluiten",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Alles Sluiten behalve actieve",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Sluiten",                     IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Alles Sluiten",               IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Alles Sluiten behalve actieve", 
+                                                IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Kies Venster...",             IDM_WINDOW_MDILIST
     END
@@ -298,7 +298,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,          VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT
