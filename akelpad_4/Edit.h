@@ -548,7 +548,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI);
 void SetEditWindowSettings(FRAMEDATA *lpFrame);
 void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags);
 FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl);
-FRAMEDATA* GetFrameDataFromEditData(AEHDATA hDataEditHandle);
+FRAMEDATA* GetFrameDataFromEditDocument(AEHDOC hDocEditHandle);
 FRAMEDATA* CreateFrameData(HWND hWndEditParent, FRAMEDATA *lpFrameSource);
 void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
 void SaveFrameData(FRAMEDATA *lpFrame);
@@ -561,8 +561,7 @@ BOOL FrameNoWindows();
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
-LRESULT SendEdit(AEHDATA hDataEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
-HWND SetEditData(AEHDATA hDataEditNew, AEHDATA *hDataEditOld);
+LRESULT SendToDoc(AEHDOC hDocEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL DoFileNew();
 BOOL CloseDocument();
@@ -843,7 +842,7 @@ void StackHandleFree(HSTACK *hStack);
 
 FRAMEDATA* StackFrameInsert(HSTACK *hStack);
 FRAMEDATA* StackFrameGetByIndex(HSTACK *hStack, int nIndex);
-FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, AEHDATA hDataHandle);
+FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, AEHDOC hDataHandle);
 FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nFileNameLen);
 void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex);
 void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame);
@@ -854,7 +853,7 @@ BUTTONDRAWITEM* StackButtonDrawGet(HSTACK *hStack, HWND hWnd);
 void StackButtonDrawDelete(HSTACK *hStack, BUTTONDRAWITEM *lpButtonDraw);
 void StackButtonDrawFree(HSTACK *hStack);
 
-void SetSelectionStatus(AEHDATA hDataEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci);
+void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci);
 void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags);

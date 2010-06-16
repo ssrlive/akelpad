@@ -241,15 +241,15 @@
 #define NCM_STATUS   3  //Status bar control.
 
 //AKD_FRAMEFIND flags
-#define FWF_CURRENT       1  //Retrive current frame data pointer. lParam not used.
-#define FWF_NEXT          2  //Retrive next frame data pointer. lParam is a frame data pointer.
-#define FWF_PREV          3  //Retrive previous frame data pointer. lParam is a frame data pointer.
-#define FWF_BYINDEX       4  //Retrive frame data by index. lParam is frame index. First frame has index 1.
-#define FWF_BYFILENAME    5  //Retrive frame data by full file name. lParam is full file name string.
-                             // For AKD_FRAMEFINDA string is ansi.
-                             // For AKD_FRAMEFINDW string is unicode.
-#define FWF_BYEDITWINDOW  6  //Retrive frame data by edit window handle. lParam is edit window handle.
-#define FWF_BYEDITDATA    7  //Retrive frame data by edit data handle. lParam is edit data handle.
+#define FWF_CURRENT        1  //Retrive current frame data pointer. lParam not used.
+#define FWF_NEXT           2  //Retrive next frame data pointer. lParam is a frame data pointer.
+#define FWF_PREV           3  //Retrive previous frame data pointer. lParam is a frame data pointer.
+#define FWF_BYINDEX        4  //Retrive frame data by index. lParam is frame index. First frame has index 1.
+#define FWF_BYFILENAME     5  //Retrive frame data by full file name. lParam is full file name string.
+                              // For AKD_FRAMEFINDA string is ansi.
+                              // For AKD_FRAMEFINDW string is unicode.
+#define FWF_BYEDITWINDOW   6  //Retrive frame data by edit window handle. lParam is edit window handle.
+#define FWF_BYEDITDOCUMENT 7  //Retrive frame data by edit document handle. lParam is edit document handle.
 
 //AKD_FRAMEACTIVATE flags
 #define FWA_NOUPDATEORDER  0x00000001  //For WMD_PMDI mode. Don't update access order during activating.
@@ -372,9 +372,9 @@ typedef struct {
     COLORREF crColumnMarker;
   } AECOLORS;
 
-  DECLARE_HANDLE (AEHDATA);
+  DECLARE_HANDLE (AEHDOC);
 
-  typedef LRESULT (CALLBACK *AEEditProc)(AEHDATA hHandle, UINT uMsg, WPARAM wParam, LPARAM lParam);
+  typedef LRESULT (CALLBACK *AEEditProc)(AEHDOC hDoc, UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
 DECLARE_HANDLE (HINIFILE);
@@ -439,7 +439,7 @@ typedef struct _PLUGINDATA {
   HSTACK *hPluginsStack;            //Pointer to a plugins stack with PLUGINFUNCTION elements.
   HWND hMainWnd;                    //Main window.
   HWND hWndEdit;                    //Edit window.
-  AEHDATA hDataEdit;                //Edit data.
+  AEHDOC hDocEdit;                  //Edit document.
   HWND hStatus;                     //StatusBar window.
   HWND hMdiClient;                  //MDI client window (if nMDI == WMD_MDI).
   HWND hTab;                        //Tab window        (if nMDI == WMD_MDI || nMDI == WMD_PMDI).
@@ -547,7 +547,7 @@ typedef struct {
 
 typedef struct {
   HWND hWndEdit;           //Edit window.
-  AEHDATA hDataEdit;       //Edit data (4.x only).
+  AEHDOC hDocEdit;         //Edit document (4.x only).
   const BYTE *pFile;       //Current editing file.
                            //  const char *pFile         if bOldWindows == TRUE
                            //  const wchar_t *pFile      if bOldWindows == FALSE
@@ -561,13 +561,13 @@ typedef struct {
   BOOL bWordWrap;          //Word wrap.
   BOOL bOvertypeMode;      //Overtype mode.
   HWND hWndMaster;         //Master window (4.x only).
-  AEHDATA hDataMaster;     //Master data (4.x only).
+  AEHDOC hDocMaster;       //Master document (4.x only).
   HWND hWndClone1;         //First clone window (4.x only).
-  AEHDATA hDataClone1;     //First clone data (4.x only).
+  AEHDOC hDocClone1;       //First clone document (4.x only).
   HWND hWndClone2;         //Second clone window (4.x only).
-  AEHDATA hDataClone2;     //Second clone data (4.x only).
+  AEHDOC hDocClone2;       //Second clone document (4.x only).
   HWND hWndClone3;         //Third clone window (4.x only).
-  AEHDATA hDataClone3;     //Third clone data (4.x only).
+  AEHDOC hDocClone3;       //Third clone document (4.x only).
 } EDITINFO;
 
 typedef struct _FRAMEDATA {
@@ -1555,8 +1555,8 @@ _________________
 
 Notification message, sends to the main procedure after edit window created.
 
-(HWND)wParam    == edit window.
-(AEHDATA)lParam == edit window data handle.
+(HWND)wParam   == edit window.
+(AEHDOC)lParam == edit document handle.
 
 Return Value
  Zero.
@@ -1567,8 +1567,8 @@ __________________
 
 Notification message, sends to the main procedure before destroying edit window.
 
-(HWND)wParam    == edit window.
-(AEHDATA)lParam == edit window data handle.
+(HWND)wParam   == edit window.
+(AEHDOC)lParam == edit document handle.
 
 Return Value
  Zero.
@@ -1579,8 +1579,8 @@ _________________
 
 Notification message, sends to the main procedure before closing edit window document. After closing current document will be empty.
 
-(HWND)wParam    == edit window.
-(AEHDATA)lParam == edit window data handle.
+(HWND)wParam   == edit window.
+(AEHDOC)lParam == edit document handle.
 
 Return Value
  Zero.
