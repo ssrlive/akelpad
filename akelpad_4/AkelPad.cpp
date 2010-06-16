@@ -5067,25 +5067,29 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
           if (hPen=CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNTEXT)))
           {
-            POINT ptArray[]={{0, 0}, {2, 0},
-                             {6, 0}, {8, 0},
-                             {1, 1}, {3, 1},
-                             {5, 1}, {7, 1},
-                             {2, 2}, {6, 2},
-                             {3, 3}, {5, 3},
-                             {2, 4}, {6, 4},
-                             {1, 5}, {3, 5},
-                             {5, 5}, {7, 5},
-                             {0, 6}, {2, 6},
-                             {6, 6}, {8, 6}};
-            int nElements=sizeof(ptArray) / sizeof(POINT);
-            int i;
-
             hPenOld=(HPEN)SelectObject(ps.hdc, hPen);
-            for (i=0; i < nElements; i+=2)
+
+            //Draw cross manually
             {
-              MoveToEx(ps.hdc, x + ptArray[i].x, y + ptArray[i].y, NULL);
-              LineTo(ps.hdc, x + ptArray[i + 1].x, y + ptArray[i + 1].y);
+              POINT ptCross[]={{0, 0}, {2, 0},
+                               {6, 0}, {8, 0},
+                               {1, 1}, {3, 1},
+                               {5, 1}, {7, 1},
+                               {2, 2}, {6, 2},
+                               {3, 3}, {5, 3},
+                               {2, 4}, {6, 4},
+                               {1, 5}, {3, 5},
+                               {5, 5}, {7, 5},
+                               {0, 6}, {2, 6},
+                               {6, 6}, {8, 6}};
+              int nElements=sizeof(ptCross) / sizeof(POINT);
+              int i;
+
+              for (i=0; i < nElements; i+=2)
+              {
+                MoveToEx(ps.hdc, x + ptCross[i].x, y + ptCross[i].y, NULL);
+                LineTo(ps.hdc, x + ptCross[i + 1].x, y + ptCross[i + 1].y);
+              }
             }
             SelectObject (ps.hdc, hPenOld);
             DeleteObject(hPen);
