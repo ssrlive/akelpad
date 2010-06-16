@@ -357,6 +357,30 @@ typedef struct {
 } HSTACK;
 #endif
 
+#ifndef __AKELEDIT_H__
+  typedef struct {
+    DWORD dwFlags;
+    COLORREF crCaret;
+    COLORREF crBasicText;
+    COLORREF crBasicBk;
+    COLORREF crSelText;
+    COLORREF crSelBk;
+    COLORREF crActiveLineText;
+    COLORREF crActiveLineBk;
+    COLORREF crUrlText;
+    COLORREF crActiveColumn;
+    COLORREF crColumnMarker;
+  } AECOLORS;
+
+  DECLARE_HANDLE (AEHDATA);
+
+  typedef LRESULT (CALLBACK *AEEditProc)(AEHDATA hHandle, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#endif
+
+DECLARE_HANDLE (HINIFILE);
+DECLARE_HANDLE (HINISECTION);
+DECLARE_HANDLE (HINIKEY);
+
 typedef BOOL (CALLBACK *PLUGINPROC)(void *);
 typedef void (CALLBACK *WNDPROCRET)(CWPRETSTRUCT *);
 
@@ -415,7 +439,7 @@ typedef struct _PLUGINDATA {
   HSTACK *hPluginsStack;            //Pointer to a plugins stack with PLUGINFUNCTION elements.
   HWND hMainWnd;                    //Main window.
   HWND hWndEdit;                    //Edit window.
-  HANDLE hDataEdit;                 //Edit data.
+  AEHDATA hDataEdit;                //Edit data.
   HWND hStatus;                     //StatusBar window.
   HWND hMdiClient;                  //MDI client window (if nMDI == WMD_MDI).
   HWND hTab;                        //Tab window        (if nMDI == WMD_MDI || nMDI == WMD_PMDI).
@@ -523,7 +547,7 @@ typedef struct {
 
 typedef struct {
   HWND hWndEdit;           //Edit window.
-  HANDLE hDataEdit;        //Edit data (4.x only).
+  AEHDATA hDataEdit;       //Edit data (4.x only).
   const BYTE *pFile;       //Current editing file.
                            //  const char *pFile         if bOldWindows == TRUE
                            //  const wchar_t *pFile      if bOldWindows == FALSE
@@ -537,34 +561,14 @@ typedef struct {
   BOOL bWordWrap;          //Word wrap.
   BOOL bOvertypeMode;      //Overtype mode.
   HWND hWndMaster;         //Master window (4.x only).
-  HANDLE hDataMaster;      //Master data (4.x only).
+  AEHDATA hDataMaster;     //Master data (4.x only).
   HWND hWndClone1;         //First clone window (4.x only).
-  HANDLE hDataClone1;      //First clone data (4.x only).
+  AEHDATA hDataClone1;     //First clone data (4.x only).
   HWND hWndClone2;         //Second clone window (4.x only).
-  HANDLE hDataClone2;      //Second clone data (4.x only).
+  AEHDATA hDataClone2;     //Second clone data (4.x only).
   HWND hWndClone3;         //Third clone window (4.x only).
-  HANDLE hDataClone3;      //Third clone data (4.x only).
+  AEHDATA hDataClone3;     //Third clone data (4.x only).
 } EDITINFO;
-
-#ifndef __AKELEDIT_H__
-  typedef struct {
-    DWORD dwFlags;
-    COLORREF crCaret;
-    COLORREF crBasicText;
-    COLORREF crBasicBk;
-    COLORREF crSelText;
-    COLORREF crSelBk;
-    COLORREF crActiveLineText;
-    COLORREF crActiveLineBk;
-    COLORREF crUrlText;
-    COLORREF crActiveColumn;
-    COLORREF crColumnMarker;
-  } AECOLORS;
-#endif
-
-#ifndef __AKELEDIT_H__
-  typedef LRESULT (CALLBACK *AEEditProc)(HANDLE hHandle, UINT uMsg, WPARAM wParam, LPARAM lParam);
-#endif
 
 typedef struct _FRAMEDATA {
   struct _FRAMEDATA *next;
@@ -1551,8 +1555,8 @@ _________________
 
 Notification message, sends to the main procedure after edit window created.
 
-(HWND)wParam   == edit window.
-(HANDLE)lParam == edit window data handle.
+(HWND)wParam    == edit window.
+(AEHDATA)lParam == edit window data handle.
 
 Return Value
  Zero.
@@ -1563,8 +1567,8 @@ __________________
 
 Notification message, sends to the main procedure before destroying edit window.
 
-(HWND)wParam   == edit window.
-(HANDLE)lParam == edit window data handle.
+(HWND)wParam    == edit window.
+(AEHDATA)lParam == edit window data handle.
 
 Return Value
  Zero.
@@ -1575,8 +1579,8 @@ _________________
 
 Notification message, sends to the main procedure before closing edit window document. After closing current document will be empty.
 
-(HWND)wParam   == edit window.
-(HANDLE)lParam == edit window data handle.
+(HWND)wParam    == edit window.
+(AEHDATA)lParam == edit window data handle.
 
 Return Value
  Zero.
@@ -3279,14 +3283,14 @@ Opens ini file.
 (unsigned char *)lParam == ini file.
 
 Return Value
- HANDLE.
+ HINIFILE.
 
 Example read (bOldWindows == TRUE):
  INIVALUEA iv;
- HANDLE hIniFile;
+ HINIFILE hIniFile;
  char szDir[MAX_PATH];
 
- if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)"C:\\File.ini"))
+ if (hIniFile=(HINIFILE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)"C:\\File.ini"))
  {
    iv.pSection="Options";
    iv.pKey="SaveDir";
@@ -3300,10 +3304,10 @@ Example read (bOldWindows == TRUE):
 
 Example read (bOldWindows == FALSE):
  INIVALUEW iv;
- HANDLE hIniFile;
+ HINIFILE hIniFile;
  wchar_t wszDir[MAX_PATH];
 
- if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)L"C:\\File.ini"))
+ if (hIniFile=(HINIFILE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_READ, (LPARAM)L"C:\\File.ini"))
  {
    iv.pSection=L"Options";
    iv.pKey=L"SaveDir";
@@ -3317,10 +3321,10 @@ Example read (bOldWindows == FALSE):
 
 Example save (bOldWindows == TRUE):
  INIVALUEA iv;
- HANDLE hIniFile;
+ HINIFILE hIniFile;
  char szDir[MAX_PATH]="C:\\Temp";
 
- if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)"C:\\File.ini"))
+ if (hIniFile=(HINIFILE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)"C:\\File.ini"))
  {
    iv.pSection="Options";
    iv.pKey="SaveDir";
@@ -3334,10 +3338,10 @@ Example save (bOldWindows == TRUE):
 
 Example save (bOldWindows == FALSE):
  INIVALUEW iv;
- HANDLE hIniFile;
+ HINIFILE hIniFile;
  wchar_t wszDir[MAX_PATH]=L"C:\\Temp";
 
- if (hIniFile=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)L"C:\\File.ini"))
+ if (hIniFile=(HINIFILE)SendMessage(pd->hMainWnd, AKD_INIOPEN, POB_SAVE, (LPARAM)L"C:\\File.ini"))
  {
    iv.pSection=L"Options";
    iv.pKey=L"SaveDir";
@@ -3355,22 +3359,22 @@ _________________  __________________  __________________
 
 Retrieve ini section handle.
 
-(HANDLE)wParam          == ini file handle.
+(HINIFILE)wParam        == ini file handle.
 (unsigned char *)lParam == section name.
 
 Return Value
- HANDLE.
+ HINISECTION.
 
 Example (bOldWindows == TRUE):
- HANDLE hIniSection;
+ HINISECTION hIniSection;
 
- if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
+ if (hIniSection=(HINISECTION)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
    SendMessage(pd->hMainWnd, AKD_INICLEARSECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
 
 Example (bOldWindows == FALSE):
- HANDLE hIniSection;
+ HINISECTION hIniSection;
 
- if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
+ if (hIniSection=(HINISECTION)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
    SendMessage(pd->hMainWnd, AKD_INICLEARSECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
 
 
@@ -3379,8 +3383,8 @@ ___________________
 
 Removes all keys in ini section.
 
-(HANDLE)wParam == ini file handle.
-(HANDLE)lParam == ini section handle.
+(HINIFILE)wParam    == ini file handle.
+(HINISECTION)lParam == ini section handle.
 
 Return Value
  Zero.
@@ -3394,22 +3398,22 @@ ____________________
 
 Deletes ini section.
 
-(HANDLE)wParam == ini file handle.
-(HANDLE)lParam == ini section handle.
+(HINIFILE)wParam    == ini file handle.
+(HINISECTION)lParam == ini section handle.
 
 Return Value
  Zero.
 
 Example (bOldWindows == TRUE):
- HANDLE hIniSection;
+ HINISECTION hIniSection;
 
- if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
+ if (hIniSection=(HINISECTION)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
    SendMessage(pd->hMainWnd, AKD_INIDELETESECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
 
 Example (bOldWindows == FALSE):
- HANDLE hIniSection;
+ HINISECTION hIniSection;
 
- if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
+ if (hIniSection=(HINISECTION)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
    SendMessage(pd->hMainWnd, AKD_INIDELETESECTION, (WPARAM)hIniFile, (LPARAM)hIniSection);
 
 
@@ -3418,26 +3422,26 @@ _____________  ______________  ______________
 
 Retrieve key handle.
 
-(HANDLE)wParam          == ini section handle.
+(HINISECTION)wParam          == ini section handle.
 (unsigned char *)lParam == key name.
 
 Return Value
- HANDLE.
+ HINIKEY.
 
 Example (bOldWindows == TRUE):
- HANDLE hIniSection;
- HANDLE hIniKey;
+ HINISECTION hIniSection;
+ HINIKEY hIniKey;
 
- if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
-   if (hIniKey=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETKEY, (WPARAM)hIniSection, (LPARAM)"SaveDir"))
+ if (hIniSection=(HINISECTION)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)"Options"))
+   if (hIniKey=(HINIKEY)SendMessage(pd->hMainWnd, AKD_INIGETKEY, (WPARAM)hIniSection, (LPARAM)"SaveDir"))
      SendMessage(pd->hMainWnd, AKD_INIDELETEKEY, (WPARAM)hIniSection, (LPARAM)hIniKey);
 
 Example (bOldWindows == FALSE):
- HANDLE hIniSection;
- HANDLE hIniKey;
+ HINISECTION hIniSection;
+ HINIKEY hIniKey;
 
- if (hIniSection=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
-   if (hIniKey=(HANDLE)SendMessage(pd->hMainWnd, AKD_INIGETKEY, (WPARAM)hIniSection, (LPARAM)L"SaveDir"))
+ if (hIniSection=(HINISECTION)SendMessage(pd->hMainWnd, AKD_INIGETSECTION, (WPARAM)hIniFile, (LPARAM)L"Options"))
+   if (hIniKey=(HINIKEY)SendMessage(pd->hMainWnd, AKD_INIGETKEY, (WPARAM)hIniSection, (LPARAM)L"SaveDir"))
      SendMessage(pd->hMainWnd, AKD_INIDELETEKEY, (WPARAM)hIniSection, (LPARAM)hIniKey);
 
 
@@ -3446,8 +3450,8 @@ ________________
 
 Deletes ini key.
 
-(HANDLE)wParam == ini section handle.
-(HANDLE)lParam == key handle.
+(HINISECTION)wParam == ini section handle.
+(HINIKEY)lParam     == key handle.
 
 Return Value
  Zero.
@@ -3461,7 +3465,7 @@ _______________  ________________  ________________
 
 Retrieve ini value.
 
-(HANDLE)wParam     == ini file handle.
+(HINIFILE)wParam   == ini file handle.
 (INIVALUE *)lParam == pointer to a INIVALUE structure.
 
 Return Value
@@ -3476,7 +3480,7 @@ _______________  ________________  ________________
 
 Set ini value.
 
-(HANDLE)wParam     == ini file handle.
+(HINIFILE)wParam   == ini file handle.
 (INIVALUE *)lParam == pointer to a INIVALUE structure.
 
 Return Value
@@ -3492,8 +3496,8 @@ ____________
 
 Close ini file handle.
 
-(HANDLE)wParam == ini file handle.
-lParam         == not used.
+(HINIFILE)wParam == ini file handle.
+lParam           == not used.
 
 Return Value
  TRUE   success.

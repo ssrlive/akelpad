@@ -490,7 +490,16 @@
   #define mod(a)  ((((int)(a)) < 0) ? (0 - ((int)(a))) : (a))
 #endif
 
-typedef LRESULT (CALLBACK *AEEditProc)(HANDLE hHandle, UINT uMsg, WPARAM wParam, LPARAM lParam);
+DECLARE_HANDLE (AEHDATA);
+DECLARE_HANDLE (AEHPRINT);
+DECLARE_HANDLE (AEHTHEME);
+DECLARE_HANDLE (AEHDELIMITER);
+DECLARE_HANDLE (AEHWORD);
+DECLARE_HANDLE (AEHQUOTE);
+DECLARE_HANDLE (AEHMARKTEXT);
+DECLARE_HANDLE (AEHMARKRANGE);
+
+typedef LRESULT (CALLBACK *AEEditProc)(AEHDATA hHandle, UINT uMsg, WPARAM wParam, LPARAM lParam);
 //hHandle     Window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA.
 //uMsg        Message ID for example EM_SETSEL.
 //lParam      Additional parameter.
@@ -710,7 +719,7 @@ typedef struct {
 } AESCROLLTOPOINT;
 
 typedef struct {
-  HANDLE hEditData;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AEHDATA hEditData;   //Window data handle. See AEM_CREATEWINDOWDATA message.
   UINT uMsg;           //Window message.
   WPARAM wParam;       //Window first additional parameter.
   LPARAM lParam;       //Window second additional parameter.
@@ -851,7 +860,7 @@ typedef struct {
   UINT code;
 
   //AkelEdit members
-  HANDLE dataFrom;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AEHDATA dataFrom;    //Window data handle. See AEM_CREATEWINDOWDATA message.
 } AENMHDR;
 
 typedef struct {
@@ -4319,8 +4328,8 @@ Return Value
 
 Example:
  CREATESTRUCTA cs;
- HANDLE hHandleNew;
- HANDLE hHandleOld;
+ AEHDATA hHandleNew;
+ AEHDATA hHandleOld;
 
  cs.lpCreateParams=NULL;
  cs.hInstance=GetModuleHandle(NULL);
@@ -4335,8 +4344,8 @@ Example:
  cs.lpszClass=AES_AKELEDITCLASSA;
  cs.dwExStyle=WS_EX_CLIENTEDGE;
 
- hHandleNew=(HANDLE)SendMessage(hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
- hHandleOld=(HANDLE)SendMessage(hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hHandleNew, 0);
+ hHandleNew=(AEHDATA)SendMessage(hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
+ hHandleOld=(AEHDATA)SendMessage(hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hHandleNew, 0);
 
 
 AEM_DELETEWINDOWDATA
@@ -4344,8 +4353,8 @@ ____________________
 
 Destroys window data handle. Data handle must be free and not associated with any edit window.
 
-(HANDLE)wParam == window data handle.
-lParam         == not used.
+(AEHDATA)wParam == window data handle.
+lParam          == not used.
 
 Return Value
  Zero.
@@ -4366,7 +4375,7 @@ Return Value
  Window data handle.
 
 Example:
- HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+ AEHDATA hHandle=(AEHDATA)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
 
 
 AEM_SETWINDOWDATA
@@ -4374,8 +4383,8 @@ _________________
 
 Associate or deassociate window data handle with edit control to which message is sended.
 
-(HANDLE)wParam == window data handle.
-(DWORD)lParam  == see AESWD_* defines.
+(AEHDATA)wParam == window data handle.
+(DWORD)lParam   == see AESWD_* defines.
 
 Return Value
  Old window data handle.
@@ -4389,14 +4398,14 @@ _________________
 
 Retrieve procedure of window data.
 
-(HANDLE)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current procedure returned.
-lParam         == not used.
+(AEHDATA)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current procedure returned.
+lParam          == not used.
 
 Return Value
  Pointer to an AEEditProc procedure.
 
 Example (Call window procedure directly):
- HANDLE hHandle=(HANDLE)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+ AEHDATA hHandle=(AEHDATA)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
  AEEditProc lpEditProc=(AEEditProc)SendMessage(hWndEdit, AEM_GETWINDOWPROC, (WPARAM)hHandle, 0);
  LRESULT lResult;
 
@@ -4408,14 +4417,14 @@ ___________________
 
 Retrieve edit control of window data.
 
-(HANDLE)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current edit control returned.
-lParam         == not used.
+(AEHDATA)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current edit control returned.
+lParam          == not used.
 
 Return Value
  Edit control handle.
 
 Example:
- HANDLE hHandle=(HANDLE)SendMessage(hWndEditFirst, AEM_GETWINDOWDATA, 0, 0);
+ AEHDATA hHandle=(AEHDATA)SendMessage(hWndEditFirst, AEM_GETWINDOWDATA, 0, 0);
  HWND hWnd=(HWND)SendMessage(hWndEditSecond, AEM_GETWINDOWHANDLE, (WPARAM)hHandle, 0);
  //hWnd == hWndEditFirst
 
@@ -4526,7 +4535,7 @@ Example:
  PRINTDLGA pdlg={0};
  DOCINFOA di={0};
  AEPRINT prn;
- HANDLE hPrintDoc;
+ AEHPRINT hPrintDoc;
  BOOL bPrintStop=FALSE;
 
  //Choose printer
@@ -4564,7 +4573,7 @@ Example:
  //Start document
  if (StartDocA(pdlg.hDC, &di) > 0)
  {
-   if (hPrintDoc=(HANDLE)SendMessage(hWndEdit, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
+   if (hPrintDoc=(AEHPRINT)SendMessage(hWndEdit, AEM_STARTPRINTDOC, 0, (LPARAM)&prn))
    {
      while (!bPrintStop)
      {
@@ -4592,7 +4601,7 @@ _____________
 
 Print page.
 
-(HANDLE)wParam    == document handle returned by AEM_STARTPRINTDOC.
+(AEHPRINT)wParam  == document handle returned by AEM_STARTPRINTDOC.
 (AEPRINT *)lParam == pointer to a AEPRINT structure.
 
 Return Value
@@ -4608,7 +4617,7 @@ _______________
 
 Close print document handle.
 
-(HANDLE)wParam    == document handle returned by AEM_STARTPRINTDOC.
+(AEHPRINT)wParam  == document handle returned by AEM_STARTPRINTDOC.
 (AEPRINT *)lParam == pointer to a AEPRINT structure.
 
 Return Value
@@ -4630,14 +4639,14 @@ Return Value
  Theme handle.
 
 Example:
- HANDLE hTheme;
+ AEHTHEME hTheme;
  AEDELIMITEMA di;
  AEWORDITEMA wi;
  AEQUOTEITEMA qi;
  AEMARKRANGEITEM mri;
  AEMARKTEXTITEMA mti;
 
- if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEA, 0, (LPARAM)"MyTheme"))
+ if (hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLCREATETHEMEA, 0, (LPARAM)"MyTheme"))
  {
    di.pDelimiter=" ";
    di.nDelimiterLen=lstrlenA(di.pDelimiter);
@@ -4702,14 +4711,14 @@ Return Value
  Theme handle.
 
 Example:
- HANDLE hTheme;
+ AEHTHEME hTheme;
  AEDELIMITEMW di;
  AEWORDITEMW wi;
  AEQUOTEITEMW qi;
  AEMARKRANGEITEM mri;
  AEMARKTEXTITEMW mti;
 
- if (hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme"))
+ if (hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme"))
  {
    di.pDelimiter=L" ";
    di.nDelimiterLen=lstrlenW(di.pDelimiter);
@@ -4774,7 +4783,7 @@ Return Value
  Theme handle.
 
 Example:
- HANDLE hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)"MyTheme");
+ AEHTHEME hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLGETTHEMEA, 0, (LPARAM)"MyTheme");
 
 
 AEM_HLGETTHEMEW
@@ -4789,7 +4798,7 @@ Return Value
  Theme handle.
 
 Example:
- HANDLE hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)L"MyTheme");
+ AEHTHEME hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)L"MyTheme");
 
 
 AEM_HLGETTHEMENAMEA
@@ -4797,8 +4806,8 @@ ___________________
 
 Retrieve ansi highlight theme name.
 
-(HANDLE)wParam == theme handle.
-(char *)lParam == pointer to a buffer that receives ansi highlight theme name. If NULL, return value is the required buffer size.
+(AEHTHEME)wParam == theme handle.
+(char *)lParam   == pointer to a buffer that receives ansi highlight theme name. If NULL, return value is the required buffer size.
 
 Return Value
  Length of the string copied to the buffer, in TCHARs, not including the terminating null character.
@@ -4814,7 +4823,7 @@ ___________________
 
 Retrieve unicode highlight theme name.
 
-(HANDLE)wParam    == theme handle.
+(AEHTHEME)wParam  == theme handle.
 (wchar_t *)lParam == pointer to a buffer that receives unicode highlight theme name. If NULL, return value is the required buffer size.
 
 Return Value
@@ -4831,8 +4840,8 @@ ___________________
 
 Retrieve one of the theme's stack.
 
-(HANDLE)wParam == theme handle.
-(int)lParam    == see AEHLE_* defines.
+(AEHTHEME)wParam == theme handle.
+(int)lParam      == see AEHLE_* defines.
 
 Return Value
  Pointer to a HSTACK structure.
@@ -4841,7 +4850,7 @@ Example:
 BOOL IsCharDelimiter(HWND hWnd, const AECHARINDEX *ciChar, BOOL bPrevious)
 {
   AECHARINDEX ciTmp=*ciChar;
-  HANDLE hTheme;
+  AEHTHEME hTheme;
   HSTACK *hDelimStack;
   AEDELIMITEMW *lpDelimItem; //Original stack item is always unicode.
   int nChar;
@@ -4855,7 +4864,7 @@ BOOL IsCharDelimiter(HWND hWnd, const AECHARINDEX *ciChar, BOOL bPrevious)
   if (nChar == '\n' || nChar == -1)
     return TRUE;
 
-  if (hTheme=(HANDLE)SendMessage(hWnd, AEM_HLGETTHEMEW, 0, (LPARAM)NULL))
+  if (hTheme=(AEHTHEME)SendMessage(hWnd, AEM_HLGETTHEMEW, 0, (LPARAM)NULL))
   {
     hDelimStack=(HSTACK *)SendMessage(hWnd, AEM_HLGETTHEMESTACK, (WPARAM)hTheme, AEHLE_DELIMITER);
 
@@ -4877,8 +4886,8 @@ _________________
 
 Retrieve highlight theme existence.
 
-(HANDLE)wParam == theme handle.
-lParam         == not used.
+(AEHTHEME)wParam == theme handle.
+lParam           == not used.
 
 Return Value
  TRUE   theme exists.
@@ -4893,9 +4902,9 @@ ______________
 
 Activate highlight theme.
 
-(HANDLE)wParam == theme handle. If NULL, active theme will be deactivated.
-(BOOL)lParam   == TRUE   redraw the edit window.
-                  FALSE  don't redraw the edit window.
+(AEHTHEME)wParam == theme handle. If NULL, active theme will be deactivated.
+(BOOL)lParam     == TRUE   redraw the edit window.
+                    FALSE  don't redraw the edit window.
 
 Return Value
  Zero.
@@ -4909,16 +4918,16 @@ _________________
 
 Delete highlight theme.
 
-(HANDLE)wParam == theme handle. If NULL, delete all themes.
-lParam         == not used.
+(AEHTHEME)wParam == theme handle. If NULL, delete all themes.
+lParam           == not used.
 
 Return Value
  Zero.
 
 Example:
- HANDLE hTheme;
+ AEHTHEME hTheme;
 
- hTheme=(HANDLE)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme");
+ hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme");
  SendMessage(hWndEdit, AEM_HLDELETETHEME, (WPARAM)hTheme, 0);
 
 
@@ -4927,11 +4936,11 @@ ___________________
 
 Add ansi delimiter to highlight theme.
 
-(HANDLE)wParam         == theme handle.
+(AEHTHEME)wParam       == theme handle.
 (AEDELIMITEMA *)lParam == pointer to a AEDELIMITEMA structure.
 
 Return Value
- Delimiter handle.
+ Delimiter handle - AEHDELIMITER.
 
 Example:
  See AEM_HLCREATETHEMEA example.
@@ -4942,11 +4951,11 @@ ___________________
 
 Add unicode delimiter to highlight theme.
 
-(HANDLE)wParam         == theme handle.
+(AEHTHEME)wParam       == theme handle.
 (AEDELIMITEMW *)lParam == pointer to a AEDELIMITEMW structure.
 
 Return Value
- Delimiter handle.
+ Delimiter handle - AEHDELIMITER.
 
 Example:
  See AEM_HLCREATETHEMEW example.
@@ -4957,8 +4966,8 @@ _____________________
 
 Delete delimiter from highlight theme.
 
-(HANDLE)wParam == theme handle.
-(HANDLE)lParam == delimiter handle. If NULL, delete all delimiters.
+(AEHTHEME)wParam     == theme handle.
+(AEHDELIMITER)lParam == delimiter handle. If NULL, delete all delimiters.
 
 Return Value
  Zero.
@@ -4972,11 +4981,11 @@ ______________
 
 Add ansi word to highlight theme.
 
-(HANDLE)wParam        == theme handle.
+(AEHTHEME)wParam      == theme handle.
 (AEWORDITEMA *)lParam == pointer to a AEWORDITEMA structure.
 
 Return Value
- Word handle.
+ Word handle - AEHWORD.
 
 Example:
  See AEM_HLCREATETHEMEA example.
@@ -4987,11 +4996,11 @@ ______________
 
 Add unicode word to highlight theme.
 
-(HANDLE)wParam        == theme handle.
+(AEHTHEME)wParam      == theme handle.
 (AEWORDITEMW *)lParam == pointer to a AEWORDITEMW structure.
 
 Return Value
- Word handle.
+ Word handle - AEHWORD.
 
 Example:
  See AEM_HLCREATETHEMEW example.
@@ -5002,8 +5011,8 @@ ________________
 
 Delete word from highlight theme.
 
-(HANDLE)wParam == theme handle.
-(HANDLE)lParam == word handle. If NULL, delete all words.
+(AEHTHEME)wParam == theme handle.
+(AEHWORD)lParam  == word handle. If NULL, delete all words.
 
 Return Value
  Zero.
@@ -5017,11 +5026,11 @@ _______________
 
 Add ansi quote to highlight theme.
 
-(HANDLE)wParam         == theme handle.
+(AEHTHEME)wParam       == theme handle.
 (AEQUOTEITEMA *)lParam == pointer to a AEQUOTEITEMA structure.
 
 Return Value
- Quote handle.
+ Quote handle - AEHQUOTE.
 
 Example:
  See AEM_HLCREATETHEMEA example.
@@ -5032,11 +5041,11 @@ _______________
 
 Add unicode quote to highlight theme.
 
-(HANDLE)wParam         == theme handle.
+(AEHTHEME)wParam       == theme handle.
 (AEQUOTEITEMW *)lParam == pointer to a AEQUOTEITEMW structure.
 
 Return Value
- Quote handle.
+ Quote handle - AEHQUOTE.
 
 Example:
  See AEM_HLCREATETHEMEW example.
@@ -5047,8 +5056,8 @@ _________________
 
 Delete quote from highlight theme.
 
-(HANDLE)wParam == theme handle.
-(HANDLE)lParam == quote handle. If NULL, delete all quotes.
+(AEHTHEME)wParam == theme handle.
+(AEHQUOTE)lParam == quote handle. If NULL, delete all quotes.
 
 Return Value
  Zero.
@@ -5062,11 +5071,11 @@ __________________
 
 Add ansi text mark to highlight theme.
 
-(HANDLE)wParam            == theme handle.
+(AEHTHEME)wParam          == theme handle.
 (AEMARKTEXTITEMA *)lParam == pointer to a AEMARKTEXTITEMA structure.
 
 Return Value
- Text mark handle.
+ Text mark handle - AEHMARKTEXT.
 
 Example:
  See AEM_HLCREATETHEMEA example.
@@ -5077,11 +5086,11 @@ __________________
 
 Add unicode text mark to highlight theme.
 
-(HANDLE)wParam            == theme handle.
+(AEHTHEME)wParam          == theme handle.
 (AEMARKTEXTITEMW *)lParam == pointer to a AEMARKTEXTITEMW structure.
 
 Return Value
- Text mark handle.
+ Text mark handle - AEHMARKTEXT.
 
 Example:
  See AEM_HLCREATETHEMEW example.
@@ -5092,8 +5101,8 @@ ____________________
 
 Delete text mark from highlight theme.
 
-(HANDLE)wParam == theme handle.
-(HANDLE)lParam == text mark handle. If NULL, delete all marks.
+(AEHTHEME)wParam    == theme handle.
+(AEHMARKTEXT)lParam == text mark handle. If NULL, delete all marks.
 
 Return Value
  Zero.
@@ -5107,11 +5116,11 @@ __________________
 
 Add unicode range mark to highlight theme.
 
-(HANDLE)wParam            == theme handle.
+(AEHTHEME)wParam          == theme handle.
 (AEMARKRANGEITEM *)lParam == pointer to a AEMARKRANGEITEM structure.
 
 Return Value
- Range mark handle.
+ Range mark handle - AEHMARKRANGE.
 
 Example:
  See AEM_HLCREATETHEMEW example.
@@ -5122,8 +5131,8 @@ _____________________
 
 Delete range mark from highlight theme.
 
-(HANDLE)wParam == theme handle.
-(HANDLE)lParam == range mark handle. If NULL, delete all marks.
+(AEHTHEME)wParam     == theme handle.
+(AEHMARKRANGE)lParam == range mark handle. If NULL, delete all marks.
 
 Return Value
  Zero.
