@@ -410,22 +410,28 @@ typedef struct {
   int nElements;
 } STACKEXTPARAM;
 
-typedef struct _HINISECTION {
-  struct _HINISECTION *next;
-  struct _HINISECTION *prev;
-  wchar_t *wszSection;
-  int nSectionBytes;
-  HSTACK hKeysStack;
-} HINISECTION;
-
-typedef struct _HINIKEY {
-  struct _HINIKEY *next;
-  struct _HINIKEY *prev;
+typedef struct _INIKEY {
+  struct _INIKEY *next;
+  struct _INIKEY *prev;
   wchar_t *wszKey;
   int nKeyBytes;
   wchar_t *wszString;
   int nStringBytes;
-} HINIKEY;
+} INIKEY;
+
+typedef struct _INISECTION {
+  struct _INISECTION *next;
+  struct _INISECTION *prev;
+  wchar_t *wszSection;
+  int nSectionBytes;
+  INIKEY *first;
+  INIKEY *last;
+} INISECTION;
+
+typedef struct {
+  INISECTION *first;
+  INISECTION *last;
+} INIFILE;
 
 typedef struct _FILESTREAMDATA {
   HWND hWnd;
@@ -482,7 +488,7 @@ typedef struct _REGHANDLE {
 
 typedef struct _INIHANDLE {
   DWORD dwType;
-  HSTACK hStack;
+  INIFILE hIniFile;
   wchar_t wszIniFile[MAX_PATH];
 } INIHANDLE;
 
@@ -542,7 +548,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI);
 void SetEditWindowSettings(FRAMEDATA *lpFrame);
 void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags);
 FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl);
-FRAMEDATA* GetFrameDataFromEditData(HANDLE hDataEditHandle);
+FRAMEDATA* GetFrameDataFromEditData(AEHDATA hDataEditHandle);
 FRAMEDATA* CreateFrameData(HWND hWndEditParent, FRAMEDATA *lpFrameSource);
 void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
 void SaveFrameData(FRAMEDATA *lpFrame);
@@ -555,8 +561,8 @@ BOOL FrameNoWindows();
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
-LRESULT SendEdit(HANDLE hDataEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
-HWND SetEditData(HANDLE hDataEditNew, HANDLE *hDataEditOld);
+LRESULT SendEdit(AEHDATA hDataEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
+HWND SetEditData(AEHDATA hDataEditNew, AEHDATA *hDataEditOld);
 
 BOOL DoFileNew();
 BOOL CloseDocument();
@@ -613,25 +619,25 @@ void DoWindowSelectWindow();
 void DoHelpAbout();
 void DoNonMenuDelLine(HWND hWnd);
 
-BOOL OpenIniA(HSTACK *hIniStack, const char *pFile, BOOL bCreate);
-BOOL OpenIniW(HSTACK *hIniStack, const wchar_t *wpFile, BOOL bCreate);
-BOOL SaveIniA(HSTACK *hIniStack, const char *pFile);
-BOOL SaveIniW(HSTACK *hIniStack, const wchar_t *wpFile);
-BOOL ReadIni(HSTACK *hIniStack, HANDLE hFile);
-BOOL WriteIni(HSTACK *hIniStack, HANDLE hFile);
-HINISECTION* StackOpenIniSectionA(HSTACK *hIniStack, char *pSection, int nSectionLen, BOOL bCreate);
-HINISECTION* StackOpenIniSectionW(HSTACK *hIniStack, wchar_t *wpSection, int nSectionLen, BOOL bCreate);
-HINIKEY* StackOpenIniKeyA(HINISECTION *lpIniSection, char *pKey, int nKeyLen, BOOL bCreate);
-HINIKEY* StackOpenIniKeyW(HINISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen, BOOL bCreate);
-int StackGetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
-BOOL StackSetIniData(HINIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
-int IniGetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
-int IniGetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
-BOOL IniSetValueA(HSTACK *hIniStack, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
-BOOL IniSetValueW(HSTACK *hIniStack, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
-void StackDeleteIniKey(HINISECTION *lpIniSection, HINIKEY *lpIniKey);
-void StackDeleteIniSection(HSTACK *hIniStack, HINISECTION *lpIniSection, BOOL bOnlyClear);
-void StackFreeIni(HSTACK *hIniStack);
+BOOL OpenIniA(INIFILE *hIniFile, const char *pFile, BOOL bCreate);
+BOOL OpenIniW(INIFILE *hIniFile, const wchar_t *wpFile, BOOL bCreate);
+BOOL SaveIniA(INIFILE *hIniFile, const char *pFile);
+BOOL SaveIniW(INIFILE *hIniFile, const wchar_t *wpFile);
+BOOL ReadIni(INIFILE *hIniFile, HANDLE hFile);
+BOOL WriteIni(INIFILE *hIniFile, HANDLE hFile);
+INISECTION* StackOpenIniSectionA(INIFILE *hIniFile, char *pSection, int nSectionLen, BOOL bCreate);
+INISECTION* StackOpenIniSectionW(INIFILE *hIniFile, wchar_t *wpSection, int nSectionLen, BOOL bCreate);
+INIKEY* StackOpenIniKeyA(INISECTION *lpIniSection, char *pKey, int nKeyLen, BOOL bCreate);
+INIKEY* StackOpenIniKeyW(INISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen, BOOL bCreate);
+int StackGetIniData(INIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
+BOOL StackSetIniData(INIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
+int IniGetValueA(INIFILE *hIniFile, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
+int IniGetValueW(INIFILE *hIniFile, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
+BOOL IniSetValueA(INIFILE *hIniFile, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
+BOOL IniSetValueW(INIFILE *hIniFile, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes);
+void StackDeleteIniKey(INISECTION *lpIniSection, INIKEY *lpIniKey);
+void StackDeleteIniSection(INIFILE *hIniFile, INISECTION *lpIniSection, BOOL bOnlyClear);
+void StackFreeIni(INIFILE *hIniFile);
 
 DWORD ReadOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
 DWORD SaveOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize);
@@ -837,7 +843,7 @@ void StackHandleFree(HSTACK *hStack);
 
 FRAMEDATA* StackFrameInsert(HSTACK *hStack);
 FRAMEDATA* StackFrameGetByIndex(HSTACK *hStack, int nIndex);
-FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, HANDLE hDataHandle);
+FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, AEHDATA hDataHandle);
 FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nFileNameLen);
 void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex);
 void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame);
@@ -848,7 +854,7 @@ BUTTONDRAWITEM* StackButtonDrawGet(HSTACK *hStack, HWND hWnd);
 void StackButtonDrawDelete(HSTACK *hStack, BUTTONDRAWITEM *lpButtonDraw);
 void StackButtonDrawFree(HSTACK *hStack);
 
-void SetSelectionStatus(HANDLE hDataEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci);
+void SetSelectionStatus(AEHDATA hDataEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARINDEX *ci);
 void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags);

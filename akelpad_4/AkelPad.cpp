@@ -210,7 +210,7 @@ BOOL bSavePluginsStackOnExit=FALSE;
 WNDPROC OldHotkeyInputProc=NULL;
 
 //INI
-HSTACK hIniStack={0};
+INIFILE hIniFile={0};
 wchar_t wszIniFile[MAX_PATH];
 
 //Main Window
@@ -1333,7 +1333,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         fdInit.ei.hWndEdit=(HWND)CreateEditWindow(hMainWnd, NULL);
         fdInit.lpEditProc=(AEEditProc)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
-        fdInit.ei.hDataEdit=(HANDLE)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+        fdInit.ei.hDataEdit=(AEHDATA)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
 
         if (nMDI == WMD_SDI)
         {
@@ -2107,7 +2107,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (wParam == FWF_BYEDITWINDOW)
         return (LRESULT)GetFrameDataFromEditWindow((HWND)lParam);
       if (wParam == FWF_BYEDITDATA)
-        return (LRESULT)GetFrameDataFromEditData((HANDLE)lParam);
+        return (LRESULT)GetFrameDataFromEditData((AEHDATA)lParam);
       return 0;
     }
     if (uMsg == AKD_FRAMENOWINDOWS)
@@ -2243,7 +2243,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
           if (ih->dwType & POB_READ)
           {
-            if (!OpenIniW(&ih->hStack, ih->wszIniFile, FALSE))
+            if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, FALSE))
             {
               API_HeapFree(hHeap, 0, (LPVOID)ih);
               ih=NULL;
@@ -2251,7 +2251,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           else if (ih->dwType & POB_SAVE)
           {
-            if (!OpenIniW(&ih->hStack, ih->wszIniFile, TRUE))
+            if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, TRUE))
             {
               API_HeapFree(hHeap, 0, (LPVOID)ih);
               ih=NULL;
@@ -2260,10 +2260,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               if (ih->dwType & POB_CLEAR)
               {
-                HINISECTION *lpIniSection;
+                INISECTION *lpIniSection;
 
-                if (lpIniSection=StackOpenIniSectionW(&ih->hStack, L"Options", lstrlenW(L"Options"), FALSE))
-                  StackDeleteIniSection(&ih->hStack, lpIniSection, TRUE);
+                if (lpIniSection=StackOpenIniSectionW(&ih->hIniFile, L"Options", lstrlenW(L"Options"), FALSE))
+                  StackDeleteIniSection(&ih->hIniFile, lpIniSection, TRUE);
               }
             }
           }
@@ -2339,16 +2339,16 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ih->dwType & POB_READ)
         {
           if (bAnsi)
-            dwResult=IniGetValueA(&ih->hStack, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+            dwResult=IniGetValueA(&ih->hIniFile, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
           else
-            dwResult=IniGetValueW(&ih->hStack, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+            dwResult=IniGetValueW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
         }
         else if (ih->dwType & POB_SAVE)
         {
           if (bAnsi)
-            dwResult=IniSetValueA(&ih->hStack, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+            dwResult=IniSetValueA(&ih->hIniFile, "Options", (char *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
           else
-            dwResult=IniSetValueW(&ih->hStack, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
+            dwResult=IniSetValueW(&ih->hIniFile, L"Options", (wchar_t *)po->pOptionName, dwType, (LPBYTE)po->lpData, po->dwData);
         }
       }
       return dwResult;
@@ -2374,8 +2374,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (ih->dwType & POB_READ)
             bResult=TRUE;
           else if (ih->dwType & POB_SAVE)
-            bResult=SaveIniW(&ih->hStack, ih->wszIniFile);
-          StackFreeIni(&ih->hStack);
+            bResult=SaveIniW(&ih->hIniFile, ih->wszIniFile);
+          StackFreeIni(&ih->hIniFile);
           API_HeapFree(hHeap, 0, (LPVOID)ih);
         }
       }
@@ -2401,7 +2401,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else
           xprintfW(ih->wszIniFile, L"%s", (wchar_t *)lParam);
 
-        if (!OpenIniW(&ih->hStack, ih->wszIniFile, bCreate))
+        if (!OpenIniW(&ih->hIniFile, ih->wszIniFile, bCreate))
         {
           API_HeapFree(hHeap, 0, (LPVOID)ih);
           ih=NULL;
@@ -2416,13 +2416,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       INIHANDLE *ih=(INIHANDLE *)wParam;
       wchar_t *wpSection=AllocWideStr(MAX_PATH);
       int nSectionLen;
-      HINISECTION *lpResult;
+      INISECTION *lpResult;
 
       if (uMsg == AKD_INIGETSECTIONA || (bOldWindows && uMsg == AKD_INIGETSECTION))
         nSectionLen=xprintfW(wpSection, L"%S", (char *)lParam);
       else
         nSectionLen=xprintfW(wpSection, L"%s", (wchar_t *)lParam);
-      lpResult=StackOpenIniSectionW(&ih->hStack, wpSection, nSectionLen, FALSE);
+      lpResult=StackOpenIniSectionW(&ih->hIniFile, wpSection, nSectionLen, FALSE);
 
       FreeWideStr(wpSection);
       return (LRESULT)lpResult;
@@ -2431,19 +2431,19 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         uMsg == AKD_INIDELETESECTION)
     {
       INIHANDLE *ih=(INIHANDLE *)wParam;
-      HINISECTION *lpIniSection=(HINISECTION *)lParam;
+      INISECTION *lpIniSection=(INISECTION *)lParam;
 
-      StackDeleteIniSection(&ih->hStack, lpIniSection, (uMsg == AKD_INICLEARSECTION)?TRUE:FALSE);
+      StackDeleteIniSection(&ih->hIniFile, lpIniSection, (uMsg == AKD_INICLEARSECTION)?TRUE:FALSE);
       return 0;
     }
     if (uMsg == AKD_INIGETKEY ||
         uMsg == AKD_INIGETKEYA ||
         uMsg == AKD_INIGETKEYW)
     {
-      HINISECTION *lpIniSection=(HINISECTION *)wParam;
+      INISECTION *lpIniSection=(INISECTION *)wParam;
       wchar_t *wpKey=AllocWideStr(MAX_PATH);
       int nKeyLen;
-      HINIKEY *lpResult;
+      INIKEY *lpResult;
 
       if (uMsg == AKD_INIGETKEYA || (bOldWindows && uMsg == AKD_INIGETKEY))
         nKeyLen=xprintfW(wpKey, L"%S", (char *)lParam);
@@ -2456,8 +2456,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_INIDELETEKEY)
     {
-      HINISECTION *lpIniSection=(HINISECTION *)wParam;
-      HINIKEY *lpIniKey=(HINIKEY *)lParam;
+      INISECTION *lpIniSection=(INISECTION *)wParam;
+      INIKEY *lpIniKey=(INIKEY *)lParam;
 
       StackDeleteIniKey(lpIniSection, lpIniKey);
       return 0;
@@ -2482,7 +2482,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpSection, L"%s", (wchar_t *)iv->pSection);
         xprintfW(wpKey, L"%s", (wchar_t *)iv->pKey);
       }
-      nResult=IniGetValueW(&ih->hStack, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+      nResult=IniGetValueW(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
 
       FreeWideStr(wpSection);
       FreeWideStr(wpKey);
@@ -2508,7 +2508,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xprintfW(wpSection, L"%s", (wchar_t *)iv->pSection);
         xprintfW(wpKey, L"%s", (wchar_t *)iv->pKey);
       }
-      nResult=IniSetValueW(&ih->hStack, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
+      nResult=IniSetValueW(&ih->hIniFile, wpSection, wpKey, iv->dwType, (LPBYTE)iv->lpData, iv->dwData);
 
       FreeWideStr(wpSection);
       FreeWideStr(wpKey);
@@ -2524,8 +2524,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (ih->dwType & POB_READ)
           bResult=TRUE;
         else if (ih->dwType & POB_SAVE)
-          bResult=SaveIniW(&ih->hStack, ih->wszIniFile);
-        StackFreeIni(&ih->hStack);
+          bResult=SaveIniW(&ih->hIniFile, ih->wszIniFile);
+        StackFreeIni(&ih->hIniFile);
         API_HeapFree(hHeap, 0, (LPVOID)ih);
       }
       return bResult;
@@ -3968,7 +3968,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       lpFrame->ei.hWndEdit=(HWND)CreateEditWindow(hWnd, NULL);
       lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
-      lpFrame->ei.hDataEdit=(HANDLE)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+      lpFrame->ei.hDataEdit=(AEHDATA)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
@@ -4165,13 +4165,13 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       //Assign current window. Need for split windows.
       lpFrameCurrent->ei.hWndEdit=hWnd;
-      lpFrameCurrent->ei.hDataEdit=(HANDLE)SendMessage(hWnd, AEM_GETWINDOWDATA, 0, 0);
+      lpFrameCurrent->ei.hDataEdit=(AEHDATA)SendMessage(hWnd, AEM_GETWINDOWDATA, 0, 0);
     }
     else
     {
       //Assign current window. Need for split windows.
       lpFrameCurrent->ei.hWndEdit=hWnd;
-      lpFrameCurrent->ei.hDataEdit=(HANDLE)SendMessage(hWnd, AEM_GETWINDOWDATA, 0, 0);
+      lpFrameCurrent->ei.hDataEdit=(AEHDATA)SendMessage(hWnd, AEM_GETWINDOWDATA, 0, 0);
 
       SetSelectionStatus(lpFrameCurrent->ei.hDataEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
     }
