@@ -260,7 +260,7 @@
 #define AELU_SCROLLBAR  0x00000001
 #define AELU_CARET      0x00000002
 
-//AEM_SETWINDOWDATA flags
+//AEM_SETDOCUMENT flags
 #define AESWD_NOCHECKFOCUS        0x00000001  //Don't update focus state.
 #define AESWD_NODRAGDROP          0x00000002  //Don't register drag-and-drop with a new IDropTarget.
 #define AESWD_NOSHOWSCROLLBARS    0x00000004  //Don't update scrollbars visibility.
@@ -490,7 +490,7 @@
   #define mod(a)  ((((int)(a)) < 0) ? (0 - ((int)(a))) : (a))
 #endif
 
-DECLARE_HANDLE (AEHDATA);
+DECLARE_HANDLE (AEHDOC);
 DECLARE_HANDLE (AEHPRINT);
 DECLARE_HANDLE (AEHTHEME);
 DECLARE_HANDLE (AEHDELIMITER);
@@ -499,8 +499,8 @@ DECLARE_HANDLE (AEHQUOTE);
 DECLARE_HANDLE (AEHMARKTEXT);
 DECLARE_HANDLE (AEHMARKRANGE);
 
-typedef LRESULT (CALLBACK *AEEditProc)(AEHDATA hHandle, UINT uMsg, WPARAM wParam, LPARAM lParam);
-//hHandle     Window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA.
+typedef LRESULT (CALLBACK *AEEditProc)(AEHDOC hDoc, UINT uMsg, WPARAM wParam, LPARAM lParam);
+//hDoc        Document handle returned by AEM_GETDOCUMENT or AEM_CREATEDOCUMENT.
 //uMsg        Message ID for example EM_SETSEL.
 //lParam      Additional parameter.
 //wParam      Additional parameter.
@@ -719,10 +719,10 @@ typedef struct {
 } AESCROLLTOPOINT;
 
 typedef struct {
-  AEHDATA hEditData;   //Window data handle. See AEM_CREATEWINDOWDATA message.
-  UINT uMsg;           //Window message.
-  WPARAM wParam;       //Window first additional parameter.
-  LPARAM lParam;       //Window second additional parameter.
+  AEHDOC hDoc;    //Document handle. See AEM_CREATEDOCUMENT message.
+  UINT uMsg;      //Window message.
+  WPARAM wParam;  //Window first additional parameter.
+  LPARAM lParam;  //Window second additional parameter.
 } AESENDMESSAGE;
 
 typedef struct {
@@ -860,7 +860,7 @@ typedef struct {
   UINT code;
 
   //AkelEdit members
-  AEHDATA dataFrom;    //Window data handle. See AEM_CREATEWINDOWDATA message.
+  AEHDOC docFrom;      //Document handle. See AEM_CREATEDOCUMENT message.
 } AENMHDR;
 
 typedef struct {
@@ -1174,13 +1174,13 @@ typedef struct {
 #define AEM_UPDATEFOLD            (WM_USER + 2388)
 #define AEM_GETFOLDSTACK          (WM_USER + 2389)
 
-//Window data
-#define AEM_CREATEWINDOWDATA      (WM_USER + 2401)
-#define AEM_DELETEWINDOWDATA      (WM_USER + 2402)
-#define AEM_GETWINDOWDATA         (WM_USER + 2403)
-#define AEM_SETWINDOWDATA         (WM_USER + 2404)
-#define AEM_GETWINDOWPROC         (WM_USER + 2405)
-#define AEM_GETWINDOWHANDLE       (WM_USER + 2406)
+//Document
+#define AEM_CREATEDOCUMENT        (WM_USER + 2401)
+#define AEM_DELETEDOCUMENT        (WM_USER + 2402)
+#define AEM_GETDOCUMENT           (WM_USER + 2403)
+#define AEM_SETDOCUMENT           (WM_USER + 2404)
+#define AEM_GETDOCUMENTPROC       (WM_USER + 2405)
+#define AEM_GETDOCUMENTWINDOW     (WM_USER + 2406)
 #define AEM_SENDMESSAGE           (WM_USER + 2407)
 
 //Clone
@@ -4097,7 +4097,7 @@ Example:
 AEM_UPDATESIZE
 ______________
 
-Update edit control after window resizing. Useful for virtual window data handle.
+Update edit control after window resizing. Useful for virtual document handle.
 
 wParam == not used.
 lParam == not used.
@@ -4315,21 +4315,21 @@ AEFOLD* GetFold(HWND hWnd, int nLine)
 }
 
 
-AEM_CREATEWINDOWDATA
-____________________
+AEM_CREATEDOCUMENT
+__________________
 
-Create new window data handle. This is like virtual window created in memory.
+Create new virtual document handle, that later can be associated with any edit window. This is like virtual window created in memory.
 
 wParam                 == not used.
 (CREATESTRUCT *)lParam == pointer to a CREATESTRUCT structure.
 
 Return Value
- Created window data handle.
+ Created document handle.
 
 Example:
  CREATESTRUCTA cs;
- AEHDATA hHandleNew;
- AEHDATA hHandleOld;
+ AEHDOC hDocNew;
+ AEHDOC hDocOld;
 
  cs.lpCreateParams=NULL;
  cs.hInstance=GetModuleHandle(NULL);
@@ -4344,95 +4344,95 @@ Example:
  cs.lpszClass=AES_AKELEDITCLASSA;
  cs.dwExStyle=WS_EX_CLIENTEDGE;
 
- hHandleNew=(AEHDATA)SendMessage(hWndEdit, AEM_CREATEWINDOWDATA, 0, (LPARAM)&cs);
- hHandleOld=(AEHDATA)SendMessage(hWndEdit, AEM_SETWINDOWDATA, (WPARAM)hHandleNew, 0);
+ hDocNew=(AEHDOC)SendMessage(hWndEdit, AEM_CREATEDOCUMENT, 0, (LPARAM)&cs);
+ hDocOld=(AEHDOC)SendMessage(hWndEdit, AEM_SETDOCUMENT, (WPARAM)hDocNew, 0);
 
 
-AEM_DELETEWINDOWDATA
-____________________
+AEM_DELETEDOCUMENT
+__________________
 
-Destroys window data handle. Data handle must be free and not associated with any edit window.
+Destroys document handle. Document handle must be not associated with any edit window.
 
-(AEHDATA)wParam == window data handle.
-lParam          == not used.
+(AEHDOC)wParam == document handle.
+lParam         == not used.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)hHandle, 0);
+ SendMessage(hWndEdit, AEM_DELETEDOCUMENT, (WPARAM)hDoc, 0);
 
 
-AEM_GETWINDOWDATA
-_________________
+AEM_GETDOCUMENT
+_______________
 
-Retrieve window data handle.
+Retrieve document handle.
 
 wParam == not used.
 lParam == not used.
 
 Return Value
- Window data handle.
+ Document handle.
 
 Example:
- AEHDATA hHandle=(AEHDATA)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+ AEHDOC hDoc=(AEHDOC)SendMessage(hWndEdit, AEM_GETDOCUMENT, 0, 0);
 
 
-AEM_SETWINDOWDATA
-_________________
+AEM_SETDOCUMENT
+_______________
 
-Associate or deassociate window data handle with edit control to which message is sended.
+Associate or deassociate document handle with edit control to which message is sended.
 
-(AEHDATA)wParam == window data handle.
-(DWORD)lParam   == see AESWD_* defines.
+(AEHDOC)wParam == document handle.
+(DWORD)lParam  == see AESWD_* defines.
 
 Return Value
- Old window data handle.
+ Old document handle.
 
 Example:
- See AEM_CREATEWINDOWDATA example.
+ See AEM_CREATEDOCUMENT example.
 
 
-AEM_GETWINDOWPROC
-_________________
+AEM_GETDOCUMENTPROC
+___________________
 
-Retrieve procedure of window data.
+Retrieve procedure of document.
 
-(AEHDATA)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current procedure returned.
-lParam          == not used.
+(AEHDOC)wParam == document handle. If NULL, current procedure returned.
+lParam         == not used.
 
 Return Value
  Pointer to an AEEditProc procedure.
 
 Example (Call window procedure directly):
- AEHDATA hHandle=(AEHDATA)SendMessage(hWndEdit, AEM_GETWINDOWDATA, 0, 0);
- AEEditProc lpEditProc=(AEEditProc)SendMessage(hWndEdit, AEM_GETWINDOWPROC, (WPARAM)hHandle, 0);
+ AEHDOC hDoc=(AEHDOC)SendMessage(hWndEdit, AEM_GETDOCUMENT, 0, 0);
+ AEEditProc lpEditProc=(AEEditProc)SendMessage(hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)hDoc, 0);
  LRESULT lResult;
 
- lResult=lpEditProc(hHandle, EM_SETSEL, (WPARAM)0, (LPARAM)-1);
+ lResult=lpEditProc(hDoc, EM_SETSEL, (WPARAM)0, (LPARAM)-1);
 
 
-AEM_GETWINDOWHANDLE
-___________________
+AEM_GETDOCUMENTWINDOW
+_____________________
 
-Retrieve edit control of window data.
+Retrieve edit control of document.
 
-(AEHDATA)wParam == window data handle returned by AEM_GETWINDOWDATA or AEM_CREATEWINDOWDATA. If NULL, current edit control returned.
-lParam          == not used.
+(AEHDOC)wParam == document handle. If NULL, current edit control returned.
+lParam         == not used.
 
 Return Value
  Edit control handle.
 
 Example:
- AEHDATA hHandle=(AEHDATA)SendMessage(hWndEditFirst, AEM_GETWINDOWDATA, 0, 0);
- HWND hWnd=(HWND)SendMessage(hWndEditSecond, AEM_GETWINDOWHANDLE, (WPARAM)hHandle, 0);
+ AEHDOC hDoc=(AEHDOC)SendMessage(hWndEditFirst, AEM_GETDOCUMENT, 0, 0);
+ HWND hWnd=(HWND)SendMessage(hWndEditSecond, AEM_GETDOCUMENTWINDOW, (WPARAM)hDoc, 0);
  //hWnd == hWndEditFirst
 
 
 AEM_SENDMESSAGE
 _______________
 
-Send message to an associated or deassociated window data handle. AEM_SENDMESSAGE can be sended to any edit control window.
+Send message to an associated or deassociated document handle. Beware AEM_SENDMESSAGE send message directly ignoring any subclassing.
 
 lParam                  == not used.
 (AESENDMESSAGE *)lParam == pointer to a AESENDMESSAGE structure.
@@ -4443,7 +4443,7 @@ Return Value
 Example:
  AESENDMESSAGE sm;
 
- sm.hEditData=hEditData;
+ sm.hDoc=hDoc;
  sm.uMsg=EM_SETSEL;
  sm.wParam=0;
  sm.lParam=(LPARAM)-1;

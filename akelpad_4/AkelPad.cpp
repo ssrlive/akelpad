@@ -480,7 +480,7 @@ extern "C" void _WinMain()
 
   //fdInit.hWndEditParent=NULL;
   //fdInit.ei.hWndEdit=NULL;
-  //fdInit.ei.hDataEdit=NULL;
+  //fdInit.ei.hDocEdit=NULL;
   fdInit.ei.pFile=bOldWindows?(LPBYTE)fdInit.szFile:(LPBYTE)fdInit.wszFile;
   fdInit.ei.szFile=fdInit.szFile;
   fdInit.ei.wszFile=fdInit.wszFile;
@@ -492,13 +492,13 @@ extern "C" void _WinMain()
   //fdInit.ei.bWordWrap=FALSE;
   //fdInit.ei.bOvertypeMode=FALSE;
   //fdInit.ei.hWndMaster=NULL;
-  //fdInit.ei.hDataMaster=NULL;
+  //fdInit.ei.hDocMaster=NULL;
   //fdInit.ei.hWndClone1=NULL;
-  //fdInit.ei.hDataClone1=NULL;
+  //fdInit.ei.hDocClone1=NULL;
   //fdInit.ei.hWndClone2=NULL;
-  //fdInit.ei.hDataClone2=NULL;
+  //fdInit.ei.hDocClone2=NULL;
   //fdInit.ei.hWndClone3=NULL;
-  //fdInit.ei.hDataClone3=NULL;
+  //fdInit.ei.hDocClone3=NULL;
   //fdInit.szFile[0]='\0';
   //fdInit.wszFile[0]=L'\0';
   //fdInit.nFileLen=0;
@@ -1094,9 +1094,9 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (nMDI == WMD_PMDI)
       {
         //Destroy last empty tab
-        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDataEdit);
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWINDOWDATA, (WPARAM)fdInit.ei.hDataEdit, FALSE);
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DELETEWINDOWDATA, (WPARAM)lpFrameCurrent->ei.hDataEdit, 0);
+        SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocEdit, FALSE);
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_DELETEDOCUMENT, (WPARAM)lpFrameCurrent->ei.hDocEdit, 0);
       }
       StackFrameDelete(&hFramesStack, lpFrameCurrent);
 
@@ -1107,7 +1107,7 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)fdInit.ei.hWndEdit, 0);
       DestroyWindow(fdInit.ei.hWndEdit);
       fdInit.ei.hWndEdit=NULL;
-      fdInit.ei.hDataEdit=NULL;
+      fdInit.ei.hDocEdit=NULL;
       bEditOnFinish=FALSE;
     }
     else if (nMDI == WMD_MDI)
@@ -1332,8 +1332,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
       {
         fdInit.ei.hWndEdit=(HWND)CreateEditWindow(hMainWnd, NULL);
-        fdInit.lpEditProc=(AEEditProc)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
-        fdInit.ei.hDataEdit=(AEHDATA)SendMessage(fdInit.ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+        fdInit.lpEditProc=(AEEditProc)SendMessage(fdInit.ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);
+        fdInit.ei.hDocEdit=(AEHDOC)SendMessage(fdInit.ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
 
         if (nMDI == WMD_SDI)
         {
@@ -1341,10 +1341,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             lpFrameCurrent->ei.hWndEdit=fdInit.ei.hWndEdit;
             lpFrameCurrent->lpEditProc=fdInit.lpEditProc;
-            lpFrameCurrent->ei.hDataEdit=fdInit.ei.hDataEdit;
+            lpFrameCurrent->ei.hDocEdit=fdInit.ei.hDocEdit;
             RestoreFrameData(lpFrameCurrent, 0);
             SetEditWindowSettings(lpFrameCurrent);
-            SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDataEdit);
+            SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
           }
         }
         else if (nMDI == WMD_PMDI)
@@ -1752,7 +1752,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       pd->hPluginsStack=&hPluginsStack;
       pd->hMainWnd=hMainWnd;
       pd->hWndEdit=lpFrameCurrent->ei.hWndEdit;
-      pd->hDataEdit=lpFrameCurrent->ei.hDataEdit;
+      pd->hDocEdit=lpFrameCurrent->ei.hDocEdit;
       pd->hStatus=hStatus;
       pd->hMdiClient=hMdiClient;
       pd->hTab=hTab;
@@ -2106,8 +2106,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (wParam == FWF_BYEDITWINDOW)
         return (LRESULT)GetFrameDataFromEditWindow((HWND)lParam);
-      if (wParam == FWF_BYEDITDATA)
-        return (LRESULT)GetFrameDataFromEditData((AEHDATA)lParam);
+      if (wParam == FWF_BYEDITDOCUMENT)
+        return (LRESULT)GetFrameDataFromEditDocument((AEHDOC)lParam);
       return 0;
     }
     if (uMsg == AKD_FRAMENOWINDOWS)
@@ -3732,7 +3732,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           if (nMDI == WMD_PMDI)
           {
             //Drag'n'Drop was from one tab to another, update caret position cause it has source window coordinates.
-            if (lpFrameCurrent->ei.hDataEdit != aeds->hdr.dataFrom)
+            if (lpFrameCurrent->ei.hDocEdit != aeds->hdr.docFrom)
               SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_UPDATECARET, 0, 0);
           }
         }
@@ -3745,7 +3745,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatus(aensc->hdr.dataFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
+        SetSelectionStatus(aensc->hdr.docFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
       {
@@ -3753,7 +3753,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         FRAMEDATA *lpFrame;
 
         if (nMDI == WMD_PMDI)
-          lpFrame=GetFrameDataFromEditData(aenm->hdr.dataFrom);
+          lpFrame=GetFrameDataFromEditDocument(aenm->hdr.docFrom);
         else
           lpFrame=GetFrameDataFromEditWindow(aenm->hdr.hwndFrom);
 
@@ -3822,7 +3822,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         AENLINK *aenl=(AENLINK *)lParam;
         static BOOL bDownURL=FALSE;
 
-        if (aenl->hdr.dataFrom == lpFrameCurrent->ei.hDataEdit)
+        if (aenl->hdr.docFrom == lpFrameCurrent->ei.hDocEdit)
         {
           if (lpFrameCurrent->nClickURL == 1 && aenl->uMsg == WM_LBUTTONDOWN)
           {
@@ -3967,13 +3967,13 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SetWindowLongWide(hWnd, GWL_USERDATA, (LONG)lpFrame);
 
       lpFrame->ei.hWndEdit=(HWND)CreateEditWindow(hWnd, NULL);
-      lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWPROC, (WPARAM)NULL, 0);
-      lpFrame->ei.hDataEdit=(AEHDATA)SendMessage(lpFrame->ei.hWndEdit, AEM_GETWINDOWDATA, 0, 0);
+      lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);
+      lpFrame->ei.hDocEdit=(AEHDOC)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
       SetEditWindowSettings(lpFrame);
-      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDataEdit);
+      SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDocEdit);
     }
   }
   else if (uMsg == WM_SIZE)
@@ -4165,15 +4165,15 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       //Assign current window. Need for split windows.
       lpFrameCurrent->ei.hWndEdit=hWnd;
-      lpFrameCurrent->ei.hDataEdit=(AEHDATA)SendMessage(hWnd, AEM_GETWINDOWDATA, 0, 0);
+      lpFrameCurrent->ei.hDocEdit=(AEHDOC)SendMessage(hWnd, AEM_GETDOCUMENT, 0, 0);
     }
     else
     {
       //Assign current window. Need for split windows.
       lpFrameCurrent->ei.hWndEdit=hWnd;
-      lpFrameCurrent->ei.hDataEdit=(AEHDATA)SendMessage(hWnd, AEM_GETWINDOWDATA, 0, 0);
+      lpFrameCurrent->ei.hDocEdit=(AEHDOC)SendMessage(hWnd, AEM_GETDOCUMENT, 0, 0);
 
-      SetSelectionStatus(lpFrameCurrent->ei.hDataEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
+      SetSelectionStatus(lpFrameCurrent->ei.hDocEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
     }
   }
   else if (uMsg == WM_KEYDOWN)
@@ -4460,7 +4460,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, 0);
           DestroyWindow(lpFrame->ei.hWndEdit);
           lpFrame->ei.hWndEdit=NULL;
-          lpFrame->ei.hDataEdit=NULL;
+          lpFrame->ei.hDocEdit=NULL;
           bEditOnFinish=FALSE;
 
           //Delete frame data
