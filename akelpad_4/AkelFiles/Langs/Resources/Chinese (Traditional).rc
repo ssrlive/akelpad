@@ -79,8 +79,7 @@ BEGIN
         MENUITEM "插入日期(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
         POPUP "選取項目(&S)"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
+            MENUITEM "Columnar paste\tAlt+V",       IDM_EDIT_PASTECOLUMN
             MENUITEM "Tab 縮排(&B)\tTab",           IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "取消 Tab 縮排(&T)\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -292,7 +291,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,          VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT

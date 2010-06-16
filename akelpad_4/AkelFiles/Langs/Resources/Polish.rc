@@ -79,8 +79,7 @@ BEGIN
         MENUITEM "Wstaw &datê\tCtrl+D",         IDM_EDIT_INSERTDATE
         POPUP "Zaznaczen&ie"
         BEGIN
-            MENUITEM "Wklej pionowo\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
+            MENUITEM "Wklej pionowo\tAlt+V",        IDM_EDIT_PASTECOLUMN
             MENUITEM "Dodaj wciêcie ta&bem\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Usuñ wciêcie &tabem\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -177,7 +176,8 @@ BEGIN
         MENUITEM "K&askadowo",                  IDM_WINDOW_CASCADE
         MENUITEM "Zamknij",                     IDM_WINDOW_FRAMECLOSE
         MENUITEM "Zamknij wszystkie",           IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Zamknij wszystkie, oprócz aktywnego", IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Zamknij wszystkie, oprócz aktywnego", 
+                                                IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Wybór okna...",               IDM_WINDOW_MDILIST
     END
@@ -295,7 +295,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,          VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT

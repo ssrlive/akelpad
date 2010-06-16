@@ -73,14 +73,13 @@ BEGIN
         MENUITEM "Hæa&daù Ôalej (dolu)\tF3",    IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Hæadaù Ôal&ej (hore)\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "&Nahradiù...\tCtrl+R",        IDM_EDIT_REPLACE
-        MENUITEM "&Prejsù...\tCtrl+G", IDM_EDIT_GOTO
+        MENUITEM "&Prejsù...\tCtrl+G",          IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "Vloûiù &znak\tCtrl+I",        IDM_EDIT_INSERTCHAR
         MENUITEM "Vloûiù d·&tum\tCtrl+D",       IDM_EDIT_INSERTDATE
         POPUP "V˝&ber"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
+            MENUITEM "Columnar paste\tAlt+V",       IDM_EDIT_PASTECOLUMN
             MENUITEM "Ods&adiù tabul·tormi\tTab",   IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Zruöiù odsadenie &tab\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -298,7 +297,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,          VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT

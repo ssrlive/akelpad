@@ -73,14 +73,13 @@ BEGIN
         MENUITEM "Buscar siguiente a&bajo\tF3", IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Buscar siguiente &arriba\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "&Reemplazar...\tCtrl+R",      IDM_EDIT_REPLACE
-        MENUITEM "&Ir a...\tCtrl+G",   IDM_EDIT_GOTO
+        MENUITEM "&Ir a...\tCtrl+G",            IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "I&nsertar caracter\tCtrl+I",  IDM_EDIT_INSERTCHAR
         MENUITEM "Insertar fec&ha\tCtrl+D",     IDM_EDIT_INSERTDATE
         POPUP "&Selección"
         BEGIN
-            MENUITEM "Pegar columna\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
+            MENUITEM "Pegar columna\tAlt+V",        IDM_EDIT_PASTECOLUMN
             MENUITEM "Ta&bulación con sangría\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Tabulación sin sangría\tShift+Tab", 
@@ -177,9 +176,10 @@ BEGIN
         MENUITEM "Mosaico &horizontal",         IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Mosaico &vertical",           IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Cascada",                    IDM_WINDOW_CASCADE
-        MENUITEM "Cerrar",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Cerrar todo",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Cerrar todas excepto la activa",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Cerrar",                      IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Cerrar todo",                 IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Cerrar todas excepto la activa", 
+                                                IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Seleccionar ventana...",      IDM_WINDOW_MDILIST
     END
@@ -297,7 +297,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,          VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT

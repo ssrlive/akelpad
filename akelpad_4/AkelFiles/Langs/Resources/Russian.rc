@@ -73,14 +73,13 @@ BEGIN
         MENUITEM "Найти далее в&низ\tF3",       IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Найти далее ввер&х\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "&Заменить...\tCtrl+R",        IDM_EDIT_REPLACE
-        MENUITEM "&Перейти...\tCtrl+G", IDM_EDIT_GOTO
+        MENUITEM "&Перейти...\tCtrl+G",         IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "Вставить &символ\tCtrl+I",    IDM_EDIT_INSERTCHAR
         MENUITEM "Вставить &дату\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "Выде&ление"
         BEGIN
-            MENUITEM "Вертикальная вставка\tAlt+V", 
-                                                    IDM_EDIT_PASTECOLUMN
+            MENUITEM "Вертикальная вставка\tAlt+V", IDM_EDIT_PASTECOLUMN
             MENUITEM "&Добавить Tab\tTab",          IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "&Убрать Tab\tShift+Tab",      IDM_EDIT_DELETE_TAB_MENU
             MENUITEM "Д&обавить пробел\tSpace",     IDM_EDIT_INSERT_SPACE_MENU
@@ -295,7 +294,7 @@ BEGIN
     "D",            IDM_FILE_REOPENAS_OEM,  VIRTKEY, ALT, NOINVERT
     "D",            IDM_FILE_SAVEAS_OEM,    VIRTKEY, SHIFT, ALT, NOINVERT
     "F",            IDM_EDIT_FIND,          VIRTKEY, CONTROL, NOINVERT
-    "G",            IDM_EDIT_GOTO,      VIRTKEY, CONTROL, NOINVERT
+    "G",            IDM_EDIT_GOTO,          VIRTKEY, CONTROL, NOINVERT
     "H",            IDM_EDIT_REPLACE,       VIRTKEY, CONTROL, NOINVERT
     "I",            IDM_EDIT_INSERTCHAR,    VIRTKEY, CONTROL, NOINVERT
     "J",            RESERVED,               VIRTKEY, CONTROL, NOINVERT
