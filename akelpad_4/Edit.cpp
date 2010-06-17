@@ -173,7 +173,7 @@ extern int nReplaceTextLen;
 extern WNDPROC OldComboboxEdit;
 
 //Go to line dialog
-extern RECT rcGotoLineDlg;
+extern RECT rcGotoDlg;
 extern int nGotoType;
 
 //Options dialog
@@ -2171,16 +2171,16 @@ void DoEditReplace()
   }
 }
 
-void DoEditGoToLine()
+void DoEditGoTo()
 {
   if (!hDlgModeless)
   {
     nModelessType=MLT_GOTO;
 
     if (bOldWindows)
-      hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_GOTOLINE), hMainWnd, (DLGPROC)GoToLineDlgProc);
+      hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_GOTO), hMainWnd, (DLGPROC)GoToDlgProc);
     else
-      hDlgModeless=API_CreateDialogW(hLangLib, MAKEINTRESOURCEW(IDD_GOTOLINE), hMainWnd, (DLGPROC)GoToLineDlgProc);
+      hDlgModeless=API_CreateDialogW(hLangLib, MAKEINTRESOURCEW(IDD_GOTO), hMainWnd, (DLGPROC)GoToDlgProc);
 
     if (hDlgModeless)
     {
@@ -9337,7 +9337,7 @@ BOOL PasteAfter(HWND hWnd, BOOL bAnsi)
 
 //// Go to line
 
-BOOL CALLBACK GoToLineDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static HWND hWndNumber;
   static HWND hWndLine;
@@ -9353,32 +9353,32 @@ BOOL CALLBACK GoToLineDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
   if (uMsg == WM_INITDIALOG)
   {
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)hMainIcon);
-    hWndNumber=GetDlgItem(hDlg, IDC_GOTOLINE_NUMBER);
-    hWndLine=GetDlgItem(hDlg, IDC_GOTOLINE_LINE);
-    hWndOffset=GetDlgItem(hDlg, IDC_GOTOLINE_OFFSET);
+    hWndNumber=GetDlgItem(hDlg, IDC_GOTO_NUMBER);
+    hWndLine=GetDlgItem(hDlg, IDC_GOTO_LINE);
+    hWndOffset=GetDlgItem(hDlg, IDC_GOTO_OFFSET);
 
-    if (rcGotoLineDlg.right && rcGotoLineDlg.bottom)
-      SetWindowPos(hDlg, 0, rcGotoLineDlg.left, rcGotoLineDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
+    if (rcGotoDlg.right && rcGotoDlg.bottom)
+      SetWindowPos(hDlg, 0, rcGotoDlg.left, rcGotoDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
 
     if (nGotoType == NT_LINE)
     {
       SendMessage(hWndLine, BM_SETCHECK, BST_CHECKED, 0);
-      PostMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_LINE, 0);
+      PostMessage(hDlg, WM_COMMAND, IDC_GOTO_LINE, 0);
     }
     else if (nGotoType == NT_OFFSET)
     {
       SendMessage(hWndOffset, BM_SETCHECK, BST_CHECKED, 0);
-      PostMessage(hDlg, WM_COMMAND, IDC_GOTOLINE_OFFSET, 0);
+      PostMessage(hDlg, WM_COMMAND, IDC_GOTO_OFFSET, 0);
     }
   }
   else if (uMsg == WM_COMMAND)
   {
-    if (LOWORD(wParam) == IDC_GOTOLINE_LINE ||
-        LOWORD(wParam) == IDC_GOTOLINE_OFFSET)
+    if (LOWORD(wParam) == IDC_GOTO_LINE ||
+        LOWORD(wParam) == IDC_GOTO_OFFSET)
     {
-      if (LOWORD(wParam) == IDC_GOTOLINE_LINE)
+      if (LOWORD(wParam) == IDC_GOTO_LINE)
         nGotoType=NT_LINE;
-      else if (LOWORD(wParam) == IDC_GOTOLINE_OFFSET)
+      else if (LOWORD(wParam) == IDC_GOTO_OFFSET)
         nGotoType=NT_OFFSET;
 
       if (nGotoType == NT_LINE)
@@ -9406,7 +9406,7 @@ BOOL CALLBACK GoToLineDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
           a=-IndexSubtract(lpFrameCurrent->ei.hWndEdit, NULL, &ciCaret, AELB_ASIS, FALSE);
-          SetDlgItemInt(hDlg, IDC_GOTOLINE_NUMBER, a, FALSE);
+          SetDlgItemInt(hDlg, IDC_GOTO_NUMBER, a, FALSE);
           SendMessage(hWndNumber, EM_SETSEL, 0, -1);
         }
       }
@@ -9488,7 +9488,7 @@ BOOL CALLBACK GoToLineDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
     {
-      GetWindowPos(hDlg, NULL, &rcGotoLineDlg);
+      GetWindowPos(hDlg, NULL, &rcGotoDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
       nModelessType=MLT_NONE;

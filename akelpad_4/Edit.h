@@ -594,7 +594,7 @@ void DoEditFind();
 void DoEditFindNextDown(HWND hWnd);
 void DoEditFindNextUp(HWND hWnd);
 void DoEditReplace();
-void DoEditGoToLine();
+void DoEditGoTo();
 BOOL DoViewFont(HWND hWndOwner, LOGFONTW *lfFont);
 void DoViewColors();
 void DoViewFontSize(FRAMEDATA *lpFrame, int nAction);
@@ -741,7 +741,7 @@ BOOL PasteInEditAsRichEdit(HWND hWnd);
 BOOL ColumnPaste(HWND hWnd);
 BOOL PasteAfter(HWND hWnd, BOOL bAnsi);
 
-BOOL CALLBACK GoToLineDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL RecentFilesAlloc();
 void RecentFilesZero();
