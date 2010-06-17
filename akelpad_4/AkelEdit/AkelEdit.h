@@ -4318,7 +4318,7 @@ AEFOLD* GetFold(HWND hWnd, int nLine)
 AEM_CREATEDOCUMENT
 __________________
 
-Create new virtual document handle, that later can be associated with any edit window. This is like virtual window created in memory.
+Create new virtual document, that later can be associated with any edit window. Note that new edit window after creation already has assigned document handle.
 
 wParam                 == not used.
 (CREATESTRUCT *)lParam == pointer to a CREATESTRUCT structure.
