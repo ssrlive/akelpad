@@ -308,7 +308,7 @@ int nReplaceTextLen=0;
 WNDPROC OldComboboxEdit;
 
 //Go to line dialog
-RECT rcGotoLineDlg={0};
+RECT rcGotoDlg={0};
 int nGotoType=NT_LINE;
 
 //Options dialog
@@ -2982,7 +2982,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_GOTO)
     {
-      DoEditGoToLine();
+      DoEditGoTo();
     }
     else if (LOWORD(wParam) == IDM_EDIT_INSERTCHAR)
     {
@@ -3450,7 +3450,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (((NMMOUSE *)lParam)->dwItemSpec == 0)
         {
-          DoEditGoToLine();
+          DoEditGoTo();
         }
         else if (((NMMOUSE *)lParam)->dwItemSpec == 2)
         {

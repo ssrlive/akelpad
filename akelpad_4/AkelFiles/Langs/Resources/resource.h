@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by English.rc
+// Used by Ukrainian.rc
 //
 #define MSG_ERROR_IN_MESSAGE_QUEUE      1
 #define MSG_ERROR_LIMIT_REACHED         2
@@ -93,7 +93,7 @@
 #define IDD_PRINTPREVIEW                2003
 #define IDD_FIND                        2004
 #define IDD_REPLACE                     2005
-#define IDD_GOTOLINE                    2006
+#define IDD_GOTO                        2006
 #define IDD_SAVEALLAS                   2007
 #define IDD_RECODE                      2008
 #define IDD_COLORS                      2009
@@ -160,9 +160,9 @@
 #define IDC_SEARCH_FIND_BUTTON          3063
 #define IDC_SEARCH_REPLACE_BUTTON       3064
 #define IDC_SEARCH_ALL_BUTTON           3065
-#define IDC_GOTOLINE_NUMBER             3101
-#define IDC_GOTOLINE_LINE               3102
-#define IDC_GOTOLINE_OFFSET             3103
+#define IDC_GOTO_NUMBER                 3101
+#define IDC_GOTO_LINE                   3102
+#define IDC_GOTO_OFFSET                 3103
 #define IDC_RECODE_CODEPAGE_FROM        3151
 #define IDC_RECODE_CODEPAGE_TO          3152
 #define IDC_COLORS_LIST                 3201

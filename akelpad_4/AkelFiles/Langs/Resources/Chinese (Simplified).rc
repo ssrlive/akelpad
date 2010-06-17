@@ -73,13 +73,13 @@ BEGIN
         MENUITEM "向下查找下一个(&W)\tF3",      IDM_EDIT_FINDNEXTDOWN
         MENUITEM "向上查找下一个(&U)\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "替换(&R)...\tCtrl+R",         IDM_EDIT_REPLACE
-        MENUITEM "转到...(&G)...\tCtrl+G",         IDM_EDIT_GOTO
+        MENUITEM "转到...(&G)...\tCtrl+G",      IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "插入符号(&H)\tCtrl+I",        IDM_EDIT_INSERTCHAR
         MENUITEM "插入日期(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
         POPUP "选择(&S)"
         BEGIN
-            MENUITEM "列粘贴\tAlt+V",       IDM_EDIT_PASTECOLUMN
+            MENUITEM "列粘贴\tAlt+V",               IDM_EDIT_PASTECOLUMN
             MENUITEM "制表符缩进(&B)\tTab",         IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "制表符反缩进(&T)\tShift+Tab", IDM_EDIT_DELETE_TAB_MENU
             MENUITEM "空格缩进(&C)\tSpace",         IDM_EDIT_INSERT_SPACE_MENU
@@ -140,7 +140,7 @@ BEGIN
         BEGIN
             MENUITEM "单窗口 (&SDI)",               IDM_OPTIONS_SDI
             MENUITEM "多窗口 (&MDI)",               IDM_OPTIONS_MDI
-            MENUITEM "伪多窗口 (&PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "伪多窗口 (&PMDI)",            IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "设置(&S)...",                 IDM_OPTIONS
@@ -170,9 +170,9 @@ BEGIN
         MENUITEM "水平平铺(&H)",                IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "垂直平铺(&V)",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "层叠(&C)",                    IDM_WINDOW_CASCADE
-        MENUITEM "关闭",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "全部关闭",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "除活动外全部关闭",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "关闭",                        IDM_WINDOW_FRAMECLOSE
+        MENUITEM "全部关闭",                    IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "除活动外全部关闭",            IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "选择窗口...",                 IDM_WINDOW_MDILIST
     END
@@ -438,8 +438,8 @@ BEGIN
     PUSHBUTTON      "关闭",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "已修改",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
-    CONTROL         "仅名称",IDC_MDILIST_ONLYNAMES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,191,240,67,10
+    CONTROL         "仅名称",IDC_MDILIST_ONLYNAMES,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,191,240,67,10
     PUSHBUTTON      "取消",IDCANCEL,198,264,50,14
 END
 
@@ -540,18 +540,18 @@ BEGIN
                     IDC_STATIC,21,80,97,33,NOT WS_GROUP
 END
 
-IDD_GOTOLINE DIALOG DISCARDABLE  70, 70, 151, 85
+IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "转到"
 FONT 9, "宋体"
 BEGIN
     LTEXT           "跳转到:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
-    EDITTEXT        IDC_GOTOLINE_NUMBER,14,20,122,13
-    CONTROL         "行:列",IDC_GOTOLINE_LINE,"Button",BS_AUTORADIOBUTTON,14,
-                    41,70,10
-    CONTROL         "偏移量",IDC_GOTOLINE_OFFSET,"Button",BS_AUTORADIOBUTTON,
-                    86,42,50,10
+    EDITTEXT        IDC_GOTO_NUMBER,14,20,122,13
+    CONTROL         "行:列",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,14,41,
+                    70,10
+    CONTROL         "偏移量",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,86,
+                    42,50,10
     PUSHBUTTON      "确定",IDOK,23,63,50,14,BS_CENTER
     PUSHBUTTON      "取消",IDCANCEL,77,63,50,14,BS_CENTER
 END
