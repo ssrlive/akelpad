@@ -1,5 +1,5 @@
 
-AkelPad 4.4.4 ()
+AkelPad 4.4.4 (Jun 19, 2010)
 ----------------------------
 Changed: clean program installation recommended.
          Plugins merged:
