@@ -5001,6 +5001,10 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         InvalidateRect(hWnd, NULL, FALSE);
     }
   }
+  else if (uMsg == WM_ENABLE)
+  {
+    InvalidateRect(hWnd, NULL, FALSE);
+  }
   else if (uMsg == WM_ERASEBKGND)
   {
     return 1;
@@ -5008,36 +5012,38 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   else if (uMsg == WM_PAINT)
   {
     BUTTONDRAWITEM *lpButtonDraw;
-    PAINTSTRUCT ps;
+    HDC hDC;
     RECT rcButton;
 
     if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
     {
-      if (BeginPaint(hWnd, &ps))
+      ValidateRect(hWnd, NULL);
+
+      if (hDC=GetDC(hWnd))
       {
         //Fill background
         GetClientRect(hWnd, &rcButton);
-        FillRect(ps.hdc, &rcButton, GetSysColorBrush(COLOR_BTNFACE));
+        FillRect(hDC, &rcButton, GetSysColorBrush(COLOR_BTNFACE));
 
         //Draw edge
         if (bMouseDown && bMousePush)
         {
-          DrawEdge(ps.hdc, &rcButton, EDGE_SUNKEN, BF_RECT);
+          DrawEdge(hDC, &rcButton, EDGE_SUNKEN, BF_RECT);
         }
         else if (bMouseMove)
         {
-          DrawEdge(ps.hdc, &rcButton, BDR_RAISEDINNER, BF_RECT);
+          DrawEdge(hDC, &rcButton, BDR_RAISEDINNER, BF_RECT);
         }
         else
         {
           if ((lpButtonDraw->bd.dwFlags & BIF_ENABLEFOCUS) && hWnd == GetFocus())
           {
             //Draw focus rect
-            DrawFocusRect(ps.hdc, &rcButton);
+            DrawFocusRect(hDC, &rcButton);
           }
           else if (lpButtonDraw->bd.dwFlags & BIF_ETCHED)
           {
-            DrawEdge(ps.hdc, &rcButton, EDGE_ETCHED, BF_RECT);
+            DrawEdge(hDC, &rcButton, EDGE_ETCHED, BF_RECT);
           }
         }
 
@@ -5048,8 +5054,15 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           {
             int x=(rcButton.right - rcButton.left) / 2 - lpButtonDraw->bd.nImageWidth / 2 + (bMousePush?1:0);
             int y=(rcButton.bottom - rcButton.top) / 2 - lpButtonDraw->bd.nImageHeight / 2 + (bMousePush?1:0);
+            DWORD dwFlags=0;
 
-            DrawStateA(ps.hdc, NULL, (DRAWSTATEPROC)NULL, (LPARAM)lpButtonDraw->bd.hImage, (WPARAM)NULL, x, y, 0, 0, ((lpButtonDraw->bd.dwFlags & BIF_BITMAP)?DST_BITMAP:0)|((lpButtonDraw->bd.dwFlags & BIF_ICON)?DST_ICON:0));
+            if (lpButtonDraw->bd.dwFlags & BIF_BITMAP)
+              dwFlags|=DST_BITMAP;
+            else if (lpButtonDraw->bd.dwFlags & BIF_ICON)
+              dwFlags|=DST_ICON;
+            if (!IsWindowEnabled(hWnd))
+              dwFlags|=DSS_DISABLED;
+            DrawStateA(hDC, NULL, (DRAWSTATEPROC)NULL, (LPARAM)lpButtonDraw->bd.hImage, (WPARAM)NULL, x, y, 0, 0, dwFlags);
           }
         }
         else if (lpButtonDraw->bd.dwFlags & BIF_CROSS)
@@ -5067,7 +5080,7 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
           if (hPen=CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNTEXT)))
           {
-            hPenOld=(HPEN)SelectObject(ps.hdc, hPen);
+            hPenOld=(HPEN)SelectObject(hDC, hPen);
 
             //Draw cross manually
             {
@@ -5087,15 +5100,15 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
               for (i=0; i < nElements; i+=2)
               {
-                MoveToEx(ps.hdc, x + ptCross[i].x, y + ptCross[i].y, NULL);
-                LineTo(ps.hdc, x + ptCross[i + 1].x, y + ptCross[i + 1].y);
+                MoveToEx(hDC, x + ptCross[i].x, y + ptCross[i].y, NULL);
+                LineTo(hDC, x + ptCross[i + 1].x, y + ptCross[i + 1].y);
               }
             }
-            SelectObject (ps.hdc, hPenOld);
+            SelectObject (hDC, hPenOld);
             DeleteObject(hPen);
           }
         }
-        EndPaint(hWnd, &ps);
+        ReleaseDC(hWnd, hDC);
         return TRUE;
       }
     }
