@@ -74,13 +74,13 @@ BEGIN
         MENUITEM "下へ次を検索(&W)\tF3",        IDM_EDIT_FINDNEXTDOWN
         MENUITEM "上へ次を検索(&U)\tShift+F3",  IDM_EDIT_FINDNEXTUP
         MENUITEM "置換(&R)...\tCtrl+R",         IDM_EDIT_REPLACE
-        MENUITEM "行へ移動(&G)...\tCtrl+G",     IDM_EDIT_GOTO
+        MENUITEM "指定位置へ移動(&G)...\tCtrl+G",     IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "文字の挿入(&H)\tCtrl+I",      IDM_EDIT_INSERTCHAR
         MENUITEM "日付の挿入(&T)\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "選択範囲(&S)"
         BEGIN
-            MENUITEM "Columnar paste\tAlt+V",       IDM_EDIT_PASTECOLUMN
+            MENUITEM "箱形貼り付け\tAlt+V",       IDM_EDIT_PASTECOLUMN
             MENUITEM "Tab インデント(&B)\tTab",     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Tab アンインデント(&T)\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -144,9 +144,9 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "ウィンドウ(&W)"
         BEGIN
-            MENUITEM "単一のウィンドウ (SDI)(&S)",  IDM_OPTIONS_SDI
-            MENUITEM "複数のウィンドウ (MDI)(&M)",  IDM_OPTIONS_MDI
-            MENUITEM "&Pseudo multi-window (PMDI)", IDM_OPTIONS_PMDI
+            MENUITEM "単一のウィンドウ (&SDI)",  IDM_OPTIONS_SDI
+            MENUITEM "複数のウィンドウ (&MDI)",  IDM_OPTIONS_MDI
+            MENUITEM "疑似マルチウィンドウ (&PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "設定(&S)...",                 IDM_OPTIONS
@@ -176,9 +176,9 @@ BEGIN
         MENUITEM "水平に並べる(&T)",            IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "垂直に並べる(&T)",            IDM_WINDOW_TILEVERTICAL
         MENUITEM "重ねる(&C)",                  IDM_WINDOW_CASCADE
-        MENUITEM "Close",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Close all",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Close all but active",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "閉じる",                       IDM_WINDOW_FRAMECLOSE
+        MENUITEM "全て閉じる",                   IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "最前面以外を全て閉じる",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "ウィンドウを選択...",         IDM_WINDOW_MDILIST
     END
@@ -550,7 +550,7 @@ END
 IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "行へ移動"
+CAPTION "指定位置へ移動"
 FONT 9, "MS Shell Dlg"
 BEGIN
     LTEXT           "番号:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
