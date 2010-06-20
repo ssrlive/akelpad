@@ -252,7 +252,7 @@
 #define FWF_BYEDITDOCUMENT 7  //Retrive frame data by edit document handle. lParam is edit document handle.
 
 //AKD_FRAMEACTIVATE flags
-#define FWA_NOUPDATEORDER  0x00000001  //For WMD_PMDI mode. Don't update access order during activating.
+#define FWA_NOUPDATEORDER  0x00000001  //Don't update access order during activating.
 #define FWA_NOUPDATEEDIT   0x00000002  //For WMD_PMDI mode. Don't redraw edit control area during activating.
 #define FWA_NOVISUPDATE    0x00000004  //For WMD_PMDI mode. Don't make any visual updates during activating. Use it only if you later will activate back frame that has lost active status.
 

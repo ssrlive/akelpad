@@ -370,6 +370,7 @@ HSTACK hFramesStack={0};
 FRAMEDATA fdInit;
 FRAMEDATA fdLast;
 FRAMEDATA *lpFrameCurrent=&fdInit;
+FRAMEDATA *lpFramePrevious=NULL;
 int nMDI=WMD_SDI;
 HWND hMdiClient=NULL;
 BOOL bMdiMaximize=-1;
@@ -2046,7 +2047,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_FRAMEDESTROY)
     {
-      return DestroyMdiFrameWindow((FRAMEDATA *)lParam, -1);
+      return DestroyMdiFrameWindow((FRAMEDATA *)lParam);
     }
     if (uMsg == AKD_FRAMEFIND ||
         uMsg == AKD_FRAMEFINDA ||
@@ -2063,29 +2064,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       if (wParam == FWF_NEXT)
       {
-        FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
-
-        if (lpFrame)
-        {
-          if (!lpFrame->next)
-            return (LRESULT)hFramesStack.first;
-          else
-            return (LRESULT)lpFrame->next;
-        }
-        return (LRESULT)NULL;
+        return (LRESULT)StackFrameGetNext(&hFramesStack, (FRAMEDATA *)lParam, FALSE);
       }
       if (wParam == FWF_PREV)
       {
-        FRAMEDATA *lpFrame=(FRAMEDATA *)lParam;
-
-        if (lpFrame)
-        {
-          if (!lpFrame->prev)
-            return (LRESULT)hFramesStack.last;
-          else
-            return (LRESULT)lpFrame->prev;
-        }
-        return (LRESULT)NULL;
+        return (LRESULT)StackFrameGetNext(&hFramesStack, (FRAMEDATA *)lParam, TRUE);
       }
       if (wParam == FWF_BYINDEX)
         return (LRESULT)StackFrameGetByIndex(&hFramesStack, lParam);
@@ -3234,7 +3217,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (!nMDI)
           PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         else
-          DestroyMdiFrameWindow(lpFrameCurrent, -1);
+          DestroyMdiFrameWindow(lpFrameCurrent);
         return TRUE;
       }
       return FALSE;
@@ -3404,7 +3387,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       else if (LOWORD(wParam) == IDM_WINDOW_FRAMECLOSE)
       {
-        return !DestroyMdiFrameWindow(lpFrameCurrent, -1);
+        return !DestroyMdiFrameWindow(lpFrameCurrent);
       }
       else if (LOWORD(wParam) == IDM_WINDOW_FRAMECLOSEALL)
       {
@@ -3416,7 +3399,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           while (lpFrameCurrent->hWndEditParent)
           {
-            if (DestroyMdiFrameWindow(lpFrameCurrent, -1) != FWDE_SUCCESS)
+            if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
               return FALSE;
           }
           return TRUE;
@@ -3433,7 +3416,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
             if (lpFrameCurrent == lpFrameInit) break;
 
-            if (DestroyMdiFrameWindow(lpFrameCurrent, -1) != FWDE_SUCCESS)
+            if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
               return FALSE;
           }
           return TRUE;
@@ -3552,7 +3535,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       while (lpFrameCurrent->hWndEditParent)
       {
-        nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent, -1);
+        nDestroyResult=DestroyMdiFrameWindow(lpFrameCurrent);
 
         if (nDestroyResult == FWDE_ABORT)
         {
@@ -4528,13 +4511,13 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if ((nItem=GetTabItemFromCursorPos(hTab)) != -1)
     {
       lpFrame=(FRAMEDATA *)GetTabParamFromItem(hTab, nItem);
-      DestroyMdiFrameWindow(lpFrame, nItem);
+      DestroyMdiFrameWindow(lpFrame);
       return TRUE;
     }
   }
   else if (uMsg == WM_LBUTTONDBLCLK)
   {
-    DestroyMdiFrameWindow(lpFrameCurrent, -1);
+    DestroyMdiFrameWindow(lpFrameCurrent);
     return TRUE;
   }
   else if (uMsg == WM_TIMER)

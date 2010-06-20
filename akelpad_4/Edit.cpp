@@ -235,6 +235,7 @@ extern HSTACK hFramesStack;
 extern FRAMEDATA fdInit;
 extern FRAMEDATA fdLast;
 extern FRAMEDATA *lpFrameCurrent;
+extern FRAMEDATA *lpFramePrevious;
 extern int nMDI;
 extern HWND hMdiClient;
 extern BOOL bMdiMaximize;
@@ -709,6 +710,11 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
       dwStyle=moCur.dwMdiStyle;
     else
       dwStyle=!bMdiMaximize?0:WS_MAXIMIZE;
+
+    if (lpFrameCurrent == &fdInit)
+      lpFramePrevious=NULL;
+    else
+      lpFramePrevious=lpFrameCurrent;
     CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRectMDI?rcRectMDI->left:CW_USEDEFAULT, rcRectMDI?rcRectMDI->top:CW_USEDEFAULT, rcRectMDI?rcRectMDI->right:CW_USEDEFAULT, rcRectMDI?rcRectMDI->bottom:CW_USEDEFAULT, hMdiClient, hInstance, 0);
     bResult=TRUE;
   }
@@ -734,12 +740,23 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
   return FALSE;
 }
 
-FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
+FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
   FRAMEDATA *lpFrameLostFocus=lpFrameCurrent;
 
   if (lpFrameCurrent != lpFrame)
   {
+    if (lpFrameCurrent == &fdInit)
+      lpFramePrevious=NULL;
+    else
+      lpFramePrevious=lpFrameCurrent;
+
+    if (!(dwFlags & FWA_NOUPDATEORDER))
+    {
+      //Move item to the end of stack, to use access order later.
+      StackFrameMove(&hFramesStack, lpFrame, -1);
+    }
+
     if (nMDI == WMD_MDI)
     {
       SendMessage(hMdiClient, WM_MDIACTIVATE, (WPARAM)lpFrame->hWndEditParent, 0);
@@ -750,15 +767,9 @@ FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
       if (lpFrameCurrent->ei.hDocEdit)
         SaveFrameData(lpFrameCurrent);
 
-      if (!(dwFlagsPMDI & FWA_NOUPDATEORDER))
-      {
-        //Move item to the end of stack, to use access order later.
-        StackFrameMove(&hFramesStack, lpFrame, -1);
-      }
-
       //Restore activated frame data
       lpFrameCurrent=lpFrame;
-      RestoreFrameData(lpFrameCurrent, dwFlagsPMDI);
+      RestoreFrameData(lpFrameCurrent, dwFlags);
 
       //Set caption of main window
       if (lpFrameCurrent->wszFile[0])
@@ -804,34 +815,15 @@ FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev)
   }
   else if (moCur.dwTabOptionsMDI & TAB_SWITCH_NEXTPREV)
   {
-    if (nMDI == WMD_MDI)
-    {
-      SendMessage(hMdiClient, WM_MDINEXT, (WPARAM)lpFrame->hWndEditParent, bPrev);
-    }
-    else if (nMDI == WMD_PMDI)
-    {
-      FRAMEDATA *lpFrameNext;
+    FRAMEDATA *lpFrameNext=StackFrameGetNext(&hFramesStack, lpFrame, bPrev);
 
-      if (bPrev)
-      {
-        lpFrameNext=lpFrame->prev;
-        if (!lpFrameNext)
-          lpFrameNext=(FRAMEDATA *)hFramesStack.last;
-      }
-      else
-      {
-        lpFrameNext=lpFrame->next;
-        if (!lpFrameNext)
-          lpFrameNext=(FRAMEDATA *)hFramesStack.first;
-      }
-      if (lpFrameNext != lpFrame)
-        ActivateMdiFrameWindow(lpFrameNext, FWA_NOUPDATEORDER);
-    }
+    if (lpFrameNext != lpFrame)
+      ActivateMdiFrameWindow(lpFrameNext, FWA_NOUPDATEORDER);
   }
   return lpFrameCurrent;
 }
 
-int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
+int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
 {
   if (lpFrame->ei.hWndEdit)
   {
@@ -848,9 +840,10 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem)
       //Get previous frame
       if (lpFrame == lpFrameCurrent)
       {
-        lpFrameToActivate=lpFrame->prev;
-        if (!lpFrameToActivate)
-          lpFrameToActivate=(FRAMEDATA *)hFramesStack.last;
+        if (lpFramePrevious)
+          lpFrameToActivate=lpFramePrevious;
+        else
+          lpFrameToActivate=StackFrameGetNext(&hFramesStack, lpFrame, TRUE);
       }
       else lpFrameToActivate=lpFrameCurrent;
 
@@ -4018,7 +4011,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
         }
         else
         {
-          DestroyMdiFrameWindow(lpFrameCurrent, -1);
+          DestroyMdiFrameWindow(lpFrameCurrent);
           //if (FrameNoWindows())
           //  PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
         }
@@ -13370,7 +13363,7 @@ BOOL CloseListBoxSelItems(HWND hWnd)
     {
       if ((int)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
       {
-        if (DestroyMdiFrameWindow(lpFrameCurrent, -1) != FWDE_SUCCESS)
+        if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
         {
           bResult=FALSE;
           break;
@@ -13916,6 +13909,31 @@ FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nF
         return lpFrame;
     }
     lpFrame=lpFrame->next;
+  }
+  return NULL;
+}
+
+FRAMEDATA* StackFrameGetNext(HSTACK *hStack, FRAMEDATA *lpFrame, BOOL bPrev)
+{
+  if (!bPrev)
+  {
+    if (lpFrame)
+    {
+      if (!lpFrame->next)
+        return (FRAMEDATA *)hStack->first;
+      else
+        return lpFrame->next;
+    }
+  }
+  else
+  {
+    if (lpFrame)
+    {
+      if (!lpFrame->prev)
+        return (FRAMEDATA *)hStack->last;
+      else
+        return lpFrame->prev;
+    }
   }
   return NULL;
 }

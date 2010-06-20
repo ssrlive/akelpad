@@ -20,8 +20,8 @@
 #define APP_MUTEXW                  L"AkelPad Mutex"
 #define APP_REGHOMEA                 "Software\\Akelsoft\\AkelPad"
 #define APP_REGHOMEW                L"Software\\Akelsoft\\AkelPad"
-#define APP_ABOUT_VERSIONA           "AkelPad 4.4.4"
-#define APP_ABOUT_VERSIONW          L"AkelPad 4.4.4"
+#define APP_ABOUT_VERSIONA           "AkelPad 4.4.5"
+#define APP_ABOUT_VERSIONW          L"AkelPad 4.4.5"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -554,9 +554,9 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource);
 void SaveFrameData(FRAMEDATA *lpFrame);
 void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
 BOOL CreateMdiFrameWindow(RECT *rcRect);
-FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
+FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags);
 FRAMEDATA* NextMdiFrameWindow(FRAMEDATA *lpFrame, BOOL bPrev);
-int DestroyMdiFrameWindow(FRAMEDATA *lpFrame, int nTabItem);
+int DestroyMdiFrameWindow(FRAMEDATA *lpFrame);
 BOOL FrameNoWindows();
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
@@ -844,6 +844,7 @@ FRAMEDATA* StackFrameInsert(HSTACK *hStack);
 FRAMEDATA* StackFrameGetByIndex(HSTACK *hStack, int nIndex);
 FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, AEHDOC hDataHandle);
 FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nFileNameLen);
+FRAMEDATA* StackFrameGetNext(HSTACK *hStack, FRAMEDATA *lpFrame, BOOL bPrev);
 void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex);
 void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame);
 void StackFramesFree(HSTACK *hStack);
