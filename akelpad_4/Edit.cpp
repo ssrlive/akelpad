@@ -11622,14 +11622,19 @@ void FillPluginList(HWND hWnd)
   HMODULE hInstance;
   PLUGINLISTDATA pld={0};
   wchar_t wszBaseName[MAX_PATH];
+  wchar_t *wpPluginExt=L"dll";
 
   pld.hWndList=hWnd;
-  xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\*.dll", wszExeDir);
+  xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\*.%s", wszExeDir, wpPluginExt);
 
   if ((hFind=FindFirstFileWide(wbuf, &wfdW)) != INVALID_HANDLE_VALUE)
   {
     do
     {
+      //Avoid FindFirstFile/FindNextFile bug: "*.dll_ANYSYMBOLS" is also matched
+      if (xstrcmpiW(wpPluginExt, GetFileExt(wfdW.cFileName)))
+        continue;
+
       xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\%s", wszExeDir, wfdW.cFileName);
 
       if (hInstance=LoadLibraryWide(wbuf))
