@@ -1,4 +1,9 @@
 
+AkelPad 4.4.5 ()
+----------------------------
+Fixed: access order of tabs (MDI/PMDI).
+
+
 AkelPad 4.4.4 (Jun 19, 2010)
 ----------------------------
 Changed: clean program installation recommended.
