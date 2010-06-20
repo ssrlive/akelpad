@@ -737,7 +737,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
       bResult=TRUE;
     }
   }
-  return FALSE;
+  return bResult;
 }
 
 FRAMEDATA* ActivateMdiFrameWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
