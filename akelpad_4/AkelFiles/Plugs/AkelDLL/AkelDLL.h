@@ -26,6 +26,8 @@
 #define WMD_PMDI  2  //Pseudo-Multiple document interface (PMDI).
 
 //Sizes
+#define COMMANDLINE_SIZE        32768
+#define COMMANDARG_SIZE         16384
 #define WORD_DELIMITERS_SIZE    128
 #define WRAP_DELIMITERS_SIZE    128
 #define URL_PREFIXES_SIZE       128
@@ -838,6 +840,20 @@ typedef struct {
   WPARAM wParam;       //Specifies additional message-specific information.
   LPARAM lParam;       //Specifies additional message-specific information.
 } POSTMESSAGE;
+
+typedef struct {
+  const wchar_t *pCmdLine; //Command line string. On return contain pointer to a unprocessed string.
+  const wchar_t *pWorkDir; //Command line string.
+} PARSECMDLINESENDW;
+
+typedef struct {
+  BOOL bPostMessage;                   //FALSE for sending message (wait for return).
+                                       //TRUE for posting message (returns immediately).
+  wchar_t szCmdLine[COMMANDLINE_SIZE]; //Command line string.
+  int nCmdLineLen;                     //Command line length.
+  wchar_t szWorkDir[MAX_PATH];         //Working directory string.
+  int nWorkDirLen;                     //Working directory length.
+} PARSECMDLINEPOSTW;
 
 typedef struct {
   HGLOBAL hDevMode;
@@ -1933,17 +1949,18 @@ _________________
 
 Set command line options.
 
-(wchar_t *)wParam  == command line string.
-(wchar_t **)lParam == pointer to a variable that receive next argument pointer in command line.
-                      If NULL, wParam assumed to be allocated with GlobalAlloc and caller wants to free it.
+wParam                      == not used.
+(PARSECMDLINESENDW *)lpData == pointer to a PARSECMDLINESENDW structure.
 
 Return Value
  See PCLE_* defines.
 
 Example:
- wchar_t *wpCmdLineNext;
+ PARSECMDLINESENDW pcls;
 
- SendMessage(pd->hMainWnd, AKD_PARSECMDLINEW, (WPARAM)L"/p \"C:\\MyFile.txt\"", (LPARAM)&wpCmdLineNext);
+ pcls.pCmdLine=L"/p \"C:\\MyFile.txt\"";
+ pcls.pWorkDir=L"";
+ SendMessage(pd->hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pcls);
 
 
 AKD_DETECTCODEPAGE, AKD_DETECTCODEPAGEA, AKD_DETECTCODEPAGEW
@@ -3566,15 +3583,10 @@ Example:
 
 //// AkelPad WM_COPYDATA messages
 
-#define CD_OPENDOCUMENT       1
-#define CD_OPENDOCUMENTA      2
-#define CD_OPENDOCUMENTW      3
-#define CD_PARSECMDLINESEND   4
-#define CD_PARSECMDLINESENDA  5
-#define CD_PARSECMDLINESENDW  6
-#define CD_PARSECMDLINEPOST   7
-#define CD_PARSECMDLINEPOSTA  8
-#define CD_PARSECMDLINEPOSTW  9
+#define CD_OPENDOCUMENT   1
+#define CD_OPENDOCUMENTA  2
+#define CD_OPENDOCUMENTW  3
+#define CD_PARSECMDLINEW  9
 
 
 
@@ -3610,28 +3622,36 @@ Example (Ansi):
   SendMessage(hWndDestination, WM_COPYDATA, (WPARAM)pd->hMainWnd, (LPARAM)&cds);
 
 
-CD_PARSECMDLINESEND, CD_PARSECMDLINESENDA, CD_PARSECMDLINESENDW, CD_PARSECMDLINEPOST, CD_PARSECMDLINEPOSTA, CD_PARSECMDLINEPOSTW
-___________________  ____________________  ____________________  ___________________  ____________________  ____________________
+CD_PARSECMDLINEW
+________________
 
 Parse command line. Same as AKD_PARSECMDLINE, but can be used from outside of AkelPad process.
 
-(DWORD)dwData           == CD_PARSECMDLINESEND for sending message (wait for return).
-                           CD_PARSECMDLINEPOST for posting message (returns immediately).
-(DWORD)cbData           == size of the string in bytes, including the terminating null character.
-(unsigned char *)lpData == command line string.
+(DWORD)dwData           == CD_PARSECMDLINE.
+(DWORD)cbData           == sizeof(PARSECMDLINEPOSTW)
+(unsigned char *)lpData == pointer to a PARSECMDLINEPOSTW structure.
 
 Return Value
- CD_PARSECMDLINESEND - see PCLE_* defines.
- CD_PARSECMDLINEPOST - zero.
+ If PARSECMDLINEPOST.bPostMessage is FALSE, then return value is PCLE_* defines.
+ If PARSECMDLINEPOST.bPostMessage is TRUE, then return value is zero.
 
-Example (Ansi):
-  COPYDATASTRUCT cds;
-  char *pCmdLine="/p \"C:\\MyFile.txt\""
+Example (Unicode):
+ COPYDATASTRUCT cds;
+ PARSECMDLINEPOSTW *pclp;
+ wchar_t *wpCmdLine=L"/p \"C:\\MyFile.txt\""
 
-  cds.dwData=CD_PARSECMDLINESENDA;
-  cds.cbData=lstrlenA(pCmdLine) + 1;
-  cds.lpData=(PVOID)pCmdLine;
-  SendMessage(hWndDestination, WM_COPYDATA, (WPARAM)pd->hMainWnd, (LPARAM)&cds);
+ if (pclp=(PARSECMDLINEPOSTW *)GlobalAlloc(GMEM_FIXED, sizeof(PARSECMDLINEPOSTW)))
+ {
+   pclp->bPostMessage=TRUE;
+   pclp->nCmdLineLen=xstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
+   pclp->nWorkDirLen=GetCurrentDirectoryWide(MAX_PATH, pclp->szWorkDir);
+
+   cds.dwData=CD_PARSECMDLINEW;
+   cds.cbData=sizeof(PARSECMDLINEPOSTW);
+   cds.lpData=(PVOID)pclp;
+   SendMessage(hWnd, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
+   GlobalFree((HGLOBAL)pclp);
+ }
 */
 
 //// UNICODE define
