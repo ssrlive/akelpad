@@ -74,8 +74,6 @@
 #endif
 
 #define BUFFER_SIZE                1024
-#define COMMANDLINE_SIZE           32768
-#define COMMANDARG_SIZE            16384
 #define OPENFILELIST_SIZE          32768
 #define TRANSLATE_BUFFER_SIZE      8192
 #define PREVIEW_SIZE               8188  //4094*2; -1 preview all file

@@ -1454,17 +1454,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     if (uMsg == AKD_PARSECMDLINEW)
     {
-      const wchar_t *wpCmdLine=(wchar_t *)wParam;
+      PARSECMDLINESENDW *pcls=(PARSECMDLINESENDW *)lParam;
       int nResult;
 
-      nResult=ParseCmdLine(&wpCmdLine, FALSE);
-      if (lParam)
-        *(const wchar_t **)lParam=wpCmdLine;
-      else
-        GlobalFree((HGLOBAL)wParam);
-
+      if (pcls->pWorkDir && *pcls->pWorkDir)
+        SetCurrentDirectoryWide(pcls->pWorkDir);
+      nResult=ParseCmdLine(&pcls->pCmdLine, FALSE);
+      if (pcls->pWorkDir && *pcls->pWorkDir)
+        SetCurrentDirectoryWide(wszExeDir);
       if (nResult == PCLE_QUIT)
         PostMessage(hMainWnd, WM_COMMAND, IDM_FILE_EXIT, 0);
+
       return nResult;
     }
 
@@ -2579,39 +2579,36 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       FreeWideStr(wpFile);
       FreeWideStr(wpWorkDir);
     }
-    else if (cds->dwData == CD_PARSECMDLINESEND ||
-             cds->dwData == CD_PARSECMDLINESENDA ||
-             cds->dwData == CD_PARSECMDLINESENDW ||
-             cds->dwData == CD_PARSECMDLINEPOST ||
-             cds->dwData == CD_PARSECMDLINEPOSTA ||
-             cds->dwData == CD_PARSECMDLINEPOSTW)
+    else if (cds->dwData == CD_PARSECMDLINEW)
     {
-      wchar_t *wpCmdLine=NULL;
-      wchar_t *wpCmdLineNext=NULL;
+      PARSECMDLINEPOSTW *pclp=(PARSECMDLINEPOSTW *)cds->lpData;
 
-      if (cds->dwData == CD_PARSECMDLINESENDA || (bOldWindows && cds->dwData == CD_PARSECMDLINESEND) ||
-          cds->dwData == CD_PARSECMDLINEPOSTA || (bOldWindows && cds->dwData == CD_PARSECMDLINEPOST))
+      struct PMPARSECMDLINEW {
+        POSTMESSAGE pm;
+        PARSECMDLINESENDW pcls;
+        //In this place: command line string in size (pclp->nCmdLineLen + 1) * sizeof(wchar_t).
+        //In this place: working directory string in size (pclp->nWorkDirLen + 1) * sizeof(wchar_t).
+      } *pmpcl;
+
+      if (pmpcl=(PMPARSECMDLINEW *)GlobalAlloc(GMEM_FIXED, sizeof(PMPARSECMDLINEW) + (pclp->nCmdLineLen + 1) * sizeof(wchar_t) + (pclp->nWorkDirLen + 1) * sizeof(wchar_t)))
       {
-        if (wpCmdLine=(wchar_t *)GlobalAlloc(GMEM_FIXED, cds->cbData * sizeof(wchar_t)))
-          MultiByteToWideChar(CP_ACP, 0, (char *)cds->lpData, cds->cbData, wpCmdLine, cds->cbData);
-      }
-      else
-      {
-        if (wpCmdLine=(wchar_t *)GlobalAlloc(GMEM_FIXED, cds->cbData))
-          xmemcpy(wpCmdLine, (wchar_t *)cds->lpData, cds->cbData);
+        pmpcl->pcls.pCmdLine=(wchar_t *)((unsigned char *)pmpcl + sizeof(PMPARSECMDLINEW));
+        xstrcpynW((wchar_t *)pmpcl->pcls.pCmdLine, pclp->szCmdLine, pclp->nCmdLineLen + 1);
+
+        pmpcl->pcls.pWorkDir=(wchar_t *)((unsigned char *)pmpcl->pcls.pCmdLine + (pclp->nCmdLineLen + 1) * sizeof(wchar_t));
+        xstrcpynW((wchar_t *)pmpcl->pcls.pWorkDir, pclp->szWorkDir, pclp->nWorkDirLen + 1);
       }
 
-      if (cds->dwData == CD_PARSECMDLINESEND ||
-          cds->dwData == CD_PARSECMDLINESENDA ||
-          cds->dwData == CD_PARSECMDLINESENDW)
+      if (pclp->bPostMessage)
       {
-        nResult=SendMessage(hMainWnd, AKD_PARSECMDLINEW, (WPARAM)wpCmdLine, (LPARAM)&wpCmdLineNext);
-        GlobalFree((HGLOBAL)wpCmdLine);
+        //Post message
+        pmpcl->pm.hWnd=hMainWnd;
+        pmpcl->pm.uMsg=AKD_PARSECMDLINEW;
+        pmpcl->pm.wParam=0;
+        pmpcl->pm.lParam=(LPARAM)&pmpcl->pcls;
+        PostMessage(hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmpcl);
       }
-      else
-      {
-        PostMessage(hMainWnd, AKD_PARSECMDLINEW, (WPARAM)wpCmdLine, (LPARAM)NULL);
-      }
+      else nResult=SendMessage(hMainWnd, AKD_PARSECMDLINEW, 0, (LPARAM)&pmpcl->pcls);
     }
     return nResult;
   }

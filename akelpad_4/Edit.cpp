@@ -15003,11 +15003,20 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
 void PostCmdLine(HWND hWnd, const wchar_t *wpCmdLine)
 {
   COPYDATASTRUCT cds;
+  PARSECMDLINEPOSTW *pclp;
 
-  cds.dwData=CD_PARSECMDLINEPOSTW;
-  cds.cbData=BytesInString(wpCmdLine);
-  cds.lpData=(PVOID)wpCmdLine;
-  SendMessage(hWnd, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
+  if (pclp=(PARSECMDLINEPOSTW *)GlobalAlloc(GMEM_FIXED, sizeof(PARSECMDLINEPOSTW)))
+  {
+    pclp->bPostMessage=TRUE;
+    pclp->nCmdLineLen=xstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
+    pclp->nWorkDirLen=GetCurrentDirectoryWide(MAX_PATH, pclp->szWorkDir);
+
+    cds.dwData=CD_PARSECMDLINEW;
+    cds.cbData=sizeof(PARSECMDLINEPOSTW);
+    cds.lpData=(PVOID)pclp;
+    SendMessage(hWnd, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
+    GlobalFree((HGLOBAL)pclp);
+  }
 }
 
 void GetMethodParameters(STACKEXTPARAM *hParamStack, const wchar_t *wpText, const wchar_t **wppText)
