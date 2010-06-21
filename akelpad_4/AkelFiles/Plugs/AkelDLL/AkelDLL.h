@@ -850,9 +850,9 @@ typedef struct {
   BOOL bPostMessage;                   //FALSE for sending message (wait for return).
                                        //TRUE for posting message (returns immediately).
   wchar_t szCmdLine[COMMANDLINE_SIZE]; //Command line string.
-  int nCmdLineLen;                     //Command line length.
+  int nCmdLineLen;                     //Command line length, not including the terminating null character.
   wchar_t szWorkDir[MAX_PATH];         //Working directory string.
-  int nWorkDirLen;                     //Working directory length.
+  int nWorkDirLen;                     //Working directory length, not including the terminating null character.
 } PARSECMDLINEPOSTW;
 
 typedef struct {
