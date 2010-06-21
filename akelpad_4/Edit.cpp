@@ -4613,11 +4613,13 @@ DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBuf
   else if (lpData->nCodePage == CP_UNICODE_UTF32LE)
   {
     dwBytesToWrite=UTF16toUTF32((const unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
+    pDataToWrite=pcTranslateBuffer;
   }
   else if (lpData->nCodePage == CP_UNICODE_UTF32BE)
   {
     dwBytesToWrite=UTF16toUTF32((const unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
     ChangeFourBytesOrder(pcTranslateBuffer, dwBytesToWrite);
+    pDataToWrite=pcTranslateBuffer;
   }
   else
   {
@@ -4625,7 +4627,6 @@ DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBuf
       dwBytesToWrite=UTF16toUTF8((const unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
     else
       dwBytesToWrite=WideCharToMultiByte(lpData->nCodePage, 0, wszBuf, dwBufBytesSize / sizeof(wchar_t), (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE, NULL, NULL);
-
     pDataToWrite=pcTranslateBuffer;
   }
   return !API_WriteFile(lpData->hFile, pDataToWrite, dwBytesToWrite, dwBufBytesDone, NULL);
