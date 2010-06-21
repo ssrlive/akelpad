@@ -7205,6 +7205,8 @@ int AutodetectCodePage(const wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlag
     }
     if (moCur.nRecentFiles && moCur.bSaveCodepages && RecentFilesGet(wpFile, NULL, &nRegCodePage) && nRegCodePage)
     {
+      if (nRegCodePage == CP_UNICODE_UTF32LE || nRegCodePage == CP_UNICODE_UTF32BE)
+        dwFlags&=~ADT_BINARY_ERROR;
       *nCodePage=nRegCodePage;
       dwFlags|=ADT_DETECT_BOM;
     }
@@ -14924,6 +14926,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
             {
               wchar_t *wpText=NULL;
               wchar_t *wpUnescText=NULL;
+              int nTextLen=-1;
               int nUnescTextLen;
               BOOL bEscSequences=FALSE;
 
@@ -14937,14 +14940,14 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
                 {
                   if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
                   {
-                    TranslateEscapeString(lpFrameCurrent, wpText, wpUnescText);
+                    nTextLen=TranslateEscapeString(lpFrameCurrent, wpText, wpUnescText);
+                    wpText=wpUnescText;
                   }
                 }
-                wpText=wpUnescText;
               }
               if (wpText)
               {
-                ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, -1, -1, NULL, NULL);
+                ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, nTextLen, -1, NULL, NULL);
               }
               if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
             }
@@ -15329,34 +15332,39 @@ int TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *w
   wchar_t whex[5];
   int nDec;
 
-  for (whex[4]='\0'; *a; ++a, ++b)
+  for (whex[4]='\0'; *a; ++a)
   {
     if (*a == '\\')
     {
       if (*++a == '\\')
       {
         if (wszOutput) *b='\\';
+        ++b;
       }
       else if (*a == 'n')
       {
         if (lpFrame->ei.nNewLine == NEWLINE_MAC)
         {
           if (wszOutput) *b='\r';
+          ++b;
         }
         else if (lpFrame->ei.nNewLine == NEWLINE_UNIX)
         {
           if (wszOutput) *b='\n';
+          ++b;
         }
         else if (lpFrame->ei.nNewLine == NEWLINE_WIN)
         {
           if (wszOutput) *b='\r';
           ++b;
           if (wszOutput) *b='\n';
+          ++b;
         }
       }
       else if (*a == 't')
       {
         if (wszOutput) *b='\t';
+        ++b;
       }
       else if (*a == '[')
       {
@@ -15377,8 +15385,9 @@ int TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *w
           while (*++a == ' ');
 
           if (wszOutput) *b=nDec;
+          ++b;
         }
-        while (*a && *a != ']' && ++b);
+        while (*a && *a != ']');
 
         if (!*a) goto Error;
       }
@@ -15392,16 +15401,22 @@ int TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *w
         if (nSelTextLen=ExGetRangeTextW(lpFrame->ei.hWndEdit, &cr.ciMin, &cr.ciMax, FALSE, wszOutput?&wszSelText:NULL, AELB_ASIS, FALSE))
         {
           if (wszOutput)
-            xstrcpynW(b, wszSelText, nSelTextLen + 1);
-          else
-            --nSelTextLen;
-          b+=nSelTextLen - 1;
-          FreeText(wszSelText);
+          {
+            xmemcpy(b, wszSelText, nSelTextLen * sizeof(wchar_t));
+            FreeText(wszSelText);
+          }
+          else --nSelTextLen;
+
+          b+=nSelTextLen;
         }
       }
       else goto Error;
     }
-    else if (wszOutput) *b=*a;
+    else
+    {
+      if (wszOutput) *b=*a;
+      ++b;
+    }
   }
   if (wszOutput)
     *b='\0';
