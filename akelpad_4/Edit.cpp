@@ -1252,7 +1252,7 @@ BOOL DoFileOpen()
   DIALOGCODEPAGE dc={-1, -1};
   BOOL bResult=FALSE;
 
-  if (nMDI != WMD_MDI && !SaveChanged()) return FALSE;
+  if (nMDI == WMD_SDI && !SaveChanged()) return FALSE;
   bSaveDlg=FALSE;
 
   //Open file dialog
