@@ -235,6 +235,7 @@ HMENU hPopupSaveCodepage;
 HMENU hPopupHeadline;
 HMENU hMenuRecentFiles=NULL;
 HMENU hMenuLanguage=NULL;
+HMENU hMenuWindow=NULL;
 BOOL bMenuPopupCodepage=TRUE;
 BOOL bMenuRecentFiles=FALSE;
 BOOL bMenuLanguage=FALSE;
@@ -1181,12 +1182,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else
     {
+      hMenuWindow=GetSubMenu(hMainMenu, MENU_MDI_POSITION);
       GetClientRect(hWnd, &rcRect);
 
       //MDI Client
       if (nMDI == WMD_MDI)
       {
-        ccs.hWindowMenu=GetSubMenu(hMainMenu, MENU_MDI_POSITION);
+        ccs.hWindowMenu=hMenuWindow;
         ccs.idFirstChild=ID_FIRSTMDI;
 
         hMdiClient=CreateWindowExWide(0,
@@ -4491,9 +4493,17 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SendMessage(hMainWnd, AKDN_CONTEXTMENU, 0, (LPARAM)&ncm);
         if (ncm.bProcess)
         {
-          hMdiChildMenu=GetSystemMenu(lpFrameCurrent->hWndEditParent, FALSE);
-          if (i=TrackPopupMenu(hMdiChildMenu, TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt.x, pt.y, 0, lpFrameCurrent->hWndEditParent, NULL))
-            PostMessage(lpFrameCurrent->hWndEditParent, WM_SYSCOMMAND, i, 0);
+          if (nMDI == WMD_PMDI)
+          {
+            if (i=TrackPopupMenu(hMenuWindow, TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt.x, pt.y, 0, hMainWnd, NULL))
+              PostMessage(hMainWnd, WM_COMMAND, i, 0);
+          }
+          else if (nMDI == WMD_MDI)
+          {
+            hMdiChildMenu=GetSystemMenu(lpFrameCurrent->hWndEditParent, FALSE);
+            if (i=TrackPopupMenu(hMdiChildMenu, TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt.x, pt.y, 0, lpFrameCurrent->hWndEditParent, NULL))
+              PostMessage(lpFrameCurrent->hWndEditParent, WM_SYSCOMMAND, i, 0);
+          }
         }
         return TRUE;
       }

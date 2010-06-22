@@ -100,6 +100,7 @@ extern HMENU hPopupSaveCodepage;
 extern HMENU hPopupHeadline;
 extern HMENU hMenuRecentFiles;
 extern HMENU hMenuLanguage;
+extern HMENU hMenuWindow;
 extern BOOL bMenuPopupCodepage;
 extern BOOL bMenuRecentFiles;
 extern BOOL bMenuLanguage;
@@ -482,7 +483,8 @@ void ResizeEditWindow(FRAMEDATA *lpFrame, DWORD dwFlags)
   {
     if (!(dwFlags & REW_TEST))
     {
-      MoveWindow(lpFrame->ei.hWndEdit, lprcEditWindow->left, lprcEditWindow->top, lprcEditWindow->right, lprcEditWindow->bottom, (dwFlags & REW_NOREDRAW)?FALSE:TRUE);
+      if (lpFrame->ei.hWndEdit)
+        MoveWindow(lpFrame->ei.hWndEdit, lprcEditWindow->left, lprcEditWindow->top, lprcEditWindow->right, lprcEditWindow->bottom, (dwFlags & REW_NOREDRAW)?FALSE:TRUE);
     }
   }
 
