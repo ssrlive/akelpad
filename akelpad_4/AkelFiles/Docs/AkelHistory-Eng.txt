@@ -1,6 +1,8 @@
 
 AkelPad 4.4.5 ()
 ----------------------------
+Changed: uses the items of menu "Window", in context menu of tabs (PMDI).
+
 Fixed: command line processing and working directory.
 Fixed: saving in UTF32-LE and UTF32-BE codepages.
 Fixed: access order of tabs (MDI/PMDI).
