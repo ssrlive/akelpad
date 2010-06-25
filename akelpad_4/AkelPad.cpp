@@ -643,8 +643,6 @@ extern "C" void _WinMain()
 
   //Read options
   ReadOptions(&moInit, &fdInit);
-  RegisterPluginsHotkeys(&moInit);
-  ReadThemes(&moInit);
 
   if (IsCodePageUnicode(moInit.nDefaultCodePage))
     bDefaultBOM=TRUE;
