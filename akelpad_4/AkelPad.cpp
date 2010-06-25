@@ -4370,11 +4370,8 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
   }
   else if (uMsg == WM_MDINEXT)
   {
-    if (moCur.dwTabOptionsMDI & TAB_SWITCH_RIGHTLEFT)
-    {
-      NextMdiFrameWindow(lpFrameCurrent, lParam);
-      return TRUE;
-    }
+    NextMdiFrameWindow(lpFrameCurrent, lParam);
+    return TRUE;
   }
   else if (uMsg == WM_MDIACTIVATE)
   {
