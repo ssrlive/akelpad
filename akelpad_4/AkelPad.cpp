@@ -643,6 +643,8 @@ extern "C" void _WinMain()
 
   //Read options
   ReadOptions(&moInit, &fdInit);
+  RegisterPluginsHotkeys(&moInit);
+  ReadThemes(&moInit);
 
   if (IsCodePageUnicode(moInit.nDefaultCodePage))
     bDefaultBOM=TRUE;
@@ -872,17 +874,17 @@ extern "C" void _WinMain()
   EnsureWindowInMonitor(&moCur.rcMainWindowRestored);
 
   hMainWnd=CreateWindowExWide(0,
-                              APP_MAIN_CLASSW,              // window class name
-                              APP_MAIN_TITLEW,              // window caption
-                              WS_OVERLAPPEDWINDOW,          // window style
+                              APP_MAIN_CLASSW,                    // window class name
+                              APP_MAIN_TITLEW,                    // window caption
+                              WS_OVERLAPPEDWINDOW,                // window style
                               moCur.rcMainWindowRestored.left,    // initial x position
                               moCur.rcMainWindowRestored.top,     // initial y position
                               moCur.rcMainWindowRestored.right,   // initial x size
                               moCur.rcMainWindowRestored.bottom,  // initial y size
-                              NULL,                         // parent window handle
-                              hMainMenu,                    // window menu handle
-                              hInstance,                    // program instance handle
-                              NULL);                        // creation parameters
+                              NULL,                               // parent window handle
+                              hMainMenu,                          // window menu handle
+                              hInstance,                          // program instance handle
+                              NULL);                              // creation parameters
   if (!hMainWnd) goto Quit;
 
   while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)

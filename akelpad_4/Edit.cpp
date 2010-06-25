@@ -3420,12 +3420,6 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     ReadOption(&oh, L"WindowStyleMDI", MOT_DWORD, &mo->dwMdiStyle, sizeof(DWORD));
   }
 
-  //Read and register plugins hotkeys
-  RegisterPluginsHotkeys(mo);
-
-  //Read theams
-  ReadThemes(mo);
-
   if (oh.nSaveSettings == SS_REGISTRY)
     RegCloseKey((HKEY)oh.hHandle);
   StackFreeIni(&hIniFile);
