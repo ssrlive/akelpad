@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 3, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 3, 0, 1)
 
 
 //// Defines
@@ -1274,16 +1274,19 @@ typedef struct {
 #define IDM_ABOUT                       4351  //About dialog.
                                               //Return Value: zero.
                                               //
-#define IDM_INTERNAL_REOPEN_MSG         4501  //Internal command.
+#define IDM_POPUP_CODEPAGEMENU          4501  //Show codepages context menu.
                                               //Return Value: zero.
                                               //
-#define IDM_INTERNAL_CANTOPEN_MSG       4502  //Internal command.
+#define IDM_INTERNAL_REOPEN_MSG         4601  //Internal command.
                                               //Return Value: zero.
                                               //
-#define IDM_INTERNAL_ERRORIO_MSG        4503  //Internal command.
+#define IDM_INTERNAL_CANTOPEN_MSG       4602  //Internal command.
                                               //Return Value: zero.
                                               //
-#define IDM_INTERNAL_UPDATEMAINCHILDREN 4504  //Internal command.
+#define IDM_INTERNAL_ERRORIO_MSG        4603  //Internal command.
+                                              //Return Value: zero.
+                                              //
+#define IDM_INTERNAL_UPDATEMAINCHILDREN 4604  //Internal command.
                                               //Return Value: zero.
                                               //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files.
