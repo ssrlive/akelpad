@@ -14058,6 +14058,10 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
       }
       else
       {
+        //crPrevSel can be dangled during word wrap update.
+        SendMessage(hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crPrevSel.ciMin);
+        SendMessage(hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crPrevSel.ciMax);
+
         nSelSubtract+=IndexSubtract(hWndEdit, &crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
         nSelSubtract+=IndexSubtract(hWndEdit, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
       }
