@@ -9026,7 +9026,7 @@ int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText)
   {
     nMax=GetTextLength(hWnd);
   }
-  if (nMin < nMax)
+  if (nMin <= nMax)
   {
     nLen=(nMax - nMin);
 
@@ -9053,7 +9053,7 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
   {
     nMax=GetTextLength(hWnd);
   }
-  if (nMin < nMax)
+  if (nMin <= nMax)
   {
     nLen=(nMax - nMin);
 
