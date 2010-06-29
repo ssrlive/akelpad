@@ -5259,7 +5259,7 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   pdA.nMaxPage    =9999;
   pdA.nFromPage   =prninfo->nFromPage;
   pdA.nToPage     =prninfo->nToPage;
-  pdA.nCopies     =prninfo->nCopies;
+  pdA.nCopies     =1;
   pdA.hDC         =prninfo->hDC;
   pdA.hDevMode    =prninfo->hDevMode;
   pdA.hDevNames   =prninfo->hDevNames;
@@ -5296,10 +5296,12 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
     if (!PrintDlgA(&pdA))
       return FALSE;
     prninfo->dwPrintFlags=pdA.Flags;
+    prninfo->nFromPage=pdA.nFromPage;
+    prninfo->nToPage=pdA.nToPage;
   }
+  prninfo->hDC=pdA.hDC;
   prninfo->hDevMode=pdA.hDevMode;
   prninfo->hDevNames=pdA.hDevNames;
-  prninfo->hDC=pdA.hDC;
   return TRUE;
 }
 
@@ -5314,7 +5316,7 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
   pdW.nMaxPage    =9999;
   pdW.nFromPage   =prninfo->nFromPage;
   pdW.nToPage     =prninfo->nToPage;
-  pdW.nCopies     =prninfo->nCopies;
+  pdW.nCopies     =1;
   pdW.hDC         =prninfo->hDC;
   pdW.hDevMode    =prninfo->hDevMode;
   pdW.hDevNames   =prninfo->hDevNames;
@@ -5351,10 +5353,12 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
     if (!PrintDlgW(&pdW))
       return FALSE;
     prninfo->dwPrintFlags=pdW.Flags;
+    prninfo->nFromPage=pdW.nFromPage;
+    prninfo->nToPage=pdW.nToPage;
   }
+  prninfo->hDC=pdW.hDC;
   prninfo->hDevMode=pdW.hDevMode;
   prninfo->hDevNames=pdW.hDevNames;
-  prninfo->hDC=pdW.hDC;
   return TRUE;
 }
 
@@ -5505,18 +5509,21 @@ int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
 
         if (dwFlags & PRND_REALPRINT)
         {
-          if ((prninfo.dwPrintFlags & PD_PAGENUMS) && nPageNumber > prninfo.nToPage)
+          if (prninfo.dwPrintFlags & PD_PAGENUMS)
           {
-            bPrintStop=TRUE;
-            continue;
-          }
-          else if ((prninfo.dwPrintFlags & PD_PAGENUMS) && nPageNumber < prninfo.nFromPage)
-          {
-            prn->dwFlags|=AEPRN_TEST;
-            if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)prn))
+            if (nPageNumber > prninfo.nToPage)
+            {
               bPrintStop=TRUE;
-            prn->dwFlags&=~AEPRN_TEST;
-            continue;
+              continue;
+            }
+            else if (nPageNumber < prninfo.nFromPage)
+            {
+              prn->dwFlags|=AEPRN_TEST;
+              if (!SendMessage(hWnd, AEM_PRINTPAGE, (WPARAM)hPrintDoc, (LPARAM)prn))
+                bPrintStop=TRUE;
+              prn->dwFlags&=~AEPRN_TEST;
+              continue;
+            }
           }
         }
 

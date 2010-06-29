@@ -475,7 +475,6 @@ extern "C" void _WinMain()
     prninfo.dwPrintFlags=PD_ALLPAGES;
     prninfo.nFromPage=1;
     prninfo.nToPage=1;
-    prninfo.nCopies=1;
   }
 
   //fdInit.hWndEditParent=NULL;
