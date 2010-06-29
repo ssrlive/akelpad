@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.4.4                               *
+ *                      AkelEdit text control v1.4.5                               *
  *                                                                                 *
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1277,7 +1277,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       DWORD dwWordWrap=wParam;
       BOOL bUpdateWrap=FALSE;
 
-      AE_NotifyTextChanging(ae, AETCT_WRAP);
+      AE_NotifyChanging(ae, AETCT_WRAP);
 
       if ((dwWordWrap & AEWW_WORD) || (dwWordWrap & AEWW_SYMBOL))
       {
@@ -1306,7 +1306,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
         AE_StackUpdateClones(ae);
       }
-      AE_NotifyTextChanged(ae); //AETCT_WRAP
+      AE_NotifyChanged(ae); //AETCT_WRAP
 
       return 0;
     }
@@ -7022,7 +7022,14 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
   AEPOINT *lpPointTwo;
   AEPOINT *lpPointThree;
   int nWrapCount;
+  BOOL bNotify=FALSE;
 
+  if (!ae->dwNotifySelChange && !ae->dwNotifyTextChange)
+  {
+    //Only if AE_UpdateWrap is not part of the other text modification operation
+    bNotify=TRUE;
+    AE_NotifyChanging(ae, AETCT_WRAP);
+  }
   AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisibleLineAfterWrap, FALSE);
   lpPointOne=AE_StackPointInsert(ae, &ciSelStart);
   lpPointTwo=AE_StackPointInsert(ae, &ciSelEnd);
@@ -7056,8 +7063,14 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
     ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
     AE_UpdateScrollBars(ae, SB_VERT);
   }
-  AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_RESETSELECTION);
+  AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_RESETSELECTION|AESELT_LOCKNOTIFY);
   AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
+
+  if (bNotify)
+  {
+    AE_NotifyChanged(ae); //AETCT_WRAP
+    bNotify=FALSE;
+  }
   return nWrapCount;
 }
 
@@ -17621,11 +17634,12 @@ void AE_NotifySelChanged(AKELEDIT *ae)
     }
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sc);
   }
+
+  ae->dwNotifySelChange=0;
 }
 
 void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
 {
-  ae->dwNotifyFlags=0;
   ae->dwNotifyTextChange=dwType;
 
   //Send AEN_TEXTCHANGING
@@ -17667,6 +17681,8 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
   {
     AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
   }
+
+  ae->dwNotifyTextChange=0;
 }
 
 void AE_NotifyChanging(AKELEDIT *ae, DWORD dwType)
@@ -17717,6 +17733,8 @@ void AE_NotifyChanged(AKELEDIT *ae)
     ae->dwNotifyFlags&=~AENM_MAXTEXT;
     AE_NotifyMaxText(ae);
   }
+
+  ae->dwNotifyFlags=0;
 }
 
 void AE_NotifyPoint(AKELEDIT *ae, DWORD dwType, AEPOINT *lpPoint)

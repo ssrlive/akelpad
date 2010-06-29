@@ -354,9 +354,7 @@ PRINTINFO prninfo={0};
 
 //Edit state
 AECHARRANGE crSel={0};
-AECHARRANGE crPrevSel={0};
 AECHARINDEX ciCaret={0};
-int nSelSubtract=0;
 int nLoopCase=0;
 DWORD dwDefaultWordBreak=0;
 BOOL bReopenMsg=FALSE;
@@ -3721,7 +3719,23 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       }
       else if (((NMHDR *)lParam)->code == AEN_TEXTCHANGING)
       {
-        nSelSubtract=0;
+        AENTEXTCHANGE *aentc=(AENTEXTCHANGE *)lParam;
+
+        if (lpFrameCurrent == GetFrameDataFromEditWindow(aentc->hdr.hwndFrom))
+          lpFrameCurrent->nSelSubtract=0;
+      }
+      else if (((NMHDR *)lParam)->code == AEN_SELCHANGING)
+      {
+        AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
+
+        if (lpFrameCurrent->ei.hDocEdit == aensc->hdr.docFrom)
+        {
+          if (lpFrameCurrent->nSelSubtract)
+          {
+            if (xmemcmp(&aensc->aes.crSel, &lpFrameCurrent->crPrevSel, sizeof(AECHARRANGE)))
+              lpFrameCurrent->nSelSubtract=0;
+          }
+        }
       }
       else if (((NMHDR *)lParam)->code == AEN_SELCHANGED)
       {
@@ -4154,9 +4168,8 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       //Assign current window. Need for split windows.
       lpFrameCurrent->ei.hWndEdit=hWnd;
       lpFrameCurrent->ei.hDocEdit=(AEHDOC)SendMessage(hWnd, AEM_GETDOCUMENT, 0, 0);
-
-      SetSelectionStatus(lpFrameCurrent->ei.hDocEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
     }
+    SetSelectionStatus(lpFrameCurrent->ei.hDocEdit, lpFrameCurrent->ei.hWndEdit, NULL, NULL);
   }
   else if (uMsg == WM_KEYDOWN)
   {

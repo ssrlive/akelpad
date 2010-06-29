@@ -618,6 +618,10 @@ typedef struct _FRAMEDATA {
   wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters (4.x only).
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters.
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters (4.x only).
+
+  //Substract selection
+  AECHARRANGE crPrevSel;
+  int nSelSubtract;
 } FRAMEDATA;
 
 typedef struct _WNDPROCDATA {
