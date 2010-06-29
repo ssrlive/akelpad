@@ -219,9 +219,7 @@ extern PRINTINFO prninfo;
 
 //Edit state
 extern AECHARRANGE crSel;
-extern AECHARRANGE crPrevSel;
 extern AECHARINDEX ciCaret;
-extern int nSelSubtract;
 extern int nLoopCase;
 extern DWORD dwDefaultWordBreak;
 extern BOOL bReopenMsg;
@@ -14032,7 +14030,7 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
     else
     {
       GetSel(hWndEdit, &crSel, &bColumnSel, &ciCaret);
-      nSelSubtract=0;
+      lpFrameCurrent->nSelSubtract=0;
     }
 
     if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
@@ -14048,27 +14046,23 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
     if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
     {
       xprintfW(wszStatus, L"%u:%u", nLine + 1, nColumn + 1);
-      nSelSubtract=0;
+      lpFrameCurrent->nSelSubtract=0;
     }
     else
     {
-      if (bColumnSel || !nSelSubtract || mod(crPrevSel.ciMin.nLine - crSel.ciMin.nLine) + mod(crPrevSel.ciMax.nLine - crSel.ciMax.nLine) >= crSel.ciMax.nLine - crSel.ciMin.nLine)
+      if (bColumnSel || !lpFrameCurrent->nSelSubtract || mod(lpFrameCurrent->crPrevSel.ciMin.nLine - crSel.ciMin.nLine) + mod(lpFrameCurrent->crPrevSel.ciMax.nLine - crSel.ciMax.nLine) >= crSel.ciMax.nLine - crSel.ciMin.nLine)
       {
-        nSelSubtract=IndexSubtract(hWndEdit, &crSel.ciMax, &crSel.ciMin, AELB_ASOUTPUT, -1);
+        lpFrameCurrent->nSelSubtract=IndexSubtract(hWndEdit, &crSel.ciMax, &crSel.ciMin, AELB_ASOUTPUT, -1);
       }
       else
       {
-        //crPrevSel can be dangled during word wrap update.
-        SendMessage(hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crPrevSel.ciMin);
-        SendMessage(hWndEdit, AEM_INDEXUPDATE, 0, (LPARAM)&crPrevSel.ciMax);
-
-        nSelSubtract+=IndexSubtract(hWndEdit, &crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
-        nSelSubtract+=IndexSubtract(hWndEdit, &crSel.ciMax, &crPrevSel.ciMax, AELB_ASOUTPUT, -1);
+        lpFrameCurrent->nSelSubtract+=IndexSubtract(hWndEdit, &lpFrameCurrent->crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
+        lpFrameCurrent->nSelSubtract+=IndexSubtract(hWndEdit, &crSel.ciMax, &lpFrameCurrent->crPrevSel.ciMax, AELB_ASOUTPUT, -1);
       }
-      xprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn + 1, nSelSubtract);
-      if (bColumnSel) nSelSubtract=0;
+      xprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn + 1, lpFrameCurrent->nSelSubtract);
+      if (bColumnSel) lpFrameCurrent->nSelSubtract=0;
     }
-    crPrevSel=crSel;
+    lpFrameCurrent->crPrevSel=crSel;
 
     StatusBar_SetTextWide(hStatus, STATUS_POSITION, wszStatus);
   }
@@ -14150,7 +14144,7 @@ void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags)
   else if (nState == NEWLINE_MAC)
     SendMessage(lpFrame->ei.hWndEdit, AEM_SETNEWLINE, dwFlags, MAKELONG(AELB_R, AELB_R));
 
-  nSelSubtract=0;
+  lpFrame->nSelSubtract=0;
   SendMessage(lpFrame->ei.hWndEdit, AEM_UPDATESEL, AESELT_LOCKSCROLL|AESELT_COLUMNASIS, 0);
 }
 

@@ -57,18 +57,18 @@
 #define AENM_LINK               0x00040000  //Sends AEN_LINK notifications.
 
 //AEN_SELCHANGING and AEN_SELCHANGED types
-#define AESCT_REPLACESEL        0x00000001  //Replace selection.
-#define AESCT_APPENDTEXT        0x00000002  //Append text.
-#define AESCT_SETTEXT           0x00000004  //Set text.
+#define AESCT_REPLACESEL        0x00000001  //Replacing selection.
+#define AESCT_APPENDTEXT        0x00000002  //Appending text.
+#define AESCT_SETTEXT           0x00000004  //Setting text.
 #define AESCT_STREAMIN          0x00000008  //Stream in.
-#define AESCT_WRAP              0x00000010  //Send AEM_SETWORDWRAP.
+#define AESCT_WRAP              0x00000010  //Sending AEM_SETWORDWRAP.
 #define AESCT_UNDO              0x00000020  //Undo.
 #define AESCT_REDO              0x00000040  //Redo.
 #define AESCT_CUT               0x00000080  //Cut.
-#define AESCT_CHAR              0x00000100  //Insert char.
-#define AESCT_KEYRETURN         0x00000200  //Pressed VK_RETURN.
-#define AESCT_KEYBACKSPACE      0x00000400  //Pressed VK_BACK.
-#define AESCT_KEYDELETE         0x00000800  //Pressed VK_DELETE.
+#define AESCT_CHAR              0x00000100  //Inserting char.
+#define AESCT_KEYRETURN         0x00000200  //Pressing VK_RETURN.
+#define AESCT_KEYBACKSPACE      0x00000400  //Pressing VK_BACK.
+#define AESCT_KEYDELETE         0x00000800  //Pressing VK_DELETE.
 #define AESCT_DRAGDELETE        0x00001000  //Dragging text delete.
 #define AESCT_DROPINSERT        0x00002000  //Dropping text insert.
 
@@ -78,23 +78,23 @@
 #define AESCT_MOUSECAPTURE      0x00800000  //Mouse made non-empty selection.
 #define AESCT_MOUSELEFTMARGIN   0x01000000  //Left margin mouse action.
 #define AESCT_KEYBOARD          0x02000000  //Selection is changed by keyboard.
-#define AESCT_SETSELMESSAGE     0x04000000  //Send AEM_EXSETSEL, AEM_SETSEL, EM_SETSEL, EM_EXSETSEL.
+#define AESCT_SETSELMESSAGE     0x04000000  //Sending AEM_EXSETSEL, AEM_SETSEL, EM_SETSEL, EM_EXSETSEL.
 #define AESCT_UPDATESELECTION   0x08000000  //Selection is updated.
 #define AESCT_IME               0x10000000  //Input Method Editors (IME).
 
 //AEN_TEXTCHANGING, AEN_TEXTINSERTBEGIN, AEN_TEXTINSERTEND, AEN_TEXTDELETEBEGIN, AEN_TEXTDELETEEND and AEN_TEXTCHANGED types
-#define AETCT_REPLACESEL        0x00000001  //Replace selection.
-#define AETCT_APPENDTEXT        0x00000002  //Append text.
-#define AETCT_SETTEXT           0x00000004  //Set text.
+#define AETCT_REPLACESEL        0x00000001  //Replacing selection.
+#define AETCT_APPENDTEXT        0x00000002  //Appending text.
+#define AETCT_SETTEXT           0x00000004  //Setting text.
 #define AETCT_STREAMIN          0x00000008  //Stream in.
-#define AETCT_WRAP              0x00000010  //Send AEM_SETWORDWRAP.
+#define AETCT_WRAP              0x00000010  //Sending AEM_SETWORDWRAP.
 #define AETCT_UNDO              0x00000020  //Undo.
 #define AETCT_REDO              0x00000040  //Redo.
 #define AETCT_CUT               0x00000080  //Cut.
-#define AETCT_CHAR              0x00000100  //Insert char.
-#define AETCT_KEYRETURN         0x00000200  //Pressed VK_RETURN.
-#define AETCT_KEYBACKSPACE      0x00000400  //Pressed VK_BACK.
-#define AETCT_KEYDELETE         0x00000800  //Pressed VK_DELETE.
+#define AETCT_CHAR              0x00000100  //Inserting char.
+#define AETCT_KEYRETURN         0x00000200  //Pressing VK_RETURN.
+#define AETCT_KEYBACKSPACE      0x00000400  //Pressing VK_BACK.
+#define AETCT_KEYDELETE         0x00000800  //Pressing VK_DELETE.
 #define AETCT_DRAGDELETE        0x00001000  //Dragging text delete.
 #define AETCT_DROPINSERT        0x00002000  //Dropping text insert.
 
