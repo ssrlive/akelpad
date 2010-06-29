@@ -868,7 +868,6 @@ typedef struct {
   DWORD dwPrintFlags;
   WORD nFromPage;
   WORD nToPage;
-  WORD nCopies;
 
   //PAGESETUPDLG
   DWORD dwPageFlags;

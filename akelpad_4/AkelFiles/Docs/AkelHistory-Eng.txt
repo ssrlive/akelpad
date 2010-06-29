@@ -7,6 +7,7 @@ Fixed: command line processing and working directory.
 Fixed: saving in UTF32-LE and UTF32-BE codepages.
 Fixed: program may hang when switching between tabs that use word wrap (MDI).
 Fixed: access order of tabs (MDI/PMDI).
+Fixed: when printing a range of pages, only first page printed.
 Fixed: hotkey F12 for showing codepages menu didn't work.
 
 
