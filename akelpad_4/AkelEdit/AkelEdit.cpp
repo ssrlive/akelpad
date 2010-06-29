@@ -2214,6 +2214,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
         return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (DWORD)-1, AELB_R, FALSE, FALSE);
       }
+      else if ((DWORD)trRE->chrg.cpMin == (DWORD)trRE->chrg.cpMax)
+      {
+        if (trRE->lpstrText)
+          trRE->lpstrText[0]='\0';
+        else
+          return 1;
+      }
     }
     else
     {
@@ -2225,6 +2232,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
         AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
         return AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (DWORD)-1, AELB_R, FALSE, FALSE);
+      }
+      else if ((DWORD)trRE->chrg.cpMin == (DWORD)trRE->chrg.cpMax)
+      {
+        if (trRE->lpstrText)
+          trRE->lpstrText[0]=L'\0';
+        else
+          return 1;
       }
     }
     return 0;
@@ -11334,7 +11348,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
             hlp->dwActiveBG=hlp->qm.lpQuote->crBk;
           else
             hlp->dwActiveBG=hlp->dwDefaultBG;
-          hlp->dwFontStyle=hlp->qm.lpQuote->dwFontStyle;
+          //if (hlp->qm.lpQuote->dwFontStyle != AEHLS_NONE)
+            hlp->dwFontStyle=hlp->qm.lpQuote->dwFontStyle;
         }
       }
 
@@ -11380,7 +11395,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               hlp->dwActiveBG=hlp->wm.lpDelim1->crBk;
             else
               hlp->dwActiveBG=hlp->dwDefaultBG;
-            hlp->dwFontStyle=hlp->wm.lpDelim1->dwFontStyle;
+            //if (hlp->wm.lpDelim1->dwFontStyle != AEHLS_NONE)
+              hlp->dwFontStyle=hlp->wm.lpDelim1->dwFontStyle;
           }
         }
         if (hlp->wm.lpWord)
@@ -11410,7 +11426,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               hlp->dwActiveBG=hlp->wm.lpWord->crBk;
             else
               hlp->dwActiveBG=hlp->dwDefaultBG;
-            hlp->dwFontStyle=hlp->wm.lpWord->dwFontStyle;
+            //if (hlp->wm.lpWord->dwFontStyle != AEHLS_NONE)
+              hlp->dwFontStyle=hlp->wm.lpWord->dwFontStyle;
           }
         }
         if (hlp->wm.lpDelim2)
@@ -11440,7 +11457,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               hlp->dwActiveBG=hlp->wm.lpDelim2->crBk;
             else
               hlp->dwActiveBG=hlp->dwDefaultBG;
-            hlp->dwFontStyle=hlp->wm.lpDelim2->dwFontStyle;
+            //if (hlp->wm.lpDelim2->dwFontStyle != AEHLS_NONE)
+              hlp->dwFontStyle=hlp->wm.lpDelim2->dwFontStyle;
           }
         }
       }
@@ -11480,7 +11498,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwActiveBG=hlp->mrm.lpMarkRange->crBk;
         else
           hlp->dwActiveBG=hlp->dwDefaultBG;
-        hlp->dwFontStyle=hlp->mrm.lpMarkRange->dwFontStyle;
+        //if (hlp->mrm.lpMarkRange->dwFontStyle != AEHLS_NONE)
+          hlp->dwFontStyle=hlp->mrm.lpMarkRange->dwFontStyle;
       }
     }
 
@@ -11527,7 +11546,8 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwActiveBG=hlp->mtm.lpMarkText->crBk;
         else
           hlp->dwActiveBG=hlp->dwDefaultBG;
-        hlp->dwFontStyle=hlp->mtm.lpMarkText->dwFontStyle;
+        //if (hlp->mtm.lpMarkText->dwFontStyle != AEHLS_NONE)
+          hlp->dwFontStyle=hlp->mtm.lpMarkText->dwFontStyle;
       }
     }
   }
