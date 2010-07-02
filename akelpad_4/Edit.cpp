@@ -11284,12 +11284,12 @@ BOOL TranslatePlugin(LPMSG lpMsg)
   return FALSE;
 }
 
-BOOL TranslateHotkey(HSTACK *hStack, LPMSG lpMsg)
+int TranslateHotkey(HSTACK *hStack, LPMSG lpMsg)
 {
   PLUGINFUNCTION *pfElement=(PLUGINFUNCTION *)hStack->first;
   BYTE nMod=0;
   WORD wHotkey;
-  BOOL bResult;
+  int nResult;
 
   if (lpMsg->message == WM_SYSKEYDOWN ||  //Alt+..., Shift+Alt+...
       lpMsg->message == WM_KEYDOWN)       //Other combinations
@@ -11315,9 +11315,9 @@ BOOL TranslateHotkey(HSTACK *hStack, LPMSG lpMsg)
       }
       pfElement=pfElement->next;
     }
-    bResult=FALSE;
-    SendMessage(hMainWnd, AKDN_HOTKEY, (WPARAM)wHotkey, (LPARAM)&bResult);
-    return bResult;
+    nResult=FALSE;
+    SendMessage(hMainWnd, AKDN_HOTKEY, (WPARAM)wHotkey, (LPARAM)&nResult);
+    return nResult;
   }
   return FALSE;
 }

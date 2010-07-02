@@ -405,8 +405,8 @@ extern "C" void _WinMain()
 #ifndef AKELEDIT_STATICBUILD
   HMODULE hAkelLib=NULL;
 #endif
-  HWND hWndFriend=NULL;
   BOOL bMsgStatus;
+  int nHotkeyStatus;
   int nMajor;
   int nMinor;
   int nRelease;
@@ -687,6 +687,8 @@ extern "C" void _WinMain()
 
   if ((nMDI == WMD_MDI || nMDI == WMD_PMDI) && moCur.bSingleOpenProgram)
   {
+    HWND hWndFriend;
+
     //Pass command line to opened instance
     if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
     {
@@ -890,9 +892,9 @@ extern "C" void _WinMain()
       {
         if (!TranslatePlugin(&msg))
         {
-          if (!TranslateHotkey(&hPluginsStack, &msg))
+          if ((nHotkeyStatus=TranslateHotkey(&hPluginsStack, &msg)) <= 0)
           {
-            if (!TranslateAcceleratorWide(hMainWnd, hMainAccel, &msg))
+            if (nHotkeyStatus < 0 || !TranslateAcceleratorWide(hMainWnd, hMainAccel, &msg))
             {
               TranslateMessage(&msg);
               DispatchMessageWide(&msg);

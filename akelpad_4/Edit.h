@@ -784,7 +784,7 @@ void CallPluginsOnStart(HSTACK *hStack);
 int CallPluginSend(PLUGINFUNCTION **ppfElement, PLUGINCALLSENDW *pcs, DWORD dwFlags);
 int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwFlags);
 BOOL TranslatePlugin(LPMSG lpMsg);
-BOOL TranslateHotkey(HSTACK *hStack, LPMSG lpMsg);
+int TranslateHotkey(HSTACK *hStack, LPMSG lpMsg);
 BOOL ParsePluginNameW(const wchar_t *wpFullName, wchar_t *wszPlugin, wchar_t *wszFunction);
 BOOL IsMainFunctionW(const wchar_t *wpFunction);
 

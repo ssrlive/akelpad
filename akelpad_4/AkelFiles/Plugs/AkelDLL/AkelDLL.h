@@ -1781,9 +1781,10 @@ ___________
 
 Notification message, sends to the main procedure when keyboard key is pressed.
 
-(WORD)wParam   == hotkey returned by HKM_GETHOTKEY.
-(BOOL *)lParam == TRUE   stop message processing.
-                  FALSE  continue message processing (default).
+(WORD)wParam  == hotkey returned by HKM_GETHOTKEY.
+(int *)lParam ==  1  stop message processing.
+                  0  continue message processing (default).
+                 -1  continue message processing, but skip accelerators.
 
 Return Value
  Zero.
