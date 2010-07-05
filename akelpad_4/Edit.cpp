@@ -9328,7 +9328,15 @@ BOOL ColumnPaste(HWND hWnd)
       }
     }
   }
-  else DoEditPaste(hWnd, FALSE);
+  else
+  {
+    CHARRANGE cr;
+
+    SendMessage(hWnd, EM_GETSEL, (WPARAM)&cr.cpMin, 0);
+    DoEditPaste(hWnd, FALSE);
+    SendMessage(hWnd, EM_GETSEL, 0, (LPARAM)&cr.cpMax);
+    SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
+  }
 
   return bResult;
 }
