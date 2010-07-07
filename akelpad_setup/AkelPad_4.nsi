@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.4.3"
+!define PRODUCT_VERSION "4.4.5"
 
 ;_____________________________________________________________________________________________
 ;
@@ -487,10 +487,10 @@ FunctionEnd
 
 Section
 	SetOutPath "$SETUPDIR"
-	File /r /x Caret*.* /x Justify*.* /x PlainText*.* /x PrintClassic*.* "Files\*.*"
+	File /r /x RichTune*.* "Files\*.*"
 
-	IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
-	RegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
+	#IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
+	#RegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
 
 #	_standard:
 	StrCmp $INSTTYPE ${INSTTYPE_STANDARD} 0 _totalcmd
@@ -682,8 +682,8 @@ Section un.install
 	Delete "$SETUPDIR\AkelPad.ini"
 
 	StrCmp $UNFILES 0 End
-	IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
-	UnRegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
+	#IfFileExists "$SETUPDIR\AkelFiles\Plugs\Scripts.dll" 0 +2
+	#UnRegDLL "$SETUPDIR\AkelFiles\Plugs\Scripts.dll"
 
 #	_notepad:
 	SearchPath $0 takeown.exe
