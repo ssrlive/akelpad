@@ -360,6 +360,33 @@ typedef struct {
 #endif
 
 #ifndef __AKELEDIT_H__
+  typedef struct _AELINEDATA {
+    struct _AELINEDATA *next;
+    struct _AELINEDATA *prev;
+    wchar_t *wpLine;
+    int nLineLen;
+    int nLineBreak;
+    int nLineWidth;
+    int nSelStart;
+    int nSelEnd;
+  } AELINEDATA;
+
+  typedef struct _AELINEINDEX {
+    int nLine;
+    AELINEDATA *lpLine;
+  } AELINEINDEX;
+
+  typedef struct _AECHARINDEX {
+    int nLine;
+    AELINEDATA *lpLine;
+    int nCharInLine;
+  } AECHARINDEX;
+
+  typedef struct {
+    AECHARINDEX ciMin;
+    AECHARINDEX ciMax;
+  } AECHARRANGE;
+
   typedef struct {
     DWORD dwFlags;
     COLORREF crCaret;
