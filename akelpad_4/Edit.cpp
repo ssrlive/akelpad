@@ -1739,7 +1739,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
               continue;
             }
 
-            if (b < nBufferLen)
+            if (b < nBufferLen || bColumnSel)
             {
               xmemcpy(wszRange + a, wpString, nStringBytes);
               a+=nStringLen;
