@@ -9,6 +9,7 @@ Fixed: program may hang when switching between tabs that use word wrap (MDI).
 Fixed: access order of tabs (MDI/PMDI).
 Fixed: when printing a range of pages, only first page printed.
 Fixed: hotkey F12 for showing codepages menu didn't work.
+Fixed: insert space, tab into the empty vertical selection.
 
 
 AkelPad 4.4.4 (Jun 19, 2010)
