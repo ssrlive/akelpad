@@ -1,7 +1,7 @@
 
-AkelPad 4.4.5 ()
+AkelPad 4.4.5 (Jul 08, 2010)
 ----------------------------
-Changed: uses the items of menu "Window", in context menu of tabs (PMDI).
+Changed: context menu of tabs uses the items of menu "Window" (PMDI).
 
 Added: support for clipboard containing NULL symbol (between AkelEdit windows).
 

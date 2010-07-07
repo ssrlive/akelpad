@@ -4259,19 +4259,22 @@ DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, 
   //Offset BOM
   if (bBOM)
   {
-    if (nCodePage == CP_UNICODE_UTF16LE ||
-        nCodePage == CP_UNICODE_UTF16BE)
+    if (SetFilePointer(hFile, 0, NULL, FILE_CURRENT) == 0)
     {
-      SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
-    }
-    else if (nCodePage == CP_UNICODE_UTF32LE ||
-             nCodePage == CP_UNICODE_UTF32BE)
-    {
-      SetFilePointer(hFile, 4, NULL, FILE_BEGIN);
-    }
-    else if (nCodePage == CP_UNICODE_UTF8)
-    {
-      SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
+      if (nCodePage == CP_UNICODE_UTF16LE ||
+          nCodePage == CP_UNICODE_UTF16BE)
+      {
+        SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+      }
+      else if (nCodePage == CP_UNICODE_UTF32LE ||
+               nCodePage == CP_UNICODE_UTF32BE)
+      {
+        SetFilePointer(hFile, 4, NULL, FILE_BEGIN);
+      }
+      else if (nCodePage == CP_UNICODE_UTF8)
+      {
+        SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
+      }
     }
   }
 
