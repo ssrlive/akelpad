@@ -3,6 +3,8 @@ AkelPad 4.4.5 ()
 ----------------------------
 Changed: uses the items of menu "Window", in context menu of tabs (PMDI).
 
+Added: support for clipboard containing NULL symbol (between AkelEdit windows).
+
 Fixed: command line processing and working directory.
 Fixed: saving in UTF32-LE and UTF32-BE codepages.
 Fixed: program may hang when switching between tabs that use word wrap (MDI).

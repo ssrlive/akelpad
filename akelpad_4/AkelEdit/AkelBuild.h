@@ -135,6 +135,12 @@ typedef struct _AEUNDOITEM {
   DWORD dwTextLen;
 } AEUNDOITEM;
 
+//"AkelEditText" clipboard
+typedef struct {
+  DWORD dwAnsiLen;
+  DWORD dwUnicodeLen;
+} AECLIPBOARDINFO;
+
 
 //// OLE Drag'n'Drop
 

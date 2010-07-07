@@ -86,6 +86,7 @@ HBITMAP hAkelEditBitmapMCenterTopBottom=NULL;
 AKELEDIT *lpAkelEditPrev=NULL;
 AKELEDIT *lpAkelEditDrag=NULL;
 UINT cfAkelEditColumnSel=0;
+UINT cfAkelEditText=0;
 
 
 //// Entry point
@@ -152,6 +153,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
 
     if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatA("MSDEVColumnSelect");
+    if (!cfAkelEditText) cfAkelEditText=RegisterClipboardFormatA("AkelEditText");
     if (!hAkelEditCursorIBeam) hAkelEditCursorIBeam=LoadCursorA(NULL, (char *)IDC_IBEAM);
     if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorA(NULL, (char *)IDC_ARROW);
     if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorA(hInstance, (char *)IDC_AEMARGIN);
@@ -202,6 +204,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
 
     if (!hAkelEditProcessHeap) hAkelEditProcessHeap=GetProcessHeap();
     if (!cfAkelEditColumnSel) cfAkelEditColumnSel=RegisterClipboardFormatW(L"MSDEVColumnSelect");
+    if (!cfAkelEditText) cfAkelEditText=RegisterClipboardFormatW(L"AkelEditText");
     if (!hAkelEditCursorIBeam) hAkelEditCursorIBeam=LoadCursorW(NULL, (wchar_t *)IDC_IBEAM);
     if (!hAkelEditCursorArrow) hAkelEditCursorArrow=LoadCursorW(NULL, (wchar_t *)IDC_ARROW);
     if (!hAkelEditCursorMargin) hAkelEditCursorMargin=LoadCursorW(hInstance, (wchar_t *)IDC_AEMARGIN);
@@ -16853,10 +16856,12 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
 {
   HGLOBAL hDataTargetA=NULL;
   HGLOBAL hDataTargetW=NULL;
+  HGLOBAL hDataInfo=NULL;
   LPVOID pDataTargetA;
   LPVOID pDataTargetW;
-  DWORD dwAnsiBytes;
-  DWORD dwUnicodeLen;
+  AECLIPBOARDINFO *pDataInfo;
+  DWORD dwAnsiLen=0;
+  DWORD dwUnicodeLen=0;
 
   if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
@@ -16870,16 +16875,16 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
         {
           if (pDataTargetW=GlobalLock(hDataTargetW))
           {
-            dwUnicodeLen=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (DWORD)-1, ae->popt->nOutputNewLine, ae->bColumnSel, TRUE);
+            AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (DWORD)-1, ae->popt->nOutputNewLine, ae->bColumnSel, TRUE);
 
             //Get Ansi text
-            dwAnsiBytes=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen + 1, NULL, 0, NULL, NULL);
+            dwAnsiLen=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);
 
-            if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiBytes))
+            if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiLen))
             {
               if (pDataTargetA=GlobalLock(hDataTargetA))
               {
-                WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen + 1, (char *)pDataTargetA, dwAnsiBytes, NULL, NULL);
+                WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, (char *)pDataTargetA, dwAnsiLen, NULL, NULL);
                 GlobalUnlock(hDataTargetA);
               }
             }
@@ -16889,7 +16894,22 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
       }
       if (hDataTargetW) SetClipboardData(CF_UNICODETEXT, hDataTargetW);
       if (hDataTargetA) SetClipboardData(CF_TEXT, hDataTargetA);
-      if (ae->bColumnSel) SetClipboardData(cfAkelEditColumnSel, NULL);
+
+      //Special clipboard formats
+      if (ae->bColumnSel)
+      {
+        SetClipboardData(cfAkelEditColumnSel, NULL);
+      }
+      if (hDataInfo=GlobalAlloc(GMEM_MOVEABLE, sizeof(AECLIPBOARDINFO)))
+      {
+        if (pDataInfo=(AECLIPBOARDINFO *)GlobalLock(hDataInfo))
+        {
+          pDataInfo->dwAnsiLen=dwAnsiLen?dwAnsiLen - 1:0;
+          pDataInfo->dwUnicodeLen=dwUnicodeLen?dwUnicodeLen - 1:0;
+          GlobalUnlock(pDataInfo);
+        }
+        SetClipboardData(cfAkelEditText, hDataInfo);
+      }
       CloseClipboard();
     }
   }
@@ -16897,8 +16917,11 @@ void AE_EditCopyToClipboard(AKELEDIT *ae)
 
 BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
 {
+  HGLOBAL hDataInfo;
   HGLOBAL hData;
   LPVOID pData;
+  AECLIPBOARDINFO *pDataInfo;
+  AECLIPBOARDINFO cbi;
   BOOL bColumnSel;
   BOOL bResult=FALSE;
 
@@ -16906,11 +16929,26 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
 
   if (OpenClipboard(NULL))
   {
+    //Get AkelEdit clipboard text length
+    cbi.dwAnsiLen=(DWORD)-1;
+    cbi.dwUnicodeLen=(DWORD)-1;
+
+    if (hDataInfo=GetClipboardData(cfAkelEditText))
+    {
+      if (pDataInfo=(AECLIPBOARDINFO *)GlobalLock(hDataInfo))
+      {
+        cbi.dwAnsiLen=pDataInfo->dwAnsiLen;
+        cbi.dwUnicodeLen=pDataInfo->dwUnicodeLen;
+        GlobalUnlock(pDataInfo);
+      }
+    }
+
+    //Get clipboard text
     if (!bAnsi && (hData=GetClipboardData(CF_UNICODETEXT)))
     {
       if (pData=GlobalLock(hData))
       {
-        AE_ReplaceSel(ae, (wchar_t *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
+        AE_ReplaceSel(ae, (wchar_t *)pData, cbi.dwUnicodeLen, bColumnSel, NULL, NULL);
         bResult=TRUE;
         GlobalUnlock(hData);
       }
@@ -16919,7 +16957,7 @@ BOOL AE_EditPasteFromClipboard(AKELEDIT *ae, BOOL bAnsi)
     {
       if (pData=GlobalLock(hData))
       {
-        AE_ReplaceSelAnsi(ae, CP_ACP, (char *)pData, (DWORD)-1, bColumnSel, NULL, NULL);
+        AE_ReplaceSelAnsi(ae, CP_ACP, (char *)pData, cbi.dwAnsiLen, bColumnSel, NULL, NULL);
         bResult=TRUE;
         GlobalUnlock(hData);
       }
@@ -18582,7 +18620,7 @@ DWORD AE_DataObjectCopySelection(AKELEDIT *ae)
   HGLOBAL hDataTargetW=NULL;
   LPVOID pDataTargetA;
   LPVOID pDataTargetW;
-  DWORD dwAnsiBytes;
+  DWORD dwAnsiLen=0;
   DWORD dwUnicodeLen=0;
 
   if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
@@ -18593,16 +18631,16 @@ DWORD AE_DataObjectCopySelection(AKELEDIT *ae)
       {
         if (pDataTargetW=GlobalLock(hDataTargetW))
         {
-          dwUnicodeLen=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (DWORD)-1, ae->popt->nOutputNewLine, ae->bColumnSel, TRUE);
+          AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)pDataTargetW, (DWORD)-1, ae->popt->nOutputNewLine, ae->bColumnSel, TRUE);
 
           //Get Ansi text
-          dwAnsiBytes=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen + 1, NULL, 0, NULL, NULL);
+          dwAnsiLen=WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, NULL, 0, NULL, NULL);
 
-          if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiBytes))
+          if (hDataTargetA=GlobalAlloc(GMEM_MOVEABLE, dwAnsiLen))
           {
             if (pDataTargetA=GlobalLock(hDataTargetA))
             {
-              WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen + 1, (char *)pDataTargetA, dwAnsiBytes, NULL, NULL);
+              WideCharToMultiByte(CP_ACP, 0, (wchar_t *)pDataTargetW, dwUnicodeLen, (char *)pDataTargetA, dwAnsiLen, NULL, NULL);
               GlobalUnlock(hDataTargetA);
             }
           }
@@ -18620,7 +18658,7 @@ DWORD AE_DataObjectCopySelection(AKELEDIT *ae)
     ae->ido.fmtetc[2].cfFormat=0;
 
   if (hDataTargetW && hDataTargetA)
-    return dwUnicodeLen;
+    return dwUnicodeLen?dwUnicodeLen - 1:0;
   else
     return 0;
 }
