@@ -58,7 +58,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "В&ыхад\tEsc",                 IDM_FILE_EXIT
     END
-    POPUP "&Правка"
+    POPUP "&Праўка"
     BEGIN
         MENUITEM "&Адмяніць\tCtrl+Z",           IDM_EDIT_UNDO
         MENUITEM "Паў&тарыць\tCtrl+Shift+Z",    IDM_EDIT_REDO
@@ -140,7 +140,7 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "&Аконны рэжым"
         BEGIN
-            MENUITEM "&Аднааконны (SDI)",           IDM_OPTIONS_SDI
+            MENUITEM "&Аднаваконны (SDI)",           IDM_OPTIONS_SDI
             MENUITEM "&Шматваконны (MDI)",          IDM_OPTIONS_MDI
             MENUITEM "&Псеўда-шматваконны (PMDI)",  IDM_OPTIONS_PMDI
         END
