@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.4.5                               *
+ *                      AkelEdit text control v1.4.6                               *
  *                                                                                 *
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1023,6 +1023,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return ae->ptxt->nCharHeight;
       if (wParam == AECS_AVEWIDTH)
         return ae->ptxt->nAveCharWidth;
+      if (wParam == AECS_INDEXWIDTH)
+      {
+        AECHARINDEX *ciChar=(AECHARINDEX *)lParam;
+        POINT ptGlobal;
+ 
+        if (ciChar->nCharInLine < ciChar->lpLine->nLineLen)
+        {
+          if (ciChar->lpLine->wpLine[ciChar->nCharInLine] == L'\t')
+          {
+            AE_GetPosFromChar(ae, ciChar, &ptGlobal, NULL);
+            return ae->ptxt->nTabWidth - ptGlobal.x % ae->ptxt->nTabWidth;
+          }
+          else return AE_GetCharWidth(ae, ciChar->lpLine->wpLine + ciChar->nCharInLine, NULL);
+        }
+        return 0;
+      }
       return 0;
     }
     if (uMsg == AEM_GETSTRWIDTH)

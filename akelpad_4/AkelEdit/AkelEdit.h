@@ -383,8 +383,9 @@
 #define AECSE_SCROLLEDDOWN   0x00000020  //Edit control was scrolled down vertically.
 
 //AEM_GETCHARSIZE flags
-#define AECS_HEIGHT          0  //Current font character height.
-#define AECS_AVEWIDTH        1  //Current font character average width.
+#define AECS_HEIGHT          0  //Current font character height. lParam not used.
+#define AECS_AVEWIDTH        1  //Current font character average width. lParam not used.
+#define AECS_INDEXWIDTH      2  //lParam is character index, which width is retrieving.
 
 //AEM_CONVERTPOINT flags
 #define AECPT_GLOBALTOCLIENT 0  //Convert position in the virtual text space of the document, to client area coordinates.
@@ -3181,14 +3182,14 @@ _______________
 
 Retrieve current font character height and average width.
 
-(DWORD)wParam == see AECS_* defines.
-lParam        == not used.
+(DWORD)wParam         == see AECS_* defines.
+(AECHARINDEX *)lParam == character index.
 
 Return Value
  Integer that depend on AECS_* value.
 
 Example:
- SendMessage(hWndEdit, AEM_GETCHARSIZE, AECS_HEIGHT, 0);
+ SendMessage(hWndEdit, AEM_GETCHARSIZE, AECS_HEIGHT, (LPARAM)NULL);
 
 
 AEM_GETSTRWIDTH
