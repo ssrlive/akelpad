@@ -2,6 +2,7 @@
 AkelPad 4.4.6 ()
 ----------------------------
 Fixed: encoding redetect of the empty document led to the encoding nullification.
+Fixed: method /SaveFile() ignore first parameter.
 
 
 AkelPad 4.4.5 (Jul 08, 2010)
