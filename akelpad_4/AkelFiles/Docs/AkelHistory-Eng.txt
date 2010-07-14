@@ -1,4 +1,9 @@
 
+AkelPad 4.4.6 ()
+----------------------------
+Fixed: encoding redetect of the empty document led to the encoding nullification.
+
+
 AkelPad 4.4.5 (Jul 08, 2010)
 ----------------------------
 Changed: context menu of tabs uses the items of menu "Window" (PMDI).
