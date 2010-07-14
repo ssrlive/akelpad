@@ -14905,7 +14905,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
               {
                 if (nCodePage != -1 && bBOM != -1)
                 {
-                  if (SaveDocument(NULL, lpFrameCurrent->wszFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
+                  if (SaveDocument(NULL, wpFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
                     return PCLE_END;
                 }
               }
