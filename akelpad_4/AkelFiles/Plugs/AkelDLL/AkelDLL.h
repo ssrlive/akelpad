@@ -1476,6 +1476,7 @@ typedef struct {
 #define AKD_WAITKEYBOARD           (WM_USER + 288)
 #define AKD_GETQUEUE               (WM_USER + 289)
 #define AKD_POSTMESSAGE            (WM_USER + 290)
+#define AKD_ISMESSAGEBOX           (WM_USER + 291)
 
 //Plugin load
 #define AKD_DLLCALL                (WM_USER + 301)

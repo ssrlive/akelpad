@@ -163,6 +163,7 @@ HINSTANCE hInstance;
 DWORD dwCmdShow;
 DWORD dwCmdLineOptions=0;
 const wchar_t *wpCmdLine=NULL;
+BOOL bMessageBox=FALSE;
 
 //Identification
 DWORD dwExeVersion=0;
@@ -693,7 +694,7 @@ extern "C" void _WinMain()
     if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
     {
       ActivateWindow(hWndFriend);
-      PostCmdLine(hWndFriend, wpCmdLine);
+      SendCmdLine(hWndFriend, wpCmdLine, TRUE);
       goto Quit;
     }
   }
@@ -2162,6 +2163,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return GetQueueStatus(wParam);
     }
+    if (uMsg == AKD_ISMESSAGEBOX)
+    {
+      return bMessageBox;
+    }
 
     //Plugin options
     if (uMsg == AKD_BEGINOPTIONS ||
@@ -3267,7 +3272,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         LoadStringWide(hLangLib, MSG_CANNOT_OPEN_FILE, wbuf, BUFFER_SIZE);
         xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);
-        MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
       return 0;
     }
@@ -3757,19 +3762,20 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         //Synchronize changed state
         if (moCur.dwShowModify & SM_MAINTITLE_SDI)
         {
-          if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
+          wchar_t *wpMainName=AllocWideStr(BUFFER_SIZE);
+          const wchar_t *wpFileName=GetFileName(lpFrame->wszFile);
+
+          if (nMDI == WMD_SDI)
           {
-            wchar_t *wpMainName=AllocWideStr(MAX_PATH);
-            const wchar_t *wpFileName=GetFileName(lpFrame->wszFile);
-
-            if (aenm->bModified)
-              xprintfW(wpMainName, L"* %s - %s", wpFileName, APP_MAIN_TITLEW);
-            else
-              xprintfW(wpMainName, L"%s - %s", wpFileName, APP_MAIN_TITLEW);
+            xprintfW(wpMainName, L"%s%s - %s", aenm->bModified?L"* ":L"", wpFileName, APP_MAIN_TITLEW);
             SetWindowTextWide(hMainWnd, wpMainName);
-
-            FreeWideStr(wpMainName);
           }
+          else if (nMDI == WMD_PMDI)
+          {
+            xprintfW(wpMainName, L"%s - [%s%s]", APP_MAIN_TITLEW, wszFile, aenm->bModified?L" *":L"");
+            SetWindowTextWide(hMainWnd, wpMainName);
+          }
+          FreeWideStr(wpMainName);
         }
         if (moCur.dwShowModify & SM_TABTITLE_MDI)
         {
@@ -3779,7 +3785,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
             if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
             {
-              wchar_t *wpTabName=AllocWideStr(MAX_PATH);
+              wchar_t *wpTabName=AllocWideStr(BUFFER_SIZE);
               TCITEMW tcItem={0};
 
               tcItem.mask=TCIF_TEXT;
@@ -3801,12 +3807,9 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         {
           if (nMDI == WMD_MDI)
           {
-            wchar_t *wpFrameName=AllocWideStr(MAX_PATH);
+            wchar_t *wpFrameName=AllocWideStr(BUFFER_SIZE);
 
-            if (aenm->bModified)
-              xprintfW(wpFrameName, L"%s *", lpFrame->wszFile);
-            else
-              xstrcpynW(wpFrameName, lpFrame->wszFile, MAX_PATH);
+            xprintfW(wpFrameName, L"%s%s", lpFrame->wszFile, aenm->bModified?L" *":L"");
             SetWindowTextWide(lpFrame->hWndEditParent, wpFrameName);
 
             FreeWideStr(wpFrameName);
