@@ -28,6 +28,7 @@ extern HINSTANCE hInstance;
 extern DWORD dwCmdShow;
 extern DWORD dwCmdLineOptions;
 extern const wchar_t *wpCmdLine;
+extern BOOL bMessageBox;
 
 //Identification
 extern DWORD dwExeVersion;
@@ -14999,7 +15000,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
               {
                 ActivateWindow(hWndFriend);
                 SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
-                PostCmdLine(hWndFriend, wpCmdLine);
+                SendCmdLine(hWndFriend, wpCmdLine, TRUE);
                 return PCLE_QUIT;
               }
             }
@@ -15018,7 +15019,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
         }
         hWndFriend=DoFileNewWindow(STARTF_NOMUTEX);
         SendMessage(hWndFriend, AKD_SETCMDLINEOPTIONS, dwCmdLineOptions, 0);
-        PostCmdLine(hWndFriend, wpCmdLine);
+        SendCmdLine(hWndFriend, wpCmdLine, TRUE);
         return PCLE_END;
       }
       if (bOnLoad) return PCLE_ONLOAD;
@@ -15031,14 +15032,14 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
   return PCLE_END;
 }
 
-void PostCmdLine(HWND hWnd, const wchar_t *wpCmdLine)
+void SendCmdLine(HWND hWnd, const wchar_t *wpCmdLine, BOOL bPost)
 {
   COPYDATASTRUCT cds;
   PARSECMDLINEPOSTW *pclp;
 
   if (pclp=(PARSECMDLINEPOSTW *)GlobalAlloc(GMEM_FIXED, sizeof(PARSECMDLINEPOSTW)))
   {
-    pclp->bPostMessage=TRUE;
+    pclp->bPostMessage=bPost;
     pclp->nCmdLineLen=xstrcpynW(pclp->szCmdLine, wpCmdLine, COMMANDLINE_SIZE);
     pclp->nWorkDirLen=GetCurrentDirectoryWide(MAX_PATH, pclp->szWorkDir);
 
@@ -16637,7 +16638,6 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
       }
       else if (nMDI == WMD_PMDI)
       {
-        //xprintfW(wbuf, L"%s - %s", wpFileName, APP_MAIN_TITLEW);
         xprintfW(wbuf, L"%s - [%s]", APP_MAIN_TITLEW, wszFile);
         SetWindowTextWide(hMainWnd, wbuf);
       }
@@ -17058,6 +17058,16 @@ int API_LoadStringW(HINSTANCE hLoadInstance, UINT uID, wchar_t *lpBuffer, int nB
       if (!(nResult=LoadStringWide(hInstance, uID, lpBuffer, nBufferMax)))
         lpBuffer[0]='\0';
 
+  return nResult;
+}
+
+int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, UINT uType)
+{
+  int nResult;
+
+  bMessageBox=TRUE;
+  nResult=MessageBoxW(hWnd, lpText, lpCaption, uType);
+  bMessageBox=FALSE;
   return nResult;
 }
 
