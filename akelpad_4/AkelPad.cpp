@@ -3760,59 +3760,58 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
           lpFrame=GetFrameDataFromEditWindow(aenm->hdr.hwndFrom);
 
         //Synchronize changed state
-        if (moCur.dwShowModify & SM_MAINTITLE_SDI)
+        if (nMDI == WMD_SDI)
         {
-          wchar_t *wpMainName=AllocWideStr(BUFFER_SIZE);
-          const wchar_t *wpFileName=GetFileName(lpFrame->wszFile);
+          if (moCur.dwShowModify & SM_MAINTITLE_SDI)
+          {
+            wchar_t *wpTitle=AllocWideStr(BUFFER_SIZE);
 
-          if (nMDI == WMD_SDI)
-          {
-            xprintfW(wpMainName, L"%s%s - %s", aenm->bModified?L"* ":L"", wpFileName, APP_MAIN_TITLEW);
-            SetWindowTextWide(hMainWnd, wpMainName);
+            xprintfW(wpTitle, L"%s%s - %s", aenm->bModified?L"* ":L"", GetFileName(lpFrame->wszFile), APP_MAIN_TITLEW);
+            SetWindowTextWide(hMainWnd, wpTitle);
+
+            FreeWideStr(wpTitle);
           }
-          else if (nMDI == WMD_PMDI)
-          {
-            xprintfW(wpMainName, L"%s - [%s%s]", APP_MAIN_TITLEW, wszFile, aenm->bModified?L" *":L"");
-            SetWindowTextWide(hMainWnd, wpMainName);
-          }
-          FreeWideStr(wpMainName);
         }
-        if (moCur.dwShowModify & SM_TABTITLE_MDI)
+        if (nMDI)
         {
-          if (nMDI)
+          if (moCur.dwShowModify & SM_TABTITLE_MDI)
           {
             int nItem;
 
             if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
             {
-              wchar_t *wpTabName=AllocWideStr(BUFFER_SIZE);
+              wchar_t *wpTitle=AllocWideStr(BUFFER_SIZE);
               TCITEMW tcItem={0};
 
               tcItem.mask=TCIF_TEXT;
-              tcItem.pszText=wpTabName;
+              tcItem.pszText=wpTitle;
               tcItem.cchTextMax=MAX_PATH;
               TabCtrl_GetItemWide(hTab, nItem, &tcItem);
 
               if (aenm->bModified)
-                xprintfW(wpTabName, L"%s *", wpTabName);
+                xprintfW(wpTitle, L"%s *", wpTitle);
               else
-                TrimModifyState(wpTabName);
+                TrimModifyState(wpTitle);
               TabCtrl_SetItemWide(hTab, nItem, &tcItem);
 
-              FreeWideStr(wpTabName);
+              FreeWideStr(wpTitle);
             }
           }
-        }
-        if (moCur.dwShowModify & SM_FRAMETITLE_MDI)
-        {
-          if (nMDI == WMD_MDI)
+          if (moCur.dwShowModify & SM_FRAMETITLE_MDI)
           {
-            wchar_t *wpFrameName=AllocWideStr(BUFFER_SIZE);
+            wchar_t *wpTitle=AllocWideStr(BUFFER_SIZE);
 
-            xprintfW(wpFrameName, L"%s%s", lpFrame->wszFile, aenm->bModified?L" *":L"");
-            SetWindowTextWide(lpFrame->hWndEditParent, wpFrameName);
-
-            FreeWideStr(wpFrameName);
+            if (nMDI == WMD_MDI)
+            {
+              xprintfW(wpTitle, L"%s%s", lpFrame->wszFile, aenm->bModified?L" *":L"");
+              SetWindowTextWide(lpFrame->hWndEditParent, wpTitle);
+            }
+            else if (nMDI == WMD_PMDI)
+            {
+              xprintfW(wpTitle, L"%s - [%s%s]", APP_MAIN_TITLEW, lpFrame->wszFile, aenm->bModified?L" *":L"");
+              SetWindowTextWide(hMainWnd, wpTitle);
+            }
+            FreeWideStr(wpTitle);
           }
         }
         SetModifyStatus(lpFrame, aenm->bModified);
