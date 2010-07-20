@@ -694,6 +694,11 @@ extern "C" void _WinMain()
     if (hWndFriend=FindWindowExWide(NULL, NULL, APP_MAIN_CLASSW, NULL))
     {
       ActivateWindow(hWndFriend);
+
+      //Wait for messagebox close
+      while (SendMessage(hWndFriend, AKD_ISMESSAGEBOX, 0, 0))
+        Sleep(100);
+
       SendCmdLine(hWndFriend, wpCmdLine, TRUE);
       goto Quit;
     }
@@ -747,7 +752,7 @@ extern "C" void _WinMain()
         hLangLib=hInstance;
         LoadStringWide(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
         xprintfW(wbuf2, wbuf, moCur.wszLangModule);
-        MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        API_MessageBox(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
       }
     }
     else
@@ -756,7 +761,7 @@ extern "C" void _WinMain()
       xprintfW(wbuf2, wbuf, moCur.wszLangModule,
                            nMajor, nMinor, nRelease, nBuild,
                            LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
-      MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+      API_MessageBox(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
     }
   }
 
@@ -769,7 +774,7 @@ extern "C" void _WinMain()
   {
     LoadStringWide(hLangLib, MSG_ERROR_LOAD_DLL, wbuf, BUFFER_SIZE);
     xprintfW(wbuf2, wbuf, L"AkelEdit.dll");
-    MessageBoxW(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    API_MessageBox(NULL, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
     goto Quit;
   }
 #endif
@@ -916,7 +921,7 @@ extern "C" void _WinMain()
   if (bMsgStatus == -1)
   {
     LoadStringWide(hLangLib, MSG_ERROR_IN_MESSAGE_QUEUE, wbuf, BUFFER_SIZE);
-    MessageBoxW(NULL, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    API_MessageBox(NULL, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
 
 
@@ -2747,7 +2752,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       LoadStringWide(hLangLib, MSG_RECENTFILES_DELETED, wbuf, BUFFER_SIZE);
       xprintfW(wbuf2, wbuf, nDead);
-      MessageBoxW(hWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
+      API_MessageBox(hWnd, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
       return nDead;
     }
     else if (LOWORD(wParam) > IDM_RECENT_FILES && LOWORD(wParam) <= (IDM_RECENT_FILES + moCur.nRecentFiles))
@@ -2777,7 +2782,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         xstrcpynW(moCur.wszLangModule, wbuf2, MAX_PATH);
       }
       LoadStringWide(hLangLib, MSG_RESTART_PROGRAM, wbuf, BUFFER_SIZE);
-      MessageBoxW(hWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+      API_MessageBox(hWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
     }
     else if (LOWORD(wParam) >= IDM_POPUP_OPENAS && LOWORD(wParam) < IDM_POPUP_OPENAS + nCodepageListLen)
     {
@@ -3197,7 +3202,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (nMDI != nMode)
       {
         LoadStringWide(hLangLib, MSG_RESTART_PROGRAM, wbuf, BUFFER_SIZE);
-        MessageBoxW(hWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        API_MessageBox(hWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
         moCur.nMDI=nMode;
       }
     }
@@ -3257,7 +3262,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           LoadStringWide(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
           xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);
-          if (MessageBoxW(hMainWnd, wbuf2, APP_MAIN_TITLEW, lpFrameCurrent->ei.bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
+          if (API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, lpFrameCurrent->ei.bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
           {
             OpenDocument(NULL, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
           }
@@ -3281,7 +3286,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!bMainOnFinish)
       {
         LoadStringWide(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
-        MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+        API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
       }
       return 0;
     }
@@ -3710,7 +3715,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       if (((NMHDR *)lParam)->code == AEN_ERRSPACE)
       {
         LoadStringWide(hLangLib, MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT, wbuf, BUFFER_SIZE);
-        MessageBoxW(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+        API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
       }
       else if (((NMHDR *)lParam)->code == AEN_DROPSOURCE)
       {
@@ -4588,10 +4593,11 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nDragItem != -1)
       {
-        SelectTabItem(hWnd, nDragItem);
         bMouseDown=TRUE;
         nMouseMove=4;
         SetCapture(hWnd);
+
+        SelectTabItem(hWnd, nDragItem);
         return TRUE;
       }
     }

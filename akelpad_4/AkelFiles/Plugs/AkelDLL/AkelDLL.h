@@ -3062,6 +3062,23 @@ Example (Unicode):
    PostMessage(pd->hMainWnd, AKD_POSTMESSAGE, 0, (LPARAM)pmsd);
  }
 
+
+AKD_ISMESSAGEBOX
+________________
+
+Check is any messagebox is open.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ TRUE  messagebox is open.
+ FALSE messagebox isn't open.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_ISMESSAGEBOX, 0, 0);
+
+
 AKD_DLLCALL, AKD_DLLCALLA, AKD_DLLCALLW
 ___________  ____________  ____________
 
