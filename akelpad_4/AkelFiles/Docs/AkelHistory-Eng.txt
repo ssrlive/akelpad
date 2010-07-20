@@ -1,6 +1,7 @@
 
 AkelPad 4.4.6 ()
 ----------------------------
+Fixed: command line processing and "Watch file change".
 Fixed: encoding redetect of the empty document led to the encoding nullification.
 Fixed: method /SaveFile() ignore first parameter.
 Fixed: parameter "ShowModify" in PMDI mode.
