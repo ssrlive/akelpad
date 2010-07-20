@@ -3510,6 +3510,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
     }
   }
+  else if (uMsg == WM_QUERYENDSESSION)
+  {
+  }
   else if (uMsg == WM_CLOSE)
   {
     bMainOnFinish=TRUE;

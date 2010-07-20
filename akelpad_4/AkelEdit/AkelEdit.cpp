@@ -10558,7 +10558,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
       if (ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\t')
-        nCharWidth=prn->nTabWidth - to.nDrawLineWidth % prn->nTabWidth;
+        nCharWidth=prn->nTabWidth - nLineWidth % prn->nTabWidth;
       else
         nCharWidth=AE_GetCharWidth(&ph->aePrint, ciCount.lpLine->wpLine + ciCount.nCharInLine, NULL);
       nLineWidth+=nCharWidth;
