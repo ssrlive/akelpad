@@ -1268,7 +1268,7 @@ BOOL DoFileOpen()
     ofnW.lpstrFilter    =wszFilter;
     ofnW.nFilterIndex   =2;
     ofnW.nMaxFile       =OPENFILELIST_SIZE;
-    ofnW.lpstrInitialDir=moCur.wszLastDir;
+    ofnW.lpstrInitialDir=FileExistsWide(moCur.wszLastDir)?moCur.wszLastDir:L"";
     ofnW.lpstrDefExt    =NULL;
     ofnW.Flags          =(nMDI?OFN_ALLOWMULTISELECT:0)|OFN_HIDEREADONLY|OFN_PATHMUSTEXIST|OFN_EXPLORER|OFN_ENABLEHOOK|OFN_ENABLETEMPLATE|OFN_ENABLESIZING|OFN_OVERWRITEPROMPT;
     ofnW.lpfnHook       =(LPOFNHOOKPROC)CodePageDlgProc;
