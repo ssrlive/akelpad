@@ -79,20 +79,20 @@ BEGIN
         MENUITEM "Wstaw &datê\tCtrl+D",         IDM_EDIT_INSERTDATE
         POPUP "Zaznaczen&ie"
         BEGIN
-            MENUITEM "Wklej pionowo\tAlt+V",        IDM_EDIT_PASTECOLUMN
-            MENUITEM "Dodaj wciêcie ta&bem\tTab",   IDM_EDIT_INSERT_TAB_MENU
-            MENUITEM "Usuñ wciêcie &tabem\tShift+Tab", 
+            MENUITEM "Wkl&ej pionowo\tAlt+V",       IDM_EDIT_PASTECOLUMN
+            MENUITEM "Dodaj wciêcie &tabem\tTab",   IDM_EDIT_INSERT_TAB_MENU
+            MENUITEM "Usuñ wciêcie t&abem\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
-            MENUITEM "Dodaj wciêcie spa&cj¹\tSpacja", 
+            MENUITEM "Dodaj wciêcie &spacj¹\tSpacja", 
                                                     IDM_EDIT_INSERT_SPACE_MENU
 
-            MENUITEM "Usuñ wciêcie sp&acj¹\tShift+Spacja", 
+            MENUITEM "Usuñ wciêcie s&pacj¹\tShift+Spacja", 
                                                     IDM_EDIT_DELETE_SPACE_MENU
 
             MENUITEM "&Usuñ pierwszy znak\tShift+Backspace", 
                                                     IDM_EDIT_DELETE_FIRST_CHAR_MENU
 
-            MENUITEM "U&suñ bia³e znaki na koñcu\tAlt+Backspace", 
+            MENUITEM "Usuñ &bia³e znaki na koñcu\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
             MENUITEM SEPARATOR
@@ -100,9 +100,9 @@ BEGIN
             MENUITEM "&ma³e litery\tCtrl+7",        IDM_EDIT_LOWERCASE
             MENUITEM "Jak w &zdaniu.\tCtrl+8",      IDM_EDIT_SENTENCECASE
             MENUITEM "Jak &Nazwy W³asne\tCtrl+9",   IDM_EDIT_TITLECASE
-            MENUITEM "zM&IEÑ wIELKOŒÆ lITER\tCtrl+0", IDM_EDIT_INVERTCASE
+            MENUITEM "&oDWRÓÆ wIELKOŒÆ lITER\tCtrl+0", IDM_EDIT_INVERTCASE
             MENUITEM SEPARATOR
-            MENUITEM "Zmieñ stronê &kodow¹...\tAlt+R", IDM_EDIT_RECODE
+            MENUITEM "Prze&koduj...\tAlt+R", IDM_EDIT_RECODE
         END
         POPUP "&Format nowego wiersza"
         BEGIN
@@ -111,14 +111,14 @@ BEGIN
             MENUITEM "Mac (0Dh)",                   IDM_EDIT_NEWLINE_MAC
         END
     END
-    POPUP "W&idok"
+    POPUP "&Widok"
     BEGIN
         MENUITEM "&Czcionka...",                IDM_VIEW_FONT
         MENUITEM "&Kolory...",                  IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "&Tylko do odczytu",           IDM_VIEW_READONLY
         MENUITEM "Za&wijanie wierszy\tCtrl+U",  IDM_VIEW_WORDWRAP
-        MENUITEM "&Podziel okno",               IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "&Podziel okno na cztery",     IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "Zawsze n&a wierzchu\tCtrl+T", IDM_VIEW_ONTOP
         MENUITEM "Pasek &stanu",                IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -127,29 +127,29 @@ BEGIN
             MENUITEM "_",                           IDM_LANGUAGE
         END
     END
-    POPUP "&Opcje"
+    POPUP "&Ustawienia"
     BEGIN
         MENUITEM "&Wtyczki (Pluginy)...\tAlt+P", IDM_OPTIONS_PLUGINS
         MENUITEM "&Uruchom\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Zachowaj spacje po lewej\tCtrl+L", IDM_OPTIONS_KEEPSPACE
-        MENUITEM "Œ&ledŸ zmiany pliku",         IDM_OPTIONS_WATCHFILE
+        MENUITEM "&Automatyczne wciêcie z lewej\tCtrl+L", IDM_OPTIONS_KEEPSPACE
+        MENUITEM "ŒledŸ &zmiany pliku",         IDM_OPTIONS_WATCHFILE
         MENUITEM "Zachowaj oryginalny &czas pliku", IDM_OPTIONS_SAVETIME
-        MENUITEM "Nie &otwieraj pliku dwa razy", IDM_OPTIONS_SINGLEOPEN_FILE
+        MENUITEM "Nie otwieraj &pliku dwa razy", IDM_OPTIONS_SINGLEOPEN_FILE
         MENUITEM "Nie u&ruchamiaj programu dwa razy", 
                                                 IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
         MENUITEM SEPARATOR
-        POPUP "Tr&yb okien"
+        POPUP "&Tryb okien"
         BEGIN
             MENUITEM "&Jedno okno (SDI)",           IDM_OPTIONS_SDI
             MENUITEM "&Wiele okien (MDI)",          IDM_OPTIONS_MDI
             MENUITEM "&Pseudo wielo-okienkowy (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
-        MENUITEM "U&stawienia...",              IDM_OPTIONS
+        MENUITEM "&Opcje...",              IDM_OPTIONS
     END
-    POPUP "Ok&no"
+    POPUP "&Okno"
     BEGIN
         POPUP "&Karty"
         BEGIN
@@ -219,7 +219,7 @@ BEGIN
             MENUITEM "_",                           IDM_POPUP_SAVEAS
         END
         MENUITEM SEPARATOR
-        MENUITEM "Wykryj ponownie",             IDM_FILE_REDETECT
+        MENUITEM "Wykryj ponownie stronê kodow¹",   IDM_FILE_REDETECT
     END
     POPUP "OkienkoNag³ówka"
     BEGIN
@@ -433,18 +433,18 @@ BEGIN
     EDITTEXT        IDC_MDILIST_SEARCH,6,264,178,14,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
     GROUPBOX        "Uk³ad",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
-    PUSHBUTTON      "Poziomy",IDC_MDILIST_HORZ,198,45,50,14
-    PUSHBUTTON      "Pionowy",IDC_MDILIST_VERT,198,60,50,14
+    PUSHBUTTON      "Pozio&my",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "Piono&wy",IDC_MDILIST_VERT,198,60,50,14
     GROUPBOX        "Karty",IDC_MDILIST_TABS_GROUP,191,86,64,72
     PUSHBUTTON      "W &górê",IDC_MDILIST_UP,198,100,50,14
     PUSHBUTTON      "W &dó³",IDC_MDILIST_DOWN,198,115,50,14
     PUSHBUTTON      "&Sortuj",IDC_MDILIST_SORT,198,138,50,14
     GROUPBOX        "Pliki",IDC_MDILIST_FILES_GROUP,191,163,64,72
-    PUSHBUTTON      "Zapisz",IDC_MDILIST_SAVE,198,177,50,14
-    PUSHBUTTON      "Zamknij",IDC_MDILIST_CLOSE,198,192,50,14
+    PUSHBUTTON      "&Zapisz",IDC_MDILIST_SAVE,198,177,50,14
+    PUSHBUTTON      "Zam&knij",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "Zmienione *",IDC_MDILIST_ONLYMODIFIED,"Button",
                     BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP,198,214,50,14
-    CONTROL         "Tylko nazwy",IDC_MDILIST_ONLYNAMES,"Button",
+    CONTROL         "Tylko &nazwy",IDC_MDILIST_ONLYNAMES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,191,240,67,10
     PUSHBUTTON      "Anuluj",IDCANCEL,198,264,50,14
 END
@@ -563,7 +563,7 @@ END
 IDD_RECODE DIALOG DISCARDABLE  70, 70, 174, 94
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "Zmieñ stronê kodow¹"
+CAPTION "Przekoduj"
 FONT 8, "MS Shell Dlg"
 BEGIN
     COMBOBOX        IDC_RECODE_CODEPAGE_FROM,9,17,155,130,CBS_DROPDOWNLIST | 
@@ -923,7 +923,7 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_AUTOLOAD_IS_NOT_SUPPORTED 
-                            """%s"" nie obs³uguje automatycznego wczytywania."
+                            """%s"" nie mo¿e byæ automatycznie wczytywany."
     MSG_FUNCTION_NOT_FOUND  "Nie mo¿na znaleŸæ funkcji ""%s::%s"" w ""%s""."
     MSG_UPDATE_PROGRAM      "Zaktualizuj AkelPad.\n\nMinimalna wymagana wersja AkelPada: %d.%d.%d.%d\nAktualna wersja AkelPada: %d.%d.%d.%d"
     MSG_PROGRAM_IS_NOT_SUPPORTED "AkelPad 4.x.x nie jest wspierany."
@@ -962,7 +962,7 @@ BEGIN
     STR_AUTODETECT          "&Autodetekcja"
     STR_RECENT_FILES_EMPTY  "Puste"
     STR_RECENT_FILES_DELETE_DEAD "Usuñ odwo³ania do nieistniej¹cych plików"
-    STR_OPTIONS             "Ustawienia..."
+    STR_OPTIONS             "Opcje..."
     STR_LANGUAGE_NONE       "Wbudowany"
     STR_FILE_FILTER         "Pliki tekstowe (*.txt)|*.txt|Wszystkie pliki (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Pliki programów (*.exe)|*.exe|Wszystkie pliki (*.*)|*.*"
