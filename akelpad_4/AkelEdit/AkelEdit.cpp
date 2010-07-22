@@ -17771,8 +17771,8 @@ void AE_NotifyChanged(AKELEDIT *ae)
   if (ae->dwNotifyFlags & AENM_SELCHANGE)
   {
     ae->dwNotifyFlags&=~AENM_SELCHANGE;
-    AE_NotifySelChanged(ae);
   }
+  AE_NotifySelChanged(ae);
 
   //TextChanged
   if (ae->dwNotifyFlags & AENM_TEXTCHANGE)
