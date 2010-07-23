@@ -14902,18 +14902,21 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
               {
                 DWORD dwFlags=OD_ADT_BINARY_ERROR;
 
-                if (nCodePage == -1) dwFlags|=OD_ADT_DETECT_CODEPAGE;
-                if (bBOM == -1) dwFlags|=OD_ADT_DETECT_BOM;
+                if (nCodePage == -1)
+                  dwFlags|=OD_ADT_DETECT_CODEPAGE;
+                if (bBOM == -1)
+                  dwFlags|=OD_ADT_DETECT_BOM;
                 if (OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM) != EOD_SUCCESS)
                   return PCLE_END;
               }
               else if (dwAction == EXTACT_SAVEFILE)
               {
-                if (nCodePage != -1 && bBOM != -1)
-                {
-                  if (SaveDocument(NULL, wpFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
-                    return PCLE_END;
-                }
+                if (nCodePage == -1)
+                  nCodePage=lpFrameCurrent->ei.nCodePage;
+                if (bBOM == -1)
+                  bBOM=lpFrameCurrent->ei.bBOM;
+                if (SaveDocument(NULL, wpFile, nCodePage, bBOM, SD_UPDATE) != ESD_SUCCESS)
+                  return PCLE_END;
               }
             }
             else if (dwAction == EXTACT_FONT)
