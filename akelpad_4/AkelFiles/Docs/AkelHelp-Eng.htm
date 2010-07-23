@@ -112,21 +112,21 @@
 
           <div style="margin-top:10px"><li><b>/OpenFile("file", [OpenCodepage], [OpenBOM])</b></div>
           <div style="margin-left:30px">"file"</div>
-            <div style="margin-left:60px">file to open.</div>
+            <div style="margin-left:60px">File to open.</div>
           <div style="margin-left:30px">OpenCodepage</div>
-            <div style="margin-left:60px">Open codepage, if -1 or not specified, it will be autodetected.</div>
+            <div style="margin-left:60px">Open codepage. If -1 or not specified, it will be autodetected.</div>
           <div style="margin-left:30px">OpenBOM</div>
-            <div style="margin-left:60px">File byte order mark, if -1 or not specified, it will be autodetected.</div>
+            <div style="margin-left:60px">File byte order mark. If -1 or not specified, it will be autodetected.</div>
           <div style="margin-left:30px">/OpenFile("C:\File.txt", 65001, -1)</div>
             <div style="margin-left:60px">method opens file in UTF-8 codepage.</div>
 
-          <div style="margin-top:10px"><li><b>/SaveFile("file", SaveCodepage, SaveBOM)</b></div>
+          <div style="margin-top:10px"><li><b>/SaveFile("file", [SaveCodepage], [SaveBOM])</b></div>
           <div style="margin-left:30px">"file"</div>
-            <div style="margin-left:60px">save file name.</div>
+            <div style="margin-left:60px">Save current document to a specified file name.</div>
           <div style="margin-left:30px">SaveCodepage</div>
-            <div style="margin-left:60px">codepage.</div>
+            <div style="margin-left:60px">Save codepage. If -1 or not specified, current codepage will be used.</div>
           <div style="margin-left:30px">SaveBOM</div>
-            <div style="margin-left:60px">Byte order mark. 1 - exist, 0 - doesn't exist.</div>
+            <div style="margin-left:60px">File byte order mark. 1 - exist, 0 - doesn't exist, -1 or not specified - current BOM will be used.</div>
           <div style="margin-left:30px">/SaveFile("C:\File.txt", 65001, 0)</div>
             <div style="margin-left:60px">method saves file in UTF-8 codepage without BOM.</div>
 

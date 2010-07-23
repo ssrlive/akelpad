@@ -1,8 +1,11 @@
 
 AkelPad 4.4.6 ()
 ----------------------------
-Fixed: command line processing and "Watch file change".
+Added: /SaveFile() command line method now can accept -1 as the encoding and BOM, which
+       means using the current values of the document.
+
 Fixed: possible program crash when resizing edit window that use word wrap.
+Fixed: command line processing and "Watch file change".
 Fixed: encoding redetect of the empty document led to the encoding nullification.
 Fixed: method /SaveFile() ignore first parameter.
 Fixed: parameter "ShowModify" in PMDI mode.
