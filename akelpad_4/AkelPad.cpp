@@ -357,7 +357,7 @@ PRINTINFO prninfo={0};
 AECHARRANGE crSel={0};
 AECHARINDEX ciCaret={0};
 int nLoopCase=0;
-DWORD dwDefaultWordBreak=0;
+DWORD dwDefaultWordBreak=(DWORD)-1;
 BOOL bReopenMsg=FALSE;
 WNDPROC OldEditProc;
 
