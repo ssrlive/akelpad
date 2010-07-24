@@ -599,7 +599,6 @@ extern "C" void _WinMain()
   xstrcpyW(moInit.wszFileTypesPrint, STR_ASSOCIATE_PRINTW);
   //moInit.dwFileTypesAssociated=0;
   //moInit.bKeybLayoutMDI=FALSE;
-  //moInit.bReplaceAllAndClose=FALSE;
   //moInit.bDateLog=FALSE;
   //moInit.bSaveInReadOnlyMsg=FALSE;
   xstrcpyW(moInit.wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
@@ -658,7 +657,9 @@ extern "C" void _WinMain()
           (moInit.dwSearchOptions & AEFR_BEGINNING) |
           (moInit.dwSearchOptions & AEFR_SELECTION) |
           (moInit.dwSearchOptions & AEFR_ESCAPESEQ) |
-          (moInit.dwSearchOptions & AEFR_ALLFILES);
+          (moInit.dwSearchOptions & AEFR_ALLFILES) |
+          (moInit.dwSearchOptions & AEFR_REPLACEALLANDCLOSE) |
+          (moInit.dwSearchOptions & AEFR_CHECKINSELIFSEL);
 
   //Copy initial options
   xmemcpy(&moCur, &moInit, sizeof(MAINOPTIONS));

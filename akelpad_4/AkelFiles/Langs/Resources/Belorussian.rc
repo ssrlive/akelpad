@@ -826,18 +826,22 @@ BEGIN
     CONTROL         "Запамінаць раскладку клавіятуры для ўкладкі (MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "Замяніць усё - зачыняе дыялог",
-                    IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,23,200,10
     CONTROL         "Уставіць дату, калі файл змяшчае .LOG у пачатку",
                     IDC_OPTIONS_LOGDATE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,35,200,10
+                    WS_TABSTOP,9,23,200,10
     CONTROL         "Папярэджанне аб захаванні ў read-only файлы",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,47,200,10
-    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,63,24,13,ES_AUTOHSCROLL
+                    WS_TABSTOP,9,35,200,10
+    EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,51,24,13,ES_AUTOHSCROLL
     LTEXT           "пашырэнне па змаўчанні пры захаванні дакумента",
-                    IDC_STATIC,37,65,171,8
+                    IDC_STATIC,37,53,171,8
+    GROUPBOX        "Диалог поиска/замены",IDC_STATIC,9,72,200,40
+    CONTROL         """Заменить всё"" закрывает диалог",
+                    IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,84,185,10
+    CONTROL         "Отметить ""В выделении"", если есть выделение",
+                    IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,96,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207

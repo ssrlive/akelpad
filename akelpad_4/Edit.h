@@ -226,16 +226,23 @@
 #define MOT_FRAMEOFFSET 0x20  //lpData specifies offset of FRAMEDATA structure.
 #define MOT_MANUAL      0x40  //lpData specifies manual parameter.
 
-//Search/Replace options
+//Search options
+//#define AEFR_DOWN               0x00000001
+//#define AEFR_WHOLEWORD          0x00000002
+//#define AEFR_MATCHCASE          0x00000004
 #define AEFR_UP                 0x00100000
 #define AEFR_BEGINNING          0x00200000
 #define AEFR_SELECTION          0x00400000
 #define AEFR_ESCAPESEQ          0x00800000
 #define AEFR_ALLFILES           0x01000000
 
+//Find/Replace dialog options
+#define AEFR_REPLACEALLANDCLOSE 0x02000000
+#define AEFR_CHECKINSELIFSEL    0x04000000
+
 //StrReplace options
-#define AEFR_WHOLEWORDGOODSTART 0x02000000
-#define AEFR_WHOLEWORDGOODEND   0x04000000
+#define AEFR_WHOLEWORDGOODSTART 0x10000000
+#define AEFR_WHOLEWORDGOODEND   0x20000000
 
 //Insert/Delete char in selection
 #define STRSEL_CHECK   0x00000001
@@ -346,7 +353,6 @@ typedef struct {
   DWORD dwFileTypesAssociated;
   int nClickURL;
   BOOL bKeybLayoutMDI;
-  BOOL bReplaceAllAndClose;
   BOOL bDateLog;
   BOOL bSaveInReadOnlyMsg;
   wchar_t wszDefaultSaveExt[MAX_PATH];

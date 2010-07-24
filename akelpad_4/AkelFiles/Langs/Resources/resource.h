@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Developer Studio generated include file.
-// Used by Ukrainian.rc
+// Used by English.rc
 //
 #define MSG_ERROR_IN_MESSAGE_QUEUE      1
 #define MSG_ERROR_LIMIT_REACHED         2
@@ -250,10 +250,11 @@
 #define IDC_OPTIONS_WRAP_DELIMITERS     3663
 #define IDC_OPTIONS_WRAP_DELIMITERS_RESET 3664
 #define IDC_OPTIONS_REMEMBER_KEYBLAYOUT 3671
-#define IDC_OPTIONS_REPLACEALL_CLOSE    3672
-#define IDC_OPTIONS_SAVEIN_READONLY_MSG 3673
-#define IDC_OPTIONS_LOGDATE             3674
-#define IDC_OPTIONS_DEFAULT_SAVE_EXT    3675
+#define IDC_OPTIONS_SAVEIN_READONLY_MSG 3672
+#define IDC_OPTIONS_LOGDATE             3673
+#define IDC_OPTIONS_DEFAULT_SAVE_EXT    3674
+#define IDC_OPTIONS_REPLACEALL_CLOSE    3675
+#define IDC_OPTIONS_INSELIFSEL          3676
 #define IDC_ABOUT_ICON                  3901
 #define IDC_ABOUT_VERSION               3902
 #define IDC_ABOUT_HOMEPAGE              3903
