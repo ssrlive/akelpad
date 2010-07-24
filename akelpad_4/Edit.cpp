@@ -9903,6 +9903,8 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
   int nAnsiLen;
   BOOL bSelection;
 
+  if (IsReadOnly(hWnd)) return;
+
   nFirstLine=SaveLineScroll(hWnd);
   SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
 
@@ -14966,26 +14968,29 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
               int nUnescTextLen;
               BOOL bEscSequences=FALSE;
 
-              SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
-              wpText=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
-              bEscSequences=GetParameterInt(&hParamStack, 2);
-
-              if (bEscSequences)
+              if (!IsReadOnly(lpFrameCurrent->ei.hWndEdit))
               {
-                if (nUnescTextLen=TranslateEscapeString(lpFrameCurrent, wpText, NULL))
+                SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
+                wpText=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
+                bEscSequences=GetParameterInt(&hParamStack, 2);
+  
+                if (bEscSequences)
                 {
-                  if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
+                  if (nUnescTextLen=TranslateEscapeString(lpFrameCurrent, wpText, NULL))
                   {
-                    nTextLen=TranslateEscapeString(lpFrameCurrent, wpText, wpUnescText);
-                    wpText=wpUnescText;
+                    if (wpUnescText=(wchar_t *)GlobalAlloc(GPTR, nUnescTextLen * sizeof(wchar_t)))
+                    {
+                      nTextLen=TranslateEscapeString(lpFrameCurrent, wpText, wpUnescText);
+                      wpText=wpUnescText;
+                    }
                   }
                 }
+                if (wpText)
+                {
+                  ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, nTextLen, -1, NULL, NULL);
+                }
+                if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
               }
-              if (wpText)
-              {
-                ReplaceSelW(lpFrameCurrent->ei.hWndEdit, wpText, nTextLen, -1, NULL, NULL);
-              }
-              if (wpUnescText) GlobalFree((HGLOBAL)wpUnescText);
             }
             FreeMethodParameters(&hParamStack);
           }
@@ -15757,6 +15762,8 @@ BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr)
 {
   AECHARINDEX ciChar=cr->ciMin;
   wchar_t *wpText;
+
+  if (IsReadOnly(hWnd)) return FALSE;
 
   if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
     SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&ciChar);

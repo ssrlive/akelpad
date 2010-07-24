@@ -11,6 +11,7 @@ Fixed: method /SaveFile() ignore first parameter.
 Fixed: parameter "ShowModify" in PMDI mode.
 Fixed: tabulation in print.
 Fixed: "Word delimiters" uncheck did not set the default delimiters.
+Fixed: command 4196 ignore read-only mode.
 
 
 AkelPad 4.4.5 (Jul 08, 2010)
