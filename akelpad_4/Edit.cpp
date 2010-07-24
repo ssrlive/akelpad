@@ -2105,10 +2105,12 @@ void DoEditFind()
   {
     nModelessType=MLT_FIND;
 
-    if ((moCur.dwSearchOptions & AEFR_ALLFILES) && !nMDI)
+    if (!nMDI)
       moCur.dwSearchOptions&=~AEFR_ALLFILES;
-    if ((moCur.dwSearchOptions & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
       moCur.dwSearchOptions&=~AEFR_SELECTION;
+    else if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
+      moCur.dwSearchOptions|=AEFR_SELECTION;
 
     if (bOldWindows)
       hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_FIND), hMainWnd, (DLGPROC)FindAndReplaceDlgProc);
@@ -2148,10 +2150,12 @@ void DoEditReplace()
   {
     nModelessType=MLT_REPLACE;
 
-    if ((moCur.dwSearchOptions & AEFR_ALLFILES) && !nMDI)
+    if (!nMDI)
       moCur.dwSearchOptions&=~AEFR_ALLFILES;
-    if ((moCur.dwSearchOptions & AEFR_SELECTION) && !AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
+    if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
       moCur.dwSearchOptions&=~AEFR_SELECTION;
+    else if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
+      moCur.dwSearchOptions|=AEFR_SELECTION;
 
     if (bOldWindows)
       hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_REPLACE), hMainWnd, (DLGPROC)FindAndReplaceDlgProc);
@@ -3378,7 +3382,6 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     {
       ReadOption(&oh, L"KeybLayoutMDI", MOT_DWORD, &mo->bKeybLayoutMDI, sizeof(DWORD));
     }
-    ReadOption(&oh, L"ReplaceAllAndClose", MOT_DWORD, &mo->bReplaceAllAndClose, sizeof(DWORD));
     ReadOption(&oh, L"DateLog", MOT_DWORD, &mo->bDateLog, sizeof(DWORD));
     ReadOption(&oh, L"SaveInReadOnlyMsg", MOT_DWORD, &mo->bSaveInReadOnlyMsg, sizeof(DWORD));
     ReadOption(&oh, L"DefaultSaveExt", MOT_STRING, mo->wszDefaultSaveExt, sizeof(mo->wszDefaultSaveExt));
@@ -3627,8 +3630,6 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     if (!SaveOption(&oh, L"KeybLayoutMDI", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bKeybLayoutMDI), sizeof(DWORD)))
       goto Error;
   }
-  if (!SaveOption(&oh, L"ReplaceAllAndClose", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bReplaceAllAndClose), sizeof(DWORD)))
-    goto Error;
   if (!SaveOption(&oh, L"DateLog", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bDateLog), sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"SaveInReadOnlyMsg", MOT_DWORD|MOT_MAINOFFSET, (void *)offsetof(MAINOPTIONS, bSaveInReadOnlyMsg), sizeof(DWORD)))
@@ -8196,7 +8197,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           }
           while (lpFrameCurrent != lpFrameInit);
 
-          if (!moCur.bReplaceAllAndClose)
+          if (!(moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE))
           {
             LoadStringWide(hLangLib, MSG_REPLACE_COUNT_ALLFILES, wbuf, BUFFER_SIZE);
             xprintfW(wbuf2, wbuf, nChangedFiles, nChanges);
@@ -8264,7 +8265,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           }
           if (bReplaceAll == TRUE)
           {
-            if (!moCur.bReplaceAllAndClose)
+            if (!(moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE))
             {
               LoadStringWide(hLangLib, MSG_REPLACE_COUNT, wbuf, BUFFER_SIZE);
               xprintfW(wbuf2, wbuf, nReplaceCount);
@@ -12895,6 +12896,7 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   static HWND hWndDefaultSaveExt;
   static HWND hWndRememberKeybLayout;
   static HWND hWndReplaceAllAndClose;
+  static HWND hWndInSelIfSel;
   static HWND hWndSaveInReadOnlyMsg;
   static HWND hWndDateLog;
 
@@ -12903,13 +12905,16 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
     hWndDefaultSaveExt=GetDlgItem(hDlg, IDC_OPTIONS_DEFAULT_SAVE_EXT);
     hWndRememberKeybLayout=GetDlgItem(hDlg, IDC_OPTIONS_REMEMBER_KEYBLAYOUT);
     hWndReplaceAllAndClose=GetDlgItem(hDlg, IDC_OPTIONS_REPLACEALL_CLOSE);
+    hWndInSelIfSel=GetDlgItem(hDlg, IDC_OPTIONS_INSELIFSEL);
     hWndSaveInReadOnlyMsg=GetDlgItem(hDlg, IDC_OPTIONS_SAVEIN_READONLY_MSG);
     hWndDateLog=GetDlgItem(hDlg, IDC_OPTIONS_LOGDATE);
 
     if (moCur.bKeybLayoutMDI)
       SendMessage(hWndRememberKeybLayout, BM_SETCHECK, BST_CHECKED, 0);
-    if (moCur.bReplaceAllAndClose)
+    if (moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE)
       SendMessage(hWndReplaceAllAndClose, BM_SETCHECK, BST_CHECKED, 0);
+    if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
+      SendMessage(hWndInSelIfSel, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.bSaveInReadOnlyMsg)
       SendMessage(hWndSaveInReadOnlyMsg, BM_SETCHECK, BST_CHECKED, 0);
     if (moCur.bDateLog)
@@ -12931,8 +12936,17 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
       //Remember keyboard layout for each tab (MDI)
       moCur.bKeybLayoutMDI=SendMessage(hWndRememberKeybLayout, BM_GETCHECK, 0, 0);
 
-      //ReplaceAll and close dialog
-      moCur.bReplaceAllAndClose=SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0);
+      //Replace all and close dialog
+      if (SendMessage(hWndReplaceAllAndClose, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        moCur.dwSearchOptions|=AEFR_REPLACEALLANDCLOSE;
+      else
+        moCur.dwSearchOptions&=~AEFR_REPLACEALLANDCLOSE;
+
+      //Check "In selection" if selection not empty
+      if (SendMessage(hWndInSelIfSel, BM_GETCHECK, 0, 0) == BST_CHECKED)
+        moCur.dwSearchOptions|=AEFR_CHECKINSELIFSEL;
+      else
+        moCur.dwSearchOptions&=~AEFR_CHECKINSELIFSEL;
 
       //Save in read only file message
       moCur.bSaveInReadOnlyMsg=SendMessage(hWndSaveInReadOnlyMsg, BM_GETCHECK, 0, 0);
