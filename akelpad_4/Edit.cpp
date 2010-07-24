@@ -2110,7 +2110,7 @@ void DoEditFind()
     if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
       moCur.dwSearchOptions&=~AEFR_SELECTION;
     else if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
-      moCur.dwSearchOptions|=AEFR_SELECTION;
+      moCur.dwSearchOptions=(moCur.dwSearchOptions & ~AEFR_BEGINNING & ~AEFR_ALLFILES) | AEFR_SELECTION;
 
     if (bOldWindows)
       hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_FIND), hMainWnd, (DLGPROC)FindAndReplaceDlgProc);
@@ -2155,7 +2155,7 @@ void DoEditReplace()
     if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
       moCur.dwSearchOptions&=~AEFR_SELECTION;
     else if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
-      moCur.dwSearchOptions|=AEFR_SELECTION;
+      moCur.dwSearchOptions=(moCur.dwSearchOptions & ~AEFR_BEGINNING & ~AEFR_ALLFILES) | AEFR_SELECTION;
 
     if (bOldWindows)
       hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_REPLACE), hMainWnd, (DLGPROC)FindAndReplaceDlgProc);
