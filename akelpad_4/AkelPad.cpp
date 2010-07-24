@@ -4186,17 +4186,14 @@ LRESULT CALLBACK EditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (wParam == VK_RETURN)
     {
-      if (!lpFrameCurrent->ei.bReadOnly)
+      if (moCur.bKeepSpace)
       {
-        if (moCur.bKeepSpace)
+        if (GetKeyState(VK_MENU) >= 0 &&
+            GetKeyState(VK_SHIFT) >= 0 &&
+            GetKeyState(VK_CONTROL) >= 0)
         {
-          if (GetKeyState(VK_MENU) >= 0 &&
-              GetKeyState(VK_SHIFT) >= 0 &&
-              GetKeyState(VK_CONTROL) >= 0)
-          {
-            if (AutoIndent(hWnd, &crSel))
-              return TRUE;
-          }
+          if (AutoIndent(hWnd, &crSel))
+            return TRUE;
         }
       }
     }
