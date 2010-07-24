@@ -15763,7 +15763,7 @@ BOOL AutoIndent(HWND hWnd, AECHARRANGE *cr)
   AECHARINDEX ciChar=cr->ciMin;
   wchar_t *wpText;
 
-  if (IsReadOnly(hWnd)) return FALSE;
+  if (IsReadOnly(hWnd)) return TRUE;
 
   if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
     SendMessage(hWnd, AEM_GETINDEX, AEGI_WRAPLINEBEGIN, (LPARAM)&ciChar);
