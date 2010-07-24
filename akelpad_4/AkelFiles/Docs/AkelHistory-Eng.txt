@@ -10,6 +10,7 @@ Fixed: encoding redetect of the empty document led to the encoding nullification
 Fixed: method /SaveFile() ignore first parameter.
 Fixed: parameter "ShowModify" in PMDI mode.
 Fixed: tabulation in print.
+Fixed: "Word delimiters" uncheck did not set the default delimiters.
 
 
 AkelPad 4.4.5 (Jul 08, 2010)
