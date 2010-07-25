@@ -564,7 +564,7 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame);
 BOOL FrameNoWindows();
 void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags);
 void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags);
-void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI);
+void SplitVisUpdate(FRAMEDATA *lpFrame);
 LRESULT SendToDoc(AEHDOC hDocEdit, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL DoFileNew();

@@ -667,7 +667,10 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
     }
 
     if (!(dwFlagsPMDI & FWA_NOVISUPDATE))
-      SplitVisUpdate(lpFrame, dwFlagsPMDI);
+    {
+      SplitVisUpdate(lpFrame);
+      ResizeEditWindow(lpFrame, (dwFlagsPMDI & FWA_NOUPDATEEDIT)?REW_NOREDRAW:0);
+    }
   }
   //Update selection to set valid globals: crSel, ciCaret and nSelSubtract
   SetSelectionStatus(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, NULL, NULL);
@@ -1018,7 +1021,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->ei.hDocClone3);
     }
-    SplitVisUpdate(lpFrame, 0);
+    SplitVisUpdate(lpFrame);
   }
 }
 
@@ -1111,14 +1114,14 @@ void SplitDestroy(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hDocClone3=NULL;
       }
     }
-    SplitVisUpdate(lpFrame, 0);
+    SplitVisUpdate(lpFrame);
     SetSelectionStatus(lpFrame->ei.hDocEdit, lpFrame->ei.hWndEdit, NULL, NULL);
   }
   bEditOnFinish=FALSE;
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
-void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
+void SplitVisUpdate(FRAMEDATA *lpFrame)
 {
   if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
   {
@@ -1139,7 +1142,6 @@ void SplitVisUpdate(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
         if (IsWindowVisible(fdInit.ei.hWndClone3) == !lpFrame->ei.hDocClone3)
           ShowWindow(fdInit.ei.hWndClone3, lpFrame->ei.hDocClone3?SW_SHOW:SW_HIDE);
       }
-      ResizeEditWindow(lpFrame, (dwFlagsPMDI & FWA_NOUPDATEEDIT)?REW_NOREDRAW:0);
     }
   }
 }
