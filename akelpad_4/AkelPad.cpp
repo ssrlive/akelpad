@@ -3513,11 +3513,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
     }
   }
-  else if (uMsg == WM_QUERYENDSESSION)
+  else if (uMsg == WM_CLOSE ||
+           uMsg == WM_QUERYENDSESSION)
   {
-  }
-  else if (uMsg == WM_CLOSE)
-  {
+    BOOL bEndSession=FALSE;
+
+    if (uMsg == WM_QUERYENDSESSION)
+      bEndSession=TRUE;
     bMainOnFinish=TRUE;
 
     if (!nMDI)
@@ -3525,7 +3527,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (!SaveChanged())
       {
         bMainOnFinish=FALSE;
-        return TRUE;
+        return bEndSession?0:1;
       }
       RecentFilesSaveCurrentFile();
       CopyFrameData(&fdLast, lpFrameCurrent);
@@ -3549,7 +3551,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (nDestroyResult == FWDE_ABORT)
         {
           bMainOnFinish=FALSE;
-          return TRUE;
+          return bEndSession?0:1;
         }
         else if (nDestroyResult != FWDE_SUCCESS)
           break;
@@ -3563,7 +3565,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //Main window will be destroyed
     PostMessage(hWnd, AKDN_MAIN_ONFINISH, 0, 0);
 
-    return 0;
+    return bEndSession?1:0;
   }
   else if (uMsg == WM_DESTROY)
   {
