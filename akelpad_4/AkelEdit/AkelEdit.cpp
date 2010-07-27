@@ -1027,7 +1027,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         AECHARINDEX *ciChar=(AECHARINDEX *)lParam;
         POINT ptGlobal;
- 
+
         if (ciChar->nCharInLine < ciChar->lpLine->nLineLen)
         {
           if (ciChar->lpLine->wpLine[ciChar->nCharInLine] == L'\t')
@@ -4829,6 +4829,12 @@ void AE_StackCloneDelete(AECLONE *aec)
     AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciSelEndIndex, FALSE);
     AE_GetIndex(aeClone, AEGI_FIRSTCHAR, NULL, &aeClone->ciCaretIndex, FALSE);
     AE_UpdateScrollBars(aeClone, SB_BOTH);
+
+    if (!aeMaster->nCloneCount)
+    {
+      //Last clone deleted - update selection of mater window
+      AE_UpdateSelection(aeMaster, AESELT_COLUMNASIS|AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING|AESELT_RESETSELECTION);
+    }
   }
 }
 

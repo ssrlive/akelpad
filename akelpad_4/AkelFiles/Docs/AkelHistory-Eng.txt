@@ -15,6 +15,8 @@ Fixed: parameter "ShowModify" in PMDI mode.
 Fixed: tabulation in print.
 Fixed: "Word delimiters" uncheck did not set the default delimiters.
 Fixed: command 4196 ignore read-only mode.
+Fixed: selection after split window off.
+Fixed: window flashing during first split window (PMDI).
 
 
 AkelPad 4.4.5 (Jul 08, 2010)
