@@ -2733,11 +2733,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_DROPFILES)
   {
-    if (uMsg == WM_DROPFILES)
-    {
-      DropFiles((HDROP)wParam);
-      return TRUE;
-    }
+    DropFiles((HDROP)wParam);
+    return TRUE;
   }
   else if (uMsg == WM_COMMAND)
   {
