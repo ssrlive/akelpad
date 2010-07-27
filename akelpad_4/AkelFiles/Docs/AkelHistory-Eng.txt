@@ -4,6 +4,7 @@ AkelPad 4.4.6 ()
 Changed: integrated parameter "ReplaceAllAndClose" in "SearchOptions".
 
 Added: search option for automatically check "In selection" if selection not empty.
+Added: on logout the user prompted to save unsaved documents.
 Added: /SaveFile() command line method now can accept -1 as the encoding and BOM, which
        means using the current values of the document.
 
