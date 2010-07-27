@@ -833,13 +833,13 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,51,24,13,ES_AUTOHSCROLL
     LTEXT           "domyœlne rozszerzenie nazwy przy zapisie",IDC_STATIC,37,
                     53,171,8
-    GROUPBOX        "Okno dialogowe: Zamieñ",IDC_STATIC,9,72,200,40
+    GROUPBOX        "Okno dialogowe: Zamieñ",IDC_STATIC,9,72,200,41
     CONTROL         "Zamieñ wszystko – zamyka okno dialogowe",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,84,185,10
+                    WS_TABSTOP,17,85,185,10
     CONTROL         "Ustaw ""W zaznaczeniu"" jeœli jest zaznaczenie",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,96,185,10
+                    WS_TABSTOP,17,97,185,10
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 220, 207
