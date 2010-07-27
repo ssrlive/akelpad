@@ -4832,7 +4832,7 @@ void AE_StackCloneDelete(AECLONE *aec)
 
     if (!aeMaster->nCloneCount)
     {
-      //Last clone deleted - update selection of mater window
+      //Last clone deleted - update selection of master window
       AE_UpdateSelection(aeMaster, AESELT_COLUMNASIS|AESELT_LOCKNOTIFY|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE|AESELT_LOCKCARET|AESELT_LOCKUNDOGROUPING|AESELT_RESETSELECTION);
     }
   }
