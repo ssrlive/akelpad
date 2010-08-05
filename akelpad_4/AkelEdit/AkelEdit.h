@@ -3682,7 +3682,7 @@ ______________
 
 Set tab stop size.
 
-(int)wParam == new tab stop size in characters. Use default value if zero.
+(int)wParam == new tab stop size in characters. Default value is used if zero.
 lParam      == not used.
 
 Return Value
