@@ -1,4 +1,10 @@
 
+AkelPad 4.4.7 ()
+----------------------------
+Added: option in "Select Window" dialog to invert the selection, and also the ability
+       to display only unmodified files (PMDI/MDI).
+
+
 AkelPad 4.4.6 (Jul 27, 2010)
 ----------------------------
 Changed: integrated parameter "ReplaceAllAndClose" in "SearchOptions".

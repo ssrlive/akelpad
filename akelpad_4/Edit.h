@@ -20,8 +20,8 @@
 #define APP_MUTEXW                  L"AkelPad Mutex"
 #define APP_REGHOMEA                 "Software\\Akelsoft\\AkelPad"
 #define APP_REGHOMEW                L"Software\\Akelsoft\\AkelPad"
-#define APP_ABOUT_VERSIONA           "AkelPad 4.4.6"
-#define APP_ABOUT_VERSIONW          L"AkelPad 4.4.6"
+#define APP_ABOUT_VERSIONA           "AkelPad 4.4.7"
+#define APP_ABOUT_VERSIONW          L"AkelPad 4.4.7"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
@@ -305,6 +305,12 @@
 
 //Mdi list options
 #define MLO_ONLYNAMES      0x1
+
+//Mdi list modify filter
+#define MLMF_ALL            0
+#define MLMF_ONLYMODIFIED   1
+#define MLMF_ONLYUNMODIFIED 2
+
 
 
 //// Structures
@@ -814,7 +820,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void FillMdiListListBox(HWND hWnd, BOOL bSort, BOOL bOnlyModified, BOOL bOnlyNames);
+void FillMdiListListBox(HWND hWnd, BOOL bSort, int nModifyFilter, BOOL bOnlyNames);
 int MoveListBoxItem(HWND hWnd, int nOldIndex, int nNewIndex);
 BOOL ShiftListBoxSelItems(HWND hWnd, BOOL bMoveDown);
 BOOL SaveListBoxSelItems(HWND hWnd);
