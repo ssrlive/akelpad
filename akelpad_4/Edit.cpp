@@ -13528,7 +13528,7 @@ BOOL CloseListBoxSelItems(HWND hWnd)
     {
       if ((int)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
       {
-        if (DestroyMdiFrameWindow(lpFrameCurrent) != FWDE_SUCCESS)
+        if (DestroyMdiFrameWindow(lpFrame) != FWDE_SUCCESS)
         {
           bResult=FALSE;
           break;
