@@ -12976,14 +12976,15 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndUp;
   static HWND hWndDown;
   static HWND hWndSort;
-  static HWND hWndModified;
-  static HWND hWndNames;
   static HWND hWndFilesGroup;
   static HWND hWndSave;
   static HWND hWndClose;
+  static HWND hWndModified;
+  static HWND hWndNames;
   static HWND hWndCancel;
+  static HMENU hMenuList;
+  static int nModifyFilter;
   static BOOL bListChanged;
-  static BOOL bOnlyModified;
   static DIALOGRESIZE drs[]={{&hWndList,         DRS_SIZE|DRS_X, 0},
                              {&hWndList,         DRS_SIZE|DRS_Y, 0},
                              {&hWndStats,        DRS_MOVE|DRS_X, 0},
@@ -12998,14 +12999,30 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                              {&hWndUp,           DRS_MOVE|DRS_X, 0},
                              {&hWndDown,         DRS_MOVE|DRS_X, 0},
                              {&hWndSort,         DRS_MOVE|DRS_X, 0},
-                             {&hWndModified,     DRS_MOVE|DRS_X, 0},
-                             {&hWndNames,        DRS_MOVE|DRS_X, 0},
                              {&hWndFilesGroup,   DRS_MOVE|DRS_X, 0},
                              {&hWndSave,         DRS_MOVE|DRS_X, 0},
                              {&hWndClose,        DRS_MOVE|DRS_X, 0},
+                             {&hWndModified,     DRS_MOVE|DRS_X, 0},
+                             {&hWndNames,        DRS_MOVE|DRS_X, 0},
                              {&hWndCancel,       DRS_MOVE|DRS_X, 0},
                              {&hWndCancel,       DRS_MOVE|DRS_Y, 0},
                              {0, 0, 0}};
+  static int lpMenuItems[]={IDC_MDILIST_HORZ,
+                            IDC_MDILIST_VERT,
+                            -1,
+                            IDC_MDILIST_UP,
+                            IDC_MDILIST_DOWN,
+                            IDC_MDILIST_SORT,
+                            -1,
+                            IDC_MDILIST_SAVE,
+                            IDC_MDILIST_CLOSE,
+                            -1,
+                            IDC_MDILIST_ALL,
+                            IDC_MDILIST_ONLYMODIFIED,
+                            IDC_MDILIST_ONLYUNMODIFIED,
+                            -1,
+                            IDC_MDILIST_INVERTSELECTION,
+                            0};
   int nItem;
 
   if (uMsg == WM_INITDIALOG)
@@ -13022,11 +13039,11 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndUp=GetDlgItem(hDlg, IDC_MDILIST_UP);
     hWndDown=GetDlgItem(hDlg, IDC_MDILIST_DOWN);
     hWndSort=GetDlgItem(hDlg, IDC_MDILIST_SORT);
-    hWndModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
-    hWndNames=GetDlgItem(hDlg, IDC_MDILIST_ONLYNAMES);
     hWndFilesGroup=GetDlgItem(hDlg, IDC_MDILIST_FILES_GROUP);
     hWndSave=GetDlgItem(hDlg, IDC_MDILIST_SAVE);
     hWndClose=GetDlgItem(hDlg, IDC_MDILIST_CLOSE);
+    hWndModified=GetDlgItem(hDlg, IDC_MDILIST_ONLYMODIFIED);
+    hWndNames=GetDlgItem(hDlg, IDC_MDILIST_ONLYNAMES);
     hWndCancel=GetDlgItem(hDlg, IDCANCEL);
 
     SendMessage(hWndSearch, EM_LIMITTEXT, MAX_PATH, 0);
@@ -13039,13 +13056,69 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (moCur.dwMdiListOptions & MLO_ONLYNAMES)
       SendMessage(hWndNames, BM_SETCHECK, BST_CHECKED, 0);
 
-    bOnlyModified=FALSE;
+    nModifyFilter=MLMF_ALL;
     bListChanged=FALSE;
-    FillMdiListListBox(hWndList, FALSE, bOnlyModified, (moCur.dwMdiListOptions & MLO_ONLYNAMES));
+    FillMdiListListBox(hWndList, FALSE, nModifyFilter, (moCur.dwMdiListOptions & MLO_ONLYNAMES));
     if ((nItem=SendMessage(hTab, TCM_GETCURSEL, 0, 0)) != -1)
       SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
 
+    if (hMenuList=CreatePopupMenu())
+    {
+      for (nItem=0; lpMenuItems[nItem]; ++nItem)
+      {
+        if (lpMenuItems[nItem] == -1)
+        {
+          AppendMenuWide(hMenuList, MF_SEPARATOR, (UINT)-1, NULL);
+        }
+        else
+        {
+          if (lpMenuItems[nItem] == IDC_MDILIST_ALL)
+            LoadStringWide(hLangLib, STR_ALLFILES, wbuf, BUFFER_SIZE);
+          else if (lpMenuItems[nItem] == IDC_MDILIST_ONLYMODIFIED)
+            LoadStringWide(hLangLib, STR_ONLYMODIFIED, wbuf, BUFFER_SIZE);
+          else if (lpMenuItems[nItem] == IDC_MDILIST_ONLYUNMODIFIED)
+            LoadStringWide(hLangLib, STR_ONLYUNMODIFIED, wbuf, BUFFER_SIZE);
+          else if (lpMenuItems[nItem] == IDC_MDILIST_INVERTSELECTION)
+            LoadStringWide(hLangLib, STR_INVERTSELECTION, wbuf, BUFFER_SIZE);
+          else
+            GetDlgItemTextWide(hDlg, lpMenuItems[nItem], wbuf, BUFFER_SIZE);
+          AppendMenuWide(hMenuList, MF_STRING, lpMenuItems[nItem], wbuf);
+        }
+      }
+    }
+
     PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+  }
+  else if (uMsg == WM_CONTEXTMENU)
+  {
+    if ((HWND)wParam == hWndList)
+    {
+      POINT pt;
+      HWND hWndControl;
+      BOOL bEnable;
+
+      if (lParam == -1)
+      {
+        pt.x=0;
+        pt.y=0;
+        ClientToScreen(hWndList, &pt);
+      }
+      else GetCursorPos(&pt);
+
+      for (nItem=0; lpMenuItems[nItem]; ++nItem)
+      {
+        if (lpMenuItems[nItem] != -1)
+        {
+          if (hWndControl=GetDlgItem(hDlg, lpMenuItems[nItem]))
+          {
+            bEnable=IsWindowEnabled(hWndControl);
+            EnableMenuItem(hMenuList, lpMenuItems[nItem], bEnable?MF_ENABLED:MF_GRAYED);
+          }
+        }
+      }
+      CheckMenuRadioItem(hMenuList, IDC_MDILIST_ALL, IDC_MDILIST_ONLYUNMODIFIED, IDC_MDILIST_ALL + nModifyFilter, MF_BYCOMMAND);
+      TrackPopupMenu(hMenuList, TPM_LEFTBUTTON|TPM_RIGHTBUTTON, pt.x, pt.y, 0, hDlg, NULL);
+    }
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -13096,14 +13169,18 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDC_MDILIST_SORT)
     {
-      FillMdiListListBox(hWndList, TRUE, bOnlyModified, (moCur.dwMdiListOptions & MLO_ONLYNAMES));
+      FillMdiListListBox(hWndList, TRUE, nModifyFilter, (moCur.dwMdiListOptions & MLO_ONLYNAMES));
       bListChanged=TRUE;
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
-    else if (LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED)
+    else if (LOWORD(wParam) == IDC_MDILIST_SAVE)
     {
-      bOnlyModified=SendMessage(hWndModified, BM_GETCHECK, 0, 0);
-      FillMdiListListBox(hWndList, FALSE, bOnlyModified, (moCur.dwMdiListOptions & MLO_ONLYNAMES));
+      SaveListBoxSelItems(hWndList);
+    }
+    else if (LOWORD(wParam) == IDC_MDILIST_CLOSE)
+    {
+      if (CloseListBoxSelItems(hWndList))
+        SetFocus(hWndList);
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
     else if (LOWORD(wParam) == IDC_MDILIST_ONLYNAMES)
@@ -13130,15 +13207,42 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
     }
-    else if (LOWORD(wParam) == IDC_MDILIST_SAVE)
+    else if (LOWORD(wParam) == IDC_MDILIST_ALL ||
+             LOWORD(wParam) == IDC_MDILIST_ONLYMODIFIED ||
+             LOWORD(wParam) == IDC_MDILIST_ONLYUNMODIFIED)
     {
-      SaveListBoxSelItems(hWndList);
+      if (LOWORD(wParam) - IDC_MDILIST_ALL != nModifyFilter)
+      {
+        nModifyFilter=LOWORD(wParam) - IDC_MDILIST_ALL;
+        FillMdiListListBox(hWndList, FALSE, nModifyFilter, (moCur.dwMdiListOptions & MLO_ONLYNAMES));
+        PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+      }
     }
-    else if (LOWORD(wParam) == IDC_MDILIST_CLOSE)
+    else if (LOWORD(wParam) == IDC_MDILIST_INVERTSELECTION)
     {
-      if (CloseListBoxSelItems(hWndList))
-        SetFocus(hWndList);
-      PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+      int *lpSelItems;
+      int nCount;
+      int nSelCount;
+      int nItem;
+      int nSelItem=0;
+
+      if ((nCount=SendMessage(hWndList, LB_GETCOUNT, 0, 0)) > 0)
+      {
+        nSelCount=GetListBoxSelItems(hWndList, &lpSelItems);
+        SendMessage(hWndList, LB_SETSEL, FALSE, -1);
+
+        for (nItem=0; nItem < nCount; ++nItem)
+        {
+          while (nSelItem < nSelCount && lpSelItems[nSelItem] < nItem)
+            ++nSelItem;
+
+          if (nItem != lpSelItems[nSelItem])
+            SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
+        }
+        FreeListBoxSelItems(&lpSelItems);
+
+        PostMessage(hDlg, WM_COMMAND, MAKELONG(IDC_MDILIST_LIST, LBN_SELCHANGE), 0);
+      }
     }
     else if (LOWORD(wParam) == IDC_MDILIST_LIST)
     {
@@ -13149,9 +13253,9 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         nCount=SendMessage(hWndList, LB_GETCOUNT, 0, 0);
         nSelCount=SendMessage(hWndList, LB_GETSELCOUNT, 0, 0);
-        EnableWindow(hWndUp, nSelCount > 0 && !bOnlyModified);
-        EnableWindow(hWndDown, nSelCount > 0 && !bOnlyModified);
-        EnableWindow(hWndSort, !bOnlyModified);
+        EnableWindow(hWndUp, nSelCount > 0 && !nModifyFilter);
+        EnableWindow(hWndDown, nSelCount > 0 && !nModifyFilter);
+        EnableWindow(hWndSort, !nModifyFilter);
         EnableWindow(hWndSave, nSelCount > 0);
         EnableWindow(hWndClose, nSelCount > 0);
         EnableWindow(hWndModified, !bListChanged);
@@ -13171,7 +13275,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int nItemOld;
       int nData;
 
-      if (!bOnlyModified && bListChanged)
+      if (!nModifyFilter && bListChanged)
       {
         for (nItemNew=0; 1; ++nItemNew)
         {
@@ -13203,7 +13307,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   return FALSE;
 }
 
-void FillMdiListListBox(HWND hWnd, BOOL bSort, BOOL bOnlyModified, BOOL bOnlyNames)
+void FillMdiListListBox(HWND hWnd, BOOL bSort, int nModifyFilter, BOOL bOnlyNames)
 {
   TCITEMW tcItem;
   FRAMEDATA *lpFrame;
@@ -13220,7 +13324,9 @@ void FillMdiListListBox(HWND hWnd, BOOL bSort, BOOL bOnlyModified, BOOL bOnlyNam
       break;
     lpFrame=(FRAMEDATA *)tcItem.lParam;
 
-    if (!bOnlyModified || lpFrame->ei.bModified)
+    if (nModifyFilter == MLMF_ALL ||
+        (nModifyFilter == MLMF_ONLYMODIFIED && lpFrame->ei.bModified) ||
+        (nModifyFilter == MLMF_ONLYUNMODIFIED && !lpFrame->ei.bModified))
     {
       xprintfW(wbuf, L"%s%s", bOnlyNames?GetFileName(lpFrame->wszFile):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
 
@@ -14989,7 +15095,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
                 SetParametersExpChar(&hParamStack, lpFrameCurrent->wszFile, wszExeDir);
                 wpText=(wchar_t *)GetParameterExpCharW(&hParamStack, 1);
                 bEscSequences=GetParameterInt(&hParamStack, 2);
-  
+
                 if (bEscSequences)
                 {
                   if (nUnescTextLen=TranslateEscapeString(lpFrameCurrent, wpText, NULL))

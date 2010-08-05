@@ -67,6 +67,7 @@
 #include "AkelEdit\StrFunc.h"
 
 //Include wide functions
+#define AppendMenuWide
 #define ComboBox_AddStringWide
 #define ComboBox_FindStringExactWide
 #define ComboBox_FindStringWide
