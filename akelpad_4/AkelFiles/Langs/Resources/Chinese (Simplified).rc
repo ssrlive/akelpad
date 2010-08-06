@@ -900,7 +900,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "消息队列的错误。"
-    MSG_ERROR_LIMIT_REACHED "由于文本的限制而无法进行的操作。\n该限制将会被增加。"
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT "分配内存给编辑控件时出错。"
     MSG_ERROR_NOT_ENOUGH_MEMORY "内存不足。"
     MSG_ERROR_BINARY        """%s"" 是一个二进制文件。继续?"

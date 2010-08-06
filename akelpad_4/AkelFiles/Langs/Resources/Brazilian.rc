@@ -913,7 +913,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Erro na fila de mensagens."
-    MSG_ERROR_LIMIT_REACHED "A ação não pôde ser realizada devido ao limite no tamanho do texto.\nO limite será aumentado."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Erro ao alocar memória para o controle de edição."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Memória insuficiente."

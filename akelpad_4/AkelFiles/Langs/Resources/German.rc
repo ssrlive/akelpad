@@ -913,7 +913,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Fehler in der Nachrichtenfolge."
-    MSG_ERROR_LIMIT_REACHED "Die Aktion konnte nicht ausgeführt werden, weil der Textlimit erreicht wurde.\nDer Limit wird erhöht."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Fehler beim Zuweisen des Speichers f?r das Redaktionsfenster."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Zu wenig Speicher."

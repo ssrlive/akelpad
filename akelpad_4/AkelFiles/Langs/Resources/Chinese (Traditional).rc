@@ -904,7 +904,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "佇列訊息錯誤."
-    MSG_ERROR_LIMIT_REACHED "文字上限超出而無法執行動作.\n將增加上限值."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT "編輯控制的記憶體分配錯誤."
     MSG_ERROR_NOT_ENOUGH_MEMORY "記憶體不足."
     MSG_ERROR_BINARY        """%s"" 是個2進位檔案. 要繼續嗎?"
