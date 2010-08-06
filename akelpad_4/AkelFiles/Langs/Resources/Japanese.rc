@@ -911,7 +911,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "メッセージ キューのエラーです。"
-    MSG_ERROR_LIMIT_REACHED "動作はテキストの制限のため行えませんでした。\n制限は増加します。"
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "エディット コントロールのメモリの割り当てエラーです。"
     MSG_ERROR_NOT_ENOUGH_MEMORY "十分でないメモリです。"

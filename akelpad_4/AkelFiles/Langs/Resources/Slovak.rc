@@ -922,7 +922,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Chyba frontu správ."
-    MSG_ERROR_LIMIT_REACHED "Akcia nemôe by vykonaná lebo je nastavenı nízky limit.\nLimit bude automaticky navıšenı."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Chyba! Nemôem alokova dostatoèné mnostvo pamäte pre editaèné pole."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Nedostatok pamäte."

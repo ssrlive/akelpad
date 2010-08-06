@@ -914,7 +914,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Fout in de berichtenwachtrij."
-    MSG_ERROR_LIMIT_REACHED "Actie kan niet worden uitgevoerd omdat de tekstlimiet bereikt werd.\nDe limiet  \nwordt verhoogd."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Fout bij de toewijzing van geheugen."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Niet genoeg geheugen."

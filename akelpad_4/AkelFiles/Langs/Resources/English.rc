@@ -904,7 +904,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Error in message queue."
-    MSG_ERROR_LIMIT_REACHED "Action couldn't be performed due to text limit.\nThe limit will be increased."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Error allocating memory for edit control."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Not enough memory."

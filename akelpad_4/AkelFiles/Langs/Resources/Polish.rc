@@ -909,7 +909,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "B³¹d w kolejce wiadomoœci."
-    MSG_ERROR_LIMIT_REACHED "Operacja nie mog³a byæ wykonana ze wzglêdu na limit tekstu.\nLimit zostanie zwiêkszony."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "B³¹d przydzielania pamiêci dla kontroli edycji."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Niewystarczaj¹ca iloœæ pamiêci."

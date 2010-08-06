@@ -918,7 +918,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Virhe viestijonossa."
-    MSG_ERROR_LIMIT_REACHED "Toimintoa ei voitu suorittaa tekstirajoituksen vuoksi.\nRajoitusta suurennetaan."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Virhe varattaessa muistia muokkauss‰‰timelle."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Muisti ei riit‰."

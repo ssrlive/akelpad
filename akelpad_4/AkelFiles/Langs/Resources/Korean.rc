@@ -906,7 +906,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "메시지 큐에 에러 발생."
-    MSG_ERROR_LIMIT_REACHED "텍스트 제한때문에 액션을 수행하지 못했습니다.\n제한을 증가시킵니다."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "에디트 컨트롤 메모리 할당 중 오류가 발생했습니다."
     MSG_ERROR_NOT_ENOUGH_MEMORY "메모리가 부족합니다."

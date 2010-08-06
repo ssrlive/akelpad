@@ -932,7 +932,6 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     MSG_ERROR_IN_MESSAGE_QUEUE "Памылка ў чарзе паведамленняў."
-    MSG_ERROR_LIMIT_REACHED "Аперацыя не можа быць здзейсненая ў сувязі з дасягненнем ліміту тэксту.\nЛіміт будзе павялічаны."
     MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT 
                             "Памылка вылучэння памяці для акна рэдагавання."
     MSG_ERROR_NOT_ENOUGH_MEMORY "Бракуе памяці."
