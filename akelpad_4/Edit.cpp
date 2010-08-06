@@ -10395,21 +10395,17 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
           }
+          ctElement=StackThemeGetByColors(&hThemesStack, &aecColorsDlg);
         }
 
-        if (nSelection < 0)
-        {
-          EnableWindow(hWndThemeSave, nNameLen?TRUE:FALSE);
-          EnableWindow(hWndThemeDelete, FALSE);
-        }
-        else if (nSelection == 0)
+        if (!nSelection)
         {
           EnableWindow(hWndThemeSave, FALSE);
           EnableWindow(hWndThemeDelete, FALSE);
         }
-        else if (nSelection > 0)
+        else
         {
-          EnableWindow(hWndThemeSave, FALSE);
+          EnableWindow(hWndThemeSave, (nNameLen && (nSelection < 0 || !ctElement))?TRUE:FALSE);
           EnableWindow(hWndThemeDelete, TRUE);
         }
       }
@@ -10431,17 +10427,12 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
 
-        if (nSelection < 0)
-        {
-          EnableWindow(hWndThemeSave, TRUE);
-          EnableWindow(hWndThemeDelete, FALSE);
-        }
-        else if (nSelection == 0)
+        if (!nSelection)
         {
           EnableWindow(hWndThemeSave, FALSE);
           EnableWindow(hWndThemeDelete, FALSE);
         }
-        else if (nSelection > 0)
+        else
         {
           EnableWindow(hWndThemeSave, FALSE);
           EnableWindow(hWndThemeDelete, TRUE);
@@ -10450,11 +10441,20 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDC_COLORS_THEME_SAVE)
     {
+      COLORTHEME *ctElement;
+
       if (GetWindowTextWide(hWndThemeName, wbuf, BUFFER_SIZE))
       {
-        StackThemeAdd(&hThemesStack, wbuf, &aecColorsDlg);
-        ComboBox_AddStringWide(hWndThemeName, wbuf);
-
+        if (ctElement=StackThemeGetByName(&hThemesStack, wbuf))
+        {
+          xstrcpynW(ctElement->wszName, wbuf, MAX_PATH);
+          ctElement->aec=aecColorsDlg;
+        }
+        else
+        {
+          StackThemeAdd(&hThemesStack, wbuf, &aecColorsDlg);
+          ComboBox_AddStringWide(hWndThemeName, wbuf);
+        }
         EnableWindow(hWndThemeSave, FALSE);
         EnableWindow(hWndThemeDelete, TRUE);
       }

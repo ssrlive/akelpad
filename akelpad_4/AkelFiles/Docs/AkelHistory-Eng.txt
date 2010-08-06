@@ -3,6 +3,7 @@ AkelPad 4.4.7 ()
 ----------------------------
 Added: option in "Select Window" dialog to invert the selection, and also the ability
        to display only unmodified files (PMDI/MDI).
+Added: opportunity to rewrite color theme.
 
 Fixed: closing selected tabs in "Select Window" dialog (PMDI/MDI).
 
