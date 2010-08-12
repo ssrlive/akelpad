@@ -341,6 +341,7 @@
 #define BIF_BITMAP      0x001 //Bitmap handle is used in BUTTONDRAW.hImage.
 #define BIF_ICON        0x002 //Icon handle is used in BUTTONDRAW.hImage.
 #define BIF_CROSS       0x004 //Draw small cross 8x7. BUTTONDRAW.hImage is ignored.
+#define BIF_DOWNARROW   0x008 //Draw small down arrow 7x4. BUTTONDRAW.hImage is ignored.
 #define BIF_ETCHED      0x100 //Draw edge around button.
 #define BIF_ENABLEFOCUS 0x200 //Draw focus rectangle when button receive focus.
 
@@ -2693,7 +2694,7 @@ _________________
 Draw icon or bitmap on button.
 
 (HWND)wParam         == button handle. Button must have BS_OWNERDRAW style.
-(BUTTONDRAW *)lParam == pointer to a BUTTONDRAW structure.
+(BUTTONDRAW *)lParam == pointer to a BUTTONDRAW structure. If NULL, button draw processing will be removed.
 
 Return Value
  Zero.

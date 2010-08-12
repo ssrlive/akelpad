@@ -513,6 +513,7 @@ typedef struct _BUTTONDRAWITEM {
   struct _BUTTONDRAWITEM *next;
   struct _BUTTONDRAWITEM *prev;
   HWND hWnd;
+  WNDPROC OldButtonProc;
   BUTTONDRAW bd;
 } BUTTONDRAWITEM;
 

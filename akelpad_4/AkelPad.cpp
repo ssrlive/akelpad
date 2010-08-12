@@ -2021,13 +2021,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       BUTTONDRAWITEM *lpButtonDraw;
 
-      if (lpButtonDraw=StackButtonDrawInsert(&hButtonDrawStack))
+      if ((BUTTONDRAW *)lParam == NULL)
       {
-        lpButtonDraw->hWnd=(HWND)wParam;
-        xmemcpy(&lpButtonDraw->bd, (BUTTONDRAW *)lParam, sizeof(BUTTONDRAW));
+        if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, (HWND)wParam))
+        {
+          SetWindowLongWide((HWND)wParam, GWL_WNDPROC, (LONG)lpButtonDraw->OldButtonProc);
+          StackButtonDrawDelete(&hButtonDrawStack, lpButtonDraw);
+        }
+      }
+      else
+      {
+        if (lpButtonDraw=StackButtonDrawInsert(&hButtonDrawStack))
+        {
+          lpButtonDraw->hWnd=(HWND)wParam;
+          xmemcpy(&lpButtonDraw->bd, (BUTTONDRAW *)lParam, sizeof(BUTTONDRAW));
 
-        OldCloseButtonProc=(WNDPROC)GetWindowLongWide((HWND)wParam, GWL_WNDPROC);
-        SetWindowLongWide((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
+          lpButtonDraw->OldButtonProc=(WNDPROC)GetWindowLongWide((HWND)wParam, GWL_WNDPROC);
+          SetWindowLongWide((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
+        }
       }
       return 0;
     }
@@ -4934,99 +4945,99 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  static BUTTONDRAWITEM *lpButtonDraw;
   static BOOL bMouseMove=FALSE;
   static BOOL bMouseDown=FALSE;
   static BOOL bMousePush=FALSE;
 
-  if (uMsg == WM_LBUTTONDOWN ||
-      uMsg == WM_LBUTTONDBLCLK)
+  if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
   {
-    if (!bMouseDown)
+    if (uMsg == WM_LBUTTONDOWN ||
+        uMsg == WM_LBUTTONDBLCLK)
     {
-      if (!bMouseMove)
-        SetCapture(hWnd);
-      bMouseMove=FALSE;
-      bMouseDown=TRUE;
-      bMousePush=TRUE;
-    }
-    InvalidateRect(hWnd, NULL, FALSE);
-    return 0;
-  }
-  else if (uMsg == WM_MOUSEMOVE)
-  {
-    if (!bMouseDown)
-    {
-      if (!bMouseMove)
+      if (!bMouseDown)
       {
-        SetCapture(hWnd);
-        bMouseMove=TRUE;
-        InvalidateRect(hWnd, NULL, FALSE);
+        if (!bMouseMove)
+          SetCapture(hWnd);
+        bMouseMove=FALSE;
+        bMouseDown=TRUE;
+        bMousePush=TRUE;
       }
-      else if (!IsCursorOnWindow(hWnd))
+      InvalidateRect(hWnd, NULL, FALSE);
+      return 0;
+    }
+    else if (uMsg == WM_MOUSEMOVE)
+    {
+      if (!bMouseDown)
+      {
+        if (!bMouseMove)
+        {
+          SetCapture(hWnd);
+          bMouseMove=TRUE;
+          InvalidateRect(hWnd, NULL, FALSE);
+        }
+        else if (!IsCursorOnWindow(hWnd))
+        {
+          bMouseMove=FALSE;
+          ReleaseCapture();
+          InvalidateRect(hWnd, NULL, FALSE);
+          UpdateWindow(hWnd);
+        }
+      }
+      else
+      {
+        if (IsCursorOnWindow(hWnd) != bMousePush)
+        {
+          bMousePush=!bMousePush;
+          InvalidateRect(hWnd, NULL, FALSE);
+        }
+      }
+    }
+    else if (uMsg == WM_LBUTTONUP ||
+             uMsg == WM_CAPTURECHANGED)
+    {
+      if (bMouseDown)
+      {
+        BOOL bPost=FALSE;
+
+        if (uMsg == WM_LBUTTONUP)
+          bPost=bMousePush;
+        bMousePush=FALSE;
+        bMouseDown=FALSE;
+        ReleaseCapture();
+        InvalidateRect(hWnd, NULL, FALSE);
+        UpdateWindow(hWnd);
+
+        if (bPost)
+          PostMessage(GetParent(hWnd), WM_COMMAND, MAKELONG(GetDlgCtrlID(hWnd), 0), 0);
+      }
+      else if (bMouseMove)
       {
         bMouseMove=FALSE;
         ReleaseCapture();
         InvalidateRect(hWnd, NULL, FALSE);
+        UpdateWindow(hWnd);
       }
+      return 0;
     }
-    else
-    {
-      if (IsCursorOnWindow(hWnd) != bMousePush)
-      {
-        bMousePush=!bMousePush;
-        InvalidateRect(hWnd, NULL, FALSE);
-      }
-    }
-  }
-  else if (uMsg == WM_LBUTTONUP ||
-           uMsg == WM_CAPTURECHANGED)
-  {
-    if (bMouseDown)
-    {
-      bMouseDown=FALSE;
-      ReleaseCapture();
-      InvalidateRect(hWnd, NULL, FALSE);
-
-      if (bMousePush)
-      {
-        PostMessage(GetParent(hWnd), WM_COMMAND, MAKELONG(GetDlgCtrlID(hWnd), 0), 0);
-        bMousePush=FALSE;
-      }
-    }
-    else if (bMouseMove)
-    {
-      bMouseMove=FALSE;
-      ReleaseCapture();
-      InvalidateRect(hWnd, NULL, FALSE);
-    }
-    return 0;
-  }
-  else if (uMsg == WM_SETFOCUS)
-  {
-    BUTTONDRAWITEM *lpButtonDraw;
-
-    if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
+    else if (uMsg == WM_SETFOCUS)
     {
       if (lpButtonDraw->bd.dwFlags & BIF_ENABLEFOCUS)
         InvalidateRect(hWnd, NULL, FALSE);
     }
-  }
-  else if (uMsg == WM_ENABLE)
-  {
-    InvalidateRect(hWnd, NULL, FALSE);
-  }
-  else if (uMsg == WM_ERASEBKGND)
-  {
-    return 1;
-  }
-  else if (uMsg == WM_PAINT)
-  {
-    BUTTONDRAWITEM *lpButtonDraw;
-    HDC hDC;
-    RECT rcButton;
-
-    if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
+    else if (uMsg == WM_ENABLE)
     {
+      InvalidateRect(hWnd, NULL, FALSE);
+    }
+    else if (uMsg == WM_ERASEBKGND)
+    {
+      return 1;
+    }
+    else if (uMsg == WM_PAINT)
+    {
+      HDC hDC;
+      RECT rcButton;
+
       ValidateRect(hWnd, NULL);
 
       if (hDC=GetDC(hWnd))
@@ -5075,18 +5086,14 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             DrawStateA(hDC, NULL, (DRAWSTATEPROC)NULL, (LPARAM)lpButtonDraw->bd.hImage, (WPARAM)NULL, x, y, 0, 0, dwFlags);
           }
         }
-        else if (lpButtonDraw->bd.dwFlags & BIF_CROSS)
+        else if ((lpButtonDraw->bd.dwFlags & BIF_CROSS) ||
+                 (lpButtonDraw->bd.dwFlags & BIF_DOWNARROW))
         {
           //Draw cross
           HPEN hPen;
           HPEN hPenOld;
-          int nCrossWidth=8;
-          int nCrossHeight=7;
-          int x=(rcButton.right - rcButton.left) / 2 - nCrossWidth / 2 + (bMousePush?1:0);
-          int y=(rcButton.bottom - rcButton.top) / 2 - nCrossHeight / 2 + (bMousePush?1:0);
-
-          //Draw on one pixel higher
-          --y;
+          int x=(rcButton.right - rcButton.left) / 2 + (bMousePush?1:0);
+          int y=(rcButton.bottom - rcButton.top) / 2 + (bMousePush?1:0);
 
           if (hPen=CreatePen(PS_SOLID, 0, GetSysColor(COLOR_BTNTEXT)))
           {
@@ -5094,24 +5101,49 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
             //Draw cross manually
             {
-              POINT ptCross[]={{0, 0}, {2, 0},
-                               {6, 0}, {8, 0},
-                               {1, 1}, {3, 1},
-                               {5, 1}, {7, 1},
-                               {2, 2}, {6, 2},
-                               {3, 3}, {5, 3},
-                               {2, 4}, {6, 4},
-                               {1, 5}, {3, 5},
-                               {5, 5}, {7, 5},
-                               {0, 6}, {2, 6},
-                               {6, 6}, {8, 6}};
-              int nElements=sizeof(ptCross) / sizeof(POINT);
+              POINT ptCross[]={
+                    {0, 0}, {2, 0},
+                    {6, 0}, {8, 0},
+                    {1, 1}, {3, 1},
+                    {5, 1}, {7, 1},
+                    {2, 2}, {6, 2},
+                    {3, 3}, {5, 3},
+                    {2, 4}, {6, 4},
+                    {1, 5}, {3, 5},
+                    {5, 5}, {7, 5},
+                    {0, 6}, {2, 6},
+                    {6, 6}, {8, 6}};
+              POINT ptDownArrow[]={
+                    {0, 0}, {7, 0},
+                    {1, 1}, {6, 1},
+                    {2, 2}, {5, 2},
+                    {3, 3}, {4, 3}};
+              POINT *ptDraw;
+              int nElements;
               int i;
+
+              if (lpButtonDraw->bd.dwFlags & BIF_CROSS)
+              {
+                ptDraw=ptCross;
+                nElements=sizeof(ptCross) / sizeof(POINT);
+                x-=(8) / 2;
+                y-=(7) / 2;
+
+                //Draw on one pixel higher
+                --y;
+              }
+              else if (lpButtonDraw->bd.dwFlags & BIF_DOWNARROW)
+              {
+                ptDraw=ptDownArrow;
+                nElements=sizeof(ptDownArrow) / sizeof(POINT);
+                x-=(7) / 2;
+                y-=(4) / 2;
+              }
 
               for (i=0; i < nElements; i+=2)
               {
-                MoveToEx(hDC, x + ptCross[i].x, y + ptCross[i].y, NULL);
-                LineTo(hDC, x + ptCross[i + 1].x, y + ptCross[i + 1].y);
+                MoveToEx(hDC, x + ptDraw[i].x, y + ptDraw[i].y, NULL);
+                LineTo(hDC, x + ptDraw[i + 1].x, y + ptDraw[i + 1].y);
               }
             }
             SelectObject (hDC, hPenOld);
@@ -5122,21 +5154,19 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         return TRUE;
       }
     }
-  }
-  else if (uMsg == WM_DESTROY)
-  {
-    BUTTONDRAWITEM *lpButtonDraw;
 
-    if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
+    if (!IsWindowUnicode(hWnd))
+      return CallWindowProcA(lpButtonDraw->OldButtonProc, hWnd, uMsg, wParam, lParam);
+    else
+      return CallWindowProcW(lpButtonDraw->OldButtonProc, hWnd, uMsg, wParam, lParam);
+
+    //Remove from stack
+    if (uMsg == WM_DESTROY)
     {
       StackButtonDrawDelete(&hButtonDrawStack, lpButtonDraw);
     }
   }
-
-  if (!IsWindowUnicode(hWnd))
-    return CallWindowProcA(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
-  else
-    return CallWindowProcW(OldCloseButtonProc, hWnd, uMsg, wParam, lParam);
+  return 0;
 }
 
 LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
