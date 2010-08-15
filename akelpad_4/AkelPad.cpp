@@ -1840,9 +1840,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else
           xmemcpy(&lfW, (LOGFONTW *)lParam, sizeof(LOGFONTW));
 
-        if (SetChosenFont(lpFrame, &lfW))
+        if (SetChosenFont(lpFrame->ei.hWndEdit, &lfW))
         {
           xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
+          UpdateMappedPrintWidth(lpFrame);
           return TRUE;
         }
       }
@@ -3127,8 +3128,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (DoViewFont(hMainWnd, &lpFrameCurrent->lf))
       {
-        if (SetChosenFont(lpFrameCurrent, &lpFrameCurrent->lf))
+        if (SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf))
         {
+          UpdateMappedPrintWidth(lpFrameCurrent);
           return TRUE;
         }
       }

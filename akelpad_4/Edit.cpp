@@ -331,11 +331,14 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwOptions|=AECO_ENTIRENEWLINEDRAW;
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, AECOOP_OR, dwOptions);
 
+  //Font
+  SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
+  UpdateMappedPrintWidth(lpFrame);
+
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrame->nUndoLimit, 0);
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETCOLORS, 0, (LPARAM)&lpFrame->aec);
   SetMargins(lpFrame->ei.hWndEdit, lpFrame->dwEditMargins, 0);
   SetTabStops(lpFrame->ei.hWndEdit, lpFrame->nTabStopSize, FALSE);
-  SetChosenFont(lpFrame, &lpFrame->lf);
   DoViewWordWrap(lpFrame, lpFrame->ei.bWordWrap, TRUE);
   SetNewLineStatus(lpFrame, lpFrame->ei.nNewLine, AENL_INPUT);
 
@@ -2239,7 +2242,8 @@ void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
     if (lpFrame->lf.lfHeight <= -1)
     {
       lpFrame->lf.lfHeight-=1;
-      SetChosenFont(lpFrame, &lpFrame->lf);
+      SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
+      UpdateMappedPrintWidth(lpFrame);
     }
   }
   else if (nAction == DECREASE_FONT)
@@ -2247,7 +2251,8 @@ void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
     if (lpFrame->lf.lfHeight < -1)
     {
       lpFrame->lf.lfHeight+=1;
-      SetChosenFont(lpFrame, &lpFrame->lf);
+      SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
+      UpdateMappedPrintWidth(lpFrame);
     }
   }
 }
@@ -6675,7 +6680,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     }
     SendMessage(hWndFilePreview, AEM_SETCOLORS, 0, (LPARAM)&lpFrameCurrent->aec);
     SetTabStops(hWndFilePreview, lpFrameCurrent->nTabStopSize, FALSE);
-    SetChosenFont(lpFrameCurrent, &lpFrameCurrent->lf);
+    SetChosenFont(hWndFilePreview, &lpFrameCurrent->lf);
 
     OldFilePreviewProc=(WNDPROC)GetWindowLongWide(hWndFilePreview, GWL_WNDPROC);
     SetWindowLongWide(hWndFilePreview, GWL_WNDPROC, (LONG)NewFilePreviewProc);
@@ -14644,14 +14649,13 @@ void StackIconsFree(HSTACK *hStack)
 //// Fonts
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
-HFONT SetChosenFont(FRAMEDATA *lpFrame, const LOGFONTW *lfFont)
+HFONT SetChosenFont(HWND hWnd, const LOGFONTW *lfFont)
 {
   FONTITEM *fi;
 
   if (!(fi=StackFontItemGet(&hFontsStack, lfFont)))
     fi=StackFontItemInsert(&hFontsStack, lfFont);
-  SendMessage(lpFrame->ei.hWndEdit, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
-  UpdateMappedPrintWidth(lpFrame);
+  SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
   return fi->hFont;
 }
 
@@ -15072,7 +15076,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
               {
                 xstrcpynW(lpFrameCurrent->lf.lfFaceName, wpFaceName, LF_FACESIZE);
               }
-              SetChosenFont(lpFrameCurrent, &lpFrameCurrent->lf);
+              SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf);
+              UpdateMappedPrintWidth(lpFrameCurrent);
             }
             else if (dwAction == EXTACT_RECODE)
             {
