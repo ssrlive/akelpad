@@ -877,7 +877,7 @@ ASSOCICON* StackIconInsert(HSTACK *hStack, const wchar_t *wpFile, int nFileLen);
 ASSOCICON* StackIconGet(HSTACK *hStack, const wchar_t *wpFile, int nFileLen, const wchar_t *wpExt);
 void StackIconsFree(HSTACK *hStack);
 
-HFONT SetChosenFont(FRAMEDATA *lpFrame, const LOGFONTW *lfFont);
+HFONT SetChosenFont(HWND hWnd, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemGet(HSTACK *hStack, const LOGFONTW *lfFont);
 void StackFontItemsFree(HSTACK *hStack);
