@@ -961,6 +961,7 @@ BEGIN
     MSG_CP_MISMATCH         "Rivi ""%d"" sis‰lt‰‰ symboleita, jotka menetet‰‰n t‰ll‰ koodauksella tallennettaessa. Jatketaanko?"
     MSG_RESTART_PROGRAM     "Muutokset tulevat voimaan ohjelman uudelleenk‰ynnistyksen j‰lkeen."
     MSG_SAVEIN_READONLY     """%s"" on vain luku -tiedosto. Jatketaanko?"
+    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
 END
 
 STRINGTABLE DISCARDABLE 

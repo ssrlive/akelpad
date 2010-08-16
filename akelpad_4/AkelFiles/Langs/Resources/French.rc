@@ -963,6 +963,7 @@ BEGIN
     MSG_CP_MISMATCH         "La ligne ""%d"" contient des symboles qui seront perdus lors de la sauvegarde dans ce codage. Continuer?"
     MSG_RESTART_PROGRAM     "Les changements seront visibles aprés redémarrage du programme."
     MSG_SAVEIN_READONLY     """%s"" en lecture seule. Continuer?"
+    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
 END
 
 STRINGTABLE DISCARDABLE 

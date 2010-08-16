@@ -964,6 +964,7 @@ BEGIN
     MSG_CP_MISMATCH         "Na riadku ""%d"" sú znaky, ktoré nie je moné uloi v tomto kódovaní. Pokraèova?"
     MSG_RESTART_PROGRAM     "Zmeny sa uplatnia po reštarte programu."
     MSG_SAVEIN_READONLY     "Súbor ""%s"" je v reime len na èítanie. Pokraèova?"
+    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
 END
 
 STRINGTABLE DISCARDABLE 

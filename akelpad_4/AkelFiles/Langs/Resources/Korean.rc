@@ -948,6 +948,7 @@ BEGIN
     MSG_CP_MISMATCH         """%d""번째 줄에 이 인코딩에서 손실되는 문자가 포함되어 있습니다. 계속 진행하시겠습니까?"
     MSG_RESTART_PROGRAM     "프로그램을 재시작하면 변경사항이 적용됩니다."
     MSG_SAVEIN_READONLY     """%s"" 파일은 읽기 전용입니다. 계속 진행하겠습니까?"
+    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
 END
 
 STRINGTABLE DISCARDABLE 

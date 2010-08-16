@@ -10447,21 +10447,33 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDC_COLORS_THEME_SAVE)
     {
       COLORTHEME *ctElement;
+      wchar_t wszThemeName[MAX_PATH];
+      BOOL bProcess=TRUE;
 
-      if (GetWindowTextWide(hWndThemeName, wbuf, BUFFER_SIZE))
+      if (GetWindowTextWide(hWndThemeName, wszThemeName, MAX_PATH))
       {
-        if (ctElement=StackThemeGetByName(&hThemesStack, wbuf))
+        if (ctElement=StackThemeGetByName(&hThemesStack, wszThemeName))
         {
-          xstrcpynW(ctElement->wszName, wbuf, MAX_PATH);
-          ctElement->aec=aecColorsDlg;
+          LoadStringWide(hLangLib, MSG_OVERWRITEPROMPT, wbuf, BUFFER_SIZE);
+          xprintfW(wbuf2, wbuf, ctElement->wszName);
+          if (API_MessageBox(hDlg, wbuf2, APP_MAIN_TITLEW, MB_YESNO|MB_ICONQUESTION) == IDYES)
+          {
+            xstrcpynW(ctElement->wszName, wszThemeName, MAX_PATH);
+            ctElement->aec=aecColorsDlg;
+          }
+          else bProcess=FALSE;
         }
         else
         {
-          StackThemeAdd(&hThemesStack, wbuf, &aecColorsDlg);
-          ComboBox_AddStringWide(hWndThemeName, wbuf);
+          StackThemeAdd(&hThemesStack, wszThemeName, &aecColorsDlg);
+          ComboBox_AddStringWide(hWndThemeName, wszThemeName);
         }
-        EnableWindow(hWndThemeSave, FALSE);
-        EnableWindow(hWndThemeDelete, TRUE);
+
+        if (bProcess)
+        {
+          EnableWindow(hWndThemeSave, FALSE);
+          EnableWindow(hWndThemeDelete, TRUE);
+        }
       }
     }
     else if (LOWORD(wParam) == IDC_COLORS_THEME_DELETE)
