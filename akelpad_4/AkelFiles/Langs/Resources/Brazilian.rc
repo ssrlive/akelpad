@@ -958,6 +958,7 @@ BEGIN
     MSG_CP_MISMATCH         "A linha ""%d"" contém caracteres que serão perdidos se salvar nesta codificação. Continuar ?"
     MSG_RESTART_PROGRAM     "As mudanças terão efeito a reiniciar o programa."
     MSG_SAVEIN_READONLY     """%s"" é um arquivo somente leitura. Continuar ?"
+    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
 END
 
 STRINGTABLE DISCARDABLE 

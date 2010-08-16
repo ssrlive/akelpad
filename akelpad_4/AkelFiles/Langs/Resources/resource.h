@@ -36,6 +36,7 @@
 #define MSG_CP_MISMATCH                 71
 #define MSG_RESTART_PROGRAM             72
 #define MSG_SAVEIN_READONLY             73
+#define MSG_OVERWRITEPROMPT             74
 #define STR_DOCNAME                     101
 #define STR_MODIFIED                    102
 #define STR_COUNT                       103

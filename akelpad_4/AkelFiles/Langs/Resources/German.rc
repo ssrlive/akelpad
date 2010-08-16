@@ -957,6 +957,7 @@ BEGIN
     MSG_CP_MISMATCH         "Die Zeile ""%d"" enthält Symbole, die verloren gehen, wenn in dieser Kodierung gespeichert wird. Fortsetzen?"
     MSG_RESTART_PROGRAM     "Die Änderungen werden nach einem Neustart wirksam."
     MSG_SAVEIN_READONLY     """%s"" ist eine schreibgeschützte Datei. Fortsetzen?"
+    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
 END
 
 STRINGTABLE DISCARDABLE 

@@ -944,6 +944,7 @@ BEGIN
     MSG_CP_MISMATCH         "行號為""%d""中包含有以本編碼保存時將會丟失的符號。繼續？"
     MSG_RESTART_PROGRAM     "變更將會在重新啟動程式後生效."
     MSG_SAVEIN_READONLY     """%s"" 是一個唯讀檔案. 要繼續嗎?"
+    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
 END
 
 STRINGTABLE DISCARDABLE 

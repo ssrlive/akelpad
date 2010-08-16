@@ -958,6 +958,7 @@ BEGIN
     MSG_CP_MISMATCH         "Regel ""%d"" bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks.  \nDoorgaan?"
     MSG_RESTART_PROGRAM     " bevat symbolen die verloren zullen gaan bij het opslaan in deze reeks. Doorgaan?"
     MSG_SAVEIN_READONLY     """%s"" is een alleen-lezen-bestand. Doorgaan?"
+    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
 END
 
 STRINGTABLE DISCARDABLE 
