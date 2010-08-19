@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.4.6                               *
+ *                      AkelEdit text control v1.4.7                               *
  *                                                                                 *
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -4783,6 +4783,18 @@ AECLONE* AE_StackCloneAdd(AKELEDIT *aeMaster, AKELEDIT *aeClone)
       aeClone->ptxt=aeMaster->ptxt;
       aeClone->popt=aeMaster->popt;
 
+      ////Save margins info
+      //aeClone->rcCloneMargins.left=aeClone->rcDraw.left - aeClone->rcEdit.left;
+      //aeClone->rcCloneMargins.top=aeClone->rcDraw.top - aeClone->rcEdit.top;
+      //aeClone->rcCloneMargins.right=aeClone->rcEdit.right - aeClone->rcDraw.right;
+      //aeClone->rcCloneMargins.bottom=aeClone->rcEdit.bottom - aeClone->rcDraw.bottom;
+
+      ////Copy margins info
+      //aeClone->rcDraw.left=aeClone->rcEdit.left + (aeMaster->rcDraw.left - aeMaster->rcEdit.left);
+      //aeClone->rcDraw.top=aeClone->rcEdit.top + (aeMaster->rcDraw.top - aeMaster->rcEdit.top);
+      //aeClone->rcDraw.right=aeClone->rcEdit.right - (aeMaster->rcEdit.right - aeMaster->rcDraw.right);
+      //aeClone->rcDraw.bottom=aeClone->rcEdit.bottom - (aeMaster->rcEdit.bottom - aeMaster->rcDraw.bottom);
+
       //Copy selection info
       xmemcpy(&aeClone->liFirstDrawLine, &aeMaster->liFirstDrawLine, (BYTE *)&aeMaster->hDC - (BYTE *)&aeMaster->liFirstDrawLine);
 
@@ -4822,6 +4834,12 @@ void AE_StackCloneDelete(AECLONE *aec)
     //Deassociate AKELTEXT and AKELOPTIONS pointers
     aeClone->ptxt=&aeClone->txt;
     aeClone->popt=&aeClone->opt;
+
+    ////Restore margins info
+    //aeClone->rcDraw.left=aeClone->rcEdit.left + aeClone->rcCloneMargins.left;
+    //aeClone->rcDraw.top=aeClone->rcEdit.top + aeClone->rcCloneMargins.top;
+    //aeClone->rcDraw.right=aeClone->rcEdit.right - aeClone->rcCloneMargins.right;
+    //aeClone->rcDraw.bottom=aeClone->rcEdit.bottom - aeClone->rcCloneMargins.bottom;
 
     //Reset selection info
     xmemset(&aeClone->liFirstDrawLine, 0, (BYTE *)&aeClone->hDC - (BYTE *)&aeClone->liFirstDrawLine);

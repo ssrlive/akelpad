@@ -960,6 +960,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hDocClone1=(AEHDOC)SendMessage(lpFrame->ei.hWndClone1, AEM_GETDOCUMENT, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone1, 0);
+      SetMargins(lpFrame->ei.hWndClone1, lpFrame->dwEditMargins, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone1, (LPARAM)lpFrame->ei.hDocClone1);
     }
     if (dwFlags & CN_CLONE2)
@@ -991,6 +992,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hDocClone2=(AEHDOC)SendMessage(lpFrame->ei.hWndClone2, AEM_GETDOCUMENT, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone2, 0);
+      SetMargins(lpFrame->ei.hWndClone2, lpFrame->dwEditMargins, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone2, (LPARAM)lpFrame->ei.hDocClone2);
     }
     if (dwFlags & CN_CLONE3)
@@ -1022,6 +1024,7 @@ void SplitCreate(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->ei.hDocClone3=(AEHDOC)SendMessage(lpFrame->ei.hWndClone3, AEM_GETDOCUMENT, 0, 0);
       }
       SendMessage(lpFrame->ei.hWndMaster, AEM_ADDCLONE, (WPARAM)lpFrame->ei.hWndClone3, 0);
+      SetMargins(lpFrame->ei.hWndClone3, lpFrame->dwEditMargins, 0);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndClone3, (LPARAM)lpFrame->ei.hDocClone3);
     }
     SplitVisUpdate(lpFrame);
@@ -11173,7 +11176,7 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
               {
                 LoadStringWide(hLangLib, MSG_UPDATE_PROGRAM, wbuf, BUFFER_SIZE);
                 xprintfW(wbuf2, wbuf, LOBYTE(pv.dwExeMinVersion4x), HIBYTE(pv.dwExeMinVersion4x), LOBYTE(HIWORD(pv.dwExeMinVersion4x)), HIBYTE(HIWORD(pv.dwExeMinVersion4x)),
-                                       LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
+                                      LOBYTE(dwExeVersion), HIBYTE(dwExeVersion), LOBYTE(HIWORD(dwExeVersion)), HIBYTE(HIWORD(dwExeVersion)));
                 API_MessageBox(hMainWnd, wbuf2, wszPluginWord, MB_OK|MB_ICONEXCLAMATION);
               }
             }
@@ -12588,7 +12591,18 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       b=GetDlgItemInt(hDlg, IDC_OPTIONS_EDITMARGIN_RIGHT, NULL, FALSE);
       if (lpFrameCurrent->dwEditMargins != (DWORD)MAKELONG(a, b))
       {
-        SetMargins(lpFrameCurrent->ei.hWndEdit, MAKELONG(a, b), lpFrameCurrent->dwEditMargins);
+        if (lpFrameCurrent->ei.hWndMaster)
+        {
+          SetMargins(lpFrameCurrent->ei.hWndMaster, MAKELONG(a, b), lpFrameCurrent->dwEditMargins);
+          if (lpFrameCurrent->ei.hWndClone1)
+            SetMargins(lpFrameCurrent->ei.hWndClone1, MAKELONG(a, b), lpFrameCurrent->dwEditMargins);
+          if (lpFrameCurrent->ei.hWndClone2)
+            SetMargins(lpFrameCurrent->ei.hWndClone2, MAKELONG(a, b), lpFrameCurrent->dwEditMargins);
+          if (lpFrameCurrent->ei.hWndClone3)
+            SetMargins(lpFrameCurrent->ei.hWndClone3, MAKELONG(a, b), lpFrameCurrent->dwEditMargins);
+        }
+        else SetMargins(lpFrameCurrent->ei.hWndEdit, MAKELONG(a, b), lpFrameCurrent->dwEditMargins);
+
         lpFrameCurrent->dwEditMargins=MAKELONG(a, b);
         InvalidateRect(lpFrameCurrent->ei.hWndEdit, NULL, TRUE);
       }
