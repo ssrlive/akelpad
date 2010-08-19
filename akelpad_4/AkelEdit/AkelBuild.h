@@ -578,6 +578,7 @@ typedef struct _AKELEDIT {
   AEPOINT *lpSelStartPoint;
   AEPOINT *lpSelEndPoint;
   AEPOINT *lpCaretPoint;
+  //RECT rcCloneMargins;
 } AKELEDIT;
 
 

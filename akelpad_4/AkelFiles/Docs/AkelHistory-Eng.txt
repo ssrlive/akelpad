@@ -6,6 +6,7 @@ Added: option in "Select Window" dialog to invert the selection, and also the ab
 Added: opportunity to rewrite color theme.
 
 Fixed: file preview window didn't use edit window font.
+Fixed: in split windows text margings didn't match.
 Fixed: closing selected tabs in "Select Window" dialog (PMDI/MDI).
 
 
