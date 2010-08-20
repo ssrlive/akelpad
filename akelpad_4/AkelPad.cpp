@@ -5120,8 +5120,8 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                     {1, 1}, {6, 1},
                     {2, 2}, {5, 2},
                     {3, 3}, {4, 3}};
-              POINT *ptDraw;
-              int nElements;
+              POINT *ptDraw=NULL;
+              int nElements=0;
               int i;
 
               if (lpButtonDraw->bd.dwFlags & BIF_CROSS)
