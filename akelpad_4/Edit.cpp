@@ -10493,6 +10493,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           SendMessageW(hWndThemeName, CB_DELETESTRING, nSelection, 0);
           SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)-1, 0);
 
+          SetFocus(hWndThemeName);
           EnableWindow(hWndThemeSave, FALSE);
           EnableWindow(hWndThemeDelete, FALSE);
         }
