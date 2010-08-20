@@ -6067,7 +6067,8 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
       }
     }
-    else if (LOWORD(wParam) == IDCANCEL)
+    else if (LOWORD(wParam) == IDC_PREVIEW_CLOSE ||
+             LOWORD(wParam) == IDCANCEL)
     {
       if (GetWindowLongWide(hDlg, GWL_STYLE) & WS_MAXIMIZE)
       {

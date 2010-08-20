@@ -451,7 +451,7 @@ BEGIN
     PUSHBUTTON      "Abandonner",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -469,6 +469,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "&Sélection",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "Fermer",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -978,11 +979,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Interne"
     STR_FILE_FILTER         "Fichiers texte (*.txt)|*.txt|Tous les fichiers (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Fichiers exécutables (*.exe)|*.exe|Tous les fichiers (*.*)|*.*"
+    STR_NONE                "Aucun"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "Aucun"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Fonction"
     STR_HOTKEY              "Raccourci"
@@ -998,11 +999,11 @@ BEGIN
     STR_TEXT                "Texte"
     STR_BACKGROUND          "Arrière plan"
     STR_SAMPLE              "Echantillon"
+    STR_BASIC               "Couleur de base"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Couleur de base"
     STR_SELECTION           "Sélection"
     STR_ACTIVELINE          "Ligne active"
     STR_ACTIVECOLUMN        "Colonne active"

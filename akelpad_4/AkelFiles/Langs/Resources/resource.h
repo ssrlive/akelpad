@@ -152,6 +152,7 @@
 #define IDC_PREVIEW_ZOOMIN              3010
 #define IDC_PREVIEW_ZOOMOUT             3011
 #define IDC_PREVIEW_SELECTION           3012
+#define IDC_PREVIEW_CLOSE               3013
 #define IDC_SETREADONLY                 3051
 #define IDC_SEARCH_FIND                 3052
 #define IDC_SEARCH_REPLACE              3053

@@ -451,7 +451,7 @@ BEGIN
     PUSHBUTTON      "Anuleazã",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -469,6 +469,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "Textul &Selectat",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "Închide",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -973,11 +974,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Intern"
     STR_FILE_FILTER         "File Text (*.txt)|*.txt|Toate Filele (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "File Executabile (*.exe)|*.exe|Toate Filele (*.*)|*.*"
+    STR_NONE                "Nimic"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "Nimic"
     STR_PLUGIN              "Extensie"
     STR_FUNCTION            "Funcþie"
     STR_HOTKEY              "Tastã Rapidã"
@@ -993,11 +994,11 @@ BEGIN
     STR_TEXT                "Text"
     STR_BACKGROUND          "Fundal"
     STR_SAMPLE              "Exemplu"
+    STR_BASIC               "Culoare de Bazã"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Culoare de Bazã"
     STR_SELECTION           "Selecþie"
     STR_ACTIVELINE          "Linie Activã"
     STR_ACTIVECOLUMN        "Coloanã Activã"

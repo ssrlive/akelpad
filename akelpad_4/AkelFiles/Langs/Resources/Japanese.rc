@@ -74,13 +74,13 @@ BEGIN
         MENUITEM "下へ次を検索(&W)\tF3",        IDM_EDIT_FINDNEXTDOWN
         MENUITEM "上へ次を検索(&U)\tShift+F3",  IDM_EDIT_FINDNEXTUP
         MENUITEM "置換(&R)...\tCtrl+R",         IDM_EDIT_REPLACE
-        MENUITEM "指定位置へ移動(&G)...\tCtrl+G",     IDM_EDIT_GOTO
+        MENUITEM "指定位置へ移動(&G)...\tCtrl+G", IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "文字の挿入(&H)\tCtrl+I",      IDM_EDIT_INSERTCHAR
         MENUITEM "日付の挿入(&T)\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "選択範囲(&S)"
         BEGIN
-            MENUITEM "箱形貼り付け\tAlt+V",       IDM_EDIT_PASTECOLUMN
+            MENUITEM "箱形貼り付け\tAlt+V",         IDM_EDIT_PASTECOLUMN
             MENUITEM "Tab インデント(&B)\tTab",     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Tab アンインデント(&T)\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
@@ -144,8 +144,8 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "ウィンドウ(&W)"
         BEGIN
-            MENUITEM "単一のウィンドウ (&SDI)",  IDM_OPTIONS_SDI
-            MENUITEM "複数のウィンドウ (&MDI)",  IDM_OPTIONS_MDI
+            MENUITEM "単一のウィンドウ (&SDI)",     IDM_OPTIONS_SDI
+            MENUITEM "複数のウィンドウ (&MDI)",     IDM_OPTIONS_MDI
             MENUITEM "疑似マルチウィンドウ (&PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
@@ -176,9 +176,9 @@ BEGIN
         MENUITEM "水平に並べる(&T)",            IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "垂直に並べる(&T)",            IDM_WINDOW_TILEVERTICAL
         MENUITEM "重ねる(&C)",                  IDM_WINDOW_CASCADE
-        MENUITEM "閉じる",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "全て閉じる",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "最前面以外を全て閉じる",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "閉じる",                      IDM_WINDOW_FRAMECLOSE
+        MENUITEM "全て閉じる",                  IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "最前面以外を全て閉じる",      IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "ウィンドウを選択...",         IDM_WINDOW_MDILIST
     END
@@ -448,7 +448,7 @@ BEGIN
     PUSHBUTTON      "キャンセル",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -466,6 +466,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "選択範囲(&S)",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "閉じる",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -968,11 +969,11 @@ BEGIN
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "テキスト ファイル (*.txt)|*.txt|すべてのファイル (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "実行ファイル (*.exe)|*.exe|すべてのファイル (*.*)|*.*"
+    STR_NONE                "なし"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "なし"
     STR_PLUGIN              "プラグイン"
     STR_FUNCTION            "関数"
     STR_HOTKEY              "ホットキー"
@@ -988,11 +989,11 @@ BEGIN
     STR_TEXT                "テキスト"
     STR_BACKGROUND          "背景"
     STR_SAMPLE              "サンプル"
+    STR_BASIC               "基本色"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "基本色"
     STR_SELECTION           "選択範囲"
     STR_ACTIVELINE          "アクティブな行"
     STR_ACTIVECOLUMN        "アクティブな列"

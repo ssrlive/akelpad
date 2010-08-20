@@ -140,7 +140,7 @@ BEGIN
         MENUITEM SEPARATOR
         POPUP "&Аконны рэжым"
         BEGIN
-            MENUITEM "&Аднаваконны (SDI)",           IDM_OPTIONS_SDI
+            MENUITEM "&Аднаваконны (SDI)",          IDM_OPTIONS_SDI
             MENUITEM "&Шматваконны (MDI)",          IDM_OPTIONS_MDI
             MENUITEM "&Псеўда-шматваконны (PMDI)",  IDM_OPTIONS_PMDI
         END
@@ -447,7 +447,7 @@ BEGIN
     PUSHBUTTON      "Адмена",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -465,6 +465,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "&Вылучэнне",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "Зачыніць",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -989,11 +990,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Унутраная"
     STR_FILE_FILTER         "Тэкставыя файлы (*.txt)|*.txt|Усе файлы (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Выконваемыя файлы (*.exe)|*.exe|Усе файлы (*.*)|*.*"
+    STR_NONE                "Не"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "Не"
     STR_PLUGIN              "Плагін"
     STR_FUNCTION            "Функцыя"
     STR_HOTKEY              "Гарачая клавіша"
@@ -1009,11 +1010,11 @@ BEGIN
     STR_TEXT                "Тэкст"
     STR_BACKGROUND          "Фон"
     STR_SAMPLE              "Узор"
+    STR_BASIC               "Асноўны колер"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Асноўны колер"
     STR_SELECTION           "Вылучэнне"
     STR_ACTIVELINE          "Актыўны радок"
     STR_ACTIVECOLUMN        "Актыўны слупок"

@@ -450,7 +450,7 @@ BEGIN
     PUSHBUTTON      "Annuleren",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -468,6 +468,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "&Selectie",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "Sluiten",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -973,11 +974,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Intern"
     STR_FILE_FILTER         "Tekst bestanden (*.txt)|*.txt|All files (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Uitvoerbare bestanden (*.exe)|*.exe|All files (*.*)|*.*"
+    STR_NONE                "Geen"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "Geen"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Functie"
     STR_HOTKEY              "Sneltoets"
@@ -993,11 +994,11 @@ BEGIN
     STR_TEXT                "Tekst"
     STR_BACKGROUND          "Achtergrond"
     STR_SAMPLE              "Voorbeeld"
+    STR_BASIC               "Basis kleur"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Basis kleur"
     STR_SELECTION           "Selectie"
     STR_ACTIVELINE          "Actieve regel"
     STR_ACTIVECOLUMN        "Actieve kolom"

@@ -450,7 +450,7 @@ BEGIN
     PUSHBUTTON      "Peruuta",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -468,6 +468,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "&Valinta",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "Sulje",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -976,11 +977,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Sis‰inen"
     STR_FILE_FILTER         "Tekstitiedostot (*.txt)|*.txt|Kaikki (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Ohjelmatiedostot (*.exe)|*.exe|Kaikki (*.*)|*.*"
+    STR_NONE                "Ei mit‰‰n"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "Ei mit‰‰n"
     STR_PLUGIN              "Lis‰osa"
     STR_FUNCTION            "Funktio"
     STR_HOTKEY              "Pikan‰pp‰in"
@@ -996,11 +997,11 @@ BEGIN
     STR_TEXT                "Teksti"
     STR_BACKGROUND          "Tausta"
     STR_SAMPLE              "Esimerkki"
+    STR_BASIC               "Perusv‰ri"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Perusv‰ri"
     STR_SELECTION           "Valinta"
     STR_ACTIVELINE          "Aktiivinen rivi"
     STR_ACTIVECOLUMN        "Aktiivinen sarake"

@@ -449,7 +449,7 @@ BEGIN
     PUSHBUTTON      "&Zruöiù",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -468,6 +468,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "V˝&ber",IDC_PREVIEW_SELECTION,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "&Zavrieù",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -979,11 +980,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Intern˝"
     STR_FILE_FILTER         "TextovÈ s˙bory (*.txt)|*.txt|Vöetky s˙bory (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "SpustiteænÈ s˙bory (*.exe)|*.exe|Vöetky s˙bory (*.*)|*.*"
+    STR_NONE                "NiË"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "NiË"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funkcia"
     STR_HOTKEY              "Kl·vesov· skratka"
@@ -999,11 +1000,11 @@ BEGIN
     STR_TEXT                "Text"
     STR_BACKGROUND          "Pozadie"
     STR_SAMPLE              "Uk·ûka"
+    STR_BASIC               "Z·kladn· farba"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Z·kladn· farba"
     STR_SELECTION           "V˝ber"
     STR_ACTIVELINE          "AktÌvny riadok"
     STR_ACTIVECOLUMN        "AktÌvny stÂpec"

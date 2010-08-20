@@ -73,13 +73,13 @@ BEGIN
         MENUITEM "Trova successivo\tF3",        IDM_EDIT_FINDNEXTDOWN
         MENUITEM "Trova precedente\tShift+F3",  IDM_EDIT_FINDNEXTUP
         MENUITEM "Sostituisci...\tCtrl+R",      IDM_EDIT_REPLACE
-        MENUITEM "Vai a...\tCtrl+G",    IDM_EDIT_GOTO
+        MENUITEM "Vai a...\tCtrl+G",            IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "&Inserire un carattere\tCtrl+I", IDM_EDIT_INSERTCHAR
         MENUITEM "Inserire &data\tCtrl+D",      IDM_EDIT_INSERTDATE
         POPUP "&Selezione"
         BEGIN
-            MENUITEM "Incolla a colonna\tAlt+V",       IDM_EDIT_PASTECOLUMN
+            MENUITEM "Incolla a colonna\tAlt+V",    IDM_EDIT_PASTECOLUMN
             MENUITEM "Sposta a destra di una tabulazione\tTab", 
                                                     IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "Sposta a sinistra di una tabulazione\tShift+Tab", 
@@ -178,9 +178,10 @@ BEGIN
         MENUITEM "Ordine orizzontale",          IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "Ordine verticale",            IDM_WINDOW_TILEVERTICAL
         MENUITEM "A &Cascata",                  IDM_WINDOW_CASCADE
-        MENUITEM "Chiudi",                       IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Chiudi tutte",                   IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Chiudi tutte tranne quelle attive",        IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "Chiudi",                      IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Chiudi tutte",                IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Chiudi tutte tranne quelle attive", 
+                                                IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Seleziona Finestra...",       IDM_WINDOW_MDILIST
     END
@@ -450,7 +451,7 @@ BEGIN
     PUSHBUTTON      "Annulla",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -468,6 +469,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "&Selezione",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "Chiudi",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -978,11 +980,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Interna"
     STR_FILE_FILTER         "Files di testo (*.txt)|*.txt|Tutti i files (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Files eseguibili (*.exe)|*.exe|Tutti i files (*.*)|*.*"
+    STR_NONE                "Nessuno"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "Nessuno"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funzione"
     STR_HOTKEY              "Scorciatoia"
@@ -998,11 +1000,11 @@ BEGIN
     STR_TEXT                "Testo"
     STR_BACKGROUND          "Sfondo"
     STR_SAMPLE              "Campione"
+    STR_BASIC               "Colore di base"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Colore di base"
     STR_SELECTION           "Selezione"
     STR_ACTIVELINE          "Riga attiva"
     STR_ACTIVECOLUMN        "Attiva colonna"

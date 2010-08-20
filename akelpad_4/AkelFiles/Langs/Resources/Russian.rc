@@ -171,9 +171,9 @@ BEGIN
         MENUITEM "&Горизонтально",              IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Вертикально",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Каскадом",                   IDM_WINDOW_CASCADE
-        MENUITEM "Закрыть",                     IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Закрыть все",                 IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "Закрыть все, кроме активного", 
+        MENUITEM "&Закрыть",                     IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Закрыть в&се",                 IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "Закрыть все, кроме &активного", 
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
         MENUITEM "Выбор окна...",               IDM_WINDOW_MDILIST
@@ -446,7 +446,7 @@ BEGIN
     PUSHBUTTON      "Отмена",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -464,6 +464,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "&Выделение",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "&Закрыть",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -988,11 +989,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Внутренний"
     STR_FILE_FILTER         "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Исполняемые файлы (*.exe)|*.exe|Все файлы (*.*)|*.*"
+    STR_NONE                "Нет"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "Нет"
     STR_PLUGIN              "Плагин"
     STR_FUNCTION            "Функция"
     STR_HOTKEY              "Горячая клавиша"
@@ -1008,11 +1009,11 @@ BEGIN
     STR_TEXT                "Текст"
     STR_BACKGROUND          "Фон"
     STR_SAMPLE              "Образец"
+    STR_BASIC               "Основной цвет"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Основной цвет"
     STR_SELECTION           "Выделение"
     STR_ACTIVELINE          "Активная строка"
     STR_ACTIVECOLUMN        "Активный столбец"
