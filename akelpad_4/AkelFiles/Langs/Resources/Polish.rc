@@ -102,7 +102,7 @@ BEGIN
             MENUITEM "Jak &Nazwy W³asne\tCtrl+9",   IDM_EDIT_TITLECASE
             MENUITEM "&oDWRÓÆ wIELKOŒÆ lITER\tCtrl+0", IDM_EDIT_INVERTCASE
             MENUITEM SEPARATOR
-            MENUITEM "Prze&koduj...\tAlt+R", IDM_EDIT_RECODE
+            MENUITEM "Prze&koduj...\tAlt+R",        IDM_EDIT_RECODE
         END
         POPUP "&Format nowego wiersza"
         BEGIN
@@ -132,7 +132,8 @@ BEGIN
         MENUITEM "&Wtyczki (Pluginy)...\tAlt+P", IDM_OPTIONS_PLUGINS
         MENUITEM "&Uruchom\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
-        MENUITEM "&Automatyczne wciêcie z lewej\tCtrl+L", IDM_OPTIONS_KEEPSPACE
+        MENUITEM "&Automatyczne wciêcie z lewej\tCtrl+L", 
+                                                IDM_OPTIONS_KEEPSPACE
         MENUITEM "ŒledŸ &zmiany pliku",         IDM_OPTIONS_WATCHFILE
         MENUITEM "Zachowaj oryginalny &czas pliku", IDM_OPTIONS_SAVETIME
         MENUITEM "Nie otwieraj &pliku dwa razy", IDM_OPTIONS_SINGLEOPEN_FILE
@@ -147,7 +148,7 @@ BEGIN
             MENUITEM "&Pseudo wielo-okienkowy (PMDI)", IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
-        MENUITEM "&Opcje...",              IDM_OPTIONS
+        MENUITEM "&Opcje...",                   IDM_OPTIONS
     END
     POPUP "&Okno"
     BEGIN
@@ -219,7 +220,7 @@ BEGIN
             MENUITEM "_",                           IDM_POPUP_SAVEAS
         END
         MENUITEM SEPARATOR
-        MENUITEM "Wykryj ponownie stronê kodow¹",   IDM_FILE_REDETECT
+        MENUITEM "Wykryj ponownie stronê kodow¹", IDM_FILE_REDETECT
     END
     POPUP "OkienkoNag³ówka"
     BEGIN
@@ -447,7 +448,7 @@ BEGIN
     PUSHBUTTON      "Anuluj",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -465,6 +466,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "Z&aznaczenie",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "Zam&knij",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -968,11 +970,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Wbudowany"
     STR_FILE_FILTER         "Pliki tekstowe (*.txt)|*.txt|Wszystkie pliki (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Pliki programów (*.exe)|*.exe|Wszystkie pliki (*.*)|*.*"
+    STR_NONE                "Brak"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "Brak"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funkcja"
     STR_HOTKEY              "Klawisz skrótu"
@@ -988,11 +990,11 @@ BEGIN
     STR_TEXT                "Tekst"
     STR_BACKGROUND          "T³o"
     STR_SAMPLE              "Przyk³ad"
+    STR_BASIC               "Podstawowy kolor"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Podstawowy kolor"
     STR_SELECTION           "Zaznaczenie"
     STR_ACTIVELINE          "Bie¿¹cy wiersz"
     STR_ACTIVECOLUMN        "Bie¿¹ca kolumna"

@@ -447,7 +447,7 @@ BEGIN
     PUSHBUTTON      "Скасувати",IDCANCEL,198,243,50,14
 END
 
-IDD_PRINTPREVIEW DIALOGEX 0, 0, 400, 300
+IDD_PRINTPREVIEW DIALOGEX 0, 0, 447, 300
 STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | 
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
@@ -465,6 +465,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "Позна&чене",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
+    PUSHBUTTON      "Закрити",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -990,11 +991,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Внутрішня"
     STR_FILE_FILTER         "Текстові файли (*.txt)|*.txt|Всі файли (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
+    STR_NONE                "Ні"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_NONE                "Ні"
     STR_PLUGIN              "Плаґін"
     STR_FUNCTION            "Функція"
     STR_HOTKEY              "Гаряча клавіша"
@@ -1010,11 +1011,11 @@ BEGIN
     STR_TEXT                "Текст"
     STR_BACKGROUND          "Фон"
     STR_SAMPLE              "Зразок"
+    STR_BASIC               "Основний колір"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_BASIC               "Основний колір"
     STR_SELECTION           "Виділення"
     STR_ACTIVELINE          "Активний рядок"
     STR_ACTIVECOLUMN        "Активний стовпчик"
