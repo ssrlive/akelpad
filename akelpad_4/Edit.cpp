@@ -3242,14 +3242,14 @@ DWORD SaveOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData,
 {
   if (dwType & MOT_MAINOFFSET)
   {
-    //lpData is MAINOPTIONS structure offset. Check does specified member in lpData changed.
+    //lpData is MAINOPTIONS structure offset. Check if specified member in lpData has been changed.
     if (!oh->bForceWrite && !xmemcmp(((LPBYTE)oh->mo) + (DWORD)lpData, ((LPBYTE)&moInit) + (DWORD)lpData, dwSize))
       return dwSize;
     lpData=((LPBYTE)oh->mo) + (DWORD)lpData;
   }
   else if (dwType & MOT_FRAMEOFFSET)
   {
-    //lpData is FRAMEDATA structure offset. Check does specified member in lpData changed.
+    //lpData is FRAMEDATA structure offset. Check if specified member in lpData has been changed.
     if (!oh->bForceWrite && !xmemcmp(((LPBYTE)oh->fd) + (DWORD)lpData, ((LPBYTE)&fdInit) + (DWORD)lpData, dwSize))
       return dwSize;
     lpData=((LPBYTE)oh->fd) + (DWORD)lpData;
