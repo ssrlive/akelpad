@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 3, 0, 3)
+#define AKELDLL MAKE_IDENTIFIER(1, 3, 0, 4)
 
 
 //// Defines
@@ -332,6 +332,8 @@
 #define DK_SETBOTTOM   0x00000080  //Set DKS_BOTTOM side.
 #define DK_HIDE        0x00000100  //Hide dockable window and set DKF_HIDDEN flag.
 #define DK_SHOW        0x00000200  //Show dockable window and remove DKF_HIDDEN flag.
+#define DK_FINDDOCK    0x00000400  //Find dock by dockable window handle (DOCK.hWnd).
+#define DK_FINDCHILD   0x00000800  //Find dock by dockable window or its child handle (DOCK.hWnd).
 
 //Dock capture
 #define DKC_SIZING     1
@@ -2670,7 +2672,8 @@ Message to work with dockable window.
 (DOCK *)lParam == pointer to a DOCK structure.
 
 Return Value
- Pointer to a DOCK structure.
+ If DK_ADD, DK_FINDDOCK or DK_FINDCHILD specified, return value is a pointer to a DOCK structure.
+ Otherwise TRUE - success, FALSE - error.
 
 Example:
  DOCK dk={0};
