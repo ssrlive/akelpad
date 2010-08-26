@@ -9,6 +9,7 @@ Added: close button to print preview.
 Fixed: file preview window didn't use edit window font.
 Fixed: in split windows text margings didn't match.
 Fixed: closing selected tabs in "Select Window" dialog (PMDI/MDI).
+Fixed: rudiments after changing side of a dockable window (PMDI).
 
 
 AkelPad 4.4.6 (Jul 27, 2010)
