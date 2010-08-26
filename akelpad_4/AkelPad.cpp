@@ -1971,6 +1971,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           OldDockProc=(WNDPROC)GetWindowLongWide(lpDock->hWnd, GWL_WNDPROC);
           SetWindowLongWide(lpDock->hWnd, GWL_WNDPROC, (LONG)DockProc);
+          return TRUE;
         }
       }
       if (wParam & DK_UNSUBCLASS)
@@ -1978,6 +1979,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpDock->hWnd)
         {
           SetWindowLongWide(lpDock->hWnd, GWL_WNDPROC, (LONG)OldDockProc);
+          return TRUE;
         }
       }
       if ((wParam & DK_SETLEFT) ||
@@ -1992,7 +1994,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (wParam & DK_SETTOP) nSide=DKS_TOP;
         else if (wParam & DK_SETBOTTOM) nSide=DKS_BOTTOM;
 
-        if (nSide) DockSetSide(&hDocksStack, lpDock, nSide);
+        if (nSide)
+        {
+          DockSetSide(&hDocksStack, lpDock, nSide);
+          return TRUE;
+        }
       }
       if (wParam & DK_HIDE)
       {
@@ -2001,6 +2007,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           lpDock->dwFlags|=DKF_HIDDEN;
           ShowWindow(lpDock->hWnd, SW_HIDE);
           UpdateSize();
+          return TRUE;
         }
       }
       if (wParam & DK_SHOW)
@@ -2010,11 +2017,24 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           lpDock->dwFlags&=~DKF_HIDDEN;
           ShowWindow(lpDock->hWnd, SW_SHOW);
           UpdateSize();
+          return TRUE;
+        }
+      }
+      if ((wParam & DK_FINDDOCK) ||
+          (wParam & DK_FINDCHILD))
+      {
+        if (lpDock->hWnd)
+        {
+          lpResult=StackDockFindWindow(&hDocksStack, lpDock->hWnd, (wParam & DK_FINDCHILD)?TRUE:FALSE);
         }
       }
       if (wParam & DK_DELETE)
       {
-        StackDockDelete(&hDocksStack, lpDock);
+        if (lpDock)
+        {
+          StackDockDelete(&hDocksStack, lpDock);
+          return TRUE;
+        }
       }
       return (LRESULT)lpResult;
     }
