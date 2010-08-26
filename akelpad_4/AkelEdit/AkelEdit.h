@@ -401,6 +401,21 @@
 #define AESIDE_RIGHT         0x00000004
 #define AESIDE_BOTTOM        0x00000008
 
+//AEM_GETMOUSESTATE types
+#define AEMS_CAPTURE         1  //Capture state.
+#define AEMS_SELECTION       2  //Selection state.
+
+//AEM_GETMOUSESTATE capture
+#define AEMSC_MOUSEMOVE       0x1  //Text selection.
+#define AEMSC_MOUSESCROLL     0x2  //Middle button scroll.
+#define AEMSC_MOUSEDRAG       0x4  //Selection dragging.
+
+//AEM_GETMOUSESTATE selection
+#define AEMSS_LBUTTONUP      0x1  //WM_LBUTTONUP has been received.
+#define AEMSS_CHARS          0x2  //Characters selection.
+#define AEMSS_WORDS          0x4  //Words selection.
+#define AEMSS_LINES          0x8  //Lines selection.
+
 //AEM_FINDTEXTA, AEM_FINDTEXTW flags
 #define AEFR_DOWN            0x00000001  //If set, the search is from the beginning to the end of the search range. If not set, the search is from the end to the beginning of the search range.
 #define AEFR_WHOLEWORD       0x00000002  //If set, the operation searches only for whole words that match the search string. If not set, the operation also searches for word fragments that match the search string.
@@ -1113,6 +1128,7 @@ typedef struct {
 #define AEM_POINTONURL            (WM_USER + 2172)
 #define AEM_LINEFROMVPOS          (WM_USER + 2173)
 #define AEM_VPOSFROMLINE          (WM_USER + 2174)
+#define AEM_GETMOUSESTATE         (WM_USER + 2175)
 
 //Options
 #define AEM_CONTROLCLASS          (WM_USER + 2199)
@@ -3368,6 +3384,22 @@ Example:
 
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
  SendMessage(hWndEdit, AEM_VPOSFROMLINE, AECT_CLIENT, ciCaret.nLine);
+
+
+AEM_GETMOUSESTATE
+_________________
+
+Retrieve mouse states.
+
+(int)wParam == State type. See AEMS_* defines.
+lParam      == not used.
+
+Return Value
+ If AEMS_CAPTURE specified, see AEMSC_* defines.
+ If AEMS_SELECTION specified, see AEMSS_* defines.
+
+Example:
+ SendMessage(hWndEdit, AEM_GETMOUSESTATE, AEMS_CAPTURE, 0);
 
 
 AEM_CONTROLCLASS
