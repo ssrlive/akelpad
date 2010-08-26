@@ -16440,8 +16440,8 @@ void UpdateSize()
     {
       if (nTabHeight && ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP) || (moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)))
       {
-        MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHeight:0), nsSize.rcCurrent.right, nTabHeight, TRUE);
-        UpdateWindow(hTab);
+        MoveWindow(hTab, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)?nEditHeight:0), nsSize.rcCurrent.right, nTabHeight, FALSE);
+        InvalidateRect(hTab, NULL, TRUE);
       }
       if (nMDI == WMD_MDI)
         MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, TRUE);
