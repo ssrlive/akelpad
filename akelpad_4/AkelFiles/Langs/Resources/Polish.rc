@@ -955,7 +955,7 @@ BEGIN
     MSG_CP_MISMATCH         "Wiersz ""%d"" zawiera znaki, które nie mog¹ byæ zapisane w tym kodowaniu. Kontynuowaæ?"
     MSG_RESTART_PROGRAM     "Zmiany zostan¹ wprowadzone po ponownym uruchomieniu programu."
     MSG_SAVEIN_READONLY     """%s"" jest plikiem tylko do odczytu. Kontynuowaæ?"
-    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
+    MSG_OVERWRITEPROMPT     """%s"" ju¿ istnieje. Czy zamieniæ go?"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1003,10 +1003,10 @@ BEGIN
     STR_URL                 "Hiper³¹cze"
     STR_PAGEFIT             "Wpasuj stronê"
     STR_PAGEWIDTH           "Na szerokoœæ"
-    STR_ALLFILES            "All files"
-    STR_ONLYMODIFIED        "Modified"
-    STR_ONLYUNMODIFIED      "Unmodified"
-    STR_INVERTSELECTION     "Invert selection"
+    STR_ALLFILES            "Wszystkie pliki"
+    STR_ONLYMODIFIED        "Zmienione"
+    STR_ONLYUNMODIFIED      "Niezmienione"
+    STR_INVERTSELECTION     "Odwróæ zaznaczenie"
 END
 
 STRINGTABLE DISCARDABLE 
