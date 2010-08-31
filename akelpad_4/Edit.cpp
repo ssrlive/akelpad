@@ -2377,17 +2377,20 @@ BOOL DoSettingsExec()
       TranslateFileString(moCur.wszCommand, wszCommandExp, nCommandLen + 1);
       TranslateFileString(moCur.wszWorkDir, wszWorkDirExp, nWorkDirLen + 1);
 
-      siW.cb=sizeof(STARTUPINFOW);
-      if (CreateProcessWide(NULL, wszCommandExp, NULL, NULL, FALSE, 0, NULL, *wszWorkDirExp?wszWorkDirExp:NULL, &siW, &pi))
+      if (*wszCommandExp)
       {
-        bResult=TRUE;
-        CloseHandle(pi.hProcess);
-        CloseHandle(pi.hThread);
-      }
-      else
-      {
-        LoadStringWide(hLangLib, MSG_ERROR_RUN, wbuf, BUFFER_SIZE);
-        API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        siW.cb=sizeof(STARTUPINFOW);
+        if (CreateProcessWide(NULL, wszCommandExp, NULL, NULL, FALSE, 0, NULL, *wszWorkDirExp?wszWorkDirExp:NULL, &siW, &pi))
+        {
+          bResult=TRUE;
+          CloseHandle(pi.hProcess);
+          CloseHandle(pi.hThread);
+        }
+        else
+        {
+          LoadStringWide(hLangLib, MSG_ERROR_RUN, wbuf, BUFFER_SIZE);
+          API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+        }
       }
       FreeWideStr(wszWorkDirExp);
     }
@@ -16244,15 +16247,26 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
   wchar_t wszFileDir[MAX_PATH];
   wchar_t *wpFile=lpFrameCurrent->wszFile;
   wchar_t *wpExeDir=wszExeDir;
+  wchar_t *wszExpanded;
   int nFileLen;
   int nFileDirLen;
   int nExeDirLen;
+  int nEnvironmentLen;
   int a;
   int b;
 
   nFileLen=lstrlenW(wpFile);
   nFileDirLen=GetFileDir(wpFile, wszFileDir, MAX_PATH);
   nExeDirLen=lstrlenW(wpExeDir);
+  nEnvironmentLen=ExpandEnvironmentStringsWide(wpString, NULL, 0);
+
+  if (wszExpanded=(wchar_t *)GlobalAlloc(GPTR, nEnvironmentLen * sizeof(wchar_t)))
+  {
+    //Expand environment strings
+    ExpandEnvironmentStringsWide(wpString, wszExpanded, nEnvironmentLen);
+    wpString=wszExpanded;
+  }
+  else return 0;
 
   for (a=0, b=0; wpString[a] && (!wszBuffer || b < nBufferSize); ++a, ++b)
   {
@@ -16294,6 +16308,8 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
     else if (wszBuffer) wszBuffer[b]=wpString[a];
   }
   if (wszBuffer && b < nBufferSize) wszBuffer[b]='\0';
+
+  GlobalFree((HGLOBAL)wszExpanded);
   return b;
 }
 
