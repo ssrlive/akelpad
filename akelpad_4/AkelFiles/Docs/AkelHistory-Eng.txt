@@ -1,6 +1,9 @@
 
 AkelPad 4.4.8 ()
 ----------------------------
+Changed: during codepage recognition the character "\xCD" now refers not only to 1251,
+         but also 866.
+
 Added: support for environment strings in "Execute" option, for example, "%WinDir%\notepad.exe".
 
 
