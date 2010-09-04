@@ -9,7 +9,7 @@
 //
 #ifndef EXE_VERSION
   #define RC_VERSIONDESCRIPTION "AkelPad language module"
-  #define RC_VERSIONCOPYRIGHT "© 2010 Fedorow Olexandr (www.olexandr@mail.ru), YuriPet"
+  #define RC_VERSIONCOPYRIGHT "© 2010 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet"
   #define RC_VERSIONNAME "Ukrainian.dll"
 #endif
 #include "winresrc.h"
@@ -401,7 +401,7 @@ STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE |
 CAPTION "Зберегти все як"
 FONT 8, "MS Shell Dlg"
 BEGIN
-    CONTROL         "Кодування:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
+    CONTROL         "&Кодування:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
     GROUPBOX        "",IDC_STATIC,9,16,182,35
     COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
@@ -433,8 +433,8 @@ BEGIN
     EDITTEXT        IDC_MDILIST_SEARCH,6,243,178,14,ES_AUTOHSCROLL
     DEFPUSHBUTTON   "OK",IDOK,198,10,50,14
     GROUPBOX        "Вирівнювання",IDC_MDILIST_ARRANGE_GROUP,191,31,64,50
-    PUSHBUTTON      "Горизонталь",IDC_MDILIST_HORZ,198,45,50,14
-    PUSHBUTTON      "Вертикаль",IDC_MDILIST_VERT,198,60,50,14
+    PUSHBUTTON      "Горизонт.",IDC_MDILIST_HORZ,198,45,50,14
+    PUSHBUTTON      "Вертик.",IDC_MDILIST_VERT,198,60,50,14
     GROUPBOX        "Вкладки",IDC_MDILIST_TABS_GROUP,191,86,64,72
     PUSHBUTTON      "Вгору",IDC_MDILIST_UP,198,100,50,14
     PUSHBUTTON      "Вниз",IDC_MDILIST_DOWN,198,115,50,14
@@ -465,17 +465,17 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "Позна&чене",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
-    PUSHBUTTON      "Закрити",IDC_PREVIEW_CLOSE,390,9,50,14
+    PUSHBUTTON      "&Закрити",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
-IDD_FIND DIALOGEX 70, 70, 257, 108
+IDD_FIND DIALOGEX 70, 70, 262, 108
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Пошук"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SEARCH_FIND,27,9,165,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Враховувати реґістр",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
@@ -483,36 +483,36 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
     CONTROL         "Esc-послідовності",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
-    GROUPBOX        "Напрямок",IDC_STATIC,121,27,66,58
+    GROUPBOX        "Напрямок",IDC_STATIC,121,27,71,58
     CONTROL         "Вниз",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
-                    126,37,60,10
+                    126,37,65,10
     CONTROL         "Вгору",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
-                    126,48,60,10
+                    126,48,65,10
     CONTROL         "З початку",IDC_SEARCH_BEGINNING,"Button",
-                    BS_AUTORADIOBUTTON,126,59,60,10
+                    BS_AUTORADIOBUTTON,126,59,65,10
     CONTROL         "У позначеному",IDC_SEARCH_INSEL,"Button",
-                    BS_AUTORADIOBUTTON,126,70,60,10
+                    BS_AUTORADIOBUTTON,126,70,65,10
     CONTROL         "Усі файли",IDC_SEARCH_ALLFILES,"Button",
-                    BS_AUTORADIOBUTTON,126,87,60,10
-    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,66,19
-    DEFPUSHBUTTON   "З&найти далі",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+                    BS_AUTORADIOBUTTON,126,87,65,10
+    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,71,19
+    DEFPUSHBUTTON   "З&найти далі",IDC_SEARCH_FIND_BUTTON,201,6,54,14,
                     BS_CENTER
-    PUSHBUTTON      "Скасувати",IDCANCEL,196,23,54,14,BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,201,23,54,14,BS_CENTER
     LTEXT           "Що:",IDC_STATIC,5,11,22,12,NOT WS_GROUP
     LTEXT           "(\\[...] - hex-рядок,\n \\\\ - зворотній слеш,\n \\n - символ кінця рядка,\n \\t - символ табуляції)",
                     IDC_STATIC,21,66,93,33,NOT WS_GROUP
 END
 
-IDD_REPLACE DIALOGEX 70, 70, 257, 122
+IDD_REPLACE DIALOGEX 70, 70, 262, 122
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "Заміна"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SEARCH_FIND,27,9,165,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_SEARCH_REPLACE,27,23,160,100,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SEARCH_REPLACE,27,23,165,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Враховувати реґістр",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
@@ -520,25 +520,25 @@ BEGIN
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
     CONTROL         "Esc-послідовності",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
-    GROUPBOX        "Напрямок",IDC_STATIC,121,41,66,58
+    GROUPBOX        "Напрямок",IDC_STATIC,121,41,71,58
     CONTROL         "Вниз",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
-                    126,51,60,10
+                    126,51,65,10
     CONTROL         "Вгору",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
-                    126,62,60,10
+                    126,62,65,10
     CONTROL         "З початку",IDC_SEARCH_BEGINNING,"Button",
-                    BS_AUTORADIOBUTTON,126,73,60,10
+                    BS_AUTORADIOBUTTON,126,73,65,10
     CONTROL         "У позначеному",IDC_SEARCH_INSEL,"Button",
-                    BS_AUTORADIOBUTTON,126,84,60,10
+                    BS_AUTORADIOBUTTON,126,84,65,10
     CONTROL         "Усі файли",IDC_SEARCH_ALLFILES,"Button",
-                    BS_AUTORADIOBUTTON,126,101,60,10
-    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,66,19
-    DEFPUSHBUTTON   "З&найти далі",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+                    BS_AUTORADIOBUTTON,126,101,65,10
+    GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,71,19
+    DEFPUSHBUTTON   "З&найти далі",IDC_SEARCH_FIND_BUTTON,201,6,54,14,
                     BS_CENTER
-    PUSHBUTTON      "&Замінити",IDC_SEARCH_REPLACE_BUTTON,196,23,54,14,
+    PUSHBUTTON      "&Замінити",IDC_SEARCH_REPLACE_BUTTON,201,23,54,14,
                     BS_CENTER
-    PUSHBUTTON      "Замінити &все",IDC_SEARCH_ALL_BUTTON,196,39,54,14,
+    PUSHBUTTON      "Замінити &все",IDC_SEARCH_ALL_BUTTON,201,39,54,14,
                     BS_CENTER
-    PUSHBUTTON      "Скасувати",IDCANCEL,196,55,54,14,BS_CENTER
+    PUSHBUTTON      "Скасувати",IDCANCEL,201,55,54,14,BS_CENTER
     LTEXT           "Що:",IDC_STATIC,5,11,22,12,NOT WS_GROUP
     LTEXT           "Чим:",IDC_STATIC,5,25,22,12,NOT WS_GROUP
     LTEXT           "(\\[...] - hex-рядок,\n \\\\ - зворотній слеш,\n \\n - символ кінця рядка,\n \\t - символ табуляції)",
@@ -553,7 +553,7 @@ FONT 8, "MS Shell Dlg"
 BEGIN
     LTEXT           "Номер:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTO_NUMBER,14,20,122,13
-    CONTROL         "Рядок:Колонка",IDC_GOTO_LINE,"Button",
+    CONTROL         "Рядок:Стовпчик",IDC_GOTO_LINE,"Button",
                     BS_AUTORADIOBUTTON,14,41,70,10
     CONTROL         "Зміщення",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,
                     86,42,50,10
@@ -833,13 +833,13 @@ BEGIN
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,51,24,13,ES_AUTOHSCROLL
-    LTEXT           "розширення за-замовчуванням при збереженні документу",
+    LTEXT           "розширення за промовчанням при збереженні документу",
                     IDC_STATIC,37,53,171,8
-    GROUPBOX        "Диалог поиска/замены",IDC_STATIC,9,72,200,41
-    CONTROL         """Заменить всё"" закрывает диалог",
+    GROUPBOX        "Діалог пошуку/заміни",IDC_STATIC,9,72,200,41
+    CONTROL         """Замінити все"" закриває діалог",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,85,185,10
-    CONTROL         "Отметить ""В выделении"", если есть выделение",
+    CONTROL         "Відмітити ""У позначеному"" якщо є позначення",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10
 END
@@ -887,7 +887,7 @@ END
 BEGIN
     "#ifndef EXE_VERSION\r\n"
     "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""© 2010 Fedorow Olexandr (www.olexandr@mail.ru), YuriPet""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2010 Fedorow Olexandr (www.olexandr@mail.ru), Yurii Petrashko aka YuriPet""\r\n"
     "  #define RC_VERSIONNAME ""Ukrainian.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"
@@ -972,18 +972,18 @@ BEGIN
     MSG_FILE_WILL_BE_REOPENED 
                             "Файл буде відкритий знову, всі зміни будуть втрачені."
     MSG_FILE_CHANGED        """%s"" був змінений іззовні.\n\nПеревідкрити його?"
-    MSG_CP_UNIMPLEMENTED    """%d"" кодова сторінка не підтримується."
+    MSG_CP_UNIMPLEMENTED    "Кодова сторінка ""%d"" не підтримується."
     MSG_CP_MISMATCH         "Рядок ""%d"" містить символи, які будуть втрачені при збереженні в цьому кодуванні. Продовжити?"
     MSG_RESTART_PROGRAM     "Зміни набудуть чинності після перезавантаження програми."
     MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
-    MSG_OVERWRITEPROMPT     """%s"" уже существует. Перезаписать?"
+    MSG_OVERWRITEPROMPT     """%s"" вже існує. Перезаписати?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_DOCNAME             "AkelPad документ"
+    STR_DOCNAME             "Документ AkelPad"
     STR_MODIFIED            "Змінений"
-    STR_COUNT               "%d из %d"
+    STR_COUNT               "%d із %d"
     STR_AUTODETECT          "&Автовибір"
     STR_RECENT_FILES_EMPTY  "Порожньо"
     STR_RECENT_FILES_DELETE_DEAD "Видалити неіснуючі"
@@ -1024,10 +1024,10 @@ BEGIN
     STR_URL                 "Посилання"
     STR_PAGEFIT             "Повністю"
     STR_PAGEWIDTH           "За шириною"
-    STR_ALLFILES            "Все файлы"
-    STR_ONLYMODIFIED        "Измененные"
-    STR_ONLYUNMODIFIED      "Неизмененные"
-    STR_INVERTSELECTION     "Инвертировать выделение"
+    STR_ALLFILES            "Усі файли"
+    STR_ONLYMODIFIED        "Змінені"
+    STR_ONLYUNMODIFIED      "Незмінені"
+    STR_INVERTSELECTION     "Інвертувати позначення"
 END
 
 STRINGTABLE DISCARDABLE 
