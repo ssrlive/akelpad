@@ -7446,12 +7446,12 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   }
   else if (dwLangID == LANG_ENGLISH)
   {
-    xstrcpyA(szOEMwatermark, "\xB0\xB1\xB2\xB3\xBA\xDB");
+    xstrcpyA(szOEMwatermark, "\xB0\xB1\xB2\xB3\xBA\xDB\xCD");
   }
   else if (dwLangID == LANG_TURKISH)
   {
     xstrcpyA(szANSIwatermark, "\xFC\xFD\xFE");
-    xstrcpyA(szOEMwatermark,  "\x81\x87\x8D\xB0\xB1\xB2\xB3\xBA\xDB");  //Character graphics simbols: \xB0\xB1\xB2\xB3\xBA\xDB
+    xstrcpyA(szOEMwatermark,  "\x81\x87\x8D\xB0\xB1\xB2\xB3\xBA\xDB\xCD");  //Graphic simbols: \xB0\xB1\xB2\xB3\xBA\xDB\xCD
     xstrcpyA(szUTF8watermark, "\xB0\xB1\xBC\xC3\xC4\xC5");
   }
   else if (dwLangID == LANG_CHINESE)
