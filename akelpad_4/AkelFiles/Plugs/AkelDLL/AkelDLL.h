@@ -175,7 +175,7 @@
 #define STATUS_INSERT         2
 #define STATUS_NEWLINE        3
 #define STATUS_CODEPAGE       4
-#define STATUS_CUSTOM         5
+#define STATUS_USER           5
 
 //Main menu
 #define MENU_FILE_POSITION     0
@@ -623,6 +623,7 @@ typedef struct _FRAMEDATA {
 
   //Edit settings
   LOGFONTW lf;                                        //Edit font.
+  int nFontPoint;                                     //Edit font point size, zero if "StatusUserFormat" without %f variable.
   AECOLORS aec;                                       //Edit colors.
   DWORD dwEditMargins;                                //Edit margins.
   int nTabStopSize;                                   //Tab stop size.
