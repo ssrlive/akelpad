@@ -280,12 +280,14 @@
 //Custom statusbar
 #define CSB_OFFSET    0x01
 #define CSB_FONTPOINT 0x02
-#define CSB_HEXCHAR   0x04
-#define CSB_MARKER    0x08
-#define CSB_TABSIZE   0x10
+#define CSB_CHARHEX   0x04
+#define CSB_CHARDEC   0x08
+#define CSB_MARKER    0x10
+#define CSB_TABSIZE   0x20
 #define CSB_ALL       (CSB_OFFSET    |\
                        CSB_FONTPOINT |\
-                       CSB_HEXCHAR   |\
+                       CSB_CHARHEX   |\
+                       CSB_CHARDEC   |\
                        CSB_MARKER    |\
                        CSB_TABSIZE)
 
