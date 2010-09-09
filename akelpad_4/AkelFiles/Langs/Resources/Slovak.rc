@@ -972,6 +972,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "Dokument programu AkelPad"
     STR_MODIFIED            "Zmenený"
+    STR_READONLY            "Len na èítanie"
     STR_COUNT               "%d of %d"
     STR_AUTODETECT          "&Automatická detekcia"
     STR_RECENT_FILES_EMPTY  "Prázdne"

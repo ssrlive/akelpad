@@ -962,6 +962,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "Dokument AkelPada"
     STR_MODIFIED            "Zmodyfikowany"
+    STR_READONLY            "Tylko do odczytu"
     STR_COUNT               "%d z %d"
     STR_AUTODETECT          "&Autodetekcja"
     STR_RECENT_FILES_EMPTY  "Puste"

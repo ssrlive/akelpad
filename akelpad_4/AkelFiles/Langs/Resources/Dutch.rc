@@ -966,6 +966,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad dokument"
     STR_MODIFIED            "Gewijzigd"
+    STR_READONLY            "Alleen lezen"
     STR_COUNT               "%d van %d"
     STR_AUTODETECT          "&Autodetectie"
     STR_RECENT_FILES_EMPTY  "Leeg"

@@ -966,6 +966,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "Document AkelPad"
     STR_MODIFIED            "Modificat"
+    STR_READONLY            "Nemodificabil (Doar-Citire)"
     STR_COUNT               "%d din %d"
     STR_AUTODETECT          "&Autodetectare"
     STR_RECENT_FILES_EMPTY  "Nimic"

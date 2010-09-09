@@ -250,6 +250,7 @@ STATUSSTATE ssStatus;
 HWND hStatus;
 HWND hProgress;
 int nStatusHeight=0;
+int nStatusParts=0;
 int nProgressWidth=0;
 
 //Clones
@@ -568,6 +569,7 @@ extern "C" void _WinMain()
 
   moInit.dwShowModify=SM_STATUSBAR|SM_TABTITLE_MDI;
   //moInit.dwStatusPosType=0;
+  //moInit.wszStatusCustomFormat[0]='\0';
   moInit.dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
   //moInit.dwPaintOptions=0;
   //moInit.bRichEditClass=FALSE;
@@ -862,7 +864,7 @@ extern "C" void _WinMain()
     wndclassW.lpszClassName=APP_MDI_CLASSW;
     if (!RegisterClassWide(&wndclassW)) goto Quit;
   }
-  else
+  else if (nMDI == WMD_SDI)
   {
     wndclassW.style        =0;
     wndclassW.lpfnWndProc  =DummyProc;
@@ -1146,7 +1148,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_CREATE)
   {
-    int iSBParts[]={110, 220, 250, 280, -1};
+    int iSBParts[6];
     int iBorders[3];
     CLIENTCREATESTRUCT ccs;
     DWORD dwClassStyle;
@@ -1262,7 +1264,20 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                                NULL);
 
     SendMessage(hStatus, SB_SIMPLE, FALSE, 0);
-    SendMessage(hStatus, SB_SETPARTS, STATUS_PARTS, (LPARAM)&iSBParts);
+    iSBParts[0]=110;
+    iSBParts[1]=220;
+    iSBParts[2]=250;
+    iSBParts[3]=280;
+    iSBParts[4]=-1;
+    nStatusParts=5;
+    if (moCur.wszStatusCustomFormat[0])
+    {
+      iSBParts[4]=560;
+      iSBParts[5]=-1;
+      nStatusParts=6;
+    }
+    SendMessage(hStatus, SB_SETPARTS, nStatusParts, (LPARAM)&iSBParts);
+
     GetWindowRect(hStatus, &rcRect);
     nStatusHeight=rcRect.bottom - rcRect.top;
 
@@ -4092,7 +4107,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ssStatus.nNewLine=-1;
       ssStatus.nCodePage=-1;
       ssStatus.bBOM=-1;
-      for (i=0; i < STATUS_PARTS; ++i)
+      for (i=0; i < nStatusParts; ++i)
         StatusBar_SetTextWide(hStatus, i, L"");
 
       SendMessage(hMainWnd, AKDN_FRAME_NOWINDOWS, 0, 0);

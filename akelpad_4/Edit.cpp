@@ -114,6 +114,7 @@ extern STATUSSTATE ssStatus;
 extern HWND hStatus;
 extern HWND hProgress;
 extern int nStatusHeight;
+extern int nStatusParts;
 extern int nProgressWidth;
 
 //Clones
@@ -2268,6 +2269,7 @@ void DoViewReadOnly(FRAMEDATA *lpFrame, BOOL bState, BOOL bFirst)
   lpFrame->ei.bReadOnly=bState;
 
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETOPTIONS, lpFrame->ei.bReadOnly?AECOOP_OR:AECOOP_XOR, AECO_READONLY);
+  SetModifyStatus(lpFrame, lpFrame->ei.bModified);
 }
 
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
@@ -3318,6 +3320,7 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     //Manual
     ReadOption(&oh, L"ShowModify", MOT_DWORD, &mo->dwShowModify, sizeof(DWORD));
     ReadOption(&oh, L"StatusPosType", MOT_DWORD, &mo->dwStatusPosType, sizeof(DWORD));
+    ReadOption(&oh, L"StatusCustomFormat", MOT_STRING, mo->wszStatusCustomFormat, sizeof(mo->wszStatusCustomFormat));
     ReadOption(&oh, L"WordBreak", MOT_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD));
     ReadOption(&oh, L"PaintOptions", MOT_DWORD, &mo->dwPaintOptions, sizeof(DWORD));
     ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD));
@@ -3510,6 +3513,8 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   if (!SaveOption(&oh, L"ShowModify", MOT_DWORD|MOT_MANUAL, &mo->dwShowModify, sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"StatusPosType", MOT_DWORD|MOT_MANUAL, &mo->dwStatusPosType, sizeof(DWORD)))
+    goto Error;
+  if (!SaveOption(&oh, L"StatusCustomFormat", MOT_STRING|MOT_MANUAL, mo->wszStatusCustomFormat, BytesInString(mo->wszStatusCustomFormat)))
     goto Error;
   if (!SaveOption(&oh, L"WordBreak", MOT_DWORD|MOT_MANUAL, &mo->dwCustomWordBreak, sizeof(DWORD)))
     goto Error;
@@ -3732,7 +3737,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
 
 int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM)
 {
-  wchar_t wszFile[MAX_PATH];
+  wchar_t wszFile[MAX_PATH]=L"";
   HANDLE hFile;
   FILESTREAMDATA fsd;
   FRAMEDATA *lpFrame;
@@ -7957,7 +7962,6 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndReplaceButton;
   static HWND hWndReplaceAllButton;
   static HWND hWndCancelButton;
-  static BOOL bCanReplace=TRUE;
   static BOOL bSpecialCheck=FALSE;
   CHARRANGE cr;
   wchar_t *wszData;
@@ -8127,11 +8131,18 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           EnableWindow(hWndReplaceAllButton, TRUE);
         }
       }
-      if (LOWORD(wParam) != IDC_SEARCH_FIND)
+
+      if (LOWORD(wParam) != IDC_SEARCH_FIND ||
+          HIWORD(wParam) == CBN_EDITCHANGE)
       {
-        bSpecialCheck=FALSE;
-        SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
-        if (nMDI) SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
+        if (bSpecialCheck == TRUE)
+        {
+          bSpecialCheck=FALSE;
+          if (HIWORD(wParam) == CBN_EDITCHANGE)
+            moCur.dwSearchOptions|=AEFR_BEGINNING;
+          SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
+          if (nMDI) SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
+        }
       }
 
       if (HIWORD(wParam) == CBN_SELCHANGE)
@@ -8188,12 +8199,12 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         int nChanges=0;
         int nChangedFiles=0;
 
-        if (nModelessType == MLT_REPLACE && bReplaceAll == TRUE)
+        if (bReplaceAll == TRUE)
         {
-          moCur.dwSearchOptions|=AEFR_BEGINNING;
           if (bSpecialCheck == TRUE)
           {
             bSpecialCheck=FALSE;
+            moCur.dwSearchOptions|=AEFR_BEGINNING;
             SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
           }
 
@@ -8225,29 +8236,31 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         }
         else
         {
-          if (bSpecialCheck == FALSE)
-          {
-            bSpecialCheck=TRUE;
-            SendMessage(hWndAllFiles, BM_SETSTATE, TRUE, 0);
-          }
-
           do
           {
-            if (bReplace == TRUE && bCanReplace == TRUE)
+            if (bReplace == TRUE)
               nResult=ReplaceTextW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, FALSE, NULL);
             else
               nResult=FindTextW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen);
 
             if (nResult == -1)
             {
-              bCanReplace=FALSE;
-              moCur.dwSearchOptions|=AEFR_BEGINNING;
+              if (bSpecialCheck == TRUE)
+              {
+                bSpecialCheck=FALSE;
+                moCur.dwSearchOptions|=AEFR_BEGINNING;
+                SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
+              }
               lpFrameCurrent=NextMdiFrameWindow(lpFrameCurrent, FALSE);
             }
             else
             {
-              bCanReplace=TRUE;
-              moCur.dwSearchOptions&=~AEFR_BEGINNING;
+              if (bSpecialCheck == FALSE)
+              {
+                bSpecialCheck=TRUE;
+                moCur.dwSearchOptions&=~AEFR_BEGINNING;
+                SendMessage(hWndAllFiles, BM_SETSTATE, TRUE, 0);
+              }
               break;
             }
           }
@@ -8255,8 +8268,6 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
           if (nResult == -1)
           {
-            bSpecialCheck=FALSE;
-            SendMessage(hWndAllFiles, BM_SETSTATE, FALSE, 0);
             LoadStringWide(hLangLib, MSG_SEARCH_ENDED, wbuf, BUFFER_SIZE);
             API_MessageBox(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONINFORMATION);
           }
@@ -8264,7 +8275,17 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       }
       else
       {
-        if (nModelessType == MLT_REPLACE && (bReplace == TRUE || bReplaceAll == TRUE))
+        if (bReplaceAll == TRUE)
+        {
+          if (bSpecialCheck == TRUE)
+          {
+            bSpecialCheck=FALSE;
+            moCur.dwSearchOptions|=AEFR_BEGINNING;
+            SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
+          }
+        }
+
+        if (bReplace == TRUE || bReplaceAll == TRUE)
           nResult=ReplaceTextW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, bReplaceAll, &nReplaceCount);
         else
           nResult=FindTextW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen);
@@ -8273,8 +8294,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         {
           if (bSpecialCheck == TRUE)
           {
-            moCur.dwSearchOptions|=AEFR_BEGINNING;
             bSpecialCheck=FALSE;
+            moCur.dwSearchOptions|=AEFR_BEGINNING;
             SendMessage(hWndBeginning, BM_SETSTATE, FALSE, 0);
           }
           if (bReplaceAll == TRUE)
@@ -8301,8 +8322,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         {
           if (moCur.dwSearchOptions & AEFR_BEGINNING)
           {
-            moCur.dwSearchOptions&=~AEFR_BEGINNING;
             bSpecialCheck=TRUE;
+            moCur.dwSearchOptions&=~AEFR_BEGINNING;
             SendMessage(hWndBeginning, BM_SETSTATE, TRUE, 0);
           }
         }
@@ -8315,8 +8336,13 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (LOWORD(wParam) == IDCANCEL)
     {
-      if (bSpecialCheck == TRUE || (moCur.dwSearchOptions & AEFR_ALLFILES)) moCur.dwSearchOptions|=AEFR_BEGINNING;
-      if (moCur.nSearchStrings) SaveComboboxSearch(hWndFind, hWndReplace);
+      if (bSpecialCheck == TRUE)
+      {
+        bSpecialCheck=FALSE;
+        moCur.dwSearchOptions|=AEFR_BEGINNING;
+      }
+      if (moCur.nSearchStrings)
+        SaveComboboxSearch(hWndFind, hWndReplace);
       GetWindowPos(hDlg, NULL, &rcFindAndReplaceDlg);
       DestroyWindow(hDlg);
       hDlgModeless=NULL;
@@ -14257,13 +14283,42 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
 {
   if (!lpFrame || lpFrame == lpFrameCurrent)
   {
+    //Read only status
+    if (lpFrameCurrent->ei.bReadOnly)
+    {
+      if (!ssStatus.bReadOnly)
+      {
+        LoadStringWide(hLangLib, STR_READONLY, wbuf, BUFFER_SIZE);
+        StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+        ssStatus.bReadOnly=TRUE;
+      }
+    }
+    else
+    {
+      if (ssStatus.bReadOnly)
+      {
+        if (ssStatus.bModified)
+          LoadStringWide(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
+        else
+          wbuf[0]='\0';
+        StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+        ssStatus.bReadOnly=FALSE;
+      }
+    }
+
+    //Modify status
     if (moCur.dwShowModify & SM_STATUSBAR)
     {
       if (ssStatus.bModified != bState)
       {
-        LoadStringWide(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
-        StatusBar_SetTextWide(hStatus, STATUS_MODIFY, bState?wbuf:L"");
-
+        if (!ssStatus.bReadOnly)
+        {
+          if (bState)
+            LoadStringWide(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
+          else
+            wbuf[0]='\0';
+          StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
+        }
         ssStatus.bModified=bState;
       }
     }
@@ -14359,6 +14414,77 @@ void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM)
     lpFrame->ei.nCodePage=nCodePage;
     lpFrame->ei.bBOM=bBOM;
   }
+}
+
+void UpdateCustomStatus()
+{
+  if (moCur.wszStatusCustomFormat[0])
+  {
+    if (TranslateCustomStatus(moCur.wszStatusCustomFormat, wbuf, BUFFER_SIZE))
+    {
+      StatusBar_SetTextWide(hStatus, STATUS_CUSTOM, wbuf);
+    }
+  }
+}
+
+int TranslateCustomStatus(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
+{
+  //%l - line, %c - column, %s - selection
+
+  //%0 - offset, %h - hex character code,
+  //%f - font size, %m - marker value, %t - tab size,
+  //%r - replace count.
+  //%% - %
+  int i;
+
+  for (i=0; *wpString; ++wpString)
+  {
+    if (*wpString == '%')
+    {
+      if (*++wpString == '%')
+      {
+        if (wszBuffer) wszBuffer[i]='%';
+        ++i;
+      }
+      else if (*wpString == 'o' || *wpString == 'O')
+      {
+        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&ciCaret));
+      }
+      else if (*wpString == 'f' || *wpString == 'F')
+      {
+        HDC hDC;
+        int nPointSize=0;
+
+        if (hDC=GetDC(lpFrameCurrent->ei.hWndEdit))
+        {
+          nPointSize=-MulDiv(lpFrameCurrent->lf.lfHeight, 72, GetDeviceCaps(hDC, LOGPIXELSY));
+          ReleaseDC(lpFrameCurrent->ei.hWndEdit, hDC);
+        }
+        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nPointSize);
+      }
+      else if (*wpString == 'h' || *wpString == 'H')
+      {
+        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", AEC_CharAtIndex(&ciCaret));
+      }
+      else if (*wpString == 'm' || *wpString == 'M')
+      {
+        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrameCurrent->dwMarker);
+      }
+      else if (*wpString == 't' || *wpString == 'T')
+      {
+        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrameCurrent->nTabStopSize);
+      }
+      else break;
+    }
+    else
+    {
+      if (wszBuffer) wszBuffer[i]=*wpString;
+      ++i;
+    }
+  }
+  if (wszBuffer) wszBuffer[i]='\0';
+
+  return i;
 }
 
 

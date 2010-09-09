@@ -983,6 +983,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "Документ AkelPad"
     STR_MODIFIED            "Змінений"
+    STR_READONLY            "Тільки для читання"
     STR_COUNT               "%d із %d"
     STR_AUTODETECT          "&Автовибір"
     STR_RECENT_FILES_EMPTY  "Порожньо"
