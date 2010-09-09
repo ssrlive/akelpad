@@ -569,8 +569,8 @@ extern "C" void _WinMain()
 
   moInit.dwShowModify=SM_STATUSBAR|SM_TABTITLE_MDI;
   //moInit.dwStatusPosType=0;
-  //moInit.wszStatusCustomFormat[0]='\0';
-  moInit.dwCustomWordBreak=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
+  //moInit.wszStatusUserFormat[0]='\0';
+  moInit.dwWordBreakCustom=AEWB_LEFTWORDSTART|AEWB_RIGHTWORDEND;
   //moInit.dwPaintOptions=0;
   //moInit.bRichEditClass=FALSE;
   //moInit.wszDateLogFormat[0]='\0';
@@ -1270,11 +1270,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     iSBParts[3]=280;
     iSBParts[4]=-1;
     nStatusParts=5;
-    if (moCur.wszStatusCustomFormat[0])
+    if (moCur.wszStatusUserFormat[0])
     {
       iSBParts[4]=560;
       iSBParts[5]=-1;
       nStatusParts=6;
+      moCur.dwStatusUserFlags=TranslateStatusUser(NULL, moCur.wszStatusUserFormat, NULL, 0);
     }
     SendMessage(hStatus, SB_SETPARTS, nStatusParts, (LPARAM)&iSBParts);
 
@@ -1858,6 +1859,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (SetChosenFont(lpFrame->ei.hWndEdit, &lfW))
         {
           xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
+          if (moCur.dwStatusUserFlags & CSB_FONTPOINT)
+            UpdateStatusUser(lpFrame, CSB_FONTPOINT);
           UpdateMappedPrintWidth(lpFrame);
           return TRUE;
         }
@@ -3159,6 +3162,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf))
         {
+          if (moCur.dwStatusUserFlags & CSB_FONTPOINT)
+            UpdateStatusUser(lpFrameCurrent, CSB_FONTPOINT);
           UpdateMappedPrintWidth(lpFrameCurrent);
           return TRUE;
         }

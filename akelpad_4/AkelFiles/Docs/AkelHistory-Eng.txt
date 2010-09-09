@@ -6,7 +6,7 @@ Changed: now in find/replace dialog after changing "What:" field, item "Beginnin
 Changed: during codepage recognition the character "\xCD" now refers not only to 1251,
          but also 866.
 
-Added: manual parameter "StatusCustomFormat" - defines user status bar format.
+Added: manual parameter "StatusUserFormat" - defines user status bar format.
 Added: displaying read-only mode in the status bar.
 Added: support for environment strings in "Execute" option. Example: "%WinDir%\notepad.exe".
 

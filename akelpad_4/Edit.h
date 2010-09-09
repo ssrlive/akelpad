@@ -277,6 +277,18 @@
 #define NT_LINE    1
 #define NT_OFFSET  2
 
+//Custom statusbar
+#define CSB_OFFSET    0x01
+#define CSB_FONTPOINT 0x02
+#define CSB_HEXCHAR   0x04
+#define CSB_MARKER    0x08
+#define CSB_TABSIZE   0x10
+#define CSB_ALL       (CSB_OFFSET    |\
+                       CSB_FONTPOINT |\
+                       CSB_HEXCHAR   |\
+                       CSB_MARKER    |\
+                       CSB_TABSIZE)
+
 //File types association
 #define AE_ASSOCIATE     0x00000001
 #define AE_DEASSOCIATE   0x00000002
@@ -323,8 +335,9 @@ typedef struct {
   //Manual
   DWORD dwShowModify;
   DWORD dwStatusPosType;
-  wchar_t wszStatusCustomFormat[MAX_PATH];
-  DWORD dwCustomWordBreak;
+  wchar_t wszStatusUserFormat[MAX_PATH];
+  DWORD dwStatusUserFlags;
+  DWORD dwWordBreakCustom;
   DWORD dwPaintOptions;
   BOOL bRichEditClass;
   wchar_t wszDateLogFormat[MAX_PATH];
@@ -872,8 +885,8 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags);
 void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM);
-void UpdateCustomStatus();
-int TranslateCustomStatus(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
+void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags);
+DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 
 const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
 void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD dwFlags);
@@ -882,6 +895,7 @@ ASSOCICON* StackIconGet(HSTACK *hStack, const wchar_t *wpFile, int nFileLen, con
 void StackIconsFree(HSTACK *hStack);
 
 HFONT SetChosenFont(HWND hWnd, const LOGFONTW *lfFont);
+int GetFontPoint(HWND hWnd, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont);
 FONTITEM* StackFontItemGet(HSTACK *hStack, const LOGFONTW *lfFont);
 void StackFontItemsFree(HSTACK *hStack);

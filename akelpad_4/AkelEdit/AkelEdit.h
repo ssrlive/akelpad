@@ -5546,15 +5546,19 @@ Example:
 
   int AEC_CharAtIndex(const AECHARINDEX *ciChar)
   {
-    if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+    if (ciChar->lpLine)
     {
-      if (ciChar->lpLine->nLineBreak == AELB_WRAP)
-        return ciChar->lpLine->next->wpLine[0];
-      if (ciChar->lpLine->nLineBreak == AELB_EOF)
-        return -1;
-      return L'\n';
+      if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+      {
+        if (ciChar->lpLine->nLineBreak == AELB_WRAP)
+          return ciChar->lpLine->next->wpLine[0];
+        if (ciChar->lpLine->nLineBreak == AELB_EOF)
+          return -1;
+        return L'\n';
+      }
+      return ciChar->lpLine->wpLine[ciChar->nCharInLine];
     }
-    return ciChar->lpLine->wpLine[ciChar->nCharInLine];
+    return -1;
   }
 
   BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar)

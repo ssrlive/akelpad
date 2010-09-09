@@ -334,6 +334,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
 
   //Font
   SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
+  if (moCur.dwStatusUserFlags & CSB_FONTPOINT)
+    UpdateStatusUser(lpFrame, CSB_FONTPOINT);
   UpdateMappedPrintWidth(lpFrame);
 
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrame->nUndoLimit, 0);
@@ -375,7 +377,7 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     dwDefaultWordBreak=SendMessage(lpFrame->ei.hWndEdit, AEM_GETWORDBREAK, 0, 0);
   if (lpFrame->bWordDelimitersEnable)
   {
-    SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDBREAK, moCur.dwCustomWordBreak, 0);
+    SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDBREAK, moCur.dwWordBreakCustom, 0);
     SendMessage(lpFrame->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrame->wszWordDelimiters);
   }
   if (lpFrame->bWrapDelimitersEnable)
@@ -2247,6 +2249,8 @@ void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
     {
       lpFrame->lf.lfHeight-=1;
       SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
+      if (moCur.dwStatusUserFlags & CSB_FONTPOINT)
+        UpdateStatusUser(lpFrame, CSB_FONTPOINT);
       UpdateMappedPrintWidth(lpFrame);
     }
   }
@@ -2256,6 +2260,8 @@ void DoViewFontSize(FRAMEDATA *lpFrame, int nAction)
     {
       lpFrame->lf.lfHeight+=1;
       SetChosenFont(lpFrame->ei.hWndEdit, &lpFrame->lf);
+      if (moCur.dwStatusUserFlags & CSB_FONTPOINT)
+        UpdateStatusUser(lpFrame, CSB_FONTPOINT);
       UpdateMappedPrintWidth(lpFrame);
     }
   }
@@ -3320,8 +3326,8 @@ void ReadOptions(MAINOPTIONS *mo, FRAMEDATA *fd)
     //Manual
     ReadOption(&oh, L"ShowModify", MOT_DWORD, &mo->dwShowModify, sizeof(DWORD));
     ReadOption(&oh, L"StatusPosType", MOT_DWORD, &mo->dwStatusPosType, sizeof(DWORD));
-    ReadOption(&oh, L"StatusCustomFormat", MOT_STRING, mo->wszStatusCustomFormat, sizeof(mo->wszStatusCustomFormat));
-    ReadOption(&oh, L"WordBreak", MOT_DWORD, &mo->dwCustomWordBreak, sizeof(DWORD));
+    ReadOption(&oh, L"StatusUserFormat", MOT_STRING, mo->wszStatusUserFormat, sizeof(mo->wszStatusUserFormat));
+    ReadOption(&oh, L"WordBreak", MOT_DWORD, &mo->dwWordBreakCustom, sizeof(DWORD));
     ReadOption(&oh, L"PaintOptions", MOT_DWORD, &mo->dwPaintOptions, sizeof(DWORD));
     ReadOption(&oh, L"RichEditClass", MOT_DWORD, &mo->bRichEditClass, sizeof(DWORD));
     ReadOption(&oh, L"DateLogFormat", MOT_STRING, mo->wszDateLogFormat, sizeof(mo->wszDateLogFormat));
@@ -3514,9 +3520,9 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
     goto Error;
   if (!SaveOption(&oh, L"StatusPosType", MOT_DWORD|MOT_MANUAL, &mo->dwStatusPosType, sizeof(DWORD)))
     goto Error;
-  if (!SaveOption(&oh, L"StatusCustomFormat", MOT_STRING|MOT_MANUAL, mo->wszStatusCustomFormat, BytesInString(mo->wszStatusCustomFormat)))
+  if (!SaveOption(&oh, L"StatusUserFormat", MOT_STRING|MOT_MANUAL, mo->wszStatusUserFormat, BytesInString(mo->wszStatusUserFormat)))
     goto Error;
-  if (!SaveOption(&oh, L"WordBreak", MOT_DWORD|MOT_MANUAL, &mo->dwCustomWordBreak, sizeof(DWORD)))
+  if (!SaveOption(&oh, L"WordBreak", MOT_DWORD|MOT_MANUAL, &mo->dwWordBreakCustom, sizeof(DWORD)))
     goto Error;
   if (!SaveOption(&oh, L"PaintOptions", MOT_DWORD|MOT_MANUAL, &mo->dwPaintOptions, sizeof(DWORD)))
     goto Error;
@@ -12932,7 +12938,7 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       lpFrameCurrent->bWordDelimitersEnable=SendMessage(hWndWordDelimitersEnable, BM_GETCHECK, 0, 0);
       if (lpFrameCurrent->bWordDelimitersEnable)
       {
-        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWORDBREAK, moCur.dwCustomWordBreak, 0);
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWORDBREAK, moCur.dwWordBreakCustom, 0);
         SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETWORDDELIMITERS, 0, (LPARAM)lpFrameCurrent->wszWordDelimiters);
       }
       else
@@ -14275,6 +14281,7 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
     lpFrameCurrent->crPrevSel=crSel;
 
     StatusBar_SetTextWide(hStatus, STATUS_POSITION, wszStatus);
+    UpdateStatusUser(lpFrameCurrent, CSB_HEXCHAR|CSB_OFFSET);
   }
 }
 
@@ -14416,18 +14423,22 @@ void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM)
   }
 }
 
-void UpdateCustomStatus()
+void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
 {
-  if (moCur.wszStatusCustomFormat[0])
+  if (moCur.wszStatusUserFormat[0])
   {
-    if (TranslateCustomStatus(moCur.wszStatusCustomFormat, wbuf, BUFFER_SIZE))
+    if (moCur.dwStatusUserFlags)
     {
-      StatusBar_SetTextWide(hStatus, STATUS_CUSTOM, wbuf);
+      if (dwFlags & CSB_FONTPOINT)
+        lpFrame->nFontPoint=GetFontPoint(lpFrame->ei.hWndEdit, &lpFrame->lf);
+      if (TranslateStatusUser(lpFrame, moCur.wszStatusUserFormat, wbuf, BUFFER_SIZE))
+        StatusBar_SetTextWide(hStatus, STATUS_USER, wbuf);
     }
+    else StatusBar_SetTextWide(hStatus, STATUS_USER, moCur.wszStatusUserFormat);
   }
 }
 
-int TranslateCustomStatus(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
+DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
 {
   //%l - line, %c - column, %s - selection
 
@@ -14435,7 +14446,8 @@ int TranslateCustomStatus(const wchar_t *wpString, wchar_t *wszBuffer, int nBuff
   //%f - font size, %m - marker value, %t - tab size,
   //%r - replace count.
   //%% - %
-  int i;
+  DWORD dwFlags=0;
+  DWORD i;
 
   for (i=0; *wpString; ++wpString)
   {
@@ -14443,48 +14455,63 @@ int TranslateCustomStatus(const wchar_t *wpString, wchar_t *wszBuffer, int nBuff
     {
       if (*++wpString == '%')
       {
-        if (wszBuffer) wszBuffer[i]='%';
+        if (lpFrame && wszBuffer) wszBuffer[i]='%';
         ++i;
       }
       else if (*wpString == 'o' || *wpString == 'O')
       {
-        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&ciCaret));
+        if (lpFrame)
+        {
+          if (ciCaret.lpLine)
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", SendMessage(lpFrame->ei.hWndEdit, AEM_INDEXTORICHOFFSET, 0, (LPARAM)&ciCaret));
+        }
+        else dwFlags|=CSB_OFFSET;
       }
       else if (*wpString == 'f' || *wpString == 'F')
       {
-        HDC hDC;
-        int nPointSize=0;
-
-        if (hDC=GetDC(lpFrameCurrent->ei.hWndEdit))
-        {
-          nPointSize=-MulDiv(lpFrameCurrent->lf.lfHeight, 72, GetDeviceCaps(hDC, LOGPIXELSY));
-          ReleaseDC(lpFrameCurrent->ei.hWndEdit, hDC);
-        }
-        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nPointSize);
+        if (lpFrame)
+          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nFontPoint);
+        else
+          dwFlags|=CSB_FONTPOINT;
       }
       else if (*wpString == 'h' || *wpString == 'H')
       {
-        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", AEC_CharAtIndex(&ciCaret));
+        if (lpFrame)
+        {
+          int nChar=AEC_CharAtIndex(&ciCaret);
+
+          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", (nChar == -1)?0xFFFF:nChar);
+        }
+        else dwFlags|=CSB_HEXCHAR;
       }
       else if (*wpString == 'm' || *wpString == 'M')
       {
-        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrameCurrent->dwMarker);
+        if (lpFrame)
+          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->dwMarker);
+        else
+          dwFlags|=CSB_MARKER;
       }
       else if (*wpString == 't' || *wpString == 'T')
       {
-        i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrameCurrent->nTabStopSize);
+        if (lpFrame)
+          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nTabStopSize);
+        else
+          dwFlags|=CSB_TABSIZE;
       }
       else break;
     }
     else
     {
-      if (wszBuffer) wszBuffer[i]=*wpString;
+      if (lpFrame && wszBuffer) wszBuffer[i]=*wpString;
       ++i;
     }
   }
-  if (wszBuffer) wszBuffer[i]='\0';
+  if (lpFrame && wszBuffer) wszBuffer[i]='\0';
 
-  return i;
+  if (lpFrame)
+    return i;
+  else
+    return dwFlags;
 }
 
 
@@ -14814,6 +14841,19 @@ HFONT SetChosenFont(HWND hWnd, const LOGFONTW *lfFont)
     fi=StackFontItemInsert(&hFontsStack, lfFont);
   SendMessage(hWnd, WM_SETFONT, (WPARAM)fi->hFont, FALSE);
   return fi->hFont;
+}
+
+int GetFontPoint(HWND hWnd, const LOGFONTW *lfFont)
+{
+  HDC hDC;
+  int nPointSize=0;
+
+  if (hDC=GetDC(hWnd))
+  {
+    nPointSize=-MulDiv(lfFont->lfHeight, 72, GetDeviceCaps(hDC, LOGPIXELSY));
+    ReleaseDC(hWnd, hDC);
+  }
+  return nPointSize;
 }
 
 FONTITEM* StackFontItemInsert(HSTACK *hStack, const LOGFONTW *lfFont)
@@ -15234,6 +15274,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
                 xstrcpynW(lpFrameCurrent->lf.lfFaceName, wpFaceName, LF_FACESIZE);
               }
               SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf);
+              if (moCur.dwStatusUserFlags & CSB_FONTPOINT)
+                UpdateStatusUser(lpFrameCurrent, CSB_FONTPOINT);
               UpdateMappedPrintWidth(lpFrameCurrent);
             }
             else if (dwAction == EXTACT_RECODE)
