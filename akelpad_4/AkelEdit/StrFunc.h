@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.0                     *
+ *              String functions header v4.1                     *
  *                                                               *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -2718,7 +2718,7 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
           dwLen=xitoaA(i, NULL) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - dwLen, 0);
+            nWidth=max(nWidth - (int)dwLen, 0);
             pOut+=nWidth;
             if (nWidth > 0 && i < 0)
             {
@@ -2738,7 +2738,7 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
           dwLen=xuitoaA((unsigned int)i, NULL) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - dwLen, 0);
+            nWidth=max(nWidth - (int)dwLen, 0);
             pOut+=nWidth;
           }
         }
@@ -2753,7 +2753,7 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
           dwLen=dec2hexA((unsigned int)i, NULL, 0, (*pFmt == 'x')?TRUE:FALSE) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - dwLen, 0);
+            nWidth=max(nWidth - (int)dwLen, 0);
             pOut+=nWidth;
           }
         }
@@ -2776,7 +2776,7 @@ int xprintfA(char *szOutput, const char *pFormat, ...)
                 dwLen=min(dwLen, dwPrecision);
               if (nWidth > 0)
               {
-                nWidth=max(nWidth - dwLen, 0);
+                nWidth=max(nWidth - (int)dwLen, 0);
                 pOut+=nWidth;
               }
             }
@@ -2932,7 +2932,7 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
           dwLen=xitoaW(i, NULL) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - dwLen, 0);
+            nWidth=max(nWidth - (int)dwLen, 0);
             wpOut+=nWidth;
             if (nWidth > 0 && i < 0)
             {
@@ -2952,7 +2952,7 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
           dwLen=xuitoaW((unsigned int)i, NULL) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - dwLen, 0);
+            nWidth=max(nWidth - (int)dwLen, 0);
             wpOut+=nWidth;
           }
         }
@@ -2967,7 +2967,7 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
           dwLen=dec2hexW((unsigned int)i, NULL, 0, (*wpFmt == L'x')?TRUE:FALSE) - 1;
           if (nWidth > 0)
           {
-            nWidth=max(nWidth - dwLen, 0);
+            nWidth=max(nWidth - (int)dwLen, 0);
             wpOut+=nWidth;
           }
         }
@@ -2990,7 +2990,7 @@ int xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...)
                 dwLen=min(dwLen, dwPrecision);
               if (nWidth > 0)
               {
-                nWidth=max(nWidth - dwLen, 0);
+                nWidth=max(nWidth - (int)dwLen, 0);
                 wpOut+=nWidth;
               }
             }
