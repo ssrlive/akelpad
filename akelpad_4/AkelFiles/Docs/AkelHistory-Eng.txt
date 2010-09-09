@@ -2,9 +2,9 @@
 AkelPad 4.4.8 ()
 ----------------------------
 Changed: now in find/replace dialog after changing "What:" field, item "Beginning" is restored.
-         And also "Beginning" item darkening does not affect the behavior of the "Replace All".
+         And also "Beginning" item darkening does not affect on behavior of the "Replace All".
 Changed: during codepage recognition the character "\xCD" now refers not only to 1251,
-         but also 866.
+         but also to 866.
 
 Added: manual parameter "StatusUserFormat" - defines user status bar format.
 Added: displaying read-only mode in the status bar.

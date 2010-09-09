@@ -14281,7 +14281,7 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
     lpFrameCurrent->crPrevSel=crSel;
 
     StatusBar_SetTextWide(hStatus, STATUS_POSITION, wszStatus);
-    UpdateStatusUser(lpFrameCurrent, CSB_HEXCHAR|CSB_OFFSET);
+    UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_OFFSET);
   }
 }
 
@@ -14440,10 +14440,12 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
 
 DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
 {
-  //%l - line, %c - column, %s - selection
+  //%L - line, %C - column, %S - selection
 
-  //%0 - offset, %h - hex character code,
-  //%f - font size, %m - marker value, %t - tab size,
+  //%ch - hex character code (lowercase),
+  //%cH - hex character code (uppercase),
+  //%cd - decimal character code,
+  //%0 - offset, %f - font size, %t - tab size, %m - marker value,
   //%r - replace count.
   //%% - %
   DWORD dwFlags=0;
@@ -14457,6 +14459,32 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
       {
         if (lpFrame && wszBuffer) wszBuffer[i]='%';
         ++i;
+      }
+      else if (*wpString == 'c')
+      {
+        if (*++wpString == 'h' || *wpString == 'H')
+        {
+          if (lpFrame)
+          {
+            int nChar=AEC_CharAtIndex(&ciCaret);
+
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", (nChar == -1)?0xFFFF:nChar);
+          }
+          else dwFlags|=CSB_CHARHEX;
+        }
+        else if (*wpString == 'd' || *wpString == 'D')
+        {
+          if (lpFrame)
+          {
+            int nChar=AEC_CharAtIndex(&ciCaret);
+
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nChar);
+          }
+          else dwFlags|=CSB_CHARDEC;
+        }
+      }
+      else if (*wpString == 'C')
+      {
       }
       else if (*wpString == 'o' || *wpString == 'O')
       {
@@ -14474,15 +14502,12 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
         else
           dwFlags|=CSB_FONTPOINT;
       }
-      else if (*wpString == 'h' || *wpString == 'H')
+      else if (*wpString == 't' || *wpString == 'T')
       {
         if (lpFrame)
-        {
-          int nChar=AEC_CharAtIndex(&ciCaret);
-
-          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", (nChar == -1)?0xFFFF:nChar);
-        }
-        else dwFlags|=CSB_HEXCHAR;
+          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nTabStopSize);
+        else
+          dwFlags|=CSB_TABSIZE;
       }
       else if (*wpString == 'm' || *wpString == 'M')
       {
@@ -14490,13 +14515,6 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
           i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->dwMarker);
         else
           dwFlags|=CSB_MARKER;
-      }
-      else if (*wpString == 't' || *wpString == 'T')
-      {
-        if (lpFrame)
-          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nTabStopSize);
-        else
-          dwFlags|=CSB_TABSIZE;
       }
       else break;
     }
