@@ -947,6 +947,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad 文档"
     STR_MODIFIED            "已修改"
+    STR_READONLY            "只读"
     STR_COUNT               "%d / %d"
     STR_AUTODETECT          "自动检测(&A)"
     STR_RECENT_FILES_EMPTY  "(空)"

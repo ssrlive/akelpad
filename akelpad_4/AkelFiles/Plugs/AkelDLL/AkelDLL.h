@@ -175,7 +175,7 @@
 #define STATUS_INSERT         2
 #define STATUS_NEWLINE        3
 #define STATUS_CODEPAGE       4
-#define STATUS_PARTS          5
+#define STATUS_CUSTOM         5
 
 //Main menu
 #define MENU_FILE_POSITION     0

@@ -323,6 +323,7 @@ typedef struct {
   //Manual
   DWORD dwShowModify;
   DWORD dwStatusPosType;
+  wchar_t wszStatusCustomFormat[MAX_PATH];
   DWORD dwCustomWordBreak;
   DWORD dwPaintOptions;
   BOOL bRichEditClass;
@@ -540,6 +541,7 @@ typedef struct {
 
 typedef struct {
   BOOL bModified;
+  BOOL bReadOnly;
   BOOL bOvertypeMode;
   int nNewLine;
   int nCodePage;
@@ -870,6 +872,8 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetOvertypeStatus(FRAMEDATA *lpFrame, BOOL bState);
 void SetNewLineStatus(FRAMEDATA *lpFrame, int nState, DWORD dwFlags);
 void SetCodePageStatus(FRAMEDATA *lpFrame, int nCodePage, BOOL bBOM);
+void UpdateCustomStatus();
+int TranslateCustomStatus(const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize);
 
 const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
 void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD dwFlags);

@@ -956,6 +956,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     STR_DOCNAME             "AkelPad 문서"
     STR_MODIFIED            "수정됨"
+    STR_READONLY            "읽기 전용"
     STR_COUNT               "%d of %d"
     STR_AUTODETECT          "자동(&A)"
     STR_RECENT_FILES_EMPTY  "없음"
