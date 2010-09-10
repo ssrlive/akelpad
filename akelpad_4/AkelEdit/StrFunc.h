@@ -2358,7 +2358,7 @@ int dec2hexA(unsigned int nDec, char *szStrHex, unsigned int nWidth, BOOL bLower
   char d;
   int nResult;
 
-  while (a)
+  do
   {
     b=a % 16;
     a=a / 16;
@@ -2373,6 +2373,8 @@ int dec2hexA(unsigned int nDec, char *szStrHex, unsigned int nWidth, BOOL bLower
       ++c;
     }
   }
+  while (a);
+
   if (!szStrHex) return max(nWidth, c) + 1;
   while (nWidth > c) szStrHex[c++]='0';
   szStrHex[c]='\0';
@@ -2415,7 +2417,7 @@ int dec2hexW(unsigned int nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bL
   wchar_t d;
   int nResult;
 
-  while (a)
+  do
   {
     b=a % 16;
     a=a / 16;
@@ -2430,6 +2432,8 @@ int dec2hexW(unsigned int nDec, wchar_t *wszStrHex, unsigned int nWidth, BOOL bL
       ++c;
     }
   }
+  while (a);
+
   if (!wszStrHex) return max(nWidth, c) + 1;
   while (nWidth > c) wszStrHex[c++]='0';
   wszStrHex[c]='\0';
