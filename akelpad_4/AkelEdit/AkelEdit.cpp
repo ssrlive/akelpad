@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.4.7                               *
+ *                      AkelEdit text control v1.4.8                               *
  *                                                                                 *
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -14611,6 +14611,9 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
           }
         }
       }
+
+      //Update end offset
+      nEndOffset-=nRichTextCount;
     }
     else
     {
@@ -14844,6 +14847,9 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       }
       AE_StackPointDelete(ae, lpPointOne);
       AE_StackPointDelete(ae, lpPointTwo);
+
+      //Update end offset
+      nEndOffset=nStartOffset;
     }
 
     if (!(dwDeleteFlags & AEDELT_LOCKSCROLL))
@@ -14888,9 +14894,9 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       td.bColumnSel=bColumnSel;
       td.dwDeleteFlags=dwDeleteFlags;
       td.crAkelRange.ciMin=ciFirstChar;
-      td.crAkelRange.ciMax=ciFirstChar;
+      td.crAkelRange.ciMax=ciLastChar;
       td.crRichRange.cpMin=nStartOffset;
-      td.crRichRange.cpMax=nStartOffset;
+      td.crRichRange.cpMax=nEndOffset;
       AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&td);
     }
   }

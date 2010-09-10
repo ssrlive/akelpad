@@ -956,8 +956,8 @@ typedef struct {
   DWORD dwType;             //See AETCT_* defines.
   BOOL bColumnSel;          //Column selection.
   DWORD dwDeleteFlags;      //See AEINST_* defines.
-  AECHARRANGE crAkelRange;  //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text position after deletion.
-  CHARRANGE crRichRange;    //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text position after deletion (RichEdit offset).
+  AECHARRANGE crAkelRange;  //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion.
+  CHARRANGE crRichRange;    //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion (RichEdit offset).
 } AENTEXTDELETE;
 
 typedef struct {
