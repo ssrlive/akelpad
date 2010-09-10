@@ -4351,7 +4351,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
   else if (uMsg == WM_RBUTTONDOWN ||
            uMsg == WM_NCRBUTTONDOWN)
   {
-    if (hCursorClone == hCursorSizeWE || hCursorClone == hCursorSizeNS)
+    if (hCursorClone)
     {
       HMENU hPopupSize;
       POINT ptPos;
@@ -4368,9 +4368,9 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 
         if (nPart=TrackPopupMenu(hPopupSize, TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTBUTTON|TPM_RIGHTBUTTON|TPM_CENTERALIGN, ptPos.x, ptPos.y, 0, hMainWnd, NULL))
         {
-          if (hCursorClone == hCursorSizeWE)
+          if (hCursorClone == hCursorSizeWE || hCursorClone == hCursorSizeALL)
             lpFrameCurrent->rcMasterWindow.right=lpFrameCurrent->rcEditWindow.right * nPart / 100;
-          if (hCursorClone == hCursorSizeNS)
+          if (hCursorClone == hCursorSizeNS || hCursorClone == hCursorSizeALL)
             lpFrameCurrent->rcMasterWindow.bottom=lpFrameCurrent->rcEditWindow.bottom * nPart / 100;
           ResizeEditWindow(lpFrameCurrent, 0);
         }
