@@ -4361,7 +4361,7 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       {
         for (nPart=10; nPart < 100; nPart+=10)
         {
-          xprintfW(wbuf, L"%d/%d", nPart, 100 - nPart);
+          xprintfW(wbuf, L"&%d/%d", nPart, 100 - nPart);
           AppendMenuWide(hPopupSize, MF_STRING, nPart, wbuf);
         }
         GetCursorPos(&ptPos);
