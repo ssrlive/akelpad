@@ -613,8 +613,8 @@ typedef struct _FRAMEDATA {
   wchar_t wszFile[MAX_PATH];                          //Frame file (Unicode).
   int nFileLen;                                       //Frame file length.
   HICON hIcon;                                        //Frame icon.
-  RECT rcEditWindow;                                  //Edit RECT.
-  RECT rcMasterWindow;                                //Master window RECT (4.x only).
+  RECT rcEditWindow;                                  //Edit RECT. rcEditWindow.right - is width and rcEditWindow.bottom is height.
+  RECT rcMasterWindow;                                //Master window RECT (4.x only). rcMasterWindow.right - is width and rcMasterWindow.bottom is height.
 
   //Edit state internal
   AEEditProc lpEditProc;                              //Edit window procedure (4.x only).
@@ -623,7 +623,6 @@ typedef struct _FRAMEDATA {
 
   //Edit settings
   LOGFONTW lf;                                        //Edit font.
-  int nFontPoint;                                     //Edit font point size, zero if "StatusUserFormat" without %f variable.
   AECOLORS aec;                                       //Edit colors.
   DWORD dwEditMargins;                                //Edit margins.
   int nTabStopSize;                                   //Tab stop size.
@@ -653,6 +652,11 @@ typedef struct _FRAMEDATA {
   //Substract selection
   AECHARRANGE crPrevSel;
   int nSelSubtract;
+
+  //"StatusUserFormat" variables.
+  int nCaretRealOffset;
+  int nCaretRichOffset;
+  int nFontPoint;
 } FRAMEDATA;
 
 typedef struct _WNDPROCDATA {

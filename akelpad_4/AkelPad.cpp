@@ -359,7 +359,7 @@ PRINTINFO prninfo={0};
 AECHARRANGE crSel={0};
 AECHARINDEX ciCaret={0};
 int nLoopCase=0;
-DWORD dwDefaultWordBreak=(DWORD)-1;
+DWORD dwWordBreakDefault=(DWORD)-1;
 BOOL bReopenMsg=FALSE;
 WNDPROC OldEditProc;
 
@@ -1859,9 +1859,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (SetChosenFont(lpFrame->ei.hWndEdit, &lfW))
         {
           xmemcpy(&lpFrame->lf, &lfW, sizeof(LOGFONTW));
-          if (moCur.dwStatusUserFlags & CSB_FONTPOINT)
-            UpdateStatusUser(lpFrame, CSB_FONTPOINT);
           UpdateMappedPrintWidth(lpFrame);
+          UpdateStatusUser(lpFrame, CSB_FONTPOINT|CSB_MARKER);
           return TRUE;
         }
       }
@@ -3162,9 +3161,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (SetChosenFont(lpFrameCurrent->ei.hWndEdit, &lpFrameCurrent->lf))
         {
-          if (moCur.dwStatusUserFlags & CSB_FONTPOINT)
-            UpdateStatusUser(lpFrameCurrent, CSB_FONTPOINT);
           UpdateMappedPrintWidth(lpFrameCurrent);
+          UpdateStatusUser(lpFrameCurrent, CSB_FONTPOINT|CSB_MARKER);
           return TRUE;
         }
       }
@@ -4348,6 +4346,37 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
       else DoViewSplitWindow(FALSE, 0);
 
       return TRUE;
+    }
+  }
+  else if (uMsg == WM_RBUTTONDOWN ||
+           uMsg == WM_NCRBUTTONDOWN)
+  {
+    if (hCursorClone == hCursorSizeWE || hCursorClone == hCursorSizeNS)
+    {
+      HMENU hPopupSize;
+      POINT ptPos;
+      int nPart;
+
+      if (hPopupSize=CreatePopupMenu())
+      {
+        for (nPart=10; nPart < 100; nPart+=10)
+        {
+          xprintfW(wbuf, L"%d/%d", nPart, 100 - nPart);
+          AppendMenuWide(hPopupSize, MF_STRING, nPart, wbuf);
+        }
+        GetCursorPos(&ptPos);
+
+        if (nPart=TrackPopupMenu(hPopupSize, TPM_NONOTIFY|TPM_RETURNCMD|TPM_LEFTBUTTON|TPM_RIGHTBUTTON|TPM_CENTERALIGN, ptPos.x, ptPos.y, 0, hMainWnd, NULL))
+        {
+          if (hCursorClone == hCursorSizeWE)
+            lpFrameCurrent->rcMasterWindow.right=lpFrameCurrent->rcEditWindow.right * nPart / 100;
+          if (hCursorClone == hCursorSizeNS)
+            lpFrameCurrent->rcMasterWindow.bottom=lpFrameCurrent->rcEditWindow.bottom * nPart / 100;
+          ResizeEditWindow(lpFrameCurrent, 0);
+        }
+        DestroyMenu(hPopupSize);
+        return TRUE;
+      }
     }
   }
   else if (uMsg == WM_LBUTTONDOWN ||
