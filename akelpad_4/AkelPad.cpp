@@ -221,6 +221,7 @@ MAINOPTIONS moCur;
 HWND hMainWnd=NULL;
 HWND hDummyWindow;
 DWORD dwLastMainSize=0;
+DWORD dwMouseCapture=0;
 HACCEL hGlobalAccel;
 HACCEL hMainAccel;
 HICON hMainIcon;
@@ -4274,7 +4275,6 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
 {
   static POINT ptMouseDown;
   static int nMouseMove;
-  static BOOL bMouseDown=FALSE;
   LRESULT lResult=0;
 
   if (uMsg == WM_SETCURSOR)
@@ -4382,21 +4382,20 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
   else if (uMsg == WM_LBUTTONDOWN ||
            uMsg == WM_NCLBUTTONDOWN)
   {
-    if (!bMouseDown)
+    if (!(dwMouseCapture & MSC_SPLITSIZE))
     {
       if (hCursorClone)
       {
         GetCursorPos(&ptMouseDown);
-        bMouseDown=TRUE;
         nMouseMove=1;
-        SetCapture(hWnd);
+        SetMouseCapture(hWnd, MSC_SPLITSIZE);
         return TRUE;
       }
     }
   }
   else if (uMsg == WM_MOUSEMOVE)
   {
-    if (bMouseDown)
+    if (dwMouseCapture & MSC_SPLITSIZE)
     {
       RECT rcMasterInitial=lpFrameCurrent->rcMasterWindow;
       POINT ptPos;
@@ -4426,10 +4425,9 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
   }
   else if (uMsg == WM_LBUTTONUP)
   {
-    if (bMouseDown)
+    if (dwMouseCapture & MSC_SPLITSIZE)
     {
-      bMouseDown=FALSE;
-      ReleaseCapture();
+      ReleaseMouseCapture(MSC_SPLITSIZE);
 
       if (nMouseMove == 0)
       {
@@ -4441,10 +4439,9 @@ LRESULT CALLBACK CloneDragAndDropMessages(HWND hWnd, UINT uMsg, WPARAM wParam, L
   }
   else if (uMsg == WM_CAPTURECHANGED)
   {
-    if (bMouseDown)
+    if (dwMouseCapture & MSC_SPLITSIZE)
     {
-      bMouseDown=FALSE;
-      ReleaseCapture();
+      ReleaseMouseCapture(MSC_SPLITSIZE);
 
       if (nMouseMove == 0)
       {
@@ -4559,7 +4556,6 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static int nDragItem;
   static int nDropItem;
   static int nMouseMove;
-  static BOOL bMouseDown=FALSE;
 
   if (uMsg == WM_CONTEXTMENU)
   {
@@ -4657,7 +4653,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   //Drag'n'Drop
   if (uMsg == WM_LBUTTONDOWN)
   {
-    if (!bMouseDown)
+    if (!(dwMouseCapture & MSC_TABDRAGDROP))
     {
       TCHITTESTINFO thti;
 
@@ -4667,9 +4663,8 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nDragItem != -1)
       {
-        bMouseDown=TRUE;
         nMouseMove=4;
-        SetCapture(hWnd);
+        SetMouseCapture(hWnd, MSC_TABDRAGDROP);
 
         SelectTabItem(hWnd, nDragItem);
         return TRUE;
@@ -4678,7 +4673,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_MOUSEMOVE)
   {
-    if (bMouseDown)
+    if (dwMouseCapture & MSC_TABDRAGDROP)
     {
       if (nMouseMove > 0)
       {
@@ -4692,12 +4687,11 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_LBUTTONUP)
   {
-    if (bMouseDown)
+    if (dwMouseCapture & MSC_TABDRAGDROP)
     {
       POINT pt;
 
-      bMouseDown=FALSE;
-      ReleaseCapture();
+      ReleaseMouseCapture(MSC_TABDRAGDROP);
 
       if (nMouseMove == 0)
       {
@@ -4714,10 +4708,9 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   }
   else if (uMsg == WM_CAPTURECHANGED)
   {
-    if (bMouseDown)
+    if (dwMouseCapture & MSC_TABDRAGDROP)
     {
-      bMouseDown=FALSE;
-      ReleaseCapture();
+      ReleaseMouseCapture(MSC_TABDRAGDROP);
     }
   }
 
@@ -4764,7 +4757,8 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       if (uMsg == WM_LBUTTONDOWN)
       {
-        if (!nMouseDown)
+        if (!(dwMouseCapture & MSC_DOCKSIZE) &&
+            !(dwMouseCapture & MSC_DOCKDRAGDROP))
         {
           GetCursorPos(&pt);
 
@@ -4783,8 +4777,7 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               GetMovingRect(dkData, &pt, &mmi, &rcEdge);
               DrawMovingRect(&rcEdge);
 
-              nMouseDown=DKC_SIZING;
-              SetCapture(hWnd);
+              SetMouseCapture(hWnd, MSC_DOCKSIZE);
 
               SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONSTART, (WPARAM)dkData, DKC_SIZING);
             }
@@ -4803,9 +4796,8 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
                   dkDragSource=dkData;
                   dkDropTarget=dkData;
 
-                  nMouseDown=DKC_DRAGDROP;
                   nMouseMove=4;
-                  SetCapture(hWnd);
+                  SetMouseCapture(hWnd, MSC_DOCKDRAGDROP);
 
                   SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONSTART, (WPARAM)dkData, DKC_DRAGDROP);
                 }
@@ -4818,15 +4810,15 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
         GetCursorPos(&pt);
 
-        if (nMouseDown)
+        if ((dwMouseCapture & MSC_DOCKSIZE) || (dwMouseCapture & MSC_DOCKDRAGDROP))
         {
-          if (nMouseDown == DKC_SIZING)
+          if (dwMouseCapture & MSC_DOCKSIZE)
           {
             DrawMovingRect(&rcEdge);
             GetMovingRect(dkData, &pt, &mmi, &rcEdge);
             DrawMovingRect(&rcEdge);
           }
-          else if (nMouseDown == DKC_DRAGDROP)
+          else if (dwMouseCapture & MSC_DOCKDRAGDROP)
           {
             if (nMouseMove > 0)
             {
@@ -4921,13 +4913,12 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
       else if (uMsg == WM_LBUTTONUP)
       {
-        if (nMouseDown)
+        if ((dwMouseCapture & MSC_DOCKSIZE) || (dwMouseCapture & MSC_DOCKDRAGDROP))
         {
-          if (nMouseDown == DKC_SIZING)
+          if (dwMouseCapture & MSC_DOCKSIZE)
           {
-            nMouseDown=0;
             DrawMovingRect(&rcEdge);
-            ReleaseCapture();
+            ReleaseMouseCapture(MSC_DOCKSIZE);
 
             if (ScreenToClientRect(hMainWnd, &rcEdge))
             {
@@ -4947,12 +4938,11 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
             SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_SIZING);
           }
-          else if (nMouseDown == DKC_DRAGDROP)
+          else if (dwMouseCapture & MSC_DOCKDRAGDROP)
           {
             if (nMouseMove == 0)
               DrawMovingRect(&rcDrop);
-            nMouseDown=0;
-            ReleaseCapture();
+            ReleaseMouseCapture(MSC_DOCKDRAGDROP);
 
             if (dkDropTarget != dkDragSource)
             {
@@ -4984,21 +4974,19 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       }
       else if (uMsg == WM_CAPTURECHANGED)
       {
-        if (nMouseDown)
+        if ((dwMouseCapture & MSC_DOCKSIZE) || (dwMouseCapture & MSC_DOCKDRAGDROP))
         {
-          if (nMouseDown == DKC_SIZING)
+          if (dwMouseCapture & MSC_DOCKSIZE)
           {
-            nMouseDown=0;
             DrawMovingRect(&rcEdge);
-            ReleaseCapture();
+            ReleaseMouseCapture(MSC_DOCKSIZE);
             SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_SIZING);
           }
-          else if (nMouseDown == DKC_DRAGDROP)
+          else if (dwMouseCapture & MSC_DOCKDRAGDROP)
           {
             if (nMouseMove == 0)
               DrawMovingRect(&rcDrop);
-            nMouseDown=0;
-            ReleaseCapture();
+            ReleaseMouseCapture(MSC_DOCKDRAGDROP);
             SendMessage(hMainWnd, AKDN_DOCK_CAPTURE_ONFINISH, (WPARAM)dkData, DKC_DRAGDROP);
           }
         }
@@ -5011,8 +4999,6 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static BUTTONDRAWITEM *lpButtonDraw;
-  static BOOL bMouseMove=FALSE;
-  static BOOL bMouseDown=FALSE;
   static BOOL bMousePush=FALSE;
 
   if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, hWnd))
@@ -5020,12 +5006,10 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     if (uMsg == WM_LBUTTONDOWN ||
         uMsg == WM_LBUTTONDBLCLK)
     {
-      if (!bMouseDown)
+      if (!(dwMouseCapture & MSC_BUTTONPRESS))
       {
-        if (!bMouseMove)
-          SetCapture(hWnd);
-        bMouseMove=FALSE;
-        bMouseDown=TRUE;
+        ReleaseMouseCapture(MSC_BUTTONOVER);
+        SetMouseCapture(hWnd, MSC_BUTTONPRESS);
         bMousePush=TRUE;
       }
       InvalidateRect(hWnd, NULL, FALSE);
@@ -5033,18 +5017,16 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (uMsg == WM_MOUSEMOVE)
     {
-      if (!bMouseDown)
+      if (!(dwMouseCapture & MSC_BUTTONPRESS))
       {
-        if (!bMouseMove)
+        if (!(dwMouseCapture & MSC_BUTTONOVER))
         {
-          SetCapture(hWnd);
-          bMouseMove=TRUE;
+          SetMouseCapture(hWnd, MSC_BUTTONOVER);
           InvalidateRect(hWnd, NULL, FALSE);
         }
         else if (!IsCursorOnWindow(hWnd))
         {
-          bMouseMove=FALSE;
-          ReleaseCapture();
+          ReleaseMouseCapture(MSC_BUTTONOVER);
           InvalidateRect(hWnd, NULL, FALSE);
           UpdateWindow(hWnd);
         }
@@ -5061,25 +5043,23 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
     else if (uMsg == WM_LBUTTONUP ||
              uMsg == WM_CAPTURECHANGED)
     {
-      if (bMouseDown)
+      if (dwMouseCapture & MSC_BUTTONPRESS)
       {
         BOOL bPost=FALSE;
 
         if (uMsg == WM_LBUTTONUP)
           bPost=bMousePush;
         bMousePush=FALSE;
-        bMouseDown=FALSE;
-        ReleaseCapture();
+        ReleaseMouseCapture(MSC_BUTTONPRESS);
         InvalidateRect(hWnd, NULL, FALSE);
         UpdateWindow(hWnd);
 
         if (bPost)
           PostMessage(GetParent(hWnd), WM_COMMAND, MAKELONG(GetDlgCtrlID(hWnd), 0), 0);
       }
-      else if (bMouseMove)
+      else if (dwMouseCapture & MSC_BUTTONOVER)
       {
-        bMouseMove=FALSE;
-        ReleaseCapture();
+        ReleaseMouseCapture(MSC_BUTTONOVER);
         InvalidateRect(hWnd, NULL, FALSE);
         UpdateWindow(hWnd);
       }
@@ -5112,11 +5092,11 @@ LRESULT CALLBACK NewCloseButtonProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         FillRect(hDC, &rcButton, GetSysColorBrush(COLOR_BTNFACE));
 
         //Draw edge
-        if (bMouseDown && bMousePush)
+        if ((dwMouseCapture & MSC_BUTTONPRESS) && bMousePush)
         {
           DrawEdge(hDC, &rcButton, EDGE_SUNKEN, BF_RECT);
         }
-        else if (bMouseMove)
+        else if (dwMouseCapture & MSC_BUTTONOVER)
         {
           DrawEdge(hDC, &rcButton, BDR_RAISEDINNER, BF_RECT);
         }
