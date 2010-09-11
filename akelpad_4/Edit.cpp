@@ -6270,7 +6270,8 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     }
   }
   else if (uMsg == WM_LBUTTONUP ||
-           uMsg == WM_CAPTURECHANGED)
+           uMsg == WM_CAPTURECHANGED ||
+           uMsg == WM_DESTROY)
   {
     if (dwMouseCapture & MSC_PREVIEWMOVE)
     {
