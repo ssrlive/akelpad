@@ -85,6 +85,7 @@ extern MAINOPTIONS moCur;
 extern HWND hMainWnd;
 extern HWND hDummyWindow;
 extern DWORD dwLastMainSize;
+extern DWORD dwMouseCapture;
 extern HACCEL hGlobalAccel;
 extern HACCEL hMainAccel;
 extern HICON hMainIcon;
@@ -6223,15 +6224,13 @@ LRESULT CALLBACK PreviewProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   static POINT ptMouseMove;
-  static BOOL bPreviewCapture=FALSE;
 
   if (uMsg == WM_LBUTTONDOWN ||
       uMsg == WM_LBUTTONDBLCLK)
   {
-    if (!bPreviewCapture)
+    if (!(dwMouseCapture & MSC_PREVIEWMOVE))
     {
-      SetCapture(hWnd);
-      bPreviewCapture=TRUE;
+      SetMouseCapture(hWnd, MSC_PREVIEWMOVE);
       SetCursor(hCursorHandClose);
       GetCursorPos(&ptMouseMove);
     }
@@ -6260,7 +6259,7 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
   }
   else if (uMsg == WM_MOUSEMOVE)
   {
-    if (bPreviewCapture)
+    if (dwMouseCapture & MSC_PREVIEWMOVE)
     {
       POINT pt;
 
@@ -6273,10 +6272,9 @@ LRESULT CALLBACK PreviewMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPa
   else if (uMsg == WM_LBUTTONUP ||
            uMsg == WM_CAPTURECHANGED)
   {
-    if (bPreviewCapture)
+    if (dwMouseCapture & MSC_PREVIEWMOVE)
     {
-      ReleaseCapture();
-      bPreviewCapture=FALSE;
+      ReleaseMouseCapture(MSC_PREVIEWMOVE);
       SetCursor(hCursorHandOpen);
     }
   }
@@ -16502,6 +16500,23 @@ int TranslateFileString(const wchar_t *wpString, wchar_t *wszBuffer, int nBuffer
 
   GlobalFree((HGLOBAL)wszExpanded);
   return b;
+}
+
+void SetMouseCapture(HWND hWnd, DWORD dwType)
+{
+  if (!dwMouseCapture)
+    SetCapture(hWnd);
+  dwMouseCapture|=dwType;
+}
+
+void ReleaseMouseCapture(DWORD dwType)
+{
+  if (dwMouseCapture & dwType)
+  {
+    dwMouseCapture&=~dwType;
+    if (!dwMouseCapture)
+      ReleaseCapture();
+  }
 }
 
 void ActivateKeyboard(DWORD dwInputLocale)

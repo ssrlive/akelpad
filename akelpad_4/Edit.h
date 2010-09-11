@@ -193,6 +193,15 @@
 #define CP_UNICODE_UTF8     65001
 #define CP_KOI8_R           20866
 
+//Captures
+#define MSC_PREVIEWMOVE   0x01
+#define MSC_SPLITSIZE     0x02
+#define MSC_TABDRAGDROP   0x04
+#define MSC_DOCKSIZE      0x08
+#define MSC_DOCKDRAGDROP  0x10
+#define MSC_BUTTONPRESS   0x20
+#define MSC_BUTTONOVER    0x40
+
 //Sides
 #define SIDE_LEFT    0x00000001
 #define SIDE_RIGHT   0x00000002
@@ -953,6 +962,8 @@ BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *
 BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
 int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
 int TranslateFileString(const wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
+void SetMouseCapture(HWND hWnd, DWORD dwType);
+void ReleaseMouseCapture(DWORD dwType);
 void ActivateKeyboard(DWORD dwInputLocale);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);

@@ -8267,9 +8267,12 @@ void AE_SetMouseCapture(AKELEDIT *ae, DWORD dwType)
 
 void AE_ReleaseMouseCapture(AKELEDIT *ae, DWORD dwType)
 {
-  ae->dwMouseCapture&=~dwType;
-  if (!ae->dwMouseCapture)
-    ReleaseCapture();
+  if (ae->dwMouseCapture & dwType)
+  {
+    ae->dwMouseCapture&=~dwType;
+    if (!ae->dwMouseCapture)
+      ReleaseCapture();
+  }
 }
 
 void AE_GlobalToClient(AKELEDIT *ae, const POINT *ptGlobal, POINT *ptClient)
