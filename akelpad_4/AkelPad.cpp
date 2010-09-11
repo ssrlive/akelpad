@@ -897,7 +897,7 @@ extern "C" void _WinMain()
 
   while ((bMsgStatus=GetMessageWide(&msg, NULL, 0, 0)) && bMsgStatus != -1)
   {
-    if (!TranslateAccelerator(hMainWnd, hGlobalAccel, &msg))
+    if (!TranslateGlobal(&msg))
     {
       if (!TranslateDialog(&hDocksStack, &msg))
       {

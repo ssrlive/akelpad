@@ -10,6 +10,7 @@ Added: manual parameter "StatusUserFormat" - defines user status bar format.
 Added: displaying read-only mode in the status bar.
 Added: support for environment strings in "Execute" option. Example: "%WinDir%\notepad.exe".
 Added: menu at the borders of split windows.
+Added: now every drag'n'drop operation, can be stopped by pressing Esc.
 
 
 AkelPad 4.4.7 (Aug 30, 2010)
