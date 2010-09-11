@@ -11262,6 +11262,25 @@ int CallPlugin(PLUGINFUNCTION *lpPluginFunction, PLUGINCALLSENDW *pcs, DWORD dwF
   return UD_FAILED;
 }
 
+BOOL TranslateGlobal(LPMSG lpMsg)
+{
+  if (TranslateAcceleratorWide(hMainWnd, hGlobalAccel, lpMsg))
+    return TRUE;
+
+  if (lpMsg->message == WM_KEYDOWN)
+  {
+    if (lpMsg->wParam == VK_ESCAPE)
+    {
+      if (dwMouseCapture)
+      {
+        ReleaseCapture();
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
 BOOL TranslatePlugin(LPMSG lpMsg)
 {
   if (lpMsg->message == AKD_POSTMESSAGE)
