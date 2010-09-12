@@ -10536,7 +10536,9 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   AECHARINDEX ciTmp;
   AEFOLD *lpFold=NULL;
   HBRUSH hBasicBk;
+  HBRUSH hTab;
   HFONT hPrintFontOld;
+  RECT rcSpace;
   int nCharWidth=0;
   int nLineWidth;
   int nMaxLineWidth=0;
@@ -10735,6 +10737,17 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
       {
         AE_PaintTextOut(&ph->aePrint, &to, &hlp);
 
+        //Draw tab character
+        rcSpace.left=to.ptFirstCharInLine.x + to.nStartDrawWidth;
+        rcSpace.top=to.ptFirstCharInLine.y;
+        rcSpace.right=rcSpace.left + nCharWidth;
+        rcSpace.bottom=rcSpace.top + ph->aePrint.ptxt->nCharHeight;
+
+        if (hTab=CreateSolidBrush(hlp.dwActiveBG))
+        {
+          FillRect(to.hDC, &rcSpace, hTab);
+          DeleteObject(hTab);
+        }
         to.nStartDrawWidth+=nCharWidth;
         to.wpStartDraw+=1;
       }
@@ -10824,16 +10837,17 @@ void AE_Paint(AKELEDIT *ae)
       AEHLPAINT hlp={0};
       AETEXTOUT to={0};
       AEFOLD *lpFold=NULL;
-      RECT rcDraw;
-      RECT rcSpace;
       HBRUSH hBasicBk;
       HBRUSH hSelBk;
       HBRUSH hActiveLineBk;
+      HBRUSH hTab;
       HBITMAP hBitmap;
       HBITMAP hBitmapOld=NULL;
       HFONT hFontOld=NULL;
       HRGN hDrawRgn;
       HRGN hDrawRgnOld=NULL;
+      RECT rcDraw;
+      RECT rcSpace;
       int nLineSelection;
       int nMinPaintWidth=0;
       int nMaxPaintWidth=0;
@@ -11086,11 +11100,17 @@ void AE_Paint(AKELEDIT *ae)
             {
               AE_PaintTextOut(ae, &to, &hlp);
 
+              //Draw tab character
               rcSpace.left=to.ptFirstCharInLine.x + to.nStartDrawWidth;
               rcSpace.top=to.ptFirstCharInLine.y;
               rcSpace.right=rcSpace.left + nCharWidth;
               rcSpace.bottom=rcSpace.top + ae->ptxt->nCharHeight;
-              FillRect(to.hDC, &rcSpace, hlp.hbrActiveBG);
+
+              if (hTab=CreateSolidBrush(hlp.dwActiveBG))
+              {
+                FillRect(to.hDC, &rcSpace, hTab);
+                DeleteObject(hTab);
+              }
               to.nStartDrawWidth+=nCharWidth;
               to.wpStartDraw+=1;
             }
