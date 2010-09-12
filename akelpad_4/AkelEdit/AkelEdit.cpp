@@ -11552,7 +11552,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwActiveBG=hlp->mrm.lpMarkRange->crBk;
         else
           hlp->dwActiveBG=hlp->dwDefaultBG;
-        //if (hlp->mrm.lpMarkRange->dwFontStyle != AEHLS_NONE)
+        if (hlp->mrm.lpMarkRange->dwFontStyle != AEHLS_NONE)
           hlp->dwFontStyle=hlp->mrm.lpMarkRange->dwFontStyle;
       }
     }
@@ -11600,7 +11600,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
           hlp->dwActiveBG=hlp->mtm.lpMarkText->crBk;
         else
           hlp->dwActiveBG=hlp->dwDefaultBG;
-        //if (hlp->mtm.lpMarkText->dwFontStyle != AEHLS_NONE)
+        if (hlp->mtm.lpMarkText->dwFontStyle != AEHLS_NONE)
           hlp->dwFontStyle=hlp->mtm.lpMarkText->dwFontStyle;
       }
     }
