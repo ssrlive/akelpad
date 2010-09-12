@@ -760,6 +760,7 @@ typedef struct {
 typedef struct _AEDELIMITEMA {
   struct _AEDELIMITEMA *next;
   struct _AEDELIMITEMA *prev;
+  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
   char *pDelimiter;          //Delimiter string.
   int nDelimiterLen;         //Delimiter string length.
   DWORD dwFlags;             //See AEHLF_* defines.
@@ -771,6 +772,7 @@ typedef struct _AEDELIMITEMA {
 typedef struct _AEDELIMITEMW {
   struct _AEDELIMITEMW *next;
   struct _AEDELIMITEMW *prev;
+  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
   wchar_t *pDelimiter;       //Delimiter string.
   int nDelimiterLen;         //Delimiter string length.
   DWORD dwFlags;             //See AEHLF_* defines.
@@ -782,6 +784,7 @@ typedef struct _AEDELIMITEMW {
 typedef struct _AEWORDITEMA {
   struct _AEWORDITEMA *next;
   struct _AEWORDITEMA *prev;
+  int nIndex;                //Reserved. Word items are automatically sorted.
   char *pWord;               //Word string.
   int nWordLen;              //Word string length.
   DWORD dwFlags;             //See AEHLF_* defines.
@@ -793,6 +796,7 @@ typedef struct _AEWORDITEMA {
 typedef struct _AEWORDITEMW {
   struct _AEWORDITEMW *next;
   struct _AEWORDITEMW *prev;
+  int nIndex;                //Reserved. Word items are automatically sorted.
   wchar_t *pWord;            //Word string.
   int nWordLen;              //Word string length.
   DWORD dwFlags;             //See AEHLF_* defines.
@@ -804,6 +808,7 @@ typedef struct _AEWORDITEMW {
 typedef struct _AEQUOTEITEMA {
   struct _AEQUOTEITEMA *next;
   struct _AEQUOTEITEMA *prev;
+  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
   char *pQuoteStart;         //Quote start string.
   int nQuoteStartLen;        //Quote start string length.
   char *pQuoteEnd;           //Quote end string. If NULL, line end used as quote end.
@@ -822,6 +827,7 @@ typedef struct _AEQUOTEITEMA {
 typedef struct _AEQUOTEITEMW {
   struct _AEQUOTEITEMW *next;
   struct _AEQUOTEITEMW *prev;
+  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
   wchar_t *pQuoteStart;      //Quote start string.
   int nQuoteStartLen;        //Quote start string length.
   wchar_t *pQuoteEnd;        //Quote end string. If NULL, line end used as quote end.
@@ -840,6 +846,7 @@ typedef struct _AEQUOTEITEMW {
 typedef struct _AEMARKTEXTITEMA {
   struct _AEMARKTEXTITEMA *next;
   struct _AEMARKTEXTITEMA *prev;
+  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
   char *pMarkText;           //Mark text.
   int nMarkTextLen;          //Mark text length.
   DWORD dwFlags;             //See AEHLF_* defines.
@@ -851,6 +858,7 @@ typedef struct _AEMARKTEXTITEMA {
 typedef struct _AEMARKTEXTITEMW {
   struct _AEMARKTEXTITEMW *next;
   struct _AEMARKTEXTITEMW *prev;
+  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
   wchar_t *pMarkText;        //Mark text.
   int nMarkTextLen;          //Mark text length.
   DWORD dwFlags;             //See AEHLF_* defines.
@@ -862,6 +870,7 @@ typedef struct _AEMARKTEXTITEMW {
 typedef struct _AEMARKRANGEITEM {
   struct _AEMARKRANGEITEM *next;
   struct _AEMARKRANGEITEM *prev;
+  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
   CHARRANGE crMarkRange;     //cpMin member is the first character in the range (RichEdit offset), cpMax member is the last character in the range (RichEdit offset).
   DWORD dwFlags;             //Reserved.
   COLORREF crText;           //Mark text color. If -1, then don't set.
@@ -4753,6 +4762,7 @@ Example:
 
  if (hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLCREATETHEMEW, 0, (LPARAM)L"MyTheme"))
  {
+   di.nIndex=-1;
    di.pDelimiter=L" ";
    di.nDelimiterLen=lstrlenW(di.pDelimiter);
    di.dwFlags=AEHLF_MATCHCASE;
@@ -4769,6 +4779,7 @@ Example:
    wi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDWORDW, (WPARAM)hTheme, (LPARAM)&wi);
 
+   qi.nIndex=-1;
    qi.pQuoteStart=L"\"";
    qi.nQuoteStartLen=lstrlenW(qi.pQuoteStart);
    qi.pQuoteEnd=L"\"";
@@ -4784,6 +4795,7 @@ Example:
    qi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
 
+   mri.nIndex=-1;
    mri.crMarkRange.cpMin=10;
    mri.crMarkRange.cpMax=20;
    mri.dwFlags=0;
@@ -4792,6 +4804,7 @@ Example:
    mri.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
 
+   mti.nIndex=-1;
    mti.pMarkText=L"or";
    mti.nMarkTextLen=lstrlenW(mti.pMarkText);
    mti.dwFlags=AEHLF_MATCHCASE;
