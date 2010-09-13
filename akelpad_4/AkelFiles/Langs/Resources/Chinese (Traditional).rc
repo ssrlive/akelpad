@@ -37,73 +37,73 @@ IDM_MENU_MAIN MENU DISCARDABLE
 BEGIN
     POPUP "檔案(&F)"
     BEGIN
-        MENUITEM "建立新文件(&N)\tCtrl+N",      IDM_FILE_NEW
-        MENUITEM "開啟新視窗(&W)\tCtrl+Shift+N", IDM_FILE_CREATENEW
-        MENUITEM "開啟文件(&O)...\tCtrl+O",     IDM_FILE_OPEN
+        MENUITEM "開新檔案(&N)\tCtrl+N",        IDM_FILE_NEW
+        MENUITEM "開新視窗(&w)\tCtrl+Shift+N",  IDM_FILE_CREATENEW
+        MENUITEM "開啟舊檔(&O)...\tCtrl+O",     IDM_FILE_OPEN
         MENUITEM "重新開啟(&R)\tF5",            IDM_FILE_REOPEN
         MENUITEM SEPARATOR
         MENUITEM "儲存(&S)\tCtrl+S",            IDM_FILE_SAVE
-        MENUITEM "另存為(&A)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
-        MENUITEM "全部儲存(&L)\tCtrl+Alt+F2",   IDM_FILE_SAVEALL
-        MENUITEM "全部另存為...",               IDM_FILE_SAVEALLAS
+        MENUITEM "另存新檔(&a)...\tCtrl+Shift+S", IDM_FILE_SAVEAS
+        MENUITEM "全部儲存(&l)\tCtrl+Alt+F2",   IDM_FILE_SAVEALL
+        MENUITEM "全部另存為(&e)...",           IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
-        MENUITEM "版面設定(&G)...",             IDM_FILE_PAGESETUP
+        MENUITEM "版面設定(&g)...",             IDM_FILE_PAGESETUP
         MENUITEM "預覽(&V)...",                 IDM_FILE_PRINTPREVIEW
         MENUITEM "列印(&P)...\tCtrl+P",         IDM_FILE_PRINT
         MENUITEM SEPARATOR
-        POPUP "最近開啟的檔案(&F)"
+        POPUP "最近使用的檔案(&f)"
         BEGIN
             MENUITEM "_",                           IDM_RECENT_FILES
         END
         MENUITEM SEPARATOR
-        MENUITEM "結束(&X)\tEsc",               IDM_FILE_EXIT
+        MENUITEM "結束(&x)\tEsc",               IDM_FILE_EXIT
     END
     POPUP "編輯(&E)"
     BEGIN
-        MENUITEM "復原(&N)\tCtrl+Z",            IDM_EDIT_UNDO
-        MENUITEM "重做(&E)\tCtrl+Shift+Z",      IDM_EDIT_REDO
+        MENUITEM "復原(&n)\tCtrl+Z",            IDM_EDIT_UNDO
+        MENUITEM "取消復原(&e)\tCtrl+Shift+Z",  IDM_EDIT_REDO
         MENUITEM SEPARATOR
         MENUITEM "剪下(&C)\tCtrl+X",            IDM_EDIT_CUT
-        MENUITEM "複製(&O)\tCtrl+C",            IDM_EDIT_COPY
+        MENUITEM "複製(&o)\tCtrl+C",            IDM_EDIT_COPY
         MENUITEM "貼上(&P)\tCtrl+V",            IDM_EDIT_PASTE
         MENUITEM "刪除(&D)\tDel",               IDM_EDIT_CLEAR
-        MENUITEM "全選(&A)\tCtrl+A",            IDM_EDIT_SELECTALL
+        MENUITEM "全選(&a)\tCtrl+A",            IDM_EDIT_SELECTALL
         MENUITEM SEPARATOR
         MENUITEM "尋找(&F)...\tCtrl+F",         IDM_EDIT_FIND
-        MENUITEM "往下尋找(&W)\tF3",            IDM_EDIT_FINDNEXTDOWN
-        MENUITEM "往上尋找(&U)\tShift+F3",      IDM_EDIT_FINDNEXTUP
+        MENUITEM "找下一個(&w)\tF3",            IDM_EDIT_FINDNEXTDOWN
+        MENUITEM "找上一個(&u)\tShift+F3",      IDM_EDIT_FINDNEXTUP
         MENUITEM "取代(&R)...\tCtrl+R",         IDM_EDIT_REPLACE
-        MENUITEM "轉到(&G)...\tCtrl+G",         IDM_EDIT_GOTO
+        MENUITEM "前往(&G)...\tCtrl+G",         IDM_EDIT_GOTO
         MENUITEM SEPARATOR
-        MENUITEM "插入字元(&H)\tCtrl+I",        IDM_EDIT_INSERTCHAR
-        MENUITEM "插入日期(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
+        MENUITEM "插入字元(&h)\tCtrl+I",        IDM_EDIT_INSERTCHAR
+        MENUITEM "插入日期(&t)\tCtrl+D",        IDM_EDIT_INSERTDATE
         POPUP "選取項目(&S)"
         BEGIN
-            MENUITEM "列粘貼\tAlt+V",               IDM_EDIT_PASTECOLUMN
-            MENUITEM "Tab 縮排(&B)\tTab",           IDM_EDIT_INSERT_TAB_MENU
+            MENUITEM "單欄式貼上\tAlt+V",           IDM_EDIT_PASTECOLUMN
+            MENUITEM "Tab 縮排(&b)\tTab",           IDM_EDIT_INSERT_TAB_MENU
             MENUITEM "取消 Tab 縮排(&T)\tShift+Tab", 
                                                     IDM_EDIT_DELETE_TAB_MENU
-            MENUITEM "空格縮排(&C)\tSpace",         IDM_EDIT_INSERT_SPACE_MENU
+            MENUITEM "空格縮排(&c)\tSpace",         IDM_EDIT_INSERT_SPACE_MENU
 
-            MENUITEM "取消空格縮排(&A)\tShift+Space", 
+            MENUITEM "取消空格縮排(&a)\tShift+Space", 
                                                     IDM_EDIT_DELETE_SPACE_MENU
 
-            MENUITEM "刪除第一個字元(&F)\tShift+Backspace", 
+            MENUITEM "刪除第一個字元(&f)\tShift+Backspace", 
                                                     IDM_EDIT_DELETE_FIRST_CHAR_MENU
 
-            MENUITEM "除去行尾空格(&W)\tAlt+Backspace", 
+            MENUITEM "修剪尾端空格(&w)\tAlt+Backspace", 
                                                     IDM_EDIT_DELETE_TRAILING_WHITESPACES
 
             MENUITEM SEPARATOR
             MENUITEM "全部大寫(&U)\tCtrl+6",        IDM_EDIT_UPPERCASE
-            MENUITEM "全部小寫(&L)\tCtrl+7",        IDM_EDIT_LOWERCASE
-            MENUITEM "句首大寫(&N)\tCtrl+8",        IDM_EDIT_SENTENCECASE
-            MENUITEM "抬頭字母大寫(&C)\tCtrl+9",    IDM_EDIT_TITLECASE
+            MENUITEM "全部小寫(&l)\tCtrl+7",        IDM_EDIT_LOWERCASE
+            MENUITEM "句首大寫(&n)\tCtrl+8",        IDM_EDIT_SENTENCECASE
+            MENUITEM "標題大寫(&C)\tCtrl+9",        IDM_EDIT_TITLECASE
             MENUITEM "大小寫互換(&V)\tCtrl+0",      IDM_EDIT_INVERTCASE
             MENUITEM SEPARATOR
-            MENUITEM "轉碼...\tAlt+R",              IDM_EDIT_RECODE
+            MENUITEM "重新編碼...\tAlt+R",          IDM_EDIT_RECODE
         END
-        POPUP "新行格式(&F)"
+        POPUP "新行格式(&f)"
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
@@ -113,36 +113,36 @@ BEGIN
     POPUP "檢視(&V)"
     BEGIN
         MENUITEM "字型(&F)...",                 IDM_VIEW_FONT
-        MENUITEM "顏色(&C)...",                 IDM_VIEW_COLORS
+        MENUITEM "色彩(&C)...",                 IDM_VIEW_COLORS
         MENUITEM SEPARATOR
         MENUITEM "唯讀(&R)",                    IDM_VIEW_READONLY
         MENUITEM "自動換行(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
-        MENUITEM "拆分窗口(&P)",                IDM_VIEW_SPLIT_WINDOW_ALL
-        MENUITEM "保持在上層(&A)\tCtrl+T",      IDM_VIEW_ONTOP
+        MENUITEM "分割視窗(&p)",                IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "最上層顯示(&A)\tCtrl+T",      IDM_VIEW_ONTOP
         MENUITEM "狀態列(&S)",                  IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
-        POPUP "語系(&L)"
+        POPUP "語言(&L)"
         BEGIN
             MENUITEM "_",                           IDM_LANGUAGE
         END
     END
     POPUP "選項(&O)"
     BEGIN
-        MENUITEM "外掛元件(&N)...\tAlt+P",      IDM_OPTIONS_PLUGINS
+        MENUITEM "外掛程式(&n)...\tAlt+P",      IDM_OPTIONS_PLUGINS
         MENUITEM "執行(&E)\tCtrl+F5",           IDM_OPTIONS_EXEC
         MENUITEM SEPARATOR
         MENUITEM "左側保留空格(&K)\tCtrl+L",    IDM_OPTIONS_KEEPSPACE
-        MENUITEM "監視檔案變更(&C)",            IDM_OPTIONS_WATCHFILE
-        MENUITEM "儲存檔案時間(&T)",            IDM_OPTIONS_SAVETIME
-        MENUITEM "不要重複開啟相同檔案(&F)",    IDM_OPTIONS_SINGLEOPEN_FILE
-        MENUITEM "不要重複開啟程式(&P)",        IDM_OPTIONS_SINGLEOPEN_PROGRAM
+        MENUITEM "監視檔案變更(&c)",            IDM_OPTIONS_WATCHFILE
+        MENUITEM "儲存檔案時間(&t)",            IDM_OPTIONS_SAVETIME
+        MENUITEM "不要重複開啟同一檔案(&f)",    IDM_OPTIONS_SINGLEOPEN_FILE
+        MENUITEM "不要重複開啟同一程式(&P)",    IDM_OPTIONS_SINGLEOPEN_PROGRAM
 
         MENUITEM SEPARATOR
         POPUP "視窗模式(&W)"
         BEGIN
-            MENUITEM "單一視窗 (&SDI)",             IDM_OPTIONS_SDI
-            MENUITEM "多重視窗 (&MDI)",             IDM_OPTIONS_MDI
-            MENUITEM "偽多窗口 (&PMDI)",            IDM_OPTIONS_PMDI
+            MENUITEM "單一視窗(&S)(SDI)",           IDM_OPTIONS_SDI
+            MENUITEM "多重視窗(&M)(MDI)",           IDM_OPTIONS_MDI
+            MENUITEM "虛擬多重視窗(&P)(PMDI)",      IDM_OPTIONS_PMDI
         END
         MENUITEM SEPARATOR
         MENUITEM "設定(&S)...",                 IDM_OPTIONS
@@ -158,7 +158,7 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "標準(&S)",                    IDM_WINDOW_TABTYPE_STANDARD
 
-            MENUITEM "按鈕(&U)",                    IDM_WINDOW_TABTYPE_BUTTONS
+            MENUITEM "按鈕(&u)",                    IDM_WINDOW_TABTYPE_BUTTONS
 
             MENUITEM "平面按鈕(&F)",                IDM_WINDOW_TABTYPE_FLATBUTTONS
 
@@ -169,14 +169,14 @@ BEGIN
 
         END
         MENUITEM SEPARATOR
-        MENUITEM "水平並排(&T)",                IDM_WINDOW_TILEHORIZONTAL
-        MENUITEM "垂直並排(&T)",                IDM_WINDOW_TILEVERTICAL
+        MENUITEM "水平並排(&H)",                IDM_WINDOW_TILEHORIZONTAL
+        MENUITEM "垂直並排(&V)",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "重疊顯示(&C)",                IDM_WINDOW_CASCADE
         MENUITEM "關閉",                        IDM_WINDOW_FRAMECLOSE
         MENUITEM "全部關閉",                    IDM_WINDOW_FRAMECLOSEALL
-        MENUITEM "除活動外全部關閉",            IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
+        MENUITEM "使用中以外全部關閉",          IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
-        MENUITEM "選擇窗口...",                 IDM_WINDOW_MDILIST
+        MENUITEM "選擇視窗...",                 IDM_WINDOW_MDILIST
     END
     POPUP "說明(&H)"
     BEGIN
@@ -189,7 +189,7 @@ BEGIN
     POPUP "EditPopup"
     BEGIN
         MENUITEM "復原(&U)",                    IDM_EDIT_UNDO
-        MENUITEM "重做(&R)",                    IDM_EDIT_REDO
+        MENUITEM "取消復原(&R)",                IDM_EDIT_REDO
         MENUITEM SEPARATOR
         MENUITEM "剪下(&C)",                    IDM_EDIT_CUT
         MENUITEM "複製(&O)",                    IDM_EDIT_COPY
@@ -211,7 +211,7 @@ BEGIN
             MENUITEM "_",                           IDM_POPUP_OPENAS
         END
         MENUITEM SEPARATOR
-        POPUP "另存為"
+        POPUP "另存新檔"
         BEGIN
             MENUITEM "_",                           IDM_POPUP_SAVEAS
         END
@@ -220,10 +220,10 @@ BEGIN
     END
     POPUP "HeadlinePopup"
     BEGIN
-        MENUITEM "頁面編號[首頁]\t%n[1]",       IDM_POPUP_HEADLINE_PAGE_NUMBER
+        MENUITEM "頁數[第一頁]\t%n[1]",         IDM_POPUP_HEADLINE_PAGE_NUMBER
 
         MENUITEM "檔案名稱\t%f",                IDM_POPUP_HEADLINE_FILENAME
-        MENUITEM "文件所在的目錄\t%d",          IDM_POPUP_HEADLINE_FILEDIR
+        MENUITEM "檔案目錄\t%d",                IDM_POPUP_HEADLINE_FILEDIR
         MENUITEM "符號 %\t%%",                  IDM_POPUP_HEADLINE_SYMBOL
         MENUITEM SEPARATOR
         MENUITEM "置中對齊\t%c",                IDM_POPUP_HEADLINE_ALIGN_CENTER
@@ -380,9 +380,9 @@ END
 
 IDD_OFN DIALOGEX 0, 0, 285, 120
 STYLE DS_3DLOOK | DS_CONTROL | WS_CHILD | WS_CLIPSIBLINGS
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 9, "新細明體", 0, 0, 0x1
 BEGIN
-    LTEXT           "字碼頁:",IDC_OFN_CODEPAGE_LABEL,5,4,40,8
+    LTEXT           "字碼頁(&C):",IDC_OFN_CODEPAGE_LABEL,5,4,40,8
     COMBOBOX        IDC_OFN_CODEPAGE,53,2,155,130,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_OFN_AUTODETECT,"Button",BS_AUTOCHECKBOX | 
@@ -395,16 +395,16 @@ IDD_SAVEALLAS DIALOG DISCARDABLE  70, 70, 200, 135
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "全部另存為"
-FONT 8, "MS Shell Dlg"
+FONT 9, "新細明體"
 BEGIN
-    CONTROL         "字碼頁:",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
+    CONTROL         "字碼頁(&C):",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
-    GROUPBOX        "",IDC_STATIC,9,16,182,35
-    COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,18,29,131,82,
-                    CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "BOM",IDC_SAVEALLAS_BOM,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,155,31,27,10
-    CONTROL         "新行格式(&F):",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
+    GROUPBOX        "",IDC_STATIC,2,16,192,35
+    COMBOBOX        IDC_SAVEALLAS_CODEPAGE_LIST,5,29,116,82,CBS_DROPDOWNLIST | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "萬國碼檔案簽名",IDC_SAVEALLAS_BOM,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,124,31,66,10
+    CONTROL         "新行格式(&f):",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
@@ -419,8 +419,8 @@ END
 
 IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 264
 STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "選擇窗口"
-FONT 8, "MS Shell Dlg"
+CAPTION "選擇視窗"
+FONT 9, "新細明體"
 BEGIN
     LISTBOX         IDC_MDILIST_LIST,6,9,178,219,LBS_SORT | 
                     LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
@@ -432,11 +432,11 @@ BEGIN
     PUSHBUTTON      "水平",IDC_MDILIST_HORZ,198,45,50,14
     PUSHBUTTON      "垂直",IDC_MDILIST_VERT,198,60,50,14
     GROUPBOX        "標籤",IDC_MDILIST_TABS_GROUP,191,86,64,72
-    PUSHBUTTON      "往上",IDC_MDILIST_UP,198,100,50,14
-    PUSHBUTTON      "往下",IDC_MDILIST_DOWN,198,115,50,14
+    PUSHBUTTON      "上移",IDC_MDILIST_UP,198,100,50,14
+    PUSHBUTTON      "下移",IDC_MDILIST_DOWN,198,115,50,14
     PUSHBUTTON      "排序",IDC_MDILIST_SORT,198,138,50,14
     GROUPBOX        "檔案",IDC_MDILIST_FILES_GROUP,191,163,64,49
-    PUSHBUTTON      "保存",IDC_MDILIST_SAVE,198,177,50,14
+    PUSHBUTTON      "儲存",IDC_MDILIST_SAVE,198,177,50,14
     PUSHBUTTON      "關閉",IDC_MDILIST_CLOSE,198,192,50,14
     CONTROL         "僅名稱",IDC_MDILIST_ONLYNAMES,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,191,219,67,10
@@ -448,10 +448,10 @@ STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP |
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
 CAPTION "預覽"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 9, "新細明體", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "列印(&P)...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "頁(&G)...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    PUSHBUTTON      "頁數(&g)...",IDC_PREVIEW_PAGESETUP,62,9,50,14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -461,7 +461,7 @@ BEGIN
                     WS_TABSTOP
     CONTROL         "選取項目(&S)",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
-    PUSHBUTTON      "關閉",IDC_PREVIEW_CLOSE,390,9,50,14
+    PUSHBUTTON      "關閉(&C)",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 257, 108
@@ -469,34 +469,34 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "尋找"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 9, "新細明體", 0, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SEARCH_FIND,43,9,144,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "符合大小寫",IDC_SEARCH_MATCHCASE,"Button",
+    CONTROL         "大小寫須相符",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "整個單詞",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,42,105,12
-    CONTROL         "Esc-序列",IDC_SEARCH_ESCAPESEQ,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,54,105,12
+    CONTROL         "全字拼寫須相符",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,42,105,12
+    CONTROL         "Esc - 循序項",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
     GROUPBOX        "方向",IDC_STATIC,121,27,66,58
-    CONTROL         "往下",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "下移",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,37,60,10
-    CONTROL         "往上",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "上移",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
                     126,48,60,10
-    CONTROL         "起點",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "開頭",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
                     126,59,60,10
-    CONTROL         "選取區段",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "選取範圍",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
                     126,70,60,10
     CONTROL         "所有檔案",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,87,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,80,66,19
-    DEFPUSHBUTTON   "找下一個(&F)",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+    DEFPUSHBUTTON   "尋找下一個(&F)",IDC_SEARCH_FIND_BUTTON,194,6,56,14,
                     BS_CENTER
     PUSHBUTTON      "取消",IDCANCEL,196,23,54,14,BS_CENTER
-    LTEXT           "目標:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
+    LTEXT           "尋找目標:",IDC_STATIC,4,11,38,12,NOT WS_GROUP
     LTEXT           "(\\[...] - 16進位字串,\n \\\\ - 反斜線,\n \\n - 換行,\n \\t - 表格)",
-                    IDC_STATIC,21,66,97,33,NOT WS_GROUP
+                    IDC_STATIC,21,66,97,39,NOT WS_GROUP
 END
 
 IDD_REPLACE DIALOGEX 70, 70, 257, 122
@@ -504,55 +504,55 @@ STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION |
     WS_SYSMENU
 EXSTYLE WS_EX_DLGMODALFRAME
 CAPTION "取代"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 9, "新細明體", 0, 0, 0x1
 BEGIN
-    COMBOBOX        IDC_SEARCH_FIND,27,9,160,100,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SEARCH_FIND,43,9,144,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    COMBOBOX        IDC_SEARCH_REPLACE,27,23,160,100,CBS_DROPDOWN | 
+    COMBOBOX        IDC_SEARCH_REPLACE,43,23,144,100,CBS_DROPDOWN | 
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "符合大小寫",IDC_SEARCH_MATCHCASE,"Button",
+    CONTROL         "大小寫須相符",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
-    CONTROL         "整個單詞",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,56,105,12
-    CONTROL         "Esc-序列",IDC_SEARCH_ESCAPESEQ,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,9,68,105,12
+    CONTROL         "全字拼寫須相符",IDC_SEARCH_WHOLEWORD,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,56,105,12
+    CONTROL         "Esc - 循序項",IDC_SEARCH_ESCAPESEQ,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
     GROUPBOX        "方向",IDC_STATIC,121,41,66,58
-    CONTROL         "往下",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "下移",IDC_SEARCH_FORWARD,"Button",BS_AUTORADIOBUTTON,
                     126,51,60,10
-    CONTROL         "往上",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "上移",IDC_SEARCH_BACKWARD,"Button",BS_AUTORADIOBUTTON,
                     126,62,60,10
-    CONTROL         "起點",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "開頭",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
                     126,73,60,10
-    CONTROL         "選取區段",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "選取範圍",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
                     126,84,60,10
     CONTROL         "所有檔案",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,126,101,60,10
     GROUPBOX        "",IDC_SEARCH_ALLFILES_GROUP,121,94,66,19
-    DEFPUSHBUTTON   "找下一個(&F)",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
+    DEFPUSHBUTTON   "尋找下一個(&F)",IDC_SEARCH_FIND_BUTTON,196,6,54,14,
                     BS_CENTER
     PUSHBUTTON      "取代(&R)",IDC_SEARCH_REPLACE_BUTTON,196,23,54,14,
                     BS_CENTER
-    PUSHBUTTON      "全部取代(&A)",IDC_SEARCH_ALL_BUTTON,196,39,54,14,
+    PUSHBUTTON      "全部取代(&a)",IDC_SEARCH_ALL_BUTTON,196,39,54,14,
                     BS_CENTER
     PUSHBUTTON      "取消",IDCANCEL,196,55,54,14,BS_CENTER
-    LTEXT           "目標:",IDC_STATIC,4,11,22,12,NOT WS_GROUP
-    LTEXT           "換為:",IDC_STATIC,4,25,22,12,NOT WS_GROUP
+    LTEXT           "尋找目標:",IDC_STATIC,4,11,38,12,NOT WS_GROUP
+    LTEXT           "取代為:",IDC_STATIC,4,25,38,12,NOT WS_GROUP
     LTEXT           "(\\[...] - 16進位字串,\n \\\\ - 反斜線,\n \\n - 換行,\n \\t - 表格)",
-                    IDC_STATIC,21,80,97,33,NOT WS_GROUP
+                    IDC_STATIC,21,80,97,39,NOT WS_GROUP
 END
 
 IDD_GOTO DIALOG DISCARDABLE  70, 70, 151, 85
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "轉到"
-FONT 8, "MS Shell Dlg"
+CAPTION "移至"
+FONT 9, "新細明體"
 BEGIN
     LTEXT           "數字:",IDC_STATIC,17,8,97,8,NOT WS_GROUP
     EDITTEXT        IDC_GOTO_NUMBER,14,20,122,13
     CONTROL         "行:列",IDC_GOTO_LINE,"Button",BS_AUTORADIOBUTTON,14,41,
                     70,10
-    CONTROL         "偏移量",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,86,
-                    42,50,10
+    CONTROL         "位移",IDC_GOTO_OFFSET,"Button",BS_AUTORADIOBUTTON,86,42,
+                    50,10
     PUSHBUTTON      "確定",IDOK,23,63,50,14,BS_CENTER
     PUSHBUTTON      "取消",IDCANCEL,77,63,50,14,BS_CENTER
 END
@@ -560,8 +560,8 @@ END
 IDD_RECODE DIALOG DISCARDABLE  70, 70, 174, 94
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "轉碼"
-FONT 8, "MS Shell Dlg"
+CAPTION "重新編碼"
+FONT 9, "新細明體"
 BEGIN
     COMBOBOX        IDC_RECODE_CODEPAGE_FROM,9,17,155,130,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
@@ -569,20 +569,20 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "確定",IDOK,36,73,50,14,BS_CENTER
     PUSHBUTTON      "取消",IDCANCEL,90,73,50,14,BS_CENTER
-    LTEXT           "由:",IDC_STATIC,12,6,150,8
+    LTEXT           "從:",IDC_STATIC,12,6,150,8
     LTEXT           "到:",IDC_STATIC,12,37,150,8
 END
 
 IDD_COLORS DIALOG DISCARDABLE  0, 0, 237, 162
 STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
-CAPTION "顏色"
-FONT 8, "MS Shell Dlg"
+CAPTION "色彩"
+FONT 9, "新細明體"
 BEGIN
-    LTEXT           "顏色方案：",IDC_STATIC,11,6,103,8
+    LTEXT           "色彩主題:",IDC_STATIC,11,6,103,8
     COMBOBOX        IDC_COLORS_THEME_NAME,9,17,107,83,CBS_DROPDOWN | 
                     WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "保存",IDC_COLORS_THEME_SAVE,123,16,50,14
+    PUSHBUTTON      "儲存",IDC_COLORS_THEME_SAVE,123,16,50,14
     PUSHBUTTON      "刪除",IDC_COLORS_THEME_DELETE,175,16,50,14
     CONTROL         "List1",IDC_COLORS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
@@ -594,18 +594,18 @@ END
 IDD_PLUGINS DIALOG DISCARDABLE  0, 0, 340, 230
 STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
-CAPTION "外掛元件"
-FONT 8, "MS Shell Dlg"
+CAPTION "外掛程式"
+FONT 9, "新細明體"
 BEGIN
     CONTROL         "List1",IDC_PLUGINS_LIST,"SysListView32",LVS_REPORT | 
                     LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_SORTASCENDING | 
                     LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,9,11,265,178
-    LTEXT           "選擇核取方塊以自動載入外掛元件.",IDC_PLUGINS_LIST_INFO,
-                    11,192,264,8
-    LTEXT           "快捷鍵:",IDC_PLUGINS_HOTKEY_LABEL,284,13,37,8
+    LTEXT           "勾選要自動載入外掛程式的核取方塊。",
+                    IDC_PLUGINS_LIST_INFO,11,192,264,8
+    LTEXT           "快速鍵:",IDC_PLUGINS_HOTKEY_LABEL,284,13,37,8
     CONTROL         "HotKey1",IDC_PLUGINS_HOTKEY,"msctls_hotkey32",WS_BORDER | 
                     WS_TABSTOP,282,24,50,14
-    PUSHBUTTON      "配置",IDC_PLUGINS_ASSIGN,282,42,50,14
+    PUSHBUTTON      "指定",IDC_PLUGINS_ASSIGN,282,42,50,14
     DEFPUSHBUTTON   "呼叫",IDC_PLUGINS_CALL,9,209,50,14
     PUSHBUTTON      "確定",IDOK,228,209,50,14,BS_CENTER
     PUSHBUTTON      "取消",IDCANCEL,282,209,50,14,BS_CENTER
@@ -615,28 +615,28 @@ IDD_OPTIONS_GENERAL DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "一般"
-FONT 8, "MS Shell Dlg"
+FONT 9, "新細明體"
 BEGIN
     GROUPBOX        "執行",IDC_STATIC,9,6,200,90
-    LTEXT           "指令 (%f 檔案, %a akelpad 目錄):",IDC_STATIC,21,24,160,
-                    8,NOT WS_GROUP
+    LTEXT           "指令 (%f 個檔案，%a 個 akelpad 目錄):",IDC_STATIC,21,24,
+                    160,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECCOM,18,35,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECCOM_BROWSE,185,35,14,13
-    LTEXT           "工作目錄 (%d 文件所在的目錄):",IDC_STATIC,21,59,160,8,
-                    NOT WS_GROUP
+    LTEXT           "工作目錄 (%d 個檔案目錄):",IDC_STATIC,21,59,160,8,NOT 
+                    WS_GROUP
     EDITTEXT        IDC_OPTIONS_EXECDIR,18,70,166,13,ES_AUTOHSCROLL
     PUSHBUTTON      "...",IDC_OPTIONS_EXECDIR_BROWSE,185,70,14,13
     LTEXT           "字碼頁辨識:",IDC_STATIC,12,110,150,8
     COMBOBOX        IDC_OPTIONS_CODEPAGE_RECOGNITION,9,121,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "緩衝大小:",IDC_STATIC,170,110,37,8
+    LTEXT           "緩衝區:",IDC_STATIC,170,110,37,8
     EDITTEXT        IDC_OPTIONS_CODEPAGE_RECOGNITION_BUFFER,168,121,40,13,
                     ES_NUMBER
     LTEXT           "預設字碼頁:",IDC_STATIC,12,150,150,8
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,161,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "篩選器",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
-    GROUPBOX        "默認換行符",IDC_STATIC,9,190,200,33
+    PUSHBUTTON      "篩選",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
+    GROUPBOX        "預設新行",IDC_STATIC,9,190,200,33
     CONTROL         "Windows",IDC_OPTIONS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,22,205,65,10
     CONTROL         "Unix",IDC_OPTIONS_NEWLINE_UNIX,"Button",
@@ -648,14 +648,14 @@ END
 IDD_OPTIONS_GENERAL_FILTER DIALOG DISCARDABLE  0, 0, 364, 255
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
-CAPTION "篩選器"
-FONT 8, "MS Shell Dlg"
+CAPTION "篩選"
+FONT 9, "新細明體"
 BEGIN
     LTEXT           "自訂:",IDC_STATIC,11,7,135,8
     LISTBOX         IDC_OPTIONS_CODEPAGES_FILTER_CUSTOM,7,18,141,209,
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "往上",IDC_OPTIONS_CODEPAGES_FILTER_UP,155,19,50,14
-    PUSHBUTTON      "往下",IDC_OPTIONS_CODEPAGES_FILTER_DOWN,155,34,50,14
+    PUSHBUTTON      "上移",IDC_OPTIONS_CODEPAGES_FILTER_UP,155,19,50,14
+    PUSHBUTTON      "下移",IDC_OPTIONS_CODEPAGES_FILTER_DOWN,155,34,50,14
     PUSHBUTTON      "<",IDC_OPTIONS_CODEPAGES_FILTER_ADD,155,56,50,14
     PUSHBUTTON      ">",IDC_OPTIONS_CODEPAGES_FILTER_DELETE,155,71,50,14
     PUSHBUTTON      "<<",IDC_OPTIONS_CODEPAGES_FILTER_ADDALL,155,93,50,14
@@ -671,16 +671,16 @@ END
 IDD_OPTIONS_REGISTRY DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
-CAPTION "註冊表"
-FONT 8, "MS Shell Dlg"
+CAPTION "登錄"
+FONT 9, "新細明體"
 BEGIN
-    GROUPBOX        "設定值儲存於",IDC_STATIC,9,6,200,29
+    GROUPBOX        "儲存設定值於",IDC_STATIC,9,6,200,29
     CONTROL         "系統登錄值",IDC_OPTIONS_SAVESETTINGS_REGISTRY,"Button",
                     BS_AUTORADIOBUTTON,32,19,70,10
-    CONTROL         "INI 檔案",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
+    CONTROL         "INI 檔",IDC_OPTIONS_SAVESETTINGS_INI,"Button",
                     BS_AUTORADIOBUTTON,133,19,70,10
-    GROUPBOX        "最近開啟的檔案",IDC_STATIC,9,42,200,64
-    CONTROL         "記住插字符號位置",IDC_OPTIONS_SAVEPOSITIONS,"Button",
+    GROUPBOX        "最近使用的檔案",IDC_STATIC,9,42,200,64
+    CONTROL         "記住插入符號位置",IDC_OPTIONS_SAVEPOSITIONS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,55,185,10
     CONTROL         "記住字碼頁",IDC_OPTIONS_SAVECODEPAGES,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,66,185,10
@@ -690,7 +690,7 @@ BEGIN
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,113,86,11,13
     PUSHBUTTON      "清除",IDC_OPTIONS_RECENTFILES_CLEAR,141,85,54,14
-    GROUPBOX        "搜尋歷史紀錄",IDC_STATIC,9,113,200,33
+    GROUPBOX        "搜尋歷程記錄",IDC_STATIC,9,113,200,33
     LTEXT           "行列總數:",IDC_STATIC,19,128,73,11,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_SEARCHSTRINGS_AMOUNT,95,126,18,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_SEARCHSTRINGS_AMOUNT_SPIN,
@@ -713,7 +713,7 @@ IDD_OPTIONS_EDITOR1 DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "編輯器 1"
-FONT 8, "MS Shell Dlg"
+FONT 9, "新細明體"
 BEGIN
     GROUPBOX        "文字邊界",IDC_STATIC,9,6,200,34
     EDITTEXT        IDC_OPTIONS_EDITMARGIN_LEFT,18,20,21,13,ES_NUMBER
@@ -726,7 +726,7 @@ BEGIN
     CONTROL         "Spin1",IDC_OPTIONS_EDITMARGIN_RIGHT_SPIN,
                     "msctls_updown32",UDS_SETBUDDYINT | UDS_ARROWKEYS | 
                     UDS_NOTHOUSANDS,190,20,11,13
-    GROUPBOX        "分頁大小",IDC_STATIC,9,46,105,34
+    GROUPBOX        "定位點大小",IDC_STATIC,9,46,105,34
     EDITTEXT        IDC_OPTIONS_TABSIZE,18,60,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_TABSIZE_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,60,
@@ -740,10 +740,10 @@ BEGIN
                     11,13
     CONTROL         "詳細",IDC_OPTIONS_UNDO_DETAILED,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
-    GROUPBOX        "換行方式",IDC_STATIC,121,46,88,76
-    CONTROL         "按 單詞",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
+    GROUPBOX        "自動換行依",IDC_STATIC,121,46,88,76
+    CONTROL         "文字",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,133,60,72,10
-    CONTROL         "按 符號",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
+    CONTROL         "符號",IDC_OPTIONS_WRAP_BY_SYMBOLS,"Button",
                     BS_AUTORADIOBUTTON,133,73,72,10
     LTEXT           "界限:",IDC_STATIC,129,91,37,8
     EDITTEXT        IDC_OPTIONS_WRAP_LIMIT,129,102,21,13,ES_NUMBER
@@ -756,19 +756,18 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,190,
                     102,11,13
     GROUPBOX        "插入點",IDC_STATIC,9,128,200,56
-    CONTROL         "允許插入點移動到行末邊緣的右邊",
-                    IDC_OPTIONS_CARETOUTEDGE,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,142,185,10
-    CONTROL         "顯示當前列",IDC_OPTIONS_CARETVERTLINE,"Button",
+    CONTROL         "允許插入點在行結尾之後",IDC_OPTIONS_CARETOUTEDGE,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,142,185,10
+    CONTROL         "顯示使用中的列",IDC_OPTIONS_CARETVERTLINE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,153,185,10
-    RTEXT           "寬：",IDC_STATIC,116,168,35,8,NOT WS_GROUP
+    RTEXT           "寬度:",IDC_STATIC,116,168,35,8,NOT WS_GROUP
     EDITTEXT        IDC_OPTIONS_CARETWIDTH,156,165,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_CARETWIDTH_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,177,
                     165,11,13
-    CONTROL         "RichEdit 滑鼠選擇",IDC_OPTIONS_RICHEDITMOUSE,"Button",
+    CONTROL         "RichEdit 滑鼠選取",IDC_OPTIONS_RICHEDITMOUSE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,193,109,10
-    CONTROL         "滑鼠拖放",IDC_OPTIONS_MOUSEDRAGGING,"Button",
+    CONTROL         "滑鼠拖曳",IDC_OPTIONS_MOUSEDRAGGING,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,204,109,10
     GROUPBOX        "行距",IDC_STATIC,122,190,87,33
     EDITTEXT        IDC_OPTIONS_LINEGAP,156,204,21,13,ES_NUMBER
@@ -781,7 +780,7 @@ IDD_OPTIONS_EDITOR2 DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "編輯器 2"
-FONT 8, "MS Shell Dlg"
+FONT 9, "新細明體"
 BEGIN
     GROUPBOX        "超連結",IDC_STATIC,9,6,200,120
     CONTROL         "顯示",IDC_OPTIONS_URL_SHOW,"Button",BS_AUTOCHECKBOX | 
@@ -790,16 +789,16 @@ BEGIN
                     BS_AUTORADIOBUTTON,23,33,172,10
     CONTROL         "按兩下",IDC_OPTIONS_URL_DOUBLECLICK,"Button",
                     BS_AUTORADIOBUTTON,23,44,172,10
-    CONTROL         "首碼：",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
+    CONTROL         "首碼:",IDC_OPTIONS_URL_PREFIXES_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,60,172,10
     EDITTEXT        IDC_OPTIONS_URL_PREFIXES,23,72,172,13,ES_AUTOHSCROLL
-    CONTROL         "分隔符號：",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
+    CONTROL         "分隔符號:",IDC_OPTIONS_URL_DELIMITERS_ENABLE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,23,91,172,10
     EDITTEXT        IDC_OPTIONS_URL_LEFTDELIMITERS,23,103,83,13,
                     ES_AUTOHSCROLL
     EDITTEXT        IDC_OPTIONS_URL_RIGHTDELIMITERS,112,103,83,13,
                     ES_AUTOHSCROLL
-    CONTROL         "單字分隔符號:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
+    CONTROL         "文字分隔符號:",IDC_OPTIONS_WORD_DELIMITERS_ENABLE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,135,150,8
     EDITTEXT        IDC_OPTIONS_WORD_DELIMITERS,9,146,148,13,ES_AUTOHSCROLL
     PUSHBUTTON      "重設",IDC_OPTIONS_WORD_DELIMITERS_RESET,159,146,50,13,
@@ -815,22 +814,23 @@ IDD_OPTIONS_ADVANCED DIALOG DISCARDABLE  0, 0, 220, 230
 STYLE DS_MODALFRAME | DS_3DLOOK | WS_POPUP | WS_VISIBLE | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "進階"
-FONT 8, "MS Shell Dlg"
+FONT 9, "新細明體"
 BEGIN
-    CONTROL         "記住每個標籤頁的鍵盤佈局(MDI)",
+    CONTROL         "記住每個標籤頁的鍵盤配置(MDI)",
                     IDC_OPTIONS_REMEMBER_KEYBLAYOUT,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,11,200,10
-    CONTROL         "如果檔案以 .LOG 開頭就插入日期",IDC_OPTIONS_LOGDATE,
+    CONTROL         "如果檔案以 .LOG 開頭則插入日期",IDC_OPTIONS_LOGDATE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,23,200,10
     CONTROL         "儲存為唯讀檔案時發出警告",
                     IDC_OPTIONS_SAVEIN_READONLY_MSG,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,35,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,51,24,13,ES_AUTOHSCROLL
-    LTEXT           "保存時默認的副檔名",IDC_STATIC,37,53,171,8
-    GROUPBOX        "Find/Replace dialog",IDC_STATIC,9,72,200,41
-    CONTROL         "全部取代 - 關閉對話框",IDC_OPTIONS_REPLACEALL_CLOSE,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,85,185,10
-    CONTROL         "Check ""In selection"" if selection not empty",
+    LTEXT           "預設儲存的副檔名",IDC_STATIC,37,53,171,8
+    GROUPBOX        "尋找/取代對話方塊",IDC_STATIC,9,72,200,41
+    CONTROL         "關閉對話方塊時「全部取代」",
+                    IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,85,185,10
+    CONTROL         "如果選取項目不為空時，請檢查「選取項目」",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10
 END
@@ -839,7 +839,7 @@ IDD_ABOUT DIALOGEX 0, 0, 220, 207
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "關於"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 9, "新細明體", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "確定",IDOK,148,183,50,14,BS_CENTER
     PUSHBUTTON      "",IDC_ABOUT_HOMEPAGE,105,40,92,14,0,WS_EX_STATICEDGE
@@ -851,9 +851,9 @@ BEGIN
                     12,NOT WS_GROUP
     LTEXT           "Alexey Kuznetsov, 2003-2006",IDC_STATIC,73,125,120,12,
                     NOT WS_GROUP
-    LTEXT           "E-Mail:",IDC_STATIC,46,98,22,12,NOT WS_GROUP,
+    LTEXT           "電子郵件:",IDC_STATIC,34,98,36,12,NOT WS_GROUP,
                     WS_EX_RIGHT
-    LTEXT           "E-Mail:",IDC_STATIC,45,142,22,12,NOT WS_GROUP,
+    LTEXT           "電子郵件:",IDC_STATIC,34,142,36,12,NOT WS_GROUP,
                     WS_EX_RIGHT
     CONTROL         "",IDC_ABOUT_VERSION,"Static",SS_LEFTNOWORDWRAP,44,16,
                     150,11
@@ -903,48 +903,48 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_ERROR_IN_MESSAGE_QUEUE "佇列訊息錯誤."
-    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT "編輯控制的記憶體分配錯誤."
-    MSG_ERROR_NOT_ENOUGH_MEMORY "記憶體不足."
-    MSG_ERROR_BINARY        """%s"" 是個2進位檔案. 要繼續嗎?"
-    MSG_ERROR_IO            "輸入/輸出 錯誤."
-    MSG_ERROR_SYNTAX        "語法錯誤."
-    MSG_ERROR_PRINT         "無法列印文件."
-    MSG_ERROR_RUN           "無法執行程式."
-    MSG_ERROR_LOAD_DLL      "無法載入 ""%s""."
-    MSG_ERROR_UNLOAD_DLL    "無法卸載 ""%s""."
+    MSG_ERROR_IN_MESSAGE_QUEUE "訊息佇列發生錯誤。"
+    MSG_ERROR_NOT_ENOUGH_MEMORY_FOR_EDIT "為編輯控制項配置記憶體時發生錯誤。"
+    MSG_ERROR_NOT_ENOUGH_MEMORY "記憶體不足。"
+    MSG_ERROR_BINARY        """%s"" 是一個二進位檔案。要繼續嗎?"
+    MSG_ERROR_IO            "輸出/輸入錯誤。"
+    MSG_ERROR_SYNTAX        "語法錯誤。"
+    MSG_ERROR_PRINT         "無法列印文件。"
+    MSG_ERROR_RUN           "無法執行程式。"
+    MSG_ERROR_LOAD_DLL      "無法載入 ""%s""。"
+    MSG_ERROR_UNLOAD_DLL    "無法卸載 ""%s""。"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 不支援自動載入."
-    MSG_FUNCTION_NOT_FOUND  "無法找到函式 ""%s::%s"" in ""%s""."
-    MSG_UPDATE_PROGRAM      "更新 AkelPad。\n\n需要的 AkelPad 最小版本: %d.%d.%d.%d\n當前的 AkelPad 版本: %d.%d.%d.%d"
-    MSG_PROGRAM_IS_NOT_SUPPORTED "不支持 AkelPad 4.x.x。"
-    MSG_UPDATE_PLUGIN       "更新 %s。\n\nAkelPad 體系結構: %d.%d.%d.%d\n%s 外掛元件體系結構: %d.%d.%d.%d"
-    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" 未被識別為 AkelPad 外掛元件。"
-    MSG_UPDATE_LANGMODULE   "更新 %s\n\n當前版本: %d.%d.%d.%d\n需要版本: %d.%d.%d.%d"
-    MSG_HOTKEY_EXISTS       "快捷鍵已配置為 ""%s""."
-    MSG_CANNOT_OPEN_FILE    "無法開啟檔案 ""%s""."
-    MSG_WRONG_STRING        "無效的列數."
-    MSG_LONG_FILELIST       "選取太多檔案."
-    MSG_DOCUMENT_CHANGED    "文件已被修改. 是否要儲存?"
-    MSG_FILE_DOES_NOT_EXIST "建立新的檔案 ""%s""?"
+    MSG_AUTOLOAD_IS_NOT_SUPPORTED """%s"" 不支援自動載入。"
+    MSG_FUNCTION_NOT_FOUND  "找不到函式 ""%s::%s"" 在 ""%s""。"
+    MSG_UPDATE_PROGRAM      "更新 AkelPad。\n\n需要的 AkelPad 最小版本: %d.%d.%d.%d\n目前的 AkelPad 版本: %d.%d.%d.%d"
+    MSG_PROGRAM_IS_NOT_SUPPORTED "不支援 AkelPad 4.x.x。"
+    MSG_UPDATE_PLUGIN       "更新 %s。\n\nAkelPad 結構: %d.%d.%d.%d\n%s 外掛程式結構: %d.%d.%d.%d"
+    MSG_PLUGIN_IS_NOT_SUPPORTED """%s"" 未被辨識為 AkelPad 外掛程式。"
+    MSG_UPDATE_LANGMODULE   "更新 %s\n\n目前版本: %d.%d.%d.%d\n所需版本: %d.%d.%d.%d"
+    MSG_HOTKEY_EXISTS       "快速鍵已指派給 ""%s""。"
+    MSG_CANNOT_OPEN_FILE    "無法開啟檔案 ""%s""。"
+    MSG_WRONG_STRING        "無效的行數。"
+    MSG_LONG_FILELIST       "選取太多檔案。"
+    MSG_DOCUMENT_CHANGED    "文件已被修改。您要儲存它嗎?"
+    MSG_FILE_DOES_NOT_EXIST "要建立新的檔案 ""%s"" 嗎?"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    MSG_RECENTFILES_DELETED "已刪除轉碼: %d"
-    MSG_SEARCH_ENDED        "搜尋完畢."
+    MSG_RECENTFILES_DELETED "已刪除的記錄: %d"
+    MSG_SEARCH_ENDED        "搜尋完畢。"
     MSG_REPLACE_COUNT       "變更次數: %d"
     MSG_REPLACE_COUNT_ALLFILES "已變更的檔案: %d\n變更次數: %d"
-    MSG_FILE_WILL_BE_REOPENED "檔案即將重新開啟, 所有的變更將遺失."
-    MSG_FILE_CHANGED        """%s"" 外部已被修改.\n\n是否要重新開啟?"
-    MSG_CP_UNIMPLEMENTED    """%d"" 字碼頁未建置."
-    MSG_CP_MISMATCH         "行號為""%d""中包含有以本編碼保存時將會丟失的符號。繼續？"
-    MSG_RESTART_PROGRAM     "變更將會在重新啟動程式後生效."
-    MSG_SAVEIN_READONLY     """%s"" 是一個唯讀檔案. 要繼續嗎?"
-    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
+    MSG_FILE_WILL_BE_REOPENED "檔案即將重新開啟，所有的變更將遺失。"
+    MSG_FILE_CHANGED        """%s"" 外部已被修改。\n\n您要重新開啟嗎?"
+    MSG_CP_UNIMPLEMENTED    """%d"" 字碼頁尚未執行。"
+    MSG_CP_MISMATCH         "行號為 ""%d"" 所包含的符號將在此編碼儲存時遺失。要繼續嗎?"
+    MSG_RESTART_PROGRAM     "變更將會在重新啟動程式後生效。"
+    MSG_SAVEIN_READONLY     """%s"" 為唯讀檔案。要繼續嗎?"
+    MSG_OVERWRITEPROMPT     """%s"" 已經存在。要將它覆寫嗎?"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -958,50 +958,50 @@ BEGIN
     STR_RECENT_FILES_DELETE_DEAD "刪除不存在的文件"
     STR_OPTIONS             "設定..."
     STR_LANGUAGE_NONE       "系統內定"
-    STR_FILE_FILTER         "純文字檔 (*.txt)|*.txt|所有格式 (*.*)|*.*"
-    STR_EXECUTABLE_FILTER   "可執行檔 (*.exe)|*.exe|所有格式 (*.*)|*.*"
-    STR_NONE                "無"
+    STR_FILE_FILTER         "文字檔 (*.txt)|*.txt|所有檔案 (*.*)|*.*"
+    STR_EXECUTABLE_FILTER   "可執行檔 (*.exe)|*.exe|所有檔案 (*.*)|*.*"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_PLUGIN              "外掛元件"
+    STR_NONE                "無"
+    STR_PLUGIN              "外掛程式"
     STR_FUNCTION            "函式"
-    STR_HOTKEY              "快捷鍵"
+    STR_HOTKEY              "快速鍵"
     STR_STATUS              "狀態"
     STR_RUNNING             "執行中"
     STR_FONT                "字型"
-    STR_COLOR               "顏色"
+    STR_COLOR               "色彩"
     STR_HEADLINE            "標題"
     STR_TOP                 "上:"
     STR_BOTTOM              "下:"
-    STR_ELEMENT             "元素"
+    STR_ELEMENT             "元件"
     STR_STANDARDTHEME       "標準"
-    STR_TEXT                "文本"
+    STR_TEXT                "文字"
     STR_BACKGROUND          "背景"
-    STR_SAMPLE              "示例"
-    STR_BASIC               "基本顏色"
+    STR_SAMPLE              "範例"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_SELECTION           "選定範圍"
-    STR_ACTIVELINE          "當前行"
-    STR_ACTIVECOLUMN        "當前列"
-    STR_COLUMNMARKER        "列尺規線"
+    STR_BASIC               "基本色彩"
+    STR_SELECTION           "選取項目"
+    STR_ACTIVELINE          "現用行"
+    STR_ACTIVECOLUMN        "現用列"
+    STR_COLUMNMARKER        "資料行標記"
     STR_CARET               "插入點"
-    STR_URL                 "超鏈接"
-    STR_PAGEFIT             "適合頁面"
+    STR_URL                 "超連結"
+    STR_PAGEFIT             "符合頁面"
     STR_PAGEWIDTH           "頁寬"
-    STR_ALLFILES            "All files"
-    STR_ONLYMODIFIED        "Modified"
-    STR_ONLYUNMODIFIED      "Unmodified"
-    STR_INVERTSELECTION     "Invert selection"
+    STR_ALLFILES            "所有檔案"
+    STR_ONLYMODIFIED        "已修改"
+    STR_ONLYUNMODIFIED      "未修改過"
+    STR_INVERTSELECTION     "反向選擇"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_AUTODETECT_RUSSIAN  "西里爾文(ANSI, OEM, KOI8-R, UTF-8)"
+    STR_AUTODETECT_RUSSIAN  "斯拉夫文 (ANSI, OEM, KOI8-R, UTF-8)"
     STR_AUTODETECT_ENGLISH  "拉丁文(OEM)"
     STR_AUTODETECT_TURKISH  "土耳其文 (OEM, UTF-8)"
     STR_AUTODETECT_CHINESE  "中文 (UTF-8)"
