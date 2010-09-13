@@ -947,7 +947,7 @@ BEGIN
     MSG_CP_MISMATCH         "Line ""%d"" contains symbols which will be lost at saving in this encoding. Continue?"
     MSG_RESTART_PROGRAM     "Changes will be reflected upon restarting the program."
     MSG_SAVEIN_READONLY     """%s"" is a read-only file. Continue?"
-    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
+    MSG_OVERWRITEPROMPT     """%s"" already exists. Overwrite it?"
 END
 
 STRINGTABLE DISCARDABLE 
