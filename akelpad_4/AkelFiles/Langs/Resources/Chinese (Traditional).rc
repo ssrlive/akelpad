@@ -103,7 +103,7 @@ BEGIN
             MENUITEM SEPARATOR
             MENUITEM "重新編碼...\tAlt+R",          IDM_EDIT_RECODE
         END
-        POPUP "新行格式(&f)"
+        POPUP "換行格式(&f)"
         BEGIN
             MENUITEM "DOS/Windows (0Dh, 0Ah)",      IDM_EDIT_NEWLINE_WIN
             MENUITEM "Unix (0Ah)",                  IDM_EDIT_NEWLINE_UNIX
@@ -404,7 +404,7 @@ BEGIN
                     WS_VSCROLL | WS_TABSTOP
     CONTROL         "萬國碼檔案簽名",IDC_SAVEALLAS_BOM,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,124,31,66,10
-    CONTROL         "新行格式(&f):",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
+    CONTROL         "換行格式(&f):",IDC_SAVEALLAS_NEWLINE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,62,101,8
     GROUPBOX        "",IDC_STATIC,9,69,182,35
     CONTROL         "Windows",IDC_SAVEALLAS_NEWLINE_WIN,"Button",
@@ -636,7 +636,7 @@ BEGIN
     COMBOBOX        IDC_OPTIONS_DEFAULT_CODEPAGE,9,161,154,90,
                     CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "篩選",IDC_OPTIONS_CODEPAGE_FILTER,168,161,40,13
-    GROUPBOX        "預設新行",IDC_STATIC,9,190,200,33
+    GROUPBOX        "預設換行",IDC_STATIC,9,190,200,33
     CONTROL         "Windows",IDC_OPTIONS_NEWLINE_WIN,"Button",
                     BS_AUTORADIOBUTTON,22,205,65,10
     CONTROL         "Unix",IDC_OPTIONS_NEWLINE_UNIX,"Button",
