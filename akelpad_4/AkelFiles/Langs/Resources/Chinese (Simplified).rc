@@ -48,7 +48,7 @@ BEGIN
         MENUITEM "全部另存为...",               IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
         MENUITEM "页面设置(&G)...",             IDM_FILE_PAGESETUP
-        MENUITEM "预览(&V)...",                 IDM_FILE_PRINTPREVIEW
+        MENUITEM "打印预览(&V)...",             IDM_FILE_PRINTPREVIEW
         MENUITEM "打印(&P)...\tCtrl+P",         IDM_FILE_PRINT
         MENUITEM SEPARATOR
         POPUP "最近文件(&F)"
@@ -73,7 +73,7 @@ BEGIN
         MENUITEM "向下查找下一个(&W)\tF3",      IDM_EDIT_FINDNEXTDOWN
         MENUITEM "向上查找下一个(&U)\tShift+F3", IDM_EDIT_FINDNEXTUP
         MENUITEM "替换(&R)...\tCtrl+R",         IDM_EDIT_REPLACE
-        MENUITEM "转到...(&G)...\tCtrl+G",      IDM_EDIT_GOTO
+        MENUITEM "转到(&G)...\tCtrl+G",         IDM_EDIT_GOTO
         MENUITEM SEPARATOR
         MENUITEM "插入符号(&H)\tCtrl+I",        IDM_EDIT_INSERTCHAR
         MENUITEM "插入日期(&T)\tCtrl+D",        IDM_EDIT_INSERTDATE
@@ -115,7 +115,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "只读(&R)",                    IDM_VIEW_READONLY
         MENUITEM "自动换行(&W)\tCtrl+U",        IDM_VIEW_WORDWRAP
-        MENUITEM "拆分窗口(&P)",                IDM_VIEW_SPLIT_WINDOW_ALL
+        MENUITEM "拆分窗格(&P)",                IDM_VIEW_SPLIT_WINDOW_ALL
         MENUITEM "总在最前(&A)\tCtrl+T",        IDM_VIEW_ONTOP
         MENUITEM "状态栏(&S)",                  IDM_VIEW_SHOW_STATUSBAR
         MENUITEM SEPARATOR
@@ -393,7 +393,7 @@ IDD_SAVEALLAS DIALOG DISCARDABLE  70, 70, 200, 135
 STYLE DS_MODALFRAME | DS_3DLOOK | DS_CENTER | WS_POPUP | WS_VISIBLE | 
     WS_CAPTION | WS_SYSMENU
 CAPTION "全部另存为"
-FONT 8, "MS Shell Dlg"
+FONT 9, "宋体"
 BEGIN
     CONTROL         "代码页(&C):",IDC_SAVEALLAS_CODEPAGE_CHECK,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,10,9,101,8
@@ -418,7 +418,7 @@ END
 IDD_MDILIST DIALOG DISCARDABLE  0, 0, 262, 264
 STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "选择窗口"
-FONT 8, "MS Shell Dlg"
+FONT 9, "宋体"
 BEGIN
     LISTBOX         IDC_MDILIST_LIST,6,9,178,219,LBS_SORT | 
                     LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | WS_VSCROLL | 
@@ -446,10 +446,10 @@ STYLE DS_3DLOOK | DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP |
     WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_CLIENTEDGE
 CAPTION "预览"
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
+FONT 9, "宋体", 400, 0, 0x86
 BEGIN
     DEFPUSHBUTTON   "打印(&P)...",IDC_PREVIEW_PRINT,9,9,50,14
-    PUSHBUTTON      "页(&G)...",IDC_PREVIEW_PAGESETUP,62,9,50,14
+    PUSHBUTTON      "页面设置(&G)...",IDC_PREVIEW_PAGESETUP,62,9,62,14
     GROUPBOX        "",IDC_STATIC,131,2,121,24
     PUSHBUTTON      "<",IDC_PREVIEW_PREVPAGE,139,10,20,12
     EDITTEXT        IDC_PREVIEW_PAGECOUNT,164,10,53,12,ES_CENTER | 
@@ -457,9 +457,9 @@ BEGIN
     PUSHBUTTON      ">",IDC_PREVIEW_NEXTPAGE,223,10,20,12
     COMBOBOX        IDC_PREVIEW_ZOOM,267,10,48,200,CBS_DROPDOWN | WS_VSCROLL | 
                     WS_TABSTOP
-    CONTROL         "选择(&S)",IDC_PREVIEW_SELECTION,"Button",
+    CONTROL         "选定区域(&S)",IDC_PREVIEW_SELECTION,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,325,12,61,10
-    PUSHBUTTON      "关闭",IDC_PREVIEW_CLOSE,390,9,50,14
+    PUSHBUTTON      "关闭(&C)",IDC_PREVIEW_CLOSE,390,9,50,14
 END
 
 IDD_FIND DIALOGEX 70, 70, 270, 108
@@ -473,7 +473,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "区分大小写",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,29,105,12
-    CONTROL         "整个单词",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "整字匹配",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,42,105,12
     CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,54,105,12
@@ -484,7 +484,7 @@ BEGIN
                     141,48,50,10
     CONTROL         "开始",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
                     141,59,50,10
-    CONTROL         "选定范围",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "选定区域",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
                     141,70,50,10
     CONTROL         "所有文件",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,141,87,50,10
@@ -510,7 +510,7 @@ BEGIN
                     CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
     CONTROL         "区分大小写",IDC_SEARCH_MATCHCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,43,105,12
-    CONTROL         "整个单词",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
+    CONTROL         "整字匹配",IDC_SEARCH_WHOLEWORD,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,9,56,105,12
     CONTROL         "转义符序列",IDC_SEARCH_ESCAPESEQ,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,9,68,105,12
@@ -521,7 +521,7 @@ BEGIN
                     141,62,50,10
     CONTROL         "开始",IDC_SEARCH_BEGINNING,"Button",BS_AUTORADIOBUTTON,
                     141,73,50,10
-    CONTROL         "选定范围",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
+    CONTROL         "选定区域",IDC_SEARCH_INSEL,"Button",BS_AUTORADIOBUTTON,
                     141,84,50,10
     CONTROL         "所有文件",IDC_SEARCH_ALLFILES,"Button",
                     BS_AUTORADIOBUTTON,141,101,50,10
@@ -659,7 +659,7 @@ BEGIN
     PUSHBUTTON      "<<",IDC_OPTIONS_CODEPAGES_FILTER_ADDALL,155,93,50,14
     PUSHBUTTON      ">>",IDC_OPTIONS_CODEPAGES_FILTER_DELETEALL,155,108,50,
                     14
-    LTEXT           "系统:",IDC_STATIC,217,7,135,8
+    LTEXT           "可用代码页:",IDC_STATIC,217,7,135,8
     LISTBOX         IDC_OPTIONS_CODEPAGES_FILTER_SYSTEM,213,18,141,209,
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "确定",IDOK,127,235,50,14,BS_CENTER
@@ -730,14 +730,14 @@ BEGIN
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,60,
                     11,13
     CONTROL         "转换为空格",IDC_OPTIONS_TABSIZE_SPACES,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,56,62,52,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,58,62,50,10
     GROUPBOX        "撤消次数限制",IDC_STATIC,9,88,105,34
     EDITTEXT        IDC_OPTIONS_UNDO_LIMIT,18,102,21,13,ES_NUMBER
     CONTROL         "Spin1",IDC_OPTIONS_UNDO_LIMIT_SPIN,"msctls_updown32",
                     UDS_SETBUDDYINT | UDS_ARROWKEYS | UDS_NOTHOUSANDS,39,102,
                     11,13
     CONTROL         "逐步撤消",IDC_OPTIONS_UNDO_DETAILED,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,56,104,52,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,58,104,50,10
     GROUPBOX        "换行方式",IDC_STATIC,121,46,88,76
     CONTROL         "按 单词",IDC_OPTIONS_WRAP_BY_WORDS,"Button",
                     BS_AUTORADIOBUTTON,133,60,72,10
@@ -824,10 +824,10 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,35,200,10
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,51,24,13,ES_AUTOHSCROLL
     LTEXT           "保存时默认的扩展名",IDC_STATIC,37,53,171,8
-    GROUPBOX        "Find/Replace dialog",IDC_STATIC,9,72,200,41
+    GROUPBOX        "查找/替换 对话框",IDC_STATIC,9,72,200,41
     CONTROL         "全部替换 - 关闭对话框",IDC_OPTIONS_REPLACEALL_CLOSE,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,85,185,10
-    CONTROL         "Check ""In selection"" if selection not empty",
+    CONTROL         "如果选定区域不为空就选上“选定区域”。",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10
 END
@@ -940,7 +940,7 @@ BEGIN
     MSG_CP_MISMATCH         "以本编码保存时将会丢失符号，行号为“%d”。继续?"
     MSG_RESTART_PROGRAM     "更改将在重新启动程序后生效。"
     MSG_SAVEIN_READONLY     """%s"" 是一个只读文件。继续?"
-    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
+    MSG_OVERWRITEPROMPT     """%s"" 已经存在。替换?"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -956,11 +956,11 @@ BEGIN
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "文本文件 (*.txt)|*.txt|所有文件 (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "可执行文件 (*.exe)|*.exe|所有文件 (*.*)|*.*"
-    STR_NONE                "无"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "无"
     STR_PLUGIN              "插件"
     STR_FUNCTION            "函数"
     STR_HOTKEY              "热键"
@@ -976,23 +976,23 @@ BEGIN
     STR_TEXT                "文本"
     STR_BACKGROUND          "背景"
     STR_SAMPLE              "示例"
-    STR_BASIC               "基本颜色"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    STR_SELECTION           "选择部分"
+    STR_BASIC               "基本颜色"
+    STR_SELECTION           "选定区域"
     STR_ACTIVELINE          "当前行"
     STR_ACTIVECOLUMN        "当前列"
     STR_COLUMNMARKER        "列标尺线"
     STR_CARET               "插入点"
     STR_URL                 "超链接"
     STR_PAGEFIT             "适合页面"
-    STR_PAGEWIDTH           "页宽"
-    STR_ALLFILES            "All files"
-    STR_ONLYMODIFIED        "Modified"
-    STR_ONLYUNMODIFIED      "Unmodified"
-    STR_INVERTSELECTION     "Invert selection"
+    STR_PAGEWIDTH           "页面宽度"
+    STR_ALLFILES            "所有文件"
+    STR_ONLYMODIFIED        "已修改"
+    STR_ONLYUNMODIFIED      "未修改"
+    STR_INVERTSELECTION     "反选"
 END
 
 STRINGTABLE DISCARDABLE 
