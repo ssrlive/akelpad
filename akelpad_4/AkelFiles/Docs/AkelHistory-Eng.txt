@@ -12,6 +12,8 @@ Added: support for environment strings in "Execute" option. Example: "%WinDir%\n
 Added: menu at the borders of split windows.
 Added: now every drag'n'drop operation, can be stopped by pressing Esc.
 
+Fixed: selection restoring after "Replace all".
+
 
 AkelPad 4.4.7 (Aug 30, 2010)
 ----------------------------
