@@ -252,6 +252,60 @@
         </td>
       </tr>
       <tr>
+        <td><b>StatusUserFormat</b></td>
+        <td>Defines user status bar format.
+
+          <br><br>
+          <table cellspacing=0 cellpadding=1 border=0>
+            <tr>
+              <td width=50><li>%ch</td>
+              <td>Current symbol hex code in lowercase.</td>
+            </tr>
+            <tr>
+              <td><li>%cH</td>
+              <td>Current symbol hex code in uppercase.</td>
+            </tr>
+            <tr>
+              <td><li>%cd</td>
+              <td>Current symbol decimal code.</td>
+            </tr>
+            <tr>
+              <td><li>%or</td>
+              <td>Offset in symbols (RichEdit).</td>
+            </tr>
+            <tr>
+              <td><li>%ob</td>
+              <td>Offset in bytes.</td>
+            </tr>
+            <tr>
+              <td><li>%f</td>
+              <td>Font size.</td>
+            </tr>
+            <tr>
+              <td><li>%t</td>
+              <td>Tabulation size.</td>
+            </tr>
+            <tr>
+              <td><li>%m</td>
+              <td>Column marker size.</td>
+            </tr>
+            <tr>
+              <td><li>%r</td>
+              <td>Replace count after "Replace all".</td>
+            </tr>
+            <tr>
+              <td><li>%%</td>
+              <td>Symbol %.</td>
+            </tr>
+          </table>
+
+          <br>Example:
+          <br>"Font:%f Tab:%t Replacements:%r Symbol:0x%ch"
+          <br>
+          <br>By default: "" - format is not defined, additional status bar section is not displayed.
+        </td>
+      </tr>
+      <tr>
         <td><b>DateInsertFormat</b></td>
         <td>Defines insert date and time format.
 

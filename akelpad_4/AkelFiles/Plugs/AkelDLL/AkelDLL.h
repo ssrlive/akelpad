@@ -654,10 +654,11 @@ typedef struct _FRAMEDATA {
   int nSelSubtract;
 
   //"StatusUserFormat" variables.
-  int nCaretRealOffset;
   int nCaretRichOffset;
+  int nCaretByteOffset;
   int nCaretChar;
   int nFontPoint;
+  int nReplaceCount;
 } FRAMEDATA;
 
 typedef struct _WNDPROCDATA {
