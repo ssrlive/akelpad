@@ -3,13 +3,13 @@ AkelPad 4.4.8 ()
 ----------------------------
 Changed: now in find/replace dialog after changing "What:" field, item "Beginning" is restored.
          And also "Beginning" item darkening does not affect on behavior of the "Replace All".
+Changed: optimized some conditions of "Replace all".
 Changed: during codepage recognition the character "\xCD" now refers not only to 1251,
          but also to 866.
-Changed: optimized some conditions of "Replace all".
 
 Added: manual parameter "StatusUserFormat" - defines user status bar format.
 Added: displaying read-only mode in the status bar.
-Added: support for environment strings in "Execute" option. Example: "%WinDir%\notepad.exe".
+Added: support for environment strings in "Execute" option - "%WinDir%\notepad.exe".
 Added: menu at the borders of split windows.
 Added: now every drag'n'drop operation, can be stopped by pressing Esc.
 
