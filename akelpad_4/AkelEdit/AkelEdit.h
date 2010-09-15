@@ -4015,8 +4015,8 @@ _____________
 
 Set marker at specified position.
 
-(int)wParam == see AEMT_* defines.
-(int)lParam == integer, zero to clear marker.
+(int)wParam   == see AEMT_* defines.
+(DWORD)lParam == integer, zero to clear marker.
 
 Return Value
  Zero.
@@ -4045,8 +4045,8 @@ ______________
 
 Set character external leading.
 
-(int)wParam == line gap (external leading), default is zero.
-lParam      == not used.
+(DWORD)wParam == line gap (external leading), default is zero.
+lParam        == not used.
 
 Return Value
  Zero.

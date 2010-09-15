@@ -1272,7 +1272,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       int nTabStop=(int)wParam;
 
       //Tab default size if zero
-      if (!nTabStop) nTabStop=AETAB_DEFAULTSIZE;
+      if (nTabStop <= 0) nTabStop=AETAB_DEFAULTSIZE;
 
       if (ae->ptxt->nTabStop != nTabStop)
       {
@@ -1323,8 +1323,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
       if (ae->ptxt->dwWrapLimit != (DWORD)lParam)
       {
-        ae->ptxt->dwWrapLimit=lParam;
-        bUpdateWrap=TRUE;
+        if (lParam >= 0)
+        {
+          ae->ptxt->dwWrapLimit=lParam;
+          bUpdateWrap=TRUE;
+        }
       }
 
       if (bUpdateWrap)
@@ -1451,11 +1454,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (ae->popt->dwColumnMarkerType != wParam ||
           ae->popt->dwColumnMarkerPos != (DWORD)lParam)
       {
-        AE_ColumnMarkerErase(ae);
-        ae->popt->dwColumnMarkerType=wParam;
-        ae->popt->dwColumnMarkerPos=lParam;
-        AE_ColumnMarkerDraw(ae);
-        AE_StackUpdateClones(ae);
+        if (lParam >= 0)
+        {
+          AE_ColumnMarkerErase(ae);
+          ae->popt->dwColumnMarkerType=wParam;
+          ae->popt->dwColumnMarkerPos=lParam;
+          AE_ColumnMarkerDraw(ae);
+          AE_StackUpdateClones(ae);
+        }
       }
       return 0;
     }
@@ -1467,24 +1473,27 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       if (ae->ptxt->nLineGap != (int)wParam)
       {
-        int nFirstVisibleLine=0;
-
-        if (!ae->popt->bVScrollLock)
-          nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
-        ae->ptxt->nCharHeight=(ae->ptxt->nCharHeight - ae->ptxt->nLineGap) + wParam;
-        ae->ptxt->nLineGap=wParam;
-
-        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
-        AE_UpdateScrollBars(ae, SB_VERT);
-        ae->ptCaret.x=0;
-        ae->ptCaret.y=0;
-        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
-        if (!ae->popt->bVScrollLock)
-          AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
-        AE_UpdateCaret(ae, ae->bFocus);
-
-        InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
-        AE_StackUpdateClones(ae);
+        if ((int)wParam >= 0)
+        {
+          int nFirstVisibleLine=0;
+  
+          if (!ae->popt->bVScrollLock)
+            nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+          ae->ptxt->nCharHeight=(ae->ptxt->nCharHeight - ae->ptxt->nLineGap) + wParam;
+          ae->ptxt->nLineGap=wParam;
+  
+          ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+          AE_UpdateScrollBars(ae, SB_VERT);
+          ae->ptCaret.x=0;
+          ae->ptCaret.y=0;
+          AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
+          if (!ae->popt->bVScrollLock)
+            AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
+          AE_UpdateCaret(ae, ae->bFocus);
+  
+          InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
+          AE_StackUpdateClones(ae);
+        }
       }
       return 0;
     }

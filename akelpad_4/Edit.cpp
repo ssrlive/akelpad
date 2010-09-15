@@ -15898,7 +15898,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_TABSIZE)
   {
-    if (lpFrameCurrent->nTabStopSize != (int)dwData)
+    if (lpFrameCurrent->nTabStopSize != (int)dwData && (int)dwData > 0)
     {
       lpFrameCurrent->nTabStopSize=dwData;
       SetTabStops(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->nTabStopSize, TRUE);
@@ -15908,7 +15908,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_UNDOLIMIT)
   {
-    if (lpFrameCurrent->nUndoLimit != (int)dwData)
+    if (lpFrameCurrent->nUndoLimit != (int)dwData && (int)dwData >= 0)
     {
       lpFrameCurrent->nUndoLimit=dwData;
       SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrameCurrent->nUndoLimit, 0);
@@ -15941,7 +15941,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_CARETWIDTH)
   {
-    if (lpFrameCurrent->nCaretWidth != (int)dwData)
+    if (lpFrameCurrent->nCaretWidth != (int)dwData && (int)dwData >= 0)
     {
       lpFrameCurrent->nCaretWidth=dwData;
 
@@ -15958,7 +15958,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_LINEGAP)
   {
-    if (lpFrameCurrent->dwLineGap != dwData)
+    if (lpFrameCurrent->dwLineGap != dwData && (int)dwData >= 0)
     {
       lpFrameCurrent->dwLineGap=dwData;
       SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETLINEGAP, lpFrameCurrent->dwLineGap, 0);
