@@ -8700,6 +8700,8 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
             nMin=0;
             nMax=crInitialRE.cpMax - crInitialRE.cpMin;
           }
+          if (nMin == nMax)
+            nMax=-0x7FFFFFFF;
 
           //Remember scroll
           SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
@@ -8710,7 +8712,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
             nFirstVisible=-0x7FFFFFFF;
 
           //Replace operation
-          if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, NULL, &nMin, &nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
+          if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, NULL, &nMin, (nMax == -0x7FFFFFFF)?NULL:&nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
           {
             FreeText(wszRangeText);
             wszRangeText=NULL;
@@ -8731,6 +8733,8 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
               SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT, i);
 
             //Restore selection
+            if (nMax == -0x7FFFFFFF)
+              nMax=nMin;
             if (dwFlags & AEFR_SELECTION)
             {
               if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
@@ -8766,10 +8770,6 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
                 SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMax);
             }
 
-            //Start redraw
-            SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-            InvalidateRect(hWnd, NULL, TRUE);
-
             //Restore scroll
             SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
 
@@ -8781,6 +8781,10 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
               SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
             }
             else SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+
+            //Start redraw
+            SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
+            InvalidateRect(hWnd, NULL, TRUE);
           }
           FreeWideStr(wszResultText);
         }
@@ -8811,60 +8815,69 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
   return nResult;
 }
 
-int StrReplaceW(const wchar_t *wpText, int nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible)
+int StrReplaceW(const wchar_t *wpText, int nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVis)
 {
-  int nMinOffset=0;
-  int nMaxOffset=0;
-  int nFirstVisibleOffset=0;
-  int nTextCount;
-  int nMatchCount;
-  int nItCount;
-  int nWithCount;
-  int nResultCount=0;
-  int nDiff;
+  const wchar_t *wpTextMax;
+  const wchar_t *wpTextCount;
+  const wchar_t *wpMatchCount;
+  const wchar_t *wpItMax;
+  const wchar_t *wpItCount;
+  const wchar_t *wpWithMax;
+  const wchar_t *wpWithCount;
+  const wchar_t *wpMin;
+  const wchar_t *wpMax;
+  const wchar_t *wpFirstVis;
+  wchar_t *wpResultCount;
   int nChanges=0;
+  int nDiff;
 
+  if (nTextLen == -1)
+    nTextLen=lstrlenW(wpText) + 1;
   if (nItLen == -1)
     nItLen=lstrlenW(wpIt);
   if (nWithLen == -1)
     nWithLen=lstrlenW(wpWith);
+  wpTextMax=wpText + nTextLen;
+  wpItMax=wpIt + nItLen;
+  wpWithMax=wpWith + nWithLen;
+  wpResultCount=wszResult;
+
   nDiff=nItLen - nWithLen;
+  if (nMin) wpMin=wpText + *nMin;
+  if (nMax) wpMax=wpText + *nMax;
+  if (nFirstVis) wpFirstVis=wpText + *nFirstVis;
 
-  if (nMin) nMinOffset=*nMin;
-  if (nMax) nMaxOffset=*nMax;
-  if (nFirstVisible) nFirstVisibleOffset=*nFirstVisible;
-
-  for (nTextCount=0; nTextCount < nTextLen; ++nTextCount)
+  for (wpTextCount=wpText; wpTextCount < wpTextMax; ++wpTextCount)
   {
     if (dwFlags & AEFR_WHOLEWORD)
     {
-      if (nTextCount == 0)
+      if (wpTextCount == wpText)
       {
         if (dwFlags & AEFR_WHOLEWORDGOODSTART)
           goto Find;
       }
-      else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, wpText[nTextCount - 1]))
+      else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpTextCount - 1)))
         goto Find;
       goto Next;
     }
 
     Find:
-    nMatchCount=nTextCount;
-    nItCount=0;
+    wpMatchCount=wpTextCount;
+    wpItCount=wpIt;
 
-    while (((dwFlags & AEFR_MATCHCASE) && wpText[nMatchCount] == wpIt[nItCount]) ||
-           (!(dwFlags & AEFR_MATCHCASE) && WideCharLower(wpText[nMatchCount]) == WideCharLower(wpIt[nItCount])))
+    while (*wpMatchCount == *wpItCount ||
+           (!(dwFlags & AEFR_MATCHCASE) && WideCharLower(*wpMatchCount) == WideCharLower(*wpItCount)))
     {
-      if (++nItCount >= nItLen)
+      if (++wpItCount >= wpItMax)
       {
         if (dwFlags & AEFR_WHOLEWORD)
         {
-          if (nMatchCount + 1 >= nTextLen)
+          if (wpMatchCount + 1 >= wpTextMax)
           {
             if (dwFlags & AEFR_WHOLEWORDGOODEND)
               goto Replace;
           }
-          else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, wpText[nMatchCount + 1]))
+          else if (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *(wpMatchCount + 1)))
             goto Replace;
           goto Next;
         }
@@ -8874,42 +8887,40 @@ int StrReplaceW(const wchar_t *wpText, int nTextLen, const wchar_t *wpIt, int nI
         {
           if (nMin)
           {
-            if (*nMin > nMatchCount) nMinOffset-=nDiff;
-            else if (*nMin > nTextCount && *nMin <= nMatchCount) nMinOffset-=(*nMin - nTextCount);
+            if (wpMin > wpMatchCount) *nMin-=nDiff;
+            else if (wpMin > wpTextCount) *nMin-=(wpMin - wpTextCount);
           }
           if (nMax)
           {
-            if (*nMax > nMatchCount) nMaxOffset-=nDiff;
-            else if (*nMax > nTextCount && *nMax <= nMatchCount) nMaxOffset-=(*nMax - nTextCount) + nWithLen;
+            if (wpMax > wpMatchCount) *nMax-=nDiff;
+            else if (wpMax > wpTextCount) *nMax=*nMax - (wpMax - wpTextCount) + nWithLen;
           }
-          if (nFirstVisible)
+          if (nFirstVis)
           {
-            if (*nFirstVisible > nMatchCount) nFirstVisibleOffset-=nDiff;
-            else if (*nFirstVisible > nTextCount && *nFirstVisible <= nMatchCount) nFirstVisibleOffset-=(*nFirstVisible - nTextCount);
+            if (wpFirstVis > wpMatchCount) *nFirstVis-=nDiff;
+            else if (wpFirstVis > wpTextCount) *nFirstVis-=(wpFirstVis - wpTextCount);
           }
-          for (nWithCount=0; nWithCount < nWithLen; ++nWithCount)
-            wszResult[nResultCount++]=wpWith[nWithCount];
-        }
-        else nResultCount+=nWithLen;
 
-        nTextCount=nMatchCount + 1;
-        nItCount=0;
+          for (wpWithCount=wpWith; wpWithCount < wpWithMax; ++wpWithCount)
+            *wpResultCount++=*wpWithCount;
+        }
+        else wpResultCount+=nWithLen;
+
+        wpTextCount=wpMatchCount + 1;
+        wpItCount=wpIt;
         ++nChanges;
-        if (nTextCount >= nTextLen) goto End;
+        if (wpTextCount >= wpTextMax) goto End;
       }
-      if (++nMatchCount >= nTextLen) break;
+      if (++wpMatchCount >= wpTextMax) break;
     }
 
     Next:
-    if (wszResult) wszResult[nResultCount]=wpText[nTextCount];
-    ++nResultCount;
+    if (wszResult) *wpResultCount=*wpTextCount;
+    ++wpResultCount;
   }
 
   End:
-  if (nResultLen) *nResultLen=nResultCount;
-  if (nMax) *nMax=(*nMin == *nMax)?nMinOffset:nMaxOffset;
-  if (nMin) *nMin=nMinOffset;
-  if (nFirstVisible) *nFirstVisible=nFirstVisibleOffset;
+  if (nResultLen) *nResultLen=wpResultCount - wszResult;
   return nChanges;
 }
 
