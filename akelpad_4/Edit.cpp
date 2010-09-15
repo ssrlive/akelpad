@@ -7975,6 +7975,13 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     hWndAllFiles=GetDlgItem(hDlg, IDC_SEARCH_ALLFILES);
     hWndAllFilesGroup=GetDlgItem(hDlg, IDC_SEARCH_ALLFILES_GROUP);
 
+    if (nModelessType == MLT_REPLACE)
+    {
+      //Reset replace count
+      lpFrameCurrent->nReplaceCount=0;
+      UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
+    }
+
     if (moCur.nSearchStrings)
     {
       FillComboboxSearch(hWndFind, hWndReplace);
@@ -8201,6 +8208,10 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           }
           while (lpFrameCurrent != lpFrameInit);
 
+          //Show result
+          lpFrameCurrent->nReplaceCount=nChanges;
+          UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
+
           if (!(moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE))
           {
             LoadStringWide(hLangLib, MSG_REPLACE_COUNT_ALLFILES, wbuf, BUFFER_SIZE);
@@ -8279,6 +8290,10 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           }
           if (bReplaceAll == TRUE)
           {
+            //Show result
+            lpFrameCurrent->nReplaceCount=nReplaceCount;
+            UpdateStatusUser(lpFrameCurrent, CSB_REPLACECOUNT);
+
             if (!(moCur.dwSearchOptions & AEFR_REPLACEALLANDCLOSE))
             {
               LoadStringWide(hLangLib, MSG_REPLACE_COUNT, wbuf, BUFFER_SIZE);
@@ -14316,7 +14331,7 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
     lpFrameCurrent->crPrevSel=crSel;
 
     StatusBar_SetTextWide(hStatus, STATUS_POSITION, wszStatus);
-    UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_REALOFFSET|CSB_RICHOFFSET);
+    UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_RICHOFFSET|CSB_BYTEOFFSET);
   }
 }
 
@@ -14464,15 +14479,17 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
   {
     if (moCur.dwStatusUserFlags & dwFlags)
     {
-      if ((moCur.dwStatusUserFlags & CSB_REALOFFSET) && (dwFlags & CSB_REALOFFSET))
-        lpFrame->nCaretRealOffset=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &ciCaret, AELB_ASIS, FALSE);
-      if ((moCur.dwStatusUserFlags & CSB_RICHOFFSET) && (dwFlags & CSB_RICHOFFSET))
-        lpFrame->nCaretRichOffset=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciCaret);
-      if ((moCur.dwStatusUserFlags & CSB_FONTPOINT) && (dwFlags & CSB_FONTPOINT))
-        lpFrame->nFontPoint=GetFontPoint(lpFrame->ei.hWndEdit, &lpFrame->lf);
       if (((moCur.dwStatusUserFlags & CSB_CHARHEX) && (dwFlags & CSB_CHARHEX)) ||
           ((moCur.dwStatusUserFlags & CSB_CHARDEC) && (dwFlags & CSB_CHARDEC)))
+      {
         lpFrame->nCaretChar=AEC_CharAtIndex(&ciCaret);
+      }
+      if ((moCur.dwStatusUserFlags & CSB_RICHOFFSET) && (dwFlags & CSB_RICHOFFSET))
+        lpFrame->nCaretRichOffset=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciCaret);
+      if ((moCur.dwStatusUserFlags & CSB_BYTEOFFSET) && (dwFlags & CSB_BYTEOFFSET))
+        lpFrame->nCaretByteOffset=-IndexSubtract(lpFrame->ei.hWndEdit, NULL, &ciCaret, AELB_ASIS, FALSE);
+      if ((moCur.dwStatusUserFlags & CSB_FONTPOINT) && (dwFlags & CSB_FONTPOINT))
+        lpFrame->nFontPoint=GetFontPoint(lpFrame->ei.hWndEdit, &lpFrame->lf);
 
       if (TranslateStatusUser(lpFrame, moCur.wszStatusUserFormat, wbuf, BUFFER_SIZE))
         StatusBar_SetTextWide(hStatus, STATUS_USER, wbuf);
@@ -14482,11 +14499,15 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
 
 DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *wszBuffer, int nBufferSize)
 {
-  //%ch - hex character code (lowercase),
-  //%cH - hex character code (uppercase),
-  //%cd - decimal character code,
-  //%0 - offset, %f - font size, %t - tab size, %m - marker value,
-  //%r - replace count.
+  //%ch - hex character code (lowercase)
+  //%cH - hex character code (uppercase)
+  //%cd - decimal character code
+  //%or - richedit offset
+  //%ob - bytes offset
+  //%f - font size
+  //%t - tab size
+  //%m - marker value
+  //%r - replace count
   //%% - %
   DWORD dwFlags=0;
   DWORD i;
@@ -14500,7 +14521,7 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
         if (lpFrame && wszBuffer) wszBuffer[i]='%';
         ++i;
       }
-      else if (*wpString == 'c' || *wpString == 'C')
+      else if (*wpString == 'c')
       {
         if (*++wpString == 'h' || *wpString == 'H')
         {
@@ -14509,7 +14530,7 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
           else
             dwFlags|=CSB_CHARHEX;
         }
-        else if (*wpString == 'd' || *wpString == 'D')
+        else if (*wpString == 'd')
         {
           if (lpFrame)
             i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nCaretChar);
@@ -14517,40 +14538,50 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
             dwFlags|=CSB_CHARDEC;
         }
       }
-      else if (*wpString == 'O')
-      {
-        if (lpFrame)
-          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nCaretRealOffset);
-        else
-          dwFlags|=CSB_REALOFFSET;
-      }
       else if (*wpString == 'o')
       {
-        if (lpFrame)
-          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nCaretRichOffset);
-        else
-          dwFlags|=CSB_RICHOFFSET;
+        if (*++wpString == 'r')
+        {
+          if (lpFrame)
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nCaretRichOffset);
+          else
+            dwFlags|=CSB_RICHOFFSET;
+        }
+        else if (*wpString == 'b')
+        {
+          if (lpFrame)
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nCaretByteOffset);
+          else
+            dwFlags|=CSB_BYTEOFFSET;
+        }
       }
-      else if (*wpString == 'f' || *wpString == 'F')
+      else if (*wpString == 'f')
       {
         if (lpFrame)
           i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nFontPoint);
         else
           dwFlags|=CSB_FONTPOINT;
       }
-      else if (*wpString == 't' || *wpString == 'T')
+      else if (*wpString == 't')
       {
         if (lpFrame)
           i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nTabStopSize);
         else
           dwFlags|=CSB_TABSIZE;
       }
-      else if (*wpString == 'm' || *wpString == 'M')
+      else if (*wpString == 'm')
       {
         if (lpFrame)
           i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->dwMarker);
         else
           dwFlags|=CSB_MARKER;
+      }
+      else if (*wpString == 'r')
+      {
+        if (lpFrame)
+          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nReplaceCount);
+        else
+          dwFlags|=CSB_REPLACECOUNT;
       }
       else break;
     }
