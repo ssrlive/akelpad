@@ -1,6 +1,7 @@
 
 AkelPad 4.4.8 (Sep 15, 2010)
 ----------------------------
+Changed: syntax highlighting messages. Update Coder plugin.
 Changed: now in find/replace dialog after changing "What:" field, item "Beginning" is restored.
          And also "Beginning" item darkening does not affect on behavior of the "Replace All".
 Changed: optimized some conditions of "Replace all".
