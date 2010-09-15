@@ -132,6 +132,15 @@
 #define SH_GET    1  //Retrive searh strings count.
 #define SH_CLEAR  2  //Clear searh history.
 
+//AKD_SETEDITOPTION flags
+#define EO_TEXTMARGINS 1 //lParam low-order word specifies the new width of the left margin, in pixels. lParam high-order word specifies the new width of the right margin, in pixels.
+#define EO_TABSIZE     2 //lParam specifies the new tabulation size.
+#define EO_UNDOLIMIT   3 //lParam specifies the new undo limit.
+#define EO_WRAPLIMIT   4 //lParam specifies the new wrap limit.
+#define EO_MARKERPOS   5 //lParam specifies the new column marker position.
+#define EO_CARETWIDTH  6 //lParam specifies the new caret width.
+#define EO_LINEGAP     7 //lParam specifies the new gap between lines.
+
 //New line format
 #define NEWLINE_WIN   1  //Windows/DOS new line format (\r\n).
 #define NEWLINE_UNIX  2  //Unix new line format (\n).
@@ -1456,6 +1465,7 @@ typedef struct {
 #define AKD_GETCODEPAGELIST        (WM_USER + 213)
 #define AKD_RECENTFILES            (WM_USER + 214)
 #define AKD_SEARCHHISTORY          (WM_USER + 215)
+#define AKD_SETEDITOPTION          (WM_USER + 216)
 
 //Windows
 #define AKD_GETMODELESS            (WM_USER + 251)
@@ -2620,6 +2630,22 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SEARCHHISTORY, SH_GET, 0);
+
+
+AKD_SETEDITOPTION
+_________________
+
+Set option for current edit window.
+
+(int)wParam  == see EO_* defines.
+(void)lParam == depend of EO_* define.
+
+Return Value
+ TRUE  success.
+ FALSE error.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_SETEDITOPTION, EO_TEXTMARGINS, MAKELONG(4, 4));
 
 
 AKD_GETMODELESS

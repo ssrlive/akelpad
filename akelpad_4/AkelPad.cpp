@@ -1940,6 +1940,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (wParam == SH_GET)
       {
+        return moCur.nSearchStrings;
       }
       else if (wParam == SH_CLEAR)
       {
@@ -1947,8 +1948,13 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         xprintfW(wszRegKey, L"%s\\Search", APP_REGHOMEW);
         RegClearKeyWide(HKEY_CURRENT_USER, wszRegKey);
+        return moCur.nSearchStrings;
       }
-      return moCur.nSearchStrings;
+      return 0;
+    }
+    if (uMsg == AKD_SETEDITOPTION)
+    {
+      return SetCurEditOption(wParam, lParam);
     }
 
     //Windows
