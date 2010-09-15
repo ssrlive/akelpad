@@ -133,13 +133,13 @@
 #define SH_CLEAR  2  //Clear searh history.
 
 //AKD_SETEDITOPTION flags
-#define EO_TEXTMARGINS 1 //lParam low-order word specifies the new width of the left margin, in pixels. lParam high-order word specifies the new width of the right margin, in pixels.
-#define EO_TABSIZE     2 //lParam specifies the new tabulation size.
-#define EO_UNDOLIMIT   3 //lParam specifies the new undo limit.
-#define EO_WRAPLIMIT   4 //lParam specifies the new wrap limit.
-#define EO_MARKERPOS   5 //lParam specifies the new column marker position.
-#define EO_CARETWIDTH  6 //lParam specifies the new caret width.
-#define EO_LINEGAP     7 //lParam specifies the new gap between lines.
+#define EO_TEXTMARGINS 1 //The low-order word specifies the new width of the left margin, in pixels. The high-order word specifies the new width of the right margin, in pixels.
+#define EO_TABSIZE     2 //Tabulation size.
+#define EO_UNDOLIMIT   3 //Undo limit.
+#define EO_WRAPLIMIT   4 //Wrap limit.
+#define EO_MARKERPOS   5 //Column marker position.
+#define EO_CARETWIDTH  6 //Caret width.
+#define EO_LINEGAP     7 //Gap between lines.
 
 //New line format
 #define NEWLINE_WIN   1  //Windows/DOS new line format (\r\n).
@@ -1465,7 +1465,8 @@ typedef struct {
 #define AKD_GETCODEPAGELIST        (WM_USER + 213)
 #define AKD_RECENTFILES            (WM_USER + 214)
 #define AKD_SEARCHHISTORY          (WM_USER + 215)
-#define AKD_SETEDITOPTION          (WM_USER + 216)
+#define AKD_GETEDITOPTION          (WM_USER + 216)
+#define AKD_SETEDITOPTION          (WM_USER + 217)
 
 //Windows
 #define AKD_GETMODELESS            (WM_USER + 251)
@@ -2630,6 +2631,21 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_SEARCHHISTORY, SH_GET, 0);
+
+
+AKD_GETEDITOPTION
+_________________
+
+Get option from current edit window.
+
+(int)wParam  == see EO_* defines.
+lParam       == not used.
+
+Return Value
+ Depend of EO_* define.
+
+Example:
+ int nTabSize=SendMessage(pd->hMainWnd, AKD_GETEDITOPTION, EO_TABSIZE, 0);
 
 
 AKD_SETEDITOPTION

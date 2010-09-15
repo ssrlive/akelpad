@@ -1952,6 +1952,38 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return 0;
     }
+    if (uMsg == AKD_GETEDITOPTION)
+    {
+      if (wParam == EO_TEXTMARGINS)
+      {
+        return lpFrameCurrent->dwEditMargins;
+      }
+      if (wParam == EO_TABSIZE)
+      {
+        return lpFrameCurrent->nTabStopSize;
+      }
+      if (wParam == EO_UNDOLIMIT)
+      {
+        return lpFrameCurrent->nUndoLimit;
+      }
+      if (wParam == EO_WRAPLIMIT)
+      {
+        return lpFrameCurrent->dwWrapLimit;
+      }
+      if (wParam == EO_MARKERPOS)
+      {
+        return lpFrameCurrent->dwMarker;
+      }
+      if (wParam == EO_CARETWIDTH)
+      {
+        return lpFrameCurrent->nCaretWidth;
+      }
+      if (wParam == EO_LINEGAP)
+      {
+        return lpFrameCurrent->dwLineGap;
+      }
+      return 0;
+    }
     if (uMsg == AKD_SETEDITOPTION)
     {
       return SetCurEditOption(wParam, lParam);
