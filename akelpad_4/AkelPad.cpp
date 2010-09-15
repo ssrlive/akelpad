@@ -3802,7 +3802,10 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
       {
         AENSELCHANGE *aensc=(AENSELCHANGE *)lParam;
 
-        SetSelectionStatus(aensc->hdr.docFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
+        if (!bMainOnFinish)
+        {
+          SetSelectionStatus(aensc->hdr.docFrom, aensc->hdr.hwndFrom, &aensc->aes.crSel, &aensc->ciCaret);
+        }
       }
       else if (((NMHDR *)lParam)->code == AEN_MODIFY)
       {

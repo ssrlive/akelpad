@@ -8678,116 +8678,132 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
 
     if (nRangeTextLen=ExGetRangeTextW(hWnd, &crRange.ciMin, &crRange.ciMax, bColumnSel, &wszRangeText, nNewLine, TRUE))
     {
-      if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
+      if (nFindItLen < nReplaceWithLen)
       {
-        if (wszResultText=AllocWideStr(nResultTextLen + 1))
+        if (StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, NULL, &nResultTextLen, NULL, NULL, NULL))
         {
-          //Remember selection
-          if (nNewLine == AELB_ASIS)
-          {
-            crInitialRE.cpMin=-IndexSubtract(hWnd, NULL, &crSel.ciMin, nNewLine, FALSE);
-            crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(hWnd, &crSel.ciMax, &crSel.ciMin, nNewLine, FALSE);
-          }
-          else SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
+          wszResultText=AllocWideStr(nResultTextLen + 1);
+        }
+      }
+      else
+      {
+        //We don't need allocate new buffer since output string is less than input
+        wszResultText=wszRangeText;
+      }
 
-          if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
-          {
-            nMin=crInitialRE.cpMin;
-            nMax=crInitialRE.cpMax;
-          }
-          else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
-          {
-            nMin=0;
-            nMax=crInitialRE.cpMax - crInitialRE.cpMin;
-          }
-          if (nMin == nMax)
-            nMax=-0x7FFFFFFF;
+      if (wszResultText)
+      {
+        //Remember selection
+        if (nNewLine == AELB_ASIS)
+        {
+          crInitialRE.cpMin=-IndexSubtract(hWnd, NULL, &crSel.ciMin, nNewLine, FALSE);
+          crInitialRE.cpMax=crInitialRE.cpMin + IndexSubtract(hWnd, &crSel.ciMax, &crSel.ciMin, nNewLine, FALSE);
+        }
+        else SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
-          //Remember scroll
-          SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
+        if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
+        {
+          nMin=crInitialRE.cpMin;
+          nMax=crInitialRE.cpMax;
+        }
+        else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
+        {
+          nMin=0;
+          nMax=crInitialRE.cpMax - crInitialRE.cpMin;
+        }
+        if (nMin == nMax)
+          nMax=-0x7FFFFFFF;
 
-          if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
-            nFirstVisible=IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, nNewLine, FALSE);
-          else
-            nFirstVisible=-0x7FFFFFFF;
+        //Remember scroll
+        SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
 
-          //Replace operation
-          if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, NULL, &nMin, (nMax == -0x7FFFFFFF)?NULL:&nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
+        if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
+          nFirstVisible=IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, nNewLine, FALSE);
+        else
+          nFirstVisible=-0x7FFFFFFF;
+
+        //Replace operation
+        if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, &nResultTextLen, &nMin, (nMax == -0x7FFFFFFF)?NULL:&nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
+        {
+          if (nFindItLen < nReplaceWithLen)
           {
+            //Data for ReplaceSelW now in wszResultText
             FreeText(wszRangeText);
             wszRangeText=NULL;
-
-            //Stop redraw
-            SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
-
-            if (!(dwFlags & AEFR_SELECTION))
-              SetSel(hWnd, &crRange, 0, NULL);
-
-            if (nNewLine == AELB_ASIS)
-            {
-              i=SendMessage(hWnd, AEM_GETNEWLINE, 0, 0);
-              SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT, AELB_ASIS);
-            }
-            ReplaceSelW(hWnd, wszResultText, nResultTextLen, bColumnSel, &crInsert.ciMin, &crInsert.ciMax);
-            if (nNewLine == AELB_ASIS)
-              SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT, i);
-
-            //Restore selection
-            if (nMax == -0x7FFFFFFF)
-              nMax=nMin;
-            if (dwFlags & AEFR_SELECTION)
-            {
-              if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-                SetSel(hWnd, &crInsert, bInitialColumnSel, &crInsert.ciMin);
-              else
-                SetSel(hWnd, &crInsert, bInitialColumnSel, &crInsert.ciMax);
-            }
-            else
-            {
-              if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
-              {
-                if (nNewLine == AELB_ASIS)
-                {
-                  SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crInitialSel.ciMin);
-                  IndexOffset(hWnd, &crInitialSel.ciMin, nMin, nNewLine);
-                }
-                else if (nNewLine == AELB_R)
-                {
-                  RichOffsetToAkelIndex(hWnd, nMin, &crInitialSel.ciMin);
-                }
-                crInitialSel.ciMax=crInitialSel.ciMin;
-                IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
-              }
-              else if (dwFlags & AEFR_DOWN)
-              {
-                SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
-                crInitialSel.ciMax=crInitialSel.ciMin;
-                IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
-              }
-              if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-                SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMin);
-              else
-                SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMax);
-            }
-
-            //Restore scroll
-            SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
-
-            if (nFirstVisible != -0x7FFFFFFF)
-            {
-              ciFirstVisibleBefore=crRange.ciMin;
-              SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciFirstVisibleBefore);
-              IndexOffset(hWnd, &ciFirstVisibleBefore, nFirstVisible, nNewLine);
-              SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
-            }
-            else SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
-
-            //Start redraw
-            SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
-            InvalidateRect(hWnd, NULL, TRUE);
           }
-          FreeWideStr(wszResultText);
+
+          //Stop redraw
+          SendMessage(hWnd, WM_SETREDRAW, FALSE, 0);
+
+          if (!(dwFlags & AEFR_SELECTION))
+            SetSel(hWnd, &crRange, 0, NULL);
+
+          if (nNewLine == AELB_ASIS)
+          {
+            i=SendMessage(hWnd, AEM_GETNEWLINE, 0, 0);
+            SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT, AELB_ASIS);
+          }
+          ReplaceSelW(hWnd, wszResultText, nResultTextLen, bColumnSel, &crInsert.ciMin, &crInsert.ciMax);
+          if (nNewLine == AELB_ASIS)
+            SendMessage(hWnd, AEM_SETNEWLINE, AENL_INPUT, i);
+
+          //Restore selection
+          if (nMax == -0x7FFFFFFF)
+            nMax=nMin;
+          if (dwFlags & AEFR_SELECTION)
+          {
+            if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+              SetSel(hWnd, &crInsert, bInitialColumnSel, &crInsert.ciMin);
+            else
+              SetSel(hWnd, &crInsert, bInitialColumnSel, &crInsert.ciMax);
+          }
+          else
+          {
+            if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
+            {
+              if (nNewLine == AELB_ASIS)
+              {
+                SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&crInitialSel.ciMin);
+                IndexOffset(hWnd, &crInitialSel.ciMin, nMin, nNewLine);
+              }
+              else if (nNewLine == AELB_R)
+              {
+                RichOffsetToAkelIndex(hWnd, nMin, &crInitialSel.ciMin);
+              }
+              crInitialSel.ciMax=crInitialSel.ciMin;
+              IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
+            }
+            else if (dwFlags & AEFR_DOWN)
+            {
+              SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&crInitialSel.ciMin);
+              crInitialSel.ciMax=crInitialSel.ciMin;
+              IndexOffset(hWnd, &crInitialSel.ciMax, nMax - nMin, nNewLine);
+            }
+            if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+              SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMin);
+            else
+              SetSel(hWnd, &crInitialSel, bInitialColumnSel, &crInitialSel.ciMax);
+          }
+
+          //Restore scroll
+          SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
+
+          if (nFirstVisible != -0x7FFFFFFF)
+          {
+            ciFirstVisibleBefore=crRange.ciMin;
+            SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciFirstVisibleBefore);
+            IndexOffset(hWnd, &ciFirstVisibleBefore, nFirstVisible, nNewLine);
+            SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+          }
+          else SendMessage(hWnd, AEM_LINESCROLL, AESB_VERT|AESB_ALIGNTOP, ciFirstVisibleBefore.nLine - ciFirstVisibleAfter.nLine);
+
+          //Start redraw
+          SendMessage(hWnd, WM_SETREDRAW, TRUE, 0);
+          InvalidateRect(hWnd, NULL, TRUE);
         }
+
+        if (nFindItLen < nReplaceWithLen)
+          FreeWideStr(wszResultText);
       }
       if (wszRangeText) FreeText(wszRangeText);
     }
