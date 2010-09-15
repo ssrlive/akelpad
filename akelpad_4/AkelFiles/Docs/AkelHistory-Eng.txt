@@ -5,6 +5,7 @@ Changed: now in find/replace dialog after changing "What:" field, item "Beginnin
          And also "Beginning" item darkening does not affect on behavior of the "Replace All".
 Changed: during codepage recognition the character "\xCD" now refers not only to 1251,
          but also to 866.
+Changed: optimized some conditions of "Replace all".
 
 Added: manual parameter "StatusUserFormat" - defines user status bar format.
 Added: displaying read-only mode in the status bar.
