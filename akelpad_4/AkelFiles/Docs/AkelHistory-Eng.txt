@@ -1,5 +1,5 @@
 
-AkelPad 4.4.8 ()
+AkelPad 4.4.8 (Sep 15, 2010)
 ----------------------------
 Changed: now in find/replace dialog after changing "What:" field, item "Beginning" is restored.
          And also "Beginning" item darkening does not affect on behavior of the "Replace All".
