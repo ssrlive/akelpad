@@ -1620,24 +1620,10 @@ void DoEditInsertChar()
 
 void DoEditInsertDate(HWND hWnd)
 {
-  wchar_t wszTime[128];
-  wchar_t wszDate[128];
-  wchar_t wszTimeAndDate[MAX_PATH];
-
   if (IsReadOnly(hWnd)) return;
 
-  if (!moCur.wszDateInsertFormat[0])
-  {
-    GetTimeFormatWide(LOCALE_USER_DEFAULT, TIME_NOSECONDS, NULL, NULL, wszTime, 128);
-    GetDateFormatWide(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
-    xprintfW(wszTimeAndDate, L"%s %s", wszTime, wszDate);
-  }
-  else
-  {
-    GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, moCur.wszDateInsertFormat, wbuf, 128);
-    GetDateFormatWide(LOCALE_USER_DEFAULT, 0, NULL, wbuf, wszTimeAndDate, 128);
-  }
-  ReplaceSelW(hWnd, wszTimeAndDate, -1, -1, NULL, NULL);
+  GetTimeString(moCur.wszDateInsertFormat, wbuf, TRUE);
+  ReplaceSelW(hWnd, wbuf, -1, -1, NULL, NULL);
 }
 
 void DoEditRecode(HWND hWnd)
@@ -3990,28 +3976,16 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       if (moCur.bDateLog && !IsReadOnly(hWnd))
       {
         AECHARINDEX ciChar;
-        wchar_t wszDate[128];
-        wchar_t wszTime[128];
-        wchar_t wszDateAndTime[MAX_PATH];
 
         if (SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ciChar))
         {
           if (!xstrcmpW(ciChar.lpLine->wpLine, L".LOG"))
           {
-            if (!moCur.wszDateLogFormat[0])
-            {
-              GetDateFormatWide(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
-              GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszTime, 128);
-              xprintfW(wszDateAndTime, L"\r%s %s\r", wszDate, wszTime);
-            }
-            else
-            {
-              GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, moCur.wszDateLogFormat, wbuf, 128);
-              GetDateFormatWide(LOCALE_USER_DEFAULT, 0, NULL, wbuf, wbuf2, 128);
-              xprintfW(wszDateAndTime, L"\r%s\r", wbuf2);
-            }
             SendMessage(hWnd, EM_SETSEL, (WPARAM)-1, (LPARAM)-1);
-            ReplaceSelW(hWnd, wszDateAndTime, -1, FALSE, NULL, NULL);
+
+            GetTimeString(moCur.wszDateLogFormat, wbuf, FALSE);
+            xprintfW(wbuf2, L"\r%s\r", wbuf);
+            ReplaceSelW(hWnd, wbuf2, -1, FALSE, NULL, NULL);
             goto GlobalPrint;
           }
         }
@@ -16359,6 +16333,38 @@ void TrimModifyState(wchar_t *wszFile)
       wszFile[i]='\0';
     else
       break;
+  }
+}
+
+void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSeconds)
+{
+  if (!*wpFormat)
+  {
+    wchar_t wszTime[128];
+    wchar_t wszDate[128];
+
+    GetTimeFormatWide(LOCALE_USER_DEFAULT, bWithoutSeconds?TIME_NOSECONDS:0, NULL, NULL, wszTime, 128);
+    GetDateFormatWide(LOCALE_USER_DEFAULT, 0, NULL, NULL, wszDate, 128);
+    xprintfW(wszOutput, L"%s %s", wszTime, wszDate);
+  }
+  else
+  {
+    wchar_t wszBuffer[MAX_PATH];
+    wchar_t wszAMPM[128];
+    int nChanges=0;
+
+    nChanges+=StrReplaceW(wpFormat, -1, L"tt", -1, L"\x0002", 1, AEFR_MATCHCASE, wszBuffer, NULL, NULL, NULL, NULL);
+    nChanges+=StrReplaceW(wszBuffer, -1, L"t", -1, L"\x0001", 1, AEFR_MATCHCASE, wszOutput, NULL, NULL, NULL, NULL);
+    GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, wszOutput, wszBuffer, 128);
+    GetDateFormatWide(LOCALE_USER_DEFAULT, 0, NULL, wszBuffer, wszOutput, 128);
+    if (nChanges)
+    {
+      GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, L"tt", wszAMPM, 128);
+      StrReplaceW(wszOutput, -1, L"\x0002", 1, wszAMPM, -1, AEFR_MATCHCASE, wszBuffer, NULL, NULL, NULL, NULL);
+
+      GetTimeFormatWide(LOCALE_USER_DEFAULT, 0, NULL, L"t", wszAMPM, 128);
+      StrReplaceW(wszBuffer, -1, L"\x0001", 1, wszAMPM, -1, AEFR_MATCHCASE, wszOutput, NULL, NULL, NULL, NULL);
+    }
   }
 }
 

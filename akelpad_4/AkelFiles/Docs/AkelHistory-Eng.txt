@@ -14,6 +14,7 @@ Added: menu at the borders of split windows.
 Added: now every drag'n'drop operation, can be stopped by pressing Esc.
 
 Fixed: selection restoring after "Replace all".
+Fixed: usage of "tt" in DateInsertFormat and DateLogFormat manual parameters.
 
 
 AkelPad 4.4.7 (Aug 30, 2010)
