@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.1                     *
+ *              String functions header v4.2                     *
  *                                                               *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -46,8 +46,8 @@ int xstrcpynA(char *pString1, const char *pString2, unsigned int nMaxLength);
 int xstrcpynW(wchar_t *wpString1, const wchar_t *wpString2, unsigned int nMaxLength);
 BOOL xstrstrA(const char *pText, DWORD dwTextLen, const char *pStr, BOOL bSensitive, char **pStrBegin, char **pStrEnd);
 BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL bSensitive, wchar_t **wpStrBegin, wchar_t **wpStrEnd);
-int xstrrepA(const char *pText, const char *pIt, const char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult);
-int xstrrepW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult);
+int xstrrepA(const char *pText, int nTextLen, const char *pIt, int nItLen, const char *pWith, int nWithLen, BOOL bSensitive, char *szResult, int *nResultLen);
+int xstrrepW(const wchar_t *wpText, int nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, BOOL bSensitive, wchar_t *wszResult, int *nResultLen);
 
 int xatoiA(const char *pStr, const char **pNext);
 int xatoiW(const wchar_t *wpStr, const wchar_t **wpNext);
@@ -1590,7 +1590,7 @@ BOOL xstrstrA(const char *pText, DWORD dwTextLen, const char *pStr, BOOL bSensit
 
     for (pTextCount=pText, pStrCount=pStr;
           *pTextCount == *pStrCount ||
-          (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pTextCount) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pStrCount));
+          (!bSensitive && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pTextCount) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pStrCount));
          ++pTextCount)
     {
       if (!*++pStrCount)
@@ -1650,12 +1650,12 @@ BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL
     for (wpTextCount=wpText, wpStrCount=wpStr;
           *wpTextCount == *wpStrCount ||
           #if defined WideCharLower_INCLUDED
-            (bSensitive == FALSE && WideCharLower(*wpTextCount) == WideCharLower(*wpStrCount));
+            (!bSensitive && WideCharLower(*wpTextCount) == WideCharLower(*wpStrCount));
           #elif defined WideCharUpper_INCLUDED
-            (bSensitive == FALSE && WideCharUpper(*wpTextCount) == WideCharUpper(*wpStrCount));
+            (!bSensitive && WideCharUpper(*wpTextCount) == WideCharUpper(*wpStrCount));
           #else
             #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrstrW will not work on Win95/98/Me.")
-            (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextCount) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStrCount));
+            (!bSensitive && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextCount) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpStrCount));
           #endif
          ++wpTextCount)
     {
@@ -1678,12 +1678,18 @@ BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL
  *Replace substring with string.
  *
  * [in] const char *pText  Text.
+ * [in] int nTextLen       Text length. If this value is -1, the string is assumed to be null-terminated
+ *                          and the length is calculated automatically.
  * [in] const char *pIt    Replace it.
+ * [in] int nItLen         Replace it length. If this value is -1, the string is assumed to be null-terminated
+ *                          and the length is calculated automatically.
  * [in] const char *pWith  Replace with.
+ * [in] int nWithLen       Replace with length. If this value is -1, the string is assumed to be null-terminated
+ *                          and the length is calculated automatically.
  * [in] BOOL bSensitive    TRUE   case sensitive.
  *                         FALSE  case insensitive.
  *[out] char *szResult     Output, can be NULL.
- *[out] int *nMaxResult    Contains the length of the result string,
+ *[out] int *nResultLen    Contains the length of the result string,
  *                          including the terminating null character,
  *                          can be NULL.
  *
@@ -1692,44 +1698,59 @@ BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL
 #if defined xstrrepA || defined ALLSTRFUNC
 #define xstrrepA_INCLUDED
 #undef xstrrepA
-int xstrrepA(const char *pText, const char *pIt, const char *pWith, BOOL bSensitive, char *szResult, int *nMaxResult)
+int xstrrepA(const char *pText, int nTextLen, const char *pIt, int nItLen, const char *pWith, int nWithLen, BOOL bSensitive, char *szResult, int *nResultLen)
 {
+  const char *pTextMax;
   const char *pTextCount;
+  const char *pMatchCount;
+  const char *pItMax;
   const char *pItCount;
-  char *pResult=szResult;
-  int nWithLen=lstrlenA(pWith);
+  const char *pWithMax;
+  const char *pWithCount;
+  char *pResultCount;
   int nChanges=0;
-  int i;
 
-  for (pTextCount=pText; *pText; ++pText)
+  if (nTextLen == -1)
+    nTextLen=lstrlenA(pText) + 1;
+  if (nItLen == -1)
+    nItLen=lstrlenA(pIt);
+  if (nWithLen == -1)
+    nWithLen=lstrlenA(pWith);
+  pTextMax=pText + nTextLen;
+  pItMax=pIt + nItLen;
+  pWithMax=pWith + nWithLen;
+  pResultCount=szResult;
+
+  for (pTextCount=pText; pTextCount < pTextMax; ++pTextCount)
   {
-    for (pTextCount=pText, pItCount=pIt;
-          *pTextCount == *pItCount ||
-          (bSensitive == FALSE && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pTextCount) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pItCount));
-         ++pTextCount)
+    pMatchCount=pTextCount;
+    pItCount=pIt;
+
+    while (*pMatchCount == *pItCount ||
+           (!bSensitive && (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pMatchCount) == (char)(WORD)(DWORD)CharUpperA((char *)(DWORD)(WORD)*pItCount)))
     {
-      if (!*++pItCount)
+      if (++pItCount >= pItMax)
       {
         if (szResult)
         {
-          for (i=0; i < nWithLen; ++i)
-            *pResult++=pWith[i];
+          for (pWithCount=pWith; pWithCount < pWithMax; ++pWithCount)
+            *pResultCount++=*pWithCount;
         }
-        else pResult+=nWithLen;
+        else pResultCount+=nWithLen;
 
-        pText=pTextCount + 1;
+        pTextCount=pMatchCount + 1;
         pItCount=pIt;
         ++nChanges;
-        if (!*pText) goto End;
+        if (pTextCount >= pTextMax) goto End;
       }
+      if (++pMatchCount >= pTextMax) break;
     }
-    if (szResult) *pResult=*pText;
-    ++pResult;
+    if (szResult) *pResultCount=*pTextCount;
+    ++pResultCount;
   }
 
   End:
-  if (szResult) *pResult=*pText;
-  if (nMaxResult) *nMaxResult=(pResult - szResult) + 1;
+  if (nResultLen) *nResultLen=pResultCount - szResult;
   return nChanges;
 }
 #endif
@@ -1741,12 +1762,18 @@ int xstrrepA(const char *pText, const char *pIt, const char *pWith, BOOL bSensit
  *Replace substring with unicode string.
  *
  * [in] const wchar_t *wpText  Text.
+ * [in] int nTextLen           Text length. If this value is -1, the string is assumed to be null-terminated
+ *                              and the length is calculated automatically.
  * [in] const wchar_t *wpIt    Replace it.
+ * [in] int nItLen             Replace it length. If this value is -1, the string is assumed to be null-terminated
+ *                              and the length is calculated automatically.
  * [in] const wchar_t *wpWith  Replace with.
+ * [in] int nWithLen           Replace with length. If this value is -1, the string is assumed to be null-terminated
+ *                              and the length is calculated automatically.
  * [in] BOOL bSensitive        TRUE   case sensitive.
  *                             FALSE  case insensitive.
  *[out] wchar_t *wszResult     Output, can be NULL.
- *[out] int *nMaxResult        Contains the length of the result string,
+ *[out] int *nResultLen        Contains the length of the result string,
  *                              including the terminating null character,
  *                              can be NULL.
  *
@@ -1758,51 +1785,66 @@ int xstrrepA(const char *pText, const char *pIt, const char *pWith, BOOL bSensit
 #if defined xstrrepW || defined ALLSTRFUNC
 #define xstrrepW_INCLUDED
 #undef xstrrepW
-int xstrrepW(const wchar_t *wpText, const wchar_t *wpIt, const wchar_t *wpWith, BOOL bSensitive, wchar_t *wszResult, int *nMaxResult)
+int xstrrepW(const wchar_t *wpText, int nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, BOOL bSensitive, wchar_t *wszResult, int *nResultLen)
 {
+  const wchar_t *wpTextMax;
   const wchar_t *wpTextCount;
+  const wchar_t *wpMatchCount;
+  const wchar_t *wpItMax;
   const wchar_t *wpItCount;
-  wchar_t *wpResult=wszResult;
-  int nWithLen=lstrlenW(wpWith);
+  const wchar_t *wpWithMax;
+  const wchar_t *wpWithCount;
+  wchar_t *wpResultCount;
   int nChanges=0;
-  int i;
 
-  for (wpTextCount=wpText; *wpText; ++wpText)
+  if (nTextLen == -1)
+    nTextLen=lstrlenW(wpText) + 1;
+  if (nItLen == -1)
+    nItLen=lstrlenW(wpIt);
+  if (nWithLen == -1)
+    nWithLen=lstrlenW(wpWith);
+  wpTextMax=wpText + nTextLen;
+  wpItMax=wpIt + nItLen;
+  wpWithMax=wpWith + nWithLen;
+  wpResultCount=wszResult;
+
+  for (wpTextCount=wpText; wpTextCount < wpTextMax; ++wpTextCount)
   {
-    for (wpTextCount=wpText, wpItCount=wpIt;
-          *wpTextCount == *wpItCount ||
-          #if defined WideCharLower_INCLUDED
-            (bSensitive == FALSE && WideCharLower(*wpTextCount) == WideCharLower(*wpItCount));
-          #elif defined WideCharUpper_INCLUDED
-            (bSensitive == FALSE && WideCharUpper(*wpTextCount) == WideCharUpper(*wpItCount));
-          #else
-            #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrrepW will not work on Win95/98/Me.")
-            (bSensitive == FALSE && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpTextCount) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpItCount));
-          #endif
-         ++wpTextCount)
+    wpMatchCount=wpTextCount;
+    wpItCount=wpIt;
+
+    while (*wpMatchCount == *wpItCount ||
+           #if defined WideCharLower_INCLUDED
+             (!bSensitive && WideCharLower(*wpMatchCount) == WideCharLower(*wpItCount)))
+           #elif defined WideCharUpper_INCLUDED
+             (!bSensitive && WideCharUpper(*wpMatchCount) == WideCharUpper(*wpItCount)))
+           #else
+             #pragma message ("NOTE: WideCharLower and WideCharUpper undefined - xstrrepW will not work on Win95/98/Me.")
+             (!bSensitive && (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpMatchCount) == (wchar_t)(WORD)(DWORD)CharUpperW((wchar_t *)(DWORD)(WORD)*wpItCount)))
+           #endif
     {
-      if (!*++wpItCount)
+      if (++wpItCount >= wpItMax)
       {
         if (wszResult)
         {
-          for (i=0; i < nWithLen; ++i)
-            *wpResult++=wpWith[i];
+          for (wpWithCount=wpWith; wpWithCount < wpWithMax; ++wpWithCount)
+            *wpResultCount++=*wpWithCount;
         }
-        else wpResult+=nWithLen;
+        else wpResultCount+=nWithLen;
 
-        wpText=wpTextCount + 1;
+        wpTextCount=wpMatchCount + 1;
         wpItCount=wpIt;
         ++nChanges;
-        if (!*wpText) goto End;
+        if (wpTextCount >= wpTextMax) goto End;
       }
+      if (++wpMatchCount >= wpTextMax) break;
     }
-    if (wszResult) *wpResult=*wpText;
-    ++wpResult;
+    if (wszResult) *wpResultCount=*wpTextCount;
+    ++wpResultCount;
   }
 
   End:
-  if (wszResult) *wpResult=*wpText;
-  if (nMaxResult) *nMaxResult=(wpResult - wszResult) + 1;
+  if (nResultLen) *nResultLen=wpResultCount - wszResult;
   return nChanges;
 }
 #endif
