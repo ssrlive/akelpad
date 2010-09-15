@@ -656,6 +656,7 @@ typedef struct _FRAMEDATA {
   //"StatusUserFormat" variables.
   int nCaretRealOffset;
   int nCaretRichOffset;
+  int nCaretChar;
   int nFontPoint;
 } FRAMEDATA;
 
@@ -1472,6 +1473,7 @@ typedef struct {
 #define AKD_FRAMEFINDA             (WM_USER + 265)
 #define AKD_FRAMEFINDW             (WM_USER + 266)
 #define AKD_FRAMENOWINDOWS         (WM_USER + 267)
+#define AKD_FRAMEISVALID           (WM_USER + 268)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -2856,6 +2858,22 @@ Return Value
 
 Example:
  SendMessage(pd->hMainWnd, AKD_FRAMENOWINDOWS, 0, 0);
+
+
+AKD_FRAMEISVALID
+________________
+
+Determines whether the specified handle identifies an existing frame data pointer. 
+
+wParam              == not used.
+(FRAMEDATA *)lParam == pointer to a FRAMEDATA structure.
+
+Return Value
+ TRUE   pointer is valid.
+ FALSE  pointer is invalid.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_FRAMEISVALID, 0, (LPARAM)lpFrame);
 
 
 AKD_GLOBALALLOC

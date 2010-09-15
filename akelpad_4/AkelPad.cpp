@@ -2150,6 +2150,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       return FrameNoWindows();
     }
+    if (uMsg == AKD_FRAMEISVALID)
+    {
+      return (LRESULT)StackFrameIsValid(&hFramesStack, (FRAMEDATA *)lParam);
+    }
 
     //Thread
     if (uMsg == AKD_GLOBALALLOC)
