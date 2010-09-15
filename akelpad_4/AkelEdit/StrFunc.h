@@ -1688,7 +1688,7 @@ BOOL xstrstrW(const wchar_t *wpText, DWORD dwTextLen, const wchar_t *wpStr, BOOL
  *                          and the length is calculated automatically.
  * [in] BOOL bSensitive    TRUE   case sensitive.
  *                         FALSE  case insensitive.
- *[out] char *szResult     Output, can be NULL.
+ *[out] char *szResult     Output, can be NULL. szResult can be the same pointer as pText, if the nItLen >= nWithLen.
  *[out] int *nResultLen    Contains the length of the result string,
  *                          including the terminating null character,
  *                          can be NULL.
@@ -1772,7 +1772,7 @@ int xstrrepA(const char *pText, int nTextLen, const char *pIt, int nItLen, const
  *                              and the length is calculated automatically.
  * [in] BOOL bSensitive        TRUE   case sensitive.
  *                             FALSE  case insensitive.
- *[out] wchar_t *wszResult     Output, can be NULL.
+ *[out] wchar_t *wszResult     Output, can be NULL. wszResult can be the same pointer as wpText, if the nItLen >= nWithLen.
  *[out] int *nResultLen        Contains the length of the result string,
  *                              including the terminating null character,
  *                              can be NULL.
