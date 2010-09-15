@@ -885,6 +885,7 @@ FRAMEDATA* StackFrameGetByIndex(HSTACK *hStack, int nIndex);
 FRAMEDATA* StackFrameGetByHandle(HSTACK *hStack, AEHDOC hDataHandle);
 FRAMEDATA* StackFrameGetByName(HSTACK *hStack, const wchar_t *wpFileName, int nFileNameLen);
 FRAMEDATA* StackFrameGetNext(HSTACK *hStack, FRAMEDATA *lpFrame, BOOL bPrev);
+FRAMEDATA* StackFrameIsValid(HSTACK *hStack, FRAMEDATA *lpFramePointer);
 void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex);
 void StackFrameDelete(HSTACK *hStack, FRAMEDATA *lpFrame);
 void StackFramesFree(HSTACK *hStack);

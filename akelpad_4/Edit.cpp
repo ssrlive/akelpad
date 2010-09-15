@@ -14192,6 +14192,20 @@ FRAMEDATA* StackFrameGetNext(HSTACK *hStack, FRAMEDATA *lpFrame, BOOL bPrev)
   return NULL;
 }
 
+FRAMEDATA* StackFrameIsValid(HSTACK *hStack, FRAMEDATA *lpFramePointer)
+{
+  FRAMEDATA *lpFrame=(FRAMEDATA *)hStack->first;
+
+  while (lpFrame)
+  {
+    if (lpFrame == lpFramePointer)
+      return lpFrame;
+
+    lpFrame=lpFrame->next;
+  }
+  return NULL;
+}
+
 void StackFrameMove(HSTACK *hStack, FRAMEDATA *lpFrame, int nIndex)
 {
   StackMoveIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack *)lpFrame, nIndex);
@@ -14456,6 +14470,9 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
         lpFrame->nCaretRichOffset=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciCaret);
       if ((moCur.dwStatusUserFlags & CSB_FONTPOINT) && (dwFlags & CSB_FONTPOINT))
         lpFrame->nFontPoint=GetFontPoint(lpFrame->ei.hWndEdit, &lpFrame->lf);
+      if (((moCur.dwStatusUserFlags & CSB_CHARHEX) && (dwFlags & CSB_CHARHEX)) ||
+          ((moCur.dwStatusUserFlags & CSB_CHARDEC) && (dwFlags & CSB_CHARDEC)))
+        lpFrame->nCaretChar=AEC_CharAtIndex(&ciCaret);
 
       if (TranslateStatusUser(lpFrame, moCur.wszStatusUserFormat, wbuf, BUFFER_SIZE))
         StatusBar_SetTextWide(hStatus, STATUS_USER, wbuf);
@@ -14488,22 +14505,16 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
         if (*++wpString == 'h' || *wpString == 'H')
         {
           if (lpFrame)
-          {
-            int nChar=AEC_CharAtIndex(&ciCaret);
-
-            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", (nChar == -1)?0xFFFF:nChar);
-          }
-          else dwFlags|=CSB_CHARHEX;
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", (lpFrame->nCaretChar == -1)?0xFFFF:lpFrame->nCaretChar);
+          else
+            dwFlags|=CSB_CHARHEX;
         }
         else if (*wpString == 'd' || *wpString == 'D')
         {
           if (lpFrame)
-          {
-            int nChar=AEC_CharAtIndex(&ciCaret);
-
-            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nChar);
-          }
-          else dwFlags|=CSB_CHARDEC;
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nCaretChar);
+          else
+            dwFlags|=CSB_CHARDEC;
         }
       }
       else if (*wpString == 'O')
