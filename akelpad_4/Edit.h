@@ -353,8 +353,8 @@ typedef struct {
   DWORD dwWordBreakCustom;
   DWORD dwPaintOptions;
   BOOL bRichEditClass;
-  wchar_t wszDateLogFormat[MAX_PATH];
-  wchar_t wszDateInsertFormat[MAX_PATH];
+  wchar_t wszDateLogFormat[128];
+  wchar_t wszDateInsertFormat[128];
 
   //Menu settings
   BOOL bOnTop;
@@ -958,6 +958,7 @@ const wchar_t* GetFileName(const wchar_t *wpFile);
 int GetBaseName(const wchar_t *wpFile, wchar_t *wszBaseName, int nBaseNameMaxLen);
 const wchar_t* GetFileExt(const wchar_t *wpFile);
 void TrimModifyState(wchar_t *wszFile);
+void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSeconds);
 BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft);
 BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
 BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage);
