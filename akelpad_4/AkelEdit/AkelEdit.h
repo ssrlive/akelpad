@@ -4297,13 +4297,14 @@ ______________
 Deletes specified or all folds.
 
 (AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure). If NULL, then delete all folds.
-lParam           == not used.
+(BOOL)lParam     == TRUE  update scroll and selection.
+                    FALSE don't update scroll and selection.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold, 0);
+ SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold, TRUE);
 
 
 AEM_UPDATEFOLD
