@@ -981,11 +981,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Interna"
     STR_FILE_FILTER         "Files di testo (*.txt)|*.txt|Tutti i files (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Files eseguibili (*.exe)|*.exe|Tutti i files (*.*)|*.*"
-    STR_NONE                "Nessuno"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Nessuno"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funzione"
     STR_HOTKEY              "Scorciatoia"
@@ -1001,11 +1001,11 @@ BEGIN
     STR_TEXT                "Testo"
     STR_BACKGROUND          "Sfondo"
     STR_SAMPLE              "Campione"
-    STR_BASIC               "Colore di base"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Colore di base"
     STR_SELECTION           "Selezione"
     STR_ACTIVELINE          "Riga attiva"
     STR_ACTIVECOLUMN        "Attiva colonna"

@@ -1,4 +1,11 @@
 
+AkelPad 4.4.9 (Sep 16, 2010)
+----------------------------
+Changed: "Changed" and "Read only" aligns to center in the status bar.
+
+Fixed: program error when there are no changes after "Replace All" (appeared in 4.4.8).
+
+
 AkelPad 4.4.8 (Sep 15, 2010)
 ----------------------------
 Changed: syntax highlighting messages. Update Coder plugin.

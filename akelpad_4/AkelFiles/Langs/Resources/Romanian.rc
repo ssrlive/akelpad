@@ -975,11 +975,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Intern"
     STR_FILE_FILTER         "File Text (*.txt)|*.txt|Toate Filele (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "File Executabile (*.exe)|*.exe|Toate Filele (*.*)|*.*"
-    STR_NONE                "Nimic"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Nimic"
     STR_PLUGIN              "Extensie"
     STR_FUNCTION            "Funcþie"
     STR_HOTKEY              "Tastã Rapidã"
@@ -995,11 +995,11 @@ BEGIN
     STR_TEXT                "Text"
     STR_BACKGROUND          "Fundal"
     STR_SAMPLE              "Exemplu"
-    STR_BASIC               "Culoare de Bazã"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Culoare de Bazã"
     STR_SELECTION           "Selecþie"
     STR_ACTIVELINE          "Linie Activã"
     STR_ACTIVECOLUMN        "Coloanã Activã"

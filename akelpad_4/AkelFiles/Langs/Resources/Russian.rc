@@ -171,8 +171,8 @@ BEGIN
         MENUITEM "&Горизонтально",              IDM_WINDOW_TILEHORIZONTAL
         MENUITEM "&Вертикально",                IDM_WINDOW_TILEVERTICAL
         MENUITEM "&Каскадом",                   IDM_WINDOW_CASCADE
-        MENUITEM "&Закрыть",                     IDM_WINDOW_FRAMECLOSE
-        MENUITEM "Закрыть в&се",                 IDM_WINDOW_FRAMECLOSEALL
+        MENUITEM "&Закрыть",                    IDM_WINDOW_FRAMECLOSE
+        MENUITEM "Закрыть в&се",                IDM_WINDOW_FRAMECLOSEALL
         MENUITEM "Закрыть все, кроме &активного", 
                                                 IDM_WINDOW_FRAMECLOSEALL_BUTACTIVE
 
@@ -990,11 +990,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Внутренний"
     STR_FILE_FILTER         "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Исполняемые файлы (*.exe)|*.exe|Все файлы (*.*)|*.*"
-    STR_NONE                "Нет"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Нет"
     STR_PLUGIN              "Плагин"
     STR_FUNCTION            "Функция"
     STR_HOTKEY              "Горячая клавиша"
@@ -1010,11 +1010,11 @@ BEGIN
     STR_TEXT                "Текст"
     STR_BACKGROUND          "Фон"
     STR_SAMPLE              "Образец"
-    STR_BASIC               "Основной цвет"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Основной цвет"
     STR_SELECTION           "Выделение"
     STR_ACTIVELINE          "Активная строка"
     STR_ACTIVECOLUMN        "Активный столбец"
