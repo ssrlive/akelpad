@@ -15917,7 +15917,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_WRAPLIMIT)
   {
-    if (lpFrameCurrent->dwWrapLimit != dwData)
+    if (lpFrameCurrent->dwWrapLimit != dwData && (int)dwData >= -1)
     {
       lpFrameCurrent->dwWrapLimit=dwData;
 
@@ -15931,7 +15931,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_MARKERPOS)
   {
-    if (lpFrameCurrent->dwMarker != dwData)
+    if (lpFrameCurrent->dwMarker != dwData && (int)dwData >= -1)
     {
       lpFrameCurrent->dwMarker=dwData;
       SetMarker(lpFrameCurrent, lpFrameCurrent->dwMarker);
