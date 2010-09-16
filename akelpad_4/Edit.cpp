@@ -14296,8 +14296,7 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
     {
       if (!ssStatus.bReadOnly)
       {
-        wbuf[0]=L'\t';
-        LoadStringWide(hLangLib, STR_READONLY, wbuf + 1, BUFFER_SIZE);
+        LoadStringWide(hLangLib, STR_READONLY, wbuf, BUFFER_SIZE);
         StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
         ssStatus.bReadOnly=TRUE;
       }
@@ -14307,11 +14306,9 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
       if (ssStatus.bReadOnly)
       {
         if (ssStatus.bModified)
-        {
-          wbuf[0]=L'\t';
-          LoadStringWide(hLangLib, STR_MODIFIED, wbuf + 1, BUFFER_SIZE);
-        }
-        else wbuf[0]='\0';
+          LoadStringWide(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
+        else
+          wbuf[0]='\0';
 
         StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
         ssStatus.bReadOnly=FALSE;
@@ -14326,11 +14323,9 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
         if (!ssStatus.bReadOnly)
         {
           if (bState)
-          {
-            wbuf[0]=L'\t';
-            LoadStringWide(hLangLib, STR_MODIFIED, wbuf + 1, BUFFER_SIZE);
-          }
-          else wbuf[0]='\0';
+            LoadStringWide(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
+          else
+            wbuf[0]='\0';
 
           StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
         }
