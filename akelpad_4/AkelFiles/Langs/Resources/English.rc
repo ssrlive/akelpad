@@ -963,11 +963,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Internal"
     STR_FILE_FILTER         "Text files (*.txt)|*.txt|All files (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Executable files (*.exe)|*.exe|All files (*.*)|*.*"
-    STR_NONE                "None"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "None"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Function"
     STR_HOTKEY              "Hotkey"
@@ -983,11 +983,11 @@ BEGIN
     STR_TEXT                "Text"
     STR_BACKGROUND          "Background"
     STR_SAMPLE              "Sample"
-    STR_BASIC               "Basic color"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Basic color"
     STR_SELECTION           "Selection"
     STR_ACTIVELINE          "Active line"
     STR_ACTIVECOLUMN        "Active column"

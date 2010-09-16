@@ -975,11 +975,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Intern"
     STR_FILE_FILTER         "Tekst bestanden (*.txt)|*.txt|All files (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Uitvoerbare bestanden (*.exe)|*.exe|All files (*.*)|*.*"
-    STR_NONE                "Geen"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Geen"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Functie"
     STR_HOTKEY              "Sneltoets"
@@ -995,11 +995,11 @@ BEGIN
     STR_TEXT                "Tekst"
     STR_BACKGROUND          "Achtergrond"
     STR_SAMPLE              "Voorbeeld"
-    STR_BASIC               "Basis kleur"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Basis kleur"
     STR_SELECTION           "Selectie"
     STR_ACTIVELINE          "Actieve regel"
     STR_ACTIVECOLUMN        "Actieve kolom"

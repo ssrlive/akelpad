@@ -4786,7 +4786,6 @@ LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam
   static DOCK *dkDragSource;
   static DOCK *dkDropTarget;
   static int nMouseEdge;
-  static int nMouseDown=0;
   static int nMouseMove;
   static int nDropSide;
   DOCK *dkData;

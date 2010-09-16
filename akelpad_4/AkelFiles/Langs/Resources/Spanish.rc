@@ -977,11 +977,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Interno"
     STR_FILE_FILTER         "Archivos de texto (*.txt)|*.txt|Todos los archivos (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Archivos ejecutables (*.exe)|*.exe|Todos los archivos (*.*)|*.*"
-    STR_NONE                "Ninguno"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Ninguno"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Función"
     STR_HOTKEY              "Tecla directa"
@@ -997,11 +997,11 @@ BEGIN
     STR_TEXT                "Texto"
     STR_BACKGROUND          "Fondo"
     STR_SAMPLE              "Muestra"
-    STR_BASIC               "Color básico"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Color básico"
     STR_SELECTION           "Selección"
     STR_ACTIVELINE          "Línea activa"
     STR_ACTIVECOLUMN        "Activar columna"

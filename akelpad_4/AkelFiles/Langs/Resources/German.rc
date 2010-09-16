@@ -974,11 +974,11 @@ BEGIN
     STR_LANGUAGE_NONE       "System"
     STR_FILE_FILTER         "Textdateien (*.txt)|*.txt|Alle Dateien (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Ausführbare Dateien (*.exe)|*.exe|Alle Dateien (*.*)|*.*"
-    STR_NONE                "None"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "None"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funktion"
     STR_HOTKEY              "Hotkey"
@@ -994,11 +994,11 @@ BEGIN
     STR_TEXT                "Text"
     STR_BACKGROUND          "Hintergrund"
     STR_SAMPLE              "Muster"
-    STR_BASIC               "Hauptfarbe"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Hauptfarbe"
     STR_SELECTION           "Auswahl"
     STR_ACTIVELINE          "Aktive Zeile"
     STR_ACTIVECOLUMN        "Aktive Spalte"

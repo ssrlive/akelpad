@@ -978,11 +978,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Sis‰inen"
     STR_FILE_FILTER         "Tekstitiedostot (*.txt)|*.txt|Kaikki (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Ohjelmatiedostot (*.exe)|*.exe|Kaikki (*.*)|*.*"
-    STR_NONE                "Ei mit‰‰n"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Ei mit‰‰n"
     STR_PLUGIN              "Lis‰osa"
     STR_FUNCTION            "Funktio"
     STR_HOTKEY              "Pikan‰pp‰in"
@@ -998,11 +998,11 @@ BEGIN
     STR_TEXT                "Teksti"
     STR_BACKGROUND          "Tausta"
     STR_SAMPLE              "Esimerkki"
-    STR_BASIC               "Perusv‰ri"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Perusv‰ri"
     STR_SELECTION           "Valinta"
     STR_ACTIVELINE          "Aktiivinen rivi"
     STR_ACTIVECOLUMN        "Aktiivinen sarake"

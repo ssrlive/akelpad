@@ -981,11 +981,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Interný"
     STR_FILE_FILTER         "Textové súbory (*.txt)|*.txt|Všetky súbory (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Spustite¾né súbory (*.exe)|*.exe|Všetky súbory (*.*)|*.*"
-    STR_NONE                "Niè"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Niè"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funkcia"
     STR_HOTKEY              "Klávesová skratka"
@@ -1001,11 +1001,11 @@ BEGIN
     STR_TEXT                "Text"
     STR_BACKGROUND          "Pozadie"
     STR_SAMPLE              "Ukážka"
-    STR_BASIC               "Základná farba"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Základná farba"
     STR_SELECTION           "Výber"
     STR_ACTIVELINE          "Aktívny riadok"
     STR_ACTIVECOLUMN        "Aktívny ståpec"

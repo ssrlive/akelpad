@@ -8578,7 +8578,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
   AECHARINDEX ciFirstVisibleAfter;
   CHARRANGE crInitialRE;
   wchar_t *wszRangeText;
-  wchar_t *wszResultText;
+  wchar_t *wszResultText=NULL;
   int nMin;
   int nMax;
   int nNewLine=AELB_ASIS;
@@ -8829,9 +8829,9 @@ int StrReplaceW(const wchar_t *wpText, int nTextLen, const wchar_t *wpIt, int nI
   const wchar_t *wpItCount;
   const wchar_t *wpWithMax;
   const wchar_t *wpWithCount;
-  const wchar_t *wpMin;
-  const wchar_t *wpMax;
-  const wchar_t *wpFirstVis;
+  const wchar_t *wpMin=NULL;
+  const wchar_t *wpMax=NULL;
+  const wchar_t *wpFirstVis=NULL;
   wchar_t *wpResultCount;
   int nChanges=0;
   int nDiff;
@@ -14296,7 +14296,8 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
     {
       if (!ssStatus.bReadOnly)
       {
-        LoadStringWide(hLangLib, STR_READONLY, wbuf, BUFFER_SIZE);
+        wbuf[0]=L'\t';
+        LoadStringWide(hLangLib, STR_READONLY, wbuf + 1, BUFFER_SIZE);
         StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
         ssStatus.bReadOnly=TRUE;
       }
@@ -14306,9 +14307,12 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
       if (ssStatus.bReadOnly)
       {
         if (ssStatus.bModified)
-          LoadStringWide(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
-        else
-          wbuf[0]='\0';
+        {
+          wbuf[0]=L'\t';
+          LoadStringWide(hLangLib, STR_MODIFIED, wbuf + 1, BUFFER_SIZE);
+        }
+        else wbuf[0]='\0';
+
         StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
         ssStatus.bReadOnly=FALSE;
       }
@@ -14322,9 +14326,12 @@ void SetModifyStatus(FRAMEDATA *lpFrame, BOOL bState)
         if (!ssStatus.bReadOnly)
         {
           if (bState)
-            LoadStringWide(hLangLib, STR_MODIFIED, wbuf, BUFFER_SIZE);
-          else
-            wbuf[0]='\0';
+          {
+            wbuf[0]=L'\t';
+            LoadStringWide(hLangLib, STR_MODIFIED, wbuf + 1, BUFFER_SIZE);
+          }
+          else wbuf[0]='\0';
+
           StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
         }
         ssStatus.bModified=bState;

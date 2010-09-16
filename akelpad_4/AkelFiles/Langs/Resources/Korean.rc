@@ -965,11 +965,11 @@ BEGIN
     STR_LANGUAGE_NONE       "내장언어"
     STR_FILE_FILTER         "텍스트 파일 (*.txt)|*.txt|모든 파일 (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "실행파일 (*.exe)|*.exe|모든 파일 (*.*)|*.*"
-    STR_NONE                "없음"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "없음"
     STR_PLUGIN              "플러그인"
     STR_FUNCTION            "기능"
     STR_HOTKEY              "단축키"
@@ -985,11 +985,11 @@ BEGIN
     STR_TEXT                "텍스트"
     STR_BACKGROUND          "배경색"
     STR_SAMPLE              "샘플"
-    STR_BASIC               "기본 색상"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "기본 색상"
     STR_SELECTION           "선택영역"
     STR_ACTIVELINE          "현재 줄"
     STR_ACTIVECOLUMN        "활성열"

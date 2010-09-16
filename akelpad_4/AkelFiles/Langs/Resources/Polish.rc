@@ -971,11 +971,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Wbudowany"
     STR_FILE_FILTER         "Pliki tekstowe (*.txt)|*.txt|Wszystkie pliki (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Pliki programów (*.exe)|*.exe|Wszystkie pliki (*.*)|*.*"
-    STR_NONE                "Brak"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Brak"
     STR_PLUGIN              "Plugin"
     STR_FUNCTION            "Funkcja"
     STR_HOTKEY              "Klawisz skrótu"
@@ -991,11 +991,11 @@ BEGIN
     STR_TEXT                "Tekst"
     STR_BACKGROUND          "T³o"
     STR_SAMPLE              "Przyk³ad"
-    STR_BASIC               "Podstawowy kolor"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Podstawowy kolor"
     STR_SELECTION           "Zaznaczenie"
     STR_ACTIVELINE          "Bie¿¹cy wiersz"
     STR_ACTIVECOLUMN        "Bie¿¹ca kolumna"

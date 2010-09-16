@@ -970,11 +970,11 @@ BEGIN
     STR_LANGUAGE_NONE       "内部"
     STR_FILE_FILTER         "テキスト ファイル (*.txt)|*.txt|すべてのファイル (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "実行ファイル (*.exe)|*.exe|すべてのファイル (*.*)|*.*"
-    STR_NONE                "なし"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "なし"
     STR_PLUGIN              "プラグイン"
     STR_FUNCTION            "関数"
     STR_HOTKEY              "ホットキー"
@@ -990,11 +990,11 @@ BEGIN
     STR_TEXT                "テキスト"
     STR_BACKGROUND          "背景"
     STR_SAMPLE              "サンプル"
-    STR_BASIC               "基本色"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "基本色"
     STR_SELECTION           "選択範囲"
     STR_ACTIVELINE          "アクティブな行"
     STR_ACTIVECOLUMN        "アクティブな列"

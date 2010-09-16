@@ -992,11 +992,11 @@ BEGIN
     STR_LANGUAGE_NONE       "Внутрішня"
     STR_FILE_FILTER         "Текстові файли (*.txt)|*.txt|Всі файли (*.*)|*.*"
     STR_EXECUTABLE_FILTER   "Виконувані файли (*.exe)|*.exe|Всі файли (*.*)|*.*"
-    STR_NONE                "Ні"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_NONE                "Ні"
     STR_PLUGIN              "Плаґін"
     STR_FUNCTION            "Функція"
     STR_HOTKEY              "Гаряча клавіша"
@@ -1012,11 +1012,11 @@ BEGIN
     STR_TEXT                "Текст"
     STR_BACKGROUND          "Фон"
     STR_SAMPLE              "Зразок"
-    STR_BASIC               "Основний колір"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    STR_BASIC               "Основний колір"
     STR_SELECTION           "Виділення"
     STR_ACTIVELINE          "Активний рядок"
     STR_ACTIVECOLUMN        "Активний стовпчик"
