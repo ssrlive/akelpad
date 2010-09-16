@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.4.8                               *
+ *                      AkelEdit text control v1.4.9                               *
  *                                                                                 *
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1633,10 +1633,37 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_DELETEFOLD)
     {
+      int nFirstVisibleLine=0;
+      int nFirstVisiblePos;
+      int nResult;
+      BOOL bUpdate=lParam;
+
+      if (bUpdate)
+      {
+        if (!ae->popt->bVScrollLock)
+          nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+      }
+
       if (wParam)
-        AE_StackFoldDelete(ae, (AEFOLD *)wParam);
+        nResult=AE_StackFoldDelete(ae, (AEFOLD *)wParam);
       else
-        AE_StackFoldFree(ae);
+        nResult=AE_StackFoldFree(ae);
+
+      if (bUpdate && nResult)
+      {
+        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+        AE_UpdateScrollBars(ae, SB_VERT);
+        ae->ptCaret.x=0;
+        ae->ptCaret.y=0;
+        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+        if (!ae->popt->bVScrollLock)
+        {
+          nFirstVisiblePos=AE_VPosFromLine(ae, nFirstVisibleLine);
+          AE_ScrollEditWindow(ae, SB_VERT, nFirstVisiblePos);
+        }
+        InvalidateRect(ae->hWndEdit, NULL, TRUE);
+        AE_StackUpdateClones(ae);
+      }
       return 0;
     }
     if (uMsg == AEM_UPDATEFOLD)
@@ -5362,24 +5389,30 @@ BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold)
   return FALSE;
 }
 
-void AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
+BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
 {
+  BOOL bCollapse=lpFold->bCollapse;
+
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
   AE_HeapStackDelete(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last, (stack *)lpFold);
+  return bCollapse;
 }
 
-void AE_StackFoldFree(AKELEDIT *ae)
+int AE_StackFoldFree(AKELEDIT *ae)
 {
   AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
+  int nCollapse=0;
 
   while (lpElement)
   {
+    if (lpElement->bCollapse) ++nCollapse;
     AE_StackPointDelete(ae, lpElement->lpMinPoint);
     AE_StackPointDelete(ae, lpElement->lpMaxPoint);
     lpElement=lpElement->next;
   }
   AE_HeapStackClear(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last);
+  return nCollapse;
 }
 
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
