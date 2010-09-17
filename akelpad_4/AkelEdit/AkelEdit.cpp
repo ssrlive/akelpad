@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.4.9                               *
+ *                      AkelEdit text control v1.5.0                               *
  *                                                                                 *
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -1598,32 +1598,23 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (uMsg == AEM_COLLAPSELINE ||
         uMsg == AEM_COLLAPSEFOLD)
     {
-      int nFirstVisibleLine=0;
-      int nFirstVisiblePos;
+      int nFirstVisibleLine=-1;
       int nResult;
 
-      if (!ae->popt->bVScrollLock)
-        nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+      if (!(lParam & AECF_NOUPDATE))
+      {
+        if (!ae->popt->bVScrollLock)
+          nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+      }
 
       if (uMsg == AEM_COLLAPSELINE)
-        nResult=AE_StackLineCollapse(ae, wParam, lParam);
+        nResult=AE_StackLineCollapse(ae, wParam, (lParam & AECF_COLLAPSE));
       else
-        nResult=AE_StackFoldCollapse(ae, (AEFOLD *)wParam, lParam);
+        nResult=AE_StackFoldCollapse(ae, (AEFOLD *)wParam, (lParam & AECF_COLLAPSE));
 
-      if (nResult)
+      if (nResult && !(lParam & AECF_NOUPDATE))
       {
-        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
-        AE_UpdateScrollBars(ae, SB_VERT);
-        ae->ptCaret.x=0;
-        ae->ptCaret.y=0;
-        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-        if (!ae->popt->bVScrollLock)
-        {
-          nFirstVisiblePos=AE_VPosFromLine(ae, nFirstVisibleLine);
-          AE_ScrollEditWindow(ae, SB_VERT, nFirstVisiblePos);
-        }
-        InvalidateRect(ae->hWndEdit, NULL, TRUE);
-        AE_StackUpdateClones(ae);
+        AE_StackFoldUpdate(ae, nFirstVisibleLine);
       }
       return nResult;
     }
@@ -1633,8 +1624,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_DELETEFOLD)
     {
-      int nFirstVisibleLine=0;
-      int nFirstVisiblePos;
+      int nFirstVisibleLine=-1;
       int nResult;
       BOOL bUpdate=lParam;
 
@@ -1651,25 +1641,13 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (bUpdate && nResult)
       {
-        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
-        AE_UpdateScrollBars(ae, SB_VERT);
-        ae->ptCaret.x=0;
-        ae->ptCaret.y=0;
-        AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
-        if (!ae->popt->bVScrollLock)
-        {
-          nFirstVisiblePos=AE_VPosFromLine(ae, nFirstVisibleLine);
-          AE_ScrollEditWindow(ae, SB_VERT, nFirstVisiblePos);
-        }
-        InvalidateRect(ae->hWndEdit, NULL, TRUE);
-        AE_StackUpdateClones(ae);
+        AE_StackFoldUpdate(ae, nFirstVisibleLine);
       }
-      return 0;
+      return nResult;
     }
     if (uMsg == AEM_UPDATEFOLD)
     {
-      AE_StackFoldUpdate(ae);
-      return 0;
+      return AE_StackFoldUpdate(ae, lParam);
     }
     if (uMsg == AEM_GETFOLDSTACK)
     {
@@ -5359,20 +5337,44 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
   return nResult;
 }
 
-void AE_StackFoldUpdate(AKELEDIT *ae)
+int AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
+{
+  int nFirstVisiblePos;
+  int nScrolled=0;
+
+  ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+  AE_UpdateScrollBars(ae, SB_VERT);
+  ae->ptCaret.x=0;
+  ae->ptCaret.y=0;
+  AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
+  if (!ae->popt->bVScrollLock && nFirstVisibleLine >= 0)
+  {
+    nFirstVisiblePos=AE_VPosFromLine(ae, nFirstVisibleLine);
+    nScrolled=AE_ScrollEditWindow(ae, SB_VERT, nFirstVisiblePos);
+  }
+  InvalidateRect(ae->hWndEdit, NULL, TRUE);
+  AE_StackUpdateClones(ae);
+  return nScrolled;
+}
+
+int AE_StackFoldDelEmpty(AKELEDIT *ae)
 {
   AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
   AEFOLD *lpElementNext;
+  int nResult=0;
 
   while (lpElement)
   {
     lpElementNext=lpElement->next;
 
     if (!AE_IndexCompare(&lpElement->lpMinPoint->ciPoint, &lpElement->lpMaxPoint->ciPoint))
+    {
       AE_StackFoldDelete(ae, lpElement);
-
+      ++nResult;
+    }
     lpElement=lpElementNext;
   }
+  return nResult;
 }
 
 BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold)
@@ -17836,7 +17838,7 @@ void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
 
 void AE_NotifyTextChanged(AKELEDIT *ae)
 {
-  //AE_StackFoldUpdate(ae);
+  //AE_StackFoldDelEmpty(ae);
   AE_StackUpdateClones(ae);
 
   //Send AEN_TEXTCHANGED

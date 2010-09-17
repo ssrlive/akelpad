@@ -102,6 +102,16 @@
 #define AETCT_NONE              0x00100000  //No text is changed.
 #define AETCT_DELETEALL         0x00200000  //Indicate that due to AETCT_* action all text has been modified.
 
+//Insert text flags
+#define AEINST_LOCKUNDO      0x00000001
+#define AEINST_LOCKSCROLL    0x00000002
+#define AEINST_LOCKUPDATE    0x00000004
+
+//Delete text flags
+#define AEDELT_LOCKUNDO      0x00000001
+#define AEDELT_LOCKSCROLL    0x00000002
+#define AEDELT_LOCKUPDATE    0x00000004
+
 //AEN_POINT types
 #define AEPTT_SETTEXT           0x00000001  //All document text has been changed. All points reset to first character.
 #define AEPTT_STREAMIN          0x00000002  //All document text has been changed. All points reset to first character.
@@ -119,15 +129,10 @@
 #define AEPTO_IGNORE    -1  //Character RichEdit offset is not used in AEPOINT.
 #define AEPTO_CALC      -2  //Character RichEdit offset will calculated automatically by AEM_ADDPOINT.
 
-//Insert text flags
-#define AEINST_LOCKUNDO      0x00000001
-#define AEINST_LOCKSCROLL    0x00000002
-#define AEINST_LOCKUPDATE    0x00000004
-
-//Delete text flags
-#define AEDELT_LOCKUNDO      0x00000001
-#define AEDELT_LOCKSCROLL    0x00000002
-#define AEDELT_LOCKUPDATE    0x00000004
+//AEM_COLLAPSELINE and AEM_COLLAPSEFOLD flags
+#define AECF_EXPAND     0x00000000  //Expand fold (default).
+#define AECF_COLLAPSE   0x00000001  //Collapse fold.
+#define AECF_NOUPDATE   0x00000002  //Don't update scroll and selection.
 
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
@@ -4248,15 +4253,14 @@ ________________
 
 Collapse or expand all folds that contain line.
 
-(int)wParam  == zero based line number.
-(BOOL)lParam == TRUE  collapse folds.
-                FALSE expand folds.
+(int)wParam   == zero based line number.
+(DWORD)lParam == see AECF_* defines.
 
 Return Value
  Number of folds changed.
 
 Example:
- SendMessage(hWndEdit, AEM_COLLAPSELINE, 5, TRUE);
+ SendMessage(hWndEdit, AEM_COLLAPSELINE, 5, AECF_EXPAND);
 
 
 AEM_COLLAPSEFOLD
@@ -4265,14 +4269,13 @@ ________________
 Sets fold collapse state.
 
 (AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_ADDFOLD. If NULL, then process all folds.
-(BOOL)lParam     == TRUE  collapse fold.
-                    FALSE expand fold.
+(DWORD)lParam    == see AECF_* defines.
 
 Return Value
  Number of folds changed.
 
 Example:
- SendMessage(hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)lpFold, TRUE);
+ SendMessage(hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)lpFold, AECF_COLLAPSE);
 
 
 AEM_ISFOLDVALID
@@ -4301,7 +4304,7 @@ Deletes specified or all folds.
                     FALSE don't update scroll and selection.
 
 Return Value
- Zero.
+ Number of deleted folds that were collapsed.
 
 Example:
  SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold, TRUE);
@@ -4310,16 +4313,19 @@ Example:
 AEM_UPDATEFOLD
 ______________
 
-Clean up folds stack. Deletes fold if fold start and fold end points are equal.
+Update scroll and selection. Tipically can be used after fold deletion/collaption.
 
-wParam == not used.
-lParam == not used.
+wParam      == not used.
+(int)lParam == first visible line that was before fold deletion/collaption. If -1, ignored.
 
 Return Value
- Zero.
+ Pixels scrolled.
 
 Example:
- SendMessage(hWndEdit, AEM_UPDATEFOLD, 0, 0);
+ nFirstVisibleLine=SendMessage(hWndEdit, AEM_GETLINENUMBER, AEGL_FIRSTVISIBLELINE, 0);
+ SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold1, FALSE);
+ SendMessage(hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)lpFold2, AECF_EXPAND|AECF_NOUPDATE);
+ SendMessage(hWndEdit, AEM_UPDATEFOLD, 0, nFirstVisibleLine);
 
 
 AEM_GETFOLDSTACK
