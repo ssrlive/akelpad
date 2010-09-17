@@ -9083,7 +9083,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     End:
     if (qm->lpQuote)
     {
-      if (qm->lpQuote->dwFlags & AEHLF_QUOTESTART_NOMATCH)
+      if (qm->lpQuote->dwFlags & AEHLF_QUOTESTART_NOCATCH)
       {
         qm->crQuoteStart.ciMin=qm->crQuoteStart.ciMax;
         nQuoteLen-=qm->lpQuote->nQuoteStartLen;
