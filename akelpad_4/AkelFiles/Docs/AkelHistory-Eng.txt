@@ -1,4 +1,11 @@
 
+AkelPad 4.5.0 ()
+----------------------------
+Changed: code folding messages. Update Coder plugin.
+
+Added: Czech language module (Frantisek Bartos).
+
+
 AkelPad 4.4.9 (Sep 16, 2010)
 ----------------------------
 Changed: "Changed" and "Read only" aligns to center in the status bar.
