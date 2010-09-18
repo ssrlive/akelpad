@@ -590,15 +590,15 @@ typedef struct {
 //// Functions as macros
 
 #ifndef AE_IsSurrogate
-  #define AE_IsSurrogate(c)  (((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDFFF)?TRUE:FALSE)
+  #define AE_IsSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDFFF)
 #endif
 
 #ifndef AE_IsHighSurrogate
-  #define AE_IsHighSurrogate(c)  (((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDBFF)?TRUE:FALSE)
+  #define AE_IsHighSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDBFF)
 #endif
 
 #ifndef AE_IsLowSurrogate
-  #define AE_IsLowSurrogate(c)  (((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)?TRUE:FALSE)
+  #define AE_IsLowSurrogate(c)  ((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)
 #endif
 
 

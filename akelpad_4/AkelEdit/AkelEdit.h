@@ -5258,15 +5258,15 @@ Example:
 //// AkelEdit functions
 
 #ifndef AEC_IsSurrogate
-  #define AEC_IsSurrogate(c)  (((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDFFF)?TRUE:FALSE)
+  #define AEC_IsSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDFFF)
 #endif
 
 #ifndef AEC_IsHighSurrogate
-  #define AEC_IsHighSurrogate(c)  (((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDBFF)?TRUE:FALSE)
+  #define AEC_IsHighSurrogate(c)  ((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDBFF)
 #endif
 
 #ifndef AEC_IsLowSurrogate
-  #define AEC_IsLowSurrogate(c)  (((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)?TRUE:FALSE)
+  #define AEC_IsLowSurrogate(c)  ((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)
 #endif
 
 #ifdef AEC_FUNCTIONS
