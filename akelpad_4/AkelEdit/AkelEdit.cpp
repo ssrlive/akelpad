@@ -1476,12 +1476,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         if ((int)wParam >= 0)
         {
           int nFirstVisibleLine=0;
-  
+
           if (!ae->popt->bVScrollLock)
             nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
           ae->ptxt->nCharHeight=(ae->ptxt->nCharHeight - ae->ptxt->nLineGap) + wParam;
           ae->ptxt->nLineGap=wParam;
-  
+
           ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
           AE_UpdateScrollBars(ae, SB_VERT);
           ae->ptCaret.x=0;
@@ -1490,7 +1490,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           if (!ae->popt->bVScrollLock)
             AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
           AE_UpdateCaret(ae, ae->bFocus);
-  
+
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
           AE_StackUpdateClones(ae);
         }
@@ -6506,27 +6506,6 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     return AE_PrevCharInLineEx(ciCharIn, ciCharOut);
   }
   return NULL;
-}
-
-int AE_IsSurrogate(wchar_t wchChar)
-{
-  if (wchChar >= 0xD800 && wchChar <= 0xDFFF)
-    return TRUE;
-  return FALSE;
-}
-
-int AE_IsHighSurrogate(wchar_t wchChar)
-{
-  if (wchChar >= 0xD800 && wchChar <= 0xDBFF)
-    return TRUE;
-  return FALSE;
-}
-
-int AE_IsLowSurrogate(wchar_t wchChar)
-{
-  if (wchChar >= 0xDC00 && wchChar <= 0xDFFF)
-    return TRUE;
-  return FALSE;
 }
 
 int AE_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
@@ -12114,6 +12093,9 @@ int AE_LineFromVPos(AKELEDIT *ae, int nVPos)
 
   while (lpElement)
   {
+    if (lpElement->lpMinPoint->ciPoint.nLine > nCalcLine)
+      break;
+
     if (lpElement->bCollapse)
     {
       if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nCalcLine &&
@@ -12139,6 +12121,9 @@ int AE_VPosFromLine(AKELEDIT *ae, int nLine)
 
   while (lpElement)
   {
+    if (lpElement->lpMinPoint->ciPoint.nLine > nLine)
+      break;
+
     if (lpElement->bCollapse)
     {
       if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset < nLine &&

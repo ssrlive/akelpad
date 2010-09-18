@@ -5257,29 +5257,20 @@ Example:
 
 //// AkelEdit functions
 
+#ifndef AEC_IsSurrogate
+  #define AEC_IsSurrogate(c)  (((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDFFF)?TRUE:FALSE)
+#endif
+
+#ifndef AEC_IsHighSurrogate
+  #define AEC_IsHighSurrogate(c)  (((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDBFF)?TRUE:FALSE)
+#endif
+
+#ifndef AEC_IsLowSurrogate
+  #define AEC_IsLowSurrogate(c)  (((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)?TRUE:FALSE)
+#endif
+
 #ifdef AEC_FUNCTIONS
 #define AEC_FUNCTIONS_INCLUDED
-  int AEC_IsSurrogate(wchar_t wchChar)
-  {
-    if (wchChar >= 0xD800 && wchChar <= 0xDFFF)
-      return TRUE;
-    return FALSE;
-  }
-
-  int AEC_IsHighSurrogate(wchar_t wchChar)
-  {
-    if (wchChar >= 0xD800 && wchChar <= 0xDBFF)
-      return TRUE;
-    return FALSE;
-  }
-
-  int AEC_IsLowSurrogate(wchar_t wchChar)
-  {
-    if (wchChar >= 0xDC00 && wchChar <= 0xDFFF)
-      return TRUE;
-    return FALSE;
-  }
-
   int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource)
   {
     if (AEC_IsSurrogate(*wpSource))
@@ -5602,9 +5593,6 @@ Example:
     return FALSE;
   }
 #else
-  int AEC_IsSurrogate(wchar_t wchChar);
-  int AEC_IsHighSurrogate(wchar_t wchChar);
-  int AEC_IsLowSurrogate(wchar_t wchChar);
   int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource);
   int AEC_IndexInc(AECHARINDEX *ciChar);
   int AEC_IndexDec(AECHARINDEX *ciChar);

@@ -587,6 +587,21 @@ typedef struct {
 } AEPRINTHANDLE;
 
 
+//// Functions as macros
+
+#ifndef AE_IsSurrogate
+  #define AE_IsSurrogate(c)  (((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDFFF)?TRUE:FALSE)
+#endif
+
+#ifndef AE_IsHighSurrogate
+  #define AE_IsHighSurrogate(c)  (((wchar_t)(c) >= 0xD800 && (wchar_t)(c) <= 0xDBFF)?TRUE:FALSE)
+#endif
+
+#ifndef AE_IsLowSurrogate
+  #define AE_IsLowSurrogate(c)  (((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)?TRUE:FALSE)
+#endif
+
+
 //// Functions prototypes
 
 BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit);
@@ -664,9 +679,6 @@ int AE_GetUnwrapLine(AKELEDIT *ae, int nLine);
 void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharIndex);
 int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex);
 AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel);
-int AE_IsSurrogate(wchar_t wchChar);
-int AE_IsHighSurrogate(wchar_t wchChar);
-int AE_IsLowSurrogate(wchar_t wchChar);
 int AE_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource);
 int AE_IndexInc(AECHARINDEX *ciChar);
 int AE_IndexDec(AECHARINDEX *ciChar);
