@@ -10,7 +10,7 @@
 #ifndef EXE_VERSION
   #define RC_VERSIONDESCRIPTION "AkelPad language module"
   #define RC_VERSIONCOPYRIGHT "© 2010 Shengalts Aleksander aka Instructor"
-  #define RC_VERSIONNAME "English.dll"
+  #define RC_VERSIONNAME "Hungarian.dll"
 #endif
 #include "winresrc.h"
 #include "staticedit.h"
@@ -887,7 +887,7 @@ BEGIN
     "#ifndef EXE_VERSION\r\n"
     "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
     "  #define RC_VERSIONCOPYRIGHT ""© 2010 Shengalts Aleksander aka Instructor""\r\n"
-    "  #define RC_VERSIONNAME ""English.dll""\r\n"
+    "  #define RC_VERSIONNAME ""Hungarian.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"
     "#include ""staticedit.h""\r\n"
