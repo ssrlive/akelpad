@@ -9,7 +9,7 @@
 //
 #ifndef EXE_VERSION
   #define RC_VERSIONDESCRIPTION "AkelPad language module"
-  #define RC_VERSIONCOPYRIGHT "© 2010 Shengalts Aleksander aka Instructor"
+  #define RC_VERSIONCOPYRIGHT "© 2010 ZityiSoft"
   #define RC_VERSIONNAME "Hungarian.dll"
 #endif
 #include "winresrc.h"
@@ -838,7 +838,7 @@ BEGIN
     CONTROL         """Mind lecseréli"" párbeszédablak bezárása",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,85,185,10
-    CONTROL         "Check ""In selection"" if selection not empty",
+    CONTROL         "Kijelölés ""kijelölésben"" ha a kijelölés nem üres",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10
 END
@@ -886,7 +886,7 @@ END
 BEGIN
     "#ifndef EXE_VERSION\r\n"
     "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
-    "  #define RC_VERSIONCOPYRIGHT ""© 2010 Shengalts Aleksander aka Instructor""\r\n"
+    "  #define RC_VERSIONCOPYRIGHT ""© 2010 ZityiSoft""\r\n"
     "  #define RC_VERSIONNAME ""Hungarian.dll""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"
