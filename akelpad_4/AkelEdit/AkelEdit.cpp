@@ -48,6 +48,8 @@
 #define xmemcpy
 #define xmemcmp
 #define xmemset
+#define xstrcmpiA
+#define xstrcmpiW
 #define xstrcpynA
 #define xstrcpynW
 #include "StrFunc.h"
@@ -4205,12 +4207,12 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
 
     if (!ae->bUnicodeWindow)
     {
-      if (!lstrcmpiA((char *)cs->lpszClass, AES_RICHEDITCLASSA))
+      if (!xstrcmpiA((char *)cs->lpszClass, AES_RICHEDITCLASSA))
         ae->bRichEditClass=TRUE;
     }
     else
     {
-      if (!lstrcmpiW((wchar_t *)cs->lpszClass, AES_RICHEDITCLASSW))
+      if (!xstrcmpiW((wchar_t *)cs->lpszClass, AES_RICHEDITCLASSW))
         ae->bRichEditClass=TRUE;
     }
 
@@ -4945,7 +4947,7 @@ AEERASE* AE_StackEraseInsert(AKELEDIT *ae, RECT *rcErase)
   AEERASE *lpElement=NULL;
 
   //Insert at the beginning
-  if (!AE_HeapStackInsertIndex(ae, (stack **)&ae->hEraseStack.first, (stack **)&ae->hEraseStack.last, (stack **)&lpElement, 1, sizeof(AEERASE)))
+  if (!AE_HeapStackInsertIndex(NULL, (stack **)&ae->hEraseStack.first, (stack **)&ae->hEraseStack.last, (stack **)&lpElement, 1, sizeof(AEERASE)))
   {
     lpElement->rcErase=*rcErase;
   }
@@ -4970,12 +4972,12 @@ AEERASE* AE_StackEraseGet(AKELEDIT *ae, int nIndex)
 
 void AE_StackEraseDelete(AKELEDIT *ae, AEERASE *lpErase)
 {
-  AE_HeapStackDelete(ae, (stack **)&ae->hEraseStack.first, (stack **)&ae->hEraseStack.last, (stack *)lpErase);
+  AE_HeapStackDelete(NULL, (stack **)&ae->hEraseStack.first, (stack **)&ae->hEraseStack.last, (stack *)lpErase);
 }
 
 void AE_StackEraseFree(AKELEDIT *ae)
 {
-  AE_HeapStackClear(ae, (stack **)&ae->hEraseStack.first, (stack **)&ae->hEraseStack.last);
+  AE_HeapStackClear(NULL, (stack **)&ae->hEraseStack.first, (stack **)&ae->hEraseStack.last);
 }
 
 AEFONTITEMA* AE_StackFontItemInsertA(HSTACK *hStack, LOGFONTA *lfFont)
@@ -5073,7 +5075,7 @@ AEFONTITEMA* AE_StackFontItemGetA(HSTACK *hStack, LOGFONTA *lfFont)
         lpElement->lfFont.lfItalic == lfFont->lfItalic &&
         lpElement->lfFont.lfCharSet == lfFont->lfCharSet)
     {
-      if (!lstrcmpiA(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
+      if (!xstrcmpiA(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
         return lpElement;
     }
     lpElement=lpElement->next;
@@ -5092,7 +5094,7 @@ AEFONTITEMW* AE_StackFontItemGetW(HSTACK *hStack, LOGFONTW *lfFont)
         lpElement->lfFont.lfItalic == lfFont->lfItalic &&
         lpElement->lfFont.lfCharSet == lfFont->lfCharSet)
     {
-      if (!lstrcmpiW(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
+      if (!xstrcmpiW(lpElement->lfFont.lfFaceName, lfFont->lfFaceName))
         return lpElement;
     }
     lpElement=lpElement->next;
@@ -9357,7 +9359,7 @@ AETHEMEITEMW* AE_HighlightGetTheme(wchar_t *wpThemeName)
 
   while (lpElement)
   {
-    if (!lstrcmpiW(lpElement->wszThemeName, wpThemeName))
+    if (!xstrcmpiW(lpElement->wszThemeName, wpThemeName))
       return lpElement;
 
     lpElement=lpElement->next;

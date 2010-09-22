@@ -36,6 +36,8 @@
   #define xmemcpy
   #define xmemcmp
   #define xmemset
+  #define xstrcmpiA
+  #define xstrcmpiW
   #define xstrcpynA
   #define xstrcpynW
 #else
@@ -43,6 +45,8 @@
   #define xmemcpy_INCLUDED
   #define xmemcmp_INCLUDED
   #define xmemset_INCLUDED
+  #define xstrcmpiA_INCLUDED
+  #define xstrcmpiW_INCLUDED
   #define xstrcpynA_INCLUDED
   #define xstrcpynW_INCLUDED
 #endif
@@ -54,7 +58,6 @@
 #define xstrstrW
 #define xstrcmpW
 #define xstrcmpinW
-#define xstrcmpiW
 #define xatoiA
 #define xatoiW
 #define xuitoaW

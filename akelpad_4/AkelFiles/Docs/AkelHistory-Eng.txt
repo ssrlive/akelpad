@@ -4,6 +4,9 @@ AkelPad 4.5.0 ()
 Changed: code folding messages. Update Coder plugin.
 
 Added: Czech language module (Frantisek Bartos).
+Added: Hungarian language module (ZityiSoft).
+
+Fixed: reopenning a file in split windows.
 
 
 AkelPad 4.4.9 (Sep 16, 2010)
