@@ -2,6 +2,7 @@
 AkelPad 4.5.0 ()
 ----------------------------
 Changed: code folding messages. Update Coder plugin.
+Changed: return alignment to left in the status bar.
 
 Added: Czech language module (Frantisek Bartos).
 Added: Hungarian language module (ZityiSoft).
