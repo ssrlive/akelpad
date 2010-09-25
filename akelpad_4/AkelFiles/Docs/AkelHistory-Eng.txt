@@ -8,6 +8,7 @@ Added: Czech language module (Frantisek Bartos).
 Added: Hungarian language module (ZityiSoft).
 
 Fixed: reopenning a file in split windows.
+Fixed: reopenning group of files with option "Don't open a file twice".
 
 
 AkelPad 4.4.9 (Sep 16, 2010)

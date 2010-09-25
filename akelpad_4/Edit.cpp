@@ -1261,6 +1261,7 @@ BOOL DoFileOpen()
 {
   wchar_t *wszFileList;
   DIALOGCODEPAGE dc={-1, -1};
+  int nOpen;
   BOOL bResult=FALSE;
 
   if (nMDI == WMD_SDI && !SaveChanged()) return FALSE;
@@ -1296,7 +1297,8 @@ BOOL DoFileOpen()
       if (!nMDI)
       {
         GetFileDir(wszFileList, moCur.wszLastDir, MAX_PATH);
-        if (OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
+        nOpen=OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM);
+        if (nOpen != EOD_SUCCESS && nOpen != EOD_ADT_BINARY && nOpen != EOD_WINDOW_EXIST)
           bResult=FALSE;
       }
       else
@@ -1355,7 +1357,8 @@ BOOL DoFileOpen()
         {
           //One file selected
           GetFileDir(wszFileList, moCur.wszLastDir, MAX_PATH);
-          if (OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM) < 0)
+          nOpen=OpenDocument(NULL, wszFileList, dwOfnFlags, nOfnCodePage, bOfnBOM);
+          if (nOpen != EOD_SUCCESS && nOpen != EOD_ADT_BINARY && nOpen != EOD_WINDOW_EXIST)
             bResult=FALSE;
         }
       }
@@ -15066,6 +15069,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
   STACKEXTPARAM hParamStack={0};
   DWORD dwAction;
   HWND hWndFriend=NULL;
+  int nOpen;
   BOOL bFileOpenedSDI=FALSE;
 
   if (wppCmdLine && *wppCmdLine)
@@ -15269,7 +15273,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
                   dwFlags|=OD_ADT_DETECT_CODEPAGE;
                 if (bBOM == -1)
                   dwFlags|=OD_ADT_DETECT_BOM;
-                if (OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM) != EOD_SUCCESS)
+                nOpen=OpenDocument(NULL, wpFile, dwFlags, nCodePage, bBOM);
+                if (nOpen != EOD_SUCCESS && nOpen != EOD_ADT_BINARY && nOpen != EOD_WINDOW_EXIST)
                   return PCLE_END;
               }
               else if (dwAction == EXTACT_SAVEFILE)
@@ -15388,7 +15393,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
         {
           if (!SaveChanged())
             return PCLE_END;
-          if (OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE) != EOD_SUCCESS)
+          nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+          if (nOpen != EOD_SUCCESS && nOpen != EOD_ADT_BINARY && nOpen != EOD_WINDOW_EXIST)
             return PCLE_END;
           bFileOpenedSDI=TRUE;
           continue;
@@ -15401,7 +15407,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
       if (bOnLoad) return PCLE_ONLOAD;
 
       //nMDI == WMD_MDI || nMDI == WMD_PMDI
-      if (OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE) != EOD_SUCCESS)
+      nOpen=OpenDocument(NULL, wszCmdArg, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+      if (nOpen != EOD_SUCCESS && nOpen != EOD_ADT_BINARY && nOpen != EOD_WINDOW_EXIST)
         return PCLE_END;
     }
   }
