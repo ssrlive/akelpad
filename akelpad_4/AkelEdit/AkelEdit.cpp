@@ -1613,6 +1613,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         nResult=AE_StackLineCollapse(ae, wParam, (lParam & AECF_COLLAPSE));
       else
         nResult=AE_StackFoldCollapse(ae, (AEFOLD *)wParam, (lParam & AECF_COLLAPSE));
+      ae->ptxt->lpVPosFold=NULL;
 
       if (nResult && !(lParam & AECF_NOUPDATE))
       {
@@ -5264,13 +5265,13 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, AEFOLD **lpFold, int nLine)
 
     if (lpElement->bCollapse)
     {
-      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nLine &&
-          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset >= nLine)
+      if (AE_FirstCollapsibleLine(lpElement) <= nLine &&
+          AE_LastCollapsibleLine(lpElement) >= nLine)
       {
         if (lpFold) *lpFold=lpElement;
         return TRUE;
       }
-      if (lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset >= nLine)
+      if (AE_LastCollapsibleLine(lpElement) >= nLine)
         break;
     }
     lpElement=lpElement->next;
@@ -5298,8 +5299,8 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse)
 
     if (lpElement->bCollapse != bCollapse)
     {
-      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nLine &&
-          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset >= nLine)
+      if (AE_FirstCollapsibleLine(lpElement) <= nLine &&
+          AE_LastCollapsibleLine(lpElement) >= nLine)
       {
         lpElement->bCollapse=bCollapse;
         ++nResult;
@@ -5397,6 +5398,8 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
 {
   BOOL bCollapse=lpFold->bCollapse;
 
+  if (lpFold == ae->ptxt->lpVPosFold)
+    ae->ptxt->lpVPosFold=NULL;
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
   AE_HeapStackDelete(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last, (stack *)lpFold);
@@ -5416,6 +5419,7 @@ int AE_StackFoldFree(AKELEDIT *ae)
     lpElement=lpElement->next;
   }
   AE_HeapStackClear(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last);
+  ae->ptxt->lpVPosFold=NULL;
   return nCollapse;
 }
 
@@ -10907,6 +10911,11 @@ void AE_Paint(AKELEDIT *ae)
       if (rcDraw.right > ae->rcDraw.left &&
           rcDraw.bottom > ae->rcDraw.top)
       {
+        //Update ae->ptxt->lpVPosFold and ae->ptxt->nVPosFoldHiddenLines
+        ae->ptxt->bVPosFoldUpdate=TRUE;
+        AE_GetFirstVisibleLine(ae);
+        ae->ptxt->bVPosFoldUpdate=FALSE;
+
         to.ciDrawLine.nLine=AE_LineFromVPos(ae, ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top));
         to.ciDrawLine.lpLine=AE_GetLineData(ae, to.ciDrawLine.nLine);
         to.ciDrawLine.nCharInLine=0;
@@ -12069,7 +12078,7 @@ void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase
   if (nLastLine == -1)
     rcRedraw.bottom=ae->rcDraw.bottom;
   else
-    rcRedraw.bottom=(AE_VPosFromLine(ae, nLastLine + 1) - ae->nVScrollPos) + ae->rcDraw.top;
+    rcRedraw.bottom=(AE_VPosFromLine(ae, nLastLine) + ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
 
   rcRedraw.top=max(rcRedraw.top, ae->rcDraw.top);
   rcRedraw.bottom=min(rcRedraw.bottom, ae->rcDraw.bottom);
@@ -12086,63 +12095,126 @@ void AE_HideSelection(AKELEDIT *ae, BOOL bHide)
 
 int AE_LineFromVPos(AKELEDIT *ae, int nVPos)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
-  int nLastMinLine=-1;
-  int nLastMaxLine=-1;
-  int nCalcLine;
+  AEFOLD *lpElement;
+  int nCurMinLine;
+  int nCurMaxLine;
+  int nLastMinHiddenLine=-1;
+  int nLastMaxHiddenLine=-1;
+  int nLine;
+  int nHiddenLines;
 
-  nCalcLine=nVPos / ae->ptxt->nCharHeight;
+  nLine=nVPos / ae->ptxt->nCharHeight;
 
-  while (lpElement)
+  //Find nearest element
+  if (ae->ptxt->lpVPosFold && ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine - ae->ptxt->nVPosFoldHiddenLines <= nLine)
   {
-    if (lpElement->lpMinPoint->ciPoint.nLine > nCalcLine)
-      break;
-
-    if (lpElement->bCollapse)
-    {
-      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= nCalcLine &&
-          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine &&
-          lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset)
-      {
-        nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
-        nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
-        nCalcLine+=nLastMaxLine - nLastMinLine + 1;
-      }
-    }
-    lpElement=lpElement->next;
+    lpElement=ae->ptxt->lpVPosFold;
+    nHiddenLines=ae->ptxt->nVPosFoldHiddenLines;
+    nLine+=ae->ptxt->nVPosFoldHiddenLines;
   }
-  return nCalcLine;
-}
-
-int AE_VPosFromLine(AKELEDIT *ae, int nLine)
-{
-  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
-  int nLastMinLine=-1;
-  int nLastMaxLine=-1;
-  int nCalcLine=nLine;
+  else
+  {
+    lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
+    nHiddenLines=0;
+  }
 
   while (lpElement)
   {
     if (lpElement->lpMinPoint->ciPoint.nLine > nLine)
       break;
 
-    if (lpElement->bCollapse)
+    //Range located after collapsed fold
+    if (AE_FirstCollapsibleLine(lpElement) >= nLastMaxHiddenLine)
     {
-      if (lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset < nLine &&
-          lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset > nLastMaxLine &&
-          lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset <= lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset)
+      if (ae->ptxt->bVPosFoldUpdate)
       {
-        nLastMinLine=max(nLastMaxLine + 1, lpElement->lpMinPoint->ciPoint.nLine + lpElement->nHideMinLineOffset);
-        nLastMaxLine=lpElement->lpMaxPoint->ciPoint.nLine + lpElement->nHideMaxLineOffset;
-        if (nLine < nLastMaxLine)
-          nCalcLine-=nLine - nLastMinLine;
-        else
-          nCalcLine-=nLastMaxLine - nLastMinLine + 1;
+        ae->ptxt->lpVPosFold=lpElement;
+        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
+      }
+
+      if (lpElement->bCollapse)
+      {
+        //Get collapsible range
+        nCurMinLine=AE_FirstCollapsibleLine(lpElement);
+        nCurMaxLine=AE_LastCollapsibleLine(lpElement);
+
+        if (nCurMinLine <= nLine &&
+            nCurMinLine <= nCurMaxLine)
+        {
+          //Hidden count
+          nHiddenLines+=nCurMaxLine - nCurMinLine + 1;
+          nLine+=nCurMaxLine - nCurMinLine + 1;
+
+          nLastMinHiddenLine=nCurMinLine;
+          nLastMaxHiddenLine=nCurMaxLine;
+        }
       }
     }
     lpElement=lpElement->next;
   }
-  return nCalcLine * ae->ptxt->nCharHeight;
+  return nLine;
+}
+
+int AE_VPosFromLine(AKELEDIT *ae, int nLine)
+{
+  AEFOLD *lpElement;
+  int nCurMinLine;
+  int nCurMaxLine;
+  int nLastMinHiddenLine=-1;
+  int nLastMaxHiddenLine=-1;
+  int nHiddenLines;
+
+  //Find nearest element
+  if (ae->ptxt->lpVPosFold && ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine <= nLine)
+  {
+    lpElement=ae->ptxt->lpVPosFold;
+    nHiddenLines=ae->ptxt->nVPosFoldHiddenLines;
+  }
+  else
+  {
+    lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
+    nHiddenLines=0;
+  }
+
+  while (lpElement)
+  {
+    if (lpElement->lpMinPoint->ciPoint.nLine > nLine)
+      break;
+
+    //Range located after collapsed fold
+    if (AE_FirstCollapsibleLine(lpElement) >= nLastMaxHiddenLine)
+    {
+      if (ae->ptxt->bVPosFoldUpdate)
+      {
+        ae->ptxt->lpVPosFold=lpElement;
+        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
+      }
+
+      if (lpElement->bCollapse)
+      {
+        //Get collapsible range
+        nCurMinLine=AE_FirstCollapsibleLine(lpElement);
+        nCurMaxLine=AE_LastCollapsibleLine(lpElement);
+
+        if (nCurMinLine <= nLine &&
+            nCurMinLine <= nCurMaxLine)
+        {
+          //Hidden count
+          if (nLine <= nCurMaxLine)
+          {
+            nHiddenLines+=nLine - nCurMinLine + 1;
+            break;
+          }
+          else nHiddenLines+=nCurMaxLine - nCurMinLine + 1;
+
+          nLastMinHiddenLine=nCurMinLine;
+          nLastMaxHiddenLine=nCurMaxLine;
+        }
+      }
+    }
+    lpElement=lpElement->next;
+  }
+  return (nLine - nHiddenLines) * ae->ptxt->nCharHeight;
 }
 
 int AE_GetFirstVisibleLine(AKELEDIT *ae)

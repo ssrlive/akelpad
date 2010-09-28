@@ -414,6 +414,9 @@ typedef struct {
   int nLineCount;
   int nLineUnwrapCount;
   int nLineUnwrapLastCall;
+  AEFOLD *lpVPosFold;
+  int nVPosFoldHiddenLines;
+  BOOL bVPosFoldUpdate;
   int nHScrollMax;
   int nVScrollMax;
   DWORD dwTextLimit;
@@ -599,6 +602,14 @@ typedef struct {
 
 #ifndef AE_IsLowSurrogate
   #define AE_IsLowSurrogate(c)  ((wchar_t)(c) >= 0xDC00 && (wchar_t)(c) <= 0xDFFF)
+#endif
+
+#ifndef AE_FirstCollapsibleLine
+  #define AE_FirstCollapsibleLine(lpFold)  (((AEFOLD *)lpFold)->lpMinPoint->ciPoint.nLine + ((AEFOLD *)lpFold)->nHideMinLineOffset)
+#endif
+
+#ifndef AE_LastCollapsibleLine
+  #define AE_LastCollapsibleLine(lpFold)  (((AEFOLD *)lpFold)->lpMaxPoint->ciPoint.nLine + ((AEFOLD *)lpFold)->nHideMaxLineOffset)
 #endif
 
 
