@@ -3049,11 +3049,11 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_EDIT_FINDNEXTDOWN)
     {
-      DoEditFindNextDown(lpFrameCurrent->ei.hWndEdit);
+      return DoEditFindNextDown(lpFrameCurrent->ei.hWndEdit);
     }
     else if (LOWORD(wParam) == IDM_EDIT_FINDNEXTUP)
     {
-      DoEditFindNextUp(lpFrameCurrent->ei.hWndEdit);
+      return DoEditFindNextUp(lpFrameCurrent->ei.hWndEdit);
     }
     else if (LOWORD(wParam) == IDM_EDIT_REPLACE)
     {
