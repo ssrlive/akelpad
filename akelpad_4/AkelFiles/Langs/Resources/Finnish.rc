@@ -841,11 +841,11 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,51,24,13,ES_AUTOHSCROLL
     LTEXT           "tiedoston oletustarkenne tallennettaessa",IDC_STATIC,37,
                     53,171,8
-    GROUPBOX        "Find/Replace dialog",IDC_STATIC,9,72,200,41
+    GROUPBOX        "Etsi/korvaa -valintaikkuna",IDC_STATIC,9,72,200,41
     CONTROL         "Korvaa kaikki -toiminto sulkee valintaikkunan",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,85,185,10
-    CONTROL         "Check ""In selection"" if selection not empty",
+    CONTROL         "Valitse ""Valittu alue"", jos valintaa ei ole",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10
 END
@@ -962,7 +962,7 @@ BEGIN
     MSG_CP_MISMATCH         "Rivi ""%d"" sis‰lt‰‰ symboleita, jotka menetet‰‰n t‰ll‰ koodauksella tallennettaessa. Jatketaanko?"
     MSG_RESTART_PROGRAM     "Muutokset tulevat voimaan ohjelman uudelleenk‰ynnistyksen j‰lkeen."
     MSG_SAVEIN_READONLY     """%s"" on vain luku -tiedosto. Jatketaanko?"
-    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
+    MSG_OVERWRITEPROMPT     """%s"" on jo olemassa. Korvataanko se?"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1011,10 +1011,10 @@ BEGIN
     STR_URL                 "Hyperlinkki"
     STR_PAGEFIT             "Sovita sivu"
     STR_PAGEWIDTH           "Sivun leveys"
-    STR_ALLFILES            "All files"
-    STR_ONLYMODIFIED        "Modified"
-    STR_ONLYUNMODIFIED      "Unmodified"
-    STR_INVERTSELECTION     "Invert selection"
+    STR_ALLFILES            "Kaikki tiedostot"
+    STR_ONLYMODIFIED        "Muokattu"
+    STR_ONLYUNMODIFIED      "Muokkaamaton"
+    STR_INVERTSELECTION     "K‰‰nteinen valinta"
 END
 
 STRINGTABLE DISCARDABLE 

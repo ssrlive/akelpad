@@ -836,11 +836,11 @@ BEGIN
     EDITTEXT        IDC_OPTIONS_DEFAULT_SAVE_EXT,9,51,24,13,ES_AUTOHSCROLL
     LTEXT           "Standard-Dateierweiterung beim Speichern",IDC_STATIC,37,
                     53,171,8
-    GROUPBOX        "Find/Replace dialog",IDC_STATIC,9,72,200,41
+    GROUPBOX        "Suchen/Ersetzen-Dialog",IDC_STATIC,9,72,200,41
     CONTROL         "Alles ersetzen - schließt den Dialog",
                     IDC_OPTIONS_REPLACEALL_CLOSE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,85,185,10
-    CONTROL         "Check ""In selection"" if selection not empty",
+    CONTROL         """In der Auswahl"" markieren, wenn eine Auswahl existiert",
                     IDC_OPTIONS_INSELIFSEL,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,97,185,10
 END
@@ -958,7 +958,7 @@ BEGIN
     MSG_CP_MISMATCH         "Die Zeile ""%d"" enthält Symbole, die verloren gehen, wenn in dieser Kodierung gespeichert wird. Fortsetzen?"
     MSG_RESTART_PROGRAM     "Die Änderungen werden nach einem Neustart wirksam."
     MSG_SAVEIN_READONLY     """%s"" ist eine schreibgeschützte Datei. Fortsetzen?"
-    MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
+    MSG_OVERWRITEPROMPT     """%s"" existiert schon. Überschreiben?"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -1007,10 +1007,10 @@ BEGIN
     STR_URL                 "Link"
     STR_PAGEFIT             "Einpassen"
     STR_PAGEWIDTH           "Breite einpassen"
-    STR_ALLFILES            "All files"
-    STR_ONLYMODIFIED        "Modified"
-    STR_ONLYUNMODIFIED      "Unmodified"
-    STR_INVERTSELECTION     "Invert selection"
+    STR_ALLFILES            "Alle Dateien"
+    STR_ONLYMODIFIED        "Modifizierte"
+    STR_ONLYUNMODIFIED      "Nicht Modifizierte"
+    STR_INVERTSELECTION     "Auswahl umkehren"
 END
 
 STRINGTABLE DISCARDABLE 
