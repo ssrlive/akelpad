@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 3, 0, 5)
+#define AKELDLL MAKE_IDENTIFIER(1, 3, 0, 6)
 
 
 //// Defines
@@ -1081,10 +1081,10 @@ typedef struct {
                                               //Return Value: zero.
                                               //
 #define IDM_EDIT_FINDNEXTDOWN           4159  //Find last string down.
-                                              //Return Value: zero.
+                                              //Return Value: Character position of the next match. If there are no more matches, the return value is –1.
                                               //
 #define IDM_EDIT_FINDNEXTUP             4160  //Find last string up.
-                                              //Return Value: zero.
+                                              //Return Value: Character position of the next match. If there are no more matches, the return value is –1.
                                               //
 #define IDM_EDIT_REPLACE                4161  //Replace dialog.
                                               //Return Value: zero.

@@ -2127,24 +2127,24 @@ void DoEditFind()
   }
 }
 
-void DoEditFindNextDown(HWND hWnd)
+int DoEditFindNextDown(HWND hWnd)
 {
   DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_UP & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_DOWN;
 
   if (wszFindText)
-    FindTextW(hWnd, dwFlags, wszFindText, nFindTextLen);
-  else
-    DoEditFind();
+    return FindTextW(hWnd, dwFlags, wszFindText, nFindTextLen);
+  DoEditFind();
+  return 0;
 }
 
-void DoEditFindNextUp(HWND hWnd)
+int DoEditFindNextUp(HWND hWnd)
 {
   DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_DOWN & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_UP;
 
   if (wszFindText)
-    FindTextW(hWnd, dwFlags, wszFindText, nFindTextLen);
-  else
-    DoEditFind();
+    return FindTextW(hWnd, dwFlags, wszFindText, nFindTextLen);
+  DoEditFind();
+  return 0;
 }
 
 void DoEditReplace()
