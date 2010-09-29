@@ -3276,6 +3276,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       else if (ae->nAltChar == AEAC_KEYDOWN)
         ae->nAltChar=AEAC_KEYUP;
     }
+    if (uMsg == WM_SYSCHAR)
+    {
+      //WM_KEYUP and WM_SYSKEYUP with VK_MENU doesn't sended after menu open with Alt+Key
+      ae->nAltChar=AEAC_NONE;
+    }
   }
   else if (uMsg == WM_INPUTLANGCHANGE)
   {
