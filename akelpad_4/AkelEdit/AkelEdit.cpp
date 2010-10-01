@@ -37,11 +37,17 @@
 #include <windows.h>
 #include <stddef.h>
 #include <imm.h>
+#include "StackFunc.h"
 #include "StrFunc.h"
 #include "AkelBuild.h"
 #include "Resources\resource.h"
 #include "Resources\version.h"
 
+
+//Include stack functions
+#define StackJoin
+#define StackSplit
+#include "StackFunc.h"
 
 //Include string functions
 #define WideCharLower
@@ -1111,16 +1117,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (uMsg == AEM_LINEFROMVPOS)
     {
       if (wParam == AECT_GLOBAL)
-        return AE_LineFromVPos(ae, lParam);
+        return AE_VPos(ae, lParam, AEVPF_LINEFROMVPOS);
       if (wParam == AECT_CLIENT)
-        return AE_LineFromVPos(ae, ae->nVScrollPos + (lParam - ae->rcDraw.top));
+        return AE_VPos(ae, ae->nVScrollPos + (lParam - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
     }
     if (uMsg == AEM_VPOSFROMLINE)
     {
       if (wParam == AECT_GLOBAL)
-        return AE_VPosFromLine(ae, lParam);
+        return AE_VPos(ae, lParam, AEVPF_VPOSFROMLINE);
       if (wParam == AECT_CLIENT)
-        return ae->rcDraw.top + (AE_VPosFromLine(ae, lParam) - ae->nVScrollPos);
+        return ae->rcDraw.top + (AE_VPos(ae, lParam, AEVPF_VPOSFROMLINE) - ae->nVScrollPos);
     }
     if (uMsg == AEM_GETMOUSESTATE)
     {
@@ -1484,7 +1490,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           ae->ptxt->nCharHeight=(ae->ptxt->nCharHeight - ae->ptxt->nLineGap) + wParam;
           ae->ptxt->nLineGap=wParam;
 
-          ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+          ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
           AE_UpdateScrollBars(ae, SB_VERT);
           ae->ptCaret.x=0;
           ae->ptCaret.y=0;
@@ -1595,7 +1601,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_ISLINECOLLAPSED)
     {
-      return AE_StackIsLineCollapsed(ae, (AEFOLD **)wParam, lParam);
+      return AE_StackIsLineCollapsed(ae, lParam, (AEFOLD **)wParam);
     }
     if (uMsg == AEM_COLLAPSELINE ||
         uMsg == AEM_COLLAPSEFOLD)
@@ -3063,7 +3069,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     else
       AE_SetEditFontW(ae, (HFONT)wParam, FALSE);
 
-    ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+    ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
     AE_UpdateScrollBars(ae, SB_VERT);
     AE_CalcLinesWidth(ae, NULL, NULL, AECLW_FRESH);
     ae->ptCaret.x=0;
@@ -3532,15 +3538,20 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       BOOL bShift=FALSE;
       BOOL bControl=FALSE;
 
-      ptPos.x=LOWORD(lParam);
-      ptPos.y=HIWORD(lParam);
-
       if (GetKeyState(VK_MENU) < 0)
         bAlt=TRUE;
       if (wParam & MK_SHIFT)
         bShift=TRUE;
       if (wParam & MK_CONTROL)
         bControl=TRUE;
+
+      GetCursorPos(&ptPos);
+      ScreenToClient(ae->hWndEdit, &ptPos);
+      if (LOWORD(ptPos.x) != LOWORD(lParam) || LOWORD(ptPos.y) != HIWORD(lParam))
+      {
+        //Current mouse position doesn't match message position.
+        return 0;
+      }
 
       if (ae->ptLButtonDownPrevPos.x == ptPos.x && ae->ptLButtonDownPrevPos.y == ptPos.y &&
           GetDoubleClickTime() >= (DWORD)(nLButtonDownCurTime - ae->nLButtonDownPrevTime))
@@ -4332,12 +4343,11 @@ void AE_DestroyWindowData(AKELEDIT *ae)
   {
     if (HeapDestroy(ae->ptxt->hHeap))
       ae->ptxt->hHeap=NULL;
-
-    AE_StackFoldFree(ae);
-    AE_StackPointFree(ae);
-    //AE_StackLineFree(ae);
-    //AE_StackEraseFree(ae);
   }
+  AE_StackFoldFree(ae);
+  AE_StackPointFree(ae);
+  AE_StackEraseFree(ae);
+  //AE_StackLineFree(ae);
 
   AE_HeapStackDelete(NULL, (stack **)&hAkelEditWindowsStack.first, (stack **)&hAkelEditWindowsStack.last, (stack *)ae);
 }
@@ -5187,52 +5197,110 @@ void AE_StackBitmapItemsFree(HSTACK *hStack)
 
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoint)
 {
-  AEFOLD *lpElement1=(AEFOLD *)ae->ptxt->hFoldsStack.last;
-  AEFOLD *lpElement2=NULL;
-  int nCompare;
+  AEFOLD *lpMinParent;
+  AEFOLD *lpMaxParent;
+  AEFOLD *lpMinPrevSubling;
+  AEFOLD *lpMaxPrevSubling;
+  AEFOLD *lpMinSubling;
+  AEFOLD *lpMaxSubling;
+  AEFOLD **lppFirstChild;
+  AEFOLD **lppLastChild;
+  AEFOLD *lpElement=NULL;
+  AEFOLD *lpNewElement=NULL;
 
-  while (lpElement1)
+  if (AE_IndexCompare(&lpMinPoint->ciPoint, &lpMaxPoint->ciPoint) > 0)
+    return NULL;
+
+  AE_StackFindFold(ae, AEFFF_FOLDSTART, &lpMinPoint->ciPoint, &lpElement, &lpMinParent, &lpMinPrevSubling);
+  AE_StackFindFold(ae, AEFFF_FOLDEND, &lpMaxPoint->ciPoint, &lpElement, &lpMaxParent, &lpMaxPrevSubling);
+
+  if (lpMinParent == lpMaxParent)
   {
-    nCompare=AE_IndexCompare(&lpMinPoint->ciPoint, &lpElement1->lpMinPoint->ciPoint);
-
-    if (nCompare >= 0)
+    if (lpMinPrevSubling == lpMaxPrevSubling)
     {
-      if (nCompare > 0)
-        break;
-      if (AE_IndexCompare(&lpMaxPoint->ciPoint, &lpElement1->lpMaxPoint->ciPoint) <= 0)
-        break;
-    }
-    lpElement1=lpElement1->prev;
-  }
-  AE_HeapStackInsertAfter(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEFOLD));
+      //Insert standalone fold
+      if (!lpMinParent)
+      {
+        lppFirstChild=&ae->ptxt->hFoldsStack.first;
+        lppLastChild=&ae->ptxt->hFoldsStack.last;
+      }
+      else
+      {
+        lppFirstChild=&lpMinParent->firstChild;
+        lppLastChild=&lpMinParent->lastChild;
+      }
 
-  if (lpElement2)
+      if (!AE_HeapStackInsertAfter(NULL, (stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpMinPrevSubling, (stack **)&lpNewElement, sizeof(AEFOLD)))
+      {
+        lpNewElement->parent=lpMinParent;
+        lpNewElement->firstChild=NULL;
+        lpNewElement->lastChild=NULL;
+      }
+    }
+    else
+    {
+      //Inserted fold became parent
+      if (!lpMinParent)
+      {
+        lppFirstChild=&ae->ptxt->hFoldsStack.first;
+        lppLastChild=&ae->ptxt->hFoldsStack.last;
+      }
+      else
+      {
+        lppFirstChild=&lpMinParent->firstChild;
+        lppLastChild=&lpMinParent->lastChild;
+      }
+
+      //Split folds that became childrens
+      if (!lpMinPrevSubling)
+        lpMinSubling=*lppFirstChild;
+      else
+        lpMinSubling=lpMinPrevSubling->next;
+      lpMaxSubling=lpMaxPrevSubling;
+      StackSplit((stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpMinSubling, (stack *)lpMaxSubling);
+
+      if (!AE_HeapStackInsertAfter(NULL, (stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpMinPrevSubling, (stack **)&lpNewElement, sizeof(AEFOLD)))
+      {
+        lpNewElement->parent=lpMinParent;
+        lpNewElement->firstChild=lpMinSubling;
+        lpNewElement->lastChild=lpMaxSubling;
+      }
+
+      //Change parent for childrens
+      for (lpElement=lpMinSubling; lpElement; lpElement=lpElement->next)
+      {
+        lpElement->parent=lpNewElement;
+      }
+    }
+  }
+
+  if (lpNewElement)
   {
-    if (lpElement2->lpMinPoint=AE_StackPointInsert(ae, &lpMinPoint->ciPoint))
+    if (lpNewElement->lpMinPoint=AE_StackPointInsert(ae, &lpMinPoint->ciPoint))
     {
       if (lpMinPoint->nPointOffset == AEPTO_CALC)
-        lpElement2->lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
+        lpNewElement->lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
       else
-        lpElement2->lpMinPoint->nPointOffset=lpMinPoint->nPointOffset;
-      lpElement2->lpMinPoint->nPointLen=lpMinPoint->nPointLen;
-      lpElement2->lpMinPoint->dwUserData=(DWORD)lpElement2;
-      lpElement2->lpMinPoint->dwFlags=lpMinPoint->dwFlags|AEPTF_FOLD;
-      lpElement2->nHideMinLineOffset=1;
+        lpNewElement->lpMinPoint->nPointOffset=lpMinPoint->nPointOffset;
+      lpNewElement->lpMinPoint->nPointLen=lpMinPoint->nPointLen;
+      lpNewElement->lpMinPoint->dwUserData=(DWORD)lpNewElement;
+      lpNewElement->lpMinPoint->dwFlags=lpMinPoint->dwFlags|AEPTF_FOLD;
+      lpNewElement->nHideMinLineOffset=1;
     }
-    if (lpElement2->lpMaxPoint=AE_StackPointInsert(ae, &lpMaxPoint->ciPoint))
+    if (lpNewElement->lpMaxPoint=AE_StackPointInsert(ae, &lpMaxPoint->ciPoint))
     {
       if (lpMaxPoint->nPointOffset == AEPTO_CALC)
-        lpElement2->lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
+        lpNewElement->lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
       else
-        lpElement2->lpMaxPoint->nPointOffset=lpMaxPoint->nPointOffset;
-      lpElement2->lpMaxPoint->nPointLen=lpMaxPoint->nPointLen;
-      lpElement2->lpMaxPoint->dwUserData=(DWORD)lpElement2;
-      lpElement2->lpMaxPoint->dwFlags=lpMaxPoint->dwFlags|AEPTF_FOLD;
-      lpElement2->nHideMaxLineOffset=-1;
+        lpNewElement->lpMaxPoint->nPointOffset=lpMaxPoint->nPointOffset;
+      lpNewElement->lpMaxPoint->nPointLen=lpMaxPoint->nPointLen;
+      lpNewElement->lpMaxPoint->dwUserData=(DWORD)lpNewElement;
+      lpNewElement->lpMaxPoint->dwFlags=lpMaxPoint->dwFlags|AEPTF_FOLD;
+      lpNewElement->nHideMaxLineOffset=-1;
     }
-    lpElement2->bCollapse=FALSE;
+    lpNewElement->bCollapse=FALSE;
   }
-  return lpElement2;
+  return lpNewElement;
 }
 
 AEFOLD* AE_StackFoldGet(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
@@ -5254,64 +5322,207 @@ AEFOLD* AE_StackFoldGet(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
   return lpResult;
 }
 
-BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, AEFOLD **lpFold, int nLine)
+AEFOLD* AE_NextFold(AEFOLD *lpFold, BOOL bRecursive)
 {
-  AEFOLD *lpElement;
-
-  if (!lpFold || !*lpFold)
-    lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
-  else
-    lpElement=*lpFold;
-
-  while (lpElement)
-  {
-    if (lpElement->lpMinPoint->ciPoint.nLine > nLine)
-      break;
-
-    if (lpElement->bCollapse)
-    {
-      if (AE_FirstCollapsibleLine(lpElement) <= nLine &&
-          AE_LastCollapsibleLine(lpElement) >= nLine)
-      {
-        if (lpFold) *lpFold=lpElement;
-        return TRUE;
-      }
-      if (AE_LastCollapsibleLine(lpElement) >= nLine)
-        break;
-    }
-    lpElement=lpElement->next;
-  }
-
   if (lpFold)
   {
-    if (lpElement)
-      *lpFold=lpElement;
+    if (bRecursive)
+    {
+      if (lpFold->firstChild)
+        return lpFold->firstChild;
+    }
+
+    do
+    {
+      if (lpFold->next)
+        return lpFold->next;
+    }
+    while (lpFold=lpFold->parent);
+  }
+  return lpFold;
+}
+
+AEFOLD* AE_PrevFold(AEFOLD *lpFold, BOOL bRecursive)
+{
+  if (lpFold)
+  {
+    if (bRecursive)
+    {
+      if (lpFold->lastChild)
+        return lpFold->firstChild;
+    }
+
+    do
+    {
+      if (lpFold->prev)
+        return lpFold->prev;
+    }
+    while (lpFold=lpFold->parent);
+  }
+  return lpFold;
+}
+
+void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AEFOLD **lpRootInOut, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut)
+{
+  AEFOLD *lpRoot=NULL;
+  AEFOLD *lpParent=NULL;
+  AEFOLD *lpPrevSubling=NULL;
+  AEFOLD *lpSubling=NULL;
+  DWORD dwFirst=(DWORD)-1;
+  DWORD dwSecond=(DWORD)-1;
+  DWORD dwThird=(DWORD)-1;
+
+  if (ae->ptxt->hFoldsStack.first)
+  {
+    dwFirst=mod(ciChar->nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
+    dwSecond=mod(ciChar->nLine - ae->ptxt->hFoldsStack.last->lpMinPoint->ciPoint.nLine);
+    if (lpRootInOut && *lpRootInOut)
+      dwThird=mod(ciChar->nLine - (*lpRootInOut)->lpMinPoint->ciPoint.nLine);
+
+    if (dwFirst <= dwSecond && dwFirst <= dwThird)
+    {
+      lpSubling=ae->ptxt->hFoldsStack.first;
+    }
+    else if (dwSecond <= dwFirst && dwSecond <= dwThird)
+    {
+      lpSubling=ae->ptxt->hFoldsStack.last;
+    }
+    else if (dwThird <= dwFirst && dwThird <= dwSecond)
+    {
+      lpSubling=*lpRootInOut;
+    }
+    while (lpSubling->parent) lpSubling=lpSubling->parent;
+
+    if (AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint) > 0 ||
+        ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint)))
+    {
+      while (lpSubling)
+      {
+        if (AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint) < 0 ||
+            ((dwFlags & AEFFF_FOLDEND) && !AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint)))
+        {
+          break;
+        }
+        if (!lpParent) lpRoot=lpSubling;
+
+        if (AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint) < 0 ||
+            ((dwFlags & AEFFF_FOLDEND) && !AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint)))
+        {
+          lpParent=lpSubling;
+          lpPrevSubling=NULL;
+          lpSubling=lpSubling->firstChild;
+          if (dwFlags & AEFFF_ONLYROOT)
+            break;
+
+          //Recursive
+          continue;
+        }
+        lpPrevSubling=lpSubling;
+        lpSubling=lpSubling->next;
+      }
+    }
     else
-      *lpFold=(AEFOLD *)ae->ptxt->hFoldsStack.last;
+    {
+      while (lpSubling)
+      {
+        if (AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint) > 0 ||
+            ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint)))
+        {
+          break;
+        }
+        if (!lpParent) lpRoot=lpSubling;
+
+        if (AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint) > 0 ||
+            ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint)))
+        {
+          lpParent=lpSubling;
+          lpSubling=lpSubling->lastChild;
+          if (dwFlags & AEFFF_ONLYROOT)
+            break;
+          continue;
+        }
+        lpSubling=lpSubling->prev;
+      }
+      lpPrevSubling=lpSubling;
+    }
+  }
+  if (lpRootInOut) *lpRootInOut=lpRoot;
+  if (lpParentOut) *lpParentOut=lpParent;
+  if (lpPrevSublingOut) *lpPrevSublingOut=lpPrevSubling;
+}
+
+BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut)
+{
+  AECHARINDEX ciChar;
+  AEFOLD *lpSubling=NULL;
+
+  if (ae->ptxt->hFoldsStack.first)
+  {
+    ciChar.nLine=nLine;
+    ciChar.lpLine=NULL;
+    ciChar.nCharInLine=0;
+    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, lpRootInOut, &lpSubling, NULL);
+
+    while (lpSubling)
+    {
+      if (nLine < lpSubling->lpMinPoint->ciPoint.nLine)
+        break;
+
+      if (nLine <= lpSubling->lpMaxPoint->ciPoint.nLine)
+      {
+        if (lpSubling->bCollapse)
+        {
+          if (AE_FirstCollapsibleLine(lpSubling) <= nLine &&
+              AE_LastCollapsibleLine(lpSubling) >= nLine)
+          {
+            return TRUE;
+          }
+        }
+        //Recursive
+        lpSubling=lpSubling->firstChild;
+        continue;
+      }
+      lpSubling=lpSubling->next;
+    }
   }
   return FALSE;
 }
 
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
+  AECHARINDEX ciChar;
+  AEFOLD *lpSubling=NULL;
   int nResult=0;
 
-  while (lpElement)
+  if (ae->ptxt->hFoldsStack.first)
   {
-    if (lpElement->lpMinPoint->ciPoint.nLine > nLine)
-      break;
+    ciChar.nLine=nLine;
+    ciChar.lpLine=NULL;
+    ciChar.nCharInLine=0;
+    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, NULL, &lpSubling, NULL);
 
-    if (lpElement->bCollapse != bCollapse)
+    while (lpSubling)
     {
-      if (AE_FirstCollapsibleLine(lpElement) <= nLine &&
-          AE_LastCollapsibleLine(lpElement) >= nLine)
+      if (nLine < lpSubling->lpMinPoint->ciPoint.nLine)
+        break;
+
+      if (nLine <= lpSubling->lpMaxPoint->ciPoint.nLine)
       {
-        lpElement->bCollapse=bCollapse;
-        ++nResult;
+        if (lpSubling->bCollapse != bCollapse)
+        {
+          if (AE_FirstCollapsibleLine(lpSubling) <= nLine &&
+              AE_LastCollapsibleLine(lpSubling) >= nLine)
+          {
+            lpSubling->bCollapse=bCollapse;
+            ++nResult;
+          }
+        }
+        //Recursive
+        lpSubling=lpSubling->firstChild;
+        continue;
       }
+      lpSubling=lpSubling->next;
     }
-    lpElement=lpElement->next;
   }
   return nResult;
 }
@@ -5350,14 +5561,14 @@ int AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
   int nFirstVisiblePos;
   int nScrolled=0;
 
-  ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+  ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
   AE_UpdateScrollBars(ae, SB_VERT);
   ae->ptCaret.x=0;
   ae->ptCaret.y=0;
   AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKUPDATE);
   if (!ae->popt->bVScrollLock && nFirstVisibleLine >= 0)
   {
-    nFirstVisiblePos=AE_VPosFromLine(ae, nFirstVisibleLine);
+    nFirstVisiblePos=AE_VPos(ae, nFirstVisibleLine, AEVPF_VPOSFROMLINE);
     nScrolled=AE_ScrollEditWindow(ae, SB_VERT, nFirstVisiblePos);
   }
   InvalidateRect(ae->hWndEdit, NULL, TRUE);
@@ -5365,93 +5576,251 @@ int AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
   return nScrolled;
 }
 
-int AE_StackFoldDelEmpty(AKELEDIT *ae)
-{
-  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
-  AEFOLD *lpElementNext;
-  int nResult=0;
-
-  while (lpElement)
-  {
-    lpElementNext=lpElement->next;
-
-    if (!AE_IndexCompare(&lpElement->lpMinPoint->ciPoint, &lpElement->lpMaxPoint->ciPoint))
-    {
-      AE_StackFoldDelete(ae, lpElement);
-      ++nResult;
-    }
-    lpElement=lpElementNext;
-  }
-  return nResult;
-}
-
 BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
+  AEFOLD *lpElement;
 
-  while (lpElement)
+  //Get root fold
+  if (IsBadCodePtr((FARPROC)lpFold))
+    return FALSE;
+
+  while (lpFold->parent)
+  {
+    if (IsBadCodePtr((FARPROC)lpFold->parent))
+      return FALSE;
+    lpFold=lpFold->parent;
+  }
+
+  //Find root fold
+  for (lpElement=ae->ptxt->hFoldsStack.first; lpElement; lpElement=lpElement->next)
   {
     if (lpElement == lpFold)
       return TRUE;
-
-    lpElement=lpElement->next;
   }
   return FALSE;
 }
 
 BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
 {
+  AEFOLD *lpElement;
+  AEFOLD **lppFirstChild;
+  AEFOLD **lppLastChild;
   BOOL bCollapse=lpFold->bCollapse;
 
   if (lpFold == ae->ptxt->lpVPosFold)
     ae->ptxt->lpVPosFold=NULL;
+
+  //Change parent for childrens
+  for (lpElement=lpFold->firstChild; lpElement; lpElement=lpElement->next)
+  {
+    lpElement->parent=lpFold->parent;
+  }
+
+  //Move childrens up to parent level
+  if (!lpFold->parent)
+  {
+    lppFirstChild=&ae->ptxt->hFoldsStack.first;
+    lppLastChild=&ae->ptxt->hFoldsStack.last;
+  }
+  else
+  {
+    lppFirstChild=&lpFold->parent->firstChild;
+    lppLastChild=&lpFold->parent->lastChild;
+  }
+  StackJoin((stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpFold, (stack *)lpFold->firstChild, (stack *)lpFold->lastChild);
+
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
-  AE_HeapStackDelete(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last, (stack *)lpFold);
+  AE_HeapStackDelete(NULL, (stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpFold);
   return bCollapse;
 }
 
 int AE_StackFoldFree(AKELEDIT *ae)
 {
-  AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
+  AEFOLD *lpParent=NULL;
+  AEFOLD *lpSubling=ae->ptxt->hFoldsStack.first;
+  AEFOLD *lpNextSubling;
   int nCollapse=0;
 
-  while (lpElement)
+  while (lpSubling)
   {
-    if (lpElement->bCollapse) ++nCollapse;
-    AE_StackPointDelete(ae, lpElement->lpMinPoint);
-    AE_StackPointDelete(ae, lpElement->lpMaxPoint);
-    lpElement=lpElement->next;
+    NextParent:
+    if (lpSubling->firstChild)
+    {
+      lpSubling=lpSubling->firstChild;
+      continue;
+    }
+
+    //Fold doesn't have childrens
+    lpParent=lpSubling->parent;
+    lpNextSubling=lpSubling->next;
+
+    //Delete fold
+    if (lpSubling->bCollapse) ++nCollapse;
+    AE_StackPointDelete(ae, lpSubling->lpMinPoint);
+    AE_StackPointDelete(ae, lpSubling->lpMaxPoint);
+    if (!lpParent)
+      AE_HeapStackDelete(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last, (stack *)lpSubling);
+    else
+      AE_HeapStackDelete(NULL, (stack **)&lpParent->firstChild, (stack **)&lpParent->lastChild, (stack *)lpSubling);
+
+    lpSubling=lpNextSubling;
   }
-  AE_HeapStackClear(NULL, (stack **)&ae->ptxt->hFoldsStack.first, (stack **)&ae->ptxt->hFoldsStack.last);
+  if (lpParent)
+  {
+    lpSubling=lpParent;
+    goto NextParent;
+  }
   ae->ptxt->lpVPosFold=NULL;
   return nCollapse;
 }
 
+int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
+{
+  AEFOLD *lpSubling=NULL;
+  DWORD dwFirst=(DWORD)-1;
+  DWORD dwSecond=(DWORD)-1;
+  int nCurMinLine;
+  int nCurMaxLine;
+  int nLine=0;
+  int nHiddenLines=0;
+
+  if (dwFlags & AEVPF_VPOSFROMLINE)
+    nLine=nValue;
+  else if (dwFlags & AEVPF_LINEFROMVPOS)
+    nLine=nValue / ae->ptxt->nCharHeight;
+  else
+    return -1;
+
+  if (ae->ptxt->hFoldsStack.first)
+  {
+    //dwFirst=mod(nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
+    //if (ae->ptxt->lpVPosFold)
+    //  dwSecond=mod(nLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
+    if (ae->ptxt->lpVPosFold)
+      dwSecond=mod(nLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
+    else
+      dwFirst=mod(nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
+
+    if (dwFirst <= dwSecond)
+    {
+      lpSubling=ae->ptxt->hFoldsStack.first;
+      nHiddenLines=0;
+    }
+    else if (dwSecond <= dwFirst)
+    {
+      lpSubling=ae->ptxt->lpVPosFold;
+      nHiddenLines=ae->ptxt->nVPosFoldHiddenLines;
+      if (dwFlags & AEVPF_LINEFROMVPOS)
+        nLine+=ae->ptxt->nVPosFoldHiddenLines;
+    }
+
+    if (nLine >= lpSubling->lpMinPoint->ciPoint.nLine)
+    {
+      while (lpSubling)
+      {
+        if (nLine < lpSubling->lpMinPoint->ciPoint.nLine)
+          break;
+        ae->ptxt->lpVPosFold=lpSubling;
+        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
+
+        if (lpSubling->bCollapse)
+        {
+          //Get collapsible range
+          nCurMinLine=AE_FirstCollapsibleLine(lpSubling);
+          nCurMaxLine=AE_LastCollapsibleLine(lpSubling);
+
+          if (nCurMinLine <= nLine &&
+              nCurMinLine <= nCurMaxLine)
+          {
+            //Hidden count
+            if (nLine <= nCurMaxLine && (dwFlags & AEVPF_VPOSFROMLINE))
+            {
+              nHiddenLines+=nLine - nCurMinLine + 1;
+              break;
+            }
+            else
+            {
+              nHiddenLines+=nCurMaxLine - nCurMinLine + 1;
+              if (dwFlags & AEVPF_LINEFROMVPOS)
+                nLine+=nCurMaxLine - nCurMinLine + 1;
+            }
+          }
+          lpSubling=AE_NextFold(lpSubling, FALSE);
+          continue;
+        }
+        lpSubling=AE_NextFold(lpSubling, TRUE);
+      }
+    }
+    else
+    {
+      while (lpSubling)
+      {
+        if (nLine > lpSubling->lpMaxPoint->ciPoint.nLine)
+          break;
+        ae->ptxt->lpVPosFold=lpSubling;
+        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
+
+        if (lpSubling->bCollapse)
+        {
+          //Get collapsible range
+          nCurMinLine=AE_FirstCollapsibleLine(lpSubling);
+          nCurMaxLine=AE_LastCollapsibleLine(lpSubling);
+
+          if (nCurMinLine <= nLine &&
+              nCurMinLine <= nCurMaxLine)
+          {
+            //Hidden count
+            if (nLine <= nCurMaxLine && (dwFlags & AEVPF_VPOSFROMLINE))
+            {
+              nHiddenLines-=nCurMaxLine - nLine + 1;
+              break;
+            }
+            else
+            {
+              nHiddenLines-=nCurMaxLine - nCurMinLine + 1;
+              if (dwFlags & AEVPF_LINEFROMVPOS)
+                nLine-=nCurMaxLine - nCurMinLine + 1;
+            }
+          }
+          lpSubling=AE_PrevFold(lpSubling, FALSE);
+          continue;
+        }
+        lpSubling=AE_PrevFold(lpSubling, TRUE);
+      }
+    }
+  }
+  if (dwFlags & AEVPF_LINEFROMVPOS)
+    return nLine;
+  if (dwFlags & AEVPF_VPOSFROMLINE)
+    return (nLine - nHiddenLines) * ae->ptxt->nCharHeight;
+  return -1;
+}
+
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint)
 {
-  AEPOINT *lpElement1=(AEPOINT *)ae->ptxt->hPointsStack.last;
-  AEPOINT *lpElement2=NULL;
+  AEPOINT *lpElement=(AEPOINT *)ae->ptxt->hPointsStack.last;
+  AEPOINT *lpNewElement=NULL;
 
-  while (lpElement1)
+  while (lpElement)
   {
-    if (ciPoint->nLine > lpElement1->ciPoint.nLine)
+    if (ciPoint->nLine > lpElement->ciPoint.nLine)
       break;
-    if (ciPoint->nLine == lpElement1->ciPoint.nLine && ciPoint->nCharInLine >= lpElement1->ciPoint.nCharInLine)
+    if (ciPoint->nLine == lpElement->ciPoint.nLine && ciPoint->nCharInLine >= lpElement->ciPoint.nCharInLine)
       break;
 
-    lpElement1=lpElement1->prev;
+    lpElement=lpElement->prev;
   }
-  AE_HeapStackInsertAfter(NULL, (stack **)&ae->ptxt->hPointsStack.first, (stack **)&ae->ptxt->hPointsStack.last, (stack *)lpElement1, (stack **)&lpElement2, sizeof(AEPOINT));
+  AE_HeapStackInsertAfter(NULL, (stack **)&ae->ptxt->hPointsStack.first, (stack **)&ae->ptxt->hPointsStack.last, (stack *)lpElement, (stack **)&lpNewElement, sizeof(AEPOINT));
 
-  if (lpElement2)
+  if (lpNewElement)
   {
-    lpElement2->ciPoint=*ciPoint;
-    lpElement2->nPointOffset=AEPTO_IGNORE;
-    lpElement2->nPointLen=0;
-    lpElement2->nReserved=AEPTO_IGNORE;
+    lpNewElement->ciPoint=*ciPoint;
+    lpNewElement->nPointOffset=AEPTO_IGNORE;
+    lpNewElement->nPointLen=0;
+    lpNewElement->nReserved=AEPTO_IGNORE;
   }
-  return lpElement2;
+  return lpNewElement;
 }
 
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags)
@@ -6328,7 +6697,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       {
         do
         {
-          if (!AE_StackIsLineCollapsed(ae, &lpFold, ciCharTmp.nLine))
+          if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine, &lpFold))
             break;
         }
         while (AE_NextLine(&ciCharTmp));
@@ -6367,7 +6736,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       {
         do
         {
-          if (!AE_StackIsLineCollapsed(ae, &lpFold, ciCharTmp.nLine))
+          if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine, &lpFold))
             break;
         }
         while (AE_PrevLine(&ciCharTmp));
@@ -6395,7 +6764,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     {
       if (nType == AEGI_NEXTVISIBLELINE)
       {
-        if (!AE_StackIsLineCollapsed(ae, &lpFold, ciCharTmp.nLine))
+        if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine, &lpFold))
           break;
       }
       else break;
@@ -6422,7 +6791,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     {
       if (nType == AEGI_PREVVISIBLELINE)
       {
-        if (!AE_StackIsLineCollapsed(ae, &lpFold, ciCharTmp.nLine))
+        if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine, &lpFold))
           break;
       }
       else break;
@@ -7159,7 +7528,7 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
   if (nWrapCount)
   {
     ae->ptxt->nLineCount+=nWrapCount;
-    ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+    ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
     AE_UpdateScrollBars(ae, SB_VERT);
   }
   AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_RESETSELECTION|AESELT_LOCKNOTIFY);
@@ -8575,8 +8944,8 @@ BOOL AE_IsPointOnSelection(AKELEDIT *ae, const POINT *ptPos)
 
   if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
   {
-    nSelStartY=(AE_VPosFromLine(ae, ae->ciSelStartIndex.nLine) - ae->nVScrollPos) + ae->rcDraw.top;
-    nSelEndY=(AE_VPosFromLine(ae, ae->ciSelEndIndex.nLine + 1) - ae->nVScrollPos) + ae->rcDraw.top;
+    nSelStartY=(AE_VPos(ae, ae->ciSelStartIndex.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
+    nSelEndY=(AE_VPos(ae, ae->ciSelEndIndex.nLine + 1, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
 
     if (ptPos->y >= nSelStartY && ptPos->y <= nSelEndY)
     {
@@ -10708,7 +11077,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
       {
         if (ae->popt->dwOptions & AECO_NOPRINTCOLLAPSED)
         {
-          if (!AE_StackIsLineCollapsed(&ph->aePrint, &lpFold, ciCharTmp.nLine))
+          if (!AE_StackIsLineCollapsed(&ph->aePrint, ciCharTmp.nLine, &lpFold))
             break;
         }
         else break;
@@ -10916,20 +11285,15 @@ void AE_Paint(AKELEDIT *ae)
       if (rcDraw.right > ae->rcDraw.left &&
           rcDraw.bottom > ae->rcDraw.top)
       {
-        //Update ae->ptxt->lpVPosFold and ae->ptxt->nVPosFoldHiddenLines
-        ae->ptxt->bVPosFoldUpdate=TRUE;
-        AE_GetFirstVisibleLine(ae);
-        ae->ptxt->bVPosFoldUpdate=FALSE;
-
-        to.ciDrawLine.nLine=AE_LineFromVPos(ae, ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top));
+        to.ciDrawLine.nLine=AE_VPos(ae, ae->nVScrollPos + (rcDraw.top - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
         to.ciDrawLine.lpLine=AE_GetLineData(ae, to.ciDrawLine.nLine);
         to.ciDrawLine.nCharInLine=0;
 
-        nLastDrawLine=AE_LineFromVPos(ae, ae->nVScrollPos + (rcDraw.bottom - ae->rcDraw.top));
+        nLastDrawLine=AE_VPos(ae, ae->nVScrollPos + (rcDraw.bottom - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
         nLastDrawLine=min(nLastDrawLine, ae->ptxt->nLineCount);
 
         to.ptFirstCharInLine.x=ae->rcDraw.left - ae->nHScrollPos;
-        to.ptFirstCharInLine.y=(AE_VPosFromLine(ae, to.ciDrawLine.nLine) - ae->nVScrollPos) + ae->rcDraw.top;
+        to.ptFirstCharInLine.y=(AE_VPos(ae, to.ciDrawLine.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
         nMinPaintWidth=ae->nHScrollPos + max(rcDraw.left - ae->rcDraw.left, 0);
         nMaxPaintWidth=ae->nHScrollPos + max(rcDraw.right - ae->rcDraw.left, 0);
 
@@ -10954,7 +11318,7 @@ void AE_Paint(AKELEDIT *ae)
       while (to.ciDrawLine.lpLine)
       {
         //Line must be visible
-        if (!AE_StackIsLineCollapsed(ae, &lpFold, to.ciDrawLine.nLine))
+        if (!AE_StackIsLineCollapsed(ae, to.ciDrawLine.nLine, &lpFold))
         {
           //Close all previous items
           AE_PaintCheckHighlightCleanUp(ae, &to, &hlp, &to.ciDrawLine);
@@ -12079,11 +12443,11 @@ void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase
   if (nFirstLine == -1)
     rcRedraw.top=ae->rcDraw.top;
   else
-    rcRedraw.top=(AE_VPosFromLine(ae, nFirstLine) - ae->nVScrollPos) + ae->rcDraw.top;
+    rcRedraw.top=(AE_VPos(ae, nFirstLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
   if (nLastLine == -1)
     rcRedraw.bottom=ae->rcDraw.bottom;
   else
-    rcRedraw.bottom=(AE_VPosFromLine(ae, nLastLine) + ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
+    rcRedraw.bottom=(AE_VPos(ae, nLastLine, AEVPF_VPOSFROMLINE) + ae->ptxt->nCharHeight - ae->nVScrollPos) + ae->rcDraw.top;
 
   rcRedraw.top=max(rcRedraw.top, ae->rcDraw.top);
   rcRedraw.bottom=min(rcRedraw.bottom, ae->rcDraw.bottom);
@@ -12098,135 +12462,11 @@ void AE_HideSelection(AKELEDIT *ae, BOOL bHide)
   UpdateWindow(ae->hWndEdit);
 }
 
-int AE_LineFromVPos(AKELEDIT *ae, int nVPos)
-{
-  AEFOLD *lpElement;
-  int nCurMinLine;
-  int nCurMaxLine;
-  int nLastMinHiddenLine=-1;
-  int nLastMaxHiddenLine=-1;
-  int nLine;
-  int nHiddenLines;
-
-  nLine=nVPos / ae->ptxt->nCharHeight;
-
-  //Find nearest element
-  if (ae->ptxt->lpVPosFold && ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine - ae->ptxt->nVPosFoldHiddenLines <= nLine)
-  {
-    lpElement=ae->ptxt->lpVPosFold;
-    nHiddenLines=ae->ptxt->nVPosFoldHiddenLines;
-    nLine+=ae->ptxt->nVPosFoldHiddenLines;
-  }
-  else
-  {
-    lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
-    nHiddenLines=0;
-  }
-
-  while (lpElement)
-  {
-    if (lpElement->lpMinPoint->ciPoint.nLine > nLine)
-      break;
-
-    //Range located after collapsed fold
-    if (AE_FirstCollapsibleLine(lpElement) >= nLastMaxHiddenLine)
-    {
-      if (ae->ptxt->bVPosFoldUpdate)
-      {
-        ae->ptxt->lpVPosFold=lpElement;
-        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
-      }
-
-      if (lpElement->bCollapse)
-      {
-        //Get collapsible range
-        nCurMinLine=AE_FirstCollapsibleLine(lpElement);
-        nCurMaxLine=AE_LastCollapsibleLine(lpElement);
-
-        if (nCurMinLine <= nLine &&
-            nCurMinLine <= nCurMaxLine)
-        {
-          //Hidden count
-          nHiddenLines+=nCurMaxLine - nCurMinLine + 1;
-          nLine+=nCurMaxLine - nCurMinLine + 1;
-
-          nLastMinHiddenLine=nCurMinLine;
-          nLastMaxHiddenLine=nCurMaxLine;
-        }
-      }
-    }
-    lpElement=lpElement->next;
-  }
-  return nLine;
-}
-
-int AE_VPosFromLine(AKELEDIT *ae, int nLine)
-{
-  AEFOLD *lpElement;
-  int nCurMinLine;
-  int nCurMaxLine;
-  int nLastMinHiddenLine=-1;
-  int nLastMaxHiddenLine=-1;
-  int nHiddenLines;
-
-  //Find nearest element
-  if (ae->ptxt->lpVPosFold && ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine <= nLine)
-  {
-    lpElement=ae->ptxt->lpVPosFold;
-    nHiddenLines=ae->ptxt->nVPosFoldHiddenLines;
-  }
-  else
-  {
-    lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
-    nHiddenLines=0;
-  }
-
-  while (lpElement)
-  {
-    if (lpElement->lpMinPoint->ciPoint.nLine > nLine)
-      break;
-
-    //Range located after collapsed fold
-    if (AE_FirstCollapsibleLine(lpElement) >= nLastMaxHiddenLine)
-    {
-      if (ae->ptxt->bVPosFoldUpdate)
-      {
-        ae->ptxt->lpVPosFold=lpElement;
-        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
-      }
-
-      if (lpElement->bCollapse)
-      {
-        //Get collapsible range
-        nCurMinLine=AE_FirstCollapsibleLine(lpElement);
-        nCurMaxLine=AE_LastCollapsibleLine(lpElement);
-
-        if (nCurMinLine <= nLine &&
-            nCurMinLine <= nCurMaxLine)
-        {
-          //Hidden count
-          if (nLine <= nCurMaxLine)
-          {
-            nHiddenLines+=nLine - nCurMinLine + 1;
-            break;
-          }
-          else nHiddenLines+=nCurMaxLine - nCurMinLine + 1;
-
-          nLastMinHiddenLine=nCurMinLine;
-          nLastMaxHiddenLine=nCurMaxLine;
-        }
-      }
-    }
-    lpElement=lpElement->next;
-  }
-  return (nLine - nHiddenLines) * ae->ptxt->nCharHeight;
-}
-
 int AE_GetFirstVisibleLine(AKELEDIT *ae)
 {
   int nFirstLine;
 
-  nFirstLine=AE_LineFromVPos(ae, ae->nVScrollPos);
+  nFirstLine=AE_VPos(ae, ae->nVScrollPos, AEVPF_LINEFROMVPOS);
 
   return max(nFirstLine, 0);
 }
@@ -12235,7 +12475,7 @@ int AE_GetLastVisibleLine(AKELEDIT *ae)
 {
   int nLastLine;
 
-  nLastLine=AE_LineFromVPos(ae, ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top));
+  nLastLine=AE_VPos(ae, ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
 
   return min(nLastLine, ae->ptxt->nLineCount);
 }
@@ -12245,7 +12485,7 @@ int AE_GetFirstFullVisibleLine(AKELEDIT *ae)
   int nFirstLine;
 
   nFirstLine=AE_GetFirstVisibleLine(ae);
-  if (AE_VPosFromLine(ae, nFirstLine) < ae->nVScrollPos)
+  if (AE_VPos(ae, nFirstLine, AEVPF_VPOSFROMLINE) < ae->nVScrollPos)
      nFirstLine=min(nFirstLine + 1, ae->ptxt->nLineCount);
 
   return nFirstLine;
@@ -12256,7 +12496,7 @@ int AE_GetLastFullVisibleLine(AKELEDIT *ae)
   int nLastLine;
 
   nLastLine=AE_GetLastVisibleLine(ae);
-  if (AE_VPosFromLine(ae, nLastLine + 1) > ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top))
+  if (AE_VPos(ae, nLastLine + 1, AEVPF_VPOSFROMLINE) > ae->nVScrollPos + (ae->rcDraw.bottom - ae->rcDraw.top))
      nLastLine=max(nLastLine - 1, 0);
 
   return nLastLine;
@@ -12456,12 +12696,12 @@ BOOL AE_GetPosFromChar(AKELEDIT *ae, const AECHARINDEX *ciCharIndex, POINT *ptGl
     if (ptGlobalPos)
     {
       ptGlobalPos->x=nStringWidth;
-      ptGlobalPos->y=AE_VPosFromLine(ae, ciInitial.nLine);
+      ptGlobalPos->y=AE_VPos(ae, ciInitial.nLine, AEVPF_VPOSFROMLINE);
     }
     if (ptClientPos)
     {
       ptClientPos->x=(nStringWidth - ae->nHScrollPos) + ae->rcDraw.left;
-      ptClientPos->y=(AE_VPosFromLine(ae, ciInitial.nLine) - ae->nVScrollPos) + ae->rcDraw.top;
+      ptClientPos->y=(AE_VPos(ae, ciInitial.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos) + ae->rcDraw.top;
     }
     return TRUE;
   }
@@ -12694,11 +12934,11 @@ int AE_GetCharFromPos(AKELEDIT *ae, const POINT *ptClientPos, AECHARINDEX *ciCha
   int nHScrollMax;
   int nResult;
 
-  ciCharIndex->nLine=AE_LineFromVPos(ae, ae->nVScrollPos + (ptClientPos->y - ae->rcDraw.top));
+  ciCharIndex->nLine=AE_VPos(ae, ae->nVScrollPos + (ptClientPos->y - ae->rcDraw.top), AEVPF_LINEFROMVPOS);
   ciCharIndex->nLine=max(ciCharIndex->nLine, nFirstLine);
   ciCharIndex->nLine=min(ciCharIndex->nLine, nLastLine);
   ciCharIndex->nCharInLine=0;
-  if (ptGlobalPos) ptGlobalPos->y=AE_VPosFromLine(ae, ciCharIndex->nLine);
+  if (ptGlobalPos) ptGlobalPos->y=AE_VPos(ae, ciCharIndex->nLine, AEVPF_VPOSFROMLINE);
 
   nMaxExtent=ae->nHScrollPos + (ptClientPos->x - ae->rcDraw.left);
   nHScrollMax=max(ae->ptxt->nHScrollMax, (ae->rcDraw.right - ae->rcDraw.left));
@@ -13501,7 +13741,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
               lpElement->nLineBreak=AELB_EOF;
               --ae->ptxt->nLastCharOffset;
 
-              ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+              ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
               AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
               ae->ciCaretIndex=ciCaretChar;
               ae->ciSelStartIndex=ciCaretChar;
@@ -13514,7 +13754,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
               {
                 ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
-                ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+                ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
                 AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
                 ae->ciCaretIndex=ciCaretChar;
                 ae->ciSelStartIndex=ciCaretChar;
@@ -13584,7 +13824,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
         AE_NotifyProgress(ae, AEPGS_SETTEXT, GetTickCount() - dwStartTime, dwTextLen, dwTextLen);
       }
     }
-    ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+    ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
     ae->ciCaretIndex=ciCaretChar;
     ae->ciSelStartIndex=ciCaretChar;
@@ -13596,7 +13836,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
       {
         ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
-        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+        ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
         AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
         ae->ciCaretIndex=ciCaretChar;
         ae->ciSelStartIndex=ciCaretChar;
@@ -13833,7 +14073,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                 --ae->ptxt->nLastCharOffset;
                 AE_JoinNewLines(ae);
 
-                ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+                ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
                 AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
                 ae->ciCaretIndex=ciCaretChar;
                 ae->ciSelStartIndex=ciCaretChar;
@@ -13846,7 +14086,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                 {
                   ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
-                  ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+                  ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
                   AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
                   ae->ciCaretIndex=ciCaretChar;
                   ae->ciSelStartIndex=ciCaretChar;
@@ -13917,7 +14157,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           }
         }
 
-        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+        ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
         AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
         ae->ciCaretIndex=ciCaretChar;
         ae->ciSelStartIndex=ciCaretChar;
@@ -13930,7 +14170,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           {
             ae->ptxt->nLineCount+=AE_WrapLines(ae, NULL, NULL, ae->ptxt->dwWordWrap);
 
-            ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+            ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
             AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciCaretChar, FALSE);
             ae->ciCaretIndex=ciCaretChar;
             ae->ciSelStartIndex=ciCaretChar;
@@ -14670,7 +14910,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
         //Update scroll bars
         ae->ptxt->nLineCount+=nWrapCount;
-        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+        ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
         if (nWrapCount)
         {
           if (!(dwDeleteFlags & AEDELT_LOCKUPDATE))
@@ -14897,7 +15137,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
       nVScrollPos=ae->nVScrollPos;
       ae->ptxt->nLineCount+=nLineCount;
       ae->ptxt->nLineUnwrapCount+=nLineUnwrapCount;
-      ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+      ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
       AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
       ae->ciCaretIndex=ciFirstChar;
       ae->nSelStartCharOffset=nStartOffset;
@@ -14936,7 +15176,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
 
         //Update scroll bars
         ae->ptxt->nLineCount+=nWrapCount;
-        ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+        ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
         if (nLineCount + nWrapCount)
         {
           if (!(dwDeleteFlags & AEDELT_LOCKUPDATE))
@@ -15419,7 +15659,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           nVScrollPos=ae->nVScrollPos;
           ae->ptxt->nLineCount+=nLineCount;
           ae->ptxt->nLineUnwrapCount+=nLineCount;
-          ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+          ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
           AE_GetPosFromChar(ae, &ciFirstChar, &ae->ptCaret, NULL);
           ae->ciCaretIndex=ciFirstChar;
           ae->nSelStartCharOffset=nStartOffset;
@@ -15459,7 +15699,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
 
             //Update scroll bars
             ae->ptxt->nLineCount+=nWrapCount;
-            ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+            ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
             if (nLineCount + nWrapCount)
             {
               if (!(dwInsertFlags & AEINST_LOCKUPDATE))
@@ -15774,7 +16014,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
           nVScrollPos=ae->nVScrollPos;
           ae->ptxt->nLineCount+=nLineCount;
           ae->ptxt->nLineUnwrapCount+=nLineCount;
-          ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+          ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
           ciLastChar.nLine=ciInsertFrom.nLine + nLineCount;
           ciLastChar.lpLine=lpNewElement;
           ciLastChar.nCharInLine=nCaretIndexInLine;
@@ -15811,7 +16051,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
 
             //Update scroll bars
             ae->ptxt->nLineCount+=nWrapCount;
-            ae->ptxt->nVScrollMax=AE_VPosFromLine(ae, ae->ptxt->nLineCount + 1);
+            ae->ptxt->nVScrollMax=AE_VPos(ae, ae->ptxt->nLineCount + 1, AEVPF_VPOSFROMLINE);
             if (nLineCount + nWrapCount)
             {
               if (!(dwInsertFlags & AEINST_LOCKUPDATE))
@@ -16723,13 +16963,13 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       }
       else
       {
-        nVertPos=AE_VPosFromLine(ae, ciCharIn.nLine) - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight;
-        ciCharOut.nLine=AE_LineFromVPos(ae, nVertPos);
+        nVertPos=AE_VPos(ae, ciCharIn.nLine, AEVPF_VPOSFROMLINE) - (ae->rcDraw.bottom - ae->rcDraw.top) + ae->ptxt->nCharHeight;
+        ciCharOut.nLine=AE_VPos(ae, nVertPos, AEVPF_LINEFROMVPOS);
         AE_IndexUpdate(ae, &ciCharOut);
         AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECIL_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
         if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
-          AE_ScrollEditWindow(ae, SB_VERT, AE_VPosFromLine(ae, ciCharOut.nLine) - (AE_VPosFromLine(ae, ciCharIn.nLine) - ae->nVScrollPos));
+          AE_ScrollEditWindow(ae, SB_VERT, AE_VPos(ae, ciCharOut.nLine, AEVPF_VPOSFROMLINE) - (AE_VPos(ae, ciCharIn.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos));
         bSetCaretHorzIndent=FALSE;
       }
     }
@@ -16750,13 +16990,13 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       }
       else
       {
-        nVertPos=AE_VPosFromLine(ae, ciCharIn.nLine) + (ae->rcDraw.bottom - ae->rcDraw.top);
-        ciCharOut.nLine=AE_LineFromVPos(ae, nVertPos);
+        nVertPos=AE_VPos(ae, ciCharIn.nLine, AEVPF_VPOSFROMLINE) + (ae->rcDraw.bottom - ae->rcDraw.top);
+        ciCharOut.nLine=AE_VPos(ae, nVertPos, AEVPF_LINEFROMVPOS);
         AE_IndexUpdate(ae, &ciCharOut);
         AE_GetCharInLine(ae, ciCharOut.lpLine, nCaretHorzIndent, AECIL_HALFFIT|AECIL_ALLPOS, &ciCharOut.nCharInLine, NULL, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
         if (ciCharIn.nLine >= AE_GetFirstVisibleLine(ae) && ciCharIn.nLine <= AE_GetLastVisibleLine(ae))
-          AE_ScrollEditWindow(ae, SB_VERT, AE_VPosFromLine(ae, ciCharOut.nLine) - (AE_VPosFromLine(ae, ciCharIn.nLine) - ae->nVScrollPos));
+          AE_ScrollEditWindow(ae, SB_VERT, AE_VPos(ae, ciCharOut.nLine, AEVPF_VPOSFROMLINE) - (AE_VPos(ae, ciCharIn.nLine, AEVPF_VPOSFROMLINE) - ae->nVScrollPos));
         bSetCaretHorzIndent=FALSE;
       }
     }
@@ -17902,7 +18142,6 @@ void AE_NotifyTextChanging(AKELEDIT *ae, DWORD dwType)
 
 void AE_NotifyTextChanged(AKELEDIT *ae)
 {
-  //AE_StackFoldDelEmpty(ae);
   AE_StackUpdateClones(ae);
 
   //Send AEN_TEXTCHANGED

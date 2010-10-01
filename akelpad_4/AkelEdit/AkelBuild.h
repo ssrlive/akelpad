@@ -66,6 +66,15 @@
 #define AEHPT_MARKRANGE     0x00000040
 #define AEHPT_LINK          0x00000080
 
+//AE_StackFindFold flags
+#define AEFFF_FOLDSTART     0x00000001
+#define AEFFF_FOLDEND       0x00000002
+#define AEFFF_ONLYROOT      0x00000004
+
+//AE_VPos flags
+#define AEVPF_LINEFROMVPOS     0x00000001
+#define AEVPF_VPOSFROMLINE     0x00000002
+
 //Line selection
 #define AELS_EMPTY    1
 #define AELS_FULL     2
@@ -416,7 +425,6 @@ typedef struct {
   int nLineUnwrapLastCall;
   AEFOLD *lpVPosFold;
   int nVPosFoldHiddenLines;
-  BOOL bVPosFoldUpdate;
   int nHScrollMax;
   int nVScrollMax;
   DWORD dwTextLimit;
@@ -660,14 +668,17 @@ AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd);
 void AE_StackBitmapItemsFree(HSTACK *hStack);
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoint);
 AEFOLD* AE_StackFoldGet(AKELEDIT *ae, AEFOLD *lpFold, int nLine);
-BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, AEFOLD **lpFold, int nLine);
+AEFOLD* AE_NextFold(AEFOLD *lpFold, BOOL bRecursive);
+AEFOLD* AE_PrevFold(AEFOLD *lpFold, BOOL bRecursive);
+void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AEFOLD **lpRootInOut, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
+BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut);
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse);
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse);
 int AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine);
-int AE_StackFoldDelEmpty(AKELEDIT *ae);
 BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold);
 BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold);
 int AE_StackFoldFree(AKELEDIT *ae);
+int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags);
 void AE_StackPointUnreserve(AKELEDIT *ae);
@@ -800,8 +811,6 @@ void AE_ColumnMarkerDraw(AKELEDIT *ae);
 void AE_ColumnMarkerErase(AKELEDIT *ae);
 void AE_RedrawLineRange(AKELEDIT *ae, int nFirstLine, int nLastLine, BOOL bErase);
 void AE_HideSelection(AKELEDIT *ae, BOOL bHide);
-int AE_LineFromVPos(AKELEDIT *ae, int nVPos);
-int AE_VPosFromLine(AKELEDIT *ae, int nLine);
 int AE_GetFirstVisibleLine(AKELEDIT *ae);
 int AE_GetLastVisibleLine(AKELEDIT *ae);
 int AE_GetFirstFullVisibleLine(AKELEDIT *ae);

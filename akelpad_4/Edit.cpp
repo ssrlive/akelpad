@@ -8,8 +8,8 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <richedit.h>
-#include "StackFunc.h"
 #include "WideFunc.h"
+#include "AkelEdit\StackFunc.h"
 #include "AkelEdit\StrFunc.h"
 #include "AkelEdit\AkelBuild.h"
 #include "AkelFiles\Langs\Resources\resource.h"
@@ -4736,9 +4736,11 @@ void CheckModificationTime(FRAMEDATA *lpFrame)
     {
       xmemset(&lpFrame->ft, 0, sizeof(FILETIME));
 
+      //Free mouse
       if (GetCapture())
         ReleaseCapture();
       SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
+
       SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_CANTOPEN_MSG, (LPARAM)lpFrame);
     }
     else if (GetFileWriteTimeWide(lpFrame->wszFile, &ftTmp))
@@ -4751,9 +4753,11 @@ void CheckModificationTime(FRAMEDATA *lpFrame)
         {
           bReopenMsg=TRUE;
 
+          //Free mouse
           if (GetCapture())
             ReleaseCapture();
           SendMessage(lpFrame->ei.hWndEdit, AEM_DRAGDROP, AEDD_STOPDRAG, 0);
+
           SendMessage(hMainWnd, WM_COMMAND, IDM_INTERNAL_REOPEN_MSG, (LPARAM)lpFrame);
         }
       }

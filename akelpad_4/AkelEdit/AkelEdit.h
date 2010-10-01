@@ -606,14 +606,17 @@ typedef struct _AEPOINT {
 } AEPOINT;
 
 typedef struct _AEFOLD {
-  struct _AEFOLD *next;   //Pointer to the next AEFOLD structure.
-  struct _AEFOLD *prev;   //Pointer to the previous AEFOLD structure.
-  AEPOINT *lpMinPoint;    //Minimum line point.
-  AEPOINT *lpMaxPoint;    //Maximum line point.
-  int nHideMinLineOffset; //Must be positive, default is 1. Minimum line = lpMinPoint->ciPoint.nLine + nHideMinLineOffset.
-  int nHideMaxLineOffset; //Must be negative, default is -1. Maximum line = lpMaxPoint->ciPoint.nLine + nHideMaxLineOffset.
-  BOOL bCollapse;         //Collapse state.
-  DWORD dwUserData;       //User data.
+  struct _AEFOLD *next;       //Pointer to the next AEFOLD structure.
+  struct _AEFOLD *prev;       //Pointer to the previous AEFOLD structure.
+  struct _AEFOLD *parent;     //Pointer to the parent AEFOLD structure.
+  struct _AEFOLD *firstChild; //Pointer to the first child AEFOLD structure.
+  struct _AEFOLD *lastChild;  //Pointer to the last child AEFOLD structure.
+  AEPOINT *lpMinPoint;        //Minimum line point.
+  AEPOINT *lpMaxPoint;        //Maximum line point.
+  int nHideMinLineOffset;     //Must be positive, default is 1. Minimum collapsible line = lpMinPoint->ciPoint.nLine + nHideMinLineOffset.
+  int nHideMaxLineOffset;     //Must be negative, default is -1. Maximum collapsible line = lpMaxPoint->ciPoint.nLine + nHideMaxLineOffset.
+  BOOL bCollapse;             //Collapse state.
+  DWORD dwUserData;           //User data.
 } AEFOLD;
 
 typedef struct {
