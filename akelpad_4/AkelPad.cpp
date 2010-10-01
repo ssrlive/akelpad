@@ -7,8 +7,8 @@
 #include <shellapi.h>
 #include <shlobj.h>
 #include <richedit.h>
-#include "StackFunc.h"
 #include "WideFunc.h"
+#include "AkelEdit\StackFunc.h"
 #include "AkelEdit\StrFunc.h"
 #include "AkelEdit\AkelBuild.h"
 #include "AkelFiles\Langs\Resources\resource.h"
@@ -28,7 +28,7 @@
 #define StackMoveIndex
 #define StackDelete
 #define StackClear
-#include "StackFunc.h"
+#include "AkelEdit\StackFunc.h"
 
 //Include string functions
 #ifndef AKELEDIT_STATICBUILD
@@ -3352,7 +3352,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           LoadStringWide(hLangLib, MSG_FILE_CHANGED, wbuf, BUFFER_SIZE);
           xprintfW(wbuf2, wbuf, lpFrameCurrent->wszFile);
-          if (API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, lpFrameCurrent->ei.bModified?MB_YESNO|MB_ICONQUESTION|MB_DEFBUTTON2:MB_YESNO|MB_ICONQUESTION) == IDYES)
+          if (API_MessageBox(hMainWnd, wbuf2, APP_MAIN_TITLEW, MB_YESNO|MB_ICONQUESTION|(lpFrameCurrent->ei.bModified?MB_DEFBUTTON2:0)) == IDYES)
           {
             OpenDocument(NULL, lpFrameCurrent->wszFile, OD_REOPEN, lpFrameCurrent->ei.nCodePage, lpFrameCurrent->ei.bBOM);
           }

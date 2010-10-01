@@ -10,6 +10,7 @@ Added: Hungarian language module (ZityiSoft).
 Fixed: reopenning a file in split windows.
 Fixed: reopenning group of files with option "Don't open a file twice".
 Fixed: after opening main menu with mnemonic key next input character was ignored.
+Fixed: activating program with mouse and "Watch file change".
 
 
 AkelPad 4.4.9 (Sep 16, 2010)
