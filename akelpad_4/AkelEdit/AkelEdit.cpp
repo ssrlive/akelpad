@@ -5300,6 +5300,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
     }
     lpNewElement->bCollapse=FALSE;
   }
+  ae->ptxt->lpVPosFold=NULL;
   return lpNewElement;
 }
 
@@ -5446,6 +5447,8 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AE
           lpSubling=lpSubling->lastChild;
           if (dwFlags & AEFFF_ONLYROOT)
             break;
+
+          //Recursive
           continue;
         }
         lpSubling=lpSubling->prev;
@@ -5462,13 +5465,15 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut)
 {
   AECHARINDEX ciChar;
   AEFOLD *lpSubling=NULL;
+  AEFOLD *lpPrevSubling=NULL;
 
   if (ae->ptxt->hFoldsStack.first)
   {
     ciChar.nLine=nLine;
     ciChar.lpLine=NULL;
     ciChar.nCharInLine=0;
-    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, lpRootInOut, &lpSubling, NULL);
+    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, lpRootInOut, &lpSubling, &lpPrevSubling);
+    if (!lpSubling) lpSubling=lpPrevSubling;
 
     while (lpSubling)
     {
@@ -5499,6 +5504,7 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse)
 {
   AECHARINDEX ciChar;
   AEFOLD *lpSubling=NULL;
+  AEFOLD *lpPrevSubling=NULL;
   int nResult=0;
 
   if (ae->ptxt->hFoldsStack.first)
@@ -5506,7 +5512,8 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse)
     ciChar.nLine=nLine;
     ciChar.lpLine=NULL;
     ciChar.nCharInLine=0;
-    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, NULL, &lpSubling, NULL);
+    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, NULL, &lpSubling, &lpPrevSubling);
+    if (!lpSubling) lpSubling=lpPrevSubling;
 
     while (lpSubling)
     {
@@ -5614,9 +5621,6 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
   AEFOLD **lppLastChild;
   BOOL bCollapse=lpFold->bCollapse;
 
-  if (lpFold == ae->ptxt->lpVPosFold)
-    ae->ptxt->lpVPosFold=NULL;
-
   //Change parent for childrens
   for (lpElement=lpFold->firstChild; lpElement; lpElement=lpElement->next)
   {
@@ -5639,6 +5643,8 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
   AE_HeapStackDelete(NULL, (stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpFold);
+
+  ae->ptxt->lpVPosFold=NULL;
   return bCollapse;
 }
 
