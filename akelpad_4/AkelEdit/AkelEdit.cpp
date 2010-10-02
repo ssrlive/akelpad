@@ -5349,7 +5349,7 @@ AEFOLD* AE_PrevFold(AEFOLD *lpFold, BOOL bRecursive)
     if (bRecursive)
     {
       if (lpFold->lastChild)
-        return lpFold->firstChild;
+        return lpFold->lastChild;
     }
 
     do
@@ -5729,9 +5729,9 @@ int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
           //Get collapsible range
           nCurMinLine=AE_FirstCollapsibleLine(lpSubling);
           nCurMaxLine=AE_LastCollapsibleLine(lpSubling);
+          if (nLine < nCurMinLine) break;
 
-          if (nCurMinLine <= nLine &&
-              nCurMinLine <= nCurMaxLine)
+          if (nCurMinLine <= nCurMaxLine)
           {
             //Hidden count
             if (nLine <= nCurMaxLine && (dwFlags & AEVPF_VPOSFROMLINE))
@@ -5754,24 +5754,24 @@ int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
     }
     else
     {
+      lpSubling=AE_PrevFold(lpSubling, FALSE);
+
       while (lpSubling)
       {
         if (nLine > lpSubling->lpMaxPoint->ciPoint.nLine)
           break;
-        ae->ptxt->lpVPosFold=lpSubling;
-        ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
 
         if (lpSubling->bCollapse)
         {
           //Get collapsible range
           nCurMinLine=AE_FirstCollapsibleLine(lpSubling);
           nCurMaxLine=AE_LastCollapsibleLine(lpSubling);
+          if (nLine > nCurMaxLine) break;
 
-          if (nCurMinLine <= nLine &&
-              nCurMinLine <= nCurMaxLine)
+          if (nCurMinLine <= nCurMaxLine)
           {
             //Hidden count
-            if (nLine <= nCurMaxLine && (dwFlags & AEVPF_VPOSFROMLINE))
+            if (nLine >= nCurMinLine && (dwFlags & AEVPF_VPOSFROMLINE))
             {
               nHiddenLines-=nCurMaxLine - nLine + 1;
               break;
@@ -5783,10 +5783,17 @@ int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
                 nLine-=nCurMaxLine - nCurMinLine + 1;
             }
           }
+          ae->ptxt->lpVPosFold=lpSubling;
+          ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
           lpSubling=AE_PrevFold(lpSubling, FALSE);
           continue;
         }
         lpSubling=AE_PrevFold(lpSubling, TRUE);
+        if (lpSubling && !lpSubling->parent && lpSubling->next)
+        {
+          ae->ptxt->lpVPosFold=lpSubling->next;
+          ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
+        }
       }
     }
   }
