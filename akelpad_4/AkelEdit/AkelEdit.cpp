@@ -11146,10 +11146,16 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
         rcSpace.right=rcSpace.left + nCharWidth;
         rcSpace.bottom=rcSpace.top + ph->aePrint.ptxt->nCharHeight;
 
-        if (hTab=CreateSolidBrush(hlp.dwActiveBG))
+        if (!(prn->dwFlags & AEPRN_TEST))
         {
-          FillRect(to.hDC, &rcSpace, hTab);
-          DeleteObject(hTab);
+          if (prn->dwFlags & AEPRN_COLOREDBACKGROUND)
+          {
+            if (hTab=CreateSolidBrush(hlp.dwActiveBG))
+            {
+              FillRect(to.hDC, &rcSpace, hTab);
+              DeleteObject(hTab);
+            }
+          }
         }
         to.nStartDrawWidth+=nCharWidth;
         to.wpStartDraw+=1;
