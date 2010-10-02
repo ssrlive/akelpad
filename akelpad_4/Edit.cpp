@@ -14443,7 +14443,7 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
           ((moCur.dwStatusUserFlags & CSB_CHARDEC) && (dwFlags & CSB_CHARDEC)))
       {
         lpFrame->nCaretChar=AEC_CharAtIndex(&ciCaret);
-        if (lpFrame->nCaretChar == L'\n') lpFrame->nCaretChar=L'\r';
+        if (lpFrame->nCaretChar < -AELB_EOF) lpFrame->nCaretChar=L'\r';
       }
       if ((moCur.dwStatusUserFlags & CSB_RICHOFFSET) && (dwFlags & CSB_RICHOFFSET))
         lpFrame->nCaretRichOffset=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciCaret);
@@ -14487,14 +14487,14 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
         if (*++wpString == 'h' || *wpString == 'H')
         {
           if (lpFrame)
-            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", (lpFrame->nCaretChar == -1)?0xFFFF:lpFrame->nCaretChar);
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, (*wpString == 'h')?L"%04x":L"%04X", (lpFrame->nCaretChar == -AELB_EOF)?0xFFFF:lpFrame->nCaretChar);
           else
             dwFlags|=CSB_CHARHEX;
         }
         else if (*wpString == 'd')
         {
           if (lpFrame)
-            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nCaretChar);
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", (lpFrame->nCaretChar == -AELB_EOF)?-1:lpFrame->nCaretChar);
           else
             dwFlags|=CSB_CHARDEC;
         }

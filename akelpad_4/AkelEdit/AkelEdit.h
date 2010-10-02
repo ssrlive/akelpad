@@ -2209,10 +2209,16 @@ Retrieve character at index.
 lParam                == not used.
 
 Return Value
- Unicode character or -1 if end-of-file position.
+ Unicode character or negative values:
+  -1         error.
+  -AELB_EOF  end-of-file.
+  -AELB_R    "\r" new line.
+  -AELB_N    "\n" new line.
+  -AELB_RN   "\r\n" new line.
+  -AELB_RRN  "\r\r\n" new line.
 
 Remarks
-  New line returned as L'\n'.
+ For better performance use AEC_CharAtIndex instead.
 
 Example:
  AECHARINDEX ciCaret;
@@ -4917,8 +4923,7 @@ BOOL IsCharDelimiter(HWND hWnd, const AECHARINDEX *ciChar, BOOL bPrevious)
       return TRUE;
   }
   nChar=SendMessage(hWnd, AEM_CHARAT, (WPARAM)&ciTmp, 0);
-  if (nChar == '\n' || nChar == -1)
-    return TRUE;
+  if (nChar < 0) return TRUE;
 
   if (hTheme=(AEHTHEME)SendMessage(hWnd, AEM_HLGETTHEMEW, 0, (LPARAM)NULL))
   {
@@ -5566,9 +5571,7 @@ Example:
       {
         if (ciChar->lpLine->nLineBreak == AELB_WRAP)
           return ciChar->lpLine->next->wpLine[0];
-        if (ciChar->lpLine->nLineBreak == AELB_EOF)
-          return -1;
-        return L'\n';
+        return -ciChar->lpLine->nLineBreak;
       }
       return ciChar->lpLine->wpLine[ciChar->nCharInLine];
     }

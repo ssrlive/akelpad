@@ -13259,9 +13259,7 @@ int AE_CharAtIndex(const AECHARINDEX *ciChar)
   {
     if (ciChar->lpLine->nLineBreak == AELB_WRAP)
       return ciChar->lpLine->next->wpLine[0];
-    if (ciChar->lpLine->nLineBreak == AELB_EOF)
-      return -1;
-    return L'\n';
+    return -ciChar->lpLine->nLineBreak;
   }
   return ciChar->lpLine->wpLine[ciChar->nCharInLine];
 }
@@ -13343,7 +13341,7 @@ BOOL AE_IsEscaped(const AECHARINDEX *ciChar, wchar_t wchEscape)
 BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType)
 {
   AECHARINDEX ciTmp=*ciChar;
-  int nChar=-1;
+  int nChar=-AELB_EOF;
 
   if (dwType & AEDLM_PREVCHAR)
   {
@@ -13353,7 +13351,7 @@ BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType)
   else nChar=AE_CharAtIndex(&ciTmp);
 
   //Start of file and end of file
-  if (nChar == -1)
+  if (nChar == -AELB_EOF)
     return TRUE;
 
   if (dwType & AEDLM_WORD)
