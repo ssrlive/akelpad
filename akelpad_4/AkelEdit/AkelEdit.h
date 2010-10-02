@@ -130,9 +130,11 @@
 #define AEPTO_CALC      -2  //Character RichEdit offset will calculated automatically by AEM_ADDPOINT.
 
 //AEM_COLLAPSELINE and AEM_COLLAPSEFOLD flags
-#define AECF_EXPAND     0x00000000  //Expand fold (default).
-#define AECF_COLLAPSE   0x00000001  //Collapse fold.
-#define AECF_NOUPDATE   0x00000002  //Don't update scroll and selection.
+#define AECF_EXPAND           0x00000000  //Expand fold (default).
+#define AECF_COLLAPSE         0x00000001  //Collapse fold.
+#define AECF_NOUPDATE         0x00000002  //Don't update scroll and selection.
+#define AECF_NOCARETCORRECT   0x00000004  //If in collapsed fold located caret, don't move it to fold start.
+#define AECF_NOSCROLLCORRECT  0x00000008  //If fold collapsed, don't scroll to make fold start visible.
 
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
@@ -613,8 +615,6 @@ typedef struct _AEFOLD {
   struct _AEFOLD *lastChild;  //Pointer to the last child AEFOLD structure.
   AEPOINT *lpMinPoint;        //Minimum line point.
   AEPOINT *lpMaxPoint;        //Maximum line point.
-  int nHideMinLineOffset;     //Must be positive, default is 1. Minimum collapsible line = lpMinPoint->ciPoint.nLine + nHideMinLineOffset.
-  int nHideMaxLineOffset;     //Must be negative, default is -1. Maximum collapsible line = lpMaxPoint->ciPoint.nLine + nHideMaxLineOffset.
   BOOL bCollapse;             //Collapse state.
   DWORD dwUserData;           //User data.
 } AEFOLD;

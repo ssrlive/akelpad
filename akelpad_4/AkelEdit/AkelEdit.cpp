@@ -948,7 +948,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AESCROLLTOPOINT *stp=(AESCROLLTOPOINT *)lParam;
 
-      return AE_ScrollToPoint(ae, stp->dwFlags, &stp->ptPos, stp->nOffsetX, stp->nOffsetY);
+      return AE_ScrollToPointEx(ae, stp->dwFlags, &stp->ptPos, stp->nOffsetX, stp->nOffsetY);
     }
     if (uMsg == AEM_LOCKSCROLL)
     {
@@ -1616,9 +1616,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       }
 
       if (uMsg == AEM_COLLAPSELINE)
-        nResult=AE_StackLineCollapse(ae, wParam, (lParam & AECF_COLLAPSE));
+        nResult=AE_StackLineCollapse(ae, wParam, lParam);
       else
-        nResult=AE_StackFoldCollapse(ae, (AEFOLD *)wParam, (lParam & AECF_COLLAPSE));
+        nResult=AE_StackFoldCollapse(ae, (AEFOLD *)wParam, lParam);
       ae->ptxt->lpVPosFold=NULL;
 
       if (nResult && !(lParam & AECF_NOUPDATE))
@@ -4138,6 +4138,8 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->ptxt->bSavePointExist=TRUE;
     ae->ptxt->dwTextLimit=(DWORD)-1;
     ae->ptxt->dwUndoLimit=(DWORD)-1;
+    ae->ptxt->nHideMinLineOffset=1;
+    ae->ptxt->nHideMaxLineOffset=-1;
     ae->bHScrollShow=TRUE;
     ae->bVScrollShow=TRUE;
     ae->popt->crCaret=RGB(0x00, 0x00, 0x00);
@@ -5285,7 +5287,6 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
       lpNewElement->lpMinPoint->nPointLen=lpMinPoint->nPointLen;
       lpNewElement->lpMinPoint->dwUserData=(DWORD)lpNewElement;
       lpNewElement->lpMinPoint->dwFlags=lpMinPoint->dwFlags|AEPTF_FOLD;
-      lpNewElement->nHideMinLineOffset=1;
     }
     if (lpNewElement->lpMaxPoint=AE_StackPointInsert(ae, &lpMaxPoint->ciPoint))
     {
@@ -5296,7 +5297,6 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
       lpNewElement->lpMaxPoint->nPointLen=lpMaxPoint->nPointLen;
       lpNewElement->lpMaxPoint->dwUserData=(DWORD)lpNewElement;
       lpNewElement->lpMaxPoint->dwFlags=lpMaxPoint->dwFlags|AEPTF_FOLD;
-      lpNewElement->nHideMaxLineOffset=-1;
     }
     lpNewElement->bCollapse=FALSE;
   }
@@ -5484,8 +5484,8 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut)
       {
         if (lpSubling->bCollapse)
         {
-          if (AE_FirstCollapsibleLine(lpSubling) <= nLine &&
-              AE_LastCollapsibleLine(lpSubling) >= nLine)
+          if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
+              AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
           {
             return TRUE;
           }
@@ -5500,7 +5500,7 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut)
   return FALSE;
 }
 
-int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse)
+int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
 {
   AECHARINDEX ciChar;
   AEFOLD *lpSubling=NULL;
@@ -5522,12 +5522,12 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse)
 
       if (nLine <= lpSubling->lpMaxPoint->ciPoint.nLine)
       {
-        if (lpSubling->bCollapse != bCollapse)
+        if (!lpSubling->bCollapse != !(dwFlags & AECF_COLLAPSE))
         {
-          if (AE_FirstCollapsibleLine(lpSubling) <= nLine &&
-              AE_LastCollapsibleLine(lpSubling) >= nLine)
+          if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
+              AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
           {
-            lpSubling->bCollapse=bCollapse;
+            lpSubling->bCollapse=!lpSubling->bCollapse;
             ++nResult;
           }
         }
@@ -5541,16 +5541,36 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse)
   return nResult;
 }
 
-int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
+int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
 {
   int nResult=0;
 
   if (lpFold)
   {
-    if (lpFold->bCollapse != bCollapse)
+    if (!lpFold->bCollapse != !(dwFlags & AECF_COLLAPSE))
     {
-      lpFold->bCollapse=bCollapse;
+      lpFold->bCollapse=!lpFold->bCollapse;
       ++nResult;
+
+      if ((dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
+      {
+        POINT ptPos;
+        POINT *lpPos=&ptPos;
+
+        if (AE_FirstCollapsibleLine(ae, lpFold) <= ae->ciCaretIndex.nLine &&
+            AE_LastCollapsibleLine(ae, lpFold) >= ae->ciCaretIndex.nLine)
+        {
+          AE_SetSelectionPos(ae, &lpFold->lpMinPoint->ciPoint, &lpFold->lpMinPoint->ciPoint, FALSE, AESELT_LOCKSCROLL, 0);
+          lpPos=NULL;
+        }
+        else
+        {
+          if (!(dwFlags & AECF_NOSCROLLCORRECT))
+            AE_GetPosFromChar(ae, &lpFold->lpMinPoint->ciPoint, NULL, lpPos);
+        }
+        if (!(dwFlags & AECF_NOSCROLLCORRECT))
+          AE_ScrollToPoint(ae, lpPos);
+      }
     }
   }
   else
@@ -5559,9 +5579,9 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse)
 
     while (lpElement)
     {
-      if (lpElement->bCollapse != bCollapse)
+      if (!lpElement->bCollapse != !(dwFlags & AECF_COLLAPSE))
       {
-        lpElement->bCollapse=bCollapse;
+        lpElement->bCollapse=!lpFold->bCollapse;
         ++nResult;
       }
       lpElement=lpElement->next;
@@ -5736,8 +5756,8 @@ int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
         if (lpSubling->bCollapse)
         {
           //Get collapsible range
-          nCurMinLine=AE_FirstCollapsibleLine(lpSubling);
-          nCurMaxLine=AE_LastCollapsibleLine(lpSubling);
+          nCurMinLine=AE_FirstCollapsibleLine(ae, lpSubling);
+          nCurMaxLine=AE_LastCollapsibleLine(ae, lpSubling);
           if (nLine < nCurMinLine) break;
 
           if (nCurMinLine <= nCurMaxLine)
@@ -5773,8 +5793,8 @@ int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
         if (lpSubling->bCollapse)
         {
           //Get collapsible range
-          nCurMinLine=AE_FirstCollapsibleLine(lpSubling);
-          nCurMaxLine=AE_LastCollapsibleLine(lpSubling);
+          nCurMinLine=AE_FirstCollapsibleLine(ae, lpSubling);
+          nCurMaxLine=AE_LastCollapsibleLine(ae, lpSubling);
           if (nLine > nCurMaxLine) break;
 
           if (nCurMinLine <= nCurMaxLine)
@@ -10259,7 +10279,18 @@ void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect)
   }
 }
 
-DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOffsetX, int nOffsetY)
+DWORD AE_ScrollToPoint(AKELEDIT *ae, POINT *ptPosition)
+{
+  DWORD dwTest;
+
+  //Test scroll
+  dwTest=AE_ScrollToPointEx(ae, AESC_TEST|(ptPosition?AESC_POINTCLIENT:AESC_POINTCARET)|AESC_OFFSETCHARX|AESC_OFFSETCHARY, ptPosition, 1, 0);
+
+  //Scroll
+  return AE_ScrollToPointEx(ae, (ptPosition?AESC_POINTCLIENT:AESC_POINTCARET)|(dwTest & AECSE_SCROLLEDX?AESC_OFFSETRECTDIVX:0)|(dwTest & AECSE_SCROLLEDY?AESC_OFFSETRECTDIVY:0), ptPosition, 3, 2);
+}
+
+DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOffsetX, int nOffsetY)
 {
   POINT ptPos;
   int x=-1;
@@ -18844,7 +18875,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
       AE_GetCharFromPos(ae, (POINT *)pt, &ciCharIndex, &ptGlobal, pDropTarget->bColumnSel || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
 
       //Scroll to dropping point
-      dwScrollTest=AE_ScrollToPoint(ae, AESC_TEST|AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 2, 1);
+      dwScrollTest=AE_ScrollToPointEx(ae, AESC_TEST|AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 2, 1);
 
       if ((dwScrollTest & AECSE_SCROLLEDX) || (dwScrollTest & AECSE_SCROLLEDY))
       {
@@ -18853,7 +18884,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
       }
       else
       {
-        dwScrollTest=AE_ScrollToPoint(ae, AESC_TEST|AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 3, 2);
+        dwScrollTest=AE_ScrollToPointEx(ae, AESC_TEST|AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 3, 2);
 
         if ((dwScrollTest & AECSE_SCROLLEDX) || (dwScrollTest & AECSE_SCROLLEDY))
         {
@@ -18863,7 +18894,7 @@ void AE_DropTargetDropCursor(AEIDropTarget *pDropTarget, POINTL *pt, DWORD *pdwE
         else ae->nMoveBeforeDropScroll=min(ae->nMoveBeforeDropScroll + 1, AEMMB_DROPSCROLL);
       }
       if (ae->nMoveBeforeDropScroll <= 0)
-        AE_ScrollToPoint(ae, AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 3, 2);
+        AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETCHARX|AESC_OFFSETCHARY, &ptGlobal, 3, 2);
 
       //Set caret position
       if (ae->bDragging &&
