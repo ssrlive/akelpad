@@ -5503,6 +5503,7 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut)
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
 {
   AECHARINDEX ciChar;
+  AEFOLD *lpFold=NULL;
   AEFOLD *lpSubling=NULL;
   AEFOLD *lpPrevSubling=NULL;
   int nResult=0;
@@ -5512,8 +5513,11 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
     ciChar.nLine=nLine;
     ciChar.lpLine=NULL;
     ciChar.nCharInLine=0;
-    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, NULL, &lpSubling, &lpPrevSubling);
-    if (!lpSubling) lpSubling=lpPrevSubling;
+    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, NULL, &lpFold, &lpPrevSubling);
+    if (!lpFold)
+      lpSubling=lpPrevSubling;
+    else
+      lpSubling=lpFold;
 
     while (lpSubling)
     {
@@ -5538,6 +5542,8 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
       lpSubling=lpSubling->next;
     }
   }
+  AE_StackFoldScroll(ae, lpFold, dwFlags);
+
   return nResult;
 }
 
@@ -5551,43 +5557,51 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
     {
       lpFold->bCollapse=!lpFold->bCollapse;
       ++nResult;
-
-      if ((dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
-      {
-        POINT ptPos;
-        POINT *lpPos=&ptPos;
-
-        if (AE_FirstCollapsibleLine(ae, lpFold) <= ae->ciCaretIndex.nLine &&
-            AE_LastCollapsibleLine(ae, lpFold) >= ae->ciCaretIndex.nLine)
-        {
-          AE_SetSelectionPos(ae, &lpFold->lpMinPoint->ciPoint, &lpFold->lpMinPoint->ciPoint, FALSE, AESELT_LOCKSCROLL, 0);
-          lpPos=NULL;
-        }
-        else
-        {
-          if (!(dwFlags & AECF_NOSCROLLCORRECT))
-            AE_GetPosFromChar(ae, &lpFold->lpMinPoint->ciPoint, NULL, lpPos);
-        }
-        if (!(dwFlags & AECF_NOSCROLLCORRECT))
-          AE_ScrollToPoint(ae, lpPos);
-      }
     }
+    else lpFold=NULL;
   }
   else
   {
-    AEFOLD *lpElement=(AEFOLD *)ae->ptxt->hFoldsStack.first;
-
-    while (lpElement)
+    for (lpFold=ae->ptxt->hFoldsStack.first; lpFold; lpFold=AE_NextFold(lpFold, TRUE))
     {
-      if (!lpElement->bCollapse != !(dwFlags & AECF_COLLAPSE))
+      if (!lpFold->bCollapse != !(dwFlags & AECF_COLLAPSE))
       {
-        lpElement->bCollapse=!lpFold->bCollapse;
+        lpFold->bCollapse=!lpFold->bCollapse;
         ++nResult;
       }
-      lpElement=lpElement->next;
+    }
+    if ((dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
+      AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ae->ciCaretIndex, NULL, &lpFold, NULL);
+  }
+  AE_StackFoldScroll(ae, lpFold, dwFlags);
+
+  return nResult;
+}
+
+void AE_StackFoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
+{
+  if (lpFold)
+  {
+    if ((dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
+    {
+      POINT ptPos;
+      POINT *lpPos=&ptPos;
+
+      if (AE_FirstCollapsibleLine(ae, lpFold) <= ae->ciCaretIndex.nLine &&
+          AE_LastCollapsibleLine(ae, lpFold) >= ae->ciCaretIndex.nLine)
+      {
+        AE_SetSelectionPos(ae, &lpFold->lpMinPoint->ciPoint, &lpFold->lpMinPoint->ciPoint, FALSE, AESELT_LOCKSCROLL, 0);
+        lpPos=NULL;
+      }
+      else
+      {
+        if (!(dwFlags & AECF_NOSCROLLCORRECT))
+          AE_GetPosFromChar(ae, &lpFold->lpMinPoint->ciPoint, NULL, lpPos);
+      }
+      if (!(dwFlags & AECF_NOSCROLLCORRECT))
+        AE_ScrollToPoint(ae, lpPos);
     }
   }
-  return nResult;
 }
 
 int AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine)
