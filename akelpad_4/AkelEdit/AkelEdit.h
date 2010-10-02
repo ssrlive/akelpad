@@ -2210,7 +2210,6 @@ lParam                == not used.
 
 Return Value
  Unicode character or negative values:
-  -1         error.
   -AELB_EOF  end-of-file.
   -AELB_R    "\r" new line.
   -AELB_N    "\n" new line.
