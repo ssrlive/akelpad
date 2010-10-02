@@ -5371,23 +5371,30 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AE
   DWORD dwFirst=(DWORD)-1;
   DWORD dwSecond=(DWORD)-1;
   DWORD dwThird=(DWORD)-1;
+  DWORD dwFourth=(DWORD)-1;
 
   if (ae->ptxt->hFoldsStack.first)
   {
     dwFirst=mod(ciChar->nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
     dwSecond=mod(ciChar->nLine - ae->ptxt->hFoldsStack.last->lpMinPoint->ciPoint.nLine);
+    if (ae->ptxt->lpVPosFold)
+      dwThird=mod(ciChar->nLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
     if (lpRootInOut && *lpRootInOut)
-      dwThird=mod(ciChar->nLine - (*lpRootInOut)->lpMinPoint->ciPoint.nLine);
+      dwFourth=mod(ciChar->nLine - (*lpRootInOut)->lpMinPoint->ciPoint.nLine);
 
-    if (dwFirst <= dwSecond && dwFirst <= dwThird)
+    if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth)
     {
       lpSubling=ae->ptxt->hFoldsStack.first;
     }
-    else if (dwSecond <= dwFirst && dwSecond <= dwThird)
+    else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth)
     {
       lpSubling=ae->ptxt->hFoldsStack.last;
     }
-    else if (dwThird <= dwFirst && dwThird <= dwSecond)
+    else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth)
+    {
+      lpSubling=ae->ptxt->lpVPosFold;
+    }
+    else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird)
     {
       lpSubling=*lpRootInOut;
     }
@@ -5694,13 +5701,9 @@ int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
 
   if (ae->ptxt->hFoldsStack.first)
   {
-    //dwFirst=mod(nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
-    //if (ae->ptxt->lpVPosFold)
-    //  dwSecond=mod(nLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
+    dwFirst=mod(nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
     if (ae->ptxt->lpVPosFold)
       dwSecond=mod(nLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
-    else
-      dwFirst=mod(nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
 
     if (dwFirst <= dwSecond)
     {
@@ -5788,12 +5791,12 @@ int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags)
           lpSubling=AE_PrevFold(lpSubling, FALSE);
           continue;
         }
-        lpSubling=AE_PrevFold(lpSubling, TRUE);
-        if (lpSubling && !lpSubling->parent && lpSubling->next)
+        if (!lpSubling->firstChild)
         {
-          ae->ptxt->lpVPosFold=lpSubling->next;
+          ae->ptxt->lpVPosFold=lpSubling;
           ae->ptxt->nVPosFoldHiddenLines=nHiddenLines;
         }
+        lpSubling=AE_PrevFold(lpSubling, TRUE);
       }
     }
   }
