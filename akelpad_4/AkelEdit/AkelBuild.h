@@ -391,6 +391,8 @@ typedef struct {
   HANDLE hHeap;
   AESTACKLINE hLinesStack;
   AESTACKPOINT hPointsStack;
+
+  //Font
   HFONT hFont;
   HFONT hFontNormal;
   HFONT hFontBold;
@@ -406,7 +408,26 @@ typedef struct {
   int nTabWidth;
   int nTabStop;
   WORD *lpCharWidths;
-  AESTACKFOLD hFoldsStack;
+  AELINEINDEX liMaxWidthLine;
+
+  //Scroll
+  int nHScrollMax;
+  int nVScrollMax;
+
+  //Text size
+  int nLastCharOffset;
+  int nLineCount;
+
+  //Wrap
+  AELINEINDEX liLineUnwrapLastCall;
+  int nLineUnwrapCount;
+  int nLineUnwrapLastCall;
+  DWORD dwTextLimit;
+  DWORD dwWordWrap;
+  DWORD dwWrapLimit;
+  wchar_t wszWrapDelimiters[128];
+
+  //Undo/Redo
   AESTACKUNDO hUndoStack;
   AEUNDOITEM *lpCurrentUndo;
   AEUNDOITEM *lpSavePoint;
@@ -417,20 +438,13 @@ typedef struct {
   BOOL bLockCollectUndo;
   DWORD dwUndoLimit;
   DWORD dwUndoCount;
-  AELINEINDEX liMaxWidthLine;
-  AELINEINDEX liLineUnwrapLastCall;
-  int nLastCharOffset;
-  int nLineCount;
-  int nLineUnwrapCount;
-  int nLineUnwrapLastCall;
+
+  //Folding
+  AESTACKFOLD hFoldsStack;
+  int nHideMinLineOffset;
+  int nHideMaxLineOffset;
   AEFOLD *lpVPosFold;
   int nVPosFoldHiddenLines;
-  int nHScrollMax;
-  int nVScrollMax;
-  DWORD dwTextLimit;
-  DWORD dwWordWrap;
-  DWORD dwWrapLimit;
-  wchar_t wszWrapDelimiters[128];
 } AKELTEXT;
 
 typedef struct {
@@ -613,11 +627,11 @@ typedef struct {
 #endif
 
 #ifndef AE_FirstCollapsibleLine
-  #define AE_FirstCollapsibleLine(lpFold)  (((AEFOLD *)lpFold)->lpMinPoint->ciPoint.nLine + ((AEFOLD *)lpFold)->nHideMinLineOffset)
+  #define AE_FirstCollapsibleLine(ae, lpFold)  (((AEFOLD *)lpFold)->lpMinPoint->ciPoint.nLine + ((AKELEDIT *)ae)->ptxt->nHideMinLineOffset)
 #endif
 
 #ifndef AE_LastCollapsibleLine
-  #define AE_LastCollapsibleLine(lpFold)  (((AEFOLD *)lpFold)->lpMaxPoint->ciPoint.nLine + ((AEFOLD *)lpFold)->nHideMaxLineOffset)
+  #define AE_LastCollapsibleLine(ae, lpFold)  (((AEFOLD *)lpFold)->lpMaxPoint->ciPoint.nLine + ((AKELEDIT *)ae)->ptxt->nHideMaxLineOffset)
 #endif
 
 
@@ -672,8 +686,8 @@ AEFOLD* AE_NextFold(AEFOLD *lpFold, BOOL bRecursive);
 AEFOLD* AE_PrevFold(AEFOLD *lpFold, BOOL bRecursive);
 void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AEFOLD **lpRootInOut, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
 BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut);
-int AE_StackLineCollapse(AKELEDIT *ae, int nLine, BOOL bCollapse);
-int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, BOOL bCollapse);
+int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags);
+int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
 int AE_StackFoldUpdate(AKELEDIT *ae, int nFirstVisibleLine);
 BOOL AE_StackFoldIsValid(AKELEDIT *ae, AEFOLD *lpFold);
 BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold);
@@ -782,7 +796,8 @@ BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus);
 BOOL AE_SetCaretPos(AKELEDIT *ae, const POINT *ptCaret);
 void AE_SetCaretVis(AKELEDIT *ae, const POINT *ptCaret);
 void AE_ScrollToCaret(AKELEDIT *ae, const POINT *ptCaret, BOOL bVertCorrect);
-DWORD AE_ScrollToPoint(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOffsetX, int nOffsetY);
+DWORD AE_ScrollToPoint(AKELEDIT *ae, POINT *ptPosition);
+DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOffsetX, int nOffsetY);
 void AE_UpdateScrollBars(AKELEDIT *ae, int nBar);
 int AE_ScrollEditWindow(AKELEDIT *ae, int nBar, int nPos);
 int AE_HScroll(AKELEDIT *ae, int nAction, DWORD dwAlign);
