@@ -14443,6 +14443,7 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
           ((moCur.dwStatusUserFlags & CSB_CHARDEC) && (dwFlags & CSB_CHARDEC)))
       {
         lpFrame->nCaretChar=AEC_CharAtIndex(&ciCaret);
+        if (lpFrame->nCaretChar == L'\n') lpFrame->nCaretChar=L'\r';
       }
       if ((moCur.dwStatusUserFlags & CSB_RICHOFFSET) && (dwFlags & CSB_RICHOFFSET))
         lpFrame->nCaretRichOffset=AkelIndexToRichOffset(lpFrame->ei.hWndEdit, &ciCaret);
