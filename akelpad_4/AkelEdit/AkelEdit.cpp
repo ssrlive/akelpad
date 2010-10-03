@@ -13466,9 +13466,13 @@ BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType)
   }
   else nChar=AE_CharAtIndex(&ciTmp);
 
-  //Start of file and end of file
-  if (nChar == -AELB_EOF)
-    return TRUE;
+  //Start of file, end of file or end of line
+  if (nChar <= -AELB_EOF)
+  {
+    if (nChar == -AELB_EOF)
+      return TRUE;
+    nChar=L'\n';
+  }
 
   if (dwType & AEDLM_WORD)
     return AE_IsInDelimiterList(ae->popt->wszWordDelimiters, nChar, TRUE);
