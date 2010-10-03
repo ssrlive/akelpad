@@ -355,6 +355,14 @@
 #define AEHLE_MARKRANGE             4  //Mark range - mark specified range of characters.
 #define AEHLE_MARKTEXT              5  //Mark text - mark specified text.
 
+//AEM_FINDFOLD flags
+#define AEFF_FINDOFFSET      0x00000001  //AEFINDFOLD.dwFindIt is RichEdit offset.
+#define AEFF_FINDINDEX       0x00000002  //AEFINDFOLD.dwFindIt is pointer to a AECHARINDEX structure.
+#define AEFF_FINDLINE        0x00000004  //AEFINDFOLD.dwFindIt is zero based line number.
+#define AEFF_FOLDSTART       0x00000008  //Search for fold start.
+#define AEFF_FOLDEND         0x00000010  //Search for fold end.
+#define AEFF_ONLYROOT        0x00000020  //Not recursive search.
+
 //AEM_SCROLL, AEM_LINESCROLL flags
 #define AESB_HORZ            0x00000001  //Horizontal scroll. Cannot be used with AESB_VERT.
 #define AESB_VERT            0x00000002  //Vertical scroll. Cannot be used with AESB_HORZ.
@@ -618,6 +626,14 @@ typedef struct _AEFOLD {
   BOOL bCollapse;             //Collapse state.
   DWORD dwUserData;           //User data.
 } AEFOLD;
+
+typedef struct {
+  DWORD dwFlags;         //[in]     See AEFF_* defines.
+  DWORD dwFindIt;        //[in]     Depend on AEFF_FIND* define.
+  AEFOLD *lpRoot;        //[in,out] On input root fold to search from (can be NULL). On output founded fold root.
+  AEFOLD *lpParent;      //[out]    Parent fold.
+  AEFOLD *lpPrevSubling; //[out]    Previous subling fold.
+} AEFINDFOLD;
 
 typedef struct {
   const char *pText;     //[in] Text to append.
@@ -1199,7 +1215,7 @@ typedef struct {
 
 //Folding
 #define AEM_ADDFOLD               (WM_USER + 2381)
-#define AEM_GETFOLD               (WM_USER + 2382)
+#define AEM_FINDFOLD              (WM_USER + 2382)
 #define AEM_ISLINECOLLAPSED       (WM_USER + 2383)
 #define AEM_COLLAPSELINE          (WM_USER + 2384)
 #define AEM_COLLAPSEFOLD          (WM_USER + 2385)
@@ -4221,19 +4237,26 @@ Example:
  SendMessage(hWndEdit, AEM_ADDFOLD, (WPARAM)&pointMin, (LPARAM)&pointMax);
 
 
-AEM_GETFOLD
-___________
+AEM_FINDFOLD
+____________
 
-Retrieves fold handle.
+Find fold handle.
 
-(AEFOLD *)wParam == fold handle to scan from, can be NULL to scan from beginning.
-(int)lParam      == line number.
+(AEFINDFOLD *)wParam == pointer to a AEFINDFOLD structure.
+lParam               == not used.
 
 Return Value
- Fold handle (pointer to a AEFOLD structure).
+ Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_GETFOLD, (WPARAM)NULL, 5);
+ AEFINDFOLD ff;
+ AECHARINDEX ciCaret;
+
+ SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
+ ff.dwFlags=AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_ONLYROOT;
+ ff.dwFindIt=(DWORD)&ciCaret;
+ ff.lpRoot=NULL;
+ SendMessage(hWndEdit, AEM_FINDFOLD, (WPARAM)&ff, 0);
 
 
 AEM_ISLINECOLLAPSED

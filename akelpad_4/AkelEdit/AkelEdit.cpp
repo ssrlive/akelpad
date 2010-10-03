@@ -1595,9 +1595,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return (LRESULT)AE_StackFoldInsert(ae, lpMinPoint, lpMaxPoint);
     }
-    if (uMsg == AEM_GETFOLD)
+    if (uMsg == AEM_FINDFOLD)
     {
-      return (LRESULT)AE_StackFoldGet(ae, (AEFOLD *)wParam, lParam);
+      AEFINDFOLD *ff=(AEFINDFOLD *)wParam;
+
+      AE_StackFindFold(ae, ff->dwFlags, ff->dwFindIt, &ff->lpRoot, &ff->lpParent, &ff->lpPrevSubling);
+      return 0;
     }
     if (uMsg == AEM_ISLINECOLLAPSED)
     {
@@ -5213,8 +5216,12 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
   if (AE_IndexCompare(&lpMinPoint->ciPoint, &lpMaxPoint->ciPoint) > 0)
     return NULL;
 
-  AE_StackFindFold(ae, AEFFF_FOLDSTART, &lpMinPoint->ciPoint, &lpElement, &lpMinParent, &lpMinPrevSubling);
-  AE_StackFindFold(ae, AEFFF_FOLDEND, &lpMaxPoint->ciPoint, &lpElement, &lpMaxParent, &lpMaxPrevSubling);
+  if (lpMinPoint->nPointOffset == AEPTO_CALC)
+    lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
+  if (lpMaxPoint->nPointOffset == AEPTO_CALC)
+    lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
+  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART, lpMinPoint->nPointOffset, &lpElement, &lpMinParent, &lpMinPrevSubling);
+  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDEND, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, &lpElement, &lpMaxParent, &lpMaxPrevSubling);
 
   if (lpMinParent == lpMaxParent)
   {
@@ -5280,47 +5287,22 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
   {
     if (lpNewElement->lpMinPoint=AE_StackPointInsert(ae, &lpMinPoint->ciPoint))
     {
-      if (lpMinPoint->nPointOffset == AEPTO_CALC)
-        lpNewElement->lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
-      else
-        lpNewElement->lpMinPoint->nPointOffset=lpMinPoint->nPointOffset;
+      lpNewElement->lpMinPoint->nPointOffset=lpMinPoint->nPointOffset;
       lpNewElement->lpMinPoint->nPointLen=lpMinPoint->nPointLen;
-      lpNewElement->lpMinPoint->dwUserData=(DWORD)lpNewElement;
+      lpNewElement->lpMinPoint->dwUserData=lpMinPoint->dwUserData;
       lpNewElement->lpMinPoint->dwFlags=lpMinPoint->dwFlags|AEPTF_FOLD;
     }
     if (lpNewElement->lpMaxPoint=AE_StackPointInsert(ae, &lpMaxPoint->ciPoint))
     {
-      if (lpMaxPoint->nPointOffset == AEPTO_CALC)
-        lpNewElement->lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
-      else
-        lpNewElement->lpMaxPoint->nPointOffset=lpMaxPoint->nPointOffset;
+      lpNewElement->lpMaxPoint->nPointOffset=lpMaxPoint->nPointOffset;
       lpNewElement->lpMaxPoint->nPointLen=lpMaxPoint->nPointLen;
-      lpNewElement->lpMaxPoint->dwUserData=(DWORD)lpNewElement;
+      lpNewElement->lpMaxPoint->dwUserData=lpMaxPoint->dwUserData;
       lpNewElement->lpMaxPoint->dwFlags=lpMaxPoint->dwFlags|AEPTF_FOLD;
     }
     lpNewElement->bCollapse=FALSE;
   }
   ae->ptxt->lpVPosFold=NULL;
   return lpNewElement;
-}
-
-AEFOLD* AE_StackFoldGet(AKELEDIT *ae, AEFOLD *lpFold, int nLine)
-{
-  AEFOLD *lpResult=NULL;
-
-  if (!lpFold)
-    lpFold=(AEFOLD *)ae->ptxt->hFoldsStack.first;
-
-  while (lpFold)
-  {
-    if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
-      break;
-    if (lpFold->lpMaxPoint->ciPoint.nLine >= nLine)
-      lpResult=lpFold;
-
-    lpFold=lpFold->next;
-  }
-  return lpResult;
 }
 
 AEFOLD* AE_NextFold(AEFOLD *lpFold, BOOL bRecursive)
@@ -5363,12 +5345,14 @@ AEFOLD* AE_PrevFold(AEFOLD *lpFold, BOOL bRecursive)
   return lpFold;
 }
 
-void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AEFOLD **lpRootInOut, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut)
+void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD **lpRootInOut, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut)
 {
   AEFOLD *lpRoot=NULL;
   AEFOLD *lpParent=NULL;
   AEFOLD *lpPrevSubling=NULL;
   AEFOLD *lpSubling=NULL;
+  int nFindOffset;
+  int nFindLine;
   DWORD dwFirst=(DWORD)-1;
   DWORD dwSecond=(DWORD)-1;
   DWORD dwThird=(DWORD)-1;
@@ -5376,12 +5360,33 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AE
 
   if (ae->ptxt->hFoldsStack.first)
   {
-    dwFirst=mod(ciChar->nLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
-    dwSecond=mod(ciChar->nLine - ae->ptxt->hFoldsStack.last->lpMinPoint->ciPoint.nLine);
-    if (ae->ptxt->lpVPosFold)
-      dwThird=mod(ciChar->nLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
-    if (lpRootInOut && *lpRootInOut)
-      dwFourth=mod(ciChar->nLine - (*lpRootInOut)->lpMinPoint->ciPoint.nLine);
+    if (dwFlags & AEFF_FINDOFFSET)
+      nFindOffset=(int)dwFindIt;
+    else if (dwFlags & AEFF_FINDINDEX)
+      nFindOffset=AE_AkelIndexToRichOffset(ae, (const AECHARINDEX *)dwFindIt);
+    else if (dwFlags & AEFF_FINDLINE)
+      nFindLine=(int)dwFindIt;
+    else
+      return;
+
+    if (dwFlags & AEFF_FINDLINE)
+    {
+      dwFirst=mod(nFindLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
+      dwSecond=mod(nFindLine - ae->ptxt->hFoldsStack.last->lpMinPoint->ciPoint.nLine);
+      if (ae->ptxt->lpVPosFold)
+        dwThird=mod(nFindLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
+      if (lpRootInOut && *lpRootInOut)
+        dwFourth=mod(nFindLine - (*lpRootInOut)->lpMinPoint->ciPoint.nLine);
+    }
+    else
+    {
+      dwFirst=mod(nFindOffset - ae->ptxt->hFoldsStack.first->lpMinPoint->nPointOffset);
+      dwSecond=mod(nFindOffset - ae->ptxt->hFoldsStack.last->lpMinPoint->nPointOffset);
+      if (ae->ptxt->lpVPosFold)
+        dwThird=mod(nFindOffset - ae->ptxt->lpVPosFold->lpMinPoint->nPointOffset);
+      if (lpRootInOut && *lpRootInOut)
+        dwFourth=mod(nFindOffset - (*lpRootInOut)->lpMinPoint->nPointOffset);
+    }
 
     if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth)
     {
@@ -5401,25 +5406,40 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AE
     }
     while (lpSubling->parent) lpSubling=lpSubling->parent;
 
-    if (AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint) > 0 ||
-        ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMinPoint->ciPoint)))
+    if (!(dwFlags & AEFF_FINDLINE) ?
+           //AEFF_FINDOFFSET or AEFF_FINDINDEX
+           (nFindOffset > lpSubling->lpMinPoint->nPointOffset ||
+           ((dwFlags & AEFF_FOLDSTART) && nFindOffset == lpSubling->lpMinPoint->nPointOffset)) :
+           //AEFF_FINDLINE
+           (nFindLine > lpSubling->lpMinPoint->ciPoint.nLine ||
+           ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
     {
       while (lpSubling)
       {
-        if (AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint) < 0 ||
-            ((dwFlags & AEFFF_FOLDEND) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMinPoint->ciPoint)))
+        if (!(dwFlags & AEFF_FINDLINE) ?
+               //AEFF_FINDOFFSET or AEFF_FINDINDEX
+               (nFindOffset < lpSubling->lpMinPoint->nPointOffset ||
+               (!(dwFlags & AEFF_FOLDSTART) && nFindOffset == lpSubling->lpMinPoint->nPointOffset)) :
+               //AEFF_FINDLINE
+               (nFindLine < lpSubling->lpMinPoint->ciPoint.nLine ||
+               (!(dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
         {
           break;
         }
         if (!lpParent) lpRoot=lpSubling;
 
-        if (AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint) < 0 ||
-            ((dwFlags & AEFFF_FOLDEND) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMaxPoint->ciPoint)))
+        if (!(dwFlags & AEFF_FINDLINE) ?
+               //AEFF_FINDOFFSET or AEFF_FINDINDEX
+               (nFindOffset < lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen ||
+               ((dwFlags & AEFF_FOLDEND) && nFindOffset == lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen)) :
+               //AEFF_FINDLINE
+               (nFindLine < lpSubling->lpMaxPoint->ciPoint.nLine ||
+               ((dwFlags & AEFF_FOLDEND) && nFindLine == lpSubling->lpMaxPoint->ciPoint.nLine)))
         {
           lpParent=lpSubling;
           lpPrevSubling=NULL;
           lpSubling=lpSubling->firstChild;
-          if (dwFlags & AEFFF_ONLYROOT)
+          if (dwFlags & AEFF_ONLYROOT)
             break;
 
           //Recursive
@@ -5433,19 +5453,29 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AE
     {
       while (lpSubling)
       {
-        if (AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint) > 0 ||
-            ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMaxPoint->ciPoint)))
+        if (!(dwFlags & AEFF_FINDLINE) ?
+               //AEFF_FINDOFFSET or AEFF_FINDINDEX
+               (nFindOffset > lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen ||
+               (!(dwFlags & AEFF_FOLDEND) && nFindOffset == lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen)) :
+               //AEFF_FINDLINE
+               (nFindLine > lpSubling->lpMaxPoint->ciPoint.nLine ||
+               (!(dwFlags & AEFF_FOLDEND) && nFindLine == lpSubling->lpMaxPoint->ciPoint.nLine)))
         {
           break;
         }
         if (!lpParent) lpRoot=lpSubling;
 
-        if (AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint) > 0 ||
-            ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMinPoint->ciPoint)))
+        if (!(dwFlags & AEFF_FINDLINE) ?
+               //AEFF_FINDOFFSET or AEFF_FINDINDEX
+               (nFindOffset > lpSubling->lpMinPoint->nPointOffset ||
+               ((dwFlags & AEFF_FOLDSTART) && nFindOffset == lpSubling->lpMinPoint->nPointOffset)) :
+               //AEFF_FINDLINE
+               (nFindLine > lpSubling->lpMinPoint->ciPoint.nLine ||
+               ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
         {
           lpParent=lpSubling;
           lpSubling=lpSubling->lastChild;
-          if (dwFlags & AEFFF_ONLYROOT)
+          if (dwFlags & AEFF_ONLYROOT)
             break;
 
           //Recursive
@@ -5463,16 +5493,12 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AE
 
 BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut)
 {
-  AECHARINDEX ciChar;
   AEFOLD *lpSubling=NULL;
   AEFOLD *lpPrevSubling=NULL;
 
   if (ae->ptxt->hFoldsStack.first)
   {
-    ciChar.nLine=nLine;
-    ciChar.lpLine=NULL;
-    ciChar.nCharInLine=0;
-    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, lpRootInOut, &lpSubling, &lpPrevSubling);
+    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_ONLYROOT, nLine, lpRootInOut, &lpSubling, &lpPrevSubling);
     if (!lpSubling) lpSubling=lpPrevSubling;
 
     while (lpSubling)
@@ -5502,7 +5528,6 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut)
 
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
 {
-  AECHARINDEX ciChar;
   AEFOLD *lpFold=NULL;
   AEFOLD *lpSubling=NULL;
   AEFOLD *lpPrevSubling=NULL;
@@ -5510,10 +5535,7 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
 
   if (ae->ptxt->hFoldsStack.first)
   {
-    ciChar.nLine=nLine;
-    ciChar.lpLine=NULL;
-    ciChar.nCharInLine=0;
-    AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ciChar, NULL, &lpFold, &lpPrevSubling);
+    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_ONLYROOT, nLine, NULL, &lpFold, &lpPrevSubling);
     if (!lpFold)
       lpSubling=lpPrevSubling;
     else
@@ -5571,7 +5593,7 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
       }
     }
     if ((dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
-      AE_StackFindFold(ae, AEFFF_FOLDSTART|AEFFF_ONLYROOT, &ae->ciCaretIndex, NULL, &lpFold, NULL);
+      AE_StackFindFold(ae, AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_ONLYROOT, (DWORD)&ae->ciCaretIndex, NULL, &lpFold, NULL);
   }
   AE_StackFoldScroll(ae, lpFold, dwFlags);
 

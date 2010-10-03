@@ -66,11 +66,6 @@
 #define AEHPT_MARKRANGE     0x00000040
 #define AEHPT_LINK          0x00000080
 
-//AE_StackFindFold flags
-#define AEFFF_FOLDSTART     0x00000001
-#define AEFFF_FOLDEND       0x00000002
-#define AEFFF_ONLYROOT      0x00000004
-
 //AE_VPos flags
 #define AEVPF_LINEFROMVPOS     0x00000001
 #define AEVPF_VPOSFROMLINE     0x00000002
@@ -681,10 +676,9 @@ AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd);
 AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd);
 void AE_StackBitmapItemsFree(HSTACK *hStack);
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoint);
-AEFOLD* AE_StackFoldGet(AKELEDIT *ae, AEFOLD *lpFold, int nLine);
 AEFOLD* AE_NextFold(AEFOLD *lpFold, BOOL bRecursive);
 AEFOLD* AE_PrevFold(AEFOLD *lpFold, BOOL bRecursive);
-void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AEFOLD **lpRootInOut, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
+void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD **lpRootInOut, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
 BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut);
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags);
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
