@@ -362,7 +362,8 @@
 #define AEFF_FOLDSTART       0x00000008  //Search for fold start.
 #define AEFF_FOLDEND         0x00000010  //Search for fold end.
 #define AEFF_ONLYEDGE        0x00000020  //AEFINDFOLD.dwFindIt points to fold start if AEFF_FOLDSTART specified or points to fold end if AEFF_FOLDEND.
-#define AEFF_ONLYROOT        0x00000040  //Not recursive search.
+#define AEFF_RECURSE         0x00000040  //Recursive search. Returned fold will be deepest possible. Don't combine it with AEFF_GETROOT.
+#define AEFF_GETROOT         0x00000080  //Return root fold. Don't combine it with AEFF_RECURSE.
 
 //AEM_SCROLL, AEM_LINESCROLL flags
 #define AESB_HORZ            0x00000001  //Horizontal scroll. Cannot be used with AESB_VERT.
@@ -632,7 +633,7 @@ typedef struct {
   DWORD dwFlags;         //[in]     See AEFF_* defines.
   DWORD dwFindIt;        //[in]     Depend on AEFF_FIND* define.
   AEFOLD *lpParent;      //[out]    Parent fold.
-  AEFOLD *lpPrevSubling; //[out]    Previous subling fold.
+  AEFOLD *lpPrevSubling; //[out]    Previous subling fold. Valid if lpParent is NULL.
 } AEFINDFOLD;
 
 typedef struct {
@@ -4253,7 +4254,7 @@ Example:
  AECHARINDEX ciCaret;
 
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_CARETCHAR, (LPARAM)&ciCaret);
- ff.dwFlags=AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_ONLYROOT;
+ ff.dwFlags=AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_GETROOT;
  ff.dwFindIt=(DWORD)&ciCaret;
  ff.lpRoot=NULL;
  SendMessage(hWndEdit, AEM_FINDFOLD, (WPARAM)&ff, 0);
