@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 3, 0, 6)
+#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 0)
 
 
 //// Defines
