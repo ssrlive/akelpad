@@ -5365,14 +5365,15 @@ Example:
   {
     if ((ciChar1->nLine == ciChar2->nLine &&
          ciChar1->nCharInLine == ciChar2->nCharInLine) ||
-        (ciChar1->lpLine->next == ciChar1->lpLine &&
-         ciChar1->lpLine->nLineBreak == AELB_WRAP &&
-         ciChar1->nCharInLine == ciChar1->lpLine->nLineLen &&
-         ciChar2->nCharInLine == 0) ||
-        (ciChar2->lpLine->next == ciChar1->lpLine &&
-         ciChar2->lpLine->nLineBreak == AELB_WRAP &&
-         ciChar2->nCharInLine == ciChar2->lpLine->nLineLen &&
-         ciChar1->nCharInLine == 0))
+        (ciChar1->lpLine && ciChar2->lpLine &&
+          ((ciChar1->lpLine->next == ciChar2->lpLine &&
+            ciChar1->lpLine->nLineBreak == AELB_WRAP &&
+            ciChar1->nCharInLine == ciChar1->lpLine->nLineLen &&
+            ciChar2->nCharInLine == 0) ||
+           (ciChar2->lpLine->next == ciChar1->lpLine &&
+            ciChar2->lpLine->nLineBreak == AELB_WRAP &&
+            ciChar2->nCharInLine == ciChar2->lpLine->nLineLen &&
+            ciChar1->nCharInLine == 0))))
     {
       return 0;
     }
