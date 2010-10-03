@@ -5402,19 +5402,19 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AE
     while (lpSubling->parent) lpSubling=lpSubling->parent;
 
     if (AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint) > 0 ||
-        ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint)))
+        ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMinPoint->ciPoint)))
     {
       while (lpSubling)
       {
         if (AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint) < 0 ||
-            ((dwFlags & AEFFF_FOLDEND) && !AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint)))
+            ((dwFlags & AEFFF_FOLDEND) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMinPoint->ciPoint)))
         {
           break;
         }
         if (!lpParent) lpRoot=lpSubling;
 
         if (AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint) < 0 ||
-            ((dwFlags & AEFFF_FOLDEND) && !AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint)))
+            ((dwFlags & AEFFF_FOLDEND) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMaxPoint->ciPoint)))
         {
           lpParent=lpSubling;
           lpPrevSubling=NULL;
@@ -5434,14 +5434,14 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, const AECHARINDEX *ciChar, AE
       while (lpSubling)
       {
         if (AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint) > 0 ||
-            ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompare(ciChar, &lpSubling->lpMaxPoint->ciPoint)))
+            ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMaxPoint->ciPoint)))
         {
           break;
         }
         if (!lpParent) lpRoot=lpSubling;
 
         if (AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint) > 0 ||
-            ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompare(ciChar, &lpSubling->lpMinPoint->ciPoint)))
+            ((dwFlags & AEFFF_FOLDSTART) && !AE_IndexCompareEx(ciChar, &lpSubling->lpMinPoint->ciPoint)))
         {
           lpParent=lpSubling;
           lpSubling=lpSubling->lastChild;
