@@ -1599,7 +1599,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AEFINDFOLD *ff=(AEFINDFOLD *)wParam;
 
-      AE_StackFindFold(ae, ff->dwFlags, ff->dwFindIt, &ff->lpRoot, &ff->lpParent, &ff->lpPrevSubling);
+      AE_StackFindFold(ae, ff->dwFlags, ff->dwFindIt, NULL, &ff->lpParent, &ff->lpPrevSubling);
       return 0;
     }
     if (uMsg == AEM_ISLINECOLLAPSED)
@@ -5220,8 +5220,8 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
     lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
   if (lpMaxPoint->nPointOffset == AEPTO_CALC)
     lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
-  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART, lpMinPoint->nPointOffset, &lpElement, &lpMinParent, &lpMinPrevSubling);
-  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDEND, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, &lpElement, &lpMaxParent, &lpMaxPrevSubling);
+  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART, lpMinPoint->nPointOffset, NULL, &lpMinParent, &lpMinPrevSubling);
+  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDEND, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, lpMinParent, &lpMaxParent, &lpMaxPrevSubling);
 
   if (lpMinParent == lpMaxParent)
   {
@@ -5345,18 +5345,18 @@ AEFOLD* AE_PrevFold(AEFOLD *lpFold, BOOL bRecursive)
   return lpFold;
 }
 
-void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD **lpRootInOut, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut)
+void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpForce, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut)
 {
-  AEFOLD *lpRoot=NULL;
   AEFOLD *lpParent=NULL;
   AEFOLD *lpPrevSubling=NULL;
   AEFOLD *lpSubling=NULL;
   int nFindOffset;
   int nFindLine;
-  DWORD dwFirst=(DWORD)-1;
-  DWORD dwSecond=(DWORD)-1;
-  DWORD dwThird=(DWORD)-1;
-  DWORD dwFourth=(DWORD)-1;
+  DWORD dwFirst;
+  DWORD dwSecond;
+  DWORD dwThird;
+  DWORD dwFourth;
+  BOOL bGoRoot=FALSE;
 
   if (ae->ptxt->hFoldsStack.first)
   {
@@ -5369,42 +5369,55 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD **lpRo
     else
       return;
 
-    if (dwFlags & AEFF_FINDLINE)
+    if (!lpForce)
     {
-      dwFirst=mod(nFindLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
-      dwSecond=mod(nFindLine - ae->ptxt->hFoldsStack.last->lpMinPoint->ciPoint.nLine);
-      if (ae->ptxt->lpVPosFold)
-        dwThird=mod(nFindLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
-      if (lpRootInOut && *lpRootInOut)
-        dwFourth=mod(nFindLine - (*lpRootInOut)->lpMinPoint->ciPoint.nLine);
-    }
-    else
-    {
-      dwFirst=mod(nFindOffset - ae->ptxt->hFoldsStack.first->lpMinPoint->nPointOffset);
-      dwSecond=mod(nFindOffset - ae->ptxt->hFoldsStack.last->lpMinPoint->nPointOffset);
-      if (ae->ptxt->lpVPosFold)
-        dwThird=mod(nFindOffset - ae->ptxt->lpVPosFold->lpMinPoint->nPointOffset);
-      if (lpRootInOut && *lpRootInOut)
-        dwFourth=mod(nFindOffset - (*lpRootInOut)->lpMinPoint->nPointOffset);
-    }
+      dwFirst=(DWORD)-1;
+      dwSecond=(DWORD)-1;
+      dwThird=(DWORD)-1;
+      dwFourth=(DWORD)-1;
 
-    if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth)
-    {
-      lpSubling=ae->ptxt->hFoldsStack.first;
+      if (dwFlags & AEFF_FINDLINE)
+      {
+        dwFirst=mod(nFindLine - ae->ptxt->hFoldsStack.first->lpMinPoint->ciPoint.nLine);
+        dwSecond=mod(nFindLine - ae->ptxt->hFoldsStack.last->lpMinPoint->ciPoint.nLine);
+        if (ae->ptxt->lpVPosFold)
+          dwThird=mod(nFindLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
+      }
+      else
+      {
+        dwFirst=mod(nFindOffset - ae->ptxt->hFoldsStack.first->lpMinPoint->nPointOffset);
+        dwSecond=mod(nFindOffset - ae->ptxt->hFoldsStack.last->lpMinPoint->nPointOffset);
+        if (ae->ptxt->lpVPosFold)
+          dwThird=mod(nFindOffset - ae->ptxt->lpVPosFold->lpMinPoint->nPointOffset);
+      }
+
+      if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth)
+      {
+        lpSubling=ae->ptxt->hFoldsStack.first;
+      }
+      else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth)
+      {
+        lpSubling=ae->ptxt->hFoldsStack.last;
+      }
+      else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth)
+      {
+        lpSubling=ae->ptxt->lpVPosFold;
+      }
     }
-    else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth)
+    else lpSubling=lpForce;
+
+    if (lpSubling->parent)
     {
-      lpSubling=ae->ptxt->hFoldsStack.last;
+      /*if (dwFlags & AEFF_ONLYROOT)
+      {
+        do
+        {
+          lpSubling=lpSubling->parent;
+        }
+        while (lpSubling->parent);
+      }
+      else*/ bGoRoot=TRUE;
     }
-    else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth)
-    {
-      lpSubling=ae->ptxt->lpVPosFold;
-    }
-    else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird)
-    {
-      lpSubling=*lpRootInOut;
-    }
-    while (lpSubling->parent) lpSubling=lpSubling->parent;
 
     if (!(dwFlags & AEFF_FINDLINE) ?
            //AEFF_FINDOFFSET or AEFF_FINDINDEX
@@ -5426,7 +5439,6 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD **lpRo
         {
           break;
         }
-        if (!lpParent) lpRoot=lpSubling;
 
         if (!(dwFlags & AEFF_FINDLINE) ?
                //AEFF_FINDOFFSET or AEFF_FINDINDEX
@@ -5438,15 +5450,22 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD **lpRo
         {
           lpParent=lpSubling;
           lpPrevSubling=NULL;
-          lpSubling=lpSubling->firstChild;
           if (dwFlags & AEFF_ONLYROOT)
             break;
 
           //Recursive
+          bGoRoot=FALSE;
+          lpSubling=lpSubling->firstChild;
           continue;
         }
         lpPrevSubling=lpSubling;
-        lpSubling=lpSubling->next;
+        if (bGoRoot)
+        {
+          lpSubling=lpSubling->parent;
+          if (!lpSubling->parent)
+            bGoRoot=FALSE;
+        }
+        else lpSubling=lpSubling->next;
       }
     }
     else
@@ -5463,7 +5482,6 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD **lpRo
         {
           break;
         }
-        if (!lpParent) lpRoot=lpSubling;
 
         if (!(dwFlags & AEFF_FINDLINE) ?
                //AEFF_FINDOFFSET or AEFF_FINDINDEX
@@ -5474,32 +5492,55 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD **lpRo
                ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
         {
           lpParent=lpSubling;
-          lpSubling=lpSubling->lastChild;
           if (dwFlags & AEFF_ONLYROOT)
             break;
 
           //Recursive
+          bGoRoot=FALSE;
+          lpSubling=lpSubling->lastChild;
           continue;
         }
-        lpSubling=lpSubling->prev;
+        if (bGoRoot)
+        {
+          lpSubling=lpSubling->parent;
+          if (!lpSubling->parent)
+            bGoRoot=FALSE;
+        }
+        else lpSubling=lpSubling->prev;
       }
       lpPrevSubling=lpSubling;
     }
   }
-  if (lpRootInOut) *lpRootInOut=lpRoot;
   if (lpParentOut) *lpParentOut=lpParent;
   if (lpPrevSublingOut) *lpPrevSublingOut=lpPrevSubling;
 }
 
-BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut)
+BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpFoldInOut)
 {
   AEFOLD *lpSubling=NULL;
   AEFOLD *lpPrevSubling=NULL;
 
   if (ae->ptxt->hFoldsStack.first)
   {
-    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_ONLYROOT, nLine, lpRootInOut, &lpSubling, &lpPrevSubling);
-    if (!lpSubling) lpSubling=lpPrevSubling;
+    //Check input fold
+    if (lpFoldInOut && *lpFoldInOut && (*lpFoldInOut)->bCollapse)
+    {
+      if (AE_FirstCollapsibleLine(ae, *lpFoldInOut) <= nLine &&
+          AE_LastCollapsibleLine(ae, *lpFoldInOut) >= nLine)
+      {
+        return TRUE;
+      }
+    }
+
+    //Find fold by line
+    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_ONLYROOT, nLine, NULL, &lpSubling, &lpPrevSubling);
+    if (lpFoldInOut)
+    {
+      if (lpSubling)
+        *lpFoldInOut=lpSubling;
+      else
+        *lpFoldInOut=lpPrevSubling;
+    }
 
     while (lpSubling)
     {
@@ -5513,6 +5554,7 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut)
           if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
               AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
           {
+            if (lpFoldInOut) *lpFoldInOut=lpSubling;
             return TRUE;
           }
         }
@@ -7258,10 +7300,13 @@ int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX
   if (bColumnSel == -1) bColumnSel=ae->bColumnSel;
 
   //Set new line
-  if (nNewLine == AELB_ASINPUT)
-    nNewLine=ae->popt->nInputNewLine;
-  else if (nNewLine == AELB_ASOUTPUT)
-    nNewLine=ae->popt->nOutputNewLine;
+  if (nNewLine < AELB_ASIS)
+  {
+    if (nNewLine == AELB_ASINPUT)
+      nNewLine=ae->popt->nInputNewLine;
+    else if (nNewLine == AELB_ASOUTPUT)
+      nNewLine=ae->popt->nOutputNewLine;
+  }
 
   if (!ciChar1)
     AE_GetIndex(ae, AEGI_FIRSTCHAR, NULL, &ciStart, FALSE);
@@ -7393,10 +7438,13 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
   int nOffsetCount=nOffset;
 
   //Set new line
-  if (nNewLine == AELB_ASINPUT)
-    nNewLine=ae->popt->nInputNewLine;
-  else if (nNewLine == AELB_ASOUTPUT)
-    nNewLine=ae->popt->nOutputNewLine;
+  if (nNewLine < AELB_ASIS)
+  {
+    if (nNewLine == AELB_ASINPUT)
+      nNewLine=ae->popt->nInputNewLine;
+    else if (nNewLine == AELB_ASOUTPUT)
+      nNewLine=ae->popt->nOutputNewLine;
+  }
 
   if (nOffsetCount == 0)
   {
@@ -7410,7 +7458,7 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
   }
   else if (nOffsetCount > 0)
   {
-    while (1)
+    for (;;)
     {
       while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
       {
@@ -7466,7 +7514,7 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
   }
   else if (nOffsetCount < 0)
   {
-    while (1)
+    for (;;)
     {
       while (ciCount.nCharInLine >= 0)
       {
@@ -13083,7 +13131,7 @@ int AE_GetNextBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciNext
     AE_IndexInc(&ciCount);
   }
 
-  while (1)
+  for (;;)
   {
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
@@ -13215,7 +13263,7 @@ int AE_GetPrevBreak(AKELEDIT *ae, const AECHARINDEX *ciChar, AECHARINDEX *ciPrev
     ++nLen;
   }
 
-  while (1)
+  for (;;)
   {
     while (ciCount.nCharInLine >= 0)
     {
@@ -13455,7 +13503,7 @@ int AE_GetUrlPrefixes(AKELEDIT *ae)
   int nStart=0;
   int nEnd=0;
 
-  while (1)
+  for (;;)
   {
     if (!ae->popt->wszUrlPrefixes[nEnd])
     {
@@ -13535,10 +13583,13 @@ DWORD AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHA
         if (AE_IndexCompare(&ciStart, &ciEnd))
         {
           //Set new line
-          if (nNewLine == AELB_ASINPUT)
-            nNewLine=ae->popt->nInputNewLine;
-          else if (nNewLine == AELB_ASOUTPUT)
-            nNewLine=ae->popt->nOutputNewLine;
+          if (nNewLine < AELB_ASIS)
+          {
+            if (nNewLine == AELB_ASINPUT)
+              nNewLine=ae->popt->nInputNewLine;
+            else if (nNewLine == AELB_ASOUTPUT)
+              nNewLine=ae->popt->nOutputNewLine;
+          }
 
           if (bColumnSel)
           {
@@ -13752,10 +13803,13 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
   }
 
   //Set new line
-  if (nNewLine == AELB_ASINPUT)
-    nNewLine=ae->popt->nInputNewLine;
-  else if (nNewLine == AELB_ASOUTPUT)
-    nNewLine=ae->popt->nOutputNewLine;
+  if (nNewLine < AELB_ASIS)
+  {
+    if (nNewLine == AELB_ASINPUT)
+      nNewLine=ae->popt->nInputNewLine;
+    else if (nNewLine == AELB_ASOUTPUT)
+      nNewLine=ae->popt->nOutputNewLine;
+  }
 
   //Free old and create new heap
   //ae->bSkipMessages=TRUE;
@@ -14002,10 +14056,13 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
   aesi->dwError=0;
 
   //Set new line
-  if (nNewLine == AELB_ASINPUT)
-    nNewLine=ae->popt->nInputNewLine;
-  else if (nNewLine == AELB_ASOUTPUT)
-    nNewLine=ae->popt->nOutputNewLine;
+  if (nNewLine < AELB_ASIS)
+  {
+    if (nNewLine == AELB_ASINPUT)
+      nNewLine=ae->popt->nInputNewLine;
+    else if (nNewLine == AELB_ASOUTPUT)
+      nNewLine=ae->popt->nOutputNewLine;
+  }
 
   if (wszBuf=(wchar_t *)AE_HeapAlloc(NULL, 0, (dwBufLen + 1) * sizeof(wchar_t)))
   {
@@ -14029,7 +14086,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         ciWrapStart=ae->ciCaretIndex;
       }
 
-      while (1)
+      for (;;)
       {
         dwBufDone=0;
 
@@ -14079,7 +14136,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         if (ae->popt->dwEventMask & AENM_PROGRESS)
           dwTextLen=aesi->dwTextLen;
 
-        while (1)
+        for (;;)
         {
           //Progressing
           if (ae->popt->dwEventMask & AENM_PROGRESS)
@@ -14466,10 +14523,13 @@ DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso)
   aeso->dwError=0;
 
   //Set new line
-  if (nNewLine == AELB_ASINPUT)
-    nNewLine=ae->popt->nInputNewLine;
-  else if (nNewLine == AELB_ASOUTPUT)
-    nNewLine=ae->popt->nOutputNewLine;
+  if (nNewLine < AELB_ASIS)
+  {
+    if (nNewLine == AELB_ASINPUT)
+      nNewLine=ae->popt->nInputNewLine;
+    else if (nNewLine == AELB_ASOUTPUT)
+      nNewLine=ae->popt->nOutputNewLine;
+  }
 
   if (dwFlags & AESF_SELECTION)
   {
@@ -15415,10 +15475,13 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
     if (dwTextLen)
     {
       //Set new line
-      if (nNewLine == AELB_ASINPUT)
-        nNewLine=ae->popt->nInputNewLine;
-      else if (nNewLine == AELB_ASOUTPUT)
-        nNewLine=ae->popt->nOutputNewLine;
+      if (nNewLine < AELB_ASIS)
+      {
+        if (nNewLine == AELB_ASINPUT)
+          nNewLine=ae->popt->nInputNewLine;
+        else if (nNewLine == AELB_ASOUTPUT)
+          nNewLine=ae->popt->nOutputNewLine;
+      }
 
       //Set AE_CalcLinesWidth flags
       if (dwInsertFlags & AEINST_LOCKUPDATE)
@@ -16467,7 +16530,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   {
     if (AE_IndexOffset(ae, &ciCountEnd, &ciCountEnd, -(int)ft->dwTextLen, ft->nNewLine))
     {
-      while (1)
+      for (;;)
       {
         while (ciCount.nCharInLine <= ciCount.lpLine->nLineLen)
         {
@@ -16491,7 +16554,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
   {
     if (AE_IndexOffset(ae, &ciCount, &ciCount, -(int)ft->dwTextLen, ft->nNewLine))
     {
-      while (1)
+      for (;;)
       {
         while (ciCount.nCharInLine >= 0)
         {
@@ -16544,83 +16607,105 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
 
 DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
 {
-  AECHARINDEX ciCount=*ciChar;
+  AECHARINDEX ciCount;
   int nLineBreak;
-  int nNewLine=ft->nNewLine;
-  DWORD dwCount=0;
+  int nNewLine;
+  DWORD dwCount;
+
+  //Optimization: compare first character here
+  if (ft->dwFlags & AEFR_MATCHCASE)
+  {
+    if (ciChar->lpLine->wpLine[ciChar->nCharInLine] != *ft->pText)
+      return 0;
+  }
+  else
+  {
+    if (WideCharLower(ciChar->lpLine->wpLine[ciChar->nCharInLine]) != WideCharLower(*ft->pText))
+      return 0;
+  }
+  if (ft->dwFlags & AEFR_WHOLEWORD)
+  {
+    if (!AE_IsDelimiter(ae, ciChar, AEDLM_WORD|AEDLM_PREVCHAR))
+      return 0;
+  }
+  ciCount=*ciChar;
+  nNewLine=ft->nNewLine;
+  dwCount=0;
 
   //Set new line
-  if (nNewLine == AELB_ASINPUT)
-    nNewLine=ae->popt->nInputNewLine;
-  else if (nNewLine == AELB_ASOUTPUT)
-    nNewLine=ae->popt->nOutputNewLine;
-
-  while (1)
+  if (nNewLine < AELB_ASIS)
   {
-    if (ft->dwFlags & AEFR_WHOLEWORD)
-    {
-      if (!AE_IsDelimiter(ae, &ciCount, AEDLM_WORD|AEDLM_PREVCHAR))
-        return 0;
-    }
+    if (nNewLine == AELB_ASINPUT)
+      nNewLine=ae->popt->nInputNewLine;
+    else if (nNewLine == AELB_ASOUTPUT)
+      nNewLine=ae->popt->nOutputNewLine;
+  }
+  goto CharMatched;
 
+  for (;;)
+  {
     for (; ciCount.nCharInLine < ciCount.lpLine->nLineLen; ++ciCount.nCharInLine)
     {
-      if (((ft->dwFlags & AEFR_MATCHCASE) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == ft->pText[dwCount]) ||
-          (!(ft->dwFlags & AEFR_MATCHCASE) && WideCharLower(ciCount.lpLine->wpLine[ciCount.nCharInLine]) == WideCharLower(ft->pText[dwCount])))
+      if (ft->dwFlags & AEFR_MATCHCASE)
       {
-        if (ft->dwTextLen == (DWORD)-1)
-        {
-          if (!ft->pText[++dwCount])
-          {
-            ++ciCount.nCharInLine;
-            goto Founded;
-          }
-        }
-        else if (++dwCount >= ft->dwTextLen)
+        if (ciCount.lpLine->wpLine[ciCount.nCharInLine] != ft->pText[dwCount])
+          return 0;
+      }
+      else
+      {
+        if (WideCharLower(ciCount.lpLine->wpLine[ciCount.nCharInLine]) != WideCharLower(ft->pText[dwCount]))
+          return 0;
+      }
+
+      CharMatched:
+      if (ft->dwTextLen == (DWORD)-1)
+      {
+        if (!ft->pText[++dwCount])
         {
           ++ciCount.nCharInLine;
           goto Founded;
         }
       }
-      else return FALSE;
+      else if (++dwCount >= ft->dwTextLen)
+      {
+        ++ciCount.nCharInLine;
+        goto Founded;
+      }
     }
-    if (ciCount.lpLine->nLineBreak == AELB_EOF) return 0;
 
-    if (ciCount.lpLine->nLineBreak == AELB_WRAP)
+    if (ciCount.lpLine->nLineBreak != AELB_WRAP)
     {
-      nLineBreak=AELB_WRAP;
-    }
-    else
-    {
+      if (ciCount.lpLine->nLineBreak == AELB_EOF)
+        return 0;
       if (nNewLine == AELB_ASIS)
         nLineBreak=ciCount.lpLine->nLineBreak;
       else
         nLineBreak=nNewLine;
+
+      if (nLineBreak == AELB_R)
+      {
+        if (ft->pText[dwCount++] != L'\r') return 0;
+      }
+      else if (nLineBreak == AELB_N)
+      {
+        if (ft->pText[dwCount++] != L'\n') return 0;
+      }
+      else if (nLineBreak == AELB_RN)
+      {
+        if (ft->pText[dwCount++] != L'\r') return 0;
+        if (ft->pText[dwCount++] != L'\n') return 0;
+      }
+      else if (nLineBreak == AELB_RRN)
+      {
+        if (ft->pText[dwCount++] != L'\r') return 0;
+        if (ft->pText[dwCount++] != L'\n') return 0;
+      }
     }
 
     if (ciCount.lpLine->next)
       AE_NextLine(&ciCount);
     else
       return 0;
-
-    if (nLineBreak == AELB_R)
-    {
-      if (ft->pText[dwCount++] != L'\r') return 0;
-    }
-    else if (nLineBreak == AELB_N)
-    {
-      if (ft->pText[dwCount++] != L'\n') return 0;
-    }
-    else if (nLineBreak == AELB_RN)
-    {
-      if (ft->pText[dwCount++] != L'\r') return 0;
-      if (ft->pText[dwCount++] != L'\n') return 0;
-    }
-    else if (nLineBreak == AELB_RRN)
-    {
-      if (ft->pText[dwCount++] != L'\r') return 0;
-      if (ft->pText[dwCount++] != L'\n') return 0;
-    }
 
     if (ft->dwTextLen == (DWORD)-1)
     {
