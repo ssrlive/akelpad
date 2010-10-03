@@ -362,8 +362,12 @@
 #define AEFF_FOLDSTART       0x00000008  //Search for fold start.
 #define AEFF_FOLDEND         0x00000010  //Search for fold end.
 #define AEFF_ONLYEDGE        0x00000020  //AEFINDFOLD.dwFindIt points to fold start if AEFF_FOLDSTART specified or points to fold end if AEFF_FOLDEND.
-#define AEFF_RECURSE         0x00000040  //Recursive search. Returned fold will be deepest possible. Don't combine it with AEFF_GETROOT.
-#define AEFF_GETROOT         0x00000080  //Return root fold. Don't combine it with AEFF_RECURSE.
+#define AEFF_RECURSE         0x00000040  //Recursive search. Returned fold will be deepest possible.
+#define AEFF_GETROOT         0x00000080  //Return root fold.
+                                         //
+                                         //The following groups of flags cannot be used together:
+                                         //AEFF_FINDOFFSET, AEFF_FINDINDEX and AEFF_FINDLINE.
+                                         //AEFF_ONLYEDGE, AEFF_RECURSE and AEFF_GETROOT.
 
 //AEM_SCROLL, AEM_LINESCROLL flags
 #define AESB_HORZ            0x00000001  //Horizontal scroll. Cannot be used with AESB_VERT.
