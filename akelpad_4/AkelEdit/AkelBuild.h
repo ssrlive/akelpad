@@ -438,6 +438,7 @@ typedef struct {
   AESTACKFOLD hFoldsStack;
   int nHideMinLineOffset;
   int nHideMaxLineOffset;
+  AEFOLD *lpIsCollapsedLastCall;
   AEFOLD *lpVPosFold;
   int nVPosFoldHiddenLines;
 } AKELTEXT;
@@ -679,7 +680,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
 AEFOLD* AE_NextFold(AEFOLD *lpFold, BOOL bRecursive);
 AEFOLD* AE_PrevFold(AEFOLD *lpFold, BOOL bRecursive);
 void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpForce, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
-BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpRootInOut);
+AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine);
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags);
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
 void AE_StackFoldScroll(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
