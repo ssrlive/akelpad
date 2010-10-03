@@ -1604,7 +1604,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_ISLINECOLLAPSED)
     {
-      return AE_StackIsLineCollapsed(ae, lParam, (AEFOLD **)wParam);
+      return AE_StackIsLineCollapsed(ae, wParam);
     }
     if (uMsg == AEM_COLLAPSELINE ||
         uMsg == AEM_COLLAPSEFOLD)
@@ -5382,6 +5382,8 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
         dwSecond=mod(nFindLine - ae->ptxt->hFoldsStack.last->lpMinPoint->ciPoint.nLine);
         if (ae->ptxt->lpVPosFold)
           dwThird=mod(nFindLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
+        if (ae->ptxt->lpIsCollapsedLastCall)
+          dwFourth=mod(nFindLine - ae->ptxt->lpIsCollapsedLastCall->lpMinPoint->ciPoint.nLine);
       }
       else
       {
@@ -5389,6 +5391,8 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
         dwSecond=mod(nFindOffset - ae->ptxt->hFoldsStack.last->lpMinPoint->nPointOffset);
         if (ae->ptxt->lpVPosFold)
           dwThird=mod(nFindOffset - ae->ptxt->lpVPosFold->lpMinPoint->nPointOffset);
+        if (ae->ptxt->lpIsCollapsedLastCall)
+          dwFourth=mod(nFindOffset - ae->ptxt->lpIsCollapsedLastCall->lpMinPoint->nPointOffset);
       }
 
       if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth)
@@ -5402,6 +5406,10 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
       else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth)
       {
         lpSubling=ae->ptxt->lpVPosFold;
+      }
+      else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird)
+      {
+        lpSubling=ae->ptxt->lpIsCollapsedLastCall;
       }
     }
     else lpSubling=lpForce;
@@ -5515,7 +5523,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
   if (lpPrevSublingOut) *lpPrevSublingOut=lpPrevSubling;
 }
 
-BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpFoldInOut)
+AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
 {
   AEFOLD *lpSubling=NULL;
   AEFOLD *lpPrevSubling=NULL;
@@ -5523,24 +5531,21 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpFoldInOut)
   if (ae->ptxt->hFoldsStack.first)
   {
     //Check input fold
-    if (lpFoldInOut && *lpFoldInOut && (*lpFoldInOut)->bCollapse)
+    if (ae->ptxt->lpIsCollapsedLastCall && ae->ptxt->lpIsCollapsedLastCall->bCollapse)
     {
-      if (AE_FirstCollapsibleLine(ae, *lpFoldInOut) <= nLine &&
-          AE_LastCollapsibleLine(ae, *lpFoldInOut) >= nLine)
+      if (AE_FirstCollapsibleLine(ae, ae->ptxt->lpIsCollapsedLastCall) <= nLine &&
+          AE_LastCollapsibleLine(ae, ae->ptxt->lpIsCollapsedLastCall) >= nLine)
       {
-        return TRUE;
+        return ae->ptxt->lpIsCollapsedLastCall;
       }
     }
 
     //Find fold by line
     AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_GETROOT, nLine, NULL, &lpSubling, &lpPrevSubling);
-    if (lpFoldInOut)
-    {
-      if (lpSubling)
-        *lpFoldInOut=lpSubling;
-      else
-        *lpFoldInOut=lpPrevSubling;
-    }
+    if (lpSubling)
+      ae->ptxt->lpIsCollapsedLastCall=lpSubling;
+    else
+      ae->ptxt->lpIsCollapsedLastCall=lpPrevSubling;
 
     while (lpSubling)
     {
@@ -5554,8 +5559,8 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpFoldInOut)
           if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
               AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
           {
-            if (lpFoldInOut) *lpFoldInOut=lpSubling;
-            return TRUE;
+            ae->ptxt->lpIsCollapsedLastCall=lpSubling;
+            return lpSubling;
           }
         }
         //Recursive
@@ -5565,7 +5570,7 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpFoldInOut)
       lpSubling=lpSubling->next;
     }
   }
-  return FALSE;
+  return NULL;
 }
 
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
@@ -5718,6 +5723,9 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
   AEFOLD **lppFirstChild;
   AEFOLD **lppLastChild;
   BOOL bCollapse=lpFold->bCollapse;
+
+  if (lpFold == ae->ptxt->lpIsCollapsedLastCall)
+    ae->ptxt->lpIsCollapsedLastCall=NULL;
 
   //Change parent for childrens
   for (lpElement=lpFold->firstChild; lpElement; lpElement=lpElement->next)
@@ -6795,7 +6803,6 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
            nType == AEGI_NEXTVISIBLECHAR)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpFold=NULL;
 
     if (bColumnSel)
     {
@@ -6811,7 +6818,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       {
         do
         {
-          if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine, &lpFold))
+          if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
             break;
         }
         while (AE_NextLine(&ciCharTmp));
@@ -6833,7 +6840,6 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
            nType == AEGI_PREVVISIBLECHAR)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpFold=NULL;
 
     if (bColumnSel)
     {
@@ -6850,7 +6856,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
       {
         do
         {
-          if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine, &lpFold))
+          if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
             break;
         }
         while (AE_PrevLine(&ciCharTmp));
@@ -6872,13 +6878,12 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
            nType == AEGI_NEXTVISIBLELINE)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpFold=NULL;
 
     while (AE_NextLine(&ciCharTmp))
     {
       if (nType == AEGI_NEXTVISIBLELINE)
       {
-        if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine, &lpFold))
+        if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
           break;
       }
       else break;
@@ -6899,13 +6904,12 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
            nType == AEGI_PREVVISIBLELINE)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
-    AEFOLD *lpFold=NULL;
 
     while (AE_PrevLine(&ciCharTmp))
     {
       if (nType == AEGI_PREVVISIBLELINE)
       {
-        if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine, &lpFold))
+        if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
           break;
       }
       else break;
@@ -11069,7 +11073,6 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   AETEXTOUT to={0};
   AECHARINDEX ciCount;
   AECHARINDEX ciTmp;
-  AEFOLD *lpFold=NULL;
   HBRUSH hBasicBk;
   HBRUSH hTab;
   HFONT hPrintFontOld;
@@ -11202,14 +11205,14 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
     }
     else
     {
-      //Manual AEGI_NEXTVISIBLELINE implementation for faster AE_StackIsLineCollapsed call
+      //Manual AEGI_NEXTVISIBLELINE implementation
       AECHARINDEX ciCharTmp=ciCount;
 
       while (AE_NextLine(&ciCharTmp))
       {
         if (ae->popt->dwOptions & AECO_NOPRINTCOLLAPSED)
         {
-          if (!AE_StackIsLineCollapsed(&ph->aePrint, ciCharTmp.nLine, &lpFold))
+          if (!AE_StackIsLineCollapsed(&ph->aePrint, ciCharTmp.nLine))
             break;
         }
         else break;
@@ -11377,7 +11380,6 @@ void AE_Paint(AKELEDIT *ae)
     {
       AEHLPAINT hlp={0};
       AETEXTOUT to={0};
-      AEFOLD *lpFold=NULL;
       HBRUSH hBasicBk;
       HBRUSH hSelBk;
       HBRUSH hActiveLineBk;
@@ -11456,7 +11458,7 @@ void AE_Paint(AKELEDIT *ae)
       while (to.ciDrawLine.lpLine)
       {
         //Line must be visible
-        if (!AE_StackIsLineCollapsed(ae, to.ciDrawLine.nLine, &lpFold))
+        if (!AE_StackIsLineCollapsed(ae, to.ciDrawLine.nLine))
         {
           //Close all previous items
           AE_PaintCheckHighlightCleanUp(ae, &to, &hlp, &to.ciDrawLine);
