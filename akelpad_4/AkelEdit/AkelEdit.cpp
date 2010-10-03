@@ -5220,8 +5220,8 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
     lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
   if (lpMaxPoint->nPointOffset == AEPTO_CALC)
     lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
-  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART, lpMinPoint->nPointOffset, NULL, &lpMinParent, &lpMinPrevSubling);
-  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDEND, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, lpMinParent, &lpMaxParent, &lpMaxPrevSubling);
+  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, lpMinPoint->nPointOffset, NULL, &lpMinParent, &lpMinPrevSubling);
+  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDEND|AEFF_RECURSE, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, lpMinParent, &lpMaxParent, &lpMaxPrevSubling);
 
   if (lpMinParent == lpMaxParent)
   {
@@ -5407,17 +5407,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
     else lpSubling=lpForce;
 
     if (lpSubling->parent)
-    {
-      /*if (dwFlags & AEFF_ONLYROOT)
-      {
-        do
-        {
-          lpSubling=lpSubling->parent;
-        }
-        while (lpSubling->parent);
-      }
-      else*/ bGoRoot=TRUE;
-    }
+      bGoRoot=TRUE;
 
     if (!(dwFlags & AEFF_FINDLINE) ?
            //AEFF_FINDOFFSET or AEFF_FINDINDEX
@@ -5450,7 +5440,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
         {
           lpParent=lpSubling;
           lpPrevSubling=NULL;
-          if (dwFlags & AEFF_ONLYROOT)
+          if (!(dwFlags & AEFF_RECURSE))
             break;
 
           //Recursive
@@ -5458,14 +5448,17 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
           lpSubling=lpSubling->firstChild;
           continue;
         }
-        lpPrevSubling=lpSubling;
         if (bGoRoot)
         {
           lpSubling=lpSubling->parent;
           if (!lpSubling->parent)
             bGoRoot=FALSE;
         }
-        else lpSubling=lpSubling->next;
+        else
+        {
+          lpPrevSubling=lpSubling;
+          lpSubling=lpSubling->next;
+        }
       }
     }
     else
@@ -5492,8 +5485,11 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
                ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
         {
           lpParent=lpSubling;
-          if (dwFlags & AEFF_ONLYROOT)
+          if (!(dwFlags & AEFF_RECURSE))
+          {
+            lpSubling=NULL;
             break;
+          }
 
           //Recursive
           bGoRoot=FALSE;
@@ -5510,6 +5506,10 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
       }
       lpPrevSubling=lpSubling;
     }
+  }
+  if ((dwFlags & AEFF_GETROOT) && lpParent)
+  {
+    while (lpParent->parent) lpParent=lpParent->parent;
   }
   if (lpParentOut) *lpParentOut=lpParent;
   if (lpPrevSublingOut) *lpPrevSublingOut=lpPrevSubling;
@@ -5533,7 +5533,7 @@ BOOL AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine, AEFOLD **lpFoldInOut)
     }
 
     //Find fold by line
-    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_ONLYROOT, nLine, NULL, &lpSubling, &lpPrevSubling);
+    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_GETROOT, nLine, NULL, &lpSubling, &lpPrevSubling);
     if (lpFoldInOut)
     {
       if (lpSubling)
@@ -5577,7 +5577,7 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
 
   if (ae->ptxt->hFoldsStack.first)
   {
-    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_ONLYROOT, nLine, NULL, &lpFold, &lpPrevSubling);
+    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_GETROOT, nLine, NULL, &lpFold, &lpPrevSubling);
     if (!lpFold)
       lpSubling=lpPrevSubling;
     else
@@ -5635,7 +5635,7 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
       }
     }
     if ((dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
-      AE_StackFindFold(ae, AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_ONLYROOT, (DWORD)&ae->ciCaretIndex, NULL, &lpFold, NULL);
+      AE_StackFindFold(ae, AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_GETROOT, (DWORD)&ae->ciCaretIndex, NULL, &lpFold, NULL);
   }
   AE_StackFoldScroll(ae, lpFold, dwFlags);
 
