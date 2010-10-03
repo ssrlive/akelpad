@@ -361,7 +361,8 @@
 #define AEFF_FINDLINE        0x00000004  //AEFINDFOLD.dwFindIt is zero based line number.
 #define AEFF_FOLDSTART       0x00000008  //Search for fold start.
 #define AEFF_FOLDEND         0x00000010  //Search for fold end.
-#define AEFF_ONLYROOT        0x00000020  //Not recursive search.
+#define AEFF_ONLYEDGE        0x00000020  //AEFINDFOLD.dwFindIt points to fold start if AEFF_FOLDSTART specified or points to fold end if AEFF_FOLDEND.
+#define AEFF_ONLYROOT        0x00000040  //Not recursive search.
 
 //AEM_SCROLL, AEM_LINESCROLL flags
 #define AESB_HORZ            0x00000001  //Horizontal scroll. Cannot be used with AESB_VERT.
