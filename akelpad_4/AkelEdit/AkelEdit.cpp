@@ -1604,7 +1604,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_ISLINECOLLAPSED)
     {
-      return AE_StackIsLineCollapsed(ae, wParam);
+      return (LRESULT)AE_StackIsLineCollapsed(ae, wParam);
     }
     if (uMsg == AEM_COLLAPSELINE ||
         uMsg == AEM_COLLAPSEFOLD)
