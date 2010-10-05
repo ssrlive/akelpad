@@ -1219,15 +1219,17 @@ typedef struct {
 #define AEM_HIDESELECTION         (WM_USER + 2356)
 
 //Folding
-#define AEM_ADDFOLD               (WM_USER + 2381)
-#define AEM_FINDFOLD              (WM_USER + 2382)
-#define AEM_ISLINECOLLAPSED       (WM_USER + 2383)
-#define AEM_COLLAPSELINE          (WM_USER + 2384)
-#define AEM_COLLAPSEFOLD          (WM_USER + 2385)
-#define AEM_ISFOLDVALID           (WM_USER + 2386)
-#define AEM_DELETEFOLD            (WM_USER + 2387)
-#define AEM_UPDATEFOLD            (WM_USER + 2388)
-#define AEM_GETFOLDSTACK          (WM_USER + 2389)
+#define AEM_GETFOLDSTACK          (WM_USER + 2381)
+#define AEM_ADDFOLD               (WM_USER + 2382)
+#define AEM_FINDFOLD              (WM_USER + 2383)
+#define AEM_NEXTFOLD              (WM_USER + 2384)
+#define AEM_PREVFOLD              (WM_USER + 2385)
+#define AEM_ISLINECOLLAPSED       (WM_USER + 2386)
+#define AEM_COLLAPSELINE          (WM_USER + 2387)
+#define AEM_COLLAPSEFOLD          (WM_USER + 2388)
+#define AEM_ISFOLDVALID           (WM_USER + 2389)
+#define AEM_DELETEFOLD            (WM_USER + 2390)
+#define AEM_UPDATEFOLD            (WM_USER + 2391)
 
 //Document
 #define AEM_CREATEDOCUMENT        (WM_USER + 2401)
@@ -4221,6 +4223,37 @@ Example:
  SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
 
 
+AEM_GETFOLDSTACK
+________________
+
+Retrieve fold stack handle.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Pointer to a HSTACK structure.
+
+Example:
+AEFOLD* GetFold(HWND hWnd, int nLine)
+{
+  HSTACK *hFoldStack;
+  AEFOLD *lpFold;
+  AEFOLD *lpResult=NULL;
+
+  hFoldStack=(HSTACK *)SendMessage(hWnd, AEM_GETFOLDSTACK, 0, 0))
+
+  for (lpFold=(AEFOLD *)hFoldStack->first; lpFold; lpFold=AEC_NextFold(lpFold, TRUE))
+  {
+    if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
+      break;
+    if (lpFold->lpMaxPoint->ciPoint.nLine >= nLine)
+      lpResult=lpFold;
+  }
+  return lpResult;
+}
+
+
 AEM_ADDFOLD
 ___________
 
@@ -4262,6 +4295,48 @@ Example:
  ff.dwFindIt=(DWORD)&ciCaret;
  ff.lpRoot=NULL;
  SendMessage(hWndEdit, AEM_FINDFOLD, (WPARAM)&ff, 0);
+
+
+AEM_NEXTFOLD
+____________
+
+Retrieves next fold handle.
+
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure).
+(BOOL)lParam     == TRUE   go into fold children if possible (recursive).
+                    FALSE  don't go into fold children.
+
+Return Value
+ Fold handle (pointer to a AEFOLD structure).
+
+Remarks
+ For better performance use AEC_NextFold instead.
+
+Example:
+ AEFOLD *lpNextFold;
+
+ lpNextFold=(AEFOLD *)SendMessage(hWndEdit, AEM_NEXTFOLD, (WPARAM)lpFold, TRUE);
+
+
+AEM_PREVFOLD
+____________
+
+Retrieves previous fold handle.
+
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure).
+(BOOL)lParam     == TRUE   go into fold children if possible (recursive).
+                    FALSE  don't go into fold children.
+
+Return Value
+ Fold handle (pointer to a AEFOLD structure).
+
+Remarks
+ For better performance use AEC_PrevFold instead.
+
+Example:
+ AEFOLD *lpPrevFold;
+
+ lpPrevFold=(AEFOLD *)SendMessage(hWndEdit, AEM_PREVFOLD, (WPARAM)lpFold, TRUE);
 
 
 AEM_ISLINECOLLAPSED
@@ -4359,42 +4434,6 @@ Example:
  SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold1, FALSE);
  SendMessage(hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)lpFold2, AECF_EXPAND|AECF_NOUPDATE);
  SendMessage(hWndEdit, AEM_UPDATEFOLD, 0, nFirstVisibleLine);
-
-
-AEM_GETFOLDSTACK
-________________
-
-Retrieve fold stack handle.
-
-wParam == not used.
-lParam == not used.
-
-Return Value
- Pointer to a HSTACK structure.
-
-Example:
-AEFOLD* GetFold(HWND hWnd, int nLine)
-{
-  HSTACK *hFoldStack;
-  AEFOLD *lpFold;
-  AEFOLD *lpResult=NULL;
-
-  if (hFoldStack=(HSTACK *)SendMessage(hWnd, AEM_GETFOLDSTACK, 0, 0))
-  {
-    lpFold=(AEFOLD *)hFoldStack->first;
-
-    while (lpFold)
-    {
-      if (lpFold->lpMinPoint->ciPoint.nLine > nLine)
-        break;
-      if (lpFold->lpMaxPoint->ciPoint.nLine >= nLine)
-        lpResult=lpFold;
-
-      lpFold=lpFold->next;
-    }
-  }
-  return lpResult;
-}
 
 
 AEM_CREATEDOCUMENT
@@ -5619,6 +5658,46 @@ Example:
       return TRUE;
     return FALSE;
   }
+
+  AEFOLD* AEC_NextFold(AEFOLD *lpFold, BOOL bRecursive)
+  {
+    if (lpFold)
+    {
+      if (bRecursive)
+      {
+        if (lpFold->firstChild)
+          return lpFold->firstChild;
+      }
+
+      do
+      {
+        if (lpFold->next)
+          return lpFold->next;
+      }
+      while (lpFold=lpFold->parent);
+    }
+    return lpFold;
+  }
+
+  AEFOLD* AEC_PrevFold(AEFOLD *lpFold, BOOL bRecursive)
+  {
+    if (lpFold)
+    {
+      if (bRecursive)
+      {
+        if (lpFold->lastChild)
+          return lpFold->lastChild;
+      }
+
+      do
+      {
+        if (lpFold->prev)
+          return lpFold->prev;
+      }
+      while (lpFold=lpFold->parent);
+    }
+    return lpFold;
+  }
 #else
   int AEC_CopyChar(wchar_t *wszTarget, DWORD dwTargetSize, const wchar_t *wpSource);
   int AEC_IndexInc(AECHARINDEX *ciChar);
@@ -5642,4 +5721,6 @@ Example:
   BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar);
   BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar);
   BOOL AEC_IsLastCharInLine(const AECHARINDEX *ciChar);
+  AEFOLD* AEC_NextFold(AEFOLD *lpFold, BOOL bRecursive);
+  AEFOLD* AEC_PrevFold(AEFOLD *lpFold, BOOL bRecursive);
 #endif //AEC_FUNCTIONS
