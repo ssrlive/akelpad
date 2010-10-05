@@ -1517,8 +1517,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     //Draw
     ShowScrollbar:
-    if (uMsg >= AEM_ADDFOLD)
-      goto AddFold;
+    if (uMsg >= AEM_GETFOLDSTACK)
+      goto GetFoldStack;
 
     if (uMsg == AEM_SHOWSCROLLBAR)
     {
@@ -1584,10 +1584,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
 
     //Folding
-    AddFold:
+    GetFoldStack:
     if (uMsg >= AEM_CREATEDOCUMENT)
       goto CreateWindowData;
 
+    if (uMsg == AEM_GETFOLDSTACK)
+    {
+      return (LRESULT)&ae->ptxt->hFoldsStack;
+    }
     if (uMsg == AEM_ADDFOLD)
     {
       AEPOINT *lpMinPoint=(AEPOINT *)wParam;
@@ -1601,6 +1605,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       AE_StackFindFold(ae, ff->dwFlags, ff->dwFindIt, NULL, &ff->lpParent, &ff->lpPrevSubling);
       return 0;
+    }
+    if (uMsg == AEM_NEXTFOLD)
+    {
+      return (LRESULT)AE_NextFold((AEFOLD *)wParam, lParam);
+    }
+    if (uMsg == AEM_PREVFOLD)
+    {
+      return (LRESULT)AE_PrevFold((AEFOLD *)wParam, lParam);
     }
     if (uMsg == AEM_ISLINECOLLAPSED)
     {
@@ -1660,10 +1672,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (uMsg == AEM_UPDATEFOLD)
     {
       return AE_StackFoldUpdate(ae, lParam);
-    }
-    if (uMsg == AEM_GETFOLDSTACK)
-    {
-      return (LRESULT)&ae->ptxt->hFoldsStack;
     }
 
     //Window data
