@@ -5726,6 +5726,7 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
 
   if (lpFold == ae->ptxt->lpIsCollapsedLastCall)
     ae->ptxt->lpIsCollapsedLastCall=NULL;
+  ae->ptxt->lpVPosFold=NULL;
 
   //Change parent for childrens
   for (lpElement=lpFold->firstChild; lpElement; lpElement=lpElement->next)
@@ -5749,8 +5750,6 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
   AE_HeapStackDelete(NULL, (stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpFold);
-
-  ae->ptxt->lpVPosFold=NULL;
   return bCollapse;
 }
 
@@ -5760,6 +5759,9 @@ int AE_StackFoldFree(AKELEDIT *ae)
   AEFOLD *lpSubling=ae->ptxt->hFoldsStack.first;
   AEFOLD *lpNextSubling;
   int nCollapse=0;
+
+  ae->ptxt->lpVPosFold=NULL;
+  ae->ptxt->lpIsCollapsedLastCall=NULL;
 
   while (lpSubling)
   {
@@ -5790,7 +5792,6 @@ int AE_StackFoldFree(AKELEDIT *ae)
     lpSubling=lpParent;
     goto NextParent;
   }
-  ae->ptxt->lpVPosFold=NULL;
   return nCollapse;
 }
 
