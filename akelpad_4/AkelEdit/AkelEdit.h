@@ -1222,14 +1222,14 @@ typedef struct {
 #define AEM_GETFOLDSTACK          (WM_USER + 2381)
 #define AEM_GETFOLDCOUNT          (WM_USER + 2382)
 #define AEM_ADDFOLD               (WM_USER + 2383)
-#define AEM_FINDFOLD              (WM_USER + 2384)
-#define AEM_NEXTFOLD              (WM_USER + 2385)
-#define AEM_PREVFOLD              (WM_USER + 2386)
-#define AEM_ISLINECOLLAPSED       (WM_USER + 2387)
-#define AEM_COLLAPSELINE          (WM_USER + 2388)
-#define AEM_COLLAPSEFOLD          (WM_USER + 2389)
-#define AEM_ISFOLDVALID           (WM_USER + 2390)
-#define AEM_DELETEFOLD            (WM_USER + 2391)
+#define AEM_DELETEFOLD            (WM_USER + 2384)
+#define AEM_ISFOLDVALID           (WM_USER + 2385)
+#define AEM_FINDFOLD              (WM_USER + 2386)
+#define AEM_NEXTFOLD              (WM_USER + 2387)
+#define AEM_PREVFOLD              (WM_USER + 2388)
+#define AEM_ISLINECOLLAPSED       (WM_USER + 2389)
+#define AEM_COLLAPSELINE          (WM_USER + 2390)
+#define AEM_COLLAPSEFOLD          (WM_USER + 2391)
 #define AEM_UPDATEFOLD            (WM_USER + 2392)
 
 //Document
@@ -4291,6 +4291,38 @@ Example:
  SendMessage(hWndEdit, AEM_ADDFOLD, (WPARAM)&pointMin, (LPARAM)&pointMax);
 
 
+AEM_DELETEFOLD
+______________
+
+Deletes specified or all folds.
+
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure). If NULL, then delete all folds.
+(BOOL)lParam     == TRUE  update scroll and selection.
+                    FALSE don't update scroll and selection.
+
+Return Value
+ Number of deleted folds that were collapsed.
+
+Example:
+ SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold, TRUE);
+
+
+AEM_ISFOLDVALID
+_______________
+
+Checks is fold handle valid.
+
+(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_ADDFOLD.
+lParam           == not used.
+
+Return Value
+ TRUE   fold handle is valid.
+ FALSE  fold handle isn't valid.
+
+Example:
+ SendMessage(hWndEdit, AEM_ISFOLDVALID, (WPARAM)lpFold, 0);
+
+
 AEM_FINDFOLD
 ____________
 
@@ -4400,38 +4432,6 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_COLLAPSEFOLD, (WPARAM)lpFold, AECF_COLLAPSE);
-
-
-AEM_ISFOLDVALID
-_______________
-
-Checks is fold handle valid.
-
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure), returned by AEM_ADDFOLD.
-lParam           == not used.
-
-Return Value
- TRUE   fold handle is valid.
- FALSE  fold handle isn't valid.
-
-Example:
- SendMessage(hWndEdit, AEM_ISFOLDVALID, (WPARAM)lpFold, 0);
-
-
-AEM_DELETEFOLD
-______________
-
-Deletes specified or all folds.
-
-(AEFOLD *)wParam == fold handle (pointer to a AEFOLD structure). If NULL, then delete all folds.
-(BOOL)lParam     == TRUE  update scroll and selection.
-                    FALSE don't update scroll and selection.
-
-Return Value
- Number of deleted folds that were collapsed.
-
-Example:
- SendMessage(hWndEdit, AEM_DELETEFOLD, (WPARAM)lpFold, TRUE);
 
 
 AEM_UPDATEFOLD
