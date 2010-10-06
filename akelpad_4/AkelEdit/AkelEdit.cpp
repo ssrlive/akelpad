@@ -1592,6 +1592,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       return (LRESULT)&ae->ptxt->hFoldsStack;
     }
+    if (uMsg == AEM_GETFOLDCOUNT)
+    {
+      return ae->ptxt->nFoldCount;
+    }
     if (uMsg == AEM_ADDFOLD)
     {
       AEPOINT *lpMinPoint=(AEPOINT *)wParam;
@@ -5228,8 +5232,17 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
     lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
   if (lpMaxPoint->nPointOffset == AEPTO_CALC)
     lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
+
+  //Fold start
   AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpMinPoint->nPointOffset, NULL, &lpMinParent, &lpMinPrevSubling);
-  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, lpMinParent, &lpMaxParent, &lpMaxPrevSubling);
+
+  //Fold end
+  if (lpMinParent && lpMinParent->lpMaxPoint->nPointOffset == lpMaxPoint->nPointOffset)
+  {
+    lpMaxParent=lpMinParent;
+    lpMaxPrevSubling=lpMinParent->lastChild;
+  }
+  else AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, lpMinParent, &lpMaxParent, &lpMaxPrevSubling);
 
   if (lpMinParent == lpMaxParent)
   {
@@ -5252,6 +5265,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
         lpNewElement->parent=lpMinParent;
         lpNewElement->firstChild=NULL;
         lpNewElement->lastChild=NULL;
+        ++ae->ptxt->nFoldCount;
       }
     }
     else
@@ -5281,6 +5295,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
         lpNewElement->parent=lpMinParent;
         lpNewElement->firstChild=lpMinSubling;
         lpNewElement->lastChild=lpMaxSubling;
+        ++ae->ptxt->nFoldCount;
       }
 
       //Change parent for childrens
@@ -5783,6 +5798,7 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
   AE_HeapStackDelete(NULL, (stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpFold);
+  --ae->ptxt->nFoldCount;
   return bCollapse;
 }
 
@@ -5825,6 +5841,8 @@ int AE_StackFoldFree(AKELEDIT *ae)
     lpSubling=lpParent;
     goto NextParent;
   }
+  ae->ptxt->nFoldCount=0;
+
   return nCollapse;
 }
 
