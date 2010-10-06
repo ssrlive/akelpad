@@ -360,9 +360,9 @@
 #define AEFF_FINDOFFSET      0x00000001  //AEFINDFOLD.dwFindIt is RichEdit offset.
 #define AEFF_FINDINDEX       0x00000002  //AEFINDFOLD.dwFindIt is pointer to a AECHARINDEX structure.
 #define AEFF_FINDLINE        0x00000004  //AEFINDFOLD.dwFindIt is zero based line number.
-#define AEFF_FOLDSTART       0x00000008  //Search for fold start.
-#define AEFF_FOLDEND         0x00000010  //Search for fold end.
-#define AEFF_ONLYEDGE        0x00000020  //AEFINDFOLD.dwFindIt points to fold start if AEFF_FOLDSTART specified or points to fold end if AEFF_FOLDEND.
+#define AEFF_FOLDSTART       0x00000008  //Fold is also accepted if AEFINDFOLD.dwFindIt points to fold start.
+#define AEFF_FOLDEND         0x00000010  //Fold is also accepted if AEFINDFOLD.dwFindIt points to fold end.
+#define AEFF_ONLYEDGE        0x00000020  //Fold is accepted only if AEFINDFOLD.dwFindIt points to fold start (if AEFF_FOLDSTART specified) or if points to fold end (if AEFF_FOLDEND specified).
 #define AEFF_RECURSE         0x00000040  //Recursive search. Returned fold will be deepest possible.
 #define AEFF_GETROOT         0x00000080  //Return root fold.
                                          //
