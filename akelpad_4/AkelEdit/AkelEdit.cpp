@@ -5228,8 +5228,8 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
     lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
   if (lpMaxPoint->nPointOffset == AEPTO_CALC)
     lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
-  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, lpMinPoint->nPointOffset, NULL, &lpMinParent, &lpMinPrevSubling);
-  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDEND|AEFF_RECURSE, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, lpMinParent, &lpMaxParent, &lpMaxPrevSubling);
+  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpMinPoint->nPointOffset, NULL, &lpMinParent, &lpMinPrevSubling);
+  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, lpMinParent, &lpMaxParent, &lpMaxPrevSubling);
 
   if (lpMinParent == lpMaxParent)
   {
@@ -5672,7 +5672,7 @@ int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
 
   //Find caret fold
   if (!lpFold && (dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
-    AE_StackFindFold(ae, AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_GETROOT, (DWORD)&ae->ciCaretIndex, NULL, &lpFold, NULL);
+    AE_StackFindFold(ae, AEFF_FINDINDEX|AEFF_GETROOT, (DWORD)&ae->ciCaretIndex, NULL, &lpFold, NULL);
 
   FoldScroll:
   AE_StackFoldScroll(ae, lpFold, dwFlags);
