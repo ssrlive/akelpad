@@ -5626,30 +5626,55 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
 
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags)
 {
+  AEFOLD *lpCount;
   int nResult=0;
 
   if (lpFold)
+    lpCount=lpFold;
+  else
+    lpCount=ae->ptxt->hFoldsStack.first;
+
+  while (lpCount)
   {
-    if (!lpFold->bCollapse != !(dwFlags & AECF_COLLAPSE))
+    if (!lpCount->bCollapse != !(dwFlags & AECF_COLLAPSE))
     {
-      lpFold->bCollapse=!lpFold->bCollapse;
+      lpCount->bCollapse=!lpCount->bCollapse;
       ++nResult;
     }
-    else lpFold=NULL;
-  }
-  else
-  {
-    for (lpFold=ae->ptxt->hFoldsStack.first; lpFold; lpFold=AE_NextFold(lpFold, TRUE))
+    if (dwFlags & AECF_RECURSE)
     {
-      if (!lpFold->bCollapse != !(dwFlags & AECF_COLLAPSE))
+      //Custom AE_NextFold implementation
+      if (lpCount->firstChild)
       {
-        lpFold->bCollapse=!lpFold->bCollapse;
-        ++nResult;
+        lpCount=lpCount->firstChild;
+      }
+      else
+      {
+         do
+         {
+           if (lpCount == lpFold)
+             goto FoldScroll;
+           if (lpCount->next)
+           {
+             lpCount=lpCount->next;
+             break;
+           }
+         }
+         while (lpCount=lpCount->parent);
       }
     }
-    if ((dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
-      AE_StackFindFold(ae, AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_GETROOT, (DWORD)&ae->ciCaretIndex, NULL, &lpFold, NULL);
+    else if (!lpFold)
+    {
+      lpCount=lpCount->next;
+    }
+    else break;
   }
+
+  //Find caret fold
+  if (!lpFold && (dwFlags & AECF_COLLAPSE) && !(dwFlags & AECF_NOCARETCORRECT))
+    AE_StackFindFold(ae, AEFF_FINDINDEX|AEFF_FOLDSTART|AEFF_GETROOT, (DWORD)&ae->ciCaretIndex, NULL, &lpFold, NULL);
+
+  FoldScroll:
   AE_StackFoldScroll(ae, lpFold, dwFlags);
 
   return nResult;
@@ -11214,7 +11239,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
     }
     else
     {
-      //Manual AEGI_NEXTVISIBLELINE implementation
+      //Custom AEGI_NEXTVISIBLELINE implementation
       AECHARINDEX ciCharTmp=ciCount;
 
       while (AE_NextLine(&ciCharTmp))
