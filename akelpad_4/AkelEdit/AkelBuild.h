@@ -436,6 +436,7 @@ typedef struct {
 
   //Folding
   AESTACKFOLD hFoldsStack;
+  int nFoldCount;
   int nHideMinLineOffset;
   int nHideMaxLineOffset;
   AEFOLD *lpIsCollapsedLastCall;

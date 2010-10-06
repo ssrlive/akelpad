@@ -637,7 +637,7 @@ typedef struct {
   DWORD dwFlags;         //[in]     See AEFF_* defines.
   DWORD dwFindIt;        //[in]     Depend on AEFF_FIND* define.
   AEFOLD *lpParent;      //[out]    Parent fold.
-  AEFOLD *lpPrevSubling; //[out]    Previous subling fold. Valid if lpParent is NULL.
+  AEFOLD *lpPrevSubling; //[out]    Previous subling fold.
 } AEFINDFOLD;
 
 typedef struct {
@@ -1220,16 +1220,17 @@ typedef struct {
 
 //Folding
 #define AEM_GETFOLDSTACK          (WM_USER + 2381)
-#define AEM_ADDFOLD               (WM_USER + 2382)
-#define AEM_FINDFOLD              (WM_USER + 2383)
-#define AEM_NEXTFOLD              (WM_USER + 2384)
-#define AEM_PREVFOLD              (WM_USER + 2385)
-#define AEM_ISLINECOLLAPSED       (WM_USER + 2386)
-#define AEM_COLLAPSELINE          (WM_USER + 2387)
-#define AEM_COLLAPSEFOLD          (WM_USER + 2388)
-#define AEM_ISFOLDVALID           (WM_USER + 2389)
-#define AEM_DELETEFOLD            (WM_USER + 2390)
-#define AEM_UPDATEFOLD            (WM_USER + 2391)
+#define AEM_GETFOLDCOUNT          (WM_USER + 2382)
+#define AEM_ADDFOLD               (WM_USER + 2383)
+#define AEM_FINDFOLD              (WM_USER + 2384)
+#define AEM_NEXTFOLD              (WM_USER + 2385)
+#define AEM_PREVFOLD              (WM_USER + 2386)
+#define AEM_ISLINECOLLAPSED       (WM_USER + 2387)
+#define AEM_COLLAPSELINE          (WM_USER + 2388)
+#define AEM_COLLAPSEFOLD          (WM_USER + 2389)
+#define AEM_ISFOLDVALID           (WM_USER + 2390)
+#define AEM_DELETEFOLD            (WM_USER + 2391)
+#define AEM_UPDATEFOLD            (WM_USER + 2392)
 
 //Document
 #define AEM_CREATEDOCUMENT        (WM_USER + 2401)
@@ -4252,6 +4253,21 @@ AEFOLD* GetFold(HWND hWnd, int nLine)
   }
   return lpResult;
 }
+
+
+AEM_GETFOLDCOUNT
+________________
+
+Retrieve folds count.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Number of folds.
+
+Example:
+  SendMessage(hWnd, AEM_GETFOLDCOUNT, 0, 0);
 
 
 AEM_ADDFOLD
