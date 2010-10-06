@@ -1603,6 +1603,33 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       return (LRESULT)AE_StackFoldInsert(ae, lpMinPoint, lpMaxPoint);
     }
+    if (uMsg == AEM_DELETEFOLD)
+    {
+      int nFirstVisibleLine=-1;
+      int nResult;
+      BOOL bUpdate=lParam;
+
+      if (bUpdate)
+      {
+        if (!ae->popt->bVScrollLock)
+          nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
+      }
+
+      if (wParam)
+        nResult=AE_StackFoldDelete(ae, (AEFOLD *)wParam);
+      else
+        nResult=AE_StackFoldFree(ae);
+
+      if (bUpdate && nResult)
+      {
+        AE_StackFoldUpdate(ae, nFirstVisibleLine);
+      }
+      return nResult;
+    }
+    if (uMsg == AEM_ISFOLDVALID)
+    {
+      return (LRESULT)AE_StackFoldIsValid(ae, (AEFOLD *)wParam);
+    }
     if (uMsg == AEM_FINDFOLD)
     {
       AEFINDFOLD *ff=(AEFINDFOLD *)wParam;
@@ -1641,33 +1668,6 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       ae->ptxt->lpVPosFold=NULL;
 
       if (nResult && !(lParam & AECF_NOUPDATE))
-      {
-        AE_StackFoldUpdate(ae, nFirstVisibleLine);
-      }
-      return nResult;
-    }
-    if (uMsg == AEM_ISFOLDVALID)
-    {
-      return (LRESULT)AE_StackFoldIsValid(ae, (AEFOLD *)wParam);
-    }
-    if (uMsg == AEM_DELETEFOLD)
-    {
-      int nFirstVisibleLine=-1;
-      int nResult;
-      BOOL bUpdate=lParam;
-
-      if (bUpdate)
-      {
-        if (!ae->popt->bVScrollLock)
-          nFirstVisibleLine=AE_GetFirstVisibleLine(ae);
-      }
-
-      if (wParam)
-        nResult=AE_StackFoldDelete(ae, (AEFOLD *)wParam);
-      else
-        nResult=AE_StackFoldFree(ae);
-
-      if (bUpdate && nResult)
       {
         AE_StackFoldUpdate(ae, nFirstVisibleLine);
       }
