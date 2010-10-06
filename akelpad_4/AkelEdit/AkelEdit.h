@@ -132,9 +132,10 @@
 //AEM_COLLAPSELINE and AEM_COLLAPSEFOLD flags
 #define AECF_EXPAND           0x00000000  //Expand fold (default).
 #define AECF_COLLAPSE         0x00000001  //Collapse fold.
-#define AECF_NOUPDATE         0x00000002  //Don't update scroll and selection.
-#define AECF_NOCARETCORRECT   0x00000004  //If in collapsed fold located caret, don't move it to fold start.
-#define AECF_NOSCROLLCORRECT  0x00000008  //If fold collapsed, don't scroll to make fold start visible.
+#define AECF_RECURSE          0x00000002  //Recursive processing with all childrens.
+#define AECF_NOUPDATE         0x00000004  //Don't update scroll and selection.
+#define AECF_NOCARETCORRECT   0x00000008  //If in collapsed fold located caret, don't move it to fold start.
+#define AECF_NOSCROLLCORRECT  0x00000010  //If fold collapsed, don't scroll to make fold start visible.
 
 //AEN_DROPTARGET actions
 #define AEDT_TARGETENTER        1  //Enter into the target window.
