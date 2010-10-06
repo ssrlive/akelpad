@@ -5427,32 +5427,32 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
 
     if (!(dwFlags & AEFF_FINDLINE) ?
            //AEFF_FINDOFFSET or AEFF_FINDINDEX
-           (nFindOffset > lpSubling->lpMinPoint->nPointOffset ||
-           ((dwFlags & AEFF_FOLDSTART) && nFindOffset == lpSubling->lpMinPoint->nPointOffset)) :
+           ((nFindOffset > lpSubling->lpMinPoint->nPointOffset) ||
+            ((dwFlags & AEFF_FOLDSTART) && nFindOffset == lpSubling->lpMinPoint->nPointOffset)) :
            //AEFF_FINDLINE
-           (nFindLine > lpSubling->lpMinPoint->ciPoint.nLine ||
-           ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
+           ((nFindLine > lpSubling->lpMinPoint->ciPoint.nLine) ||
+            ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
     {
       while (lpSubling)
       {
         if (!(dwFlags & AEFF_FINDLINE) ?
                //AEFF_FINDOFFSET or AEFF_FINDINDEX
-               (nFindOffset < lpSubling->lpMinPoint->nPointOffset ||
-               (!(dwFlags & AEFF_FOLDSTART) && nFindOffset == lpSubling->lpMinPoint->nPointOffset)) :
+               ((nFindOffset < lpSubling->lpMinPoint->nPointOffset) ||
+                (!(dwFlags & AEFF_FOLDSTART) && nFindOffset == lpSubling->lpMinPoint->nPointOffset)) :
                //AEFF_FINDLINE
-               (nFindLine < lpSubling->lpMinPoint->ciPoint.nLine ||
-               (!(dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
+               ((nFindLine < lpSubling->lpMinPoint->ciPoint.nLine) ||
+                (!(dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
         {
           break;
         }
 
         if (!(dwFlags & AEFF_FINDLINE) ?
                //AEFF_FINDOFFSET or AEFF_FINDINDEX
-               ((!(dwFlags & AEFF_ONLYEDGE) && nFindOffset < lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen) ||
+               ((nFindOffset < lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen) ||
                 ((dwFlags & AEFF_FOLDEND) && nFindOffset == lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen)) :
                //AEFF_FINDLINE
-               (nFindLine < lpSubling->lpMaxPoint->ciPoint.nLine ||
-               ((dwFlags & AEFF_FOLDEND) && nFindLine == lpSubling->lpMaxPoint->ciPoint.nLine)))
+               ((nFindLine < lpSubling->lpMaxPoint->ciPoint.nLine) ||
+                ((dwFlags & AEFF_FOLDEND) && nFindLine == lpSubling->lpMaxPoint->ciPoint.nLine)))
         {
           lpParent=lpSubling;
           lpPrevSubling=NULL;
@@ -5483,22 +5483,22 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
       {
         if (!(dwFlags & AEFF_FINDLINE) ?
                //AEFF_FINDOFFSET or AEFF_FINDINDEX
-               (nFindOffset > lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen ||
-               (!(dwFlags & AEFF_FOLDEND) && nFindOffset == lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen)) :
+               ((nFindOffset > lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen) ||
+                (!(dwFlags & AEFF_FOLDEND) && nFindOffset == lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen)) :
                //AEFF_FINDLINE
-               (nFindLine > lpSubling->lpMaxPoint->ciPoint.nLine ||
-               (!(dwFlags & AEFF_FOLDEND) && nFindLine == lpSubling->lpMaxPoint->ciPoint.nLine)))
+               ((nFindLine > lpSubling->lpMaxPoint->ciPoint.nLine) ||
+                (!(dwFlags & AEFF_FOLDEND) && nFindLine == lpSubling->lpMaxPoint->ciPoint.nLine)))
         {
           break;
         }
 
         if (!(dwFlags & AEFF_FINDLINE) ?
                //AEFF_FINDOFFSET or AEFF_FINDINDEX
-               ((!(dwFlags & AEFF_ONLYEDGE) && nFindOffset > lpSubling->lpMinPoint->nPointOffset) ||
+               ((nFindOffset > lpSubling->lpMinPoint->nPointOffset) ||
                 ((dwFlags & AEFF_FOLDSTART) && nFindOffset == lpSubling->lpMinPoint->nPointOffset)) :
                //AEFF_FINDLINE
-               (nFindLine > lpSubling->lpMinPoint->ciPoint.nLine ||
-               ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
+               ((nFindLine > lpSubling->lpMinPoint->ciPoint.nLine) ||
+                ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
         {
           lpParent=lpSubling;
           if (!(dwFlags & AEFF_RECURSE))
