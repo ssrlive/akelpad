@@ -16670,17 +16670,6 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
   int nNewLine;
   DWORD dwCount;
 
-  //Optimization: compare first character here
-  if (ft->dwFlags & AEFR_MATCHCASE)
-  {
-    if (ciChar->lpLine->wpLine[ciChar->nCharInLine] != *ft->pText)
-      return 0;
-  }
-  else
-  {
-    if (WideCharLower(ciChar->lpLine->wpLine[ciChar->nCharInLine]) != WideCharLower(*ft->pText))
-      return 0;
-  }
   if (ft->dwFlags & AEFR_WHOLEWORD)
   {
     if (!AE_IsDelimiter(ae, ciChar, AEDLM_WORD|AEDLM_PREVCHAR))
@@ -16698,7 +16687,6 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
     else if (nNewLine == AELB_ASOUTPUT)
       nNewLine=ae->popt->nOutputNewLine;
   }
-  goto CharMatched;
 
   for (;;)
   {
@@ -16715,7 +16703,6 @@ DWORD AE_IsMatch(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
           return 0;
       }
 
-      CharMatched:
       if (ft->dwTextLen == (DWORD)-1)
       {
         if (!ft->pText[++dwCount])
