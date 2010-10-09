@@ -384,6 +384,7 @@ BOOL bMdiNoWindows=FALSE;
 HWND hTab=NULL;
 DWORD dwTabOpenTimer=0;
 int nTabOpenItem=-1;
+int nDocumentCount=0;
 HSTACK hIconsStack={0};
 HIMAGELIST hImageList;
 HICON hIconEmpty;
@@ -4073,6 +4074,9 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpFrame->ei.hDocEdit=(AEHDOC)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
+      ++nDocumentCount;
+      UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
+
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
       SetEditWindowSettings(lpFrame);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDocEdit);
@@ -4571,6 +4575,8 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
           //Remove tab item
           DeleteTabItem(hTab, nTabItem);
+          --nDocumentCount;
+          UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
 
           //Get frame window maximize state
           SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
