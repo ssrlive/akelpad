@@ -6,6 +6,7 @@ Changed: return alignment to left in the status bar.
 
 Added: Czech language module (Frantisek Bartos).
 Added: Hungarian language module (ZityiSoft).
+Added: variable "%dc" for "StatusUserFormat" - document count (MDI/PMDI).
 
 Fixed: reopenning a file in split windows.
 Fixed: reopenning group of files with option "Don't open a file twice".

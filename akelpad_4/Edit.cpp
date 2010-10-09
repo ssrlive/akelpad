@@ -245,6 +245,7 @@ extern BOOL bMdiNoWindows;
 extern HWND hTab;
 extern DWORD dwTabOpenTimer;
 extern int nTabOpenItem;
+extern int nDocumentCount;
 extern HSTACK hIconsStack;
 extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
@@ -741,6 +742,9 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
       lpFrame->ei.hWndEdit=fdInit.ei.hWndEdit;
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
+      ++nDocumentCount;
+      UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
+
       ActivateMdiFrameWindow(lpFrame, 0);
       SetEditWindowSettings(lpFrameCurrent);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
@@ -891,6 +895,8 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
 
         //Remove tab item
         DeleteTabItem(hTab, nTabItem);
+        --nDocumentCount;
+        UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
 
         //Activate previous window
         if (lpFrameToActivate)
@@ -14543,6 +14549,16 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
           i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nReplaceCount);
         else
           dwFlags|=CSB_REPLACECOUNT;
+      }
+      else if (*wpString == 'd')
+      {
+        if (*++wpString == 'c')
+        {
+          if (lpFrame)
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nDocumentCount);
+          else
+            dwFlags|=CSB_DOCUMENTCOUNT;
+        }
       }
       else break;
     }
