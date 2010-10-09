@@ -4074,12 +4074,14 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpFrame->ei.hDocEdit=(AEHDOC)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
-      ++nDocumentCount;
-      UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
 
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
       SetEditWindowSettings(lpFrame);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDocEdit);
+
+      //Update status
+      ++nDocumentCount;
+      UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
     }
   }
   else if (uMsg == WM_SIZE)
@@ -4564,6 +4566,10 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {
+          //Update status
+          --nDocumentCount;
+          UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
+
           SendMessage(hMainWnd, AKDN_FRAME_DESTROY, (WPARAM)lpFrame, (LPARAM)lpFrame->hWndEditParent);
 
           //Avoid program exit blinking on last frame close
@@ -4572,11 +4578,6 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
             if (SendMessage(hTab, TCM_GETITEMCOUNT, 0, 0) == 1)
               SendMessage(hMdiClient, WM_SETREDRAW, FALSE, 0);
           }
-
-          //Remove tab item
-          DeleteTabItem(hTab, nTabItem);
-          --nDocumentCount;
-          UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
 
           //Get frame window maximize state
           SendMessage(hMdiClient, WM_MDIGETACTIVE, 0, (LPARAM)&bMdiMaximize);
@@ -4590,6 +4591,9 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           lpFrame->ei.hWndEdit=NULL;
           lpFrame->ei.hDocEdit=NULL;
           bEditOnFinish=FALSE;
+
+          //Remove tab item
+          DeleteTabItem(hTab, nTabItem);
 
           //Delete frame data
           SetWindowLongWide((HWND)wParam, GWL_USERDATA, (LONG)0);

@@ -742,12 +742,14 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
       lpFrame->ei.hWndEdit=fdInit.ei.hWndEdit;
 
       AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
-      ++nDocumentCount;
-      UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
 
       ActivateMdiFrameWindow(lpFrame, 0);
       SetEditWindowSettings(lpFrameCurrent);
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
+
+      //Update status
+      ++nDocumentCount;
+      UpdateStatusUser(lpFrameCurrent, CSB_DOCUMENTCOUNT);
 
       bResult=TRUE;
     }
@@ -884,6 +886,10 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
 
       if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
       {
+        //Update status
+        --nDocumentCount;
+        UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
+
         SendMessage(hMainWnd, AKDN_FRAME_DESTROY, (WPARAM)lpFrame, (LPARAM)NULL);
 
         //Destroy active document
@@ -895,8 +901,6 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
 
         //Remove tab item
         DeleteTabItem(hTab, nTabItem);
-        --nDocumentCount;
-        UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
 
         //Activate previous window
         if (lpFrameToActivate)
