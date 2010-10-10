@@ -246,7 +246,7 @@ extern HWND hTab;
 extern DWORD dwTabOpenTimer;
 extern int nTabOpenItem;
 extern int nDocumentCount;
-extern HSTACK hIconsStack;
+extern STACKASSOCICON hIconsStack;
 extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
 extern BOOL bTabPressed;
@@ -591,6 +591,7 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   lpFrameTarget->wszFile[0]=L'\0';
   lpFrameTarget->nFileLen=0;
   lpFrameTarget->hIcon=hIconEmpty;
+  lpFrameTarget->nIconIndex=0;
   //lpFrameTarget->rcEditWindow=lpFrameSource->rcEditWindow;
   //lpFrameTarget->rcMasterWindow=lpFrameSource->rcMasterWindow;
 
@@ -741,7 +742,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
       lpFrame->lpEditProc=fdInit.lpEditProc;
       lpFrame->ei.hWndEdit=fdInit.ei.hWndEdit;
 
-      AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
+      AddTabItem(hTab, (LPARAM)lpFrame);
 
       ActivateMdiFrameWindow(lpFrame, 0);
       SetEditWindowSettings(lpFrameCurrent);
@@ -14844,7 +14845,7 @@ void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD 
   }
 }
 
-ASSOCICON* StackIconInsert(HSTACK *hStack, const wchar_t *wpFile, int nFileLen)
+ASSOCICON* StackIconInsert(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFileLen)
 {
   ASSOCICON *lpElement=NULL;
 
@@ -14853,18 +14854,23 @@ ASSOCICON* StackIconInsert(HSTACK *hStack, const wchar_t *wpFile, int nFileLen)
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ASSOCICON)))
   {
-    xstrcpynW(lpElement->wszFile, wpFile, MAX_PATH);
-    lpElement->nFileLen=nFileLen;
-    lpElement->wpExt=GetAssociatedIconW(lpElement->wszFile, NULL, NULL, NULL, &lpElement->hIcon);
+    ++hStack->nElements;
+    if (wpFile)
+    {
+      xstrcpynW(lpElement->wszFile, wpFile, MAX_PATH);
+      lpElement->nFileLen=nFileLen;
+      lpElement->wpExt=GetAssociatedIconW(lpElement->wszFile, NULL, NULL, NULL, &lpElement->hIcon);
+    }
+    lpElement->nIconIndex=hStack->nElements - 1;
 
     return lpElement;
   }
   return NULL;
 }
 
-ASSOCICON* StackIconGet(HSTACK *hStack, const wchar_t *wpFile, int nFileLen, const wchar_t *wpExt)
+ASSOCICON* StackIconGet(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFileLen, const wchar_t *wpExt)
 {
-  ASSOCICON *lpElement=(ASSOCICON *)hStack->first;
+  ASSOCICON *lpElement=hStack->first->next;
 
   if (nFileLen == -1)
     nFileLen=lstrlenW(wpFile);
@@ -14882,7 +14888,7 @@ ASSOCICON* StackIconGet(HSTACK *hStack, const wchar_t *wpFile, int nFileLen, con
   return NULL;
 }
 
-void StackIconsFree(HSTACK *hStack)
+void StackIconsFree(STACKASSOCICON *hStack)
 {
   ASSOCICON *lpElement=(ASSOCICON *)hStack->first;
 
@@ -14893,6 +14899,7 @@ void StackIconsFree(HSTACK *hStack)
     lpElement=lpElement->next;
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+  hStack->nElements=0;
 }
 
 
@@ -17218,6 +17225,7 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
     TCITEMW tcItem={0};
     const wchar_t *wpExt;
     HICON hIcon=NULL;
+    int nIconIndex=0;
     int nItem;
 
     if (nMDI == WMD_MDI)
@@ -17230,10 +17238,18 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
     if (wpExt=GetFileExt(wpFileName))
     {
       if (!(ai=StackIconGet(&hIconsStack, wszFile, nFileLen, wpExt)))
-        ai=StackIconInsert(&hIconsStack, wszFile, nFileLen);
+      {
+        if (ai=StackIconInsert(&hIconsStack, wszFile, nFileLen))
+          ImageList_AddIcon(hImageList, ai->hIcon);
+      }
       hIcon=ai->hIcon;
+      nIconIndex=ai->nIconIndex;
     }
-    if (!hIcon) hIcon=hIconEmpty;
+    if (!hIcon)
+    {
+      hIcon=hIconEmpty;
+      nIconIndex=0;
+    }
 
     if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
     {
@@ -17242,14 +17258,10 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
       //Replace "&" with "&&"
       FixAmpW(wpFileName, wszTabName, MAX_PATH);
 
-      //Set tab icon
-      tcItem.mask=TCIF_IMAGE;
-      TabCtrl_GetItemWide(hTab, nItem, &tcItem);
-      ImageList_ReplaceIcon(hImageList, tcItem.iImage, hIcon);
-
       //Set tab text
-      tcItem.mask=TCIF_TEXT;
+      tcItem.mask=TCIF_TEXT|TCIF_IMAGE;
       tcItem.pszText=wszTabName;
+      tcItem.iImage=nIconIndex;
       TabCtrl_SetItemWide(hTab, nItem, &tcItem);
     }
 
@@ -17258,6 +17270,7 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
     lpFrame->nFileLen=lstrlenW(lpFrame->wszFile);
     WideCharToMultiByte(CP_ACP, 0, lpFrame->wszFile, lpFrame->nFileLen + 1, lpFrame->szFile, MAX_PATH, NULL, NULL);
     lpFrame->hIcon=hIcon;
+    lpFrame->nIconIndex=nIconIndex;
 
     if (nMDI == WMD_MDI)
     {
@@ -17282,7 +17295,7 @@ void UpdateTabs(HWND hWnd)
   }
 }
 
-int AddTabItem(HWND hWnd, HICON hIcon, LPARAM lParam)
+int AddTabItem(HWND hWnd, LPARAM lParam)
 {
   TCITEMW tcItem={0};
   int nItemCount;
@@ -17293,7 +17306,7 @@ int AddTabItem(HWND hWnd, HICON hIcon, LPARAM lParam)
     nItemCount=SendMessage(hWnd, TCM_GETITEMCOUNT, 0, 0);
     tcItem.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
     tcItem.pszText=L"";
-    tcItem.iImage=ImageList_AddIcon(hImageList, hIcon);
+    tcItem.iImage=0;
     tcItem.lParam=lParam;
     nResult=TabCtrl_InsertItemWide(hWnd, nItemCount, &tcItem);
 
@@ -17432,7 +17445,6 @@ BOOL DeleteTabItem(HWND hWnd, int nIndex)
   tcItem.mask=TCIF_IMAGE;
   if (TabCtrl_GetItemWide(hWnd, nIndex, &tcItem))
   {
-    SendMessage(hWnd, TCM_REMOVEIMAGE, tcItem.iImage, 0);
     SendMessage(hWnd, TCM_DELETEITEM, nIndex, 0);
     return TRUE;
   }

@@ -622,6 +622,7 @@ typedef struct _FRAMEDATA {
   wchar_t wszFile[MAX_PATH];                          //Frame file (Unicode).
   int nFileLen;                                       //Frame file length.
   HICON hIcon;                                        //Frame icon.
+  int nIconIndex;                                     //Frame ImageList icon index.
   RECT rcEditWindow;                                  //Edit RECT. rcEditWindow.right - is width and rcEditWindow.bottom is height.
   RECT rcMasterWindow;                                //Master window RECT (4.x only). rcMasterWindow.right - is width and rcMasterWindow.bottom is height.
 

@@ -4426,7 +4426,10 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
 
   //Create heap
   ae->ptxt->hHeap=HeapCreate(ae->popt->bHeapSerialize?0:HEAP_NO_SERIALIZE, 0, 0);
-
+  if (!ae->ptxt->hHeap)
+  {
+    //Became NULL if called more than ~8000 times for process.
+  }
   return ae->ptxt->hHeap;
 }
 
@@ -4435,7 +4438,7 @@ LPVOID AE_HeapAlloc(AKELEDIT *ae, DWORD dwFlags, SIZE_T dwBytes)
   LPVOID lpResult;
   HANDLE hHeap;
 
-  if (!ae)
+  if (!ae || !ae->ptxt->hHeap)
     hHeap=hAkelEditProcessHeap;
   else
     hHeap=ae->ptxt->hHeap;
@@ -6499,6 +6502,7 @@ int AE_GetWrapLine(AKELEDIT *ae, int nLine, AECHARINDEX *ciCharOut)
 
   if (nLine < 0) nLine=ae->ptxt->nLineUnwrapCount + nLine + 1;
   if (nLine < 0 || nLine > ae->ptxt->nLineUnwrapCount) return -1;
+  if (!ae->ptxt->dwWordWrap) return nLine;
 
   //Find nearest element in stack
   dwFirst=mod(nLine - 0);
@@ -6583,6 +6587,7 @@ int AE_GetUnwrapLine(AKELEDIT *ae, int nLine)
 
   if (nLine < 0) nLine=ae->ptxt->nLineCount + nLine + 1;
   if (nLine < 0 || nLine > ae->ptxt->nLineCount) return -1;
+  if (!ae->ptxt->dwWordWrap) return nLine;
 
   //Find nearest element in stack
   dwFirst=mod(nLine - 0);

@@ -385,9 +385,9 @@ HWND hTab=NULL;
 DWORD dwTabOpenTimer=0;
 int nTabOpenItem=-1;
 int nDocumentCount=0;
-HSTACK hIconsStack={0};
+STACKASSOCICON hIconsStack={0};
 HIMAGELIST hImageList;
-HICON hIconEmpty;
+HICON hIconEmpty=NULL;
 BOOL bTabPressed=FALSE;
 RECT rcMdiListInitDialog={0};
 WNDPROC OldMdiClientProc;
@@ -510,6 +510,7 @@ extern "C" void _WinMain()
   //fdInit.wszFile[0]=L'\0';
   //fdInit.nFileLen=0;
   fdInit.hIcon=hIconEmpty;
+  fdInit.nIconIndex=0;
   //fdInit.rcEditWindow.left=0;
   //fdInit.rcEditWindow.top=0;
   //fdInit.rcEditWindow.right=0;
@@ -1255,6 +1256,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       ImageList_SetBkColor(hImageList, GetSysColor(COLOR_BTNFACE));
       SendMessage(hTab, TCM_SETIMAGELIST, 0, (LPARAM)hImageList);
       SendMessage(hTab, TCM_SETEXTENDEDSTYLE, 0, TCS_EX_FLATSEPARATORS|TCS_EX_REGISTERDROP);
+
+      //Insert hIconEmpty to ImageList as first element
+      {
+        ASSOCICON *ai;
+
+        if (ai=StackIconInsert(&hIconsStack, NULL, 0))
+        {
+          ai->hIcon=hIconEmpty;
+          ImageList_AddIcon(hImageList, ai->hIcon);
+        }
+      }
     }
 
     //Status Bar
@@ -4073,7 +4085,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);
       lpFrame->ei.hDocEdit=(AEHDOC)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENT, 0, 0);
 
-      AddTabItem(hTab, lpFrame->hIcon, (LPARAM)lpFrame);
+      AddTabItem(hTab, (LPARAM)lpFrame);
 
       SendMessage(hWnd, WM_SETICON, ICON_SMALL, (LPARAM)lpFrame->hIcon);
       SetEditWindowSettings(lpFrame);

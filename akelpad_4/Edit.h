@@ -553,7 +553,14 @@ typedef struct _ASSOCICON {
   int nFileLen;
   const wchar_t *wpExt;
   HICON hIcon;
+  int nIconIndex;
 } ASSOCICON;
+
+typedef struct {
+  ASSOCICON *first;
+  ASSOCICON *last;
+  int nElements;
+} STACKASSOCICON;
 
 typedef struct {
   HANDLE hThread;
@@ -900,9 +907,9 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
 
 const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall);
 void AssociateFileTypesW(HINSTANCE hInstance, const wchar_t *wpFileTypes, DWORD dwFlags);
-ASSOCICON* StackIconInsert(HSTACK *hStack, const wchar_t *wpFile, int nFileLen);
-ASSOCICON* StackIconGet(HSTACK *hStack, const wchar_t *wpFile, int nFileLen, const wchar_t *wpExt);
-void StackIconsFree(HSTACK *hStack);
+ASSOCICON* StackIconInsert(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFileLen);
+ASSOCICON* StackIconGet(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFileLen, const wchar_t *wpExt);
+void StackIconsFree(STACKASSOCICON *hStack);
 
 HFONT SetChosenFont(HWND hWnd, const LOGFONTW *lfFont);
 int GetFontPoint(HWND hWnd, const LOGFONTW *lfFont);
@@ -981,7 +988,7 @@ BOOL ClientToScreenRect(HWND hWnd, RECT *rc);
 BOOL EnsureWindowInMonitor(RECT *rcWindow);
 void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile);
 void UpdateTabs(HWND hWnd);
-int AddTabItem(HWND hWnd, HICON hIcon, LPARAM lParam);
+int AddTabItem(HWND hWnd, LPARAM lParam);
 LPARAM GetTabParamFromItem(HWND hWnd, int nItem);
 int GetTabItemFromParam(HWND hWnd, LPARAM lParam);
 int GetTabItemFromCursorPos(HWND hWnd);
