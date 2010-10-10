@@ -559,7 +559,7 @@ typedef struct _ASSOCICON {
 typedef struct {
   ASSOCICON *first;
   ASSOCICON *last;
-  int nElements;
+  int nValidIcons;
 } STACKASSOCICON;
 
 typedef struct {
