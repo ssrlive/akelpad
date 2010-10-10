@@ -14854,15 +14854,17 @@ ASSOCICON* StackIconInsert(STACKASSOCICON *hStack, const wchar_t *wpFile, int nF
 
   if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(ASSOCICON)))
   {
-    ++hStack->nElements;
     if (wpFile)
     {
       xstrcpynW(lpElement->wszFile, wpFile, MAX_PATH);
       lpElement->nFileLen=nFileLen;
       lpElement->wpExt=GetAssociatedIconW(lpElement->wszFile, NULL, NULL, NULL, &lpElement->hIcon);
     }
-    lpElement->nIconIndex=hStack->nElements - 1;
-
+    if (lpElement->hIcon)
+    {
+      ++hStack->nValidIcons;
+      lpElement->nIconIndex=hStack->nValidIcons;
+    }
     return lpElement;
   }
   return NULL;
@@ -14899,7 +14901,7 @@ void StackIconsFree(STACKASSOCICON *hStack)
     lpElement=lpElement->next;
   }
   StackClear((stack **)&hStack->first, (stack **)&hStack->last);
-  hStack->nElements=0;
+  hStack->nValidIcons=0;
 }
 
 
@@ -17238,10 +17240,8 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
     if (wpExt=GetFileExt(wpFileName))
     {
       if (!(ai=StackIconGet(&hIconsStack, wszFile, nFileLen, wpExt)))
-      {
         if (ai=StackIconInsert(&hIconsStack, wszFile, nFileLen))
-          ImageList_AddIcon(hImageList, ai->hIcon);
-      }
+          if (ai->hIcon) ImageList_AddIcon(hImageList, ai->hIcon);
       hIcon=ai->hIcon;
       nIconIndex=ai->nIconIndex;
     }
