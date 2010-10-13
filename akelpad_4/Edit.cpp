@@ -14892,7 +14892,7 @@ ASSOCICON* StackIconGet(STACKASSOCICON *hStack, const wchar_t *wpFile, int nFile
 
 void StackIconsFree(STACKASSOCICON *hStack)
 {
-  ASSOCICON *lpElement=(ASSOCICON *)hStack->first;
+  ASSOCICON *lpElement=(ASSOCICON *)hStack->first->next;
 
   while (lpElement)
   {
