@@ -572,6 +572,17 @@ typedef struct {
 } DROPFILESTHREAD;
 
 typedef struct {
+  int nCodePage;
+  BOOL bBOM;
+  BOOL bResult;
+} DIALOGCODEPAGE;
+
+typedef struct {
+  POSTMESSAGE pm;
+  PARSECMDLINESENDW pcls;
+} PMPARSECMDLINEW;
+
+typedef struct {
   BOOL bModified;
   BOOL bReadOnly;
   BOOL bOvertypeMode;
@@ -579,12 +590,6 @@ typedef struct {
   int nCodePage;
   BOOL bBOM;
 } STATUSSTATE;
-
-typedef struct {
-  int nCodePage;
-  BOOL bBOM;
-  BOOL bResult;
-} DIALOGCODEPAGE;
 
 
 //// Functions prototype
@@ -762,8 +767,8 @@ LRESULT CALLBACK NewComboboxEditProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 void FillComboboxSearch(HWND hWndFind, HWND hWndReplace);
 int GetComboboxSearchText(HWND hWnd, wchar_t **wszText_orig, wchar_t **wszText, int nNewLine);
 void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace);
-int FindTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen);
-int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount);
+int TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen);
+int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount);
 int StrReplaceW(const wchar_t *wpText, int nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVisible);
 int EscapeStringToEscapeDataW(const wchar_t *wpInput, wchar_t *wszOutput, int nNewLine);
 void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput);

@@ -1686,12 +1686,12 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
           MultiByteToWideChar(CP_ACP, 0, (char *)tf->pFindIt, tf->nFindItLen, wpFindIt, nFindItLen);
 
-          nResult=FindTextW(hWnd, tf->dwFlags, wpFindIt, tf->nFindItLen);
+          nResult=TextFindW(hWnd, tf->dwFlags, wpFindIt, tf->nFindItLen);
           GlobalFree((HGLOBAL)wpFindIt);
         }
         return nResult;
       }
-      return FindTextW(hWnd, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
+      return TextFindW(hWnd, tf->dwFlags, tf->pFindIt, tf->nFindItLen);
     }
     if (uMsg == AKD_TEXTREPLACE ||
         uMsg == AKD_TEXTREPLACEA ||
@@ -1721,14 +1721,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             MultiByteToWideChar(CP_ACP, 0, (char *)tr->pReplaceWith, tr->nReplaceWithLen, wpReplaceWith, nReplaceWithLen);
 
-            nResult=ReplaceTextW(hWnd, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+            nResult=TextReplaceW(hWnd, tr->dwFlags, wpFindIt, tr->nFindItLen, wpReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
             GlobalFree((HGLOBAL)wpReplaceWith);
           }
           GlobalFree((HGLOBAL)wpFindIt);
         }
         return nResult;
       }
-      return ReplaceTextW(hWnd, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+      return TextReplaceW(hWnd, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
     }
     if (uMsg == AKD_RECODESEL)
     {
@@ -2711,19 +2711,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (cds->dwData == CD_PARSECMDLINEW)
     {
       PARSECMDLINEPOSTW *pclp=(PARSECMDLINEPOSTW *)cds->lpData;
-
-      struct PMPARSECMDLINEW {
-        POSTMESSAGE pm;
-        PARSECMDLINESENDW pcls;
-        //In this place: command line string in size (pclp->nCmdLineLen + 1) * sizeof(wchar_t).
-        //In this place: working directory string in size (pclp->nWorkDirLen + 1) * sizeof(wchar_t).
-      } *pmpcl;
+      PMPARSECMDLINEW *pmpcl;
 
       if (pmpcl=(PMPARSECMDLINEW *)GlobalAlloc(GMEM_FIXED, sizeof(PMPARSECMDLINEW) + (pclp->nCmdLineLen + 1) * sizeof(wchar_t) + (pclp->nWorkDirLen + 1) * sizeof(wchar_t)))
       {
+        //In this place: command line string in size (pclp->nCmdLineLen + 1) * sizeof(wchar_t).
         pmpcl->pcls.pCmdLine=(wchar_t *)((unsigned char *)pmpcl + sizeof(PMPARSECMDLINEW));
         xstrcpynW((wchar_t *)pmpcl->pcls.pCmdLine, pclp->szCmdLine, pclp->nCmdLineLen + 1);
 
+        //In this place: working directory string in size (pclp->nWorkDirLen + 1) * sizeof(wchar_t).
         pmpcl->pcls.pWorkDir=(wchar_t *)((unsigned char *)pmpcl->pcls.pCmdLine + (pclp->nCmdLineLen + 1) * sizeof(wchar_t));
         xstrcpynW((wchar_t *)pmpcl->pcls.pWorkDir, pclp->szWorkDir, pclp->nWorkDirLen + 1);
       }

@@ -2147,7 +2147,7 @@ int DoEditFindNextDown(HWND hWnd)
   DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_UP & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_DOWN;
 
   if (wszFindText)
-    return FindTextW(hWnd, dwFlags, wszFindText, nFindTextLen);
+    return TextFindW(hWnd, dwFlags, wszFindText, nFindTextLen);
   DoEditFind();
   return 0;
 }
@@ -2157,7 +2157,7 @@ int DoEditFindNextUp(HWND hWnd)
   DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_DOWN & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_UP;
 
   if (wszFindText)
-    return FindTextW(hWnd, dwFlags, wszFindText, nFindTextLen);
+    return TextFindW(hWnd, dwFlags, wszFindText, nFindTextLen);
   DoEditFind();
   return 0;
 }
@@ -8218,7 +8218,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
           do
           {
-            ReplaceTextW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, TRUE, &nReplaceCount);
+            TextReplaceW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, TRUE, &nReplaceCount);
             if (!hDlgModeless) break;
 
             if (nReplaceCount)
@@ -8251,9 +8251,9 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
           do
           {
             if (bReplace == TRUE)
-              nResult=ReplaceTextW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, FALSE, NULL);
+              nResult=TextReplaceW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, FALSE, NULL);
             else
-              nResult=FindTextW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen);
+              nResult=TextFindW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen);
 
             if (nResult == -1)
             {
@@ -8298,9 +8298,9 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         }
 
         if (bReplace == TRUE || bReplaceAll == TRUE)
-          nResult=ReplaceTextW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, bReplaceAll, &nReplaceCount);
+          nResult=TextReplaceW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen, wszReplaceText, nReplaceTextLen, bReplaceAll, &nReplaceCount);
         else
-          nResult=FindTextW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen);
+          nResult=TextFindW(lpFrameCurrent->ei.hWndEdit, moCur.dwSearchOptions, wszFindText, nFindTextLen);
 
         if (nResult == -1)
         {
@@ -8547,7 +8547,7 @@ void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace)
   RegCloseKey(hKey);
 }
 
-int FindTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen)
+int TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen)
 {
   AEFINDTEXTW ft;
   CHARRANGE cr;
@@ -8590,7 +8590,7 @@ int FindTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen)
   return -1;
 }
 
-int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount)
+int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount)
 {
   AECHARRANGE crInitialSel=crSel;
   AECHARRANGE crRange;
@@ -8836,7 +8836,7 @@ int ReplaceTextW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
         nChanges=1;
       }
     }
-    nResult=FindTextW(hWnd, dwFlags, wpFindIt, nFindItLen);
+    nResult=TextFindW(hWnd, dwFlags, wpFindIt, nFindItLen);
   }
   if (nReplaceCount) *nReplaceCount=nChanges;
   return nResult;
@@ -17101,16 +17101,12 @@ int GetMouseEdge(HWND hWnd, POINT *pt)
 
 void SetEdgeCursor(int nEdge)
 {
-  static HCURSOR hCursorSizeWE=LoadCursor(NULL, IDC_SIZEWE);
-  static HCURSOR hCursorSizeNS=LoadCursor(NULL, IDC_SIZENS);
-  static HCURSOR hCursorSizeALL=LoadCursor(NULL, IDC_SIZEALL);
-
   if (nEdge == DKS_LEFT || nEdge == DKS_RIGHT)
-    SetCursor(hCursorSizeWE);
+    SetCursor(LoadCursor(NULL, IDC_SIZEWE));
   else if (nEdge == DKS_TOP || nEdge == DKS_BOTTOM)
-    SetCursor(hCursorSizeNS);
+    SetCursor(LoadCursor(NULL, IDC_SIZENS));
   else
-    SetCursor(hCursorSizeALL);
+    SetCursor(LoadCursor(NULL, IDC_SIZEALL));
 }
 
 int GetOppEdge(int nEdge)
