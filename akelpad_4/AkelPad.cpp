@@ -2752,6 +2752,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         EnableMenuItem(hMainMenu, IDM_FILE_CREATENEW, (nMDI && moCur.bSingleOpenProgram)?MF_GRAYED:MF_ENABLED);
         EnableMenuItem(hMainMenu, IDM_FILE_REOPEN, (lpFrameCurrent->wszFile[0])?MF_ENABLED:MF_GRAYED);
         EnableMenuItem(hMainMenu, IDM_FILE_SAVE, lpFrameCurrent->ei.bModified?MF_ENABLED:MF_GRAYED);
+        EnableMenuItem(hMainMenu, IDM_FILE_SAVEALL, nDocumentsModified?MF_ENABLED:MF_GRAYED);
 
         EnableMenuItem(hMainMenu, IDM_EDIT_UNDO, (!lpFrameCurrent->ei.bReadOnly && SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_CANUNDO, 0, 0))?MF_ENABLED:MF_GRAYED);
         EnableMenuItem(hMainMenu, IDM_EDIT_REDO, (!lpFrameCurrent->ei.bReadOnly && SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_CANREDO, 0, 0))?MF_ENABLED:MF_GRAYED);
