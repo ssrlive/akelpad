@@ -273,6 +273,12 @@
 #define FWDE_LASTTAB   2  //For WMD_PMDI mode. Last tab cannot be destroyed.
 #define FWDE_NOWINDOW  3  //Frame doesn't have associated edit window (FRAMEDATA.ei.hWndEdit == NULL).
 
+//AKD_FRAMESTATS flags
+#define FWS_COUNTALL      0  //Count of windows.
+#define FWS_COUNTMODIFIED 1  //Count of modified windows.
+#define FWS_COUNTSAVED    2  //Count of unmodified windows.
+#define FWS_CURSEL        3  //Active window zero based index.
+
 //Find text flags
 #ifndef FR_DOWN
   #define FR_DOWN      0x00000001  //Find down.
@@ -1485,8 +1491,9 @@ typedef struct {
 #define AKD_FRAMEFIND              (WM_USER + 264)
 #define AKD_FRAMEFINDA             (WM_USER + 265)
 #define AKD_FRAMEFINDW             (WM_USER + 266)
-#define AKD_FRAMENOWINDOWS         (WM_USER + 267)
-#define AKD_FRAMEISVALID           (WM_USER + 268)
+#define AKD_FRAMESTATS             (WM_USER + 267)
+#define AKD_FRAMENOWINDOWS         (WM_USER + 268)
+#define AKD_FRAMEISVALID           (WM_USER + 269)
 
 //Thread
 #define AKD_GLOBALALLOC            (WM_USER + 281)
@@ -2886,6 +2893,21 @@ Example:
  See AKD_FRAMEACTIVATE example.
 
 
+AKD_FRAMESTATS
+______________
+
+Retrive windows statistics.
+
+(int)wParam == see FWS_* defines.
+lParam      == not used.
+
+Return Value
+ Depend of FWS_* define.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_FRAMESTATS, FWS_COUNTALL, 0);
+
+
 AKD_FRAMENOWINDOWS
 __________________
 
@@ -2907,7 +2929,7 @@ Example:
 AKD_FRAMEISVALID
 ________________
 
-Determines whether the specified handle identifies an existing frame data pointer. 
+Determines whether the specified handle identifies an existing frame data pointer.
 
 wParam              == not used.
 (FRAMEDATA *)lParam == pointer to a FRAMEDATA structure.

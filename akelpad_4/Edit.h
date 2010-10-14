@@ -287,15 +287,19 @@
 #define NT_OFFSET  2
 
 //Custom statusbar
-#define CSB_CHARHEX       0x001
-#define CSB_CHARDEC       0x002
-#define CSB_RICHOFFSET    0x004
-#define CSB_BYTEOFFSET    0x008
-#define CSB_FONTPOINT     0x010
-#define CSB_TABSIZE       0x020
-#define CSB_MARKER        0x040
-#define CSB_REPLACECOUNT  0x080
-#define CSB_DOCUMENTCOUNT 0x100
+#define CSB_CHARHEX           0x0001
+#define CSB_CHARDEC           0x0002
+#define CSB_CHARLETTER        0x0004
+#define CSB_RICHOFFSET        0x0008
+#define CSB_BYTEOFFSET        0x0010
+#define CSB_FONTPOINT         0x0020
+#define CSB_TABSIZE           0x0040
+#define CSB_MARKER            0x0080
+#define CSB_REPLACECOUNT      0x0100
+#define CSB_DOCUMENTSCOUNT    0x0200
+#define CSB_DOCUMENTSMODIFIED 0x0400
+#define CSB_DOCUMENTSSAVED    0x0800
+#define CSB_DOCUMENTINDEX     0x1000
 
 //File types association
 #define AE_ASSOCIATE     0x00000001

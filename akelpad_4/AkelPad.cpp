@@ -384,7 +384,9 @@ BOOL bMdiNoWindows=FALSE;
 HWND hTab=NULL;
 DWORD dwTabOpenTimer=0;
 int nTabOpenItem=-1;
-int nDocumentCount=0;
+int nDocumentsCount=0;
+int nDocumentsModified=0;
+int nDocumentIndex=0;
 STACKASSOCICON hIconsStack={0};
 HIMAGELIST hImageList;
 HICON hIconEmpty=NULL;
@@ -2200,6 +2202,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return (LRESULT)GetFrameDataFromEditDocument((AEHDOC)lParam);
       return 0;
     }
+    if (uMsg == AKD_FRAMESTATS)
+    {
+      if (wParam == FWS_COUNTALL)
+        return nDocumentsCount;
+      if (wParam == FWS_COUNTMODIFIED)
+        return nDocumentsModified;
+      if (wParam == FWS_COUNTSAVED)
+        return nDocumentsCount - nDocumentsModified;
+      if (wParam == FWS_CURSEL)
+        return nDocumentIndex;
+      return 0;
+    }
     if (uMsg == AKD_FRAMENOWINDOWS)
     {
       return FrameNoWindows();
@@ -3607,11 +3621,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         else if (((NMHDR *)lParam)->code == TCN_SELCHANGE)
         {
           FRAMEDATA *lpFrame;
-          int nCurSel;
 
           bTabPressed=TRUE;
-          nCurSel=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
-          lpFrame=(FRAMEDATA *)GetTabParamFromItem(hTab, nCurSel);
+          nDocumentIndex=SendMessage(hTab, TCM_GETCURSEL, 0, 0);
+          lpFrame=(FRAMEDATA *)GetTabParamFromItem(hTab, nDocumentIndex);
           ActivateMdiFrameWindow(lpFrame, 0);
           bTabPressed=FALSE;
         }
@@ -3929,6 +3942,11 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             }
             FreeWideStr(wpTitle);
           }
+          if (aenm->bModified)
+            ++nDocumentsModified;
+          else
+            --nDocumentsModified;
+          UpdateStatusUser(lpFrame, CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
         }
         SetModifyStatus(lpFrame, aenm->bModified);
       }
@@ -4092,8 +4110,8 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDocEdit);
 
       //Update status
-      ++nDocumentCount;
-      UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
+      ++nDocumentsCount;
+      UpdateStatusUser(lpFrame, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
     }
   }
   else if (uMsg == WM_SIZE)
@@ -4579,8 +4597,8 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {
           //Update status
-          --nDocumentCount;
-          UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
+          --nDocumentsCount;
+          UpdateStatusUser(lpFrame, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
 
           SendMessage(hMainWnd, AKDN_FRAME_DESTROY, (WPARAM)lpFrame, (LPARAM)lpFrame->hWndEditParent);
 
