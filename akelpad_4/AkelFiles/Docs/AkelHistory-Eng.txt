@@ -1,13 +1,18 @@
 
 AkelPad 4.5.0 ()
 ----------------------------
-Changed: code folding messages. Update Coder plugin.
+Changed: plugin architecture. Update plugins.
 Changed: improved many files opening (MDI/PMDI).
 Changed: return alignment to left in the status bar.
 
 Added: Czech language module (Frantisek Bartos).
 Added: Hungarian language module (ZityiSoft).
-Added: variable "%dc" for "StatusUserFormat" - document count (MDI/PMDI).
+Added: variables for "StatusUserFormat":
+       "%dc" - count of all documents (MDI/PMDI);
+       "%dm" - count of modified documents (MDI/PMDI);
+       "%ds" - count of unmodified documents (MDI/PMDI);
+       "%di" - active document index (MDI/PMDI);
+       "%cl" - current character letter.
 
 Fixed: reopening a file in split windows.
 Fixed: reopening group of files with option "Don't open a file twice".

@@ -245,7 +245,9 @@ extern BOOL bMdiNoWindows;
 extern HWND hTab;
 extern DWORD dwTabOpenTimer;
 extern int nTabOpenItem;
-extern int nDocumentCount;
+extern int nDocumentsCount;
+extern int nDocumentsModified;
+extern int nDocumentIndex;
 extern STACKASSOCICON hIconsStack;
 extern HIMAGELIST hImageList;
 extern HICON hIconEmpty;
@@ -703,10 +705,12 @@ void RestoreFrameData(FRAMEDATA *lpFrame, DWORD dwFlagsPMDI)
 
       if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
       {
+        nDocumentIndex=nTabItem;
         SendMessage(hTab, TCM_SETCURSEL, nTabItem, 0);
         UpdateTabs(hTab);
       }
     }
+    UpdateStatusUser(lpFrame, CSB_DOCUMENTINDEX);
   }
 }
 
@@ -749,8 +753,8 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
       SendMessage(hMainWnd, AKDN_EDIT_ONSTART, (WPARAM)lpFrameCurrent->ei.hWndEdit, (LPARAM)lpFrameCurrent->ei.hDocEdit);
 
       //Update status
-      ++nDocumentCount;
-      UpdateStatusUser(lpFrameCurrent, CSB_DOCUMENTCOUNT);
+      ++nDocumentsCount;
+      UpdateStatusUser(lpFrameCurrent, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
 
       bResult=TRUE;
     }
@@ -888,8 +892,8 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
       if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
       {
         //Update status
-        --nDocumentCount;
-        UpdateStatusUser(lpFrame, CSB_DOCUMENTCOUNT);
+        --nDocumentsCount;
+        UpdateStatusUser(lpFrame, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
 
         SendMessage(hMainWnd, AKDN_FRAME_DESTROY, (WPARAM)lpFrame, (LPARAM)NULL);
 
@@ -14300,7 +14304,7 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
     lpFrameCurrent->crPrevSel=crSel;
 
     StatusBar_SetTextWide(hStatus, STATUS_POSITION, wszStatus);
-    UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_RICHOFFSET|CSB_BYTEOFFSET);
+    UpdateStatusUser(lpFrameCurrent, CSB_CHARHEX|CSB_CHARDEC|CSB_CHARLETTER|CSB_RICHOFFSET|CSB_BYTEOFFSET);
   }
 }
 
@@ -14451,7 +14455,8 @@ void UpdateStatusUser(FRAMEDATA *lpFrame, DWORD dwFlags)
     if (moCur.dwStatusUserFlags & dwFlags)
     {
       if (((moCur.dwStatusUserFlags & CSB_CHARHEX) && (dwFlags & CSB_CHARHEX)) ||
-          ((moCur.dwStatusUserFlags & CSB_CHARDEC) && (dwFlags & CSB_CHARDEC)))
+          ((moCur.dwStatusUserFlags & CSB_CHARDEC) && (dwFlags & CSB_CHARDEC)) ||
+          ((moCur.dwStatusUserFlags & CSB_CHARLETTER) && (dwFlags & CSB_CHARLETTER)))
       {
         lpFrame->nCaretChar=AEC_CharAtIndex(&ciCaret);
         if (lpFrame->nCaretChar < -AELB_EOF) lpFrame->nCaretChar=L'\r';
@@ -14509,6 +14514,13 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
           else
             dwFlags|=CSB_CHARDEC;
         }
+        else if (*wpString == 'l')
+        {
+          if (lpFrame)
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%c", (lpFrame->nCaretChar <= 0 || lpFrame->nCaretChar == L'\t')?L' ':lpFrame->nCaretChar);
+          else
+            dwFlags|=CSB_CHARLETTER;
+        }
       }
       else if (*wpString == 'o')
       {
@@ -14560,9 +14572,30 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
         if (*++wpString == 'c')
         {
           if (lpFrame)
-            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nDocumentCount);
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nDocumentsCount);
           else
-            dwFlags|=CSB_DOCUMENTCOUNT;
+            dwFlags|=CSB_DOCUMENTSCOUNT;
+        }
+        else if (*wpString == 'm')
+        {
+          if (lpFrame)
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nDocumentsModified);
+          else
+            dwFlags|=CSB_DOCUMENTSMODIFIED;
+        }
+        else if (*wpString == 's')
+        {
+          if (lpFrame)
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nDocumentsCount - nDocumentsModified);
+          else
+            dwFlags|=CSB_DOCUMENTSSAVED;
+        }
+        else if (*wpString == 'i')
+        {
+          if (lpFrame)
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", nDocumentIndex + 1);
+          else
+            dwFlags|=CSB_DOCUMENTINDEX;
         }
       }
       else break;
@@ -17431,21 +17464,31 @@ int MoveTabItem(HWND hWnd, int nIndexOld, int nIndexNew)
 
   if (TabCtrl_GetItemWide(hWnd, nIndexOld, &tcItem))
   {
-    if (nIndexOld == nIndexNew) return nIndexNew;
+    if (nIndexOld == nIndexNew)
+      return nIndexNew;
     SendMessage(hWnd, TCM_DELETEITEM, nIndexOld, 0);
-    return TabCtrl_InsertItemWide(hWnd, nIndexNew, &tcItem);
+    nIndexNew=TabCtrl_InsertItemWide(hWnd, nIndexNew, &tcItem);
+
+    if (nIndexOld == nDocumentIndex && nIndexNew >= 0)
+    {
+      nDocumentIndex=nIndexNew;
+      UpdateStatusUser(lpFrameCurrent, CSB_DOCUMENTINDEX);
+    }
+    return nIndexNew;
   }
   return -1;
 }
 
 BOOL DeleteTabItem(HWND hWnd, int nIndex)
 {
-  TCITEMW tcItem;
-
-  tcItem.mask=TCIF_IMAGE;
-  if (TabCtrl_GetItemWide(hWnd, nIndex, &tcItem))
+  if (SendMessage(hWnd, TCM_DELETEITEM, nIndex, 0))
   {
-    SendMessage(hWnd, TCM_DELETEITEM, nIndex, 0);
+    if (nIndex == nDocumentIndex)
+    {
+      if ((nDocumentIndex=SendMessage(hWnd, TCM_GETCURSEL, 0, 0)) == -1)
+        nDocumentIndex=0;
+      UpdateStatusUser(lpFrameCurrent, CSB_DOCUMENTINDEX);
+    }
     return TRUE;
   }
   return FALSE;
