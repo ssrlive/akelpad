@@ -775,8 +775,8 @@ void EscapeDataToEscapeStringW(const wchar_t *wpInput, wchar_t *wszOutput);
 
 void GetSel(HWND hWnd, AECHARRANGE *crSel, BOOL *bColumnSel, AECHARINDEX *ciCaret);
 void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret);
-void ReplaceSelA(HWND hWnd, const char *pData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
-void ReplaceSelW(HWND hWnd, const wchar_t *wpData, int nDataLen, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
+void ReplaceSelA(HWND hWnd, const char *pData, int nDataLen, BOOL bColumnSel, int nNewLine, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
+void ReplaceSelW(HWND hWnd, const wchar_t *wpData, int nDataLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel);
 int IndexOffset(HWND hWnd, AECHARINDEX *ciChar, int nOffset, int nNewLine);
 int AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar);

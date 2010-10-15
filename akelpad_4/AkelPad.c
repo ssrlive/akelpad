@@ -401,13 +401,18 @@ HMONITOR (WINAPI *MonitorFromPointPtr)(POINT, DWORD);
 BOOL (WINAPI *GetMonitorInfoAPtr)(HMONITOR, LPMONITORINFO);
 
 //GCC
+#ifdef __GNUC__
 int main()
 {
   return 0;
 }
+#endif
 
 //Entry point
-extern "C" void _WinMain()
+#ifdef __GNUC__
+  extern "C"
+#endif
+void _WinMain()
 {
   WNDCLASSW wndclassW={0};
   MSG msg;
@@ -1638,9 +1643,9 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         hWnd=lpFrameCurrent->ei.hWndEdit;
 
       if (uMsg == AKD_REPLACESELA || (bOldWindows && uMsg == AKD_REPLACESEL))
-        ReplaceSelA(hWnd, (char *)lParam, -1, -1, NULL, NULL);
+        ReplaceSelA(hWnd, (char *)lParam, -1, AELB_ASINPUT, -1, NULL, NULL);
       else
-        ReplaceSelW(hWnd, (wchar_t *)lParam, -1, -1, NULL, NULL);
+        ReplaceSelW(hWnd, (wchar_t *)lParam, -1, AELB_ASINPUT, -1, NULL, NULL);
       return 0;
     }
     if (uMsg == AKD_PASTE)
@@ -3196,7 +3201,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       BOOL bResult;
 
       if (!(bResult=AutoIndent(lpFrameCurrent->ei.hWndEdit, &crSel)))
-        ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L"\n", -1, FALSE, NULL, NULL);
+        ReplaceSelW(lpFrameCurrent->ei.hWndEdit, L"\n", -1, AELB_ASINPUT, FALSE, NULL, NULL);
       return bResult;
     }
     else if (LOWORD(wParam) == IDM_EDIT_DELLINE)

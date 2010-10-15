@@ -10,7 +10,7 @@ Set INCLUDE=%VCDIR%\include;%MSSDK%\include;%INCLUDE%
 Set LIB=%VCDIR%\lib;%MSSDK%\lib;%LIB%
 
 rc /R /DDLL_VERSION /DRC_VERSIONLANGID=%LANGID% /I "..\..\AkelEdit\Resources" /Fo"%LANGNAME%.res" "Resources\%LANGNAME%.rc"
-cl /O1 Module.cpp /LD /link "%LANGNAME%.res" /OPT:NOWIN98 /MACHINE:I386 /NODEFAULTLIB /ENTRY:DllMain /OUT:"%LANGNAME%.dll"
+cl /O1 Module.c /LD /link "%LANGNAME%.res" /OPT:NOWIN98 /MACHINE:I386 /NODEFAULTLIB /ENTRY:DllMain /OUT:"%LANGNAME%.dll"
 
 if exist Module.obj del Module.obj
 if exist "%LANGNAME%.res" del "%LANGNAME%.res"

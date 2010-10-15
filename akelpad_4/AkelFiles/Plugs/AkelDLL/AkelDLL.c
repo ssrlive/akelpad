@@ -5,16 +5,22 @@
 
 
 //Identification
-extern "C" void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
+#ifdef __GNUC__
+  extern "C"
+#endif
+void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
   pv->dwExeMinVersion3x=MAKE_IDENTIFIER(-1, -1, -1, -1);
-  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 4, 4, 0);
+  pv->dwExeMinVersion4x=MAKE_IDENTIFIER(4, 5, 0, 0);
   pv->pPluginName="AkelDLL";
 }
 
 //Plugin extern function
-extern "C" void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
+#ifdef __GNUC__
+  extern "C"
+#endif
+void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
 {
   GETTEXTRANGE gtr;
   CHARRANGE cr;
@@ -53,7 +59,10 @@ extern "C" void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
 }
 
 //Plugin extern function
-extern "C" void __declspec(dllexport) OpenDialogTest(PLUGINDATA *pd)
+#ifdef __GNUC__
+  extern "C"
+#endif
+void __declspec(dllexport) OpenDialogTest(PLUGINDATA *pd)
 {
   //Function doesn't support autoload
   pd->dwSupport|=PDS_NOAUTOLOAD;
@@ -64,7 +73,7 @@ extern "C" void __declspec(dllexport) OpenDialogTest(PLUGINDATA *pd)
 }
 
 //Entry point
-extern "C" BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
   if (fdwReason == DLL_PROCESS_ATTACH)
   {
