@@ -64,7 +64,7 @@
 //// Global variables
 
 HANDLE hAkelEditProcessHeap=0;
-HANDLE hAkelEditHeapCount=0;
+int nAkelEditHeapCount=0;
 HSTACK hAkelEditWindowsStack={0};
 HSTACK hAkelEditFontsStackA={0};
 HSTACK hAkelEditFontsStackW={0};
@@ -4366,7 +4366,7 @@ void AE_DestroyWindowData(AKELEDIT *ae)
     if (HeapDestroy(ae->ptxt->hHeap))
     {
       ae->ptxt->hHeap=NULL;
-      --hAkelEditHeapCount;
+      --nAkelEditHeapCount;
     }
   }
   else AE_StackLineFree(ae);
@@ -4386,7 +4386,7 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
     if (HeapDestroy(ae->ptxt->hHeap))
     {
       ae->ptxt->hHeap=NULL;
-      --hAkelEditHeapCount;
+      --nAkelEditHeapCount;
     }
   }
   else AE_StackLineFree(ae);
@@ -4440,11 +4440,11 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   ae->hEraseStack.last=0;
 
   //Create heap
-  if (hAkelEditHeapCount < AEMAX_HEAPCREATE)
+  if (nAkelEditHeapCount < AEMAX_HEAPCREATE)
   {
     if (ae->ptxt->hHeap=HeapCreate(ae->popt->bHeapSerialize?0:HEAP_NO_SERIALIZE, 0, 0))
     {
-      ++hAkelEditHeapCount;
+      ++nAkelEditHeapCount;
     }
   }
   else
