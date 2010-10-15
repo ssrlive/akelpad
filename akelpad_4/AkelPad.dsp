@@ -124,7 +124,7 @@ LINK32=link.exe
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\AkelEdit\AkelEdit.cpp
+SOURCE=.\AkelEdit\AkelEdit.c
 
 !IF  "$(CFG)" == "AkelPad - Win32 Dinamic Release English"
 
@@ -139,11 +139,11 @@ SOURCE=.\AkelEdit\AkelEdit.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\AkelPad.cpp
+SOURCE=.\AkelPad.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\Edit.cpp
+SOURCE=.\Edit.c
 # End Source File
 # End Group
 # Begin Group "Header Files"

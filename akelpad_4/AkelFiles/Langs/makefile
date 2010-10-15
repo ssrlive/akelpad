@@ -1,11 +1,9 @@
 # Make file for build language module DLL with GCC
-# mingw32-make.exe LANG=English all clean
+# mingw32-make.exe LANGNAME=English all clean
 
-CC = g++
-CFLAGS = -Wall -Werror -Os
-LDFLAGS = -shared -nostdlib
-ifndef LANG
-  LANG = English
+ifndef LANGNAME
+  LANGNAME = English
+  LANGID = 0x409
 endif
 ifndef NIX
   DEL = del
@@ -13,17 +11,22 @@ else
   DEL = rm -f
 endif
 
-all: $(LANG).dll
+CC = g++
+CFLAGS = -Wall -Werror -Os
+LDFLAGS = -shared -nostdlib
+DEFINES = -D RC_VERSIONLANGID=$(LANGID) 
 
-$(LANG).dll: Module.o Resource.o
-	$(CC) $(CFLAGS) Module.o Resource.o $(LDFLAGS) -o $(LANG).dll
-	strip --strip-all $(LANG).dll
+all: $(LANGNAME).dll
+
+$(LANGNAME).dll: Module.o Resource.o
+	$(CC) $(CFLAGS) Module.o Resource.o $(LDFLAGS) -o $(LANGNAME).dll
+	strip --strip-all $(LANGNAME).dll
 
 Module.o:
-	$(CC) $(CFLAGS) -c Module.cpp
+	$(CC) $(CFLAGS) $(DEFINES) -c Module.c
 
 Resource.o:
-	windres -D DLL_VERSION -I ..\..\AkelEdit\Resources -I Resources Resources/$(LANG).rc -o Resource.o
+	windres -D DLL_VERSION -D RC_VERSIONLANGID=$(LANGID) -I ..\..\AkelEdit\Resources -I Resources Resources/$(LANGNAME).rc -o Resource.o
 
 clean:
 	$(DEL) Module.o

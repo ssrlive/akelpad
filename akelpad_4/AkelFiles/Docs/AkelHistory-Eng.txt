@@ -18,6 +18,8 @@ Added: variables for "StatusUserFormat":
 Fixed: reopening a file in split windows.
 Fixed: reopening group of files with option "Don't open a file twice".
 Fixed: after opening main menu with mnemonic key next input character was ignored.
+Fixed: when replacing with multi-line text, inserted new lines are not set
+       to the current document value.
 Fixed: activating program with mouse and "Watch file change".
 Fixed: tabulation printed in color with color printing off.
 

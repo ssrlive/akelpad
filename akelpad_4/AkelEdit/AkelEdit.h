@@ -630,6 +630,9 @@ typedef struct _AEFOLD {
   AEPOINT *lpMinPoint;        //Minimum line point.
   AEPOINT *lpMaxPoint;        //Maximum line point.
   BOOL bCollapse;             //Collapse state.
+  COLORREF crText;            //Delimiter text color. If -1, then don't set.
+  COLORREF crBk;              //Delimiter background color. If -1, then don't set.
+  DWORD dwFontStyle;          //See AEHLS_* defines.
   DWORD dwUserData;           //User data.
 } AEFOLD;
 
@@ -643,26 +646,30 @@ typedef struct {
 typedef struct {
   const char *pText;     //[in] Text to append.
   DWORD dwTextLen;       //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;       //[in] Column selection. If this value is -1, use current selection type.
+  int nNewLine;          //[in] See AELB_* defines.
+  int nCodePage;         //[in] Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
 } AEAPPENDTEXTA;
 
 typedef struct {
   const wchar_t *pText;  //[in] Text to append.
   DWORD dwTextLen;       //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
-  BOOL bColumnSel;       //[in] Column selection. If this value is -1, use current selection type.
+  int nNewLine;          //[in] See AELB_* defines.
 } AEAPPENDTEXTW;
 
 typedef struct {
   const char *pText;           //[in]  Text to replace with.
   DWORD dwTextLen;             //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;                //[in]  See AELB_* defines.
   BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
   AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
+  int nCodePage;               //[in] Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
 } AEREPLACESELA;
 
 typedef struct {
   const wchar_t *pText;        //[in]  Text to replace with.
   DWORD dwTextLen;             //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  int nNewLine;                //[in]  See AELB_* defines.
   BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
   AECHARINDEX *ciInsertEnd;    //[out] Insert "to" character index after replacement.
@@ -1759,14 +1766,20 @@ _______________
 
 Append ansi text to the end of the edit control.
 
-(char *)wParam == text to append.
-(DWORD)lParam  == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+wParam                  == not used.
+(AEAPPENDTEXTA *)lParam == pointer to a AEAPPENDTEXTA structure.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_APPENDTEXTW, (WPARAM)L"SomeText", (LPARAM)-1);
+ AEAPPENDTEXTA at;
+
+ at.pText="SomeText";
+ at.dwTextLen=(DWORD)-1;
+ at.nNewLine=AELB_ASINPUT;
+ at.nCodePage=CP_ACP;
+ SendMessage(hWndEdit, AEM_APPENDTEXTA, 0, (LPARAM)&at);
 
 
 AEM_APPENDTEXTW
@@ -1774,14 +1787,19 @@ _______________
 
 Append unicode text to the end of the edit control.
 
-(wchar_t *)wParam == text to append.
-(DWORD)lParam     == text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+wParam                  == not used.
+(AEAPPENDTEXTW *)lParam == pointer to a AEAPPENDTEXTW structure.
 
 Return Value
  Zero.
 
 Example:
- SendMessage(hWndEdit, AEM_APPENDTEXTW, (WPARAM)L"SomeText", (LPARAM)-1);
+ AEAPPENDTEXTW at;
+
+ at.pText=L"SomeText";
+ at.dwTextLen=(DWORD)-1;
+ at.nNewLine=AELB_ASINPUT;
+ SendMessage(hWndEdit, AEM_APPENDTEXTW, 0, (LPARAM)&at);
 
 
 AEM_REPLACESELA
@@ -1800,9 +1818,11 @@ Example:
 
  rs.pText="SomeText";
  rs.dwTextLen=(DWORD)-1;
+ rs.nNewLine=AELB_ASINPUT;
  rs.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
  rs.ciInsertStart=NULL;
  rs.ciInsertEnd=NULL;
+ rs.nCodePage=CP_ACP;
  SendMessage(hWndEdit, AEM_REPLACESELA, 0, (LPARAM)&rs);
 
 
@@ -1822,6 +1842,7 @@ Example:
 
  rs.pText=L"SomeText";
  rs.dwTextLen=(DWORD)-1;
+ rs.nNewLine=AELB_ASINPUT;
  rs.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
  rs.ciInsertStart=NULL;
  rs.ciInsertEnd=NULL;

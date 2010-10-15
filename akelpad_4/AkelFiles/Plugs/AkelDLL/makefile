@@ -1,14 +1,15 @@
 # Make file for build plugin DLL with GCC
 # mingw32-make.exe all clean
 
-CC = g++
-CFLAGS = -Wall -Werror -Os
-LDFLAGS = -shared -lkernel32 -luser32
 ifndef NIX
   DEL = del
 else
   DEL = rm -f
 endif
+
+CC = g++
+CFLAGS = -Wall -Werror -Os
+LDFLAGS = -shared -lkernel32 -luser32
 
 all: AkelDLL.dll
 
@@ -17,7 +18,7 @@ AkelDLL.dll: AkelDLL.o
 	strip --strip-all AkelDLL.dll
 
 AkelDLL.o:
-	$(CC) $(CFLAGS) -c AkelDLL.cpp
+	$(CC) $(CFLAGS) -c AkelDLL.c
 
 clean:
 	$(DEL) AkelDLL.o
