@@ -2,7 +2,8 @@
 AkelPad 4.5.0 ()
 ----------------------------
 Changed: plugin architecture. Update plugins.
-Changed: improved many files opening (MDI/PMDI).
+Changed: improved many files opening (MDI/PMDI). Succefully tested working with
+         100 thousand files in PMDI mode.
 Changed: "Save All" menu item is deactivated if no files are changed.
 Changed: return alignment to left in the status bar.
 

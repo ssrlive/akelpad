@@ -11,8 +11,9 @@
 
 //// Defines
 
-#define AEMAX_URL_LENGTH       512
-#define AEMAX_WORD_LENGTH      256
+#define AEMAX_HEAPCREATE       1000
+#define AEMAX_LINKLENGTH       512
+#define AEMAX_WORDLENGTH       256
 
 //Tabulation
 #define AETAB_DEFAULTSIZE      8

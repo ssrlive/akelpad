@@ -64,6 +64,7 @@
 //// Global variables
 
 HANDLE hAkelEditProcessHeap=0;
+HANDLE hAkelEditHeapCount=0;
 HSTACK hAkelEditWindowsStack={0};
 HSTACK hAkelEditFontsStackA={0};
 HSTACK hAkelEditFontsStackW={0};
@@ -4174,7 +4175,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->popt->bDefaultColors=TRUE;
     ae->popt->nCaretInsertWidth=1;
     ae->popt->nCaretOvertypeHeight=2;
-    ae->popt->dwUrlMaxLength=AEMAX_URL_LENGTH;
+    ae->popt->dwUrlMaxLength=AEMAX_LINKLENGTH;
     ae->popt->dwWordBreak=AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND;
     ae->dwInputLocale=(DWORD)GetKeyboardLayout(0);
     ae->bCaretVisible=TRUE;
@@ -4363,7 +4364,10 @@ void AE_DestroyWindowData(AKELEDIT *ae)
   if (ae->ptxt->hHeap)
   {
     if (HeapDestroy(ae->ptxt->hHeap))
+    {
       ae->ptxt->hHeap=NULL;
+      --hAkelEditHeapCount;
+    }
   }
   else AE_StackLineFree(ae);
 
@@ -4380,7 +4384,10 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   if (ae->ptxt->hHeap)
   {
     if (HeapDestroy(ae->ptxt->hHeap))
+    {
       ae->ptxt->hHeap=NULL;
+      --hAkelEditHeapCount;
+    }
   }
   else AE_StackLineFree(ae);
 
@@ -4433,11 +4440,19 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
   ae->hEraseStack.last=0;
 
   //Create heap
-ae->ptxt->hHeap=NULL;
-  //ae->ptxt->hHeap=HeapCreate(ae->popt->bHeapSerialize?0:HEAP_NO_SERIALIZE, 0, 0);
-  if (!ae->ptxt->hHeap)
+  if (hAkelEditHeapCount < AEMAX_HEAPCREATE)
   {
-    //Became NULL if called more than ~8000 times for process.
+    if (ae->ptxt->hHeap=HeapCreate(ae->popt->bHeapSerialize?0:HEAP_NO_SERIALIZE, 0, 0))
+    {
+      ++hAkelEditHeapCount;
+    }
+  }
+  else
+  {
+    //HeapCreate return NULL, if HeapCreate called more than ~8000 times for process.
+    //After HeapCreate return NULL, program became unstable, so use less limit.
+    //At this point current AKELEDIT will use process heap.
+    ae->ptxt->hHeap=NULL;
   }
   return ae->ptxt->hHeap;
 }
@@ -9679,7 +9694,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
       while (ciCount.nCharInLine >= 0)
       {
         nWordLen+=AE_IndexLen(&ciCount);
-        if (nWordLen > AEMAX_WORD_LENGTH)
+        if (nWordLen > AEMAX_WORDLENGTH)
           return 0;
         if (AE_IndexCompare(&ciCount, &qm->crQuoteEnd.ciMax) < 0 &&
             AE_IndexCompare(&ciCount, &qm->crQuoteStart.ciMax) >= 0)
@@ -9772,7 +9787,7 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
 
         NextChar:
         nWordLen+=AE_IndexLen(&ciCount);
-        if (nWordLen > AEMAX_WORD_LENGTH)
+        if (nWordLen > AEMAX_WORDLENGTH)
           return 0;
         AE_IndexInc(&ciCount);
       }
