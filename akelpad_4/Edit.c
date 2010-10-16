@@ -17334,18 +17334,25 @@ void UpdateTitle(FRAMEDATA *lpFrame, const wchar_t *wszFile)
 
 void UpdateTabs(HWND hWnd)
 {
-  //HWND hTabSpin;
-  //int nPos;
-  //
-  //if (hTabSpin=GetDlgItem(hWnd, 1))
-  //{
-  //  if (nPos=LOWORD(SendMessage(hTabSpin, UDM_GETPOS, 0, 0)))
-  //  {
-  //    //Cause crash when many thousands of tabs appeared ~30000.
-  //    SendMessage(hWnd, WM_HSCROLL, MAKELONG(SB_THUMBPOSITION, nPos), 0);
-  //    SendMessage(hWnd, WM_HSCROLL, MAKELONG(SB_ENDSCROLL, 0), 0);
-  //  }
-  //}
+  HWND hTabSpin;
+  int nPos;
+
+  if (hTabSpin=GetDlgItem(hWnd, 1))
+  {
+    if (nDocumentsCount < 30000)
+    {
+      if (nPos=LOWORD(SendMessage(hTabSpin, UDM_GETPOS, 0, 0)))
+      {
+        SendMessage(hWnd, WM_HSCROLL, MAKELONG(SB_THUMBPOSITION, nPos), 0);
+        SendMessage(hWnd, WM_HSCROLL, MAKELONG(SB_ENDSCROLL, 0), 0);
+      }
+    }
+    else
+    {
+      //Destroy Up-Down control to prevent crash after WM_HSCROLL when many thousands of tabs appeared ~30000.
+      DestroyWindow(hTabSpin);
+    }
+  }
 }
 
 int AddTabItem(HWND hWnd, LPARAM lParam)
