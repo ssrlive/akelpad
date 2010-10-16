@@ -2133,7 +2133,7 @@ void DoEditFind()
     if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
       moCur.dwSearchOptions&=~AEFR_SELECTION;
     else if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
-      moCur.dwSearchOptions=(moCur.dwSearchOptions & ~AEFR_BEGINNING & ~AEFR_ALLFILES) | AEFR_SELECTION;
+      moCur.dwSearchOptions|=AEFR_SELECTION;
 
     if (bOldWindows)
       hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_FIND), hMainWnd, (DLGPROC)FindAndReplaceDlgProc);
@@ -2149,7 +2149,7 @@ void DoEditFind()
 
 int DoEditFindNextDown(HWND hWnd)
 {
-  DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_UP & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_DOWN;
+  DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_UP & ~AEFR_SELECTION & ~AEFR_ALLFILES & ~AEFR_BEGINNING) | AEFR_DOWN;
 
   if (wszFindText)
     return TextFindW(hWnd, dwFlags, wszFindText, nFindTextLen);
@@ -2159,7 +2159,7 @@ int DoEditFindNextDown(HWND hWnd)
 
 int DoEditFindNextUp(HWND hWnd)
 {
-  DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_DOWN & ~AEFR_BEGINNING & ~AEFR_SELECTION & ~AEFR_ALLFILES) | AEFR_UP;
+  DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_DOWN & ~AEFR_SELECTION & ~AEFR_ALLFILES & ~AEFR_BEGINNING) | AEFR_UP;
 
   if (wszFindText)
     return TextFindW(hWnd, dwFlags, wszFindText, nFindTextLen);
@@ -2178,7 +2178,7 @@ void DoEditReplace()
     if (!AEC_IndexCompare(&crSel.ciMin, &crSel.ciMax))
       moCur.dwSearchOptions&=~AEFR_SELECTION;
     else if (moCur.dwSearchOptions & AEFR_CHECKINSELIFSEL)
-      moCur.dwSearchOptions=(moCur.dwSearchOptions & ~AEFR_BEGINNING & ~AEFR_ALLFILES) | AEFR_SELECTION;
+      moCur.dwSearchOptions|=AEFR_SELECTION;
 
     if (bOldWindows)
       hDlgModeless=API_CreateDialogA(hLangLib, MAKEINTRESOURCEA(IDD_REPLACE), hMainWnd, (DLGPROC)FindAndReplaceDlgProc);
@@ -8063,10 +8063,10 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndReplace, CB_SETCURSEL, 0, 0);
     }
 
-    if (moCur.dwSearchOptions & AEFR_ALLFILES)
-      SendMessage(hWndAllFiles, BM_SETCHECK, BST_CHECKED, 0);
-    else if (moCur.dwSearchOptions & AEFR_SELECTION)
+    if (moCur.dwSearchOptions & AEFR_SELECTION)
       SendMessage(hWndInSelection, BM_SETCHECK, BST_CHECKED, 0);
+    else if (moCur.dwSearchOptions & AEFR_ALLFILES)
+      SendMessage(hWndAllFiles, BM_SETCHECK, BST_CHECKED, 0);
     else if (moCur.dwSearchOptions & AEFR_BEGINNING)
       SendMessage(hWndBeginning, BM_SETCHECK, BST_CHECKED, 0);
     else if (moCur.dwSearchOptions & AEFR_DOWN)
@@ -8122,28 +8122,28 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     }
     else if (LOWORD(wParam) == IDC_SEARCH_FORWARD)
     {
-      moCur.dwSearchOptions&=~AEFR_UP&~AEFR_BEGINNING&~AEFR_SELECTION&~AEFR_ALLFILES;
+      moCur.dwSearchOptions&=~AEFR_UP&~AEFR_SELECTION&~AEFR_ALLFILES&~AEFR_BEGINNING;
       moCur.dwSearchOptions|=AEFR_DOWN;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_BACKWARD)
     {
-      moCur.dwSearchOptions&=~AEFR_DOWN&~AEFR_BEGINNING&~AEFR_SELECTION&~AEFR_ALLFILES;
+      moCur.dwSearchOptions&=~AEFR_DOWN&~AEFR_SELECTION&~AEFR_ALLFILES&~AEFR_BEGINNING;
       moCur.dwSearchOptions|=AEFR_UP;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_BEGINNING)
     {
       moCur.dwSearchOptions&=~AEFR_UP&~AEFR_SELECTION&~AEFR_ALLFILES;
-      moCur.dwSearchOptions|=AEFR_DOWN|AEFR_BEGINNING;
+      moCur.dwSearchOptions|=AEFR_BEGINNING|AEFR_DOWN;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_INSEL)
     {
-      moCur.dwSearchOptions&=~AEFR_UP&~AEFR_BEGINNING&~AEFR_ALLFILES;
-      moCur.dwSearchOptions|=AEFR_DOWN|AEFR_SELECTION;
+      moCur.dwSearchOptions&=~AEFR_UP&~AEFR_ALLFILES&~AEFR_BEGINNING;
+      moCur.dwSearchOptions|=AEFR_SELECTION|AEFR_DOWN;
     }
     else if (LOWORD(wParam) == IDC_SEARCH_ALLFILES)
     {
       moCur.dwSearchOptions&=~AEFR_UP&~AEFR_SELECTION;
-      moCur.dwSearchOptions|=AEFR_DOWN|AEFR_BEGINNING|AEFR_ALLFILES;
+      moCur.dwSearchOptions|=AEFR_ALLFILES|AEFR_BEGINNING|AEFR_DOWN;
     }
     else if (LOWORD(wParam) == IDC_SETREADONLY)
     {
@@ -8232,7 +8232,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if (bReplaceAll)
         bReplaceAllButtonState=EnableWindow(hWndReplaceAllButton, FALSE);
 
-      if (moCur.dwSearchOptions & AEFR_ALLFILES)
+      if (!(moCur.dwSearchOptions & AEFR_SELECTION) && (moCur.dwSearchOptions & AEFR_ALLFILES))
       {
         FRAMEDATA *lpFrameInit=lpFrameCurrent;
         int nChanges=0;
@@ -8367,7 +8367,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         }
         else
         {
-          if (moCur.dwSearchOptions & AEFR_BEGINNING)
+          if (!(moCur.dwSearchOptions & AEFR_SELECTION) && (moCur.dwSearchOptions & AEFR_BEGINNING))
           {
             bSpecialCheck=TRUE;
             moCur.dwSearchOptions&=~AEFR_BEGINNING;
@@ -8762,12 +8762,17 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
         }
         else SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&crInitialRE);
 
-        if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
+        if (dwFlags & AEFR_SELECTION)
+        {
+          nMin=0;
+          nMax=crInitialRE.cpMax - crInitialRE.cpMin;
+        }
+        else if ((dwFlags & AEFR_BEGINNING) || (dwFlags & AEFR_UP))
         {
           nMin=crInitialRE.cpMin;
           nMax=crInitialRE.cpMax;
         }
-        else if ((dwFlags & AEFR_SELECTION) || (dwFlags & AEFR_DOWN))
+        else if (dwFlags & AEFR_DOWN)
         {
           nMin=0;
           nMax=crInitialRE.cpMax - crInitialRE.cpMin;
