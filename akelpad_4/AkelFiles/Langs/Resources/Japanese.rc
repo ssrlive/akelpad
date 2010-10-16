@@ -955,6 +955,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "変更はプログラムの再起動時に反映されます。"
     MSG_SAVEIN_READONLY     """%s"" は読み取り専用ファイルです。続行しますか?"
     MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
+    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
 END
 
 STRINGTABLE DISCARDABLE 

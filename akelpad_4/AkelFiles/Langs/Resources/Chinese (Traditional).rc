@@ -945,6 +945,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "變更將會在重新啟動程式後生效。"
     MSG_SAVEIN_READONLY     """%s"" 為唯讀檔案。要繼續嗎?"
     MSG_OVERWRITEPROMPT     """%s"" 已經存在。要將它覆寫嗎?"
+    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
 END
 
 STRINGTABLE DISCARDABLE 

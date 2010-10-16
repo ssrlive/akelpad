@@ -966,6 +966,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "Zmeny sa uplatnia po reötarte programu."
     MSG_SAVEIN_READONLY     "S˙bor ""%s"" je v reûime len na ËÌtanie. PokraËovaù?"
     MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
+    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
 END
 
 STRINGTABLE DISCARDABLE 

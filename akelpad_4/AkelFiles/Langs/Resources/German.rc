@@ -959,6 +959,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "Die Änderungen werden nach einem Neustart wirksam."
     MSG_SAVEIN_READONLY     """%s"" ist eine schreibgeschützte Datei. Fortsetzen?"
     MSG_OVERWRITEPROMPT     """%s"" existiert schon. Überschreiben?"
+    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
 END
 
 STRINGTABLE DISCARDABLE 

@@ -1346,7 +1346,12 @@ BOOL DoFileOpen()
               xstrcpynW(wszFile, wpFile, MAX_PATH);  //.lnk target
             else
               xprintfW(wszFile, L"%s\\%s", wszFileList, wpFile);
-            OpenDocument(NULL, wszFile, dwOfnFlags, nOfnCodePage, bOfnBOM);
+            nOpen=OpenDocument(NULL, wszFile, dwOfnFlags, nOfnCodePage, bOfnBOM);
+            if (nOpen != EOD_SUCCESS && nOpen != EOD_ADT_BINARY && nOpen != EOD_WINDOW_EXIST)
+            {
+              bResult=FALSE;
+              break;
+            }
 
             //Status update
             if (moCur.bStatusBar)
@@ -3790,6 +3795,13 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     }
   }
 
+  if (nDocumentsCount > MDI_MAXDOCUMENTS && nMDI == WMD_MDI)
+  {
+    LoadStringWide(hLangLib, MSG_DOCUMENTSLIMIT, wbuf, BUFFER_SIZE);
+    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
+    nResult=EOD_DOCUMENTS_LIMIT;
+    goto End;
+  }
   if (!bFileExist)
   {
     //File doesn't exist
@@ -4668,31 +4680,42 @@ BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
   wchar_t wszName[MAX_PATH];
   WIN32_FIND_DATAW wfdW;
   HANDLE hSearch;
+  int nOpen;
+  BOOL bResult=TRUE;
 
-  if (bSubDir)
+  xprintfW(wszName, L"%s\\*.*", wpPath);
+
+  if ((hSearch=FindFirstFileWide(wszName, &wfdW)) != INVALID_HANDLE_VALUE)
   {
-    xprintfW(wszName, L"%s\\*.*", wpPath);
-
-    if ((hSearch=FindFirstFileWide(wszName, &wfdW)) != INVALID_HANDLE_VALUE)
+    do
     {
-      do
+      if (wfdW.cFileName[0] == '.' && (wfdW.cFileName[1] == '\0' || (wfdW.cFileName[1] == '.' && wfdW.cFileName[2] == '\0'))) continue;
+
+      xprintfW(wszName, L"%s\\%s", wpPath, wfdW.cFileName);
+
+      if (wfdW.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
       {
-        if (wfdW.cFileName[0] == '.' && (wfdW.cFileName[1] == '\0' || (wfdW.cFileName[1] == '.' && wfdW.cFileName[2] == '\0'))) continue;
-
-        xprintfW(wszName, L"%s\\%s", wpPath, wfdW.cFileName);
-
-        if (wfdW.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-          OpenDirectory(wszName, TRUE);
-        else
-          OpenDocument(NULL, wszName, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+        if (bSubDir)
+        {
+          if (!(bResult=OpenDirectory(wszName, TRUE)))
+            break;
+        }
       }
-      while (FindNextFileWide(hSearch, &wfdW));
-
-      FindClose(hSearch);
+      else
+      {
+        nOpen=OpenDocument(NULL, wszName, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+        if (nOpen != EOD_SUCCESS && nOpen != EOD_ADT_BINARY && nOpen != EOD_WINDOW_EXIST)
+        {
+          bResult=FALSE;
+          break;
+        }
+      }
     }
-    else return FALSE;
+    while (FindNextFileWide(hSearch, &wfdW));
+
+    FindClose(hSearch);
   }
-  return TRUE;
+  return bResult;
 }
 
 void DropFiles(HDROP hDrop)
@@ -4700,6 +4723,7 @@ void DropFiles(HDROP hDrop)
   wchar_t wszFile[MAX_PATH];
   wchar_t wszString[MAX_PATH];
   int nDropped;
+  int nOpen;
   int i;
 
   if (moCur.bStatusBar)
@@ -4712,10 +4736,17 @@ void DropFiles(HDROP hDrop)
     for (i=0; i < nDropped; ++i)
     {
       DragQueryFileWide(hDrop, i, wszFile, MAX_PATH);
-      if (nMDI && IsFile(wszFile) == ERROR_FILE_NOT_FOUND)
-        OpenDirectory(wszFile, TRUE);
+      if (nMDI && IsFile(wszFile) == ERROR_DIRECTORY)
+      {
+        if (!OpenDirectory(wszFile, TRUE))
+          break;
+      }
       else
-        OpenDocument(NULL, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+      {
+        nOpen=OpenDocument(NULL, wszFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+        if (nOpen != EOD_SUCCESS && nOpen != EOD_ADT_BINARY && nOpen != EOD_WINDOW_EXIST)
+          break;
+      }
       if (nMDI == WMD_SDI) break;
 
       //Status update
@@ -16404,7 +16435,7 @@ int IsFile(const wchar_t *wpFile)
   if (dwAttr == INVALID_FILE_ATTRIBUTES)
     return ERROR_INVALID_HANDLE;
   if (dwAttr & FILE_ATTRIBUTE_DIRECTORY)
-    return ERROR_FILE_NOT_FOUND;
+    return ERROR_DIRECTORY;
   return ERROR_SUCCESS;
 }
 

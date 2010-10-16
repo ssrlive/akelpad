@@ -2874,15 +2874,18 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) > IDM_RECENT_FILES && LOWORD(wParam) <= (IDM_RECENT_FILES + moCur.nRecentFiles))
     {
+      int nOpen=EOD_SUCCESS;
+
       if (nMDI || SaveChanged())
       {
         wchar_t *wpFile=AllocWideStr(MAX_PATH);
 
         xstrcpynW(wpFile, lpwszRecentNames[LOWORD(wParam) - IDM_RECENT_FILES - 1], MAX_PATH);
-        OpenDocument(NULL, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
+        nOpen=OpenDocument(NULL, wpFile, OD_ADT_BINARY_ERROR|OD_ADT_REG_CODEPAGE, 0, FALSE);
 
         FreeWideStr(wpFile);
       }
+      return nOpen;
     }
     else if (LOWORD(wParam) >= IDM_LANGUAGE && LOWORD(wParam) <= (IDM_LANGUAGE + nLangModuleCount + 1))
     {

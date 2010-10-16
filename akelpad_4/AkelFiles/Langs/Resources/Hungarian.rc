@@ -955,6 +955,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "A módosítások a program újraindítása után lépnek érvénybe"
     MSG_SAVEIN_READONLY     """%s"" egy írásvédett fájl. Folytatja?"
     MSG_OVERWRITEPROMPT     """%s"" már létezik. Felülírja azt?"
+    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
 END
 
 STRINGTABLE DISCARDABLE 

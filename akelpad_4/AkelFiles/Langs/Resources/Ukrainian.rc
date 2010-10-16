@@ -977,6 +977,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "Зміни набудуть чинності після перезавантаження програми."
     MSG_SAVEIN_READONLY     """%s"" файл має атрибут ""Тільки для читання"". Продовжити?"
     MSG_OVERWRITEPROMPT     """%s"" вже існує. Перезаписати?"
+    MSG_DOCUMENTSLIMIT      "Достигнут лимит документов. Используйте режим PMDI для открытия большего количества документов."
 END
 
 STRINGTABLE DISCARDABLE 
