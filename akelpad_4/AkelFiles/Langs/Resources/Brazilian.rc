@@ -960,6 +960,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "As mudanças terão efeito a reiniciar o programa."
     MSG_SAVEIN_READONLY     """%s"" é um arquivo somente leitura. Continuar ?"
     MSG_OVERWRITEPROMPT     """%s"" já existe; sobrescrevê-lo ?"
+    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
 END
 
 STRINGTABLE DISCARDABLE 

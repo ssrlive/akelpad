@@ -948,6 +948,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "Changes will be reflected upon restarting the program."
     MSG_SAVEIN_READONLY     """%s"" is a read-only file. Continue?"
     MSG_OVERWRITEPROMPT     """%s"" already exists. Overwrite it?"
+    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
 END
 
 STRINGTABLE DISCARDABLE 

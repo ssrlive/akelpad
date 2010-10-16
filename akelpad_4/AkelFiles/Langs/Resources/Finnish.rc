@@ -963,6 +963,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "Muutokset tulevat voimaan ohjelman uudelleenkäynnistyksen jälkeen."
     MSG_SAVEIN_READONLY     """%s"" on vain luku -tiedosto. Jatketaanko?"
     MSG_OVERWRITEPROMPT     """%s"" on jo olemassa. Korvataanko se?"
+    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
 END
 
 STRINGTABLE DISCARDABLE 

@@ -950,6 +950,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "프로그램을 재시작하면 변경사항이 적용됩니다."
     MSG_SAVEIN_READONLY     """%s"" 파일은 읽기 전용입니다. 계속 진행하겠습니까?"
     MSG_OVERWRITEPROMPT     """%s"" is already exist. Overwrite it?"
+    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
 END
 
 STRINGTABLE DISCARDABLE 

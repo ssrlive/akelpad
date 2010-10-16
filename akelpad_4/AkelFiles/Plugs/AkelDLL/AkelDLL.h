@@ -90,6 +90,7 @@
 #define EOD_CODEPAGE_ERROR       -14        //Code page isn't implemented.
 #define EOD_STOP                 -15        //Stopped from AKDN_OPENDOCUMENT_START.
 #define EOD_STREAMIN             -16        //Error in EM_STREAMIN.
+#define EOD_DOCUMENTS_LIMIT      -17        //Documents limit reached in MDI mode.
 
 //Save document flags
 #define SD_UPDATE            0x00000001  //Update file info.
@@ -1347,7 +1348,7 @@ typedef struct {
                                               //
 #define IDM_RECENT_FILES                5001  //Delete dead recent files.
                                               //5001 + n   Open recent file n.
-                                              //Return Value: zero.
+                                              //Return Value: see EOD_* defines.
                                               //
 #define IDM_LANGUAGE                    6001  //Activate internal language.
                                               //6001 + n   Activate language n.
