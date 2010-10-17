@@ -599,7 +599,7 @@ void _WinMain()
   //moInit.bSingleOpenFile=FALSE;
   moInit.bSingleOpenProgram=TRUE;
   moInit.nMDI=WMD_SDI;
-  moInit.dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_NEXTPREV;
+  moInit.dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_RIGHTLEFT;
 
   //moInit.wszCommand[0]='\0';
   //moInit.wszWorkDir[0]='\0';
