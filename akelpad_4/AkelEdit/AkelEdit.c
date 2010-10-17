@@ -27,7 +27,6 @@
  *                                                                                 *
  *  Not implemented:                                                               *
  * - No BiDi (right-to-left) support.                                              *
- * - No highlighing for multi-line "Quotes".                                       *
  ***********************************************************************************/
 
 
