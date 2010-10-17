@@ -697,8 +697,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         else
           lpTargetPoint->nPointOffset=lpSourcePoint->nPointOffset;
         lpTargetPoint->nPointLen=lpSourcePoint->nPointLen;
-        lpTargetPoint->dwUserData=lpSourcePoint->dwUserData;
         lpTargetPoint->dwFlags=lpSourcePoint->dwFlags;
+        lpTargetPoint->dwUserData=lpSourcePoint->dwUserData;
       }
       return (LRESULT)lpTargetPoint;
     }
@@ -1603,10 +1603,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_ADDFOLD)
     {
-      AEPOINT *lpMinPoint=(AEPOINT *)wParam;
-      AEPOINT *lpMaxPoint=(AEPOINT *)lParam;
+      AEFOLD *lpFold=(AEFOLD *)lParam;
 
-      return (LRESULT)AE_StackFoldInsert(ae, lpMinPoint, lpMaxPoint);
+      return (LRESULT)AE_StackFoldInsert(ae, lpFold);
     }
     if (uMsg == AEM_DELETEFOLD)
     {
@@ -1936,9 +1935,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         lpDelimDst->nDelimiterLen=lpDelimSrc->nDelimiterLen;
 
         lpDelimDst->dwFlags=lpDelimSrc->dwFlags;
+        lpDelimDst->dwFontStyle=lpDelimSrc->dwFontStyle;
         lpDelimDst->crText=lpDelimSrc->crText;
         lpDelimDst->crBk=lpDelimSrc->crBk;
-        lpDelimDst->dwFontStyle=lpDelimSrc->dwFontStyle;
       }
       return (LRESULT)lpDelimDst;
     }
@@ -1955,9 +1954,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         lpDelimDst->nDelimiterLen=lpDelimSrc->nDelimiterLen;
 
         lpDelimDst->dwFlags=lpDelimSrc->dwFlags;
+        lpDelimDst->dwFontStyle=lpDelimSrc->dwFontStyle;
         lpDelimDst->crText=lpDelimSrc->crText;
         lpDelimDst->crBk=lpDelimSrc->crBk;
-        lpDelimDst->dwFontStyle=lpDelimSrc->dwFontStyle;
       }
       return (LRESULT)lpDelimDst;
     }
@@ -1991,9 +1990,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         lpWordDst->nWordLen=nWordLen;
 
         lpWordDst->dwFlags=lpWordSrc->dwFlags;
+        lpWordDst->dwFontStyle=lpWordSrc->dwFontStyle;
         lpWordDst->crText=lpWordSrc->crText;
         lpWordDst->crBk=lpWordSrc->crBk;
-        lpWordDst->dwFontStyle=lpWordSrc->dwFontStyle;
       }
       return (LRESULT)lpWordDst;
     }
@@ -2016,9 +2015,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         lpWordDst->nWordLen=nWordLen;
 
         lpWordDst->dwFlags=lpWordSrc->dwFlags;
+        lpWordDst->dwFontStyle=lpWordSrc->dwFontStyle;
         lpWordDst->crText=lpWordSrc->crText;
         lpWordDst->crBk=lpWordSrc->crBk;
-        lpWordDst->dwFontStyle=lpWordSrc->dwFontStyle;
       }
       return (LRESULT)lpWordDst;
     }
@@ -2072,9 +2071,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         else lpQuoteDst->pQuoteExclude=NULL;
 
         lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
+        lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
         lpQuoteDst->crText=lpQuoteSrc->crText;
         lpQuoteDst->crBk=lpQuoteSrc->crBk;
-        lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
       }
       return (LRESULT)lpQuoteDst;
     }
@@ -2117,9 +2116,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         else lpQuoteDst->pQuoteExclude=NULL;
 
         lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
+        lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
         lpQuoteDst->crText=lpQuoteSrc->crText;
         lpQuoteDst->crBk=lpQuoteSrc->crBk;
-        lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
       }
       return (LRESULT)lpQuoteDst;
     }
@@ -2147,9 +2146,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         lpMarkTextDst->nMarkTextLen=lpMarkTextSrc->nMarkTextLen;
 
         lpMarkTextDst->dwFlags=lpMarkTextSrc->dwFlags;
+        lpMarkTextDst->dwFontStyle=lpMarkTextSrc->dwFontStyle;
         lpMarkTextDst->crText=lpMarkTextSrc->crText;
         lpMarkTextDst->crBk=lpMarkTextSrc->crBk;
-        lpMarkTextDst->dwFontStyle=lpMarkTextSrc->dwFontStyle;
       }
       return (LRESULT)lpMarkTextDst;
     }
@@ -2166,9 +2165,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         lpMarkTextDst->nMarkTextLen=lpMarkTextSrc->nMarkTextLen;
 
         lpMarkTextDst->dwFlags=lpMarkTextSrc->dwFlags;
+        lpMarkTextDst->dwFontStyle=lpMarkTextSrc->dwFontStyle;
         lpMarkTextDst->crText=lpMarkTextSrc->crText;
         lpMarkTextDst->crBk=lpMarkTextSrc->crBk;
-        lpMarkTextDst->dwFontStyle=lpMarkTextSrc->dwFontStyle;
       }
       return (LRESULT)lpMarkTextDst;
     }
@@ -2193,9 +2192,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         lpMarkRangeDst->crMarkRange=lpMarkRangeSrc->crMarkRange;
         lpMarkRangeDst->dwFlags=lpMarkRangeSrc->dwFlags;
+        lpMarkRangeDst->dwFontStyle=lpMarkRangeSrc->dwFontStyle;
         lpMarkRangeDst->crText=lpMarkRangeSrc->crText;
         lpMarkRangeDst->crBk=lpMarkRangeSrc->crBk;
-        lpMarkRangeDst->dwFontStyle=lpMarkRangeSrc->dwFontStyle;
       }
       return (LRESULT)lpMarkRangeDst;
     }
@@ -5239,7 +5238,7 @@ void AE_StackBitmapItemsFree(HSTACK *hStack)
   AE_HeapStackClear(NULL, (stack **)&hStack->first, (stack **)&hStack->last);
 }
 
-AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoint)
+AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
 {
   AEFOLD *lpMinParent;
   AEFOLD *lpMaxParent;
@@ -5252,24 +5251,24 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
   AEFOLD *lpElement=NULL;
   AEFOLD *lpNewElement=NULL;
 
-  if (AE_IndexCompare(&lpMinPoint->ciPoint, &lpMaxPoint->ciPoint) > 0)
+  if (AE_IndexCompare(&lpFold->lpMinPoint->ciPoint, &lpFold->lpMaxPoint->ciPoint) > 0)
     return NULL;
 
-  if (lpMinPoint->nPointOffset == AEPTO_CALC)
-    lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMinPoint->ciPoint);
-  if (lpMaxPoint->nPointOffset == AEPTO_CALC)
-    lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpMaxPoint->ciPoint);
+  if (lpFold->lpMinPoint->nPointOffset == AEPTO_CALC)
+    lpFold->lpMinPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpFold->lpMinPoint->ciPoint);
+  if (lpFold->lpMaxPoint->nPointOffset == AEPTO_CALC)
+    lpFold->lpMaxPoint->nPointOffset=AE_AkelIndexToRichOffset(ae, &lpFold->lpMaxPoint->ciPoint);
 
   //Fold start
-  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpMinPoint->nPointOffset, NULL, &lpMinParent, &lpMinPrevSubling);
+  AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpFold->lpMinPoint->nPointOffset, NULL, &lpMinParent, &lpMinPrevSubling);
 
   //Fold end
-  if (lpMinParent && lpMinParent->lpMaxPoint->nPointOffset == lpMaxPoint->nPointOffset)
+  if (lpMinParent && lpMinParent->lpMaxPoint->nPointOffset == lpFold->lpMaxPoint->nPointOffset)
   {
     lpMaxParent=lpMinParent;
     lpMaxPrevSubling=lpMinParent->lastChild;
   }
-  else AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpMaxPoint->nPointOffset + lpMaxPoint->nPointLen, lpMinParent, &lpMaxParent, &lpMaxPrevSubling);
+  else AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpFold->lpMaxPoint->nPointOffset + lpFold->lpMaxPoint->nPointLen, lpMinParent, &lpMaxParent, &lpMaxPrevSubling);
 
   if (lpMinParent == lpMaxParent)
   {
@@ -5335,24 +5334,25 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoin
 
   if (lpNewElement)
   {
-    if (lpNewElement->lpMinPoint=AE_StackPointInsert(ae, &lpMinPoint->ciPoint))
+    if (lpNewElement->lpMinPoint=AE_StackPointInsert(ae, &lpFold->lpMinPoint->ciPoint))
     {
-      lpNewElement->lpMinPoint->nPointOffset=lpMinPoint->nPointOffset;
-      lpNewElement->lpMinPoint->nPointLen=lpMinPoint->nPointLen;
-      lpNewElement->lpMinPoint->dwUserData=lpMinPoint->dwUserData;
-      lpNewElement->lpMinPoint->dwFlags=lpMinPoint->dwFlags|AEPTF_FOLD;
+      lpNewElement->lpMinPoint->nPointOffset=lpFold->lpMinPoint->nPointOffset;
+      lpNewElement->lpMinPoint->nPointLen=lpFold->lpMinPoint->nPointLen;
+      lpNewElement->lpMinPoint->dwFlags=lpFold->lpMinPoint->dwFlags|AEPTF_FOLD;
+      lpNewElement->lpMinPoint->dwUserData=lpFold->lpMinPoint->dwUserData;
     }
-    if (lpNewElement->lpMaxPoint=AE_StackPointInsert(ae, &lpMaxPoint->ciPoint))
+    if (lpNewElement->lpMaxPoint=AE_StackPointInsert(ae, &lpFold->lpMaxPoint->ciPoint))
     {
-      lpNewElement->lpMaxPoint->nPointOffset=lpMaxPoint->nPointOffset;
-      lpNewElement->lpMaxPoint->nPointLen=lpMaxPoint->nPointLen;
-      lpNewElement->lpMaxPoint->dwUserData=lpMaxPoint->dwUserData;
-      lpNewElement->lpMaxPoint->dwFlags=lpMaxPoint->dwFlags|AEPTF_FOLD;
+      lpNewElement->lpMaxPoint->nPointOffset=lpFold->lpMaxPoint->nPointOffset;
+      lpNewElement->lpMaxPoint->nPointLen=lpFold->lpMaxPoint->nPointLen;
+      lpNewElement->lpMaxPoint->dwFlags=lpFold->lpMaxPoint->dwFlags|AEPTF_FOLD;
+      lpNewElement->lpMaxPoint->dwUserData=lpFold->lpMaxPoint->dwUserData;
     }
-    lpNewElement->bCollapse=FALSE;
-    lpNewElement->crText=(DWORD)RGB(0xFF, 0x00, 0x00);
-    lpNewElement->crBk=(DWORD)-1;
-    lpNewElement->dwFontStyle=AEHLS_NONE;
+    lpNewElement->bCollapse=lpFold->bCollapse;
+    lpNewElement->dwFontStyle=lpFold->dwFontStyle;
+    lpNewElement->crText=lpFold->crText;
+    lpNewElement->crBk=lpFold->crBk;
+    lpNewElement->dwUserData=lpFold->dwUserData;
   }
   ae->ptxt->lpVPosFold=NULL;
   return lpNewElement;
@@ -11999,51 +11999,56 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
   }
 
   //Fold find
-  if (hlp->crFold.cpMax <= to->nDrawCharOffset)
+  if (ae->ptxt->hFoldsStack.first)
   {
-    AEFOLD *lpFoldParent;
-    AEFOLD *lpFoldPrevSubling;
-
-    AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, to->nDrawCharOffset, NULL, &lpFoldParent, &lpFoldPrevSubling);
-  }
-
-  //Check fold start
-  if (hlp->lpFold)
-  {
-    if (!(hlp->dwPaintType & AEHPT_FOLD))
+    if (hlp->fm.crFold.cpMax <= to->nDrawCharOffset)
     {
-      if (to->nDrawCharOffset < hlp->crFold.cpMax)
+      AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, to->nDrawCharOffset, NULL, &hlp->fm.lpFold, NULL);
+      if (hlp->fm.lpFold)
       {
-        if (hlp->crFold.cpMin <= to->nDrawCharOffset)
-        {
-          if (!(hlp->dwPaintType & AEHPT_SELECTION))
-          {
-            //Draw text before mark
-            AE_PaintTextOut(ae, to, hlp);
-          }
-          hlp->dwPaintType|=AEHPT_FOLD;
-        }
+        hlp->fm.crFold.cpMin=hlp->fm.lpFold->lpMinPoint->nPointOffset;
+        hlp->fm.crFold.cpMax=hlp->fm.lpFold->lpMaxPoint->nPointOffset + hlp->fm.lpFold->lpMaxPoint->nPointLen;
       }
     }
-    if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_FOLD))
+
+    //Check fold start
+    if (hlp->fm.lpFold)
     {
-      if (hlp->lpFold->crText != (DWORD)-1)
-        hlp->dwActiveText=hlp->lpFold->crText;
-      else
-        hlp->dwActiveText=hlp->dwDefaultText;
-      if (hlp->lpFold->crBk != (DWORD)-1)
-        hlp->dwActiveBG=hlp->lpFold->crBk;
-      else
-        hlp->dwActiveBG=hlp->dwDefaultBG;
-      if (hlp->lpFold->dwFontStyle != AEHLS_NONE)
-        hlp->dwFontStyle=hlp->lpFold->dwFontStyle;
+      if (!(hlp->dwPaintType & AEHPT_FOLD))
+      {
+        if (to->nDrawCharOffset < hlp->fm.crFold.cpMax)
+        {
+          if (hlp->fm.crFold.cpMin <= to->nDrawCharOffset)
+          {
+            if (!(hlp->dwPaintType & AEHPT_SELECTION))
+            {
+              //Draw text before mark
+              AE_PaintTextOut(ae, to, hlp);
+            }
+            hlp->dwPaintType|=AEHPT_FOLD;
+          }
+        }
+      }
+      if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_FOLD))
+      {
+        if (hlp->fm.lpFold->crText != (DWORD)-1)
+          hlp->dwActiveText=hlp->fm.lpFold->crText;
+        else
+          hlp->dwActiveText=hlp->dwDefaultText;
+        if (hlp->fm.lpFold->crBk != (DWORD)-1)
+          hlp->dwActiveBG=hlp->fm.lpFold->crBk;
+        else
+          hlp->dwActiveBG=hlp->dwDefaultBG;
+        if (hlp->fm.lpFold->dwFontStyle != AEHLS_NONE)
+          hlp->dwFontStyle=hlp->fm.lpFold->dwFontStyle;
+      }
     }
   }
 
   if (ae->popt->lpActiveTheme)
   {
     //Only if char not in URL
-    if (!(hlp->dwPaintType & AEHPT_LINK))
+    if (!(hlp->dwPaintType & AEHPT_LINK) && !(hlp->dwPaintType & AEHPT_FOLD))
     {
       //Quote find
       if (AE_IndexCompare(&hlp->qm.crQuoteEnd.ciMax, &to->ciDrawLine) <= 0)
@@ -12325,6 +12330,22 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
       }
     }
   }
+  if (hlp->fm.lpFold)
+  {
+    if (hlp->fm.crFold.cpMax <= to->nDrawCharOffset)
+    {
+      if (!(hlp->dwPaintType & AEHPT_SELECTION))
+      {
+        if (hlp->fm.crFold.cpMax == to->nDrawCharOffset)
+        {
+          //Draw full highlighted text or last part of it
+          AE_PaintTextOut(ae, to, hlp);
+        }
+      }
+      hlp->dwPaintType&=~AEHPT_FOLD;
+      hlp->fm.lpFold=NULL;
+    }
+  }
   if (ae->popt->lpActiveTheme)
   {
     if (hlp->mtm.lpMarkText)
@@ -12491,6 +12512,14 @@ void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, 
         hlp->dwPaintType&=~AEHPT_MARKTEXT;
         hlp->mtm.lpMarkText=NULL;
       }
+    }
+  }
+  if (hlp->fm.lpFold)
+  {
+    if (hlp->fm.crFold.cpMax <= to->nDrawCharOffset)
+    {
+      hlp->dwPaintType&=~AEHPT_FOLD;
+      hlp->fm.lpFold=NULL;
     }
   }
   if (ae->popt->bDetectUrl)

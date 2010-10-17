@@ -616,8 +616,8 @@ typedef struct _AEPOINT {
   AECHARINDEX ciPoint;     //Read-only character index.
   int nPointOffset;        //Character RichEdit offset or one of the AEPTO_* define.
   int nPointLen;           //Point length.
-  DWORD dwUserData;        //User data.
   DWORD dwFlags;           //See AEPTF_* defines.
+  DWORD dwUserData;        //User data.
   int nReserved;           //Don't use it. For internal code only.
 } AEPOINT;
 
@@ -630,9 +630,9 @@ typedef struct _AEFOLD {
   AEPOINT *lpMinPoint;        //Minimum line point.
   AEPOINT *lpMaxPoint;        //Maximum line point.
   BOOL bCollapse;             //Collapse state.
+  DWORD dwFontStyle;          //See AEHLS_* defines.
   COLORREF crText;            //Delimiter text color. If -1, then don't set.
   COLORREF crBk;              //Delimiter background color. If -1, then don't set.
-  DWORD dwFontStyle;          //See AEHLS_* defines.
   DWORD dwUserData;           //User data.
 } AEFOLD;
 
@@ -800,9 +800,9 @@ typedef struct _AEDELIMITEMA {
   char *pDelimiter;          //Delimiter string.
   int nDelimiterLen;         //Delimiter string length.
   DWORD dwFlags;             //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
   COLORREF crBk;             //Delimiter background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEDELIMITEMA;
 
 typedef struct _AEDELIMITEMW {
@@ -812,9 +812,9 @@ typedef struct _AEDELIMITEMW {
   wchar_t *pDelimiter;       //Delimiter string.
   int nDelimiterLen;         //Delimiter string length.
   DWORD dwFlags;             //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Delimiter text color. If -1, then don't set.
   COLORREF crBk;             //Delimiter background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEDELIMITEMW;
 
 typedef struct _AEWORDITEMA {
@@ -824,9 +824,9 @@ typedef struct _AEWORDITEMA {
   char *pWord;               //Word string.
   int nWordLen;              //Word string length.
   DWORD dwFlags;             //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Word text color. If -1, then don't set.
   COLORREF crBk;             //Word background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEWORDITEMA;
 
 typedef struct _AEWORDITEMW {
@@ -836,9 +836,9 @@ typedef struct _AEWORDITEMW {
   wchar_t *pWord;            //Word string.
   int nWordLen;              //Word string length.
   DWORD dwFlags;             //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Word text color. If -1, then don't set.
   COLORREF crBk;             //Word background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEWORDITEMW;
 
 typedef struct _AEQUOTEITEMA {
@@ -855,9 +855,9 @@ typedef struct _AEQUOTEITEMA {
   char *pQuoteExclude;       //Quote exclude string.
   int nQuoteExcludeLen;      //Quote exclude string length.
   DWORD dwFlags;             //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Quote text color. If -1, then don't set.
   COLORREF crBk;             //Quote background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEQUOTEITEMA;
 
 typedef struct _AEQUOTEITEMW {
@@ -874,9 +874,9 @@ typedef struct _AEQUOTEITEMW {
   wchar_t *pQuoteExclude;    //Quote exclude string.
   int nQuoteExcludeLen;      //Quote exclude string length.
   DWORD dwFlags;             //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Quote text color. If -1, then don't set.
   COLORREF crBk;             //Quote background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEQUOTEITEMW;
 
 typedef struct _AEMARKTEXTITEMA {
@@ -886,9 +886,9 @@ typedef struct _AEMARKTEXTITEMA {
   char *pMarkText;           //Mark text.
   int nMarkTextLen;          //Mark text length.
   DWORD dwFlags;             //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Mark text color. If -1, then don't set.
   COLORREF crBk;             //Mark background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEMARKTEXTITEMA;
 
 typedef struct _AEMARKTEXTITEMW {
@@ -898,9 +898,9 @@ typedef struct _AEMARKTEXTITEMW {
   wchar_t *pMarkText;        //Mark text.
   int nMarkTextLen;          //Mark text length.
   DWORD dwFlags;             //See AEHLF_* defines.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Mark text color. If -1, then don't set.
   COLORREF crBk;             //Mark background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEMARKTEXTITEMW;
 
 typedef struct _AEMARKRANGEITEM {
@@ -909,9 +909,9 @@ typedef struct _AEMARKRANGEITEM {
   int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
   CHARRANGE crMarkRange;     //cpMin member is the first character in the range (RichEdit offset), cpMax member is the last character in the range (RichEdit offset).
   DWORD dwFlags;             //Reserved.
+  DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Mark text color. If -1, then don't set.
   COLORREF crBk;             //Mark background color. If -1, then don't set.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
 } AEMARKRANGEITEM;
 
 typedef struct {
@@ -4294,10 +4294,10 @@ Example:
 AEM_ADDFOLD
 ___________
 
-Hides the range of lines.
+Add fold.
 
-(AEPOINT *)wParam == start text pointer. Pointer to a filled AEPOINT structure. AEPOINT.ciPoint and AEPOINT.nPointOffset members required.
-(AEPOINT *)lParam == end text pointer. pointer to a filled AEPOINT structure. AEPOINT.ciPoint and AEPOINT.nPointOffset members required.
+wParam           == not used.
+(AEFOLD *)lParam == pointer to a filled AEFOLD structure. AEFOLD.next, AEFOLD.prev, AEFOLD.parent, AEFOLD.firstChild, AEFOLD.lastChild are ignored.
 
 Return Value
  Fold handle (pointer to a AEFOLD structure).
@@ -4305,11 +4305,19 @@ Return Value
 Example:
  AEPOINT pointMin={0};
  AEPOINT pointMax={0};
+ AEFOLD fold;
 
  pointMin.nPointOffset=AEPTO_CALC;
  pointMax.nPointOffset=AEPTO_CALC;
  SendMessage(hWndEdit, AEM_EXGETSEL, (WPARAM)&pointMin.ciPoint, (LPARAM)&pointMax.ciPoint);
- SendMessage(hWndEdit, AEM_ADDFOLD, (WPARAM)&pointMin, (LPARAM)&pointMax);
+ fold.lpMinPoint=&pointMin;
+ fold.lpMaxPoint=&pointMax;
+ fold.bCollapse=FALSE;
+ fold.dwFontStyle=AEHLS_NONE;
+ fold.crText=RGB(0xFF, 0x00, 0x00);
+ fold.crBk=(DWORD)-1;
+ fold.dwUserData=0;
+ SendMessage(hWndEdit, AEM_ADDFOLD, 0, (LPARAM)&fold);
 
 
 AEM_DELETEFOLD
@@ -4809,17 +4817,17 @@ Example:
    di.pDelimiter=" ";
    di.nDelimiterLen=lstrlenA(di.pDelimiter);
    di.dwFlags=AEHLF_MATCHCASE;
+   di.dwFontStyle=AEHLS_NONE;
    di.crText=(DWORD)-1;
    di.crBk=(DWORD)-1;
-   di.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDDELIMITERA, (WPARAM)hTheme, (LPARAM)&di);
 
    wi.pWord="for";
    wi.nWordLen=lstrlenA(wi.pWord);
    wi.dwFlags=AEHLF_MATCHCASE;
+   wi.dwFontStyle=AEHLS_NONE;
    wi.crText=RGB(0x00, 0xFF, 0x00);
    wi.crBk=(DWORD)-1;
-   wi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDWORDA, (WPARAM)hTheme, (LPARAM)&wi);
 
    qi.pQuoteStart="\"";
@@ -4832,25 +4840,25 @@ Example:
    qi.pQuoteExclude=NULL;
    qi.nQuoteExcludeLen=0;
    qi.dwFlags=AEHLF_MATCHCASE;
+   qi.dwFontStyle=AEHLS_NONE;
    qi.crText=RGB(0x00, 0x00, 0xFF);
    qi.crBk=(DWORD)-1;
-   qi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDQUOTEA, (WPARAM)hTheme, (LPARAM)&qi);
 
    mri.crMarkRange.cpMin=10;
    mri.crMarkRange.cpMax=20;
    mri.dwFlags=0;
+   mri.dwFontStyle=AEHLS_NONE;
    mri.crText=RGB(0xFF, 0x00, 0x00);
    mri.crBk=(DWORD)-1;
-   mri.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
 
    mti.pMarkText="or";
    mti.nMarkTextLen=lstrlenA(mti.pMarkText);
    mti.dwFlags=AEHLF_MATCHCASE;
+   mti.dwFontStyle=AEHLS_NONE;
    mti.crText=(DWORD)-1;
    mti.crBk=RGB(0xFF, 0x00, 0x00);
-   mti.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDMARKTEXTA, (WPARAM)hTheme, (LPARAM)&mti);
 
    SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, TRUE);
@@ -4882,17 +4890,17 @@ Example:
    di.pDelimiter=L" ";
    di.nDelimiterLen=lstrlenW(di.pDelimiter);
    di.dwFlags=AEHLF_MATCHCASE;
+   di.dwFontStyle=AEHLS_NONE;
    di.crText=(DWORD)-1;
    di.crBk=(DWORD)-1;
-   di.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDDELIMITERW, (WPARAM)hTheme, (LPARAM)&di);
 
    wi.pWord=L"for";
    wi.nWordLen=lstrlenW(wi.pWord);
    wi.dwFlags=AEHLF_MATCHCASE;
+   wi.dwFontStyle=AEHLS_NONE;
    wi.crText=RGB(0x00, 0xFF, 0x00);
    wi.crBk=(DWORD)-1;
-   wi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDWORDW, (WPARAM)hTheme, (LPARAM)&wi);
 
    qi.nIndex=-1;
@@ -4906,27 +4914,27 @@ Example:
    qi.pQuoteExclude=NULL;
    qi.nQuoteExcludeLen=0;
    qi.dwFlags=AEHLF_MATCHCASE;
+   qi.dwFontStyle=AEHLS_NONE;
    qi.crText=RGB(0x00, 0x00, 0xFF);
    qi.crBk=(DWORD)-1;
-   qi.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDQUOTEW, (WPARAM)hTheme, (LPARAM)&qi);
 
    mri.nIndex=-1;
    mri.crMarkRange.cpMin=10;
    mri.crMarkRange.cpMax=20;
    mri.dwFlags=0;
+   mri.dwFontStyle=AEHLS_NONE;
    mri.crText=RGB(0xFF, 0x00, 0x00);
    mri.crBk=(DWORD)-1;
-   mri.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
 
    mti.nIndex=-1;
    mti.pMarkText=L"or";
    mti.nMarkTextLen=lstrlenW(mti.pMarkText);
    mti.dwFlags=AEHLF_MATCHCASE;
+   mti.dwFontStyle=AEHLS_NONE;
    mti.crText=(DWORD)-1;
    mti.crBk=RGB(0xFF, 0x00, 0x00);
-   mti.dwFontStyle=AEHLS_NONE;
    SendMessage(hWndEdit, AEM_HLADDMARKTEXTW, (WPARAM)hTheme, (LPARAM)&mti);
 
    SendMessage(hWndEdit, AEM_HLSETTHEME, (WPARAM)hTheme, TRUE);

@@ -270,6 +270,11 @@ typedef struct {
 } AEWORDMATCH;
 
 typedef struct {
+  CHARRANGE crFold;
+  AEFOLD *lpFold;
+} AEFOLDMATCH;
+
+typedef struct {
   DWORD dwDefaultText;
   DWORD dwDefaultBG;
   HBRUSH hbrDefaultBG;
@@ -282,9 +287,8 @@ typedef struct {
   AEQUOTEMATCH qm;
   AEMARKRANGEMATCH mrm;
   AEMARKTEXTMATCH mtm;
+  AEFOLDMATCH fm;
   AECHARRANGE crLink;
-  CHARRANGE crFold;
-  AEFOLD *lpFold;
   DWORD dwFindFirst;
 } AEHLPAINT;
 
@@ -681,7 +685,7 @@ void AE_StackFontItemsFreeW(HSTACK *hStack);
 AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd);
 AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd);
 void AE_StackBitmapItemsFree(HSTACK *hStack);
-AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, AEPOINT *lpMinPoint, AEPOINT *lpMaxPoint);
+AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold);
 AEFOLD* AE_NextFold(AEFOLD *lpFold, BOOL bRecursive);
 AEFOLD* AE_PrevFold(AEFOLD *lpFold, BOOL bRecursive);
 void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpForce, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
