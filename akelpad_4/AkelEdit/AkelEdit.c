@@ -12003,11 +12003,33 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
   {
     if (hlp->fm.crFold.cpMax <= to->nDrawCharOffset)
     {
+      AEFOLD *lpColored=NULL;
+
       AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, to->nDrawCharOffset, NULL, &hlp->fm.lpFold, NULL);
-      if (hlp->fm.lpFold)
+
+      while (hlp->fm.lpFold)
       {
+        if (hlp->fm.lpFold->dwFontStyle != AEHLS_NONE ||
+            hlp->fm.lpFold->crText != (DWORD)-1 ||
+            hlp->fm.lpFold->crBk != (DWORD)-1)
+        {
+          //Fold has highlighing information.
+          lpColored=hlp->fm.lpFold;
+        }
+        if (hlp->fm.lpFold->parent)
+        {
+          //Check the parent.
+          hlp->fm.lpFold=hlp->fm.lpFold->parent;
+          continue;
+        }
+
+        if (lpColored)
+          hlp->fm.lpFold=lpColored;
         hlp->fm.crFold.cpMin=hlp->fm.lpFold->lpMinPoint->nPointOffset;
         hlp->fm.crFold.cpMax=hlp->fm.lpFold->lpMaxPoint->nPointOffset + hlp->fm.lpFold->lpMaxPoint->nPointLen;
+        if (!lpColored)
+          hlp->fm.lpFold=NULL;
+        break;
       }
     }
 
