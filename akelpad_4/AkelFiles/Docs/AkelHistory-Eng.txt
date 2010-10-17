@@ -2,15 +2,18 @@
 AkelPad 4.5.0 ()
 ----------------------------
 Changed: plugin architecture. Update plugins.
-Changed: improved many files opening (MDI/PMDI). Successfully tested working with
-         100 thousands files in PMDI mode.
-Changed: maximum number of documents in MDI mode is 700. When one try to exceed this number,
-         message appeared that indicates PMDI mode requirement.
+Changed: improved many files opening (MDI/PMDI).
+         - Successfully tested working with 100 thousands files in PMDI mode.
+         - Maximum number of documents in MDI mode is 700. When one try to exceed this number,
+           message appeared that indicates PMDI mode requirement.
+Changed: code folding optimized.
 Changed: "Save All" menu item is deactivated if no files are changed.
 Changed: if automatically check "In selection" is enabled and selection is empty, previous
          direction is restored.
 Changed: return alignment to left in the status bar.
 
+Added: ability to set color for the text inside fold. This means that multiline comments
+       could be colored (Coder::CodeFold must be enabled).
 Added: Czech language module (Frantisek Bartos).
 Added: Hungarian language module (ZityiSoft).
 Added: variables for "StatusUserFormat":
