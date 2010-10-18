@@ -12000,7 +12000,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
   //Fold find
   if (ae->ptxt->hFoldsStack.first)
   {
-    if (hlp->fm.crFold.cpMax <= to->nDrawCharOffset)
+    if (!hlp->fm.lpFold || hlp->fm.crFold.cpMax <= to->nDrawCharOffset)
     {
       AEFOLD *lpColored=NULL;
 
