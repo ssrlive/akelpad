@@ -1598,7 +1598,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETFOLDCOUNT)
     {
-      return ae->ptxt->nFoldCount;
+      return ae->ptxt->nFoldAllCount;
     }
     if (uMsg == AEM_ADDFOLD)
     {
@@ -5290,7 +5290,6 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
         lpNewElement->parent=lpMinParent;
         lpNewElement->firstChild=NULL;
         lpNewElement->lastChild=NULL;
-        ++ae->ptxt->nFoldCount;
       }
     }
     else
@@ -5320,7 +5319,6 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
         lpNewElement->parent=lpMinParent;
         lpNewElement->firstChild=lpMinSubling;
         lpNewElement->lastChild=lpMaxSubling;
-        ++ae->ptxt->nFoldCount;
       }
 
       //Change parent for childrens
@@ -5352,6 +5350,14 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
     lpNewElement->crText=lpFold->crText;
     lpNewElement->crBk=lpFold->crBk;
     lpNewElement->dwUserData=lpFold->dwUserData;
+
+    if (lpNewElement->dwFontStyle != AEHLS_NONE ||
+        lpNewElement->crText != (DWORD)-1 ||
+        lpNewElement->crBk != (DWORD)-1)
+    {
+      ++ae->ptxt->nFoldColorCount;
+    }
+    ++ae->ptxt->nFoldAllCount;
   }
   ae->ptxt->lpVPosFold=NULL;
   return lpNewElement;
@@ -5824,10 +5830,18 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
   }
   StackJoin((stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpFold, (stack *)lpFold->firstChild, (stack *)lpFold->lastChild);
 
+  //Update counts
+  if (lpFold->dwFontStyle != AEHLS_NONE ||
+      lpFold->crText != (DWORD)-1 ||
+      lpFold->crBk != (DWORD)-1)
+  {
+    --ae->ptxt->nFoldColorCount;
+  }
+  --ae->ptxt->nFoldAllCount;
+
   AE_StackPointDelete(ae, lpFold->lpMinPoint);
   AE_StackPointDelete(ae, lpFold->lpMaxPoint);
   AE_HeapStackDelete(NULL, (stack **)lppFirstChild, (stack **)lppLastChild, (stack *)lpFold);
-  --ae->ptxt->nFoldCount;
   return bCollapse;
 }
 
@@ -5870,7 +5884,8 @@ int AE_StackFoldFree(AKELEDIT *ae)
     lpSubling=lpParent;
     goto NextParent;
   }
-  ae->ptxt->nFoldCount=0;
+  ae->ptxt->nFoldColorCount=0;
+  ae->ptxt->nFoldAllCount=0;
 
   return nCollapse;
 }
@@ -11998,7 +12013,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
   }
 
   //Fold find
-  if (ae->ptxt->hFoldsStack.first)
+  if (ae->ptxt->nFoldColorCount)
   {
     if (!hlp->fm.lpFold || hlp->fm.crFold.cpMax <= to->nDrawCharOffset)
     {
