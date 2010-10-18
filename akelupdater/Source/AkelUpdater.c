@@ -1,21 +1,34 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v2.0                  *
+ *                 AkelUpdater NSIS plugin v2.6                  *
  *                                                               *
- * 2009 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
+ * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
 
 #define _WIN32_IE 0x0400
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commctrl.h>
-#include "ConvFunc.h"
+#include "StackFunc.h"
+#include "StrFunc.h"
+#include "AkelDLL.h"
 #include "Resources\Resource.h"
 
 
-/* Include conversion functions */
+//Include stack functions
+#define StackInsertAfter
+#define StackInsertBefore
+#define StackInsertIndex
+#define StackMoveBefore
+#define StackClear
+#define StackSortA
+#include "StackFunc.h"
+
+//Include string functions
+#define xmemcmp
+#define xstrcpynA
 #define xatoiA
 #define xitoaA
-#include "ConvFunc.h"
+#include "StrFunc.h"
 
 /* Defines */
 #define NSIS_MAX_STRLEN 1024
@@ -35,17 +48,6 @@
 #define STRID_SELECT   6
 #define STRID_UPDATE   7
 #define STRID_CANCEL   8
-
-//DIALOGRESIZE
-#define DRS_SIZE  0x1 //Resize control
-#define DRS_MOVE  0x2 //Move control
-#define DRS_X     0x4 //X value
-#define DRS_Y     0x8 //Y value
-
-typedef struct {
-  HWND *lpWnd;   //Control window
-  DWORD dwType;  //See DRS_* defines
-} DIALOGRESIZE;
 
 /* ExDll */
 typedef struct _stack_t {
@@ -95,20 +97,38 @@ INST_LANG,      // $LANGUAGE
 __INST_LAST
 };
 
+typedef struct _PLUGINITEM {
+  struct _PLUGINITEM *next;
+  struct _PLUGINITEM *prev;
+  char szPluginName[MAX_PATH];
+  HSTACK hCopiesStack;
+} PLUGINITEM;
+
+
 /* Global variables */
 char szBuf[NSIS_MAX_STRLEN];
 char szBuf2[NSIS_MAX_STRLEN];
+char szExeDir[MAX_PATH];
+char szPlugsDir[MAX_PATH];
+HSTACK hPluginsStack={0};
 HINSTANCE hInstanceDLL=NULL;
 HINSTANCE hInstanceEXE=NULL;
 WORD wLangSystem;
-RECT rcInitDialog={0};
-RECT rcMainDialog={0};
+RECT rcMainInitDialog={0};
+RECT rcMainCurrentDialog={0};
 
 /* Funtions prototypes and macros */
 BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int GetCommandLineArgA(char *pCmdLine, char **pArgStart, char **pArgEnd, char **pNextArg);
 BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc);
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void StackPluginsFill(HSTACK *hStack);
+PLUGINITEM* StackPluginInsert(HSTACK *hStack, const char *pPluginName);
+PLUGINITEM* StackPluginGet(HSTACK *hStack, const char *pPluginName);
+void StackPluginsSort(HSTACK *hStack);
+void StackPluginsFree(HSTACK *hStack);
+int GetExeDirA(HINSTANCE hInstance, char *szExeDir, int nLen);
+int GetBaseNameA(const char *pFile, char *szBaseName, int nBaseNameMaxLen);
 char* GetLangStringA(LANGID wLangID, int nStringID);
 char* getuservariable(const int varnum);
 void setuservariable(const int varnum, const char *var);
@@ -118,7 +138,10 @@ int popstring(char *str, int len);
 void pushstring(const char *str, int len);
 
 /* NSIS functions code */
-extern "C" void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
+#ifdef __GNUC__
+  extern "C"
+#endif
+void __declspec(dllexport) List(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
 {
   EXDLL_INIT();
   {
@@ -129,7 +152,10 @@ extern "C" void __declspec(dllexport) List(HWND hwndParent, int string_size, cha
   }
 }
 
-extern "C" void __declspec(dllexport) Collapse(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
+#ifdef __GNUC__
+  extern "C"
+#endif
+void __declspec(dllexport) Collapse(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
 {
   EXDLL_INIT();
   {
@@ -140,7 +166,10 @@ extern "C" void __declspec(dllexport) Collapse(HWND hwndParent, int string_size,
   }
 }
 
-extern "C" void __declspec(dllexport) ParseAndPush(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
+#ifdef __GNUC__
+  extern "C"
+#endif
+void __declspec(dllexport) ParseAndPush(HWND hwndParent, int string_size, char *variables, stack_t **stacktop)
 {
   EXDLL_INIT();
   {
@@ -185,16 +214,19 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static int nAllItemsCount=0;
   static int nSelItemsCount=0;
   static LVITEMA lviA;
-  static DIALOGRESIZE drs[]={{&hWndGroupExe,    DRS_SIZE|DRS_X},
-                             {&hWndListExe,     DRS_SIZE|DRS_X},
-                             {&hWndMirrorLabel, DRS_MOVE|DRS_X},
-                             {&hWndMirror,      DRS_MOVE|DRS_X},
-                             {&hWndListDll,     DRS_SIZE|DRS_X|DRS_Y},
-                             {&hWndListInfo,    DRS_MOVE|DRS_Y},
-                             {&hWndSeleted,     DRS_MOVE|DRS_X|DRS_Y},
-                             {&hWndUpdate,      DRS_MOVE|DRS_Y},
-                             {&hWndCancel,      DRS_MOVE|DRS_X|DRS_Y},
-                             {0, 0}};
+  static DIALOGRESIZE drs[]={{&hWndGroupExe,    DRS_SIZE|DRS_X, 0},
+                             {&hWndListExe,     DRS_SIZE|DRS_X, 0},
+                             {&hWndMirrorLabel, DRS_MOVE|DRS_X, 0},
+                             {&hWndMirror,      DRS_MOVE|DRS_X, 0},
+                             {&hWndListDll,     DRS_SIZE|DRS_X, 0},
+                             {&hWndListDll,     DRS_SIZE|DRS_Y, 0},
+                             {&hWndListInfo,    DRS_MOVE|DRS_Y, 0},
+                             {&hWndSeleted,     DRS_MOVE|DRS_X, 0},
+                             {&hWndSeleted,     DRS_MOVE|DRS_Y, 0},
+                             {&hWndUpdate,      DRS_MOVE|DRS_Y, 0},
+                             {&hWndCancel,      DRS_MOVE|DRS_X, 0},
+                             {&hWndCancel,      DRS_MOVE|DRS_Y, 0},
+                             {0, 0, 0}};
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -202,10 +234,13 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     char szLatestVer[MAX_PATH];
     char szCurrentVer[MAX_PATH];
     char szCompareResult[MAX_PATH];
+    PLUGINITEM *lpPluginItem;
+    PLUGINITEM *lpCopyItem;
     HWND hWndList;
     LVCOLUMNA lvcA;
     int nCompareResult;
     int nIndex;
+    int nOffset;
 
     SendMessage(hDlg, WM_SETICON, (WPARAM)ICON_BIG, (LPARAM)LoadIconA(hInstanceEXE, MAKEINTRESOURCEA(IDI_ICON)));
     hWndGroupExe=GetDlgItem(hDlg, IDC_GROUP_EXE);
@@ -281,21 +316,45 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     lvcA.iSubItem=LVSI_CURRENT;
     SendMessage(hWndListDll, LVM_INSERTCOLUMNA, LVSI_CURRENT, (LPARAM)&lvcA);
 
+    GetExeDirA(hInstanceEXE, szExeDir, MAX_PATH);
+    wsprintfA(szPlugsDir, "%s\\Plugs", szExeDir);
+    StackPluginsFill(&hPluginsStack);
+    StackPluginsSort(&hPluginsStack);
+
     //Rows
     while (!popstring(szName, MAX_PATH) &&
            !popstring(szLatestVer, MAX_PATH) &&
            !popstring(szCurrentVer, MAX_PATH) &&
            !popstring(szCompareResult, MAX_PATH))
     {
-      if (!memcmp(szName, "AkelPad", lstrlenA("AkelPad")))
+      if (!xmemcmp(szName, "AkelPad", lstrlenA("AkelPad")))
         hWndList=hWndListExe;
       else
         hWndList=hWndListDll;
       ++nAllItemsCount;
-      nCompareResult=xatoiA(szCompareResult);
+      nCompareResult=xatoiA(szCompareResult, NULL);
 
+      //Find copies
+      if (lpPluginItem=StackPluginGet(&hPluginsStack, szName))
+      {
+        lpCopyItem=(PLUGINITEM *)lpPluginItem->hCopiesStack.first;
+
+        if (lpCopyItem)
+        {
+          nOffset=wsprintfA(szBuf, "%s (%s", szName, lpCopyItem->szPluginName);
+          lpCopyItem=lpCopyItem->next;
+
+          while (lpCopyItem)
+          {
+            nOffset+=wsprintfA(szBuf + nOffset, ", %s", lpCopyItem->szPluginName);
+            lpCopyItem=lpCopyItem->next;
+          }
+          szBuf[nOffset]=')';
+        }
+        else lstrcpyA(szBuf, szName);
+      }
       lviA.mask=LVIF_TEXT;
-      lviA.pszText=szName;
+      lviA.pszText=szBuf;
       lviA.iItem=0;
       lviA.iSubItem=LVSI_NAME;
       nIndex=SendMessage(hWndList, LVM_INSERTITEMA, 0, (LPARAM)&lviA);
@@ -310,6 +369,9 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       if (nCompareResult == 1)
       {
+        //0  Versions are equal
+        //1  "$UPDATENEWVER" is newer
+        //2  "$UPDATECURVER" is newer
         if (hWndList == hWndListExe)
           bSelectAllExe=FALSE;
         else if (hWndList == hWndListDll)
@@ -499,9 +561,13 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       char szExeVersion[MAX_PATH]="0";
       char szName[MAX_PATH];
+      PLUGINITEM *lpPluginItem;
+      PLUGINITEM *lpCopyItem;
       int nIndex;
       int nCountDLL=0;
       int nSelection;
+      int nOffset;
+      int i;
 
       // EXE
       for (nIndex=0; 1; ++nIndex)
@@ -538,7 +604,35 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (((lviA.state & LVIS_STATEIMAGEMASK) >> 12) - 1)
         {
-          pushstring(szName, MAX_PATH);
+          for (i=0; szName[i]; ++i)
+          {
+            if (szName[i] == ' ')
+            {
+              szName[i]='\0';
+              break;
+            }
+          }
+          lstrcpyA(szBuf, szName);
+
+          //Find copies and push them in format "OrigName|CopyName1|CopyName2"
+          if (lpPluginItem=StackPluginGet(&hPluginsStack, szName))
+          {
+            lpCopyItem=(PLUGINITEM *)lpPluginItem->hCopiesStack.first;
+
+            if (lpCopyItem)
+            {
+              nOffset=wsprintfA(szBuf, "%s|%s", szName, lpCopyItem->szPluginName);
+              lpCopyItem=lpCopyItem->next;
+
+              while (lpCopyItem)
+              {
+                nOffset+=wsprintfA(szBuf + nOffset, "|%s", lpCopyItem->szPluginName);
+                lpCopyItem=lpCopyItem->next;
+              }
+              szBuf[nOffset]='\0';
+            }
+          }
+          pushstring(szBuf, NSIS_MAX_STRLEN);
           ++nCountDLL;
         }
       }
@@ -555,6 +649,7 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SendMessageA(hWndLanguage, CB_GETLBTEXT, (WPARAM)nSelection, (LPARAM)szBuf);
       setuservariable(INST_2, szBuf);
 
+      StackPluginsFree(&hPluginsStack);
       EndDialog(hDlg, 0);
       return TRUE;
     }
@@ -562,12 +657,13 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       pushstring("0|0", MAX_PATH);
 
+      StackPluginsFree(&hPluginsStack);
       EndDialog(hDlg, 0);
       return TRUE;
     }
   }
 
-  DialogResizeMessages(&drs[0], &rcMainDialog, hDlg, uMsg, wParam, lParam);
+  DialogResizeMessages(&drs[0], &rcMainInitDialog, &rcMainCurrentDialog, DRM_GETMINMAXINFO|DRM_PAINTSIZEGRIP, hDlg, uMsg, wParam, lParam);
 
   return FALSE;
 }
@@ -643,51 +739,66 @@ BOOL GetWindowPos(HWND hWnd, HWND hWndOwner, RECT *rc)
   return FALSE;
 }
 
-BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcInit, RECT *rcCurrent, DWORD dwFlags, HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  static RECT rcInitDialog;
-  static RECT rcTempDialog;
-  static BOOL bRectChanged;
-
-  if (!rcDialog) rcDialog=&rcTempDialog;
-
   if (uMsg == WM_INITDIALOG)
   {
     RECT rcTemplate;
+    RECT rcControl;
+    int i;
 
-    GetWindowPos(hDlg, NULL, &rcInitDialog);
-    rcTemplate=*rcDialog;
-    *rcDialog=rcInitDialog;
+    GetWindowPos(hDlg, NULL, rcInit);
+    rcTemplate=*rcCurrent;
+    *rcCurrent=*rcInit;
+
+    for (i=0; drs[i].lpWnd; ++i)
+    {
+      if (*drs[i].lpWnd)
+      {
+        GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
+        if (drs[i].dwType & DRS_SIZE)
+        {
+          if (drs[i].dwType & DRS_X)
+            drs[i].nOffset=rcInit->right - (rcControl.left + rcControl.right);
+          else if (drs[i].dwType & DRS_Y)
+            drs[i].nOffset=rcInit->bottom - (rcControl.top + rcControl.bottom);
+        }
+        else if (drs[i].dwType & DRS_MOVE)
+        {
+          if (drs[i].dwType & DRS_X)
+            drs[i].nOffset=rcInit->right - rcControl.left;
+          else if (drs[i].dwType & DRS_Y)
+            drs[i].nOffset=rcInit->bottom - rcControl.top;
+        }
+      }
+    }
 
     if (rcTemplate.right && rcTemplate.bottom)
     {
-      rcTemplate.left=rcInitDialog.left + (rcInitDialog.right - rcTemplate.right) / 2;
-      rcTemplate.top=rcInitDialog.top + (rcInitDialog.bottom - rcTemplate.bottom) / 2;
+      rcTemplate.left=rcInit->left + (rcInit->right - rcTemplate.right) / 2;
+      rcTemplate.top=rcInit->top + (rcInit->bottom - rcTemplate.bottom) / 2;
       SetWindowPos(hDlg, 0, rcTemplate.left, rcTemplate.top, rcTemplate.right, rcTemplate.bottom, SWP_NOZORDER);
     }
-    bRectChanged=FALSE;
   }
   else if (uMsg == WM_GETMINMAXINFO)
   {
-    MINMAXINFO *mmi=(MINMAXINFO *)lParam;
+    if (dwFlags & DRM_GETMINMAXINFO)
+    {
+      MINMAXINFO *mmi=(MINMAXINFO *)lParam;
 
-    mmi->ptMinTrackSize.x=rcInitDialog.right;
-    mmi->ptMinTrackSize.y=rcInitDialog.bottom;
+      mmi->ptMinTrackSize.x=rcInit->right;
+      mmi->ptMinTrackSize.y=rcInit->bottom;
+    }
   }
   else if (uMsg == WM_SIZE)
   {
     if (lParam)
     {
-      RECT rcTemplate;
       RECT rcControl;
       DWORD dwFlags;
-      POINT pt;
       int i;
 
-      GetWindowPos(hDlg, NULL, &rcTemplate);
-      pt.x=rcTemplate.right - rcDialog->right;
-      pt.y=rcTemplate.bottom - rcDialog->bottom;
-      *rcDialog=rcTemplate;
+      GetWindowPos(hDlg, NULL, rcCurrent);
 
       for (i=0; drs[i].lpWnd; ++i)
       {
@@ -698,30 +809,170 @@ BOOL DialogResizeMessages(DIALOGRESIZE *drs, RECT *rcDialog, HWND hDlg, UINT uMs
             dwFlags|=SWP_NOMOVE;
           else if (drs[i].dwType & DRS_MOVE)
             dwFlags|=SWP_NOSIZE;
+          else
+            continue;
+
           GetWindowPos(*drs[i].lpWnd, hDlg, &rcControl);
-          SetWindowPos(*drs[i].lpWnd, 0, rcControl.left + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.top + ((drs[i].dwType & DRS_Y)?pt.y:0), rcControl.right + ((drs[i].dwType & DRS_X)?pt.x:0), rcControl.bottom + ((drs[i].dwType & DRS_Y)?pt.y:0), dwFlags|SWP_NOZORDER);
+          SetWindowPos(*drs[i].lpWnd, 0, (drs[i].dwType & DRS_X)?(rcCurrent->right - drs[i].nOffset):rcControl.left,
+                                         (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - drs[i].nOffset):rcControl.top,
+                                         (drs[i].dwType & DRS_X)?(rcCurrent->right - rcControl.left - drs[i].nOffset):rcControl.right,
+                                         (drs[i].dwType & DRS_Y)?(rcCurrent->bottom - rcControl.top - drs[i].nOffset):rcControl.bottom,
+                                          dwFlags|SWP_NOZORDER);
         }
       }
       InvalidateRect(hDlg, NULL, TRUE);
-      bRectChanged=TRUE;
+      return TRUE;
     }
   }
   else if (uMsg == WM_PAINT)
   {
-    PAINTSTRUCT ps;
-    RECT rcGrip;
-    HDC hDC;
-
-    if (hDC=BeginPaint(hDlg, &ps))
+    if (dwFlags & DRM_PAINTSIZEGRIP)
     {
-      GetClientRect(hDlg, &rcGrip);
-      rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
-      rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
-      DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
-      EndPaint(hDlg, &ps);
+      PAINTSTRUCT ps;
+      RECT rcGrip;
+      HDC hDC;
+
+      if (hDC=BeginPaint(hDlg, &ps))
+      {
+        GetClientRect(hDlg, &rcGrip);
+        rcGrip.left=rcGrip.right - GetSystemMetrics(SM_CXVSCROLL);
+        rcGrip.top=rcGrip.bottom - GetSystemMetrics(SM_CYVSCROLL);
+        DrawFrameControl(hDC, &rcGrip, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
+        EndPaint(hDlg, &ps);
+      }
     }
   }
-  return bRectChanged;
+  return FALSE;
+}
+
+void StackPluginsFill(HSTACK *hStack)
+{
+  char szSearchDir[MAX_PATH];
+  char szFile[MAX_PATH];
+  char szBaseName[MAX_PATH];
+  WIN32_FIND_DATAA wfdA;
+  PLUGINVERSION pv;
+  PLUGINITEM *lpPluginItem;
+  HANDLE hSearch;
+  HMODULE hInstance;
+  void (*DllAkelPadID)(PLUGINVERSION *pv);
+
+  wsprintfA(szSearchDir, "%s\\*.dll", szPlugsDir);
+
+  if ((hSearch=FindFirstFileA(szSearchDir, &wfdA)) != INVALID_HANDLE_VALUE)
+  {
+    do
+    {
+      wsprintfA(szFile, "%s\\%s", szPlugsDir, wfdA.cFileName);
+
+      if (hInstance=LoadLibraryA(szFile))
+      {
+        if (DllAkelPadID=(void (*)(PLUGINVERSION *))GetProcAddress(hInstance, "DllAkelPadID"))
+        {
+          DllAkelPadID(&pv);
+
+          if (!(lpPluginItem=StackPluginGet(hStack, pv.pPluginName)))
+            lpPluginItem=StackPluginInsert(hStack, pv.pPluginName);
+
+          if (lpPluginItem)
+          {
+            GetBaseNameA(wfdA.cFileName, szBaseName, MAX_PATH);
+            if (lstrcmpiA(szBaseName, pv.pPluginName))
+              StackPluginInsert(&lpPluginItem->hCopiesStack, szBaseName);
+          }
+        }
+        FreeLibrary(hInstance);
+      }
+    }
+    while (FindNextFileA(hSearch, &wfdA));
+
+    FindClose(hSearch);
+  }
+}
+
+PLUGINITEM* StackPluginInsert(HSTACK *hStack, const char *pPluginName)
+{
+  PLUGINITEM *lpElement;
+
+  if (!StackInsertIndex((stack **)&hStack->first, (stack **)&hStack->last, (stack **)&lpElement, -1, sizeof(PLUGINITEM)))
+  {
+    lstrcpynA(lpElement->szPluginName, pPluginName, MAX_PATH);
+  }
+  return lpElement;
+}
+
+PLUGINITEM* StackPluginGet(HSTACK *hStack, const char *pPluginName)
+{
+  PLUGINITEM *lpElement=(PLUGINITEM *)hStack->first;
+
+  while (lpElement)
+  {
+    if (!lstrcmpiA(lpElement->szPluginName, pPluginName))
+      return lpElement;
+
+    lpElement=lpElement->next;
+  }
+  return NULL;
+}
+
+void StackPluginsSort(HSTACK *hStack)
+{
+  PLUGINITEM *lpElement=(PLUGINITEM *)hStack->first;
+
+  while (lpElement)
+  {
+    StackSortA((stackS **)&lpElement->hCopiesStack.first, (stackS **)&lpElement->hCopiesStack.last, 1);
+
+    lpElement=lpElement->next;
+  }
+}
+
+void StackPluginsFree(HSTACK *hStack)
+{
+  PLUGINITEM *lpElement=(PLUGINITEM *)hStack->first;
+
+  while (lpElement)
+  {
+    StackClear((stack **)&lpElement->hCopiesStack.first, (stack **)&lpElement->hCopiesStack.last);
+
+    lpElement=lpElement->next;
+  }
+  StackClear((stack **)&hStack->first, (stack **)&hStack->last);
+}
+
+int GetExeDirA(HINSTANCE hInstance, char *szExeDir, int nLen)
+{
+  if (nLen=GetModuleFileNameA(hInstance, szExeDir, nLen))
+  {
+    while (nLen > 0 && szExeDir[nLen] != '\\') --nLen;
+    szExeDir[nLen]='\0';
+  }
+  return nLen;
+}
+
+int GetBaseNameA(const char *pFile, char *szBaseName, int nBaseNameMaxLen)
+{
+  int nFileLen=lstrlenA(pFile);
+  int nEndOffset=-1;
+  int i;
+
+  for (i=nFileLen - 1; i >= 0; --i)
+  {
+    if (pFile[i] == '\\')
+      break;
+
+    if (nEndOffset == -1)
+    {
+      if (pFile[i] == '.')
+        nEndOffset=i;
+    }
+  }
+  ++i;
+  if (nEndOffset == -1) nEndOffset=nFileLen;
+  nBaseNameMaxLen=min(nEndOffset - i + 1, nBaseNameMaxLen);
+  lstrcpynA(szBaseName, pFile + i, nBaseNameMaxLen);
+
+  return nBaseNameMaxLen;
 }
 
 char* GetLangStringA(LANGID wLangID, int nStringID)
@@ -731,7 +982,7 @@ char* GetLangStringA(LANGID wLangID, int nStringID)
     if (nStringID == STRID_PROGRAM)
       return "\xCF\xF0\xEE\xE3\xF0\xE0\xEC\xEC\xE0";
     if (nStringID == STRID_PLUGIN)
-      return "\xCF\xEB\xE0\xE3\xE8\xED";
+      return "\xCF\xEB\xE0\xE3\xE8\xED\x20\x28\xEA\xEE\xEF\xE8\xE8\x29";
     if (nStringID == STRID_LATEST)
       return "\xCF\xEE\xF1\xEB\xE5\xE4\xED\xFF\xFF";
     if (nStringID == STRID_CURRENT)
@@ -752,7 +1003,7 @@ char* GetLangStringA(LANGID wLangID, int nStringID)
     if (nStringID == STRID_PROGRAM)
       return "Program";
     if (nStringID == STRID_PLUGIN)
-      return "Function";
+      return "Plugin (copies)";
     if (nStringID == STRID_LATEST)
       return "Latest";
     if (nStringID == STRID_CURRENT)
@@ -788,14 +1039,14 @@ int popinteger()
   char szInt[32];
 
   popstring(szInt, 31);
-  return xatoiA(szInt);
+  return xatoiA(szInt, NULL);
 }
 
 void pushinteger(int integer)
 {
   char szInt[32];
 
-  xitoaA(integer, szInt, 0);
+  xitoaA(integer, szInt);
   pushstring(szInt, 32);
 }
 

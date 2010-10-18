@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelUpdater"
-!define PRODUCT_VERSION "2.5"
+!define PRODUCT_VERSION "2.6"
 
 Name "AkelUpdater"
 OutFile "AkelUpdater.exe"
@@ -64,7 +64,7 @@ ShowInstDetails show
 XPStyle on
 
 VIAddVersionKey FileDescription "AkelPad text editor updater"
-VIAddVersionKey LegalCopyright "© 2009 Shengalts Aleksander aka Instructor"
+VIAddVersionKey LegalCopyright "© 2010 Shengalts Aleksander aka Instructor"
 VIAddVersionKey ProductName "${PRODUCT_NAME}"
 VIAddVersionKey FileVersion "${PRODUCT_VERSION}"
 VIAddVersionKey Comments ""
@@ -102,6 +102,12 @@ Var AKELPLUGIN
 Var EXEVERSIONFULL
 Var EXEVERSIONMAJOR
 Var PLUGINCOUNT
+Var PLUGINCOPY
+Var PLUGINCOPIES
+Var UPDATENAME
+Var UPDATENEWVER
+Var UPDATECURVER
+Var UPDATECOMPARE
 Var LANGEXIST
 Var ZIPMIRROR
 Var ZIPLANG
@@ -308,45 +314,48 @@ Function FillStack
 	FileRead $0 $1
 	IfErrors Close
 
-	${WordFind2X} "$1" "$$" "Ver=" "E+1" $R0
+	${WordFind2X} "$1" "$$" "Ver=" "E+1" $UPDATENAME
 	IfErrors ReadLine
-	${WordFind2X} "$1" "'" "'" "E+1" $R1
+	${WordFind2X} "$1" "'" "'" "E+1" $UPDATENEWVER
 	IfErrors ReadLine
 
-	StrCpy $2 $R0 -1
+	StrCpy $2 $UPDATENAME -1
 	StrCmp $2 "AkelPad" 0 PluginVersion
 	StrCpy $NOTEPAD 0
-	${GetFileVersion} "$AKELPADDIR\AkelPad.exe" $R2
+	${GetFileVersion} "$AKELPADDIR\AkelPad.exe" $UPDATECURVER
 	IfErrors 0 IsActual
-	${GetFileVersion} "$AKELPADDIR\notepad.exe" $R2
+	${GetFileVersion} "$AKELPADDIR\notepad.exe" $UPDATECURVER
 	IfErrors Empty
 	StrCpy $NOTEPAD 1
 	IsActual:
-	StrCpy $2 $R0 '' -1
-	StrCpy $3 $R2 1
+	StrCpy $2 $UPDATENAME '' -1
+	StrCpy $3 $UPDATECURVER 1
 	StrCmp $2 $3 0 ReadLine
-	StrCpy $R0 $R0 -1
-	StrCpy $R2 $R2 -2
+	StrCpy $UPDATENAME $UPDATENAME -1
+	StrCpy $UPDATECURVER $UPDATECURVER -2
 	goto Compare
 
 	PluginVersion:
-	${GetFileVersion} "$AKELPLUGSDIR\$R0.dll" $R2
-	StrCpy $R2 $R2 -4
+	${GetFileVersion} "$AKELPLUGSDIR\$UPDATENAME.dll" $UPDATECURVER
+	StrCpy $UPDATECURVER $UPDATECURVER -4
 	IfErrors Empty
 
 	Compare:
-	${VersionCompare} "$R1" "$R2" $R3
+	${VersionCompare} "$UPDATENEWVER" "$UPDATECURVER" $UPDATECOMPARE
+        ;0  Versions are equal
+        ;1  Version1 is newer
+        ;2  Version2 is newer
 	goto PushString
 
 	Empty:
-	StrCpy $R2 ""
-	StrCpy $R3 3
+	StrCpy $UPDATECURVER ""
+	StrCpy $UPDATECOMPARE 3
 
 	PushString:
-	Push $R3
-	Push $R2
-	Push $R1
-	Push $R0
+	Push $UPDATECOMPARE
+	Push $UPDATECURVER
+	Push $UPDATENEWVER
+	Push $UPDATENAME
 	Goto ReadLine
 
 	Close:
@@ -372,7 +381,7 @@ Section
 	goto GetExcludeLanguage
 	DetailPrint "$(done): AkelPad-$EXEVERSIONFULL-bin-$ZIPLANG.zip"
 	StrCmp $NOTEPAD 1 0 GetExcludeLanguage
-	SetDetailsPrint listonly
+	SetDetailsPrint textonly
 	CopyFiles /SILENT "$AKELPADDIR\AkelPad.exe" "$AKELPADDIR\notepad.exe"
 	Delete "$AKELPADDIR\AkelPad.exe"
 	SetDetailsPrint both
@@ -397,6 +406,10 @@ Section
 	NextPlugin:
 	Pop $AKELPLUGIN
 	IfErrors End
+	${WordFind} "$AKELPLUGIN" "|" "E+1}" $PLUGINCOPIES
+	IfErrors 0 +2
+	StrCpy $PLUGINCOPIES ''
+	${WordFind} "$AKELPLUGIN" "|" "+1{" $AKELPLUGIN
 
 	Push /END
 	AkelUpdater::ParseAndPush "$UNZIP"
@@ -408,7 +421,18 @@ Section
 	DetailPrint "$(error) ($0): $AKELPLUGIN $(plugin)"
 	goto NextPlugin
 	DetailPrint "$(done): $AKELPLUGIN $(plugin)"
-	goto NextPlugin
+
+	NextCopy:
+	StrCmp $PLUGINCOPIES '' NextPlugin
+	${WordFind} "$PLUGINCOPIES" "|" "+1{" $PLUGINCOPY
+	${WordFind} "$PLUGINCOPIES" "|" "E+1}" $PLUGINCOPIES
+	IfErrors 0 +2
+	StrCpy $PLUGINCOPIES ''
+	SetDetailsPrint textonly
+	CopyFiles /SILENT "$AKELPLUGSDIR\$AKELPLUGIN.dll" "$AKELPLUGSDIR\$PLUGINCOPY.dll"
+	SetDetailsPrint both
+	DetailPrint "$(done): $PLUGINCOPY ($AKELPLUGIN $(plugin))"
+	goto NextCopy
 
 	End:
 SectionEnd
