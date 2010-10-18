@@ -5499,10 +5499,12 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
         if (!(dwFlags & AEFF_FINDLINE) ?
                //AEFF_FINDOFFSET or AEFF_FINDINDEX
                ((nFindOffset < lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen) ||
-                ((dwFlags & AEFF_FOLDEND) && nFindOffset == lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen)) :
+                (((dwFlags & AEFF_FOLDEND) && nFindOffset == lpSubling->lpMaxPoint->nPointOffset + lpSubling->lpMaxPoint->nPointLen) &&
+                 (!(dwFlags & AEFF_FOLDSTART) || !lpSubling->next || nFindOffset != lpSubling->next->lpMinPoint->nPointOffset))) :
                //AEFF_FINDLINE
                ((nFindLine < lpSubling->lpMaxPoint->ciPoint.nLine) ||
-                ((dwFlags & AEFF_FOLDEND) && nFindLine == lpSubling->lpMaxPoint->ciPoint.nLine)))
+                (((dwFlags & AEFF_FOLDEND) && nFindLine == lpSubling->lpMaxPoint->ciPoint.nLine) &&
+                 (!(dwFlags & AEFF_FOLDSTART) || !lpSubling->next || nFindLine != lpSubling->next->lpMinPoint->ciPoint.nLine))))
         {
           lpParent=lpSubling;
           lpPrevSubling=NULL;

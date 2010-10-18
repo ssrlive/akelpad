@@ -366,8 +366,8 @@
 #define AEFF_GETROOT         0x00000040  //Return root fold.
                                          //
                                          //The following groups of flags cannot be used together:
-                                         //AEFF_FINDOFFSET, AEFF_FINDINDEX and AEFF_FINDLINE.
-                                         //AEFF_RECURSE and AEFF_GETROOT.
+                                         //  AEFF_FINDOFFSET, AEFF_FINDINDEX and AEFF_FINDLINE.
+                                         //  AEFF_RECURSE and AEFF_GETROOT.
 
 //AEM_SCROLL, AEM_LINESCROLL flags
 #define AESB_HORZ            0x00000001  //Horizontal scroll. Cannot be used with AESB_VERT.
