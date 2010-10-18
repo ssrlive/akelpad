@@ -12,8 +12,8 @@ Changed: if automatically check "In selection" is enabled and selection is empty
          direction is restored.
 Changed: return alignment to left in the status bar.
 
-Added: ability to set color for the text inside fold. This means that multiline comments
-       could be colored (Coder::CodeFold must be enabled).
+Added: ability to set color and font style for the text inside fold. This means that multiline
+       comments now highlighted (Coder::CodeFold must be enabled).
 Added: Czech language module (Frantisek Bartos).
 Added: Hungarian language module (ZityiSoft).
 Added: variables for "StatusUserFormat":
