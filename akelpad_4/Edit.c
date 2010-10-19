@@ -9201,8 +9201,11 @@ int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText)
       txtrngA.chrg.cpMin=nMin;
       txtrngA.chrg.cpMax=nMax;
       txtrngA.lpstrText=*pText;
-      nLen=SendMessage(hWnd, EM_GETTEXTRANGEA, 0, (LPARAM)&txtrngA);
-
+      if (!(nLen=SendMessage(hWnd, EM_GETTEXTRANGEA, 0, (LPARAM)&txtrngA)))
+      {
+        API_HeapFree(hHeap, 0, (LPVOID)*pText);
+        *pText=NULL;
+      }
       return nLen;
     }
   }
@@ -9228,8 +9231,11 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
       txtrngW.chrg.cpMin=nMin;
       txtrngW.chrg.cpMax=nMax;
       txtrngW.lpstrText=*wpText;
-      nLen=SendMessage(hWnd, EM_GETTEXTRANGEW, 0, (LPARAM)&txtrngW);
-
+      if (!(nLen=SendMessage(hWnd, EM_GETTEXTRANGEW, 0, (LPARAM)&txtrngW)))
+      {
+        API_HeapFree(hHeap, 0, (LPVOID)*wpText);
+        *wpText=NULL;
+      }
       return nLen;
     }
   }
@@ -9261,7 +9267,11 @@ int ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *l
       {
         if (tr.pBuffer=(char *)API_HeapAlloc(hHeap, 0, nLen))
         {
-          nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
+          if (!(nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr)))
+          {
+            API_HeapFree(hHeap, 0, (LPVOID)tr.pBuffer);
+            tr.pBuffer=NULL;
+          }
         }
       }
     }
@@ -9293,7 +9303,11 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
       {
         if (tr.pBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t)))
         {
-          nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+          if (!(nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr)))
+          {
+            API_HeapFree(hHeap, 0, (LPVOID)tr.pBuffer);
+            tr.pBuffer=NULL;
+          }
         }
       }
     }
