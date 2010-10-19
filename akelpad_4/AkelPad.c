@@ -248,6 +248,7 @@ BOOL bMenuLanguage=FALSE;
 BOOL bMainOnStart=FALSE;
 BOOL bMainOnFinish=FALSE;
 BOOL bEditOnFinish=FALSE;
+BOOL bFirstTabOnFinish=FALSE;
 
 //Status window
 STATUSSTATE ssStatus;
@@ -3663,8 +3664,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (lpFrameCurrent->hWndEditParent)
       {
         RecentFilesSaveCurrentFile();
-        CopyFrameData(&fdLast, lpFrameCurrent);
-        xstrcpynW(fdLast.wszFile, lpFrameCurrent->wszFile, MAX_PATH);
+        bFirstTabOnFinish=TRUE;
       }
 
       while (lpFrameCurrent->hWndEditParent)
@@ -4596,9 +4596,6 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
         if (!SaveChanged()) return TRUE;
         RecentFilesSaveCurrentFile();
 
-        //Save closed frame settings
-        if (!bMainOnFinish) CopyFrameData(&fdLast, lpFrame);
-
         if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {
           //Update status
@@ -4632,6 +4629,14 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
 
           //Delete frame data
           SetWindowLongWide((HWND)wParam, GWL_USERDATA, (LONG)0);
+
+          //Save frame settings
+          if (!bMainOnFinish || bFirstTabOnFinish)
+          {
+            bFirstTabOnFinish=FALSE;
+            CopyFrameData(&fdLast, lpFrame);
+            xstrcpynW(fdLast.wszFile, lpFrame->wszFile, MAX_PATH);
+          }
           StackFrameDelete(&hFramesStack, lpFrame);
         }
       }

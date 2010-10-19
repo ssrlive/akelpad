@@ -109,6 +109,7 @@ extern BOOL bMenuLanguage;
 extern BOOL bMainOnStart;
 extern BOOL bMainOnFinish;
 extern BOOL bEditOnFinish;
+extern BOOL bFirstTabOnFinish;
 
 //Status window
 extern STATUSSTATE ssStatus;
@@ -877,6 +878,14 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
         //Don't destroy last tab
         if (!CloseDocument()) return FWDE_ABORT;
         SendMessage(hMainWnd, AKDN_FRAME_NOWINDOWS, 0, 0);
+
+        //Save frame settings
+        if (!bMainOnFinish || bFirstTabOnFinish)
+        {
+          bFirstTabOnFinish=FALSE;
+          CopyFrameData(&fdLast, lpFrame);
+          xstrcpynW(fdLast.wszFile, lpFrame->wszFile, MAX_PATH);
+        }
         return FWDE_LASTTAB;
       }
       else
@@ -885,9 +894,6 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
         if (!SaveChanged()) return FWDE_ABORT;
         RecentFilesSaveCurrentFile();
       }
-
-      //Save closed frame settings
-      if (!bMainOnFinish) CopyFrameData(&fdLast, lpFrame);
 
       if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
       {
@@ -902,6 +908,14 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
         SendMessage(hMainWnd, AKDN_EDIT_ONFINISH, (WPARAM)lpFrame->ei.hWndEdit, (LPARAM)lpFrame->ei.hDocEdit);
         SendMessage(lpFrame->ei.hWndEdit, AEM_SETDOCUMENT, (WPARAM)fdInit.ei.hDocEdit, AESWD_NOREDRAW);
         SendMessage(lpFrame->ei.hWndEdit, AEM_DELETEDOCUMENT, (WPARAM)lpFrame->ei.hDocEdit, 0);
+
+        //Save frame settings
+        if (!bMainOnFinish || bFirstTabOnFinish)
+        {
+          bFirstTabOnFinish=FALSE;
+          CopyFrameData(&fdLast, lpFrame);
+          xstrcpynW(fdLast.wszFile, lpFrame->wszFile, MAX_PATH);
+        }
         StackFrameDelete(&hFramesStack, lpFrame);
 
         //Remove tab item
