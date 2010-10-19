@@ -9192,7 +9192,7 @@ int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText)
   {
     nMax=GetTextLength(hWnd);
   }
-  if (nMin <= nMax)
+  if (nMin < nMax)
   {
     nLen=(nMax - nMin);
 
@@ -9219,7 +9219,7 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
   {
     nMax=GetTextLength(hWnd);
   }
-  if (nMin <= nMax)
+  if (nMin < nMax)
   {
     nLen=(nMax - nMin);
 
@@ -9240,29 +9240,34 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
 int ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefChar, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces)
 {
   AETEXTRANGEA tr;
-  int nLen;
+  int nLen=0;
 
-  tr.cr.ciMin=*ciMin;
-  tr.cr.ciMax=*ciMax;
-  tr.bColumnSel=bColumnSel;
-  tr.pBuffer=NULL;
-  tr.dwBufferMax=(DWORD)-1;
-  tr.nNewLine=nNewLine;
-  tr.nCodePage=nCodePage;
-  tr.lpDefaultChar=lpDefaultChar;
-  tr.lpUsedDefChar=lpUsedDefChar;
-  tr.bFillSpaces=bFillSpaces;
-
-  if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
+  if (AEC_IndexCompare(ciMin, ciMax))
   {
-    if (pText)
+    tr.cr.ciMin=*ciMin;
+    tr.cr.ciMax=*ciMax;
+    tr.bColumnSel=bColumnSel;
+    tr.pBuffer=NULL;
+    tr.dwBufferMax=(DWORD)-1;
+    tr.nNewLine=nNewLine;
+    tr.nCodePage=nCodePage;
+    tr.lpDefaultChar=lpDefaultChar;
+    tr.lpUsedDefChar=lpUsedDefChar;
+    tr.bFillSpaces=bFillSpaces;
+
+    if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr))
     {
-      if (tr.pBuffer=(char *)API_HeapAlloc(hHeap, 0, nLen))
+      if (pText)
       {
-        nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
+        if (tr.pBuffer=(char *)API_HeapAlloc(hHeap, 0, nLen))
+        {
+          nLen=SendMessage(hWnd, AEM_GETTEXTRANGEA, 0, (LPARAM)&tr);
+        }
       }
     }
   }
+  else tr.pBuffer=NULL;
+
   if (pText) *pText=tr.pBuffer;
   return nLen;
 }
@@ -9270,26 +9275,31 @@ int ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *l
 int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine, BOOL bFillSpaces)
 {
   AETEXTRANGEW tr;
-  int nLen;
+  int nLen=0;
 
-  tr.cr.ciMin=*ciMin;
-  tr.cr.ciMax=*ciMax;
-  tr.bColumnSel=bColumnSel;
-  tr.pBuffer=NULL;
-  tr.dwBufferMax=(DWORD)-1;
-  tr.nNewLine=nNewLine;
-  tr.bFillSpaces=bFillSpaces;
-
-  if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
+  if (AEC_IndexCompare(ciMin, ciMax))
   {
-    if (wpText)
+    tr.cr.ciMin=*ciMin;
+    tr.cr.ciMax=*ciMax;
+    tr.bColumnSel=bColumnSel;
+    tr.pBuffer=NULL;
+    tr.dwBufferMax=(DWORD)-1;
+    tr.nNewLine=nNewLine;
+    tr.bFillSpaces=bFillSpaces;
+
+    if (nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
     {
-      if (tr.pBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t)))
+      if (wpText)
       {
-        nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+        if (tr.pBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nLen * sizeof(wchar_t)))
+        {
+          nLen=SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
+        }
       }
     }
   }
+  else tr.pBuffer=NULL;
+
   if (wpText) *wpText=tr.pBuffer;
   return nLen;
 }
