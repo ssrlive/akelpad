@@ -212,10 +212,10 @@
 #define AEGI_LASTVISIBLELINE       11  //Last character of the last visible line, collapsed lines are skipped.
 #define AEGI_FIRSTFULLVISIBLELINE  12  //First character of the first fully visible line, collapsed lines are skipped.
 #define AEGI_LASTFULLVISIBLELINE   13  //Last character of the last fully visible line, collapsed lines are skipped.
-#define AEGI_NEXTVISIBLELINE       14  //First character of the next line, collapsed lines are skipped. lParam must point to an input index.
-#define AEGI_PREVVISIBLELINE       15  //First character of the previous line, collapsed lines are skipped. lParam must point to an input index.
-#define AEGI_NEXTVISIBLECHAR       16  //Next wide character, collapsed lines are skipped. lParam must point to an input index.
-#define AEGI_PREVVISIBLECHAR       17  //Previous wide character, collapsed lines are skipped. lParam must point to an input index.
+#define AEGI_NEXTUNCOLLAPSEDLINE   14  //First character of the next line, collapsed lines are skipped. lParam must point to an input index.
+#define AEGI_PREVUNCOLLAPSEDLINE   15  //First character of the previous line, collapsed lines are skipped. lParam must point to an input index.
+#define AEGI_NEXTUNCOLLAPSEDCHAR   16  //Next wide character, collapsed lines are skipped. lParam must point to an input index.
+#define AEGI_PREVUNCOLLAPSEDCHAR   17  //Previous wide character, collapsed lines are skipped. lParam must point to an input index.
 #define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
 #define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.

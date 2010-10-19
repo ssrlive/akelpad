@@ -6900,7 +6900,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     return ciCharOut->lpLine;
   }
   else if (nType == AEGI_NEXTCHAR ||
-           nType == AEGI_NEXTVISIBLECHAR)
+           nType == AEGI_NEXTUNCOLLAPSEDCHAR)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
 
@@ -6914,7 +6914,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     {
       AE_NextChar(&ciCharTmp);
 
-      if (nType == AEGI_NEXTVISIBLECHAR)
+      if (nType == AEGI_NEXTUNCOLLAPSEDCHAR)
       {
         do
         {
@@ -6937,7 +6937,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     }
   }
   else if (nType == AEGI_PREVCHAR ||
-           nType == AEGI_PREVVISIBLECHAR)
+           nType == AEGI_PREVUNCOLLAPSEDCHAR)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
 
@@ -6952,7 +6952,7 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     {
       AE_PrevChar(&ciCharTmp);
 
-      if (nType == AEGI_PREVVISIBLECHAR)
+      if (nType == AEGI_PREVUNCOLLAPSEDCHAR)
       {
         do
         {
@@ -6975,13 +6975,13 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     }
   }
   else if (nType == AEGI_NEXTLINE ||
-           nType == AEGI_NEXTVISIBLELINE)
+           nType == AEGI_NEXTUNCOLLAPSEDLINE)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
 
     while (AE_NextLine(&ciCharTmp))
     {
-      if (nType == AEGI_NEXTVISIBLELINE)
+      if (nType == AEGI_NEXTUNCOLLAPSEDLINE)
       {
         if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
           break;
@@ -7001,13 +7001,13 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
     }
   }
   else if (nType == AEGI_PREVLINE ||
-           nType == AEGI_PREVVISIBLELINE)
+           nType == AEGI_PREVUNCOLLAPSEDLINE)
   {
     AECHARINDEX ciCharTmp=*ciCharIn;
 
     while (AE_PrevLine(&ciCharTmp))
     {
-      if (nType == AEGI_PREVVISIBLELINE)
+      if (nType == AEGI_PREVUNCOLLAPSEDLINE)
       {
         if (!AE_StackIsLineCollapsed(ae, ciCharTmp.nLine))
           break;
@@ -11305,7 +11305,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
     }
     else
     {
-      //Custom AEGI_NEXTVISIBLELINE implementation
+      //Custom AEGI_NEXTUNCOLLAPSEDLINE implementation
       AECHARINDEX ciCharTmp=ciCount;
 
       while (AE_NextLine(&ciCharTmp))
@@ -17218,7 +17218,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
           ciCharIn=ae->ciSelStartIndex;
           ciCharOut=ae->ciSelStartIndex;
         }
-        else AE_GetIndex(ae, AEGI_PREVVISIBLECHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+        else AE_GetIndex(ae, AEGI_PREVUNCOLLAPSEDCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
       }
     }
     else if (nVk == VK_RIGHT)
@@ -17239,7 +17239,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
           ciCharIn=ae->ciSelEndIndex;
           ciCharOut=ae->ciSelEndIndex;
         }
-        else AE_GetIndex(ae, AEGI_NEXTVISIBLECHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
+        else AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDCHAR, &ciCharIn, &ciCharOut, bAlt || (ae->popt->dwOptions & AECO_CARETOUTEDGE));
       }
     }
     else if (nVk == VK_UP)
@@ -17247,7 +17247,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
         ciCharIn=ae->ciSelStartIndex;
 
-      if (AE_GetIndex(ae, AEGI_PREVVISIBLELINE, &ciCharIn, &ciCharOut, FALSE))
+      if (AE_GetIndex(ae, AEGI_PREVUNCOLLAPSEDLINE, &ciCharIn, &ciCharOut, FALSE))
       {
         if (!bControl)
         {
@@ -17258,7 +17258,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         {
           if (!AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCharIn, &ciCharOut, FALSE))
           {
-            AE_GetIndex(ae, AEGI_PREVVISIBLELINE, &ciCharIn, &ciCharOut, FALSE);
+            AE_GetIndex(ae, AEGI_PREVUNCOLLAPSEDLINE, &ciCharIn, &ciCharOut, FALSE);
             AE_GetIndex(ae, AEGI_WRAPLINEBEGIN, &ciCharOut, &ciCharOut, FALSE);
           }
         }
@@ -17269,7 +17269,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
       if (!bShift && AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
         ciCharIn=ae->ciSelEndIndex;
 
-      if (AE_GetIndex(ae, AEGI_NEXTVISIBLELINE, &ciCharIn, &ciCharOut, FALSE))
+      if (AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharIn, &ciCharOut, FALSE))
       {
         if (!bControl)
         {
@@ -17279,7 +17279,7 @@ BOOL AE_KeyDown(AKELEDIT *ae, int nVk, BOOL bAlt, BOOL bShift, BOOL bControl)
         else
         {
           AE_GetIndex(ae, AEGI_WRAPLINEEND, &ciCharIn, &ciCharOut, FALSE);
-          AE_GetIndex(ae, AEGI_NEXTVISIBLELINE, &ciCharOut, &ciCharOut, FALSE);
+          AE_GetIndex(ae, AEGI_NEXTUNCOLLAPSEDLINE, &ciCharOut, &ciCharOut, FALSE);
         }
       }
     }
