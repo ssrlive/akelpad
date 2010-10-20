@@ -771,10 +771,11 @@ typedef struct {
 } AESCROLLTOPOINT;
 
 typedef struct {
-  AEHDOC hDoc;    //Document handle. See AEM_CREATEDOCUMENT message.
-  UINT uMsg;      //Window message.
-  WPARAM wParam;  //Window first additional parameter.
-  LPARAM lParam;  //Window second additional parameter.
+  AEHDOC hDoc;     //Document handle. See AEM_CREATEDOCUMENT message.
+  UINT uMsg;       //Window message.
+  WPARAM wParam;   //Window first additional parameter.
+  LPARAM lParam;   //Window second additional parameter.
+  LRESULT lResult; //Result after window message returns.
 } AESENDMESSAGE;
 
 typedef struct {
@@ -4598,13 +4599,14 @@ Example:
 AEM_SENDMESSAGE
 _______________
 
-Send message to an associated or deassociated document handle. Beware AEM_SENDMESSAGE send message directly ignoring any subclassing.
+Send message to an associated or deassociated document handle.
 
 lParam                  == not used.
 (AESENDMESSAGE *)lParam == pointer to a AESENDMESSAGE structure.
 
 Return Value
- Return value is message specific.
+ TRUE   success.
+ FALSE  failed.
 
 Example:
  AESENDMESSAGE sm;
@@ -4613,7 +4615,8 @@ Example:
  sm.uMsg=EM_SETSEL;
  sm.wParam=0;
  sm.lParam=(LPARAM)-1;
- return SendMessage(hWndAnyEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
+ if (SendMessage(hWndAnyEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm))
+   return sm.lResult;
 
 
 AEM_ADDCLONE
