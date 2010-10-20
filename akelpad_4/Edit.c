@@ -1311,6 +1311,7 @@ BOOL DoFileOpen()
         wchar_t wszFile[MAX_PATH];
         wchar_t wszString[MAX_PATH];
         wchar_t *wpFile=wszFileList + lstrlenW(wszFileList) + 1;
+        MSG msg;
         int nFiles;
         int nFileCount=0;
 
@@ -1346,8 +1347,6 @@ BOOL DoFileOpen()
             //Status update
             if (moCur.bStatusBar)
             {
-              MSG msg;
-
               xprintfW(wbuf, wszString, ++nFileCount, nFiles);
               StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
 
@@ -1357,6 +1356,9 @@ BOOL DoFileOpen()
                 DispatchMessageWide(&msg);
               }
             }
+
+            //Win7: prevent system from mark program as hanged
+            PeekMessageWide(&msg, hMainWnd, 0, 0, PM_NOREMOVE);
           }
           while (*(wpFile+=lstrlenW(wpFile) + 1));
 
@@ -4712,6 +4714,7 @@ void DropFiles(HDROP hDrop)
 {
   wchar_t wszFile[MAX_PATH];
   wchar_t wszString[MAX_PATH];
+  MSG msg;
   int nDropped;
   int nOpen;
   int i;
@@ -4742,8 +4745,6 @@ void DropFiles(HDROP hDrop)
       //Status update
       if (moCur.bStatusBar)
       {
-        MSG msg;
-
         xprintfW(wbuf, wszString, i + 1, nDropped);
         StatusBar_SetTextWide(hStatus, STATUS_MODIFY, wbuf);
 
@@ -4753,6 +4754,9 @@ void DropFiles(HDROP hDrop)
           DispatchMessageWide(&msg);
         }
       }
+
+      //Win7: prevent system from mark program as hanged
+      PeekMessageWide(&msg, hMainWnd, 0, 0, PM_NOREMOVE);
     }
 
     if (moCur.bStatusBar)
