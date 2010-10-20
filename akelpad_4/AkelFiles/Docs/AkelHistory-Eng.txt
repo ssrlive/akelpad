@@ -30,6 +30,7 @@ Fixed: when replacing with multi-line text, inserted new lines are not set
        to the current document value.
 Fixed: activating program with mouse and "Watch file change".
 Fixed: tabulation printed in color with color printing off.
+Fixed: tabulation and wrap by symbols.
 
 
 AkelPad 4.4.9 (Sep 16, 2010)
