@@ -11790,10 +11790,11 @@ void AE_Paint(AKELEDIT *ae)
           to.ptFirstCharInLine.y+=ae->ptxt->nCharHeight;
           if (to.ptFirstCharInLine.y >= rcDraw.bottom)
             break;
-
-          if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
-            ++to.nDrawCharOffset;
         }
+        else to.nDrawCharOffset+=to.ciDrawLine.lpLine->nLineLen;
+
+        if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+          ++to.nDrawCharOffset;
         AE_NextLine(&to.ciDrawLine);
       }
       if (hFontOld) SelectObject(to.hDC, hFontOld);

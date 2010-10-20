@@ -295,8 +295,8 @@ typedef struct {
 typedef struct {
   HDC hDC;
   AECHARINDEX ciDrawLine;
-  int nDrawLineWidth;
   int nDrawCharOffset;
+  int nDrawLineWidth;
   POINT ptFirstCharInLine;
   wchar_t *wpStartDraw;
   int nStartDrawWidth;
