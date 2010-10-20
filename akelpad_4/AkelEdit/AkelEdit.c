@@ -1047,7 +1047,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             AE_GetPosFromChar(ae, ciChar, &ptGlobal, NULL);
             return ae->ptxt->nTabWidth - ptGlobal.x % ae->ptxt->nTabWidth;
           }
-          else return AE_GetCharWidth(ae, ciChar->lpLine->wpLine + ciChar->nCharInLine, NULL);
+          else return AE_GetCharWidth(ae, ciChar->lpLine->wpLine + ciChar->nCharInLine, 0);
         }
         return 0;
       }
@@ -8113,8 +8113,8 @@ int AE_LineUnwrap(AKELEDIT *ae, AELINEINDEX *liLine, DWORD dwMaxWidth, AEPOINT *
       {
         if (liLine->lpLine->next->nLineLen)
         {
-          if ((DWORD)liLine->lpLine->nLineWidth + AE_GetCharWidth(ae, liLine->lpLine->next->wpLine, NULL) > dwMaxWidth)
-            return nLineCount;
+          if ((DWORD)liLine->lpLine->nLineWidth + AE_GetCharWidth(ae, liLine->lpLine->next->wpLine, 0) > dwMaxWidth)
+            return 0;
         }
       }
 
@@ -11235,11 +11235,8 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   {
     while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
     {
-      if (ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\t')
-        nCharWidth=prn->nTabWidth - nLineWidth % prn->nTabWidth;
-      else
-        nCharWidth=AE_GetCharWidth(&ph->aePrint, ciCount.lpLine->wpLine + ciCount.nCharInLine, NULL);
-      nLineWidth+=nCharWidth;
+      if (nCharWidth=AE_GetCharWidth(&ph->aePrint, ciCount.lpLine->wpLine + ciCount.nCharInLine, nLineWidth))
+        nLineWidth+=nCharWidth;
 
       if (!(prn->dwFlags & AEPRN_IGNOREFORMFEED) && ciCount.lpLine->wpLine[ciCount.nCharInLine] == L'\f')
         bFormFeed=TRUE;
@@ -11354,10 +11351,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 
       if (to.ciDrawLine.nCharInLine < to.ciDrawLine.lpLine->nLineLen)
       {
-        if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
-          nCharWidth=prn->nTabWidth - to.nDrawLineWidth % prn->nTabWidth;
-        else
-          nCharWidth=AE_GetCharWidth(&ph->aePrint, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, NULL);
+        nCharWidth=AE_GetCharWidth(&ph->aePrint, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, to.nDrawLineWidth);
       }
 
       if (!(prn->dwFlags & AEPRN_TEST))
@@ -11697,10 +11691,7 @@ void AE_Paint(AKELEDIT *ae)
           {
             if (to.ciDrawLine.nCharInLine < to.ciDrawLine.lpLine->nLineLen)
             {
-              if (to.ciDrawLine.lpLine->wpLine[to.ciDrawLine.nCharInLine] == L'\t')
-                nCharWidth=ae->ptxt->nTabWidth - to.nDrawLineWidth % ae->ptxt->nTabWidth;
-              else
-                nCharWidth=AE_GetCharWidth(ae, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, NULL);
+              nCharWidth=AE_GetCharWidth(ae, to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine, to.nDrawLineWidth);
             }
 
             //Selection
@@ -11929,7 +11920,7 @@ void AE_PaintTextOut(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp)
                 nBytes=WideCharToMultiByte(CP_ACP, 0, wpText + i, 1, szChar, sizeof(szChar), NULL, NULL);
                 TextOutA(to->hDC, rcTextOut.left, rcTextOut.top, szChar, nBytes);
               }
-              rcTextOut.left+=AE_GetCharWidth(ae, wpText + i, NULL);
+              rcTextOut.left+=AE_GetCharWidth(ae, wpText + i, 0);
               i+=nCharLen - 1;
             }
           }
@@ -12905,10 +12896,13 @@ int AE_GetTextExtentPoint32(AKELEDIT *ae, const wchar_t *wpString, int nStringLe
   return nResult;
 }
 
-int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, int *nDone)
+int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, int nCharExtent)
 {
   SIZE sizeChar;
   int nCharLen;
+
+  if (*wpChar == L'\t')
+    return ae->ptxt->nTabWidth - nCharExtent % ae->ptxt->nTabWidth;
 
   if (AE_IsHighSurrogate(*wpChar))
   {
@@ -12923,7 +12917,6 @@ int AE_GetCharWidth(AKELEDIT *ae, wchar_t *wpChar, int *nDone)
     AE_GetTextExtentPoint32(ae, wpChar, nCharLen, &sizeChar);
   else
     sizeChar.cx=0;
-  if (nDone) *nDone=nCharLen;
   return sizeChar.cx;
 }
 
@@ -12939,12 +12932,13 @@ int AE_GetStringWidth(AKELEDIT *ae, wchar_t *wpString, int nStringLen, int nFirs
   {
     if (wpString[i] == L'\t')
     {
+      //Width before tabulation
       if (AE_GetTextExtentPoint32(ae, wpString + nStringCount, i - nStringCount, &sizeChar))
         nStringWidth+=sizeChar.cx;
       nStringCount=i + 1;
 
-      nTabWidth=ae->ptxt->nTabWidth - nStringWidth % ae->ptxt->nTabWidth;
-      nStringWidth+=nTabWidth;
+      if (nTabWidth=ae->ptxt->nTabWidth - nStringWidth % ae->ptxt->nTabWidth)
+        nStringWidth+=nTabWidth;
     }
   }
   if (AE_GetTextExtentPoint32(ae, wpString + nStringCount, i - nStringCount, &sizeChar))
@@ -13055,7 +13049,6 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, DWO
   int nStringWidth=0;
   int nStartChar=0;
   int nCharWidth=0;
-  int nTabWidth;
   int nHScrollMax;
 
   if (lpLine)
@@ -13106,17 +13099,8 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, DWO
       {
         if (ciChar.nCharInLine < ciChar.lpLine->nLineLen)
         {
-          if (ciChar.lpLine->wpLine[ciChar.nCharInLine] == L'\t')
-          {
-            nTabWidth=ae->ptxt->nTabWidth - nStringWidth % ae->ptxt->nTabWidth;
-            nCharWidth=nTabWidth;
+          if (nCharWidth=AE_GetCharWidth(ae, ciChar.lpLine->wpLine + ciChar.nCharInLine, nStringWidth))
             nStringWidth+=nCharWidth;
-          }
-          else
-          {
-            if (nCharWidth=AE_GetCharWidth(ae, ciChar.lpLine->wpLine + ciChar.nCharInLine, NULL))
-              nStringWidth+=nCharWidth;
-          }
         }
         else
         {
@@ -13177,7 +13161,7 @@ int AE_GetCharInLine(AKELEDIT *ae, const AELINEDATA *lpLine, int nMaxExtent, DWO
           }
           else
           {
-            if (nCharWidth=AE_GetCharWidth(ae, ciChar.lpLine->wpLine + ciChar.nCharInLine, NULL))
+            if (nCharWidth=AE_GetCharWidth(ae, ciChar.lpLine->wpLine + ciChar.nCharInLine, 0))
               nStringWidth-=nCharWidth;
           }
         }
