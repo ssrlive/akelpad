@@ -15830,7 +15830,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                       {
                         AEUNDOITEM *lpUndoElement;
                         wchar_t *wpUndoText;
-                        wchar_t *wpLineBreak;
+                        const wchar_t *wpLineBreak;
                         DWORD dwUndoTextLen=AE_GetNewLineString(ae, lpNewElement->nLineBreak, &wpLineBreak);
 
                         if (wpUndoText=(wchar_t *)AE_HeapAlloc(ae, 0, (dwUndoTextLen + 1) * sizeof(wchar_t)))
@@ -16598,7 +16598,7 @@ wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, in
   return wpLineEnd;
 }
 
-int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, wchar_t **wpNewLine)
+int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, const wchar_t **wpNewLine)
 {
   if (nNewLine == AELB_R)
   {
@@ -17793,7 +17793,7 @@ void AE_EditChar(AKELEDIT *ae, WPARAM wParam, BOOL bUnicode)
 void AE_EditKeyReturn(AKELEDIT *ae)
 {
   AECHARINDEX ciCharIndex;
-  wchar_t *wpNewLine;
+  const wchar_t *wpNewLine;
   int nNewLine;
 
   AE_NotifyChanging(ae, AETCT_KEYRETURN);
