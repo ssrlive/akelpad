@@ -1185,30 +1185,6 @@ void SplitVisUpdate(FRAMEDATA *lpFrame)
   }
 }
 
-LRESULT SendToDoc(AEHDOC hDocEdit, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-  if (lpFrameCurrent->ei.hDocEdit == hDocEdit)
-    return SendMessage(lpFrameCurrent->ei.hWndEdit, uMsg, wParam, lParam);
-
-  if (nMDI == WMD_PMDI)
-  {
-    AESENDMESSAGE sm;
-
-    sm.hDoc=hDocEdit;
-    sm.uMsg=uMsg;
-    sm.wParam=wParam;
-    sm.lParam=lParam;
-    return SendMessage(fdInit.ei.hWndEdit, AEM_SENDMESSAGE, 0, (LPARAM)&sm);
-  }
-  else
-  {
-    HWND hWndEdit;
-
-    hWndEdit=(HWND)SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETDOCUMENTWINDOW, (WPARAM)hDocEdit, 0);
-    return SendMessage(hWndEdit, uMsg, wParam, lParam);
-  }
-}
-
 
 //// Menu functions
 

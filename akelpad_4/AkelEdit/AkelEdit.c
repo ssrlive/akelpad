@@ -1732,19 +1732,22 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     {
       AESENDMESSAGE *psm=(AESENDMESSAGE *)lParam;
       HWND hWndEdit=ae->hWndEdit;
-      LRESULT lResult;
 
-      if (psm->hDoc && (AKELEDIT *)psm->hDoc != ae)
-        AE_SetWindowData(ae, (AKELEDIT *)psm->hDoc, AESWD_NOALL);
+      if (psm->uMsg != AEM_SENDMESSAGE)
+      {
+        if (psm->hDoc && (AKELEDIT *)psm->hDoc != ae)
+          AE_SetWindowData(ae, (AKELEDIT *)psm->hDoc, AESWD_NOALL);
 
-      if (!ae->bUnicodeWindow)
-        lResult=SendMessageA(hWndEdit, psm->uMsg, psm->wParam, psm->lParam);
-      else
-        lResult=SendMessageW(hWndEdit, psm->uMsg, psm->wParam, psm->lParam);
+        if (!ae->bUnicodeWindow)
+          psm->lResult=SendMessageA(hWndEdit, psm->uMsg, psm->wParam, psm->lParam);
+        else
+          psm->lResult=SendMessageW(hWndEdit, psm->uMsg, psm->wParam, psm->lParam);
 
-      if (psm->hDoc && (AKELEDIT *)psm->hDoc != ae)
-        AE_SetWindowData((AKELEDIT *)psm->hDoc, ae, AESWD_NOALL);
-      return lResult;
+        if (psm->hDoc && (AKELEDIT *)psm->hDoc != ae && ((AKELEDIT *)psm->hDoc)->hWndEdit == hWndEdit)
+          AE_SetWindowData((AKELEDIT *)psm->hDoc, ae, AESWD_NOALL);
+        return TRUE;
+      }
+      return FALSE;
     }
 
     //Clones
