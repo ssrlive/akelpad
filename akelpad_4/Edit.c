@@ -1659,7 +1659,7 @@ void DoEditRecode(HWND hWnd)
   }
 }
 
-BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, wchar_t *wpString)
+BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpString)
 {
   AECHARRANGE crInitialSel;
   AECHARRANGE crRange=crSel;
@@ -2931,7 +2931,7 @@ BOOL WriteIni(INIFILE *hIniFile, HANDLE hFile)
   return TRUE;
 }
 
-INISECTION* StackOpenIniSectionA(INIFILE *hIniFile, char *pSection, int nSectionLen, BOOL bCreate)
+INISECTION* StackOpenIniSectionA(INIFILE *hIniFile, const char *pSection, int nSectionLen, BOOL bCreate)
 {
   INISECTION *lpIniSection=NULL;
   wchar_t *wpSection;
@@ -2945,7 +2945,7 @@ INISECTION* StackOpenIniSectionA(INIFILE *hIniFile, char *pSection, int nSection
   return lpIniSection;
 }
 
-INISECTION* StackOpenIniSectionW(INIFILE *hIniFile, wchar_t *wpSection, int nSectionLen, BOOL bCreate)
+INISECTION* StackOpenIniSectionW(INIFILE *hIniFile, const wchar_t *wpSection, int nSectionLen, BOOL bCreate)
 {
   INISECTION *lpIniSection=(INISECTION *)hIniFile->first;
   int nSectionBytes=(nSectionLen + 1) * sizeof(wchar_t);
@@ -2975,7 +2975,7 @@ INISECTION* StackOpenIniSectionW(INIFILE *hIniFile, wchar_t *wpSection, int nSec
   return lpIniSection;
 }
 
-INIKEY* StackOpenIniKeyA(INISECTION *lpIniSection, char *pKey, int nKeyLen, BOOL bCreate)
+INIKEY* StackOpenIniKeyA(INISECTION *lpIniSection, const char *pKey, int nKeyLen, BOOL bCreate)
 {
   INIKEY *lpIniKey=NULL;
   wchar_t *wpKey;
@@ -2989,7 +2989,7 @@ INIKEY* StackOpenIniKeyA(INISECTION *lpIniSection, char *pKey, int nKeyLen, BOOL
   return lpIniKey;
 }
 
-INIKEY* StackOpenIniKeyW(INISECTION *lpIniSection, wchar_t *wpKey, int nKeyLen, BOOL bCreate)
+INIKEY* StackOpenIniKeyW(INISECTION *lpIniSection, const wchar_t *wpKey, int nKeyLen, BOOL bCreate)
 {
   INIKEY *lpIniKey=(INIKEY *)lpIniSection->first;
   int nKeyBytes=(nKeyLen + 1) * sizeof(wchar_t);
@@ -3123,7 +3123,7 @@ BOOL StackSetIniData(INIKEY *lpIniKey, int nType, unsigned char *lpData, DWORD d
   return FALSE;
 }
 
-int IniGetValueA(INIFILE *hIniFile, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+int IniGetValueA(INIFILE *hIniFile, const char *pSection, const char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
 {
   INISECTION *lpIniSection;
   INIKEY *lpIniKey;
@@ -3136,7 +3136,7 @@ int IniGetValueA(INIFILE *hIniFile, char *pSection, char *pKey, int nType, unsig
   return StackGetIniData(lpIniKey, nType, lpData, dwDataBytes);
 }
 
-int IniGetValueW(INIFILE *hIniFile, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+int IniGetValueW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
 {
   INISECTION *lpIniSection;
   INIKEY *lpIniKey;
@@ -3149,7 +3149,7 @@ int IniGetValueW(INIFILE *hIniFile, wchar_t *wpSection, wchar_t *wpKey, int nTyp
   return StackGetIniData(lpIniKey, nType, lpData, dwDataBytes);
 }
 
-BOOL IniSetValueA(INIFILE *hIniFile, char *pSection, char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+BOOL IniSetValueA(INIFILE *hIniFile, const char *pSection, const char *pKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
 {
   INISECTION *lpIniSection;
   INIKEY *lpIniKey;
@@ -3162,7 +3162,7 @@ BOOL IniSetValueA(INIFILE *hIniFile, char *pSection, char *pKey, int nType, unsi
   return StackSetIniData(lpIniKey, nType, lpData, dwDataBytes);
 }
 
-BOOL IniSetValueW(INIFILE *hIniFile, wchar_t *wpSection, wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
+BOOL IniSetValueW(INIFILE *hIniFile, const wchar_t *wpSection, const wchar_t *wpKey, int nType, unsigned char *lpData, DWORD dwDataBytes)
 {
   INISECTION *lpIniSection;
   INIKEY *lpIniKey;
@@ -3223,7 +3223,7 @@ void StackFreeIni(INIFILE *hIniFile)
 
 //// Read/Save options
 
-DWORD ReadOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
+DWORD ReadOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
 {
   if (oh->nSaveSettings == SS_REGISTRY)
   {
@@ -3251,7 +3251,7 @@ DWORD ReadOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData,
   }
 }
 
-DWORD SaveOption(OPTIONHANDLE *oh, wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
+DWORD SaveOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *lpData, DWORD dwSize)
 {
   if (dwType & MOT_MAINOFFSET)
   {
@@ -11853,7 +11853,7 @@ void FillPluginList(HWND hWnd)
   HMODULE hInstance;
   PLUGINLISTDATA pld={0};
   wchar_t wszBaseName[MAX_PATH];
-  wchar_t *wpPluginExt=L"dll";
+  const wchar_t *wpPluginExt=L"dll";
 
   pld.hWndList=hWnd;
   xprintfW(wbuf, L"%s\\AkelFiles\\Plugs\\*.%s", wszExeDir, wpPluginExt);
@@ -16621,7 +16621,7 @@ BOOL GetFileWriteTimeWide(const wchar_t *wpFile, FILETIME *ft)
   return TRUE;
 }
 
-BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage)
+BOOL GetFileVersionA(const char *pFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage)
 {
   struct LANGANDCODEPAGE {
     WORD wLanguage;
@@ -16666,7 +16666,7 @@ BOOL GetFileVersionA(char *pFile, int *nMajor, int *nMinor, int *nRelease, int *
   return bResult;
 }
 
-BOOL GetFileVersionW(wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage)
+BOOL GetFileVersionW(const wchar_t *wpFile, int *nMajor, int *nMinor, int *nRelease, int *nBuild, DWORD *dwLanguage)
 {
   struct LANGANDCODEPAGE {
     WORD wLanguage;
@@ -17419,7 +17419,7 @@ int AddTabItem(HWND hWnd, LPARAM lParam)
   {
     nItemCount=SendMessage(hWnd, TCM_GETITEMCOUNT, 0, 0);
     tcItem.mask=TCIF_TEXT|TCIF_IMAGE|TCIF_PARAM;
-    tcItem.pszText=L"";
+    tcItem.pszText=(wchar_t *)L"";
     tcItem.iImage=0;
     tcItem.lParam=lParam;
     nResult=TabCtrl_InsertItemWide(hWnd, nItemCount, &tcItem);
