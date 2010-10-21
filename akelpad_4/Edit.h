@@ -789,6 +789,8 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
 BOOL FreeText(LPVOID pText);
 BOOL PasteInEditAsRichEdit(HWND hWnd);
 BOOL ColumnPaste(HWND hWnd);
+DWORD GetLinesCountA(const char *pText, int nTextLen);
+DWORD GetLinesCountW(const wchar_t *wpText, int nTextLen);
 BOOL PasteAfter(HWND hWnd, BOOL bAnsi);
 
 BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
