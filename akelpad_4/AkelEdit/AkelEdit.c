@@ -5265,7 +5265,7 @@ AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold)
   AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_RECURSE, lpFold->lpMinPoint->nPointOffset, NULL, &lpMinParent, &lpMinPrevSubling);
 
   //Fold end
-  if (lpMinParent && lpMinParent->lpMaxPoint->nPointOffset == lpFold->lpMaxPoint->nPointOffset)
+  if (lpMinParent && lpMinParent->lpMaxPoint->nPointOffset + lpMinParent->lpMaxPoint->nPointLen == lpFold->lpMaxPoint->nPointOffset + lpFold->lpMaxPoint->nPointLen)
   {
     lpMaxParent=lpMinParent;
     lpMaxPrevSubling=lpMinParent->lastChild;
