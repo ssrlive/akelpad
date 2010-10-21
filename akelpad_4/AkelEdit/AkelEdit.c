@@ -6540,7 +6540,7 @@ AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine)
 
 int AE_GetWrapLine(AKELEDIT *ae, int nLine, AECHARINDEX *ciCharOut)
 {
-  AELINEINDEX liLine;
+  AELINEINDEX liLine={0};
   DWORD dwFirst=(DWORD)-1;
   DWORD dwSecond=(DWORD)-1;
   DWORD dwThird=(DWORD)-1;
@@ -6716,16 +6716,16 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharI
   dwOffset=min(dwOffset, (DWORD)ae->ptxt->nLastCharOffset);
 
   //Find nearest element in stack
-  dwFirst=mod(dwOffset - 0);
-  dwSecond=mod(dwOffset - ae->ptxt->nLastCharOffset);
+  dwFirst=mod((int)dwOffset - 0);
+  dwSecond=mod((int)dwOffset - ae->ptxt->nLastCharOffset);
   if (ae->liFirstDrawLine.lpLine && ae->nFirstDrawLineOffset)
-    dwThird=mod(dwOffset - ae->nFirstDrawLineOffset);
+    dwThird=mod((int)dwOffset - ae->nFirstDrawLineOffset);
   if (ae->ciSelStartIndex.lpLine && ae->nSelStartCharOffset)
-    dwFourth=mod(dwOffset - ae->nSelStartCharOffset);
+    dwFourth=mod((int)dwOffset - ae->nSelStartCharOffset);
   if (ae->ciSelEndIndex.lpLine && ae->nSelEndCharOffset)
-    dwFifth=mod(dwOffset - ae->nSelEndCharOffset);
+    dwFifth=mod((int)dwOffset - ae->nSelEndCharOffset);
   if (ae->ciLastCallIndex.lpLine && ae->nLastCallOffset)
-    dwSixth=mod(dwOffset - ae->nLastCallOffset);
+    dwSixth=mod((int)dwOffset - ae->nLastCallOffset);
 
   if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth && dwFirst <= dwSixth)
   {
