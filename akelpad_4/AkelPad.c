@@ -410,9 +410,6 @@ int main()
 #endif
 
 //Entry point
-#ifdef __GNUC__
-  extern "C"
-#endif
 void _WinMain()
 {
   WNDCLASSW wndclassW={0};

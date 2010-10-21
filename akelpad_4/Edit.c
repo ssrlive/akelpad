@@ -733,7 +733,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
       lpFramePrevious=NULL;
     else
       lpFramePrevious=lpFrameCurrent;
-    CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRectMDI?rcRectMDI->left:CW_USEDEFAULT, rcRectMDI?rcRectMDI->top:CW_USEDEFAULT, rcRectMDI?rcRectMDI->right:CW_USEDEFAULT, rcRectMDI?rcRectMDI->bottom:CW_USEDEFAULT, hMdiClient, hInstance, 0);
+    CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRectMDI?(DWORD)rcRectMDI->left:CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->top:CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->right:CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->bottom:CW_USEDEFAULT, hMdiClient, hInstance, 0);
     bResult=TRUE;
   }
   else if (nMDI == WMD_PMDI)
@@ -2051,12 +2051,19 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
       while (wpStart < wpEnd)
       {
         while (wpStart < wpEnd && (AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpStart) || AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpStart)))
+        {
           ++wpStart;
-
-        if (wpStart < wpEnd) *wpStart++=WideCharUpper(*wpStart);
-
+        }
+        if (wpStart < wpEnd)
+        {
+          *wpStart=WideCharUpper(*wpStart);
+          ++wpStart;
+        }
         while (wpStart < wpEnd && !AKD_wcschr(STR_SENTENCE_DELIMITERSW, *wpStart))
-          *wpStart++=WideCharLower(*wpStart);
+        {
+          *wpStart=WideCharLower(*wpStart);
+          ++wpStart;
+        }
       }
     }
     else if (nCase == TITLECASE)
@@ -2064,12 +2071,19 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
       while (wpStart < wpEnd)
       {
         while (wpStart < wpEnd && AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpStart))
+        {
           ++wpStart;
-
-        if (wpStart < wpEnd) *wpStart++=WideCharUpper(*wpStart);
-
+        }
+        if (wpStart < wpEnd)
+        {
+          *wpStart=WideCharUpper(*wpStart);
+          ++wpStart;
+        }
         while (wpStart < wpEnd && !AKD_wcschr(lpFrameCurrent->wszWordDelimiters, *wpStart))
-          *wpStart++=WideCharLower(*wpStart);
+        {
+          *wpStart=WideCharLower(*wpStart);
+          ++wpStart;
+        }
       }
     }
     else if (nCase == INVERTCASE)
@@ -2077,9 +2091,15 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
       while (wpStart < wpEnd)
       {
         if (WideCharLower(*wpStart) == *wpStart)
-          *wpStart++=WideCharUpper(*wpStart);
+        {
+          *wpStart=WideCharUpper(*wpStart);
+          ++wpStart;
+        }
         else
-          *wpStart++=WideCharLower(*wpStart);
+        {
+          *wpStart=WideCharLower(*wpStart);
+          ++wpStart;
+        }
       }
     }
 
@@ -5476,7 +5496,7 @@ BOOL UpdateMappedPrintWidth(FRAMEDATA *lpFrame)
 int PrintDocument(HWND hWnd, AEPRINT *prn, DWORD dwFlags, int nInitPage)
 {
   DOCINFOW diW={0};
-  POINT ptScreenDpi;
+  POINT ptScreenDpi={0};
   POINT ptPrintDpi;
   PRINTPAGE *lpElement;
   AEHPRINT hPrintDoc;
@@ -10543,7 +10563,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (HIWORD(wParam) == CBN_EDITCHANGE)
       {
-        COLORTHEME *ctElement;
+        COLORTHEME *ctElement=NULL;
         int nSelection=-1;
         int nNameLen;
 
