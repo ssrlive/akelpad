@@ -9437,7 +9437,11 @@ BOOL ColumnPaste(HWND hWnd)
   AECHARRANGE crInitialSel=crSel;
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCaret;
-  int nLineRange=(crSel.ciMax.nLine - crSel.ciMin.nLine) + 1;
+  int nLineSelStart;
+  int nLineSelEnd;
+  int nLineSelRange;
+  int nLineSourceRange;
+  int nLineTargetRange;
   int nSourceLen;
   int nTargetLen;
   int nTargetCount;
@@ -9445,90 +9449,157 @@ BOOL ColumnPaste(HWND hWnd)
   BOOL bResult=FALSE;
 
   if (IsReadOnly(hWnd)) return FALSE;
+  nLineSelStart=SendMessage(hWnd, AEM_GETUNWRAPLINE, crSel.ciMin.nLine, 0);
+  nLineSelEnd=SendMessage(hWnd, AEM_GETUNWRAPLINE, crSel.ciMax.nLine, 0);
+  nLineSelRange=(nLineSelEnd - nLineSelStart) + 1;
 
-  if (SendMessage(hWnd, AEM_GETCOLUMNSEL, 0, 0))
+  if (OpenClipboard(hWnd))
   {
-    if (nLineRange > 0)
+    if (hData=GetClipboardData(CF_UNICODETEXT))
     {
-      if (OpenClipboard(hWnd))
+      if (pData=GlobalLock(hData))
       {
-        if (hData=GetClipboardData(CF_UNICODETEXT))
+        wchar_t *wpSource=(wchar_t *)pData;
+        wchar_t *wpTarget;
+
+        nSourceLen=lstrlenW(wpSource);
+        while (nSourceLen > 0)
         {
-          if (pData=GlobalLock(hData))
+          if (wpSource[nSourceLen - 1] == '\r' ||
+              wpSource[nSourceLen - 1] == '\n')
           {
-            wchar_t *wpSource=(wchar_t *)pData;
-            wchar_t *wpTarget;
-
-            nSourceLen=lstrlenW(wpSource);
-            nTargetLen=(nSourceLen + 1) * nLineRange - 1;
-
-            if (wpTarget=AllocWideStr(nTargetLen + 1))
+            --nSourceLen;
+          }
+          else break;
+        }
+        if (nSourceLen)
+        {
+          nLineSourceRange=GetLinesCountW(wpSource, nSourceLen);
+          nLineTargetRange=nLineSelRange / nLineSourceRange;
+          if (nLineSelRange % nLineSourceRange)
+            ++nLineTargetRange;
+          nTargetLen=(nSourceLen + 1) * nLineTargetRange - 1;
+  
+          if (wpTarget=AllocWideStr(nTargetLen + 1))
+          {
+            for (i=0; i < nLineTargetRange; ++i)
             {
-              for (i=0; i < nLineRange; ++i)
-              {
-                nTargetCount=i * (nSourceLen + 1);
-                xmemcpy(wpTarget + nTargetCount, wpSource, nSourceLen * sizeof(wchar_t));
-                wpTarget[nTargetCount + nSourceLen]='\r';
-              }
-              wpTarget[nTargetLen]='\0';
-
-              ReplaceSelW(hWnd, wpTarget, nTargetLen, AELB_ASINPUT, TRUE, &crRange.ciMin, &crRange.ciMax);
-              if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-                SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
-              else
-                SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMax);
-              bResult=FALSE;
-              FreeWideStr(wpTarget);
+              nTargetCount=i * (nSourceLen + 1);
+              xmemcpy(wpTarget + nTargetCount, wpSource, nSourceLen * sizeof(wchar_t));
+              wpTarget[nTargetCount + nSourceLen]='\r';
             }
-            GlobalUnlock(hData);
+            wpTarget[nTargetLen]='\0';
+  
+            ReplaceSelW(hWnd, wpTarget, nTargetLen, AELB_ASINPUT, TRUE, &crRange.ciMin, &crRange.ciMax);
+            if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+              SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
+            else
+              SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMax);
+            bResult=FALSE;
+            FreeWideStr(wpTarget);
           }
         }
-        else if (hData=GetClipboardData(CF_TEXT))
-        {
-          if (pData=GlobalLock(hData))
-          {
-            char *pSource=(char *)pData;
-            char *pTarget;
-
-            nSourceLen=lstrlenA(pSource);
-            nTargetLen=(nSourceLen + 1) * nLineRange - 1;
-
-            if (pTarget=(char *)API_HeapAlloc(hHeap, 0, nTargetLen + 1))
-            {
-              for (i=0; i < nLineRange; ++i)
-              {
-                nTargetCount=i * (nSourceLen + 1);
-                xmemcpy(pTarget + nTargetCount, pSource, nSourceLen);
-                pTarget[nTargetCount + nSourceLen]='\r';
-              }
-              pTarget[nTargetLen]='\0';
-
-              ReplaceSelA(hWnd, pTarget, nTargetLen, AELB_ASINPUT, TRUE, NULL, NULL);
-              if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
-                SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
-              else
-                SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMax);
-              bResult=FALSE;
-              API_HeapFree(hHeap, 0, (LPVOID)pTarget);
-            }
-            GlobalUnlock(hData);
-          }
-        }
-        CloseClipboard();
+        GlobalUnlock(hData);
       }
     }
-  }
-  else
-  {
-    CHARRANGE cr;
+    else if (hData=GetClipboardData(CF_TEXT))
+    {
+      if (pData=GlobalLock(hData))
+      {
+        char *pSource=(char *)pData;
+        char *pTarget;
 
-    SendMessage(hWnd, EM_GETSEL, (WPARAM)&cr.cpMin, 0);
-    DoEditPaste(hWnd, FALSE);
-    SendMessage(hWnd, EM_GETSEL, 0, (LPARAM)&cr.cpMax);
-    SendMessage(hWnd, EM_EXSETSEL, 0, (LPARAM)&cr);
+        nSourceLen=lstrlenA(pSource);
+        while (nSourceLen > 0)
+        {
+          if (pSource[nSourceLen - 1] == '\r' ||
+              pSource[nSourceLen - 1] == '\n')
+          {
+            --nSourceLen;
+          }
+          else break;
+        }
+        if (nSourceLen)
+        {
+          nLineSourceRange=GetLinesCountA(pSource, nSourceLen);
+          nLineTargetRange=nLineSelRange / nLineSourceRange;
+          if (nLineSelRange % nLineSourceRange)
+            ++nLineTargetRange;
+          nTargetLen=(nSourceLen + 1) * nLineTargetRange - 1;
+  
+          if (pTarget=(char *)API_HeapAlloc(hHeap, 0, nTargetLen + 1))
+          {
+            for (i=0; i < nLineTargetRange; ++i)
+            {
+              nTargetCount=i * (nSourceLen + 1);
+              xmemcpy(pTarget + nTargetCount, pSource, nSourceLen);
+              pTarget[nTargetCount + nSourceLen]='\r';
+            }
+            pTarget[nTargetLen]='\0';
+  
+            ReplaceSelA(hWnd, pTarget, nTargetLen, AELB_ASINPUT, TRUE, NULL, NULL);
+            if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
+              SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
+            else
+              SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMax);
+            bResult=FALSE;
+            API_HeapFree(hHeap, 0, (LPVOID)pTarget);
+          }
+        }
+        GlobalUnlock(hData);
+      }
+    }
+    CloseClipboard();
   }
-
   return bResult;
+}
+
+DWORD GetLinesCountA(const char *pText, int nTextLen)
+{
+  const char *pEnd=pText + nTextLen;
+  DWORD dwLines=1;
+
+  while (pText < pEnd)
+  {
+    if (*pText == '\r' || *pText == '\n')
+    {
+      if (*pText == '\r' && *(pText + 1) == '\n')
+        pText+=2;
+      else if (*pText == '\r' && *(pText + 1) == '\r' && *(pText + 2) == '\n')
+        pText+=3;
+      else if (*pText == '\n')
+        pText+=1;
+      else if (*pText == '\r')
+        pText+=1;
+      if (pText < pEnd) ++dwLines;
+    }
+    else ++pText;
+  }
+  return dwLines;
+}
+
+DWORD GetLinesCountW(const wchar_t *wpText, int nTextLen)
+{
+  const wchar_t *wpEnd=wpText + nTextLen;
+  DWORD dwLines=1;
+
+  while (wpText < wpEnd)
+  {
+    if (*wpText == L'\r' || *wpText == L'\n')
+    {
+      if (*wpText == L'\r' && *(wpText + 1) == L'\n')
+        wpText+=2;
+      else if (*wpText == L'\r' && *(wpText + 1) == L'\r' && *(wpText + 2) == L'\n')
+        wpText+=3;
+      else if (*wpText == L'\n')
+        wpText+=1;
+      else if (*wpText == L'\r')
+        wpText+=1;
+      if (wpText < wpEnd) ++dwLines;
+    }
+    else ++wpText;
+  }
+  return dwLines;
 }
 
 BOOL PasteAfter(HWND hWnd, BOOL bAnsi)
@@ -16658,11 +16729,11 @@ BOOL GetFileVersionA(const char *pFile, int *nMajor, int *nMinor, int *nRelease,
 
   *nMajor=*nMinor=*nRelease=*nBuild=0;
 
-  if (dwVerSize=GetFileVersionInfoSizeA(pFile, &dwHandle))
+  if (dwVerSize=GetFileVersionInfoSizeA((char *)pFile, &dwHandle))
   {
     if (pVerBuf=API_HeapAlloc(hHeap, 0, dwVerSize))
     {
-      if (GetFileVersionInfoA(pFile, dwHandle, dwVerSize, pVerBuf))
+      if (GetFileVersionInfoA((char *)pFile, dwHandle, dwVerSize, pVerBuf))
       {
         if (VerQueryValueA(pVerBuf, "\\", (void **)&pffi, &uLen))
         {
@@ -16703,11 +16774,11 @@ BOOL GetFileVersionW(const wchar_t *wpFile, int *nMajor, int *nMinor, int *nRele
 
   *nMajor=*nMinor=*nRelease=*nBuild=0;
 
-  if (dwVerSize=GetFileVersionInfoSizeW(wpFile, &dwHandle))
+  if (dwVerSize=GetFileVersionInfoSizeW((wchar_t *)wpFile, &dwHandle))
   {
     if (pVerBuf=API_HeapAlloc(hHeap, 0, dwVerSize))
     {
-      if (GetFileVersionInfoW(wpFile, dwHandle, dwVerSize, pVerBuf))
+      if (GetFileVersionInfoW((wchar_t *)wpFile, dwHandle, dwVerSize, pVerBuf))
       {
         if (VerQueryValueW(pVerBuf, L"\\", (void **)&pffi, &uLen))
         {
