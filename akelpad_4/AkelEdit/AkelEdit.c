@@ -15758,7 +15758,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                   //Offsets
                   if (lpPoint->nPointOffset >= 0)
                   {
-                    if (lpPoint->nPointOffset + lpPoint->nPointLen > nLineInsertOffsetOld)
+                    if (lpPoint->nPointOffset + lpPoint->nPointLen >= nLineInsertOffsetOld)
                     {
                       if (lpPoint->nPointOffset < nLineInsertOffsetOld)
                       {
@@ -16288,7 +16288,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
             //Offsets
             if (lpPoint->nPointOffset >= 0)
             {
-              if (lpPoint->nPointOffset + lpPoint->nPointLen > nInsertOffset)
+              if (lpPoint->nPointOffset + lpPoint->nPointLen >= nInsertOffset)
               {
                 if (lpPoint->nPointOffset < nInsertOffset)
                 {
