@@ -7,6 +7,7 @@ Changed: improved many files opening (MDI/PMDI).
          - Maximum number of documents in MDI mode is 700. When one try to exceed this number,
            message appeared that indicates PMDI mode requirement.
 Changed: code folding optimized.
+Changed: multi-line columnar paste.
 Changed: "Save All" menu item is deactivated if no files are changed.
 Changed: if automatically check "In selection" is enabled and selection is empty, previous
          direction is restored.
