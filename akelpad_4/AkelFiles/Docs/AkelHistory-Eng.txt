@@ -32,6 +32,7 @@ Fixed: when replacing with multi-line text, inserted new lines are not set
 Fixed: activating program with mouse and "Watch file change".
 Fixed: tabulation printed in color with color printing off.
 Fixed: tabulation and wrap by symbols.
+Fixed: position recovery of the first visible line if collapsed blocks presented.
 
 
 AkelPad 4.4.9 (Sep 16, 2010)
