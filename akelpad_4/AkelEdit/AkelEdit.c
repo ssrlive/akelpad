@@ -1487,6 +1487,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       {
         if ((int)wParam >= 0)
         {
+          POINT ptFirstVisLine;
           int nFirstVisibleLine=0;
 
           if (!ae->popt->bVScrollLock)
@@ -1500,7 +1501,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           ae->ptCaret.y=0;
           AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL);
           if (!ae->popt->bVScrollLock)
-            AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
+          {
+            ptFirstVisLine.y=AE_VPos(ae, nFirstVisibleLine, AEVPF_VPOSFROMLINE);
+            AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
+          }
           AE_UpdateCaret(ae, ae->bFocus);
 
           InvalidateRect(ae->hWndEdit, &ae->rcDraw, TRUE);
@@ -3080,6 +3084,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_SETFONT)
   {
+    POINT ptFirstVisLine;
     int nFirstVisibleLine=0;
 
     if (!ae->popt->bVScrollLock)
@@ -3097,7 +3102,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     ae->ptCaret.y=0;
     AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_LOCKNOTIFY);
     if (!ae->popt->bVScrollLock)
-      AE_VScrollLine(ae, nFirstVisibleLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
+    {
+      ptFirstVisLine.y=AE_VPos(ae, nFirstVisibleLine, AEVPF_VPOSFROMLINE);
+      AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
+    }
     AE_UpdateCaret(ae, ae->bFocus);
 
     if (ae->ptxt->dwWordWrap) AE_UpdateWrap(ae, NULL, NULL, ae->ptxt->dwWordWrap);
@@ -7713,10 +7721,11 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
 {
   AECHARINDEX ciSelStart=ae->ciSelStartIndex;
   AECHARINDEX ciSelEnd=ae->ciSelEndIndex;
-  AECHARINDEX ciFirstVisibleLineAfterWrap;
+  AECHARINDEX ciFirstVisibleLineAfterWrap={0};
   AEPOINT *lpPointOne;
   AEPOINT *lpPointTwo;
-  AEPOINT *lpPointThree;
+  AEPOINT *lpPointThree=NULL;
+  POINT ptFirstVisLine;
   int nWrapCount;
   BOOL bNotify=FALSE;
 
@@ -7726,17 +7735,29 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
     bNotify=TRUE;
     AE_NotifyChanging(ae, AETCT_WRAP);
   }
-  AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisibleLineAfterWrap, FALSE);
   lpPointOne=AE_StackPointInsert(ae, &ciSelStart);
   lpPointTwo=AE_StackPointInsert(ae, &ciSelEnd);
-  lpPointThree=AE_StackPointInsert(ae, &ciFirstVisibleLineAfterWrap);
+  if (!ae->popt->bVScrollLock)
+  {
+    AE_GetIndex(ae, AEGI_FIRSTVISIBLELINE, NULL, &ciFirstVisibleLineAfterWrap, FALSE);
+    lpPointThree=AE_StackPointInsert(ae, &ciFirstVisibleLineAfterWrap);
+  }
   nWrapCount=AE_WrapLines(ae, liWrapStart, liWrapEnd, dwWrap);
+
+  //First point
   ciSelStart=lpPointOne->ciPoint;
-  ciSelEnd=lpPointTwo->ciPoint;
-  ciFirstVisibleLineAfterWrap=lpPointThree->ciPoint;
   AE_StackPointDelete(ae, lpPointOne);
+
+  //Second point
+  ciSelEnd=lpPointTwo->ciPoint;
   AE_StackPointDelete(ae, lpPointTwo);
-  AE_StackPointDelete(ae, lpPointThree);
+
+  //Third point
+  if (!ae->popt->bVScrollLock)
+  {
+    ciFirstVisibleLineAfterWrap=lpPointThree->ciPoint;
+    AE_StackPointDelete(ae, lpPointThree);
+  }
 
   ae->ptCaret.x=0;
   ae->ptCaret.y=0;
@@ -7760,7 +7781,11 @@ int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd
     AE_UpdateScrollBars(ae, SB_VERT);
   }
   AE_UpdateSelection(ae, AESELT_COLUMNASIS|AESELT_LOCKSCROLL|AESELT_RESETSELECTION|AESELT_LOCKNOTIFY);
-  AE_VScrollLine(ae, ciFirstVisibleLineAfterWrap.nLine - AE_GetFirstVisibleLine(ae), AESB_ALIGNTOP);
+  if (!ae->popt->bVScrollLock)
+  {
+    ptFirstVisLine.y=AE_VPos(ae, ciFirstVisibleLineAfterWrap.nLine, AEVPF_VPOSFROMLINE);
+    AE_ScrollToPointEx(ae, AESC_POINTGLOBAL|AESC_OFFSETPIXELY|AESC_FORCETOP, &ptFirstVisLine, 0, 0);
+  }
 
   if (bNotify)
   {
