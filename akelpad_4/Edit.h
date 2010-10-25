@@ -279,14 +279,6 @@
 #define SM_FRAMETITLE_MDI 0x00000004
 #define SM_TABTITLE_MDI   0x00000008
 
-//Status bar position type
-#define SPT_COLUMN      0x00000001
-#define SPT_LINEWRAP    0x00000002
-
-//Go to line
-#define NT_LINE    1
-#define NT_OFFSET  2
-
 //Custom statusbar
 #define CSB_CHARHEX           0x0001
 #define CSB_CHARDEC           0x0002
@@ -794,6 +786,7 @@ DWORD GetLinesCountW(const wchar_t *wpText, int nTextLen);
 BOOL PasteAfter(HWND hWnd, BOOL bAnsi);
 
 BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString);
 
 BOOL RecentFilesAlloc();
 void RecentFilesZero();

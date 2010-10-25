@@ -318,7 +318,7 @@ WNDPROC OldComboboxEdit;
 
 //Go to line dialog
 RECT rcGotoDlg={0};
-int nGotoType=NT_LINE;
+DWORD dwGotoType=GT_LINE;
 
 //Options dialog
 HHOOK hPropertyHook;
@@ -1732,6 +1732,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return nResult;
       }
       return TextReplaceW(hWnd, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
+    }
+    if (uMsg == AKD_GOTO)
+    {
+      return GoTo(wParam, (const wchar_t *)lParam);
     }
     if (uMsg == AKD_RECODESEL)
     {

@@ -151,6 +151,10 @@
 #define SPT_COLUMN      0x00000001  //"Line:Column". By default: "Line:Symbol".
 #define SPT_LINEWRAP    0x00000002  //Wrap line numbers. By default: Non-wrap line numbers.
 
+//AKD_GOTO type
+#define GT_LINE    0x1
+#define GT_OFFSET  0x2
+
 //Caret options
 #define CO_CARETOUTEDGE  0x00000001  //Allow caret moving out of the line edge.
 #define CO_CARETVERTLINE 0x00000002  //Draw caret vertical line.
@@ -1452,6 +1456,7 @@ typedef struct {
 #define AKD_TEXTREPLACEW           (WM_USER + 177)
 #define AKD_RECODESEL              (WM_USER + 178)
 #define AKD_GETCHARCOLOR           (WM_USER + 179)
+#define AKD_GOTO                   (WM_USER + 180)
 
 //Print
 #define AKD_GETPRINTINFO           (WM_USER + 191)
@@ -2404,6 +2409,22 @@ Example:
 
  cc.nCharPos=10;
  SendMessage(pd->hMainWnd, AKD_GETCHARCOLOR, (WPARAM)pd->hWndEdit, (LPARAM)&cc);
+
+
+AKD_GOTO
+________
+
+Go to specified position in text.
+
+(DWORD)wParam           == see GT_* defines.
+(const wchar_t *)lParam == pointer to a unicode string that specified position in text. It is equal to "Go to..." dialog string.
+
+Return Value
+ TRUE   success.
+ FALSE  failed.
+
+Example:
+ SendMessage(pd->hMainWnd, AKD_GOTO, GT_LINE, (LPARAM)L"100:3");
 
 
 AKD_GETPRINTINFO

@@ -179,7 +179,7 @@ extern WNDPROC OldComboboxEdit;
 
 //Go to line dialog
 extern RECT rcGotoDlg;
-extern int nGotoType;
+extern DWORD dwGotoType;
 
 //Options dialog
 extern HHOOK hPropertyHook;
@@ -9479,7 +9479,7 @@ BOOL ColumnPaste(HWND hWnd)
           if (nLineSelRange % nLineSourceRange)
             ++nLineTargetRange;
           nTargetLen=(nSourceLen + 1) * nLineTargetRange - 1;
-  
+
           if (wpTarget=AllocWideStr(nTargetLen + 1))
           {
             for (i=0; i < nLineTargetRange; ++i)
@@ -9489,7 +9489,7 @@ BOOL ColumnPaste(HWND hWnd)
               wpTarget[nTargetCount + nSourceLen]='\r';
             }
             wpTarget[nTargetLen]='\0';
-  
+
             ReplaceSelW(hWnd, wpTarget, nTargetLen, AELB_ASINPUT, TRUE, &crRange.ciMin, &crRange.ciMax);
             if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
               SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
@@ -9526,7 +9526,7 @@ BOOL ColumnPaste(HWND hWnd)
           if (nLineSelRange % nLineSourceRange)
             ++nLineTargetRange;
           nTargetLen=(nSourceLen + 1) * nLineTargetRange - 1;
-  
+
           if (pTarget=(char *)API_HeapAlloc(hHeap, 0, nTargetLen + 1))
           {
             for (i=0; i < nLineTargetRange; ++i)
@@ -9536,7 +9536,7 @@ BOOL ColumnPaste(HWND hWnd)
               pTarget[nTargetCount + nSourceLen]='\r';
             }
             pTarget[nTargetLen]='\0';
-  
+
             ReplaceSelA(hWnd, pTarget, nTargetLen, AELB_ASINPUT, TRUE, NULL, NULL);
             if (!AEC_IndexCompare(&crInitialSel.ciMin, &ciInitialCaret))
               SetSel(hWnd, &crRange, AESELT_COLUMNON, &crRange.ciMin);
@@ -9623,13 +9623,10 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndNumber;
   static HWND hWndLine;
   static HWND hWndOffset;
-  AECHARRANGE cr;
-  int nLine=0;
-  int nColumn=1;
-  int nLineCount=0;
+  int nLine;
+  int nColumn;
+  int nOffset;
   int nNumberLen;
-  int a;
-  int b;
 
   if (uMsg == WM_INITDIALOG)
   {
@@ -9641,12 +9638,12 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (rcGotoDlg.right && rcGotoDlg.bottom)
       SetWindowPos(hDlg, 0, rcGotoDlg.left, rcGotoDlg.top, 0, 0, SWP_NOSIZE|SWP_NOZORDER);
 
-    if (nGotoType == NT_LINE)
+    if (dwGotoType & GT_LINE)
     {
       SendMessage(hWndLine, BM_SETCHECK, BST_CHECKED, 0);
       PostMessage(hDlg, WM_COMMAND, IDC_GOTO_LINE, 0);
     }
-    else if (nGotoType == NT_OFFSET)
+    else if (dwGotoType & GT_OFFSET)
     {
       SendMessage(hWndOffset, BM_SETCHECK, BST_CHECKED, 0);
       PostMessage(hDlg, WM_COMMAND, IDC_GOTO_OFFSET, 0);
@@ -9658,36 +9655,39 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         LOWORD(wParam) == IDC_GOTO_OFFSET)
     {
       if (LOWORD(wParam) == IDC_GOTO_LINE)
-        nGotoType=NT_LINE;
+        dwGotoType=GT_LINE;
       else if (LOWORD(wParam) == IDC_GOTO_OFFSET)
-        nGotoType=NT_OFFSET;
+        dwGotoType=GT_OFFSET;
 
-      if (nGotoType == NT_LINE)
+      if (dwGotoType & GT_LINE)
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
+          //Caret line
           if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
-            a=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
+            nLine=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNWRAPLINE, ciCaret.nLine, 0);
           else
-            a=ciCaret.nLine;
-          nNumberLen=xprintfW(wbuf, L"%d", a + 1);
+            nLine=ciCaret.nLine;
+          nNumberLen=xprintfW(wbuf, L"%d", nLine + 1);
 
+          //Caret column
           if (moCur.dwStatusPosType & SPT_COLUMN)
-            b=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(lpFrameCurrent->nTabStopSize, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+            nColumn=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(lpFrameCurrent->nTabStopSize, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
           else
-            b=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(1, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
+            nColumn=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_INDEXTOCOLUMN, MAKELONG(1, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&ciCaret);
 
-          xprintfW(wbuf, L"%d:%d", a + 1, b + 1);
+          xprintfW(wbuf, L"%d:%d", nLine + 1, nColumn + 1);
           SetWindowTextWide(hWndNumber, wbuf);
           SendMessage(hWndNumber, EM_SETSEL, 0, nNumberLen);
         }
       }
-      else if (nGotoType == NT_OFFSET)
+      else if (dwGotoType & GT_OFFSET)
       {
         if (!SendMessage(hWndNumber, EM_GETMODIFY, 0, 0))
         {
-          a=-IndexSubtract(lpFrameCurrent->ei.hWndEdit, NULL, &ciCaret, AELB_ASIS, FALSE);
-          SetDlgItemInt(hDlg, IDC_GOTO_NUMBER, a, FALSE);
+          //Caret offset
+          nOffset=-IndexSubtract(lpFrameCurrent->ei.hWndEdit, NULL, &ciCaret, AELB_ASIS, FALSE);
+          SetDlgItemInt(hDlg, IDC_GOTO_NUMBER, nOffset, FALSE);
           SendMessage(hWndNumber, EM_SETSEL, 0, -1);
         }
       }
@@ -9696,75 +9696,12 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       if (GetWindowTextWide(hWndNumber, wbuf, BUFFER_SIZE))
       {
-        //Only numeral
-        for (a=0, b=0; wbuf[a]; ++a)
-        {
-          if (wbuf[a] >= '0' && wbuf[a] <= '9')
-            wbuf2[b++]=wbuf[a];
-          else if (wbuf[a] == '-' && b == 0)
-            wbuf2[b++]=wbuf[a];
-          else if (wbuf[a] == ':' && b > 0)
-          {
-            nColumn=xatoiW(wbuf + a + 1, NULL);
-            nColumn=max(1, nColumn);
-            break;
-          }
-          else if (wbuf[a] != ' ' && wbuf[a] != ',' && wbuf[a] != '.' && b > 0)
-            break;
-        }
-        wbuf2[b]='\0';
-
-        nLine=xatoiW(wbuf2, NULL);
-      }
-
-      if (nGotoType == NT_LINE)
-      {
-        nLineCount=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
-        if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
-          nLineCount=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
-
-        if (!nLine)
+        if (!GoTo(dwGotoType, wbuf))
         {
           LoadStringWide(hLangLib, MSG_WRONG_STRING, wbuf, BUFFER_SIZE);
           API_MessageBox(hDlg, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
-          return FALSE;
-        }
-        else if (nLine < 0)
-        {
-          nLine=nLineCount + nLine + 1;
-          if (nLine <= 0) nLine=1;
-        }
-        nLine=min(nLine, nLineCount);
-
-        if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
-          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETWRAPLINE, nLine - 1, (LPARAM)&cr.ciMin);
-        else
-          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETLINEINDEX, nLine - 1, (LPARAM)&cr.ciMin);
-
-        cr.ciMin.nCharInLine=nColumn - 1;
-        if (moCur.dwStatusPosType & SPT_COLUMN)
-          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(lpFrameCurrent->nTabStopSize, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
-        else
-          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(1, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
-      }
-      else if (nGotoType == NT_OFFSET)
-      {
-        if (nLine >= 0)
-        {
-          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
-          IndexOffset(lpFrameCurrent->ei.hWndEdit, &cr.ciMin, nLine, AELB_ASIS);
-        }
-        else
-        {
-          SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMin);
-          IndexOffset(lpFrameCurrent->ei.hWndEdit, &cr.ciMin, nLine + 1, AELB_ASIS);
         }
       }
-
-      //Set selection
-      cr.ciMax=cr.ciMin;
-      SetSel(lpFrameCurrent->ei.hWndEdit, &cr, AESELT_LOCKSCROLL, NULL);
-      ScrollCaret(lpFrameCurrent->ei.hWndEdit);
     }
     if (LOWORD(wParam) == IDOK ||
         LOWORD(wParam) == IDCANCEL)
@@ -9775,6 +9712,90 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       nModelessType=MLT_NONE;
       return TRUE;
     }
+  }
+  return FALSE;
+}
+
+BOOL GoTo(DWORD dwGotoType, const wchar_t *wpString)
+{
+  if (wpString && ((dwGotoType & GT_LINE) || (dwGotoType & GT_OFFSET)))
+  {
+    AECHARRANGE cr={0};
+    wchar_t wszFirst[MAX_PATH];
+    int nLineCount=0;
+    int nFirst=1;
+    int nSecond=1;
+    int i;
+
+    //Only numeral
+    for (i=0; *wpString; ++wpString)
+    {
+      if (*wpString >= '0' && *wpString <= '9')
+        wszFirst[i++]=*wpString;
+      else if (*wpString == '-' && i == 0)
+        wszFirst[i++]=*wpString;
+      else if (*wpString == ':' && i > 0)
+      {
+        nSecond=xatoiW(wpString + 1, NULL);
+        nSecond=max(1, nSecond);
+        break;
+      }
+      else if (*wpString != ' ' && *wpString != ',' && *wpString != '.' && i > 0)
+        break;
+    }
+    wszFirst[i]='\0';
+
+    nFirst=xatoiW(wszFirst, NULL);
+
+    if (dwGotoType & GT_LINE)
+    {
+      //Line
+      nLineCount=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETLINENUMBER, AEGL_LINECOUNT, 0);
+      if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
+        nLineCount=SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETUNWRAPLINE, nLineCount - 1, 0) + 1;
+
+      if (!nFirst)
+      {
+        return FALSE;
+      }
+      else if (nFirst < 0)
+      {
+        nFirst=nLineCount + nFirst + 1;
+        if (nFirst <= 0) nFirst=1;
+      }
+      nFirst=min(nFirst, nLineCount);
+
+      if (!(moCur.dwStatusPosType & SPT_LINEWRAP) && lpFrameCurrent->ei.bWordWrap)
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETWRAPLINE, nFirst - 1, (LPARAM)&cr.ciMin);
+      else
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETLINEINDEX, nFirst - 1, (LPARAM)&cr.ciMin);
+
+      //Column
+      cr.ciMin.nCharInLine=nSecond - 1;
+      if (moCur.dwStatusPosType & SPT_COLUMN)
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(lpFrameCurrent->nTabStopSize, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
+      else
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_COLUMNTOINDEX, MAKELONG(1, !(moCur.dwStatusPosType & SPT_LINEWRAP)), (LPARAM)&cr.ciMin);
+    }
+    else if (dwGotoType & GT_OFFSET)
+    {
+      if (nFirst >= 0)
+      {
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&cr.ciMin);
+        IndexOffset(lpFrameCurrent->ei.hWndEdit, &cr.ciMin, nFirst, AELB_ASIS);
+      }
+      else
+      {
+        SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&cr.ciMin);
+        IndexOffset(lpFrameCurrent->ei.hWndEdit, &cr.ciMin, nFirst + 1, AELB_ASIS);
+      }
+    }
+
+    //Set selection
+    cr.ciMax=cr.ciMin;
+    SetSel(lpFrameCurrent->ei.hWndEdit, &cr, AESELT_LOCKSCROLL, NULL);
+    ScrollCaret(lpFrameCurrent->ei.hWndEdit);
+    return TRUE;
   }
   return FALSE;
 }
