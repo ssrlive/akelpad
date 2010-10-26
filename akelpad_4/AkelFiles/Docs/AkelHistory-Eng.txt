@@ -6,7 +6,7 @@ Changed: improved many files opening (MDI/PMDI).
          - Successfully tested working with 100 thousands files in PMDI mode.
          - Maximum number of documents in MDI mode is 700. When one try to exceed this number,
            message appeared that indicates PMDI mode requirement.
-Changed: code folding optimized.
+Changed: restructured, optimized mechanism of work with code folding.
 Changed: multi-line columnar paste.
 Changed: "Save All" menu item is deactivated if no files are changed.
 Changed: if automatically check "In selection" is enabled and selection is empty, previous
@@ -32,7 +32,7 @@ Fixed: when replacing with multi-line text, inserted new lines are not set
 Fixed: activating program with mouse and "Watch file change".
 Fixed: tabulation printed in color with color printing off.
 Fixed: tabulation and wrap by symbols.
-Fixed: position recovery of the first visible line if collapsed blocks presented.
+Fixed: position recovery of the first visible line if collapsed folds presented.
 
 
 AkelPad 4.4.9 (Sep 16, 2010)
