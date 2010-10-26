@@ -1733,9 +1733,21 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       }
       return TextReplaceW(hWnd, tr->dwFlags, tr->pFindIt, tr->nFindItLen, tr->pReplaceWith, tr->nReplaceWithLen, tr->bAll, &tr->nChanges);
     }
-    if (uMsg == AKD_GOTO)
+    if (uMsg == AKD_GOTO ||
+        uMsg == AKD_GOTOA ||
+        uMsg == AKD_GOTOW)
     {
-      return GoTo(wParam, (const wchar_t *)lParam);
+      wchar_t *wpString=AllocWideStr(MAX_PATH);
+      BOOL bResult;
+
+      if (uMsg == AKD_GOTOA || (bOldWindows && uMsg == AKD_GOTO))
+        xprintfW(wpString, L"%S", (char *)lParam);
+      else
+        xprintfW(wpString, L"%s", (wchar_t *)lParam);
+      bResult=GoTo(wParam, wpString);
+
+      FreeWideStr(wpString);
+      return bResult;
     }
     if (uMsg == AKD_RECODESEL)
     {

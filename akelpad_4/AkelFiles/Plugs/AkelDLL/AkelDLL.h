@@ -1457,6 +1457,8 @@ typedef struct {
 #define AKD_RECODESEL              (WM_USER + 178)
 #define AKD_GETCHARCOLOR           (WM_USER + 179)
 #define AKD_GOTO                   (WM_USER + 180)
+#define AKD_GOTOA                  (WM_USER + 181)
+#define AKD_GOTOW                  (WM_USER + 182)
 
 //Print
 #define AKD_GETPRINTINFO           (WM_USER + 191)
@@ -2289,8 +2291,8 @@ ______________  _______________  _______________
 
 Replace selection of the edit control.
 
-(HWND)wParam            == edit window, NULL for current edit window.
-(unsigned char *)lParam == text pointer.
+(HWND)wParam                  == edit window, NULL for current edit window.
+(const unsigned char *)lParam == text pointer.
 
 Return Value
  Zero.
@@ -2411,20 +2413,20 @@ Example:
  SendMessage(pd->hMainWnd, AKD_GETCHARCOLOR, (WPARAM)pd->hWndEdit, (LPARAM)&cc);
 
 
-AKD_GOTO
-________
+AKD_GOTO, AKD_GOTOA, AKD_GOTOW
+________  _________  _________
 
 Go to specified position in text.
 
-(DWORD)wParam           == see GT_* defines.
-(const wchar_t *)lParam == pointer to a unicode string that specified position in text. It is equal to "Go to..." dialog string.
+(DWORD)wParam                 == see GT_* defines.
+(const unsigned char *)lParam == pointer to a string that specified position in text. It is equal to "Go to..." dialog string.
 
 Return Value
  TRUE   success.
  FALSE  failed.
 
-Example:
- SendMessage(pd->hMainWnd, AKD_GOTO, GT_LINE, (LPARAM)L"100:3");
+Example (Unicode):
+ SendMessage(pd->hMainWnd, AKD_GOTOW, GT_LINE, (LPARAM)L"100:3");
 
 
 AKD_GETPRINTINFO
@@ -3244,9 +3246,9 @@ ___________  ____________  ____________
 
 Get dll function.
 
-(unsigned char *)wParam == function name, format "Plugin::Function".
-(WORD)lParam            == hotkey returned by HKM_GETHOTKEY,
-                           to search by hotkey set wParam to NULL.
+(const unsigned char *)wParam == function name, format "Plugin::Function".
+(WORD)lParam                  == hotkey returned by HKM_GETHOTKEY,
+                                 to search by hotkey set wParam to NULL.
 
 Return Value
  Pointer to a PLUGINFUNCTION structure.
@@ -3355,8 +3357,8 @@ ________________  _________________  _________________
 
 Begins read or save plugin or program options.
 
-(DWORD)wParam           == see POB_* defines.
-(unsigned char *)lParam == plugin name, if NULL then begin work with program options.
+(DWORD)wParam                 == see POB_* defines.
+(const unsigned char *)lParam == plugin name, if NULL then begin work with program options.
 
 Return Value
  HANDLE.
@@ -3462,8 +3464,8 @@ ___________  ____________  ____________
 
 Opens ini file.
 
-(DWORD)wParam           == see POB_* defines.
-(unsigned char *)lParam == ini file.
+(DWORD)wParam                 == see POB_* defines.
+(const unsigned char *)lParam == ini file.
 
 Return Value
  HINIFILE.
@@ -3542,8 +3544,8 @@ _________________  __________________  __________________
 
 Retrieve ini section handle.
 
-(HINIFILE)wParam        == ini file handle.
-(unsigned char *)lParam == section name.
+(HINIFILE)wParam              == ini file handle.
+(const unsigned char *)lParam == section name.
 
 Return Value
  HINISECTION.
@@ -3605,8 +3607,8 @@ _____________  ______________  ______________
 
 Retrieve key handle.
 
-(HINISECTION)wParam          == ini section handle.
-(unsigned char *)lParam == key name.
+(HINISECTION)wParam           == ini section handle.
+(const unsigned char *)lParam == key name.
 
 Return Value
  HINIKEY.
@@ -3793,9 +3795,9 @@ ________________
 
 Parse command line. Same as AKD_PARSECMDLINE, but can be used from outside of AkelPad process.
 
-(DWORD)dwData           == CD_PARSECMDLINE.
-(DWORD)cbData           == sizeof(PARSECMDLINEPOSTW)
-(unsigned char *)lpData == pointer to a PARSECMDLINEPOSTW structure.
+(DWORD)dwData               == CD_PARSECMDLINE.
+(DWORD)cbData               == sizeof(PARSECMDLINEPOSTW)
+(PARSECMDLINEPOSTW *)lpData == pointer to a PARSECMDLINEPOSTW structure.
 
 Return Value
  If PARSECMDLINEPOST.bPostMessage is FALSE, then return value is PCLE_* defines.
