@@ -1,5 +1,5 @@
 /*****************************************************************
- *                 AkelUpdater NSIS plugin v2.6                  *
+ *                 AkelUpdater NSIS plugin v2.7                  *
  *                                                               *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *****************************************************************/
@@ -129,7 +129,7 @@ void StackPluginsSort(HSTACK *hStack);
 void StackPluginsFree(HSTACK *hStack);
 int GetExeDirA(HINSTANCE hInstance, char *szExeDir, int nLen);
 int GetBaseNameA(const char *pFile, char *szBaseName, int nBaseNameMaxLen);
-char* GetLangStringA(LANGID wLangID, int nStringID);
+const char* GetLangStringA(LANGID wLangID, int nStringID);
 char* getuservariable(const int varnum);
 void setuservariable(const int varnum, const char *var);
 int popinteger();
@@ -280,38 +280,38 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //Columns EXE
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvcA.pszText=GetLangStringA(wLangSystem, STRID_PROGRAM);
+    lvcA.pszText=(char *)GetLangStringA(wLangSystem, STRID_PROGRAM);
     lvcA.cx=188;
     lvcA.iSubItem=LVSI_NAME;
     SendMessage(hWndListExe, LVM_INSERTCOLUMNA, LVSI_NAME, (LPARAM)&lvcA);
 
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvcA.pszText=GetLangStringA(wLangSystem, STRID_LATEST);
+    lvcA.pszText=(char *)GetLangStringA(wLangSystem, STRID_LATEST);
     lvcA.cx=105;
     lvcA.iSubItem=LVSI_LATEST;
     SendMessage(hWndListExe, LVM_INSERTCOLUMNA, LVSI_LATEST, (LPARAM)&lvcA);
 
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvcA.pszText=GetLangStringA(wLangSystem, STRID_CURRENT);
+    lvcA.pszText=(char *)GetLangStringA(wLangSystem, STRID_CURRENT);
     lvcA.cx=63;
     lvcA.iSubItem=LVSI_CURRENT;
     SendMessage(hWndListExe, LVM_INSERTCOLUMNA, LVSI_CURRENT, (LPARAM)&lvcA);
 
     //Columns DLL
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvcA.pszText=GetLangStringA(wLangSystem, STRID_PLUGIN);
+    lvcA.pszText=(char *)GetLangStringA(wLangSystem, STRID_PLUGIN);
     lvcA.cx=210;
     lvcA.iSubItem=LVSI_NAME;
     SendMessage(hWndListDll, LVM_INSERTCOLUMNA, LVSI_NAME, (LPARAM)&lvcA);
 
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvcA.pszText=GetLangStringA(wLangSystem, STRID_LATEST);
+    lvcA.pszText=(char *)GetLangStringA(wLangSystem, STRID_LATEST);
     lvcA.cx=105;
     lvcA.iSubItem=LVSI_LATEST;
     SendMessage(hWndListDll, LVM_INSERTCOLUMNA, LVSI_LATEST, (LPARAM)&lvcA);
 
     lvcA.mask=LVCF_TEXT|LVCF_WIDTH|LVCF_SUBITEM;
-    lvcA.pszText=GetLangStringA(wLangSystem, STRID_CURRENT);
+    lvcA.pszText=(char *)GetLangStringA(wLangSystem, STRID_CURRENT);
     lvcA.cx=62;
     lvcA.iSubItem=LVSI_CURRENT;
     SendMessage(hWndListDll, LVM_INSERTCOLUMNA, LVSI_CURRENT, (LPARAM)&lvcA);
@@ -351,8 +351,10 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
           szBuf[nOffset]=')';
         }
-        else lstrcpyA(szBuf, szName);
+        else lstrcpynA(szBuf, szName, MAX_PATH);
       }
+      else lstrcpynA(szBuf, szName, MAX_PATH);
+
       lviA.mask=LVIF_TEXT;
       lviA.pszText=szBuf;
       lviA.iItem=0;
@@ -612,7 +614,6 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               break;
             }
           }
-          lstrcpyA(szBuf, szName);
 
           //Find copies and push them in format "OrigName|CopyName1|CopyName2"
           if (lpPluginItem=StackPluginGet(&hPluginsStack, szName))
@@ -631,7 +632,10 @@ BOOL CALLBACK SetupDlgProcA(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
               }
               szBuf[nOffset]='\0';
             }
+            else lstrcpynA(szBuf, szName, MAX_PATH);
           }
+          else lstrcpynA(szBuf, szName, MAX_PATH);
+
           pushstring(szBuf, NSIS_MAX_STRLEN);
           ++nCountDLL;
         }
@@ -975,7 +979,7 @@ int GetBaseNameA(const char *pFile, char *szBaseName, int nBaseNameMaxLen)
   return nBaseNameMaxLen;
 }
 
-char* GetLangStringA(LANGID wLangID, int nStringID)
+const char* GetLangStringA(LANGID wLangID, int nStringID)
 {
   if (wLangID == LANG_RUSSIAN)
   {
