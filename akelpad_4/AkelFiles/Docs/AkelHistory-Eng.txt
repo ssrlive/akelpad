@@ -1,5 +1,5 @@
 
-AkelPad 4.5.0 ()
+AkelPad 4.5.0 (Oct 28, 2010)
 ----------------------------
 Changed: plugin architecture. Update plugins.
 Changed: improved many files opening (MDI/PMDI).
@@ -13,7 +13,7 @@ Changed: if automatically check "In selection" is enabled and selection is empty
          direction is restored.
 Changed: return alignment to left in the status bar.
 
-Added: ability to set color and font style for the text inside fold. This means that multiline
+Added: ability to set color and font style for the text inside fold. This means that multi-line
        comments now highlighted (Coder::CodeFold must be enabled).
 Added: Czech language module (Frantisek Bartos).
 Added: Hungarian language module (ZityiSoft).
