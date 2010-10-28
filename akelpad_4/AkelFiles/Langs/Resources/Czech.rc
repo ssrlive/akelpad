@@ -47,7 +47,7 @@ BEGIN
         MENUITEM "Uložit v&še\tCtrl+Alt+F2",    IDM_FILE_SAVEALL
         MENUITEM "Ulož&it vše jako...",         IDM_FILE_SAVEALLAS
         MENUITEM SEPARATOR
-        MENUITEM "Vzh&led sstránky...",         IDM_FILE_PAGESETUP
+        MENUITEM "Vzh&led stránky...",          IDM_FILE_PAGESETUP
         MENUITEM "Ná&hled tisku...",            IDM_FILE_PRINTPREVIEW
         MENUITEM "&Tisk...\tCtrl+P",            IDM_FILE_PRINT
         MENUITEM SEPARATOR
@@ -954,7 +954,7 @@ BEGIN
     MSG_RESTART_PROGRAM     "Zmìny budou aplikovány pøi pøíštím spuštìní programu."
     MSG_SAVEIN_READONLY     "Soubor ""%s"" je v režimu jen ke ètení. Pokraèovat?"
     MSG_OVERWRITEPROMPT     """%s"" již existuje. Chcete ho pøepsat?"
-    MSG_DOCUMENTSLIMIT      "Documents limit reached. Use PMDI mode to open more documents."
+    MSG_DOCUMENTSLIMIT      "Dosáhli jste limitu. Pro více otevøených dokumentù zvolte režim PMDI."
 END
 
 STRINGTABLE DISCARDABLE 
