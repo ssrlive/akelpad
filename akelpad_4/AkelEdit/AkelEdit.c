@@ -7466,21 +7466,14 @@ int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX
       }
 
       if (nLineBreak == AELB_R)
-      {
         nCount+=1;
-      }
       else if (nLineBreak == AELB_N)
-      {
         nCount+=1;
-      }
       else if (nLineBreak == AELB_RN)
-      {
         nCount+=2;
-      }
       else if (nLineBreak == AELB_RRN)
-      {
         nCount+=3;
-      }
+
       lpElement=lpElement->next;
     }
   }
@@ -7519,21 +7512,13 @@ int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX
             nLineBreak=nNewLine;
 
           if (nLineBreak == AELB_R)
-          {
             nCount+=1;
-          }
           else if (nLineBreak == AELB_N)
-          {
             nCount+=1;
-          }
           else if (nLineBreak == AELB_RN)
-          {
             nCount+=2;
-          }
           else if (nLineBreak == AELB_RRN)
-          {
             nCount+=3;
-          }
         }
         lpElement=lpElement->next;
       }
@@ -7545,8 +7530,9 @@ int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX
 DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, int nOffset, int nNewLine)
 {
   AECHARINDEX ciCount=*ciCharIn;
-  int nLineBreak;
   int nOffsetCount=nOffset;
+  int nSub;
+  int nLineBreak;
 
   //Set new line
   if (nNewLine < AELB_ASIS)
@@ -7564,20 +7550,20 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
       if (ciCount.lpLine->nLineBreak == AELB_WRAP)
         AE_NextLine(&ciCount);
     }
-    *ciCharOut=ciCount;
-    return TRUE;
   }
   else if (nOffsetCount > 0)
   {
-    for (;;)
+    do
     {
-      while (ciCount.nCharInLine < ciCount.lpLine->nLineLen)
+      if ((nSub=ciCount.lpLine->nLineLen - ciCount.nCharInLine) > 0)
       {
-        if (nOffsetCount <= 0)
-          goto PlusOffEnd;
-
-        --nOffsetCount;
-        ++ciCount.nCharInLine;
+        if (nSub >= nOffsetCount)
+        {
+          ciCount.nCharInLine+=nOffsetCount;
+          nOffsetCount=0;
+          goto End;
+        }
+        nOffsetCount-=nSub;
       }
 
       if (ciCount.lpLine->nLineBreak == AELB_WRAP)
@@ -7586,9 +7572,6 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
       }
       else
       {
-        if (nOffsetCount <= 0)
-          goto PlusOffEnd;
-
         if (nNewLine == AELB_ASIS)
           nLineBreak=ciCount.lpLine->nLineBreak;
         else
@@ -7598,86 +7581,71 @@ DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciC
       if (ciCount.lpLine->next)
         AE_NextLine(&ciCount);
       else
-        goto PlusOffEnd;
+      {
+        ciCount.nCharInLine=ciCount.lpLine->nLineLen;
+        goto End;
+      }
 
       if (nLineBreak == AELB_R)
-      {
         nOffsetCount-=1;
-      }
       else if (nLineBreak == AELB_N)
-      {
         nOffsetCount-=1;
-      }
       else if (nLineBreak == AELB_RN)
-      {
         nOffsetCount-=2;
-      }
       else if (nLineBreak == AELB_RRN)
-      {
         nOffsetCount-=3;
-      }
     }
-
-    PlusOffEnd:
-    ciCount.nCharInLine=min(ciCount.nCharInLine, ciCount.lpLine->nLineLen);
-    *ciCharOut=ciCount;
-    return nOffset - nOffsetCount;
+    while (nOffsetCount > 0);
   }
   else if (nOffsetCount < 0)
   {
-    for (;;)
-    {
-      while (ciCount.nCharInLine >= 0)
-      {
-        if (nOffsetCount >= 0)
-          goto MinusOffEnd;
+    //Normalize
+    ciCount.nCharInLine=min(ciCount.nCharInLine, ciCount.lpLine->nLineLen);
 
-        ++nOffsetCount;
-        --ciCount.nCharInLine;
+    do
+    {
+      if (ciCount.nCharInLine > 0)
+      {
+        if (ciCount.nCharInLine >= -nOffsetCount)
+        {
+          ciCount.nCharInLine+=nOffsetCount;
+          nOffsetCount=0;
+          goto End;
+        }
+        nOffsetCount+=ciCount.nCharInLine;
       }
-      --nOffsetCount;
 
       if (ciCount.lpLine->prev)
         AE_PrevLine(&ciCount);
       else
-        goto MinusOffEnd;
-
-      if (ciCount.lpLine->nLineBreak == AELB_WRAP)
       {
-        nLineBreak=AELB_WRAP;
+        ciCount.nCharInLine=0;
+        goto End;
       }
-      else
+
+      if (ciCount.lpLine->nLineBreak != AELB_WRAP)
       {
         if (nNewLine == AELB_ASIS)
           nLineBreak=ciCount.lpLine->nLineBreak;
         else
           nLineBreak=nNewLine;
-      }
 
-      if (nLineBreak == AELB_R)
-      {
-        nOffsetCount+=1;
-      }
-      else if (nLineBreak == AELB_N)
-      {
-        nOffsetCount+=1;
-      }
-      else if (nLineBreak == AELB_RN)
-      {
-        nOffsetCount+=2;
-      }
-      else if (nLineBreak == AELB_RRN)
-      {
-        nOffsetCount+=3;
+        if (nLineBreak == AELB_R)
+          nOffsetCount+=1;
+        else if (nLineBreak == AELB_N)
+          nOffsetCount+=1;
+        else if (nLineBreak == AELB_RN)
+          nOffsetCount+=2;
+        else if (nLineBreak == AELB_RRN)
+          nOffsetCount+=3;
       }
     }
-
-    MinusOffEnd:
-    ciCount.nCharInLine=max(ciCount.nCharInLine, 0);
-    *ciCharOut=ciCount;
-    return mod(nOffset - nOffsetCount);
+    while (nOffsetCount < 0);
   }
-  return 0;
+
+  End:
+  *ciCharOut=ciCount;
+  return mod(nOffset - nOffsetCount);
 }
 
 BOOL AE_IndexNormalize(AECHARINDEX *ciChar)
@@ -11498,6 +11466,7 @@ void AE_Paint(AKELEDIT *ae)
     {
       AEHLPAINT hlp={0};
       AETEXTOUT to={0};
+      AEFOLD *lpCollapsed;
       HBRUSH hBasicBk;
       HBRUSH hSelBk;
       HBRUSH hActiveLineBk;
@@ -11576,7 +11545,7 @@ void AE_Paint(AKELEDIT *ae)
       while (to.ciDrawLine.lpLine)
       {
         //Line must be visible
-        if (!AE_StackIsLineCollapsed(ae, to.ciDrawLine.nLine))
+        if (!(lpCollapsed=AE_StackIsLineCollapsed(ae, to.ciDrawLine.nLine)))
         {
           //Close all previous items
           AE_PaintCheckHighlightCleanUp(ae, &to, &hlp, &to.ciDrawLine);
@@ -11811,12 +11780,20 @@ void AE_Paint(AKELEDIT *ae)
           to.ptFirstCharInLine.y+=ae->ptxt->nCharHeight;
           if (to.ptFirstCharInLine.y >= rcDraw.bottom)
             break;
-        }
-        else to.nDrawCharOffset+=to.ciDrawLine.lpLine->nLineLen;
 
-        if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
-          ++to.nDrawCharOffset;
-        AE_NextLine(&to.ciDrawLine);
+          if (to.ciDrawLine.lpLine->nLineBreak != AELB_WRAP)
+            ++to.nDrawCharOffset;
+          AE_NextLine(&to.ciDrawLine);
+        }
+        else
+        {
+          to.ciDrawLine=lpCollapsed->lpMaxPoint->ciPoint;
+          to.nDrawCharOffset=lpCollapsed->lpMaxPoint->nPointOffset;
+
+          //Reset to first char in line
+          to.nDrawCharOffset-=to.ciDrawLine.nCharInLine;
+          to.ciDrawLine.nCharInLine=0;
+        }
       }
       if (hFontOld) SelectObject(to.hDC, hFontOld);
 
