@@ -1,4 +1,9 @@
 
+AkelPad 4.5.1 ()
+----------------------------
+Fixed: URL in color fold didn't highlighted.
+
+
 AkelPad 4.5.0 (Oct 28, 2010)
 ----------------------------
 Changed: plugin architecture. Update plugins.

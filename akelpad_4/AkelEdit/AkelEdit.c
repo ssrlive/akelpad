@@ -12030,78 +12030,82 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
     }
   }
 
-  //Fold find
   if (ae->ptxt->nFoldColorCount)
   {
-    if (!hlp->fm.lpFold || hlp->fm.crFold.cpMax <= to->nDrawCharOffset)
+    //Only if char not in URL
+    if (!(hlp->dwPaintType & AEHPT_LINK))
     {
-      AEFOLD *lpColored=NULL;
-
-      AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, to->nDrawCharOffset, NULL, &hlp->fm.lpFold, NULL);
-
-      while (hlp->fm.lpFold)
+      //Fold find
+      if (!hlp->fm.lpFold || hlp->fm.crFold.cpMax <= to->nDrawCharOffset)
       {
-        if (hlp->fm.lpFold->dwFontStyle != AEHLS_NONE ||
-            hlp->fm.lpFold->crText != (DWORD)-1 ||
-            hlp->fm.lpFold->crBk != (DWORD)-1)
-        {
-          //Fold has highlighing information.
-          lpColored=hlp->fm.lpFold;
-        }
-        if (hlp->fm.lpFold->parent)
-        {
-          //Check the parent.
-          hlp->fm.lpFold=hlp->fm.lpFold->parent;
-          continue;
-        }
+        AEFOLD *lpColored=NULL;
 
-        if (lpColored)
-          hlp->fm.lpFold=lpColored;
-        hlp->fm.crFold.cpMin=hlp->fm.lpFold->lpMinPoint->nPointOffset;
-        hlp->fm.crFold.cpMax=hlp->fm.lpFold->lpMaxPoint->nPointOffset + hlp->fm.lpFold->lpMaxPoint->nPointLen;
-        if (!lpColored)
-          hlp->fm.lpFold=NULL;
-        break;
-      }
-    }
+        AE_StackFindFold(ae, AEFF_FINDOFFSET|AEFF_FOLDSTART|AEFF_RECURSE, to->nDrawCharOffset, NULL, &hlp->fm.lpFold, NULL);
 
-    //Check fold start
-    if (hlp->fm.lpFold)
-    {
-      if (!(hlp->dwPaintType & AEHPT_FOLD))
-      {
-        if (to->nDrawCharOffset < hlp->fm.crFold.cpMax)
+        while (hlp->fm.lpFold)
         {
-          if (hlp->fm.crFold.cpMin <= to->nDrawCharOffset)
+          if (hlp->fm.lpFold->dwFontStyle != AEHLS_NONE ||
+              hlp->fm.lpFold->crText != (DWORD)-1 ||
+              hlp->fm.lpFold->crBk != (DWORD)-1)
           {
-            if (!(hlp->dwPaintType & AEHPT_SELECTION))
+            //Fold has highlighing information.
+            lpColored=hlp->fm.lpFold;
+          }
+          if (hlp->fm.lpFold->parent)
+          {
+            //Check the parent.
+            hlp->fm.lpFold=hlp->fm.lpFold->parent;
+            continue;
+          }
+
+          if (lpColored)
+            hlp->fm.lpFold=lpColored;
+          hlp->fm.crFold.cpMin=hlp->fm.lpFold->lpMinPoint->nPointOffset;
+          hlp->fm.crFold.cpMax=hlp->fm.lpFold->lpMaxPoint->nPointOffset + hlp->fm.lpFold->lpMaxPoint->nPointLen;
+          if (!lpColored)
+            hlp->fm.lpFold=NULL;
+          break;
+        }
+      }
+
+      //Check fold start
+      if (hlp->fm.lpFold)
+      {
+        if (!(hlp->dwPaintType & AEHPT_FOLD))
+        {
+          if (to->nDrawCharOffset < hlp->fm.crFold.cpMax)
+          {
+            if (hlp->fm.crFold.cpMin <= to->nDrawCharOffset)
             {
-              //Draw text before mark
-              AE_PaintTextOut(ae, to, hlp);
+              if (!(hlp->dwPaintType & AEHPT_SELECTION))
+              {
+                //Draw text before mark
+                AE_PaintTextOut(ae, to, hlp);
+              }
+              hlp->dwPaintType|=AEHPT_FOLD;
             }
-            hlp->dwPaintType|=AEHPT_FOLD;
           }
         }
-      }
-      if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_FOLD))
-      {
-        if (hlp->fm.lpFold->crText != (DWORD)-1)
-          hlp->dwActiveText=hlp->fm.lpFold->crText;
-        else
-          hlp->dwActiveText=hlp->dwDefaultText;
-        if (hlp->fm.lpFold->crBk != (DWORD)-1)
-          hlp->dwActiveBG=hlp->fm.lpFold->crBk;
-        else
-          hlp->dwActiveBG=hlp->dwDefaultBG;
-        if (hlp->fm.lpFold->dwFontStyle != AEHLS_NONE)
-          hlp->dwFontStyle=hlp->fm.lpFold->dwFontStyle;
+        if (!(hlp->dwPaintType & AEHPT_SELECTION) && (hlp->dwPaintType & AEHPT_FOLD))
+        {
+          if (hlp->fm.lpFold->crText != (DWORD)-1)
+            hlp->dwActiveText=hlp->fm.lpFold->crText;
+          else
+            hlp->dwActiveText=hlp->dwDefaultText;
+          if (hlp->fm.lpFold->crBk != (DWORD)-1)
+            hlp->dwActiveBG=hlp->fm.lpFold->crBk;
+          else
+            hlp->dwActiveBG=hlp->dwDefaultBG;
+          if (hlp->fm.lpFold->dwFontStyle != AEHLS_NONE)
+            hlp->dwFontStyle=hlp->fm.lpFold->dwFontStyle;
+        }
       }
     }
   }
 
   if (ae->popt->lpActiveTheme)
   {
-    //Only if char not in URL
+    //Only if char not in URL and fold
     if (!(hlp->dwPaintType & AEHPT_LINK) && !(hlp->dwPaintType & AEHPT_FOLD))
     {
       //Quote find
