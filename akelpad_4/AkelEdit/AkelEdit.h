@@ -2725,7 +2725,7 @@ Example:
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&is.ciChar2);
  is.bColumnSel=FALSE;
  is.nNewLine=AELB_ASIS;
- SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&is);
+ SendMessage(hWndEdit, AEM_INDEXSUBTRACT, 0, (LPARAM)&is);
 
 
 AEM_INDEXOFFSET
@@ -2750,7 +2750,7 @@ Example:
  io.ciCharOut=&ciCharOut;
  io.nOffset=10;
  io.nNewLine=AELB_R;
- SendMessage(hWnd, AEM_INDEXOFFSET, 0, (LPARAM)&io);
+ SendMessage(hWndEdit, AEM_INDEXOFFSET, 0, (LPARAM)&io);
 
 
 AEM_INDEXTORICHOFFSET
@@ -2855,7 +2855,7 @@ void RemoveChangedPoints(HWND hWnd)
   AEPOINT *lpPointItem;
   AEPOINT *lpPointNextItem;
 
-  if (hPointStack=(HSTACK *)SendMessage(hWnd, AEM_GETPOINTSTACK, 0, 0))
+  if (hPointStack=(HSTACK *)SendMessage(hWndEdit, AEM_GETPOINTSTACK, 0, 0))
   {
     lpPointItem=(AEPOINT *)hPointStack->first;
 
@@ -2866,7 +2866,7 @@ void RemoveChangedPoints(HWND hWnd)
       if ((lpPointItem->dwFlags & AEPTF_INSERT) ||
           (lpPointItem->dwFlags & AEPTF_DELETE))
       {
-        SendMessage(hWnd, AEM_DELPOINT, (WPARAM)lpPointItem, 0);
+        SendMessage(hWndEdit, AEM_DELPOINT, (WPARAM)lpPointItem, 0);
       }
       lpPointItem=lpPointNextItem;
     }
@@ -4264,7 +4264,7 @@ AEFOLD* GetFold(HWND hWnd, int nLine)
   AEFOLD *lpFold;
   AEFOLD *lpResult=NULL;
 
-  hFoldStack=(HSTACK *)SendMessage(hWnd, AEM_GETFOLDSTACK, 0, 0))
+  hFoldStack=(HSTACK *)SendMessage(hWndEdit, AEM_GETFOLDSTACK, 0, 0))
 
   for (lpFold=(AEFOLD *)hFoldStack->first; lpFold; lpFold=AEC_NextFold(lpFold, TRUE))
   {
@@ -4289,7 +4289,7 @@ Return Value
  Number of folds.
 
 Example:
-  SendMessage(hWnd, AEM_GETFOLDCOUNT, 0, 0);
+  SendMessage(hWndEdit, AEM_GETFOLDCOUNT, 0, 0);
 
 
 AEM_ADDFOLD
@@ -5030,15 +5030,15 @@ BOOL IsCharDelimiter(HWND hWnd, const AECHARINDEX *ciChar, BOOL bPrevious)
 
   if (bPrevious)
   {
-    if (!SendMessage(hWnd, AEM_GETINDEX, AEGI_PREVCHAR, (LPARAM)&ciTmp))
+    if (!SendMessage(hWndEdit, AEM_GETINDEX, AEGI_PREVCHAR, (LPARAM)&ciTmp))
       return TRUE;
   }
-  nChar=SendMessage(hWnd, AEM_CHARAT, (WPARAM)&ciTmp, 0);
+  nChar=SendMessage(hWndEdit, AEM_CHARAT, (WPARAM)&ciTmp, 0);
   if (nChar < 0) return TRUE;
 
-  if (hTheme=(AEHTHEME)SendMessage(hWnd, AEM_HLGETTHEMEW, 0, (LPARAM)NULL))
+  if (hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLGETTHEMEW, 0, (LPARAM)NULL))
   {
-    hDelimStack=(HSTACK *)SendMessage(hWnd, AEM_HLGETTHEMESTACK, (WPARAM)hTheme, AEHLE_DELIMITER);
+    hDelimStack=(HSTACK *)SendMessage(hWndEdit, AEM_HLGETTHEMESTACK, (WPARAM)hTheme, AEHLE_DELIMITER);
 
     for (lpDelimItem=(AEDELIMITEMW *)hDelimStack->first; lpDelimItem; lpDelimItem=lpDelimItem->next)
     {
