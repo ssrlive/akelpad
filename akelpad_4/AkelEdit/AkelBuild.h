@@ -448,6 +448,7 @@ typedef struct {
   int nFoldColorCount;
   int nHideMinLineOffset;
   int nHideMaxLineOffset;
+  AEFOLD *lpFindFoldLastCall;
   AEFOLD *lpIsCollapsedLastCall;
   AEFOLD *lpVPosFold;
   int nVPosFoldHiddenLines;
