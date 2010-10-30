@@ -1,5 +1,5 @@
 /***********************************************************************************
- *                      AkelEdit text control v1.5.0                               *
+ *                      AkelEdit text control v1.5.1                               *
  *                                                                                 *
  * Copyright 2007-2010 by Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                                                 *
@@ -2046,17 +2046,18 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpQuoteDst=AE_HighlightInsertQuote(lpTheme, lpQuoteSrc->nIndex))
       {
-        if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
-          MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1, lpQuoteDst->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1);
-        lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
-
-        if (lpQuoteSrc->pQuoteEnd)
+        if (lpQuoteSrc->pQuoteStart && !(lpQuoteSrc->dwFlags & AEHLF_QUOTESTART_ISDELIMITER))
+        {
+          if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
+            MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1, lpQuoteDst->pQuoteStart, lpQuoteSrc->nQuoteStartLen + 1);
+          lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
+        }
+        if (lpQuoteSrc->pQuoteEnd && !(lpQuoteSrc->dwFlags & AEHLF_QUOTEEND_ISDELIMITER))
         {
           if (lpQuoteDst->pQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t)))
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1, lpQuoteDst->pQuoteEnd, lpQuoteSrc->nQuoteEndLen + 1);
           lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
         }
-        else lpQuoteDst->pQuoteEnd=NULL;
 
         MultiByteToWideChar(CP_ACP, 0, &lpQuoteSrc->chEscape, 1, &lpQuoteDst->chEscape, 1);
 
@@ -2066,15 +2067,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen + 1, lpQuoteDst->pQuoteInclude, lpQuoteSrc->nQuoteIncludeLen + 1);
           lpQuoteDst->nQuoteIncludeLen=lpQuoteSrc->nQuoteIncludeLen;
         }
-        else lpQuoteDst->pQuoteInclude=NULL;
-
         if (lpQuoteSrc->pQuoteExclude)
         {
           if (lpQuoteDst->pQuoteExclude=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t)))
             MultiByteToWideChar(CP_ACP, 0, lpQuoteSrc->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen + 1, lpQuoteDst->pQuoteExclude, lpQuoteSrc->nQuoteExcludeLen + 1);
           lpQuoteDst->nQuoteExcludeLen=lpQuoteSrc->nQuoteExcludeLen;
         }
-        else lpQuoteDst->pQuoteExclude=NULL;
 
         lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
         lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
@@ -2091,17 +2089,18 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       if (lpQuoteDst=AE_HighlightInsertQuote(lpTheme, lpQuoteSrc->nIndex))
       {
-        if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
-          xmemcpy(lpQuoteDst->pQuoteStart, lpQuoteSrc->pQuoteStart, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t));
-        lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
-
-        if (lpQuoteSrc->pQuoteEnd)
+        if (lpQuoteSrc->pQuoteStart && !(lpQuoteSrc->dwFlags & AEHLF_QUOTESTART_ISDELIMITER))
+        {
+          if (lpQuoteDst->pQuoteStart=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t)))
+            xmemcpy(lpQuoteDst->pQuoteStart, lpQuoteSrc->pQuoteStart, (lpQuoteSrc->nQuoteStartLen + 1) * sizeof(wchar_t));
+          lpQuoteDst->nQuoteStartLen=lpQuoteSrc->nQuoteStartLen;
+        }
+        if (lpQuoteSrc->pQuoteEnd && !(lpQuoteSrc->dwFlags & AEHLF_QUOTEEND_ISDELIMITER))
         {
           if (lpQuoteDst->pQuoteEnd=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t)))
             xmemcpy(lpQuoteDst->pQuoteEnd, lpQuoteSrc->pQuoteEnd, (lpQuoteSrc->nQuoteEndLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteEndLen=lpQuoteSrc->nQuoteEndLen;
         }
-        else lpQuoteDst->pQuoteEnd=NULL;
 
         lpQuoteDst->chEscape=lpQuoteSrc->chEscape;
 
@@ -2111,15 +2110,12 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
             xmemcpy(lpQuoteDst->pQuoteInclude, lpQuoteSrc->pQuoteInclude, (lpQuoteSrc->nQuoteIncludeLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteIncludeLen=lpQuoteSrc->nQuoteIncludeLen;
         }
-        else lpQuoteDst->pQuoteInclude=NULL;
-
         if (lpQuoteSrc->pQuoteExclude)
         {
           if (lpQuoteDst->pQuoteExclude=(wchar_t *)AE_HeapAlloc(NULL, 0, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t)))
             xmemcpy(lpQuoteDst->pQuoteExclude, lpQuoteSrc->pQuoteExclude, (lpQuoteSrc->nQuoteExcludeLen + 1) * sizeof(wchar_t));
           lpQuoteDst->nQuoteExcludeLen=lpQuoteSrc->nQuoteExcludeLen;
         }
-        else lpQuoteDst->pQuoteExclude=NULL;
 
         lpQuoteDst->dwFlags=lpQuoteSrc->dwFlags;
         lpQuoteDst->dwFontStyle=lpQuoteSrc->dwFontStyle;
