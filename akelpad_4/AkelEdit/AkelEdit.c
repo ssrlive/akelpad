@@ -5421,6 +5421,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
   DWORD dwSecond;
   DWORD dwThird;
   DWORD dwFourth;
+  DWORD dwFifth;
   BOOL bGoRoot=FALSE;
 
   if (ae->ptxt->hFoldsStack.first)
@@ -5440,6 +5441,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
       dwSecond=(DWORD)-1;
       dwThird=(DWORD)-1;
       dwFourth=(DWORD)-1;
+      dwFifth=(DWORD)-1;
 
       if (dwFlags & AEFF_FINDLINE)
       {
@@ -5449,6 +5451,8 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
           dwThird=mod(nFindLine - ae->ptxt->lpVPosFold->lpMinPoint->ciPoint.nLine);
         if (ae->ptxt->lpIsCollapsedLastCall)
           dwFourth=mod(nFindLine - ae->ptxt->lpIsCollapsedLastCall->lpMinPoint->ciPoint.nLine);
+        if (ae->ptxt->lpFindFoldLastCall)
+          dwFifth=mod(nFindLine - ae->ptxt->lpFindFoldLastCall->lpMinPoint->ciPoint.nLine);
       }
       else
       {
@@ -5458,23 +5462,29 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
           dwThird=mod(nFindOffset - ae->ptxt->lpVPosFold->lpMinPoint->nPointOffset);
         if (ae->ptxt->lpIsCollapsedLastCall)
           dwFourth=mod(nFindOffset - ae->ptxt->lpIsCollapsedLastCall->lpMinPoint->nPointOffset);
+        if (ae->ptxt->lpFindFoldLastCall)
+          dwFifth=mod(nFindOffset - ae->ptxt->lpFindFoldLastCall->lpMinPoint->nPointOffset);
       }
 
-      if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth)
+      if (dwFirst <= dwSecond && dwFirst <= dwThird && dwFirst <= dwFourth && dwFirst <= dwFifth)
       {
         lpSubling=ae->ptxt->hFoldsStack.first;
       }
-      else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth)
+      else if (dwSecond <= dwFirst && dwSecond <= dwThird && dwSecond <= dwFourth && dwSecond <= dwFifth)
       {
         lpSubling=ae->ptxt->hFoldsStack.last;
       }
-      else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth)
+      else if (dwThird <= dwFirst && dwThird <= dwSecond && dwThird <= dwFourth && dwThird <= dwFifth)
       {
         lpSubling=ae->ptxt->lpVPosFold;
       }
-      else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird)
+      else if (dwFourth <= dwFirst && dwFourth <= dwSecond && dwFourth <= dwThird && dwFourth <= dwFifth)
       {
         lpSubling=ae->ptxt->lpIsCollapsedLastCall;
+      }
+      else if (dwFifth <= dwFirst && dwFifth <= dwSecond && dwFifth <= dwThird && dwFifth <= dwFourth)
+      {
+        lpSubling=ae->ptxt->lpFindFoldLastCall;
       }
     }
     else lpSubling=lpForce;
@@ -5582,16 +5592,25 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
       lpPrevSubling=lpSubling;
     }
   }
-  if ((dwFlags & AEFF_GETROOT) && lpParent)
+
+  if (lpParent)
   {
-    while (lpParent->parent) lpParent=lpParent->parent;
+    ae->ptxt->lpFindFoldLastCall=lpParent;
+
+    if (dwFlags & AEFF_GETROOT)
+    {
+      while (lpParent->parent) lpParent=lpParent->parent;
+    }
   }
+  else ae->ptxt->lpFindFoldLastCall=lpPrevSubling;
+
   if (lpParentOut) *lpParentOut=lpParent;
   if (lpPrevSublingOut) *lpPrevSublingOut=lpPrevSubling;
 }
 
 AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
 {
+  AEFOLD *lpCollapsed=NULL;
   AEFOLD *lpSubling=NULL;
   AEFOLD *lpPrevSubling=NULL;
 
@@ -5608,36 +5627,31 @@ AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
     }
 
     //Find fold by line
-    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_GETROOT, nLine, NULL, &lpSubling, &lpPrevSubling);
-    if (lpSubling)
-      ae->ptxt->lpIsCollapsedLastCall=lpSubling;
-    else
-      ae->ptxt->lpIsCollapsedLastCall=lpPrevSubling;
+    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_RECURSE, nLine, NULL, &lpSubling, &lpPrevSubling);
 
     while (lpSubling)
     {
-      if (nLine < lpSubling->lpMinPoint->ciPoint.nLine)
-        break;
-
-      if (nLine <= lpSubling->lpMaxPoint->ciPoint.nLine)
+      if (lpSubling->bCollapse)
       {
-        if (lpSubling->bCollapse)
+        if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
+            AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
         {
-          if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
-              AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
-          {
-            ae->ptxt->lpIsCollapsedLastCall=lpSubling;
-            return lpSubling;
-          }
+          //Fold is collapsed
+          lpCollapsed=lpSubling;
         }
-        //Recursive
-        lpSubling=lpSubling->firstChild;
+      }
+      if (lpSubling->parent)
+      {
+        //Check the parent
+        lpSubling=lpSubling->parent;
         continue;
       }
-      lpSubling=lpSubling->next;
+      lpSubling=lpCollapsed;
+      break;
     }
+    ae->ptxt->lpIsCollapsedLastCall=lpSubling;
   }
-  return NULL;
+  return lpSubling;
 }
 
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
@@ -5818,6 +5832,8 @@ BOOL AE_StackFoldDelete(AKELEDIT *ae, AEFOLD *lpFold)
 
   if (lpFold == ae->ptxt->lpIsCollapsedLastCall)
     ae->ptxt->lpIsCollapsedLastCall=NULL;
+  if (lpFold == ae->ptxt->lpFindFoldLastCall)
+    ae->ptxt->lpFindFoldLastCall=NULL;
   ae->ptxt->lpVPosFold=NULL;
 
   //Change parent for childrens
@@ -5863,6 +5879,7 @@ int AE_StackFoldFree(AKELEDIT *ae)
 
   ae->ptxt->lpVPosFold=NULL;
   ae->ptxt->lpIsCollapsedLastCall=NULL;
+  ae->ptxt->lpFindFoldLastCall=NULL;
 
   while (lpSubling)
   {
@@ -12018,12 +12035,12 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
               hlp->fm.lpFold->crText != (DWORD)-1 ||
               hlp->fm.lpFold->crBk != (DWORD)-1)
           {
-            //Fold has highlighing information.
+            //Fold has highlighing information
             lpColored=hlp->fm.lpFold;
           }
           if (hlp->fm.lpFold->parent)
           {
-            //Check the parent.
+            //Check the parent
             hlp->fm.lpFold=hlp->fm.lpFold->parent;
             continue;
           }
