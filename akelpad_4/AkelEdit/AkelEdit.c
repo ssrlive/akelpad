@@ -5610,7 +5610,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
 
 AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
 {
-  AEFOLD *lpCollapsed=NULL;
+  AEFOLD *lpCollapsedParent=NULL;
   AEFOLD *lpSubling=NULL;
   AEFOLD *lpPrevSubling=NULL;
 
@@ -5637,7 +5637,7 @@ AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
             AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
         {
           //Fold is collapsed
-          lpCollapsed=lpSubling;
+          lpCollapsedParent=lpSubling;
         }
       }
       if (lpSubling->parent)
@@ -5646,7 +5646,7 @@ AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine)
         lpSubling=lpSubling->parent;
         continue;
       }
-      lpSubling=lpCollapsed;
+      lpSubling=lpCollapsedParent;
       break;
     }
     ae->ptxt->lpIsCollapsedLastCall=lpSubling;
@@ -5663,33 +5663,27 @@ int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags)
 
   if (ae->ptxt->hFoldsStack.first)
   {
-    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_GETROOT, nLine, NULL, &lpFold, &lpPrevSubling);
-    if (!lpFold)
-      lpSubling=lpPrevSubling;
-    else
-      lpSubling=lpFold;
+    AE_StackFindFold(ae, AEFF_FINDLINE|AEFF_FOLDSTART|AEFF_RECURSE, nLine, NULL, &lpSubling, &lpPrevSubling);
+    lpFold=lpSubling;
 
     while (lpSubling)
     {
-      if (nLine < lpSubling->lpMinPoint->ciPoint.nLine)
-        break;
-
-      if (nLine <= lpSubling->lpMaxPoint->ciPoint.nLine)
+      if (!lpSubling->bCollapse != !(dwFlags & AECF_COLLAPSE))
       {
-        if (!lpSubling->bCollapse != !(dwFlags & AECF_COLLAPSE))
+        if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
+            AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
         {
-          if (AE_FirstCollapsibleLine(ae, lpSubling) <= nLine &&
-              AE_LastCollapsibleLine(ae, lpSubling) >= nLine)
-          {
-            lpSubling->bCollapse=!lpSubling->bCollapse;
-            ++nResult;
-          }
+          lpSubling->bCollapse=!lpSubling->bCollapse;
+          ++nResult;
         }
-        //Recursive
-        lpSubling=lpSubling->firstChild;
+      }
+      if (lpSubling->parent)
+      {
+        //Check the parent
+        lpSubling=lpSubling->parent;
         continue;
       }
-      lpSubling=lpSubling->next;
+      break;
     }
   }
   AE_StackFoldScroll(ae, lpFold, dwFlags);
