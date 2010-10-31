@@ -5606,39 +5606,36 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
     dwFirst=mod(nFindLine - lpSubling->firstChild->lpMinPoint->ciPoint.nLine);
     dwSecond=mod(nFindLine - lpSubling->lastChild->lpMinPoint->ciPoint.nLine);
     if (lpPrevChild)
-    {
       dwThird=mod(nFindLine - lpPrevChild->lpMinPoint->ciPoint.nLine);
-      lpSubling=lpPrevChild;
-      lpPrevChild=NULL;
-    }
-    else dwThird=(DWORD)-1;
+    else
+      dwThird=(DWORD)-1;
   }
   else
   {
     dwFirst=mod(nFindOffset - lpSubling->firstChild->lpMinPoint->nPointOffset);
     dwSecond=mod(nFindOffset - lpSubling->lastChild->lpMinPoint->nPointOffset);
     if (lpPrevChild)
-    {
       dwThird=mod(nFindOffset - lpPrevChild->lpMinPoint->nPointOffset);
-      lpSubling=lpPrevChild;
-      lpPrevChild=NULL;
-    }
-    else dwThird=(DWORD)-1;
+    else
+      dwThird=(DWORD)-1;
   }
 
   if (dwFirst <= dwSecond && dwFirst <= dwThird)
   {
     lpSubling=lpSubling->firstChild;
+    lpPrevChild=NULL;
     goto NextForward;
   }
   else if (dwSecond <= dwFirst && dwSecond <= dwThird)
   {
     lpSubling=lpSubling->lastChild;
+    lpPrevChild=NULL;
     goto NextBackward;
   }
   else if (dwThird <= dwFirst && dwThird <= dwSecond)
   {
-    //lpSubling=lpPrevChild;
+    lpSubling=lpPrevChild;
+    lpPrevChild=NULL;
     goto FindDirection;
   }
 
