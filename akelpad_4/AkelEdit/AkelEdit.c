@@ -5500,6 +5500,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
            ((nFindLine > lpSubling->lpMinPoint->ciPoint.nLine) ||
             ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
     {
+      NextForward:
       while (lpSubling)
       {
         if (!(dwFlags & AEFF_FINDLINE) ?
@@ -5525,13 +5526,29 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
         {
           lpParent=lpSubling;
           lpPrevSubling=NULL;
-          if (!(dwFlags & AEFF_RECURSE))
+          if (!(dwFlags & AEFF_RECURSE) || !lpSubling->firstChild)
             break;
 
           //Recursive
           bGoRoot=FALSE;
-          lpSubling=lpSubling->firstChild;
-          continue;
+
+          //Find nearest child
+          if (!(dwFlags & AEFF_FINDLINE) ?
+               //AEFF_FINDOFFSET or AEFF_FINDINDEX
+               (mod(nFindOffset - lpSubling->firstChild->lpMinPoint->nPointOffset) <=
+                mod(nFindOffset - lpSubling->lastChild->lpMinPoint->nPointOffset)) :
+               //AEFF_FINDLINE
+               (mod(nFindLine - lpSubling->firstChild->lpMinPoint->ciPoint.nLine) <=
+                mod(nFindLine - lpSubling->lastChild->lpMinPoint->ciPoint.nLine)))
+          {
+            lpSubling=lpSubling->firstChild;
+            goto NextForward;
+          }
+          else
+          {
+            lpSubling=lpSubling->lastChild;
+            goto NextBackward;
+          }
         }
         if (bGoRoot)
         {
@@ -5548,6 +5565,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
     }
     else
     {
+      NextBackward:
       while (lpSubling)
       {
         if (!(dwFlags & AEFF_FINDLINE) ?
@@ -5570,16 +5588,33 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
                 ((dwFlags & AEFF_FOLDSTART) && nFindLine == lpSubling->lpMinPoint->ciPoint.nLine)))
         {
           lpParent=lpSubling;
-          if (!(dwFlags & AEFF_RECURSE))
+          if (!(dwFlags & AEFF_RECURSE) || !lpSubling->firstChild)
           {
             lpSubling=NULL;
             break;
           }
+          lpPrevSubling=NULL;
 
           //Recursive
           bGoRoot=FALSE;
-          lpSubling=lpSubling->lastChild;
-          continue;
+
+          //Find nearest child
+          if (!(dwFlags & AEFF_FINDLINE) ?
+               //AEFF_FINDOFFSET or AEFF_FINDINDEX
+               (mod(nFindOffset - lpSubling->firstChild->lpMinPoint->nPointOffset) <=
+                mod(nFindOffset - lpSubling->lastChild->lpMinPoint->nPointOffset)) :
+               //AEFF_FINDLINE
+               (mod(nFindLine - lpSubling->firstChild->lpMinPoint->ciPoint.nLine) <=
+                mod(nFindLine - lpSubling->lastChild->lpMinPoint->ciPoint.nLine)))
+          {
+            lpSubling=lpSubling->firstChild;
+            goto NextForward;
+          }
+          else
+          {
+            lpSubling=lpSubling->lastChild;
+            goto NextBackward;
+          }
         }
         if (bGoRoot)
         {
