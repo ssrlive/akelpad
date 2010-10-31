@@ -1,6 +1,8 @@
 
 AkelPad 4.5.1 ()
 ----------------------------
+Changed: speed of work with code folding is increased.
+
 Fixed: URL in color fold didn't highlighted.
 
 
