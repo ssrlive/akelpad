@@ -5414,6 +5414,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
 {
   AEFOLD *lpParent=NULL;
   AEFOLD *lpPrevSubling=NULL;
+  AEFOLD *lpPrevChild=NULL;
   AEFOLD *lpSubling=NULL;
   int nFindOffset=0;
   int nFindLine=0;
@@ -5492,6 +5493,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
     if (lpSubling->parent)
       bGoRoot=TRUE;
 
+    FindDirection:
     if (!(dwFlags & AEFF_FINDLINE) ?
            //AEFF_FINDOFFSET or AEFF_FINDINDEX
            ((nFindOffset > lpSubling->lpMinPoint->nPointOffset) ||
@@ -5528,30 +5530,13 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
           lpPrevSubling=NULL;
           if (!(dwFlags & AEFF_RECURSE) || !lpSubling->firstChild)
             break;
-
-          //Recursive
-          bGoRoot=FALSE;
-
-          //Find nearest child
-          if (!(dwFlags & AEFF_FINDLINE) ?
-               //AEFF_FINDOFFSET or AEFF_FINDINDEX
-               (mod(nFindOffset - lpSubling->firstChild->lpMinPoint->nPointOffset) <=
-                mod(nFindOffset - lpSubling->lastChild->lpMinPoint->nPointOffset)) :
-               //AEFF_FINDLINE
-               (mod(nFindLine - lpSubling->firstChild->lpMinPoint->ciPoint.nLine) <=
-                mod(nFindLine - lpSubling->lastChild->lpMinPoint->ciPoint.nLine)))
-          {
-            lpSubling=lpSubling->firstChild;
-            goto NextForward;
-          }
-          else
-          {
-            lpSubling=lpSubling->lastChild;
-            goto NextBackward;
-          }
+          goto FindChild;
         }
+
+        //Next
         if (bGoRoot)
         {
+          lpPrevChild=lpSubling;
           lpSubling=lpSubling->parent;
           if (!lpSubling->parent)
             bGoRoot=FALSE;
@@ -5594,30 +5579,13 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
             break;
           }
           lpPrevSubling=NULL;
-
-          //Recursive
-          bGoRoot=FALSE;
-
-          //Find nearest child
-          if (!(dwFlags & AEFF_FINDLINE) ?
-               //AEFF_FINDOFFSET or AEFF_FINDINDEX
-               (mod(nFindOffset - lpSubling->firstChild->lpMinPoint->nPointOffset) <=
-                mod(nFindOffset - lpSubling->lastChild->lpMinPoint->nPointOffset)) :
-               //AEFF_FINDLINE
-               (mod(nFindLine - lpSubling->firstChild->lpMinPoint->ciPoint.nLine) <=
-                mod(nFindLine - lpSubling->lastChild->lpMinPoint->ciPoint.nLine)))
-          {
-            lpSubling=lpSubling->firstChild;
-            goto NextForward;
-          }
-          else
-          {
-            lpSubling=lpSubling->lastChild;
-            goto NextBackward;
-          }
+          goto FindChild;
         }
+
+        //Next
         if (bGoRoot)
         {
+          lpPrevChild=lpSubling;
           lpSubling=lpSubling->parent;
           if (!lpSubling->parent)
             bGoRoot=FALSE;
@@ -5627,18 +5595,63 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
       lpPrevSubling=lpSubling;
     }
   }
+  goto End;
 
-  if (lpParent)
+  FindChild:
+  bGoRoot=FALSE;
+
+  //Find nearest child
+  if (dwFlags & AEFF_FINDLINE)
   {
+    dwFirst=mod(nFindLine - lpSubling->firstChild->lpMinPoint->ciPoint.nLine);
+    dwSecond=mod(nFindLine - lpSubling->lastChild->lpMinPoint->ciPoint.nLine);
+    if (lpPrevChild)
+    {
+      dwThird=mod(nFindLine - lpPrevChild->lpMinPoint->ciPoint.nLine);
+      lpSubling=lpPrevChild;
+      lpPrevChild=NULL;
+    }
+    else dwThird=(DWORD)-1;
+  }
+  else
+  {
+    dwFirst=mod(nFindOffset - lpSubling->firstChild->lpMinPoint->nPointOffset);
+    dwSecond=mod(nFindOffset - lpSubling->lastChild->lpMinPoint->nPointOffset);
+    if (lpPrevChild)
+    {
+      dwThird=mod(nFindOffset - lpPrevChild->lpMinPoint->nPointOffset);
+      lpSubling=lpPrevChild;
+      lpPrevChild=NULL;
+    }
+    else dwThird=(DWORD)-1;
+  }
+
+  if (dwFirst <= dwSecond && dwFirst <= dwThird)
+  {
+    lpSubling=lpSubling->firstChild;
+    goto NextForward;
+  }
+  else if (dwSecond <= dwFirst && dwSecond <= dwThird)
+  {
+    lpSubling=lpSubling->lastChild;
+    goto NextBackward;
+  }
+  else if (dwThird <= dwFirst && dwThird <= dwSecond)
+  {
+    //lpSubling=lpPrevChild;
+    goto FindDirection;
+  }
+
+  End:
+  if (lpPrevSubling)
+    ae->ptxt->lpFindFoldLastCall=lpPrevSubling;
+  else if (lpParent)
     ae->ptxt->lpFindFoldLastCall=lpParent;
 
-    if (dwFlags & AEFF_GETROOT)
-    {
-      while (lpParent->parent) lpParent=lpParent->parent;
-    }
+  if ((dwFlags & AEFF_GETROOT) && lpParent)
+  {
+    while (lpParent->parent) lpParent=lpParent->parent;
   }
-  else ae->ptxt->lpFindFoldLastCall=lpPrevSubling;
-
   if (lpParentOut) *lpParentOut=lpParent;
   if (lpPrevSublingOut) *lpPrevSublingOut=lpPrevSubling;
 }
