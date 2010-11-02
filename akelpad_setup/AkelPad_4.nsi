@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.4.6"
+!define PRODUCT_VERSION "4.5.1"
 
 ;_____________________________________________________________________________________________
 ;
@@ -42,10 +42,10 @@ RequestExecutionLevel admin
 ############  Defines  ############
 !define LANG_ENGLISH              1033
 !define LANG_RUSSIAN              1049
-!define LANG_GERMAN               1043
-!define LANG_SPANISH              1034
 !define LANG_UKRAINIAN            1058
 !define LANG_BELORUSSIAN          1059
+!define LANG_GERMAN               1043
+!define LANG_SPANISH              1034
 !define LANG_FRENCH               1036
 !define LANG_JAPANESE             1041
 !define LANG_BRAZILIAN            1046
@@ -59,6 +59,8 @@ RequestExecutionLevel admin
 !define LANG_DUTCH                1043
 !define LANG_FINNISH              1035
 !define LANG_POLISH               1045
+!define LANG_CZECH                1029
+!define LANG_HUNGARIAN            1038
 
 !define INSTTYPE_STANDARD  1
 !define INSTTYPE_TOTALCMD  2
@@ -580,14 +582,14 @@ Section
 	IfErrors 0 end
 	StrCmp $SYSLANGUAGE ${LANG_RUSSIAN} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Russian.dll"
-	StrCmp $SYSLANGUAGE ${LANG_GERMAN} 0 +2
-	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "German.dll"
-	StrCmp $SYSLANGUAGE ${LANG_SPANISH} 0 +2
-	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Spanish.dll"
 	StrCmp $SYSLANGUAGE ${LANG_UKRAINIAN} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Ukrainian.dll"
 	StrCmp $SYSLANGUAGE ${LANG_BELORUSSIAN} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Belorussian.dll"
+	StrCmp $SYSLANGUAGE ${LANG_GERMAN} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "German.dll"
+	StrCmp $SYSLANGUAGE ${LANG_SPANISH} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Spanish.dll"
 	StrCmp $SYSLANGUAGE ${LANG_FRENCH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "French.dll"
 	StrCmp $SYSLANGUAGE ${LANG_JAPANESE} 0 +2
@@ -614,6 +616,10 @@ Section
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Finnish.dll"
 	StrCmp $SYSLANGUAGE ${LANG_POLISH} 0 +2
 	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Polish.dll"
+	StrCmp $SYSLANGUAGE ${LANG_CZECH} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Czech.dll"
+	StrCmp $SYSLANGUAGE ${LANG_HUNGARIAN} 0 +2
+	WriteRegStr HKCU "SOFTWARE\Akelsoft\AkelPad\Options" "LanguageModule" "Hungarian.dll"
 
 	end:
 SectionEnd
@@ -745,6 +751,8 @@ Section un.install
 	ExecWait '"$SETUPDIR\AkelPad.exe" /deassoc /quit'
 
 	DeleteFiles:
+	Delete "$SETUPDIR\AkelFiles\Plugs\Coder\cache"
+
 	;Generate list and include it in script at compile-time
 	!execute 'unList\unList.exe /DATE=0 /INSTDIR="Files" /LOG=unList.txt /UNDIR_VAR=$SETUPDIR /MB=0'
 	!include 'unList\unList.txt'
