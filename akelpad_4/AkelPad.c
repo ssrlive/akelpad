@@ -592,7 +592,7 @@ void _WinMain()
   //moInit.szLangModule[0]='\0';
   //moInit.wszLangModule[0]='\0';
   //moInit.bKeepSpace=FALSE;
-  //moInit.bWatchFile=FALSE;
+  moInit.bWatchFile=TRUE;
   //moInit.bSaveTime=FALSE;
   //moInit.bSingleOpenFile=FALSE;
   moInit.bSingleOpenProgram=TRUE;
