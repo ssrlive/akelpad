@@ -1704,6 +1704,8 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     if (uMsg == AEM_DELETEDOCUMENT)
     {
       AE_DestroyWindowData((AKELEDIT *)wParam);
+      if (lpAkelEditPrev == (AKELEDIT *)wParam)
+        lpAkelEditPrev=NULL;
       return 0;
     }
     if (uMsg == AEM_GETDOCUMENT)
@@ -4774,19 +4776,7 @@ void AE_ActivateClone(AKELEDIT *lpAkelEditPrev, AKELEDIT *ae)
         }
 
         //Clear lines selection
-        if (AE_IndexCompare(&lpAkelEditPrev->ciSelStartIndex, &lpAkelEditPrev->ciSelEndIndex))
-        {
-          AELINEDATA *lpLine=lpAkelEditPrev->ciSelStartIndex.lpLine;
-
-          while (lpLine)
-          {
-            lpLine->nSelStart=0;
-            lpLine->nSelEnd=0;
-            if (lpLine == lpAkelEditPrev->ciSelEndIndex.lpLine) break;
-
-            lpLine=lpLine->next;
-          }
-        }
+        AE_ClearSelLines(&lpAkelEditPrev->ciSelStartIndex, &lpAkelEditPrev->ciSelEndIndex);
       }
     }
   }
@@ -4898,12 +4888,17 @@ void AE_StackCloneDelete(AECLONE *aec)
   AKELEDIT *aeMaster=aec->aeClone->lpMaster;
   AKELEDIT *aeClone=aec->aeClone;
 
-  if (aeClone->lpMaster)
+  if (aeMaster)
   {
     --aeMaster->nCloneCount;
     aeClone->lpMaster=NULL;
     AE_HeapStackDelete(NULL, (stack **)&aeMaster->hClonesStack.first, (stack **)&aeMaster->hClonesStack.last, (stack *)aec);
 
+    if (aeClone->lpSelStartPoint && aeClone->lpSelEndPoint)
+    {
+      //Clear lines selection
+      AE_ClearSelLines(&aeClone->lpSelStartPoint->ciPoint, &aeClone->lpSelEndPoint->ciPoint);
+    }
     if (aeClone->lpSelStartPoint)
     {
       AE_StackPointDelete(aeMaster, aeClone->lpSelStartPoint);
@@ -8558,17 +8553,18 @@ void AE_GetSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX *c
   }
 }
 
-void AE_ClearSelLines(AKELEDIT *ae, const AECHARINDEX *ciMin, const AECHARINDEX *ciMax)
+void AE_ClearSelLines(const AECHARINDEX *ciMin, const AECHARINDEX *ciMax)
 {
-  AELINEDATA *lpElement=ciMin->lpLine;
+  AELINEDATA *lpElement;
 
-  while (lpElement)
+  if (AE_IndexCompare(ciMin, ciMax))
   {
-    lpElement->nSelStart=0;
-    lpElement->nSelEnd=0;
-    if (lpElement == ciMax->lpLine) break;
-
-    lpElement=lpElement->next;
+    for (lpElement=ciMin->lpLine; lpElement; lpElement=lpElement->next)
+    {
+      lpElement->nSelStart=0;
+      lpElement->nSelEnd=0;
+      if (lpElement == ciMax->lpLine) break;
+    }
   }
 }
 
@@ -8662,7 +8658,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
         ciSelStartOld.nLine > ciSelEndNew.nLine ||
         ciSelEndOld.nLine < ciSelStartNew.nLine)
     {
-      AE_ClearSelLines(ae, &ciSelStartOld, &ciSelEndOld);
+      AE_ClearSelLines(&ciSelStartOld, &ciSelEndOld);
       AE_GetSelLines(ae, &ciSelStartNew, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
     }
     else
@@ -8671,7 +8667,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
       {
         if (ciSelStartOld.nLine < ciSelStartNew.nLine)
         {
-          AE_ClearSelLines(ae, &ciSelStartOld, &ciSelStartNew);
+          AE_ClearSelLines(&ciSelStartOld, &ciSelStartNew);
           AE_GetSelLines(ae, &ciSelStartNew, &ciSelStartNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
         }
         else AE_GetSelLines(ae, &ciSelStartNew, &ciSelStartOld, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
@@ -8680,7 +8676,7 @@ void AE_SetSelectionPos(AKELEDIT *ae, const AECHARINDEX *ciSelStart, const AECHA
       {
         if (ciSelEndNew.nLine < ciSelEndOld.nLine)
         {
-          AE_ClearSelLines(ae, &ciSelEndNew, &ciSelEndOld);
+          AE_ClearSelLines(&ciSelEndNew, &ciSelEndOld);
           AE_GetSelLines(ae, &ciSelEndNew, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
         }
         else AE_GetSelLines(ae, &ciSelEndOld, &ciSelEndNew, &ciSelStartNew, &ciSelEndNew, &ptSelStart, &ptSelEnd, bColumnSel);
