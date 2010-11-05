@@ -8356,6 +8356,7 @@ void AE_SetDrawRect(AKELEDIT *ae, const RECT *lprcDraw, BOOL bRedraw)
   {
     ae->rcDraw=ae->rcEdit;
     ae->rcDraw.left+=1;
+    ae->rcDraw.top+=1;
   }
 
   if (bRedraw) InvalidateRect(ae->hWndEdit, NULL, TRUE);

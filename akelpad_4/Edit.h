@@ -85,7 +85,7 @@
 #define SEARCHSTRINGS_AMOUNT       10
 #define EDIT_TABSTOPS              8
 #define EDIT_UNDOLIMIT             1000
-#define EDIT_MARGINS               MAKELONG(4, 4)
+#define EDIT_MARGINS               MAKELONG(3, 4)
 
 #define STR_DEFAULTSAVEEXTA            "txt"
 #define STR_DEFAULTSAVEEXTW           L"txt"
