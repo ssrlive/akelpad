@@ -1216,17 +1216,19 @@ BOOL CloseDocument()
 
 HWND DoFileNewWindow(DWORD dwAddFlags)
 {
-  STARTUPINFOW siW={0};
-  PROCESS_INFORMATION pi={0};
+  STARTUPINFOW si;
+  PROCESS_INFORMATION pi;
   HWND hWnd=0;
 
-  if (!GetModuleFileNameWide(hInstance, wbuf, MAX_PATH)) return 0;
+  if (!GetModuleFileNameWide(hInstance, wbuf, MAX_PATH))
+    return 0;
 
-  siW.cb=sizeof(STARTUPINFOW);
-  siW.dwFlags=STARTF_USESHOWWINDOW|dwAddFlags;
-  siW.wShowWindow=SW_SHOWNORMAL;
+  xmemset(&si, 0, sizeof(STARTUPINFOW));
+  si.cb=sizeof(STARTUPINFOW);
+  si.dwFlags=STARTF_USESHOWWINDOW|dwAddFlags;
+  si.wShowWindow=SW_SHOWNORMAL;
 
-  if (CreateProcessWide(wbuf, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &siW, &pi))
+  if (CreateProcessWide(wbuf, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
   {
     WaitForInputIdle(pi.hProcess, INFINITE);
     EnumThreadWindows(pi.dwThreadId, EnumThreadWindowsProc, (LPARAM)&hWnd);
@@ -1275,9 +1277,10 @@ BOOL DoFileOpen()
   //Open file dialog
   if (wszFileList=AllocWideStr(OPENFILELIST_SIZE))
   {
-    OPENFILENAMEW ofnW={0};
+    OPENFILENAMEW ofnW;
 
     xstrcpynW(wszFileList, lpFrameCurrent->wszFile, MAX_PATH);
+    xmemset(&ofnW, 0, sizeof(OPENFILENAMEW));
     ofnW.lStructSize    =sizeof(OPENFILENAMEW);
     ofnW.lCustData      =(LPARAM)&dc;
     ofnW.hwndOwner      =hMainWnd;
@@ -1438,9 +1441,10 @@ BOOL DoFileSaveAs(int nDialogCodePage, BOOL bDialogBOM)
 
   //Save file dialog
   {
-    OPENFILENAMEW ofnW={0};
+    OPENFILENAMEW ofnW;
 
     xstrcpynW(wszSaveFile, lpFrameCurrent->wszFile, MAX_PATH);
+    xmemset(&ofnW, 0, sizeof(OPENFILENAMEW));
     ofnW.lStructSize    =sizeof(OPENFILENAMEW);
     ofnW.lCustData      =(LPARAM)&dc;
     ofnW.hwndOwner      =hMainWnd;
@@ -1483,8 +1487,9 @@ BOOL DoFilePageSetup(HWND hWndOwner)
 
   if (bOldWindows)
   {
-    PAGESETUPDLGA psdPageA={0};
+    PAGESETUPDLGA psdPageA;
 
+    xmemset(&psdPageA, 0, sizeof(PAGESETUPDLGA));
     psdPageA.lStructSize        =sizeof(PAGESETUPDLGA);
     psdPageA.hwndOwner          =hWndOwner;
     psdPageA.lpfnPageSetupHook  =PrintPageSetupDlgProc;
@@ -1503,8 +1508,9 @@ BOOL DoFilePageSetup(HWND hWndOwner)
   }
   else
   {
-    PAGESETUPDLGW psdPageW={0};
+    PAGESETUPDLGW psdPageW;
 
+    xmemset(&psdPageW, 0, sizeof(PAGESETUPDLGW));
     psdPageW.lStructSize        =sizeof(PAGESETUPDLGW);
     psdPageW.hwndOwner          =hWndOwner;
     psdPageW.lpfnPageSetupHook  =PrintPageSetupDlgProc;
@@ -2226,9 +2232,10 @@ BOOL DoViewFont(HWND hWndOwner, LOGFONTW *lfFont)
 {
   if (bOldWindows)
   {
-    CHOOSEFONTA cfA={0};
+    CHOOSEFONTA cfA;
     LOGFONTA lfTmpA;
 
+    xmemset(&cfA, 0, sizeof(CHOOSEFONTA));
     LogFontWtoA(lfFont, &lfTmpA);
     cfA.lStructSize=sizeof(CHOOSEFONTA);
     cfA.Flags      =CF_FORCEFONTEXIST|CF_INITTOLOGFONTSTRUCT|CF_SCREENFONTS;
@@ -2240,9 +2247,10 @@ BOOL DoViewFont(HWND hWndOwner, LOGFONTW *lfFont)
   }
   else
   {
-    CHOOSEFONTW cfW={0};
+    CHOOSEFONTW cfW;
     LOGFONTW lfTmpW;
 
+    xmemset(&cfW, 0, sizeof(CHOOSEFONTW));
     xmemcpy(&lfTmpW, lfFont, sizeof(LOGFONTW));
     cfW.lStructSize=sizeof(CHOOSEFONTW);
     cfW.Flags      =CF_FORCEFONTEXIST|CF_INITTOLOGFONTSTRUCT|CF_SCREENFONTS;
@@ -2389,8 +2397,8 @@ void DoViewShowStatusBar(BOOL bState, BOOL bFirst)
 
 BOOL DoSettingsExec()
 {
-  STARTUPINFOW siW={0};
-  PROCESS_INFORMATION pi={0};
+  STARTUPINFOW si;
+  PROCESS_INFORMATION pi;
   wchar_t *wszCommandExp;
   wchar_t *wszWorkDirExp;
   int nCommandLen;
@@ -2409,8 +2417,9 @@ BOOL DoSettingsExec()
 
       if (*wszCommandExp)
       {
-        siW.cb=sizeof(STARTUPINFOW);
-        if (CreateProcessWide(NULL, wszCommandExp, NULL, NULL, FALSE, 0, NULL, *wszWorkDirExp?wszWorkDirExp:NULL, &siW, &pi))
+        xmemset(&si, 0, sizeof(STARTUPINFOW));
+        si.cb=sizeof(STARTUPINFOW);
+        if (CreateProcessWide(NULL, wszCommandExp, NULL, NULL, FALSE, 0, NULL, *wszWorkDirExp?wszWorkDirExp:NULL, &si, &pi))
         {
           bResult=TRUE;
           CloseHandle(pi.hProcess);
@@ -2476,9 +2485,10 @@ void DoSettingsOptions()
 
   if (bOldWindows)
   {
-    PROPSHEETHEADERA pshA={0};
-    PROPSHEETPAGEA pspA[5]={0};
+    PROPSHEETHEADERA pshA;
+    PROPSHEETPAGEA pspA[5];
 
+    xmemset(&pspA, 0, sizeof(pspA));
     pspA[0].dwSize      =sizeof(PROPSHEETPAGEA);
     pspA[0].dwFlags     =PSP_DEFAULT;
     pspA[0].hInstance   =hLangLib;
@@ -2506,6 +2516,7 @@ void DoSettingsOptions()
     pspA[4].pfnDlgProc  =(DLGPROC)OptionsAdvancedDlgProc;
 
     API_LoadStringA(hLangLib, STR_OPTIONS, buf, BUFFER_SIZE);
+    xmemset(&pshA, 0, sizeof(PROPSHEETHEADERA));
     pshA.pszCaption  =buf;
     pshA.dwSize      =(bOldComctl32)?(PROPSHEETHEADERA_V1_SIZE):(sizeof(PROPSHEETHEADERA));
     pshA.dwFlags     =PSH_PROPSHEETPAGE|PSH_NOAPPLYNOW|PSH_USEICONID|PSH_USECALLBACK;
@@ -2521,9 +2532,10 @@ void DoSettingsOptions()
   }
   else
   {
-    PROPSHEETHEADERW pshW={0};
-    PROPSHEETPAGEW pspW[5]={0};
+    PROPSHEETHEADERW pshW;
+    PROPSHEETPAGEW pspW[5];
 
+    xmemset(&pspW, 0, sizeof(pspW));
     pspW[0].dwSize      =sizeof(PROPSHEETPAGEW);
     pspW[0].dwFlags     =PSP_DEFAULT;
     pspW[0].hInstance   =hLangLib;
@@ -2551,6 +2563,7 @@ void DoSettingsOptions()
     pspW[4].pfnDlgProc  =(DLGPROC)OptionsAdvancedDlgProc;
 
     LoadStringWide(hLangLib, STR_OPTIONS, wbuf, BUFFER_SIZE);
+    xmemset(&pshW, 0, sizeof(PROPSHEETHEADERW));
     pshW.pszCaption=wbuf;
     pshW.dwSize      =sizeof(PROPSHEETHEADERW);
     pshW.dwFlags     =PSH_PROPSHEETPAGE|PSH_NOAPPLYNOW|PSH_USEICONID|PSH_USECALLBACK;
@@ -3765,7 +3778,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
 
 int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM)
 {
-  wchar_t wszFile[MAX_PATH]=L"";
+  wchar_t wszFile[MAX_PATH];
   HANDLE hFile;
   FILESTREAMDATA fsd;
   FRAMEDATA *lpFrame;
@@ -3783,6 +3796,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
     DoFileNew();
     hWnd=lpFrameCurrent->ei.hWndEdit;
   }
+  wszFile[0]=L'\0';
   bFileExist=GetFullName(wpFile, wszFile, MAX_PATH);
 
   //Notification message
@@ -5326,8 +5340,9 @@ unsigned int CALLBACK PrintPageSetupDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam,
 
 BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
 {
-  PRINTDLGA pdA={0};
+  PRINTDLGA pdA;
 
+  xmemset(&pdA, 0, sizeof(PRINTDLGA));
   pdA.lStructSize =sizeof(PRINTDLGA);
   pdA.hwndOwner   =hWndOwner;
   pdA.Flags       =prninfo->dwPrintFlags|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
@@ -5383,8 +5398,9 @@ BOOL GetPrinterA(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
 
 BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
 {
-  PRINTDLGW pdW={0};
+  PRINTDLGW pdW;
 
+  xmemset(&pdW, 0, sizeof(PRINTDLGW));
   pdW.lStructSize =sizeof(PRINTDLGW);
   pdW.hwndOwner   =hWndOwner;
   pdW.Flags       =prninfo->dwPrintFlags|PD_RETURNDC|PD_USEDEVMODECOPIESANDCOLLATE;
@@ -5440,7 +5456,7 @@ BOOL GetPrinterW(HWND hWndOwner, PRINTINFO *prninfo, BOOL bSilent)
 
 DWORD GetMappedPrintWidth(HWND hWnd)
 {
-  AEPRINT prn={0};
+  AEPRINT prn;
   AEHPRINT hPrintDoc;
   int nAveCharWidth;
   DWORD dwWidth=0;
@@ -5458,6 +5474,7 @@ DWORD GetMappedPrintWidth(HWND hWnd)
 
   if (prninfo.hDC)
   {
+    xmemset(&prn, 0, sizeof(AEPRINT));
     prn.dwFlags=(prninfo.dwPageFlags & PSD_INHUNDREDTHSOFMILLIMETERS?AEPRN_INHUNDREDTHSOFMILLIMETERS:AEPRN_INTHOUSANDTHSOFINCHES);
     prn.hPrinterDC=prninfo.hDC;
     prn.rcMargins=prninfo.rtMargin;
@@ -7473,10 +7490,10 @@ int AutodetectCodePage(const wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlag
 
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage)
 {
-  char szANSIwatermark[128]="";
-  char szOEMwatermark[128]="";
-  char szKOIwatermark[128]="";
-  char szUTF8watermark[128]="";
+  char szANSIwatermark[128];
+  char szOEMwatermark[128];
+  char szKOIwatermark[128];
+  char szUTF8watermark[128];
   int nANSIrate=5;
   int nOEMrate=0;
   int nKOIrate=0;
@@ -7488,6 +7505,11 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   DWORD j;
 
   //Watermarks
+  szANSIwatermark[0]='\0';
+  szOEMwatermark[0]='\0';
+  szKOIwatermark[0]='\0';
+  szUTF8watermark[0]='\0';
+
   if (dwLangID == LANG_RUSSIAN)
   {
     xstrcpyA(szANSIwatermark, "\xE0\xE1\xE2\xE5\xE8\xED\xEE\xEF\xF0\xF2\xC0\xC1\xC2\xC5\xC8\xCD\xCE\xCF\xD2");  //‡·‚ÂËÌÓÔÚ¿¡¬≈»ÕŒœ“
@@ -12262,9 +12284,10 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
 
       //File browse
       {
-        OPENFILENAMEW efnW={0};
+        OPENFILENAMEW efnW;
 
         wbuf[0]='\0';
+        xmemset(&efnW, 0, sizeof(OPENFILENAMEW));
         efnW.lStructSize      =sizeof(OPENFILENAMEW);
         efnW.hwndOwner        =hDlg;
         efnW.lpstrFile        =wbuf;
@@ -14808,7 +14831,7 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
 
 const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, int *nIconIndex, HICON *phiconLarge, HICON *phiconSmall)
 {
-  wchar_t wszRoot[MAX_PATH]=L"";
+  wchar_t wszRoot[MAX_PATH];
   wchar_t wszKey[MAX_PATH];
   wchar_t wszValue[MAX_PATH];
   wchar_t wszTemp[MAX_PATH];
@@ -14825,6 +14848,7 @@ const wchar_t* GetAssociatedIconW(const wchar_t *wpFile, wchar_t *wszIconFile, i
   {
     if (RegOpenKeyExWide(HKEY_CLASSES_ROOT, wpExt - 1, 0, KEY_READ, &hKey) == ERROR_SUCCESS)
     {
+      wszRoot[0]=L'\0';
       dwSize=BUFFER_SIZE * sizeof(wchar_t);
       RegQueryValueExWide(hKey, L"", NULL, &dwType, (LPBYTE)wszRoot, &dwSize);
       RegCloseKey(hKey);
@@ -15488,8 +15512,8 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
             }
             else if (dwAction == EXTACT_EXEC)
             {
-              STARTUPINFOW si={0};
-              PROCESS_INFORMATION pi={0};
+              STARTUPINFOW si;
+              PROCESS_INFORMATION pi;
               wchar_t *wpCmdLine=NULL;
               wchar_t *wpWorkDir=NULL;
 
@@ -15499,6 +15523,7 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
 
               if (wpCmdLine)
               {
+                xmemset(&si, 0, sizeof(STARTUPINFOW));
                 si.cb=sizeof(STARTUPINFOW);
                 if (CreateProcessWide(NULL, wpCmdLine, NULL, NULL, FALSE, 0, NULL, wpWorkDir, &si, &pi))
                 {

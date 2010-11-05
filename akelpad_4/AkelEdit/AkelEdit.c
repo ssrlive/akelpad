@@ -2498,9 +2498,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       if (!ae->bUnicodeWindow)
       {
         FINDTEXTEXA *ftRE=(FINDTEXTEXA *)lParam;
-        AEFINDTEXTA ft={0};
+        AEFINDTEXTA ft;
         CHARRANGE crFoundRE;
 
+        ft.dwFlags=0;
         if (wParam & FR_DOWN)
           ft.dwFlags|=AEFR_DOWN;
         if (wParam & FR_MATCHCASE)
@@ -2531,9 +2532,10 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     //Unicode
     {
       FINDTEXTEXW *ftRE=(FINDTEXTEXW *)lParam;
-      AEFINDTEXTW ft={0};
+      AEFINDTEXTW ft;
       CHARRANGE crFoundRE;
 
+      ft.dwFlags=0;
       if (wParam & FR_DOWN)
         ft.dwFlags|=AEFR_DOWN;
       if (wParam & FR_MATCHCASE)
@@ -11228,8 +11230,8 @@ void AE_GetPrintRect(AEPRINT *prn, const RECT *rcMargins, RECT *rcPage)
 
 BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
 {
-  AEHLPAINT hlp={0};
-  AETEXTOUT to={0};
+  AEHLPAINT hlp;
+  AETEXTOUT to;
   AECHARINDEX ciCount;
   AECHARINDEX ciTmp;
   HBRUSH hBasicBk;
@@ -11253,6 +11255,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   hPrintFontOld=(HFONT)SelectObject(prn->hPrinterDC, prn->hPrintFont);
 
   //Set AETEXTOUT
+  xmemset(&to, 0, sizeof(AETEXTOUT));
   to.hDC=ph->aePrint.hDC;
   to.ptFirstCharInLine.x=prn->rcPageIn.left;
   to.ptFirstCharInLine.y=prn->rcPageIn.top;
@@ -11261,6 +11264,7 @@ BOOL AE_PrintPage(AKELEDIT *ae, AEPRINTHANDLE *ph, AEPRINT *prn)
   nMaxDrawCharOffset=to.nDrawCharOffset;
 
   //Set AEHLPAINT
+  xmemset(&hlp, 0, sizeof(AEHLPAINT));
   hBasicBk=CreateSolidBrush(ae->popt->crBasicBk);
   hlp.dwDefaultText=ae->popt->crBasicText;
   hlp.dwDefaultBG=ae->popt->crBasicBk;
@@ -11512,8 +11516,8 @@ void AE_Paint(AKELEDIT *ae)
 
     if (BeginPaint(ae->hWndEdit, &ps))
     {
-      AEHLPAINT hlp={0};
-      AETEXTOUT to={0};
+      AEHLPAINT hlp;
+      AETEXTOUT to;
       AEFOLD *lpCollapsed;
       HBRUSH hBasicBk;
       HBRUSH hSelBk;
@@ -11532,6 +11536,10 @@ void AE_Paint(AKELEDIT *ae)
       int nCharWidth=0;
       int nLastDrawLine=0;
       BOOL bUseBufferDC=TRUE;
+
+      //Initialize
+      xmemset(&hlp, 0, sizeof(AEHLPAINT));
+      xmemset(&to, 0, sizeof(AETEXTOUT));
 
       //Create GDI objects
       hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
@@ -16674,7 +16682,7 @@ int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, const wchar_t **wpNewLine)
 
 BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA)
 {
-  AEFINDTEXTW ftW={0};
+  AEFINDTEXTW ftW;
   wchar_t *wszText;
   DWORD dwUnicodeLen;
   BOOL bResult=FALSE;
@@ -16792,7 +16800,7 @@ BOOL AE_FindText(AKELEDIT *ae, AEFINDTEXTW *ft)
 
 DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHARINDEX *ciChar)
 {
-  AEFINDTEXTW ftW={0};
+  AEFINDTEXTW ftW;
   wchar_t *wszText;
   DWORD dwUnicodeLen;
   DWORD dwResult=0;
