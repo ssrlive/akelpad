@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.2                     *
+ *              String functions header v4.3                     *
  *                                                               *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -974,8 +974,14 @@ void* xmemset(void *dest, int c, unsigned int count)
 {
   unsigned char *byte_dest=(unsigned char *)dest;
 
-  while (count--) *byte_dest++=c;
-
+  if (count)
+  {
+    do
+    {
+      *byte_dest++=c;
+    }
+    while (--count);
+  }
   return dest;
 }
 #endif
