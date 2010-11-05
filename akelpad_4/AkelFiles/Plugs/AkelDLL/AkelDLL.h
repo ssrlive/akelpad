@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 0)
+#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 1)
 
 
 //// Defines
@@ -780,7 +780,7 @@ typedef struct {
 typedef struct {
   AECHARRANGE cr;             //Characters range to retrieve.
   BOOL bColumnSel;            //Column selection. If this value is –1, active column selection mode is used.
-  unsigned char *pText;       //Pointer that receive allocated text. If NULL message return required buffer size including the terminating null character.
+  unsigned char *pText;       //Pointer that receive allocated text.
                               //Must be deallocated with AKD_FREETEXT message.
                               //  char *pText      if bOldWindows == TRUE
                               //  wchar_t *pText   if bOldWindows == FALSE
