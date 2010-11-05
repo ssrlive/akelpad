@@ -5,6 +5,7 @@ Changed: speed of work with code folding is increased.
 
 Fixed: URL in color fold didn't highlighted.
 Fixed: selection after split window off (MDI).
+Fixed: double/triple mouse click in split windows.
 
 
 AkelPad 4.5.0 (Oct 28, 2010)
