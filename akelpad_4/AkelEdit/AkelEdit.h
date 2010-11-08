@@ -4833,6 +4833,7 @@ Example:
 
  if (hTheme=(AEHTHEME)SendMessage(hWndEdit, AEM_HLCREATETHEMEA, 0, (LPARAM)"MyTheme"))
  {
+   di.nIndex=-1;
    di.pDelimiter=" ";
    di.nDelimiterLen=lstrlenA(di.pDelimiter);
    di.dwFlags=AEHLF_MATCHCASE;
@@ -4849,6 +4850,7 @@ Example:
    wi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDWORDA, (WPARAM)hTheme, (LPARAM)&wi);
 
+   qi.nIndex=-1;
    qi.pQuoteStart="\"";
    qi.nQuoteStartLen=lstrlenA(qi.pQuoteStart);
    qi.pQuoteEnd="\"";
@@ -4864,6 +4866,7 @@ Example:
    qi.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDQUOTEA, (WPARAM)hTheme, (LPARAM)&qi);
 
+   mri.nIndex=-1;
    mri.crMarkRange.cpMin=10;
    mri.crMarkRange.cpMax=20;
    mri.dwFlags=0;
@@ -4872,6 +4875,7 @@ Example:
    mri.crBk=(DWORD)-1;
    SendMessage(hWndEdit, AEM_HLADDMARKRANGE, (WPARAM)hTheme, (LPARAM)&mri);
 
+   mti.nIndex=-1;
    mti.pMarkText="or";
    mti.nMarkTextLen=lstrlenA(mti.pMarkText);
    mti.dwFlags=AEHLF_MATCHCASE;
