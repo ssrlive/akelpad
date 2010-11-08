@@ -631,8 +631,8 @@ typedef struct _AEFOLD {
   AEPOINT *lpMaxPoint;        //Maximum line point.
   BOOL bCollapse;             //Collapse state.
   DWORD dwFontStyle;          //See AEHLS_* defines.
-  COLORREF crText;            //Delimiter text color. If -1, then don't set.
-  COLORREF crBk;              //Delimiter background color. If -1, then don't set.
+  COLORREF crText;            //Text color. If -1, then don't set.
+  COLORREF crBk;              //Background color. If -1, then don't set.
   DWORD dwUserData;           //User data.
 } AEFOLD;
 
