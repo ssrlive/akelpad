@@ -1590,6 +1590,11 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       AE_HideSelection(ae, wParam);
       return 0;
     }
+    if (uMsg == AEM_REDRAWLINERANGE)
+    {
+      AE_RedrawLineRange(ae, wParam, lParam, TRUE);
+      return 0;
+    }
 
     //Folding
     GetFoldStack:

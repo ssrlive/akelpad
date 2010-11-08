@@ -1225,6 +1225,7 @@ typedef struct {
 #define AEM_UPDATESIZE            (WM_USER + 2354)
 #define AEM_LOCKUPDATE            (WM_USER + 2355)
 #define AEM_HIDESELECTION         (WM_USER + 2356)
+#define AEM_REDRAWLINERANGE       (WM_USER + 2357)
 
 //Folding
 #define AEM_GETFOLDSTACK          (WM_USER + 2381)
@@ -4244,6 +4245,21 @@ Return Value
 
 Example:
  SendMessage(hWndEdit, AEM_HIDESELECTION, TRUE, 0);
+
+
+AEM_REDRAWLINERANGE
+___________________
+
+Redraws range of lines.
+
+(int)wParam == first line to redraw. If -1, redraw from top of edit control.
+(int)lParam == last line to redraw. If -1, redraw to bottom of edit control.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(hWndEdit, AEM_REDRAWLINERANGE, 10, (LPARAM)-1);
 
 
 AEM_GETFOLDSTACK
