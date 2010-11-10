@@ -353,8 +353,8 @@
 #define AEHLE_DELIMITER             1  //Delimiter. New line, start of file and end of file are delimiters by default.
 #define AEHLE_WORD                  2  //Word - string surrounded with delimiters.
 #define AEHLE_QUOTE                 3  //Quote - text started with quote start string and ended with quote end string.
-#define AEHLE_MARKRANGE             4  //Mark range - mark specified range of characters.
-#define AEHLE_MARKTEXT              5  //Mark text - mark specified text.
+#define AEHLE_MARKTEXT              4  //Mark text - mark specified text.
+#define AEHLE_MARKRANGE             5  //Mark range - mark specified range of characters.
 
 //AEM_FINDFOLD flags
 #define AEFF_FINDOFFSET      0x00000001  //AEFINDFOLD.dwFindIt is RichEdit offset.
@@ -1272,6 +1272,7 @@ typedef struct {
 #define AEM_HLTHEMEEXISTS         (WM_USER + 2508)
 #define AEM_HLSETTHEME            (WM_USER + 2509)
 #define AEM_HLDELETETHEME         (WM_USER + 2510)
+#define AEM_HLDELETETHEMEALL      (WM_USER + 2511)
 #define AEM_HLADDDELIMITERA       (WM_USER + 2521)
 #define AEM_HLADDDELIMITERW       (WM_USER + 2522)
 #define AEM_HLDELETEDELIMITER     (WM_USER + 2523)
@@ -5033,7 +5034,7 @@ ___________________
 
 Retrieve one of the theme's stack.
 
-(AEHTHEME)wParam == theme handle.
+(AEHTHEME)wParam == theme handle or NULL for default window theme.
 (int)lParam      == see AEHLE_* defines.
 
 Return Value
@@ -5110,7 +5111,7 @@ _________________
 
 Delete highlight theme.
 
-(AEHTHEME)wParam == theme handle. If NULL, delete all themes.
+(AEHTHEME)wParam == theme handle or NULL for remove all element in default window theme.
 lParam           == not used.
 
 Return Value
@@ -5123,12 +5124,27 @@ Example:
  SendMessage(hWndEdit, AEM_HLDELETETHEME, (WPARAM)hTheme, 0);
 
 
+AEM_HLDELETETHEMEALL
+____________________
+
+Delete all highlight themes created with AEM_HLCREATETHEME.
+
+wParam == not used.
+lParam == not used.
+
+Return Value
+ Zero.
+
+Example:
+ SendMessage(hWndEdit, AEM_HLDELETETHEMEALL, 0, 0);
+
+
 AEM_HLADDDELIMITERA
 ___________________
 
 Add ansi delimiter to highlight theme.
 
-(AEHTHEME)wParam       == theme handle.
+(AEHTHEME)wParam       == theme handle or NULL for default window theme.
 (AEDELIMITEMA *)lParam == pointer to a AEDELIMITEMA structure.
 
 Return Value
@@ -5143,7 +5159,7 @@ ___________________
 
 Add unicode delimiter to highlight theme.
 
-(AEHTHEME)wParam       == theme handle.
+(AEHTHEME)wParam       == theme handle or NULL for default window theme.
 (AEDELIMITEMW *)lParam == pointer to a AEDELIMITEMW structure.
 
 Return Value
@@ -5158,7 +5174,7 @@ _____________________
 
 Delete delimiter from highlight theme.
 
-(AEHTHEME)wParam     == theme handle.
+(AEHTHEME)wParam     == theme handle or NULL for default window theme.
 (AEHDELIMITER)lParam == delimiter handle. If NULL, delete all delimiters.
 
 Return Value
@@ -5173,7 +5189,7 @@ ______________
 
 Add ansi word to highlight theme.
 
-(AEHTHEME)wParam      == theme handle.
+(AEHTHEME)wParam      == theme handle or NULL for default window theme.
 (AEWORDITEMA *)lParam == pointer to a AEWORDITEMA structure.
 
 Return Value
@@ -5188,7 +5204,7 @@ ______________
 
 Add unicode word to highlight theme.
 
-(AEHTHEME)wParam      == theme handle.
+(AEHTHEME)wParam      == theme handle or NULL for default window theme.
 (AEWORDITEMW *)lParam == pointer to a AEWORDITEMW structure.
 
 Return Value
@@ -5203,7 +5219,7 @@ ________________
 
 Delete word from highlight theme.
 
-(AEHTHEME)wParam == theme handle.
+(AEHTHEME)wParam == theme handle or NULL for default window theme.
 (AEHWORD)lParam  == word handle. If NULL, delete all words.
 
 Return Value
@@ -5218,7 +5234,7 @@ _______________
 
 Add ansi quote to highlight theme.
 
-(AEHTHEME)wParam       == theme handle.
+(AEHTHEME)wParam       == theme handle or NULL for default window theme.
 (AEQUOTEITEMA *)lParam == pointer to a AEQUOTEITEMA structure.
 
 Return Value
@@ -5233,7 +5249,7 @@ _______________
 
 Add unicode quote to highlight theme.
 
-(AEHTHEME)wParam       == theme handle.
+(AEHTHEME)wParam       == theme handle or NULL for default window theme.
 (AEQUOTEITEMW *)lParam == pointer to a AEQUOTEITEMW structure.
 
 Return Value
@@ -5248,7 +5264,7 @@ _________________
 
 Delete quote from highlight theme.
 
-(AEHTHEME)wParam == theme handle.
+(AEHTHEME)wParam == theme handle or NULL for default window theme.
 (AEHQUOTE)lParam == quote handle. If NULL, delete all quotes.
 
 Return Value
@@ -5263,7 +5279,7 @@ __________________
 
 Add ansi text mark to highlight theme.
 
-(AEHTHEME)wParam          == theme handle.
+(AEHTHEME)wParam          == theme handle or NULL for default window theme.
 (AEMARKTEXTITEMA *)lParam == pointer to a AEMARKTEXTITEMA structure.
 
 Return Value
@@ -5278,7 +5294,7 @@ __________________
 
 Add unicode text mark to highlight theme.
 
-(AEHTHEME)wParam          == theme handle.
+(AEHTHEME)wParam          == theme handle or NULL for default window theme.
 (AEMARKTEXTITEMW *)lParam == pointer to a AEMARKTEXTITEMW structure.
 
 Return Value
@@ -5293,7 +5309,7 @@ ____________________
 
 Delete text mark from highlight theme.
 
-(AEHTHEME)wParam    == theme handle.
+(AEHTHEME)wParam    == theme handle or NULL for default window theme.
 (AEHMARKTEXT)lParam == text mark handle. If NULL, delete all marks.
 
 Return Value
@@ -5308,7 +5324,7 @@ __________________
 
 Add unicode range mark to highlight theme.
 
-(AEHTHEME)wParam          == theme handle.
+(AEHTHEME)wParam          == theme handle or NULL for default window theme.
 (AEMARKRANGEITEM *)lParam == pointer to a AEMARKRANGEITEM structure.
 
 Return Value
@@ -5323,7 +5339,7 @@ _____________________
 
 Delete range mark from highlight theme.
 
-(AEHTHEME)wParam     == theme handle.
+(AEHTHEME)wParam     == theme handle or NULL for default window theme.
 (AEHMARKRANGE)lParam == range mark handle. If NULL, delete all marks.
 
 Return Value

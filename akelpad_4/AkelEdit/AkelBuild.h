@@ -205,7 +205,7 @@ typedef struct _AEIDataObject {
 } AEIDataObject;
 
 
-//// Hightlight
+//// Highlight
 
 typedef struct {
   AEDELIMITEMW *first;
@@ -240,8 +240,8 @@ typedef struct _AETHEMEITEMW {
   AESTACKDELIM hDelimiterStack;
   AESTACKWORD hWordStack;
   AESTACKQUOTE hQuoteStack;
-  AESTACKMARKRANGE hMarkRangeStack;
   AESTACKMARKTEXT hMarkTextStack;
+  AESTACKMARKRANGE hMarkRangeStack;
 } AETHEMEITEMW;
 
 typedef struct {
@@ -441,6 +441,13 @@ typedef struct {
   BOOL bLockCollectUndo;
   DWORD dwUndoLimit;
   DWORD dwUndoCount;
+
+  //Highlight (default window theme)
+  AESTACKDELIM hDelimiterStack;
+  AESTACKWORD hWordStack;
+  AESTACKQUOTE hQuoteStack;
+  AESTACKMARKTEXT hMarkTextStack;
+  AESTACKMARKRANGE hMarkRangeStack;
 
   //Folding
   AESTACKFOLD hFoldsStack;
@@ -779,24 +786,24 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
 AETHEMEITEMW* AE_HighlightCreateTheme(wchar_t *wpThemeName);
 AETHEMEITEMW* AE_HighlightGetTheme(wchar_t *wpThemeName);
 BOOL AE_HighlightIsThemeExists(AETHEMEITEMW *aeti);
-void AE_HighlightDeleteTheme(AETHEMEITEMW *aeti);
+void AE_HighlightDeleteTheme(AKELEDIT *ae, AETHEMEITEMW *aeti);
 void AE_HighlightDeleteThemeAll();
 void AE_HighlightUnsetTheme(AETHEMEITEMW *aeti);
-AEDELIMITEMW* AE_HighlightInsertDelimiter(AETHEMEITEMW *aeti, int nDelimiterLen, int nIndex);
-void AE_HighlightDeleteDelimiter(AETHEMEITEMW *aeti, AEDELIMITEMW *aedi);
-void AE_HighlightDeleteDelimiterAll(AETHEMEITEMW *aeti);
-AEWORDITEMW* AE_HighlightInsertWord(AETHEMEITEMW *aeti, int nWordLen);
-void AE_HighlightDeleteWord(AETHEMEITEMW *aeti, AEWORDITEMW *aewi);
-void AE_HighlightDeleteWordAll(AETHEMEITEMW *aeti);
-AEQUOTEITEMW* AE_HighlightInsertQuote(AETHEMEITEMW *aeti, int nIndex);
-void AE_HighlightDeleteQuote(AETHEMEITEMW *aeti, AEQUOTEITEMW *aeqi);
-void AE_HighlightDeleteQuoteAll(AETHEMEITEMW *aeti);
-AEMARKTEXTITEMW* AE_HighlightInsertMarkText(AETHEMEITEMW *aeti, int nIndex);
-void AE_HighlightDeleteMarkText(AETHEMEITEMW *aeti, AEMARKTEXTITEMW *aemti);
-void AE_HighlightDeleteMarkTextAll(AETHEMEITEMW *aeti);
-AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AETHEMEITEMW *aeti, int nIndex);
-void AE_HighlightDeleteMarkRange(AETHEMEITEMW *aeti, AEMARKRANGEITEM *aemri);
-void AE_HighlightDeleteMarkRangeAll(AETHEMEITEMW *aeti);
+AEDELIMITEMW* AE_HighlightInsertDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, int nDelimiterLen, int nIndex);
+void AE_HighlightDeleteDelimiter(AKELEDIT *ae, AETHEMEITEMW *aeti, AEDELIMITEMW *aedi);
+void AE_HighlightDeleteDelimiterAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
+AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordLen);
+void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi);
+void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
+AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex);
+void AE_HighlightDeleteQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, AEQUOTEITEMW *aeqi);
+void AE_HighlightDeleteQuoteAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
+AEMARKTEXTITEMW* AE_HighlightInsertMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex);
+void AE_HighlightDeleteMarkText(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKTEXTITEMW *aemti);
+void AE_HighlightDeleteMarkTextAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
+AEMARKRANGEITEM* AE_HighlightInsertMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex);
+void AE_HighlightDeleteMarkRange(AKELEDIT *ae, AETHEMEITEMW *aeti, AEMARKRANGEITEM *aemri);
+void AE_HighlightDeleteMarkRangeAll(AKELEDIT *ae, AETHEMEITEMW *aeti);
 HBITMAP AE_CreateBitmap(int nWidth, int nHeight, COLORREF crBasic, COLORREF crInvert, BOOL bZebra);
 HBITMAP AE_LoadBitmapFromMemory(const BYTE *lpBmpFileData);
 BOOL AE_UpdateCaret(AKELEDIT *ae, BOOL bFocus);
