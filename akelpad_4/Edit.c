@@ -898,6 +898,8 @@ int DestroyMdiFrameWindow(FRAMEDATA *lpFrame)
       if ((nTabItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
       {
         //Update status
+        if (lpFrame->ei.bModified)
+          --nDocumentsModified;
         --nDocumentsCount;
         UpdateStatusUser(lpFrame, CSB_DOCUMENTSCOUNT|CSB_DOCUMENTSMODIFIED|CSB_DOCUMENTSSAVED);
 
