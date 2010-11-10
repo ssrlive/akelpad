@@ -10802,7 +10802,7 @@ DWORD AE_ScrollToPointEx(AKELEDIT *ae, DWORD dwFlags, POINT *ptPosition, int nOf
       }
       else if (ptPos.y > ae->nVScrollPos)
       {
-        if (ae->nHScrollPos < ae->ptxt->nVScrollMax)
+        if (ae->nVScrollPos < ae->ptxt->nVScrollMax)
         {
           if (!(dwFlags & AESC_TEST)) AE_ScrollEditWindow(ae, SB_VERT, ptPos.y);
           dwResult|=AECSE_SCROLLEDY|AECSE_SCROLLEDDOWN;

@@ -6,6 +6,7 @@ Changed: speed of work with code folding is increased.
 Fixed: URL in comment fold didn't highlighted.
 Fixed: selection after split window off (MDI).
 Fixed: double/triple mouse click in split windows.
+Fixed: scrolling to founded text.
 Fixed: variable "%dm" for "StatusUserFormat".
 
 
