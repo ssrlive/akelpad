@@ -5148,7 +5148,7 @@ Add ansi delimiter to highlight theme.
 (AEDELIMITEMA *)lParam == pointer to a AEDELIMITEMA structure.
 
 Return Value
- Delimiter handle - AEHDELIMITER.
+ Delimiter handle - AEHDELIMITER (pointer to a AEDELIMITEMW structure).
 
 Example:
  See AEM_HLCREATETHEMEA example.
@@ -5163,7 +5163,7 @@ Add unicode delimiter to highlight theme.
 (AEDELIMITEMW *)lParam == pointer to a AEDELIMITEMW structure.
 
 Return Value
- Delimiter handle - AEHDELIMITER.
+ Delimiter handle - AEHDELIMITER (pointer to a AEDELIMITEMW structure).
 
 Example:
  See AEM_HLCREATETHEMEW example.
@@ -5193,7 +5193,7 @@ Add ansi word to highlight theme.
 (AEWORDITEMA *)lParam == pointer to a AEWORDITEMA structure.
 
 Return Value
- Word handle - AEHWORD.
+ Word handle - AEHWORD (pointer to a AEWORDITEMW structure).
 
 Example:
  See AEM_HLCREATETHEMEA example.
@@ -5208,7 +5208,7 @@ Add unicode word to highlight theme.
 (AEWORDITEMW *)lParam == pointer to a AEWORDITEMW structure.
 
 Return Value
- Word handle - AEHWORD.
+ Word handle - AEHWORD (pointer to a AEWORDITEMW structure).
 
 Example:
  See AEM_HLCREATETHEMEW example.
@@ -5238,7 +5238,7 @@ Add ansi quote to highlight theme.
 (AEQUOTEITEMA *)lParam == pointer to a AEQUOTEITEMA structure.
 
 Return Value
- Quote handle - AEHQUOTE.
+ Quote handle - AEHQUOTE (pointer to a AEQUOTEITEMW structure).
 
 Example:
  See AEM_HLCREATETHEMEA example.
@@ -5253,7 +5253,7 @@ Add unicode quote to highlight theme.
 (AEQUOTEITEMW *)lParam == pointer to a AEQUOTEITEMW structure.
 
 Return Value
- Quote handle - AEHQUOTE.
+ Quote handle - AEHQUOTE (pointer to a AEQUOTEITEMW structure).
 
 Example:
  See AEM_HLCREATETHEMEW example.
@@ -5283,7 +5283,7 @@ Add ansi text mark to highlight theme.
 (AEMARKTEXTITEMA *)lParam == pointer to a AEMARKTEXTITEMA structure.
 
 Return Value
- Text mark handle - AEHMARKTEXT.
+ Text mark handle - AEHMARKTEXT (pointer to a AEMARKTEXTITEMW structure).
 
 Example:
  See AEM_HLCREATETHEMEA example.
@@ -5298,7 +5298,7 @@ Add unicode text mark to highlight theme.
 (AEMARKTEXTITEMW *)lParam == pointer to a AEMARKTEXTITEMW structure.
 
 Return Value
- Text mark handle - AEHMARKTEXT.
+ Text mark handle - AEHMARKTEXT (pointer to a AEMARKTEXTITEMW structure).
 
 Example:
  See AEM_HLCREATETHEMEW example.
@@ -5328,7 +5328,7 @@ Add unicode range mark to highlight theme.
 (AEMARKRANGEITEM *)lParam == pointer to a AEMARKRANGEITEM structure.
 
 Return Value
- Range mark handle - AEHMARKRANGE.
+ Range mark handle - AEHMARKRANGE (pointer to a AEMARKRANGEITEM structure).
 
 Example:
  See AEM_HLCREATETHEMEW example.
