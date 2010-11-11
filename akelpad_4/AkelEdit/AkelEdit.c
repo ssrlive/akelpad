@@ -5548,6 +5548,7 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
         }
         else
         {
+          lpPrevChild=NULL;
           lpPrevSubling=lpSubling;
           lpSubling=lpSubling->next;
         }
@@ -5595,7 +5596,11 @@ void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpFor
           if (!lpSubling->parent)
             bGoRoot=FALSE;
         }
-        else lpSubling=lpSubling->prev;
+        else
+        {
+          lpPrevChild=NULL;
+          lpSubling=lpSubling->prev;
+        }
       }
       lpPrevSubling=lpSubling;
     }
