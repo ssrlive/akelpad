@@ -3,6 +3,7 @@ AkelPad 4.5.1 ()
 ----------------------------
 Changed: speed of work with code folding is increased.
 
+Fixed: replacement with multi-line text.
 Fixed: URL in comment fold didn't highlighted.
 Fixed: selection after split window off (MDI).
 Fixed: double/triple mouse click in split windows.
