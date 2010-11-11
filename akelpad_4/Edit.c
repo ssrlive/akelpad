@@ -8259,7 +8259,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       }
       if (nModelessType == MLT_REPLACE)
       {
-        if ((nReplaceTextLen=GetComboboxSearchText(hWndReplace, &wszReplaceText_orig, &wszReplaceText, lpFrameCurrent->ei.nNewLine)) < 0)
+        if ((nReplaceTextLen=GetComboboxSearchText(hWndReplace, &wszReplaceText_orig, &wszReplaceText, NEWLINE_MAC)) < 0)
         {
           FreeMemorySearch();
           return TRUE;
