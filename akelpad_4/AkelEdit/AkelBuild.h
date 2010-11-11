@@ -777,7 +777,7 @@ BOOL AE_IsPointOnSelection(AKELEDIT *ae, const POINT *ptPos);
 DWORD AE_IsPointOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink);
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEMARKTEXTMATCH *mtm);
-AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar);
+AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AESTACKMARKTEXT *lpMarkTextStack);
 int AE_HighlightFindMarkRange(AKELEDIT *ae, int nCharOffset, AEMARKRANGEMATCH *mrm);
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm);
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm);
