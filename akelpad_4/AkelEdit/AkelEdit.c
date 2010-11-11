@@ -9813,9 +9813,9 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
   wm->lpDelim2=NULL;
   if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen) return 0;
 
-  if (ae->popt->lpActiveTheme->hWordStack.first &&
-      (ae->popt->lpActiveTheme->hDelimiterStack.first ||
-       ae->ptxt->hDelimiterStack.first))
+  if (ae->popt->lpActiveTheme->hWordStack.first ||
+      ae->popt->lpActiveTheme->hDelimiterStack.first ||
+      ae->ptxt->hDelimiterStack.first)
   {
     ft.dwFlags=0;
     ft.pText=NULL;
