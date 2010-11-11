@@ -4406,7 +4406,11 @@ HANDLE AE_HeapCreate(AKELEDIT *ae)
       --nAkelEditHeapCount;
     }
   }
-  else AE_StackLineFree(ae);
+  else
+  {
+    AE_StackLineFree(ae);
+    AE_HighlightDeleteTheme(ae, NULL);
+  }
 
   //Reset variables
   ae->ptxt->hLinesStack.first=0;
@@ -9312,7 +9316,8 @@ DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
 
   crRange->ciMin.lpLine=NULL;
   crRange->ciMax.lpLine=NULL;
-  if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen) return 0;
+  if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+    return 0;
 
   ft.dwFlags=0;
   ft.pText=NULL;
@@ -9395,6 +9400,7 @@ int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
 {
   AEFINDTEXTW ft;
   AECHARINDEX ciCount;
+  AESTACKMARKTEXT *lpMarkTextStack;
   AEMARKTEXTITEMW *lpMarkTextElement;
   BOOL bDefaultTheme=FALSE;
 
@@ -9402,13 +9408,16 @@ int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
     return 0;
 
   NextTheme:
-  if (bDefaultTheme)
-    lpMarkTextElement=ae->ptxt->hMarkTextStack.first;
-  else
-    lpMarkTextElement=ae->popt->lpActiveTheme->hMarkTextStack.first;
+  if (bDefaultTheme || !ae->popt->lpActiveTheme)
+  {
+    lpMarkTextStack=&ae->ptxt->hMarkTextStack;
+    bDefaultTheme=TRUE;
+  }
+  else lpMarkTextStack=&ae->popt->lpActiveTheme->hMarkTextStack;
+
   mtm->lpMarkText=NULL;
 
-  if (lpMarkTextElement)
+  if (lpMarkTextStack->first)
   {
     //Find mark beginning (backward)
     ciCount=*ciChar;
@@ -9421,7 +9430,7 @@ int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
           goto EndTheme;
 
         //Is mark
-        if (lpMarkTextElement=AE_HighlightIsMarkText(ae, &ft, &ciCount))
+        if (lpMarkTextElement=AE_HighlightIsMarkText(ae, &ft, &ciCount, lpMarkTextStack))
         {
           mtm->lpMarkText=lpMarkTextElement;
           mtm->crMarkText=ft.crFound;
@@ -9450,16 +9459,14 @@ int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
   return 0;
 }
 
-AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar)
+AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AESTACKMARKTEXT *lpMarkTextStack)
 {
   AEMARKTEXTITEMW *lpMarkTextElement;
   AEFINDTEXTW ftMatch;
 
   if (!ft) ft=&ftMatch;
 
-  lpMarkTextElement=(AEMARKTEXTITEMW *)ae->popt->lpActiveTheme->hMarkTextStack.first;
-
-  while (lpMarkTextElement)
+  for (lpMarkTextElement=lpMarkTextStack->first; lpMarkTextElement; lpMarkTextElement=lpMarkTextElement->next)
   {
     ft->pText=lpMarkTextElement->pMarkText;
     ft->dwTextLen=lpMarkTextElement->nMarkTextLen;
@@ -9470,7 +9477,6 @@ AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AEC
     {
       return lpMarkTextElement;
     }
-    lpMarkTextElement=lpMarkTextElement->next;
   }
   return NULL;
 }
@@ -9481,10 +9487,12 @@ int AE_HighlightFindMarkRange(AKELEDIT *ae, int nCharOffset, AEMARKRANGEMATCH *m
   BOOL bDefaultTheme=FALSE;
 
   NextTheme:
-  if (bDefaultTheme)
+  if (bDefaultTheme || !ae->popt->lpActiveTheme)
+  {
     lpMarkRangeElement=ae->ptxt->hMarkRangeStack.first;
-  else
-    lpMarkRangeElement=ae->popt->lpActiveTheme->hMarkRangeStack.first;
+    bDefaultTheme=TRUE;
+  }
+  else lpMarkRangeElement=ae->popt->lpActiveTheme->hMarkRangeStack.first;
 
   while (lpMarkRangeElement)
   {
@@ -9511,6 +9519,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
   AECHARINDEX ciCount;
   AECHARINDEX ciTmpCount;
   AECHARRANGE crTmpQuoteStart;
+  AESTACKQUOTE *lpQuoteStack;
   AEQUOTEITEMW *lpQuoteElement;
   AEDELIMITEMW *lpDelimiterElement=NULL;
   int nQuoteLen=0;
@@ -9521,13 +9530,16 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
     return 0;
 
   NextTheme:
-  if (bDefaultTheme)
-    lpQuoteElement=ae->ptxt->hQuoteStack.first;
-  else
-    lpQuoteElement=ae->popt->lpActiveTheme->hQuoteStack.first;
+  if (bDefaultTheme || !ae->popt->lpActiveTheme)
+  {
+    lpQuoteStack=&ae->ptxt->hQuoteStack;
+    bDefaultTheme=TRUE;
+  }
+  else lpQuoteStack=&ae->popt->lpActiveTheme->hQuoteStack;
+
   qm->lpQuote=NULL;
 
-  if (lpQuoteElement)
+  if (lpQuoteStack->first)
   {
     ft.dwFlags=0;
     ft.pText=NULL;
@@ -9558,7 +9570,7 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
           if (ciCount.nCharInLine == ciCount.lpLine->nLineLen)
             break;
 
-          for (lpQuoteElement=(AEQUOTEITEMW *)ae->popt->lpActiveTheme->hQuoteStack.first; lpQuoteElement; lpQuoteElement=lpQuoteElement->next)
+          for (lpQuoteElement=lpQuoteStack->first; lpQuoteElement; lpQuoteElement=lpQuoteElement->next)
           {
             //Quote start
             if (lpQuoteElement->dwFlags & AEHLF_QUOTESTART_ISDELIMITER)
@@ -9811,11 +9823,14 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
   wm->lpDelim1=NULL;
   wm->lpWord=NULL;
   wm->lpDelim2=NULL;
-  if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen) return 0;
+  if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
+    return 0;
 
-  if (ae->popt->lpActiveTheme->hWordStack.first ||
-      ae->popt->lpActiveTheme->hDelimiterStack.first ||
-      ae->ptxt->hDelimiterStack.first)
+  if ((ae->popt->lpActiveTheme &&
+        (ae->popt->lpActiveTheme->hWordStack.first ||
+         ae->popt->lpActiveTheme->hDelimiterStack.first)) ||
+      (ae->ptxt->hWordStack.first ||
+       ae->ptxt->hDelimiterStack.first))
   {
     ft.dwFlags=0;
     ft.pText=NULL;
@@ -9958,10 +9973,12 @@ AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHA
   if (!ft) ft=&ftMatch;
 
   NextTheme:
-  if (bDefaultTheme)
+  if (bDefaultTheme || !ae->popt->lpActiveTheme)
+  {
     lpDelimiterElement=ae->ptxt->hDelimiterStack.first;
-  else
-    lpDelimiterElement=ae->popt->lpActiveTheme->hDelimiterStack.first;
+    bDefaultTheme=TRUE;
+  }
+  else lpDelimiterElement=ae->popt->lpActiveTheme->hDelimiterStack.first;
 
   while (lpDelimiterElement)
   {
@@ -9999,10 +10016,12 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
   if (!ft) ft=&ftMatch;
 
   NextTheme:
-  if (bDefaultTheme)
+  if (bDefaultTheme || !ae->popt->lpActiveTheme)
+  {
     lpWordStack=&ae->ptxt->hWordStack;
-  else
-    lpWordStack=&ae->popt->lpActiveTheme->hWordStack;
+    bDefaultTheme=TRUE;
+  }
+  else lpWordStack=&ae->popt->lpActiveTheme->hWordStack;
 
   if ((DWORD)nWordLen < sizeof(lpWordStack->lpWordLens) / sizeof(int))
   {
@@ -10218,7 +10237,7 @@ void AE_HighlightDeleteDelimiterAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
   {
     if (lpElement->pDelimiter) AE_HeapFree(ae, 0, (LPVOID)lpElement->pDelimiter);
   }
-  AE_HeapStackClear(ae, (stack **)&aeti->hDelimiterStack.first, (stack **)&aeti->hDelimiterStack.last);
+  AE_HeapStackClear(ae, (stack **)&lpDelimiterStack->first, (stack **)&lpDelimiterStack->last);
 }
 
 AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordLen)
@@ -12306,7 +12325,7 @@ void AE_PaintCheckHighlightOpenItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp,
     }
   }
 
-  if (ae->popt->lpActiveTheme)
+  //if (ae->popt->lpActiveTheme)
   {
     //Only if char not in URL and fold
     if (!(hlp->dwPaintType & AEHPT_LINK) && !(hlp->dwPaintType & AEHPT_FOLD))
@@ -12597,7 +12616,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
       hlp->fm.lpFold=NULL;
     }
   }
-  if (ae->popt->lpActiveTheme)
+  //if (ae->popt->lpActiveTheme)
   {
     if (hlp->mtm.lpMarkText)
     {
@@ -12714,7 +12733,7 @@ void AE_PaintCheckHighlightCloseItem(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp
 
 void AE_PaintCheckHighlightCleanUp(AKELEDIT *ae, AETEXTOUT *to, AEHLPAINT *hlp, AECHARINDEX *ciChar)
 {
-  if (ae->popt->lpActiveTheme)
+  //if (ae->popt->lpActiveTheme)
   {
     if (hlp->wm.lpDelim1)
     {
