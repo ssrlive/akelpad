@@ -140,7 +140,6 @@ extern int nCodepageListLen;
 extern BOOL bCodepageListChanged;
 extern int *lpCodepageTable;
 extern int nCodepageTableCount;
-extern BOOL bDefaultBOM;
 extern int nAnsiCodePage;
 extern int nOemCodePage;
 
@@ -576,7 +575,7 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   lpFrameTarget->ei.szFile=lpFrameTarget->szFile;
   lpFrameTarget->ei.wszFile=lpFrameTarget->wszFile;
   lpFrameTarget->ei.nCodePage=moCur.nDefaultCodePage;
-  lpFrameTarget->ei.bBOM=bDefaultBOM;
+  lpFrameTarget->ei.bBOM=moCur.bDefaultBOM;
   lpFrameTarget->ei.nNewLine=moCur.nDefaultNewLine;
   lpFrameTarget->ei.bModified=FALSE;
   lpFrameTarget->ei.bReadOnly=FALSE;
@@ -1210,7 +1209,7 @@ BOOL CloseDocument()
   lpFrameCurrent->nFileLen=0;
   SetNewLineStatus(lpFrameCurrent, moCur.nDefaultNewLine, AENL_INPUT);
   SetModifyStatus(lpFrameCurrent, FALSE);
-  SetCodePageStatus(lpFrameCurrent, moCur.nDefaultCodePage, bDefaultBOM);
+  SetCodePageStatus(lpFrameCurrent, moCur.nDefaultCodePage, moCur.bDefaultBOM);
   UpdateTitle(lpFrameCurrent, L"");
 
   return TRUE;
@@ -3852,7 +3851,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       }
     }
     nCodePage=moCur.nDefaultCodePage;
-    bBOM=bDefaultBOM;
+    bBOM=moCur.bDefaultBOM;
   }
   else
   {
@@ -10892,7 +10891,7 @@ void ReadThemes(MAINOPTIONS *mo)
   aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
   aec.crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
-  aec.crUrlText=RGB(0x00, 0x00, 0xFF);
+  aec.crUrlText=GetSysColor(COLOR_HOTLIGHT);
   aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
   StackThemeAdd(&hThemesStack, wbuf, &aec);

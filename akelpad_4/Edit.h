@@ -335,6 +335,7 @@
 typedef BOOL (CALLBACK *EXPORTNAMESPROC)(char *, LPARAM);
 
 typedef struct {
+  //Save place
   int nSaveSettings;
 
   //Manual
@@ -365,6 +366,7 @@ typedef struct {
   wchar_t wszCommand[BUFFER_SIZE];
   wchar_t wszWorkDir[MAX_PATH];
   int nDefaultCodePage;
+  int bDefaultBOM;
   int nDefaultNewLine;
   DWORD dwLangCodepageRecognition;
   DWORD dwCodepageRecognitionBuffer;
