@@ -31,13 +31,6 @@
 #define AEMMB_BEGINDRAG      5
 #define AEMMB_DROPSCROLL     60
 
-#ifndef IDC_HAND
-  #define IDC_HAND MAKEINTRESOURCE(32649)
-#endif
-#ifndef NOTSRCINVERT
-  #define NOTSRCINVERT         (DWORD)0x00990066 /* dest = (NOT source) XOR dest */
-#endif
-
 //WM_SETCURSOR
 #define AECC_IBEAM          0
 #define AECC_MARGIN         1
@@ -119,6 +112,40 @@
 #define AEUN_EXTRAOFFSET     0x00000400
 #define AEUN_UNDOONLY        0x00000800
 #define AEUN_REDOONLY        0x00001000
+
+#ifndef IDC_HAND
+  #define IDC_HAND  MAKEINTRESOURCE(32649)
+#endif
+#ifndef NOTSRCINVERT
+  #define NOTSRCINVERT  (DWORD)0x00990066 /* dest = (NOT source) XOR dest */
+#endif
+#ifndef COLOR_HOTLIGHT
+  #define COLOR_HOTLIGHT  26
+#endif
+#ifndef WM_IME_REQUEST
+  #define WM_IME_REQUEST         0x0288
+#endif
+#ifndef IMR_COMPOSITIONWINDOW
+  #define IMR_COMPOSITIONWINDOW  0x0001
+#endif
+#ifndef IMR_CANDIDATEWINDOW
+  #define IMR_CANDIDATEWINDOW    0x0002
+#endif
+#ifndef IMR_COMPOSITIONFONT
+  #define IMR_COMPOSITIONFONT    0x0003
+#endif
+#ifndef IMR_RECONVERTSTRING
+  #define IMR_RECONVERTSTRING    0x0004
+#endif
+#ifndef IMR_CONFIRMRECONVERTSTRING
+  #define IMR_CONFIRMRECONVERTSTRING  0x0005
+#endif
+#ifndef IMR_QUERYCHARPOSITION
+  #define IMR_QUERYCHARPOSITION       0x0006
+#endif
+#ifndef IMR_DOCUMENTFEED
+  #define IMR_DOCUMENTFEED            0x0007
+#endif
 
 //Undo element
 typedef struct _AEUNDOITEM {
