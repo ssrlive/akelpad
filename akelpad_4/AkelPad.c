@@ -418,6 +418,7 @@ void _WinMain()
 #ifndef AKELEDIT_STATICBUILD
   HMODULE hAkelLib=NULL;
 #endif
+  HDC hDC;
   BOOL bMsgStatus;
   int nHotkeyStatus;
   int nMajor;
@@ -530,16 +531,24 @@ void _WinMain()
   //fdInit.ft.dwHighDateTime=0;
   fdInit.dwInputLocale=(DWORD)-1;
 
-  if (bOldWindows)
+  if (hDC=GetDC(NULL))
   {
-    LOGFONTA lfA;
-
-    GetObjectA(GetStockObject(SYSTEM_FONT), sizeof(LOGFONTA), &lfA);
-    LogFontAtoW(&lfA, &fdInit.lf);
+    fdInit.lf.lfHeight=-MulDiv(10, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+    fdInit.lf.lfWidth=0;
+    fdInit.lf.lfEscapement=0;
+    fdInit.lf.lfOrientation=0;
+    fdInit.lf.lfWeight=FW_NORMAL;
+    fdInit.lf.lfItalic=FALSE;
+    fdInit.lf.lfUnderline=FALSE;
+    fdInit.lf.lfStrikeOut=FALSE;
+    fdInit.lf.lfCharSet=DEFAULT_CHARSET;
+    fdInit.lf.lfOutPrecision=OUT_DEFAULT_PRECIS;
+    fdInit.lf.lfClipPrecision=CLIP_DEFAULT_PRECIS;
+    fdInit.lf.lfQuality=DEFAULT_QUALITY;
+    fdInit.lf.lfPitchAndFamily=DEFAULT_PITCH;
+    xstrcpynW(fdInit.lf.lfFaceName, L"Courier New", LF_FACESIZE);
+    ReleaseDC(NULL, hDC);
   }
-  else GetObjectW(GetStockObject(SYSTEM_FONT), sizeof(LOGFONTW), &fdInit.lf);
-  fdInit.lf.lfHeight=-mod(fdInit.lf.lfHeight);
-  fdInit.lf.lfWidth=0;
   fdInit.aec.dwFlags=AECLR_ALL;
   fdInit.aec.crCaret=RGB(0x00, 0x00, 0x00);
   fdInit.aec.crBasicText=GetSysColor(COLOR_WINDOWTEXT);

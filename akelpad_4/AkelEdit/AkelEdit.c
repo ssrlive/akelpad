@@ -33,6 +33,7 @@
 //// Includes
 
 #define WIN32_LEAN_AND_MEAN
+#define WINVER 0x0500
 #include <windows.h>
 #include <stddef.h>
 #include <imm.h>
@@ -3326,6 +3327,38 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   else if (uMsg == WM_INPUTLANGCHANGE)
   {
     ae->dwInputLocale=lParam;
+  }
+  else if (uMsg == WM_IME_REQUEST)
+  {
+    if (wParam == IMR_CANDIDATEWINDOW)
+    {
+      CANDIDATEFORM *lpcf=(CANDIDATEFORM *)lParam;
+
+      if (lpcf->dwStyle == CFS_CANDIDATEPOS)
+      {
+        AE_GlobalToClient(ae, &ae->ptCaret, &lpcf->ptCurrentPos);
+        lpcf->ptCurrentPos.y+=ae->ptxt->nCharHeight;
+        return 1;
+      }
+    }
+    else if (wParam == IMR_COMPOSITIONFONT)
+    {
+      if (!ae->bUnicodeWindow)
+        xmemcpy((LOGFONTA *)lParam, &ae->ptxt->lfFontA, sizeof(LOGFONTA));
+      else
+        xmemcpy((LOGFONTW *)lParam, &ae->ptxt->lfFontW, sizeof(LOGFONTW));
+      return 1;
+    }
+    else if (wParam == IMR_COMPOSITIONWINDOW)
+    {
+      COMPOSITIONFORM *lpcf=(COMPOSITIONFORM *)lParam;
+
+      if (lpcf->dwStyle == CFS_POINT)
+      {
+        AE_GlobalToClient(ae, &ae->ptCaret, &lpcf->ptCurrentPos);
+        return 1;
+      }
+    }
   }
   else if (uMsg == WM_IME_STARTCOMPOSITION)
   {
