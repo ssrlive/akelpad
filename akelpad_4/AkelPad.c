@@ -547,7 +547,10 @@ void _WinMain()
   fdInit.aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
   fdInit.aec.crActiveLineText=fdInit.aec.crBasicText;
   fdInit.aec.crActiveLineBk=fdInit.aec.crBasicBk;
-  fdInit.aec.crUrlText=GetSysColor(COLOR_HOTLIGHT);
+  if (GetSysColorBrush(COLOR_HOTLIGHT))
+    fdInit.aec.crUrlText=GetSysColor(COLOR_HOTLIGHT);
+  else
+    fdInit.aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   fdInit.aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   fdInit.aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
   fdInit.dwEditMargins=EDIT_MARGINS;
@@ -3379,7 +3382,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_OPTIONS_PLUGINS)
     {
-      DoSettingsPlugins(lpFrameCurrent->ei.hWndEdit);
+      DoSettingsPlugins();
     }
     else if (LOWORD(wParam) == IDM_WINDOW_FILECLOSE)
     {

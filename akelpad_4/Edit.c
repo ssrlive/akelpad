@@ -2470,7 +2470,7 @@ void DoSettingsSingleOpenProgram(BOOL bState)
   moCur.bSingleOpenProgram=bState;
 }
 
-void DoSettingsPlugins(HWND hWnd)
+void DoSettingsPlugins()
 {
   if (bOldWindows)
     API_DialogBoxA(hLangLib, MAKEINTRESOURCEA(IDD_PLUGINS), hMainWnd, (DLGPROC)PluginsDlgProc);
@@ -10891,7 +10891,10 @@ void ReadThemes(MAINOPTIONS *mo)
   aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
   aec.crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
   aec.crActiveLineBk=GetSysColor(COLOR_WINDOW);
-  aec.crUrlText=GetSysColor(COLOR_HOTLIGHT);
+  if (GetSysColorBrush(COLOR_HOTLIGHT))
+    aec.crUrlText=GetSysColor(COLOR_HOTLIGHT);
+  else
+    aec.crUrlText=RGB(0x00, 0x00, 0xFF);
   aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
   StackThemeAdd(&hThemesStack, wbuf, &aec);
