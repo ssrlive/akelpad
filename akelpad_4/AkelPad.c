@@ -279,7 +279,6 @@ int nCodepageListLen=0;
 BOOL bCodepageListChanged=FALSE;
 int *lpCodepageTable;
 int nCodepageTableCount;
-BOOL bDefaultBOM;
 int nAnsiCodePage;
 int nOemCodePage;
 
@@ -418,7 +417,6 @@ void _WinMain()
 #ifndef AKELEDIT_STATICBUILD
   HMODULE hAkelLib=NULL;
 #endif
-  HDC hDC;
   BOOL bMsgStatus;
   int nHotkeyStatus;
   int nMajor;
@@ -453,6 +451,13 @@ void _WinMain()
   //Initialize WideFunc.h header
   WideInitialize();
 
+  //Get program HINSTANCE
+  hInstance=GetModuleHandleWide(NULL);
+
+  //Get program directory
+  GetExeDir(hInstance, wszExeDir, MAX_PATH);
+  WideCharToMultiByte(CP_ACP, 0, wszExeDir, -1, szExeDir, MAX_PATH, NULL, NULL);
+
   //Set default options before reading from registry/ini
   xmemset(&moInit, 0, sizeof(MAINOPTIONS));
   xmemset(&fdInit, 0, sizeof(FRAMEDATA));
@@ -461,9 +466,9 @@ void _WinMain()
   //System default codepages
   nAnsiCodePage=GetACP();
   nOemCodePage=GetOEMCP();
-  bDefaultBOM=FALSE;
   dwLangSystem=GetUserDefaultLangID();
   moInit.nDefaultCodePage=nAnsiCodePage;
+  moInit.bDefaultBOM=FALSE;
   moInit.nDefaultNewLine=NEWLINE_WIN;
 
   //System default print metrics
@@ -491,6 +496,7 @@ void _WinMain()
     prninfo.nToPage=1;
   }
 
+  //--Edit state external--
   //fdInit.hWndEditParent=NULL;
   //fdInit.ei.hWndEdit=NULL;
   //fdInit.ei.hDocEdit=NULL;
@@ -498,7 +504,7 @@ void _WinMain()
   fdInit.ei.szFile=fdInit.szFile;
   fdInit.ei.wszFile=fdInit.wszFile;
   fdInit.ei.nCodePage=moInit.nDefaultCodePage;
-  fdInit.ei.bBOM=bDefaultBOM;
+  fdInit.ei.bBOM=moInit.bDefaultBOM;
   fdInit.ei.nNewLine=moInit.nDefaultNewLine;
   //fdInit.ei.bModified=FALSE;
   //fdInit.ei.bReadOnly=FALSE;
@@ -526,29 +532,13 @@ void _WinMain()
   //fdInit.rcMasterWindow.right=0;
   //fdInit.rcMasterWindow.bottom=0;
 
+  //--Edit state internal--
   //fdInit.lpEditProc=NULL;
   //fdInit.ft.dwLowDateTime=0;
   //fdInit.ft.dwHighDateTime=0;
   fdInit.dwInputLocale=(DWORD)-1;
 
-  if (hDC=GetDC(NULL))
-  {
-    fdInit.lf.lfHeight=-MulDiv(10, GetDeviceCaps(hDC, LOGPIXELSY), 72);
-    fdInit.lf.lfWidth=0;
-    fdInit.lf.lfEscapement=0;
-    fdInit.lf.lfOrientation=0;
-    fdInit.lf.lfWeight=FW_NORMAL;
-    fdInit.lf.lfItalic=FALSE;
-    fdInit.lf.lfUnderline=FALSE;
-    fdInit.lf.lfStrikeOut=FALSE;
-    fdInit.lf.lfCharSet=DEFAULT_CHARSET;
-    fdInit.lf.lfOutPrecision=OUT_DEFAULT_PRECIS;
-    fdInit.lf.lfClipPrecision=CLIP_DEFAULT_PRECIS;
-    fdInit.lf.lfQuality=DEFAULT_QUALITY;
-    fdInit.lf.lfPitchAndFamily=DEFAULT_PITCH;
-    xstrcpynW(fdInit.lf.lfFaceName, L"Courier New", LF_FACESIZE);
-    ReleaseDC(NULL, hDC);
-  }
+  //--Edit settings--
   fdInit.aec.dwFlags=AECLR_ALL;
   fdInit.aec.crCaret=RGB(0x00, 0x00, 0x00);
   fdInit.aec.crBasicText=GetSysColor(COLOR_WINDOWTEXT);
@@ -557,7 +547,7 @@ void _WinMain()
   fdInit.aec.crSelBk=GetSysColor(COLOR_HIGHLIGHT);
   fdInit.aec.crActiveLineText=fdInit.aec.crBasicText;
   fdInit.aec.crActiveLineBk=fdInit.aec.crBasicBk;
-  fdInit.aec.crUrlText=RGB(0x00, 0x00, 0xFF);
+  fdInit.aec.crUrlText=GetSysColor(COLOR_HOTLIGHT);
   fdInit.aec.crActiveColumn=RGB(0x00, 0x00, 0x00);
   fdInit.aec.crColumnMarker=GetSysColor(COLOR_BTNFACE);
   fdInit.dwEditMargins=EDIT_MARGINS;
@@ -585,8 +575,10 @@ void _WinMain()
   xstrcpyW(fdInit.wszWordDelimiters, STR_WORD_DELIMITERSW);
   xstrcpyW(fdInit.wszWrapDelimiters, STR_WRAP_DELIMITERSW);
 
+  //--Save place--
   moInit.nSaveSettings=SS_REGISTRY;
 
+  //--Manual--
   moInit.dwShowModify=SM_STATUSBAR|SM_TABTITLE_MDI;
   //moInit.dwStatusPosType=0;
   //moInit.wszStatusUserFormat[0]='\0';
@@ -596,6 +588,7 @@ void _WinMain()
   //moInit.wszDateLogFormat[0]='\0';
   //moInit.wszDateInsertFormat[0]='\0';
 
+  //--Menu settings--
   //moInit.bOnTop=FALSE;
   moInit.bStatusBar=TRUE;
   //moInit.szLangModule[0]='\0';
@@ -608,6 +601,7 @@ void _WinMain()
   moInit.nMDI=WMD_SDI;
   moInit.dwTabOptionsMDI=TAB_VIEW_TOP|TAB_TYPE_STANDARD|TAB_SWITCH_RIGHTLEFT;
 
+  //--Settings dialog--
   //moInit.wszCommand[0]='\0';
   //moInit.wszWorkDir[0]='\0';
   //lpCodepageList=NULL;
@@ -626,27 +620,32 @@ void _WinMain()
   //moInit.bSaveInReadOnlyMsg=FALSE;
   xstrcpyW(moInit.wszDefaultSaveExt, STR_DEFAULTSAVEEXTW);
 
+  //--Search dialog--
   moInit.dwSearchOptions=FR_DOWN;
 
+  //--Open file dialog--
   //moInit.wszLastDir[0]='\0';
 
+  //--Print dialog--
   moInit.rcPrintMargins=prninfo.rtMargin;
-
   //moInit.dwPrintColor=0;
   //moInit.bPrintHeaderEnable=FALSE;
   xstrcpyW(moInit.wszPrintHeader, STR_PRINT_HEADERW);
   //moInit.bPrintFooterEnable=FALSE;
   xstrcpyW(moInit.wszPrintFooter, STR_PRINT_FOOTERW);
   //moInit.bPrintFontEnable=FALSE;
-  xmemcpy(&moInit.lfPrintFont, &fdInit.lf, sizeof(LOGFONTW));
 
+  //--Colors dialog--
   //xmemset(&moInit.rcColorsCurrentDialog, 0, sizeof(RECT));
 
+  //--Plugin dialog--
   //xmemset(&moInit.rcPluginsCurrentDialog, 0, sizeof(RECT));
 
+  //--Mdi list dialog--
   //moInit.dwMdiListOptions=0;
   //xmemset(&moInit.rcMdiListCurrentDialog, 0, sizeof(RECT));
 
+  //--Main window--
   //moInit.dwMainStyle=0;
   moInit.rcMainWindowRestored.left=CW_USEDEFAULT;
   moInit.rcMainWindowRestored.top=CW_USEDEFAULT;
@@ -654,19 +653,42 @@ void _WinMain()
   moInit.rcMainWindowRestored.bottom=CW_USEDEFAULT;
   moInit.dwMdiStyle=WS_MAXIMIZE;
 
-  //Get program HINSTANCE
-  hInstance=GetModuleHandleWide(NULL);
-
-  //Get program directory
-  GetExeDir(hInstance, wszExeDir, MAX_PATH);
-  WideCharToMultiByte(CP_ACP, 0, wszExeDir, -1, szExeDir, MAX_PATH, NULL, NULL);
-
   //Read options
   ReadOptions(&moInit, &fdInit);
 
+  if (!fdInit.lf.lfHeight)
+  {
+    //Get edit font
+    HDC hDC;
+
+    if (hDC=GetDC(NULL))
+    {
+      fdInit.lf.lfHeight=-MulDiv(10, GetDeviceCaps(hDC, LOGPIXELSY), 72);
+      fdInit.lf.lfWidth=0;
+      fdInit.lf.lfEscapement=0;
+      fdInit.lf.lfOrientation=0;
+      fdInit.lf.lfWeight=FW_NORMAL;
+      fdInit.lf.lfItalic=FALSE;
+      fdInit.lf.lfUnderline=FALSE;
+      fdInit.lf.lfStrikeOut=FALSE;
+      fdInit.lf.lfCharSet=DEFAULT_CHARSET;
+      fdInit.lf.lfOutPrecision=OUT_DEFAULT_PRECIS;
+      fdInit.lf.lfClipPrecision=CLIP_DEFAULT_PRECIS;
+      fdInit.lf.lfQuality=DEFAULT_QUALITY;
+      fdInit.lf.lfPitchAndFamily=DEFAULT_PITCH;
+      xstrcpynW(fdInit.lf.lfFaceName, L"Courier New", LF_FACESIZE);
+      ReleaseDC(NULL, hDC);
+    }
+  }
+  if (!moInit.lfPrintFont.lfHeight)
+  {
+    //Get print font
+    xmemcpy(&moInit.lfPrintFont, &fdInit.lf, sizeof(LOGFONTW));
+  }
+
   if (IsCodePageUnicode(moInit.nDefaultCodePage))
-    bDefaultBOM=TRUE;
-  fdInit.ei.bBOM=bDefaultBOM;
+    moInit.bDefaultBOM=TRUE;
+  fdInit.ei.bBOM=moInit.bDefaultBOM;
   fdInit.ei.nCodePage=moInit.nDefaultCodePage;
   prninfo.rtMargin=moInit.rcPrintMargins;
   nMDI=moInit.nMDI;
@@ -4238,7 +4260,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SetNewLineStatus(NULL, moCur.nDefaultNewLine, 0);
         SetOvertypeStatus(NULL, FALSE);
         SetModifyStatus(NULL, FALSE);
-        SetCodePageStatus(NULL, moCur.nDefaultCodePage, bDefaultBOM);
+        SetCodePageStatus(NULL, moCur.nDefaultCodePage, moCur.bDefaultBOM);
       }
 
       //Variants:

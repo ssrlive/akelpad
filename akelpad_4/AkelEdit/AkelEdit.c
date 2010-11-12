@@ -4217,7 +4217,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->popt->crSelBk=GetSysColor(COLOR_HIGHLIGHT);
     ae->popt->crActiveLineText=GetSysColor(COLOR_WINDOWTEXT);
     ae->popt->crActiveLineBk=GetSysColor(COLOR_WINDOW);
-    ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
+    ae->popt->crUrlText=GetSysColor(COLOR_HOTLIGHT);
     ae->popt->crActiveColumn=RGB(0x00, 0x00, 0x00);
     ae->popt->crColumnMarker=GetSysColor(COLOR_BTNFACE);
     ae->popt->bDefaultColors=TRUE;
@@ -18324,7 +18324,7 @@ void AE_GetColors(AKELEDIT *ae, AECOLORS *aec)
   if (aec->dwFlags & AECLR_URLTEXT)
   {
     if (aec->dwFlags & AECLR_DEFAULT)
-      aec->crUrlText=RGB(0x00, 0x00, 0xFF);
+      aec->crUrlText=GetSysColor(COLOR_HOTLIGHT);
     else
       aec->crUrlText=ae->popt->crUrlText;
   }
@@ -18463,7 +18463,7 @@ void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec)
     {
       if (aec->dwFlags & AECLR_DEFAULT)
       {
-        ae->popt->crUrlText=RGB(0x00, 0x00, 0xFF);
+        ae->popt->crUrlText=GetSysColor(COLOR_HOTLIGHT);
       }
       else
       {
