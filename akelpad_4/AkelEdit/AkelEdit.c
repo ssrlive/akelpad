@@ -15410,11 +15410,16 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                       lpPoint->dwFlags|=AEPTF_MODIFY|AEPTF_DELETE;
                       AE_NotifyPoint(ae, AEPTT_DELETE, lpPoint);
                     }
+                    if (!lpBreak) lpBreak=lpPoint;
                   }
+                  else if (lpPoint->nPointOffset >= nLineOffsetOld)
+                    lpPoint->nReserved=lpPoint->nPointOffset - (nRichTextCount - nLineDelLength);
+                }
+                else
+                {
+                  lpPoint->nReserved=lpPoint->nPointOffset - nRichTextCount;
                   if (!lpBreak) lpBreak=lpPoint;
                 }
-                else if (lpPoint->nReserved == AEPTO_IGNORE)
-                  lpPoint->nReserved=lpPoint->nPointOffset - nRichTextCount;
               }
             }
             if (lpBreak) lpPoint=lpBreak;
@@ -15949,11 +15954,11 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
   int nHScrollPos=0;
   int nVScrollPos=0;
   int nInsertOffset;
+  int nInsertInLineOffset;
   int nStartOffset;
   int nEndOffset;
   int nLineOffsetNew;
   int nLineOffsetOld;
-  int nLineInsertOffsetOld;
   int nFirstRedrawLine=0;
   int nLastRedrawLine=0;
   int i;
@@ -16047,7 +16052,7 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                 ciFirstChar.lpLine=lpNewElement;
               else
                 AE_GetCharInLine(ae, lpElement, ptInsertFrom.x, AECIL_HALFFIT|AECIL_ALLPOS, &ciInsertFrom.nCharInLine, NULL, bColumnSel);
-              nLineInsertOffsetOld=nLineOffsetOld + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
+              nInsertInLineOffset=nLineOffsetOld + min(ciInsertFrom.nCharInLine, lpElement->nLineLen);
 
               lpNewElement->nLineWidth=-1;
               if (lpElement->nLineBreak != AELB_EOF)
@@ -16092,18 +16097,23 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                   //Offsets
                   if (lpPoint->nPointOffset >= 0)
                   {
-                    if (lpPoint->nPointOffset < nLineInsertOffsetOld)
+                    if (lpPoint->nPointOffset < nInsertInLineOffset)
                     {
-                      if (lpPoint->nPointOffset + lpPoint->nPointLen > nLineInsertOffsetOld)
+                      if (lpPoint->nPointOffset + lpPoint->nPointLen > nInsertInLineOffset)
                       {
                         lpPoint->nPointLen+=nLineLen;
                         lpPoint->dwFlags|=AEPTF_MODIFY|AEPTF_INSERT;
                         AE_NotifyPoint(ae, AEPTT_INSERT, lpPoint);
+                        if (!lpBreak) lpBreak=lpPoint;
                       }
+                      else if (lpPoint->nPointOffset >= nLineOffsetOld)
+                        lpPoint->nReserved=lpPoint->nPointOffset + dwRichTextCount - (lpNewElement->nLineLen - lpElement->nLineLen);
+                    }
+                    else
+                    {
+                      lpPoint->nReserved=lpPoint->nPointOffset + dwRichTextCount;
                       if (!lpBreak) lpBreak=lpPoint;
                     }
-                    else if (lpPoint->nReserved == AEPTO_IGNORE)
-                      lpPoint->nReserved=lpPoint->nPointOffset + dwRichTextCount;
                   }
                 }
                 if (lpBreak) lpPoint=lpBreak;
