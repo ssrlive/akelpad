@@ -12,6 +12,7 @@ Fixed: selection after split window off (MDI).
 Fixed: double/triple mouse click in split windows.
 Fixed: scrolling to founded text.
 Fixed: variable "%dm" for "StatusUserFormat".
+Fixed: left button click in Windows 95.
 
 
 AkelPad 4.5.0 (Oct 28, 2010)
