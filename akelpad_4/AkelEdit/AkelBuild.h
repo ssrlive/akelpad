@@ -136,15 +136,17 @@
 #endif
 #ifndef IMR_RECONVERTSTRING
   #define IMR_RECONVERTSTRING    0x0004
-#endif
-#ifndef IMR_CONFIRMRECONVERTSTRING
-  #define IMR_CONFIRMRECONVERTSTRING  0x0005
-#endif
-#ifndef IMR_QUERYCHARPOSITION
-  #define IMR_QUERYCHARPOSITION       0x0006
-#endif
-#ifndef IMR_DOCUMENTFEED
-  #define IMR_DOCUMENTFEED            0x0007
+
+  typedef struct tagRECONVERTSTRING {
+    DWORD dwSize;
+    DWORD dwVersion;
+    DWORD dwStrLen;
+    DWORD dwStrOffset;
+    DWORD dwCompStrLen;
+    DWORD dwCompStrOffset;
+    DWORD dwTargetStrLen;
+    DWORD dwTargetStrOffset;
+  } RECONVERTSTRING;
 #endif
 
 //Undo element
