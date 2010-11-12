@@ -31,6 +31,9 @@
 #define AEMMB_BEGINDRAG      5
 #define AEMMB_DROPSCROLL     60
 
+#ifndef IDC_HAND
+  #define IDC_HAND MAKEINTRESOURCE(32649)
+#endif
 #ifndef NOTSRCINVERT
   #define NOTSRCINVERT         (DWORD)0x00990066 /* dest = (NOT source) XOR dest */
 #endif
