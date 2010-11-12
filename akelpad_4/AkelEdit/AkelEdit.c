@@ -3369,6 +3369,52 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
         return 1;
       }
     }
+    else if (wParam == IMR_RECONVERTSTRING)
+    {
+      RECONVERTSTRING *lprs=(RECONVERTSTRING *)lParam;
+      DWORD dwChars;
+
+      if (!ae->bColumnSel)
+      {
+        if (!lprs)
+        {
+          if (!ae->bUnicodeWindow)
+          {
+            if (dwChars=AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, NULL, 0, AELB_ASOUTPUT, FALSE, FALSE))
+              return sizeof(RECONVERTSTRING) + dwChars;
+          }
+          else
+          {
+            if (dwChars=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, NULL, 0, AELB_ASOUTPUT, FALSE, FALSE))
+              return sizeof(RECONVERTSTRING) + dwChars * sizeof(wchar_t);
+          }
+        }
+        else
+        {
+          if (!ae->bUnicodeWindow)
+            dwChars=AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (char *)((BYTE *)lprs + sizeof(RECONVERTSTRING)), lprs->dwSize - sizeof(RECONVERTSTRING), AELB_ASOUTPUT, FALSE, FALSE);
+          else
+            dwChars=AE_GetTextRange(ae, &ae->ciSelStartIndex, &ae->ciSelEndIndex, (wchar_t *)((BYTE *)lprs + sizeof(RECONVERTSTRING)), lprs->dwSize - sizeof(RECONVERTSTRING), AELB_ASOUTPUT, FALSE, FALSE);
+
+          if (dwChars)
+          {
+            lprs->dwVersion=0;
+            lprs->dwStrLen=dwChars;
+            lprs->dwStrOffset=sizeof(RECONVERTSTRING);
+            lprs->dwCompStrLen=dwChars;
+            lprs->dwCompStrOffset=0;
+            lprs->dwTargetStrLen=lprs->dwCompStrLen;
+            lprs->dwTargetStrOffset=lprs->dwCompStrOffset;
+
+            if (!ae->bUnicodeWindow)
+              return sizeof(RECONVERTSTRING) + dwChars;
+            else
+              return sizeof(RECONVERTSTRING) + dwChars * sizeof(wchar_t);
+          }
+        }
+      }
+      return 0;
+    }
   }
   else if (uMsg == WM_IME_STARTCOMPOSITION)
   {
@@ -17177,7 +17223,10 @@ void AE_UpdateCompositionPos(AKELEDIT *ae, HIMC hImc)
   if (hImcCur || (hImcCur=ImmGetContext(ae->hWndEdit)))
   {
     cf.dwStyle=CFS_POINT;
-    AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
+    if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+      AE_GetPosFromChar(ae, &ae->ciSelStartIndex, NULL, &cf.ptCurrentPos);
+    else
+      AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
     ImmSetCompositionWindow(hImcCur, &cf);
 
     if (!hImc) ImmReleaseContext(ae->hWndEdit, hImcCur);
@@ -17193,7 +17242,10 @@ void AE_UpdateCandidatePos(AKELEDIT *ae, HIMC hImc)
   {
     cf.dwIndex=0;
     cf.dwStyle=CFS_CANDIDATEPOS;
-    AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
+    if (AE_IndexCompare(&ae->ciSelStartIndex, &ae->ciSelEndIndex))
+      AE_GetPosFromChar(ae, &ae->ciSelStartIndex, NULL, &cf.ptCurrentPos);
+    else
+      AE_GlobalToClient(ae, &ae->ptCaret, &cf.ptCurrentPos);
     cf.ptCurrentPos.y+=ae->ptxt->nCharHeight;
     ImmSetCandidateWindow(hImcCur, &cf);
 
