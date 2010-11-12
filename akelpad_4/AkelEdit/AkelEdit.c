@@ -73,6 +73,7 @@ BOOL bAkelEditClassRegisteredA=FALSE;
 BOOL bAkelEditClassRegisteredW=FALSE;
 BOOL bRichEditClassRegisteredA=FALSE;
 BOOL bRichEditClassRegisteredW=FALSE;
+BOOL bAkelEditWindows95=FALSE;
 HCURSOR hAkelEditCursorIBeam=NULL;
 HCURSOR hAkelEditCursorArrow=NULL;
 HCURSOR hAkelEditCursorMargin=NULL;
@@ -181,6 +182,16 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
     if (!hAkelEditBitmapMCenterAll) hAkelEditBitmapMCenterAll=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERALL), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterLeftRight) hAkelEditBitmapMCenterLeftRight=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERLEFTRIGHT), IMAGE_BITMAP, 0, 0, 0);
     if (!hAkelEditBitmapMCenterTopBottom) hAkelEditBitmapMCenterTopBottom=(HBITMAP)LoadImageA(hInstance, MAKEINTRESOURCEA(IDB_BITMAP_MCENTERTOPBOTTOM), IMAGE_BITMAP, 0, 0, 0);
+
+    //Is Windows 95?
+    {
+      OSVERSIONINFO ovi;
+
+      ovi.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
+      GetVersionEx(&ovi);
+      if (ovi.dwMajorVersion == 4 && ovi.dwMinorVersion == 0 && ovi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS)
+        bAkelEditWindows95=TRUE;
+    }
   }
   return bAkelEditClassRegisteredA;
 }
@@ -3614,10 +3625,14 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
       GetCursorPos(&ptPos);
       ScreenToClient(ae->hWndEdit, &ptPos);
-      if (LOWORD(ptPos.x) != LOWORD(lParam) || LOWORD(ptPos.y) != HIWORD(lParam))
+
+      if (!bAkelEditWindows95)
       {
-        //Current mouse position doesn't match message position.
-        return 0;
+        if (ptPos.x != LOWORD(lParam) || ptPos.y != HIWORD(lParam))
+        {
+          //Current mouse position doesn't match message position.
+          return 0;
+        }
       }
 
       if (ae->ptLButtonDownPrevPos.x == ptPos.x && ae->ptLButtonDownPrevPos.y == ptPos.y &&
