@@ -15419,9 +15419,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                   {
                     //--<--->-[---]--
                     if (lpPoint->nTmpPointOffset == AEPTO_CALC)
-                      lpPoint->nPointOffset-=nRichTextCount - nLineDelLength;
-                    else
-                      lpPoint->nTmpPointOffset-=nRichTextCount - nLineDelLength;
+                      lpPoint->nTmpPointOffset=lpPoint->nPointOffset - (nRichTextCount - nLineDelLength);
                   }
                   else
                   {
@@ -15429,10 +15427,9 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                     //--<-[----]->--
                     //--<-[->--]----
                     if (lpPoint->nTmpPointOffset == AEPTO_CALC)
-                    {
                       lpPoint->nTmpPointOffset=min(lpPoint->nPointOffset, nLineDelStartOffsetOld) - (nRichTextCount - nLineDelLength);
+                    if (lpPoint->nTmpPointLen == AEPTO_CALC)
                       lpPoint->nTmpPointLen=lpPoint->nPointLen;
-                    }
                     lpPoint->nTmpPointLen-=min(lpPoint->nPointOffset + lpPoint->nPointLen, nLineDelEndOffsetOld) - max(lpPoint->nPointOffset, nLineDelStartOffsetOld);
                     lpPoint->dwFlags|=AEPTF_MODIFY|AEPTF_DELETE|AEPTF_NOTIFYDELETE;
                     if (!lpRestartFrom) lpRestartFrom=lpPoint;
@@ -15441,10 +15438,8 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                 else
                 {
                   //--[---]-<--->--
-                    if (lpPoint->nTmpPointOffset == AEPTO_CALC)
-                      lpPoint->nPointOffset-=nRichTextCount;
-                    else
-                      lpPoint->nTmpPointOffset-=nRichTextCount;
+                  if (lpPoint->nTmpPointOffset == AEPTO_CALC)
+                    lpPoint->nTmpPointOffset=lpPoint->nPointOffset - nRichTextCount;
 
                   if (nElementLine != ciDeleteEnd.nLine)
                   {
