@@ -119,11 +119,13 @@
 #define AEPTT_DELETE            0x00000008  //Delete operation.
 
 //AEPOINT flags
-#define AEPTF_MOVED      0x00000001  //If set, AEPOINT.ciPoint index has been moved.
-#define AEPTF_MODIFY     0x00000002  //If set, AEPOINT.ciPoint index has been modified.
-#define AEPTF_INSERT     0x00000004  //If set, AEPOINT.nPointLen index has been increased. Additional for AEPTF_MODIFY flag.
-#define AEPTF_DELETE     0x00000008  //If set, AEPOINT.nPointLen index has been decreased. Additional for AEPTF_MODIFY flag.
-#define AEPTF_FOLD       0x00000100  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
+#define AEPTF_MOVED         0x00000001  //If set, AEPOINT.ciPoint index has been moved.
+#define AEPTF_MODIFY        0x00000002  //If set, AEPOINT.ciPoint index has been modified.
+#define AEPTF_INSERT        0x00000004  //If set, AEPOINT.nPointLen index has been increased. Additional for AEPTF_MODIFY flag.
+#define AEPTF_DELETE        0x00000008  //If set, AEPOINT.nPointLen index has been decreased. Additional for AEPTF_MODIFY flag.
+#define AEPTF_NOTIFYDELETE  0x00000010  //Don't use it. For internal code only.
+#define AEPTF_NOTIFYINSERT  0x00000020  //Don't use it. For internal code only.
+#define AEPTF_FOLD          0x00000100  //If set, AEPOINT.ciPoint index is used in fold. AEPOINT.dwUserData is pointer to a AEFOLD structure.
 
 //AEPOINT character offset value
 #define AEPTO_IGNORE    -1  //Character RichEdit offset is not used in AEPOINT.
@@ -618,6 +620,8 @@ typedef struct _AEPOINT {
   int nPointLen;           //Point length.
   DWORD dwFlags;           //See AEPTF_* defines.
   DWORD dwUserData;        //User data.
+  int nTmpPointOffset;     //Don't use it. For internal code only.
+  int nTmpPointLen;        //Don't use it. For internal code only.
 } AEPOINT;
 
 typedef struct _AEFOLD {
