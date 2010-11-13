@@ -15411,7 +15411,7 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
               }
 
               //Offsets
-              if (lpPoint->nPointOffset >= 0)
+              if (lpPoint->nPointOffset + lpPoint->nPointLen > nLineOffsetOld)
               {
                 if (lpPoint->nPointOffset < nLineDelEndOffsetOld)
                 {
@@ -15441,14 +15441,12 @@ DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AE
                 else
                 {
                   //--[---]-<--->--
-                  if (nElementLine == ciDeleteEnd.nLine)
-                  {
                     if (lpPoint->nTmpPointOffset == AEPTO_CALC)
                       lpPoint->nPointOffset-=nRichTextCount;
                     else
                       lpPoint->nTmpPointOffset-=nRichTextCount;
-                  }
-                  else
+
+                  if (nElementLine != ciDeleteEnd.nLine)
                   {
                     //Parse next line
                     if (!lpRestartFrom) lpRestartFrom=lpPoint;
@@ -16131,14 +16129,16 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                   }
 
                   //Offsets
-                  if (lpPoint->nPointOffset >= 0)
+                  if (lpPoint->nPointOffset + lpPoint->nPointLen > nLineOffsetOld)
                   {
                     if (lpPoint->nPointOffset < nInsertInLineOffset)
                     {
+                      if (lpPoint->nTmpPointOffset == AEPTO_CALC)
+                        lpPoint->nTmpPointOffset=lpPoint->nPointOffset + dwRichTextCount - (lpNewElement->nLineLen - lpElement->nLineLen);
+
                       if (lpPoint->nPointOffset + lpPoint->nPointLen <= nInsertInLineOffset)
                       {
                         //--<--->--|--
-                        lpPoint->nPointOffset+=dwRichTextCount - (lpNewElement->nLineLen - lpElement->nLineLen);
                       }
                       else
                       {
@@ -16153,9 +16153,10 @@ DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t 
                     else
                     {
                       //--|--<--->--
-                      if (nLineBreak == AELB_EOF)
-                        lpPoint->nPointOffset+=dwRichTextCount;
-                      else
+                      if (lpPoint->nTmpPointOffset == AEPTO_CALC)
+                        lpPoint->nTmpPointOffset=lpPoint->nPointOffset + dwRichTextCount;
+
+                      if (nLineBreak != AELB_EOF)
                       {
                         //Parse next line
                         if (!lpRestartFrom) lpRestartFrom=lpPoint;
