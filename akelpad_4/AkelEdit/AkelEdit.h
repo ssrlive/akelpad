@@ -618,7 +618,6 @@ typedef struct _AEPOINT {
   int nPointLen;           //Point length.
   DWORD dwFlags;           //See AEPTF_* defines.
   DWORD dwUserData;        //User data.
-  int nReserved;           //Don't use it. For internal code only.
 } AEPOINT;
 
 typedef struct _AEFOLD {

@@ -741,7 +741,6 @@ int AE_StackFoldFree(AKELEDIT *ae);
 int AE_VPos(AKELEDIT *ae, int nValue, DWORD dwFlags);
 AEPOINT* AE_StackPointInsert(AKELEDIT *ae, AECHARINDEX *ciPoint);
 void AE_StackPointUnset(AKELEDIT *ae, DWORD dwFlags);
-void AE_StackPointUnreserve(AKELEDIT *ae);
 void AE_StackPointReset(AKELEDIT *ae, DWORD dwType);
 void AE_StackPointDelete(AKELEDIT *ae, AEPOINT *lpElement);
 void AE_StackPointFree(AKELEDIT *ae);
