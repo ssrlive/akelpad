@@ -117,7 +117,6 @@
 #define ListBox_FindStringWide
 #define ListBox_GetTextWide
 #define ListBox_InsertStringWide
-#define ListView_GetItemWide
 #define ListView_InsertColumnWide
 #define ListView_InsertItemWide
 #define ListView_SetItemWide

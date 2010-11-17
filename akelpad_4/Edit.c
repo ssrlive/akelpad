@@ -10773,10 +10773,10 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
         if (ctElement=StackThemeGetByName(&hThemesStack, wbuf))
         {
-          StackThemeDelete(&hThemesStack, ctElement);
           nSelection=ComboBox_FindStringWide(hWndThemeName, -1, ctElement->wszName);
           SendMessageW(hWndThemeName, CB_DELETESTRING, nSelection, 0);
           SendMessage(hWndThemeName, CB_SETCURSEL, (WPARAM)-1, 0);
+          StackThemeDelete(&hThemesStack, ctElement);
 
           SetFocus(hWndThemeName);
           EnableWindow(hWndThemeSave, FALSE);
