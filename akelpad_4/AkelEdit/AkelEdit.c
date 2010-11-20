@@ -1367,7 +1367,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETWORDDELIMITERS)
     {
-      if (wParam) xmemcpy((wchar_t *)wParam, ae->popt->wszWordDelimiters, min(lParam * sizeof(wchar_t), sizeof(ae->popt->wszWordDelimiters)));
+      if (wParam) xmemcpy((wchar_t *)lParam, ae->popt->wszWordDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->popt->wszWordDelimiters)));
       return 0;
     }
     if (uMsg == AEM_SETWORDDELIMITERS)
@@ -1380,7 +1380,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETWRAPDELIMITERS)
     {
-      if (wParam) xmemcpy((wchar_t *)wParam, ae->ptxt->wszWrapDelimiters, min(lParam * sizeof(wchar_t), sizeof(ae->ptxt->wszWrapDelimiters)));
+      if (wParam) xmemcpy((wchar_t *)lParam, ae->ptxt->wszWrapDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->ptxt->wszWrapDelimiters)));
       return 0;
     }
     if (uMsg == AEM_SETWRAPDELIMITERS)
@@ -1400,7 +1400,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETURLLEFTDELIMITERS)
     {
-      if (wParam) xmemcpy((wchar_t *)wParam, ae->popt->wszUrlLeftDelimiters, min(lParam * sizeof(wchar_t), sizeof(ae->popt->wszUrlLeftDelimiters)));
+      if (wParam) xmemcpy((wchar_t *)lParam, ae->popt->wszUrlLeftDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->popt->wszUrlLeftDelimiters)));
       return 0;
     }
     if (uMsg == AEM_SETURLLEFTDELIMITERS)
@@ -1415,7 +1415,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETURLRIGHTDELIMITERS)
     {
-      if (wParam) xmemcpy((wchar_t *)wParam, ae->popt->wszUrlRightDelimiters, min(lParam * sizeof(wchar_t), sizeof(ae->popt->wszUrlRightDelimiters)));
+      if (wParam) xmemcpy((wchar_t *)lParam, ae->popt->wszUrlRightDelimiters, min(wParam * sizeof(wchar_t), sizeof(ae->popt->wszUrlRightDelimiters)));
       return 0;
     }
     if (uMsg == AEM_SETURLRIGHTDELIMITERS)
@@ -1430,7 +1430,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_GETURLPREFIXES)
     {
-      if (wParam) xmemcpy((wchar_t *)wParam, ae->popt->wszUrlPrefixes, min(lParam * sizeof(wchar_t), sizeof(ae->popt->wszUrlPrefixes)));
+      if (wParam) xmemcpy((wchar_t *)lParam, ae->popt->wszUrlPrefixes, min(wParam * sizeof(wchar_t), sizeof(ae->popt->wszUrlPrefixes)));
       return 0;
     }
     if (uMsg == AEM_SETURLPREFIXES)
