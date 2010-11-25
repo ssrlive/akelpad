@@ -8,6 +8,7 @@ Changed: now by default uses system color for hyperlinks.
 Changed: now uses system cursor for hyperlinks, if possible.
 
 Fixed: replacement with multi-line text.
+Fixed: no message if error appears during opening/saving files.
 Fixed: URL in comment fold didn't highlighted.
 Fixed: selection after split window off (MDI).
 Fixed: double/triple mouse click in split windows.
