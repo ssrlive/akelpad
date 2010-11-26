@@ -18887,7 +18887,8 @@ void AE_NotifyTextChanged(AKELEDIT *ae)
   //Send EN_CHANGE
   if (ae->popt->dwRichEventMask & ENM_CHANGE)
   {
-    AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
+    if (!(ae->dwNotifyTextChange & AETCT_NONE))
+      AE_SendMessage(ae, ae->hWndParent, WM_COMMAND, MAKELONG(ae->nEditCtrlID, EN_CHANGE), (LPARAM)ae->hWndEdit);
   }
 
   ae->dwNotifyTextChange=0;
