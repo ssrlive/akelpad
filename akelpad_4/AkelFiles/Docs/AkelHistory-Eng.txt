@@ -4,6 +4,7 @@ AkelPad 4.5.1 ()
 Changed: speed of work with code folding is increased.
 Changed: improved work with Input Method Editors (IME).
 Changed: default font is now "Courier New" with size 10.
+Changed: tabs drawing with using visual styles on windows and buttons in Windows XP (MDI/PMDI).
 Changed: now by default uses system color for hyperlinks.
 Changed: now uses system cursor for hyperlinks, if possible.
 

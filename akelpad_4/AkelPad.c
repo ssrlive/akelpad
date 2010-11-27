@@ -1279,7 +1279,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       hTab=CreateWindowExWide(0,
                               L"SysTabControl32",
                               NULL,
-                              WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|TCS_SINGLELINE|TCS_FOCUSNEVER|TCS_BUTTONS|TCS_FLATBUTTONS,
+                              WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN|WS_CLIPSIBLINGS|TCS_SINGLELINE|TCS_FOCUSNEVER|TCS_HOTTRACK|
+                                ((moCur.dwTabOptionsMDI & TAB_TYPE_STANDARD)?TCS_TABS:(TCS_BUTTONS|TCS_FLATBUTTONS)),
                               rcRect.left, rcRect.top, rcRect.right, TAB_HEIGHT,
                               hWnd,
                               (HMENU)ID_TAB,
@@ -1291,7 +1292,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       SendMessage(hTab, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), TRUE);
       hImageList=ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), ILC_COLOR32|ILC_MASK, 0, 0);
-      ImageList_SetBkColor(hImageList, GetSysColor(COLOR_BTNFACE));
+      ImageList_SetBkColor(hImageList, CLR_NONE);
       SendMessage(hTab, TCM_SETIMAGELIST, 0, (LPARAM)hImageList);
       SendMessage(hTab, TCM_SETEXTENDEDSTYLE, 0, TCS_EX_FLATSEPARATORS|TCS_EX_REGISTERDROP);
 
