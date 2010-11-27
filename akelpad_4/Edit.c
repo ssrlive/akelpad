@@ -2652,7 +2652,7 @@ void DoWindowTabView(DWORD dwNewView, BOOL bFirst)
 void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
 {
   DWORD dwOldType=moCur.dwTabOptionsMDI;
-  DWORD dwStyle;
+  DWORD dwCurStyle;
   int nCommand=0;
 
   if (dwNewType & TAB_TYPE_STANDARD)
@@ -2681,24 +2681,40 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
   if (bFirst != TRUE && dwNewType == dwOldType) return;
   moCur.dwTabOptionsMDI=moCur.dwTabOptionsMDI & ~TAB_TYPE_STANDARD & ~TAB_TYPE_BUTTONS & ~TAB_TYPE_FLATBUTTONS;
   moCur.dwTabOptionsMDI|=dwNewType;
+  dwCurStyle=GetWindowLongWide(hTab, GWL_STYLE);
 
   if (moCur.dwTabOptionsMDI & TAB_TYPE_STANDARD)
   {
-    dwStyle=GetWindowLongWide(hTab, GWL_STYLE);
-    SetWindowLongWide(hTab, GWL_STYLE, dwStyle & ~TCS_BUTTONS & ~TCS_FLATBUTTONS);
-    SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT - 4));
+    if (dwOldType & TAB_TYPE_STANDARD)
+    {
+      SetWindowLongWide(hTab, GWL_STYLE, (dwCurStyle | TCS_TABS) & ~TCS_BUTTONS & ~TCS_FLATBUTTONS);
+      SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT - 4));
+    }
   }
-  else if (moCur.dwTabOptionsMDI & TAB_TYPE_BUTTONS)
+  else
   {
-    dwStyle=GetWindowLongWide(hTab, GWL_STYLE);
-    SetWindowLongWide(hTab, GWL_STYLE, (dwStyle|TCS_BUTTONS) & ~TCS_FLATBUTTONS);
-    SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
+    if ((dwOldType & TAB_TYPE_BUTTONS) ||
+        (dwOldType & TAB_TYPE_FLATBUTTONS))
+    {
+      if (moCur.dwTabOptionsMDI & TAB_TYPE_BUTTONS)
+      {
+        SetWindowLongWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS) & ~TCS_TABS & ~TCS_FLATBUTTONS);
+        SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
+        return;
+      }
+      else if (moCur.dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS)
+      {
+        SetWindowLongWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS | TCS_FLATBUTTONS) & ~TCS_TABS);
+        SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
+        return;
+      }
+    }
   }
-  else if (moCur.dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS)
+
+  if (dwNewType != dwOldType)
   {
-    dwStyle=GetWindowLongWide(hTab, GWL_STYLE);
-    SetWindowLongWide(hTab, GWL_STYLE, dwStyle|TCS_BUTTONS|TCS_FLATBUTTONS);
-    SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
+    API_LoadStringW(hLangLib, MSG_RESTART_PROGRAM, wbuf, BUFFER_SIZE);
+    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONEXCLAMATION);
   }
 }
 
