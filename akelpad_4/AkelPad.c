@@ -2053,6 +2053,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         return lpFrameCurrent->dwLineGap;
       }
+      if (wParam == EO_LOCKINHERIT)
+      {
+        return lpFrameCurrent->dwLockInherit;
+      }
       return 0;
     }
     if (uMsg == AKD_SETEDITOPTION)
