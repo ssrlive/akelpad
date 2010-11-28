@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 1)
+#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 2)
 
 
 //// Defines
@@ -134,13 +134,14 @@
 #define SH_CLEAR  2  //Clear searh history.
 
 //AKD_SETEDITOPTION flags
-#define EO_TEXTMARGINS 1 //The low-order word specifies the new width of the left margin, in pixels. The high-order word specifies the new width of the right margin, in pixels.
-#define EO_TABSIZE     2 //Tabulation size.
-#define EO_UNDOLIMIT   3 //Undo limit.
-#define EO_WRAPLIMIT   4 //Wrap limit.
-#define EO_MARKERPOS   5 //Column marker position.
-#define EO_CARETWIDTH  6 //Caret width.
-#define EO_LINEGAP     7 //Gap between lines.
+#define EO_TEXTMARGINS 1  //The low-order word specifies the new width of the left margin, in pixels. The high-order word specifies the new width of the right margin, in pixels.
+#define EO_TABSIZE     2  //Tabulation size.
+#define EO_UNDOLIMIT   3  //Undo limit.
+#define EO_WRAPLIMIT   4  //Wrap limit.
+#define EO_MARKERPOS   5  //Column marker position.
+#define EO_CARETWIDTH  6  //Caret width.
+#define EO_LINEGAP     7  //Gap between lines.
+#define EO_LOCKINHERIT 21 //See LI_* defines.
 
 //New line format
 #define NEWLINE_WIN   1  //Windows/DOS new line format (\r\n).
@@ -283,6 +284,10 @@
 #define FWS_COUNTMODIFIED 1  //Count of modified windows.
 #define FWS_COUNTSAVED    2  //Count of unmodified windows.
 #define FWS_CURSEL        3  //Active window zero based index.
+
+//Lock inherit new document settings from current document
+#define LI_FONT           0x00000001  //Lock inherit font.
+#define LI_WRAP           0x00000002  //Lock inherit wrapping.
 
 //Find text flags
 #ifndef FR_DOWN
@@ -637,11 +642,6 @@ typedef struct _FRAMEDATA {
   RECT rcEditWindow;                                  //Edit RECT. rcEditWindow.right - is width and rcEditWindow.bottom is height.
   RECT rcMasterWindow;                                //Master window RECT (4.x only). rcMasterWindow.right - is width and rcMasterWindow.bottom is height.
 
-  //Edit state internal
-  AEEditProc lpEditProc;                              //Edit window procedure (4.x only).
-  FILETIME ft;                                        //File time.
-  DWORD dwInputLocale;                                //Keyboard layout (4.x only).
-
   //Edit settings
   LOGFONTW lf;                                        //Edit font.
   AECOLORS aec;                                       //Edit colors.
@@ -669,6 +669,12 @@ typedef struct _FRAMEDATA {
   wchar_t wszUrlRightDelimiters[URL_DELIMITERS_SIZE]; //URL right delimiters (4.x only).
   wchar_t wszWordDelimiters[WORD_DELIMITERS_SIZE];    //Word delimiters.
   wchar_t wszWrapDelimiters[WRAP_DELIMITERS_SIZE];    //Wrap delimiters (4.x only).
+
+  //Edit state internal
+  AEEditProc lpEditProc;                              //Edit window procedure (4.x only).
+  FILETIME ft;                                        //File time.
+  DWORD dwInputLocale;                                //Keyboard layout (4.x only).
+  DWORD dwLockInherit;                                //See LI_* defines.
 
   //Substract selection
   AECHARRANGE crPrevSel;

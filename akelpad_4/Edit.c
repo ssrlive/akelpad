@@ -310,6 +310,11 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
 {
   DWORD dwOptions;
 
+  if (lpFrame->dwLockInherit & LI_FONT)
+    xmemcpy(&lpFrame->lf, &fdInit.lf, sizeof(LOGFONTW));
+  if (lpFrame->dwLockInherit & LI_WRAP)
+    lpFrame->ei.bWordWrap=FALSE;
+
   //Set settings
   DoViewReadOnly(lpFrame, lpFrame->ei.bReadOnly, TRUE);
   SendMessage(lpFrame->ei.hWndEdit, AEM_SETEVENTMASK, 0, AENM_SCROLL|AENM_PROGRESS|AENM_MODIFY|AENM_SELCHANGE|AENM_TEXTCHANGE|AENM_TEXTINSERT|AENM_TEXTDELETE|AENM_DRAGDROP|AENM_POINT|AENM_LINK);
@@ -16273,6 +16278,11 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
       SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETLINEGAP, lpFrameCurrent->dwLineGap, 0);
       return TRUE;
     }
+  }
+  else if (nType == EO_LOCKINHERIT)
+  {
+    lpFrameCurrent->dwLockInherit=dwData;
+    return TRUE;
   }
   return FALSE;
 }
