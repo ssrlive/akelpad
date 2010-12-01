@@ -949,6 +949,7 @@ void AE_NotifyKillFocus(AKELEDIT *ae, HWND hWndReceive);
 void AE_NotifyHScroll(AKELEDIT *ae);
 void AE_NotifyVScroll(AKELEDIT *ae);
 void AE_NotifySetRect(AKELEDIT *ae);
+void AE_NotifyPaint(AKELEDIT *ae, AENPAINT *pnt);
 void AE_NotifyMaxText(AKELEDIT *ae);
 BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, int nCurrent, int nMaximum);
 void AE_NotifyModify(AKELEDIT *ae);

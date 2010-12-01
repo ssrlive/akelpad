@@ -11825,6 +11825,7 @@ void AE_Paint(AKELEDIT *ae)
     {
       AEHLPAINT hlp;
       AETEXTOUT to;
+      AENPAINT pntNotify;
       AEFOLD *lpCollapsed;
       HBRUSH hBasicBk;
       HBRUSH hSelBk;
@@ -11920,6 +11921,12 @@ void AE_Paint(AKELEDIT *ae)
           to.nMaxDrawCharsCount=0;
           to.wpStartDraw=to.ciDrawLine.lpLine->wpLine + to.ciDrawLine.nCharInLine;
           hlp.dwFindFirst=AEHPT_SELECTION|AEHPT_MARKTEXT|AEHPT_LINK|AEHPT_QUOTE|AEHPT_DELIM1;
+
+          //Remember first paint char in line for notify
+          pntNotify.ciMinDraw=to.ciDrawLine;
+          pntNotify.nMinDrawOffset=to.nDrawCharOffset;
+          pntNotify.ptMinDraw.x=to.ptFirstCharInLine.x + to.nStartDrawWidth;
+          pntNotify.ptMinDraw.y=to.ptFirstCharInLine.y;
 
           //Set initial colors
           if (to.ciDrawLine.lpLine == ae->ciCaretIndex.lpLine)
@@ -12132,6 +12139,13 @@ void AE_Paint(AKELEDIT *ae)
           //Copy line from buffer DC
           if (bUseBufferDC)
           {
+            pntNotify.hDC=to.hDC;
+            pntNotify.ciMaxDraw=to.ciDrawLine;
+            pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
+            pntNotify.ptMaxDraw.x=to.ptFirstCharInLine.x + to.nStartDrawWidth;
+            pntNotify.ptMaxDraw.y=to.ptFirstCharInLine.y;
+            AE_NotifyPaint(ae, &pntNotify);
+
             rcSpace.left=max(rcDraw.left, ae->rcDraw.left);
             rcSpace.top=to.ptFirstCharInLine.y;
             rcSpace.right=min(rcDraw.right - rcSpace.left, ae->rcDraw.right - rcSpace.left);
@@ -18727,6 +18741,19 @@ void AE_NotifySetRect(AKELEDIT *ae)
     sr.rcDraw=ae->rcDraw;
     sr.rcEdit=ae->rcEdit;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&sr);
+  }
+}
+
+void AE_NotifyPaint(AKELEDIT *ae, AENPAINT *pnt)
+{
+  //Send AEN_PAINT
+  if (ae->popt->dwEventMask & AENM_PAINT)
+  {
+    pnt->hdr.hwndFrom=ae->hWndEdit;
+    pnt->hdr.idFrom=ae->nEditCtrlID;
+    pnt->hdr.code=AEN_PAINT;
+    pnt->hdr.docFrom=(AEHDOC)ae;
+    AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)pnt);
   }
 }
 
