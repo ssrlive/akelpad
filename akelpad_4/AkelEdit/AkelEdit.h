@@ -44,6 +44,7 @@
 
 //AEM_SETEVENTMASK flags
 #define AENM_SCROLL             0x00000001  //Sends AEN_HSCROLL and AEN_VSCROLL notifications.
+#define AENM_PAINT              0x00000002  //Sends AEN_PAINT notifications.
 #define AENM_MAXTEXT            0x00000010  //Don't use it. For internal code only.
 #define AENM_PROGRESS           0x00000020  //Sends AEN_PROGRESS notifications.
 #define AENM_MODIFY             0x00000040  //Sends AEN_MODIFY notifications.
@@ -954,6 +955,17 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
+  HDC hDC;                //Device context.
+  AECHARINDEX ciMinDraw;  //First index in line to paint.
+  AECHARINDEX ciMaxDraw;  //Last index in line to paint.
+  int nMinDrawOffset;     //First character in line to paint (RichEdit offset).
+  int nMaxDrawOffset;     //Last character in line to paint (RichEdit offset).
+  POINT ptMinDraw;        //Left upper corner in client coordinates of first character in line to paint.
+  POINT ptMaxDraw;        //Left upper corner in client coordinates of last character in line to paint.
+} AENPAINT;
+
+typedef struct {
+  AENMHDR hdr;
   DWORD dwTextLimit;   //Current text limit.
 } AENMAXTEXT;
 
@@ -1055,6 +1067,7 @@ typedef struct {
 #define AEN_HSCROLL               (WM_USER + 1028)  //0x804
 #define AEN_VSCROLL               (WM_USER + 1029)  //0x805
 #define AEN_SETRECT               (WM_USER + 1030)  //0x806
+#define AEN_PAINT                 (WM_USER + 1031)  //0x807
 
 //Text notifications
 #define AEN_MAXTEXT               (WM_USER + 1050)  //0x81A
@@ -1475,6 +1488,22 @@ Return Value
 
 Remarks
  AEN_SETRECT notification is not sent during processing WM_SIZE message.
+
+
+AEN_PAINT
+_________
+
+Notification message sends in the form of a WM_NOTIFY message.
+Sends to the parent window procedure before line is painted.
+
+(int)wParam        == specifies the control identifier.
+(AENPAINT *)lParam == pointer to a AENPAINT structure.
+
+Return Value
+ Zero.
+
+Remarks
+ To receive AEN_PAINT notifications, specify AENM_PAINT in the mask sent with the AEM_SETEVENTMASK message.
 
 
 AEN_MAXTEXT
