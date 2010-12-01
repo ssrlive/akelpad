@@ -11848,6 +11848,7 @@ void AE_Paint(AKELEDIT *ae)
       //Initialize
       xmemset(&hlp, 0, sizeof(AEHLPAINT));
       xmemset(&to, 0, sizeof(AETEXTOUT));
+      xmemset(&pntNotify, 0, sizeof(AENPAINT));
 
       //Create GDI objects
       hDrawRgn=CreateRectRgn(ae->rcDraw.left, ae->rcDraw.top, ae->rcDraw.right, ae->rcDraw.bottom);
@@ -11866,6 +11867,10 @@ void AE_Paint(AKELEDIT *ae)
         hBitmapOld=(HBITMAP)SelectObject(to.hDC, hBitmap);
       }
       if (ae->ptxt->hFont) hFontOld=(HFONT)SelectObject(to.hDC, ae->ptxt->hFont);
+
+      //Send AEN_PAINT
+      pntNotify.hDC=to.hDC;
+      AE_NotifyPaint(ae, AEPNT_BEGIN, &pntNotify);
 
       rcDraw=ps.rcPaint;
       if (rcDraw.top + ae->ptxt->nCharHeight <= ae->rcDraw.top)
@@ -12139,12 +12144,12 @@ void AE_Paint(AKELEDIT *ae)
           //Copy line from buffer DC
           if (bUseBufferDC)
           {
-            pntNotify.hDC=to.hDC;
+            //Send AEN_PAINT
             pntNotify.ciMaxDraw=to.ciDrawLine;
             pntNotify.nMaxDrawOffset=to.nDrawCharOffset;
             pntNotify.ptMaxDraw.x=to.ptFirstCharInLine.x + to.nStartDrawWidth;
             pntNotify.ptMaxDraw.y=to.ptFirstCharInLine.y;
-            AE_NotifyPaint(ae, &pntNotify);
+            AE_NotifyPaint(ae, AEPNT_DRAWLINE, &pntNotify);
 
             rcSpace.left=max(rcDraw.left, ae->rcDraw.left);
             rcSpace.top=to.ptFirstCharInLine.y;
@@ -12170,6 +12175,11 @@ void AE_Paint(AKELEDIT *ae)
             break;
         }
       }
+
+      //Send AEN_PAINT
+      AE_NotifyPaint(ae, AEPNT_END, &pntNotify);
+
+      //Clean-up
       if (hFontOld) SelectObject(to.hDC, hFontOld);
 
       if (bUseBufferDC)
@@ -18744,7 +18754,7 @@ void AE_NotifySetRect(AKELEDIT *ae)
   }
 }
 
-void AE_NotifyPaint(AKELEDIT *ae, AENPAINT *pnt)
+void AE_NotifyPaint(AKELEDIT *ae, DWORD dwType, AENPAINT *pnt)
 {
   //Send AEN_PAINT
   if (ae->popt->dwEventMask & AENM_PAINT)
@@ -18753,6 +18763,7 @@ void AE_NotifyPaint(AKELEDIT *ae, AENPAINT *pnt)
     pnt->hdr.idFrom=ae->nEditCtrlID;
     pnt->hdr.code=AEN_PAINT;
     pnt->hdr.docFrom=(AEHDOC)ae;
+    pnt->dwType=dwType;
     AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)pnt);
   }
 }

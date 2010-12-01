@@ -156,6 +156,11 @@
 #define AEPGS_WRAPTEXT          0x00000002  //Wrapping text.
 #define AEPGS_STREAMIN          0x00000004  //Receiving stream text.
 
+//AEN_PAINT type
+#define AEPNT_BEGIN             0x00000001  //Sends before painting is started, only AENPAINT.hDC member is valid.
+#define AEPNT_END               0x00000002  //Sends before clean-up paint resources.
+#define AEPNT_DRAWLINE          0x00000004  //Sends before line is drawn.
+
 //AEM_SETOPTIONS flags
 #define AECO_READONLY                 0x00000001  //Set read-only mode. You can use ES_READONLY window style.
 #define AECO_DISABLENOSCROLL          0x00000002  //Disables scroll bars instead of hiding them when they are not needed. You can use ES_DISABLENOSCROLL window style.
@@ -955,6 +960,7 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
+  DWORD dwType;           //See AEPNT_* defines.
   HDC hDC;                //Device context.
   AECHARINDEX ciMinDraw;  //First index in line to paint.
   AECHARINDEX ciMaxDraw;  //Last index in line to paint.
