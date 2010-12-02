@@ -1,5 +1,5 @@
 
-AkelPad 4.5.1 ()
+AkelPad 4.5.1 (Dec 02, 2010)
 ----------------------------
 Changed: speed of work with code folding is increased.
 Changed: improved work with Input Method Editors (IME).
