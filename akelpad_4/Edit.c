@@ -16411,15 +16411,18 @@ BOOL SelectColorDialog(HWND hWndOwner, COLORREF *crColor)
 //For WMD_PMDI required: lpFrame == lpFrameCurrent
 BOOL GetCharColor(FRAMEDATA *lpFrame, CHARCOLOR *cc)
 {
-  AECHARRANGE cr;
+  AECHARRANGE crCurSel;
   AECHARINDEX ciCaretIndex;
   AECHARINDEX ciCharIndex;
+  BOOL bColumnSel;
 
-  GetSel(lpFrame->ei.hWndEdit, &cr, NULL, &ciCaretIndex);
+  GetSel(lpFrame->ei.hWndEdit, &crCurSel, &bColumnSel, &ciCaretIndex);
   SendMessage(lpFrame->ei.hWndEdit, AEM_RICHOFFSETTOINDEX, cc->nCharPos, (LPARAM)&ciCharIndex);
 
-  if (AEC_IndexCompare(&ciCharIndex, &cr.ciMin) >= 0 &&
-      AEC_IndexCompare(&ciCharIndex, &cr.ciMax) < 0)
+  if (bColumnSel ?
+       AEC_IsCharInSelection(&ciCharIndex) :
+       (AEC_IndexCompare(&ciCharIndex, &crCurSel.ciMin) >= 0 &&
+        AEC_IndexCompare(&ciCharIndex, &crCurSel.ciMax) < 0))
   {
     cc->crText=lpFrame->aec.crSelText;
     cc->crBk=lpFrame->aec.crSelBk;
