@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "AkelPad"
-!define PRODUCT_VERSION "4.5.1"
+!define PRODUCT_VERSION "4.5.2"
 
 ;_____________________________________________________________________________________________
 ;
@@ -526,9 +526,9 @@ Section
 	Pop $0
 	nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
 	Pop $0
-	nsExec::Exec '%comspec% /c "echo y|cacls.exe $WINDIR\notepad.exe /G %USERNAME%:F"'
+	nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\notepad.exe /G "%USERNAME%":F'
 	Pop $0
-	nsExec::Exec '%comspec% /c "echo y|cacls.exe $SYSDIR\notepad.exe /G %USERNAME%:F"'
+	nsExec::Exec '%comspec% /c echo y|cacls.exe $SYSDIR\notepad.exe /G "%USERNAME%":F'
 	Pop $0
 
 	backup:
@@ -700,9 +700,9 @@ Section un.install
 	Pop $0
 	nsExec::Exec 'takeown.exe /F $SYSDIR\notepad.exe'
 	Pop $0
-	nsExec::Exec '%comspec% /c "echo y|cacls.exe $WINDIR\notepad.exe /G %USERNAME%:F"'
+	nsExec::Exec '%comspec% /c echo y|cacls.exe $WINDIR\notepad.exe /G "%USERNAME%":F'
 	Pop $0
-	nsExec::Exec '%comspec% /c "echo y|cacls.exe $SYSDIR\notepad.exe /G %USERNAME%:F"'
+	nsExec::Exec '%comspec% /c echo y|cacls.exe $SYSDIR\notepad.exe /G "%USERNAME%":F'
 	Pop $0
 
 	deassoc:
