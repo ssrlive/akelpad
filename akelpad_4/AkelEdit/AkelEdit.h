@@ -698,7 +698,7 @@ typedef struct {
 
 typedef struct {
   AECHARRANGE cr;             //[in]  Characters range to retrieve.
-  BOOL bColumnSel;            //[in]  Column selection. If this value is -1, use current selection type.
+  BOOL bColumnSel;            //[in]  Column selection. If this value is -1, use current selection type. If bColumnSel is TRUE, then selection must be exist, otherwise it is not necessary.
   wchar_t *pBuffer;           //[out] Pointer to buffer that receives the text. If this value is NULL, the function returns the required buffer size in characters.
   DWORD dwBufferMax;          //[in]  Specifies the maximum number of characters to copy to the buffer, including the NULL character.
   int nNewLine;               //[in]  See AELB_* defines.
