@@ -314,6 +314,8 @@ void SetEditWindowSettings(FRAMEDATA *lpFrame)
     xmemcpy(&lpFrame->lf, &fdInit.lf, sizeof(LOGFONTW));
   if (lpFrame->dwLockInherit & LI_WRAP)
     lpFrame->ei.bWordWrap=FALSE;
+  if (lpFrame->dwLockInherit & LI_COLORS)
+    xmemcpy(&lpFrame->aec, &fdInit.aec, sizeof(AECOLORS));
 
   //Set settings
   DoViewReadOnly(lpFrame, lpFrame->ei.bReadOnly, TRUE);
@@ -7636,17 +7638,17 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
     {
       if (nANSIrate >= nOEMrate && nANSIrate >= nUTF8rate)
       {
+        *nCodePage=1254;
       }
       else if (nOEMrate >= nUTF8rate)
       {
         *nCodePage=857;
-        return TRUE;
       }
       else
       {
         *nCodePage=CP_UNICODE_UTF8;
-        return TRUE;
       }
+      return TRUE;
     }
     else if (dwLangID == LANG_CHINESE)
     {

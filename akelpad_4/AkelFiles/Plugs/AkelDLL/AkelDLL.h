@@ -288,6 +288,7 @@
 //Lock inherit new document settings from current document
 #define LI_FONT           0x00000001  //Lock inherit font.
 #define LI_WRAP           0x00000002  //Lock inherit wrapping.
+#define LI_COLORS         0x00000003  //Lock inherit colors.
 
 //Find text flags
 #ifndef FR_DOWN

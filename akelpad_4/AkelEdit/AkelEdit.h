@@ -1947,7 +1947,7 @@ Example:
 
  if (nLen=SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr))
  {
-   if (tr.pText=(wchar_t *)GlobalAlloc(GPTR, nLen * sizeof(wchar_t) + 2))
+   if (tr.pText=(wchar_t *)GlobalAlloc(GPTR, (nLen + 1) * sizeof(wchar_t)))
    {
      SendMessage(hWndEdit, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
      MessageBoxW(NULL, tr.pText, NULL, 0);
