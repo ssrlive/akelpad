@@ -17127,6 +17127,14 @@ void UpdateSize()
       nTabHeight=TAB_HEIGHT;
     nEditHeight=nsSize.rcCurrent.bottom - nTabHeight;
 
+    if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
+    {
+      fdInit.rcEditWindow.left=nsSize.rcCurrent.left;
+      fdInit.rcEditWindow.top=nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0);
+      fdInit.rcEditWindow.right=nsSize.rcCurrent.right;
+      fdInit.rcEditWindow.bottom=nEditHeight;
+      ResizeEditWindow(lpFrameCurrent, 0);
+    }
     if (nMDI)
     {
       if (nTabHeight && ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP) || (moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)))
@@ -17136,14 +17144,6 @@ void UpdateSize()
       }
       if (nMDI == WMD_MDI)
         MoveWindow(hMdiClient, nsSize.rcCurrent.left, nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0), nsSize.rcCurrent.right, nEditHeight, TRUE);
-    }
-    if (nMDI == WMD_SDI || nMDI == WMD_PMDI)
-    {
-      fdInit.rcEditWindow.left=nsSize.rcCurrent.left;
-      fdInit.rcEditWindow.top=nsSize.rcCurrent.top + ((moCur.dwTabOptionsMDI & TAB_VIEW_TOP)?nTabHeight:0);
-      fdInit.rcEditWindow.right=nsSize.rcCurrent.right;
-      fdInit.rcEditWindow.bottom=nEditHeight;
-      ResizeEditWindow(lpFrameCurrent, 0);
     }
     hDocksStack.bSizing=FALSE;
   }
