@@ -266,7 +266,6 @@ HCURSOR hCursorClone=NULL;
 //Docks
 HDOCK hDocksStack={0};
 NSIZE nsSize;
-WNDPROC OldDockProc=NULL;
 WNDPROC OldCloseButtonProc=NULL;
 
 //Owner-drawn buttons
@@ -2100,7 +2099,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (lpDock->hWnd)
         {
-          OldDockProc=(WNDPROC)GetWindowLongWide(lpDock->hWnd, GWL_WNDPROC);
+          lpDock->lpOldDockProc=(WNDPROC)GetWindowLongWide(lpDock->hWnd, GWL_WNDPROC);
           SetWindowLongWide(lpDock->hWnd, GWL_WNDPROC, (LONG)DockProc);
         }
       }
@@ -2108,7 +2107,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (lpDock->hWnd)
         {
-          SetWindowLongWide(lpDock->hWnd, GWL_WNDPROC, (LONG)OldDockProc);
+          SetWindowLongWide(lpDock->hWnd, GWL_WNDPROC, (LONG)lpDock->lpOldDockProc);
         }
       }
       if ((wParam & DK_SETLEFT) ||
@@ -4873,15 +4872,20 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT CALLBACK DockProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+  DOCK *lpDock;
   LRESULT lResult;
 
   if (lResult=DockMessages(hWnd, uMsg, wParam, lParam))
     return lResult;
 
-  if (bOldWindows)
-    return CallWindowProcA(OldDockProc, hWnd, uMsg, wParam, lParam);
-  else
-    return CallWindowProcW(OldDockProc, hWnd, uMsg, wParam, lParam);
+  if (lpDock=StackDockFindWindow(&hDocksStack, hWnd, FALSE))
+  {
+    if (bOldWindows)
+      return CallWindowProcA(lpDock->lpOldDockProc, hWnd, uMsg, wParam, lParam);
+    else
+      return CallWindowProcW(lpDock->lpOldDockProc, hWnd, uMsg, wParam, lParam);
+  }
+  return 0;
 }
 
 LRESULT CALLBACK DockMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
