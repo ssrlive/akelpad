@@ -63,6 +63,7 @@
                                             //will be used ADT_DETECT_CODEPAGE|ADT_DETECT_BOM.
 #define ADT_DETECT_CODEPAGE     0x00000004  //Detect code page.
 #define ADT_DETECT_BOM          0x00000008  //Detect BOM mark.
+#define ADT_NOMESSAGES          0x00000010  //No messages, if errors in autodetect.
 
 //Autodetect errors
 #define EDT_SUCCESS        0   //Success.
@@ -76,6 +77,7 @@
 #define OD_ADT_REG_CODEPAGE      ADT_REG_CODEPAGE     //See ADT_REG_CODEPAGE.
 #define OD_ADT_DETECT_CODEPAGE   ADT_DETECT_CODEPAGE  //See ADT_DETECT_CODEPAGE.
 #define OD_ADT_DETECT_BOM        ADT_DETECT_BOM       //See ADT_DETECT_BOM.
+#define OD_ADT_NOMESSAGES        ADT_NOMESSAGES       //See ADT_NOMESSAGES.
 #define OD_REOPEN                0x00000100           //Don't create new MDI window, use the exited one.
 
 //Open document errors
