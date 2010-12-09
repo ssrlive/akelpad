@@ -8,7 +8,7 @@
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
 
-#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 2)
+#define AKELDLL MAKE_IDENTIFIER(1, 4, 0, 3)
 
 
 //// Defines
@@ -889,11 +889,12 @@ typedef struct {
 typedef struct _DOCK {
   struct _DOCK *next;
   struct _DOCK *prev;
-  DWORD dwFlags;       //Dock flags: see DKF_* defines.
-  HWND hWnd;           //Dock window handle.
-  int nSide;           //Dock side: DKS_LEFT, DKS_TOP, DKS_RIGHT or DKS_BOTTOM.
-  RECT rcSize;         //Dock window client RECT.
-  RECT rcDragDrop;     //Drag-and-drop client RECT.
+  DWORD dwFlags;          //Dock flags: see DKF_* defines.
+  HWND hWnd;              //Dock window handle.
+  int nSide;              //Dock side: DKS_LEFT, DKS_TOP, DKS_RIGHT or DKS_BOTTOM.
+  RECT rcSize;            //Dock window client RECT.
+  RECT rcDragDrop;        //Drag-and-drop client RECT.
+  WNDPROC lpOldDockProc;  //Procedure address before subclassing.
 } DOCK;
 
 typedef struct {

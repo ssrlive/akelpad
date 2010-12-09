@@ -128,7 +128,6 @@ extern HCURSOR hCursorClone;
 //Docks
 extern HDOCK hDocksStack;
 extern NSIZE nsSize;
-extern WNDPROC OldDockProc;
 extern WNDPROC OldCloseButtonProc;
 
 //Owner-drawn buttons
