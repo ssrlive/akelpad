@@ -742,8 +742,8 @@ void _WinMain()
     {
       ActivateWindow(hWndFriend);
 
-      //Wait for messagebox close
-      while (SendMessage(hWndFriend, AKD_ISMESSAGEBOX, 0, 0))
+      //Wait until we can send PostMessage
+      while (!IsWindowEnabled(hWndFriend))
         Sleep(100);
 
       SendCmdLine(hWndFriend, wpCmdLine, TRUE);
