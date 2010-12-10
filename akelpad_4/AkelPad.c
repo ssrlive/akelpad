@@ -4097,6 +4097,9 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
                   }
                 }
               }
+
+              //Win7: prevent system from mark program as hanged
+              PeekMessageWide(&msg, hMainWnd, 0, 0, PM_NOREMOVE);
             }
 
             //End progress
