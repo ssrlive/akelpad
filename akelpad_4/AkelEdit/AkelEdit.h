@@ -809,7 +809,7 @@ typedef struct _AEDELIMITEMA {
   struct _AEDELIMITEMA *next;
   struct _AEDELIMITEMA *prev;
   int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  char *pDelimiter;          //Delimiter string.
+  const char *pDelimiter;    //Delimiter string.
   int nDelimiterLen;         //Delimiter string length.
   DWORD dwFlags;             //See AEHLF_* defines.
   DWORD dwFontStyle;         //See AEHLS_* defines.
@@ -821,7 +821,7 @@ typedef struct _AEDELIMITEMW {
   struct _AEDELIMITEMW *next;
   struct _AEDELIMITEMW *prev;
   int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  wchar_t *pDelimiter;       //Delimiter string.
+  const wchar_t *pDelimiter; //Delimiter string.
   int nDelimiterLen;         //Delimiter string length.
   DWORD dwFlags;             //See AEHLF_* defines.
   DWORD dwFontStyle;         //See AEHLS_* defines.
@@ -833,7 +833,7 @@ typedef struct _AEWORDITEMA {
   struct _AEWORDITEMA *next;
   struct _AEWORDITEMA *prev;
   int nIndex;                //Reserved. Word items are automatically sorted.
-  char *pWord;               //Word string.
+  const char *pWord;         //Word string.
   int nWordLen;              //Word string length.
   DWORD dwFlags;             //See AEHLF_* defines.
   DWORD dwFontStyle;         //See AEHLS_* defines.
@@ -845,7 +845,7 @@ typedef struct _AEWORDITEMW {
   struct _AEWORDITEMW *next;
   struct _AEWORDITEMW *prev;
   int nIndex;                //Reserved. Word items are automatically sorted.
-  wchar_t *pWord;            //Word string.
+  const wchar_t *pWord;      //Word string.
   int nWordLen;              //Word string length.
   DWORD dwFlags;             //See AEHLF_* defines.
   DWORD dwFontStyle;         //See AEHLS_* defines.
@@ -857,14 +857,14 @@ typedef struct _AEQUOTEITEMA {
   struct _AEQUOTEITEMA *next;
   struct _AEQUOTEITEMA *prev;
   int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  char *pQuoteStart;         //Quote start string.
+  const char *pQuoteStart;   //Quote start string.
   int nQuoteStartLen;        //Quote start string length.
-  char *pQuoteEnd;           //Quote end string. If NULL, line end used as quote end.
+  const char *pQuoteEnd;     //Quote end string. If NULL, line end used as quote end.
   int nQuoteEndLen;          //Quote end string length.
   char chEscape;             //Escape character. If it precedes quote string then quote ignored.
-  char *pQuoteInclude;       //Quote include string.
+  const char *pQuoteInclude; //Quote include string.
   int nQuoteIncludeLen;      //Quote include string length.
-  char *pQuoteExclude;       //Quote exclude string.
+  const char *pQuoteExclude; //Quote exclude string.
   int nQuoteExcludeLen;      //Quote exclude string length.
   DWORD dwFlags;             //See AEHLF_* defines.
   DWORD dwFontStyle;         //See AEHLS_* defines.
@@ -875,27 +875,27 @@ typedef struct _AEQUOTEITEMA {
 typedef struct _AEQUOTEITEMW {
   struct _AEQUOTEITEMW *next;
   struct _AEQUOTEITEMW *prev;
-  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  wchar_t *pQuoteStart;      //Quote start string.
-  int nQuoteStartLen;        //Quote start string length.
-  wchar_t *pQuoteEnd;        //Quote end string. If NULL, line end used as quote end.
-  int nQuoteEndLen;          //Quote end string length.
-  wchar_t chEscape;          //Escape character. If it precedes quote string then quote ignored.
-  wchar_t *pQuoteInclude;    //Quote include string.
-  int nQuoteIncludeLen;      //Quote include string length.
-  wchar_t *pQuoteExclude;    //Quote exclude string.
-  int nQuoteExcludeLen;      //Quote exclude string length.
-  DWORD dwFlags;             //See AEHLF_* defines.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
-  COLORREF crText;           //Quote text color. If -1, then don't set.
-  COLORREF crBk;             //Quote background color. If -1, then don't set.
+  int nIndex;                   //Position of the element if positive inserts to begin of stack if negative to end.
+  const wchar_t *pQuoteStart;   //Quote start string.
+  int nQuoteStartLen;           //Quote start string length.
+  const wchar_t *pQuoteEnd;     //Quote end string. If NULL, line end used as quote end.
+  int nQuoteEndLen;             //Quote end string length.
+  wchar_t chEscape;             //Escape character. If it precedes quote string then quote ignored.
+  const wchar_t *pQuoteInclude; //Quote include string.
+  int nQuoteIncludeLen;         //Quote include string length.
+  const wchar_t *pQuoteExclude; //Quote exclude string.
+  int nQuoteExcludeLen;         //Quote exclude string length.
+  DWORD dwFlags;                //See AEHLF_* defines.
+  DWORD dwFontStyle;            //See AEHLS_* defines.
+  COLORREF crText;              //Quote text color. If -1, then don't set.
+  COLORREF crBk;                //Quote background color. If -1, then don't set.
 } AEQUOTEITEMW;
 
 typedef struct _AEMARKTEXTITEMA {
   struct _AEMARKTEXTITEMA *next;
   struct _AEMARKTEXTITEMA *prev;
   int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  char *pMarkText;           //Mark text.
+  const char *pMarkText;     //Mark text.
   int nMarkTextLen;          //Mark text length.
   DWORD dwFlags;             //See AEHLF_* defines.
   DWORD dwFontStyle;         //See AEHLS_* defines.
@@ -907,7 +907,7 @@ typedef struct _AEMARKTEXTITEMW {
   struct _AEMARKTEXTITEMW *next;
   struct _AEMARKTEXTITEMW *prev;
   int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  wchar_t *pMarkText;        //Mark text.
+  const wchar_t *pMarkText;  //Mark text.
   int nMarkTextLen;          //Mark text length.
   DWORD dwFlags;             //See AEHLF_* defines.
   DWORD dwFontStyle;         //See AEHLS_* defines.
