@@ -30,6 +30,12 @@
 #define StackClear
 #include "AkelEdit\StackFunc.h"
 
+//Include AEC functions
+#ifndef AKELEDIT_STATICBUILD
+  #define AEC_FUNCTIONS
+  #include "AkelEdit\AkelEdit.h"
+#endif
+
 //Include string functions
 #ifndef AKELEDIT_STATICBUILD
   #define WideCharLower
@@ -151,11 +157,6 @@
 #define TabCtrl_SetItemWide
 #define TranslateAcceleratorWide
 #include "WideFunc.h"
-
-//Include AEC functions
-#define AEC_FUNCTIONS
-#include "AkelEdit\AkelEdit.h"
-
 
 //Process
 HANDLE hHeap;
