@@ -14339,6 +14339,7 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
 {
   AECHARINDEX ciCaretChar;
   AELINEDATA *lpElement=NULL;
+  AELINEDATA *lpLastLine;
   wchar_t *wpLineStart=(wchar_t *)wpText;
   wchar_t *wpLineEnd=(wchar_t *)wpText;
   HDC hDC=ae->hDC;
@@ -14494,18 +14495,20 @@ DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewL
     //Last line
     if (!lpElement || lpElement->nLineBreak != AELB_EOF)
     {
-      if (lpElement=AE_StackLineAdd(ae))
+      if (lpLastLine=AE_StackLineAdd(ae))
       {
-        if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, sizeof(wchar_t)))
+        if (lpLastLine->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, sizeof(wchar_t)))
         {
-          lpElement->nLineWidth=0;
-          lpElement->wpLine[0]=L'\0';
+          lpLastLine->nLineWidth=0;
+          lpLastLine->wpLine[0]=L'\0';
 
           ++ae->ptxt->nLineCount;
           ++ae->ptxt->nLineUnwrapCount;
         }
-        lpElement->nLineBreak=AELB_EOF;
+        lpLastLine->nLineBreak=AELB_EOF;
       }
+      else if (lpElement)
+        lpElement->nLineBreak=AELB_EOF;
     }
     if (ae->ptxt->nLineCount)
     {
@@ -14576,6 +14579,7 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
 {
   AECHARINDEX ciCaretChar;
   AELINEDATA *lpElement=NULL;
+  AELINEDATA *lpLastLine;
   wchar_t *wszBuf;
   wchar_t *wpLineStart;
   wchar_t *wpLineEnd;
@@ -14692,10 +14696,8 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
             if (dwCurrentTime - dwProgressTime > AETIME_BEFOREPROGRESS)
             {
               if (bStopProgress=AE_NotifyProgress(ae, AEPGS_STREAMIN, dwCurrentTime - dwStartTime, dwTextCount, dwTextLen))
-              {
-                if (lpElement) lpElement->nLineBreak=LOBYTE(lpElement->nLineBreak);
                 break;
-              }
+
               dwProgressTime=GetTickCount();
             }
           }
@@ -14706,7 +14708,6 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
           if ((aesi->dwError=aesi->lpCallback(aesi->dwCookie, wszBuf, dwBufLen * sizeof(wchar_t), &dwBufDone)) || !dwBufDone)
           {
             //Stop callbacking
-            if (lpElement) lpElement->nLineBreak=LOBYTE(lpElement->nLineBreak);
             break;
           }
           dwResult+=dwBufDone;
@@ -14740,9 +14741,9 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
                 lpElement->nLineWidth=-1;
                 AE_GetLineWidth(ae, lpElement);
               }
-              else break;
+              else goto LastLine;
             }
-            else break;
+            else goto LastLine;
 
             wpLineStart=wpLineEnd;
             ++ae->ptxt->nLineCount;
@@ -14817,20 +14818,25 @@ DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi)
         }
 
         //Last line
+        LastLine:
+        if (lpElement) lpElement->nLineBreak=LOBYTE(lpElement->nLineBreak);
+
         if (!lpElement || lpElement->nLineBreak != AELB_EOF)
         {
-          if (lpElement=AE_StackLineAdd(ae))
+          if (lpLastLine=AE_StackLineAdd(ae))
           {
-            if (lpElement->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, sizeof(wchar_t)))
+            if (lpLastLine->wpLine=(wchar_t *)AE_HeapAlloc(ae, 0, sizeof(wchar_t)))
             {
-              lpElement->nLineWidth=0;
-              lpElement->wpLine[0]=L'\0';
+              lpLastLine->nLineWidth=0;
+              lpLastLine->wpLine[0]=L'\0';
 
               ++ae->ptxt->nLineCount;
               ++ae->ptxt->nLineUnwrapCount;
             }
-            lpElement->nLineBreak=AELB_EOF;
+            lpLastLine->nLineBreak=AELB_EOF;
           }
+          else if (lpElement)
+            lpElement->nLineBreak=AELB_EOF;
         }
         if (ae->ptxt->nLineCount)
         {
@@ -15027,6 +15033,8 @@ int AE_JoinNewLines(AKELEDIT *ae)
             AE_GetLineWidth(ae, lpNewElement);
           }
         }
+        else break;
+
         nLineCount+=liLineStart.nLine - liLineEnd.nLine;
         nSplitFound=0;
       }
