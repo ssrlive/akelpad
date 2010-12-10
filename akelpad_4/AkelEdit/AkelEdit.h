@@ -225,7 +225,9 @@
 #define AEGI_NEXTUNCOLLAPSEDCHAR   16  //Next wide character, collapsed lines are skipped. lParam must point to an input index.
 #define AEGI_PREVUNCOLLAPSEDCHAR   17  //Previous wide character, collapsed lines are skipped. lParam must point to an input index.
 #define AEGI_WRAPLINEBEGIN         18  //First character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
+                                       //For better performance use AEC_WrapLineBeginEx instead.
 #define AEGI_WRAPLINEEND           19  //Last character of the unwrapped line. lParam must point to an input index. Returns number of characters as AEM_GETINDEX result.
+                                       //For better performance use AEC_WrapLineEndEx instead.
 #define AEGI_NEXTCHARINLINE        20  //Next character in line. lParam must point to an input index.
                                        //For better performance use AEC_NextCharInLineEx instead.
 #define AEGI_PREVCHARINLINE        21  //Previous character in line. lParam must point to an input index.
@@ -5749,6 +5751,55 @@ Example:
     }
   }
 
+  int AEC_WrapLineBegin(AECHARINDEX *ciChar)
+  {
+    int nCount=ciChar->nCharInLine;
+
+    if (ciChar->lpLine)
+    {
+      while (ciChar->lpLine->prev)
+      {
+        if (ciChar->lpLine->prev->nLineBreak != AELB_WRAP)
+          break;
+
+        --ciChar->nLine;
+        ciChar->lpLine=ciChar->lpLine->prev;
+        nCount+=ciChar->lpLine->nLineLen;
+      }
+    }
+    ciChar->nCharInLine=0;
+    return nCount;
+  }
+
+  int AEC_WrapLineEnd(AECHARINDEX *ciChar)
+  {
+    int nCount=ciChar->lpLine->nLineLen - ciChar->nCharInLine;
+
+    while (ciChar->lpLine)
+    {
+      if (ciChar->lpLine->nLineBreak != AELB_WRAP)
+        break;
+
+      ++ciChar->nLine;
+      ciChar->lpLine=ciChar->lpLine->next;
+      nCount+=ciChar->lpLine->nLineLen;
+    }
+    ciChar->nCharInLine=ciChar->lpLine->nLineLen;
+    return nCount;
+  }
+
+  int AEC_WrapLineBeginEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+  {
+    *ciOut=*ciIn;
+    return AEC_WrapLineBegin(ciOut);
+  }
+
+  int AEC_WrapLineEndEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut)
+  {
+    *ciOut=*ciIn;
+    return AEC_WrapLineEnd(ciOut);
+  }
+
   int AEC_CharAtIndex(const AECHARINDEX *ciChar)
   {
     if (ciChar->nCharInLine >= ciChar->lpLine->nLineLen)
@@ -5839,6 +5890,10 @@ Example:
   AELINEDATA* AEC_PrevCharInLine(AECHARINDEX *ciChar);
   AELINEDATA* AEC_NextCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
   AELINEDATA* AEC_PrevCharInLineEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
+  int AEC_WrapLineBegin(AECHARINDEX *ciChar);
+  int AEC_WrapLineEnd(AECHARINDEX *ciChar);
+  int AEC_WrapLineBeginEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
+  int AEC_WrapLineEndEx(const AECHARINDEX *ciIn, AECHARINDEX *ciOut);
   int AEC_CharAtIndex(const AECHARINDEX *ciChar);
   BOOL AEC_IsCharInSelection(const AECHARINDEX *ciChar);
   BOOL AEC_IsFirstCharInLine(const AECHARINDEX *ciChar);
