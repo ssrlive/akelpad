@@ -142,7 +142,7 @@ BOOL AE_RegisterClassA(HINSTANCE hInstance, BOOL bRegisterRichEdit)
 {
   if (!bAkelEditClassRegisteredA)
   {
-    WNDCLASSA wndclass={0};
+    WNDCLASSA wndclass;
 
     //AkelEdit class
     wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
@@ -204,7 +204,7 @@ BOOL AE_RegisterClassW(HINSTANCE hInstance, BOOL bRegisterRichEdit)
 {
   if (!bAkelEditClassRegisteredW)
   {
-    WNDCLASSW wndclass={0};
+    WNDCLASSW wndclass;
 
     //AkelEdit class
     wndclass.style        =CS_GLOBALCLASS|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
@@ -1132,7 +1132,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       DWORD dwResult;
 
       dwResult=AE_IsPointOnUrl(ae, pt, &crLink);
-      if (lpcrLink) *lpcrLink=crLink;
+      if (lpcrLink) xmemcpy(lpcrLink, &crLink, sizeof(AECHARRANGE));
       return dwResult;
     }
     if (uMsg == AEM_LINEFROMVPOS)
@@ -9191,7 +9191,8 @@ int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSe
         if (lpMarkTextElement=AE_HighlightIsMarkText(ae, &ft, &ciCount, lpMarkTextStack))
         {
           mtm->lpMarkText=lpMarkTextElement;
-          mtm->crMarkText=ft.crFound;
+          mtm->crMarkText.ciMin=ft.crFound.ciMin;
+          mtm->crMarkText.ciMax=ft.crFound.ciMax;
           return mtm->lpMarkText->nMarkTextLen;
         }
         if (dwSearchType & AEHF_ISFIRSTCHAR)
@@ -9339,7 +9340,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                 {
                   ciTmpCount=ft.crFound.ciMax;
                   nTmpQuoteLen=lpDelimiterElement->nDelimiterLen;
-                  crTmpQuoteStart=ft.crFound;
+                  crTmpQuoteStart.ciMin=ft.crFound.ciMin;
+                  crTmpQuoteStart.ciMax=ft.crFound.ciMax;
                 }
                 else
                 {
@@ -9381,7 +9383,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                     {
                       ciTmpCount=ft.crFound.ciMax;
                       nTmpQuoteLen=lpQuoteElement->nQuoteStartLen;
-                      crTmpQuoteStart=ft.crFound;
+                      crTmpQuoteStart.ciMin=ft.crFound.ciMin;
+                      crTmpQuoteStart.ciMax=ft.crFound.ciMax;
                       goto CheckQuoteStart;
                     }
                   }
@@ -9398,7 +9401,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             }
             ciCount=ciTmpCount;
             nQuoteLen=nTmpQuoteLen;
-            qm->crQuoteStart=crTmpQuoteStart;
+            qm->crQuoteStart.ciMin=crTmpQuoteStart.ciMin;
+            qm->crQuoteStart.ciMax=crTmpQuoteStart.ciMax;
             qm->lpQuote=lpQuoteElement;
             goto BeginQuoteParse;
 
@@ -9406,7 +9410,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
             ciCount=qm->crQuoteStart.ciMin;
             nQuoteLen=0;
             qm->crQuoteStart.ciMax=qm->crQuoteStart.ciMin;
-            qm->crQuoteEnd=qm->crQuoteStart;
+            qm->crQuoteEnd.ciMin=qm->crQuoteStart.ciMin;
+            qm->crQuoteEnd.ciMax=qm->crQuoteStart.ciMax;
             qm->lpQuote=NULL;
           }
           if (dwSearchType & AEHF_ISFIRSTCHAR)
@@ -9425,7 +9430,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
               if (lpDelimiterElement)
               {
                 nQuoteLen+=lpDelimiterElement->nDelimiterLen;
-                qm->crQuoteEnd=ft.crFound;
+                qm->crQuoteEnd.ciMin=ft.crFound.ciMin;
+                qm->crQuoteEnd.ciMax=ft.crFound.ciMax;
                 ciCount=qm->crQuoteEnd.ciMax;
               }
               else
@@ -9460,7 +9466,8 @@ int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearc
                        (AE_HighlightIsDelimiter(ae, NULL, &ft.crFound.ciMin, TRUE) || AEC_IsFirstCharInLine(&ft.crFound.ciMin))))
                   {
                     nQuoteLen+=qm->lpQuote->nQuoteEndLen;
-                    qm->crQuoteEnd=ft.crFound;
+                    qm->crQuoteEnd.ciMin=ft.crFound.ciMin;
+                    qm->crQuoteEnd.ciMax=ft.crFound.ciMax;
                     ciCount=qm->crQuoteEnd.ciMax;
                     goto SetQuote;
                   }
@@ -9623,7 +9630,8 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
               goto PrevChar;
           }
           wm->lpDelim1=lpDelimiterElement;
-          wm->crDelim1=ft.crFound;
+          wm->crDelim1.ciMin=ft.crFound.ciMin;
+          wm->crDelim1.ciMax=ft.crFound.ciMax;
           nWordLen=max(nWordLen - wm->lpDelim1->nDelimiterLen, 0);
           goto FindWordEnding;
         }
@@ -9689,7 +9697,8 @@ int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearch
           else
           {
             wm->lpDelim2=lpDelimiterElement;
-            wm->crDelim2=ft.crFound;
+            wm->crDelim2.ciMin=ft.crFound.ciMin;
+            wm->crDelim2.ciMax=ft.crFound.ciMax;
           }
           goto SetWord;
         }
@@ -10284,12 +10293,13 @@ HBITMAP AE_LoadBitmapFromMemory(const BYTE *lpBmpFileData)
   BITMAPINFOHEADER *lpBmpInfoHeader=(BITMAPINFOHEADER *)(lpBmpFileData + sizeof(BITMAPFILEHEADER));
   BYTE *lpBitmapBits=(BYTE *)(lpBmpFileData + lpBmpFileHeader->bfOffBits);
   BYTE *lpSectionBits=NULL;
-  BITMAPINFO bi={0};
+  BITMAPINFO bi;
   HBITMAP hBitmap=NULL;
   DWORD a;
   int b;
 
-  bi.bmiHeader=*lpBmpInfoHeader;
+  xmemset(&bi, 0, sizeof(BITMAPINFO));
+  xmemcpy(&bi.bmiHeader, lpBmpInfoHeader, sizeof(BITMAPINFOHEADER));
 
   if (hBitmap=CreateDIBSection(NULL, &bi, DIB_RGB_COLORS, (void **)&lpSectionBits, NULL, 0))
   {
@@ -16676,9 +16686,11 @@ BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA)
       ftW.pText=wszText;
       ftW.dwTextLen=dwUnicodeLen;
       ftW.nNewLine=ftA->nNewLine;
-      ftW.crSearch=ftA->crSearch;
+      ftW.crSearch.ciMin=ftA->crSearch.ciMin;
+      ftW.crSearch.ciMax=ftA->crSearch.ciMax;
       bResult=AE_FindText(ae, &ftW);
-      ftA->crFound=ftW.crFound;
+      ftA->crFound.ciMin=ftW.crFound.ciMin;
+      ftA->crFound.ciMax=ftW.crFound.ciMax;
 
       AE_HeapFree(ae, 0, (LPVOID)wszText);
     }
@@ -16794,9 +16806,11 @@ DWORD AE_IsMatchAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA, const AECHAR
       ftW.pText=wszText;
       ftW.dwTextLen=dwUnicodeLen;
       ftW.nNewLine=ftA->nNewLine;
-      ftW.crSearch=ftA->crSearch;
+      ftW.crSearch.ciMin=ftA->crSearch.ciMin;
+      ftW.crSearch.ciMax=ftA->crSearch.ciMax;
       dwResult=AE_IsMatch(ae, &ftW, ciChar);
-      ftA->crFound=ftW.crFound;
+      ftA->crFound.ciMin=ftW.crFound.ciMin;
+      ftA->crFound.ciMax=ftW.crFound.ciMax;
 
       AE_HeapFree(ae, 0, (LPVOID)wszText);
     }
@@ -18753,9 +18767,11 @@ BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect
 
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const AECHARRANGE *crLink)
 {
-  AECHARRANGE crText=*crLink;
+  AECHARRANGE crText;
   LRESULT lResult1=0;
   LRESULT lResult2=0;
+
+  xmemcpy(&crText, crLink, sizeof(AECHARRANGE));
 
   //Send AEN_LINK
   if (ae->popt->dwEventMask & AENM_LINK)
@@ -18769,7 +18785,8 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
     lnk.uMsg=uMsg;
     lnk.wParam=wParam;
     lnk.lParam=lParam;
-    lnk.crLink=crText;
+    lnk.crLink.ciMin=crText.ciMin;
+    lnk.crLink.ciMax=crText.ciMax;
     lResult1=AE_SendMessage(ae, ae->hWndParent, WM_NOTIFY, ae->nEditCtrlID, (LPARAM)&lnk);
   }
 

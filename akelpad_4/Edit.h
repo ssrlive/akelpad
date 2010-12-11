@@ -45,6 +45,26 @@
 #define STR_NOBOMA             "  *BOM"
 #define STR_NOBOMW            L"  *BOM"
 
+//GetWindowLongPtr/SetWindowLongPtr
+#ifndef GWLP_WNDPROC
+  #define DWLP_MSGRESULT 0
+#endif
+#ifndef GWLP_WNDPROC
+  #define GWLP_WNDPROC (-4)
+#endif
+#ifndef GWLP_HINSTANCE
+  #define GWLP_HINSTANCE (-6)
+#endif
+#ifndef GWLP_HWNDPARENT
+  #define GWLP_HWNDPARENT (-8)
+#endif
+#ifndef GWLP_USERDATA
+  #define GWLP_USERDATA (-21)
+#endif
+#ifndef GWLP_ID
+  #define GWLP_ID (-12)
+#endif
+
 #ifndef TCN_GETOBJECT
   #define TCN_GETOBJECT (TCN_FIRST - 3)
 
@@ -688,12 +708,12 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
 
 int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
-DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
+DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
 DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent);
 BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, BOOL bOtherProcess);
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);
-DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
+DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
 BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir);
 void DropFiles(HDROP hDrop);
 void CheckModificationTime(FRAMEDATA *lpFrame);
@@ -1018,6 +1038,8 @@ int API_LoadStringW(HINSTANCE hLoadInstance, UINT uID, wchar_t *lpBuffer, int nB
 int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, UINT uType);
 HWND API_CreateDialogA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
 HWND API_CreateDialogW(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
+UINT_PTR API_GetWindowLongPtr(HWND hWnd, int nIndex);
+UINT_PTR API_SetWindowLongPtr(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
 INT_PTR API_DialogBoxA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
 INT_PTR API_DialogBoxW(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
 INT_PTR API_DialogBoxParamA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
