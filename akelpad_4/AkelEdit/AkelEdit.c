@@ -9790,7 +9790,7 @@ AEWORDITEMW* AE_HighlightIsWord(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARRANGE
   }
   else lpWordStack=&ae->popt->lpActiveTheme->hWordStack;
 
-  if ((DWORD)nWordLen < sizeof(lpWordStack->lpWordLens) / sizeof(int))
+  if ((DWORD)nWordLen < sizeof(lpWordStack->lpWordLens) / sizeof(INT_PTR))
   {
     //Composition words
     lpWordElement=(AEWORDITEMW *)lpWordStack->lpWordLens[0];
@@ -10020,7 +10020,7 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
   }
   else lpWordStack=&ae->ptxt->hWordStack;
 
-  if ((DWORD)nWordLen < sizeof(lpWordStack->lpWordLens) / sizeof(int))
+  if ((DWORD)nWordLen < sizeof(lpWordStack->lpWordLens) / sizeof(INT_PTR))
   {
     if (lpWordStack->lpWordLens[nWordLen])
     {
@@ -10041,7 +10041,7 @@ AEWORDITEMW* AE_HighlightInsertWord(AKELEDIT *ae, AETHEMEITEMW *aeti, int nWordL
     AE_HeapStackInsertBefore(ae, (stack **)&lpWordStack->first, (stack **)&lpWordStack->last, (stack *)lpTmp, (stack **)&lpElement, sizeof(AEWORDITEMW));
 
     if (lpElement)
-      lpWordStack->lpWordLens[nWordLen]=(int)lpElement;
+      lpWordStack->lpWordLens[nWordLen]=(INT_PTR)lpElement;
   }
   return lpElement;
 }
@@ -10057,11 +10057,11 @@ void AE_HighlightDeleteWord(AKELEDIT *ae, AETHEMEITEMW *aeti, AEWORDITEMW *aewi)
   }
   else lpWordStack=&ae->ptxt->hWordStack;
 
-  if (lpWordStack->lpWordLens[aewi->nWordLen] == (int)aewi)
+  if (lpWordStack->lpWordLens[aewi->nWordLen] == (INT_PTR)aewi)
   {
     //Word item is first in length group
     if (aewi->next && aewi->next->nWordLen == aewi->nWordLen)
-      lpWordStack->lpWordLens[aewi->nWordLen]=(int)aewi->next;
+      lpWordStack->lpWordLens[aewi->nWordLen]=(INT_PTR)aewi->next;
     else
       lpWordStack->lpWordLens[aewi->nWordLen]=0;
   }
@@ -10086,7 +10086,7 @@ void AE_HighlightDeleteWordAll(AKELEDIT *ae, AETHEMEITEMW *aeti)
     if (lpElement->pWord) AE_HeapFree(ae, 0, (LPVOID)lpElement->pWord);
   }
   AE_HeapStackClear(ae, (stack **)&lpWordStack->first, (stack **)&lpWordStack->last);
-  xmemset(lpWordStack->lpWordLens, 0, MAX_PATH * sizeof(int));
+  xmemset(lpWordStack->lpWordLens, 0, MAX_PATH * sizeof(INT_PTR));
 }
 
 AEQUOTEITEMW* AE_HighlightInsertQuote(AKELEDIT *ae, AETHEMEITEMW *aeti, int nIndex)
