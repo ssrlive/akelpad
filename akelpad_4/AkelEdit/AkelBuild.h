@@ -247,7 +247,7 @@ typedef struct {
 typedef struct {
   AEWORDITEMW *first;
   AEWORDITEMW *last;
-  int lpWordLens[MAX_PATH];
+  INT_PTR lpWordLens[MAX_PATH];
 } AESTACKWORD;
 
 typedef struct {
