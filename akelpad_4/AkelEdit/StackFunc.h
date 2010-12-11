@@ -1,5 +1,5 @@
 /*****************************************************************
- *              Stack functions header v3.2                      *
+ *              Stack functions header v3.3                      *
  *                                                               *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -24,8 +24,8 @@
 #ifndef _HSTACK_STRUCT_
 #define _HSTACK_STRUCT_
 typedef struct {
-  int first;
-  int last;
+  INT_PTR first;
+  INT_PTR last;
 } HSTACK;
 #endif
 

@@ -575,8 +575,8 @@ typedef DWORD (CALLBACK *AEStreamCallback)(UINT_PTR dwCookie, wchar_t *wszBuf, D
 #ifndef _HSTACK_STRUCT_
 #define _HSTACK_STRUCT_
 typedef struct {
-  int first;
-  int last;
+  INT_PTR first;
+  INT_PTR last;
 } HSTACK;
 #endif
 
