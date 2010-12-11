@@ -4,10 +4,15 @@
 
 //// Defines
 
-#define APP_MAIN_CLASSA              "AkelPad4"
-#define APP_MAIN_CLASSW             L"AkelPad4"
+#ifdef _WIN64
+  #define APP_ABOUT_VERSIONW          L"AkelPad 4.5.2 (x64)"
+#else
+  #define APP_ABOUT_VERSIONW          L"AkelPad 4.5.2 (x86)"
+#endif
 #define APP_MAIN_TITLEA              "AkelPad"
 #define APP_MAIN_TITLEW             L"AkelPad"
+#define APP_MAIN_CLASSA              "AkelPad4"
+#define APP_MAIN_CLASSW             L"AkelPad4"
 #define APP_SDI_TITLEA               ""
 #define APP_SDI_TITLEW              L""
 #define APP_SDI_CLASSA               "AkelPad SDI Class"
@@ -20,8 +25,6 @@
 #define APP_MUTEXW                  L"AkelPad Mutex"
 #define APP_REGHOMEA                 "Software\\Akelsoft\\AkelPad"
 #define APP_REGHOMEW                L"Software\\Akelsoft\\AkelPad"
-#define APP_ABOUT_VERSIONA           "AkelPad 4.5.2"
-#define APP_ABOUT_VERSIONW          L"AkelPad 4.5.2"
 #define APP_ABOUT_HOMEPAGEA          "http://akelpad.sf.net"
 #define APP_ABOUT_HOMEPAGEW         L"http://akelpad.sf.net"
 #define APP_ABOUT_EMAIL_SHENGALTSA   "shengalts@mail.ru"
