@@ -107,17 +107,16 @@
 #define GetFullPathNameWide
 #define GetKeyNameTextWide
 #define GetLongPathNameWide
+#define GetMenuStringWide
 #define GetMessageWide
 #define GetModuleFileNameWide
 #define GetModuleHandleWide
 #define GetOpenFileNameWide
 #define GetSaveFileNameWide
 #define GetTimeFormatWide
-#define GetWindowLongWide
 #define GetWindowTextLengthWide
 #define GetWindowTextWide
 #define InsertMenuWide
-#define GetMenuStringWide
 #define IsDialogMessageWide
 #define ListBox_AddStringWide
 #define ListBox_FindStringWide
@@ -145,7 +144,6 @@
 #define SetCurrentDirectoryWide
 #define SetDlgItemTextWide
 #define SetFileAttributesWide
-#define SetWindowLongWide
 #define SetWindowTextWide
 #define SHBrowseForFolderWide
 #define ShellExecuteWide
@@ -410,7 +408,7 @@ int main()
 //Entry point
 void _WinMain()
 {
-  WNDCLASSW wndclassW={0};
+  WNDCLASSW wndclassW;
   MSG msg;
   HMODULE hUser32=NULL;
 #ifndef AKELEDIT_STATICBUILD
@@ -1257,8 +1255,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         dwClassStyle=GetClassLongA(hMdiClient, GCL_STYLE);
         SetClassLongA(hMdiClient, GCL_STYLE, dwClassStyle|CS_DBLCLKS);
 
-        OldMdiClientProc=(WNDPROC)GetWindowLongWide(hMdiClient, GWL_WNDPROC);
-        SetWindowLongWide(hMdiClient, GWL_WNDPROC, (LONG)NewMdiClientProc);
+        OldMdiClientProc=(WNDPROC)API_GetWindowLongPtr(hMdiClient, GWLP_WNDPROC);
+        API_SetWindowLongPtr(hMdiClient, GWLP_WNDPROC, (LONG)NewMdiClientProc);
 
         InsertMenuWide(hMainMenu, IDM_WINDOW_FRAMECLOSE, MF_BYCOMMAND|MF_SEPARATOR, 0, NULL);
         DeleteMenu(hMainMenu, IDM_WINDOW_MDILIST, MF_BYCOMMAND);
@@ -1287,8 +1285,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                               hInstance,
                               0);
 
-      OldTabProc=(WNDPROC)GetWindowLongWide(hTab, GWL_WNDPROC);
-      SetWindowLongWide(hTab, GWL_WNDPROC, (LONG)NewTabProc);
+      OldTabProc=(WNDPROC)API_GetWindowLongPtr(hTab, GWLP_WNDPROC);
+      API_SetWindowLongPtr(hTab, GWLP_WNDPROC, (LONG)NewTabProc);
 
       SendMessage(hTab, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), TRUE);
       hImageList=ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), ILC_COLOR32|ILC_MASK, 0, 0);
@@ -2100,15 +2098,15 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (lpDock->hWnd)
         {
-          lpDock->lpOldDockProc=(WNDPROC)GetWindowLongWide(lpDock->hWnd, GWL_WNDPROC);
-          SetWindowLongWide(lpDock->hWnd, GWL_WNDPROC, (LONG)DockProc);
+          lpDock->lpOldDockProc=(WNDPROC)API_GetWindowLongPtr(lpDock->hWnd, GWLP_WNDPROC);
+          API_SetWindowLongPtr(lpDock->hWnd, GWLP_WNDPROC, (LONG)DockProc);
         }
       }
       if (wParam & DK_UNSUBCLASS)
       {
         if (lpDock->hWnd)
         {
-          SetWindowLongWide(lpDock->hWnd, GWL_WNDPROC, (LONG)lpDock->lpOldDockProc);
+          API_SetWindowLongPtr(lpDock->hWnd, GWLP_WNDPROC, (LONG)lpDock->lpOldDockProc);
         }
       }
       if ((wParam & DK_SETLEFT) ||
@@ -2171,7 +2169,8 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, (HWND)wParam))
         {
-          SetWindowLongWide((HWND)wParam, GWL_WNDPROC, (LONG)lpButtonDraw->OldButtonProc);
+          API_SetWindowLongPtr((HWND)wParam, GWLP_WNDPROC, (LONG)lpButtonDraw->OldButtonProc);
+
           StackButtonDrawDelete(&hButtonDrawStack, lpButtonDraw);
         }
       }
@@ -2182,17 +2181,17 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           lpButtonDraw->hWnd=(HWND)wParam;
           xmemcpy(&lpButtonDraw->bd, (BUTTONDRAW *)lParam, sizeof(BUTTONDRAW));
 
-          lpButtonDraw->OldButtonProc=(WNDPROC)GetWindowLongWide((HWND)wParam, GWL_WNDPROC);
-          SetWindowLongWide((HWND)wParam, GWL_WNDPROC, (LONG)NewCloseButtonProc);
+          lpButtonDraw->OldButtonProc=(WNDPROC)API_GetWindowLongPtr((HWND)wParam, GWLP_WNDPROC);
+          API_SetWindowLongPtr((HWND)wParam, GWLP_WNDPROC, (LONG)NewCloseButtonProc);
         }
       }
       return 0;
     }
     if (uMsg == AKD_SETHOTKEYINPUT)
     {
-      SetWindowLongWide((HWND)wParam, GWL_USERDATA, lParam);
-      OldHotkeyInputProc=(WNDPROC)GetWindowLongWide((HWND)wParam, GWL_WNDPROC);
-      SetWindowLongWide((HWND)wParam, GWL_WNDPROC, (LONG)NewHotkeyInputProc);
+      API_SetWindowLongPtr((HWND)wParam, GWLP_USERDATA, lParam);
+      OldHotkeyInputProc=(WNDPROC)API_GetWindowLongPtr((HWND)wParam, GWLP_WNDPROC);
+      API_SetWindowLongPtr((HWND)wParam, GWLP_WNDPROC, (LONG)NewHotkeyInputProc);
       return 0;
     }
     if (uMsg == AKD_DIALOGRESIZE)
@@ -2881,7 +2880,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     DWORD dwStyle;
 
-    dwStyle=GetWindowLongWide(hWnd, GWL_STYLE);
+    dwStyle=API_GetWindowLongPtr(hWnd, GWL_STYLE);
 
     if (!(dwStyle & WS_MAXIMIZE) && !(dwStyle & WS_MINIMIZE))
     {
@@ -3406,7 +3405,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else if (LOWORD(wParam) == IDM_WINDOW_CHANGESIZE)
     {
-      ShowWindow(hWnd, (GetWindowLongWide(hWnd, GWL_STYLE) & WS_MAXIMIZE)?SW_RESTORE:SW_MAXIMIZE);
+      ShowWindow(hWnd, (API_GetWindowLongPtr(hWnd, GWL_STYLE) & WS_MAXIMIZE)?SW_RESTORE:SW_MAXIMIZE);
     }
     else if (LOWORD(wParam) == IDM_WINDOW_DLGNEXT)
     {
@@ -3473,7 +3472,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
       while (hWndChild)
       {
-        if (((nMDI == WMD_SDI || nMDI == WMD_PMDI) && GetWindowLongA(hWndChild, GWL_ID) != ID_EDIT) ||
+        if (((nMDI == WMD_SDI || nMDI == WMD_PMDI) && API_GetWindowLongPtr(hWndChild, GWLP_ID) != ID_EDIT) ||
             (nMDI == WMD_MDI && hWndChild != hMdiClient))
         {
           UpdateWindow(hWndChild);
@@ -3825,7 +3824,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   {
     if ((HWND)wParam != lpFrameCurrent->ei.hWndEdit)
     {
-      if (GetWindowLongWide((HWND)wParam, GWL_ID) == ID_EDIT)
+      if (API_GetWindowLongPtr((HWND)wParam, GWLP_ID) == ID_EDIT)
       {
         SetFocus((HWND)wParam);
       }
@@ -3966,7 +3965,7 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
             if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
             {
               wchar_t *wpTitle=AllocWideStr(BUFFER_SIZE);
-              TCITEMW tcItem={0};
+              TCITEMW tcItem;
 
               tcItem.mask=TCIF_TEXT;
               tcItem.pszText=wpTitle;
@@ -4156,7 +4155,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (lpFrame=CreateFrameData(hWnd, lpFrameCurrent))
     {
-      SetWindowLongWide(hWnd, GWL_USERDATA, (LONG)lpFrame);
+      API_SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)lpFrame);
 
       lpFrame->ei.hWndEdit=(HWND)CreateEditWindow(hWnd, NULL);
       lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);
@@ -4179,7 +4178,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       FRAMEDATA *lpFrame;
 
-      if (lpFrame=(FRAMEDATA *)GetWindowLongWide(hWnd, GWL_USERDATA))
+      if (lpFrame=(FRAMEDATA *)API_GetWindowLongPtr(hWnd, GWLP_USERDATA))
       {
         lpFrame->rcEditWindow.left=0;
         lpFrame->rcEditWindow.top=0;
@@ -4288,15 +4287,17 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       if (hWnd == (HWND)wParam)
       {
         //Save deactivated MDI window settings
-        if (lpFrame=(FRAMEDATA *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
+        if (lpFrame=(FRAMEDATA *)API_GetWindowLongPtr((HWND)wParam, GWLP_USERDATA))
           SaveFrameData(lpFrame);
       }
       else if (hWnd == (HWND)lParam)
       {
         //Change current frame handle in WM_MDIACTIVATE because WM_SETFOCUS can be uncalled if WM_MDINEXT used.
         if (lpFrameCurrent->hWndEditParent != (HWND)lParam)
-          if (lpFrame=(FRAMEDATA *)GetWindowLongWide((HWND)lParam, GWL_USERDATA))
+        {
+          if (lpFrame=(FRAMEDATA *)API_GetWindowLongPtr((HWND)lParam, GWLP_USERDATA))
             lpFrameCurrent=lpFrame;
+        }
 
         //Restore activated MDI window settings
         RestoreFrameData(lpFrameCurrent, 0);
@@ -4308,7 +4309,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
   else if (uMsg == WM_SETFOCUS)
   {
     //Change current frame handle in WM_SETFOCUS because WM_MDIACTIVATE sended later.
-    if (lpFrame=(FRAMEDATA *)GetWindowLongWide(hWnd, GWL_USERDATA))
+    if (lpFrame=(FRAMEDATA *)API_GetWindowLongPtr(hWnd, GWLP_USERDATA))
       lpFrameCurrent=lpFrame;
   }
 
@@ -4641,7 +4642,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
       FRAMEDATA *lpFrame;
       int nTabItem;
 
-      if (lpFrame=(FRAMEDATA *)GetWindowLongWide((HWND)wParam, GWL_USERDATA))
+      if (lpFrame=(FRAMEDATA *)API_GetWindowLongPtr((HWND)wParam, GWLP_USERDATA))
       {
         //Activate frame
         ActivateMdiFrameWindow(lpFrame, 0);
@@ -4684,7 +4685,7 @@ LRESULT CALLBACK NewMdiClientProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lP
           DeleteTabItem(hTab, nTabItem);
 
           //Delete frame data
-          SetWindowLongWide((HWND)wParam, GWL_USERDATA, (LONG)0);
+          API_SetWindowLongPtr((HWND)wParam, GWLP_USERDATA, (LONG)0);
 
           //Save frame settings
           if (!bMainOnFinish || bFirstTabOnFinish)
@@ -4793,7 +4794,7 @@ LRESULT CALLBACK NewTabProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           if (nMDI == WMD_MDI)
           {
             //Restore minimized frame
-            if (GetWindowLongWide(lpFrameCurrent->hWndEditParent, GWL_STYLE) & WS_MINIMIZE)
+            if (API_GetWindowLongPtr(lpFrameCurrent->hWndEditParent, GWL_STYLE) & WS_MINIMIZE)
             {
               SendMessage(hMdiClient, WM_MDIRESTORE, (WPARAM)lpFrameCurrent->hWndEditParent, 0);
             }
@@ -5381,12 +5382,13 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
   static WORD wInitHotkey;
   LRESULT lResult=0;
 
-  wInitHotkey=(WORD)GetWindowLongWide(hWnd, GWL_USERDATA);
+  wInitHotkey=(WORD)API_GetWindowLongPtr(hWnd, GWLP_USERDATA);
 
   if (uMsg == HKM_SETHOTKEY)
   {
     wInitHotkey=wParam;
-    SetWindowLongWide(hWnd, GWL_USERDATA, wInitHotkey);
+
+    API_SetWindowLongPtr(hWnd, GWLP_USERDATA, wInitHotkey);
   }
   else if (uMsg == WM_LBUTTONDOWN)
   {
@@ -5412,7 +5414,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
            uMsg == WM_KEYDOWN ||
            uMsg == WM_SYSKEYDOWN)
   {
-    MSG msg={0};
+    MSG msg;
     RECT rcWindow;
     BOOL bOwnKey=FALSE;
     BOOL bHotkeyExist=FALSE;
@@ -5421,7 +5423,7 @@ LRESULT CALLBACK NewHotkeyInputProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 
     if (uMsg == WM_GETDLGCODE)
     {
-      msg=*(MSG *)lParam;
+      xmemcpy(&msg, (MSG *)lParam, sizeof(MSG));
     }
     else
     {

@@ -1,5 +1,5 @@
 /*****************************************************************
- *              String functions header v4.3                     *
+ *              String functions header v4.4                     *
  *                                                               *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)  *
  *                                                               *
@@ -906,9 +906,21 @@ void* xmemcpy(void *dest, const void *src, unsigned int count)
   unsigned char *byte_dest=(unsigned char *)dest;
   unsigned char *byte_src=(unsigned char *)src;
 
+  //Special form of memcpy implementation to avoid
+  //compiler from replace this code with memcpy call.
   if (byte_dest != byte_src)
-    while (count--) *byte_dest++=*byte_src++;
-
+  {
+    if (count)
+    {
+      for (;;)
+      {
+        *byte_dest=*byte_src;
+        if (!--count) break;
+        ++byte_dest;
+        ++byte_src;
+      }
+    }
+  }
   return dest;
 }
 #endif
@@ -974,13 +986,16 @@ void* xmemset(void *dest, int c, unsigned int count)
 {
   unsigned char *byte_dest=(unsigned char *)dest;
 
+  //Special form of memset implementation to avoid
+  //compiler from replace this code with memset call.
   if (count)
   {
-    do
+    for (;;)
     {
-      *byte_dest++=c;
+      *byte_dest=c;
+      if (!--count) break;
+      ++byte_dest;
     }
-    while (--count);
   }
   return dest;
 }

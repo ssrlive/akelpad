@@ -555,7 +555,7 @@ typedef LRESULT (CALLBACK *AEEditProc)(AEHDOC hDoc, UINT uMsg, WPARAM wParam, LP
 //Return Value
 // Depends on message.
 
-typedef DWORD (CALLBACK *AEStreamCallback)(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone);
+typedef DWORD (CALLBACK *AEStreamCallback)(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone);
 //dwCookie        Value of the dwCookie member of the AESTREAMIN or AESTREAMOUT structure. The application specifies this value when it sends the AEM_STREAMIN or AEM_STREAMOUT message.
 //wszBuf          Pointer to a buffer to read from or write to. For a stream-in (read) operation, the callback function fills this buffer with data to transfer into the edit control. For a stream-out (write) operation, the buffer contains data from the control that the callback function writes to some storage.
 //dwBufBytesSize  Number of bytes to read or write.
@@ -627,7 +627,7 @@ typedef struct _AEPOINT {
   int nPointOffset;        //Character RichEdit offset or one of the AEPTO_* define.
   int nPointLen;           //Point length.
   DWORD dwFlags;           //See AEPTF_* defines.
-  DWORD dwUserData;        //User data.
+  UINT_PTR dwUserData;     //User data.
   int nTmpPointOffset;     //Don't use it. For internal code only.
   int nTmpPointLen;        //Don't use it. For internal code only.
 } AEPOINT;
@@ -644,7 +644,7 @@ typedef struct _AEFOLD {
   DWORD dwFontStyle;          //See AEHLS_* defines.
   COLORREF crText;            //Text color. If -1, then don't set.
   COLORREF crBk;              //Background color. If -1, then don't set.
-  DWORD dwUserData;           //User data.
+  UINT_PTR dwUserData;        //User data.
 } AEFOLD;
 
 typedef struct {
@@ -711,7 +711,7 @@ typedef struct {
 } AETEXTRANGEW;
 
 typedef struct {
-  DWORD dwCookie;               //[in]  Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
+  UINT_PTR dwCookie;            //[in]  Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
   DWORD dwError;                //[out] Indicates the results of the stream-in (read) operation.
   AEStreamCallback lpCallback;  //[in]  Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
   int nNewLine;                 //[in]  See AELB_* defines.
@@ -720,7 +720,7 @@ typedef struct {
 } AESTREAMIN;
 
 typedef struct {
-  DWORD dwCookie;               //[in]  Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
+  UINT_PTR dwCookie;            //[in]  Specifies an application-defined value that the edit control passes to the AEStreamCallback function specified by the lpCallback member.
   DWORD dwError;                //[out] Indicates the results of the stream-out (write) operation.
   AEStreamCallback lpCallback;  //[in]  Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
   int nNewLine;                 //[in]  See AELB_* defines.
@@ -1990,7 +1990,7 @@ Example:
  aesi.dwTextLen=sid.nDataLen;
  SendMessage(hWndEdit, AEM_STREAMIN, AESF_SELECTION, (LPARAM)&aesi);
 
- DWORD CALLBACK InputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone)
+ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone)
  {
    STREAMINDATA *lpData=(STREAMINDATA *)dwCookie;
    wchar_t *wpSrc=lpData->wpData;
@@ -2043,7 +2043,7 @@ Example:
    CloseHandle(sod.hFile);
  }
 
- DWORD CALLBACK OutputStreamCallback(DWORD dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone)
+ DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone)
  {
    STREAMOUTDATA *lpData=(STREAMOUTDATA *)dwCookie;
    unsigned char *pDataToWrite=(unsigned char *)wszBuf;
