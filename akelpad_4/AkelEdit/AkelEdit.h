@@ -715,7 +715,7 @@ typedef struct {
   DWORD dwError;                //[out] Indicates the results of the stream-in (read) operation.
   AEStreamCallback lpCallback;  //[in]  Pointer to an AEStreamCallback function, which is an application-defined function that the control calls to transfer data. The control calls the callback function repeatedly, transferring a portion of the data with each call.
   int nNewLine;                 //[in]  See AELB_* defines.
-  DWORD dwTextLen;              //[in]  Text length. Need if using AEN_PROGRESS notification.
+  UINT_PTR dwTextLen;           //[in]  Text length. Need if using AEN_PROGRESS notification.
   int nFirstNewLine;            //[out] Indicates first new line. See AELB_* defines.
 } AESTREAMIN;
 
@@ -1973,21 +1973,21 @@ Return Value
 Example:
  typedef struct {
    wchar_t *wpData;
-   int nDataLen;
-   int nCount;
+   UINT_PTR dwDataLen;
+   UINT_PTR dwCount;
  } STREAMINDATA;
 
  AESTREAMIN aesi;
  STREAMINDATA sid;
 
  sid.wpData=L"SomeText";
- sid.nDataLen=lstrlenW(sid.wpData);
- sid.nCount=0;
+ sid.dwDataLen=lstrlenW(sid.wpData);
+ sid.dwCount=0;
 
  aesi.dwCookie=(DWORD)&sid;
  aesi.lpCallback=InputStreamCallback;
  aesi.nNewLine=AELB_ASINPUT;
- aesi.dwTextLen=sid.nDataLen;
+ aesi.dwTextLen=sid.dwDataLen;
  SendMessage(hWndEdit, AEM_STREAMIN, AESF_SELECTION, (LPARAM)&aesi);
 
  DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone)
@@ -2000,9 +2000,9 @@ Example:
 
    for (i=0; i < dwDestLen; ++i)
    {
-     if (lpData->nCount >= lpData->nDataLen)
+     if (lpData->dwCount >= lpData->dwDataLen)
        break;
-     wpDest[i]=wpSrc[lpData->nCount++];
+     wpDest[i]=wpSrc[lpData->dwCount++];
    }
    *dwBufBytesDone=i * sizeof(wchar_t);
 
