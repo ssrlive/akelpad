@@ -2866,14 +2866,14 @@ BOOL ReadIni(INIFILE *hIniFile, HANDLE hFile)
   wchar_t *wpKey;
   wchar_t *wpString;
   wchar_t *wpLastChar;
-  DWORD dwFileSize;
+  UINT_PTR dwFileSize;
   DWORD dwBytesRead;
   DWORD dwUnicodeLen;
   int nSectionLen;
   int nKeyLen;
   int nStringLen;
 
-  if ((dwFileSize=GetFileSize(hFile, NULL)) != INVALID_FILE_SIZE)
+  if ((dwFileSize=API_GetFileSize(hFile)) != INVALID_FILE_SIZE)
   {
     if (dwFileSize >= sizeof(wchar_t))
     {
@@ -3989,26 +3989,26 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   }
 
   //Offset BOM
-  fsd.nBytesCurrent=0;
+  fsd.dwBytesCurrent=0;
 
   if (bBOM)
   {
     if (nCodePage == CP_UNICODE_UTF16LE ||
         nCodePage == CP_UNICODE_UTF16BE)
     {
-      SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
-      fsd.nBytesCurrent=2;
+      API_SetFilePointer(hFile, 2, FILE_BEGIN);
+      fsd.dwBytesCurrent=2;
     }
     else if (nCodePage == CP_UNICODE_UTF32LE ||
              nCodePage == CP_UNICODE_UTF32BE)
     {
-      SetFilePointer(hFile, 4, NULL, FILE_BEGIN);
-      fsd.nBytesCurrent=4;
+      API_SetFilePointer(hFile, 4, FILE_BEGIN);
+      fsd.dwBytesCurrent=4;
     }
     else if (nCodePage == CP_UNICODE_UTF8)
     {
-      SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
-      fsd.nBytesCurrent=3;
+      API_SetFilePointer(hFile, 3, FILE_BEGIN);
+      fsd.dwBytesCurrent=3;
     }
   }
 
@@ -4034,7 +4034,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   fsd.nCodePage=nCodePage;
   fsd.dwFlags=dwFlags;
   fsd.nNewLine=moCur.nDefaultNewLine;
-  fsd.nBytesMax=-1;
+  fsd.dwBytesMax=(DWORD)-1;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
@@ -4150,25 +4150,25 @@ void FileStreamIn(FILESTREAMDATA *lpData)
   DWORD dwCharsConverted;
   DWORD i;
 
-  if ((dwFileSize=GetFileSize(lpData->hFile, NULL)) != INVALID_FILE_SIZE)
+  if ((dwFileSize=API_GetFileSize(lpData->hFile)) != INVALID_FILE_SIZE)
   {
-    if (lpData->nBytesMax == -1)
-      lpData->nBytesMax=dwFileSize;
+    if (lpData->dwBytesMax == (DWORD)-1)
+      lpData->dwBytesMax=dwFileSize;
 
     if (IsCodePageUnicode(lpData->nCodePage) && lpData->nCodePage != CP_UNICODE_UTF8)
-      nBufferBytes=lpData->nBytesMax;
+      nBufferBytes=lpData->dwBytesMax;
     else
-      nBufferBytes=lpData->nBytesMax * sizeof(wchar_t);
+      nBufferBytes=lpData->dwBytesMax * sizeof(wchar_t);
 
     if (wszBuffer=(wchar_t *)API_HeapAlloc(hHeap, 0, nBufferBytes + sizeof(wchar_t)))
     {
       if (IsCodePageUnicode(lpData->nCodePage) && lpData->nCodePage != CP_UNICODE_UTF8)
         szBuffer=(unsigned char *)wszBuffer;
       else
-        szBuffer=(unsigned char *)wszBuffer + lpData->nBytesMax;
+        szBuffer=(unsigned char *)wszBuffer + lpData->dwBytesMax;
 
       //Read data from file
-      if (API_ReadFile(lpData->hFile, szBuffer, lpData->nBytesMax, &dwBytesRead, NULL))
+      if (API_ReadFile(lpData->hFile, szBuffer, lpData->dwBytesMax, &dwBytesRead, NULL))
       {
         //Translate data to UNICODE
         if (lpData->nCodePage == CP_UNICODE_UTF16LE)
@@ -4250,14 +4250,14 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 {
   AESTREAMIN aesi;
 
-  if (lpData->nBytesMax == -1)
-    lpData->nBytesMax=GetFileSize(lpData->hFile, NULL);
+  if (lpData->dwBytesMax == (DWORD)-1)
+    lpData->dwBytesMax=API_GetFileSize(lpData->hFile);
   SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
 
   aesi.dwCookie=(UINT_PTR)lpData;
   aesi.lpCallback=InputStreamCallback;
   aesi.nNewLine=AELB_ASIS;
-  aesi.dwTextLen=lpData->nBytesMax;
+  aesi.dwTextLen=lpData->dwBytesMax;
   SendMessage(lpData->hWnd, AEM_STREAMIN, 0, (LPARAM)&aesi);
   lpData->bResult=!aesi.dwError;
 
@@ -4282,11 +4282,11 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
   DWORD dwCharsConverted=0;
   DWORD dwBytesConverted=0;
 
-  if (lpData->nBytesCurrent <= lpData->nBytesMax)
+  if (lpData->dwBytesCurrent <= lpData->dwBytesMax)
   {
     if (API_ReadFile(lpData->hFile, pcTranslateBuffer, dwBufBytesSize / sizeof(wchar_t), &dwBytesRead, NULL))
     {
-      lpData->nBytesCurrent+=dwBytesRead;
+      lpData->dwBytesCurrent+=dwBytesRead;
 
       //Translate data to UNICODE
       if (lpData->nCodePage == CP_UNICODE_UTF16LE)
@@ -4318,8 +4318,8 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
           if (dwBytesRead != dwBytesConverted)
           {
             //UTF-8 char was split
-            lpData->nBytesCurrent+=dwBytesConverted - dwBytesRead;
-            SetFilePointer(lpData->hFile, lpData->nBytesCurrent, NULL, FILE_BEGIN);
+            lpData->dwBytesCurrent+=dwBytesConverted - dwBytesRead;
+            API_SetFilePointer(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
           }
         }
         else
@@ -4332,8 +4332,8 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
                 (pcTranslateBuffer[dwBytesRead - 1] != '?' && wszBuf[dwCharsConverted - 1] == '?'))     //Windows Vista/7/2008
             {
               //Double-byte char was split
-              --lpData->nBytesCurrent;
-              SetFilePointer(lpData->hFile, lpData->nBytesCurrent, NULL, FILE_BEGIN);
+              --lpData->dwBytesCurrent;
+              API_SetFilePointer(lpData->hFile, lpData->dwBytesCurrent, FILE_BEGIN);
               --dwCharsConverted;
             }
           }
@@ -4348,38 +4348,38 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
   return 0;
 }
 
-DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent)
+DWORD ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent)
 {
   unsigned char *szBuffer;
   wchar_t *wszBuffer=NULL;
-  DWORD dwBufferBytes;
-  DWORD dwFileSize;
+  UINT_PTR dwFileSize;
+  UINT_PTR dwBufferBytes;
   DWORD dwBytesRead;
   DWORD dwCharsConverted=0;
 
   //Offset BOM
   if (bBOM)
   {
-    if (SetFilePointer(hFile, 0, NULL, FILE_CURRENT) == 0)
+    if (API_SetFilePointer(hFile, 0, FILE_CURRENT) == 0)
     {
       if (nCodePage == CP_UNICODE_UTF16LE ||
           nCodePage == CP_UNICODE_UTF16BE)
       {
-        SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
+        API_SetFilePointer(hFile, 2, FILE_BEGIN);
       }
       else if (nCodePage == CP_UNICODE_UTF32LE ||
                nCodePage == CP_UNICODE_UTF32BE)
       {
-        SetFilePointer(hFile, 4, NULL, FILE_BEGIN);
+        API_SetFilePointer(hFile, 4, FILE_BEGIN);
       }
       else if (nCodePage == CP_UNICODE_UTF8)
       {
-        SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
+        API_SetFilePointer(hFile, 3, FILE_BEGIN);
       }
     }
   }
 
-  if ((dwFileSize=GetFileSize(hFile, NULL)) != INVALID_FILE_SIZE)
+  if ((dwFileSize=API_GetFileSize(hFile)) != INVALID_FILE_SIZE)
   {
     if (dwBytesMax == (DWORD)-1)
       dwBytesMax=dwFileSize;
@@ -7295,7 +7295,7 @@ void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen)
   else wszCodePage[0]='\0';
 }
 
-int FilePreview(HWND hWnd, wchar_t *wpFile, int nPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
+int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
 {
   HANDLE hFile;
   FILESTREAMDATA fsd;
@@ -7314,33 +7314,33 @@ int FilePreview(HWND hWnd, wchar_t *wpFile, int nPreviewBytes, DWORD dwFlags, in
     return EOD_OPEN;
 
   //Offset BOM
-  fsd.nBytesCurrent=0;
+  fsd.dwBytesCurrent=0;
 
   if (*bBOM)
   {
     if (*nCodePage == CP_UNICODE_UTF16LE ||
         *nCodePage == CP_UNICODE_UTF16BE)
     {
-      SetFilePointer(hFile, 2, NULL, FILE_BEGIN);
-      fsd.nBytesCurrent=2;
+      API_SetFilePointer(hFile, 2, FILE_BEGIN);
+      fsd.dwBytesCurrent=2;
     }
     else if (*nCodePage == CP_UNICODE_UTF32LE ||
              *nCodePage == CP_UNICODE_UTF32BE)
     {
-      SetFilePointer(hFile, 4, NULL, FILE_BEGIN);
-      fsd.nBytesCurrent=4;
+      API_SetFilePointer(hFile, 4, FILE_BEGIN);
+      fsd.dwBytesCurrent=4;
     }
     else if (*nCodePage == CP_UNICODE_UTF8)
     {
-      SetFilePointer(hFile, 3, NULL, FILE_BEGIN);
-      fsd.nBytesCurrent=3;
+      API_SetFilePointer(hFile, 3, FILE_BEGIN);
+      fsd.dwBytesCurrent=3;
     }
   }
 
   fsd.hWnd=hWnd;
   fsd.hFile=hFile;
   fsd.nCodePage=*nCodePage;
-  fsd.nBytesMax=nPreviewBytes;
+  fsd.dwBytesMax=dwPreviewBytes;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
 
@@ -18013,36 +18013,6 @@ int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, U
   return nResult;
 }
 
-UINT_PTR API_GetWindowLongPtr(HWND hWnd, int nIndex)
-{
-  #ifdef _WIN64
-    if (bOldWindows == TRUE)
-      return GetWindowLongPtrA(hWnd, nIndex);
-    else
-      return GetWindowLongPtrW(hWnd, nIndex);
-  #else
-    if (bOldWindows == TRUE)
-      return GetWindowLongA(hWnd, nIndex);
-    else
-      return GetWindowLongW(hWnd, nIndex);
-  #endif
-}
-
-UINT_PTR API_SetWindowLongPtr(HWND hWnd, int nIndex, UINT_PTR dwNewLong)
-{
-  #ifdef _WIN64
-    if (bOldWindows == TRUE)
-      return SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
-    else
-      return SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
-  #else
-    if (bOldWindows == TRUE)
-      return SetWindowLongA(hWnd, nIndex, dwNewLong);
-    else
-      return SetWindowLongW(hWnd, nIndex, dwNewLong);
-  #endif
-}
-
 HWND API_CreateDialogA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc)
 {
   HWND hResult;
@@ -18196,4 +18166,64 @@ BOOL FreeWideStr(wchar_t *wpVar)
   if (wpVar)
     return API_HeapFree(hHeap, 0, (LPVOID)wpVar);
   return FALSE;
+}
+
+UINT_PTR API_GetWindowLongPtr(HWND hWnd, int nIndex)
+{
+  #ifdef _WIN64
+    if (bOldWindows == TRUE)
+      return GetWindowLongPtrA(hWnd, nIndex);
+    else
+      return GetWindowLongPtrW(hWnd, nIndex);
+  #else
+    if (bOldWindows == TRUE)
+      return GetWindowLongA(hWnd, nIndex);
+    else
+      return GetWindowLongW(hWnd, nIndex);
+  #endif
+}
+
+UINT_PTR API_SetWindowLongPtr(HWND hWnd, int nIndex, UINT_PTR dwNewLong)
+{
+  #ifdef _WIN64
+    if (bOldWindows == TRUE)
+      return SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
+    else
+      return SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
+  #else
+    if (bOldWindows == TRUE)
+      return SetWindowLongA(hWnd, nIndex, dwNewLong);
+    else
+      return SetWindowLongW(hWnd, nIndex, dwNewLong);
+  #endif
+}
+
+UINT_PTR API_GetFileSize(HANDLE hFile)
+{
+  #ifdef _WIN64
+    LARGE_INTEGER liFileSize;
+
+    if (GetFileSizeEx(hFile, &liFileSize))
+      return liFileSize.QuadPart;
+    else
+      return 0;
+  #else
+    return GetFileSize(hFile, NULL);
+  #endif
+}
+
+UINT_PTR API_SetFilePointer(HANDLE hFile, INT_PTR nDistanceToMove, DWORD dwMoveMethod)
+{
+  #ifdef _WIN64
+    LARGE_INTEGER liDistanceToMove;
+    LARGE_INTEGER liNewFilePointer;
+
+    liDistanceToMove.QuadPart=nDistanceToMove;
+    if (SetFilePointerEx(hFile, liDistanceToMove, &liNewFilePointer, dwMoveMethod))
+      return liNewFilePointer.QuadPart;
+    else
+      return 0;
+  #else
+    return SetFilePointer(hFile, nDistanceToMove, NULL, dwMoveMethod);
+  #endif
 }

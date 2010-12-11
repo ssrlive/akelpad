@@ -490,8 +490,8 @@ typedef struct _FILESTREAMDATA {
   int nCodePage;
   DWORD dwFlags;
   int nNewLine;
-  int nBytesCurrent;
-  int nBytesMax;
+  UINT_PTR dwBytesCurrent;
+  UINT_PTR dwBytesMax;
   BOOL bResult;
 } FILESTREAMDATA;
 
@@ -709,7 +709,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
 int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM);
 void FileStreamIn(FILESTREAMDATA *lpData);
 DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesLen, DWORD *dwBufBytesDone);
-DWORD ReadFileContent(HANDLE hFile, DWORD dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent);
+DWORD ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent);
 BOOL OpenDocumentSend(HWND hWnd, HWND hWndEditCtrl, const wchar_t *wpFile, DWORD dwFlags, int nCodePage, BOOL bBOM, BOOL bOtherProcess);
 int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWORD dwFlags);
 void FileStreamOut(FILESTREAMDATA *lpData);
@@ -761,7 +761,7 @@ int CodepageListLen(int *lpCodepageList);
 int CodepageListFind(int *lpCodepageList, int nCodePage);
 void CodepageListFree(int **lpCodepageList);
 void GetCodePageName(int nCodePage, wchar_t *wszCodePage, int nLen);
-int FilePreview(HWND hWnd, wchar_t *wpFile, int nPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
+int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 int AutodetectCodePage(const wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM);
 BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage);
 unsigned int UTF32toUTF16(const unsigned long *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned short *szTarget, unsigned int nTargetMax);
@@ -1038,8 +1038,6 @@ int API_LoadStringW(HINSTANCE hLoadInstance, UINT uID, wchar_t *lpBuffer, int nB
 int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, UINT uType);
 HWND API_CreateDialogA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
 HWND API_CreateDialogW(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
-UINT_PTR API_GetWindowLongPtr(HWND hWnd, int nIndex);
-UINT_PTR API_SetWindowLongPtr(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
 INT_PTR API_DialogBoxA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
 INT_PTR API_DialogBoxW(HINSTANCE hLoadInstance, wchar_t *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc);
 INT_PTR API_DialogBoxParamA(HINSTANCE hLoadInstance, char *lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam);
@@ -1052,5 +1050,9 @@ LPVOID API_HeapAlloc(HANDLE hHeap, DWORD dwFlags, SIZE_T dwBytes);
 BOOL API_HeapFree(HANDLE hHeap, DWORD dwFlags, LPVOID lpMem);
 wchar_t* AllocWideStr(DWORD dwSize);
 BOOL FreeWideStr(wchar_t *wpVar);
+UINT_PTR API_GetWindowLongPtr(HWND hWnd, int nIndex);
+UINT_PTR API_SetWindowLongPtr(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
+UINT_PTR API_GetFileSize(HANDLE hFile);
+UINT_PTR API_SetFilePointer(HANDLE hFile, INT_PTR nDistanceToMove, DWORD dwMoveMethod);
 
 #endif

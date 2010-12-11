@@ -551,7 +551,7 @@ typedef struct {
 
 typedef struct {
   HANDLE hFile;          //File handle, returned by CreateFile function.
-  DWORD dwBytesMax;      //Maximum bytes to read, if -1 read entire file.
+  UINT_PTR dwBytesMax;   //Maximum bytes to read, if -1 read entire file.
   int nCodePage;         //File codepage.
   BOOL bBOM;             //File BOM.
   wchar_t *wpContent;    //Returned file contents.
@@ -681,7 +681,7 @@ typedef struct _FRAMEDATA {
 
   //Substract selection
   AECHARRANGE crPrevSel;
-  int nSelSubtract;
+  INT_PTR nSelSubtract;
 
   //"StatusUserFormat" variables.
   int nCaretRichOffset;
