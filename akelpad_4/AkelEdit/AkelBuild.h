@@ -154,18 +154,18 @@ typedef struct _AEUNDOITEM {
   struct _AEUNDOITEM *next;
   struct _AEUNDOITEM *prev;
   DWORD dwFlags;
-  int nActionStartOffset;
-  int nActionEndOffset;
+  INT_PTR nActionStartOffset;
+  INT_PTR nActionEndOffset;
   int nExtraStartOffset;
   int nExtraEndOffset;
   wchar_t *wpText;
-  DWORD dwTextLen;
+  UINT_PTR dwTextLen;
 } AEUNDOITEM;
 
 //"AkelEditText" clipboard
 typedef struct {
-  DWORD dwAnsiLen;
-  DWORD dwUnicodeLen;
+  UINT_PTR dwAnsiLen;
+  UINT_PTR dwUnicodeLen;
 } AECLIPBOARDINFO;
 
 
@@ -283,7 +283,7 @@ typedef struct {
 
 typedef struct {
   AEMARKRANGEITEM *lpMarkRange;
-  CHARRANGE crMarkRange;
+  AEOFFSETRANGE crMarkRange;
 } AEMARKRANGEMATCH;
 
 typedef struct {
@@ -302,7 +302,7 @@ typedef struct {
 } AEWORDMATCH;
 
 typedef struct {
-  CHARRANGE crFold;
+  AEOFFSETRANGE crFold;
   AEFOLD *lpFold;
 } AEFOLDMATCH;
 
@@ -327,7 +327,7 @@ typedef struct {
 typedef struct {
   HDC hDC;
   AECHARINDEX ciDrawLine;
-  int nDrawCharOffset;
+  INT_PTR nDrawCharOffset;
   int nDrawLineWidth;
   POINT ptFirstCharInLine;
   wchar_t *wpStartDraw;
@@ -450,14 +450,14 @@ typedef struct {
   int nVScrollMax;
 
   //Text size
-  int nLastCharOffset;
+  INT_PTR nLastCharOffset;
   int nLineCount;
 
   //Wrap
   AELINEINDEX liLineUnwrapLastCall;
   int nLineUnwrapCount;
   int nLineUnwrapLastCall;
-  DWORD dwTextLimit;
+  UINT_PTR dwTextLimit;
   DWORD dwWordWrap;
   DWORD dwWrapLimit;
   wchar_t wszWrapDelimiters[128];
@@ -564,10 +564,10 @@ typedef struct _AKELEDIT {
   AECHARINDEX ciSelEndIndex;
   AECHARINDEX ciCaretIndex;
   AECHARINDEX ciLastCallIndex;
-  int nFirstDrawLineOffset;
-  int nSelStartCharOffset;
-  int nSelEndCharOffset;
-  int nLastCallOffset;
+  INT_PTR nFirstDrawLineOffset;
+  INT_PTR nSelStartCharOffset;
+  INT_PTR nSelEndCharOffset;
+  INT_PTR nLastCallOffset;
   int nHScrollPos;
   int nVScrollPos;
   int nLastHScrollPos;
@@ -727,7 +727,7 @@ AEBITMAPITEM* AE_StackBitmapItemInsert(HSTACK *hStack, AEBITMAPDATA *bd);
 AEBITMAPITEM* AE_StackBitmapItemGet(HSTACK *hStack, AEBITMAPDATA *bd);
 void AE_StackBitmapItemsFree(HSTACK *hStack);
 AEFOLD* AE_StackFoldInsert(AKELEDIT *ae, const AEFOLD *lpFold);
-void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, DWORD dwFindIt, AEFOLD *lpForce, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
+void AE_StackFindFold(AKELEDIT *ae, DWORD dwFlags, UINT_PTR dwFindIt, AEFOLD *lpForce, AEFOLD **lpParentOut, AEFOLD **lpPrevSublingOut);
 AEFOLD* AE_StackIsLineCollapsed(AKELEDIT *ae, int nLine);
 int AE_StackLineCollapse(AKELEDIT *ae, int nLine, DWORD dwFlags);
 int AE_StackFoldCollapse(AKELEDIT *ae, AEFOLD *lpFold, DWORD dwFlags);
@@ -746,7 +746,7 @@ void AE_StackPointFree(AKELEDIT *ae);
 AEUNDOITEM* AE_StackUndoItemInsert(AKELEDIT *ae);
 void AE_StackUndoItemDelete(AKELEDIT *ae, AEUNDOITEM *lpItem);
 void AE_StackRedoDeleteAll(AKELEDIT *ae, AEUNDOITEM *lpItem);
-DWORD AE_StackUndoSize(AKELEDIT *ae);
+UINT_PTR AE_StackUndoSize(AKELEDIT *ae);
 void AE_StackUndoGroupStop(AKELEDIT *ae);
 AELINEDATA* AE_StackLineAdd(AKELEDIT *ae);
 AELINEDATA* AE_StackLineInsertBefore(AKELEDIT *ae, AELINEDATA *lpLine);
@@ -756,11 +756,11 @@ void AE_StackLineFree(AKELEDIT *ae);
 AELINEDATA* AE_GetLineData(AKELEDIT *ae, int nLine);
 int AE_GetWrapLine(AKELEDIT *ae, int nLine, AECHARINDEX *ciChar);
 int AE_GetUnwrapLine(AKELEDIT *ae, int nLine);
-void AE_RichOffsetToAkelIndex(AKELEDIT *ae, DWORD dwOffset, AECHARINDEX *ciCharIndex);
-int AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex);
+void AE_RichOffsetToAkelIndex(AKELEDIT *ae, INT_PTR nOffset, AECHARINDEX *ciCharIndex);
+INT_PTR AE_AkelIndexToRichOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIndex);
 AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, BOOL bColumnSel);
-int AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
-DWORD AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, int nOffset, int nNewLine);
+INT_PTR AE_IndexSubtract(AKELEDIT *ae, const AECHARINDEX *ciChar1, const AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
+UINT_PTR AE_IndexOffset(AKELEDIT *ae, const AECHARINDEX *ciCharIn, AECHARINDEX *ciCharOut, INT_PTR nOffset, int nNewLine);
 BOOL AE_IndexNormalize(AECHARINDEX *ciChar);
 BOOL AE_IndexUpdate(AKELEDIT *ae, AECHARINDEX *ciChar);
 int AE_UpdateWrap(AKELEDIT *ae, AELINEINDEX *liWrapStart, AELINEINDEX *liWrapEnd, DWORD dwWrap);
@@ -790,7 +790,7 @@ DWORD AE_IsPointOnUrl(AKELEDIT *ae, const POINT *ptPos, AECHARRANGE *crLink);
 DWORD AE_HighlightFindUrl(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, int nLastLine, AECHARRANGE *crLink);
 int AE_HighlightFindMarkText(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEMARKTEXTMATCH *mtm);
 AEMARKTEXTITEMW* AE_HighlightIsMarkText(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, AESTACKMARKTEXT *lpMarkTextStack);
-int AE_HighlightFindMarkRange(AKELEDIT *ae, int nCharOffset, AEMARKRANGEMATCH *mrm);
+int AE_HighlightFindMarkRange(AKELEDIT *ae, INT_PTR nCharOffset, AEMARKRANGEMATCH *mrm);
 int AE_HighlightFindQuote(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEQUOTEMATCH *qm);
 int AE_HighlightFindWord(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwSearchType, AEWORDMATCH *wm, AEQUOTEMATCH *qm);
 AEDELIMITEMW* AE_HighlightIsDelimiter(AKELEDIT *ae, AEFINDTEXTW *ft, const AECHARINDEX *ciChar, BOOL bBack);
@@ -873,20 +873,20 @@ BOOL AE_IsDelimiter(AKELEDIT *ae, const AECHARINDEX *ciChar, DWORD dwType);
 BOOL AE_IsInDelimiterList(const wchar_t *wpList, wchar_t c, BOOL bMatchCase);
 BOOL AE_IsSpace(wchar_t c);
 int AE_GetUrlPrefixes(AKELEDIT *ae);
-DWORD AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefaultChar, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, DWORD dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
-DWORD AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, wchar_t *wszBuffer, DWORD dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
-DWORD AE_SetTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, int nNewLine);
-DWORD AE_SetText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bOnInitWindow);
-DWORD AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi);
+UINT_PTR AE_GetTextRangeAnsi(AKELEDIT *ae, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefaultChar, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, char *szBuffer, UINT_PTR dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
+UINT_PTR AE_GetTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, wchar_t *wszBuffer, UINT_PTR dwBufferSize, int nNewLine, BOOL bColumnSel, BOOL bFillSpaces);
+UINT_PTR AE_SetTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR dwTextLen, int nNewLine);
+UINT_PTR AE_SetText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int nNewLine, BOOL bOnInitWindow);
+UINT_PTR AE_StreamIn(AKELEDIT *ae, DWORD dwFlags, AESTREAMIN *aesi);
 int AE_JoinNewLines(AKELEDIT *ae);
-DWORD AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso);
-BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, const AECHARINDEX *ciCount, const AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, DWORD *dwResult);
-void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, int nNewLine);
-void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewLine);
-void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, const char *pText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
-void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
-DWORD AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, BOOL bColumnSel, DWORD dwDeleteFlags);
-DWORD AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t *wpText, DWORD dwTextLen, int nNewLine, BOOL bColumnSel, DWORD dwInsertFlags, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
+UINT_PTR AE_StreamOut(AKELEDIT *ae, DWORD dwFlags, AESTREAMOUT *aeso);
+BOOL AE_StreamOutHelper(AESTREAMOUT *aeso, const AECHARINDEX *ciCount, const AECHARINDEX *ciEnd, wchar_t *wszBuf, DWORD dwBufLen, DWORD *dwBufCount, UINT_PTR *dwResult);
+void AE_AppendTextAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR dwTextLen, int nNewLine);
+void AE_AppendText(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int nNewLine);
+void AE_ReplaceSelAnsi(AKELEDIT *ae, int nCodePage, const char *pText, UINT_PTR dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
+void AE_ReplaceSel(AKELEDIT *ae, const wchar_t *wpText, UINT_PTR dwTextLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
+INT_PTR AE_DeleteTextRange(AKELEDIT *ae, const AECHARINDEX *ciRangeStart, const AECHARINDEX *ciRangeEnd, BOOL bColumnSel, DWORD dwDeleteFlags);
+UINT_PTR AE_InsertText(AKELEDIT *ae, const AECHARINDEX *ciInsertPos, const wchar_t *wpText, UINT_PTR dwTextLen, int nNewLine, BOOL bColumnSel, DWORD dwInsertFlags, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd);
 wchar_t* AE_GetNextLine(AKELEDIT *ae, const wchar_t *wpText, DWORD dwTextLen, int *nLineLen, int *nLineBreak);
 int AE_GetNewLineString(AKELEDIT *ae, int nNewLine, const wchar_t **wpNewLine);
 BOOL AE_FindTextAnsi(AKELEDIT *ae, int nCodePage, AEFINDTEXTA *ftA);
@@ -919,7 +919,7 @@ BOOL AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax);
 void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec);
-void AE_NotifyErrSpace(AKELEDIT *ae, DWORD dwBytes);
+void AE_NotifyErrSpace(AKELEDIT *ae, SIZE_T dwBytes);
 void AE_NotifySetFocus(AKELEDIT *ae, HWND hWndLost);
 void AE_NotifyKillFocus(AKELEDIT *ae, HWND hWndReceive);
 void AE_NotifyHScroll(AKELEDIT *ae);
@@ -927,7 +927,7 @@ void AE_NotifyVScroll(AKELEDIT *ae);
 void AE_NotifySetRect(AKELEDIT *ae);
 void AE_NotifyPaint(AKELEDIT *ae, DWORD dwType, AENPAINT *pnt);
 void AE_NotifyMaxText(AKELEDIT *ae);
-BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, int nCurrent, int nMaximum);
+BOOL AE_NotifyProgress(AKELEDIT *ae, DWORD dwType, DWORD dwTimeElapsed, INT_PTR nCurrent, INT_PTR nMaximum);
 void AE_NotifyModify(AKELEDIT *ae);
 void AE_NotifySelChanging(AKELEDIT *ae, DWORD dwType);
 void AE_NotifySelChanged(AKELEDIT *ae);
@@ -942,7 +942,7 @@ BOOL AE_NotifyDropTarget(AKELEDIT *ae, int nAction, POINT *pt, DWORD *lpdwEffect
 BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const AECHARRANGE *crLink);
 BOOL AE_NotifyMsgFilter(AKELEDIT *ae, UINT uMsg, WPARAM *wParam, LPARAM *lParam);
 LRESULT AE_SendMessage(AKELEDIT *ae, HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-void AE_ChangeTwoBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen);
+void AE_ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen);
 wchar_t* AE_wcschr(const wchar_t *s, wchar_t c, BOOL bMatchCase);
 
 HRESULT WINAPI AEIDropTarget_QueryInterface(LPUNKNOWN lpTable, REFIID riid, void **ppvObj);

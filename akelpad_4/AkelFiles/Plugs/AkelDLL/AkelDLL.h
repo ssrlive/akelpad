@@ -684,8 +684,8 @@ typedef struct _FRAMEDATA {
   INT_PTR nSelSubtract;
 
   //"StatusUserFormat" variables.
-  int nCaretRichOffset;
-  int nCaretByteOffset;
+  INT_PTR nCaretRichOffset;
+  INT_PTR nCaretByteOffset;
   int nCaretChar;
   int nFontPoint;
   int nReplaceCount;
@@ -2093,7 +2093,7 @@ Example (bOldWindows == TRUE):
      //Read contents
      if ((fc.hFile=CreateFileA(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
-       fc.dwBytesMax=(DWORD)-1;
+       fc.dwBytesMax=(UINT_PTR)-1;
        fc.nCodePage=dc.nCodePage;
        fc.bBOM=dc.bBOM;
        if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
@@ -2141,7 +2141,7 @@ Example (bOldWindows == FALSE):
      //Read contents
      if ((fc.hFile=CreateFileW(dc.pFile, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL)) != INVALID_HANDLE_VALUE)
      {
-       fc.dwBytesMax=(DWORD)-1;
+       fc.dwBytesMax=(UINT_PTR)-1;
        fc.nCodePage=dc.nCodePage;
        fc.bBOM=dc.bBOM;
        if (nResult=SendMessage(hMainWnd, AKD_READFILECONTENT, 0, (LPARAM)&fc))
