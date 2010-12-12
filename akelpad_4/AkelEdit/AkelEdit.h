@@ -533,8 +533,9 @@
 #ifndef MAKE_IDENTIFIER
   #define MAKE_IDENTIFIER(a, b, c, d)  ((DWORD)MAKELONG(MAKEWORD(a, b), MAKEWORD(c, d)))
 #endif
+
 #ifndef mod
-  #define mod(a)  ((((int)(a)) < 0) ? (0 - ((int)(a))) : (a))
+  #define mod(a)  (((a) < 0) ? (0 - (a)) : (a))
 #endif
 
 DECLARE_HANDLE (AEHDOC);
@@ -615,6 +616,12 @@ typedef struct {
   AECHARINDEX ciMax;  //Last character index in range.
 } AECHARRANGE;
 
+//x64 CHARRANGE
+typedef struct {
+  INT_PTR cpMin;  //First character in the range (RichEdit offset).
+  INT_PTR cpMax;  //Last character in the range (RichEdit offset).
+} AEOFFSETRANGE;
+
 typedef struct {
   AECHARRANGE crSel;  //Characters range.
   DWORD dwFlags;      //See AESELT_* defines.
@@ -624,11 +631,11 @@ typedef struct _AEPOINT {
   struct _AEPOINT *next;   //Pointer to the next AEPOINT structure.
   struct _AEPOINT *prev;   //Pointer to the previous AEPOINT structure.
   AECHARINDEX ciPoint;     //Read-only character index.
-  int nPointOffset;        //Character RichEdit offset or one of the AEPTO_* define.
+  INT_PTR nPointOffset;    //Character RichEdit offset or one of the AEPTO_* define.
   int nPointLen;           //Point length.
   DWORD dwFlags;           //See AEPTF_* defines.
   UINT_PTR dwUserData;     //User data.
-  int nTmpPointOffset;     //Don't use it. For internal code only.
+  INT_PTR nTmpPointOffset; //Don't use it. For internal code only.
   int nTmpPointLen;        //Don't use it. For internal code only.
 } AEPOINT;
 
@@ -656,20 +663,20 @@ typedef struct {
 
 typedef struct {
   const char *pText;     //[in] Text to append.
-  DWORD dwTextLen;       //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  UINT_PTR dwTextLen;    //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;          //[in] See AELB_* defines.
   int nCodePage;         //[in] Code page identifier (any available in the system). You can also specify one of the following values: CP_ACP - ANSI code page, CP_OEMCP - OEM code page, CP_UTF8 - UTF-8 code page.
 } AEAPPENDTEXTA;
 
 typedef struct {
   const wchar_t *pText;  //[in] Text to append.
-  DWORD dwTextLen;       //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  UINT_PTR dwTextLen;    //[in] Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;          //[in] See AELB_* defines.
 } AEAPPENDTEXTW;
 
 typedef struct {
   const char *pText;           //[in]  Text to replace with.
-  DWORD dwTextLen;             //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  UINT_PTR dwTextLen;          //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;                //[in]  See AELB_* defines.
   BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
@@ -679,7 +686,7 @@ typedef struct {
 
 typedef struct {
   const wchar_t *pText;        //[in]  Text to replace with.
-  DWORD dwTextLen;             //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  UINT_PTR dwTextLen;          //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;                //[in]  See AELB_* defines.
   BOOL bColumnSel;             //[in]  Column selection. If this value is -1, use current selection type.
   AECHARINDEX *ciInsertStart;  //[out] Insert "from" character index after replacement.
@@ -730,7 +737,7 @@ typedef struct {
 typedef struct {
   DWORD dwFlags;           //[in]  See AEFR_* defines.
   const char *pText;       //[in]  Text to find.
-  DWORD dwTextLen;         //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  UINT_PTR dwTextLen;      //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;            //[in]  See AELB_* defines.
   AECHARRANGE crSearch;    //[in]  Range of characters to search.
   AECHARRANGE crFound;     //[out] Range of characters in which text is found.
@@ -739,7 +746,7 @@ typedef struct {
 typedef struct {
   DWORD dwFlags;           //[in]  See AEFR_* defines.
   const wchar_t *pText;    //[in]  Text to find.
-  DWORD dwTextLen;         //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
+  UINT_PTR dwTextLen;      //[in]  Text length. If this value is -1, the string is assumed to be null-terminated and the length is calculated automatically.
   int nNewLine;            //[in]  See AELB_* defines.
   AECHARRANGE crSearch;    //[in]  Range of characters to search.
   AECHARRANGE crFound;     //[out] Range of characters in which text is found.
@@ -762,7 +769,7 @@ typedef struct {
 typedef struct {
   AECHARINDEX *ciCharIn;   //[in]  Input character index.
   AECHARINDEX *ciCharOut;  //[out] Output character index (result).
-  int nOffset;             //[in]  Offset can be positive or negative. For example, +1 will return next character, -1 will return previous character.
+  INT_PTR nOffset;         //[in]  Offset can be positive or negative. For example, +1 will return next character, -1 will return previous character.
   int nNewLine;            //[in]  See AELB_* defines.
 } AEINDEXOFFSET;
 
@@ -919,7 +926,7 @@ typedef struct _AEMARKRANGEITEM {
   struct _AEMARKRANGEITEM *next;
   struct _AEMARKRANGEITEM *prev;
   int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  CHARRANGE crMarkRange;     //cpMin member is the first character in the range (RichEdit offset), cpMax member is the last character in the range (RichEdit offset).
+  AEOFFSETRANGE crMarkRange; //cpMin member is the first character in the range (RichEdit offset), cpMax member is the last character in the range (RichEdit offset).
   DWORD dwFlags;             //Reserved.
   DWORD dwFontStyle;         //See AEHLS_* defines.
   COLORREF crText;           //Mark text color. If -1, then don't set.
@@ -938,7 +945,7 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  DWORD dwBytes;       //Number of bytes that cannot be allocated.
+  SIZE_T dwBytes;      //Number of bytes that cannot be allocated.
 } AENERRSPACE;
 
 typedef struct {
@@ -966,23 +973,23 @@ typedef struct {
   HDC hDC;                //Device context.
   AECHARINDEX ciMinDraw;  //First index in line to paint.
   AECHARINDEX ciMaxDraw;  //Last index in line to paint.
-  int nMinDrawOffset;     //First character in line to paint (RichEdit offset).
-  int nMaxDrawOffset;     //Last character in line to paint (RichEdit offset).
+  INT_PTR nMinDrawOffset; //First character in line to paint (RichEdit offset).
+  INT_PTR nMaxDrawOffset; //Last character in line to paint (RichEdit offset).
   POINT ptMinDraw;        //Left upper corner in client coordinates of first character in line to paint.
   POINT ptMaxDraw;        //Left upper corner in client coordinates of last character in line to paint.
 } AENPAINT;
 
 typedef struct {
   AENMHDR hdr;
-  DWORD dwTextLimit;   //Current text limit.
+  UINT_PTR dwTextLimit;   //Current text limit.
 } AENMAXTEXT;
 
 typedef struct {
   AENMHDR hdr;
   DWORD dwType;        //See AEPGS_* defines.
   DWORD dwTimeElapsed; //Elapsed time since action was start.
-  int nCurrent;        //Characters processed. Equal to zero, if first message.
-  int nMaximum;        //Total number of characters. Equal to nCurrent member, if last message.
+  INT_PTR nCurrent;    //Characters processed. Equal to zero, if first message.
+  INT_PTR nMaximum;    //Total number of characters. Equal to nCurrent member, if last message.
 } AENPROGRESS;
 
 typedef struct {
@@ -1006,27 +1013,27 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;          //Current selection.
-  AECHARINDEX ciCaret;      //Caret character index position.
-  DWORD dwType;             //See AETCT_* defines.
-  const wchar_t *wpText;    //Text to insert.
-  DWORD dwTextLen;          //Text length.
-  int nNewLine;             //See AELB_* defines.
-  BOOL bColumnSel;          //Column selection.
-  DWORD dwInsertFlags;      //See AEINST_* defines.
-  AECHARRANGE crAkelRange;  //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion.
-  CHARRANGE crRichRange;    //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion (RichEdit offset).
+  AESELECTION aes;           //Current selection.
+  AECHARINDEX ciCaret;       //Caret character index position.
+  DWORD dwType;              //See AETCT_* defines.
+  const wchar_t *wpText;     //Text to insert.
+  UINT_PTR dwTextLen;        //Text length.
+  int nNewLine;              //See AELB_* defines.
+  BOOL bColumnSel;           //Column selection.
+  DWORD dwInsertFlags;       //See AEINST_* defines.
+  AECHARRANGE crAkelRange;   //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion.
+  AEOFFSETRANGE crRichRange; //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion (RichEdit offset).
 } AENTEXTINSERT;
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;          //Current selection.
-  AECHARINDEX ciCaret;      //Caret character index position.
-  DWORD dwType;             //See AETCT_* defines.
-  BOOL bColumnSel;          //Column selection.
-  DWORD dwDeleteFlags;      //See AEINST_* defines.
-  AECHARRANGE crAkelRange;  //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion.
-  CHARRANGE crRichRange;    //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion (RichEdit offset).
+  AESELECTION aes;           //Current selection.
+  AECHARINDEX ciCaret;       //Caret character index position.
+  DWORD dwType;              //See AETCT_* defines.
+  BOOL bColumnSel;           //Column selection.
+  DWORD dwDeleteFlags;       //See AEINST_* defines.
+  AECHARRANGE crAkelRange;   //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion.
+  AEOFFSETRANGE crRichRange; //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion (RichEdit offset).
 } AENTEXTDELETE;
 
 typedef struct {
@@ -1819,7 +1826,7 @@ Example:
  AEAPPENDTEXTA at;
 
  at.pText="SomeText";
- at.dwTextLen=(DWORD)-1;
+ at.dwTextLen=(UINT_PTR)-1;
  at.nNewLine=AELB_ASINPUT;
  at.nCodePage=CP_ACP;
  SendMessage(hWndEdit, AEM_APPENDTEXTA, 0, (LPARAM)&at);
@@ -1840,7 +1847,7 @@ Example:
  AEAPPENDTEXTW at;
 
  at.pText=L"SomeText";
- at.dwTextLen=(DWORD)-1;
+ at.dwTextLen=(UINT_PTR)-1;
  at.nNewLine=AELB_ASINPUT;
  SendMessage(hWndEdit, AEM_APPENDTEXTW, 0, (LPARAM)&at);
 
@@ -1860,7 +1867,7 @@ Example:
  AEREPLACESELA rs;
 
  rs.pText="SomeText";
- rs.dwTextLen=(DWORD)-1;
+ rs.dwTextLen=(UINT_PTR)-1;
  rs.nNewLine=AELB_ASINPUT;
  rs.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
  rs.ciInsertStart=NULL;
@@ -1884,7 +1891,7 @@ Example:
  AEREPLACESELW rs;
 
  rs.pText=L"SomeText";
- rs.dwTextLen=(DWORD)-1;
+ rs.dwTextLen=(UINT_PTR)-1;
  rs.nNewLine=AELB_ASINPUT;
  rs.bColumnSel=SendMessage(hWndEdit, AEM_GETCOLUMNSEL, 0, 0);
  rs.ciInsertStart=NULL;
@@ -2152,7 +2159,7 @@ Example:
 
  ft.dwFlags=AEFR_DOWN;
  ft.pText="SomeText";
- ft.dwTextLen=(DWORD)-1;
+ ft.dwTextLen=(UINT_PTR)-1;
  ft.nNewLine=AELB_ASIS;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
@@ -2183,7 +2190,7 @@ Example:
 
  ft.dwFlags=AEFR_DOWN;
  ft.pText=L"SomeText";
- ft.dwTextLen=(DWORD)-1;
+ ft.dwTextLen=(UINT_PTR)-1;
  ft.nNewLine=AELB_ASIS;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTCHAR, (LPARAM)&ft.crSearch.ciMin);
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_LASTCHAR, (LPARAM)&ft.crSearch.ciMax);
@@ -2214,7 +2221,7 @@ Example:
 
  ft.dwFlags=AEFR_MATCHCASE;
  ft.pText="SomeText";
- ft.dwTextLen=(DWORD)-1;
+ ft.dwTextLen=(UINT_PTR)-1;
  ft.nNewLine=AELB_ASIS;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&ciChar);
 
@@ -2244,7 +2251,7 @@ Example:
 
  ft.dwFlags=AEFR_MATCHCASE;
  ft.pText=L"SomeText";
- ft.dwTextLen=(DWORD)-1;
+ ft.dwTextLen=(UINT_PTR)-1;
  ft.nNewLine=AELB_ASIS;
  SendMessage(hWndEdit, AEM_GETINDEX, AEGI_FIRSTSELCHAR, (LPARAM)&ciChar);
 

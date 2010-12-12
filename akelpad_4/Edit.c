@@ -1681,15 +1681,15 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
   AECHARINDEX ciInitialCaret;
   AETEXTRANGEW tr;
   wchar_t *wszRange=NULL;
-  int nRangeLen;
-  int nStringLenAll;
+  INT_PTR nRangeLen;
+  INT_PTR nStringLenAll;
+  INT_PTR nBufferLen;
   int nStringLen;
   int nStringBytes;
-  int nBufferLen;
   int nFirstLine;
-  int a=0;
-  int b=0;
-  int i;
+  INT_PTR a=0;
+  INT_PTR b=0;
+  INT_PTR i;
   BOOL bColumnSel;
   BOOL bResult=FALSE;
 
@@ -1739,7 +1739,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
           tr.cr.ciMax=crRange.ciMax;
           tr.bColumnSel=bColumnSel;
           tr.pBuffer=wszRange + nStringLenAll;
-          tr.dwBufferMax=(DWORD)-1;
+          tr.dwBufferMax=(UINT_PTR)-1;
           tr.nNewLine=AELB_ASIS;
           tr.bFillSpaces=TRUE;
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
@@ -1793,7 +1793,7 @@ BOOL DoEditInsertStringInSelectionW(HWND hWnd, int nAction, const wchar_t *wpStr
           tr.cr.ciMax=crRange.ciMax;
           tr.bColumnSel=bColumnSel;
           tr.pBuffer=wszRange;
-          tr.dwBufferMax=(DWORD)-1;
+          tr.dwBufferMax=(UINT_PTR)-1;
           tr.nNewLine=AELB_ASIS;
           tr.bFillSpaces=TRUE;
           SendMessage(hWnd, AEM_GETTEXTRANGEW, 0, (LPARAM)&tr);
@@ -1898,9 +1898,9 @@ BOOL DoEditDeleteFirstCharW(HWND hWnd)
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCaret;
   wchar_t *wszRange;
-  int nRangeLen;
-  int a;
-  int b;
+  INT_PTR nRangeLen;
+  INT_PTR a;
+  INT_PTR b;
   int nFirstLine;
   BOOL bDelete;
 
@@ -1960,9 +1960,9 @@ BOOL DoEditDeleteTrailingWhitespacesW(HWND hWnd)
   AECHARRANGE crRange;
   AECHARINDEX ciInitialCaret=ciCaret;
   wchar_t *wszRange;
-  int nRangeLen;
-  int a;
-  int b;
+  INT_PTR nRangeLen;
+  INT_PTR a;
+  INT_PTR b;
   int nFirstLine;
   BOOL bSelection;
   BOOL bResult=FALSE;
@@ -2036,11 +2036,11 @@ BOOL DoEditChangeCaseW(HWND hWnd, int nCase)
   wchar_t *wszRange;
   wchar_t *wpStart;
   wchar_t *wpEnd;
-  int nRangeLen;
   int nFirstLine;
+  INT_PTR nRangeLen;
+  INT_PTR i;
   BOOL bSelection;
   BOOL bResult=FALSE;
-  int i;
 
   if (IsReadOnly(hWnd))
     return FALSE;
@@ -2867,8 +2867,8 @@ BOOL ReadIni(INIFILE *hIniFile, HANDLE hFile)
   wchar_t *wpString;
   wchar_t *wpLastChar;
   UINT_PTR dwFileSize;
-  DWORD dwBytesRead;
-  DWORD dwUnicodeLen;
+  UINT_PTR dwBytesRead;
+  UINT_PTR dwUnicodeLen;
   int nSectionLen;
   int nKeyLen;
   int nStringLen;
@@ -2968,7 +2968,7 @@ BOOL WriteIni(INIFILE *hIniFile, HANDLE hFile)
 {
   INISECTION *lpIniSection=(INISECTION *)hIniFile->first;
   INIKEY *lpIniKey=NULL;
-  DWORD dwBytesWritten;
+  UINT_PTR dwBytesWritten;
 
   if (!API_WriteFile(hFile, "\xFF\xFE", 2, &dwBytesWritten, NULL))
     return FALSE;
@@ -3333,16 +3333,16 @@ DWORD SaveOption(OPTIONHANDLE *oh, const wchar_t *wpParam, DWORD dwType, void *l
   if (dwType & MOT_MAINOFFSET)
   {
     //lpData is MAINOPTIONS structure offset. Check if specified member in lpData has been changed.
-    if (!oh->bForceWrite && !xmemcmp(((LPBYTE)oh->mo) + (DWORD)lpData, ((LPBYTE)&moInit) + (DWORD)lpData, dwSize))
+    if (!oh->bForceWrite && !xmemcmp(((LPBYTE)oh->mo) + (UINT_PTR)lpData, ((LPBYTE)&moInit) + (UINT_PTR)lpData, dwSize))
       return dwSize;
-    lpData=((LPBYTE)oh->mo) + (DWORD)lpData;
+    lpData=((LPBYTE)oh->mo) + (UINT_PTR)lpData;
   }
   else if (dwType & MOT_FRAMEOFFSET)
   {
     //lpData is FRAMEDATA structure offset. Check if specified member in lpData has been changed.
-    if (!oh->bForceWrite && !xmemcmp(((LPBYTE)oh->fd) + (DWORD)lpData, ((LPBYTE)&fdInit) + (DWORD)lpData, dwSize))
+    if (!oh->bForceWrite && !xmemcmp(((LPBYTE)oh->fd) + (UINT_PTR)lpData, ((LPBYTE)&fdInit) + (UINT_PTR)lpData, dwSize))
       return dwSize;
-    lpData=((LPBYTE)oh->fd) + (DWORD)lpData;
+    lpData=((LPBYTE)oh->fd) + (UINT_PTR)lpData;
   }
   else if (dwType & MOT_MANUAL)
   {
@@ -4034,7 +4034,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   fsd.nCodePage=nCodePage;
   fsd.dwFlags=dwFlags;
   fsd.nNewLine=moCur.nDefaultNewLine;
-  fsd.dwBytesMax=(DWORD)-1;
+  fsd.dwBytesMax=(UINT_PTR)-1;
   fsd.bResult=TRUE;
   FileStreamIn(&fsd);
   CloseHandle(hFile);
@@ -4145,14 +4145,14 @@ void FileStreamIn(FILESTREAMDATA *lpData)
   unsigned char *szBuffer;
   wchar_t *wszBuffer;
   int nBufferBytes;
-  DWORD dwFileSize;
-  DWORD dwBytesRead;
-  DWORD dwCharsConverted;
+  UINT_PTR dwFileSize;
+  UINT_PTR dwBytesRead;
+  UINT_PTR dwCharsConverted;
   DWORD i;
 
   if ((dwFileSize=API_GetFileSize(lpData->hFile)) != INVALID_FILE_SIZE)
   {
-    if (lpData->dwBytesMax == (DWORD)-1)
+    if (lpData->dwBytesMax == (UINT_PTR)-1)
       lpData->dwBytesMax=dwFileSize;
 
     if (IsCodePageUnicode(lpData->nCodePage) && lpData->nCodePage != CP_UNICODE_UTF8)
@@ -4250,7 +4250,7 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 {
   AESTREAMIN aesi;
 
-  if (lpData->dwBytesMax == (DWORD)-1)
+  if (lpData->dwBytesMax == (UINT_PTR)-1)
     lpData->dwBytesMax=API_GetFileSize(lpData->hFile);
   SendMessage(lpData->hWnd, AEM_SETNEWLINE, AENL_INPUT|AENL_OUTPUT, MAKELONG(AELB_ASIS, AELB_ASIS));
 
@@ -4278,9 +4278,9 @@ void FileStreamIn(FILESTREAMDATA *lpData)
 DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwBufBytesSize, DWORD *dwBufBytesDone)
 {
   FILESTREAMDATA *lpData=(FILESTREAMDATA *)dwCookie;
-  DWORD dwBytesRead;
-  DWORD dwCharsConverted=0;
-  DWORD dwBytesConverted=0;
+  UINT_PTR dwBytesRead;
+  UINT_PTR dwCharsConverted=0;
+  UINT_PTR dwBytesConverted=0;
 
   if (lpData->dwBytesCurrent <= lpData->dwBytesMax)
   {
@@ -4313,7 +4313,7 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
       {
         if (lpData->nCodePage == CP_UNICODE_UTF8)
         {
-          dwCharsConverted=UTF8toUTF16(pcTranslateBuffer, dwBytesRead, (unsigned int *)&dwBytesConverted, (unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t));
+          dwCharsConverted=UTF8toUTF16(pcTranslateBuffer, dwBytesRead, &dwBytesConverted, (unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t));
 
           if (dwBytesRead != dwBytesConverted)
           {
@@ -4348,14 +4348,14 @@ DWORD CALLBACK InputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dwB
   return 0;
 }
 
-DWORD ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent)
+UINT_PTR ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBOM, wchar_t **wpContent)
 {
   unsigned char *szBuffer;
   wchar_t *wszBuffer=NULL;
   UINT_PTR dwFileSize;
   UINT_PTR dwBufferBytes;
-  DWORD dwBytesRead;
-  DWORD dwCharsConverted=0;
+  UINT_PTR dwBytesRead;
+  UINT_PTR dwCharsConverted=0;
 
   //Offset BOM
   if (bBOM)
@@ -4381,7 +4381,7 @@ DWORD ReadFileContent(HANDLE hFile, UINT_PTR dwBytesMax, int nCodePage, BOOL bBO
 
   if ((dwFileSize=API_GetFileSize(hFile)) != INVALID_FILE_SIZE)
   {
-    if (dwBytesMax == (DWORD)-1)
+    if (dwBytesMax == (UINT_PTR)-1)
       dwBytesMax=dwFileSize;
 
     if (IsCodePageUnicode(nCodePage) && nCodePage != CP_UNICODE_UTF8)
@@ -4461,7 +4461,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   HANDLE hFile;
   FILESTREAMDATA fsd;
   DWORD dwAttr;
-  unsigned int nBytesWritten;
+  UINT_PTR dwBytesWritten;
   int nResult=ESD_SUCCESS;
   int nWrite=0;
   int nFileCmp;
@@ -4577,15 +4577,15 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
     if (IsCodePageUnicode(nCodePage))
     {
       if (nCodePage == CP_UNICODE_UTF16LE)
-        nWrite=API_WriteFile(hFile, "\xFF\xFE", 2, (DWORD *)&nBytesWritten, NULL);
+        nWrite=API_WriteFile(hFile, "\xFF\xFE", 2, &dwBytesWritten, NULL);
       else if (nCodePage == CP_UNICODE_UTF16BE)
-        nWrite=API_WriteFile(hFile, "\xFE\xFF", 2, (DWORD *)&nBytesWritten, NULL);
+        nWrite=API_WriteFile(hFile, "\xFE\xFF", 2, &dwBytesWritten, NULL);
       else if (nCodePage == CP_UNICODE_UTF32LE)
-        nWrite=API_WriteFile(hFile, "\xFF\xFE\x00\x00", 4, (DWORD *)&nBytesWritten, NULL);
+        nWrite=API_WriteFile(hFile, "\xFF\xFE\x00\x00", 4, &dwBytesWritten, NULL);
       else if (nCodePage == CP_UNICODE_UTF32BE)
-        nWrite=API_WriteFile(hFile, "\x00\x00\xFE\xFF", 4, (DWORD *)&nBytesWritten, NULL);
+        nWrite=API_WriteFile(hFile, "\x00\x00\xFE\xFF", 4, &dwBytesWritten, NULL);
       else if (nCodePage == CP_UNICODE_UTF8)
-        nWrite=API_WriteFile(hFile, "\xEF\xBB\xBF", 3, (DWORD *)&nBytesWritten, NULL);
+        nWrite=API_WriteFile(hFile, "\xEF\xBB\xBF", 3, &dwBytesWritten, NULL);
 
       if (!nWrite)
       {
@@ -4715,6 +4715,7 @@ DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dw
   FILESTREAMDATA *lpData=(FILESTREAMDATA *)dwCookie;
   unsigned char *pDataToWrite=(unsigned char *)wszBuf;
   DWORD dwBytesToWrite=dwBufBytesSize;
+  UINT_PTR dwBytesWritten;
 
   if (lpData->nCodePage == CP_UNICODE_UTF16LE)
   {
@@ -4742,7 +4743,12 @@ DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dw
       dwBytesToWrite=WideCharToMultiByte(lpData->nCodePage, 0, wszBuf, dwBufBytesSize / sizeof(wchar_t), (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE, NULL, NULL);
     pDataToWrite=pcTranslateBuffer;
   }
-  return !API_WriteFile(lpData->hFile, pDataToWrite, dwBytesToWrite, dwBufBytesDone, NULL);
+  if (API_WriteFile(lpData->hFile, pDataToWrite, dwBytesToWrite, &dwBytesWritten, NULL))
+  {
+    *dwBufBytesDone=dwBytesWritten;
+    return 0;
+  }
+  return 1;
 }
 
 BOOL OpenDirectory(wchar_t *wpPath, BOOL bSubDir)
@@ -7347,10 +7353,10 @@ int FilePreview(HWND hWnd, wchar_t *wpFile, UINT_PTR dwPreviewBytes, DWORD dwFla
   return 0;
 }
 
-int AutodetectCodePage(const wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
+int AutodetectCodePage(const wchar_t *wpFile, UINT_PTR dwBytesToCheck, DWORD dwFlags, int *nCodePage, BOOL *bBOM)
 {
   HANDLE hFile;
-  DWORD dwBytesRead;
+  UINT_PTR dwBytesRead;
   unsigned char *pBuffer=NULL;
   int nRegCodePage=0;
   int a;
@@ -7552,7 +7558,7 @@ int AutodetectCodePage(const wchar_t *wpFile, DWORD dwBytesToCheck, DWORD dwFlag
   return EDT_SUCCESS;
 }
 
-BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesToCheck, int *nCodePage)
+BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, UINT_PTR dwBytesToCheck, int *nCodePage)
 {
   char szANSIwatermark[128];
   char szOEMwatermark[128];
@@ -7565,8 +7571,8 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
   DWORD dwCounter[0x80];
   DWORD dwMaxIndex=0;
   DWORD dwMaxCount=0;
-  DWORD i;
-  DWORD j;
+  UINT_PTR i;
+  UINT_PTR j;
 
   //Watermarks
   szANSIwatermark[0]='\0';
@@ -7719,7 +7725,7 @@ BOOL AutodetectMultibyte(DWORD dwLangID, unsigned char *pBuffer, DWORD dwBytesTo
 }
 
 
-unsigned int UTF32toUTF16(const unsigned long *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned short *szTarget, unsigned int nTargetMax)
+UINT_PTR UTF32toUTF16(const unsigned long *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax)
 {
   const unsigned long *pSrc=pSource;
   const unsigned long *pSrcEnd=pSource + nSourceLen;
@@ -7757,7 +7763,7 @@ unsigned int UTF32toUTF16(const unsigned long *pSource, unsigned int nSourceLen,
   return (pDst - szTarget);
 }
 
-unsigned int UTF16toUTF32(const unsigned short *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned long *szTarget, unsigned int nTargetMax)
+UINT_PTR UTF16toUTF32(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned long *szTarget, UINT_PTR nTargetMax)
 {
   const unsigned short *pSrc=pSource;
   const unsigned short *pSrcEnd=pSource + nSourceLen;
@@ -7792,7 +7798,7 @@ unsigned int UTF16toUTF32(const unsigned short *pSource, unsigned int nSourceLen
   return (pDst - szTarget);
 }
 
-unsigned int UTF16toUTF8(const unsigned short *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned char *szTarget, unsigned int nTargetMax)
+UINT_PTR UTF16toUTF8(const unsigned short *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned char *szTarget, UINT_PTR nTargetMax)
 {
   unsigned int lpFirstByteMark[7]={0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC};
   const unsigned short *pSrc=pSource;
@@ -7879,7 +7885,7 @@ unsigned int UTF16toUTF8(const unsigned short *pSource, unsigned int nSourceLen,
   return (pDst - szTarget);
 }
 
-unsigned int UTF8toUTF16(const unsigned char *pSource, unsigned int nSourceLen, unsigned int *nSourceDone, unsigned short *szTarget, unsigned int nTargetMax)
+UINT_PTR UTF8toUTF16(const unsigned char *pSource, UINT_PTR nSourceLen, UINT_PTR *nSourceDone, unsigned short *szTarget, UINT_PTR nTargetMax)
 {
   unsigned int lpOffsetsFromUTF8[6]={0x00000000, 0x00003080, 0x000E2080, 0x03C82080, 0xFA082080, 0x82082080};
   const unsigned char *pSrc=pSource;
@@ -7971,9 +7977,9 @@ unsigned int UTF8toUTF16(const unsigned char *pSource, unsigned int nSourceLen, 
   return (pDst - szTarget);
 }
 
-void ChangeTwoBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen)
+void ChangeTwoBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen)
 {
-  unsigned char *lpBufferEnd=lpBuffer + nBufferLen;
+  unsigned char *lpBufferEnd=lpBuffer + dwBufferLen;
   unsigned char *lpByte=lpBuffer;
   unsigned char ch;
 
@@ -7985,9 +7991,9 @@ void ChangeTwoBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen)
   }
 }
 
-void ChangeFourBytesOrder(unsigned char *lpBuffer, unsigned int nBufferLen)
+void ChangeFourBytesOrder(unsigned char *lpBuffer, UINT_PTR dwBufferLen)
 {
-  unsigned char *lpBufferEnd=lpBuffer + nBufferLen;
+  unsigned char *lpBufferEnd=lpBuffer + dwBufferLen;
   unsigned char *lpByte=lpBuffer;
   unsigned char ch;
 
@@ -8735,13 +8741,13 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
   CHARRANGE crInitialRE;
   wchar_t *wszRangeText;
   wchar_t *wszResultText=NULL;
-  int nMin;
-  int nMax;
   int nGetTextNewLine;
   int nReplaceSelNewLine;
-  int nFirstVisible;
-  int nRangeTextLen;
-  int nResultTextLen;
+  INT_PTR nMin;
+  INT_PTR nMax;
+  INT_PTR nFirstVisible;
+  INT_PTR nRangeTextLen;
+  INT_PTR nResultTextLen;
   int nChanges=0;
   int nResult=-1;
   int i;
@@ -8884,7 +8890,7 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
           nMax=crInitialRE.cpMax - crInitialRE.cpMin;
         }
         if (nMin == nMax)
-          nMax=-0x7FFFFFFF;
+          nMax=-MAXINT_PTR;
 
         //Remember scroll
         SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleBefore);
@@ -8892,10 +8898,10 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
         if (AEC_IndexCompare(&ciFirstVisibleBefore, &crRange.ciMin) >= 0)
           nFirstVisible=IndexSubtract(hWnd, &ciFirstVisibleBefore, &crRange.ciMin, nGetTextNewLine, FALSE);
         else
-          nFirstVisible=-0x7FFFFFFF;
+          nFirstVisible=-MAXINT_PTR;
 
         //Replace operation
-        if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, &nResultTextLen, &nMin, (nMax == -0x7FFFFFFF)?NULL:&nMax, (nFirstVisible == -0x7FFFFFFF)?NULL:&nFirstVisible))
+        if (nChanges=StrReplaceW(wszRangeText, nRangeTextLen, wpFindIt, nFindItLen, wpReplaceWith, nReplaceWithLen, dwFlags, wszResultText, &nResultTextLen, &nMin, (nMax == -MAXINT_PTR)?NULL:&nMax, (nFirstVisible == -MAXINT_PTR)?NULL:&nFirstVisible))
         {
           if (nFindItLen < nReplaceWithLen)
           {
@@ -8923,7 +8929,7 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
           ReplaceSelW(hWnd, wszResultText, nResultTextLen, nReplaceSelNewLine, bColumnSel, &crInsert.ciMin, &crInsert.ciMax);
 
           //Restore selection
-          if (nMax == -0x7FFFFFFF)
+          if (nMax == -MAXINT_PTR)
             nMax=nMin;
           if (dwFlags & AEFR_SELECTION)
           {
@@ -8961,7 +8967,7 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
           //Restore scroll
           SendMessage(hWnd, AEM_GETINDEX, AEGI_FIRSTVISIBLELINE, (LPARAM)&ciFirstVisibleAfter);
 
-          if (nFirstVisible != -0x7FFFFFFF)
+          if (nFirstVisible != -MAXINT_PTR)
           {
             ciFirstVisibleBefore=crRange.ciMin;
             SendMessage(hWnd, AEM_INDEXUPDATE, 0, (LPARAM)&ciFirstVisibleBefore);
@@ -9004,7 +9010,7 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
   return nResult;
 }
 
-int StrReplaceW(const wchar_t *wpText, int nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, int *nResultLen, int *nMin, int *nMax, int *nFirstVis)
+int StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, INT_PTR *nMin, INT_PTR *nMax, INT_PTR *nFirstVis)
 {
   const wchar_t *wpTextMax;
   const wchar_t *wpTextCount;
@@ -9212,12 +9218,12 @@ void SetSel(HWND hWnd, AECHARRANGE *crSel, DWORD dwFlags, AECHARINDEX *ciCaret)
   SendMessage(hWnd, AEM_SETSEL, (WPARAM)ciCaret, (LPARAM)&aes);
 }
 
-void ReplaceSelA(HWND hWnd, const char *pData, int nDataLen, BOOL bColumnSel, int nNewLine, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
+void ReplaceSelA(HWND hWnd, const char *pData, INT_PTR nDataLen, BOOL bColumnSel, int nNewLine, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   AEREPLACESELA rs;
 
   rs.pText=pData;
-  rs.dwTextLen=(DWORD)nDataLen;
+  rs.dwTextLen=(UINT_PTR)nDataLen;
   rs.nNewLine=nNewLine;
   rs.bColumnSel=bColumnSel;
   rs.ciInsertStart=ciInsertStart;
@@ -9226,12 +9232,12 @@ void ReplaceSelA(HWND hWnd, const char *pData, int nDataLen, BOOL bColumnSel, in
   SendMessage(hWnd, AEM_REPLACESELA, 0, (LPARAM)&rs);
 }
 
-void ReplaceSelW(HWND hWnd, const wchar_t *wpData, int nDataLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
+void ReplaceSelW(HWND hWnd, const wchar_t *wpData, INT_PTR nDataLen, int nNewLine, BOOL bColumnSel, AECHARINDEX *ciInsertStart, AECHARINDEX *ciInsertEnd)
 {
   AEREPLACESELW rs;
 
   rs.pText=wpData;
-  rs.dwTextLen=(DWORD)nDataLen;
+  rs.dwTextLen=(UINT_PTR)nDataLen;
   rs.nNewLine=nNewLine;
   rs.bColumnSel=bColumnSel;
   rs.ciInsertStart=ciInsertStart;
@@ -9239,7 +9245,7 @@ void ReplaceSelW(HWND hWnd, const wchar_t *wpData, int nDataLen, int nNewLine, B
   SendMessage(hWnd, AEM_REPLACESELW, 0, (LPARAM)&rs);
 }
 
-int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel)
+INT_PTR IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNewLine, BOOL bColumnSel)
 {
   AEINDEXSUBTRACT aeis;
 
@@ -9250,7 +9256,7 @@ int IndexSubtract(HWND hWnd, AECHARINDEX *ciChar1, AECHARINDEX *ciChar2, int nNe
   return SendMessage(hWnd, AEM_INDEXSUBTRACT, 0, (LPARAM)&aeis);
 }
 
-int IndexOffset(HWND hWnd, AECHARINDEX *ciChar, int nOffset, int nNewLine)
+INT_PTR IndexOffset(HWND hWnd, AECHARINDEX *ciChar, INT_PTR nOffset, int nNewLine)
 {
   AEINDEXOFFSET aeio;
 
@@ -9261,17 +9267,17 @@ int IndexOffset(HWND hWnd, AECHARINDEX *ciChar, int nOffset, int nNewLine)
   return SendMessage(hWnd, AEM_INDEXOFFSET, 0, (LPARAM)&aeio);
 }
 
-int AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar)
+INT_PTR AkelIndexToRichOffset(HWND hWnd, AECHARINDEX *ciChar)
 {
   return SendMessage(hWnd, AEM_INDEXTORICHOFFSET, 0, (LPARAM)ciChar);
 }
 
-void RichOffsetToAkelIndex(HWND hWnd, int nOffset, AECHARINDEX *ciChar)
+void RichOffsetToAkelIndex(HWND hWnd, INT_PTR nOffset, AECHARINDEX *ciChar)
 {
   SendMessage(hWnd, AEM_RICHOFFSETTOINDEX, nOffset, (LPARAM)ciChar);
 }
 
-int GetTextLength(HWND hWnd)
+INT_PTR GetTextLength(HWND hWnd)
 {
   GETTEXTLENGTHEX gtl;
 
@@ -9280,10 +9286,10 @@ int GetTextLength(HWND hWnd)
   return SendMessage(hWnd, EM_GETTEXTLENGTHEX, (WPARAM)&gtl, 0);
 }
 
-int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText)
+INT_PTR GetRangeTextA(HWND hWnd, INT_PTR nMin, INT_PTR nMax, char **pText)
 {
   TEXTRANGEA txtrngA;
-  int nLen;
+  INT_PTR nLen;
 
   if (nMax == -1)
   {
@@ -9310,10 +9316,10 @@ int GetRangeTextA(HWND hWnd, int nMin, int nMax, char **pText)
   return 0;
 }
 
-int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
+INT_PTR GetRangeTextW(HWND hWnd, INT_PTR nMin, INT_PTR nMax, wchar_t **wpText)
 {
   TEXTRANGEW txtrngW;
-  int nLen;
+  INT_PTR nLen;
 
   if (nMax == -1)
   {
@@ -9340,10 +9346,10 @@ int GetRangeTextW(HWND hWnd, int nMin, int nMax, wchar_t **wpText)
   return 0;
 }
 
-int ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefChar, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces)
+INT_PTR ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *lpUsedDefChar, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, char **pText, int nNewLine, BOOL bFillSpaces)
 {
   AETEXTRANGEA tr;
-  int nLen=0;
+  INT_PTR nLen=0;
 
   if (AEC_IndexCompare(ciMin, ciMax))
   {
@@ -9351,7 +9357,7 @@ int ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *l
     tr.cr.ciMax=*ciMax;
     tr.bColumnSel=bColumnSel;
     tr.pBuffer=NULL;
-    tr.dwBufferMax=(DWORD)-1;
+    tr.dwBufferMax=(UINT_PTR)-1;
     tr.nNewLine=nNewLine;
     tr.nCodePage=nCodePage;
     tr.lpDefaultChar=lpDefaultChar;
@@ -9379,10 +9385,10 @@ int ExGetRangeTextA(HWND hWnd, int nCodePage, const char *lpDefaultChar, BOOL *l
   return nLen;
 }
 
-int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine, BOOL bFillSpaces)
+INT_PTR ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bColumnSel, wchar_t **wpText, int nNewLine, BOOL bFillSpaces)
 {
   AETEXTRANGEW tr;
-  int nLen=0;
+  INT_PTR nLen=0;
 
   if (AEC_IndexCompare(ciMin, ciMax))
   {
@@ -9390,7 +9396,7 @@ int ExGetRangeTextW(HWND hWnd, AECHARINDEX *ciMin, AECHARINDEX *ciMax, BOOL bCol
     tr.cr.ciMax=*ciMax;
     tr.bColumnSel=bColumnSel;
     tr.pBuffer=NULL;
-    tr.dwBufferMax=(DWORD)-1;
+    tr.dwBufferMax=(UINT_PTR)-1;
     tr.nNewLine=nNewLine;
     tr.bFillSpaces=bFillSpaces;
 
@@ -9725,7 +9731,7 @@ BOOL CALLBACK GoToDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   static HWND hWndOffset;
   int nLine;
   int nColumn;
-  int nOffset;
+  INT_PTR nOffset;
   int nNumberLen;
 
   if (uMsg == WM_INITDIALOG)
@@ -10272,8 +10278,8 @@ void RecodeTextW(HWND hWnd, int nCodePageFrom, int nCodePageTo)
   char *szText;
   wchar_t *wszText;
   int nFirstLine;
-  int nUnicodeLen;
-  int nAnsiLen;
+  INT_PTR nUnicodeLen;
+  INT_PTR nAnsiLen;
   BOOL bSelection;
 
   if (IsReadOnly(hWnd))
@@ -11693,7 +11699,7 @@ BOOL TranslatePlugin(LPMSG lpMsg)
           {
             pfNextElement=pfElement->next;
 
-            if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (DWORD)-1))
+            if (!xstrcmpinW(wszPluginName, pfElement->wszFunction, (UINT_PTR)-1))
             {
               if (pfElement->wHotkey || pfElement->bAutoLoad)
                 pfElement->bRunning=FALSE;
@@ -12196,19 +12202,19 @@ BOOL GetExportNames(HMODULE hInstance, EXPORTNAMESPROC lpExportNamesProc, LPARAM
   if (pDOSHead->e_magic != IMAGE_DOS_SIGNATURE)
     return FALSE;
 
-  pPEHeader=(PIMAGE_NT_HEADERS)((DWORD)hInstance + pDOSHead->e_lfanew);
+  pPEHeader=(PIMAGE_NT_HEADERS)((UINT_PTR)hInstance + pDOSHead->e_lfanew);
   if (pPEHeader->Signature != IMAGE_NT_SIGNATURE)
     return FALSE;
 
-  pImportDesc=(PIMAGE_EXPORT_DIRECTORY)((DWORD)hInstance + pPEHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
+  pImportDesc=(PIMAGE_EXPORT_DIRECTORY)((UINT_PTR)hInstance + pPEHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT].VirtualAddress);
   if (!pImportDesc->AddressOfNames)
     return FALSE;
 
-  pchName=(unsigned long *)((DWORD)hInstance + pImportDesc->AddressOfNames);
+  pchName=(unsigned long *)((UINT_PTR)hInstance + pImportDesc->AddressOfNames);
 
   for (i=0; i < pImportDesc->NumberOfNames; ++i)
   {
-    pName=(char *)((DWORD)hInstance + pchName[i]);
+    pName=(char *)((UINT_PTR)hInstance + pchName[i]);
     if ((*lpExportNamesProc)(pName, lParam) == FALSE) return TRUE;
   }
   return TRUE;
@@ -13512,7 +13518,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           {
             if (ListBox_GetTextWide(hWndList, nItem, wbuf) == LB_ERR)
               break;
-            if (xstrstrW(wbuf, (DWORD)-1, wszSearch, FALSE, NULL, NULL))
+            if (xstrstrW(wbuf, (UINT_PTR)-1, wszSearch, FALSE, NULL, NULL))
               SendMessage(hWndList, LB_SETSEL, TRUE, nItem);
           }
         }
@@ -15534,35 +15540,35 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
         {
           dwAction=0;
 
-          if (!xstrcmpinW(L"/Command(", wszCmdArg, (DWORD)-1))
+          if (!xstrcmpinW(L"/Command(", wszCmdArg, (UINT_PTR)-1))
           {
             dwAction=EXTACT_COMMAND;
           }
-          else if (!xstrcmpinW(L"/Call(", wszCmdArg, (DWORD)-1))
+          else if (!xstrcmpinW(L"/Call(", wszCmdArg, (UINT_PTR)-1))
           {
             dwAction=EXTACT_CALL;
           }
-          else if (!xstrcmpinW(L"/Exec(", wszCmdArg, (DWORD)-1))
+          else if (!xstrcmpinW(L"/Exec(", wszCmdArg, (UINT_PTR)-1))
           {
             dwAction=EXTACT_EXEC;
           }
-          else if (!xstrcmpinW(L"/OpenFile(", wszCmdArg, (DWORD)-1))
+          else if (!xstrcmpinW(L"/OpenFile(", wszCmdArg, (UINT_PTR)-1))
           {
             dwAction=EXTACT_OPENFILE;
           }
-          else if (!xstrcmpinW(L"/SaveFile(", wszCmdArg, (DWORD)-1))
+          else if (!xstrcmpinW(L"/SaveFile(", wszCmdArg, (UINT_PTR)-1))
           {
             dwAction=EXTACT_SAVEFILE;
           }
-          else if (!xstrcmpinW(L"/Font(", wszCmdArg, (DWORD)-1))
+          else if (!xstrcmpinW(L"/Font(", wszCmdArg, (UINT_PTR)-1))
           {
             dwAction=EXTACT_FONT;
           }
-          else if (!xstrcmpinW(L"/Recode(", wszCmdArg, (DWORD)-1))
+          else if (!xstrcmpinW(L"/Recode(", wszCmdArg, (UINT_PTR)-1))
           {
             dwAction=EXTACT_RECODE;
           }
-          else if (!xstrcmpinW(L"/Insert(", wszCmdArg, (DWORD)-1))
+          else if (!xstrcmpinW(L"/Insert(", wszCmdArg, (UINT_PTR)-1))
           {
             dwAction=EXTACT_INSERT;
           }
@@ -15590,9 +15596,9 @@ int ParseCmdLine(const wchar_t **wppCmdLine, BOOL bOnLoad)
 
               if (CreateParametersStruct(&hParamStack, &lpStruct))
               {
-                pcs.pFunction=(wchar_t *)*(int *)lpStruct;
-                if (*(int *)(lpStruct + sizeof(int)) > (int)sizeof(int))
-                  pcs.lParam=(LPARAM)(lpStruct + sizeof(int));
+                pcs.pFunction=(wchar_t *)*(INT_PTR *)lpStruct;
+                if (*(INT_PTR *)(lpStruct + sizeof(INT_PTR)) > (INT_PTR)sizeof(INT_PTR))
+                  pcs.lParam=(LPARAM)(lpStruct + sizeof(INT_PTR));
                 else
                   pcs.lParam=0;
                 //pcs.dwSupport=0;
@@ -16012,7 +16018,7 @@ int CreateParametersStruct(STACKEXTPARAM *hParamStack, unsigned char **lppStruct
 
   if (hParamStack->nElements)
   {
-    nStructSize=(hParamStack->nElements + 1) * sizeof(int);
+    nStructSize=(hParamStack->nElements + 1) * sizeof(INT_PTR);
 
     if (lpStruct=(unsigned char *)GlobalAlloc(GPTR, nStructSize))
     {
@@ -16021,8 +16027,8 @@ int CreateParametersStruct(STACKEXTPARAM *hParamStack, unsigned char **lppStruct
         if (nIndex == 1)
         {
           //nIndex == 1 is the size of the call parameters structure
-          *((int *)(lpStruct + nOffset))=hParamStack->nElements * sizeof(int);
-          nOffset+=sizeof(int);
+          *((INT_PTR *)(lpStruct + nOffset))=hParamStack->nElements * sizeof(INT_PTR);
+          nOffset+=sizeof(INT_PTR);
           ++nIndex;
         }
 
@@ -16030,13 +16036,13 @@ int CreateParametersStruct(STACKEXTPARAM *hParamStack, unsigned char **lppStruct
         if (lpParameter->dwType == EXTPARAM_CHAR)
         {
           if (bOldWindows && nIndex > 0)
-            *((int *)(lpStruct + nOffset))=(int)lpParameter->pExpanded;
+            *((INT_PTR *)(lpStruct + nOffset))=(INT_PTR)lpParameter->pExpanded;
           else
-            *((int *)(lpStruct + nOffset))=(int)lpParameter->wpExpanded;
+            *((INT_PTR *)(lpStruct + nOffset))=(INT_PTR)lpParameter->wpExpanded;
         }
-        else *((int *)(lpStruct + nOffset))=lpParameter->nNumber;
+        else *((INT_PTR *)(lpStruct + nOffset))=lpParameter->nNumber;
 
-        nOffset+=sizeof(int);
+        nOffset+=sizeof(INT_PTR);
         ++nIndex;
         lpParameter=lpParameter->next;
       }
@@ -16106,7 +16112,7 @@ wchar_t* GetParameterExpCharW(STACKEXTPARAM *hParamStack, int nIndex)
   return NULL;
 }
 
-int TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput)
+INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *wszOutput)
 {
   const wchar_t *a=wpInput;
   wchar_t *b=wszOutput;
@@ -16176,7 +16182,7 @@ int TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_t *w
       {
         AECHARRANGE cr;
         wchar_t *wszSelText=NULL;
-        int nSelTextLen;
+        INT_PTR nSelTextLen;
 
         GetSel(lpFrame->ei.hWndEdit, &cr, NULL, NULL);
         if (nSelTextLen=ExGetRangeTextW(lpFrame->ei.hWndEdit, &cr.ciMin, &cr.ciMax, FALSE, wszOutput?&wszSelText:NULL, AELB_ASIS, FALSE))
@@ -18109,27 +18115,47 @@ HANDLE API_CreateFileW(const wchar_t *lpFileName, DWORD dwDesiredAccess, DWORD d
   return hResult;
 }
 
-BOOL API_ReadFile(HANDLE hFile, LPVOID lpBuffer, DWORD nNumberOfBytesToRead, LPDWORD lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
+BOOL API_ReadFile(HANDLE hFile, LPVOID lpBuffer, UINT_PTR nNumberOfBytesToRead, UINT_PTR *lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
 {
+  DWORD dwBytesRead;
+  UINT_PTR dwCount=0;
   BOOL bResult;
 
-  if (!(bResult=ReadFile(hFile, lpBuffer, nNumberOfBytesToRead, lpNumberOfBytesRead, lpOverlapped)))
+  while (bResult=ReadFile(hFile, (LPBYTE)lpBuffer + dwCount, min(nNumberOfBytesToRead - dwCount, 0xFF), &dwBytesRead, lpOverlapped))
   {
-    //...
+    if (!dwBytesRead)
+      break;
+    //API_SetFilePointer(hFile, dwBytesRead, FILE_CURRENT);
+    dwCount+=dwBytesRead;
+    if (dwCount >= nNumberOfBytesToRead)
+      break;
   }
+  *lpNumberOfBytesRead=dwCount;
 
   return bResult;
 }
 
-BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, DWORD nNumberOfBytesToWrite, LPDWORD lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
+BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, UINT_PTR nNumberOfBytesToWrite, UINT_PTR *lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
 {
+  DWORD dwBytesWritten;
+  UINT_PTR dwCount=0;
   BOOL bResult;
 
-  if (!(bResult=WriteFile(hFile, lpBuffer, nNumberOfBytesToWrite, lpNumberOfBytesWritten, lpOverlapped)))
+  while (bResult=WriteFile(hFile, (LPBYTE)lpBuffer + dwCount, min(nNumberOfBytesToWrite - dwCount, 0xFF), &dwBytesWritten, lpOverlapped))
+  {
+    if (!dwBytesWritten)
+      break;
+    //API_SetFilePointer(hFile, dwBytesWritten, FILE_CURRENT);
+    dwCount+=dwBytesWritten;
+    if (dwCount >= nNumberOfBytesToWrite)
+      break;
+  }
+  if (!bResult)
   {
     API_LoadStringW(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
     API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
   }
+  *lpNumberOfBytesWritten=dwCount;
 
   return bResult;
 }

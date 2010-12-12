@@ -42,6 +42,8 @@
   #define xmemcpy
   #define xmemcmp
   #define xmemset
+  #define xstrlenA
+  #define xstrlenW
   #define xstrcmpiA
   #define xstrcmpiW
   #define xstrcpynA
@@ -51,6 +53,8 @@
   #define xmemcpy_INCLUDED
   #define xmemcmp_INCLUDED
   #define xmemset_INCLUDED
+  #define xstrlenA_INCLUDED
+  #define xstrlenW_INCLUDED
   #define xstrcmpiA_INCLUDED
   #define xstrcmpiW_INCLUDED
   #define xstrcpynA_INCLUDED
@@ -1646,10 +1650,10 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       AECHARRANGE cr;
       wchar_t *wpText=NULL;
-      int nTextLen;
+      INT_PTR nTextLen;
       BOOL bColumnSel=FALSE;
       HWND hWnd=(HWND)wParam;
-      int *nResultLen=(int *)lParam;
+      INT_PTR *nResultLen=(INT_PTR *)lParam;
 
       if (!hWnd)
         hWnd=lpFrameCurrent->ei.hWndEdit;
@@ -4043,8 +4047,8 @@ LRESULT CALLBACK EditParentMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
         MSG msg;
         BOOL bStop=FALSE;
         static DWORD dwProgressType=0;
-        static int nIncrement;
-        static int nBarrier;
+        static INT_PTR nIncrement;
+        static INT_PTR nBarrier;
         static DWORD dwSeconds;
 
         if (!dwProgressType || dwProgressType == aenp->dwType)
