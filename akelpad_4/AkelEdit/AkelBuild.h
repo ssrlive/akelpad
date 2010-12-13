@@ -283,7 +283,7 @@ typedef struct {
 
 typedef struct {
   AEMARKRANGEITEM *lpMarkRange;
-  AEOFFSETRANGE crMarkRange;
+  CHARRANGE64 crMarkRange;
 } AEMARKRANGEMATCH;
 
 typedef struct {
@@ -302,7 +302,7 @@ typedef struct {
 } AEWORDMATCH;
 
 typedef struct {
-  AEOFFSETRANGE crFold;
+  CHARRANGE64 crFold;
   AEFOLD *lpFold;
 } AEFOLDMATCH;
 
@@ -915,8 +915,8 @@ void AE_EditKeyDelete(AKELEDIT *ae, BOOL bControl);
 void AE_EditSelectAll(AKELEDIT *ae, DWORD dwSelFlags, DWORD dwSelType);
 BOOL AE_AkelEditGetSel(AKELEDIT *ae, AESELECTION *aes, AECHARINDEX *lpciCaret);
 void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *lpciCaret);
-BOOL AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax);
-void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax);
+BOOL AE_RichEditGetSel(AKELEDIT *ae, INT_PTR *nMin, INT_PTR *nMax);
+void AE_RichEditSetSel(AKELEDIT *ae, INT_PTR nMin, INT_PTR nMax);
 void AE_GetColors(AKELEDIT *ae, AECOLORS *aec);
 void AE_SetColors(AKELEDIT *ae, const AECOLORS *aec);
 void AE_NotifyErrSpace(AKELEDIT *ae, SIZE_T dwBytes);

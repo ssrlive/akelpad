@@ -802,7 +802,7 @@ typedef struct {
 
 typedef struct {
   wchar_t (*lpszRecentNames)[MAX_PATH];   //Recent files names.
-  DWORD *lpdwRecentPositions;             //Recent files positions.
+  UINT_PTR *lpdwRecentPositions;          //Recent files positions.
   DWORD *lpdwRecentCodepages;             //Recent files codepages.
 } RECENTFILES;
 
