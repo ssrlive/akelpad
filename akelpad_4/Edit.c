@@ -4726,19 +4726,19 @@ DWORD CALLBACK OutputStreamCallback(UINT_PTR dwCookie, wchar_t *wszBuf, DWORD dw
   }
   else if (lpData->nCodePage == CP_UNICODE_UTF32LE)
   {
-    dwBytesToWrite=UTF16toUTF32((const unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
+    dwBytesToWrite=UTF16toUTF32(wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
     pDataToWrite=pcTranslateBuffer;
   }
   else if (lpData->nCodePage == CP_UNICODE_UTF32BE)
   {
-    dwBytesToWrite=UTF16toUTF32((const unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
+    dwBytesToWrite=UTF16toUTF32(wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, (unsigned long *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE / sizeof(unsigned long)) * sizeof(unsigned long);
     ChangeFourBytesOrder(pcTranslateBuffer, dwBytesToWrite);
     pDataToWrite=pcTranslateBuffer;
   }
   else
   {
     if (lpData->nCodePage == CP_UNICODE_UTF8)
-      dwBytesToWrite=UTF16toUTF8((const unsigned short *)wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
+      dwBytesToWrite=UTF16toUTF8(wszBuf, dwBufBytesSize / sizeof(wchar_t), NULL, pcTranslateBuffer, TRANSLATE_BUFFER_SIZE);
     else
       dwBytesToWrite=WideCharToMultiByte(lpData->nCodePage, 0, wszBuf, dwBufBytesSize / sizeof(wchar_t), (char *)pcTranslateBuffer, TRANSLATE_BUFFER_SIZE, NULL, NULL);
     pDataToWrite=pcTranslateBuffer;
@@ -18117,18 +18117,23 @@ HANDLE API_CreateFileW(const wchar_t *lpFileName, DWORD dwDesiredAccess, DWORD d
 
 BOOL API_ReadFile(HANDLE hFile, LPVOID lpBuffer, UINT_PTR nNumberOfBytesToRead, UINT_PTR *lpNumberOfBytesRead, LPOVERLAPPED lpOverlapped)
 {
+  DWORD dwBytesToRead;
   DWORD dwBytesRead;
   UINT_PTR dwCount=0;
   BOOL bResult;
 
-  while (bResult=ReadFile(hFile, (LPBYTE)lpBuffer + dwCount, min(nNumberOfBytesToRead - dwCount, 0xFF), &dwBytesRead, lpOverlapped))
+  //Read file sequentially with maximum block 0xFFFF
+  for (;;)
   {
-    if (!dwBytesRead)
-      break;
-    //API_SetFilePointer(hFile, dwBytesRead, FILE_CURRENT);
-    dwCount+=dwBytesRead;
-    if (dwCount >= nNumberOfBytesToRead)
-      break;
+    dwBytesToRead=min(nNumberOfBytesToRead - dwCount, 0xFFFF);
+
+    if (bResult=ReadFile(hFile, (LPBYTE)lpBuffer + dwCount, dwBytesToRead, &dwBytesRead, lpOverlapped))
+    {
+      dwCount+=dwBytesRead;
+      if (dwBytesRead < dwBytesToRead || dwCount >= nNumberOfBytesToRead)
+        break;
+    }
+    else break;
   }
   *lpNumberOfBytesRead=dwCount;
 
@@ -18137,23 +18142,28 @@ BOOL API_ReadFile(HANDLE hFile, LPVOID lpBuffer, UINT_PTR nNumberOfBytesToRead, 
 
 BOOL API_WriteFile(HANDLE hFile, LPCVOID lpBuffer, UINT_PTR nNumberOfBytesToWrite, UINT_PTR *lpNumberOfBytesWritten, LPOVERLAPPED lpOverlapped)
 {
+  DWORD dwBytesToWrite;
   DWORD dwBytesWritten;
   UINT_PTR dwCount=0;
   BOOL bResult;
 
-  while (bResult=WriteFile(hFile, (LPBYTE)lpBuffer + dwCount, min(nNumberOfBytesToWrite - dwCount, 0xFF), &dwBytesWritten, lpOverlapped))
+  //Write file sequentially with maximum block 0xFFFF
+  for (;;)
   {
-    if (!dwBytesWritten)
+    dwBytesToWrite=min(nNumberOfBytesToWrite - dwCount, 0xFFFF);
+
+    if (bResult=WriteFile(hFile, (LPBYTE)lpBuffer + dwCount, dwBytesToWrite, &dwBytesWritten, lpOverlapped))
+    {
+      dwCount+=dwBytesWritten;
+      if (dwBytesWritten < dwBytesToWrite || dwCount >= nNumberOfBytesToWrite)
+        break;
+    }
+    else
+    {
+      API_LoadStringW(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
+      API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
       break;
-    //API_SetFilePointer(hFile, dwBytesWritten, FILE_CURRENT);
-    dwCount+=dwBytesWritten;
-    if (dwCount >= nNumberOfBytesToWrite)
-      break;
-  }
-  if (!bResult)
-  {
-    API_LoadStringW(hLangLib, MSG_ERROR_IO, wbuf, BUFFER_SIZE);
-    API_MessageBox(hMainWnd, wbuf, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
+    }
   }
   *lpNumberOfBytesWritten=dwCount;
 
