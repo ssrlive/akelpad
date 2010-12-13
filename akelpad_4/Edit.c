@@ -9913,7 +9913,7 @@ BOOL RecentFilesAlloc()
 {
   if (!(lpwszRecentNames=(wchar_t (*)[MAX_PATH])API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * MAX_PATH * sizeof(wchar_t))))
     return FALSE;
-  if (!(lpdwRecentPositions=(UINT_PTR *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(DWORD))))
+  if (!(lpdwRecentPositions=(UINT_PTR *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(UINT_PTR))))
     return FALSE;
   if (!(lpdwRecentCodepages=(DWORD *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(DWORD))))
     return FALSE;
