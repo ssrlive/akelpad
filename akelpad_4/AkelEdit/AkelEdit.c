@@ -2301,16 +2301,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     if (uMsg == EM_GETTEXTRANGEA || (!ae->bUnicodeWindow && uMsg == EM_GETTEXTRANGE))
     {
-      TEXTRANGEA *trRE=(TEXTRANGEA *)lParam;
+      TEXTRANGE64A *trRE=(TEXTRANGE64A *)lParam;
       AECHARRANGE cr;
 
-      if ((DWORD)trRE->chrg.cpMin < (DWORD)trRE->chrg.cpMax)
+      if ((UINT_PTR)trRE->chrg.cpMin < (UINT_PTR)trRE->chrg.cpMax)
       {
         AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
         AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
         return AE_GetTextRangeAnsi(ae, CP_ACP, NULL, NULL, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
       }
-      else if ((DWORD)trRE->chrg.cpMin == (DWORD)trRE->chrg.cpMax)
+      else if ((UINT_PTR)trRE->chrg.cpMin == (UINT_PTR)trRE->chrg.cpMax)
       {
         if (trRE->lpstrText)
           trRE->lpstrText[0]='\0';
@@ -2320,16 +2320,16 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     else
     {
-      TEXTRANGEW *trRE=(TEXTRANGEW *)lParam;
+      TEXTRANGE64W *trRE=(TEXTRANGE64W *)lParam;
       AECHARRANGE cr;
 
-      if ((DWORD)trRE->chrg.cpMin < (DWORD)trRE->chrg.cpMax)
+      if ((UINT_PTR)trRE->chrg.cpMin < (UINT_PTR)trRE->chrg.cpMax)
       {
         AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMin, &cr.ciMin);
         AE_RichOffsetToAkelIndex(ae, trRE->chrg.cpMax, &cr.ciMax);
         return AE_GetTextRange(ae, &cr.ciMin, &cr.ciMax, trRE->lpstrText, (UINT_PTR)-1, AELB_R, FALSE, FALSE);
       }
-      else if ((DWORD)trRE->chrg.cpMin == (DWORD)trRE->chrg.cpMax)
+      else if ((UINT_PTR)trRE->chrg.cpMin == (UINT_PTR)trRE->chrg.cpMax)
       {
         if (trRE->lpstrText)
           trRE->lpstrText[0]=L'\0';
@@ -2435,7 +2435,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   if (uMsg == EM_GETTEXTEX)
   {
-    GETTEXTEX *gt=(GETTEXTEX *)wParam;
+    GETTEXTEX64 *gt=(GETTEXTEX64 *)wParam;
     AECHARRANGE cr;
     int nNewLine;
     UINT_PTR dwResult=0;
@@ -2520,9 +2520,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
       //Ansi
       if (!ae->bUnicodeWindow)
       {
-        FINDTEXTEXA *ftRE=(FINDTEXTEXA *)lParam;
+        FINDTEXTEX64A *ftRE=(FINDTEXTEX64A *)lParam;
+        CHARRANGE64 crFoundRE;
         AEFINDTEXTA ft;
-        CHARRANGE crFoundRE;
 
         ft.dwFlags=0;
         if (wParam & FR_DOWN)
@@ -2554,9 +2554,9 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
 
     //Unicode
     {
-      FINDTEXTEXW *ftRE=(FINDTEXTEXW *)lParam;
+      FINDTEXTEX64W *ftRE=(FINDTEXTEX64W *)lParam;
+      CHARRANGE64 crFoundRE;
       AEFINDTEXTW ft;
-      CHARRANGE crFoundRE;
 
       ft.dwFlags=0;
       if (wParam & FR_DOWN)
@@ -2663,21 +2663,21 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   //Text coordinates
   if (uMsg == EM_GETSEL)
   {
-    CHARRANGE crRE;
+    CHARRANGE64 crRE;
 
     AE_RichEditGetSel(ae, &crRE.cpMin, &crRE.cpMax);
-    if (wParam) *(LONG *)wParam=crRE.cpMin;
-    if (lParam) *(LONG *)lParam=crRE.cpMax;
+    if (wParam) *(INT_PTR *)wParam=crRE.cpMin;
+    if (lParam) *(INT_PTR *)lParam=crRE.cpMax;
 
-    if ((DWORD)crRE.cpMin > 0xFFFF0000)
+    if ((UINT_PTR)crRE.cpMin > MAXUHALF_PTR)
       return -1;
-    if ((DWORD)crRE.cpMax > 0xFFFF0000)
+    if ((UINT_PTR)crRE.cpMax > MAXUHALF_PTR)
       return -1;
     return MAKELONG(crRE.cpMin, crRE.cpMax);
   }
   if (uMsg == EM_EXGETSEL)
   {
-    CHARRANGE *crRE=(CHARRANGE *)lParam;
+    CHARRANGE64 *crRE=(CHARRANGE64 *)lParam;
 
     AE_RichEditGetSel(ae, &crRE->cpMin, &crRE->cpMax);
     return 0;
@@ -2689,7 +2689,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   if (uMsg == EM_EXSETSEL)
   {
-    CHARRANGE *crRE=(CHARRANGE *)lParam;
+    CHARRANGE64 *crRE=(CHARRANGE64 *)lParam;
 
     AE_RichEditSetSel(ae, crRE->cpMin, crRE->cpMax);
     return ae->nSelEndCharOffset;
@@ -6865,7 +6865,7 @@ void AE_RichOffsetToAkelIndex(AKELEDIT *ae, INT_PTR nOffset, AECHARINDEX *ciChar
   UINT_PTR dwSixth=(UINT_PTR)-1;
   INT_PTR nElementLineOffset=0;
 
-  nOffset=min(nOffset, ae->ptxt->nLastCharOffset);
+  nOffset=min((UINT_PTR)nOffset, (UINT_PTR)ae->ptxt->nLastCharOffset);
 
   //Find nearest element in stack
   dwFirst=mod(nOffset - 0);
@@ -18032,7 +18032,7 @@ void AE_AkelEditSetSel(AKELEDIT *ae, const AESELECTION *aes, const AECHARINDEX *
   }
 }
 
-BOOL AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
+BOOL AE_RichEditGetSel(AKELEDIT *ae, INT_PTR *nMin, INT_PTR *nMax)
 {
   *nMin=AE_AkelIndexToRichOffset(ae, &ae->ciSelStartIndex);
   *nMax=AE_AkelIndexToRichOffset(ae, &ae->ciSelEndIndex);
@@ -18041,7 +18041,7 @@ BOOL AE_RichEditGetSel(AKELEDIT *ae, LONG *nMin, LONG *nMax)
   return TRUE;
 }
 
-void AE_RichEditSetSel(AKELEDIT *ae, LONG nMin, LONG nMax)
+void AE_RichEditSetSel(AKELEDIT *ae, INT_PTR nMin, INT_PTR nMax)
 {
   AECHARRANGE cr;
 
@@ -18507,7 +18507,7 @@ void AE_NotifySelChanged(AKELEDIT *ae)
   //Send EN_SELCHANGE
   if (ae->popt->dwRichEventMask & ENM_SELCHANGE)
   {
-    SELCHANGE sc;
+    SELCHANGE64 sc;
 
     sc.nmhdr.hwndFrom=ae->hWndEdit;
     sc.nmhdr.idFrom=ae->nEditCtrlID;
@@ -18678,7 +18678,7 @@ BOOL AE_NotifyDropFiles(AKELEDIT *ae, HDROP hDrop)
   {
     if (ae->popt->dwRichEventMask & ENM_DROPFILES)
     {
-      ENDROPFILES df;
+      ENDROPFILES64 df;
       AECHARINDEX ciCharIndex;
       POINT pt;
 
@@ -18805,7 +18805,7 @@ BOOL AE_NotifyLink(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lParam, const 
   {
     if (ae->popt->dwRichEventMask & ENM_LINK)
     {
-      ENLINK enl;
+      ENLINK64 enl;
 
       enl.nmhdr.hwndFrom=ae->hWndEdit;
       enl.nmhdr.idFrom=ae->nEditCtrlID;

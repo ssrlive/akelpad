@@ -144,7 +144,7 @@ extern int nOemCodePage;
 
 //Recent files
 extern wchar_t (*lpwszRecentNames)[MAX_PATH];
-extern DWORD *lpdwRecentPositions;
+extern UINT_PTR *lpdwRecentPositions;
 extern DWORD *lpdwRecentCodepages;
 
 //Open/Save document
@@ -4094,7 +4094,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
       //Update selection
       if (moCur.nRecentFiles && moCur.bSavePositions)
       {
-        CHARRANGE cr;
+        CHARRANGE64 cr;
 
         SendMessage(hWnd, AEM_LOCKSCROLL, SB_BOTH, TRUE);
         cr.cpMin=lpdwRecentPositions[0];
@@ -8101,7 +8101,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   static HWND hWndReplaceAllButton;
   static HWND hWndCancelButton;
   static BOOL bSpecialCheck=FALSE;
-  CHARRANGE cr;
+  CHARRANGE64 cr;
   wchar_t *wszData;
   HWND hWndFocus=NULL;
   HWND hWndComboboxEdit;
@@ -8689,7 +8689,7 @@ void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace)
 int TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen)
 {
   AEFINDTEXTW ft;
-  CHARRANGE cr;
+  CHARRANGE64 cr;
 
   if (dwFlags & AEFR_SELECTION)
   {
@@ -8738,7 +8738,7 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
   AECHARINDEX ciInitialCaret=ciCaret;
   AECHARINDEX ciFirstVisibleBefore;
   AECHARINDEX ciFirstVisibleAfter;
-  CHARRANGE crInitialRE;
+  CHARRANGE64 crInitialRE;
   wchar_t *wszRangeText;
   wchar_t *wszResultText=NULL;
   int nGetTextNewLine;
@@ -9710,7 +9710,7 @@ DWORD GetLinesCountW(const wchar_t *wpText, int nTextLen)
 
 BOOL PasteAfter(HWND hWnd, BOOL bAnsi)
 {
-  CHARRANGE cr;
+  CHARRANGE64 cr;
 
   SendMessage(hWnd, EM_EXGETSEL, 0, (LPARAM)&cr);
   if (DoEditPaste(hWnd, bAnsi))
@@ -9913,7 +9913,7 @@ BOOL RecentFilesAlloc()
 {
   if (!(lpwszRecentNames=(wchar_t (*)[MAX_PATH])API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * MAX_PATH * sizeof(wchar_t))))
     return FALSE;
-  if (!(lpdwRecentPositions=(DWORD *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(DWORD))))
+  if (!(lpdwRecentPositions=(UINT_PTR *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(DWORD))))
     return FALSE;
   if (!(lpdwRecentCodepages=(DWORD *)API_HeapAlloc(hHeap, 0, moCur.nRecentFiles * sizeof(DWORD))))
     return FALSE;
@@ -9923,7 +9923,7 @@ BOOL RecentFilesAlloc()
 void RecentFilesZero()
 {
   xmemset(lpwszRecentNames, 0, moCur.nRecentFiles * MAX_PATH * sizeof(wchar_t));
-  xmemset(lpdwRecentPositions, 0, moCur.nRecentFiles * sizeof(DWORD));
+  xmemset(lpdwRecentPositions, 0, moCur.nRecentFiles * sizeof(UINT_PTR));
   xmemset(lpdwRecentCodepages, 0, moCur.nRecentFiles * sizeof(DWORD));
 }
 
@@ -9952,7 +9952,7 @@ int RecentFilesRead()
       break;
 
     xprintfW(wszRegValue, L"ps%d", i);
-    dwSize=sizeof(DWORD);
+    dwSize=sizeof(UINT_PTR);
     RegQueryValueExWide(hKey, wszRegValue, NULL, &dwType, (LPBYTE)&lpdwRecentPositions[i], &dwSize);
 
     xprintfW(wszRegValue, L"cp%d", i);
@@ -9964,7 +9964,7 @@ int RecentFilesRead()
   return i;
 }
 
-BOOL RecentFilesGet(const wchar_t *wpFile, int *nPosition, int *nCodePage)
+BOOL RecentFilesGet(const wchar_t *wpFile, INT_PTR *nPosition, int *nCodePage)
 {
   int i;
 
@@ -9982,7 +9982,7 @@ BOOL RecentFilesGet(const wchar_t *wpFile, int *nPosition, int *nCodePage)
   return FALSE;
 }
 
-BOOL RecentFilesUpdate(const wchar_t *wpFile, int nPosition, int nCodePage)
+BOOL RecentFilesUpdate(const wchar_t *wpFile, INT_PTR nPosition, int nCodePage)
 {
   int i;
 
@@ -10062,7 +10062,7 @@ void RecentFilesSave()
     RegSetValueExWide(hKey, wszRegValue, 0, REG_SZ, (LPBYTE)lpwszRecentNames[i], BytesInString(lpwszRecentNames[i]));
 
     xprintfW(wszRegValue, L"ps%d", i);
-    RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(DWORD));
+    RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentPositions[i], sizeof(UINT_PTR));
 
     xprintfW(wszRegValue, L"cp%d", i);
     RegSetValueExWide(hKey, wszRegValue, 0, REG_DWORD, (LPBYTE)&lpdwRecentCodepages[i], sizeof(DWORD));

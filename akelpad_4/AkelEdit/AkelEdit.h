@@ -571,6 +571,76 @@ typedef DWORD (CALLBACK *AEStreamCallback)(UINT_PTR dwCookie, wchar_t *wszBuf, D
 // * The callback function returns zero in the *dwBufBytesDone parameter.
 
 
+
+//// Structures for x64 RichEdit support
+
+typedef struct {
+  INT_PTR cpMin;
+  INT_PTR cpMax;
+} CHARRANGE64;
+
+typedef struct {
+  CHARRANGE64 chrg;
+  LPSTR lpstrText;
+} TEXTRANGE64A;
+
+typedef struct {
+  CHARRANGE64 chrg;
+  LPWSTR lpstrText;
+} TEXTRANGE64W;
+
+typedef struct {
+  CHARRANGE64 chrg;
+  LPCSTR lpstrText;
+} FINDTEXT64A;
+
+typedef struct {
+  CHARRANGE64 chrg;
+  LPCWSTR lpstrText;
+} FINDTEXT64W;
+
+typedef struct {
+  CHARRANGE64 chrg;
+  LPCSTR lpstrText;
+  CHARRANGE64 chrgText;
+} FINDTEXTEX64A;
+
+typedef struct {
+  CHARRANGE64 chrg;
+  LPCWSTR lpstrText;
+  CHARRANGE64 chrgText;
+} FINDTEXTEX64W;
+
+typedef struct {
+  UINT_PTR cb;
+  DWORD flags;
+  UINT codepage;
+  LPCSTR lpDefaultChar;
+  LPBOOL lpUsedDefChar;
+} GETTEXTEX64;
+
+typedef struct {
+  NMHDR nmhdr;
+  CHARRANGE64 chrg;
+  WORD seltyp;
+} SELCHANGE64;
+
+typedef struct {
+  NMHDR nmhdr;
+  HANDLE hDrop;
+  INT_PTR cp;
+  BOOL fProtected;
+} ENDROPFILES64;
+
+typedef struct {
+  NMHDR nmhdr;
+  UINT msg;
+  WPARAM wParam;
+  LPARAM lParam;
+  CHARRANGE64 chrg;
+} ENLINK64;
+
+
 //// Structures
 
 #ifndef _HSTACK_STRUCT_
@@ -615,12 +685,6 @@ typedef struct {
   AECHARINDEX ciMin;  //First character index in range.
   AECHARINDEX ciMax;  //Last character index in range.
 } AECHARRANGE;
-
-//x64 CHARRANGE
-typedef struct {
-  INT_PTR cpMin;  //First character in the range (RichEdit offset).
-  INT_PTR cpMax;  //Last character in the range (RichEdit offset).
-} AEOFFSETRANGE;
 
 typedef struct {
   AECHARRANGE crSel;  //Characters range.
@@ -925,12 +989,12 @@ typedef struct _AEMARKTEXTITEMW {
 typedef struct _AEMARKRANGEITEM {
   struct _AEMARKRANGEITEM *next;
   struct _AEMARKRANGEITEM *prev;
-  int nIndex;                //Position of the element if positive inserts to begin of stack if negative to end.
-  AEOFFSETRANGE crMarkRange; //cpMin member is the first character in the range (RichEdit offset), cpMax member is the last character in the range (RichEdit offset).
-  DWORD dwFlags;             //Reserved.
-  DWORD dwFontStyle;         //See AEHLS_* defines.
-  COLORREF crText;           //Mark text color. If -1, then don't set.
-  COLORREF crBk;             //Mark background color. If -1, then don't set.
+  int nIndex;              //Position of the element if positive inserts to begin of stack if negative to end.
+  CHARRANGE64 crMarkRange; //cpMin member is the first character in the range (RichEdit offset), cpMax member is the last character in the range (RichEdit offset).
+  DWORD dwFlags;           //Reserved.
+  DWORD dwFontStyle;       //See AEHLS_* defines.
+  COLORREF crText;         //Mark text color. If -1, then don't set.
+  COLORREF crBk;           //Mark background color. If -1, then don't set.
 } AEMARKRANGEITEM;
 
 typedef struct {
@@ -1013,27 +1077,27 @@ typedef struct {
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;           //Current selection.
-  AECHARINDEX ciCaret;       //Caret character index position.
-  DWORD dwType;              //See AETCT_* defines.
-  const wchar_t *wpText;     //Text to insert.
-  UINT_PTR dwTextLen;        //Text length.
-  int nNewLine;              //See AELB_* defines.
-  BOOL bColumnSel;           //Column selection.
-  DWORD dwInsertFlags;       //See AEINST_* defines.
-  AECHARRANGE crAkelRange;   //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion.
-  AEOFFSETRANGE crRichRange; //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion (RichEdit offset).
+  AESELECTION aes;         //Current selection.
+  AECHARINDEX ciCaret;     //Caret character index position.
+  DWORD dwType;            //See AETCT_* defines.
+  const wchar_t *wpText;   //Text to insert.
+  UINT_PTR dwTextLen;      //Text length.
+  int nNewLine;            //See AELB_* defines.
+  BOOL bColumnSel;         //Column selection.
+  DWORD dwInsertFlags;     //See AEINST_* defines.
+  AECHARRANGE crAkelRange; //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion.
+  CHARRANGE64 crRichRange; //AEN_TEXTINSERTBEGIN - text insert position or AEN_TEXTINSERTEND - text range after insertion (RichEdit offset).
 } AENTEXTINSERT;
 
 typedef struct {
   AENMHDR hdr;
-  AESELECTION aes;           //Current selection.
-  AECHARINDEX ciCaret;       //Caret character index position.
-  DWORD dwType;              //See AETCT_* defines.
-  BOOL bColumnSel;           //Column selection.
-  DWORD dwDeleteFlags;       //See AEINST_* defines.
-  AECHARRANGE crAkelRange;   //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion.
-  AEOFFSETRANGE crRichRange; //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion (RichEdit offset).
+  AESELECTION aes;         //Current selection.
+  AECHARINDEX ciCaret;     //Caret character index position.
+  DWORD dwType;            //See AETCT_* defines.
+  BOOL bColumnSel;         //Column selection.
+  DWORD dwDeleteFlags;     //See AEINST_* defines.
+  AECHARRANGE crAkelRange; //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion.
+  CHARRANGE64 crRichRange; //AEN_TEXTDELETEBEGIN - text delete range or AEN_TEXTDELETEEND - text range after deletion (RichEdit offset).
 } AENTEXTDELETE;
 
 typedef struct {
@@ -5404,6 +5468,10 @@ Example:
   #define AES_AKELEDITCLASS AES_AKELEDITCLASSA
   #define AES_RICHEDITCLASS AES_RICHEDITCLASSA
 
+  #define TEXTRANGE64 TEXTRANGE64A
+  #define FINDTEXT64 FINDTEXT64A
+  #define FINDTEXTEX64 FINDTEXTEX64A
+
   #define AEAPPENDTEXT AEAPPENDTEXTA
   #define AEREPLACESEL AEREPLACESELA
   #define AETEXTRANGE AETEXTRANGEA
@@ -5429,6 +5497,10 @@ Example:
 #else
   #define AES_AKELEDITCLASS AES_AKELEDITCLASSW
   #define AES_RICHEDITCLASS AES_RICHEDITCLASSW
+
+  #define TEXTRANGE64 TEXTRANGE64W
+  #define FINDTEXT64 FINDTEXT64W
+  #define FINDTEXTEX64 FINDTEXTEX64W
 
   #define AEAPPENDTEXT AEAPPENDTEXTW
   #define AEREPLACESEL AEREPLACESELW

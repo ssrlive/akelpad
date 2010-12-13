@@ -285,7 +285,7 @@ int nOemCodePage;
 
 //Recent files
 wchar_t (*lpwszRecentNames)[MAX_PATH]=NULL;
-DWORD *lpdwRecentPositions=NULL;
+UINT_PTR *lpdwRecentPositions=NULL;
 DWORD *lpdwRecentCodepages=NULL;
 
 //Open/Save document
