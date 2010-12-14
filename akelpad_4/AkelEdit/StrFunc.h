@@ -3204,7 +3204,7 @@ void main()
   nError=xstrrepA("ABC||dfg||HJK", "||", "##", TRUE, szResult, &nStringLen);
   printf("szResult={%s}, nStringLen={%d}, nError={%d}\n", szResult, nStringLen, nError);
 
-  nError=xstrstrA("ABC||dfg||HJK", (DWORD)-1, "Dfg", FALSE, &pStringBegin, &pStringEnd);
+  nError=xstrstrA("ABC||dfg||HJK", (UINT_PTR)-1, "Dfg", FALSE, &pStringBegin, &pStringEnd);
   printf("pStringBegin={%s}, pStringEnd={%s}, nError={%d}\n", pStringBegin, pStringEnd, nError);
 
   nError=xatoiA("123", NULL);
