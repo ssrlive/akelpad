@@ -379,6 +379,26 @@
 #define IMENU_EDIT     0x00000001
 #define IMENU_CHECKS   0x00000004
 
+//GetWindowLongPtr/SetWindowLongPtr
+#ifndef GWLP_WNDPROC
+  #define DWLP_MSGRESULT 0
+#endif
+#ifndef GWLP_WNDPROC
+  #define GWLP_WNDPROC (-4)
+#endif
+#ifndef GWLP_HINSTANCE
+  #define GWLP_HINSTANCE (-6)
+#endif
+#ifndef GWLP_HWNDPARENT
+  #define GWLP_HWNDPARENT (-8)
+#endif
+#ifndef GWLP_ID
+  #define GWLP_ID (-12)
+#endif
+#ifndef GWLP_USERDATA
+  #define GWLP_USERDATA (-21)
+#endif
+
 
 //// Structures
 
@@ -778,8 +798,8 @@ typedef struct {
 } INIVALUEW;
 
 typedef struct {
-  int cpMin;                  //First character in the range. First char of text: 0.
-  int cpMax;                  //Last character in the range. Last char of text: -1.
+  INT_PTR cpMin;              //First character in the range. First char of text: 0.
+  INT_PTR cpMax;              //Last character in the range. Last char of text: -1.
   unsigned char *pText;       //Pointer that receive allocated text. Must be deallocated with AKD_FREETEXT message.
                               //  char *pText      if bOldWindows == TRUE
                               //  wchar_t *pText   if bOldWindows == FALSE
