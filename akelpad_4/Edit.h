@@ -48,26 +48,6 @@
 #define STR_NOBOMA             "  *BOM"
 #define STR_NOBOMW            L"  *BOM"
 
-//GetWindowLongPtr/SetWindowLongPtr
-#ifndef GWLP_WNDPROC
-  #define DWLP_MSGRESULT 0
-#endif
-#ifndef GWLP_WNDPROC
-  #define GWLP_WNDPROC (-4)
-#endif
-#ifndef GWLP_HINSTANCE
-  #define GWLP_HINSTANCE (-6)
-#endif
-#ifndef GWLP_HWNDPARENT
-  #define GWLP_HWNDPARENT (-8)
-#endif
-#ifndef GWLP_USERDATA
-  #define GWLP_USERDATA (-21)
-#endif
-#ifndef GWLP_ID
-  #define GWLP_ID (-12)
-#endif
-
 #ifndef TCN_GETOBJECT
   #define TCN_GETOBJECT (TCN_FIRST - 3)
 

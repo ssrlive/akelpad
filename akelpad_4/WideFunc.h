@@ -1,5 +1,5 @@
 /******************************************************************
- *                  Wide functions header v1.0                    *
+ *                  Wide functions header v1.1                    *
  *                                                                *
  * 2010 Shengalts Aleksander aka Instructor (Shengalts@mail.ru)   *
  *                                                                *
@@ -112,8 +112,8 @@ ATOM RegisterClassWide(WNDCLASSW *lpWndClass);
 BOOL UnregisterClassWide(const wchar_t *wpClassName, HINSTANCE hInstance);
 HWND CreateWindowExWide(DWORD dwExStyle, const wchar_t *wpClassName, const wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 HWND CreateMDIWindowWide(const wchar_t *wpClassName, const wchar_t *wpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HINSTANCE hInstance, LPARAM lParam);
-LONG GetWindowLongWide(HWND hWnd, int nIndex);
-LONG SetWindowLongWide(HWND hWnd, int nIndex, LONG dwNewLong);
+UINT_PTR GetWindowLongPtrWide(HWND hWnd, int nIndex);
+UINT_PTR SetWindowLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong);
 HWND FindWindowExWide(HWND hWndParent, HWND hWndChildAfter, const wchar_t *wpClassName, const wchar_t *wpWindowName);
 int GetWindowTextLengthWide(HWND hWnd);
 int GetWindowTextWide(HWND hWnd, wchar_t *wszText, int nTextMax);
@@ -1611,36 +1611,50 @@ HWND CreateMDIWindowWide(const wchar_t *wpClassName, const wchar_t *wpWindowName
 }
 #endif
 
-#if defined GetWindowLongWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
-#define GetWindowLongWide_INCLUDED
-#undef GetWindowLongWide
+#if defined GetWindowLongPtrWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
+#define GetWindowLongPtrWide_INCLUDED
+#undef GetWindowLongPtrWide
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-LONG GetWindowLongWide(HWND hWnd, int nIndex)
+UINT_PTR GetWindowLongPtrWide(HWND hWnd, int nIndex)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return GetWindowLongA(hWnd, nIndex);
-  else if (WideGlobal_bOldWindows == FALSE)
-    return GetWindowLongW(hWnd, nIndex);
+  #ifdef _WIN64
+    if (WideGlobal_bOldWindows == TRUE)
+      return GetWindowLongPtrA(hWnd, nIndex);
+    else if (WideGlobal_bOldWindows == FALSE)
+      return GetWindowLongPtrW(hWnd, nIndex);
+  #else
+    if (WideGlobal_bOldWindows == TRUE)
+      return GetWindowLongA(hWnd, nIndex);
+    else if (WideGlobal_bOldWindows == FALSE)
+      return GetWindowLongW(hWnd, nIndex);
+  #endif
 
   WideNotInitialized();
   return 0;
 }
 #endif
 
-#if defined SetWindowLongWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
-#define SetWindowLongWide_INCLUDED
-#undef SetWindowLongWide
+#if defined SetWindowLongPtrWide || defined WINDOWWIDEFUNC || defined ALLWIDEFUNC
+#define SetWindowLongPtrWide_INCLUDED
+#undef SetWindowLongPtrWide
 #ifndef ANYWIDEFUNC_INCLUDED
   #define ANYWIDEFUNC_INCLUDED
 #endif
-LONG SetWindowLongWide(HWND hWnd, int nIndex, LONG dwNewLong)
+UINT_PTR SetWindowLongPtrWide(HWND hWnd, int nIndex, UINT_PTR dwNewLong)
 {
-  if (WideGlobal_bOldWindows == TRUE)
-    return SetWindowLongA(hWnd, nIndex, dwNewLong);
-  else if (WideGlobal_bOldWindows == FALSE)
-    return  SetWindowLongW(hWnd, nIndex, dwNewLong);
+  #ifdef _WIN64
+    if (WideGlobal_bOldWindows == TRUE)
+      return SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
+    else if (WideGlobal_bOldWindows == FALSE)
+      return SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
+  #else
+    if (WideGlobal_bOldWindows == TRUE)
+      return SetWindowLongA(hWnd, nIndex, dwNewLong);
+    else if (WideGlobal_bOldWindows == FALSE)
+      return SetWindowLongW(hWnd, nIndex, dwNewLong);
+  #endif
 
   WideNotInitialized();
   return 0;

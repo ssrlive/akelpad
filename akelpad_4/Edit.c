@@ -297,8 +297,8 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
   {
     if (hResult=(HANDLE)CreateWindowExWide(cs.dwExStyle, cs.lpszClass, cs.lpszName, cs.style, cs.x, cs.y, cs.cx, cs.cy, cs.hwndParent, cs.hMenu, cs.hInstance, cs.lpCreateParams))
     {
-      OldEditProc=(WNDPROC)API_GetWindowLongPtr((HWND)hResult, GWLP_WNDPROC);
-      API_SetWindowLongPtr((HWND)hResult, GWLP_WNDPROC, (LONG)CommonEditProc);
+      OldEditProc=(WNDPROC)GetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC);
+      SetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC, (LONG)CommonEditProc);
     }
   }
   return hResult;
@@ -526,11 +526,11 @@ FRAMEDATA* GetFrameDataFromEditWindow(HWND hWndEditCtrl)
     {
       HWND hWndParent;
 
-      if (API_GetWindowLongPtr(hWndEditCtrl, GWLP_ID) == ID_EDIT)
+      if (GetWindowLongPtrWide(hWndEditCtrl, GWLP_ID) == ID_EDIT)
       {
         if (hWndParent=GetParent(hWndEditCtrl))
         {
-          return (FRAMEDATA *)API_GetWindowLongPtr(hWndParent, GWLP_USERDATA);
+          return (FRAMEDATA *)GetWindowLongPtrWide(hWndParent, GWLP_USERDATA);
         }
       }
     }
@@ -2662,13 +2662,13 @@ void DoWindowTabView(DWORD dwNewView, BOOL bFirst)
 
   if (moCur.dwTabOptionsMDI & TAB_VIEW_TOP)
   {
-    dwStyle=API_GetWindowLongPtr(hTab, GWL_STYLE);
-    API_SetWindowLongPtr(hTab, GWL_STYLE, dwStyle & ~TCS_BOTTOM);
+    dwStyle=GetWindowLongPtrWide(hTab, GWL_STYLE);
+    SetWindowLongPtrWide(hTab, GWL_STYLE, dwStyle & ~TCS_BOTTOM);
   }
   else if (moCur.dwTabOptionsMDI & TAB_VIEW_BOTTOM)
   {
-    dwStyle=API_GetWindowLongPtr(hTab, GWL_STYLE);
-    API_SetWindowLongPtr(hTab, GWL_STYLE, dwStyle|TCS_BOTTOM);
+    dwStyle=GetWindowLongPtrWide(hTab, GWL_STYLE);
+    SetWindowLongPtrWide(hTab, GWL_STYLE, dwStyle|TCS_BOTTOM);
   }
   ShowWindow(hTab, !(moCur.dwTabOptionsMDI & TAB_VIEW_NONE)?SW_SHOW:SW_HIDE);
   UpdateSize();
@@ -2706,13 +2706,13 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
   if (bFirst != TRUE && dwNewType == dwOldType) return;
   moCur.dwTabOptionsMDI=moCur.dwTabOptionsMDI & ~TAB_TYPE_STANDARD & ~TAB_TYPE_BUTTONS & ~TAB_TYPE_FLATBUTTONS;
   moCur.dwTabOptionsMDI|=dwNewType;
-  dwCurStyle=API_GetWindowLongPtr(hTab, GWL_STYLE);
+  dwCurStyle=GetWindowLongPtrWide(hTab, GWL_STYLE);
 
   if (moCur.dwTabOptionsMDI & TAB_TYPE_STANDARD)
   {
     if (dwOldType & TAB_TYPE_STANDARD)
     {
-      API_SetWindowLongPtr(hTab, GWL_STYLE, (dwCurStyle | TCS_TABS) & ~TCS_BUTTONS & ~TCS_FLATBUTTONS);
+      SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_TABS) & ~TCS_BUTTONS & ~TCS_FLATBUTTONS);
       SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT - 4));
     }
   }
@@ -2723,13 +2723,13 @@ void DoWindowTabType(DWORD dwNewType, BOOL bFirst)
     {
       if (moCur.dwTabOptionsMDI & TAB_TYPE_BUTTONS)
       {
-        API_SetWindowLongPtr(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS) & ~TCS_TABS & ~TCS_FLATBUTTONS);
+        SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS) & ~TCS_TABS & ~TCS_FLATBUTTONS);
         SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
         return;
       }
       else if (moCur.dwTabOptionsMDI & TAB_TYPE_FLATBUTTONS)
       {
-        API_SetWindowLongPtr(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS | TCS_FLATBUTTONS) & ~TCS_TABS);
+        SetWindowLongPtrWide(hTab, GWL_STYLE, (dwCurStyle | TCS_BUTTONS | TCS_FLATBUTTONS) & ~TCS_TABS);
         SendMessage(hTab, TCM_SETITEMSIZE, 0, MAKELPARAM(TAB_WIDTH, TAB_HEIGHT));
         return;
       }
@@ -3549,7 +3549,7 @@ BOOL SaveOptions(MAINOPTIONS *mo, FRAMEDATA *fd, int nSaveSettings, BOOL bForceW
   BOOL bResult=FALSE;
 
   //Main window style
-  mo->dwMainStyle=API_GetWindowLongPtr(hMainWnd, GWL_STYLE);
+  mo->dwMainStyle=GetWindowLongPtrWide(hMainWnd, GWL_STYLE);
   mo->dwMainStyle=((mo->dwMainStyle & WS_MAXIMIZE) || ((mo->dwMainStyle & WS_MINIMIZE) && dwLastMainSize == SIZE_MAXIMIZED))?WS_MAXIMIZE:0;
 
   //MDI frame style
@@ -3844,7 +3844,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   bFileExist=GetFullName(wpFile, wszFile, MAX_PATH);
 
   //Notification message
-  if (API_GetWindowLongPtr(hWnd, GWLP_ID) == ID_EDIT)
+  if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
   {
     NOPENDOCUMENT nod;
     char szFile[MAX_PATH];
@@ -4131,7 +4131,7 @@ int OpenDocument(HWND hWnd, const wchar_t *wpFile, DWORD dwFlags, int nCodePage,
   }
 
   End:
-  if (API_GetWindowLongPtr(hWnd, GWLP_ID) == ID_EDIT)
+  if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
   {
     SendMessage(hMainWnd, AKDN_OPENDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
   }
@@ -4478,7 +4478,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   GetFullName(wpFile, wszFile, MAX_PATH);
 
   //Notification message
-  if (API_GetWindowLongPtr(hWnd, GWLP_ID) == ID_EDIT)
+  if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
   {
     NSAVEDOCUMENT nsd;
     char szFile[MAX_PATH];
@@ -4688,7 +4688,7 @@ int SaveDocument(HWND hWnd, const wchar_t *wpFile, int nCodePage, BOOL bBOM, DWO
   }
 
   End:
-  if (API_GetWindowLongPtr(hWnd, GWLP_ID) == ID_EDIT)
+  if (GetWindowLongPtrWide(hWnd, GWLP_ID) == ID_EDIT)
   {
     SendMessage(hMainWnd, AKDN_SAVEDOCUMENT_FINISH, (WPARAM)hWnd, nResult);
   }
@@ -5910,8 +5910,8 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     hWndZoomEdit=GetDlgItem(hWndZoom, IDC_COMBOBOXEDIT);
     hWndSelection=GetDlgItem(hDlg, IDC_PREVIEW_SELECTION);
 
-    dwStyle=API_GetWindowLongPtr(hWndZoomEdit, GWL_STYLE);
-    API_SetWindowLongPtr(hWndZoomEdit, GWL_STYLE, dwStyle|ES_NUMBER);
+    dwStyle=GetWindowLongPtrWide(hWndZoomEdit, GWL_STYLE);
+    SetWindowLongPtrWide(hWndZoomEdit, GWL_STYLE, dwStyle|ES_NUMBER);
 
     //Positioning dialog
     if (rcPreviewDialog.right && rcPreviewDialog.bottom)
@@ -6031,7 +6031,7 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     }
     else return FALSE;
 
-    API_SetWindowLongPtr(hDlg, DWLP_MSGRESULT, 1);
+    SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, 1);
     return TRUE;
   }
   else if (uMsg == AKDLG_PREVIEWMOUSEWHEEL)
@@ -6051,7 +6051,7 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         PostMessage(hDlg, WM_COMMAND, IDC_PREVIEW_PREVPAGE, 0);
     }
 
-    API_SetWindowLongPtr(hDlg, DWLP_MSGRESULT, 1);
+    SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, 1);
     return TRUE;
   }
   else if (uMsg == AKDLG_PREVIEWSETZOOM)
@@ -6206,7 +6206,7 @@ BOOL CALLBACK PreviewDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
     else if (LOWORD(wParam) == IDC_PREVIEW_CLOSE ||
              LOWORD(wParam) == IDCANCEL)
     {
-      if (API_GetWindowLongPtr(hDlg, GWL_STYLE) & WS_MAXIMIZE)
+      if (GetWindowLongPtrWide(hDlg, GWL_STYLE) & WS_MAXIMIZE)
       {
         dwPreviewShowDialog=SW_MAXIMIZE;
       }
@@ -6821,8 +6821,8 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     SetTabStops(hWndFilePreview, lpFrameCurrent->nTabStopSize, FALSE);
     SetChosenFont(hWndFilePreview, &lpFrameCurrent->lf);
 
-    OldFilePreviewProc=(WNDPROC)API_GetWindowLongPtr(hWndFilePreview, GWLP_WNDPROC);
-    API_SetWindowLongPtr(hWndFilePreview, GWLP_WNDPROC, (LONG)NewFilePreviewProc);
+    OldFilePreviewProc=(WNDPROC)GetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC);
+    SetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC, (LONG)NewFilePreviewProc);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -6896,7 +6896,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
         xprintfW(wbuf2, wbuf, nOfnCodePage);
         API_MessageBox(hDlg, wbuf2, APP_MAIN_TITLEW, MB_OK|MB_ICONERROR);
 
-        API_SetWindowLongPtr(hDlg, DWLP_MSGRESULT, 1);
+        SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, 1);
         return TRUE;
       }
     }
@@ -8188,8 +8188,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
     {
       SendMessage(hWndComboboxEdit, EM_LIMITTEXT, 0, 0);
 
-      OldComboboxEdit=(WNDPROC)API_GetWindowLongPtr(hWndComboboxEdit, GWLP_WNDPROC);
-      API_SetWindowLongPtr(hWndComboboxEdit, GWLP_WNDPROC, (LONG)NewComboboxEditProc);
+      OldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
+      SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (LONG)NewComboboxEditProc);
     }
     if (nModelessType == MLT_REPLACE)
     {
@@ -8197,8 +8197,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       {
         SendMessage(hWndComboboxEdit, EM_LIMITTEXT, 0, 0);
 
-        OldComboboxEdit=(WNDPROC)API_GetWindowLongPtr(hWndComboboxEdit, GWLP_WNDPROC);
-        API_SetWindowLongPtr(hWndComboboxEdit, GWLP_WNDPROC, (LONG)NewComboboxEditProc);
+        OldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
+        SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (LONG)NewComboboxEditProc);
       }
     }
     if (rcFindAndReplaceDlg.right && rcFindAndReplaceDlg.bottom)
@@ -10690,7 +10690,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else lResult=CDRF_DODEFAULT;
 
-        API_SetWindowLongPtr(hDlg, DWLP_MSGRESULT, lResult);
+        SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, lResult);
         return TRUE;
       }
       else if ((int)((NMHDR *)lParam)->code == NM_CLICK)
@@ -12000,7 +12000,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     }
                     pliElement->pf->bAutoLoad=FALSE;
 
-                    API_SetWindowLongPtr(hDlg, DWLP_MSGRESULT, 1);
+                    SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, 1);
                     return TRUE;
                   }
                 }
@@ -13871,7 +13871,7 @@ void ArrangeListBoxSelItems(HWND hWnd, int nBar)
           if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
           {
             SelectTabItem(hTab, nItem);
-            if (API_GetWindowLongPtr(lpFrame->hWndEditParent, GWL_STYLE) & WS_MAXIMIZE)
+            if (GetWindowLongPtrWide(lpFrame->hWndEditParent, GWL_STYLE) & WS_MAXIMIZE)
               SendMessage(hMdiClient, WM_MDIRESTORE, (WPARAM)lpFrame->hWndEditParent, 0);
 
             MoveWindow(lpFrame->hWndEditParent, rcClient.left, rcClient.top, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top, TRUE);
@@ -17083,7 +17083,7 @@ void ActivateKeyboard(DWORD dwInputLocale)
 
 void ActivateWindow(HWND hWnd)
 {
-  DWORD dwStyle=API_GetWindowLongPtr(hWnd, GWL_STYLE);
+  DWORD dwStyle=GetWindowLongPtrWide(hWnd, GWL_STYLE);
 
   if (dwStyle & WS_VISIBLE)
   {
@@ -18202,36 +18202,6 @@ BOOL FreeWideStr(wchar_t *wpVar)
   if (wpVar)
     return API_HeapFree(hHeap, 0, (LPVOID)wpVar);
   return FALSE;
-}
-
-UINT_PTR API_GetWindowLongPtr(HWND hWnd, int nIndex)
-{
-  #ifdef _WIN64
-    if (bOldWindows == TRUE)
-      return GetWindowLongPtrA(hWnd, nIndex);
-    else
-      return GetWindowLongPtrW(hWnd, nIndex);
-  #else
-    if (bOldWindows == TRUE)
-      return GetWindowLongA(hWnd, nIndex);
-    else
-      return GetWindowLongW(hWnd, nIndex);
-  #endif
-}
-
-UINT_PTR API_SetWindowLongPtr(HWND hWnd, int nIndex, UINT_PTR dwNewLong)
-{
-  #ifdef _WIN64
-    if (bOldWindows == TRUE)
-      return SetWindowLongPtrA(hWnd, nIndex, dwNewLong);
-    else
-      return SetWindowLongPtrW(hWnd, nIndex, dwNewLong);
-  #else
-    if (bOldWindows == TRUE)
-      return SetWindowLongA(hWnd, nIndex, dwNewLong);
-    else
-      return SetWindowLongW(hWnd, nIndex, dwNewLong);
-  #endif
 }
 
 UINT_PTR API_GetFileSize(HANDLE hFile)

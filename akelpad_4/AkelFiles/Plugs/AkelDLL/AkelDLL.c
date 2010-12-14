@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <richedit.h>
+#include "AkelEdit.h"
 #include "AkelDLL.h"
 
 
@@ -23,7 +24,7 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
 {
   GETTEXTRANGE gtr;
-  CHARRANGE cr;
+  CHARRANGE64 cr;
   int nLen;
 
   //Function doesn't support autoload
