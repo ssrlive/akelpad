@@ -1000,7 +1000,7 @@ typedef struct _AEMARKRANGEITEM {
 typedef struct {
   //Standard NMHDR
   HWND hwndFrom;
-  UINT idFrom;
+  UINT_PTR idFrom;
   UINT code;
 
   //AkelEdit members
