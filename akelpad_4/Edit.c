@@ -9288,7 +9288,7 @@ INT_PTR GetTextLength(HWND hWnd)
 
 INT_PTR GetRangeTextA(HWND hWnd, INT_PTR nMin, INT_PTR nMax, char **pText)
 {
-  TEXTRANGEA txtrngA;
+  TEXTRANGE64A txtrngA;
   INT_PTR nLen;
 
   if (nMax == -1)
@@ -9318,7 +9318,7 @@ INT_PTR GetRangeTextA(HWND hWnd, INT_PTR nMin, INT_PTR nMax, char **pText)
 
 INT_PTR GetRangeTextW(HWND hWnd, INT_PTR nMin, INT_PTR nMax, wchar_t **wpText)
 {
-  TEXTRANGEW txtrngW;
+  TEXTRANGE64W txtrngW;
   INT_PTR nLen;
 
   if (nMax == -1)
