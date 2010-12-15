@@ -8,7 +8,11 @@
 // Generated from the TEXTINCLUDE 2 resource.
 //
 #ifndef EXE_VERSION
-  #define RC_VERSIONDESCRIPTION "AkelPad language module"
+  #if (RC_VERSIONBIT == 64)
+    #define RC_VERSIONDESCRIPTION "AkelPad (x64) language module"
+  #else
+    #define RC_VERSIONDESCRIPTION "AkelPad (x86) language module"
+  #endif
   #define RC_VERSIONCOPYRIGHT "© 2010 Pascal Souchet aka MaxPaul"
   #define RC_VERSIONNAME "French.dll"
 #endif
@@ -893,7 +897,11 @@ END
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#ifndef EXE_VERSION\r\n"
-    "  #define RC_VERSIONDESCRIPTION ""AkelPad language module""\r\n"
+    "  #if (RC_VERSIONBIT == 64)\r\n"
+    "    #define RC_VERSIONDESCRIPTION ""AkelPad (x64) language module""\r\n"
+    "  #else\r\n"
+    "    #define RC_VERSIONDESCRIPTION ""AkelPad (x86) language module""\r\n"
+    "  #endif\r\n"
     "  #define RC_VERSIONCOPYRIGHT ""© 2010 Pascal Souchet aka MaxPaul""\r\n"
     "  #define RC_VERSIONNAME ""French.dll""\r\n"
     "#endif\r\n"

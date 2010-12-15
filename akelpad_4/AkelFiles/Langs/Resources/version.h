@@ -2,7 +2,11 @@
 
 #if !defined(EXE_VERSION_INCLUDED) && !defined(DLL_VERSION_INCLUDED)
   #if defined(EXE_VERSION)
-    #define RC_VERSIONDESCRIPTION "AkelPad text editor"
+    #if (RC_VERSIONBIT == 64)
+      #define RC_VERSIONDESCRIPTION "AkelPad (x64) text editor"
+    #else
+      #define RC_VERSIONDESCRIPTION "AkelPad (x86) text editor"
+    #endif
     #define RC_VERSIONCOPYRIGHT "Copyright © AkelSoft 2003-2010"
     #define RC_VERSIONNAME "AkelPad.exe"
     #undef _MAC
