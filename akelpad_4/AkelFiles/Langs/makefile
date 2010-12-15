@@ -4,6 +4,7 @@
 ifndef LANGNAME
   LANGNAME = English
   LANGID = 0x409
+  BIT = 32
 endif
 ifndef NIX
   DEL = del
@@ -14,7 +15,6 @@ endif
 CC = g++
 CFLAGS = -Wall -Werror -Os
 LDFLAGS = -shared -nostdlib
-DEFINES = -D RC_VERSIONLANGID=$(LANGID) 
 
 all: $(LANGNAME).dll
 
@@ -23,10 +23,10 @@ $(LANGNAME).dll: Module.o Resource.o
 	strip --strip-all $(LANGNAME).dll
 
 Module.o:
-	$(CC) $(CFLAGS) $(DEFINES) -c Module.c
+	$(CC) $(CFLAGS) -c Module.c
 
 Resource.o:
-	windres -D DLL_VERSION -D RC_VERSIONLANGID=$(LANGID) -I ..\..\AkelEdit\Resources -I Resources Resources/$(LANGNAME).rc -o Resource.o
+	windres -D DLL_VERSION -D RC_VERSIONLANGID=$(LANGID) -D RC_VERSIONBIT=$(BIT) -I ..\..\AkelEdit\Resources -I Resources Resources/$(LANGNAME).rc -o Resource.o
 
 clean:
 	$(DEL) Module.o

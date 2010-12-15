@@ -4,7 +4,7 @@
 //
 
 #ifdef EXE_VERSION
-  #if (RC_VERSIONMANIFEST == 64)
+  #if (RC_VERSIONBIT == 64)
     1                       24      MOVEABLE PURE   "AkelPad-x64.exe.manifest"
   #else
     1                       24      MOVEABLE PURE   "AkelPad.exe.manifest"
