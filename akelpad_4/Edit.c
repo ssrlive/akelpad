@@ -18014,7 +18014,7 @@ int API_MessageBox(HWND hWnd, const wchar_t *lpText, const wchar_t *lpCaption, U
   int nResult;
 
   bMessageBox=TRUE;
-  nResult=MessageBoxW(hWnd, lpText, lpCaption, uType);
+  nResult=MessageBoxW(IsWindowVisible(hWnd)?hWnd:NULL, lpText, lpCaption, uType);
   bMessageBox=FALSE;
   return nResult;
 }
