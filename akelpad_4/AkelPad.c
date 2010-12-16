@@ -446,7 +446,7 @@ void _WinMain()
 
   //Get program version
   {
-    DWORD ver[4]={AKELPAD_ID};
+    DWORD ver[4]={RC_AKELPADID};
 
     dwExeVersion=MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
   }
