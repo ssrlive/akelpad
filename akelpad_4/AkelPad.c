@@ -1168,6 +1168,12 @@ LRESULT CALLBACK CommonMainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
       fdInit.ei.hWndEdit=NULL;
       fdInit.ei.hDocEdit=NULL;
       bEditOnFinish=FALSE;
+
+      if (nMDI == WMD_SDI)
+      {
+        CopyFrameData(&fdLast, lpFrameCurrent);
+        xstrcpynW(fdLast.wszFile, lpFrameCurrent->wszFile, MAX_PATH);
+      }
     }
     else if (nMDI == WMD_MDI)
     {
@@ -3710,8 +3716,6 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         return bEndSession?0:1;
       }
       RecentFilesSaveCurrentFile();
-      CopyFrameData(&fdLast, lpFrameCurrent);
-      xstrcpynW(fdLast.wszFile, lpFrameCurrent->wszFile, MAX_PATH);
     }
     else
     {
