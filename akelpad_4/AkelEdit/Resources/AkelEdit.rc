@@ -7,6 +7,11 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
+#if (RC_VERSIONBIT == 64)
+  #define RC_VERSIONDESCRIPTION "AkelPad (x64) text edit control"
+#else
+  #define RC_VERSIONDESCRIPTION "AkelPad (x86) text edit control"
+#endif
 #include "winresrc.h"
 #include "version.h"
 
@@ -74,7 +79,7 @@ BEGIN
         BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "AkelEdit text edit control\0"
+            VALUE "FileDescription", RC_VERSIONDESCRIPTION "\0"
             VALUE "FileVersion", "0, 0, 0, 0\0"
             VALUE "InternalName", "\0"
             VALUE "LegalCopyright", "© 2007-2010 Shengalts Aleksander aka Instructor\0"
@@ -108,6 +113,11 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
+    "#if (RC_VERSIONBIT == 64)\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x64) text edit control""\r\n"
+    "#else\r\n"
+    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x86) text edit control""\r\n"
+    "#endif\r\n"
     "#include ""winresrc.h""\r\n"
     "#include ""version.h""\r\n"
     "\0"
