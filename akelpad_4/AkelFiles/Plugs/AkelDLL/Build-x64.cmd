@@ -1,5 +1,6 @@
 @ECHO OFF
 Set MSSDK=D:\Program Files\Microsoft Platform SDK
+Set BIT=64
 
 ::###################################::
 Set PATH=%MSSDK%\bin\win64\x86\AMD64;%MSSDK%\bin;%PATH%

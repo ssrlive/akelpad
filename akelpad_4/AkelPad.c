@@ -1,6 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #define WINVER 0x0500
-#define _WIN32_IE 0x0400
+#define _WIN32_IE 0x0500
 #include <windows.h>
 #include <commdlg.h>
 #include <commctrl.h>
@@ -539,7 +539,7 @@ void _WinMain()
   //fdInit.lpEditProc=NULL;
   //fdInit.ft.dwLowDateTime=0;
   //fdInit.ft.dwHighDateTime=0;
-  fdInit.dwInputLocale=(DWORD)-1;
+  fdInit.dwInputLocale=(HKL)-1;
 
   //--Edit settings--
   fdInit.aec.dwFlags=AECLR_ALL;
@@ -1262,7 +1262,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SetClassLongA(hMdiClient, GCL_STYLE, dwClassStyle|CS_DBLCLKS);
 
         OldMdiClientProc=(WNDPROC)GetWindowLongPtrWide(hMdiClient, GWLP_WNDPROC);
-        SetWindowLongPtrWide(hMdiClient, GWLP_WNDPROC, (LONG)NewMdiClientProc);
+        SetWindowLongPtrWide(hMdiClient, GWLP_WNDPROC, (UINT_PTR)NewMdiClientProc);
 
         InsertMenuWide(hMainMenu, IDM_WINDOW_FRAMECLOSE, MF_BYCOMMAND|MF_SEPARATOR, 0, NULL);
         DeleteMenu(hMainMenu, IDM_WINDOW_MDILIST, MF_BYCOMMAND);
@@ -1292,7 +1292,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                               0);
 
       OldTabProc=(WNDPROC)GetWindowLongPtrWide(hTab, GWLP_WNDPROC);
-      SetWindowLongPtrWide(hTab, GWLP_WNDPROC, (LONG)NewTabProc);
+      SetWindowLongPtrWide(hTab, GWLP_WNDPROC, (UINT_PTR)NewTabProc);
 
       SendMessage(hTab, WM_SETFONT, (WPARAM)GetStockObject(DEFAULT_GUI_FONT), TRUE);
       hImageList=ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), ILC_COLOR32|ILC_MASK, 0, 0);
@@ -2105,14 +2105,14 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         if (lpDock->hWnd)
         {
           lpDock->lpOldDockProc=(WNDPROC)GetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC);
-          SetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC, (LONG)DockProc);
+          SetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC, (UINT_PTR)DockProc);
         }
       }
       if (wParam & DK_UNSUBCLASS)
       {
         if (lpDock->hWnd)
         {
-          SetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC, (LONG)lpDock->lpOldDockProc);
+          SetWindowLongPtrWide(lpDock->hWnd, GWLP_WNDPROC, (UINT_PTR)lpDock->lpOldDockProc);
         }
       }
       if ((wParam & DK_SETLEFT) ||
@@ -2175,7 +2175,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         if (lpButtonDraw=StackButtonDrawGet(&hButtonDrawStack, (HWND)wParam))
         {
-          SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (LONG)lpButtonDraw->OldButtonProc);
+          SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (UINT_PTR)lpButtonDraw->OldButtonProc);
 
           StackButtonDrawDelete(&hButtonDrawStack, lpButtonDraw);
         }
@@ -2188,7 +2188,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           xmemcpy(&lpButtonDraw->bd, (BUTTONDRAW *)lParam, sizeof(BUTTONDRAW));
 
           lpButtonDraw->OldButtonProc=(WNDPROC)GetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC);
-          SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (LONG)NewCloseButtonProc);
+          SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (UINT_PTR)NewCloseButtonProc);
         }
       }
       return 0;
@@ -2197,7 +2197,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       SetWindowLongPtrWide((HWND)wParam, GWLP_USERDATA, lParam);
       OldHotkeyInputProc=(WNDPROC)GetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC);
-      SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (LONG)NewHotkeyInputProc);
+      SetWindowLongPtrWide((HWND)wParam, GWLP_WNDPROC, (UINT_PTR)NewHotkeyInputProc);
       return 0;
     }
     if (uMsg == AKD_DIALOGRESIZE)
@@ -2979,7 +2979,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         SaveOptions(&moCur, lpFrameCurrent, moCur.nSaveSettings, FALSE);
       }
-      return (int)DoFileNewWindow(0);
+      return (LRESULT)DoFileNewWindow(0);
     }
     else if (LOWORD(wParam) == IDM_FILE_OPEN)
     {
@@ -3616,7 +3616,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //WM_NOTIFY (SDI & MDI)
     if (wParam == ID_STATUS && (nMDI == WMD_SDI || nMDI == WMD_PMDI || lpFrameCurrent->hWndEditParent))
     {
-      if ((int)((NMHDR *)lParam)->code == NM_DBLCLK)
+      if (((NMHDR *)lParam)->code == (UINT)NM_DBLCLK)
       {
         if (((NMMOUSE *)lParam)->dwItemSpec == 0)
         {
@@ -3640,7 +3640,7 @@ LRESULT CALLBACK MainProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
           }
         }
       }
-      else if ((int)((NMHDR *)lParam)->code == NM_RCLICK)
+      else if (((NMHDR *)lParam)->code == (UINT)NM_RCLICK)
       {
         if (((NMMOUSE *)lParam)->dwItemSpec == 4)
         {
@@ -4161,7 +4161,7 @@ LRESULT CALLBACK FrameProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (lpFrame=CreateFrameData(hWnd, lpFrameCurrent))
     {
-      SetWindowLongPtrWide(hWnd, GWLP_USERDATA, (LONG)lpFrame);
+      SetWindowLongPtrWide(hWnd, GWLP_USERDATA, (UINT_PTR)lpFrame);
 
       lpFrame->ei.hWndEdit=(HWND)CreateEditWindow(hWnd, NULL);
       lpFrame->lpEditProc=(AEEditProc)SendMessage(lpFrame->ei.hWndEdit, AEM_GETDOCUMENTPROC, (WPARAM)NULL, 0);

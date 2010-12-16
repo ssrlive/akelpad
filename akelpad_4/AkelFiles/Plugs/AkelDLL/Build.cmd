@@ -1,6 +1,7 @@
 @ECHO OFF
 Set MSSDK=D:\Program Files\Microsoft Platform SDK
 Set VCDIR=D:\Program Files\Microsoft Visual C++ Toolkit 2003
+Set BIT=32
 
 ::###################################::
 Set PATH=%VCDIR%\bin;%MSSDK%\bin;%PATH%
