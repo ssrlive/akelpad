@@ -944,7 +944,7 @@ INT_PTR TranslateEscapeString(FRAMEDATA *lpFrame, const wchar_t *wpInput, wchar_
 void FreeMethodParameters(STACKEXTPARAM *hParamStack);
 
 BOOL GetEditInfo(HWND hWnd, EDITINFO *ei);
-BOOL SetCurEditOption(int nType, DWORD dwData);
+BOOL SetCurEditOption(int nType, UINT_PTR dwData);
 DWORD IsEditActive(HWND hWnd);
 void UpdateShowHScroll(FRAMEDATA *lpFrame);
 int SaveLineScroll(HWND hWnd);
@@ -978,7 +978,7 @@ int VersionCompare(DWORD dwVersion1, DWORD dwVersion2);
 int TranslateFileString(const wchar_t *wpCommand, wchar_t *wszBuffer, int nBufferSize);
 void SetMouseCapture(HWND hWnd, DWORD dwType);
 void ReleaseMouseCapture(DWORD dwType);
-void ActivateKeyboard(DWORD dwInputLocale);
+void ActivateKeyboard(HKL dwInputLocale);
 void ActivateWindow(HWND hWnd);
 HWND NextDialog(BOOL bPrevious);
 HWND NextClone(BOOL bPrevious);

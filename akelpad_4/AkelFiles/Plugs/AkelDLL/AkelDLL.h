@@ -696,7 +696,7 @@ typedef struct _FRAMEDATA {
   //Edit state internal
   AEEditProc lpEditProc;                              //Edit window procedure (4.x only).
   FILETIME ft;                                        //File time.
-  DWORD dwInputLocale;                                //Keyboard layout (4.x only).
+  HKL dwInputLocale;                                  //Keyboard layout (4.x only).
   DWORD dwLockInherit;                                //See LI_* defines.
 
   //Substract selection

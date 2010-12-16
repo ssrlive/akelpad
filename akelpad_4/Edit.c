@@ -1,6 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #define WINVER 0x0500
-#define _WIN32_IE 0x0400
+#define _WIN32_IE 0x0500
 #include <windows.h>
 #include <stddef.h>
 #include <commdlg.h>
@@ -298,7 +298,7 @@ HANDLE CreateEditWindow(HWND hWndParent, HWND hWndEditPMDI)
     if (hResult=(HANDLE)CreateWindowExWide(cs.dwExStyle, cs.lpszClass, cs.lpszName, cs.style, cs.x, cs.y, cs.cx, cs.cy, cs.hwndParent, cs.hMenu, cs.hInstance, cs.lpCreateParams))
     {
       OldEditProc=(WNDPROC)GetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC);
-      SetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC, (LONG)CommonEditProc);
+      SetWindowLongPtrWide((HWND)hResult, GWLP_WNDPROC, (UINT_PTR)CommonEditProc);
     }
   }
   return hResult;
@@ -608,7 +608,7 @@ void CopyFrameData(FRAMEDATA *lpFrameTarget, FRAMEDATA *lpFrameSource)
   lpFrameTarget->lpEditProc=NULL;
   lpFrameTarget->ft.dwLowDateTime=0;
   lpFrameTarget->ft.dwHighDateTime=0;
-  lpFrameTarget->dwInputLocale=(DWORD)-1;
+  lpFrameTarget->dwInputLocale=(HKL)-1;
 
   //xmemcpy(&lpFrameTarget->lf, &lpFrameSource->lf, sizeof(LOGFONTW));
   //xmemcpy(&lpFrameTarget->aec, &lpFrameSource->aec, sizeof(AECOLORS));
@@ -644,7 +644,7 @@ void SaveFrameData(FRAMEDATA *lpFrame)
     //Remember keyboard layout
     if (moCur.bKeybLayoutMDI)
     {
-      lpFrame->dwInputLocale=(DWORD)GetKeyboardLayout(0);
+      lpFrame->dwInputLocale=(HKL)GetKeyboardLayout(0);
     }
   }
 }
@@ -740,7 +740,7 @@ BOOL CreateMdiFrameWindow(RECT *rcRectMDI)
       lpFramePrevious=NULL;
     else
       lpFramePrevious=lpFrameCurrent;
-    CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRectMDI?(DWORD)rcRectMDI->left:CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->top:CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->right:CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->bottom:CW_USEDEFAULT, hMdiClient, hInstance, 0);
+    CreateMDIWindowWide(APP_MDI_CLASSW, L"", dwStyle, rcRectMDI?(DWORD)rcRectMDI->left:(DWORD)CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->top:(DWORD)CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->right:(DWORD)CW_USEDEFAULT, rcRectMDI?(DWORD)rcRectMDI->bottom:(DWORD)CW_USEDEFAULT, hMdiClient, hInstance, 0);
     bResult=TRUE;
   }
   else if (nMDI == WMD_PMDI)
@@ -6822,7 +6822,7 @@ UINT_PTR CALLBACK CodePageDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lP
     SetChosenFont(hWndFilePreview, &lpFrameCurrent->lf);
 
     OldFilePreviewProc=(WNDPROC)GetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC);
-    SetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC, (LONG)NewFilePreviewProc);
+    SetWindowLongPtrWide(hWndFilePreview, GWLP_WNDPROC, (UINT_PTR)NewFilePreviewProc);
   }
   else if (uMsg == WM_SIZE)
   {
@@ -8189,7 +8189,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       SendMessage(hWndComboboxEdit, EM_LIMITTEXT, 0, 0);
 
       OldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
-      SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (LONG)NewComboboxEditProc);
+      SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (UINT_PTR)NewComboboxEditProc);
     }
     if (nModelessType == MLT_REPLACE)
     {
@@ -8198,7 +8198,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
         SendMessage(hWndComboboxEdit, EM_LIMITTEXT, 0, 0);
 
         OldComboboxEdit=(WNDPROC)GetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC);
-        SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (LONG)NewComboboxEditProc);
+        SetWindowLongPtrWide(hWndComboboxEdit, GWLP_WNDPROC, (UINT_PTR)NewComboboxEditProc);
       }
     }
     if (rcFindAndReplaceDlg.right && rcFindAndReplaceDlg.bottom)
@@ -10563,7 +10563,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
   {
     if (wParam == IDC_COLORS_LIST)
     {
-      if ((int)((NMHDR *)lParam)->code == NM_CUSTOMDRAW)
+      if (((NMHDR *)lParam)->code == (UINT)NM_CUSTOMDRAW)
       {
         LPNMLVCUSTOMDRAW lplvcd=(LPNMLVCUSTOMDRAW)lParam;
         LRESULT lResult;
@@ -10693,7 +10693,7 @@ BOOL CALLBACK ColorsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
         SetWindowLongPtrWide(hDlg, DWLP_MSGRESULT, lResult);
         return TRUE;
       }
-      else if ((int)((NMHDR *)lParam)->code == NM_CLICK)
+      else if (((NMHDR *)lParam)->code == (UINT)NM_CLICK)
       {
         LVHITTESTINFO lvhti;
         BOOL bResult=FALSE;
@@ -12030,7 +12030,7 @@ BOOL CALLBACK PluginsDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
           EnableWindow(hWndCall, FALSE);
         }
       }
-      else if ((int)((NMHDR *)lParam)->code == NM_DBLCLK)
+      else if (((NMHDR *)lParam)->code == (UINT)NM_DBLCLK)
       {
         LVHITTESTINFO lvhti;
 
@@ -12436,11 +12436,11 @@ BOOL CALLBACK OptionsGeneralDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
       nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
     }
-    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
       //Execute
       GetDlgItemTextWide(hDlg, IDC_OPTIONS_EXECCOM, moCur.wszCommand, BUFFER_SIZE);
@@ -12722,11 +12722,11 @@ BOOL CALLBACK OptionsRegistryDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
       nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
     }
-    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
       wchar_t wszWindowText[MAX_PATH];
       BOOL bRecentFilesRefresh=FALSE;
@@ -12975,11 +12975,11 @@ BOOL CALLBACK OptionsEditor1DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
       nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
     }
-    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
       int a;
       int b;
@@ -13197,11 +13197,11 @@ BOOL CALLBACK OptionsEditor2DlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
       nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
     }
-    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
       int a;
 
@@ -13308,11 +13308,11 @@ BOOL CALLBACK OptionsAdvancedDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM
   }
   else if (uMsg == WM_NOTIFY)
   {
-    if ((int)((NMHDR *)lParam)->code == PSN_SETACTIVE)
+    if (((NMHDR *)lParam)->code == (UINT)PSN_SETACTIVE)
     {
       nPropertyStartPage=SendMessage(hPropertyTab, TCM_GETCURSEL, 0, 0);
     }
-    else if ((int)((NMHDR *)lParam)->code == PSN_APPLY)
+    else if (((NMHDR *)lParam)->code == (UINT)PSN_APPLY)
     {
       //Default save extention
       GetWindowTextWide(hWndDefaultSaveExt, moCur.wszDefaultSaveExt, MAX_PATH);
@@ -13576,7 +13576,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       else
         moCur.dwMdiListOptions&=~MLO_ONLYNAMES;
 
-      while ((int)(lpFrame=(FRAMEDATA *)SendMessage(hWndList, LB_GETITEMDATA, nListBoxItem, 0)) != LB_ERR)
+      while ((INT_PTR)(lpFrame=(FRAMEDATA *)SendMessage(hWndList, LB_GETITEMDATA, nListBoxItem, 0)) != LB_ERR)
       {
         xprintfW(wbuf, L"%s%s", (moCur.dwMdiListOptions & MLO_ONLYNAMES)?GetFileName(lpFrame->wszFile):lpFrame->wszFile, lpFrame->ei.bModified?L" *":L"");
         bSelected=SendMessage(hWndList, LB_GETSEL, nListBoxItem, 0);
@@ -13655,7 +13655,7 @@ BOOL CALLBACK MdiListDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
       int *lpSelItems;
       int nItemNew;
       int nItemOld;
-      int nData;
+      INT_PTR nData;
 
       if (!nModifyFilter && bListChanged)
       {
@@ -13726,7 +13726,7 @@ int MoveListBoxItem(HWND hWnd, int nOldIndex, int nNewIndex)
 {
   wchar_t *wpText;
   int nIndex=LB_ERR;
-  int nData;
+  INT_PTR nData;
   int nTextLen;
 
   if ((nTextLen=SendMessage(hWnd, LB_GETTEXTLEN, nOldIndex, 0)) != LB_ERR)
@@ -13819,7 +13819,7 @@ BOOL SaveListBoxSelItems(HWND hWnd)
   {
     for (i=nSelCount - 1; i >= 0; --i)
     {
-      if ((int)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
+      if ((INT_PTR)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
       {
         if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
         {
@@ -13866,7 +13866,7 @@ void ArrangeListBoxSelItems(HWND hWnd, int nBar)
 
       for (i=nSelCount - 1; i >= 0; --i)
       {
-        if ((int)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
+        if ((INT_PTR)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
         {
           if ((nItem=GetTabItemFromParam(hTab, (LPARAM)lpFrame)) != -1)
           {
@@ -13908,7 +13908,7 @@ BOOL CloseListBoxSelItems(HWND hWnd)
   {
     for (i=nSelCount - 1; i >= 0; --i)
     {
-      if ((int)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
+      if ((INT_PTR)(lpFrame=(FRAMEDATA *)SendMessage(hWnd, LB_GETITEMDATA, lpSelItems[i], 0)) != LB_ERR)
       {
         if (DestroyMdiFrameWindow(lpFrame) != FWDE_SUCCESS)
         {
@@ -16258,7 +16258,7 @@ BOOL GetEditInfo(HWND hWnd, EDITINFO *ei)
   return FALSE;
 }
 
-BOOL SetCurEditOption(int nType, DWORD dwData)
+BOOL SetCurEditOption(int nType, UINT_PTR dwData)
 {
   if (nType == EO_TEXTMARGINS)
   {
@@ -16283,7 +16283,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_TABSIZE)
   {
-    if (lpFrameCurrent->nTabStopSize != (int)dwData && (int)dwData > 0)
+    if (lpFrameCurrent->nTabStopSize != (INT_PTR)dwData && (INT_PTR)dwData > 0)
     {
       lpFrameCurrent->nTabStopSize=dwData;
       SetTabStops(lpFrameCurrent->ei.hWndEdit, lpFrameCurrent->nTabStopSize, TRUE);
@@ -16293,7 +16293,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_UNDOLIMIT)
   {
-    if (lpFrameCurrent->nUndoLimit != (int)dwData && (int)dwData >= 0)
+    if (lpFrameCurrent->nUndoLimit != (INT_PTR)dwData && (INT_PTR)dwData >= 0)
     {
       lpFrameCurrent->nUndoLimit=dwData;
       SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETUNDOLIMIT, (WPARAM)lpFrameCurrent->nUndoLimit, 0);
@@ -16302,7 +16302,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_WRAPLIMIT)
   {
-    if (lpFrameCurrent->dwWrapLimit != dwData && (int)dwData >= -1)
+    if (lpFrameCurrent->dwWrapLimit != dwData && (INT_PTR)dwData >= -1)
     {
       lpFrameCurrent->dwWrapLimit=dwData;
 
@@ -16316,7 +16316,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_MARKERPOS)
   {
-    if (lpFrameCurrent->dwMarker != dwData && (int)dwData >= -1)
+    if (lpFrameCurrent->dwMarker != dwData && (INT_PTR)dwData >= -1)
     {
       lpFrameCurrent->dwMarker=dwData;
       SetMarker(lpFrameCurrent, lpFrameCurrent->dwMarker);
@@ -16326,7 +16326,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_CARETWIDTH)
   {
-    if (lpFrameCurrent->nCaretWidth != (int)dwData && (int)dwData >= 0)
+    if (lpFrameCurrent->nCaretWidth != (INT_PTR)dwData && (INT_PTR)dwData >= 0)
     {
       lpFrameCurrent->nCaretWidth=dwData;
 
@@ -16343,7 +16343,7 @@ BOOL SetCurEditOption(int nType, DWORD dwData)
   }
   else if (nType == EO_LINEGAP)
   {
-    if (lpFrameCurrent->dwLineGap != dwData && (int)dwData >= 0)
+    if (lpFrameCurrent->dwLineGap != dwData && (INT_PTR)dwData >= 0)
     {
       lpFrameCurrent->dwLineGap=dwData;
       SendMessage(lpFrameCurrent->ei.hWndEdit, AEM_SETLINEGAP, lpFrameCurrent->dwLineGap, 0);
@@ -17055,11 +17055,11 @@ void ReleaseMouseCapture(DWORD dwType)
   }
 }
 
-void ActivateKeyboard(DWORD dwInputLocale)
+void ActivateKeyboard(HKL dwInputLocale)
 {
   DWORD dwLangId=LOWORD(dwInputLocale);
 
-  if (dwInputLocale != (DWORD)-1)
+  if (dwInputLocale != (HKL)-1)
   {
     if (bWindowsNT)
     {
@@ -17076,7 +17076,7 @@ void ActivateKeyboard(DWORD dwInputLocale)
     else
     {
       if (LOWORD(GetKeyboardLayout(0)) != dwLangId)
-        ActivateKeyboardLayout((HKL)dwLangId, 0);
+        ActivateKeyboardLayout(dwInputLocale, 0);
     }
   }
 }
@@ -17494,7 +17494,7 @@ BOOL EnsureWindowInMonitor(RECT *rcWindow)
   HMONITOR hMonitor=NULL;
   RECT rcNewWindow;
 
-  if ((DWORD)rcWindow->left == CW_USEDEFAULT)
+  if ((DWORD)rcWindow->left == (DWORD)CW_USEDEFAULT)
     return TRUE;
 
   //Size of the work area on the primary display monitor

@@ -3342,7 +3342,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_INPUTLANGCHANGE)
   {
-    ae->dwInputLocale=lParam;
+    ae->dwInputLocale=(HKL)lParam;
   }
   else if (uMsg == WM_IME_REQUEST)
   {
@@ -3426,7 +3426,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     HIMC hImc;
 
-    if (PRIMARYLANGID(ae->dwInputLocale) == LANG_KOREAN)
+    if (PRIMARYLANGID((UINT_PTR)ae->dwInputLocale) == LANG_KOREAN)
       return 0;
 
     if (hImc=ImmGetContext(ae->hWndEdit))
@@ -3444,7 +3444,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   {
     if (!AE_IsReadOnly(ae))
     {
-      if (PRIMARYLANGID(ae->dwInputLocale) == LANG_KOREAN)
+      if (PRIMARYLANGID((UINT_PTR)ae->dwInputLocale) == LANG_KOREAN)
       {
         AECHARINDEX ciSelStart;
         wchar_t wszCompStr[2];
@@ -3545,7 +3545,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_IME_NOTIFY)
   {
-    if (PRIMARYLANGID(ae->dwInputLocale) == LANG_KOREAN)
+    if (PRIMARYLANGID((UINT_PTR)ae->dwInputLocale) == LANG_KOREAN)
     {
       if (wParam == IMN_OPENCANDIDATE)
       {
@@ -3555,7 +3555,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
   }
   else if (uMsg == WM_IME_KEYDOWN)
   {
-    if (PRIMARYLANGID(ae->dwInputLocale) == LANG_KOREAN)
+    if (PRIMARYLANGID((UINT_PTR)ae->dwInputLocale) == LANG_KOREAN)
     {
       if (wParam == VK_HANJA)
       {
@@ -3568,7 +3568,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
           AE_GetIndex(ae, AEGI_PREVCHAR, &crSel.ciMax, &crSel.ciMin, FALSE);
           ae->dwImeChar=*(crSel.ciMin.lpLine->wpLine + crSel.ciMin.nCharInLine);
 
-          if (ImmEscapeW((HKL)ae->dwInputLocale, hImc, IME_ESC_HANJA_MODE, &ae->dwImeChar))
+          if (ImmEscapeW(ae->dwInputLocale, hImc, IME_ESC_HANJA_MODE, &ae->dwImeChar))
           {
             AE_SetSelectionPos(ae, &crSel.ciMax, &crSel.ciMin, FALSE, 0, AESCT_IME);
             AE_UpdateCandidatePos(ae, hImc);
@@ -4294,7 +4294,7 @@ AKELEDIT* AE_CreateWindowData(HWND hWnd, CREATESTRUCTA *cs, AEEditProc lpEditPro
     ae->popt->nCaretOvertypeHeight=2;
     ae->popt->dwUrlMaxLength=AEMAX_LINKLENGTH;
     ae->popt->dwWordBreak=AEWB_LEFTWORDSTART|AEWB_LEFTWORDEND|AEWB_RIGHTWORDSTART|AEWB_RIGHTWORDEND|AEWB_SKIPSPACESTART|AEWB_STOPSPACEEND;
-    ae->dwInputLocale=(DWORD)GetKeyboardLayout(0);
+    ae->dwInputLocale=(HKL)GetKeyboardLayout(0);
     ae->bCaretVisible=TRUE;
     ae->nCurrentCursor=AECC_IBEAM;
 
@@ -7227,11 +7227,11 @@ AELINEDATA* AE_GetIndex(AKELEDIT *ae, int nType, const AECHARINDEX *ciCharIn, AE
   }
   else if (nType == AEGI_WRAPLINEBEGIN)
   {
-    return (AELINEDATA *)AEC_WrapLineBeginEx(ciCharIn, ciCharOut);
+    return (AELINEDATA *)(UINT_PTR)AEC_WrapLineBeginEx(ciCharIn, ciCharOut);
   }
   else if (nType == AEGI_WRAPLINEEND)
   {
-    return (AELINEDATA *)AEC_WrapLineEndEx(ciCharIn, ciCharOut);
+    return (AELINEDATA *)(UINT_PTR)AEC_WrapLineEndEx(ciCharIn, ciCharOut);
   }
   else if (nType == AEGI_NEXTCHARINLINE)
   {

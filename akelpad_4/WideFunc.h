@@ -896,7 +896,7 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
     ofnA.lpstrTitle=AllocAnsi(lpofn->lpstrTitle);
     ofnA.lpstrDefExt=AllocAnsi(lpofn->lpstrDefExt);
     if (lpofn->Flags & OFN_ENABLETEMPLATE)
-      if ((DWORD)lpofn->lpTemplateName > 0xFFFF)
+      if ((UINT_PTR)lpofn->lpTemplateName > MAXUHALF_PTR)
         ofnA.lpTemplateName=AllocAnsi(lpofn->lpTemplateName);
 
     if (!bSave)
@@ -919,7 +919,7 @@ BOOL GetOpenOrSaveFileNameWide(LPOPENFILENAMEW lpofn, BOOL bSave)
     FreeAnsi((char *)ofnA.lpstrTitle);
     FreeAnsi((char *)ofnA.lpstrDefExt);
     if (lpofn->Flags & OFN_ENABLETEMPLATE)
-      if ((DWORD)lpofn->lpTemplateName > 0xFFFF)
+      if ((UINT_PTR)lpofn->lpTemplateName > MAXUHALF_PTR)
         FreeAnsi((char *)ofnA.lpTemplateName);
     return bResult;
   }
@@ -1511,12 +1511,12 @@ ATOM RegisterClassWide(WNDCLASSW *lpWndClass)
     ATOM wResult;
 
     xmemcpy(&wcA, lpWndClass, sizeof(WNDCLASSA));
-    if ((DWORD)lpWndClass->lpszMenuName > 0xFFFF)
+    if ((UINT_PTR)lpWndClass->lpszMenuName > MAXUHALF_PTR)
       wcA.lpszMenuName=AllocAnsi(lpWndClass->lpszMenuName);
     wcA.lpszClassName=AllocAnsi(lpWndClass->lpszClassName);
     wResult=RegisterClassA(&wcA);
 
-    if ((DWORD)lpWndClass->lpszMenuName > 0xFFFF)
+    if ((UINT_PTR)lpWndClass->lpszMenuName > MAXUHALF_PTR)
       FreeAnsi((char *)wcA.lpszMenuName);
     FreeAnsi((char *)wcA.lpszClassName);
     return wResult;

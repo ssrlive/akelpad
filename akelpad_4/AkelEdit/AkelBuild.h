@@ -582,7 +582,7 @@ typedef struct _AKELEDIT {
   RECT rcDraw;
   AESTACKERASE hEraseStack;
   POINT ptActiveColumnDraw;
-  DWORD dwInputLocale;
+  HKL dwInputLocale;
   DWORD dwImeChar;
   BOOL bSkipMessages;
   BOOL bHScrollShow;
