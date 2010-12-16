@@ -73,6 +73,15 @@ INT_PTR xprintfW(wchar_t *wszOutput, const wchar_t *wpFormat, ...);
 
 #endif
 
+//Make sure max and min macros defined
+#ifndef max
+  #define max(a,b) (((a) > (b)) ? (a) : (b))
+#endif
+
+#ifndef min
+  #define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 
 /********************************************************************
  *

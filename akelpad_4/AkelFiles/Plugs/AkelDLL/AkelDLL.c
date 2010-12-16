@@ -6,9 +6,6 @@
 
 
 //Identification
-#ifdef __GNUC__
-  extern "C"
-#endif
 void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 {
   pv->dwAkelDllVersion=AKELDLL;
@@ -18,9 +15,6 @@ void __declspec(dllexport) DllAkelPadID(PLUGINVERSION *pv)
 }
 
 //Plugin extern function
-#ifdef __GNUC__
-  extern "C"
-#endif
 void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
 {
   GETTEXTRANGE gtr;
@@ -60,9 +54,6 @@ void __declspec(dllexport) GetSelTextTest(PLUGINDATA *pd)
 }
 
 //Plugin extern function
-#ifdef __GNUC__
-  extern "C"
-#endif
 void __declspec(dllexport) OpenDialogTest(PLUGINDATA *pd)
 {
   //Function doesn't support autoload

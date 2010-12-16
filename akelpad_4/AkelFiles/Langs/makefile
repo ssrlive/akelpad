@@ -33,7 +33,7 @@ $(LANGNAME).dll: Module.o Resource.o
 	$(STRIP) --strip-all $(LANGNAME).dll
 
 Module.o:
-	$(CC) $(CFLAGS) -c Module.c
+	$(CC) $(CFLAGS) -c -xc Module.c
 
 Resource.o:
 	$(RES) --use-temp-file -D DLL_VERSION -D RC_VERSIONLANGID=$(LANGID) -D RC_VERSIONBIT=$(BIT) -I ..\..\AkelEdit\Resources -I Resources Resources/$(LANGNAME).rc -o Resource.o

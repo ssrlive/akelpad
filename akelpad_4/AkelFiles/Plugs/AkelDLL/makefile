@@ -29,7 +29,7 @@ AkelDLL.dll: AkelDLL.o
 	$(STRIP) --strip-all AkelDLL.dll
 
 AkelDLL.o:
-	$(CC) $(CFLAGS) -c AkelDLL.c
+	$(CC) $(CFLAGS) -c -xc AkelDLL.c
 
 clean:
 	$(DEL) AkelDLL.o
