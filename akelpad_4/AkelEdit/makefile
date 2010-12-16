@@ -33,7 +33,7 @@ AkelEdit.o:
 	$(CC) $(CFLAGS) $(DEFINES) -c -xc AkelEdit.c
 
 Resource.o:
-	$(RES) --use-temp-file -D RC_VERSIONBIT=$(BIT) -I Resources Resources/AkelEdit.rc -o Resource.o
+	$(RES) --use-temp-file -D RC_AKELEDITBIT=$(BIT) -I Resources Resources/AkelEdit.rc -o Resource.o
 
 clean:
 	$(DEL) AkelEdit.o

@@ -1174,7 +1174,7 @@ LRESULT CALLBACK AE_EditProc(AKELEDIT *ae, UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     if (uMsg == AEM_CONTROLVERSION)
     {
-      DWORD ver[4]={AKELEDIT_ID};
+      DWORD ver[4]={RC_AKELEDITID};
 
       return MAKE_IDENTIFIER(ver[0], ver[1], ver[2], ver[3]);
     }

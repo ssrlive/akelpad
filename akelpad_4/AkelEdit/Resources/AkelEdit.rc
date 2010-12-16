@@ -7,13 +7,16 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#if (RC_VERSIONBIT == 64)
-  #define RC_VERSIONDESCRIPTION "AkelPad (x64) text edit control"
+#if (RC_AKELEDITBIT == 64)
+  #define RC_AKELEDITDESCRIPTION "AkelPad (x64) text edit control"
 #else
-  #define RC_VERSIONDESCRIPTION "AkelPad (x86) text edit control"
+  #define RC_AKELEDITDESCRIPTION "AkelPad (x86) text edit control"
 #endif
 #include "winresrc.h"
 #include "version.h"
+#ifdef RC_AKELEDITBIT
+  #include "Version.rc"
+#endif
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -55,51 +58,6 @@ IDC_AEMRIGHTBOTTOM      CURSOR  DISCARDABLE     "MRightBottom.cur"
 IDC_AEMBOTTOM           CURSOR  DISCARDABLE     "MBottom.cur"
 IDC_AEMLEFTBOTTOM       CURSOR  DISCARDABLE     "MLeftBottom.cur"
 
-#ifndef _MAC
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION AKELEDIT_ID
- PRODUCTVERSION 0,0,0,0
- FILEFLAGSMASK 0x0L
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x4L
- FILETYPE 0x2L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "04090000"
-        BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", RC_VERSIONDESCRIPTION "\0"
-            VALUE "FileVersion", "0, 0, 0, 0\0"
-            VALUE "InternalName", "\0"
-            VALUE "LegalCopyright", "© 2007-2010 Shengalts Aleksander aka Instructor\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "\0"
-            VALUE "ProductVersion", "0, 0, 0, 0\0"
-            VALUE "SpecialBuild", "\0"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x0, 0
-    END
-END
-
-#endif    // !_MAC
-
-
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -113,13 +71,16 @@ END
 
 2 TEXTINCLUDE DISCARDABLE 
 BEGIN
-    "#if (RC_VERSIONBIT == 64)\r\n"
-    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x64) text edit control""\r\n"
+    "#if (RC_AKELEDITBIT == 64)\r\n"
+    "  #define RC_AKELEDITDESCRIPTION ""AkelPad (x64) text edit control""\r\n"
     "#else\r\n"
-    "  #define RC_VERSIONDESCRIPTION ""AkelPad (x86) text edit control""\r\n"
+    "  #define RC_AKELEDITDESCRIPTION ""AkelPad (x86) text edit control""\r\n"
     "#endif\r\n"
     "#include ""winresrc.h""\r\n"
     "#include ""version.h""\r\n"
+    "#ifdef RC_AKELEDITBIT\r\n"
+    "  #include ""Version.rc""\r\n"
+    "#endif\r\n"
     "\0"
 END
 
