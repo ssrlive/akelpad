@@ -945,7 +945,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "已刪除的記錄: %d"
     MSG_SEARCH_ENDED        "搜尋完畢。"
     MSG_REPLACE_COUNT       "變更次數: %d"
-    MSG_REPLACE_COUNT_ALLFILES "已變更的檔案: %d\n變更次數: %d"
+    MSG_REPLACE_COUNT_ALLFILES "已變更的檔案: %d\n變更次數: %Id"
     MSG_FILE_WILL_BE_REOPENED "檔案即將重新開啟，所有的變更將遺失。"
     MSG_FILE_CHANGED        """%s"" 外部已被修改。\n\n您要重新開啟嗎?"
     MSG_CP_UNIMPLEMENTED    """%d"" 字碼頁尚未執行。"

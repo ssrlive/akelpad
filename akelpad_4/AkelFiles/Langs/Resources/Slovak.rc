@@ -965,7 +965,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "Poèet vymazanıch záznamov: %d"
     MSG_SEARCH_ENDED        "Vyh¾adávanie dokonèené."
     MSG_REPLACE_COUNT       "Poèet zmien: %d"
-    MSG_REPLACE_COUNT_ALLFILES "Zmenené súbory: %d\nPoèet zmien: %d"
+    MSG_REPLACE_COUNT_ALLFILES "Zmenené súbory: %d\nPoèet zmien: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Súbor bude znovu otvorenı. Všetky zmeny sa stratia."
     MSG_FILE_CHANGED        "Súbor ""%s"" bol zmenenı inou aplikáciou.\n\nChcete ho znovu otvori?"

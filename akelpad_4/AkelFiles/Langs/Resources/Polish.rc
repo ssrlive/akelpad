@@ -955,7 +955,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "Liczba usuniêtych wpisów: %d"
     MSG_SEARCH_ENDED        "Wyszukiwanie zakoñczone."
     MSG_REPLACE_COUNT       "Liczba zmian: %d"
-    MSG_REPLACE_COUNT_ALLFILES "Zmienione pliki: %d\nLiczba zmian: %d"
+    MSG_REPLACE_COUNT_ALLFILES "Zmienione pliki: %d\nLiczba zmian: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Plik zostanie ponownie otwarty, wszystkie zmiany zostan¹ utracone."
     MSG_FILE_CHANGED        """%s"" zosta³ zmieniony przez inn¹ aplikacjê.\n\nCzy chcesz go ponownie otworzyæ?"

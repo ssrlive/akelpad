@@ -947,7 +947,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "Deleted records: %d"
     MSG_SEARCH_ENDED        "Search finished."
     MSG_REPLACE_COUNT       "Count of changes: %d"
-    MSG_REPLACE_COUNT_ALLFILES "Changed files: %d\nCount of changes: %d"
+    MSG_REPLACE_COUNT_ALLFILES "Changed files: %d\nCount of changes: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "File will be reopened, all changes will be lost."
     MSG_FILE_CHANGED        """%s"" has been modified outside.\n\nDo you want to reopen it?"

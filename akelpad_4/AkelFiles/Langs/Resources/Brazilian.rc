@@ -959,7 +959,7 @@ BEGIN
     MSG_SEARCH_ENDED        "Busca acabou."
     MSG_REPLACE_COUNT       "Número de alterações: %d"
     MSG_REPLACE_COUNT_ALLFILES 
-                            "Arquivos alterados: %d\nNúmero de alterações: %d"
+                            "Arquivos alterados: %d\nNúmero de alterações: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "O arquivo será reaberto; as mudanças se perderão."
     MSG_FILE_CHANGED        """%s"" foi modificado por outro programa.\n\nQuer reabri-lo ?"

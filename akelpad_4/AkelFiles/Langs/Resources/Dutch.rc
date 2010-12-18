@@ -959,7 +959,7 @@ BEGIN
     MSG_SEARCH_ENDED        "Zoeken klaar."
     MSG_REPLACE_COUNT       "Aantal wijzigingen: %d"
     MSG_REPLACE_COUNT_ALLFILES 
-                            "Gewijzigde bestanden: %d\nAantal wijzigingen: %d"
+                            "Gewijzigde bestanden: %d\nAantal wijzigingen: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Bestand zal heropend worden, alle wijzigingen zullen verloren gaan."
     MSG_FILE_CHANGED        """%s"" is gewijzigd van buitenaf.\n\nWilt u het weer openen?"

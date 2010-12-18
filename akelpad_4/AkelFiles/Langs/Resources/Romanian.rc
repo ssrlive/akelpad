@@ -960,7 +960,7 @@ BEGIN
     MSG_SEARCH_ENDED        "Cãutare terminatã."
     MSG_REPLACE_COUNT       "Numãrul modificãrilor: %d"
     MSG_REPLACE_COUNT_ALLFILES 
-                            "File modificate: %d\nNumãrul modificãrilor: %d"
+                            "File modificate: %d\nNumãrul modificãrilor: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "Fila va fi redeschisã, toate modificãrile vor fi pierdute."
     MSG_FILE_CHANGED        "Fila ""%s"" a fost modificatã cu un alt program.\n\nDoreºti s-o redeschizi?"

@@ -2191,7 +2191,7 @@ void DoEditFind()
   }
 }
 
-int DoEditFindNextDown(HWND hWnd)
+INT_PTR DoEditFindNextDown(HWND hWnd)
 {
   DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_UP & ~AEFR_SELECTION & ~AEFR_ALLFILES & ~AEFR_BEGINNING) | AEFR_DOWN;
 
@@ -2201,7 +2201,7 @@ int DoEditFindNextDown(HWND hWnd)
   return 0;
 }
 
-int DoEditFindNextUp(HWND hWnd)
+INT_PTR DoEditFindNextUp(HWND hWnd)
 {
   DWORD dwFlags=(moCur.dwSearchOptions & ~AEFR_DOWN & ~AEFR_SELECTION & ~AEFR_ALLFILES & ~AEFR_BEGINNING) | AEFR_UP;
 
@@ -8108,8 +8108,8 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
   BOOL bReplace=FALSE;
   BOOL bReplaceAll=FALSE;
   BOOL bReplaceAllButtonState=FALSE;
-  int nReplaceCount;
-  int nResult;
+  INT_PTR nReplaceCount;
+  INT_PTR nResult;
   int i;
 
   if (uMsg == WM_INITDIALOG)
@@ -8343,7 +8343,7 @@ BOOL CALLBACK FindAndReplaceDlgProc(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM 
       if (!(moCur.dwSearchOptions & AEFR_SELECTION) && (moCur.dwSearchOptions & AEFR_ALLFILES))
       {
         FRAMEDATA *lpFrameInit=lpFrameCurrent;
-        int nChanges=0;
+        INT_PTR nChanges=0;
         int nChangedFiles=0;
 
         if (bReplaceAll == TRUE)
@@ -8686,7 +8686,7 @@ void SaveComboboxSearch(HWND hWndFind, HWND hWndReplace)
   RegCloseKey(hKey);
 }
 
-int TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen)
+INT_PTR TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen)
 {
   AEFINDTEXTW ft;
   CHARRANGE64 cr;
@@ -8730,7 +8730,7 @@ int TextFindW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen)
   return -1;
 }
 
-int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, int *nReplaceCount)
+INT_PTR TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItLen, const wchar_t *wpReplaceWith, int nReplaceWithLen, BOOL bAll, INT_PTR *nReplaceCount)
 {
   AECHARRANGE crInitialSel;
   AECHARRANGE crRange;
@@ -8748,8 +8748,8 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
   INT_PTR nFirstVisible;
   INT_PTR nRangeTextLen;
   INT_PTR nResultTextLen;
-  int nChanges=0;
-  int nResult=-1;
+  INT_PTR nChanges=0;
+  INT_PTR nResult=-1;
   int i;
   BOOL bInitialColumnSel;
   BOOL bColumnSel;
@@ -9010,7 +9010,7 @@ int TextReplaceW(HWND hWnd, DWORD dwFlags, const wchar_t *wpFindIt, int nFindItL
   return nResult;
 }
 
-int StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, INT_PTR *nMin, INT_PTR *nMax, INT_PTR *nFirstVis)
+INT_PTR StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, int nItLen, const wchar_t *wpWith, int nWithLen, DWORD dwFlags, wchar_t *wszResult, INT_PTR *nResultLen, INT_PTR *nMin, INT_PTR *nMax, INT_PTR *nFirstVis)
 {
   const wchar_t *wpTextMax;
   const wchar_t *wpTextCount;
@@ -9023,7 +9023,7 @@ int StrReplaceW(const wchar_t *wpText, INT_PTR nTextLen, const wchar_t *wpIt, in
   const wchar_t *wpMax=NULL;
   const wchar_t *wpFirstVis=NULL;
   wchar_t *wpResultCount;
-  int nChanges=0;
+  INT_PTR nChanges=0;
   int nDiff;
 
   if (nTextLen == -1)
@@ -14604,7 +14604,7 @@ void SetSelectionStatus(AEHDOC hDocEdit, HWND hWndEdit, AECHARRANGE *cr, AECHARI
         lpFrameCurrent->nSelSubtract+=IndexSubtract(hWndEdit, &lpFrameCurrent->crPrevSel.ciMin, &crSel.ciMin, AELB_ASOUTPUT, -1);
         lpFrameCurrent->nSelSubtract+=IndexSubtract(hWndEdit, &crSel.ciMax, &lpFrameCurrent->crPrevSel.ciMax, AELB_ASOUTPUT, -1);
       }
-      xprintfW(wszStatus, L"%u:%u, %u", nLine + 1, nColumn + 1, lpFrameCurrent->nSelSubtract);
+      xprintfW(wszStatus, L"%u:%u, %Iu", nLine + 1, nColumn + 1, lpFrameCurrent->nSelSubtract);
       if (bColumnSel) lpFrameCurrent->nSelSubtract=0;
     }
     lpFrameCurrent->crPrevSel.ciMin=crSel.ciMin;
@@ -14834,14 +14834,14 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
         if (*++wpString == 'r')
         {
           if (lpFrame)
-            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nCaretRichOffset);
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%Id", lpFrame->nCaretRichOffset);
           else
             dwFlags|=CSB_RICHOFFSET;
         }
         else if (*wpString == 'b')
         {
           if (lpFrame)
-            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nCaretByteOffset);
+            i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%Id", lpFrame->nCaretByteOffset);
           else
             dwFlags|=CSB_BYTEOFFSET;
         }
@@ -14870,7 +14870,7 @@ DWORD TranslateStatusUser(FRAMEDATA *lpFrame, const wchar_t *wpString, wchar_t *
       else if (*wpString == 'r')
       {
         if (lpFrame)
-          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%d", lpFrame->nReplaceCount);
+          i+=xprintfW(wszBuffer?wszBuffer + i:NULL, L"%Id", lpFrame->nReplaceCount);
         else
           dwFlags|=CSB_REPLACECOUNT;
       }
@@ -16834,7 +16834,7 @@ void GetTimeString(const wchar_t *wpFormat, wchar_t *wszOutput, BOOL bWithoutSec
   {
     wchar_t wszBuffer[MAX_PATH];
     wchar_t wszAMPM[128];
-    int nChanges=0;
+    INT_PTR nChanges=0;
 
     nChanges+=StrReplaceW(wpFormat, -1, L"tt", -1, L"\x0002", 1, AEFR_MATCHCASE, wszBuffer, NULL, NULL, NULL, NULL);
     nChanges+=StrReplaceW(wszBuffer, -1, L"t", -1, L"\x0001", 1, AEFR_MATCHCASE, wszOutput, NULL, NULL, NULL, NULL);

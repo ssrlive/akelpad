@@ -954,7 +954,7 @@ BEGIN
     MSG_RECENTFILES_DELETED "削除された記録: %d"
     MSG_SEARCH_ENDED        "検索が完了しました。"
     MSG_REPLACE_COUNT       "変更の数: %d"
-    MSG_REPLACE_COUNT_ALLFILES "変更されたファイル: %d\n変更の数: %d"
+    MSG_REPLACE_COUNT_ALLFILES "変更されたファイル: %d\n変更の数: %Id"
     MSG_FILE_WILL_BE_REOPENED 
                             "ファイルは開き直され、すべての変更は失われます。"
     MSG_FILE_CHANGED        """%s"" は外部で変更されています。\n\n開き直しますか?"
